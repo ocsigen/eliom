@@ -342,8 +342,8 @@ and parse_config_aux =
 
 (** BYXXX : update this documentation
    For each extension generating pages, we register five functions:
-   - a function of type parse_config, parsing the configuration for
-    the server
+   - a function of type parse_config, that adds some options
+    to the configuration file for the extension
    - a function of type parse_config type, that will be called every time user
     configuration  files are parsed (if userconf is enabled).
     It must define only safe options, for example it is not
@@ -358,6 +358,9 @@ and parse_config_aux =
    (Note that the extensions are not reloaded)
    - a function that will be called at the end of the initialisation phase
    of the server
+   - a function that will be called just before registering the extension,
+   with, as parameter, the configuration options between [<extension>] and
+   [</extension>] (allows to give configuration options to extensions).
    - a function that will create an error message from the exceptions
    that may be raised during the initialisation phase, and raise again
    all other exceptions
@@ -368,39 +371,19 @@ and parse_config_aux =
    has been taken by an extension before giving a request to an extension.
    Use this to write proxies extensions, when you want to be able to pipeline
    the requests you to another server. It is false by default.
+
  *)
 val register_extension :
-  fun_site:parse_config ->
+  name:string ->
+  ?fun_site:parse_config ->
   ?user_fun_site:parse_config_user ->
   ?begin_init:(unit -> unit) ->
   ?end_init:(unit -> unit) ->
+  ?init_fun:(Simplexmlparser.xml list -> unit) ->
   ?exn_handler:(exn -> string) ->
   ?respect_pipeline:bool ->
   unit -> unit
 
-(** [register_named_extension] is analog to [register_extension], but instead of
-    registering the extension right away, it associates the given data to the
-    extension name, and will register the module later when the module is
-    initialized in [ocsigen.conf] using something like
-    [<extension name="eliom" />]. *)
-val register_named_extension : string ->
-  fun_site:parse_config ->
-  ?user_fun_site:parse_config_user ->
-  ?begin_init:(unit -> unit) ->
-  ?end_init:(unit -> unit) ->
-  ?exn_handler:(exn -> string) ->
-  ?respect_pipeline:bool ->
-  unit -> unit
-
-(** A predefined function to be passed to {!Ocsigen_extensions.register_extension}
-    that defines no option.
- *)
-val extension_void_fun_site : parse_config_user
-
-
-(** While loading an extension,
-    get the configuration tree between <dynlink></dynlink>*)
-val get_config : unit -> Simplexmlparser.xml list
 
 (** Returns the hostname to be used for absolute links or redirections.
     It is either the Host header or the hostname set in 

@@ -459,8 +459,6 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file
                   ("Unexpected content inside cgimod config"))
 
-let _ = parse_global_config (Ocsigen_extensions.get_config ())
-
 
 (*****************************************************************************)
 
@@ -623,6 +621,8 @@ let parse_config path _ _ = function
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let () = register_named_extension "cgimod"
+let () = register_extension
+  ~name:"cgimod"
   ~fun_site:(fun _ -> parse_config)
+  ~init_fun:parse_global_config
   ()

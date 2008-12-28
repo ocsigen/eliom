@@ -205,7 +205,6 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file ("Unexpected content inside eliom config"))
 
 
-let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 
@@ -415,10 +414,12 @@ let parse_config hostpattern site_dir =
 (*****************************************************************************)
 (** extension registration *)
 let () =
-  register_named_extension "eliom"
-    ?fun_site:parse_config
+  register_extension
+    ~name:"eliom"
+    ~fun_site:parse_config
     ~end_init
     ~exn_handler:handle_init_exn
+    ~init_fun:parse_global_config
     ();
   Eliommod_gc.persistent_session_gc ()
 

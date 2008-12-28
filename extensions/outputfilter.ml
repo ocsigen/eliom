@@ -113,7 +113,8 @@ let site_creator hostpattern = parse_config
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let () = register_named_extension "outputfilter"
+let () = register_extension
+  ~name:"outputfilter"
   ~fun_site:site_creator
   ~user_fun_site:(fun _ -> site_creator)
   ()

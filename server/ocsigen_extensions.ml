@@ -283,6 +283,13 @@ let get_hosts () = !hosts
 
 
 (*****************************************************************************)
+(* To give parameters to extensions: *)
+let dynlinkconfig = ref ([] : Simplexmlparser.xml list)
+let set_config s = dynlinkconfig := s
+let get_config () = !dynlinkconfig
+
+
+(*****************************************************************************)
 let site_match request site_path url =
   (* We are sure that there is no / at the end or beginning of site_path *)
   (* and no / at the beginning of url *)
@@ -545,7 +552,11 @@ and parse_config_aux =
 
 
 
-let extension_void_fun_site : parse_config_user = fun _ _ _ _ _ -> function
+let user_extension_void_fun_site : parse_config_user = fun _ _ _ _ _ -> function
+  | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
+  | _ -> raise (Error_in_config_file "Unexpected data in config file")
+
+let extension_void_fun_site : parse_config = fun _ _ _ _ -> function
   | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "Unexpected data in config file")
 
@@ -555,8 +566,9 @@ let register_extension, parse_config_item, parse_user_site_item, get_beg_init, g
   let ref_user_fun_site = ref (fun (_ : userconf_info) -> default_parse_config) in
 
   ((* ********* register_extension ********* *)
-    (fun ~fun_site
-         ?(user_fun_site = extension_void_fun_site)
+    (fun
+         ?(fun_site = extension_void_fun_site)
+         ?(user_fun_site = user_extension_void_fun_site)
          ?(begin_init=(fun () -> ()))
          ?(end_init=(fun () -> ()))
          ?(exn_handler=raise)
@@ -566,35 +578,41 @@ let register_extension, parse_config_item, parse_user_site_item, get_beg_init, g
 
        if respect_pipeline then Ocsigen_config.set_respect_pipeline ();
 
-       let old_fun_site = !ref_fun_site in
-       ref_fun_site :=
-         (fun host ->
-           let oldf = old_fun_site host in
-           let newf = fun_site host in
-           fun path parse_host ->
-             let oldf = oldf path parse_host in
-             let newf = newf path parse_host in
-             fun parse_config config_tag ->
-               try
-                 oldf parse_config config_tag
-               with
-               | Bad_config_tag_for_extension c -> newf parse_config config_tag
-         );
+       if fun_site != extension_void_fun_site
+       then
+         let old_fun_site = !ref_fun_site in
+         ref_fun_site :=
+           (fun host ->
+              let oldf = old_fun_site host in
+              let newf = fun_site host in
+              fun path parse_host ->
+                let oldf = oldf path parse_host in
+                let newf = newf path parse_host in
+                fun parse_config config_tag ->
+                  try
+                    oldf parse_config config_tag
+                  with
+                    | Bad_config_tag_for_extension c -> 
+                        newf parse_config config_tag
+           );
 
-       let old_fun_site = !ref_user_fun_site in
-       ref_user_fun_site :=
-         (fun path host ->
-           let oldf = old_fun_site path host in
-           let newf = user_fun_site path host in
-           fun path parse_host ->
-             let oldf = oldf path parse_host in
-             let newf = newf path parse_host in
-             fun parse_config config_tag ->
-               try
-                 oldf parse_config config_tag
-               with
-               | Bad_config_tag_for_extension c -> newf parse_config config_tag
-         );
+       if user_fun_site != user_extension_void_fun_site
+       then
+         let old_fun_site = !ref_user_fun_site in
+         ref_user_fun_site :=
+           (fun path host ->
+              let oldf = old_fun_site path host in
+              let newf = user_fun_site path host in
+              fun path parse_host ->
+                let oldf = oldf path parse_host in
+                let newf = newf path parse_host in
+                fun parse_config config_tag ->
+                  try
+                    oldf parse_config config_tag
+                  with
+                    | Bad_config_tag_for_extension c -> 
+                        newf parse_config config_tag
+           );
 
        fun_beg := comp begin_init !fun_beg;
        fun_end := comp end_init !fun_end;
@@ -618,17 +636,23 @@ let register_extension, parse_config_item, parse_user_site_item, get_beg_init, g
    (fun () -> !fun_exn)
   )
 
-let register_named_extension name =
-  fun ~fun_site
+let register_extension 
+    ~name
+    ?fun_site
     ?user_fun_site
     ?begin_init
     ?end_init
+    ?init_fun
     ?exn_handler
     ?respect_pipeline
-    () ->
+    () =
   Ocsigen_loader.set_module_init_function name
-       (register_extension ~fun_site ?user_fun_site ?begin_init ?end_init
-            ?exn_handler ?respect_pipeline)
+    (fun () -> 
+       (match init_fun with
+          | None -> ()
+          | Some f -> f (get_config ()));
+       register_extension ?fun_site ?user_fun_site ?begin_init ?end_init
+         ?exn_handler ?respect_pipeline ())
 
 (*****************************************************************************)
 let start_initialisation, during_initialisation,
@@ -829,12 +853,6 @@ let get_number_of_connected,
 
 
 
-
-(*****************************************************************************)
-(* To give parameters to extensions: *)
-let dynlinkconfig = ref ([] : Simplexmlparser.xml list)
-let set_config s = dynlinkconfig := s
-let get_config () = !dynlinkconfig
 
 
 

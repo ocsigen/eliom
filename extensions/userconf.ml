@@ -181,6 +181,7 @@ let parse_config hostpattern path =
 
 (*****************************************************************************)
 (** extension registration *)
-let () = register_named_extension "userconf"
+let () = register_extension
+  ~name:"userconf"
   ~fun_site:parse_config
   ()

@@ -55,14 +55,6 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file
                   ("Unexpected content inside redirectmod config"))
 
-let _ = parse_global_config (Ocsigen_extensions.get_config ())
-
-
-
-
-
-
-
 
 
 
@@ -180,7 +172,9 @@ let parse_config path _ parse_site = function
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let () = register_named_extension "redirectmod"
+let () = register_extension
+  ~name:"redirectmod"
   ~fun_site:(fun _ -> parse_config)
   ~user_fun_site:(fun _ _ -> parse_config)
+  ~init_fun:parse_global_config
   ()

@@ -63,9 +63,6 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file
                   ("Unexpected content inside extensiontemplate config"))
 
-let _ = parse_global_config (Ocsigen_extensions.get_config ())
-
-
 
 
 (*****************************************************************************)
@@ -192,7 +189,8 @@ let user_site_creator (path : Ocsigen_extensions.userconf_info) = site_creator
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let () = register_named_extension "extensionname"
+let () = register_extension
+  ~name:"extensionname"
   ~fun_site:site_creator
 
   (* If your extension is safe for users and if you want to allow
@@ -200,11 +198,10 @@ let () = register_named_extension "extensionname"
      [site_creator] function for [user_fun_site] as for [fun_site].
 
      If you don't want to allow users to use that extension in their
-     configuration files, you can omit user_fun_site entirely, which
-     is equivalent to passing it
-     [Ocsigen_extensions.extension_void_fun_site]
+     configuration files, you can omit user_fun_site.
   *)
   ~user_fun_site:user_site_creator
+  ~init_fun: parse_global_config
 
   ~begin_init ~end_init ~exn_handler
   ()

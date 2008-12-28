@@ -40,7 +40,6 @@ let rec parse_global_config = function
   | [] -> ()
   | _ -> badconfig "Unexpected content inside accesscontrol config"
 
-let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 (*****************************************************************************)
@@ -286,7 +285,9 @@ let parse_config path _ parse_fun = function
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let () = register_named_extension "accesscontrol"
+let () = register_extension
+  ~name:"accesscontrol"
   ~fun_site:(fun _ -> parse_config)
   ~user_fun_site:(fun _ _ -> parse_config)
+  ~init_fun:parse_global_config
   ()

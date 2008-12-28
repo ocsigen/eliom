@@ -320,7 +320,6 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file
                   "Unexpected content inside deflatemod config")
 
-let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 
@@ -362,6 +361,8 @@ let parse_config path _ _ = function
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let () = Ocsigen_extensions.register_named_extension "deflatemod"
+let () = Ocsigen_extensions.register_extension
+  ~name:"deflatemod"
   ~fun_site:(fun _ -> parse_config)
+  ~init_fun:parse_global_config
   ()

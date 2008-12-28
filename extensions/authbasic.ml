@@ -32,8 +32,6 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file
                   ("Unexpected content inside authbasic config"))
 
-let _ = parse_global_config (Ocsigen_extensions.get_config ())
-
 
 (*****************************************************************************)
 (* Management of basic authentication methods *)
@@ -144,7 +142,9 @@ let parse_config path _ parse_fun = function
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let () = register_named_extension "authbasic"
+let () = register_extension
+  ~name:"authbasic"
   ~fun_site:(fun _ -> parse_config)
   ~user_fun_site:(fun _ _ -> parse_config)
+  ~init_fun:parse_global_config
   ()

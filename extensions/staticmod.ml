@@ -146,7 +146,6 @@ let rec parse_global_config = function
       parse_global_config l
   | _ -> bad_config "Unexpected content inside staticmod options"
 
-let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 let do_not_serve =
   try Netstring_pcre.regexp !do_not_serve
@@ -231,7 +230,9 @@ let parse_config userconf : parse_config_aux = fun _ _ _ ->
 
 (*****************************************************************************)
 (** extension registration *)
-let () = register_named_extension "staticmod"
+let () = register_extension 
+  ~name:"staticmod"
   ~fun_site:(fun _ -> parse_config None)
   ~user_fun_site:(fun path _ -> parse_config (Some path))
+  ~init_fun:parse_global_config
   ()

@@ -54,15 +54,8 @@ let rec parse_global_config d = function
   | _ -> raise (Ocsigen_extensions.Error_in_config_file ("Unexpected content inside Ocsipersist config"))
 
 let (directory, ocsidbm) =
-  let (store, ocsidbm) =
-    parse_global_config (None, None) (Ocsigen_extensions.get_config ())
-  in
-  ((match store with
-  | None -> (Ocsigen_config.get_datadir ())^"/ocsipersist"
-  | Some d -> d),
-   (match ocsidbm with
-   | None -> (Ocsigen_config.get_extralibdir ())^"/extensions/ocsidbm"
-   | Some d -> d))
+  (ref ((Ocsigen_config.get_datadir ())^"/ocsipersist"),
+   ref ((Ocsigen_config.get_extralibdir ())^"/extensions/ocsidbm"))
 
 
 (*****************************************************************************)
@@ -75,9 +68,9 @@ let rec try_connect sname =
       Lwt_unix.connect socket (Unix.ADDR_UNIX sname) >>= fun () ->
       return socket)
     (fun _ ->
-      Ocsigen_messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^
-                        " on directory "^directory^".");
-      let param = [|ocsidbm; directory|] in
+      Ocsigen_messages.warning ("Launching a new Ocsidbm process: "^(!ocsidbm)^
+                        " on directory "^(!directory)^".");
+      let param = [|!ocsidbm; !directory|] in
       let child () =
         let err = !(Ocsigen_lib.thd3 Ocsigen_messages.error) in
         Unix.dup2 err Unix.stderr;
@@ -88,7 +81,7 @@ let rec try_connect sname =
         Unix.dup2 devnull Unix.stdout;
         Unix.close devnull;
         Unix.close Unix.stdin;
-        Unix.execv ocsidbm param
+        Unix.execv !ocsidbm param
       in
       let pid = Unix.fork () in
       if pid = 0
@@ -109,7 +102,7 @@ let rec try_connect sname =
 
 let rec get_indescr i =
   (catch
-     (fun () -> try_connect (directory^"/"^socketname))
+     (fun () -> try_connect (!directory^"/"^socketname))
      (fun e ->
        if i = 0
        then begin
@@ -126,11 +119,22 @@ let rec get_indescr i =
        end
        else (Lwt_unix.sleep 2.1) >>= (fun () -> get_indescr (i-1))))
 
-let indescr = get_indescr 2
+let inch = ref (Lwt.fail (Failure "Ocsipersist not initalised"))
+let outch = ref (Lwt.fail (Failure "Ocsipersist not initalised"))
 
-let inch = indescr >>= (fun r -> return (Lwt_chan.in_channel_of_descr r))
+let init_fun config =
+  let (store, ocsidbmconf) = parse_global_config (None, None) config in
+  (match store with
+     | None -> ()
+     | Some d -> directory := d);
+  (match ocsidbmconf with
+     | None -> ()
+     | Some d -> ocsidbm := d);
 
-let outch = indescr >>= (fun r -> return (Lwt_chan.out_channel_of_descr r))
+  let indescr = get_indescr 2 in
+  inch  := (indescr >>= fun r -> return (Lwt_chan.in_channel_of_descr r));
+  outch := (indescr >>= fun r -> return (Lwt_chan.out_channel_of_descr r))
+
 
 let send =
   let previous = ref (return Ok) in
@@ -139,8 +143,8 @@ let send =
       (fun () -> !previous)
       (fun _ -> return Ok) >>=
     (fun _ ->
-      inch >>= fun inch ->
-      outch >>= fun outch ->
+      !inch >>= fun inch ->
+      !outch >>= fun outch ->
       previous :=
         (Lwt_chan.output_value outch v >>= fun () ->
          Lwt_chan.flush outch >>= fun () ->
@@ -325,3 +329,4 @@ let length table =
 (* Because of Dbm implementation, the result may be less thann the expected
    result in some case (with a version of ocsipersist based on Dbm) *)
 
+let _ = Ocsigen_extensions.register_extension ~name:"ocsipersist" ~init_fun ()

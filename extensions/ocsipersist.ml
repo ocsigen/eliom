@@ -50,10 +50,12 @@ let rec parse_global_config d = function
   | _ -> raise (Ocsigen_extensions.Error_in_config_file
                   ("Unexpected content inside Ocsipersist config"))
 
-let db_file =
-  match parse_global_config None (Ocsigen_extensions.get_config ()) with
-  | None -> (Ocsigen_config.get_datadir ())^"/ocsidb"
-  | Some d -> d
+let db_file = ref ((Ocsigen_config.get_datadir ())^"/ocsidb")
+  
+let init config =
+  match parse_global_config None config with
+    | None -> ()
+    | Some d -> db_file := d
 
 
 
@@ -81,7 +83,7 @@ let exec_safely f =
   let aux () =
    let db =
      Mutex.lock m ;
-     try db_open db_file with e -> Mutex.unlock m; raise e
+     try db_open !db_file with e -> Mutex.unlock m; raise e
    in
     (try
       let r = f db in
@@ -326,3 +328,5 @@ let length table =
 
 
 
+let _ = Ocsigen_extensions.register_extension 
+  ~name:"ocsipersist" ~init_fun:init ()
