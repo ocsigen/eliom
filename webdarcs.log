@@ -18,10 +18,15 @@ See http://www.ocsigen.org and http://caml.inria.fr for information -->
         <h2>Repository ocsigen.dev
         </h2>
         <div>
-          <div>Patch application was successful!
+          <div>Patch application failed with return code 2!
           </div>
           <div>Darcs output:
-            <pre>Finished applying...
+            <pre>
+darcs failed:  Error applying hunk to file ./examples/tutoeliom.ml
+Your repository is now in an inconsistent state.
+This must be fixed by running darcs repair.
+
+
 </pre>
           </div>
         </div>
@@ -30,12 +35,15 @@ See http://www.ocsigen.org and http://caml.inria.fr for information -->
         <h2>Repository ocsigen.current
         </h2>
         <div>
-          <div>Patch application failed with return code 1!
+          <div>Patch application failed with return code 2!
           </div>
           <div>Darcs output:
-            <pre>darcs: Cannot apply this patch bundle, since we're missing:
-Sat Dec 20 18:40:37 CET 2008  balat at pps.jussieu.fr
-  * Revproxy and Redirectmod: uniformizing the syntax
+            <pre>
+darcs failed:  ./eliom/eliommod.ml-0: takeFile ./eliom/eliommod.ml-0 in /var/www/darcs/ocsigen.current/_darcs/pristine: openFd: permission denied (Permission denied)
+Your repository is now in an inconsistent state.
+This must be fixed by running darcs repair.
+
+
 </pre>
           </div>
         </div>

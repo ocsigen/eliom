@@ -150,7 +150,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
   linked dynamic or statically into the server.
   [register_eliom_module name f] registers the initialization function [f] for
   module [name].  The [f] function will be invoked when the module is
-  initialized in [ocsigen.conf] using [<eliom name="name"> ... </eliom>], which
+  initialized in the configuration file using [<eliom name="name"> ... </eliom>], which
   is equivalent to [<eliom module="name.cmo"> ... </eliom>] with the exception
   that it does not load the module using [Dynlink].
   *)

@@ -354,10 +354,11 @@ and parse_config_aux =
     If you do not want to allow users to use your extension,
     use the predefined function [void_extension] (defines no option).
    - a function that will be called at the beginning
-   of the initialisation phase (each time the config file is reloaded)
+   of the initialisation phase of each site
+   (each time the config file is reloaded)
    (Note that the extensions are not reloaded)
    - a function that will be called at the end of the initialisation phase
-   of the server
+   of each site
    - a function that will be called just before registering the extension,
    with, as parameter, the configuration options between [<extension>] and
    [</extension>] (allows to give configuration options to extensions).

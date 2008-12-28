@@ -309,7 +309,7 @@ let load_eliom_module sitedata cmo_or_name content =
   in
   try
     match cmo_or_name with
-        Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo
+      | Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo
       | Name name -> Ocsigen_loader.init_module preload postload true name
   with Ocsigen_loader.Dynlink_error (n, e) ->
     raise (Eliom_common.Eliom_error_while_loading_site

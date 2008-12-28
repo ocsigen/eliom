@@ -4125,7 +4125,19 @@ let _ =
         <code>Ocsigen_extensions.answer</code> from
         <code>sp</code>.
       </p>
-    </div>
+    <h4>Static linking of Eliom modules</h4>
+      <p>From version 1.2, it is possible to link extensions and Eliom modules
+  statically ($a Site_urls.staticlink sp <:xmllist<See here>> ()$).
+      Obviously, for Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function
+$a ~fragment:"VALregister_eliom_module" ~service:senddoc ~sp [code [pcdata "Eliom_services.register_eliom_module" ]] [version;"Eliom_services.html"]$. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call $a ~fragment:"VALget_config" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_config" ]] [version;"Eliom_sessions.html"]$ if the module has configuration options).
+      </p>
+      <p>To initialize the module from the configuration file, use the
+  syntax:</p>
+  <pre>&lt;eliommodule name="<em>name</em>"&gt; ... &lt;/eliom&gt;</pre>
+  <p>which is equivalent to:</p>
+  <pre>&lt;eliommodule module="<em>name.cmxs</em>"&gt; ... &lt;/eliom&gt;</pre>
+  <p>with the exception that it does not load the module using <code>Dynlink</code>, but calls the initialization function.</p>
+  </div>
 
 
 
