@@ -1,5 +1,8 @@
 = Development version =
 
+  * Now possible to link extensions and Eliom modules statically,
+  for example to use a native code server on platforms where native dynlink
+  is not supported
   * Server: Partial requests implemented (Range HTTP header)
   * Build C stubs into a shared library so that bytecode executables
     may be not linked in custom mode; new {{{--stubdir}}} option in
