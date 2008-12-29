@@ -22,21 +22,18 @@
 (** Ocsigen's compact printer for xhtml. [html_compat] is an option to set
    if you want to print with a syntax closer to html (not xml).
  *)
-val xhtml_print :
+val xhtml_stream :
     ?version:[< XHTML.M.doctypes > `XHTML_01_01 ] ->
       ?width:int -> ?encode:(string -> string) ->
         ?html_compat:bool ->
-          [ `Html ] XHTML.M.elt -> string
+          [ `Html ] XHTML.M.elt -> string Ocsigen_stream.t
 
 (** Ocsigen's compact printer for xhtml portions.
    [html_compat] is an option to set
    if you want to print with a syntax closer to html (not xml). *)
-val xhtml_list_print :
+val xhtml_list_stream :
     ?version:[< XHTML.M.doctypes > `XHTML_01_01 ] ->
       ?width:int -> ?encode:(string -> string) ->
         ?html_compat:bool ->
-          'a XHTML.M.elt list -> string
+          'a XHTML.M.elt list -> string Ocsigen_stream.t
 
-
-(**/**)
-val emptytags : string list

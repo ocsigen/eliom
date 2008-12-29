@@ -6,7 +6,8 @@ else
 DBG =
 endif
 
-FILES = xhtmlpretty.ml xhtmlcompact.ml
+FILES = xhtmlpretty.ml xhtmlcompact.ml \
+	xhtmlpretty_streams.ml xhtmlcompact_streams.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) -package camlp4
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) -package camlp4
@@ -19,10 +20,10 @@ OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(FILES:.ml=.cmx)
 
 
-byte: bytedep $(OBJS)
+byte: bytedep $(OBJS) xhtmlpretty.cma
 xmlp4pre.byte: bytedep
 xmlp4pre.opt: optdep
-opt: optdep $(OBJSOPT)
+opt: optdep $(OBJSOPT) xhtmlpretty.cmxa
 
 bytedep:
 ifeq "$(OCAMLVERSION)" "OLD"
@@ -38,6 +39,12 @@ else
 	$(MAKE) -C newocaml opt
 endif
 
+
+xhtmlpretty.cma: xhtmlpretty.cmo xhtmlcompact.cmo
+	$(CAMLC) -a -o xhtmlpretty.cma xhtmlpretty.cmo xhtmlcompact.cmo
+
+xhtmlpretty.cmxa: xhtmlpretty.cmx xhtmlcompact.cmx
+	$(CAMLOPT) -a -o xhtmlpretty.cmxa xhtmlpretty.cmx xhtmlcompact.cmx
 
 # Common rules
 .SUFFIXES: .ml .mli .cmo .cmi .cmx

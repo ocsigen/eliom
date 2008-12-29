@@ -29,6 +29,8 @@
     and protocol
   * New extension extendconfiguration to allow dynamic changes in the 
     configuration (mimetypes, charsets, followsymnlink, directory listing~ ...)
+  * Now possible to use XHTML pretty printers without Ocsigen, using the
+    {{{xhtmlpretty.cma}}} library
 
 = 1.1.0 =
 

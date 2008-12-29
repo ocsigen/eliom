@@ -95,8 +95,8 @@ module Xhtml_content_(Xhtmlprinter : sig
 
   end
 
-module Xhtml_content = Xhtml_content_(Xhtmlpretty)
-module Xhtmlcompact_content = Xhtml_content_(Xhtmlcompact)
+module Xhtml_content = Xhtml_content_(Xhtmlpretty_streams)
+module Xhtmlcompact_content = Xhtml_content_(Xhtmlcompact_streams)
 
 (*****************************************************************************)
 module Text_content =

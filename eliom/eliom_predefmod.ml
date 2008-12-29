@@ -1550,7 +1550,7 @@ module SubXhtml = functor(T : sig type content end) ->
         let get_etag c = None
 
         let result_of_content c =
-          let x = Xhtmlpretty.xhtml_list_stream c in
+          let x = Xhtmlpretty_streams.xhtml_list_stream c in
           let default_result = default_result () in
           Lwt.return
             {default_result with
