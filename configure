@@ -44,7 +44,7 @@ get_path () {
 set_defaults () {
     name="ocsigen"
     enable_bytecode=1
-    enable_nativecode=0
+    enable_nativecode=1
     enable_natdynlink=1
     enable_debug=0
     enable_ocamlduce=1
@@ -662,7 +662,7 @@ else
 fi
 if [ $enable_nativecode -gt 0 ] ; then
 	enable_nativecode="YES"
-        echo "WARNING: Native code version requires ocaml >= 3.11"
+        echo "WARNING: Native code version with dynlink requires ocaml >= 3.11"
 else
 	enable_nativecode="NO"
 fi
