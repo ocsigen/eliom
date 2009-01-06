@@ -78,7 +78,7 @@ let correct_user_local_file =
    If the parameter [usermode] is true, we check that the path
    is valid.
 *)
-let find_static_page ~request ~usermode ~dir ~err ~pathstring ~do_not_serve =
+let find_static_page ~request ~usermode ~dir ~err ~pathstring =
   let status_filter, file = match dir with
     | Dir d ->
         (false, Filename.concat d pathstring)
@@ -111,7 +111,7 @@ let gen ~do_not_serve ~usermode dir = function
            let status_filter, page =
              find_static_page ~request:ri ~usermode ~dir ~err
              ~pathstring:(Ocsigen_lib.string_of_url_path ~encode:false
-                            ri.request_info.ri_sub_path) ~do_not_serve in
+                            ri.request_info.ri_sub_path) in
            LocalFiles.content ri page
            >>= fun answer ->
            let answer' =
