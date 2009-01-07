@@ -28,7 +28,7 @@ let set_default_charset ~charset ~charset_assoc =
 
 
 let find_charset ~charset_assoc ~extension =
-  try MapString.find extension charset_assoc.charset_assoc
+  try MapString.find (String.lowercase extension) charset_assoc.charset_assoc
   with Not_found -> charset_assoc.charset_default
 
 let find_charset_file ~charset_assoc ~filename =
@@ -104,7 +104,7 @@ let default_mime_assoc () =
 
 
 let find_mime_type ~mime_assoc ~extension =
-  try MapString.find extension mime_assoc.mime_assoc
+  try MapString.find (String.lowercase extension) mime_assoc.mime_assoc
   with Not_found -> mime_assoc.mime_default
 
 
