@@ -241,13 +241,13 @@ module File_content =
       Ocsigen_messages.debug2 "start reading file (file opened)";
       let buf = String.create buffer_size in
       let rec read_aux () =
-          Lwt_unix.read fd buf 0 buffer_size >>= fun lu ->
-          if lu = 0 then
+          Lwt_unix.read fd buf 0 buffer_size >>= fun read ->
+          if read = 0 then
             Ocsigen_stream.empty None
           else begin
-            if lu = buffer_size
+            if read = buffer_size
             then Ocsigen_stream.cont buf read_aux
-            else Ocsigen_stream.cont (String.sub buf 0 lu) read_aux
+            else Ocsigen_stream.cont (String.sub buf 0 read) read_aux
           end
       in read_aux
 
