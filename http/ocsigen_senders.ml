@@ -271,31 +271,33 @@ module File_content =
       try
         let fdu = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
         let fd = Lwt_unix.of_unix_file_descr fdu in
-        let st = Unix.LargeFile.fstat fdu in
-        let etag = get_etag_aux st in
-        let stream = read_file fd in
-        let default_result = default_result () in
-        Lwt.return
-          {default_result with
-           res_content_length = Some st.Unix.LargeFile.st_size;
-           res_content_type =
-              Some (Ocsigen_charset_mime.find_mime_type_file
-                      ~mime_assoc ~filename:c);
-           res_charset =
-              Some (Ocsigen_charset_mime.find_charset_file
-                      ~charset_assoc ~filename:c);
-           res_lastmodified = Some st.Unix.LargeFile.st_mtime;
-           res_etag = etag;
-           res_stream =
-              (Ocsigen_stream.make
-                 ~finalize:
-                 (fun () ->
-                    Ocsigen_messages.debug2 "closing file";
-                    Lwt_unix.close fd;
-                    return ())
-                 stream,
-               Some (skip fd))
-         }
+        try
+          let st = Unix.LargeFile.fstat fdu in
+          let etag = get_etag_aux st in
+          let stream = read_file fd in
+          let default_result = default_result () in
+          Lwt.return
+            {default_result with
+               res_content_length = Some st.Unix.LargeFile.st_size;
+               res_content_type =
+                Some (Ocsigen_charset_mime.find_mime_type_file
+                        ~mime_assoc ~filename:c);
+               res_charset =
+                Some (Ocsigen_charset_mime.find_charset_file
+                        ~charset_assoc ~filename:c);
+               res_lastmodified = Some st.Unix.LargeFile.st_mtime;
+               res_etag = etag;
+               res_stream =
+                (Ocsigen_stream.make
+                   ~finalize:
+                   (fun () ->
+                      Ocsigen_messages.debug2 "closing file";
+                      Lwt_unix.close fd;
+                      return ())
+                   stream,
+                 Some (skip fd))
+            }
+        with e -> Lwt_unix.close fd; raise e
       with e -> Ocsigen_messages.debug2 (Printexc.to_string e);  fail e
 
   end
