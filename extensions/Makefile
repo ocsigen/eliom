@@ -95,7 +95,7 @@ dbm-opt:
 ocsipersist-sqlite.cma: ocsipersist.cmo
 	$(CAMLC) -a -o ocsipersist-sqlite.cma ocsipersist.cmo
 
-ocsipersist-sqlite.cmxa: ocsipersist.cmo
+ocsipersist-sqlite.cmxa: ocsipersist.cmx
 	$(CAMLOPT) -a -o ocsipersist-sqlite.cmxa ocsipersist.cmx
 
 ocsipersist-sqlite.cmxs: ocsipersist.cmx
