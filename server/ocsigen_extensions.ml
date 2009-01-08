@@ -874,6 +874,15 @@ let get_hostname req =
     | Some host -> host
 
 
+(*****************************************************************************)
+(* Default port is either the port the server is listening at or the default
+   port set in the configuration file. *)
+let get_port req =
+  if Ocsigen_config.get_usedefaulthostname ()
+  then match req.request_info.ri_ssl with
+      true -> req.request_config.default_httpsport
+    | false -> req.request_config.default_httpport
+  else req.request_info.ri_server_port
 
 
 (*****************************************************************************)

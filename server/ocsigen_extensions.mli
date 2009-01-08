@@ -391,6 +391,10 @@ val register_extension :
     the configuration file. *)
 val get_hostname : request -> string
 
+(** Returns the port to be used for absolute links or redirections.
+    It is either the port the server is listening at or the default port set in
+    the configuration file. *)
+val get_port : request -> int
 
 (** Parsing URLs.
    This allows to modify the URL in the request_info.

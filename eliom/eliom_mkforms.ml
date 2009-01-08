@@ -1023,7 +1023,7 @@ module MakeForms = functor
           match port with
             | Some p -> p
             | None ->
-                if https = ssl
+                if https = ssl && not (Ocsigen_config.get_usedefaulthostname ())
                 then Eliom_sessions.get_server_port ~sp 
                 else if https
                 then Eliom_sessions.get_default_sslport ~sp
