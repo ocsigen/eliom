@@ -30,14 +30,25 @@ PP =
 
 OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(FILES:.ml=.cmx)
-CMI = $(FILES:.ml=.cmi)
+CMI = ocsigen_getcommandline.cmi $(FILES:.ml=.cmi)
 
-byte: $(OBJS)
+byte: $(OBJS) $(CMI) parsecommandline.cma donotparsecommandline.cma
 #	cp -f $(OBJS) $(CMI) ../lib
 
-opt: $(OBJSOPT)
+opt: $(OBJSOPT) $(CMI) parsecommandline.cmxa donotparsecommandline.cmxa
 #	cp -f $(OBJSOPT) $(OBJSOPT:.cmx=.o) $(CMI) ../lib
 
+parsecommandline.cma: commandline/ocsigen_getcommandline.cmo
+	$(CAMLC) -a -o $@  $<
+
+donotparsecommandline.cma: nocommandline/ocsigen_getcommandline.cmo
+	$(CAMLC) -a -o $@  $<
+
+parsecommandline.cmxa: commandline/ocsigen_getcommandline.cmx
+	$(CAMLOPT) -a -o $@  $<
+
+donotparsecommandline.cmxa: nocommandline/ocsigen_getcommandline.cmx
+	$(CAMLOPT) -a -o $@  $<
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -77,7 +88,9 @@ doc:
 	$(CAMLDOC) -d doc -html ocsicache.mli
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *.o *~ *.annot ocsigen_config.ml
+	-rm -f *.cm[ioax] *.cmxa *.o *.a *~ *.annot ocsigen_config.ml
+	cd commandline; rm -f *.cm[iox]* *.annot
+	cd nocommandline; rm -f *.cm[iox]* *.annot
 
 depend: ocsigen_config.ml
 	$(CAMLDEP) $(PP) $(LIBDIRS) $(FILES:.ml=.mli) $(FILES) > .depend

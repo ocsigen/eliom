@@ -3,7 +3,7 @@ include ../Makefile.config
 NAME=$(OCSIGENNAME)
 
 FILES= ocsigen_extensions.ml ocsigen_parseconfig.ml ocsigen_http_client.ml \
-	../extensions/localFiles.ml server.ml ocsigen_server.ml
+	../extensions/localFiles.ml server.ml
 EXE= server_main.ml
 
 ifeq "$(DEBUG)" "YES"
@@ -71,12 +71,20 @@ LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNL
 PP = 
 PP2 = 
 
+ifdef DONOTPARSECOMMANDLINE
+PARSECOMMANDLINECMA=../baselib/donotparsecommandline.cma
+else
+PARSECOMMANDLINECMA=../baselib/parsecommandline.cma
+endif
+PARSECOMMANDLINECMXA=$(PARSECOMMANDLINECMA:.cma=.cmxa)
+
 # cma and cmo to be linked in the server:
 
 CMOS = ../baselib/ocsigen_lib.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
        ../baselib/ocsigen_config.cmo \
-       ../baselib/ocsigen_commandline.cmo ../baselib/ocsigen_messages.cmo \
+       ../baselib/ocsigen_commandline.cmo \
+	../baselib/ocsigen_messages.cmo \
        ../baselib/dynlink_wrapper.cmo ../baselib/ocsigen_loader.cmo \
        ../http/ocsigen_stream.cmo ../http/multipart.cmo \
        ../http/http_headers.cmo \
@@ -114,11 +122,11 @@ opt: $(OBJSOPT) $(OBJSEXEOPT) $(NAME).opt
 
 .PHONY: doc depend
 
-$(NAME): $(CMAO) $(OBJSEXE)
-	$(CAMLC) -o $(NAME) -linkpkg -linkall $(CMAOCAMLP4) $(CMAO) $(OBJSEXE)
+$(NAME): $(CMAO) $(OBJSEXE) $(PARSECOMMANDLINECMO)
+	$(CAMLC) -o $(NAME) -linkpkg -linkall $(PARSECOMMANDLINECMA) $(CMAOCAMLP4) $(CMAO) $(OBJSEXE)
 
-$(NAME).opt: $(CMXXA) $(OBJSEXEOPT)
-	$(CAMLOPT) -o $(NAME).opt -linkpkg -linkall $(CMXXACAMLP4) $(CMXXA) $(OBJSEXEOPT)
+$(NAME).opt: $(CMXXA) $(OBJSEXEOPT) $(PARSECOMMANDLINECMX)
+	$(CAMLOPT) -o $(NAME).opt -linkpkg -linkall $(PARSECOMMANDLINECMXA) $(CMXXACAMLP4) $(CMXXA) $(OBJSEXEOPT)
 
 $(NAME).cma: $(CMOS) $(OBJS) $(STUBS_OBJS)
 	$(CAMLMKLIB) -o $(NAME) -oc $(NAME) -linkall $(CMOS) $(OBJS) $(STUBS_OBJS)
@@ -126,8 +134,8 @@ $(NAME).cma: $(CMOS) $(OBJS) $(STUBS_OBJS)
 $(NAME).cmxa: $(CMXSA) $(OBJSOPT) $(STUBS_OBJS)
 	$(CAMLMKLIB) -o $(NAME) -oc $(NAME) -linkall $(CMXSA) $(OBJSOPT) $(STUBS_OBJS)
 
-$(NAME)top: $(CMAO)
-	$(CAMLMKTOP) -o $(NAME)top -linkpkg -linkall $(CMAOCAMLP4) $(CMAO)
+$(NAME)top: $(CMAO) $(PARSECOMMANDLINECMO)
+	$(CAMLMKTOP) -o $(NAME)top -linkpkg -linkall $(PARSECOMMANDLINECMA) $(CMAOCAMLP4) $(CMAO)
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<

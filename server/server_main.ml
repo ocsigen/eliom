@@ -1,3 +1,2 @@
-
-let () = 
-  Ocsigen_server.start_server ~parse_cmdline:true ()
+let () =
+  Server.start_server ()
