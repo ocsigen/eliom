@@ -71,6 +71,8 @@
 (* constants. Should be configurable *)
 let max_free_open_connections = 2
 
+(* XXX It might be worthwile to transform those exceptions into 502 and 504 *)
+exception Connection_timed_out
 exception Connection_refused
 exception Pipeline_failed
 
@@ -265,6 +267,19 @@ let keep_alive_server inet_addr port =
 
 (*****************************************************************************)
 
+let handle_connection_error fd exn = match exn with
+  | Unix.Unix_error (Unix.ECONNREFUSED, _, _) ->
+      Lwt_unix.close fd; Lwt.fail
+        (Ocsigen_http_frame.Http_error.Http_exception
+           (502, Some "Connection refused by distant server", None))
+  | Unix.Unix_error (Unix.ECONNRESET, _, _) ->
+      (* Caused by shutting down the file descriptor after a timeout *)
+      Lwt_unix.close fd; Lwt.fail
+        (Ocsigen_http_frame.Http_error.Http_exception
+           (504, Some "Distant server closed connection", None))
+  | e -> Lwt_unix.close fd; Lwt.fail e
+
+
 let raw_request
     ?client ?(keep_alive = true) ?headers ?(https=false) ?port
     ~content ?content_length ~http_method ~host ~inet_addr ~uri () =
@@ -340,8 +355,13 @@ let raw_request
     let thr_conn =
       Lwt.catch
         (fun () ->
-          Lwt_unix.connect
-            fd sockaddr >>= fun () ->
+           let timeout =
+             Lwt_timeout.create (Ocsigen_config.get_server_timeout ())
+               (fun () -> Lwt_unix.shutdown fd Unix.SHUTDOWN_RECEIVE);
+           in
+           Lwt_timeout.start timeout;
+           Lwt_unix.connect
+             fd sockaddr >>= fun () ->
 
               (if https then
                 Lwt_ssl.ssl_connect fd !sslcontext
@@ -352,10 +372,7 @@ let raw_request
             Lwt.return (Ocsigen_http_com.create_receiver
                           (Ocsigen_config.get_server_timeout ())
                           Ocsigen_http_com.Answer socket))
-        (function
-          | Unix.Unix_error (Unix.ECONNREFUSED, _, _) ->
-              Lwt_unix.close fd; Lwt.fail Connection_refused
-          | e -> Lwt_unix.close fd; Lwt.fail e)
+        (handle_connection_error fd)
     in
     let gf =
       thr_conn >>= fun conn ->
@@ -708,7 +725,7 @@ let basic_raw_request
           Lwt_ssl.ssl_connect fd !sslcontext
         else
           Lwt.return (Lwt_ssl.plain fd)))
-    (fun e -> Lwt_unix.close fd; Lwt.fail e)
+    (handle_connection_error fd)
   >>= fun socket ->
 
   let query = Ocsigen_http_frame.Http_header.Query (http_method, uri) in

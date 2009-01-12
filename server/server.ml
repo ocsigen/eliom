@@ -366,54 +366,44 @@ let service
     (* Exceptions during page generation *)
     Ocsigen_messages.debug
       (fun () -> "~~~ Exception during generation/sending: " ^ string_of_exn e);
+    let send_error ?cookies code =
+      Ocsigen_senders.send_error ~exn:e sender_slot ~clientproto ?cookies ~head
+        ~code ~sender:Ocsigen_http_com.default_sender ()
+    in
     match e with
       (* EXCEPTIONS WHILE COMPUTING A PAGE *)
     | Ocsigen_http_error (cookies_to_set, i) ->
         Ocsigen_messages.debug
           (fun () -> "-> Sending HTTP error "^(string_of_int i)^" "^
             Ocsigen_http_frame.Http_error.expl_of_code i);
-        send_error
-          ~exn:e
-          sender_slot
-          ~clientproto
-          ~cookies:cookies_to_set
-          ~head
-          ~code:i
-          ~sender:Ocsigen_http_com.default_sender
-          ()
+        send_error ~cookies:cookies_to_set i
     | Ocsigen_stream.Interrupted Ocsigen_stream.Already_read ->
         Ocsigen_messages.warning
           "Cannot read the request twice. You probably have \
            two incompatible options in <site> configuration, \
            or the order of the options in the config file is wrong.";
-        send_error ~exn:e sender_slot ~clientproto ~head
-          ~code:500 ~sender:Ocsigen_http_com.default_sender () (* Internal error *)
+        send_error 500 (* Internal error *)
     | Unix.Unix_error (Unix.EACCES,_,_)
     | Ocsigen_upload_forbidden ->
         Ocsigen_messages.debug2 "-> Sending 403 Forbidden";
-        send_error ~exn:e sender_slot ~clientproto ~head
-          ~code:403 ~sender:Ocsigen_http_com.default_sender ()
-    | Http_error.Http_exception (_,_,_) ->
-        send_error sender_slot ~clientproto ~head (* ~keep_alive:false *)
-          ~exn:e ~sender:Ocsigen_http_com.default_sender ()
+        send_error 403
+    | Http_error.Http_exception (code,_,_) ->
+        Ocsigen_http_frame.Http_error.display_http_exception e;
+        send_error code
     | Ocsigen_Bad_Request ->
         Ocsigen_messages.debug2 "-> Sending 400";
-        send_error ~exn:e sender_slot ~clientproto ~head (* ~keep_alive:false *)
-          ~code:400 ~sender:Ocsigen_http_com.default_sender ()
+        send_error 400
     | Ocsigen_unsupported_media ->
         Ocsigen_messages.debug2 "-> Sending 415";
-        send_error ~exn:e sender_slot ~clientproto ~head (* ~keep_alive:false *)
-          ~code:415 ~sender:Ocsigen_http_com.default_sender ()
+        send_error 415
     | Neturl.Malformed_URL ->
         Ocsigen_messages.debug2 "-> Sending 400 (Malformed URL)";
-        send_error ~exn:e sender_slot ~clientproto ~head (* ~keep_alive:false *)
-          ~code:400 ~sender:Ocsigen_http_com.default_sender () (* Malformed URL *)
+        send_error 400
     | e ->
         Ocsigen_messages.warning
           ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
         Ocsigen_messages.debug2 "-> Sending 500";
-        send_error ~exn:e sender_slot ~clientproto ~head
-          ~code:500 ~sender:Ocsigen_http_com.default_sender ()
+        send_error 500
   in
   let finish_request () =
     (* We asynchronously finish to read the request contents if this
