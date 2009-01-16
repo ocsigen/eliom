@@ -154,7 +154,7 @@ type request_info =
      ri_cookies: string Ocsigen_http_frame.Cookievalues.t Lazy.t;  (** Cookies sent by the browser *)
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
      ri_ifunmodifiedsince: float option;   (** if-unmodified-since field *)
-     ri_ifnonematch: string list;   (** if-none-match field ( * and weak entity tags not implemented) *)
+     ri_ifnonematch: string list option;   (** if-none-match field ( * and weak entity tags not implemented) *)
      ri_ifmatch: string list option;   (** if-match field ( * not implemented) *)
      ri_content_type: ((string * string) * (string * string) list) option; (** Content-Type HTTP header *)
      ri_content_type_string: string option; (** Content-Type HTTP header *)

@@ -30,7 +30,7 @@ val get_user_agent : Ocsigen_http_frame.t -> string
 val get_cookie_string : Ocsigen_http_frame.t -> string option
 val get_if_modified_since : Ocsigen_http_frame.t -> float option
 val get_if_unmodified_since : Ocsigen_http_frame.t -> float option
-val get_if_none_match : Ocsigen_http_frame.t -> string list
+val get_if_none_match : Ocsigen_http_frame.t -> string list option
 val get_if_match : Ocsigen_http_frame.t -> string list option
 val get_content_type : Ocsigen_http_frame.t -> string option
 val parse_content_type : string option -> ((string * string) * (string * string) list) option

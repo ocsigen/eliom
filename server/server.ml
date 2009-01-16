@@ -98,10 +98,105 @@ let dbg sockaddr s =
        let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
        "While talking to " ^ ip ^ ": " ^ s)
 
+
+let rec find_post_params http_frame ct filenames =
+  match http_frame.Ocsigen_http_frame.content with
+    | None -> return ([], [])
+    | Some body_gen ->
+        try
+          let ((ct, cst), ctparams) = match ct with
+            | None -> (("application", "octet-stream"), [])
+            | Some (c, p) -> (c, p)
+          in
+          match String.lowercase ct, String.lowercase cst with
+            | "application", "x-www-form-urlencoded" ->
+                find_post_params_form_urlencoded body_gen
+            | "multipart", "form-data" ->
+                find_post_params_multipart_form_data body_gen ctparams filenames
+            | _ -> fail Ocsigen_unsupported_media
+        with e -> Lwt.fail e
+
+and find_post_params_form_urlencoded body_gen =
+  catch
+    (fun () ->
+       let body = Ocsigen_stream.get body_gen in
+       (* BY, adapted from a previous comment. Should this stream be
+          consumed in case of error? *)
+       Ocsigen_stream.string_of_stream body
+       >>= fun r ->
+       Lwt.return
+         ((Netencoding.Url.dest_url_encoded_parameters r), [])
+    )
+    (function
+       | Ocsigen_stream.String_too_large -> fail Input_is_too_large
+       | e -> fail e)
+
+and find_post_params_multipart_form_data body_gen ctparams filenames =
+  (* Same question here, should this stream be consumed after an error ? *)
+  let body = Ocsigen_stream.get body_gen
+  and bound = get_boundary ctparams
+  and params = ref []
+  and files = ref [] in
+  let create hs =
+    let cd = List.assoc "content-disposition" hs in
+    let p_name = find_field "name" cd in
+    try
+      let store = find_field "filename" cd in
+      match ((Ocsigen_config.get_uploaddir ())) with
+        | Some dname ->
+            let now = Printf.sprintf "%f-%d"
+              (Unix.gettimeofday ()) (counter ()) in
+            let fname = dname^"/"^now in
+            let fd = Unix.openfile fname
+              [Unix.O_CREAT; Unix.O_TRUNC; Unix.O_WRONLY; Unix.O_NONBLOCK] 0o666
+            in
+            Ocsigen_messages.debug2 ("Upload file opened: " ^ fname);
+            filenames := fname::!filenames;
+            A_File (p_name, fname, store, fd)
+        | None -> raise Ocsigen_upload_forbidden
+    with Not_found -> No_File (p_name, Buffer.create 1024)
+  in
+  let rec add where s =
+    match where with
+      | No_File (p_name, to_buf) ->
+          Buffer.add_string to_buf s;
+          return ()
+      | A_File (_,_,_,wh) ->
+          let len = String.length s in
+          let r = Unix.write wh s 0 len in
+          if r < len then
+            (*XXXX Inefficient if s is long *)
+            add where (String.sub s r (len - r))
+          else
+            Lwt_unix.yield ()
+  in
+  let stop size = function
+    | No_File (p_name, to_buf) ->
+        return
+          (params := !params @ [(p_name, Buffer.contents to_buf)])
+          (* à la fin ? *)
+    | A_File (p_name,fname,oname,wh) ->
+        (* Ocsigen_messages.debug "closing file"; *)
+        files :=
+          !files@[(p_name, {tmp_filename=fname;
+                            filesize=size;
+                            raw_original_filename=oname;
+                            original_basename=(Ocsigen_lib.basename oname)})];
+        Unix.close wh;
+        return ()
+  in
+  Multipart.scan_multipart_body_from_stream
+    body bound create add stop >>= fun () ->
+    (*VVV Does scan_multipart_body_from_stream read until the end or
+      only what it needs?  If we do not consume here, the following
+      request will be read only when this one is finished ...  *)
+  Ocsigen_stream.consume body_gen >>= fun () ->
+  Lwt.return (!params, !files)
+
+
+
 (* reading the request *)
-let get_request_infos
-    meth clientproto url http_frame filenames sockaddr 
-    port receiver =
+let get_request_infos meth clientproto url http_frame filenames sockaddr port receiver =
 
   Lwt.catch
     (fun () ->
@@ -116,11 +211,14 @@ let get_request_infos
          | _ -> headerhost
        in
 
-       (* RFC:
-    1. If Request-URI is an absoluteURI, the host is part of the Request-URI. Any Host header field value in the request MUST be ignored.
-    2. If the Request-URI is not an absoluteURI, and the request includes a Host header field, the host is determined by the Host header field value.
-    3. If the host as determined by rule 1 or 2 is not a valid host on the server, the response MUST be a 400 (Bad Request) error message.
-        *)
+    (* RFC:
+    1. If Request-URI is an absoluteURI, the host is part of the Request-URI.
+       Any Host header field value in the request MUST be ignored.
+    2. If the Request-URI is not an absoluteURI, and the request includes a
+       Host header field, the host is determined by the Host header field value.
+    3. If the host as determined by rule 1 or 2 is not a valid host on the
+        server, the response MUST be a 400 (Bad Request) error message.
+    *)
        (*  Here we don't trust the port information given by the request.
           We use the port we are listening on. *)
        Ocsigen_messages.debug
@@ -169,130 +267,17 @@ let get_request_infos
 
        let accept_language = lazy (get_accept_language http_frame) in
 
-
-
-       let find_post_params =
-         lazy
-           (if meth = Http_header.GET || meth = Http_header.HEAD then
-              return ([],[])
-            else
-              match http_frame.Ocsigen_http_frame.content with
-             | None -> return ([], [])
-             | Some body_gen ->
-                 try
-                   let ((ct, cst), ctparams) = match ct with
-                     | None -> (("application", "octet-stream"), [])
-                     | Some (c, p) -> (c, p)
-                   in
-                   let body = Ocsigen_stream.get body_gen in
-                   catch
-                     (fun () ->
-                        let ctlow = String.lowercase ct in
-                        let cstlow = String.lowercase cst in
-                        if ctlow = "application" &&
-                          cstlow = "x-www-form-urlencoded"
-                        then
-                          catch
-                            (fun () ->
-                               Ocsigen_stream.string_of_stream body >>= fun r ->
-                               Lwt.return
-                                 ((Netencoding.Url.dest_url_encoded_parameters r),
-                                  []))
-                            (function
-                               | Ocsigen_stream.String_too_large ->
-                                   fail Input_is_too_large
-                               | e -> fail e)
-                        else
-                        if not (ctlow = "multipart" && cstlow = "form-data")
-                        then fail Ocsigen_unsupported_media
-                        else
-                          let bound = get_boundary ctparams in
-                          let params = ref [] in
-                          let files = ref [] in
-                          let create hs =
-                            let cd = List.assoc "content-disposition" hs in
-                            let st = try
-                              Some (find_field "filename" cd)
-                            with Not_found -> None in
-                            let p_name = find_field "name" cd in
-                            match st with
-                              | None -> No_File (p_name, Buffer.create 1024)
-                              | Some store ->
-                                  let now =
-                                    Printf.sprintf
-                                      "%f-%d"
-                                      (Unix.gettimeofday ()) (counter ())
-                                  in
-                                  match ((Ocsigen_config.get_uploaddir ())) with
-                                    | Some dname ->
-                                        let fname = dname^"/"^now in
-                                        let fd = Unix.openfile fname
-                                          [Unix.O_CREAT;
-                                           Unix.O_TRUNC;
-                                           Unix.O_WRONLY;
-                                           Unix.O_NONBLOCK] 0o666 in
-                                        (* Ocsigen_messages.debug "file opened"; *)
-                                        filenames := fname::!filenames;
-                                        A_File (p_name, fname, store, fd)
-                                    | None -> raise Ocsigen_upload_forbidden
-                          in
-                          let rec add where s =
-                            match where with
-                              | No_File (p_name, to_buf) ->
-                                  Buffer.add_string to_buf s;
-                                  return ()
-                              | A_File (_,_,_,wh) ->
-                                  let len = String.length s in
-                                  let r = Unix.write wh s 0 len in
-                                  if r < len then
-   (*XXXX Inefficient if s is long *)
-                                    add where (String.sub s r (len - r))
-                                  else
-                                    Lwt_unix.yield ()
-                          in
-                          let stop size  = function
-                            | No_File (p_name, to_buf) ->
-                                return
-                                  (params := !params @
-                                     [(p_name, Buffer.contents to_buf)])
-                                  (* à la fin ? *)
-                            | A_File (p_name,fname,oname,wh) ->
-                                (* Ocsigen_messages.debug "closing file"; *)
-                                files :=
-                                  !files@[(p_name, {tmp_filename=fname;
-                                                    filesize=size;
-                                                    raw_original_filename=oname;
-                                                    original_basename=(Ocsigen_lib.basename oname)})];
-                                Unix.close wh;
-                                return ()
-                          in
-                          Multipart.scan_multipart_body_from_stream
-                            body bound create add stop >>= fun () ->
-   (*VVV
-     Does scan_multipart_body_from_stream read
-     until the end or only what it needs?
-     If we do not consume here,
-     the following request will be read only when
-     this one is finished ...
-    *)
-                              Ocsigen_stream.consume body_gen >>= fun () ->
-                                Lwt.return (!params, !files))
-                     (fun e -> (*XXX??? Ocsigen_stream.consume body >>= fun _ ->*) fail e)
-                 with e -> fail e)
-
-   (* AEFF *)              (*        IN-MEMORY STOCKAGE *)
-                 (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0
-                  * (String.length s) bound in
-                  * Ocsigen_messages.debug (fun () -> string_of_int (List.length bdlist));
-                  * let simplify (hs,b) =
-                  * ((find_field "name"
-                  * (List.assoc "content-disposition" hs)),b) in
-                  * List.iter (fun (hs,b) ->
-                  * List.iter (fun (h,v) -> Ocsigen_messages.debug (fun () -> h^"=="^v)) hs) bdlist;
-                  * List.map simplify bdlist *)
+       let post_params = lazy
+         (if meth = Http_header.GET || meth = Http_header.HEAD then
+            return ([],[])
+          else
+            find_post_params http_frame ct filenames
+         )
        in
+
        let ipstring = Unix.string_of_inet_addr client_inet_addr in
        let path_string = string_of_url_path ~encode:true path in
+
        Lwt.return
          {ri_url_string = url;
           ri_url = parsed_url;
@@ -309,9 +294,9 @@ let get_request_infos
           ri_host = headerhost;
           ri_get_params = get_params;
           ri_initial_get_params = get_params;
-          ri_post_params = lazy (force find_post_params >>= fun (a, b) ->
+          ri_post_params = lazy (force post_params >>= fun (a, b) ->
                                  return a);
-          ri_files = lazy (force find_post_params >>= fun (a, b) ->
+          ri_files = lazy (force post_params >>= fun (a, b) ->
                            return b);
           ri_remote_inet_addr = client_inet_addr;
           ri_remote_ip = ipstring;
@@ -345,16 +330,123 @@ let get_request_infos
        Lwt.fail e)
 
 
+(* An http result [res] frame has been computed. Depending on
+   the If-(None-)?Match and If-(Un)?Modified-Since headers of [ri],
+   we return this frame, a 304: Not-Modified, or a 412: Precondition Failed.
+   See RFC 2616, sections 14.24, 14.25, 14.26, 14.28 and 13.3.4
+*)
+let handle_result_frame ri res send =
+  (* Subfonctions to handle each header separately *)
+  let if_unmodified_since unmodified_since = (* Section 14.28 *)
+    if (res.res_code = 412 ||
+        (200 <= res.res_code && res.res_code < 300)) then
+      match res.res_lastmodified with
+        | Some r ->
+            if r <= unmodified_since then
+              `Ignore_header
+            else
+              `Precondition_failed
+        | None -> `Ignore_header
+    else
+      `Ignore_header
 
-let service
-    receiver
-    sender_slot
-    request
-    meth
-    url
-    port
-    sockaddr
-    inputchan =
+  and if_modified_since modified_since = (* Section 14.25 *)
+    if res.res_code = 200 then
+      match res.res_lastmodified with
+        | Some r ->
+            if r <= modified_since then
+              `Unmodified
+            else
+              `Ignore_header
+        | _ -> `Ignore_header
+    else
+      `Ignore_header
+
+  and if_none_match if_none_match = (* Section 14.26 *)
+    if (res.res_code = 412 ||
+        (200 <= res.res_code && res.res_code < 300)) then
+      match res.res_etag with
+        | None   -> `Ignore_header
+        | Some e ->
+            if List.mem e if_none_match then
+              if ri.ri_method = Http_header.GET ||
+                ri.ri_method = Http_header.HEAD then
+                  `Unmodified
+              else
+                `Precondition_failed
+            else
+              `Ignore_header_and_ModifiedSince
+    else
+      `Ignore_header
+
+  and if_match if_match = (* Section 14.24 *)
+    if (res.res_code = 412 ||
+        (200 <= res.res_code && res.res_code < 300)) then
+      match res.res_etag with
+        | None   -> `Precondition_failed
+        | Some e ->
+            if List.mem e if_match then
+              `Ignore_header
+            else
+              `Precondition_failed
+    else
+      `Ignore_header
+
+  in
+
+  let handle_header f h = match h with
+    | None -> `No_header
+    | Some h -> f h
+  in
+
+  (* Main code *)
+  let r =
+    (* For the cases unspecified with RFC2616. we follow more or less
+       the order used by Apache. See the function
+       modules/http/http_protocol.c/ap_meets_conditions in the Apache
+       source *)
+    match handle_header if_match ri.ri_ifmatch with
+    | `Precondition_failed -> `Precondition_failed
+    | `No_header | `Ignore_header ->
+      match handle_header if_unmodified_since ri.ri_ifunmodifiedsince with
+      | `Precondition_failed -> `Precondition_failed
+      | `No_header | `Ignore_header ->
+        match handle_header if_none_match ri.ri_ifnonematch with
+        | `Precondition_failed -> `Precondition_failed
+        | `Ignore_header_and_ModifiedSince -> `Std
+        | `Unmodified | `No_header as r1 ->
+            (match handle_header if_modified_since ri.ri_ifmodifiedsince with
+             | `Unmodified | `No_header as r2 ->
+                 if r1 = `No_header && r2 = `No_header then
+                   `Std
+                 else
+                   `Unmodified
+             | `Ignore_header -> `Std)
+        | `Ignore_header ->
+            (* We cannot return a 304, so there is no need to consult
+               if_modified_since *)
+            `Std
+  in
+  match r with
+    | `Unmodified ->
+        Ocsigen_messages.debug2 "-> Sending 304 Not modified ";
+        Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
+        send { (Ocsigen_http_frame.empty_result ()) with
+                 res_code = 304  (* Not modified *)}
+
+    | `Precondition_failed ->
+        Ocsigen_messages.debug2 "-> Sending 412 Precondition Failed \
+                     (conditional headers)";
+        Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
+        send { (Ocsigen_http_frame.empty_result ()) with
+                 res_code = 412 (* Precondition failed *)}
+
+    | `Std ->
+        Ocsigen_range.compute_range ri res
+        >>= send
+
+
+let service receiver sender_slot request meth url port sockaddr =
   (* sender_slot is here for pipelining:
      we must wait before sending the page,
      because the previous one may not be sent *)
@@ -479,15 +571,18 @@ let service
         (fun ri ->
            (* *** Now we generate the page and send it *)
            (* Log *)
-          accesslog
-            (Format.sprintf
-               "connection for %s from %s (%s): %s"
-               (match ri.ri_host with
-                  | None   -> "<host not specified in the request>"
-                  | Some h -> h)
-               ri.ri_remote_ip
-               ri.ri_user_agent
-               ri.ri_url_string);
+           accesslog
+             (Format.sprintf
+                "connection for %s from %s (%s): %s"
+                (match ri.ri_host with
+                   | None   -> "<host not specified in the request>"
+                   | Some h -> h)
+                ri.ri_remote_ip
+                ri.ri_user_agent
+                ri.ri_url_string);
+
+           let send_aux = send sender_slot ~clientproto ~head
+             ~sender:Ocsigen_http_com.default_sender in
 
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind
@@ -496,124 +591,49 @@ let service
                   ri.ri_host ri.ri_server_port ri)
              (fun res ->
                 finish_request ();
-(* RFC
-   An  HTTP/1.1 origin  server, upon  receiving a  conditional request
-   that   includes   both   a   Last-Modified  date   (e.g.,   in   an
-   If-Modified-Since or  If-Unmodified-Since header field)  and one or
-   more entity tags (e.g.,  in an If-Match, If-None-Match, or If-Range
-   header  field) as  cache  validators, MUST  NOT  return a  response
-   status of 304 (Not Modified) unless doing so is consistent with all
-   of the conditional header fields in the request.
-   -
-   The result  of a request having both  an If-Unmodified-Since header
-   field and  either an  If-None-Match or an  If-Modified-Since header
-   fields is undefined by this specification.
-*)
-                let not_modified =
-                  let etagalreadyknown =
-                    match res.res_etag with
-                    | None   -> false
-                    | Some e -> List.mem e ri.ri_ifnonematch
-                  in
-                  match res.res_lastmodified, ri.ri_ifmodifiedsince with
-                  | Some l, Some i when l <= i ->
-                      ri.ri_ifnonematch = [] || etagalreadyknown
-                  | _, None ->
-                      etagalreadyknown
-                  | _ ->
-                       false
-                in
-                let precond_ok =
-                  begin match
-                    res.res_lastmodified, ri.ri_ifunmodifiedsince
-                  with
-                  | Some l, Some i -> i >= l
-                  | _              -> true
-                  end
-                    &&
-                  begin match ri.ri_ifmatch, res.res_etag with
-                  | None,   _      -> true
-                  | Some _, None   -> false
-                  | Some l, Some e -> List.mem e l
-                  end
-                in
-                if not_modified then begin
-                  Ocsigen_messages.debug2 "-> Sending 304 Not modified ";
-                  Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
-                  let empty_result = Ocsigen_http_frame.empty_result () in
-                  send
-                    sender_slot
-                    ~clientproto
-                    ~head
-                    ~sender:Ocsigen_http_com.default_sender
-                    {empty_result with res_code = 304  (* Not modified *)}
-                end else if not precond_ok then begin
-                  Ocsigen_messages.debug2
-                    "-> Sending 412 Precondition Failed \
-                     (if-unmodified-since header)";
-                  Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
-                  let empty_result = Ocsigen_http_frame.empty_result () in
-                  send
-                    sender_slot
-                    ~clientproto
-                    ~head
-                    ~sender:Ocsigen_http_com.default_sender
-                    {empty_result
-                    with res_code = 412 (* Precondition failed *)}
-                end else
-                  Ocsigen_range.compute_range ri res >>= fun r ->
-                  send
-                    sender_slot
-                    ~clientproto
-                    ~head
-                    ~sender:Ocsigen_http_com.default_sender
-                    r)
+                handle_result_frame ri res send_aux
+             )
              (fun e ->
                 finish_request ();
                 match e with
                 | Ocsigen_extensions.Ocsigen_Is_a_directory request ->
+                    (* User requested a directory. We redirect it to
+                       the correct url (with a slash), so that relative
+                       urls become correct *)
                     Ocsigen_messages.debug2 "-> Sending 301 Moved permanently";
-                    let empty_result = Ocsigen_http_frame.empty_result () in
-                    send
-                      sender_slot
-                      ~clientproto
-                      ~head
-                      ~sender:Ocsigen_http_com.default_sender
-                    {empty_result with
-                     res_code = 301 (* Moved permanently *);
-                     res_location = 
-                        Some (Neturl.string_of_url
-                                (Neturl.default_url
-                                   ~scheme:(if ri.ri_ssl
-                                            then "https" 
-                                            else "http")
-                                   ~host:(Ocsigen_extensions.get_hostname 
-                                            request)
-                                   ?port:(if (port = 80 && not ri.ri_ssl) 
-                                            || (ri.ri_ssl && port = 443)
-                                          then None
-                                          else Some port)
-                                   ~path:(""::(Ocsigen_lib.add_end_slash_if_missing ri.ri_full_path))
-                                   (Neturl.remove_from_url
-                                      ~path:true
-                                      ri.ri_url)))
+                    let new_url = Neturl.default_url
+                      ~scheme:(if ri.ri_ssl then "https" else "http")
+                      ~host:(Ocsigen_extensions.get_hostname request)
+                      ?port:(if (port = 80 && not ri.ri_ssl)
+                               || (ri.ri_ssl && port = 443)
+                             then None
+                             else Some port)
+                      ~path:(""::(Ocsigen_lib.add_end_slash_if_missing
+                                    ri.ri_full_path))
+                      (Neturl.remove_from_url ~path:true ri.ri_url)
+                    in
+                    send_aux {
+                      (Ocsigen_http_frame.empty_result ()) with
+                        res_code = 301;
+                        res_location = Some (Neturl.string_of_url new_url)
                    }
-                | _ ->
-                    handle_service_errors e))
+
+                | _ -> handle_service_errors e
+             )
+        )
         (fun e ->
-          warn sockaddr ("Bad request: \""^url^"\"");
-          Ocsigen_http_com.wakeup_next_request receiver;
-          finish_request ();
-          handle_service_errors e))
+           warn sockaddr ("Bad request: \""^url^"\"");
+           Ocsigen_http_com.wakeup_next_request receiver;
+           finish_request ();
+           handle_service_errors e
+        ))
       (fun () ->
          (* We remove all the files created by the request
             (files sent by the client) *)
-        if !filenames <> [] then
-          Ocsigen_messages.debug2 "** Removing files";
+        if !filenames <> [] then Ocsigen_messages.debug2 "** Removing files";
         List.iter
           (fun a ->
-            try
-              Unix.unlink a
+            try Unix.unlink a
             with Unix.Unix_error _ as e ->
               Ocsigen_messages.warning
                 (Format.sprintf "Error while removing file %s: %s"
@@ -668,13 +688,13 @@ let linger in_ch receiver =
 let try_bind' f g h = Lwt.try_bind f h g
 
 let handle_connection port in_ch sockaddr =
-  let receiver =
-    Ocsigen_http_com.create_receiver (Ocsigen_config.get_client_timeout ()) Query in_ch
+  let receiver = Ocsigen_http_com.create_receiver
+    (Ocsigen_config.get_client_timeout ()) Query in_ch
   in
 
   let handle_write_errors e =
     begin match e with
-      Lost_connection e' ->
+    | Lost_connection e' ->
         warn sockaddr ("connection abruptly closed by peer ("
                        ^ string_of_exn e' ^ ")")
     | Ocsigen_http_com.Timeout ->
@@ -760,7 +780,7 @@ let handle_connection port in_ch sockaddr =
            Lwt.catch
              (fun () ->
 (*XXX Why do we need the port but not the host name? *)
-                service receiver slot request meth url port sockaddr in_ch)
+                service receiver slot request meth url port sockaddr)
              handle_write_errors);
          if get_keepalive request.Ocsigen_http_frame.header then
            handle_request ()

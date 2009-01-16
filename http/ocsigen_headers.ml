@@ -192,11 +192,11 @@ let get_if_unmodified_since http_frame =
 
 let get_if_none_match http_frame =
   try
-    list_flat_map
-      (quoted_split ',')
-      (Http_header.get_headers_values
-         http_frame.Ocsigen_http_frame.header Http_headers.if_none_match)
-  with _ -> []
+    Some (list_flat_map
+            (quoted_split ',')
+            (Http_header.get_headers_values
+               http_frame.Ocsigen_http_frame.header Http_headers.if_none_match))
+  with _ -> None
 
 
 let get_if_match http_frame =
