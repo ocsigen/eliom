@@ -1077,21 +1077,23 @@ module MakeForms = functor
           ?fragment
           getparams : string =
         let ssl = Eliom_sessions.get_ssl ~sp in
-        match https with
-          | Some true when not ssl ->
+        let https = ((https = Some true) || 
+                       (Eliom_services.get_https service) ||
+                       (https = None && Eliom_sessions.get_ssl ~sp))
+(*VVV test duplicated above in make_full_string_uri *)
+        in
+        if https <> ssl
 (*VVV We trust current protocol? *) 
-              make_full_string_uri ?https ~service ~sp
-                ?hostname ?port ?fragment getparams
-          | Some false when ssl ->
-              make_full_string_uri ?https ~service ~sp
-                ?hostname ?port ?fragment getparams
-          | _ ->
-              make_string_uri_
-                None
-                ~service
-                ~sp
-                ?fragment
-                getparams
+        then
+          make_full_string_uri ~https ~service ~sp
+            ?hostname ?port ?fragment getparams
+        else
+          make_string_uri_
+            None
+            ~service
+            ~sp
+            ?fragment
+            getparams
 
       let a 
           ?https
