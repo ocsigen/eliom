@@ -1010,10 +1010,10 @@ let looong2 =
         </dd>
         <dt>Non-attached coservices</dt><dd>are
         coservices that are not
-        attached to a particular URL. A link towards a non-attached
+        attached to a particular URL. A link to a non-attached
         coservice will go to the current URL with a special parameter
         containing either the name of the service, or a number generated 
-        automatically (each time different).
+        automatically (and different each time).
         It is useful when you want the same link or form on several pages
         (for example a connection box) but you don't want to go to another
         URL. Non-attached coservices are often used with <em>actions</em>
@@ -1849,7 +1849,7 @@ let _ =
        <p>
        Non-attached coservices are coservices
        that are not attached to an URL path.
-       When you do a link or a form towards such a service, the URL do not
+       When you point a link or a form towards such a service, the URL does not
        change. The name of the service is sent as a special parameter.
        </p>
        <p>As for attached coservices, there are GET and POST versions.</p>
