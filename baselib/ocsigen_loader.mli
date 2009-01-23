@@ -33,6 +33,11 @@
 exception Dynlink_error of string * exn
 exception Findlib_error of string * exn
 
+val translate : string -> string
+  (** [translate filename] translate .cmo/.cma extensions to .cmxs in
+      native mode, and .cmxs to .cmo (.cma if it exists) in bytecode
+      mode. *)
+
 val set_init_on_load: bool -> unit
   (** If set to [true], the module initialization functions passed to
       [set_module_init_function] will be executed directly. Otherwise,

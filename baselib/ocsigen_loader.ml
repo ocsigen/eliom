@@ -24,6 +24,26 @@ exception Findlib_error of string * exn
 
 
 (************************************************************************)
+
+(* Translate .cmo/.cma extensions to .cmxs in native mode, and .cmxs
+   to .cmo (.cma if the file exists) in bytecode mode. *)
+let translate =
+  if Ocsigen_config.is_native then
+    fun filename ->
+      if Filename.check_suffix filename ".cmo" ||
+        Filename.check_suffix filename ".cma" then
+          (Filename.chop_extension filename) ^ ".cmxs"
+      else filename
+  else
+    fun filename ->
+      if Filename.check_suffix filename ".cmxs" then
+        let filename = Filename.chop_extension filename in
+        let cma = filename ^ ".cma" in
+        if Sys.file_exists cma then cma else filename ^ ".cmo"
+      else filename
+
+
+(************************************************************************)
 (* Loading files *)
 
 let isloaded, addloaded =
@@ -40,6 +60,7 @@ let get_init_on_load, set_init_on_load =
     ((fun () -> !init_on_load), (fun b -> init_on_load := b))
 
 let loadfile pre post force file =
+  let file = translate file in
   try
     if force then begin
       pre ();
