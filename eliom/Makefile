@@ -59,7 +59,7 @@ DUCEFILES= xhtmltypes_duce.ml xhtmlpretty_duce.ml eliom_duce.ml eliom_duce_tools
   endif
 
   ifeq "$(NATIVECODE)" "YES"
-  DUCEMODOPT= $(EDUCECMXS)
+  DUCEMODOPT= eliom_duce.cmxa $(EDUCECMXS)
 #  DUCEMODOPT=ocsigenduce.cmxs eliom_duce.cmxs
 # ocsigenrss.cmxs
   else

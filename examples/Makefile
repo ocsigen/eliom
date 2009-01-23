@@ -47,6 +47,11 @@ exampleduce.cmx: ocamlduce/exampleduce.ml
 	cp ocamlduce/exampleduce.cmx ocamlduce/exampleduce.o .
 #	touch ../extensions/ocsipersist.cmx
 
+exampleduce.cmxs: exampleduce.cmx
+	$(OCAMLDUCEFIND) ocamlopt $(DBG) $(LIB) -linkall -shared \
+	  -o ocamlduce/$*.cmxs $<
+	cp ocamlduce/exampleduce.cmxs .
+
 miniwiki.byte:
 	$(MAKE) -C miniwiki byte
 
