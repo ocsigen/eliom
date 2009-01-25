@@ -1,0 +1,10 @@
+<*/**/*.ml{,i}>: pkg_netstring, pkg_lwt
+<xmlp4/newocaml/*.ml{,i}>: pkg_camlp4, pp(camlp4rf -- -loc loc)
+<xmlp4/newocaml/xmllexer.*>: -pp(camlp4rf -- -loc loc)
+<baselib/ocsigen_loader.ml{,i}>: pkg_findlib
+<{server,http}/*.ml{,i}>: pkg_lwt.ssl
+
+<server/*.{byte,native,top}>: pkg_findlib, pkg_netstring, pkg_dynlink
+<server/*.{byte,native,top}>: pkg_lwt.ssl, pkg_lwt.extra, linkall
+
+<myocamlfind.*>: use_unix
