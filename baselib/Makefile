@@ -89,8 +89,8 @@ doc:
 
 clean:
 	-rm -f *.cm[ioax] *.cmxa *.o *.a *~ *.annot ocsigen_config.ml
-	cd commandline; rm -f *.cm[iox]* *.annot
-	cd nocommandline; rm -f *.cm[iox]* *.annot
+	cd commandline; rm -f *.cm[iox]* *.annot *.o
+	cd nocommandline; rm -f *.cm[iox]* *.annot *.o
 
 depend: ocsigen_config.ml
 	$(CAMLDEP) $(PP) $(LIBDIRS) $(FILES:.ml=.mli) $(FILES) > .depend
