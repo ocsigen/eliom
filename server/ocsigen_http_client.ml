@@ -71,7 +71,6 @@
 (* constants. Should be configurable *)
 let max_free_open_connections = 2
 
-(* XXX It might be worthwile to transform those exceptions into 502 and 504 *)
 exception Connection_timed_out
 exception Connection_refused
 exception Pipeline_failed
