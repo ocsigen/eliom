@@ -175,6 +175,10 @@ ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 	$(CAMLOPT) -a -shared -linkall -o ocsigenrss.cmxa $^
 
+# There is a bug with ocamlduce when -g is supplied
+bugdbg:
+	make DEBUG="NO" eliom_duce.cmo
+
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
