@@ -32,8 +32,7 @@ byte: ohl-xhtml-byte $(CMA) $(OBJS)
 opt: ohl-xhtml-opt $(CMXA) $(OBJSOPT)
 	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmx newocaml/xhtmltypes.o newocaml/basicTypes.cmi newocaml/basicTypes.cmx newocaml/basicTypes.o newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmx newocaml/simplexmlparser.o newocaml/xmllexer.cmi newocaml/xmllexer.cmx newocaml/xmllexer.o newocaml/xhtmlsyntax.cmxa newocaml/xhtmlsyntax.a ..
 
-#.PHONY: depend
-.PHONY: ohl-xhtml-byte ohl-xhtml-opt
+.PHONY: depend ohl-xhtml-byte ohl-xhtml-opt
 
 ohl-xhtml-byte:
 	-rm -f ../xhtmltypes.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
@@ -83,7 +82,7 @@ doc:
 
 # Clean up
 clean:
-	-rm -f xhtmltypes.ml xmllexer.ml *.cm[ioax] *.cmxa *~ *.annot
+	-rm -f xhtmltypes.ml xmllexer.ml *.cm[ioax] *.cmxa *~ *.annot *.a *.o
 	$(MAKE) -C ../ohl-xhtml clean
 
 
@@ -93,9 +92,9 @@ depend: *.mli *.ml
 #	camlp4 -parser OCaml -printer OCamlr ../oldocaml/xhtmltypes.ml > \
 #		xhtmltypes.ml
 	-rm -f xmllexer.ml
-	$(CAMLDEP) $(PP) $(LIBDIRS2) *.mli *.ml > depend
+	$(CAMLDEP) $(PP) $(LIBDIRS2) *.mli *.ml > .depend
 
 FORCE:
 
--include depend
+-include .depend
 

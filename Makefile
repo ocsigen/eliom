@@ -207,6 +207,7 @@ xmlp4.byte:
 	$(MAKE) -C xmlp4 byte
 
 xmlp4pre.byte:
+	$(MAKE) -C xmlp4 depend
 	$(MAKE) -C xmlp4 xmlp4pre.byte
 
 xmlp4pre.opt:

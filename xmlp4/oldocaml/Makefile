@@ -32,8 +32,7 @@ opt: ohl-xhtml-opt simplexmlparser.cmi $(CMXA) $(OBJSOPT)
 	ln -sf oldocaml/xhtmltypes.cmi oldocaml/xhtmltypes.cmx oldocaml/xhtmltypes.o oldocaml/xmlparser.cmi oldocaml/simplexmlparser.cmi oldocaml/simplexmlparser.cmx oldocaml/simplexmlparser.o oldocaml/xmlparser.cmx oldocaml/xmlparser.o oldocaml/xmlsyntax.cmx oldocaml/xmlsyntax.o oldocaml/xmllexer.cmx oldocaml/xmllexer.o oldocaml/xhtmlpp.cmx oldocaml/xhtmlpp.o oldocaml/xhtmlpp.cmi oldocaml/xhtmlsyntax.cmxa oldocaml/xhtmlsyntax.a ..
 
 
-#.PHONY: depend
-.PHONY: ohl-xhtml
+.PHONY: depend ohl-xhtml
 
 ohl-xhtml-byte:
 	-rm -f ../xhtmltypes.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
@@ -87,9 +86,9 @@ clean:
 
 # Dependencies
 depend: *.mli $(FILES)
-	$(CAMLDEP) $(PP) $(LIBDIRS2) *.mli $(FILES) > depend
+	$(CAMLDEP) $(PP) $(LIBDIRS2) *.mli $(FILES) > .depend
 
 FORCE:
 
-include depend
+-include .depend
 
