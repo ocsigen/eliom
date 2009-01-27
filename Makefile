@@ -207,7 +207,7 @@ xmlp4.byte:
 	$(MAKE) -C xmlp4 byte
 
 xmlp4pre.byte:
-	$(MAKE) -C xmlp4 depend
+#	$(MAKE) -C xmlp4 depend
 	$(MAKE) -C xmlp4 xmlp4pre.byte
 
 xmlp4pre.opt:
@@ -323,7 +323,9 @@ distclean: clean
 	-find doc -type f -delete
 	-rm -f Makefile.config
 
-depend: xmlp4pre.byte $(DEPOPT)
+depend:
+	make -C xmlp4 depend
+	make -C xmlp4 xmlp4pre.byte $(DEPOPT)
 #	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 	@for i in $(REPS) ; do $(MAKE) -C $$i depend ; done
 
