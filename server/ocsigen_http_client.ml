@@ -367,7 +367,7 @@ let raw_request
               else
                 Lwt.return (Lwt_ssl.plain fd))
             >>= fun socket ->
-
+            Lwt_timeout.stop timeout;
             Lwt.return (Ocsigen_http_com.create_receiver
                           (Ocsigen_config.get_server_timeout ())
                           Ocsigen_http_com.Answer socket))
