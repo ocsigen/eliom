@@ -601,30 +601,22 @@ let service receiver sender_slot request meth url port sockaddr =
                        the correct url (with a slash), so that relative
                        urls become correct *)
                     Ocsigen_messages.debug2 "-> Sending 301 Moved permanently";
-                    let empty_result = Ocsigen_http_frame.empty_result () in
-                    send
-                      sender_slot
-                      ~clientproto
-                      ~head
-                      ~sender:Ocsigen_http_com.default_sender
-                    {empty_result with
-                     res_code = 301 (* Moved permanently *);
-                     res_location = 
-                        Some (Neturl.string_of_url
-                                (Neturl.default_url
-                                   ~scheme:(if ri.ri_ssl
-                                            then "https" 
-                                            else "http")
-                                   ~host:(Ocsigen_extensions.get_hostname 
-                                            request)
-                                   ?port:(if (port = 80 && not ri.ri_ssl) 
-                                            || (ri.ri_ssl && port = 443)
-                                          then None
-                                          else Some port)
-                                   ~path:(""::(Ocsigen_lib.add_end_slash_if_missing ri.ri_full_path))
-                                   (Neturl.remove_from_url
-                                      ~path:true
-                                      ri.ri_url)))
+                    let port = Ocsigen_extensions.get_port request in
+                    let new_url = Neturl.default_url
+                      ~scheme:(if ri.ri_ssl then "https" else "http")
+                      ~host:(Ocsigen_extensions.get_hostname request)
+                      ?port:(if (port = 80 && not ri.ri_ssl)
+                               || (ri.ri_ssl && port = 443)
+                             then None
+                             else Some port)
+                      ~path:(""::(Ocsigen_lib.add_end_slash_if_missing
+                                    ri.ri_full_path))
+                      (Neturl.remove_from_url ~path:true ri.ri_url)
+                    in
+                    send_aux {
+                      (Ocsigen_http_frame.empty_result ()) with
+                        res_code = 301;
+                        res_location = Some (Neturl.string_of_url new_url)
                    }
 
                 | _ -> handle_service_errors e
