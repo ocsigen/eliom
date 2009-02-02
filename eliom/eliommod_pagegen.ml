@@ -329,9 +329,34 @@ let gen is_eliom_extension sitedata = function
                             all_new_cookies
                            ))
 
-                  | _ ->
+
+                  | Eliom_common.Na_post_ _, (_, _), _
+                  | Eliom_common.Na_post' _, (_, _), _ ->
+                      (* POST na coservice *)
                       (* retry without POST params *)
 
+                      return
+                        (* Ext_retry_with, not Eliom_retry_with *)
+                        (Ocsigen_extensions.Ext_retry_with
+                           ({ri with request_info = {
+                               ri.request_info with
+                                 ri_post_params = lazy (return []);
+                                 ri_get_params =
+                                   lazy si.Eliom_common.si_other_get_params;
+                                 ri_method = Ocsigen_http_frame.Http_header.GET;
+                                 ri_cookies= lazy ric;
+                                 ri_extension_info= exnlist
+                             }},
+                            all_new_cookies
+                           ))
+
+
+                  | _ ->
+                      (* retry without POST params *)
+(*VVV 
+Warning: is it possible to have POST method but no POST parameter?
+--> may loop...
+*)
                       return
                         (* Ext_retry_with, not Eliom_retry_with *)
                         (Ocsigen_extensions.Ext_retry_with
