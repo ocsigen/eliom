@@ -83,7 +83,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)extensions/ocsipersist.mli				\
 	$(DOCPREF)extensions/authbasic.mli				\
 	$(DOCPREF)xmlp4/oldocaml/simplexmlparser.mli 			\
-	$(DOCPREF)baselib/ocsigen_getcommandline.mli
+	$(DOCPREF)baselib/ocsigen_getcommandline.mli                    \
 	$(DUCEDOC)
 METAS = META META.ocsigen_ext META.eliom_examples META.ocsigen_ext.global META.eliom_examples.global
 
