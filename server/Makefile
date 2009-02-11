@@ -92,11 +92,10 @@ CMOS = ../baselib/ocsigen_lib.cmo \
        ../http/ocsigen_range.cmo \
        ../http/http_lexer.cmo ../http/http_parser.cmo \
        ../http/framepp.cmo ../http/ocsigen_http_com.cmo \
-       ../xmlp4/xhtmlpretty.cmo ../xmlp4/xhtmlcompact.cmo \
        ../xmlp4/xhtmlpretty_streams.cmo ../xmlp4/xhtmlcompact_streams.cmo \
        ../http/ocsigen_charset_mime.cmo ../http/ocsigen_senders.cmo
 
-CMAO = ../xmlp4/xhtml.cma $(NAME).cma
+CMAO = ../xmlp4/xhtml.cma ../xmlp4/xhtmlpretty.cma $(NAME).cma
 
 STUBS_OBJS = stubs.o
 
