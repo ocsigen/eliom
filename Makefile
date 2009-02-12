@@ -117,6 +117,7 @@ CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/xhtmlpretty.cma	\
 CMOTOINSTALL = server/server_main.cmo
 CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi	\
+	server/ocsigen_server.cmi 					\
 	xmlp4/xhtmlpretty.cmi xmlp4/xhtmlpretty_streams.cmi		\
 	xmlp4/xhtmlcompact.cmi xmlp4/ohl-xhtml/xHTML.cmi		\
 	xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi			\
@@ -126,7 +127,7 @@ CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi		\
 	http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi		\
 	http/ocsigen_stream.cmi baselib/ocsigen_messages.cmi		\
-	extensions/localFiles.cmi META
+	extensions/ocsigen_LocalFiles.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo	\
 	examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 

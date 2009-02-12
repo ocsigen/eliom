@@ -848,6 +848,8 @@ LIBDIRS= -I ../baselib -I ../http -I ../xmlp4 -I ../server -I ../extensions -I .
 LIBDIRS2= -I ../../baselib -I ../../http -I ../../xmlp4 -I ../../server -I ../../extensions -I ../../eliom
 LIBDIRS3= -I baselib -I http -I xmlp4 -I server -I extensions -I eliom
 
+include \$(SRC)/Makefile.options
+
 _EOF_
 
 ######################################################################

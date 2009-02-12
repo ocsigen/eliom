@@ -94,7 +94,7 @@ let find_static_page ~request ~usermode ~dir ~err ~pathstring =
     | _ -> raise Not_concerned
   in
   if usermode = false || correct_user_local_file file then
-    (status_filter, LocalFiles.resolve request file)
+    (status_filter, Ocsigen_LocalFiles.resolve request file)
   else
     raise (Ocsigen_extensions.Error_in_user_config_file
              "cannot use '..' in user paths")
@@ -112,7 +112,7 @@ let gen ~do_not_serve ~usermode dir = function
              find_static_page ~request:ri ~usermode ~dir ~err
              ~pathstring:(Ocsigen_lib.string_of_url_path ~encode:false
                             ri.request_info.ri_sub_path) in
-           LocalFiles.content ri page
+           Ocsigen_LocalFiles.content ri page
            >>= fun answer ->
            let answer' =
              if status_filter = false then
@@ -125,9 +125,9 @@ let gen ~do_not_serve ~usermode dir = function
         )
 
         (function
-           | LocalFiles.Failed_403 -> return (Ext_next 403)
+           | Ocsigen_LocalFiles.Failed_403 -> return (Ext_next 403)
            | NoSuchUser
-           | LocalFiles.Failed_404 -> return (Ext_next err)
+           | Ocsigen_LocalFiles.Failed_404 -> return (Ext_next err)
            | Not_concerned -> return (Ext_next err)
            | e -> fail e
         )
