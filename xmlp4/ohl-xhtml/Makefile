@@ -25,12 +25,6 @@ RM = rm
 MV = mv
 DIFF = diff
 
-ifeq "$(PROFILING)" "YES"
-CAMLCNAME2= $(CAMLCPNAME)
-else
-CAMLCNAME2= $(CAMLCNAME)
-endif
-
 
 LIB = -package netstring
 OCAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)

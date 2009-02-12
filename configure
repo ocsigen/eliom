@@ -47,6 +47,7 @@ set_defaults () {
     enable_nativecode=1
     enable_natdynlink=1
     enable_debug=0
+    enable_annot=0
     enable_ocamlduce=1
     enable_newocamlnet=1
     enable_sqlite=1
@@ -82,6 +83,7 @@ full_pwd=`pwd`
 #
 #
 ehelp_debug="Enable/disable debug output"
+ehelp_annot="Enable/disable .annot files"
 ehelp_bytecode="Enable/disable bytecode version of Ocsigen"
 ehelp_nativecode="Enable/disable nativecode version of Ocsigen"
 ehelp_natdynlink="Enable/disable nativecode dynamic linking"
@@ -92,7 +94,7 @@ ehelp_dbm="Compile ocsipersist with DBM for persistent storage; default is detec
 ehelp_camlzip="Compile deflatemod extension (requires camlzip); default is detected"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
-eoptions="debug bytecode nativecode natdynlink ocamlduce newocamlnet sqlite dbm camlzip"
+eoptions="debug annot bytecode nativecode natdynlink ocamlduce newocamlnet sqlite dbm camlzip"
 woptions=""
 
 
@@ -655,6 +657,11 @@ if [ $enable_debug -gt 0 ] ; then
 else
 	enable_debug="NO"
 fi
+if [ $enable_annot -gt 0 ] ; then
+	enable_annot="YES"
+else
+	enable_annot="NO"
+fi
 if [ $enable_bytecode -gt 0 ] ; then
 	enable_bytecode="YES"
 else
@@ -791,8 +798,11 @@ UPLOADDIR = $root$uploaddir
 # Where to put Ocsigen documentation:
 DOCDIR = $root$docdir/\$(OCSIGENNAME)
 
-# Do you want debugging information? (-g -dtypes)
+# Do you want debugging information? (-g)
 DEBUG=$enable_debug
+
+# Do you want annot files? (-dtypes)
+ANNOT=$enable_annot
 
 # The name of the named pipe used to command the server
 COMMANDPIPE=$root$commandpipe

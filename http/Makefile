@@ -1,16 +1,5 @@
 include ../Makefile.config
 
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
-
-ifeq "$(PROFILING)" "YES"
-CAMLCNAME2= $(CAMLCPNAME)
-else
-CAMLCNAME2= $(CAMLCNAME)
-endif
 
 CAMLC    = $(OCAMLFIND) $(CAMLCNAME2) $(DBG)
 CAMLDOC  = $(OCAMLFIND) ocamldoc

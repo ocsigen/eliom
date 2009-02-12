@@ -3,17 +3,6 @@ include ../../Makefile.config
 FILES= ocsipersist.ml
 OBJDBM= ocsipersist-dbm.cma
 
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
-
-ifeq "$(PROFILING)" "YES"
-CAMLCNAME= ocamlcp -p a
-else
-CAMLCNAME= ocamlc
-endif
 
 ifeq "$(NATDYNLINK)" "YES"
 CMXS=$(OBJDBM:.cma=.cmxs)

@@ -1,0 +1,19 @@
+DBG =
+
+ifeq "$(DEBUG)" "YES"
+DEBUG2 = -g
+endif
+
+ifeq "$(ANNOT)" "YES"
+ANNOT2 = -dtypes
+endif
+
+DBG = $(DEBUG2) $(ANNOT2)
+
+
+
+ifeq "$(PROFILING)" "YES"
+CAMLCNAME2= $(CAMLCPNAME)
+else
+CAMLCNAME2= $(CAMLCNAME)
+endif

@@ -1,11 +1,5 @@
 include ../Makefile.config
 
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
-
 FILES = xhtmlpretty.ml xhtmlcompact.ml \
 	xhtmlpretty_streams.ml xhtmlcompact_streams.ml
 

@@ -1,10 +1,5 @@
 include ../../Makefile.config
 
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
 
 FILESR = xmllexer.ml 
 FILES = basicTypes.ml xhtmltypes.ml simplexmlparser.ml xhtmlsyntax.ml xhtmlparser.ml 

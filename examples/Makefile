@@ -2,11 +2,6 @@ include ../Makefile.config
 
 FILES=$(wildcard *.ml)
 
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
 
 ifeq "$(OCAMLDUCE)" "YES"
 DUCEMODBYTE=exampleduce.cmo

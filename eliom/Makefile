@@ -1,4 +1,3 @@
-
 include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
@@ -16,18 +15,6 @@ FILES:= error_pages.ml \
         eliom_tools.ml eliom_extension_template.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
-
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
-
-ifeq "$(PROFILING)" "YES"
-CAMLCNAME2= $(CAMLCPNAME)
-else
-CAMLCNAME2= $(CAMLCNAME)
-endif
 
 ifeq "$(NATDYNLINK)" "YES"
 CMXS1=$(OBJSQLITE:.cma=.cmxs)

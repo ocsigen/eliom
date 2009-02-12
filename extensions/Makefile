@@ -28,18 +28,6 @@ OBJDBMOPT= dbm-opt
 else
 endif
 
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
-
-ifeq "$(PROFILING)" "YES"
-CAMLCNAME2= $(CAMLCPNAME)
-else
-CAMLCNAME2= $(CAMLCNAME)
-endif
-
 ifeq "$(NEWOCAMLNET)" "YES"
 NETSYS=netsys
 NETSYSCMA=netsys.cma

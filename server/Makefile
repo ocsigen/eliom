@@ -6,17 +6,6 @@ FILES= ocsigen_extensions.ml ocsigen_parseconfig.ml ocsigen_http_client.ml \
 	../extensions/localFiles.ml server.ml
 EXE= server_main.ml
 
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
-
-ifeq "$(PROFILING)" "YES"
-CAMLCNAME2= $(CAMLCPNAME)
-else
-CAMLCNAME2= $(CAMLCNAME)
-endif
 
 ifeq "$(BYTECODE)" "YES"
 INSTALLBYTE=installbyte
