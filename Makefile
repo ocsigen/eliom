@@ -65,6 +65,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)eliom/eliom_extensions.mli				\
 	$(DOCPREF)server/ocsigen_extensions.mli				\
 	$(DOCPREF)server/ocsigen_parseconfig.mli			\
+	$(DOCPREF)server/ocsigen_server.mli				\
 	$(DOCPREF)xmlp4/xhtmlpretty_streams.mli				\
 	$(DOCPREF)xmlp4/xhtmlcompact_streams.mli			\
 	$(DOCPREF)xmlp4/xhtmlpretty.mli					\
@@ -82,6 +83,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)eliom/eliom_tools.mli					\
 	$(DOCPREF)extensions/ocsipersist.mli				\
 	$(DOCPREF)extensions/authbasic.mli				\
+	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
 	$(DOCPREF)xmlp4/oldocaml/simplexmlparser.mli 			\
 	$(DOCPREF)baselib/ocsigen_getcommandline.mli                    \
 	$(DUCEDOC)
