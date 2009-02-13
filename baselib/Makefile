@@ -1,11 +1,5 @@
 include ../Makefile.config
 
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
-
 ifeq "$(NATIVECODE)" "YES"
   ifeq "$(NATDYNLINK)" "YES"
   NATIVECODE_RUNTIME_DETECT=Dynlink.is_native
