@@ -137,21 +137,19 @@ let gen ~do_not_serve ~usermode dir = function
 (** Parsing of config file *)
 open Simplexmlparser
 
-let do_not_serve = ref "\\.php$"
+let default_do_not_serve = "\\.php$"
+let do_not_serve = ref (Netstring_pcre.regexp default_do_not_serve)
+
+let update_do_not_serve str =
+  try do_not_serve := Netstring_pcre.regexp str
+  with Pcre.BadPattern _ ->
+    bad_config ("Bad regexp \""^ str ^ "\" in option 'donotserve' of staticmod")
+
 
 let rec parse_global_config = function
   | [] -> ()
-  | (Element ("donotserve", [("regexp", r)], []))::l ->
-      do_not_serve := r;
-      parse_global_config l
+  | [Element ("donotserve", [("regexp", r)], [])] -> update_do_not_serve r
   | _ -> bad_config "Unexpected content inside staticmod options"
-
-
-let do_not_serve =
-  try Netstring_pcre.regexp !do_not_serve
-  with Pcre.BadPattern _ ->
-    bad_config ("Bad regexp \""^ !do_not_serve ^"\" in option 'donotserve' of staticmod")
-
 
 
 
