@@ -1133,5 +1133,10 @@ val set_site_handler : Eliom_common.sitedata ->
   (server_params -> exn -> Eliom_common.result_to_send Lwt.t) -> unit
 
 
+(** Returns the http error code of the request before Eliom was called *)
+val get_previous_extension_error_code :sp:server_params -> int
+
+
+
 val sp_of_esp : Eliom_common.server_params -> server_params
 val esp_of_sp : server_params -> Eliom_common.server_params
