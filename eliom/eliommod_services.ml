@@ -91,8 +91,9 @@ let find_page_table
   in
   (catch
      (fun () -> return (List.assoc k !pagetableref))
-     (function Not_found ->
-       fail Eliom_common.Eliom_404 | e -> fail e)) >>=
+     (function
+        | Not_found -> fail Eliom_common.Eliom_404
+        | e -> fail e)) >>=
   aux [] >>=
   (fun (r, toremove) ->
     let list, newptr = Ocsigen_lib.list_assoc_remove k !pagetableref in
