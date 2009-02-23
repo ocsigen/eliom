@@ -910,6 +910,8 @@ let errmsg = function
   | Ocsigen_loader.Dynlink_error (s, exn) ->
       (("Fatal - While loading "^s^": "^(string_of_exn exn)),
       52)
+  | Ocsigen_loader.Findlib_error _ as e ->
+      (("Fatal - " ^ string_of_exn e), 53)
   | exn ->
       try
         ((Ocsigen_extensions.get_init_exn_handler () exn),
