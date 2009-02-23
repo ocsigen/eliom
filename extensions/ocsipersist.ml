@@ -39,24 +39,13 @@ exception Ocsipersist_error
 
 open Simplexmlparser
 (** getting the directory from config file *)
-let rec parse_global_config d = function
-  | [] -> d
-  | (Element ("database", [("file", s)], []))::ll ->
-      (match d with
-      | None  -> parse_global_config (Some s) ll
-      | (Some _) -> raise (Ocsigen_extensions.Error_in_config_file
-                             ("Ocsipersist: Duplicate <store> tag")))
-  | (Element (tag,_,_))::ll -> parse_global_config d ll
+let rec parse_global_config = function
+  | [] -> None
+  | (Element ("database", [("file", s)], []))::[] -> Some s
   | _ -> raise (Ocsigen_extensions.Error_in_config_file
                   ("Unexpected content inside Ocsipersist config"))
 
 let db_file = ref ((Ocsigen_config.get_datadir ())^"/ocsidb")
-  
-let init config =
-  match parse_global_config None config with
-    | None -> ()
-    | Some d -> db_file := d
-
 
 
 (*****************************************************************************)
@@ -325,8 +314,24 @@ let length table =
 
 
 
+(* Registration of the extension *)
+
+let init config =
+  match parse_global_config config with
+    | None -> ()
+    | Some d ->
+        db_file := d;
+        (* We check that we can access the database *)
+        try Lwt_unix.run (exec_safely (fun _ -> ()))
+        with e -> Ocsigen_messages.errlog
+          (Printf.sprintf
+             "Error opening database file %s when registering Ocsipersist. \
+              Check that the directory exists, and that Ocsigen has enough \
+              rights" !db_file);
+          raise e
 
 
-
-let _ = Ocsigen_extensions.register_extension 
-  ~name:"ocsipersist" ~init_fun:init ()
+let _ = Ocsigen_extensions.register_extension
+  ~name:"ocsipersist"
+  ~init_fun:init
+  ()
