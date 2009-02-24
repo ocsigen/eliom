@@ -619,7 +619,8 @@ fi
 
 
 ######################################################################
-# Check whether OCaml version is > 3.9
+# Check whether OCaml version is > 3.10
+echo "Checking for OCaml version"
 version=`ocamlc -version|sed 's/^\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/'`
 ocamlversion=`n1=${version%%.*}; n2=${version##*.}; \
               if [ $n1 -eq 3 ] && [ $n2 -le 9 ]; then \
@@ -627,6 +628,10 @@ ocamlversion=`n1=${version%%.*}; n2=${version##*.}; \
               else \
                 echo "NEW"; \
               fi`
+
+case "$ocamlversion" in
+    "OLD") echo; echo "OCaml >= 3.10 is required. Aborting."; exit 1;;
+esac
 
 
 ######################################################################
@@ -857,10 +862,6 @@ _EOF_
 
 echo
 
-case "$ocamlversion" in
-    "OLD") echo "Compiling for OCaml < 3.10";;
-    "NEW") echo "Compiling for OCaml >= 3.10";;
-esac
 
 echo
 echo "Please check Makefile.config."

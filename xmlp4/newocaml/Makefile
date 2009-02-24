@@ -5,15 +5,11 @@ FILESR = xmllexer.ml
 FILES = basicTypes.ml xhtmltypes.ml simplexmlparser.ml xhtmlsyntax.ml xhtmlparser.ml 
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) 
-# -package camlp4
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) 
-# -package camlp4
 CAMLDEP = $(OCAMLFIND) ocamldep
 LIB = -I `$(CAMLP4) -where` -I +camlp4/Camlp4Parsers $(LIBDIRS2)
 PP = -pp "camlp4rf -- -loc loc"
 PPLEXER = -pp "camlp4of -- -loc loc"
-# PP = -syntax camlp4rf -ppopt "-loc loc"
-# PPLEXER = -syntax camlp4of -ppopt "-loc loc"
 
 OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
 OBJSOPT = $(FILESR:.ml=.cmx) $(FILES:.ml=.cmx)
@@ -54,9 +50,6 @@ xmllexer.cmx: xmllexer.ml
 xmllexer.ml: xmllexer.mll
 	$(CAMLLEX) $<
 
-xhtmltypes.ml:
-	camlp4 -parser OCaml -printer OCamlr ../oldocaml/xhtmltypes.ml > \
-		xhtmltypes.ml
 
 # Common rules
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -69,23 +62,15 @@ xhtmltypes.ml:
 	$(CAMLOPT) $(PP) -c $<
 
 
-# doc
-doc:
-	mkdir doc
-	ocamldoc -sort -html -d doc tdpe.ml # tdpe.mli
-
 
 # Clean up
 clean:
-	-rm -f xhtmltypes.ml xmllexer.ml *.cm[ioax] *.cmxa *~ *.annot *.a *.o
+	-rm -f xmllexer.ml *.cm[ioax] *.cmxa *~ *.annot *.a *.o
 	$(MAKE) -C ../ohl-xhtml clean
 
 
 # Dependencies
 depend: *.mli *.ml
-#	-rm -f xhtmltypes.ml
-#	camlp4 -parser OCaml -printer OCamlr ../oldocaml/xhtmltypes.ml > \
-#		xhtmltypes.ml
 	-rm -f xmllexer.ml
 	$(CAMLDEP) $(PP) $(LIBDIRS2) *.mli *.ml > .depend
 

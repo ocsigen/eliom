@@ -31,7 +31,6 @@ open Ocsigen_extensions
 
 exception NoConfFile
 
-
 (*****************************************************************************)
 
 let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
@@ -61,7 +60,10 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
             in
             let xmllist =
               try Simplexmlparser.xmlparser_file conf
-              with Sys_error _ -> raise NoConfFile
+              with
+                | Sys_error _ -> raise NoConfFile
+                | Simplexmlparser.Xml_parser_error s ->
+                    raise (Ocsigen_extensions.Error_in_config_file s)
             in
             Lwt.return
               (Ext_sub_result
@@ -122,9 +124,17 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
           | Unix.Unix_error (Unix.EACCES,_,_)
           | Unix.Unix_error (Unix.ENOENT, _, _) ->
               Lwt.return (Ocsigen_extensions.Ext_next previous_extension_err)
+          | Ocsigen_extensions.Error_in_config_file s ->
+              Ocsigen_messages.errlog (Printf.sprintf
+                   "Syntax error in userconf configuration file for url %s: %s"
+                   req.request_info.ri_url_string s);
+              Lwt.return
+                (Ocsigen_extensions.Ext_stop_site
+                   (Ocsigen_http_frame.Cookies.empty, 500))
           | Ocsigen_extensions.Error_in_user_config_file s ->
               Ocsigen_messages.errlog
-                (Printf.sprintf "Userconf error for url %s: %s" url s);
+                (Printf.sprintf "Userconf error for url %s: %s"
+                   req.request_info.ri_url_string s);
               Lwt.return
                 (Ocsigen_extensions.Ext_stop_site
                    (Ocsigen_http_frame.Cookies.empty, 500))

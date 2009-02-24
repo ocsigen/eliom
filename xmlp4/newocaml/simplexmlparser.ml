@@ -33,14 +33,15 @@ value nocaml_msg =
 
 module B = Xmllexer.BasicTypes;
 
-        type state =
-      { stream : Stream.t (B.token * Loc.t); stack : Stack.t B.token; loc : Loc.t
-      };
+    type state = {
+      stream : Stream.t (B.token * Loc.t);
+      stack : Stack.t B.token;
+      loc : Loc.t
+    };
     type error_msg =
       [ EndOfTagExpected of string
       | EOFExpected ];
     exception Internal_error of error_msg;
-    exception NoMoreData;
 
    (* Stack - the type of s is state *)
     value pop s =
@@ -94,7 +95,7 @@ module B = Xmllexer.BasicTypes;
 
 value rawxmlparser_file s =
   let chan = open_in s in
-  let loc = Loc.ghost in
+  let loc = Loc.mk s in
   let tree = to_expr_taglist (Xmllexer.from_stream loc True (Stream.of_channel chan)) loc
   in do { close_in chan; tree };
 
@@ -104,8 +105,12 @@ value rawxmlparser_string s =
 
 value xmlparser rawxmlparser s = try (rawxmlparser s)
 with
-[Internal_error EOFExpected -> raise (Xml_parser_error "EOF expected")
-|Internal_error (EndOfTagExpected s) -> raise (Xml_parser_error ("End of tag expected: "^s))]
+[ Xmllexer.Error.ParseException (e, loc) ->
+    raise (Xml_parser_error (Xmllexer.Error.to_string e loc))
+| Internal_error EOFExpected ->
+    raise (Xml_parser_error "EOF expected")
+| Internal_error (EndOfTagExpected s) ->
+    raise (Xml_parser_error ("End of tag expected: "^s))]
 ;
 
 value xmlparser_file = xmlparser rawxmlparser_file;

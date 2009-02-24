@@ -58,74 +58,61 @@ open BasicTypes
 (* Error report *)
 module Error = struct
 
-        type t =
-                | EUnterminatedComment
-                | EUnterminatedString
-                | EIdentExpected
-                | ECloseExpected
-                | ENodeExpected
-                | EAttributeNameExpected
-                | EAttributeValueExpected
-                | EUnterminatedEntity
-                | ECamlIdentExpected
-                | WIntricatedComments
+  type t =
+    | EUnterminatedComment
+    | EUnterminatedString
+    | EIdentExpected
+    | ECloseExpected
+    | ENodeExpected
+    | EAttributeNameExpected
+    | EAttributeValueExpected
+    | EUnterminatedEntity
+    | ECamlIdentExpected
+    | WNestedComments
 
-        exception E of t
+  exception ParseException of t * Loc.t
 
-        open Format
+  let to_string = function
+    | EUnterminatedComment -> "Unterminated Comment"
+    | EUnterminatedString  -> "Unterminated String"
+    | EIdentExpected -> "Ident Expected"
+    | ECloseExpected -> "Close Expected"
+    | ENodeExpected -> "Node Expected"
+    | EAttributeNameExpected -> "Attribute Name Expected"
+    | EAttributeValueExpected -> "Attribute Value Expected"
+    | EUnterminatedEntity -> "Unterminated Entity"
+    | ECamlIdentExpected -> "Caml Ident Expected"
+    | WNestedComments -> "Nested comments (non valid XML)"
 
-        let print ppf = function
-        | EUnterminatedComment ->
-                        fprintf ppf "Unterminated Comment"
-        | EUnterminatedString  ->
-                        fprintf ppf "Unterminated String"
-        | EIdentExpected ->
-                        fprintf ppf "Ident Expected"
-        | ECloseExpected ->
-                        fprintf ppf "Close Expected"
-        | ENodeExpected ->
-                        fprintf ppf "Node Expected"
-        | EAttributeNameExpected ->
-                        fprintf ppf "Attribute Name Expected"
-        | EAttributeValueExpected ->
-                        fprintf ppf "Attribute Value Expected"
-        | EUnterminatedEntity ->
-                        fprintf ppf "Unterminated Entity"
-        | ECamlIdentExpected ->
-                        fprintf ppf "Caml Ident Expected"
-        | WIntricatedComments ->
-                        fprintf ppf "Intricated comments (non valid XML)"
-
-
-    let to_string x =
-            let b = Buffer.create 50 in
-            let () = bprintf b "%a" print x in Buffer.contents b
+  let to_string x loc =
+    Printf.sprintf "%s (%s)"
+      (to_string x) (Loc.to_string loc)
 end;;
 
-let module M = ErrorHandler.Register(Error) in ()
+
 
 open Error
 
 (* To store some context information:
-        *   loc       : position of the beginning of a string, quotation and comment
-                *   entity : shall we translate entities or not
-        *)
+     *   loc    : position of the beginning of a string, quotation and comment
+     *   entity : shall we translate entities or not
+*)
 
-type context =
-        { loc        : Loc.t    ;
-        lexbuf     : lexbuf   ;
-        buffer     : Buffer.t ;
-        entity     : bool ;
-                }
+type context = {
+  loc        : Loc.t    ;
+  lexbuf     : lexbuf   ;
+  buffer     : Buffer.t ;
+  entity     : bool ;
+}
 
-let default_context lb =
-        { loc        = Loc.ghost ;
-        lexbuf     = lb        ;
-        buffer     = Buffer.create 256 ;
-        entity  = true ;
-                }
+let default_context lb = {
+  loc        = Loc.ghost ;
+  lexbuf     = lb        ;
+  buffer     = Buffer.create 256 ;
+  entity     = true ;
+}
 
-        (* To buffer string literals *)
+(* To buffer string literals *)
 
 let store c = Buffer.add_string c.buffer (Lexing.lexeme c.lexbuf)
 let istore_char c i = Buffer.add_char c.buffer (Lexing.lexeme_char c.lexbuf i)
@@ -147,7 +134,8 @@ let extract_caml s prefix =
         let k = (if prefix then  String.index_from s (i+1) ':' else i)
         in if k<j then String.sub s (k+1) (j-k-1) else failwith "Error : extract_caml"
 
-        (* Deal with entities  *)
+
+(* Deal with entities  *)
 let idents = Hashtbl.create 0
 
 let _ = begin
@@ -158,8 +146,8 @@ let _ = begin
         Hashtbl.add idents "quot;" "\"";
 end
 
-        (* Update the current location with file name and line number. *)
 
+(* Update the current location with file name and line number. *)
 let update_loc c line absolute chars =
         let lexbuf = c.lexbuf in
         let pos = lexbuf.lex_curr_p in
@@ -168,12 +156,9 @@ let update_loc c line absolute chars =
         pos_bol = pos.pos_cnum - chars;
         }
 
-let err error loc =
-        Format.eprintf "Error: %a: %a@." Loc.print loc Error.print error ;
-        raise(Loc.Exc_located(loc, Error.E error))
 
-let warn error loc =
-        Format.eprintf "Warning: %a: %a@." Loc.print loc Error.print error
+let err error loc =
+        raise (ParseException (error, loc))
 
 }
 
@@ -198,7 +183,7 @@ rule token c = parse
          * les ignorer et rajouter un commentaire de remplissage au niveau
          * du parser si on se retrouve avec une liste de noeuds vide (donc
          * si le seul noeud à analyser était un commentaire *)
-        | "<!--" { Comment(comment c lexbuf)}
+        | "<!--" { Comment(comment c [Loc.of_lexbuf c.lexbuf] lexbuf)}
         | "<?" { header c lexbuf;  token c lexbuf }
         | '<' space* '/' space* {
                 let tag = ident_name c lexbuf in
@@ -263,29 +248,33 @@ and camlident c  = parse
         |camlidentchar+ { store c ; camlident c lexbuf}
         |'$' { store c ; buff_contents c }
 
-and comment c = parse
+(* l is a list of the locations of the opened comments, which is used
+   to keep track of nesting. comment should never be called with an empty
+   list. *)
+and comment c l = parse
 (* WARNING: selon la norme XML, le symbole "--" est INTERDIT dans un commentaire.
  * Néanmoins, on choisit de gérer les commentaires imbriqués, pour faciliter
  * l'écriture des fichiers de configuration. C'est sous-optimal en matière de
  * gestion mémoire, on fait des recopies de chaines inutiles *)
         | newline {
                 update_loc c 1 false 0;
-                comment c lexbuf
+                comment c l lexbuf
         }
         | "<!--" {
 (*              warn WIntricatedComments (Loc.of_lexbuf lexbuf) ; *)
-
-                let buff = buff_contents c in
-                let in_comment = comment c lexbuf in
-                store_string c buff ;
                 store_string c "<!--" ;
-                store_string c in_comment ;
+                ignore (comment c (loc c :: l) lexbuf);
                 store_string c "-->" ;
-                comment c lexbuf
+                comment c l lexbuf
         }
-        | "-->" { buff_contents c }
-        | eof { err EUnterminatedComment (Loc.of_lexbuf lexbuf) }
-        | _  { store c ; comment c lexbuf }
+        | "-->" { match l with
+                    | [] (* Should not occur... *)
+                    | [_] -> buff_contents c
+                    | _ -> "" }
+        | eof { err EUnterminatedComment
+                  (match l with [] -> Loc.of_lexbuf lexbuf
+                     | l :: _ -> l) }
+        | _  { store c ; comment c l lexbuf }
 
 and header c = parse
 (* Le header est ignoré *)
