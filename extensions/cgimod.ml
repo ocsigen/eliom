@@ -454,7 +454,7 @@ let get_content str =
 (*****************************************************************************)
 let rec parse_global_config = function
   | [] -> ()
-  | (Element ("cgitimeout", [("value", s)], []))::ll ->
+  | (Element ("cgitimeout", [("value", s)], []))::[] ->
       cgitimeout := int_of_string s
   | _ -> raise (Error_in_config_file
                   ("Unexpected content inside cgimod config"))

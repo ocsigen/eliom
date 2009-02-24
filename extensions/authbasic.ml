@@ -26,21 +26,13 @@ open Simplexmlparser
 open Ocsigen_http_frame
 
 
-(*****************************************************************************)
-let rec parse_global_config = function
-  | [] -> ()
-  | _ -> raise (Error_in_config_file
-                  ("Unexpected content inside authbasic config"))
-
 
 (*****************************************************************************)
 (* Management of basic authentication methods *)
 
 exception Bad_config_tag_for_auth of string
 
-let register_basic_authentication_method,
-  get_basic_authentication_method =
-
+let register_basic_authentication_method, get_basic_authentication_method =
   let fun_auth = ref
     (fun config ->
        raise (Bad_config_tag_for_auth "<unknown basic authentication method>"))
@@ -73,9 +65,9 @@ let _ = register_basic_authentication_method
 
 (*****************************************************************************)
 
-let parse_config path _ parse_fun = function
+let parse_config = function
 
-    | Element ("authbasic", ["realm", realm], auth::sub) ->
+    | Element ("authbasic", ["realm", realm], auth::[]) ->
         (* http://www.ietf.org/rfc/rfc2617.txt *)
         (* TODO: check that realm is correct *)
         let auth =
@@ -134,6 +126,8 @@ let parse_config path _ parse_fun = function
              | Ocsigen_extensions.Req_found (ri, r) ->
                  Lwt.return Ocsigen_extensions.Ext_do_nothing)
 
+    | Element ("authbasic" as s, _, _) -> badconfig "Bad syntax for tag %s" s
+
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(authbasic extension) Bad data")
 
@@ -144,7 +138,6 @@ let parse_config path _ parse_fun = function
 (** Registration of the extension *)
 let () = register_extension
   ~name:"authbasic"
-  ~fun_site:(fun _ -> parse_config)
-  ~user_fun_site:(fun _ _ -> parse_config)
-  ~init_fun:parse_global_config
+  ~fun_site:(fun _ _ _ _ -> parse_config)
+  ~user_fun_site:(fun _ _ _ _ _ -> parse_config)
   ()

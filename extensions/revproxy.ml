@@ -42,19 +42,11 @@
    this data has been sent and is lost ...
 *)
 
-
-(* To compile it:
-ocamlfind ocamlc  -thread -package netstring,ocsigen -c revproxy.ml
-
-Then load it dynamically from Ocsigen's config file:
-   <extension module=".../revproxy.cmo"/>
-
-*)
-
 open Lwt
 open Ocsigen_extensions
 open Simplexmlparser
 
+exception Bad_answer_from_http_server
 
 
 (*****************************************************************************)
@@ -66,24 +58,11 @@ type redir =
       pipeline: bool}
 
 
-
-(*****************************************************************************)
-let rec parse_global_config = function
-  | [] -> ()
-  | _ -> raise (Error_in_config_file
-                  ("Unexpected content inside revproxy config"))
-
-
-
 (*****************************************************************************)
 (* Finding redirections *)
 
 
-
-
-(*****************************************************************************)
 (** The function that will generate the pages from the request. *)
-exception Bad_answer_from_http_server
 
 let gen dir = function
 | Ocsigen_extensions.Req_found _ -> 
@@ -228,17 +207,8 @@ let gen dir = function
 
 
 (*****************************************************************************)
-(** Configuration for each site.
-    These tags are inside <site ...>...</site> in the config file.
 
-   For example:
-   <site dir="">
-     <revproxy regexp="" ... />
-   </extension>
-
- *)
-
-let parse_config path _ parse_site = function
+let parse_config = function
   | Element ("revproxy", atts, []) ->
       let rec parse_attrs ((r, f, d, pipeline) as res) = function
         | [] -> res
@@ -291,9 +261,8 @@ let parse_config path _ parse_site = function
 (** Registration of the extension *)
 let () = register_extension
   ~name:"revproxy"
-  ~fun_site:(fun _ -> parse_config)
-  ~user_fun_site:(fun _ _ -> parse_config)
-  ~init_fun:parse_global_config
+  ~fun_site:(fun _ _ _ _ -> parse_config)
+  ~user_fun_site:(fun _ _ _ _ _ -> parse_config)
   ~respect_pipeline:true (* We ask ocsigen to respect pipeline order
                             when sending to extensions! *)
   ()

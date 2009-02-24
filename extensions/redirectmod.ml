@@ -48,16 +48,6 @@ type assockind =
 
 
 
-
-(*****************************************************************************)
-let rec parse_global_config = function
-  | [] -> ()
-  | _ -> raise (Error_in_config_file
-                  ("Unexpected content inside redirectmod config"))
-
-
-
-
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
 let gen dir = function
@@ -112,17 +102,8 @@ let gen dir = function
 
 
 (*****************************************************************************)
-(** Configuration for each site.
-    These tags are inside <site ...>...</site> in the config file.
 
-   For example:
-   <site dir="">
-     <redirect regexp="" dest="" />
-   </extension>
-
- *)
-
-let parse_config path _ parse_site = function
+let parse_config = function
   | Element ("redirect", atts, []) ->
       let rec parse_attrs ((r, f, d, pipeline) as res) = function
         | [] -> res
@@ -163,6 +144,8 @@ let parse_config path _ parse_site = function
               Regexp (r, d, full, pipeline)
         in
         gen dir
+  | Element ("redirect" as s, _, _) -> badconfig "Bad syntax for tag %s" s
+
   | Element (t, _, _) ->
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(redirectmod extension) Bad data")
@@ -174,7 +157,6 @@ let parse_config path _ parse_site = function
 (** Registration of the extension *)
 let () = register_extension
   ~name:"redirectmod"
-  ~fun_site:(fun _ -> parse_config)
-  ~user_fun_site:(fun _ _ -> parse_config)
-  ~init_fun:parse_global_config
+  ~fun_site:(fun _ _ _ _ -> parse_config)
+  ~user_fun_site:(fun _ _ _ _ _ -> parse_config)
   ()

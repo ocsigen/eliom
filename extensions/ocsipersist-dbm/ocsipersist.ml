@@ -50,7 +50,8 @@ let rec parse_global_config d = function
       | a, None -> parse_global_config (a, (Some s)) ll
       | _, Some _ -> raise (Ocsigen_extensions.Error_in_config_file
                               ("Ocsipersist: Duplicate <ocsidbm> tag")))
-  | (Element (tag,_,_))::ll -> parse_global_config d ll
+  | (Element (s,_,_))::ll ->
+      Ocsigen_extensions.badconfig "Bad tag %s" s
   | _ -> raise (Ocsigen_extensions.Error_in_config_file ("Unexpected content inside Ocsipersist config"))
 
 let (directory, ocsidbm) =

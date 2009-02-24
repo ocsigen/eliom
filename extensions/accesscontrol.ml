@@ -35,12 +35,6 @@ open Simplexmlparser
 open Ocsigen_http_frame
 
 
-(*****************************************************************************)
-let rec parse_global_config = function
-  | [] -> ()
-  | _ -> badconfig "Unexpected content inside accesscontrol config"
-
-
 
 (*****************************************************************************)
 (* Parsing a condition *)
@@ -61,6 +55,7 @@ let rec parse_condition = function
            else
              Ocsigen_messages.debug2 (sprintf "--Access control (ip): %s does not match %s" ri.ri_remote_ip s);
            r)
+    | Element ("ip" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | Element ("port", ["value", s], []) ->
         let port =
@@ -78,6 +73,7 @@ let rec parse_condition = function
              Ocsigen_messages.debug2
                (sprintf "--Access control (port): %d not accepted (%d expected)" ri.ri_server_port port);
            r)
+    | Element ("port" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | Element ("ssl", [], []) ->
         (fun ri ->
@@ -87,6 +83,7 @@ let rec parse_condition = function
            else
              Ocsigen_messages.debug2 "--Access control (ssl): not accepted";
            r)
+    | Element ("ssl" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | Element ("header", ["name", name; "regexp", reg], []) ->
         let regexp =
@@ -108,6 +105,7 @@ let rec parse_condition = function
            in
            if not r then Ocsigen_messages.debug2 (sprintf "--Access control (header): header %s does not match \"%s\"" name reg);
            r)
+    | Element ("header" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | Element ("method", ["value", s], []) ->
         let meth =
@@ -123,6 +121,7 @@ let rec parse_condition = function
            else Ocsigen_messages.debug
              (fun () -> sprintf "--Access control (method): %s does not match %s" (Framepp.string_of_method ri.ri_method) s);
            r)
+    | Element ("method" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | Element ("protocol", ["value", s], []) ->
         let pr =
@@ -138,6 +137,7 @@ let rec parse_condition = function
            else Ocsigen_messages.debug
              (fun () -> sprintf "--Access control (protocol): %s does not match %s" (Framepp.string_of_proto ri.ri_protocol) s);
            r)
+    | Element ("protocol" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | Element ("path", ["regexp", s], []) ->
         let regexp =
@@ -156,21 +156,22 @@ let rec parse_condition = function
            else Ocsigen_messages.debug
                (fun () -> sprintf "--Access control (path): \"%s\" does not match \"%s\"" ri.ri_sub_path_string s);
            r)
+    | Element ("path" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | Element ("and", [], sub) ->
         let sub = List.map parse_condition sub in
         (fun ri -> List.for_all (fun cond -> cond ri) sub)
+    | Element ("and" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | Element ("or", [], sub) ->
         let sub = List.map parse_condition sub in
         (fun ri -> List.exists (fun cond -> cond ri) sub)
+    | Element ("or" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | Element ("not", [], [sub]) ->
         let sub = parse_condition sub in
         (fun ri -> not (sub ri))
-
-    | Element (("and"|"or"|"not") as t, _, _) ->
-        badconfig "Bad syntax for <%s> condition" t
+    | Element ("not" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
     | _ ->
         badconfig "Bad syntax for condition"
@@ -179,7 +180,7 @@ let rec parse_condition = function
 (*****************************************************************************)
 (* Parsing filters *)
 
-let parse_config path _ parse_fun = function
+let parse_config parse_fun = function
 
   | Element ("if", [], sub) ->
       let (condition, sub) = match sub with
@@ -207,12 +208,15 @@ let parse_config path _ parse_fun = function
                  Ocsigen_messages.debug2 "--Access control: => going into <else> branch, if any";
                  Ocsigen_extensions.Ext_sub_result ielse
                end))
+  | Element ("if" as s, _, _) -> badconfig "Bad syntax for tag %s" s
+
 
   | Element ("notfound", [], []) ->
       (fun rs ->
          Ocsigen_messages.debug2 "--Access control: taking in charge 404";
          Lwt.return (Ocsigen_extensions.Ext_stop_all
                        (Ocsigen_http_frame.Cookies.empty, 404)))
+  | Element ("notfound" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("nextsite", [], []) ->
       (function
@@ -231,6 +235,7 @@ let parse_config path _ parse_fun = function
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ocsigen_extensions.Ext_stop_host
                            (Ocsigen_http_frame.Cookies.empty, 404)))
+  | Element ("nextsite" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("stop", [], []) ->
       (function
@@ -240,12 +245,14 @@ let parse_config path _ parse_fun = function
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ocsigen_extensions.Ext_stop_all
                            (Ocsigen_http_frame.Cookies.empty, 404)))
+  | Element ("stop" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("forbidden", [], []) ->
       (fun rs ->
          Ocsigen_messages.debug2 "--Access control: taking in charge 403";
          Lwt.return (Ocsigen_extensions.Ext_stop_all
                        (Ocsigen_http_frame.Cookies.empty, 403)))
+  | Element ("forbidden" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("iffound", [], sub) ->
       let ext = parse_fun sub in
@@ -254,6 +261,7 @@ let parse_config path _ parse_fun = function
              Lwt.return (Ext_sub_result ext)
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ocsigen_extensions.Ext_next err))
+  | Element ("iffound" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("ifnotfound", [], sub) ->
       let ext = parse_fun sub in
@@ -263,7 +271,6 @@ let parse_config path _ parse_fun = function
                            (fun () -> Lwt.return r))
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ext_sub_result ext))
-
   | Element ("ifnotfound", [("code", s)], sub) ->
       let ext = parse_fun sub in
       let r = Netstring_pcre.regexp ("^"^s^"$") in
@@ -276,6 +283,7 @@ let parse_config path _ parse_fun = function
                Lwt.return (Ext_sub_result ext)
              else
                Lwt.return (Ocsigen_extensions.Ext_next err))
+  | Element ("ifnotfound" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> badconfig "(accesscontrol extension) Bad data"
@@ -287,7 +295,6 @@ let parse_config path _ parse_fun = function
 (** Registration of the extension *)
 let () = register_extension
   ~name:"accesscontrol"
-  ~fun_site:(fun _ -> parse_config)
-  ~user_fun_site:(fun _ _ -> parse_config)
-  ~init_fun:parse_global_config
+  ~fun_site:(fun _ _ _ -> parse_config)
+  ~user_fun_site:(fun _ _ _ _ -> parse_config)
   ()

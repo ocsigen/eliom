@@ -901,7 +901,8 @@ let errmsg = function
   | Ssl.Private_key_error ->
       (("Fatal - bad password"),
       10)
-  | Ocsigen_config.Config_file_error msg ->
+  | Ocsigen_config.Config_file_error msg
+  | Ocsigen_extensions.Error_in_config_file msg ->
       (("Fatal - Error in configuration file: "^msg),
       50)
   | Simplexmlparser.Xml_parser_error s ->

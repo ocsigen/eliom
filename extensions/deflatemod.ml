@@ -269,15 +269,6 @@ let filter choice_list = function
 
 
 (*****************************************************************************)
-(** Extensions may take some options from the config file.
-    These options are written in xml inside the <extension> tag.
-   For example:
-   <extension module=".../extensiontemplate.cmo">
-     <myoption myattr="hello">
-        ...
-     </myoption>
-   </extension>
- *)
 
 let rec parse_filter = function
  |[] -> []
@@ -324,33 +315,19 @@ let rec parse_global_config = function
 
 
 (*****************************************************************************)
-(** Extensions may define new tags for configuring each site.
-    These tags are inside <site ...>...</site> in the config file.
 
-   For example:
-   <site dir="">
-     <extensiontemplate module=".../mymodule.cmo" />
-   </site>
+let parse_config = function
+  | Element ("deflate", [("compress",b)], choices) ->
+      let l = (try parse_filter choices
+               with Not_found -> raise (Error_in_config_file
+                                          "Can't parse filter content")) in
+      (match b with
+         |"only" -> filter (Compress_only l)
+         |"allbut" -> filter (All_but l)
+         | _ ->  raise (Error_in_config_file
+                     "Attribute \"compress\" should be \"allbut\" or \"only\""))
+  | Element ("deflate" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
-   Each extension will set its own configuration options, for example:
-   <site dir="">
-     <extensiontemplate module=".../mymodule.cmo" />
-     <eliom module=".../myeliommodule.cmo" />
-     <static dir="/var/www/plop" />
-   </site>
-
- *)
-
-let parse_config path _ _ = function
-     | Element ("deflate", [("compress",b)], choices) ->
-     let l = (try parse_filter choices
-              with Not_found -> raise (Error_in_config_file
-                                "Can't parse filter content")) in
-     (match b with
-       |"only" -> filter (Compress_only l)
-       |"allbut" -> filter (All_but l)
-       | _ ->  raise (Error_in_config_file
-         "Attribute \"compress\" should be \"allbut\" or \"only\""))
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->
       raise (Error_in_config_file "Unexpected data in config file")
@@ -363,6 +340,6 @@ let parse_config path _ _ = function
 (** Registration of the extension *)
 let () = Ocsigen_extensions.register_extension
   ~name:"deflatemod"
-  ~fun_site:(fun _ -> parse_config)
+  ~fun_site:(fun _ _ _ _ -> parse_config)
   ~init_fun:parse_global_config
   ()

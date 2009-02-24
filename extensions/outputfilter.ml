@@ -62,24 +62,8 @@ let gen (header, regexp, dest) = function
 
 
 (*****************************************************************************)
-(** Extensions may define new tags for configuring each site.
-    These tags are inside <site ...>...</site> in the config file.
 
-   For example:
-   <site dir="">
-     <extensiontemplate module=".../mymodule.cmo" />
-   </site>
-
-   Each extension will set its own configuration options, for example:
-   <site dir="">
-     <extensiontemplate module=".../mymodule.cmo" />
-     <eliom module=".../myeliommodule.cmo" />
-     <static dir="/var/www/plop" />
-   </site>
-
- *)
-
-let parse_config path _ _ = function
+let parse_config = function
   | Element ("outputfilter", atts, []) ->
       let rec parse_attrs ((h, r, d) as res) = function
         | [] -> res
@@ -98,6 +82,8 @@ let parse_config path _ _ = function
           raise
             (Error_in_config_file
                "Missing attributes for <outputfilter header=... regexp=... dest=... />"))
+  | Element ("outputfilter" as s, _, _) -> badconfig "Bad syntax for tag %s" s
+
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->
       raise (Error_in_config_file "Unexpected data in config file")
@@ -105,16 +91,11 @@ let parse_config path _ _ = function
 
 
 
-(*****************************************************************************)
-let site_creator hostpattern = parse_config
-   (* hostpattern has type Ocsigen_extensions.virtual_hosts
-      and represents the name of the virtual host *)
-
 
 (*****************************************************************************)
 (** Registration of the extension *)
 let () = register_extension
   ~name:"outputfilter"
-  ~fun_site:site_creator
-  ~user_fun_site:(fun _ -> site_creator)
+  ~fun_site:(fun _ _ _ _ -> parse_config)
+  ~user_fun_site:(fun _ _ _ _ _ -> parse_config)
   ()

@@ -39,13 +39,15 @@ exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
 exception Ocsigen_Internal_Error of string
 exception Ocsigen_Looping_request
 
+
+(** Xml tag not recognized by an extension (usually not a real error) *)
 exception Bad_config_tag_for_extension of string
+
+(** Error in a <site> tag inside the main ocsigen.conf file *)
 exception Error_in_config_file of string
 
-(* Incorrect option in an userconf file *)
+(** Option incorrect in a userconf file *)
 exception Error_in_user_config_file of string
-
-exception Not_overridable of string
 
 
 let badconfig fmt = Printf.ksprintf (fun s -> raise (Error_in_config_file s)) fmt
@@ -317,9 +319,11 @@ let add_to_res_cookies res cookies_to_set =
      Ocsigen_http_frame.res_cookies =
      Ocsigen_http_frame.add_cookies res.Ocsigen_http_frame.res_cookies cookies_to_set}
 
-let make_ext awake cookies_to_set req_state genfun (f : extension2) =
+let make_ext awake cookies_to_set req_state (genfun : extension) (genfun2 : extension2) =
+  genfun req_state
+  >>= fun res ->
   let rec aux cookies_to_set = function
-    | Ext_do_nothing -> f awake cookies_to_set req_state
+    | Ext_do_nothing -> genfun2 awake cookies_to_set req_state
     | Ext_found r ->
         awake ();
         r () >>= fun r' ->
@@ -327,20 +331,20 @@ let make_ext awake cookies_to_set req_state genfun (f : extension2) =
           | Req_found (ri, _) -> ri
           | Req_not_found (_, ri) -> ri
         in
-        f
+        genfun2
           Ocsigen_lib.id (* already awoken *)
           Ocsigen_http_frame.Cookies.empty
           (Req_found (ri, add_to_res_cookies r' cookies_to_set))
     | Ext_found_continue_with r ->
         awake ();
         r () >>= fun (r', req) ->
-        f
+        genfun2
           Ocsigen_lib.id (* already awoken *)
           Ocsigen_http_frame.Cookies.empty
           (Req_found (req, add_to_res_cookies r' cookies_to_set))
     | Ext_found_continue_with' (r', req) ->
         awake ();
-        f
+        genfun2
           Ocsigen_lib.id (* already awoken *)
           Ocsigen_http_frame.Cookies.empty
           (Req_found (req, add_to_res_cookies r' cookies_to_set))
@@ -349,9 +353,9 @@ let make_ext awake cookies_to_set req_state genfun (f : extension2) =
           | Req_found (ri, _) -> ri
           | Req_not_found (_, ri) -> ri
         in
-        f awake cookies_to_set (Req_not_found (e, ri))
+        genfun2 awake cookies_to_set (Req_not_found (e, ri))
     | Ext_continue_with (ri, cook, e) ->
-        f
+        genfun2
           awake
           (Ocsigen_http_frame.add_cookies cook cookies_to_set)
           (Req_not_found (e, ri))
@@ -359,13 +363,14 @@ let make_ext awake cookies_to_set req_state genfun (f : extension2) =
     | Ext_stop_site _
     | Ext_stop_host _
     | Ext_stop_all _
-    | Ext_retry_with _ as res -> Lwt.return (res, cookies_to_set)
+    | Ext_retry_with _ as res ->
+        Lwt.return (res, cookies_to_set)
     | Ext_sub_result sr ->
         sr awake cookies_to_set req_state
         >>= fun (res, cookies_to_set) ->
         aux cookies_to_set res
   in
-  genfun req_state >>= aux cookies_to_set
+  aux cookies_to_set res
 
 
 (*****************************************************************************)
@@ -471,10 +476,6 @@ let rec default_parse_config
                   ("Unexpected content inside <host>"))
 
 and make_parse_config path parse_host l : extension2 =
-  (* if keep_site_config is true, the config information set by the site
-     is kept (it is not really a <site>, but an inclusion).
-     Used for example for userconf.
-  *)
   let f = parse_host path (Parse_host parse_host) in
   (* creates all site data, if any *)
   let rec parse_config : _ -> extension2 = function
@@ -492,37 +493,23 @@ and make_parse_config path parse_host l : extension2 =
 *)
     | xmltag::ll ->
         try
-          let genfun =
-            f
-              parse_config
-              xmltag
-          in
+          let genfun = f parse_config xmltag in
           let genfun2 = parse_config ll in
           fun awake cookies_to_set req_state ->
             make_ext awake cookies_to_set req_state genfun genfun2
         with
         | Bad_config_tag_for_extension t ->
-            ignore
-              (Ocsigen_messages.errlog
-                 ("Unexpected tag <"^t^"> inside <site dir=\""^
-                  (Ocsigen_lib.string_of_url_path ~encode:true path)^"\"> (ignored)"));
-            parse_config ll
-        | Ocsigen_config.Config_file_error t
-        | Error_in_config_file t ->
-            ignore
-              (Ocsigen_messages.errlog
-                 ("Error while parsing configuration file: "^
-                  t^" (ignored)"));
-            parse_config ll
+            (* This case happens only if no extension has recognized the
+               tag at all *)
+            badconfig
+              "Unexpected tag <%s> inside <site dir=\"%s\">" t
+              (Ocsigen_lib.string_of_url_path ~encode:true path)
+        | Error_in_config_file _ as e -> raise e
         | e ->
-            ignore
-              (Ocsigen_messages.errlog
-                 ("Error while parsing configuration file: "^
-                  (try
-                     !fun_exn e
-                   with e -> Ocsigen_lib.string_of_exn e)^
-                  " (ignored)"));
-            parse_config ll
+            badconfig
+              "Error while parsing configuration file: %s"
+              (try !fun_exn e
+               with e -> Ocsigen_lib.string_of_exn e)
   in
   !fun_beg ();
   let r =
@@ -643,6 +630,11 @@ let register_extension, parse_config_item, parse_user_site_item, get_beg_init, g
    (fun () -> !fun_exn)
   )
 
+let default_parse_extension ext_name = function
+  | [] -> ()
+  | _ -> raise (Error_in_config_file
+                  (Printf.sprintf "Unexpected content found in configuration of extension %s: %s does not accept options" ext_name ext_name))
+
 let register_extension 
     ~name
     ?fun_site
@@ -654,9 +646,9 @@ let register_extension
     ?respect_pipeline
     () =
   Ocsigen_loader.set_module_init_function name
-    (fun () -> 
+    (fun () ->
        (match init_fun with
-          | None -> ()
+          | None -> default_parse_extension name (get_config ())
           | Some f -> f (get_config ()));
        register_extension ?fun_site ?user_fun_site ?begin_init ?end_init
          ?exn_handler ?respect_pipeline ())

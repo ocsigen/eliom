@@ -30,17 +30,19 @@ open Lwt
 open Ocsigen_lib
 
 exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
-
-exception Bad_config_tag_for_extension of string (** Try next extension *)
-exception Error_in_config_file of string (** Stop with an error message *)
-
 exception Ocsigen_Internal_Error of string
 
-(** Error in an user config file. Stop with an error message *)
+
+(** Xml tag not recognized by an extension (usually not a real error) *)
+exception Bad_config_tag_for_extension of string
+
+(** Error in a <site> tag inside the main ocsigen.conf file *)
+exception Error_in_config_file of string
+
+(** Option incorrect in a userconf file *)
 exception Error_in_user_config_file of string
 
-(** A configuration option cannot be overriden in userconf files *)
-exception Not_overridable of string
+
 
 val badconfig : ('a, unit, string, 'b) format4 -> 'a
 (** Convenient function for raising Error_in_config_file exceptions with
@@ -344,7 +346,7 @@ and parse_config_aux =
    For each extension generating pages, we register five functions:
    - a function of type parse_config, that adds some options
     to the configuration file for the extension
-   - a function of type parse_config type, that will be called every time user
+   - a function of type parse_config, that will be called every time user
     configuration  files are parsed (if userconf is enabled).
     It must define only safe options, for example it is not
     safe to allow such options to load a cmo specified by a user, or to
@@ -362,6 +364,8 @@ and parse_config_aux =
    - a function that will be called just before registering the extension,
    with, as parameter, the configuration options between [<extension>] and
    [</extension>] (allows to give configuration options to extensions).
+    If no function is supplied, the extension is supposed to accept no
+    option (and loading will fail if an option is supplied)
    - a function that will create an error message from the exceptions
    that may be raised during the initialisation phase, and raise again
    all other exceptions

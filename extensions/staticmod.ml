@@ -101,7 +101,7 @@ let find_static_page ~request ~usermode ~dir ~err ~pathstring =
 
 
 
-let gen ~do_not_serve ~usermode dir = function
+let gen ~usermode dir = function
   | Ocsigen_extensions.Req_found (_, r) ->
       Lwt.return (Ocsigen_extensions.Ext_do_nothing)
   | Ocsigen_extensions.Req_not_found (err, ri) ->
@@ -126,9 +126,8 @@ let gen ~do_not_serve ~usermode dir = function
 
         (function
            | Ocsigen_LocalFiles.Failed_403 -> return (Ext_next 403)
-           | NoSuchUser
+           | NoSuchUser | Not_concerned
            | Ocsigen_LocalFiles.Failed_404 -> return (Ext_next err)
-           | Not_concerned -> return (Ext_next err)
            | e -> fail e
         )
 
@@ -136,22 +135,6 @@ let gen ~do_not_serve ~usermode dir = function
 (*****************************************************************************)
 (** Parsing of config file *)
 open Simplexmlparser
-
-let default_do_not_serve = "\\.php$"
-let do_not_serve = ref (Netstring_pcre.regexp default_do_not_serve)
-
-let update_do_not_serve str =
-  try do_not_serve := Netstring_pcre.regexp str
-  with Pcre.BadPattern _ ->
-    bad_config ("Bad regexp \""^ str ^ "\" in option 'donotserve' of staticmod")
-
-
-let rec parse_global_config = function
-  | [] -> ()
-  | [Element ("donotserve", [("regexp", r)], [])] -> update_do_not_serve r
-  | _ -> bad_config "Unexpected content inside staticmod options"
-
-
 
 let rewrite_local_path userconf path =
   match userconf with
@@ -220,7 +203,7 @@ let parse_config userconf : parse_config_aux = fun _ _ _ ->
                        source_regexp = Netstring_pcre.regexp "^.*$" }
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
           in
-          gen ~usermode:(userconf <> None) ~do_not_serve kind
+          gen ~usermode:(userconf <> None) kind
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
     | _ -> bad_config "(staticmod extension) Bad data"
 
@@ -232,5 +215,4 @@ let () = register_extension
   ~name:"staticmod"
   ~fun_site:(fun _ -> parse_config None)
   ~user_fun_site:(fun path _ -> parse_config (Some path))
-  ~init_fun:parse_global_config
   ()

@@ -58,15 +58,6 @@ type assockind =
 
 
 
-
-(*****************************************************************************)
-let rec parse_global_config = function
-  | [] -> ()
-  | _ -> raise (Error_in_config_file
-                  ("Unexpected content inside rewritemod config"))
-
-
-
 (*****************************************************************************)
 (* Finding rewrites *)
 
@@ -115,17 +106,8 @@ let gen regexp = function
 
 
 (*****************************************************************************)
-(** Configuration for each site.
-    These tags are inside <site ...>...</site> in the config file.
 
-   For example:
-   <site dir="">
-     <rewrite regexp="" dest="" />
-   </extension>
-
- *)
-
-let parse_config path _ parse_site = function
+let parse_config = function
   | Element ("rewrite", atts, []) ->
       let regexp = match atts with
       | [] ->
@@ -148,7 +130,6 @@ let parse_config path _ parse_site = function
 (** Registration of the extension *)
 let () = register_extension
   ~name:"rewritemod"
-  ~fun_site:(fun _ -> parse_config)
-  ~user_fun_site:(fun _ _ -> parse_config)
-  ~init_fun:parse_global_config
+  ~fun_site:(fun _ _ _ _ -> parse_config)
+  ~user_fun_site:(fun _ _ _ _ _ -> parse_config)
   ()
