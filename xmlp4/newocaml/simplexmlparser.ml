@@ -95,9 +95,11 @@ module B = Xmllexer.BasicTypes;
 
 value rawxmlparser_file s =
   let chan = open_in s in
-  let loc = Loc.mk s in
-  let tree = to_expr_taglist (Xmllexer.from_stream loc True (Stream.of_channel chan)) loc
-  in do { close_in chan; tree };
+  try
+    let loc = Loc.mk s in
+    let tree = to_expr_taglist (Xmllexer.from_stream loc True (Stream.of_channel chan)) loc
+    in do { close_in chan; tree }
+ with [ e -> do { close_in chan; raise e} ];
 
 value rawxmlparser_string s =
   let loc = Loc.ghost in
