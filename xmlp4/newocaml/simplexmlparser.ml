@@ -33,75 +33,87 @@ value nocaml_msg =
 
 module B = Xmllexer.BasicTypes;
 
-    type state = {
-      stream : Stream.t (B.token * Loc.t);
-      stack : Stack.t B.token;
-      loc : Loc.t
-    };
-    type error_msg =
-      [ EndOfTagExpected of string
-      | EOFExpected ];
-    exception Internal_error of error_msg;
+type state = {
+  stream : Stream.t (B.token * Loc.t);
+  stack : Stack.t B.token;
+  loc : Loc.t
+};
+type error_msg =
+    [ EndOfTagExpected of string
+    | EOFExpected ];
+exception Internal_error of error_msg;
 
-   (* Stack - the type of s is state *)
-    value pop s =
-      try ((Stack.pop s.stack), s)
-      with
-      [ Stack.Empty ->
-          let (t, l) = Stream.next s.stream
-          in (t, {  stream = s.stream; stack = s.stack; loc = l; }) ];
-    value push t s = Stack.push t s.stack;
+(* Stack - the type of s is state *)
+value pop s =
+    try ((Stack.pop s.stack), s)
+    with
+    [ Stack.Empty ->
+        let (t, l) = Stream.next s.stream
+        in (t, {  stream = s.stream; stack = s.stack; loc = l; }) ];
 
-   (* Convert a stream of tokens into an xml tree list *)
-    value rec read_nodes s acc =
-      match pop s with
-      [ (B.Comment _, s) -> read_nodes s acc
-      | (B.Whitespace _, s) -> read_nodes s acc
-      | (B.PCData pcdata, s) -> read_nodes s [(PCData pcdata)::acc]
-      | (B.Tag (tag, attlist, closed), s) ->
-                  match closed with
-          [ True -> read_nodes s [Element (tag, (read_attlist s attlist), [])::acc]
-          | False ->read_nodes s
-                           [Element (tag, (read_attlist s attlist), (read_elems ~tag s))::acc]
-                  ]
-      | (B.CamlExpr _, _) | (B.CamlString _, _)|(B.CamlList _, _) ->
-                        raise (Xml_parser_error nocaml_msg)
-          | (B.Eof, _)|(B.Endtag _,_) as t ->
-                        do { push (fst t) s; List.rev acc}
-          ]
+value push t s = Stack.push t s.stack;
 
-   and read_elems ?tag s =
-      let elems = read_nodes s [] in
-        match pop s with
-        [ (B.Endtag s, _) when (Some s) = tag -> elems
-        | (B.Eof, _) when tag = None -> elems
-        | (t, loc) ->
-            match tag with
-            [ None -> raise (Internal_error EOFExpected)
-            | Some s -> raise (Internal_error (EndOfTagExpected s)) ] ]
+(* Convert a stream of tokens into an xml tree list *)
+value rec read_nodes s acc =
+    match pop s with
+    [ (B.Comment _, s) -> read_nodes s acc
+    | (B.Whitespace _, s) -> read_nodes s acc
+    | (B.PCData pcdata, s) -> read_nodes s [(PCData pcdata)::acc]
+    | (B.Tag ("xi:include", [`Attribute (`Attr "href", `Val v)], True), s) ->
+        let l = rawxmlparser_file v in
+        let acc = List.rev_append l acc in
+        read_nodes s acc
+    | (B.Tag ("xi:include", _, _), s) ->
+        raise (Xml_parser_error "Invalid syntax for inclusion directive")
+    | (B.Tag (tag, attlist, closed), s) ->
+        match closed with
+        [ True -> read_nodes s [Element (tag, (read_attlist s attlist), [])::acc]
+        | False ->read_nodes s
+            [Element (tag, (read_attlist s attlist), (read_elems ~tag s))::acc]
+        ]
+    | (B.CamlExpr _, _) | (B.CamlString _, _)|(B.CamlList _, _) ->
+        raise (Xml_parser_error nocaml_msg)
+    | (B.Eof, _)|(B.Endtag _,_) as t ->
+      do { push (fst t) s; List.rev acc}
+]
 
-   and read_attlist s =
-      fun
-      [ [] -> []
-      | [ `Attribute (`Attr a, `Val v) :: l ] ->
-          [ (a,v) :: (read_attlist s l) ]
-      | [ `Attribute (`CamlAttr _, `Val _) :: _ ] |
-          [ `Attribute (_, `CamlVal _) :: _ ] | [ `CamlList _ :: _ ] ->
-                  raise (Xml_parser_error nocaml_msg)];
+and read_elems ?tag s =
+  let elems = read_nodes s [] in
+  match pop s with
+  [ (B.Endtag s, _) when (Some s) = tag -> elems
+  | (B.Eof, _) when tag = None -> elems
+  | (t, loc) ->
+      match tag with
+      [ None -> raise (Internal_error EOFExpected)
+      | Some s -> raise (Internal_error (EndOfTagExpected s)) ] ]
 
-    value to_expr_taglist stream loc =
-      let s = {  stream = stream; stack = Stack.create (); loc = loc; } in
-          read_nodes s [];
+and read_attlist s = fun
+  [ [] -> []
+  | [ `Attribute (`Attr a, `Val v) :: l ] -> [ (a,v) :: (read_attlist s l) ]
+  | [ `Attribute (`CamlAttr _, `Val _) :: _ ]
+  | [ `Attribute (_, `CamlVal _) :: _ ]
+  | [ `CamlList _ :: _ ] ->
+      raise (Xml_parser_error nocaml_msg)]
 
-value rawxmlparser_file s =
+and to_expr_taglist stream loc =
+  let s = {  stream = stream; stack = Stack.create (); loc = loc; } in
+  read_nodes s []
+
+and rawxmlparser_file s =
   let chan = open_in s in
   try
     let loc = Loc.mk s in
     let tree = to_expr_taglist (Xmllexer.from_stream loc True (Stream.of_channel chan)) loc
     in do { close_in chan; tree }
- with [ e -> do { close_in chan; raise e} ];
+ with [ e ->
+        do { close_in chan;
+             match e with
+             [ Sys_error s -> raise (Xml_parser_error s)
+             | _ -> raise e
+             ]
+           } ]
 
-value rawxmlparser_string s =
+and rawxmlparser_string s =
   let loc = Loc.ghost in
   to_expr_taglist (Xmllexer.from_string loc True s) loc;
 
