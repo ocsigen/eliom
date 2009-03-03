@@ -1,8 +1,8 @@
 = Development version =
 
-  * Now possible to link extensions and Eliom modules statically,
-  for example to use a native code server on platforms where native dynlink
-  is not supported
+  * Now possible to link extensions and Eliom modules statically, for
+    example to use a native code server on platforms where native
+    dynlink is not supported
   * Server: Partial requests implemented (Range HTTP header)
   * Build C stubs into a shared library so that bytecode executables
     may be not linked in custom mode; new {{{--stubdir}}} option in
@@ -13,26 +13,30 @@
   * Eliom: now possible to create named attached coservices using the
     optional {{{name}}} parameter
   * Eliom: now possible to write libraries for Eliom sites, loaded
-    inside {{{<host>}}} but do not generate any page.
+    inside {{{<host>}}}, but not generating any page
   * Eliom and server: EXPERIMENTAL now possible to make extensions
-    that can use Eliom's data.
-  * XHTML.M's pretty printer: now possible to set the DOCTYPE
-    manually.
+    that can use Eliom's data
+  * XHTML.M's pretty printer: now possible to set the DOCTYPE manually
   * Eliom: now possible to set manually the DOCTYPE when registering
-    an XHTML.M service.
-  * Redirectmod and Revproxy: now possible to to more complex
-    rewriting.
+    an XHTML.M service
+  * Redirectmod and Revproxy: now possible to do more complex
+    rewriting
   * Accesscontrol: add support for {{{<port>}}} and {{{<ssl>}}}
-    conditions.
+    conditions
   * Config file: {{{aliases}}} attribute now called {{{hostfilter}}}
   * Revproxy and Redirectmod: now possible to filter on server, port
     and protocol
-  * New extension extendconfiguration to allow dynamic changes in the 
-    configuration (mimetypes, charsets, followsymnlink, directory listing~ ...)
-  * Server: New module {{{LocalFiles}}} factorising the common parts for sending
-    static files (with Eliom and staticmod for example).
-  * Now possible to use XHTML pretty printers without Ocsigen, using the
-    {{{xhtmlpretty.cma}}} library
+  * New extension extendconfiguration to allow dynamic changes in the
+    configuration (mimetypes, charsets, followsymnlink, directory
+    listing, ...)
+  * Server: new module {{{LocalFiles}}} factorising the common parts
+    for sending static files (with Eliom and staticmod for example).
+  * Now possible to use XHTML pretty printers without Ocsigen, using
+    the {{{xhtmlpretty.cma}}} library
+  * Add {{{Ocsigen_lib.register_exn_printer}}}, better error messages
+  * Now possible to use the same configuration file in native code and
+    in bytecode (.cmo/.cma filenames are internally translated to
+    .cmxs)
 
 = 1.1.0 =
 
