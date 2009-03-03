@@ -31,11 +31,44 @@ value nocaml_msg =
         "Caml code not allowed in configuration file. Use $$ to escape $." ;
 
 
-module B = Xmllexer.BasicTypes;
+(* We raise this error when parsing Ocsigen configuration files. *)
+exception ParseException of (Xmllexer.lexing_error * Camlp4.PreCast.Loc.t) ;
+
+value parse_error_to_string x loc =
+  Printf.sprintf "%s (%s)"
+    (Xmllexer.lex_error_to_string x) (Loc.to_string loc);
+
+
+module LexerArg = struct
+  value error loc e = ParseException (e, loc);
+
+  type attr_name =  [ = `AttrName of string ];
+  type attr_value = [ = `AttrVal of string ];
+  type attribute =  [ = `Attribute of (attr_name * attr_value) ];
+
+  type token = [
+  = `Tag of (string * (list attribute) * bool)
+  | `PCData of string
+  | `Endtag of string
+  | `Comment of string
+  | `Whitespace of string
+  | `Eof
+  ];
+
+  value parse_dollar_attrname  c loc lexbuf =
+      raise (ParseException (Xmllexer.EAttributeNameExpected, loc));
+  value parse_dollar_attribute c loc lexbuf =
+      raise (ParseException (Xmllexer.EAttributeValueExpected, loc));
+  value parse_dollar_attrvalue = parse_dollar_attrname;
+  value parse_dollar_token c lexbuf = `PCData "$";
+
+end;
+
+module Xmllexer = Xmllexer.Make (LexerArg);
 
 type state = {
-  stream : Stream.t (B.token * Loc.t);
-  stack : Stack.t B.token;
+  stream : Stream.t (LexerArg.token * Loc.t);
+  stack : Stack.t LexerArg.token;
   loc : Loc.t
 };
 type error_msg =
@@ -56,44 +89,37 @@ value push t s = Stack.push t s.stack;
 (* Convert a stream of tokens into an xml tree list *)
 value rec read_nodes s acc =
     match pop s with
-    [ (B.Comment _, s) -> read_nodes s acc
-    | (B.Whitespace _, s) -> read_nodes s acc
-    | (B.PCData pcdata, s) -> read_nodes s [(PCData pcdata)::acc]
-    | (B.Tag ("xi:include", [`Attribute (`Attr "href", `Val v)], True), s) ->
+    [ (`Comment _, s) -> read_nodes s acc
+    | (`Whitespace _, s) -> read_nodes s acc
+    | (`PCData pcdata, s) -> read_nodes s [(PCData pcdata)::acc]
+    | (`Tag ("xi:include",
+             [`Attribute (`AttrName "href", `AttrVal v)], True), s)->
         let l = rawxmlparser_file v in
         let acc = List.rev_append l acc in
         read_nodes s acc
-    | (B.Tag ("xi:include", _, _), s) ->
+    | (`Tag ("xi:include", _, _), s) ->
         raise (Xml_parser_error "Invalid syntax for inclusion directive")
-    | (B.Tag (tag, attlist, closed), s) ->
+    | (`Tag (tag, attlist, closed), s) ->
         match closed with
-        [ True -> read_nodes s [Element (tag, (read_attlist s attlist), [])::acc]
+        [ True -> read_nodes s [Element (tag, (read_attlist attlist), [])::acc]
         | False ->read_nodes s
-            [Element (tag, (read_attlist s attlist), (read_elems ~tag s))::acc]
+            [Element (tag, (read_attlist attlist), (read_elems ~tag s))::acc]
         ]
-    | (B.CamlExpr _, _) | (B.CamlString _, _)|(B.CamlList _, _) ->
-        raise (Xml_parser_error nocaml_msg)
-    | (B.Eof, _)|(B.Endtag _,_) as t ->
+    | (`Eof, _)|(`Endtag _,_) as t ->
       do { push (fst t) s; List.rev acc}
 ]
 
 and read_elems ?tag s =
   let elems = read_nodes s [] in
   match pop s with
-  [ (B.Endtag s, _) when (Some s) = tag -> elems
-  | (B.Eof, _) when tag = None -> elems
+  [ (`Endtag s, _) when (Some s) = tag -> elems
+  | (`Eof, _) when tag = None -> elems
   | (t, loc) ->
       match tag with
       [ None -> raise (Internal_error EOFExpected)
       | Some s -> raise (Internal_error (EndOfTagExpected s)) ] ]
 
-and read_attlist s = fun
-  [ [] -> []
-  | [ `Attribute (`Attr a, `Val v) :: l ] -> [ (a,v) :: (read_attlist s l) ]
-  | [ `Attribute (`CamlAttr _, `Val _) :: _ ]
-  | [ `Attribute (_, `CamlVal _) :: _ ]
-  | [ `CamlList _ :: _ ] ->
-      raise (Xml_parser_error nocaml_msg)]
+and read_attlist = List.map (fun [`Attribute (`AttrName a, `AttrVal v) -> (a,v)])
 
 and to_expr_taglist stream loc =
   let s = {  stream = stream; stack = Stack.create (); loc = loc; } in
@@ -119,8 +145,8 @@ and rawxmlparser_string s =
 
 value xmlparser rawxmlparser s = try (rawxmlparser s)
 with
-[ Xmllexer.Error.ParseException (e, loc) ->
-    raise (Xml_parser_error (Xmllexer.Error.to_string e loc))
+[ ParseException (e, loc) ->
+    raise (Xml_parser_error (parse_error_to_string e loc))
 | Internal_error EOFExpected ->
     raise (Xml_parser_error "EOF expected")
 | Internal_error (EndOfTagExpected s) ->

@@ -1,7 +1,7 @@
 include ../../Makefile.config
 
 
-FILESR = xmllexer.ml 
+FILESR = xmllexer.ml camllexer.ml
 FILES = basicTypes.ml xhtmltypes.ml simplexmlparser.ml xhtmlsyntax.ml xhtmlparser.ml 
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) 
@@ -18,10 +18,10 @@ CMA = xhtmlsyntax.cma
 CMXA = xhtmlsyntax.cmxa
 
 byte: ohl-xhtml-byte $(CMA) $(OBJS)
-	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmo newocaml/basicTypes.cmi newocaml/basicTypes.cmo newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmo newocaml/xmllexer.cmi newocaml/xmllexer.cmo newocaml/xhtmlsyntax.cma ..
+	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmo newocaml/basicTypes.cmi newocaml/basicTypes.cmo newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmo newocaml/xmllexer.cmi newocaml/xmllexer.cmo newocaml/camllexer.cmi newocaml/camllexer.cmo newocaml/xhtmlsyntax.cma ..
 
 opt: ohl-xhtml-opt $(CMXA) $(OBJSOPT)
-	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmx newocaml/xhtmltypes.o newocaml/basicTypes.cmi newocaml/basicTypes.cmx newocaml/basicTypes.o newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmx newocaml/simplexmlparser.o newocaml/xmllexer.cmi newocaml/xmllexer.cmx newocaml/xmllexer.o newocaml/xhtmlsyntax.cmxa newocaml/xhtmlsyntax.a ..
+	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmx newocaml/xhtmltypes.o newocaml/basicTypes.cmi newocaml/basicTypes.cmx newocaml/basicTypes.o newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmx newocaml/simplexmlparser.o newocaml/xmllexer.cmi newocaml/xmllexer.cmx newocaml/xmllexer.o newocaml/camllexer.cmi newocaml/camllexer.cmx newocaml/camllexer.o newocaml/xhtmlsyntax.cmxa newocaml/xhtmlsyntax.a ..
 
 .PHONY: depend ohl-xhtml-byte ohl-xhtml-opt
 
@@ -35,11 +35,12 @@ ohl-xhtml-opt:
 	$(MAKE) -C ../ohl-xhtml opt
 	cp ../ohl-xhtml/xhtml.cmxa ../ohl-xhtml/xhtml.a ../ohl-xhtml/xHTML.cmi ../ohl-xhtml/xML.cmi ..
 
-$(CMA): basicTypes.cmo xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
-	$(CAMLC) -a -o $(CMA) xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
+$(CMA): basicTypes.cmo xmllexer.cmo camllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
+	$(CAMLC) -a -o $(CMA) xmllexer.cmo camllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
 
-$(CMXA): basicTypes.cmx xmllexer.cmx xhtmlparser.cmx xhtmlsyntax.cmx
-	$(CAMLOPT) -a -o $(CMXA) xmllexer.cmx xhtmlparser.cmx xhtmlsyntax.cmx
+$(CMXA): basicTypes.cmx xmllexer.cmx camllexer.cmx xhtmlparser.cmx xhtmlsyntax.cmx
+	$(CAMLOPT) -a -o $(CMXA) xmllexer.cmx camllexer.cmx xhtmlparser.cmx xhtmlsyntax.cmx
+
 
 xmllexer.cmo: xmllexer.ml
 	$(CAMLC) $(PPLEXER) -c $<
@@ -48,6 +49,16 @@ xmllexer.cmx: xmllexer.ml
 	$(CAMLOPT) $(PPLEXER) -c $<
 
 xmllexer.ml: xmllexer.mll
+	$(CAMLLEX) $<
+
+
+camllexer.cmo: camllexer.ml
+	$(CAMLC) $(PPLEXER) -c $<
+
+camllexer.cmx: camllexer.ml
+	$(CAMLOPT) $(PPLEXER) -c $<
+
+camllexer.ml: camllexer.mll
 	$(CAMLLEX) $<
 
 
@@ -65,7 +76,7 @@ xmllexer.ml: xmllexer.mll
 
 # Clean up
 clean:
-	-rm -f xmllexer.ml *.cm[ioax] *.cmxa *~ *.annot *.a *.o
+	-rm -f xmllexer.ml camllexer.ml *.cm[ioax] *.cmxa *~ *.annot *.a *.o
 	$(MAKE) -C ../ohl-xhtml clean
 
 
