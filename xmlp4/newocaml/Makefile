@@ -82,7 +82,7 @@ clean:
 
 # Dependencies
 depend: *.mli *.ml
-	-rm -f xmllexer.ml
+	-rm -f xmllexer.ml camllexer.ml
 	$(CAMLDEP) $(PP) $(LIBDIRS2) *.mli *.ml > .depend
 
 FORCE:
