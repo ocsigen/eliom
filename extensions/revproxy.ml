@@ -174,11 +174,10 @@ let gen dir = function
                      in
                      Lwt.return
                        {empty_result with
-                        Ocsigen_http_frame.res_content_length = length;
-                        Ocsigen_http_frame.res_headers= headers;
-                        Ocsigen_http_frame.res_stop_stream =
-                        http_frame.Ocsigen_http_frame.abort;
-                        Ocsigen_http_frame.res_code= code;
+                          Ocsigen_http_frame.res_content_length = length;
+                          res_headers= headers;
+                          res_stop_stream = http_frame.Ocsigen_http_frame.abort;
+                          res_code= code;
                        }
                  | Some stream ->
                      let default_result =
@@ -189,12 +188,12 @@ let gen dir = function
                      in
                      Lwt.return
                        {default_result with
-                        Ocsigen_http_frame.res_content_length = length;
-                        Ocsigen_http_frame.res_stream = (stream, None);
-                        Ocsigen_http_frame.res_stop_stream =
-                        http_frame.Ocsigen_http_frame.abort;
-                        Ocsigen_http_frame.res_headers= headers;
-                        Ocsigen_http_frame.res_code= code;
+                          Ocsigen_http_frame.res_content_length = length;
+                          res_stream = (stream, None);
+                          res_stop_stream =
+                           http_frame.Ocsigen_http_frame.abort;
+                          res_headers= headers;
+                          res_code= code;
                        }
             )
          )
@@ -207,6 +206,7 @@ let gen dir = function
 
 
 (*****************************************************************************)
+
 
 let parse_config = function
   | Element ("revproxy", atts, []) ->
@@ -235,12 +235,15 @@ let parse_config = function
             parse_attrs
               (r, f, d, false)
               l
-        | _ -> raise (Error_in_config_file "Wrong attribute for <revproxy>")
-        in
-        let dir =
+        | (a, _) :: _ ->
+            badconfig "Wrong or duplicate attribute '%s' for <revproxy>" a
+      in
+      let dir =
           match parse_attrs (None, Ocsigen_lib.Yes, None, true) atts with
-          | (None, _, _, _) -> raise (Error_in_config_file "Missing attribute regexp for <revproxy>")
-          | (_, _, None, _) -> raise (Error_in_config_file "Missing attribute dest for <revproxy>")
+          | (None, _, _, _) ->
+              badconfig "Missing attribute 'regexp' for <revproxy>"
+          | (_, _, None, _) ->
+              badconfig "Missing attribute 'dest' for <revproxy>"
           | (Some r, full, Some d, pipeline) ->
               {
                 regexp=r;

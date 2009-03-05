@@ -177,7 +177,7 @@ let parse_config userconf : parse_config_aux = fun _ _ _ ->
             { opt with opt_dest =
                 Some (parse_user_dir (rewrite_local_path userconf s)) }
 
-    | _ -> bad_config "Wrong attribute for <static>"
+      | _ -> bad_config "Wrong attribute for <static>"
   in
   function
     | Element ("static", atts, []) ->
