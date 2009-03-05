@@ -461,6 +461,11 @@ let parse_server isreloading c =
             | Some p -> int_of_string "host" p
           in
           let parse_host = Ocsigen_extensions.parse_config_item host in
+          let serve_everything = {
+            Ocsigen_extensions.do_not_serve_regexps = [];
+            do_not_serve_files = [];
+            do_not_serve_extensions = [];
+          } in
           let conf = {
             Ocsigen_extensions.default_hostname = defaulthostname;
             default_httpport = defaulthttpport;
@@ -471,8 +476,8 @@ let parse_server isreloading c =
             default_directory_index = ["index.html"];
             list_directory_content = false;
             follow_symlinks = Ocsigen_extensions.FollowSymlinksIfOwnerMatch;
-            do_not_serve_404 = [];
-            do_not_serve_403 = [];
+            do_not_serve_404 = serve_everything;
+            do_not_serve_403 = serve_everything;
           }
           in
           let parse_config =

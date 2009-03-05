@@ -26,7 +26,7 @@ open Ocsigen_charset_mime
 
 let bad_config s = raise (Error_in_config_file s)
 
-let gen ~usermode configfun = function
+let gen configfun = function
   | Ocsigen_extensions.Req_found _ ->
       Lwt.return Ocsigen_extensions.Ext_do_nothing
 
@@ -43,13 +43,47 @@ let gen ~usermode configfun = function
            ))
 
 
+let gather_do_not_serve_files tag =
+  let rec aux (regexps, files, extensions) = function
+    | [] -> {
+        Ocsigen_extensions.do_not_serve_regexps = regexps;
+        do_not_serve_files = files;
+        do_not_serve_extensions = extensions
+      }
+
+    | Element ("regexp", ["value", f], []) :: q ->
+        aux (f :: regexps, files, extensions) q
+    | Element ("file", ["value", f], []) :: q ->
+        aux (regexps, f :: files, extensions) q
+    | Element ("extension", ["value", f], []) :: q ->
+        aux (regexps, files, f :: extensions) q
+
+    | _ :: q -> bad_config ("invalid options in tag " ^ tag)
+  in aux ([], [], [])
+
+
+
+exception Bad_regexp of string
+
+let check_regexp_list =
+  let hashtbl = Hashtbl.create 17 in
+  let aux r =
+    try Hashtbl.find hashtbl r
+    with Not_found ->
+      try
+        ignore (Netstring_pcre.regexp r);
+        Hashtbl.add hashtbl r ()
+      with _ -> raise (Bad_regexp r)
+  in
+  (fun l -> List.iter aux l)
+
+
 let update_config usermode = function
   | Element ("listdirs", ["value", "true"], []) ->
-      gen ~usermode 
-        (fun config -> { config with list_directory_content = true })
+      gen (fun config -> { config with list_directory_content = true })
   | Element ("listdirs", ["value", "false"], []) ->
-      gen ~usermode 
-        (fun config -> { config with list_directory_content = false })
+      gen (fun config -> { config with list_directory_content = false })
+  | Element ("listdirs" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
 
   | Element ("followsymlinks", ["value", s], []) ->
@@ -66,8 +100,8 @@ let update_config usermode = function
         | _ ->
             bad_config ("Wrong value \""^s^"\" for option \"followsymlinks\"")
       in
-      gen ~usermode 
-        (fun config -> { config with follow_symlinks = v })
+      gen (fun config -> { config with follow_symlinks = v })
+  | Element ("followsymlinks" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
 
   | Element ("charset", attrs, exts) ->
@@ -78,18 +112,17 @@ let update_config usermode = function
         | _ :: q -> bad_config "subtags must be of the form \
                       <extension ext=\"...\" value=\"...\" /> \
                       in option charset"
-      in 
-      gen ~usermode 
-        (fun config -> 
-           let config = match attrs with
-             | ["default", s] ->
-                 { config with charset_assoc =
-                     set_default_charset s config.charset_assoc }
-             | [] -> config
-             | _ -> bad_config "Only attribute \"default\" is permitted \
+      in
+      gen (fun config ->
+             let config = match attrs with
+               | ["default", s] ->
+                   { config with charset_assoc =
+                       set_default_charset s config.charset_assoc }
+               | [] -> config
+               | _ -> bad_config "Only attribute \"default\" is permitted \
                            for option \"charset\""
-           in
-           { config with charset_assoc = aux config.charset_assoc exts })
+             in
+             { config with charset_assoc = aux config.charset_assoc exts })
 
 
   | Element ("contenttype", attrs, exts) ->
@@ -100,18 +133,17 @@ let update_config usermode = function
         | _ :: q -> bad_config "subtags must be of the form \
                       <extension ext=\"...\" value=\"...\" /> \
                       in option mime"
-      in 
-      gen ~usermode 
-        (fun config -> 
-           let config = match attrs with
-             | ["default", s] ->
-                 { config with mime_assoc =
-                     set_default_mime s config.mime_assoc }
-             | [] -> config
-             | _ -> bad_config "Only attribute \"default\" is permitted \
+      in
+      gen (fun config ->
+             let config = match attrs with
+               | ["default", s] ->
+                   { config with mime_assoc =
+                       set_default_mime s config.mime_assoc }
+               | [] -> config
+               | _ -> bad_config "Only attribute \"default\" is permitted \
                            for option \"contenttype\""
-           in
-           { config with mime_assoc = aux config.mime_assoc exts })
+             in
+             { config with mime_assoc = aux config.mime_assoc exts })
 
 
   | Element ("defaultindex", [], l) ->
@@ -122,39 +154,32 @@ let update_config usermode = function
         | _ :: q -> bad_config "subtags must be of the form \
                       <index>...</index> \
                       in option defaultindex"
-      in 
-      gen ~usermode 
-        (fun config -> 
-           { config with default_directory_index = aux [] l })
+      in
+      gen (fun config ->
+             { config with default_directory_index = aux [] l })
+  | Element ("defaultindex" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("hidefile", [], l) ->
-      let rec aux regexps = function
-        | [] -> regexps
-        | Element ("regexp", ["value", f], []) :: q ->
-            aux (f :: regexps) q
-        | _ :: q -> bad_config "subtags must be of the form \
-                      <regexp>...</regexp> \
-                      in option hidefile"
-      in 
-      gen ~usermode 
-        (fun config -> 
-           { config with 
-               do_not_serve_404 = aux [] l @ config.do_not_serve_404 })
-           
+      let do_not_serve = gather_do_not_serve_files "hidefile" l in
+      (try
+         check_regexp_list do_not_serve.do_not_serve_regexps;
+         gen (fun config ->
+                { config with do_not_serve_404 =
+                    join_do_not_serve do_not_serve config.do_not_serve_404 })
+       with Bad_regexp r ->
+         badconfig "Invalid regexp %s in %s" r "hidefile")
+  | Element ("hidefile" as s, _, _) -> badconfig "Bad syntax for tag %s" s
+
   | Element ("forbidfile", [], l) ->
-      let rec aux regexps = function
-        | [] -> regexps
-        | Element ("regexp", ["value", f], []) :: q ->
-            aux (f :: regexps) q
-        | _ :: q -> bad_config "subtags must be of the form \
-                      <regexp>...</regexp> \
-                      in option hidefile"
-            
-      in 
-      gen ~usermode 
-        (fun config -> 
-           { config with 
-               do_not_serve_403 = aux [] l @ config.do_not_serve_403 })
+      let do_not_serve = gather_do_not_serve_files "forbidfile" l in
+      (try
+         check_regexp_list do_not_serve.do_not_serve_regexps;
+         gen (fun config ->
+                { config with do_not_serve_403 =
+                    join_do_not_serve do_not_serve config.do_not_serve_403 })
+       with Bad_regexp r ->
+         badconfig "Invalid regexp %s in %s" r "forbidfile")
+  | Element ("forbidfile" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->

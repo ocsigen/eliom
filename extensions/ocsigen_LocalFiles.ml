@@ -79,15 +79,12 @@ let check_symlinks filename policy =
 let empty_regexp = Netstring_pcre.regexp "$^"
 
 let can_send filename request =
-  let to_regexp l =
-    let s = String.concat "|" l in
-    if s = "" then
-      empty_regexp
-    else
-      Netstring_pcre.regexp s
-  in
-  let matches l =
-    Netstring_pcre.string_match (to_regexp l) filename 0 <> None
+  Ocsigen_messages.debug
+    (fun () -> Printf.sprintf "--LocalFiles: checking if file %s can be sent"
+       filename);
+  let matches arg =
+    Netstring_pcre.string_match (Ocsigen_extensions.do_not_serve_to_regexp arg)
+      filename 0 <> None
   in
   if matches request.do_not_serve_403 then (
     Ocsigen_messages.debug2 "--LocalFiles: this file is forbidden";

@@ -76,7 +76,73 @@ let client_connection x = x
 let client_of_connection x = x
 
 
-(* Server configuration *)
+(*****************************************************************************)
+
+(* Server configuration, for local files that must not be sent *)
+
+type do_not_serve = {
+  do_not_serve_regexps: string list;
+  do_not_serve_files: string list;
+  do_not_serve_extensions: string list;
+}
+
+(* BY TODO : Use unbalanced trees instead *)
+let join_do_not_serve d1 d2 = {
+  do_not_serve_regexps = d1.do_not_serve_regexps @ d2.do_not_serve_regexps;
+  do_not_serve_files = d1.do_not_serve_files @ d2.do_not_serve_files;
+  do_not_serve_extensions = d1.do_not_serve_extensions @ d2.do_not_serve_extensions;
+}
+
+let hash_consed_do_not_serve = Hashtbl.create 17
+
+exception IncorrectRegexpes of do_not_serve
+
+let do_not_serve_to_regexp d =
+  try Hashtbl.find hash_consed_do_not_serve d
+  with Not_found ->
+    let wrap l = if l = [] then None else Some l
+    and bind f = function None -> None | Some v -> Some (f v)
+    in
+    let files, extensions, regexps =
+      wrap d.do_not_serve_files,
+      wrap d.do_not_serve_extensions,
+      wrap d.do_not_serve_regexps
+    in
+    let paren_quote l =
+      String.concat "|" (List.map (fun s -> Printf.sprintf "(%s)"
+                                     (Netstring_pcre.quote s)) l)
+    and paren l =
+      String.concat "|" (List.map (fun s -> Printf.sprintf "(%s)"  s) l)
+    in
+    let files = bind paren_quote files
+    and extensions = bind paren_quote extensions
+    and regexps = bind paren regexps
+    in
+    let files = bind (Printf.sprintf ".*/(%s)") files
+    and extensions = bind (Printf.sprintf ".*\\.(%s)") extensions
+    in
+    let l = List.fold_left (fun r -> function None -> r | Some v -> v :: r)
+      [] [files;extensions;regexps]
+    in
+    let regexp =
+      if l = [] then
+        (* This regexp should not never match *) "$^"
+      else
+        Printf.sprintf "^(%s)$" (paren l)
+    in
+    (try
+       Ocsigen_messages.debug (fun () -> Printf.sprintf
+                                 "Compiling exclusion regexp %s" regexp);
+       let r = Netstring_pcre.regexp regexp in
+       Hashtbl.add hash_consed_do_not_serve d r;
+       r
+     with _ -> raise (IncorrectRegexpes d)
+    )
+
+
+(*****************************************************************************)
+
+(* Main server configuration *)
 
 
 type config_info = {
@@ -102,8 +168,8 @@ type config_info = {
   (** Should symlinks be followed when accessign a local file? *)
   follow_symlinks: follow_symlink;
 
-  do_not_serve_404: string list;
-  do_not_serve_403: string list;
+  do_not_serve_404: do_not_serve;
+  do_not_serve_403: do_not_serve;
 }
 and follow_symlink =
   | DoNotFollowSymlinks (** Never follow a symlink *)

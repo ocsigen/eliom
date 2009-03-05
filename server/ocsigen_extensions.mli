@@ -62,6 +62,25 @@ type virtual_hosts = ((virtual_host_part list) * int option) list
 
 (*****************************************************************************)
 
+(** Configuration to hide/forbid local files *)
+type do_not_serve = {
+  do_not_serve_regexps: string list;
+  do_not_serve_files: string list;
+  do_not_serve_extensions: string list;
+}
+
+
+exception IncorrectRegexpes of do_not_serve
+
+(** Compile a do_not_serve structure into a regexp. Raises
+    [IncorrectRegexpes] if the compilation fails. The result is
+    memoized for subsequent calls with the same argument *)
+val do_not_serve_to_regexp: do_not_serve -> Netstring_pcre.regexp
+
+val join_do_not_serve : do_not_serve -> do_not_serve -> do_not_serve
+
+
+
 (** Configuration options, passed to (and modified by) extensions *)
 type config_info = {
   default_hostname: string;
@@ -86,8 +105,8 @@ type config_info = {
   (** Should symlinks be followed when accessign a local file? *)
   follow_symlinks: follow_symlink;
 
-  do_not_serve_404: string list;
-  do_not_serve_403: string list;
+  do_not_serve_404: do_not_serve;
+  do_not_serve_403: do_not_serve;
 
 }
 and follow_symlink =
