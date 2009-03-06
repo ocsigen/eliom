@@ -70,7 +70,6 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)xmlp4/xhtmlcompact_streams.mli			\
 	$(DOCPREF)xmlp4/xhtmlpretty.mli					\
 	$(DOCPREF)xmlp4/xhtmlcompact.mli				\
-	$(DOCPREF)xmlp4/newocaml/xhtmltypes.ml				\
 	$(DOCPREF)xmlp4/ohl-xhtml/xHTML.mli				\
 	$(DOCPREF)baselib/ocsigen_messages.mli				\
 	$(DOCPREF)http/ocsigen_headers.mli				\
@@ -84,9 +83,12 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)extensions/ocsipersist.mli				\
 	$(DOCPREF)extensions/authbasic.mli				\
 	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
-	$(DOCPREF)xmlp4/newocaml/simplexmlparser.mli 			\
 	$(DOCPREF)baselib/ocsigen_getcommandline.mli                    \
 	$(DUCEDOC)
+	# The files below should be installed, but are in revised syntax.
+	# To be readded when they are translated in normal syntax
+	#	$(DOCPREF)xmlp4/newocaml/simplexmlparser.mli 			\
+	#	$(DOCPREF)xmlp4/newocaml/xhtmltypes.ml				\
 METAS = META META.ocsigen_ext META.eliom_examples META.ocsigen_ext.global META.eliom_examples.global
 
 
