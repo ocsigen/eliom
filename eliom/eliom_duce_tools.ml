@@ -95,8 +95,8 @@ let hierarchical_menu_depth_first
     ?service
     ~sp =
 
-  let rec depth_first_fun pages level pos =
-    let rec one_item first last i s =
+  let rec depth_first_fun pages level pos : {{ [Xhtmltypes_duce.ul*] }} =
+    let rec one_item first last i s : Xhtmltypes_duce.li =
       let (classe, pos2, deplier) =
         match pos with
         | [] -> ([], [], false)
@@ -131,8 +131,8 @@ let hierarchical_menu_depth_first
                                 {{ <li class={: attrib_list classe :}>[
                                         {: a page sp {: text :} () :}
                                         !{: if deplier || whole_tree then
-                                                (depth_first_fun hsl (level+1) pos2)
-                                                else []
+                                            (depth_first_fun hsl (level+1) pos2)
+                                          else {{ [] }}
                                         :}
                                 ] }}
       | (text, Site_tree (Not_clickable, hsl)) ->
@@ -141,7 +141,7 @@ let hierarchical_menu_depth_first
                                                 !{: if deplier || whole_tree then
                                                         (depth_first_fun hsl (level+1) pos2)
                                                         else
-                                                        [] :}
+                                                        {{ [] }} :}
                                         ] }}
           (* li ~a:attclass
             ((text : Xhtmltypes.a_content XHTML.M.elt list
@@ -152,15 +152,18 @@ let hierarchical_menu_depth_first
                   :> [< Xhtmltypes.li_content > `Ul ] XHTML.M.elt list)
              else []) *)
 
-    and one_menu first i = function
-      | [] -> []
-      | [a] -> [one_item first true i a]
-      | a::l -> (one_item first false i a)::(one_menu false (i+1) l)
+    and one_menu first i l : {{ [Xhtmltypes_duce.li*] }} = match l with
+      | [] -> {{ [] }}
+      | [a] -> let aa = one_item first true i a in {{ [ aa ] }}
+      | a::l -> 
+          let aa = one_item first false i a in
+          let al = one_menu false (i+1) l in
+          {{ [ {: aa :} !{: al :} ] }}
     in
     let classe = (level_class^string_of_int level)::classe in
     match one_menu true 0 pages with
-    | [] -> []
-    | li::lis -> [{{ <ul class={: attrib_list (menu_class::classe) :}>[{: li :} !{: lis :}] }}]
+    | {{ [] }} -> {{ [] }}
+    | {{ l }} -> {{ [ <ul class={: attrib_list (menu_class::classe) :}>l ] }}
   in
 
   (depth_first_fun pages 0 (find_in_hierarchy service the_menu))
@@ -174,7 +177,7 @@ let hierarchical_menu_breadth_first
     ?service
     ~sp =
 
-  let rec breadth_first_fun pages level pos: Xhtmltypes_duce.ul list =
+  let rec breadth_first_fun pages level pos : {{ [Xhtmltypes_duce.ul*] }} =
     let rec one_item first last i s =
       let (classe, pos2, deplier) =
         match pos with
@@ -212,7 +215,7 @@ let hierarchical_menu_breadth_first
     and submenu i pos pages =
       match snd (List.nth pages i) with
       | Disabled
-      | Site_tree (_, []) -> []
+      | Site_tree (_, []) -> {{ [] }}
       | Site_tree (_, hsl) -> breadth_first_fun hsl (level+1) pos
     in
     let classe =
@@ -220,25 +223,25 @@ let hierarchical_menu_breadth_first
     in
     let l =
       match pos with
-      | [] -> []
+      | [] -> {{ [] }}
       | a::l -> submenu a l pages
     in
     match one_menu true 0 pages with
     | [] -> l
-    | li::lis -> {{ <ul class={: attrib_list (menu_class::classe) :}>[ {: li :} !{: lis :} ] }}::l
+    | li::lis -> {{ [ <ul class={: attrib_list (menu_class::classe) :}>[ {: li :} !{: lis :} ] !l ] }}
 
   in
-  (breadth_first_fun pages 0 (find_in_hierarchy service the_menu)
-    (* : [ `Ul ] XHTML.M.elt list :> [> `Ul ] XHTML.M.elt lis *))
+  (breadth_first_fun pages 0 (find_in_hierarchy service the_menu))
 
 
 let structure_links (default, pages) ?service ~sp =
   let make_rev s endlist =
     (* I am a subsection of s *)
     match s with
-    | None -> endlist
+    | None -> {{ [ !{: endlist :} ] }}
     | Some s ->
-                                {{ <link rev="Subsection" href={: make_uri s sp () :}>[] }}::endlist
+        {{ [ <link rev="Subsection" href={: make_uri s sp () :}>[] 
+               !{: endlist :} ] }}
   in
   let make_rel s =
     (* s is a subsection of mine *)
@@ -255,11 +258,12 @@ let structure_links (default, pages) ?service ~sp =
       make_rev parent []
   | (_, Disabled)::l
   | (_, Site_tree (_, []))::l -> create_rev parent l
-  | (_, Site_tree (Main_page page, hsl))::_ when service = Some page ->
-      make_rev parent (List.fold_left make_rels [] hsl)
   | (_, Site_tree (Main_page page, hsl))::l ->
-      (try create_rev (Some page) hsl
-      with Not_found -> create_rev parent l)
+      if Some page = service 
+      then make_rev parent (List.fold_left make_rels [] hsl)
+      else
+        (try create_rev (Some page) hsl
+         with Not_found -> create_rev parent l)
   | (_, Site_tree (_, hsl))::l ->
       (try create_rev None hsl
       with Not_found -> create_rev parent l)
@@ -268,8 +272,8 @@ let structure_links (default, pages) ?service ~sp =
     match default with
     | Main_page def ->
         if Some def = service then
-          List.fold_left make_rels [] pages
+          {{ [ !{: List.fold_left make_rels [] pages :} ] }}
         else create_rev (Some def) pages
     | _ ->
         create_rev None pages
-  with Not_found -> []
+  with Not_found -> {{ [] }}

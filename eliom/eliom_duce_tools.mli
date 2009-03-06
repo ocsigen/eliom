@@ -74,7 +74,7 @@ val hierarchical_menu_depth_first :
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->
-    Xhtmltypes_duce.ul list
+    {{ [Xhtmltypes_duce.ul*] }}
 
 
 
@@ -97,7 +97,7 @@ val hierarchical_menu_breadth_first :
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->
-    Xhtmltypes_duce.ul list
+    {{ [Xhtmltypes_duce.ul*] }}
 
 
 (** Returns the tags [<link rel="subsection" ...>] and
@@ -110,5 +110,5 @@ val structure_links :
     hierarchical_site ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->
-  Xhtmltypes_duce.link list
+  {{ [Xhtmltypes_duce.link*] }}
 
