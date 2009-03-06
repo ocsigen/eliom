@@ -17,31 +17,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
-(* TODO
-
-   - Ocamlduce version (with a functor)
-
-*)
+(* TODO: factorize function with eliom_duce_tools? *)
 
 open XHTML.M
 open Eliom_predefmod.Xhtml
 open Eliom_services
-
-
-type ('a, 'b) one_page =
-    (unit, unit,
-     'a,
-     [ `WithoutSuffix ],
-     unit, unit,
-     'b) service
-
-let menu_class = "eliomtools_menu"
-let last_class = "eliomtools_last"
-let current_class = "eliomtools_current"
-let disabled_class = "eliomtools_disabled"
-let first_class = "eliomtools_first"
-let level_class = "eliomtools_level"
+open Eliom_tools_common
 
 let menu ?(classe=[]) first l ?service:current ~sp =
   let rec aux = function
@@ -70,17 +51,6 @@ let menu ?(classe=[]) first l ?service:current ~sp =
         then (li ~a:[a_class (current_class::liclasse)] text)
         else (li ~a:[a_class liclasse] [a url sp text ()])) (aux l)
 
-
-type ('a, 'b, 'c) hierarchical_site_item =
-  | Disabled
-  | Site_tree of ('a, 'b, 'c) hierarchical_site
-and ('a, 'b, 'c) main_page =
-  | Main_page of ('a, 'b) one_page
-  | Default_page of ('a, 'b) one_page
-  | Not_clickable
-and ('a, 'b, 'c) hierarchical_site =
-      (('a, 'b, 'c) main_page *
-         ('c XHTML.M.elt list * ('a, 'b, 'c) hierarchical_site_item) list)
 
 let find_in_hierarchy service (main, pages) =
   let rec aux service i = function

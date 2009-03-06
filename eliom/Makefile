@@ -12,7 +12,7 @@ FILES:= error_pages.ml \
 	eliommod.ml eliom_sessions.ml eliom_extensions.ml\
         eliom_parameters.ml eliom_services.ml \
         eliom_mkforms.ml eliom_mkreg.ml eliom_predefmod.ml \
-        eliom_tools.ml eliom_extension_template.ml
+        eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
 

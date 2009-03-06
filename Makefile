@@ -79,6 +79,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)http/ocsigen_charset_mime.mli				\
 	$(DOCPREF)http/ocsigen_senders.mli				\
 	$(DOCPREF)http/ocsigen_stream.mli				\
+	$(DOCPREF)eliom/eliom_tools_common.mli			 	\
 	$(DOCPREF)eliom/eliom_tools.mli					\
 	$(DOCPREF)extensions/ocsipersist.mli				\
 	$(DOCPREF)extensions/authbasic.mli				\
@@ -107,7 +108,7 @@ PLUGINSCMOTOINSTALL = \
 	$(DUCECMO)
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
-       eliom/eliom_tools.cmi \
+       eliom/eliom_tools_common.cmi eliom/eliom_tools.cmi \
        $(DUCECMI) \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \

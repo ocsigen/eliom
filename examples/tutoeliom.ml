@@ -4002,6 +4002,7 @@ let uploadform = register upload
       </p>
 *html*)
 (* Hierarchical menu *)
+open Eliom_tools_common
 open Eliom_tools
 
 let hier1 = new_service ~path:["hier1"] ~get_params:unit ()

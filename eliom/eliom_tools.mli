@@ -23,15 +23,9 @@
 open Eliom_services
 open Eliom_parameters
 open Eliom_sessions
+open Eliom_tools_common
 
 (** {2 Menus } *)
-
-type ('a, 'b) one_page =
-    (unit, unit,
-     'a,
-     [ `WithoutSuffix ],
-     unit, unit,
-     'b) service
 
 val menu :
   ?classe:XHTML.M.nmtoken list ->
@@ -59,42 +53,6 @@ val menu :
 (** {2 Hierchical sites } *)
 
 
-type ('a, 'b, 'c) hierarchical_site_item =
-  | Disabled
-  | Site_tree of ('a, 'b, 'c) hierarchical_site
-and ('a, 'b, 'c) main_page =
-  | Main_page of ('a, 'b) one_page
-  | Default_page of ('a, 'b) one_page
-  | Not_clickable
-and ('a, 'b, 'c) hierarchical_site =
-      (('a, 'b, 'c) main_page *
-         ('c XHTML.M.elt list * ('a, 'b, 'c) hierarchical_site_item) list)
-(** The type of hierarchical sites.
-    A hierarchical site is a pair (main page, subpages).
-
-    The difference between
-    [Main_page], [Default_page] and [Not_clickable] is a bit subtle:
-
-    - [Main_page] is when you want to create a main page for your
-    subsite. All the subpages are subsections of that page.
-
-    - [Default_page] is like [Main_page] but is not taken into account
-    for computing which is the current page in the menu.
-    Use it for example when there is no main page, but you want
-    one of the subpages to be the default page for your subsite.
-    The service you use as default page
-    must appear another time in the subtree!
-
-    - [Not_clickable] is when you do not want the menu entry to be a link
-    but you want subpages.
-
-    Each subpage is defined by the text to be displayed in menus
-    and a [hierarchical_site_item].
-    If the latter is [Disabled], the menu entry is disabled.
-
- *)
-
-
 (**
     [hierarchical_menu_depth_first menu] constructs a function taking
     as parameters a service and [~sp] (server parameters)
@@ -113,7 +71,7 @@ val hierarchical_menu_depth_first :
   ?whole_tree:bool ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
-   Xhtmltypes.a_content)
+   Xhtmltypes.a_content XHTML.M.elt list)
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->
@@ -136,7 +94,7 @@ val hierarchical_menu_breadth_first :
   ?classe:XHTML.M.nmtoken list ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
-   Xhtmltypes.a_content)
+   Xhtmltypes.a_content XHTML.M.elt list)
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->
@@ -149,7 +107,7 @@ val hierarchical_menu_breadth_first :
 val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     Xhtmltypes.a_content)
+     Xhtmltypes.a_content XHTML.M.elt list)
     hierarchical_site ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->

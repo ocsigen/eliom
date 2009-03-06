@@ -48,6 +48,7 @@ Eliom_predefmod.Xhtml
 XHTML
 Xhtmltypes 
 Eliom_tools
+Eliom_tools_common
 }
 
 {4 Other kinds of pages}
