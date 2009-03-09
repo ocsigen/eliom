@@ -33,7 +33,7 @@ let int_of_string tag s =
                                 " is not a valid integer."))
 
 (*****************************************************************************)
-let default_hostname =
+let default_default_hostname =
   let hostname = Unix.gethostname () in
   try
 (*VVV Is it ok? Is it reliable? *)
@@ -202,6 +202,70 @@ let preloadfile config () = Ocsigen_extensions.set_config config
 let postloadfile () = Ocsigen_extensions.set_config []
 
 
+(* Checking hostnames.  We make only make looze efforts.
+   See RFC 921 and 952 for further details *)
+let correct_hostname =
+  let regexp = Netstring_pcre.regexp "^[a-zA-Z0-9]+((\\.|-)[a-zA-Z0-9]+)*$" in
+  fun h -> Netstring_pcre.string_match regexp h 0 <> None
+
+(* Split the [host] field, first according to spaces, and then according
+   to wildcards '*' *)
+let parse_host_field host =
+  match host with
+    | None -> [[Ocsigen_extensions.Wildcard], None] (* default = "*:*" *)
+    | Some s ->
+        let parse_one_host ss =
+          let host, port =
+            try
+              let dppos = String.index ss ':'
+              and len = String.length ss in
+              let host = String.sub ss 0 dppos
+              and port =
+                match String.sub ss (dppos+1) ((len - dppos) - 1) with
+                  | "*" -> None
+                  | p -> Some (int_of_string "host" p)
+              in host, port
+            with
+              | Not_found -> ss, None
+              | Failure _ ->
+                  raise (Config_file_error "bad port number")
+          in
+          let split_host = function
+            | Netstring_str.Delim _ -> Ocsigen_extensions.Wildcard
+            | Netstring_str.Text t ->
+                Ocsigen_extensions.Text (t, String.length t)
+          in
+          List.map split_host
+            (Netstring_str.full_split (Netstring_str.regexp "[*]+") host),
+          port
+        in
+        List.map parse_one_host
+          (Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
+
+
+(* Extract a default hostname from the "host" field if no default is provided *)
+let get_defaulthostname ~defaulthostname ~defaulthttpport ~host =
+    match defaulthostname with
+      | Some d -> d
+      | None ->
+          (* We look for a hostname without wildcard (second case) *)
+          (* Something more clever could be envisioned *)
+          let rec aux = function
+            | [] -> default_default_hostname
+            | ([Ocsigen_extensions.Text (t, _)], (Some 80 | None)) :: _ -> t
+            | _ :: q -> aux q
+          in
+          let host = aux host in
+          Ocsigen_messages.warning
+            ("While parsing config file, tag <host>: No defaulthostname, \
+              assuming it is \""^host^"\"");
+          if correct_hostname host then
+             host
+          else
+            raise (Ocsigen_config.Config_file_error
+                     ("Incorrect hostname " ^ host))
+
+
 (* Config file is parsed twice.
    This is the second parsing (site loading)
  *)
@@ -358,10 +422,15 @@ let parse_server isreloading c =
             | ("defaulthostname", s)::suite
             | ("hostname", s)::suite (*VVV deprecated!! remove it in 1.3 *) ->
                 (match defaulthostname with
-                | None -> parse_attrs (name, charset, 
-                                       (Some s), 
-                                       defaulthttpport, 
-                                       defaulthttpsport) suite
+                | None ->
+                    if correct_hostname s then
+                      parse_attrs (name, charset,
+                                   (Some s),
+                                   defaulthttpport,
+                                   defaulthttpsport) suite
+                    else
+                      raise (Ocsigen_config.Config_file_error
+                               ("Incorrect hostname " ^ s))
                 | _ -> raise (Ocsigen_config.Config_file_error
                                 ("Duplicate attribute defaulthostname in <host>")))
             | ("defaulthttpport", s)::suite ->
@@ -387,66 +456,12 @@ let parse_server isreloading c =
           let host, charset, defaulthostname, defaulthttpport,defaulthttpsport =
             parse_attrs (None, None, None, None, None) atts
           in
-          let host = match host with
-          | None -> [[Ocsigen_extensions.Wildcard], None] (* default = "*:*" *)
-          | Some s ->
-              List.map
-                (fun ss ->
-                  let host, port =
-                    try
-                      let dppos = String.index ss ':' in
-                      let len = String.length ss in
-                      ((String.sub ss 0 dppos),
-                       match String.sub ss (dppos+1) ((len - dppos) - 1) with
-                         | "*" -> None
-                         | p -> Some (int_of_string "host" p))
-                    with
-                      | Not_found -> ss, None
-                      | Failure _ ->
-                          raise (Config_file_error "bad port number")
-                  in
-                  ((List.map
-                      (function
-                         | Netstring_str.Delim _ -> Ocsigen_extensions.Wildcard
-                         | Netstring_str.Text t ->
-                            Ocsigen_extensions.Text (t, String.length t))
-                      (Netstring_str.full_split (Netstring_str.regexp "[*]+")
-                         host)),
-                   port))
-                (Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
-          in
+          let host = parse_host_field host in
           let charset =
             match charset, Ocsigen_config.get_default_charset () with
               | Some charset, _
               | None, Some charset -> charset
               | None, None -> "utf-8"
-          in
-          let defaultdefaulthostname = default_hostname in
-          let defaulthostname = match defaulthostname with
-            | Some d -> d
-            | None ->
-                try
-                  (match
-                    fst
-                      (List.find 
-                         (* We look for a hostname without wildcard *)
-                         (*VVV one could do sthg more clever *)
-                         (function
-                            | ([Ocsigen_extensions.Text (t, _)], None) -> true
-                            | _ -> false
-                         ) 
-                         host)
-                   with
-                     | [Ocsigen_extensions.Text (t, _)] -> 
-                         Ocsigen_messages.warning
-                           ("While parsing config file, tag <host>: Assuming defaulthostname is \""^t^"\"");
-                         t
-                     | _ -> 
-                         defaultdefaulthostname)
-                with Not_found -> 
-                  Ocsigen_messages.warning
-                    ("While parsing config file, tag <host>: Assuming defaulthostname is \""^defaultdefaulthostname^"\"");
-                  defaultdefaulthostname
           in
           let defaulthttpport = match defaulthttpport with
             | None ->
@@ -454,6 +469,8 @@ let parse_server isreloading c =
                 with Failure _ -> 80)
             | Some p -> int_of_string "host" p
           in
+          let defaulthostname = get_defaulthostname
+            ~defaulthostname ~defaulthttpport ~host in
           let defaulthttpsport = match defaulthttpsport with
             | None ->
                 (try snd (List.hd (Ocsigen_config.get_sslports ())) 
@@ -527,6 +544,7 @@ let parse_server isreloading c =
       | _ ->
           raise (Config_file_error "Syntax error")
   in Ocsigen_extensions.set_hosts (parse_server_aux c)
+
 
 
 (* Parsing <port> tags *)
