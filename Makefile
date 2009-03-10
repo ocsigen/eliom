@@ -89,7 +89,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	# The files below should be installed, but are in revised syntax.
 	# To be readded when they are translated in normal syntax
 	#	$(DOCPREF)xmlp4/newocaml/simplexmlparser.mli 			\
-	#	$(DOCPREF)xmlp4/newocaml/xhtmltypes.ml				\
+	#	$(DOCPREF)xmlp4/newocaml/xhtmltypes.ml
 METAS = META META.ocsigen_ext META.eliom_examples META.ocsigen_ext.global META.eliom_examples.global
 
 
