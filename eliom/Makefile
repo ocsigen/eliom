@@ -116,12 +116,15 @@ eliommod.cmx: eliommod.ml
 
 eliom.cma: $(FILES:.ml=.cmo)
 	$(CAMLC) -a -o eliom.cma $^
+	cd ../extensions ; ln -f -s ../eliom/eliom.cma
 
 eliom.cmxa: $(FILES:.ml=.cmx)
 	$(CAMLOPT) -a -o eliom.cmxa -linkall $^
+	cd ../extensions ; ln -f -s ../eliom/eliom.cmxa
 
 eliom.cmxs: $(FILES:.ml=.cmx)
 	$(CAMLOPT) -shared -linkall -o eliom.cmxs $^
+	cd ../extensions ; ln -f -s ../eliom/eliom.cmxs
 
 ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
 	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \
@@ -146,12 +149,15 @@ ocsigenduce.cmxa: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx ocsigenduce.cmx
 
 eliom_duce.cma: xhtmltypes_duce.cmo xhtmlpretty_duce.cmo eliom_duce.cmo
 	$(CAMLC) -a -o eliom_duce.cma xhtmltypes_duce.cmo xhtmlpretty_duce.cmo eliom_duce.cmo eliom_duce_tools.cmo
+	cd ../extensions ; ln -f -s ../eliom/eliom_duce.cma
 
 eliom_duce.cmxs: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx
 	$(CAMLOPT) -shared -linkall -o eliom_duce.cmxs xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx eliom_duce_tools.cmx
+	cd ../extensions ; ln -f -s ../eliom/eliom_duce.cmxs
 
 eliom_duce.cmxa: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx
 	$(CAMLOPT) -a -linkall -o eliom_duce.cmxa xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx eliom_duce_tools.cmx
+	cd ../extensions ; ln -f -s ../eliom/eliom_duce.cmxa
 
 ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
 	$(CAMLC) -a -o ocsigenrss.cma $^
