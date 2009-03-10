@@ -1,308 +1,52 @@
+<!-- This file is intentionnaly very basic. See http://ocsigen.org/config for
+     a more elaborate one, as well as for comments on the various options -->
 <ocsigen>
+
 
   <server>
 
-    <!-- ____________________________________________________________ -->
-    <!-- First part: basic configuration                              -->
+    <port>80</port>
 
-    <port>80</port>              <!-- The port for the server -->
-    <!--
-    <port protocol="HTTPS">443</port>
-    -->
-       <!-- You can listen on several port,
-            and protocol may be HTTP (default) or HTTPS -->
+    <logdir>_LOGDIR_</logdir>
+    <datadir>_DATADIR_</datadir>
+    <user>_OCSIGENUSER_</user>
+    <group>_OCSIGENGROUP_</group>
 
-    <logdir>_LOGDIR_</logdir>    <!-- Where log files are to be written -->
-    <datadir>_DATADIR_</datadir> <!-- Where data are (default: _DATADIR_) -->
-    <user>_OCSIGENUSER_</user>   <!-- The user who will run Ocsigen
-                                      (do not use root for security reasons) -->
-    <group>_OCSIGENGROUP_</group> <!-- The group (not root!) -->
-
-    <charset>utf-8</charset>      <!-- Default charset for pages -->
-
-    <!--
-    <uploaddir></uploaddir>
-     -->
-      <!-- Where files are to be uploaded (default: none) -->
-
-    <!--
-    <maxuploadfilesize>2Mo</maxuploadfilesize>
-     -->
-      <!-- Max size of files sent to the server
-           ("infinity" or using SI or binary units,
-           e.g. 10 10B 10o 10ko 10kB 10kiB 10MiB 10TB ...) -->
-
-    <!--
-    <maxrequestbodysize>8Mo</maxrequestbodysize>
-     -->
-      <!-- Max size for the body of a request
-          ("infinity" or using SI or binary units) -->
-
-    <!--
-    <mimefile>/etc/mime.types</mimefile>
-    -->
-      <!-- The mime types file
-           used for sending static pages -->
-
-    <!--
-    <debugmode/>
-    -->
-      <!-- If you want to print the exceptions on error 500 pages
-           (use only for debug) -->
-
-    <!-- If you want to use HTTPS:
-    <ssl>
-       <certificate>path_to/cert.pem</certificate>
-       <privatekey>path_to/privkey.pem</privatekey>
-    </ssl>
-
-    To create a 1024-bit private key to use when creating your CA.:
-    openssl genrsa -des3 -out privkey.pem 1024
-
-    To create a master certificate based on this key, to use when signing other
-    certificates:
-    openssl req -new -x509 -days 1001 -key privkey.pem -out cert.pem
-
-    If you don't want to be asked for a password at start-up, you can
-    uncrypt the private key (if you consider it is safe ...):
-    openssl rsa -in privkey.pem -out privkey-unsec.pem
-
-    Give read access to these files to ocsigen's user (but it is not 
-    recommended to give read access to everybody).
-
-    -->
+    <charset>utf-8</charset>
 
 
+    <findlib path="_METADIR_"/>
 
-
-
-
-
-    <!-- ____________________________________________________________ -->
-    <!-- Second part: Ocsigen's Extensions                            -->
-
-    <!--
-         Ocsigen does not do anything without some extensions loaded.
-         For example, you need the extension staticmod for serving static pages.
-
-         Dynlink here all the extensions for Ocsigen using the tag <extension>.
-
-         The order is usually not significant.
-
-         Extensions define new XML tags for this configuration file.
-         Use them in the <site> sections below.
-
-         If you don't have any extension, no page will be generated
-         (but if you link the extensions statically).
-
-         Extensions will be loaded only once, even if they occur in several
-         configurations files, or if the configuration file is reloaded.
-     -->
-
-     <!-- Path to Ocsigen's specific META directories -->
-     <findlib path="_METADIR_"/>
-
-
-    <!-- _______ Loading redirectmod _______ -->
-    <!-- If you want to define HTTP redirections in this config file: -->
-    <extension findlib-package="ocsigen_ext.redirectmod"/>
-
-
-
-    <!-- _______ Loading revproxy _______ -->
-    <!--
-    If you want to define reverse proxy redirections in this config file:
-    <extension findlib-package="ocsigen_ext.revproxy"/>
-     -->
-    <!-- _______ Filtering and modifying the output _______ -->
-    <!--
-    <extension findlib-package="ocsigen_ext.outputfilter"/>
-     -->
-
-
-    <!-- _______ Loading accesscontrol _______ -->
-    <!-- If you want to restrict access for some sites:
-         (see http://www.ocsigen.org/trac/wiki/AccessControl)
-    <extension findlib-package="ocsigen_ext.accesscontrol"/> -->
-
-    <!-- _______ Loading authbasic _______ -->
-    <!-- If you want to use Basic HTTP Authentication:
-         (see http://www.ocsigen.org/trac/wiki/AuthBasic)
-    <extension findlib-package="ocsigen_ext.authbasic"/> -->
-
-    <!-- _______ Loading cgimod _______ -->
-    <!--
-    If you want to use CGI scripts:
-    <extension findlib-package="ocsigen_ext.cgimod"/>
-     -->
-
-    <!-- Or, if you want to set options for cgimod: -->
-    <!--
-    <extension findlib-package="ocsigen_ext.cgimod">
-      <cgitimeout value="30">     <!-- Timeout for CGI scripts -->
-    </extension>
-     -->
-
-
-
-    <!-- _______ Loading staticmod _______ -->
-    <!-- If you want to serve static files: -->
     <extension findlib-package="ocsigen_ext.staticmod"/>
 
-
-
-    <!-- _______ Loading Eliom _______ -->
-    <!-- If you need Eliom (dynamic OCaml pages),
-         first load ocsipersist (sqlite or dbm version): -->
-
     <extension findlib-package="ocsigen_ext.ocsipersist-sqlite">
-      <!-- If you want to specify the SQLITE database file yourself:
       <database file="_DATADIR_/ocsidb"/>
-      -->
     </extension>
 
-    <!-- You may want to use DBM instead of SQLite (if compiled) : -->
-    <!--
-    <extension findlib-package="ocsigen_ext.ocsipersist-dbm">
-      <store dir="_DATADIR_"/> <!-- The directory for data (optional) -->
-      <ocsidbm name="_EXTRALIBDIR_/ocsidbm"/> <!-- The data server process (optional) -->
-    </extension>
-    -->
+    <!-- You may want to use DBM instead of SQLite (if compiled). -->
+    <!--extension findlib-package="ocsigen_ext.ocsipersist-dbm">
+      <store dir="_DATADIR_"/>
+      <ocsidbm name="_EXTRALIBDIR_/ocsidbm"/>
+    </extension-->
 
-    <!-- Now you can load Eliom itself: -->
     <extension findlib-package="ocsigen_ext.eliom"/>
 
-    <!--
-      If you want to set some options for Eliom, replace last line by
-      something like:
-
-    <extension findlib-package="ocsigen_ext.eliom">
-      <timeout value="7200"/>      <!-- The default timeout for
-                                   volatile (in memory) sessions.
-                                   value="infinity" means that the session will
-                                   never finish.
-                                   Note that each eliom module may set its own
-                                   default, that will override this one. -->
-      <persistenttimeout value="7200"/>
-                                  <!-- Idem for persistent session data -->
-      <datatimeout value="7200"/> <!-- Like <timeout>, but for in memory data
-                                   sessions only
-                                   (not service sessions). -->
-      <servicetimeout value="7200"/> <!-- Like <timeout>, but for service
-                                   sessions only
-                                   (not in memory data  sessions). -->
-      <sessiongcfrequency value="7200"/> <!-- Time between two garbage
-                                   collections of sessions, in seconds (default
-                                   3600) "infinity" means no GC of session.
-                                   Note that each eliom module may set its own
-                                   default, that will override this one. -->
-      <persistentsessiongcfrequency value="86400"/> <!-- Time between two
-                                   garbage collections of persistent sessions,
-                                   in seconds (default 86400.) "infinity"
-                                   means no GC of session.
-                                   Note that each eliom module may set its own
-                                   default, that will override this one. -->
-      <servicesessiongcfrequency value="7200"/> <!-- Like <sessiongcfrequency>,
-                                   but for service sessions only -->
-      <datasessiongcfrequency value="7200"/> <!-- Like <sessiongcfrequency>,
-                                   but for "in memory data" sessions only -->
-    </extension>
-    -->
-
-
-
-    <!-- If Ocsigen is compiled with Ocamlduce support,
-        and you want to use it, add:
-    <extension findlib-package="ocsigen_ext.eliom_duce"/>
-    -->
-
-
-
-    <!-- _______ Loading deflatemod _______ -->
-    <!--
-      Deflatemod - compressing data before sending (deflate and gzip)
-      Parameters are optionnal; here, they are set to their default values.
-
-      <extension findlib-package="ocsigen_ext.deflatemod">
-        <compress level="6" /> <!-- 1 = faster;
-                                    9 = best compression;
-                                    0 = no compression -->
-        <buffer size="8192" /> <!-- You shouldn't need to change this one -->
-      </extension>
-
-    -->
-
-
-
-
-    <!-- _______ Loading other libraries _______ -->
-    <!--
-
-    If you want to load other Ocaml modules, either use one of:
-
-    <extension module="...PATH TO.../toto.cma"/>
-    <extension findlib-package="name_of_a_findlib_package"/>
-
-    if you don't want them to be reloaded
-    when you reload dynamically the sites,
-
-    or:
-
-    <library module="...PATH TO.../toto.cma"/>
-    <library findlib-package="name_of_a_findlib_package"/>
-
-    if you want them to be reloaded.
-
-    Use <library> only for modules you want to be able to reload without
-    shutting down the server!
-    Extensions like eliom or staticmod cannot be used with <library>.
-    Note that with findlib, dependencies are always loaded once, and only
-    the last object file (cma/cmo) of the package may be loaded several times.
-
-    If you use native dynlink, you must supply paths to .cmxs files with the
-    module="..." form. Findlib forms are not affected.
-    -->
-
-
-
-
-
-
-
-
-
-
-    <!-- ____________________________________________________________ -->
-    <!-- Third part: Configuration of virtual hosts and sites         -->
 
     <!-- Inclusion of all external configuration files matching *.conf
-     from this directory (in alphabetical order): -->
+         from the directory 'dir' (in alphabetical order): -->
     <extconf dir="_CONFIGDIR_/conf.d" />
-    <!-- Remember that modules loaded using <extension> are loaded
-    only once. Thus you can load all the extensions you need from each
-    configuration file.
-     -->
 
-    <host charset="iso-8859-1" >  <!-- First virtual host -->
-    <!-- better: set the default hostname like this:
-         <host defaulthostname="www.yourwebsite.org"> 
-    -->
-    <!-- <host> is mandatory -->
-    <!-- charset is optional (default "utf-8") -->
 
-      <!-- Defining a sub-site -->
-      <!-- The directory containing icons for directory listing
-        (for directories configured "readable")
-       -->
+
+
+    <host charset="iso-8859-1">
+
       <site path="ocsigenstuff" charset="iso-8859-1">
         <static dir="_STATICPAGESDIR_/ocsigenstuff" />
       </site>
-      <!-- path is the directory where the site is loaded -->
-      <!-- charset is optional -->
-      <!-- It is possible to define <site> inside <site> -->
 
 
-      <!-- Another example: a wiki written by Janne Hellsten: -->
+      <!-- An example: a wiki written by Janne Hellsten: -->
       <site path="miniwiki" charset="utf-8">
         <static dir="_STATICPAGESDIR_/miniwiki" />
         <eliom findlib-package="eliom_examples.miniwiki">
@@ -311,221 +55,14 @@
         </eliom>
       </site>
 
-      <!-- Rewriting URLs with staticmod:
 
-      Example of user pages
-      <static regexp="~([^/]*)(.*)" dest="/home/$1/public_html$2"/>
-      <!-- The syntax of regular expression is PCRE's one -->
-      <!-- Better: if your users are not all in the same directory: -->
-      <static regexp="~([^/]*)(.*)" dest="$u($1)/public_html$2"/>
-      -->
-
-      <!-- If you want to allow users to have their config files,
-      load the userconf extension, then:
-      <userconf regexp="~([^/]*)(.*)" conf="$u($1)/.ocsigen" prefix="~$1" url="$2"/>
-      These files will be parsed for each request matching the regexp.
-      All options are not available to users for security reasons.
-      WARNING: this is an experimental feature! Please report any problem.
-      -->
-
-      <!-- catching HTTP errors with staticmod:
-      <static code="40." regexp=".*" dest="/var/www/error.html"/>
-      <!-- code value is a regular expression (here matching 400, 401 etc.).
-      regexp is optional (matches the URL path).
-      Note that if you want to catch all errors,
-      you need to create a separate <site path=""> after all others.
-       -->
-      -->
-
-
-      <!-- Configuring a redirection with redirectmod:
-      <redirect regexp="(.*)" dest="http://my.newaddress.org/$1"/>
-      <redirect regexp="dir/(.*)\.html" dest="http://my.newaddress.org/$1.php"/>
-      <!-- The syntax of regular expression is PCRE's one -->
-      <!-- According to the RFC of the HTTP protocol, dest must be an
-      absolute URL -->
-      <!-- By default, permanent redirection.
-           For temporary redirection, use: -->
-      <redirect temporary="temporary" regexp="(.*)" dest="http://www.plopplopplop.com/$1"/>
-      -->
-
-
-
-      <!-- Configuring a reverse proxy redirection with revproxy:
-      <revproxy regexp="(.*)" server="my.newaddress.org" port="8080" uri="$1"/>
-      <revproxy regexp="dir/(.*)\.html" protocol="https" server="my.newaddress.org" uri="$1.php"/>
-
-      Add the attribute nopipeline="nopipeline" if you have a problem
-      with the reverse proxy's pipeline. With that option, the reverse
-      proxy will open a new connection for all requests, instead of trying
-      to reuse connections. You probably don't need that, but if you do,
-      please contact us to tell us what is the problem. Thank you!
-
-      You probably also need to rewrite locations in the output
-      (if the server is doing redirections). For example:
-
-      <outputfilter header="location" regexp="http://my.newaddress.org/(.*)" dest="http://my.publicaddress.org/$1"/>
-      -->
-
-
-      <!-- A page displaying information about the Web server
-        (memory used, number of threads, etc.):
-      <site path="monitoring">
-        <!-- Monitoring -->
-        <eliom findlib-package="eliom_examples.monitoring" />
-      </site>
-      -->
-
-
-      <!-- Here are example of configuration for CGI script,
-           if you use cgimod:
-      <site path="cgi">
-
-            Short form (no regular expression allowed):
-           <cgi root="cgi-bin"
-                dir="/usr/lib/cgi-bin" />
-
-            This is equivalent to the long form (using regular expressions):
-           <cgi regexp="cgi-bin/([^/]*)"
-                dir="/usr/lib/cgi-bin/"
-                script="$1" />
-
-            Another example:
-           <cgi regexp="darcsweb"
-                dir="/usr/lib/cgi-bin/"
-                script="darcsweb.cgi" />
-
-            An example defining its own environment variable:
-           <cgi regexp="trac"
-                dir="/usr/lib/cgi-bin/"
-                script="trac.cgi" >
-             <setenv var="TRAC_ENV"
-                     val="/usr/share/trac" />
-           </cgi>
-
-            To use PHP as a CGI module:
-
-            - user pages:
-           <cgi regexp="~([^/]*)(.*)/$"
-                dir="$u($1)/public_html/$2"
-                script="index.php"
-                exec="/usr/bin/php-cgi"/>
-           <cgi regexp="~([^/]*)(.*)/([^/]*).php$"
-                dir="$u($1)/public_html$2"
-                script="$3.php"
-                exec="/usr/bin/php-cgi"/>
-
-            - other pages:
-           <cgi regexp="(.*)/"
-                dir="/var/www/$1"
-                script="index.php"
-                exec="/usr/bin/php-cgi"/>
-           <cgi regexp="((.*)/)?([^/]*).php"
-                dir="/var/www/$2"
-                script="$3.php"
-                exec="/usr/bin/php-cgi"/>
-
-      </site>
-      -->
-
-      <!-- Use here the tags defined by the extensions you loaded.
-           Warning: the order is significant!
-           Each option may
-            - generate a page
-            - ask the following option to try to answer
-            - prevent the following options to try
-            - modify the result given by one of the previous options
-            - etc.
-      -->
-
-
-      <!-- Tutorial -->
-
-      <!-- We first try to deliver a static page: -->
+      <!-- Eliom Tutorial -->
       <static dir="_STATICPAGESDIR_/tutorial" />
 
-      <!-- If it does not exist, we try do generate a dynamic page: -->
-
-      <!-- If Ocsigen is compiled with OCamlDuce support: -->
-      <!--<if>
-        <not><path regexp="duce(|/.*)"/></not>
-        <then>
-          <eliom findlib-package="eliom_examples.tutoeliom" />
-        </then>
-        <else>
-          <site path="duce">
-            <eliom findlib-package="eliom_examples.duce"/>
-          </site>
-        </else>
-      </if>-->
-      <!-- Warning: eliom_example.duce depends on tutoeliom and must
-           be dynlinked before! And the current tutoeliom answers even
-           if the page does not exist. This is why we use <if> with a
-           negative condition. Moreover, tutoeliom and exampleduce
-           both register a default service, this is why we must
-           enclose exampleduce inside a <site>.
-      -->
-
-      <!-- If Ocsigen is not compiled with OCamlDuce support (comment
-           the following if you have uncommented above):
-      -->
       <eliom findlib-package="eliom_examples.tutoeliom" />
 
 
-      <!-- If you want the content of the directory (and subdirectories)
-      to be displayed:
-      <static dir="_STATICPAGESDIR_/tutorial" readable="readable" />
-      -->
-
-      <!-- Deflatemod (at the very end to filter everything else) -->
-      <!--<deflate compress="allbut">
-        <type>image/*</type>
-        <extension>.tar.gz</extension>
-      </deflate>-->
-
     </host>
-
-    <!--
-    <host hostname="www.yourwebsite.com" aliases="*.com">      <!-- Another virtual host -->
-    </host>
-
-       If your server has several host names, you can decide which sites will
-       be available for each name, using virtual servers.
-       To use virtual servers, specify for <host> the attribute 'aliases'.
-       'aliases' is a string that may contain '*' characters.
-       Examples: <host aliases="*">...</host> will match any host name (default).
-       <host aliases="*.com:80">...</host> will match any host name finishing
-       with '.com' on port 80.
-       <host aliases="www.mysite.com www.mysite.org:*">...</host>
-        will match only those two hostnames.
-     -->
-
-
-
-
-
-
-
-
-
-
-    <!-- ____________________________________________________________ -->
-    <!-- Fourth part: various settings                                -->
-
-    <!-- Change the following values only if you know what you are doing! -->
-    <!-- <maxconnected>500</maxconnected> Max number of simultaneous connections -->
-    <!-- <clienttimeout>10</clienttimeout> Timeout when a client is silent during while doing a request (or for keep alive) -->
-    <!-- <servertimeout>100</servertimeout> When using Ocsigen as a client: Timeout when a server is silent during answering a request (or for keep alive) -->
-    <!-- <netbuffersize>8192</netbuffersize> Size of the input buffer (sockets) It is also the maximum size of headers and post data -->
-    <!-- <filebuffersize>8192</filebuffersize> Size of the buffer for reading files -->
-    <!-- <minthreads>10</minthreads> Minimum size of the detached threads pool (default 10) -->
-    <!-- <maxthreads>100</maxthreads> Maximal size of the detached threads pool (default 30) -->
-    <!-- <maxdetachedcomputationsqueued>100</maxdetachedcomputationsqueued> Size of the queue of computations waiting a detached thread (default 1000) -->
-    <!-- <commandpipe>_COMMANDPIPE_</commandpipe> Name of the pipe used to command the server -->
-    <!-- <respectpipeline/> If this line is present, one request will be sent to extensions only when the server is sure that the previous one on the same connection has been taken by an extension. By default, the order may be changed. -->
-    <!-- <maxretries>10</maxretries> Max number of tries after request rewriting (prevents loops in rewrites) -->
-    <!-- <disablepartialrequests/> Disable HTTP Range support (206 code for partial content sending) -->
-
 
   </server>
 
