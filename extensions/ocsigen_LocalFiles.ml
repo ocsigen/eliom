@@ -107,8 +107,11 @@ type resolved =
    - we return ["filename/index.html"] if [filename] corresponds to
    a directory, ["filename/index.html"] is valid, and ["index.html"]
    is one possible index (trying all possible indexes in order)
-   - we raise [Failed_403] if [filename] corresponds to a directory,
-   no index exists and [list_dir_content] is false
+   - we raise [Failed_404] if [filename] corresponds to a directory,
+   no index exists and [list_dir_content] is false.
+   Warning: this behaviour is not the same as Apache's but it corresponds
+   to a missing service in Eliom (answers 404). This also allows to have
+   an Eliom service after a "forbidden" directory
    - we raise [Failed_403] if [filename] is a symlink that must
    not be followed
    - raises [Failed_404] if [filename] does not exist, or is a special file
@@ -143,7 +146,7 @@ let resolve ~request ~filename =
                   (* No suitable index *)
                   Ocsigen_messages.debug2
                     "--LocalFiles: No index and no listing";
-                  raise Failed_403)
+                  raise Failed_404)
             | e :: q ->
                 let index = filename ^ e in
                 Ocsigen_messages.debug

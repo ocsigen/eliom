@@ -235,7 +235,7 @@ let end_init () =
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
   | Eliom_common.Eliom_duplicate_registration s ->
-      ("Eliom: Duplicate registration of url \""^s^
+      ("Eliom: Duplicate registration of service \""^s^
        "\". Please correct the module.")
   | Eliom_common.Eliom_there_are_unregistered_services (s, l1, l2) ->
       ("Eliom: in site /"^
