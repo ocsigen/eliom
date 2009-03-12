@@ -14,7 +14,7 @@ type charset_assoc = {
 let no_charset = ""
 let empty_charset_assoc ?(default=no_charset) () = {
   charset_assoc = MapString.empty;
-  charset_default = no_charset;
+  charset_default = default
 }
 
 let default_charset ~charset_assoc = charset_assoc.charset_default
