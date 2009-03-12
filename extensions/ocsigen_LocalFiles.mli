@@ -27,9 +27,13 @@ type resolved =
 (** Finds [filename] in the filesystem, with a possible redirection
     if it is a directory. Takes into account the fact that [filename]
     does not exists, is a symlink or is a directory, and raises
-    Failed_404 or Failed_403 accordingly *)
+    Failed_404 or Failed_403 accordingly. [no_check_for] is supposed
+    to be a prefix of [filename] ; directories above [no_check_for]
+    are not checked for symlinks *)
 val resolve :
-  request:Ocsigen_extensions.request -> filename:string -> resolved
+  ?no_check_for:string ->
+  request:Ocsigen_extensions.request ->
+  filename:string -> resolved
 
 
 (** Given the local file [file], with a request originating at url

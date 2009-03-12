@@ -38,14 +38,15 @@ let bad_config s = raise (Error_in_config_file s)
 
 (* A static site is either an entire directory served unconditionnaly,
    or a more elaborate redirection based on regexpes and http error
-   codes. See the documentation of staticmod for detail *)
+   codes. See the web documentation of staticmod for detail *)
 type static_site_kind =
   | Dir of string (* Serves an entire directory *)
   | Regexp of regexp_site
 and regexp_site = {
   source_regexp: Netstring_pcre.regexp;
   dest: Ocsigen_extensions.ud_string;
-  http_status_filter: Netstring_pcre.regexp option
+  http_status_filter: Netstring_pcre.regexp option;
+  root_checks: Ocsigen_extensions.ud_string option;
 }
 
 
@@ -79,25 +80,41 @@ let correct_user_local_file =
    is valid.
 *)
 let find_static_page ~request ~usermode ~dir ~err ~pathstring =
-  let status_filter, file = match dir with
+  let status_filter, filename, root = match dir with
     | Dir d ->
-        (false, Filename.concat d pathstring)
+        (false, Filename.concat d pathstring, Some d)
     | Regexp { source_regexp = source; dest = dest;
-               http_status_filter = status_filter}
+               http_status_filter = status_filter;
+               root_checks = rc }
           when http_status_match status_filter err ->
-        (status_filter <> None,
-         match Netstring_pcre.string_match source pathstring 0 with
-           | None -> raise Not_concerned
-           | Some _ ->
-               Ocsigen_extensions.replace_user_dir source dest pathstring
-        )
+        let status_filter = status_filter <> None
+        and file =
+          match Netstring_pcre.string_match source pathstring 0 with
+            | None -> raise Not_concerned
+            | Some _ ->
+                Ocsigen_extensions.replace_user_dir source dest pathstring
+        and root_checks =
+         (match rc, usermode with
+            | None, Some { localfiles_root = r } ->
+                Some r
+            | Some _, Some _ ->
+                raise (Ocsigen_extensions.Error_in_user_config_file
+                         "Staticmod: cannot specify option 'root' in \
+                           user configuration files")
+            | None, None -> None
+            | Some rc, None ->
+                Some (Ocsigen_extensions.replace_user_dir source rc pathstring)
+         )
+        in
+        status_filter, file, root_checks
     | _ -> raise Not_concerned
   in
-  if usermode = false || correct_user_local_file file then
-    (status_filter, Ocsigen_LocalFiles.resolve request file)
+  if usermode = None || correct_user_local_file filename then
+    (status_filter,
+     Ocsigen_LocalFiles.resolve ?no_check_for:root ~request ~filename)
   else
     raise (Ocsigen_extensions.Error_in_user_config_file
-             "cannot use '..' in user paths")
+             "Staticmod: cannot use '..' in user paths")
 
 
 
@@ -136,6 +153,7 @@ let gen ~usermode dir = function
 (** Parsing of config file *)
 open Simplexmlparser
 
+(* In userconf modes, paths must be relative to the root of the userconf config *)
 let rewrite_local_path userconf path =
   match userconf with
     | None -> path
@@ -147,6 +165,7 @@ type options = {
   opt_regexp: Netstring_pcre.regexp option;
   opt_code: Netstring_pcre.regexp option;
   opt_dest: Ocsigen_extensions.ud_string option;
+  opt_root_checks: Ocsigen_extensions.ud_string option;
 }
 
 let parse_config userconf : parse_config_aux = fun _ _ _ ->
@@ -177,6 +196,10 @@ let parse_config userconf : parse_config_aux = fun _ _ _ ->
             { opt with opt_dest =
                 Some (parse_user_dir (rewrite_local_path userconf s)) }
 
+      | ("root", s) :: l when opt.opt_root_checks = None ->
+          parse_attrs l
+            { opt with opt_root_checks = Some (parse_user_dir s) }
+
       | _ -> bad_config "Wrong attribute for <static>"
   in
   function
@@ -187,23 +210,32 @@ let parse_config userconf : parse_config_aux = fun _ _ _ ->
             opt_regexp = None;
             opt_code = None;
             opt_dest = None;
+            opt_root_checks = None;
           }
         in
         let kind =
-          match opt.opt_dir, opt.opt_regexp, opt.opt_code, opt.opt_dest with
-          | (None, None, None, _) ->
+          match opt.opt_dir, opt.opt_regexp, opt.opt_code, opt.opt_dest, opt.opt_root_checks with
+          | (None, None, None, _, _) ->
               raise (Error_in_config_file
                        "Missing attribute dir, regexp, or code for <static>")
-          | (Some d, None, None, None) ->
+
+          | (Some d, None, None, None, None) ->
               Dir (remove_end_slash d)
-          | (None, Some r, code, Some t) ->
-              Regexp { source_regexp = r; dest = t; http_status_filter = code }
-          | (None, None, (Some _ as code), Some t) ->
-              Regexp { dest = t; http_status_filter = code;
+
+          | (None, Some r, code, Some t, rc) ->
+              Regexp { source_regexp = r;
+                       dest = t;
+                       http_status_filter = code;
+                       root_checks = rc;
+                     }
+
+          | (None, None, (Some _ as code), Some t, None) ->
+              Regexp { dest = t; http_status_filter = code; root_checks = None;
                        source_regexp = Netstring_pcre.regexp "^.*$" }
+
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
-          in
-          gen ~usermode:(userconf <> None) kind
+        in
+        gen ~usermode:userconf kind
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
     | _ -> bad_config "(staticmod extension) Bad data"
 
@@ -211,7 +243,7 @@ let parse_config userconf : parse_config_aux = fun _ _ _ ->
 
 (*****************************************************************************)
 (** extension registration *)
-let () = register_extension 
+let () = register_extension
   ~name:"staticmod"
   ~fun_site:(fun _ -> parse_config None)
   ~user_fun_site:(fun path _ -> parse_config (Some path))

@@ -33,19 +33,22 @@ let check_symlinks_aux
     true
 
 (* Check that there are no invalid symlinks in the directories leading to
-   [filename]. *)
-let rec check_symlinks_parent_directories filename (policy : symlink_policy) =
-  if filename = "/" || filename = "." then
+   [filename]. Paths upwards [no_check_for] are not checked. *)
+let rec check_symlinks_parent_directories ~filename ~no_check_for (policy : symlink_policy) =
+  (* Ocsigen_messages.debug
+    (fun () -> Printf.sprintf "Checking %s (until %s)"
+       filename (match no_check_for with None -> "" | Some s -> s)); *)
+  if filename = "/" || filename = "." || Some filename = no_check_for then
     true
   else
     let dirname = Filename.dirname filename in
     check_symlinks_aux dirname policy &&
-    check_symlinks_parent_directories dirname policy
+    check_symlinks_parent_directories ~filename:dirname ~no_check_for policy
 
 
 (* Check that [filename] can be reached according to the given
    symlink policy  *)
-let check_symlinks filename policy =
+let check_symlinks ~no_check_for ~filename policy =
   let aux policy =
     if filename = "/" then
       (* The root cannot be a symlink, and this avoids some degenerate
@@ -67,7 +70,7 @@ let check_symlinks filename policy =
           filename
       in
       check_symlinks_aux filename policy &&
-      check_symlinks_parent_directories filename policy
+      check_symlinks_parent_directories filename no_check_for policy
   in
   match policy with
     | AlwaysFollowSymlinks -> true
@@ -118,7 +121,7 @@ type resolved =
    - otherwise returns [filename]
 *)
 (* See also module Files in eliom.ml *)
-let resolve ~request ~filename =
+let resolve ?no_check_for ~request ~filename =
   try
     Ocsigen_messages.debug
       (fun () -> "--LocalFiles: Testing \""^filename^"\".");
@@ -160,7 +163,8 @@ let resolve ~request ~filename =
 
       else (filename, stat)
     in
-    if check_symlinks filename request.request_config.follow_symlinks then (
+    if check_symlinks ~filename ~no_check_for
+      request.request_config.follow_symlinks then (
       can_send filename request.request_config;
       (* If the previous function did not fail, we are authorized to
          send this file *)
