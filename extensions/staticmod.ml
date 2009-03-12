@@ -143,6 +143,10 @@ let gen ~usermode dir = function
 
         (function
            | Ocsigen_LocalFiles.Failed_403 -> return (Ext_next 403)
+               (* XXX We should try to leave an information about this
+                  error for later *)
+           | Ocsigen_LocalFiles.NotReadableDirectory ->
+               return (Ext_next err)
            | NoSuchUser | Not_concerned
            | Ocsigen_LocalFiles.Failed_404 -> return (Ext_next err)
            | e -> fail e

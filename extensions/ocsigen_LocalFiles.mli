@@ -3,6 +3,8 @@ exception Failed_404
 (** The requested file cannot be served: does not exists, not
     enough permissions ... *)
 exception Failed_403
+(** The file is a directory which we should not display *)
+exception NotReadableDirectory
 
 
 

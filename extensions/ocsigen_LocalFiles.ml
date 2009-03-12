@@ -5,6 +5,7 @@ open Ocsigen_extensions
 
 exception Failed_403
 exception Failed_404
+exception NotReadableDirectory
 
 
 (* Policies for following symlinks *)
@@ -147,9 +148,8 @@ let resolve ?no_check_for ~request ~filename =
                   (filename, stat))
                 else (
                   (* No suitable index *)
-                  Ocsigen_messages.debug2
-                    "--LocalFiles: No index and no listing";
-                  raise Failed_404)
+                  Ocsigen_messages.debug2 "--LocalFiles: No index and no listing";
+                  raise NotReadableDirectory)
             | e :: q ->
                 let index = filename ^ e in
                 Ocsigen_messages.debug

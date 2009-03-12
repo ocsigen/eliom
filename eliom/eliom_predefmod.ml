@@ -2044,7 +2044,9 @@ module Filesreg_ = struct
       try Ocsigen_LocalFiles.resolve (Eliom_sessions.get_request sp) filename
       with
         | Ocsigen_LocalFiles.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
-        | Ocsigen_LocalFiles.Failed_404 -> raise Eliom_common.Eliom_404
+        | Ocsigen_LocalFiles.Failed_404
+        | Ocsigen_LocalFiles.NotReadableDirectory ->
+            raise Eliom_common.Eliom_404
     in
     Ocsigen_LocalFiles.content ~request:(Eliom_sessions.get_request sp) ~file
     >>= fun r ->
