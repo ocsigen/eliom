@@ -82,7 +82,12 @@ let correct_user_local_file =
 let find_static_page ~request ~usermode ~dir ~err ~pathstring =
   let status_filter, filename, root = match dir with
     | Dir d ->
-        (false, Filename.concat d pathstring, Some d)
+        (false,
+         Filename.concat d pathstring,
+         (match usermode with
+            | None -> Some d
+            | Some { localfiles_root = r } -> Some r
+         ))
     | Regexp { source_regexp = source; dest = dest;
                http_status_filter = status_filter;
                root_checks = rc }
