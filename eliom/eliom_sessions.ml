@@ -90,7 +90,7 @@ let get_default_port ~sp =
 let get_default_sslport ~sp =
   sp.Eliom_common.sp_request.request_config.default_httpsport
 let get_server_port ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_server_port
+  Ocsigen_extensions.get_port sp.Eliom_common.sp_request
 let get_ssl ~sp =
   sp.Eliom_common.sp_request.request_info.ri_ssl
 let get_other_get_params ~sp =

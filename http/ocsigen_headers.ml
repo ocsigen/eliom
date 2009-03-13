@@ -155,10 +155,14 @@ let get_host_from_host_header =
           http_frame.Ocsigen_http_frame.header Http_headers.host
       in
       match Netstring_pcre.string_match host_re hostport 0 with
-        | Some m -> Some (Netstring_pcre.matched_group m 1 hostport)
+        | Some m -> 
+            (Some (Netstring_pcre.matched_group m 1 hostport),
+             try Some (int_of_string 
+                         (Netstring_pcre.matched_group m 2 hostport))
+             with Not_found -> None | Failure _ -> raise Ocsigen_Bad_Request)
         | None -> raise Ocsigen_Bad_Request
     with Not_found ->
-      None
+      (None, None)
 
 let get_user_agent http_frame =
   try (Http_header.get_headers_value

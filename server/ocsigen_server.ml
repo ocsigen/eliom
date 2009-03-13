@@ -201,14 +201,14 @@ let get_request_infos meth clientproto url http_frame filenames sockaddr port re
   Lwt.catch
     (fun () ->
 
-       let (_, headerhost, _, url, parsed_url, path, params, get_params) =
+       let (_, headerhost, headerport, url, parsed_url, path, params, get_params) =
          Ocsigen_lib.parse_url url
        in
 
-       let headerhost =
+       let headerhost, headerport =
          match headerhost with
          | None -> get_host_from_host_header http_frame
-         | _ -> headerhost
+         | _ -> headerhost, headerport
        in
 
     (* RFC:
@@ -292,6 +292,7 @@ let get_request_infos meth clientproto url http_frame filenames sockaddr port re
           ri_sub_path_string = string_of_url_path ~encode:true path;
           ri_get_params_string = params;
           ri_host = headerhost;
+          ri_port_from_host_field = headerport;
           ri_get_params = get_params;
           ri_initial_get_params = get_params;
           ri_post_params = lazy (force post_params >>= fun (a, b) ->

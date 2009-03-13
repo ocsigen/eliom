@@ -25,7 +25,8 @@
 val get_keepalive : Ocsigen_http_frame.Http_header.http_header -> bool
 val parse_cookies : string  -> string Ocsigen_http_frame.Cookievalues.t
 val parse_mime_type : string -> string option * string option
-val get_host_from_host_header : Ocsigen_http_frame.t -> string option
+val get_host_from_host_header : Ocsigen_http_frame.t -> 
+  string option * int option
 val get_user_agent : Ocsigen_http_frame.t -> string
 val get_cookie_string : Ocsigen_http_frame.t -> string option
 val get_if_modified_since : Ocsigen_http_frame.t -> float option

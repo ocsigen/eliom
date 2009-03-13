@@ -125,7 +125,11 @@ val get_default_port : sp:server_params -> int
  *)
 val get_default_sslport : sp:server_params -> int
 
-(** returns the port on which the request has been done. *)
+(** returns the port of the server. 
+    It is either the default port in the configuration file,
+    or the port in the Host header of the request,
+    or the port on which the request has been done.
+*)
 val get_server_port : sp:server_params -> int
 
 (** returns true if https is used, false if http. *)

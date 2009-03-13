@@ -459,7 +459,7 @@ let raw_request
     let headers =
       Http_headers.replace
         (Http_headers.name "host")
-        (host^":"^string_of_int port)
+        host
         (match headers with
            | None -> Http_headers.empty
            | Some h -> h)
@@ -686,16 +686,16 @@ let raw_request
 (*****************************************************************************)
 let get ?https ?port ~host ~uri () =
   Ocsigen_lib.get_inet_addr host >>= fun inet_addr ->
-    raw_request
-      ?https
-      ?port
-      ~http_method:Ocsigen_http_frame.Http_header.GET
-      ~content:None
-      ~host
-      ~inet_addr
-      ~uri
-      ()
-      ()
+  raw_request
+    ?https
+    ?port
+    ~http_method:Ocsigen_http_frame.Http_header.GET
+    ~content:None
+    ~host:(match port with None -> host | Some p -> host^":"^string_of_int p)
+    ~inet_addr
+    ~uri
+    ()
+    ()
 
 
 (*VVV missing: post *)
@@ -734,7 +734,7 @@ let basic_raw_request
   let headers =
     Http_headers.replace
       (Http_headers.name "host")
-      (host^":"^string_of_int port)
+      host
       (match headers with
          | None -> Http_headers.empty
          | Some h -> h)

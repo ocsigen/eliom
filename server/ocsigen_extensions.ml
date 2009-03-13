@@ -195,7 +195,8 @@ type request_info =
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
-     ri_host: string option; (** Host field of the request (if any) *)
+     ri_host: string option; (** Host field of the request (if any), without port *)
+     ri_port_from_host_field: int option; (** Port in the host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters *)
      ri_initial_get_params: (string * string) list Lazy.t;  (** Association list of get parameters, as sent by the browser (must not be modified by extensions) *)
      ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters *)
@@ -933,14 +934,18 @@ let get_hostname req =
 
 
 (*****************************************************************************)
-(* Default port is either the port the server is listening at or the default
-   port set in the configuration file. *)
+(* Default port is either
+   - the port the server is listening at
+   - or the port in the Host header
+   - or the default port set in the configuration file. *)
 let get_port req =
   if Ocsigen_config.get_usedefaulthostname ()
-  then match req.request_info.ri_ssl with
-      true -> req.request_config.default_httpsport
-    | false -> req.request_config.default_httpport
-  else req.request_info.ri_server_port
+  then (if req.request_info.ri_ssl
+        then req.request_config.default_httpsport
+        else req.request_config.default_httpport)
+  else match req.request_info.ri_port_from_host_field with
+    | None -> req.request_info.ri_server_port
+    | Some p -> p
 
 
 (*****************************************************************************)

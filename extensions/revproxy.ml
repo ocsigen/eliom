@@ -55,7 +55,8 @@ type redir =
     { regexp: Netstring_pcre.regexp;
       full_url: Ocsigen_lib.yesnomaybe;
       dest: string;
-      pipeline: bool}
+      pipeline: bool;
+      keephost: bool}
 
 
 (*****************************************************************************)
@@ -121,6 +122,21 @@ let gen dir = function
           We are sure that the request won't be taken in disorder.
           => We return.
        *)
+
+       let host = 
+         match
+           if dir.keephost 
+           then match ri.request_info.ri_host with 
+             | Some h -> Some h
+             | None -> None
+           else None 
+         with
+           | Some h -> h
+           | None -> 
+               if (not https && port=80) || (https && port=443)
+               then host
+               else host^":"^string_of_int port
+       in
 
        let do_request =
          let ri = ri.request_info in
@@ -210,46 +226,51 @@ let gen dir = function
 
 let parse_config = function
   | Element ("revproxy", atts, []) ->
-      let rec parse_attrs ((r, f, d, pipeline) as res) = function
+      let rec parse_attrs ((r, f, d, pipeline, h) as res) = function
         | [] -> res
         | ("regexp", regexp)::l when r = None -> (* deprecated *)
             parse_attrs
               (Some (Netstring_pcre.regexp ("^"^regexp^"$")), Ocsigen_lib.Maybe,
-               d, pipeline)
+               d, pipeline, h)
               l
         | ("fullurl", regexp)::l when r = None ->
             parse_attrs
               (Some (Netstring_pcre.regexp ("^"^regexp^"$")), Ocsigen_lib.Yes,
-               d, pipeline)
+               d, pipeline, h)
               l
         | ("suburl", regexp)::l when r = None ->
             parse_attrs
               (Some (Netstring_pcre.regexp ("^"^regexp^"$")), Ocsigen_lib.No,
-               d, pipeline)
+               d, pipeline, h)
               l
         | ("dest", dest)::l when d = None ->
             parse_attrs
-              (r, f, Some dest, pipeline)
+              (r, f, Some dest, pipeline, h)
+              l
+        | ("keephost", "keephost")::l ->
+            parse_attrs
+              (r, f, d, pipeline, true)
               l
         | ("nopipeline", "nopipeline")::l ->
             parse_attrs
-              (r, f, d, false)
+              (r, f, d, false, h)
               l
         | (a, _) :: _ ->
             badconfig "Wrong or duplicate attribute '%s' for <revproxy>" a
       in
       let dir =
-          match parse_attrs (None, Ocsigen_lib.Yes, None, true) atts with
-          | (None, _, _, _) ->
+          match parse_attrs (None, Ocsigen_lib.Yes, None, true, false) atts with
+          | (None, _, _, _, _) ->
               badconfig "Missing attribute 'regexp' for <revproxy>"
-          | (_, _, None, _) ->
+          | (_, _, None, _, _) ->
               badconfig "Missing attribute 'dest' for <revproxy>"
-          | (Some r, full, Some d, pipeline) ->
+          | (Some r, full, Some d, pipeline, h) ->
               {
                 regexp=r;
                 full_url=full;
                 dest=d;
                 pipeline=pipeline;
+                keephost=h;
              }
         in
         gen dir
