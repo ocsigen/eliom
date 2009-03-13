@@ -105,28 +105,28 @@ let gen dir = function
 
 let parse_config = function
   | Element ("redirect", atts, []) ->
-      let rec parse_attrs ((r, f, d, pipeline) as res) = function
+      let rec parse_attrs ((r, f, d, temp) as res) = function
         | [] -> res
         | ("regexp", regexp)::l when r = None -> (* deprecated *)
             parse_attrs
               (Some (Netstring_pcre.regexp ("^"^regexp^"$")), Ocsigen_lib.Maybe,
-               d, pipeline)
+               d, temp)
               l
         | ("fullurl", regexp)::l when r = None ->
             parse_attrs
               (Some (Netstring_pcre.regexp ("^"^regexp^"$")), Ocsigen_lib.Yes,
-               d, pipeline)
+               d, temp)
               l
         | ("suburl", regexp)::l when r = None ->
             parse_attrs
               (Some (Netstring_pcre.regexp ("^"^regexp^"$")), Ocsigen_lib.No,
-               d, pipeline)
+               d, temp)
               l
         | ("dest", dest)::l when d = None ->
             parse_attrs
-              (r, f, Some dest, pipeline)
+              (r, f, Some dest, temp)
               l
-        | ("nopipeline", "nopipeline")::l ->
+        | ("temporary", "temporary")::l ->
             parse_attrs
               (r, f, d, false)
               l
@@ -140,8 +140,8 @@ let parse_config = function
           | (_, _, None, _) -> 
               raise (Error_in_config_file
                        "Missing attribute dest for <redirect>>")
-          | (Some r, full, Some d, pipeline) ->
-              Regexp (r, d, full, pipeline)
+          | (Some r, full, Some d, temp) ->
+              Regexp (r, d, full, temp)
         in
         gen dir
   | Element ("redirect" as s, _, _) -> badconfig "Bad syntax for tag %s" s
