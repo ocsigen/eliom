@@ -29,10 +29,10 @@ OBJSOPT = $(FILES:.ml=.cmx) ocsidbm.opt $(CMXS) $(OBJDBM:.cma=.cmxa)
 byte: ocsipersist.mli $(OBJS)
 
 opt: ocsipersist.mli $(OBJSOPT)
-	[ -f ../ocsipersist.cmx ] || \
-	cp ocsipersist.cmx ..
-	[ -f ../ocsipersist.o ] || \
-	cp ocsipersist.o ..
+#	[ -f ../ocsipersist.cmx ] || \
+#	cp ocsipersist.cmx ..
+#	[ -f ../ocsipersist.o ] || \
+#	cp ocsipersist.o ..
 
 
 .SUFFIXES:
