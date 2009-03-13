@@ -1,4 +1,6 @@
 type extension = string
+type file = string
+type filename = string
 
 
 (** Charset *)
@@ -11,29 +13,26 @@ val no_charset: charset
 (** Association between extensions and charset, with a default value. *)
 type charset_assoc
 
-val empty_charset_assoc: ?default:charset -> unit -> charset_assoc
+(** All files are mapped to [no_charset] *)
+val empty_charset_assoc : ?default:charset -> unit -> charset_assoc
 
-val default_charset: charset_assoc:charset_assoc -> charset
+val find_charset : string -> charset_assoc -> charset
 
-
-val update_charset_assoc:
-  charset_assoc:charset_assoc -> extension:extension -> charset:charset ->
-  charset_assoc
-
-val set_default_charset:
-  charset:charset -> charset_assoc:charset_assoc -> charset_assoc
+(** Functions related to the default charset in the association *)
+val default_charset : charset_assoc -> charset
+val set_default_charset : charset_assoc -> charset -> charset_assoc
 
 
-(** Find the charset of a file with extension [extension] *)
-val find_charset: charset_assoc:charset_assoc -> extension:extension -> charset
+(** Updates the mapping between extensions from a file to its charset.
+    The update can be specified using the extension of the file,
+    the name of the file, or the entire file (with its path)
+*)
+val update_charset_ext : charset_assoc -> extension -> charset -> charset_assoc
+val update_charset_file : charset_assoc -> filename -> charset -> charset_assoc
+val update_charset_regexp :
+  charset_assoc -> Netstring_pcre.regexp -> charset -> charset_assoc
 
-(** Find the charset of a file *)
-val find_charset_file: charset_assoc:charset_assoc -> filename:string -> charset
 
-
-
-
-(** Content-type *)
 
 (** MIME types; the default value is ["application/octet-stream"] *)
 type mime_type = string
@@ -43,22 +42,30 @@ val default_mime_type : mime_type
 (** association between extensions and mime types, with default value *)
 type mime_assoc
 
-val default_mime_assoc: unit -> mime_assoc
-
-val parse_mime_types: filename:string -> mime_assoc
-
-
-val update_mime_assoc:
-  mime_assoc:mime_assoc -> extension:string -> mime:mime_type -> mime_assoc
-
-val set_default_mime:
-  mime_type:mime_type -> mime_assoc:mime_assoc -> mime_assoc
+(** Default values, obtained by reading the file specified by
+    [Ocsigen_config.get_mimefile] *)
+val default_mime_assoc : unit -> mime_assoc
 
 
-(** Search for the mime-type of a file. Same syntax as for charsets *)
-val find_mime_type:
-  mime_assoc:mime_assoc -> extension:extension -> mime_type
+(** Parsing of a file containing mime associations, such as /etc/mime-types *)
+val parse_mime_types : filename:string -> mime_assoc
 
-val find_mime_type_file:
-  mime_assoc:mime_assoc -> filename:string -> mime_type
+
+(* The other functions are as for charsets *)
+
+val find_mime : file -> mime_assoc -> string
+
+val default_mime : mime_assoc -> mime_type
+val set_default_mime : mime_assoc -> mime_type -> mime_assoc
+
+val update_mime_ext : mime_assoc -> extension -> mime_type -> mime_assoc
+val update_mime_file : mime_assoc -> filename -> mime_type -> mime_assoc
+val update_mime_regexp :
+  mime_assoc -> Netstring_pcre.regexp -> mime_type -> mime_assoc
+
+
+
+
+
+
 

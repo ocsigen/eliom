@@ -51,11 +51,11 @@ let gather_do_not_serve_files tag =
         do_not_serve_extensions = extensions
       }
 
-    | Element ("regexp", ["value", f], []) :: q ->
+    | Element ("regexp", ["regexp", f], []) :: q ->
         aux (f :: regexps, files, extensions) q
-    | Element ("file", ["value", f], []) :: q ->
+    | Element ("file", ["file", f], []) :: q ->
         aux (regexps, f :: files, extensions) q
-    | Element ("extension", ["value", f], []) :: q ->
+    | Element ("extension", ["ext", f], []) :: q ->
         aux (regexps, files, f :: extensions) q
 
     | _ :: q -> bad_config ("invalid options in tag " ^ tag)
@@ -107,17 +107,22 @@ let update_config usermode = function
   | Element ("charset", attrs, exts) ->
       let rec aux charset_assoc = function
         | [] -> charset_assoc
-        | Element ("extension", ["ext", extension; "value", charset], []) :: q->
-            aux (update_charset_assoc ~charset_assoc ~extension ~charset) q
-        | _ :: q -> bad_config "subtags must be of the form \
-                      <extension ext=\"...\" value=\"...\" /> \
-                      in option charset"
+        | Element ("extension", ["ext", extension; "value", charset], []) :: q ->
+            aux (update_charset_ext charset_assoc extension charset) q
+        | Element ("file", ["file", file; "value", charset], []) :: q ->
+            aux (update_charset_file charset_assoc file charset) q
+        | Element ("regexp", ["regexp", regexp; "value", charset], []) :: q ->
+            (try
+               let r = Netstring_pcre.regexp regexp in
+               aux (update_charset_regexp charset_assoc r charset) q
+             with _ -> bad_config "invalid regexp '%s' in <extension regexp ...>")
+        | _ :: q -> bad_config "invalid subtag in option charset"
       in
       gen (fun config ->
              let config = match attrs with
                | ["default", s] ->
                    { config with charset_assoc =
-                       set_default_charset s config.charset_assoc }
+                       set_default_charset config.charset_assoc s }
                | [] -> config
                | _ -> bad_config "Only attribute \"default\" is permitted \
                            for option \"charset\""
@@ -128,17 +133,22 @@ let update_config usermode = function
   | Element ("contenttype", attrs, exts) ->
       let rec aux mime_assoc = function
         | [] -> mime_assoc
-        | Element ("extension", ["ext", extension; "value", mime], []) :: q->
-            aux (update_mime_assoc ~mime_assoc ~extension ~mime) q
-        | _ :: q -> bad_config "subtags must be of the form \
-                      <extension ext=\"...\" value=\"...\" /> \
-                      in option mime"
+        | Element ("extension", ["ext", extension; "value", mime], []) :: q ->
+            aux (update_mime_ext mime_assoc extension mime) q
+        | Element ("file", ["file", file; "value", mime], []) :: q ->
+            aux (update_mime_file mime_assoc file mime) q
+        | Element ("regexp", ["regexp", regexp; "value", mime], []) :: q ->
+            (try
+               let r = Netstring_pcre.regexp regexp in
+               aux (update_mime_regexp mime_assoc r mime) q
+             with _ -> bad_config "invalid regexp '%s' in <extension regexp ...>")
+        | _ :: q -> bad_config "invalid subtag in option mime"
       in
       gen (fun config ->
              let config = match attrs with
                | ["default", s] ->
                    { config with mime_assoc =
-                       set_default_mime s config.mime_assoc }
+                       set_default_mime config.mime_assoc s }
                | [] -> config
                | _ -> bad_config "Only attribute \"default\" is permitted \
                            for option \"contenttype\""

@@ -80,8 +80,6 @@ let check_symlinks ~no_check_for ~filename policy =
 
 
 
-let empty_regexp = Netstring_pcre.regexp "$^"
-
 let can_send filename request =
   Ocsigen_messages.debug
     (fun () -> Printf.sprintf "--LocalFiles: checking if file %s can be sent"

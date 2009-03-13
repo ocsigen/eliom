@@ -280,11 +280,9 @@ module File_content =
             {default_result with
                res_content_length = Some st.Unix.LargeFile.st_size;
                res_content_type =
-                Some (Ocsigen_charset_mime.find_mime_type_file
-                        ~mime_assoc ~filename:c);
+                Some (Ocsigen_charset_mime.find_mime c mime_assoc);
                res_charset =
-                Some (Ocsigen_charset_mime.find_charset_file
-                        ~charset_assoc ~filename:c);
+                Some (Ocsigen_charset_mime.find_charset c charset_assoc);
                res_lastmodified = Some st.Unix.LargeFile.st_mtime;
                res_etag = etag;
                res_stream =

@@ -75,9 +75,15 @@ val getnameinfo : Unix.inet_addr -> int -> string Lwt.t
     with [ before and ] after IPv6 addresses. *)
 
 val basename : string -> string
+
 (** Extension of a file. Raises [Not_found] if the argument has no
   extension *)
 val extension : string -> string
+
+(** Extension of a file. Supposes that the argument does not
+    contain '/' (but is faster than extension) *)
+val extension_no_directory : string -> string
+
 val fixup_url_string : string -> string
 val parse_url : string ->
   bool option * string option * int option *

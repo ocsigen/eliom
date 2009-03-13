@@ -621,6 +621,13 @@ let basename f =
     "none"
 
 
+let extension_no_directory filename =
+  try
+    let pos = String.rindex filename '.' in
+    String.sub filename (pos+1) ((String.length filename) - pos - 1)
+  with Not_found ->
+    raise Not_found
+
 let extension filename =
   try
     let pos = String.rindex filename '.'

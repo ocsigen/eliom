@@ -2058,10 +2058,8 @@ module Filesreg_ = struct
              res_code = code_of_code_option code;
              res_charset = (match charset with
                               | None ->
-                                  Some (Ocsigen_charset_mime.find_charset_file
-                                          ~filename ~charset_assoc:
-                                          (get_config_info sp).charset_assoc)
-
+                                  Some (Ocsigen_charset_mime.find_charset
+                                      filename(get_config_info sp).charset_assoc)
                               | _ -> charset);
          })
 
