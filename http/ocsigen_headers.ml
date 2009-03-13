@@ -147,7 +147,9 @@ let get_keepalive http_header =
 (* RFC 2616, sect. 14.23 *)
 (* XXX Not so simple: the host name may contain a colon! (RFC 3986) *)
 let get_host_from_host_header =
-  let host_re = Netstring_pcre.regexp "^(\\[[0-9A-Fa-f:.]+\\]|[^:]+)(:[0-9]+)?$" in
+  let host_re = 
+    Netstring_pcre.regexp "^(\\[[0-9A-Fa-f:.]+\\]|[^:]+)(:([0-9]+))?$" 
+  in
   fun http_frame ->
     try
       let hostport =
@@ -158,7 +160,7 @@ let get_host_from_host_header =
         | Some m -> 
             (Some (Netstring_pcre.matched_group m 1 hostport),
              try Some (int_of_string 
-                         (Netstring_pcre.matched_group m 2 hostport))
+                         (Netstring_pcre.matched_group m 3 hostport))
              with Not_found -> None | Failure _ -> raise Ocsigen_Bad_Request)
         | None -> raise Ocsigen_Bad_Request
     with Not_found ->
