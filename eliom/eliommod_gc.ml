@@ -233,7 +233,7 @@ let persistent_session_gc () =
                      (*WAS: remove_from_all_persistent_tables k *)
                | _ -> return ())
              )
-             Eliommod_persess.persistent_cookies_table))
+             (Lazy.force Eliommod_persess.persistent_cookies_table)))
           >>=
         f
       in ignore (f ())

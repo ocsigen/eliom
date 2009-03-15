@@ -61,7 +61,7 @@ let iter_persistent_sessions f =
       f (k, v) >>=
       Lwt_unix.yield
     )
-    Eliommod_persess.persistent_cookies_table
+    (Lazy.force Eliommod_persess.persistent_cookies_table)
 
 
     (** Iterator on service sessions *)
@@ -97,7 +97,7 @@ let fold_persistent_sessions f beg =
         Lwt_unix.yield () >>= fun () ->
           return res
     )
-    Eliommod_persess.persistent_cookies_table
+    (Lazy.force Eliommod_persess.persistent_cookies_table)
     beg
 
 (*****************************************************************************)
@@ -118,6 +118,6 @@ let number_of_table_elements () =
   List.map (fun f -> f ()) !Eliommod_datasess.counttableelements
 
 let number_of_persistent_sessions () =
-  Ocsipersist.length Eliommod_persess.persistent_cookies_table
+  Ocsipersist.length (Lazy.force Eliommod_persess.persistent_cookies_table)
 
 

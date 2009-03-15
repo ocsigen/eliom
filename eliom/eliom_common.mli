@@ -296,7 +296,7 @@ val create_persistent_table : string -> 'a Ocsipersist.table
 val persistent_cookies_table :
   (string * float option * timeout *
    Eliommod_sessiongroups.perssessgrp option)
-  Ocsipersist.table
+  Ocsipersist.table Lazy.t
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 val absolute_change_sitedata : sitedata -> unit
 val get_current_sitedata : unit -> sitedata

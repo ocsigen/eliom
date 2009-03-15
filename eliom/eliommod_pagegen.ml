@@ -142,7 +142,8 @@ let execute
                       catch
                         (fun () ->
                           Ocsipersist.replace_if_exists
-                            Eliommod_persess.persistent_cookies_table
+                            (Lazy.force 
+                               Eliommod_persess.persistent_cookies_table)
                             newc.Eliom_common.pc_value
                             (name,
                              newexp,
@@ -154,7 +155,7 @@ let execute
                           | e -> fail e)
                   | _ ->
                       Ocsipersist.add
-                        Eliommod_persess.persistent_cookies_table
+                        (Lazy.force Eliommod_persess.persistent_cookies_table)
                         newc.Eliom_common.pc_value
                         (name,
                          newexp,

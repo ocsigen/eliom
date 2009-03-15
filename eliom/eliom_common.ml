@@ -657,8 +657,8 @@ let create_persistent_table name =
 let persistent_cookies_table :
     (string * float option * timeout *
        Eliommod_sessiongroups.perssessgrp option)
-    Ocsipersist.table =
-  create_persistent_table eliom_persistent_cookie_table
+    Ocsipersist.table Lazy.t =
+  lazy (create_persistent_table eliom_persistent_cookie_table)
 (* Another tables, containing the session info for each cookie *)
 (* the table contains:
    - the expiration date (by timeout), changed at each access to the table
@@ -666,6 +666,10 @@ let persistent_cookies_table :
    - the timeout for the user (float option option) None -> see global config
      Some None -> no timeout
  *)
+(* It is lazy, because we must delay the creation of the table until
+   the initialization of eliom in case we use static linking with 
+   sqlite backend ... *)
+
 
 (** removes the entry from all opened tables *)
 let remove_from_all_persistent_tables key =

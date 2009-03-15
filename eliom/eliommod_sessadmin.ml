@@ -97,7 +97,7 @@ let close_all_persistent_sessions2 ?(close_group = false) fullsessname =
       Lwt_unix.yield
       else return ()
     )
-    Eliommod_persess.persistent_cookies_table
+    (Lazy.force Eliommod_persess.persistent_cookies_table)
 
 (** Close all persistent sessions for one session name.
     If the optional parameter [?session_name] (session name) is not present,
@@ -203,12 +203,12 @@ let update_pers_exp fullsessname old_glob_timeout new_glob_timeout =
               Eliommod_persess.close_persistent_session2 sessgrp k
           | _ ->
               Ocsipersist.add
-                Eliommod_persess.persistent_cookies_table
+                (Lazy.force Eliommod_persess.persistent_cookies_table)
                 k
                 (fullsessname2, newexp,
                  Eliom_common.TGlobal, sessgrp) >>= Lwt_unix.yield
         else return ()
       )
-      Eliommod_persess.persistent_cookies_table
+      (Lazy.force Eliommod_persess.persistent_cookies_table)
 
 

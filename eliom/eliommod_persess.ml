@@ -60,7 +60,8 @@ let number_of_persistent_table_elements () =
 let close_persistent_session2 fullsessgrp cookie =
   catch
     (fun () ->
-      Ocsipersist.remove persistent_cookies_table cookie >>= fun () ->
+      Ocsipersist.remove 
+        (Lazy.force persistent_cookies_table) cookie >>= fun () ->
       Eliommod_sessiongroups.Pers.remove cookie fullsessgrp >>= fun () ->
       Eliom_common.remove_from_all_persistent_tables cookie
     )
@@ -113,7 +114,7 @@ let rec new_persistent_cookie sitedata fullsessgrp fullsessname =
           begin *)
             let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
             Ocsipersist.add
-              persistent_cookies_table c
+              (Lazy.force persistent_cookies_table) c
               (fullsessname,
                Some 0. (* exp on server - We'll change it later *),
                Eliom_common.TGlobal (* timeout - see global config *),

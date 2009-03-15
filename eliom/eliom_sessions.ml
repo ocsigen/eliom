@@ -816,7 +816,7 @@ module Session_admin = struct
     | Some t -> TSome t
     in
     Ocsipersist.add
-      Eliom_common.persistent_cookies_table
+      (Lazy.force Eliom_common.persistent_cookies_table)
       cookie
       (fullsessname, exp, ti, sessgrp)
 
@@ -839,7 +839,7 @@ module Session_admin = struct
   let unset_persistent_data_session_timeout
       ~session:(cookie, (fullsessname, exp, _, sessgrp)) =
     Ocsipersist.add
-      Eliom_common.persistent_cookies_table
+      (Lazy.force Eliom_common.persistent_cookies_table)
       cookie
       (fullsessname, exp, TGlobal, sessgrp)
 
