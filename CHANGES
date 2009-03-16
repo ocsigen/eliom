@@ -30,13 +30,27 @@
     configuration (mimetypes, charsets, followsymnlink, directory
     listing, ...)
   * Server: new module {{{LocalFiles}}} factorising the common parts
-    for sending static files (with Eliom and staticmod for example).
+    for sending static files (with Eliom and staticmod for example),
+    while checking that the files can safely be sent.
   * Now possible to use XHTML pretty printers without Ocsigen, using
     the {{{xhtmlpretty.cma}}} library
   * Add {{{Ocsigen_lib.register_exn_printer}}}, better error messages
   * Now possible to use the same configuration file in native code and
     in bytecode (.cmo/.cma filenames are internally translated to
     .cmxs)
+  * Signature of Ocsigen_extensions.register_extension is now more
+    complete and more lightweight
+  * Userconf: the options set in the local .userconf file are kept
+    in the enclosing {{{<site>}}} tag
+  * Server: possibility to ignore or to supply an alternative
+    command-line
+  * Ocsigen_http_client: timeout when the distant server does not
+    exists
+  * OCaml versions < 3.10 are not supported anymore
+  * Extensions are now much more strict w.r.t. the syntax of
+    configuration files
+  * Staticmod: accessing a directory for which indexing is disallowed
+    returns an error 404 (instead of a 403 previously)
 
 = 1.1.0 =
 
