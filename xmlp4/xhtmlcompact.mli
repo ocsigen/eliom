@@ -23,19 +23,21 @@
    if you want to print with a syntax closer to html (not xml).
  *)
 val xhtml_print :
-    ?version:[< XHTML.M.doctypes > `XHTML_01_01 ] ->
-      ?width:int -> ?encode:(string -> string) ->
-        ?html_compat:bool ->
-          [ `Html ] XHTML.M.elt -> string
+  ?header:string ->
+  ?version:[< XHTML.M.doctypes > `XHTML_01_01 ] ->
+  ?encode:(string -> string) ->
+  ?html_compat:bool ->
+  [ `Html ] XHTML.M.elt -> string
 
 (** Ocsigen's compact printer for xhtml portions.
    [html_compat] is an option to set
    if you want to print with a syntax closer to html (not xml). *)
 val xhtml_list_print :
-    ?version:[< XHTML.M.doctypes > `XHTML_01_01 ] ->
-      ?width:int -> ?encode:(string -> string) ->
-        ?html_compat:bool ->
-          'a XHTML.M.elt list -> string
+  ?header:string ->
+  ?version:[< XHTML.M.doctypes > `XHTML_01_01 ] ->
+  ?encode:(string -> string) ->
+  ?html_compat:bool ->
+  'a XHTML.M.elt list -> string
 
 
 (**/**)

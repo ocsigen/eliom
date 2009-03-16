@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Format
 open XML
+open Buffer
 
 (* The following tags are written <br />, etc.
    The other empty tags are written <p></p> for html compatibility.
@@ -29,53 +29,63 @@ let emptytags = ["hr"; "br"; "img"; "meta"; "link"; "input";
                  "col"; "area"; "param"; "base"; "basefont";
                  "isindex"; "frame"]
 
+(* as per XHTML 1.0, appendix C.8; name attr deprecated in 1.1 *)
+let need_name = ["a"; "applet"; "form"; "frame"; "iframe"; "img"; "map"]
 
-let xh_string = str_formatter
 
-let id x = x
+let mem_func l =
+  let h = Hashtbl.create 17 in
+    List.iter (fun x -> Hashtbl.add h x true) l;
+    fun x -> Hashtbl.mem h x
+
+let is_emptytag = mem_func emptytags
+let needs_id2name = mem_func need_name
+
+
 
 let x_print, xh_print =
 
-  let aux ~width ~encode ?(html_compat = false) doctype arbre =
+  let aux b ~encode ?(html_compat = false) doctype arbre =
     let endemptytag = if html_compat then ">" else " />" in
-    let rec xh_print_attrs encode attrs = match attrs with
-      [] ->  ();
-    | attr::queue ->
-        pp_print_string xh_string (" "^(XML.attrib_to_string encode attr));
-        xh_print_attrs encode queue
-
-    and xh_print_text texte =
-      pp_print_string xh_string texte
+    let rec xh_print_attrs doid2name encode attrs = match attrs with
+      | [] ->  ();
+      | attr::queue ->
+          add_char b ' ';
+          add_string b (XML.attrib_to_string encode attr);
+          if doid2name && XML.attrib_name attr = "id" then (
+            add_string b " id=";
+            add_string b (XML.attrib_value_to_string encode attr)
+          );
+        xh_print_attrs doid2name encode queue
 
     and xh_print_closedtag encode tag attrs =
-      if List.mem tag emptytags
-      then begin
-        pp_open_tbox xh_string ();
-        pp_print_string xh_string ("<"^tag);
-        xh_print_attrs encode attrs;
-        pp_print_string xh_string endemptytag;
-        pp_close_tbox xh_string ();
-      end
-      else begin
-        pp_open_tbox xh_string ();
-        pp_print_string xh_string ("<"^tag);
-        xh_print_attrs encode attrs;
-        pp_print_string xh_string "></";
-        pp_print_string xh_string tag;
-        pp_print_string xh_string ">";
-        pp_close_tbox xh_string ();
-      end
+      if html_compat && not (is_emptytag tag) then (
+        add_char b '<';
+        add_string b tag;
+        xh_print_attrs (html_compat && needs_id2name tag) encode attrs;
+        add_string b "></";
+        add_string b tag;
+        add_string b ">"
+      ) else (
+        add_char b '<';
+        add_string b tag;
+        xh_print_attrs (html_compat && needs_id2name tag) encode attrs;
+        add_string b endemptytag;
+      )
 
     and xh_print_tag encode tag attrs taglist =
       if taglist = []
       then xh_print_closedtag encode tag attrs
-      else begin
-        pp_print_string xh_string ("<"^tag);
-        xh_print_attrs encode attrs;
-        pp_print_string xh_string ">";
+      else (
+        add_char b '<';
+        add_string b tag;
+        xh_print_attrs (html_compat && needs_id2name tag) encode attrs;
+        add_char b '>';
         xh_print_taglist taglist;
-        pp_print_string xh_string ("</"^tag^">")
-      end
+        add_string b "</";
+        add_string b tag;
+        add_char b '>';
+      )
 
     and print_nodes name xh_attrs xh_taglist queue =
       xh_print_tag encode name xh_attrs xh_taglist;
@@ -84,23 +94,26 @@ let x_print, xh_print =
     and xh_print_taglist taglist =
       match taglist with
 
-      | [] -> pp_open_tbox xh_string ();
-          pp_close_tbox xh_string ();
+      | [] -> ()
 
       | (Comment texte)::queue ->
-          xh_print_text ("<!--"^(encode texte)^"-->");
+          add_string b "<!--";
+          add_string b (encode texte);
+          add_string b "-->";
           xh_print_taglist queue;
 
       | (Entity e)::queue ->
-          xh_print_text ("&"^e^";"); (* no encoding *)
+          add_char b '&';
+          add_string b e; (* no encoding *)
+          add_char b ';';
           xh_print_taglist queue;
 
       | (PCDATA texte)::queue ->
-          xh_print_text (encode texte);
+          add_string b (encode texte);
           xh_print_taglist queue;
 
       | (EncodedPCDATA texte)::queue ->
-          xh_print_text texte;
+          add_string b texte;
           xh_print_taglist queue;
 
           (* Nodes and Leafs *)
@@ -115,7 +128,7 @@ let x_print, xh_print =
 
             (* Whitespaces *)
       | (Whitespace(texte))::queue ->
-          xh_print_text (encode texte);
+          add_string b (encode texte);
           xh_print_taglist queue
 
       | Empty::queue ->
@@ -124,47 +137,25 @@ let x_print, xh_print =
     in
     xh_print_taglist [arbre]
   in
-  ((fun ?(width = 132) ?(encode = encode_unsafe)
-      ?html_compat doctype foret ->
+  ((fun ?header ?(encode = encode_unsafe) ?html_compat doctype foret ->
+      let b = Buffer.create 16384 in
+        (match header with Some s -> add_string b s | None -> ());
+        List.iter (aux b ?encode ?html_compat doctype) foret;
+        Buffer.contents b),
 
-        pp_set_margin str_formatter width;
-
-        pp_open_tbox xh_string ();
-
-        List.iter (aux ?width ?encode ?html_compat doctype) foret;
-
-        pp_force_newline xh_string ();
-        pp_close_tbox xh_string ();
-
-        flush_str_formatter ()),
-
-   (fun ?(width = 132) ?(encode = encode_unsafe)
-       ?html_compat doctype arbre ->
-
-         pp_set_margin str_formatter width;
-         pp_open_tbox xh_string ();
-(*  pp_print_string xh_string Xhtmlpretty.xh_topxml; Does not work with IE ...
-   pp_force_newline xh_string (); *)
-         pp_print_string xh_string doctype;
-         pp_force_newline xh_string ();
-
-         pp_print_string xh_string Xhtmlpretty.ocsigenadv;
-         pp_force_newline xh_string ();
-
-         aux ?width ?encode ?html_compat doctype arbre;
-
-         pp_force_newline xh_string ();
-         pp_close_tbox xh_string ();
-
-         flush_str_formatter ()))
+   (fun ?header ?(encode = encode_unsafe) ?html_compat doctype arbre ->
+      let b = Buffer.create 16384 in
+         (match header with Some s -> add_string b s | None -> ());
+         add_string b doctype;
+         aux b ?encode ?html_compat doctype arbre;
+         Buffer.contents b))
 
 
-let xhtml_print ?(version=`XHTML_01_01) ?width ?encode ?html_compat arbre =
-  xh_print ?width ?encode ?html_compat
+let xhtml_print ?(header = "") ?(version=`XHTML_01_01) ?encode ?html_compat arbre =
+  xh_print ~header ?encode ?html_compat
     (XHTML.M.doctype version) (XHTML.M.toelt arbre)
 
-let xhtml_list_print ?(version=`XHTML_01_01)
-    ?width ?encode ?html_compat foret =
-  x_print ?width ?encode ?html_compat
+let xhtml_list_print ?(header = "") ?(version=`XHTML_01_01)
+    ?encode ?html_compat foret =
+  x_print ~header ?encode ?html_compat
     (XHTML.M.doctype version) (XHTML.M.toeltl foret)
-

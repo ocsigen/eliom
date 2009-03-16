@@ -35,16 +35,19 @@ let string_attrib name value = AStr (name, value)
 let space_sep_attrib name values = AStrL (Space, name, values)
 let comma_sep_attrib name values = AStrL (Comma, name, values)
 
-let attrib_to_string encode = function
-  | AInt (name, i) -> name ^ "=\"" ^ string_of_int i ^ "\""
-  | AStr (name, s) -> name ^ "=\"" ^ encode s ^ "\""
-  | AStrL (sep, name, slist) ->
-      name ^ "=\"" ^ encode (String.concat (separator_to_string sep) slist) ^ "\""
+let attrib_value_to_string encode = function
+  | AInt (_, i) -> Printf.sprintf "\"%d\"" i
+  | AStr (_, s) -> Printf.sprintf "\"%s\"" (encode s)
+  | AStrL (sep, _, slist) ->
+      Printf.sprintf "\"%s\""
+        (encode (String.concat (separator_to_string sep) slist))
 
-let rec get_int_attrib name = function
-  | [] -> raise Not_found
-  | AInt (name', value) :: tail when name' = name -> value
-  | _ :: tail -> get_int_attrib name tail
+let attrib_name = function
+  | AInt (n, _) | AStr (n, _) | AStrL (_, n, _) -> n
+
+
+let attrib_to_string encode a =
+  Printf.sprintf "%s=%s" (attrib_name a) (attrib_value_to_string encode a)
 
 
 
