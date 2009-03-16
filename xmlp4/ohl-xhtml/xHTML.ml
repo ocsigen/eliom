@@ -1068,8 +1068,6 @@ module type T =
 (** Set the rowspan attribute for the element. *)
 
     val rewrite_hrefs : (string -> string) -> 'a elt -> 'a elt
-    val all_hrefs : 'a elt -> uri list
-    val all_anchors : 'a elt -> id list
 
 (*
     val amap : (string -> 'a attribs -> 'a attribs) -> 'b elt -> 'b elt
@@ -1879,9 +1877,6 @@ module Version =
     let rewrite_hrefs f =
       XML.amap (fun _ a -> XML.map_string_attrib ((=) "href") f a)
 
-    let all_hrefs = XML.all_string_attribs "href"
-    let all_anchors = XML.all_string_attribs ~is_elt:((=) "a") "id"
-
     let amap = XML.amap
     let amap1 = XML.amap1
 
@@ -1908,8 +1903,6 @@ module M_01_00 : T_01_00 =
     let output = M.output xhtml_version
     let pretty_print = M.pretty_print xhtml_version
     let validator_icon () = M.validator_icon xhtml_version
-    let all_anchors elt =
-      M.all_anchors elt @ XML.all_string_attribs ~is_elt:((=) "a") "name" elt
   end
 
 module M_01_01 : T_01_01 =

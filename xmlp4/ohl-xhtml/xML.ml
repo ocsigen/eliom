@@ -46,15 +46,7 @@ let rec get_int_attrib name = function
   | AInt (name', value) :: tail when name' = name -> value
   | _ :: tail -> get_int_attrib name tail
 
-let rec get_string_attrib name = function
-  | [] -> raise Not_found
-  | AStr (name', value) :: tail when name' = name -> value
-  | _ :: tail -> get_string_attrib name tail
 
-let rec get_attrib_list name = function
-  | [] -> raise Not_found
-  | AStrL (_, name', value) :: tail when name' = name -> value
-  | _ :: tail -> get_attrib_list name tail
 
 type ename = string
 type elt =
@@ -176,9 +168,6 @@ let all_attribs access ?(is_elt = fun ename -> true) aname elt =
     (fun ename attribs elts -> access' ename attribs @ List.flatten elts)
     elt
 
-let all_int_attribs = all_attribs get_int_attrib
-let all_string_attribs = all_attribs get_string_attrib
-let all_attribs_list = all_attribs get_attrib_list
 
 let all_entities elt =
   fold (fun () -> []) (fun c -> []) (fun p -> []) (fun e -> [e])

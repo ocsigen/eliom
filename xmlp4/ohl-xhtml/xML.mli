@@ -27,10 +27,6 @@ val comma_sep_attrib : aname -> string list -> attrib
 
 val attrib_to_string : (string -> string) -> attrib -> string
 
-val get_int_attrib : aname -> attrib list -> int
-val get_string_attrib : aname -> attrib list -> string
-val get_attrib_list : aname -> attrib list -> string list
-
 type ename = string
 
 (* For Ocsigen I need to unabstract elt: *)
@@ -133,9 +129,6 @@ val foldx : (unit -> 'a) -> (string -> 'a) -> (string -> 'a) -> (string -> 'a) -
       (ename -> attrib list -> 'state -> 'state) -> 'state -> elt -> 'a
 *)
 
-val all_int_attribs : ?is_elt:(string -> bool) -> string -> elt -> int list
-val all_string_attribs : ?is_elt:(string -> bool) -> string -> elt -> string list
-val all_attribs_list : ?is_elt:(string -> bool) -> string -> elt -> string list list
 
 val all_entities : elt -> string list
 
