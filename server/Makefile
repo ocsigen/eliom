@@ -75,7 +75,7 @@ CMOS = ../baselib/ocsigen_lib.cmo \
        ../baselib/ocsigen_commandline.cmo \
 	../baselib/ocsigen_messages.cmo \
        ../baselib/dynlink_wrapper.cmo ../baselib/ocsigen_loader.cmo \
-       ../http/ocsigen_stream.cmo ../http/multipart.cmo \
+       ../baselib/ocsigen_stream.cmo ../http/multipart.cmo \
        ../http/http_headers.cmo \
        ../http/ocsigen_http_frame.cmo ../http/ocsigen_headers.cmo \
        ../http/ocsigen_range.cmo \

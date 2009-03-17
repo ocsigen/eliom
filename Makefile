@@ -78,7 +78,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)http/ocsigen_http_com.mli				\
 	$(DOCPREF)http/ocsigen_charset_mime.mli				\
 	$(DOCPREF)http/ocsigen_senders.mli				\
-	$(DOCPREF)http/ocsigen_stream.mli				\
+	$(DOCPREF)baselib/ocsigen_stream.mli				\
 	$(DOCPREF)eliom/eliom_tools_common.mli			 	\
 	$(DOCPREF)eliom/eliom_tools.mli					\
 	$(DOCPREF)extensions/ocsipersist.mli				\
@@ -94,7 +94,7 @@ METAS = META META.ocsigen_ext META.eliom_examples META.ocsigen_ext.global META.e
 
 
 INSTALL = install
-TARGETSBYTE = baselib.byte http.byte xmlp4.byte server.byte extensions.byte eliom.byte examples.byte
+TARGETSBYTE = baselib.byte xmlp4.byte http.byte server.byte extensions.byte eliom.byte examples.byte
 
 PLUGINSCMATOINSTALL = $(SQLITECMATOINSTALL) $(DBMCMATOINSTALL) \
 	eliom/eliom.cma $(DEFLATEMODCMATOINSTALL) $(DUCECMA)
@@ -131,7 +131,7 @@ CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	http/ocsigen_http_com.cmi http/http_headers.cmi			\
 	baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi		\
 	http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi		\
-	http/ocsigen_stream.cmi baselib/ocsigen_messages.cmi		\
+	baselib/ocsigen_stream.cmi baselib/ocsigen_messages.cmi		\
 	extensions/ocsigen_LocalFiles.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo	\
 	examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
