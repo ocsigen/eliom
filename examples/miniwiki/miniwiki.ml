@@ -175,11 +175,8 @@ let parse_lines sp lines =
     else (* External link *)
       let url = scheme^":"^page in
       let t = if text = "" then url else text in
-      a (new_external_service
-           ~prefix:url
-           ~path:[]
-           ~get_params:unit
-           ~post_params:unit ()) sp [pcdata t] () in
+      XHTML.M.a ~a:[a_href (uri_of_string url)] [pcdata t]
+  in
 
   let rec pcre_first_match str pos =
     let rec loop = function
