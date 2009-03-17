@@ -321,7 +321,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 
 clean:
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
-	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
+	-rm -f $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 	-rm -f $(METAS) $(OCSIGENNAME)-*.tar.gz
 	-find . -name "*~" -delete
 

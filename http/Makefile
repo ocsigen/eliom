@@ -32,7 +32,7 @@ doc:
 	$(CAMLDOC) $(PP) $(LIB) -html -d documentation *.ml *.mli
 
 clean:
-	-rm $(NAME) $(OPTNAME) *.cm[oiax] *.cmxa *.cmxs *.o *.annot \
+	-rm -f $(NAME) $(OPTNAME) *.cm[oiax] *.cmxa *.cmxs *.o *.annot \
 	http_parser.ml http_parser.mli http_lexer.ml documentation/*	
 
 viclean: clean
