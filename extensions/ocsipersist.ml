@@ -317,7 +317,7 @@ let length table =
 (* Registration of the extension *)
 
 let init config =
-  db_file := Ocsigen_config.get_datadir ())^"/ocsidb";
+  db_file := Ocsigen_config.get_datadir () ^"/ocsidb";
   match parse_global_config config with
     | None -> ()
     | Some d ->
