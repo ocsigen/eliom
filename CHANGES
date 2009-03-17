@@ -1,5 +1,7 @@
 = Development version =
 
+= 1.2.0 =
+
   * Now possible to link extensions and Eliom modules statically, for
     example to use a native code server on platforms where native
     dynlink is not supported
