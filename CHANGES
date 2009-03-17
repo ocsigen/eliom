@@ -29,7 +29,7 @@
   * New extension extendconfiguration to allow dynamic changes in the
     configuration (mimetypes, charsets, followsymnlink, directory
     listing, ...)
-  * Server: new module {{{LocalFiles}}} factorising the common parts
+  * Server: new module {{{LocalFiles}}} factoring the common parts
     for sending static files (with Eliom and staticmod for example),
     while checking that the files can safely be sent.
   * Now possible to use XHTML pretty printers without Ocsigen, using
