@@ -362,42 +362,43 @@ and parse_config_aux =
       )
 
 
-(** BYXXX : update this documentation
-   For each extension generating pages, we register five functions:
-   - a function of type parse_config, that adds some options
-    to the configuration file for the extension
-   - a function of type parse_config, that will be called every time user
-    configuration  files are parsed (if userconf is enabled).
-    It must define only safe options, for example it is not
-    safe to allow such options to load a cmo specified by a user, or to
-    execute a program, as this program will be executed by ocsigen's user.
-    Note that function will be called for every request, whereas the first one
-    is called only when starting or reloading the server.
-    If you do not want to allow users to use your extension,
-    use the predefined function [void_extension] (defines no option).
-   - a function that will be called at the beginning
-   of the initialisation phase of each site
-   (each time the config file is reloaded)
-   (Note that the extensions are not reloaded)
-   - a function that will be called at the end of the initialisation phase
-   of each site
-   - a function that will be called just before registering the extension,
-   with, as parameter, the configuration options between [<extension>] and
-   [</extension>] (allows to give configuration options to extensions).
-    If no function is supplied, the extension is supposed to accept no
-    option (and loading will fail if an option is supplied)
-   - a function that will create an error message from the exceptions
-   that may be raised during the initialisation phase, and raise again
-   all other exceptions
+(** For each extension generating pages, we register its name and six functions:
+- a function [fun_site] of type [parse_config]. This function
+will be responsible for handling the options of the configuration
+files that are recognized by the extension, and potentially generating
+a page.
+- a function [user_fun_site] of type [parse_user_config] which has the
+same role as [fun_site], but inside userconf files. Specify nothing
+if your extension is disallowed in userconf files. Otherwise, compared
+to [fun_site], you can selectively disallow some options,
+as [user_fun_site] must define only safe options (for example it is not
+safe to allow such options to load a cmo specified by a user, or to
+execute a program, as this program will be executed by ocsigen's user).
+Note that [user_fun_site] will be called for every request, whereas the
+[fun_site] is called only when starting or reloading the server.
+- a function [begin_init] that will be called at the beginning
+of the initialisation phase of each site, and each time the config file is
+reloaded.
+- a function [end_init] that will be called at the end of the initialisation
+phase of each site
+- a function [init_fun] that will be called just before registering the
+extension, taking as parameter the configuration options between
+[<extension>] and [</extension>]. This allows to give configuration options
+to extensions. If no function is supplied, the extension is supposed to
+accept no option (and loading will fail if an option is supplied)
+- a function [exn_handler] that will create an error message from the
+exceptions that may be raised during the initialisation phase, and raise again
+all other exceptions
 
-   If the optional parameter [?respect_pipeline] is [true], the extension
-   will ask the server to respect the order of the pipeline. That means that
-   it will wait to be sure that the previous request from the same connection
-   has been taken by an extension before giving a request to an extension.
-   Use this to write proxies extensions, when you want to be able to pipeline
-   the requests you to another server. It is false by default.
+Moreover, if the optional parameter [?respect_pipeline] is [true],
+the extension will ask the server to respect the order of the
+pipeline. That means that it will wait to be sure that the previous
+request from the same connection has been taken by an extension
+before giving a request to an extension.  Use this to write proxies
+extensions, when you want to be able to pipeline the requests you
+to another server. It is false by default.
 
- *)
+*)
 val register_extension :
   name:string ->
   ?fun_site:parse_config ->
