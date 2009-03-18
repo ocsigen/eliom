@@ -1,6 +1,7 @@
-==== Development version ====
+===== Development version =====
+  //nothing for now//
 
-==== 1.2.0 ====
+===== 1.2.0 =====
 
   * Now possible to link extensions and Eliom modules statically, for
     example to use a native code server on platforms where native
@@ -54,7 +55,7 @@
   * Staticmod: accessing a directory for which indexing is disallowed
     returns an error 404 (instead of a 403 previously)
 
-==== 1.1.0 ====
+===== 1.1.0 =====
 
   * Lwt removed (now distributed separately)
   * {{{XHTML.M}}} pretty printer: fixing pretty printing of empty tags
@@ -90,7 +91,7 @@
   * Deflatemod: fixing memory leak
   * And small bugfixes in XHTML.M, Eliom, ...
 
-==== 1.0.0 ====
+===== 1.0.0 =====
 
   * Config file: findlib integration
   * Eliom and Ocsigen: changing namespace convention for modules
@@ -103,7 +104,7 @@
   * Reverse proxy: Bugfix memory consumption when the connection was
     closed by client
 
-==== 0.99.5 ====
+===== 0.99.5 =====
 
   * Revproxy: pipelining of requests
   * Access control: simplification, generalization of filters and
@@ -132,7 +133,7 @@
   * Cgimod: bufixes in path handling
   * Web server: bugfix - some files were not closed
 
-==== 0.99.4 ====
+===== 0.99.4 =====
 
   * Ocsigen: Changes in the extension mechanism. The extensions are
     not tried in the order in which they are loaded any more, but in
@@ -156,7 +157,7 @@
     ** XHTML: Allowing any value for {{{<link>}}} rel attribute (for
        example {{{shortcut icon}}}).
 
-==== 0.99.3 ====
+===== 0.99.3 =====
 
   * Ocsigen: New module Deflatemod to compress data before sending to
     the browser.
@@ -206,7 +207,7 @@
     ** Cgimod: Bugfix - Some file descriptors were not closed.
     ** Cgimod: Implementing a timeout on CGI scripts.
 
-==== 0.99.2 ====
+===== 0.99.2 =====
 
   * Eliom: New implementation of forms. All missing cases implemented,
     and more possibilities, such as untyped forms.
@@ -230,7 +231,7 @@
   * Eliom: GET Services do not answer any more to POST requests
     without parameters.
 
-==== 0.99.1 ====
+===== 0.99.1 =====
 
   * Eliom: Now possible to set an exception handler for the whole site
     to personalize error pages (404, 500, etc.)
@@ -247,7 +248,7 @@
   * Eliom: Bugfix - GC of sessions and session data
   * Eliom: Bugfix - GET actions were not working properly
 
-==== 0.99.0 ====
+===== 0.99.0 =====
 
   * EXPERIMENTAL: Native code support. It is now possible to use
     Ocsigen in native code. BUT: to use that, you need a modified
@@ -305,7 +306,7 @@
     without stoping the server.
   * Staticmod: Rewriting of URLs using regular expressions.
 
-==== 0.6.0 ====
+===== 0.6.0 =====
 
   * {{{configure}}} script
   * {{{<select>}}} in forms, by Stéphane Dalmas
@@ -327,7 +328,7 @@
     Ocsimore is not supported anymore. Ocsimore has been rewritten
     from scratch by Piero Furiesi.
 
-==== 0.5.1 ====
+===== 0.5.1 =====
 
   * Bugfix Konqueror: Multipart forms with now work correctly with
     Konqueror
@@ -341,7 +342,7 @@
   * Daemon mode: adding setsid and redirect stdout/stderr to
     /dev/null. Closing stdin.
 
-==== 0.5.0 ====
+===== 0.5.0 =====
 
   * HTTP 1.1 improved (HEAD, ETag, keep-alive implemented,
     If-Modified-Since, ...)
@@ -381,7 +382,7 @@
   * Bugfix: escaping of strings in xhtml with syntax extension (thanks
     to David Mentre)
 
-==== 0.4.0 ====
+===== 0.4.0 =====
 
   * Full reimplementation of the core using Generalized Algebraic Data
     Types,
@@ -404,27 +405,27 @@
   * EXPERIMENTAL: sums, bool and list types for services and forms
   * small bugfixes
 
-==== 0.3.27 ====
+===== 0.3.27 =====
 
   * Change the way to get server parameters
 
-==== 0.3.26 ====
+===== 0.3.26 =====
 
   * Load unsafe modules
   * Other small changes
 
-==== 0.3.25-2 ====
+===== 0.3.25-2 =====
 
   * Small bugfix for 64 bits processors
   * bugfix for static files
   * {{{action_link}}} is now called {{{action_a}}}
 
-==== 0.3.24 ====
+===== 0.3.24 =====
 
   * More documentation
   * Change types {{{internal_url}}} and {{{external_service}}} to use
     polymorphic variants
 
-==== 0.3.23 ====
+===== 0.3.23 =====
 
   * Better handling of static files and "403 Forbidden" message
