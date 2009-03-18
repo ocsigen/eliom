@@ -30,6 +30,30 @@ open Eliom_parameters
 open Eliom_sessions
 open Lwt
 
+(* Suffix and other service at same URL *)
+let su2 =
+  register_new_service
+    ~path:["fuffix";""]
+    ~get_params:(suffix (all_suffix "s"))
+    (fun _ s () ->
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1
+                   [pcdata 
+                      (Ocsigen_extensions.string_of_url_path
+                         ~encode:false s)];
+                 p [pcdata "Try page fuffix/a"]])))
+
+let su =
+  register_new_service
+    ~path:["fuffix";"a";"b"]
+    ~get_params:unit
+    (fun _ () () ->
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Try another suffix"]])))
 
 
 (* optional parameters *)
@@ -926,6 +950,7 @@ let mainpage = register_new_service ["tests"] unit
          a sraise sp [pcdata "Wrong use of exceptions during service"] (); br ();
          a getcoex sp [pcdata "GET coservice with preapplied fallback, etc"] (); br ();
          a postcoex sp [pcdata "POST service with coservice fallback"] (); br ();
+         a su sp [pcdata "Suffix and other service at same URL"] (); br ();
          a preappliedsuffix sp [pcdata "Preapplied suffix"] (); br ();
          a getact sp [pcdata "action on GET attached coservice, etc"] 127; br ();
          a cookies sp [pcdata "Many cookies"] "le suffixe de l'URL"; br ();

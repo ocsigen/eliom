@@ -252,8 +252,11 @@ let find_service
             search_page_table !dircontentref2 l
         | Eliom_common.File page_table_ref -> page_table_ref, l)
       with Exn1 ->
-        (match !(find_dircontent dircontent
-                   Eliom_common.eliom_suffix_internal_name) with
+        (match !(try 
+                   find_dircontent dircontent
+                     Eliom_common.eliom_suffix_internal_name
+                 with Not_found -> raise Exn1)
+         with
         | Eliom_common.Dir _ -> raise Not_found
         | Eliom_common.File page_table_ref ->
             (page_table_ref, (if a = None then [""] else aa::l)))
