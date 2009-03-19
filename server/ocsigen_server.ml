@@ -105,6 +105,9 @@ let rec find_post_params http_frame ct filenames =
     | Some body_gen ->
         try
           let ((ct, cst), ctparams) = match ct with
+(* RFC 2616, sect. 7.2.1 *)
+(* If the media type remains unknown, the recipient SHOULD
+   treat it as type "application/octet-stream". *)
             | None -> (("application", "octet-stream"), [])
             | Some (c, p) -> (c, p)
           in
@@ -507,19 +510,19 @@ let service receiver sender_slot request meth url port sockaddr =
        We need to do this once the request has been handled before sending
        any reply to the client. *)
     match request.Ocsigen_http_frame.content with
-        Some f ->
+      | Some f ->
           ignore
             (Lwt.catch
                (fun () ->
                   Ocsigen_stream.finalize f (* will consume the stream and
-                                           unlock the mutex
-                                           if not already done *)
+                                               unlock the mutex
+                                               if not already done *)
                )
                (function
                  | e ->
 
                      (match e with
-                       Ocsigen_http_com.Lost_connection _ ->
+                     | Ocsigen_http_com.Lost_connection _ ->
                          warn sockaddr "connection abruptly closed by peer \
                            while reading contents"
                      | Ocsigen_http_com.Timeout ->
