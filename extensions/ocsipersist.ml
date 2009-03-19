@@ -318,18 +318,19 @@ let length table =
 
 let init config =
   db_file := Ocsigen_config.get_datadir () ^"/ocsidb";
-  match parse_global_config config with
+  (match parse_global_config config with
     | None -> ()
-    | Some d ->
-        db_file := d;
-        (* We check that we can access the database *)
-        try Lwt_unix.run (exec_safely (fun _ -> ()))
-        with e -> Ocsigen_messages.errlog
-          (Printf.sprintf
-             "Error opening database file %s when registering Ocsipersist. \
-              Check that the directory exists, and that Ocsigen has enough \
-              rights" !db_file);
-          raise e
+    | Some d -> db_file := d
+  );
+  (* We check that we can access the database *)
+  try Lwt_unix.run (exec_safely (fun _ -> ()))
+  with e ->
+    Ocsigen_messages.errlog
+      (Printf.sprintf
+         "Error opening database file '%s' when registering Ocsipersist. \
+          Check that the directory exists, and that Ocsigen has enough \
+          rights" !db_file);
+    raise e
 
 
 let _ = Ocsigen_extensions.register_extension
