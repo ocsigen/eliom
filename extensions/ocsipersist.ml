@@ -35,7 +35,6 @@ exception Ocsipersist_error
 
 
 (*****************************************************************************)
-(** Internal functions: storage directory *)
 
 open Simplexmlparser
 (** getting the directory from config file *)
@@ -45,6 +44,8 @@ let rec parse_global_config = function
   | _ -> raise (Ocsigen_extensions.Error_in_config_file
                   ("Unexpected content inside Ocsipersist config"))
 
+(* This reference is overwritten when the init function (at the end of the file)
+   is run, which occurs when the extension is loaded *)
 let db_file = ref ((Ocsigen_config.get_datadir ())^"/ocsidb")
 
 
@@ -311,7 +312,6 @@ let fold_table = fold_step
 let length table =
   table >>= fun table ->
   db_length table
-
 
 
 (* Registration of the extension *)

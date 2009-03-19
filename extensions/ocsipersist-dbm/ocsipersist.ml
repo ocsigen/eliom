@@ -38,21 +38,27 @@ let socketname = "socket"
 
 open Simplexmlparser
 (** getting the directory from config file *)
-let rec parse_global_config d = function
+let rec parse_global_config (store, ocsidbm, delayloading as d) = function
   | [] -> d
-  | (Element ("store", [("dir", s)], []))::ll ->
-      (match d with
-      | None, dbm -> parse_global_config ((Some s), dbm) ll
-      | (Some _), _ -> raise (Ocsigen_extensions.Error_in_config_file
-                                ("Ocsipersist: Duplicate <store> tag")))
-  | (Element ("ocsidbm", [("name", s)], []))::ll ->
-      (match d with
-      | a, None -> parse_global_config (a, (Some s)) ll
-      | _, Some _ -> raise (Ocsigen_extensions.Error_in_config_file
-                              ("Ocsipersist: Duplicate <ocsidbm> tag")))
-  | (Element (s,_,_))::ll ->
-      Ocsigen_extensions.badconfig "Bad tag %s" s
-  | _ -> raise (Ocsigen_extensions.Error_in_config_file ("Unexpected content inside Ocsipersist config"))
+  | Element ("delayloading", [("val", ("true" | "1"))], []) :: ll ->
+       parse_global_config (store, ocsidbm, true) ll
+
+  | Element ("store", [("dir", s)], []) :: ll ->
+      if store = None then
+        parse_global_config ((Some s), ocsidbm, delayloading) ll
+      else
+        Ocsigen_extensions.badconfig "Ocsipersist: Duplicate <store> tag"
+
+  | Element ("ocsidbm", [("name", s)], []) :: ll ->
+      if ocsidbm = None then
+        parse_global_config (store, (Some s), delayloading) ll
+      else
+        Ocsigen_extensions.badconfig "Ocsipersist: Duplicate <ocsidbm> tag"
+
+  | (Element (s,_,_))::ll -> Ocsigen_extensions.badconfig "Bad tag %s" s
+
+  | _ -> Ocsigen_extensions.badconfig
+      "Unexpected content inside Ocsipersist config"
 
 let (directory, ocsidbm) =
   (ref ((Ocsigen_config.get_datadir ())^"/ocsipersist"),
@@ -124,7 +130,9 @@ let inch = ref (Lwt.fail (Failure "Ocsipersist not initalised"))
 let outch = ref (Lwt.fail (Failure "Ocsipersist not initalised"))
 
 let init_fun config =
-  let (store, ocsidbmconf) = parse_global_config (None, None) config in
+  let (store, ocsidbmconf, delay_loading) =
+    parse_global_config (None, None, false) config
+  in
   (match store with
      | None -> ()
      | Some d -> directory := d);
@@ -132,9 +140,21 @@ let init_fun config =
      | None -> ()
      | Some d -> ocsidbm := d);
 
+  Ocsigen_messages.warning
+    (if delay_loading then
+       "Asynchronuous initialization of Ocsipersist-dbm (may fail later)"
+     else
+       "Initializing Ocsipersist-dbm...");
   let indescr = get_indescr 2 in
-  inch  := (indescr >>= fun r -> return (Lwt_chan.in_channel_of_descr r));
-  outch := (indescr >>= fun r -> return (Lwt_chan.out_channel_of_descr r))
+  if delay_loading then (
+    inch  := (indescr >>= fun r -> return (Lwt_chan.in_channel_of_descr r));
+    outch := (indescr >>= fun r -> return (Lwt_chan.out_channel_of_descr r));
+  ) else (
+    let r = Lwt_unix.run indescr in
+    inch  := return (Lwt_chan.in_channel_of_descr r);
+    outch := return (Lwt_chan.out_channel_of_descr r);
+    Ocsigen_messages.warning "...Initialization of Ocsipersist-dbm complete";
+  )
 
 
 let send =
