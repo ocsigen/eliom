@@ -270,7 +270,7 @@ let find_service
     try
       search_page_table !dircontentref
         (Ocsigen_lib.change_empty_list ri.request_info.ri_sub_path)
-    with Not_found -> raise Eliom_common.Eliom_404
+    with Exn1 | Not_found -> raise Eliom_common.Eliom_404
   in
   find_page_table
     now
