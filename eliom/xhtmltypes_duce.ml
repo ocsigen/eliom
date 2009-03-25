@@ -56,7 +56,9 @@ and flows = {{ [ (Char | block | form | inline | misc)* ] }}
 
 (* Document structure *)
 
-and html = {{ <html (i18n ++ id)>[ head body ] }}
+and xmlns = {{ { xmlns="http://www.w3.org/1999/xhtml" } }}
+
+and html = {{ <html (i18n ++ id ++ xmlns )>[ head body ] }}
 
 and head_misc = {{ script|style|meta|link|_object }}
 and head = {{ <head (i18n ++ id ++ { profile=?String })>[
