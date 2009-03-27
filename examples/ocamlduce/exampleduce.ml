@@ -31,7 +31,7 @@ let s =
     ~get_params:unit
     (fun sp () () ->
       return
-        ({{ <html>
+        ({{ <html xmlns="http://www.w3.org/1999/xhtml">
              [<head> [<title> ""]
               <body> [<h1> "This page has been type checked by OcamlDuce"
                      ]] }} : {{ html }}))
@@ -50,13 +50,13 @@ let form = register_new_service ["form"] unit
   (fun sp () () ->
      let f = get_form Tutoeliom.coucou_params sp create_form in
      return
-        {{ <html>
+        {{ <html xmlns="http://www.w3.org/1999/xhtml">
              [<head> [<title> ""]
               <body> [ f ] ]}})
 
 let links = register_new_service ["links"] unit
  (fun sp () () -> return
-   {{ <html>
+   {{ <html xmlns="http://www.w3.org/1999/xhtml">
       [ <head> [<title> ""]
         <body>
         [<p>
@@ -98,14 +98,14 @@ let gen_form = fun x ->
 let _ =
         register ~service:main
         (fun sp () () ->
-                return {{ <html>[
+                return {{ <html xmlns="http://www.w3.org/1999/xhtml">[
                         <head>[<title>"Main"]
                         <body>[{: post_form form sp gen_form () :}]
                 ] }}
         );
         register ~service:form
         (fun sp () x ->
-                return {{ <html>[
+                return {{ <html xmlns="http://www.w3.org/1999/xhtml">[
                                 <head>[<title>"Form"]
                                 <body>[<p>{: match x with None -> "Geen" | Some y -> y :}]
                         ] }})
