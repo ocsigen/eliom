@@ -219,8 +219,8 @@ val prod :
 
 val sum :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
-      ('a, [ `WithoutSuffix ], 'b) params_type ->
-        (('a, 'a) binsum, [ `WithoutSuffix ], 'b * 'b) params_type
+      ('c, [ `WithoutSuffix ], 'd) params_type ->
+        (('a, 'c) binsum, [ `WithoutSuffix ], 'b * 'd) params_type
 (** This is a combinator to allow the service to take either a parameter
    or another one
    {e Warning: it is a binary operator.}

@@ -110,7 +110,7 @@ let user_type
 let sum (t1 : ('a,[`WithoutSuffix], 'an) params_type)
     (t2 : ('b,[`WithoutSuffix], 'bn) params_type)
     : (('a,'b) binsum, [`WithoutSuffix], 'an * 'bn ) params_type =
-  Obj.magic (TSum (t1, t2))
+  Obj.magic (TSum (Obj.magic t1, Obj.magic t2))
 
 let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type)
     (t2 : ('b,[<`WithoutSuffix|`Endsuffix] as 'e, 'bn) params_type)
