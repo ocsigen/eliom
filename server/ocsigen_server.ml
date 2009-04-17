@@ -436,7 +436,10 @@ let handle_result_frame ri res send =
         Ocsigen_messages.debug2 "-> Sending 304 Not modified ";
         Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
         send { (Ocsigen_http_frame.empty_result ()) with
-                 res_code = 304  (* Not modified *)}
+                 res_code = 304  (* Not modified *);
+                 res_lastmodified = res.res_lastmodified;
+                 res_etag = res.res_etag;
+             }
 
     | `Precondition_failed ->
         Ocsigen_messages.debug2 "-> Sending 412 Precondition Failed \
