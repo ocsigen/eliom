@@ -485,6 +485,14 @@ let rec default_parse_config
           | Req_found (ri, res) ->
               Lwt.return (Ext_found_continue_with' (res, ri), cookies_to_set)
           | Req_not_found (e, oldri) ->
+              let oldri = match charset with
+                | None -> oldri
+                | Some charset ->
+                    { oldri with request_config =
+                        { oldri.request_config with charset_assoc =
+                            Ocsigen_charset_mime.set_default_charset
+                              oldri.request_config.charset_assoc charset } }
+              in
               match site_match oldri path oldri.request_info.ri_full_path with
               | None ->
                   Ocsigen_messages.debug (fun () ->
