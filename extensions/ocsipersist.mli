@@ -117,7 +117,7 @@ val fold_step : (string -> 'a -> 'b -> 'b Lwt.t) ->
 
 val fold_table : (string -> 'a -> 'b -> 'b Lwt.t) ->
   'a table -> 'b -> 'b Lwt.t
-(** Legacy interface for iter_step *)
+(** Legacy interface for fold_step *)
 
 (**/**)
 val iter_block : (string -> 'a -> unit) -> 'a table -> unit Lwt.t

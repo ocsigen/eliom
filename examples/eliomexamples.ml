@@ -34,16 +34,14 @@ open Lwt
 let su2 =
   register_new_service
     ~path:["fuffix";""]
-    ~get_params:(suffix (all_suffix "s"))
+    ~get_params:(suffix (all_suffix_string "s"))
     (fun _ s () ->
       return
         (html
           (head (title (pcdata "")) [])
           (body [h1
-                   [pcdata 
-                      (Ocsigen_extensions.string_of_url_path
-                         ~encode:false s)];
-                 p [pcdata "Try page fuffix/a"]])))
+                   [pcdata s];
+                 p [pcdata "Try page fuffix/a/b"]])))
 
 let su =
   register_new_service
@@ -55,6 +53,29 @@ let su =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "Try another suffix"]])))
 
+let su3 =
+  register_new_service
+    ~path:["fuffix";""]
+    ~get_params:unit
+    (fun _ () () ->
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Try another suffix"]])))
+
+let create_suffixform_su2 s =
+    <:xmllist< <p>Write a string:
+      $string_input ~input_type:`Text ~name:s ()$ <br/>
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+
+let suffixform_su2 = register_new_service ["suffixform_su2"] unit
+  (fun sp () () ->
+     let f = get_form su2 sp create_suffixform_su2 in
+     return
+       (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Hallo"];
+                 f ])))
 
 (* optional parameters *)
 let optparam =
@@ -563,9 +584,10 @@ let sendfile2 =
   Files.register_new_service
     ~path:["files2";""]
 (*    ~get_params:(regexp r "/home/$1/public_html$2" "filename") *)
-    ~get_params:(regexp r "$$u($1)$2" "filename")
+    ~get_params:(suffix (all_suffix_regexp r "$u($1)/public_html$2" "filename"))
     (fun _ s () -> return s)
 
+(*
 let sendfile2 =
   Files.register_new_service
     ~path:["files2";""]
@@ -573,6 +595,7 @@ let sendfile2 =
                    (all_suffix_regexp r "/home/$1/public_html$2" "filename"))
 (*    ~get_params:(suffix (all_suffix_regexp r "$$u($1)$2" "filename")) *)
     (fun _ s () -> return s)
+*)
 
 let create_suffixform4 n =
     <:xmllist< <p>Write the name of the file:
@@ -951,6 +974,7 @@ let mainpage = register_new_service ["tests"] unit
          a getcoex sp [pcdata "GET coservice with preapplied fallback, etc"] (); br ();
          a postcoex sp [pcdata "POST service with coservice fallback"] (); br ();
          a su sp [pcdata "Suffix and other service at same URL"] (); br ();
+         a suffixform_su2 sp [pcdata "Suffix and other service at same URL: a form towards the suffix service"] (); br ();
          a preappliedsuffix sp [pcdata "Preapplied suffix"] (); br ();
          a getact sp [pcdata "action on GET attached coservice, etc"] 127; br ();
          a cookies sp [pcdata "Many cookies"] "le suffixe de l'URL"; br ();

@@ -182,27 +182,25 @@ let any
     : ((string * string) list, [`WithoutSuffix], unit) params_type =
   TAny
 
-let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
+let const (n : string) (v : string)
+    : (unit, [`WithoutSuffix], [ `One of unit ] param_name) params_type =
+  TConst (n, v)
+
+
+
 let regexp reg dest n =
   user_type
     (fun s ->
       match Netstring_pcre.string_match reg s 0 with
       | Some _ ->
           begin
-            (* hack to get user dirs (same as in staticmod) *)
-            let s = Netstring_pcre.global_replace reg dest s in
-            match Netstring_pcre.string_match user_dir_regexp dest 0 with
-            | None -> s
-            | Some result ->
-                let user = Netstring_pcre.matched_group result 2 s in
-                try
-                  let userdir = (Unix.getpwnam user).Unix.pw_dir in
-                  (Netstring_pcre.matched_group result 1 s)^
-                  userdir^
-                  (Netstring_pcre.matched_group result 3 s)
-                with Not_found -> raise (Failure "User does not exist")
+            try
+              Ocsigen_extensions.replace_user_dir reg 
+                (Ocsigen_extensions.parse_user_dir dest) s
+            with Ocsigen_extensions.NoSuchUser ->
+              raise (Failure "User does not exist")
           end
-      | _ -> raise (Failure "Not matching regexp"))
+      | _ -> raise (Failure "Regexp not matching"))
     (fun s -> s)
     n
 
@@ -225,8 +223,15 @@ let all_suffix_regexp reg dest (n : string) :
   all_suffix_user
     (fun s ->
       match Netstring_pcre.string_match reg s 0 with
-      | Some _ -> Netstring_pcre.global_replace reg dest s
-      | _ -> raise (Failure "Not matching regexp"))
+      | Some _ ->
+          begin
+            try
+              Ocsigen_extensions.replace_user_dir reg 
+                (Ocsigen_extensions.parse_user_dir dest) s
+            with Ocsigen_extensions.NoSuchUser ->
+              raise (Failure "User does not exist")
+          end
+      | _ -> raise (Failure "Regexp not matching"))
     (fun s -> s)
     n
 
