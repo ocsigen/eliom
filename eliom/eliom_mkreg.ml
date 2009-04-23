@@ -255,8 +255,9 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?https:bool ->
       fallback:('get, unit,
-                [ `Attached of [ `Internal of
-                                   ([ `Service | `Coservice ] as 'kind) * [`Get] ] a_s ],
+                [ `Attached of
+                    [ `Internal of
+                        ([ `Service | `Coservice ] as 'kind) * [`Get] ] a_s ],
                 [< suff ] as 'tipo, 'gn,
                 unit, [< `Registrable ])
         service ->

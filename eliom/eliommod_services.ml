@@ -237,52 +237,58 @@ let find_service
      si) =
 
   let rec search_page_table dircontent =
+    let find page_table_ref suffix =
+      find_page_table
+        now
+        page_table_ref
+        fullsessname
+        sitedata
+        all_cookie_info
+        ri
+        suffix
+        {Eliom_common.key_state = si.Eliom_common.si_state_info;
+         Eliom_common.key_kind = ri.request_info.ri_method}
+        si
+    in
     let aux a l =
       let aa = match a with
       | None -> Eliom_common.defaultpagename
       | Some aa -> aa
       in
-      try
-        let dc =
-          try !(find_dircontent dircontent aa)
-          with Not_found -> raise Exn1
-        in
-        (match dc with
-        | Eliom_common.Dir dircontentref2 ->
-            search_page_table !dircontentref2 l
-        | Eliom_common.File page_table_ref -> page_table_ref, l)
-      with Exn1 ->
-        (match !(try 
-                   find_dircontent dircontent
-                     Eliom_common.eliom_suffix_internal_name
-                 with Not_found -> raise Exn1)
-         with
-        | Eliom_common.Dir _ -> raise Not_found
-        | Eliom_common.File page_table_ref ->
-            (page_table_ref, (if a = None then [""] else aa::l)))
+      Lwt.catch
+        (fun () ->
+           let dc =
+             try !(find_dircontent dircontent aa)
+             with Not_found -> raise Exn1
+           in
+           (match dc with
+              | Eliom_common.Dir dircontentref2 ->
+                  search_page_table !dircontentref2 l
+              | Eliom_common.File page_table_ref -> find page_table_ref l))
+        (function
+           | Exn1 | Eliom_common.Eliom_Wrong_parameter as e ->
+               (* If no service matches, we try a suffix service *)
+               (try
+                  match !(try
+                            find_dircontent dircontent
+                              Eliom_common.eliom_suffix_internal_name
+                          with Not_found -> raise e)
+                  with
+                    | Eliom_common.Dir _ -> Lwt.fail Exn1
+                    | Eliom_common.File page_table_ref ->
+                        find page_table_ref (if a = None then [""] else aa::l)
+                with e -> Lwt.fail e)
+           | e -> Lwt.fail e)
     in function
       | [] -> raise (Ocsigen_extensions.Ocsigen_Is_a_directory ri)
       | [""] -> aux None []
       | ""::l -> search_page_table dircontent l
       | a::l -> aux (Some a) l
   in
-  let page_table_ref, suffix =
-    try
-      search_page_table !dircontentref
-        (Ocsigen_lib.change_empty_list ri.request_info.ri_sub_path)
-    with Exn1 | Not_found -> raise Eliom_common.Eliom_404
-  in
-  find_page_table
-    now
-    page_table_ref
-    fullsessname
-    sitedata
-    all_cookie_info
-    ri
-    suffix
-    {Eliom_common.key_state = si.Eliom_common.si_state_info;
-     Eliom_common.key_kind = ri.request_info.ri_method}
-    si
+  Lwt.catch
+    (fun () -> search_page_table !dircontentref
+       (Ocsigen_lib.change_empty_list ri.request_info.ri_sub_path))
+    (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
 
 
 (******************************************************************)
