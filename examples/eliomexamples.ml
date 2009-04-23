@@ -30,6 +30,24 @@ open Eliom_parameters
 open Eliom_sessions
 open Lwt
 
+
+(* form towards a suffix service with constants *)
+let create_form (n1, (_, n2)) =
+    <:xmllist< <p>
+      $string_input ~input_type:`Text ~name:n1 ()$
+      $string_input ~input_type:`Text ~name:n2 ()$
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+
+let constform = register_new_service ["constform"] unit
+  (fun sp () () ->
+     let f = get_form Tutoeliom.constfix sp create_form in
+     return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Hallo"];
+                 f ])))
+
+
 (* Suffix and other service at same URL *)
 let su2 =
   register_new_service
@@ -976,6 +994,7 @@ let mainpage = register_new_service ["tests"] unit
          a su sp [pcdata "Suffix and other service at same URL"] (); br ();
          a suffixform_su2 sp [pcdata "Suffix and other service at same URL: a form towards the suffix service"] (); br ();
          a preappliedsuffix sp [pcdata "Preapplied suffix"] (); br ();
+         a constform sp [pcdata "Form towards suffix service with constants"] (); br ();
          a getact sp [pcdata "action on GET attached coservice, etc"] 127; br ();
          a cookies sp [pcdata "Many cookies"] "le suffixe de l'URL"; br ();
          a sendany sp [pcdata "Cookie or not with Any"] "change this suffix to \"nocookie\""; br ();

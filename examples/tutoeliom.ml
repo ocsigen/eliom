@@ -498,9 +498,29 @@ let isuffix =
 (*html*
       <p>See $a Tutoeliom.isuffix sp <:xmllist< <code>isuffix</code> >> ((11, ["a";"b";"c"]) , 22)$.</p>
 
-
-
-
+      <p>If you want parameters in the path but not always at the end,
+         use the $a ~fragment:"VALconst"
+                    ~service:senddoc ~sp
+                    [code [pcdata "Eliom_parameters.const" ]]
+                    [version;"Eliom_parameters.html"]$
+         parameter specification.
+         It will match for example URLs like <tt>/param1/const/param2</tt>.
+         Example:
+      </p>
+  *html*)
+let constfix =
+  register_new_service
+    ~path:["constfix"]
+    ~get_params:(suffix (string "s1" ** (Eliom_parameters.suffix_const "toto" ** string "s2")))
+    (fun _ (s1, ((), s2))  () ->
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1
+                   [pcdata "Suffix with constants"];
+                 p [pcdata ("Parameters are "^s1^" and "^s2)]])))
+(*html*
+      <p>$a constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"))$.</p>
       <p>The following example shows how to use your own types :</p>
 *html*)
 type mysum = A | B
@@ -4314,6 +4334,9 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
            $a uasuffix sp <:xmllist< <code>uasuffix</code> >> (2007,6)$ <br/>
          A page with "suffix" URL and GET parameters :
            $a isuffix sp <:xmllist< <code>isuffix</code> >> ((111, ["OO";"II";"OO"]), 333)$ <br/>
+         A page with constants in suffix: 
+           $a constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"))$ <br/>
+
          A page with a parameter of user-defined type :
              $a mytype sp <:xmllist< <code>mytype</code> >> A$ </p>
        <h4>Links and Formulars</h4>

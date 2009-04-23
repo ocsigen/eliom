@@ -329,6 +329,18 @@ val suffix_prod :
    [((777, ["go";"go";"go"]), 320)] to the service handler.
  *)
 
+val suffix_const :
+    string ->
+      (unit, [ `WithoutSuffix ], [ `One of unit ] param_name) params_type
+(** [suffix_const v] is used only inside suffixes (do nothing for
+    regular parameters).
+    It tells that the service takes a constant parameter
+    inside the suffix, whose value must be [v].
+    It is used for putting constant directory names inside
+    suffix parameters (and thus make suffix parameters not be only suffixes
+    but anywhere you want in the path, e.g. [/param1/const/param2]).
+*)
+
 
 
 

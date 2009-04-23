@@ -65,6 +65,7 @@ type ('a,+'tipo,+'names) params_type =
   | TSuffix of ('a,'tipo,'names) params_type (* 'a = 'a1 *)
   | TUnit (* 'a = unit *)
   | TAny (* 'a = (string * string) list *)
+  | TConst of string (* 'a = unit; 'names = unit *)
 ;;
 
 type anon_params_type = int
@@ -182,9 +183,9 @@ let any
     : ((string * string) list, [`WithoutSuffix], unit) params_type =
   TAny
 
-let const (n : string) (v : string)
+let suffix_const (v : string)
     : (unit, [`WithoutSuffix], [ `One of unit ] param_name) params_type =
-  TConst (n, v)
+  TConst v
 
 
 
@@ -400,6 +401,8 @@ let reconstruct_params
         with e -> Errors_ ([(pref^name^suff),e], l, files))
     | TUnit -> Res_ ((Obj.magic ()), params, files)
     | TAny -> Res_ ((Obj.magic params), [], files)
+    | TConst _ ->
+        Res_ ((Obj.magic ()), params, files)
     | TESuffix n ->
         let v,l = list_assoc_remove n params in
         (* cannot have prefix or suffix *)
@@ -443,6 +446,10 @@ let reconstruct_params
     | TUserType (name, of_string, string_of) ->
         (try Obj.magic (of_string v)
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TConst value ->
+        if v = value
+        then Obj.magic ()
+        else raise Eliom_common.Eliom_Wrong_parameter
     | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   let rec parse_suffix typ suff =
@@ -542,6 +549,7 @@ let construct_params_list
         aux (TProd (t, TCoord name)) params pref suff l
     | TUnit -> l
     | TAny -> l@(Obj.magic params)
+    | TConst _ -> l
     | TESuffix _
     | TESuffixs _
     | TESuffixu _
@@ -557,6 +565,7 @@ let construct_params_list
     | TInt32 _ -> [Int32.to_string (Obj.magic params)]
     | TInt64 _ -> [Int64.to_string (Obj.magic params)]
     | TFloat _ -> [string_of_float (Obj.magic params)]
+    | TConst v -> [Obj.magic v]
     | TUserType (_, of_string, string_of) ->[string_of (Obj.magic params)]
     | TESuffixs _ -> [Obj.magic params]
     | TESuffix _ -> Obj.magic params
@@ -615,6 +624,7 @@ let rec add_pref_params pref = function
   | TCoordv (t, name) -> TCoordv ((add_pref_params pref t), pref^name)
   | TUnit -> TUnit
   | TAny -> TAny
+  | TConst v -> TConst v
   | TESuffix n -> TESuffix n
   | TESuffixs n -> TESuffixs n
   | TESuffixu a -> TESuffixu a
@@ -653,6 +663,7 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
     | TCoordv (_, name) -> Obj.magic (prefix^name^suffix)
     | TUnit -> Obj.magic ()
     | TAny -> Obj.magic ()
+    | TConst _ -> Obj.magic ()
     | TSet t -> Obj.magic (aux prefix suffix t)
     | TESuffix n -> Obj.magic n
     | TESuffixs n -> Obj.magic n
