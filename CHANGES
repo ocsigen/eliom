@@ -1,5 +1,6 @@
 ===== Development version =====
-  //nothing for now//
+  * Eliom: Now possible to have constant parts in suffixes to allow
+    URLS like {{{/param1/something/param2}}}
 
 ===== 1.2.0 (25/03/2009) =====
 
