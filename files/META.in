@@ -170,6 +170,14 @@ package "ext" (
     archive(native) = "eliom_duce.cmxa"
   )
 
+  package "eliom_obrowser" (
+    exists_if = "eliom_obrowser.cmo"
+    requires = ""
+    version = "[distributed with Ocsigen]"
+    description = "Using Eliom with OBrowser"
+    archive(byte) = "eliom_obrowser.cmo"
+  )
+
   package "rewritemod" (
     exists_if = "rewritemod.cmo,rewritemod.cmx"
     requires = "ocsigen.server"

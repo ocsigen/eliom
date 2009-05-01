@@ -88,10 +88,10 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) \
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom_obrowser.cmo \
       eliom.cma $(DUCEMODBYTE)
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) \
+opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom_obrowser.cmo \
      eliom.cmxa $(CMXS3)
 
 
@@ -172,6 +172,8 @@ ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 bugdbg:
 	make DEBUG="NO" eliom_duce.cmo
 
+eliom_obrowser.cmo:
+	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser.ml
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
