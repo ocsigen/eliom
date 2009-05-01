@@ -40,7 +40,8 @@ let builtin_packages =
   List.fold_left (fun a s -> StringSet.add s a) StringSet.empty
     ["unix"; "threads"; "ssl";
      "lwt"; "lwt.preemptive"; "lwt.ssl"; "lwt.extra";
-     "netstring"; "pcre"; "dynlink"; "findlib"; "ocsigen"]
+     "netstring"; "netsys"; "pcre"; "dynlink"; "findlib";
+     "ocsigen"; "ocsigen.server"]
 
 (* Server config: *)
 let (uploaddir : string option ref) = ref None

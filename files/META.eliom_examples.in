@@ -28,7 +28,7 @@ package "tutoeliom" (
 
 package "duce" (
   exists_if = "exampleduce.cmo,exampleduce.cmxs"
-  requires = "ocsigen_ext.eliom_duce"
+  requires = "ocsigen.ext.eliom_duce"
   version = "[distributed with Ocsigen]"
   description = "Example with OCamlDuce"
   archive(plugin,byte) = "exampleduce.cmo"

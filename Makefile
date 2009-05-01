@@ -90,7 +90,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	# To be readded when they are translated in normal syntax
 	#	$(DOCPREF)xmlp4/newocaml/simplexmlparser.mli 			\
 	#	$(DOCPREF)xmlp4/newocaml/xhtmltypes.ml
-METAS = META META.ocsigen_ext META.eliom_examples META.ocsigen_ext.global META.eliom_examples.global
+METAS = META.global META META.eliom_examples META.eliom_examples.global
 
 
 INSTALL = install
@@ -183,8 +183,8 @@ endif
 
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(STATICSTUBS) eliom/eliom_obrowser.cmo eliom/eliom_obrowser.cmi eliom/eliom_obrowser.js
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/eliom_obrowser.cmo eliom/eliom_obrowser.cmi eliom/eliom_obrowser.js
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
@@ -270,16 +270,22 @@ doc:
 
 doc/index.html: doc
 
-META: files/META.in
+META.global: files/META.in
 	sed $(SED_COMMAND_FOR_META) < $< > $@
 
-META.ocsigen_ext: files/META.ocsigen_ext.in
+META: files/META.in
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
-	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< > $@
+	echo directory = \"$(SRC)/extensions\" > $@
+	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< >> $@
 
-META.ocsigen_ext.global: files/META.ocsigen_ext.in
-	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(EXTRALIBDIR)/extensions%g" < $< > $@
+#META.ocsigen_ext: files/META.ocsigen_ext.in
+#	-ln -sf ../eliom/eliom.cma extensions
+#	-ln -sf ../eliom/eliom_duce.cma extensions
+#	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< > $@
+
+#META.ocsigen_ext.global: files/META.ocsigen_ext.in
+#	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(EXTRALIBDIR)/extensions%g" < $< > $@
 
 META.eliom_examples: files/META.eliom_examples.in
 	sed $(SED_COMMAND_FOR_META) -e "s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g" < $< > $@
@@ -348,13 +354,17 @@ partialinstall:
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	$(MAKE) -C server install
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
+	mv META META.local
+	mv META.global META
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
+	mv META META.global
+	mv META.local META
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
-	$(INSTALL) -m 644 $(PLUGINSTOINSTALL) $(TEMPROOT)$(EXTRALIBDIR)/extensions
+#	$(INSTALL) -m 644 $(PLUGINSTOINSTALL) $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	[ ! -f extensions/ocsipersist-dbm/ocsidbm.opt ] || \
 	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)/extensions
-	$(INSTALL) -m 644 META.ocsigen_ext.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
+#	$(INSTALL) -m 644 META.ocsigen_ext.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
 	$(INSTALL) -m 644 META.eliom_examples.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
 
 docinstall: doc/index.html

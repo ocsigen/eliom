@@ -11,25 +11,26 @@
     <datadir>_DATADIR_</datadir>
     <user>_OCSIGENUSER_</user>
     <group>_OCSIGENGROUP_</group>
+    <!-- <commandpipe>_COMMANDPIPE_</commandpipe> -->
 
     <charset>utf-8</charset>
 
 
     <findlib path="_METADIR_"/>
 
-    <extension findlib-package="ocsigen_ext.staticmod"/>
+    <extension findlib-package="ocsigen.ext.staticmod"/>
 
-    <extension findlib-package="ocsigen_ext.ocsipersist-sqlite">
+    <extension findlib-package="ocsigen.ext.ocsipersist-sqlite">
       <database file="_DATADIR_/ocsidb"/>
     </extension>
 
     <!-- You may want to use DBM instead of SQLite (if compiled). -->
-    <!--extension findlib-package="ocsigen_ext.ocsipersist-dbm">
+    <!--extension findlib-package="ocsigen.ext.ocsipersist-dbm">
       <store dir="_DATADIR_"/>
       <ocsidbm name="_EXTRALIBDIR_/ocsidbm"/>
     </extension-->
 
-    <extension findlib-package="ocsigen_ext.eliom"/>
+    <extension findlib-package="ocsigen.ext.eliom"/>
 
 
     <!-- Inclusion of all external configuration files matching *.conf
