@@ -75,15 +75,20 @@ module type ELIOMREGSIG1 =
       result_to_send Lwt.t
 
     val register :
-        ?options:options ->
-        ?sp: Eliom_sessions.server_params ->
-        service:('get, 'post,
-                 [< internal_service_kind ],
-                 [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
-        ?error_handler:(Eliom_sessions.server_params ->
-                               (string * exn) list -> page Lwt.t) ->
-        (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
-          unit
+      ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
+      ?sp: Eliom_sessions.server_params ->
+      service:('get, 'post,
+               [< internal_service_kind ],
+               [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+      ?error_handler:(Eliom_sessions.server_params ->
+                        (string * exn) list -> page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      unit
 (** registers an service in the public service table
    with the associated handler function.
    [register service t f] will associate the service [service]
@@ -119,9 +124,13 @@ module type ELIOMREGSIG1 =
 
  *)
 
-
     val register_for_session :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?session_name:string ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
@@ -129,14 +138,11 @@ module type ELIOMREGSIG1 =
                [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
       ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
                         page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) -> unit
+      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) -> 
+      unit
 (** registers a handler for a service in the session table.
    If the same client does a request to this service, this function will be
    used instead of the one from the public table.
-
-   If [~secure] is false when the protocol is https, it will affect
-   the unsecure session, otherwise, il will affect the secure session in 
-   https, the unsecure one in http.
 
    Warning:
    - All main services created during initialization must be
@@ -149,6 +155,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_service :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?https:bool ->
       path:url_path ->
@@ -165,6 +176,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?max_use:int ->
@@ -190,6 +206,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice' :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?max_use:int ->
@@ -208,6 +229,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice_for_session :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?session_name:string ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
@@ -235,6 +261,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice_for_session' :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?session_name:string ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
@@ -255,6 +286,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_service :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?https:bool ->
       fallback:('get, unit,
@@ -276,6 +312,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?max_use:int ->
@@ -300,6 +341,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice' :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?max_use:int ->
@@ -319,8 +365,12 @@ module type ELIOMREGSIG1 =
 (*
     val register_new_get_post_coservice' :
         ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
         ?sp: Eliom_sessions.server_params ->
-      ?name: string ->
         ?max_use:int ->
         ?timeout:float ->
       ?https:bool ->
@@ -341,6 +391,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice_for_session :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?session_name:string ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
@@ -367,6 +422,11 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice_for_session' :
       ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       ?session_name:string ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
@@ -389,9 +449,9 @@ module type ELIOMREGSIG1 =
     val register_new_get_post_coservice_for_session' :
         ?options:options ->
         ?session_name:string ->
-      ?secure:bool ->
+  ?secure:bool ->
         sp:Eliom_sessions.server_params ->
-      ?name: string ->
+  ?name: string ->
         ?max_use:int ->
         ?timeout:float ->
       ?https:bool ->
@@ -408,6 +468,8 @@ module type ELIOMREGSIG1 =
                         service
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
+
+
 
   end
 

@@ -30,6 +30,33 @@ open Eliom_parameters
 open Eliom_sessions
 open Lwt
 
+(* Customizing HTTP headers *)
+let headers = 
+  register_new_service
+    ~code:666
+    ~charset:"plopcharset"
+(*    ~content_type:"custom/contenttype" *)
+    ~cookies:[Eliom_services.Set (Some [], None,
+                                  "Customcookie", 
+                                  "Value",
+                                  true);
+              Eliom_services.Set (Some [], None,
+                                  "Customcookie2", 
+                                  "Value2",
+                                  true);
+             ]
+    ~headers:(Http_headers.add
+                (Http_headers.name "XCustom-header")
+                "This is an example" 
+                Http_headers.empty)
+    ~path:["httpheaders"] 
+    ~get_params:unit
+    (fun sp () () ->
+       return
+         (html
+            (head (title (pcdata "")) [])
+            (body [h1 [pcdata "Look at my HTTP headers"]])))
+
 
 (* form towards a suffix service with constants *)
 let create_form (n1, (_, n2)) =
@@ -1002,6 +1029,7 @@ let mainpage = register_new_service ["tests"] unit
          a getact sp [pcdata "action on GET attached coservice, etc"] 127; br ();
          a cookies sp [pcdata "Many cookies"] "le suffixe de l'URL"; br ();
          a sendany sp [pcdata "Cookie or not with Any"] "change this suffix to \"nocookie\""; br ();
+         a headers sp [pcdata "Customizing HTTP headers"] (); br ();
          a sendfileex sp [pcdata "Send file"] (); br ();
          a sendfile2 sp [pcdata "Send file 2"] "style.css"; br ();
          a sendfileexception sp [pcdata "Do not send file"] (); br ();
