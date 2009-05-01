@@ -47,6 +47,8 @@ module type REGCREATE =
       ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code:int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
       sp:Eliom_sessions.server_params ->
       page -> 
       result_to_send Lwt.t
@@ -62,12 +64,15 @@ module type ELIOMREGSIG1 =
     type options
 
     val send :
-        ?options:options ->
-          ?cookies:Eliom_services.cookie list ->
-            ?charset:string ->
-              ?code: int ->
-                sp:Eliom_sessions.server_params ->
-                  page -> result_to_send Lwt.t
+      ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
+      sp:Eliom_sessions.server_params ->
+      page -> 
+      result_to_send Lwt.t
 
     val register :
         ?options:options ->

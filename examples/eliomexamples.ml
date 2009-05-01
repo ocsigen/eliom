@@ -450,7 +450,11 @@ let sendany =
      if s = "nocookie"
      then
        Xhtml.send
-         sp
+         ~headers:(Http_headers.add
+                     (Http_headers.name "XCustom-header")
+                     "This is an example" 
+                     Http_headers.empty)
+         ~sp
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata "This page does not set cookies"]]))

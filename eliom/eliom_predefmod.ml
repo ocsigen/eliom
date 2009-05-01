@@ -94,7 +94,8 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   end
 
-  let send ?(options = `XHTML_01_01) ?(cookies=[]) ?charset ?code ~sp content =
+  let send ?(options = `XHTML_01_01) ?(cookies=[]) ?charset ?code
+      ?content_type ?headers ~sp content =
     Xhtml_content.result_of_content ~options content >>= fun r ->
     Lwt.return
       (EliomResult
@@ -105,7 +106,16 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
             res_charset= (match charset with
                             | None -> Some (get_config_default_charset sp)
                             | _ -> charset
-                         )
+                         );
+            res_content_type= (match content_type with
+                                 | None -> r.res_content_type
+                                 | _ -> content_type
+                              );
+            res_headers= (match headers with
+                            | None -> r.res_headers
+                            | Some headers -> 
+                                Http_headers.with_defaults headers r.res_headers
+                         );
          })
 
 end
@@ -1571,17 +1581,30 @@ module SubXhtml = functor(T : sig type content end) ->
 
       type options = unit
 
-      let send ?options ?(cookies=[]) ?charset ?code ~sp content =
+      let send ?options ?(cookies=[]) ?charset ?code 
+          ?content_type ?headers ~sp content =
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
             (EliomResult
                {r with
-                res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-                res_code= code_of_code_option code;
-                res_charset= (match charset with
-                | None -> Some (get_config_default_charset sp)
-                | _ -> charset);
-              })
+                  res_cookies= 
+                   Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+                  res_code= code_of_code_option code;
+                  res_charset= (match charset with
+                                  | None -> Some (get_config_default_charset sp)
+                                  | _ -> charset);
+                  res_content_type= (match content_type with
+                                       | None -> r.res_content_type
+                                       | _ -> content_type
+                                    );
+                  res_headers= (match headers with
+                                  | None -> r.res_headers
+                                  | Some headers -> 
+                                      Http_headers.with_defaults
+                                        headers r.res_headers
+                               );
+                  
+               })
 
     end
 
@@ -1613,17 +1636,28 @@ module Textreg_ = struct
 
   type options = unit
 
-  let send ?options ?(cookies=[]) ?charset ?code ~sp content =
+  let send ?options ?(cookies=[]) ?charset ?code 
+      ?content_type ?headers ~sp content =
     Ocsigen_senders.Text_content.result_of_content content >>= fun r ->
     Lwt.return
-        (EliomResult
-           {r with
-            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+      (EliomResult
+         {r with
+            res_cookies=
+             Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-            | None ->  Some (get_config_default_charset sp)
-            | _ -> charset);
-          })
+                            | None ->  Some (get_config_default_charset sp)
+                            | _ -> charset);
+            res_content_type= (match content_type with
+                                 | None -> r.res_content_type
+                                 | _ -> content_type
+                              );
+            res_headers= (match headers with
+                            | None -> r.res_headers
+                            | Some headers -> 
+                                Http_headers.with_defaults headers r.res_headers
+                         );
+         })
 
 end
 
@@ -1640,17 +1674,30 @@ module CssTextreg_ = struct
 
   type options = unit
 
-  let send ?options ?(cookies=[]) ?charset ?code ~sp content =
-    Ocsigen_senders.Text_content.result_of_content (content, "text/css") >>= fun r ->
+  let send ?options ?(cookies=[]) ?charset ?code
+      ?content_type ?headers ~sp content =
+    Ocsigen_senders.Text_content.result_of_content (content, "text/css")
+    >>= fun r ->
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-            res_code= code_of_code_option code;
-            res_charset= (match charset with
-            | None -> Some (get_config_default_charset sp)
-            | _ -> charset);
-          })
+              res_cookies=
+               Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+              res_code= code_of_code_option code;
+              res_charset= (match charset with
+                              | None -> Some (get_config_default_charset sp)
+                              | _ -> charset);
+              res_content_type= (match content_type with
+                                   | None -> r.res_content_type
+                                   | _ -> content_type
+                                );
+              res_headers= (match headers with
+                              | None -> r.res_headers
+                              | Some headers -> 
+                                  Http_headers.with_defaults
+                                    headers r.res_headers
+                         );
+           })
 
 end
 
@@ -1668,17 +1715,29 @@ module HtmlTextreg_ = struct
 
   type options = unit
 
-  let send ?options ?(cookies=[]) ?charset ?code ~sp content =
-    Ocsigen_senders.Text_content.result_of_content (content, "text/html") >>= fun r ->
+  let send ?options ?(cookies=[]) ?charset ?code 
+      ?content_type ?headers ~sp content =
+    Ocsigen_senders.Text_content.result_of_content (content, "text/html")
+    >>= fun r ->
     Lwt.return
-        (EliomResult
-           {r with
-            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+      (EliomResult
+         {r with
+            res_cookies= 
+             Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-            | None -> Some (get_config_default_charset sp)
-            | _ -> charset);
-          })
+                            | None -> Some (get_config_default_charset sp)
+                            | _ -> charset);
+            res_content_type= (match content_type with
+                                 | None -> r.res_content_type
+                                 | _ -> content_type
+                              );
+            res_headers= (match headers with
+                            | None -> r.res_headers
+                            | Some headers -> 
+                                Http_headers.with_defaults headers r.res_headers
+                         );
+         })
 
 end
 
@@ -1868,7 +1927,8 @@ module Actionreg_ = struct
   type options = [ `Reload | `NoReload ]
 
   let send
-      ?(options = `Reload) ?(cookies=[]) ?charset ?(code = 204) ~sp content =
+      ?(options = `Reload) ?(cookies=[]) ?charset ?(code = 204)
+      ?content_type ?headers ~sp content =
     if options = `NoReload
     then
       let empty_result = Ocsigen_http_frame.empty_result () in
@@ -1876,8 +1936,18 @@ module Actionreg_ = struct
         (EliomResult
            {empty_result with
             res_cookies=
-            Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+               Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code;
+            res_content_type= (match content_type with
+                                 | None -> empty_result.res_content_type
+                                 | _ -> content_type
+                              );
+            res_headers= (match headers with
+                            | None -> empty_result.res_headers
+                            | Some headers -> 
+                                Http_headers.with_defaults 
+                                  headers empty_result.res_headers
+                         );
           })
     else
       Lwt.return (EliomExn (content, cookies))
@@ -1900,15 +1970,26 @@ module Unitreg_ = struct
 
   type options = unit
 
-  let send ?options ?(cookies=[]) ?charset ?(code = 204) ~sp content =
+  let send ?options ?(cookies=[]) ?charset ?(code = 204)
+      ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-          res_code= code;
-        })
+            res_cookies=
+             Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+            res_code= code;
+            res_content_type= (match content_type with
+                                 | None -> empty_result.res_content_type
+                                 | _ -> content_type
+                              );
+            res_headers= (match headers with
+                            | None -> empty_result.res_headers
+                            | Some headers -> 
+                                Http_headers.with_defaults 
+                                  headers empty_result.res_headers
+                         );
+         })
 
 end
 
@@ -1934,7 +2015,8 @@ module String_redirreg_ = struct
 
   type options = [ `Temporary | `Permanent ]
 
-  let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code ~sp content =
+  let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code
+      ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
     let code = match code with
     | Some c -> c
@@ -1946,9 +2028,20 @@ module String_redirreg_ = struct
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-          res_code= code;
-          res_location = Some (XHTML.M.string_of_uri content);
+            res_cookies= 
+             Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+            res_code= code;
+            res_location = Some (XHTML.M.string_of_uri content);
+            res_content_type= (match content_type with
+                                 | None -> empty_result.res_content_type
+                                 | _ -> content_type
+                              );
+            res_headers= (match headers with
+                            | None -> empty_result.res_headers
+                            | Some headers -> 
+                                Http_headers.with_defaults
+                                  headers empty_result.res_headers
+                         );
         })
 
 end
@@ -1971,7 +2064,8 @@ module Redirreg_ = struct
 
   type options = [ `Temporary | `Permanent ]
 
-  let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code ~sp content =
+  let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code
+      ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
     let uri = Xhtml.make_full_string_uri ~sp ~service:content () in
     let code = match code with
@@ -1984,9 +2078,20 @@ module Redirreg_ = struct
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-          res_code= code;
-          res_location = Some uri;
+            res_cookies= 
+             Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+            res_code= code;
+            res_location = Some uri;
+            res_content_type= (match content_type with
+                                 | None -> empty_result.res_content_type
+                                 | _ -> content_type
+                              );
+            res_headers= (match headers with
+                            | None -> empty_result.res_headers
+                            | Some headers -> 
+                                Http_headers.with_defaults
+                                  headers empty_result.res_headers
+                         );
         })
 
 end
@@ -2007,20 +2112,31 @@ module Anyreg_ = struct
 
   type options = unit
 
-  let send ?options ?(cookies=[]) ?charset ?code ~sp content =
+  let send ?options ?(cookies=[]) ?charset ?code
+      ?content_type ?headers ~sp content =
     Lwt.return
       (match content with
       | EliomResult res ->
           EliomResult
             {res with
-             res_cookies=
-             Eliom_services.cookie_table_of_eliom_cookies
-               ~oldtable:res.res_cookies
-               ~sp
-               cookies;
-             res_charset= match charset with
-             | None -> res.res_charset
-             | _ -> charset
+               res_cookies=
+                Eliom_services.cookie_table_of_eliom_cookies
+                  ~oldtable:res.res_cookies
+                  ~sp
+                  cookies;
+               res_charset= (match charset with
+                               | None -> res.res_charset
+                               | _ -> charset);
+               res_content_type= (match content_type with
+                                    | None -> res.res_content_type
+                                    | _ -> content_type
+                                 );
+               res_headers= (match headers with
+                               | None -> res.res_headers
+                               | Some headers -> 
+                                   Http_headers.with_defaults
+                                     headers res.res_headers
+                            );
            }
       | EliomExn (e, c) ->
           EliomExn (e, cookies@c))
@@ -2039,7 +2155,8 @@ module Filesreg_ = struct
 
   type options = unit
 
-  let send ?options ?(cookies=[]) ?charset ?code ~sp filename =
+  let send ?options ?(cookies=[]) ?charset ?code
+      ?content_type ?headers ~sp filename =
     let file =
       try Ocsigen_LocalFiles.resolve (Eliom_sessions.get_request sp) filename
       with
@@ -2061,6 +2178,17 @@ module Filesreg_ = struct
                                   Some (Ocsigen_charset_mime.find_charset
                                       filename(get_config_info sp).charset_assoc)
                               | _ -> charset);
+             res_content_type= (match content_type with
+                                  | None -> r.res_content_type
+                                  | _ -> content_type
+                               );
+             res_headers= (match headers with
+                             | None -> r.res_headers
+                             | Some headers -> 
+                                 Http_headers.with_defaults
+                                   headers r.res_headers
+                         );
+
          })
 
 
@@ -2082,16 +2210,28 @@ module Streamlistreg_ = struct
   type options = unit
 
 
-  let send ?options ?(cookies=[]) ?charset ?code ~sp content =
+  let send ?options ?(cookies=[]) ?charset ?code
+      ?content_type ?headers ~sp content =
     Ocsigen_senders.Streamlist_content.result_of_content content >>= fun r ->
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-            res_code= code_of_code_option code;
-            res_charset= (match charset with
-            | None ->  Some (get_config_default_charset sp)
-            | _ -> charset);
+              res_cookies=
+               Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+              res_code= code_of_code_option code;
+              res_charset= (match charset with
+                              | None ->  Some (get_config_default_charset sp)
+                              | _ -> charset);
+              res_content_type= (match content_type with
+                                   | None -> r.res_content_type
+                                   | _ -> content_type
+                                );
+              res_headers= (match headers with
+                              | None -> r.res_headers
+                              | Some headers -> 
+                                  Http_headers.with_defaults
+                                    headers r.res_headers
+                           );
           })
 
 end

@@ -4,7 +4,7 @@
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
- * This program is free software; you can redistribute it and/or modify
+2 * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
@@ -49,12 +49,15 @@ module type REGCREATE =
     type options
 
     val send :
-        ?options:options ->
-          ?cookies:Eliom_services.cookie list ->
-            ?charset:string ->
-              ?code: int ->
-                sp:Eliom_sessions.server_params ->
-                  page -> Eliom_services.result_to_send Lwt.t
+      ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
+      sp:Eliom_sessions.server_params ->
+      page -> 
+      Eliom_services.result_to_send Lwt.t
 
   end
 
@@ -68,12 +71,15 @@ module type ELIOMREGSIG1 =
     type options
 
     val send :
-        ?options:options ->
-          ?cookies:Eliom_services.cookie list ->
-            ?charset:string ->
-              ?code: int ->
-                sp:Eliom_sessions.server_params ->
-                  page -> result_to_send Lwt.t
+      ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code: int ->
+      ?content_type:string ->
+      ?headers: Http_headers.t ->
+      sp:Eliom_sessions.server_params ->
+      page -> 
+      result_to_send Lwt.t
 
     val register :
         ?options:options ->
@@ -437,8 +443,10 @@ module MakeRegister = functor
 
         type options = Pages.options
 
-        let send ?options ?(cookies=[]) ?charset ?code ~sp (p, cl) =
-          Pages.send ?options ~cookies:(cookies@cl) ?charset ?code ~sp p
+        let send ?options ?(cookies=[]) ?charset ?code
+            ?content_type ?headers ~sp (p, cl) =
+          Pages.send ?options ~cookies:(cookies@cl) ?charset ?code
+            ?content_type ?headers ~sp p
 
         let register_aux
             ?options

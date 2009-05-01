@@ -173,7 +173,7 @@ type datacookiestablecontent =
     Eliommod_sessiongroups.sessgrp option ref
 type datacookiestable = datacookiestablecontent SessionCookies.t
 type result_to_send =
-    EliomResult of Ocsigen_http_frame.result
+  | EliomResult of Ocsigen_http_frame.result
   | EliomExn of (exn list * cookie list)
 type page_table_key = {
   key_state : att_key * att_key;

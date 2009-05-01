@@ -436,7 +436,7 @@ val preapply :
 (** {2 Using your own error pages} *)
 
 
-(** allows to use your own error pages
+(** Allows to use your own error pages
    (404, or any exception during page generation).
 
     {e Warning: If you use this function after the initialisation phase,
@@ -444,8 +444,8 @@ val preapply :
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val set_exn_handler :
-    ?sp:Eliom_sessions.server_params ->
-      (Eliom_sessions.server_params -> exn -> result_to_send Lwt.t) -> unit
+  ?sp:Eliom_sessions.server_params ->
+  (Eliom_sessions.server_params -> exn -> result_to_send Lwt.t) -> unit
 
 
 
