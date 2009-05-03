@@ -90,7 +90,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	# To be readded when they are translated in normal syntax
 	#	$(DOCPREF)xmlp4/newocaml/simplexmlparser.mli 			\
 	#	$(DOCPREF)xmlp4/newocaml/xhtmltypes.ml
-METAS = META.global META META.eliom_examples META.eliom_examples.global
+METAS = files/META files/META.ocsigen files/META.eliom_examples files/META.eliom_examples.global
 
 
 INSTALL = install
@@ -132,7 +132,7 @@ CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi		\
 	http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi		\
 	baselib/ocsigen_stream.cmi baselib/ocsigen_messages.cmi		\
-	extensions/ocsigen_LocalFiles.cmi META
+	extensions/ocsigen_LocalFiles.cmi files/META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo	\
 	examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 
@@ -270,27 +270,34 @@ doc:
 
 doc/index.html: doc
 
-META.global: files/META.in
+files/META: files/META.in VERSION
 	sed $(SED_COMMAND_FOR_META) < $< > $@
 
-META: files/META.in
+files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
+	-ln -sf ../eliom/eliom_obrowser.cmo extensions
+	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cma extensions
+	-ln -sf ../xmlp4/xhtmlpretty.cma extensions
+	-ln -sf ../xmlp4/xhtmlsyntax.cma extensions
+	-ln -sf ../eliom/eliom.cmxa extensions
+	-ln -sf ../eliom/eliom_duce.cmxa extensions
+	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cmxa extensions
+	-ln -sf ../xmlp4/xhtmlpretty.cmxa extensions
+	-ln -sf ../xmlp4/xhtmlsyntax.cmxa extensions
+	-ln -sf ../eliom/eliom.cmxs extensions
+	-ln -sf ../eliom/eliom_duce.cmxs extensions
+	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cmxs extensions
+	-ln -sf ../xmlp4/xhtmlpretty.cmxs extensions
+	-ln -sf ../xmlp4/xhtmlsyntax.cmxs extensions
 	echo directory = \"$(SRC)/extensions\" > $@
 	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< >> $@
+#	sed "s%\"xhtml\" (%\"xhtml\" (\n  directory = \"$(SRC)/xmlp4/ohl-xhtml/\"%g" >> $@
 
-#META.ocsigen_ext: files/META.ocsigen_ext.in
-#	-ln -sf ../eliom/eliom.cma extensions
-#	-ln -sf ../eliom/eliom_duce.cma extensions
-#	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< > $@
-
-#META.ocsigen_ext.global: files/META.ocsigen_ext.in
-#	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(EXTRALIBDIR)/extensions%g" < $< > $@
-
-META.eliom_examples: files/META.eliom_examples.in
+files/META.eliom_examples: files/META.eliom_examples.in VERSION
 	sed $(SED_COMMAND_FOR_META) -e "s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g" < $< > $@
 
-META.eliom_examples.global: files/META.eliom_examples.in
+files/META.eliom_examples.global: files/META.eliom_examples.in VERSION
 	sed $(SED_COMMAND_FOR_META) -e "s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g"< $< > $@
 
 $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
@@ -309,7 +316,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/extensions%g \
 	| sed s%_ELIOMINSTALLDIR_%$(SRC)/eliom%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
-	| sed s%_METADIR_%$(SRC)%g \
+	| sed s%_METADIR_%$(SRC)/files%g \
 	| sed s%_CAMLZIPNAME_%$(CAMLZIPNAME)%g \
 	| sed s%files/miniwiki%examples/miniwiki/files%g \
 	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
@@ -354,18 +361,14 @@ partialinstall:
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	$(MAKE) -C server install
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
-	mv META META.local
-	mv META.global META
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
-	mv META META.global
-	mv META.local META
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 #	$(INSTALL) -m 644 $(PLUGINSTOINSTALL) $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	[ ! -f extensions/ocsipersist-dbm/ocsidbm.opt ] || \
 	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)/extensions
 #	$(INSTALL) -m 644 META.ocsigen_ext.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
-	$(INSTALL) -m 644 META.eliom_examples.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
+	$(INSTALL) -m 644 files/META.eliom_examples.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
 
 docinstall: doc/index.html
 	mkdir -p $(TEMPROOT)$(DOCDIR)

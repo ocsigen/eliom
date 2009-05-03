@@ -100,7 +100,7 @@ Modify the config file to set for example port 8080 for you server.
 (and use http://localhost:8080)
 
 If you did not do make install, you can run for example
- CAML_LD_LIBRARY_PATH=server server/ocsigen -c ocsigen.conf.local
+CAML_LD_LIBRARY_PATH=server server/ocsigen -c ocsigen.conf.local
 that launch a server on port 8080 with user permissions on local directory
 (ocsigen.conf.local is a sample that may be overwritten by make. 
 Copy it if you want to modify it).
