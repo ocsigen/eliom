@@ -88,10 +88,10 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom_obrowser.cmo \
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) \
       eliom.cma $(DUCEMODBYTE)
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom_obrowser.cmo \
+opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) \
      eliom.cmxa $(CMXS3)
 
 
@@ -171,9 +171,6 @@ ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 # There is a bug with ocamlduce when -g is supplied
 bugdbg:
 	make DEBUG="NO" eliom_duce.cmo
-
-eliom_obrowser.cmo:
-	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser.ml
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
