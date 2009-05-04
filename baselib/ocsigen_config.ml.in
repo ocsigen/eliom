@@ -41,7 +41,8 @@ let builtin_packages =
     ["unix"; "threads"; "ssl";
      "lwt"; "lwt.preemptive"; "lwt.ssl"; "lwt.extra";
      "netstring"; "netsys"; "pcre"; "dynlink"; "findlib";
-     "ocsigen"; "ocsigen.server"]
+     "ocsigen"; "ocsigen.server"; 
+     "ocsigen.xhtml"; "camlp4.lib"]
 
 (* Server config: *)
 let (uploaddir : string option ref) = ref None
