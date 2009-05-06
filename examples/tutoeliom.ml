@@ -3859,8 +3859,9 @@ let create_suffixform ((suff, endsuff),i) =
     <:xmllist< <p>Write the suffix:
       $int_input ~input_type:`Text ~name:suff ()$ <br/>
       Write a string: $user_type_input
-         ~input_type:`Text ~name:endsuff 
-         (Ocsigen_extensions.string_of_url_path ~encode:false)$ <br/>
+      (Ocsigen_extensions.string_of_url_path ~encode:false)
+         ~input_type:`Text ~name:endsuff ()
+         $ <br/>
       Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 

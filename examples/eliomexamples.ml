@@ -557,8 +557,9 @@ let create_suffixform2 (suf1,(ii,ee)) =
     <:xmllist< <p>Write a string:
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
-      Write a string: $user_type_input ~input_type:`Text ~name:ee
-                         (Ocsigen_extensions.string_of_url_path ~encode:false)$ <br/>
+      Write a string: $user_type_input
+      (Ocsigen_extensions.string_of_url_path ~encode:false)
+      ~input_type:`Text ~name:ee ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform2 = register_new_service ["suffixform2"] unit

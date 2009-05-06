@@ -453,10 +453,10 @@ module type ELIOMFORMSIG =
              ?value:string -> unit -> input_elt
 (** Creates an [<input>] tag for a string *)
 
-    val user_type_input :
+    val user_type_input : ('a -> string) ->
         ?a:input_attrib_t -> input_type:input_type_t ->
           ?name:[< 'a setoneradio ] param_name ->
-            ?value:'a -> ('a -> string) -> input_elt
+            ?value:'a -> unit -> input_elt
 (** Creates an [<input>] tag for a user type *)
 
     val raw_input :
@@ -514,10 +514,10 @@ module type ELIOMFORMSIG =
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type string *)
 
-    val user_type_image_input :
+    val user_type_image_input : ('a -> string) ->
         ?a:input_attrib_t ->
           name:[< ('a * coordinates) oneradio ] param_name -> value:'a ->
-            ?src:uri -> ('a -> string) -> input_elt
+            ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of user defined type *)
 
@@ -582,10 +582,10 @@ module type ELIOMFORMSIG =
    The service must declare a parameter of type [set].
  *)
 
-    val user_type_checkbox :
+    val user_type_checkbox : ('a -> string) ->
         ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of 'a ] param_name -> value:'a ->
-            ('a -> string) -> input_elt
+            unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have a "user type" value.
    Thus you can do several checkboxes with the same name
    (and different values).
@@ -632,10 +632,10 @@ module type ELIOMFORMSIG =
              value:float -> unit -> input_elt
 (** Creates a radio [<input>] tag with float content *)
 
-    val user_type_radio :
+    val user_type_radio : ('a -> string) ->
         ?a:input_attrib_t -> ?checked:bool ->
            name:[ `Radio of 'a ] param_name ->
-             value:'a -> ('a -> string) -> input_elt
+             value:'a -> unit -> input_elt
 (** Creates a radio [<input>] tag with user_type content *)
 
     val raw_radio :
@@ -674,9 +674,9 @@ module type ELIOMFORMSIG =
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with float content *)
 
-    val user_type_button :
+    val user_type_button : ('a -> string) ->
         ?a:button_attrib_t ->
-          name:[< 'a setone ] param_name -> value:'a -> ('a -> string) ->
+          name:[< 'a setone ] param_name -> value:'a ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with user_type content *)
 
@@ -778,12 +778,11 @@ module type ELIOMFORMSIG =
                 select_elt
 (** Creates a [<select>] tag for string values. *)
 
-    val user_type_select :
+    val user_type_select : ('a -> string) ->
         ?a:select_attrib_t ->
           name:[< `One of 'a ] param_name ->
             'a select_opt ->
               'a select_opt list ->
-                ('a -> string) ->
                   select_elt
 (** Creates a [<select>] tag for user type values. *)
 
@@ -836,12 +835,12 @@ module type ELIOMFORMSIG =
 (** Creates a [<select>] tag for string values. *)
 
     val user_type_multiple_select :
-        ?a:select_attrib_t ->
-          name:[< `Set of 'a ] param_name ->
-            'a select_opt ->
-              'a select_opt list ->
-                ('a -> string) ->
-                  select_elt
+      ('a -> string) ->
+      ?a:select_attrib_t ->
+      name:[< `Set of 'a ] param_name ->
+      'a select_opt ->
+      'a select_opt list ->
+      select_elt
 (** Creates a [<select>] tag for user type values. *)
 
 
@@ -1497,8 +1496,8 @@ module MakeForms = functor
           ?name ?value () =
         gen_input ?a ~input_type ?value ?name id
 
-      let user_type_input ?a ~input_type
-          ?name ?value string_of =
+      let user_type_input string_of ?a ~input_type
+          ?name ?value () =
         gen_input ?a ~input_type ?value ?name string_of
 
       let raw_input ?a ~input_type ?name ?value () =
@@ -1544,7 +1543,7 @@ module MakeForms = functor
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src id
 
-      let user_type_image_input ?a ~name ~value ?src string_of =
+      let user_type_image_input string_of ?a ~name ~value ?src () =
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src string_of
 
@@ -1581,7 +1580,7 @@ module MakeForms = functor
         Pages.make_input ?a ?checked ~typ:Pages.checkbox
           ~name:(string_of_param_name name) ~value ()
 
-      let user_type_checkbox ?a ?checked ~name ~value string_of =
+      let user_type_checkbox string_of ?a ?checked ~name ~value () =
         Pages.make_input ?a ?checked ~typ:Pages.checkbox
           ~name:(string_of_param_name name) ~value:(string_of value) ()
 
@@ -1615,7 +1614,7 @@ module MakeForms = functor
           ?a ?checked ~typ:Pages.radio
           ~name:(string_of_param_name name) ~value:(string_of_float value) ()
 
-      let user_type_radio ?a ?checked ~name ~value string_of =
+      let user_type_radio string_of ?a ?checked ~name ~value () =
         Pages.make_input
           ?a ?checked ~typ:Pages.radio
           ~name:(string_of_param_name name) ~value:(string_of value) ()
@@ -1645,7 +1644,7 @@ module MakeForms = functor
         Pages.make_button ?a ~button_type:Pages.buttonsubmit
           ~name:(string_of_param_name name) ~value:(string_of_float value) c
 
-      let user_type_button ?a ~name ~value string_of c =
+      let user_type_button string_of ?a ~name ~value c =
         Pages.make_button ?a ~button_type:Pages.buttonsubmit
           ~name:(string_of_param_name name) ~value:(string_of value) c
 
@@ -1780,8 +1779,8 @@ module MakeForms = functor
         gen_select ?a ~multiple:false
           ~name:(string_of_param_name name) fl ol id
 
-      let user_type_select ?a ~name (fl : 'a select_opt)
-          (ol : 'a select_opt list) string_of =
+      let user_type_select string_of ?a ~name (fl : 'a select_opt)
+          (ol : 'a select_opt list) =
         gen_select ?a ~multiple:false
           ~name:(string_of_param_name name) fl ol string_of
 
@@ -1816,9 +1815,9 @@ module MakeForms = functor
         gen_select ?a ~multiple:true
           ~name:(string_of_param_name name) fl ol id
 
-      let user_type_multiple_select ?a
+      let user_type_multiple_select string_of ?a
           ~name (fl : 'a select_opt)
-          (ol : 'a select_opt list) string_of =
+          (ol : 'a select_opt list) =
         gen_select ?a ~multiple:true
           ~name:(string_of_param_name name) fl ol string_of
 

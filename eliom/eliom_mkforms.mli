@@ -149,6 +149,8 @@ module type FORMCREATE =
 module type ELIOMFORMSIG =
   sig
 
+
+
     type form_content_elt
     type form_content_elt_list
     type form_elt
@@ -167,11 +169,11 @@ module type ELIOMFORMSIG =
     type select_elt
     type select_content_elt
     type select_content_elt_list
+    type option_elt
+    type option_elt_list
     type button_elt
     type button_content_elt
     type button_content_elt_list
-    type option_elt
-    type option_elt_list
 
     type a_attrib_t
     type form_attrib_t
@@ -266,7 +268,9 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
-      a_content_elt_list -> 'get -> a_elt
+      a_content_elt_list -> 
+      'get -> 
+      a_elt
 (** [a service sp cont ()] creates a link to [service].
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -348,7 +352,9 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_get_na_params:bool ->
-      ('pn -> form_content_elt_list) -> 'get -> form_elt
+      ('pn -> form_content_elt_list) -> 
+      'get -> 
+      form_elt
 (** [post_form service sp formgen] creates a POST form to [service].
    The last parameter is for GET parameters (as in the function [a]).
  *)
@@ -368,7 +374,6 @@ module type ELIOMFORMSIG =
       'get -> 
       form_elt Lwt.t
 (** The same but taking a cooperative function. *)
-
 
 
 (** {2 Form widgets} *)
@@ -404,10 +409,10 @@ module type ELIOMFORMSIG =
              ?value:string -> unit -> input_elt
 (** Creates an [<input>] tag for a string *)
 
-    val user_type_input :
+    val user_type_input : ('a -> string) ->
         ?a:input_attrib_t -> input_type:input_type_t ->
           ?name:[< 'a setoneradio ] param_name ->
-            ?value:'a -> ('a -> string) -> input_elt
+            ?value:'a -> unit -> input_elt
 (** Creates an [<input>] tag for a user type *)
 
     val raw_input :
@@ -465,10 +470,10 @@ module type ELIOMFORMSIG =
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type string *)
 
-    val user_type_image_input :
+    val user_type_image_input : ('a -> string) ->
         ?a:input_attrib_t ->
           name:[< ('a * coordinates) oneradio ] param_name -> value:'a ->
-            ?src:uri -> ('a -> string) -> input_elt
+            ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of user defined type *)
 
@@ -533,10 +538,10 @@ module type ELIOMFORMSIG =
    The service must declare a parameter of type [set].
  *)
 
-    val user_type_checkbox :
+    val user_type_checkbox : ('a -> string) ->
         ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of 'a ] param_name -> value:'a ->
-            ('a -> string) -> input_elt
+            unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have a "user type" value.
    Thus you can do several checkboxes with the same name
    (and different values).
@@ -557,9 +562,7 @@ module type ELIOMFORMSIG =
         ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Radio of string ] param_name ->
             value:string -> unit -> input_elt
-(** Creates a radio [<input>] tag with string content.
-    For services taking radio buttons, use [Eliom_parameters.radio].
-*)
+(** Creates a radio [<input>] tag with string content *)
 
     val int_radio :
         ?a:input_attrib_t -> ?checked:bool ->
@@ -585,10 +588,10 @@ module type ELIOMFORMSIG =
              value:float -> unit -> input_elt
 (** Creates a radio [<input>] tag with float content *)
 
-    val user_type_radio :
+    val user_type_radio : ('a -> string) ->
         ?a:input_attrib_t -> ?checked:bool ->
            name:[ `Radio of 'a ] param_name ->
-             value:'a -> ('a -> string) -> input_elt
+             value:'a -> unit -> input_elt
 (** Creates a radio [<input>] tag with user_type content *)
 
     val raw_radio :
@@ -627,9 +630,9 @@ module type ELIOMFORMSIG =
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with float content *)
 
-    val user_type_button :
+    val user_type_button : ('a -> string) ->
         ?a:button_attrib_t ->
-          name:[< 'a setone ] param_name -> value:'a -> ('a -> string) ->
+          name:[< 'a setone ] param_name -> value:'a ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with user_type content *)
 
@@ -731,12 +734,11 @@ module type ELIOMFORMSIG =
                 select_elt
 (** Creates a [<select>] tag for string values. *)
 
-    val user_type_select :
+    val user_type_select : ('a -> string) ->
         ?a:select_attrib_t ->
           name:[< `One of 'a ] param_name ->
             'a select_opt ->
               'a select_opt list ->
-                ('a -> string) ->
                   select_elt
 (** Creates a [<select>] tag for user type values. *)
 
@@ -789,16 +791,17 @@ module type ELIOMFORMSIG =
 (** Creates a [<select>] tag for string values. *)
 
     val user_type_multiple_select :
-        ?a:select_attrib_t ->
-          name:[< `Set of 'a ] param_name ->
-            'a select_opt ->
-              'a select_opt list ->
-                ('a -> string) ->
-                  select_elt
+      ('a -> string) ->
+      ?a:select_attrib_t ->
+      name:[< `Set of 'a ] param_name ->
+      'a select_opt ->
+      'a select_opt list ->
+      select_elt
 (** Creates a [<select>] tag for user type values. *)
 
 
-  end
+end
+
 
 
 module MakeForms : functor (Pages: FORMCREATE) -> ELIOMFORMSIG with
