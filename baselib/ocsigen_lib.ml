@@ -21,7 +21,7 @@ exception Input_is_too_large
 exception Ocsigen_Bad_Request
 exception Ocsigen_Request_too_long
 
-let id x = x
+external id : 'a -> 'a = "%identity"
 let (>>=) = Lwt.bind
 
 let comp f g x = f (g x)
