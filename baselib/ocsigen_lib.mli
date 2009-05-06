@@ -1,7 +1,7 @@
 exception Input_is_too_large
 exception Ocsigen_Bad_Request
 exception Ocsigen_Request_too_long
-val id : 'a -> 'a
+external id : 'a -> 'a = "%identity"
 val comp : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
 val list_remove_first_if_any : 'a -> 'a list -> 'a list
 val list_remove_first_if_any_q : 'a -> 'a list -> 'a list
