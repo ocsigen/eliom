@@ -81,6 +81,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)baselib/ocsigen_stream.mli				\
 	$(DOCPREF)eliom/eliom_tools_common.mli			 	\
 	$(DOCPREF)eliom/eliom_tools.mli					\
+	$(DOCPREF)eliom/eliom_obrowser.mli					\
 	$(DOCPREF)extensions/ocsipersist.mli				\
 	$(DOCPREF)extensions/authbasic.mli				\
 	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
@@ -109,6 +110,7 @@ PLUGINSCMOTOINSTALL = \
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
        eliom/eliom_tools_common.cmi eliom/eliom_tools.cmi \
+       eliom/eliom_obrowser.cmi \
        $(DUCECMI) \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
@@ -184,7 +186,7 @@ endif
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/eliom_obrowser.cmo eliom/eliom_obrowser.cmi eliom/eliom_obrowser.js
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/eliom_obrowser_client.cmo eliom/eliom_obrowser_client.cmi eliom/eliom_obrowser.js
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
@@ -276,7 +278,7 @@ files/META: files/META.in VERSION
 files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
-	-ln -sf ../eliom/eliom_obrowser.cmo extensions
+	-ln -sf ../eliom/eliom_obrowser_client.cmo extensions
 	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cma extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cma extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cma extensions

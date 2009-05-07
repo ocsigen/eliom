@@ -1,29 +1,12 @@
-open Js
+let jsmarshal v =
+  let s = Marshal.to_string v [] in
+  let rec pp i =
+    if i < 0 then ""
+    else if i = 0 then Printf.sprintf "0x%02X" (Char.code s.[i])
+    else pp (pred i) ^ "," ^ Printf.sprintf "0x%02X" (Char.code s.[i])
+  in "[" ^ pp (String.length s - 1) ^ "]"
 
-let register_closure : int -> (unit -> unit) -> unit =
-  match js_external "caml_register_closure" 2 with
-    | None -> failwith "unbound external"
-    | Some f -> f
+let fresh_id = 
+  let c = ref 0 in
+  fun () -> c := !c+1; "id"^string_of_int !c
 
-let get_closure_arg : unit -> Obj.t =
-  match js_external "caml_get_closure_arg" 1 with
-    | None -> failwith "unbound external"
-    | Some f -> f
-
-(* WAS:
-external register_closure
-  : int -> (unit -> unit) -> unit
-  = "caml_register_closure"
-
-external get_closure_arg
-  : unit -> 'a
-  = "caml_get_closure_arg"
-*)
-
-let register_closure id f =
-  register_closure id (fun () ->
-                         try
-                           ignore (f (Obj.obj (get_closure_arg ()))) ;
-                           Thread.exit ()
-                         with _ ->
-                           Thread.exit ())

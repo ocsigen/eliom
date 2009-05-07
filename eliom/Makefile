@@ -12,7 +12,8 @@ FILES:= error_pages.ml \
 	eliommod.ml eliom_sessions.ml eliom_extensions.ml\
         eliom_parameters.ml eliom_services.ml \
         eliom_mkforms.ml eliom_mkreg.ml eliom_predefmod.ml \
-        eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml
+        eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
+	eliom_obrowser.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
 
@@ -88,10 +89,10 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom_obrowser.cmo \
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom_obrowser_client.cmo \
       eliom.cma $(DUCEMODBYTE)
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom_obrowser.cmo \
+opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom_obrowser_client.cmo \
      eliom.cmxa $(CMXS3)
 
 
@@ -172,8 +173,8 @@ ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 bugdbg:
 	make DEBUG="NO" eliom_duce.cmo
 
-eliom_obrowser.cmo:
-	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser.ml
+eliom_obrowser_client.cmo:
+	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser_client.ml
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
