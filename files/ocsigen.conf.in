@@ -12,6 +12,7 @@
     <user>_OCSIGENUSER_</user>
     <group>_OCSIGENGROUP_</group>
     <!-- <commandpipe>_COMMANDPIPE_</commandpipe> -->
+    <!-- <mimefile>_MIMEFILE_</mimefile> -->
 
     <charset>utf-8</charset>
 

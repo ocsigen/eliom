@@ -315,6 +315,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	| sed s%_OCSIGENGROUP_%%g \
 	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
 	| sed s%_COMMANDPIPE_%$(SRC)/var/run/ocsigen_command%g \
+	| sed s%_MIMEFILE_%$(SRC)/files/mime.types%g \
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/extensions%g \
 	| sed s%_ELIOMINSTALLDIR_%$(SRC)/eliom%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
@@ -324,6 +325,8 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
 	| sed s%\<\!--\ \<commandpipe%\<commandpipe%g \
 	| sed s%\</commandpipe\>%\</commandpipe\>\ \<\!--%g \
+	| sed s%\<\!--\ \<mimefile%\<mimefile%g \
+	| sed s%\</mimefile\>%\</mimefile\>\ \<\!--%g \
 	| sed s%ocsipersist-dbm.cma%ocsipersist-dbm/ocsipersist-dbm.cma%g \
 	| sed s%store\ dir=\"$(SRC)/var/lib\"%store\ dir=\"$(SRC)/var/lib/ocsipersist\"%g \
 	> $(OCSIGENNAME).conf.local
@@ -404,6 +407,7 @@ installnodoc: partialinstall
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
 	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
 	| sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
+	| sed s%_MIMEFILE_%$(CONFIGDIR)/mime.types%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_ELIOMINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
