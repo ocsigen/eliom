@@ -11,7 +11,7 @@ CMXS=
 endif
 
 
-LIB = -thread -package lwt,netstring $(LIBDIRS2)
+LIB = -thread -package lwt,netstring,dbm $(LIBDIRS2)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
@@ -53,10 +53,10 @@ ocsipersist-dbm.cmxs: ocsipersist.cmx
 	cp -f ocsipersist-dbm.cmxs ..
 
 ocsidbm: ocsidbm.cmo
-	$(CAMLC) -package lwt -o $@ unix.cma dbm.cma lwt.cma $<
+	$(CAMLC) -linkpkg -o $@ $<
 
 ocsidbm.opt: ocsidbm.cmx
-	$(CAMLOPT) -package lwt -o $@ unix.cmxa dbm.cmxa lwt.cmxa $<
+	$(CAMLOPT) -linkpkg -o $@ $<
 
 ocsipersist.mli:
 	cp -f ../ocsipersist.mli .
@@ -83,5 +83,3 @@ depend: ocsipersist.mli
 FORCE:
 
 -include .depend
-
-
