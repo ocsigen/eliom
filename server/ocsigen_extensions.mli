@@ -465,10 +465,8 @@ val set_hosts : (virtual_hosts * config_info * extension2) list -> unit
 
 val get_hosts : unit -> (virtual_hosts * config_info * extension2) list
 
-val do_for_site_matching :
-    string option ->
-    int ->
-    request_info -> Ocsigen_http_frame.result Lwt.t
+val serve_request :
+  request_info -> Ocsigen_http_frame.result Lwt.t
 
 (** Profiling *)
 val get_number_of_connected : unit -> int

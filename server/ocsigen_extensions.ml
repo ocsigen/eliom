@@ -799,7 +799,10 @@ let string_of_host h =
 
 
 
-let do_for_site_matching host port ri =
+let serve_request ri =
+
+  let host = ri.ri_host in
+  let port = ri.ri_server_port in
 
   let conn = client_connection ri.ri_client in
   let awake =

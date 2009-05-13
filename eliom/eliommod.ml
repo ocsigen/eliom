@@ -376,7 +376,8 @@ let parse_config hostpattern site_dir =
         Eliommod_extensions.register_eliom_extension 
           default_module_action;
         (match parse_module_attrs None atts with
-          | Some file_or_name -> load_eliom_module sitedata file_or_name content
+          | Some file_or_name -> 
+              load_eliom_module sitedata file_or_name content
           | _ -> ());
         if Eliommod_extensions.get_eliom_extension ()
           != default_module_action
@@ -394,7 +395,8 @@ let parse_config hostpattern site_dir =
   Thus we can have one site in several cmo (with one session).
  *)
         (match parse_module_attrs None atts with
-          | Some file_or_name -> load_eliom_module sitedata file_or_name content
+          | Some file_or_name -> 
+              load_eliom_module sitedata file_or_name content
           | _ -> ());
         (* We must generate the page only if it is the first <eliom> tag 
            for that site: *)

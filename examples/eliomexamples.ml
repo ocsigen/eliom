@@ -30,6 +30,44 @@ open Eliom_parameters
 open Eliom_sessions
 open Lwt
 
+(* doing requests *)
+let extreq = 
+  register_new_service
+    ~path:["extreq"] 
+    ~get_params:unit
+    (fun sp () () ->
+       Ocsigen_http_client.get "ocsigen.org" "/" () >>= fun frame ->
+       (match frame.Ocsigen_http_frame.content with
+         | None -> Lwt.return ""
+         | Some stream -> Ocsigen_stream.string_of_stream (Ocsigen_stream.get stream)) >>= fun s ->
+       (* Here use an XML parser, 
+          or send the stream directly using an appropriate Eliom_mkreg module *)
+       return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata s]])))
+
+let servreq = 
+  register_new_service
+    ~path:["servreq"] 
+    ~get_params:unit
+    (fun sp () () ->
+       let ri = Eliom_sessions.get_ri sp in
+       let ri = Ocsigen_extensions.ri_of_url "tuto/" ri in
+       Ocsigen_extensions.serve_request ri >>= fun result ->
+       let stream = fst result.Ocsigen_http_frame.res_stream in
+       Ocsigen_stream.string_of_stream (Ocsigen_stream.get stream) >>= fun s ->
+       (* Here use an XML parser, 
+          or send the stream directly using an appropriate Eliom_mkreg module *)
+       return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata s]])))
+
+
+
+
+
 (* Customizing HTTP headers *)
 let headers = 
   register_new_service
@@ -1065,6 +1103,9 @@ let mainpage = register_new_service ["tests"] unit
            ~sp 
            [pcdata "Static file with GET parameters"]
            (["ocsigen5.png"], [("aa", "lmk"); ("bb", "4")]); br ();
+
+         a extreq sp [pcdata "External request"] (); br ();
+         a servreq sp [pcdata "Server request"] (); br ();
 
 
 

@@ -199,7 +199,8 @@ and find_post_params_multipart_form_data body_gen ctparams filenames =
 
 
 (* reading the request *)
-let get_request_infos meth clientproto url http_frame filenames sockaddr port receiver =
+let get_request_infos
+    meth clientproto url http_frame filenames sockaddr port receiver =
 
   Lwt.catch
     (fun () ->
@@ -588,14 +589,14 @@ let service receiver sender_slot request meth url port sockaddr =
                 ri.ri_user_agent
                 ri.ri_url_string);
 
-           let send_aux = send sender_slot ~clientproto ~head
-             ~sender:Ocsigen_http_com.default_sender in
+           let send_aux = 
+             send sender_slot ~clientproto ~head
+               ~sender:Ocsigen_http_com.default_sender
+           in
 
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind
-             (fun () ->
-                Ocsigen_extensions.do_for_site_matching
-                  ri.ri_host ri.ri_server_port ri)
+             (fun () -> Ocsigen_extensions.serve_request ri)
              (fun res ->
                 finish_request ();
                 handle_result_frame ri res send_aux
