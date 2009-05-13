@@ -498,11 +498,23 @@ val set_persistent_data_session_cookie_exp_date :
 
 (** {3 Exceptions and fallbacks} *)
 
-(** returns the exceptions that have been sent by the previous services
-   to their fallback, if any. Keep an eye on these exception to know what
-   succeeded before that service was called (failed connection, timeout ...)
+(** returns a table in which you can store all the data you want during a
+    request. It can also be used to send information after an action.
+    Keep an eye on this information to know what
+    succeeded before the current service was called
+    (failed connection, timeout ...)
+    The table is created at the beginning of the request.
  *)
-val get_exn : sp:server_params -> exn list
+val get_request_cache : sp:server_params -> Polytables.t
+
+(** returns [true] if the coservice called has not been found.
+    In that case, the current service is the fallback.
+*)
+val get_link_too_old : sp:server_params -> bool
+
+(** returns the list of names of service sessions expired for the current 
+    request. *)
+val get_expired_service_sessions : sp:server_params -> string list
 
 (** returns the HTTP error code sent by the Ocsigen extension
    that tried to answer to the request before Eliom.
@@ -662,6 +674,10 @@ val remove_persistent_session_data :
 
     By default will close both secure and unsecure sessions, but
     if [~secure] is present.
+
+    Warning: you may also want to remove some data from the polymorphic
+    request data table when closing a session 
+    (See {!Eliom_sessions.get_request_data}).
 *)
 val close_session :
   ?close_group:bool ->

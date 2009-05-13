@@ -1934,14 +1934,13 @@ module Actionreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = exn list
+  type page = unit
 
   type options = [ `Reload | `NoReload ]
 
   let send
       ?(options = `Reload) ?(cookies=[]) ?charset ?(code = 204)
-      ?content_type ?headers ~sp content =
-    let exnlist = content in
+      ?content_type ?headers ~sp () =
     let cookies_set_by_page = cookies in
     if options = `NoReload
     then
@@ -2032,10 +2031,6 @@ module Actionreg_ = struct
                            ri_get_params =
                             lazy si.Eliom_common.si_other_get_params;
                            ri_cookies= lazy ric;
-                           ri_extension_info= exnlist
-(* @ri.ri_extension_info *)
-(*VVV I do not keep the old exceptions any more,
-  otherwise no way to remove them. *)
                         }
                       in
                       Ocsigen_extensions.serve_request 
@@ -2054,7 +2049,6 @@ module Actionreg_ = struct
                             lazy si.Eliom_common.si_other_get_params;
                            ri_method = Ocsigen_http_frame.Http_header.GET;
                            ri_cookies= lazy ric;
-                           ri_extension_info= exnlist
                         }
                       in
                       Ocsigen_extensions.serve_request
@@ -2071,7 +2065,6 @@ Warning: is it possible to have POST method but no POST parameter?
                            ri_post_params = lazy (return []);
                            ri_method = Ocsigen_http_frame.Http_header.GET;
                            ri_cookies= lazy ric;
-                           ri_extension_info= exnlist
                         }
                       in
                       Ocsigen_extensions.serve_request

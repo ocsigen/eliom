@@ -2152,8 +2152,7 @@ let disconnect_action =
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-      Lwt.return [])
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
 
 
 (* -------------------------------------------------------- *)
@@ -2200,7 +2199,7 @@ let connect_example3_handler sp () () =
 let connect_action_handler sp () login =
   Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
   Eliom_sessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
-  return []
+  return ()
 
 
 (* -------------------------------------------------------- *)
@@ -2213,7 +2212,7 @@ let () =
       <p>$a Tutoeliom.connect_example3 sp <:xmllist< See these pages >> ()$.</p>
 
      <p>
-      Note that actions return a list (here empty).
+      Note that actions return <code>()</code>.
       $a ~fragment:"p3infofallbacks"
          ~service:tutocur3
          ~sp
@@ -2783,16 +2782,16 @@ let disconnect_action =
     ~name:"disconnect4"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-      return [])
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
 
 let disconnect_box sp s =
   Eliom_predefmod.Xhtml.post_form disconnect_action sp
     (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
-
-exception Bad_user
+let bad_user_key = Polytables.make_key ()
+let get_bad_user table = 
+  try Polytables.get ~table ~key:bad_user_key with Not_found -> false
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -2804,10 +2803,7 @@ let login_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      let exnlist = Eliom_sessions.get_exn sp in
-      (* If exnlist is not empty, something went wrong
-         during an action. We write an error message: *)
-      [p (if List.mem Bad_user exnlist
+      [p (if get_bad_user (Eliom_sessions.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -2847,11 +2843,9 @@ let persist_session_example_handler sp () () =
 let persist_session_connect_action_handler sp () login =
   Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
-  then begin
-    Eliom_sessions.set_persistent_session_data (*zap* *) ~session_name (* *zap*) ~table:my_persistent_table ~sp login >>= fun () ->
-    return []
-  end
-  else return [Bad_user]
+  then
+    Eliom_sessions.set_persistent_session_data (*zap* *) ~session_name (* *zap*) ~table:my_persistent_table ~sp login
+  else ((*zap* *)Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;(* *zap*)return ())
 
 
 (* -------------------------------------------------------- *)
@@ -2934,8 +2928,7 @@ let disconnect_action =
     ~name:"disconnect5"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-      Lwt.return [])
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
 
 
 (* -------------------------------------------------------- *)
@@ -2982,7 +2975,7 @@ let connect_example5_handler sp () () =
 let connect_action_handler sp () login =
   Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
   Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login;
-  return []
+  return ()
 
 
 (* -------------------------------------------------------- *)
@@ -3041,24 +3034,36 @@ Eliom_duce.Xhtml.a
 
     <h4 id="p3infofallbacks">Giving information to fallbacks</h4>
 
-    <p>Fallbacks have access to some information about what succeeded before
-    they were called. Get this information using
-     $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_exn sp" ]] [version;"Eliom_sessions.html"]$; That function returns a list of exceptions.
-    That list contains $a ~fragment:"EXCEPTIONEliom_Link_too_old" ~service:senddoc ~sp [code [pcdata "Eliom_common.Eliom_Link_too_old" ]] [version;"Eliom_common.html"]$ if the coservice
-    was not found, and $a ~fragment:"EXCEPTIONEliom_Service_session_expired" ~service:senddoc ~sp [code [pcdata "Eliom_common.Eliom_Service_session_expired" ]] [version;"Eliom_common.html"]$ if the "service session" has expired.
+    <p>
+    The function
+    $a ~fragment:"VALget_link_too_old" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_link_too_old" ]] [version;"Eliom_sessions.html"]$
+    returns <code>true</code> if the coservice called has not been found.
+    In that case, the current service is the fallback.
+  </p>
+  <p>
+    The function
+    $a ~fragment:"VALget_expired_service_sessions" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_expired_service_sessions" ]] [version;"Eliom_sessions.html"]$
+    returns returns the list of names of service sessions expired 
+    for the current request.
+    </p>
+    <p>It is also possible to send other information to fallback,
+    about what succeeded before they were called. 
+    Put this information in the <em>request cache</em>.
+    The request cache is a polymorphic table returned by
+     $a ~fragment:"VALget_request_cache" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_request_cache sp" ]] [version;"Eliom_sessions.html"]$.
+     See the module
+     $a ~service:senddoc ~sp [code [pcdata "Polytables" ]] [version;"Polytables.html"]$ to understand how to use it.
+     You may also want to use this table to cache some data during the 
+     duration of a request.
     </p>
     <p>
-    It is also possible to tell actions to send information to the page
-    generated after them. Just place exceptions in the list returned by the
-    action. These exceptions will also be accessible with
-    $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_exn" ]] [version;"Eliom_sessions.html"]$.
-    Here is the new version of the
+    Here is a new version of the
           $a ~fragment:"p2actions"
          ~service:tutocur2
          ~sp
-         [pcdata "example of session with actions:"]
+         [pcdata "example of session with actions,"]
          ()
-      $ by:
+      $ using the polymorphic request data table:
     </p>
 *html*)
 (************************************************************)
@@ -3090,8 +3095,7 @@ let disconnect_action =
     ~name:"disconnect6"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-      return [])
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
 
 let disconnect_box sp s =
   Eliom_predefmod.Xhtml.post_form disconnect_action sp
@@ -3099,7 +3103,9 @@ let disconnect_box sp s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 
-exception Bad_user
+let bad_user_key = Polytables.make_key ()
+let get_bad_user table = 
+  try Polytables.get ~table ~key:bad_user_key with Not_found -> false
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -3111,10 +3117,7 @@ let login_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      let exnlist = Eliom_sessions.get_exn sp in
-      (* If exnlist is not empty, something went wrong
-         during an action. We write an error message: *)
-      [p (if List.mem Bad_user exnlist
+      [p (if get_bad_user (Eliom_sessions.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -3154,9 +3157,13 @@ let connect_action_handler sp () login =
   if login = "toto" (* Check user and password :-) *)
   then begin
     Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login;
-    return []
+    return ()
   end
-  else return [Bad_user]
+  else begin
+    Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;
+    return ()
+  end
+
 
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
@@ -3205,9 +3212,7 @@ let _ = register disposable
       return
         (html
           (head (title (pcdata "")) [])
-          (body [p [(if List.mem
-                          Eliom_common.Eliom_Link_too_old
-                          (Eliom_sessions.get_exn sp)
+          (body [p [(if Eliom_sessions.get_link_too_old sp
                     then pcdata "Your link was outdated. I am the fallback. I just created a new disposable coservice. You can use it only twice."
                     else
                     pcdata "I just created a disposable coservice. You can use it only twice.");

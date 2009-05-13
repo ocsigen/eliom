@@ -404,12 +404,12 @@ let getact =
 let act = Action.register_new_coservice
     ~fallback:(preapply getact 22)
     ~get_params:(int "bip")
-    (fun _ g p -> v := g; return [])
+    (fun _ g p -> v := g; return ())
 
 (* action on GET non-attached coservice on GET coservice page *)
 let naact = Action.register_new_coservice'
     ~get_params:(int "bop")
-    (fun _ g p -> v := g; return [])
+    (fun _ g p -> v := g; return ())
 
 let naunit = Unit.register_new_coservice'
     ~get_params:(int "bap")

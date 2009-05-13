@@ -163,6 +163,10 @@ let make_naservice
 (*VVV (Some, Some) or (_, Some)? *)
           Ocsigen_messages.debug2
             "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
+          Polytables.set 
+            ri.request_info.ri_request_cache
+            Eliom_common.eliom_link_too_old
+            true;
           Eliom_common.change_request_info
             {ri with Ocsigen_extensions.request_info =
                 { ri.Ocsigen_extensions.request_info with
@@ -170,9 +174,6 @@ let make_naservice
                       lazy si.Eliom_common.si_other_get_params;
                     ri_post_params = lazy (return []);
                     ri_method = Ocsigen_http_frame.Http_header.GET;
-                    ri_extension_info =
-                      Eliom_common.Eliom_Link_too_old ::
-                      ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_extension_info
             }}
             si.Eliom_common.si_previous_extension_error
           >>=
@@ -185,6 +186,10 @@ let make_naservice
       | Eliom_common.Na_get' _ ->
           Ocsigen_messages.debug2
             "--Eliom: Link too old. I will try without non-attached parameters:";
+          Polytables.set 
+            ri.request_info.ri_request_cache
+            Eliom_common.eliom_link_too_old
+            true;
           Eliom_common.change_request_info
             {ri with request_info =
                 { ri.request_info with
@@ -192,9 +197,6 @@ let make_naservice
                       lazy si.Eliom_common.si_other_get_params;
                     ri_post_params = lazy (return []);
                     ri_method = Ocsigen_http_frame.Http_header.GET;
-                    ri_extension_info =
-                      Eliom_common.Eliom_Link_too_old::
-                        ri.request_info.ri_extension_info
                 }
            }
             si.Eliom_common.si_previous_extension_error

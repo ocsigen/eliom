@@ -39,12 +39,7 @@ type na_key =
 
 
 exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
-exception Eliom_Link_too_old (** The coservice does not exist any more *)
 exception Eliom_Session_expired
-exception Eliom_Service_session_expired of (string list)
-    (** The service session cookies does not exist any more.
-        The string lists are the list of names of expired sessions
-     *)
 exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registration of string
@@ -55,6 +50,16 @@ exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
 
 exception Eliom_404
+
+let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
+(** The coservice does not exist any more *)
+
+let eliom_service_session_expired : (string list) Polytables.key = 
+  Polytables.make_key ()
+(** If present in request data,  means that
+    the service session cookies does not exist any more.
+    The string lists are the list of names of expired sessions
+*)
 
 
 (*****************************************************************************)

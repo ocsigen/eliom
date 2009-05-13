@@ -384,15 +384,16 @@ let get_page
                          *)
                         Ocsigen_messages.debug2
                           "--Eliom: Link to old. I will try without POST parameters:";
+                        Polytables.set 
+                          ri.request_info.ri_request_cache
+                          Eliom_common.eliom_link_too_old
+                          true;
                         fail (Eliom_common.Eliom_retry_with
                                 ({ri with request_info =
                                      { ri.request_info with
                                          ri_post_params = lazy (return []);
                                          ri_method =
                                            Ocsigen_http_frame.Http_header.GET;
-                                         ri_extension_info =
-                                           Eliom_common.Eliom_Link_too_old ::
-                                             ri.request_info.ri_extension_info
                                 }},
                                  {si with
                                   Eliom_common.si_nonatt_info=
@@ -410,6 +411,10 @@ let get_page
                          *)
                         Ocsigen_messages.debug2
                           "--Eliom: Link to old. I will try without GET state parameters and POST parameters:";
+                        Polytables.set 
+                          ri.request_info.ri_request_cache
+                          Eliom_common.eliom_link_too_old
+                          true;
                         fail (Eliom_common.Eliom_retry_with
                                 ({ri with request_info =
                                      { ri.request_info with
@@ -418,9 +423,6 @@ let get_page
                                          ri_post_params = lazy (return []);
                                          ri_method =
                                            Ocsigen_http_frame.Http_header.GET;
-                                         ri_extension_info=
-                                           Eliom_common.Eliom_Link_too_old::
-                                             ri.request_info.ri_extension_info
                                      }
                                 },
                                  {si with

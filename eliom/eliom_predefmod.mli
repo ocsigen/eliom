@@ -801,16 +801,15 @@ module Text : Eliom_mkreg.ELIOMREGSIG with type page = string * string
     then the page corresponding to the URL (without POST parameters
     or non-attached parameters or coservice parameters) is sent to the browser.
 
-   Actions return a list of exceptions.
-   You may use this to give information to the handler that will be called
-   to reload the page.
-   Use {!Eliom_sessions.get_exn} to access these exceptions from this handler.
+    If you want to give information to the handler that will be called
+    to reload the page, put it in the polymorphic table returned by 
+    {!Eliom_sessions.get_request_data}.
 
     If you give the optional parameter
     [~options:`NoReload] to the registration function, no page will be sent.
  *)
 module Action : Eliom_mkreg.ELIOMREGSIG with
-  type page = exn list
+  type page = unit
   and type options = [ `Reload | `NoReload ]
 
 

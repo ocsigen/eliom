@@ -192,11 +192,15 @@ let execute
 
 
 
-(** Compute the exceptions from expired sessions *)
-let compute_exn closedservsessions =
-  (if closedservsessions = []
-  then []
-  else [Eliom_common.Eliom_Service_session_expired closedservsessions])
+(** Set expired sessions in request data *)
+let set_expired_sessions ri closedservsessions =
+  if closedservsessions = []
+  then ()
+  else
+    Polytables.set
+      ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+      Eliom_common.eliom_service_session_expired
+      closedservsessions
 
 
 open Ocsigen_extensions
@@ -216,7 +220,7 @@ let gen is_eliom_extension sitedata = function
       si.Eliom_common.si_persistent_session_cookies
       si.Eliom_common.si_secure_cookie_info
   in
-  let exn = compute_exn closedsessions in
+  set_expired_sessions ri closedsessions;
   let rec gen_aux ((ri, si, all_cookie_info) as info) =
     match is_eliom_extension with
       | Some ext -> 
@@ -288,12 +292,6 @@ let gen is_eliom_extension sitedata = function
                | Eliom_common.Eliom_retry_with a -> gen_aux a
                | e -> fail e)
   in
-  gen_aux
-    ({ri with request_info = {
-        ri.request_info with
-          ri_extension_info=
-            exn@ri.request_info.ri_extension_info}},
-     si,
-     all_cookie_info)
+  gen_aux (ri, si, all_cookie_info)
   | Ocsigen_extensions.Req_not_found (_, ri) ->
       Lwt.return Ocsigen_extensions.Ext_do_nothing

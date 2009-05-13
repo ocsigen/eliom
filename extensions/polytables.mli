@@ -41,7 +41,7 @@ val make_key : unit -> 'a key
 (** [set t k v] associates [v] to [k] in [t] *)
 val set : table:t -> key:'a key -> value:'a -> unit
 
-(** [get t k] returns the current binding of [k] in [t] *)
+(** [get t k] returns the current binding of [k] in [t] or raises [Not_found] *)
 val get : table:t -> key:'a key -> 'a
 
 (** [clear t] remove all data from t *)

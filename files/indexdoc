@@ -3,7 +3,7 @@
 
 {3 Ocsigen}
 
-{4 Persistent data, writing in the logs, configuration file extension, Xhtml pretty printing}
+{4 Persistent data, writing in the logs, configuration file extension, Xhtml pretty printing, polymorphic tables}
 {!modules: 
 Ocsipersist 
 Ocsigen_messages 
@@ -11,6 +11,7 @@ Ocsigen_parseconfig
 Simplexmlparser
 Xhtmlpretty
 Xhtmlcompact
+Polytables
 }
 
 {4 Extending Ocsigen}

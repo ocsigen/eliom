@@ -25,12 +25,7 @@ open Ocsigen_extensions
 
 exception Eliom_404 (** Page not found *)
 exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
-exception Eliom_Link_too_old (** The coservice does not exist any more *)
 exception Eliom_Session_expired
-exception Eliom_Service_session_expired of (string list)
-    (** The service session cookies does not exist any more.
-        The string lists are the list of names of expired sessions
-     *)
 exception Eliom_Typing_Error of (string * exn) list
     (** The service (GET or POST) parameters do not match expected type *)
 
@@ -40,6 +35,16 @@ exception Eliom_function_forbidden_outside_site_loading of string
        initialisation phase.
        For some functions, you must add the [~sp] parameter during a session.
      *)
+
+val eliom_link_too_old : bool Polytables.key
+(** If present and true in request data, it means that
+    the previous coservice does not exist any more *)
+val eliom_service_session_expired : (string list) Polytables.key
+(** If present in request data,  means that
+    the service session cookies does not exist any more.
+    The string lists are the list of names of expired sessions
+*)
+
 
 (**/**)
 

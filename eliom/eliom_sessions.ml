@@ -99,8 +99,20 @@ let get_suffix ~sp =
   sp.Eliom_common.sp_suffix
 let get_session_name ~sp =
   sp.Eliom_common.sp_fullsessname
-let get_exn ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_extension_info
+let get_request_cache ~sp =
+  sp.Eliom_common.sp_request.request_info.ri_request_cache
+let get_link_too_old ~sp =
+  try
+    Polytables.get
+      ~table:sp.Eliom_common.sp_request.request_info.ri_request_cache
+      ~key:Eliom_common.eliom_link_too_old
+  with Not_found -> false
+let get_expired_service_sessions ~sp =
+  try
+    Polytables.get
+      ~table:sp.Eliom_common.sp_request.request_info.ri_request_cache
+      ~key:Eliom_common.eliom_service_session_expired
+  with Not_found -> []
 let get_config_default_charset ~sp =
   Ocsigen_charset_mime.default_charset
     sp.Eliom_common.sp_request.request_config.charset_assoc
