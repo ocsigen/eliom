@@ -38,10 +38,10 @@ let is_native = _ISNATIVE_
 
 let builtin_packages =
   List.fold_left (fun a s -> StringSet.add s a) StringSet.empty
-    ["unix"; "threads"; "ssl";
+    ["unix"; "threads"; "ssl"; "text";
      "lwt"; "lwt.preemptive"; "lwt.ssl"; "lwt.extra";
      "netstring"; "netsys"; "pcre"; "dynlink"; "findlib";
-     "ocsigen"; "ocsigen.server"; 
+     "ocsigen"; "ocsigen.server"; "ocsigen.xhtml";
      "ocsigen.xhtml"; "camlp4.lib"]
 
 (* Server config: *)
@@ -160,4 +160,3 @@ let display_version () =
 
 let config () =
   Simplexmlparser.xmlparser_file (get_config_file ())
-
