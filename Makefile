@@ -82,6 +82,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)eliom/eliom_tools_common.mli			 	\
 	$(DOCPREF)eliom/eliom_tools.mli					\
 	$(DOCPREF)eliom/eliom_obrowser.mli					\
+	$(DOCPREF)extensions/polytables.mli				\
 	$(DOCPREF)extensions/ocsipersist.mli				\
 	$(DOCPREF)extensions/authbasic.mli				\
 	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
@@ -106,7 +107,7 @@ PLUGINSCMOTOINSTALL = \
         extensions/outputfilter.cmo extensions/authbasic.cmo \
 	extensions/redirectmod.cmo extensions/rewritemod.cmo \
 	extensions/accesscontrol.cmo extensions/extendconfiguration.cmo \
-	$(DUCECMO)
+	extensions/polytables.cmo $(DUCECMO)
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
        eliom/eliom_tools_common.cmi eliom/eliom_tools.cmi \
@@ -115,8 +116,8 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
-       extensions/accesscontrol.cmi \
-       extensions/extendconfiguration.cmi
+       extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
+       extensions/polytables.cmi
 
 CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/xhtmlpretty.cma	\
 	xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma			\

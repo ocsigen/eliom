@@ -1535,8 +1535,8 @@ let _ = register
       We first define the main page, with a login form:
       </p>
 *html*)(*zap* *)
-let () = set_default_volatile_session_timeout (Some 3600.)
-let () = set_default_persistent_data_session_timeout (Some 86400.)
+let () = set_default_volatile_session_timeout (Some 600.)
+let () = set_default_persistent_data_session_timeout (Some 3600.)
 (* *zap*)
 (************************************************************)
 (************ Connection of users, version 2 ****************)

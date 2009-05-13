@@ -143,9 +143,17 @@ package "ext" (
     archive(native) = "ocsipersist-dbm.cmxa"
   )
 
+  package "polytables" (
+    exists_if = "polytables.cmo,polytables.cmx"
+    version = "[distributed with Ocsigen]"
+    description = "Polymorphic tables"
+    archive(byte) = "polytables.cmo"
+    archive(native) = "polytables.cmx"
+  )
+
   package "eliom" (
     exists_if = "eliom.cma,eliom.cmxa"
-    requires = "ocsigen.server,cryptokit"
+    requires = "ocsigen.server,cryptokit,ocsigen.ext.polytables"
     version = "[distributed with Ocsigen]"
     description = "Eliom: module for generating pages"
     archive(byte) = "eliom.cma"
