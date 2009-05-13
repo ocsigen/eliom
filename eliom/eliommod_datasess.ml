@@ -84,7 +84,7 @@ let rec new_data_cookie sitedata fullsessgrp fullsessname table =
     new_data_cookie sitedata fullsessgrp fullsessname table
   with Not_found ->
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    let serverexp = ref (Some 0.) (* None = never. We'll change it later. *) in
+    let serverexp = ref None (* Some 0. *) (* None = never. We'll change it later. *) in
     let fullsessgrpref = ref fullsessgrp in
     Eliom_common.SessionCookies.replace
       (* actually it will add the cookie *)

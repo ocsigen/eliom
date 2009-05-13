@@ -172,9 +172,6 @@ type datacookiestablecontent =
     string * float option ref * timeout ref *
     Eliommod_sessiongroups.sessgrp option ref
 type datacookiestable = datacookiestablecontent SessionCookies.t
-type result_to_send =
-  | EliomResult of Ocsigen_http_frame.result
-  | EliomExn of (exn list * cookie list)
 type page_table_key = {
   key_state : att_key * att_key;
   key_kind : Ocsigen_http_frame.Http_header.http_method;
@@ -227,14 +224,14 @@ and page_table =
      ((anon_params_type * anon_params_type) *
       (int *
        (int ref option * (float * float ref) option *
-        (server_params -> result_to_send Lwt.t))))
+        (server_params -> Ocsigen_http_frame.result Lwt.t))))
      list)
     list
 and naservice_table =
     AVide
   | ATable of
       (int * int ref option * (float * float ref) option *
-       (server_params -> result_to_send Lwt.t))
+       (server_params -> Ocsigen_http_frame.result Lwt.t))
       NAserv_Table.t
 and dircontent = Vide | Table of direlt ref String_Table.t
 and direlt = Dir of dircontent ref | File of page_table ref
@@ -250,7 +247,7 @@ and sitedata = {
   session_data : datacookiestable;
   mutable remove_session_data : string -> unit;
   mutable not_bound_in_data_tables : string -> bool;
-  mutable exn_handler : server_params -> exn -> result_to_send Lwt.t;
+  mutable exn_handler : server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
   mutable unregistered_services : Ocsigen_extensions.url_path list;
   mutable unregistered_na_services : na_key list;
   mutable max_volatile_data_sessions_per_group : int option;
@@ -283,7 +280,7 @@ val make_full_cookie_name : string -> string -> string
 val make_fullsessname : sp:server_params -> string option -> string
 val make_fullsessname2 : string -> string option -> string
 exception Eliom_retry_with of
-            (Ocsigen_extensions.request * sess_info * Ocsigen_http_frame.cookieset *
+            (Ocsigen_extensions.request * sess_info * 
              tables cookie_info)
 module Perstables :
   sig

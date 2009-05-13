@@ -466,6 +466,8 @@ val set_hosts : (virtual_hosts * config_info * extension2) list -> unit
 val get_hosts : unit -> (virtual_hosts * config_info * extension2) list
 
 val serve_request :
+  ?previous_cookies:Ocsigen_http_frame.cookieset ->
+  ?awake_next_request:bool ->
   request_info -> Ocsigen_http_frame.result Lwt.t
 
 (** Profiling *)

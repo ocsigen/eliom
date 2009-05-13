@@ -51,7 +51,7 @@ module type REGCREATE =
       ?headers: Http_headers.t ->
       sp:Eliom_sessions.server_params ->
       page -> 
-      result_to_send Lwt.t
+      Ocsigen_http_frame.result Lwt.t
 
   end
 
@@ -72,7 +72,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       sp:Eliom_sessions.server_params ->
       page -> 
-      result_to_send Lwt.t
+      Ocsigen_http_frame.result Lwt.t
 
     val register :
       ?options:options ->

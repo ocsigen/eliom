@@ -293,11 +293,6 @@ type datacookiestable = datacookiestablecontent SessionCookies.t
 
 
 (*****************************************************************************)
-type result_to_send =
-  | EliomResult of Ocsigen_http_frame.result
-  | EliomExn of (exn list * cookie list)
-
-(*****************************************************************************)
 
 
 type page_table_key =
@@ -321,15 +316,15 @@ end)
 type anon_params_type = int
 
 type server_params =
-    {sp_request:Ocsigen_extensions.request;
-     sp_si:sess_info;
-     sp_sitedata:sitedata (* data for the whole site *);
-     sp_cookie_info:tables cookie_info;
-     sp_suffix:Ocsigen_extensions.url_path (* suffix *);
-     sp_fullsessname:string option (* the name of the session
-                                      to which belong the service
-                                      that answered
-                                      (if it is a session service) *)}
+    {sp_request: Ocsigen_extensions.request;
+     sp_si: sess_info;
+     sp_sitedata: sitedata (* data for the whole site *);
+     sp_cookie_info: tables cookie_info;
+     sp_suffix: Ocsigen_extensions.url_path (* suffix *);
+     sp_fullsessname: string option (* the name of the session
+                                       to which belong the service
+                                       that answered
+                                       (if it is a session service) *)}
 
 and page_table =
     (page_table_key *
@@ -339,7 +334,7 @@ and page_table =
               (int ref option (* max_use *) *
                  (float * float ref) option
                  (* timeout and expiration date for the service *) *
-                 (server_params -> result_to_send Lwt.t)
+                 (server_params -> Ocsigen_http_frame.result Lwt.t)
               ))) list)) list
        (* Here, the url_path is the site directory.
           That is, the directory in which we are when we register
@@ -355,7 +350,7 @@ and naservice_table =
               after which that service has been created) *) *
        int ref option (* max_use *) *
          (float * float ref) option (* timeout and expiration date *) *
-         (server_params -> result_to_send Lwt.t)
+         (server_params -> Ocsigen_http_frame.result Lwt.t)
       )
         NAserv_Table.t
 
@@ -385,7 +380,7 @@ and sitedata =
    session_data: datacookiestable; (* cookie table for in memory session data *)
    mutable remove_session_data: string -> unit;
    mutable not_bound_in_data_tables: string -> bool;
-   mutable exn_handler: server_params -> exn -> result_to_send Lwt.t;
+   mutable exn_handler: server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
    mutable unregistered_services: Ocsigen_extensions.url_path list;
    mutable unregistered_na_services: na_key list;
    mutable max_volatile_data_sessions_per_group: int option;
@@ -583,7 +578,6 @@ let change_request_info ri previous_extension_err =
                    (get_params, other_get_params),
                    post_params)
     in
-
     let ri', sess =
       {ri with
         Ocsigen_extensions.ri_method =
@@ -631,7 +625,7 @@ let make_fullsessname2 site_dir_string = function
 exception Eliom_retry_with of
   (Ocsigen_extensions.request *
      sess_info *
-     Ocsigen_http_frame.cookieset (* user cookies set by previous pages *) *
+(*     Ocsigen_http_frame.cookieset (* user cookies set by previous pages *) * *)
      tables cookie_info
      (* current cookie info *)
   )

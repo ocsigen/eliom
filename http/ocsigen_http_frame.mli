@@ -72,15 +72,16 @@ type result =
        *)
      (* It is not a new field of the record to remember to change it
         if we change the stream. *)
-     res_stop_stream: unit -> unit Lwt.t; (** A function that will be called
-                                              if sending the stream fails.
-                                              It is called before the stream
-                                              finalizer, only in case of error.
-                                              Use it if you want a different
-                                              behaviour if sending succeeds
-                                              or not. Default is do nothing
-                                              (Lwt.return).
-                                           *)
+     res_stop_stream: unit -> unit Lwt.t;
+     (** A function that will be called
+         if sending the stream fails.
+         It is called before the stream
+         finalizer, only in case of error.
+         Use it if you want a different
+         behaviour if sending succeeds
+         or not. Default is do nothing
+         (Lwt.return).
+     *)
      res_content_length: int64 option;
      (** [None] means Transfer-encoding: chunked *)
      res_content_type: string option;

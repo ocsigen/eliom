@@ -799,20 +799,24 @@ let string_of_host h =
 
 
 
-let serve_request ri =
-
+let serve_request
+    ?(previous_cookies = Ocsigen_http_frame.Cookies.empty)
+    ?(awake_next_request = false) ri =
   let host = ri.ri_host in
   let port = ri.ri_server_port in
 
   let conn = client_connection ri.ri_client in
   let awake =
-    let tobeawoken = ref true in
-    (* must be awoken once and only once *)
-    fun () ->
-      if !tobeawoken then begin
-        tobeawoken := false;
-        Ocsigen_http_com.wakeup_next_request conn
-      end
+    if awake_next_request
+    then
+      (let tobeawoken = ref true in
+       (* must be awoken once and only once *)
+       fun () ->
+         if !tobeawoken then begin
+           tobeawoken := false;
+           Ocsigen_http_com.wakeup_next_request conn
+         end)
+    else Ocsigen_lib.id
   in
 
   let rec do2 nb_retries sites cookies_to_set ri =
@@ -884,7 +888,7 @@ let serve_request ri =
   in
   Lwt.finalize
     (fun () ->
-      do2 0 (get_hosts ()) Ocsigen_http_frame.Cookies.empty ri
+      do2 0 (get_hosts ()) previous_cookies ri
     )
     (fun () ->
        awake ();

@@ -813,10 +813,6 @@ module Action : Eliom_mkreg.ELIOMREGSIG with
   type page = exn list
   and type options = [ `Reload | `NoReload ]
 
-(** The same, for backwards compatibility *)
-module Actions : Eliom_mkreg.ELIOMREGSIG with
-  type page = exn list
-  and type options = [ `Reload | `NoReload ]
 
 (** Like actions, but the page is not reloaded. Just do something and do
    not generate any page. To be used carefully. Probably not usefull at all.
@@ -867,7 +863,7 @@ module Files : Eliom_mkreg.ELIOMREGSIG with
    .
  *)
 module Any : Eliom_mkreg.ELIOMREGSIG with
-  type page = Eliom_services.result_to_send
+  type page = Ocsigen_http_frame.result
 
 (** Allows to send raw data using Ocsigen's streams.
     The content is a pair conatining:

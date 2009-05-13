@@ -112,6 +112,8 @@ let get_persistent_cookies ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_persistent_session_cookies
 let get_previous_extension_error_code ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_previous_extension_error
+let get_si ~sp =
+  sp.Eliom_common.sp_si
 
 let get_service_session_cookie ?session_name ?secure ~sp () =
   try

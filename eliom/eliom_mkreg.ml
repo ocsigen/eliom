@@ -57,7 +57,7 @@ module type REGCREATE =
       ?headers: Http_headers.t ->
       sp:Eliom_sessions.server_params ->
       page -> 
-      Eliom_services.result_to_send Lwt.t
+      Ocsigen_http_frame.result Lwt.t
 
   end
 
@@ -79,7 +79,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       sp:Eliom_sessions.server_params ->
       page -> 
-      result_to_send Lwt.t
+      Ocsigen_http_frame.result Lwt.t
 
     val register :
       ?options:options ->
@@ -582,8 +582,7 @@ module MakeRegister = functor
                         ?code
                         ?content_type
                         ?headers
-                        ~sp:sp2 content >>=
-                      fun r -> Lwt.return (Eliom_services.erts_of_rst r)
+                        ~sp:sp2 content
                     )
                   )
                  )
@@ -632,7 +631,7 @@ module MakeRegister = functor
                        ?content_type
                        ?headers
                        ~sp:sp2 content
-                     >>= fun r -> Lwt.return (Eliom_services.erts_of_rst r))))
+                   )))
 
 
         let register 

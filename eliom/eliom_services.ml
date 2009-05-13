@@ -46,14 +46,6 @@ let cookie_table_of_eliom_cookies
 
 
 
-(** The type to send if you want to create your own modules for generating
-   pages
- *)
-type result_to_send = Eliom_common.result_to_send =
-  | EliomResult of Ocsigen_http_frame.result
-  | EliomExn of (exn list * cookie list)
-
-
 
 (** This function may be used for services that cannot be interrupted
   (no cooperation point for threads). It is defined by
@@ -621,4 +613,5 @@ let set_exn_handler ?sp h =
 let add_service = Eliommod_services.add_service
 let add_naservice = Eliommod_naservices.add_naservice
 
-let erts_of_rst = Ocsigen_lib.id
+let eccookiel_of_escookiel = Ocsigen_lib.id
+let escookiel_of_eccookiel = Ocsigen_lib.id

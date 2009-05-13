@@ -1134,7 +1134,7 @@ val get_data_cookies :
 val find_sitedata : string -> server_params option -> Eliom_common.sitedata
 
 val set_site_handler : Eliom_common.sitedata ->
-  (server_params -> exn -> Eliom_common.result_to_send Lwt.t) -> unit
+  (server_params -> exn -> Ocsigen_http_frame.result Lwt.t) -> unit
 
 
 (** Returns the http error code of the request before Eliom was called *)
@@ -1144,3 +1144,7 @@ val get_previous_extension_error_code :sp:server_params -> int
 
 val sp_of_esp : Eliom_common.server_params -> server_params
 val esp_of_sp : server_params -> Eliom_common.server_params
+
+
+(**/**)
+val get_si :sp:server_params -> Eliom_common.sess_info

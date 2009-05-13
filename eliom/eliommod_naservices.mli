@@ -2,13 +2,13 @@ val add_naservice_table :
   Eliom_common.naservice_table ->
   Eliom_common.NAserv_Table.key *
   (int * int ref option * (float * float ref) option *
-   (Eliom_common.server_params -> Eliom_common.result_to_send Lwt.t)) ->
+   (Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t)) ->
   Eliom_common.naservice_table
 val find_naservice_table :
   Eliom_common.naservice_table ->
   Eliom_common.NAserv_Table.key ->
   int * int ref option * (float * float ref) option *
-  (Eliom_common.server_params -> Eliom_common.result_to_send Lwt.t)
+  (Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t)
 val remove_naservice_table :
   Eliom_common.naservice_table ->
   Eliom_common.NAserv_Table.key -> Eliom_common.naservice_table
@@ -17,7 +17,7 @@ val add_naservice :
   bool ->
   Eliom_common.NAserv_Table.key ->
   int ref option * (float * float ref) option *
-  (Eliom_common.server_params -> Eliom_common.result_to_send Lwt.t) ->
+  (Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t) ->
   unit
 val remove_naservice :
   'a * Eliom_common.naservice_table ref * 'b * 'c ->
@@ -27,9 +27,9 @@ val find_naservice :
   'a * Eliom_common.naservice_table ref * 'b * 'c ->
   Eliom_common.NAserv_Table.key ->
   int * int ref option * (float * float ref) option *
-  (Eliom_common.server_params -> Eliom_common.result_to_send Lwt.t)
+  (Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t)
 val make_naservice :
   float ->
-  Ocsigen_extensions.request * Eliom_common.sess_info * Ocsigen_http_frame.cookieset *
+  Ocsigen_extensions.request * Eliom_common.sess_info * 
     Eliom_common.tables Eliom_common.cookie_info ->
-  Eliom_common.sitedata -> Eliom_common.result_to_send Lwt.t
+  Eliom_common.sitedata -> Ocsigen_http_frame.result Lwt.t

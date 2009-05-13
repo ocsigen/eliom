@@ -105,23 +105,22 @@ module Xhtmlreg_ = struct
       ?content_type ?headers ~sp content =
     Ocamlduce_content.result_of_content content >>= fun r ->
     Lwt.return
-        (Eliom_services.EliomResult
-           {r with
-              res_cookies=
-               Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-              res_code= code_of_code_option code;
-              res_charset= Some "utf-8" (* For Eliom_duce, we impose utf-8 *);
-              res_content_type= (match content_type with
-                                   | None -> r.res_content_type
-                                   | _ -> content_type
-                                );
-              res_headers= (match headers with
-                              | None -> r.res_headers
-                              | Some headers -> 
-                                  Http_headers.with_defaults 
-                                    headers r.res_headers
+      {r with
+         res_cookies=
+          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+         res_code= code_of_code_option code;
+         res_charset= Some "utf-8" (* For Eliom_duce, we impose utf-8 *);
+         res_content_type= (match content_type with
+                              | None -> r.res_content_type
+                              | _ -> content_type
                            );
-          })
+         res_headers= (match headers with
+                         | None -> r.res_headers
+                         | Some headers -> 
+                             Http_headers.with_defaults 
+                               headers r.res_headers
+                      );
+      }
 
 end
 
@@ -368,25 +367,24 @@ module SubXhtml =
           ?content_type ?headers ~sp content =
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
-            (Eliom_services.EliomResult
-               {r with
-                  res_cookies=
-                   Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-                  res_code= code_of_code_option code;
-                  res_charset= Some "utf-8" 
-                   (* For Eliom_duce, we impose utf-8 *);
-                  res_content_type= (match content_type with
-                                       | None -> r.res_content_type
-                                       | _ -> content_type
-                                    );
-                  res_headers= (match headers with
-                                  | None -> r.res_headers
-                                  | Some headers -> 
-                                      Http_headers.with_defaults
-                                        headers r.res_headers
+          {r with
+             res_cookies=
+              Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+             res_code= code_of_code_option code;
+             res_charset= Some "utf-8" 
+              (* For Eliom_duce, we impose utf-8 *);
+             res_content_type= (match content_type with
+                                  | None -> r.res_content_type
+                                  | _ -> content_type
                                );
-                  
-               })
+             res_headers= (match headers with
+                             | None -> r.res_headers
+                             | Some headers -> 
+                                 Http_headers.with_defaults
+                                   headers r.res_headers
+                          );
+             
+          }
 
     end
 

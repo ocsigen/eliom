@@ -51,12 +51,6 @@ val cookie_table_of_eliom_cookies :
       sp:Eliom_sessions.server_params -> cookie list -> Ocsigen_http_frame.cookieset
 
 
-(** The type to send if you want to create your own modules for generating
-   pages
- *)
-type result_to_send =
-  | EliomResult of Ocsigen_http_frame.result
-  | EliomExn of (exn list * cookie list)
 
 
 
@@ -445,7 +439,8 @@ val preapply :
  *)
 val set_exn_handler :
   ?sp:Eliom_sessions.server_params ->
-  (Eliom_sessions.server_params -> exn -> result_to_send Lwt.t) -> unit
+  (Eliom_sessions.server_params -> exn -> Ocsigen_http_frame.result Lwt.t) ->
+  unit
 
 
 
@@ -474,4 +469,5 @@ val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> bool
 (* val reconstruct_absolute_url_path : url_path -> url_path -> url_path option -> string
 val reconstruct_relative_url_path : url_path -> url_path -> url_path option -> string
 *)
-val erts_of_rst : result_to_send -> Eliom_common.result_to_send
+val escookiel_of_eccookiel : Eliom_common.cookie list -> cookie list
+val eccookiel_of_escookiel : cookie list -> Eliom_common.cookie list

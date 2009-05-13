@@ -297,7 +297,6 @@ let get_page
     now
     (ri,
      si,
-     cookies_to_set,
      (((service_cookies_info, _, _), secure_ci) as all_cookie_info))
     sitedata
     =
@@ -401,7 +400,6 @@ let get_page
                                   Eliom_common.si_state_info= 
                                      (g, Eliom_common.Att_no);
                                 },
-                                 cookies_to_set,
                                  all_cookie_info
                                 ))
                     | (Eliom_common.Att_named _, Eliom_common.Att_no)
@@ -432,7 +430,6 @@ let get_page
                                      (Eliom_common.Att_no, Eliom_common.Att_no);
                                   Eliom_common.si_other_get_params=[];
                                 },
-                                 cookies_to_set,
                                  all_cookie_info)))
                 | e -> fail e)
         | e -> fail e)

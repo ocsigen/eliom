@@ -100,7 +100,6 @@ let make_naservice
     now
     (ri,
      si,
-     cookies_to_set,
      (((service_cookies_info, _, _), secure_ci) as all_cookie_info))
     sitedata
     =
@@ -180,7 +179,6 @@ let make_naservice
             (fun (ri', si') ->
                fail (Eliom_common.Eliom_retry_with (ri', 
                                                     si',
-                                                    cookies_to_set,
                                                     all_cookie_info)))
 
       | Eliom_common.Na_get_ _
@@ -203,8 +201,7 @@ let make_naservice
             >>=
           (fun (ri', si') ->
             fail (Eliom_common.Eliom_retry_with (ri', si',
-                                                      cookies_to_set,
-                                                      all_cookie_info)))
+                                                 all_cookie_info)))
   ) >>=
   (fun ((_, max_use, expdate, naservice),
         tablewhereithasbeenfound,

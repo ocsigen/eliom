@@ -401,13 +401,13 @@ let getact =
     ~get_params:(int "p")
     ()
 
-let act = Actions.register_new_coservice
+let act = Action.register_new_coservice
     ~fallback:(preapply getact 22)
     ~get_params:(int "bip")
     (fun _ g p -> v := g; return [])
 
 (* action on GET non-attached coservice on GET coservice page *)
-let naact = Actions.register_new_coservice'
+let naact = Action.register_new_coservice'
     ~get_params:(int "bop")
     (fun _ g p -> v := g; return [])
 
@@ -952,7 +952,7 @@ let uploadgetform = register_new_service ["uploadget"] unit
 
 (*******)
 (* Actions that raises an exception *)
-let exn_act = Actions.register_new_coservice'
+let exn_act = Action.register_new_coservice'
     ~get_params:unit
     (fun _ g p -> fail Not_found)
 

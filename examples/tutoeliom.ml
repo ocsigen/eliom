@@ -1122,14 +1122,14 @@ let looong2 =
         of the page, the second one is the content type.
 
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions" ]] [version;"Eliom_predefmod.Actions.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action" ]] [version;"Eliom_predefmod.Action.html"]$</th>
           <td colspan="4">Allows to register actions (
         functions that do not generate any page). The URL is reloaded after
         the action.
 
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Unit" ]] [version;"Eliom_predefmod.Unit.html"]$</th>
-          <td colspan="4">is like $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions" ]] [version;"Eliom_predefmod.Actions.html"]$ but the
+          <td colspan="4">is like $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action" ]] [version;"Eliom_predefmod.Action.html"]$ but the
         URL is not reloaded after the action.
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirection" ]] [version;"Eliom_predefmod.Redirection.html"]$</th>
@@ -2088,12 +2088,12 @@ let () =
    (for ex a connection form),
    instead of making a version with post params of all these pages,
    you can use only one action, registered on a non-attached coservice.
-   To register actions, just use the module $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions" ]] [version;"Eliom_predefmod.Actions.html"]$
+   To register actions, just use the module $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action" ]] [version;"Eliom_predefmod.Action.html"]$
    instead of $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ (or $a ~service:senddoc ~sp [code [pcdata "Eliom_duce.Xhtml" ]] [version;"Eliom_duce.Xhtml.html"]$, etc.).
    For example
-     <span class="Cem">$a ~fragment:"VALregister" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions.register" ]] [version;"Eliom_predefmod.Actions.html"]$</span>,
-     <span class="Cem">$a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions.register_new_service" ]] [version;"Eliom_predefmod.Actions.html"]$</span>,
-     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions.register_for_session" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$</span>.<br/>
+     <span class="Cem">$a ~fragment:"VALregister" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action.register" ]] [version;"Eliom_predefmod.Action.html"]$</span>,
+     <span class="Cem">$a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action.register_new_service" ]] [version;"Eliom_predefmod.Action.html"]$</span>,
+     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action.register_for_session" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$</span>.<br/>
       </p>
       <p>Here is one simple example. Suppose you wrote a function
         <code>remove</code> to remove one piece of data from a database
@@ -2148,7 +2148,7 @@ let connect_action =
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_predefmod.Actions.register_new_post_coservice'
+  Eliom_predefmod.Action.register_new_post_coservice'
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -2208,7 +2208,7 @@ let connect_action_handler sp () login =
 
 let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
-  Eliom_predefmod.Actions.register ~service:connect_action connect_action_handler
+  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
 (*html*
       <p>$a Tutoeliom.connect_example3 sp <:xmllist< See these pages >> ()$.</p>
 
@@ -2779,7 +2779,7 @@ let persist_session_connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_predefmod.Actions.register_new_post_coservice'
+  Eliom_predefmod.Action.register_new_post_coservice'
     ~name:"disconnect4"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -2861,7 +2861,7 @@ let () =
   Eliom_predefmod.Xhtml.register
     ~service:persist_session_example
     persist_session_example_handler;
-  Eliom_predefmod.Actions.register
+  Eliom_predefmod.Action.register
     ~service:persist_session_connect_action
     persist_session_connect_action_handler
 (*html*
@@ -2930,7 +2930,7 @@ let connect_action =
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_predefmod.Actions.register_new_post_coservice'
+  Eliom_predefmod.Action.register_new_post_coservice'
     ~name:"disconnect5"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -2990,7 +2990,7 @@ let connect_action_handler sp () login =
 
 let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
-  Eliom_predefmod.Actions.register ~service:connect_action connect_action_handler
+  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
 (*html*
 
     <p>
@@ -3086,7 +3086,7 @@ let connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_predefmod.Actions.register_new_post_coservice'
+  Eliom_predefmod.Action.register_new_post_coservice'
     ~name:"disconnect6"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -3163,7 +3163,7 @@ let connect_action_handler sp () login =
 
 let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example6 connect_example6_handler;
-  Eliom_predefmod.Actions.register ~service:connect_action connect_action_handler
+  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
 
 (*html*
       <p>
@@ -4273,7 +4273,7 @@ let print_news_page sp i () =
 <span class="Clet">let</span> launch_session sp user <span class="Cnonalphakeyword">=</span>
   set_volatile_session_data my_table sp user
 
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Eliom_predefmod.Actions.register
+<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Eliom_predefmod.Action.register
   <span class="Clabel">~action:</span>connect_action
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> h <span class="Cnonalphakeyword">(</span>login<span class="Cnonalphakeyword">,</span> password<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
       launch_session sp <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>

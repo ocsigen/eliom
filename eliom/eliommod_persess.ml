@@ -116,7 +116,7 @@ let rec new_persistent_cookie sitedata fullsessgrp fullsessname =
             Ocsipersist.add
               (Lazy.force persistent_cookies_table) c
               (fullsessname,
-               Some 0. (* exp on server - We'll change it later *),
+               None (* Some 0. *) (* exp on server - We'll change it later *),
                Eliom_common.TGlobal (* timeout - see global config *),
                fullsessgrp)
             >>= fun () ->
