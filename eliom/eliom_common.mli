@@ -112,6 +112,8 @@ type sess_info = {
   si_nonatt_info : na_key;
   si_state_info: (att_key * att_key);
   si_previous_extension_error : int;
+  si_nl_get_params: (string * string) list;
+  si_nl_post_params: (string * string) list;
 }
 module SessionCookies :
   sig

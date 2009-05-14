@@ -77,6 +77,7 @@ let get_numstate_param_name = "__eliom_n__"
 let post_numstate_param_name = "__eliom_np__"
 let co_param_prefix = "__co_eliom_"
 let na_co_param_prefix = "__na_eliom_"
+let nl_param_prefix = "__nl_eliom_"
 
 let datacookiename = "eliomdatasession|"
 let servicecookiename = "eliomservicesession|"
@@ -134,6 +135,9 @@ type sess_info =
      si_state_info: (att_key * att_key);
      si_previous_extension_error: int;
      (* HTTP error code sent by previous extension (default: 404) *)
+
+     si_nl_get_params: (string * string) list;
+     si_nl_post_params: (string * string) list;
    }
 
 (* The table of tables for each session. Keys are cookies *)
@@ -465,6 +469,12 @@ let change_request_info ri previous_extension_err =
     let get_params = Lazy.force ri.Ocsigen_extensions.ri_get_params in
     let get_params0 = get_params in
     let post_params0 = post_params in
+    let nl_get_params, get_params = 
+      split_prefix_param nl_param_prefix get_params 
+    in
+    let nl_post_params, post_params =
+      split_prefix_param nl_param_prefix post_params 
+    in
 
     let data_cookies = getcookies datacookiename
         (Lazy.force ri.Ocsigen_extensions.ri_cookies)
@@ -600,7 +610,10 @@ let change_request_info ri previous_extension_err =
         si_other_get_params= other_get_params;
         si_all_get_params= get_params0;
         si_all_post_params= post_params0;
-        si_previous_extension_error= previous_extension_err}
+        si_previous_extension_error= previous_extension_err;
+        si_nl_get_params= nl_get_params;
+        si_nl_post_params= nl_post_params;
+       }
     in
     Lwt.return
     ({ ri_whole with Ocsigen_extensions.request_info = ri' }, sess))
