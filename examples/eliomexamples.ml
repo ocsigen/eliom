@@ -64,6 +64,22 @@ let servreq =
             (head (title (pcdata "")) [])
             (body [p [pcdata s]])))
 
+let servreqloop = 
+  register_new_service
+    ~path:["servreqloop"] 
+    ~get_params:unit
+    (fun sp () () ->
+       let ri = Eliom_sessions.get_ri sp in
+       Ocsigen_extensions.serve_request ri >>= fun result ->
+       let stream = fst result.Ocsigen_http_frame.res_stream in
+       Ocsigen_stream.string_of_stream (Ocsigen_stream.get stream) >>= fun s ->
+       (* Here use an XML parser, 
+          or send the stream directly using an appropriate Eliom_mkreg module *)
+       return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata s]])))
+
 
 
 
@@ -1106,6 +1122,7 @@ let mainpage = register_new_service ["tests"] unit
 
          a extreq sp [pcdata "External request"] (); br ();
          a servreq sp [pcdata "Server request"] (); br ();
+         a servreqloop sp [pcdata "Looping server request"] (); br ();
 
 
 

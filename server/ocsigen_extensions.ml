@@ -233,6 +233,8 @@ type request_info =
      (** Range HTTP header. [None] means all the document. 
          List of intervals + possibly from an index to the end of the document.
      *)
+     mutable ri_nb_tries: int; (** For internal use: 
+                                   used to prevent loops of requests *)
    }
 and request = {
   request_info: request_info;
@@ -802,6 +804,7 @@ let string_of_host h =
 let serve_request
     ?(previous_cookies = Ocsigen_http_frame.Cookies.empty)
     ?(awake_next_request = false) ri =
+
   let host = ri.ri_host in
   let port = ri.ri_server_port in
 
@@ -819,7 +822,11 @@ let serve_request
     else Ocsigen_lib.id
   in
 
-  let rec do2 nb_retries sites cookies_to_set ri =
+  let rec do2 sites cookies_to_set ri =
+    ri.ri_nb_tries <- ri.ri_nb_tries + 1;
+    if ri.ri_nb_tries > Ocsigen_config.get_maxretries ()
+    then fail Ocsigen_Looping_request
+    else
     let string_of_host_option = function
       | None -> "<no host>:"^(string_of_int port)
       | Some h -> h^":"^(string_of_int port)
@@ -865,16 +872,11 @@ let serve_request
               aux_host ri e
                 (Ocsigen_http_frame.add_cookies cook cookies_to_set) l
           | Ext_retry_with (request2, cook) ->
-              if nb_retries < Ocsigen_config.get_maxretries ()
-              then
-                do2
-                  (nb_retries + 1)
-                  (get_hosts ())
-                  (Ocsigen_http_frame.add_cookies cook cookies_to_set)
-                  request2.request_info
-                  (* retry all *)
-              else
-                fail Ocsigen_Looping_request
+              do2
+                (get_hosts ())
+                (Ocsigen_http_frame.add_cookies cook cookies_to_set)
+                request2.request_info
+                (* retry all *)
           | Ext_sub_result sr ->
               assert false
           )
@@ -888,7 +890,7 @@ let serve_request
   in
   Lwt.finalize
     (fun () ->
-      do2 0 (get_hosts ()) previous_cookies ri
+      do2 (get_hosts ()) previous_cookies ri
     )
     (fun () ->
        awake ();

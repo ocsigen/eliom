@@ -199,6 +199,8 @@ type request_info =
      (** Range HTTP header. [None] means all the document. 
          List of intervals + possibly from an index to the end of the document.
      *)
+     mutable ri_nb_tries: int; (** For internal use: 
+                                   used to prevent loops of requests *)
    }
 (** If you force [ri_files] or [ri_post_params], the request is fully read,
    so it is not possible any more to read it from [ri_http_frame]
