@@ -3477,13 +3477,27 @@ let nlparams = register_new_service
                       | None -> 
                           p [pcdata "I do not have my non localized parameters"]
                       | Some (a, s) -> 
-                          p [pcdata "I have my non localized parameters";
+                          p [pcdata "I have my non localized parameters, ";
                              pcdata ("with values a = "^string_of_int a^
                                        " and s = "^s^".")]
                    )]))
 
     )
   (*html*
+      <p>
+        To create a link or a form to a service with non-localized parameters,
+        first create a new service by adding the non localized parameters
+        to an existing service:
+      </p>
+  *html*)
+let nlparams_with_nlp =
+  Eliom_services.add_non_localized_get_parameters my_nl_params nlparams
+  (*html*
+      <p>Then create your link as usual, for example:
+      <code>a nlparams_with_nlp
+             sp [pcdata "Try it"] (22, (11, "aa"))</code>.
+    $a Tutoeliom.nlparams_with_nlp
+             sp [pcdata "Try it"] (22, (11, "aa"))$.</p>
     </div>
 
 
@@ -4374,7 +4388,6 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
            $a isuffix sp <:xmllist< <code>isuffix</code> >> ((111, ["OO";"II";"OO"]), 333)$ <br/>
          A page with constants in suffix: 
            $a constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"))$ <br/>
-
          A page with a parameter of user-defined type :
              $a mytype sp <:xmllist< <code>mytype</code> >> A$ </p>
        <h4>Links and Formulars</h4>
@@ -4438,7 +4451,8 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
              $a count2 sp <:xmllist< <code>count2</code> >> ()$ <br/>
        $a hier1 sp [pcdata "Hierarchical menu"] ()$ <br/>
        $a divpage sp <:xmllist< <code>a link sending a &lt;div&gt; page</code> >> ()$ <br/>
-       $a nlparams sp [pcdata "Non localized parameters"] 4$ <br/>
+       $a nlparams sp [pcdata "Non localized parameters (absent)"] 4$ <br/>
+       $a nlparams_with_nlp sp [pcdata "Non localized parameters (present)"] (22, (11, "aa"))$<br/>
        </p>
        <h4>Advanced forms</h4>
        <p>

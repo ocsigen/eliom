@@ -398,3 +398,8 @@ val make_params_names :
     ('a, 'b, 'c) params_type -> 'c
 
 val string_of_param_name : 'a param_name -> string
+
+val nl_prod : 
+  ('a, 'su, 'an) params_type ->
+  ('s, 'sn) non_localized_params ->
+  ('a * 's, 'su, 'an * 'sn) params_type 

@@ -108,13 +108,13 @@ let user_type
     : ('a,[`WithoutSuffix], [ `One of 'a ] param_name) params_type =
   Obj.magic (TUserType (n, of_string, to_string))
 
-let sum (t1 : ('a,[`WithoutSuffix], 'an) params_type)
+let sum (t1 : ('a, [`WithoutSuffix], 'an) params_type)
     (t2 : ('b,[`WithoutSuffix], 'bn) params_type)
     : (('a,'b) binsum, [`WithoutSuffix], 'an * 'bn ) params_type =
   Obj.magic (TSum (Obj.magic t1, Obj.magic t2))
 
-let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type)
-    (t2 : ('b,[<`WithoutSuffix|`Endsuffix] as 'e, 'bn) params_type)
+let prod (t1 : ('a, [`WithoutSuffix], 'an) params_type)
+    (t2 : ('b, [<`WithoutSuffix|`Endsuffix] as 'e, 'bn) params_type)
     : (('a * 'b),'e, 'an * 'bn) params_type =
   Obj.magic (TProd ((Obj.magic t1), (Obj.magic t2)))
 
@@ -245,6 +245,7 @@ let suffix_prod (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type)
     (('s * 'a), [`WithSuffix], 'sn * 'an) params_type =
   (Obj.magic (TProd (Obj.magic (TSuffix s), Obj.magic t)))
 
+(* Does not work with non_localized_params *)
 let contains_suffix = function
   | TProd((TSuffix _),_)
   | TSuffix _ -> true
@@ -277,157 +278,6 @@ type 'a res_reconstr_param =
 let reconstruct_params
     (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type)
     params files urlsuffix : 'a =
-  let rec aux_list t params files name pref suff =
-    let rec aa i lp fl pref suff =
-      let rec end_of_list len = function
-        | [] -> true
-        | (a,_)::_ when
-            (try (String.sub a 0 len) = pref
-            with Invalid_argument _ -> false) -> false
-        | _::l -> end_of_list len l
-      in
-      if end_of_list (String.length pref) lp
-      then Res_ ((Obj.magic []), lp, fl)
-      else
-        try
-          match aux t lp fl pref (suff^(make_list_suffix i)) with
-          | Res_ (v,lp2,f) ->
-              (match aa (i+1) lp2 f pref suff with
-              | Res_ (v2,lp3,f2) -> Res_ ((Obj.magic (v::v2)),lp3,f2)
-              | err -> err)
-          | Errors_ (errs, l, f) ->
-              (match aa (i+1) l f pref suff with
-              | Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
-              | Errors_ (errs2, ll, ff) -> Errors_ ((errs@errs2), ll, ff))
-        with Not_found -> Res_ ((Obj.magic []), lp, files)
-    in
-    aa 0 params files (pref^name^".") suff
-  and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)
-      params files pref suff : 'a res_reconstr_param =
-    match typ with
-    | TProd (t1, t2) ->
-        (match aux t1 params files pref suff with
-        | Res_ (v1, l1, f) ->
-            (match aux t2 l1 f pref suff with
-               | Res_ (v2, l2, f2) -> Res_ ((Obj.magic (v1, v2)), l2, f2)
-               | err -> err)
-        | Errors_ (errs, l, f) ->
-            (match aux t2 l f pref suff with
-               | Res_ (_, ll, ff) -> Errors_ (errs, ll, ff)
-               | Errors_ (errs2, ll, ff) -> Errors_ ((errs2@errs), ll, ff)))
-    | TOption t ->
-        (try
-          (match aux t params files pref suff with
-             | Res_ (v, l, f) -> Res_ ((Obj.magic (Some v)), l, f)
-             | err -> err)
-        with Not_found -> Res_ ((Obj.magic None), params, files))
-    | TBool name ->
-        (try
-          let v,l = (list_assoc_remove (pref^name^suff) params) in
-          Res_ ((Obj.magic true),l,files)
-        with Not_found -> Res_ ((Obj.magic false), params, files))
-    | TList (n,t) -> Obj.magic (aux_list t params files n pref suff)
-    | TSet t ->
-        let rec aux_set params files =
-          try
-            match aux t params files pref suff with
-            | Res_ (vv, ll, ff) ->
-                (match aux_set ll ff with
-                | Res_ (vv2, ll2, ff2) ->
-                    Res_ (Obj.magic (vv::vv2), ll2, ff2)
-                | err -> err)
-            | Errors_ (errs, ll, ff) ->
-                (match aux_set ll ff with
-                | Res_ (_, ll2, ff2) -> Errors_ (errs, ll2, ff2)
-                | Errors_ (errs2, ll2, ff2) -> Errors_ (errs@errs2, ll2, ff2))
-          with Not_found -> Res_ (Obj.magic [], params, files)
-        in Obj.magic (aux_set params files)
-    | TSum (t1, t2) ->
-        (try
-          match aux t1 params files pref suff with
-          | Res_ (v,l,files) -> Res_ ((Obj.magic (Inj1 v)),l,files)
-          | err -> err
-        with Not_found ->
-          (match aux t2 params files pref suff with
-          | Res_ (v,l,files) -> Res_ ((Obj.magic (Inj2 v)),l,files)
-          | err -> err))
-    | TString name ->
-        let v,l = list_assoc_remove (pref^name^suff) params in
-        Res_ ((Obj.magic v),l,files)
-    | TInt name ->
-        let v,l = (list_assoc_remove (pref^name^suff) params) in
-        (try (Res_ ((Obj.magic (int_of_string v)),l,files))
-        with e -> Errors_ ([(pref^name^suff),e], l, files))
-    | TInt32 name ->
-        let v,l = (list_assoc_remove (pref^name^suff) params) in
-        (try (Res_ ((Obj.magic (Int32.of_string v)),l,files))
-        with e -> Errors_ ([(pref^name^suff),e], l, files))
-    | TInt64 name ->
-        let v,l = (list_assoc_remove (pref^name^suff) params) in
-        (try (Res_ ((Obj.magic (Int64.of_string v)),l,files))
-        with e -> Errors_ ([(pref^name^suff),e], l, files))
-    | TFloat name ->
-        let v,l = (list_assoc_remove (pref^name^suff) params) in
-        (try (Res_ ((Obj.magic (float_of_string v)),l,files))
-        with e -> Errors_ ([(pref^name^suff),e], l, files))
-    | TFile name ->
-        let v,f = list_assoc_remove (pref^name^suff) files in
-        Res_ ((Obj.magic v), params, f)
-    | TCoord name ->
-        let r1 =
-          let v, l = (list_assoc_remove (pref^name^suff^".x") params) in
-          (try (Res_ ((int_of_string v), l, files))
-          with e -> Errors_ ([(pref^name^suff^".x"), e], l, files))
-        in
-        (match r1 with
-        | Res_ (x1, l1, f) ->
-            let v, l = (list_assoc_remove (pref^name^suff^".y") l1) in
-            (try (Res_ (
-                  (Obj.magic
-                     {abscissa= x1;
-                      ordinate= int_of_string v}), l, f))
-            with e -> Errors_ ([(pref^name^suff^".y"), e], l, f))
-        | Errors_ (errs, l1, f) ->
-            let v, l = (list_assoc_remove (pref^name^suff^".y") l1) in
-            (try
-              ignore (int_of_string v);
-              Errors_ (errs, l, f)
-            with e -> Errors_ (((pref^name^suff^".y"), e)::errs, l, f)))
-    | TCoordv (t, name) ->
-        aux (TProd (t, TCoord name)) params files pref suff
-    | TUserType (name, of_string, string_of) ->
-        let v,l = (list_assoc_remove (pref^name^suff) params) in
-        (try (Res_ ((Obj.magic (of_string v)),l,files))
-        with e -> Errors_ ([(pref^name^suff),e], l, files))
-    | TUnit -> Res_ ((Obj.magic ()), params, files)
-    | TAny -> Res_ ((Obj.magic params), [], files)
-    | TConst _ ->
-        Res_ ((Obj.magic ()), params, files)
-    | TESuffix n ->
-        let v,l = list_assoc_remove n params in
-        (* cannot have prefix or suffix *)
-        Res_ ((Obj.magic (Neturl.split_path v)), l, files)
-    | TESuffixs n ->
-        let v,l = list_assoc_remove n params in
-        (* cannot have prefix or suffix *)
-        Res_ ((Obj.magic v), l, files)
-    | TESuffixu (n, of_string, from_string) ->
-        let v,l = list_assoc_remove n params in
-        (* cannot have prefix or suffix *)
-        Res_ ((Obj.magic (of_string v)), l, files)
-    | TSuffix _ -> raise (Ocsigen_Internal_Error "Bad use of suffix")
-  in
-  let aux2 typ params =
-    match Obj.magic (aux typ params files "" "") with
-    | Res_ (v,l,files) ->
-        if (l,files) = ([], [])
-        then v
-        else raise Eliom_common.Eliom_Wrong_parameter
-    | Errors_ (errs, l, files) ->
-        if (l,files) = ([], [])
-        then raise (Eliom_common.Eliom_Typing_Error errs)
-        else raise Eliom_common.Eliom_Wrong_parameter
-  in
   let parse_one typ v =
     match typ with
     | TString _ -> Obj.magic v
@@ -454,47 +304,185 @@ let reconstruct_params
   in
   let rec parse_suffix typ suff =
     match (typ, suff) with
-    | (TESuffix _), l -> Obj.magic l
+    | (TESuffix _), l -> print_endline "poft"; Obj.magic l
 (*VVV encode=false? *)
-    | (TESuffixs _), l -> Obj.magic (string_of_url_path ~encode:false l)
+    | (TESuffixs _), l -> print_endline "pofr"; Obj.magic (string_of_url_path ~encode:false l)
     | (TESuffixu (_, of_string, from_string)), l ->
+print_endline "pofe"; 
         (try
 (*VVV encode=false? *)
           Obj.magic (of_string (string_of_url_path ~encode:false l))
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | _, [a] -> parse_one typ a
+    | _, [a] -> 
+print_endline "pofz"; 
+parse_one typ a
     | (TProd (t1, t2)), a::l ->
+print_endline "pofa"; 
         let b = parse_suffix t2 l in (* First we do parse_suffix to detect
                                         wrong number of parameters *)
         Obj.magic ((parse_one t1 a), b)
     | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
-  try
-    match typ with
-      (* Each suffixed URL has a version with parameters to be used with
-         forms *)
-    | TProd((TSuffix s), t) ->
-        if urlsuffix = [""]
-          (* no suffix: switching to version with parameters *)
-        then
-          (try
-            Obj.magic (aux2 (TProd (s, t)) params)
-          with Eliom_common.Eliom_Wrong_parameter ->
-            Obj.magic ((parse_suffix s urlsuffix), (aux2 t params)))
-        else Obj.magic ((parse_suffix s urlsuffix), (aux2 t params))
-    | TSuffix s ->
-        if urlsuffix = [""] && params <> []
-        then
-          (try Obj.magic (aux2 s params)
-          with Eliom_common.Eliom_Wrong_parameter ->
-            Obj.magic (parse_suffix s urlsuffix))
-        else Obj.magic (parse_suffix s urlsuffix)
-    | _ ->
-        if urlsuffix <> []
-        then raise Eliom_common.Eliom_Wrong_parameter
-        else Obj.magic (aux2 typ params)
-  with
-  | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
+  let aux2 typ params =
+    let rec aux_list t params files name pref suff =
+      let rec aa i lp fl pref suff =
+        let rec end_of_list len = function
+          | [] -> true
+          | (a,_)::_ when
+              (try (String.sub a 0 len) = pref
+               with Invalid_argument _ -> false) -> false
+          | _::l -> end_of_list len l
+        in
+        if end_of_list (String.length pref) lp
+        then Res_ ((Obj.magic []), lp, fl)
+        else
+          try
+            match aux t lp fl pref (suff^(make_list_suffix i)) with
+              | Res_ (v,lp2,f) ->
+                  (match aa (i+1) lp2 f pref suff with
+                     | Res_ (v2,lp3,f2) -> Res_ ((Obj.magic (v::v2)),lp3,f2)
+                     | err -> err)
+              | Errors_ (errs, l, f) ->
+                  (match aa (i+1) l f pref suff with
+                     | Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
+                     | Errors_ (errs2, ll, ff) -> Errors_ ((errs@errs2), ll, ff))
+          with Not_found -> Res_ ((Obj.magic []), lp, files)
+      in
+      aa 0 params files (pref^name^".") suff
+    and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)
+        params files pref suff : 'a res_reconstr_param =
+      match typ with
+        | TProd (t1, t2) ->
+            (match aux t1 params files pref suff with
+               | Res_ (v1, l1, f) ->
+                   (match aux t2 l1 f pref suff with
+                      | Res_ (v2, l2, f2) -> Res_ ((Obj.magic (v1, v2)), l2, f2)
+                      | err -> err)
+               | Errors_ (errs, l, f) ->
+                   (match aux t2 l f pref suff with
+                      | Res_ (_, ll, ff) -> Errors_ (errs, ll, ff)
+                      | Errors_ (errs2, ll, ff) -> Errors_ ((errs2@errs), ll, ff)))
+        | TOption t ->
+            (try
+               (match aux t params files pref suff with
+                  | Res_ (v, l, f) -> Res_ ((Obj.magic (Some v)), l, f)
+                  | err -> err)
+             with Not_found -> Res_ ((Obj.magic None), params, files))
+        | TBool name ->
+            (try
+               let v,l = (list_assoc_remove (pref^name^suff) params) in
+               Res_ ((Obj.magic true),l,files)
+             with Not_found -> Res_ ((Obj.magic false), params, files))
+        | TList (n,t) -> Obj.magic (aux_list t params files n pref suff)
+        | TSet t ->
+            let rec aux_set params files =
+              try
+                match aux t params files pref suff with
+                  | Res_ (vv, ll, ff) ->
+                      (match aux_set ll ff with
+                         | Res_ (vv2, ll2, ff2) ->
+                             Res_ (Obj.magic (vv::vv2), ll2, ff2)
+                         | err -> err)
+                  | Errors_ (errs, ll, ff) ->
+                      (match aux_set ll ff with
+                         | Res_ (_, ll2, ff2) -> Errors_ (errs, ll2, ff2)
+                         | Errors_ (errs2, ll2, ff2) -> Errors_ (errs@errs2, ll2, ff2))
+              with Not_found -> Res_ (Obj.magic [], params, files)
+            in Obj.magic (aux_set params files)
+        | TSum (t1, t2) ->
+            (try
+               match aux t1 params files pref suff with
+                 | Res_ (v,l,files) -> Res_ ((Obj.magic (Inj1 v)),l,files)
+                 | err -> err
+             with Not_found ->
+               (match aux t2 params files pref suff with
+                  | Res_ (v,l,files) -> Res_ ((Obj.magic (Inj2 v)),l,files)
+                  | err -> err))
+        | TString name ->
+            let v,l = list_assoc_remove (pref^name^suff) params in
+            Res_ ((Obj.magic v),l,files)
+        | TInt name ->
+            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            (try (Res_ ((Obj.magic (int_of_string v)),l,files))
+             with e -> Errors_ ([(pref^name^suff),e], l, files))
+        | TInt32 name ->
+            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            (try (Res_ ((Obj.magic (Int32.of_string v)),l,files))
+             with e -> Errors_ ([(pref^name^suff),e], l, files))
+        | TInt64 name ->
+            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            (try (Res_ ((Obj.magic (Int64.of_string v)),l,files))
+             with e -> Errors_ ([(pref^name^suff),e], l, files))
+        | TFloat name ->
+            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            (try (Res_ ((Obj.magic (float_of_string v)),l,files))
+             with e -> Errors_ ([(pref^name^suff),e], l, files))
+        | TFile name ->
+            let v,f = list_assoc_remove (pref^name^suff) files in
+            Res_ ((Obj.magic v), params, f)
+        | TCoord name ->
+            let r1 =
+              let v, l = (list_assoc_remove (pref^name^suff^".x") params) in
+              (try (Res_ ((int_of_string v), l, files))
+               with e -> Errors_ ([(pref^name^suff^".x"), e], l, files))
+            in
+            (match r1 with
+               | Res_ (x1, l1, f) ->
+                   let v, l = (list_assoc_remove (pref^name^suff^".y") l1) in
+                   (try (Res_ (
+                           (Obj.magic
+                              {abscissa= x1;
+                               ordinate= int_of_string v}), l, f))
+                    with e -> Errors_ ([(pref^name^suff^".y"), e], l, f))
+               | Errors_ (errs, l1, f) ->
+                   let v, l = (list_assoc_remove (pref^name^suff^".y") l1) in
+                   (try
+                      ignore (int_of_string v);
+                      Errors_ (errs, l, f)
+                    with e -> Errors_ (((pref^name^suff^".y"), e)::errs, l, f)))
+        | TCoordv (t, name) ->
+            aux (TProd (t, TCoord name)) params files pref suff
+        | TUserType (name, of_string, string_of) ->
+            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            (try (Res_ ((Obj.magic (of_string v)),l,files))
+             with e -> Errors_ ([(pref^name^suff),e], l, files))
+        | TUnit -> Res_ ((Obj.magic ()), params, files)
+        | TAny -> Res_ ((Obj.magic params), [], files)
+        | TConst _ ->
+            Res_ ((Obj.magic ()), params, files)
+        | TESuffix n ->
+print_endline "piua";
+            let v,l = list_assoc_remove n params in
+            (* cannot have prefix or suffix *)
+            Res_ ((Obj.magic (Neturl.split_path v)), l, files)
+        | TESuffixs n ->
+print_endline "piuz";
+            let v,l = list_assoc_remove n params in
+            (* cannot have prefix or suffix *)
+            Res_ ((Obj.magic v), l, files)
+        | TESuffixu (n, of_string, from_string) ->
+print_endline "piue";
+            let v,l = list_assoc_remove n params in
+            (* cannot have prefix or suffix *)
+            Res_ ((Obj.magic (of_string v)), l, files)
+        | TSuffix s -> 
+print_endline "piu";
+            if urlsuffix = [""]
+            then aux s params files pref suff
+            else Res_ (parse_suffix s urlsuffix, params, files)
+    in
+    match Obj.magic (aux typ params files "" "") with
+      | Res_ (v, l, files) ->
+          if (l, files) = ([], [])
+          then v
+          else raise Eliom_common.Eliom_Wrong_parameter
+      | Errors_ (errs, l, files) ->
+          if (l, files) = ([], [])
+          then raise (Eliom_common.Eliom_Typing_Error errs)
+          else raise Eliom_common.Eliom_Wrong_parameter
+  in
+  try Obj.magic (aux2 typ params) with
+    | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
 (* The following function takes a 'a params_type and a 'a and
    constructs the list of parameters (GET or POST)
@@ -706,3 +694,9 @@ let get_non_localized_post_parameters ~sp params =
   try
     Some (reconstruct_params params (Eliom_sessions.get_nl_post_params sp) [] [])
   with Eliom_common.Eliom_Wrong_parameter -> None
+
+let nl_prod 
+    (t : ('a, 'su, 'an) params_type) 
+    (s : ('s, 'sn) non_localized_params) :
+    (('a * 's), 'su, 'an * 'sn) params_type =
+  (Obj.magic (TProd (Obj.magic t, Obj.magic s)))

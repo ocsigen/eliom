@@ -426,6 +426,18 @@ val preapply :
    Preapplied services may be used in links or as fallbacks for coservices
  *)
 
+val add_non_localized_get_parameters :
+  params:('p, 'pn) non_localized_params ->
+  service:('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
+  ('a * 'p, 'b, 'c, 'd, 'e * 'pn, 'f, 'g) service
+(** Adds non localized GET parameters to a service *)
+
+val add_non_localized_post_parameters :
+  params:('p, 'pn) non_localized_params ->
+  service:('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
+  ('a, 'b * 'p, 'c, 'd, 'e, 'f * 'pn, 'g) service
+(** Adds non localized POST parameters to a service *)
+
 
 (** {2 Using your own error pages} *)
 

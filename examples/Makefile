@@ -32,15 +32,17 @@ byte: $(OBJS) $(DUCEMODBYTE) miniwiki.byte
 
 opt: $(OBJSOPT) $(DUCEMODOPT) miniwiki.opt
 
-exampleduce.cmo: ocamlduce/exampleduce.ml
-	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
+exampleduce.cmo: ocamlduce/exampleduce.cmo
 	cp ocamlduce/exampleduce.cmo .
 
-exampleduce.cmx: ocamlduce/exampleduce.ml
-#	-rm -f ../extensions/ocsipersist.cmx
-	$(OCAMLDUCEFIND) ocamlopt $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
+ocamlduce/exampleduce.cmo: ocamlduce/exampleduce.ml tutoeliom.cmo
+	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
+
+exampleduce.cmx: ocamlduce/exampleduce.cmx
 	cp ocamlduce/exampleduce.cmx ocamlduce/exampleduce.o .
-#	touch ../extensions/ocsipersist.cmx
+
+ocamlduce/exampleduce.cmx: ocamlduce/exampleduce.ml
+	$(OCAMLDUCEFIND) ocamlopt $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
 
 exampleduce.cmxs: exampleduce.cmx
 	$(OCAMLDUCEFIND) ocamlopt $(DBG) $(LIB) -linkall -shared \

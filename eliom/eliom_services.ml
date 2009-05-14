@@ -604,6 +604,21 @@ let https_void_hidden_coservice' = {void_coservice' with
     };
                       }
 
+let add_non_localized_get_parameters ~params ~service =
+  {service with
+     get_params_type = 
+      Eliom_parameters.nl_prod service.get_params_type params
+  }
+
+let add_non_localized_post_parameters ~params ~service =
+  {service with
+     post_params_type = 
+      Eliom_parameters.nl_prod service.post_params_type params
+  }
+
+
+
+
 
 (*****************************************************************************)
 let set_exn_handler ?sp h =
