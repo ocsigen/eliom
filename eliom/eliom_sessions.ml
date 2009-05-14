@@ -95,6 +95,10 @@ let get_ssl ~sp =
   sp.Eliom_common.sp_request.request_info.ri_ssl
 let get_other_get_params ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_other_get_params
+let get_nl_get_params ~sp =
+  sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params
+let get_nl_post_params ~sp =
+  sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params
 let get_suffix ~sp =
   sp.Eliom_common.sp_suffix
 let get_session_name ~sp =

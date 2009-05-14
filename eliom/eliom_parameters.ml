@@ -42,7 +42,7 @@ type 'a setone = [ `Set of 'a | `One of 'a ]
 (*****************************************************************************)
 (* This is a generalized algebraic datatype *)
 (* Use only with constructors from eliom.ml *)
-type ('a,+'tipo,+'names) params_type =
+type ('a, +'tipo, +'names) params_type =
     (* 'tipo is [`WithSuffix] or [`WithoutSuffix] *)
   | TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
   | TOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
@@ -686,3 +686,23 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
   in aux "" "" params
 
 let string_of_param_name = id
+
+(* Non localized parameters *)
+
+type ('a, +'names) non_localized_params = 
+    ('a, [ `WithoutSuffix ], 'names) params_type
+
+let make_non_localized_parameters
+    (p : ('a, [ `WithoutSuffix ], 'b) params_type) 
+    : ('a, 'b) non_localized_params =
+  add_pref_params Eliom_common.nl_param_prefix p
+
+let get_non_localized_get_parameters ~sp params =
+  try
+    Some (reconstruct_params params (Eliom_sessions.get_nl_get_params sp) [] [])
+  with Eliom_common.Eliom_Wrong_parameter -> None
+
+let get_non_localized_post_parameters ~sp params =
+  try
+    Some (reconstruct_params params (Eliom_sessions.get_nl_post_params sp) [] [])
+  with Eliom_common.Eliom_Wrong_parameter -> None

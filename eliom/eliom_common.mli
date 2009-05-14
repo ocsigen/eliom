@@ -84,6 +84,7 @@ val get_numstate_param_name : string
 val post_numstate_param_name : string
 val co_param_prefix : string
 val na_co_param_prefix : string
+val nl_param_prefix : string
 
 val datacookiename : string
 val servicecookiename : string

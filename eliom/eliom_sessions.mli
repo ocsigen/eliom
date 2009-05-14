@@ -978,6 +978,12 @@ val get_initial_get_params : sp:server_params -> (string * string) list
    that do not concern the running service. *)
 val get_other_get_params : sp:server_params -> (string * string) list
 
+(** returns non localized parameters in the URL. *)
+val get_nl_get_params : sp:server_params -> (string * string) list
+
+(** returns non localized POST parameters. *)
+val get_nl_post_params : sp:server_params -> (string * string) list
+
 (** returns the parameters in the body of the HTTP request (POST parameters)
    that concern the running service *)
 val get_post_params : sp:server_params -> (string * string) list Lwt.t

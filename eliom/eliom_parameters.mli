@@ -341,8 +341,26 @@ val suffix_const :
     but anywhere you want in the path, e.g. [/param1/const/param2]).
 *)
 
+(** {2 Non localized parameters} *)
+type ('a, +'names) non_localized_params
 
+val make_non_localized_parameters :
+  ('a, [ `WithoutSuffix ], 'b) params_type ->
+  ('a, 'b) non_localized_params
 
+val get_non_localized_get_parameters :
+  sp:Eliom_sessions.server_params ->
+  ('a, 'b) non_localized_params ->
+  'a option
+(** [get_non_localized_get_parameters ~sp p] decodes and 
+    returns non localized GET parameters specified by [p] if present. *)
+
+val get_non_localized_post_parameters :
+  sp:Eliom_sessions.server_params ->
+  ('a, 'b) non_localized_params ->
+  'a option
+(** [get_non_localized_post_parameters ~sp p] decodes and 
+    returns non localized POST parameters specified by [p] if present. *)
 
 
 (**/**)

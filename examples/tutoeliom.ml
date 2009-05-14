@@ -3452,6 +3452,38 @@ let _ = Eliom_services.set_exn_handler
         <code>Eliom_sessions.get_persistent_session_data</code>,
         <code>Eliom_predefmod.Xhtml.register_for_session</code>, etc.
       </p>
+      <h4>Non localized parameters<strong>[New in 1.3.0]</strong></h4>
+      <p>Non localized parameters are GET or POST parameters that are not
+        taken into account by Eliom for choosing the service.
+        They have a special prefix.
+      </p>
+  *html*)
+let my_nl_params = 
+  Eliom_parameters.make_non_localized_parameters
+    (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
+
+let nlparams = register_new_service
+    ~path:["nlparams"]
+    ~get_params:(int "i")
+    (fun sp i () ->
+       Lwt.return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata "i = ";
+                      strong [pcdata (string_of_int i)]];
+                   (match Eliom_parameters.get_non_localized_get_parameters
+                      sp my_nl_params 
+                    with
+                      | None -> 
+                          p [pcdata "I do not have my non localized parameters"]
+                      | Some (a, s) -> 
+                          p [pcdata "I have my non localized parameters";
+                             pcdata ("with values a = "^string_of_int a^
+                                       " and s = "^s^".")]
+                   )]))
+
+    )
+  (*html*
     </div>
 
 
@@ -4406,6 +4438,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
              $a count2 sp <:xmllist< <code>count2</code> >> ()$ <br/>
        $a hier1 sp [pcdata "Hierarchical menu"] ()$ <br/>
        $a divpage sp <:xmllist< <code>a link sending a &lt;div&gt; page</code> >> ()$ <br/>
+       $a nlparams sp [pcdata "Non localized parameters"] 4$ <br/>
        </p>
        <h4>Advanced forms</h4>
        <p>
