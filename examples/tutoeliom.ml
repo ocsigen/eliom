@@ -3456,6 +3456,8 @@ let _ = Eliom_services.set_exn_handler
       <p>Non localized parameters are GET or POST parameters that are not
         taken into account by Eliom for choosing the service.
         They have a special prefix.
+        Use this if you want some information to be available or not, through
+        parameters, for all of your services.
       </p>
   *html*)
 let my_nl_params = 

@@ -12,6 +12,7 @@
     URLS like {{{/param1/something/param2}}}
   * Eliom: Now possible to create services sending custom HTTP header values
     or customizing the content-type
+  * Eliom: New notion: "Non localized parameters". Can be sent to any service.
 
 ===== 1.2.0 (25/03/2009) =====
 
