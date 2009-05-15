@@ -13,6 +13,7 @@
   * Eliom: Now possible to create services sending custom HTTP header values
     or customizing the content-type
   * Eliom: New notion: "Non localized parameters". Can be sent to any service.
+  * Eliom: changing the order of parameters for user type form widgets
 
 ===== 1.2.0 (25/03/2009) =====
 
