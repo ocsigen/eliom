@@ -468,7 +468,13 @@ print_endline "piue";
         | TSuffix s -> 
 print_endline "piu";
             if urlsuffix = [""]
-            then aux s params files pref suff
+            then
+              (* No suffix: switching to version with parameters *)
+              try
+                match aux s params files pref suff with
+                  | Errors_ _ -> raise Not_found
+                  | a -> a
+              with Not_found -> Res_ (parse_suffix s urlsuffix, params, files)
             else Res_ (parse_suffix s urlsuffix, params, files)
     in
     match Obj.magic (aux typ params files "" "") with
