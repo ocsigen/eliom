@@ -190,10 +190,11 @@ type request_info =
 
 
      ri_http_frame: Ocsigen_http_frame.t; (** The full http_frame *)
-     ri_request_cache: Polytables.t; (** Use this to put anything you want,
-                                        for example, information for subsequent
-                                        extensions
-                                      *)
+     mutable ri_request_cache: Polytables.t;
+     (** Use this to put anything you want,
+         for example, information for subsequent
+         extensions
+     *)
      ri_client: client; (** The request connection *)
      ri_range: ((int64 * int64) list * int64 option * ifrange) option Lazy.t; 
      (** Range HTTP header. [None] means all the document. 

@@ -507,6 +507,9 @@ val set_persistent_data_session_cookie_exp_date :
  *)
 val get_request_cache : sp:server_params -> Polytables.t
 
+(** Remove all data from the request cache *)
+val clean_request_cache : sp:server_params -> unit
+
 (** returns [true] if the coservice called has not been found.
     In that case, the current service is the fallback.
 *)

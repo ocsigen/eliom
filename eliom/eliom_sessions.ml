@@ -105,6 +105,9 @@ let get_session_name ~sp =
   sp.Eliom_common.sp_fullsessname
 let get_request_cache ~sp =
   sp.Eliom_common.sp_request.request_info.ri_request_cache
+let clean_request_cache ~sp =
+  sp.Eliom_common.sp_request.request_info.ri_request_cache <- 
+    Polytables.create ()
 let get_link_too_old ~sp =
   try
     Polytables.get

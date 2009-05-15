@@ -304,20 +304,16 @@ let reconstruct_params
   in
   let rec parse_suffix typ suff =
     match (typ, suff) with
-    | (TESuffix _), l -> print_endline "poft"; Obj.magic l
+    | (TESuffix _), l -> Obj.magic l
 (*VVV encode=false? *)
-    | (TESuffixs _), l -> print_endline "pofr"; Obj.magic (string_of_url_path ~encode:false l)
+    | (TESuffixs _), l -> Obj.magic (string_of_url_path ~encode:false l)
     | (TESuffixu (_, of_string, from_string)), l ->
-print_endline "pofe"; 
         (try
 (*VVV encode=false? *)
           Obj.magic (of_string (string_of_url_path ~encode:false l))
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | _, [a] -> 
-print_endline "pofz"; 
-parse_one typ a
+    | _, [a] -> parse_one typ a
     | (TProd (t1, t2)), a::l ->
-print_endline "pofa"; 
         let b = parse_suffix t2 l in (* First we do parse_suffix to detect
                                         wrong number of parameters *)
         Obj.magic ((parse_one t1 a), b)
@@ -451,22 +447,18 @@ print_endline "pofa";
         | TConst _ ->
             Res_ ((Obj.magic ()), params, files)
         | TESuffix n ->
-print_endline "piua";
             let v,l = list_assoc_remove n params in
             (* cannot have prefix or suffix *)
             Res_ ((Obj.magic (Neturl.split_path v)), l, files)
         | TESuffixs n ->
-print_endline "piuz";
             let v,l = list_assoc_remove n params in
             (* cannot have prefix or suffix *)
             Res_ ((Obj.magic v), l, files)
         | TESuffixu (n, of_string, from_string) ->
-print_endline "piue";
             let v,l = list_assoc_remove n params in
             (* cannot have prefix or suffix *)
             Res_ ((Obj.magic (of_string v)), l, files)
         | TSuffix s -> 
-print_endline "piu";
             if urlsuffix = [""]
             then
               (* No suffix: switching to version with parameters *)
