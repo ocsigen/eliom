@@ -14,7 +14,7 @@ DYNLINKWRAPPER=dynlink_wrapper.ml
 endif
 
 FILES= ocsigen_lib.ml ocsigen_messages.ml ocsigen_config.ml ocsigen_stream.ml \
-	ocsigen_commandline.ml ocsigen_loader.ml dynlink_wrapper.ml
+       ocsigen_commandline.ml ocsigen_loader.ml dynlink_wrapper.ml polytables.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
@@ -30,7 +30,8 @@ CMI = ocsigen_getcommandline.cmi $(FILES:.ml=.cmi)
 byte: $(OBJS) $(CMI) parsecommandline.cma donotparsecommandline.cma
 #	cp -f $(OBJS) $(CMI) ../lib
 
-opt: $(OBJSOPT) $(CMI) parsecommandline.cmxa donotparsecommandline.cmxa
+opt: $(OBJSOPT) $(CMI) parsecommandline.cmxa donotparsecommandline.cmxa \
+     polytables.cmxs
 #	cp -f $(OBJSOPT) $(OBJSOPT:.cmx=.o) $(CMI) ../lib
 
 parsecommandline.cma: commandline/ocsigen_getcommandline.cmo
@@ -45,8 +46,11 @@ parsecommandline.cmxa: commandline/ocsigen_getcommandline.cmx
 donotparsecommandline.cmxa: nocommandline/ocsigen_getcommandline.cmx
 	$(CAMLOPT) -a -o $@  $<
 
+.cmx.cmxs:
+	$(CAMLOPT) -shared -linkall -o $@ $<
+
 .SUFFIXES:
-.SUFFIXES: .ml .mli .cmo .cmi .cmx
+.SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
 
 .PHONY: doc depend
 
