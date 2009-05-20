@@ -55,5 +55,6 @@ val extract_info :
   ((string option * string option) option *
      (Unix.inet_addr option * int) list * (Unix.inet_addr option * int) list) * (int * int)
 val parse_config :
+  ?file:string ->
   unit ->
   Simplexmlparser.xml list list

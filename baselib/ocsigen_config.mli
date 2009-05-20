@@ -81,5 +81,4 @@ val get_sslports : unit -> (Unix.inet_addr option * int) list
 val get_maxretries : unit -> int
 
 val display_version : unit -> 'a
-val config : unit -> Simplexmlparser.xml list
   

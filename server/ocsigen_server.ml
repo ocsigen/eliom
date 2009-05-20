@@ -935,27 +935,29 @@ let errmsg = function
 
 
 
-(* reloading the cmo *)
-let reload () =
+(* loading new configuration *)
+let reload_conf s =
+  try
+    Ocsigen_extensions.start_initialisation ();
+    
+    parse_server true s;
+    
+    Ocsigen_extensions.end_initialisation ();
+  with e ->
+    Ocsigen_extensions.end_initialisation ();
+    errlog (fst (errmsg e))
+
+(* reloading the config file *)
+let reload ?file () =
 
   (* That function cannot be interrupted??? *)
   Ocsigen_messages.warning "Reloading config file" ;
 
   (try
-    match parse_config () with
+    match parse_config ?file () with
     | [] -> ()
-    | s::_ ->
-        begin
-          Ocsigen_extensions.start_initialisation ();
-
-          parse_server true s;
-
-          Ocsigen_extensions.end_initialisation ();
-
-        end
-  with e ->
-    Ocsigen_extensions.end_initialisation ();
-    errlog (fst (errmsg e)));
+    | s::_ -> reload_conf s
+  with e -> errlog (fst (errmsg e)));
 
   Ocsigen_messages.warning "Config file reloaded"
 
@@ -1119,12 +1121,13 @@ let start_server () = try
       let rec f () =
         Lwt_chan.input_line pipe >>=
           (fun s ->
-             begin match s with
-               | "reopen_logs" ->
+             begin match Ocsigen_lib.split ~multisep:true ' ' s with
+               | ["reopen_logs"] ->
                    Ocsigen_messages.open_files ();
                    Ocsigen_messages.warning "Log files reopened"
-               | "reload" -> reload ()
-               | "gc" ->
+               | ["reload"] -> reload ()
+               | ["reload"; file] -> reload ~file ()
+               | ["gc"] ->
                    Gc.compact ();
                    Ocsigen_messages.warning "Heap compaction requested by user"
                | _ -> Ocsigen_messages.warning ("Unknown command: " ^ s)

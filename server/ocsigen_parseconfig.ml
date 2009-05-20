@@ -664,7 +664,12 @@ let extract_info c =
   in
   ((user, group), si, (mint, maxt))
 
-let parse_config () =
-    parser_config (Ocsigen_config.config ())
+let parse_config ?file () =
+  let file = 
+    match file with
+      | None -> Ocsigen_config.get_config_file ()
+      | Some f -> f
+  in
+  parser_config (Simplexmlparser.xmlparser_file file)
 
 (******************************************************************)

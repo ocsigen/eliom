@@ -158,5 +158,3 @@ let display_version () =
   exit 0
 
 
-let config () =
-  Simplexmlparser.xmlparser_file (get_config_file ())
