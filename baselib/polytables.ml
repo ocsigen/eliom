@@ -44,7 +44,7 @@ let get ~(table : t) ~key:((k, r) : 'a key) =
   (T.find k !table) ();
   match !r with
     | Some v -> r:= None; v
-    | None -> failwith "Polytable.get"
+    | None -> failwith "Polytables.get"
 
 let clear ~(table : t) =
   table := T.empty

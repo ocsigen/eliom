@@ -18,6 +18,15 @@ package "syntax" (
   )
 )
 
+package "polytables" (
+  exists_if = "polytables.cmo,polytables.cmx"
+  version = "[distributed with Ocsigen]"
+  description = "Polymorphic tables"
+  archive(byte) = "polytables.cmo"
+  archive(native) = "polytables.cmx"
+  )
+
+
 package "server" (
   requires = "lwt.extra,lwt.ssl,lwt.preemptive,ocsigen,ocsigen.xhtml,findlib,camlp4.lib"
   version = "_VERSION_"
@@ -141,14 +150,6 @@ package "ext" (
     description = "Persistent data storage with DBM"
     archive(byte) = "ocsipersist-dbm.cma"
     archive(native) = "ocsipersist-dbm.cmxa"
-  )
-
-  package "polytables" (
-    exists_if = "polytables.cmo,polytables.cmx"
-    version = "[distributed with Ocsigen]"
-    description = "Polymorphic tables"
-    archive(byte) = "polytables.cmo"
-    archive(native) = "polytables.cmx"
   )
 
   package "eliom" (
