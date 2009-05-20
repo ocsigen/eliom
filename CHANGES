@@ -14,6 +14,9 @@
     or customizing the content-type
   * Eliom: New notion: "Non localized parameters". Can be sent to any service.
   * Eliom: changing the order of parameters for user type form widgets
+  * Server: now possible to give the config file name to reload server command
+  * Server: now possible to do a "graceful shutdown" of the server
+    using the "shutdown" server command
 
 ===== 1.2.0 (25/03/2009) =====
 
