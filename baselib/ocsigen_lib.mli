@@ -94,3 +94,18 @@ val make_absolute_url :
   https:bool -> host:string -> port:int -> string -> string
 
 module StringSet : Set.S with type elt = string
+
+module Clist :
+sig
+  type 'a t
+  type 'a node
+  val make : 'a -> 'a node
+  val create : unit -> 'a t
+  val insert : 'a t -> 'a node -> unit
+  val remove : 'a node -> unit
+  val value : 'a node -> 'a
+  val in_list : 'a node -> bool
+  val is_empty : 'a t -> bool
+  val iter : ('a -> unit) -> 'a t -> unit
+  val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b t -> 'a
+end

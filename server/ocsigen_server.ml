@@ -38,6 +38,8 @@ exception Ssl_Exception
 exception Ocsigen_upload_forbidden
 exception Socket_closed
 
+let shutdown = ref false
+
 let () = Random.self_init ()
 
 (* Without the following line, it stops with "Broken Pipe" without raising
@@ -699,6 +701,21 @@ let linger in_ch receiver =
 
 let try_bind' f g h = Lwt.try_bind f h g
 
+let add_to_receivers_waiting_for_pipeline, 
+  remove_from_receivers_waiting_for_pipeline,
+  iter_receivers_waiting_for_pipeline =
+  let l = Ocsigen_lib.Clist.create () in
+  ((fun r -> 
+      let node = Ocsigen_lib.Clist.make r in
+      Ocsigen_lib.Clist.insert l node;
+      node),
+   Ocsigen_lib.Clist.remove,
+   (fun f -> 
+      Ocsigen_lib.Clist.fold_left
+        (fun t v -> t >>= fun () -> f v)
+        (Lwt.return ()) 
+        l))
+
 let handle_connection port in_ch sockaddr =
   let receiver = Ocsigen_http_com.create_receiver
     (Ocsigen_config.get_client_timeout ()) Query in_ch
@@ -763,7 +780,7 @@ let handle_connection port in_ch sockaddr =
     end
   in
 
-  let rec handle_request () =
+  let rec handle_request ?receiver_pos () =
     try_bind'
       (fun () ->
          Ocsigen_messages.debug2 "** Receiving HTTP message";
@@ -780,6 +797,11 @@ let handle_connection port in_ch sockaddr =
          Ocsigen_http_com.get_http_frame receiver)
       handle_read_errors
       (fun request ->
+         (* We remove the receiver from the set of requests 
+            waiting for pipeline *)
+         (match receiver_pos with
+           | Some pos -> remove_from_receivers_waiting_for_pipeline pos
+           | None -> ());
          let meth, url =
            match 
              Http_header.get_firstline request.Ocsigen_http_frame.header 
@@ -794,8 +816,14 @@ let handle_connection port in_ch sockaddr =
 (*XXX Why do we need the port but not the host name? *)
                 service receiver slot request meth url port sockaddr)
              handle_write_errors);
-         if get_keepalive request.Ocsigen_http_frame.header then
-           handle_request ()
+         if not !shutdown && get_keepalive request.Ocsigen_http_frame.header 
+         then
+           (* We put the receiver in the set of receiver waiting for 
+              pipeline in order to be able to shutdown the connections
+              if the server is shutting down.
+           *)
+           handle_request 
+             ~receiver_pos:(add_to_receivers_waiting_for_pipeline receiver) ()
          else (* No keep-alive => no pipeline *)
             (* We wait for the query to be entirely read and for
                the reply to be sent *)
@@ -968,6 +996,38 @@ let reload ?file () =
   Ocsigen_messages.warning "Config file reloaded"
 
 
+let shutdown_server s l =
+  try 
+    let timeout = match l with
+      | [] -> Ocsigen_config.get_shutdown_timeout ()
+      | ["notimeout"] -> None
+      | [t] -> 
+          Some (float_of_string t)
+      | _ -> failwith "syntax error in command"
+    in
+    Ocsigen_messages.warning "Shutting down";
+    List.iter 
+      (fun s -> Lwt_unix.abort s Socket_closed) !sockets;
+    List.iter 
+      (fun s -> Lwt_unix.abort s Socket_closed) !sslsockets;
+    sockets := [];
+    sslsockets := [];
+    shutdown := true;
+    if Ocsigen_extensions.get_number_of_connected () <= 0
+    then exit 0;
+    (match timeout with
+       | Some t -> ignore (Lwt_unix.sleep t >>= fun () -> exit 0)
+       | None -> ());
+    ignore
+      (iter_receivers_waiting_for_pipeline
+         (fun receiver ->
+            Ocsigen_http_com.wait_all_senders receiver >>= fun () ->
+              Ocsigen_http_com.abort receiver;
+              Lwt.return ()));
+  with Failure e ->
+    Ocsigen_messages.warning ("Wrong command: " ^ s ^ " (" ^ e ^ ")")
+
+
 let start_server () = try
 
   (* initialization functions for modules (Ocsigen extensions or application
@@ -1127,29 +1187,7 @@ let start_server () = try
               Ocsigen_messages.warning "Log files reopened"
           | ["reload"] -> reload ()
           | ["reload"; file] -> reload ~file ()
-          | "shutdown"::l ->
-              (try 
-                 let timeout = match l with
-                   | [] -> Ocsigen_config.get_shutdown_timeout ()
-                   | ["notimeout"] -> None
-                   | [t] -> 
-                       Some (float_of_string t)
-                   | _ -> failwith "syntax error in command"
-                 in
-                 Ocsigen_messages.warning "Shutting down";
-                 List.iter 
-                   (fun s -> Lwt_unix.abort s Socket_closed) !sockets;
-                 List.iter 
-                   (fun s -> Lwt_unix.abort s Socket_closed) !sslsockets;
-                 sockets := [];
-                 sslsockets := [];
-                 if Ocsigen_extensions.get_number_of_connected () <= 0
-                 then exit 0;
-                 (match timeout with
-                    | Some t -> ignore (Lwt_unix.sleep t >>= fun () -> exit 0)
-                    | None -> ())
-               with Failure e ->
-                 Ocsigen_messages.warning ("Wrong command: " ^ s ^ " (" ^ e ^ ")"))
+          | "shutdown"::l -> shutdown_server s l
           | ["gc"] ->
               Gc.compact ();
               Ocsigen_messages.warning "Heap compaction requested by user"

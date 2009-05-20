@@ -649,3 +649,73 @@ type yesnomaybe = Yes | No | Maybe
 
 module StringSet = Set.Make(String)
 
+
+
+(* circular lists *)
+module Clist = 
+(struct
+  
+  type 'a node =
+      { content : 'a option;
+        mutable prev : 'a node; 
+        mutable next : 'a node }
+
+  type 'a t = 'a node
+        
+  let make' c =
+    let rec x = { content = c; prev = x; next = x } in
+    x
+      
+  let make c = make' (Some c)
+
+  let create () = make' None
+
+  let insert p x =
+    let n = p.next in
+    p.next <- x;
+    x.prev <- p;
+    x.next <- n;
+    n.prev <- x
+      
+  let remove x =
+    let p = x.prev in
+    let n = x.next in
+    p.next <- n;
+    n.prev <- p;
+    x.next <- x;
+    x.prev <- x
+      
+  let in_list x = x.next != x
+    
+  let is_empty set = set.next == set
+
+  let value c = 
+    match c.content with 
+      | None -> failwith "Clist.value"
+      | Some c -> c
+
+  let rec iter f (node : 'a t) = 
+    match node.next.content with
+      | Some c -> 
+          f c;
+          iter f node.next
+      | None -> ()
+
+  let rec fold_left f a (node : 'a t) = 
+    match node.next.content with
+      | Some c ->  fold_left f (f a c) node.next
+      | None -> a
+
+end : sig
+  type 'a t
+  type 'a node
+  val make : 'a -> 'a node
+  val create : unit -> 'a t
+  val insert : 'a t -> 'a node -> unit
+  val remove : 'a node -> unit
+  val value : 'a node -> 'a
+  val in_list : 'a node -> bool
+  val is_empty : 'a t -> bool
+  val iter : ('a -> unit) -> 'a t -> unit
+  val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b t -> 'a
+end)
