@@ -493,3 +493,5 @@ val set_config : Simplexmlparser.xml list -> unit
 
 val client_of_connection : Ocsigen_http_com.connection -> client
 
+val sockets : Lwt_unix.file_descr list ref
+val sslsockets : Lwt_unix.file_descr list ref

@@ -36,6 +36,7 @@ open Lazy
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
 exception Ocsigen_upload_forbidden
+exception Socket_closed
 
 let () = Random.self_init ()
 
@@ -809,10 +810,14 @@ let handle_connection port in_ch sockaddr =
 let rec wait_connection use_ssl port socket =
   try_bind'
     (fun () -> Lwt_unix.accept socket)
-    (fun e ->
-       Ocsigen_messages.debug
-        (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
-       wait_connection use_ssl port socket)
+    (function
+       | Socket_closed -> 
+           Ocsigen_messages.debug2 "Socket closed";
+           Lwt.return ()
+       | e ->
+           Ocsigen_messages.debug
+             (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
+           wait_connection use_ssl port socket)
     (fun (s, sockaddr) ->
        Ocsigen_messages.debug2
         "\n__________________NEW CONNECTION__________________________";
@@ -897,8 +902,9 @@ Is it:
     | exn ->
         stop ("Fatal - Uncaught exception: " ^ string_of_exn exn) 100
   in
-  wait_end_init >>= fun () ->
-  wait_connection use_ssl port listening_socket
+  ignore (wait_end_init >>= fun () ->
+          wait_connection use_ssl port listening_socket);
+  listening_socket
 
 (* fatal errors messages *)
 let errmsg = function
@@ -962,7 +968,6 @@ let reload ?file () =
   Ocsigen_messages.warning "Config file reloaded"
 
 
-
 let start_server () = try
 
   (* initialization functions for modules (Ocsigen extensions or application
@@ -1004,12 +1009,8 @@ let start_server () = try
     Lwt_unix.run
       (let wait_end_init = wait () in
       (* Listening on all ports: *)
-      List.iter
-        (fun i ->
-          ignore (listen false i wait_end_init)) ports;
-      List.iter
-        (fun i ->
-          ignore (listen true i wait_end_init)) sslports;
+      sockets := List.map (fun i -> listen false i wait_end_init) ports;
+      sslsockets := List.map (fun i -> listen true i wait_end_init) sslports;
 
       Ocsigen_config.set_ports ports;
       Ocsigen_config.set_sslports sslports;
@@ -1127,6 +1128,14 @@ let start_server () = try
                    Ocsigen_messages.warning "Log files reopened"
                | ["reload"] -> reload ()
                | ["reload"; file] -> reload ~file ()
+               | ["shutdown"] ->
+                   Ocsigen_messages.warning "Shutting down"
+                   List.iter (fun s -> Lwt_unix.abort s Socket_closed) !sockets;
+                   List.iter (fun s -> Lwt_unix.abort s Socket_closed) !sslsockets;
+                   sockets := [];
+                   sslsockets := [];
+                   if Ocsigen_extensions.get_number_of_connected () <= 0
+                   then exit 0
                | ["gc"] ->
                    Gc.compact ();
                    Ocsigen_messages.warning "Heap compaction requested by user"
@@ -1136,9 +1145,9 @@ let start_server () = try
 
       wakeup wait_end_init ();
 
-      warning "Ocsigen has been launched (initialisations ok)";
+      Ocsigen_messages.warning "Ocsigen has been launched (initialisations ok)";
 
-      wait ()
+      Lwt.wait ()
       )
   in
 

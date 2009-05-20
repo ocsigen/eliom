@@ -927,13 +927,19 @@ let ri_of_url url ri =
 (*****************************************************************************)
 (* This is used by server.ml.
    I put that here because I need it to be accessible for profiling. *)
+let sockets = ref []
+let sslsockets = ref []
+
 let get_number_of_connected,
   incr_connected,
   decr_connected =
   let connected = ref 0 in
   ((fun () -> !connected),
    (fun () -> connected := !connected + 1),
-   (fun () -> connected := !connected - 1))
+   (fun () -> 
+      connected := !connected - 1;
+      if !connected <= 0 && !sockets = [] && !sslsockets = []
+      then exit 0))
 
 
 
