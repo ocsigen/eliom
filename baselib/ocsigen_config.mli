@@ -41,6 +41,7 @@ val set_respect_pipeline : unit -> unit
 val set_ports : (Unix.inet_addr option * int) list -> unit
 val set_sslports : (Unix.inet_addr option * int) list -> unit
 val set_maxretries : int -> unit
+val set_shutdown_timeout : float option -> unit
 
 val get_uploaddir : unit -> string option
 val get_logdir : unit -> string
@@ -79,6 +80,7 @@ val get_respect_pipeline : unit -> bool
 val get_ports : unit -> (Unix.inet_addr option * int) list
 val get_sslports : unit -> (Unix.inet_addr option * int) list
 val get_maxretries : unit -> int
+val get_shutdown_timeout : unit -> float option
 
 val display_version : unit -> 'a
   

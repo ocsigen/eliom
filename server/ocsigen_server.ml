@@ -1120,27 +1120,41 @@ let start_server () = try
                 [Unix.O_RDWR; Unix.O_NONBLOCK; Unix.O_APPEND] 0o660)) in
 
       let rec f () =
-        Lwt_chan.input_line pipe >>=
-          (fun s ->
-             begin match Ocsigen_lib.split ~multisep:true ' ' s with
-               | ["reopen_logs"] ->
-                   Ocsigen_messages.open_files ();
-                   Ocsigen_messages.warning "Log files reopened"
-               | ["reload"] -> reload ()
-               | ["reload"; file] -> reload ~file ()
-               | ["shutdown"] ->
-                   Ocsigen_messages.warning "Shutting down"
-                   List.iter (fun s -> Lwt_unix.abort s Socket_closed) !sockets;
-                   List.iter (fun s -> Lwt_unix.abort s Socket_closed) !sslsockets;
-                   sockets := [];
-                   sslsockets := [];
-                   if Ocsigen_extensions.get_number_of_connected () <= 0
-                   then exit 0
-               | ["gc"] ->
-                   Gc.compact ();
-                   Ocsigen_messages.warning "Heap compaction requested by user"
-               | _ -> Ocsigen_messages.warning ("Unknown command: " ^ s)
-             end; f ())
+        Lwt_chan.input_line pipe >>= fun s ->
+        begin match Ocsigen_lib.split ~multisep:true ' ' s with
+          | ["reopen_logs"] ->
+              Ocsigen_messages.open_files ();
+              Ocsigen_messages.warning "Log files reopened"
+          | ["reload"] -> reload ()
+          | ["reload"; file] -> reload ~file ()
+          | "shutdown"::l ->
+              (try 
+                 let timeout = match l with
+                   | [] -> Ocsigen_config.get_shutdown_timeout ()
+                   | ["notimeout"] -> None
+                   | [t] -> 
+                       Some (float_of_string t)
+                   | _ -> failwith "syntax error in command"
+                 in
+                 Ocsigen_messages.warning "Shutting down";
+                 List.iter 
+                   (fun s -> Lwt_unix.abort s Socket_closed) !sockets;
+                 List.iter 
+                   (fun s -> Lwt_unix.abort s Socket_closed) !sslsockets;
+                 sockets := [];
+                 sslsockets := [];
+                 if Ocsigen_extensions.get_number_of_connected () <= 0
+                 then exit 0;
+                 (match timeout with
+                    | Some t -> ignore (Lwt_unix.sleep t >>= fun () -> exit 0)
+                    | None -> ())
+               with Failure e ->
+                 Ocsigen_messages.warning ("Wrong command: " ^ s ^ " (" ^ e ^ ")"))
+          | ["gc"] ->
+              Gc.compact ();
+              Ocsigen_messages.warning "Heap compaction requested by user"
+          | _ -> Ocsigen_messages.warning ("Unknown command: " ^ s)
+        end; f ()
       in ignore (f ());
 
       wakeup wait_end_init ();

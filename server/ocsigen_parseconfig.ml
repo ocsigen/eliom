@@ -25,12 +25,15 @@
 open Simplexmlparser
 open Ocsigen_config
 
-let int_of_string tag s =
+let blah_of_string f tag s =
   try
-    int_of_string (Ocsigen_lib.remove_spaces s 0 ((String.length s) -1))
+    f (Ocsigen_lib.remove_spaces s 0 ((String.length s) -1))
   with Failure _ -> raise (Ocsigen_config.Config_file_error
                              ("While parsing <"^tag^"> - "^s^
-                                " is not a valid integer."))
+                                " is not a valid value."))
+
+let int_of_string = blah_of_string int_of_string
+let float_of_string = blah_of_string float_of_string
 
 (*****************************************************************************)
 let default_default_hostname =
@@ -341,6 +344,15 @@ let parse_server isreloading c =
           parse_server_aux ll
       | (Element ("commandpipe" as st, [], p))::ll ->
           set_command_pipe (parse_string_tag st p);
+          parse_server_aux ll
+      | (Element ("shutdowntimeout" as st, [], p))::ll ->
+          let p = parse_string_tag st p in
+          let t =
+            if p = "notimeout"
+            then None
+            else Some (float_of_string st p)
+          in
+          set_shutdown_timeout t;
           parse_server_aux ll
       | (Element ("debugmode", [], []))::ll ->
           set_debugmode true;
