@@ -17,6 +17,9 @@
   * Server: now possible to give the config file name to reload server command
   * Server: now possible to do a "graceful shutdown" of the server
     using the "shutdown" server command
+  * Server: now possible to add custom commands for the command pipe
+  * Server: EXPERIMENTAL now possible to observe HTTP headers before sending
+  the result.
 
 ===== 1.2.0 (25/03/2009) =====
 
