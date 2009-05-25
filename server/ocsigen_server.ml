@@ -1028,6 +1028,23 @@ let shutdown_server s l =
     Ocsigen_messages.warning ("Wrong command: " ^ s ^ " (" ^ e ^ ")")
 
 
+let _ =
+  let f s = function
+    | ["reopen_logs"] ->
+        Ocsigen_messages.open_files ();
+        Ocsigen_messages.warning "Log files reopened"
+    | ["reload"] -> reload ()
+    | ["reload"; file] -> reload ~file ()
+    | "shutdown"::l -> shutdown_server s l
+    | ["gc"] ->
+        Gc.compact ();
+        Ocsigen_messages.warning "Heap compaction requested by user"
+    | _ -> raise Ocsigen_extensions.Unknown_command
+  in
+  Ocsigen_extensions.register_command_function f
+
+
+
 let start_server () = try
 
   (* initialization functions for modules (Ocsigen extensions or application
@@ -1181,18 +1198,20 @@ let start_server () = try
 
       let rec f () =
         Lwt_chan.input_line pipe >>= fun s ->
-        begin match Ocsigen_lib.split ~multisep:true ' ' s with
-          | ["reopen_logs"] ->
-              Ocsigen_messages.open_files ();
-              Ocsigen_messages.warning "Log files reopened"
-          | ["reload"] -> reload ()
-          | ["reload"; file] -> reload ~file ()
-          | "shutdown"::l -> shutdown_server s l
-          | ["gc"] ->
-              Gc.compact ();
-              Ocsigen_messages.warning "Heap compaction requested by user"
-          | _ -> Ocsigen_messages.warning ("Unknown command: " ^ s)
-        end; f ()
+        (try
+          let prefix, c =
+            match Ocsigen_lib.split ~multisep:true ' ' s with
+              | [] -> raise Ocsigen_extensions.Unknown_command
+              | a::l ->
+                  try
+                    let aa, ab = Ocsigen_lib.sep ':' a in
+                    (Some aa, (ab::l))
+                  with Not_found -> None, (a::l)
+          in
+          Ocsigen_extensions.get_command_function () ?prefix s c
+        with Unknown_command -> 
+          Ocsigen_messages.warning ("Unknown command: " ^ s));
+        f ()
       in ignore (f ());
 
       wakeup wait_end_init ();
