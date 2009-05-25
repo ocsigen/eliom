@@ -699,6 +699,12 @@ let write_stream ?(chunked=false) out_ch stream =
 
 module H = Ocsigen_http_frame.Http_header
 
+let set_result_observer, observe_result =
+  let observer = ref (fun _ _ -> Lwt.return ()) in
+  ((fun f -> 
+      let o = !observer in
+      observer := (fun a b -> o a b >>= fun () -> f a b)),
+   (fun a b -> !observer a b))
 
 (** Sends the HTTP frame.
  * The headers are merged with those of the sender, the priority
@@ -801,6 +807,7 @@ let send
                   Ocsigen_messages.debug2 "writing header";
                   let hh = Framepp.string_of_header hd in
                   Ocsigen_messages.debug2 hh;
+                  observe_result hd hh >>= fun () ->
                   Lwt_chan.output_string out_ch hh >>= fun () ->
                    (if reopen <> None then
                      (* If we want to give a possibility to reopen if

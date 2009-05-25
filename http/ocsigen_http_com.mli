@@ -100,3 +100,11 @@ val send :
 val abort : connection -> unit
 
 
+(** Use this function to make an action just before sending the result 
+    (for example observe the headers that will be sent).
+    The parameter is a function taking the set of headers twice,
+    first as [Ocsigen_http_frame.Http_headers.http_header], 
+    second as a [string].
+*)
+val set_result_observer : 
+  (Ocsigen_http_frame.Http_header.http_header -> string -> unit Lwt.t) -> unit
