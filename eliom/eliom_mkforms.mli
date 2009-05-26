@@ -257,6 +257,16 @@ module type ELIOMFORMSIG =
 (** Creates the (relative) URL for a service.
     Like the [a] function, it may take extra parameters. *)
 
+    val make_proto_prefix :
+      sp:Eliom_sessions.server_params ->
+      ?hostname:string ->
+      ?port:int ->
+      bool ->
+      string
+(** Creates the string corresponding to the beginning of the URL,
+    containing the scheme (protocol), server and port number (if necessary).
+ *)
+
     val a :
       ?https:bool ->
       ?a:a_attrib_t ->
