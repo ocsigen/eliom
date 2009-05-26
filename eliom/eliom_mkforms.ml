@@ -42,14 +42,12 @@ let rec string_of_url_path' = function
 
 let rec string_of_url_path_suff u = function
   | None -> string_of_url_path' u
-  | Some suff -> let deb = (string_of_url_path' u) in
-    if deb = ""
-    then string_of_url_path' suff
-    else deb^(string_of_url_path' suff)
+  | Some suff -> (string_of_url_path' u)^(string_of_url_path' suff)
 
 let reconstruct_absolute_url_path = string_of_url_path_suff
 
-let reconstruct_relative_url_path current_url u suff =
+(* WAS (AEFF)
+let reconstruct_relative_url_path_string current_url u suff =
   let rec drop cururl desturl = match cururl, desturl with
   | a::l, [b] -> l, desturl
   | [a], m -> [], m
@@ -65,6 +63,32 @@ let reconstruct_relative_url_path current_url u suff =
   in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
 (*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
   if s = "" then Eliom_common.defaultpagename else s
+*)
+
+let reconstruct_relative_url_path current_url u =
+  let rec drop cururl desturl = match cururl, desturl with
+  | a::l, [b] -> l, desturl
+  | [a], m -> [], m
+  | a::l, b::m when a = b -> drop l m
+  | a::l, m -> l, m
+  | [], m -> [], m
+  in let rec makedotdot = function
+    | [] -> []
+(*    | [a] -> "" *)
+    | _::l -> ".."::(makedotdot l)
+  in
+  let aremonter, aaller = drop current_url u in 
+  (makedotdot aremonter)@aaller
+
+let reconstruct_relative_url_path_string current_url u suff =
+  let s = 
+    string_of_url_path_suff (reconstruct_relative_url_path current_url u) suff
+  in
+  if s = "" then Eliom_common.defaultpagename else s
+
+
+
+
 
 let rec relative_url_path_to_myself = function
   | []
@@ -924,7 +948,7 @@ module MakeForms = functor
                           reconstruct_absolute_url_path
                           (get_full_path_ attser) suff
                     | None ->
-                        reconstruct_relative_url_path
+                        reconstruct_relative_url_path_string
                           (get_original_full_path sp)
                           (get_full_path_ attser) suff
               in
@@ -1149,7 +1173,7 @@ module MakeForms = functor
                         reconstruct_absolute_url_path
                         (get_full_path_ attser) None
                   | None ->
-                      reconstruct_relative_url_path
+                      reconstruct_relative_url_path_string
                         (get_original_full_path sp)
                         (get_full_path_ attser) None
             in
@@ -1348,7 +1372,7 @@ module MakeForms = functor
                   proto_prefix^
                     reconstruct_absolute_url_path (get_full_path_ attser) suff
                 else
-                  reconstruct_relative_url_path
+                  reconstruct_relative_url_path_string
                     (get_original_full_path sp) (get_full_path_ attser) suff
             in
             let urlname =

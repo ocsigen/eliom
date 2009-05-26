@@ -31,7 +31,6 @@ open Ocsigen_extensions
 open Eliom_parameters
 open Eliom_services
 
-
 module type FORMCREATE =
   sig
     type form_content_elt
@@ -843,4 +842,11 @@ and type button_attrib_t = Pages.button_attrib_t
 and type input_type_t = Pages.input_type_t
 and type button_type_t = Pages.button_type_t
 
+
+(** Constructs a relative link (low level).
+    The first parameter is the current URL,
+    the second is the destination.
+*)
+val reconstruct_relative_url_path : 
+  string list -> string list -> string list
 
