@@ -837,7 +837,22 @@ let handle_connection port in_ch sockaddr =
 
 let rec wait_connection use_ssl port socket =
   try_bind'
-    (fun () -> Lwt_unix.accept socket)
+    (fun () -> 
+       (* if too much connections,
+          we wait for a signal before accepting again *)
+       let max = get_max_number_of_connections () in
+       (if get_number_of_connected () < max
+        then Lwt.return ()
+        else begin
+          ignore
+            (Ocsigen_messages.warning
+               (Format.sprintf "Max simultaneous connections (%d) reached."
+                  (get_max_number_of_connections ())));
+          wait_fewer_connected max
+        end) >>= fun () ->
+       (* We do several accept(), as explained in 
+         "Accept()able strategies ..." by Tim Brecht & al. *)
+       Lwt_unix.accept_n socket 50)
     (function
        | Socket_closed -> 
            Ocsigen_messages.debug2 "Socket closed";
@@ -846,46 +861,43 @@ let rec wait_connection use_ssl port socket =
            Ocsigen_messages.debug
              (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
            wait_connection use_ssl port socket)
-    (fun (s, sockaddr) ->
-       Ocsigen_messages.debug2
-        "\n__________________NEW CONNECTION__________________________";
-       incr_connected ();
-       let relaunch_at_once =
-         get_number_of_connected () < get_max_number_of_connections () in
-       if relaunch_at_once then
-         ignore (wait_connection use_ssl port socket)
-       else
-         ignore
-           (Ocsigen_messages.warning
-              (Format.sprintf "Max simultaneous connections (%d) reached."
-                 (get_max_number_of_connections ())));
-       Lwt.catch
-         (fun () ->
-            Lwt_unix.set_close_on_exec s;
-            disable_nagle (Lwt_unix.unix_file_descr s);
-            begin if use_ssl then
-              Lwt_ssl.ssl_accept s !sslctx
-            else
-              Lwt.return (Lwt_ssl.plain s)
-            end >>= fun in_ch ->
-            handle_connection port in_ch sockaddr)
-         (fun e ->
-            Ocsigen_messages.unexpected_exception e
-              "Server.wait_connection (handle connection)";
-           return ()) >>= fun () ->
-       Ocsigen_messages.debug2 "** CLOSE";
-       begin try
-         Lwt_unix.close s
-       with Unix.Unix_error _ as e ->
-         Ocsigen_messages.unexpected_exception e "Server.wait_connection (close)"
-       end;
-       decr_connected ();
-       if not relaunch_at_once then
+    (fun l -> 
+       let number_of_accepts = List.length l in
+       Ocsigen_messages.debug
+         (fun () -> "received "^string_of_int number_of_accepts^" accepts" );
+       incr_connected number_of_accepts;
+       ignore (wait_connection use_ssl port socket);
+
+       let handle_one (s, sockaddr) =
+         Ocsigen_messages.debug2
+           "\n__________________NEW CONNECTION__________________________";
+         Lwt.catch
+           (fun () ->
+              Lwt_unix.set_close_on_exec s;
+              disable_nagle (Lwt_unix.unix_file_descr s);
+              begin if use_ssl then
+                Lwt_ssl.ssl_accept s !sslctx
+              else
+                Lwt.return (Lwt_ssl.plain s)
+              end >>= fun in_ch ->
+              handle_connection port in_ch sockaddr)
+           (fun e ->
+              Ocsigen_messages.unexpected_exception e
+                "Server.wait_connection (handle connection)";
+              return ())
+         >>= fun () ->
+         Ocsigen_messages.debug2 "** CLOSE";
          begin
-           debug2 "Ok releasing one connection";
-           ignore (wait_connection use_ssl port socket)
+           try
+             Lwt_unix.close s
+           with Unix.Unix_error _ as e ->
+             Ocsigen_messages.unexpected_exception
+               e "Server.wait_connection (close)"
          end;
-       Lwt.return ())
+         decr_connected ()
+       in
+
+       Lwt_util.iter handle_one l)
 
 
 

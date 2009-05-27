@@ -501,8 +501,9 @@ val get_number_of_connected : unit -> int
 
 
 (** Server internal functions: *)
-val incr_connected : unit -> unit
-val decr_connected : unit -> unit
+val incr_connected : int -> unit
+val decr_connected : unit -> unit Lwt.t
+val wait_fewer_connected : int -> unit Lwt.t
 
 val during_initialisation : unit -> bool
 val start_initialisation : unit -> unit

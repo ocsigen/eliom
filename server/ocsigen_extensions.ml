@@ -932,14 +932,30 @@ let sslsockets = ref []
 
 let get_number_of_connected,
   incr_connected,
-  decr_connected =
+  decr_connected,
+  wait_fewer_connected =
   let connected = ref 0 in
+  let maxr = ref (-1000) in
+  let mvar = Lwt_mvar.create_empty () in
   ((fun () -> !connected),
-   (fun () -> connected := !connected + 1),
+   (fun n -> connected := !connected + n),
    (fun () -> 
-      connected := !connected - 1;
+      let c = !connected in
+      connected := c - 1;
       if !connected <= 0 && !sockets = [] && !sslsockets = []
-      then exit 0))
+      then exit 0;
+      if c = !maxr
+      then begin
+        Ocsigen_messages.warning "Number of connections now ok";
+        maxr := -1000;
+        Lwt_mvar.put mvar ()
+      end
+      else Lwt.return ()
+   ),
+   (fun max -> 
+      maxr := max;
+      Lwt_mvar.take mvar)
+  )
 
 
 
