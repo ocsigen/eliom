@@ -4460,6 +4460,8 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
        <p>
        A page that parses a parameter using a regular expression:
           $a regexpserv sp <:xmllist< <code>regexpserv</code> >> "[toto]"$.<br/>
+       A form with a checkbox:
+          $a form_bool sp <:xmllist< Try it >> ()$.<br/>
        A page that takes a set of parameters:
              $a set sp <:xmllist< <code>set</code> >> ["Ciao";"bello";"ciao"]$ <br/>
        A form to the previous one:
