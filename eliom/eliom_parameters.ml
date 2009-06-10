@@ -29,7 +29,7 @@ type 'a param_name = string
 type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
 
 type 'an listnames =
-    {it:'el 'a. ('an -> 'el -> 'a list) -> 'el list -> 'a list -> 'a list}
+    {it:'el 'a. ('an -> 'el -> 'a -> 'a) -> 'el list -> 'a -> 'a}
 
 type coordinates =
     {abscissa: int;
@@ -653,22 +653,22 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
     | TSet t -> Obj.magic (aux prefix suffix t)
     | TESuffix n -> Obj.magic n
     | TESuffixs n -> Obj.magic n
-    | TESuffixu (n,_,_) -> Obj.magic n
+    | TESuffixu (n, _, _) -> Obj.magic n
     | TSuffix t -> Obj.magic (aux prefix suffix t)
     | TOption t -> Obj.magic (aux prefix suffix t)
-    | TSum (t1,t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
-    | TList (name,t1) -> Obj.magic
+    | TSum (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
+    | TList (name, t1) -> Obj.magic
           {it =
-           (fun f l endlist ->
+           (fun f l init ->
              let length = List.length l in
              snd
                (List.fold_right
-                  (fun el (i,l2) ->
+                  (fun el (i, l2) ->
                     let i'= i-1 in
-                    (i',(f (aux (prefix^name^".") (make_list_suffix i') t1) el)
-                     @l2))
+                    (i', (f (aux (prefix^name^".") (make_list_suffix i') t1) el
+                            l2)))
                   l
-                  (length,endlist)))}
+                  (length, init)))}
   in aux "" "" params
 
 let string_of_param_name = id

@@ -868,9 +868,9 @@ let create_listform f =
      end of the list created
    *)
   let l =
-    f.it (fun boolname v ->
-      [tr (td [pcdata ("Write the value for "^v^": ")])
-         [td [bool_checkbox ~name:boolname ()]]])
+    f.it (fun boolname v init ->
+            (tr (td [pcdata ("Write the value for "^v^": ")])
+               [td [bool_checkbox ~name:boolname ()]])::init)
       ["one";"two";"three"]
       []
   in

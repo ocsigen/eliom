@@ -3871,9 +3871,9 @@ let create_listform f =
      The last parameter of f.it is the code that must be appended at the
      end of the list created
    *)
-  f.it (fun stringname v ->
+  f.it (fun stringname v init ->
     <:xmllist< <p>Write the value for $str:v$:
-      $string_input ~input_type:`Text ~name:stringname ()$ </p> >>)
+      $string_input ~input_type:`Text ~name:stringname ()$ </p> >>@init)
     ["one";"two";"three";"four"]
     <:xmllist< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 

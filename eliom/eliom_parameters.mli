@@ -102,7 +102,7 @@ type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 (** Type used for parameters of type bynary sum *)
 
 type 'an listnames =
-    {it:'el 'a. ('an -> 'el -> 'a list) -> 'el list -> 'a list -> 'a list}
+    {it:'el 'a. ('an -> 'el -> 'a -> 'a) -> 'el list -> 'a -> 'a}
 (** Type of the iterator used to construct forms from lists *)
 
 (** {2 Basic types of pages parameters} *)
