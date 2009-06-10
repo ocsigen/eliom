@@ -1084,7 +1084,7 @@ let start_server () = try
     Ocsigen_messages.open_files ();
 
     Lwt_unix.run
-      (let wait_end_init = wait () in
+      (let wait_end_init, wait_end_init_awakener = wait () in
       (* Listening on all ports: *)
       sockets := List.map (fun i -> listen false i wait_end_init) ports;
       sslsockets := List.map (fun i -> listen true i wait_end_init) sslports;
@@ -1162,7 +1162,7 @@ let start_server () = try
       Dynlink_wrapper.prohibit ["Ocsigen_extensions.R"];
       (* As libraries are reloaded each time the config file is read,
          we do not allow to register extensions in libraries *)
-      (* seems it does not work :-( *)
+      (* seems it does not work :-/ *)
 
 
       (* Closing stderr, stdout stdin if silent *)
@@ -1214,11 +1214,11 @@ let start_server () = try
         f ()
       in ignore (f ());
 
-      wakeup wait_end_init ();
+      Lwt.wakeup wait_end_init_awakener ();
 
       Ocsigen_messages.warning "Ocsigen has been launched (initialisations ok)";
 
-      Lwt.wait ()
+      fst (Lwt.wait ())
       )
   in
 

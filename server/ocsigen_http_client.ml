@@ -411,7 +411,7 @@ let raw_request
         Ocsigen_messages.debug (fun () ->
           string_of_int
             (Ocsigen_extensions.client_id client));
-        let new_waiter = Lwt.wait () in
+        let new_waiter, new_waiter_awakener = Lwt.wait () in
         let key = (Ocsigen_extensions.client_id client, (inet_addr, port, head)) in
         (* Is there already a connection for the same client? *)
         let (ref_thr_conn, get_frame, nb_users) =
@@ -438,7 +438,7 @@ let raw_request
         T.replace connection_table key
           (ref_thr_conn, new_get_frame, nb_users + 1);
 (*          remove_on_error key get_frame; *)
-        (Some (key, new_waiter), ref_thr_conn, get_frame)
+        (Some (key, new_waiter_awakener), ref_thr_conn, get_frame)
     | _ ->
         (* No pipeline *)
         let (ref_thr_conn, gf) = find_conn () in
@@ -452,7 +452,8 @@ let raw_request
   fun () ->
 
     let get_frame_ref = ref get_frame in
-    let request_sent = Lwt.wait () in (* awoken when request sent *)
+    let request_sent, request_sent_awakener =
+      Lwt.wait () in (* awoken when request sent *)
 
     let query = Ocsigen_http_frame.Http_header.Query (http_method, uri) in
 
@@ -504,9 +505,9 @@ let raw_request
                       }) >>= fun () ->
 
              Ocsigen_messages.debug2 "--Ocsigen_http_client: request sent";
-             Lwt.wakeup request_sent ();
+             Lwt.wakeup request_sent_awakener ();
              Lwt.return ())
-        (fun e -> Lwt.wakeup_exn request_sent e; Lwt.fail e)
+        (fun e -> Lwt.wakeup_exn request_sent_awakener e; Lwt.fail e)
 
     in
 
@@ -615,8 +616,8 @@ let raw_request
          (* We advice subsequent get_frame that the pipeline failed: *)
          (match key_new_waiter with
             | None -> ()
-            | Some (_, new_waiter) ->
-                Lwt.wakeup_exn new_waiter Pipeline_failed);
+            | Some (_, new_waiter_awakener) ->
+                Lwt.wakeup_exn new_waiter_awakener Pipeline_failed);
 
          finalize false >>= fun () ->
          Lwt.fail e)

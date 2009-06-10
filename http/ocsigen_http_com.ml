@@ -67,11 +67,15 @@ type mode = Answer | Query | Nofirstline
 
 type waiter =
   { w_wait : unit Lwt.t;
+    w_waker: unit Lwt.u option;
     mutable w_did_wait : bool }
 
 let create_waiter block =
-  let wait = if block then Lwt.wait () else Lwt.return () in
-  { w_wait = wait; w_did_wait = false }
+  if block then
+    let (t, u) = Lwt.wait () in
+      { w_wait = t; w_waker = Some u; w_did_wait = false }
+  else
+    { w_wait = Lwt.return (); w_waker = None; w_did_wait = false }
 
 (** buffer de comunication permettant la reception et la recupération
     des messages *)
@@ -522,11 +526,17 @@ let start_processing conn f =
                if conn.sender_count = 0 then Lwt_timeout.start conn.timeout;
                Lwt.return ()))
        (fun () ->
-          Lwt.wakeup next_waiter.w_wait ();
-          Lwt.return ())
+          (match next_waiter.w_waker with
+             | None -> ()
+             | Some wk -> Lwt.wakeup wk ())
+          ; Lwt.return ()
+       )
        (fun e ->
-          Lwt.wakeup_exn next_waiter.w_wait e;
-          Lwt.return ()))
+          (match next_waiter.w_waker with
+             | None -> ()
+             | Some wk -> Lwt.wakeup_exn wk e)
+          ; Lwt.return ()
+       ))
 
 let wait_previous_senders slot =
   slot.sl_waiter.w_did_wait <- true;
