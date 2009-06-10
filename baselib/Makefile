@@ -30,8 +30,15 @@ CMI = ocsigen_getcommandline.cmi $(FILES:.ml=.cmi)
 byte: $(OBJS) $(CMI) parsecommandline.cma donotparsecommandline.cma
 #	cp -f $(OBJS) $(CMI) ../lib
 
-opt: $(OBJSOPT) $(CMI) parsecommandline.cmxa donotparsecommandline.cmxa \
-     polytables.cmxs
+
+DEPOPTBASE=$(OBJSOPT) $(CMI) parsecommandline.cmxa \
+	donotparsecommandline.cmxa
+ifeq "$(NATDYNLINK)" "YES"
+  DEPOPT=$(DEPOPTBASE) polytables.cmxs
+else
+  DEPOPT=$(DEPOPTBASE)
+endif
+opt: $(DEPOPT)
 #	cp -f $(OBJSOPT) $(OBJSOPT:.cmx=.o) $(CMI) ../lib
 
 parsecommandline.cma: commandline/ocsigen_getcommandline.cmo
