@@ -295,11 +295,12 @@ and button = {{ <button (button_attrs)>[ button_content* ] }}
 (* Tables *)
 
 
-and table = {{ <table (attrs ++ {  cellpadding=?String cellspacing=?String
+and table_attrs = {{ attrs ++ {  cellpadding=?String cellspacing=?String
                                rules=?"none"|"groups"|"rows"|"cols"|"all"
                                frame=?"void"|"above"|"below"|"hsides"
                                      |"lhs"|"rhs"|"vsides"|"box"|"border"
-                               border=?String width=?String summary=?String })>[
+                               border=?String width=?String summary=?String } }}
+and table = {{ <table (table_attrs)>[
                 ( caption? (col* | colgroup* ) thead? tfoot? (tbody+ | tr+) )
                 ]}}
 
@@ -313,7 +314,8 @@ and colgroup = {{ <colgroup (align_attrs ++ { span =? String width =? String})>
                     [ col* ] }}
 and col = {{ <col (align_attrs ++ { span=?String width=?String }) >[] }}
 and tr = {{ <tr (align_attrs)>[ (th|td)+ ] }}
-and th = {{ <th (align_attrs ++ { colspan=?String rowspan=?String
-                            scope=?scope headers=?String axis=?String abbr=?String })>flows }}
-and td = {{ <td (align_attrs ++ { colspan=?String rowspan=?String
-                            scope=?scope headers=?String axis=?String abbr=?String })>flows }}
+and th = {{ <th (thd_attribs)>flows }}
+and td = {{ <td (thd_attribs)>flows }}
+and thd_attribs = {{ align_attrs ++
+                       { colspan=?String rowspan=?String scope=?scope
+                         headers=?String axis=?String abbr=?String } }}
