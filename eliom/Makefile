@@ -171,7 +171,7 @@ ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 
 # There is a bug with ocamlduce when -g is supplied
 bugdbg:
-	make DEBUG="NO" eliom_duce.cmo
+	$(MAKE) DEBUG="NO" eliom_duce.cmo
 
 eliom_obrowser_client.cmo:
 	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser_client.ml

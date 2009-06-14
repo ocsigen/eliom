@@ -350,13 +350,10 @@ distclean: clean
 	-rm -f Makefile.config
 
 depend:
-	make -C xmlp4 depend
-	make -C xmlp4 xmlp4pre.byte $(DEPOPT)
+	$(MAKE) -C xmlp4 depend
+	$(MAKE) -C xmlp4 xmlp4pre.byte $(DEPOPT)
 #	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 	@for i in $(REPS) ; do $(MAKE) -C $$i depend ; done
-
-bugdbg:
-	make -C eliom bugdbg
 
 
 .PHONY: partialinstall install doc docinstall installnodoc logrotate dist
