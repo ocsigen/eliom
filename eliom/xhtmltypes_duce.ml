@@ -148,10 +148,11 @@ and a_attrs =
                  coords =? String} }}
 
 and a_content =
-     {{ Char | special | fontstyle | phrase | inline_forms | misc_inline
-      }}
+     {{ Char | special | fontstyle | phrase | inline_forms | misc_inline }}
+and a_contents = {{ [ a_content* ] }}
 
-and a = {{ <a (a_attrs)> [ a_content* ] }}
+and a = {{ <a (a_attrs)> a_contents }}
+
 
 (* Inline elements *)
 
