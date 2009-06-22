@@ -2090,7 +2090,7 @@ module Action = MakeRegister(Actionreg_)
 
 (** Unit services are like services, do not generate any page, and do not
     reload the page. To be used carefully. Probably not usefull at all.
-    (Same as {!Eliom_predefmod.Actions} with [`NoReload] option).
+    (Same as {!Eliom_predefmod.Action} with [`NoReload] option).
  *)
 module Unitreg_ = struct
   open XHTML.M
