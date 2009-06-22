@@ -813,7 +813,7 @@ module Text : Eliom_mkreg.ELIOMREGSIG with type page = string * string
 
     If you want to give information to the handler that will be called
     to reload the page, put it in the polymorphic table returned by 
-    {!Eliom_sessions.get_request_data}.
+    {!Eliom_sessions.get_request_cache}.
 
     If you give the optional parameter
     [~options:`NoReload] to the registration function, no page will be sent.
@@ -825,7 +825,7 @@ module Action : Eliom_mkreg.ELIOMREGSIG with
 
 (** Like actions, but the page is not reloaded. Just do something and do
    not generate any page. To be used carefully. Probably not usefull at all.
-   (Same as {!Eliom_predefmod.Actions} with [`NoReload] option).
+   (Same as {!Eliom_predefmod.Action} with [`NoReload] option).
  *)
 module Unit : Eliom_mkreg.ELIOMREGSIG with
   type page = unit

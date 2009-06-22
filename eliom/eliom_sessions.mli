@@ -680,7 +680,7 @@ val remove_persistent_session_data :
 
     Warning: you may also want to remove some data from the polymorphic
     request data table when closing a session 
-    (See {!Eliom_sessions.get_request_data}).
+    (See {!Eliom_sessions.get_request_cache}).
 *)
 val close_session :
   ?close_group:bool ->
