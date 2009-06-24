@@ -271,7 +271,7 @@ let gen is_eliom_extension sitedata = function
                             (fun () ->
                                Lwt.return
                                  {r with
-                                    Ocsigen_http_frame.res_code= 500;
+                                    Ocsigen_http_frame.res_code= 400;
                                  }))
                | Eliom_common.Eliom_Wrong_parameter ->
                    Lazy.force ri.request_info.ri_post_params
