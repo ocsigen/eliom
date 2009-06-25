@@ -998,39 +998,34 @@ module MakeForms = functor
                           Eliom_common.na_co_param_prefix
                           (Eliom_sessions.get_all_current_get_params sp)))
                 in
-                let gp =
-                  match
-                    match na_name with
-                      | Eliom_common.Na_void_dontkeep -> None
-                      | Eliom_common.Na_get' n ->
-                          Some (Eliom_common.naservice_num^"="^n)
-                      | Eliom_common.Na_get_ n ->
-                          Some (Eliom_common.naservice_name^"="^n)
-                      | _ -> assert false
-                  with
-                    | None -> ""
-                    | Some naservice_param ->
-                        let _, params_string =
-                          construct_params
-                            (get_get_params_type_ service)
-                            getparams
-                        in
-                        let preapplied_params =
-                          construct_params_string
-                            (get_pre_applied_parameters_ service)
-                        in
-                        let params_string =
-                          concat_strings preapplied_params "&" params_string
-                        in
-                        (concat_strings naservice_param "&" params_string)
-                in
                 let current_get_params_string =
                   construct_params_string current_get_params
                 in
                 concat_strings
                   current_get_params_string
                   "&"
-                  gp
+                  (match na_name with
+                     | Eliom_common.Na_void_dontkeep -> ""
+                     | Eliom_common.Na_get' n ->
+                         Eliom_common.naservice_num^"="^n
+                     | Eliom_common.Na_get_ n ->
+                         Eliom_common.naservice_name^"="^n
+                     | _ -> assert false)
+            in
+            let params =
+              let _, params_string =
+                construct_params
+                  (get_get_params_type_ service)
+                  getparams
+              in
+              let preapplied_params =
+                construct_params_string
+                  (get_pre_applied_parameters_ service)
+              in
+              let params_string =
+                concat_strings preapplied_params "&" params_string
+              in
+              concat_strings params "&" params_string
             in
             let beg =
               match absolute with
