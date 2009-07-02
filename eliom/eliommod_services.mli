@@ -18,15 +18,15 @@ val add_page_table :
   (Eliom_common.page_table_key * ('a * (int * 'b)) list) list
 val add_dircontent :
   Eliom_common.dircontent ->
-  Eliom_common.String_Table.key * Eliom_common.direlt ref ->
+  Ocsigen_lib.String_Table.key * Eliom_common.direlt ref ->
   Eliom_common.dircontent
 val find_dircontent :
   Eliom_common.dircontent ->
-  Eliom_common.String_Table.key -> Eliom_common.direlt ref
+  Ocsigen_lib.String_Table.key -> Eliom_common.direlt ref
 val add_service :
   Eliom_common.dircontent ref * 'a * bool ref * 'b ->
   bool ->
-  Eliom_common.String_Table.key list ->
+  Ocsigen_lib.String_Table.key list ->
   Eliom_common.page_table_key *
   ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
    int ref option * (float * float ref) option *

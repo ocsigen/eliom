@@ -51,6 +51,7 @@ module type XHTMLFORMSSIG = sig
 
 
 
+
   open XHTML.M
   open Xhtmltypes
 
@@ -65,6 +66,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       'get -> 
       string
 (** Creates the string corresponding to the
@@ -88,6 +90,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       'get -> 
       XHTML.M.uri
 (** Creates the string corresponding to the
@@ -103,6 +106,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       'get -> 
       string
 (** Creates the string corresponding to the relative URL of a service applied to
@@ -118,6 +122,7 @@ module type XHTMLFORMSSIG = sig
     ?hostname:string ->
     ?port:int ->
     ?fragment:string -> 
+    ?keep_nl_params:bool ->
     'get -> 
     uri
 (** Create the text of the service. Like the [a] function, it may take
@@ -144,6 +149,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
     ?fragment:string ->
+    ?keep_nl_params:bool ->
     a_content elt list -> 
     'get -> 
     [> a] XHTML.M.elt
@@ -198,6 +204,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       ('gn -> form_content elt list) -> 
       [>form] elt
 (** [get_form service sp formgen] creates a GET form to [service].
@@ -215,6 +222,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       ('gn -> form_content elt list Lwt.t) -> 
       form elt Lwt.t
 (** The same but taking a cooperative function. 
@@ -237,6 +245,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content elt list) ->
       'get ->
@@ -256,6 +265,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content elt list Lwt.t) ->
       'get ->

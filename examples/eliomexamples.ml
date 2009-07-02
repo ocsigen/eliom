@@ -30,6 +30,56 @@ open Eliom_parameters
 open Eliom_sessions
 open Lwt
 
+(*******)
+let my_nl_params = 
+  Eliom_parameters.make_non_localized_parameters
+    ~name:"mynlp"
+    (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
+
+let void_with_nlp =
+  Eliom_services.add_non_localized_get_parameters
+    my_nl_params Eliom_services.void_hidden_coservice'
+
+let nlparams = new_service
+    ~path:["voidnl"]
+    ~get_params:(suffix_prod (int "year" ** int "month") (int "w" ))
+    ()
+
+let nlparams_with_nlp =
+  Eliom_services.add_non_localized_get_parameters
+    my_nl_params nlparams
+
+let () = register
+  nlparams
+  (fun sp ((aa, bb), w) () ->
+     Lwt.return
+       (html
+          (head (title (pcdata "")) [])
+          (body [p [
+                   a void_with_nlp
+                     sp [pcdata "void coservice with non loc param"] ((), (11, "aa"));
+                   a nlparams_with_nlp
+                     sp [pcdata "myself with non loc param"] (((4, 5), 777), (12, "ab"))];
+                 p [pcdata "I have my suffix, ";
+                    pcdata ("with values year = "^string_of_int aa^
+                              " and month = "^string_of_int bb^
+                              ". w = "^string_of_int w^".")];
+                 (match Eliom_parameters.get_non_localized_get_parameters
+                    sp my_nl_params 
+                  with
+                    | None -> 
+                        p [pcdata "I do not have my non localized parameters"]
+                    | Some (a, s) -> 
+                        p [pcdata "I have my non localized parameters, ";
+                           pcdata ("with values a = "^string_of_int a^
+                                     " and s = "^s^".")]
+                 )]))
+    )
+
+
+
+
+(*******)
 (* doing requests *)
 let extreq = 
   register_new_service
@@ -1123,6 +1173,8 @@ let mainpage = register_new_service ["tests"] unit
          a extreq sp [pcdata "External request"] (); br ();
          a servreq sp [pcdata "Server request"] (); br ();
          a servreqloop sp [pcdata "Looping server request"] (); br ();
+
+         a nlparams sp [pcdata "nl params and suffix, on void coservice"] ((3, 5), 222); br ();
 
 
 

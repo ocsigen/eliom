@@ -113,26 +113,16 @@ type sess_info = {
   si_nonatt_info : na_key;
   si_state_info: (att_key * att_key);
   si_previous_extension_error : int;
-  si_nl_get_params: (string * string) list;
-  si_nl_post_params: (string * string) list;
+  si_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t;
+  si_nl_post_params: (string * string) list Ocsigen_lib.String_Table.t;
+
+  si_all_get_but_nl: (string * string) list;
+  si_all_get_but_na_nl: (string * string) list Lazy.t;
+  si_all_get_but_na: (string * string) list Lazy.t;
 }
-module SessionCookies :
-  sig
-    type key = string
-    type 'a t
-    val create : int -> 'a t
-    val clear : 'a t -> unit
-    val copy : 'a t -> 'a t
-    val add : 'a t -> key -> 'a -> unit
-    val remove : 'a t -> key -> unit
-    val find : 'a t -> key -> 'a
-    val find_all : 'a t -> key -> 'a list
-    val replace : 'a t -> key -> 'a -> unit
-    val mem : 'a t -> key -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val length : 'a t -> int
-  end
+
+module SessionCookies : Hashtbl.S with type key = string
+
 type 'a session_cookie = SCNo_data | SCData_session_expired | SC of 'a
 type cookie_exp = CENothing | CEBrowser | CESome of float
 type timeout = TGlobal | TNone | TSome of float
@@ -184,40 +174,9 @@ type page_table_key = {
   key_state : att_key * att_key;
   key_kind : Ocsigen_http_frame.Http_header.http_method;
 }
-module String_Table :
-  sig
-    type key = string
-    type +'a t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val find : key -> 'a t -> 'a
-    val remove : key -> 'a t -> 'a t
-    val mem : key -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-  end
-module NAserv_Table :
-  sig
-    type key = na_key
-    type +'a t
-    val empty : 'a t
-    val is_empty : 'a t -> bool
-    val add : key -> 'a -> 'a t -> 'a t
-    val find : key -> 'a t -> 'a
-    val remove : key -> 'a t -> 'a t
-    val mem : key -> 'a t -> bool
-    val iter : (key -> 'a -> unit) -> 'a t -> unit
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
-    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-  end
+
+module NAserv_Table : Map.S with type key = na_key
+
 type anon_params_type = int
 type server_params = {
   sp_request : Ocsigen_extensions.request;
@@ -241,7 +200,7 @@ and naservice_table =
       (int * int ref option * (float * float ref) option *
        (server_params -> Ocsigen_http_frame.result Lwt.t))
       NAserv_Table.t
-and dircontent = Vide | Table of direlt ref String_Table.t
+and dircontent = Vide | Table of direlt ref Ocsigen_lib.String_Table.t
 and direlt = Dir of dircontent ref | File of page_table ref
 and tables = dircontent ref * naservice_table ref * bool ref * bool ref
 and sitedata = {
@@ -280,7 +239,7 @@ val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val getcookies :
   string -> 'a Ocsigen_http_frame.Cookievalues.t -> 'a Ocsigen_http_frame.Cookievalues.t
-val change_request_info :
+val get_session_info :
   Ocsigen_extensions.request ->
   int -> (Ocsigen_extensions.request * sess_info) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
@@ -318,3 +277,8 @@ val global_register_allowed : unit -> (unit -> sitedata) option
 val close_service_session2 :
   sitedata ->
   Eliommod_sessiongroups.sessgrp option -> SessionCookies.key -> unit
+
+
+
+val remove_prefixed_param :
+    string -> (string * 'a) list -> (string * 'a) list

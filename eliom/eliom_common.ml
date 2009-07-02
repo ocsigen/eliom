@@ -127,8 +127,8 @@ type sess_info =
 
      si_secure_cookie_info:
        (string Ocsigen_http_frame.Cookievalues.t *
-       string Ocsigen_http_frame.Cookievalues.t *
-       string Ocsigen_http_frame.Cookievalues.t) option;
+          string Ocsigen_http_frame.Cookievalues.t *
+          string Ocsigen_http_frame.Cookievalues.t) option;
      (* the same, but for secure cookies, if https *)
 
      si_nonatt_info: na_key;
@@ -136,8 +136,12 @@ type sess_info =
      si_previous_extension_error: int;
      (* HTTP error code sent by previous extension (default: 404) *)
 
-     si_nl_get_params: (string * string) list;
-     si_nl_post_params: (string * string) list;
+     si_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t;
+     si_nl_post_params: (string * string) list Ocsigen_lib.String_Table.t;
+
+     si_all_get_but_nl: (string * string) list;
+     si_all_get_but_na_nl: (string * string) list Lazy.t;
+     si_all_get_but_na: (string * string) list Lazy.t;
    }
 
 (* The table of tables for each session. Keys are cookies *)
@@ -312,11 +316,6 @@ type page_table_key =
       (* module Page_Table = Map.Make(struct type t = page_table_key
          let compare = compare end) *)
 
-module String_Table = Map.Make(struct
-  type t = string
-  let compare = compare
-end)
-
 module NAserv_Table = Map.Make(struct
   type t = na_key
   let compare = compare
@@ -365,7 +364,7 @@ and naservice_table =
 
 and dircontent =
   | Vide
-  | Table of direlt ref String_Table.t
+  | Table of direlt ref Ocsigen_lib.String_Table.t
 
 and direlt =
   | Dir of dircontent ref
@@ -443,6 +442,32 @@ let split_prefix_param pref l =
       (String.sub n 0 len) = pref
     with Invalid_argument _ -> false) l
 
+(* Special version for non localized parameters *)
+let split_nl_prefix_param =
+  let prefixlength = String.length nl_param_prefix in
+  let prefixlengthminusone = prefixlength - 1 in
+  fun l ->
+    let rec aux other map = function
+      | [] -> (map, other)
+      | ((n, v) as a)::l -> 
+          if Ocsigen_lib.string_first_diff 
+            n nl_param_prefix 0 prefixlengthminusone = prefixlength
+          then try
+            let last = String.index_from n prefixlength '_' in
+            let nl_param_name = String.sub n prefixlength (last - prefixlength)
+            in
+            let previous = 
+              try Ocsigen_lib.String_Table.find nl_param_name map 
+              with Not_found -> []
+            in
+            aux
+              other
+              (Ocsigen_lib.String_Table.add nl_param_name (a::previous) map)
+              l
+          with Invalid_argument _ | Not_found -> aux (a::other) map l
+          else aux (a::other) map l
+    in
+    aux [] Ocsigen_lib.String_Table.empty l
 
 let getcookies cookiename cookies =
   let length = String.length cookiename in
@@ -460,8 +485,20 @@ let getcookies cookiename cookies =
     cookies
     Ocsigen_http_frame.Cookievalues.empty
 
+(* Remove all parameters whose name starts with pref *)
+let remove_prefixed_param pref l =
+  let len = String.length pref in
+  let rec aux = function
+    | [] -> []
+    | ((n,v) as a)::l ->
+        try
+          if (String.sub n 0 len) = pref then
+            aux l
+          else a::(aux l)
+        with Invalid_argument _ -> a::(aux l)
+  in aux l
 
-let change_request_info ri previous_extension_err =
+let get_session_info ri previous_extension_err =
   let ri_whole = ri
   and ri = ri.Ocsigen_extensions.request_info in
   Lazy.force ri.Ocsigen_extensions.ri_post_params >>=
@@ -469,11 +506,13 @@ let change_request_info ri previous_extension_err =
     let get_params = Lazy.force ri.Ocsigen_extensions.ri_get_params in
     let get_params0 = get_params in
     let post_params0 = post_params in
-    let nl_get_params, get_params = 
-      split_prefix_param nl_param_prefix get_params 
-    in
-    let nl_post_params, post_params =
-      split_prefix_param nl_param_prefix post_params 
+    let nl_get_params, get_params = split_nl_prefix_param get_params in
+    let nl_post_params, post_params = split_nl_prefix_param post_params in
+    let all_get_but_nl = get_params in
+    let all_get_but_na =
+      lazy (List.remove_assoc naservice_name
+              (List.remove_assoc naservice_num
+                 (remove_prefixed_param na_co_param_prefix get_params0)))
     in
 
     let data_cookies = getcookies datacookiename
@@ -509,6 +548,7 @@ let change_request_info ri previous_extension_err =
     let naservice_info,
       (get_state, post_state),
       (get_params, other_get_params),
+      all_get_but_na_nl,
       post_params =
       let post_naservice_name, na_post_params =
         try
@@ -528,6 +568,10 @@ let change_request_info ri previous_extension_err =
             (post_naservice_name,
              (Att_no, Att_no),
              ([], get_params),
+             (lazy
+                (List.remove_assoc naservice_name
+                   (List.remove_assoc naservice_num
+                      (remove_prefixed_param na_co_param_prefix get_params)))),
              na_post_params)
         | _ ->
             let get_naservice_name, (na_get_params, other_get_params) =
@@ -550,12 +594,14 @@ let change_request_info ri previous_extension_err =
                   (get_naservice_name,
                    (Att_no, Att_no),
                    (na_get_params, other_get_params),
+                   (lazy other_get_params),
                    [])
                     (* Not possible to have POST parameters
                        without naservice_num
                        if there is a GET naservice_num
                     *)
               | _ ->
+                  let get_params1 = get_params in
                   let post_state, post_params =
                     try
                       let s, pp =
@@ -591,6 +637,7 @@ let change_request_info ri previous_extension_err =
                   (Na_no,
                    (get_state, post_state),
                    (get_params, other_get_params),
+                   lazy get_params1,
                    post_params)
     in
     let ri', sess =
@@ -613,6 +660,9 @@ let change_request_info ri previous_extension_err =
         si_previous_extension_error= previous_extension_err;
         si_nl_get_params= nl_get_params;
         si_nl_post_params= nl_post_params;
+        si_all_get_but_na_nl= all_get_but_na_nl;
+        si_all_get_but_nl= all_get_but_nl;
+        si_all_get_but_na= all_get_but_na;
        }
     in
     Lwt.return
@@ -754,3 +804,6 @@ let global_register_allowed () =
 let close_service_session2 sitedata fullsessgrp cookie =
   SessionCookies.remove sitedata.session_services cookie;
   Eliommod_sessiongroups.Serv.remove cookie fullsessgrp
+
+
+

@@ -199,6 +199,7 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       'get -> 
       string
 (** Creates the string corresponding to the
@@ -222,6 +223,7 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       'get -> 
       uri
 (** Creates the string corresponding to the
@@ -237,6 +239,7 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       'get -> 
       string
 (** Creates the string corresponding to the relative URL of a service applied to
@@ -252,6 +255,7 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
+      ?keep_nl_params:bool ->
       'get -> 
       uri
 (** Creates the (relative) URL for a service.
@@ -277,6 +281,7 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       a_content_elt_list -> 
       'get -> 
       a_elt
@@ -328,6 +333,7 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       ('gn -> form_content_elt_list) -> 
       form_elt
 (** [get_form service sp formgen] creates a GET form to [service].
@@ -345,6 +351,7 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       ('gn -> form_content_elt_list Lwt.t) -> 
       form_elt Lwt.t
 (** The same but taking a cooperative function. *)
@@ -360,6 +367,7 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content_elt_list) -> 
       'get -> 
@@ -378,6 +386,7 @@ module type ELIOMFORMSIG =
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
+      ?keep_nl_params:bool ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content_elt_list Lwt.t) -> 
       'get -> 

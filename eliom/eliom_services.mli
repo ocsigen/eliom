@@ -427,13 +427,13 @@ val preapply :
  *)
 
 val add_non_localized_get_parameters :
-  params:('p, 'pn) non_localized_params ->
+  params:('p, [ `WithoutSuffix ], 'pn) non_localized_params ->
   service:('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('a * 'p, 'b, 'c, 'd, 'e * 'pn, 'f, 'g) service
 (** Adds non localized GET parameters to a service *)
 
 val add_non_localized_post_parameters :
-  params:('p, 'pn) non_localized_params ->
+  params:('p, [ `WithoutSuffix ], 'pn) non_localized_params ->
   service:('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('a, 'b * 'p, 'c, 'd, 'e, 'f * 'pn, 'g) service
 (** Adds non localized POST parameters to a service *)
@@ -462,6 +462,7 @@ val set_exn_handler :
 (**/**)
 val get_kind_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 'c
 val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
+  (string * string) list Ocsigen_lib.String_Table.t *
   (string * string) list
 val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('a, 'd, 'e) Eliom_parameters.params_type

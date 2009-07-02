@@ -109,3 +109,5 @@ sig
   val iter : ('a -> unit) -> 'a t -> unit
   val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b t -> 'a
 end
+
+module String_Table : Map.S with type key = string

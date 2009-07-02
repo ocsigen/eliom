@@ -144,15 +144,15 @@ let add_dircontent dc (key, elt) =
   match dc with
   | Eliom_common.Vide ->
       Eliom_common.Table
-        (Eliom_common.String_Table.add
-           key elt Eliom_common.String_Table.empty)
+        (Ocsigen_lib.String_Table.add
+           key elt Ocsigen_lib.String_Table.empty)
   | Eliom_common.Table t ->
-      Eliom_common.Table (Eliom_common.String_Table.add key elt t)
+      Eliom_common.Table (Ocsigen_lib.String_Table.add key elt t)
 
 let find_dircontent dc k =
   match dc with
   | Eliom_common.Vide -> raise Not_found
-  | Eliom_common.Table t -> Eliom_common.String_Table.find k t
+  | Eliom_common.Table t -> Ocsigen_lib.String_Table.find k t
 
 
 (*****************************************************************************)

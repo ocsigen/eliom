@@ -62,11 +62,18 @@ type ('a, +'tipo, +'names) params_type =
   | TESuffix of string (* 'a = string list *)
   | TESuffixs of string (* 'a = string *)
   | TESuffixu of (string * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
-  | TSuffix of ('a,'tipo,'names) params_type (* 'a = 'a1 *)
-  | TUnit (* 'a = unit *)
+  | TSuffix of ('a,'tipo, 'names) params_type (* 'a = 'a1 *)
+  | TUnit (* 'a = unit *) 
   | TAny (* 'a = (string * string) list *)
   | TConst of string (* 'a = unit; 'names = unit *)
-;;
+  | TNLParams of ('a, 'tipo, 'names) non_localized_params
+
+and ('a, 'tipo, +'names) non_localized_params = 
+    string *
+    ('a option Polytables.key * 'a option Polytables.key) *
+    ('a, 'tipo, 'names) params_type
+
+
 
 type anon_params_type = int
 
@@ -245,9 +252,11 @@ let suffix_prod (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type)
     (('s * 'a), [`WithSuffix], 'sn * 'an) params_type =
   (Obj.magic (TProd (Obj.magic (TSuffix s), Obj.magic t)))
 
-(* Does not work with non_localized_params *)
-let contains_suffix = function
-  | TProd((TSuffix _),_)
+let rec contains_suffix = function
+  | TProd (a, b) -> contains_suffix a || contains_suffix b
+  | TESuffix _
+  | TESuffixs _
+  | TESuffixu _
   | TSuffix _ -> true
   | _ -> false
 
@@ -276,9 +285,9 @@ type 'a res_reconstr_param =
                   (string * file_info) list)
 
 let reconstruct_params
-    (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type)
+    (typ : ('a, [<`WithSuffix|`WithoutSuffix], 'b) params_type)
     params files urlsuffix : 'a =
-  let parse_one typ v =
+  let rec parse_one typ v =
     match typ with
     | TString _ -> Obj.magic v
     | TInt name ->
@@ -300,6 +309,7 @@ let reconstruct_params
         if v = value
         then Obj.magic ()
         else raise Eliom_common.Eliom_Wrong_parameter
+    | TNLParams (_, _, typ) -> parse_one typ v
     | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   let rec parse_suffix typ suff =
@@ -348,6 +358,7 @@ let reconstruct_params
     and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)
         params files pref suff : 'a res_reconstr_param =
       match typ with
+        | TNLParams (_, _, t) -> aux t params files pref suff
         | TProd (t1, t2) ->
             (match aux t1 params files pref suff with
                | Res_ (v1, l1, f) ->
@@ -399,7 +410,7 @@ let reconstruct_params
             Res_ ((Obj.magic v),l,files)
         | TInt name ->
             let v,l = (list_assoc_remove (pref^name^suff) params) in
-            (try (Res_ ((Obj.magic (int_of_string v)),l,files))
+            (try (Res_ ((Obj.magic (int_of_string v)), l, files))
              with e -> Errors_ ([(pref^name^suff),e], l, files))
         | TInt32 name ->
             let v,l = (list_assoc_remove (pref^name^suff) params) in
@@ -486,63 +497,12 @@ let reconstruct_params
    constructs the list of parameters (GET or POST)
    (This is a marshalling function towards HTTP parameters format) *)
 let construct_params_list
+    nlp
     (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
-    (params : 'a) : string list option * (string * string) list =
-  let rec aux typ params pref suff l =
-    match typ with
-    | TProd (t1, t2) ->
-        let l1 = aux t1 (fst (Obj.magic params)) pref suff l in
-        aux t2 (snd (Obj.magic params)) pref suff l1
-    | TOption t ->
-        (match ((Obj.magic params) : 'zozo option) with
-        | None -> l
-        | Some v -> aux t v pref suff l)
-    | TBool name ->
-        (if ((Obj.magic params) : bool)
-        then ((pref^name^suff), "on")::l
-        else l)
-    | TList (list_name, t) ->
-        let pref2 = pref^list_name^suff^"." in
-        fst
-          (List.fold_left
-             (fun (s,i) p ->
-               ((aux t p pref2 (suff^(make_list_suffix i)) s),(i+1)))
-             (l,0) (Obj.magic params))
-    | TSet t ->
-        List.fold_left
-          (fun l v -> aux t v pref suff l)
-          l
-          (Obj.magic params)
-    | TSum (t1, t2) -> (match Obj.magic params with
-      | Inj1 v -> aux t1 v pref suff l
-      | Inj2 v -> aux t2 v pref suff l)
-    | TString name -> ((pref^name^suff), (Obj.magic params))::l
-    | TInt name -> ((pref^name^suff), (string_of_int (Obj.magic params)))::l
-    | TInt32 name -> ((pref^name^suff), (Int32.to_string (Obj.magic params)))::l
-    | TInt64 name -> ((pref^name^suff), (Int64.to_string (Obj.magic params)))::l
-    | TFloat name ->
-        ((pref^name^suff), (string_of_float (Obj.magic params)))::l
-    | TFile name ->
-        raise (Failure
-                 "Constructing an URL with file parameters not implemented")
-    | TUserType (name, of_string, string_of) ->
-        ((pref^name^suff), (string_of (Obj.magic params)))::l
-    | TCoord name ->
-        let coord = Obj.magic params in
-        ((pref^name^suff^".x"), string_of_int coord.abscissa)::
-        ((pref^name^suff^".y"), string_of_int coord.ordinate)::l
-    | TCoordv (t, name) ->
-        aux (TProd (t, TCoord name)) params pref suff l
-    | TUnit -> l
-    | TAny -> l@(Obj.magic params)
-    | TConst _ -> l
-    | TESuffix _
-    | TESuffixs _
-    | TESuffixu _
-    | TSuffix _ -> raise (Ocsigen_Internal_Error "Bad use of suffix")
-  in
+    (params : 'a) =
   let rec make_suffix typ params =
     match typ with
+    | TNLParams (_, _, t) -> make_suffix t params
     | TProd (t1, t2) ->
         (make_suffix t1 (fst (Obj.magic params)))@
         (make_suffix t2 (snd (Obj.magic params)))
@@ -558,14 +518,74 @@ let construct_params_list
     | TESuffixu (_, of_string, string_of) -> [string_of (Obj.magic params)]
     | _ -> raise (Ocsigen_Internal_Error "Bad parameters")
   in
-  match typ with
-  | TProd((TSuffix s), t) ->
-   ((Some (make_suffix s (fst (Obj.magic params)))),
-   (aux t (snd (Obj.magic params)) "" "" []))
-  | TSuffix s -> (Some (make_suffix s (Obj.magic params))), []
-  | _ -> None, (aux typ params "" "" [])
-
-
+  let rec aux typ psuff nlp params pref suff l =
+    match typ with
+    | TNLParams (name, _, t) -> 
+        let psuff, nlp, nl = aux t psuff nlp params pref suff [] in
+        (psuff, Ocsigen_lib.String_Table.add name nl nlp, l)
+    | TProd (t1, t2) ->
+        let psuff, nlp, l1 = 
+          aux t1 psuff nlp (fst (Obj.magic params)) pref suff l 
+        in
+        aux t2 psuff nlp (snd (Obj.magic params)) pref suff l1
+    | TOption t ->
+        (match ((Obj.magic params) : 'zozo option) with
+        | None -> psuff, nlp, l
+        | Some v -> aux t psuff nlp v pref suff l)
+    | TBool name ->
+        (if ((Obj.magic params) : bool)
+         then psuff, nlp, ((pref^name^suff), "on")::l
+         else psuff, nlp, l)
+    | TList (list_name, t) ->
+        let pref2 = pref^list_name^suff^"." in
+        fst
+          (List.fold_left
+             (fun ((psuff, nlp, s), i) p ->
+                ((aux t psuff nlp p pref2 (suff^(make_list_suffix i)) s), (i+1)))
+             ((psuff, nlp, l), 0) (Obj.magic params))
+    | TSet t ->
+        List.fold_left
+          (fun (psuff, nlp, l) v -> aux t psuff nlp v pref suff l)
+          (psuff, nlp, l)
+          (Obj.magic params)
+    | TSum (t1, t2) -> (match Obj.magic params with
+      | Inj1 v -> aux t1 psuff nlp v pref suff l
+      | Inj2 v -> aux t2 psuff nlp v pref suff l)
+    | TString name -> psuff, nlp, ((pref^name^suff), (Obj.magic params))::l
+    | TInt name -> 
+        psuff, nlp, 
+        ((pref^name^suff), (string_of_int (Obj.magic params)))::l
+    | TInt32 name -> 
+        psuff, nlp,
+        ((pref^name^suff), (Int32.to_string (Obj.magic params)))::l
+    | TInt64 name -> 
+        psuff, nlp, 
+        ((pref^name^suff), (Int64.to_string (Obj.magic params)))::l
+    | TFloat name ->
+        psuff, nlp,
+        ((pref^name^suff), (string_of_float (Obj.magic params)))::l
+    | TFile name ->
+        raise (Failure
+                 "Constructing an URL with file parameters not implemented")
+    | TUserType (name, of_string, string_of) ->
+        psuff, nlp,
+        ((pref^name^suff), (string_of (Obj.magic params)))::l
+    | TCoord name ->
+        psuff, nlp,
+        let coord = Obj.magic params in
+        ((pref^name^suff^".x"), string_of_int coord.abscissa)::
+        ((pref^name^suff^".y"), string_of_int coord.ordinate)::l
+    | TCoordv (t, name) ->
+        aux (TProd (t, TCoord name)) psuff nlp params pref suff l
+    | TUnit -> psuff, nlp, l
+    | TAny -> psuff, nlp, l@(Obj.magic params)
+    | TConst _ -> psuff, nlp, l
+    | TESuffix _
+    | TESuffixs _
+    | TESuffixu _ -> raise (Ocsigen_Internal_Error "Bad use of suffix")
+    | TSuffix s -> Some (make_suffix s (Obj.magic params)), nlp, l
+  in
+  aux typ None nlp params "" "" []
 
 
 
@@ -573,23 +593,19 @@ let construct_params_list
 (* contruct the string of parameters (& separated) for GET and POST *)
 let construct_params_string =
   Netencoding.Url.mk_url_encoded_parameters
-  (* No: we must URL-encode
-  function
-  | [] -> ""
-  | (a,b)::l ->
-      List.fold_left
-        (fun beg (c,d) -> beg^"&"^c^"="^d)
-        (a^"="^b)
-        l
-   *)
 
-let construct_params typ p =
-  let suff, pl = construct_params_list typ p in
-  (suff, construct_params_string pl)
+let construct_params nonlocparams typ p =
+  let (suff, nonlocparams, pl) = construct_params_list nonlocparams typ p in
+  let nlp = Ocsigen_lib.String_Table.fold
+    (fun _ l s -> Ocsigen_lib.concat_strings s "&" (construct_params_string l))
+    nonlocparams "" 
+  in
+  (suff, Ocsigen_lib.concat_strings (construct_params_string pl) "&" nlp)
 
 
 (* Add a prefix to parameters *)
 let rec add_pref_params pref = function
+  | TNLParams (a, b, t) -> TNLParams (a, b, add_pref_params pref t)
   | TProd (t1, t2) -> TProd ((add_pref_params pref t1),
                              (add_pref_params pref t2))
   | TOption t -> TOption (add_pref_params pref t)
@@ -621,21 +637,10 @@ let rec add_pref_params pref = function
 
 
 
-(* Remove all parameters whose name starts with pref *)
-let remove_prefixed_param pref l =
-  let len = String.length pref in
-  let rec aux = function
-    | [] -> []
-    | ((n,v) as a)::l ->
-        try
-          if (String.sub n 0 len) = pref then
-            aux l
-          else a::(aux l)
-        with Invalid_argument _ -> a::(aux l)
-  in aux l
 
 let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
   let rec aux prefix suffix = function
+    | TNLParams (_, _, t) -> aux prefix suffix t
     | TProd (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
     | TInt name
     | TInt32 name
@@ -675,26 +680,61 @@ let string_of_param_name = id
 
 (* Non localized parameters *)
 
-type ('a, +'names) non_localized_params = 
-    ('a, [ `WithoutSuffix ], 'names) params_type
-
 let make_non_localized_parameters
+    ~name
     (p : ('a, [ `WithoutSuffix ], 'b) params_type) 
-    : ('a, 'b) non_localized_params =
-  add_pref_params Eliom_common.nl_param_prefix p
+    : ('a, [ `WithoutSuffix ], 'b) non_localized_params =
+  (name,
+   (Polytables.make_key () (* GET *), 
+    Polytables.make_key () (* POST *)),
+   add_pref_params (Eliom_common.nl_param_prefix^name^"_") p)
 
-let get_non_localized_get_parameters ~sp params =
-  try
-    Some (reconstruct_params params (Eliom_sessions.get_nl_get_params sp) [] [])
-  with Eliom_common.Eliom_Wrong_parameter -> None
+let get_non_localized_parameters params getorpost ~sp (name, keys, paramtype) =
+  (* non localized parameters are parsed only once, 
+     and cached in request_cache *)
+  let key = getorpost keys in
+  (try 
+     (* first, look in cache: *)
+     Polytables.get 
+       ~table:sp.Eliom_common.sp_request.request_info.ri_request_cache
+       ~key
+   with Not_found ->
+     let p =
+       try
+         Some 
+           (let params = Ocsigen_lib.String_Table.find name params in
+            reconstruct_params paramtype params [] [])
+       with Eliom_common.Eliom_Wrong_parameter | Not_found -> None
+     in
+     (* add in cache: *)
+     Polytables.set 
+       ~table:sp.Eliom_common.sp_request.request_info.ri_request_cache
+       ~key
+       ~value:p;
+     p)
 
-let get_non_localized_post_parameters ~sp params =
-  try
-    Some (reconstruct_params params (Eliom_sessions.get_nl_post_params sp) [] [])
-  with Eliom_common.Eliom_Wrong_parameter -> None
+let get_non_localized_get_parameters ~sp p =
+  let sp = Eliom_sessions.esp_of_sp sp in
+  get_non_localized_parameters 
+    sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params fst ~sp p
+
+let get_non_localized_post_parameters ~sp p =
+  let sp = Eliom_sessions.esp_of_sp sp in
+  get_non_localized_parameters
+    sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params snd ~sp p
 
 let nl_prod 
     (t : ('a, 'su, 'an) params_type) 
-    (s : ('s, 'sn) non_localized_params) :
+    (s : ('s, [ `WithoutSuffix ], 'sn) non_localized_params) :
     (('a * 's), 'su, 'an * 'sn) params_type =
-  (Obj.magic (TProd (Obj.magic t, Obj.magic s)))
+  (Obj.magic (TProd (Obj.magic t, Obj.magic (TNLParams s))))
+
+
+(* removes from nlp set the nlp parameters that are present in param
+   specification *)
+let rec remove_from_nlp nlp = function
+    | TNLParams (n, _, _) -> Ocsigen_lib.String_Table.remove n nlp
+    | TProd (t1, t2) -> 
+        let nlp = remove_from_nlp nlp t1 in
+        remove_from_nlp nlp t2
+    | _ -> nlp

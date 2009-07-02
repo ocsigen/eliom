@@ -125,7 +125,10 @@ type nonattached =
 
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
     {
-     pre_applied_parameters: (string * string) list;
+     pre_applied_parameters: 
+       (string * string) list Ocsigen_lib.String_Table.t
+       (* non localized parameters *) *
+       (string * string) list (* regular parameters *);
      get_params_type: ('get, 'tipo, 'getnames) params_type;
      post_params_type: ('post, [`WithoutSuffix], 'postnames) params_type;
      max_use: int option; (* Max number of use of this service *)
@@ -179,7 +182,7 @@ let register_eliom_module name f =
 (** Satic directories **)
 let static_dir_ ?(https = false) ~sp () =
     {
-     pre_applied_parameters = [];
+     pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
      get_params_type = suffix (all_suffix Eliom_common.eliom_suffix_name);
      post_params_type = unit;
      max_use= None;
@@ -201,7 +204,7 @@ let https_static_dir ~sp = static_dir_ ~https:true ~sp ()
 
 let get_static_dir_ ?(https = false) ~sp ~get_params () =
     {
-     pre_applied_parameters = [];
+     pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
      get_params_type = 
         suffix_prod 
           (all_suffix Eliom_common.eliom_suffix_name)
@@ -242,7 +245,7 @@ let new_service_aux_aux
     ~post_params =
 (* ici faire une vérification "duplicate parameter" ? *)
   {
-   pre_applied_parameters = [];
+   pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
    get_params_type = get_params;
    post_params_type = post_params;
    max_use= None;
@@ -382,7 +385,7 @@ let new_coservice' ?name ?max_use ?timeout ?(https = false) ~get_params () =
 (*VVV allow timeout and max_use for named coservices? *)
           max_use= max_use;
           timeout= timeout;
-          pre_applied_parameters = [];
+          pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
           get_params_type = 
             add_pref_params Eliom_common.na_co_param_prefix get_params;
           post_params_type = unit;
@@ -491,7 +494,7 @@ let new_post_coservice'
 (*VVV allow timeout and max_use for named coservices? *)
     max_use= max_use;
     timeout= timeout;
-    pre_applied_parameters = [];
+    pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
     get_params_type = unit;
     post_params_type = post_params;
     kind = `Nonattached
@@ -545,9 +548,12 @@ let rec append_suffix l m = match l with
   | a::ll -> a::(append_suffix ll m)
 
 let preapply ~service getparams =
-  let suff, params = construct_params_list service.get_params_type getparams in
+  let nlp, preapp = service.pre_applied_parameters in
+  let suff, nlp, params =
+    construct_params_list nlp service.get_params_type getparams 
+  in
   {service with
-   pre_applied_parameters = params@service.pre_applied_parameters;
+   pre_applied_parameters = nlp, params@preapp;
    get_params_type = unit;
    kind = match service.kind with
    | `Attached k -> `Attached {k with
@@ -566,7 +572,7 @@ let void_coservice' =
   {
     max_use= None;
     timeout= None;
-    pre_applied_parameters = [];
+    pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
     get_params_type = unit;
     post_params_type = unit;
     kind = `Nonattached
@@ -580,7 +586,7 @@ let https_void_coservice' =
   {
     max_use= None;
     timeout= None;
-    pre_applied_parameters = [];
+    pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
     get_params_type = unit;
     post_params_type = unit;
     kind = `Nonattached

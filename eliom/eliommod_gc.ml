@@ -44,7 +44,7 @@ let rec gc_timeouted_services now t =
       | Eliom_common.Dir r -> gc_timeouted_services now r >>=
           (fun () -> match !r with
           | Eliom_common.Vide ->
-              return (Eliom_common.String_Table.remove k table)
+              return (Ocsigen_lib.String_Table.remove k table)
           | Eliom_common.Table t -> return table)
       | Eliom_common.File ptr ->
           List.fold_right
@@ -71,16 +71,16 @@ let rec gc_timeouted_services now t =
             !ptr
             (return []) >>=
           (function
-            | [] -> return (Eliom_common.String_Table.remove k table)
+            | [] -> return (Ocsigen_lib.String_Table.remove k table)
             | r -> ptr := r; return table)
     )
   in
   match !t with
   | Eliom_common.Vide -> return ()
   | Eliom_common.Table r ->
-      (Eliom_common.String_Table.fold aux r (return r)) >>=
+      (Ocsigen_lib.String_Table.fold aux r (return r)) >>=
       (fun table ->
-        if Eliom_common.String_Table.is_empty table
+        if Ocsigen_lib.String_Table.is_empty table
         then begin t := Eliom_common.Vide; return () end
         else begin t := Eliom_common.Table table; return () end)
 

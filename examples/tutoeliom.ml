@@ -3462,6 +3462,7 @@ let _ = Eliom_services.set_exn_handler
   *html*)
 let my_nl_params = 
   Eliom_parameters.make_non_localized_parameters
+    ~name:"mynlparams"
     (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
 
 let nlparams = register_new_service
@@ -4392,7 +4393,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
            $a constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"))$ <br/>
          A page with a parameter of user-defined type :
              $a mytype sp <:xmllist< <code>mytype</code> >> A$ </p>
-       <h4>Links and Formulars</h4>
+       <h4>Links and Forms</h4>
        <p>
          A page with links: $a links sp <:xmllist< <code>links</code> >>  ()$ <br/>
          A page with a link towards itself:

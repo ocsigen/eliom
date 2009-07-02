@@ -192,9 +192,9 @@ let add_to_string s1 sep = function
   | "" -> s1
   | s2 -> s1^sep^s2
 
-let concat_strings s1 sep s2 = match s1,s2 with
-| _,"" -> s1
-| "",_ -> s2
+let concat_strings s1 sep s2 = match s1, s2 with
+| _, "" -> s1
+| "", _ -> s2
 | _ -> s1^sep^s2
 
 (* Cut a string to the next separator *)
@@ -718,4 +718,9 @@ end : sig
   val is_empty : 'a t -> bool
   val iter : ('a -> unit) -> 'a t -> unit
   val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b t -> 'a
+end)
+
+module String_Table = Map.Make(struct
+  type t = string
+  let compare = compare
 end)

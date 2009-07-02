@@ -157,14 +157,14 @@ type coordinates =
 
 val coordinates :
     string ->
-      (coordinates, [`WithoutSuffix],
+      (coordinates, [ `WithoutSuffix ],
        [ `One of coordinates ] param_name) params_type
 (** [string s] tells that the service takes as parameters the coordinates
    of the point where the user were clicked on an image. *)
 
 val string_coordinates :
     string ->
-      (string * coordinates, [`WithoutSuffix],
+      (string * coordinates, [ `WithoutSuffix ],
        [ `One of (string * coordinates) ] param_name) params_type
 (** It is possible to send a value together with the coordinates
    ([<input type="image" value="..." ...>]) (Here a string) *)
@@ -342,22 +342,26 @@ val suffix_const :
 *)
 
 (** {2 Non localized parameters} *)
-type ('a, +'names) non_localized_params
+type ('a, +'tipo, +'names) non_localized_params
 
 val make_non_localized_parameters :
+  name : string ->
   ('a, [ `WithoutSuffix ], 'b) params_type ->
-  ('a, 'b) non_localized_params
+  ('a, [ `WithoutSuffix ], 'b) non_localized_params
+(** create a new specification for non localized parameters.
+    You must give a name to this set of parameters.
+*)
 
 val get_non_localized_get_parameters :
   sp:Eliom_sessions.server_params ->
-  ('a, 'b) non_localized_params ->
+  ('a, [ `WithoutSuffix ], 'b) non_localized_params ->
   'a option
 (** [get_non_localized_get_parameters ~sp p] decodes and 
     returns non localized GET parameters specified by [p] if present. *)
 
 val get_non_localized_post_parameters :
   sp:Eliom_sessions.server_params ->
-  ('a, 'b) non_localized_params ->
+  ('a, [ `WithoutSuffix ], 'b) non_localized_params ->
   'a option
 (** [get_non_localized_post_parameters ~sp p] decodes and 
     returns non localized POST parameters specified by [p] if present. *)
@@ -373,14 +377,18 @@ val add_pref_params :
         ('a, 'b, 'c) params_type
 
 val construct_params :
-    ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-      'a -> string list option * string
+  (string * string) list Ocsigen_lib.String_Table.t ->
+  ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+  'a -> string list option * string
 
 val construct_params_string : (string * string) list -> string
 
 val construct_params_list :
-    ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-      'a -> string list option * (string * string) list
+  (string * string) list Ocsigen_lib.String_Table.t ->
+  ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+  'a -> string list option * 
+  (string * string) list Ocsigen_lib.String_Table.t *
+     (string * string) list
 
 val reconstruct_params :
     ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
@@ -391,9 +399,6 @@ type anon_params_type = int
 
 val anonymise_params_type : ('a, 'b, 'c) params_type -> anon_params_type
 
-val remove_prefixed_param :
-    string -> (string * 'a) list -> (string * 'a) list
-
 val make_params_names :
     ('a, 'b, 'c) params_type -> 'c
 
@@ -401,5 +406,10 @@ val string_of_param_name : 'a param_name -> string
 
 val nl_prod : 
   ('a, 'su, 'an) params_type ->
-  ('s, 'sn) non_localized_params ->
+  ('s, [ `WithoutSuffix ], 'sn) non_localized_params ->
   ('a * 's, 'su, 'an * 'sn) params_type 
+
+val remove_from_nlp :
+  (string * string) list Ocsigen_lib.String_Table.t ->
+  ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+  (string * string) list Ocsigen_lib.String_Table.t

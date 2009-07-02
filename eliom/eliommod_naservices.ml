@@ -167,7 +167,7 @@ let make_naservice
             ri.request_info.ri_request_cache
             Eliom_common.eliom_link_too_old
             true;
-          Eliom_common.change_request_info
+          Eliom_common.get_session_info
             {ri with Ocsigen_extensions.request_info =
                 { ri.Ocsigen_extensions.request_info with
                     Ocsigen_extensions.ri_get_params =
@@ -190,7 +190,7 @@ let make_naservice
             ri.request_info.ri_request_cache
             Eliom_common.eliom_link_too_old
             true;
-          Eliom_common.change_request_info
+          Eliom_common.get_session_info
             {ri with request_info =
                 { ri.request_info with
                     ri_get_params =
