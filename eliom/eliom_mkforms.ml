@@ -1340,7 +1340,7 @@ module MakeForms = functor
           ?hostname
           ?port
           ?(fragment = "")
-          ?(keep_nl_params = false)
+          ?keep_nl_params
           ?keep_get_na_params
           f
           getparams =
@@ -1355,6 +1355,10 @@ module MakeForms = functor
 (*VVV We trust current protocol? *) 
         match get_kind_ service with
         | `Attached attser ->
+            let keep_nl_params = match keep_nl_params with
+              | None -> false
+              | Some b -> b
+            in
             let preappnlp, preapp = get_pre_applied_parameters_ service in
             let nlp =
               if keep_nl_params
@@ -1434,7 +1438,10 @@ module MakeForms = functor
                     ~action:(add_to_string urlname "?" params_string)
                     i1 i))
         | `Nonattached naser ->
-            (* no GET params here for now *)
+            let keep_nl_params = match keep_nl_params with
+              | None -> true
+              | Some b -> b
+            in
             let keep_get_na_params =
               match keep_get_na_params with
                 | Some b -> b

@@ -377,6 +377,11 @@ module type ELIOMFORMSIG =
       form_elt
 (** [post_form service sp formgen] creates a POST form to [service].
    The last parameter is for GET parameters (as in the function [a]).
+
+    If [~keep_nl_params] is [true], non localized GET parameters
+    will be kept in the URL (default is [false] for attached POST services,
+    and [true] for non-attached POST coservices).
+
  *)
 
     val lwt_post_form :
