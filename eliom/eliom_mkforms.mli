@@ -313,6 +313,9 @@ module type ELIOMFORMSIG =
     the optional [?hostname] and [?port] parameters here.
     These options have no effect for relative links.
 
+    If [~keep_nl_params] is [true], non localized GET parameters
+    will be kept in the URL (default is [false]).
+
 *)
 
     val css_link : ?a:link_attrib_t -> uri:uri -> unit -> link_elt
