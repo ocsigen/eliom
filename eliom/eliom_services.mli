@@ -157,6 +157,7 @@ val new_service :
   ?sp: Eliom_sessions.server_params ->
   ?https:bool ->
   path:url_path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
   ('get,unit,
@@ -178,6 +179,7 @@ val new_service :
 val new_external_service :
   prefix: string ->
   path:url_path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
   unit ->
@@ -206,6 +208,7 @@ val new_post_service :
                               ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
              [< suff] as 'tipo, 'gn, unit,
              [< `Registrable ]) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
   ('get, 'post, [> `Attached of
@@ -232,6 +235,7 @@ val new_coservice :
     (unit, unit, [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
      [ `WithoutSuffix ] as 'tipo,
      unit, unit, [< registrable ]) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:
     ('get,[`WithoutSuffix],'gn) params_type ->
   unit ->
@@ -260,6 +264,7 @@ val new_post_coservice :
                              [`Internal of [<`Service | `Coservice] * [`Get]] a_s ],
              [< suff ] as 'tipo,
              'gn, unit, [< `Registrable ]) service ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
   ('get, 'post,
@@ -275,6 +280,7 @@ val new_coservice' :
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:
     ('get, [`WithoutSuffix], 'gn) params_type ->
   unit ->
@@ -294,8 +300,9 @@ val new_post_coservice' :
   ?name:string ->
   ?max_use:int ->
   ?timeout:float ->
-  ?keep_get_na_params:bool ->
   ?https:bool ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?keep_get_na_params:bool ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
   (unit, 'post,
@@ -353,7 +360,9 @@ val https_static_dir :
 
 val static_dir_with_params :
   sp:Eliom_sessions.server_params ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('a, [`WithoutSuffix], 'an) params_type ->
+  unit ->
   ((string list * 'a), unit,
    [> `Attached of
       [> `Internal of [> `Service ] * [> `Get] ] a_s ],
@@ -364,7 +373,9 @@ val static_dir_with_params :
 
 val https_static_dir_with_params :
   sp:Eliom_sessions.server_params ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('a, [`WithoutSuffix], 'an) params_type ->
+  unit ->
   ((string list * 'a), unit,
    [> `Attached of
       [> `Internal of [> `Service ] * [> `Get] ] a_s ],
@@ -484,3 +495,5 @@ val reconstruct_relative_url_path : url_path -> url_path -> url_path option -> s
 *)
 val escookiel_of_eccookiel : Eliom_common.cookie list -> cookie list
 val eccookiel_of_escookiel : cookie list -> Eliom_common.cookie list
+val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
+  [ `All | `Persistent | `None ]

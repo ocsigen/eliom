@@ -3462,6 +3462,7 @@ let _ = Eliom_services.set_exn_handler
   *html*)
 let my_nl_params = 
   Eliom_parameters.make_non_localized_parameters
+    ~prefix:"tutoeliom"
     ~name:"mynlparams"
     (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
 

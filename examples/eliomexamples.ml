@@ -33,6 +33,7 @@ open Lwt
 (*******)
 let my_nl_params = 
   Eliom_parameters.make_non_localized_parameters
+    ~prefix:"tutoeliom"
     ~name:"mynlp"
     (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
 
@@ -1165,7 +1166,7 @@ let mainpage = register_new_service ["tests"] unit
            (["l/l%l      &l=l+l)l@";"m\\m\"m";"nèn~n"],
             [("po?po&po~po/po+po", "lo\"l     o#lo'lo lo=lo&l      o/lo+lo");
             ("bo=mo@co:ro", "zo^zo%zo$zo:zo")]); br ();
-         a ~service:(static_dir_with_params ~sp ~get_params:Eliom_parameters.any)
+         a ~service:(static_dir_with_params ~sp ~get_params:Eliom_parameters.any ())
            ~sp 
            [pcdata "Static file with GET parameters"]
            (["ocsigen5.png"], [("aa", "lmk"); ("bb", "4")]); br ();

@@ -97,6 +97,8 @@ let get_other_get_params ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_other_get_params
 let get_nl_get_params ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params
+let get_persistent_nl_get_params ~sp =
+  Lazy.force sp.Eliom_common.sp_si.Eliom_common.si_persistent_nl_get_params
 let get_nl_post_params ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params
 let get_suffix ~sp =

@@ -345,12 +345,21 @@ val suffix_const :
 type ('a, +'tipo, +'names) non_localized_params
 
 val make_non_localized_parameters :
+  prefix : string ->
   name : string ->
+  ?persistent:bool ->
   ('a, [ `WithoutSuffix ], 'b) params_type ->
   ('a, [ `WithoutSuffix ], 'b) non_localized_params
 (** create a new specification for non localized parameters.
     You must give a name to this set of parameters.
+    Warning: the names must be unique for the whole application.
+    That's why the name is composed by a prefix (the name of your project) and
+    another string (the name of your non localized parameters).
+
     Will fail with exception [Failure _] if the name contains a dot.
+    If [?persistent] is [true], the non localized parameter
+    may remain if you call another service, if this service
+    allows this (default [false]).
 *)
 
 val get_non_localized_get_parameters :

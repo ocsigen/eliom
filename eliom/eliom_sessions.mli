@@ -985,6 +985,10 @@ val get_other_get_params : sp:server_params -> (string * string) list
 val get_nl_get_params : 
   sp:server_params -> (string * string) list Ocsigen_lib.String_Table.t
 
+(** returns persistent non localized parameters in the URL. *)
+val get_persistent_nl_get_params : 
+  sp:server_params -> (string * string) list Ocsigen_lib.String_Table.t
+
 (** returns non localized POST parameters. *)
 val get_nl_post_params : 
   sp:server_params -> (string * string) list Ocsigen_lib.String_Table.t

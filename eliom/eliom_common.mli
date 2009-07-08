@@ -115,10 +115,13 @@ type sess_info = {
   si_previous_extension_error : int;
   si_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t;
   si_nl_post_params: (string * string) list Ocsigen_lib.String_Table.t;
+  si_persistent_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t Lazy.t;
 
+  si_all_get_but_na: (string * string) list Lazy.t;
   si_all_get_but_nl: (string * string) list;
   si_all_get_but_na_nl: (string * string) list Lazy.t;
-  si_all_get_but_na: (string * string) list Lazy.t;
+  si_all_get_but_npnl: (string * string) list Lazy.t;
+  si_all_get_but_na_npnl: (string * string) list Lazy.t;
 }
 
 module SessionCookies : Hashtbl.S with type key = string
@@ -280,5 +283,3 @@ val close_service_session2 :
 
 
 
-val remove_prefixed_param :
-    string -> (string * 'a) list -> (string * 'a) list

@@ -70,8 +70,9 @@ type ('a, +'tipo, +'names) params_type =
 
 and ('a, 'tipo, +'names) non_localized_params = 
     string *
-    ('a option Polytables.key * 'a option Polytables.key) *
-    ('a, 'tipo, 'names) params_type
+      bool (* persistent *) *
+      ('a option Polytables.key * 'a option Polytables.key) *
+      ('a, 'tipo, 'names) params_type
 
 
 
@@ -309,7 +310,7 @@ let reconstruct_params
         if v = value
         then Obj.magic ()
         else raise Eliom_common.Eliom_Wrong_parameter
-    | TNLParams (_, _, typ) -> parse_one typ v
+    | TNLParams (_, _, _, typ) -> parse_one typ v
     | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   let rec parse_suffix typ suff =
@@ -358,7 +359,7 @@ let reconstruct_params
     and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)
         params files pref suff : 'a res_reconstr_param =
       match typ with
-        | TNLParams (_, _, t) -> aux t params files pref suff
+        | TNLParams (_, _, _, t) -> aux t params files pref suff
         | TProd (t1, t2) ->
             (match aux t1 params files pref suff with
                | Res_ (v1, l1, f) ->
@@ -502,7 +503,7 @@ let construct_params_list
     (params : 'a) =
   let rec make_suffix typ params =
     match typ with
-    | TNLParams (_, _, t) -> make_suffix t params
+    | TNLParams (_, _, _, t) -> make_suffix t params
     | TProd (t1, t2) ->
         (make_suffix t1 (fst (Obj.magic params)))@
         (make_suffix t2 (snd (Obj.magic params)))
@@ -520,7 +521,7 @@ let construct_params_list
   in
   let rec aux typ psuff nlp params pref suff l =
     match typ with
-    | TNLParams (name, _, t) -> 
+    | TNLParams (name, _, _, t) -> 
         let psuff, nlp, nl = aux t psuff nlp params pref suff [] in
         (psuff, Ocsigen_lib.String_Table.add name nl nlp, l)
     | TProd (t1, t2) ->
@@ -605,7 +606,7 @@ let construct_params nonlocparams typ p =
 
 (* Add a prefix to parameters *)
 let rec add_pref_params pref = function
-  | TNLParams (a, b, t) -> TNLParams (a, b, add_pref_params pref t)
+  | TNLParams (a, b, c, t) -> TNLParams (a, b, c, add_pref_params pref t)
   | TProd (t1, t2) -> TProd ((add_pref_params pref t1),
                              (add_pref_params pref t2))
   | TOption t -> TOption (add_pref_params pref t)
@@ -640,7 +641,7 @@ let rec add_pref_params pref = function
 
 let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
   let rec aux prefix suffix = function
-    | TNLParams (_, _, t) -> aux prefix suffix t
+    | TNLParams (_, _, _, t) -> aux prefix suffix t
     | TProd (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
     | TInt name
     | TInt32 name
@@ -681,18 +682,24 @@ let string_of_param_name = id
 (* Non localized parameters *)
 
 let make_non_localized_parameters
+    ~prefix
     ~name
+    ?(persistent = false)
     (p : ('a, [ `WithoutSuffix ], 'b) params_type) 
     : ('a, [ `WithoutSuffix ], 'b) non_localized_params =
+  let pr = if persistent then "p_" else "n_" in
+  let name = pr^prefix^"-"^name in
   if String.contains name '.'
   then failwith "Non localized parameters names cannot contain dots."
   else
     (name,
+     persistent,
      (Polytables.make_key () (* GET *), 
       Polytables.make_key () (* POST *)),
      add_pref_params (Eliom_common.nl_param_prefix^name^".") p)
 
-let get_non_localized_parameters params getorpost ~sp (name, keys, paramtype) =
+let get_non_localized_parameters params getorpost ~sp
+    (name, _, keys, paramtype) =
   (* non localized parameters are parsed only once, 
      and cached in request_cache *)
   let key = getorpost keys in
@@ -736,7 +743,7 @@ let nl_prod
 (* removes from nlp set the nlp parameters that are present in param
    specification *)
 let rec remove_from_nlp nlp = function
-    | TNLParams (n, _, _) -> Ocsigen_lib.String_Table.remove n nlp
+    | TNLParams (n, _, _, _) -> Ocsigen_lib.String_Table.remove n nlp
     | TProd (t1, t2) -> 
         let nlp = remove_from_nlp nlp t1 in
         remove_from_nlp nlp t2

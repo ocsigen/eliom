@@ -66,7 +66,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
-      ?keep_nl_params:bool ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
       'get -> 
       string
 (** Creates the string corresponding to the
@@ -90,7 +90,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
-      ?keep_nl_params:bool ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
       'get -> 
       XHTML.M.uri
 (** Creates the string corresponding to the
@@ -106,7 +106,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
-      ?keep_nl_params:bool ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
       'get -> 
       string
 (** Creates the string corresponding to the relative URL of a service applied to
@@ -122,7 +122,7 @@ module type XHTMLFORMSSIG = sig
     ?hostname:string ->
     ?port:int ->
     ?fragment:string -> 
-    ?keep_nl_params:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
     'get -> 
     uri
 (** Create the text of the service. Like the [a] function, it may take
@@ -149,7 +149,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
     ?fragment:string ->
-    ?keep_nl_params:bool ->
+    ?keep_nl_params:[ `All | `Persistent | `None ] ->
     a_content elt list -> 
     'get -> 
     [> a] XHTML.M.elt
@@ -182,6 +182,10 @@ module type XHTMLFORMSSIG = sig
     the optional [?hostname] and [?port] parameters here.
     These options have no effect for relative links.
 
+    If [~keep_nl_params] is [`Persistent] (resp. [`All]),
+    persistent (resp all) non localized GET parameters
+    will be kept in the URL (default is the default for the service).
+
  *)
 
   val css_link : ?a:(link_attrib attrib list) ->
@@ -204,7 +208,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
-      ?keep_nl_params:bool ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ('gn -> form_content elt list) -> 
       [>form] elt
 (** [get_form service sp formgen] creates a GET form to [service].
@@ -222,7 +226,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
-      ?keep_nl_params:bool ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ('gn -> form_content elt list Lwt.t) -> 
       form elt Lwt.t
 (** The same but taking a cooperative function. 
@@ -245,13 +249,18 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
-      ?keep_nl_params:bool ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content elt list) ->
       'get ->
       [>form] elt
 (** [post_form service sp formgen] creates a POST form to [service].
    The last parameter is for GET parameters (as in the function [a]).
+
+    If [~keep_nl_params] is [`Persistent] (resp. [`All]),
+    persistent (resp all) non localized GET parameters
+    will be kept in the URL (default is the default for the service).
+
  *)
 
 
@@ -265,7 +274,7 @@ module type XHTMLFORMSSIG = sig
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
-      ?keep_nl_params:bool ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content elt list Lwt.t) ->
       'get ->

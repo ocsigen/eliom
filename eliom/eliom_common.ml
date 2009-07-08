@@ -77,7 +77,9 @@ let get_numstate_param_name = "__eliom_n__"
 let post_numstate_param_name = "__eliom_np__"
 let co_param_prefix = "__co_eliom_"
 let na_co_param_prefix = "__na_eliom_"
-let nl_param_prefix = "__nl_eliom_"
+let nl_param_prefix = "__nl_"
+let pnl_param_prefix = nl_param_prefix^"p_"
+let npnl_param_prefix = nl_param_prefix^"n_"
 
 let datacookiename = "eliomdatasession|"
 let servicecookiename = "eliomservicesession|"
@@ -95,6 +97,8 @@ let spersistentcookiename = "Seliompersistentsession|"
 let persistent_cookie_table_version = "_v2" (* v2 introduces session groups *)
 let eliom_persistent_cookie_table =
   "eliom_persist_cookies"^persistent_cookie_table_version
+
+let nl_is_persistent n = n.[0] = 'p'
 
 (*****************************************************************************)
 
@@ -138,10 +142,13 @@ type sess_info =
 
      si_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t;
      si_nl_post_params: (string * string) list Ocsigen_lib.String_Table.t;
+     si_persistent_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t Lazy.t;
 
+     si_all_get_but_na: (string * string) list Lazy.t;
      si_all_get_but_nl: (string * string) list;
      si_all_get_but_na_nl: (string * string) list Lazy.t;
-     si_all_get_but_na: (string * string) list Lazy.t;
+     si_all_get_but_npnl: (string * string) list Lazy.t;
+     si_all_get_but_na_npnl: (string * string) list Lazy.t;
    }
 
 (* The table of tables for each session. Keys are cookies *)
@@ -430,7 +437,6 @@ let empty_tables () =
 
 let new_service_session_tables = empty_tables
 
-
 (*****************************************************************************)
 open Lwt
 
@@ -452,19 +458,21 @@ let split_nl_prefix_param =
       | ((n, v) as a)::l -> 
           if Ocsigen_lib.string_first_diff 
             n nl_param_prefix 0 prefixlengthminusone = prefixlength
-          then try
-            let last = String.index_from n prefixlength '.' in
-            let nl_param_name = String.sub n prefixlength (last - prefixlength)
-            in
-            let previous = 
-              try Ocsigen_lib.String_Table.find nl_param_name map 
-              with Not_found -> []
-            in
-            aux
-              other
-              (Ocsigen_lib.String_Table.add nl_param_name (a::previous) map)
-              l
-          with Invalid_argument _ | Not_found -> aux (a::other) map l
+          then 
+            try
+              let last = String.index_from n prefixlength '.' in
+              let nl_param_name = 
+                String.sub n prefixlength (last - prefixlength) 
+              in
+              let previous = 
+                try Ocsigen_lib.String_Table.find nl_param_name map
+                with Not_found -> []
+              in
+              aux
+                other
+                (Ocsigen_lib.String_Table.add nl_param_name (a::previous) map)
+                l
+            with Invalid_argument _ | Not_found -> aux (a::other) map l
           else aux (a::other) map l
     in
     aux [] Ocsigen_lib.String_Table.empty l
@@ -513,6 +521,12 @@ let get_session_info ri previous_extension_err =
       lazy (List.remove_assoc naservice_name
               (List.remove_assoc naservice_num
                  (remove_prefixed_param na_co_param_prefix get_params0)))
+    in
+    let all_get_but_npnl =
+      lazy (remove_prefixed_param npnl_param_prefix get_params0)
+    in
+    let all_get_but_na_npnl =
+      lazy (remove_prefixed_param npnl_param_prefix (Lazy.force all_get_but_na))
     in
 
     let data_cookies = getcookies datacookiename
@@ -640,6 +654,14 @@ let get_session_info ri previous_extension_err =
                    lazy get_params1,
                    post_params)
     in
+    let persistent_nl_get_params =
+      lazy
+        (Ocsigen_lib.String_Table.fold
+           (fun k a t -> if nl_is_persistent k
+            then Ocsigen_lib.String_Table.add k a t
+            else t)
+           nl_get_params Ocsigen_lib.String_Table.empty)
+    in
     let ri', sess =
       {ri with
         Ocsigen_extensions.ri_method =
@@ -660,9 +682,12 @@ let get_session_info ri previous_extension_err =
         si_previous_extension_error= previous_extension_err;
         si_nl_get_params= nl_get_params;
         si_nl_post_params= nl_post_params;
-        si_all_get_but_na_nl= all_get_but_na_nl;
-        si_all_get_but_nl= all_get_but_nl;
+        si_persistent_nl_get_params= persistent_nl_get_params;
         si_all_get_but_na= all_get_but_na;
+        si_all_get_but_nl= all_get_but_nl;
+        si_all_get_but_na_nl= all_get_but_na_nl;
+        si_all_get_but_npnl= all_get_but_npnl;
+        si_all_get_but_na_npnl= all_get_but_na_npnl;
        }
     in
     Lwt.return
@@ -798,6 +823,8 @@ let global_register_allowed () =
   if (Ocsigen_extensions.during_initialisation ()) && (during_eliom_module_loading ())
   then Some get_current_sitedata
   else None
+
+
 
 
 (*****************************************************************************)
