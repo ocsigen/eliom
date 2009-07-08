@@ -550,7 +550,7 @@ module MakeRegister = functor
                   (match get_timeout_ service with
                   | None -> None
                   | Some t -> Some (t, ref (t +. Unix.time ()))),
-                  (fun sp ->
+                  (fun redirectifsuffix sp ->
                     let sp2 = Eliom_sessions.sp_of_esp sp in
                     let ri = get_ri ~sp:sp2 in
                     let suff = get_suffix ~sp:sp2 in
@@ -559,17 +559,36 @@ module MakeRegister = functor
                       (fun post_params ->
                         (force ri.ri_files) >>=
                         (fun files ->
-                          (page_generator sp2
-                             (reconstruct_params
-                                sgpt
-                                (force ri.ri_get_params)
-                                []
-                                suff)
-                             (reconstruct_params
-                                sppt
-                                post_params
-                                files
-                                [])))))
+                           let g = (reconstruct_params
+                                      ~sp
+                                      sgpt
+                                      (force ri.ri_get_params)
+                                      []
+                                      suff)
+                           in
+                           let p = (reconstruct_params
+                                      ~sp
+                                      sppt
+                                      post_params
+                                      files
+                                      None)
+                           in
+                           if redirectifsuffix && files=[] && post_params = []
+                           then (* it is a suffix service in version 
+                                   without suffix. We redirect. *)
+                             Lwt.fail
+                               (Eliom_common.Eliom_Suffix_redirection
+                                  (Eliom_mkforms.make_full_string_uri
+                                     ~service:(service : 
+                     ('a, 'b, [< Eliom_services.internal_service_kind ],
+                      [< Eliom_services.suff ], 'c, 'd, [ `Registrable ])
+                     Eliom_services.service :> 
+                     ('a, 'b, Eliom_services.service_kind,
+                      [< Eliom_services.suff ], 'c, 'd, [< Eliom_services.registrable ])
+                     Eliom_services.service)
+                                     ~sp:sp2
+                                     g))
+                           else page_generator sp2 g p)))
                        (function
                          | Eliom_common.Eliom_Typing_Error l ->
                              error_handler sp2 l
@@ -609,15 +628,17 @@ module MakeRegister = functor
                           (fun files ->
                             (page_generator sp2
                                (reconstruct_params
+                                  ~sp
                                   (get_get_params_type_ service)
                                   (force ri.ri_get_params)
                                   []
-                                  [])
+                                  None)
                                (reconstruct_params
+                                  ~sp
                                   (get_post_params_type_ service)
                                   post_params
                                   files
-                                  [])))))
+                                  None)))))
                       (function
                         | Eliom_common.Eliom_Typing_Error l ->
                             error_handler sp2 l

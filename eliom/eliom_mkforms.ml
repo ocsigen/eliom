@@ -34,13 +34,20 @@ let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
   | [a] -> Netencoding.Url.encode ~plus:false a
+  | a::b::l when b = Eliom_common.eliom_suffix_internal_name -> 
+      string_of_url_path' (a::l)
   | a::l when a = Eliom_common.eliom_suffix_internal_name ->
       string_of_url_path' l
   | a::l -> (Netencoding.Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
 
 let rec string_of_url_path_suff u = function
   | None -> string_of_url_path' u
-  | Some suff -> (string_of_url_path' u)^(string_of_url_path' suff)
+  | Some suff -> 
+      let pref = string_of_url_path' u in
+      let suf = string_of_url_path' suff in
+      if pref = "" 
+      then suf
+      else pref^"/"^suf
 
 let reconstruct_absolute_url_path = string_of_url_path_suff
 
@@ -908,6 +915,182 @@ module type ELIOMFORMSIG =
 end
 
 
+let make_string_uri_
+    absolute
+    ~service
+    ~sp
+    ?(fragment = "")
+    ?keep_nl_params
+    ?(nl_params = Eliom_parameters.empty_nl_params_set) 
+    getparams : string =
+  let nl_params = Eliom_parameters.table_of_nl_params_set nl_params in
+  let keep_nl_params = match keep_nl_params with
+    | None -> Eliom_services.keep_nl_params service
+    | Some b -> b
+  in
+  let preappnlp, preapp = get_pre_applied_parameters_ service in
+  let nlp =
+    match keep_nl_params with
+      | `All ->
+          (* We replace current nl params by preapplied ones *)
+          Ocsigen_lib.String_Table.fold
+            (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+            preappnlp
+            (Eliom_sessions.get_nl_get_params ~sp)
+      | `Persistent ->
+          (* We replace current nl params by preapplied ones *)
+          Ocsigen_lib.String_Table.fold
+            (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+            preappnlp
+            (Eliom_sessions.get_persistent_nl_get_params ~sp)
+      | `None -> preappnlp
+  in
+  let nlp =
+    (* We replace current nl params by nl_params *)
+    Ocsigen_lib.String_Table.fold
+      (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+      nl_params
+      nlp
+  in
+  (* for preapplied not non localized: *)
+  let preapplied_params = construct_params_string preapp in
+  (* for getparams and non localized params: *)
+  let suff, params_string =
+    construct_params nlp (get_get_params_type_ service) getparams 
+      (* if nl params were already present, they will be replaced
+         by new values *)
+  in
+  let params_string =
+    concat_strings preapplied_params "&" params_string
+  in
+  match get_kind_ service with
+    | `Attached attser ->
+        begin
+          let uri =
+            if (get_att_kind_ attser) = `External
+            then
+              (get_prefix_ attser)^
+                "/"^  (* we add the "/" even if there is no prefix,
+                         because we should do absolute links in that case *)
+                (reconstruct_absolute_url_path
+                   (get_full_path_ attser) suff)
+            else
+              match absolute with
+                | Some proto_prefix ->
+                    proto_prefix^
+                      reconstruct_absolute_url_path
+                      (get_full_path_ attser) suff
+                | None ->
+                    reconstruct_relative_url_path_string
+                      (get_original_full_path sp)
+                      (get_full_path_ attser) suff
+          in
+          match get_get_name_ attser with
+            | Eliom_common.Att_no ->
+                add_to_string
+                  (add_to_string uri "?" params_string)
+                  "#"
+                  (Netencoding.Url.encode fragment)
+            | Eliom_common.Att_anon s ->
+                add_to_string
+                  (add_to_string
+                     (uri^"?"^Eliom_common.get_numstate_param_name^"="^s)
+                     "&" params_string)
+                  "#"
+                  (Netencoding.Url.encode fragment)
+            | Eliom_common.Att_named s ->
+                add_to_string
+                  (add_to_string
+                     (uri^"?"^Eliom_common.get_state_param_name^"="^s)
+                     "&" params_string)
+                  "#"
+                  (Netencoding.Url.encode fragment)
+        end
+    | `Nonattached naser ->
+        let na_name = get_na_name_ naser in
+        let params =
+          let current_get_params_string = 
+            construct_params_string
+              (if na_name = Eliom_common.Na_void_keep
+               then (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_nl
+               else Lazy.force 
+                 (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_nl)
+          in
+          concat_strings
+            current_get_params_string
+            "&"
+            (match na_name with
+               | Eliom_common.Na_void_keep
+               | Eliom_common.Na_void_dontkeep -> ""
+               | Eliom_common.Na_get' n ->
+                   Eliom_common.naservice_num^"="^n
+               | Eliom_common.Na_get_ n ->
+                   Eliom_common.naservice_name^"="^n
+               | _ -> assert false)
+        in
+        let params =
+          concat_strings params "&" params_string
+        in
+        let beg =
+          match absolute with
+            | Some proto_prefix ->
+                proto_prefix^ get_original_full_path_string sp
+            | None -> 
+                relative_url_path_to_myself (get_original_full_path sp)
+        in
+        add_to_string beg "?" params
+
+
+
+let make_proto_prefix
+    ~sp
+    ?hostname
+    ?port
+    https
+    : string =
+  let ssl = Eliom_sessions.get_ssl ~sp in
+  let host = match hostname with
+    | None -> Eliom_sessions.get_hostname ~sp 
+    | Some h -> h
+  in
+  let port = 
+    match port with
+      | Some p -> p
+      | None ->
+          if https = ssl
+          then Eliom_sessions.get_server_port ~sp 
+          else if https
+          then Eliom_sessions.get_default_sslport ~sp
+          else Eliom_sessions.get_default_port ~sp
+  in
+  Ocsigen_lib.make_absolute_url https host port "/"
+
+let make_full_string_uri
+    ?https
+    ~service
+    ~sp
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    getparams : string =
+  let proto_prefix =
+    make_proto_prefix ~sp
+      ?hostname
+      ?port
+      ((https = Some true) || 
+         (Eliom_services.get_https service) ||
+         (https = None && Eliom_sessions.get_ssl ~sp))
+  in
+  make_string_uri_
+    (Some proto_prefix)
+    ~service
+    ~sp
+    ?keep_nl_params
+    ?nl_params
+    ?fragment
+    getparams
 
 
 module MakeForms = functor
@@ -955,182 +1138,10 @@ module MakeForms = functor
 
 (** Functions to construct web pages: *)
 
-      let make_string_uri_
-          absolute
-          ~service
-          ~sp
-          ?(fragment = "")
-          ?keep_nl_params
-          ?(nl_params = Eliom_parameters.empty_nl_params_set) 
-          getparams : string =
-        let nl_params = Eliom_parameters.table_of_nl_params_set nl_params in
-        let keep_nl_params = match keep_nl_params with
-          | None -> Eliom_services.keep_nl_params service
-          | Some b -> b
-        in
-        let preappnlp, preapp = get_pre_applied_parameters_ service in
-        let nlp =
-          match keep_nl_params with
-            | `All ->
-                (* We replace current nl params by preapplied ones *)
-                Ocsigen_lib.String_Table.fold
-                  (fun key v b -> Ocsigen_lib.String_Table.add key v b)
-                  preappnlp
-                  (Eliom_sessions.get_nl_get_params ~sp)
-            | `Persistent ->
-                (* We replace current nl params by preapplied ones *)
-                Ocsigen_lib.String_Table.fold
-                  (fun key v b -> Ocsigen_lib.String_Table.add key v b)
-                  preappnlp
-                  (Eliom_sessions.get_persistent_nl_get_params ~sp)
-            | `None -> preappnlp
-        in
-        let nlp =
-          (* We replace current nl params by nl_params *)
-          Ocsigen_lib.String_Table.fold
-            (fun key v b -> Ocsigen_lib.String_Table.add key v b)
-            nl_params
-            nlp
-        in
-        (* for preapplied not non localized: *)
-        let preapplied_params = construct_params_string preapp in
-        (* for getparams and non localized params: *)
-        let suff, params_string =
-          construct_params nlp (get_get_params_type_ service) getparams 
-            (* if nl params were already present, they will be replaced
-               by new values *)
-        in
-        let params_string =
-          concat_strings preapplied_params "&" params_string
-        in
-        match get_kind_ service with
-        | `Attached attser ->
-            begin
-              let uri =
-                if (get_att_kind_ attser) = `External
-                then
-                  (get_prefix_ attser)^
-                    "/"^  (* we add the "/" even if there is no prefix,
-                             because we should do absolute links in that case *)
-                    (reconstruct_absolute_url_path
-                       (get_full_path_ attser) suff)
-                else
-                  match absolute with
-                    | Some proto_prefix ->
-                        proto_prefix^
-                          reconstruct_absolute_url_path
-                          (get_full_path_ attser) suff
-                    | None ->
-                        reconstruct_relative_url_path_string
-                          (get_original_full_path sp)
-                          (get_full_path_ attser) suff
-              in
-              match get_get_name_ attser with
-                | Eliom_common.Att_no ->
-                    add_to_string
-                      (add_to_string uri "?" params_string)
-                      "#"
-                      (Netencoding.Url.encode fragment)
-                | Eliom_common.Att_anon s ->
-                    add_to_string
-                      (add_to_string
-                         (uri^"?"^Eliom_common.get_numstate_param_name^"="^s)
-                         "&" params_string)
-                      "#"
-                      (Netencoding.Url.encode fragment)
-                | Eliom_common.Att_named s ->
-                    add_to_string
-                      (add_to_string
-                         (uri^"?"^Eliom_common.get_state_param_name^"="^s)
-                         "&" params_string)
-                      "#"
-                      (Netencoding.Url.encode fragment)
-            end
-        | `Nonattached naser ->
-            let na_name = get_na_name_ naser in
-            let params =
-              let current_get_params_string = 
-                construct_params_string
-                  (if na_name = Eliom_common.Na_void_keep
-                   then (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_nl
-                   else Lazy.force 
-                     (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_nl)
-              in
-              concat_strings
-                current_get_params_string
-                "&"
-                (match na_name with
-                   | Eliom_common.Na_void_keep
-                   | Eliom_common.Na_void_dontkeep -> ""
-                   | Eliom_common.Na_get' n ->
-                       Eliom_common.naservice_num^"="^n
-                   | Eliom_common.Na_get_ n ->
-                       Eliom_common.naservice_name^"="^n
-                   | _ -> assert false)
-            in
-            let params =
-              concat_strings params "&" params_string
-            in
-            let beg =
-              match absolute with
-                | Some proto_prefix ->
-                    proto_prefix^ get_original_full_path_string sp
-                | None -> 
-                    relative_url_path_to_myself (get_original_full_path sp)
-            in
-            add_to_string beg "?" params
 
-      let make_proto_prefix
-          ~sp
-          ?hostname
-          ?port
-          https
-          : string =
-        let ssl = Eliom_sessions.get_ssl ~sp in
-        let host = match hostname with
-          | None -> Eliom_sessions.get_hostname ~sp 
-          | Some h -> h
-        in
-        let port = 
-          match port with
-            | Some p -> p
-            | None ->
-                if https = ssl
-                then Eliom_sessions.get_server_port ~sp 
-                else if https
-                then Eliom_sessions.get_default_sslport ~sp
-                else Eliom_sessions.get_default_port ~sp
-        in
-        Ocsigen_lib.make_absolute_url https host port "/"
+      let make_proto_prefix = make_proto_prefix
 
-      let make_full_string_uri
-          ?https
-          ~service
-          ~sp
-          ?hostname
-          ?port
-          ?fragment
-          ?keep_nl_params
-          ?nl_params
-          getparams : string =
-        let proto_prefix =
-          make_proto_prefix ~sp
-            ?hostname
-            ?port
-            ((https = Some true) || 
-               (Eliom_services.get_https service) ||
-               (https = None && Eliom_sessions.get_ssl ~sp))
-        in
-        make_string_uri_
-          (Some proto_prefix)
-          ~service
-          ~sp
-          ?keep_nl_params
-          ?nl_params
-          ?fragment
-          getparams
-
-
+      let make_full_string_uri = make_full_string_uri
 
       let make_full_uri
           ?https

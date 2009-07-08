@@ -95,11 +95,12 @@ let rec list_is_prefix_skip_end_slash l1 l2 =
 (** various functions for URLs *)
 
 let remove_dotdot =
-  (* removes "../" and "//" *)
+  (* removes "../" *) 
   let rec aux = function
     | [] -> []
     | [""] as l -> l
-    | ""::l -> aux l
+(*    | ""::l -> aux l *) (* we do not remove "//" any more, 
+                             because of optional suffixes in Eliom *)
     | ".."::l -> aux l
     | a::l -> a::(aux l)
   in function

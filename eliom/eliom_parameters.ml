@@ -180,7 +180,7 @@ let radio (t : string ->
   Obj.magic (TOption (t n))
 
 let list (n : string) (t : ('a, [`WithoutSuffix], 'an) params_type)
-    : ('a list,[`WithoutSuffix], 'an listnames) params_type =
+    : ('a list, [`WithoutSuffix], 'an listnames) params_type =
   Obj.magic (TList (n,t))
 
 let set (t : string -> ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type) (n : string)
@@ -286,48 +286,76 @@ type 'a res_reconstr_param =
                   (string * file_info) list)
 
 let reconstruct_params
+    ~sp
     (typ : ('a, [<`WithSuffix|`WithoutSuffix], 'b) params_type)
     params files urlsuffix : 'a =
-  let rec parse_one typ v =
-    match typ with
-    | TString _ -> Obj.magic v
-    | TInt name ->
-        (try Obj.magic (int_of_string v)
-        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | TInt32 name ->
-        (try Obj.magic (Int32.of_string v)
-        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | TInt64 name ->
-        (try Obj.magic (Int64.of_string v)
-        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | TFloat name ->
-        (try Obj.magic (float_of_string v)
-        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | TUserType (name, of_string, string_of) ->
-        (try Obj.magic (of_string v)
-        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | TConst value ->
-        if v = value
-        then Obj.magic ()
-        else raise Eliom_common.Eliom_Wrong_parameter
-    | TNLParams (_, _, _, typ) -> parse_one typ v
-    | _ -> raise Eliom_common.Eliom_Wrong_parameter
-  in
   let rec parse_suffix typ suff =
     match (typ, suff) with
-    | (TESuffix _), l -> Obj.magic l
+    | TAny, l | TESuffix _, l -> Obj.magic l, []
 (*VVV encode=false? *)
-    | (TESuffixs _), l -> Obj.magic (string_of_url_path ~encode:false l)
-    | (TESuffixu (_, of_string, from_string)), l ->
+    | TESuffixs _, l -> Obj.magic (string_of_url_path ~encode:false l), []
+    | TESuffixu (_, of_string, from_string), l ->
         (try
 (*VVV encode=false? *)
-          Obj.magic (of_string (string_of_url_path ~encode:false l))
+          Obj.magic (of_string (string_of_url_path ~encode:false l)), []
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | _, [a] -> parse_one typ a
-    | (TProd (t1, t2)), a::l ->
-        let b = parse_suffix t2 l in (* First we do parse_suffix to detect
-                                        wrong number of parameters *)
-        Obj.magic ((parse_one t1 a), b)
+    | TOption t, ""::l -> Obj.magic None, l
+    | TOption t, l -> 
+        let r, ll = parse_suffix t l in
+        Obj.magic (Some r), ll
+    | TList _, [] | TSet _, [] -> Obj.magic [], []
+    | TList (_, t), l | TSet t, l ->
+        let b, l = Obj.magic (parse_suffix t l) in
+        let c, l = Obj.magic (parse_suffix typ l) in
+        Obj.magic (b::c), l
+    | TProd (t1, t2), l ->
+        (match parse_suffix t1 l with
+           | _, [] -> raise (Ocsigen_Is_a_directory sp.Eliom_common.sp_request)
+           | r, l -> let rr, ll = parse_suffix t2 l in Obj.magic (r, rr), ll)
+    | TString _, v::l -> Obj.magic v, l
+    | TInt name, v::l ->
+        (try Obj.magic (int_of_string v), l
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TInt32 name, v::l ->
+        (try Obj.magic (Int32.of_string v), l
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TInt64 name, v::l ->
+        (try Obj.magic (Int64.of_string v), l
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TFloat name, v::l ->
+        (try Obj.magic (float_of_string v), l
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TUnit, v::l ->
+        (if v="" then Obj.magic (), l
+         else raise (Eliom_common.Eliom_Wrong_parameter))
+    | TBool name, v::l ->
+        (try Obj.magic (bool_of_string v), l
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TUserType (name, of_string, string_of), v::l ->
+        (try Obj.magic (of_string v), l
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TConst value, v::l ->
+        if v = value
+        then Obj.magic (), l
+        else raise Eliom_common.Eliom_Wrong_parameter
+    | TSum (t1, t2), l ->
+        (try parse_suffix t1 l
+         with Eliom_common.Eliom_Wrong_parameter -> parse_suffix t2 l)
+    | TCoord _, l ->
+        (match Obj.magic (parse_suffix (TInt "") l) with
+           | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
+           | r, l -> 
+               let rr, ll = Obj.magic (parse_suffix (TInt "") l) in 
+               Obj.magic {abscissa = r; ordinate=rr}, ll)
+    | TCoordv (t, _), l ->
+        let a, l = parse_suffix t l in
+        (match Obj.magic (parse_suffix (TInt "") l) with
+           | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
+           | r, l -> 
+               let rr, ll = Obj.magic (parse_suffix (TInt "") l) in 
+               Obj.magic (a, {abscissa = r; ordinate=rr}), ll)
+    | TNLParams _, _ -> 
+        failwith "It is not possible to have non localized parameters in suffix"
     | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   let aux2 typ params =
@@ -356,7 +384,7 @@ let reconstruct_params
           with Not_found -> Res_ ((Obj.magic []), lp, files)
       in
       aa 0 params files (pref^name^".") suff
-    and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)
+    and aux (typ : ('a, [<`WithSuffix|`WithoutSuffix|`Endsuffix], 'b) params_type)
         params files pref suff : 'a res_reconstr_param =
       match typ with
         | TNLParams (_, _, _, t) -> aux t params files pref suff
@@ -471,15 +499,13 @@ let reconstruct_params
             (* cannot have prefix or suffix *)
             Res_ ((Obj.magic (of_string v)), l, files)
         | TSuffix s -> 
-            if urlsuffix = [""]
-            then
-              (* No suffix: switching to version with parameters *)
-              try
-                match aux s params files pref suff with
-                  | Errors_ _ -> raise Not_found
-                  | a -> a
-              with Not_found -> Res_ (parse_suffix s urlsuffix, params, files)
-            else Res_ (parse_suffix s urlsuffix, params, files)
+            (match urlsuffix with
+               | None -> (* No suffix: switching to version with parameters *)
+                   aux s params files pref suff
+               | Some urlsuffix ->
+                   match parse_suffix s urlsuffix with
+                     | p, [] -> Res_ (p, params, files)
+                     | _ -> raise Eliom_common.Eliom_Wrong_parameter)
     in
     match Obj.magic (aux typ params files "" "") with
       | Res_ (v, l, files) ->
@@ -512,12 +538,31 @@ let construct_params_list
     | TInt32 _ -> [Int32.to_string (Obj.magic params)]
     | TInt64 _ -> [Int64.to_string (Obj.magic params)]
     | TFloat _ -> [string_of_float (Obj.magic params)]
+    | TBool _ -> [string_of_bool (Obj.magic params)]
+    | TUnit -> [""]
     | TConst v -> [Obj.magic v]
+    | TOption t -> (match Obj.magic params with
+                      | None -> [""] | Some v -> make_suffix t v)
+    | TList (_, t) | TSet t -> 
+        (match params with
+          | [] -> []
+          | a::l -> (make_suffix t (Obj.magic a))@(make_suffix typ (Obj.magic l)))
     | TUserType (_, of_string, string_of) ->[string_of (Obj.magic params)]
+    | TSum (t1, t2) ->
+        (match Obj.magic params with
+           | Inj1 p -> make_suffix t1 p
+           | Inj2 p -> make_suffix t2 p)
+    | TCoord _ ->
+        (make_suffix (TInt "") (Obj.magic (Obj.magic params).abscissa))@
+        (make_suffix (TInt "") (Obj.magic (Obj.magic params).ordinate))       
+    | TCoordv (t, _) ->
+        (make_suffix t (fst (Obj.magic params)))@
+        ((make_suffix (TInt "") (Obj.magic (snd (Obj.magic params)).abscissa))@
+           (make_suffix (TInt "") (Obj.magic (snd (Obj.magic params)).ordinate)))
     | TESuffixs _ -> [Obj.magic params]
-    | TESuffix _ -> Obj.magic params
+    | TAny | TESuffix _ -> Obj.magic params
     | TESuffixu (_, of_string, string_of) -> [string_of (Obj.magic params)]
-    | _ -> raise (Ocsigen_Internal_Error "Bad parameters")
+    | _ -> raise (Ocsigen_Internal_Error "Bad parameter type in suffix")
   in
   let rec aux typ psuff nlp params pref suff l =
     match typ with
@@ -713,7 +758,7 @@ let get_non_localized_parameters params getorpost ~sp
        try
          Some 
            (let params = Ocsigen_lib.String_Table.find name params in
-            reconstruct_params paramtype params [] [])
+            reconstruct_params ~sp paramtype params [] None)
        with Eliom_common.Eliom_Wrong_parameter | Not_found -> None
      in
      (* add in cache: *)

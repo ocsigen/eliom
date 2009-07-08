@@ -30,7 +30,7 @@ let def_handler sp e = fail e
 
 let handle_site_exn exn (ri, si, aci) sitedata =
   sitedata.Eliom_common.exn_handler
-    (Eliom_common.make_server_params sitedata aci ri [] si None) exn 
+    (Eliom_common.make_server_params sitedata aci ri None si None) exn 
   >>= fun r -> 
   return r
 
@@ -290,6 +290,15 @@ let gen is_eliom_extension sitedata = function
                    Lwt.return
                      (Ocsigen_extensions.Ext_next previous_extension_err)
                | Eliom_common.Eliom_retry_with a -> gen_aux a
+               | Eliom_common.Eliom_Suffix_redirection uri ->
+                   let e = Ocsigen_http_frame.empty_result () in
+                   Lwt.return 
+                       (Ocsigen_extensions.Ext_found
+                          (fun () ->
+                             Lwt.return
+                               {e with
+                                  Ocsigen_http_frame.res_code= 307;
+                                  Ocsigen_http_frame.res_location = Some uri}))
                | e -> fail e)
   in
   gen_aux (ri, si, all_cookie_info)

@@ -1,11 +1,12 @@
 val find_page_table :
+  ?redirectifsuffix:bool ->
   float ->
   Eliom_common.page_table ref ->
   string option ->
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_extensions.request ->
-  Ocsigen_extensions.url_path ->
+  Ocsigen_extensions.url_path option ->
   Eliom_common.page_table_key ->
   Eliom_common.sess_info -> Ocsigen_http_frame.result Lwt.t
 val insert_as_last_of_generation :
@@ -30,7 +31,7 @@ val add_service :
   Eliom_common.page_table_key *
   ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
    int ref option * (float * float ref) option *
-   (Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t)) ->
+   (bool -> Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t)) ->
   unit
 exception Exn1
 val find_service :

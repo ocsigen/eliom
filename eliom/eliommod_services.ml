@@ -33,6 +33,7 @@ open Ocsigen_extensions
 (*****************************************************************************)
 
 let find_page_table
+    ?(redirectifsuffix=false)
     now
     (pagetableref : Eliom_common.page_table ref)
     fullsessname
@@ -61,28 +62,26 @@ let find_page_table
             catch
               (fun () ->
                 Ocsigen_messages.debug2 "--Eliom: I'm trying a service";
-                funct sp
-                  >>=
+                funct redirectifsuffix sp >>= fun p ->
                 (* warning: the list ll may change during funct
                    if funct register something on the same URL!! *)
-                (fun p ->
-                  Ocsigen_messages.debug2
-                    "--Eliom: Page found and generated successfully";
+                Ocsigen_messages.debug2
+                  "--Eliom: Page found and generated successfully";
 
-                  (* We update the expiration date *)
-                  (match expdate with
-                  | Some (timeout, e) -> e := timeout +. now
-                  | None -> ());
-                  let newtoremove =
-                    (match max_use with
-                    | Some r ->
-                        if !r = 1
-                        then a::toremove
-                        else (r := !r - 1; toremove)
-                    | _ -> toremove)
-                  in
-                  Lwt.return (Eliom_common.Found p,
-                               newtoremove)))
+                (* We update the expiration date *)
+                (match expdate with
+                   | Some (timeout, e) -> e := timeout +. now
+                   | None -> ());
+                let newtoremove =
+                  (match max_use with
+                     | Some r ->
+                         if !r = 1
+                         then a::toremove
+                         else (r := !r - 1; toremove)
+                     | _ -> toremove)
+                in
+                Lwt.return (Eliom_common.Found p,
+                            newtoremove))
               (function
                 | Eliom_common.Eliom_Wrong_parameter ->
                     aux toremove l >>=
@@ -237,8 +236,9 @@ let find_service
      si) =
 
   let rec search_page_table dircontent =
-    let find page_table_ref suffix =
+    let find ?redirectifsuffix page_table_ref suffix =
       find_page_table
+        ?redirectifsuffix
         now
         page_table_ref
         fullsessname
@@ -264,7 +264,11 @@ let find_service
            (match dc with
               | Eliom_common.Dir dircontentref2 ->
                   search_page_table !dircontentref2 l
-              | Eliom_common.File page_table_ref -> find page_table_ref l))
+              | Eliom_common.File page_table_ref -> 
+                  (match l with
+                     | [] -> find page_table_ref None
+                     | l -> (* We have a file with suffix *)
+                         raise Eliom_common.Eliom_Wrong_parameter)))
         (function
            | Exn1 | Eliom_common.Eliom_Wrong_parameter as e ->
                (* If no service matches, we try a suffix service *)
@@ -276,13 +280,30 @@ let find_service
                   with
                     | Eliom_common.Dir _ -> Lwt.fail Exn1
                     | Eliom_common.File page_table_ref ->
-                        find page_table_ref (if a = None then [""] else aa::l)
+                        find page_table_ref 
+                          (if a = None then Some [] else Some (aa::l))
                 with e -> Lwt.fail e)
            | e -> Lwt.fail e)
     in function
-      | [] -> raise (Ocsigen_extensions.Ocsigen_Is_a_directory ri)
+      | [] -> 
+          (* First we test if it is the version without suffix of a
+          suffix service (will be redirected) *)
+          (try
+             match !(try
+                       find_dircontent dircontent
+                         Eliom_common.eliom_suffix_internal_name
+                     with Not_found -> raise Exn1)
+             with
+               | Eliom_common.Dir _ -> raise Exn1
+               | Eliom_common.File page_table_ref -> 
+                   find ~redirectifsuffix:true page_table_ref None
+           with Exn1 ->
+             (* otherwise, it is a directory, we redirect *)
+             raise (Ocsigen_extensions.Ocsigen_Is_a_directory ri))
       | [""] -> aux None []
-      | ""::l -> search_page_table dircontent l
+(*      | ""::l -> search_page_table dircontent l *)
+          (* We do not remove "//" any more 
+             because of optional suffixes *)
       | a::l -> aux (Some a) l
   in
   Lwt.catch

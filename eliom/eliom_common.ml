@@ -50,6 +50,7 @@ exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
 
 exception Eliom_404
+exception Eliom_Suffix_redirection of string
 
 let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
 (** The coservice does not exist any more *)
@@ -333,7 +334,7 @@ type server_params =
      sp_si: sess_info;
      sp_sitedata: sitedata (* data for the whole site *);
      sp_cookie_info: tables cookie_info;
-     sp_suffix: Ocsigen_extensions.url_path (* suffix *);
+     sp_suffix: Ocsigen_extensions.url_path option (* suffix *);
      sp_fullsessname: string option (* the name of the session
                                        to which belong the service
                                        that answered
@@ -347,7 +348,7 @@ and page_table =
               (int ref option (* max_use *) *
                  (float * float ref) option
                  (* timeout and expiration date for the service *) *
-                 (server_params -> Ocsigen_http_frame.result Lwt.t)
+                 (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
               ))) list)) list
        (* Here, the url_path is the site directory.
           That is, the directory in which we are when we register

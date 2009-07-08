@@ -413,9 +413,10 @@ val construct_params_list :
      (string * string) list
 
 val reconstruct_params :
-    ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-      (string * string) list ->
-        (string * Ocsigen_extensions.file_info) list -> string list -> 'a
+  sp:Eliom_common.server_params ->
+  ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+  (string * string) list ->
+  (string * Ocsigen_extensions.file_info) list -> url_path option -> 'a
 
 type anon_params_type = int
 

@@ -48,6 +48,8 @@ val eliom_service_session_expired : (string list) Polytables.key
 
 (**/**)
 
+exception Eliom_Suffix_redirection of string 
+  (* We redirect to the suffix version of the service *)
 
 
 
@@ -185,7 +187,7 @@ type server_params = {
   sp_si : sess_info;
   sp_sitedata : sitedata;
   sp_cookie_info : tables cookie_info;
-  sp_suffix : Ocsigen_extensions.url_path;
+  sp_suffix : Ocsigen_extensions.url_path option;
   sp_fullsessname : string option;
 }
 and page_table =
@@ -193,7 +195,7 @@ and page_table =
      ((anon_params_type * anon_params_type) *
       (int *
        (int ref option * (float * float ref) option *
-        (server_params -> Ocsigen_http_frame.result Lwt.t))))
+        (bool -> server_params -> Ocsigen_http_frame.result Lwt.t))))
      list)
     list
 and naservice_table =
@@ -227,7 +229,8 @@ val make_server_params :
   sitedata ->
   tables cookie_info ->
   Ocsigen_extensions.request ->
-  Ocsigen_extensions.url_path -> sess_info -> string option -> server_params
+  Ocsigen_extensions.url_path option -> 
+  sess_info -> string option -> server_params
 val empty_page_table : unit -> 'a list
 val empty_dircontent : unit -> dircontent
 val empty_naservice_table : unit -> naservice_table

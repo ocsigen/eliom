@@ -890,3 +890,16 @@ and type button_type_t = Pages.button_type_t
 val reconstruct_relative_url_path : 
   string list -> string list -> string list
 
+ 
+(**/**)
+val make_full_string_uri :
+  ?https:bool ->
+  service:('a, 'b, [< Eliom_services.service_kind ],
+           [< Eliom_services.suff ], 'c, 'd, [< Eliom_services.registrable ])
+    Eliom_services.service ->
+  sp:Eliom_sessions.server_params ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Eliom_parameters.nl_params_set -> 'a -> string

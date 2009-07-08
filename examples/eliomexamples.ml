@@ -30,6 +30,42 @@ open Eliom_parameters
 open Eliom_sessions
 open Lwt
 
+
+(******)
+(* optional suffix parameters *)
+
+let optsuf =
+  register_new_service
+    ~path:["optsuf"]
+    ~get_params:(suffix(opt(string "q" ** (opt (int "i")))))
+    (fun sp o () -> 
+       Lwt.return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata (match o with 
+                                 | None -> "<none>"
+                                 | Some (s, o) -> 
+                                     s^(match o with 
+                                          | None -> "<none>"
+                                          | Some i -> string_of_int i));
+                     ]])))
+
+let optsuf2 =
+  register_new_service
+    ~path:["optsuf2"]
+    ~get_params:(suffix(opt(string "q") ** (opt (int "i"))))
+    (fun sp (s, i) () -> 
+       Lwt.return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata (match s with 
+                                 | None -> "<none>"
+                                 | Some s -> s);
+                      pcdata (match i with 
+                                | None -> "<none>"
+                                | Some i -> string_of_int i)];
+                     ])))
+
 (*******)
 let my_nl_params = 
   Eliom_parameters.make_non_localized_parameters
@@ -854,10 +890,53 @@ let any5 = register_new_service
        </body>
      </html> >>)
 
-(* list cannot be in suffix: (not checked) *)
+(* list in suffix *)
 let sufli = register_new_service
     ~path:["sufli"]
-    ~get_params:(suffix (list "l" (string "s")))
+    ~get_params:(suffix (list "l" (string "s" ** int "i")))
+  (fun _ l () ->
+    let ll =
+      List.map
+        (fun (s, i) -> << <strong> $str:(s^string_of_int i)$ </strong> >>) l
+    in
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent:
+         <span>$list:ll$</span>
+       </p>
+       </body>
+     </html> >>)
+
+let create_sufliform f =
+  let l =
+    f.it (fun (sn, iname) v init ->
+            (tr (td [pcdata ("Write a string: ")])
+               [td [string_input ~input_type:`Text ~name:sn ()];
+                td [pcdata ("Write an integer: ")];
+                td [int_input ~input_type:`Text ~name:iname ()];
+               ])::init)
+      ["one";"two";"three"]
+      []
+  in
+  [table (List.hd l) (List.tl l);
+   p [string_input ~input_type:`Submit ~value:"Click" ()]]
+
+let sufliform = register_new_service ["sufliform"] unit
+  (fun sp () () ->
+     let f = get_form sufli sp create_sufliform in
+     return
+       (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Hallo"];
+                 f ])))
+
+(* set in suffix *)
+let sufset = register_new_service
+    ~path:["sufset"]
+    ~get_params:(suffix (set string "s"))
   (fun _ l () ->
     let ll =
       List.map
@@ -1153,7 +1232,9 @@ let mainpage = register_new_service ["tests"] unit
          a any5 sp [pcdata "Suffix + any parameters"]
            ("ee", [("bo","ba");("bi","bu")]); br ();
          a uploadgetform sp [pcdata "Upload with GET"] (); br ();
-(* broken        a sufli sp [pcdata "List in suffix"] ["bo";"ba";"bi";"bu"]; br ();*)
+         a sufli sp [pcdata "List in suffix"] [("bo", 4);("ba", 3);("bi", 2);("bu", 1)]; br ();
+         a sufliform sp [pcdata "Form to list in suffix"] (); br ();
+         a sufset sp [pcdata "Set in suffix"] ["bo";"ba";"bi";"bu"]; br ();
          a boollistform sp [pcdata "Bool list"] (); br ();
          a preappmenu sp [pcdata "Menu with pre-applied services"] (); br ();
          a exn_act_main sp [pcdata "Actions that raises an exception"] (); br ();
@@ -1176,6 +1257,8 @@ let mainpage = register_new_service ["tests"] unit
          a servreqloop sp [pcdata "Looping server request"] (); br ();
 
          a nlparams sp [pcdata "nl params and suffix, on void coservice"] ((3, 5), 222); br ();
+         a optsuf sp [pcdata "optional suffix"] (Some ("toto", Some 2)); br ();
+         a optsuf2 sp [pcdata "optional suffix 2"] (None, Some 2); br ();
 
 
 

@@ -136,7 +136,7 @@ val get_server_port : sp:server_params -> int
 val get_ssl : sp:server_params -> bool
 
 (** returns the suffix of the current URL *)
-val get_suffix : sp:server_params -> url_path
+val get_suffix : sp:server_params -> url_path option
 
 (** returns the cookies sent by the browser *)
 val get_cookies : sp:server_params -> string Ocsigen_http_frame.Cookievalues.t

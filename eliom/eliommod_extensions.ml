@@ -40,6 +40,6 @@ let run_eliom_extension (fext : eliom_extension_sig) now
     (ri, si, all_cookie_info) sitedata  =
 
   let sp =
-    Eliom_common.make_server_params sitedata all_cookie_info ri [] si None
+    Eliom_common.make_server_params sitedata all_cookie_info ri None si None
   in
   fext sp
