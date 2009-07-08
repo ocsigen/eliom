@@ -143,9 +143,10 @@ val unit : (unit, [ `WithoutSuffix ], unit) params_type
 (** used for services that don't have any parameters *)
 
 val user_type :
-    (string -> 'a) ->
-      ('a -> string) -> string ->
-        ('a, [ `WithoutSuffix ], [ `One of 'a ] param_name) params_type
+  of_string:(string -> 'a) ->
+  to_string:('a -> string) ->
+  string ->
+  ('a, [ `WithoutSuffix ], [ `One of 'a ] param_name) params_type
 (** Allows to use whatever type you want for a parameter of the service.
    [user_type t_of_string string_of_t s] tells that the service take a parameter, labeled [s], and that the server will have to use [t_of_string] and [string_of_t] to make the conversion from and to string.
  *)
@@ -194,7 +195,7 @@ val float_coordinates :
 (** Same for a float value *)
 
 val user_type_coordinates :
-    (string -> 'a) -> ('a -> string) -> string ->
+    of_string:(string -> 'a) -> to_string:('a -> string) -> string ->
       ('a * coordinates, [`WithoutSuffix],
        [ `One of ('a * coordinates) ] param_name) params_type
 (** Same for a value of your own type *)
@@ -272,7 +273,7 @@ val list :
  *)
 
 val regexp :
-    Netstring_pcre.regexp -> string -> string ->
+    Netstring_pcre.regexp -> string -> to_string:(string -> string) -> string ->
       (string, [ `WithoutSuffix ],
        [` One of string ] param_name) params_type
 (** [regexp r d s] tells that the service takes a string
@@ -304,14 +305,14 @@ val all_suffix_string :
 (** Takes all the suffix, as long as possible, as a string *)
 
 val all_suffix_user :
-    (string -> 'a) ->
-      ('a -> string) -> string ->
+    of_string:(string -> 'a) ->
+      to_string:('a -> string) -> string ->
         ('a, [ `Endsuffix ], [` One of 'a ] param_name) params_type
 (** Takes all the suffix, as long as possible,
    with a type specified by the user. *)
 
 val all_suffix_regexp :
-    Netstring_pcre.regexp -> string -> string ->
+    Netstring_pcre.regexp -> string -> to_string:(string -> string) -> string ->
       (string, [ `Endsuffix ], [` One of string ] param_name) params_type
 (** [all_suffix_regexp r d s] takes all the suffix, as long as possible,
    matching the regular expression [r], name [s], and rewrite it in [d].

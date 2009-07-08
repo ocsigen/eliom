@@ -112,7 +112,7 @@ let file (n : string)
 let unit : (unit, [`WithoutSuffix], unit) params_type = TUnit
 
 let user_type
-    (of_string : string -> 'a) (to_string : 'a -> string) (n : string)
+    ~(of_string : string -> 'a) ~(to_string : 'a -> string) (n : string)
     : ('a,[`WithoutSuffix], [ `One of 'a ] param_name) params_type =
   Obj.magic (TUserType (n, of_string, to_string))
 
@@ -163,7 +163,7 @@ let float_coordinates (n : string)
   Obj.magic (TCoordv (float n, n))
 
 let user_type_coordinates
-    (of_string : string -> 'a) (to_string : 'a -> string) (n : string)
+    ~(of_string : string -> 'a) ~(to_string : 'a -> string) (n : string)
     : ('a * coordinates,
        [`WithoutSuffix],
        [ `One of ('a * coordinates) ] param_name) params_type =
@@ -197,7 +197,7 @@ let suffix_const (v : string)
 
 
 
-let regexp reg dest n =
+let regexp reg dest ~to_string n =
   user_type
     (fun s ->
       match Netstring_pcre.string_match reg s 0 with
@@ -210,7 +210,7 @@ let regexp reg dest n =
               raise (Failure "User does not exist")
           end
       | _ -> raise (Failure "Regexp not matching"))
-    (fun s -> s)
+    to_string
     n
 
 let all_suffix (n : string) :
@@ -223,11 +223,11 @@ let all_suffix_string (n : string) :
   (Obj.magic (TESuffixs n))
 
 let all_suffix_user
-    (of_string : string -> 'a) (from_string : 'a -> string) (n : string) :
+    ~(of_string : string -> 'a) ~(to_string : 'a -> string) (n : string) :
     ('a, [`Endsuffix], [ `One of 'a ] param_name) params_type =
-  (Obj.magic (TESuffixu (n, of_string, from_string)))
+  (Obj.magic (TESuffixu (n, of_string, to_string)))
 
-let all_suffix_regexp reg dest (n : string) :
+let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
     (string, [`Endsuffix], [ `One of string ] param_name) params_type =
   all_suffix_user
     (fun s ->
@@ -241,7 +241,7 @@ let all_suffix_regexp reg dest (n : string) :
               raise (Failure "User does not exist")
           end
       | _ -> raise (Failure "Regexp not matching"))
-    (fun s -> s)
+    to_string
     n
 
 let suffix (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type) :
@@ -294,7 +294,7 @@ let reconstruct_params
     | TAny, l | TESuffix _, l -> Obj.magic l, []
 (*VVV encode=false? *)
     | TESuffixs _, l -> Obj.magic (string_of_url_path ~encode:false l), []
-    | TESuffixu (_, of_string, from_string), l ->
+    | TESuffixu (_, of_string, to_string), l ->
         (try
 (*VVV encode=false? *)
           Obj.magic (of_string (string_of_url_path ~encode:false l)), []
@@ -303,7 +303,8 @@ let reconstruct_params
     | TOption t, l -> 
         let r, ll = parse_suffix t l in
         Obj.magic (Some r), ll
-    | TList _, [] | TSet _, [] -> Obj.magic [], []
+    | TList _, [] | TSet _, []
+    | TList _, [""] | TSet _, [""] -> Obj.magic [], []
     | TList (_, t), l | TSet t, l ->
         let b, l = Obj.magic (parse_suffix t l) in
         let c, l = Obj.magic (parse_suffix typ l) in
@@ -494,10 +495,11 @@ let reconstruct_params
             let v,l = list_assoc_remove n params in
             (* cannot have prefix or suffix *)
             Res_ ((Obj.magic v), l, files)
-        | TESuffixu (n, of_string, from_string) ->
+        | TESuffixu (n, of_string, to_string) ->
             let v,l = list_assoc_remove n params in
             (* cannot have prefix or suffix *)
-            Res_ ((Obj.magic (of_string v)), l, files)
+            (try Res_ ((Obj.magic (of_string v)), l, files)
+             with e -> Errors_ ([(pref^n^suff), e], l, files))
         | TSuffix s -> 
             (match urlsuffix with
                | None -> (* No suffix: switching to version with parameters *)
@@ -545,7 +547,7 @@ let construct_params_list
                       | None -> [""] | Some v -> make_suffix t v)
     | TList (_, t) | TSet t -> 
         (match params with
-          | [] -> []
+          | [] -> [""]
           | a::l -> (make_suffix t (Obj.magic a))@(make_suffix typ (Obj.magic l)))
     | TUserType (_, of_string, string_of) ->[string_of (Obj.magic params)]
     | TSum (t1, t2) ->
@@ -560,7 +562,7 @@ let construct_params_list
         ((make_suffix (TInt "") (Obj.magic (snd (Obj.magic params)).abscissa))@
            (make_suffix (TInt "") (Obj.magic (snd (Obj.magic params)).ordinate)))
     | TESuffixs _ -> [Obj.magic params]
-    | TAny | TESuffix _ -> Obj.magic params
+    | TAny | TESuffix _ -> (match Obj.magic params with [] -> [""] | p -> p)
     | TESuffixu (_, of_string, string_of) -> [string_of (Obj.magic params)]
     | _ -> raise (Ocsigen_Internal_Error "Bad parameter type in suffix")
   in

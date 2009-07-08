@@ -972,8 +972,7 @@ let make_string_uri_
               (get_prefix_ attser)^
                 "/"^  (* we add the "/" even if there is no prefix,
                          because we should do absolute links in that case *)
-                (reconstruct_absolute_url_path
-                   (get_full_path_ attser) suff)
+                (reconstruct_absolute_url_path (get_full_path_ attser) suff)
             else
               match absolute with
                 | Some proto_prefix ->

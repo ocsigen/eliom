@@ -3601,7 +3601,7 @@ let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 let regexpserv =
   Eliom_predefmod.Xhtml.register_new_service
     ~path:["regexp"]
-    ~get_params:(regexp myregexp "$1" "myparam")
+    ~get_params:(regexp myregexp "$1" (fun s -> s) "myparam")
     (fun _ g () ->
       return
         (html

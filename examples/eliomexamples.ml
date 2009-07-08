@@ -668,17 +668,22 @@ let sendfileexception =
 
 (* Complex suffixes *)
 let suffix2 =
-  register_new_service
+  new_service
     ~path:["suffix2";""]
     ~get_params:(suffix (string "suff1" ** int "ii" ** all_suffix "ee"))
-    (fun sp (suf1,(ii,ee)) () ->
+    ()
+
+let _ =
+  register suffix2
+    (fun sp (suf1, (ii, ee)) () ->
       return
         (html
            (head (title (pcdata "")) [])
            (body
               [p [pcdata "The suffix of the url is ";
                   strong [pcdata (suf1^", "^(string_of_int ii)^", "^
-                                  (Ocsigen_extensions.string_of_url_path ~encode:false ee))]]])))
+                                  (Ocsigen_extensions.string_of_url_path ~encode:false ee))]];
+              p [a suffix2 sp [pcdata "link to myself"] ("a", (2, []))]])))
 
 let suffix3 =
   register_new_service
@@ -694,7 +699,7 @@ let suffix3 =
                                   (string_of_int ee)^", "^
                                   a^", "^(string_of_int b))]]])))
 
-let create_suffixform2 (suf1,(ii,ee)) =
+let create_suffixform2 (suf1, (ii, ee)) =
     <:xmllist< <p>Write a string:
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
@@ -732,7 +737,7 @@ let suffixform3 = register_new_service ["suffixform3"] unit
 
 let suffix5 =
   register_new_service
-    ~path:["suffix5";""]
+    ~path:["suffix5"]
     ~get_params:(suffix (all_suffix "s"))
     (fun sp s () ->
       return
@@ -740,7 +745,8 @@ let suffix5 =
            (head (title (pcdata "")) [])
            (body
               [p [pcdata "This is a page with suffix ";
-                  strong [pcdata (Ocsigen_lib.string_of_url_path ~encode:false s)]]])))
+                  strong [pcdata (Ocsigen_lib.string_of_url_path
+                                    ~encode:false s)]]])))
 
 let nosuffix =
   register_new_service
@@ -775,7 +781,8 @@ let sendfile2 =
   Files.register_new_service
     ~path:["files2";""]
 (*    ~get_params:(regexp r "/home/$1/public_html$2" "filename") *)
-    ~get_params:(suffix (all_suffix_regexp r "$u($1)/public_html$2" "filename"))
+    ~get_params:(suffix (all_suffix_regexp r "$u($1)/public_html$2" 
+                           (fun s -> s) "filename"))
     (fun _ s () -> return s)
 
 (*
@@ -891,10 +898,13 @@ let any5 = register_new_service
      </html> >>)
 
 (* list in suffix *)
-let sufli = register_new_service
+let sufli = new_service
     ~path:["sufli"]
     ~get_params:(suffix (list "l" (string "s" ** int "i")))
-  (fun _ l () ->
+    ()
+
+let _ = register sufli
+  (fun sp l () ->
     let ll =
       List.map
         (fun (s, i) -> << <strong> $str:(s^string_of_int i)$ </strong> >>) l
@@ -906,6 +916,10 @@ let sufli = register_new_service
        <p>
          You sent:
          <span>$list:ll$</span>
+       </p>
+       <p>
+         $a sufli sp [pcdata "myself"] [("a", 2)]$, 
+         $a sufli sp [pcdata "myself (empty list)"] []$
        </p>
        </body>
      </html> >>)

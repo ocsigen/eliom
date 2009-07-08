@@ -295,11 +295,19 @@ let find_service
                      with Not_found -> raise Exn1)
              with
                | Eliom_common.Dir _ -> raise Exn1
-               | Eliom_common.File page_table_ref -> 
-                   find ~redirectifsuffix:true page_table_ref None
-           with Exn1 ->
+               | Eliom_common.File page_table_ref ->
+                   Lwt.catch
+                     (fun () -> find ~redirectifsuffix:true page_table_ref None)
+                     (function
+                        | Eliom_common.Eliom_Typing_Error _
+                        | Eliom_common.Eliom_Wrong_parameter ->
+                            Lwt.fail
+                              (Ocsigen_extensions.Ocsigen_Is_a_directory ri)
+                        | e -> Lwt.fail e
+                     )
+           with Eliom_common.Eliom_Wrong_parameter | Exn1 ->
              (* otherwise, it is a directory, we redirect *)
-             raise (Ocsigen_extensions.Ocsigen_Is_a_directory ri))
+             Lwt.fail (Ocsigen_extensions.Ocsigen_Is_a_directory ri))
       | [""] -> aux None []
 (*      | ""::l -> search_page_table dircontent l *)
           (* We do not remove "//" any more 
