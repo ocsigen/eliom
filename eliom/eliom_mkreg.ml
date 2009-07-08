@@ -531,6 +531,7 @@ module MakeRegister = functor
               let key_kind = get_or_post (get_att_kind_ attser) in
               let attserget = get_get_name_ attser in
               let attserpost = get_post_name_ attser in
+              let suffix_with_redirect = get_redirect_suffix_ attser in
               let sgpt = get_get_params_type_ service in
               let sppt = get_post_params_type_ service in
               Eliommod_services.add_service
@@ -573,7 +574,8 @@ module MakeRegister = functor
                                       files
                                       None)
                            in
-                           if redirectifsuffix && files=[] && post_params = []
+                           if suffix_with_redirect &&
+                             redirectifsuffix && files=[] && post_params = []
                            then (* it is a suffix service in version 
                                    without suffix. We redirect. *)
                              Lwt.fail

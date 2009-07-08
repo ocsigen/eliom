@@ -299,7 +299,6 @@ let find_service
                    Lwt.catch
                      (fun () -> find ~redirectifsuffix:true page_table_ref None)
                      (function
-                        | Eliom_common.Eliom_Typing_Error _
                         | Eliom_common.Eliom_Wrong_parameter ->
                             Lwt.fail
                               (Ocsigen_extensions.Ocsigen_Is_a_directory ri)

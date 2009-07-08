@@ -62,7 +62,8 @@ type ('a, +'tipo, +'names) params_type =
   | TESuffix of string (* 'a = string list *)
   | TESuffixs of string (* 'a = string *)
   | TESuffixu of (string * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
-  | TSuffix of ('a,'tipo, 'names) params_type (* 'a = 'a1 *)
+  | TSuffix of (bool * ('a,'tipo, 'names) params_type) (* 'a = 'a1 *)
+      (* bool = redirect the version without suffix to the suffix version *)
   | TUnit (* 'a = unit *) 
   | TAny (* 'a = (string * string) list *)
   | TConst of string (* 'a = unit; 'names = unit *)
@@ -244,28 +245,25 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
     to_string
     n
 
-let suffix (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type) :
+let suffix ?(redirect_if_not_suffix = true)
+    (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type) :
     ('s , [`WithSuffix], 'sn) params_type =
-  (Obj.magic (TSuffix s))
+  (Obj.magic (TSuffix (redirect_if_not_suffix, s)))
 
-let suffix_prod (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type)
+let suffix_prod ?(redirect_if_not_suffix = true)
+    (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type)
     (t : ('a, [`WithoutSuffix], 'an) params_type) :
     (('s * 'a), [`WithSuffix], 'sn * 'an) params_type =
-  (Obj.magic (TProd (Obj.magic (TSuffix s), Obj.magic t)))
+  (Obj.magic (TProd (Obj.magic (TSuffix (redirect_if_not_suffix, s)), 
+                                Obj.magic t)))
 
 let rec contains_suffix = function
-  | TProd (a, b) -> contains_suffix a || contains_suffix b
-  | TESuffix _
-  | TESuffixs _
-  | TESuffixu _
-  | TSuffix _ -> true
-  | _ -> false
-
-
-
-
-
-
+  | TProd (a, b) -> 
+      (match contains_suffix a with
+         | None -> contains_suffix b
+         | c -> c)
+  | TSuffix (b, _) -> Some b
+  | _ -> None
 
 
 
@@ -299,6 +297,7 @@ let reconstruct_params
 (*VVV encode=false? *)
           Obj.magic (of_string (string_of_url_path ~encode:false l)), []
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TOption t, [] -> Obj.magic None, []
     | TOption t, ""::l -> Obj.magic None, l
     | TOption t, l -> 
         let r, ll = parse_suffix t l in
@@ -500,7 +499,7 @@ let reconstruct_params
             (* cannot have prefix or suffix *)
             (try Res_ ((Obj.magic (of_string v)), l, files)
              with e -> Errors_ ([(pref^n^suff), e], l, files))
-        | TSuffix s -> 
+        | TSuffix (_, s) -> 
             (match urlsuffix with
                | None -> (* No suffix: switching to version with parameters *)
                    aux s params files pref suff
@@ -631,7 +630,7 @@ let construct_params_list
     | TESuffix _
     | TESuffixs _
     | TESuffixu _ -> raise (Ocsigen_Internal_Error "Bad use of suffix")
-    | TSuffix s -> Some (make_suffix s (Obj.magic params)), nlp, l
+    | TSuffix (_, s) -> Some (make_suffix s (Obj.magic params)), nlp, l
   in
   aux typ None nlp params "" "" []
 
@@ -707,7 +706,7 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
     | TESuffix n -> Obj.magic n
     | TESuffixs n -> Obj.magic n
     | TESuffixu (n, _, _) -> Obj.magic n
-    | TSuffix t -> Obj.magic (aux prefix suffix t)
+    | TSuffix (_, t) -> Obj.magic (aux prefix suffix t)
     | TOption t -> Obj.magic (aux prefix suffix t)
     | TSum (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
     | TList (name, t1) -> Obj.magic

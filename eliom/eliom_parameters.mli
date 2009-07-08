@@ -286,42 +286,50 @@ val regexp :
  *)
 
 val suffix :
-    ('s, [< `WithoutSuffix | `Endsuffix ], 'sn) params_type ->
-      ('s, [ `WithSuffix ], 'sn) params_type
+  ?redirect_if_not_suffix:bool ->
+  ('s, [< `WithoutSuffix | `Endsuffix ], 'sn) params_type ->
+  ('s, [ `WithSuffix ], 'sn) params_type
 (** Tells that the parameter of the service handler is
-   the suffix of the URL of the current service.
-   e.g. [suffix (int "i" ** string "s")] will match an URL ending by [380/yo].
-   and send [(380, "yo")] to the service handler.
+    the suffix of the URL of the current service.
+    e.g. [suffix (int "i" ** string "s")] will match an URL ending by [380/yo].
+    and send [(380, "yo")] to the service handler.
+
+    For each service with suffix, there is also a service with regular
+    parameters (without suffix) that will be used if you create a form
+    towards a service with suffix.
+    If [redirect_if_not_suffix] is [true] (default),
+    this service without suffix will be redirected to the suffix version.
  *)
 
 val all_suffix :
-    string ->
-      (string list, [`Endsuffix], [` One of string list ] param_name) params_type
+  string ->
+  (string list, [`Endsuffix], [` One of string list ] param_name) params_type
 (** Takes all the suffix, as long as possible, as a (slash separated)
    string list *)
 
 val all_suffix_string :
-    string -> (string, [`Endsuffix], [` One of string ] param_name) params_type
+  string -> (string, [`Endsuffix], [` One of string ] param_name) params_type
 (** Takes all the suffix, as long as possible, as a string *)
 
 val all_suffix_user :
-    of_string:(string -> 'a) ->
-      to_string:('a -> string) -> string ->
-        ('a, [ `Endsuffix ], [` One of 'a ] param_name) params_type
-(** Takes all the suffix, as long as possible,
-   with a type specified by the user. *)
-
+  of_string:(string -> 'a) ->
+  to_string:('a -> string) -> string ->
+  ('a, [ `Endsuffix ], [` One of 'a ] param_name) params_type
+    (** Takes all the suffix, as long as possible,
+        with a type specified by the user. *)
+    
 val all_suffix_regexp :
-    Netstring_pcre.regexp -> string -> to_string:(string -> string) -> string ->
+  Netstring_pcre.regexp -> string -> to_string:(string -> string) -> string ->
       (string, [ `Endsuffix ], [` One of string ] param_name) params_type
 (** [all_suffix_regexp r d s] takes all the suffix, as long as possible,
    matching the regular expression [r], name [s], and rewrite it in [d].
  *)
 
 val suffix_prod :
-    ('s,[<`WithoutSuffix|`Endsuffix],'sn) params_type ->
-      ('a,[`WithoutSuffix], 'an) params_type ->
-        (('s * 'a), [`WithSuffix], 'sn * 'an) params_type
+  ?redirect_if_not_suffix:bool ->
+  ('s,[<`WithoutSuffix|`Endsuffix],'sn) params_type ->
+  ('a,[`WithoutSuffix], 'an) params_type ->
+  (('s * 'a), [`WithSuffix], 'sn * 'an) params_type
 (** Tells that the function that will generate the service takes
    a pair whose first element is the suffix of the URL of the current service,
    and the second element corresponds to other (regular) parameters.
@@ -392,7 +400,8 @@ val get_nl_params_names :
 
 (**/**)
 
-val contains_suffix : ('a, 'b, 'c) params_type -> bool
+val contains_suffix : ('a, 'b, 'c) params_type -> bool option
+  (* None = no suffix. The bool means : redirect_if_not_suffix *)
 
 val add_pref_params :
     string ->

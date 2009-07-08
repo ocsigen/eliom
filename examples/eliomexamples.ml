@@ -781,9 +781,13 @@ let sendfile2 =
   Files.register_new_service
     ~path:["files2";""]
 (*    ~get_params:(regexp r "/home/$1/public_html$2" "filename") *)
-    ~get_params:(suffix (all_suffix_regexp r "$u($1)/public_html$2" 
-                           (fun s -> s) "filename"))
+    ~get_params:(suffix ~redirect_if_not_suffix:false
+                   (all_suffix_regexp r "$u($1)/public_html$2" 
+                      ~to_string:(fun s -> s) "filename"))
     (fun _ s () -> return s)
+
+(* Here I am using redirect_if_not_suffix:false because 
+   otherwise I would need to write a more sophisticated to_string function *)
 
 (*
 let sendfile2 =

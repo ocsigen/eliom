@@ -485,6 +485,7 @@ val get_full_path_ : 'a a_s -> url_path
 val get_prefix_ : 'a a_s -> string
 val get_get_name_ : 'a a_s -> Eliom_common.att_key
 val get_post_name_ : 'a a_s -> Eliom_common.att_key
+val get_redirect_suffix_ : 'a a_s -> bool
 val get_na_name_ : 'a na_s -> Eliom_common.na_key
 val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option

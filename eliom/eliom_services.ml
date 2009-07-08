@@ -88,6 +88,7 @@ type +'a a_s =
      att_kind: 'a; (* < attached_service_kind *)
      get_name: Eliom_common.att_key;
      post_name: Eliom_common.att_key;
+     redirect_suffix: bool;
    }
 
 type +'a na_s =
@@ -146,6 +147,7 @@ let get_get_params_type_ s = s.get_params_type
 let get_post_params_type_ s = s.post_params_type
 let get_prefix_ s = s.prefix
 let get_sub_path_ s = s.subpath
+let get_redirect_suffix_ s = s.redirect_suffix
 let get_full_path_ s = s.fullpath
 let get_get_name_ s = s.get_name
 let get_post_name_ s = s.post_name
@@ -195,6 +197,7 @@ let static_dir_ ?(https = false) ~sp () =
         get_name = Eliom_common.Att_no;
         post_name = Eliom_common.Att_no;
         att_kind = `Internal (`Service, `Get);
+        redirect_suffix = true;
       };
      https = https;
      keep_nl_params = `None;
@@ -222,6 +225,7 @@ let get_static_dir_ ?(https = false) ~sp
         get_name = Eliom_common.Att_no;
         post_name = Eliom_common.Att_no;
         att_kind = `Internal (`Service, `Get);
+        redirect_suffix = true;
       };
      https = https;
      keep_nl_params = keep_nl_params;
@@ -245,6 +249,7 @@ let new_service_aux_aux
     ~(path : url_path)
     ~site_dir
     ~kind
+    ?(redirect_suffix = true)
     ?(keep_nl_params = `None)
     ~get_params
     ~post_params =
@@ -262,6 +267,7 @@ let new_service_aux_aux
       att_kind = kind;
       get_name = Eliom_common.Att_no;
       post_name = Eliom_common.Att_no;
+      redirect_suffix = redirect_suffix
     };
    https = https;
    keep_nl_params = keep_nl_params;
@@ -271,6 +277,7 @@ let new_service_aux
     ?sp
     ~https
     ~path
+    ?redirect_suffix
     ?keep_nl_params
     ~get_params =
   match sp with
@@ -289,6 +296,7 @@ let new_service_aux
             ~path
             ~site_dir: sitedata.Eliom_common.site_dir
             ~kind:(`Internal (`Service, `Get))
+            ?redirect_suffix
             ?keep_nl_params
             ~get_params
             ~post_params:unit
@@ -310,6 +318,7 @@ let new_service_aux
         ~path:path
         ~site_dir:(Eliom_sessions.get_site_dir sp)
         ~kind:(`Internal (`Service, `Get))
+        ?redirect_suffix
         ?keep_nl_params
         ~get_params
         ~post_params:unit
@@ -327,12 +336,13 @@ let new_external_service
     ~https:false (* not used for external links *)
     ~prefix
     ~path:(remove_internal_slash
-            (if suffix
-            then path@[Eliom_common.eliom_suffix_internal_name]
-            else path))
+            (match suffix with
+               | None -> path
+               | _ -> path@[Eliom_common.eliom_suffix_internal_name]))
     ~site_dir:[]
     ~kind:`External
     ?keep_nl_params
+    ~redirect_suffix:false
     ~get_params
     ~post_params
 
@@ -347,10 +357,11 @@ let new_service
   new_service_aux
     ?sp
     ~https
-    ~path:(if suffix
-    then path@[Eliom_common.eliom_suffix_internal_name]
-    else path)
+    ~path:(match suffix with
+             | None -> path
+             | _ -> path@[Eliom_common.eliom_suffix_internal_name])
     ?keep_nl_params
+    ?redirect_suffix:suffix
     ~get_params
 
 let new_naservice_num () = new_state ()
@@ -441,6 +452,7 @@ let new_post_service_aux ~sp ~https ~fallback
       att_kind = `Internal (k, `Post);
       get_name = k1.get_name;
       post_name = Eliom_common.Att_no;
+      redirect_suffix = false;
     };
    https = https;
    keep_nl_params = keep_nl_params;
@@ -574,6 +586,26 @@ let rec append_suffix l m = match l with
   | [] -> m
   | [eliom_suffix_internal_name] -> m
   | a::ll -> a::(append_suffix ll m)
+
+let preapply ~service getparams =
+  let nlp, preapp = service.pre_applied_parameters in
+  let suff, nlp, params =
+    construct_params_list nlp service.get_params_type getparams 
+  in
+  {service with
+   pre_applied_parameters = nlp, params@preapp;
+   get_params_type = unit;
+   kind = match service.kind with
+   | `Attached k -> `Attached {k with
+                               subpath = (match suff with
+                               | Some suff -> append_suffix k.subpath suff
+                               | _ -> k.subpath);
+                               fullpath = (match suff with
+                               | Some suff -> append_suffix k.fullpath suff
+                               | _ -> k.fullpath);
+                             }
+   | k -> k
+ }
 
 let preapply ~service getparams =
   let nlp, preapp = service.pre_applied_parameters in
