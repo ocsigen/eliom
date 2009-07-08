@@ -376,6 +376,18 @@ val get_non_localized_post_parameters :
 (** [get_non_localized_post_parameters ~sp p] decodes and 
     returns non localized POST parameters specified by [p] if present. *)
 
+(** Use this type to give non localized parameters to a link or a form *)
+type nl_params_set
+
+val empty_nl_params_set : nl_params_set
+
+val add_nl_parameter : 
+  nl_params_set ->
+  ('a, [< `WithSuffix | `WithoutSuffix ], _) non_localized_params -> 
+  'a -> nl_params_set
+
+val get_nl_params_names : 
+  (_, [< `WithSuffix | `WithoutSuffix ], 'a) non_localized_params -> 'a
 
 (**/**)
 
@@ -422,4 +434,7 @@ val nl_prod :
 val remove_from_nlp :
   (string * string) list Ocsigen_lib.String_Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+  (string * string) list Ocsigen_lib.String_Table.t
+
+val table_of_nl_params_set : nl_params_set -> 
   (string * string) list Ocsigen_lib.String_Table.t

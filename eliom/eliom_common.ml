@@ -140,15 +140,13 @@ type sess_info =
      si_previous_extension_error: int;
      (* HTTP error code sent by previous extension (default: 404) *)
 
+     si_na_get_params: (string * string) list Lazy.t;
      si_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t;
      si_nl_post_params: (string * string) list Ocsigen_lib.String_Table.t;
      si_persistent_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t Lazy.t;
 
-     si_all_get_but_na: (string * string) list Lazy.t;
-     si_all_get_but_nl: (string * string) list;
      si_all_get_but_na_nl: (string * string) list Lazy.t;
-     si_all_get_but_npnl: (string * string) list Lazy.t;
-     si_all_get_but_na_npnl: (string * string) list Lazy.t;
+     si_all_get_but_nl: (string * string) list;
    }
 
 (* The table of tables for each session. Keys are cookies *)
@@ -517,17 +515,6 @@ let get_session_info ri previous_extension_err =
     let nl_get_params, get_params = split_nl_prefix_param get_params in
     let nl_post_params, post_params = split_nl_prefix_param post_params in
     let all_get_but_nl = get_params in
-    let all_get_but_na =
-      lazy (List.remove_assoc naservice_name
-              (List.remove_assoc naservice_num
-                 (remove_prefixed_param na_co_param_prefix get_params0)))
-    in
-    let all_get_but_npnl =
-      lazy (remove_prefixed_param npnl_param_prefix get_params0)
-    in
-    let all_get_but_na_npnl =
-      lazy (remove_prefixed_param npnl_param_prefix (Lazy.force all_get_but_na))
-    in
 
     let data_cookies = getcookies datacookiename
         (Lazy.force ri.Ocsigen_extensions.ri_cookies)
@@ -563,6 +550,7 @@ let get_session_info ri previous_extension_err =
       (get_state, post_state),
       (get_params, other_get_params),
       all_get_but_na_nl,
+      all_na_get_params,
       post_params =
       let post_naservice_name, na_post_params =
         try
@@ -586,21 +574,34 @@ let get_session_info ri previous_extension_err =
                 (List.remove_assoc naservice_name
                    (List.remove_assoc naservice_num
                       (remove_prefixed_param na_co_param_prefix get_params)))),
+             (lazy
+                (try
+                   (try
+                      (naservice_name, List.assoc naservice_name get_params)
+                    with Not_found ->
+                      (naservice_num, List.assoc naservice_num get_params))
+                   ::(fst (split_prefix_param na_co_param_prefix get_params))
+                 with Not_found -> [])
+             ),
              na_post_params)
         | _ ->
-            let get_naservice_name, (na_get_params, other_get_params) =
+            let get_naservice_name, 
+              na_name_num,
+              (na_get_params, other_get_params) =
               try
                 let n, gp =
                   Ocsigen_lib.list_assoc_remove naservice_num get_params
                 in (Na_get' n,
+                    [(naservice_num, n)],
                     (split_prefix_param na_co_param_prefix gp))
               with Not_found ->
                 try
                   let n, gp =
                     Ocsigen_lib.list_assoc_remove naservice_name get_params
                   in (Na_get_ n,
+                      [(naservice_name, n)],
                       (split_prefix_param na_co_param_prefix gp))
-                with Not_found -> (Na_no, ([], get_params))
+                with Not_found -> (Na_no, [], ([], get_params))
             in
             match get_naservice_name with
               | Na_get_ _
@@ -609,6 +610,7 @@ let get_session_info ri previous_extension_err =
                    (Att_no, Att_no),
                    (na_get_params, other_get_params),
                    (lazy other_get_params),
+                   (lazy (na_name_num@na_get_params)),
                    [])
                     (* Not possible to have POST parameters
                        without naservice_num
@@ -652,6 +654,7 @@ let get_session_info ri previous_extension_err =
                    (get_state, post_state),
                    (get_params, other_get_params),
                    lazy get_params1,
+                   (lazy (na_name_num@na_get_params)),
                    post_params)
     in
     let persistent_nl_get_params =
@@ -680,14 +683,12 @@ let get_session_info ri previous_extension_err =
         si_all_get_params= get_params0;
         si_all_post_params= post_params0;
         si_previous_extension_error= previous_extension_err;
+        si_na_get_params= all_na_get_params;
         si_nl_get_params= nl_get_params;
         si_nl_post_params= nl_post_params;
         si_persistent_nl_get_params= persistent_nl_get_params;
-        si_all_get_but_na= all_get_but_na;
         si_all_get_but_nl= all_get_but_nl;
         si_all_get_but_na_nl= all_get_but_na_nl;
-        si_all_get_but_npnl= all_get_but_npnl;
-        si_all_get_but_na_npnl= all_get_but_na_npnl;
        }
     in
     Lwt.return

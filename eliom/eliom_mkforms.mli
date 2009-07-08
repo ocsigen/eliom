@@ -199,6 +199,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       'get -> 
       string
 (** Creates the string corresponding to the
@@ -223,6 +224,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       'get -> 
       uri
 (** Creates the string corresponding to the
@@ -239,6 +241,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       'get -> 
       string
 (** Creates the string corresponding to the relative URL of a service applied to
@@ -255,6 +258,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string -> 
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       'get -> 
       uri
 (** Creates the (relative) URL for a service.
@@ -281,6 +285,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       a_content_elt_list -> 
       'get -> 
       a_elt
@@ -312,6 +317,9 @@ module type ELIOMFORMSIG =
     the optional [?hostname] and [?port] parameters here.
     These options have no effect for relative links.
 
+    You can add non-localized parameters using the optional parameter
+    [nl_params]. See {!Eliom_parameters.nl_params_set}.
+
     If [~keep_nl_params] is [`Persistent] (resp. [`All]),
     persistent (resp all) non localized GET parameters
     will be kept in the URL (default is the default for the service).
@@ -337,6 +345,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       ('gn -> form_content_elt_list) -> 
       form_elt
 (** [get_form service sp formgen] creates a GET form to [service].
@@ -355,6 +364,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       ('gn -> form_content_elt_list Lwt.t) -> 
       form_elt Lwt.t
 (** The same but taking a cooperative function. *)
@@ -372,6 +382,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       ('pn -> form_content_elt_list) -> 
       'get -> 
       form_elt
@@ -396,6 +407,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       ('pn -> form_content_elt_list Lwt.t) -> 
       'get -> 
       form_elt Lwt.t

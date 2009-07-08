@@ -113,15 +113,14 @@ type sess_info = {
   si_nonatt_info : na_key;
   si_state_info: (att_key * att_key);
   si_previous_extension_error : int;
+
+  si_na_get_params: (string * string) list Lazy.t;
   si_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t;
   si_nl_post_params: (string * string) list Ocsigen_lib.String_Table.t;
   si_persistent_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t Lazy.t;
 
-  si_all_get_but_na: (string * string) list Lazy.t;
-  si_all_get_but_nl: (string * string) list;
   si_all_get_but_na_nl: (string * string) list Lazy.t;
-  si_all_get_but_npnl: (string * string) list Lazy.t;
-  si_all_get_but_na_npnl: (string * string) list Lazy.t;
+  si_all_get_but_nl: (string * string) list;
 }
 
 module SessionCookies : Hashtbl.S with type key = string

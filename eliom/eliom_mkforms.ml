@@ -266,6 +266,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       'get -> 
       string
 (** Creates the string corresponding to the
@@ -290,6 +291,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       'get -> 
       uri
 (** Creates the string corresponding to the
@@ -306,6 +308,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       'get -> 
       string
 (** Creates the string corresponding to the relative URL of a service applied to
@@ -322,6 +325,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string -> 
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       'get -> 
       uri
 (** Creates the (relative) URL for a service.
@@ -348,6 +352,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       a_content_elt_list -> 
       'get -> 
       a_elt
@@ -379,6 +384,9 @@ module type ELIOMFORMSIG =
     the optional [?hostname] and [?port] parameters here.
     These options have no effect for relative links.
 
+    You can add non-localized parameters using the optional parameter
+    [nl_params]. See {!Eliom_parameters.nl_params_set}.
+
     If [~keep_nl_params] is [`Persistent] (resp. [`All]),
     persistent (resp all) non localized GET parameters
     will be kept in the URL (default is the default for the service).
@@ -404,6 +412,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       ('gn -> form_content_elt_list) -> 
       form_elt
 (** [get_form service sp formgen] creates a GET form to [service].
@@ -422,6 +431,7 @@ module type ELIOMFORMSIG =
       ?port:int ->
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       ('gn -> form_content_elt_list Lwt.t) -> 
       form_elt Lwt.t
 (** The same but taking a cooperative function. *)
@@ -439,6 +449,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       ('pn -> form_content_elt_list) -> 
       'get -> 
       form_elt
@@ -463,6 +474,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
       ('pn -> form_content_elt_list Lwt.t) -> 
       'get -> 
       form_elt Lwt.t
@@ -949,7 +961,9 @@ module MakeForms = functor
           ~sp
           ?(fragment = "")
           ?keep_nl_params
+          ?(nl_params = Eliom_parameters.empty_nl_params_set) 
           getparams : string =
+        let nl_params = Eliom_parameters.table_of_nl_params_set nl_params in
         let keep_nl_params = match keep_nl_params with
           | None -> Eliom_services.keep_nl_params service
           | Some b -> b
@@ -970,6 +984,13 @@ module MakeForms = functor
                   preappnlp
                   (Eliom_sessions.get_persistent_nl_get_params ~sp)
             | `None -> preappnlp
+        in
+        let nlp =
+          (* We replace current nl params by nl_params *)
+          Ocsigen_lib.String_Table.fold
+            (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+            nl_params
+            nlp
         in
         (* for preapplied not non localized: *)
         let preapplied_params = construct_params_string preapp in
@@ -1090,6 +1111,7 @@ module MakeForms = functor
           ?port
           ?fragment
           ?keep_nl_params
+          ?nl_params
           getparams : string =
         let proto_prefix =
           make_proto_prefix ~sp
@@ -1104,6 +1126,7 @@ module MakeForms = functor
           ~service
           ~sp
           ?keep_nl_params
+          ?nl_params
           ?fragment
           getparams
 
@@ -1117,10 +1140,11 @@ module MakeForms = functor
           ?port
           ?fragment
           ?keep_nl_params
+          ?nl_params
           getparams : uri =
         Pages.uri_of_string
           (make_full_string_uri ?https ~service ~sp ?keep_nl_params
-             ?hostname ?port ?fragment getparams)
+             ?nl_params ?hostname ?port ?fragment getparams)
 
       let make_string_uri
           ?https
@@ -1130,6 +1154,7 @@ module MakeForms = functor
           ?port
           ?fragment
           ?keep_nl_params
+          ?nl_params
           getparams : string =
         let ssl = Eliom_sessions.get_ssl ~sp in
         let https = ((https = Some true) || 
@@ -1141,13 +1166,15 @@ module MakeForms = functor
 (*VVV We trust current protocol? *) 
         then
           make_full_string_uri ~https ~service ~sp ?keep_nl_params
-            ?hostname ?port ?fragment getparams
+            ?nl_params ?hostname ?port ?fragment getparams
         else
           make_string_uri_
             None
             ~service
             ~sp
             ?fragment
+            ?nl_params
+            ?keep_nl_params
             getparams
 
       let a 
@@ -1159,10 +1186,12 @@ module MakeForms = functor
           ?port
           ?(fragment = "")
           ?keep_nl_params
+          ?nl_params
           content
           getparams =
         let href = 
           make_string_uri ?keep_nl_params
+            ?nl_params
             ?https ~service ~sp ?hostname ?port ~fragment getparams
         in
         Pages.make_a ?a ~href content
@@ -1177,8 +1206,10 @@ module MakeForms = functor
           ?hostname
           ?port
           ?(fragment = "")
+          ?(nl_params = Eliom_parameters.empty_nl_params_set) 
           ?keep_nl_params
           f =
+        let nl_params = Eliom_parameters.table_of_nl_params_set nl_params in
         let keep_nl_params = match keep_nl_params with
           | None -> Eliom_services.keep_nl_params service
           | Some b -> b
@@ -1213,6 +1244,13 @@ module MakeForms = functor
                   preappnlp
                   (Eliom_sessions.get_persistent_nl_get_params ~sp)
             | `None -> preappnlp
+        in
+        let nlp =
+          (* We replace current nl params by nl_params *)
+          Ocsigen_lib.String_Table.fold
+            (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+            nl_params
+            nlp
         in
         (* remove in nlp the one present in the service parameters *)
         let nlp = Eliom_parameters.remove_from_nlp nlp getparamstype in
@@ -1348,15 +1386,19 @@ module MakeForms = functor
                       ?a ~action:urlname naservice_line all_lines))
 
       let get_form
-          ?https ?a ~service ~sp ?hostname ?port ?fragment ?keep_nl_params f =
+          ?https ?a ~service ~sp ?hostname ?port ?fragment
+          ?keep_nl_params ?nl_params f =
         get_form_ (fun x f -> f x) (fun x -> x) 
-          ?https ?a ~service ~sp ?keep_nl_params ?hostname ?port ?fragment f
+          ?https ?a ~service ~sp ?keep_nl_params
+          ?nl_params ?hostname ?port ?fragment f
 
       let lwt_get_form
-          ?https ?a ~service ~sp ?hostname ?port ?fragment ?keep_nl_params f =
+          ?https ?a ~service ~sp ?hostname ?port ?fragment
+          ?keep_nl_params ?nl_params f =
         get_form_ 
           Lwt.bind Lwt.return
-          ?https ?a ~service ~sp ?hostname ?port ?fragment ?keep_nl_params f
+          ?https ?a ~service ~sp ?hostname ?port ?fragment
+          ?nl_params ?keep_nl_params f
 
 
       let post_form_
@@ -1369,10 +1411,12 @@ module MakeForms = functor
           ?hostname
           ?port
           ?(fragment = "")
+          ?(nl_params = Eliom_parameters.empty_nl_params_set) 
           ?(keep_nl_params : [ `All | `Persistent | `None ] option)
           ?keep_get_na_params
           f
           getparams =
+        let nl_params = Eliom_parameters.table_of_nl_params_set nl_params in
         let keep_nl_params = match keep_nl_params with
           | None -> Eliom_services.keep_nl_params service
           | Some b -> b
@@ -1386,36 +1430,44 @@ module MakeForms = functor
         let absolute = https <> ssl in
         let proto_prefix = make_proto_prefix ~sp ?hostname ?port https in
 (*VVV We trust current protocol? *) 
+
+        let preappnlp, preapp = get_pre_applied_parameters_ service in
+        let nlp =
+          match keep_nl_params with
+            | `All ->
+                (* We replace current nl params by preapplied ones *)
+                Ocsigen_lib.String_Table.fold
+                  (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+                  preappnlp
+                  (Eliom_sessions.get_nl_get_params ~sp)
+            | `Persistent ->
+                (* We replace current nl params by preapplied ones *)
+                Ocsigen_lib.String_Table.fold
+                  (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+                  preappnlp
+                  (Eliom_sessions.get_persistent_nl_get_params ~sp)
+            | `None -> preappnlp
+        in
+        let nlp =
+          (* We replace current nl params by nl_params *)
+          Ocsigen_lib.String_Table.fold
+            (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+            nl_params
+            nlp
+        in
+        (* for preapplied not non localized: *)
+        let preapplied_params = construct_params_string preapp in
+        (* for getparams and non localized params: *)
+        let suff, params_string =
+          construct_params nlp (get_get_params_type_ service) getparams 
+            (* if nl params were already present, they will be replaced
+               by new values *)
+        in
+        let params_string = concat_strings preapplied_params "&" params_string
+        in
+
         match get_kind_ service with
         | `Attached attser ->
-            let preappnlp, preapp = get_pre_applied_parameters_ service in
-            let nlp =
-              match keep_nl_params with
-                | `All ->
-                    (* We replace current nl params by preapplied ones *)
-                    Ocsigen_lib.String_Table.fold
-                      (fun key v b -> Ocsigen_lib.String_Table.add key v b)
-                      preappnlp
-                      (Eliom_sessions.get_nl_get_params ~sp)
-                | `Persistent ->
-                    (* We replace current nl params by preapplied ones *)
-                    Ocsigen_lib.String_Table.fold
-                      (fun key v b -> Ocsigen_lib.String_Table.add key v b)
-                      preappnlp
-                      (Eliom_sessions.get_persistent_nl_get_params ~sp)
-                | `None -> preappnlp
-            in
-            (* for preapplied not non localized: *)
-            let preapplied_params = construct_params_string preapp in
-            (* for getparams and non localized params: *)
-            let suff, params_string =
-              construct_params nlp (get_get_params_type_ service) getparams 
-                (* if nl params were already present, they will be replaced
-                   by new values *)
-            in
-            let params_string =
-              concat_strings preapplied_params "&" params_string
-            in
             let params_string =
               match get_get_name_ attser with
               | Eliom_common.Att_no -> params_string
@@ -1481,26 +1533,23 @@ module MakeForms = functor
                       | `Post b -> b
                       | _ -> assert false
             in
-            let current_get_params =
-              match keep_get_na_params, keep_nl_params with
-                | true, `All -> get_initial_get_params sp
-                | false, `All -> 
-                    Lazy.force
-                      (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na
-                | true, `Persistent ->
-                    Lazy.force
-                      (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_npnl
-                | false, `Persistent ->
-                    Lazy.force
-                      (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_npnl
-                | true, `None ->
-                    (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_nl
-                | false, `None ->
-                    Lazy.force
-                      (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_nl
+            let na_get_params =
+              if keep_get_na_params
+              then
+                construct_params_string 
+                  (Lazy.force
+                     (Eliom_sessions.get_si sp).Eliom_common.si_na_get_params)
+              else ""
             in
-            let current_get_params_string =
-              construct_params_string current_get_params
+            let params_string = concat_strings na_get_params "&" params_string
+            in
+            let get_params_but_na_nl =
+              construct_params_string 
+                (Lazy.force
+                   (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_nl)
+            in
+            let params_string = 
+              concat_strings get_params_but_na_nl "&" params_string
             in
             (* absolute URL does not work behind a reverse proxy! *)
             let urlpath =
@@ -1508,7 +1557,7 @@ module MakeForms = functor
               then proto_prefix^get_original_full_path_string sp
               else relative_url_path_to_myself (get_original_full_path sp)
             in
-            let v = concat_strings urlpath "?" current_get_params_string in
+            let v = concat_strings urlpath "?" params_string in
             let naservice_line =
               match get_na_name_ naser with
                | Eliom_common.Na_post' n ->
@@ -1533,24 +1582,28 @@ module MakeForms = functor
 
       let post_form 
           ?https ?a ~service ~sp ?hostname ?port
-          ?fragment ?keep_nl_params ?keep_get_na_params f getparams =
+          ?fragment ?keep_nl_params ?keep_get_na_params 
+          ?nl_params f getparams =
         post_form_ (fun x f -> f x) (fun x -> x)
           ?https ?a ~service ~sp ?hostname ?port
-          ?fragment ?keep_get_na_params f getparams
+          ?fragment ?keep_get_na_params 
+          ?keep_nl_params ?nl_params f getparams
 
       let lwt_post_form 
           ?https ?a ~service ~sp ?hostname ?port
-          ?fragment ?keep_nl_params  ?keep_get_na_params f getparams =
+          ?fragment ?keep_nl_params ?keep_get_na_params 
+          ?nl_params f getparams =
         post_form_ Lwt.bind Lwt.return
           ?https ?a ~service ~sp ?hostname ?port
-          ?fragment ?keep_get_na_params f getparams
+          ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params f getparams
 
 
 
       let make_uri
-          ?https ~service ~sp ?hostname ?port ?fragment ?keep_nl_params gp =
+          ?https ~service ~sp ?hostname ?port ?fragment
+          ?keep_nl_params ?nl_params gp =
         Pages.uri_of_string (make_string_uri ?https ?fragment ~service ~sp
-                               ?hostname ?port gp)
+                               ?hostname ?port ?keep_nl_params ?nl_params gp)
 
 
 

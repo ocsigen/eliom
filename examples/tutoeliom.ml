@@ -3489,8 +3489,67 @@ let nlparams = register_new_service
     )
   (*html*
       <p>
-        To create a link or a form to a service with non-localized parameters,
-        first create a new service by adding the non localized parameters
+        To create a link or a form with non-localized parameters,
+        use the optional parameter <code>nl_params</code> of functions
+    $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$,
+    $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "get_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ or
+    $a ~fragment:"VALpost_form" ~service:senddoc ~sp [code [pcdata "post_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$. Example:
+    </p>
+    *html*)
+
+let tonlparams = register_new_service
+    ~path:["nlparams"]
+    ~get_params:unit
+    (fun sp i () ->
+       Lwt.return
+         (html
+            (head (title (pcdata "")) [])
+            (body
+               [p [a ~service:nlparams ~sp [pcdata "without nl params"] 4];
+                p [a ~service:nlparams ~sp 
+                     ~nl_params:(Eliom_parameters.add_nl_parameter
+                                   Eliom_parameters.empty_nl_params_set
+                                   my_nl_params
+                                   (22, "oh")
+                                )
+                     [pcdata "with nl params"] 
+                     5];
+                get_form
+                  ~service:nlparams ~sp 
+                  ~nl_params:(Eliom_parameters.add_nl_parameter
+                                Eliom_parameters.empty_nl_params_set
+                                my_nl_params
+                                (22, "oh")
+                             )
+                  (fun iname ->
+                     [p [pcdata "form with hidden nl params";
+                         Eliom_predefmod.Xhtml.int_input 
+                           ~input_type:`Text ~name:iname ();
+                         Eliom_predefmod.Xhtml.string_input
+                           ~input_type:`Submit ~value:"Send" ()]]);
+                get_form
+                  ~service:nlparams ~sp 
+                  (fun iname ->
+                     let (aname, sname) = 
+                       Eliom_parameters.get_nl_params_names my_nl_params
+                     in
+                     [p [pcdata "form with nl params fiels";
+                         Eliom_predefmod.Xhtml.int_input 
+                           ~input_type:`Text ~name:iname ();
+                         Eliom_predefmod.Xhtml.int_input 
+                           ~input_type:`Text ~name:aname ();
+                         Eliom_predefmod.Xhtml.string_input 
+                           ~input_type:`Text ~name:sname ();
+                         Eliom_predefmod.Xhtml.string_input
+                           ~input_type:`Submit ~value:"Send" ()]]);
+               ]))
+    )
+    
+
+  (*html*
+      <p>
+    It is also possible to 
+    create a new service by adding the non localized parameters
         to an existing service:
       </p>
   *html*)
@@ -4455,6 +4514,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
              $a count2 sp <:xmllist< <code>count2</code> >> ()$ <br/>
        $a hier1 sp [pcdata "Hierarchical menu"] ()$ <br/>
        $a divpage sp <:xmllist< <code>a link sending a &lt;div&gt; page</code> >> ()$ <br/>
+       $a tonlparams sp [pcdata "Non localized parameters"] ()$ <br/>
        $a nlparams sp [pcdata "Non localized parameters (absent)"] 4$ <br/>
        $a nlparams_with_nlp sp [pcdata "Non localized parameters (present)"] (22, (11, "aa"))$<br/>
        </p>

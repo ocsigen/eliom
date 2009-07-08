@@ -748,3 +748,14 @@ let rec remove_from_nlp nlp = function
         let nlp = remove_from_nlp nlp t1 in
         remove_from_nlp nlp t2
     | _ -> nlp
+
+type nl_params_set = (string * string) list Ocsigen_lib.String_Table.t
+
+let empty_nl_params_set = Ocsigen_lib.String_Table.empty
+
+let add_nl_parameter s t v = 
+  (fun (_, a, _) -> a) (construct_params_list s (TNLParams t) v)
+
+let table_of_nl_params_set = Ocsigen_lib.id
+
+let get_nl_params_names t = make_params_names (TNLParams t)
