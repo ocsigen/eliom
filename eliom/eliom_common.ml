@@ -453,7 +453,7 @@ let split_nl_prefix_param =
           if Ocsigen_lib.string_first_diff 
             n nl_param_prefix 0 prefixlengthminusone = prefixlength
           then try
-            let last = String.index_from n prefixlength '_' in
+            let last = String.index_from n prefixlength '.' in
             let nl_param_name = String.sub n prefixlength (last - prefixlength)
             in
             let previous = 

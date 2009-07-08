@@ -684,10 +684,13 @@ let make_non_localized_parameters
     ~name
     (p : ('a, [ `WithoutSuffix ], 'b) params_type) 
     : ('a, [ `WithoutSuffix ], 'b) non_localized_params =
-  (name,
-   (Polytables.make_key () (* GET *), 
-    Polytables.make_key () (* POST *)),
-   add_pref_params (Eliom_common.nl_param_prefix^name^"_") p)
+  if String.contains name '.'
+  then failwith "Non localized parameters names cannot contain dots."
+  else
+    (name,
+     (Polytables.make_key () (* GET *), 
+      Polytables.make_key () (* POST *)),
+     add_pref_params (Eliom_common.nl_param_prefix^name^".") p)
 
 let get_non_localized_parameters params getorpost ~sp (name, keys, paramtype) =
   (* non localized parameters are parsed only once, 

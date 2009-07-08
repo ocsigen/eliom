@@ -74,7 +74,6 @@ and link_attrs =
                   hreflang=?String href=?String charset=?String } }}
 
 and link = {{ <link (link_attrs)>[ ] }}
-and links = {{ [ link* ] }}
 
 and style = {{ <style (i18n ++ id ++ { title=?String media=?String type=String })>[ PCDATA ] }}
 

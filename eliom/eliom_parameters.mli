@@ -350,6 +350,7 @@ val make_non_localized_parameters :
   ('a, [ `WithoutSuffix ], 'b) non_localized_params
 (** create a new specification for non localized parameters.
     You must give a name to this set of parameters.
+    Will fail with exception [Failure _] if the name contains a dot.
 *)
 
 val get_non_localized_get_parameters :
