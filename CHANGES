@@ -1,4 +1,4 @@
-===== Development version ocsigen.dev branch =====
+===== Development version (ocsigen.dev and ocsigen.current branches) =====
   * Server: Each request now has a polymorphic data table
     (called //request cache//), where you can
     store the data you want to keep during the whole page generation.
@@ -6,8 +6,6 @@
     Use the request cache to send information to fallbacks.
   * Eliom: New exprimental module {{{Eliom_obrowser}}} 
     to use Eliom with Obrowser
-
-===== Development version ocsigen.current branch =====
   * Eliom: Now possible to have constant parts in suffixes to allow
     URLS like {{{/param1/something/param2}}}
   * Eliom: Now possible to create services sending custom HTTP header values

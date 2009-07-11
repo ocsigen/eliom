@@ -520,7 +520,7 @@ let constfix =
                    [pcdata "Suffix with constants"];
                  p [pcdata ("Parameters are "^s1^" and "^s2)]])))
 (*html*
-      <p>$a constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"))$.</p>
+      <p>$a Tutoeliom.constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"))$.</p>
       <p>The following example shows how to use your own types :</p>
 *html*)
 type mysum = A | B
