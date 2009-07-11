@@ -45,30 +45,9 @@ let rec string_of_url_path_suff u = function
   | Some suff -> 
       let pref = string_of_url_path' u in
       let suf = string_of_url_path' suff in
-      if pref = "" 
-      then suf
-      else pref^"/"^suf
+      if pref = "" then suf else pref^"/"^suf
 
 let reconstruct_absolute_url_path = string_of_url_path_suff
-
-(* WAS (AEFF)
-let reconstruct_relative_url_path_string current_url u suff =
-  let rec drop cururl desturl = match cururl, desturl with
-  | a::l, [b] -> l, desturl
-  | [a], m -> [], m
-  | a::l, b::m when a = b -> drop l m
-  | a::l, m -> l, m
-  | [], m -> [], m
-  in let rec makedotdot = function
-    | [] -> ""
-(*    | [a] -> "" *)
-    | _::l -> "../"^(makedotdot l)
-  in
-  let aremonter, aaller = drop current_url u
-  in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
-(*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
-  if s = "" then Eliom_common.defaultpagename else s
-*)
 
 let reconstruct_relative_url_path current_url u =
   let rec drop cururl desturl = match cururl, desturl with
@@ -90,10 +69,6 @@ let reconstruct_relative_url_path_string current_url u suff =
     string_of_url_path_suff (reconstruct_relative_url_path current_url u) suff
   in
   if s = "" then Eliom_common.defaultpagename else s
-
-
-
-
 
 let rec relative_url_path_to_myself = function
   | []

@@ -193,7 +193,8 @@ let static_dir_ ?(https = false) ~sp () =
      kind = `Attached
        {prefix = "";
         subpath = [""];
-        fullpath = (Eliom_sessions.get_site_dir sp) @ [""];
+        fullpath = (Eliom_sessions.get_site_dir sp) @ 
+           [Eliom_common.eliom_suffix_internal_name];
         get_name = Eliom_common.Att_no;
         post_name = Eliom_common.Att_no;
         att_kind = `Internal (`Service, `Get);
@@ -221,7 +222,8 @@ let get_static_dir_ ?(https = false) ~sp
      kind = `Attached
        {prefix = "";
         subpath = [""];
-        fullpath = (Eliom_sessions.get_site_dir sp) @ [""];
+        fullpath = (Eliom_sessions.get_site_dir sp) @ 
+           [Eliom_common.eliom_suffix_internal_name];
         get_name = Eliom_common.Att_no;
         post_name = Eliom_common.Att_no;
         att_kind = `Internal (`Service, `Get);

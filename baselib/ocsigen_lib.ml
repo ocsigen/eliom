@@ -504,12 +504,15 @@ module MyUrl = struct
 end
 
 
-let string_of_url_path ~encode l = 
-  if encode
-  then
-    fixup_url_string (String.concat "/"
-                        (List.map (*Netencoding.Url.encode*) MyUrl.encode l))
-  else String.concat "/" l (* BYXXX : check illicit characters *)
+let string_of_url_path ~encode = function
+  | [""] -> "/"
+  | l -> 
+      if encode
+      then
+        fixup_url_string (String.concat "/"
+                            (List.map (*Netencoding.Url.encode*) 
+                               MyUrl.encode l))
+      else String.concat "/" l (* BYXXX : check illicit characters *)
 
 let parse_url =
 
