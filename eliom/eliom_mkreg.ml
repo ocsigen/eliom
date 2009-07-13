@@ -551,7 +551,7 @@ module MakeRegister = functor
                   (match get_timeout_ service with
                   | None -> None
                   | Some t -> Some (t, ref (t +. Unix.time ()))),
-                  (fun redirectifsuffix sp ->
+                  (fun nosuffixversion sp ->
                     let sp2 = Eliom_sessions.sp_of_esp sp in
                     let ri = get_ri ~sp:sp2 in
                     let suff = get_suffix ~sp:sp2 in
@@ -565,6 +565,7 @@ module MakeRegister = functor
                                       sgpt
                                       (force ri.ri_get_params)
                                       []
+                                      nosuffixversion
                                       suff)
                            in
                            let p = (reconstruct_params
@@ -572,10 +573,11 @@ module MakeRegister = functor
                                       sppt
                                       post_params
                                       files
+                                      false
                                       None)
                            in
-                           if suffix_with_redirect &&
-                             redirectifsuffix && files=[] && post_params = []
+                           if nosuffixversion && suffix_with_redirect &&
+                             files=[] && post_params = []
                            then (* it is a suffix service in version 
                                    without suffix. We redirect. *)
                              Lwt.fail
@@ -634,12 +636,14 @@ module MakeRegister = functor
                                   (get_get_params_type_ service)
                                   (force ri.ri_get_params)
                                   []
+                                  false
                                   None)
                                (reconstruct_params
                                   ~sp
                                   (get_post_params_type_ service)
                                   post_params
                                   files
+                                  false
                                   None)))))
                       (function
                         | Eliom_common.Eliom_Typing_Error l ->

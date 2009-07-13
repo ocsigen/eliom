@@ -426,14 +426,16 @@ val reconstruct_params :
   sp:Eliom_common.server_params ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   (string * string) list ->
-  (string * Ocsigen_extensions.file_info) list -> url_path option -> 'a
+  (string * Ocsigen_extensions.file_info) list -> 
+  bool ->
+  url_path option -> 'a
 
 type anon_params_type = int
 
 val anonymise_params_type : ('a, 'b, 'c) params_type -> anon_params_type
 
 val make_params_names :
-    ('a, 'b, 'c) params_type -> 'c
+    ('a, 'b, 'c) params_type -> bool * 'c (* bool = contains a suffix *)
 
 val string_of_param_name : 'a param_name -> string
 

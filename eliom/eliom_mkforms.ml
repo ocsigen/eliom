@@ -65,10 +65,13 @@ let reconstruct_relative_url_path current_url u =
   (makedotdot aremonter)@aaller
 
 let reconstruct_relative_url_path_string current_url u suff =
-  let s = 
-    string_of_url_path_suff (reconstruct_relative_url_path current_url u) suff
-  in
-  if s = "" then Eliom_common.defaultpagename else s
+  let relurl = reconstruct_relative_url_path current_url u in
+  let s = string_of_url_path_suff relurl suff in
+  if s = "" 
+  then Eliom_common.defaultpagename 
+  else if s.[0] = '/'
+  then (* possible with optional parameters *) "./"^s
+  else s
 
 let rec relative_url_path_to_myself = function
   | []
@@ -1244,26 +1247,31 @@ module MakeForms = functor
             (fun _ l beg -> l@beg)
             nlp preapp
         in
+        let issuffix, paramnames = make_params_names getparamstype in
 
         match get_kind_ service with
         | `Attached attser ->
+            let suffix = 
+              if issuffix 
+              then Some [Eliom_common.eliom_nosuffix_page]
+              else None
+            in
             let urlname =
               if (get_att_kind_ attser) = `External
               then
                 (get_prefix_ attser)^
                   "/"^
-                  (reconstruct_absolute_url_path
-                     (get_full_path_ attser) None)
+                  (reconstruct_absolute_url_path (get_full_path_ attser) suffix)
               else 
                 match absolute with
                   | Some proto_prefix ->
                       proto_prefix^
                         reconstruct_absolute_url_path
-                        (get_full_path_ attser) None
+                        (get_full_path_ attser) suffix
                   | None ->
                       reconstruct_relative_url_path_string
                         (get_original_full_path sp)
-                        (get_full_path_ attser) None
+                        (get_full_path_ attser) suffix
             in
             let urlname =
               add_to_string urlname "#" (Netencoding.Url.encode fragment)
@@ -1280,7 +1288,7 @@ module MakeForms = functor
                           ~name:Eliom_common.get_state_param_name
                           ~value:s ()))
             in
-            bind (f (make_params_names getparamstype))
+            bind (f paramnames)
             (fun inside ->
                let inside =
                  List.fold_left
@@ -1335,7 +1343,7 @@ module MakeForms = functor
                                ~value:n ()))
                 | _ -> assert false
             in
-            bind (f (make_params_names getparamstype))
+            bind (f (snd (make_params_names getparamstype)))
               (fun inside ->
                  let all_lines =
                    List.fold_left
@@ -1498,7 +1506,7 @@ module MakeForms = functor
                           ~name:Eliom_common.post_state_param_name
                           ~value:s ()))
             in
-            bind (f (make_params_names (get_post_params_type_ service)))
+            bind (f (snd (make_params_names (get_post_params_type_ service))))
             (fun inside ->
                let i1, i =
                  match state_param, inside with
@@ -1558,7 +1566,7 @@ module MakeForms = functor
                | _ -> assert false
             in
 
-            bind (f (make_params_names (get_post_params_type_ service)))
+            bind (f (snd (make_params_names (get_post_params_type_ service))))
             (fun inside ->
                return
                  (Pages.make_post_form ?a ~action:v

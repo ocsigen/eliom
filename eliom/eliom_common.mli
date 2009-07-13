@@ -78,6 +78,7 @@ exception Eliom_error_while_loading_site of string
 val defaultpagename : string
 val eliom_suffix_name : string
 val eliom_suffix_internal_name : string
+val eliom_nosuffix_page : string
 val naservice_num : string
 val naservice_name : string
 val get_state_param_name : string

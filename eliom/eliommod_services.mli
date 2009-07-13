@@ -1,5 +1,5 @@
 val find_page_table :
-  ?redirectifsuffix:bool ->
+  bool ->
   float ->
   Eliom_common.page_table ref ->
   string option ->

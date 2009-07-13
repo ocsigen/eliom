@@ -688,7 +688,10 @@ let _ =
 let suffix3 =
   register_new_service
     ~path:["suffix3";""]
-    ~get_params:(suffix_prod (string "suff1" ** int "ii" ** all_suffix_user int_of_string string_of_int "ee") (string "a" ** int "b"))
+    ~get_params:(suffix_prod
+                   (string "suff1" ** int "ii" ** 
+                      all_suffix_user int_of_string string_of_int "ee")
+                   (string "a" ** int "b"))
     (fun sp ((suf1, (ii, ee)), (a, b)) () ->
       return
         (html
@@ -951,6 +954,66 @@ let sufliform = register_new_service ["sufliform"] unit
           (body [h1 [pcdata "Hallo"];
                  f ])))
 
+(*
+(* mmmh ... disabled dynamically for now *)
+let sufli2 = new_service
+    ~path:["sufli2"]
+    ~get_params:(suffix ((list "l" (int "i")) ** int "j"))
+    ()
+
+let _ = register sufli2
+  (fun sp (l, j) () ->
+    let ll =
+      List.map (fun i -> << <strong> $str:(string_of_int i)$ </strong> >>) l
+    in
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent:
+         <span>$list:ll$</span>,
+         and
+         j=$str:string_of_int j$.
+       </p>
+       <p>
+         $a sufli2 sp [pcdata "myself"] ([1; 2], 3)$, 
+         $a sufli2 sp [pcdata "myself (empty list)"] ([], 1)$
+       </p>
+       </body>
+     </html> >>)
+*)
+
+let sufliopt = new_service
+    ~path:["sufliopt"]
+    ~get_params:(suffix (list "l" (opt (string "s"))))
+    ()
+
+let _ = register sufliopt
+  (fun sp l () ->
+    let ll =
+      List.map
+        (function None -> pcdata "<none>"
+           | Some s -> << <strong> $str:s$ </strong> >>) l
+    in
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent:
+         <span>$list:ll$</span>
+       </p>
+       <p>
+         $a sufliopt sp [pcdata "myself"] [Some "a"; None; Some "po"; None; None; Some "k"; None]$, 
+         $a sufliopt sp [pcdata "myself (empty list)"] []$
+         $a sufliopt sp [pcdata "myself (list [None; None])"] [None; None]$
+         $a sufliopt sp [pcdata "myself (list [None])"] [None]$
+       </p>
+       </body>
+     </html> >>)
+
+
 (* set in suffix *)
 let sufset = register_new_service
     ~path:["sufset"]
@@ -970,6 +1033,7 @@ let sufset = register_new_service
        </p>
        </body>
      </html> >>)
+
 
 
 (* form to any2 *)
@@ -1252,7 +1316,9 @@ let mainpage = register_new_service ["tests"] unit
          a uploadgetform sp [pcdata "Upload with GET"] (); br ();
          a sufli sp [pcdata "List in suffix"] [("bo", 4);("ba", 3);("bi", 2);("bu", 1)]; br ();
          a sufliform sp [pcdata "Form to list in suffix"] (); br ();
+         a sufliopt sp [pcdata "List of optional values in suffix"] [None; Some "j"]; br ();
          a sufset sp [pcdata "Set in suffix"] ["bo";"ba";"bi";"bu"]; br ();
+(*         a sufli2 sp [pcdata "List not in the end of in suffix"] ([1; 2; 3], 4); br (); *)
          a boollistform sp [pcdata "Bool list"] (); br ();
          a preappmenu sp [pcdata "Menu with pre-applied services"] (); br ();
          a exn_act_main sp [pcdata "Actions that raises an exception"] (); br ();
@@ -1275,8 +1341,13 @@ let mainpage = register_new_service ["tests"] unit
          a servreqloop sp [pcdata "Looping server request"] (); br ();
 
          a nlparams sp [pcdata "nl params and suffix, on void coservice"] ((3, 5), 222); br ();
+         a optsuf sp [pcdata "optional suffix"] None; br ();
+         a optsuf sp [pcdata "optional suffix"] (Some ("toto", None)); br ();
          a optsuf sp [pcdata "optional suffix"] (Some ("toto", Some 2)); br ();
+         a optsuf2 sp [pcdata "optional suffix 2"] (Some "un", Some 2); br ();
          a optsuf2 sp [pcdata "optional suffix 2"] (None, Some 2); br ();
+         a optsuf2 sp [pcdata "optional suffix 2"] (Some "un", None); br ();
+         a optsuf2 sp [pcdata "optional suffix 2"] (None, None); br ();
 
 
 

@@ -33,7 +33,7 @@ open Ocsigen_extensions
 (*****************************************************************************)
 
 let find_page_table
-    ?(redirectifsuffix=false)
+    nosuffixversion
     now
     (pagetableref : Eliom_common.page_table ref)
     fullsessname
@@ -62,7 +62,7 @@ let find_page_table
             catch
               (fun () ->
                 Ocsigen_messages.debug2 "--Eliom: I'm trying a service";
-                funct redirectifsuffix sp >>= fun p ->
+                funct nosuffixversion sp >>= fun p ->
                 (* warning: the list ll may change during funct
                    if funct register something on the same URL!! *)
                 Ocsigen_messages.debug2
@@ -236,9 +236,9 @@ let find_service
      si) =
 
   let rec search_page_table dircontent =
-    let find ?redirectifsuffix page_table_ref suffix =
+    let find nosuffixversion page_table_ref suffix =
       find_page_table
-        ?redirectifsuffix
+        nosuffixversion
         now
         page_table_ref
         fullsessname
@@ -266,7 +266,7 @@ let find_service
                   search_page_table !dircontentref2 l
               | Eliom_common.File page_table_ref -> 
                   (match l with
-                     | [] -> find page_table_ref None
+                     | [] -> find false page_table_ref None
                      | l -> (* We have a file with suffix *)
                          raise Eliom_common.Eliom_Wrong_parameter)))
         (function
@@ -280,34 +280,28 @@ let find_service
                   with
                     | Eliom_common.Dir _ -> Lwt.fail Exn1
                     | Eliom_common.File page_table_ref ->
-                        find page_table_ref 
+                        find false page_table_ref 
                           (if a = None then Some [] else Some (aa::l))
                 with e -> Lwt.fail e)
            | e -> Lwt.fail e)
     in function
       | [] -> 
-          (* First we test if it is the version without suffix of a
-          suffix service (will be redirected) *)
+          (* It is a directory, without / at the end. We do a redirection. *)
+          Lwt.fail (Ocsigen_extensions.Ocsigen_Is_a_directory ri)
+      | [""] -> aux None []
+      | [a] when a = Eliom_common.eliom_nosuffix_page ->
+          (* version without suffix of suffix service *)
           (try
              match !(try
                        find_dircontent dircontent
                          Eliom_common.eliom_suffix_internal_name
                      with Not_found -> raise Exn1)
              with
-               | Eliom_common.Dir _ -> raise Exn1
+               | Eliom_common.Dir _ -> Lwt.fail Exn1
                | Eliom_common.File page_table_ref ->
-                   Lwt.catch
-                     (fun () -> find ~redirectifsuffix:true page_table_ref None)
-                     (function
-                        | Eliom_common.Eliom_Wrong_parameter ->
-                            Lwt.fail
-                              (Ocsigen_extensions.Ocsigen_Is_a_directory ri)
-                        | e -> Lwt.fail e
-                     )
-           with Eliom_common.Eliom_Wrong_parameter | Exn1 ->
-             (* otherwise, it is a directory, we redirect *)
-             Lwt.fail (Ocsigen_extensions.Ocsigen_Is_a_directory ri))
-      | [""] -> aux None []
+                   find true page_table_ref None
+           with e -> Lwt.fail e)
+          
 (*      | ""::l -> search_page_table dircontent l *)
           (* We do not remove "//" any more 
              because of optional suffixes *)
