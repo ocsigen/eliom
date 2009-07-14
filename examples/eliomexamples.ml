@@ -1014,6 +1014,36 @@ let _ = register sufliopt
      </html> >>)
 
 
+let sufliopt2 = new_service
+    ~path:["sufliopt2"]
+    ~get_params:(suffix (list "l" (opt (string "s" ** string "ss"))))
+    ()
+
+let _ = register sufliopt2
+  (fun sp l () ->
+    let ll =
+      List.map
+        (function None -> pcdata "<none>"
+           | Some (s, ss) -> << <strong> ($str:s$, $str:ss$) </strong> >>) l
+    in
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent:
+         <span>$list:ll$</span>
+       </p>
+       <p>
+         $a sufliopt2 sp [pcdata "myself"] [Some ("a", "jj"); None; Some ("po", "jjj"); None; None; Some ("k", "pp"); None]$, 
+         $a sufliopt2 sp [pcdata "myself (empty list)"] []$
+         $a sufliopt2 sp [pcdata "myself (list [None; None])"] [None; None]$
+         $a sufliopt2 sp [pcdata "myself (list [None])"] [None]$
+       </p>
+       </body>
+     </html> >>)
+
+
 (* set in suffix *)
 let sufset = register_new_service
     ~path:["sufset"]
@@ -1317,6 +1347,7 @@ let mainpage = register_new_service ["tests"] unit
          a sufli sp [pcdata "List in suffix"] [("bo", 4);("ba", 3);("bi", 2);("bu", 1)]; br ();
          a sufliform sp [pcdata "Form to list in suffix"] (); br ();
          a sufliopt sp [pcdata "List of optional values in suffix"] [None; Some "j"]; br ();
+         a sufliopt2 sp [pcdata "List of optional pairs in suffix"] [None; Some ("j", "ee")]; br ();
          a sufset sp [pcdata "Set in suffix"] ["bo";"ba";"bi";"bu"]; br ();
 (*         a sufli2 sp [pcdata "List not in the end of in suffix"] ([1; 2; 3], 4); br (); *)
          a boollistform sp [pcdata "Bool list"] (); br ();
