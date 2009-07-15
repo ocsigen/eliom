@@ -29,7 +29,8 @@ open Xhtmltypes_duce
 
 module Xhtml : Eliom_predefmod.ELIOMSIG with
 type page = html
-and       type form_content_elt = form_content
+  and type options = unit
+  and type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
   and type form_elt = form
   and type a_content_elt = a_content
@@ -79,7 +80,8 @@ and       type form_content_elt = form_content
 
 module Xml : Eliom_predefmod.ELIOMSIG with
 type page = Ocamlduce.Load.anyxml
-and       type form_content_elt = form_content
+  and type options = unit
+  and type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
   and type form_elt = form
   and type a_content_elt = a_content
@@ -129,7 +131,8 @@ and       type form_content_elt = form_content
 
 module Xmllist : Eliom_predefmod.ELIOMSIG with
 type page = Ocamlduce.Load.anyxml list
-and       type form_content_elt = form_content
+  and type options = unit
+  and type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
   and type form_elt = form
   and type a_content_elt = a_content
@@ -178,7 +181,8 @@ and       type form_content_elt = form_content
 
 module Blocks : Eliom_predefmod.ELIOMSIG with
 type page = blocks
-and       type form_content_elt = form_content
+  and type options = unit
+  and type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
   and type form_elt = form
   and type a_content_elt = a_content
@@ -233,6 +237,7 @@ module SubXhtml :
 sig
 
   include Eliom_mkreg.ELIOMREGSIG with type page = T.content
+                                  and type options = unit
   include Eliom_mkforms.ELIOMFORMSIG with
       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}

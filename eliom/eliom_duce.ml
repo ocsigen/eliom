@@ -397,6 +397,7 @@ module SubXhtml =
    end : sig
 
      include Eliom_mkreg.ELIOMREGSIG with type page = T.content
+                                     and type options = unit
      include Eliom_mkforms.ELIOMFORMSIG with
       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
