@@ -27,9 +27,6 @@ type xml =
 
 exception Xml_parser_error of string ;
 
-value nocaml_msg =
-        "Caml code not allowed in configuration file. Use $$ to escape $." ;
-
 
 (* We raise this error when parsing Ocsigen configuration files. *)
 exception ParseException of (Xmllexer.lexing_error * Camlp4.PreCast.Loc.t) ;
