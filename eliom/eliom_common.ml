@@ -164,7 +164,7 @@ type 'a session_cookie =
   | SC of 'a
 
 type cookie_exp =
-  | CENothing   (** nothing to set *)
+  | CENothing   (** nothing to set (keep current value) *)
   | CEBrowser   (** expires at browser close *)
   | CESome of float (** expiration date *)
 

@@ -129,7 +129,12 @@ type sess_info = {
 module SessionCookies : Hashtbl.S with type key = string
 
 type 'a session_cookie = SCNo_data | SCData_session_expired | SC of 'a
-type cookie_exp = CENothing | CEBrowser | CESome of float
+
+type cookie_exp = 
+  | CENothing (* keep current browser value *)
+  | CEBrowser (* ask to remove the cookie when the browser is closed *)
+  | CESome of float (* date (not duration!) *)
+
 type timeout = TGlobal | TNone | TSome of float
 type 'a one_service_cookie_info = {
   sc_value : string;

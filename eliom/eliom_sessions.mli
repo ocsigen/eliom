@@ -50,6 +50,23 @@ open Ocsigen_extensions
    like "close all opened sessions" for one user, or limitation of
    the number of sessions one user can open concurrently, or setting
    data for one group of sessions.
+
+   The default duration of session may be set in Ocsigen's configuration file,
+   as options for the Eliom module. Each Eliom site can override these options
+   using functions of this module.
+
+   Setting sessions timeout in the configuration file. Example:
+    [
+      <extension findlib-package="ocsigen.ext.eliom">
+        <datatimeout value="3600"> (* in memory data sessions *)
+        <persistenttimeout value="infinity"> (* persistent session data *)
+        <servicetimeout value="3600"> (* session services *)
+        <volatiletimeout value="3600"> (* both session services and
+                                          in memory data sessions *)
+      </extension>
+    ]
+
+
   *)
 
 

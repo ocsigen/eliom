@@ -52,9 +52,9 @@ let number_of_persistent_tables () =
 let number_of_persistent_table_elements () =
   List.fold_left
     (fun thr t ->
-      thr >>=
-      (fun l -> Ocsipersist.length (Ocsipersist.open_table t) >>=
-        (fun e -> return ((t, e)::l)))) (return []) !perstables
+      thr >>= fun l -> 
+      Ocsipersist.length (Ocsipersist.open_table t) >>= fun e -> 
+      return ((t, e)::l)) (return []) !perstables
 
 (* close a persistent session by cookie *)
 let close_persistent_session2 fullsessgrp cookie =
