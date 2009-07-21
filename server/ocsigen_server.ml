@@ -795,10 +795,15 @@ let handle_connection port in_ch sockaddr =
             Lwt.return ())
          >>= fun () ->
          Ocsigen_http_com.get_http_frame receiver)
-      handle_read_errors
-      (fun request ->
-         (* We remove the receiver from the set of requests 
+      (fun exn ->
+         (* We remove the receiver from the set of requests
             waiting for pipeline *)
+         (match receiver_pos with
+           | Some pos -> remove_from_receivers_waiting_for_pipeline pos
+           | None -> ());
+         handle_read_errors exn)
+      (fun request ->
+         (* As above *)
          (match receiver_pos with
            | Some pos -> remove_from_receivers_waiting_for_pipeline pos
            | None -> ());
