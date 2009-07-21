@@ -26,8 +26,14 @@ open Xhtmltypes_duce
 open Eliom_tools_common
 
 let attrib_list (s: string list): string = String.concat " " s
+let ul_attribs classes id level =
+  {{ { class={: attrib_list classes :} } ++
+     {{ match id, level with
+          | Some id, 0 -> {{ { id={{Ocamlduce.Utf8.make id}} } }}
+          | _ -> {{ {} }}
+     }} }}
 
-let menu ?(classe=[]) first l ?service:current ~sp =
+let menu ?(classe=[]) ?id first l ?service:current ~sp =
   let rec aux = function
     | [] -> []
     | [(url, text)] ->
@@ -50,7 +56,7 @@ let menu ?(classe=[]) first l ?service:current ~sp =
   in match first::l with
     | [] -> assert false
     | [(url, text)] ->
-        {{ <ul class={: attrib_list (menu_class::classe) :}>
+        {{ <ul ({{ ul_attribs (menu_class::classe) id 0 }})>
              [{:
                let liclasse = [first_class; last_class] in
                  if Some url = current then
@@ -58,7 +64,7 @@ let menu ?(classe=[]) first l ?service:current ~sp =
                  else
                    {{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}] }}
     | (url, text)::l ->
-        {{ <ul class={: attrib_list (menu_class::classe) :}>
+        {{ <ul ({{ ul_attribs (menu_class::classe) id 0 }})>
              [{:
                let liclasse = [first_class] in
                  if Some url = current then
@@ -90,6 +96,7 @@ let find_in_hierarchy service (main, pages) =
 
 let hierarchical_menu_depth_first
     ?(classe=[])
+    ?id
     ?(whole_tree=false)
     ((page, pages) as the_menu)
     ?service
@@ -163,7 +170,8 @@ let hierarchical_menu_depth_first
     let classe = (level_class^string_of_int level)::classe in
     match one_menu true 0 pages with
     | {{ [] }} -> {{ [] }}
-    | {{ l }} -> {{ [ <ul class={: attrib_list (menu_class::classe) :}>l ] }}
+    | {{ l }} ->
+        {{ [ <ul ({{ ul_attribs (menu_class::classe) id level }})>l ] }}
   in
 
   (depth_first_fun pages 0 (find_in_hierarchy service the_menu))
@@ -171,6 +179,7 @@ let hierarchical_menu_depth_first
 
 let hierarchical_menu_breadth_first
     ?(classe=[])
+    ?id
     (((page, pages): ([< Eliom_services.get_service_kind],
                 [< Eliom_services.registrable ],
                 Eliom_duce.Blocks.a_content_elt_list) hierarchical_site) as the_menu)
@@ -228,7 +237,8 @@ let hierarchical_menu_breadth_first
     in
     match one_menu true 0 pages with
     | [] -> l
-    | li::lis -> {{ [ <ul class={: attrib_list (menu_class::classe) :}>[ {: li :} !{: lis :} ] !l ] }}
+    | li::lis ->
+        {{ [ <ul ({{ ul_attribs (menu_class::classe) id level}})>[ {: li :} !{: lis :} ] !l ] }}
 
   in
   (breadth_first_fun pages 0 (find_in_hierarchy service the_menu))

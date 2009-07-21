@@ -29,6 +29,7 @@ open Eliom_tools_common
 
 val menu :
   ?classe:string list ->
+  ?id:string ->
   (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
      Eliom_duce.Blocks.a_content_elt_list)
   ->
@@ -67,6 +68,7 @@ val menu :
  *)
 val hierarchical_menu_depth_first :
   ?classe:string list ->
+  ?id:string ->
   ?whole_tree:bool ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
@@ -91,6 +93,7 @@ val hierarchical_menu_depth_first :
  *)
 val hierarchical_menu_breadth_first :
   ?classe:string list ->
+  ?id:string ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
    Eliom_duce.Blocks.a_content_elt_list)

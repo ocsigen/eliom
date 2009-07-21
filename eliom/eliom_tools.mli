@@ -29,6 +29,7 @@ open Eliom_tools_common
 
 val menu :
   ?classe:XHTML.M.nmtoken list ->
+  ?id:string ->
   (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
      Xhtmltypes.a_content XHTML.M.elt list)
   ->
@@ -68,6 +69,7 @@ val menu :
  *)
 val hierarchical_menu_depth_first :
   ?classe:XHTML.M.nmtoken list ->
+  ?id:string ->
   ?whole_tree:bool ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
@@ -92,6 +94,7 @@ val hierarchical_menu_depth_first :
  *)
 val hierarchical_menu_breadth_first :
   ?classe:XHTML.M.nmtoken list ->
+  ?id:string ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
    Xhtmltypes.a_content XHTML.M.elt list)

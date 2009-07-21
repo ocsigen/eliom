@@ -24,7 +24,14 @@ open Eliom_predefmod.Xhtml
 open Eliom_services
 open Eliom_tools_common
 
-let menu ?(classe=[]) first l ?service:current ~sp =
+let a_ul classes id level =
+  let classes = [a_class classes] in
+  match id, level with
+    | Some id, 0 -> a_id id :: classes
+    | _ -> classes
+
+
+let menu ?(classe=[]) ?id first l ?service:current ~sp =
   let rec aux = function
     | [] -> []
     | [(url, text)] ->
@@ -39,13 +46,13 @@ let menu ?(classe=[]) first l ?service:current ~sp =
   in match first::l with
   | [] -> assert false
   | [(url, text)] ->
-      ul ~a:[a_class (menu_class::classe)]
+      ul ~a:(a_ul (menu_class::classe) id 0)
         (let liclasse = [first_class; last_class] in
         if Some url = (* problem with preapplied services with == *) current
         then (li ~a:[a_class (current_class::liclasse)] text)
         else (li ~a:[a_class liclasse] [a url sp text ()])) []
   | (url, text)::l ->
-      ul ~a:[a_class (menu_class::classe)]
+      ul ~a:(a_ul (menu_class::classe) id 0)
         (let liclasse = [first_class] in
         if Some url = (* problem with preapplied services with == *) current
         then (li ~a:[a_class (current_class::liclasse)] text)
@@ -74,6 +81,7 @@ let find_in_hierarchy service (main, pages) =
 
 let hierarchical_menu_depth_first
     ?(classe=[])
+    ?id
     ?(whole_tree=false)
     ((page, pages) as the_menu)
     ?service
@@ -137,7 +145,7 @@ let hierarchical_menu_depth_first
     let classe = (level_class^string_of_int level)::classe in
     match one_menu true 0 pages with
     | [] -> []
-    | li::lis -> [ul ~a:[a_class (menu_class::classe)] li lis]
+    | li::lis -> [ul ~a:(a_ul (menu_class::classe) id level) li lis]
   in
 
   (depth_first_fun pages 0 (find_in_hierarchy service the_menu)
@@ -146,6 +154,7 @@ let hierarchical_menu_depth_first
 
 let hierarchical_menu_breadth_first
     ?(classe=[])
+    ?id
     ((page, pages) as the_menu)
     ?service
     ~sp =
@@ -202,7 +211,7 @@ let hierarchical_menu_breadth_first
     in
     match one_menu true 0 pages with
     | [] -> l
-    | li::lis -> (ul ~a:[a_class (menu_class::classe)] li lis)::l
+    | li::lis -> (ul ~a:(a_ul (menu_class::classe) id level) li lis)::l
 
   in
   (breadth_first_fun pages 0 (find_in_hierarchy service the_menu)
