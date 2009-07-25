@@ -176,7 +176,7 @@ let () =
 
 
 
-
+>>
 
           
 [[site:tuto/sessdata| See this example here]].
@@ -331,7 +331,7 @@ let session_services_example_close_handler sp () () =
                    sp [pcdata "Retry"] ()
                ]]))
 
-
+>>
 
           
 When the page is called with login parameters,
@@ -412,7 +412,7 @@ let () =
     ~service:session_services_example_with_post_params
     launch_session
 
-
+>>
 
           
 [[site:tuto/sessionservices| See the result]].
@@ -547,7 +547,7 @@ let _ =
   let f sp () () = c := !c + 1; page sp () () in
   Eliom_predefmod.Xhtml.register coservices_example_post f;
   Eliom_predefmod.Xhtml.register coservices_example_get f
-
+>>
 
           
 Try [[site:tuto/coserv|<<span class="code"|coserv>>]].
@@ -774,7 +774,7 @@ let calc_i_handler sp i () =
 let () =
   Eliom_predefmod.Xhtml.register calc   calc_handler;
   Eliom_predefmod.Xhtml.register calc_i calc_i_handler
-
+>>
 
           
 [[site:tuto/calc| See the result]].
@@ -850,7 +850,7 @@ Here we rewrite the example <<span class="code"|session_data_example>>
           
 
           
-
+<<code language="ocaml" |
 (************************************************************)
 (************ Connection of users, version 3 ****************)
 (************************************************************)
@@ -934,7 +934,7 @@ let connect_action_handler sp () login =
 let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
   Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
-
+>>
 
           
 [[site:tuto/action| See these pages]].

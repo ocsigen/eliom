@@ -1,6 +1,3 @@
-
-
-
 <<div class='leftcol'|<<leftcoldoc version="dev">>>>
       <<div class="colprincipale"|
         ==1. The basics: main services, parameters, forms, cooperative programming
@@ -35,7 +32,7 @@ open Eliom_services
 open Eliom_parameters
 open Eliom_sessions
 open Eliom_predefmod.Xhtml
-
+>>
           
 <<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>>
       (lightweight threads) is the cooperative thread library used by Ocsigen
@@ -56,7 +53,7 @@ let coucou =
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Hallo!"]])))
-
+>>
 The same, written with fully qualified values:
           
 <<code language="ocaml"|
@@ -226,7 +223,7 @@ let coucou1 =
              <head><title></title></head>
              <body><h1>Coucou</h1></body>
            </html> ~>>)
-
+>>
             
 To compile this syntax, you need a camlp4 syntax extension:
             
@@ -343,7 +340,7 @@ let coucoutext =
         ("<html>n'importe quoi "^
          (Eliom_predefmod.HtmlText.a coucou sp "clic" ())^
          "</html>"))
-
+>>
             
 [[site:tuto/coucoutext| Try it]].
             
@@ -379,7 +376,7 @@ let count =
         (html
          (head (title (pcdata "counter")) [])
          (body [p [pcdata (string_of_int (next ()))]])))
-
+>>
           
       See this example [[site:tuto/count| here]].
       
@@ -401,7 +398,7 @@ let hello =
         (html
          (head (title (pcdata "Hello")) [])
          (body [h1 [pcdata "Hello"]])))
-
+>>
 
           
       See this example [[site:tuto/dir/hello| here]].
@@ -425,7 +422,7 @@ let default = register_new_service ["rep";""] unit
      (html
       (head (title (pcdata "")) [])
       (body [p [pcdata "default page. rep is redirected to rep/"]])))
-
+>>
           
       See [[site:tuto/rep/| default]].
       
@@ -514,7 +511,7 @@ let coucou_params = register_new_service
     ~get_params:(int "i" ** (int "ii" ** string "s"))
     writeparams
 
-
+>>
 
           
 Note that the URLs of <<span class="code"|coucou>>
@@ -560,7 +557,7 @@ let uasuffix =
                strong [pcdata (Eliom_sessions.get_user_agent sp)];
                pcdata ", your IP is ";
                strong [pcdata (Eliom_sessions.get_remote_ip sp)]]])))
-
+>>
           
 This service will answer to URLs like
     <<span class="code"|http://.../uasuffix/2000/11>>.
@@ -601,7 +598,7 @@ let isuffix =
                strong [pcdata (Ocsigen_extensions.string_of_url_path ~encode:false endsuff)];
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
-
+>>
           
 See [[site:tuto/isuffix/11/a/b/c?i=22|<<span class="code"|isuffix>>]].
           
@@ -628,7 +625,7 @@ let constfix =
           (body [h1
                    [pcdata "Suffix with constants"];
                  p [pcdata ("Parameters are "^s1^" and "^s2)]])))
-
+>>
 
           
 [[site:tuto/constfix/aa/toto/bb|Page with constants in suffix]].
@@ -659,7 +656,7 @@ let mytype =
         (html
          (head (title (pcdata "")) [])
          (body [p [pcdata (v^" is valid. Now try with another value.")]])))
-
+>>
 
           
 See [[site:tuto/mytype?valeur=A|<<span class="code"|mytype>>]].
@@ -693,7 +690,7 @@ let raw_serv = register_new_service
           </p>
           </body>
         </html> ~>>)
-
+>>
 
           
 Try [[site:tuto/any?sun=yellow&sea=blue|<<span class="code"|raw_serv>>]].
@@ -724,7 +721,7 @@ let catch = register_new_service
         (html
            (head (title (pcdata "")) [])
            (body [p [pcdata ("i is an integer: "^v)]])))
-
+>>
 
             
 <<span class="code"|error_handler>> takes as parameters the usual
@@ -784,7 +781,7 @@ let links = register_new_service ["rep";"links"] unit
            [pcdata "OCaml on wikipedia"]
        ]])))
 
-
+>>
 
           
 See [[site:tuto/rep/links|<<span class="code"|links>>]].
@@ -851,7 +848,7 @@ let _ = Eliom_predefmod.Xhtml.register linkrec
         (body [p [a linkrec sp [pcdata "click"] ()]])))
 
 
-
+>>
           
 
           
@@ -894,7 +891,7 @@ let form = register_new_service ["form"] unit
        (html
          (head (title (pcdata "")) [])
          (body [f])))
-
+>>
 
           
 [[site:tuto/form| See the function <<span class="code"|form>> in action]].
@@ -944,7 +941,7 @@ let raw_form = register_new_service
                        Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plap" ();
                        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
-
+>>
 
           
 Try this [[site:tuto/anyform| form]].
@@ -995,7 +992,7 @@ let my_service_with_post_params =
         (html
          (head (title (pcdata "")) [])
          (body [h1 [pcdata value]])))
-
+>>
 
 
 
@@ -1026,7 +1023,7 @@ let my_service_with_get_and_post = register_new_post_service
                    em [pcdata value];
                    pcdata ", i: ";
                    em [pcdata (string_of_int i)]]])))
-
+>>
 
           ====@@id="p1postforms"@@POST forms
           
@@ -1087,7 +1084,7 @@ let form4 = register_new_service ["form4"] unit
        (html
         (head (title (pcdata "form")) [])
         (body [f])))
-
+>>
 
           
 See the urls:
@@ -1159,7 +1156,7 @@ let looong =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata
                    "Ok now, you can read the page."]])))
-
+>>
 
 
           
@@ -1170,7 +1167,7 @@ If you want to use, say, a database library that is not written
        we simulate the request by a call to <<span class="code"|Unix.sleep>>:
       
           
-
+<<code language="ocaml" |
 let looong2 =
   register_new_service
     ~path:["looong2"]
@@ -1182,7 +1179,7 @@ let looong2 =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata
                    "Ok now, you can read the page."]])))
-
+>>
           
 [[site:tuto/looong2| See <<span class="code"|looong2>>]].
           

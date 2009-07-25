@@ -88,7 +88,7 @@ let divpage =
       return
         [div [h2 [pcdata "Hallo"];
               p [pcdata "Blablablabla"] ]])
-
+>>
 
           
      The <<ocsigendoc version="dev" file="Eliom_predefmod.SubXhtml.html"|<<span class="code"|Eliom_predefmod.SubXhtml>>>> module allows to create other modules for
@@ -126,7 +126,7 @@ let redir1 = Eliom_predefmod.Redirection.register_new_service
     ~path:["redir"]
     ~get_params:Eliom_parameters.unit
    (fun sp () () -> Lwt.return coucou)
-
+>>
 
           
      If you want to give parameters to such services, use
@@ -143,7 +143,7 @@ let redir = Eliom_predefmod.Redirection.register_new_service
    (fun sp o () ->
       Lwt.return
         (Eliom_services.preapply coucou_params (o,(22,"ee"))))
-
+>>
 
           
 The <<span class="code"|options>> parameter may be either
@@ -233,7 +233,7 @@ let send_any =
        Eliom_predefmod.HtmlText.send sp
          "<html><body><p>It is not a valid page. Put type=\"valid\" in the URL to get a typechecked page.</p></body></html>"
    )
-
+>>
 
           
       See [[site:tuto/sendany?type=valid| a valid page]],
@@ -330,7 +330,7 @@ let _ = Cookies.register cookies
                              cookiename,
                              string_of_int (Random.int 100),
                              false)]))
-
+>>
 
           
 [[site:tuto/cookies| Try it]].
@@ -490,7 +490,7 @@ let count2 =
           (head (title (pcdata "counter")) [])
           (body [p [pcdata (string_of_int n)]]))))
 
-
+>>
 
           
 [[site:tuto/count2| See this example here]].
@@ -621,7 +621,7 @@ let () =
   Eliom_predefmod.Action.register
     ~service:persist_session_connect_action
     persist_session_connect_action_handler
-
+>>
 
           
 [[site:tuto/persist| See this example here]].
@@ -755,7 +755,7 @@ let connect_action_handler sp () login =
 let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
   Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
-
+>>
           
       As we will see later, there are three kinds of sessions
       (services, volatile data and persistent data).
@@ -960,7 +960,7 @@ let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example6 connect_example6_handler;
   Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
 
-
+>>
           
 [[site:tuto/action2| See this example here]].
       
@@ -1015,7 +1015,7 @@ let _ = register disposable
                     pcdata "I just created a disposable coservice. You can use it only twice.");
                     br ();
                     a disp_coservice sp [pcdata "Try it!"] ()]])))
-
+>>
 
           
 [[site:tuto/disposable| Try it]].
@@ -1135,7 +1135,7 @@ let _ =
           ]))
   in
   register timeout page
-
+>>
           
 [[site:tuto/timeout| See this example here]].
       
@@ -1190,7 +1190,7 @@ let _ =
           ]))
   in
   register publiccoduringsess page
-
+>>
           
 [[site:tuto/publiccoduringsess| See this example here]].
       
@@ -1223,7 +1223,7 @@ let _ = Eliom_services.set_exn_handler
              (body [h1 [pcdata "Eliom tutorial"];
                     p [pcdata "Wrong parameters"]]))
     | e -> fail e)
-
+>>
 
           ====Giving configuration options to your sites
           
@@ -1374,7 +1374,7 @@ let nlparams = register_new_service
                    )]))
 
     )
-  
+  >>
 
           
         To create a link or a form with non-localized parameters,
@@ -1434,7 +1434,7 @@ let tonlparams = register_new_service
     )
     
 
-  
+  >>
 
           
     It is also possible to 
@@ -1444,7 +1444,7 @@ let tonlparams = register_new_service
   <<code language="ocaml" |
 let nlparams_with_nlp =
   Eliom_services.add_non_localized_get_parameters my_nl_params nlparams
-  
+  >>
           
 Then create your link as usual, for example:
       <<span class="code"|a nlparams_with_nlp
@@ -1497,7 +1497,7 @@ let regexp =
 
 <<code language="ocaml" |
 
-
+>>
 [[site:tuto/regexp?myparam=%5Btoto%5D| Try it]].
           
 
@@ -1539,7 +1539,7 @@ let form_bool = register_new_service ["formbool"] unit
         </html> ~>>)
 
 
-
+>>
           
 [[site:tuto/formbool| Try it]].
           
@@ -1608,7 +1608,7 @@ let set = register_new_service
          </p>
          </body>
        </html> ~>>)
-
+>>
           
 These parameters may come from several kinds of widgets in forms.
    Here is an example of a form with several checkboxes, all sharing the same
@@ -1635,7 +1635,7 @@ let setform = register_new_service
                           string_checkbox ~name:n ~value:"box4" ();
                           string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
-
+>>
           
 [[site:tuto/setform| Try it]].
           
@@ -1694,7 +1694,7 @@ let select_example = register_new_service ["select"] unit
        (html
          (head (title (pcdata "")) [])
          (body [f])))
-
+>>
           
 [[site:tuto/select| Try it]].
           
@@ -1749,7 +1749,7 @@ let imageform = register_new_service
                             ~name:n
                             ()]])
                 ])))
-
+>>
           
 [[site:tuto/imageform| Try it]].
           
@@ -1791,7 +1791,7 @@ let imageform2 = register_new_service
                             ()]])
                 ])))
 
-
+>>
           
 [[site:tuto/imageform2| Try it]].
           
@@ -1826,7 +1826,7 @@ let coucou_list = register_new_service
              </p>
              </body>
            </html> ~>>)
-
+>>
           
    Here is an example of link towards this service:
    [[site:tuto/coucou?a.str%5B1%5D=titi&a.str%5B0%5D=toto|coucou?a.str[0]=toto&a.str[1]=titi]].
@@ -1875,7 +1875,7 @@ let listform = register_new_service ["listform"] unit
            <body> $f$ </body>
          </html> ~>>)
 
-
+>>
           
 [[site:tuto/listform| Try it]].
           
@@ -1922,7 +1922,7 @@ let suffixform = register_new_service ["suffixform"] unit
            <body> $f$ </body>
          </html> ~>>)
 
-
+>>
           
 [[site:tuto/suffixform| Try it]].
           
@@ -2016,7 +2016,7 @@ let uploadform = register upload
            (body [f])))
 
 
-
+>>
           
 [[site:tuto/upload| Try it]]
       (warning: uploading on ocsigen.org is forbidden).
@@ -2226,7 +2226,7 @@ let _ =
   register hier8 (f 8 hier8);
   register hier9 (f 9 hier9);
   register hier10 (f 10 hier10)
-
+>>
 
 
         ===@@id="p3misc"@@Miscellaneous
@@ -2431,8 +2431,5 @@ Ocsigen's source code contains an example of Wiki written with
     
         >>
       >>      
-
-
-
 
 

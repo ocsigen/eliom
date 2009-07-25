@@ -57,13 +57,13 @@ miniwiki.opt:
 	$(MAKE) -C miniwiki opt
 
 tutoeliom1.wiki: tutoeliom.ml
-	cat tutoeliom.ml | sed '/%<||2>%/,$$ d' | /bin/sh ./tutomake.sh > tutoeliom1.wiki
+	cat tutoeliom.ml | sed '1,/(\*wiki\*/d' | sed '/%<||2>%/,$$ d' | /bin/sh ./tutomake.sh > tutoeliom1.wiki
 
 tutoeliom2.wiki: tutoeliom.ml
 	cat tutoeliom.ml | sed '/%<||3>%/,$$ d' | sed '1,/%<||2>%/d' | /bin/sh ./tutomake.sh > tutoeliom2.wiki
 
 tutoeliom3.wiki: tutoeliom.ml
-	cat tutoeliom.ml | sed '1,/%<||3>%/d' | /bin/sh ./tutomake.sh > tutoeliom3.wiki
+	cat tutoeliom.ml | sed '/%<||4>%/,$$ d' | sed '1,/%<||3>%/d' | /bin/sh ./tutomake.sh > tutoeliom3.wiki
 
 
 .SUFFIXES:

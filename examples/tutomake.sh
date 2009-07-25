@@ -8,8 +8,6 @@
   sed "s/\*zap\*)/\n\*zap\*)\nPLOPOPO/g" | 
   sed '/(\*zap\*/,/\*zap\*)/d'| 
   sed ':a;N;$!ba;s/\nPLOPOPO//g' | 
-  sed 's/(\*wiki\*//' | 
-  sed ':a;N;$!ba;s/\(.*\)\*wiki\*)/\1/' | 
   sed 's/\*wiki\*)/<<code language="ocaml" |/g' | 
   sed 's/(\*wiki\*/>>/g'
 
