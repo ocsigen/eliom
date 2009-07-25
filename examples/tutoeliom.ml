@@ -6,73 +6,53 @@
 (*zap*
 ~/bin/caml2html -css -hc2 -oc tutoeliom.ml
 *zap*)
-(*html*
-
-let part0 sp =
-°:xmllist°
-
-    <div class="onecol">
-      <p>This is the programmer's guide
-        for <em>Eliom</em> (development version).
-        Please report any error in this tutorial
-        and send us your comments and suggestions!
-      </p>
-      <p>This manual is also available as a <a href="eliom-1.1.0.pdf">pdf file</a>.</p>
-      <p>Eliom is an extension for the Web server <em>Ocsigen</em>
-         that allows dynamic webpages generation.
-         It uses very new concepts making programming very different
-         from all other Web programming tools.
-         It allows to write a complex Web site in very few lines of code.
-      </p>
-      <p><em>Warning: This tutorial assumes you know the
-        <em>Objective Caml</em> language.</em></p>
-    </div>
-
-°°
-
-
-
-let part1 sp =
-°:xmllist°
-
-
-   <h2>1. The basics: main services, parameters, forms, cooperative programming</h2>
-    <h3 id="p1baseprinciples">Base principles</h3>
-    <div class="onecol">
-      <p>Unlike many other Web programming techniques (CGI, PHP,&nbsp;...),
+(*wiki*
+%<div class='leftcol'|%<leftcoldoc version="dev">%>%
+      %<div class="colprincipale"|
+        ==1. The basics: main services, parameters, forms, cooperative programming
+        
+        ===@@id="p1baseprinciples"@@Base principles
+        
+        %<div class="onecol"|
+          
+Unlike many other Web programming techniques (CGI, PHP,~ ...),
           with Eliom, you don't write one file for each URL, but
-          a caml module (cmo or cma) for the whole Web site.</p>
-      <p>
-          The $a ~service:senddoc ~sp [code [pcdata "Eliom_services" ]] [version;"Eliom_services.html"]$ module allows to create new entry points to
-          your Web site, called <em>services</em>. In general, services are
+          a caml module (cmo or cma) for the whole Web site.
+          
+
+          
+          The %<ocsigendoc version="dev" file="Eliom_services.html"|%<span class="code"|Eliom_services>%>% module allows to create new entry points to
+          your Web site, called //services//. In general, services are
           attached to an URL and generate a Web page.
           They are represented by OCaml values, on which
           you must register a function that will generate a page.
           There are several ways to create pages for Eliom. This tutorial
-          is mainly using $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$, a module allowing
+          is mainly using %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>%, a module allowing
           to register xhtml pages statically typed using OCaml's
           polymorphic variants.
-  The $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ module defines functions to construct
+  The %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% module defines functions to construct
           xhtml pages using that type system.
-          As the $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ redefines some functions
-          of $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$, open the modules in this order:
-      </p>
-*html*)
+          As the %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>% redefines some functions
+          of %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>%, open the modules in this order:
+*wiki*)
 open Lwt
 open XHTML.M
 open Eliom_services
 open Eliom_parameters
 open Eliom_sessions
 open Eliom_predefmod.Xhtml
-(*html*
-      <p>$a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$
+(*wiki*
+          
+%<ocsigendoc version="dev" file="Lwt.html"|%<span class="code"|Lwt>%>%
       (lightweight threads) is the cooperative thread library used by Ocsigen
-      (<a href="#p1threads">see later</a>).</p>
-      <p>Here is an example showing how to create a new service and
+      ([[eliom/manual/dev/1#p1threads|see later]]).
+          
+
+          
+Here is an example showing how to create a new service and
          register a page created with XHTML.M. Use the function
-         $a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.register_new_service" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$:
-      </p>
-*html*)
+         %<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_new_service"|%<span class="code"|Eliom_predefmod.Xhtml.register_new_service>%>%:
+*wiki*)
 let coucou =
   register_new_service
     ~path:["coucou"]
@@ -82,20 +62,10 @@ let coucou =
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Hallo!"]])))
-(*html*
+(*wiki*
 The same, written with fully qualified values:
-<pre>
-<span class="Clet">let</span> coucou <span class="Cnonalphakeyword">=</span>
-  <span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service
-    <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"coucou"</span><span class="Cnonalphakeyword">]</span>
-    <span class="Clabel">~get_params:</span><span class="Cconstructor">Eliom_parameters</span><span class="Cnonalphakeyword">.</span>unit
-    <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
-      <span class="Cconstructor">Lwt</span><span class="Cnonalphakeyword">.</span>return
-        <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>html
-          <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>head <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>title <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>pcdata <span class="Cstring">""</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span>
-          <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>body <span class="Cnonalphakeyword">[</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>h1 <span class="Cnonalphakeyword">[</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>pcdata <span class="Cstring">"Hallo!"</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span>
-</pre>
-*html*)(*zap*
+          
+%<code language="ocaml"|
 let coucou =
   Eliom_predefmod.Xhtml.register_new_service
     ~path:["coucou"]
@@ -105,101 +75,153 @@ let coucou =
         (XHTML.M.html
           (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata "")) [])
           (XHTML.M.body [XHTML.M.h1 [XHTML.M.pcdata "Hallo!"]])))
-*zap*)(*html*
-      <p>As you can see,
-      $a ~fragment:"VALreturn" ~service:senddoc ~sp [code [pcdata "return" ]] [version;"Lwt.html"]$ is a function from $a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$.
+
+>%
+
+
+          
+As you can see,
+      %<ocsigendoc version="dev" file="Lwt.html" fragment="VALreturn"|%<span class="code"|return>%>% is a function from %<ocsigendoc version="dev" file="Lwt.html"|%<span class="code"|Lwt>%>%.
       Use it like this for instants, and
-      <a href="#p1threads">see later</a> for more advanced use.</p>
-      <p>
-      Now you can compile your file (here <code>tutorial.ml</code>)
-        by typing :</p>
-      <pre>ocamlc -thread -I /<em>path_to</em>/ocsigen/ -I /<em>path_to</em>/lwt/ -c tutorial.ml</pre>
-      <p>If you use findlib, you can also use the following command line:</p>
-      <pre>ocamlfind ocamlc -thread -package ocsigen -c tutorial.ml</pre>
-      <p>
-      Replace <code>/<em>path_to</em>/ocsigen/</code>
+      [[eliom/manual/dev/1#p1threads|see later]] for more advanced use.
+          
+
+          
+      Now you can compile your file (here %<span class="code"|tutorial.ml>%)
+        by typing :
+          
+
+          %<div class="pre"|ocamlc -thread -I ~///path_to///ocsigen/ -I ~///path_to///lwt/ -c tutorial.ml>%
+          
+If you use findlib, you can also use the following command line:
+          
+
+          %<div class="pre"|ocamlfind ocamlc -thread -package ocsigen -c tutorial.ml>%
+          
+      Replace %<span class="code"|~///path_to///ocsigen/>%
        by the directory where Ocsigen libraries are installed (that contains
-       <code>eliom.cma</code>, <code>staticmod.cmo</code>, etc.),
+       %<span class="code"|eliom.cma>%, %<span class="code"|staticmod.cmo>%, etc.),
        usually something like
-      <code>/usr/lib/ocaml/3.09.3/ocsigen</code> or
-      <code>/usr/local/lib/ocaml/3.09.3/ocsigen</code> or
-      <code>/opt/godi/lib/ocaml/site-lib/ocsigen</code>.
-      </p>
-      <p>
+      %<span class="code"|/usr/lib/ocaml/3.09.3/ocsigen>% or
+      %<span class="code"|/usr/local/lib/ocaml/3.09.3/ocsigen>% or
+      %<span class="code"|/opt/godi/lib/ocaml/site-lib/ocsigen>%.
+      
+          
+
+          
       Add the following lines to Ocsigen's config file
-      (<code>/etc/ocsigen/ocsigen.conf</code> most of the time):
-      </p>
-      <pre>&lt;host&gt;
- &lt;site path="examples"&gt;
-  &lt;eliom module="/<em>path_to</em>/tutoeliom.cmo" /&gt;
- &lt;/site&gt;
-&lt;/host&gt;</pre>
-      <p>Note that if your module has a findlib <code>META</code> file,
-        it is also possible to do:</p>
-      <pre>&lt;host&gt;
- &lt;site path="examples"&gt;
-  &lt;eliom findlib-package="<em>package-name</em>" /&gt;
- &lt;/site&gt;
-&lt;/host&gt;</pre>
-      <p>Then run ocsigen. You should see your page at url
-           <code>http://<em>your_server</em>/examples/coucou</code>.
-           See this example $a Tutoeliom.coucou sp <:xmllist< here >> ()$.
-      </p>
-      <p>NB: See the default config file to see how to set the port on
+      (%<span class="code"|/etc/ocsigen/ocsigen.conf>% most of the time):
+      
+          
+
+          %<div class="pre"|<host>
+ <site path="examples">
+  <eliom module="~///path_to///tutoeliom.cmo" />
+ </site>
+</host>
+>%
+
+          
+Note that if your module has a findlib %<span class="code"|META>% file,
+        it is also possible to do:
+          
+
+          %<div class="pre"|<host>
+ <site path="examples">
+  <eliom findlib-package="//package-name//" />
+ </site>
+</host>
+>%
+
+          
+Then run ocsigen. You should see your page at url
+           %<span class="code"|~http:~/~///your_server///examples/coucou>%.
+           See this example [[site:tuto/coucou| here]].
+      
+          
+
+          
+NB: See the default config file to see how to set the port on
               which your server is running, the user who runs it, the path
             of the log files, etc.
-      </p>
-      <p>Here is a sample
-   $a ~service:(static_dir sp) ~sp [pcdata "Makefile"] ["Makefile"]$ for your modules.</p>
-      <h4>Static typing of XHTML with XHTML.M</h4>
-        <p>
-        Typing of xhtml with $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ and $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$
+      
+          
+
+          
+Here is a sample
+   [[site:Makefile|Makefile]] for your modules.
+          
+
+          ====Static typing of XHTML with XHTML.M
+          
+          
+        Typing of xhtml with %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% and %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>%
         is very strict and compels you to respect
         xhtml 1.1 standard (with some limitations).
         For example if you write:
-        </p>
-<pre><span class="Cnonalphakeyword">(</span>html
-   <span class="Cnonalphakeyword">(</span>head <span class="Cnonalphakeyword">(</span>title <span class="Cnonalphakeyword">(</span>pcdata <span class="Cstring">""</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span>
-   <span class="Cnonalphakeyword">(</span>body <span class="Cnonalphakeyword">[</span>pcdata <span class="Cstring">"Hallo"</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span></pre>
+        
+          
 
-        <p>You will get the following error message:</p>
-<pre>This expression has type ([&gt; `PCDATA ] as 'a) XHTML.M.elt
+          
+%<code language="ocaml"|(html
+   (head (title (pcdata "")) [])
+   (body [pcdata "Hallo"]))
+>%
+
+
+          
+You will get the following error message:
+          
+
+          
+%<div class="pre"|This expression has type ([> `PCDATA ] as 'a) XHTML.M.elt
 but is here used with type
-([&lt; XHTML.M.block ] as 'b) XHTML.M.elt
+([< XHTML.M.block ] as 'b) XHTML.M.elt
 Type 'a is not compatible with type
 'b =
-  [&lt; `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
+  [< `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
    | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins
-   | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ]</pre>
-   <p><code>'b</code> is the type of block tags (only tags allowed inside
-   <code>&lt;body&gt;</code>), but PCDATA
-        (i.e. raw text) is not a block tag.</p>
+   | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ]
+>%
+
+          
+%<span class="code"|'b>% is the type of block tags (only tags allowed inside
+   %<span class="code"|<body>%>), but PCDATA
+        (i.e. raw text) is not a block tag.
+          
 
 
 
-   <p>In XHTML, some tags cannot be empty. For example
-   <code>&lt;table&gt;</code> must contain at least one row.
-   To enforce this, the $a ~fragment:"VALtable" ~service:senddoc ~sp [code [pcdata "XHTML.M.table" ]] [version;"XHTML.M.html"]$ function takes two parameters:
+
+          
+In XHTML, some tags cannot be empty. For example
+   %<span class="code"|<table>%> must contain at least one row.
+   To enforce this, the %<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALtable"|%<span class="code"|XHTML.M.table>%>% function takes two parameters:
    the first one is the first row, the second one is a list
    containing all the other rows.
-   (same thing for <code>&lt;tr&gt;</code> <code>&lt;form&gt;</code>
-<code>&lt;dl&gt;</code> <code>&lt;ol&gt;</code> <code>&lt;ul&gt;</code>
-<code>&lt;dd&gt;</code> <code>&lt;select&gt;</code> ...)
+   (same thing for %<span class="code"|<tr>%> %<span class="code"|<form>%>
+%<span class="code"|<dl>%> %<span class="code"|<ol>%> %<span class="code"|<ul>%>
+%<span class="code"|<dd>%> %<span class="code"|<select>%> ...)
  This forces the user to handle the empty list case specially and thus make
  the output conform to the DTD.
-  </p>
-   <p>
-   A more detailed introduction to <code>XHTML.M</code> is available
-         $a ~service:senddoc ~sp [code [pcdata "here" ]] [version;"XHTML.M.html"]
-(*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
-$.
+  
+          
+
+          
+   A more detailed introduction to %<span class="code"|XHTML.M>% is available
+         %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|here>%>%.
    Take a quick look at it before continuing this tutorial.
-   </p>
-      <div class="encadre">
-        <h4>Alternate syntax</h4>
-          <p>
-          If you prefer using a syntax closer to html, you can write:</p>
-*html*)
+   
+          
+
+          %<div class="encadre"|
+            ====Alternate syntax
+            
+            
+          If you prefer using a syntax closer to html, you can write:
+            
+
+            *wiki*)
 let coucou1 =
   Eliom_predefmod.Xhtml.register_new_service
     ~path:["coucou1"]
@@ -210,82 +232,114 @@ let coucou1 =
              <head><title></title></head>
              <body><h1>Coucou</h1></body>
            </html> >>)
-(*html*
-      <p>To compile this syntax, you need a camlp4 syntax extension:</p>
-      <pre>ocamlc -I /<em>path_to</em>/ocsigen/
- -pp "camlp4o /<em>path_to</em>/ocsigen/xhtmlsyntax.cma -loc loc"
- -c tutorial.ml</pre>
-      <p>
-         (Replace <code>/<em>path_to</em>/ocsigen/</code>
+(*wiki*
+            
+To compile this syntax, you need a camlp4 syntax extension:
+            
+
+            %<div class="pre"|ocamlc -I ~///path_to///ocsigen/
+ -pp "camlp4o ~///path_to///ocsigen/xhtmlsyntax.cma -loc loc"
+ -c tutorial.ml>%
+            
+         (Replace %<span class="code"|~///path_to///ocsigen/>%
        by the directory where ocsigen is installed).
-           See this example $a Tutoeliom.coucou1 sp <:xmllist< here >> ()$.
-      </p>
-      <p>
+           See this example [[site:tuto/coucou1| here]].
+      
+            
+
+            
          As the syntax extension is using the same typing system as XHTML.M,
-         You can mix the two syntaxes (<a href="#p1postforms">see later</a>).
-      </p>
-      <p>
-         <em>Warning:</em> The two syntaxes are not equivalent for typing.
+         You can mix the two syntaxes ([[eliom/manual/dev/1#p1postforms|see later]]).
+      
+            
+
+            
+//Warning:// The two syntaxes are not equivalent for typing.
          Using the syntax extension will do less checking.
          For example the following code is accepted but not valid
-         regarding xhtml's dtd (because <code>&lt;head&gt;</code>
+         regarding xhtml's dtd (because %<span class="code"|<head>%>
          must contain a title):
-      </p>
-<pre>&lt;&lt; <span class="Cnonalphakeyword">&lt;</span>html<span class="Cnonalphakeyword">&gt;</span>
-     <span class="Cnonalphakeyword">&lt;</span>head&gt;&lt;/head<span class="Cnonalphakeyword">&gt;</span>
-     <span class="Cnonalphakeyword">&lt;</span>body&gt;&lt;h1<span class="Cnonalphakeyword">&gt;</span>plop&lt;/h1&gt;&lt;/body<span class="Cnonalphakeyword">&gt;</span>
-   &lt;/html<span class="Cnonalphakeyword">&gt;</span> &gt;&gt;</pre>
-      <p>
+      
+            
+
+            
+%<code language="ocaml"|%< <html>
+     <head></head>
+     <body><h1>plop</h1></body>
+   </html> ~>%
+>%
+            
         We recommend you to use
-        the functions from $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$, as you will (almost)
+        the functions from %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>%, as you will (almost)
         always get valid xhtml.
         Use the syntax extension for example to enclose already created pieces
         of html, and check your pages validity with the
-        $a (new_external_service "http://validator.w3.org" [] unit unit ())
-           sp <:xmllist< W3C validator >> ()$.
-      </p>
-      <p>
-        $a ~service:senddoc ~sp [code [pcdata "More info" ]] [version;"XHTML.M.html"]$
-        on <code>XHTML.M</code>.
-      </p>
-      <p>
-       $a xhtmlsyntax sp <:xmllist< More info >> ()$ on the syntax extension.
-      </p>
-      </div>
-      <div class="encadre">
-        <h4>Eliom and OCamlDuce</h4>
-        <p>If OCamlDuce is installed on your system, it is now possible to use
+        [[http://validator.w3.org/| W3C validator]].
+      
+            
+
+            
+%<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|More info>%>%
+        on %<span class="code"|XHTML.M>%.
+      
+            
+
+            
+[[site:xhtmlsyntax| More info]] on the syntax extension.
+      
+            
+      
+          >%
+          %<div class="encadre"|
+            ====Eliom and OCamlDuce
+            
+            
+If OCamlDuce is installed on your system, it is now possible to use
         it instead of XHTML.M and Eliom_parameters.Xhtml
         to typecheck your pages. You will get a stronger type checking
         and more flexibility (easier to use other XML types, to parse
-        incoming XML data, etc.).</p>
-        <p>To use it, make sure that you have Eliom compiled with OCamlDuce
-         support. Then dynlink <code>ocamlduce.cma</code> and
-          <code>eliomduce.cma</code> from the configuration file
-        (after <code>eliom.cma</code>).
-        Then use $a ~service:senddoc ~sp [code [pcdata "Eliom_duce.Xhtml" ]] [version;"Eliom_duce.Xhtml.html"]$ instead of
-        $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ to register your pages.
-        </p>
-        <p>Here is an example:</p>
-        <pre><span style="color:#cc9900">open</span> <span style="color:#0033cc">Lwt</span>
+        incoming XML data, etc.).
+            
 
-<span style="color:green">let</span> s =
-  <span class="Cconstructor">Eliom_duce</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service
-    <span style="color:#770000">~path:</span>[<span style="color:#aa4444">""</span>]
-    <span style="color:#770000">~get_params:</span>unit
-    (<span style="color:green">fun</span> sp () () -&gt;
+            
+To use it, make sure that you have Eliom compiled with OCamlDuce
+         support. Then dynlink %<span class="code"|ocamlduce.cma>% and
+          %<span class="code"|eliomduce.cma>% from the configuration file
+        (after %<span class="code"|eliom.cma>%).
+        Then use %<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|%<span class="code"|Eliom_duce.Xhtml>%>% instead of
+        %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>% to register your pages.
+        
+            
+
+            
+Here is an example:
+            
+
+            
+%<code language="ocaml"|open Lwt
+
+let s =
+  Eliom_duce.Xhtml.register_new_service
+    ~path:[""]
+    ~get_params:unit
+    (fun sp () () ->
       return
-        {{ &lt;html&gt;
-             [&lt;head&gt; [&lt;title&gt; <span style="color:#aa4444">""</span>]
-              &lt;body&gt; [&lt;h1&gt; <span style="color:#aa4444">"This page has been type checked by OCamlDuce"</span>]] }}) </pre>
-      </div>
-      <div class="encadre">
-        <h4>Eliom_predefmod.HtmlText</h4>
-        <p>If you want to register untyped (text) pages, use the
-         functions from $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.HtmlText" ]] [version;"Eliom_predefmod.HtmlText.html"]$, for example
-         $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Text.register_new_service" ]] [version;"Eliom_predefmod.Text.html"]$ :
-        </p>
-*html*)
+        {{ <html>
+             [<head> [<title> ""]
+              <body> [<h1> "This page has been type checked by OCamlDuce"]] }}) 
+>%      
+          >%
+          %<div class="encadre"|
+            ====Eliom_predefmod.HtmlText
+            
+            
+If you want to register untyped (text) pages, use the
+         functions from %<ocsigendoc version="dev" file="Eliom_predefmod.HtmlText.html"|%<span class="code"|Eliom_predefmod.HtmlText>%>%, for example
+         %<ocsigendoc version="dev" file="Eliom_predefmod.Text.html"|%<span class="code"|Eliom_predefmod.Text.register_new_service>%>% :
+        
+            
+
+            *wiki*)
 let coucoutext =
   Eliom_predefmod.HtmlText.register_new_service
     ~path:["coucoutext"]
@@ -295,20 +349,29 @@ let coucoutext =
         ("<html>n'importe quoi "^
          (Eliom_predefmod.HtmlText.a coucou sp "clic" ())^
          "</html>"))
-(*html*
-      <p>$a Tutoeliom.coucoutext sp <:xmllist< Try it >> ()$.</p>
+(*wiki*
+            
+[[site:tuto/coucoutext| Try it]].
+            
 
-      </div>
-    </div>
-    <h3 id="p1moreexamples">More examples</h3>
-    <div class="onecol">
-      <p>Services registered with <code>register_new_service</code>
-         are available for all users. We call them <em>public services</em>.
-      </p>
-      <p>
+      
+          >%    
+        >%
+        ===@@id="p1moreexamples"@@More examples
+        
+        %<div class="onecol"|
+          
+Services registered with %<span class="code"|register_new_service>%
+         are available for all users. We call them //public services//.
+      
+          
+
+          
         Page generation may have side-effects:
-      </p>
-*html*)
+      
+          
+
+          *wiki*)
 let count =
   let next =
     let c = ref 0 in
@@ -322,13 +385,19 @@ let count =
         (html
          (head (title (pcdata "counter")) [])
          (body [p [pcdata (string_of_int (next ()))]])))
-(*html*
-      <p>
-      See this example $a Tutoeliom.count sp <:xmllist< here >> ()$.
-      </p>
-      <p>As usual in OCaml, you can forget labels when the application
-          is total:</p>
-*html*)
+(*wiki*
+          
+      See this example [[site:tuto/count| here]].
+      
+          
+
+          
+As usual in OCaml, you can forget labels when the application
+          is total:
+          
+
+          
+*wiki*)
 let hello =
   register_new_service
     ["dir";"hello"]  (* the url dir/hello *)
@@ -338,76 +407,103 @@ let hello =
         (html
          (head (title (pcdata "Hello")) [])
          (body [h1 [pcdata "Hello"]])))
-(*html*
-      <p>
-      See this example $a Tutoeliom.hello sp <:xmllist< here >> ()$.
-      </p>
+(*wiki*
+
+          
+      See this example [[site:tuto/dir/hello| here]].
+      
+          
 
 
 
-      <p>The last example shows how to define the default page for
-       a directory. (Note that <code>["rep";""]</code> means
-       the default page of the directory <code>rep/</code>)</p>
-*html*)
+
+          
+The last example shows how to define the default page for
+       a directory. (Note that %<span class="code"|["rep";""]>% means
+       the default page of the directory %<span class="code"|rep/>%)
+          
+
+          
+*wiki*)
 let default = register_new_service ["rep";""] unit
   (fun _ () () ->
     return
      (html
       (head (title (pcdata "")) [])
       (body [p [pcdata "default page. rep is redirected to rep/"]])))
-(*html*
-      <p>
-      See $a Tutoeliom.default sp <:xmllist< default >> ()$.
-      </p>
-      <div class="encadre">
-        <h4>Remarks on paths</h4>
-        <p>
-          <code>["foo";"bar"]</code> corresponds to the URL
-          <code>foo/bar</code>.<br/>
-          <code>["dir";""]</code> corresponds to the URL <code>dir/</code>
-          (that is: the default page of the directory <code>dir</code>). <br/>
-          The empty list <code>[]</code> is equivalent to <code>[""]</code>.
-        </p>
-        <p>
-          <em>Warning:</em>
-          You cannot create a service on path <code>["foo"]</code>
-          (URL <code>foo</code>, without slash at the end)
-          and another on path <code>["foo";"bar"]</code>
-          (URL <code>foo/bar</code>) because <code>foo</code> can not be
+(*wiki*
+          
+      See [[site:tuto/rep/| default]].
+      
+          
+
+          %<div class="encadre"|
+            ====Remarks on paths
+            
+            
+%<span class="code"|["foo";"bar"]>% corresponds to the URL
+          %<span class="code"|foo/bar>%.              \\
+          %<span class="code"|["dir";""]>% corresponds to the URL %<span class="code"|dir/>%
+          (that is: the default page of the directory %<span class="code"|dir>%).               \\
+          The empty list %<span class="code"|[]>% is equivalent to %<span class="code"|[""]>%.
+        
+            
+
+            
+//Warning://
+          You cannot create a service on path %<span class="code"|["foo"]>%
+          (URL %<span class="code"|foo>%, without slash at the end)
+          and another on path %<span class="code"|["foo";"bar"]>%
+          (URL %<span class="code"|foo/bar>%) because %<span class="code"|foo>% can not be
           both a directory and a file.
           Be also careful not to use a string as a directory with
           Eliom, if it is a file for Staticmod (and vice versa).
-        </p>
-        <p>
-          <em>Warning:</em>
-          <code>["foo";"bar"]</code> is not equivalent to
-          <code>["foo/bar"]</code>.
+        
+            
+
+            
+//Warning://
+          %<span class="code"|["foo";"bar"]>% is not equivalent to
+          %<span class="code"|["foo/bar"]>%.
           In the latter, the "/" will be encoded in the URL.
-        </p>
-      </div>
-    </div>
-    <h3 id="p1parameters">Parameters</h3>
-    <div class="onecol">
-      <h4>Typed parameters</h4>
-      <p>The parameter labeled
-        <code><span class="Clabel">~get_params</span></code>
+        
+            
+      
+          >%    
+        >%
+        ===@@id="p1parameters"@@Parameters
+        
+        %<div class="onecol"|
+          ====Typed parameters
+          
+          
+The parameter labeled
+        %<span class="code"|~get_params>%
         indicates the type of GET parameters for the page (that is, parameters
         present in the URL).
-        $a ~fragment:"VALunit" ~service:senddoc ~sp [code [pcdata "unit" ]] [version;"Eliom_parameters.html"]$ means that the page does not take any GET parameter.
-      </p>
-      <p>Functions implementing services are called <em>service handlers</em>.
+        %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALunit"|%<span class="code"|unit>%>% means that the page does not take any GET parameter.
+      
+          
+
+          
+Functions implementing services are called //service handlers//.
        They take three parameters. The first
        one has type
-       $a ~fragment:"TYPEserver_params" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.server_params" ]]
-   [version;"Eliom_sessions.html"]$
+       %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="TYPEserver_params"|%<span class="code"|Eliom_sessions.server_params>%>%
         and
        corresponds to server parameters (user-agent, ip, current-url, etc.
        - see later in that section for examples of use),
         the second one is for GET parameters
         (that is, parameters in the URL) and the third one
-       for POST parameters (parameters in the body of the HTTP request).</p>
-      <p>Here is an example of a service with GET parameters:</p>
-*html*)
+       for POST parameters (parameters in the body of the HTTP request).
+          
+
+          
+Here is an example of a service with GET parameters:
+          
+
+          
+*wiki*)
 let writeparams _ (i1, (i2, s1)) () =
   return
    (html
@@ -426,29 +522,36 @@ let coucou_params = register_new_service
     writeparams
 (*zap* If you register twice exactly the same URL, the server won't start
  *zap*)
-(*html*
-      <p>Note that the URLs of <code>coucou</code>
-      and <code>coucou_params</code>
+(*wiki*
+
+          
+Note that the URLs of %<span class="code"|coucou>%
+      and %<span class="code"|coucou_params>%
       differ only by parameters. Url
-      $a Tutoeliom.coucou sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou</code> >> ()$
-      will run the first one,<br/>
-      $a Tutoeliom.coucou_params sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code> >> (42, (17, "krokodile")) $
-      will run the second one.<br/>
-      If <code>i</code> is not an integer,
+      [[site:tuto/coucou|%<span class="code"|~http:~/~///your_server///examples/coucou>%]]
+      will run the first one,            \\
+      [[site:tuto/coucou?s=krokodile&ii=17&i=42|%<span class="code"|~http:~/~///your_server///examples/coucou?i=42&ii=17&s=krokodile>%]]
+      will run the second one.            \\
+      If %<span class="code"|i>% is not an integer,
       the server will display an error-message
-      (try to change the value in the URL).<br/>
-      Here, <code>int</code>, <code>string</code> and <code>**</code>
-      are functions defined in the $a ~service:senddoc ~sp [code [pcdata "Eliom_parameters" ]] [version;"Eliom_parameters.html"]$ module.
-      <br/>
-      <em>Warning:</em>
-      The infix function <code>( ** )</code> is to be used to
-      construct <em>pairs</em> (not tuples).
-      </p>
-      <p>The following examples shows how to create a service with "suffix"
+      (try to change the value in the URL).            \\
+      Here, %<span class="code"|int>%, %<span class="code"|string>% and %<span class="code"|**>%
+      are functions defined in the %<ocsigendoc version="dev" file="Eliom_parameters.html"|%<span class="code"|Eliom_parameters>%>% module.
+                  \\
+      //Warning://
+      The infix function %<span class="code"|( ** )>% is to be used to
+      construct //pairs// (not tuples).
+      
+          
+
+          
+The following examples shows how to create a service with "suffix"
          service
          (taking the end of the URL as a parameter, as wikis do very often)
-        and how to get server information:</p>
-*html*)
+        and how to get server information:
+          
+
+*wiki*)
 let uasuffix =
   register_new_service
     ~path:["uasuffix"]
@@ -465,21 +568,32 @@ let uasuffix =
                strong [pcdata (Eliom_sessions.get_user_agent sp)];
                pcdata ", your IP is ";
                strong [pcdata (Eliom_sessions.get_remote_ip sp)]]])))
-(*html*
-    <p>This service will answer to URLs like
-    <code>http://.../uasuffix/2000/11</code>.</p>
-    <p>See $a Tutoeliom.uasuffix sp <:xmllist< <code>uasuffix</code> >> (2007,07)$</p>
-    <p>Suffix parameters have names, because we can create forms towards
-       these services. <code>uasuffix/2000/11</code> is equivalent to
-       <code>uasuffix/?year=2000&amp;month=11</code>.
-    </p>
-    <p>
-       <code>suffix_prod</code> allows to take both a suffix and
-       other parameters.<br/>
-       <code>all_suffix</code> allows to take the end of the suffix as a
-       <code>string list</code>.
-    </p>
-*html*)
+(*wiki*
+          
+This service will answer to URLs like
+    %<span class="code"|http://.../uasuffix/2000/11>%.
+          
+
+          
+See [[site:tuto/uasuffix/2007/7|%<span class="code"|uasuffix>%]]
+          
+
+          
+Suffix parameters have names, because we can create forms towards
+       these services. %<span class="code"|uasuffix/2000/11>% is equivalent to
+       %<span class="code"|uasuffix/?year=2000&month=11>%.
+    
+          
+
+          
+%<span class="code"|suffix_prod>% allows to take both a suffix and
+       other parameters.            \\
+       %<span class="code"|all_suffix>% allows to take the end of the suffix as a
+       %<span class="code"|string list>%.
+    
+          
+
+*wiki*)
 let isuffix =
   register_new_service
     ~path:["isuffix"]
@@ -495,19 +609,22 @@ let isuffix =
                strong [pcdata (Ocsigen_extensions.string_of_url_path ~encode:false endsuff)];
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
-(*html*
-      <p>See $a Tutoeliom.isuffix sp <:xmllist< <code>isuffix</code> >> ((11, ["a";"b";"c"]) , 22)$.</p>
+(*wiki*
+          
+See [[site:tuto/isuffix/11/a/b/c?i=22|%<span class="code"|isuffix>%]].
+          
 
-      <p>If you want parameters in the path but not always at the end,
-         use the $a ~fragment:"VALconst"
-                    ~service:senddoc ~sp
-                    [code [pcdata "Eliom_parameters.const" ]]
-                    [version;"Eliom_parameters.html"]$
+
+          
+If you want parameters in the path but not always at the end,
+         use the %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALconst"|%<span class="code"|Eliom_parameters.const>%>%
          parameter specification.
          It will match for example URLs like <tt>/param1/const/param2</tt>.
          Example:
-      </p>
-  *html*)
+      
+          
+
+  *wiki*)
 let constfix =
   register_new_service
     ~path:["constfix"]
@@ -519,10 +636,17 @@ let constfix =
           (body [h1
                    [pcdata "Suffix with constants"];
                  p [pcdata ("Parameters are "^s1^" and "^s2)]])))
-(*html*
-      <p>$a Tutoeliom.constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"))$.</p>
-      <p>The following example shows how to use your own types :</p>
-*html*)
+(*wiki*
+
+          
+[[site:tuto/constfix/aa/toto/bb|Page with constants in suffix]].
+          
+
+          
+The following example shows how to use your own types :
+          
+
+*wiki*)
 type mysum = A | B
 let mysum_of_string = function
   | "A" -> A
@@ -543,15 +667,22 @@ let mytype =
         (html
          (head (title (pcdata "")) [])
          (body [p [pcdata (v^" is valid. Now try with another value.")]])))
-(*html*
-      <p>See $a Tutoeliom.mytype sp <:xmllist< <code>mytype</code> >> Tutoeliom.A$.</p>
+(*wiki*
 
-      <h4 id="p1any">Untyped parameters</h4>
-      <p>If you want a service that answers to requests with any parameters,
-      use the $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.any" ]] [version;"Eliom_parameters.html"]$ value. The service will get an
+          
+See [[site:tuto/mytype?valeur=A|%<span class="code"|mytype>%]].
+          
+
+
+          ====@@id="p1any"@@Untyped parameters
+          
+          
+If you want a service that answers to requests with any parameters,
+      use the %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|%<span class="code"|Eliom_parameters.any>%>% value. The service will get an
       association list of strings. Example:
-      </p>
-*html*)
+      
+          
+*wiki*)
 let raw_serv = register_new_service
     ~path:["any"]
     ~get_params:Eliom_parameters.any
@@ -570,15 +701,22 @@ let raw_serv = register_new_service
           </p>
           </body>
         </html> >>)
-(*html*
-      <p>Try $a Tutoeliom.raw_serv sp <:xmllist< <code>raw_serv</code> >>
-         [("sun","yellow");("sea","blue")]$.</p>
-      <div class="encadre">
-        <h4>Catching errors</h4>
-        <p>You can catch parameters typing errors and write your own
+(*wiki*
+
+          
+Try [[site:tuto/any?sun=yellow&sea=blue|%<span class="code"|raw_serv>%]].
+          
+
+          %<div class="encadre"|
+            ====Catching errors
+            
+            
+You can catch parameters typing errors and write your own
         error messages using the optional parameter
-        <code>error_handler</code>. Example:</p>
-*html*)
+        %<span class="code"|error_handler>%. Example:
+            
+
+*wiki*)
 
 let catch = register_new_service
     ~path:["catch"]
@@ -594,23 +732,35 @@ let catch = register_new_service
         (html
            (head (title (pcdata "")) [])
            (body [p [pcdata ("i is an integer: "^v)]])))
-(*html*
-      <p><code>error_handler</code> takes as parameters the usual
-         <code>sp</code>, and a list of pairs <code>(n,ex)</code>,
-         where <code>n</code> is the name of the wrong parameter, and
-         <code>ex</code> is the exception that has been raised while
-         parsing its value.</p>
-      <p>See $a Tutoeliom.catch sp <:xmllist< <code>catch</code> >> 22$ (change the value
-   of the parameter).</p>
-     </div>
-    </div>
-    <h3 id="p1links">Links</h3>
-    <div class="onecol">
-      <p>To create a link (<code>&lt;a&gt;</code>), use the
-          $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ function (or <code>Eliom_duce.Xhtml.a</code>, etc),
+(*wiki*
+
+            
+%<span class="code"|error_handler>% takes as parameters the usual
+         %<span class="code"|sp>%, and a list of pairs %<span class="code"|(n,ex)>%,
+         where %<span class="code"|n>% is the name of the wrong parameter, and
+         %<span class="code"|ex>% is the exception that has been raised while
+         parsing its value.
+            
+
+            
+See [[site:tuto/catch?i=22|%<span class="code"|catch>%]] (change the value
+   of the parameter).
+            
+     
+          >%    
+        >%
+        ===@@id="p1links"@@Links
+        
+        %<div class="onecol"|
+          
+To create a link (%<span class="code"|<a>%>), use the
+          %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_predefmod.Xhtml.a>%>% function (or %<span class="code"|Eliom_duce.Xhtml.a>%, etc),
           as in these examples:
-      </p>
-*html*)
+      
+          
+
+          
+*wiki*)
 let links = register_new_service ["rep";"links"] unit
  (fun sp () () ->
    return
@@ -645,48 +795,63 @@ let links = register_new_service ["rep";"links"] unit
    Note that to create a link we need to know the current url, because:
    the link from toto/titi to toto/tata is "tata" and not "toto/tata"
 *zap*)
-(*html*
-      <p>See $a Tutoeliom.links sp <:xmllist< <code>links</code> >> ()$.</p>
+(*wiki*
+
+          
+See [[site:tuto/rep/links|%<span class="code"|links>%]].
+          
 
 
 
-      <p>If you open $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ after $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$,
-        $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$
-   will mask $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "XHTML.M.a" ]] [version;"XHTML.M.html"]$.
+
+          
+If you open %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>% after %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>%,
+        %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_predefmod.Xhtml.a>%>%
+   will mask %<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALa"|%<span class="code"|XHTML.M.a>%>%.
         Thus you can avoid to write fully qualified values most of the time.
-      </p>
-      <p>
-        $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ takes as first parameter
+      
+          
+
+          
+%<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_predefmod.Xhtml.a>%>% takes as first parameter
         the service you want to link to.
         Note that to create a (relative) link we need to know the current URL.
-        That's why the function <code>a</code>
-        takes <code>sp</code> as second parameter.
-      </p>
-      <p>
+        That's why the function %<span class="code"|a>%
+        takes %<span class="code"|sp>% as second parameter.
+      
+          
+
+          
       The third parameter is the text of the link.
       The last parameter is for
       GET parameters you want to put in the link.
       The type of this parameter and the name of GET parameters depend
       on the service you link to.
-      </p>
-      <p>
+      
+          
+
+          
       The links to Wikipedia shows how to define an external service (here it
       uses a suffix URL).
       For an external service without parameters, you can use the low level
-      function $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "XHTML.M.a" ]] [version;"XHTML.M.html"]$, if you don't want to create an
+      function %<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALa"|%<span class="code"|XHTML.M.a>%>%, if you don't want to create an
       external service explicitely.
       Note that the path must be a list of strings.
-      Do not write <code>["foo/bar"]</code>,
-      but <code>["foo";"bar"]</code>, otherwise, the "/" will be encoded in
+      Do not write %<span class="code"|["foo/bar"]>%,
+      but %<span class="code"|["foo";"bar"]>%, otherwise, the "/" will be encoded in
       the URL.
-      </p>
-      <p>
+      
+          
+
+          
         If you want to create (mutually or not) recursive pages,
-        create the service using $a ~fragment:"VALnew_service" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_service" ]] [version;"Eliom_services.html"]$ first,
+        create the service using %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_service"|%<span class="code"|Eliom_services.new_service>%>% first,
         then register it in the table using (for example)
-        $a ~fragment:"VALregister" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.register" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$:
-      </p>
-*html*)
+        %<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|%<span class="code"|Eliom_predefmod.Xhtml.register>%>%:
+      
+          
+
+*wiki*)
 let linkrec = Eliom_services.new_service ["linkrec"] unit ()
 
 let _ = Eliom_predefmod.Xhtml.register linkrec
@@ -703,21 +868,33 @@ let essai =
    ~get_params:no_get_param
    ()
 *zap*)
-(*zap* pour les reload : le serveur ne s'éteint pas mais ajoute un message sur les services non enregistrés dans son log *zap*)
-(*html*
-      <p>$a Tutoeliom.linkrec sp <:xmllist< See <code>linkrec</code> >> ()$.</p>
-      <p> The server will fail on startup if there are any unregistered
+(*zap* pour les reload : le serveur ne s'Ã©teint pas mais ajoute un message sur les services non enregistrÃ©s dans son log *zap*)
+(*wiki*
+          
 
-      services.</p>
-    </div>
-    <h3 id="p1forms">Forms</h3>
-    <div class="onecol">
-      <h4>Forms towards services</h4>
-      <p>The function $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.get_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ allows to create a form
+          
+[[site:tuto/linkrec| See %<span class="code"|linkrec>%]].
+          
+
+          
+ The server will fail on startup if there are any unregistered
+
+      services.
+          
+    
+        >%
+        ===@@id="p1forms"@@Forms
+        
+        %<div class="onecol"|
+          ====Forms towards services
+          
+          
+The function %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALget_form"|%<span class="code"|Eliom_predefmod.Xhtml.get_form>%>% allows to create a form
       that uses the GET method (parameters in the URL).
-      It works like $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ but takes a <em>function</em> that creates the form from the parameters names as parameter.
-      </p>
-*html*)
+      It works like %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_predefmod.Xhtml.a>%>% but takes a //function// that creates the form from the parameters names as parameter.
+      
+          
+*wiki*)
 let create_form =
   (fun (number_name, (number2_name, string_name)) ->
     [p [pcdata "Write an int: ";
@@ -735,30 +912,39 @@ let form = register_new_service ["form"] unit
        (html
          (head (title (pcdata "")) [])
          (body [f])))
-(*html*
-      <p>$a Tutoeliom.form sp <:xmllist< See the function <code>form</code> in action >> ()$.</p>
+(*wiki*
 
-      <p>Note that if you want to use typed parameters,
-       you cannot use functions like $a ~fragment:"VALinput" ~service:senddoc ~sp [code [pcdata "XHTML.M.input" ]] [version;"XHTML.M.html"]$ to
+          
+[[site:tuto/form| See the function %<span class="code"|form>% in action]].
+          
+
+
+          
+Note that if you want to use typed parameters,
+       you cannot use functions like %<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALinput"|%<span class="code"|XHTML.M.input>%>% to
        create your forms (if you want to use parameters defined with
-       $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.any" ]] [version;"Eliom_parameters.html"]$, <a href="#p1any">see later</a>). Indeed, parameter names are typed to force them
-       be used properly. In our example, <code>number_name</code> has type
-       <code>int param_name</code> and must be used with
-       <code>int_input</code> (or other widgets), whereas
-       <code>string_name</code> has type
-       <code>string param_name</code> and must be used with
-       <code>string_input</code> (or other widgets).
+       %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|%<span class="code"|Eliom_parameters.any>%>%, [[eliom/manual/dev/1#p1any|see later]]). Indeed, parameter names are typed to force them
+       be used properly. In our example, %<span class="code"|number_name>% has type
+       %<span class="code"|int param_name>% and must be used with
+       %<span class="code"|int_input>% (or other widgets), whereas
+       %<span class="code"|string_name>% has type
+       %<span class="code"|string param_name>% and must be used with
+       %<span class="code"|string_input>% (or other widgets).
        All functions for creating form widgets are detailed
-       $a ~service:senddoc ~sp [pcdata "here"]
-         [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$.
-      </p>
+       %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html"|here>%.
+      
+          
 
-      <p>For untyped forms, you may use functions from XHTML.M (or
+
+          
+For untyped forms, you may use functions from XHTML.M (or
       OCamlDuce's syntax, or whatever syntax you are using) or
-      functions which name is prefixed by "<code>raw_</code>".
+      functions which name is prefixed by "%<span class="code"|raw_>%".
       Here is a form linking to our (untyped) service
-      <code>raw_serv</code>.</p>
-*html*)
+      %<span class="code"|raw_serv>%.
+          
+
+*wiki*)
 let raw_form = register_new_service
     ~path:["anyform"]
     ~get_params:unit
@@ -776,10 +962,15 @@ let raw_form = register_new_service
                        Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plap" ();
                        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
-(*html*
-      <p>Try this $a Tutoeliom.raw_form sp <:xmllist< form >> ()$.</p>
-      <h4>POST parameters</h4>
-      <p>
+(*wiki*
+
+          
+Try this [[site:tuto/anyform| form]].
+          
+
+          ====POST parameters
+          
+          
    By default Web page parameters are transferred in the URL (GET parameters).
    A web page may also expect POST parameters
    (that is, parameters that are not in the URL but in the body of the HTTP
@@ -790,13 +981,18 @@ let raw_form = register_new_service
    database changes, etc).
    When designing a Web site, think carefully about the choice between
    GET or POST method for each service!
-   </p>
-   <p>
+   
+          
+
+          
    When you register a service with POST parameters, you must first register a service (fallback) without these parameters (for example that will
    answer if the page is reloaded without the hidden parameters, or
    if it is bookmarked).
-      </p>
-*html*)
+      
+          
+
+          
+*wiki*)
 let no_post_param_service =
   register_new_service
     ~path:["post"]
@@ -817,11 +1013,15 @@ let my_service_with_post_params =
         (html
          (head (title (pcdata "")) [])
          (body [h1 [pcdata value]])))
-(*html*
+(*wiki*
 
 
-      <p>Services may take both GET and POST parameters:</p>
-*html*)
+
+          
+Services may take both GET and POST parameters:
+          
+
+*wiki*)
 let get_no_post_param_service =
   register_new_service
     ~path:["post2"]
@@ -844,20 +1044,25 @@ let my_service_with_get_and_post = register_new_post_service
                    em [pcdata value];
                    pcdata ", i: ";
                    em [pcdata (string_of_int i)]]])))
-(*html*
-      <h4 id="p1postforms">POST forms</h4>
-       <p> To create a POST form, use the
-           $a ~fragment:"VALpost_form" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.post_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ function.
-           It is similar to $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.get_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$
+(*wiki*
+
+          ====@@id="p1postforms"@@POST forms
+          
+          
+ To create a POST form, use the
+           %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALpost_form"|%<span class="code"|Eliom_predefmod.Xhtml.post_form>%>% function.
+           It is similar to %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALget_form"|%<span class="code"|Eliom_predefmod.Xhtml.get_form>%>%
            with an additional parameter
            for the GET parameters you want to put in the URL (if any).
-           Here, <code>form2</code> is a page containing a form
-           to the service <code>post</code> (using XHTML.M's functions)
-           and <code>form3</code> (defined using the syntax extension)
-           contains a form to <code>post2</code>, with a GET parameter.
-           <code>form4</code> is a form to an external page.
-       </p>
-*html*)
+           Here, %<span class="code"|form2>% is a page containing a form
+           to the service %<span class="code"|post>% (using XHTML.M's functions)
+           and %<span class="code"|form3>% (defined using the syntax extension)
+           contains a form to %<span class="code"|post2>%, with a GET parameter.
+           %<span class="code"|form4>% is a form to an external page.
+       
+          
+
+*wiki*)
 let form2 = register_new_service ["form2"] unit
   (fun sp () () ->
      let f =
@@ -900,47 +1105,67 @@ let form4 = register_new_service ["form4"] unit
        (html
         (head (title (pcdata "form")) [])
         (body [f])))
-(*html*
-      <p>See the urls:
-      $a Tutoeliom.no_post_param_service sp <:xmllist< <code>post</code> without parameter >> ()$,
-      $a Tutoeliom.get_no_post_param_service sp <:xmllist< <code>post2</code> without POST parameter >> 123$,
-      $a Tutoeliom.form2 sp <:xmllist< <code>form2</code> >> ()$,
-      $a Tutoeliom.form3 sp <:xmllist< <code>form3</code> >> ()$,
-      $a Tutoeliom.form4 sp <:xmllist< <code>form4</code> >> ()$.
-      </p>
+(*wiki*
 
-    </div>
-    <h3 id="p1threads">Threads</h3>
-    <div class="onecol">
-      <p>
+          
+See the urls:
+      [[site:tuto/post|%<span class="code"|post>% without parameter]],
+      [[site:tuto/post2?i=123|%<span class="code"|post2>% without POST parameter]],
+      [[site:tuto/form2|%<span class="code"|form2>%]],
+      [[site:tuto/form3|%<span class="code"|form3>%]],
+      [[site:tuto/form4|%<span class="code"|form4>%]].
+      
+          
+
+    
+        >%
+        ===@@id="p1threads"@@Threads
+        
+        %<div class="onecol"|
+          
       Remember that a Web site written with Eliom is an OCaml application.
       This application must be able to handle several requests at the same
       time, in order to prevent a single request from slowing down the whole server. To make this possible, Ocsigen
-      is using <em>cooperative threads</em>
+      is using //cooperative threads//
       (implemented in monadic style
-      by Jérôme Vouillon) which make them really easy
-      to use (see $a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$ module).
-      </p>
-      <p>Take time to read the
-        $a lwt sp [pcdata "documentation about "; code [pcdata "Lwt"]] ()$
+      by JÃ©rÃ´me Vouillon) which make them really easy
+      to use (see %<ocsigendoc version="dev" file="Lwt.html"|%<span class="code"|Lwt>%>% module).
+      
+          
+
+          
+Take time to read the
+        [[site:lwt|documentation about %<span class="code"|Lwt>%]]
         right now if you want to understand the following of this tutorial.
-      </p>
-      <p>As it doesn't cooperate, the following page will stop the
+      
+          
+
+          
+As it doesn't cooperate, the following page will stop the
       server for 5 seconds. No one will be able to query the server during
-      this period:</p>
-<pre><span style="color:green">let</span> looong =
+      this period:
+          
+
+          
+%<code language="ocaml"|let looong =
   register_new_service
-    <span style="color:#770000">~path:</span>[<span style="color:#aa4444">"looong"</span>]
-    <span style="color:#770000">~get_params:</span>unit
-    (<span style="color:green">fun</span> sp () () -&gt;
-      <span style="color:#0033cc">Unix</span>.sleep 5;
+    ~path:["looong"]
+    ~get_params:unit
+    (fun sp () () ->
+      Unix.sleep 5;
       return
         (html
-          (head (title (pcdata <span style="color:#aa4444">""</span>)) [])
-          (body [h1 [pcdata <span style="color:#aa4444">"Ok now, you can read the page."</span>]])))</pre>
-      <p>To solve this problem, use a cooperative version of
-         $a ~fragment:"VALsleep" ~service:senddoc ~sp [code [pcdata "sleep" ]] [version;"Lwt_unix.html"]$:</p>
-*html*)
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Ok now, you can read the page."]])))
+>%
+
+          
+To solve this problem, use a cooperative version of
+         %<ocsigendoc version="dev" file="Lwt_unix.html" fragment="VALsleep"|%<span class="code"|sleep>%>%:
+          
+
+          
+*wiki*)
 let looong =
   register_new_service
     ~path:["looong"]
@@ -952,17 +1177,18 @@ let looong =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata
                    "Ok now, you can read the page."]])))
-(*html*
+(*wiki*
 
 
-
-      <p>If you want to use, say, a database library that is not written
+          
+If you want to use, say, a database library that is not written
        in cooperative way, but is thread safe for preemptive threads,
-       use the <code>Lwt_preemptive</code> module to
+       use the %<span class="code"|Lwt_preemptive>% module to
        detach the computation. In the following example,
-       we simulate the request by a call to <code>Unix.sleep</code>:
-      </p>
-*html*)
+       we simulate the request by a call to %<span class="code"|Unix.sleep>%:
+      
+          
+*wiki*)
 let looong2 =
   register_new_service
     ~path:["looong2"]
@@ -974,47 +1200,62 @@ let looong2 =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata
                    "Ok now, you can read the page."]])))
-(*html*
-      <p>$a Tutoeliom.looong2 sp <:xmllist< See <code>looong2</code> >> ()$.</p>
-    </div>
+(*wiki*
+          
+[[site:tuto/looong2| See %<span class="code"|looong2>%]].
+          
+    
+        >%
 
-    <h3 id="p1thebigpicture">The big picture</h3>
-    <div class="encadre sanstitre">
-      <p>
+        ===@@id="p1thebigpicture"@@The big picture
+        
+        %<div class="encadre sanstitre"|
+          
          You now have the minimum knowledge to write basic Web sites with
          Eliom: page typing, service creation, parameters, forms
-         and database acces using $a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$
-         (and possibly $a ~fragment:"VALdetach" ~service:senddoc ~sp [code [pcdata "Lwt_preemptive.detach" ]] [version;"Lwt_preemptive.html"]$).
+         and database acces using %<ocsigendoc version="dev" file="Lwt.html"|%<span class="code"|Lwt>%>%
+         (and possibly %<ocsigendoc version="dev" file="Lwt_preemptive.html" fragment="VALdetach"|%<span class="code"|Lwt_preemptive.detach>%>%).
          Here is a summary of all other concepts introduced by Eliom.
          They will allow you to easily program more complex behaviours and will be developped in the following sections of this tutorial.
-      </p>
+      
+          
 
-      <h4>Different kinds of services</h4>
-      <p>
+
+          ====Different kinds of services
+          
+          
       Before beginning the implementation, think about the URLs you want to
       create as entry points to your Web site, and the services
       you want to provide.
-      </p>
-      <p>Services we used, so far, are called <em>main services</em>.
+      
+          
+
+          
+Services we used, so far, are called //main services//.
       But there are other kinds of services depending on the precise
       behaviour you want for links and forms. Clicking on a link or a form
-      may trigger:</p>
-      <ul>
-        <li>the request of a new document (page) (or not),</li>
-        <li>the sending of data to the server using the POST method (or not),</li>
-        <li>an action on the server (or not),</li>
-        <li>a change of URL (or not).</li>
-      </ul>
-      <p>To take into account all possible behaviours with respect to URLs, 
-        Eliom uses three kinds of services:</p>
-      <dl class="blue">
-        <dt>Main services</dt><dd>are the main entry points of your sites.
-        Created by <code>new_service</code> or
-        <code>new_post_service</code>.
+      may trigger:
+          
+
+          
+*the request of a new document (page) (or not),
+*the sending of data to the server using the POST method (or not),
+*an action on the server (or not),
+*a change of URL (or not).
+                  
+          
+
+          
+To take into account all possible behaviours with respect to URLs, 
+        Eliom uses three kinds of services:
+;@@class="blue"@ @@Main services
+:are the main entry points of your sites.
+        Created by %<span class="code"|new_service>% or
+        %<span class="code"|new_post_service>%.
         They correspond to the public URLs of your Web site, and will last
         forever.
-        </dd>
-        <dt>(Attached) coservices</dt><dd>are services that share their
+;(Attached) coservices
+:are services that share their
         location (URL) with a main service (fallback).
         They are distinguished from that main service using a special parameter
         (added automatically by Eliom), containing either the name of the
@@ -1026,9 +1267,9 @@ let looong2 =
         afterwards.
         Another use of (POST) coservices is to customize one
         button but not the page it leads to (like the disconnect button
-        in the example of sessions with <em>actions</em> as below).
-        </dd>
-        <dt>Non-attached coservices</dt><dd>are
+        in the example of sessions with //actions// as below).
+;Non-attached coservices
+:are
         coservices that are not
         attached to a particular URL. A link to a non-attached
         coservice will go to the current URL with a special parameter
@@ -1036,192 +1277,186 @@ let looong2 =
         automatically (and different each time).
         It is useful when you want the same link or form on several pages
         (for example a connection box) but you don't want to go to another
-        URL. Non-attached coservices are often used with <em>actions</em>
-        (see below).
-        </dd>
-      </dl>
-      <p>To summarize, if you want to go to another URL, use
+        URL. Non-attached coservices are often used with //actions//
+        (see below).To summarize, if you want to go to another URL, use
       (attached) (co)services. If you want to stay on the same URL
-      use non-attached coservices.</p>
-      <h4>GET or POST?</h4>
-      <p>Each of these services both have a version with GET parameters and
-      another with POST parameters.</p>
-      <p>
+      use non-attached coservices.
+          
+
+          ====GET or POST?
+          
+          
+Each of these services both have a version with GET parameters and
+      another with POST parameters.
+          
+
+          
       POST and GET parameters are not equivalent, and you must be very careful
-      if you want to use one or the other.<br/>
+      if you want to use one or the other.            \\
       GET parameters are the parameters you see in the URL (for
-      example <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code>). They are created by browsers if you use forms with the GET method, or written directly in the URL.<br/>
+      example %<span class="code"|~http:~/~///your_server///examples/coucou?i=42&ii=17&s=krokodile>%). They are created by browsers if you use forms with the GET method, or written directly in the URL.            \\
       POST parameters are sent by browsers in the body of the HTTP request. That's the only solution
       if you want to send files with your request.
-      </p>
-      <p>
+      
+          
+
+          
       Remember that only pages without POST parameters are bookmarkable.
       Use GET parameters if you want the user to be able to come back to the URL
-      later or to write the URL manually.<br/>
+      later or to write the URL manually.            \\
       Use POST parameters when you want a different behaviour
       between the first click and a reload of the page. Usually sending
       POST parameters triggers an action on server side
       (like a payment, or adding something in a database), and you don't want
-      it to succeed several times if the page is reloaded or bookmarked.</p>
+      it to succeed several times if the page is reloaded or bookmarked.
+          
 
-    </div>
-    <div class="encadre sanstitre">
-      <h4>Data returned by services</h4>
-      <p>Services can send several types of data,
-      using these different modules:</p>
-        <table>
-<tr><td class="empty"></td>
-  <th class="col2">Services</th>
-  <th colspan="2" class="col2">Coservices</th></tr>
-<tr><td class="empty"></td>
-  <th class="col2"></th>
-  <th class="col2">attached<br/>named&nbsp;/&nbsp;anonymous</th>
-  <th class="col2">non-attached<br/>named&nbsp;/&nbsp;anonymous</th>
-</tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$</th>
-          <td colspan="4">Allows to register functions that
+    
+        >%
+        %<div class="encadre sanstitre"|
+          ====Data returned by services
+          
+          
+Services can send several types of data,
+      using these different modules:
+          
+
+
+
+|@@class="empty"@@|=@@class="col2"@@Services|=@@colspan="2" class="col2"@@Coservices|
+|@@class="empty"@@|=@@class="col2"@@|=@@class="col2"@@attached                \\named~ /~ anonymous|=@@class="col2"@@non-attached                \\named~ /~ anonymous|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>%|@@colspan="4"@@Allows to register functions that
         generate xhtml pages
         statically checked using polymorphic variant types. You may use
-        constructor functions from $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or a syntax
-        extension close to the standard xhtml syntax.
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtmlcompact" ]] [version;"Eliom_predefmod.Xhtmlcompact.html"]$</th>
-          <td colspan="4">Same, but without pretty printing (does not add
-            spaces or line breaks).
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Blocks" ]] [version;"Eliom_predefmod.Blocks.html"]$</th>
-          <td colspan="4">Allows to register functions that
+        constructor functions from %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% or a syntax
+        extension close to the standard xhtml syntax.|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Xhtmlcompact.html"|%<span class="code"|Eliom_predefmod.Xhtmlcompact>%>%|@@colspan="4"@@Same, but without pretty printing (does not add
+            spaces or line breaks).|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Blocks.html"|%<span class="code"|Eliom_predefmod.Blocks>%>%|@@colspan="4"@@Allows to register functions that
         generate a portion of page (content of the body tag) using
-        $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or the syntax extension.
-        (useful for <code>XMLHttpRequest</code> requests for example).
-
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_duce.Xhtml" ]] [version;"Eliom_duce.Xhtml.html"]$</th>
-          <td colspan="4">Allows to register functions
+        %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% or the syntax extension.
+        (useful for %<span class="code"|XMLHttpRequest>% requests for example).|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|%<span class="code"|Eliom_duce.Xhtml>%>%|@@colspan="4"@@Allows to register functions
             that generate xhtml pages
-        statically checked using <code>OCamlduce</code>. Typing is
+        statically checked using %<span class="code"|OCamlduce>%. Typing is
         stricter, and you need a modified version of the OCaml compiler
-        (OCamlduce).
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.HtmlText" ]] [version;"Eliom_predefmod.HtmlText.html"]$</th>
-          <td colspan="4">Allows to register functions that
+        (OCamlduce).|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.HtmlText.html"|%<span class="code"|Eliom_predefmod.HtmlText>%>%|@@colspan="4"@@Allows to register functions that
         generate text html pages, without any typechecking of the content.
-        The content type sent by the server is "text/html".
-
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.CssText" ]] [version;"Eliom_predefmod.CssText.html"]$</th>
-          <td colspan="4">Allows to register functions that
+        The content type sent by the server is "text/html".|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.CssText.html"|%<span class="code"|Eliom_predefmod.CssText>%>%|@@colspan="4"@@Allows to register functions that
         generate CSS pages, without any typechecking of the content.
-        The content type sent by the server is "text/css".
-
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Text" ]] [version;"Eliom_predefmod.Text.html"]$</th>
-          <td colspan="4">Allows to register functions that
+        The content type sent by the server is "text/css".|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Text.html"|%<span class="code"|Eliom_predefmod.Text>%>%|@@colspan="4"@@Allows to register functions that
         generate text pages, without any typechecking of the content.
         The services return a pair of strings. The first one is the content
-        of the page, the second one is the content type.
-
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action" ]] [version;"Eliom_predefmod.Action.html"]$</th>
-          <td colspan="4">Allows to register actions (
+        of the page, the second one is the content type.|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|%<span class="code"|Eliom_predefmod.Action>%>%|@@colspan="4"@@Allows to register actions (
         functions that do not generate any page). The URL is reloaded after
-        the action.
-
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Unit" ]] [version;"Eliom_predefmod.Unit.html"]$</th>
-          <td colspan="4">is like $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action" ]] [version;"Eliom_predefmod.Action.html"]$ but the
-        URL is not reloaded after the action.
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirection" ]] [version;"Eliom_predefmod.Redirection.html"]$</th>
-          <td colspan="4"><strong>[New in 1.1.0]</strong> Allows to register HTTP permanent redirections.
+        the action.|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Unit.html"|%<span class="code"|Eliom_predefmod.Unit>%>%|@@colspan="4"@@is like %<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|%<span class="code"|Eliom_predefmod.Action>%>% but the
+        URL is not reloaded after the action.|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Redirection.html"|%<span class="code"|Eliom_predefmod.Redirection>%>%|@@colspan="4"@@**[New in 1.1.0]** Allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
             Warning: According to the RFC of the HTTP protocol,
-            the URL must be absolute!<br/>
+            the URL must be absolute!                \\
             The browser will get a 301 or 307 code in answer and
             redo the request to the new URL.
             To specify whether you want temporary (307) or
             permanent (301) redirections,
-            use the <code>?options</code> parameter of registration functions.
+            use the %<span class="code"|?options>% parameter of registration functions.
             For example:
-            <code>register ~options:`Permanent ...</code> or
-            <code>register ~options:`Temporary ...</code>.
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Files" ]] [version;"Eliom_predefmod.Files.html"]$</th>
-          <td colspan="4">Allows to register services that send files
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Any" ]] [version;"Eliom_predefmod.Any.html"]$</th>
-          <td colspan="4">Allows to register services that can choose
+            %<span class="code"|register ~options:`Permanent ...>% or
+            %<span class="code"|register ~options:`Temporary ...>%.|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Files.html"|%<span class="code"|Eliom_predefmod.Files>%>%|@@colspan="4"@@Allows to register services that send files|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|%<span class="code"|Eliom_predefmod.Any>%>%|@@colspan="4"@@Allows to register services that can choose
             what they send, for example an xhtml page
             or a file, depending on some situation (parameter, user logged or
-            not, page present in a cache ...).
-          </td></tr>
-        </table>
-      <p>It is also possible to create your own modules for other types
-      of pages.</p>
-    </div>
-    <div class="encadre sanstitre">
-      <h4>Public and session service tables</h4>
-      <p>Each of these registrations may be done in the <em>public</em>
-      service table, or in a <em>session</em> service table,
+            not, page present in a cache ...).It is also possible to create your own modules for other types
+      of pages.
+          
+    
+        >%
+        %<div class="encadre sanstitre"|
+          ====Public and session service tables
+          
+          
+Each of these registrations may be done in the //public//
+      service table, or in a //session// service table,
       accessible only to a single user of the Web site. This allows to generate
       custom services for a specific user.
-      </p>
+      
+          
 
-      <p>Eliom will try to find the page, in that order:</p>
-      <ul>
-       <li>in the session service table,</li>
-       <li>in the public service table,</li>
-       <li>the fallback in the session table, if the coservice has expired,</li>
-       <li>the fallback in the public table, if the session has expired.</li>
-      </ul>
 
-      <h4>Session data tables</h4>
-      <p>It is also possible to create a session data table, where you can
+          
+Eliom will try to find the page, in that order:
+          
+
+          
+*in the session service table,
+*in the public service table,
+*the fallback in the session table, if the coservice has expired,
+*the fallback in the public table, if the session has expired.
+                  
+          
+
+
+          ====Session data tables
+          
+          
+It is also possible to create a session data table, where you can
       save information about the session. Each service can look in that table
       to see if a session is opened or not and get the data.
-      </p>
+      
+          
 
-    </div>
+    
+        >%
 
 
-    <div class="encadre sanstitre">
-      <h4>Examples </h4>
-      <p>The most commonly used services are:</p>
-      <ul>
-        <li>Main services (GET or POST) in public service table for public
+        %<div class="encadre sanstitre"|
+          ====Examples 
+          
+          
+The most commonly used services are:
+          
+
+          
+*Main services (GET or POST) in public service table for public
           pages,
-        </li>
-        <li>GET attached coservices in session service table to make the
+        
+*GET attached coservices in session service table to make the
           browser's "back" button turn back in the past, and to allow several
           tabs on different versions of the same page,
-        </li>
-        <li>Actions registered on POST named non-attached coservices
+        
+*Actions registered on POST named non-attached coservices
           to make an effect
           on the server, from any page, and without changing the URL
           (connection/disconnection for example).
-        </li>
-      </ul>
-      <p>Here is a list of frequent issues and the solution Eliom provides to
-        to solve them. Most of them will be developped in the following parts of the tutorial.</p>
-      <dl>
-        <dt>Display the result of a search (plane ticket,
-          search engines&nbsp;...)</dt>
-        <dd>Use a coservice (anonymous, with timeout) 
-          in the session service table.</dd>
-        <dt>Keep information about the session (name of the user&nbsp;...)</dt>
-        <dd>Use a session data table.</dd>
-        <dt>A connection or disconnection box on each page of your site</dt>
-        <dd>Use actions registered on named non-attached coservices to set or
+        
+                  
+          
+
+          
+Here is a list of frequent issues and the solution Eliom provides to
+        to solve them. Most of them will be developped in the following parts of the tutorial.
+;Display the result of a search (plane ticket,
+          search engines~ ...)
+:Use a coservice (anonymous, with timeout) 
+          in the session service table.
+;Keep information about the session (name of the user~ ...)
+:Use a session data table.
+;A connection or disconnection box on each page of your site
+:Use actions registered on named non-attached coservices to set or
          remove data from a session data table.
-        </dd>
-        <dt>Add something in a shopping basket</dt>
-        <dd>Use an action registered on a non-attached coservice,
+;Add something in a shopping basket
+:Use an action registered on a non-attached coservice,
           with the names of the items as parameters. The action saves the shopping
           basket in a session data table. Thus, the shopping basket will remain
           even if the user pushes the back button of his browser.
-        </dd>
-        <dt>Book a ticket (in several steps)</dt>
-        <dd>Each step creates new (GET) coservices (with or without
+;Book a ticket (in several steps)
+:Each step creates new (GET) coservices (with or without
           parameters, all attached to the service displaying the main
           booking page)
           according to the data entered by the user. These
@@ -1229,69 +1464,79 @@ let looong2 =
           the whole session or for each of them). Thus the user can go back
           to a previous state, or keep several proposals on differents
           tabs before choosing one.
-        </dd>
-        <dt>...</dt>
-        <dd><em>Help us to complete this list by giving your examples or
-          asking questions about other cases! Thank you!</em></dd>
-        <dt></dt>
-        <dd></dd>
-      </dl>
-    </div>
+;...
+://Help us to complete this list by giving your examples or
+          asking questions about other cases! Thank you!//
+;
+:>%
+      >%      
+%<||2>%
 
-°°
+%<div class='leftcol'|%<leftcoldoc version="dev">%>%
+      %<div class="colprincipale"|
+        ==2. Sessions, users and other common situations in Web sites
+        
 
-
-let part2 sp =
-°:xmllist°
-
-
-   <h2>2. Sessions, users and other common situations in Web sites</h2>
-
-    <div class="onecol">
-      <p>When programming dynamic Web sites, you often want to personalise
+        %<div class="onecol"|
+          
+When programming dynamic Web sites, you often want to personalise
        the behaviour and content for one user. To do this, you need to recognise
        the user and save and restore its data. Eliom implements several
        high level features to do that:
-      </p>
-      <ul>
-        <li>Session data tables,</li>
-        <li>Session service tables, where you can save private versions of
+      
+          
+
+          
+*Session data tables,
+*Session service tables, where you can save private versions of
           main services or new coservices,
-        </li>
-        <li>Coservices, that may be created dynamically with respect to
+        
+*Coservices, that may be created dynamically with respect to
           previous interaction with the user.
-        </li>
-      </ul>
-      <p>Eliom is using cookies to recognize users.
+        
+                  
+          
+
+          
+Eliom is using cookies to recognize users.
          One cookie is automatically set for each user when needed and
          destroyed when the session is closed.
-      </p>
-      <p>Coservices, but also <em>actions</em>, are also means to control
+      
+          
+
+          
+Coservices, but also //actions//, are also means to control
         precisely the behaviour of the site and to implement easily very
         common situations that require a lot of programming work with
         other Web programming tools. We'll have a lot at some examples in that
         section.
-      </p>
-    </div>
+      
+          
+    
+        >%
 
 
-    <h3 id="p2sessiondata">Session data</h3>
-    <div class="onecol">
-      <p>
+        ===@@id="p2sessiondata"@@Session data
+        
+        %<div class="onecol"|
+          
       Eliom provides a way to save session data on server side and
       restore it at each request. This data is available during the whole
       duration of the session.
       To save session data, create a table using
-      $a ~fragment:"VALcreate_volatile_table" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.create_volatile_table" ]] [version;"Eliom_sessions.html"]$
+      %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALcreate_volatile_table"|%<span class="code"|Eliom_sessions.create_volatile_table>%>%
       and save and get data from
-      this table using $a ~fragment:"VALset_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.set_volatile_session_data" ]] [version;"Eliom_sessions.html"]$ and
-      $a ~fragment:"VALget_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_volatile_session_data" ]] [version;"Eliom_sessions.html"]$. The following example shows
+      this table using %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_volatile_session_data"|%<span class="code"|Eliom_sessions.set_volatile_session_data>%>% and
+      %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_volatile_session_data"|%<span class="code"|Eliom_sessions.get_volatile_session_data>%>%. The following example shows
       a site with authentification. The name of the user is asked in the login
       form and saved in a table to be displayed on the page instead of the login
       form while the user is connected. Note that the session is opened
       automatically when needed.
-      </p>
-*html*)
+      
+          
+
+          
+*wiki*)
 (************************************************************)
 (************ Connection of users, version 1 ****************)
 (************************************************************)
@@ -1418,7 +1663,7 @@ let close = register_new_service
     ~path:["disconnect"]
     ~get_params:unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
+      Eliom_sessions.close_session ~session_name ~sp () >>=
       (fun () ->
         return
           (html
@@ -1449,7 +1694,7 @@ let _ = register
 let _ = register
     sessdata_with_post_params
     (fun sp _ login ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
+      Eliom_sessions.close_session ~session_name ~sp () >>=
       (fun () ->
         Eliom_sessions.set_volatile_session_data my_table sp login;
         return
@@ -1461,80 +1706,102 @@ let _ = register
                     a sessdata sp [pcdata "Try again"] ()
                   ]]))))
 *zap*)
-(*html*
-      <p>
-      $a Tutoeliom.session_data_example sp <:xmllist< See this example here >> ()$.
-      </p>
-      <p>
+(*wiki*
+
+          
+[[site:tuto/sessdata| See this example here]].
+      
+          
+
+          
        To close a session, use the function
-                <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_session" ]] [version;"Eliom_sessions.html"]$</span>.
+                %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|%<span class="code"|Eliom_sessions.close_session>%>%>%.
        Session data will disappear when the session is closed (explicitely
        or by timeout).
        Warning: if your session data contains opened file descriptors,
        they won't be closed by OCaml's garbage collector. Close it yourself!
-       (for example using <code>Gc.finalise</code>).
-      </p>
-      <p>We will see in the following of this tutorial how to improve
+       (for example using %<span class="code"|Gc.finalise>%).
+      
+          
+
+          
+We will see in the following of this tutorial how to improve
       this example to solve the following problems:
-      </p>
-      <ul>
-        <li>
-          The use of a main service for disconnection is not a good idea
+      
+          
+
+          
+*          The use of a main service for disconnection is not a good idea
           for usability. You probably want to go to the same page
           with the login form. We will do this with a coservice.
-        </li>
-        <li>
-          If you want the same login form on several pages, it is tedious
+        
+*          If you want the same login form on several pages, it is tedious
           work to create a coservice with POST parameters for each page.
           We will se how to solve this using actions and named non-attached
           coservices.
-        </li>
-        <li>
-          Session data are kept in memory and will be lost if you switch off
+        
+*          Session data are kept in memory and will be lost if you switch off
           the server, which is bad if you want long duration sessions.
           You can solve this problem by using persistent tables.
-        </li>
-      </ul>
-    </div>
-    <h3 id="p2sessionservices">Session services</h3>
-    <div class="onecol">
-      <p>
+        
+                  
+          
+    
+        >%
+        ===@@id="p2sessionservices"@@Session services
+        
+        %<div class="onecol"|
+          
       Eliom allows to replace a public service by a service valid only for
       one user.
       Use this to personalise main services for one user (or to create new
-      coservices available only to one user, <a href="#p2calc">see later</a>).
+      coservices available only to one user, [[eliom/manual/dev/2#p2calc|see later]]).
       To create a "session service", register the service in
       a "session service table" (valid only for one client)
       instead of the public table. To do that,
-      use <span class="Cem"><code>register_for_session</code></span>
+      use %<span class="Cem"|%<span class="code"|register_for_session>%>%
       (for example
-     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.register_for_session" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$</span>).<br/>
-      </p><p>
+     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_for_session"|%<span class="code"|Eliom_predefmod.Xhtml.register_for_session>%>%>%).            \\
+      
+          
+
+          
       Users are recognized automatically using a cookie.
       Use this for example if you want two versions of each page,
       one public, one for connected users.
-      <br/>
+                  \\
       To close a session, use
-                <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_session" ]] [version;"Eliom_sessions.html"]$</span>.
+                %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|%<span class="code"|Eliom_sessions.close_session>%>%>%.
       Both the session service table and the session data table for that user
       will disappear when the session is closed.
-      </p>
-      <p>Note that <code>register_for_session</code>
-         and <code>close_session</code> take <code>sp</code> as parameter
-         (because sp contains the session table).</p>
-      <p>The following example shows how to reimplement the previous one
-      (<code>session_data_example</code>),
-      without using $a ~fragment:"VALset_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.set_volatile_session_data" ]] [version;"Eliom_sessions.html"]$.
+      
+          
+
+          
+Note that %<span class="code"|register_for_session>%
+         and %<span class="code"|close_session>% take %<span class="code"|sp>% as parameter
+         (because sp contains the session table).
+          
+
+          
+The following example shows how to reimplement the previous one
+      (%<span class="code"|session_data_example>%),
+      without using %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_volatile_session_data"|%<span class="code"|Eliom_sessions.set_volatile_session_data>%>%.
       Note that this version is less efficient than the other if your site
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
       useful, for example with coservices (see
-      <a href="#p2coservicesinsessiontable">later</a>).
-      </p>
-      <p>
+      [[eliom/manual/dev/2#p2coservicesinsessiontable|later]]).
+      
+          
+
+          
       We first define the main page, with a login form:
-      </p>
-*html*)(*zap* *)
+      
+          
+
+          
+*wiki*)(*zap* *)
 let () = set_default_volatile_session_timeout (Some 600.)
 let () = set_default_persistent_data_session_timeout (Some 3600.)
 (* *zap*)
@@ -1599,14 +1866,16 @@ let session_services_example_close_handler sp () () =
                    sp [pcdata "Retry"] ()
                ]]))
 
-(*html*
+(*wiki*
 
-
-    <p>When the page is called with login parameters,
-       it runs the function <code>launch_session</code>
+          
+When the page is called with login parameters,
+       it runs the function %<span class="code"|launch_session>%
        that replaces some services already defined by new ones:
-    </p>
-*html*)
+    
+          
+
+*wiki*)
 (* ------------------------------------------------------------- *)
 (* Handler for the "session_services_example_with_post_params"   *)
 (* service:                                                      *)
@@ -1680,66 +1949,89 @@ let () =
 (*zap* Registering for session during initialisation is forbidden:
 let _ = register_for_session
     ~path:coucou1
-    << <html>
+    %< <html>
          <head><title></title></head>
          <body><h1>humhum</h1></body>
-       </html> >>
+       </html> >%
 *zap*)
-(*html*
-      <p>
-      $a Tutoeliom.session_services_example sp <:xmllist< See the result >> ()$.</p>
-      <p>Warning: As in the previous example,
+(*wiki*
+
+          
+[[site:tuto/sessionservices| See the result]].
+          
+
+          
+Warning: As in the previous example,
        to implement such connection and disconnection forms, you
-       get more flexibility by using <em>actions</em> instead of xhtml services
+       get more flexibility by using //actions// instead of xhtml services
        (see below for the same example with actions).
-      </p>
-      <p>Services registered in session tables are called
-       <em>session</em> or <em>private</em> services.
+      
+          
+
+          
+Services registered in session tables are called
+       //session// or //private// services.
        Services registered in the public table
-       are called <em>public</em>.
-      </p>
-    </div>
-    <h3 id="p2coservices">Coservices</h3>
-    <div class="onecol">
-      <p>
+       are called //public//.
+      
+          
+    
+        >%
+        ===@@id="p2coservices"@@Coservices
+        
+        %<div class="onecol"|
+          
    A coservice is a service that uses the same URL as
    a main service, but generates another page.
    They are distinguished from main services only by a special
-   parameter, called <em>state</em> parameter.
-   Coservices may use GET or POST parameters.</p>
-   <p>Most of the time, GET coservices are created dynamically with
+   parameter, called //state// parameter.
+   Coservices may use GET or POST parameters.
+          
+
+          
+Most of the time, GET coservices are created dynamically with
    respect to previous interaction with the user and are registered
    in the session table. They allow to give a precise semantics to the
    "back" button of the browser (be sure that you will go back in the
    past) or bookmarks, or duplication of the browser's window.
-   (See the <a href="#p2calc"><code>calc</code></a> example below).
-   </p>
-   <p>
+   (See the [[eliom/manual/dev/2#p2calc|%<span class="code"|calc>%]] example below).
+   
+          
+
+          
    Use POST coservices if you want to particularize a link or form,
    but not the URL it points to.
    More precisely, POST coservices are mainly used in two situations:
-    </p>
-   <ul>
-   <li>For the same purpose as GET coservices (new services
+    
+          
+
+          
+*For the same purpose as GET coservices (new services
    corresponding to precise points of the interaction with the user)
-   but when you don't want this service to be bookmarkable.</li>
-   <li>To create a button that leads to a service after having performed
+   but when you don't want this service to be bookmarkable.
+*To create a button that leads to a service after having performed
    a side-effect. For example a disconnection button that leads to the main
-   page of the side, but with the side effect of disconnecting the user.</li>
-   </ul>
-   <p>
+   page of the side, but with the side effect of disconnecting the user.
+               
+          
+
+          
    To create a coservice, use
-   <span class="Cem">$a ~fragment:"VALnew_coservice" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_coservice" ]] [version;"Eliom_services.html"]$</span> and
-   <span class="Cem">$a ~fragment:"VALnew_post_coservice" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_post_coservice" ]] [version;"Eliom_services.html"]$</span>.
-   Like $a ~fragment:"VALnew_post_service" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_post_service" ]] [version;"Eliom_services.html"]$,
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_coservice"|%<span class="code"|Eliom_services.new_coservice>%>%>% and
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_post_coservice"|%<span class="code"|Eliom_services.new_post_coservice>%>%>%.
+   Like %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_post_service"|%<span class="code"|Eliom_services.new_post_service>%>%,
    they take a public service as parameter
-   (labeled <code><span class="Clabel">fallback</span></code>)
+   (labeled %<span class="code"|fallback>%)
    to be used as fallback when the user comes back without the state
    parameter (for example if it was a POST coservice and/or the coservice
-   has expired).</p>
-   <p>The following example shows the difference between GET coservices
-   (bookmarkable) and POST coservices:</p>
-*html*)
+   has expired).
+          
+
+          
+The following example shows the difference between GET coservices
+   (bookmarkable) and POST coservices:
+          
+*wiki*)
 (************************************************************)
 (************** Coservices. Basic examples ******************)
 (************************************************************)
@@ -1797,32 +2089,46 @@ let _ =
   let f sp () () = c := !c + 1; page sp () () in
   Eliom_predefmod.Xhtml.register coservices_example_post f;
   Eliom_predefmod.Xhtml.register coservices_example_get f
-(*html*
+(*wiki*
 
-      <p>Try $a Tutoeliom.coservices_example sp <:xmllist< <code>coserv</code> >> ()$.</p>
-      <p>Note that if the coservice does not exist (for example it
-      has expired), the fallback is called.</p>
-      <p>In this example, coservices do not take any parameters
+          
+Try [[site:tuto/coserv|%<span class="code"|coserv>%]].
+          
+
+          
+Note that if the coservice does not exist (for example it
+      has expired), the fallback is called.
+          
+
+          
+In this example, coservices do not take any parameters
       (but the state parameter), but you can create coservices with
       parameters. Note that the fallback of a GET coservice cannot take
       parameters. Actually as coservices parameters have special
       names, it is possible to use a "pre-applied" service as fallback
-      (<a href="#p3preapplied">see later</a>).</p>
+      ([[eliom/manual/dev/2#p3preapplied|see later]]).
+          
 
-      <p><strong>Exercise:</strong> Rewrite the example of Web site with
-        connection (<code>session_data_example</code>, with session data)
+
+          
+**Exercise:** Rewrite the example of Web site with
+        connection (%<span class="code"|session_data_example>%, with session data)
         using a POST
         coservice without parameter to make the disconnection link go back
         to the main page of the site instead of a "disconnection" page.
         It is better for ergonomics, but it would be even better to stay
-        on the same page&nbsp;... How to do that with POST coservices?
+        on the same page~ ... How to do that with POST coservices?
         A much better solution will be seen in the
-        <a href="#p2actions">section
-        about actions and non-attached coservices</a>.
-      </p>
-      <div class="encadre">
-        <h4>URLs</h4>
-          <p>While designing a Web site, think carefully about the URLs you
+        [[eliom/manual/dev/2#p2actions|section
+        about actions and non-attached coservices]].
+      
+          
+
+          %<div class="encadre"|
+            ====URLs
+            
+            
+While designing a Web site, think carefully about the URLs you
           want to use. URLs are the entry points of your site. Think that
           they may be bookmarked. If you create a link, you want to go to
           another URL, and you want a page to be generated. That page may be
@@ -1832,65 +2138,89 @@ let _ =
           or page depending on post data).
           Sometimes, you want that clicking
           a link or submitting a form does something without changing the URL.
-          You can do this using <em>non-attached coservices</em> (see below).
-          </p>
-      </div>
-      <div class="encadre">
-        <h4>Continuations</h4>
-        <p>Eliom is using the concept of <em>continuation</em>.
+          You can do this using //non-attached coservices// (see below).
+          
+            
+      
+          >%
+          %<div class="encadre"|
+            ====Continuations
+            
+            
+Eliom is using the concept of //continuation//.
         A continuation represents the future of a program (what to do after).
         When a user clicks on a link or a form, he chooses the future of the
         computation. When he uses the "back" button of the browser, he chooses
         to go back to an old continuation. Continuations for Web programming
         have been introduced by
-        $a (new_external_service
-             "http://www-spi.lip6.fr"
-             ["~queinnec";"PDF";"www.pdf"]
-             unit unit ()) sp <:xmllist< Christian Queinnec >> ()$,
+        [[http://www-spi.lip6.fr/%7Equeinnec/PDF/www.pdf| Christian Queinnec]],
         and are a big step in
-        the understanding of Web interaction.</p>
-        <p>
+        the understanding of Web interaction.
+            
+
+            
         Some programming languages (Scheme...) allow to manipulate
-        continuations using <em>control operators</em> (like
-        <code>call/cc</code>). The style of programming used by Eliom
-        is closer to <em>Continuation Passing Style</em> (CPS), and has the
+        continuations using //control operators// (like
+        %<span class="code"|call/cc>%). The style of programming used by Eliom
+        is closer to //Continuation Passing Style// (CPS), and has the
         advantage that it does not need control operators, and fits
         very well Web programming.
-        </p>
-        <p>Coservices allow to create dynamically
+        
+            
+
+            
+Coservices allow to create dynamically
         new continuations that depend on previous interactions with users
-        (<a href="#p2calc">See the <code>calc</code> example below</a>).
+        ([[eliom/manual/dev/2#p2calc|See the %<span class="code"|calc>% example below]]).
         Such a behaviour is difficult to simulate with traditional Web
-        programming.</p>
-        <p>If you want continuations dedicated to a particular user
-        register them in the session table.</p>
-      </div>
-      <h4>Non-attached coservices</h4>
-       <p>
+        programming.
+            
+
+            
+If you want continuations dedicated to a particular user
+        register them in the session table.
+            
+      
+          >%
+          ====Non-attached coservices
+          
+          
        Non-attached coservices are coservices
        that are not attached to an URL path.
        When you point a link or a form towards such a service, the URL does not
        change. The name of the service is sent as a special parameter.
-       </p>
-       <p>As for attached coservices, there are GET and POST versions.</p>
-       <p>
+       
+          
+
+          
+As for attached coservices, there are GET and POST versions.
+          
+
+          
        To create them, use
-       $a ~fragment:"VALnew_coservice'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_coservice'" ]] [version;"Eliom_services.html"]$ or
-       $a ~fragment:"VALnew_post_coservice'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_post_coservice'" ]] [version;"Eliom_services.html"]$.
+       %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_coservice'"|%<span class="code"|Eliom_services.new_coservice'>%>% or
+       %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_post_coservice'"|%<span class="code"|Eliom_services.new_post_coservice'>%>%.
        POST non-attached coservices are really useful if you want a
        link or form to be present on every page but you don't want the
        URL to change. Very often, non-attached POST coservices are
-       used with <em>actions</em> or <em>redirections</em>
-       (<a href="#p2actions">see more details and an example in the section about
-          actions below</a>).
-       </p>
-       <p>Non-attached coservices are distinguished by there names
-         (if the optional <code>name</code> parameter is present), or a number
-         (automatically generated and every times different).</p>
-    </div>
-    <h3 id="p2coservicesinsessiontable">Coservices in session tables</h3>
-    <div id="p2calc" class="onecol">
-    <p>You can register coservices in session tables to create
+       used with //actions// or //redirections//
+       ([[eliom/manual/dev/2#p2actions|see more details and an example in the section about
+          actions below]]).
+       
+          
+
+          
+Non-attached coservices are distinguished by there names
+         (if the optional %<span class="code"|name>% parameter is present), or a number
+         (automatically generated and every times different).
+          
+    
+        >%
+        ===@@id="p2coservicesinsessiontable"@@Coservices in session tables
+        
+        %<div id="p2calc" class="onecol"|
+          
+You can register coservices in session tables to create
        dynamically new services dedicated to an user.
        Here is an example of pages that add two integers.
        Once the first number is sent by the user, a coservice
@@ -1898,8 +2228,11 @@ let _ =
        takes the second number as parameter and displays the result of
        the sum with the first one.
        Try to duplicate the pages and/or to use the back button of your
-       navigator to verify that it has the expected behaviour.</p>
-*html*)(*zap* ------------------------------------------------------------------ *)
+       navigator to verify that it has the expected behaviour.
+          
+
+          
+*wiki*)(*zap* ------------------------------------------------------------------ *)
 (* You can register coservices in session tables.
    Use this if you want a link or a form which depends precisely on an
    instance of the web page, for example to buy something on an internet shop.
@@ -1956,13 +2289,13 @@ let rec page_for_shopping_basket sp shopping_basket =
       ~post_params:unit
       ()
   in
-    register_for_session (*zap* *) ~session_name (* *zap*)
+    register_for_session (* zap* *) ~session_name (* *zap *)
       ~sp
       ~service:coshop_with_post_params
       (fun sp () article ->
                  page_for_shopping_basket
                    sp (article::shopping_basket));
-    register_for_session (*zap* *) ~session_name (* *zap*)
+    register_for_session (* zap* *) ~session_name (* *zap *)
       ~sp
       ~service:copay
       (fun sp () () ->
@@ -2070,17 +2403,23 @@ let calc_i_handler sp i () =
 let () =
   Eliom_predefmod.Xhtml.register calc   calc_handler;
   Eliom_predefmod.Xhtml.register calc_i calc_i_handler
-(*html*
-      <p>$a Tutoeliom.calc sp <:xmllist< See the result >> ()$.</p>
-    </div>
+(*wiki*
+
+          
+[[site:tuto/calc| See the result]].
+          
+    
+        >%
 
 
 
 
 
-    <h3 id="p2actions">Actions</h3>
-    <div class="onecol">
-      <p>Actions are services that do not generate any page.
+        ===@@id="p2actions"@@Actions
+        
+        %<div class="onecol"|
+          
+Actions are services that do not generate any page.
    Use them to perform an effect on the server (connection/disconnection
    of a user, adding something in a shopping basket, delete a message in
    a forum, etc.). The page you link to is redisplayed after the action.
@@ -2088,41 +2427,59 @@ let () =
    (for ex a connection form),
    instead of making a version with post params of all these pages,
    you can use only one action, registered on a non-attached coservice.
-   To register actions, just use the module $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action" ]] [version;"Eliom_predefmod.Action.html"]$
-   instead of $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ (or $a ~service:senddoc ~sp [code [pcdata "Eliom_duce.Xhtml" ]] [version;"Eliom_duce.Xhtml.html"]$, etc.).
+   To register actions, just use the module %<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|%<span class="code"|Eliom_predefmod.Action>%>%
+   instead of %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>% (or %<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|%<span class="code"|Eliom_duce.Xhtml>%>%, etc.).
    For example
-     <span class="Cem">$a ~fragment:"VALregister" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action.register" ]] [version;"Eliom_predefmod.Action.html"]$</span>,
-     <span class="Cem">$a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action.register_new_service" ]] [version;"Eliom_predefmod.Action.html"]$</span>,
-     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Action.register_for_session" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$</span>.<br/>
-      </p>
-      <p>Here is one simple example. Suppose you wrote a function
-        <code>remove</code> to remove one piece of data from a database
+     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister"|%<span class="code"|Eliom_predefmod.Action.register>%>%>%,
+     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister_new_service"|%<span class="code"|Eliom_predefmod.Action.register_new_service>%>%>%,
+     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_for_session"|%<span class="code"|Eliom_predefmod.Action.register_for_session>%>%>%.            \\
+      
+          
+
+          
+Here is one simple example. Suppose you wrote a function
+        %<span class="code"|remove>% to remove one piece of data from a database
         (taking an identifier of the data).
         If you want to put a link on your page to call this function
         and redisplay the page, just create an action like this:
-      </p>
-<pre>
-<span class="Clet">let</span> remove_action <span class="Cnonalphakeyword">=</span>
-  <span class="Cconstructor">Eliom_services</span><span class="Cnonalphakeyword">.</span>register_new_post_coservice'
-    <span class="Clabel">~post_params:</span><span class="Cnonalphakeyword">(</span><span class="Cconstructor">Eliom_parameters</span><span class="Cnonalphakeyword">.</span>int <span class="Cstring">"id"</span><span class="Cnonalphakeyword">)</span>
-    <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> sp <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> id <span class="Cnonalphakeyword">-&gt;</span> remove id &gt;&gt;= <span class="Cfun">fun</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span> <span class="Cconstructor">Lwt</span><span class="Cnonalphakeyword">.</span>return <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span></pre>
-      <p>Then wherever you want to add a button to do that action
-         (on data <code>id</code>),
-      create a form like:</p>
-<pre>
-<span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>post_form remove_action sp
-  <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> id_name <span class="Cnonalphakeyword">-&gt;</span>
-     <span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>int_input
-       <span class="Clabel">~input_type:</span><span class="Cconstructor">`Hidden</span> <span class="Clabel">~name:</span>id_name <span class="Clabel">~value:</span>id <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
-     <span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>string_input
-       <span class="Clabel">~input_type:</span><span class="Cconstructor">`Submit</span> <span class="Clabel">~value:</span><span class="Cnonalphakeyword">(</span><span class="Cstring">"remove "</span>^string_of_int id<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span>
-</pre>
-      <p>Here we rewrite the example <code>session_data_example</code>
+      
+          
+
+          
+%<code language="ocaml"|
+let remove_action =
+  Eliom_services.register_new_post_coservice'
+    ~post_params:(Eliom_parameters.int "id")
+    (fun sp () id -> remove id >>= fun () -> Lwt.return [])
+>%
+
+          
+Then wherever you want to add a button to do that action
+         (on data %<span class="code"|id>%),
+      create a form like:
+          
+
+          
+%<code language="ocaml"|
+Eliom_predefmod.Xhtml.post_form remove_action sp
+  (fun id_name ->
+     Eliom_predefmod.Xhtml.int_input
+       ~input_type:`Hidden ~name:id_name ~value:id ();
+     Eliom_predefmod.Xhtml.string_input
+       ~input_type:`Submit ~value:("remove "^string_of_int id) ())
+
+>%
+
+          
+Here we rewrite the example %<span class="code"|session_data_example>%
       using actions
       and named non-attached coservices
       (note the POST coservice for disconnection, much better than the
-      previous solution that was using another URL).</p>
-*html*)
+      previous solution that was using another URL).
+          
+
+          
+*wiki*)
 (************************************************************)
 (************ Connection of users, version 3 ****************)
 (************************************************************)
@@ -2208,189 +2565,200 @@ let connect_action_handler sp () login =
 let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
   Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
-(*html*
-      <p>$a Tutoeliom.connect_example3 sp <:xmllist< See these pages >> ()$.</p>
+(*wiki*
 
-     <p>
-      Note that actions return <code>()</code>.
-      $a ~fragment:"p3infofallbacks"
-         ~service:tutocur3
-         ~sp
-         [pcdata "See later for more advanced use"]
-         ()
-      $
-     </p>
+          
+[[site:tuto/action| See these pages]].
+          
 
 
-     <p>
+          
+      Note that actions return %<span class="code"|()>%.
+      [[eliom/manual/dev/3#p3infofallbacks|See later for more advanced use]]
+     
+          
+
+
+
+          
        That version of the site with connection solves the main problems of
-       <a href="#p2sessiondata"><code>sessdata</code></a>:
-     </p>
-     <ul>
-       <li>
-         Connection and disconnection stay on the same page,
-       </li>
-       <li>
-         If you want a connection/disconnection form on each page, no need
+       [[eliom/manual/dev/2#p2sessiondata|%<span class="code"|sessdata>%]]:
+     
+          
+
+          
+*         Connection and disconnection stay on the same page,
+       
+*         If you want a connection/disconnection form on each page, no need
          to create a version with POST parameters of each service.
-       </li>
-     </ul>
+       
+                 
+          
 
-     <p>
+
+          
        We'll see later
-      $a ~fragment:"p3infofallbacks"
-         ~service:tutocur3
-         ~sp
-         [pcdata "how to display an error message"]
-         ()
-      $
+      [[eliom/manual/dev/3#p3infofallbacks|how to display an error message]]
        if the connection goes wrong, and
-      $a ~fragment:"p3persistenceofsessions"
-         ~service:tutocur3
-         ~sp
-         [pcdata "how to have persistent sessions"]
-         ()
-      $
+      [[eliom/manual/dev/3#p3persistenceofsessions|how to have persistent sessions]]
       (that stay opened even if the server is re-launched).
-     </p>
+     
+          
 
 
 
-    </div>
+    
+        >%
 
-    <h3 id="p2detailsonserviceregistration">Details on service registration</h3>
-    <div class="encadre sanstitre">
-      <ul>
-        <li>All services created during initialisation must be registered
+        ===@@id="p2detailsonserviceregistration"@@Details on service registration
+        
+        %<div class="encadre sanstitre"|
+          
+*All services created during initialisation must be registered
         in the public table during the initialisation phase of your module.
         If not, the server will not start (with an error message in the logs).
         Thus, there will always be a service to answer when somebody clicks on
         a link or a form.
-        </li>
-        <li>Services
+        
+*Services
          may be registered in the public table after initialisation with
-         <code>register</code> only if you add the <code>~sp</code>
-           parameter.<br/>
+         %<span class="code"|register>% only if you add the %<span class="code"|~sp>%
+           parameter.              \\
     If you use that for main services,
     you will dynamically create new URLs!
     This may be dangerous as they will disappear if you stop the server.
     Be very careful to re-create these URLs when you relaunch the server,
-    otherwise, some external links or bookmarks will be broken!<br/>
+    otherwise, some external links or bookmarks will be broken!              \\
     The use of that feature is discouraged for coservices
     without timeout, as such coservices will be available only until the end
     of the server process (and it is not possible to re-create them with the
     same key).
-        </li>
-        <li>Do not register twice the same service in the public table,
+        
+*Do not register twice the same service in the public table,
           and do not replace a service
           by a directory (or vice versa). If this happens during the
           initialisation phase, the server won't start.
           If this happens after, it will be ignored (with a warning in the
           logs).
-        </li>
-        <li>All services (not coservices) must be created in
-        a module loaded inside a <code>&lt;site&gt;</code> tag of the
+        
+*All services (not coservices) must be created in
+        a module loaded inside a %<span class="code"|<site>%> tag of the
         config file (because they will be attached to a directory).
-        Not possible for modules loaded inside <code>&lt;extension&gt;</code>
-        or <code>&lt;library&gt;</code>.
-        </li>
-        <li>GET coservices (whithout POST parameters) can be registered
+        Not possible for modules loaded inside %<span class="code"|<extension>%>
+        or %<span class="code"|<library>%>.
+        
+*GET coservices (whithout POST parameters) can be registered
         only with a main service without GET/POST parameters as fallback.
         But it may be a
-      $a ~fragment:"p3preapplied"
-         ~service:tutocur3
-         ~sp
-         [em [pcdata "preapplied"]]
-         ()
-      $
+      [[eliom/manual/dev/3#p3preapplied|//preapplied//]]
         service (see below).
-        </li>
-        <li>Services with POST parameters (main service or coservice)
+        
+*Services with POST parameters (main service or coservice)
         can be registered with a (main or co) service without POST
-        parameters as fallback.</li>
-        <li>The registration of (main) services must be completed before
+        parameters as fallback.
+*The registration of (main) services must be completed before
           the end of the loading of the module. It not possible to launch
           a (Lwt) thread that will register a service later, as
           registering a service needs access to config file
           information (for example the directory of the site).
           If you do this, the server will raise
-          $a ~fragment:"EXCEPTIONEliom_function_forbidden_outside_site_loading" ~service:senddoc ~sp [code [pcdata "Eliom_common.Eliom_function_forbidden_outside_site_loading " ]] [version;"Eliom_common.html"]$
+          %<ocsigendoc version="dev" file="Eliom_common.html" fragment="EXCEPTIONEliom_function_forbidden_outside_site_loading"|%<span class="code"|Eliom_common.Eliom_function_forbidden_outside_site_loading >%>%
           most of the time,
           but you may also get unexpected results (if the thread is executed
           while another site is loaded).
           If you use threads in the initialization phase of your module
           (for example if you need information from a database),
-          use $a ~fragment:"VALrun" ~service:senddoc ~sp [code [pcdata "Lwt_unix.run" ]] [version;"Lwt_unix.html"]$ to wait the end of the thread.
-        </li>
-      </ul>
-    </div>
+          use %<ocsigendoc version="dev" file="Lwt_unix.html" fragment="VALrun"|%<span class="code"|Lwt_unix.run>%>% to wait the end of the thread.
+        
+                  
+          
+    
+        >%
+      >%      
 
-
-°°
-
-
-let part3 sp =
-°:xmllist°
-
-
-   <h2>3. More details on services and page generation</h2>
-    <div class="onecol">
-     <p>
+%<||3>%
+%<div class='leftcol'|%<leftcoldoc version="dev">%>%
+      %<div class="colprincipale"|
+        ==3. More details on services and page generation
+        
+        %<div class="onecol"|
+          
        You now know all Eliom's main concepts. In that part, we'll give
        more details on some aspects that have been seen before:
-     </p>
-     <ul>
-       <li>The different types of output for services</li>
-       <li>Timeouts and error handling</li>
-       <li>Persistence of sessions</li>
-       <li>Advanced forms</li>
-     </ul>
-    </div>
+     
+          
+
+          
+*The different types of output for services
+*Timeouts and error handling
+*Persistence of sessions
+*Advanced forms
+                 
+          
+    
+        >%
 
 
-    <h3 id="p3staticparts">Static parts</h3>
-    <div class="onecol">
-      <h4>Fully static pages</h4>
-      <p>The <code>staticmod</code> extension allows to associate
+        ===@@id="p3staticparts"@@Static parts
+        
+        %<div class="onecol"|
+          ====Fully static pages
+          
+          
+The %<span class="code"|staticmod>% extension allows to associate
          to your site a static directory
          where you can put all the static (non generated) parts of your
          web-site (for examples images ans stylesheets).
-         See the default config file <code>ocsigen.conf</code> to
+         See the default config file %<span class="code"|ocsigen.conf>% to
          learn how to do that.
          A predefined service can be used to make links to static files.
          Get it using
-         <code><span class="Cem">(static_dir ~sp)</span></code>.
+         %<span class="code"|(static_dir ~sp)>%.
          That service takes as string parameter the name of the file.
-                <br/>
-                For example</p>
-         <pre><span class="Cconstructor">Eliom</span>.a
+                            \\
+                For example
+          
+
+          
+%<code language="ocaml"|Eliom.a
   (static_dir ~sp)
   sp
   [pcdata "download image"]
-  "$str:small_logo$"</pre>
-          <p>creates this link:
-         $a (static_dir ~sp) sp [pcdata "download image"] [small_logo]$
-      </p>
-      <p>It is now also possible to handle static pages with Eliom, using
-      <code>Eliom_predefmod.Files</code> (<a href="#p3eliomfiles">see later</a>).
-      </p>
-      <!-- h4>Static parts of a page</h4>
-      <em>To be available soon</em -->
-    </div>
+  "ocsigen8-100x30.png"
+>%
+
+          
+creates this link:
+         [[site:ocsigen8-100x30.png|download image]]
+      
+          
+
+          
+It is now also possible to handle static pages with Eliom, using
+      %<span class="code"|Eliom_predefmod.Files>% ([[eliom/manual/dev/3#p3eliomfiles|see later]]).
+      
+          
+      <!-- h4>Static parts of a page</h4>      <em>To be available soon</em -->
+    
+        >%
 
 
 
-    <h3 id="p3otherkindsofpages">Other kinds of pages</h3>
-    <div class="onecol">
-    <h4>Sending portions of pages</h4>
-    <p>
-     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Blocks" ]] [version;"Eliom_predefmod.Blocks.html"]$ module allows to register services that
+        ===@@id="p3otherkindsofpages"@@Other kinds of pages
+        
+        %<div class="onecol"|
+          ====Sending portions of pages
+          
+          
+     The %<ocsigendoc version="dev" file="Eliom_predefmod.Blocks.html"|%<span class="code"|Eliom_predefmod.Blocks>%>% module allows to register services that
      send portions of pages, of any type that may be contained directly in
-     a <code>&lt;body&gt;</code> tag (blocks of xhtml DTD).
+     a %<span class="code"|<body>%> tag (blocks of xhtml DTD).
      It is useful to create AJAX pages
-     (i.e. pages using the <code>XMLHttpRequest</code> Javascript object).
-     Note that the service returns a list of blocks.</p>
-*html*)
+     (i.e. pages using the %<span class="code"|XMLHttpRequest>% Javascript object).
+     Note that the service returns a list of blocks.
+          
+
+*wiki*)
 let divpage =
   Eliom_predefmod.Blocks.register_new_service
     ~path:["div"]
@@ -2399,44 +2767,54 @@ let divpage =
       return
         [div [h2 [pcdata "Hallo"];
               p [pcdata "Blablablabla"] ]])
-(*html*
-     <p>
-     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.SubXhtml" ]] [version;"Eliom_predefmod.SubXhtml.html"]$ module allows to create other modules for
+(*wiki*
+
+          
+     The %<ocsigendoc version="dev" file="Eliom_predefmod.SubXhtml.html"|%<span class="code"|Eliom_predefmod.SubXhtml>%>% module allows to create other modules for
      registering portions of pages of other types.
-     For example, $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Blocks" ]] [version;"Eliom_predefmod.Blocks.html"]$
-     is defined by:</p>
-<pre>
+     For example, %<ocsigendoc version="dev" file="Eliom_predefmod.Blocks.html"|%<span class="code"|Eliom_predefmod.Blocks>%>%
+     is defined by:
+          
+
+          
+%<code language="ocaml"|
 module Blocks = SubXhtml(struct
   type content = Xhtmltypes.body_content
 end)
-</pre>
 
-    <h4>Redirections</h4>
-    <p>
-     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirection" ]] [version;"Eliom_predefmod.Redirection.html"]$ module allows to register HTTP redirections.<br/>  <strong>[New in 1.1.0. For 1.0.0, please see module <code>Eliom_predefmod.Redirections</code>.]</strong><br/>
+>%
+
+
+          ====Redirections
+          
+          
+     The %<ocsigendoc version="dev" file="Eliom_predefmod.Redirection.html"|%<span class="code"|Eliom_predefmod.Redirection>%>% module allows to register HTTP redirections.            \\  **[New in 1.1.0. For 1.0.0, please see module %<span class="code"|Eliom_predefmod.Redirections>%.]**            \\
      If a request is done towards such a service, the server asks the browser
      to retry with another URL. 
-    </p>
-    <p>
+    
+          
+
+          
      Such services return a GET service without parameter at all.
      Example:
-    </p>
-*html*)
+    
+          
+*wiki*)
 let redir1 = Eliom_predefmod.Redirection.register_new_service
     ~options:`Temporary
     ~path:["redir"]
     ~get_params:Eliom_parameters.unit
    (fun sp () () -> Lwt.return coucou)
-(*html*
-    <p>
+(*wiki*
+
+          
      If you want to give parameters to such services, use
-     $a ~fragment:"VALpreapply" ~service:senddoc ~sp
-           [code [pcdata "Eliom_services.preapply" ]]
-           [version;"Eliom_services.html"]$ (see also 
-     <a href="#p3preapplied">later in the tutorial</a>).
+     %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpreapply"|%<span class="code"|Eliom_services.preapply>%>% (see also 
+     [[eliom/manual/dev/3#p3preapplied|later in the tutorial]]).
      Example:
-    </p>
- *html*)
+    
+          
+ *wiki*)
 let redir = Eliom_predefmod.Redirection.register_new_service
     ~options:`Temporary
     ~path:["redir"]
@@ -2444,50 +2822,79 @@ let redir = Eliom_predefmod.Redirection.register_new_service
    (fun sp o () ->
       Lwt.return
         (Eliom_services.preapply coucou_params (o,(22,"ee"))))
-(*html*
-      <p>The <code>options</code> parameter may be either
-      <code>`Temporary</code> or <code>`Permanent</code>.</p>
-      <p>$a Tutoeliom.redir sp <:xmllist< Try it >> 11$.</p>
+(*wiki*
 
-      <p>Note that the cost of a redirection is one more query and
+          
+The %<span class="code"|options>% parameter may be either
+      %<span class="code"|`Temporary>% or %<span class="code"|`Permanent>%.
+          
+
+          
+[[site:tuto/redir?o=11| Try it]].
+          
+
+
+          
+Note that the cost of a redirection is one more query and
       one more answer.
-      </p>
+      
+          
 
 
-     <h4 id="p3eliomfiles">Sending files</h4>
-      <p>You may want to register a service that will send files.
-      To do that, use the $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Files" ]] [version;"Eliom_predefmod.Files.html"]$ module. Example:
-      </p>
-<pre>
+
+          ====@@id="p3eliomfiles"@@Sending files
+          
+          
+You may want to register a service that will send files.
+      To do that, use the %<ocsigendoc version="dev" file="Eliom_predefmod.Files.html"|%<span class="code"|Eliom_predefmod.Files>%>% module. Example:
+      
+          
+
+          
+%<code language="ocaml"|
 let sendfile =
   Files.register_new_service
     ~path:["sendfile"]
     ~get_params:unit
-    (fun _ () () -&gt; return "filename")
-</pre>
-      <p>Other example, with suffix URL:
-      </p>
-<pre>
+    (fun _ () () -> return "filename")
+
+>%
+
+          
+Other example, with suffix URL:
+      
+          
+
+          
+%<code language="ocaml"|
 let sendfile2 =
   Files.register_new_service
     ~path:["files"]
     ~get_params:(suffix (all_suffix "filename"))
-    (fun _ s () -&gt; return ("<em>path</em>"^(Ocsigen_extensions.string_of_url_path ~encode:false s)))
-</pre>
-      <p>The extension <code>Staticmod</code> is another way to
+    (fun _ s () -> return ("//path//"^(Ocsigen_extensions.string_of_url_path ~encode:false s)))
+
+>%
+
+          
+The extension %<span class="code"|Staticmod>% is another way to
        handle static files (see the default
        configuration file for more information).
-      </p>
+      
+          
 
-     <h4>Registering services that decide what they want to send</h4>
-      <p>You may want to register a service that will send, for instance,
+
+          ====Registering services that decide what they want to send
+          
+          
+You may want to register a service that will send, for instance,
       sometimes
       an xhtml page, sometimes a file, sometimes something else.
-      To do that, use the $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Any" ]] [version;"Eliom_predefmod.Any.html"]$ module, together
-      with the <code>send</code> function of the module you want
+      To do that, use the %<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|%<span class="code"|Eliom_predefmod.Any>%>% module, together
+      with the %<span class="code"|send>% function of the module you want
       to use. Example:
-      </p>
-*html*)
+      
+          
+*wiki*)
 let send_any =
   Eliom_predefmod.Any.register_new_service
     ~path:["sendany"]
@@ -2505,60 +2912,83 @@ let send_any =
        Eliom_predefmod.HtmlText.send sp
          "<html><body><p>It is not a valid page. Put type=\"valid\" in the URL to get a typechecked page.</p></body></html>"
    )
-(*html*
-      <p>
-      See $a Tutoeliom.send_any sp <:xmllist< a valid page >> "valid"$,
-      and $a Tutoeliom.send_any sp <:xmllist< a non valid page >> "non valid"$.
-      </p>
-      <p>You may also use $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Any" ]] [version;"Eliom_predefmod.Any.html"]$ to send cookies or to choose a
+(*wiki*
+
+          
+      See [[site:tuto/sendany?type=valid| a valid page]],
+      and [[site:tuto/sendany?type=non+valid| a non valid page]].
+      
+          
+
+          
+You may also use %<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|%<span class="code"|Eliom_predefmod.Any>%>% to send cookies or to choose a
          different charset than the default
         (default charset is set in configuration file)
          for the page you send. To do that use the optional parameters
-          <code>?cookies</code> and <code>?charset</code> of the
-         <code>send</code> function.
-      </p>
-     <h4>Cookies</h4>
-     <p>
+          %<span class="code"|?cookies>% and %<span class="code"|?charset>% of the
+         %<span class="code"|send>% function.
+      
+          
+
+          ====Cookies
+          
+          
       A simplest way to set your own cookies on the client is to use
       functions like
-      <code>Eliom_predefmod.Xhtml.Cookies.register</code> instead of
-      <code>Eliom_predefmod.Xhtml.register</code>.
+      %<span class="code"|Eliom_predefmod.Xhtml.Cookies.register>% instead of
+      %<span class="code"|Eliom_predefmod.Xhtml.register>%.
       The function you register returns a pair containing the page (as usual)
-      and a list of cookies, of type <code>Eliom_services.cookie</code>
+      and a list of cookies, of type %<span class="code"|Eliom_services.cookie>%
       defined by:
-      </p>
-      <pre>
+      
+          
+
+          
+%<code language="ocaml"|
 type cookie =
   | Set of string list option * float option * string * string * bool
   | Unset of string list option * string
-</pre>
-     <p><strong>[New in 1.1.0]</strong> For version 1.0.0, the type 
-<code>cookie</code> was slightly different (no secure cookies).</p>
-     <p>
-     The <code>string list option</code> is a the path for which you want
+
+>%
+
+          
+**[New in 1.1.0]** For version 1.0.0, the type 
+%<span class="code"|cookie>% was slightly different (no secure cookies).
+          
+
+          
+     The %<span class="code"|string list option>% is a the path for which you want
      to set/unset the cookie (relative to the main directory of your site,
    defined
-     in the configuration file). <code>None</code> means for all your site.
-     </p>
-     <p>
-     The <code>float option</code> is a the expiration date
+     in the configuration file). %<span class="code"|None>% means for all your site.
+     
+          
+
+          
+     The %<span class="code"|float option>% is a the expiration date
      (Unix timestamp, in seconds since the epoch).
-     <code>None</code> means that the cookie will expire when the browser
+     %<span class="code"|None>% means that the cookie will expire when the browser
      will be closed.
-     </p>
-     <p>
-     If the <code>bool</code> is true and the protocol is https, 
+     
+          
+
+          
+     If the %<span class="code"|bool>% is true and the protocol is https, 
      the server will ask the browser to send the cookie only through
      secure connections.
-     </p>
-     <p>
+     
+          
+
+          
       You can access the cookies sent by the browser using
-      $a ~fragment:"VALget_cookies" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_cookies sp" ]] [version;"Eliom_sessions.html"]$.
-     </p>
-     <p>
+      %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_cookies"|%<span class="code"|Eliom_sessions.get_cookies sp>%>%.
+     
+          
+
+          
       Example:
-     </p>
-*html*)
+     
+*wiki*)
 let cookiename = "mycookie"
 
 let cookies = new_service ["cookies"] unit ()
@@ -2579,96 +3009,137 @@ let _ = Cookies.register cookies
                              cookiename,
                              string_of_int (Random.int 100),
                              false)]))
-(*html*
-      <p>$a Tutoeliom.cookies sp <:xmllist< Try it >> ()$.</p>
-    </div>
+(*wiki*
+
+          
+[[site:tuto/cookies| Try it]].
+          
+    
+        >%
 
 
-    <h3 id="p3persistenceofsessions">Persistence of sessions</h3>
-    <div class="onecol">
-      <p>Tables of sessions (for data or services) are kept in memory,
+        ===@@id="p3persistenceofsessions"@@Persistence of sessions
+        
+        %<div class="onecol"|
+          
+Tables of sessions (for data or services) are kept in memory,
         and thus will disappear if you close the server process.
         To solve this problem, Ocsigen allows to reload the modules of
         your configuration file without shutting down the server.
         Another solution provided by Eliom is to save session data on hard disk.
-      </p>
+      
+          
 
-      <h4>Updating sites without shutting down the server</h4>
-      <p>To reload the modules of the configuration file without
-       stoping the server, use <code>/etc/init.d/ocsigen reload</code>
-       for most of the distributions, or do it manually using:</p>
-       <pre>echo reload &gt; /var/run/ocsigen_command</pre>.
-      <p>
-       Only modules loaded inside <code>&lt;site&gt;</code> or
-       <code>&lt;library&gt;</code> will be reloaded.
-       Module loaded using <code>&lt;extension&gt;</code> will not.
-      </p>
-      <p>
+
+          ====Updating sites without shutting down the server
+          
+          
+To reload the modules of the configuration file without
+       stoping the server, use %<span class="code"|/etc/init.d/ocsigen reload>%
+       for most of the distributions, or do it manually using:
+          
+
+          
+%<div class="pre"|echo reload > /var/run/ocsigen_command >%
+
+
+          
+       Only modules loaded inside %<span class="code"|<site>%> or
+       %<span class="code"|<library>%> will be reloaded.
+       Module loaded using %<span class="code"|<extension>%> will not.
+      
+          
+
+          
         Have a look at the logs to see if all went well during the reload.
         If something went wrong, old services may still be reachable.
-      </p>
-      <p>
+      
+          
+
+          
         Note that coservices created with the old modules or
         URLs that have not been masked by new ones
         will still reachable after the update.
-      </p>
-      <p>
+      
+          
+
+          
         During the reload, some information of the configuration file
         will not be re-read (for example port numbers, user and group, etc.).
-      </p>
+      
+          
 
 
-      <h4>Persistent data</h4>
-      <p>
+
+          ====Persistent data
+          
+          
         Eliom allows to use more persistent data, using the module
-        $a ~service:senddoc ~sp [code [pcdata "Ocsipersist" ]] [version;"Ocsipersist.html"]$. (<code>Ocsipersist</code> is needed in
-        <code>eliom.cma</code>, thus you need to dynlink it in the
-        configuration file before <code>Eliom</code>).
-        There are currently two implementations of <code>Ocsipersist</code>:
-        <code>ocsipersist-dbm.cma</code> (uses the DBM database) and
-        <code>ocsipersist-sqlite.cma</code> (uses the SQLite database,
-        and depends on <code>sqlite3.cma</code>).
-      </p>
-      <p>These modules allow to:
-      </p>
-      <ul>
-        <li>Create persistent references
-          (still present after restarting the server),</li>
-        <li>Create persistent association tables,</li>
-        <li>Set persistent session data (using
-        <code>set_persistent_data</code>, see below).</li>
-      </ul>
-      <p>Note that persistent data are serialized on hard disk using
-        OCaml's <code>Marshal</code> module:
-      </p>
-   <div class="importantwarning">
-      <ul>
-        <li>It is not possible to serialize closures or services
-         (as we are using dynamic linking).</li>
-        <li>
- If you ever change the type of serialised data, don't
+        %<ocsigendoc version="dev" file="Ocsipersist.html"|%<span class="code"|Ocsipersist>%>%. (%<span class="code"|Ocsipersist>% is needed in
+        %<span class="code"|eliom.cma>%, thus you need to dynlink it in the
+        configuration file before %<span class="code"|Eliom>%).
+        There are currently two implementations of %<span class="code"|Ocsipersist>%:
+        %<span class="code"|ocsipersist-dbm.cma>% (uses the DBM database) and
+        %<span class="code"|ocsipersist-sqlite.cma>% (uses the SQLite database,
+        and depends on %<span class="code"|sqlite3.cma>%).
+      
+          
+
+          
+These modules allow to:
+      
+          
+
+          
+*Create persistent references
+          (still present after restarting the server),
+*Create persistent association tables,
+*Set persistent session data (using
+        %<span class="code"|set_persistent_data>%, see below).
+                  
+          
+
+          
+Note that persistent data are serialized on hard disk using
+        OCaml's %<span class="code"|Marshal>% module:
+      
+          
+
+          %<div class="importantwarning"|
+            
+*It is not possible to serialize closures or services
+         (as we are using dynamic linking).
+* If you ever change the type of serialised data, don't
  forget to delete the database file!
  Or if you really want to keep it, and
  you know what you are doing, you can use the sqlite client to manually
  update the table or a program to create a new sqlite or dbm table
  for the new type.
-        </li>
-      </ul>
-   </div>
-   <p>
-   Suppose for example that you use <code>get/set_persistent_data</code>
+        
+                    
+            
+   
+          >%
+          
+   Suppose for example that you use %<span class="code"|get/set_persistent_data>%
    (see below) to store a (int, string)
  tuple with the user's login credentials.  At this point you stop the
  server, and change the code such that get/set_persistent_data now to store
  a (int, string, string).  Now recompile and restart the server.  If by any
  chance a client with an old cookie reconnects, you get a segfault on the
  server, because of the type change in the data stored in the DB backend ...
-   </p>
-      <h4>Persistent references</h4>
-      <p><code>Ocsipersist</code> allows to create persistent references.
+   
+          
+
+          ====Persistent references
+          
+          
+%<span class="code"|Ocsipersist>% allows to create persistent references.
        Here is an example of page with a persistent counter:
-      </p>
-*html*)
+      
+          
+
+*wiki*)
 let mystore = Ocsipersist.open_store "eliomexamplestore2"
 
 let count2 =
@@ -2698,50 +3169,63 @@ let count2 =
           (head (title (pcdata "counter")) [])
           (body [p [pcdata (string_of_int n)]]))))
 
-(*html*
-      <p>
-      $a Tutoeliom.count2 sp <:xmllist< See this example here >> ()$.
-      </p>
-      <h4>Persistent tables</h4>
-      <p><code>Ocsipersist</code> also allows to create very basic
+(*wiki*
+
+          
+[[site:tuto/count2| See this example here]].
+      
+          
+
+          ====Persistent tables
+          
+          
+%<span class="code"|Ocsipersist>% also allows to create very basic
        persistent tables. Use them if you don't need complex requests
-       on your tables. Otherwise use a database such as <code>PostgreSQL</code>
-       or <code>MySQL</code>. Here are the interface you can use:
-      </p>
-<pre>
+       on your tables. Otherwise use a database such as %<span class="code"|PostgreSQL>%
+       or %<span class="code"|MySQL>%. Here are the interface you can use:
+      
+          
+
+          
+%<code language="ocaml"|
 type 'value table
 
-val open_table : string -&gt; 'value table
+val open_table : string -> 'value table
 
-val find : 'value table -&gt; string -&gt; 'value Lwt.t
+val find : 'value table -> string -> 'value Lwt.t
 
-val add : 'value table -&gt; string -&gt; 'value -&gt; unit Lwt.t
+val add : 'value table -> string -> 'value -> unit Lwt.t
 
-val remove : 'value table -&gt; string -&gt; unit Lwt.t
-</pre>
+val remove : 'value table -> string -> unit Lwt.t
 
-    <p>
+>%
+
+
+          
       As you can see, all these function are cooperative.
-    </p>
+    
+          
 
-      <h4>Persistent session data</h4>
-      <p><code>Eliom</code> also implements persistent session tables.
+
+          ====Persistent session data
+          
+          
+%<span class="code"|Eliom>% also implements persistent session tables.
        You can use them instead of memory tables if you don't need
-       to register closures.</p>
-      <p>The following example is a new version of our site
-       with users, with persistent connections.
-       (<code>login_box</code>, <code>disconnect_box</code>
-       and <code>disconnect_action</code>
-       are the same as
-      $a ~fragment:"p2actions"
-         ~service:tutocur2
-         ~sp
-         [pcdata "before"]
-         ()
-      $).
-      </p>
+       to register closures.
+          
 
-*html*)
+          
+The following example is a new version of our site
+       with users, with persistent connections.
+       (%<span class="code"|login_box>%, %<span class="code"|disconnect_box>%
+       and %<span class="code"|disconnect_action>%
+       are the same as
+      [[eliom/manual/dev/2#p2actions|before]]).
+      
+          
+
+*wiki*)
 (************************************************************)
 (************ Connection of users, version 4 ****************)
 (**************** (persistent sessions) *********************)
@@ -2770,7 +3254,9 @@ let persist_session_connect_action =
     ()
 
 (* disconnect_action, login_box and disconnect_box have been
-   defined in the section about actions *)(*zap* *)
+   defined in the section about actions *)
+
+(*zap* *)
 
 (* -------------------------------------------------------- *)
 (* Actually, no. It's a lie because we don't use the
@@ -2782,7 +3268,7 @@ let disconnect_action =
     ~name:"disconnect4"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_sessions.close_session ~session_name ~sp ())
 
 let disconnect_box sp s =
   Eliom_predefmod.Xhtml.post_form disconnect_action sp
@@ -2858,47 +3344,57 @@ let () =
   Eliom_predefmod.Action.register
     ~service:persist_session_connect_action
     persist_session_connect_action_handler
-(*html*
-      <p>
-      $a Tutoeliom.persist_session_example sp <:xmllist< See this example here >> ()$.
-      </p>
+(*wiki*
 
-      <p>
+          
+[[site:tuto/persist| See this example here]].
+      
+          
+
+
+          
         As it is not possible to serialize closures, there is no persistent
         session service table. Be very carefull if you use both persistent
         session data tables and service session tables,
         as your session may become inconsistent (use the session service
         table only for volatile services, like coservices with timeouts).
-      </p>
+      
+          
 
-    </div>
+    
+        >%
 
 
 
-    <h3 id="p3sessiongroups">[New in 0.99.5 - EXPERIMENTAL] Session groups</h3>
-    <div class="onecol">
-    <p>The idea is complementary to that of
+        ===@@id="p3sessiongroups"@@[New in 0.99.5 - EXPERIMENTAL] Session groups
+        
+        %<div class="onecol"|
+          
+The idea is complementary to that of
 the "session name".  While the
-optional <code>session_name</code> parameter allows for a single session to have
+optional %<span class="code"|session_name>% parameter allows for a single session to have
 multiple buckets of data associated with it, a session_group parameter
 (also optional) allow multiple sessions to be referenced together.
 For most uses, the session group is the user name.
 It allows to implement features like "close all sessions" for one user
 (even those opened on other browsers), or to limit the number of sessions
 one user may open at the same time.
-    </p>
-    <p>Session groups have been suggested by Dario Teixeira and
+    
+          
+
+          
+Session groups have been suggested by Dario Teixeira and
     introduced in Eliom 0.99.5. Dario explains:
-    <em>Consider the following scenario: a user logs in from home using
+    //Consider the following scenario: a user logs in from home using
   a "Remember me on this computer" feature, which sets a (almost)
   no-expiration cookie on his browser and session timeouts of infinity
   on the server.  The user goes on vacation, and while logging from
-  a cyber-café, she also sets the "Remember me" option.  Back home
+  a cyber-cafÃ©, she also sets the "Remember me" option.  Back home
   she realises her mistake, and wishes to do a "global logout", ie,
   closing all existing sessions associated with her user name.
-  </em>
-    </p>
-  *html*)
+  //
+    
+  *wiki*)
 (************************************************************)
 (************ Connection of users, version 5 ****************)
 (************************************************************)
@@ -2984,88 +3480,107 @@ let connect_action_handler sp () login =
 let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
   Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
-(*html*
-
-    <p>
+(*wiki*
+          
       As we will see later, there are three kinds of sessions
       (services, volatile data and persistent data).
       It is highly recommended to set a group for each of them!
-    </p>
+    
+          
 
 
-    </div>
+    
+        >%
 
 
 
-    <h3 id="p3otherconcepts">Other concepts</h3>
-    <div class="onecol">
-    <h4 id="p3preapplied">Pre-applied services</h4>
-    <p>Services or coservices with GET parameters can be preapplied
+        ===@@id="p3otherconcepts"@@Other concepts
+        
+        %<div class="onecol"|
+          ====@@id="p3preapplied"@@Pre-applied services
+          
+          
+Services or coservices with GET parameters can be preapplied
      to obtain a service without parameters. Example:
-    </p>
-    <pre>
+    
+          
+
+          
+%<code language="ocaml"|
 let preappl = Eliom_services.preapply coucou_params (3,(4,"cinq"))
-    </pre>
-    <p>
+    
+>%
+
+          
      It is not possible to register something on a preapplied service,
      but you can use them in links or as fallbacks for coservices.
-    </p>
+    
+          
 
-    <h4 id="p3preapplied">Void action <strong>[New in 1.1.0]</strong></h4>
-    <p>$a ~fragment:"VALvoid_action" ~service:senddoc ~sp
-           [code [pcdata "Eliom_services.void_action" ]]
-           [version;"Eliom_services.html"]$:
+
+          ====@@id="p3preapplied"@@Void action **[New in 1.1.0]**
+          
+          
+%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_action"|%<span class="code"|Eliom_services.void_action>%>%:
      is a special non-attached action, with special behaviour:
      it has no parameter at all, even non-attached parameters.
      Use it if you want to make a link to the current page
      without non-attached parameters.
      It is almost equivalent to a POST non-attached coservice without POST
      parameters, on which you register an action that does nothing,
-     but you can use it with <code>&lt;a&gt;</code> links, not only forms.
+     but you can use it with %<span class="code"|<a>%> links, not only forms.
      Example:
-    </p>
-    <pre>
+    
+          
+
+          
+%<code language="ocaml"|
 Eliom_duce.Xhtml.a
   ~service:Eliom_services.void_action
   ~sp
   {{ "cancel" }}
   ()
-    </pre>
+    
+>%
 
-    <h4 id="p3infofallbacks">Giving information to fallbacks</h4>
 
-    <p>
+          ====@@id="p3infofallbacks"@@Giving information to fallbacks
+          
+
+          
     The function
-    $a ~fragment:"VALget_link_too_old" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_link_too_old" ]] [version;"Eliom_sessions.html"]$
-    returns <code>true</code> if the coservice called has not been found.
+    %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_link_too_old"|%<span class="code"|Eliom_sessions.get_link_too_old>%>%
+    returns %<span class="code"|true>% if the coservice called has not been found.
     In that case, the current service is the fallback.
-  </p>
-  <p>
+  
+          
+
+          
     The function
-    $a ~fragment:"VALget_expired_service_sessions" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_expired_service_sessions" ]] [version;"Eliom_sessions.html"]$
+    %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_expired_service_sessions"|%<span class="code"|Eliom_sessions.get_expired_service_sessions>%>%
     returns returns the list of names of service sessions expired 
     for the current request.
-    </p>
-    <p>It is also possible to send other information to fallback,
+    
+          
+
+          
+It is also possible to send other information to fallback,
     about what succeeded before they were called. 
-    Put this information in the <em>request cache</em>.
+    Put this information in the //request cache//.
     The request cache is a polymorphic table returned by
-     $a ~fragment:"VALget_request_cache" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_request_cache sp" ]] [version;"Eliom_sessions.html"]$.
+     %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_request_cache"|%<span class="code"|Eliom_sessions.get_request_cache sp>%>%.
      See the module
-     $a ~service:senddoc ~sp [code [pcdata "Polytables" ]] [version;"Polytables.html"]$ to understand how to use it.
+     %<ocsigendoc version="dev" file="Polytables.html"|%<span class="code"|Polytables>%>% to understand how to use it.
      You may also want to use this table to cache some data during the 
      duration of a request.
-    </p>
-    <p>
+    
+          
+
+          
     Here is a new version of the
-          $a ~fragment:"p2actions"
-         ~service:tutocur2
-         ~sp
-         [pcdata "example of session with actions,"]
-         ()
-      $ using the polymorphic request data table:
-    </p>
-*html*)
+          [[eliom/manual/dev/2#p2actions|example of session with actions,]] using the polymorphic request data table:
+    
+*wiki*)
 (************************************************************)
 (************ Connection of users, version 6 ****************)
 (************************************************************)
@@ -3172,27 +3687,36 @@ let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example6 connect_example6_handler;
   Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
 
-(*html*
-      <p>
-      $a Tutoeliom.connect_example6 sp <:xmllist< See this example here >> ()$.
-      </p>
-      <p>
-        If the actions raises an exception (with $a ~fragment:"VALfail" ~service:senddoc ~sp [code [pcdata "Lwt.fail" ]] [version;"Lwt.html"]$),
+(*wiki*
+          
+[[site:tuto/action2| See this example here]].
+      
+          
+
+          
+        If the actions raises an exception (with %<ocsigendoc version="dev" file="Lwt.html" fragment="VALfail"|%<span class="code"|Lwt.fail>%>%),
         the server will send an error 500 (like for any other service).
         Think about catching the exceptions and put them in the list
         if they correspond to usual cases you want to handle while
         generating the page after the action.
-      </p>
+      
+          
 
 
 
-     <h4>Disposable coservices</h4>
-      <p>It is possible to set a limit to the number of uses of
+
+          ====Disposable coservices
+          
+          
+It is possible to set a limit to the number of uses of
       (attached or non-attached) coservices. Just give the maximum number
-      of uses with the optional <code>?max_use</code> parameter while
+      of uses with the optional %<span class="code"|?max_use>% parameter while
       creating your coservices. Example
-      </p>
-*html*)
+      
+          
+
+          
+*wiki*)
 let disposable = new_service ["disposable"] unit ()
 
 let _ = register disposable
@@ -3218,62 +3742,100 @@ let _ = register disposable
                     pcdata "I just created a disposable coservice. You can use it only twice.");
                     br ();
                     a disp_coservice sp [pcdata "Try it!"] ()]])))
-(*html*
-      <p>$a Tutoeliom.disposable sp <:xmllist< Try it >> ()$.</p>
-     <h4>Timeout for sessions</h4>
-      <p>The default timeout for sessions in one hour. Sessions will be
+(*wiki*
+
+          
+[[site:tuto/disposable| Try it]].
+          
+
+          ====Timeout for sessions
+          
+          
+The default timeout for sessions in one hour. Sessions will be
        automatically closed after that amount of time of inactivity
        from the user.
        You can change that value for your whole site during initialisation
-       using:</p>
-<pre>
+       using:
+          
+
+          
+%<code language="ocaml"|
 Eliom_sessions.set_global_volatile_timeout (Some 7200.)
-</pre>
-      <p>Here 7200 seconds. <code>None</code> means no timeout.</p>
-      <p>
+
+>%
+
+          
+Here 7200 seconds. %<span class="code"|None>% means no timeout.
+          
+
+          
        You can change that value for your whole site after initialisation
-       using:</p>
-<pre>
+       using:
+          
+
+          
+%<code language="ocaml"|
 Eliom_sessions.set_global_volatile_timeout ~sp (Some 7200.)
-</pre>
-      <p>
-       You can change that value for one user only using:</p>
-<pre>
+
+>%
+
+          
+       You can change that value for one user only using:
+          
+
+          
+%<code language="ocaml"|
 Eliom_sessions.set_volatile_session_timeout ~sp (Some 7200.)
-</pre>
-      <p>
+
+>%
+
+          
       Note that there is also a possibility to change the default value
-      for Eliom in the configuration file like this:</p>
-<pre>
-    &lt;extension module="<em>path_to</em>/eliom.cma"&gt;
-      &lt;timeout value="7200"/&gt;
-    &lt;/extension&gt;
-</pre>
-     <p><code>value="infinity"</code> means no timeout.</p>
-     <p>Warning: that default may be overriden by each site using
-        $a ~fragment:"VALset_global_volatile_timeout" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.set_global_volatile_timeout" ]] [version;"Eliom_sessions.html"]$ or
-        $a ~fragment:"VALset_default_volatile_timeout" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.set_default_volatile_timeout" ]] [version;"Eliom_sessions.html"]$.
+      for Eliom in the configuration file like this:
+          
+
+          
+%<code language="ocaml"|
+    <extension module="//path_to///eliom.cma">
+      <timeout value="7200"/>
+    </extension>
+
+>%
+
+          
+%<span class="code"|value="infinity">% means no timeout.
+          
+
+          
+Warning: that default may be overriden by each site using
+        %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_global_volatile_timeout"|%<span class="code"|Eliom_sessions.set_global_volatile_timeout>%>% or
+        %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_default_volatile_timeout"|%<span class="code"|Eliom_sessions.set_default_volatile_timeout>%>%.
         If you want your user to be able to set the default in the
-        configuration file for your site (between <code>&lt;site&gt;</code>
-        and <code>&lt;/site&gt;</code>), you must parse the configuration
-        ($a ~fragment:"VALget_config" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_config ()" ]] [version;"Eliom_sessions.html"]$ function, see below).
-     </p>
+        configuration file for your site (between %<span class="code"|<site>%>
+        and %<span class="code"|</site>%>), you must parse the configuration
+        (%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|%<span class="code"|Eliom_sessions.get_config ()>%>% function, see below).
+     
+          
 
 
 
-     <h4>Timeout for coservices</h4>
-      <p>It is also possible to put timeouts on coservices using
-      the optional parameter <code>?timeout</code> of functions
-      <code>new_coservice</code>,
-      <code>new_coservice'</code>, etc.
+
+          ====Timeout for coservices
+          
+          
+It is also possible to put timeouts on coservices using
+      the optional parameter %<span class="code"|?timeout>% of functions
+      %<span class="code"|new_coservice>%,
+      %<span class="code"|new_coservice'>%, etc.
      Note that session coservices cannot survive after the end of the session.
      Use this if you don't want your coservice to be available during all the
      session duration. For example if your coservice is here to show the
      results of a search, you probably want it to be available only for
      a short time. The following example shows a coservice with timeout
      registered in the session table.
-     </p>
-*html*)
+     
+          
+*wiki*)
 let timeout = new_service ["timeout"] unit ()
 
 let _ =
@@ -3300,28 +3862,36 @@ let _ =
           ]))
   in
   register timeout page
-(*html*
-      <p>
-      $a Tutoeliom.timeout sp <:xmllist< See this example here >> ()$.
-      </p>
-     <h4>Registering coservices in public table during session</h4>
-     <p>If you want to register coservices in the
+(*wiki*
+          
+[[site:tuto/timeout| See this example here]].
+      
+          
+
+          ====Registering coservices in public table during session
+          
+          
+If you want to register coservices in the
      public table during a session, (that is, after the initialisation
-     phase of your module), you must add the optional <code>~sp</code>
-     parameter to the <code>register</code> function.
-     Remember that using <code>register</code> without <code>~sp</code>
+     phase of your module), you must add the optional %<span class="code"|~sp>%
+     parameter to the %<span class="code"|register>% function.
+     Remember that using %<span class="code"|register>% without %<span class="code"|~sp>%
      is possible only during initialisation!
-     </p>
-     <p>
+     
+          
+
+          
      We recommend to put a timeout on such coservices, otherwise, they
      will be available until the end of the server process, and it will not be
      possible to re-create them when the server is relaunched.
-     </p>
-     <p>
+     
+          
+
+          
      The following example is a translation of the previous one using
      the public table:
-     </p>
-*html*)
+     
+*wiki*)
 let publiccoduringsess = new_service ["publiccoduringsess"] unit ()
 
 let _ =
@@ -3347,19 +3917,24 @@ let _ =
           ]))
   in
   register publiccoduringsess page
-(*html*
-      <p>
-      $a Tutoeliom.publiccoduringsess sp <:xmllist< See this example here >> ()$.
-      </p>
-     <h4>Defining an exception handler for the whole site</h4>
-     <p>When an exception is raised during the generation of a page,
+(*wiki*
+          
+[[site:tuto/publiccoduringsess| See this example here]].
+      
+          
+
+          ====Defining an exception handler for the whole site
+          
+          
+When an exception is raised during the generation of a page,
      or when the page has not been found or has wrong parameters,
      an HTTP error 500 or 404 is sent to the client. You may want to
      catch these exceptions to print your own error page.
-     Do this using $a ~fragment:"VALset_exn_handler" ~service:senddoc ~sp [code [pcdata "Eliom_services.set_exn_handler" ]] [version;"Eliom_services.html"]$.
+     Do this using %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALset_exn_handler"|%<span class="code"|Eliom_services.set_exn_handler>%>%.
      Here is the handler used by this tutorial:
-     </p>
-*html*)
+     
+          
+*wiki*)
 let _ = Eliom_services.set_exn_handler
    (fun sp e -> match e with
     | Eliom_common.Eliom_404 ->
@@ -3375,71 +3950,106 @@ let _ = Eliom_services.set_exn_handler
              (body [h1 [pcdata "Eliom tutorial"];
                     p [pcdata "Wrong parameters"]]))
     | e -> fail e)
-(*html*
-     <h4>Giving configuration options to your sites</h4>
-      <p>You can add your own options in the configuration
-       file for your Web site. For example:</p>
-<pre>
-    &lt;eliom module="<em>path_to</em>/yourmodule.cmo"&gt;
-      &lt;youroptions&gt; ...
-    &lt;/eliom&gt;
-</pre>
-      <p>
-       Use $a ~fragment:"VALget_config" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_config ()" ]] [version;"Eliom_sessions.html"]$ during the initialization
+(*wiki*
+
+          ====Giving configuration options to your sites
+          
+          
+You can add your own options in the configuration
+       file for your Web site. For example:
+          
+
+          
+%<code language="ocaml"|
+    <eliom module="//path_to///yourmodule.cmo">
+      <youroptions> ...
+    </eliom>
+
+>%
+
+          
+       Use %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|%<span class="code"|Eliom_sessions.get_config ()>%>% during the initialization
        of your module to get the data between
-       <code>&lt;eliom&gt;</code> and <code>&lt;/eliom&gt;</code>.
+       %<span class="code"|<eliom>%> and %<span class="code"|</eliom>%>.
        Warning: parsing these data is very basic for now.
        That feature will be improved in the future.
-      </p>
-     <h4>More about sessions</h4>
-      <p>By default, Eliom is using three cookies :</p>
-      <ul>
-        <li>One for session services,</li>
-        <li>one for volatile session data,</li>
-        <li>one for persistent session data.</li>
-      </ul>
-      <p>They correspond to three different sessions (opened only if needed).
-   <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_session" ]] [version;"Eliom_sessions.html"]$</span>
+      
+          
+
+          ====More about sessions
+          
+          
+By default, Eliom is using three cookies :
+          
+
+          
+*One for session services,
+*one for volatile session data,
+*one for persistent session data.
+                  
+          
+
+          
+They correspond to three different sessions (opened only if needed).
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|%<span class="code"|Eliom_sessions.close_session>%>%>%
        closes all three sessions, but you may want to desynchronize
        the three sessions by using
-   <span class="Cem">$a ~fragment:"VALclose_persistent_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_persistent_session" ]] [version;"Eliom_sessions.html"]$</span> (persistent session),
-   <span class="Cem">$a ~fragment:"VALclose_service_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_service_session" ]] [version;"Eliom_sessions.html"]$</span> (session services), or
-   <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_data_session" ]] [version;"Eliom_sessions.html"]$</span> (volatile data session).
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_persistent_session"|%<span class="code"|Eliom_sessions.close_persistent_session>%>%>% (persistent session),
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_service_session"|%<span class="code"|Eliom_sessions.close_service_session>%>%>% (session services), or
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_data_session"|%<span class="code"|Eliom_sessions.close_data_session>%>%>% (volatile data session).
      There is also
-   <span class="Cem">$a ~fragment:"VALclose_volatile_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_volatile_session" ]] [version;"Eliom_sessions.html"]$</span> for both volatile data session and session services.
-       The module $a ~service:senddoc ~sp [code [pcdata "Eliom_sessions" ]] [version;"Eliom_sessions.html"]$ also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
-      </p>
-      <p>If you need more sessions (for example several different data sessions)
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_volatile_session"|%<span class="code"|Eliom_sessions.close_volatile_session>%>%>% for both volatile data session and session services.
+       The module %<ocsigendoc version="dev" file="Eliom_sessions.html"|%<span class="code"|Eliom_sessions>%>% also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
+      
+          
+
+          
+If you need more sessions (for example several different data sessions)
          for the same site, you can give a name to your sessions by giving
-         the optional parameter <code>?session_name</code> to functions like
-     <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_data_session" ]] [version;"Eliom_sessions.html"]$</span>,
-     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "register_for_session" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$</span>, or
-      $a ~fragment:"VALget_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_volatile_session_data" ]] [version;"Eliom_sessions.html"]$.
+         the optional parameter %<span class="code"|?session_name>% to functions like
+     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_data_session"|%<span class="code"|Eliom_sessions.close_data_session>%>%>%,
+     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_for_session"|%<span class="code"|register_for_session>%>%>%, or
+      %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_volatile_session_data"|%<span class="code"|Eliom_sessions.get_volatile_session_data>%>%.
        Note that this tutorial has been implemented using this feature,
        even if it has been hidden for the sake of simplicity.
        That's how the different examples of sessions in this tutorial are
        independant.
-      </p>
-      <h4>Secure services <strong>[New in 1.1.0]</strong></h4>
-      <p>You may want to impose HTTPS for some of your services.
-       To do that, use the optional parameter <code>~https:true</code>
+      
+          
+
+          ====Secure services **[New in 1.1.0]**
+          
+          
+You may want to impose HTTPS for some of your services.
+       To do that, use the optional parameter %<span class="code"|~https:true>%
        while creating your service.
-      </p>
-      <p>It is also possible to require http or https while creating a link or
-      a form (using the optional parameter <code>~https:true</code>).
+      
+          
+
+          
+It is also possible to require http or https while creating a link or
+      a form (using the optional parameter %<span class="code"|~https:true>%).
       But it is never possible to make an http link towards an https service,
       even if you request it.
-      </p>
-      <p>Warning: if the protocol needs to be changed (from http to https 
+      
+          
+
+          
+Warning: if the protocol needs to be changed (from http to https 
        or vice versa), Eliom will generate absolute URLs.
        The host name and port numbers are guessed from the IP and the 
        configuration by default, but it is recommended to specify them
        in the configuration file. For example:
-      </p>
-      <pre>&lt;host hostfilter="*.org" defaulthostname="www.mywebsite.org" defaulthttpport="8080" defaulthttpsport="4433"&gt; ... &lt;/host&gt;</pre>
+      
+          
 
-      <h4>Secure sessions <strong>[New in 1.1.0]</strong></h4>
-      <p>For security reasons, Eliom does not use the same cookies in
+          %<div class="pre"|<host hostfilter="*.org" defaulthostname="www.mywebsite.org" defaulthttpport="8080" defaulthttpsport="4433"> ... </host>
+>%
+
+          ====Secure sessions **[New in 1.1.0]**
+          
+          
+For security reasons, Eliom does not use the same cookies in
         https and http. Secure sessions are using secure cookies
         (i.e. Ocsigen will ask the browsers to send the cookie only if
         the protocol is secure). Thus it is not possible to access
@@ -3447,19 +4057,23 @@ let _ = Eliom_services.set_exn_handler
         https, Eliom will save data and services in secure session. But
         it is possible to access unsecure session data and to register
         unsecure session services using the optional parameter
-        <code>~secure:false</code> when calling functions like
-        <code>Eliom_sessions.set_volatile_session_data</code>,
-        <code>Eliom_sessions.get_persistent_session_data</code>,
-        <code>Eliom_predefmod.Xhtml.register_for_session</code>, etc.
-      </p>
-      <h4>Non localized parameters<strong>[New in 1.3.0]</strong></h4>
-      <p>Non localized parameters are GET or POST parameters that are not
+        %<span class="code"|~secure:false>% when calling functions like
+        %<span class="code"|Eliom_sessions.set_volatile_session_data>%,
+        %<span class="code"|Eliom_sessions.get_persistent_session_data>%,
+        %<span class="code"|Eliom_predefmod.Xhtml.register_for_session>%, etc.
+      
+          
+
+          ====Non localized parameters**[New in 1.3.0]**
+          
+          
+Non localized parameters are GET or POST parameters that are not
         taken into account by Eliom for choosing the service.
         They have a special prefix.
         Use this if you want some information to be available or not, through
         parameters, for all of your services.
-      </p>
-  *html*)
+      
+  *wiki*)
 let my_nl_params = 
   Eliom_parameters.make_non_localized_parameters
     ~prefix:"tutoeliom"
@@ -3487,15 +4101,16 @@ let nlparams = register_new_service
                    )]))
 
     )
-  (*html*
-      <p>
+  (*wiki*
+
+          
         To create a link or a form with non-localized parameters,
-        use the optional parameter <code>nl_params</code> of functions
-    $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$,
-    $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "get_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ or
-    $a ~fragment:"VALpost_form" ~service:senddoc ~sp [code [pcdata "post_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$. Example:
-    </p>
-    *html*)
+        use the optional parameter %<span class="code"|nl_params>% of functions
+    %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|a>%>%,
+    %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALget_form"|%<span class="code"|get_form>%>% or
+    %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALpost_form"|%<span class="code"|post_form>%>%. Example:
+    
+    *wiki*)
 
 let tonlparams = register_new_service
     ~path:["nlparams"]
@@ -3546,55 +4161,68 @@ let tonlparams = register_new_service
     )
     
 
-  (*html*
-      <p>
+  (*wiki*
+
+          
     It is also possible to 
     create a new service by adding the non localized parameters
         to an existing service:
-      </p>
-  *html*)
+      
+  *wiki*)
 let nlparams_with_nlp =
   Eliom_services.add_non_localized_get_parameters my_nl_params nlparams
-  (*html*
-      <p>Then create your link as usual, for example:
-      <code>a nlparams_with_nlp
-             sp [pcdata "Try it"] (22, (11, "aa"))</code>.
-    $a Tutoeliom.nlparams_with_nlp
-             sp [pcdata "Try it"] (22, (11, "aa"))$.</p>
-    </div>
+  (*wiki*
+          
+Then create your link as usual, for example:
+      %<span class="code"|a nlparams_with_nlp
+             sp [pcdata "Try it"] (22, (11, "aa"))>%.
+    [[site:tuto/nlparams?i=22&__nl_n_tutoeliom-mynlparams.s=aa&__nl_n_tutoeliom-mynlparams.a=11|Try it]].
+          
+    
+        >%
 
 
 
 
 
-    <h3 id="p3advancedformsandparameters">Advanced forms and parameters</h3>
+        ===@@id="p3advancedformsandparameters"@@Advanced forms and parameters
+        
 
-    <div class="onecol">
-      <p>This section shows more advanced use of page parameters and
-      corresponding forms.</p>
-      <h4>Parsing parameters using regular expressions</h4>
-      <p>
+        %<div class="onecol"|
+          
+This section shows more advanced use of page parameters and
+      corresponding forms.
+          
+
+          ====Parsing parameters using regular expressions
+          
+          
         Eliom_parameters.regexp allows to parse page parameters using (Perl-compatible)
-        regular expressions. We use the module <code>Netstring_pcre</code>,
-        from <em>OCamlnet</em>. See the documentation about OCamlnet
+        regular expressions. We use the module %<span class="code"|Netstring_pcre>%,
+        from //OCamlnet//. See the documentation about OCamlnet
         for more information.
         The following example shows a service that accepts only parameters
-        values enclosed between <code>[</code> and <code>]</code>:
-      </p>
-<pre>
-<span class="Clet">let</span> r <span class="Cnonalphakeyword">=</span> <span class="Cconstructor">Netstring_pcre</span><span class="Cnonalphakeyword">.</span>regexp <span class="Cstring">"\\\\[(.*)\\\\]"</span>
+        values enclosed between %<span class="code"|[>% and %<span class="code"|]>%:
+      
+          
 
-<span class="Clet">let</span> regexp <span class="Cnonalphakeyword">=</span>
-  <span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service
-    <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"regexp"</span><span class="Cnonalphakeyword">]</span>
-    <span class="Clabel">~get_params:</span><span class="Cnonalphakeyword">(</span>regexp r <span class="Cstring">"$$1"</span> <span class="Cstring">"myparam"</span><span class="Cnonalphakeyword">)</span>
-    <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> <span class="Cnonalphakeyword">_</span> g <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
+          
+%<code language="ocaml"|
+let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
+
+let regexp =
+  Eliom_predefmod.Xhtml.register_new_service
+    ~path:["regexp"]
+    ~get_params:(regexp r "$1" "myparam")
+    (fun _ g () ->
       return
-        <span class="Cnonalphakeyword">(</span>html
-           <span class="Cnonalphakeyword">(</span>head <span class="Cnonalphakeyword">(</span>title <span class="Cnonalphakeyword">(</span>pcdata <span class="Cstring">""</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span>
-           <span class="Cnonalphakeyword">(</span>body <span class="Cnonalphakeyword">[</span>p <span class="Cnonalphakeyword">[</span>pcdata g<span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span>
-</pre>
-*html*)
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata g]])))
+
+>%
+
+*wiki*)
 (*zap* *)
 let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 
@@ -3608,16 +4236,19 @@ let regexpserv =
            (head (title (pcdata "")) [])
            (body [p [pcdata g]])))
 (* *zap*)
-(*html*
+(*wiki*
+[[site:tuto/regexp?myparam=%5Btoto%5D| Try it]].
+          
 
-      <p>$a Tutoeliom.regexpserv sp <:xmllist< Try it >> "[toto]"$.</p>
 
-      <h4>Boolean checkboxes</h4>
-      <p>Page may take parameter of type <code>bool</code>.
+          ====Boolean checkboxes
+          
+          
+Page may take parameter of type %<span class="code"|bool>%.
          A possible use of this type is in a form
-         with <em>boolean checkboxes</em>, as in the example below:
-      </p>
-*html*)
+         with //boolean checkboxes//, as in the example below:
+      
+*wiki*)
 (* Form with bool checkbox: *)
 let bool_params = register_new_service
     ~path:["bool"]
@@ -3647,44 +4278,56 @@ let form_bool = register_new_service ["formbool"] unit
         </html> >>)
 
 
-(*html*
-      <p>$a Tutoeliom.form_bool sp <:xmllist< Try it >> ()$.</p>
+(*wiki*
+          
+[[site:tuto/formbool| Try it]].
+          
 
-      <p><em>Important warning:</em>
+
+          
+//Important warning://
         As you can see, browsers do not send any value
         for unchecked boxes! An unchecked box is equivalent to no parameter
         at all! Thus it is not possible to distinguish between a service
         taking a boolean and a service taking no parameter at all
         (if they share the same URL).
-        In Eliom <em>services are tried in order of registration!</em>
+        In Eliom //services are tried in order of registration!//
         The first matching service will answer.
-      </p>
+      
+          
 
-      <p>Other types similar to bool:</p>
-      <ul>
-       <li>
-        $a ~fragment:"VALopt" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.opt" ]] [version;"Eliom_parameters.html"]$ (page taking an optional parameter),</li>
-       <li>
-        $a ~fragment:"VALsum" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.sum" ]] [version;"Eliom_parameters.html"]$ (either a parameter or another).</li>
-      </ul>
-      <p>
+
+          
+Other types similar to bool:
+          
+
+          
+*%<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALopt"|%<span class="code"|Eliom_parameters.opt>%>% (page taking an optional parameter),
+*%<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALsum"|%<span class="code"|Eliom_parameters.sum>%>% (either a parameter or another).
+                  
+          
+
+          
         See the interface
-        $a ~service:senddoc ~sp [pcdata "here"]
-          [version;"Eliom_parameters.html"]$.
-      </p>
+        %<ocsigendoc version="dev" file="Eliom_parameters.html"|here>%.
+      
+          
 
-      <h4>Type <code>set</code></h4>
-      <p>Page may take several parameters of the same name.
+
+          ====Type %<span class="code"|set>%
+          
+          
+Page may take several parameters of the same name.
       It is useful when you want to create a form with a variable number
       of fields.
-      To do that with Eliom, use the type $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.set" ]] [version;"Eliom_parameters.html"]$.
-      For example <code>set int "val"</code> means that the page will take
-      zero, one or several parameters of name <code>"val"</code>,
-      all of type <code>int</code>.
+      To do that with Eliom, use the type %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|%<span class="code"|Eliom_parameters.set>%>%.
+      For example %<span class="code"|set int "val">% means that the page will take
+      zero, one or several parameters of name %<span class="code"|"val">%,
+      all of type %<span class="code"|int>%.
       The function you register will receive the parameters in a list.
       Example:
-      </p>
-*html*)
+      
+*wiki*)
 
 let set = register_new_service
     ~path:["set"]
@@ -3704,14 +4347,13 @@ let set = register_new_service
          </p>
          </body>
        </html> >>)
-(*html*
-
-   <p>These parameters may come from several kinds of widgets in forms.
+(*wiki*
+          
+These parameters may come from several kinds of widgets in forms.
    Here is an example of a form with several checkboxes, all sharing the same
    name, but with different values:
-   </p>
-
-*html*)
+   
+*wiki*)
 
 (* form to set *)
 let setform = register_new_service
@@ -3732,17 +4374,26 @@ let setform = register_new_service
                           string_checkbox ~name:n ~value:"box4" ();
                           string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
-(*html*
-      <p>$a Tutoeliom.setform sp <:xmllist< Try it >> ()$.</p>
+(*wiki*
+          
+[[site:tuto/setform| Try it]].
+          
 
-      <p>Once again, note that there is no difference between an empty
+
+          
+Once again, note that there is no difference between an empty
       set or no parameter at all. If you register a service without parameters
       and a service with a set of parameters on the same URL, the firstly
       registered service that matches will answer.
-      </p>
-      <h4>Select</h4>
-      <p>Here is an example of a select box.</p>
-*html*)
+      
+          
+
+          ====Select
+          
+          
+Here is an example of a select box.
+          
+*wiki*)
 let select_example_result = register_new_service
     ~path:["select"]
     ~get_params:(string "s")
@@ -3782,22 +4433,30 @@ let select_example = register_new_service ["select"] unit
        (html
          (head (title (pcdata "")) [])
          (body [f])))
-(*html*
-      <p>$a Tutoeliom.select_example sp <:xmllist< Try it >> ()$.</p>
-     <p>To do "multiple" select boxes, use functions like
-   $a ~fragment:"VALstring_multiple_select" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.string_multiple_select" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$.
+(*wiki*
+          
+[[site:tuto/select| Try it]].
+          
+
+          
+To do "multiple" select boxes, use functions like
+   %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALstring_multiple_select"|%<span class="code"|Eliom_predefmod.Xhtml.string_multiple_select>%>%.
    As you can see in the type, the service must be declared with parameters
-   of type $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "set" ]] [version;"Eliom_parameters.html"]$.
-     </p>
+   of type %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|%<span class="code"|set>%>%.
+     
+          
 
 
 
 
-      <h4>Clickable images</h4>
-      <p>Here is an example of clickable image.
+
+          ====Clickable images
+          
+          
+Here is an example of clickable image.
       You receive the coordinates the user clicked on.
-      </p>
-*html*)
+      
+*wiki*)
 let coord = register_new_service
     ~path:["coord"]
     ~get_params:(coordinates "coord")
@@ -3829,10 +4488,15 @@ let imageform = register_new_service
                             ~name:n
                             ()]])
                 ])))
-(*html*
-      <p>$a Tutoeliom.imageform sp <:xmllist< Try it >> ()$.</p>
-     <p>You may also send a value with the coordinates:</p>
-*html*)
+(*wiki*
+          
+[[site:tuto/imageform| Try it]].
+          
+
+          
+You may also send a value with the coordinates:
+          
+*wiki*)
 let coord2 = register_new_service
     ~path:["coord2"]
     ~get_params:(int_coordinates "coord")
@@ -3866,18 +4530,23 @@ let imageform2 = register_new_service
                             ()]])
                 ])))
 
-(*html*
-      <p>$a Tutoeliom.imageform2 sp <:xmllist< Try it >> ()$.</p>
+(*wiki*
+          
+[[site:tuto/imageform2| Try it]].
+          
 
 
-      <h4>Type <code>list</code></h4>
-        <p>Another way (than $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.set" ]] [version;"Eliom_parameters.html"]$) to do variable length forms
-        is to use indexed lists (using $a ~fragment:"VALlist" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.list" ]] [version;"Eliom_parameters.html"]$).
-        The use of that feature is a bit more complex than <code>set</code>
+
+          ====Type %<span class="code"|list>%
+          
+          
+Another way (than %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|%<span class="code"|Eliom_parameters.set>%>%) to do variable length forms
+        is to use indexed lists (using %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALlist"|%<span class="code"|Eliom_parameters.list>%>%).
+        The use of that feature is a bit more complex than %<span class="code"|set>%
         and still experimental.
         Here is an example of service taking an indexed list as parameter:
-        </p>
-*html*)
+        
+*wiki*)
 
 (* lists *)
 let coucou_list = register_new_service
@@ -3886,37 +4555,39 @@ let coucou_list = register_new_service
   (fun _ l () ->
     let ll =
       List.map (fun s -> << <strong>$str:s$</strong> >>) l in
-    return
-      << <html>
-           <head><title></title></head>
-           <body>
-           <p>
-             You sent:
-             $list:ll$
-           </p>
-           </body>
-         </html> >>)
-(*html*
-      <p>
+      return
+        << <html>
+             <head><title></title></head>
+             <body>
+             <p>
+               You sent:
+               $list:ll$
+             </p>
+             </body>
+           </html> >>)
+(*wiki*
+          
    Here is an example of link towards this service:
-   $a Tutoeliom.coucou_list sp
-     [pcdata "coucou?a.str[0]=toto&a.str[1]=titi"] ["toto"; "titi"]$.
-      </p>
-   <p>
-   <em>Warning:</em>
+   [[site:tuto/coucou?a.str%5B1%5D=titi&a.str%5B0%5D=toto|coucou?a.str[0]=toto&a.str[1]=titi]].
+      
+          
+
+          
+//Warning://
    As for sets or bools,
    if a request has no parameter, it will be considered as the empty list.
    Services are tried in order of registration.
-   </p>
+   
+          
 
-   <p>
+
+          
    As you see, the names of each list element is built from the name
    of the list, the name of the list element, and an index.
    To spare you creating yourself these names, Eliom provides you an iterator
    to create them.
-   </p>
-
-*html*)
+   
+*wiki*)
 (*zap* Note:
    Actually almost all services will be overwritten by new versions,
    but not those with user_type parameters for example
@@ -3947,27 +4618,33 @@ let listform = register_new_service ["listform"] unit
            <body> $f$ </body>
          </html> >>)
 
-(*html*
+(*wiki*
+          
+[[site:tuto/listform| Try it]].
+          
 
-      <p>$a Tutoeliom.listform sp <:xmllist< Try it >> ()$.</p>
 
-      <p>
-      <em>Important warning:</em>
+          
+//Important warning://
       As we have seen in the section about boolean (or optional)
       parameters, it is not possible to distinguish between a boolean
       with value "false", and no parameter at all.
       This causes problems if you create a list of boolean or optional
       values, as it is not possible to know the length of the list.
       In that case, Eliom always takes the shortest possible list.
-      </p>
+      
+          
 
-      <h4>Forms and suffixes</h4>
 
-      <p>Service with "suffix" URLs have an equivalent version with
+          ====Forms and suffixes
+          
+
+          
+Service with "suffix" URLs have an equivalent version with
       usual parameters, allowing to create forms towards such services.
       Example:
-      </p>
-*html*)
+      
+*wiki*)
 (* Form for service with suffix: *)
 let create_suffixform ((suff, endsuff),i) =
     <:xmllist< <p>Write the suffix:
@@ -3988,40 +4665,59 @@ let suffixform = register_new_service ["suffixform"] unit
            <body> $f$ </body>
          </html> >>)
 
-(*html*
+(*wiki*
+          
+[[site:tuto/suffixform| Try it]].
+          
 
-      <p>$a Tutoeliom.suffixform sp <:xmllist< Try it >> ()$.</p>
 
-      <h4>Uploading files</h4>
+          ====Uploading files
+          
 
-      <p>The $a ~fragment:"VALfile" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.file" ]] [version;"Eliom_parameters.html"]$ parameter type allows to send files in your
+          
+The %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALfile"|%<span class="code"|Eliom_parameters.file>%>% parameter type allows to send files in your
        request. The service gets something of type
-       $a ~fragment:"TYPEfile_info" ~service:senddoc ~sp [code [pcdata "Ocsigen_extensions.file_info" ]] [version;"Ocsigen_extensions.html"]$. You can extract information
-       using this using these functions (from $a ~service:senddoc ~sp [code [pcdata "Eliom_sessions" ]] [version;"Eliom_sessions.html"]$):
-      </p>
-<pre>
-val get_tmp_filename : Ocsigen_extensions.file_info -&gt; string
-val get_filesize : Ocsigen_extensions.file_info -&gt; int64
-val get_original_filename : Ocsigen_extensions.file_info -&gt; string
-</pre>
-      <p>$a ~fragment:"VALget_tmp_filename" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_tmp_filename" ]] [version;"Eliom_sessions.html"]$ allows to know the actual name
+       %<ocsigendoc version="dev" file="Ocsigen_extensions.html" fragment="TYPEfile_info"|%<span class="code"|Ocsigen_extensions.file_info>%>%. You can extract information
+       using this using these functions (from %<ocsigendoc version="dev" file="Eliom_sessions.html"|%<span class="code"|Eliom_sessions>%>%):
+      
+          
+
+          
+%<code language="ocaml"|
+val get_tmp_filename : Ocsigen_extensions.file_info -> string
+val get_filesize : Ocsigen_extensions.file_info -> int64
+val get_original_filename : Ocsigen_extensions.file_info -> string
+
+>%
+
+          
+%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_tmp_filename"|%<span class="code"|Eliom_sessions.get_tmp_filename>%>% allows to know the actual name
        of the uploaded file on the hard disk.
-        $a ~fragment:"VALget_original_filename" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_original_filename" ]] [version;"Eliom_sessions.html"]$ gives the original filename.</p>
-      <p>To make possible the upload of files, you must configure a
+        %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_original_filename"|%<span class="code"|Eliom_sessions.get_original_filename>%>% gives the original filename.
+          
+
+          
+To make possible the upload of files, you must configure a
       directory for uploaded files in Ocsigen's configuration file.
       For example:
-      </p>
-<pre>
-  &lt;uploaddir&gt;/tmp&lt;/uploaddir&gt;
-</pre>
-      <p>Files are kept in this directory only during the request.
+      
+          
+
+          
+%<div class="pre"|
+  <uploaddir>/tmp</uploaddir>
+>%
+
+          
+Files are kept in this directory only during the request.
        Then they are automatically cancelled.
        Thus your services must copy them
        somewhere else themselves if they want to keep them.
        In the following example, we create a new hard link to the file
        to keep it (the destination must be on the same partition of the disk).
-      </p>
-*html*)
+      
+          
+*wiki*)
 let upload = new_service
     ~path:["upload"]
     ~get_params:unit
@@ -4063,79 +4759,121 @@ let uploadform = register upload
            (body [f])))
 
 
-(*html*
-      <p>$a Tutoeliom.upload sp <:xmllist< Try it >> ()$
-      (warning: uploading on ocsigen.org is forbidden).</p>
+(*wiki*
+          
+[[site:tuto/upload| Try it]]
+      (warning: uploading on ocsigen.org is forbidden).
+          
 
 
-    </div>
+    
+        >%
 
 
 
-    <h3 id="p3predefinedconstructs">Predefined constructs</h3>
-    <div class="onecol">
-      <h4>Images, CSS, Javascript</h4>
-      <p>
-      To include an image, simply use the function $a ~fragment:"VALimg" ~service:senddoc ~sp [code [pcdata "XHTML.M.img" ]] [version;"XHTML.M.html"]$:
-      </p>
-      <pre>img <span class="Clabel">~alt:</span>"Ocsigen"
-    <span class="Clabel">~src:</span>(<span class="Cem">Eliom_predefmod.Xhtml.make_uri</span> ~service:senddoc ~sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
-    ()</pre>
-      <p>The function <span class="Cem">$a ~fragment:"VALmake_uri" ~service:(static_dir sp) ~sp [code [pcdata "Eliom_predefmod.Xhtml.make_uri" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$</span>
-        creates the relative URL string from current URL (in <code>sp</code>)
+        ===@@id="p3predefinedconstructs"@@Predefined constructs
+        
+        %<div class="onecol"|
+          ====Images, CSS, Javascript
+          
+          
+      To include an image, simply use the function %<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALimg"|%<span class="code"|XHTML.M.img>%>%:
+      
+          
+
+          
+%<code language="ocaml"|img ~alt:"Ocsigen"
+    ~src:(Eliom_predefmod.Xhtml.make_uri ~service:senddoc ~sp ["ocsigen1024.jpg"])
+    ()
+>%
+
+          
+The function %<span class="Cem"|[[site:dev/Eliom_predefmod.XHTMLFORMSSIG.html#VALmake_uri|%<span class="code"|Eliom_predefmod.Xhtml.make_uri>%]]>%
+        creates the relative URL string from current URL (in %<span class="code"|sp>%)
         (see above) to the URL of the image in the static directory
         configured in the configuration file.
-      </p>
-      <p>To simplify the creation of <code>&lt;link&gt;</code> tags
-      for CSS or <code>&lt;script&gt;</code> tags for Javascript,
-        use the following functions:</p>
-      <pre><span class="Cem">css_link</span> ~uri:(make_uri ~service:(static_dir sp) ~sp [<span class="Cstring">"style.css"</span>]) ()</pre>
-      <pre><span class="Cem">js_script</span> ~uri:(make_uri ~service:(static_dir sp) ~sp [<span class="Cstring">"funs.js"</span>]) ()</pre>
-      <h4>Basic menus</h4>
-      <p>
+      
+          
+
+          
+To simplify the creation of %<span class="code"|<link>%> tags
+      for CSS or %<span class="code"|<script>%> tags for Javascript,
+        use the following functions:
+          
+
+          
+%<code language="ocaml"|css_link ~uri:(make_uri ~service:(static_dir sp) ~sp ["style.css"]) ()
+>%
+
+          
+%<code language="ocaml"|js_script ~uri:(make_uri ~service:(static_dir sp) ~sp ["funs.js"]) ()
+>%
+
+          ====Basic menus
+          
+          
       To make a menu on your web page, you can use the function
-          <span class="Cem">$a ~fragment:"VALmenu" ~service:senddoc ~sp [code [pcdata "Eliom_tools.menu" ]] [version;"Eliom_tools.html"]$</span>.
+          %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_tools.html" fragment="VALmenu"|%<span class="code"|Eliom_tools.menu>%>%>%.
       First, define your menu like this:
-      </p>
-<pre><span class="Clet">let</span> mymenu current sp <span class="Cnonalphakeyword">=</span>
-  <span class="Cconstructor">Eliom_tools</span>.menu <span class="Clabel">~classe:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"menuprincipal"</span><span class="Cnonalphakeyword">]</span>
-    <span class="Cnonalphakeyword">(</span>home<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> Home &gt;&gt;<span class="Cnonalphakeyword">)</span>
-    <span class="Cnonalphakeyword">[</span>
-     <span class="Cnonalphakeyword">(</span>infos<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> More info &gt;&gt;<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
-     <span class="Cnonalphakeyword">(</span>tutorial<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> Documentation &gt;&gt;<span class="Cnonalphakeyword">)</span>
-   <span class="Cnonalphakeyword">]</span> current sp</pre>
-      <p>Here, <code>home</code>,  <code>infos</code>,
-        and <code>tutorial</code> are your three pages (generated for example
-        by $a ~fragment:"VALnew_service" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_service" ]] [version;"Eliom_services.html"]$).</p>
+      
+          
+
+          
+%<code language="ocaml"|let mymenu current sp =
+  Eliom_tools.menu ~classe:["menuprincipal"]
+    (home, %:xmllist< Home ~>%)
+    [
+     (infos, %:xmllist< More info ~>%);
+     (tutorial, %:xmllist< Documentation ~>%)
+   ] current sp
+>%
+
+          
+Here, %<span class="code"|home>%,  %<span class="code"|infos>%,
+        and %<span class="code"|tutorial>% are your three pages (generated for example
+        by %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_service"|%<span class="code"|Eliom_services.new_service>%>%).
+          
 
 
 
-      <p>Then <code>mymenu ~service:home sp</code> will generate the following
-        code:</p>
-      <pre>&lt;ul class="menu menuprincipal"&gt;
-  &lt;li class="current first"&gt;Home
-  &lt;/li&gt;
-  &lt;li&gt;&lt;a href="infos"&gt;More info&lt;/a&gt;
-  &lt;/li&gt;
-  &lt;li class="last"&gt;&lt;a href="tutorial"&gt;Documentation&lt;/a&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;</pre>
-    <p>Personalise it in your CSS style-sheet.</p>
-    <p>$a ~fragment:"VALmenu" ~service:senddoc ~sp [code [pcdata "Eliom_tools.menu" ]] [version;"Eliom_tools.html"]$ takes a list of services without
+
+          
+Then %<span class="code"|mymenu ~service:home sp>% will generate the following
+        code:
+          
+
+          %<div class="pre"|<ul class="menu menuprincipal">
+  <li class="current first">Home
+  </li>
+  <li><a href="infos">More info</a>
+  </li>
+  <li class="last"><a href="tutorial">Documentation</a>
+  </li>
+</ul>
+>%
+          
+Personalise it in your CSS style-sheet.
+          
+
+          
+%<ocsigendoc version="dev" file="Eliom_tools.html" fragment="VALmenu"|%<span class="code"|Eliom_tools.menu>%>% takes a list of services without
     GET parameters.
     If you want one of the link to contains GET parameters, pre-apply
-    the service.</p>
-      <div class="encadre">
-        <h4>How to make a menu entry with GET parameters?</h4>
-          <p>
-          Preapply your service.
-          </p>
-      </div>
-      <h4>Hierarchical menus</h4>
-      <p>
+    the service.
+          
 
-      </p>
-*html*)
+          %<div class="encadre"|
+            ====How to make a menu entry with GET parameters?
+            
+            
+          Preapply your service.
+          
+            
+      
+          >%
+          ====Hierarchical menus
+          
+*wiki*)
 (* Hierarchical menu *)
 open Eliom_tools_common
 open Eliom_tools
@@ -4231,129 +4969,161 @@ let _ =
   register hier8 (f 8 hier8);
   register hier9 (f 9 hier9);
   register hier10 (f 10 hier10)
-(*html*
-    </div>
+(*wiki*
 
 
-
-    <h3 id="p3misc">Miscellaneous</h3>
-    <div class="onecol">
-    <h4>Several Ocaml modules for one site</h4>
-      <p>If your site consists of several modules, you can load them
+        ===@@id="p3misc"@@Miscellaneous
+        
+        %<div class="onecol"|
+          ====Several Ocaml modules for one site
+          
+          
+If your site consists of several modules, you can load them
       consecutively from the configuration file using 
-      <code>&lt;eliommodule&gt;</code> (same syntax as 
-      <code>&lt;eliom&gt;</code>, the difference being that
-      <code>&lt;eliommodule&gt;</code> does not generate any page).
+      %<span class="code"|<eliommodule>%> (same syntax as 
+      %<span class="code"|<eliom>%>, the difference being that
+      %<span class="code"|<eliommodule>%> does not generate any page).
       In that case, only the position of the
-      <code>&lt;eliom&gt;</code>
+      %<span class="code"|<eliom>%>
       tag will be taken into account for generating the page using 
       Eliom.
-      Note that there can be only one <code>&lt;eliom&gt;</code>
-      tag for each <code>&lt;site&gt;</code>
-      (or <code>&lt;host&gt;</code>).
-      </p>
-    <h4>Advanced use: create an extension for the server that access Eliom's data</h4>
-      <p>If you want an Ocsigen extension with access to Eliom's
+      Note that there can be only one %<span class="code"|<eliom>%>
+      tag for each %<span class="code"|<site>%>
+      (or %<span class="code"|<host>%>).
+      
+          
+
+          ====Advanced use: create an extension for the server that access Eliom's data
+          
+          
+If you want an Ocsigen extension with access to Eliom's
         data (for example if you want an extension that will
         register some services), you can use the function
-        $a ~fragment:"VALregister_eliom_extension" ~service:senddoc ~sp [code [pcdata "Eliom_extensions.register_eliom_extension" ]] [version;"Eliom_extensions.html"]$
+        %<ocsigendoc version="dev" file="Eliom_extensions.html" fragment="VALregister_eliom_extension"|%<span class="code"|Eliom_extensions.register_eliom_extension>%>%
         to register the function that will generate the
-        <code>Ocsigen_extensions.answer</code> from
-        <code>sp</code>.
-      </p>
-    <h4>Static linking of Eliom modules</h4>
-      <p>From version 1.2, it is possible to link extensions and Eliom modules
-  statically ($a Site_urls.staticlink sp <:xmllist<See here>> ()$).
+        %<span class="code"|Ocsigen_extensions.answer>% from
+        %<span class="code"|sp>%.
+      
+          
+
+          ====Static linking of Eliom modules
+          
+          
+From version 1.2, it is possible to link extensions and Eliom modules
+  statically ([[site:staticlink|See here]]).
       Obviously, for Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function
-$a ~fragment:"VALregister_eliom_module" ~service:senddoc ~sp [code [pcdata "Eliom_services.register_eliom_module" ]] [version;"Eliom_services.html"]$. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call $a ~fragment:"VALget_config" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_config" ]] [version;"Eliom_sessions.html"]$ if the module has configuration options).
-      </p>
-      <p>To initialize the module from the configuration file, use the
-  syntax:</p>
-  <pre>&lt;eliommodule name="<em>name</em>"&gt; ... &lt;/eliom&gt;</pre>
-  <p>which is equivalent to:</p>
-  <pre>&lt;eliommodule module="<em>name.cmxs</em>"&gt; ... &lt;/eliom&gt;</pre>
-  <p>with the exception that it does not load the module using <code>Dynlink</code>, but calls the initialization function.</p>
-  </div>
+%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|%<span class="code"|Eliom_services.register_eliom_module>%>%. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|%<span class="code"|Eliom_sessions.get_config>%>% if the module has configuration options).
+      
+          
+
+          
+To initialize the module from the configuration file, use the
+  syntax:
+          
+
+          %<div class="pre"|<eliommodule name="//name//"> ... </eliom>
+>%
+
+          
+which is equivalent to:
+          
+
+          %<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliom>
+>%
+
+          
+with the exception that it does not load the module using %<span class="code"|Dynlink>%, but calls the initialization function.
+          
+  
+        >%
 
 
 
-    <h3 id="p3examples">Examples</h3>
-    <div class="onecol">
-    <h4>Writing a forum</h4>
-      <p>
+        ===@@id="p3examples"@@Examples
+        
+        %<div class="onecol"|
+          ====Writing a forum
+          
+          
       As an example,
       we will now write a small forum. Our forum has a main page,
       summarising all the messages and a page for each message.
       All the functions to access the database and print the result are
       left to the reader. We only want to show the structure of the site.
-      Suppose you have written a function <code>news_headers_list_box</code>
-      that writes the beginning of messages, and <code>message_box</code>
+      Suppose you have written a function %<span class="code"|news_headers_list_box>%
+      that writes the beginning of messages, and %<span class="code"|message_box>%
       that write a full message.
-      </p>
-*html*)(*zap* from ocsexample1 - attention la section Construction of pages a été simplifiée *zap*)(*html*
-<pre>
-<span class="Ccomment">(* All the services: *)</span>
+      
+          
 
-<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span>
-    <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+          
+%<code language="ocaml"|
+(* All the services: *)
 
-<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span>int <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+let main_page = new_service ~path:[""]
+    ~get_params:unit ()
 
-<span class="Ccomment">(* Construction of pages *)</span>
+let news_page = new_service ["msg"] (int "num") ()
 
-<span class="Clet">let</span> home sp () () <span class="Cnonalphakeyword">=</span>
+(* Construction of pages *)
+
+let home sp () () =
   page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
+    [h1 [pcdata "Mon site"];
      news_headers_list_box
-       sp anonymoususer news_page<span class="Cnonalphakeyword">]</span>
+       sp anonymoususer news_page]
 
-<span class="Clet">let</span> print_news_page sp i () <span class="Cnonalphakeyword">=</span>
+let print_news_page sp i () =
   page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Info"</span>]<span class="Cnonalphakeyword">;</span>
-     message_box i anonymoususer<span class="Cnonalphakeyword">]</span>
+    [h1 [pcdata "Info"];
+     message_box i anonymoususer]
 
-<span class="Ccomment">(* Services registration *)</span>
+(* Services registration *)
 
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
-  <span class="Clabel">~service:</span>main_page
+let _ = register
+  ~service:main_page
   home
 
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
-  <span class="Clabel">~service:</span>news_page
+let _ = register
+  ~service:news_page
   print_news_page
-</pre>
+
+>%
 
 
 
-      <p>Now the same example with a login box on each page.
+          
+Now the same example with a login box on each page.
       We now have two versions of each page: connected and not connected.
       We need two actions (for connection and disconnection).
-      Suppose we have the functions <code>login_box</code>,
-      <code>connected_box</code>,
-      and <code>connect</code>.
-      </p>
-*html*)(*zap* from ocsexample2 *zap*)(*html*
-<pre><span class="Ccomment">(* All the services: *)</span>
+      Suppose we have the functions %<span class="code"|login_box>%,
+      %<span class="code"|connected_box>%,
+      and %<span class="code"|connect>%.
+      
+          
 
-<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span> <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+          
+%<code language="ocaml"|(* All the services: *)
 
-<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span>int <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+let main_page = new_service ~path:[""] ~get_params:unit ()
 
-<span class="Clet">let</span> connect_action <span class="Cnonalphakeyword">=</span>
+let news_page = new_service ["msg"] (int "num") ()
+
+let connect_action =
   new_post_coservice'
-    <span class="Clabel">~post_params:</span><span class="Cnonalphakeyword">(</span>string <span class="Cstring">"login"</span> ** string <span class="Cstring">"password"</span><span class="Cnonalphakeyword">)</span>
+    ~post_params:(string "login" ** string "password")
 
-<span class="Ccomment">(* Construction of pages *)</span>
+(* Construction of pages *)
 
 let home sp () () =
    match get_volatile_session_data ~table:my_table ~sp () with
    | Eliom_sessions.Data_session_expired
-   | Eliom_sessions.No_data -&gt;
+   | Eliom_sessions.No_data ->
      page sp
        [h1 [pcdata "My site"];
         login_box sp connect_action;
         news_headers_list_box sp anonymoususer news_page]
-   | Eliom_sessions.Data user -&gt;
+   | Eliom_sessions.Data user ->
       page sp
         [h1 [pcdata "Mon site"];
          text_box "Bonjour !";
@@ -4363,45 +5133,51 @@ let home sp () () =
 let print_news_page sp i () =
    match get_volatile_session_data ~table:my_table ~sp () with
    | Eliom_sessions.Data_session_expired
-   | Eliom_sessions.No_data -&gt;
+   | Eliom_sessions.No_data ->
       page sp
         [h1 [pcdata "Info"];
          login_box sp connect_action;
          message_box i anonymoususer]
-   | Eliom_sessions.Data user -&gt;
+   | Eliom_sessions.Data user ->
       page sp
         [h1 [pcdata "Info"];
          connected_box sp user disconnect_action;
          message_box i user]
 
-<span class="Ccomment">(* Services registration *)</span>
+(* Services registration *)
 
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
-  <span class="Clabel">~service:</span>main_page
+let _ = register
+  ~service:main_page
   home
 
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
-  <span class="Clabel">~service:</span>news_page
+let _ = register
+  ~service:news_page
   print_news_page
 
-<span class="Clet">let</span> launch_session sp user <span class="Cnonalphakeyword">=</span>
+let launch_session sp user =
   set_volatile_session_data my_table sp user
 
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Eliom_predefmod.Action.register
-  <span class="Clabel">~action:</span>connect_action
-    <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> h <span class="Cnonalphakeyword">(</span>login<span class="Cnonalphakeyword">,</span> password<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
-      launch_session sp <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
-</pre>
+let _ = Eliom_predefmod.Action.register
+  ~action:connect_action
+    (fun h (login, password) ->
+      launch_session sp (connect login password); return [])
 
-    <h4>Miniwiki</h4>
-    <p>Ocsigen's source code contains an example of Wiki written with
-     Eliom by Janne Hellsten. It is called <em>Miniwiki</em>.
-    </p>
-    </div>
+>%
 
-°°
+          ====Miniwiki
+          
+          
+Ocsigen's source code contains an example of Wiki written with
+     Eliom by Janne Hellsten. It is called //Miniwiki//.
+    
+          
+    
+        >%
+      >%      
 
-*html*)
+
+
+*wiki*)
 (*zap* *)
 
 
@@ -4419,7 +5195,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
         ~get_params:no_get_param
         ()
        in *)
-    (* This will be ignored: register coucou1 << <html></html> >>; *)
+    (* This will be ignored: register coucou1 %< <html></html> >%; *)
     return
      <<
        <html>

@@ -1,0 +1,1454 @@
+
+
+
+<<div class='leftcol'|<<leftcoldoc version="dev">>>>
+      <<div class="colprincipale"|
+        ==1. The basics: main services, parameters, forms, cooperative programming
+        
+        ===@@id="p1baseprinciples"@@Base principles
+        
+        <<div class="onecol"|
+          
+Unlike many other Web programming techniques (CGI, PHP,~ ...),
+          with Eliom, you don't write one file for each URL, but
+          a caml module (cmo or cma) for the whole Web site.
+          
+
+          
+          The <<ocsigendoc version="dev" file="Eliom_services.html"|<<span class="code"|Eliom_services>>>> module allows to create new entry points to
+          your Web site, called //services//. In general, services are
+          attached to an URL and generate a Web page.
+          They are represented by OCaml values, on which
+          you must register a function that will generate a page.
+          There are several ways to create pages for Eliom. This tutorial
+          is mainly using <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span class="code"|Eliom_predefmod.Xhtml>>>>, a module allowing
+          to register xhtml pages statically typed using OCaml's
+          polymorphic variants.
+  The <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>> module defines functions to construct
+          xhtml pages using that type system.
+          As the <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span class="code"|Eliom_predefmod.Xhtml>>>> redefines some functions
+          of <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>>, open the modules in this order:
+<<code language="ocaml" |
+open Lwt
+open XHTML.M
+open Eliom_services
+open Eliom_parameters
+open Eliom_sessions
+open Eliom_predefmod.Xhtml
+
+          
+<<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>>
+      (lightweight threads) is the cooperative thread library used by Ocsigen
+      ([[eliom/manual/dev/1#p1threads|see later]]).
+          
+
+          
+Here is an example showing how to create a new service and
+         register a page created with XHTML.M. Use the function
+         <<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_new_service"|<<span class="code"|Eliom_predefmod.Xhtml.register_new_service>>>>:
+<<code language="ocaml" |
+let coucou =
+  register_new_service
+    ~path:["coucou"]
+    ~get_params:unit
+    (fun _ () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Hallo!"]])))
+
+The same, written with fully qualified values:
+          
+<<code language="ocaml"|
+let coucou =
+  Eliom_predefmod.Xhtml.register_new_service
+    ~path:["coucou"]
+    ~get_params:Eliom_parameters.unit
+    (fun _ () () ->
+      Lwt.return
+        (XHTML.M.html
+          (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata "")) [])
+          (XHTML.M.body [XHTML.M.h1 [XHTML.M.pcdata "Hallo!"]])))
+
+>>
+
+
+          
+As you can see,
+      <<ocsigendoc version="dev" file="Lwt.html" fragment="VALreturn"|<<span class="code"|return>>>> is a function from <<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>>.
+      Use it like this for instants, and
+      [[eliom/manual/dev/1#p1threads|see later]] for more advanced use.
+          
+
+          
+      Now you can compile your file (here <<span class="code"|tutorial.ml>>)
+        by typing :
+          
+
+          <<div class="pre"|ocamlc -thread -I ~///path_to///ocsigen/ -I ~///path_to///lwt/ -c tutorial.ml>>
+          
+If you use findlib, you can also use the following command line:
+          
+
+          <<div class="pre"|ocamlfind ocamlc -thread -package ocsigen -c tutorial.ml>>
+          
+      Replace <<span class="code"|~///path_to///ocsigen/>>
+       by the directory where Ocsigen libraries are installed (that contains
+       <<span class="code"|eliom.cma>>, <<span class="code"|staticmod.cmo>>, etc.),
+       usually something like
+      <<span class="code"|/usr/lib/ocaml/3.09.3/ocsigen>> or
+      <<span class="code"|/usr/local/lib/ocaml/3.09.3/ocsigen>> or
+      <<span class="code"|/opt/godi/lib/ocaml/site-lib/ocsigen>>.
+      
+          
+
+          
+      Add the following lines to Ocsigen's config file
+      (<<span class="code"|/etc/ocsigen/ocsigen.conf>> most of the time):
+      
+          
+
+          <<div class="pre"|<host>
+ <site path="examples">
+  <eliom module="~///path_to///tutoeliom.cmo" />
+ </site>
+</host>
+>>
+
+          
+Note that if your module has a findlib <<span class="code"|META>> file,
+        it is also possible to do:
+          
+
+          <<div class="pre"|<host>
+ <site path="examples">
+  <eliom findlib-package="//package-name//" />
+ </site>
+</host>
+>>
+
+          
+Then run ocsigen. You should see your page at url
+           <<span class="code"|~http:~/~///your_server///examples/coucou>>.
+           See this example [[site:tuto/coucou| here]].
+      
+          
+
+          
+NB: See the default config file to see how to set the port on
+              which your server is running, the user who runs it, the path
+            of the log files, etc.
+      
+          
+
+          
+Here is a sample
+   [[site:Makefile|Makefile]] for your modules.
+          
+
+          ====Static typing of XHTML with XHTML.M
+          
+          
+        Typing of xhtml with <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>> and <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span class="code"|Eliom_predefmod.Xhtml>>>>
+        is very strict and compels you to respect
+        xhtml 1.1 standard (with some limitations).
+        For example if you write:
+        
+          
+
+          
+<<code language="ocaml"|(html
+   (head (title (pcdata "")) [])
+   (body [pcdata "Hallo"]))
+>>
+
+
+          
+You will get the following error message:
+          
+
+          
+<<div class="pre"|This expression has type ([> `PCDATA ] as 'a) XHTML.M.elt
+but is here used with type
+([< XHTML.M.block ] as 'b) XHTML.M.elt
+Type 'a is not compatible with type
+'b =
+  [< `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
+   | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins
+   | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ]
+>>
+
+          
+<<span class="code"|'b>> is the type of block tags (only tags allowed inside
+   <<span class="code"|<body>>>), but PCDATA
+        (i.e. raw text) is not a block tag.
+          
+
+
+
+
+          
+In XHTML, some tags cannot be empty. For example
+   <<span class="code"|<table>>> must contain at least one row.
+   To enforce this, the <<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALtable"|<<span class="code"|XHTML.M.table>>>> function takes two parameters:
+   the first one is the first row, the second one is a list
+   containing all the other rows.
+   (same thing for <<span class="code"|<tr>>> <<span class="code"|<form>>>
+<<span class="code"|<dl>>> <<span class="code"|<ol>>> <<span class="code"|<ul>>>
+<<span class="code"|<dd>>> <<span class="code"|<select>>> ...)
+ This forces the user to handle the empty list case specially and thus make
+ the output conform to the DTD.
+  
+          
+
+          
+   A more detailed introduction to <<span class="code"|XHTML.M>> is available
+         <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|here>>>>.
+   Take a quick look at it before continuing this tutorial.
+   
+          
+
+          <<div class="encadre"|
+            ====Alternate syntax
+            
+            
+          If you prefer using a syntax closer to html, you can write:
+            
+
+            <<code language="ocaml" |
+let coucou1 =
+  Eliom_predefmod.Xhtml.register_new_service
+    ~path:["coucou1"]
+    ~get_params:Eliom_parameters.unit
+    (fun _ () () ->
+      return
+        << <html>
+             <head><title></title></head>
+             <body><h1>Coucou</h1></body>
+           </html> ~>>)
+
+            
+To compile this syntax, you need a camlp4 syntax extension:
+            
+
+            <<div class="pre"|ocamlc -I ~///path_to///ocsigen/
+ -pp "camlp4o ~///path_to///ocsigen/xhtmlsyntax.cma -loc loc"
+ -c tutorial.ml>>
+            
+         (Replace <<span class="code"|~///path_to///ocsigen/>>
+       by the directory where ocsigen is installed).
+           See this example [[site:tuto/coucou1| here]].
+      
+            
+
+            
+         As the syntax extension is using the same typing system as XHTML.M,
+         You can mix the two syntaxes ([[eliom/manual/dev/1#p1postforms|see later]]).
+      
+            
+
+            
+//Warning:// The two syntaxes are not equivalent for typing.
+         Using the syntax extension will do less checking.
+         For example the following code is accepted but not valid
+         regarding xhtml's dtd (because <<span class="code"|<head>>>
+         must contain a title):
+      
+            
+
+            
+<<code language="ocaml"|<< <html>
+     <head></head>
+     <body><h1>plop</h1></body>
+   </html> ~>>
+>>
+            
+        We recommend you to use
+        the functions from <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>>, as you will (almost)
+        always get valid xhtml.
+        Use the syntax extension for example to enclose already created pieces
+        of html, and check your pages validity with the
+        [[http://validator.w3.org/| W3C validator]].
+      
+            
+
+            
+<<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|More info>>>>
+        on <<span class="code"|XHTML.M>>.
+      
+            
+
+            
+[[site:xhtmlsyntax| More info]] on the syntax extension.
+      
+            
+      
+          >>
+          <<div class="encadre"|
+            ====Eliom and OCamlDuce
+            
+            
+If OCamlDuce is installed on your system, it is now possible to use
+        it instead of XHTML.M and Eliom_parameters.Xhtml
+        to typecheck your pages. You will get a stronger type checking
+        and more flexibility (easier to use other XML types, to parse
+        incoming XML data, etc.).
+            
+
+            
+To use it, make sure that you have Eliom compiled with OCamlDuce
+         support. Then dynlink <<span class="code"|ocamlduce.cma>> and
+          <<span class="code"|eliomduce.cma>> from the configuration file
+        (after <<span class="code"|eliom.cma>>).
+        Then use <<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|<<span class="code"|Eliom_duce.Xhtml>>>> instead of
+        <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span class="code"|Eliom_predefmod.Xhtml>>>> to register your pages.
+        
+            
+
+            
+Here is an example:
+            
+
+            
+<<code language="ocaml"|open Lwt
+
+let s =
+  Eliom_duce.Xhtml.register_new_service
+    ~path:[""]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        {{ <html>
+             [<head> [<title> ""]
+              <body> [<h1> "This page has been type checked by OCamlDuce"]] }}) 
+>>      
+          >>
+          <<div class="encadre"|
+            ====Eliom_predefmod.HtmlText
+            
+            
+If you want to register untyped (text) pages, use the
+         functions from <<ocsigendoc version="dev" file="Eliom_predefmod.HtmlText.html"|<<span class="code"|Eliom_predefmod.HtmlText>>>>, for example
+         <<ocsigendoc version="dev" file="Eliom_predefmod.Text.html"|<<span class="code"|Eliom_predefmod.Text.register_new_service>>>> :
+        
+            
+
+            <<code language="ocaml" |
+let coucoutext =
+  Eliom_predefmod.HtmlText.register_new_service
+    ~path:["coucoutext"]
+    ~get_params:Eliom_parameters.unit
+    (fun sp () () ->
+      return
+        ("<html>n'importe quoi "^
+         (Eliom_predefmod.HtmlText.a coucou sp "clic" ())^
+         "</html>"))
+
+            
+[[site:tuto/coucoutext| Try it]].
+            
+
+      
+          >>    
+        >>
+        ===@@id="p1moreexamples"@@More examples
+        
+        <<div class="onecol"|
+          
+Services registered with <<span class="code"|register_new_service>>
+         are available for all users. We call them //public services//.
+      
+          
+
+          
+        Page generation may have side-effects:
+      
+          
+
+          <<code language="ocaml" |
+let count =
+  let next =
+    let c = ref 0 in
+      (fun () -> c := !c + 1; !c)
+  in
+  register_new_service
+    ~path:["count"]
+    ~get_params:unit
+    (fun _ () () ->
+      return
+        (html
+         (head (title (pcdata "counter")) [])
+         (body [p [pcdata (string_of_int (next ()))]])))
+
+          
+      See this example [[site:tuto/count| here]].
+      
+          
+
+          
+As usual in OCaml, you can forget labels when the application
+          is total:
+          
+
+          
+<<code language="ocaml" |
+let hello =
+  register_new_service
+    ["dir";"hello"]  (* the url dir/hello *)
+    unit
+    (fun _ () () ->
+      return
+        (html
+         (head (title (pcdata "Hello")) [])
+         (body [h1 [pcdata "Hello"]])))
+
+
+          
+      See this example [[site:tuto/dir/hello| here]].
+      
+          
+
+
+
+
+          
+The last example shows how to define the default page for
+       a directory. (Note that <<span class="code"|["rep";""]>> means
+       the default page of the directory <<span class="code"|rep/>>)
+          
+
+          
+<<code language="ocaml" |
+let default = register_new_service ["rep";""] unit
+  (fun _ () () ->
+    return
+     (html
+      (head (title (pcdata "")) [])
+      (body [p [pcdata "default page. rep is redirected to rep/"]])))
+
+          
+      See [[site:tuto/rep/| default]].
+      
+          
+
+          <<div class="encadre"|
+            ====Remarks on paths
+            
+            
+<<span class="code"|["foo";"bar"]>> corresponds to the URL
+          <<span class="code"|foo/bar>>.              \\
+          <<span class="code"|["dir";""]>> corresponds to the URL <<span class="code"|dir/>>
+          (that is: the default page of the directory <<span class="code"|dir>>).               \\
+          The empty list <<span class="code"|[]>> is equivalent to <<span class="code"|[""]>>.
+        
+            
+
+            
+//Warning://
+          You cannot create a service on path <<span class="code"|["foo"]>>
+          (URL <<span class="code"|foo>>, without slash at the end)
+          and another on path <<span class="code"|["foo";"bar"]>>
+          (URL <<span class="code"|foo/bar>>) because <<span class="code"|foo>> can not be
+          both a directory and a file.
+          Be also careful not to use a string as a directory with
+          Eliom, if it is a file for Staticmod (and vice versa).
+        
+            
+
+            
+//Warning://
+          <<span class="code"|["foo";"bar"]>> is not equivalent to
+          <<span class="code"|["foo/bar"]>>.
+          In the latter, the "/" will be encoded in the URL.
+        
+            
+      
+          >>    
+        >>
+        ===@@id="p1parameters"@@Parameters
+        
+        <<div class="onecol"|
+          ====Typed parameters
+          
+          
+The parameter labeled
+        <<span class="code"|~get_params>>
+        indicates the type of GET parameters for the page (that is, parameters
+        present in the URL).
+        <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALunit"|<<span class="code"|unit>>>> means that the page does not take any GET parameter.
+      
+          
+
+          
+Functions implementing services are called //service handlers//.
+       They take three parameters. The first
+       one has type
+       <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="TYPEserver_params"|<<span class="code"|Eliom_sessions.server_params>>>>
+        and
+       corresponds to server parameters (user-agent, ip, current-url, etc.
+       - see later in that section for examples of use),
+        the second one is for GET parameters
+        (that is, parameters in the URL) and the third one
+       for POST parameters (parameters in the body of the HTTP request).
+          
+
+          
+Here is an example of a service with GET parameters:
+          
+
+          
+<<code language="ocaml" |
+let writeparams _ (i1, (i2, s1)) () =
+  return
+   (html
+    (head (title (pcdata "")) [])
+    (body [p [pcdata "You sent: ";
+              strong [pcdata (string_of_int i1)];
+              pcdata ", ";
+              strong [pcdata (string_of_int i2)];
+              pcdata " and ";
+              strong [pcdata s1]]]))
+
+let coucou_params = register_new_service
+    ~path:["coucou"]
+    ~get_params:(int "i" ** (int "ii" ** string "s"))
+    writeparams
+
+
+
+          
+Note that the URLs of <<span class="code"|coucou>>
+      and <<span class="code"|coucou_params>>
+      differ only by parameters. Url
+      [[site:tuto/coucou|<<span class="code"|~http:~/~///your_server///examples/coucou>>]]
+      will run the first one,            \\
+      [[site:tuto/coucou?s=krokodile&ii=17&i=42|<<span class="code"|~http:~/~///your_server///examples/coucou?i=42&ii=17&s=krokodile>>]]
+      will run the second one.            \\
+      If <<span class="code"|i>> is not an integer,
+      the server will display an error-message
+      (try to change the value in the URL).            \\
+      Here, <<span class="code"|int>>, <<span class="code"|string>> and <<span class="code"|**>>
+      are functions defined in the <<ocsigendoc version="dev" file="Eliom_parameters.html"|<<span class="code"|Eliom_parameters>>>> module.
+                  \\
+      //Warning://
+      The infix function <<span class="code"|( ** )>> is to be used to
+      construct //pairs// (not tuples).
+      
+          
+
+          
+The following examples shows how to create a service with "suffix"
+         service
+         (taking the end of the URL as a parameter, as wikis do very often)
+        and how to get server information:
+          
+
+<<code language="ocaml" |
+let uasuffix =
+  register_new_service
+    ~path:["uasuffix"]
+    ~get_params:(suffix (int "year" ** int "month"))
+    (fun sp (year, month) () ->
+      return
+       (html
+        (head (title (pcdata "")) [])
+        (body
+           [p [pcdata "The suffix of the url is ";
+               strong [pcdata ((string_of_int year)^"/"
+                               ^(string_of_int month))];
+               pcdata ", your user-agent is ";
+               strong [pcdata (Eliom_sessions.get_user_agent sp)];
+               pcdata ", your IP is ";
+               strong [pcdata (Eliom_sessions.get_remote_ip sp)]]])))
+
+          
+This service will answer to URLs like
+    <<span class="code"|http://.../uasuffix/2000/11>>.
+          
+
+          
+See [[site:tuto/uasuffix/2007/7|<<span class="code"|uasuffix>>]]
+          
+
+          
+Suffix parameters have names, because we can create forms towards
+       these services. <<span class="code"|uasuffix/2000/11>> is equivalent to
+       <<span class="code"|uasuffix/?year=2000&month=11>>.
+    
+          
+
+          
+<<span class="code"|suffix_prod>> allows to take both a suffix and
+       other parameters.            \\
+       <<span class="code"|all_suffix>> allows to take the end of the suffix as a
+       <<span class="code"|string list>>.
+    
+          
+
+<<code language="ocaml" |
+let isuffix =
+  register_new_service
+    ~path:["isuffix"]
+    ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
+    (fun sp ((suff, endsuff), i) () ->
+      return
+       (html
+        (head (title (pcdata "")) [])
+        (body
+           [p [pcdata "The suffix of the url is ";
+               strong [pcdata (string_of_int suff)];
+               pcdata " followed by ";
+               strong [pcdata (Ocsigen_extensions.string_of_url_path ~encode:false endsuff)];
+               pcdata " and i is equal to ";
+               strong [pcdata (string_of_int i)]]])))
+
+          
+See [[site:tuto/isuffix/11/a/b/c?i=22|<<span class="code"|isuffix>>]].
+          
+
+
+          
+If you want parameters in the path but not always at the end,
+         use the <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALconst"|<<span class="code"|Eliom_parameters.const>>>>
+         parameter specification.
+         It will match for example URLs like <tt>/param1/const/param2</tt>.
+         Example:
+      
+          
+
+  <<code language="ocaml" |
+let constfix =
+  register_new_service
+    ~path:["constfix"]
+    ~get_params:(suffix (string "s1" ** (Eliom_parameters.suffix_const "toto" ** string "s2")))
+    (fun _ (s1, ((), s2))  () ->
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1
+                   [pcdata "Suffix with constants"];
+                 p [pcdata ("Parameters are "^s1^" and "^s2)]])))
+
+
+          
+[[site:tuto/constfix/aa/toto/bb|Page with constants in suffix]].
+          
+
+          
+The following example shows how to use your own types :
+          
+
+<<code language="ocaml" |
+type mysum = A | B
+let mysum_of_string = function
+  | "A" -> A
+  | "B" -> B
+  | _ -> raise (Failure "mysum_of_string")
+let string_of_mysum = function
+  | A -> "A"
+  | B -> "B"
+
+let mytype =
+  Eliom_predefmod.Xhtml.register_new_service
+    ~path:["mytype"]
+    ~get_params:
+      (Eliom_parameters.user_type mysum_of_string string_of_mysum "valeur")
+    (fun _ x () ->
+      let v = string_of_mysum x in
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata (v^" is valid. Now try with another value.")]])))
+
+
+          
+See [[site:tuto/mytype?valeur=A|<<span class="code"|mytype>>]].
+          
+
+
+          ====@@id="p1any"@@Untyped parameters
+          
+          
+If you want a service that answers to requests with any parameters,
+      use the <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|<<span class="code"|Eliom_parameters.any>>>> value. The service will get an
+      association list of strings. Example:
+      
+          
+<<code language="ocaml" |
+let raw_serv = register_new_service
+    ~path:["any"]
+    ~get_params:Eliom_parameters.any
+  (fun _ l () ->
+    let ll =
+      List.map
+        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> ~>>) l
+    in
+    return
+     << <html>
+          <head><title></title></head>
+          <body>
+          <p>
+            You sent:
+            $list:ll$
+          </p>
+          </body>
+        </html> ~>>)
+
+
+          
+Try [[site:tuto/any?sun=yellow&sea=blue|<<span class="code"|raw_serv>>]].
+          
+
+          <<div class="encadre"|
+            ====Catching errors
+            
+            
+You can catch parameters typing errors and write your own
+        error messages using the optional parameter
+        <<span class="code"|error_handler>>. Example:
+            
+
+<<code language="ocaml" |
+
+let catch = register_new_service
+    ~path:["catch"]
+    ~get_params:(int "i")
+    ~error_handler:(fun sp l ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata ("i is not an integer.")]])))
+    (fun _ i () ->
+      let v = string_of_int i in
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata ("i is an integer: "^v)]])))
+
+
+            
+<<span class="code"|error_handler>> takes as parameters the usual
+         <<span class="code"|sp>>, and a list of pairs <<span class="code"|(n,ex)>>,
+         where <<span class="code"|n>> is the name of the wrong parameter, and
+         <<span class="code"|ex>> is the exception that has been raised while
+         parsing its value.
+            
+
+            
+See [[site:tuto/catch?i=22|<<span class="code"|catch>>]] (change the value
+   of the parameter).
+            
+     
+          >>    
+        >>
+        ===@@id="p1links"@@Links
+        
+        <<div class="onecol"|
+          
+To create a link (<<span class="code"|<a>>>), use the
+          <<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_predefmod.Xhtml.a>>>> function (or <<span class="code"|Eliom_duce.Xhtml.a>>, etc),
+          as in these examples:
+      
+          
+
+          
+<<code language="ocaml" |
+let links = register_new_service ["rep";"links"] unit
+ (fun sp () () ->
+   return
+    (html
+     (head (title (pcdata "Links")) [])
+     (body
+       [p
+        [Eliom_predefmod.Xhtml.a coucou sp [pcdata "coucou"] (); br ();
+         Eliom_predefmod.Xhtml.a hello sp [pcdata "hello"] (); br ();
+         Eliom_predefmod.Xhtml.a default sp
+           [pcdata "default page of the dir"] (); br ();
+         Eliom_predefmod.Xhtml.a uasuffix sp
+           [pcdata "uasuffix"] (2007,06); br ();
+         Eliom_predefmod.Xhtml.a coucou_params sp
+           [pcdata "coucou_params"] (42,(22,"ciao")); br ();
+         Eliom_predefmod.Xhtml.a raw_serv sp
+           [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
+         Eliom_predefmod.Xhtml.a
+           (new_external_service
+              ~prefix:"http://fr.wikipedia.org"
+              ~path:["wiki";""]
+              ~get_params:(suffix (all_suffix "suff"))
+              ~post_params:unit ())
+           sp
+           [pcdata "OCaml on wikipedia"]
+           ["OCaml"]; br ();
+         XHTML.M.a
+           ~a:[a_href (uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
+           [pcdata "OCaml on wikipedia"]
+       ]])))
+
+
+
+          
+See [[site:tuto/rep/links|<<span class="code"|links>>]].
+          
+
+
+
+
+          
+If you open <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span class="code"|Eliom_predefmod.Xhtml>>>> after <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>>,
+        <<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_predefmod.Xhtml.a>>>>
+   will mask <<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALa"|<<span class="code"|XHTML.M.a>>>>.
+        Thus you can avoid to write fully qualified values most of the time.
+      
+          
+
+          
+<<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_predefmod.Xhtml.a>>>> takes as first parameter
+        the service you want to link to.
+        Note that to create a (relative) link we need to know the current URL.
+        That's why the function <<span class="code"|a>>
+        takes <<span class="code"|sp>> as second parameter.
+      
+          
+
+          
+      The third parameter is the text of the link.
+      The last parameter is for
+      GET parameters you want to put in the link.
+      The type of this parameter and the name of GET parameters depend
+      on the service you link to.
+      
+          
+
+          
+      The links to Wikipedia shows how to define an external service (here it
+      uses a suffix URL).
+      For an external service without parameters, you can use the low level
+      function <<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALa"|<<span class="code"|XHTML.M.a>>>>, if you don't want to create an
+      external service explicitely.
+      Note that the path must be a list of strings.
+      Do not write <<span class="code"|["foo/bar"]>>,
+      but <<span class="code"|["foo";"bar"]>>, otherwise, the "/" will be encoded in
+      the URL.
+      
+          
+
+          
+        If you want to create (mutually or not) recursive pages,
+        create the service using <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_service"|<<span class="code"|Eliom_services.new_service>>>> first,
+        then register it in the table using (for example)
+        <<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|<<span class="code"|Eliom_predefmod.Xhtml.register>>>>:
+      
+          
+
+<<code language="ocaml" |
+let linkrec = Eliom_services.new_service ["linkrec"] unit ()
+
+let _ = Eliom_predefmod.Xhtml.register linkrec
+    (fun sp () () ->
+      return
+       (html
+        (head (title (pcdata "")) [])
+        (body [p [a linkrec sp [pcdata "click"] ()]])))
+
+
+
+          
+
+          
+[[site:tuto/linkrec| See <<span class="code"|linkrec>>]].
+          
+
+          
+ The server will fail on startup if there are any unregistered
+
+      services.
+          
+    
+        >>
+        ===@@id="p1forms"@@Forms
+        
+        <<div class="onecol"|
+          ====Forms towards services
+          
+          
+The function <<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALget_form"|<<span class="code"|Eliom_predefmod.Xhtml.get_form>>>> allows to create a form
+      that uses the GET method (parameters in the URL).
+      It works like <<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_predefmod.Xhtml.a>>>> but takes a //function// that creates the form from the parameters names as parameter.
+      
+          
+<<code language="ocaml" |
+let create_form =
+  (fun (number_name, (number2_name, string_name)) ->
+    [p [pcdata "Write an int: ";
+        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:number_name ();
+        pcdata "Write another int: ";
+        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:number2_name ();
+        pcdata "Write a string: ";
+        Eliom_predefmod.Xhtml.string_input ~input_type:`Text ~name:string_name ();
+        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
+
+let form = register_new_service ["form"] unit
+  (fun sp () () ->
+     let f = Eliom_predefmod.Xhtml.get_form coucou_params sp create_form in
+     return
+       (html
+         (head (title (pcdata "")) [])
+         (body [f])))
+
+
+          
+[[site:tuto/form| See the function <<span class="code"|form>> in action]].
+          
+
+
+          
+Note that if you want to use typed parameters,
+       you cannot use functions like <<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALinput"|<<span class="code"|XHTML.M.input>>>> to
+       create your forms (if you want to use parameters defined with
+       <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|<<span class="code"|Eliom_parameters.any>>>>, [[eliom/manual/dev/1#p1any|see later]]). Indeed, parameter names are typed to force them
+       be used properly. In our example, <<span class="code"|number_name>> has type
+       <<span class="code"|int param_name>> and must be used with
+       <<span class="code"|int_input>> (or other widgets), whereas
+       <<span class="code"|string_name>> has type
+       <<span class="code"|string param_name>> and must be used with
+       <<span class="code"|string_input>> (or other widgets).
+       All functions for creating form widgets are detailed
+       <<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html"|here>>.
+      
+          
+
+
+          
+For untyped forms, you may use functions from XHTML.M (or
+      OCamlDuce's syntax, or whatever syntax you are using) or
+      functions which name is prefixed by "<<span class="code"|raw_>>".
+      Here is a form linking to our (untyped) service
+      <<span class="code"|raw_serv>>.
+          
+
+<<code language="ocaml" |
+let raw_form = register_new_service
+    ~path:["anyform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body
+              [h1 [pcdata "Any Form"];
+               Eliom_predefmod.Xhtml.get_form raw_serv sp
+                 (fun () ->
+                   [p [pcdata "Form to raw_serv: ";
+                       Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plop" ();
+                       Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plip" ();
+                       Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plap" ();
+                       Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
+                ])))
+
+
+          
+Try this [[site:tuto/anyform| form]].
+          
+
+          ====POST parameters
+          
+          
+   By default Web page parameters are transferred in the URL (GET parameters).
+   A web page may also expect POST parameters
+   (that is, parameters that are not in the URL but in the body of the HTTP
+   request).
+   Use this if you don't want the user to be able to bookmark
+   the URL with parameters, for example if you want to post some
+   data that will change the state of the server (payment,
+   database changes, etc).
+   When designing a Web site, think carefully about the choice between
+   GET or POST method for each service!
+   
+          
+
+          
+   When you register a service with POST parameters, you must first register a service (fallback) without these parameters (for example that will
+   answer if the page is reloaded without the hidden parameters, or
+   if it is bookmarked).
+      
+          
+
+          
+<<code language="ocaml" |
+let no_post_param_service =
+  register_new_service
+    ~path:["post"]
+    ~get_params:unit
+    (fun _ () () ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [h1 [pcdata
+                      "Version of the page without POST parameters"]])))
+
+let my_service_with_post_params =
+  register_new_post_service
+    ~fallback:no_post_param_service
+    ~post_params:(string "value")
+    (fun _ () value ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [h1 [pcdata value]])))
+
+
+
+
+          
+Services may take both GET and POST parameters:
+          
+
+<<code language="ocaml" |
+let get_no_post_param_service =
+  register_new_service
+    ~path:["post2"]
+    ~get_params:(int "i")
+    (fun _ i () ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata "No POST parameter, i:";
+                   em [pcdata (string_of_int i)]]])))
+
+let my_service_with_get_and_post = register_new_post_service
+  ~fallback:get_no_post_param_service
+  ~post_params:(string "value")
+  (fun _ i value ->
+    return
+      (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata "Value: ";
+                   em [pcdata value];
+                   pcdata ", i: ";
+                   em [pcdata (string_of_int i)]]])))
+
+
+          ====@@id="p1postforms"@@POST forms
+          
+          
+ To create a POST form, use the
+           <<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALpost_form"|<<span class="code"|Eliom_predefmod.Xhtml.post_form>>>> function.
+           It is similar to <<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALget_form"|<<span class="code"|Eliom_predefmod.Xhtml.get_form>>>>
+           with an additional parameter
+           for the GET parameters you want to put in the URL (if any).
+           Here, <<span class="code"|form2>> is a page containing a form
+           to the service <<span class="code"|post>> (using XHTML.M's functions)
+           and <<span class="code"|form3>> (defined using the syntax extension)
+           contains a form to <<span class="code"|post2>>, with a GET parameter.
+           <<span class="code"|form4>> is a form to an external page.
+       
+          
+
+<<code language="ocaml" |
+let form2 = register_new_service ["form2"] unit
+  (fun sp () () ->
+     let f =
+       (Eliom_predefmod.Xhtml.post_form my_service_with_post_params sp
+          (fun chaine ->
+            [p [pcdata "Write a string: ";
+                string_input ~input_type:`Text ~name:chaine ()]]) ()) in
+     return
+       (html
+         (head (title (pcdata "form")) [])
+         (body [f])))
+
+let form3 = register_new_service ["form3"] unit
+  (fun sp () () ->
+     let f  =
+       (Eliom_predefmod.Xhtml.post_form my_service_with_get_and_post sp
+          (fun chaine ->
+            <:xmllist< <p> Write a string:
+                    $string_input ~input_type:`Text ~name:chaine ()$ </p> ~>>)
+          222) in
+     return
+       << <html>
+            <head><title></title></head>
+            <body>$f$</body></html> ~>>)
+
+let form4 = register_new_service ["form4"] unit
+  (fun sp () () ->
+     let f  =
+       (Eliom_predefmod.Xhtml.post_form
+          (new_external_service
+             ~prefix:"http://www.petizomverts.com"
+             ~path:["zebulon"]
+             ~get_params:(int "i")
+             ~post_params:(string "chaine") ()) sp
+          (fun chaine ->
+            <:xmllist< <p> Write a string:
+                     $string_input ~input_type:`Text ~name:chaine ()$ </p> ~>>)
+          222) in
+     return
+       (html
+        (head (title (pcdata "form")) [])
+        (body [f])))
+
+
+          
+See the urls:
+      [[site:tuto/post|<<span class="code"|post>> without parameter]],
+      [[site:tuto/post2?i=123|<<span class="code"|post2>> without POST parameter]],
+      [[site:tuto/form2|<<span class="code"|form2>>]],
+      [[site:tuto/form3|<<span class="code"|form3>>]],
+      [[site:tuto/form4|<<span class="code"|form4>>]].
+      
+          
+
+    
+        >>
+        ===@@id="p1threads"@@Threads
+        
+        <<div class="onecol"|
+          
+      Remember that a Web site written with Eliom is an OCaml application.
+      This application must be able to handle several requests at the same
+      time, in order to prevent a single request from slowing down the whole server. To make this possible, Ocsigen
+      is using //cooperative threads//
+      (implemented in monadic style
+      by Jérôme Vouillon) which make them really easy
+      to use (see <<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>> module).
+      
+          
+
+          
+Take time to read the
+        [[site:lwt|documentation about <<span class="code"|Lwt>>]]
+        right now if you want to understand the following of this tutorial.
+      
+          
+
+          
+As it doesn't cooperate, the following page will stop the
+      server for 5 seconds. No one will be able to query the server during
+      this period:
+          
+
+          
+<<code language="ocaml"|let looong =
+  register_new_service
+    ~path:["looong"]
+    ~get_params:unit
+    (fun sp () () ->
+      Unix.sleep 5;
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Ok now, you can read the page."]])))
+>>
+
+          
+To solve this problem, use a cooperative version of
+         <<ocsigendoc version="dev" file="Lwt_unix.html" fragment="VALsleep"|<<span class="code"|sleep>>>>:
+          
+
+          
+<<code language="ocaml" |
+let looong =
+  register_new_service
+    ~path:["looong"]
+    ~get_params:unit
+    (fun sp () () ->
+      Lwt_unix.sleep 5.0 ~>>= fun () ->
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata
+                   "Ok now, you can read the page."]])))
+
+
+
+          
+If you want to use, say, a database library that is not written
+       in cooperative way, but is thread safe for preemptive threads,
+       use the <<span class="code"|Lwt_preemptive>> module to
+       detach the computation. In the following example,
+       we simulate the request by a call to <<span class="code"|Unix.sleep>>:
+      
+          
+
+let looong2 =
+  register_new_service
+    ~path:["looong2"]
+    ~get_params:unit
+    (fun sp () () ->
+      Lwt_preemptive.detach Unix.sleep 5 ~>>= fun () ->
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata
+                   "Ok now, you can read the page."]])))
+
+          
+[[site:tuto/looong2| See <<span class="code"|looong2>>]].
+          
+    
+        >>
+
+        ===@@id="p1thebigpicture"@@The big picture
+        
+        <<div class="encadre sanstitre"|
+          
+         You now have the minimum knowledge to write basic Web sites with
+         Eliom: page typing, service creation, parameters, forms
+         and database acces using <<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>>
+         (and possibly <<ocsigendoc version="dev" file="Lwt_preemptive.html" fragment="VALdetach"|<<span class="code"|Lwt_preemptive.detach>>>>).
+         Here is a summary of all other concepts introduced by Eliom.
+         They will allow you to easily program more complex behaviours and will be developped in the following sections of this tutorial.
+      
+          
+
+
+          ====Different kinds of services
+          
+          
+      Before beginning the implementation, think about the URLs you want to
+      create as entry points to your Web site, and the services
+      you want to provide.
+      
+          
+
+          
+Services we used, so far, are called //main services//.
+      But there are other kinds of services depending on the precise
+      behaviour you want for links and forms. Clicking on a link or a form
+      may trigger:
+          
+
+          
+*the request of a new document (page) (or not),
+*the sending of data to the server using the POST method (or not),
+*an action on the server (or not),
+*a change of URL (or not).
+                  
+          
+
+          
+To take into account all possible behaviours with respect to URLs, 
+        Eliom uses three kinds of services:
+;@@class="blue"@ @@Main services
+:are the main entry points of your sites.
+        Created by <<span class="code"|new_service>> or
+        <<span class="code"|new_post_service>>.
+        They correspond to the public URLs of your Web site, and will last
+        forever.
+;(Attached) coservices
+:are services that share their
+        location (URL) with a main service (fallback).
+        They are distinguished from that main service using a special parameter
+        (added automatically by Eliom), containing either the name of the
+        coservice or a number generated automatically.
+        They are often created dynamically for one user
+        (usually in the session table), depending on previous interaction
+        during the session.
+        In general, they disappear after a timeout letting the fallback answer
+        afterwards.
+        Another use of (POST) coservices is to customize one
+        button but not the page it leads to (like the disconnect button
+        in the example of sessions with //actions// as below).
+;Non-attached coservices
+:are
+        coservices that are not
+        attached to a particular URL. A link to a non-attached
+        coservice will go to the current URL with a special parameter
+        containing either the name of the service, or a number generated 
+        automatically (and different each time).
+        It is useful when you want the same link or form on several pages
+        (for example a connection box) but you don't want to go to another
+        URL. Non-attached coservices are often used with //actions//
+        (see below).To summarize, if you want to go to another URL, use
+      (attached) (co)services. If you want to stay on the same URL
+      use non-attached coservices.
+          
+
+          ====GET or POST?
+          
+          
+Each of these services both have a version with GET parameters and
+      another with POST parameters.
+          
+
+          
+      POST and GET parameters are not equivalent, and you must be very careful
+      if you want to use one or the other.            \\
+      GET parameters are the parameters you see in the URL (for
+      example <<span class="code"|~http:~/~///your_server///examples/coucou?i=42&ii=17&s=krokodile>>). They are created by browsers if you use forms with the GET method, or written directly in the URL.            \\
+      POST parameters are sent by browsers in the body of the HTTP request. That's the only solution
+      if you want to send files with your request.
+      
+          
+
+          
+      Remember that only pages without POST parameters are bookmarkable.
+      Use GET parameters if you want the user to be able to come back to the URL
+      later or to write the URL manually.            \\
+      Use POST parameters when you want a different behaviour
+      between the first click and a reload of the page. Usually sending
+      POST parameters triggers an action on server side
+      (like a payment, or adding something in a database), and you don't want
+      it to succeed several times if the page is reloaded or bookmarked.
+          
+
+    
+        >>
+        <<div class="encadre sanstitre"|
+          ====Data returned by services
+          
+          
+Services can send several types of data,
+      using these different modules:
+          
+
+
+
+|@@class="empty"@@|=@@class="col2"@@Services|=@@colspan="2" class="col2"@@Coservices|
+|@@class="empty"@@|=@@class="col2"@@|=@@class="col2"@@attached                \\named~ /~ anonymous|=@@class="col2"@@non-attached                \\named~ /~ anonymous|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span class="code"|Eliom_predefmod.Xhtml>>>>|@@colspan="4"@@Allows to register functions that
+        generate xhtml pages
+        statically checked using polymorphic variant types. You may use
+        constructor functions from <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>> or a syntax
+        extension close to the standard xhtml syntax.|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.Xhtmlcompact.html"|<<span class="code"|Eliom_predefmod.Xhtmlcompact>>>>|@@colspan="4"@@Same, but without pretty printing (does not add
+            spaces or line breaks).|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.Blocks.html"|<<span class="code"|Eliom_predefmod.Blocks>>>>|@@colspan="4"@@Allows to register functions that
+        generate a portion of page (content of the body tag) using
+        <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>> or the syntax extension.
+        (useful for <<span class="code"|XMLHttpRequest>> requests for example).|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|<<span class="code"|Eliom_duce.Xhtml>>>>|@@colspan="4"@@Allows to register functions
+            that generate xhtml pages
+        statically checked using <<span class="code"|OCamlduce>>. Typing is
+        stricter, and you need a modified version of the OCaml compiler
+        (OCamlduce).|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.HtmlText.html"|<<span class="code"|Eliom_predefmod.HtmlText>>>>|@@colspan="4"@@Allows to register functions that
+        generate text html pages, without any typechecking of the content.
+        The content type sent by the server is "text/html".|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.CssText.html"|<<span class="code"|Eliom_predefmod.CssText>>>>|@@colspan="4"@@Allows to register functions that
+        generate CSS pages, without any typechecking of the content.
+        The content type sent by the server is "text/css".|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.Text.html"|<<span class="code"|Eliom_predefmod.Text>>>>|@@colspan="4"@@Allows to register functions that
+        generate text pages, without any typechecking of the content.
+        The services return a pair of strings. The first one is the content
+        of the page, the second one is the content type.|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|<<span class="code"|Eliom_predefmod.Action>>>>|@@colspan="4"@@Allows to register actions (
+        functions that do not generate any page). The URL is reloaded after
+        the action.|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.Unit.html"|<<span class="code"|Eliom_predefmod.Unit>>>>|@@colspan="4"@@is like <<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|<<span class="code"|Eliom_predefmod.Action>>>> but the
+        URL is not reloaded after the action.|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.Redirection.html"|<<span class="code"|Eliom_predefmod.Redirection>>>>|@@colspan="4"@@**[New in 1.1.0]** Allows to register HTTP permanent redirections.
+            You register the URL of the page you want to redirect to.
+            Warning: According to the RFC of the HTTP protocol,
+            the URL must be absolute!                \\
+            The browser will get a 301 or 307 code in answer and
+            redo the request to the new URL.
+            To specify whether you want temporary (307) or
+            permanent (301) redirections,
+            use the <<span class="code"|?options>> parameter of registration functions.
+            For example:
+            <<span class="code"|register ~options:`Permanent ...>> or
+            <<span class="code"|register ~options:`Temporary ...>>.|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.Files.html"|<<span class="code"|Eliom_predefmod.Files>>>>|@@colspan="4"@@Allows to register services that send files|
+|=@@class="row"@@<<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|<<span class="code"|Eliom_predefmod.Any>>>>|@@colspan="4"@@Allows to register services that can choose
+            what they send, for example an xhtml page
+            or a file, depending on some situation (parameter, user logged or
+            not, page present in a cache ...).It is also possible to create your own modules for other types
+      of pages.
+          
+    
+        >>
+        <<div class="encadre sanstitre"|
+          ====Public and session service tables
+          
+          
+Each of these registrations may be done in the //public//
+      service table, or in a //session// service table,
+      accessible only to a single user of the Web site. This allows to generate
+      custom services for a specific user.
+      
+          
+
+
+          
+Eliom will try to find the page, in that order:
+          
+
+          
+*in the session service table,
+*in the public service table,
+*the fallback in the session table, if the coservice has expired,
+*the fallback in the public table, if the session has expired.
+                  
+          
+
+
+          ====Session data tables
+          
+          
+It is also possible to create a session data table, where you can
+      save information about the session. Each service can look in that table
+      to see if a session is opened or not and get the data.
+      
+          
+
+    
+        >>
+
+
+        <<div class="encadre sanstitre"|
+          ====Examples 
+          
+          
+The most commonly used services are:
+          
+
+          
+*Main services (GET or POST) in public service table for public
+          pages,
+        
+*GET attached coservices in session service table to make the
+          browser's "back" button turn back in the past, and to allow several
+          tabs on different versions of the same page,
+        
+*Actions registered on POST named non-attached coservices
+          to make an effect
+          on the server, from any page, and without changing the URL
+          (connection/disconnection for example).
+        
+                  
+          
+
+          
+Here is a list of frequent issues and the solution Eliom provides to
+        to solve them. Most of them will be developped in the following parts of the tutorial.
+;Display the result of a search (plane ticket,
+          search engines~ ...)
+:Use a coservice (anonymous, with timeout) 
+          in the session service table.
+;Keep information about the session (name of the user~ ...)
+:Use a session data table.
+;A connection or disconnection box on each page of your site
+:Use actions registered on named non-attached coservices to set or
+         remove data from a session data table.
+;Add something in a shopping basket
+:Use an action registered on a non-attached coservice,
+          with the names of the items as parameters. The action saves the shopping
+          basket in a session data table. Thus, the shopping basket will remain
+          even if the user pushes the back button of his browser.
+;Book a ticket (in several steps)
+:Each step creates new (GET) coservices (with or without
+          parameters, all attached to the service displaying the main
+          booking page)
+          according to the data entered by the user. These
+          coservices are registered in the session table (with a timeout for
+          the whole session or for each of them). Thus the user can go back
+          to a previous state, or keep several proposals on differents
+          tabs before choosing one.
+;...
+://Help us to complete this list by giving your examples or
+          asking questions about other cases! Thank you!//
+;
+:>>
+      >>      

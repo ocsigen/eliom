@@ -1,0 +1,1047 @@
+
+<<div class='leftcol'|<<leftcoldoc version="dev">>>>
+      <<div class="colprincipale"|
+        ==2. Sessions, users and other common situations in Web sites
+        
+
+        <<div class="onecol"|
+          
+When programming dynamic Web sites, you often want to personalise
+       the behaviour and content for one user. To do this, you need to recognise
+       the user and save and restore its data. Eliom implements several
+       high level features to do that:
+      
+          
+
+          
+*Session data tables,
+*Session service tables, where you can save private versions of
+          main services or new coservices,
+        
+*Coservices, that may be created dynamically with respect to
+          previous interaction with the user.
+        
+                  
+          
+
+          
+Eliom is using cookies to recognize users.
+         One cookie is automatically set for each user when needed and
+         destroyed when the session is closed.
+      
+          
+
+          
+Coservices, but also //actions//, are also means to control
+        precisely the behaviour of the site and to implement easily very
+        common situations that require a lot of programming work with
+        other Web programming tools. We'll have a lot at some examples in that
+        section.
+      
+          
+    
+        >>
+
+
+        ===@@id="p2sessiondata"@@Session data
+        
+        <<div class="onecol"|
+          
+      Eliom provides a way to save session data on server side and
+      restore it at each request. This data is available during the whole
+      duration of the session.
+      To save session data, create a table using
+      <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALcreate_volatile_table"|<<span class="code"|Eliom_sessions.create_volatile_table>>>>
+      and save and get data from
+      this table using <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_volatile_session_data"|<<span class="code"|Eliom_sessions.set_volatile_session_data>>>> and
+      <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_volatile_session_data"|<<span class="code"|Eliom_sessions.get_volatile_session_data>>>>. The following example shows
+      a site with authentification. The name of the user is asked in the login
+      form and saved in a table to be displayed on the page instead of the login
+      form while the user is connected. Note that the session is opened
+      automatically when needed.
+      
+          
+
+          
+<<code language="ocaml" |
+(************************************************************)
+(************ Connection of users, version 1 ****************)
+(************************************************************)
+
+
+
+(* "my_table" will be the structure used to store
+   the session data (namely the login name): *)
+
+let my_table = Eliom_sessions.create_volatile_table ()
+
+
+(* -------------------------------------------------------- *)
+(* Create services, but do not register them yet:           *)
+
+let session_data_example =
+  Eliom_services.new_service
+    ~path:["sessdata"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let session_data_example_with_post_params =
+  Eliom_services.new_post_service
+    ~fallback:session_data_example
+    ~post_params:(Eliom_parameters.string "login")
+    ()
+
+let session_data_example_close =
+  Eliom_services.new_service
+    ~path:["close"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "session_data_example" service:          *)
+
+let session_data_example_handler sp _ _  =
+  let sessdat = Eliom_sessions.get_volatile_session_data  ~table:my_table ~sp () in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          [
+           match sessdat with
+           | Eliom_sessions.Data name ->
+               p [pcdata ("Hello "^name);
+                  br ();
+                  Eliom_predefmod.Xhtml.a
+                    session_data_example_close
+                    sp [pcdata "close session"] ()]
+           | Eliom_sessions.Data_session_expired
+           | Eliom_sessions.No_data ->
+               Eliom_predefmod.Xhtml.post_form
+                 session_data_example_with_post_params
+                 sp
+                 (fun login ->
+                   [p [pcdata "login: ";
+                       Eliom_predefmod.Xhtml.string_input
+                         ~input_type:`Text ~name:login ()]]) ()
+         ]))
+
+(* -------------------------------------------------------- *)
+(* Handler for the "session_data_example_with_post_params"  *)
+(* service with POST params:                                *)
+
+let session_data_example_with_post_params_handler sp _ login =
+  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
+  Eliom_sessions.set_volatile_session_data  ~table:my_table ~sp login;
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
+              br ();
+              Eliom_predefmod.Xhtml.a session_data_example sp [pcdata "Try again"] ()
+            ]]))
+
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "session_data_example_close" service:    *)
+
+let session_data_example_close_handler sp () () =
+  let sessdat = Eliom_sessions.get_volatile_session_data  ~table:my_table ~sp () in
+  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
+  return
+    (html
+       (head (title (pcdata "Disconnect")) [])
+       (body [
+        (match sessdat with
+        | Eliom_sessions.Data_session_expired -> p [pcdata "Your session has expired."]
+        | Eliom_sessions.No_data -> p [pcdata "You were not connected."]
+        | Eliom_sessions.Data _ -> p [pcdata "You have been disconnected."]);
+        p [Eliom_predefmod.Xhtml.a session_data_example sp [pcdata "Retry"] () ]]))
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_predefmod.Xhtml.register
+    session_data_example_close session_data_example_close_handler;
+  Eliom_predefmod.Xhtml.register
+    session_data_example session_data_example_handler;
+  Eliom_predefmod.Xhtml.register
+    session_data_example_with_post_params
+    session_data_example_with_post_params_handler
+
+
+
+
+
+          
+[[site:tuto/sessdata| See this example here]].
+      
+          
+
+          
+       To close a session, use the function
+                <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|<<span class="code"|Eliom_sessions.close_session>>>>>>.
+       Session data will disappear when the session is closed (explicitely
+       or by timeout).
+       Warning: if your session data contains opened file descriptors,
+       they won't be closed by OCaml's garbage collector. Close it yourself!
+       (for example using <<span class="code"|Gc.finalise>>).
+      
+          
+
+          
+We will see in the following of this tutorial how to improve
+      this example to solve the following problems:
+      
+          
+
+          
+*          The use of a main service for disconnection is not a good idea
+          for usability. You probably want to go to the same page
+          with the login form. We will do this with a coservice.
+        
+*          If you want the same login form on several pages, it is tedious
+          work to create a coservice with POST parameters for each page.
+          We will se how to solve this using actions and named non-attached
+          coservices.
+        
+*          Session data are kept in memory and will be lost if you switch off
+          the server, which is bad if you want long duration sessions.
+          You can solve this problem by using persistent tables.
+        
+                  
+          
+    
+        >>
+        ===@@id="p2sessionservices"@@Session services
+        
+        <<div class="onecol"|
+          
+      Eliom allows to replace a public service by a service valid only for
+      one user.
+      Use this to personalise main services for one user (or to create new
+      coservices available only to one user, [[eliom/manual/dev/2#p2calc|see later]]).
+      To create a "session service", register the service in
+      a "session service table" (valid only for one client)
+      instead of the public table. To do that,
+      use <<span class="Cem"|<<span class="code"|register_for_session>>>>
+      (for example
+     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_for_session"|<<span class="code"|Eliom_predefmod.Xhtml.register_for_session>>>>>>).            \\
+      
+          
+
+          
+      Users are recognized automatically using a cookie.
+      Use this for example if you want two versions of each page,
+      one public, one for connected users.
+                  \\
+      To close a session, use
+                <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|<<span class="code"|Eliom_sessions.close_session>>>>>>.
+      Both the session service table and the session data table for that user
+      will disappear when the session is closed.
+      
+          
+
+          
+Note that <<span class="code"|register_for_session>>
+         and <<span class="code"|close_session>> take <<span class="code"|sp>> as parameter
+         (because sp contains the session table).
+          
+
+          
+The following example shows how to reimplement the previous one
+      (<<span class="code"|session_data_example>>),
+      without using <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_volatile_session_data"|<<span class="code"|Eliom_sessions.set_volatile_session_data>>>>.
+      Note that this version is less efficient than the other if your site
+      has lots of pages, because it requires to register all the new services
+      each time a user logs in. But in other cases, that feature is really
+      useful, for example with coservices (see
+      [[eliom/manual/dev/2#p2coservicesinsessiontable|later]]).
+      
+          
+
+          
+      We first define the main page, with a login form:
+      
+          
+
+          
+<<code language="ocaml" |
+(************************************************************)
+(************ Connection of users, version 2 ****************)
+(************************************************************)
+
+
+(* -------------------------------------------------------- *)
+(* Create services, but do not register them yet:           *)
+
+let session_services_example =
+  Eliom_services.new_service
+    ~path:["sessionservices"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let session_services_example_with_post_params =
+  Eliom_services.new_post_service
+    ~fallback:session_services_example
+    ~post_params:(Eliom_parameters.string "login")
+    ()
+
+let session_services_example_close =
+  Eliom_services.new_service
+    ~path:["close2"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+
+(* ------------------------------------------------------------- *)
+(* Handler for the "session_services_example" service:           *)
+(* It displays the main page of our site, with a login form.     *)
+
+let session_services_example_handler sp () () =
+  let f =
+    Eliom_predefmod.Xhtml.post_form
+      session_services_example_with_post_params
+      sp
+      (fun login ->
+        [p [pcdata "login: ";
+            string_input ~input_type:`Text ~name:login ()]]) ()
+  in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body [f]))
+
+
+(* ------------------------------------------------------------- *)
+(* Handler for the "session_services_example_close" service:     *)
+
+let session_services_example_close_handler sp () () =
+  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
+  return
+    (html
+       (head (title (pcdata "Disconnect")) [])
+       (body [p [pcdata "You have been disconnected. ";
+                 a session_services_example
+                   sp [pcdata "Retry"] ()
+               ]]))
+
+
+
+          
+When the page is called with login parameters,
+       it runs the function <<span class="code"|launch_session>>
+       that replaces some services already defined by new ones:
+    
+          
+
+<<code language="ocaml" |
+(* ------------------------------------------------------------- *)
+(* Handler for the "session_services_example_with_post_params"   *)
+(* service:                                                      *)
+
+let launch_session sp () login =
+
+  (* New handler for the main page: *)
+  let new_main_page sp () () =
+    return
+      (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "Welcome ";
+                 pcdata login;
+                 pcdata "!"; br ();
+                 a coucou sp [pcdata "coucou"] (); br ();
+                 a hello sp [pcdata "hello"] (); br ();
+                 a links sp [pcdata "links"] (); br ();
+                 a session_services_example_close
+                   sp [pcdata "close session"] ()]]))
+  in
+
+  (* If a session was opened, we close it first! *)
+  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
+
+  (* Now we register new versions of main services in the
+     session service table: *)
+  Eliom_predefmod.Xhtml.register_for_session 
+    ~sp
+    ~service:session_services_example
+    (* service is any public service already registered,
+       here the main page of our site *)
+    new_main_page;
+
+  Eliom_predefmod.Xhtml.register_for_session 
+    ~sp
+    ~service:coucou
+    (fun _ () () ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata "Coucou ";
+                   pcdata login;
+                   pcdata "!"]])));
+
+  Eliom_predefmod.Xhtml.register_for_session 
+    ~sp
+    ~service:hello
+    (fun _ () () ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata "Ciao ";
+                   pcdata login;
+                   pcdata "!"]])));
+
+  new_main_page sp () ()
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_predefmod.Xhtml.register
+    ~service:session_services_example
+    session_services_example_handler;
+  Eliom_predefmod.Xhtml.register
+    ~service:session_services_example_close
+    session_services_example_close_handler;
+  Eliom_predefmod.Xhtml.register
+    ~service:session_services_example_with_post_params
+    launch_session
+
+
+
+          
+[[site:tuto/sessionservices| See the result]].
+          
+
+          
+Warning: As in the previous example,
+       to implement such connection and disconnection forms, you
+       get more flexibility by using //actions// instead of xhtml services
+       (see below for the same example with actions).
+      
+          
+
+          
+Services registered in session tables are called
+       //session// or //private// services.
+       Services registered in the public table
+       are called //public//.
+      
+          
+    
+        >>
+        ===@@id="p2coservices"@@Coservices
+        
+        <<div class="onecol"|
+          
+   A coservice is a service that uses the same URL as
+   a main service, but generates another page.
+   They are distinguished from main services only by a special
+   parameter, called //state// parameter.
+   Coservices may use GET or POST parameters.
+          
+
+          
+Most of the time, GET coservices are created dynamically with
+   respect to previous interaction with the user and are registered
+   in the session table. They allow to give a precise semantics to the
+   "back" button of the browser (be sure that you will go back in the
+   past) or bookmarks, or duplication of the browser's window.
+   (See the [[eliom/manual/dev/2#p2calc|<<span class="code"|calc>>]] example below).
+   
+          
+
+          
+   Use POST coservices if you want to particularize a link or form,
+   but not the URL it points to.
+   More precisely, POST coservices are mainly used in two situations:
+    
+          
+
+          
+*For the same purpose as GET coservices (new services
+   corresponding to precise points of the interaction with the user)
+   but when you don't want this service to be bookmarkable.
+*To create a button that leads to a service after having performed
+   a side-effect. For example a disconnection button that leads to the main
+   page of the side, but with the side effect of disconnecting the user.
+               
+          
+
+          
+   To create a coservice, use
+   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_coservice"|<<span class="code"|Eliom_services.new_coservice>>>>>> and
+   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_post_coservice"|<<span class="code"|Eliom_services.new_post_coservice>>>>>>.
+   Like <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_post_service"|<<span class="code"|Eliom_services.new_post_service>>>>,
+   they take a public service as parameter
+   (labeled <<span class="code"|fallback>>)
+   to be used as fallback when the user comes back without the state
+   parameter (for example if it was a POST coservice and/or the coservice
+   has expired).
+          
+
+          
+The following example shows the difference between GET coservices
+   (bookmarkable) and POST coservices:
+          
+<<code language="ocaml" |
+(************************************************************)
+(************** Coservices. Basic examples ******************)
+(************************************************************)
+
+(* -------------------------------------------------------- *)
+(* We create one main service and two coservices:           *)
+
+let coservices_example =
+  Eliom_services.new_service
+    ~path:["coserv"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let coservices_example_post =
+  Eliom_services.new_post_coservice
+    ~fallback:coservices_example
+    ~post_params:Eliom_parameters.unit
+    ()
+
+let coservices_example_get =
+  Eliom_services.new_coservice
+    ~fallback:coservices_example
+    ~get_params:Eliom_parameters.unit
+    ()
+
+
+(* -------------------------------------------------------- *)
+(* The three of them display the same page,                 *)
+(* but the coservices change the counter.                   *)
+
+let _ =
+  let c = ref 0 in
+  let page sp () () =
+    let l3 = Eliom_predefmod.Xhtml.post_form coservices_example_post sp
+        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                        ~input_type:`Submit
+                        ~value:"incr i (post)" ()]]) ()
+    in
+    let l4 = Eliom_predefmod.Xhtml.get_form coservices_example_get sp
+        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                        ~input_type:`Submit
+                        ~value:"incr i (get)" ()]])
+    in
+    return
+      (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "i is equal to ";
+                 pcdata (string_of_int !c); br ();
+                 a coservices_example sp [pcdata "reload"] (); br ();
+                 a coservices_example_get sp [pcdata "incr i"] ()];
+              l3;
+              l4]))
+  in
+  Eliom_predefmod.Xhtml.register coservices_example page;
+  let f sp () () = c := !c + 1; page sp () () in
+  Eliom_predefmod.Xhtml.register coservices_example_post f;
+  Eliom_predefmod.Xhtml.register coservices_example_get f
+
+
+          
+Try [[site:tuto/coserv|<<span class="code"|coserv>>]].
+          
+
+          
+Note that if the coservice does not exist (for example it
+      has expired), the fallback is called.
+          
+
+          
+In this example, coservices do not take any parameters
+      (but the state parameter), but you can create coservices with
+      parameters. Note that the fallback of a GET coservice cannot take
+      parameters. Actually as coservices parameters have special
+      names, it is possible to use a "pre-applied" service as fallback
+      ([[eliom/manual/dev/2#p3preapplied|see later]]).
+          
+
+
+          
+**Exercise:** Rewrite the example of Web site with
+        connection (<<span class="code"|session_data_example>>, with session data)
+        using a POST
+        coservice without parameter to make the disconnection link go back
+        to the main page of the site instead of a "disconnection" page.
+        It is better for ergonomics, but it would be even better to stay
+        on the same page~ ... How to do that with POST coservices?
+        A much better solution will be seen in the
+        [[eliom/manual/dev/2#p2actions|section
+        about actions and non-attached coservices]].
+      
+          
+
+          <<div class="encadre"|
+            ====URLs
+            
+            
+While designing a Web site, think carefully about the URLs you
+          want to use. URLs are the entry points of your site. Think that
+          they may be bookmarked. If you create a link, you want to go to
+          another URL, and you want a page to be generated. That page may be
+          the default page for the URL (the one you get when you go back
+          to a bookmarked page), or another page, that depends on the precise
+          link or form you used to go to that URL (link to a coservice,
+          or page depending on post data).
+          Sometimes, you want that clicking
+          a link or submitting a form does something without changing the URL.
+          You can do this using //non-attached coservices// (see below).
+          
+            
+      
+          >>
+          <<div class="encadre"|
+            ====Continuations
+            
+            
+Eliom is using the concept of //continuation//.
+        A continuation represents the future of a program (what to do after).
+        When a user clicks on a link or a form, he chooses the future of the
+        computation. When he uses the "back" button of the browser, he chooses
+        to go back to an old continuation. Continuations for Web programming
+        have been introduced by
+        [[http://www-spi.lip6.fr/%7Equeinnec/PDF/www.pdf| Christian Queinnec]],
+        and are a big step in
+        the understanding of Web interaction.
+            
+
+            
+        Some programming languages (Scheme...) allow to manipulate
+        continuations using //control operators// (like
+        <<span class="code"|call/cc>>). The style of programming used by Eliom
+        is closer to //Continuation Passing Style// (CPS), and has the
+        advantage that it does not need control operators, and fits
+        very well Web programming.
+        
+            
+
+            
+Coservices allow to create dynamically
+        new continuations that depend on previous interactions with users
+        ([[eliom/manual/dev/2#p2calc|See the <<span class="code"|calc>> example below]]).
+        Such a behaviour is difficult to simulate with traditional Web
+        programming.
+            
+
+            
+If you want continuations dedicated to a particular user
+        register them in the session table.
+            
+      
+          >>
+          ====Non-attached coservices
+          
+          
+       Non-attached coservices are coservices
+       that are not attached to an URL path.
+       When you point a link or a form towards such a service, the URL does not
+       change. The name of the service is sent as a special parameter.
+       
+          
+
+          
+As for attached coservices, there are GET and POST versions.
+          
+
+          
+       To create them, use
+       <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_coservice'"|<<span class="code"|Eliom_services.new_coservice'>>>> or
+       <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_post_coservice'"|<<span class="code"|Eliom_services.new_post_coservice'>>>>.
+       POST non-attached coservices are really useful if you want a
+       link or form to be present on every page but you don't want the
+       URL to change. Very often, non-attached POST coservices are
+       used with //actions// or //redirections//
+       ([[eliom/manual/dev/2#p2actions|see more details and an example in the section about
+          actions below]]).
+       
+          
+
+          
+Non-attached coservices are distinguished by there names
+         (if the optional <<span class="code"|name>> parameter is present), or a number
+         (automatically generated and every times different).
+          
+    
+        >>
+        ===@@id="p2coservicesinsessiontable"@@Coservices in session tables
+        
+        <<div id="p2calc" class="onecol"|
+          
+You can register coservices in session tables to create
+       dynamically new services dedicated to an user.
+       Here is an example of pages that add two integers.
+       Once the first number is sent by the user, a coservice
+       is created and registered in the session table. This service
+       takes the second number as parameter and displays the result of
+       the sum with the first one.
+       Try to duplicate the pages and/or to use the back button of your
+       navigator to verify that it has the expected behaviour.
+          
+
+          
+<<code language="ocaml" |
+(************************************************************)
+(*************** calc: sum of two integers ******************)
+(************************************************************)
+
+
+(* -------------------------------------------------------- *)
+(* We create two main services on the same URL,             *)
+(* one with a GET integer parameter:                        *)
+
+let calc =
+  new_service
+    ~path:["calc"]
+    ~get_params:unit
+    ()
+
+let calc_i =
+  new_service
+    ~path:["calc"]
+    ~get_params:(int "i")
+    ()
+
+
+(* -------------------------------------------------------- *)
+(* The handler for the service without parameter.           *)
+(* It displays a form where you can write an integer value: *)
+
+let calc_handler sp () () =
+  let create_form intname =
+    [p [pcdata "Write a number: ";
+        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:intname ();
+        br ();
+        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
+  in
+  let f = Eliom_predefmod.Xhtml.get_form calc_i sp create_form in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body [f]))
+
+
+(* -------------------------------------------------------- *)
+(* The handler for the service with parameter.              *)
+(* It creates dynamically and registers a new coservice     *)
+(* with one GET integer parameter.                          *)
+(* This new coservice depends on the first value (i)        *)
+(* entered by the user.                                     *)
+
+let calc_i_handler sp i () =
+  let create_form is =
+    (fun entier ->
+       [p [pcdata (is^" + ");
+           int_input ~input_type:`Text ~name:entier ();
+           br ();
+           string_input ~input_type:`Submit ~value:"Sum" ()]])
+  in
+  let is = string_of_int i in
+  let calc_result =
+    register_new_coservice_for_session
+      ~sp
+      ~fallback:calc
+      ~get_params:(int "j")
+      (fun sp j () ->
+        let js = string_of_int j in
+        let ijs = string_of_int (i+j) in
+        return
+          (html
+             (head (title (pcdata "")) [])
+             (body
+                [p [pcdata (is^" + "^js^" = "^ijs)]])))
+  in
+  let f = get_form calc_result sp (create_form is) in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body [f]))
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_predefmod.Xhtml.register calc   calc_handler;
+  Eliom_predefmod.Xhtml.register calc_i calc_i_handler
+
+
+          
+[[site:tuto/calc| See the result]].
+          
+    
+        >>
+
+
+
+
+
+        ===@@id="p2actions"@@Actions
+        
+        <<div class="onecol"|
+          
+Actions are services that do not generate any page.
+   Use them to perform an effect on the server (connection/disconnection
+   of a user, adding something in a shopping basket, delete a message in
+   a forum, etc.). The page you link to is redisplayed after the action.
+   For ex, when you have the same form (or link) on several pages
+   (for ex a connection form),
+   instead of making a version with post params of all these pages,
+   you can use only one action, registered on a non-attached coservice.
+   To register actions, just use the module <<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|<<span class="code"|Eliom_predefmod.Action>>>>
+   instead of <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span class="code"|Eliom_predefmod.Xhtml>>>> (or <<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|<<span class="code"|Eliom_duce.Xhtml>>>>, etc.).
+   For example
+     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister"|<<span class="code"|Eliom_predefmod.Action.register>>>>>>,
+     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister_new_service"|<<span class="code"|Eliom_predefmod.Action.register_new_service>>>>>>,
+     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_for_session"|<<span class="code"|Eliom_predefmod.Action.register_for_session>>>>>>.            \\
+      
+          
+
+          
+Here is one simple example. Suppose you wrote a function
+        <<span class="code"|remove>> to remove one piece of data from a database
+        (taking an identifier of the data).
+        If you want to put a link on your page to call this function
+        and redisplay the page, just create an action like this:
+      
+          
+
+          
+<<code language="ocaml"|
+let remove_action =
+  Eliom_services.register_new_post_coservice'
+    ~post_params:(Eliom_parameters.int "id")
+    (fun sp () id -> remove id ~>>= fun () -> Lwt.return [])
+>>
+
+          
+Then wherever you want to add a button to do that action
+         (on data <<span class="code"|id>>),
+      create a form like:
+          
+
+          
+<<code language="ocaml"|
+Eliom_predefmod.Xhtml.post_form remove_action sp
+  (fun id_name ->
+     Eliom_predefmod.Xhtml.int_input
+       ~input_type:`Hidden ~name:id_name ~value:id ();
+     Eliom_predefmod.Xhtml.string_input
+       ~input_type:`Submit ~value:("remove "^string_of_int id) ())
+
+>>
+
+          
+Here we rewrite the example <<span class="code"|session_data_example>>
+      using actions
+      and named non-attached coservices
+      (note the POST coservice for disconnection, much better than the
+      previous solution that was using another URL).
+          
+
+          
+
+(************************************************************)
+(************ Connection of users, version 3 ****************)
+(************************************************************)
+
+
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let connect_example3 =
+  Eliom_services.new_service
+    ~path:["action"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let connect_action =
+  Eliom_services.new_post_coservice'
+    ~name:"connect3"
+    ~post_params:(Eliom_parameters.string "login")
+    ()
+
+(* As the handler is very simple, we register it now: *)
+let disconnect_action =
+  Eliom_predefmod.Action.register_new_post_coservice'
+    ~name:"disconnect3"
+    ~post_params:Eliom_parameters.unit
+    (fun sp () () ->
+      Eliom_sessions.close_session  ~sp ())
+
+
+(* -------------------------------------------------------- *)
+(* login ang logout boxes:                                  *)
+
+let disconnect_box sp s =
+  Eliom_predefmod.Xhtml.post_form disconnect_action sp
+    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+let login_box sp =
+  Eliom_predefmod.Xhtml.post_form connect_action sp
+    (fun loginname ->
+      [p
+         (let l = [pcdata "login: ";
+                   Eliom_predefmod.Xhtml.string_input
+                     ~input_type:`Text ~name:loginname ()]
+         in l)
+     ])
+    ()
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "connect_example3" service (main page):    *)
+
+let connect_example3_handler sp () () =
+  let sessdat = Eliom_sessions.get_volatile_session_data  ~table:my_table ~sp () in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          (match sessdat with
+          | Eliom_sessions.Data name ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box sp "Close session"]
+          | Eliom_sessions.Data_session_expired
+          | Eliom_sessions.No_data -> [login_box sp]
+          )))
+
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler sp () login =
+  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
+  Eliom_sessions.set_volatile_session_data  ~table:my_table ~sp login;
+  return ()
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_predefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
+  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+
+
+          
+[[site:tuto/action| See these pages]].
+          
+
+
+          
+      Note that actions return <<span class="code"|()>>.
+      [[eliom/manual/dev/3#p3infofallbacks|See later for more advanced use]]
+     
+          
+
+
+
+          
+       That version of the site with connection solves the main problems of
+       [[eliom/manual/dev/2#p2sessiondata|<<span class="code"|sessdata>>]]:
+     
+          
+
+          
+*         Connection and disconnection stay on the same page,
+       
+*         If you want a connection/disconnection form on each page, no need
+         to create a version with POST parameters of each service.
+       
+                 
+          
+
+
+          
+       We'll see later
+      [[eliom/manual/dev/3#p3infofallbacks|how to display an error message]]
+       if the connection goes wrong, and
+      [[eliom/manual/dev/3#p3persistenceofsessions|how to have persistent sessions]]
+      (that stay opened even if the server is re-launched).
+     
+          
+
+
+
+    
+        >>
+
+        ===@@id="p2detailsonserviceregistration"@@Details on service registration
+        
+        <<div class="encadre sanstitre"|
+          
+*All services created during initialisation must be registered
+        in the public table during the initialisation phase of your module.
+        If not, the server will not start (with an error message in the logs).
+        Thus, there will always be a service to answer when somebody clicks on
+        a link or a form.
+        
+*Services
+         may be registered in the public table after initialisation with
+         <<span class="code"|register>> only if you add the <<span class="code"|~sp>>
+           parameter.              \\
+    If you use that for main services,
+    you will dynamically create new URLs!
+    This may be dangerous as they will disappear if you stop the server.
+    Be very careful to re-create these URLs when you relaunch the server,
+    otherwise, some external links or bookmarks will be broken!              \\
+    The use of that feature is discouraged for coservices
+    without timeout, as such coservices will be available only until the end
+    of the server process (and it is not possible to re-create them with the
+    same key).
+        
+*Do not register twice the same service in the public table,
+          and do not replace a service
+          by a directory (or vice versa). If this happens during the
+          initialisation phase, the server won't start.
+          If this happens after, it will be ignored (with a warning in the
+          logs).
+        
+*All services (not coservices) must be created in
+        a module loaded inside a <<span class="code"|<site>>> tag of the
+        config file (because they will be attached to a directory).
+        Not possible for modules loaded inside <<span class="code"|<extension>>>
+        or <<span class="code"|<library>>>.
+        
+*GET coservices (whithout POST parameters) can be registered
+        only with a main service without GET/POST parameters as fallback.
+        But it may be a
+      [[eliom/manual/dev/3#p3preapplied|//preapplied//]]
+        service (see below).
+        
+*Services with POST parameters (main service or coservice)
+        can be registered with a (main or co) service without POST
+        parameters as fallback.
+*The registration of (main) services must be completed before
+          the end of the loading of the module. It not possible to launch
+          a (Lwt) thread that will register a service later, as
+          registering a service needs access to config file
+          information (for example the directory of the site).
+          If you do this, the server will raise
+          <<ocsigendoc version="dev" file="Eliom_common.html" fragment="EXCEPTIONEliom_function_forbidden_outside_site_loading"|<<span class="code"|Eliom_common.Eliom_function_forbidden_outside_site_loading >>>>
+          most of the time,
+          but you may also get unexpected results (if the thread is executed
+          while another site is loaded).
+          If you use threads in the initialization phase of your module
+          (for example if you need information from a database),
+          use <<ocsigendoc version="dev" file="Lwt_unix.html" fragment="VALrun"|<<span class="code"|Lwt_unix.run>>>> to wait the end of the thread.
+        
+                  
+          
+    
+        >>
+      >>      
+

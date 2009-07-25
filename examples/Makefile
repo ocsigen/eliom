@@ -2,6 +2,7 @@ include ../Makefile.config
 
 FILES=$(wildcard *.ml)
 
+TUTOWIKI= tutoeliom1.wiki tutoeliom2.wiki tutoeliom3.wiki
 
 ifeq "$(OCAMLDUCE)" "YES"
 DUCEMODBYTE=exampleduce.cmo
@@ -28,7 +29,7 @@ PP = -syntax camlp4o -ppopt "../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(CMXS)
 
-byte: $(OBJS) $(DUCEMODBYTE) miniwiki.byte
+byte: $(OBJS) $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI)
 
 opt: $(OBJSOPT) $(DUCEMODOPT) miniwiki.opt
 
@@ -54,6 +55,16 @@ miniwiki.byte:
 
 miniwiki.opt:
 	$(MAKE) -C miniwiki opt
+
+tutoeliom1.wiki: tutoeliom.ml
+	cat tutoeliom.ml | sed '/%<||2>%/,$$ d' | /bin/sh ./tutomake.sh > tutoeliom1.wiki
+
+tutoeliom2.wiki: tutoeliom.ml
+	cat tutoeliom.ml | sed '/%<||3>%/,$$ d' | sed '1,/%<||2>%/d' | /bin/sh ./tutomake.sh > tutoeliom2.wiki
+
+tutoeliom3.wiki: tutoeliom.ml
+	cat tutoeliom.ml | sed '1,/%<||3>%/d' | /bin/sh ./tutomake.sh > tutoeliom3.wiki
+
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
