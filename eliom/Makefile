@@ -90,10 +90,10 @@ OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
 byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom_obrowser_client.cmo \
-      eliom.cma $(DUCEMODBYTE)
+      eliom.cma $(DUCEMODBYTE) pa_eliom_obrowser.cmo
 
 opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom_obrowser_client.cmo \
-     eliom.cmxa $(CMXS3)
+     eliom.cmxa $(CMXS3) pa_eliom_obrowser.cmo
 
 
 .SUFFIXES:
@@ -175,6 +175,11 @@ bugdbg:
 
 eliom_obrowser_client.cmo:
 	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser_client.ml
+
+pa_eliom_obrowser.cmo: pa_eliom_obrowser.ml
+	ocamlc -c -I +camlp4 -I +camlp4/Camlp4Printers \
+	  -I +camlp4/Camlp4Parsers -pp camlp4of pa_eliom_obrowser.ml
+
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<

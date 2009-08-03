@@ -1215,6 +1215,7 @@ let start_server () = try
 
       let rec f () =
         Lwt_chan.input_line pipe >>= fun s ->
+        Ocsigen_messages.warning ("Command received: "^s);
         (try
           let prefix, c =
             match Ocsigen_lib.split ~multisep:true ' ' s with
@@ -1227,7 +1228,7 @@ let start_server () = try
           in
           Ocsigen_extensions.get_command_function () ?prefix s c
         with Unknown_command -> 
-          Ocsigen_messages.warning ("Unknown command: " ^ s));
+          Ocsigen_messages.warning "Unknown command: ");
         f ()
       in ignore (f ());
 
