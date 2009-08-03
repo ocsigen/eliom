@@ -21,10 +21,6 @@
 
 (** A module to generate pages using OCamlduce *)
 
-(** For now, it does not seem to be easy to create a functor like
-    {!Eliom_predefmod.SubXhtml} for Eliom_duce. Use {!Xml} or
-    {!Xmllist} instead. *)
-
 open Xhtmltypes_duce
 
 module type XhtmlFormsSig = Eliom_mkforms.ELIOMFORMSIG with
