@@ -9,6 +9,7 @@ module ObroGram = Gram;;
  
 let obrofun = ObroGram.Entry.mk "O'Browser function";;
 let obrofun_eoi = ObroGram.Entry.mk "O'Browser function quotation";;
+let client_eoi = ObroGram.Entry.mk "O'Browser client code quotation";;
 
 let hash loc =
   let combine h v = h := !h + v (* ahem... *) in
@@ -95,8 +96,19 @@ let dump_obrofun args loc e =
   server_obrofun args loc
 ;;
 
+let dump_client loc e =
+  let _loc = loc in
+  let old = !client_str in
+  client_str := <:str_item< $old$ ;; $e$ >> ;
+  ClientDump.print_implem
+    ~output_file:(!client_file)
+    !client_str;
+  <:str_item<>>
+;;
+
+
 EXTEND ObroGram
-  GLOBAL: obrofun obrofun_eoi ;
+  GLOBAL: obrofun obrofun_eoi client_eoi ;
   obrofun: [
     "without_args"
       [ "(" ; ")" ; "->" ; e = CamlSyntax.expr -> dump_obrofun [(<:patt< () >>, <:ctyp< unit >>, _loc)] _loc e ]
@@ -110,14 +122,25 @@ EXTEND ObroGram
       [ -> [] ]
   ];
   obrofun_eoi: [
-    [ f = obrofun ; `EOI -> f ]
+    [ f = obrofun -> f ]
+  ];
+  client_eoi: [
+    [ phrase = CamlSyntax.str_items ; `EOI -> dump_client _loc phrase ]
   ];
  END;;
  
 let expand_obrofun_quot_expr loc _loc_name_opt quotation_contents =
   ObroGram.parse_string obrofun_eoi loc quotation_contents;;
 
+let print_client_code loc _loc_name_opt quotation_contents =
+  ObroGram.parse_string client_eoi loc quotation_contents;;
+
 Syntax.Quotation.add "obrofun" Syntax.Quotation.DynAst.expr_tag expand_obrofun_quot_expr;;
+
+Syntax.Quotation.add "client" Syntax.Quotation.DynAst.str_item_tag print_client_code;;
+
+
+
 
 Camlp4.Options.add "-client" (Arg.Set_string client_file) "set client code output file name" ;;
 Camlp4.Options.add "-prologue" (Arg.String set_prologue) "set client handwritten prologue module" ;;
