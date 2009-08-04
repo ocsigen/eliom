@@ -137,7 +137,7 @@ let print_client_code loc _loc_name_opt quotation_contents =
 
 Syntax.Quotation.add "obrofun" Syntax.Quotation.DynAst.expr_tag expand_obrofun_quot_expr;;
 
-Syntax.Quotation.add "client" Syntax.Quotation.DynAst.str_item_tag print_client_code;;
+Syntax.Quotation.add "obrowser" Syntax.Quotation.DynAst.str_item_tag print_client_code;;
 
 
 
