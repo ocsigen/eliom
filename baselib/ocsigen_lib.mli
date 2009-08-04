@@ -2,6 +2,12 @@ exception Input_is_too_large
 exception Ocsigen_Bad_Request
 exception Ocsigen_Request_too_long
 external id : 'a -> 'a = "%identity"
+
+type url_path = string list
+
+val string_of_url_path : encode:bool -> string list -> string
+
+
 val comp : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
 val list_remove_first_if_any : 'a -> 'a list -> 'a list
 val list_remove_first_if_any_q : 'a -> 'a list -> 'a list
@@ -28,7 +34,6 @@ val remove_internal_slash : string list -> string list
 val add_end_slash_if_missing : string list -> string list
 val change_empty_list : string list -> string list
 val remove_end_slash : string -> string
-val string_of_url_path : encode:bool -> string list -> string
 val string_first_diff : string -> string -> int -> int -> int
 val add_to_string : string -> string -> string -> string
 val concat_strings : string -> string -> string -> string

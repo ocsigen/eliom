@@ -40,8 +40,8 @@ val sync : ('a -> 'b -> 'c -> 'd) -> 'a -> 'b -> 'c -> 'd Lwt.t
     The strings are names and values.
  *)
 type cookie =
-  | Set of url_path option * float option * string * string * bool
-  | Unset of url_path option * string
+  | Set of Ocsigen_lib.url_path option * float option * string * string * bool
+  | Unset of Ocsigen_lib.url_path option * string
 
 (** Conversion fonction from Eliom cookies to server cookies.
     If [?oldtable] is present, cookies are added to this table
@@ -156,7 +156,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
 val new_service :
   ?sp: Eliom_sessions.server_params ->
   ?https:bool ->
-  path:url_path ->
+  path:Ocsigen_lib.url_path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
@@ -178,7 +178,7 @@ val new_service :
 
 val new_external_service :
   prefix: string ->
-  path:url_path ->
+  path:Ocsigen_lib.url_path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
@@ -480,8 +480,8 @@ val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
 val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('b, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type
 val get_att_kind_ : 'a a_s -> 'a
-val get_sub_path_ : 'a a_s -> url_path
-val get_full_path_ : 'a a_s -> url_path
+val get_sub_path_ : 'a a_s -> Ocsigen_lib.url_path
+val get_full_path_ : 'a a_s -> Ocsigen_lib.url_path
 val get_prefix_ : 'a a_s -> string
 val get_get_name_ : 'a a_s -> Eliom_common.att_key
 val get_post_name_ : 'a a_s -> Eliom_common.att_key
@@ -491,8 +491,8 @@ val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> float option
 val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> bool
-(* val reconstruct_absolute_url_path : url_path -> url_path -> url_path option -> string
-val reconstruct_relative_url_path : url_path -> url_path -> url_path option -> string
+(* val reconstruct_absolute_url_path : Ocsigen_lib.url_path -> Ocsigen_lib.url_path -> Ocsigen_lib.url_path option -> string
+val reconstruct_relative_url_path : Ocsigen_lib.url_path -> Ocsigen_lib.url_path -> Ocsigen_lib.url_path option -> string
 *)
 val escookiel_of_eccookiel : Eliom_common.cookie list -> cookie list
 val eccookiel_of_escookiel : cookie list -> Eliom_common.cookie list

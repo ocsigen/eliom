@@ -54,10 +54,6 @@ let badconfig fmt = Printf.ksprintf (fun s -> raise (Error_in_config_file s)) fm
 
 (*****************************************************************************)
 (** type of URL, without parameter *)
-type url_path = string list
-
-let string_of_url_path = Ocsigen_lib.string_of_url_path
-
 
 type file_info = {tmp_filename: string;
                   filesize: int64;

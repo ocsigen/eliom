@@ -109,8 +109,8 @@ let nl_is_persistent n = n.[0] = 'p'
     The strings are names and values.
  *)
 type cookie =
-  | Set of Ocsigen_extensions.url_path option * float option * string * string * bool
-  | Unset of Ocsigen_extensions.url_path option * string
+  | Set of Ocsigen_lib.url_path option * float option * string * string * bool
+  | Unset of Ocsigen_lib.url_path option * string
 
 
 
@@ -335,7 +335,7 @@ type server_params =
      sp_si: sess_info;
      sp_sitedata: sitedata (* data for the whole site *);
      sp_cookie_info: tables cookie_info;
-     sp_suffix: Ocsigen_extensions.url_path option (* suffix *);
+     sp_suffix: Ocsigen_lib.url_path option (* suffix *);
      sp_fullsessname: string option (* the name of the session
                                        to which belong the service
                                        that answered
@@ -385,7 +385,7 @@ and tables =
     bool ref (* true if naservice_table contains services with timeout *)
 
 and sitedata =
-  {site_dir: Ocsigen_extensions.url_path;
+  {site_dir: Ocsigen_lib.url_path;
    site_dir_string: string;
    mutable servtimeout: (string * float option) list;
    mutable datatimeout: (string * float option) list;
@@ -396,7 +396,7 @@ and sitedata =
    mutable remove_session_data: string -> unit;
    mutable not_bound_in_data_tables: string -> bool;
    mutable exn_handler: server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
-   mutable unregistered_services: Ocsigen_extensions.url_path list;
+   mutable unregistered_services: Ocsigen_lib.url_path list;
    mutable unregistered_na_services: na_key list;
    mutable max_volatile_data_sessions_per_group: int option;
    mutable max_service_sessions_per_group: int option;

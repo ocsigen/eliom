@@ -503,6 +503,7 @@ module MyUrl = struct
       s ;;
 end
 
+type url_path = string list
 
 let string_of_url_path ~encode l =
   if encode

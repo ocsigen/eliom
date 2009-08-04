@@ -653,7 +653,7 @@ let sendfile2 =
     ~path:["files";""]
     ~get_params:(suffix (all_suffix "filename"))
     (fun _ s () ->
-      return ("/var/www/ocsigen/"^(Ocsigen_extensions.string_of_url_path ~encode:false s)))
+      return ("/var/www/ocsigen/"^(Ocsigen_lib.string_of_url_path ~encode:false s)))
 
 let sendfileexception =
   register_new_service
@@ -682,7 +682,7 @@ let _ =
            (body
               [p [pcdata "The suffix of the url is ";
                   strong [pcdata (suf1^", "^(string_of_int ii)^", "^
-                                  (Ocsigen_extensions.string_of_url_path ~encode:false ee))]];
+                                  (Ocsigen_lib.string_of_url_path ~encode:false ee))]];
               p [a suffix2 sp [pcdata "link to myself"] ("a", (2, []))]])))
 
 let suffix3 =
@@ -707,7 +707,7 @@ let create_suffixform2 (suf1, (ii, ee)) =
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
       Write a string: $user_type_input
-      (Ocsigen_extensions.string_of_url_path ~encode:false)
+      (Ocsigen_lib.string_of_url_path ~encode:false)
       ~input_type:`Text ~name:ee ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 

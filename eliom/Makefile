@@ -16,6 +16,8 @@ FILES:= error_pages.ml \
 	eliom_obrowser.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
+OBROWSERFILES := lwt_obrowser.ml eliom_obrowser_client.ml pa_eliom_obrowser.ml
+
 
 ifeq "$(NATDYNLINK)" "YES"
 CMXS1=$(OBJSQLITE:.cma=.cmxs)
@@ -204,7 +206,7 @@ clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
 
 depend:
-	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
+	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) $(OBROWSERFILES) > .depend
 	sed -i.bak s%../extensions/ocsipersist.cmx%% .depend
 
 FORCE:

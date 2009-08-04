@@ -43,7 +43,7 @@ let sleep t =
   let t = int_of_float (t *. 1000.) in
   sleep_ms t
 
-let yield = sleep_ms 0
+let yield () = sleep_ms 0
 
 exception Timeout
 
@@ -59,4 +59,4 @@ let http_post url args = Lwt.return (AXOCom.http_post url args)
 
 (* à rev : utiliser versions non bloquantes ! *)
 let http_get_post url get_args post_args =
-  Lwt.return (http_get_post url get_args post_args)
+  Lwt.return (AXOCom.http_get_post url get_args post_args)

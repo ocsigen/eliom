@@ -428,7 +428,7 @@ val reconstruct_params :
   (string * string) list ->
   (string * Ocsigen_extensions.file_info) list -> 
   bool ->
-  url_path option -> 'a
+  Ocsigen_lib.url_path option -> 'a
 
 type anon_params_type = int
 

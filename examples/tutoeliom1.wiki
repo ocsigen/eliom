@@ -595,7 +595,7 @@ let isuffix =
            [p [pcdata "The suffix of the url is ";
                strong [pcdata (string_of_int suff)];
                pcdata " followed by ";
-               strong [pcdata (Ocsigen_extensions.string_of_url_path ~encode:false endsuff)];
+               strong [pcdata (Ocsigen_lib.string_of_url_path ~encode:false endsuff)];
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 >>

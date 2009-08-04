@@ -96,14 +96,14 @@ val get_remote_inet_addr : sp:server_params -> Unix.inet_addr
 (** returns the full path of the URL as a string. *)
 val get_current_full_path_string : sp:server_params -> string
 
-(** returns the full path of the URL using the type {!Ocsigen_extensions.url_path} *)
-val get_current_full_path : sp:server_params -> url_path
+(** returns the full path of the URL using the type {!Ocsigen_extensions.Ocsigen_lib.url_path} *)
+val get_current_full_path : sp:server_params -> Ocsigen_lib.url_path
 
 (** returns the full path of the URL as first sent by the browser (not changed by previous extensions like rewritemod) *)
 val get_original_full_path_string : sp:server_params -> string
 
 (** returns the full path of the URL as first sent by the browser (not changed by previous extensions like rewritemod) *)
-val get_original_full_path : sp:server_params -> url_path
+val get_original_full_path : sp:server_params -> Ocsigen_lib.url_path
 
 (** returns the sub path of the URL as a string.
     The sub-path is the full path without the path of the site (set in the
@@ -111,11 +111,11 @@ val get_original_full_path : sp:server_params -> url_path
  *)
 val get_current_sub_path_string : sp:server_params -> string
 
-(** returns the sub path of the URL using the type {!Ocsigen_extensions.url_path}.
+(** returns the sub path of the URL using the type {!Ocsigen_lib.url_path}.
     The sub-path is the full path without the path of the site (set in the
     configuration file).
  *)
-val get_current_sub_path : sp:server_params -> url_path
+val get_current_sub_path : sp:server_params -> Ocsigen_lib.url_path
 
 (** returns the hostname that has been sent by the user agent.
     For HTTP/1.0, the Host field is not mandatory in the request.
@@ -153,7 +153,7 @@ val get_server_port : sp:server_params -> int
 val get_ssl : sp:server_params -> bool
 
 (** returns the suffix of the current URL *)
-val get_suffix : sp:server_params -> url_path option
+val get_suffix : sp:server_params -> Ocsigen_lib.url_path option
 
 (** returns the cookies sent by the browser *)
 val get_cookies : sp:server_params -> string Ocsigen_http_frame.Cookievalues.t
@@ -586,7 +586,7 @@ val get_original_filename : file_info -> string
 val get_config : unit -> Simplexmlparser.xml list
 
 (** returns the root of the site. *)
-val get_site_dir : sp:server_params -> url_path
+val get_site_dir : sp:server_params -> Ocsigen_lib.url_path
 
 (** returns the default charset for this site *)
 val get_config_default_charset : sp:server_params -> string

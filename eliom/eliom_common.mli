@@ -100,8 +100,8 @@ val persistent_cookie_table_version : string
 val eliom_persistent_cookie_table : string
 
 type cookie =
-  | Set of Ocsigen_extensions.url_path option * float option * string * string * bool
-  | Unset of Ocsigen_extensions.url_path option * string
+  | Set of Ocsigen_lib.url_path option * float option * string * string * bool
+  | Unset of Ocsigen_lib.url_path option * string
 type sess_info = {
   si_other_get_params : (string * string) list;
   si_all_get_params : (string * string) list;
@@ -193,7 +193,7 @@ type server_params = {
   sp_si : sess_info;
   sp_sitedata : sitedata;
   sp_cookie_info : tables cookie_info;
-  sp_suffix : Ocsigen_extensions.url_path option;
+  sp_suffix : Ocsigen_lib.url_path option;
   sp_fullsessname : string option;
 }
 and page_table =
@@ -214,7 +214,7 @@ and dircontent = Vide | Table of direlt ref Ocsigen_lib.String_Table.t
 and direlt = Dir of dircontent ref | File of page_table ref
 and tables = dircontent ref * naservice_table ref * bool ref * bool ref
 and sitedata = {
-  site_dir : Ocsigen_extensions.url_path;
+  site_dir : Ocsigen_lib.url_path;
   site_dir_string : string;
   mutable servtimeout : (string * float option) list;
   mutable datatimeout : (string * float option) list;
@@ -225,7 +225,7 @@ and sitedata = {
   mutable remove_session_data : string -> unit;
   mutable not_bound_in_data_tables : string -> bool;
   mutable exn_handler : server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
-  mutable unregistered_services : Ocsigen_extensions.url_path list;
+  mutable unregistered_services : Ocsigen_lib.url_path list;
   mutable unregistered_na_services : na_key list;
   mutable max_volatile_data_sessions_per_group : int option;
   mutable max_service_sessions_per_group : int option;
@@ -235,7 +235,7 @@ val make_server_params :
   sitedata ->
   tables cookie_info ->
   Ocsigen_extensions.request ->
-  Ocsigen_extensions.url_path option -> 
+  Ocsigen_lib.url_path option -> 
   sess_info -> string option -> server_params
 val empty_page_table : unit -> 'a list
 val empty_dircontent : unit -> dircontent
@@ -276,9 +276,9 @@ val remove_from_all_persistent_tables : string -> unit Lwt.t
 val absolute_change_sitedata : sitedata -> unit
 val get_current_sitedata : unit -> sitedata
 val end_current_sitedata : unit -> unit
-val add_unregistered : sitedata -> Ocsigen_extensions.url_path -> unit
+val add_unregistered : sitedata -> Ocsigen_lib.url_path -> unit
 val add_unregistered_na : sitedata -> na_key -> unit
-val remove_unregistered : sitedata -> Ocsigen_extensions.url_path -> unit
+val remove_unregistered : sitedata -> Ocsigen_lib.url_path -> unit
 val remove_unregistered_na : sitedata -> na_key -> unit
 val verify_all_registered : sitedata -> unit
 val during_eliom_module_loading : unit -> bool

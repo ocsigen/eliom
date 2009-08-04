@@ -6,7 +6,7 @@ val find_page_table :
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_extensions.request ->
-  Ocsigen_extensions.url_path option ->
+  Ocsigen_lib.url_path option ->
   Eliom_common.page_table_key ->
   Eliom_common.sess_info -> Ocsigen_http_frame.result Lwt.t
 val insert_as_last_of_generation :

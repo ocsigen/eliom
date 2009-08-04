@@ -48,7 +48,10 @@ val with_timeout : float -> (unit -> 'a Lwt.t) -> 'a Lwt.t
       ]}
   *)
 
-val http_post : string -> (string * string) list -> string Lwt.t
+val http_post : string -> (string * string) list -> (int * string) Lwt.t
 
-val http_get : 
-  string -> (string * string) list -> (string * string) list -> string Lwt.t
+val http_get_post : 
+  string -> 
+  (string * string) list -> 
+  (string * string) list -> 
+  (int * string) Lwt.t

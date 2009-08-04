@@ -169,7 +169,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?https:bool ->
-      path:url_path ->
+      path:Ocsigen_lib.url_path ->
       get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
       ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
                         page Lwt.t) ->

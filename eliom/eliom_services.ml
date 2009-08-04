@@ -23,7 +23,6 @@
 
 open Lwt
 open Ocsigen_lib
-open Ocsigen_extensions
 open Eliom_sessions
 open Eliom_parameters
 open Lazy
@@ -34,8 +33,8 @@ open Lazy
     The strings are names and values.
  *)
 type cookie = Eliom_common.cookie =
-  | Set of url_path option * float option * string * string * bool
-  | Unset of url_path option * string
+  | Set of Ocsigen_lib.url_path option * float option * string * string * bool
+  | Unset of Ocsigen_lib.url_path option * string
 
 let cookie_table_of_eliom_cookies
     ?(oldtable= Ocsigen_http_frame.Cookies.empty) ~sp cl =
@@ -83,8 +82,8 @@ type registrable = [ `Registrable | `Unregistrable ]
 type +'a a_s =
     {prefix: string; (* name of the server and protocol,
                         for external links. Ex: http://ocsigen.org *)
-     subpath: url_path; (* name of the service without parameters *)
-     fullpath: url_path; (* full path of the service = site_dir@subpath *)
+     subpath: Ocsigen_lib.url_path; (* name of the service without parameters *)
+     fullpath: Ocsigen_lib.url_path; (* full path of the service = site_dir@subpath *)
      att_kind: 'a; (* < attached_service_kind *)
      get_name: Eliom_common.att_key;
      post_name: Eliom_common.att_key;
@@ -248,7 +247,7 @@ let https_static_dir_with_params ~sp ?keep_nl_params ~get_params () =
 let new_service_aux_aux
     ~https
     ~prefix
-    ~(path : url_path)
+    ~(path : Ocsigen_lib.url_path)
     ~site_dir
     ~kind
     ?(redirect_suffix = true)

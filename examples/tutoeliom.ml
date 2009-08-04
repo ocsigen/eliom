@@ -606,7 +606,7 @@ let isuffix =
            [p [pcdata "The suffix of the url is ";
                strong [pcdata (string_of_int suff)];
                pcdata " followed by ";
-               strong [pcdata (Ocsigen_extensions.string_of_url_path ~encode:false endsuff)];
+               strong [pcdata (Ocsigen_lib.string_of_url_path ~encode:false endsuff)];
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*wiki*
@@ -2871,7 +2871,7 @@ let sendfile2 =
   Files.register_new_service
     ~path:["files"]
     ~get_params:(suffix (all_suffix "filename"))
-    (fun _ s () -> return ("//path//"^(Ocsigen_extensions.string_of_url_path ~encode:false s)))
+    (fun _ s () -> return ("//path//"^(Ocsigen_lib.string_of_url_path ~encode:false s)))
 
 >%
 
@@ -4650,7 +4650,7 @@ let create_suffixform ((suff, endsuff),i) =
     <:xmllist< <p>Write the suffix:
       $int_input ~input_type:`Text ~name:suff ()$ <br/>
       Write a string: $user_type_input
-      (Ocsigen_extensions.string_of_url_path ~encode:false)
+      (Ocsigen_lib.string_of_url_path ~encode:false)
          ~input_type:`Text ~name:endsuff ()
          $ <br/>
       Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
