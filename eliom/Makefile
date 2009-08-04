@@ -89,10 +89,10 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom_obrowser_client.cmo \
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom_obrowser_client.cma \
       eliom.cma $(DUCEMODBYTE) pa_eliom_obrowser.cmo
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom_obrowser_client.cmo \
+opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom_obrowser_client.cma \
      eliom.cmxa $(CMXS3) pa_eliom_obrowser.cmo
 
 
@@ -175,6 +175,12 @@ bugdbg:
 
 eliom_obrowser_client.cmo:
 	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser_client.ml
+
+lwt_obrowser.cmo:
+	ocamlfind ocamlc -package obrowser,lwt.syntax -syntax camlp4o -c lwt_obrowser.ml
+
+eliom_obrowser_client.cma: lwt_obrowser.cmo eliom_obrowser_client.cmo
+	$(CAMLC) -a -o $@ $^
 
 pa_eliom_obrowser.cmo: pa_eliom_obrowser.ml
 	ocamlc -c -I +camlp4 -I +camlp4/Camlp4Printers \
