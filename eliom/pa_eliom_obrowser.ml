@@ -19,7 +19,7 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
       let fn = Loc.file_name loc in
 	for i = 0 to String.length fn - 1 do
 	  combine h (Char.code fn.[i] lsl (8 * (i mod 4)))
-	done ; !h land 0x7F_FF_FF_FF
+	done ; !h land 0x3F_FF_FF_FF
 
   let tup_args args =
     let rec tup_args = function
