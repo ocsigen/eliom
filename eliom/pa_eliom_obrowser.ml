@@ -49,8 +49,8 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
 	      | Some (a, l') ->
 		  let e = Ast.ExTup (l', a) in
 		  let _loc = loc in
-		  let s = Printf.sprintf "caml_run_from_table (0x%X,\\\"" (hash loc) in
-		    <:expr< $str:s$ ^ Eliom_obrowser.jsmarshal $e$ ^ "\\\")" >>
+		  let s = Printf.sprintf "caml_run_from_table (main_vm, 0x%X," (hash loc) in
+		    <:expr< $str:s$ ^ Eliom_obrowser.jsmarshal $e$ ^ ")" >>
 	    end
 	| (_, t, l) :: tl ->
 	    let na = mkarg () in
@@ -82,10 +82,10 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
     let old = !client_str in
     let p, t = tup_args args in
     let e = <:expr< fun ($p$ : $t$) -> $e$ >> in
-      client_str := <:str_item< $old$ ;; let _ = Eliom_obrowser_client.register_closure $int:id$ ($e$) ;; >> ;
-      ClientDump.print_implem
-	~output_file:(!client_file)
-	!client_str
+    client_str := <:str_item< $old$ ;; let _ = Eliom_obrowser_client.register_closure $int:id$ ($e$) ;; >> ;
+    ClientDump.print_implem
+      ~output_file:(!client_file)
+      !client_str
   let dump_obrofun args loc e =
     client_obrofun args loc e ;
     server_obrofun args loc
@@ -93,10 +93,10 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
   let dump_obroglo loc s =
     let _loc = loc in
     let old = !client_str in
-      client_str := <:str_item< $old$ ;; $s$ >> ;
-      ClientDump.print_implem
-	~output_file:(!client_file)
-	!client_str
+    client_str := <:str_item< $old$ ;; $s$ ;; >> ;
+    ClientDump.print_implem
+      ~output_file:(!client_file)
+      !client_str
   
   EXTEND Gram
 	GLOBAL: obrofun obrofun_eoi fun_def str_item;
