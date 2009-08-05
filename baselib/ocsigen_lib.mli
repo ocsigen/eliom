@@ -1,3 +1,4 @@
+exception Ocsigen_Internal_Error of string
 exception Input_is_too_large
 exception Ocsigen_Bad_Request
 exception Ocsigen_Request_too_long
@@ -118,3 +119,28 @@ sig
 end
 
 module String_Table : Map.S with type key = string
+
+
+(** The files sent in the request *)
+type file_info = {tmp_filename: string; (** Where the file is stored on the server*)
+                  filesize: int64; (** Size, in bytes *)
+                  raw_original_filename: string;
+                  (** Original file name, as given by the client. *)
+                  original_basename: string (** Original file name *) }
+(** Note that the files are cancelled once the request has been fulfilled *)
+
+(** Only IE is known to make [raw_original_filename] and
+    [original_basename] differ, as it sends the full original path
+    of uploaded files.  In all cases, [original_basename] is the
+    basename of the file. More precisely, it is the part of the
+    filename after the last [/] or [\ ], if any, or ["none"] if one of
+    these characters is the last one. You should probably never use
+    [raw_original_filename]. *)
+
+
+
+
+
+val mk_url_encoded_parameters : (string * string) list -> string
+
+val encode : ?plus:bool -> string -> string

@@ -9,10 +9,6 @@ type url_path = string list
 module Cookies : Map.S
   with type key = url_path
 
-(** This table is to store one cookie value for each cookie name. *)
-module Cookievalues : Map.S
-  with type key = string
-
 (** Type used for cookies to set.
     The float option is the timestamp for the expiration date.
     The string is the value.
@@ -23,7 +19,7 @@ type cookie =
   | OSet of float option * string * bool
   | OUnset
 
-type cookieset = cookie Cookievalues.t Cookies.t
+type cookieset = cookie Ocsigen_lib.String_Table.t Cookies.t
 
 (** [add_cookie c cookie_table] adds the cookie [c] to the table [cookie_table].
    If the cookie is already bound, the previous binding disappear. *)
@@ -34,9 +30,9 @@ val add_cookie :
    to [oldcookies]. If cookies are already bound in oldcookies,
    the previous binding disappear. *)
 val add_cookies :
-    cookie Cookievalues.t Cookies.t ->
-      cookie Cookievalues.t Cookies.t ->
-        cookie Cookievalues.t Cookies.t
+    cookie Ocsigen_lib.String_Table.t Cookies.t ->
+      cookie Ocsigen_lib.String_Table.t Cookies.t ->
+        cookie Ocsigen_lib.String_Table.t Cookies.t
 
 (** [compute_new_ri_cookies now path ri_cookies cookies_to_set]
    adds the cookies from [cookies_to_set]
@@ -47,8 +43,8 @@ val add_cookies :
 val compute_new_ri_cookies :
     float ->
       string list ->
-        string Cookievalues.t ->
-          cookie Cookievalues.t Cookies.t -> string Cookievalues.t
+        string Ocsigen_lib.String_Table.t ->
+          cookie Ocsigen_lib.String_Table.t Cookies.t -> string Ocsigen_lib.String_Table.t
 
 
 

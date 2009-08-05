@@ -103,10 +103,10 @@ let rec parse_cookies s =
     List.fold_left
       (fun beg a ->
         let (n, v) = sep '=' a in
-        Ocsigen_http_frame.Cookievalues.add n v beg)
-      Ocsigen_http_frame.Cookievalues.empty
+        Ocsigen_lib.String_Table.add n v beg)
+      Ocsigen_lib.String_Table.empty
       splitted
-  with _ -> Ocsigen_http_frame.Cookievalues.empty
+  with _ -> Ocsigen_lib.String_Table.empty
 (*VVV Actually the real syntax of cookies is more complex! *)
 (*
 http://www.w3.org/Protocols/rfc2109/rfc2109

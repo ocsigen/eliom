@@ -135,8 +135,8 @@ val bool :
    (to use for example with boolean checkboxes) *)
 
 val file :
-    string -> (file_info, [ `WithoutSuffix ],
-               [ `One of file_info ] param_name) params_type
+    string -> (Ocsigen_lib.file_info, [ `WithoutSuffix ],
+               [ `One of Ocsigen_lib.file_info ] param_name) params_type
 (** [file s] tells that the service takes a file as parameter, labeled [s]. *)
 
 val unit : (unit, [ `WithoutSuffix ], unit) params_type
@@ -426,7 +426,7 @@ val reconstruct_params :
   sp:Eliom_common.server_params ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   (string * string) list ->
-  (string * Ocsigen_extensions.file_info) list -> 
+  (string * Ocsigen_lib.file_info) list -> 
   bool ->
   Ocsigen_lib.url_path option -> 'a
 

@@ -187,7 +187,7 @@ endif
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_obrowser.cmo eliom/eliom_obrowser_client.cma eliom/eliom_obrowser_client.cmi eliom/lwt_obrowser.cmi eliom/eliom_obrowser.js
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_obrowser.cmo eliom/obrowser/_build/eliom_obrowser_client.cma eliom/obrowser/_build/eliom_obrowser_client.cmi eliom/obrowser/_build/lwt_obrowser.cmi eliom/obrowser/eliom_obrowser.js
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
@@ -279,8 +279,8 @@ files/META: files/META.in VERSION
 files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
-	-ln -sf ../eliom/eliom_obrowser_client.cma extensions
-	-ln -sf ../eliom/lwt_obrowser.cmo extensions
+	-ln -sf ../eliom/obrowser/_builde/eliom_obrowser_client.cma extensions
+	-ln -sf ../eliom/obrowser/_build/lwt_obrowser.cmo extensions
 	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cma extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cma extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cma extensions

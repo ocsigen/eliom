@@ -51,7 +51,7 @@ let execute
   let update_exp (service_cookies_info, data_cookies_info, pers_cookies_info) =
 
     (* Update service expiration date and value *)
-    Ocsigen_http_frame.Cookievalues.iter
+    Ocsigen_lib.String_Table.iter
 
       (fun name (oldvalue, newr) ->
         (* catch fun () -> *)
@@ -75,7 +75,7 @@ let execute
       !service_cookies_info;
 
     (* Update "in memory data" expiration date and value *)
-    Ocsigen_http_frame.Cookievalues.iter
+    Ocsigen_lib.String_Table.iter
 
       (fun name v ->
         if Lazy.lazy_is_val v (* Only sessions that have been used *)
@@ -103,7 +103,7 @@ let execute
 
     (* Update persistent expiration date, user timeout and value *)
     (* Lwt_util.iter *)
-    Ocsigen_http_frame.Cookievalues.fold
+    Ocsigen_lib.String_Table.fold
 
       (fun name v thr ->
         let thr2 =

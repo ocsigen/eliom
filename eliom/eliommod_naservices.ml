@@ -106,7 +106,7 @@ let make_naservice
 
   let rec find_aux sci =
     match
-      Ocsigen_http_frame.Cookievalues.fold
+      Ocsigen_lib.String_Table.fold
         (fun fullsessname (_, r) beg ->
           match beg with
           | Eliom_common.Found _ -> beg

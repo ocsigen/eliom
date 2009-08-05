@@ -83,7 +83,7 @@ let close_persistent_session ?(close_group = false) ?session_name
       let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
       let ((_, _, cookie_info), secure_ci) = sp.Eliom_common.sp_cookie_info in
       let cookie_info = compute_cookie_info secure secure_ci cookie_info in
-      Lazy.force (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
+      Lazy.force (Ocsigen_lib.String_Table.find fullsessname !cookie_info)
       >>= fun (_, ior) ->
       match !ior with
       | Eliom_common.SC c ->
@@ -147,7 +147,7 @@ let find_or_create_persistent_cookie ?session_group ?session_name ~secure ~sp ()
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   catch
     (fun () ->
-      Lazy.force (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
+      Lazy.force (Ocsigen_lib.String_Table.find fullsessname !cookie_info)
       >>= fun (old, ior) ->
       match !ior with
       | Eliom_common.SCData_session_expired
@@ -166,7 +166,7 @@ let find_or_create_persistent_cookie ?session_group ?session_name ~secure ~sp ()
             sp.Eliom_common.sp_sitedata
             fullsessgrp fullsessname >>= fun v ->
           cookie_info :=
-            Ocsigen_http_frame.Cookievalues.add
+            Ocsigen_lib.String_Table.add
               fullsessname
               (Lazy.lazy_from_val (return (None, ref (Eliom_common.SC v))))
               !cookie_info;
@@ -181,7 +181,7 @@ let find_persistent_cookie_only ?session_name ~secure ~sp () =
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
   let ((_, _, cookie_info), secure_ci) = sp.Eliom_common.sp_cookie_info in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
-  Lazy.force (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
+  Lazy.force (Ocsigen_lib.String_Table.find fullsessname !cookie_info)
   >>= fun (_, ior) ->
   match !ior with
   | Eliom_common.SCNo_data -> raise Not_found

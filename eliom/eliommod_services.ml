@@ -324,7 +324,7 @@ let get_page
     =
 
   let find_aux e sci =
-    Ocsigen_http_frame.Cookievalues.fold
+    Ocsigen_lib.String_Table.fold
       (fun fullsessname (_, r) beg ->
         catch
           (fun () -> beg)

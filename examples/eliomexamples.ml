@@ -554,7 +554,7 @@ let _ = Cookies.register cookies
       ((html
         (head (title (pcdata "")) [])
         (body [p
-                 (Ocsigen_http_frame.Cookievalues.fold
+                 (Ocsigen_lib.String_Table.fold
                     (fun n v l ->
                       (pcdata (n^"="^v))::
                       (br ())::l
@@ -594,7 +594,7 @@ let _ = Cookies.register cookies
                               (string_of_int (Random.int 100)),
                               true);
         ]
-       in if Ocsigen_http_frame.Cookievalues.mem (cookiename^"1") (get_cookies sp)
+       in if Ocsigen_lib.String_Table.mem (cookiename^"1") (get_cookies sp)
        then
          (Eliom_services.Unset (None, (cookiename^"1")))::
          (Eliom_services.Unset (None, (cookiename^"2")))::cookies

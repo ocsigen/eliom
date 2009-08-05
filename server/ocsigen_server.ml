@@ -244,7 +244,7 @@ let get_request_infos
 
        let cookies =
          lazy (match (Lazy.force cookies_string) with
-         | None -> Ocsigen_http_frame.Cookievalues.empty
+         | None -> Ocsigen_lib.String_Table.empty
          | Some s -> parse_cookies s)
        in
 

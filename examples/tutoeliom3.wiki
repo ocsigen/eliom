@@ -321,7 +321,7 @@ let _ = Cookies.register cookies
          (head (title (pcdata "")) [])
          (body [p [pcdata (try
                              "cookie value: "^
-                             (Ocsigen_http_frame.Cookievalues.find
+                             (Ocsigen_lib.String_Table.find
                                 cookiename (Eliom_sessions.get_cookies sp))
                            with _ -> "<cookie not set>");
                    br ();

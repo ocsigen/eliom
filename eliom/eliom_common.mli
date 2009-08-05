@@ -106,13 +106,13 @@ type sess_info = {
   si_other_get_params : (string * string) list;
   si_all_get_params : (string * string) list;
   si_all_post_params : (string * string) list;
-  si_service_session_cookies : string Ocsigen_http_frame.Cookievalues.t;
-  si_data_session_cookies : string Ocsigen_http_frame.Cookievalues.t;
-  si_persistent_session_cookies : string Ocsigen_http_frame.Cookievalues.t;
+  si_service_session_cookies : string Ocsigen_lib.String_Table.t;
+  si_data_session_cookies : string Ocsigen_lib.String_Table.t;
+  si_persistent_session_cookies : string Ocsigen_lib.String_Table.t;
   si_secure_cookie_info:
-    (string Ocsigen_http_frame.Cookievalues.t *
-       string Ocsigen_http_frame.Cookievalues.t *
-       string Ocsigen_http_frame.Cookievalues.t) option;
+    (string Ocsigen_lib.String_Table.t *
+       string Ocsigen_lib.String_Table.t *
+       string Ocsigen_lib.String_Table.t) option;
   si_nonatt_info : na_key;
   si_state_info: (att_key * att_key);
   si_previous_extension_error : int;
@@ -160,13 +160,13 @@ type one_persistent_cookie_info = {
 
 type 'a cookie_info1 =
     (string option * 'a one_service_cookie_info session_cookie ref)
-    Ocsigen_http_frame.Cookievalues.t ref *
+    Ocsigen_lib.String_Table.t ref *
     (string option * one_data_cookie_info session_cookie ref) Lazy.t
-    Ocsigen_http_frame.Cookievalues.t ref *
+    Ocsigen_lib.String_Table.t ref *
     ((string * timeout * float option *
       Eliommod_sessiongroups.perssessgrp option)
      option * one_persistent_cookie_info session_cookie ref)
-    Lwt.t Lazy.t Ocsigen_http_frame.Cookievalues.t ref
+    Lwt.t Lazy.t Ocsigen_lib.String_Table.t ref
 
 type 'a cookie_info =
     'a cookie_info1 (* unsecure *) * 
@@ -249,7 +249,7 @@ val new_service_session_tables :
 val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val getcookies :
-  string -> 'a Ocsigen_http_frame.Cookievalues.t -> 'a Ocsigen_http_frame.Cookievalues.t
+  string -> 'a Ocsigen_lib.String_Table.t -> 'a Ocsigen_lib.String_Table.t
 val get_session_info :
   Ocsigen_extensions.request ->
   int -> (Ocsigen_extensions.request * sess_info) Lwt.t

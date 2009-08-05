@@ -2,7 +2,8 @@ include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= error_pages.ml \
-	eliommod_sessiongroups.ml eliom_common.ml eliommod_cookies.ml \
+	eliommod_sessiongroups.ml \
+	eliom_common_obrowser.ml eliom_common.ml eliommod_cookies.ml \
 	eliommod_sersess.ml eliommod_datasess.ml eliommod_persess.ml \
 	eliommod_gc.ml \
 	eliommod_extensions.ml eliommod_services.ml eliommod_naservices.ml \
@@ -10,14 +11,12 @@ FILES:= error_pages.ml \
 	eliommod_timeouts.ml \
 	eliommod_pagegen.ml \
 	eliommod.ml eliom_sessions.ml eliom_extensions.ml\
-        eliom_parameters.ml eliom_services.ml \
+        eliom_parameters_obrowser.ml eliom_parameters.ml \
+	eliom_services_obrowser.ml eliom_services.ml \
         eliom_mkforms.ml eliom_mkreg.ml eliom_predefmod.ml \
         eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
 	eliom_obrowser.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
-
-OBROWSERFILES := lwt_obrowser.ml eliom_obrowser_client.ml pa_eliom_obrowser.ml
-
 
 ifeq "$(NATDYNLINK)" "YES"
 CMXS1=$(OBJSQLITE:.cma=.cmxs)
@@ -91,17 +90,18 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom_obrowser_client.cma \
-      eliom.cma $(DUCEMODBYTE) pa_eliom_obrowser.cmo
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom.cma $(DUCEMODBYTE) obrowser pa_eliom_obrowser.cmo
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom_obrowser_client.cma \
-     eliom.cmxa $(CMXS3) pa_eliom_obrowser.cmo
+opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom.cmxa $(CMXS3) pa_eliom_obrowser.cmo
 
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-.PHONY: doc depend
+.PHONY: doc depend obrowser
+
+obrowser:
+	make -C obrowser all
 
 eliom_sessions.cmx: eliom_sessions.ml
 #	-rm ../extensions/ocsipersist.cmx
@@ -171,22 +171,13 @@ ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 	$(CAMLOPT) -a -shared -linkall -o ocsigenrss.cmxa $^
 
-# There is a bug with ocamlduce when -g is supplied
-bugdbg:
-	$(MAKE) DEBUG="NO" eliom_duce.cmo
-
-eliom_obrowser_client.cmo:
-	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser_client.ml
-
-lwt_obrowser.cmo:
-	ocamlfind ocamlc -package obrowser,lwt.syntax -syntax camlp4o -c lwt_obrowser.ml
-
-eliom_obrowser_client.cma: lwt_obrowser.cmo eliom_obrowser_client.cmo
-	$(CAMLC) -a -o $@ $^
-
 pa_eliom_obrowser.cmo: pa_eliom_obrowser.ml
 	ocamlc -c -I +camlp4 -I +camlp4/Camlp4Printers \
 	  -I +camlp4/Camlp4Parsers -pp camlp4of pa_eliom_obrowser.ml
+
+# There is a bug with ocamlduce when -g is supplied
+bugdbg:
+	$(MAKE) DEBUG="NO" eliom_duce.cmo
 
 
 .ml.cmo:
@@ -198,12 +189,14 @@ pa_eliom_obrowser.cmo: pa_eliom_obrowser.ml
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
 
+
 #doc:
 #	$(CAMLDOC) -d doc -html eliom.mli ocsigen.mli ocsigen_extensions.mli
 
 .PHONY: clean
-clean:
+clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
+	make -C obrowser clean
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) $(OBROWSERFILES) > .depend

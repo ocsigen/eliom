@@ -156,7 +156,7 @@ val get_ssl : sp:server_params -> bool
 val get_suffix : sp:server_params -> Ocsigen_lib.url_path option
 
 (** returns the cookies sent by the browser *)
-val get_cookies : sp:server_params -> string Ocsigen_http_frame.Cookievalues.t
+val get_cookies : sp:server_params -> string Ocsigen_lib.String_Table.t
 
 
 
@@ -558,13 +558,13 @@ val get_previous_extension_error_code : sp:server_params -> int
  *)
 
 (** returns the filename used by Ocsigen for the uploaded file. *)
-val get_tmp_filename : file_info -> string
+val get_tmp_filename : Ocsigen_lib.file_info -> string
 
 (** returns the size of the file. *)
-val get_filesize : file_info -> int64
+val get_filesize : Ocsigen_lib.file_info -> int64
 
 (** returns the name the file had on the client when it has been sent. *)
-val get_original_filename : file_info -> string
+val get_original_filename : Ocsigen_lib.file_info -> string
 
 
 
@@ -1172,12 +1172,12 @@ val get_persistent_cookie_exp_date : ?session_name:string ->
 (** returns the values of the Eliom's cookies for persistent sessions
    sent by the browser. *)
 val get_persistent_cookies :
-  sp:server_params -> string Ocsigen_http_frame.Cookievalues.t
+  sp:server_params -> string Ocsigen_lib.String_Table.t
 
 (** returns the values of Eliom's cookies for non persistent sessions
    sent by the browser. *)
 val get_data_cookies :
-    sp:server_params -> string Ocsigen_http_frame.Cookievalues.t
+    sp:server_params -> string Ocsigen_lib.String_Table.t
 
 val find_sitedata : string -> server_params option -> Eliom_common.sitedata
 

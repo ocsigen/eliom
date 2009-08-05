@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliommod_sessions.ml
+ * Module eliom_common.ml
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -19,24 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Session management                                                     *)
-
-(********)
-
-type att_key =
-  | Att_no
-  | Att_named of string (* named *)
-  | Att_anon of string (* anonymous *)
-
-type na_key =
-  | Na_no
-  | Na_void_keep (* void coservice that keeps GET na parameters *)
-  | Na_void_dontkeep (* void coservice that does not keep GET na parameters *)
-  | Na_get_ of string (* named *)
-  | Na_post_ of string (* named *)
-  | Na_get' of string (* anonymous *)
-  | Na_post' of string (* anonymous *)
-
+include Eliom_common_obrowser
 
 exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
 exception Eliom_Session_expired
@@ -52,36 +35,13 @@ exception Eliom_error_while_loading_site of string
 exception Eliom_404
 exception Eliom_Suffix_redirection of string
 
-let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
-(** The coservice does not exist any more *)
-
-let eliom_service_session_expired : (string list) Polytables.key = 
-  Polytables.make_key ()
-(** If present in request data,  means that
-    the service session cookies does not exist any more.
-    The string lists are the list of names of expired sessions
-*)
-
 
 (*****************************************************************************)
-let defaultpagename = "./"
-(* should be "" but this does not work with firefox.
-   "index" works but one page may have two different URLs *)
-
-let eliom_suffix_name = "__eliom_suffix"
-let eliom_suffix_internal_name = "__(suffix service)__"
-let eliom_nosuffix_page = "__eliom_suffix__"
-let naservice_num = "__eliom_na__num"
-let naservice_name = "__eliom_na__name"
-let get_state_param_name = "__eliom__"
-let post_state_param_name = "__eliom_p__"
-let get_numstate_param_name = "__eliom_n__"
-let post_numstate_param_name = "__eliom_np__"
-let co_param_prefix = "__co_eliom_"
-let na_co_param_prefix = "__na_eliom_"
-let nl_param_prefix = "__nl_"
-let pnl_param_prefix = nl_param_prefix^"p_"
-let npnl_param_prefix = nl_param_prefix^"n_"
+(*VVV Do not forget to change the version number
+  when the internal format change!!! *)
+let persistent_cookie_table_version = "_v2" (* v2 introduces session groups *)
+let eliom_persistent_cookie_table =
+  "eliom_persist_cookies"^persistent_cookie_table_version
 
 let datacookiename = "eliomdatasession|"
 let servicecookiename = "eliomservicesession|"
@@ -94,14 +54,6 @@ let sservicecookiename = "Seliomservicesession|"
 let spersistentcookiename = "Seliompersistentsession|"
 
 
-(*VVV Do not forget to change the version number
-  when the internal format change!!! *)
-let persistent_cookie_table_version = "_v2" (* v2 introduces session groups *)
-let eliom_persistent_cookie_table =
-  "eliom_persist_cookies"^persistent_cookie_table_version
-
-let nl_is_persistent n = n.[0] = 'p'
-
 (*****************************************************************************)
 
 (** Type used for cookies to set.
@@ -112,44 +64,6 @@ type cookie =
   | Set of Ocsigen_lib.url_path option * float option * string * string * bool
   | Unset of Ocsigen_lib.url_path option * string
 
-
-
-type sess_info =
-    {si_other_get_params: (string * string) list;
-     si_all_get_params: (string * string) list;
-     si_all_post_params: (string * string) list;
-
-     si_service_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
-     (* the session service cookies sent by the request *)
-     (* the key is the cookie name (or site dir) *)
-
-     si_data_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
-     (* the session data cookies sent by the request *)
-     (* the key is the cookie name (or site dir) *)
-
-     si_persistent_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
-     (* the persistent session cookies sent by the request *)
-     (* the key is the cookie name (or site dir) *)
-
-     si_secure_cookie_info:
-       (string Ocsigen_http_frame.Cookievalues.t *
-          string Ocsigen_http_frame.Cookievalues.t *
-          string Ocsigen_http_frame.Cookievalues.t) option;
-     (* the same, but for secure cookies, if https *)
-
-     si_nonatt_info: na_key;
-     si_state_info: (att_key * att_key);
-     si_previous_extension_error: int;
-     (* HTTP error code sent by previous extension (default: 404) *)
-
-     si_na_get_params: (string * string) list Lazy.t;
-     si_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t;
-     si_nl_post_params: (string * string) list Ocsigen_lib.String_Table.t;
-     si_persistent_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t Lazy.t;
-
-     si_all_get_but_na_nl: (string * string) list Lazy.t;
-     si_all_get_but_nl: (string * string) list;
-   }
 
 (* The table of tables for each session. Keys are cookies *)
 module SessionCookies = Hashtbl.Make(struct
@@ -234,7 +148,7 @@ type 'a cookie_info1 =
     )
       (* This one is not lazy because we must check all service sessions
          at each request to find the services *)
-      Ocsigen_http_frame.Cookievalues.t ref (* The key is the full session name *) *
+      Ocsigen_lib.String_Table.t ref (* The key is the full session name *) *
 
     (* in memory data sessions: *)
       (string option            (* value sent by the browser *)
@@ -251,7 +165,7 @@ type 'a cookie_info1 =
       (* Lazy because we do not want to ask the browser to unset the cookie
          if the cookie has not been used, otherwise it is impossible to
          write a message "Your session has expired" *)
-      Ocsigen_http_frame.Cookievalues.t ref (* The key is the full session name *) *
+      Ocsigen_lib.String_Table.t ref (* The key is the full session name *) *
 
       (* persistent sessions: *)
       ((string                  (* value sent by the browser *) *
@@ -271,7 +185,7 @@ type 'a cookie_info1 =
             For both of them, ask the browser to remove the cookie.
           *)
       ) Lwt.t Lazy.t
-      Ocsigen_http_frame.Cookievalues.t ref
+      Ocsigen_lib.String_Table.t ref
 
 
 type 'a cookie_info =
@@ -480,18 +394,18 @@ let split_nl_prefix_param =
 let getcookies cookiename cookies =
   let length = String.length cookiename in
   let last = length - 1 in
-  Ocsigen_http_frame.Cookievalues.fold
+  Ocsigen_lib.String_Table.fold
     (fun name value beg ->
       if Ocsigen_lib.string_first_diff cookiename name 0 last = length
       then
-        Ocsigen_http_frame.Cookievalues.add
+        Ocsigen_lib.String_Table.add
           (String.sub name length ((String.length name) - length))
           value
           beg
       else beg
     )
     cookies
-    Ocsigen_http_frame.Cookievalues.empty
+    Ocsigen_lib.String_Table.empty
 
 (* Remove all parameters whose name starts with pref *)
 let remove_prefixed_param pref l =

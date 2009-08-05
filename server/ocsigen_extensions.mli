@@ -30,8 +30,6 @@ open Lwt
 open Ocsigen_lib
 
 exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
-exception Ocsigen_Internal_Error of string
-
 
 (** Xml tag not recognized by an extension (usually not a real error) *)
 exception Bad_config_tag_for_extension of string
@@ -115,22 +113,6 @@ and follow_symlink =
 (*****************************************************)
 
 
-(** The files sent in the request *)
-type file_info = {tmp_filename: string; (** Where the file is stored on the server*)
-                  filesize: int64; (** Size, in bytes *)
-                  raw_original_filename: string;
-                  (** Original file name, as given by the client. *)
-                  original_basename: string (** Original file name *) }
-(** Note that the files are cancelled once the request has been fulfilled *)
-
-(** Only IE is known to make [raw_original_filename] and
-    [original_basename] differ, as it sends the full original path
-    of uploaded files.  In all cases, [original_basename] is the
-    basename of the file. More precisely, it is the part of the
-    filename after the last [/] or [\ ], if any, or ["none"] if one of
-    these characters is the last one. You should probably never use
-    [raw_original_filename]. *)
-
 type client
 (** A value of this type represents the client who did the request. *)
 
@@ -169,7 +151,7 @@ type request_info =
      ri_server_port: int;      (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
      ri_cookies_string: string option Lazy.t; (** Cookies sent by the browser *)
-     ri_cookies: string Ocsigen_http_frame.Cookievalues.t Lazy.t;  (** Cookies sent by the browser *)
+     ri_cookies: string Ocsigen_lib.String_Table.t Lazy.t;  (** Cookies sent by the browser *)
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
      ri_ifunmodifiedsince: float option;   (** if-unmodified-since field *)
      ri_ifnonematch: string list option;   (** if-none-match field ( * and weak entity tags not implemented) *)

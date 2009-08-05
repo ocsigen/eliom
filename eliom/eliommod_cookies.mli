@@ -3,14 +3,14 @@ val make_new_cookie_value : unit -> string
 val get_cookie_info :
   float ->
   Eliom_common.sitedata ->
-  Eliom_common.SessionCookies.key Ocsigen_http_frame.Cookievalues.t ->
-  Eliom_common.SessionCookies.key Ocsigen_http_frame.Cookievalues.t ->
-  string Ocsigen_http_frame.Cookievalues.t ->
-  (Eliom_common.SessionCookies.key Ocsigen_http_frame.Cookievalues.t *
-     Eliom_common.SessionCookies.key Ocsigen_http_frame.Cookievalues.t *
-     string Ocsigen_http_frame.Cookievalues.t) option ->
+  Eliom_common.SessionCookies.key Ocsigen_lib.String_Table.t ->
+  Eliom_common.SessionCookies.key Ocsigen_lib.String_Table.t ->
+  string Ocsigen_lib.String_Table.t ->
+  (Eliom_common.SessionCookies.key Ocsigen_lib.String_Table.t *
+     Eliom_common.SessionCookies.key Ocsigen_lib.String_Table.t *
+     string Ocsigen_lib.String_Table.t) option ->
   Eliom_common.tables Eliom_common.cookie_info *
-  Ocsigen_http_frame.Cookievalues.key list
+  Ocsigen_lib.String_Table.key list
 
 val new_service_cookie_table :
   unit -> Eliom_common.tables Eliom_common.servicecookiestable
@@ -29,11 +29,11 @@ val add_cookie_list_to_send :
 val compute_new_ri_cookies' :
   float ->
   string list ->
-  string Ocsigen_http_frame.Cookievalues.t ->
-  Eliom_common.cookie list -> string Ocsigen_http_frame.Cookievalues.t
+  string Ocsigen_lib.String_Table.t ->
+  Eliom_common.cookie list -> string Ocsigen_lib.String_Table.t
 val compute_new_ri_cookies :
   float ->
   string list ->
-  string Ocsigen_http_frame.Cookievalues.t ->
+  string Ocsigen_lib.String_Table.t ->
   Eliom_common.tables Eliom_common.cookie_info ->
-  Eliom_common.cookie list -> string Ocsigen_http_frame.Cookievalues.t Lwt.t
+  Eliom_common.cookie list -> string Ocsigen_lib.String_Table.t Lwt.t

@@ -22,7 +22,6 @@
 
 open Lwt
 open Ocsigen_lib
-open Ocsigen_extensions
 open Eliom_parameters
 open Eliom_services
 open Eliom_sessions
@@ -33,12 +32,12 @@ open Eliom_sessions
 let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
-  | [a] -> Netencoding.Url.encode ~plus:false a
+  | [a] -> Ocsigen_lib.encode ~plus:false a
   | a::b::l when b = Eliom_common.eliom_suffix_internal_name -> 
       string_of_url_path' (a::l)
   | a::l when a = Eliom_common.eliom_suffix_internal_name ->
       string_of_url_path' l
-  | a::l -> (Netencoding.Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
+  | a::l -> (Ocsigen_lib.encode ~plus:false a)^"/"^(string_of_url_path' l)
 
 let rec string_of_url_path_suff u = function
   | None -> string_of_url_path' u
@@ -514,7 +513,7 @@ module type ELIOMFORMSIG =
 
     val file_input :
         ?a:input_attrib_t ->
-          name:[< file_info setoneradio ] param_name ->
+          name:[< Ocsigen_lib.file_info setoneradio ] param_name ->
             unit -> input_elt
 (** Creates an [<input>] tag for sending a file *)
 
@@ -967,21 +966,21 @@ let make_string_uri_
                 add_to_string
                   (add_to_string uri "?" params_string)
                   "#"
-                  (Netencoding.Url.encode fragment)
+                  (Ocsigen_lib.encode fragment)
             | Eliom_common.Att_anon s ->
                 add_to_string
                   (add_to_string
                      (uri^"?"^Eliom_common.get_numstate_param_name^"="^s)
                      "&" params_string)
                   "#"
-                  (Netencoding.Url.encode fragment)
+                  (Ocsigen_lib.encode fragment)
             | Eliom_common.Att_named s ->
                 add_to_string
                   (add_to_string
                      (uri^"?"^Eliom_common.get_state_param_name^"="^s)
                      "&" params_string)
                   "#"
-                  (Netencoding.Url.encode fragment)
+                  (Ocsigen_lib.encode fragment)
         end
     | `Nonattached naser ->
         let na_name = get_na_name_ naser in
@@ -1274,7 +1273,7 @@ module MakeForms = functor
                         (get_full_path_ attser) suffix
             in
             let urlname =
-              add_to_string urlname "#" (Netencoding.Url.encode fragment)
+              add_to_string urlname "#" (Ocsigen_lib.encode fragment)
             in
             let state_param =
               (match get_get_name_ attser with
@@ -1492,7 +1491,7 @@ module MakeForms = functor
                      (get_original_full_path sp) (get_full_path_ attser) suff
             in
             let urlname =
-              add_to_string urlname "#" (Netencoding.Url.encode fragment)
+              add_to_string urlname "#" (Ocsigen_lib.encode fragment)
             in
             let state_param =
               (match get_post_name_ attser with

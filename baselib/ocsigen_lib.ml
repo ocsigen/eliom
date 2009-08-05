@@ -17,12 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+include Ocsigen_lib_obrowser
+
 exception Input_is_too_large
 exception Ocsigen_Bad_Request
 exception Ocsigen_Request_too_long
-
-external id : 'a -> 'a = "%identity"
-let (>>=) = Lwt.bind
 
 let comp f g x = f (g x)
 
@@ -189,15 +188,6 @@ let rec string_first_diff s1 s2 n last =
 
 (*****************************************************************************)
 
-let add_to_string s1 sep = function
-  | "" -> s1
-  | s2 -> s1^sep^s2
-
-let concat_strings s1 sep s2 = match s1, s2 with
-| _, "" -> s1
-| "", _ -> s2
-| _ -> s1^sep^s2
-
 (* Cut a string to the next separator *)
 let basic_sep char s =
   try
@@ -275,10 +265,6 @@ let (string_of_exn, register_exn_printer) =
 
 
 (* Unix.inet_addr is abstract and nothing to convert it :-( *)
-
-type ip_address =
-  | IPv4 of int32
-  | IPv6 of int64 * int64
 
 exception Invalid_ip_address of string
 
@@ -503,7 +489,9 @@ module MyUrl = struct
       s ;;
 end
 
-type url_path = string list
+let encode = MyUrl.encode
+
+let mk_url_encoded_parameters = Netencoding.Url.mk_url_encoded_parameters
 
 let string_of_url_path ~encode l =
   if encode
@@ -595,20 +583,6 @@ let parse_url =
 
     (https, host, port, url, url2, path, params, get_params)
 
-
-(************************************************************************)
-(* absolute urls *)
-
-let make_absolute_url ~https ~host ~port uri =
-  (if https
-   then "https://"
-   else "http://"
-  )^
-    host^
-    (if (port = 80 && not https) || (https && port = 443)
-     then ""
-     else ":"^string_of_int port)^
-    uri
 
 
 (************************************************************************)
@@ -726,7 +700,3 @@ end : sig
   val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b t -> 'a
 end)
 
-module String_Table = Map.Make(struct
-  type t = string
-  let compare = compare
-end)

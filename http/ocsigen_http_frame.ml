@@ -33,22 +33,19 @@ type url_path = string list
 module Cookies =
   Map.Make(struct type t = url_path let compare = compare end)
 
-module Cookievalues =
-  Map.Make(struct type t = string let compare = compare end)
-
 type cookie =
   | OSet of float option * string * bool
   | OUnset
 
-type cookieset = cookie Cookievalues.t Cookies.t
+type cookieset = cookie Ocsigen_lib.String_Table.t Cookies.t
 
 let add_cookie path n v t =
   let ct =
     try Cookies.find path t
-    with Not_found -> Cookievalues.empty
+    with Not_found -> Ocsigen_lib.String_Table.empty
   in
   (* We replace the old value if it exists *)
-  Cookies.add path (Cookievalues.add n v ct) t
+  Cookies.add path (Ocsigen_lib.String_Table.add n v ct) t
 
 (* [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
    to [oldcookies]. If cookies are already bound in oldcookies,
@@ -56,7 +53,7 @@ let add_cookie path n v t =
 let add_cookies newcookies oldcookies =
   Cookies.fold
     (fun path ct t ->
-      Cookievalues.fold
+      Ocsigen_lib.String_Table.fold
         (fun n v beg ->
           match v with
           | OSet (expo, v, secure) ->
@@ -91,14 +88,14 @@ let compute_new_ri_cookies
   Cookies.fold
     (fun path ct t ->
       if prefix path ripath then
-        Cookievalues.fold
+        Ocsigen_lib.String_Table.fold
           (fun n v beg ->
             match v with
             | OSet (Some ti, v, _) when ti>now ->
-                Cookievalues.add n v t
-            | OSet (None, v, _) -> Cookievalues.add n v t
+                Ocsigen_lib.String_Table.add n v t
+            | OSet (None, v, _) -> Ocsigen_lib.String_Table.add n v t
             | OSet (_, _, _)
-            | OUnset -> Cookievalues.remove n t
+            | OUnset -> Ocsigen_lib.String_Table.remove n t
           )
           ct
           t

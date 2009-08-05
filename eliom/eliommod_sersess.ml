@@ -50,7 +50,7 @@ let close_service_session ?(close_group = false) ?session_name ~secure ~sp () =
     let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
     let cookie_info = compute_cookie_info secure secure_ci cookie_info in
     let (_, ior) = 
-      Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info 
+      Ocsigen_lib.String_Table.find fullsessname !cookie_info 
     in
     match !ior with
     | Eliom_common.SC c ->
@@ -117,7 +117,7 @@ let find_or_create_service_cookie ?session_group ?session_name ~secure ~sp () =
   let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   try
-    let (old, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
+    let (old, ior) = Ocsigen_lib.String_Table.find fullsessname !cookie_info in
     match !ior with
     | Eliom_common.SCData_session_expired
         (* We do not trust the value sent by the client,
@@ -139,7 +139,7 @@ let find_or_create_service_cookie ?session_group ?session_name ~secure ~sp () =
         sp.Eliom_common.sp_sitedata.Eliom_common.session_services
     in
     cookie_info :=
-      Ocsigen_http_frame.Cookievalues.add
+      Ocsigen_lib.String_Table.add
         fullsessname
         (None, ref (Eliom_common.SC v))
         !cookie_info;
@@ -152,7 +152,7 @@ let find_service_cookie_only ?session_name ~secure ~sp () =
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
   let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
-  let (_, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
+  let (_, ior) = Ocsigen_lib.String_Table.find fullsessname !cookie_info in
   match !ior with
   | Eliom_common.SCNo_data -> raise Not_found
   | Eliom_common.SCData_session_expired ->

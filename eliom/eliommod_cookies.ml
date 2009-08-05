@@ -70,7 +70,7 @@ let get_cookie_info
 
   (* get info about service session cookies: *)
   let f_serv service_cookies =
-    Ocsigen_http_frame.Cookievalues.fold
+    Ocsigen_lib.String_Table.fold
       (fun name value (oktable, failedlist) ->
         try
           let fullsessname, ta, expref, timeout_ref, sessgrpref =
@@ -83,7 +83,7 @@ let get_cookie_info
               (* session expired by timeout *)
               Eliom_common.SessionCookies.remove
                 sitedata.Eliom_common.session_services value;
-              ((Ocsigen_http_frame.Cookievalues.add
+              ((Ocsigen_lib.String_Table.add
                   name
                   (Some value          (* value sent by the browser *),
                    ref Eliom_common.SCData_session_expired
@@ -91,7 +91,7 @@ let get_cookie_info
                                           to remove the cookie *))
                   oktable),
                name::failedlist)
-          | _ -> ((Ocsigen_http_frame.Cookievalues.add
+          | _ -> ((Ocsigen_lib.String_Table.add
                      name
                      (Some value        (* value sent by the browser *),
                       ref
@@ -108,7 +108,7 @@ let get_cookie_info
                      oktable),
                   failedlist)
         with Not_found ->
-          ((Ocsigen_http_frame.Cookievalues.add
+          ((Ocsigen_lib.String_Table.add
               name
               (Some value                 (* value sent by the browser *),
                ref Eliom_common.SCData_session_expired
@@ -118,12 +118,12 @@ let get_cookie_info
            name::failedlist)
       )
       service_cookies
-      (Ocsigen_http_frame.Cookievalues.empty, [])
+      (Ocsigen_lib.String_Table.empty, [])
   in
 
   (* get info about "in memory" data session cookies: *)
   let f_data data_cookies =
-    Ocsigen_http_frame.Cookievalues.map
+    Ocsigen_lib.String_Table.map
       (fun value ->
         lazy
           (try
@@ -166,7 +166,7 @@ let get_cookie_info
 
   (* *** get info about persistent session cookies: *)
   let f_pers persistent_cookies =
-    Ocsigen_http_frame.Cookievalues.map
+    Ocsigen_lib.String_Table.map
       (fun value ->
         lazy
           (catch
@@ -336,7 +336,7 @@ let compute_session_cookies_to_send
   in
   let aux f cookiename secure tab2 cooktab =
     cooktab >>= fun cooktab ->
-    Ocsigen_http_frame.Cookievalues.fold
+    Ocsigen_lib.String_Table.fold
       (fun name value beg ->
         beg >>= fun beg ->
         catch
@@ -432,12 +432,12 @@ let compute_new_ri_cookies'
       match v with
       | Eliom_common.Set (upo, Some t, n, v, _)
         when t>now && prefix upo ripath ->
-          Ocsigen_http_frame.Cookievalues.add n v tab
+          Ocsigen_lib.String_Table.add n v tab
       | Eliom_common.Set (upo, None, n, v, _) when prefix upo ripath ->
-          Ocsigen_http_frame.Cookievalues.add n v tab
+          Ocsigen_lib.String_Table.add n v tab
       | Eliom_common.Set (upo, _, n, _, _)
       | Eliom_common.Unset (upo, n) when prefix upo ripath ->
-          Ocsigen_http_frame.Cookievalues.remove n tab
+          Ocsigen_lib.String_Table.remove n tab
       | _ -> tab
     )
     ricookies
@@ -460,21 +460,21 @@ let compute_new_ri_cookies
   let f (service_cookie_info, data_cookie_info, pers_cookie_info) ric 
       (scn, dcn, pcn) =
     let ric =
-      Ocsigen_http_frame.Cookievalues.fold
+      Ocsigen_lib.String_Table.fold
         (fun n (_, v) beg ->
            let n = Eliom_common.make_full_cookie_name scn n in
            match !v with
              | Eliom_common.SCData_session_expired
              | Eliom_common.SCNo_data -> 
-                 Ocsigen_http_frame.Cookievalues.remove n beg
+                 Ocsigen_lib.String_Table.remove n beg
              | Eliom_common.SC c ->
-                 Ocsigen_http_frame.Cookievalues.add n c.Eliom_common.sc_value beg
+                 Ocsigen_lib.String_Table.add n c.Eliom_common.sc_value beg
         )
         !service_cookie_info
         ric
     in
     let ric =
-      Ocsigen_http_frame.Cookievalues.fold
+      Ocsigen_lib.String_Table.fold
         (fun n v beg ->
           let n = Eliom_common.make_full_cookie_name dcn n in
           if Lazy.lazy_is_val v
@@ -483,16 +483,16 @@ let compute_new_ri_cookies
             match !v with
             | Eliom_common.SCData_session_expired
             | Eliom_common.SCNo_data -> 
-                Ocsigen_http_frame.Cookievalues.remove n beg
+                Ocsigen_lib.String_Table.remove n beg
             | Eliom_common.SC c ->
-                Ocsigen_http_frame.Cookievalues.add n c.Eliom_common.dc_value beg
+                Ocsigen_lib.String_Table.add n c.Eliom_common.dc_value beg
           else beg
         )
         !data_cookie_info
         ric
     in
     let ric =
-      Ocsigen_http_frame.Cookievalues.fold
+      Ocsigen_lib.String_Table.fold
         (fun n v beg ->
           let n = Eliom_common.make_full_cookie_name pcn n in
           beg >>= fun beg ->
@@ -502,9 +502,9 @@ let compute_new_ri_cookies
             match !v with
             | Eliom_common.SCData_session_expired
             | Eliom_common.SCNo_data ->
-                return (Ocsigen_http_frame.Cookievalues.remove n beg)
+                return (Ocsigen_lib.String_Table.remove n beg)
             | Eliom_common.SC c ->
-                return (Ocsigen_http_frame.Cookievalues.add n
+                return (Ocsigen_lib.String_Table.add n
                           c.Eliom_common.pc_value beg)
           else return beg
         )

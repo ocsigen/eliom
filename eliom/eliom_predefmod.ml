@@ -610,7 +610,7 @@ module type XHTMLFORMSSIG = sig
 
   val file_input :
       ?a:input_attrib attrib list ->
-        name:[< file_info setoneradio ] param_name ->
+        name:[< Ocsigen_lib.file_info setoneradio ] param_name ->
           unit -> [> input ] elt
 (** Creates an [<input>] tag for sending a file *)
 

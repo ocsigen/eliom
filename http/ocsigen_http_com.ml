@@ -901,7 +901,7 @@ let send
       | None   -> "")
   in
   let mkcookl path t hds =
-    Cookievalues.fold
+    Ocsigen_lib.String_Table.fold
       (fun name c h ->
         let exp, v, secure = match c with
         | Ocsigen_http_frame.OUnset -> (Some 0., "", false)

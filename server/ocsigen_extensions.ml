@@ -36,7 +36,6 @@ open Lwt
 open Ocsigen_lib
 
 exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
-exception Ocsigen_Internal_Error of string
 exception Ocsigen_Looping_request
 
 
@@ -53,14 +52,6 @@ exception Error_in_user_config_file of string
 let badconfig fmt = Printf.ksprintf (fun s -> raise (Error_in_config_file s)) fmt
 
 (*****************************************************************************)
-(** type of URL, without parameter *)
-
-type file_info = {tmp_filename: string;
-                  filesize: int64;
-                  raw_original_filename: string;
-                  original_basename: string}
-
-
 (* virtual hosts: *)
 type virtual_host_part = Text of string * int | Wildcard
 type virtual_hosts = ((virtual_host_part list) * int option) list
@@ -204,7 +195,7 @@ type request_info =
      ri_server_port: int;      (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
      ri_cookies_string: string option Lazy.t; (** Cookies sent by the browser *)
-     ri_cookies: string Ocsigen_http_frame.Cookievalues.t Lazy.t;  (** Cookies sent by the browser *)
+     ri_cookies: string Ocsigen_lib.String_Table.t Lazy.t;  (** Cookies sent by the browser *)
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
      ri_ifunmodifiedsince: float option;   (** if-unmodified-since field *)
      ri_ifnonematch: string list option;   (** if-none-match field ( * and weak entity tags not implemented) *)

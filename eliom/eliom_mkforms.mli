@@ -462,7 +462,7 @@ module type ELIOMFORMSIG =
 
     val file_input :
         ?a:input_attrib_t ->
-          name:[< file_info setoneradio ] param_name ->
+          name:[< Ocsigen_lib.file_info setoneradio ] param_name ->
             unit -> input_elt
 (** Creates an [<input>] tag for sending a file *)
 
