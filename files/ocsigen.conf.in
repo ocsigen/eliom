@@ -41,7 +41,7 @@
 
 
 
-    <host charset="iso-8859-1">
+    <host charset="iso-8859-1" hostfilter="*">
 
       <site path="ocsigenstuff" charset="iso-8859-1">
         <static dir="_STATICPAGESDIR_/ocsigenstuff" />
