@@ -619,9 +619,6 @@ let extension filename =
   with Not_found -> (* No dot in filename *)
     raise Not_found
 
-let apply_option f = function
-  | None -> None
-  | Some v -> Some (f v)
 
 (* *)
 type ('a, 'b) leftright = Left of 'a | Right of 'b

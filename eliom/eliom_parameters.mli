@@ -415,12 +415,18 @@ val construct_params :
 
 val construct_params_string : (string * string) list -> string
 
-val construct_params_list :
+val construct_params_list_raw :
   (string * string) list Ocsigen_lib.String_Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   'a -> string list option * 
   (string * string) list Ocsigen_lib.String_Table.t *
      (string * string) list
+
+val construct_params_list :
+  (string * string) list Ocsigen_lib.String_Table.t ->
+  ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
+  'a -> 
+  string list option * (string * string) list
 
 val reconstruct_params :
   sp:Eliom_common.server_params ->

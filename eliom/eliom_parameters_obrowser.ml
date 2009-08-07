@@ -224,7 +224,7 @@ let make_list_suffix i = "["^(string_of_int i)^"]"
 (* The following function takes a 'a params_type and a 'a and
    constructs the list of parameters (GET or POST)
    (This is a marshalling function towards HTTP parameters format) *)
-let construct_params_list
+let construct_params_list_raw
     nlp
     (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
     (params : 'a) =
@@ -349,13 +349,16 @@ let construct_params_list
 let construct_params_string =
   Ocsigen_lib.mk_url_encoded_parameters
 
+let construct_params_list nonlocparams typ p =
+  let (suff, nonlocparams, pl) = construct_params_list_raw nonlocparams typ p in
+  let nlp = Ocsigen_lib.String_Table.fold (fun _ l s -> l@s) nonlocparams [] in
+  let pl = pl@nlp in (* pl at beginning *)
+  (suff, pl)
+
+
 let construct_params nonlocparams typ p =
-  let (suff, nonlocparams, pl) = construct_params_list nonlocparams typ p in
-  let nlp = Ocsigen_lib.String_Table.fold
-    (fun _ l s -> Ocsigen_lib.concat_strings s "&" (construct_params_string l))
-    nonlocparams "" 
-  in
-  (suff, Ocsigen_lib.concat_strings (construct_params_string pl) "&" nlp)
+  let suff, pl = construct_params_list nonlocparams typ p in
+  (suff, construct_params_string pl)
 
 
 
@@ -435,7 +438,7 @@ type nl_params_set = (string * string) list Ocsigen_lib.String_Table.t
 let empty_nl_params_set = Ocsigen_lib.String_Table.empty
 
 let add_nl_parameter s t v = 
-  (fun (_, a, _) -> a) (construct_params_list s (TNLParams t) v)
+  (fun (_, a, _) -> a) (construct_params_list_raw s (TNLParams t) v)
 
 let table_of_nl_params_set = Ocsigen_lib.id
 

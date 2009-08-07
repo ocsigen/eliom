@@ -24,6 +24,9 @@ let (>>=) = Lwt.bind
 
 let comp f g x = f (g x)
 
+let apply_option f = function
+  | None -> None
+  | Some v -> Some (f v)
 
 (*****************************************************************************)
 let add_to_string s1 sep = function

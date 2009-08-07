@@ -199,7 +199,7 @@ let rec append_suffix l m = match l with
 let preapply ~service getparams =
   let nlp, preapp = service.pre_applied_parameters in
   let suff, nlp, params =
-    Eliom_parameters.construct_params_list
+    Eliom_parameters.construct_params_list_raw
       nlp service.get_params_type getparams 
   in
   {service with

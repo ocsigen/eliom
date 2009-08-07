@@ -189,49 +189,10 @@ module type ELIOMFORMSIG =
 
 (** {2 Links and forms} *)
 
-    val make_full_string_uri :
-      ?https:bool ->
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, unit,
-               [< registrable ]) service ->
-      sp:Eliom_sessions.server_params ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
-      string
-(** Creates the string corresponding to the
-    full (absolute) URL of a service applied to its GET parameters.
 
-    Default hostname is determined from the [Host] http header of the request
-    (or the attribute of <host> tag in
-    configuration file if the option [<usedefaulthostname/>] is set).
-    Default port is the current port (or another port of the server if
-    you are switching from or to https).
-    But you can choose the hostname or port you want by setting 
-    the optional [?hostname] and [?port] parameters here.
- *)
-
-    val make_full_uri :
-      ?https:bool ->
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, unit,
-               [< registrable ]) service ->
-      sp:Eliom_sessions.server_params ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
-      uri
-(** Creates the string corresponding to the
-    full (absolute) URL of a service applied to its GET parameters.
- *)
 
     val make_string_uri :
+      ?absolute:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -245,10 +206,23 @@ module type ELIOMFORMSIG =
       'get -> 
       string
 (** Creates the string corresponding to the relative URL of a service applied to
-   its GET parameters.
+    its GET parameters.
+
+    If [absolute] is set to [true], or if there is a protocol change,
+    the URL will be absolute.
+    
+    Default hostname is determined from the [Host] http header of the request
+    (or the attribute of <host> tag in
+    configuration file if the option [<usedefaulthostname/>] is set).
+    Default port is the current port (or another port of the server if
+    you are switching from or to https).
+    But you can choose the hostname or port you want by setting 
+    the optional [?hostname] and [?port] parameters here.
+
  *)
 
     val make_uri :
+      ?absolute:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -261,8 +235,46 @@ module type ELIOMFORMSIG =
       ?nl_params: Eliom_parameters.nl_params_set ->
       'get -> 
       uri
-(** Creates the (relative) URL for a service.
+(** Creates the URL for a service.
     Like the [a] function, it may take extra parameters. *)
+
+    val make_uri_components :
+      ?absolute:bool ->
+      ?https:bool ->
+      service:('get, unit, [< get_service_kind ],
+               [< suff ], 'gn, unit,
+               [< registrable ]) service ->
+      sp:Eliom_sessions.server_params -> 
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string -> 
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
+      'get -> 
+      string * (string * string) list * string option
+(** Creates the URL for a service.
+    Returns the path (as a string, encoded),
+    the association list of get parameters (not encoded),
+    and the fragment (not encoded, if any).
+    Like the [a] function, it may take extra parameters. *)
+
+    val make_post_uri_components :
+      ?absolute:bool ->
+      ?https:bool ->
+      service:('get, 'post, [< get_service_kind ],
+               [< suff ], 'gn, 'pn,
+               [< registrable ]) service ->
+      sp:Eliom_sessions.server_params -> 
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string -> 
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
+      ?keep_get_na_params:bool ->
+      'get -> 
+      'post ->
+      string * (string * string) list * string option * (string * string) list
+(** Like [make_uri_components], but also creates a table of post parameters. *)
 
     val make_proto_prefix :
       sp:Eliom_sessions.server_params ->
@@ -275,6 +287,7 @@ module type ELIOMFORMSIG =
  *)
 
     val a :
+      ?absolute:bool ->
       ?https:bool ->
       ?a:a_attrib_t ->
       service:('get, unit, [< get_service_kind ],
@@ -335,6 +348,7 @@ module type ELIOMFORMSIG =
 
 
     val get_form :
+      ?absolute:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, unit, [< get_service_kind ],
@@ -354,6 +368,7 @@ module type ELIOMFORMSIG =
    of the service parameters as parameters. *)
 
     val lwt_get_form :
+      ?absolute:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, unit, [< get_service_kind ],
@@ -371,6 +386,7 @@ module type ELIOMFORMSIG =
 
 
     val post_form :
+      ?absolute:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
@@ -396,6 +412,7 @@ module type ELIOMFORMSIG =
  *)
 
     val lwt_post_form :
+      ?absolute:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
@@ -412,6 +429,9 @@ module type ELIOMFORMSIG =
       'get -> 
       form_elt Lwt.t
 (** The same but taking a cooperative function. *)
+
+
+
 
 
 (** {2 Form widgets} *)
@@ -892,7 +912,9 @@ val reconstruct_relative_url_path :
 
  
 (**/**)
-val make_full_string_uri :
+
+val make_string_uri :
+  ?absolute:bool ->
   ?https:bool ->
   service:('a, 'b, [< Eliom_services.service_kind ],
            [< Eliom_services.suff ], 'c, 'd, [< Eliom_services.registrable ])

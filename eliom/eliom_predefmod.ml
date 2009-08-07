@@ -197,7 +197,7 @@ module Xhtmlforms_ = struct
 
   let map_option = List.map
   let map_optgroup f a l = ((f a), List.map f l)
-  let select_content_of_option a = (a :> select_content_elt)
+  let select_content_of_option a = (a :> select_content elt)
 
   let make_pcdata s = pcdata s
 
@@ -225,7 +225,7 @@ module Xhtmlforms_ = struct
       | None -> []
       | Some c -> [c]
     in
-    (div ~a:[a_class ["eliom_nodisplay"]] c :> form_content_elt)
+    (div ~a:[a_class ["eliom_nodisplay"]] c :> form_content elt)
 
   let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
 
@@ -309,49 +309,11 @@ module type XHTMLFORMSSIG = sig
 
 (** {2 Links and forms} *)
 
-    val make_full_string_uri :
-      ?https:bool ->
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, unit,
-               [< registrable ]) service ->
-      sp:Eliom_sessions.server_params ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
-      string
-(** Creates the string corresponding to the
-    full (absolute) URL of a service applied to its GET parameters.
 
-    Default hostname is determined from the [Host] http header of the request
-    (or the attribute of <host> tag in
-    configuration file if the option [<usedefaulthostname/>] is set).
-    Default port is the current port (or another port of the server if
-    you are switching from or to https).
-    But you can choose the hostname or port you want by setting 
-    the optional [?hostname] and [?port] parameters here.
- *)
 
-    val make_full_uri :
-      ?https:bool ->
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, unit,
-               [< registrable ]) service ->
-      sp:Eliom_sessions.server_params ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
-      XHTML.M.uri
-(** Creates the string corresponding to the
-    full (absolute) URL of a service applied to its GET parameters.
- *)
 
     val make_string_uri :
+      ?absolute:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -365,61 +327,111 @@ module type XHTMLFORMSSIG = sig
       'get -> 
       string
 (** Creates the string corresponding to the relative URL of a service applied to
-   its GET parameters.
+    its GET parameters.
+
+    If [absolute] is set to [true], or if there is a protocol change,
+    the URL will be absolute.
+    
+    Default hostname is determined from the [Host] http header of the request
+    (or the attribute of <host> tag in
+    configuration file if the option [<usedefaulthostname/>] is set).
+    Default port is the current port (or another port of the server if
+    you are switching from or to https).
+    But you can choose the hostname or port you want by setting 
+    the optional [?hostname] and [?port] parameters here.
+
  *)
 
-  val make_uri :
-    ?https:bool ->
-    service:('get, unit, [< get_service_kind ],
-             [< suff ], 'gn, unit,
-             [< registrable ]) service ->
-    sp:Eliom_sessions.server_params -> 
-    ?hostname:string ->
-    ?port:int ->
-    ?fragment:string -> 
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?nl_params: Eliom_parameters.nl_params_set ->
-    'get -> 
-    uri
-(** Create the text of the service. Like the [a] function, it may take
-   extra parameters. *)
+    val make_uri :
+      ?absolute:bool ->
+      ?https:bool ->
+      service:('get, unit, [< get_service_kind ],
+               [< suff ], 'gn, unit,
+               [< registrable ]) service ->
+      sp:Eliom_sessions.server_params -> 
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string -> 
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
+      'get -> 
+      uri
+(** Creates the URL for a service.
+    Like the [a] function, it may take extra parameters. *)
 
-  val make_proto_prefix :
-    sp:Eliom_sessions.server_params ->
-    ?hostname:string ->
-    ?port:int ->
-    bool ->
-    string
+    val make_uri_components :
+      ?absolute:bool ->
+      ?https:bool ->
+      service:('get, unit, [< get_service_kind ],
+               [< suff ], 'gn, unit,
+               [< registrable ]) service ->
+      sp:Eliom_sessions.server_params -> 
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string -> 
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
+      'get -> 
+      string * (string * string) list * string option
+(** Creates the URL for a service.
+    Returns the path (as a string, encoded),
+    the association list of get parameters (not encoded),
+    and the fragment (not encoded, if any).
+    Like the [a] function, it may take extra parameters. *)
+
+    val make_post_uri_components :
+      ?absolute:bool ->
+      ?https:bool ->
+      service:('get, 'post, [< get_service_kind ],
+               [< suff ], 'gn, 'pn,
+               [< registrable ]) service ->
+      sp:Eliom_sessions.server_params -> 
+      ?hostname:string ->
+      ?port:int ->
+      ?fragment:string -> 
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
+      ?keep_get_na_params:bool ->
+      'get -> 
+      'post ->
+      string * (string * string) list * string option * (string * string) list
+(** Like [make_uri_components], but also creates a table of post parameters. *)
+
+    val make_proto_prefix :
+      sp:Eliom_sessions.server_params ->
+      ?hostname:string ->
+      ?port:int ->
+      bool ->
+      string
 (** Creates the string corresponding to the beginning of the URL,
     containing the scheme (protocol), server and port number (if necessary).
  *)
 
-  val a :
-    ?https:bool ->
-    ?a:a_attrib attrib list ->
-    service:
-      ('get, unit, [< get_service_kind ],
-       [< suff ], 'gn, 'pn,
-       [< registrable ]) service ->
-    sp:Eliom_sessions.server_params -> 
+    val a :
+      ?absolute:bool ->
+      ?https:bool ->
+      ?a:a_attrib attrib list ->
+      service:('get, unit, [< get_service_kind ],
+               [< suff ], 'gn, 'pn,
+               [< registrable ]) service ->
+      sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
-    ?fragment:string ->
-    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-    ?nl_params: Eliom_parameters.nl_params_set ->
-    a_content elt list -> 
-    'get -> 
+      ?fragment:string ->
+      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+      ?nl_params: Eliom_parameters.nl_params_set ->
+      a_content elt list -> 
+      'get -> 
     [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link to [service].
    The text of
    the link is [cont]. For example [cont] may be something like
-   [[pcdata "click here"]].
+   [\[pcdata "click here"\]].
 
    The last  parameter is for GET parameters.
    For example [a service sp cont (42,"hello")]
 
-   The [~a] optional parameter is used for extra attributes
-   (see the module XHTML.M).
+   The [~a] optional parameter is used for extra attributes.
 
    The [~fragment] optional parameter is used for the "fragment" part
    of the URL, that is, the part after character "#".
@@ -446,19 +458,18 @@ module type XHTMLFORMSSIG = sig
     persistent (resp all) non localized GET parameters
     will be kept in the URL (default is the default for the service).
 
- *)
+*)
 
-  val css_link : ?a:(link_attrib attrib list) ->
-    uri:uri -> unit ->[> link ] elt
+    val css_link : ?a:link_attrib attrib list -> uri:uri -> unit -> [>link] elt
 (** Creates a [<link>] tag for a Cascading StyleSheet (CSS). *)
 
-  val js_script : ?a:(script_attrib attrib list) ->
-    uri:uri -> unit -> [> script ] elt
+    val js_script :
+        ?a:script_attrib attrib list -> uri:uri -> unit -> [>script] elt
 (** Creates a [<script>] tag to add a javascript file *)
 
 
-
     val get_form :
+      ?absolute:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
@@ -478,6 +489,7 @@ module type XHTMLFORMSSIG = sig
    of the service parameters as parameters. *)
 
     val lwt_get_form :
+      ?absolute:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
@@ -490,18 +502,12 @@ module type XHTMLFORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ('gn -> form_content elt list Lwt.t) -> 
-      form elt Lwt.t
-(** The same but taking a cooperative function. 
-    Use it like this:
-
-    [Eliom_predefmod.Xhtml.lwt_get_form ~service:... ~sp f >>= fun form ->
-    let form = 
-      (form : Xhtmltypes.form XHTML.M.elt :> [> Xhtmltypes.form ] XHTML.M.elt)
-    in ...]
-*)
+      [>form] elt Lwt.t
+(** The same but taking a cooperative function. *)
 
 
     val post_form :
+      ?absolute:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],
@@ -514,8 +520,8 @@ module type XHTMLFORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      ('pn -> form_content elt list) ->
-      'get ->
+      ('pn -> form_content elt list) -> 
+      'get -> 
       [>form] elt
 (** [post_form service sp formgen] creates a POST form to [service].
     The last parameter is for GET parameters (as in the function [a]).
@@ -526,8 +532,8 @@ module type XHTMLFORMSSIG = sig
 
  *)
 
-
     val lwt_post_form :
+      ?absolute:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],
@@ -540,17 +546,15 @@ module type XHTMLFORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      ('pn -> form_content elt list Lwt.t) ->
-      'get ->
-      form elt Lwt.t
-(** The same but taking a cooperative function. 
-    Use it like this:
+      ('pn -> form_content elt list Lwt.t) -> 
+      'get -> 
+      [>form] elt Lwt.t
+(** The same but taking a cooperative function. *)
 
-    [Eliom_predefmod.Xhtml.lwt_post_form ~service:... ~sp f >>= fun form ->
-    let form = 
-      (form : Xhtmltypes.form XHTML.M.elt :> [> Xhtmltypes.form ] XHTML.M.elt)
-    in ...]
-*)
+
+
+
+
 
 
 
@@ -996,6 +1000,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 (* As we want -> [> a ] elt and not -> [ a ] elt (etc.),
    we define a new module: *)
   let a = (a :
+             ?absolute:bool ->
       ?https:bool ->
       ?a:a_attrib attrib list ->
         service:('get, unit, [< get_service_kind ],
@@ -1009,6 +1014,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
             ?nl_params: Eliom_parameters.nl_params_set ->
              a_content elt list -> 'get ->
              a XHTML.M.elt :>
+             ?absolute:bool ->
       ?https:bool ->
       ?a:a_attrib attrib list ->
         service:('get, unit, [< get_service_kind ],
@@ -1036,11 +1042,12 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                        uri:uri -> unit -> [> script ] elt)
 
   let make_uri = (make_uri :
-      ?https:bool ->
-      service:('get, unit, [< get_service_kind ],
-       [< suff ], 'gn, unit,
-       [< registrable ]) service ->
-         sp:server_params ->
+                    ?absolute:bool ->
+                   ?https:bool ->
+                   service:('get, unit, [< get_service_kind ],
+                            [< suff ], 'gn, unit,
+                            [< registrable ]) service ->
+                   sp:server_params ->
                    ?hostname:string ->
                    ?port:int ->
                    ?fragment:string ->
@@ -1049,36 +1056,67 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                    'get -> uri)
 
   let get_form = (get_form :
-      ?https:bool ->
-      ?a:form_attrib attrib list ->
-        service:('get, unit, [< get_service_kind ],
-         [<suff ], 'gn, 'pn,
-         [< registrable ]) service ->
-           sp:server_params ->
+                    ?absolute:bool ->
+                   ?https:bool ->
+                   ?a:form_attrib attrib list ->
+                   service:('get, unit, [< get_service_kind ],
+                            [<suff ], 'gn, 'pn,
+                            [< registrable ]) service ->
+                   sp:server_params ->
                    ?hostname:string ->
                    ?port:int ->
                    ?fragment:string ->
                    ?keep_nl_params:[ `All | `Persistent | `None ] ->
                    ?nl_params: Eliom_parameters.nl_params_set ->
              ('gn -> form_content elt list) -> form elt :>
-      ?https:bool ->
-      ?a:form_attrib attrib list ->
-        service:('get, unit, [< get_service_kind ],
-         [<suff ], 'gn, 'pn,
-         [< registrable ]) service ->
-           sp:server_params ->
+                   ?absolute:bool ->
+                   ?https:bool ->
+                   ?a:form_attrib attrib list ->
+                   service:('get, unit, [< get_service_kind ],
+                            [<suff ], 'gn, 'pn,
+                            [< registrable ]) service ->
+                   sp:server_params ->
                    ?hostname:string ->
                    ?port:int ->
                    ?fragment:string ->
                    ?keep_nl_params:[ `All | `Persistent | `None ] ->
                    ?nl_params: Eliom_parameters.nl_params_set ->
-             ('gn -> form_content elt list) -> [> form ] elt)
+                   ('gn -> form_content elt list) -> [> form ] elt)
 
-  let lwt_get_form = lwt_get_form
-    (* cast impossible because in 'a Lwt.t, 'a is invariant *)
+
+  let lwt_get_form = (lwt_get_form :
+                        ?absolute:bool ->
+                       ?https:bool ->
+                       ?a:form_attrib attrib list ->
+                       service:('get, unit, [< get_service_kind ],
+                                [<suff ], 'gn, 'pn,
+                                [< registrable ]) service ->
+                       sp:server_params ->
+                       ?hostname:string ->
+                       ?port:int ->
+                       ?fragment:string ->
+                       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                       ?nl_params: Eliom_parameters.nl_params_set ->
+                       ('gn -> form_content elt list Lwt.t) -> form elt Lwt.t :>
+                       ?absolute:bool ->
+                       ?https:bool ->
+                       ?a:form_attrib attrib list ->
+                       service:('get, unit, [< get_service_kind ],
+                                [<suff ], 'gn, 'pn,
+                                [< registrable ]) service ->
+                       sp:server_params ->
+                       ?hostname:string ->
+                       ?port:int ->
+                       ?fragment:string ->
+                       ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                       ?nl_params: Eliom_parameters.nl_params_set ->
+                       ('gn -> form_content elt list Lwt.t) -> 
+                       [> form ] elt Lwt.t)
+
 
   let post_form = (post_form :
-                     ?https:bool ->
+                     ?absolute:bool ->
+                    ?https:bool ->
                     ?a:form_attrib attrib list ->
                     service:('get, 'post, [< post_service_kind ],
                              [< suff ], 'gn, 'pn,
@@ -1091,6 +1129,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                     ?keep_get_na_params:bool ->
                     ?nl_params: Eliom_parameters.nl_params_set ->
                     ('pn -> form_content elt list) -> 'get -> form elt :>
+                    ?absolute:bool ->
                     ?https:bool ->
                     ?a:form_attrib attrib list ->
                     service:('get, 'post, [< post_service_kind ],
@@ -1105,8 +1144,38 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                     ?nl_params: Eliom_parameters.nl_params_set ->
                     ('pn -> form_content elt list) -> 'get -> [> form ] elt)
 
-  let lwt_post_form = lwt_post_form
-    (* cast impossible because in 'a Lwt.t, 'a is invariant *)
+  let lwt_post_form = (lwt_post_form :
+                         ?absolute:bool ->
+                        ?https:bool ->
+                        ?a:form_attrib attrib list ->
+                        service:('get, 'post, [< post_service_kind ],
+                                 [< suff ], 'gn, 'pn,
+                                 [< registrable ]) service ->
+                        sp:server_params ->
+                        ?hostname:string ->
+                        ?port:int ->
+                        ?fragment:string ->
+                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                        ?keep_get_na_params:bool ->
+                        ?nl_params: Eliom_parameters.nl_params_set ->
+                        ('pn -> form_content elt list Lwt.t) -> 
+                        'get -> form elt Lwt.t :>
+                        ?absolute:bool ->
+                        ?https:bool ->
+                        ?a:form_attrib attrib list ->
+                        service:('get, 'post, [< post_service_kind ],
+                                 [< suff ], 'gn, 'pn,
+                                 [< registrable ]) service ->
+                        sp:server_params ->
+                        ?hostname:string ->
+                        ?port:int ->
+                        ?fragment:string ->
+                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                        ?keep_get_na_params:bool ->
+                        ?nl_params: Eliom_parameters.nl_params_set ->
+                        ('pn -> form_content elt list Lwt.t) -> 'get -> 
+                        [> form ] elt Lwt.t)
+
 
   type basic_input_type =
       [
@@ -2240,7 +2309,7 @@ module Redirreg_ = struct
   let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
-    let uri = Xhtml.make_full_string_uri ~sp ~service:content () in
+    let uri = Xhtml.make_string_uri ~absolute:true ~sp ~service:content () in
     let code = match code with
     | Some c -> c
     | None ->
