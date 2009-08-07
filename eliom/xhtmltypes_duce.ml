@@ -49,7 +49,8 @@ and lists = {{ ul | ol | dl }}
 and blocktext = {{ pre | hr | blockquote | address }}
 and block =  {{ p | heading | _div | lists | blocktext | fieldset | table }}
 and blocks = {{ [ (block | form | misc)* ] }}
-and flows = {{ [ (Char | block | form | inline | misc)* ] }}
+and div_content = {{ Char | block | form | inline | misc }}
+and flows = {{ [ div_content* ] }}
 
 (* Content models for exclusions *)
 
