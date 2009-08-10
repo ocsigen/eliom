@@ -188,14 +188,14 @@ let parse_config userconf : parse_config_aux = fun _ _ _ ->
 
       | ("regexp", s)::l when opt.opt_regexp = None ->
           let s = try Netstring_pcre.regexp ("^"^s^"$")
-           with Pcre.BadPattern _ ->
+           with Pcre.Error (Pcre.BadPattern _) ->
              bad_config ("Bad regexp \""^s^"\" in <static regexp=\"...\" />")
           in
           parse_attrs l { opt with opt_regexp = Some s }
 
       | ("code", c)::l when opt.opt_code = None ->
           let c = try Netstring_pcre.regexp ("^"^c^"$")
-           with Pcre.BadPattern _ ->
+           with Pcre.Error (Pcre.BadPattern _) ->
              bad_config ("Bad regexp \""^c^"\" in <static code=\"...\" />")
           in
           parse_attrs l { opt with opt_code = Some c }
