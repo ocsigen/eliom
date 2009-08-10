@@ -198,7 +198,7 @@ package "eliom_obrowser_client" (
   )
 
 package "eliom_obrowser_syntax" (
-  requires = "pgocaml,camlp4"
+  requires = "camlp4"
   description = "Syntax extension: Ocaml function calls from pages"
   archive(syntax,preprocessor) = "pa_eliom_obrowser.cmo"
   archive(syntax,toploop) = "pa_eliom_obrowser.cmo"
