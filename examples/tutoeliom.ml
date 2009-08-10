@@ -5227,6 +5227,8 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
            $a isuffix sp <:xmllist< <code>isuffix</code> >> ((111, ["OO";"II";"OO"]), 333)$ <br/>
          A page with constants in suffix: 
            $a constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"))$ <br/>
+         Form towards page with suffix: 
+           $a suffixform sp [pcdata "formsuffix"] ()$ <br/>
          A page with a parameter of user-defined type :
              $a mytype sp <:xmllist< <code>mytype</code> >> A$ </p>
        <h4>Links and Forms</h4>
