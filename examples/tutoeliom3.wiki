@@ -59,7 +59,8 @@ It is now also possible to handle static pages with Eliom, using
       <<span class="code"|Eliom_predefmod.Files>> ([[eliom/manual/dev/3#p3eliomfiles|see later]]).
       
           
-      <!-- h4>Static parts of a page</h4>      <em>To be available soon</em -->
+      <<|====Static parts of a page
+      <em>To be available soon</em> >>
     
         >>
 
@@ -1243,7 +1244,8 @@ You can add your own options in the configuration
           
        Use <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|<<span class="code"|Eliom_sessions.get_config ()>>>> during the initialization
        of your module to get the data between
-       <<span class="code"|<eliom>>> and <<span class="code"|</eliom>>>.
+       <<span class="code"|<eliom>>> and <<span class="code"|</eliom>>> or between
+       <<span class="code"|<eliommodule>>> and <<span class="code"|</eliommodule>>>.
        Warning: parsing these data is very basic for now.
        That feature will be improved in the future.
       
@@ -2268,7 +2270,7 @@ If you want an Ocsigen extension with access to Eliom's
           
 From version 1.2, it is possible to link extensions and Eliom modules
   statically ([[site:staticlink|See here]]).
-      Obviously, for Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function
+      Obviously, for Eliom modules, configuration retrieval, but also service creation and registration, must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|<<span class="code"|Eliom_services.register_eliom_module>>>>. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|<<span class="code"|Eliom_sessions.get_config>>>> if the module has configuration options).
       
           
@@ -2278,19 +2280,18 @@ To initialize the module from the configuration file, use the
   syntax:
           
 
-          <<div class="pre"|<eliommodule name="//name//"> ... </eliom>
+          <<div class="pre"|<eliommodule name="//name//"> ... </eliommodule>
 >>
 
           
 which is equivalent to:
           
 
-          <<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliom>
+          <<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliommodule>
 >>
 
           
-with the exception that it does not load the module using <<span class="code"|Dynlink>>, but calls the initialization function.
-          
+with the exception that it does not load the module using <<span class="code"|Dynlink>>, but calls the initialization function. (Also works with <<span class="code"|<eliom>>> tag).
   
         >>
 
