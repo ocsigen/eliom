@@ -29,7 +29,7 @@
 The <<span class="code"|staticmod>> extension allows to associate
          to your site a static directory
          where you can put all the static (non generated) parts of your
-         web-site (for examples images ans stylesheets).
+         web-site (for examples images and stylesheets).
          See the default config file <<span class="code"|ocsigen.conf>> to
          learn how to do that.
          A predefined service can be used to make links to static files.
@@ -348,7 +348,7 @@ Tables of sessions (for data or services) are kept in memory,
         and thus will disappear if you close the server process.
         To solve this problem, Ocsigen allows to reload the modules of
         your configuration file without shutting down the server.
-        Another solution provided by Eliom is to save session data on hard disk.
+        Another solution provided by Eliom is to save session data on hard drive.
       
           
 
@@ -530,7 +530,7 @@ val remove : 'value table -> string -> unit Lwt.t
 
 
           ====Persistent session data
-          
+
           
 <<span class="code"|Eliom>> also implements persistent session tables.
        You can use them instead of memory tables if you don't need
@@ -945,7 +945,7 @@ let connect_action_handler sp () login =
   Eliom_sessions.close_session  ~sp () ~>>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10)  ~sp login;
+    Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) ~sp login;
     return ()
   end
   else begin

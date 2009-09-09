@@ -202,7 +202,7 @@ type answer =
           Here is the function to generate the page".
           The extension must return Ext_found as soon as possible
           when it is sure it is safe to start next request.
-          Usually as soon as you know tha the result will be Ext_found.
+          Usually as soon as you know that the result will be Ext_found.
           But in some case, for example proxies, you don't want the request of
           one connection to be handled in different order.
           In that case, wait to be sure that the new request will not

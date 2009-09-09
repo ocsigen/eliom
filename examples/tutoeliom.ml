@@ -82,7 +82,7 @@ let coucou =
           
 As you can see,
       %<ocsigendoc version="dev" file="Lwt.html" fragment="VALreturn"|%<span class="code"|return>%>% is a function from %<ocsigendoc version="dev" file="Lwt.html"|%<span class="code"|Lwt>%>%.
-      Use it like this for instants, and
+      Use it like this for now, and
       [[eliom/manual/dev/1#p1threads|see later]] for more advanced use.
           
 
@@ -2011,7 +2011,7 @@ Most of the time, GET coservices are created dynamically with
    but when you don't want this service to be bookmarkable.
 *To create a button that leads to a service after having performed
    a side-effect. For example a disconnection button that leads to the main
-   page of the side, but with the side effect of disconnecting the user.
+   page of the site, but with the side effect of disconnecting the user.
                
           
 
@@ -2657,7 +2657,7 @@ let () =
         can be registered with a (main or co) service without POST
         parameters as fallback.
 *The registration of (main) services must be completed before
-          the end of the loading of the module. It not possible to launch
+          the end of the loading of the module. It is not possible to launch
           a (Lwt) thread that will register a service later, as
           registering a service needs access to config file
           information (for example the directory of the site).
@@ -2708,7 +2708,7 @@ let () =
 The %<span class="code"|staticmod>% extension allows to associate
          to your site a static directory
          where you can put all the static (non generated) parts of your
-         web-site (for examples images ans stylesheets).
+         web-site (for examples images and stylesheets).
          See the default config file %<span class="code"|ocsigen.conf>% to
          learn how to do that.
          A predefined service can be used to make links to static files.
@@ -3026,7 +3026,7 @@ Tables of sessions (for data or services) are kept in memory,
         and thus will disappear if you close the server process.
         To solve this problem, Ocsigen allows to reload the modules of
         your configuration file without shutting down the server.
-        Another solution provided by Eliom is to save session data on hard disk.
+        Another solution provided by Eliom is to save session data on hard drive.
       
           
 
@@ -3100,7 +3100,7 @@ These modules allow to:
           
 
           
-Note that persistent data are serialized on hard disk using
+Note that persistent data are serialized on hard drive using
         OCaml's %<span class="code"|Marshal>% module:
       
           
@@ -4692,7 +4692,7 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 
           
 %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_tmp_filename"|%<span class="code"|Eliom_sessions.get_tmp_filename>%>% allows to know the actual name
-       of the uploaded file on the hard disk.
+       of the uploaded file on the hard drive.
         %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_original_filename"|%<span class="code"|Eliom_sessions.get_original_filename>%>% gives the original filename.
           
 

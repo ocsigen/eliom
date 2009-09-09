@@ -469,7 +469,7 @@ Most of the time, GET coservices are created dynamically with
    but when you don't want this service to be bookmarkable.
 *To create a button that leads to a service after having performed
    a side-effect. For example a disconnection button that leads to the main
-   page of the side, but with the side effect of disconnecting the user.
+   page of the site, but with the side effect of disconnecting the user.
                
           
 
@@ -1026,7 +1026,7 @@ let () =
         can be registered with a (main or co) service without POST
         parameters as fallback.
 *The registration of (main) services must be completed before
-          the end of the loading of the module. It not possible to launch
+          the end of the loading of the module. It is not possible to launch
           a (Lwt) thread that will register a service later, as
           registering a service needs access to config file
           information (for example the directory of the site).

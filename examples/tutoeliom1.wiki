@@ -73,7 +73,7 @@ let coucou =
           
 As you can see,
       <<ocsigendoc version="dev" file="Lwt.html" fragment="VALreturn"|<<span class="code"|return>>>> is a function from <<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>>.
-      Use it like this for instants, and
+      Use it like this for now, and
       [[eliom/manual/dev/1#p1threads|see later]] for more advanced use.
           
 
