@@ -34,20 +34,41 @@ let page_error_param_type l =
        [h1 s]
     )
 
-let page_bad_param l =
+let page_bad_param after_action gl pl =
   let s = "Wrong parameters" in
   html
     (head (title (pcdata s)) [])
     (body
-       [h1 [pcdata s];
-        match l with
-          | [] -> p [pcdata "(no POST parameters)."]
-          | a::l ->
-              p ((pcdata "(Post parameters are: ")::
-                   (em [pcdata a])::
-                   (List.fold_right
-                      (fun n b -> (pcdata ", ")::(em [pcdata n])::b)
-                      l [pcdata ")."]))]
+       ((h1 [pcdata s])::
+          (if Ocsigen_config.get_debugmode ()
+           then
+             [h2 [pcdata "Debugging information:"];
+              (if after_action
+               then 
+                 (p [pcdata "An action occurred successfully. But Eliom was unable to find the service for displaying the page."])
+               else
+                 (p [pcdata "Eliom was unable to find a service matching these parameters."]));
+              (match gl with
+                 | [] -> p [pcdata "No GET parameters have been given to services."]
+                 | (n, a)::l ->
+                     p ((pcdata "GET parameters given to services: ")::
+                          [em
+                             ((pcdata n)::(pcdata "=")::(pcdata a)::
+                                (List.fold_right
+                                   (fun (n, a) b -> 
+                                      (pcdata "&")::
+                                        (pcdata n)::(pcdata "=")::(pcdata a)::b)
+                                   l [pcdata "."]))]));
+              (match pl with
+                 | [] -> p [pcdata "No POST parameters have been given to services."]
+                 | a::l ->
+                     p ((pcdata "Names of POST parameters given to services: ")::
+                          (em [pcdata a])::
+                          (List.fold_right
+                             (fun n b -> (pcdata ", ")::(em [pcdata n])::b)
+                             l [pcdata "."])))]
+           else [])
+       )
     )
 
 let page_session_expired  =

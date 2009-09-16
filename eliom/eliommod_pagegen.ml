@@ -277,7 +277,15 @@ let gen is_eliom_extension sitedata = function
                | Eliom_common.Eliom_Wrong_parameter ->
                    Lazy.force ri.request_info.ri_post_params >>= fun ripp ->
                    Ocsigen_senders.Xhtml_content.result_of_content
-                     (Error_pages.page_bad_param (List.map fst ripp))
+                     (Error_pages.page_bad_param 
+                        (try 
+                           Polytables.get
+                             ~table:ri.request_info.Ocsigen_extensions.ri_request_cache
+                             ~key:Eliom_common.eliom_params_after_action;
+                           true 
+                         with Not_found -> false)
+                        (Lazy.force ri.request_info.ri_get_params)
+                        (List.map fst ripp))
                    >>= fun r ->
                    Lwt.return
                      (Ocsigen_extensions.Ext_found
