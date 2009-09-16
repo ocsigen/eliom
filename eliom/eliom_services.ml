@@ -365,11 +365,12 @@ let new_post_coservice
  *)
 
 
-(*VVV Warning: keep_get_na_params is experimental *)
 let new_post_coservice'
     ?name
     ?max_use ?timeout
-    ?(https = false) ?(keep_nl_params = `All) ?(keep_get_na_params = true)
+    ?(https = false)
+    ?(keep_nl_params = `All)
+    ?(keep_get_na_params = true)
     ~post_params () =
   (* match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered None

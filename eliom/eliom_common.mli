@@ -290,4 +290,10 @@ val close_service_session2 :
   Eliommod_sessiongroups.sessgrp option -> SessionCookies.key -> unit
 
 
-
+val eliom_params_after_action : 
+  ((string * string) list * (string * string) list *
+     (string * string) list Ocsigen_lib.String_Table.t *
+     (string * string) list Ocsigen_lib.String_Table.t *
+     (string * string) list)
+  Polytables.key
+ 

@@ -265,27 +265,27 @@ let gen is_eliom_extension sitedata = function
             (function
                | Eliom_common.Eliom_Typing_Error l ->
                    Ocsigen_senders.Xhtml_content.result_of_content
-                     (Error_pages.page_error_param_type l) >>= fun r ->
-                       Lwt.return
-                         (Ocsigen_extensions.Ext_found
-                            (fun () ->
-                               Lwt.return
-                                 {r with
-                                    Ocsigen_http_frame.res_code= 400;
-                                 }))
+                     (Error_pages.page_error_param_type l)
+                   >>= fun r ->
+                   Lwt.return
+                     (Ocsigen_extensions.Ext_found
+                        (fun () ->
+                           Lwt.return
+                             {r with
+                                Ocsigen_http_frame.res_code= 400;
+                             }))
                | Eliom_common.Eliom_Wrong_parameter ->
-                   Lazy.force ri.request_info.ri_post_params
-                   >>= fun ripp ->
+                   Lazy.force ri.request_info.ri_post_params >>= fun ripp ->
                    Ocsigen_senders.Xhtml_content.result_of_content
                      (Error_pages.page_bad_param (List.map fst ripp))
                    >>= fun r ->
-                     Lwt.return
-                       (Ocsigen_extensions.Ext_found
-                          (fun () ->
-                             Lwt.return
-                               {r with
-                                  Ocsigen_http_frame.res_code= 500;
-                               }))
+                   Lwt.return
+                     (Ocsigen_extensions.Ext_found
+                        (fun () ->
+                           Lwt.return
+                             {r with
+                                Ocsigen_http_frame.res_code= 500;
+                             }))
                | Eliom_common.Eliom_404 ->
                    Lwt.return
                      (Ocsigen_extensions.Ext_next previous_extension_err)

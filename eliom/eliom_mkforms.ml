@@ -1226,9 +1226,10 @@ let make_post_uri_components_ (* do not take into account postparams *)
                 nlp (get_get_params_type_ service) getparams 
                 (* if nl params were already present, they will be replaced
                    by new values *)
+                (* getparams can be something else than [] 
+                   if we have added nl params to the service (?) *)
             in
             let params = params @ preapp in
-
 
             let keep_get_na_params =
               match keep_get_na_params with
@@ -1238,21 +1239,15 @@ let make_post_uri_components_ (* do not take into account postparams *)
                       | `Post b -> b
                       | _ -> assert false
             in
-            let na_get_params =
-              if keep_get_na_params
-              then
-                (Lazy.force
-                   (Eliom_sessions.get_si sp).Eliom_common.si_na_get_params)
-              else []
+            let params =
+              params @
+              (if keep_get_na_params
+               then
+                 (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_nl
+               else
+                 (Lazy.force
+                   (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_nl))
             in
-            let params = params @ na_get_params in
-            let get_params_but_na_nl =
-              (Lazy.force
-                 (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_nl)
-            in
-            let params = get_params_but_na_nl @ params in
-
-
 
 
             let ssl = Eliom_sessions.get_ssl ~sp in

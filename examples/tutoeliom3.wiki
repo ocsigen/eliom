@@ -59,8 +59,7 @@ It is now also possible to handle static pages with Eliom, using
       <<span class="code"|Eliom_predefmod.Files>> ([[eliom/manual/dev/3#p3eliomfiles|see later]]).
       
           
-      <<|====Static parts of a page
-      <em>To be available soon</em> >>
+      <!-- h4>Static parts of a page</h4>      <em>To be available soon</em -->
     
         >>
 
@@ -422,7 +421,7 @@ These modules allow to:
           
 
           
-Note that persistent data are serialized on hard disk using
+Note that persistent data are serialized on hard drive using
         OCaml's <<span class="code"|Marshal>> module:
       
           
@@ -530,7 +529,7 @@ val remove : 'value table -> string -> unit Lwt.t
 
 
           ====Persistent session data
-
+          
           
 <<span class="code"|Eliom>> also implements persistent session tables.
        You can use them instead of memory tables if you don't need
@@ -945,7 +944,7 @@ let connect_action_handler sp () login =
   Eliom_sessions.close_session  ~sp () ~>>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) ~sp login;
+    Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10)  ~sp login;
     return ()
   end
   else begin
@@ -1244,8 +1243,7 @@ You can add your own options in the configuration
           
        Use <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|<<span class="code"|Eliom_sessions.get_config ()>>>> during the initialization
        of your module to get the data between
-       <<span class="code"|<eliom>>> and <<span class="code"|</eliom>>> or between
-       <<span class="code"|<eliommodule>>> and <<span class="code"|</eliommodule>>>.
+       <<span class="code"|<eliom>>> and <<span class="code"|</eliom>>>.
        Warning: parsing these data is very basic for now.
        That feature will be improved in the future.
       
@@ -1951,7 +1949,7 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 
           
 <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_tmp_filename"|<<span class="code"|Eliom_sessions.get_tmp_filename>>>> allows to know the actual name
-       of the uploaded file on the hard disk.
+       of the uploaded file on the hard drive.
         <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_original_filename"|<<span class="code"|Eliom_sessions.get_original_filename>>>> gives the original filename.
           
 
@@ -2270,7 +2268,7 @@ If you want an Ocsigen extension with access to Eliom's
           
 From version 1.2, it is possible to link extensions and Eliom modules
   statically ([[site:staticlink|See here]]).
-      Obviously, for Eliom modules, configuration retrieval, but also service creation and registration, must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function
+      Obviously, for Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|<<span class="code"|Eliom_services.register_eliom_module>>>>. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|<<span class="code"|Eliom_sessions.get_config>>>> if the module has configuration options).
       
           
@@ -2280,18 +2278,19 @@ To initialize the module from the configuration file, use the
   syntax:
           
 
-          <<div class="pre"|<eliommodule name="//name//"> ... </eliommodule>
+          <<div class="pre"|<eliommodule name="//name//"> ... </eliom>
 >>
 
           
 which is equivalent to:
           
 
-          <<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliommodule>
+          <<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliom>
 >>
 
           
-with the exception that it does not load the module using <<span class="code"|Dynlink>>, but calls the initialization function. (Also works with <<span class="code"|<eliom>>> tag).
+with the exception that it does not load the module using <<span class="code"|Dynlink>>, but calls the initialization function.
+          
   
         >>
 

@@ -420,195 +420,215 @@ let remove_prefixed_param pref l =
         with Invalid_argument _ -> a::(aux l)
   in aux l
 
+(* After an action, we do not take into account actual get params,
+   but these ones: *)
+let eliom_params_after_action = Polytables.make_key ()
+
+
 let get_session_info ri previous_extension_err =
   let ri_whole = ri
   and ri = ri.Ocsigen_extensions.request_info in
-  Lazy.force ri.Ocsigen_extensions.ri_post_params >>=
-  (fun post_params ->
-    let get_params = Lazy.force ri.Ocsigen_extensions.ri_get_params in
-    let get_params0 = get_params in
-    let post_params0 = post_params in
-    let nl_get_params, get_params = split_nl_prefix_param get_params in
-    let nl_post_params, post_params = split_nl_prefix_param post_params in
+  Lazy.force ri.Ocsigen_extensions.ri_post_params >>= fun post_params ->
+  let get_params = Lazy.force ri.Ocsigen_extensions.ri_get_params in
+  let get_params0 = get_params in
+  let post_params0 = post_params in
+
+  let get_params, post_params, 
+    (all_get_params, all_post_params,
+     nl_get_params, nl_post_params, 
+     all_get_but_nl) = 
+    try
+      (get_params, 
+       post_params,
+       Polytables.get
+         ~table:ri.Ocsigen_extensions.ri_request_cache
+         ~key:eliom_params_after_action)
+    with Not_found -> 
+    let nl_get_params, get_params = split_nl_prefix_param get_params0 in
+    let nl_post_params, post_params = split_nl_prefix_param post_params0 in
     let all_get_but_nl = get_params in
+    get_params, post_params,
+    (get_params0, post_params0, nl_get_params, nl_post_params, all_get_but_nl)
+  in
 
-    let data_cookies = getcookies datacookiename
+  let data_cookies = getcookies datacookiename
+    (Lazy.force ri.Ocsigen_extensions.ri_cookies)
+  in
+  let service_cookies = getcookies servicecookiename
+    (Lazy.force ri.Ocsigen_extensions.ri_cookies)
+  in
+  let persistent_cookies =
+    getcookies
+      persistentcookiename
+      (Lazy.force ri.Ocsigen_extensions.ri_cookies)
+  in
+  
+  let secure_cookie_info =
+    if ri.Ocsigen_extensions.ri_ssl
+    then
+      let sdata_cookies = getcookies sdatacookiename
         (Lazy.force ri.Ocsigen_extensions.ri_cookies)
-    in
-    let service_cookies = getcookies servicecookiename
+      in
+      let sservice_cookies = getcookies sservicecookiename
         (Lazy.force ri.Ocsigen_extensions.ri_cookies)
-    in
-    let persistent_cookies =
-      getcookies
-        persistentcookiename
-        (Lazy.force ri.Ocsigen_extensions.ri_cookies)
-    in
-
-    let secure_cookie_info =
-      if ri.Ocsigen_extensions.ri_ssl
-      then
-        let sdata_cookies = getcookies sdatacookiename
+      in
+      let spersistent_cookies =
+        getcookies
+          spersistentcookiename
           (Lazy.force ri.Ocsigen_extensions.ri_cookies)
-        in
-        let sservice_cookies = getcookies sservicecookiename
-          (Lazy.force ri.Ocsigen_extensions.ri_cookies)
-        in
-        let spersistent_cookies =
-          getcookies
-            spersistentcookiename
-            (Lazy.force ri.Ocsigen_extensions.ri_cookies)
-        in
-        Some (sservice_cookies, sdata_cookies, spersistent_cookies)
-      else None
-    in
-
-    let naservice_info,
-      (get_state, post_state),
-      (get_params, other_get_params),
-      all_get_but_na_nl,
-      all_na_get_params,
-      post_params =
-      let post_naservice_name, na_post_params =
+      in
+      Some (sservice_cookies, sdata_cookies, spersistent_cookies)
+    else None
+  in
+  
+  let naservice_info,
+    (get_state, post_state),
+    (get_params, other_get_params),
+    na_get_params,
+    post_params =
+    let post_naservice_name, na_post_params =
+      try
+        let n, pp =
+          Ocsigen_lib.list_assoc_remove naservice_num post_params
+        in (Na_post' n, pp)
+      with Not_found ->
         try
           let n, pp =
-            Ocsigen_lib.list_assoc_remove naservice_num post_params
-          in (Na_post' n, pp)
-        with Not_found ->
-          try
-            let n, pp =
-              Ocsigen_lib.list_assoc_remove naservice_name post_params
-            in (Na_post_ n, pp)
-          with Not_found -> (Na_no, [])
-      in
-      match post_naservice_name with
-        | Na_post_ _
-        | Na_post' _ -> (* POST non attached coservice *)
-            (post_naservice_name,
-             (Att_no, Att_no),
-             ([], get_params),
-             (lazy
-                (List.remove_assoc naservice_name
-                   (List.remove_assoc naservice_num
-                      (remove_prefixed_param na_co_param_prefix get_params)))),
-             (lazy
-                (try
-                   (try
-                      (naservice_name, List.assoc naservice_name get_params)
-                    with Not_found ->
-                      (naservice_num, List.assoc naservice_num get_params))
-                   ::(fst (split_prefix_param na_co_param_prefix get_params))
-                 with Not_found -> [])
-             ),
-             na_post_params)
-        | _ ->
-            let get_naservice_name, 
-              na_name_num,
-              (na_get_params, other_get_params) =
+            Ocsigen_lib.list_assoc_remove naservice_name post_params
+          in (Na_post_ n, pp)
+        with Not_found -> (Na_no, [])
+    in
+    match post_naservice_name with
+      | Na_post_ _
+      | Na_post' _ -> (* POST non attached coservice *)
+          (post_naservice_name,
+           (Att_no, Att_no),
+           ([], get_params),
+           (lazy
+              (try
+                 (try
+                    (naservice_name, List.assoc naservice_name get_params)
+                  with Not_found ->
+                    (naservice_num, List.assoc naservice_num get_params))
+                 ::(fst (split_prefix_param na_co_param_prefix get_params))
+               with Not_found -> [])
+           ),
+           na_post_params)
+      | _ ->
+          let get_naservice_name, 
+            na_name_num,
+            (na_get_params, other_get_params) =
+            try
+              let n, gp =
+                Ocsigen_lib.list_assoc_remove naservice_num get_params
+              in (Na_get' n,
+                  [(naservice_num, n)],
+                  (split_prefix_param na_co_param_prefix gp))
+            with Not_found ->
               try
                 let n, gp =
-                  Ocsigen_lib.list_assoc_remove naservice_num get_params
-                in (Na_get' n,
-                    [(naservice_num, n)],
+                  Ocsigen_lib.list_assoc_remove naservice_name get_params
+                in (Na_get_ n,
+                    [(naservice_name, n)],
                     (split_prefix_param na_co_param_prefix gp))
-              with Not_found ->
-                try
-                  let n, gp =
-                    Ocsigen_lib.list_assoc_remove naservice_name get_params
-                  in (Na_get_ n,
-                      [(naservice_name, n)],
-                      (split_prefix_param na_co_param_prefix gp))
-                with Not_found -> (Na_no, [], ([], get_params))
-            in
-            match get_naservice_name with
-              | Na_get_ _
-              | Na_get' _ -> (* GET non attached coservice *)
-                  (get_naservice_name,
-                   (Att_no, Att_no),
-                   (na_get_params, other_get_params),
-                   (lazy other_get_params),
-                   (lazy (na_name_num@na_get_params)),
-                   [])
-                    (* Not possible to have POST parameters
-                       without naservice_num
-                       if there is a GET naservice_num
-                    *)
-              | _ ->
-                  let get_params1 = get_params in
-                  let post_state, post_params =
-                    try
-                      let s, pp =
-                        Ocsigen_lib.list_assoc_remove
-                          post_numstate_param_name post_params
-                      in (Att_anon s, pp)
-                    with
-                        Not_found -> 
-                          try
-                            let s, pp =
-                              Ocsigen_lib.list_assoc_remove
-                                post_state_param_name post_params
-                            in (Att_named s, pp)
-                          with
-                              Not_found -> (Att_no, post_params)
-                  in
-                  let get_state, (get_params, other_get_params) =
+              with Not_found -> (Na_no, [], ([], get_params))
+          in
+          match get_naservice_name with
+            | Na_get_ _
+            | Na_get' _ -> (* GET non attached coservice *)
+                (get_naservice_name,
+                 (Att_no, Att_no),
+                 (na_get_params, other_get_params),
+                 (lazy (na_name_num@na_get_params)),
+                 [])
+                  (* Not possible to have POST parameters
+                     without naservice_num
+                     if there is a GET naservice_num
+                  *)
+            | _ ->
+                let post_state, post_params =
+                  try
+                    let s, pp =
+                      Ocsigen_lib.list_assoc_remove
+                        post_numstate_param_name post_params
+                    in (Att_anon s, pp)
+                  with
+                      Not_found -> 
+                        try
+                          let s, pp =
+                            Ocsigen_lib.list_assoc_remove
+                              post_state_param_name post_params
+                          in (Att_named s, pp)
+                        with
+                            Not_found -> (Att_no, post_params)
+                in
+                let get_state, (get_params, other_get_params) =
+                  try
+                    let s, gp =
+                      Ocsigen_lib.list_assoc_remove
+                        get_numstate_param_name get_params
+                    in ((Att_anon s),
+                        (split_prefix_param co_param_prefix gp))
+                  with Not_found ->
                     try
                       let s, gp =
                         Ocsigen_lib.list_assoc_remove
-                          get_numstate_param_name get_params
-                      in ((Att_anon s),
+                          get_state_param_name get_params
+                      in ((Att_named s),
                           (split_prefix_param co_param_prefix gp))
-                    with Not_found ->
-                      try
-                        let s, gp =
-                          Ocsigen_lib.list_assoc_remove
-                            get_state_param_name get_params
-                        in ((Att_named s),
-                            (split_prefix_param co_param_prefix gp))
-                      with Not_found -> (Att_no, (get_params, []))
-                  in
-                  (Na_no,
-                   (get_state, post_state),
-                   (get_params, other_get_params),
-                   lazy get_params1,
-                   (lazy (na_name_num@na_get_params)),
-                   post_params)
-    in
-    let persistent_nl_get_params =
-      lazy
-        (Ocsigen_lib.String_Table.fold
-           (fun k a t -> if nl_is_persistent k
-            then Ocsigen_lib.String_Table.add k a t
-            else t)
-           nl_get_params Ocsigen_lib.String_Table.empty)
-    in
-    let ri', sess =
-      {ri with
-        Ocsigen_extensions.ri_method =
+                    with Not_found -> (Att_no, (get_params, []))
+                in
+                (Na_no,
+                 (get_state, post_state),
+                 (get_params, other_get_params),
+                 (lazy (na_name_num@na_get_params)),
+                 post_params)
+  in
+  let persistent_nl_get_params =
+    lazy
+      (Ocsigen_lib.String_Table.fold
+         (fun k a t -> if nl_is_persistent k
+          then Ocsigen_lib.String_Table.add k a t
+          else t)
+         nl_get_params Ocsigen_lib.String_Table.empty)
+  in
+  let ri', sess =
+    {ri with
+       Ocsigen_extensions.ri_method =
         (if ri.Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.HEAD
-        then Ocsigen_http_frame.Http_header.GET
-        else ri.Ocsigen_extensions.ri_method);
-        Ocsigen_extensions.ri_get_params = lazy get_params;
-        Ocsigen_extensions.ri_post_params = lazy (return post_params)},
-       {si_service_session_cookies= service_cookies;
-        si_data_session_cookies= data_cookies;
-        si_persistent_session_cookies= persistent_cookies;
-        si_secure_cookie_info= secure_cookie_info;
-        si_nonatt_info= naservice_info;
-        si_state_info= (get_state, post_state);
-        si_other_get_params= other_get_params;
-        si_all_get_params= get_params0;
-        si_all_post_params= post_params0;
-        si_previous_extension_error= previous_extension_err;
-        si_na_get_params= all_na_get_params;
-        si_nl_get_params= nl_get_params;
-        si_nl_post_params= nl_post_params;
-        si_persistent_nl_get_params= persistent_nl_get_params;
-        si_all_get_but_nl= all_get_but_nl;
-        si_all_get_but_na_nl= all_get_but_na_nl;
-       }
-    in
-    Lwt.return
-    ({ ri_whole with Ocsigen_extensions.request_info = ri' }, sess))
+         then Ocsigen_http_frame.Http_header.GET
+         else ri.Ocsigen_extensions.ri_method);
+       (* Here we modify ri, instead of putting service parameters in si.
+          Thus it works better after actions: 
+          the request can be taken by other extensions, with new parameters.
+          Initial parameters are kept in si.
+       *)
+       Ocsigen_extensions.ri_get_params = lazy get_params;
+       Ocsigen_extensions.ri_post_params = lazy (return post_params)},
+    {si_service_session_cookies= service_cookies;
+     si_data_session_cookies= data_cookies;
+     si_persistent_session_cookies= persistent_cookies;
+     si_secure_cookie_info= secure_cookie_info;
+     si_nonatt_info= naservice_info;
+     si_state_info= (get_state, post_state);
+     si_other_get_params= other_get_params;
+     si_all_get_params= all_get_params;
+     si_all_post_params= all_post_params;
+     si_previous_extension_error= previous_extension_err;
+     si_na_get_params= na_get_params;
+     si_nl_get_params= nl_get_params;
+     si_nl_post_params= nl_post_params;
+     si_persistent_nl_get_params= persistent_nl_get_params;
+     si_all_get_but_nl= all_get_but_nl;
+     si_all_get_but_na_nl= 
+        lazy
+          (List.remove_assoc naservice_name
+             (List.remove_assoc naservice_num
+                (remove_prefixed_param na_co_param_prefix get_params0)));
+    }
+  in
+  Lwt.return
+    ({ ri_whole with Ocsigen_extensions.request_info = ri' }, sess)
 
 
 

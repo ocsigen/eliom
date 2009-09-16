@@ -2150,11 +2150,23 @@ module Actionreg_ = struct
                     Ocsigen_http_frame.Http_header.GET
                       (* no post params, GET attached coservice *)
                     ->
+                      Polytables.set
+                        ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                        Eliom_common.eliom_params_after_action
+                        (si.Eliom_common.si_all_get_params,
+                         si.Eliom_common.si_all_post_params, (* is [] *)
+                         si.Eliom_common.si_nl_get_params,
+                         si.Eliom_common.si_nl_post_params,
+                         si.Eliom_common.si_all_get_but_nl)
+                      ;
                       let ri =
                         {ri.request_info with
-                           ri_get_params =
-                            lazy si.Eliom_common.si_other_get_params;
                            ri_cookies= lazy ric;
+                           ri_get_params = 
+                            lazy si.Eliom_common.si_other_get_params;
+       (* Here we modify ri, 
+          thus the request can be taken by other extensions, 
+          with its new parameters *)
                         }
                       in
                       Ocsigen_extensions.serve_request 
@@ -2166,13 +2178,22 @@ module Actionreg_ = struct
                       (* POST na coservice *)
                       (* retry without POST params *)
                       
+                      Polytables.set
+                        ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                        Eliom_common.eliom_params_after_action
+                        (si.Eliom_common.si_all_get_params,
+                         si.Eliom_common.si_all_post_params,
+                         si.Eliom_common.si_nl_get_params,
+                         si.Eliom_common.si_nl_post_params,
+                         si.Eliom_common.si_all_get_but_nl)
+                      ;
                       let ri =
                         {ri.request_info with
-                           ri_post_params = lazy (return []);
-                           ri_get_params =
-                            lazy si.Eliom_common.si_other_get_params;
                            ri_method = Ocsigen_http_frame.Http_header.GET;
                            ri_cookies= lazy ric;
+                           ri_get_params = 
+                            lazy si.Eliom_common.si_other_get_params;
+                           ri_post_params = lazy (Lwt.return [])
                         }
                       in
                       Ocsigen_extensions.serve_request
@@ -2183,12 +2204,24 @@ module Actionreg_ = struct
 (*VVV 
 Warning: is it possible to have POST method but no POST parameter?
 --> may loop...
+(we impose GET)
 *)
+                      Polytables.set
+                        ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                        Eliom_common.eliom_params_after_action
+                        (si.Eliom_common.si_all_get_params,
+                         si.Eliom_common.si_all_post_params,
+                         si.Eliom_common.si_nl_get_params,
+                         si.Eliom_common.si_nl_post_params,
+                         si.Eliom_common.si_all_get_but_nl)
+                      ;
                       let ri = 
                         {ri.request_info with
-                           ri_post_params = lazy (return []);
                            ri_method = Ocsigen_http_frame.Http_header.GET;
                            ri_cookies= lazy ric;
+                           ri_get_params = 
+                            lazy si.Eliom_common.si_other_get_params;
+                           ri_post_params = lazy (Lwt.return [])
                         }
                       in
                       Ocsigen_extensions.serve_request
