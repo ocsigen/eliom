@@ -351,7 +351,7 @@ let preappliedsuffix =
 
 let url_encoding =
   register_new_service
-    ~path:["urlencoding"]
+    ~path:["urlencoding&à/=é?ablah"]
     ~get_params:(suffix_prod (all_suffix "s//\\à") any)
     (fun sp (suf, l) () ->
       let ll =
@@ -1359,9 +1359,9 @@ let mainpage = register_new_service ["tests"] unit
            ~fragment:"a--   ---++&é/@"
            ~service:url_encoding ~sp
            [pcdata "Urls with strange characters inside"]
-           (["l/l%l      &l=l+l)l@";"m\\m\"m";"nèn~n"],
-            [("po?po&po~po/po+po", "lo\"l     o#lo'lo lo=lo&l      o/lo+lo");
-            ("bo=mo@co:ro", "zo^zo%zo$zo:zo")]); br ();
+           (["l/l%l      &l=l+l)l@";"m\\m\"m";"n?èn~n"],
+            [("po?po&po~po/po+po", "lo?\"l     o#lo'lo lo=lo&l      o/lo+lo");
+            ("bo=mo@co:ro", "zo^zo%zo$zo:zo?aaa")]); br ();
          a ~service:(static_dir_with_params ~sp ~get_params:Eliom_parameters.any ())
            ~sp 
            [pcdata "Static file with GET parameters"]
@@ -1373,7 +1373,7 @@ let mainpage = register_new_service ["tests"] unit
 
          a nlparams sp [pcdata "nl params and suffix, on void coservice"] ((3, 5), 222); br ();
          a optsuf sp [pcdata "optional suffix"] None; br ();
-         a optsuf sp [pcdata "optional suffix"] (Some ("toto", None)); br ();
+         a optsuf sp [pcdata "optional suffix"] (Some ("<a to/to=3?4=2>", None)); br ();
          a optsuf sp [pcdata "optional suffix"] (Some ("toto", Some 2)); br ();
          a optsuf2 sp [pcdata "optional suffix 2"] (Some "un", Some 2); br ();
          a optsuf2 sp [pcdata "optional suffix 2"] (None, Some 2); br ();

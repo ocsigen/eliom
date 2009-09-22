@@ -254,7 +254,7 @@ let construct_params_list_raw
           | a::l ->
               (make_suffix t (Obj.magic a))@
                 (make_suffix typ (Obj.magic l)))
-    | TUserType (_, of_string, string_of) ->[string_of (Obj.magic params)]
+    | TUserType (_, of_string, string_of) -> [string_of (Obj.magic params)]
     | TSum (t1, t2) ->
         (match Obj.magic params with
            | Inj1 p -> make_suffix t1 p

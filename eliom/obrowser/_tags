@@ -1,2 +1,3 @@
 <**/*.ml*>: pkg_obrowser, pkg_lwt.syntax, syntax_camlp4o, pkg_str
 <pa_eliom_obrowser.ml>: pkg_camlp4, pkg_camlp4.quotations.o, syntax_camlp4o, pkg_camlp4.lib, pkg_camlp4.extend, -pkg_lwt.syntax
+<eliom_parameters.ml>: pkg_netstring

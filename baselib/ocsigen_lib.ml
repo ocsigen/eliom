@@ -467,26 +467,27 @@ module MyUrl = struct
 
   let of_hex1 c =
     match c with
-        ('0'..'9') -> Char.code c - Char.code '0'
+      | ('0'..'9') -> Char.code c - Char.code '0'
       | ('A'..'F') -> Char.code c - Char.code 'A' + 10
       | ('a'..'f') -> Char.code c - Char.code 'a' + 10
       | _ ->
         raise Not_found ;;
 
   let url_encoding_re =
-    Netstring_pcre.regexp "[^A-Za-z0-9_.!*-~]";;
+    Netstring_pcre.regexp "[^A-Za-z0-9~_.!*\\-]";;
 
   let encode ?(plus = true) s =
     Netstring_pcre.global_substitute
       url_encoding_re
       (fun r _ ->
          match Netstring_pcre.matched_string r s with
-             " " when plus -> "+"
+           | " " when plus -> "+"
            | x ->
                let k = Char.code(x.[0]) in
                "%" ^ to_hex2 k
       )
-      s ;;
+      s
+
 end
 
 let encode = MyUrl.encode

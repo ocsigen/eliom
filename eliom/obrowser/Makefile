@@ -4,14 +4,28 @@ OCAMLBUILD:= ocamlbuild -classic-display
 
 all: $(CMA)
 
-$(CMA):
-	cp -f ../eliom_parameters_obrowser.ml eliom_parameters.ml
-	cp -f ../eliom_services_obrowser.ml eliom_services.ml
-	cp -f ../eliom_common_obrowser.ml eliom_common.ml
-	cp -f ../eliom_mkforms.ml .
-	cp -f ../../baselib/ocsigen_lib_obrowser.ml .
-	cp -f ../../baselib/polytables.ml .
+$(CMA): mls
 	$(OCAMLBUILD) $(CMA)
+
+mls: eliom_parameters.ml eliom_services.ml eliom_common.ml eliom_mkforms.ml ocsigen_lib_obrowser.ml polytables.ml
+
+eliom_parameters.ml: ../eliom_parameters_obrowser.ml
+	cp -f ../eliom_parameters_obrowser.ml eliom_parameters.ml
+
+eliom_services.ml: ../eliom_services_obrowser.ml
+	cp -f ../eliom_services_obrowser.ml eliom_services.ml
+
+eliom_common.ml: ../eliom_common_obrowser.ml
+	cp -f ../eliom_common_obrowser.ml eliom_common.ml
+
+eliom_mkforms.ml: ../eliom_mkforms.ml
+	cp -f ../eliom_mkforms.ml .
+
+ocsigen_lib_obrowser.ml: ../../baselib/ocsigen_lib_obrowser.ml .
+	cp -f ../../baselib/ocsigen_lib_obrowser.ml .
+
+polytables.ml: ../../baselib/polytables.ml
+	cp -f ../../baselib/polytables.ml .
 
 #_build/pa_eliom_obrowser.cmo:
 #	$(OCAMLBUILD) $@
