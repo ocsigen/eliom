@@ -1,5 +1,5 @@
 # Write here all the findlib packages you need, for example:
-PACKAGES= lwt,ocsigen
+PACKAGES= lwt.unix,ocsigen
 
 # Write here all your .ml files, in dependency order (default: all)
 FILES=$(wildcard *.ml)

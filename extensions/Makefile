@@ -48,7 +48,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package lwt,netstring$(PACKCAMLZIP)$(PACKSQLITE) $(LIBDIRS)
+LIB = -thread -package lwt.unix,netstring$(PACKCAMLZIP)$(PACKSQLITE) $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)

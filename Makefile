@@ -269,7 +269,7 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) -package lwt,ssl,netstring$(DUCEPACK) $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -intro files/indexdoc -d doc -html $(DOC)
+	$(CAMLDOC) -package lwt.ssl,netstring$(DUCEPACK) $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -intro files/indexdoc -d doc -html $(DOC)
 
 doc/index.html: doc
 

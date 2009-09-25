@@ -11,7 +11,7 @@ CMXS=
 endif
 
 
-LIB = -thread -package lwt,netstring,dbm $(LIBDIRS2)
+LIB = -thread -package lwt.unix,netstring,dbm $(LIBDIRS2)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)

@@ -20,7 +20,7 @@ CMXS=
 endif
 
 
-LIB = $(LIBDIRS) -package lwt,netstring,camlp4
+LIB = $(LIBDIRS) -package lwt.unix,netstring,camlp4
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIB)

@@ -75,7 +75,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package lwt,netstring,cryptokit $(LIBDIRS)
+LIB = -thread -package lwt.unix,netstring,cryptokit $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)

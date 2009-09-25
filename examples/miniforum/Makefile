@@ -10,7 +10,7 @@ CAMLDOC = ocamlfind ocamldoc $(LIB)
 CAMLDEP = ocamlfind ocamldep
 OCSIGENREP = `ocamlfind query ocsigen`
 #OCSIGENREP = ../ocsigen/lib
-LIB = -package lwt,ocsigen$(PACKAGES) -I $(OCSIGENREP)
+LIB = -package lwt.unix,ocsigen$(PACKAGES) -I $(OCSIGENREP)
 # If you use the syntax extension:
 # PP = -pp "camlp4o $(OCSIGENREP)/xhtmlsyntax.cma"
 # otherwise
