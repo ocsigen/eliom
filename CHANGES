@@ -19,6 +19,15 @@
   * Server: EXPERIMENTAL now possible to observe HTTP headers before sending
   the result.
 
+===== 1.2.1 (26/09/2009) =====
+
+  * Lwt 2.0 compatibility:
+    ** Adapt to Lwt.t/Lwt.u splitting
+    ** fix Makefile to deal with lwt.unix findlib package
+  * Fix ocsipersist-dbm Makefile
+  * Fix for pcre-ocaml 6.0.0
+  * Fix typo regarding --stubdir in configure script
+
 ===== 1.2.0 (25/03/2009) =====
 
   * Native code version now compiled by default
