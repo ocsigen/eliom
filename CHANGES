@@ -19,7 +19,7 @@
   * Server: EXPERIMENTAL now possible to observe HTTP headers before sending
   the result.
 
-===== 1.2.1 (26/09/2009) =====
+===== 1.2.1 (2009-09-26) =====
 
   * Lwt 2.0 compatibility:
     ** Adapt to Lwt.t/Lwt.u splitting
@@ -28,7 +28,7 @@
   * Fix for pcre-ocaml 6.0.0
   * Fix typo regarding --stubdir in configure script
 
-===== 1.2.0 (25/03/2009) =====
+===== 1.2.0 (2009-03-25) =====
 
   * Native code version now compiled by default
   * Now possible to link extensions and Eliom modules statically, for
@@ -83,7 +83,7 @@
   * Staticmod: accessing a directory for which indexing is disallowed
     returns an error 404 (instead of a 403 previously)
 
-===== 1.1.0 (15/07/2008) =====
+===== 1.1.0 (2008-07-15) =====
 
   * Lwt removed (now distributed separately)
   * {{{XHTML.M}}} pretty printer: fixing pretty printing of empty tags
@@ -119,7 +119,7 @@
   * Deflatemod: fixing memory leak
   * And small bugfixes in XHTML.M, Eliom, ...
 
-===== 1.0.0 (01/04/2008) =====
+===== 1.0.0 (2008-04-01) =====
 
   * Config file: findlib integration
   * Eliom and Ocsigen: changing namespace convention for modules
@@ -132,7 +132,7 @@
   * Reverse proxy: Bugfix memory consumption when the connection was
     closed by client
 
-===== 0.99.5 (11/01/2008) =====
+===== 0.99.5 (2008-01-11) =====
 
   * Revproxy: pipelining of requests
   * Access control: simplification, generalization of filters and
@@ -161,7 +161,7 @@
   * Cgimod: bufixes in path handling
   * Web server: bugfix - some files were not closed
 
-===== 0.99.4 (21/11/2007) =====
+===== 0.99.4 (2007-11-21) =====
 
   * Ocsigen: Changes in the extension mechanism. The extensions are
     not tried in the order in which they are loaded any more, but in
@@ -185,7 +185,7 @@
     ** XHTML: Allowing any value for {{{<link>}}} rel attribute (for
        example {{{shortcut icon}}}).
 
-===== 0.99.3 (07/11/2007) =====
+===== 0.99.3 (2007-11-07) =====
 
   * Ocsigen: New module Deflatemod to compress data before sending to
     the browser.
@@ -235,7 +235,7 @@
     ** Cgimod: Bugfix - Some file descriptors were not closed.
     ** Cgimod: Implementing a timeout on CGI scripts.
 
-===== 0.99.2 (21/08/2007) =====
+===== 0.99.2 (2007-08-21) =====
 
   * Eliom: New implementation of forms. All missing cases implemented,
     and more possibilities, such as untyped forms.
@@ -259,7 +259,7 @@
   * Eliom: GET Services do not answer any more to POST requests
     without parameters.
 
-===== 0.99.1 (15/05/2007) =====
+===== 0.99.1 (2007-05-15) =====
 
   * Eliom: Now possible to set an exception handler for the whole site
     to personalize error pages (404, 500, etc.)
@@ -276,7 +276,7 @@
   * Eliom: Bugfix - GC of sessions and session data
   * Eliom: Bugfix - GET actions were not working properly
 
-===== 0.99.0 (05/05/2007) =====
+===== 0.99.0 (2007-05-05) =====
 
   * EXPERIMENTAL: Native code support. It is now possible to use
     Ocsigen in native code. BUT: to use that, you need a modified
@@ -334,7 +334,7 @@
     without stoping the server.
   * Staticmod: Rewriting of URLs using regular expressions.
 
-===== 0.6.0 (14/03/2007) =====
+===== 0.6.0 (2007-03-14) =====
 
   * {{{configure}}} script
   * {{{<select>}}} in forms, by Stéphane Dalmas
@@ -356,7 +356,7 @@
     Ocsimore is not supported anymore. Ocsimore has been rewritten
     from scratch by Piero Furiesi.
 
-===== 0.5.1 (14/12/2006) =====
+===== 0.5.1 (2006-12-14) =====
 
   * Bugfix Konqueror: Multipart forms with now work correctly with
     Konqueror
@@ -370,7 +370,7 @@
   * Daemon mode: adding setsid and redirect stdout/stderr to
     /dev/null. Closing stdin.
 
-===== 0.5.0 (23/11/2006) =====
+===== 0.5.0 (2006-11-23) =====
 
   * HTTP 1.1 improved (HEAD, ETag, keep-alive implemented,
     If-Modified-Since, ...)
@@ -410,7 +410,7 @@
   * Bugfix: escaping of strings in xhtml with syntax extension (thanks
     to David Mentre)
 
-===== 0.4.0 (06/06/2006) =====
+===== 0.4.0 (2006-06-06) =====
 
   * Full reimplementation of the core using Generalized Algebraic Data
     Types,
@@ -433,7 +433,7 @@
   * EXPERIMENTAL: sums, bool and list types for services and forms
   * small bugfixes
 
-===== 0.3.27 (27/04/2006) =====
+===== 0.3.27 (2006-04-27) =====
 
   * Change the way to get server parameters
 
@@ -442,18 +442,18 @@
   * Load unsafe modules
   * Other small changes
 
-===== 0.3.25-2 (24/02/2006) =====
+===== 0.3.25-2 (2006-02-24) =====
 
   * Small bugfix for 64 bits processors
   * bugfix for static files
   * {{{action_link}}} is now called {{{action_a}}}
 
-===== 0.3.24 (07/02/2006) =====
+===== 0.3.24 (2006-02-07) =====
 
   * More documentation
   * Change types {{{internal_url}}} and {{{external_service}}} to use
     polymorphic variants
 
-===== 0.3.23 (07/02/2006) =====
+===== 0.3.23 (2006-02-07) =====
 
   * Better handling of static files and "403 Forbidden" message
