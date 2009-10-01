@@ -220,17 +220,26 @@ let rec parse_global_config = function
 
 (*****************************************************************************)
 
+let exception_during_eliommodule_loading = ref false
+
+
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
-  try
-    Eliom_common.verify_all_registered
-      (Eliom_common.get_current_sitedata ());
-    Eliom_common.end_current_sitedata ()
-  with Eliom_common.Eliom_function_forbidden_outside_site_loading _ -> ()
-(*VVV The "try with" looks like a hack:
-  end_init is called even for user config files ... but in that case,
-  current_sitedata is not set ...
-  It would be better to avoid calling end_init for user config files. *)
+  if !exception_during_eliommodule_loading then
+    (* An eliom module failed with an exception. We do not check
+       for the missing services, so that the exception can be correctly
+       propagated by Ocsigen_extensions *)
+    ()
+  else
+    try
+      Eliom_common.verify_all_registered
+        (Eliom_common.get_current_sitedata ());
+      Eliom_common.end_current_sitedata ()
+    with Eliom_common.Eliom_function_forbidden_outside_site_loading _ -> ()
+      (*VVV The "try with" looks like a hack:
+        end_init is called even for user config files ... but in that case,
+        current_sitedata is not set ...
+        It would be better to avoid calling end_init for user config files. *)
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
@@ -376,8 +385,10 @@ let parse_config hostpattern site_dir =
         Eliommod_extensions.register_eliom_extension 
           default_module_action;
         (match parse_module_attrs None atts with
-          | Some file_or_name -> 
-              load_eliom_module sitedata file_or_name content
+          | Some file_or_name ->
+              exception_during_eliommodule_loading := true;
+              load_eliom_module sitedata file_or_name content;
+              exception_during_eliommodule_loading := false
           | _ -> ());
         if Eliommod_extensions.get_eliom_extension ()
           != default_module_action
