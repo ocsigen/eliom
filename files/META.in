@@ -205,7 +205,7 @@ package "eliom_obrowser_syntax" (
 )
 
 package "lwt_obrowser" (
-    requires = "lwt.withoutunix"
+    requires = "lwt"
     version = "[distributed with Ocsigen]"
     description = "Using Lwt in OBrowser"
     archive(byte) = "lwt_obrowser.cma"
