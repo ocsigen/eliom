@@ -279,9 +279,9 @@ let gen is_eliom_extension sitedata = function
                    Ocsigen_senders.Xhtml_content.result_of_content
                      (Error_pages.page_bad_param 
                         (try 
-                           Polytables.get
+                           ignore (Polytables.get
                              ~table:ri.request_info.Ocsigen_extensions.ri_request_cache
-                             ~key:Eliom_common.eliom_params_after_action;
+                             ~key:Eliom_common.eliom_params_after_action);
                            true 
                          with Not_found -> false)
                         (Lazy.force ri.request_info.ri_get_params)
