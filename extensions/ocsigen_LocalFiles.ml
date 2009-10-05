@@ -81,6 +81,8 @@ let check_symlinks ~no_check_for ~filename policy =
 
 
 let can_send filename request =
+  let filename =
+    Neturl.join_path (Neturl.norm_path (Neturl.split_path filename)) in
   Ocsigen_messages.debug
     (fun () -> Printf.sprintf "--LocalFiles: checking if file %s can be sent"
        filename);
