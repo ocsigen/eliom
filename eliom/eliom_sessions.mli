@@ -1042,16 +1042,25 @@ val get_default_volatile_data_session_timeout : unit -> float option
    sessions (i.e. both service session and volatile data session)
    (server side).
    [None] = no timeout.
+
+   Warning: this function sets the default for all sites. You should
+   probably use [set_global_volatile_session_timeout] instead.
     *)
 val set_default_volatile_session_timeout : float option -> unit
 
 (** sets the default timeout for service sessions.
     [None] = no timeout.
+
+    Warning: this function sets the default for all sites. You should
+    probably use [set_global_service_session_timeout] instead.
     *)
 val set_default_service_session_timeout : float option -> unit
 
 (** sets the default timeout for "volatile data" sessions (server side).
     [None] = no timeout.
+
+    Warning: this function sets the default for all sites. You should
+    probably use [set_global_volatile_data_session_timeout] instead.
     *)
 val set_default_volatile_data_session_timeout : float option -> unit
 
@@ -1066,6 +1075,9 @@ val get_default_persistent_data_session_timeout : unit -> float option
 
 (** sets the default timeout for sessions (server side).
     [None] = no timeout.
+
+    Warning: this function sets the default for all sites. You should
+    probably use [set_global_persistent_data_session_timeout] instead.
     *)
 val set_default_persistent_data_session_timeout : float option -> unit
 
