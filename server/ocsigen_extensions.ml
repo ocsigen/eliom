@@ -897,14 +897,16 @@ let ri_of_url url ri =
     | Some h -> host
     | None -> ri.ri_host
   in
+  let path_string = string_of_url_path ~encode:true path in
   {ri with
    ri_url_string = url;
    ri_url = url2;
    ri_host = host;
-   ri_full_path_string = string_of_url_path ~encode:true path;
+   ri_full_path_string = path_string;
    ri_full_path = path;
      (* ri_original_full_path is not changed *)
    ri_sub_path = path;
+   ri_sub_path_string = path_string;
    ri_get_params_string = params;
    ri_get_params = get_params;
   }
