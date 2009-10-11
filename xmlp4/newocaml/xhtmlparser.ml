@@ -97,6 +97,7 @@ struct
     type t =
         [ EndOfTagExpected of string
         | EOFExpected
+        | NoMoreTagExpected
         | NoMoreData ] ;
 
     exception E of t ;
@@ -107,7 +108,9 @@ struct
       [ NoMoreData  -> fprintf ppf "No more data : empty quotation ?"
       | EndOfTagExpected tag ->
           fprintf ppf "Missing end of tag %S" tag
-      | EOFExpected -> fprintf ppf "End of file expected" ];
+      | EOFExpected -> fprintf ppf "End of file expected"
+      | NoMoreTagExpected -> fprintf ppf "End of quotation expected"
+      ];
 
     value to_string x =
         let b = Buffer.create 50 in
@@ -199,7 +202,7 @@ struct
                          : XHTML.M.elt [> `$uid: String.capitalize tag$])
               >>
           ]
-      | (t,_) ->
+      | ((`Endtag _ | `Eof as t),_) ->
         do {push t s;
             raise (E NoMoreData)}
       ]
@@ -268,7 +271,13 @@ struct
 
   value  to_expr stream loc =
     let s = {stream = stream; stack = Stack.create() ; loc = loc } in
-    try read_node (clean_ws s)
+    try
+      let v = read_node (clean_ws s) in
+      try match pop s with
+        [ (`Eof, _) -> v
+        | (_, s) -> err NoMoreTagExpected s.loc
+        ]
+      with [ _ -> v ]
     with [E NoMoreData -> err NoMoreData loc];
 
   value to_expr_taglist stream loc =
