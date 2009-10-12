@@ -891,20 +891,27 @@ let serve_request
 
 
 (* used to modify the url in ri (for example for retrying after rewrite) *)
-let ri_of_url url ri =
+let ri_of_url ?(full_rewrite = false) url ri =
   let (_, host, _, url, url2, path, params, get_params) = parse_url url in
   let host = match host with
     | Some h -> host
     | None -> ri.ri_host
   in
   let path_string = string_of_url_path ~encode:true path in
+  let original_fullpath, original_fullpath_string =
+    if full_rewrite
+    then (path, path_string)
+    else (ri.ri_original_full_path, ri.ri_original_full_path_string)
+  in
+     (* ri_original_full_path is not changed *)
   {ri with
    ri_url_string = url;
    ri_url = url2;
    ri_host = host;
    ri_full_path_string = path_string;
    ri_full_path = path;
-     (* ri_original_full_path is not changed *)
+   ri_original_full_path_string = original_fullpath_string;
+   ri_original_full_path = original_fullpath;
    ri_sub_path = path;
    ri_sub_path_string = path_string;
    ri_get_params_string = params;

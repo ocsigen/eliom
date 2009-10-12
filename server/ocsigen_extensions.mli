@@ -406,7 +406,7 @@ val get_port : request -> int
    This allows to modify the URL in the request_info.
    (to be used for example with Ext_retry_with or Ext_continue_with)
  *)
-val ri_of_url : string -> request_info -> request_info
+val ri_of_url : ?full_rewrite:bool -> string -> request_info -> request_info
 
 
 (** {3 User directories} *)

@@ -54,18 +54,18 @@ exception Not_concerned
 (*****************************************************************************)
 (* The table of rewrites for each virtual server                             *)
 type assockind =
-  | Regexp of Netstring_pcre.regexp * string
+  | Regexp of Netstring_pcre.regexp * string * bool
 
 
 
 (*****************************************************************************)
 (* Finding rewrites *)
 
-let find_rewrite (Regexp (regexp, dest)) suburl =
-  match Netstring_pcre.string_match regexp suburl 0 with
-  | None -> raise Not_concerned
-  | Some _ -> (* Matching regexp found! *)
-      Netstring_pcre.global_replace regexp dest suburl
+let find_rewrite (Regexp (regexp, dest, fullrewrite)) suburl =
+  (match Netstring_pcre.string_match regexp suburl 0 with
+     | None -> raise Not_concerned
+     | Some _ -> (* Matching regexp found! *)
+         Netstring_pcre.global_replace regexp dest suburl), fullrewrite
 
 
 
@@ -82,7 +82,7 @@ let gen regexp = function
     (* Is it a rewrite? *)
     (fun () ->
       Ocsigen_messages.debug2 "--Rewritemod: Is it a rewrite?";
-      let redir =
+      let redir, fullrewrite =
         let ri = ri.request_info in
         find_rewrite regexp
           (match ri.ri_get_params_string with
@@ -94,7 +94,9 @@ let gen regexp = function
       return
         (Ext_retry_with
            ({ ri with request_info =
-                Ocsigen_extensions.ri_of_url redir ri.request_info },
+                Ocsigen_extensions.ri_of_url
+                  ~full_rewrite:fullrewrite
+                  redir ri.request_info },
             Ocsigen_http_frame.Cookies.empty)
         )
     )
@@ -115,7 +117,10 @@ let parse_config = function
                    "regexp attribute expected for <rewrite>")
       | [("regexp", s); ("url", t)]
       | [("regexp", s); ("dest", t)] ->
-          Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t)
+          Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t, false)
+      | [("regexp", s); ("url", t); ("fullrewrite", "fullrewrite")]
+      | [("regexp", s); ("dest", t); ("fullrewrite", "fullrewrite")] ->
+          Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t, true)
       | _ -> raise (Error_in_config_file "Wrong attribute for <rewrite>")
       in
       gen regexp
