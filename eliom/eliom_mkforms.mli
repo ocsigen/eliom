@@ -114,7 +114,7 @@ module type FORMCREATE =
         button_content_elt_list -> button_elt
     val make_textarea :
         ?a:textarea_attrib_t ->
-          name:string -> ?value:pcdata_elt -> rows:int -> cols:int ->
+          name:string -> ?value:string -> rows:int -> cols:int ->
             unit -> textarea_elt
     val make_select :
         ?a:select_attrib_t ->
@@ -712,13 +712,13 @@ module type ELIOMFORMSIG =
 
     val textarea :
         ?a:textarea_attrib_t ->
-          name:[< string setoneradio ] param_name -> ?value:pcdata_elt ->
+          name:[< string setoneradio ] param_name -> ?value:string ->
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag *)
 
     val raw_textarea :
         ?a:textarea_attrib_t ->
-          name:string -> ?value:pcdata_elt ->
+          name:string -> ?value:string ->
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag for untyped form *)
 

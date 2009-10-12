@@ -265,11 +265,11 @@ module Xhtmlforms_ = struct
     in
     {{ <button ({type=button_type} ++ a ++ a2 ++ a3)> c }}
 
-  let make_textarea ?(a={{ {} }}) ~name ?(value={{ [] }}) ~rows ~cols () =
+  let make_textarea ?(a={{ {} }}) ~name ?(value="") ~rows ~cols () =
     {{ <textarea ({ name=(str name)
                     rows={: string_of_int rows :}
                     cols={: string_of_int cols :}
-                  } ++ a)> value }}
+                  } ++ a)> (str value) }}
 
   let make_select ?(a={{ {} }}) ~multiple ~name elt elts =
     let a2 = if multiple then {{ { multiple="multiple" } }} else {{ {} }} in

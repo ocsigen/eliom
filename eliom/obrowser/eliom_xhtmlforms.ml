@@ -169,7 +169,7 @@ module Xhtmlforms_ = struct
     Js.Node.set_attribute m "name" (str name) ;
     (match value with
        | None -> ()
-       | Some v -> Js.Node.append m v) ;
+       | Some v -> Js.Node.append m (make_pcdata v)) ;
     m
 
   let make_select ?(a=[]) ~multiple ~name elt elts =

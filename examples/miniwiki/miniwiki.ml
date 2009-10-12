@@ -349,7 +349,7 @@ let _ =
           (fun chain ->
             [(p [string_input ~input_type:`Submit ~value:"Save" (); br ();
                  textarea ~name:chain ~rows:30 ~cols:80
-                   ~value:(pcdata wikitext) ()])])
+                   ~value:wikitext ()])])
           page
       in
       wiki_page_contents_html sp page ~content:[f] () >>= fun c ->

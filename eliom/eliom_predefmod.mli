@@ -590,7 +590,7 @@ module type XHTMLFORMSSIG = sig
   val textarea :
       ?a:textarea_attrib attrib list ->
         name:[< string setoneradio ] param_name ->
-          ?value:Xhtmltypes.pcdata XHTML.M.elt ->
+          ?value:string ->
             rows:int -> cols:int ->
               unit -> [> textarea ] elt
 (** Creates a [<textarea>] tag *)
@@ -598,7 +598,7 @@ module type XHTMLFORMSSIG = sig
   val raw_textarea :
       ?a:textarea_attrib attrib list ->
         name:string ->
-          ?value:Xhtmltypes.pcdata XHTML.M.elt ->
+          ?value:string ->
             rows:int -> cols:int ->
               unit -> [> textarea ] elt
 (** Creates a [<textarea>] tag for untyped form *)

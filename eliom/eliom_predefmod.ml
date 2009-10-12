@@ -260,9 +260,9 @@ module Xhtmlforms_ = struct
     in
     button ~a:((a_button_type button_type)::a) c
 
-  let make_textarea ?(a=[]) ~name ?(value=pcdata "") ~rows ~cols () =
+  let make_textarea ?(a=[]) ~name ?(value="") ~rows ~cols () =
     let a3 = (a_name name)::a in
-    textarea ~a:a3 ~rows ~cols value
+    textarea ~a:a3 ~rows ~cols (pcdata value)
 
   let make_select ?(a=[]) ~multiple ~name elt elts =
     let a = if multiple then (a_multiple `Multiple)::a else a in
@@ -837,7 +837,7 @@ module type XHTMLFORMSSIG = sig
   val textarea :
       ?a:textarea_attrib attrib list ->
         name:[< string setoneradio ] param_name ->
-          ?value:Xhtmltypes.pcdata XHTML.M.elt ->
+          ?value:string ->
             rows:int -> cols:int ->
               unit -> [> textarea ] elt
 (** Creates a [<textarea>] tag *)
@@ -845,7 +845,7 @@ module type XHTMLFORMSSIG = sig
   val raw_textarea :
       ?a:textarea_attrib attrib list ->
         name:string ->
-          ?value:Xhtmltypes.pcdata XHTML.M.elt ->
+          ?value:string ->
             rows:int -> cols:int ->
               unit -> [> textarea ] elt
 (** Creates a [<textarea>] tag for untyped form *)
@@ -1407,21 +1407,21 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 
   let textarea = (textarea :
         ?a:textarea_attrib attrib list ->
-          name:'a -> ?value:Xhtmltypes.pcdata XHTML.M.elt ->
+          name:'a -> ?value:string ->
             rows:int -> cols:int ->
               unit -> textarea elt :>
         ?a:textarea_attrib attrib list ->
-          name:'a -> ?value:Xhtmltypes.pcdata XHTML.M.elt ->
+          name:'a -> ?value:string ->
             rows:int -> cols:int ->
               unit -> [> textarea ] elt)
 
   let raw_textarea = (raw_textarea :
         ?a:textarea_attrib attrib list ->
-          name:string -> ?value:Xhtmltypes.pcdata XHTML.M.elt ->
+          name:string -> ?value:string ->
             rows:int -> cols:int ->
               unit -> textarea elt :>
         ?a:textarea_attrib attrib list ->
-          name:string -> ?value:Xhtmltypes.pcdata XHTML.M.elt ->
+          name:string -> ?value:string ->
             rows:int -> cols:int ->
               unit -> [> textarea ] elt)
 
