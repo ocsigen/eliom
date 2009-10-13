@@ -83,6 +83,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)eliom/eliom_tools.mli					\
 	$(DOCPREF)eliom/eliom_obrowser.mli					\
 	$(DOCPREF)baselib/polytables.mli				\
+	$(DOCPREF)baselib/ocsigen_cache.mli				\
 	$(DOCPREF)extensions/ocsipersist.mli				\
 	$(DOCPREF)extensions/authbasic.mli				\
 	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
@@ -132,6 +133,7 @@ CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	xmlp4/simplexmlparser.cmi http/ocsigen_charset_mime.cmi		\
 	http/ocsigen_senders.cmi http/framepp.cmi			\
 	http/ocsigen_http_com.cmi http/http_headers.cmi			\
+	baselib/ocsigen_cache.cmi                                       \
 	baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi		\
 	http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi		\
 	baselib/ocsigen_stream.cmi baselib/ocsigen_messages.cmi		\

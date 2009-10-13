@@ -13,7 +13,7 @@ NATIVECODE_RUNTIME_DETECT=false
 DYNLINKWRAPPER=dynlink_wrapper.ml
 endif
 
-FILES= ocsigen_lib_obrowser.ml ocsigen_lib.ml \
+FILES= ocsigen_cache.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml \
        ocsigen_messages.ml ocsigen_config.ml ocsigen_stream.ml \
        ocsigen_commandline.ml ocsigen_loader.ml dynlink_wrapper.ml polytables.ml
 

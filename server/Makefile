@@ -71,6 +71,7 @@ PARSECOMMANDLINECMXA=$(PARSECOMMANDLINECMA:.cma=.cmxa)
 # cma and cmo to be linked in the server:
 
 CMOS = ../baselib/ocsigen_lib_obrowser.cmo \
+       ../baselib/ocsigen_cache.cmo \
        ../baselib/ocsigen_lib.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
        ../baselib/ocsigen_config.cmo \

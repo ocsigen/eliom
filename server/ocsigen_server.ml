@@ -1056,6 +1056,7 @@ let _ =
     | ["gc"] ->
         Gc.compact ();
         Ocsigen_messages.warning "Heap compaction requested by user"
+    | ["clearcache"] -> Ocsigen_cache.clear_all_caches ()
     | _ -> raise Ocsigen_extensions.Unknown_command
   in
   Ocsigen_extensions.register_command_function f
