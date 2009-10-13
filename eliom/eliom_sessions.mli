@@ -96,7 +96,7 @@ val get_remote_inet_addr : sp:server_params -> Unix.inet_addr
 (** returns the full path of the URL as a string. *)
 val get_current_full_path_string : sp:server_params -> string
 
-(** returns the full path of the URL using the type {!Ocsigen_extensions.Ocsigen_lib.url_path} *)
+(** returns the full path of the URL using the type {!Ocsigen_lib.url_path} *)
 val get_current_full_path : sp:server_params -> Ocsigen_lib.url_path
 
 (** returns the full path of the URL as first sent by the browser (not changed by previous extensions like rewritemod) *)
