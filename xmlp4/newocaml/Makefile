@@ -18,6 +18,8 @@ CMA = xhtmlsyntax.cma
 CMXA = xhtmlsyntax.cmxa
 
 byte: ohl-xhtml-byte $(CMA) $(OBJS)
+	camlp4r simplexmlparser.mli -printer o > pp/simplexmlparser.mli
+	camlp4r xhtmltypes.ml -printer o > pp/xhtmltypes.ml
 	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmo newocaml/basicTypes.cmi newocaml/basicTypes.cmo newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmo newocaml/xmllexer.cmi newocaml/xmllexer.cmo newocaml/camllexer.cmi newocaml/camllexer.cmo newocaml/xhtmlsyntax.cma ..
 
 opt: ohl-xhtml-opt $(CMXA) $(OBJSOPT)
