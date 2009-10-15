@@ -89,28 +89,36 @@ let print_header_content buf content =
          Buffer.add_substring buf content prev (s-prev))
     else
       let add_prev () = Buffer.add_substring buf content prev (i-prev) in
-      let c = content.[i] in
-      if c = '\r' then
-        let i' = i+1 in
-        if i' < s && content.[i'] = '\n' then (
-          add_prev ();
-          Buffer.add_string buf "\r\n ";
-          aux (i+2) (i+2)
-        ) else (
-          add_prev ();
-          Buffer.add_char buf ' ';
-          aux (i+1) (i+1)
-        )
-      else
-        if c = '\n' then (
-          add_prev ();
-          Buffer.add_char buf ' ';
-          aux (i+1) (i+1)
-        )
-        else
-          aux prev (i+1)
+      match content.[i] with
+        | '\n' | '\r' as c ->
+            let i' = i+1 in
+            let escape_c () =
+              add_prev ();
+              Buffer.add_char buf c;
+              Buffer.add_char buf ' ';
+              aux i' i'
+            in
+            if i' < s then
+              (match content.[i'] with
+                 | '\n' | '\r' as c' when c <> c' ->
+                     add_prev ();
+                     Buffer.add_char buf c; Buffer.add_char buf c';
+                     Buffer.add_char buf ' ';
+                     aux (i+2) (i+2)
+
+                 | _ -> escape_c ()
+              ) else
+                escape_c ()
+
+        | _ ->
+            aux prev (i+1)
   in
   aux 0 0
+
+(* Debug *)
+let test s =
+  let b = Buffer.create 0 in print_header_content b s; Buffer.contents b
+
 
 (** Write the header lines to a string buffer *)
 let headers buf header =
