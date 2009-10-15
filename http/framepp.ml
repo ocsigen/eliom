@@ -76,8 +76,11 @@ let fst_line buf header =
         (string_of_method meth) url (string_of_proto header.H.proto)
 
 
-(** Prints the content of a header. We insert spaces (' ') after
-    newlines, so that the header is correctly parsed. *)
+(** Prints the content of a header. To prevent http header injection,
+    we insert spaces (' ') after CRLF, in case the user has not done this
+    himself. Also, if we find single CR or LF, we replace them by spaces .
+    (This is correct according to the RFC, as the headers content should not
+    contain single CR or LF anyway) *)
 let print_header_content buf content =
   let s = String.length content in
   let rec aux prev i =
@@ -85,13 +88,27 @@ let print_header_content buf content =
       (if prev < s then
          Buffer.add_substring buf content prev (s-prev))
     else
+      let add_prev () = Buffer.add_substring buf content prev (i-prev) in
       let c = content.[i] in
-      if c = '\n' || c = '\r' then (
-        Buffer.add_substring buf content prev (i-prev);
-        Buffer.add_char buf c; Buffer.add_char buf ' ';
-        aux (i+1) (i+1)
-      ) else
-        aux prev (i+1)
+      if c = '\r' then
+        let i' = i+1 in
+        if i' < s && content.[i'] = '\n' then (
+          add_prev ();
+          Buffer.add_string buf "\r\n ";
+          aux (i+2) (i+2)
+        ) else (
+          add_prev ();
+          Buffer.add_char buf ' ';
+          aux (i+1) (i+1)
+        )
+      else
+        if c = '\n' then (
+          add_prev ();
+          Buffer.add_char buf ' ';
+          aux (i+1) (i+1)
+        )
+        else
+          aux prev (i+1)
   in
   aux 0 0
 
