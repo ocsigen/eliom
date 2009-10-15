@@ -18,6 +18,14 @@
   * Server: now possible to add custom commands for the command pipe
   * Server: EXPERIMENTAL now possible to observe HTTP headers before sending
   the result.
+  * Xhtmlpp: the parsing now fails if a quotation for an Xhtml element
+    contains superfluous elements. (This can cause the parsing of previously
+    incorrect code to fail)
+  * Staticmod/Eliom: attempting to access a file whose name contains a NULL
+    character will result in a 403.
+  * Server: HTTP headers containing newlines are now properly escaped.
+  * Server: correct missing xmlns in Xhtml DTD
+  * Server: now send last-modified and etag headers when returning a 403
 
 ===== 1.2.1 (2009-09-26) =====
 
