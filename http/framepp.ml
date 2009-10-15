@@ -69,25 +69,44 @@ let fst_line buf header =
   match header.H.mode with
   | H.Nofirstline -> ()
   | H.Answer code ->
-      Format.fprintf buf "%s %i %s\r\n" (string_of_proto header.H.proto)
+      Printf.bprintf buf "%s %i %s\r\n" (string_of_proto header.H.proto)
         code (Http_error.expl_of_code code)
   | H.Query (meth, url) ->
-      Format.fprintf buf "%s %s %s\r\n"
+      Printf.bprintf buf "%s %s %s\r\n"
         (string_of_method meth) url (string_of_proto header.H.proto)
+
+
+(** Prints the content of a header. We insert spaces (' ') after
+    newlines, so that the header is correctly parsed. *)
+let print_header_content buf content =
+  let s = String.length content in
+  let rec aux prev i =
+    if i = s then
+      (if prev < s then
+         Buffer.add_substring buf content prev (s-prev))
+    else
+      let c = content.[i] in
+      if c = '\n' || c = '\r' then (
+        Buffer.add_substring buf content prev (i-prev);
+        Buffer.add_char buf c; Buffer.add_char buf ' ';
+        aux (i+1) (i+1)
+      ) else
+        aux prev (i+1)
+  in
+  aux 0 0
 
 (** Write the header lines to a string buffer *)
 let headers buf header =
   Http_headers.iter
     (fun name value ->
-       Format.fprintf buf "%s: %s\r\n"
-         (Http_headers.name_to_string name) value)
+       Printf.bprintf buf "%s: %a\r\n"
+         (Http_headers.name_to_string name) print_header_content value)
     header.H.headers
 
 (** Convert a HTTP header into a string *)
 let string_of_header hds =
   let buf = Buffer.create 200 in
-  let f = Format.formatter_of_buffer buf in
-  fst_line f hds;
-  headers f hds;
-  Format.fprintf f "\r\n@?";
+  fst_line buf hds;
+  headers buf hds;
+  Printf.bprintf buf "\r\n%!";
   Buffer.contents buf
