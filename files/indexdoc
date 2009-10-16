@@ -64,7 +64,31 @@ Eliom_mkreg
 Xhtmlpretty
 }
 
+{4 Lwt}
+{!modules:
+Lwt
+Lwt_util
+Lwt_stream
+Lwt_sequence
+Lwt_monitor
+Lwt_mvar
+Lwt_mutex
+Lwt_event
+Lwt_signal
+Lwt_pool
+Lwt_throttle
+Lwt_timeout
+Lwt_unix
+Lwt_gc
+Lwt_io
+Lwt_process
+Lwt_main
+Lwt_preemptive
+Lwt_lib
+Lwt_ssl
+Pa_lwt
+}
+
 {3 Indexes}
 
 {!indexlist}
-
