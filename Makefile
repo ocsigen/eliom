@@ -88,11 +88,10 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)extensions/authbasic.mli				\
 	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
 	$(DOCPREF)baselib/ocsigen_getcommandline.mli                    \
+	$(DOCPREF)xmlp4/newocaml/pp/simplexmlparser.mli			\
+	$(DOCPREF)xmlp4/newocaml/pp/xhtmltypes.ml			\
 	$(DUCEDOC)
-	# The files below should be installed, but are in revised syntax.
-	# To be readded when they are translated in normal syntax
-	#	$(DOCPREF)xmlp4/newocaml/simplexmlparser.mli 			\
-	#	$(DOCPREF)xmlp4/newocaml/xhtmltypes.ml
+
 METAS = files/META files/META.ocsigen files/META.eliom_examples files/META.eliom_examples.global
 
 
