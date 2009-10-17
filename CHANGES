@@ -27,6 +27,10 @@
   * Server: correct missing xmlns in Xhtml DTD
   * Server: now send last-modified and etag headers when returning a 403
 
+===== 1.2.2 (2009-10-17) =====
+
+  * Add react and lwt.unix to the list of built-in findlib packages
+
 ===== 1.2.1 (2009-09-26) =====
 
   * Lwt 2.0 compatibility:
