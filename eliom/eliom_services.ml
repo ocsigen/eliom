@@ -57,7 +57,8 @@ let sync f sp g p = Lwt.return (f sp g p)
 
 
 (**********)
-let new_state =
+let new_state = Eliommod_cookies.make_new_cookie_value
+(* WAS:
   (* This does not need to be cryptographickly robust.
      We just want to avoid the same values when the server is relaunched.
    *)
@@ -66,6 +67,9 @@ let new_state =
     c := Int64.add !c Int64.one ;
     (Printf.sprintf "%x" (Random.int 0xFFFF))^(Printf.sprintf "%Lx" !c)
 
+   But I turned this into cryptographickly robust version
+   to implement CSRF-safe services.
+*)
 
 (*****************************************************************************)
 (*****************************************************************************)
