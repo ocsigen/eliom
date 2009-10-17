@@ -1,4 +1,4 @@
-===== Development version (ocsigen.dev and ocsigen.current branches) =====
+===== Development version (ocsigen.dev branch) =====
   * Server: Each request now has a polymorphic data table
     (called //request cache//), where you can
     store the data you want to keep during the whole page generation.
