@@ -4182,6 +4182,46 @@ Then create your link as usual, for example:
         >%
 
 
+        ===@@id="p3csrf"@@CSRF-safe services
+
+    *wiki*)
+
+let csrfsafe_example =
+  Eliom_services.new_service
+    ~path:["csrf"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let csrfsafe_example_post =
+  Eliom_services.new_post_coservice
+    ~csrf_safe:true
+    ~timeout:10.
+    ~fallback:csrfsafe_example
+    ~post_params:Eliom_parameters.unit
+    ()
+
+let _ =
+  let page sp () () =
+    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_post sp
+        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                        ~input_type:`Submit
+                        ~value:"Click" ()]]) ()
+    in
+    return
+      (html
+       (head (title (pcdata "CSRF safe service example")) [])
+       (body [p [pcdata "A new coservice will be created each time this form is displayed"];
+              l3]))
+  in
+  Eliom_predefmod.Xhtml.register csrfsafe_example page;
+  Eliom_predefmod.Xhtml.register csrfsafe_example_post
+    (fun sp () () ->
+       Lwt.return
+         (html
+            (head (title (pcdata "CSRF safe service")) [])
+            (body [p [pcdata "This is a CSRF safe service"]])))
+
+(*wiki*
 
 
 
@@ -5295,6 +5335,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
        $a tonlparams sp [pcdata "Non localized parameters"] ()$ <br/>
        $a nlparams sp [pcdata "Non localized parameters (absent)"] 4$ <br/>
        $a nlparams_with_nlp sp [pcdata "Non localized parameters (present)"] (22, (11, "aa"))$<br/>
+       $a csrfsafe_example sp [pcdata "CSRF safe services"] ()$<br/>
        </p>
        <h4>Advanced forms</h4>
        <p>

@@ -261,7 +261,7 @@ module type ELIOMFORMSIG =
     val make_post_uri_components :
       ?absolute:bool ->
       ?https:bool ->
-      service:('get, 'post, [< get_service_kind ],
+      service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ]) service ->
       sp:Eliom_sessions.server_params -> 

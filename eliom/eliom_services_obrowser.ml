@@ -109,6 +109,15 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
      kind: 'kind; (* < service_kind *)
      https: bool; (* force https *)
      keep_nl_params: [ `All | `Persistent | `None ];
+     mutable delayed_get_or_na_registration_function: (unit -> string) option;
+     mutable delayed_post_registration_function: 
+       (Eliom_common.att_key -> string) option;
+     (* used for csrf safe services: 
+        we register a new anonymous coservice
+        with these functions each time we create a link or form.
+        Attached POST coservices may have both a GET and POST 
+        registration function.
+     *)
    }
 
 let get_kind_ s = s.kind
@@ -127,6 +136,11 @@ let get_na_kind_ s = s.na_kind
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
+
+let change_get_num service attser n =
+  {service with
+     kind = `Attached {attser with
+                         get_name = n}}
 
 (** Satic directories **)
 let static_dir_ ?(https = false) ~sp () =
@@ -149,6 +163,8 @@ let static_dir_ ?(https = false) ~sp () =
       };
      https = https;
      keep_nl_params = `None;
+     delayed_get_or_na_registration_function = None;
+     delayed_post_registration_function = None;
    }
 
 let static_dir ~sp = static_dir_ ~sp ()
@@ -178,6 +194,8 @@ let get_static_dir_ ?(https = false) ~sp
       };
      https = https;
      keep_nl_params = keep_nl_params;
+     delayed_get_or_na_registration_function = None;
+     delayed_post_registration_function = None;
    }
 
 let static_dir_with_params ~sp ?keep_nl_params ~get_params () = 
@@ -232,6 +250,8 @@ let void_coservice' =
       };
     https = false;
     keep_nl_params = `All;
+    delayed_get_or_na_registration_function = None;
+    delayed_post_registration_function = None;
   }
 
 let https_void_coservice' =
@@ -247,6 +267,8 @@ let https_void_coservice' =
       };
     https = true;
     keep_nl_params = `All;
+    delayed_get_or_na_registration_function = None;
+    delayed_post_registration_function = None;
   }
 
 let void_hidden_coservice' = {void_coservice' with 
@@ -279,3 +301,14 @@ let keep_nl_params s = s.keep_nl_params
 
 
 
+exception Unregistered_CSRF_safe_coservice
+
+let register_delayed_get_or_na_coservice s =
+  match s.delayed_get_or_na_registration_function with
+    | None -> raise Unregistered_CSRF_safe_coservice
+    | Some f -> f ()
+
+let register_delayed_post_coservice s getname =
+  match s.delayed_post_registration_function with
+    | None -> raise Unregistered_CSRF_safe_coservice
+    | Some f -> f getname

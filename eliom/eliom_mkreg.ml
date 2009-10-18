@@ -190,6 +190,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -220,6 +221,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -245,6 +247,7 @@ module type ELIOMREGSIG1 =
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -277,6 +280,7 @@ module type ELIOMREGSIG1 =
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -326,6 +330,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -355,6 +360,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?keep_get_na_params:bool ->
@@ -407,6 +413,7 @@ module type ELIOMREGSIG1 =
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -438,6 +445,7 @@ module type ELIOMREGSIG1 =
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?keep_get_na_params:bool ->
@@ -459,6 +467,7 @@ module type ELIOMREGSIG1 =
   ?secure:bool ->
         sp:Eliom_sessions.server_params ->
   ?name: string ->
+      ?csrf_safe: bool ->
         ?max_use:int ->
         ?timeout:float ->
       ?https:bool ->
@@ -534,132 +543,168 @@ module MakeRegister = functor
               let suffix_with_redirect = get_redirect_suffix_ attser in
               let sgpt = get_get_params_type_ service in
               let sppt = get_post_params_type_ service in
-              Eliommod_services.add_service
-                table
-                duringsession
-                (get_sub_path_ attser)
-                ({Eliom_common.key_state = (attserget, attserpost);
-                  Eliom_common.key_kind = key_kind},
-                 ((if attserget = Eliom_common.Att_no
-                     || attserpost = Eliom_common.Att_no
-                 then (anonymise_params_type sgpt,
-                       anonymise_params_type sppt)
-                 else (0, 0)),
-                  (match get_max_use_ service with
-                  | None -> None
-                  | Some i -> Some (ref i)),
-                  (match get_timeout_ service with
-                  | None -> None
-                  | Some t -> Some (t, ref (t +. Unix.time ()))),
-                  (fun nosuffixversion sp ->
-                    let sp2 = Eliom_sessions.sp_of_esp sp in
-                    let ri = get_ri ~sp:sp2 in
-                    let suff = get_suffix ~sp:sp2 in
-                    (catch (fun () ->
-                      (force ri.ri_post_params) >>=
-                      (fun post_params ->
-                        (force ri.ri_files) >>=
-                        (fun files ->
-                           let g = (reconstruct_params
-                                      ~sp
-                                      sgpt
-                                      (force ri.ri_get_params)
-                                      []
-                                      nosuffixversion
-                                      suff)
-                           in
-                           let p = (reconstruct_params
-                                      ~sp
-                                      sppt
-                                      post_params
-                                      files
-                                      false
-                                      None)
-                           in
-                           if nosuffixversion && suffix_with_redirect &&
-                             files=[] && post_params = []
-                           then (* it is a suffix service in version 
-                                   without suffix. We redirect. *)
-                             Lwt.fail
-                               (Eliom_common.Eliom_Suffix_redirection
-                                  (Eliom_mkforms.make_string_uri
-                                     ~absolute:true
-                                     ~service:(service : 
+              let f ((attserget, attserpost) as attsernames) = 
+                Eliommod_services.add_service
+                  table
+                  duringsession
+                  (get_sub_path_ attser)
+                  ({Eliom_common.key_state = attsernames;
+                    Eliom_common.key_kind = key_kind},
+                   ((if attserget = Eliom_common.Att_no
+                       || attserpost = Eliom_common.Att_no
+                     then (anonymise_params_type sgpt,
+                           anonymise_params_type sppt)
+                     else (0, 0)),
+                    (match get_max_use_ service with
+                       | None -> None
+                       | Some i -> Some (ref i)),
+                    (match get_timeout_ service with
+                       | None -> None
+                       | Some t -> Some (t, ref (t +. Unix.time ()))),
+                    (fun nosuffixversion sp ->
+                       let sp2 = Eliom_sessions.sp_of_esp sp in
+                       let ri = get_ri ~sp:sp2 in
+                       let suff = get_suffix ~sp:sp2 in
+                       (catch (fun () ->
+                                 force ri.ri_post_params >>= fun post_params ->
+                                 force ri.ri_files >>= fun files ->
+                                 let g = reconstruct_params
+                                   ~sp
+                                   sgpt
+                                   (force ri.ri_get_params)
+                                   []
+                                   nosuffixversion
+                                   suff
+                                 in
+                                 let p = reconstruct_params
+                                   ~sp
+                                   sppt
+                                   post_params
+                                   files
+                                   false
+                                   None
+                                 in
+                                 if nosuffixversion && suffix_with_redirect &&
+                                   files=[] && post_params = []
+                                 then (* it is a suffix service in version 
+                                         without suffix. We redirect. *)
+                                   Lwt.fail
+                                     (Eliom_common.Eliom_Suffix_redirection
+                                        (Eliom_mkforms.make_string_uri
+                                           ~absolute:true
+                                           ~service:(service : 
                      ('a, 'b, [< Eliom_services.internal_service_kind ],
                       [< Eliom_services.suff ], 'c, 'd, [ `Registrable ])
                      Eliom_services.service :> 
                      ('a, 'b, Eliom_services.service_kind,
                       [< Eliom_services.suff ], 'c, 'd, [< Eliom_services.registrable ])
                      Eliom_services.service)
-                                     ~sp:sp2
-                                     g))
-                           else page_generator sp2 g p)))
-                       (function
-                         | Eliom_common.Eliom_Typing_Error l ->
-                             error_handler sp2 l
-                         | e -> fail e)) >>=
-                    (fun (content, cookies_to_set) ->
-                      Pages.send
-                        ?options
-                        ~cookies:(cookies_to_set@cookies)
-                        ?charset
-                        ?code
-                        ?content_type
-                        ?headers
-                        ~sp:sp2 content
-                    )
-                  )
-                 )
-                )
+                                           ~sp:sp2
+                                           g))
+                                 else page_generator sp2 g p))
+                         (function
+                            | Eliom_common.Eliom_Typing_Error l ->
+                                error_handler sp2 l
+                            | e -> fail e)
+                       >>= fun (content, cookies_to_set) ->
+                       Pages.send
+                         ?options
+                         ~cookies:(cookies_to_set@cookies)
+                         ?charset
+                         ?code
+                         ?content_type
+                         ?headers
+                         ~sp:sp2 content)))
+              in
+              if key_kind = Ocsigen_http_frame.Http_header.POST
+                && attserpost = Eliom_common.Att_csrf_safe
+              then
+                Eliom_services.set_delayed_post_registration_function
+                  service 
+                  (fun attserget ->
+                     let n = Eliom_services.new_state () in
+                     let attserpost = Eliom_common.Att_anon n in
+                     f (attserget, attserpost);
+                     n)
+              else
+              if key_kind = Ocsigen_http_frame.Http_header.GET
+                && attserget = Eliom_common.Att_csrf_safe
+              then
+                Eliom_services.set_delayed_get_or_na_registration_function 
+                  service 
+                  (fun () ->
+                     let n = Eliom_services.new_state () in
+                     let attserget = Eliom_common.Att_anon n in
+                     f (attserget, attserpost);
+                     n)
+              else f (attserget, attserpost)
           | `Nonattached naser ->
-              Eliommod_naservices.add_naservice
-                table
-                duringsession
-                (get_na_name_ naser)
-                ((match get_max_use_ service with
-                | None -> None
-                | Some i -> Some (ref i)),
-                 (match get_timeout_ service with
-                 | None -> None
-                 | Some t -> Some (t, ref (t +. Unix.time ()))),
-                 (fun sp ->
-                   let sp2 = Eliom_sessions.sp_of_esp sp in
-                   let ri = get_ri sp2 in
-                   (catch
-                      (fun () ->
-                        (get_post_params sp2) >>=
-                        (fun post_params ->
-                          (force ri.ri_files) >>=
-                          (fun files ->
-                            (page_generator sp2
-                               (reconstruct_params
-                                  ~sp
-                                  (get_get_params_type_ service)
-                                  (force ri.ri_get_params)
-                                  []
-                                  false
-                                  None)
-                               (reconstruct_params
-                                  ~sp
-                                  (get_post_params_type_ service)
-                                  post_params
-                                  files
-                                  false
-                                  None)))))
-                      (function
-                        | Eliom_common.Eliom_Typing_Error l ->
-                            error_handler sp2 l
-                        | e -> fail e)) >>=
-                   (fun (content, cookies_to_set) ->
-                     Pages.send
-                       ?options
-                       ~cookies:(cookies_to_set@cookies)
-                       ?charset
-                       ?code
-                       ?content_type
-                       ?headers
-                       ~sp:sp2 content
-                   )))
+              let na_name = get_na_name_ naser in
+              let f na_name = 
+                Eliommod_naservices.add_naservice
+                  table
+                  duringsession
+                  na_name
+                  ((match get_max_use_ service with
+                      | None -> None
+                      | Some i -> Some (ref i)),
+                   (match get_timeout_ service with
+                      | None -> None
+                      | Some t -> Some (t, ref (t +. Unix.time ()))),
+                   (fun sp ->
+                      let sp2 = Eliom_sessions.sp_of_esp sp in
+                      let ri = get_ri sp2 in
+                      (catch
+                         (fun () ->
+                            get_post_params sp2 >>= fun post_params ->
+                            force ri.ri_files >>= fun files ->
+                            page_generator sp2
+                              (reconstruct_params
+                                 ~sp
+                                 (get_get_params_type_ service)
+                                 (force ri.ri_get_params)
+                                 []
+                                 false
+                                 None)
+                              (reconstruct_params
+                                 ~sp
+                                 (get_post_params_type_ service)
+                                 post_params
+                                 files
+                                 false
+                                 None)))
+                        (function
+                           | Eliom_common.Eliom_Typing_Error l ->
+                               error_handler sp2 l
+                           | e -> fail e) >>= fun (content, cookies_to_set) ->
+                        Pages.send
+                          ?options
+                          ~cookies:(cookies_to_set@cookies)
+                          ?charset
+                          ?code
+                          ?content_type
+                          ?headers
+                          ~sp:sp2 content)
+                  )
+              in
+              if na_name = Eliom_common.Na_get_csrf_safe || 
+                na_name = Eliom_common.Na_post_csrf_safe
+              then (* CSRF safe coservice: we'll do the registration later *)
+                set_delayed_get_or_na_registration_function
+                  service
+                  (fun () ->
+                     let n = Eliom_services.new_state () in                     
+                     let na_name = 
+                       match na_name with
+                         | Eliom_common.Na_get_csrf_safe ->
+                             Eliom_common.Na_get' n
+                         | Eliom_common.Na_post_csrf_safe ->
+                             Eliom_common.Na_post' n
+                         | _ -> assert false
+                     in
+                     f na_name;
+                     n)
+              else f na_name
 
 
         let register 
@@ -782,6 +827,7 @@ module MakeRegister = functor
             ?headers
             ?sp
             ?name
+            ?csrf_safe
             ?max_use
             ?timeout
             ?https
@@ -790,7 +836,7 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = 
-            new_coservice ?name ?max_use ?timeout ?https
+            new_coservice ?name ?csrf_safe ?max_use ?timeout ?https
               ~fallback ~get_params () 
           in
           register ?options
@@ -811,6 +857,7 @@ module MakeRegister = functor
             ?headers
             ?sp
             ?name
+            ?csrf_safe
             ?max_use
             ?timeout
             ?https
@@ -818,7 +865,8 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = 
-            new_coservice' ?name ?max_use ?timeout ?https ~get_params () 
+            new_coservice' 
+              ?name ?csrf_safe ?max_use ?timeout ?https ~get_params () 
           in
           register ?options
             ?cookies
@@ -840,6 +888,7 @@ module MakeRegister = functor
             ?secure
             ~sp
             ?name
+            ?csrf_safe
             ?max_use
             ?timeout
             ?https
@@ -848,7 +897,7 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = 
-            new_coservice ?name ?max_use ?timeout ?https
+            new_coservice ?name ?csrf_safe ?max_use ?timeout ?https
               ~fallback ~get_params () 
           in
           register_for_session
@@ -872,13 +921,16 @@ module MakeRegister = functor
             ?secure
             ~sp
             ?name
+            ?csrf_safe
             ?max_use
             ?timeout
             ?https
             ~get_params
             ?error_handler
             page =
-          let u = new_coservice' ?name ?max_use ?https ~get_params () in
+          let u = new_coservice' 
+            ?name ?csrf_safe ?max_use ?https ~get_params () 
+          in
           register_for_session
             ?options
             ?cookies
@@ -923,6 +975,7 @@ module MakeRegister = functor
             ?headers
             ?sp
             ?name
+            ?csrf_safe
             ?max_use
             ?timeout
             ?https
@@ -931,7 +984,7 @@ module MakeRegister = functor
             ?error_handler
             page_gen =
           let u =
-            new_post_coservice ?name ?max_use ?timeout ?https
+            new_post_coservice ?name ?csrf_safe ?max_use ?timeout ?https
               ~fallback ~post_params () in
           register ?options
             ?cookies
@@ -951,6 +1004,7 @@ module MakeRegister = functor
             ?headers
             ?sp
             ?name
+            ?csrf_safe
             ?max_use
             ?timeout
             ?keep_get_na_params
@@ -961,6 +1015,7 @@ module MakeRegister = functor
           let u =
             new_post_coservice'
               ?name
+              ?csrf_safe
               ?keep_get_na_params
               ?max_use
               ?timeout
@@ -986,6 +1041,7 @@ module MakeRegister = functor
             ?headers
   ?sp
 ?name
+?csrf_safe
    ?max_use
    ?timeout
   ?https
@@ -993,7 +1049,7 @@ module MakeRegister = functor
    ~post_params
    ?error_handler
    page_gen =
-   let u = new_get_post_coservice' ?name
+   let u = new_get_post_coservice' ?name ?csrf_safe
    ?max_use ?timeout ?https ~fallback ~post_params () in
    register ?options 
             ?cookies
@@ -1016,6 +1072,7 @@ module MakeRegister = functor
             ?secure
             ~sp
             ?name
+            ?csrf_safe
             ?max_use
             ?timeout
             ?https
@@ -1023,7 +1080,7 @@ module MakeRegister = functor
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice ?name
+          let u = new_post_coservice ?name ?csrf_safe
               ?max_use ?timeout ?https ~fallback ~post_params () in
           register_for_session
             ?options
@@ -1046,6 +1103,7 @@ module MakeRegister = functor
             ?secure
             ~sp
             ?name
+            ?csrf_safe
             ?max_use
             ?timeout
             ?keep_get_na_params
@@ -1056,6 +1114,7 @@ module MakeRegister = functor
           let u =
             new_post_coservice'
               ?name
+              ?csrf_safe
               ?keep_get_na_params
               ?max_use
               ?timeout
@@ -1084,14 +1143,14 @@ module MakeRegister = functor
             ?secure
    ~sp
 ?name
-   ?max_use
+?csrf_safe   ?max_use
    ?timeout
   ?https
    ~fallback
    ~post_params
    ?error_handler
    page_gen =
-   let u = new_get_post_coservice' ?name
+   let u = new_get_post_coservice' ?name ?csrf_safe
    ?max_use ?timeout ?https ~fallback ~post_params () in
    register_for_session
   ?options
@@ -1196,6 +1255,7 @@ module MakeRegister = functor
           ?headers
           ?sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1212,6 +1272,7 @@ module MakeRegister = functor
           ?headers
           ?sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1229,6 +1290,7 @@ module MakeRegister = functor
           ?headers
           ?sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1244,6 +1306,7 @@ module MakeRegister = functor
           ?headers
           ?sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1262,6 +1325,7 @@ module MakeRegister = functor
           ?secure
           ~sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1280,6 +1344,7 @@ module MakeRegister = functor
         ?secure
         ~sp
         ?name
+        ?csrf_safe
         ?max_use
         ?timeout
         ?https
@@ -1299,6 +1364,7 @@ module MakeRegister = functor
           ?secure
           ~sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1316,6 +1382,7 @@ module MakeRegister = functor
         ?secure
         ~sp
         ?name
+        ?csrf_safe
         ?max_use
         ?timeout
         ?https
@@ -1359,6 +1426,7 @@ module MakeRegister = functor
           ?headers
           ?sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1375,6 +1443,7 @@ module MakeRegister = functor
           ?headers
           ?sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1392,6 +1461,7 @@ module MakeRegister = functor
           ?headers
           ?sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?keep_get_na_params
@@ -1408,6 +1478,7 @@ module MakeRegister = functor
           ?headers
           ?sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?keep_get_na_params
@@ -1426,6 +1497,7 @@ module MakeRegister = functor
           ?headers
   ?sp
   ?name
+  ?csrf_safe
           ?max_use
           ?timeout
   ?https
@@ -1442,6 +1514,7 @@ module MakeRegister = functor
           ?headers
    ?sp
   ?name
+  ?csrf_safe
           ?max_use
           ?timeout
 ?https
@@ -1463,6 +1536,7 @@ module MakeRegister = functor
           ?secure
           ~sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1481,6 +1555,7 @@ module MakeRegister = functor
           ?secure
           ~sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?https
@@ -1500,6 +1575,7 @@ module MakeRegister = functor
           ?secure
           ~sp
           ?name
+          ?csrf_safe
           ?max_use
           ?timeout
           ?keep_get_na_params
@@ -1518,6 +1594,7 @@ module MakeRegister = functor
         ?secure
         ~sp
         ?name
+        ?csrf_safe
         ?max_use
         ?timeout
         ?keep_get_na_params
@@ -1538,6 +1615,7 @@ module MakeRegister = functor
   ?secure
    sp
   ?name
+  ?csrf_safe
   ?max_use
   ?timeout
   ?https
@@ -1556,6 +1634,7 @@ module MakeRegister = functor
   ?secure
   ~sp
   ?name
+  ?csrf_safe
   ?max_use
   ?timeout
   ?https

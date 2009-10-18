@@ -228,6 +228,7 @@ val new_post_service :
 
 val new_coservice :
   ?name: string ->
+  ?csrf_safe: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -257,6 +258,7 @@ val new_coservice :
 
 val new_post_coservice :
   ?name: string ->
+  ?csrf_safe: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -277,6 +279,7 @@ val new_post_coservice :
 
 val new_coservice' :
   ?name:string ->
+  ?csrf_safe: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -298,6 +301,7 @@ val new_coservice' :
 
 val new_post_coservice' :
   ?name:string ->
+  ?csrf_safe: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -498,3 +502,25 @@ val escookiel_of_eccookiel : Eliom_common.cookie list -> cookie list
 val eccookiel_of_escookiel : cookie list -> Eliom_common.cookie list
 val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
   [ `All | `Persistent | `None ]
+
+val change_get_num :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
+  'h a_s ->
+  Eliom_common.att_key ->
+  ('a, 'b, [> `Attached of 'h a_s ], 'd, 'e, 'f, 'i) service
+
+val set_delayed_get_or_na_registration_function :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> (unit -> string) -> unit
+
+val set_delayed_post_registration_function :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> (Eliom_common.att_key -> string) -> 
+  unit
+
+
+val register_delayed_get_or_na_coservice :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> string
+
+val register_delayed_post_coservice :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> Eliom_common.att_key -> string
+
+val new_state : unit -> string

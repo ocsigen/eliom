@@ -454,7 +454,10 @@ let get_page
                                      (Eliom_common.Att_no, Eliom_common.Att_no);
                                   Eliom_common.si_other_get_params=[];
                                 },
-                                 all_cookie_info)))
+                                 all_cookie_info))
+                    | (Eliom_common.Att_csrf_safe, _)
+                    | (_, Eliom_common.Att_csrf_safe) -> assert false
+                    )
                 | e -> fail e)
         | e -> fail e)
   )

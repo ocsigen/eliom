@@ -183,6 +183,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -213,6 +214,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -238,6 +240,7 @@ module type ELIOMREGSIG1 =
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -270,6 +273,7 @@ module type ELIOMREGSIG1 =
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -319,6 +323,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -348,6 +353,7 @@ module type ELIOMREGSIG1 =
       ?headers: Http_headers.t ->
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?keep_get_na_params:bool ->
@@ -400,6 +406,7 @@ module type ELIOMREGSIG1 =
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -431,6 +438,7 @@ module type ELIOMREGSIG1 =
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
+      ?csrf_safe: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?keep_get_na_params:bool ->
@@ -452,6 +460,7 @@ module type ELIOMREGSIG1 =
   ?secure:bool ->
         sp:Eliom_sessions.server_params ->
   ?name: string ->
+      ?csrf_safe: bool ->
         ?max_use:int ->
         ?timeout:float ->
       ?https:bool ->

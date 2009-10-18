@@ -19,19 +19,27 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* Warning: the two following types are used both for service creation
+   and for service identification. 
+   Some cases may be useless in one case or another. *)
+
 type att_key =
-  | Att_no
-  | Att_named of string (* named *)
-  | Att_anon of string (* anonymous *)
+  | Att_no (* regular service *)
+  | Att_named of string (* named coservice *)
+  | Att_anon of string (* anonymous coservice *)
+  | Att_csrf_safe (* CSRF safe anonymous coservice *)
+      (* CSRF safe service registration delayed until form/link creation *)
 
 type na_key =
-  | Na_no
+  | Na_no (* no na information *)
   | Na_void_keep (* void coservice that keeps GET na parameters *)
   | Na_void_dontkeep (* void coservice that does not keep GET na parameters *)
   | Na_get_ of string (* named *)
   | Na_post_ of string (* named *)
   | Na_get' of string (* anonymous *)
   | Na_post' of string (* anonymous *)
+  | Na_get_csrf_safe (* CSRF safe anonymous coservice *)
+  | Na_post_csrf_safe (* CSRF safe anonymous coservice *)
 
 
 

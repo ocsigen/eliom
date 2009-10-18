@@ -32,6 +32,83 @@ open Lwt
 
 
 (******)
+(* CSRF GET *)
+
+let csrfsafe_get_example =
+  Eliom_services.new_service
+    ~path:["csrfget"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let csrfsafe_example_get =
+  Eliom_services.new_coservice
+    ~csrf_safe:true
+    ~timeout:10.
+    ~fallback:csrfsafe_get_example
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let _ =
+  let page sp () () =
+    let l3 = Eliom_predefmod.Xhtml.get_form csrfsafe_example_get sp
+        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                        ~input_type:`Submit
+                        ~value:"Click" ()]])
+    in
+    return
+      (html
+       (head (title (pcdata "CSRF safe service example")) [])
+       (body [p [pcdata "A new coservice will be created each time this form is displayed"];
+              l3]))
+  in
+  Eliom_predefmod.Xhtml.register csrfsafe_get_example page;
+  Eliom_predefmod.Xhtml.register csrfsafe_example_get
+    (fun sp () () ->
+       Lwt.return
+         (html
+            (head (title (pcdata "CSRF safe service")) [])
+            (body [p [pcdata "This is a GET CSRF safe service"]])))
+
+(******)
+(* CSRF POST on CSRF GET coservice *)
+
+let csrfsafe_postget_example =
+  Eliom_services.new_service
+    ~path:["csrfpostget"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let csrfsafe_example_post =
+  Eliom_services.new_post_coservice
+    ~csrf_safe:true
+    ~timeout:10.
+    ~fallback:csrfsafe_example_get (* !!! *)
+    ~post_params:Eliom_parameters.unit
+    ()
+
+let _ =
+  let page sp () () =
+    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_post sp
+        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                        ~input_type:`Submit
+                        ~value:"Click" ()]]) ()
+    in
+    return
+      (html
+       (head (title (pcdata "CSRF safe service example")) [])
+       (body [p [pcdata "A new coservice will be created each time this form is displayed"];
+              l3]))
+  in
+  Eliom_predefmod.Xhtml.register csrfsafe_postget_example page;
+  Eliom_predefmod.Xhtml.register csrfsafe_example_post
+    (fun sp () () ->
+       Lwt.return
+         (html
+            (head (title (pcdata "CSRF safe service")) [])
+            (body [p [pcdata "This is a POST CSRF safe service, combined with a GET CSRF safe service"]])))
+
+
+(******)
 (* optional suffix parameters *)
 
 let optsuf =
@@ -1380,6 +1457,8 @@ let mainpage = register_new_service ["tests"] unit
          a optsuf2 sp [pcdata "optional suffix 2"] (Some "un", None); br ();
          a optsuf2 sp [pcdata "optional suffix 2"] (None, None); br ();
 
+         a csrfsafe_get_example sp [pcdata "GET CSRF safe service"] (); br ();
+         a csrfsafe_postget_example sp [pcdata "POST CSRF safe service on GET CSRF safe service"] (); br ();
 
 
        ]])))

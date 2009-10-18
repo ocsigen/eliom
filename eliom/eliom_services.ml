@@ -120,6 +120,8 @@ let new_service_aux_aux
     };
    https = https;
    keep_nl_params = keep_nl_params;
+   delayed_get_or_na_registration_function = None;
+   delayed_post_registration_function = None;
  }
 
 let new_service_aux
@@ -213,10 +215,9 @@ let new_service
     ?redirect_suffix:suffix
     ~get_params
 
-let new_naservice_num () = new_state ()
-
 let new_coservice
     ?name
+    ?(csrf_safe = false)
     ?max_use
     ?timeout
     ?(https = false)
@@ -234,10 +235,13 @@ let new_coservice
    get_params_type = add_pref_params Eliom_common.co_param_prefix get_params;
    kind = `Attached
      {k with
-      get_name = 
-         (match name with
-           | None -> Eliom_common.Att_anon (new_state ())
-           | Some name -> Eliom_common.Att_named name);
+      get_name =
+         (if csrf_safe
+          then Eliom_common.Att_csrf_safe
+          else
+            (match name with
+               | None -> Eliom_common.Att_anon (new_state ())
+               | Some name -> Eliom_common.Att_named name));
         att_kind = `Internal (`Coservice, `Get);
      };
    https = https || fallback.https;
@@ -248,7 +252,7 @@ let new_coservice
    Preapply services if you want fallbacks with GET parameters *)
 
 
-let new_coservice' ?name ?max_use ?timeout ?(https = false)
+let new_coservice' ?name ?(csrf_safe = false) ?max_use ?timeout ?(https = false)
     ?(keep_nl_params = `Persistent) ~get_params () =
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered_na n;
@@ -268,15 +272,18 @@ let new_coservice' ?name ?max_use ?timeout ?(https = false)
           post_params_type = unit;
           kind = `Nonattached
             {na_name = 
-                match name with
-                  | None ->
-                      Eliom_common.Na_get' (new_naservice_num ())
-                  | Some name -> Eliom_common.Na_get_ name;
-            ;
+                (if csrf_safe
+                 then Eliom_common.Na_get_csrf_safe
+                 else
+                   match name with
+                     | None -> Eliom_common.Na_get' (new_state ())
+                     | Some name -> Eliom_common.Na_get_ name);
              na_kind = `Get;
             };
           https = https;
           keep_nl_params = keep_nl_params;
+          delayed_get_or_na_registration_function = None;
+          delayed_post_registration_function = None;
         }
 
 
@@ -305,6 +312,8 @@ let new_post_service_aux ~sp ~https ~fallback
     };
    https = https;
    keep_nl_params = keep_nl_params;
+   delayed_get_or_na_registration_function = None;
+   delayed_post_registration_function = None;
  }
 
 let new_post_service ?sp ?(https = false) ~fallback 
@@ -340,8 +349,15 @@ let new_post_service ?sp ?(https = false) ~fallback
 
 
 let new_post_coservice 
-    ?name ?max_use ?timeout ?(https = false) ~fallback
-    ?keep_nl_params ~post_params () =
+    ?name
+    ?(csrf_safe = false)
+    ?max_use
+    ?timeout
+    ?(https = false)
+    ~fallback
+    ?keep_nl_params
+    ~post_params
+    () =
   let `Attached k1 = fallback.kind in
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered k1.path;
@@ -354,10 +370,13 @@ let new_post_coservice
      {k1 with
       att_kind = `Internal (`Coservice, `Post);
       post_name = 
-         (match name with
-            | None -> Eliom_common.Att_anon (new_state ())
-            | Some name -> Eliom_common.Att_named name);
-    };
+         (if csrf_safe
+          then Eliom_common.Att_csrf_safe
+          else
+            (match name with
+               | None -> Eliom_common.Att_anon (new_state ())
+               | Some name -> Eliom_common.Att_named name));
+     };
    https = https;
    keep_nl_params = match keep_nl_params with 
      | None -> fallback.keep_nl_params | Some k -> k;
@@ -371,6 +390,7 @@ let new_post_coservice
 
 let new_post_coservice'
     ?name
+    ?(csrf_safe = false)
     ?max_use ?timeout
     ?(https = false)
     ?(keep_nl_params = `All)
@@ -388,14 +408,19 @@ let new_post_coservice'
     post_params_type = post_params;
     kind = `Nonattached
       {na_name = 
-          (match name with
-            | None ->
-                Eliom_common.Na_post' (new_naservice_num ())
-            | Some name -> Eliom_common.Na_post_ name);
+          (if csrf_safe
+           then Eliom_common.Na_post_csrf_safe
+           else
+             (match name with
+                | None ->
+                    Eliom_common.Na_post' (new_state ())
+                | Some name -> Eliom_common.Na_post_ name));
        na_kind = `Post keep_get_na_params;
       };
     https = https;
     keep_nl_params = keep_nl_params;
+    delayed_get_or_na_registration_function = None;
+    delayed_post_registration_function = None;
   }
 
 
@@ -417,7 +442,7 @@ let new_get_post_coservice'
    max_use= max_use;
    timeout= timeout;
    kind = `Nonattached
-   {na_name = (fst fallback.na_name, Some (new_naservice_num ()));
+   {na_name = (fst fallback.na_name, Some (new_state ()));
    na_kind = `Internal (`NonAttachedCoservice, `Post);
    }
   https = https;
@@ -442,3 +467,10 @@ let add_naservice = Eliommod_naservices.add_naservice
 
 let eccookiel_of_escookiel = Ocsigen_lib.id
 let escookiel_of_eccookiel = Ocsigen_lib.id
+
+
+let set_delayed_get_or_na_registration_function s f =
+  s.delayed_get_or_na_registration_function <- Some f
+
+let set_delayed_post_registration_function s f =
+  s.delayed_post_registration_function <- Some f
