@@ -87,7 +87,7 @@ let find_field field content_disp =
 
 type to_write =
     No_File of string * Buffer.t
-  | A_File of (string * string * string * Unix.file_descr)
+  | A_File of (string * string * string * Unix.file_descr * (string * string option) option)
 
 let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 
@@ -101,6 +101,8 @@ let dbg sockaddr s =
        let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
        "While talking to " ^ ip ^ ": " ^ s)
 
+
+let r_content_type = Netstring_pcre.regexp "([^ ]*)"
 
 let rec find_post_params http_frame ct filenames =
   match http_frame.Ocsigen_http_frame.content with
@@ -144,6 +146,19 @@ and find_post_params_multipart_form_data body_gen ctparams filenames =
   and params = ref []
   and files = ref [] in
   let create hs =
+    let content_type =
+      try
+        let ct = List.assoc "content-type" hs in
+        let content_type =
+          let (_, res) = Netstring_pcre.search_forward r_content_type ct 0 in
+          Netstring_pcre.matched_group res 1 ct
+        in
+        let charset = try
+          Some (find_field "charset" ct)
+        with _ -> None
+        in Some (content_type, charset)
+      with _ -> None
+    in
     let cd = List.assoc "content-disposition" hs in
     let p_name = find_field "name" cd in
     try
@@ -158,7 +173,7 @@ and find_post_params_multipart_form_data body_gen ctparams filenames =
             in
             Ocsigen_messages.debug2 ("Upload file opened: " ^ fname);
             filenames := fname::!filenames;
-            A_File (p_name, fname, store, fd)
+            A_File (p_name, fname, store, fd, content_type)
         | None -> raise Ocsigen_upload_forbidden
     with Not_found -> No_File (p_name, Buffer.create 1024)
   in
@@ -167,7 +182,7 @@ and find_post_params_multipart_form_data body_gen ctparams filenames =
       | No_File (p_name, to_buf) ->
           Buffer.add_string to_buf s;
           return ()
-      | A_File (_,_,_,wh) ->
+      | A_File (_,_,_,wh,_) ->
           let len = String.length s in
           let r = Unix.write wh s 0 len in
           if r < len then
@@ -181,13 +196,15 @@ and find_post_params_multipart_form_data body_gen ctparams filenames =
         return
           (params := !params @ [(p_name, Buffer.contents to_buf)])
           (* à la fin ? *)
-    | A_File (p_name,fname,oname,wh) ->
+    | A_File (p_name,fname,oname,wh, content_type) ->
         (* Ocsigen_messages.debug "closing file"; *)
         files :=
           !files@[(p_name, {tmp_filename=fname;
                             filesize=size;
                             raw_original_filename=oname;
-                            original_basename=(Ocsigen_lib.basename oname)})];
+                            original_basename=(Ocsigen_lib.basename oname);
+                            file_content_type = content_type;
+                           })];
         Unix.close wh;
         return ()
   in

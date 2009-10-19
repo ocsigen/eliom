@@ -126,7 +126,9 @@ type file_info = {tmp_filename: string; (** Where the file is stored on the serv
                   filesize: int64; (** Size, in bytes *)
                   raw_original_filename: string;
                   (** Original file name, as given by the client. *)
-                  original_basename: string (** Original file name *) }
+                  original_basename: string (** Original file name *);
+                  file_content_type: (string * string option) option (** content-type, and optionally charset, of the file, if supplied *);
+                 }
 (** Note that the files are cancelled once the request has been fulfilled *)
 
 (** Only IE is known to make [raw_original_filename] and

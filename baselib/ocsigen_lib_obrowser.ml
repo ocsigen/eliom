@@ -65,7 +65,9 @@ end)
 type file_info = {tmp_filename: string;
                   filesize: int64;
                   raw_original_filename: string;
-                  original_basename: string}
+                  original_basename: string;
+                  file_content_type: (string * string option) option;
+                 }
 
 (*****************************************************************************)
 type ip_address =
