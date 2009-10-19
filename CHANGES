@@ -4,6 +4,7 @@
     store the data you want to keep during the whole page generation.
   * Eliom: actions now return {{{()}}}.
     Use the request cache to send information to fallbacks.
+  * Eliom: CSRF-safe coservices
   * Eliom: New exprimental module {{{Eliom_obrowser}}} 
     to use Eliom with Obrowser
   * Eliom: Now possible to have constant parts in suffixes to allow

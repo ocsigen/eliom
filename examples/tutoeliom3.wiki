@@ -1468,8 +1468,7 @@ For example, one user, Bob, might be browsing a chat forum where another user,
 Mallory, has posted a message. Suppose that Mallory has crafted an HTML image 
 element that references a script on Bob's bank's website (rather than an image 
 file), e.g.,
-{{{<img 
-src="http://bank.example/withdraw?account=bob&amount=1000000&for=mallory">}}}
+{{{<img src="http://bank.example/withdraw?account=bob&amount=1000000&for=mallory">}}}
 If Bob's bank keeps his authentication information in a cookie, and if the 
 cookie hasn't expired, then the attempt by Bob's browser to load the image 
 will submit the withdrawal form with his cookie, thus authorizing a 
@@ -1524,6 +1523,7 @@ let _ =
   in
   Eliom_predefmod.Xhtml.register csrfsafe_example page;
   Eliom_predefmod.Xhtml.register csrfsafe_example_post
+    (* prefer register_for_session here *)
     (fun sp () () ->
        Lwt.return
          (html

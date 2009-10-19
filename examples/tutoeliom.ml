@@ -3481,7 +3481,11 @@ let () =
   Eliom_predefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
   Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
 (*wiki*
-          
+      Note that in this case, we do not need a session table any more,
+      because our session table was containing only the user name,
+      and the user name is now the session group.
+      (But if we need to save more data, we still need a session table).
+
       As we will see later, there are three kinds of sessions
       (services, volatile data and persistent data).
       It is highly recommended to set a group for each of them!
@@ -4195,8 +4199,7 @@ For example, one user, Bob, might be browsing a chat forum where another user,
 Mallory, has posted a message. Suppose that Mallory has crafted an HTML image 
 element that references a script on Bob's bank's website (rather than an image 
 file), e.g.,
-{{{<img 
-src="http://bank.example/withdraw?account=bob&amount=1000000&for=mallory">}}}
+{{{<img src="http://bank.example/withdraw?account=bob&amount=1000000&for=mallory">}}}
 If Bob's bank keeps his authentication information in a cookie, and if the 
 cookie hasn't expired, then the attempt by Bob's browser to load the image 
 will submit the withdrawal form with his cookie, thus authorizing a 
@@ -4251,6 +4254,7 @@ let _ =
   in
   Eliom_predefmod.Xhtml.register csrfsafe_example page;
   Eliom_predefmod.Xhtml.register csrfsafe_example_post
+    (* prefer register_for_session here *)
     (fun sp () () ->
        Lwt.return
          (html

@@ -106,7 +106,8 @@ type 'a one_service_cookie_info =
                                     ref towards cookie table
                                   *);
      sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
-     sc_session_group:Eliommod_sessiongroups.sessgrp option ref (* session group *)
+     sc_session_group:Eliommod_sessiongroups.sessgrp option ref 
+       (* session group *)
    }
 
 
