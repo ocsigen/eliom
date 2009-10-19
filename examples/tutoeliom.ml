@@ -4182,8 +4182,43 @@ Then create your link as usual, for example:
         >%
 
 
-        ===@@id="p3csrf"@@CSRF-safe services
+===@@id="p3csrf"@@[New in 1.3.0]CSRF-safe services
 
+Eliom implements a protection against CSRF attacks.
+
+====What is CSRF?====
+
+CSRF means //Cross Site Request Forgery//.
+Here is an explanation from Wikipedia:
+
+For example, one user, Bob, might be browsing a chat forum where another user, 
+Mallory, has posted a message. Suppose that Mallory has crafted an HTML image 
+element that references a script on Bob's bank's website (rather than an image 
+file), e.g.,
+{{{<img 
+src="http://bank.example/withdraw?account=bob&amount=1000000&for=mallory">}}}
+If Bob's bank keeps his authentication information in a cookie, and if the 
+cookie hasn't expired, then the attempt by Bob's browser to load the image 
+will submit the withdrawal form with his cookie, thus authorizing a 
+transaction without Bob's approval.
+
+====Solution with Eliom <= 1.2====
+
+There is an easy way to protect a service from such attacks with Eliom 1.2:
+just create a new anonymous coservice with timeout each time you display the 
+form. Thus, a new token will be created for each form and no service will
+answer if you do not send it (or more precisely the fallback will do).
+
+
+====CSRF-safe services====
+
+In order to simplify this, Eliom add this possibility:
+*When creating a new coservice, you can give the optional ~csrf_safe 
+parameter
+*If this parameter is true, actual registration of the service will be 
+delayed and performed each time a form is created towards this coservice
+
+Example:
     *wiki*)
 
 let csrfsafe_example =
@@ -4196,6 +4231,7 @@ let csrfsafe_example_post =
   Eliom_services.new_post_coservice
     ~csrf_safe:true
     ~timeout:10.
+    ~max_use:1
     ~fallback:csrfsafe_example
     ~post_params:Eliom_parameters.unit
     ()

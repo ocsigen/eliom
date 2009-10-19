@@ -254,6 +254,21 @@ val new_coservice :
    Coservices can be named if the [?name] optional parameter
    is present or anonymous (in that case, a coservice number will be
    generated).
+
+   The [~timeout] parameter specifies a timeout (in seconds)
+   after which the coservice will disappear. This amount of time is
+   computed from the creation or the last call to the service.
+
+   The [~max_use] parameter specifies that the service can be used only
+   a fixed number of times.
+
+   If [~csrf_safe] is [true] (the default is [false]),
+   it will create a "CSRF-safe" service. (In that case [~name] is ignored).
+   It means that the registration of the service will not actually
+   take place when [register] is called, but delayed and performed
+   each time a form is created. This allows to protect against CSRF attacks,
+   and should be use with a short timeout (and max_use).
+   (And you should probably use POST coservices in that case).
  *)
 
 val new_post_coservice :
