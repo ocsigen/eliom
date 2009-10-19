@@ -28,13 +28,13 @@ all: depend $(CMA) install
 #	$(CAMLC) -a -o $(CMA) $(OBJS)
 
 v0/site0.cma: 
-	make -C v0 site0.cma
+	$(MAKE) -C v0 site0.cma
 
 v1/site1.cma:  
-	make -C v1 site1.cma
+	$(MAKE) -C v1 site1.cma
 
 v2/site2.cma: 
-	make -C v2 site2.cma
+	$(MAKE) -C v2 site2.cma
 
 install:
 	chmod a+r $(CMA)
@@ -57,15 +57,15 @@ doc:
 
 clean:
 	-rm -f *.cm[ioxa] *~ $(NAME)
-	make -C v0 clean
-	make -C v1 clean
-	make -C v2 clean
+	$(MAKE) -C v0 clean
+	$(MAKE) -C v1 clean
+	$(MAKE) -C v2 clean
 
 depend:
 	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
-	make -C v0 depend
-	make -C v1 depend
-	make -C v2 depend
+	$(MAKE) -C v0 depend
+	$(MAKE) -C v1 depend
+	$(MAKE) -C v2 depend
 
 
 FORCE:

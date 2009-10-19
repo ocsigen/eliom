@@ -101,7 +101,7 @@ opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom.cmxa $(CMXS3) pa_eliom_obrowser.cm
 .PHONY: doc depend obrowser
 
 obrowser:
-	make -C obrowser all
+	$(MAKE) -C obrowser all
 
 eliom_sessions.cmx: eliom_sessions.ml
 #	-rm ../extensions/ocsipersist.cmx
@@ -196,7 +196,7 @@ bugdbg:
 .PHONY: clean
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
-	make -C obrowser clean
+	$(MAKE) -C obrowser clean
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) $(OBROWSERFILES) > .depend
