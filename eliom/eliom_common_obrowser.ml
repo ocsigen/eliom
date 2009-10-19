@@ -19,29 +19,49 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* Warning: the two following types are used both for service creation
-   and for service identification. 
-   Some cases may be useless in one case or another. *)
-
-type att_key =
-  | Att_no (* regular service *)
-  | Att_named of string (* named coservice *)
-  | Att_anon of string (* anonymous coservice *)
-  | Att_csrf_safe (* CSRF safe anonymous coservice *)
+(* Service kinds: *)
+type att_key_serv =
+  | SAtt_no (* regular service *)
+  | SAtt_named of string (* named coservice *)
+  | SAtt_anon of string (* anonymous coservice *)
+  | SAtt_csrf_safe (* CSRF safe anonymous coservice *)
       (* CSRF safe service registration delayed until form/link creation *)
 
-type na_key =
-  | Na_no (* no na information *)
-  | Na_void_keep (* void coservice that keeps GET na parameters *)
-  | Na_void_dontkeep (* void coservice that does not keep GET na parameters *)
-  | Na_get_ of string (* named *)
-  | Na_post_ of string (* named *)
-  | Na_get' of string (* anonymous *)
-  | Na_post' of string (* anonymous *)
-  | Na_get_csrf_safe (* CSRF safe anonymous coservice *)
-  | Na_post_csrf_safe (* CSRF safe anonymous coservice *)
+type na_key_serv =
+  | SNa_no (* no na information *)
+  | SNa_void_keep (* void coservice that keeps GET na parameters *)
+  | SNa_void_dontkeep (* void coservice that does not keep GET na parameters *)
+  | SNa_get_ of string (* named *)
+  | SNa_post_ of string (* named *)
+  | SNa_get' of string (* anonymous *)
+  | SNa_post' of string (* anonymous *)
+  | SNa_get_csrf_safe (* CSRF safe anonymous coservice *)
+  | SNa_post_csrf_safe (* CSRF safe anonymous coservice *)
 
+(* the same, for incoming requests: *)
+type att_key_req =
+  | RAtt_no (* no coservice information *)
+  | RAtt_named of string (* named coservice *)
+  | RAtt_anon of string (* anonymous coservice *)
 
+type na_key_req =
+  | RNa_no (* no na information *)
+  | RNa_get_ of string (* named *)
+  | RNa_post_ of string (* named *)
+  | RNa_get' of string (* anonymous *)
+  | RNa_post' of string (* anonymous *)
+
+let att_key_serv_of_req = function
+  | RAtt_no -> SAtt_no
+  | RAtt_named s -> SAtt_named s 
+  | RAtt_anon s -> SAtt_anon s 
+
+let na_key_serv_of_req = function
+  | RNa_no -> SNa_no
+  | RNa_post' s -> SNa_post' s
+  | RNa_get' s -> SNa_get' s 
+  | RNa_post_ s -> SNa_post_ s
+  | RNa_get_ s -> SNa_get_ s 
 
 (*****************************************************************************)
 let defaultpagename = "./"
@@ -106,8 +126,8 @@ type sess_info =
           string Ocsigen_lib.String_Table.t) option;
      (* the same, but for secure cookies, if https *)
 
-     si_nonatt_info: na_key;
-     si_state_info: (att_key * att_key);
+     si_nonatt_info: na_key_req;
+     si_state_info: (att_key_req * att_key_req);
      si_previous_extension_error: int;
      (* HTTP error code sent by previous extension (default: 404) *)
 

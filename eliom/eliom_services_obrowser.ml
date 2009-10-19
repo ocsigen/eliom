@@ -57,13 +57,13 @@ type +'a a_s =
      subpath: Ocsigen_lib.url_path; (* name of the service without parameters *)
      fullpath: Ocsigen_lib.url_path; (* full path of the service = site_dir@subpath *)
      att_kind: 'a; (* < attached_service_kind *)
-     get_name: Eliom_common.att_key;
-     post_name: Eliom_common.att_key;
+     get_name: Eliom_common.att_key_serv;
+     post_name: Eliom_common.att_key_serv;
      redirect_suffix: bool;
    }
 
 type +'a na_s =
-    {na_name: Eliom_common.na_key;
+    {na_name: Eliom_common.na_key_serv;
      na_kind: [ `Get | `Post of bool ]
        (*
           where bool is "keep_get_na_params":
@@ -111,7 +111,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
      keep_nl_params: [ `All | `Persistent | `None ];
      mutable delayed_get_or_na_registration_function: (unit -> string) option;
      mutable delayed_post_registration_function: 
-       (Eliom_common.att_key -> string) option;
+       (Eliom_common.att_key_serv -> string) option;
      (* used for csrf safe services: 
         we register a new anonymous coservice
         with these functions each time we create a link or form.
@@ -156,8 +156,8 @@ let static_dir_ ?(https = false) ~sp () =
         subpath = [""];
         fullpath = (Eliom_sessions.get_site_dir sp) @ 
            [Eliom_common.eliom_suffix_internal_name];
-        get_name = Eliom_common.Att_no;
-        post_name = Eliom_common.Att_no;
+        get_name = Eliom_common.SAtt_no;
+        post_name = Eliom_common.SAtt_no;
         att_kind = `Internal (`Service, `Get);
         redirect_suffix = true;
       };
@@ -187,8 +187,8 @@ let get_static_dir_ ?(https = false) ~sp
         subpath = [""];
         fullpath = (Eliom_sessions.get_site_dir sp) @ 
            [Eliom_common.eliom_suffix_internal_name];
-        get_name = Eliom_common.Att_no;
-        post_name = Eliom_common.Att_no;
+        get_name = Eliom_common.SAtt_no;
+        post_name = Eliom_common.SAtt_no;
         att_kind = `Internal (`Service, `Get);
         redirect_suffix = true;
       };
@@ -245,7 +245,7 @@ let void_coservice' =
     get_params_type = Eliom_parameters.unit;
     post_params_type = Eliom_parameters.unit;
     kind = `Nonattached
-      {na_name = Eliom_common.Na_void_dontkeep;
+      {na_name = Eliom_common.SNa_void_dontkeep;
        na_kind = `Get;
       };
     https = false;
@@ -262,7 +262,7 @@ let https_void_coservice' =
     get_params_type = Eliom_parameters.unit;
     post_params_type = Eliom_parameters.unit;
     kind = `Nonattached
-      {na_name = Eliom_common.Na_void_dontkeep;
+      {na_name = Eliom_common.SNa_void_dontkeep;
        na_kind = `Get;
       };
     https = true;
@@ -273,14 +273,14 @@ let https_void_coservice' =
 
 let void_hidden_coservice' = {void_coservice' with 
                          kind = `Nonattached
-    {na_name = Eliom_common.Na_void_keep;
+    {na_name = Eliom_common.SNa_void_keep;
      na_kind = `Get;
     };
                       }
 
 let https_void_hidden_coservice' = {void_coservice' with 
                          kind = `Nonattached
-    {na_name = Eliom_common.Na_void_keep;
+    {na_name = Eliom_common.SNa_void_keep;
      na_kind = `Get;
     };
                       }

@@ -114,8 +114,8 @@ let new_service_aux_aux
       subpath = path;
       fullpath = site_dir @ path;
       att_kind = kind;
-      get_name = Eliom_common.Att_no;
-      post_name = Eliom_common.Att_no;
+      get_name = Eliom_common.SAtt_no;
+      post_name = Eliom_common.SAtt_no;
       redirect_suffix = redirect_suffix
     };
    https = https;
@@ -237,11 +237,11 @@ let new_coservice
      {k with
       get_name =
          (if csrf_safe
-          then Eliom_common.Att_csrf_safe
+          then Eliom_common.SAtt_csrf_safe
           else
             (match name with
-               | None -> Eliom_common.Att_anon (new_state ())
-               | Some name -> Eliom_common.Att_named name));
+               | None -> Eliom_common.SAtt_anon (new_state ())
+               | Some name -> Eliom_common.SAtt_named name));
         att_kind = `Internal (`Coservice, `Get);
      };
    https = https || fallback.https;
@@ -273,11 +273,11 @@ let new_coservice' ?name ?(csrf_safe = false) ?max_use ?timeout ?(https = false)
           kind = `Nonattached
             {na_name = 
                 (if csrf_safe
-                 then Eliom_common.Na_get_csrf_safe
+                 then Eliom_common.SNa_get_csrf_safe
                  else
                    match name with
-                     | None -> Eliom_common.Na_get' (new_state ())
-                     | Some name -> Eliom_common.Na_get_ name);
+                     | None -> Eliom_common.SNa_get' (new_state ())
+                     | Some name -> Eliom_common.SNa_get_ name);
              na_kind = `Get;
             };
           https = https;
@@ -307,7 +307,7 @@ let new_post_service_aux ~sp ~https ~fallback
       fullpath = k1.fullpath;
       att_kind = `Internal (k, `Post);
       get_name = k1.get_name;
-      post_name = Eliom_common.Att_no;
+      post_name = Eliom_common.SAtt_no;
       redirect_suffix = false;
     };
    https = https;
@@ -371,11 +371,11 @@ let new_post_coservice
       att_kind = `Internal (`Coservice, `Post);
       post_name = 
          (if csrf_safe
-          then Eliom_common.Att_csrf_safe
+          then Eliom_common.SAtt_csrf_safe
           else
             (match name with
-               | None -> Eliom_common.Att_anon (new_state ())
-               | Some name -> Eliom_common.Att_named name));
+               | None -> Eliom_common.SAtt_anon (new_state ())
+               | Some name -> Eliom_common.SAtt_named name));
      };
    https = https;
    keep_nl_params = match keep_nl_params with 
@@ -409,12 +409,12 @@ let new_post_coservice'
     kind = `Nonattached
       {na_name = 
           (if csrf_safe
-           then Eliom_common.Na_post_csrf_safe
+           then Eliom_common.SNa_post_csrf_safe
            else
              (match name with
                 | None ->
-                    Eliom_common.Na_post' (new_state ())
-                | Some name -> Eliom_common.Na_post_ name));
+                    Eliom_common.SNa_post' (new_state ())
+                | Some name -> Eliom_common.SNa_post_ name));
        na_kind = `Post keep_get_na_params;
       };
     https = https;

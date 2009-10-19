@@ -27,7 +27,7 @@ exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registration of string
 exception Eliom_there_are_unregistered_services of
-  (string list * string list list * na_key list)
+  (string list * string list list * na_key_serv list)
 exception Eliom_function_forbidden_outside_site_loading of string
 exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
@@ -230,7 +230,7 @@ type datacookiestable = datacookiestablecontent SessionCookies.t
 
 
 type page_table_key =
-    {key_state : att_key * att_key;
+    {key_state : att_key_serv * att_key_serv;
      key_kind: Ocsigen_http_frame.Http_header.http_method}
       (* action: server_params -> page *)
 
@@ -238,7 +238,7 @@ type page_table_key =
          let compare = compare end) *)
 
 module NAserv_Table = Map.Make(struct
-  type t = na_key
+  type t = na_key_serv
   let compare = compare
 end)
 
@@ -311,7 +311,7 @@ and sitedata =
    mutable not_bound_in_data_tables: string -> bool;
    mutable exn_handler: server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
    mutable unregistered_services: Ocsigen_lib.url_path list;
-   mutable unregistered_na_services: na_key list;
+   mutable unregistered_na_services: na_key_serv list;
    mutable max_volatile_data_sessions_per_group: int option;
    mutable max_service_sessions_per_group: int option;
    mutable max_persistent_data_sessions_per_group: int option;
@@ -490,19 +490,19 @@ let get_session_info ri previous_extension_err =
       try
         let n, pp =
           Ocsigen_lib.list_assoc_remove naservice_num post_params
-        in (Na_post' n, pp)
+        in (RNa_post' n, pp)
       with Not_found ->
         try
           let n, pp =
             Ocsigen_lib.list_assoc_remove naservice_name post_params
-          in (Na_post_ n, pp)
-        with Not_found -> (Na_no, [])
+          in (RNa_post_ n, pp)
+        with Not_found -> (RNa_no, [])
     in
     match post_naservice_name with
-      | Na_post_ _
-      | Na_post' _ -> (* POST non attached coservice *)
+      | RNa_post_ _
+      | RNa_post' _ -> (* POST non attached coservice *)
           (post_naservice_name,
-           (Att_no, Att_no),
+           (RAtt_no, RAtt_no),
            ([], get_params),
            (lazy
               (try
@@ -521,23 +521,23 @@ let get_session_info ri previous_extension_err =
             try
               let n, gp =
                 Ocsigen_lib.list_assoc_remove naservice_num get_params
-              in (Na_get' n,
+              in (RNa_get' n,
                   [(naservice_num, n)],
                   (split_prefix_param na_co_param_prefix gp))
             with Not_found ->
               try
                 let n, gp =
                   Ocsigen_lib.list_assoc_remove naservice_name get_params
-                in (Na_get_ n,
+                in (RNa_get_ n,
                     [(naservice_name, n)],
                     (split_prefix_param na_co_param_prefix gp))
-              with Not_found -> (Na_no, [], ([], get_params))
+              with Not_found -> (RNa_no, [], ([], get_params))
           in
           match get_naservice_name with
-            | Na_get_ _
-            | Na_get' _ -> (* GET non attached coservice *)
+            | RNa_get_ _
+            | RNa_get' _ -> (* GET non attached coservice *)
                 (get_naservice_name,
-                 (Att_no, Att_no),
+                 (RAtt_no, RAtt_no),
                  (na_get_params, other_get_params),
                  (lazy (na_name_num@na_get_params)),
                  [])
@@ -551,34 +551,34 @@ let get_session_info ri previous_extension_err =
                     let s, pp =
                       Ocsigen_lib.list_assoc_remove
                         post_numstate_param_name post_params
-                    in (Att_anon s, pp)
+                    in (RAtt_anon s, pp)
                   with
                       Not_found -> 
                         try
                           let s, pp =
                             Ocsigen_lib.list_assoc_remove
                               post_state_param_name post_params
-                          in (Att_named s, pp)
+                          in (RAtt_named s, pp)
                         with
-                            Not_found -> (Att_no, post_params)
+                            Not_found -> (RAtt_no, post_params)
                 in
                 let get_state, (get_params, other_get_params) =
                   try
                     let s, gp =
                       Ocsigen_lib.list_assoc_remove
                         get_numstate_param_name get_params
-                    in ((Att_anon s),
+                    in ((RAtt_anon s),
                         (split_prefix_param co_param_prefix gp))
                   with Not_found ->
                     try
                       let s, gp =
                         Ocsigen_lib.list_assoc_remove
                           get_state_param_name get_params
-                      in ((Att_named s),
+                      in ((RAtt_named s),
                           (split_prefix_param co_param_prefix gp))
-                    with Not_found -> (Att_no, (get_params, []))
+                    with Not_found -> (RAtt_no, (get_params, []))
                 in
-                (Na_no,
+                (RNa_no,
                  (get_state, post_state),
                  (get_params, other_get_params),
                  (lazy (na_name_num@na_get_params)),

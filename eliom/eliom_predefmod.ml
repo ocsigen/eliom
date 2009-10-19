@@ -2109,8 +2109,8 @@ module Actionreg_ = struct
       (match si.Eliom_common.si_nonatt_info,
          si.Eliom_common.si_state_info,
          ri.request_info.ri_method with
-           | Eliom_common.Na_no,
-             (Eliom_common.Att_no, Eliom_common.Att_no), 
+           | Eliom_common.RNa_no,
+             (Eliom_common.RAtt_no, Eliom_common.RAtt_no), 
              Ocsigen_http_frame.Http_header.GET ->
              let empty_result = Ocsigen_http_frame.empty_result () in
              Lwt.return empty_result 
@@ -2138,15 +2138,15 @@ module Actionreg_ = struct
                   si.Eliom_common.si_state_info,
                   ri.request_info.ri_method
                 with
-                  | Eliom_common.Na_get_ _,
-                    (_, Eliom_common.Att_no), 
+                  | Eliom_common.RNa_get_ _,
+                    (_, Eliom_common.RAtt_no), 
                     Ocsigen_http_frame.Http_header.GET
-                  | Eliom_common.Na_get' _,
-                    (_, Eliom_common.Att_no), 
+                  | Eliom_common.RNa_get' _,
+                    (_, Eliom_common.RAtt_no), 
                     Ocsigen_http_frame.Http_header.GET
                       (* no post params, GET na coservice *)
-                  | Eliom_common.Na_no,
-                    (_, Eliom_common.Att_no), 
+                  | Eliom_common.RNa_no,
+                    (_, Eliom_common.RAtt_no), 
                     Ocsigen_http_frame.Http_header.GET
                       (* no post params, GET attached coservice *)
                     ->
@@ -2173,8 +2173,8 @@ module Actionreg_ = struct
                         ~previous_cookies:all_new_cookies ri
                         
 
-                  | Eliom_common.Na_post_ _, (_, _), _
-                  | Eliom_common.Na_post' _, (_, _), _ ->
+                  | Eliom_common.RNa_post_ _, (_, _), _
+                  | Eliom_common.RNa_post' _, (_, _), _ ->
                       (* POST na coservice *)
                       (* retry without POST params *)
                       

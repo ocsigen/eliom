@@ -123,7 +123,8 @@ let add_page_table duringsession url_act t (key, (id, va)) =
   try
     let l, newt = Ocsigen_lib.list_assoc_remove key t in
     try
-      if key.Eliom_common.key_state = (Eliom_common.Att_no, Eliom_common.Att_no)
+      if key.Eliom_common.key_state = (Eliom_common.SAtt_no, 
+                                       Eliom_common.SAtt_no)
       then begin
 (********* Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
         let (oldgen, n), oldl = Ocsigen_lib.list_assoc_remove id l in
@@ -246,7 +247,11 @@ let find_service
         all_cookie_info
         ri
         suffix
-        {Eliom_common.key_state = si.Eliom_common.si_state_info;
+        {Eliom_common.key_state = 
+            (Eliom_common.att_key_serv_of_req 
+               (fst si.Eliom_common.si_state_info),
+             Eliom_common.att_key_serv_of_req 
+               (snd si.Eliom_common.si_state_info));
          Eliom_common.key_kind = ri.request_info.ri_method}
         si
     in
@@ -398,9 +403,9 @@ let get_page
                 | Eliom_common.Eliom_Wrong_parameter as exn ->
                     (* si pas trouvé avec, on essaie sans l'état *)
                     (match si.Eliom_common.si_state_info with
-                    | (Eliom_common.Att_no, Eliom_common.Att_no) -> fail exn
-                    | (g, Eliom_common.Att_anon _)
-                    | (g, Eliom_common.Att_named _) ->
+                    | (Eliom_common.RAtt_no, Eliom_common.RAtt_no) -> fail exn
+                    | (g, Eliom_common.RAtt_anon _)
+                    | (g, Eliom_common.RAtt_named _) ->
                         (* There was a POST state.
                            We remove it, and remove POST parameters.
                          *)
@@ -419,14 +424,14 @@ let get_page
                                 }},
                                  {si with
                                   Eliom_common.si_nonatt_info=
-                                  Eliom_common.Na_no;
+                                  Eliom_common.RNa_no;
                                   Eliom_common.si_state_info= 
-                                     (g, Eliom_common.Att_no);
+                                     (g, Eliom_common.RAtt_no);
                                 },
                                  all_cookie_info
                                 ))
-                    | (Eliom_common.Att_named _, Eliom_common.Att_no)
-                    | (Eliom_common.Att_anon _, Eliom_common.Att_no) ->
+                    | (Eliom_common.RAtt_named _, Eliom_common.RAtt_no)
+                    | (Eliom_common.RAtt_anon _, Eliom_common.RAtt_no) ->
                         (* There was a GET state, but no POST state.
                            We remove it with its parameters,
                            and remove POST parameters.
@@ -449,14 +454,13 @@ let get_page
                                 },
                                  {si with
                                   Eliom_common.si_nonatt_info=
-                                  Eliom_common.Na_no;
+                                  Eliom_common.RNa_no;
                                   Eliom_common.si_state_info=
-                                     (Eliom_common.Att_no, Eliom_common.Att_no);
+                                     (Eliom_common.RAtt_no, 
+                                      Eliom_common.RAtt_no);
                                   Eliom_common.si_other_get_params=[];
                                 },
                                  all_cookie_info))
-                    | (Eliom_common.Att_csrf_safe, _)
-                    | (_, Eliom_common.Att_csrf_safe) -> assert false
                     )
                 | e -> fail e)
         | e -> fail e)

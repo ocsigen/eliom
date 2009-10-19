@@ -52,28 +52,45 @@ exception Eliom_Suffix_redirection of string
   (* We redirect to the suffix version of the service *)
 
 
-type att_key =
-  | Att_no (* regular service *)
-  | Att_named of string (* named coservice *)
-  | Att_anon of string (* anonymous coservice *)
-  | Att_csrf_safe (* CSRF safe anonymous coservice *)
+(* Service kinds: *)
+type att_key_serv =
+  | SAtt_no (* regular service *)
+  | SAtt_named of string (* named coservice *)
+  | SAtt_anon of string (* anonymous coservice *)
+  | SAtt_csrf_safe (* CSRF safe anonymous coservice *)
       (* CSRF safe service registration delayed until form/link creation *)
 
-type na_key =
-  | Na_no (* no na information *)
-  | Na_void_keep (* void coservice that keeps GET na parameters *)
-  | Na_void_dontkeep (* void coservice that does not keep GET na parameters *)
-  | Na_get_ of string (* named *)
-  | Na_post_ of string (* named *)
-  | Na_get' of string (* anonymous *)
-  | Na_post' of string (* anonymous *)
-  | Na_get_csrf_safe (* CSRF safe anonymous coservice *)
-  | Na_post_csrf_safe (* CSRF safe anonymous coservice *)
+type na_key_serv =
+  | SNa_no (* no na information *)
+  | SNa_void_keep (* void coservice that keeps GET na parameters *)
+  | SNa_void_dontkeep (* void coservice that does not keep GET na parameters *)
+  | SNa_get_ of string (* named *)
+  | SNa_post_ of string (* named *)
+  | SNa_get' of string (* anonymous *)
+  | SNa_post' of string (* anonymous *)
+  | SNa_get_csrf_safe (* CSRF safe anonymous coservice *)
+  | SNa_post_csrf_safe (* CSRF safe anonymous coservice *)
+
+(* the same, for incoming requests: *)
+type att_key_req =
+  | RAtt_no (* no coservice information *)
+  | RAtt_named of string (* named coservice *)
+  | RAtt_anon of string (* anonymous coservice *)
+
+type na_key_req =
+  | RNa_no (* no na information *)
+  | RNa_get_ of string (* named *)
+  | RNa_post_ of string (* named *)
+  | RNa_get' of string (* anonymous *)
+  | RNa_post' of string (* anonymous *)
+
+
+
 
 
 exception Eliom_duplicate_registration of string
 exception Eliom_there_are_unregistered_services of
-            (string list * string list list * na_key list)
+            (string list * string list list * na_key_serv list)
 exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
 
@@ -115,8 +132,8 @@ type sess_info = {
     (string Ocsigen_lib.String_Table.t *
        string Ocsigen_lib.String_Table.t *
        string Ocsigen_lib.String_Table.t) option;
-  si_nonatt_info : na_key;
-  si_state_info: (att_key * att_key);
+  si_nonatt_info : na_key_req;
+  si_state_info: (att_key_req * att_key_req);
   si_previous_extension_error : int;
 
   si_na_get_params: (string * string) list Lazy.t;
@@ -183,11 +200,11 @@ type datacookiestablecontent =
     Eliommod_sessiongroups.sessgrp option ref
 type datacookiestable = datacookiestablecontent SessionCookies.t
 type page_table_key = {
-  key_state : att_key * att_key;
+  key_state : att_key_serv * att_key_serv;
   key_kind : Ocsigen_http_frame.Http_header.http_method;
 }
 
-module NAserv_Table : Map.S with type key = na_key
+module NAserv_Table : Map.S with type key = na_key_serv
 
 type anon_params_type = int
 type server_params = {
@@ -228,7 +245,7 @@ and sitedata = {
   mutable not_bound_in_data_tables : string -> bool;
   mutable exn_handler : server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
   mutable unregistered_services : Ocsigen_lib.url_path list;
-  mutable unregistered_na_services : na_key list;
+  mutable unregistered_na_services : na_key_serv list;
   mutable max_volatile_data_sessions_per_group : int option;
   mutable max_service_sessions_per_group : int option;
   mutable max_persistent_data_sessions_per_group : int option;
@@ -279,9 +296,9 @@ val absolute_change_sitedata : sitedata -> unit
 val get_current_sitedata : unit -> sitedata
 val end_current_sitedata : unit -> unit
 val add_unregistered : sitedata -> Ocsigen_lib.url_path -> unit
-val add_unregistered_na : sitedata -> na_key -> unit
+val add_unregistered_na : sitedata -> na_key_serv -> unit
 val remove_unregistered : sitedata -> Ocsigen_lib.url_path -> unit
-val remove_unregistered_na : sitedata -> na_key -> unit
+val remove_unregistered_na : sitedata -> na_key_serv -> unit
 val verify_all_registered : sitedata -> unit
 val during_eliom_module_loading : unit -> bool
 val begin_load_eliom_module : unit -> unit
@@ -299,3 +316,5 @@ val eliom_params_after_action :
      (string * string) list)
   Polytables.key
  
+val att_key_serv_of_req : att_key_req -> att_key_serv
+val na_key_serv_of_req : na_key_req -> na_key_serv

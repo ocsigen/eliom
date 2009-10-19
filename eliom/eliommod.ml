@@ -264,23 +264,27 @@ let handle_init_exn = function
              )^". ")^
        (match l2 with
        | [] -> ""
-       | [Eliom_common.Na_get' _] -> "One non-attached GET coservice has not been registered."
-       | [Eliom_common.Na_post' _] -> "One non-attached POST coservice has not been registered."
-       | [Eliom_common.Na_get_ a] -> "The non-attached GET service \""
+       | [Eliom_common.SNa_get' _] -> 
+           "One non-attached GET coservice has not been registered."
+       | [Eliom_common.SNa_post' _] -> 
+           "One non-attached POST coservice has not been registered."
+       | [Eliom_common.SNa_get_ a] -> "The non-attached GET service \""
            ^a^
            "\" has not been registered."
-       | [Eliom_common.Na_post_ a] -> "The non-attached POST service \""
+       | [Eliom_common.SNa_post_ a] -> "The non-attached POST service \""
            ^a^
            "\" has not been registered."
        | a::ll ->
            let string_of = function
-             | Eliom_common.Na_void_keep
-             | Eliom_common.Na_void_dontkeep
-             | Eliom_common.Na_no -> assert false
-             | Eliom_common.Na_get' _ -> "<GET coservice>"
-             | Eliom_common.Na_get_ n -> n^" (GET)"
-             | Eliom_common.Na_post' _ -> "<POST coservice>"
-             | Eliom_common.Na_post_ n -> n^" (POST)"
+             | Eliom_common.SNa_void_keep
+             | Eliom_common.SNa_void_dontkeep
+             | Eliom_common.SNa_no -> assert false
+             | Eliom_common.SNa_get' _ -> "<GET coservice>"
+             | Eliom_common.SNa_get_ n -> n^" (GET)"
+             | Eliom_common.SNa_post' _ -> "<POST coservice>"
+             | Eliom_common.SNa_post_ n -> n^" (POST)"
+             | Eliom_common.SNa_get_csrf_safe -> " <GET CSRF-safe coservice>"
+             | Eliom_common.SNa_post_csrf_safe -> "<POST CSRF-safe coservice>"
            in
            "Some non-attached services or coservices have not been registered: "^
              (List.fold_left

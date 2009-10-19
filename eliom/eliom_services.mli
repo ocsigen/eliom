@@ -487,10 +487,10 @@ val get_att_kind_ : 'a a_s -> 'a
 val get_sub_path_ : 'a a_s -> Ocsigen_lib.url_path
 val get_full_path_ : 'a a_s -> Ocsigen_lib.url_path
 val get_prefix_ : 'a a_s -> string
-val get_get_name_ : 'a a_s -> Eliom_common.att_key
-val get_post_name_ : 'a a_s -> Eliom_common.att_key
+val get_get_name_ : 'a a_s -> Eliom_common.att_key_serv
+val get_post_name_ : 'a a_s -> Eliom_common.att_key_serv
 val get_redirect_suffix_ : 'a a_s -> bool
-val get_na_name_ : 'a na_s -> Eliom_common.na_key
+val get_na_name_ : 'a na_s -> Eliom_common.na_key_serv
 val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> float option
@@ -506,14 +506,15 @@ val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
 val change_get_num :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   'h a_s ->
-  Eliom_common.att_key ->
+  Eliom_common.att_key_serv ->
   ('a, 'b, [> `Attached of 'h a_s ], 'd, 'e, 'f, 'i) service
 
 val set_delayed_get_or_na_registration_function :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> (unit -> string) -> unit
 
 val set_delayed_post_registration_function :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> (Eliom_common.att_key -> string) -> 
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
+  (Eliom_common.att_key_serv -> string) -> 
   unit
 
 
@@ -521,6 +522,6 @@ val register_delayed_get_or_na_coservice :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> string
 
 val register_delayed_post_coservice :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> Eliom_common.att_key -> string
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> Eliom_common.att_key_serv -> string
 
 val new_state : unit -> string

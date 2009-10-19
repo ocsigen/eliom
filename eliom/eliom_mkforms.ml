@@ -1024,17 +1024,17 @@ let make_uri_components_ (* does not take into account getparams *)
                       (get_full_path_ attser) suff
           in
           match get_get_name_ attser with
-            | Eliom_common.Att_no ->
+            | Eliom_common.SAtt_no ->
                 (uri, hiddenparams, fragment)
-            | Eliom_common.Att_anon s ->
+            | Eliom_common.SAtt_anon s ->
                 (uri, 
                  ((Eliom_common.get_numstate_param_name, s)::hiddenparams),
                  fragment)
-            | Eliom_common.Att_named s ->
+            | Eliom_common.SAtt_named s ->
                 (uri,
                  ((Eliom_common.get_state_param_name, s)::hiddenparams),
                  fragment)
-            | Eliom_common.Att_csrf_safe ->
+            | Eliom_common.SAtt_csrf_safe ->
                 let s = 
                   Eliom_services.register_delayed_get_or_na_coservice service
                 in
@@ -1048,19 +1048,19 @@ let make_uri_components_ (* does not take into account getparams *)
         let na_name = get_na_name_ naser in
         let params' =
           let current_get_params =
-            (if na_name = Eliom_common.Na_void_keep
+            (if na_name = Eliom_common.SNa_void_keep
              then (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_nl
              else Lazy.force 
                (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_nl)
           in
           (match na_name with
-             | Eliom_common.Na_void_keep
-             | Eliom_common.Na_void_dontkeep -> current_get_params
-             | Eliom_common.Na_get' n ->
+             | Eliom_common.SNa_void_keep
+             | Eliom_common.SNa_void_dontkeep -> current_get_params
+             | Eliom_common.SNa_get' n ->
                  (Eliom_common.naservice_num, n)::current_get_params
-             | Eliom_common.Na_get_ n ->
+             | Eliom_common.SNa_get_ n ->
                  (Eliom_common.naservice_name, n)::current_get_params
-             | Eliom_common.Na_get_csrf_safe ->
+             | Eliom_common.SNa_get_csrf_safe ->
                  let n = 
                    Eliom_services.register_delayed_get_or_na_coservice service 
                  in
@@ -1179,12 +1179,12 @@ let make_post_uri_components_ (* do not take into account postparams *)
 
         let (uri, getparams, fragment), getname =
           let getname = get_get_name_ attser in
-          if getname = Eliom_common.Att_csrf_safe
+          if getname = Eliom_common.SAtt_csrf_safe
           then
             (* special case for post-coservices on get csrf safe services:
                we must register the get service first *)
             let s = 
-              Eliom_common.Att_anon 
+              Eliom_common.SAtt_anon 
                 (Eliom_services.register_delayed_get_or_na_coservice service)
             in
             (make_uri_components
@@ -1216,12 +1216,12 @@ let make_post_uri_components_ (* do not take into account postparams *)
 
         let postparams =
           match get_post_name_ attser with
-            | Eliom_common.Att_no -> []
-            | Eliom_common.Att_anon s ->
+            | Eliom_common.SAtt_no -> []
+            | Eliom_common.SAtt_anon s ->
                 [(Eliom_common.post_numstate_param_name, s)]
-            | Eliom_common.Att_named s ->
+            | Eliom_common.SAtt_named s ->
                 [(Eliom_common.post_state_param_name, s)]
-            | Eliom_common.Att_csrf_safe ->
+            | Eliom_common.SAtt_csrf_safe ->
                 let s =
                   Eliom_services.register_delayed_post_coservice service getname
                 in
@@ -1317,9 +1317,9 @@ let make_post_uri_components_ (* do not take into account postparams *)
 
             let naservice_line =
               match get_na_name_ naser with
-               | Eliom_common.Na_post' n -> (Eliom_common.naservice_num, n)
-               | Eliom_common.Na_post_ n -> (Eliom_common.naservice_name, n)
-               | Eliom_common.Na_post_csrf_safe ->
+               | Eliom_common.SNa_post' n -> (Eliom_common.naservice_num, n)
+               | Eliom_common.SNa_post_ n -> (Eliom_common.naservice_name, n)
+               | Eliom_common.SNa_post_csrf_safe ->
                  let n = 
                    Eliom_services.register_delayed_get_or_na_coservice service 
                  in

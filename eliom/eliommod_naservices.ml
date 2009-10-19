@@ -55,21 +55,24 @@ let add_naservice
       let (g, _, _, _) = find_naservice_table !naservicetableref name in
       if g = generation then
         match name with
-        | Eliom_common.Na_no
-        | Eliom_common.Na_get' _
-        | Eliom_common.Na_post' _ ->
+        | Eliom_common.SNa_no
+        | Eliom_common.SNa_get' _
+        | Eliom_common.SNa_post' _ ->
             raise (Eliom_common.Eliom_duplicate_registration
                      "<non-attached coservice>")
-        | Eliom_common.Na_get_ n ->
+        | Eliom_common.SNa_get_ n ->
             raise (Eliom_common.Eliom_duplicate_registration
                      ("GET non-attached service "^n))
-        | Eliom_common.Na_post_ n ->
+        | Eliom_common.SNa_post_ n ->
             raise (Eliom_common.Eliom_duplicate_registration
                      ("POST non-attached service "^n))
-        | Eliom_common.Na_void_dontkeep
-        | Eliom_common.Na_void_keep ->
+        | Eliom_common.SNa_void_dontkeep
+        | Eliom_common.SNa_void_keep ->
             raise (Eliom_common.Eliom_duplicate_registration
                      "<void coservice>")
+        | Eliom_common.SNa_get_csrf_safe
+        | Eliom_common.SNa_post_csrf_safe
+          -> assert false
     with Not_found -> ());
 
   (match expdate with
@@ -119,7 +122,8 @@ let make_naservice
                     Eliom_common.Found
                       ((find_naservice
                           now !(c.Eliom_common.sc_table)
-                          si.Eliom_common.si_nonatt_info),
+                          (Eliom_common.na_key_serv_of_req 
+                             si.Eliom_common.si_nonatt_info)),
                        !(c.Eliom_common.sc_table),
                        Some fullsessname)
                   with Not_found -> beg
@@ -130,7 +134,7 @@ let make_naservice
     | Eliom_common.Found v -> v
     | Eliom_common.Notfound _ ->
         (find_naservice now sitedata.Eliom_common.global_services
-           si.Eliom_common.si_nonatt_info,
+           (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info),
          sitedata.Eliom_common.global_services,
          None)
   in
@@ -155,11 +159,9 @@ let make_naservice
          We call the same URL without non-attached parameters.
        *)
       match si.Eliom_common.si_nonatt_info with
-      | Eliom_common.Na_void_keep (* ? *)
-      | Eliom_common.Na_void_dontkeep (* ? *)
-      | Eliom_common.Na_no -> assert false
-      | Eliom_common.Na_post_ _
-      | Eliom_common.Na_post' _ ->
+      | Eliom_common.RNa_no -> assert false
+      | Eliom_common.RNa_post_ _
+      | Eliom_common.RNa_post' _ ->
 (*VVV (Some, Some) or (_, Some)? *)
           Ocsigen_messages.debug2
             "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
@@ -182,8 +184,8 @@ let make_naservice
                                                     si',
                                                     all_cookie_info)))
 
-      | Eliom_common.Na_get_ _
-      | Eliom_common.Na_get' _ ->
+      | Eliom_common.RNa_get_ _
+      | Eliom_common.RNa_get' _ ->
           Ocsigen_messages.debug2
             "--Eliom: Link too old. I will try without non-attached parameters:";
           Polytables.set 
@@ -228,7 +230,7 @@ let make_naservice
           if !r = 1
           then
             remove_naservice tablewhereithasbeenfound
-              si.Eliom_common.si_nonatt_info
+              (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info)
           else r := !r - 1);
       return r))
 

@@ -550,8 +550,8 @@ module MakeRegister = functor
                   (get_sub_path_ attser)
                   ({Eliom_common.key_state = attsernames;
                     Eliom_common.key_kind = key_kind},
-                   ((if attserget = Eliom_common.Att_no
-                       || attserpost = Eliom_common.Att_no
+                   ((if attserget = Eliom_common.SAtt_no
+                       || attserpost = Eliom_common.SAtt_no
                      then (anonymise_params_type sgpt,
                            anonymise_params_type sppt)
                      else (0, 0)),
@@ -617,24 +617,24 @@ module MakeRegister = functor
                          ~sp:sp2 content)))
               in
               if key_kind = Ocsigen_http_frame.Http_header.POST
-                && attserpost = Eliom_common.Att_csrf_safe
+                && attserpost = Eliom_common.SAtt_csrf_safe
               then
                 Eliom_services.set_delayed_post_registration_function
                   service 
                   (fun attserget ->
                      let n = Eliom_services.new_state () in
-                     let attserpost = Eliom_common.Att_anon n in
+                     let attserpost = Eliom_common.SAtt_anon n in
                      f (attserget, attserpost);
                      n)
               else
               if key_kind = Ocsigen_http_frame.Http_header.GET
-                && attserget = Eliom_common.Att_csrf_safe
+                && attserget = Eliom_common.SAtt_csrf_safe
               then
                 Eliom_services.set_delayed_get_or_na_registration_function 
                   service 
                   (fun () ->
                      let n = Eliom_services.new_state () in
-                     let attserget = Eliom_common.Att_anon n in
+                     let attserget = Eliom_common.SAtt_anon n in
                      f (attserget, attserpost);
                      n)
               else f (attserget, attserpost)
@@ -687,8 +687,8 @@ module MakeRegister = functor
                           ~sp:sp2 content)
                   )
               in
-              if na_name = Eliom_common.Na_get_csrf_safe || 
-                na_name = Eliom_common.Na_post_csrf_safe
+              if na_name = Eliom_common.SNa_get_csrf_safe || 
+                na_name = Eliom_common.SNa_post_csrf_safe
               then (* CSRF safe coservice: we'll do the registration later *)
                 set_delayed_get_or_na_registration_function
                   service
@@ -696,10 +696,10 @@ module MakeRegister = functor
                      let n = Eliom_services.new_state () in                     
                      let na_name = 
                        match na_name with
-                         | Eliom_common.Na_get_csrf_safe ->
-                             Eliom_common.Na_get' n
-                         | Eliom_common.Na_post_csrf_safe ->
-                             Eliom_common.Na_post' n
+                         | Eliom_common.SNa_get_csrf_safe ->
+                             Eliom_common.SNa_get' n
+                         | Eliom_common.SNa_post_csrf_safe ->
+                             Eliom_common.SNa_post' n
                          | _ -> assert false
                      in
                      f na_name;

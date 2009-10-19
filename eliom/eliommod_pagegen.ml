@@ -228,7 +228,7 @@ let gen is_eliom_extension sitedata = function
       | None ->
           let genfun =
             match si.Eliom_common.si_nonatt_info with
-              | Eliom_common.Na_no ->
+              | Eliom_common.RNa_no ->
                   (* page generation *)
                   Eliommod_services.get_page
               | _ ->
