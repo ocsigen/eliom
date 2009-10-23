@@ -37,6 +37,7 @@ let alpha = upalpha | loalpha
 let digit = ['0'-'9']
 let ctl = ['\000'-'\031' '\127']
 
+(* BY, 10/2009 : those regexpes are currently unused :-(
 let crlf = "\r?\n"
 let lws = crlf? [' ' '\t'] +
 let text = _ # ctl
@@ -53,10 +54,12 @@ let token = (char # ctl) # separators
 let quoted_pair = "\\" char
 let qdtext = text # '\"'
 let quoted_string = '\"' (qdtext | quoted_pair)* '\"'
+*)
 
 rule token =
   parse
-  |blank                {Ocsigen_messages.debug_noel2 " "; token lexbuf}
+  |blank                {token lexbuf}
+
   |"GET"
   |"POST"
   |"HEAD"
@@ -67,21 +70,16 @@ rule token =
   |"CONNECT"
   |"LINK"
   |"UNLINK"
-  |"PATCH"              {let s = Lexing.lexeme lexbuf in
-                         Ocsigen_messages.debug_noel2 s;
-                         METHOD s}
-  |"\r\n"               {Ocsigen_messages.debug2 ""; EOL}
-  |":"                  {Ocsigen_messages.debug_noel2 ":";COLON}
-  |"\n"                 {Ocsigen_messages.debug2 ""; EOL}
-  |integer              {let s = Lexing.lexeme lexbuf in
-                         Ocsigen_messages.debug_noel2 s;
-                         CODE s}
-  |proto                {let s = Lexing.lexeme lexbuf in
-                         Ocsigen_messages.debug_noel2 s;
-                         PROTO s}
-  |strin                {let s = Lexing.lexeme lexbuf in
-                         Ocsigen_messages.debug_noel2 s;
-                         STRING s}
+  |"PATCH" as s         {METHOD s}
+
+  |"\r\n"               {EOL}
+  |":"                  {COLON}
+  |"\n"                 {EOL}
+
+  |integer as s         {CODE s}
+  |proto as s           {PROTO s}
+  |strin as s           {STRING s}
+
   |eof                  {raise (Http_error.Http_exception
                                   (400, Some "unexpected end of file", None))}
   |_                    {raise (Http_error.Http_exception
