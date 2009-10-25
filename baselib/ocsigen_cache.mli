@@ -90,4 +90,13 @@ module Dlist : sig
   (** The list to which the node belongs *)
   val list_of : 'a node -> 'a t option
 
+  (** remove the n oldest values (or less if the list is not long enough) ;
+      returns the list of removed values *)
+  val remove_n_oldest : 'a t -> int -> 'a list
+
+  (** change the maximum size ;
+      returns the list of removed values, if any.
+  *)
+  val set_maxsize : 'a t -> int -> 'a list
+
 end

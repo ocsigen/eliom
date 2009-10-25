@@ -42,7 +42,7 @@ module Dlist = (struct
       {mutable list : 'a node option (* None = empty *);
        mutable oldest : 'a node option;
        mutable size : int;
-       maxsize : int}
+       mutable maxsize : int}
 
   let length c =
     let rec aux i = function
@@ -162,6 +162,30 @@ module Dlist = (struct
                 ignore (add_node node l)
                   (* we must not change the physical address => use add_node *)
 
+  let rec remove_n_oldest l n = (* remove the n oldest values 
+                                   (or less if the list is not long enough) ;
+                                   returns the list of removed values *)
+    if n <= 0 
+    then []
+    else
+      match l.oldest with
+        | None -> []
+        | Some node -> 
+            let v = node.value in
+            remove node;
+            v::remove_n_oldest l (n-1)
+
+  let set_maxsize l m =
+    let size = l.size in
+    if m >= size
+    then (l.maxsize <- m; [])
+    else if m <= 0
+    then failwith "Dlist.set_maxsize"
+    else 
+      let ll = remove_n_oldest l (size - m) in
+      l.maxsize <- m;
+      ll
+
 end : sig
   type 'a t
   type 'a node
@@ -179,6 +203,15 @@ end : sig
   val length : 'a t -> int
   val value : 'a node -> 'a
   val list_of : 'a node -> 'a t option
+
+  (** remove the n oldest values ; 
+      returns the list of removed values *)
+  val remove_n_oldest : 'a t -> int -> 'a list
+
+  (** change the maximum size ;
+      returns the list of removed values, if any.
+  *)
+  val set_maxsize : 'a t -> int -> 'a list
 end)
 
 
