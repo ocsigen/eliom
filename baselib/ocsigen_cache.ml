@@ -23,6 +23,7 @@ Cache.
 @author Vincent Balat
 *)
 
+
 let (>>=) = Lwt.bind
 
 module Dlist = (struct
@@ -30,14 +31,16 @@ module Dlist = (struct
   type 'a node =
       { mutable value : 'a;
         mutable succ : 'a node option;
-        mutable prev : 'a node option}
+        mutable prev : 'a node option;
+        mutable mylist : 'a t option; (* the list to which it belongs *)
+      }
 
   (* Doubly-linked list with maximum size. The field [list] is
-     the beginning of the list. The field [first] is the first
+     the beginning of the list. The field [oldest] is the first
      element that must be removed if the list becomes too long *)
-  type 'a t =
+  and 'a t =
       {mutable list : 'a node option (* None = empty *);
-       mutable first : 'a node option;
+       mutable oldest : 'a node option;
        mutable size : int;
        maxsize : int}
 
@@ -58,32 +61,34 @@ module Dlist = (struct
 
   (* Check that a list is correct. To be completed
      1) by adding a check on nodes,
-     2) by verifying that last can be reached from first and respectively *)
+     2) by verifying that newest can be reached from oldest and respectively *)
   let correct_list l =
     (l.size <= l.maxsize) &&
     (length l = l.size) &&
-    (match l.first with
+    (match l.oldest with
        | None -> true
        | Some n -> n.prev = None) &&
     (match l.list with
        | None -> true
        | Some n -> n.succ = None)
 
+  let create size = {list = None; oldest = None; size = 0; maxsize = size}
 
-  let create_one a = { value = a; succ = None; prev = None}
-
-  let create size = {list = None; first = None; size = 0; maxsize = size}
-
-  (* Add a node to the list. The fields [succ] and [prev] are overridden.
-     The function returns the value that is being removed from the list
-     if it is too long. The node added becomes the element [list] of the list *)
+  (* Add a node that do not belong to any list to a list.
+     The fields [succ] and [prev] are overridden.
+     If the list is too long, the function removes the oldest value from the
+     list, and returns it.
+     The node added becomes the element [list] of the list *)
+  (* not exported *)
   let add_node node r =
+    assert (node.mylist = None);
+    node.mylist <- Some r;
     match r.list with
       | None ->
           node.succ <- None;
           node.prev <- None;
           r.list <- Some node;
-          r.first <- r.list;
+          r.oldest <- r.list;
           r.size <- 1;
           None
       | Some rl ->
@@ -93,71 +98,87 @@ module Dlist = (struct
           r.list <- Some node;
           if r.size >= r.maxsize
           then (
-            match r.first with
+            match r.oldest with
               | None -> assert false
               | Some a ->
                   (match a.succ with
                      | None -> assert false
                      | Some b -> b.prev <- None);
-                  r.first <- a.succ;
+                  r.oldest <- a.succ;
                   Some a.value)
           else (
             r.size <- r.size + 1;
             None
           )
 
-  let add x = add_node (create_one x)
+  let add x = 
+    let create_one a = { value = a; succ = None; prev = None; mylist = None;} in
+    (* create_one not exported *)
+    add_node (create_one x)
 
-  (* Remove an element that is supposed to be in the list *)
-  let remove l node =
-    let first =
-      match l.first with
-        | Some n when node == n -> node.succ
-        | _ -> l.first
-    in
-    let last =
-      match l.list with
-        | Some n when node == n -> node.prev
-        | _ -> l.list
-    in
-    (match node.succ with
-       | None -> ()
-       | Some s -> s.prev <- node.prev);
-    (match node.prev with
-       | None -> ()
-       | Some s -> s.succ <- node.succ);
-    l.first <- first;
-    l.list <- last;
-    l.size <- l.size - 1
+  (* Remove an element from its list *)
+  let remove node =
+    match node.mylist with
+      | None -> ()
+      | Some l -> begin  
+          let oldest =
+            match l.oldest with
+              | Some n when node == n -> node.succ
+              | _ -> l.oldest
+          in
+          let newest =
+            match l.list with
+              | Some n when node == n -> node.prev
+              | _ -> l.list
+          in
+          (match node.succ with
+             | None -> ()
+             | Some s -> s.prev <- node.prev);
+          (match node.prev with
+             | None -> ()
+             | Some s -> s.succ <- node.succ);
+          l.oldest <- oldest;
+          l.list <- newest;
+          node.mylist <- None;
+          l.size <- l.size - 1
+        end
 
-  let last a = a.list
-  let first a = a.first
+  let newest a = a.list
+  let oldest a = a.oldest
   let size c = c.size
   let maxsize c = c.maxsize
 
   let value n = n.value
+  let list_of n = n.mylist
 
-  let up l node =
-    match l.list with
-      | Some n when node == n -> ()
-      | _ ->
-          remove l node;
-          ignore (add_node node l)
-          (* we must not change the physical address => use add_node *)
+  let up node =
+    match node.mylist with
+      | None -> ()
+      | Some l -> 
+          match l.list with
+            | Some n when node == n -> ()
+            | _ ->
+                remove node;
+                ignore (add_node node l)
+                  (* we must not change the physical address => use add_node *)
 
 end : sig
   type 'a t
   type 'a node
   val create : int -> 'a t
   val add : 'a -> 'a t -> 'a option
-  val last : 'a t -> 'a node option
-  val first : 'a t -> 'a node option
-  val remove : 'a t -> 'a node -> unit
-  val up : 'a t -> 'a node -> unit
+  val newest : 'a t -> 'a node option
+  val oldest : 'a t -> 'a node option
+
+  (** Remove an element from its list. *)
+  val remove : 'a node -> unit
+
+  val up : 'a node -> unit
   val size : 'a t -> int
   val maxsize : 'a t -> int
   val length : 'a t -> int
   val value : 'a node -> 'a
+  val list_of : 'a node -> 'a t option
 end)
 
 
@@ -211,7 +232,9 @@ struct
     cache
 
   let poke r node =
-    Dlist.up r.pointers node
+    assert (match Dlist.list_of node with
+              | None -> false | Some l -> r.pointers == l);
+    Dlist.up node
 
   let find_in_cache cache k =
     let (v, node) = H.find cache.table k in
@@ -222,7 +245,9 @@ struct
     try
       let (_v, node) = H.find cache.table k in
       H.remove cache.table k;
-      Dlist.remove cache.pointers node
+      assert (match Dlist.list_of node with
+                | None -> false | Some l -> cache.pointers == l);
+      Dlist.remove node
     with Not_found -> ()
 
   (* Add in a cache, under the hypothesis that the value is
@@ -232,7 +257,7 @@ struct
       | None -> ()
       | Some v -> H.remove cache.table v
     );
-    match Dlist.last cache.pointers with
+    match Dlist.newest cache.pointers with
       | None -> assert false
       | Some n -> H.add cache.table k (v, n)
 

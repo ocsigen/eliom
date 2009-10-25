@@ -19,7 +19,16 @@
 
 (**
 Cache.
-Keeps the most recently used values in memory.
+Association tables (from any kind of database)
+that keep the most recently used values in memory.
+
+It is based on a structure of doubly linked lists with maximum size,
+that keeps only the mostly recently used values first, if you call the [up]
+function each time you use a value.
+(Insertion, remove and "up" in time 1).
+This structure is exported, so that it can be used in other cases.
+
+Not (preemptive) thread safe.
 
 @author Vincent Balat
 *)
@@ -50,3 +59,35 @@ module Make :
 
 (** Clear the contents of all the existing caches *)
 val clear_all_caches : unit -> unit
+
+
+
+(** Doubly-linked lists with maximum size. *)
+module Dlist : sig
+  type 'a t
+  type 'a node
+  val create : int -> 'a t
+
+  (** Adds an element to the list, 
+      and possibly returns the element that has been removed if the maximum
+      size was exceeded. *)
+  val add : 'a -> 'a t -> 'a option
+
+  (** Removes an element from its list. *)
+  val remove : 'a node -> unit
+
+  (** Removes the element from its list, then adds it as newest. *)
+  val up : 'a node -> unit
+
+  val newest : 'a t -> 'a node option
+  val oldest : 'a t -> 'a node option
+
+  val size : 'a t -> int
+  val maxsize : 'a t -> int
+  val length : 'a t -> int
+  val value : 'a node -> 'a
+
+  (** The list to which the node belongs *)
+  val list_of : 'a node -> 'a t option
+
+end
