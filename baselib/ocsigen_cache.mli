@@ -76,7 +76,8 @@ module Dlist : sig
   (** Removes an element from its list. *)
   val remove : 'a node -> unit
 
-  (** Removes the element from its list, then adds it as newest. *)
+  (** Removes the element from its list without finalising, 
+      then adds it as newest. *)
   val up : 'a node -> unit
 
   val newest : 'a t -> 'a node option
@@ -84,7 +85,6 @@ module Dlist : sig
 
   val size : 'a t -> int
   val maxsize : 'a t -> int
-  val length : 'a t -> int
   val value : 'a node -> 'a
 
   (** The list to which the node belongs *)
@@ -99,4 +99,9 @@ module Dlist : sig
   *)
   val set_maxsize : 'a t -> int -> 'a list
 
+  (** set a function to be called automatically on a piece of data
+      when it disappears from the list
+      (either by explicit removal or because the maximum size is exceeded) *)
+  val set_finaliser : ('a -> unit) -> 'a t -> unit
+  val get_finaliser : 'a t -> ('a -> unit)
 end

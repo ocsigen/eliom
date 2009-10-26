@@ -42,9 +42,13 @@ module Dlist = (struct
       {mutable list : 'a node option (* None = empty *);
        mutable oldest : 'a node option;
        mutable size : int;
-       mutable maxsize : int}
+       mutable maxsize : int;
+       mutable finaliser : 'a -> unit;
+      }
 
-  let length c =
+(* Checks:
+
+  let compute_length c =
     let rec aux i = function
       | Some {prev=p} -> aux (i + 1) p
       | None -> i
@@ -58,27 +62,30 @@ module Dlist = (struct
         | None -> true
         | Some n' -> n'.succ == Some n)
 
-
   (* Check that a list is correct. To be completed
-     1) by adding a check on nodes,
-     2) by verifying that newest can be reached from oldest and respectively *)
+     1. by adding a check on nodes,
+     2. by verifying that newest can be reached from oldest and respectively *)
   let correct_list l =
     (l.size <= l.maxsize) &&
-    (length l = l.size) &&
+    (compute_length l = l.size) &&
     (match l.oldest with
        | None -> true
        | Some n -> n.prev = None) &&
     (match l.list with
        | None -> true
        | Some n -> n.succ = None)
+*)
 
-  let create size = {list = None; oldest = None; size = 0; maxsize = size}
+  let create size = 
+    {list = None; oldest = None; size = 0; maxsize = size; 
+     finaliser = fun _ -> ()}
 
   (* Add a node that do not belong to any list to a list.
      The fields [succ] and [prev] are overridden.
      If the list is too long, the function removes the oldest value from the
      list, and returns it.
      The node added becomes the element [list] of the list *)
+  (* do not finalise *)
   (* not exported *)
   let add_node node r =
     assert (node.mylist = None);
@@ -111,37 +118,43 @@ module Dlist = (struct
             None
           )
 
-  let add x = 
+  let add x l = 
     let create_one a = { value = a; succ = None; prev = None; mylist = None;} in
     (* create_one not exported *)
-    add_node (create_one x)
+    match add_node (create_one x) l with
+      | None -> None
+      | Some v as a -> l.finaliser v; a
 
-  (* Remove an element from its list *)
+  (* Remove an element from its list - don't finalise *)
+  let remove' node l =
+    let oldest =
+      match l.oldest with
+        | Some n when node == n -> node.succ
+        | _ -> l.oldest
+    in
+    let newest =
+      match l.list with
+        | Some n when node == n -> node.prev
+        | _ -> l.list
+    in
+    (match node.succ with
+       | None -> ()
+       | Some s -> s.prev <- node.prev);
+    (match node.prev with
+       | None -> ()
+       | Some s -> s.succ <- node.succ);
+    l.oldest <- oldest;
+    l.list <- newest;
+    node.mylist <- None;
+    l.size <- l.size - 1
+
+  (* Remove an element from its list - and finalise *)
   let remove node =
     match node.mylist with
       | None -> ()
-      | Some l -> begin  
-          let oldest =
-            match l.oldest with
-              | Some n when node == n -> node.succ
-              | _ -> l.oldest
-          in
-          let newest =
-            match l.list with
-              | Some n when node == n -> node.prev
-              | _ -> l.list
-          in
-          (match node.succ with
-             | None -> ()
-             | Some s -> s.prev <- node.prev);
-          (match node.prev with
-             | None -> ()
-             | Some s -> s.succ <- node.succ);
-          l.oldest <- oldest;
-          l.list <- newest;
-          node.mylist <- None;
-          l.size <- l.size - 1
-        end
+      | Some l ->
+          remove' node l;
+          l.finaliser node.value
 
   let newest a = a.list
   let oldest a = a.oldest
@@ -158,7 +171,7 @@ module Dlist = (struct
           match l.list with
             | Some n when node == n -> ()
             | _ ->
-                remove node;
+                remove' node l;
                 ignore (add_node node l)
                   (* we must not change the physical address => use add_node *)
 
@@ -172,7 +185,7 @@ module Dlist = (struct
         | None -> []
         | Some node -> 
             let v = node.value in
-            remove node;
+            remove node; (* and finalise! *)
             v::remove_n_oldest l (n-1)
 
   let set_maxsize l m =
@@ -186,6 +199,10 @@ module Dlist = (struct
       l.maxsize <- m;
       ll
 
+  let set_finaliser f l = l.finaliser <- f
+
+  let get_finaliser l = l.finaliser
+
 end : sig
   type 'a t
   type 'a node
@@ -197,10 +214,13 @@ end : sig
   (** Remove an element from its list. *)
   val remove : 'a node -> unit
 
+  (** Removes the element from its list without finalising, 
+      then adds it as newest. *)
   val up : 'a node -> unit
+
   val size : 'a t -> int
   val maxsize : 'a t -> int
-  val length : 'a t -> int
+
   val value : 'a node -> 'a
   val list_of : 'a node -> 'a t option
 
@@ -209,9 +229,14 @@ end : sig
   val remove_n_oldest : 'a t -> int -> 'a list
 
   (** change the maximum size ;
-      returns the list of removed values, if any.
-  *)
+      returns the list of removed values, if any. *)
   val set_maxsize : 'a t -> int -> 'a list
+
+  (** set a function to be called automatically on a piece of data
+      when it disappears from the list
+      (either by explicit removal or because the maximum size is exceeded) *)
+  val set_finaliser : ('a -> unit) -> 'a t -> unit
+  val get_finaliser : 'a t -> ('a -> unit)
 end)
 
 
@@ -299,7 +324,7 @@ struct
     add_no_remove cache k v
 
   let size c =
-    Dlist.length c.pointers
+    Dlist.size c.pointers
 
   let find cache k =
     (try
