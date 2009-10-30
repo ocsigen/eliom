@@ -288,10 +288,10 @@ let new_coservice' ?name ?(csrf_safe = false) ?max_use ?timeout ?(https = false)
 
 
 (****************************************************************************)
-(** Register a service with post parameters in the server *)
+(* Register a service with post parameters in the server *)
 let new_post_service_aux ~sp ~https ~fallback 
     ?(keep_nl_params = `None) ~post_params =
-(** Create a main service (not a coservice) internal, post only *)
+(* Create a main service (not a coservice) internal, post only *)
 (* ici faire une vérification "duplicate parameter" ? *)
   let `Attached k1 = fallback.kind in
   let `Internal (k, _) = k1.att_kind in
@@ -456,6 +456,8 @@ Very experimental
 Forms towards that kind of service are not implemented
 *)
 
+
+  
 
 (*****************************************************************************)
 let set_exn_handler ?sp h =
