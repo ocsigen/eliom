@@ -109,9 +109,11 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
      kind: 'kind; (* < service_kind *)
      https: bool; (* force https *)
      keep_nl_params: [ `All | `Persistent | `None ];
-     mutable delayed_get_or_na_registration_function: (unit -> string) option;
-     mutable delayed_post_registration_function: 
-       (Eliom_common.att_key_serv -> string) option;
+     mutable delayed_get_or_na_registration_function: 
+       (sp:Eliom_sessions.server_params -> string) option;
+     mutable delayed_post_registration_function:
+       (sp:Eliom_sessions.server_params -> 
+         Eliom_common.att_key_serv -> string) option;
      (* used for csrf safe services: 
         we register a new anonymous coservice
         with these functions each time we create a link or form.
@@ -303,12 +305,12 @@ let keep_nl_params s = s.keep_nl_params
 
 exception Unregistered_CSRF_safe_coservice
 
-let register_delayed_get_or_na_coservice s =
+let register_delayed_get_or_na_coservice ~sp s =
   match s.delayed_get_or_na_registration_function with
     | None -> raise Unregistered_CSRF_safe_coservice
-    | Some f -> f ()
+    | Some f -> f ~sp
 
-let register_delayed_post_coservice s getname =
+let register_delayed_post_coservice  ~sp s getname =
   match s.delayed_post_registration_function with
     | None -> raise Unregistered_CSRF_safe_coservice
-    | Some f -> f getname
+    | Some f -> f ~sp getname

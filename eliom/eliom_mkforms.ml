@@ -1036,7 +1036,8 @@ let make_uri_components_ (* does not take into account getparams *)
                  fragment)
             | Eliom_common.SAtt_csrf_safe ->
                 let s = 
-                  Eliom_services.register_delayed_get_or_na_coservice service
+                  Eliom_services.register_delayed_get_or_na_coservice
+                    ~sp service
                 in
                 (uri, 
                  ((Eliom_common.get_numstate_param_name, s)::hiddenparams),
@@ -1062,7 +1063,8 @@ let make_uri_components_ (* does not take into account getparams *)
                  (Eliom_common.naservice_name, n)::current_get_params
              | Eliom_common.SNa_get_csrf_safe ->
                  let n = 
-                   Eliom_services.register_delayed_get_or_na_coservice service 
+                   Eliom_services.register_delayed_get_or_na_coservice
+                     ~sp service 
                  in
                  (Eliom_common.naservice_num, n)::current_get_params
              | _ -> assert false)
@@ -1185,7 +1187,8 @@ let make_post_uri_components_ (* do not take into account postparams *)
                we must register the get service first *)
             let s = 
               Eliom_common.SAtt_anon 
-                (Eliom_services.register_delayed_get_or_na_coservice service)
+                (Eliom_services.register_delayed_get_or_na_coservice
+                   ~sp service)
             in
             (make_uri_components
                ~absolute
@@ -1223,7 +1226,8 @@ let make_post_uri_components_ (* do not take into account postparams *)
                 [(Eliom_common.post_state_param_name, s)]
             | Eliom_common.SAtt_csrf_safe ->
                 let s =
-                  Eliom_services.register_delayed_post_coservice service getname
+                  Eliom_services.register_delayed_post_coservice
+                    ~sp service getname
                 in
                 [(Eliom_common.post_numstate_param_name, s)]
         in
@@ -1321,7 +1325,8 @@ let make_post_uri_components_ (* do not take into account postparams *)
                | Eliom_common.SNa_post_ n -> (Eliom_common.naservice_name, n)
                | Eliom_common.SNa_post_csrf_safe ->
                  let n = 
-                   Eliom_services.register_delayed_get_or_na_coservice service 
+                   Eliom_services.register_delayed_get_or_na_coservice
+                     ~sp service 
                  in
                  (Eliom_common.naservice_num, n)
                | _ -> assert false

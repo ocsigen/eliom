@@ -107,7 +107,7 @@ type 'a one_service_cookie_info =
                                   *);
      sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
      sc_session_group:Eliommod_sessiongroups.sessgrp option ref 
-       (* session group *)
+       (* session group *);
    }
 
 

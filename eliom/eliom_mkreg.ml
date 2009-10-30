@@ -543,7 +543,7 @@ module MakeRegister = functor
               let suffix_with_redirect = get_redirect_suffix_ attser in
               let sgpt = get_get_params_type_ service in
               let sppt = get_post_params_type_ service in
-              let f ((attserget, attserpost) as attsernames) = 
+              let f table ((attserget, attserpost) as attsernames) = 
                 Eliommod_services.add_service
                   table
                   duringsession
@@ -621,26 +621,32 @@ module MakeRegister = functor
               then
                 Eliom_services.set_delayed_post_registration_function
                   service 
-                  (fun attserget ->
+                  (fun ~sp attserget ->
                      let n = Eliom_services.new_state () in
                      let attserpost = Eliom_common.SAtt_anon n in
-                     f (attserget, attserpost);
+                     let table = !(Eliom_sessions.get_session_service_table
+                                     (*??? ?secure ?session_name *) ~sp ())
+                     in
+                     f table (attserget, attserpost);
                      n)
               else
               if key_kind = Ocsigen_http_frame.Http_header.GET
                 && attserget = Eliom_common.SAtt_csrf_safe
               then
-                Eliom_services.set_delayed_get_or_na_registration_function 
+                Eliom_services.set_delayed_get_or_na_registration_function
                   service 
-                  (fun () ->
+                  (fun ~sp ->
                      let n = Eliom_services.new_state () in
                      let attserget = Eliom_common.SAtt_anon n in
-                     f (attserget, attserpost);
+                     let table = !(Eliom_sessions.get_session_service_table
+                                     (*??? ?secure ?session_name *) ~sp ())
+                     in
+                     f table (attserget, attserpost);
                      n)
-              else f (attserget, attserpost)
+              else f table (attserget, attserpost)
           | `Nonattached naser ->
               let na_name = get_na_name_ naser in
-              let f na_name = 
+              let f table na_name = 
                 Eliommod_naservices.add_naservice
                   table
                   duringsession
@@ -692,7 +698,7 @@ module MakeRegister = functor
               then (* CSRF safe coservice: we'll do the registration later *)
                 set_delayed_get_or_na_registration_function
                   service
-                  (fun () ->
+                  (fun ~sp ->
                      let n = Eliom_services.new_state () in                     
                      let na_name = 
                        match na_name with
@@ -702,9 +708,12 @@ module MakeRegister = functor
                              Eliom_common.SNa_post' n
                          | _ -> assert false
                      in
-                     f na_name;
+                     let table = !(Eliom_sessions.get_session_service_table
+                                     (*??? ?secure ?session_name *) ~sp ())
+                     in
+                     f table na_name;
                      n)
-              else f na_name
+              else f table na_name
 
 
         let register 
