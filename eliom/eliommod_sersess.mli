@@ -9,14 +9,11 @@ val new_service_cookie :
   Eliom_common.sitedata ->
   Eliommod_sessiongroups.sessgrp option ->
   'a ->
-  ('a *
-   (Eliom_common.dircontent ref * Eliom_common.naservice_table ref *
-    bool ref * bool ref) *
+  ('a * Eliom_common.tables *
    float option ref * Eliom_common.timeout ref *
    Eliommod_sessiongroups.sessgrp option ref)
   Eliom_common.SessionCookies.t ->
-  (Eliom_common.dircontent ref * Eliom_common.naservice_table ref *
-   bool ref * bool ref)
+  Eliom_common.tables
   Eliom_common.one_service_cookie_info
 val find_or_create_service_cookie :
   ?session_group:string ->

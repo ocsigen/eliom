@@ -25,7 +25,7 @@ val find_dircontent :
   Eliom_common.dircontent ->
   Ocsigen_lib.String_Table.key -> Eliom_common.direlt ref
 val add_service :
-  Eliom_common.dircontent ref * 'a * bool ref * 'b ->
+  Eliom_common.tables ->
   bool ->
   Ocsigen_lib.String_Table.key list ->
   Eliom_common.page_table_key *
@@ -36,7 +36,7 @@ val add_service :
 exception Exn1
 val find_service :
   float ->
-  Eliom_common.dircontent ref * 'a * 'b * 'c ->
+  Eliom_common.tables ->
   string option ->
   Eliom_common.sitedata * Eliom_common.tables Eliom_common.cookie_info *
   Ocsigen_extensions.request * Eliom_common.sess_info ->

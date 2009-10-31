@@ -100,12 +100,7 @@ let gc_timeouted_naservices now tr =
 
 (* This is a thread that will work for example every hour. *)
 let service_session_gc sitedata =
-  let (servicetable,
-       naservicetable,
-       contains_services_with_timeout,
-       contains_naservices_with_timeout) =
-    sitedata.Eliom_common.global_services
-  in
+  let tables = sitedata.Eliom_common.global_services in
   match get_servicesessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
@@ -116,20 +111,17 @@ let service_session_gc sitedata =
         Ocsigen_messages.debug2 "--Eliom: GC of service sessions";
 
         (* public continuation tables: *)
-        (if !contains_services_with_timeout
-         then gc_timeouted_services now servicetable
+        (if tables.Eliom_common.table_contains_services_with_timeout
+         then gc_timeouted_services now tables.Eliom_common.table_services
          else return ()) >>= fun () -> 
-        (if !contains_naservices_with_timeout
-         then gc_timeouted_naservices now naservicetable
+        (if tables.Eliom_common.table_contains_naservices_with_timeout
+         then gc_timeouted_naservices now tables.Eliom_common.table_naservices
          else return ()) >>= fun () ->
 
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
           (fun k (sessname,
-                  ((servicetable,
-                    naservicetable,
-                    contains_services_with_timeout,
-                    contains_naservices_with_timeout) as tables),
+                  tables,
                   exp,
                   _,
                   session_group_ref) thr ->
@@ -140,11 +132,13 @@ let service_session_gc sitedata =
                       sitedata !session_group_ref k;
                     return ()
                 | _ ->
-                    (if !contains_services_with_timeout
-                     then gc_timeouted_services now servicetable
+                    (if tables.Eliom_common.table_contains_services_with_timeout
+                     then gc_timeouted_services now
+                       tables.Eliom_common.table_services
                      else return ()) >>= fun () -> 
-                    (if !contains_naservices_with_timeout
-                     then gc_timeouted_naservices now naservicetable
+                    (if tables.Eliom_common.table_contains_naservices_with_timeout
+                     then gc_timeouted_naservices now
+                       tables.Eliom_common.table_naservices
                      else return ()) >>= fun () ->
                     (if Eliom_common.service_tables_are_empty tables
                      then

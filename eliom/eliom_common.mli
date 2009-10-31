@@ -231,7 +231,15 @@ and naservice_table =
       NAserv_Table.t
 and dircontent = Vide | Table of direlt ref Ocsigen_lib.String_Table.t
 and direlt = Dir of dircontent ref | File of page_table ref
-and tables = dircontent ref * naservice_table ref * bool ref * bool ref
+and tables =
+    {table_services : dircontent ref;
+     table_naservices : naservice_table ref;
+    (* Information for the GC: *)
+     mutable table_contains_services_with_timeout : bool;
+     (* true if dircontent contains services with timeout *)
+     mutable table_contains_naservices_with_timeout : bool;
+     (* true if naservice_table contains services with timeout *)
+    } 
 and sitedata = {
   site_dir : Ocsigen_lib.url_path;
   site_dir_string : string;
@@ -259,12 +267,9 @@ val make_server_params :
 val empty_page_table : unit -> 'a list
 val empty_dircontent : unit -> dircontent
 val empty_naservice_table : unit -> naservice_table
-val service_tables_are_empty :
-  dircontent ref * naservice_table ref * 'a * 'b -> bool
-val empty_tables :
-  unit -> dircontent ref * naservice_table ref * bool ref * bool ref
-val new_service_session_tables :
-  unit -> dircontent ref * naservice_table ref * bool ref * bool ref
+val service_tables_are_empty : tables -> bool
+val empty_tables : unit -> tables
+val new_service_session_tables : unit -> tables
 val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val getcookies :

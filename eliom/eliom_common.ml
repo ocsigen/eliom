@@ -233,10 +233,6 @@ type datacookiestable = datacookiestablecontent SessionCookies.t
 type page_table_key =
     {key_state : att_key_serv * att_key_serv;
      key_kind: Ocsigen_http_frame.Http_header.http_method}
-      (* action: server_params -> page *)
-
-      (* module Page_Table = Map.Make(struct type t = page_table_key
-         let compare = compare end) *)
 
 module NAserv_Table = Map.Make(struct
   type t = na_key_serv
@@ -293,8 +289,10 @@ and direlt =
   | File of page_table ref
 
 and tables =
-    dircontent ref *
-    naservice_table ref *
+    {table_services : dircontent ref;
+     table_naservices : naservice_table ref;
+     (* ref, and not mutable field because it simpler to use
+        recursively with Dir of dircontent ref *)
     (* Information for the GC: *)
     bool ref (* true if dircontent contains services with timeout *) *
     bool ref (* true if naservice_table contains services with timeout *)
@@ -341,14 +339,14 @@ let empty_page_table () = []
 let empty_dircontent () = Vide
 let empty_naservice_table () = AVide
 
-let service_tables_are_empty (lr,atr,_,_) =
-  (!lr = Vide && !atr = AVide)
+let service_tables_are_empty t =
+  (!(t.table_services) = Vide && !(t.table_naservices) = AVide)
 
 let empty_tables () =
-  (ref (empty_dircontent ()),
-   ref (empty_naservice_table ()),
-   ref false, (* does not contain services with timeout *)
-   ref false (* does not contain na_services with timeout *))
+  {table_services = ref (empty_dircontent ());
+   table_naservices = ref (empty_naservice_table ());
+   table_contains_services_with_timeout = false;
+   table_contains_naservices_with_timeout = false}
 
 let new_service_session_tables = empty_tables
 

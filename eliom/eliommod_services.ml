@@ -158,7 +158,7 @@ let find_dircontent dc k =
 (*****************************************************************************)
 
 let add_service
-    (dircontentref, _, containstimeouts, _)
+    tables
     duringsession
     url_act
     (page_table_key,
@@ -211,7 +211,7 @@ let add_service
   in
 
   (match expdate with
-  | Some _ -> containstimeouts := true
+  | Some _ -> tables.Eliom_common.table_contains_services_with_timeout <- true
   | _ -> ());
 
   let content = (page_table_key,
@@ -219,7 +219,7 @@ let add_service
                   (max_use, expdate, action))) in
 
   let page_table_ref =
-    search_page_table_ref (*current_*) dircontentref url_act in
+    search_page_table_ref tables.Eliom_common.table_services url_act in
     page_table_ref :=
       add_page_table duringsession url_act !page_table_ref content
 
@@ -229,7 +229,7 @@ exception Exn1
 
 let find_service
     now
-    (dircontentref, _, _, _)
+    tables
     fullsessname
     (sitedata,
      all_cookie_info,
@@ -313,7 +313,7 @@ let find_service
       | a::l -> aux (Some a) l
   in
   Lwt.catch
-    (fun () -> search_page_table !dircontentref
+    (fun () -> search_page_table !(tables.Eliom_common.table_services)
        (Ocsigen_lib.change_empty_list ri.request_info.ri_sub_path))
     (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
 

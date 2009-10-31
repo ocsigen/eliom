@@ -46,13 +46,16 @@ let remove_naservice_table at k =
       Eliom_common.ATable (Eliom_common.NAserv_Table.remove k t)
 
 let add_naservice
-    (_, naservicetableref, _, containstimeouts) duringsession name
+    tables
+    duringsession name
     (max_use, expdate, naservice) =
   let generation = Ocsigen_extensions.get_numberofreloads () in
   (if not duringsession
   then
     try
-      let (g, _, _, _) = find_naservice_table !naservicetableref name in
+      let (g, _, _, _) = 
+        find_naservice_table !(tables.Eliom_common.table_naservices) name 
+      in
       if g = generation then
         match name with
         | Eliom_common.SNa_no
@@ -76,23 +79,28 @@ let add_naservice
     with Not_found -> ());
 
   (match expdate with
-  | Some _ -> containstimeouts := true
+  | Some _ -> tables.Eliom_common.table_contains_naservices_with_timeout
+      <- true
   | _ -> ());
 
-  naservicetableref :=
-    add_naservice_table !naservicetableref
+  tables.Eliom_common.table_naservices :=
+    add_naservice_table !(tables.Eliom_common.table_naservices)
       (name, (generation, max_use, expdate, naservice))
 
-let remove_naservice (_, atr, _, _) name =
-  atr := remove_naservice_table !atr name
+let remove_naservice tables name =
+  tables.Eliom_common.table_naservices := 
+    remove_naservice_table !(tables.Eliom_common.table_naservices) name
 
-let find_naservice now ((_, atr, _, _) as str) name =
-  let ((_, _, expdate, _) as p) = find_naservice_table !atr name in
+let find_naservice now tables name =
+  let ((_, _, expdate, _) as p) = 
+    find_naservice_table !(tables.Eliom_common.table_naservices) name
+  in
   match expdate with
   | Some (_, e) when !e < now ->
       (* Service expired. Removing it. *)
-      Ocsigen_messages.debug2 "--Eliom: Non attached service expired. I'm removing it";
-      remove_naservice str name;
+      Ocsigen_messages.debug2
+        "--Eliom: Non attached service expired. I'm removing it";
+      remove_naservice tables name;
       raise Not_found
   | _ -> p
 
