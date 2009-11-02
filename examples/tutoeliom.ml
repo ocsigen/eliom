@@ -4226,6 +4226,7 @@ let csrfsafe_example_post =
   Eliom_services.new_post_coservice
     ~csrf_safe:true
     ~csrf_session_name:"csrf"
+    ~csrf_secure_session:true
     ~timeout:10.
     ~max_use:1
     ~https:true
@@ -4248,12 +4249,6 @@ let _ =
   in
   Eliom_predefmod.Xhtml.register csrfsafe_example page;
   Eliom_predefmod.Xhtml.register csrfsafe_example_post
-    (* If you do register in the global service table, 
-       the CSRF safe service will be available for everybody.
-       But the actual (delayed) registration will take place in a session table.
-       If you use register_for_session, the coservice will be available only
-       for one session.
-    *)
     (fun sp () () ->
        Lwt.return
          (html
@@ -4261,6 +4256,19 @@ let _ =
             (body [p [pcdata "This is a CSRF safe service"]])))
 
 (*wiki*
+
+
+     If you register in the global service table, 
+     the CSRF safe service will be available for everybody.
+     But the actual (delayed) registration will take place in a session table,
+     described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}
+     (corresponding to {{{?session_name}}} and {{{?secure}}}).
+
+     If you use {{{register_for_session}}}, 
+     the coservice will be available only for one session.
+     The actual registration will take place in the same session table,
+     (and in that case, the parameters 
+     {{{?csrf_session_name}}} and {{{?csrf_secure_session}}} are ignored).
 
 
 
