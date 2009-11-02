@@ -239,6 +239,20 @@ and tables =
      (* true if dircontent contains services with timeout *)
      mutable table_contains_naservices_with_timeout : bool;
      (* true if naservice_table contains services with timeout *)
+     mutable csrf_get_or_na_registration_functions :
+       (sp:server_params -> string) Ocsigen_lib.Int_Table.t;
+     mutable csrf_post_registration_functions :
+       (sp:server_params -> 
+         att_key_serv -> string) Ocsigen_lib.Int_Table.t
+      (* These two table are used for CSRF safe services:
+         We associate to each service unique id the function that will
+         register a new anonymous coservice each time we create a link or form.
+         Attached POST coservices may have both a GET and POST 
+         registration function. That's why there are two tables.
+         The functions associated to each service may be different for
+         each session. That's why we use these table, and not a field in
+         the service record.
+      *)
     } 
 and sitedata = {
   site_dir : Ocsigen_lib.url_path;

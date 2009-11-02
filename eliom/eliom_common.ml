@@ -298,14 +298,13 @@ and tables =
      (* true if dircontent contains services with timeout *)
      mutable table_contains_naservices_with_timeout : bool;
      (* true if naservice_table contains services with timeout *)
-    } 
-(* *    (sp:Eliom_sessions.server_params -> string) Int_Table.t
-    (* The functions to register each CSRF service.
-       (global or for a session) *) *
-      (sp:Eliom_sessions.server_params -> 
-        Eliom_common.att_key_serv -> string) Int_Table.t
-      (* These table are used for CSRF safe services:
-         We associate to each service the function that will
+     mutable csrf_get_or_na_registration_functions :
+       (sp:server_params -> string) Ocsigen_lib.Int_Table.t;
+     mutable csrf_post_registration_functions :
+       (sp:server_params -> 
+         att_key_serv -> string) Ocsigen_lib.Int_Table.t
+      (* These two table are used for CSRF safe services:
+         We associate to each service unique id the function that will
          register a new anonymous coservice each time we create a link or form.
          Attached POST coservices may have both a GET and POST 
          registration function. That's why there are two tables.
@@ -313,7 +312,7 @@ and tables =
          each session. That's why we use these table, and not a field in
          the service record.
      *)
-*)
+    }
 (*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ *
     service Ocsigen_cache.Dlist.t
       (* for limiting the number of dynamic services in each table 
@@ -369,7 +368,10 @@ let empty_tables () =
   {table_services = ref (empty_dircontent ());
    table_naservices = ref (empty_naservice_table ());
    table_contains_services_with_timeout = false;
-   table_contains_naservices_with_timeout = false}
+   table_contains_naservices_with_timeout = false;
+   csrf_get_or_na_registration_functions = Ocsigen_lib.Int_Table.empty;
+   csrf_post_registration_functions = Ocsigen_lib.Int_Table.empty;
+  }
 
 let new_service_session_tables = empty_tables
 

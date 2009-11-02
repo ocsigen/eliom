@@ -1162,6 +1162,13 @@ val get_session_service_table :
   unit ->
   Eliom_common.tables ref
 
+val get_session_service_table_if_exists :
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> 
+  unit ->
+  Eliom_common.tables ref
+
 val get_sitedata : sp:server_params -> Eliom_common.sitedata
 
 (*

@@ -119,6 +119,7 @@ sig
 end
 
 module String_Table : Map.S with type key = string
+module Int_Table : Map.S with type key = int
 
 
 (** The files sent in the request *)

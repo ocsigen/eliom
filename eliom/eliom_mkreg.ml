@@ -620,8 +620,10 @@ module MakeRegister = functor
                 && attserpost = Eliom_common.SAtt_csrf_safe
               then
                 Eliom_services.set_delayed_post_registration_function
+                  table
                   service 
                   (fun ~sp attserget ->
+                     let sp = Eliom_sessions.sp_of_esp sp in
                      let n = Eliom_services.new_state () in
                      let attserpost = Eliom_common.SAtt_anon n in
                      let table = !(Eliom_sessions.get_session_service_table
@@ -634,8 +636,10 @@ module MakeRegister = functor
                 && attserget = Eliom_common.SAtt_csrf_safe
               then
                 Eliom_services.set_delayed_get_or_na_registration_function
+                  table
                   service 
                   (fun ~sp ->
+                     let sp = Eliom_sessions.sp_of_esp sp in
                      let n = Eliom_services.new_state () in
                      let attserget = Eliom_common.SAtt_anon n in
                      let table = !(Eliom_sessions.get_session_service_table
@@ -697,8 +701,10 @@ module MakeRegister = functor
                 na_name = Eliom_common.SNa_post_csrf_safe
               then (* CSRF safe coservice: we'll do the registration later *)
                 set_delayed_get_or_na_registration_function
+                  table
                   service
                   (fun ~sp ->
+                     let sp = Eliom_sessions.sp_of_esp sp in
                      let n = Eliom_services.new_state () in                     
                      let na_name = 
                        match na_name with

@@ -99,9 +99,11 @@ module Uniqueid = (struct
                      type t = int
                      let r = ref (-1)
                      let next () = r := !r + 1; !r
+                     let to_int = Ocsigen_lib.id
                    end : sig
                      type t
                      val next : unit -> t
+                     val to_int : t -> int
                    end)
 
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
@@ -118,20 +120,12 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
      kind: 'kind; (* < service_kind *)
      https: bool; (* force https *)
      keep_nl_params: [ `All | `Persistent | `None ];
-     mutable delayed_get_or_na_registration_function: 
-       (sp:Eliom_sessions.server_params -> string) option;
-     mutable delayed_post_registration_function:
-       (sp:Eliom_sessions.server_params -> 
-         Eliom_common.att_key_serv -> string) option;
-     (* used for csrf safe services: 
-        we register a new anonymous coservice
-        with these functions each time we create a link or form.
-        Attached POST coservices may have both a GET and POST 
-        registration function.
-     *)
      unique_id: Uniqueid.t; (* An unique ID for each service. 
                                Used to find services in a table to know
                                what to register on CSRF safe services. *)
+     post_unique_id: Uniqueid.t option; (* POST coservices share unique_id
+                                           with their fallbacks, but
+                                           have a post_unique_id. *)
    }
 
 let get_kind_ s = s.kind
@@ -150,6 +144,8 @@ let get_na_kind_ s = s.na_kind
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
+let get_unique_id s = Uniqueid.to_int s.unique_id
+let get_post_unique_id s = Uniqueid.to_int s.unique_id
 
 let change_get_num service attser n =
   (* for csrf safe services. we do not change the unique id *)
@@ -158,6 +154,8 @@ let change_get_num service attser n =
                          get_name = n}}
 
 (** Satic directories **)
+let sd_uid = Uniqueid.next ()
+
 let static_dir_ ?(https = false) ~sp () =
     {
      pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
@@ -178,9 +176,8 @@ let static_dir_ ?(https = false) ~sp () =
       };
      https = https;
      keep_nl_params = `None;
-     delayed_get_or_na_registration_function = None;
-     delayed_post_registration_function = None;
-     unique_id = Uniqueid.next ();
+     unique_id = sd_uid;
+     post_unique_id = None;
    }
 
 let static_dir ~sp = static_dir_ ~sp ()
@@ -210,9 +207,8 @@ let get_static_dir_ ?(https = false) ~sp
       };
      https = https;
      keep_nl_params = keep_nl_params;
-     delayed_get_or_na_registration_function = None;
-     delayed_post_registration_function = None;
-     unique_id = Uniqueid.next ();
+     unique_id = sd_uid;
+     post_unique_id = None;
    }
 
 let static_dir_with_params ~sp ?keep_nl_params ~get_params () = 
@@ -268,9 +264,8 @@ let void_coservice' =
       };
     https = false;
     keep_nl_params = `All;
-    delayed_get_or_na_registration_function = None;
-    delayed_post_registration_function = None;
     unique_id = Uniqueid.next ();
+    post_unique_id = None;
   }
 
 let https_void_coservice' =
@@ -286,9 +281,8 @@ let https_void_coservice' =
       };
     https = true;
     keep_nl_params = `All;
-    delayed_get_or_na_registration_function = None;
-    delayed_post_registration_function = None;
     unique_id = Uniqueid.next ();
+    post_unique_id = None;
   }
 
 let void_hidden_coservice' = {void_coservice' with 
@@ -297,6 +291,7 @@ let void_hidden_coservice' = {void_coservice' with
      na_kind = `Get;
     };
                                 unique_id = Uniqueid.next ();
+                                post_unique_id = None;
                              }
 
 let https_void_hidden_coservice' = {void_coservice' with 
@@ -305,6 +300,7 @@ let https_void_hidden_coservice' = {void_coservice' with
      na_kind = `Get;
     };
                                       unique_id = Uniqueid.next ();
+                                      post_unique_id = None;
                                    }
 
 let add_non_localized_get_parameters ~params ~service =
@@ -325,14 +321,8 @@ let keep_nl_params s = s.keep_nl_params
 
 
 
-exception Unregistered_CSRF_safe_coservice
-
 let register_delayed_get_or_na_coservice ~sp s =
-  match s.delayed_get_or_na_registration_function with
-    | None -> raise Unregistered_CSRF_safe_coservice
-    | Some f -> f ~sp
+  failwith "CSRF coservice not implemented in obrowser for now"
 
 let register_delayed_post_coservice  ~sp s getname =
-  match s.delayed_post_registration_function with
-    | None -> raise Unregistered_CSRF_safe_coservice
-    | Some f -> f ~sp getname
+  failwith "CSRF coservice not implemented in obrowser for now"

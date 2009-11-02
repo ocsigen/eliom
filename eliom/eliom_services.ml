@@ -120,9 +120,8 @@ let new_service_aux_aux
     };
    https = https;
    keep_nl_params = keep_nl_params;
-   delayed_get_or_na_registration_function = None;
-   delayed_post_registration_function = None;
    unique_id = Uniqueid.next ();
+   post_unique_id = None;
  }
 
 let new_service_aux
@@ -247,6 +246,7 @@ let new_coservice
      };
    https = https || fallback.https;
    unique_id = Uniqueid.next ();
+   post_unique_id = None;
    keep_nl_params = match keep_nl_params with 
      | None -> fallback.keep_nl_params | Some k -> k;
  }
@@ -284,9 +284,8 @@ let new_coservice' ?name ?(csrf_safe = false) ?max_use ?timeout ?(https = false)
             };
           https = https;
           keep_nl_params = keep_nl_params;
-          delayed_get_or_na_registration_function = None;
-          delayed_post_registration_function = None;
           unique_id = Uniqueid.next ();
+          post_unique_id = None;
         }
 
 
@@ -315,9 +314,9 @@ let new_post_service_aux ~sp ~https ~fallback
     };
    https = https;
    keep_nl_params = keep_nl_params;
-   delayed_get_or_na_registration_function = None;
-   delayed_post_registration_function = None;
-   unique_id = Uniqueid.next ();
+   post_unique_id = Some (Uniqueid.next ());
+   (* unique_id does not change *)
+   unique_id = fallback.unique_id;
  }
 
 let new_post_service ?sp ?(https = false) ~fallback 
@@ -382,7 +381,8 @@ let new_post_coservice
                | Some name -> Eliom_common.SAtt_named name));
      };
    https = https;
-   unique_id = Uniqueid.next ();
+   post_unique_id = Some (Uniqueid.next ());
+   (* unique_id does not change *)
    keep_nl_params = match keep_nl_params with 
      | None -> fallback.keep_nl_params | Some k -> k;
  }
@@ -424,9 +424,8 @@ let new_post_coservice'
       };
     https = https;
     keep_nl_params = keep_nl_params;
-    delayed_get_or_na_registration_function = None;
-    delayed_post_registration_function = None;
-    unique_id = Uniqueid.next ();
+    unique_id = Uniqueid.next (); (* useless *)
+    post_unique_id = Some (Uniqueid.next ());
   }
 
 
@@ -453,6 +452,7 @@ let new_get_post_coservice'
    }
   https = https;
   unique_id = Uniqueid.next ();
+  post_unique_id = Some (Uniqueid.next ());
    }
 (* This is a nonattached coservice with GET and POST parameters!
    When reloading, the fallback (a nonattached coservice with only GET
@@ -478,8 +478,59 @@ let eccookiel_of_escookiel = Ocsigen_lib.id
 let escookiel_of_eccookiel = Ocsigen_lib.id
 
 
-let set_delayed_get_or_na_registration_function s f =
-  s.delayed_get_or_na_registration_function <- Some f
+(*****************************************************************************)
+exception Unregistered_CSRF_safe_coservice
 
-let set_delayed_post_registration_function s f =
-  s.delayed_post_registration_function <- Some f
+let register_delayed_get_or_na_coservice ~sp s =
+  let k = get_unique_id s in
+  let f =
+    try
+      let table = !(Eliom_sessions.get_session_service_table_if_exists
+                      (*??? ~session_name ~secure *) ~sp ())
+      in
+      Ocsigen_lib.Int_Table.find 
+        k table.Eliom_common.csrf_get_or_na_registration_functions
+    with Not_found ->
+      let table = Eliom_sessions.get_global_table ~sp in
+      try
+        Ocsigen_lib.Int_Table.find
+          k table.Eliom_common.csrf_get_or_na_registration_functions
+      with Not_found -> raise Unregistered_CSRF_safe_coservice
+  in
+  f ~sp:(Eliom_sessions.esp_of_sp sp)
+
+
+let register_delayed_post_coservice  ~sp s getname =
+  let k = get_post_unique_id s in
+  let f =
+    try
+      let table = !(Eliom_sessions.get_session_service_table_if_exists
+                      (*??? ~session_name ~secure *) ~sp ())
+      in
+      Ocsigen_lib.Int_Table.find 
+        k table.Eliom_common.csrf_post_registration_functions
+    with Not_found ->
+      let table = Eliom_sessions.get_global_table ~sp in
+      try
+        Ocsigen_lib.Int_Table.find
+          k table.Eliom_common.csrf_post_registration_functions
+      with Not_found -> raise Unregistered_CSRF_safe_coservice
+  in
+  f ~sp:(Eliom_sessions.esp_of_sp sp) getname
+
+
+let set_delayed_get_or_na_registration_function tables s f =
+  let k = get_unique_id s in
+  tables.Eliom_common.csrf_get_or_na_registration_functions <-
+    Ocsigen_lib.Int_Table.add
+      k
+      f
+      tables.Eliom_common.csrf_get_or_na_registration_functions
+
+let set_delayed_post_registration_function tables s f =
+  let k = get_post_unique_id s in
+  tables.Eliom_common.csrf_post_registration_functions <-
+    Ocsigen_lib.Int_Table.add
+    k
+    f
+    tables.Eliom_common.csrf_post_registration_functions

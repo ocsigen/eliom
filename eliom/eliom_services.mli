@@ -524,15 +524,10 @@ val change_get_num :
   Eliom_common.att_key_serv ->
   ('a, 'b, [> `Attached of 'h a_s ], 'd, 'e, 'f, 'i) service
 
-val set_delayed_get_or_na_registration_function :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
-  (sp:Eliom_sessions.server_params -> string) -> unit
 
-val set_delayed_post_registration_function :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
-  (sp:Eliom_sessions.server_params -> Eliom_common.att_key_serv -> string) -> 
-  unit
+val new_state : unit -> string
 
+(*****************************************************************************)
 
 val register_delayed_get_or_na_coservice :
   sp:Eliom_sessions.server_params -> 
@@ -542,4 +537,14 @@ val register_delayed_post_coservice :
   sp:Eliom_sessions.server_params -> 
   ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> Eliom_common.att_key_serv -> string
 
-val new_state : unit -> string
+val set_delayed_get_or_na_registration_function :
+  Eliom_common.tables ->
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
+  (sp:Eliom_common.server_params -> string) -> unit
+
+val set_delayed_post_registration_function :
+  Eliom_common.tables ->
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
+  (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string) -> 
+  unit
+
