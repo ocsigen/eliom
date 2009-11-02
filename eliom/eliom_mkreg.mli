@@ -160,6 +160,11 @@ module type ELIOMREGSIG1 =
     otherwise in the secure session with https, the unsecure one with http.
     (Secure session means that Eliom will ask the browser to send the cookie
     only through HTTPS).
+
+    Note that in the case of CSRF safe coservices, parameters
+    [?session_name] and [?secure] are ignored. 
+    The session name and secure options 
+    are those declared while creating the coservice.
  *)
 
 

@@ -274,13 +274,13 @@ val new_coservice :
    (And you should probably use POST coservices in that case).
    In that case, you can register the CSRF safe service either in the global
    service table or in the session service table. But the actual registration,
-   that will take place when creating a link or a form, will always take
-   place in a session service table. This table is the same as the one
-   you used for [register_for_session] if you did so, or, if you registered
-   in the global table, it is specified by the
+   that will occure when creating a link or a form, will always take
+   place in a session service table. This table is specified by the
    [~csrf_session_name] and [~csrf_secure_session] parameters
    (that correspond to [~session_name] and [~secure] for the delayed 
-    registration).
+    registration); it is default session table if they are absent.
+    Note that parameters [?session_name] and [?secure] of [register_for_session]
+    will be ignored for CSRF safe coservices.
    
  *)
 

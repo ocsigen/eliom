@@ -4267,12 +4267,14 @@ let _ =
      If you use {{{register_for_session}}}, 
      the coservice will be available only for one session.
      The actual registration will take place in the same session table,
+     described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}
      (and in that case, the parameters 
-     {{{?csrf_session_name}}} and {{{?csrf_secure_session}}} are ignored).
+     {{{?session_name}}} and {{{?secure}}} of {{{register_for_session}}}
+     are ignored).
 
 
 
-        ===@@id="p3advancedformsandparameters"@@Advanced forms and parameters
+===@@id="p3advancedformsandparameters"@@Advanced forms and parameters
         
 
         %<div class="onecol"|

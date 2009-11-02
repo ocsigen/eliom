@@ -539,7 +539,6 @@ module MakeRegister = functor
             ?headers
             table
             duringsession (* registering during session? *)
-            forsession
             ~service
             ?(error_handler = fun sp l ->
               raise (Eliom_common.Eliom_Typing_Error l))
@@ -628,15 +627,24 @@ module MakeRegister = functor
               (match (key_kind, attserget, attserpost) with
                  | (Ocsigen_http_frame.Http_header.POST, _,
                     Eliom_common.SAtt_csrf_safe (id, session_name, secure)) ->
+                     let tablereg, forsession =
+                       match table with
+                         | Ocsigen_lib.Left globtbl -> globtbl, false
+                         | Ocsigen_lib.Right (sp, _, _) ->
+                             (* we ignore session_name and secure from
+                                register_for_session *)
+                             !(Eliom_sessions.get_session_service_table
+                                 ?secure ?session_name ~sp ()), true
+                     in
                      Eliom_services.set_delayed_post_registration_function
-                       table
+                       tablereg
                        id
                        (fun ~sp attserget ->
                           let n = Eliom_services.new_state () in
                           let attserpost = Eliom_common.SAtt_anon n in
                           let table = 
                             if forsession
-                            then table
+                            then tablereg
                             else
                               let sp = Eliom_sessions.sp_of_esp sp in
                               (* we do not register in global table,
@@ -650,26 +658,43 @@ module MakeRegister = functor
                  | (Ocsigen_http_frame.Http_header.GET,
                     Eliom_common.SAtt_csrf_safe (id, session_name, secure),
                     _) ->
+                     let tablereg, forsession =
+                       match table with
+                         | Ocsigen_lib.Left globtbl -> globtbl, false
+                         | Ocsigen_lib.Right (sp, _, _) ->
+                             (* we ignore session_name and secure from
+                                register_for_session *)
+                             !(Eliom_sessions.get_session_service_table
+                                 ?secure ?session_name ~sp ()), true
+                     in
                      Eliom_services.set_delayed_get_or_na_registration_function
-                       table
+                       tablereg
                        id
                        (fun ~sp ->
                           let n = Eliom_services.new_state () in
                           let attserget = Eliom_common.SAtt_anon n in
-                          let table =
+                          let table = 
                             if forsession
-                            then table
+                            then tablereg
                             else
                               let sp = Eliom_sessions.sp_of_esp sp in
                               (* we do not register in global table,
                                  but in the table specified while creating
                                  the csrf safe service *)
                               !(Eliom_sessions.get_session_service_table
-                                          ?secure ?session_name ~sp ())
+                                  ?secure ?session_name ~sp ())
                           in
                           f table (attserget, attserpost);
                           n)
-                 | _ -> f table (attserget, attserpost))
+                 | _ -> 
+                     let tablereg =
+                       match table with
+                         | Ocsigen_lib.Left globtbl -> globtbl
+                         | Ocsigen_lib.Right (sp, session_name, secure) ->
+                             !(Eliom_sessions.get_session_service_table
+                                 ?secure ?session_name ~sp ())
+                     in
+                     f tablereg (attserget, attserpost))
           | `Nonattached naser ->
               let na_name = get_na_name_ naser in
               let f table na_name = 
@@ -722,15 +747,24 @@ module MakeRegister = functor
               match na_name with
                 | Eliom_common.SNa_get_csrf_safe (id, session_name, secure) ->
                     (* CSRF safe coservice: we'll do the registration later *)
+                    let tablereg, forsession =
+                      match table with
+                        | Ocsigen_lib.Left globtbl -> globtbl, false
+                         | Ocsigen_lib.Right (sp, _, _) ->
+                             (* we ignore session_name and secure from
+                                register_for_session *)
+                            !(Eliom_sessions.get_session_service_table
+                                ?secure ?session_name ~sp ()), true
+                    in
                     set_delayed_get_or_na_registration_function
-                      table
+                      tablereg
                       id
                       (fun ~sp ->
                          let n = Eliom_services.new_state () in
                          let na_name = Eliom_common.SNa_get' n in
                          let table =
                             if forsession
-                            then table
+                            then tablereg
                             else
                               let sp = Eliom_sessions.sp_of_esp sp in
                               (* we do not register in global table,
@@ -743,15 +777,24 @@ module MakeRegister = functor
                          n)
                 | Eliom_common.SNa_post_csrf_safe (id, session_name, secure) ->
                     (* CSRF safe coservice: we'll do the registration later *)
+                    let tablereg, forsession =
+                      match table with
+                        | Ocsigen_lib.Left globtbl -> globtbl, false
+                         | Ocsigen_lib.Right (sp, _, _) ->
+                             (* we ignore session_name and secure from
+                                register_for_session *)
+                            !(Eliom_sessions.get_session_service_table
+                                ?secure ?session_name ~sp ()), true
+                    in
                     set_delayed_get_or_na_registration_function
-                      table
+                      tablereg
                       id
                       (fun ~sp ->
                          let n = Eliom_services.new_state () in
                          let na_name = Eliom_common.SNa_post' n in
                          let table =
                             if forsession
-                            then table
+                            then tablereg
                             else
                               let sp = Eliom_sessions.sp_of_esp sp in
                               (* we do not register in global table,
@@ -762,7 +805,15 @@ module MakeRegister = functor
                          in
                          f table na_name;
                          n)
-                | _ -> f table na_name
+                | _ -> 
+                     let tablereg =
+                       match table with
+                         | Ocsigen_lib.Left globtbl -> globtbl
+                         | Ocsigen_lib.Right (sp, session_name, secure) ->
+                             !(Eliom_sessions.get_session_service_table
+                                 ?secure ?session_name ~sp ())
+                     in
+                     f tablereg na_name
 
 
         let register 
@@ -795,8 +846,7 @@ module MakeRegister = functor
                     ?code
                     ?content_type
                     ?headers
-                    sitedata.Eliom_common.global_services
-                    false
+                    (Ocsigen_lib.Left sitedata.Eliom_common.global_services)
                     false
                     ~service ?error_handler page_gen
               | _ -> raise
@@ -811,9 +861,8 @@ module MakeRegister = functor
                 ?content_type
                 ?headers
                 ?error_handler
-                (get_global_table sp)
+                (Ocsigen_lib.Left (get_global_table sp))
                 true
-                false
                 ~service
                 page_gen
 
@@ -848,9 +897,7 @@ module MakeRegister = functor
             ?content_type
             ?headers
             ?error_handler
-            !(Eliom_sessions.get_session_service_table
-                ?secure ?session_name ~sp ())
-            true
+            (Ocsigen_lib.Right (sp, session_name, secure))
             true
             ~service page
 
