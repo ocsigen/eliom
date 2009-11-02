@@ -141,15 +141,25 @@ module type ELIOMREGSIG1 =
       (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) -> 
       unit
 (** registers a handler for a service in the session table.
-   If the same client does a request to this service, this function will be
-   used instead of the one from the public table.
+    If the same client does a request to this service, this function will be
+    used instead of the one from the public table.
 
-   Warning:
-   - All main services created during initialization must be
-   registered in the public table during initialisation,
-   but never after,
-   - You can't register a service in a session table
-   when no session is active (i.e. outside a service handler)
+    Warning:
+    - All main services created during initialization must be
+    registered in the public table during initialisation,
+    but never after,
+    - You can't register a service in a session table
+    when no session is active (i.e. outside a service handler, 
+    when you do not have sp)
+    
+    [?session_name] is the name of the session, if you want several
+    service sessions on the same site.
+    
+    If [~secure] is false when the protocol is https, the service will be 
+    registered in the unsecure session, 
+    otherwise in the secure session with https, the unsecure one with http.
+    (Secure session means that Eliom will ask the browser to send the cookie
+    only through HTTPS).
  *)
 
 
@@ -184,6 +194,8 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
+      ?csrf_session_name: string ->
+      ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -215,6 +227,8 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
+      ?csrf_session_name: string ->
+      ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -324,6 +338,8 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
+      ?csrf_session_name: string ->
+      ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -354,6 +370,8 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
+      ?csrf_session_name: string ->
+      ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?keep_get_na_params:bool ->

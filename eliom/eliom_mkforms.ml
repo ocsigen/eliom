@@ -1034,10 +1034,10 @@ let make_uri_components_ (* does not take into account getparams *)
                 (uri,
                  ((Eliom_common.get_state_param_name, s)::hiddenparams),
                  fragment)
-            | Eliom_common.SAtt_csrf_safe ->
+            | Eliom_common.SAtt_csrf_safe csrf_info ->
                 let s = 
                   Eliom_services.register_delayed_get_or_na_coservice
-                    ~sp service
+                    ~sp csrf_info
                 in
                 (uri, 
                  ((Eliom_common.get_numstate_param_name, s)::hiddenparams),
@@ -1061,10 +1061,10 @@ let make_uri_components_ (* does not take into account getparams *)
                  (Eliom_common.naservice_num, n)::current_get_params
              | Eliom_common.SNa_get_ n ->
                  (Eliom_common.naservice_name, n)::current_get_params
-             | Eliom_common.SNa_get_csrf_safe ->
+             | Eliom_common.SNa_get_csrf_safe csrf_info ->
                  let n = 
                    Eliom_services.register_delayed_get_or_na_coservice
-                     ~sp service 
+                     ~sp csrf_info
                  in
                  (Eliom_common.naservice_num, n)::current_get_params
              | _ -> assert false)
@@ -1181,39 +1181,39 @@ let make_post_uri_components_ (* do not take into account postparams *)
 
         let (uri, getparams, fragment), getname =
           let getname = get_get_name_ attser in
-          if getname = Eliom_common.SAtt_csrf_safe
-          then
-            (* special case for post-coservices on get csrf safe services:
-               we must register the get service first *)
-            let s = 
-              Eliom_common.SAtt_anon 
-                (Eliom_services.register_delayed_get_or_na_coservice
-                   ~sp service)
-            in
-            (make_uri_components
-               ~absolute
-               ?https
-               ~service:(Eliom_services.change_get_num service attser s)
-               ~sp
-               ?hostname
-               ?port
-               ?fragment
-               ?keep_nl_params
-               ~nl_params
-               getparams,
-             s)
-          else (make_uri_components
-                  ~absolute
-                  ?https
-                  ~service
-                  ~sp
-                  ?hostname
-                  ?port
-                  ?fragment
-                  ?keep_nl_params
-                  ~nl_params
-                  getparams,
-                getname)
+          match getname with
+            | Eliom_common.SAtt_csrf_safe csrf_info ->
+                (* special case for post-coservices on get csrf safe services:
+                   we must register the get service first *)
+                let s = 
+                  Eliom_common.SAtt_anon 
+                    (Eliom_services.register_delayed_get_or_na_coservice
+                       ~sp csrf_info)
+                in
+                (make_uri_components
+                   ~absolute
+                   ?https
+                   ~service:(Eliom_services.change_get_num service attser s)
+                   ~sp
+                   ?hostname
+                   ?port
+                   ?fragment
+                   ?keep_nl_params
+                   ~nl_params
+                   getparams,
+                 s)
+            | _ -> (make_uri_components
+                      ~absolute
+                      ?https
+                      ~service
+                      ~sp
+                      ?hostname
+                      ?port
+                      ?fragment
+                      ?keep_nl_params
+                      ~nl_params
+                      getparams,
+                    getname)
         in
 
 
@@ -1224,10 +1224,10 @@ let make_post_uri_components_ (* do not take into account postparams *)
                 [(Eliom_common.post_numstate_param_name, s)]
             | Eliom_common.SAtt_named s ->
                 [(Eliom_common.post_state_param_name, s)]
-            | Eliom_common.SAtt_csrf_safe ->
+            | Eliom_common.SAtt_csrf_safe csrf_info ->
                 let s =
                   Eliom_services.register_delayed_post_coservice
-                    ~sp service getname
+                    ~sp csrf_info getname
                 in
                 [(Eliom_common.post_numstate_param_name, s)]
         in
@@ -1323,10 +1323,10 @@ let make_post_uri_components_ (* do not take into account postparams *)
               match get_na_name_ naser with
                | Eliom_common.SNa_post' n -> (Eliom_common.naservice_num, n)
                | Eliom_common.SNa_post_ n -> (Eliom_common.naservice_name, n)
-               | Eliom_common.SNa_post_csrf_safe ->
-                 let n = 
+               | Eliom_common.SNa_post_csrf_safe csrf_info ->
+                 let n =
                    Eliom_services.register_delayed_get_or_na_coservice
-                     ~sp service 
+                     ~sp csrf_info
                  in
                  (Eliom_common.naservice_num, n)
                | _ -> assert false

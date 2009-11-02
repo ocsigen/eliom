@@ -3366,142 +3366,10 @@ let () =
 
 
 
-        ===@@id="p3sessiongroups"@@[New in 0.99.5 - EXPERIMENTAL] Session groups
+===@@id="p3otherconcepts"@@Other concepts
         
         %<div class="onecol"|
-          
-The idea is complementary to that of
-the "session name".  While the
-optional %<span class="code"|session_name>% parameter allows for a single session to have
-multiple buckets of data associated with it, a session_group parameter
-(also optional) allow multiple sessions to be referenced together.
-For most uses, the session group is the user name.
-It allows to implement features like "close all sessions" for one user
-(even those opened on other browsers), or to limit the number of sessions
-one user may open at the same time.
-    
-          
-
-          
-Session groups have been suggested by Dario Teixeira and
-    introduced in Eliom 0.99.5. Dario explains:
-    //Consider the following scenario: a user logs in from home using
-  a "Remember me on this computer" feature, which sets a (almost)
-  no-expiration cookie on his browser and session timeouts of infinity
-  on the server.  The user goes on vacation, and while logging from
-  a cyber-café, she also sets the "Remember me" option.  Back home
-  she realises her mistake, and wishes to do a "global logout", ie,
-  closing all existing sessions associated with her user name.
-  //
-    
-  *wiki*)
-(************************************************************)
-(************ Connection of users, version 5 ****************)
-(************************************************************)
-
-(*zap* *)
-let session_name = "connect_example5"
-(* *zap*)
-(* -------------------------------------------------------- *)
-(* We create one main service and two (POST) actions        *)
-(* (for connection and disconnection)                       *)
-
-let connect_example5 =
-  Eliom_services.new_service
-    ~path:["groups"]
-    ~get_params:Eliom_parameters.unit
-    ()
-
-let connect_action =
-  Eliom_services.new_post_coservice'
-    ~name:"connect5"
-    ~post_params:(Eliom_parameters.string "login")
-    ()
-
-(* As the handler is very simple, we register it now: *)
-let disconnect_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
-    ~name:"disconnect5"
-    ~post_params:Eliom_parameters.unit
-    (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
-
-
-(* -------------------------------------------------------- *)
-(* login ang logout boxes:                                  *)
-
-let disconnect_box sp s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action sp
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
-
-let login_box sp =
-  Eliom_predefmod.Xhtml.post_form connect_action sp
-    (fun loginname ->
-      [p
-         (let l = [pcdata "login: ";
-                   Eliom_predefmod.Xhtml.string_input
-                     ~input_type:`Text ~name:loginname ()]
-         in l)
-     ])
-    ()
-
-
-(* -------------------------------------------------------- *)
-(* Handler for the "connect_example5" service (main page):    *)
-
-let connect_example5_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
-  return
-    (html
-       (head (title (pcdata "")) [])
-       (body
-          (match sessdat with
-          | Eliom_sessions.Data name ->
-              [p [pcdata ("Hello "^name); br ()];
-              disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired
-          | Eliom_sessions.No_data -> [login_box sp]
-          )))
-
-
-(* -------------------------------------------------------- *)
-(* Handler for connect_action (user logs in):               *)
-
-let connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login;
-  return ()
-
-
-(* -------------------------------------------------------- *)
-(* Registration of main services:                           *)
-
-let () =
-  Eliom_predefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
-(*wiki*
-      Note that in this case, we do not need a session table any more,
-      because our session table was containing only the user name,
-      and the user name is now the session group.
-      (But if we need to save more data, we still need a session table).
-
-      As we will see later, there are three kinds of sessions
-      (services, volatile data and persistent data).
-      It is highly recommended to set a group for each of them!
-    
-          
-
-
-    
-        >%
-
-
-
-        ===@@id="p3otherconcepts"@@Other concepts
-        
-        %<div class="onecol"|
-          ====@@id="p3preapplied"@@Pre-applied services
+====@@id="p3preapplied"@@Pre-applied services
           
           
 Services or coservices with GET parameters can be preapplied
@@ -3522,10 +3390,10 @@ let preappl = Eliom_services.preapply coucou_params (3,(4,"cinq"))
           
 
 
-          ====@@id="p3preapplied"@@Void action **[New in 1.1.0]**
+          ====@@id="p3preapplied"@@Void coservices **[New in 1.1.0]**
           
           
-%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_action"|%<span class="code"|Eliom_services.void_action>%>%:
+%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_coservice'"|%<span class="code"|Eliom_services.void_coservice'>%>%:
      is a special non-attached action, with special behaviour:
      it has no parameter at all, even non-attached parameters.
      Use it if you want to make a link to the current page
@@ -3534,21 +3402,23 @@ let preappl = Eliom_services.preapply coucou_params (3,(4,"cinq"))
      parameters, on which you register an action that does nothing,
      but you can use it with %<span class="code"|<a>%> links, not only forms.
      Example:
-    
-          
 
-          
 %<code language="ocaml"|
 Eliom_duce.Xhtml.a
-  ~service:Eliom_services.void_action
+  ~service:Eliom_services.void_coservice'
   ~sp
   {{ "cancel" }}
   ()
-    
 >%
 
+There is also 
+%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALhttps_void_coservice'"|%<span class="code"|Eliom_services.https_void_coservice'>%>%
+(same, but forces use of HTTPS),
+%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_hidden_coservice'"|%<span class="code"|Eliom_services.void_hidden_coservice'>%>%, and
+%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALhttps_void_hidden_coservice'"|%<span class="code"|Eliom_services.https_void_hidden_coservice'>%>%. "Hidden" means that they keep GET non attached parameters.
 
-          ====@@id="p3infofallbacks"@@Giving information to fallbacks
+
+====@@id="p3infofallbacks"@@Giving information to fallbacks
           
 
           
@@ -3709,7 +3579,7 @@ let () =
 
 
 
-          ====Disposable coservices
+====Disposable coservices
           
           
 It is possible to set a limit to the number of uses of
@@ -3824,7 +3694,7 @@ Warning: that default may be overriden by each site using
 
 
 
-          ====Timeout for coservices
+====Timeout for coservices
           
           
 It is also possible to put timeouts on coservices using
@@ -3872,7 +3742,7 @@ let _ =
       
           
 
-          ====Registering coservices in public table during session
+====Registering coservices in public table during session
           
           
 If you want to register coservices in the
@@ -3927,7 +3797,7 @@ let _ =
       
           
 
-          ====Defining an exception handler for the whole site
+====Defining an exception handler for the whole site
           
           
 When an exception is raised during the generation of a page,
@@ -3956,7 +3826,7 @@ let _ = Eliom_services.set_exn_handler
     | e -> fail e)
 (*wiki*
 
-          ====Giving configuration options to your sites
+====Giving configuration options to your sites
           
           
 You can add your own options in the configuration
@@ -3980,7 +3850,7 @@ You can add your own options in the configuration
       
           
 
-          ====More about sessions
+====More about sessions - session names
           
           
 By default, Eliom is using three cookies :
@@ -4027,36 +3897,27 @@ If you need more sessions (for example several different data sessions)
 You may want to impose HTTPS for some of your services.
        To do that, use the optional parameter %<span class="code"|~https:true>%
        while creating your service.
-      
-          
 
-          
 It is also possible to require http or https while creating a link or
       a form (using the optional parameter %<span class="code"|~https:true>%).
       But it is never possible to make an http link towards an https service,
       even if you request it.
-      
-          
 
-          
 Warning: if the protocol needs to be changed (from http to https 
        or vice versa), Eliom will generate absolute URLs.
        The host name and port numbers are guessed from the IP and the 
        configuration by default, but it is recommended to specify them
        in the configuration file. For example:
-      
-          
 
           %<div class="pre"|<host hostfilter="*.org" defaulthostname="www.mywebsite.org" defaulthttpport="8080" defaulthttpsport="4433"> ... </host>
 >%
 
-          ====Secure sessions **[New in 1.1.0]**
-          
-          
+====Secure sessions **[New in 1.1.0]**
+
 For security reasons, Eliom does not use the same cookies in
         https and http. Secure sessions are using secure cookies
         (i.e. Ocsigen will ask the browsers to send the cookie only if
-        the protocol is secure). Thus it is not possible to access
+        the protocol is HTTPS). Thus it is not possible to access
         secure session if the user is using http. If the user is using
         https, Eliom will save data and services in secure session. But
         it is possible to access unsecure session data and to register
@@ -4065,18 +3926,15 @@ For security reasons, Eliom does not use the same cookies in
         %<span class="code"|Eliom_sessions.set_volatile_session_data>%,
         %<span class="code"|Eliom_sessions.get_persistent_session_data>%,
         %<span class="code"|Eliom_predefmod.Xhtml.register_for_session>%, etc.
-      
-          
 
-          ====Non localized parameters**[New in 1.3.0]**
-          
-          
+====Non localized parameters**[New in 1.3.0]**
+
 Non localized parameters are GET or POST parameters that are not
         taken into account by Eliom for choosing the service.
         They have a special prefix.
         Use this if you want some information to be available or not, through
         parameters, for all of your services.
-      
+
   *wiki*)
 let my_nl_params = 
   Eliom_parameters.make_non_localized_parameters
@@ -4186,6 +4044,140 @@ Then create your link as usual, for example:
         >%
 
 
+
+===@@id="p3sessiongroups"@@[New in 0.99.5] Session groups
+        
+        %<div class="onecol"|
+          
+The idea is complementary to that of
+the "session name".  While the
+optional %<span class="code"|session_name>% parameter allows for a single session to have
+multiple buckets of data associated with it, a session_group parameter
+(also optional) allow multiple sessions to be referenced together.
+For most uses, the session group is the user name.
+It allows to implement features like "close all sessions" for one user
+(even those opened on other browsers), or to limit the number of sessions
+one user may open at the same time.
+    
+          
+
+          
+Session groups have been suggested by Dario Teixeira and
+    introduced in Eliom 0.99.5. Dario explains:
+    //Consider the following scenario: a user logs in from home using
+  a "Remember me on this computer" feature, which sets a (almost)
+  no-expiration cookie on his browser and session timeouts of infinity
+  on the server.  The user goes on vacation, and while logging from
+  a cyber-café, she also sets the "Remember me" option.  Back home
+  she realises her mistake, and wishes to do a "global logout", ie,
+  closing all existing sessions associated with her user name.
+  //
+    
+  *wiki*)
+(************************************************************)
+(************ Connection of users, version 5 ****************)
+(************************************************************)
+
+(*zap* *)
+let session_name = "connect_example5"
+(* *zap*)
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let connect_example5 =
+  Eliom_services.new_service
+    ~path:["groups"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let connect_action =
+  Eliom_services.new_post_coservice'
+    ~name:"connect5"
+    ~post_params:(Eliom_parameters.string "login")
+    ()
+
+(* As the handler is very simple, we register it now: *)
+let disconnect_action =
+  Eliom_predefmod.Action.register_new_post_coservice'
+    ~name:"disconnect5"
+    ~post_params:Eliom_parameters.unit
+    (fun sp () () ->
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
+
+
+(* -------------------------------------------------------- *)
+(* login ang logout boxes:                                  *)
+
+let disconnect_box sp s =
+  Eliom_predefmod.Xhtml.post_form disconnect_action sp
+    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+let login_box sp =
+  Eliom_predefmod.Xhtml.post_form connect_action sp
+    (fun loginname ->
+      [p
+         (let l = [pcdata "login: ";
+                   Eliom_predefmod.Xhtml.string_input
+                     ~input_type:`Text ~name:loginname ()]
+         in l)
+     ])
+    ()
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "connect_example5" service (main page):    *)
+
+let connect_example5_handler sp () () =
+  let sessdat = Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          (match sessdat with
+          | Eliom_sessions.Data name ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box sp "Close session"]
+          | Eliom_sessions.Data_session_expired
+          | Eliom_sessions.No_data -> [login_box sp]
+          )))
+
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler sp () login =
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login;
+  return ()
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_predefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
+  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+(*wiki*
+      Note that in this case, we do not need a session table any more,
+      because our session table was containing only the user name,
+      and the user name is now the session group.
+      (But if we need to save more data, we still need a session table).
+
+      As we will see later, there are three kinds of sessions
+      (services, volatile data and persistent data).
+      It is highly recommended to set a group for each of them!
+    
+          
+
+
+    
+        >%
+
+
+
+
 ===@@id="p3csrf"@@[New in 1.3.0]CSRF-safe services
 
 Eliom implements a protection against CSRF attacks.
@@ -4233,8 +4225,10 @@ let csrfsafe_example =
 let csrfsafe_example_post =
   Eliom_services.new_post_coservice
     ~csrf_safe:true
+    ~csrf_session_name:"csrf"
     ~timeout:10.
     ~max_use:1
+    ~https:true
     ~fallback:csrfsafe_example
     ~post_params:Eliom_parameters.unit
     ()
@@ -4254,7 +4248,12 @@ let _ =
   in
   Eliom_predefmod.Xhtml.register csrfsafe_example page;
   Eliom_predefmod.Xhtml.register csrfsafe_example_post
-    (* prefer register_for_session here *)
+    (* If you do register in the global service table, 
+       the CSRF safe service will be available for everybody.
+       But the actual (delayed) registration will take place in a session table.
+       If you use register_for_session, the coservice will be available only
+       for one session.
+    *)
     (fun sp () () ->
        Lwt.return
          (html

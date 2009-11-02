@@ -86,6 +86,9 @@ let register_eliom_module name f =
 (*****************************************************************************)
 (*****************************************************************************)
 
+let uniqueid =
+  let r = ref (-1) in
+  fun () -> r := !r + 1; !r
 
 (****************************************************************************)
 (****************************************************************************)
@@ -120,8 +123,6 @@ let new_service_aux_aux
     };
    https = https;
    keep_nl_params = keep_nl_params;
-   unique_id = Uniqueid.next ();
-   post_unique_id = None;
  }
 
 let new_service_aux
@@ -218,6 +219,8 @@ let new_service
 let new_coservice
     ?name
     ?(csrf_safe = false)
+    ?csrf_session_name
+    ?csrf_secure_session
     ?max_use
     ?timeout
     ?(https = false)
@@ -237,7 +240,9 @@ let new_coservice
      {k with
       get_name =
          (if csrf_safe
-          then Eliom_common.SAtt_csrf_safe
+          then Eliom_common.SAtt_csrf_safe (uniqueid (),
+                                            csrf_session_name,
+                                            csrf_secure_session)
           else
             (match name with
                | None -> Eliom_common.SAtt_anon (new_state ())
@@ -245,8 +250,6 @@ let new_coservice
         att_kind = `Internal (`Coservice, `Get);
      };
    https = https || fallback.https;
-   unique_id = Uniqueid.next ();
-   post_unique_id = None;
    keep_nl_params = match keep_nl_params with 
      | None -> fallback.keep_nl_params | Some k -> k;
  }
@@ -254,8 +257,17 @@ let new_coservice
    Preapply services if you want fallbacks with GET parameters *)
 
 
-let new_coservice' ?name ?(csrf_safe = false) ?max_use ?timeout ?(https = false)
-    ?(keep_nl_params = `Persistent) ~get_params () =
+let new_coservice' 
+    ?name 
+    ?(csrf_safe = false)
+    ?csrf_session_name
+    ?csrf_secure_session
+    ?max_use
+    ?timeout
+    ?(https = false)
+    ?(keep_nl_params = `Persistent)
+    ~get_params
+    () =
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered_na n;
   | _ -> () (* Do we accept unregistered non-attached coservices? *)); *)
@@ -275,7 +287,9 @@ let new_coservice' ?name ?(csrf_safe = false) ?max_use ?timeout ?(https = false)
           kind = `Nonattached
             {na_name = 
                 (if csrf_safe
-                 then Eliom_common.SNa_get_csrf_safe
+                 then Eliom_common.SNa_get_csrf_safe (uniqueid (),
+                                                      csrf_session_name,
+                                                      csrf_secure_session)
                  else
                    match name with
                      | None -> Eliom_common.SNa_get' (new_state ())
@@ -284,8 +298,6 @@ let new_coservice' ?name ?(csrf_safe = false) ?max_use ?timeout ?(https = false)
             };
           https = https;
           keep_nl_params = keep_nl_params;
-          unique_id = Uniqueid.next ();
-          post_unique_id = None;
         }
 
 
@@ -314,9 +326,6 @@ let new_post_service_aux ~sp ~https ~fallback
     };
    https = https;
    keep_nl_params = keep_nl_params;
-   post_unique_id = Some (Uniqueid.next ());
-   (* unique_id does not change *)
-   unique_id = fallback.unique_id;
  }
 
 let new_post_service ?sp ?(https = false) ~fallback 
@@ -354,6 +363,8 @@ let new_post_service ?sp ?(https = false) ~fallback
 let new_post_coservice 
     ?name
     ?(csrf_safe = false)
+    ?csrf_session_name
+    ?csrf_secure_session
     ?max_use
     ?timeout
     ?(https = false)
@@ -374,15 +385,15 @@ let new_post_coservice
       att_kind = `Internal (`Coservice, `Post);
       post_name = 
          (if csrf_safe
-          then Eliom_common.SAtt_csrf_safe
+          then Eliom_common.SAtt_csrf_safe (uniqueid (),
+                                            csrf_session_name,
+                                            csrf_secure_session)
           else
             (match name with
                | None -> Eliom_common.SAtt_anon (new_state ())
                | Some name -> Eliom_common.SAtt_named name));
      };
    https = https;
-   post_unique_id = Some (Uniqueid.next ());
-   (* unique_id does not change *)
    keep_nl_params = match keep_nl_params with 
      | None -> fallback.keep_nl_params | Some k -> k;
  }
@@ -396,6 +407,8 @@ let new_post_coservice
 let new_post_coservice'
     ?name
     ?(csrf_safe = false)
+    ?csrf_session_name
+    ?csrf_secure_session
     ?max_use ?timeout
     ?(https = false)
     ?(keep_nl_params = `All)
@@ -414,7 +427,9 @@ let new_post_coservice'
     kind = `Nonattached
       {na_name = 
           (if csrf_safe
-           then Eliom_common.SNa_post_csrf_safe
+           then Eliom_common.SNa_post_csrf_safe (uniqueid (),
+                                                 csrf_session_name,
+                                                 csrf_secure_session)
            else
              (match name with
                 | None ->
@@ -424,8 +439,6 @@ let new_post_coservice'
       };
     https = https;
     keep_nl_params = keep_nl_params;
-    unique_id = Uniqueid.next (); (* useless *)
-    post_unique_id = Some (Uniqueid.next ());
   }
 
 
@@ -451,8 +464,6 @@ let new_get_post_coservice'
    na_kind = `Internal (`NonAttachedCoservice, `Post);
    }
   https = https;
-  unique_id = Uniqueid.next ();
-  post_unique_id = Some (Uniqueid.next ());
    }
 (* This is a nonattached coservice with GET and POST parameters!
    When reloading, the fallback (a nonattached coservice with only GET
@@ -481,12 +492,11 @@ let escookiel_of_eccookiel = Ocsigen_lib.id
 (*****************************************************************************)
 exception Unregistered_CSRF_safe_coservice
 
-let register_delayed_get_or_na_coservice ~sp s =
-  let k = get_unique_id s in
+let register_delayed_get_or_na_coservice ~sp (k, session_name, secure) =
   let f =
     try
       let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      (*??? ~session_name ~secure *) ~sp ())
+                      ?session_name ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_get_or_na_registration_functions
@@ -500,12 +510,11 @@ let register_delayed_get_or_na_coservice ~sp s =
   f ~sp:(Eliom_sessions.esp_of_sp sp)
 
 
-let register_delayed_post_coservice  ~sp s getname =
-  let k = get_post_unique_id s in
+let register_delayed_post_coservice ~sp (k, session_name, secure) getname =
   let f =
     try
       let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      (*??? ~session_name ~secure *) ~sp ())
+                      ?session_name ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_post_registration_functions
@@ -519,16 +528,14 @@ let register_delayed_post_coservice  ~sp s getname =
   f ~sp:(Eliom_sessions.esp_of_sp sp) getname
 
 
-let set_delayed_get_or_na_registration_function tables s f =
-  let k = get_unique_id s in
+let set_delayed_get_or_na_registration_function tables k f =
   tables.Eliom_common.csrf_get_or_na_registration_functions <-
     Ocsigen_lib.Int_Table.add
       k
       f
       tables.Eliom_common.csrf_get_or_na_registration_functions
 
-let set_delayed_post_registration_function tables s f =
-  let k = get_post_unique_id s in
+let set_delayed_post_registration_function tables k f =
   tables.Eliom_common.csrf_post_registration_functions <-
     Ocsigen_lib.Int_Table.add
     k

@@ -283,8 +283,8 @@ let handle_init_exn = function
              | Eliom_common.SNa_get_ n -> n^" (GET)"
              | Eliom_common.SNa_post' _ -> "<POST coservice>"
              | Eliom_common.SNa_post_ n -> n^" (POST)"
-             | Eliom_common.SNa_get_csrf_safe -> " <GET CSRF-safe coservice>"
-             | Eliom_common.SNa_post_csrf_safe -> "<POST CSRF-safe coservice>"
+             | Eliom_common.SNa_get_csrf_safe _ -> " <GET CSRF-safe coservice>"
+             | Eliom_common.SNa_post_csrf_safe _ -> "<POST CSRF-safe coservice>"
            in
            "Some non-attached services or coservices have not been registered: "^
              (List.fold_left

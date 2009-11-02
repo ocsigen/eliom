@@ -191,6 +191,8 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
+      ?csrf_session_name: string ->
+      ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -222,6 +224,8 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
+      ?csrf_session_name: string ->
+      ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -331,6 +335,8 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
+      ?csrf_session_name: string ->
+      ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -361,6 +367,8 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
+      ?csrf_session_name: string ->
+      ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?keep_get_na_params:bool ->
@@ -531,6 +539,7 @@ module MakeRegister = functor
             ?headers
             table
             duringsession (* registering during session? *)
+            forsession
             ~service
             ?(error_handler = fun sp l ->
               raise (Eliom_common.Eliom_Typing_Error l))
@@ -616,38 +625,51 @@ module MakeRegister = functor
                          ?headers
                          ~sp:sp2 content)))
               in
-              if key_kind = Ocsigen_http_frame.Http_header.POST
-                && attserpost = Eliom_common.SAtt_csrf_safe
-              then
-                Eliom_services.set_delayed_post_registration_function
-                  table
-                  service 
-                  (fun ~sp attserget ->
-                     let sp = Eliom_sessions.sp_of_esp sp in
-                     let n = Eliom_services.new_state () in
-                     let attserpost = Eliom_common.SAtt_anon n in
-                     let table = !(Eliom_sessions.get_session_service_table
-                                     (*??? ?secure ?session_name *) ~sp ())
-                     in
-                     f table (attserget, attserpost);
-                     n)
-              else
-              if key_kind = Ocsigen_http_frame.Http_header.GET
-                && attserget = Eliom_common.SAtt_csrf_safe
-              then
-                Eliom_services.set_delayed_get_or_na_registration_function
-                  table
-                  service 
-                  (fun ~sp ->
-                     let sp = Eliom_sessions.sp_of_esp sp in
-                     let n = Eliom_services.new_state () in
-                     let attserget = Eliom_common.SAtt_anon n in
-                     let table = !(Eliom_sessions.get_session_service_table
-                                     (*??? ?secure ?session_name *) ~sp ())
-                     in
-                     f table (attserget, attserpost);
-                     n)
-              else f table (attserget, attserpost)
+              (match (key_kind, attserget, attserpost) with
+                 | (Ocsigen_http_frame.Http_header.POST, _,
+                    Eliom_common.SAtt_csrf_safe (id, session_name, secure)) ->
+                     Eliom_services.set_delayed_post_registration_function
+                       table
+                       id
+                       (fun ~sp attserget ->
+                          let n = Eliom_services.new_state () in
+                          let attserpost = Eliom_common.SAtt_anon n in
+                          let table = 
+                            if forsession
+                            then table
+                            else
+                              let sp = Eliom_sessions.sp_of_esp sp in
+                              (* we do not register in global table,
+                                 but in the table specified while creating
+                                 the csrf safe service *)
+                              !(Eliom_sessions.get_session_service_table
+                                  ?secure ?session_name ~sp ())
+                          in
+                          f table (attserget, attserpost);
+                          n)
+                 | (Ocsigen_http_frame.Http_header.GET,
+                    Eliom_common.SAtt_csrf_safe (id, session_name, secure),
+                    _) ->
+                     Eliom_services.set_delayed_get_or_na_registration_function
+                       table
+                       id
+                       (fun ~sp ->
+                          let n = Eliom_services.new_state () in
+                          let attserget = Eliom_common.SAtt_anon n in
+                          let table =
+                            if forsession
+                            then table
+                            else
+                              let sp = Eliom_sessions.sp_of_esp sp in
+                              (* we do not register in global table,
+                                 but in the table specified while creating
+                                 the csrf safe service *)
+                              !(Eliom_sessions.get_session_service_table
+                                          ?secure ?session_name ~sp ())
+                          in
+                          f table (attserget, attserpost);
+                          n)
+                 | _ -> f table (attserget, attserpost))
           | `Nonattached naser ->
               let na_name = get_na_name_ naser in
               let f table na_name = 
@@ -697,29 +719,50 @@ module MakeRegister = functor
                           ~sp:sp2 content)
                   )
               in
-              if na_name = Eliom_common.SNa_get_csrf_safe || 
-                na_name = Eliom_common.SNa_post_csrf_safe
-              then (* CSRF safe coservice: we'll do the registration later *)
-                set_delayed_get_or_na_registration_function
-                  table
-                  service
-                  (fun ~sp ->
-                     let sp = Eliom_sessions.sp_of_esp sp in
-                     let n = Eliom_services.new_state () in                     
-                     let na_name = 
-                       match na_name with
-                         | Eliom_common.SNa_get_csrf_safe ->
-                             Eliom_common.SNa_get' n
-                         | Eliom_common.SNa_post_csrf_safe ->
-                             Eliom_common.SNa_post' n
-                         | _ -> assert false
-                     in
-                     let table = !(Eliom_sessions.get_session_service_table
-                                     (*??? ?secure ?session_name *) ~sp ())
-                     in
-                     f table na_name;
-                     n)
-              else f table na_name
+              match na_name with
+                | Eliom_common.SNa_get_csrf_safe (id, session_name, secure) ->
+                    (* CSRF safe coservice: we'll do the registration later *)
+                    set_delayed_get_or_na_registration_function
+                      table
+                      id
+                      (fun ~sp ->
+                         let n = Eliom_services.new_state () in
+                         let na_name = Eliom_common.SNa_get' n in
+                         let table =
+                            if forsession
+                            then table
+                            else
+                              let sp = Eliom_sessions.sp_of_esp sp in
+                              (* we do not register in global table,
+                                 but in the table specified while creating
+                                 the csrf safe service *)
+                              !(Eliom_sessions.get_session_service_table
+                                  ?secure ?session_name ~sp ())
+                         in
+                         f table na_name;
+                         n)
+                | Eliom_common.SNa_post_csrf_safe (id, session_name, secure) ->
+                    (* CSRF safe coservice: we'll do the registration later *)
+                    set_delayed_get_or_na_registration_function
+                      table
+                      id
+                      (fun ~sp ->
+                         let n = Eliom_services.new_state () in
+                         let na_name = Eliom_common.SNa_post' n in
+                         let table =
+                            if forsession
+                            then table
+                            else
+                              let sp = Eliom_sessions.sp_of_esp sp in
+                              (* we do not register in global table,
+                                 but in the table specified while creating
+                                 the csrf safe service *)
+                              !(Eliom_sessions.get_session_service_table
+                                  ?secure ?session_name ~sp ())
+                         in
+                         f table na_name;
+                         n)
+                | _ -> f table na_name
 
 
         let register 
@@ -754,6 +797,7 @@ module MakeRegister = functor
                     ?headers
                     sitedata.Eliom_common.global_services
                     false
+                    false
                     ~service ?error_handler page_gen
               | _ -> raise
                     (Eliom_common.Eliom_function_forbidden_outside_site_loading
@@ -769,6 +813,7 @@ module MakeRegister = functor
                 ?error_handler
                 (get_global_table sp)
                 true
+                false
                 ~service
                 page_gen
 
@@ -805,6 +850,7 @@ module MakeRegister = functor
             ?error_handler
             !(Eliom_sessions.get_session_service_table
                 ?secure ?session_name ~sp ())
+            true
             true
             ~service page
 
@@ -843,6 +889,8 @@ module MakeRegister = functor
             ?sp
             ?name
             ?csrf_safe
+            ?csrf_session_name
+            ?csrf_secure_session
             ?max_use
             ?timeout
             ?https
@@ -851,7 +899,11 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = 
-            new_coservice ?name ?csrf_safe ?max_use ?timeout ?https
+            new_coservice ?name
+              ?csrf_safe
+              ?csrf_session_name
+              ?csrf_secure_session
+              ?max_use ?timeout ?https
               ~fallback ~get_params () 
           in
           register ?options
@@ -873,6 +925,8 @@ module MakeRegister = functor
             ?sp
             ?name
             ?csrf_safe
+            ?csrf_session_name
+            ?csrf_secure_session
             ?max_use
             ?timeout
             ?https
@@ -881,7 +935,11 @@ module MakeRegister = functor
             page =
           let u = 
             new_coservice' 
-              ?name ?csrf_safe ?max_use ?timeout ?https ~get_params () 
+              ?name
+              ?csrf_safe
+              ?csrf_session_name
+              ?csrf_secure_session
+              ?max_use ?timeout ?https ~get_params () 
           in
           register ?options
             ?cookies
@@ -904,6 +962,8 @@ module MakeRegister = functor
             ~sp
             ?name
             ?csrf_safe
+(*            ?csrf_session_name = ~session_name
+              ?csrf_secure_session = ~secure *)
             ?max_use
             ?timeout
             ?https
@@ -912,7 +972,11 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = 
-            new_coservice ?name ?csrf_safe ?max_use ?timeout ?https
+            new_coservice ?name 
+              ?csrf_safe
+              ?csrf_session_name:session_name
+              ?csrf_secure_session:secure
+              ?max_use ?timeout ?https
               ~fallback ~get_params () 
           in
           register_for_session
@@ -937,6 +1001,8 @@ module MakeRegister = functor
             ~sp
             ?name
             ?csrf_safe
+(*            ?csrf_session_name
+              ?csrf_secure_session *)
             ?max_use
             ?timeout
             ?https
@@ -944,7 +1010,11 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = new_coservice' 
-            ?name ?csrf_safe ?max_use ?https ~get_params () 
+            ?name 
+            ?csrf_safe
+            ?csrf_session_name:session_name
+            ?csrf_secure_session:secure
+            ?max_use ?https ~get_params () 
           in
           register_for_session
             ?options
@@ -991,6 +1061,8 @@ module MakeRegister = functor
             ?sp
             ?name
             ?csrf_safe
+            ?csrf_session_name
+            ?csrf_secure_session
             ?max_use
             ?timeout
             ?https
@@ -999,7 +1071,11 @@ module MakeRegister = functor
             ?error_handler
             page_gen =
           let u =
-            new_post_coservice ?name ?csrf_safe ?max_use ?timeout ?https
+            new_post_coservice ?name 
+              ?csrf_safe
+              ?csrf_session_name
+              ?csrf_secure_session
+              ?max_use ?timeout ?https
               ~fallback ~post_params () in
           register ?options
             ?cookies
@@ -1020,6 +1096,8 @@ module MakeRegister = functor
             ?sp
             ?name
             ?csrf_safe
+            ?csrf_session_name
+            ?csrf_secure_session
             ?max_use
             ?timeout
             ?keep_get_na_params
@@ -1031,6 +1109,8 @@ module MakeRegister = functor
             new_post_coservice'
               ?name
               ?csrf_safe
+              ?csrf_session_name
+              ?csrf_secure_session
               ?keep_get_na_params
               ?max_use
               ?timeout
@@ -1057,6 +1137,8 @@ module MakeRegister = functor
   ?sp
 ?name
 ?csrf_safe
+            ?csrf_session_name
+            ?csrf_secure_session
    ?max_use
    ?timeout
   ?https
@@ -1065,6 +1147,8 @@ module MakeRegister = functor
    ?error_handler
    page_gen =
    let u = new_get_post_coservice' ?name ?csrf_safe
+            ?csrf_session_name
+            ?csrf_secure_session
    ?max_use ?timeout ?https ~fallback ~post_params () in
    register ?options 
             ?cookies
@@ -1088,6 +1172,8 @@ module MakeRegister = functor
             ~sp
             ?name
             ?csrf_safe
+(*            ?csrf_session_name
+              ?csrf_secure_session *)
             ?max_use
             ?timeout
             ?https
@@ -1095,8 +1181,11 @@ module MakeRegister = functor
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice ?name ?csrf_safe
-              ?max_use ?timeout ?https ~fallback ~post_params () in
+          let u = new_post_coservice ?name 
+            ?csrf_safe
+            ?csrf_session_name:session_name
+            ?csrf_secure_session:secure
+            ?max_use ?timeout ?https ~fallback ~post_params () in
           register_for_session
             ?options
             ?cookies
@@ -1119,6 +1208,8 @@ module MakeRegister = functor
             ~sp
             ?name
             ?csrf_safe
+(*            ?csrf_session_name
+              ?csrf_secure_session *)
             ?max_use
             ?timeout
             ?keep_get_na_params
@@ -1130,6 +1221,8 @@ module MakeRegister = functor
             new_post_coservice'
               ?name
               ?csrf_safe
+              ?csrf_session_name:session_name
+              ?csrf_secure_session:secure
               ?keep_get_na_params
               ?max_use
               ?timeout
@@ -1158,7 +1251,10 @@ module MakeRegister = functor
             ?secure
    ~sp
 ?name
-?csrf_safe   ?max_use
+?csrf_safe
+(*            ?csrf_session_name
+              ?csrf_secure_session *)
+   ?max_use
    ?timeout
   ?https
    ~fallback
@@ -1166,6 +1262,8 @@ module MakeRegister = functor
    ?error_handler
    page_gen =
    let u = new_get_post_coservice' ?name ?csrf_safe
+            ?csrf_session_name:session_name
+            ?csrf_secure_session:secure
    ?max_use ?timeout ?https ~fallback ~post_params () in
    register_for_session
   ?options
@@ -1271,6 +1369,8 @@ module MakeRegister = functor
           ?sp
           ?name
           ?csrf_safe
+          ?csrf_session_name
+          ?csrf_secure_session
           ?max_use
           ?timeout
           ?https
@@ -1288,6 +1388,8 @@ module MakeRegister = functor
           ?sp
           ?name
           ?csrf_safe
+          ?csrf_session_name
+          ?csrf_secure_session
           ?max_use
           ?timeout
           ?https
@@ -1306,6 +1408,8 @@ module MakeRegister = functor
           ?sp
           ?name
           ?csrf_safe
+          ?csrf_session_name
+          ?csrf_secure_session
           ?max_use
           ?timeout
           ?https
@@ -1322,6 +1426,8 @@ module MakeRegister = functor
           ?sp
           ?name
           ?csrf_safe
+          ?csrf_session_name
+          ?csrf_secure_session
           ?max_use
           ?timeout
           ?https
@@ -1341,6 +1447,8 @@ module MakeRegister = functor
           ~sp
           ?name
           ?csrf_safe
+(*          ?csrf_session_name
+            ?csrf_secure_session *)
           ?max_use
           ?timeout
           ?https
@@ -1360,6 +1468,8 @@ module MakeRegister = functor
         ~sp
         ?name
         ?csrf_safe
+(*        ?csrf_session_name
+          ?csrf_secure_session *)
         ?max_use
         ?timeout
         ?https
@@ -1380,6 +1490,8 @@ module MakeRegister = functor
           ~sp
           ?name
           ?csrf_safe
+(*          ?csrf_session_name
+            ?csrf_secure_session *)
           ?max_use
           ?timeout
           ?https
@@ -1398,6 +1510,8 @@ module MakeRegister = functor
         ~sp
         ?name
         ?csrf_safe
+(*        ?csrf_session_name
+          ?csrf_secure_session *)
         ?max_use
         ?timeout
         ?https
@@ -1442,6 +1556,8 @@ module MakeRegister = functor
           ?sp
           ?name
           ?csrf_safe
+          ?csrf_session_name
+          ?csrf_secure_session
           ?max_use
           ?timeout
           ?https
@@ -1459,6 +1575,8 @@ module MakeRegister = functor
           ?sp
           ?name
           ?csrf_safe
+          ?csrf_session_name
+          ?csrf_secure_session
           ?max_use
           ?timeout
           ?https
@@ -1477,6 +1595,8 @@ module MakeRegister = functor
           ?sp
           ?name
           ?csrf_safe
+          ?csrf_session_name
+          ?csrf_secure_session
           ?max_use
           ?timeout
           ?keep_get_na_params
@@ -1494,6 +1614,8 @@ module MakeRegister = functor
           ?sp
           ?name
           ?csrf_safe
+          ?csrf_session_name
+          ?csrf_secure_session
           ?max_use
           ?timeout
           ?keep_get_na_params
@@ -1513,6 +1635,8 @@ module MakeRegister = functor
   ?sp
   ?name
   ?csrf_safe
+            ?csrf_session_name
+            ?csrf_secure_session
           ?max_use
           ?timeout
   ?https
@@ -1530,6 +1654,8 @@ module MakeRegister = functor
    ?sp
   ?name
   ?csrf_safe
+            ?csrf_session_name
+            ?csrf_secure_session
           ?max_use
           ?timeout
 ?https
@@ -1552,6 +1678,8 @@ module MakeRegister = functor
           ~sp
           ?name
           ?csrf_safe
+(*          ?csrf_session_name
+            ?csrf_secure_session *)
           ?max_use
           ?timeout
           ?https
@@ -1571,6 +1699,8 @@ module MakeRegister = functor
           ~sp
           ?name
           ?csrf_safe
+(*          ?csrf_session_name
+            ?csrf_secure_session *)
           ?max_use
           ?timeout
           ?https
@@ -1591,6 +1721,8 @@ module MakeRegister = functor
           ~sp
           ?name
           ?csrf_safe
+(*          ?csrf_session_name
+            ?csrf_secure_session *)
           ?max_use
           ?timeout
           ?keep_get_na_params
@@ -1610,6 +1742,8 @@ module MakeRegister = functor
         ~sp
         ?name
         ?csrf_safe
+(*        ?csrf_session_name
+          ?csrf_secure_session *)
         ?max_use
         ?timeout
         ?keep_get_na_params
@@ -1631,6 +1765,8 @@ module MakeRegister = functor
    sp
   ?name
   ?csrf_safe
+(*  ?csrf_session_name
+    ?csrf_secure_session *)
   ?max_use
   ?timeout
   ?https
@@ -1650,6 +1786,8 @@ module MakeRegister = functor
   ~sp
   ?name
   ?csrf_safe
+(*  ?csrf_session_name
+    ?csrf_secure_session *)
   ?max_use
   ?timeout
   ?https

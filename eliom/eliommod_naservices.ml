@@ -73,8 +73,8 @@ let add_naservice
         | Eliom_common.SNa_void_keep ->
             raise (Eliom_common.Eliom_duplicate_registration
                      "<void coservice>")
-        | Eliom_common.SNa_get_csrf_safe
-        | Eliom_common.SNa_post_csrf_safe
+        | Eliom_common.SNa_get_csrf_safe _
+        | Eliom_common.SNa_post_csrf_safe _
           -> assert false
     with Not_found -> ());
 

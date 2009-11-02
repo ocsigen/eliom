@@ -229,6 +229,8 @@ val new_post_service :
 val new_coservice :
   ?name: string ->
   ?csrf_safe: bool ->
+  ?csrf_session_name: string ->
+  ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -262,18 +264,31 @@ val new_coservice :
    The [~max_use] parameter specifies that the service can be used only
    a fixed number of times.
 
-   If [~csrf_safe] is [true] (the default is [false]),
-   it will create a "CSRF-safe" service. (In that case [~name] is ignored).
+   If [~csrf_safe] is [true],
+   it will create a "CSRF-safe" service (the default is [false]). 
+   (In that case [~name] is ignored).
    It means that the registration of the service will not actually
    take place when [register] is called, but delayed and performed
    each time a form is created. This allows to protect against CSRF attacks,
    and should be use with a short timeout (and max_use).
    (And you should probably use POST coservices in that case).
+   In that case, you can register the CSRF safe service either in the global
+   service table or in the session service table. But the actual registration,
+   that will take place when creating a link or a form, will always take
+   place in a session service table. This table is the same as the one
+   you used for [register_for_session] if you did so, or, if you registered
+   in the global table, it is specified by the
+   [~csrf_session_name] and [~csrf_secure_session] parameters
+   (that correspond to [~session_name] and [~secure] for the delayed 
+    registration).
+   
  *)
 
 val new_post_coservice :
   ?name: string ->
   ?csrf_safe: bool ->
+  ?csrf_session_name: string ->
+  ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -295,6 +310,8 @@ val new_post_coservice :
 val new_coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
+  ?csrf_session_name: string ->
+  ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -317,6 +334,8 @@ val new_coservice' :
 val new_post_coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
+  ?csrf_session_name: string ->
+  ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -530,21 +549,21 @@ val new_state : unit -> string
 (*****************************************************************************)
 
 val register_delayed_get_or_na_coservice :
-  sp:Eliom_sessions.server_params -> 
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> string
+  sp:Eliom_sessions.server_params ->
+  (int * string option * bool option) -> string
 
 val register_delayed_post_coservice :
   sp:Eliom_sessions.server_params -> 
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> Eliom_common.att_key_serv -> string
+  (int * string option * bool option) -> Eliom_common.att_key_serv -> string
 
 val set_delayed_get_or_na_registration_function :
   Eliom_common.tables ->
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
+  int -> 
   (sp:Eliom_common.server_params -> string) -> unit
 
 val set_delayed_post_registration_function :
   Eliom_common.tables ->
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
+  int -> 
   (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string) -> 
   unit
 
