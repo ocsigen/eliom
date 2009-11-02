@@ -95,6 +95,15 @@ type attached =
 type nonattached =
     [ `Nonattached of getpost na_s ]
 
+module Uniqueid = (struct
+                     type t = int
+                     let r = ref (-1)
+                     let next () = r := !r + 1; !r
+                   end : sig
+                     type t
+                     val next : unit -> t
+                   end)
+
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
     {
      pre_applied_parameters: 
@@ -120,6 +129,9 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
         Attached POST coservices may have both a GET and POST 
         registration function.
      *)
+     unique_id: Uniqueid.t; (* An unique ID for each service. 
+                               Used to find services in a table to know
+                               what to register on CSRF safe services. *)
    }
 
 let get_kind_ s = s.kind
@@ -140,6 +152,7 @@ let get_timeout_ s = s.timeout
 let get_https s = s.https
 
 let change_get_num service attser n =
+  (* for csrf safe services. we do not change the unique id *)
   {service with
      kind = `Attached {attser with
                          get_name = n}}
@@ -167,6 +180,7 @@ let static_dir_ ?(https = false) ~sp () =
      keep_nl_params = `None;
      delayed_get_or_na_registration_function = None;
      delayed_post_registration_function = None;
+     unique_id = Uniqueid.next ();
    }
 
 let static_dir ~sp = static_dir_ ~sp ()
@@ -198,6 +212,7 @@ let get_static_dir_ ?(https = false) ~sp
      keep_nl_params = keep_nl_params;
      delayed_get_or_na_registration_function = None;
      delayed_post_registration_function = None;
+     unique_id = Uniqueid.next ();
    }
 
 let static_dir_with_params ~sp ?keep_nl_params ~get_params () = 
@@ -235,6 +250,7 @@ let preapply ~service getparams =
                                | _ -> k.fullpath);
                              }
    | k -> k
+        (* unique id does not change *)
  }
 
 
@@ -254,6 +270,7 @@ let void_coservice' =
     keep_nl_params = `All;
     delayed_get_or_na_registration_function = None;
     delayed_post_registration_function = None;
+    unique_id = Uniqueid.next ();
   }
 
 let https_void_coservice' =
@@ -271,32 +288,37 @@ let https_void_coservice' =
     keep_nl_params = `All;
     delayed_get_or_na_registration_function = None;
     delayed_post_registration_function = None;
+    unique_id = Uniqueid.next ();
   }
 
 let void_hidden_coservice' = {void_coservice' with 
-                         kind = `Nonattached
+                                kind = `Nonattached
     {na_name = Eliom_common.SNa_void_keep;
      na_kind = `Get;
     };
-                      }
+                                unique_id = Uniqueid.next ();
+                             }
 
 let https_void_hidden_coservice' = {void_coservice' with 
-                         kind = `Nonattached
+                                      kind = `Nonattached
     {na_name = Eliom_common.SNa_void_keep;
      na_kind = `Get;
     };
-                      }
+                                      unique_id = Uniqueid.next ();
+                                   }
 
 let add_non_localized_get_parameters ~params ~service =
   {service with
      get_params_type = 
       Eliom_parameters.nl_prod service.get_params_type params
+        (* unique id does not change *)
   }
 
 let add_non_localized_post_parameters ~params ~service =
   {service with
      post_params_type = 
       Eliom_parameters.nl_prod service.post_params_type params
+        (* unique id does not change *)
   }
 
 let keep_nl_params s = s.keep_nl_params

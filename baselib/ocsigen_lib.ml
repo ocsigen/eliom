@@ -698,3 +698,7 @@ end : sig
   val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b t -> 'a
 end)
 
+module Int_Table = Map.Make(struct
+  type t = int
+  let compare = compare
+end)

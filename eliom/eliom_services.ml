@@ -122,6 +122,7 @@ let new_service_aux_aux
    keep_nl_params = keep_nl_params;
    delayed_get_or_na_registration_function = None;
    delayed_post_registration_function = None;
+   unique_id = Uniqueid.next ();
  }
 
 let new_service_aux
@@ -245,6 +246,7 @@ let new_coservice
         att_kind = `Internal (`Coservice, `Get);
      };
    https = https || fallback.https;
+   unique_id = Uniqueid.next ();
    keep_nl_params = match keep_nl_params with 
      | None -> fallback.keep_nl_params | Some k -> k;
  }
@@ -284,6 +286,7 @@ let new_coservice' ?name ?(csrf_safe = false) ?max_use ?timeout ?(https = false)
           keep_nl_params = keep_nl_params;
           delayed_get_or_na_registration_function = None;
           delayed_post_registration_function = None;
+          unique_id = Uniqueid.next ();
         }
 
 
@@ -314,6 +317,7 @@ let new_post_service_aux ~sp ~https ~fallback
    keep_nl_params = keep_nl_params;
    delayed_get_or_na_registration_function = None;
    delayed_post_registration_function = None;
+   unique_id = Uniqueid.next ();
  }
 
 let new_post_service ?sp ?(https = false) ~fallback 
@@ -378,6 +382,7 @@ let new_post_coservice
                | Some name -> Eliom_common.SAtt_named name));
      };
    https = https;
+   unique_id = Uniqueid.next ();
    keep_nl_params = match keep_nl_params with 
      | None -> fallback.keep_nl_params | Some k -> k;
  }
@@ -421,6 +426,7 @@ let new_post_coservice'
     keep_nl_params = keep_nl_params;
     delayed_get_or_na_registration_function = None;
     delayed_post_registration_function = None;
+    unique_id = Uniqueid.next ();
   }
 
 
@@ -446,6 +452,7 @@ let new_get_post_coservice'
    na_kind = `Internal (`NonAttachedCoservice, `Post);
    }
   https = https;
+  unique_id = Uniqueid.next ();
    }
 (* This is a nonattached coservice with GET and POST parameters!
    When reloading, the fallback (a nonattached coservice with only GET

@@ -294,8 +294,31 @@ and tables =
      (* ref, and not mutable field because it simpler to use
         recursively with Dir of dircontent ref *)
     (* Information for the GC: *)
-    bool ref (* true if dircontent contains services with timeout *) *
-    bool ref (* true if naservice_table contains services with timeout *)
+     mutable table_contains_services_with_timeout : bool;
+     (* true if dircontent contains services with timeout *)
+     mutable table_contains_naservices_with_timeout : bool;
+     (* true if naservice_table contains services with timeout *)
+    } 
+(* *    (sp:Eliom_sessions.server_params -> string) Int_Table.t
+    (* The functions to register each CSRF service.
+       (global or for a session) *) *
+      (sp:Eliom_sessions.server_params -> 
+        Eliom_common.att_key_serv -> string) Int_Table.t
+      (* These table are used for CSRF safe services:
+         We associate to each service the function that will
+         register a new anonymous coservice each time we create a link or form.
+         Attached POST coservices may have both a GET and POST 
+         registration function. That's why there are two tables.
+         The functions associated to each service may be different for
+         each session. That's why we use these table, and not a field in
+         the service record.
+     *)
+*)
+(*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ *
+    service Ocsigen_cache.Dlist.t
+      (* for limiting the number of dynamic services in each table 
+         (and avoid DoS) *)
+*)
 
 and sitedata =
   {site_dir: Ocsigen_lib.url_path;
