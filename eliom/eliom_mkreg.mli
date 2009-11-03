@@ -162,9 +162,10 @@ module type ELIOMREGSIG1 =
     only through HTTPS).
 
     Note that in the case of CSRF safe coservices, parameters
-    [?session_name] and [?secure] are ignored. 
-    The session name and secure options 
-    are those declared while creating the coservice.
+    [?session_name] and [?secure] must match exactly the session name
+    and secure option specified while creating the CSRF safe service. 
+    Otherwise, the registration will fail
+    with {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}
  *)
 
 

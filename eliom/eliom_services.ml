@@ -29,6 +29,7 @@ open Lazy
 
 include Eliom_services_obrowser
 
+exception Wrong_session_table_for_CSRF_safe_coservice
 
 (** Type used for cookies to set.
     The float option is the timestamp for the expiration date.

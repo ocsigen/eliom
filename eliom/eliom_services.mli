@@ -26,7 +26,7 @@
 open Ocsigen_extensions
 open Eliom_parameters
 
-
+exception Wrong_session_table_for_CSRF_safe_coservice
 
 (** This function may be used for services that cannot be interrupted
   (no cooperation point for threads). It is defined by
@@ -279,8 +279,10 @@ val new_coservice :
    [~csrf_session_name] and [~csrf_secure_session] parameters
    (that correspond to [~session_name] and [~secure] for the delayed 
     registration); it is default session table if they are absent.
-    Note that parameters [?session_name] and [?secure] of [register_for_session]
-    will be ignored for CSRF safe coservices.
+    Parameters [?session_name] and [?secure] of [register_for_session]
+    must have the same values as the one declared while creating the
+    CSRF safe coservice, otherwise the registration will fail
+    with {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}.
    
  *)
 

@@ -109,6 +109,52 @@ let _ =
 
 
 (******)
+(* CSRF for_session *)
+
+let csrfsafe_session_example =
+  Eliom_services.new_service
+    ~path:["csrfsession"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let csrfsafe_example_session =
+  Eliom_services.new_post_coservice'
+    ~csrf_safe:true
+    ~csrf_session_name:"plop"
+    ~csrf_secure_session:true
+    ~timeout:10.
+    ~post_params:Eliom_parameters.unit
+    ()
+
+let _ =
+  let page sp () () =
+    Eliom_predefmod.Xhtml.register_for_session
+      ~session_name:"plop"
+      ~secure:true
+      ~sp
+      ~service:csrfsafe_example_session
+      (fun sp () () ->
+         Lwt.return
+           (html
+              (head (title (pcdata "CSRF safe service")) [])
+              (body [p [pcdata "This is a POST CSRF safe service"]])));
+    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_session sp
+        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                        ~input_type:`Submit
+                        ~value:"Click" ()]])
+        ()
+    in
+    return
+      (html
+       (head (title (pcdata "CSRF safe service example")) [])
+       (body [p [pcdata "A new coservice will be created each time this form is displayed"];
+              l3]))
+  in
+  Eliom_predefmod.Xhtml.register csrfsafe_session_example page
+
+
+
+(******)
 (* optional suffix parameters *)
 
 let optsuf =
@@ -1459,6 +1505,7 @@ let mainpage = register_new_service ["tests"] unit
 
          a csrfsafe_get_example sp [pcdata "GET CSRF safe service"] (); br ();
          a csrfsafe_postget_example sp [pcdata "POST CSRF safe service on GET CSRF safe service"] (); br ();
+         a csrfsafe_session_example sp [pcdata "POST non attached CSRF safe service in session table"] (); br ();
 
 
        ]])))

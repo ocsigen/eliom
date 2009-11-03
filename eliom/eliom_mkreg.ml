@@ -630,9 +630,10 @@ module MakeRegister = functor
                      let tablereg, forsession =
                        match table with
                          | Ocsigen_lib.Left globtbl -> globtbl, false
-                         | Ocsigen_lib.Right (sp, _, _) ->
-                             (* we ignore session_name and secure from
-                                register_for_session *)
+                         | Ocsigen_lib.Right (sp, sn, sec) ->
+                             if sn <> session_name || secure <> sec
+                             then raise
+                               Wrong_session_table_for_CSRF_safe_coservice;
                              !(Eliom_sessions.get_session_service_table
                                  ?secure ?session_name ~sp ()), true
                      in
@@ -661,9 +662,10 @@ module MakeRegister = functor
                      let tablereg, forsession =
                        match table with
                          | Ocsigen_lib.Left globtbl -> globtbl, false
-                         | Ocsigen_lib.Right (sp, _, _) ->
-                             (* we ignore session_name and secure from
-                                register_for_session *)
+                         | Ocsigen_lib.Right (sp, sn, sec) ->
+                             if sn <> session_name || secure <> sec
+                             then raise
+                               Wrong_session_table_for_CSRF_safe_coservice;
                              !(Eliom_sessions.get_session_service_table
                                  ?secure ?session_name ~sp ()), true
                      in
@@ -750,9 +752,10 @@ module MakeRegister = functor
                     let tablereg, forsession =
                       match table with
                         | Ocsigen_lib.Left globtbl -> globtbl, false
-                         | Ocsigen_lib.Right (sp, _, _) ->
-                             (* we ignore session_name and secure from
-                                register_for_session *)
+                         | Ocsigen_lib.Right (sp, sn, sec) ->
+                             if sn <> session_name || secure <> sec
+                             then raise
+                               Wrong_session_table_for_CSRF_safe_coservice;
                             !(Eliom_sessions.get_session_service_table
                                 ?secure ?session_name ~sp ()), true
                     in
@@ -780,9 +783,10 @@ module MakeRegister = functor
                     let tablereg, forsession =
                       match table with
                         | Ocsigen_lib.Left globtbl -> globtbl, false
-                         | Ocsigen_lib.Right (sp, _, _) ->
-                             (* we ignore session_name and secure from
-                                register_for_session *)
+                         | Ocsigen_lib.Right (sp, sn, sec) ->
+                             if sn <> session_name || secure <> sec
+                             then raise
+                               Wrong_session_table_for_CSRF_safe_coservice;
                             !(Eliom_sessions.get_session_service_table
                                 ?secure ?session_name ~sp ()), true
                     in
