@@ -102,6 +102,6 @@ module Dlist : sig
   (** set a function to be called automatically on a piece of data
       when it disappears from the list
       (either by explicit removal or because the maximum size is exceeded) *)
-  val set_finaliser : ('a -> unit) -> 'a t -> unit
-  val get_finaliser : 'a t -> ('a -> unit)
+  val set_finaliser : ('a node -> unit) -> 'a t -> unit
+  val get_finaliser : 'a t -> ('a node -> unit)
 end

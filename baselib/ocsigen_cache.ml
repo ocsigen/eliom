@@ -43,7 +43,7 @@ module Dlist = (struct
        mutable oldest : 'a node option;
        mutable size : int;
        mutable maxsize : int;
-       mutable finaliser : 'a -> unit;
+       mutable finaliser : 'a node -> unit;
       }
 
 (* Checks:
@@ -77,7 +77,10 @@ module Dlist = (struct
 *)
 
   let create size = 
-    {list = None; oldest = None; size = 0; maxsize = size; 
+    {list = None;
+     oldest = None; 
+     size = 0;
+     maxsize = size; 
      finaliser = fun _ -> ()}
 
   (* Add a node that do not belong to any list to a list.
@@ -112,7 +115,7 @@ module Dlist = (struct
                      | None -> assert false
                      | Some b -> b.prev <- None);
                   r.oldest <- a.succ;
-                  Some a.value)
+                  Some a)
           else (
             r.size <- r.size + 1;
             None
@@ -123,7 +126,7 @@ module Dlist = (struct
     (* create_one not exported *)
     match add_node (create_one x) l with
       | None -> None
-      | Some v as a -> l.finaliser v; a
+      | Some v -> l.finaliser v; Some v.value
 
   (* Remove an element from its list - don't finalise *)
   let remove' node l =
@@ -154,7 +157,7 @@ module Dlist = (struct
       | None -> ()
       | Some l ->
           remove' node l;
-          l.finaliser node.value
+          l.finaliser node
 
   let newest a = a.list
   let oldest a = a.oldest
@@ -235,8 +238,8 @@ end : sig
   (** set a function to be called automatically on a piece of data
       when it disappears from the list
       (either by explicit removal or because the maximum size is exceeded) *)
-  val set_finaliser : ('a -> unit) -> 'a t -> unit
-  val get_finaliser : 'a t -> ('a -> unit)
+  val set_finaliser : ('a node -> unit) -> 'a t -> unit
+  val get_finaliser : 'a t -> ('a node -> unit)
 end)
 
 
