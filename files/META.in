@@ -26,28 +26,23 @@ package "polytables" (
   archive(native) = "polytables.cmx"
   )
 
+package "commandline" (
+    version = "[distributed with Ocsigen]"
+    description = "Read the commandline during server initialization"
+    archive(byte) = "parsecommandline.cma"
+    archive(native) = "parsecommandline.cmxa"
+    archive(byte,nocommandline) = "donotparsecommandline.cma"
+    archive(native,nocommandline) = "donotparsecommandline.cmxa"
+)
 
 package "server" (
-  requires = "lwt.extra,lwt.ssl,lwt.preemptive,ocsigen,ocsigen.xhtml,findlib,camlp4.lib"
+  requires = "lwt.extra,lwt.ssl,lwt.preemptive,ocsigen.commandline,ocsigen,ocsigen.xhtml,findlib,camlp4.lib"
   version = "_VERSION_"
   description = "Ocsigen server library"
   archive(byte) = "ocsigen.cma"
   archive(native) = "ocsigen.cmxa"
 )
 
-package "parsecommandline" (
-    version = "[distributed with Ocsigen]"
-    description = "Read the commandline during server initialization"
-    archive(byte) = "parsecommandline.cma"
-    archive(native) = "parsecommandline.cmxa"
-)
-
-package "donotparsecommandline" (
-    version = "[distributed with Ocsigen]"
-    description = "Do not read the commandline during server initialization"
-    archive(byte) = "donotparsecommandline.cma"
-    archive(native) = "donotparsecommandline.cmxa"
-)
 
 package "ext" (
   version = "[distributed with Ocsigen]"
