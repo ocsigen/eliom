@@ -58,7 +58,7 @@ let pretty_print_xhtml (f: string -> unit) (v: Ocamlduce.Load.anyxml): unit =
   begin
     let open_markup tag attrs =
       f ("<" ^ tag);
-      List.iter (fun (n, v) -> f (" " ^ n ^ "=\""); escape f v; f "\"") attrs
+      List.iter (fun (n, v) -> f " "; f n; f "=\""; escape f v; f "\"") attrs
     in
     Ocamlduce.Print.serialize
       ~start_elem:(fun tag attrs -> open_markup tag attrs; f ">")
