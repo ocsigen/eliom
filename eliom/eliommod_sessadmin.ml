@@ -38,13 +38,14 @@ let iter_persistent_sessions f =
 
 let close_all_service_sessions2 ?(close_group = false) fullsessname sitedata =
   Eliom_common.SessionCookies.fold
-    (fun k (fullsessname2, table, expref, timeoutref, sessgrpref) thr ->
+    (fun k (fullsessname2, table, expref, timeoutref, 
+            sessgrpref, sessgrpnode) thr ->
       thr >>= fun () ->
       if fullsessname = fullsessname2 && !timeoutref = Eliom_common.TGlobal
       then (if close_group then
-        Eliommod_sersess.close_service_group sitedata !sessgrpref
-      else
-        Eliom_common.close_service_session2 sitedata !sessgrpref k);
+              Eliommod_sersess.close_service_group !sessgrpref
+            else
+              Eliommod_sessiongroups.Serv.remove sessgrpnode);
       Lwt_unix.yield ()
     )
     sitedata.Eliom_common.session_services
@@ -63,13 +64,13 @@ let close_all_service_sessions ?close_group ?session_name sitedata =
 
 let close_all_data_sessions2 ?(close_group = false) fullsessname sitedata =
   Eliom_common.SessionCookies.fold
-    (fun k (fullsessname2, expref, timeoutref, sessgrpref) thr ->
+    (fun k (fullsessname2, expref, timeoutref, sessgrpref, sessgrpnode) thr ->
       thr >>= fun () ->
       if fullsessname = fullsessname2 && !timeoutref = Eliom_common.TGlobal
       then (if close_group then
-        Eliommod_datasess.close_data_group sitedata !sessgrpref
+        Eliommod_datasess.close_data_group !sessgrpref
       else
-        Eliommod_datasess.close_data_session2 sitedata !sessgrpref k);
+        Eliommod_sessiongroups.Data.remove sessgrpnode);
       Lwt_unix.yield ()
     )
     sitedata.Eliom_common.session_data
@@ -123,7 +124,8 @@ let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Eliom_common.SessionCookies.fold
-      (fun k (fullsessname2, table, expref, timeoutref, sessgrpref) thr ->
+      (fun k (fullsessname2, table, expref, timeoutref, 
+              sessgrpref, sessgrpnode) thr ->
         thr >>= fun () ->
         (if fullsessname = fullsessname2 && !timeoutref =
           Eliom_common.TGlobal
@@ -136,7 +138,7 @@ let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
           in
           match newexp with
           | Some t when t <= now ->
-              Eliom_common.close_service_session2 sitedata !sessgrpref k
+              Eliommod_sessiongroups.Serv.remove sessgrpnode
           | _ -> expref := newexp
         );
         Lwt_unix.yield ()
@@ -155,7 +157,7 @@ let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Eliom_common.SessionCookies.fold
-      (fun k (fullsessname2, expref, timeoutref, sessgrpref) thr ->
+      (fun k (fullsessname2, expref, timeoutref, sessgrpref, sessgrpnode) thr ->
         thr >>= fun () ->
         (if fullsessname = fullsessname2 && !timeoutref =
           Eliom_common.TGlobal
@@ -168,7 +170,7 @@ let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
           in
           match newexp with
           | Some t when t <= now ->
-              Eliommod_datasess.close_data_session2 sitedata !sessgrpref k
+              Eliommod_sessiongroups.Data.remove sessgrpnode
           | _ -> expref := newexp
         );
         Lwt_unix.yield ()

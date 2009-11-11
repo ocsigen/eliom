@@ -19,31 +19,29 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-type sessgrp
-type perssessgrp
+val make_full_group_name : 
+  Ocsigen_extensions.request_info -> string -> string option -> Eliom_common.sessgrp
+val make_persistent_full_group_name :
+  Ocsigen_extensions.request_info -> string -> string option -> Eliom_common.perssessgrp option
 
-val make_full_group_name : string -> string option -> sessgrp option
-val make_persistent_full_group_name : string -> string option -> perssessgrp option
-
-val getsessgrp : sessgrp -> (string * string)
-val getperssessgrp : perssessgrp -> (string * string)
+val getsessgrp : 
+  Eliom_common.sessgrp -> string * (string, Unix.inet_addr) Ocsigen_lib.leftright
+val getperssessgrp : Eliom_common.perssessgrp -> (string * string)
 
 module type MEMTAB =
   sig
-    val find : sessgrp option -> string list
-    val add : ?set_max: int option ->
-      int option -> string -> sessgrp option -> string list
-    val remove : string -> sessgrp option -> unit
-    val remove_group : sessgrp option -> unit
+    val add : ?set_max: int -> Eliom_common.sitedata ->
+      string -> Eliom_common.sessgrp -> string Ocsigen_cache.Dlist.node
+    val remove : 'a Ocsigen_cache.Dlist.node -> unit
+    val remove_group : Eliom_common.sessgrp -> unit
     val move :
-      ?set_max: int option ->
-      int option ->
-      string ->
-      sessgrp option ->
-      sessgrp option ->
-      string list
-    val up : string -> sessgrp option -> unit
+      ?set_max:int ->
+      Eliom_common.sitedata ->
+      string Ocsigen_cache.Dlist.node ->
+      Eliom_common.sessgrp -> string Ocsigen_cache.Dlist.node
+    val up : string Ocsigen_cache.Dlist.node -> unit
     val length : unit -> int
+    val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
   end
 
 module Serv : MEMTAB
@@ -51,18 +49,18 @@ module Data : MEMTAB
 
 module Pers :
   sig
-    val find : perssessgrp option -> string list Lwt.t
+    val find : Eliom_common.perssessgrp option -> string list Lwt.t
     val add : ?set_max: int option ->
-      int option -> string -> perssessgrp option -> string list Lwt.t
-    val remove : string -> perssessgrp option -> unit Lwt.t
-    val remove_group : perssessgrp option -> unit Lwt.t
+      int option -> string -> Eliom_common.perssessgrp option -> string list Lwt.t
+    val remove : string -> Eliom_common.perssessgrp option -> unit Lwt.t
+    val remove_group : Eliom_common.perssessgrp option -> unit Lwt.t
     val move :
       ?set_max: int option ->
       int option ->
       string ->
-      perssessgrp option ->
-      perssessgrp option ->
+      Eliom_common.perssessgrp option ->
+      Eliom_common.perssessgrp option ->
       string list Lwt.t
-    val up : string -> perssessgrp option -> unit Lwt.t
+    val up : string -> Eliom_common.perssessgrp option -> unit Lwt.t
     val length : unit -> int Lwt.t
   end

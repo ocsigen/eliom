@@ -351,30 +351,34 @@ type 'a session_data =
   | Data of 'a
 
 
-let set_service_session_group ?set_max ?session_name ?secure ~sp n =
-  let c = Eliommod_sersess.find_or_create_service_cookie
+let set_service_session_group ?set_max ?session_name ?secure ~sp session_group =
+  let c =
+    Eliommod_sersess.find_or_create_service_cookie
+      ~set_session_group:session_group
       ?session_name ~secure ~sp ()
   in
-  let n =
-    Eliommod_sessiongroups.make_full_group_name
-      sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string (Some n)
-  in
-  let grp = c.Eliom_common.sc_session_group in
-  List.iter
-    (Eliom_common.close_service_session2 sp.Eliom_common.sp_sitedata None)
-    (Eliommod_sessiongroups.Serv.move ?set_max
-       sp.Eliom_common.sp_sitedata.Eliom_common.max_service_sessions_per_group
-       c.Eliom_common.sc_value !grp n);
-  grp := n
+  match set_max with
+    | None -> ()
+    | Some m -> 
+        Eliommod_sessiongroups.Data.set_max
+          c.Eliom_common.sc_session_group_node m
 
-let unset_service_session_group ?session_name ?secure ~sp () =
+let unset_service_session_group ?set_max ?session_name ?secure ~sp () =
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only ?session_name ~secure ~sp () 
     in
-    let grp = c.Eliom_common.sc_session_group in
-    Eliommod_sessiongroups.Serv.remove c.Eliom_common.sc_value !grp;
-    grp := None
+    let n =
+      Eliommod_sessiongroups.make_full_group_name
+        sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
+        sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string None
+    in
+    let node = Eliommod_sessiongroups.Serv.move ?set_max
+      sp.Eliom_common.sp_sitedata
+      c.Eliom_common.sc_session_group_node n
+    in
+    c.Eliom_common.sc_session_group_node <- node;
+    c.Eliom_common.sc_session_group := n
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> ()
@@ -385,36 +389,41 @@ let get_service_session_group ?session_name ?secure ~sp () =
       Eliommod_sersess.find_service_cookie_only ?session_name ~secure ~sp () 
     in
     match !(c.Eliom_common.sc_session_group) with
-      | None -> No_data
-      | Some v -> Data (snd (Eliommod_sessiongroups.getsessgrp v))
+      | _, Ocsigen_lib.Right _ -> No_data
+      | _, Ocsigen_lib.Left v -> Data v
   with
     | Not_found -> No_data
     | Eliom_common.Eliom_Session_expired -> Data_session_expired
 
-let set_volatile_data_session_group ?set_max ?session_name ?secure ~sp n =
+let set_volatile_data_session_group
+    ?set_max ?session_name ?secure ~sp session_group =
   let c = 
-    Eliommod_datasess.find_or_create_data_cookie ?session_name ~secure ~sp () 
+    Eliommod_datasess.find_or_create_data_cookie
+      ~set_session_group:session_group
+      ?session_name ~secure ~sp () 
   in
-  let n =
-    Eliommod_sessiongroups.make_full_group_name
-      sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string (Some n)
-  in
-  let grp = c.Eliom_common.dc_session_group in
-  List.iter
-    (Eliommod_datasess.close_data_session2 sp.Eliom_common.sp_sitedata None)
-    (Eliommod_sessiongroups.Data.move ?set_max
-       sp.Eliom_common.sp_sitedata.Eliom_common.max_volatile_data_sessions_per_group
-       c.Eliom_common.dc_value !grp n);
-  grp := n
+  match set_max with
+    | None -> ()
+    | Some m -> 
+        Eliommod_sessiongroups.Data.set_max
+          c.Eliom_common.dc_session_group_node m
 
-let unset_volatile_data_session_group ?session_name ?secure ~sp () =
+let unset_volatile_data_session_group ?set_max ?session_name ?secure ~sp () =
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?session_name ~secure ~sp () 
     in
-    let grp = c.Eliom_common.dc_session_group in
-    Eliommod_sessiongroups.Data.remove c.Eliom_common.dc_value !grp;
-    grp := None
+    let n =
+      Eliommod_sessiongroups.make_full_group_name
+        sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
+        sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string None
+    in
+    let node = Eliommod_sessiongroups.Data.move ?set_max
+      sp.Eliom_common.sp_sitedata
+      c.Eliom_common.dc_session_group_node n
+    in
+    c.Eliom_common.dc_session_group_node <- node;
+    c.Eliom_common.dc_session_group := n
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> ()
@@ -425,8 +434,8 @@ let get_volatile_data_session_group ?session_name ?secure ~sp () =
       Eliommod_datasess.find_data_cookie_only ?session_name ~secure ~sp () 
     in
     match !(c.Eliom_common.dc_session_group) with
-      | None -> No_data
-      | Some v -> Data (snd (Eliommod_sessiongroups.getsessgrp v))
+      | _, Ocsigen_lib.Right _ -> No_data
+      | _, Ocsigen_lib.Left v -> Data v
   with
     | Not_found -> No_data
     | Eliom_common.Eliom_Session_expired -> Data_session_expired
@@ -436,6 +445,7 @@ let set_persistent_data_session_group ?set_max ?session_name ?secure ~sp n =
     ?session_name ~secure ~sp () >>= fun c ->
   let n =
     Eliommod_sessiongroups.make_persistent_full_group_name
+      sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
       sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string (Some n)
   in
   let grp = c.Eliom_common.pc_session_group in
@@ -479,18 +489,51 @@ let get_persistent_data_session_group ?session_name ?secure ~sp () =
        | e -> fail e)
 
 
-let set_default_max_service_sessions_per_group ~sp n =
-  sp.Eliom_common.sp_sitedata.Eliom_common.max_service_sessions_per_group <- n
+let set_default_max_service_sessions_per_group ?sp n =
+  let sitedata = 
+    find_sitedata "set_default_max_service_sessions_per_group" sp 
+  in
+  sitedata.Eliom_common.max_service_sessions_per_group <- n
 
-let set_default_max_volatile_data_sessions_per_group ~sp n =
-  sp.Eliom_common.sp_sitedata.Eliom_common.max_volatile_data_sessions_per_group
+let set_default_max_volatile_data_sessions_per_group ?sp n =
+  let sitedata = 
+    find_sitedata "set_default_max_service_sessions_per_group" sp 
+  in
+  sitedata.Eliom_common.max_volatile_data_sessions_per_group
   <- n
 
-let set_default_max_persistent_data_sessions_per_group ~sp n =
-  sp.Eliom_common.sp_sitedata.Eliom_common.max_persistent_data_sessions_per_group <- n
+let set_default_max_persistent_data_sessions_per_group ?sp n =
+  let sitedata = 
+    find_sitedata "set_default_max_service_sessions_per_group" sp 
+  in
+  sitedata.Eliom_common.max_persistent_data_sessions_per_group <- n
+
+let set_default_max_service_sessions_per_ip ?sp n =
+  let sitedata = 
+    find_sitedata "set_default_max_service_sessions_per_group" sp 
+  in
+  sitedata.Eliom_common.max_service_sessions_per_ip <- n
+
+let set_default_max_volatile_data_sessions_per_ip ?sp n =
+  let sitedata = 
+    find_sitedata "set_default_max_service_sessions_per_group" sp 
+  in
+  sitedata.Eliom_common.max_volatile_data_sessions_per_ip <- n
 
 
 
+let set_max_service_session_for_group_or_ip ?session_name ?secure ~sp m =
+  let c =
+    Eliommod_sersess.find_or_create_service_cookie
+      ?session_name ~secure ~sp ()
+  in
+  Eliommod_sessiongroups.Data.set_max c.Eliom_common.sc_session_group_node m
+
+let set_max_volatile_data_session_for_group_or_ip ?session_name ?secure ~sp m =
+  let c =
+    Eliommod_datasess.find_or_create_data_cookie ?session_name ~secure ~sp ()
+  in
+  Eliommod_sessiongroups.Data.set_max c.Eliom_common.dc_session_group_node m
 
 
 (* expiration dates *)
@@ -769,7 +812,8 @@ module Session_admin = struct
        float option ref        (* expiration date by timeout
                                   (server side) *) *
        Eliom_common.timeout ref    (* user timeout *) *
-       Eliommod_sessiongroups.sessgrp option ref       (* session group *)) *
+       Eliom_common.sessgrp ref (* session group *) *
+       string Ocsigen_cache.Dlist.node) *
        Eliom_common.sitedata
 
   type data_session =
@@ -779,7 +823,8 @@ module Session_admin = struct
        float option ref        (* expiration date by timeout
                                   (server side) *) *
        Eliom_common.timeout ref   (* user timeout *) *
-       Eliommod_sessiongroups.sessgrp option ref      (* session group *)) *
+       Eliom_common.sessgrp ref (* session group *) *
+       string Ocsigen_cache.Dlist.node) *
        Eliom_common.sitedata
 
   type persistent_session =
@@ -789,22 +834,22 @@ module Session_admin = struct
        float option            (* expiration date by timeout
                                   (server side) *) *
        Eliom_common.timeout        (* user timeout *) *
-       Eliommod_sessiongroups.perssessgrp option           (* session group *))
+       Eliom_common.perssessgrp option           (* session group *))
 
 
   let close_service_session ?(close_group = false)
-      ~session:(cookie, (_, _, _, _, sgr), sitedata) =
+      ~session:(cookie, (_, _, _, _, sgr, sgrnode), sitedata) =
     if close_group then
-      Eliommod_sersess.close_service_group sitedata !sgr
+      Eliommod_sersess.close_service_group !sgr
     else
-      Eliom_common.close_service_session2 sitedata !sgr cookie
+      Eliommod_sessiongroups.Serv.remove sgrnode
 
   let close_volatile_data_session ?(close_group = false)
-      ~session:(cookie, (_, _, _, sgr), sitedata) =
+      ~session:(cookie, (_, _, _, sgr, sgrnode), sitedata) =
     if close_group then
-      Eliommod_datasess.close_data_group sitedata !sgr
+      Eliommod_datasess.close_data_group !sgr
     else
-      Eliommod_datasess.close_data_session2 sitedata !sgr cookie
+      Eliommod_sessiongroups.Data.remove sgrnode
 
   let close_persistent_data_session ?(close_group = false)
       ~session:(cookie, (_, _, _, sg)) =
@@ -825,12 +870,12 @@ module Session_admin = struct
   let remove_persistent_session_data ~session:(cookie, _) ~table =
     Ocsipersist.remove table cookie
 
-  let get_service_session_name ~session:(_, (s, _, _, _, _), _) =
+  let get_service_session_name ~session:(_, (s, _, _, _, _, _), _) =
     try
       Some (snd (Ocsigen_lib.sep '|' s))
     with Not_found -> None
 
-  let get_volatile_data_session_name ~session:(_, (s, _, _, _), _) =
+  let get_volatile_data_session_name ~session:(_, (s, _, _, _, _), _) =
     try
       Some (snd (Ocsigen_lib.sep '|' s))
     with Not_found -> None
@@ -840,12 +885,12 @@ module Session_admin = struct
       Some (snd (Ocsigen_lib.sep '|' s))
     with Not_found -> None
 
-  let set_service_session_timeout ~session:(_, (_, _, _, r, _), _) t =
+  let set_service_session_timeout ~session:(_, (_, _, _, r, _, _), _) t =
     match t with
     | None -> r := TNone
     | Some t -> r := TSome t
 
-  let set_volatile_data_session_timeout ~session:(_, (_, _, r, _), _) t =
+  let set_volatile_data_session_timeout ~session:(_, (_, _, r, _, _), _) t =
     match t with
     | None -> r := TNone
     | Some t -> r := TSome t
@@ -861,20 +906,20 @@ module Session_admin = struct
       cookie
       (fullsessname, exp, ti, sessgrp)
 
-  let get_service_session_timeout ~session:(_, (_, _, _, r, _), _) =
+  let get_service_session_timeout ~session:(_, (_, _, _, r, _, _), _) =
     !r
 
-  let get_volatile_data_session_timeout ~session:(_, (_, _, r, _), _) =
+  let get_volatile_data_session_timeout ~session:(_, (_, _, r, _, _), _) =
     !r
 
   let get_persistent_data_session_timeout ~session:(_, (_, _, r, _)) =
     r
 
 
-  let unset_service_session_timeout ~session:(_, (_, _, _, r, _), _) =
+  let unset_service_session_timeout ~session:(_, (_, _, _, r, _, _), _) =
     r := TGlobal
 
-  let unset_volatile_data_session_timeout ~session:(cookie, (_, _, r, _), _) =
+  let unset_volatile_data_session_timeout ~session:(cookie, (_, _, r, _, _), _) =
     r := TGlobal
 
   let unset_persistent_data_session_timeout
@@ -894,9 +939,7 @@ module Session_admin = struct
 
   (** Iterator on data sessions *)
   let iter_volatile_data_sessions ?sp f =
-    let sitedata =
-      find_sitedata "Admin.iter_volatile_data_sessions" sp
-    in
+    let sitedata = find_sitedata "Admin.iter_volatile_data_sessions" sp in
     Eliommod_sessexpl.iter_data_sessions sitedata f
 
   (** Iterator on persistent sessions *)

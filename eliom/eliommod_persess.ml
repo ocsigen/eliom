@@ -71,9 +71,12 @@ let close_persistent_session2 fullsessgrp cookie =
 
 let close_persistent_group fullsessgrp =
 (*VVV VERIFY concurrent access *)
-  Eliommod_sessiongroups.Pers.find fullsessgrp >>= fun cooklist ->
-  Lwt_util.iter (close_persistent_session2 None) cooklist >>= fun () ->
-  Eliommod_sessiongroups.Pers.remove_group fullsessgrp
+  Lwt.catch
+    (fun () ->
+       Eliommod_sessiongroups.Pers.find fullsessgrp >>= fun cooklist ->
+       Lwt_util.iter (close_persistent_session2 None) cooklist >>= fun () ->
+       Eliommod_sessiongroups.Pers.remove_group fullsessgrp)
+    (function Not_found -> Lwt.return () | e -> Lwt.fail e)
 
 (* close current persistent session *)
 let close_persistent_session ?(close_group = false) ?session_name 
@@ -140,6 +143,7 @@ let find_or_create_persistent_cookie ?session_group ?session_name ~secure ~sp ()
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
   let fullsessgrp =
     Eliommod_sessiongroups.make_persistent_full_group_name
+      sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
       sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
       session_group
   in

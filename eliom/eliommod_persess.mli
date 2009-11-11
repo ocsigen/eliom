@@ -1,14 +1,14 @@
 val perstables : string list ref
 val persistent_cookies_table :
   (string * float option * Eliom_common.timeout *
-   Eliommod_sessiongroups.perssessgrp option)
+   Eliom_common.perssessgrp option)
   Ocsipersist.table Lazy.t
 val number_of_persistent_tables : unit -> int
 val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 val close_persistent_session2 :
-  Eliommod_sessiongroups.perssessgrp option -> string -> unit Lwt.t
+  Eliom_common.perssessgrp option -> string -> unit Lwt.t
 val close_persistent_group :
-  Eliommod_sessiongroups.perssessgrp option -> unit Lwt.t
+  Eliom_common.perssessgrp option -> unit Lwt.t
 val close_persistent_session :
   ?close_group:bool ->
   ?session_name:string -> 
@@ -16,7 +16,7 @@ val close_persistent_session :
   sp:Eliom_common.server_params -> unit -> unit Lwt.t
 val new_persistent_cookie :
   Eliom_common.sitedata ->
-  Eliommod_sessiongroups.perssessgrp option ->
+  Eliom_common.perssessgrp option ->
   string -> Eliom_common.one_persistent_cookie_info Lwt.t
 val find_or_create_persistent_cookie :
   ?session_group:string ->

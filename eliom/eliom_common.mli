@@ -155,6 +155,15 @@ type sess_info = {
 
 module SessionCookies : Hashtbl.S with type key = string
 
+(* session groups *)
+type sessgrp = (string * (string, Unix.inet_addr) Ocsigen_lib.leftright)
+    (* The full session group is the pair (site_dir_string, session group name).
+       If there is no session group, 
+       we limit the number of sessions by IP address *)
+type perssessgrp = string (* the same pair, marshaled *)
+
+
+
 type 'a session_cookie = SCNo_data | SCData_session_expired | SC of 'a
 
 type cookie_exp = 
@@ -169,20 +178,22 @@ type 'a one_service_cookie_info = {
   sc_timeout : timeout ref;
   sc_exp : float option ref;
   sc_cookie_exp : cookie_exp ref;
-  sc_session_group : Eliommod_sessiongroups.sessgrp option ref;
+  sc_session_group:sessgrp ref (* session group *);
+  mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
 }
 type one_data_cookie_info = {
   dc_value : string;
   dc_timeout : timeout ref;
   dc_exp : float option ref;
   dc_cookie_exp : cookie_exp ref;
-  dc_session_group : Eliommod_sessiongroups.sessgrp option ref;
+  dc_session_group: sessgrp ref (* session group *);
+  mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
 }
 type one_persistent_cookie_info = {
   pc_value : string;
   pc_timeout : timeout ref;
   pc_cookie_exp : cookie_exp ref;
-  pc_session_group : Eliommod_sessiongroups.perssessgrp option ref;
+  pc_session_group : perssessgrp option ref;
 }
 
 type 'a cookie_info1 =
@@ -191,7 +202,7 @@ type 'a cookie_info1 =
     (string option * one_data_cookie_info session_cookie ref) Lazy.t
     Ocsigen_lib.String_Table.t ref *
     ((string * timeout * float option *
-      Eliommod_sessiongroups.perssessgrp option)
+      perssessgrp option)
      option * one_persistent_cookie_info session_cookie ref)
     Lwt.t Lazy.t Ocsigen_lib.String_Table.t ref
 
@@ -201,12 +212,16 @@ type 'a cookie_info =
 
 type 'a servicecookiestablecontent =
     string * 'a * float option ref * timeout ref *
-    Eliommod_sessiongroups.sessgrp option ref
-type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
+      sessgrp ref *
+      string Ocsigen_cache.Dlist.node
+type 'a servicecookiestable = 
+    'a servicecookiestablecontent SessionCookies.t
 type datacookiestablecontent =
     string * float option ref * timeout ref *
-    Eliommod_sessiongroups.sessgrp option ref
-type datacookiestable = datacookiestablecontent SessionCookies.t
+      sessgrp ref *
+      string Ocsigen_cache.Dlist.node
+type datacookiestable = 
+    datacookiestablecontent SessionCookies.t
 type page_table_key = {
   key_state : att_key_serv * att_key_serv;
   key_kind : Ocsigen_http_frame.Http_header.http_method;
@@ -250,8 +265,7 @@ and tables =
      mutable csrf_get_or_na_registration_functions :
        (sp:server_params -> string) Ocsigen_lib.Int_Table.t;
      mutable csrf_post_registration_functions :
-       (sp:server_params -> 
-         att_key_serv -> string) Ocsigen_lib.Int_Table.t
+       (sp:server_params -> att_key_serv -> string) Ocsigen_lib.Int_Table.t
       (* These two table are used for CSRF safe services:
          We associate to each service unique id the function that will
          register a new anonymous coservice each time we create a link or form.
@@ -276,8 +290,10 @@ and sitedata = {
   mutable exn_handler : server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
   mutable unregistered_services : Ocsigen_lib.url_path list;
   mutable unregistered_na_services : na_key_serv list;
-  mutable max_volatile_data_sessions_per_group : int option;
-  mutable max_service_sessions_per_group : int option;
+  mutable max_volatile_data_sessions_per_group : int;
+  mutable max_volatile_data_sessions_per_ip : int;
+  mutable max_service_sessions_per_group : int;
+  mutable max_service_sessions_per_ip : int;
   mutable max_persistent_data_sessions_per_group : int option;
 }
 val make_server_params :
@@ -315,8 +331,7 @@ module Perstables :
 val perstables : string list ref
 val create_persistent_table : string -> 'a Ocsipersist.table
 val persistent_cookies_table :
-  (string * float option * timeout *
-   Eliommod_sessiongroups.perssessgrp option)
+  (string * float option * timeout * perssessgrp option)
   Ocsipersist.table Lazy.t
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 val absolute_change_sitedata : sitedata -> unit
@@ -331,9 +346,6 @@ val during_eliom_module_loading : unit -> bool
 val begin_load_eliom_module : unit -> unit
 val end_load_eliom_module : unit -> unit
 val global_register_allowed : unit -> (unit -> sitedata) option
-val close_service_session2 :
-  sitedata ->
-  Eliommod_sessiongroups.sessgrp option -> SessionCookies.key -> unit
 
 
 val eliom_params_after_action : 

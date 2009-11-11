@@ -2,8 +2,8 @@ include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= error_pages.ml \
-	eliommod_sessiongroups.ml \
-	eliom_common_obrowser.ml eliom_common.ml eliommod_cookies.ml \
+	eliom_common_obrowser.ml eliom_common.ml \
+	eliommod_sessiongroups.ml eliommod_cookies.ml \
 	eliommod_sersess.ml eliommod_datasess.ml eliommod_persess.ml \
 	eliommod_gc.ml \
 	eliommod_extensions.ml eliommod_services.ml eliommod_naservices.ml \

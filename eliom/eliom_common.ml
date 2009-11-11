@@ -65,13 +65,6 @@ type cookie =
   | Unset of Ocsigen_lib.url_path option * string
 
 
-(* The table of tables for each session. Keys are cookies *)
-module SessionCookies = Hashtbl.Make(struct
-  type t = string
-  let equal = (=)
-  let hash = Hashtbl.hash
-end)
-
 type 'a session_cookie =
   | SCNo_data
   | SCData_session_expired
@@ -87,6 +80,23 @@ type timeout =
   | TNone   (** explicitely set no timeout *)
   | TSome of float (** timeout duration in seconds *)
 
+
+
+
+(* The table of tables for each session. Keys are cookies *)
+module SessionCookies = 
+  Hashtbl.Make(struct
+                 type t = string
+                 let equal = (=)
+                 let hash = Hashtbl.hash
+               end)
+
+(* session groups *)
+type sessgrp = (string * (string, Unix.inet_addr) Ocsigen_lib.leftright)
+    (* The full session group is the pair (site_dir_string, session group name).
+       If there is no session group, 
+       we limit the number of sessions by IP address *)
+type perssessgrp = string (* the same pair, marshaled *)
 
 
 (* cookies information during page generation: *)
@@ -106,8 +116,8 @@ type 'a one_service_cookie_info =
                                     ref towards cookie table
                                   *);
      sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
-     sc_session_group:Eliommod_sessiongroups.sessgrp option ref 
-       (* session group *);
+     sc_session_group:sessgrp ref (* session group *);
+     mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
    }
 
 
@@ -122,14 +132,15 @@ type one_data_cookie_info =
                                            ref towards cookie table
                                          *);
      dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-     dc_session_group: Eliommod_sessiongroups.sessgrp option ref (* session group *)
+     dc_session_group: sessgrp ref (* session group *);
+     mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
    }
 
 type one_persistent_cookie_info =
      {pc_value:string                    (* current value *);
       pc_timeout:timeout ref             (* user timeout *);
       pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-      pc_session_group:Eliommod_sessiongroups.perssessgrp option ref (* session group *)
+      pc_session_group:perssessgrp option ref (* session group *)
     }
 
 
@@ -174,7 +185,7 @@ type 'a cookie_info1 =
         float option            (* (server side) expdate
                                    at the beginning of the request
                                    None = no exp *) *
-        Eliommod_sessiongroups.perssessgrp option      (* session group at beginning of request *))
+        perssessgrp option      (* session group at beginning of request *))
          option
                                 (* None = new cookie
                                    (not sent by the browser) *)
@@ -202,7 +213,8 @@ type 'a servicecookiestablecontent =
      float option ref    (* expiration date by timeout
                             (server side) *) *
      timeout ref         (* user timeout *) *
-     Eliommod_sessiongroups.sessgrp option ref   (* session group *))
+     sessgrp ref   (* session group *) *
+     string Ocsigen_cache.Dlist.node (* session group node *))
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
 (* the table contains:
@@ -220,7 +232,8 @@ type datacookiestablecontent =
      float option ref        (* expiration date by timeout
                                 (server side) *) *
      timeout ref             (* user timeout *) *
-     Eliommod_sessiongroups.sessgrp option ref   (* session group *))
+     sessgrp ref   (* session group *) *
+     string Ocsigen_cache.Dlist.node (* session group node *))
 
 type datacookiestable = datacookiestablecontent SessionCookies.t
 
@@ -333,8 +346,10 @@ and sitedata =
    mutable exn_handler: server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
    mutable unregistered_services: Ocsigen_lib.url_path list;
    mutable unregistered_na_services: na_key_serv list;
-   mutable max_volatile_data_sessions_per_group: int option;
-   mutable max_service_sessions_per_group: int option;
+   mutable max_volatile_data_sessions_per_group : int;
+   mutable max_volatile_data_sessions_per_ip : int;
+   mutable max_service_sessions_per_group : int;
+   mutable max_service_sessions_per_ip : int;
    mutable max_persistent_data_sessions_per_group: int option;
  }
 
@@ -703,8 +718,7 @@ let create_persistent_table name =
   Ocsipersist.open_table name
 
 let persistent_cookies_table :
-    (string * float option * timeout *
-       Eliommod_sessiongroups.perssessgrp option)
+    (string * float option * timeout * perssessgrp option)
     Ocsipersist.table Lazy.t =
   lazy (create_persistent_table eliom_persistent_cookie_table)
 (* Another tables, containing the session info for each cookie *)
@@ -781,17 +795,7 @@ let during_eliom_module_loading,
    (fun () -> during_eliom_module_loading_ := false))
 
 let global_register_allowed () =
-  if (Ocsigen_extensions.during_initialisation ()) && (during_eliom_module_loading ())
+  if (Ocsigen_extensions.during_initialisation ())
+    && (during_eliom_module_loading ())
   then Some get_current_sitedata
   else None
-
-
-
-
-(*****************************************************************************)
-let close_service_session2 sitedata fullsessgrp cookie =
-  SessionCookies.remove sitedata.session_services cookie;
-  Eliommod_sessiongroups.Serv.remove cookie fullsessgrp
-
-
-

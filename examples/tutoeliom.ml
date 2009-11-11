@@ -3545,7 +3545,7 @@ let connect_action_handler sp () login =
   Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login;
+    Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
     return ()
   end
   else begin
@@ -4149,7 +4149,7 @@ let connect_example5_handler sp () () =
 
 let connect_action_handler sp () login =
   Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login;
+  Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
   return ()
 
 

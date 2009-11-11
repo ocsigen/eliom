@@ -73,11 +73,11 @@ let get_cookie_info
     Ocsigen_lib.String_Table.fold
       (fun name value (oktable, failedlist) ->
         try
-          let fullsessname, ta, expref, timeout_ref, sessgrpref =
+          let fullsessname, ta, expref, timeout_ref, sessgrpref, sessgrpnode =
             Eliom_common.SessionCookies.find
               sitedata.Eliom_common.session_services value
           in
-          Eliommod_sessiongroups.Serv.up value !sessgrpref;
+          Eliommod_sessiongroups.Serv.up sessgrpnode;
           match !expref with
           | Some t when t < now ->
               (* session expired by timeout *)
@@ -104,7 +104,9 @@ let get_cookie_info
                             ref Eliom_common.CENothing
                               (* cookie expiration date to send
                                  to the browser *);
-                            Eliom_common.sc_session_group= sessgrpref}))
+                            Eliom_common.sc_session_group= sessgrpref;
+                            Eliom_common.sc_session_group_node= sessgrpnode;
+                           }))
                      oktable),
                   failedlist)
         with Not_found ->
@@ -127,40 +129,43 @@ let get_cookie_info
       (fun value ->
         lazy
           (try
-            let fullsessname, expref, timeout_ref, sessgrpref =
+            let fullsessname, expref, timeout_ref, sessgrpref, sessgrpnode =
               Eliom_common.SessionCookies.find
                 sitedata.Eliom_common.session_data value
             in
-            Eliommod_sessiongroups.Serv.up value !sessgrpref;
+            Eliommod_sessiongroups.Serv.up sessgrpnode;
             match !expref with
-            | Some t when t < now ->
-                (* session expired by timeout *)
-                sitedata.Eliom_common.remove_session_data value;
-                Eliom_common.SessionCookies.remove
-                  sitedata.Eliom_common.session_data value;
-                (Some value                 (* value sent by the browser *),
-                 ref Eliom_common.SCData_session_expired
-                                            (* ask the browser
-                                               to remove the cookie *))
-            | _ ->
-                (Some value        (* value sent by the browser *),
-                 ref
-                   (Eliom_common.SC
-                      {Eliom_common.dc_value= value       (* value *);
-                       Eliom_common.dc_timeout= timeout_ref (* user timeout ref *);
-                       Eliom_common.dc_exp= expref      (* expiration date (server side) *);
-                       Eliom_common.dc_cookie_exp=
-                       ref Eliom_common.CENothing
-                         (* cookie expiration date to send
-                            to the browser *);
-                       Eliom_common.dc_session_group= sessgrpref}
-                   )
-                )
-          with Not_found ->
-            (Some value                  (* value sent by the browser *),
-             ref Eliom_common.SCData_session_expired
-                                         (* ask the browser
-                                            to remove the cookie *))))
+              | Some t when t < now ->
+                  (* session expired by timeout *)
+                  sitedata.Eliom_common.remove_session_data value;
+                  Eliom_common.SessionCookies.remove
+                    sitedata.Eliom_common.session_data value;
+                  (Some value                 (* value sent by the browser *),
+                   ref Eliom_common.SCData_session_expired
+                                              (* ask the browser
+                                                 to remove the cookie *))
+              | _ ->
+                  (Some value        (* value sent by the browser *),
+                   ref
+                     (Eliom_common.SC
+                        {Eliom_common.dc_value= value       (* value *);
+                         Eliom_common.dc_timeout= timeout_ref
+                          (* user timeout ref *);
+                         Eliom_common.dc_exp= expref (* expiration date
+                                                        (server side) *);
+                         Eliom_common.dc_cookie_exp=
+                            ref Eliom_common.CENothing
+                              (* cookie expiration date to send
+                                 to the browser *);
+                         Eliom_common.dc_session_group= sessgrpref;
+                         Eliom_common.dc_session_group_node= sessgrpnode}
+                     )
+                  )
+           with Not_found ->
+             (Some value                  (* value sent by the browser *),
+              ref Eliom_common.SCData_session_expired
+                (* ask the browser
+                   to remove the cookie *))))
       data_cookies
   in
 

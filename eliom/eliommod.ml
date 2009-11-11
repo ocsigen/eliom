@@ -35,7 +35,8 @@ open Lazy
 
 
 (****************************************************************************)
-let default_max_sessions_per_group = Some 20
+let default_max_sessions_per_group = 5
+let default_max_sessions_per_ip = 10 (* ??? *)
 
 let new_sitedata =
   (* We want to keep the old site data even if we reload the server *)
@@ -79,7 +80,11 @@ let new_sitedata =
              max_volatile_data_sessions_per_group =
                 default_max_sessions_per_group;
              max_persistent_data_sessions_per_group =
-                default_max_sessions_per_group;
+                Some default_max_sessions_per_group;
+             max_service_sessions_per_ip =
+                default_max_sessions_per_ip;
+             max_volatile_data_sessions_per_ip =
+                default_max_sessions_per_ip;
             }
           in
           Eliommod_gc.service_session_gc sitedata;

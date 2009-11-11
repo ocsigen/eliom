@@ -349,7 +349,7 @@ type 'a session_data =
     https, the unsecure one in http.
 *)
 val set_service_session_group :
-  ?set_max: int option ->
+  ?set_max: int ->
   ?session_name:string ->
   ?secure:bool ->
   sp:server_params ->
@@ -358,6 +358,7 @@ val set_service_session_group :
 
 (** Remove the session from its group *)
 val unset_service_session_group :
+  ?set_max: int ->
   ?session_name:string ->
   ?secure:bool ->
   sp:server_params ->
@@ -380,7 +381,7 @@ val get_service_session_group :
     number of sessions in the group. [None] means "no limitation".
 *)
 val set_volatile_data_session_group :
-  ?set_max: int option ->
+  ?set_max: int ->
   ?session_name:string ->
   ?secure:bool ->
   sp:server_params ->
@@ -389,6 +390,7 @@ val set_volatile_data_session_group :
 
 (** Remove the session from its group *)
 val unset_volatile_data_session_group :
+  ?set_max: int ->
   ?session_name:string ->
   ?secure:bool ->
   sp:server_params ->
@@ -443,25 +445,61 @@ val get_persistent_data_session_group :
     value will be used only as default value if you do not specify the
     optional parameter [?set_max] of function
     {!Eliom_sessions.set_volatile_data_session_group}.
+
+    If there is no group, the number of sessions is limitated by IP address
+    (which can be a problem for example if the server is behind a
+    reverse proxy).
+    It is highly recommended to use session groups!
 *)
 
 (** Sets the maximum number of service sessions in a session group
     (see above).
 *)
 val set_default_max_service_sessions_per_group :
-  sp:server_params -> int option -> unit
+  ?sp:server_params -> int -> unit
 
 (** Sets the maximum number of volatile data sessions in a session
     group (see above).
 *)
 val set_default_max_volatile_data_sessions_per_group :
-  sp:server_params -> int option -> unit
+  ?sp:server_params -> int -> unit
 
 (** Sets the maximum number of persistent data sessions in a session
     group (see above).
 *)
 val set_default_max_persistent_data_sessions_per_group :
-  sp:server_params -> int option -> unit
+  ?sp:server_params -> int option -> unit
+
+val set_default_max_service_sessions_per_ip :
+  ?sp:server_params -> int -> unit
+
+(** Sets the maximum number of volatile data sessions in a session
+    group (see above).
+*)
+val set_default_max_volatile_data_sessions_per_ip :
+  ?sp:server_params -> int -> unit
+
+
+(** Sets the maximum number of service sessions in the current session
+    group (or for the client IP address, if there is no group).
+*)
+val set_max_service_session_for_group_or_ip :
+  ?session_name:string ->
+  ?secure:bool ->
+  sp:server_params ->
+  int ->
+  unit
+
+(** Sets the maximum number of volatile data sessions in the current session
+    group (or for the client IP address, if there is no group).
+*)
+val set_max_volatile_data_session_for_group_or_ip :
+  ?session_name:string ->
+  ?secure:bool ->
+  sp:server_params ->
+  int ->
+  unit
+
 
 (** {3 Cookies} *)
 

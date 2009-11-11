@@ -124,13 +124,13 @@ let service_session_gc sitedata =
                   tables,
                   exp,
                   _,
-                  session_group_ref) thr ->
+                  session_group_ref,
+                  session_group_node) thr ->
              thr >>= fun () ->
              (match !exp with
                 | Some exp when exp < now ->
-                    Eliom_common.close_service_session2
-                      sitedata !session_group_ref k;
-                    return ()
+                    Eliommod_sessiongroups.Serv.remove session_group_node;
+                    Lwt.return ()
                 | _ ->
                     (if tables.Eliom_common.table_contains_services_with_timeout
                      then gc_timeouted_services now
@@ -142,8 +142,7 @@ let service_session_gc sitedata =
                      else return ()) >>= fun () ->
                     (if Eliom_common.service_tables_are_empty tables
                      then
-                       Eliom_common.close_service_session2
-                         sitedata !session_group_ref k;
+                       Eliommod_sessiongroups.Serv.remove session_group_node;
                      return ()
                     )
              ) >>= Lwt_unix.yield
@@ -167,20 +166,24 @@ let data_session_gc sitedata =
         Ocsigen_messages.debug2 "--Eliom: GC of session data";
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
-          (fun k (sessname, exp, _, session_group_ref) thr ->
+          (fun k (sessname, 
+                  exp, _, 
+                  session_group_ref, 
+                  session_group_node) thr ->
             thr >>= fun () ->
-              (match !exp with
-              | Some exp when exp < now ->
-                  Eliommod_datasess.close_data_session2
-                    sitedata !session_group_ref k;
-                  return ()
-              | _ ->
-                  if !session_group_ref = None && not_bound_in_data_tables k
-                  then
-                    Eliom_common.SessionCookies.remove data_cookie_table k;
-                  return ()
-              )
-                >>= Lwt_unix.yield
+            (match !exp with
+               | Some exp when exp < now ->
+                   Eliommod_sessiongroups.Data.remove session_group_node;
+                   return ()
+               | _ ->
+                   match !session_group_ref with
+                     | (_, Ocsigen_lib.Right _)
+                         when not_bound_in_data_tables k ->
+                         Eliommod_sessiongroups.Data.remove session_group_node;
+                         Lwt.return ()
+                     | _ -> Lwt.return ()
+            )
+            >>= Lwt_unix.yield
           )
           data_cookie_table
           (return ())

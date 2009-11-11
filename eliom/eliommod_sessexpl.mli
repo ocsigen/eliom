@@ -12,7 +12,7 @@ val iter_data_sessions :
 val iter_persistent_sessions :
   (string *
    (string * float option * Eliom_common.timeout *
-    Eliommod_sessiongroups.perssessgrp option) ->
+    Eliom_common.perssessgrp option) ->
    unit Lwt.t) ->
   unit Lwt.t
 val fold_service_sessions :
@@ -29,7 +29,7 @@ val fold_data_sessions :
 val fold_persistent_sessions :
   (string *
    (string * float option * Eliom_common.timeout *
-    Eliommod_sessiongroups.perssessgrp option) ->
+    Eliom_common.perssessgrp option) ->
    'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
 val number_of_service_sessions : sp:Eliom_common.server_params -> int

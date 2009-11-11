@@ -37,19 +37,9 @@ let compute_cookie_info secure secure_ci cookie_info =
   else cookie_info
 
 
-(* to be called from outside requests *)
-let close_data_session2 sitedata fullsessgrp cookie =
-  try
-    Eliom_common.SessionCookies.remove
-      sitedata.Eliom_common.session_data cookie;
-    Eliommod_sessiongroups.Data.remove cookie fullsessgrp;
-    sitedata.Eliom_common.remove_session_data cookie;
-  with Not_found -> ()
 
-let close_data_group sitedata fullsessgrp =
-  let cooklist = Eliommod_sessiongroups.Data.find fullsessgrp in
-  List.iter (close_data_session2 sitedata None) cooklist;
-  Eliommod_sessiongroups.Data.remove_group fullsessgrp
+let close_data_group fullsessgrp =
+    Eliommod_sessiongroups.Data.remove_group fullsessgrp
 
 (* to be called during a request *)
 let close_data_session ?(close_group = false) ?session_name ~secure ~sp () =
@@ -62,16 +52,18 @@ let close_data_session ?(close_group = false) ?session_name ~secure ~sp () =
         (Ocsigen_lib.String_Table.find fullsessname !cookie_info)
     in
     match !ior with
-    | Eliom_common.SC c ->
-        if close_group then
-          close_data_group sp.Eliom_common.sp_sitedata
-            !(c.Eliom_common.dc_session_group)
-        else
-          close_data_session2 sp.Eliom_common.sp_sitedata
-            !(c.Eliom_common.dc_session_group)
-            c.Eliom_common.dc_value;
-        ior := Eliom_common.SCNo_data
-    | _ -> ()
+      | Eliom_common.SC c ->
+          if close_group then
+            close_data_group !(c.Eliom_common.dc_session_group)
+          else
+            (* there is only one way to close a session:
+               remove it from the session group table.
+               It will remove all the data table entries
+               and also the entry in the session table *)
+            Eliommod_sessiongroups.Data.remove
+              c.Eliom_common.dc_session_group_node;
+          ior := Eliom_common.SCNo_data
+      | _ -> ()
   with Not_found -> ()
 
 
@@ -86,6 +78,7 @@ let rec new_data_cookie sitedata fullsessgrp fullsessname table =
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
     let serverexp = ref None (* Some 0. *) (* None = never. We'll change it later. *) in
     let fullsessgrpref = ref fullsessgrp in
+    let node = Eliommod_sessiongroups.Data.add sitedata c fullsessgrp in
     Eliom_common.SessionCookies.replace
       (* actually it will add the cookie *)
       table
@@ -93,38 +86,34 @@ let rec new_data_cookie sitedata fullsessgrp fullsessname table =
       (fullsessname,
        serverexp (* exp on server *),
        usertimeout,
-       fullsessgrpref);
-    List.iter
-      (close_data_session2 sitedata None)
-      (Eliommod_sessiongroups.Data.add
-         sitedata.Eliom_common.max_volatile_data_sessions_per_group
-         c fullsessgrp);
-    (* add returns the list of session to close if
-       maxsessionspergroup exceded *)
+       fullsessgrpref,
+       node);
     {Eliom_common.dc_value= c;
      Eliom_common.dc_timeout= usertimeout;
      Eliom_common.dc_exp= serverexp;
      Eliom_common.dc_cookie_exp=
-     ref Eliom_common.CENothing (* exp on client - nothing to set *);
-     Eliom_common.dc_session_group= fullsessgrpref
-   }
+        ref Eliom_common.CENothing (* exp on client - nothing to set *);
+     Eliom_common.dc_session_group= fullsessgrpref;
+     Eliom_common.dc_session_group_node= node;
+    }
 
 
 
 
 
 
-let find_or_create_data_cookie ?session_group ?session_name ~secure ~sp () =
+let find_or_create_data_cookie ?set_session_group ?session_name ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
-  let fullsessgrp =
-    Eliommod_sessiongroups.make_full_group_name
-      sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
-      session_group
-  in
   let ((_, cookie_info, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
+  let fullsessgrp =
+    Eliommod_sessiongroups.make_full_group_name
+      sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
+      sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
+      set_session_group
+  in
   try
     let (old, ior) =
       Lazy.force (Ocsigen_lib.String_Table.find fullsessname !cookie_info)
@@ -141,7 +130,18 @@ let find_or_create_data_cookie ?session_group ?session_name ~secure ~sp () =
         in
         ior := Eliom_common.SC v;
         v
-    | Eliom_common.SC v -> v;
+    | Eliom_common.SC c -> 
+        (match set_session_group with
+          | None -> ()
+          | Some session_group -> 
+              let node = Eliommod_sessiongroups.Data.move
+                sp.Eliom_common.sp_sitedata
+                c.Eliom_common.dc_session_group_node fullsessgrp
+              in
+              c.Eliom_common.dc_session_group_node <- node;
+              c.Eliom_common.dc_session_group := fullsessgrp
+        );
+        c
   with Not_found ->
     let v =
       new_data_cookie
