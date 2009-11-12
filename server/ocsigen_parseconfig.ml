@@ -211,39 +211,51 @@ let correct_hostname =
   let regexp = Netstring_pcre.regexp "^[a-zA-Z0-9]+((\\.|-)[a-zA-Z0-9]+)*$" in
   fun h -> Netstring_pcre.string_match regexp h 0 <> None
 
-(* Split the [host] field, first according to spaces, and then according
-   to wildcards '*' *)
-let parse_host_field host =
-  match host with
-    | None -> [[Ocsigen_extensions.Wildcard], None] (* default = "*:*" *)
-    | Some s ->
-        let parse_one_host ss =
-          let host, port =
-            try
-              let dppos = String.index ss ':'
-              and len = String.length ss in
-              let host = String.sub ss 0 dppos
-              and port =
-                match String.sub ss (dppos+1) ((len - dppos) - 1) with
-                  | "*" -> None
-                  | p -> Some (int_of_string "host" p)
-              in host, port
-            with
-              | Not_found -> ss, None
-              | Failure _ ->
-                  raise (Config_file_error "bad port number")
-          in
-          let split_host = function
-            | Netstring_str.Delim _ -> Ocsigen_extensions.Wildcard
-            | Netstring_str.Text t ->
-                Ocsigen_extensions.Text (t, String.length t)
-          in
-          List.map split_host
-            (Netstring_str.full_split (Netstring_str.regexp "[*]+") host),
-          port
-        in
-        List.map parse_one_host
-          (Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
+(* Splits the [host] field, first according to spaces (which encode disjunction),
+   and then according to wildcards '*' ; we then transform the hosts-with-regexp
+   into a regepx that matches a potential host. The whole result is cached. *)
+let parse_host_field =
+  let h = Hashtbl.create 17 in
+  (fun (hostfilter : string option) ->
+     try Hashtbl.find h hostfilter
+     with Not_found ->
+       let r = match hostfilter with
+         | None -> ["*", Netstring_pcre.regexp ".*", None] (* default = "*:*" *)
+         | Some s ->
+             let parse_one_host ss =
+               let host, port =
+                 try
+                   let dppos = String.index ss ':'
+                   and len = String.length ss in
+                   let host = String.sub ss 0 dppos
+                   and port =
+                     match String.sub ss (dppos+1) ((len - dppos) - 1) with
+                       | "*" -> None
+                       | p -> Some (int_of_string "host" p)
+                   in host, port
+                 with
+                   | Not_found -> ss, None
+                   | Failure _ ->
+                       raise (Config_file_error "bad port number")
+               in
+               let split_host = function
+                 | Netstring_str.Delim _ -> ".*"
+                 | Netstring_str.Text t -> Netstring_pcre.quote t
+               in
+               (host,
+                Netstring_pcre.regexp
+                  (String.concat ""
+                     (List.map split_host
+                        (Netstring_str.full_split
+                           (Netstring_str.regexp "[*]+") host))),
+                port)
+             in
+             List.map parse_one_host
+               (Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
+       in
+       Hashtbl.add h hostfilter r;
+       (r : Ocsigen_extensions.virtual_hosts)
+  )
 
 
 (* Extract a default hostname from the "host" field if no default is provided *)
@@ -255,7 +267,8 @@ let get_defaulthostname ~defaulthostname ~defaulthttpport ~host =
           (* Something more clever could be envisioned *)
           let rec aux = function
             | [] -> default_default_hostname
-            | ([Ocsigen_extensions.Text (t, _)], (Some 80 | None)) :: _ -> t
+            | (t, _, (Some 80 | None)) :: _ when String.contains t '*' = false ->
+                t
             | _ :: q -> aux q
           in
           let host = aux host in

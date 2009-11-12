@@ -47,12 +47,19 @@ val badconfig : ('a, unit, string, 'b) format4 -> 'a
     a sprintf-formatted argument. *)
 
 (*****************************************************************************)
-(** The type of URL paths. [["plop";"plip"]] corresponds to [plop/plip]. *)
 
-(* virtual hosts: *)
-type virtual_host_part = Text of string * int | Wildcard
-type virtual_hosts = ((virtual_host_part list) * int option) list
+(** Type of the result of parsing the field [hostfiler] in the configuration
+    file. Inside the list, the first argument is the host itself
+    (which is a glob-like pattern that can contains [*]), a regexp
+    parsing this pattern, and optionnaly a port.
+*)
+type virtual_hosts = (string * Netstring_pcre.regexp * int option) list
 
+val hash_virtual_hosts : virtual_hosts -> int
+val equal_virtual_hosts : virtual_hosts -> virtual_hosts -> bool
+
+val host_match:
+  virtual_hosts:virtual_hosts -> host:string option -> port:int -> bool
 
 (*****************************************************************************)
 

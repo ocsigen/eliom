@@ -53,8 +53,23 @@ let badconfig fmt = Printf.ksprintf (fun s -> raise (Error_in_config_file s)) fm
 
 (*****************************************************************************)
 (* virtual hosts: *)
-type virtual_host_part = Text of string * int | Wildcard
-type virtual_hosts = ((virtual_host_part list) * int option) list
+type virtual_hosts = (string * Netstring_pcre.regexp * int option) list
+
+(* We cannot use generic comparison, as regexpes are abstract values that
+   cannot be compared or hashed. However the string essentially contains
+   the value that is compiled into a regexp, and we compare this instead *)
+
+let hash_virtual_hosts (l : virtual_hosts) =
+  Hashtbl.hash (List.map (fun (s, _, p) -> (s, p)) l)
+
+let rec equal_virtual_hosts (l1 : virtual_hosts) (l2 : virtual_hosts) =
+  match l1, l2 with
+    | [], [] -> true
+    | [], _::_ | _::_, [] -> false
+    | (s1, _, p1) :: q1, (s2, _, p2) :: q2 ->
+        s1 = s2 && p1 = p2 && equal_virtual_hosts q1 q2
+
+(*****************************************************************************)
 
 type client = Ocsigen_http_com.connection
 
@@ -349,7 +364,7 @@ let get_config () = !dynlinkconfig
 
 
 (*****************************************************************************)
-let site_match request site_path url =
+let site_match request (site_path : string list) url =
   (* We are sure that there is no / at the end or beginning of site_path *)
   (* and no / at the beginning of url *)
   (* and no // or ../ inside both of them *)
@@ -736,56 +751,33 @@ let start_initialisation, during_initialisation,
 (********)
 
 
-let host_match host port =
+let host_match ~(virtual_hosts : virtual_hosts) ~host ~port =
   let port_match = function
     | None -> true
     | Some p -> p = port
-  in
-  let rec aux host =
-    let hostlen = String.length host in
-    let rec host_match1 beg =
-      let rec aux1 t len l p0 =
-        try
-          let (p,_) =
-            Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
-          let beg2 = p + len in
-          (host_match1 beg2 l) || (aux1 t len l (p+1))
-        with Not_found -> false
-      in
-      function
-        | [] -> beg = hostlen
-        | [Wildcard] -> true
-        | (Wildcard)::(Wildcard)::l ->
-            host_match1 beg ((Wildcard)::l)
-        | (Wildcard)::(Text (t,len))::l -> aux1 t len l beg
-        | (Text (t,len))::l ->
-            try
-              (t = String.sub host beg len) && (host_match1 (beg+len) l)
-            with Invalid_argument _ -> false
-    in
-    function
-      | [] -> false
-      | (a, p)::l -> ((port_match p) && (host_match1 0 a)) || aux host l
   in match host with
-    | None -> List.exists (fun (_, p) -> port_match p)
+    | None -> List.exists (fun (_, _, p) -> port_match p) virtual_hosts
         (*VVV Warning! For HTTP/1.0, when host is absent,
-           we take the first one, even if it doesn't match!
-        *)
-    | Some host -> aux host
+           we take the first one, even if it doesn't match!  *)
+    | Some host ->
+        let host_match regexp =
+          (Netstring_pcre.string_match regexp host 0 <> None)
+        in
+        let rec aux = function
+          | [] -> false
+          | (_, a, p)::l -> (port_match p && host_match a) || aux l
+        in
+        aux virtual_hosts
 
 
-let string_of_host h =
-  let aux1 (hh, port) =
-    let p = match port with
-    | None -> ""
-    | Some a -> ":"^(string_of_int a)
-    in
-    let rec aux2 = function
-      | [] -> ""
-      | Wildcard::l -> "*"^(aux2 l)
-      | (Text (t,_))::l -> t^(aux2 l)
-    in (aux2 hh)^p
-  in List.fold_left (fun d hh -> d^(aux1 hh)^" ") "" h
+
+(* Currently used only for error messages. *)
+let string_of_host (h : virtual_hosts) =
+  let aux1 (host, _, port) =
+    match port with
+      | None -> host
+      | Some p -> host ^ ":" ^ string_of_int p
+  in List.fold_left (fun d arg -> d ^ aux1  arg ^" ") "" h
 
 
 
@@ -821,7 +813,8 @@ let serve_request
     in
     let rec aux_host ri prev_err cookies_to_set = function
       | [] -> fail (Ocsigen_http_error (cookies_to_set, prev_err))
-      | (h, conf_info, host_function)::l when host_match host port h ->
+      | (h, conf_info, host_function)::l when
+          host_match ~virtual_hosts:h ~host ~port ->
           Ocsigen_messages.debug (fun () ->
             "-------- host found! "^
             (string_of_host_option host)^

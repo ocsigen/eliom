@@ -44,6 +44,11 @@ val parse_string : Simplexmlparser.xml list -> string
 val parse_string_tag : string -> Simplexmlparser.xml list -> string
 
 
+(** Parses the [hostfilter] field of the configuration file, which
+    is a disjunction of possible hostnames (that can themselves contain
+    wildcards) *)
+val parse_host_field: string option -> Ocsigen_extensions.virtual_hosts
+
 (**/**)
 
 val parser_config : Simplexmlparser.xml list ->

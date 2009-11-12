@@ -43,8 +43,12 @@ let new_sitedata =
   let module S = Hashtbl.Make(struct
                                 type t = 
                                     Ocsigen_extensions.virtual_hosts * url_path
-                                let equal = (=)
-                                let hash = Hashtbl.hash
+                                let equal (vh1, u1 : t) (vh2, u2 : t) =
+                                  Ocsigen_extensions.equal_virtual_hosts vh1 vh2
+                                  && u1 = u2
+                                let hash (vh, u : t) =
+                                  Hashtbl.hash (
+                                    Ocsigen_extensions.hash_virtual_hosts vh, u)
                               end)
   in
   let t = S.create 5 in
