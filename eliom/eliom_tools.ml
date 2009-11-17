@@ -30,39 +30,47 @@ let a_ul classes id level =
     | Some id, 0 -> a_id id :: classes
     | _ -> classes
 
+let same_service sp s s' =
+  make_uri s sp () = make_uri s' sp ()
+
+let same_service_opt sp s sopt =
+  match sopt with
+    | None -> false
+    | Some s' -> same_service sp s s'
+
 
 let menu ?(classe=[]) ?id first l ?service:current ~sp =
   let rec aux = function
     | [] -> []
     | [(url, text)] ->
         let classe = [last_class] in
-        if Some url = (* problem with preapplied services with == *) current
+        if same_service_opt sp url current
         then [li ~a:[a_class (current_class::classe)] text]
         else [li ~a:[a_class classe] [a url sp text ()]]
     | (url, text)::l ->
-        (if Some url = (* problem with preapplied services with == *) current
-        then  (li ~a:[a_class [current_class]] text)
-        else (li [a url sp text ()]))::(aux l)
+        (if same_service_opt sp url current
+         then  (li ~a:[a_class [current_class]] text)
+         else (li [a url sp text ()]))::(aux l)
   in match first::l with
   | [] -> assert false
   | [(url, text)] ->
       ul ~a:(a_ul (menu_class::classe) id 0)
         (let liclasse = [first_class; last_class] in
-        if Some url = (* problem with preapplied services with == *) current
-        then (li ~a:[a_class (current_class::liclasse)] text)
-        else (li ~a:[a_class liclasse] [a url sp text ()])) []
+         if same_service_opt sp url current
+         then (li ~a:[a_class (current_class::liclasse)] text)
+         else (li ~a:[a_class liclasse] [a url sp text ()])) []
   | (url, text)::l ->
       ul ~a:(a_ul (menu_class::classe) id 0)
         (let liclasse = [first_class] in
-        if Some url = (* problem with preapplied services with == *) current
-        then (li ~a:[a_class (current_class::liclasse)] text)
-        else (li ~a:[a_class liclasse] [a url sp text ()])) (aux l)
+         if same_service_opt sp url current
+         then (li ~a:[a_class (current_class::liclasse)] text)
+         else (li ~a:[a_class liclasse] [a url sp text ()])) (aux l)
 
 
-let find_in_hierarchy service (main, pages) =
+let find_in_hierarchy sp service (main, pages) =
   let rec aux service i = function
     | [] -> raise Not_found
-    | (_, Site_tree (Main_page s, hsl))::_ when s = service ->
+    | (_, Site_tree (Main_page s, hsl))::_ when same_service sp s service ->
         (try
           i::aux service 0 hsl
         with Not_found -> [i])
@@ -148,7 +156,7 @@ let hierarchical_menu_depth_first
     | li::lis -> [ul ~a:(a_ul (menu_class::classe) id level) li lis]
   in
 
-  (depth_first_fun pages 0 (find_in_hierarchy service the_menu)
+  (depth_first_fun pages 0 (find_in_hierarchy sp service the_menu)
      : [ `Ul ] XHTML.M.elt list :> [> `Ul ] XHTML.M.elt list)
 
 
@@ -214,7 +222,7 @@ let hierarchical_menu_breadth_first
     | li::lis -> (ul ~a:(a_ul (menu_class::classe) id level) li lis)::l
 
   in
-  (breadth_first_fun pages 0 (find_in_hierarchy service the_menu)
+  (breadth_first_fun pages 0 (find_in_hierarchy sp service the_menu)
     : [ `Ul ] XHTML.M.elt list :> [> `Ul ] XHTML.M.elt list)
 
 
@@ -241,11 +249,11 @@ let structure_links (default, pages) ?service ~sp =
   in
   let rec create_rev parent = function
   | [] -> raise Not_found
-  | (_, (Site_tree (Main_page s, [])))::l when Some s = service ->
+  | (_, (Site_tree (Main_page s, [])))::l when same_service_opt sp s service ->
       make_rev parent []
   | (_, Disabled)::l
   | (_, Site_tree (_, []))::l -> create_rev parent l
-  | (_, Site_tree (Main_page page, hsl))::_ when service = Some page ->
+  | (_, Site_tree (Main_page page, hsl))::_ when same_service_opt sp page service ->
       make_rev parent (List.fold_left make_rels [] hsl)
   | (_, Site_tree (Main_page page, hsl))::l ->
       (try create_rev (Some page) hsl
@@ -257,7 +265,7 @@ let structure_links (default, pages) ?service ~sp =
   try
     match default with
     | Main_page def ->
-        if Some def = service then
+        if same_service_opt sp def service then
           List.fold_left make_rels [] pages
         else create_rev (Some def) pages
     | _ ->

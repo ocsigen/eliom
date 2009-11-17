@@ -25,6 +25,16 @@ open Eliom_services
 open Xhtmltypes_duce
 open Eliom_tools_common
 
+
+let same_service sp s s' =
+  make_uri s sp () = make_uri s' sp ()
+
+let same_service_opt sp s sopt =
+  match sopt with
+    | None -> false
+    | Some s' -> same_service sp s s'
+
+
 let attrib_list (s: string list): string = String.concat " " s
 let ul_attribs classes id level =
   {{ { class={: attrib_list classes :} } ++
@@ -38,7 +48,7 @@ let menu ?(classe=[]) ?id first l ?service:current ~sp =
     | [] -> []
     | [(url, text)] ->
         let classe = [last_class] in
-        if Some url = (* problem with preapplied services with == *) current
+        if same_service_opt sp url current
         then
           [{{ <li class={: attrib_list (current_class::classe) :}>{: text :} }}]
             (* [li ~a:[a_class (current_class::classe)] text] *)
@@ -46,7 +56,7 @@ let menu ?(classe=[]) ?id first l ?service:current ~sp =
           [{{ <li class={: attrib_list classe :}>[{: a url sp {: text :} () :}] }}]
             (* [li ~a:[a_class classe] [a url sp text ()] *)
     | (url, text)::l ->
-        (if Some url = (* problem with preapplied services with == *) current
+        (if same_service_opt sp url current
          then
            {{ <li class={: current_class :}>{: text :} }}
              (* (li ~a:[a_class [current_class]] text) *)
@@ -59,7 +69,7 @@ let menu ?(classe=[]) ?id first l ?service:current ~sp =
         {{ <ul ({{ ul_attribs (menu_class::classe) id 0 }})>
              [{:
                let liclasse = [first_class; last_class] in
-                 if Some url = current then
+                 if same_service_opt sp url current then
                    {{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
                  else
                    {{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}] }}
@@ -67,17 +77,17 @@ let menu ?(classe=[]) ?id first l ?service:current ~sp =
         {{ <ul ({{ ul_attribs (menu_class::classe) id 0 }})>
              [{:
                let liclasse = [first_class] in
-                 if Some url = current then
+                 if same_service_opt sp url current then
                    {{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
                  else
                    {{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}
                 !{: aux l :}] }}
 
 
-let find_in_hierarchy service (main, pages) =
+let find_in_hierarchy sp service (main, pages) =
   let rec aux service i = function
     | [] -> raise Not_found
-    | (_, Site_tree (Main_page s, hsl))::_ when s = service ->
+    | (_, Site_tree (Main_page s, hsl))::_ when same_service sp s service ->
         (try
           i::aux service 0 hsl
         with Not_found -> [i])
@@ -174,7 +184,7 @@ let hierarchical_menu_depth_first
         {{ [ <ul ({{ ul_attribs (menu_class::classe) id level }})>l ] }}
   in
 
-  (depth_first_fun pages 0 (find_in_hierarchy service the_menu))
+  (depth_first_fun pages 0 (find_in_hierarchy sp service the_menu))
 
 
 let hierarchical_menu_breadth_first
@@ -241,7 +251,7 @@ let hierarchical_menu_breadth_first
         {{ [ <ul ({{ ul_attribs (menu_class::classe) id level}})>[ {: li :} !{: lis :} ] !l ] }}
 
   in
-  (breadth_first_fun pages 0 (find_in_hierarchy service the_menu))
+  (breadth_first_fun pages 0 (find_in_hierarchy sp service the_menu))
 
 
 let structure_links (default, pages) ?service ~sp =
@@ -264,12 +274,12 @@ let structure_links (default, pages) ?service ~sp =
   in
   let rec create_rev parent = function
   | [] -> raise Not_found
-  | (_, (Site_tree (Main_page s, [])))::l when Some s = service ->
+  | (_, (Site_tree (Main_page s, [])))::l when same_service_opt sp s service ->
       make_rev parent []
   | (_, Disabled)::l
   | (_, Site_tree (_, []))::l -> create_rev parent l
   | (_, Site_tree (Main_page page, hsl))::l ->
-      if Some page = service 
+      if same_service_opt sp page service
       then make_rev parent (List.fold_left make_rels [] hsl)
       else
         (try create_rev (Some page) hsl
@@ -281,7 +291,7 @@ let structure_links (default, pages) ?service ~sp =
   try
     match default with
     | Main_page def ->
-        if Some def = service then
+        if same_service_opt sp def service then
           {{ [ !{: List.fold_left make_rels [] pages :} ] }}
         else create_rev (Some def) pages
     | _ ->
