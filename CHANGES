@@ -5,6 +5,9 @@
   * Eliom: actions now return {{{()}}}.
     Use the request cache to send information to fallbacks.
   * Eliom: CSRF-safe coservices
+  * Eliom: the number of sessions by IP address is now limited
+  * Eliom: efficient implementation of limitation of sessions by groups
+    (or now IP) for large limits
   * Eliom: New exprimental module {{{Eliom_obrowser}}} 
     to use Eliom with Obrowser
   * Eliom: Now possible to have constant parts in suffixes to allow
@@ -13,6 +16,9 @@
     or customizing the content-type
   * Eliom: New notion: "Non localized parameters". Can be sent to any service.
   * Eliom: changing the order of parameters for user type form widgets
+  * Eliom: changing the order of parameters for user type form widgets
+  * Eliom: Eliom_tools.menu and hierarchical_menu now compare the URL strings
+    (was: compare the service)
   * Server: now possible to give the config file name to reload server command
   * Server: now possible to do a "graceful shutdown" of the server
     using the "shutdown" server command

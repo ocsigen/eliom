@@ -4072,6 +4072,10 @@ Session groups have been suggested by Dario Teixeira and
   she realises her mistake, and wishes to do a "global logout", ie,
   closing all existing sessions associated with her user name.
   //
+
+**It is highly recommended to use session groups!
+If you do not use them, the number of session is limitated by IP address,
+which can be a problem for example if the server is behind a reverse proxy.**
     
   *wiki*)
 (************************************************************)
