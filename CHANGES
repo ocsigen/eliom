@@ -8,10 +8,14 @@
   * Eliom: the number of sessions by IP address is now limited
   * Eliom: efficient implementation of limitation of sessions by groups
     (or now IP) for large limits
-  * Eliom: New exprimental module {{{Eliom_obrowser}}} 
+  * Eliom: New experimental module {{{Eliom_obrowser}}} 
     to use Eliom with Obrowser
   * Eliom: Now possible to have constant parts in suffixes to allow
     URLS like {{{/param1/something/param2}}}
+  * Eliom: services with optional suffixes
+  * Eliom: form towards a service with suffix: it is now possible to choose
+    whether you want the redirection towards the suffix form or not
+  * Eliom: lists and sets in suffixes
   * Eliom: Now possible to create services sending custom HTTP header values
     or customizing the content-type
   * Eliom: New notion: "Non localized parameters". Can be sent to any service.
@@ -19,6 +23,8 @@
   * Eliom: changing the order of parameters for user type form widgets
   * Eliom: Eliom_tools.menu and hierarchical_menu now compare the URL strings
     (was: compare the service)
+  * Eliom: textarea now take a string (was pcdata)
+  * Eliom: The type of the iterator for lists in parameters has changed
   * Server: now possible to give the config file name to reload server command
   * Server: now possible to do a "graceful shutdown" of the server
     using the "shutdown" server command
@@ -33,6 +39,9 @@
   * Server: HTTP headers containing newlines are now properly escaped.
   * Server: correct missing xmlns in Xhtml DTD
   * Server: now send last-modified and etag headers when returning a 403
+  * Server: Now accepting several requests at a time
+    (as explained in "Accept()able strategies" by Tim Brecht & all) 
+  * Rewritemod: more rewriting possibilities (still very basic)
 
 ===== 1.2.2 (2009-10-17) =====
 
