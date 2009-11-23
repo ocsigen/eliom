@@ -295,6 +295,8 @@ files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cmxs extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cmxs extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cmxs extensions
+	-ln -sf ../baselib/parsecommandline.cma extensions
+	-ln -sf ../baselib/donotparsecommandline.cma extensions
 	echo directory = \"$(SRC)/extensions\" > $@
 	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< >> $@
 #	sed "s%\"xhtml\" (%\"xhtml\" (\n  directory = \"$(SRC)/xmlp4/ohl-xhtml/\"%g" >> $@
