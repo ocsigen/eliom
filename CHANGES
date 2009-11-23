@@ -8,6 +8,7 @@
   * Eliom: the number of sessions by IP address is now limited
   * Eliom: efficient implementation of limitation of sessions by groups
     (or now IP) for large limits
+  * Eliom: now possible to unregister services
   * Eliom: New experimental module {{{Eliom_obrowser}}} 
     to use Eliom with Obrowser
   * Eliom: Now possible to have constant parts in suffixes to allow

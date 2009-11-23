@@ -373,7 +373,7 @@ val new_get_post_coservice' :
 *)
 
 
-(** {2 Misc} *)
+(** {2 Predefined services} *)
 
 val static_dir :
   sp:Eliom_sessions.server_params ->
@@ -465,6 +465,8 @@ val https_void_hidden_coservice' :
 (** The same, but forcing https. *)
 
 
+(** {2 Misc} *)
+
 val preapply :
     service:('a, 'b, [> `Attached of 'd a_s ] as 'c,
      [< suff ], 'e, 'f, 'g)
@@ -488,6 +490,23 @@ val add_non_localized_post_parameters :
   service:('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('a, 'b * 'p, 'c, 'd, 'e, 'f * 'pn, 'g) service
 (** Adds non localized POST parameters to a service *)
+
+
+val unregister :
+  ?sp:Eliom_sessions.server_params ->
+  ('a, 'b, [< `Attached of [> `Internal of 'c * [> `Get ] ] a_s
+   | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h) service ->
+  unit
+(** Unregister a service from global table *)
+
+val unregister_for_session :
+  sp:Eliom_sessions.server_params ->
+  ?session_name:string ->
+  ?secure:bool ->
+  ('a, 'b, [< `Attached of [> `Internal of 'c * [> `Get ] ] a_s
+   | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h) service ->
+  unit
+(** Unregister a service from session table *)
 
 
 (** {2 Using your own error pages} *)
@@ -538,6 +557,9 @@ val escookiel_of_eccookiel : Eliom_common.cookie list -> cookie list
 val eccookiel_of_escookiel : cookie list -> Eliom_common.cookie list
 val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
   [ `All | `Persistent | `None ]
+
+val get_or_post : [> `Internal of 'a * [> `Get ] ] ->
+  Ocsigen_http_frame.Http_header.http_method
 
 val change_get_num :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->

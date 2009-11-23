@@ -32,6 +32,54 @@ open Lwt
 
 
 (******)
+(* unregistering services *)
+let unregister_example =
+  Eliom_predefmod.Xhtml.register_new_service
+    ~path:["unregister"]
+    ~get_params:Eliom_parameters.unit
+    (fun sp () () ->
+       let s1 = Eliom_predefmod.Xhtml.register_new_service
+         ~sp
+         ~path:["unregister1"]
+         ~get_params:Eliom_parameters.unit
+         (fun sp () () -> failwith "s1")
+       in
+       let s2 = Eliom_predefmod.Xhtml.register_new_coservice
+         ~sp
+         ~fallback:s1
+         ~get_params:Eliom_parameters.unit
+         (fun sp () () -> failwith "s2")
+       in
+       let s3 = Eliom_predefmod.Xhtml.register_new_coservice'
+         ~sp
+         ~get_params:Eliom_parameters.unit
+         (fun sp () () -> failwith "s3")
+       in
+       Eliom_predefmod.Xhtml.register_for_session
+         ~sp
+         ~service:s1
+         (fun sp () () -> failwith "s4");
+       Eliom_services.unregister ~sp s1;
+       Eliom_services.unregister ~sp s2;
+       Eliom_services.unregister ~sp s3;
+       Eliom_services.unregister_for_session ~sp s1;
+       Lwt.return
+         (html
+            (head (title (pcdata "Unregistering services")) [])
+            (body [p [pcdata 
+                        "These services have been registered and unregistered"];
+                   p [a s1 sp [pcdata "regular service"] ();
+                      pcdata ", ";
+                      a s2 sp [pcdata "coservice"] ();
+                      pcdata ", ";
+                      a s3 sp [pcdata "non attached coservice"] ();
+                      pcdata ", ";
+                      a s1 sp [pcdata "session service"] ();
+                     ]]))
+    )
+
+
+(******)
 (* CSRF GET *)
 
 let csrfsafe_get_example =
@@ -1506,6 +1554,7 @@ let mainpage = register_new_service ["tests"] unit
          a csrfsafe_get_example sp [pcdata "GET CSRF safe service"] (); br ();
          a csrfsafe_postget_example sp [pcdata "POST CSRF safe service on GET CSRF safe service"] (); br ();
          a csrfsafe_session_example sp [pcdata "POST non attached CSRF safe service in session table"] (); br ();
+         a unregister_example sp [pcdata "Unregistering services"] (); br ();
 
 
        ]])))

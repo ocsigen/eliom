@@ -11,27 +11,22 @@ val find_page_table :
   Eliom_common.sess_info -> Ocsigen_http_frame.result Lwt.t
 val insert_as_last_of_generation :
   'a -> 'b * ('a * 'c) -> ('b * ('a * 'c)) list -> ('b * ('a * 'c)) list
-val add_page_table :
-  bool ->
-  string list ->
-  (Eliom_common.page_table_key * ('a * (int * 'b)) list) list ->
-  Eliom_common.page_table_key * ('a * 'b) ->
-  (Eliom_common.page_table_key * ('a * (int * 'b)) list) list
-val add_dircontent :
-  Eliom_common.dircontent ->
-  Ocsigen_lib.String_Table.key * Eliom_common.direlt ref ->
-  Eliom_common.dircontent
-val find_dircontent :
-  Eliom_common.dircontent ->
-  Ocsigen_lib.String_Table.key -> Eliom_common.direlt ref
 val add_service :
   Eliom_common.tables ->
   bool ->
   Ocsigen_lib.String_Table.key list ->
-  Eliom_common.page_table_key *
+  Eliom_common.page_table_key ->
   ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
-   int ref option * (float * float ref) option *
-   (bool -> Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t)) ->
+     (int ref option * (float * float ref) option *
+        (bool -> 
+           Eliom_common.server_params -> 
+             Ocsigen_http_frame.result Lwt.t))) ->
+  unit
+val remove_service :
+  Eliom_common.tables ->
+  Ocsigen_lib.String_Table.key list ->
+  Eliom_common.page_table_key ->
+  (Eliom_common.anon_params_type * Eliom_common.anon_params_type) ->
   unit
 exception Exn1
 val find_service :

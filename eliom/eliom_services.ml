@@ -25,6 +25,7 @@ open Eliom_sessions
 open Eliom_parameters
 open Lazy
 
+
 (* Manipulation of services - this code can be use only on server side. *)
 
 include Eliom_services_obrowser
@@ -71,6 +72,12 @@ let new_state = Eliommod_cookies.make_new_cookie_value
    But I turned this into cryptographickly robust version
    to implement CSRF-safe services.
 *)
+
+let get_or_post = function
+  | `Internal (_, `Get) -> Ocsigen_http_frame.Http_header.GET
+  | _ -> Ocsigen_http_frame.Http_header.POST
+(*  | `External -> POST ? *)
+
 
 (*****************************************************************************)
 (*****************************************************************************)
@@ -542,3 +549,49 @@ let set_delayed_post_registration_function tables k f =
     k
     f
     tables.Eliom_common.csrf_post_registration_functions
+
+
+(*****************************************************************************)
+let remove_service table service =
+  match get_kind_ service with
+    | `Attached attser ->
+        let key_kind = get_or_post (get_att_kind_ attser) in
+        let attserget = get_get_name_ attser in
+        let attserpost = get_post_name_ attser in
+        let sgpt = get_get_params_type_ service in
+        let sppt = get_post_params_type_ service in
+        Eliommod_services.remove_service table 
+          (get_sub_path_ attser)
+          {Eliom_common.key_state = (attserget, attserpost);
+           Eliom_common.key_kind = key_kind}
+          (if attserget = Eliom_common.SAtt_no
+             || attserpost = Eliom_common.SAtt_no
+           then (anonymise_params_type sgpt,
+                 anonymise_params_type sppt)
+           else (0, 0))
+    | `Nonattached naser ->
+        let na_name = get_na_name_ naser in
+        Eliommod_naservices.remove_naservice table na_name
+
+
+let unregister ?sp service =
+  let table = 
+    match sp with
+      | None ->
+          (match Eliom_common.global_register_allowed () with
+             | Some get_current_sitedata ->
+                 let sitedata = get_current_sitedata () in
+                 sitedata.Eliom_common.global_services
+           | _ -> raise
+               (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                  "unregister"))
+      | Some sp -> get_global_table sp
+  in
+  remove_service table service
+
+
+let unregister_for_session ~sp ?session_name ?secure service =
+  let table =
+    !(Eliom_sessions.get_session_service_table ?secure ?session_name ~sp ())
+  in
+  remove_service table service

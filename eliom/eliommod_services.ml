@@ -116,7 +116,14 @@ let rec insert_as_last_of_generation generation x = function
 
 
 
-let add_page_table duringsession url_act t (key, (id, va)) =
+let add_page_table tables duringsession url_act t
+    (key, (id, ((max_use, expdate, action) as va))) =
+
+  (match expdate with
+     | Some _ -> 
+         tables.Eliom_common.table_contains_services_with_timeout <- true
+     | _ -> ());
+
   (* Duplicate registration forbidden in global table with same generation *)
   let generation = Ocsigen_extensions.get_numberofreloads () in
   let v = (id, (generation, va)) in
@@ -140,6 +147,15 @@ let add_page_table duringsession url_act t (key, (id, va)) =
       (key, (insert_as_last_of_generation generation v l))::newt
   with Not_found -> (key, [v])::t
 
+let remove_page_table _ _ _ t (key, id) =
+  (* Actually this does not remove empty directories.
+     But this will be done by the next service GC *)
+  let l, newt = Ocsigen_lib.list_assoc_remove key t in
+  match Ocsigen_lib.list_remove_all_assoc id l with
+    | [] -> newt (* In that case, we must remove it, otherwise we get
+                    "Wrong parameters" instead of "Not found" *)
+    | newl -> (key, newl)::newt
+
 let add_dircontent dc (key, elt) =
   match dc with
   | Eliom_common.Vide ->
@@ -157,12 +173,13 @@ let find_dircontent dc k =
 
 (*****************************************************************************)
 
-let add_service
+let add_or_remove_service
+    f
     tables
     duringsession
     url_act
-    (page_table_key,
-     ((unique_id1, unique_id2), max_use, expdate, action)) =
+    page_table_key
+    va =
 
   let rec aux dircontentref a l =
     try
@@ -210,19 +227,16 @@ let add_service
     | a::l -> aux dircontentref a l
   in
 
-  (match expdate with
-  | Some _ -> tables.Eliom_common.table_contains_services_with_timeout <- true
-  | _ -> ());
-
-  let content = (page_table_key,
-                 ((unique_id1, unique_id2),
-                  (max_use, expdate, action))) in
+  let content = (page_table_key, va) in
 
   let page_table_ref =
     search_page_table_ref tables.Eliom_common.table_services url_act in
-    page_table_ref :=
-      add_page_table duringsession url_act !page_table_ref content
+    page_table_ref := f tables duringsession url_act !page_table_ref content
 
+let add_service = add_or_remove_service add_page_table
+
+let remove_service table path k unique_id = 
+  add_or_remove_service remove_page_table table true path k unique_id
 
 
 exception Exn1

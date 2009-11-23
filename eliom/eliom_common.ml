@@ -267,7 +267,11 @@ type server_params =
 
 and page_table =
     (page_table_key *
-       (((anon_params_type * anon_params_type) (* unique_id *) *
+       (((anon_params_type * anon_params_type) 
+           (* unique_id, computed from parameters type.
+              must be the same even if the actual service reference is different
+              (after reloading the site) so that it replaces the former one
+           *) *
            (int * (* generation (= number of reloads of sites
                      after which that service has been created) *)
               (int ref option (* max_use *) *

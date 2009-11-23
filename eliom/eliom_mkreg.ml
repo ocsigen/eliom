@@ -35,10 +35,6 @@ open Lazy
 
 (****************************************************************************)
 
-let get_or_post = function
-  | `Internal (_, `Get) -> Ocsigen_http_frame.Http_header.GET
-  | _ -> Ocsigen_http_frame.Http_header.POST
-(*  | `External -> POST ? *)
 
 
 module type REGCREATE =
@@ -556,73 +552,73 @@ module MakeRegister = functor
                   table
                   duringsession
                   (get_sub_path_ attser)
-                  ({Eliom_common.key_state = attsernames;
-                    Eliom_common.key_kind = key_kind},
-                   ((if attserget = Eliom_common.SAtt_no
-                       || attserpost = Eliom_common.SAtt_no
-                     then (anonymise_params_type sgpt,
-                           anonymise_params_type sppt)
-                     else (0, 0)),
-                    (match get_max_use_ service with
+                  {Eliom_common.key_state = attsernames;
+                   Eliom_common.key_kind = key_kind}
+                  ((if attserget = Eliom_common.SAtt_no
+                      || attserpost = Eliom_common.SAtt_no
+                    then (anonymise_params_type sgpt,
+                          anonymise_params_type sppt)
+                    else (0, 0)),
+                   ((match get_max_use_ service with
                        | None -> None
                        | Some i -> Some (ref i)),
                     (match get_timeout_ service with
                        | None -> None
                        | Some t -> Some (t, ref (t +. Unix.time ()))),
-                    (fun nosuffixversion sp ->
-                       let sp2 = Eliom_sessions.sp_of_esp sp in
-                       let ri = get_ri ~sp:sp2 in
-                       let suff = get_suffix ~sp:sp2 in
-                       (catch (fun () ->
-                                 force ri.ri_post_params >>= fun post_params ->
-                                 force ri.ri_files >>= fun files ->
-                                 let g = reconstruct_params
-                                   ~sp
-                                   sgpt
-                                   (force ri.ri_get_params)
-                                   []
-                                   nosuffixversion
-                                   suff
-                                 in
-                                 let p = reconstruct_params
-                                   ~sp
-                                   sppt
-                                   post_params
-                                   files
-                                   false
-                                   None
-                                 in
-                                 if nosuffixversion && suffix_with_redirect &&
-                                   files=[] && post_params = []
-                                 then (* it is a suffix service in version 
-                                         without suffix. We redirect. *)
-                                   Lwt.fail
-                                     (Eliom_common.Eliom_Suffix_redirection
-                                        (Eliom_mkforms.make_string_uri
-                                           ~absolute:true
-                                           ~service:(service : 
+                     (fun nosuffixversion sp ->
+                        let sp2 = Eliom_sessions.sp_of_esp sp in
+                        let ri = get_ri ~sp:sp2 in
+                        let suff = get_suffix ~sp:sp2 in
+                        (catch (fun () ->
+                                  force ri.ri_post_params >>= fun post_params ->
+                                  force ri.ri_files >>= fun files ->
+                                  let g = reconstruct_params
+                                    ~sp
+                                    sgpt
+                                    (force ri.ri_get_params)
+                                    []
+                                    nosuffixversion
+                                    suff
+                                  in
+                                  let p = reconstruct_params
+                                    ~sp
+                                    sppt
+                                    post_params
+                                    files
+                                    false
+                                    None
+                                  in
+                                  if nosuffixversion && suffix_with_redirect &&
+                                    files=[] && post_params = []
+                                  then (* it is a suffix service in version 
+                                          without suffix. We redirect. *)
+                                    Lwt.fail
+                                      (Eliom_common.Eliom_Suffix_redirection
+                                         (Eliom_mkforms.make_string_uri
+                                            ~absolute:true
+                                            ~service:(service : 
                      ('a, 'b, [< Eliom_services.internal_service_kind ],
                       [< Eliom_services.suff ], 'c, 'd, [ `Registrable ])
                      Eliom_services.service :> 
                      ('a, 'b, Eliom_services.service_kind,
                       [< Eliom_services.suff ], 'c, 'd, [< Eliom_services.registrable ])
                      Eliom_services.service)
-                                           ~sp:sp2
-                                           g))
-                                 else page_generator sp2 g p))
-                         (function
-                            | Eliom_common.Eliom_Typing_Error l ->
-                                error_handler sp2 l
-                            | e -> fail e)
-                       >>= fun (content, cookies_to_set) ->
-                       Pages.send
-                         ?options
-                         ~cookies:(cookies_to_set@cookies)
-                         ?charset
-                         ?code
-                         ?content_type
-                         ?headers
-                         ~sp:sp2 content)))
+                                            ~sp:sp2
+                                            g))
+                                  else page_generator sp2 g p))
+                          (function
+                             | Eliom_common.Eliom_Typing_Error l ->
+                                 error_handler sp2 l
+                             | e -> fail e)
+                        >>= fun (content, cookies_to_set) ->
+                        Pages.send
+                          ?options
+                          ~cookies:(cookies_to_set@cookies)
+                          ?charset
+                          ?code
+                          ?content_type
+                          ?headers
+                          ~sp:sp2 content)))
               in
               (match (key_kind, attserget, attserpost) with
                  | (Ocsigen_http_frame.Http_header.POST, _,

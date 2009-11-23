@@ -57,7 +57,7 @@ let rec list_remove_all_q a = function
 
 let rec list_remove_all_assoc a = function
   | [] -> []
-  | (b,_)::l when a = b -> list_remove_all_assoc a l
+  | (b, _)::l when a = b -> list_remove_all_assoc a l
   | b::l -> b::(list_remove_all_assoc a l)
 
 let rec list_remove_all_assoc_q a = function
@@ -73,9 +73,9 @@ let rec list_last = function
   | _::l -> list_last l
 
 let rec list_assoc_remove a = function
-    [] -> raise Not_found
-  | (b,c)::l when a = b -> c,l
-  | b::l -> let v,ll = list_assoc_remove a l in v,b::ll
+  | [] -> raise Not_found
+  | (b, c)::l when a = b -> c, l
+  | b::l -> let v, ll = list_assoc_remove a l in (v, b::ll)
 
 let rec list_is_prefix l1 l2 =
   match (l1, l2) with
