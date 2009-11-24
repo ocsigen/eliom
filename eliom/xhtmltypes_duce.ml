@@ -222,7 +222,9 @@ and form_attrs =
 and form_content =
     {{ block|misc }}
 
-and form = {{ <form (form_attrs)> [ form_content* ] }}
+and form_contents = {{ [form_content*] }}
+
+and form = {{ <form (form_attrs)> form_contents }}
 
 
 and label = {{ <label (attrs ++ { for=?String accesskey=?String onfocus=?String onblur=?String })>
