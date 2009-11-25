@@ -296,6 +296,7 @@ and button_attrs = {{ attrs ++ focus ++
 
 and button = {{ <button (button_attrs)>[ button_content* ] }}
 
+and button_contents = {{ [ button_content* ] }}
 
 (* Tables *)
 
