@@ -13,7 +13,7 @@ val insert_as_last_of_generation :
   'a -> 'b * ('a * 'c) -> ('b * ('a * 'c)) list -> ('b * ('a * 'c)) list
 val add_service :
   Eliom_common.tables ->
-  bool ->
+  ?sp:Eliom_common.server_params ->
   Ocsigen_lib.String_Table.key list ->
   Eliom_common.page_table_key ->
   ((Eliom_common.anon_params_type * Eliom_common.anon_params_type) *

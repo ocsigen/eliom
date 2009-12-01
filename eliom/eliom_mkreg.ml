@@ -534,11 +534,12 @@ module MakeRegister = functor
             ?content_type
             ?headers
             table
-            duringsession (* registering during session? *)
+            ?sp (* if registering during session *)
             ~service
             ?(error_handler = fun sp l ->
               raise (Eliom_common.Eliom_Typing_Error l))
             page_generator =
+          let sp = Ocsigen_lib.apply_option Eliom_sessions.esp_of_sp sp in
           match get_kind_ service with
           | `Attached attser ->
               let key_kind = get_or_post (get_att_kind_ attser) in
@@ -550,7 +551,7 @@ module MakeRegister = functor
               let f table ((attserget, attserpost) as attsernames) = 
                 Eliommod_services.add_service
                   table
-                  duringsession
+                  ?sp
                   (get_sub_path_ attser)
                   {Eliom_common.key_state = attsernames;
                    Eliom_common.key_kind = key_kind}
@@ -698,7 +699,7 @@ module MakeRegister = functor
               let f table na_name = 
                 Eliommod_naservices.add_naservice
                   table
-                  duringsession
+                  ?sp
                   na_name
                   ((match get_max_use_ service with
                       | None -> None
@@ -847,7 +848,6 @@ module MakeRegister = functor
                     ?content_type
                     ?headers
                     (Ocsigen_lib.Left sitedata.Eliom_common.global_services)
-                    false
                     ~service ?error_handler page_gen
               | _ -> raise
                     (Eliom_common.Eliom_function_forbidden_outside_site_loading
@@ -862,7 +862,7 @@ module MakeRegister = functor
                 ?headers
                 ?error_handler
                 (Ocsigen_lib.Left (get_global_table sp))
-                true
+                ~sp
                 ~service
                 page_gen
 
@@ -898,7 +898,7 @@ module MakeRegister = functor
             ?headers
             ?error_handler
             (Ocsigen_lib.Right (sp, session_name, secure))
-            true
+            ~sp
             ~service page
 
 

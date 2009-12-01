@@ -48,16 +48,21 @@ let find_page_table
     Eliom_common.make_server_params
       sitedata all_cookie_info ri urlsuffix si fullsessname
   in
+  (catch
+     (fun () -> return (List.assoc k !pagetableref))
+     (function
+        | Not_found -> fail Eliom_common.Eliom_404
+        | e -> fail e)) >>= fun (Eliom_common.Ptc (nodeopt, l)) ->
   let rec aux toremove = function
     | [] -> Lwt.return ((Eliom_common.Notfound
                            Eliom_common.Eliom_Wrong_parameter), [])
-    | (((_, (_, (max_use, expdate, funct))) as a)::l) ->
+    | (((_anontyp, (_gene, (max_use, expdate, funct))) as a)::l) ->
         match expdate with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
             Ocsigen_messages.debug2 "--Eliom: Service expired. I'm removing it";
-            aux toremove l >>=
-            (fun (r, toremove) -> Lwt.return (r, a::toremove))
+            aux toremove l >>= fun (r, toremove) -> 
+            Lwt.return (r, a::toremove)
         | _ ->
             catch
               (fun () ->
@@ -67,6 +72,13 @@ let find_page_table
                    if funct register something on the same URL!! *)
                 Ocsigen_messages.debug2
                   "--Eliom: Page found and generated successfully";
+
+                (* If this is an anonymous coservice,
+                   we place it at the top of the dlist
+                   (limitation of number of coservices) *)
+                (match nodeopt with
+                   | None -> ()
+                   | Some node -> Ocsigen_cache.Dlist.up node);
 
                 (* We update the expiration date *)
                 (match expdate with
@@ -88,25 +100,37 @@ let find_page_table
                     (fun (r, toremove) -> Lwt.return (r, toremove))
                 | e -> Lwt.return ((Eliom_common.Notfound e), toremove))
   in
-  (catch
-     (fun () -> return (List.assoc k !pagetableref))
-     (function
-        | Not_found -> fail Eliom_common.Eliom_404
-        | e -> fail e)) >>=
-  aux [] >>=
-  (fun (r, toremove) ->
-    let list, newptr = Ocsigen_lib.list_assoc_remove k !pagetableref in
-    (* We do it once again because it may have changed! *)
-    let newlist =
-      List.fold_left
-        (fun l a -> Ocsigen_lib.list_remove_first_if_any_q a l) list toremove
-    in
-    (if newlist = []
-    then pagetableref := newptr
-    else pagetableref := (k, newlist)::newptr);
+  aux [] l >>= fun (r, toremove) ->
+
+  (match nodeopt, toremove with
+     | _, [] -> ()
+     | Some node, _ -> (* it is an anonymous coservice that has expired.
+                          We remove it form the dlist.
+                          This will do the removal from this table
+                          automatically.
+                          Note that in that case, toremove has length 1
+                          (like the initial list l).
+                       *)
+         Ocsigen_cache.Dlist.remove node;
+     | None, _ ->
+         let (Eliom_common.Ptc (_, list)), newptr = 
+           Ocsigen_lib.list_assoc_remove k !pagetableref 
+         in
+         (* We do list_assoc once again because it may have changed! *)
+         
+         let newlist =
+           List.fold_left
+             (fun l a -> Ocsigen_lib.list_remove_first_if_any_q a l) 
+             (* physical equality! *)
+             list
+             toremove
+         in
+         (if newlist = []
+          then pagetableref := newptr
+          else pagetableref := (k, Eliom_common.Ptc (None, newlist))::newptr));
     match r with
-    | Eliom_common.Found r -> Lwt.return r
-    | Eliom_common.Notfound e -> fail e)
+      | Eliom_common.Found r -> Lwt.return r
+      | Eliom_common.Notfound e -> fail e
 
 
 let rec insert_as_last_of_generation generation x = function
@@ -116,8 +140,8 @@ let rec insert_as_last_of_generation generation x = function
 
 
 
-let add_page_table tables duringsession url_act t
-    (key, (id, ((max_use, expdate, action) as va))) =
+let add_page_table tables ?sp url_act tref
+    key (id, ((max_use, expdate, action) as va)) =
 
   (match expdate with
      | Some _ -> 
@@ -127,34 +151,88 @@ let add_page_table tables duringsession url_act t
   (* Duplicate registration forbidden in global table with same generation *)
   let generation = Ocsigen_extensions.get_numberofreloads () in
   let v = (id, (generation, va)) in
-  try
-    let l, newt = Ocsigen_lib.list_assoc_remove key t in
-    try
-      if key.Eliom_common.key_state = (Eliom_common.SAtt_no, 
-                                       Eliom_common.SAtt_no)
-      then begin
-(********* Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
-        let (oldgen, n), oldl = Ocsigen_lib.list_assoc_remove id l in
-        if not duringsession && (generation = oldgen)
-        then
-          raise (Eliom_common.Eliom_duplicate_registration
-                   (Ocsigen_lib.string_of_url_path ~encode:false url_act))
-        else (key, (insert_as_last_of_generation generation v oldl))::newt
-      end
-      else (key, (insert_as_last_of_generation generation v l))::newt
-(********* et ici on ne vérifie pas s'il y a déjà l'unique_id ? à rev 20070712 *)
-    with Not_found ->
-      (key, (insert_as_last_of_generation generation v l))::newt
-  with Not_found -> (key, [v])::t
+  match key with
+    | {Eliom_common.key_state = (Eliom_common.SAtt_anon _, _) ;
+       Eliom_common.key_kind = Ocsigen_http_frame.Http_header.GET }
+    | {Eliom_common.key_state = (_, Eliom_common.SAtt_anon _) ;
+       Eliom_common.key_kind = Ocsigen_http_frame.Http_header.POST } ->
+        (* Anonymous coservice:
+           - only one for each key
+           - we add a node in the dlist to limit their number *)
+        (try
+           let (Eliom_common.Ptc (nodeopt, l)), newt = 
+             Ocsigen_lib.list_assoc_remove key !tref
+           in
+           (match nodeopt with
+              | None -> () (* should not occure *)
+              | Some node -> Ocsigen_cache.Dlist.up node);
+           tref := (key, Eliom_common.Ptc (nodeopt, [v]))::newt
+         with Not_found ->
+           let node =
+             tables.Eliom_common.service_dlist_add
+               ?sp
+               (Ocsigen_lib.Left (tref, key))
+           in
+           tref := (key, Eliom_common.Ptc (Some node, [v]))::!tref)
+    | {Eliom_common.key_state = (Eliom_common.SAtt_no, Eliom_common.SAtt_no) ;
+       Eliom_common.key_kind = _ } ->
+        (try
+           let (Eliom_common.Ptc (nodeopt, l)), newt = 
+             Ocsigen_lib.list_assoc_remove key !tref
+           in
+           (* nodeopt should be None *)
+           try
+(******** Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
+             let (oldgen, _), oldl = Ocsigen_lib.list_assoc_remove id l in
+             (* if there was an old version with the same id, we remove it *)
+             if (sp = None) && (generation = oldgen)
+             then
+               (* but if there was already one with same generation, we fail
+                  (if during intialisation) *)
+               raise (Eliom_common.Eliom_duplicate_registration
+                        (Ocsigen_lib.string_of_url_path ~encode:false url_act))
+             else 
+               tref := (key, 
+                        Eliom_common.Ptc (None,
+                                          (insert_as_last_of_generation
+                                             generation v oldl)))::newt
+           with Not_found ->
+             tref := (key, Eliom_common.Ptc (None, 
+                                             (insert_as_last_of_generation
+                                                generation v l)))::newt
+         with Not_found -> tref := (key, Eliom_common.Ptc (None, [v]))::!tref)
+    | _ -> 
+        try
+          let (Eliom_common.Ptc (nodeopt, l)), newt = 
+            Ocsigen_lib.list_assoc_remove key !tref
+          in
+          let oldl = List.remove_assoc id l in
+          (* if there was an old version with the same id, we remove it *)
+          tref := (key, Eliom_common.Ptc (None,
+                                          (insert_as_last_of_generation
+                                             generation v oldl)))::newt
+        with Not_found -> tref := (key, Eliom_common.Ptc (None, [v]))::!tref
 
-let remove_page_table _ _ _ t (key, id) =
+
+
+let remove_page_table _ ?sp _ tref key id =
   (* Actually this does not remove empty directories.
      But this will be done by the next service GC *)
-  let l, newt = Ocsigen_lib.list_assoc_remove key t in
-  match Ocsigen_lib.list_remove_all_assoc id l with
-    | [] -> newt (* In that case, we must remove it, otherwise we get
-                    "Wrong parameters" instead of "Not found" *)
-    | newl -> (key, newl)::newt
+  let (Eliom_common.Ptc (nodeopt, l)), newt = 
+    Ocsigen_lib.list_assoc_remove key !tref 
+  in
+  match nodeopt with
+    | Some node -> 
+        (* In that case, l has size 1, and the id is correct,
+           because it is an anonymous coservice *)
+        (*VVV the key is searched twice *)
+        Ocsigen_cache.Dlist.remove node
+    | None ->
+        match Ocsigen_lib.list_remove_all_assoc id l with
+          | [] -> tref := newt
+              (* In that case, we must remove it, otherwise we get
+                 "Wrong parameters" instead of "Not found" *)
+          | newl -> tref := (key, Eliom_common.Ptc (None, newl))::newt
 
 let add_dircontent dc (key, elt) =
   match dc with
@@ -176,7 +254,7 @@ let find_dircontent dc k =
 let add_or_remove_service
     f
     tables
-    duringsession
+    ?sp
     url_act
     page_table_key
     va =
@@ -197,7 +275,7 @@ let add_or_remove_service
     | Not_found ->
         let newdcr = ref (Eliom_common.empty_dircontent ()) in
         (dircontentref :=
-          add_dircontent !dircontentref (a, ref (Eliom_common.Dir newdcr));
+           add_dircontent !dircontentref (a, ref (Eliom_common.Dir newdcr));
          search_page_table_ref newdcr l)
 
 
@@ -220,23 +298,22 @@ let add_or_remove_service
         | Not_found ->
             let newpagetableref = ref (Eliom_common.empty_page_table ()) in
             (dircontentref :=
-              add_dircontent !dircontentref
-                (a, ref (Eliom_common.File newpagetableref));
+               add_dircontent !dircontentref
+                 (a, ref (Eliom_common.File newpagetableref));
              newpagetableref))
     | ""::l -> search_page_table_ref dircontentref l
     | a::l -> aux dircontentref a l
   in
 
-  let content = (page_table_key, va) in
-
   let page_table_ref =
-    search_page_table_ref tables.Eliom_common.table_services url_act in
-    page_table_ref := f tables duringsession url_act !page_table_ref content
+    search_page_table_ref tables.Eliom_common.table_services url_act 
+  in
+  f tables ?sp url_act page_table_ref page_table_key va
 
 let add_service = add_or_remove_service add_page_table
 
 let remove_service table path k unique_id = 
-  add_or_remove_service remove_page_table table true path k unique_id
+  add_or_remove_service remove_page_table table path k unique_id
 
 
 exception Exn1

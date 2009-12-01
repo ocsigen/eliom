@@ -238,20 +238,43 @@ type server_params = {
   sp_suffix : Ocsigen_lib.url_path option;
   sp_fullsessname : string option;
 }
-and page_table =
-    (page_table_key *
-     ((anon_params_type * anon_params_type) *
-      (int *
-       (int ref option * (float * float ref) option *
-        (bool -> server_params -> Ocsigen_http_frame.result Lwt.t))))
-     list)
-    list
+and page_table =  (page_table_key * page_table_content) list
+
+and page_table_content =
+    Ptc of
+      (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+        Ocsigen_cache.Dlist.node option
+        (* for limitation of number of dynamic anonymous coservices *) *
+        
+        ((anon_params_type * anon_params_type)
+           (* unique_id, computed from parameters type.
+              must be the same even if the actual service reference
+              is different (after reloading the site)
+              so that it replaces the former one
+           *) *
+           (int * (* generation (= number of reloads of sites
+                     after which that service has been created) *)
+              (int ref option (* max_use *) *
+                 (float * float ref) option
+                 (* timeout and expiration date for the service *) *
+                 (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
+              ))) list
+
+and naservice_table_content =
+    (int (* generation (= number of reloads of sites
+            after which that service has been created) *) *
+       int ref option (* max_use *) *
+       (float * float ref) option (* timeout and expiration date *) *
+       (server_params -> Ocsigen_http_frame.result Lwt.t) *
+       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+       Ocsigen_cache.Dlist.node option
+       (* for limitation of number of dynamic coservices *)
+    )
+
 and naservice_table =
-    AVide
-  | ATable of
-      (int * int ref option * (float * float ref) option *
-       (server_params -> Ocsigen_http_frame.result Lwt.t))
-      NAserv_Table.t
+  | AVide
+  | ATable of naservice_table_content NAserv_Table.t
+
 and dircontent = Vide | Table of direlt ref Ocsigen_lib.String_Table.t
 and direlt = Dir of dircontent ref | File of page_table ref
 and tables =
@@ -265,7 +288,7 @@ and tables =
      mutable csrf_get_or_na_registration_functions :
        (sp:server_params -> string) Ocsigen_lib.Int_Table.t;
      mutable csrf_post_registration_functions :
-       (sp:server_params -> att_key_serv -> string) Ocsigen_lib.Int_Table.t
+       (sp:server_params -> att_key_serv -> string) Ocsigen_lib.Int_Table.t;
       (* These two table are used for CSRF safe services:
          We associate to each service unique id the function that will
          register a new anonymous coservice each time we create a link or form.
@@ -275,6 +298,20 @@ and tables =
          each session. That's why we use these table, and not a field in
          the service record.
       *)
+     service_dlist_add :
+       ?sp:server_params -> 
+       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright ->
+       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+         Ocsigen_cache.Dlist.node
+       (* Add in a dlist
+          for limiting the number of dynamic anonymous coservices in each table 
+          (and avoid DoS).
+          There is one dlist for each session, and one for each IP
+          in global tables.
+          The dlist parameter is the table and coservice number
+          for attached coservices,
+          and the coservice number for non-attached ones.
+       *)
     } 
 and sitedata = {
   site_dir : Ocsigen_lib.url_path;
@@ -295,6 +332,7 @@ and sitedata = {
   mutable max_service_sessions_per_group : int;
   mutable max_service_sessions_per_ip : int;
   mutable max_persistent_data_sessions_per_group : int option;
+  mutable max_anonymous_services_per_session : int;
 }
 val make_server_params :
   sitedata ->
@@ -306,8 +344,8 @@ val empty_page_table : unit -> 'a list
 val empty_dircontent : unit -> dircontent
 val empty_naservice_table : unit -> naservice_table
 val service_tables_are_empty : tables -> bool
-val empty_tables : unit -> tables
-val new_service_session_tables : unit -> tables
+val empty_tables : int -> bool -> tables
+val new_service_session_tables : sitedata -> tables
 val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val getcookies :
@@ -357,3 +395,6 @@ val eliom_params_after_action :
  
 val att_key_serv_of_req : att_key_req -> att_key_serv
 val na_key_serv_of_req : na_key_req -> na_key_serv
+
+val remove_naservice_table : 
+  naservice_table -> NAserv_Table.key -> naservice_table

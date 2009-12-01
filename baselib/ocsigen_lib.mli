@@ -120,6 +120,7 @@ end
 
 module String_Table : Map.S with type key = string
 module Int_Table : Map.S with type key = int
+module Inet_addr_Hashtbl : Hashtbl.S with type key = Unix.inet_addr
 
 
 (** The files sent in the request *)

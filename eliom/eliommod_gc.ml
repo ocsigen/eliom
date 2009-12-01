@@ -37,64 +37,122 @@ let get_persistentsessiongcfrequency () = !persistentsessiongcfrequency
 
 (* garbage collection of timeouted sessions *)
 let rec gc_timeouted_services now t =
-  let rec aux k direltr thr =
-    thr >>= fun table ->
+  let rec aux filename direltr thr =
+    thr >>= fun () -> (* we wait for the previous one to be completed *)
     match !direltr with
       | Eliom_common.Dir r -> 
           (gc_timeouted_services now r >>= fun () -> 
-           match !r with
-             | Eliom_common.Vide ->
-                 return (Ocsigen_lib.String_Table.remove k table)
-             | Eliom_common.Table t -> return table)
+           (match !r with
+              | Eliom_common.Vide ->
+                  (match !t with
+                     | Eliom_common.Vide -> ()
+                     | Eliom_common.Table tr ->
+                         let newr = 
+                           Ocsigen_lib.String_Table.remove filename tr
+                         in
+                         if Ocsigen_lib.String_Table.is_empty newr
+                         then t := Eliom_common.Vide
+                         else t := Eliom_common.Table newr
+                  )
+              | _ -> ());
+             Lwt.return ())
       | Eliom_common.File ptr ->
           List.fold_right
-            (fun (ptk, l) foll ->
-               foll >>= fun foll ->
-               let newl =
-                 List.fold_right
-                   (fun ((i, (_, (_, expdate, _))) as a) foll ->
-                      match expdate with
-                        | Some (_, e) when !e < now -> foll
-                        | _ -> a::foll
-                   )
-                   l
-                   []
-               in
-               Lwt_unix.yield () >>= fun () ->
-               match newl with
-                 | [] -> return foll
-                 | _ -> return ((ptk, newl)::foll))
+(*VVV not tail recursive: may be a problem if lots of coservices *)
+            (fun (ptk, Eliom_common.Ptc (nodeopt, l)) thr ->
+               thr >>= fun thr -> (* we wait for the previous one
+                                     to be completed *)
+               (match nodeopt, l with
+                  | Some node, (i, (_, (_, Some (_, e), _)))::_
+                      (* it is an anonymous coservice.
+                         The list should have length 1 here *)
+                      when !e < now ->
+                      Ocsigen_cache.Dlist.remove node
+                  | Some node, [] (* should not occure *) ->
+                      Ocsigen_cache.Dlist.remove node
+                  | _ ->
+                      (* We find the data associated to ptk once again,
+                         because it may have changed, then we update it
+                         (without cooperation) 
+                         (it's ok because the list is porbably not large) *)
+                      try
+                        let (Eliom_common.Ptc (nodeopt, l)), ll = 
+                          Ocsigen_lib.list_assoc_remove ptk !ptr 
+                        in
+                        if nodeopt = None
+                        then
+                          match
+                            List.fold_right
+                              (fun ((i, (_, (_, expdate, _))) as a) foll ->
+                                 match expdate with
+                                   | Some (_, e) when !e < now -> foll
+                                   | _ -> a::foll
+                              )
+                              l
+                              []
+                          with
+                            | [] -> ptr := ll
+                            | newl ->
+                                ptr := 
+                                  (ptk, (Eliom_common.Ptc (nodeopt, newl)))::ll
+                      with Not_found -> ());
+                 Lwt_unix.yield ())
             !ptr
-            (return []) >>= function
-              | [] -> return (Ocsigen_lib.String_Table.remove k table)
-              | r -> ptr := r; return table
+            (return ()) >>= fun () ->
+          if !ptr = []
+          then 
+            (match !t with
+               | Eliom_common.Vide -> ()
+               | Eliom_common.Table tr ->
+                   let newr = 
+                     Ocsigen_lib.String_Table.remove filename tr
+                   in
+                   if Ocsigen_lib.String_Table.is_empty newr
+                   then t := Eliom_common.Vide
+                   else t := Eliom_common.Table newr
+            );
+          Lwt.return ()
   in
   match !t with
-  | Eliom_common.Vide -> return ()
+  | Eliom_common.Vide -> Lwt.return ()
   | Eliom_common.Table r ->
-      Ocsigen_lib.String_Table.fold aux r (return r) >>= fun table ->
-      if Ocsigen_lib.String_Table.is_empty table
-      then begin t := Eliom_common.Vide; return () end
-      else begin t := Eliom_common.Table table; return () end
+      if Ocsigen_lib.String_Table.is_empty r
+      then begin t := Eliom_common.Vide; Lwt.return () end
+      else begin
+        Ocsigen_lib.String_Table.fold aux r (Lwt.return ()) >>= fun () ->
+        match !t with (* !t has probably changed *)
+          | Eliom_common.Vide -> Lwt.return ()
+          | Eliom_common.Table r ->
+              if Ocsigen_lib.String_Table.is_empty r
+              then t := Eliom_common.Vide;
+              Lwt.return () 
+      end
+
 
 let gc_timeouted_naservices now tr =
   match !tr with
-  | Eliom_common.AVide -> return ()
-  | Eliom_common.ATable t ->
-      Eliom_common.NAserv_Table.fold
-        (fun k (_, _, expdate, _) thr ->
-          thr >>= fun table ->
-          Lwt_unix.yield () >>= fun () ->
-          match expdate with
-            | Some (_, e) when !e < now ->
-                return (Eliom_common.NAserv_Table.remove k table)
-            | _ -> return table)
-        t
-        (return t) >>= fun t ->
-      if Eliom_common.NAserv_Table.is_empty t
-      then tr := Eliom_common.AVide
-      else tr := Eliom_common.ATable t;
-      return ()
+    | Eliom_common.AVide -> return ()
+    | Eliom_common.ATable t ->
+        if Eliom_common.NAserv_Table.is_empty t
+        then begin tr := Eliom_common.AVide; Lwt.return () end
+        else 
+          Eliom_common.NAserv_Table.fold
+            (fun k (_, _, expdate, _, nodeopt) thr ->
+               thr >>= fun () ->
+               (match expdate with
+                  | Some (_, e) when !e < now ->
+                      (match nodeopt with
+                         | Some node ->
+                             Ocsigen_cache.Dlist.remove node
+                               (* will remove from the table automatically *);
+                         | _ ->
+                             tr := Eliom_common.remove_naservice_table !tr k
+                      )
+                  | _ -> ());
+               Lwt_unix.yield ()
+            )
+            t
+            (return ())
 
 
 

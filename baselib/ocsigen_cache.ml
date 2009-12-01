@@ -30,16 +30,17 @@ module Dlist = (struct
 
   type 'a node =
       { mutable value : 'a;
-        mutable succ : 'a node option;
-        mutable prev : 'a node option;
+        mutable succ : 'a node option; (* the node added just after *)
+        mutable prev : 'a node option; (* the node added just before *)
         mutable mylist : 'a t option; (* the list to which it belongs *)
       }
 
-  (* Doubly-linked list with maximum size. The field [list] is
-     the beginning of the list. The field [oldest] is the first
-     element that must be removed if the list becomes too long *)
+  (* Doubly-linked list with maximum size.
+     The field [oldest] is the first
+     element that must be removed if the list becomes too long.
+  *)
   and 'a t =
-      {mutable list : 'a node option (* None = empty *);
+      {mutable newest : 'a node option (* None = empty *);
        mutable oldest : 'a node option;
        mutable size : int;
        mutable maxsize : int;
@@ -52,7 +53,7 @@ module Dlist = (struct
     let rec aux i = function
       | Some {prev=p} -> aux (i + 1) p
       | None -> i
-    in aux 0 c.list
+    in aux 0 c.newest
 
   let correct_node n =
     (match n.succ with
@@ -71,17 +72,48 @@ module Dlist = (struct
     (match l.oldest with
        | None -> true
        | Some n -> n.prev = None) &&
-    (match l.list with
+    (match l.newest with
        | None -> true
        | Some n -> n.succ = None)
 *)
 
   let create size = 
-    {list = None;
+    {newest = None;
      oldest = None; 
      size = 0;
      maxsize = size; 
      finaliser = fun _ -> ()}
+
+  (* Remove an element from its list - don't finalise *)
+  let remove' node l =
+    let oldest =
+      match l.oldest with
+        | Some n when node == n -> node.succ
+        | _ -> l.oldest
+    in
+    let newest =
+      match l.newest with
+        | Some n when node == n -> node.prev
+        | _ -> l.newest
+    in
+    (match node.succ with
+       | None -> ()
+       | Some s -> s.prev <- node.prev);
+    (match node.prev with
+       | None -> ()
+       | Some s -> s.succ <- node.succ);
+    l.oldest <- oldest;
+    l.newest <- newest;
+    node.mylist <- None;
+    l.size <- l.size - 1
+
+  (* Remove an element from its list - and finalise *)
+  let remove node =
+    match node.mylist with
+      | None -> ()
+      | Some l ->
+          l.finaliser node;
+          remove' node l
 
   (* Add a node that do not belong to any list to a list.
      The fields [succ] and [prev] are overridden.
@@ -93,73 +125,32 @@ module Dlist = (struct
   let add_node node r =
     assert (node.mylist = None);
     node.mylist <- Some r;
-    match r.list with
+    match r.newest with
       | None ->
           node.succ <- None;
           node.prev <- None;
-          r.list <- Some node;
-          r.oldest <- r.list;
+          r.newest <- Some node;
+          r.oldest <- r.newest;
           r.size <- 1;
           None
       | Some rl ->
           node.succ <- None;
-          node.prev <- r.list;
+          node.prev <- r.newest;
           rl.succ <- Some node;
-          r.list <- Some node;
-          if r.size >= r.maxsize
-          then (
-            match r.oldest with
-              | None -> assert false
-              | Some a ->
-                  (match a.succ with
-                     | None -> assert false
-                     | Some b -> b.prev <- None);
-                  r.oldest <- a.succ;
-                  Some a)
-          else (
-            r.size <- r.size + 1;
-            None
-          )
+          r.newest <- Some node;
+          r.size <- r.size + 1;
+          if r.size > r.maxsize
+          then r.oldest
+          else None
 
   let add x l = 
     let create_one a = { value = a; succ = None; prev = None; mylist = None;} in
     (* create_one not exported *)
     match add_node (create_one x) l with
       | None -> None
-      | Some v -> l.finaliser v; Some v.value
+      | Some v -> remove v; Some v.value
 
-  (* Remove an element from its list - don't finalise *)
-  let remove' node l =
-    let oldest =
-      match l.oldest with
-        | Some n when node == n -> node.succ
-        | _ -> l.oldest
-    in
-    let newest =
-      match l.list with
-        | Some n when node == n -> node.prev
-        | _ -> l.list
-    in
-    (match node.succ with
-       | None -> ()
-       | Some s -> s.prev <- node.prev);
-    (match node.prev with
-       | None -> ()
-       | Some s -> s.succ <- node.succ);
-    l.oldest <- oldest;
-    l.list <- newest;
-    node.mylist <- None;
-    l.size <- l.size - 1
-
-  (* Remove an element from its list - and finalise *)
-  let remove node =
-    match node.mylist with
-      | None -> ()
-      | Some l ->
-          remove' node l;
-          l.finaliser node
-
-  let newest a = a.list
+  let newest a = a.newest
   let oldest a = a.oldest
   let size c = c.size
   let maxsize c = c.maxsize
@@ -171,7 +162,7 @@ module Dlist = (struct
     match node.mylist with
       | None -> ()
       | Some l -> 
-          match l.list with
+          match l.newest with
             | Some n when node == n -> ()
             | _ ->
                 remove' node l;

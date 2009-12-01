@@ -74,7 +74,7 @@ let rec new_service_cookie sitedata fullsessgrp fullsessname table =
                                       for the cookies we use *)
     new_service_cookie sitedata fullsessgrp fullsessname table
   with Not_found ->
-    let str = ref (Eliom_common.new_service_session_tables ()) in
+    let str = ref (Eliom_common.new_service_session_tables sitedata) in
     let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
     let serverexp = ref None (*Some 0.*) (* None = never. We'll change it later. *) in
     let fullsessgrpref = ref fullsessgrp in

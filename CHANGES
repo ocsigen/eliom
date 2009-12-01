@@ -5,11 +5,14 @@
   * Eliom: actions now return {{{()}}}.
     Use the request cache to send information to fallbacks.
   * Eliom: CSRF-safe coservices
-  * Eliom: the number of sessions by IP address is now limited
+  * Eliom: the number of sessions without group by IP address is now limited
   * Eliom: efficient implementation of limitation of sessions by groups
     (or now IP) for large limits
+  * Eliom: the number of anonymous coservices by session is now limited
+  * Eliom: the number of anonymous coservices without session 
+  by IP address is now limited
   * Eliom: now possible to unregister services
-  * Eliom: New experimental module {{{Eliom_obrowser}}} 
+  * Eliom: New experimental module {{{Eliom_obrowser}}}
     to use Eliom with Obrowser
   * Eliom: Now possible to have constant parts in suffixes to allow
     URLS like {{{/param1/something/param2}}}

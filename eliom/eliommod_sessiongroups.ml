@@ -83,7 +83,7 @@ struct
   let remove_if_empty sess_grp node =
     match Ocsigen_cache.Dlist.list_of node with
       | Some cl ->
-          if Ocsigen_cache.Dlist.size cl = 0
+          if Ocsigen_cache.Dlist.size cl = 1
           then 
             (try
                GroupTable.remove grouptable sess_grp

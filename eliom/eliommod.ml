@@ -36,7 +36,9 @@ open Lazy
 
 (****************************************************************************)
 let default_max_sessions_per_group = 5
-let default_max_sessions_per_ip = 10 (* ??? *)
+let default_max_sessions_per_ip = 10 (*VVV ??? *)
+let default_max_anonymous_services_per_ip = 10000 (*VVV ??? *)
+let default_max_anonymous_services_per_session = 1000 (*VVV ??? *)
 
 let new_sitedata =
   (* We want to keep the old site data even if we reload the server *)
@@ -67,7 +69,9 @@ let new_sitedata =
 (*VVV encode=false??? *)
              site_dir_string = Ocsigen_lib.string_of_url_path
                 ~encode:false site_dir;
-             global_services = Eliom_common.empty_tables ();
+             global_services = 
+                Eliom_common.empty_tables 
+                  default_max_anonymous_services_per_ip false;
              session_services = Eliommod_cookies.new_service_cookie_table ();
              session_data = Eliommod_cookies.new_data_cookie_table ();
              remove_session_data = (fun cookie -> ());
@@ -85,6 +89,8 @@ let new_sitedata =
                 default_max_sessions_per_ip;
              max_volatile_data_sessions_per_ip =
                 default_max_sessions_per_ip;
+             max_anonymous_services_per_session = 
+                default_max_anonymous_services_per_session;
             }
           in
           Eliommod_gc.service_session_gc sitedata;

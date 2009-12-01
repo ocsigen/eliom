@@ -27,33 +27,27 @@ open Ocsigen_extensions
 
 let add_naservice_table at (key, elt) =
   match at with
-  | Eliom_common.AVide ->
-      Eliom_common.ATable
-        (Eliom_common.NAserv_Table.add
-           key elt Eliom_common.NAserv_Table.empty)
-  | Eliom_common.ATable t ->
-      Eliom_common.ATable (Eliom_common.NAserv_Table.add key elt t)
-
+    | Eliom_common.AVide ->
+        Eliom_common.ATable
+          (Eliom_common.NAserv_Table.add
+             key elt Eliom_common.NAserv_Table.empty)
+    | Eliom_common.ATable t ->
+        Eliom_common.ATable (Eliom_common.NAserv_Table.add key elt t)
+          
 let find_naservice_table at k =
   match at with
-  | Eliom_common.AVide -> raise Not_found
-  | Eliom_common.ATable t -> Eliom_common.NAserv_Table.find k t
-
-let remove_naservice_table at k =
-  match at with
-  | Eliom_common.AVide -> Eliom_common.AVide
-  | Eliom_common.ATable t ->
-      Eliom_common.ATable (Eliom_common.NAserv_Table.remove k t)
+    | Eliom_common.AVide -> raise Not_found
+    | Eliom_common.ATable t -> Eliom_common.NAserv_Table.find k t
 
 let add_naservice
     tables
-    duringsession name
+    ?sp name
     (max_use, expdate, naservice) =
   let generation = Ocsigen_extensions.get_numberofreloads () in
-  (if not duringsession
+  (if (sp = None) (* not duringsession *)
   then
     try
-      let (g, _, _, _) = 
+      let (g, _, _, _, _) = 
         find_naservice_table !(tables.Eliom_common.table_naservices) name 
       in
       if g = generation then
@@ -83,26 +77,48 @@ let add_naservice
       <- true
   | _ -> ());
 
+  let node = match name with
+    | Eliom_common.SNa_get' _ | Eliom_common.SNa_post' _ ->
+        Some 
+          (tables.Eliom_common.service_dlist_add ?sp (Ocsigen_lib.Right name))
+    | _ -> None
+  in
+
   tables.Eliom_common.table_naservices :=
     add_naservice_table !(tables.Eliom_common.table_naservices)
-      (name, (generation, max_use, expdate, naservice))
+      (name, (generation, max_use, expdate, naservice, node))
 
-let remove_naservice tables name =
-  tables.Eliom_common.table_naservices := 
-    remove_naservice_table !(tables.Eliom_common.table_naservices) name
+let remove_naservice_ tables name nodeopt =
+  match nodeopt with
+    | None ->
+        tables.Eliom_common.table_naservices :=
+          Eliom_common.remove_naservice_table
+            !(tables.Eliom_common.table_naservices) name
+    | Some node ->
+        Ocsigen_cache.Dlist.remove node
 
 let find_naservice now tables name =
-  let ((_, _, expdate, _) as p) = 
+  let ((_, _, expdate, _, nodeopt) as p) = 
     find_naservice_table !(tables.Eliom_common.table_naservices) name
   in
   match expdate with
-  | Some (_, e) when !e < now ->
-      (* Service expired. Removing it. *)
-      Ocsigen_messages.debug2
-        "--Eliom: Non attached service expired. I'm removing it";
-      remove_naservice tables name;
-      raise Not_found
-  | _ -> p
+    | Some (_, e) when !e < now ->
+        (* Service expired. Removing it. *)
+        Ocsigen_messages.debug2
+          "--Eliom: Non attached service expired. I'm removing it";
+        remove_naservice_ tables name nodeopt;
+        raise Not_found
+    | _ -> 
+        (match nodeopt with
+           | Some node -> Ocsigen_cache.Dlist.up node
+           | None -> ());
+        p
+
+let remove_naservice tables name =
+  let ((_, _, _, _, nodeopt) as p) = 
+    find_naservice_table !(tables.Eliom_common.table_naservices) name
+  in
+  remove_naservice_ tables name nodeopt
 
 
 (******************************************************************)
@@ -133,7 +149,7 @@ let make_naservice
                           (Eliom_common.na_key_serv_of_req 
                              si.Eliom_common.si_nonatt_info)),
                        !(c.Eliom_common.sc_table),
-                       Some fullsessname)
+                        Some fullsessname)
                   with Not_found -> beg
         )
         sci
@@ -215,7 +231,7 @@ let make_naservice
             fail (Eliom_common.Eliom_retry_with (ri', si',
                                                  all_cookie_info)))
   ) >>=
-  (fun ((_, max_use, expdate, naservice),
+  (fun ((_, max_use, expdate, naservice, node), 
         tablewhereithasbeenfound,
         fullsessname) ->
     (naservice
@@ -236,9 +252,11 @@ let make_naservice
       | None -> ()
       | Some r ->
           if !r = 1
-          then
-            remove_naservice tablewhereithasbeenfound
+          then 
+            remove_naservice_
+              tablewhereithasbeenfound 
               (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info)
+              node
           else r := !r - 1);
       return r))
 

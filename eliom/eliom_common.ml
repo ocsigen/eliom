@@ -265,12 +265,19 @@ type server_params =
                                        that answered
                                        (if it is a session service) *)}
 
-and page_table =
-    (page_table_key *
-       (((anon_params_type * anon_params_type) 
+and page_table =  (page_table_key * page_table_content) list
+
+and page_table_content =
+    Ptc of
+      (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+        Ocsigen_cache.Dlist.node option
+        (* for limitation of number of dynamic anonymous coservices *) *
+        
+        ((anon_params_type * anon_params_type)
            (* unique_id, computed from parameters type.
-              must be the same even if the actual service reference is different
-              (after reloading the site) so that it replaces the former one
+              must be the same even if the actual service reference
+              is different (after reloading the site)
+              so that it replaces the former one
            *) *
            (int * (* generation (= number of reloads of sites
                      after which that service has been created) *)
@@ -278,24 +285,22 @@ and page_table =
                  (float * float ref) option
                  (* timeout and expiration date for the service *) *
                  (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
-              ))) list)) list
-       (* Here, the url_path is the site directory.
-          That is, the directory in which we are when we register
-          dynamically the pages.
-          Each time we load a page, we change to this directory
-          (in case the page registers new pages).
-        *)
+              ))) list
+
+and naservice_table_content =
+    (int (* generation (= number of reloads of sites
+            after which that service has been created) *) *
+       int ref option (* max_use *) *
+       (float * float ref) option (* timeout and expiration date *) *
+       (server_params -> Ocsigen_http_frame.result Lwt.t) *
+       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+       Ocsigen_cache.Dlist.node option
+       (* for limitation of number of dynamic coservices *)
+    )
 
 and naservice_table =
   | AVide
-  | ATable of
-      (int (* generation (= number of reloads of sites
-              after which that service has been created) *) *
-       int ref option (* max_use *) *
-         (float * float ref) option (* timeout and expiration date *) *
-         (server_params -> Ocsigen_http_frame.result Lwt.t)
-      )
-        NAserv_Table.t
+  | ATable of naservice_table_content NAserv_Table.t
 
 and dircontent =
   | Vide
@@ -319,7 +324,7 @@ and tables =
        (sp:server_params -> string) Ocsigen_lib.Int_Table.t;
      mutable csrf_post_registration_functions :
        (sp:server_params -> 
-         att_key_serv -> string) Ocsigen_lib.Int_Table.t
+         att_key_serv -> string) Ocsigen_lib.Int_Table.t;
       (* These two table are used for CSRF safe services:
          We associate to each service unique id the function that will
          register a new anonymous coservice each time we create a link or form.
@@ -329,12 +334,21 @@ and tables =
          each session. That's why we use these table, and not a field in
          the service record.
      *)
+     service_dlist_add :
+       ?sp:server_params -> 
+       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright ->
+       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+         Ocsigen_cache.Dlist.node
+       (* Add in a dlist
+          for limiting the number of dynamic anonymous coservices in each table 
+          (and avoid DoS).
+          There is one dlist for each session, and one for each IP
+          in global tables.
+          The dlist parameter is the table and coservice number
+          for attached coservices,
+          and the coservice number for non-attached ones.
+       *)
     }
-(*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ *
-    service Ocsigen_cache.Dlist.t
-      (* for limiting the number of dynamic services in each table 
-         (and avoid DoS) *)
-*)
 
 and sitedata =
   {site_dir: Ocsigen_lib.url_path;
@@ -354,7 +368,8 @@ and sitedata =
    mutable max_volatile_data_sessions_per_ip : int;
    mutable max_service_sessions_per_group : int;
    mutable max_service_sessions_per_ip : int;
-   mutable max_persistent_data_sessions_per_group: int option;
+   mutable max_persistent_data_sessions_per_group : int option;
+   mutable max_anonymous_services_per_session : int;
  }
 
 
@@ -383,16 +398,75 @@ let empty_naservice_table () = AVide
 let service_tables_are_empty t =
   (!(t.table_services) = Vide && !(t.table_naservices) = AVide)
 
-let empty_tables () =
-  {table_services = ref (empty_dircontent ());
-   table_naservices = ref (empty_naservice_table ());
+let remove_naservice_table at k =
+  match at with
+    | AVide -> AVide
+    | ATable t -> ATable (NAserv_Table.remove k t)
+
+let dlist_finaliser na_table_ref node =
+  (* If the node disappears from the dlist,
+     we remove the service from the service table *)
+  match Ocsigen_cache.Dlist.value node with
+    | Ocsigen_lib.Left (page_table_ref, page_table_key) ->
+        page_table_ref := List.remove_assoc page_table_key !page_table_ref
+    | Ocsigen_lib.Right na_key_serv ->
+        na_table_ref := remove_naservice_table !na_table_ref na_key_serv
+
+let dlist_finaliser_ip dlist_table ip na_table_ref node =
+  dlist_finaliser na_table_ref node;
+  match Ocsigen_cache.Dlist.list_of node with
+    | Some cl ->
+        if Ocsigen_cache.Dlist.size cl = 1
+        then
+          (try
+             Ocsigen_lib.Inet_addr_Hashtbl.remove dlist_table ip
+           with Not_found -> ())
+    | None -> ()
+
+let add_dlist_ dlist v =
+  ignore (Ocsigen_cache.Dlist.add v dlist);
+  match Ocsigen_cache.Dlist.newest dlist with
+    | Some a -> a
+    | None -> assert false
+
+let empty_tables max forsession =
+  let dlist_table = Ocsigen_lib.Inet_addr_Hashtbl.create 100 in
+    (*VVV One for each tables or a global one? *)
+  let t1 = ref (empty_dircontent ()) in
+  let t2 = ref (empty_naservice_table ()) in
+  {table_services = t1;
+   table_naservices = t2;
    table_contains_services_with_timeout = false;
    table_contains_naservices_with_timeout = false;
    csrf_get_or_na_registration_functions = Ocsigen_lib.Int_Table.empty;
    csrf_post_registration_functions = Ocsigen_lib.Int_Table.empty;
+   service_dlist_add =
+      if forsession
+      then
+        let dlist = Ocsigen_cache.Dlist.create max in
+        Ocsigen_cache.Dlist.set_finaliser (dlist_finaliser t2) dlist;
+        fun ?sp v -> add_dlist_ dlist v
+      else
+        fun ?sp v ->
+          let ip =
+            match sp with
+              | None -> Unix.inet6_addr_loopback
+              | Some sp -> sp.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_remote_inet_addr
+          in
+          let dlist =
+            try
+              Ocsigen_lib.Inet_addr_Hashtbl.find dlist_table ip
+            with Not_found ->
+              let dlist = Ocsigen_cache.Dlist.create max in
+              Ocsigen_cache.Dlist.set_finaliser 
+                (dlist_finaliser_ip dlist_table ip t2) dlist;
+              dlist
+          in
+          add_dlist_ dlist v
   }
 
-let new_service_session_tables = empty_tables
+let new_service_session_tables sitedata = 
+  empty_tables sitedata.max_anonymous_services_per_session true
 
 (*****************************************************************************)
 open Lwt

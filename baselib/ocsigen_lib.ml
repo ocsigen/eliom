@@ -702,3 +702,9 @@ module Int_Table = Map.Make(struct
   type t = int
   let compare = compare
 end)
+
+module Inet_addr_Hashtbl = Hashtbl.Make(struct
+  type t = Unix.inet_addr
+  let equal = (=)
+  let hash = Hashtbl.hash
+end)

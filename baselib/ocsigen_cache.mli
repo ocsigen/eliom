@@ -73,7 +73,7 @@ module Dlist : sig
       size was exceeded. *)
   val add : 'a -> 'a t -> 'a option
 
-  (** Removes an element from its list. *)
+  (** Removes an element from its list (if it is in a list). *)
   val remove : 'a node -> unit
 
   (** Removes the element from its list without finalising, 
@@ -100,7 +100,7 @@ module Dlist : sig
   val set_maxsize : 'a t -> int -> 'a list
 
   (** set a function to be called automatically on a piece of data
-      when it disappears from the list
+      just before it disappears from the list
       (either by explicit removal or because the maximum size is exceeded) *)
   val set_finaliser : ('a node -> unit) -> 'a t -> unit
   val get_finaliser : 'a t -> ('a node -> unit)
