@@ -36,9 +36,24 @@ open Lazy
 
 (****************************************************************************)
 let default_max_sessions_per_group = 5
-let default_max_sessions_per_ip = 10 (*VVV ??? *)
-let default_max_anonymous_services_per_ip = 10000 (*VVV ??? *)
-let default_max_anonymous_services_per_session = 1000 (*VVV ??? *)
+let default_max_sessions_per_ip = 1000000 (* volatiles sessions *)
+(* Must be large enough, because it must work behind a reverse proxy.
+
+   If 1 session takes 1000 bytes (data + tables etc),
+   1 million sessions take 1 GB.
+
+   If somebody opens 1000 sessions per second, 
+   then it will take 1000 s (16 minutes) to reach 1000000.
+
+   It means that regular users will have their sessions closed
+   after 16 minutes of inactivity if they share their IP with
+   someone doing an attack (or if the server is behind a proxy).
+
+   In any case, it is better to use session groups if possible.
+ *)
+
+let default_max_anonymous_services_per_ip = 500000
+let default_max_anonymous_services_per_session = 1000
 
 let new_sitedata =
   (* We want to keep the old site data even if we reload the server *)
