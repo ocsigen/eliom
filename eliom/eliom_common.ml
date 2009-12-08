@@ -247,6 +247,11 @@ type page_table_key =
     {key_state : att_key_serv * att_key_serv;
      key_kind: Ocsigen_http_frame.Http_header.http_method}
 
+module Serv_Table = Map.Make(struct
+  type t = page_table_key
+  let compare = compare
+end)
+
 module NAserv_Table = Map.Make(struct
   type t = na_key_serv
   let compare = compare
@@ -265,7 +270,7 @@ type server_params =
                                        that answered
                                        (if it is a session service) *)}
 
-and page_table =  (page_table_key * page_table_content) list
+and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
     Ptc of
@@ -391,7 +396,7 @@ let make_server_params sitedata all_cookie_info ri suffix si fullsessname
 (* Each node contains either a list of nodes (case directory)
     or a table of "answers" (functions that will generate the page) *)
 
-let empty_page_table () = []
+let empty_page_table () = Serv_Table.empty
 let empty_dircontent () = Vide
 let empty_naservice_table () = AVide
 
@@ -408,7 +413,7 @@ let dlist_finaliser na_table_ref node =
      we remove the service from the service table *)
   match Ocsigen_cache.Dlist.value node with
     | Ocsigen_lib.Left (page_table_ref, page_table_key) ->
-        page_table_ref := List.remove_assoc page_table_key !page_table_ref
+        page_table_ref := Serv_Table.remove page_table_key !page_table_ref
     | Ocsigen_lib.Right na_key_serv ->
         na_table_ref := remove_naservice_table !na_table_ref na_key_serv
 

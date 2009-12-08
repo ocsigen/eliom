@@ -49,7 +49,7 @@ let find_page_table
       sitedata all_cookie_info ri urlsuffix si fullsessname
   in
   (catch
-     (fun () -> return (List.assoc k !pagetableref))
+     (fun () -> return (Eliom_common.Serv_Table.find k !pagetableref))
      (function
         | Not_found -> fail Eliom_common.Eliom_404
         | e -> fail e)) >>= fun (Eliom_common.Ptc (nodeopt, l)) ->
@@ -112,25 +112,33 @@ let find_page_table
                           (like the initial list l).
                        *)
          Ocsigen_cache.Dlist.remove node;
-     | None, _ ->
-         let (Eliom_common.Ptc (_, list)), newptr = 
-           Ocsigen_lib.list_assoc_remove k !pagetableref 
-         in
-         (* We do list_assoc once again because it may have changed! *)
-         
-         let newlist =
-           List.fold_left
-             (fun l a -> Ocsigen_lib.list_remove_first_if_any_q a l) 
-             (* physical equality! *)
-             list
-             toremove
-         in
-         (if newlist = []
-          then pagetableref := newptr
-          else pagetableref := (k, Eliom_common.Ptc (None, newlist))::newptr));
-    match r with
-      | Eliom_common.Found r -> Lwt.return r
-      | Eliom_common.Notfound e -> fail e
+     | None, _ -> (* removing manually *)
+         try
+           let (Eliom_common.Ptc (_, list)), newptr = 
+             (Eliom_common.Serv_Table.find k !pagetableref,
+              Eliom_common.Serv_Table.remove k !pagetableref)
+           in
+           (* We do find once again because it may have changed! *)
+           
+           let newlist =
+             List.fold_left
+               (fun l a -> Ocsigen_lib.list_remove_first_if_any_q a l) 
+               (* physical equality! *)
+               list
+               toremove
+           in
+           (if newlist = []
+            then pagetableref := newptr
+            else pagetableref := 
+              Eliom_common.Serv_Table.add
+                k
+                (Eliom_common.Ptc (None, newlist))
+                newptr)
+         with Not_found -> ()
+  );
+  match r with
+    | Eliom_common.Found r -> Lwt.return r
+    | Eliom_common.Notfound e -> fail e
 
 
 let rec insert_as_last_of_generation generation x = function
@@ -161,24 +169,30 @@ let add_page_table tables ?sp url_act tref
            - we add a node in the dlist to limit their number *)
         (try
            let (Eliom_common.Ptc (nodeopt, l)), newt = 
-             Ocsigen_lib.list_assoc_remove key !tref
+             (Eliom_common.Serv_Table.find key !tref,
+              Eliom_common.Serv_Table.remove key !tref)
            in
            (match nodeopt with
               | None -> () (* should not occure *)
               | Some node -> Ocsigen_cache.Dlist.up node);
-           tref := (key, Eliom_common.Ptc (nodeopt, [v]))::newt
+           tref := 
+             Eliom_common.Serv_Table.add
+               key (Eliom_common.Ptc (nodeopt, [v])) newt
          with Not_found ->
            let node =
              tables.Eliom_common.service_dlist_add
                ?sp
                (Ocsigen_lib.Left (tref, key))
            in
-           tref := (key, Eliom_common.Ptc (Some node, [v]))::!tref)
+           tref := 
+             Eliom_common.Serv_Table.add
+               key (Eliom_common.Ptc (Some node, [v])) !tref)
     | {Eliom_common.key_state = (Eliom_common.SAtt_no, Eliom_common.SAtt_no) ;
        Eliom_common.key_kind = _ } ->
         (try
            let (Eliom_common.Ptc (nodeopt, l)), newt = 
-             Ocsigen_lib.list_assoc_remove key !tref
+             (Eliom_common.Serv_Table.find key !tref,
+              Eliom_common.Serv_Table.remove key !tref)
            in
            (* nodeopt should be None *)
            try
@@ -192,47 +206,74 @@ let add_page_table tables ?sp url_act tref
                raise (Eliom_common.Eliom_duplicate_registration
                         (Ocsigen_lib.string_of_url_path ~encode:false url_act))
              else 
-               tref := (key, 
-                        Eliom_common.Ptc (None,
-                                          (insert_as_last_of_generation
-                                             generation v oldl)))::newt
+               tref := 
+                 Eliom_common.Serv_Table.add
+                   key 
+                   (Eliom_common.Ptc (None,
+                                      (insert_as_last_of_generation
+                                         generation v oldl)))
+                   newt
            with Not_found ->
-             tref := (key, Eliom_common.Ptc (None, 
-                                             (insert_as_last_of_generation
-                                                generation v l)))::newt
-         with Not_found -> tref := (key, Eliom_common.Ptc (None, [v]))::!tref)
+             tref := 
+               Eliom_common.Serv_Table.add
+                 key
+                 (Eliom_common.Ptc (None, 
+                                    (insert_as_last_of_generation
+                                       generation v l)))
+                 newt
+         with Not_found -> 
+           tref := 
+             Eliom_common.Serv_Table.add
+               key (Eliom_common.Ptc (None, [v]))
+               !tref)
     | _ -> 
         try
           let (Eliom_common.Ptc (nodeopt, l)), newt = 
-            Ocsigen_lib.list_assoc_remove key !tref
+             (Eliom_common.Serv_Table.find key !tref,
+              Eliom_common.Serv_Table.remove key !tref)
           in
           let oldl = List.remove_assoc id l in
           (* if there was an old version with the same id, we remove it *)
-          tref := (key, Eliom_common.Ptc (None,
-                                          (insert_as_last_of_generation
-                                             generation v oldl)))::newt
-        with Not_found -> tref := (key, Eliom_common.Ptc (None, [v]))::!tref
+          tref := 
+            Eliom_common.Serv_Table.add
+              key 
+              (Eliom_common.Ptc (None,
+                                 (insert_as_last_of_generation
+                                    generation v oldl)))
+              newt
+        with Not_found -> 
+          tref := 
+            Eliom_common.Serv_Table.add
+              key (Eliom_common.Ptc (None, [v]))
+              !tref
 
 
 
 let remove_page_table _ ?sp _ tref key id =
   (* Actually this does not remove empty directories.
      But this will be done by the next service GC *)
-  let (Eliom_common.Ptc (nodeopt, l)), newt = 
-    Ocsigen_lib.list_assoc_remove key !tref 
-  in
-  match nodeopt with
-    | Some node -> 
-        (* In that case, l has size 1, and the id is correct,
-           because it is an anonymous coservice *)
-        (*VVV the key is searched twice *)
-        Ocsigen_cache.Dlist.remove node
-    | None ->
-        match Ocsigen_lib.list_remove_all_assoc id l with
-          | [] -> tref := newt
-              (* In that case, we must remove it, otherwise we get
-                 "Wrong parameters" instead of "Not found" *)
-          | newl -> tref := (key, Eliom_common.Ptc (None, newl))::newt
+  try
+    let Eliom_common.Ptc (nodeopt, l) = Eliom_common.Serv_Table.find key !tref
+    in
+    match nodeopt with
+      | Some node -> 
+          (* In that case, l has size 1, and the id is correct,
+             because it is an anonymous coservice *)
+          (*VVV the key is searched twice *)
+          Ocsigen_cache.Dlist.remove node
+      | None ->
+          let newt = Eliom_common.Serv_Table.remove key !tref in
+          match Ocsigen_lib.list_remove_all_assoc id l with
+            | [] -> tref := newt
+                (* In that case, we must remove it, otherwise we get
+                   "Wrong parameters" instead of "404 Not found" *)
+            | newl -> 
+                tref := 
+                  Eliom_common.Serv_Table.add
+                    key
+                    (Eliom_common.Ptc (None, newl))
+                    newt
+  with Not_found -> ()
 
 let add_dircontent dc (key, elt) =
   match dc with

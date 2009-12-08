@@ -228,6 +228,7 @@ type page_table_key = {
 }
 
 module NAserv_Table : Map.S with type key = na_key_serv
+module Serv_Table : Map.S with type key = page_table_key
 
 type anon_params_type = int
 type server_params = {
@@ -238,7 +239,7 @@ type server_params = {
   sp_suffix : Ocsigen_lib.url_path option;
   sp_fullsessname : string option;
 }
-and page_table =  (page_table_key * page_table_content) list
+and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
     Ptc of
@@ -340,7 +341,7 @@ val make_server_params :
   Ocsigen_extensions.request ->
   Ocsigen_lib.url_path option -> 
   sess_info -> string option -> server_params
-val empty_page_table : unit -> 'a list
+val empty_page_table : unit -> page_table
 val empty_dircontent : unit -> dircontent
 val empty_naservice_table : unit -> naservice_table
 val service_tables_are_empty : tables -> bool

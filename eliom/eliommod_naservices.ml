@@ -115,7 +115,7 @@ let find_naservice now tables name =
         p
 
 let remove_naservice tables name =
-  let ((_, _, _, _, nodeopt) as p) = 
+  let (_, _, _, _, nodeopt) = 
     find_naservice_table !(tables.Eliom_common.table_naservices) name
   in
   remove_naservice_ tables name nodeopt

@@ -57,9 +57,9 @@ let rec gc_timeouted_services now t =
               | _ -> ());
              Lwt.return ())
       | Eliom_common.File ptr ->
-          List.fold_right
+          Eliom_common.Serv_Table.fold
 (*VVV not tail recursive: may be a problem if lots of coservices *)
-            (fun (ptk, Eliom_common.Ptc (nodeopt, l)) thr ->
+            (fun ptk (Eliom_common.Ptc (nodeopt, l)) thr ->
                thr >>= fun thr -> (* we wait for the previous one
                                      to be completed *)
                (match nodeopt, l with
@@ -74,10 +74,11 @@ let rec gc_timeouted_services now t =
                       (* We find the data associated to ptk once again,
                          because it may have changed, then we update it
                          (without cooperation) 
-                         (it's ok because the list is porbably not large) *)
+                         (it's ok because the list is probably not large) *)
                       try
                         let (Eliom_common.Ptc (nodeopt, l)), ll = 
-                          Ocsigen_lib.list_assoc_remove ptk !ptr 
+                          (Eliom_common.Serv_Table.find ptk !ptr,
+                           Eliom_common.Serv_Table.remove ptk !ptr)
                         in
                         if nodeopt = None
                         then
@@ -94,12 +95,15 @@ let rec gc_timeouted_services now t =
                             | [] -> ptr := ll
                             | newl ->
                                 ptr := 
-                                  (ptk, (Eliom_common.Ptc (nodeopt, newl)))::ll
+                                  Eliom_common.Serv_Table.add
+                                    ptk
+                                    (Eliom_common.Ptc (nodeopt, newl))
+                                    ll
                       with Not_found -> ());
                  Lwt_unix.yield ())
             !ptr
             (return ()) >>= fun () ->
-          if !ptr = []
+          if Eliom_common.Serv_Table.is_empty !ptr
           then 
             (match !t with
                | Eliom_common.Vide -> ()
