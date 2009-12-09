@@ -76,6 +76,12 @@ type ip_address =
 exception Invalid_ip_address of string
 val parse_ip : string -> ip_address * (ip_address option)
 val match_ip : ip_address * (ip_address option) -> ip_address -> bool
+val network_of_ip : 
+  ip_address -> 
+  int32 (* ipv4 mask *) -> 
+  (int64 * int64) (* ipv6 mask *) -> 
+  ip_address
+val inet6_addr_loopback : ip_address
 
 val getnameinfo : Unix.inet_addr -> int -> string Lwt.t
 (** calls Lwt_lib.getnameinfo and returns the result,
@@ -120,8 +126,6 @@ end
 
 module String_Table : Map.S with type key = string
 module Int_Table : Map.S with type key = int
-module Inet_addr_Hashtbl : Hashtbl.S with type key = Unix.inet_addr
-
 
 (** The files sent in the request *)
 type file_info = {tmp_filename: string; (** Where the file is stored on the server*)

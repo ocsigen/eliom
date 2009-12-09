@@ -36,7 +36,7 @@ open Lazy
 
 (****************************************************************************)
 let default_max_sessions_per_group = 5
-let default_max_sessions_per_ip = 1000000 (* volatiles sessions *)
+let default_max_sessions_per_subnet = 1000000 (* volatiles sessions *)
 (* Must be large enough, because it must work behind a reverse proxy.
 
    If 1 session takes 1000 bytes (data + tables etc),
@@ -46,13 +46,13 @@ let default_max_sessions_per_ip = 1000000 (* volatiles sessions *)
    then it will take 1000 s (16 minutes) to reach 1000000.
 
    It means that regular users will have their sessions closed
-   after 16 minutes of inactivity if they share their IP with
+   after 16 minutes of inactivity if they share their sub network with
    someone doing an attack (or if the server is behind a proxy).
 
    In any case, it is better to use session groups if possible.
  *)
 
-let default_max_anonymous_services_per_ip = 500000
+let default_max_anonymous_services_per_subnet = 500000
 let default_max_anonymous_services_per_session = 1000
 
 let new_sitedata =
@@ -86,7 +86,7 @@ let new_sitedata =
                 ~encode:false site_dir;
              global_services = 
                 Eliom_common.empty_tables 
-                  default_max_anonymous_services_per_ip false;
+                  default_max_anonymous_services_per_subnet false;
              session_services = Eliommod_cookies.new_service_cookie_table ();
              session_data = Eliommod_cookies.new_data_cookie_table ();
              remove_session_data = (fun cookie -> ());
@@ -100,10 +100,10 @@ let new_sitedata =
                 default_max_sessions_per_group;
              max_persistent_data_sessions_per_group =
                 Some default_max_sessions_per_group;
-             max_service_sessions_per_ip =
-                default_max_sessions_per_ip;
-             max_volatile_data_sessions_per_ip =
-                default_max_sessions_per_ip;
+             max_service_sessions_per_subnet =
+                default_max_sessions_per_subnet;
+             max_volatile_data_sessions_per_subnet =
+                default_max_sessions_per_subnet;
              max_anonymous_services_per_session = 
                 default_max_anonymous_services_per_session;
             }

@@ -156,7 +156,7 @@ type sess_info = {
 module SessionCookies : Hashtbl.S with type key = string
 
 (* session groups *)
-type sessgrp = (string * (string, Unix.inet_addr) Ocsigen_lib.leftright)
+type sessgrp = (string * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
     (* The full session group is the pair (site_dir_string, session group name).
        If there is no session group, 
        we limit the number of sessions by IP address *)
@@ -329,9 +329,9 @@ and sitedata = {
   mutable unregistered_services : Ocsigen_lib.url_path list;
   mutable unregistered_na_services : na_key_serv list;
   mutable max_volatile_data_sessions_per_group : int;
-  mutable max_volatile_data_sessions_per_ip : int;
+  mutable max_volatile_data_sessions_per_subnet : int;
   mutable max_service_sessions_per_group : int;
-  mutable max_service_sessions_per_ip : int;
+  mutable max_service_sessions_per_subnet : int;
   mutable max_persistent_data_sessions_per_group : int option;
   mutable max_anonymous_services_per_session : int;
 }
@@ -399,3 +399,6 @@ val na_key_serv_of_req : na_key_req -> na_key_serv
 
 val remove_naservice_table : 
   naservice_table -> NAserv_Table.key -> naservice_table
+
+val ipv4mask : int32
+val ipv6mask : int64 * int64

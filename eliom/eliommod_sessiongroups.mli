@@ -25,7 +25,7 @@ val make_persistent_full_group_name :
   Ocsigen_extensions.request_info -> string -> string option -> Eliom_common.perssessgrp option
 
 val getsessgrp : 
-  Eliom_common.sessgrp -> string * (string, Unix.inet_addr) Ocsigen_lib.leftright
+  Eliom_common.sessgrp -> string * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright
 val getperssessgrp : Eliom_common.perssessgrp -> (string * string)
 
 module type MEMTAB =

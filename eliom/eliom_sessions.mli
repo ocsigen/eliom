@@ -446,7 +446,7 @@ val get_persistent_data_session_group :
     optional parameter [?set_max] of function
     {!Eliom_sessions.set_volatile_data_session_group}.
 
-    If there is no group, the number of sessions is limitated by IP address
+    If there is no group, the number of sessions is limitated by sub network
     (which can be a problem for example if the server is behind a
     reverse proxy).
     It is highly recommended to use session groups!
@@ -470,13 +470,13 @@ val set_default_max_volatile_data_sessions_per_group :
 val set_default_max_persistent_data_sessions_per_group :
   ?sp:server_params -> int option -> unit
 
-val set_default_max_service_sessions_per_ip :
+val set_default_max_service_sessions_per_subnet :
   ?sp:server_params -> int -> unit
 
 (** Sets the maximum number of volatile data sessions in a session
     group (see above).
 *)
-val set_default_max_volatile_data_sessions_per_ip :
+val set_default_max_volatile_data_sessions_per_subnet :
   ?sp:server_params -> int -> unit
 
 

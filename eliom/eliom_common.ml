@@ -92,10 +92,10 @@ module SessionCookies =
                end)
 
 (* session groups *)
-type sessgrp = (string * (string, Unix.inet_addr) Ocsigen_lib.leftright)
+type sessgrp = (string * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
     (* The full session group is the pair (site_dir_string, session group name).
        If there is no session group, 
-       we limit the number of sessions by IP address *)
+       we limit the number of sessions by IP address (for a sub-network) *)
 type perssessgrp = string (* the same pair, marshaled *)
 
 
@@ -370,9 +370,9 @@ and sitedata =
    mutable unregistered_services: Ocsigen_lib.url_path list;
    mutable unregistered_na_services: na_key_serv list;
    mutable max_volatile_data_sessions_per_group : int;
-   mutable max_volatile_data_sessions_per_ip : int;
+   mutable max_volatile_data_sessions_per_subnet : int;
    mutable max_service_sessions_per_group : int;
-   mutable max_service_sessions_per_ip : int;
+   mutable max_service_sessions_per_subnet : int;
    mutable max_persistent_data_sessions_per_group : int option;
    mutable max_anonymous_services_per_session : int;
  }
@@ -395,6 +395,54 @@ let make_server_params sitedata all_cookie_info ri suffix si fullsessname
 (* The table of dynamic pages for each virtual server, and naservices        *)
 (* Each node contains either a list of nodes (case directory)
     or a table of "answers" (functions that will generate the page) *)
+
+let ipv4mask = 0b11111111111111110000000000000000l    (* /16 *)
+let ipv6mask = 0b1111111111111111111111111111111111111111111111111111111100000000L, 0L (* /56 (???) *)
+
+module Net_addr_Hashtbl = (* keys are IP address modulo "network equivalence" *)
+  (struct
+     include Hashtbl.Make(struct
+                            type t = Ocsigen_lib.ip_address
+                            let equal = (=)
+                            let hash = Hashtbl.hash
+                          end)
+       
+     let add t k v = 
+       add t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask) v
+         
+     let remove t k = 
+       remove t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask)
+
+     let find t k = 
+       find t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask)
+
+     let find_all t k = 
+       find_all t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask)
+         
+     let replace t k v = 
+       replace t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask) v
+         
+     let mem t k = 
+       mem t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask)
+
+   end : sig
+
+     type key = Ocsigen_lib.ip_address
+     type 'a t
+     val create : int -> 'a t
+     val clear : 'a t -> unit
+     val copy : 'a t -> 'a t
+     val add : 'a t -> key -> 'a -> unit
+     val remove : 'a t -> key -> unit
+     val find : 'a t -> key -> 'a
+     val find_all : 'a t -> key -> 'a list
+     val replace : 'a t -> key -> 'a -> unit
+     val mem : 'a t -> key -> bool
+     val iter : (key -> 'a -> unit) -> 'a t -> unit
+     val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+     val length : 'a t -> int
+
+   end)
 
 let empty_page_table () = Serv_Table.empty
 let empty_dircontent () = Vide
@@ -424,7 +472,7 @@ let dlist_finaliser_ip dlist_table ip na_table_ref node =
         if Ocsigen_cache.Dlist.size cl = 1
         then
           (try
-             Ocsigen_lib.Inet_addr_Hashtbl.remove dlist_table ip
+             Net_addr_Hashtbl.remove dlist_table ip
            with Not_found -> ())
     | None -> ()
 
@@ -435,7 +483,7 @@ let add_dlist_ dlist v =
     | None -> assert false
 
 let empty_tables max forsession =
-  let dlist_table = Ocsigen_lib.Inet_addr_Hashtbl.create 100 in
+  let dlist_table = Net_addr_Hashtbl.create 100 in
     (*VVV One for each tables or a global one? *)
   let t1 = ref (empty_dircontent ()) in
   let t2 = ref (empty_naservice_table ()) in
@@ -455,12 +503,14 @@ let empty_tables max forsession =
         fun ?sp v ->
           let ip =
             match sp with
-              | None -> Unix.inet6_addr_loopback
-              | Some sp -> sp.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_remote_inet_addr
+              | None -> Ocsigen_lib.inet6_addr_loopback
+              | Some sp -> 
+                  Lazy.force 
+                    sp.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_remote_ip_parsed
           in
           let dlist =
             try
-              Ocsigen_lib.Inet_addr_Hashtbl.find dlist_table ip
+              Net_addr_Hashtbl.find dlist_table ip
             with Not_found ->
               let dlist = Ocsigen_cache.Dlist.create max in
               Ocsigen_cache.Dlist.set_finaliser 
@@ -882,3 +932,4 @@ let global_register_allowed () =
     && (during_eliom_module_loading ())
   then Some get_current_sitedata
   else None
+

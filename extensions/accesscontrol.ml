@@ -49,7 +49,10 @@ let rec parse_condition = function
             badconfig "Bad ip/netmask [%s] in <ip> condition" s
         in
         (fun ri ->
-           let r = Ocsigen_lib.match_ip ip_with_mask (Lazy.force ri.ri_remote_ip_parsed) in
+           let r = 
+             Ocsigen_lib.match_ip ip_with_mask 
+               (Lazy.force ri.ri_remote_ip_parsed) 
+           in
            if r then
              Ocsigen_messages.debug2 (sprintf "--Access control (ip): %s matches %s" ri.ri_remote_ip s)
            else

@@ -508,17 +508,17 @@ let set_default_max_persistent_data_sessions_per_group ?sp n =
   in
   sitedata.Eliom_common.max_persistent_data_sessions_per_group <- n
 
-let set_default_max_service_sessions_per_ip ?sp n =
+let set_default_max_service_sessions_per_subnet ?sp n =
   let sitedata = 
     find_sitedata "set_default_max_service_sessions_per_group" sp 
   in
-  sitedata.Eliom_common.max_service_sessions_per_ip <- n
+  sitedata.Eliom_common.max_service_sessions_per_subnet <- n
 
-let set_default_max_volatile_data_sessions_per_ip ?sp n =
+let set_default_max_volatile_data_sessions_per_subnet ?sp n =
   let sitedata = 
     find_sitedata "set_default_max_service_sessions_per_group" sp 
   in
-  sitedata.Eliom_common.max_volatile_data_sessions_per_ip <- n
+  sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <- n
 
 
 

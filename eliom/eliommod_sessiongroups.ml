@@ -25,7 +25,12 @@ let (>>=) = Lwt.bind
 
 let make_full_group_name ri site_dir_string = function
   | None -> (site_dir_string, 
-             Ocsigen_lib.Right ri.Ocsigen_extensions.ri_remote_inet_addr)
+             Ocsigen_lib.Right 
+               (Ocsigen_lib.network_of_ip
+                  (Lazy.force ri.Ocsigen_extensions.ri_remote_ip_parsed)
+                  Eliom_common.ipv4mask
+                  Eliom_common.ipv6mask
+               ))
   | Some g -> (site_dir_string, Ocsigen_lib.Left g)
 
 let make_persistent_full_group_name ri site_dir_string = function
@@ -156,7 +161,7 @@ module Data =
     let maxgroup sitedata =
       sitedata.Eliom_common.max_volatile_data_sessions_per_group
     let maxip sitedata =
-      sitedata.Eliom_common.max_volatile_data_sessions_per_ip
+      sitedata.Eliom_common.max_volatile_data_sessions_per_subnet
   end)
 
 module Serv =
@@ -169,7 +174,7 @@ module Serv =
     let maxgroup sitedata =
       sitedata.Eliom_common.max_service_sessions_per_group
     let maxip sitedata =
-      sitedata.Eliom_common.max_service_sessions_per_ip
+      sitedata.Eliom_common.max_service_sessions_per_subnet
   end)
 
 

@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* TODO: organize this ... *)
+
 include Ocsigen_lib_obrowser
 
 exception Input_is_too_large
@@ -405,6 +407,14 @@ let match_ip (base, mask) ip =
         end
     | _ -> false
 
+let inet6_addr_loopback = 
+  fst (parse_ip (Unix.string_of_inet_addr Unix.inet6_addr_loopback))
+
+let network_of_ip ip mask4 (mask61, mask62) = match ip with
+  | IPv4 a -> IPv4 (Int32.logand a mask4)
+  | IPv6 (a, b) -> IPv6 (Int64.logand a mask61, Int64.logand b mask62)
+
+
 (* *)
 let fst3 (a, _, _) = a
 let snd3 (_, a, _) = a
@@ -703,8 +713,3 @@ module Int_Table = Map.Make(struct
   let compare = compare
 end)
 
-module Inet_addr_Hashtbl = Hashtbl.Make(struct
-  type t = Unix.inet_addr
-  let equal = (=)
-  let hash = Hashtbl.hash
-end)

@@ -153,7 +153,9 @@ type request_info =
      ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
      ri_remote_inet_addr: Unix.inet_addr; (** IP of the client *)
      ri_remote_ip: string;            (** IP of the client *)
-     ri_remote_ip_parsed: ip_address Lazy.t;    (** IP of the client, parsed *)
+     ri_remote_ip_parsed: Ocsigen_lib.ip_address Lazy.t;    
+     (** IP of the client, using int32 or int64 (parsed from ri_remote_ip).
+         To be used for masks. *)
      ri_remote_port: int;      (** Port used by the client *)
      ri_server_port: int;      (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
