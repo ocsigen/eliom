@@ -142,12 +142,12 @@ let gen dir = function
          let ri = ri.request_info in
          if dir.pipeline then
            Ocsigen_http_client.raw_request
-             ~headers:ri.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
+             ~headers:ri.ri_http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.headers
              ~https
              ~port
              ~client:ri.ri_client
              ~keep_alive:true
-             ~content:ri.ri_http_frame.Ocsigen_http_frame.content
+             ~content:ri.ri_http_frame.Ocsigen_http_frame.frame_content
              ?content_length:ri.ri_content_length
              ~http_method:ri.ri_method
              ~host
@@ -156,10 +156,10 @@ let gen dir = function
            else
              fun () ->
                Ocsigen_http_client.basic_raw_request
-                 ~headers:ri.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
+                 ~headers:ri.ri_http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.headers
                  ~https
                  ~port
-                 ~content:ri.ri_http_frame.Ocsigen_http_frame.content
+                 ~content:ri.ri_http_frame.Ocsigen_http_frame.frame_content
                  ?content_length:ri.ri_content_length
                  ~http_method:ri.ri_method
                  ~host
@@ -173,16 +173,16 @@ let gen dir = function
 
                >>= fun http_frame ->
                let headers =
-                 http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
+                 http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.headers
                in
                let code =
                  match
-                   http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.mode
+                   http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.mode
                  with
                    | Ocsigen_http_frame.Http_header.Answer code -> code
                    | _ -> raise Bad_answer_from_http_server
                in
-               match http_frame.Ocsigen_http_frame.content with
+               match http_frame.Ocsigen_http_frame.frame_content with
                  | None ->
                      let empty_result = Ocsigen_http_frame.empty_result () in
                      let length =
@@ -192,7 +192,7 @@ let gen dir = function
                        {empty_result with
                           Ocsigen_http_frame.res_content_length = length;
                           res_headers= headers;
-                          res_stop_stream = http_frame.Ocsigen_http_frame.abort;
+                          res_stop_stream = http_frame.Ocsigen_http_frame.frame_abort;
                           res_code= code;
                        }
                  | Some stream ->
@@ -207,7 +207,7 @@ let gen dir = function
                           Ocsigen_http_frame.res_content_length = length;
                           res_stream = (stream, None);
                           res_stop_stream =
-                           http_frame.Ocsigen_http_frame.abort;
+                           http_frame.Ocsigen_http_frame.frame_abort;
                           res_headers= headers;
                           res_code= code;
                        }

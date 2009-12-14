@@ -625,7 +625,7 @@ let raw_request
     >>= fun http_frame ->
 
       let server_keepalive =
-        Ocsigen_headers.get_keepalive http_frame.Ocsigen_http_frame.header
+        Ocsigen_headers.get_keepalive http_frame.Ocsigen_http_frame.frame_header
       in
       if keep_alive_asked && not server_keepalive then
         (* The server does not want to do keep-alive *)
@@ -646,7 +646,7 @@ let raw_request
                Lwt.wakeup_exn new_waiter Pipeline_failed);
 
       Ocsigen_messages.debug2 "--Ocsigen_http_client: frame received";
-      (match http_frame.Ocsigen_http_frame.content with
+      (match http_frame.Ocsigen_http_frame.frame_content with
          | None   -> finalize do_keep_alive
          | Some c ->
              Ocsigen_stream.add_finalizer c (fun () -> finalize do_keep_alive);
@@ -658,13 +658,13 @@ let raw_request
         Http_headers.replace_opt
           Http_headers.connection
           None
-          http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
+          http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.headers
       in
       let headers =
         try
           let connection_value =
             Ocsigen_http_frame.Http_header.get_headers_value
-              http_frame.Ocsigen_http_frame.header Http_headers.connection
+              http_frame.Ocsigen_http_frame.frame_header Http_headers.connection
           in
           Http_headers.replace_opt
             (Http_headers.name connection_value)
@@ -673,14 +673,14 @@ let raw_request
         with Not_found -> headers
       in
       Lwt.return
-        {Ocsigen_http_frame.header=
+        {Ocsigen_http_frame.frame_header=
             {Ocsigen_http_frame.Http_header.mode =
-             http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.mode;
+             http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.mode;
              Ocsigen_http_frame.Http_header.proto =
-             http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
+             http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.proto;
              Ocsigen_http_frame.Http_header.headers = headers};
-         Ocsigen_http_frame.content = http_frame.Ocsigen_http_frame.content;
-         Ocsigen_http_frame.abort = http_frame.Ocsigen_http_frame.abort;
+         frame_content = http_frame.Ocsigen_http_frame.frame_content;
+         frame_abort = http_frame.Ocsigen_http_frame.frame_abort;
        }
 
 
@@ -777,7 +777,7 @@ let basic_raw_request
         ~head:(http_method = Ocsigen_http_frame.Http_header.HEAD)
         conn
        >>= fun http_frame ->
-      (match http_frame.Ocsigen_http_frame.content with
+      (match http_frame.Ocsigen_http_frame.frame_content with
       | None   -> Lwt_ssl.close socket
       | Some c ->
           Ocsigen_stream.add_finalizer c

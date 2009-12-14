@@ -195,7 +195,7 @@ let _ =
      (*"Referer"; "Host"; "Cookie"*) ]
 
 let array_environment filename re doc_root ri hostname =
-  let header = ri.ri_http_frame.Ocsigen_http_frame.header in
+  let header = ri.ri_http_frame.Ocsigen_http_frame.frame_header in
   let opt = function
     | None -> ""
     | Some a -> a
@@ -366,7 +366,7 @@ let recupere_cgi head re doc_root filename ri hostname =
     ignore
       (catch
          (fun () ->
-           (match ri.ri_http_frame.Ocsigen_http_frame.content with
+           (match ri.ri_http_frame.Ocsigen_http_frame.frame_content with
            | None -> Lwt_unix.close post_in; return ()
            | Some content_post ->
                Ocsigen_http_com.write_stream post_in_ch content_post >>= fun () ->
@@ -446,7 +446,7 @@ let recupere_cgi head re doc_root filename ri hostname =
 (** return the content of the frame *)
 
 let get_content str =
-  match str.Ocsigen_http_frame.content with
+  match str.Ocsigen_http_frame.frame_content with
   | None   -> Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None)
   | Some c -> c
 
@@ -478,7 +478,7 @@ let gen reg = function
            re doc_root filename ri.request_info
            (Ocsigen_extensions.get_hostname ri)
          >>= fun (frame, finalizer) ->
-         let header = frame.Ocsigen_http_frame.header in
+         let header = frame.Ocsigen_http_frame.frame_header in
          let content = get_content frame in
          Ocsigen_stream.add_finalizer content finalizer;
          Lwt.catch
@@ -537,7 +537,8 @@ let gen reg = function
                             {default_result with
                                res_content_length = None;
                                res_stream = (content, None);
-                               res_stop_stream = frame.Ocsigen_http_frame.abort;
+                               res_stop_stream =
+                                frame.Ocsigen_http_frame.frame_abort;
 (*VVV NO! If sending is interrupted, we probably must do something else! *)
                                res_location= loc;
                                res_headers =

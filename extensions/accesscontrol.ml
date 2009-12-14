@@ -104,7 +104,7 @@ let rec parse_condition = function
                   r)
                (Http_headers.find_all
                   (Http_headers.name name)
-                  ri.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers)
+                  ri.ri_http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.headers)
            in
            if not r then Ocsigen_messages.debug2 (sprintf "--Access control (header): header %s does not match \"%s\"" name reg);
            r)

@@ -105,7 +105,7 @@ let dbg sockaddr s =
 let r_content_type = Netstring_pcre.regexp "([^ ]*)"
 
 let rec find_post_params http_frame ct filenames =
-  match http_frame.Ocsigen_http_frame.content with
+  match http_frame.Ocsigen_http_frame.frame_content with
     | None -> return ([], [])
     | Some body_gen ->
         try
@@ -306,7 +306,7 @@ let get_request_infos
          {ri_url_string = url;
           ri_url = parsed_url;
           ri_method = meth;
-          ri_protocol = http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
+          ri_protocol = http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.proto;
           ri_ssl = Lwt_ssl.is_ssl (Ocsigen_http_com.connection_fd receiver);
           ri_full_path_string = path_string;
           ri_full_path = path;
@@ -481,7 +481,8 @@ let service receiver sender_slot request meth url port sockaddr =
      because the previous one may not be sent *)
 
   let head = meth = Http_header.HEAD in
-  let clientproto = Http_header.get_proto request.Ocsigen_http_frame.header in
+  let clientproto =
+    Http_header.get_proto request.Ocsigen_http_frame.frame_header in
 
   let handle_service_errors e =
     (* Exceptions during page generation *)
@@ -534,7 +535,7 @@ let service receiver sender_slot request meth url port sockaddr =
          the server writing the response.
        We need to do this once the request has been handled before sending
        any reply to the client. *)
-    match request.Ocsigen_http_frame.content with
+    match request.Ocsigen_http_frame.frame_content with
       | Some f ->
           ignore
             (Lwt.catch
@@ -826,7 +827,7 @@ let handle_connection port in_ch sockaddr =
            | None -> ());
          let meth, url =
            match 
-             Http_header.get_firstline request.Ocsigen_http_frame.header 
+             Http_header.get_firstline request.Ocsigen_http_frame.frame_header
            with
              | Http_header.Query a -> a
              | _                   -> assert false
@@ -838,7 +839,8 @@ let handle_connection port in_ch sockaddr =
 (*XXX Why do we need the port but not the host name? *)
                 service receiver slot request meth url port sockaddr)
              handle_write_errors);
-         if not !shutdown && get_keepalive request.Ocsigen_http_frame.header 
+         if not !shutdown &&
+           get_keepalive request.Ocsigen_http_frame.frame_header
          then
            (* We put the receiver in the set of receiver waiting for 
               pipeline in order to be able to shutdown the connections

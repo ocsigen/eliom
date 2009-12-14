@@ -295,7 +295,7 @@ let extreq =
     ~get_params:unit
     (fun sp () () ->
        Ocsigen_http_client.get "ocsigen.org" "/" () >>= fun frame ->
-       (match frame.Ocsigen_http_frame.content with
+       (match frame.Ocsigen_http_frame.frame_content with
          | None -> Lwt.return ""
          | Some stream -> Ocsigen_stream.string_of_stream (Ocsigen_stream.get stream)) >>= fun s ->
        (* Here use an XML parser, 

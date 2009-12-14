@@ -479,9 +479,9 @@ NOT IMPLEMENTED
            Some s
     )
   in
-  Lwt.return {Ocsigen_http_frame.header = header;
-              Ocsigen_http_frame.content = la;
-              Ocsigen_http_frame.abort =
+  Lwt.return {Ocsigen_http_frame.frame_header = header;
+              frame_content = la;
+              frame_abort =
               (fun () -> Lwt_ssl.close receiver.fd; Lwt.return ())}
 (*VVV close or shutdown? *)
 

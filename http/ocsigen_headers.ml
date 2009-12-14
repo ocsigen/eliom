@@ -154,7 +154,7 @@ let get_host_from_host_header =
     try
       let hostport =
         Http_header.get_headers_value
-          http_frame.Ocsigen_http_frame.header Http_headers.host
+          http_frame.Ocsigen_http_frame.frame_header Http_headers.host
       in
       match Netstring_pcre.string_match host_re hostport 0 with
         | Some m -> 
@@ -168,13 +168,13 @@ let get_host_from_host_header =
 
 let get_user_agent http_frame =
   try (Http_header.get_headers_value
-         http_frame.Ocsigen_http_frame.header Http_headers.user_agent)
+         http_frame.Ocsigen_http_frame.frame_header Http_headers.user_agent)
   with Not_found -> ""
 
 let get_cookie_string http_frame =
   try
     Some (Http_header.get_headers_value
-            http_frame.Ocsigen_http_frame.header Http_headers.cookie)
+            http_frame.Ocsigen_http_frame.frame_header Http_headers.cookie)
   with Not_found ->
     None
 
@@ -182,7 +182,7 @@ let get_if_modified_since http_frame =
   try
     Some (Netdate.parse_epoch
             (Http_header.get_headers_value
-               http_frame.Ocsigen_http_frame.header
+               http_frame.Ocsigen_http_frame.frame_header
                Http_headers.if_modified_since))
   with _ -> None
 
@@ -191,7 +191,7 @@ let get_if_unmodified_since http_frame =
   try
     Some (Netdate.parse_epoch
             (Http_header.get_headers_value
-               http_frame.Ocsigen_http_frame.header
+               http_frame.Ocsigen_http_frame.frame_header
                Http_headers.if_unmodified_since))
   with _ -> None
 
@@ -201,7 +201,7 @@ let get_if_none_match http_frame =
     Some (list_flat_map
             (quoted_split ',')
             (Http_header.get_headers_values
-               http_frame.Ocsigen_http_frame.header Http_headers.if_none_match))
+               http_frame.Ocsigen_http_frame.frame_header Http_headers.if_none_match))
   with _ -> None
 
 
@@ -211,7 +211,7 @@ let get_if_match http_frame =
       (list_flat_map
          (quoted_split ',')
          (Http_header.get_headers_values
-            http_frame.Ocsigen_http_frame.header Http_headers.if_match))
+            http_frame.Ocsigen_http_frame.frame_header Http_headers.if_match))
   with _ -> None
 
 
@@ -219,7 +219,7 @@ let get_content_type http_frame =
   try
     Some
       (Http_header.get_headers_value
-         http_frame.Ocsigen_http_frame.header Http_headers.content_type)
+         http_frame.Ocsigen_http_frame.frame_header Http_headers.content_type)
   with Not_found -> None
 
 let parse_content_type = function
@@ -246,7 +246,7 @@ let get_content_length http_frame =
     Some
       (Int64.of_string
          (Http_header.get_headers_value
-            http_frame.Ocsigen_http_frame.header Http_headers.content_length))
+            http_frame.Ocsigen_http_frame.frame_header Http_headers.content_length))
   with Not_found | Failure _ | Invalid_argument _ -> None
 
 
@@ -254,7 +254,7 @@ let get_referer http_frame =
   try
     Some
       (Http_header.get_headers_value
-         http_frame.Ocsigen_http_frame.header Http_headers.referer)
+         http_frame.Ocsigen_http_frame.frame_header Http_headers.referer)
   with _ -> None
 
 
@@ -267,7 +267,7 @@ let get_accept http_frame =
       parse_list_with_extensions
         parse_mime_type
         (Http_header.get_headers_values
-           http_frame.Ocsigen_http_frame.header Http_headers.accept)
+           http_frame.Ocsigen_http_frame.frame_header Http_headers.accept)
     in
     let change_quality (a, l) =
       try
@@ -284,7 +284,7 @@ let get_accept_charset http_frame =
     parse_list_with_quality
       parse_star
       (Http_header.get_headers_values
-         http_frame.Ocsigen_http_frame.header Http_headers.accept_charset)
+         http_frame.Ocsigen_http_frame.frame_header Http_headers.accept_charset)
   with _ -> []
 
 
@@ -293,7 +293,7 @@ let get_accept_encoding http_frame =
     parse_list_with_quality
       parse_star
       (Http_header.get_headers_values
-         http_frame.Ocsigen_http_frame.header Http_headers.accept_encoding)
+         http_frame.Ocsigen_http_frame.frame_header Http_headers.accept_encoding)
   with _ -> []
 
 
@@ -302,14 +302,14 @@ let get_accept_language http_frame =
     parse_list_with_quality
       Ocsigen_lib.id
       (Http_header.get_headers_values
-         http_frame.Ocsigen_http_frame.header Http_headers.accept_language)
+         http_frame.Ocsigen_http_frame.frame_header Http_headers.accept_language)
   with _ -> []
 
 
 let get_range http_frame =
   try
     let rangeheader = Http_header.get_headers_value
-      http_frame.Ocsigen_http_frame.header
+      http_frame.Ocsigen_http_frame.frame_header
       Http_headers.range
     in
 
@@ -346,7 +346,7 @@ let get_range http_frame =
     let ifrange = 
       try 
         let ifrangeheader = Http_header.get_headers_value
-          http_frame.Ocsigen_http_frame.header
+          http_frame.Ocsigen_http_frame.frame_header
           Http_headers.if_range
         in
         try

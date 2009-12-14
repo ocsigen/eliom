@@ -140,7 +140,7 @@ module Http_error :
    reading (closes the connection).
 *)
 type t =
-  { header : Http_header.http_header;
-    content : string Ocsigen_stream.t option;
-    abort : unit -> unit Lwt.t
+  { frame_header : Http_header.http_header;
+    frame_content : string Ocsigen_stream.t option;
+    frame_abort : unit -> unit Lwt.t
   }
