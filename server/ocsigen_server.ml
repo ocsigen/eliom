@@ -528,6 +528,9 @@ let service receiver sender_slot request meth url port sockaddr =
     | Neturl.Malformed_URL ->
         Ocsigen_messages.debug2 "-> Sending 400 (Malformed URL)";
         send_error 400
+    | Ocsigen_lib.Ocsigen_Request_too_long ->
+        Ocsigen_messages.debug2 "-> Sending 413 (Entity too large)";
+        send_error 413
     | e ->
         Ocsigen_messages.warning
           ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
