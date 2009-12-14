@@ -517,6 +517,7 @@ let parse_server isreloading c =
             follow_symlinks = Ocsigen_extensions.FollowSymlinksIfOwnerMatch;
             do_not_serve_404 = serve_everything;
             do_not_serve_403 = serve_everything;
+            uploaddir = Ocsigen_config.get_uploaddir ();
           }
           in
           let parse_config =

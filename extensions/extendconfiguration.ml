@@ -191,6 +191,15 @@ let update_config usermode = function
          badconfig "Invalid regexp %s in %s" r "forbidfile")
   | Element ("forbidfile" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
+  | Element ("uploaddir", [], [PCData s]) ->
+      if s = "" then
+        gen (fun config -> { config with uploaddir = None })
+      else
+        gen (fun config -> { config with uploaddir = Some s })
+  | Element ("uploaddir" as s, _, _) ->
+      badconfig "Bad syntax for tag %s" s
+
+
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->
       raise (Error_in_config_file "Unexpected data in config file")

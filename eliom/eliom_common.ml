@@ -597,10 +597,11 @@ let remove_prefixed_param pref l =
 let eliom_params_after_action = Polytables.make_key ()
 
 
-let get_session_info ri previous_extension_err =
-  let ri_whole = ri
-  and ri = ri.Ocsigen_extensions.request_info in
-  Lazy.force ri.Ocsigen_extensions.ri_post_params >>= fun post_params ->
+let get_session_info req previous_extension_err =
+  let req_whole = req
+  and ri = req.Ocsigen_extensions.request_info
+  and ci = req.Ocsigen_extensions.request_config in
+  ri.Ocsigen_extensions.ri_post_params ci >>= fun post_params ->
   let get_params = Lazy.force ri.Ocsigen_extensions.ri_get_params in
   let get_params0 = get_params in
   let post_params0 = post_params in
@@ -776,7 +777,7 @@ let get_session_info ri previous_extension_err =
           Initial parameters are kept in si.
        *)
        Ocsigen_extensions.ri_get_params = lazy get_params;
-       Ocsigen_extensions.ri_post_params = lazy (return post_params)},
+       Ocsigen_extensions.ri_post_params = fun _ -> return post_params},
     {si_service_session_cookies= service_cookies;
      si_data_session_cookies= data_cookies;
      si_persistent_session_cookies= persistent_cookies;
@@ -800,7 +801,7 @@ let get_session_info ri previous_extension_err =
     }
   in
   Lwt.return
-    ({ ri_whole with Ocsigen_extensions.request_info = ri' }, sess)
+    ({ req_whole with Ocsigen_extensions.request_info = ri' }, sess)
 
 
 

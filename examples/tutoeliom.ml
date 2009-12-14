@@ -4825,6 +4825,7 @@ let upload2 = register_new_post_service
         (try
           Unix.unlink newname;
         with _ -> ());
+        Ocsigen_messages.console2 (Eliom_sessions.get_tmp_filename file);
         Unix.link (Eliom_sessions.get_tmp_filename file) newname;
         let fd_in = open_in newname in
         try

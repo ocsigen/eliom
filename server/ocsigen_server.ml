@@ -104,7 +104,7 @@ let dbg sockaddr s =
 
 let r_content_type = Netstring_pcre.regexp "([^ ]*)"
 
-let rec find_post_params http_frame ct filenames =
+let rec find_post_params http_frame ct filenames uploaddir =
   match http_frame.Ocsigen_http_frame.frame_content with
     | None -> return ([], [])
     | Some body_gen ->
@@ -121,6 +121,7 @@ let rec find_post_params http_frame ct filenames =
                 find_post_params_form_urlencoded body_gen
             | "multipart", "form-data" ->
                 find_post_params_multipart_form_data body_gen ctparams filenames
+                  uploaddir
             | _ -> fail Ocsigen_unsupported_media
         with e -> Lwt.fail e
 
@@ -139,7 +140,7 @@ and find_post_params_form_urlencoded body_gen =
        | Ocsigen_stream.String_too_large -> fail Input_is_too_large
        | e -> fail e)
 
-and find_post_params_multipart_form_data body_gen ctparams filenames =
+and find_post_params_multipart_form_data body_gen ctparams filenames uploaddir =
   (* Same question here, should this stream be consumed after an error ? *)
   let body = Ocsigen_stream.get body_gen
   and bound = get_boundary ctparams
@@ -163,7 +164,7 @@ and find_post_params_multipart_form_data body_gen ctparams filenames =
     let p_name = find_field "name" cd in
     try
       let store = find_field "filename" cd in
-      match ((Ocsigen_config.get_uploaddir ())) with
+      match uploaddir with
         | Some dname ->
             let now = Printf.sprintf "%f-%d"
               (Unix.gettimeofday ()) (counter ()) in
@@ -291,12 +292,20 @@ let get_request_infos
 
        let accept_language = lazy (get_accept_language http_frame) in
 
-       let post_params = lazy
-         (if meth = Http_header.GET || meth = Http_header.HEAD then
-            return ([],[])
-          else
-            find_post_params http_frame ct filenames
-         )
+       let post_params =
+         let r = ref None in
+           (fun ci ->
+              match !r with
+                | None ->
+                    (if meth = Http_header.GET || meth = Http_header.HEAD then
+                       return ([],[])
+                     else
+                       find_post_params http_frame ct filenames ci.uploaddir
+                    ) >>= fun res ->
+                    r := Some res;
+                    return res
+                | Some r -> return r
+           )
        in
 
        let ipstring = Unix.string_of_inet_addr client_inet_addr in
@@ -319,10 +328,8 @@ let get_request_infos
           ri_port_from_host_field = headerport;
           ri_get_params = get_params;
           ri_initial_get_params = get_params;
-          ri_post_params = lazy (force post_params >>= fun (a, b) ->
-                                 return a);
-          ri_files = lazy (force post_params >>= fun (a, b) ->
-                           return b);
+          ri_post_params =(fun ci -> post_params ci >>= fun (a, b) -> return a);
+          ri_files = (fun ci -> post_params ci >>= fun (a, b) -> return b);
           ri_remote_inet_addr = client_inet_addr;
           ri_remote_ip = ipstring;
           ri_remote_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip ipstring));

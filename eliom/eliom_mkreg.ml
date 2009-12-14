@@ -568,11 +568,12 @@ module MakeRegister = functor
                        | Some t -> Some (t, ref (t +. Unix.time ()))),
                      (fun nosuffixversion sp ->
                         let sp2 = Eliom_sessions.sp_of_esp sp in
-                        let ri = get_ri ~sp:sp2 in
-                        let suff = get_suffix ~sp:sp2 in
+                        let ri = get_ri ~sp:sp2
+                        and ci = get_config_info ~sp:sp2
+                        and suff = get_suffix ~sp:sp2 in
                         (catch (fun () ->
-                                  force ri.ri_post_params >>= fun post_params ->
-                                  force ri.ri_files >>= fun files ->
+                                  ri.ri_post_params ci >>= fun post_params ->
+                                  ri.ri_files ci >>= fun files ->
                                   let g = reconstruct_params
                                     ~sp
                                     sgpt
@@ -709,11 +710,12 @@ module MakeRegister = functor
                       | Some t -> Some (t, ref (t +. Unix.time ()))),
                    (fun sp ->
                       let sp2 = Eliom_sessions.sp_of_esp sp in
-                      let ri = get_ri sp2 in
+                      let ri = get_ri sp2
+                      and ci = get_config_info sp2 in
                       (catch
                          (fun () ->
                             get_post_params sp2 >>= fun post_params ->
-                            force ri.ri_files >>= fun files ->
+                            ri.ri_files ci >>= fun files ->
                             page_generator sp2
                               (reconstruct_params
                                  ~sp

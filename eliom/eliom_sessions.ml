@@ -64,7 +64,8 @@ let get_initial_get_params ~sp =
 let get_get_params_string ~sp =
   sp.Eliom_common.sp_request.request_info.ri_get_params_string
 let get_post_params ~sp =
-  Lazy.force sp.Eliom_common.sp_request.request_info.ri_post_params
+  sp.Eliom_common.sp_request.request_info.ri_post_params
+    sp.Eliom_common.sp_request.request_config
 let get_all_post_params ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_all_post_params
 let get_original_full_path_string ~sp =

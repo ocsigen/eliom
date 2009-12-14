@@ -198,7 +198,7 @@ let make_naservice
                 { ri.Ocsigen_extensions.request_info with
                     Ocsigen_extensions.ri_get_params =
                       lazy si.Eliom_common.si_other_get_params;
-                    ri_post_params = lazy (return []);
+                    ri_post_params = (fun _ -> return []);
                     ri_method = Ocsigen_http_frame.Http_header.GET;
             }}
             si.Eliom_common.si_previous_extension_error
@@ -221,7 +221,7 @@ let make_naservice
                 { ri.request_info with
                     ri_get_params =
                       lazy si.Eliom_common.si_other_get_params;
-                    ri_post_params = lazy (return []);
+                    ri_post_params = (fun _ -> return []);
                     ri_method = Ocsigen_http_frame.Http_header.GET;
                 }
            }

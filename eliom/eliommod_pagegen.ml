@@ -208,9 +208,9 @@ open Ocsigen_extensions
 let gen is_eliom_extension sitedata = function
 | Ocsigen_extensions.Req_found _ -> 
     Lwt.return Ocsigen_extensions.Ext_do_nothing
-| Ocsigen_extensions.Req_not_found (404 as previous_extension_err, ri) ->
+| Ocsigen_extensions.Req_not_found (404 as previous_extension_err, req) ->
   let now = Unix.time () in
-  Eliom_common.get_session_info ri previous_extension_err
+  Eliom_common.get_session_info req previous_extension_err
   >>= fun (ri, si) ->
   let (all_cookie_info, closedsessions) =
     Eliommod_cookies.get_cookie_info now
@@ -275,7 +275,8 @@ let gen is_eliom_extension sitedata = function
                                 Ocsigen_http_frame.res_code= 400;
                              }))
                | Eliom_common.Eliom_Wrong_parameter ->
-                   Lazy.force ri.request_info.ri_post_params >>= fun ripp ->
+                   req.request_info.ri_post_params ri.request_config
+                   >>= fun ripp ->
                    Ocsigen_senders.Xhtml_content.result_of_content
                      (Error_pages.page_bad_param 
                         (try 

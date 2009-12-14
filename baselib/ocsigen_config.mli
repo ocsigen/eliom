@@ -6,7 +6,6 @@ val version_number : string
 val is_native : bool
 val builtin_packages : Ocsigen_lib.StringSet.t
 
-val set_uploaddir : string option -> unit
 val set_logdir : string -> unit
 val set_configfile : string -> unit
 val set_pidfile : string -> unit
@@ -43,7 +42,6 @@ val set_sslports : (Unix.inet_addr option * int) list -> unit
 val set_maxretries : int -> unit
 val set_shutdown_timeout : float option -> unit
 
-val get_uploaddir : unit -> string option
 val get_logdir : unit -> string
 val get_config_file : unit -> string
 val get_pidfile : unit -> string option
@@ -83,4 +81,13 @@ val get_maxretries : unit -> int
 val get_shutdown_timeout : unit -> float option
 
 val display_version : unit -> 'a
-  
+
+
+(**/**)
+
+(* Global setting for upload directory. This can be overwritten
+   on a per-site basis. Thus, use only the value inside the [ri.request_config]
+   field of a request (which can be changed by the extension
+   [Extendconfiguration]) *)
+val set_uploaddir : string option -> unit
+val get_uploaddir : unit -> string option

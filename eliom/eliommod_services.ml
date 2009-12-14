@@ -550,7 +550,7 @@ let get_page
                         fail (Eliom_common.Eliom_retry_with
                                 ({ri with request_info =
                                      { ri.request_info with
-                                         ri_post_params = lazy (return []);
+                                         ri_post_params = (fun _ -> return []);
                                          ri_method =
                                            Ocsigen_http_frame.Http_header.GET;
                                 }},
@@ -579,7 +579,7 @@ let get_page
                                      { ri.request_info with
                                          ri_get_params =
                                            lazy si.Eliom_common.si_other_get_params;
-                                         ri_post_params = lazy (return []);
+                                         ri_post_params = (fun _ -> return []);
                                          ri_method =
                                            Ocsigen_http_frame.Http_header.GET;
                                      }

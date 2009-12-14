@@ -109,6 +109,7 @@ type config_info = {
   do_not_serve_404: do_not_serve;
   do_not_serve_403: do_not_serve;
 
+  uploaddir: string option;
 }
 and follow_symlink =
   | DoNotFollowSymlinks (** Never follow a symlink *)
@@ -149,8 +150,8 @@ type request_info =
      ri_port_from_host_field: int option; (** Port in the host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters *)
      ri_initial_get_params: (string * string) list Lazy.t;  (** Association list of get parameters, as sent by the browser (must not be modified by extensions) *)
-     ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters *)
-     ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
+     ri_post_params: config_info -> (string * string) list Lwt.t; (** Association list of post parameters *)
+     ri_files: config_info -> (string * file_info) list Lwt.t; (** Files sent in the request *)
      ri_remote_inet_addr: Unix.inet_addr; (** IP of the client *)
      ri_remote_ip: string;            (** IP of the client *)
      ri_remote_ip_parsed: Ocsigen_lib.ip_address Lazy.t;    
