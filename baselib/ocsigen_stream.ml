@@ -160,13 +160,19 @@ let rec stream_want s len =
  (* returns a stream with at least len bytes read if possible *)
   match s with
   | Finished _ -> return s
-  | Cont (stri, f)  -> if String.length stri >= len
-  then return s
-  else catch
-        (fun () -> enlarge_stream s >>= (fun r -> stream_want s len))
-        (function
-           | Stream_too_small -> return s
-           | e -> fail e)
+  | Cont (stri, f)  ->
+      if String.length stri >= len then
+        return s
+      else
+        catch
+          (fun () -> enlarge_stream s >>= fun r -> return (`OK r))
+          (function
+             | Stream_too_small -> return `Too_small
+             | e -> fail e)
+        >>= function
+          | `OK r -> stream_want r len
+          | `Too_small -> return s
+
 
 let current_buffer = function
   | Finished _  -> raise Stream_too_small
