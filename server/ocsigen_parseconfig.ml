@@ -518,6 +518,7 @@ let parse_server isreloading c =
             do_not_serve_404 = serve_everything;
             do_not_serve_403 = serve_everything;
             uploaddir = Ocsigen_config.get_uploaddir ();
+            maxuploadfilesize = Ocsigen_config.get_maxuploadfilesize ();
           }
           in
           let parse_config =

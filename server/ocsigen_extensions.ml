@@ -174,6 +174,7 @@ type config_info = {
   do_not_serve_403: do_not_serve;
 
   uploaddir: string option;
+  maxuploadfilesize: int64 option;
 }
 and follow_symlink =
   | DoNotFollowSymlinks (** Never follow a symlink *)

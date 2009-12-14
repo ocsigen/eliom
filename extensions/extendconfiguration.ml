@@ -199,6 +199,16 @@ let update_config usermode = function
   | Element ("uploaddir" as s, _, _) ->
       badconfig "Bad syntax for tag %s" s
 
+  | Element ("maxuploadfilesize" as tag, [], [PCData s]) ->
+      let s =
+        try Ocsigen_parseconfig.parse_size_tag "uploaddir" s
+        with Ocsigen_config.Config_file_error _ ->
+          badconfig "Bad syntax for tag %s" tag
+      in
+        gen (fun config -> { config with maxuploadfilesize = s })
+  | Element ("maxuploadfilesize" as s, _, _) ->
+      badconfig "Bad syntax for tag %s" s
+
 
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->

@@ -24,7 +24,6 @@ val set_server_timeout : int -> unit
 val set_keepopen_timeout : int -> unit *)
 val set_netbuffersize : int -> unit
 val set_filebuffersize : int -> unit
-val set_maxuploadfilesize : int64 option -> unit
 val set_maxrequestbodysize : int64 option -> unit
 val set_default_charset : string option -> unit
 val set_datadir : string -> unit
@@ -62,7 +61,6 @@ val get_server_timeout : unit -> int
 val get_keepopen_timeout : unit -> int*)
 val get_netbuffersize : unit -> int
 val get_filebuffersize : unit -> int
-val get_maxuploadfilesize : unit -> int64 option
 val get_maxrequestbodysize : unit -> int64 option
 val get_default_charset : unit -> string option
 val get_datadir : unit -> string
@@ -91,3 +89,7 @@ val display_version : unit -> 'a
    [Extendconfiguration]) *)
 val set_uploaddir : string option -> unit
 val get_uploaddir : unit -> string option
+
+(* Same thing for upload size *)
+val set_maxuploadfilesize : int64 option -> unit
+val get_maxuploadfilesize : unit -> int64 option

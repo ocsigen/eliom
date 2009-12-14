@@ -219,7 +219,7 @@ let read_multipart_body decode_part boundary s =
 let empty_stream =
   Ocsigen_stream.get (Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None))
 
-let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
+let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop ~maxsize=
   let decode_part stream =
     read_header stream >>= (fun (s, header) ->
       let p = create header in
@@ -229,9 +229,8 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
         | Cont (stri, f) ->
             let long = String.length stri in
             let size2 = Int64.add size (Int64.of_int long) in
-            let max = Ocsigen_config.get_maxuploadfilesize () in
             if
-              (match max with
+              (match maxsize with
                 None -> false
               | Some m ->
                   (Int64.compare size2 m) > 0)
