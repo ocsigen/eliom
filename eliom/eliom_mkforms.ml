@@ -242,6 +242,7 @@ module type ELIOMFORMSIG =
 
     val make_string_uri :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -260,6 +261,9 @@ module type ELIOMFORMSIG =
     If [absolute] is set to [true], or if there is a protocol change,
     the URL will be absolute.
     
+    If [absolutepath] is set to [true], and [absolute] is [false],
+    the URL will be absolute, but without [protocol://server:port].
+    
     Default hostname is determined from the [Host] http header of the request
     (or the attribute of <host> tag in
     configuration file if the option [<usedefaulthostname/>] is set).
@@ -272,6 +276,7 @@ module type ELIOMFORMSIG =
 
     val make_uri :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -289,6 +294,7 @@ module type ELIOMFORMSIG =
 
     val make_uri_components :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -309,6 +315,7 @@ module type ELIOMFORMSIG =
 
     val make_post_uri_components :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
@@ -337,6 +344,7 @@ module type ELIOMFORMSIG =
 
     val a :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:a_attrib_t ->
       service:('get, unit, [< get_service_kind ],
@@ -398,6 +406,7 @@ module type ELIOMFORMSIG =
 
     val get_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, unit, [< get_service_kind ],
@@ -418,6 +427,7 @@ module type ELIOMFORMSIG =
 
     val lwt_get_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, unit, [< get_service_kind ],
@@ -436,6 +446,7 @@ module type ELIOMFORMSIG =
 
     val post_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
@@ -462,6 +473,7 @@ module type ELIOMFORMSIG =
 
     val lwt_post_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
@@ -935,6 +947,7 @@ let make_proto_prefix
 
 let make_uri_components_ (* does not take into account getparams *)
     ?(absolute = false) (* used to force absolute link *)
+    ?(absolutepath = false) (* used to force absolute link without protocol/server/port *)
     ?https
     ~service
     ~sp
@@ -954,6 +967,8 @@ let make_uri_components_ (* does not take into account getparams *)
   let absolute = 
     if absolute || https <> ssl 
     then Some (make_proto_prefix ~sp ?hostname ?port https)
+    else if absolutepath
+    then Some "/"
     else None 
   in
 (*VVV We trust current protocol? *) 
@@ -1083,6 +1098,7 @@ let make_uri_components_ (* does not take into account getparams *)
 
 let make_uri_components
     ?absolute
+    ?absolutepath
     ?https
     ~service
     ~sp
@@ -1095,6 +1111,7 @@ let make_uri_components
   let (uri, pregetparams, fragment) =
     make_uri_components_
       ?absolute
+      ?absolutepath
       ?https
       ~service
       ~sp
@@ -1137,6 +1154,7 @@ let make_string_uri_from_components (uri, params, fragment) =
 
 let make_string_uri
     ?absolute
+    ?absolutepath
     ?https
     ~service
     ~sp
@@ -1149,6 +1167,7 @@ let make_string_uri
   make_string_uri_from_components
     (make_uri_components
        ?absolute
+       ?absolutepath
        ?https
        ~service
        ~sp
@@ -1164,6 +1183,7 @@ let make_string_uri
 
 let make_post_uri_components_ (* do not take into account postparams *)
     ?(absolute = false)
+    ?(absolutepath = false)
     ?https
     ~service
     ~sp
@@ -1192,6 +1212,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
                 in
                 (make_uri_components
                    ~absolute
+                   ~absolutepath
                    ?https
                    ~service:(Eliom_services.change_get_num service attser s)
                    ~sp
@@ -1204,6 +1225,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
                  s)
             | _ -> (make_uri_components
                       ~absolute
+                      ~absolutepath
                       ?https
                       ~service
                       ~sp
@@ -1306,7 +1328,9 @@ let make_post_uri_components_ (* do not take into account postparams *)
             let absolute = 
               if absolute || https <> ssl 
               then Some (make_proto_prefix ~sp ?hostname ?port https)
-              else None 
+              else if absolutepath
+              then Some "/"
+              else None
             in
 
 
@@ -1342,6 +1366,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
 
 let make_post_uri_components
     ?absolute
+    ?absolutepath
     ?https
     ~service
     ~sp
@@ -1357,6 +1382,7 @@ let make_post_uri_components
   let (uri, getparams, fragment, prepostparams) =
     make_post_uri_components_
       ?absolute
+      ?absolutepath
       ?https
       ~service
       ~sp
@@ -1434,15 +1460,18 @@ module MakeForms = functor
 
       let make_uri
           ?absolute
+          ?absolutepath
           ?https ~service ~sp ?hostname ?port ?fragment
           ?keep_nl_params ?nl_params gp =
         Pages.uri_of_string (make_string_uri
-                               ?absolute ?https ?fragment ~service ~sp
+                               ?absolute ?absolutepath
+                               ?https ?fragment ~service ~sp
                                ?hostname ?port ?keep_nl_params ?nl_params gp)
 
 
       let a 
           ?absolute
+          ?absolutepath
           ?https
           ?a
           ~service
@@ -1457,6 +1486,7 @@ module MakeForms = functor
         let href = 
           make_string_uri
             ?absolute
+            ?absolutepath
             ?keep_nl_params
             ?nl_params
             ?https ~service ~sp ?hostname ?port ?fragment getparams
@@ -1467,6 +1497,7 @@ module MakeForms = functor
           bind
           return
           ?absolute
+          ?absolutepath
           ?https
           ?a
           ~service
@@ -1481,6 +1512,7 @@ module MakeForms = functor
         let (uri, hiddenparams, fragment) =
           make_uri_components_
             ?absolute
+            ?absolutepath
             ?https
             ~service
             ~sp
@@ -1529,21 +1561,21 @@ module MakeForms = functor
 
 
       let get_form
-          ?absolute
+          ?absolute ?absolutepath
           ?https ?a ~service ~sp ?hostname ?port ?fragment
           ?keep_nl_params ?nl_params f =
         get_form_ (fun x f -> f x) (fun x -> x) 
-          ?absolute
+          ?absolute ?absolutepath
           ?https ?a ~service ~sp ?keep_nl_params
           ?nl_params ?hostname ?port ?fragment f
 
       let lwt_get_form
-          ?absolute
+          ?absolute ?absolutepath
           ?https ?a ~service ~sp ?hostname ?port ?fragment
           ?keep_nl_params ?nl_params f =
         get_form_ 
           Lwt.bind Lwt.return
-          ?absolute
+          ?absolute ?absolutepath
           ?https ?a ~service ~sp ?hostname ?port ?fragment
           ?nl_params ?keep_nl_params f
 
@@ -1552,6 +1584,7 @@ module MakeForms = functor
           bind
           return
           ?absolute
+          ?absolutepath
           ?https
           ?a
           ~service
@@ -1571,6 +1604,7 @@ module MakeForms = functor
         let (uri, getparams, fragment, hiddenparams) = 
           make_post_uri_components_
             ?absolute
+            ?absolutepath
             ?https
             ~service
             ~sp
@@ -1608,23 +1642,23 @@ module MakeForms = functor
 
 
       let post_form
-          ?absolute 
+          ?absolute ?absolutepath
           ?https ?a ~service ~sp ?hostname ?port
           ?fragment ?keep_nl_params ?keep_get_na_params 
           ?nl_params f getparams =
         post_form_ (fun x f -> f x) (fun x -> x)
-          ?absolute
+          ?absolute ?absolutepath
           ?https ?a ~service ~sp ?hostname ?port
           ?fragment ?keep_get_na_params 
           ?keep_nl_params ?nl_params f getparams
 
       let lwt_post_form
-          ?absolute
+          ?absolute ?absolutepath
           ?https ?a ~service ~sp ?hostname ?port
           ?fragment ?keep_nl_params ?keep_get_na_params 
           ?nl_params f getparams =
         post_form_ Lwt.bind Lwt.return
-          ?absolute
+          ?absolute ?absolutepath
           ?https ?a ~service ~sp ?hostname ?port
           ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params f getparams
 

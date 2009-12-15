@@ -68,6 +68,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_string_uri :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -86,6 +87,9 @@ module type XHTMLFORMSSIG = sig
     If [absolute] is set to [true], or if there is a protocol change,
     the URL will be absolute.
     
+    If [absolutepath] is set to [true], and [absolute] is [false],
+    the URL will be absolute, but without [protocol://server:port].
+    
     Default hostname is determined from the [Host] http header of the request
     (or the attribute of <host> tag in
     configuration file if the option [<usedefaulthostname/>] is set).
@@ -98,6 +102,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_uri :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -115,6 +120,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_uri_components :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -135,6 +141,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_post_uri_components :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
@@ -163,6 +170,7 @@ module type XHTMLFORMSSIG = sig
 
     val a :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:a_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
@@ -224,6 +232,7 @@ module type XHTMLFORMSSIG = sig
 
     val get_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
@@ -244,6 +253,7 @@ module type XHTMLFORMSSIG = sig
 
     val lwt_get_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
@@ -262,6 +272,7 @@ module type XHTMLFORMSSIG = sig
 
     val post_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],
@@ -288,6 +299,7 @@ module type XHTMLFORMSSIG = sig
 
     val lwt_post_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],

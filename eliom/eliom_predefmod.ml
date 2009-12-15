@@ -314,6 +314,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_string_uri :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -332,6 +333,9 @@ module type XHTMLFORMSSIG = sig
     If [absolute] is set to [true], or if there is a protocol change,
     the URL will be absolute.
     
+    If [absolutepath] is set to [true], and [absolute] is [false],
+    the URL will be absolute, but without [protocol://server:port].
+    
     Default hostname is determined from the [Host] http header of the request
     (or the attribute of <host> tag in
     configuration file if the option [<usedefaulthostname/>] is set).
@@ -344,6 +348,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_uri :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -361,6 +366,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_uri_components :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -381,6 +387,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_post_uri_components :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
@@ -409,6 +416,7 @@ module type XHTMLFORMSSIG = sig
 
     val a :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:a_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
@@ -470,6 +478,7 @@ module type XHTMLFORMSSIG = sig
 
     val get_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
@@ -490,6 +499,7 @@ module type XHTMLFORMSSIG = sig
 
     val lwt_get_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
@@ -508,6 +518,7 @@ module type XHTMLFORMSSIG = sig
 
     val post_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],
@@ -534,6 +545,7 @@ module type XHTMLFORMSSIG = sig
 
     val lwt_post_form :
       ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],
@@ -1001,6 +1013,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
    we define a new module: *)
   let a = (a :
              ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:a_attrib attrib list ->
         service:('get, unit, [< get_service_kind ],
@@ -1015,6 +1028,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
              a_content elt list -> 'get ->
              a XHTML.M.elt :>
              ?absolute:bool ->
+      ?absolutepath:bool ->
       ?https:bool ->
       ?a:a_attrib attrib list ->
         service:('get, unit, [< get_service_kind ],
@@ -1043,6 +1057,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 
   let make_uri = (make_uri :
                     ?absolute:bool ->
+                   ?absolutepath:bool ->
                    ?https:bool ->
                    service:('get, unit, [< get_service_kind ],
                             [< suff ], 'gn, unit,
@@ -1057,6 +1072,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 
   let get_form = (get_form :
                     ?absolute:bool ->
+                   ?absolutepath:bool ->
                    ?https:bool ->
                    ?a:form_attrib attrib list ->
                    service:('get, unit, [< get_service_kind ],
@@ -1070,6 +1086,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                    ?nl_params: Eliom_parameters.nl_params_set ->
              ('gn -> form_content elt list) -> form elt :>
                    ?absolute:bool ->
+                   ?absolutepath:bool ->
                    ?https:bool ->
                    ?a:form_attrib attrib list ->
                    service:('get, unit, [< get_service_kind ],
@@ -1086,6 +1103,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 
   let lwt_get_form = (lwt_get_form :
                         ?absolute:bool ->
+                       ?absolutepath:bool ->
                        ?https:bool ->
                        ?a:form_attrib attrib list ->
                        service:('get, unit, [< get_service_kind ],
@@ -1099,6 +1117,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                        ?nl_params: Eliom_parameters.nl_params_set ->
                        ('gn -> form_content elt list Lwt.t) -> form elt Lwt.t :>
                        ?absolute:bool ->
+                       ?absolutepath:bool ->
                        ?https:bool ->
                        ?a:form_attrib attrib list ->
                        service:('get, unit, [< get_service_kind ],
@@ -1116,6 +1135,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 
   let post_form = (post_form :
                      ?absolute:bool ->
+                    ?absolutepath:bool ->
                     ?https:bool ->
                     ?a:form_attrib attrib list ->
                     service:('get, 'post, [< post_service_kind ],
@@ -1130,6 +1150,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                     ?nl_params: Eliom_parameters.nl_params_set ->
                     ('pn -> form_content elt list) -> 'get -> form elt :>
                     ?absolute:bool ->
+                    ?absolutepath:bool ->
                     ?https:bool ->
                     ?a:form_attrib attrib list ->
                     service:('get, 'post, [< post_service_kind ],
@@ -1146,6 +1167,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 
   let lwt_post_form = (lwt_post_form :
                          ?absolute:bool ->
+                        ?absolutepath:bool ->
                         ?https:bool ->
                         ?a:form_attrib attrib list ->
                         service:('get, 'post, [< post_service_kind ],
@@ -1161,6 +1183,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                         ('pn -> form_content elt list Lwt.t) -> 
                         'get -> form elt Lwt.t :>
                         ?absolute:bool ->
+                        ?absolutepath:bool ->
                         ?https:bool ->
                         ?a:form_attrib attrib list ->
                         service:('get, 'post, [< post_service_kind ],
