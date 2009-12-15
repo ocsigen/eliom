@@ -317,9 +317,19 @@ and tables =
 and sitedata = {
   site_dir : Ocsigen_lib.url_path;
   site_dir_string : string;
-  mutable servtimeout : (string * float option) list;
-  mutable datatimeout : (string * float option) list;
-  mutable perstimeout : (string * float option) list;
+
+   (* Timeouts:
+       - default for site
+       - then default for each full session name
+      The booleans means "has been set from config file"
+   *)
+   mutable servtimeout: 
+     (float option * bool) option * ((string * (float option * bool)) list);
+   mutable datatimeout: 
+     (float option * bool) option * ((string * (float option * bool)) list);
+   mutable perstimeout: 
+     (float option * bool) option * ((string * (float option * bool)) list);
+
   global_services : tables;
   session_services : tables servicecookiestable;
   session_data : datacookiestable;

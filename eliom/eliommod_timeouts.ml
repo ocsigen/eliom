@@ -54,6 +54,57 @@ let set_default_volatile_timeout t =
 
 let add k v l = (k, v)::List.remove_assoc k l
 
+let set_timeout get set get_default update =
+  fun ?fullsessname ~recompute_expdates 
+    override_configfile fromconfigfile sitedata t ->
+      let def, tl = get sitedata in
+      match fullsessname with
+        | None ->
+            (match def with
+               | Some (_, true) when not override_configfile -> ()
+                   (* if it has been set by config file 
+                      and we do not ask to override, we do nothing *)
+               | _ -> set sitedata (Some (t, fromconfigfile), tl))
+        | Some fullsessname ->
+            (* recompute_expdates works only if fullsessname is present *)
+            let oldtopt =
+              try
+                let (oldt, wasfromconf), newtl =
+                  Ocsigen_lib.list_assoc_remove fullsessname tl
+                in
+                if override_configfile || not wasfromconf
+                then
+                  set 
+                    sitedata
+                    (def, (fullsessname, (t, fromconfigfile))::newtl);
+                Some oldt
+              with Not_found -> 
+                set
+                  sitedata
+                  (def, (fullsessname, (t, fromconfigfile))::tl);
+                None
+            in
+            if recompute_expdates
+            then
+              let oldt = match oldtopt with
+                | Some o -> o
+                | None ->
+                    match def with
+                      | Some (t, _) -> t
+                      | None -> get_default ()
+              in
+              ignore 
+                (catch
+                   (fun () -> update fullsessname sitedata oldt t)
+                   (function e ->
+                      Ocsigen_messages.warning
+                        ("Eliom: Error while updating timeouts: "^
+                           Ocsigen_lib.string_of_exn e);
+                      Lwt.return ())
+                )
+                (*VVV Check possible exceptions raised *)
+
+
 (* global timeout = timeout for the whole site (may be changed dynamically) *)
 let (find_global_service_timeout,
      find_global_data_timeout,
@@ -65,101 +116,55 @@ let (find_global_service_timeout,
   (
    (* find_global_service_timeout *)
    (fun fullsessname sitedata ->
-     try
-       List.assoc fullsessname sitedata.Eliom_common.servtimeout
-     with Not_found -> get_default_service_timeout ()),
+      let def, tl = sitedata.Eliom_common.servtimeout in
+      try
+        fst (List.assoc fullsessname tl)
+      with Not_found -> 
+        match def with
+          | Some (t, _) -> t
+          | None -> get_default_service_timeout ()),
 
    (* find_global_data_timeout *)
    (fun fullsessname sitedata ->
-     try
-       List.assoc fullsessname sitedata.Eliom_common.datatimeout
-     with Not_found -> get_default_data_timeout ()),
+      let def, tl = sitedata.Eliom_common.datatimeout in
+      try
+        fst (List.assoc fullsessname tl)
+      with Not_found ->
+        match def with
+          | Some (t, _) -> t
+          | None -> get_default_data_timeout ()),
 
    (* find_global_persistent_timeout *)
    (fun fullsessname sitedata ->
-     try
-       List.assoc fullsessname sitedata.Eliom_common.perstimeout
-     with Not_found -> get_default_persistent_timeout ()),
+      let def, tl = sitedata.Eliom_common.perstimeout in
+      try
+        fst (List.assoc fullsessname tl)
+      with Not_found ->
+        match def with
+          | Some (t, _) -> t
+          | None -> get_default_persistent_timeout ()),
 
    (* set_global_service_timeout2 *)
-   (fun fullsessname ~recompute_expdates sitedata t ->
-     if recompute_expdates
-     then
-       let oldt =
-         try
-           List.assoc fullsessname sitedata.Eliom_common.servtimeout
-         with Not_found -> get_default_service_timeout ()
-       in
-       sitedata.Eliom_common.servtimeout <-
-         add fullsessname t sitedata.Eliom_common.servtimeout;
-       ignore (catch
-                 (fun () ->
-                   Eliommod_sessadmin.update_serv_exp
-                     fullsessname sitedata oldt t)
-                 (function e ->
-                   Ocsigen_messages.warning
-                     ("Eliom: Error while updating global service timeouts: "^
-                      Ocsigen_lib.string_of_exn e);
-                   Lwt.return ())
-              )
-         (*VVV Check possible exceptions raised *)
-     else
-       sitedata.Eliom_common.servtimeout <-
-         add fullsessname t sitedata.Eliom_common.servtimeout
-   ),
+    (set_timeout
+      (fun sitedata -> sitedata.Eliom_common.servtimeout)
+      (fun sitedata v -> sitedata.Eliom_common.servtimeout <- v)
+      get_default_service_timeout
+      Eliommod_sessadmin.update_serv_exp),
 
    (* set_global_data_timeout2 *)
-   (fun fullsessname ~recompute_expdates sitedata t ->
-     if recompute_expdates
-     then
-       let oldt =
-         try
-           List.assoc fullsessname sitedata.Eliom_common.datatimeout
-         with Not_found -> get_default_data_timeout ()
-       in
-       sitedata.Eliom_common.datatimeout <-
-         add fullsessname t sitedata.Eliom_common.datatimeout;
-       ignore (catch
-                 (fun () ->
-                   Eliommod_sessadmin.update_data_exp
-                     fullsessname sitedata oldt t)
-                 (function e ->
-                   Ocsigen_messages.warning
-                     ("Eliom: Error while updating global data timeouts: "^
-                      Ocsigen_lib.string_of_exn e);
-                   Lwt.return ())
-              )
-         (*VVV Check possible exceptions raised *)
-     else
-       sitedata.Eliom_common.datatimeout <-
-         add fullsessname t sitedata.Eliom_common.datatimeout
-   ),
+    (set_timeout
+      (fun sitedata -> sitedata.Eliom_common.datatimeout)
+      (fun sitedata v -> sitedata.Eliom_common.datatimeout <- v)
+      get_default_data_timeout
+      Eliommod_sessadmin.update_data_exp),
 
    (* set_global_persistent_timeout *)
-   (fun fullsessname ~recompute_expdates sitedata t ->
-     if recompute_expdates
-     then
-       let oldt =
-         try
-           List.assoc fullsessname sitedata.Eliom_common.perstimeout
-         with Not_found -> get_default_persistent_timeout ()
-       in
-       sitedata.Eliom_common.perstimeout <-
-         add fullsessname t sitedata.Eliom_common.perstimeout;
-       ignore (catch
-                 (fun () ->
-                   Eliommod_sessadmin.update_pers_exp fullsessname oldt t)
-                 (function e ->
-                   Ocsigen_messages.warning
-                     ("Eliom: Error while updating global persistent timeouts: "^
-                      Ocsigen_lib.string_of_exn e);
-                   Lwt.return ())
-              )
-         (*VVV Check possible exceptions raised *)
-     else
-       sitedata.Eliom_common.perstimeout <-
-         add fullsessname t sitedata.Eliom_common.perstimeout
-   )
+    (set_timeout
+      (fun sitedata -> sitedata.Eliom_common.perstimeout)
+      (fun sitedata v -> sitedata.Eliom_common.perstimeout <- v)
+      get_default_persistent_timeout
+      Eliommod_sessadmin.update_pers_exp)
+
   )
 
 let get_global_service_timeout ~session_name sitedata =
@@ -176,22 +181,6 @@ let get_global_data_timeout ~session_name sitedata =
   in
   find_global_data_timeout fullsessname sitedata
 
-let set_global_service_timeout ~session_name ~recompute_expdates sitedata
-    timeout =
-  let fullsessname = Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string session_name
-  in
-  set_global_service_timeout2
-    fullsessname ~recompute_expdates sitedata timeout
-
-let set_global_data_timeout ~session_name ~recompute_expdates sitedata
-    timeout =
-  let fullsessname =
-    Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string session_name
-  in
-  set_global_data_timeout2 fullsessname ~recompute_expdates sitedata timeout
-
 let get_global_persistent_timeout ~session_name sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
@@ -199,13 +188,47 @@ let get_global_persistent_timeout ~session_name sitedata =
   in
   find_global_persistent_timeout fullsessname sitedata
 
+let set_global_service_timeout ~session_name ~recompute_expdates 
+    override_configfile sitedata timeout =
+  let fullsessname = Eliom_common.make_fullsessname2
+    sitedata.Eliom_common.site_dir_string session_name
+  in
+  set_global_service_timeout2 ~fullsessname ~recompute_expdates
+    override_configfile false sitedata timeout
+
+let set_global_data_timeout ~session_name ~recompute_expdates
+    override_configfile sitedata timeout =
+  let fullsessname =
+    Eliom_common.make_fullsessname2
+      sitedata.Eliom_common.site_dir_string session_name
+  in
+  set_global_data_timeout2 ~fullsessname ~recompute_expdates
+    override_configfile false sitedata timeout
+
 let set_global_persistent_timeout
-    ~session_name ~recompute_expdates sitedata timeout =
+    ~session_name ~recompute_expdates override_configfile sitedata timeout =
   let fullsessname =
     Eliom_common.make_fullsessname2
       sitedata.Eliom_common.site_dir_string session_name
   in
   set_global_persistent_timeout2
-    fullsessname ~recompute_expdates sitedata timeout
+    ~fullsessname ~recompute_expdates
+    override_configfile false sitedata timeout
+
+
+let set_default_global_service_timeout
+    override_configfile fromconfigfile sitedata timeout =
+  set_global_service_timeout2 ~recompute_expdates:false
+    override_configfile fromconfigfile sitedata timeout
+
+let set_default_global_data_timeout
+    override_configfile fromconfigfile sitedata timeout =
+  set_global_data_timeout2 ~recompute_expdates:false
+    override_configfile fromconfigfile sitedata timeout
+
+let set_default_global_persistent_timeout	
+    override_configfile fromconfigfile sitedata timeout =
+  set_global_persistent_timeout2 ~recompute_expdates:false
+    override_configfile fromconfigfile sitedata timeout
 
 

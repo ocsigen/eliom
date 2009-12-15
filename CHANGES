@@ -29,6 +29,7 @@
     (was: compare the service)
   * Eliom: textarea now take a string (was pcdata)
   * Eliom: The type of the iterator for lists in parameters has changed
+  * Eliom: New options in configuration file to set session timeouts
   * Server: now possible to give the config file name to reload server command
   * Server: now possible to do a "graceful shutdown" of the server
     using the "shutdown" server command

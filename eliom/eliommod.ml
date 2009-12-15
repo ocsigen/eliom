@@ -77,9 +77,9 @@ let new_sitedata =
     with
       | Not_found ->
           let sitedata =
-            {Eliom_common.servtimeout = [];
-             datatimeout = [];
-             perstimeout = [];
+            {Eliom_common.servtimeout = None, [];
+             datatimeout = None, [];
+             perstimeout = None, [];
              site_dir = site_dir;
 (*VVV encode=false??? *)
              site_dir_string = Ocsigen_lib.string_of_url_path
@@ -138,55 +138,84 @@ let new_sitedata =
 (****************************************************************************)
 (****************************************************************************)
 (****************************************************************************)
+open Simplexmlparser
 
 
+(* The following is common to global config and site config *)
+let rec parse_eliom_option
+    allow_session_name
+    (set_volatile_timeout,
+     set_data_timeout,
+     set_service_timeout,
+     set_persistent_timeout)
+    = 
+  let parse_timeout_attrs tn attrs = 
+    let aux = function
+      | [("value", s)] -> s, None
+      | [("sessionname", sn); ("value", s)]
+      | [("value", s); ("sessionname", sn)] -> s, Some sn
+      | _ -> 
+          raise 
+            (Error_in_config_file
+               ("Eliom: Wrong attribute name for "^tn^" tag"))
+    in 
+    let a, sn = aux attrs in
+    let a = match a with
+      | "infinity" -> None
+      | a -> 
+          try Some (float_of_string a)
+          with Failure _ -> 
+            raise 
+              (Error_in_config_file
+                 ("Eliom: Wrong attribute value for "^tn^" tag"))
+    in
+    if allow_session_name || sn = None
+    then
+      let sn = match sn with
+        | None -> None
+        | Some "" -> Some None
+        | c -> Some c
+      in a, sn
+    else
+      raise 
+        (Error_in_config_file
+           ("Eliom: sessionname attribute not allowed for "^tn^" tag in global configuration"))
+  in
+  function
+  | (Element ("volatiletimeout", attrs, [])) ->
+      let t, snoo = parse_timeout_attrs "volatiletimeout" attrs in
+      set_volatile_timeout snoo t
+  | (Element ("datatimeout", attrs, [])) ->
+      let t, snoo = parse_timeout_attrs "datatimeout" attrs in
+      set_data_timeout snoo t
+  | (Element ("servicetimeout", attrs, [])) ->
+      let t, snoo = parse_timeout_attrs "servicetimeout" attrs in
+      set_service_timeout snoo t
+  | (Element ("persistenttimeout", attrs, [])) ->
+      let t, snoo = parse_timeout_attrs "persistenttimeout" attrs in
+      set_persistent_timeout snoo t
+  | (Element (s, _, _)) ->
+      raise (Error_in_config_file
+               ("Unexpected content <"^s^"> inside eliom config"))
+  | _ -> raise (Error_in_config_file ("Unexpected content inside eliom config"))
 
+
+let parse_eliom_options f l = 
+  let rec aux rest = function
+    | [] -> rest
+    | e::l -> 
+        try
+          parse_eliom_option true f e; 
+          aux rest l
+        with Error_in_config_file _ -> aux (e::rest) l
+  in List.rev (aux [] l)
 
 
 (*****************************************************************************)
 (** Parsing global configuration for Eliommod: *)
-open Simplexmlparser
 
 let rec parse_global_config = function
   | [] -> ()
-  | (Element ("timeout", [("value", s)], []))::ll
-  | (Element ("volatiletimeout", [("value", s)], []))::ll ->
-      (try
-        Eliommod_timeouts.set_default_volatile_timeout
-          (Some (float_of_string s))
-      with Failure _ ->
-        if (s = "infinity")
-        then Eliommod_timeouts.set_default_volatile_timeout None
-        else
-          raise (Error_in_config_file "Eliom: Wrong value for value attribute of <timeout> or <volatiletimeout> tag"));
-      parse_global_config ll
-  | (Element ("datatimeout", [("value", s)], []))::ll ->
-      (try
-        Eliommod_timeouts.set_default_data_timeout (Some (float_of_string s))
-      with Failure _ ->
-        if (s = "infinity")
-        then Eliommod_timeouts.set_default_data_timeout None
-        else
-          raise (Error_in_config_file "Eliom: Wrong value for value attribute of <datatimeout> tag"));
-      parse_global_config ll
-  | (Element ("servicetimeout", [("value", s)], []))::ll ->
-      (try
-        Eliommod_timeouts.set_default_service_timeout (Some (float_of_string s))
-      with Failure _ ->
-        if (s = "infinity")
-        then Eliommod_timeouts.set_default_service_timeout None
-        else
-          raise (Error_in_config_file "Eliom: Wrong value for value attribute of <servicetimeout> tag"));
-      parse_global_config ll
-  | (Element ("persistenttimeout", [("value", s)], []))::ll ->
-      (try
-        Eliommod_timeouts.set_default_persistent_timeout (Some (float_of_string s))
-      with Failure _ ->
-        if (s = "infinity")
-        then Eliommod_timeouts.set_default_persistent_timeout None
-        else
-          raise (Error_in_config_file "Eliom: Wrong value for value attribute of <persistenttimeout> tag"));
-      parse_global_config ll
   | (Element ("sessiongcfrequency", [("value", s)], p))::ll ->
       (try
         let t = float_of_string s in
@@ -227,12 +256,19 @@ let rec parse_global_config = function
                 with Failure _ ->
                   if s = "infinity"
                   then Eliommod_gc.set_persistentsessiongcfrequency None
-                  else raise (Error_in_config_file
-                                "Eliom: Wrong value for <persistentsessiongcfrequency>"));
+                  else raise
+                    (Error_in_config_file
+                       "Eliom: Wrong value for <persistentsessiongcfrequency>"));
                 parse_global_config ll
-  | (Element (tag,_,_))::ll ->
+  | e::ll ->
+      parse_eliom_option
+        false
+        ((fun _ -> Eliommod_timeouts.set_default_volatile_timeout),
+         (fun _ -> Eliommod_timeouts.set_default_data_timeout),
+         (fun _ -> Eliommod_timeouts.set_default_service_timeout),
+         (fun _ -> Eliommod_timeouts.set_default_persistent_timeout))
+        e;
       parse_global_config ll
-  | _ -> raise (Error_in_config_file ("Unexpected content inside eliom config"))
 
 
 
@@ -439,6 +475,29 @@ let parse_config hostpattern site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
  *)
+        let set_timeout f session_name_oo v =
+          f
+            ?fullsessname:(Ocsigen_lib.apply_option 
+                             (Eliom_common.make_fullsessname2
+                                sitedata.Eliom_common.site_dir_string)
+                             session_name_oo)
+            ~recompute_expdates:false
+            true
+            true
+            sitedata
+            v
+        in
+        let content =
+          parse_eliom_options
+            ((fun snoo v -> 
+                set_timeout Eliommod_timeouts.set_global_data_timeout2 snoo v;
+                set_timeout Eliommod_timeouts.set_global_service_timeout2 snoo v
+             ),
+             (set_timeout Eliommod_timeouts.set_global_data_timeout2),
+             (set_timeout Eliommod_timeouts.set_global_service_timeout2),
+             (set_timeout Eliommod_timeouts.set_global_persistent_timeout2))
+            content
+        in
         (match parse_module_attrs None atts with
           | Some file_or_name -> 
               load_eliom_module sitedata file_or_name content

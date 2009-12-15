@@ -180,6 +180,21 @@ val get_cookies : sp:server_params -> string Ocsigen_lib.String_Table.t
     Sessions whose timeout has been set individually with
     {!Eliom_sessions.set_volatile_session_timeout} won't be affected.
 
+    If [~session_name] is not present, it is the default for all session names,
+    and in that case [recompute_expdates] is ignored. [~session_name:None]
+    means the default session name.
+
+    If [~override_configfile] is [true] (default ([false]),
+    then the function will set the timeout even if it has been
+    modified in the configuration file.
+    It means that by default, these functions have no effect
+    if there is a value in the configuration file.
+    This gives the ability to override the values choosen by the module
+    in the configuration file.
+    Use [~override_configfile:true] for example if your
+    Eliom module wants to change the values afterwards
+    (for example in the site configuration Web interface).
+
     {e Warning: If you use one of these functions after the
     initialisation phase, you must give the [~sp] parameter, otherwise
     it will raise the exception
@@ -191,30 +206,43 @@ val get_cookies : sp:server_params -> string Ocsigen_lib.String_Table.t
     service session and volatile data session) (server side).
 *)
 val set_global_volatile_session_timeout :
-  ?session_name:string -> 
+  ?session_name:string option -> 
   ?sp:server_params ->
-  ?recompute_expdates:bool -> float option -> unit
+  ?recompute_expdates:bool -> 
+  ?override_configfile:bool ->
+  float option -> unit
 
 (** Sets the timeout for service sessions (server side).
 *)
 val set_global_service_session_timeout :
-  ?session_name:string -> 
+  ?session_name:string option -> 
   ?sp:server_params ->
-  ?recompute_expdates:bool -> float option -> unit
+  ?recompute_expdates:bool -> 
+  ?override_configfile:bool ->
+  float option -> unit
 
 (** Sets the timeout for volatile (= "in memory") data sessions (server side).
 *)
 val set_global_volatile_data_session_timeout :
-  ?session_name:string -> 
+  ?session_name:string option -> 
   ?sp:server_params ->
-  ?recompute_expdates:bool -> float option -> unit
+  ?recompute_expdates:bool -> 
+  ?override_configfile:bool ->
+  float option -> unit
 
 (** Sets the timeout for persistent sessions (server side).
 *)
-val set_global_persistent_data_session_timeout : ?session_name:string ->
+val set_global_persistent_data_session_timeout :
+  ?session_name:string option ->
   ?sp:server_params -> 
   ?recompute_expdates:bool ->
+  ?override_configfile:bool ->
   float option -> unit
+
+
+
+
+
 
 (** Returns the timeout for service sessions (server side).
 *)
@@ -481,9 +509,9 @@ val set_default_max_volatile_data_sessions_per_subnet :
 
 
 (** Sets the maximum number of service sessions in the current session
-    group (or for the client IP address, if there is no group).
+    group (or for the client sub network, if there is no group).
 *)
-val set_max_service_session_for_group_or_ip :
+val set_max_service_session_for_group_or_subnet :
   ?session_name:string ->
   ?secure:bool ->
   sp:server_params ->
@@ -491,9 +519,9 @@ val set_max_service_session_for_group_or_ip :
   unit
 
 (** Sets the maximum number of volatile data sessions in the current session
-    group (or for the client IP address, if there is no group).
+    group (or for the client sub network, if there is no group).
 *)
-val set_max_volatile_data_session_for_group_or_ip :
+val set_max_volatile_data_session_for_group_or_subnet :
   ?session_name:string ->
   ?secure:bool ->
   sp:server_params ->
@@ -1057,6 +1085,7 @@ val get_post_params : sp:server_params -> (string * string) list Lwt.t
 val get_all_post_params : sp:server_params -> (string * string) list
 
 
+(*
 (** {2 Default timeouts} *)
 
 (** returns the default timeout for service sessions (server side).
@@ -1075,6 +1104,13 @@ val get_default_service_session_timeout : unit -> float option
     *)
 val get_default_volatile_data_session_timeout : unit -> float option
 
+(** returns the default timeout for sessions (server side).
+    The default timeout is common for all sessions for which no other value
+    has been set. At the beginning of the server, it is taken from the
+    configuration file, (or set to default value).
+    [None] = no timeout.
+    *)
+val get_default_persistent_data_session_timeout : unit -> float option
 
 (** sets the default timeout for volatile (= "in memory")
    sessions (i.e. both service session and volatile data session)
@@ -1102,15 +1138,6 @@ val set_default_service_session_timeout : float option -> unit
     *)
 val set_default_volatile_data_session_timeout : float option -> unit
 
-
-(** returns the default timeout for sessions (server side).
-    The default timeout is common for all sessions for which no other value
-    has been set. At the beginning of the server, it is taken from the
-    configuration file, (or set to default value).
-    [None] = no timeout.
-    *)
-val get_default_persistent_data_session_timeout : unit -> float option
-
 (** sets the default timeout for sessions (server side).
     [None] = no timeout.
 
@@ -1118,6 +1145,7 @@ val get_default_persistent_data_session_timeout : unit -> float option
     probably use [set_global_persistent_data_session_timeout] instead.
     *)
 val set_default_persistent_data_session_timeout : float option -> unit
+*)
 
 
 

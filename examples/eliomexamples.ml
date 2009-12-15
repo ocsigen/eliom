@@ -1418,11 +1418,15 @@ let close_from_outside =
 let set_timeout =
 register_new_service
     ~path:["set_timeout"]
-    ~get_params:(int "t" ** bool "recompute")
-    (fun sp (t, recompute) () ->
-      set_global_persistent_data_session_timeout ~session_name:"persistent_sessions"
+    ~get_params:(int "t" ** (bool "recompute" ** bool "overrideconfig"))
+    (fun sp (t, (recompute, override_configfile)) () ->
+      set_global_persistent_data_session_timeout
+        ~override_configfile
+        ~session_name:(Some "persistent_sessions")
         ~recompute_expdates:recompute ~sp (Some (float_of_int t));
-      set_global_volatile_session_timeout ~session_name:"action_example2"
+      set_global_volatile_session_timeout
+        ~override_configfile
+        ~session_name:(Some "action_example2")
         ~recompute_expdates:recompute ~sp (Some (float_of_int t));
       return
         (html
@@ -1436,12 +1440,15 @@ register_new_service
 
 
 let create_form =
-  (fun (number_name, boolname) ->
+  (fun (number_name, (bool1name, bool2name)) ->
     [p [pcdata "New timeout: ";
         Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:number_name ();
         br ();
         pcdata "Check the box if you want to recompute all timeouts: ";
-        Eliom_predefmod.Xhtml.bool_checkbox ~name:boolname ();
+        Eliom_predefmod.Xhtml.bool_checkbox ~name:bool1name ();
+        br ();
+        pcdata "Check the box if you want to override configuration file: ";
+        Eliom_predefmod.Xhtml.bool_checkbox ~name:bool2name ();
         Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Submit" ()]])
 
 let set_timeout_form =

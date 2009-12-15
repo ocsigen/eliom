@@ -160,6 +160,7 @@ let get_persistent_data_session_cookie ?session_name ?secure ~sp () =
        | Not_found | Eliom_common.Eliom_Session_expired -> return None
        | e -> fail e)
 
+(*
 let get_default_service_session_timeout = Eliommod_timeouts.get_default_service_timeout
 let set_default_service_session_timeout = Eliommod_timeouts.set_default_service_timeout
 
@@ -172,25 +173,68 @@ let set_default_volatile_data_session_timeout =
 let set_default_volatile_session_timeout =
   Eliommod_timeouts.set_default_volatile_timeout
 
+let get_default_persistent_data_session_timeout =
+  Eliommod_timeouts.get_default_persistent_timeout
+
+let set_default_persistent_data_session_timeout =
+  Eliommod_timeouts.set_default_persistent_timeout
+  *)
+
 let set_global_service_session_timeout
-    ?session_name ?sp ?(recompute_expdates = false) timeout =
+    ?session_name ?sp ?(recompute_expdates = false)
+    ?(override_configfile = false) timeout =
   let sitedata = find_sitedata "set_global_service_timeout" sp in
-  Eliommod_timeouts.set_global_service_timeout
-    ~session_name ~recompute_expdates sitedata timeout
+  match session_name with
+    | Some session_name ->
+        Eliommod_timeouts.set_global_service_timeout
+          ~session_name ~recompute_expdates override_configfile sitedata timeout
+    | None ->
+        Eliommod_timeouts.set_default_global_service_timeout
+          override_configfile false sitedata timeout
 
 let set_global_volatile_data_session_timeout
-    ?session_name ?sp ?(recompute_expdates = false) timeout =
+    ?session_name ?sp ?(recompute_expdates = false)
+    ?(override_configfile = false) timeout =
   let sitedata = find_sitedata "set_global_data_timeout" sp in
-  Eliommod_timeouts.set_global_data_timeout
-    ~session_name ~recompute_expdates sitedata timeout
+  match session_name with
+    | Some session_name ->
+        Eliommod_timeouts.set_global_data_timeout
+          ~session_name ~recompute_expdates override_configfile sitedata timeout
+    | None ->
+        Eliommod_timeouts.set_default_global_data_timeout
+          override_configfile false sitedata timeout
 
 let set_global_volatile_session_timeout
-    ?session_name ?sp ?(recompute_expdates = false) timeout =
+    ?session_name ?sp ?(recompute_expdates = false) 
+    ?(override_configfile = false) timeout =
   let sitedata = find_sitedata "set_global_volatile_timeouts" sp in
-  Eliommod_timeouts.set_global_service_timeout
-    ~session_name ~recompute_expdates sitedata timeout;
-  Eliommod_timeouts.set_global_data_timeout
-    ~session_name ~recompute_expdates sitedata timeout
+  match session_name with
+    | Some session_name ->
+        Eliommod_timeouts.set_global_service_timeout
+          ~session_name ~recompute_expdates
+          override_configfile sitedata timeout;
+        Eliommod_timeouts.set_global_data_timeout
+          ~session_name ~recompute_expdates
+          override_configfile sitedata timeout
+    | None ->
+        Eliommod_timeouts.set_default_global_service_timeout
+          override_configfile false sitedata timeout;
+        Eliommod_timeouts.set_default_global_data_timeout
+          override_configfile false sitedata timeout
+
+let set_global_persistent_data_session_timeout
+    ?session_name ?sp ?(recompute_expdates = false)
+    ?(override_configfile = false) timeout =
+  let sitedata = find_sitedata "set_global_persistent_timeout" sp in
+  match session_name with
+    | Some session_name ->
+        Eliommod_timeouts.set_global_persistent_timeout
+          ~session_name ~recompute_expdates
+          override_configfile sitedata timeout
+    | None ->
+        Eliommod_timeouts.set_default_global_service_timeout
+          override_configfile false sitedata timeout
+
 
 let get_global_service_session_timeout ?session_name ?sp () =
   let sitedata = find_sitedata "get_global_timeout" sp in
@@ -200,22 +244,13 @@ let get_global_volatile_data_session_timeout ?session_name ?sp () =
   let sitedata = find_sitedata "get_global_timeout" sp in
   Eliommod_timeouts.get_global_data_timeout ?session_name sitedata
 
-let get_default_persistent_data_session_timeout =
-  Eliommod_timeouts.get_default_persistent_timeout
-let set_default_persistent_data_session_timeout =
-  Eliommod_timeouts.set_default_persistent_timeout
-
-let set_global_persistent_data_session_timeout
-    ?session_name ?sp ?(recompute_expdates = false) timeout =
-  let sitedata = find_sitedata "set_global_persistent_timeout" sp in
-  Eliommod_timeouts.set_global_persistent_timeout
-    ~session_name ~recompute_expdates sitedata timeout
-
 let get_global_persistent_data_session_timeout ?session_name ?sp () =
   let sitedata = find_sitedata "get_global_persistent_timeout" sp in
   Eliommod_timeouts.get_global_persistent_timeout ?session_name sitedata
 
 
+
+(* Now for current session *)
 let set_service_session_timeout ?session_name ?secure ~sp t =
   let c = 
     Eliommod_sersess.find_or_create_service_cookie ?session_name ~secure ~sp () 
@@ -523,14 +558,14 @@ let set_default_max_volatile_data_sessions_per_subnet ?sp n =
 
 
 
-let set_max_service_session_for_group_or_ip ?session_name ?secure ~sp m =
+let set_max_service_session_for_group_or_subnet ?session_name ?secure ~sp m =
   let c =
     Eliommod_sersess.find_or_create_service_cookie
       ?session_name ~secure ~sp ()
   in
   Eliommod_sessiongroups.Data.set_max c.Eliom_common.sc_session_group_node m
 
-let set_max_volatile_data_session_for_group_or_ip ?session_name ?secure ~sp m =
+let set_max_volatile_data_session_for_group_or_subnet ?session_name ?secure ~sp m =
   let c =
     Eliommod_datasess.find_or_create_data_cookie ?session_name ~secure ~sp ()
   in

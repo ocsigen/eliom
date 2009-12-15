@@ -19,4 +19,5 @@ val update_serv_exp :
 val update_data_exp :
   string ->
   Eliom_common.sitedata -> float option -> float option -> unit Lwt.t
-val update_pers_exp : string -> float option -> float option -> unit Lwt.t
+val update_pers_exp : 
+  string -> 'a -> float option -> float option -> unit Lwt.t
