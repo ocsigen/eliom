@@ -193,7 +193,7 @@ module type ELIOMFORMSIG =
 
     val make_string_uri :
       ?absolute:bool ->
-      ?absolutepath:bool ->
+      ?absolute_path:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -212,7 +212,7 @@ module type ELIOMFORMSIG =
     If [absolute] is set to [true], or if there is a protocol change,
     the URL will be absolute.
     
-    If [absolutepath] is set to [true], and [absolute] is [false],
+    If [absolute_path] is set to [true], and [absolute] is [false],
     the URL will be absolute, but without [protocol://server:port].
     
     Default hostname is determined from the [Host] http header of the request
@@ -227,7 +227,7 @@ module type ELIOMFORMSIG =
 
     val make_uri :
       ?absolute:bool ->
-      ?absolutepath:bool ->
+      ?absolute_path:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -245,7 +245,7 @@ module type ELIOMFORMSIG =
 
     val make_uri_components :
       ?absolute:bool ->
-      ?absolutepath:bool ->
+      ?absolute_path:bool ->
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
@@ -266,7 +266,7 @@ module type ELIOMFORMSIG =
 
     val make_post_uri_components :
       ?absolute:bool ->
-      ?absolutepath:bool ->
+      ?absolute_path:bool ->
       ?https:bool ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
@@ -295,7 +295,7 @@ module type ELIOMFORMSIG =
 
     val a :
       ?absolute:bool ->
-      ?absolutepath:bool ->
+      ?absolute_path:bool ->
       ?https:bool ->
       ?a:a_attrib_t ->
       service:('get, unit, [< get_service_kind ],
@@ -357,7 +357,7 @@ module type ELIOMFORMSIG =
 
     val get_form :
       ?absolute:bool ->
-      ?absolutepath:bool ->
+      ?absolute_path:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, unit, [< get_service_kind ],
@@ -378,7 +378,7 @@ module type ELIOMFORMSIG =
 
     val lwt_get_form :
       ?absolute:bool ->
-      ?absolutepath:bool ->
+      ?absolute_path:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, unit, [< get_service_kind ],
@@ -397,7 +397,7 @@ module type ELIOMFORMSIG =
 
     val post_form :
       ?absolute:bool ->
-      ?absolutepath:bool ->
+      ?absolute_path:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
@@ -424,7 +424,7 @@ module type ELIOMFORMSIG =
 
     val lwt_post_form :
       ?absolute:bool ->
-      ?absolutepath:bool ->
+      ?absolute_path:bool ->
       ?https:bool ->
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
@@ -927,7 +927,7 @@ val reconstruct_relative_url_path :
 
 val make_string_uri :
   ?absolute:bool ->
-  ?absolutepath:bool ->
+  ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b, [< Eliom_services.service_kind ],
            [< Eliom_services.suff ], 'c, 'd, [< Eliom_services.registrable ])
