@@ -47,6 +47,14 @@
   * Server: Now accepting several requests at a time
     (as explained in "Accept()able strategies" by Tim Brecht & all) 
   * Rewritemod: more rewriting possibilities (still very basic)
+  * Eliom menus are now more robust when finding which item is active
+  * Fixed handling of incorrectly-sized multipart requests. Thanks to
+    Mauricio Fernandez for noticing the bug
+  * Upload directory and maximum file size can now be configured on a
+    per-site basis
+  * Renamed the field of Ocsigen_http_frame.t
+  * Javascript events support in Xhtml.M ; Thanks to john @ 5070.info
+    for the patch
 
 ===== 1.2.2 (2009-10-17) =====
 
