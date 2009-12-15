@@ -26,13 +26,12 @@ open Xhtmltypes_duce
 open Eliom_tools_common
 
 
-let same_service sp s s' =
-  make_uri s sp () = make_uri s' sp ()
-
 let same_service_opt sp s sopt =
+  let same_url url = make_uri ~absolute_path:true ~sp ~service:s () = url in
   match sopt with
-    | None -> false
-    | Some s' -> same_service sp s s'
+    | None -> (* MAYBE : use this or get_original_full_path_string *)
+        same_url ("/" ^ Eliom_sessions.get_current_full_path_string sp)
+    | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ~sp ())
 
 
 let attrib_list (s: string list): string = String.concat " " s
@@ -87,7 +86,7 @@ let menu ?(classe=[]) ?id first l ?service:current ~sp =
 let find_in_hierarchy sp service (main, pages) =
   let rec aux service i = function
     | [] -> raise Not_found
-    | (_, Site_tree (Main_page s, hsl))::_ when same_service sp s service ->
+    | (_, Site_tree (Main_page s, hsl))::_ when same_service_opt sp s service ->
         (try
           i::aux service 0 hsl
         with Not_found -> [i])
@@ -97,10 +96,7 @@ let find_in_hierarchy sp service (main, pages) =
           i::aux service 0 hsl
         with Not_found -> aux service (i+1) l)
   in
-  try
-    match service with
-      | None -> []
-      | Some service -> aux service 0 pages
+  try aux service 0 pages
   with Not_found -> []
 
 

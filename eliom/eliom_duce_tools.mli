@@ -49,6 +49,9 @@ val menu :
      (infos, <:xmllist< More infos >>)
    ] current sp]
 
+   The [service] argument is used to find which item(s) to highlight. If
+   service is [None], the current url is used.
+
 *)
 
 (** {2 Hierchical sites } *)
@@ -62,9 +65,10 @@ val menu :
     a depth-first algorithm. It means that the first menu item will be
     displayed, followed by the whole sub-menu for this item, then the second
     menu item with its sub-menu, and so on.
-    By default, only the sub-menus corresponding to the current page
-    are displayed. If you want all the sub-menus to be displayed, specify
-    [?whole_tree=true].
+    By default, only the sub-menus for to the url corresponding to
+    the argument [service] are displayed. If you want all the sub-menus to be
+    displayed, specify [?whole_tree=true]. If [service] is [None], the current
+    page is used.
  *)
 val hierarchical_menu_depth_first :
   ?classe:string list ->
@@ -88,8 +92,9 @@ val hierarchical_menu_depth_first :
     The menu is constructed by exploring the tree using
     a breadth_first algorithm. It means that the whole menu for one
     level will be displayed, followed by all sub-menus.
-    Only the sub-menu corresponding to the current page
-    is displayed.
+
+    Only the sub-menus for to the url corresponding to the argument [service]
+    are displayed. If [service] is [None], the current url is used.
  *)
 val hierarchical_menu_breadth_first :
   ?classe:string list ->
