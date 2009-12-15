@@ -5066,7 +5066,7 @@ let _ =
 (*wiki*
 
 
-        ===@@id="p3config"@@Configuration file
+        ===@@id="p3config"@@Configuration files
 
 Here are Eliom's options you can use in configuration files.
 

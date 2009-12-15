@@ -945,8 +945,8 @@ Eliom_sessions.set_volatile_session_timeout ~sp (Some 7200.)
 
           
 <<code language="ocaml"|
-    <extension module="//path_to///eliom.cma">
-      <timeout value="7200"/>
+    <extension findlib-package="ocsigen.ext.eliom">
+      <volatiletimeout value="7200"/>
     </extension>
 
 >>
@@ -2323,6 +2323,78 @@ let _ =
 >>
 
 
+        ===@@id="p3config"@@Configuration files
+
+Here are Eliom's options you can use in configuration files.
+
+====Timeouts
+
+Timeouts for sessions can be set either inside tag
+{{{<extension findlib-package="ocsigen.ext.eliom"/>}}}
+(default value for all sites),
+or inside a {{{<eliom/>}}} tag (default for one site).
+
+Timeouts can also be modified programmatically using functions
+like {{{Eliom_sessions.set_global_volatile_timeout}}}, but by default
+these functions will not override configuration files.
+Thus, a website can set its own defaults and the user can still
+override them from the configuration file.
+If you want to set a timeout programmatically even if it has been
+modified in a configuration file, use the optional parameter
+{{{~override_configfile:true}}}.
+
+Timeouts can be set either for all session names, for one precise 
+session name, or for the default session name.
+To do that programmatically, use the optional parameter
+{{{~session_name}}}.
+To do that in configuration file, use the optional attribute
+{{{sessionname}}} (where an empty string value means default session name).
+If this attribute is absent, the timeout will affect all sessions for which
+no other default has been set. The {{{sessionname}}} attribute
+exists only inside an {{{<eliom/>}}} tag 
+(and not inside {{{<extension findlib-package="ocsigen.ext.eliom"/>}}}).
+
+* {{{<volatiletimeout value="30" [sessionname=""]/>}}}
+  The default timeout for
+  volatile (in memory) sessions.
+  value="infinity" means that the session will
+  never finish.
+  Note that each eliom module may set its own
+  default, that will override this one.
+* {{{<persistenttimeout value="7200"/>}}}
+  Idem for persistent session data
+* {{{<datatimeout value="30"  [sessionname=""]/>}}}
+     Like <timeout>, but for in memory data
+     sessions only
+     (not service sessions).
+* {{{<servicetimeout value="30" [sessionname=""]/>}}} 
+  Like <timeout>, but for service sessions only
+     (not in memory data  sessions).
+
+====Garbage collector of sessions and services
+
+These options can appear inside tag
+{{{<extension findlib-package="ocsigen.ext.eliom"/>}}}.
+For now, it cannot be set for each site independently
+(tell us if you need that).
+
+* {{{<sessiongcfrequency value="30"/>}}} 
+     Time between two garbage
+     collections of sessions, in seconds (default
+     3600) "infinity" means no GC of session.
+* {{{<persistentsessiongcfrequency value="86400"/>}}} 
+     Time between two
+     garbage collections of persistent sessions,
+     in seconds (default 86400.) "infinity"
+     means no GC of session.
+* {{{<servicesessiongcfrequency value="3600"/>}}} 
+     Like {{{<sessiongcfrequency>}}},
+     but for service sessions only
+* {{{<datasessiongcfrequency value="3600"/>}}} 
+     Like {{{<sessiongcfrequency>}}},
+     but for "in memory data" sessions only
+
+  
         ===@@id="p3misc"@@Miscellaneous
         
         <<div class="onecol"|
