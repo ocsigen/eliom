@@ -2394,6 +2394,88 @@ For now, it cannot be set for each site independently
      Like {{{<sessiongcfrequency>}}},
      but for "in memory data" sessions only
 
+====Limiting the number of sessions or coservices
+
+To prevent from denial of service, Eliom limits the number of sessions
+and the number of dynamic coservices. Without thiese limitations, it would
+be possible for an attacker to open repeatedly lots of sessions,
+or creating new services (for example CSRF safe coservices can create lots
+of coservices when you reload repeatedly a page). When the limit is reached,
+it is still possible to open new sessions or create new services, but the
+oldest session or service will disappear (the one that has not been used
+for the longest time).
+
+=====Limiting sessions
+First of all, there is a limitation of the number of sessions in a
+session group. The typical use of this is when an user opens several
+sessions from several computers. All the sessions belong to the same
+group (the group name is usually the user name).
+The limit is usually small (5 sessions per group by default).
+This limit is implemented for all kinds of sessions (service session, 
+volatile and persistent data sessions). For persistent sessions, the
+implementation is not very efficient for very large limits.
+
+It is highly recommended to use session groups when possible.
+
+If you can't use session groups, the number of sessions is limitated
+by sub network for volatile sessions (service sessions and data sessions).
+The limitation is larger (default 1 million). The limit must be large enough,
+for example if the server is behind a reverse proxy, all incoming requests
+will come from the same IP address. Limiting by sub network instead of by 
+IP address prevents attacks even if the attacker has a whole sub network
+available. The default mask for sub networks is {{{/16}}} for IPv4
+and {{{/56}}} for IPv6.
+
+Some figures: If 1 session takes 1000 bytes (data + tables etc),
+1 million sessions take 1 GB. If somebody opens 1000 sessions per second, 
+then it will take 1000 s (16 minutes) to reach 1000000.
+It means that regular users will have their sessions closed
+after 16 minutes of inactivity if they share their sub network with
+someone doing an attack (or if the server is behind a proxy).
+
+For persistent session, there is no limitation per sub network for now.
+1 billion sessions take 1 TB. If somebody opens 1000 sessions per second, 
+then it will take 1 million s (16000 minutes = 266 h = 11 days) 
+to reach 1TB.
+
+=====Limiting services
+
+The number of dynamic services is limited by session or by sub network
+if the service is registered in the global table.
+
+=====How to set limits
+
+The limits and the subnet mask can be set programmatically by each module
+(for example to adapt the values to the size of session data) or in the
+configuration file
+(for example to adapt the values to the size of memory or network 
+configuration).
+By default, functions like 
+{{{Eliom_sessions.set_default_max_volatile_sessions_per_group}}}
+will not override a value set in the configuration file
+(but if you use {{{~override_configfile:true}}}).
+Thus, a website can set its own defaults and the user can still
+override them from the configuration file.
+
+The configuration file options can be set either inside the tag
+{{{<extension findlib-package="ocsigen.ext.eliom"/>}}}
+(global configuration), or inside the {{{<eliom/>}}} tag
+(configuration for each site). But the limits always are for one
+site (that is: a global limit value of 10 means 10 for each Eliom site).
+
+The syntax is:
+* {{{<maxvolatilesessionspergroup value="10"/>}}} 
+* {{{<maxservicesessionspergroup value="10"/>}}} 
+* {{{<maxdatasessionspergroup value="10"/>}}} 
+* {{{<maxpersistentsessionspergroup value="10"/>}}} 
+* {{{<maxvolatilesessionspersubnet value="500000"/>}}} 
+* {{{<maxservicesessionspersubnet value="500000"/>}}} 
+* {{{<maxdatasessionspersubnet value="500000"/>}}} 
+* {{{<maxanonymouscoservicespersession value="1000"/>}}} 
+* {{{<maxanonymouscoservicespersubnet value="500000"/>}}} 
+* {{{<ipv4subnetmask value="255.255.128.0"/>}}} 
+* {{{<ipv6subnetmask value="ff:ff:ff:ff:ff:ff::"/>}}} 
+
   
         ===@@id="p3misc"@@Miscellaneous
         
