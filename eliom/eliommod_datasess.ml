@@ -112,6 +112,8 @@ let find_or_create_data_cookie ?set_session_group ?session_name ~secure ~sp () =
     Eliommod_sessiongroups.make_full_group_name
       sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
       sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
+      (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
+      (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
       set_session_group
   in
   try

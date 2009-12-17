@@ -124,7 +124,7 @@ let rec new_persistent_cookie sitedata fullsessgrp fullsessname =
                fullsessgrp)
             >>= fun () ->
             Eliommod_sessiongroups.Pers.add
-              sitedata.Eliom_common.max_persistent_data_sessions_per_group
+              (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
               c fullsessgrp >>= fun l ->
             Lwt_util.iter
               (close_persistent_session2 None) l >>= fun () ->

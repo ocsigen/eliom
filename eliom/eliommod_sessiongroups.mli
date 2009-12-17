@@ -20,7 +20,9 @@
  *)
 
 val make_full_group_name : 
-  Ocsigen_extensions.request_info -> string -> string option -> Eliom_common.sessgrp
+  Ocsigen_extensions.request_info -> string -> 
+  int32 -> int64 * int64 ->
+  string option -> Eliom_common.sessgrp
 val make_persistent_full_group_name :
   Ocsigen_extensions.request_info -> string -> string option -> Eliom_common.perssessgrp option
 

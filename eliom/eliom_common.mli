@@ -230,6 +230,8 @@ type page_table_key = {
 module NAserv_Table : Map.S with type key = na_key_serv
 module Serv_Table : Map.S with type key = page_table_key
 
+type dlist_ip_table
+
 type anon_params_type = int
 type server_params = {
   sp_request : Ocsigen_extensions.request;
@@ -338,12 +340,16 @@ and sitedata = {
   mutable exn_handler : server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
   mutable unregistered_services : Ocsigen_lib.url_path list;
   mutable unregistered_na_services : na_key_serv list;
-  mutable max_volatile_data_sessions_per_group : int;
-  mutable max_volatile_data_sessions_per_subnet : int;
-  mutable max_service_sessions_per_group : int;
-  mutable max_service_sessions_per_subnet : int;
-  mutable max_persistent_data_sessions_per_group : int option;
-  mutable max_anonymous_services_per_session : int;
+  mutable max_volatile_data_sessions_per_group : int * bool;
+  mutable max_volatile_data_sessions_per_subnet : int * bool;
+  mutable max_service_sessions_per_group : int * bool;
+  mutable max_service_sessions_per_subnet : int * bool;
+  mutable max_persistent_data_sessions_per_group : int option * bool;
+  mutable max_anonymous_services_per_session : int * bool;
+  mutable max_anonymous_services_per_subnet : int * bool;
+  dlist_ip_table : dlist_ip_table;
+  mutable ipv4mask : int32 option * bool;
+  mutable ipv6mask : (int64 * int64) option * bool;
 }
 val make_server_params :
   sitedata ->
@@ -410,5 +416,16 @@ val na_key_serv_of_req : na_key_req -> na_key_serv
 val remove_naservice_table : 
   naservice_table -> NAserv_Table.key -> naservice_table
 
-val ipv4mask : int32
-val ipv6mask : int64 * int64
+val get_mask4 : sitedata -> int32
+val get_mask6 : sitedata -> (int64 * int64)
+val ipv4mask : int32 ref
+val ipv6mask : (int64 * int64) ref
+
+val create_dlist_ip_table : int -> dlist_ip_table
+val find_dlist_ip_table :
+  int32 option * 'a ->
+  (int64 * int64) option * 'a ->
+  dlist_ip_table -> Ocsigen_lib.ip_address ->
+  (page_table ref * page_table_key, na_key_serv)
+    Ocsigen_lib.leftright Ocsigen_cache.Dlist.t
+  

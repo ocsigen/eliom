@@ -407,7 +407,10 @@ let unset_service_session_group ?set_max ?session_name ?secure ~sp () =
     let n =
       Eliommod_sessiongroups.make_full_group_name
         sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
-        sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string None
+        sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
+        (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
+        (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
+        None
     in
     let node = Eliommod_sessiongroups.Serv.move ?set_max
       sp.Eliom_common.sp_sitedata
@@ -452,7 +455,10 @@ let unset_volatile_data_session_group ?set_max ?session_name ?secure ~sp () =
     let n =
       Eliommod_sessiongroups.make_full_group_name
         sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
-        sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string None
+        sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string 
+        (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
+        (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
+        None
     in
     let node = Eliommod_sessiongroups.Data.move ?set_max
       sp.Eliom_common.sp_sitedata
@@ -486,7 +492,7 @@ let set_persistent_data_session_group ?set_max ?session_name ?secure ~sp n =
   in
   let grp = c.Eliom_common.pc_session_group in
   Eliommod_sessiongroups.Pers.move ?set_max
-    sp.Eliom_common.sp_sitedata.Eliom_common.max_persistent_data_sessions_per_group
+    (fst sp.Eliom_common.sp_sitedata.Eliom_common.max_persistent_data_sessions_per_group)
     c.Eliom_common.pc_value !grp n >>= fun l ->
   Lwt_util.iter
         (Eliommod_persess.close_persistent_session2 None) l >>= fun () ->
@@ -525,55 +531,132 @@ let get_persistent_data_session_group ?session_name ?secure ~sp () =
        | e -> fail e)
 
 
-let set_default_max_service_sessions_per_group ?sp n =
+
+
+
+(* max *)
+let set_default_max_service_sessions_per_group
+    ?sp ?(override_configfile = false) n =
   let sitedata = 
     find_sitedata "set_default_max_service_sessions_per_group" sp 
   in
-  sitedata.Eliom_common.max_service_sessions_per_group <- n
+  let b = snd sitedata.Eliom_common.max_service_sessions_per_group in 
+  if override_configfile || not b
+  then 
+    sitedata.Eliom_common.max_service_sessions_per_group <- (n, b)
 
-let set_default_max_volatile_data_sessions_per_group ?sp n =
+let set_default_max_volatile_data_sessions_per_group
+    ?sp ?(override_configfile = false) n =
   let sitedata = 
     find_sitedata "set_default_max_service_sessions_per_group" sp 
   in
-  sitedata.Eliom_common.max_volatile_data_sessions_per_group
-  <- n
+  let b = snd sitedata.Eliom_common.max_volatile_data_sessions_per_group in
+  if override_configfile || not b
+  then 
+    sitedata.Eliom_common.max_volatile_data_sessions_per_group <- (n, b)
 
-let set_default_max_persistent_data_sessions_per_group ?sp n =
+let set_default_max_persistent_data_sessions_per_group
+    ?sp ?(override_configfile = false) n =
   let sitedata = 
     find_sitedata "set_default_max_service_sessions_per_group" sp 
   in
-  sitedata.Eliom_common.max_persistent_data_sessions_per_group <- n
+  let b = snd sitedata.Eliom_common.max_persistent_data_sessions_per_group in
+  if override_configfile || not b
+  then 
+    sitedata.Eliom_common.max_persistent_data_sessions_per_group <- (n, b)
 
-let set_default_max_service_sessions_per_subnet ?sp n =
+let set_default_max_service_sessions_per_subnet
+    ?sp ?(override_configfile = false) n =
   let sitedata = 
     find_sitedata "set_default_max_service_sessions_per_group" sp 
   in
-  sitedata.Eliom_common.max_service_sessions_per_subnet <- n
+  let b = snd sitedata.Eliom_common.max_service_sessions_per_subnet in
+  if override_configfile || not b
+  then 
+    sitedata.Eliom_common.max_service_sessions_per_subnet <- (n, b)
 
-let set_default_max_volatile_data_sessions_per_subnet ?sp n =
+let set_default_max_volatile_data_sessions_per_subnet
+    ?sp ?(override_configfile = false) n =
   let sitedata = 
     find_sitedata "set_default_max_service_sessions_per_group" sp 
   in
-  sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <- n
+  let b = snd sitedata.Eliom_common.max_volatile_data_sessions_per_subnet in
+  if override_configfile || not b
+  then 
+    sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <- (n, b)
+
+let set_default_max_volatile_sessions_per_group ?sp ?override_configfile n =
+  set_default_max_service_sessions_per_group ?sp ?override_configfile n;
+  set_default_max_volatile_data_sessions_per_group ?sp ?override_configfile n
+
+let set_default_max_volatile_sessions_per_subnet ?sp ?override_configfile n =
+  set_default_max_service_sessions_per_subnet ?sp ?override_configfile n;
+  set_default_max_volatile_data_sessions_per_subnet ?sp ?override_configfile n
+
+let set_default_max_anonymous_services_per_session
+    ?sp ?(override_configfile = false) n =
+  let sitedata = 
+    find_sitedata "set_default_max_anonymous_services_per_session" sp 
+  in
+  let b = snd sitedata.Eliom_common.max_anonymous_services_per_session in
+  if override_configfile || not b
+  then 
+    sitedata.Eliom_common.max_anonymous_services_per_session <- (n, b)
+
+let set_default_max_anonymous_services_per_subnet
+    ?sp ?(override_configfile = false) n =
+  let sitedata = 
+    find_sitedata "set_default_max_anonymous_services_per_subnet" sp 
+  in
+  let b = snd sitedata.Eliom_common.max_anonymous_services_per_subnet in
+  if override_configfile || not b
+  then 
+    sitedata.Eliom_common.max_anonymous_services_per_subnet <- (n, b)
+
+
+let set_ipv4_subnet_mask ?sp ?(override_configfile = false) n =
+  let sitedata = 
+    find_sitedata "set_ipv4_subnet_mask" sp 
+  in
+  let b = snd sitedata.Eliom_common.ipv4mask in
+  if override_configfile || not b
+  then 
+    sitedata.Eliom_common.ipv4mask <- (Some n, b)
+
+let set_ipv6_subnet_mask ?sp ?(override_configfile = false) n =
+  let sitedata = 
+    find_sitedata "set_ipv6_subnet_mask" sp 
+  in
+  let b = snd sitedata.Eliom_common.ipv6mask in
+  if override_configfile || not b
+  then 
+    sitedata.Eliom_common.ipv6mask <- (Some n, b)
 
 
 
-let set_max_service_session_for_group_or_subnet ?session_name ?secure ~sp m =
+
+let set_max_service_sessions_for_group_or_subnet ?session_name ?secure ~sp m =
   let c =
     Eliommod_sersess.find_or_create_service_cookie
       ?session_name ~secure ~sp ()
   in
   Eliommod_sessiongroups.Data.set_max c.Eliom_common.sc_session_group_node m
 
-let set_max_volatile_data_session_for_group_or_subnet ?session_name ?secure ~sp m =
+let set_max_volatile_data_sessions_for_group_or_subnet ?session_name ?secure ~sp m =
   let c =
     Eliommod_datasess.find_or_create_data_cookie ?session_name ~secure ~sp ()
   in
   Eliommod_sessiongroups.Data.set_max c.Eliom_common.dc_session_group_node m
 
+let set_max_volatile_sessions_for_group_or_subnet ?session_name ?secure ~sp m =
+  set_max_service_sessions_for_group_or_subnet ?session_name ?secure ~sp m;
+  set_max_volatile_data_sessions_for_group_or_subnet ?session_name ?secure ~sp m
+
+
+
+
 
 (* expiration dates *)
-
 let set_service_session_cookie_exp_date ?session_name ?secure ~sp t =
   let c = 
     Eliommod_sersess.find_or_create_service_cookie ?session_name ~secure ~sp () 

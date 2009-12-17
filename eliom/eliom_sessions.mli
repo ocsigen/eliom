@@ -484,44 +484,67 @@ val get_persistent_data_session_group :
     (see above).
 *)
 val set_default_max_service_sessions_per_group :
-  ?sp:server_params -> int -> unit
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
 
 (** Sets the maximum number of volatile data sessions in a session
     group (see above).
 *)
 val set_default_max_volatile_data_sessions_per_group :
-  ?sp:server_params -> int -> unit
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
 
 (** Sets the maximum number of persistent data sessions in a session
     group (see above).
 *)
 val set_default_max_persistent_data_sessions_per_group :
-  ?sp:server_params -> int option -> unit
+  ?sp:server_params -> ?override_configfile:bool -> int option -> unit
 
+(** Sets the maximum number of service sessions in a subnet (see above).
+*)
 val set_default_max_service_sessions_per_subnet :
-  ?sp:server_params -> int -> unit
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
 
-(** Sets the maximum number of volatile data sessions in a session
-    group (see above).
+(** Sets the maximum number of volatile data sessions in a subnet (see above).
 *)
 val set_default_max_volatile_data_sessions_per_subnet :
-  ?sp:server_params -> int -> unit
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
+
+(** Sets the maximum number of volatile sessions (data and service) in a session
+    group (see above).
+*)
+val set_default_max_volatile_sessions_per_group :
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
+
+(** Sets the maximum number of volatile sessions (data and service) 
+    in a subnet (see above).
+*)
+val set_default_max_volatile_sessions_per_subnet :
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
+
+(** Sets the mask for subnet (IPV4). *)
+val set_ipv4_subnet_mask :
+  ?sp:server_params -> ?override_configfile:bool -> int32 -> unit
+
+(** Sets the mask for subnet (IPV6). *)
+val set_ipv6_subnet_mask :
+  ?sp:server_params -> ?override_configfile:bool -> int64 * int64 -> unit
+
 
 
 (** Sets the maximum number of service sessions in the current session
     group (or for the client sub network, if there is no group).
 *)
-val set_max_service_session_for_group_or_subnet :
+val set_max_service_sessions_for_group_or_subnet :
   ?session_name:string ->
   ?secure:bool ->
   sp:server_params ->
   int ->
   unit
 
+
 (** Sets the maximum number of volatile data sessions in the current session
     group (or for the client sub network, if there is no group).
 *)
-val set_max_volatile_data_session_for_group_or_subnet :
+val set_max_volatile_data_sessions_for_group_or_subnet :
   ?session_name:string ->
   ?secure:bool ->
   sp:server_params ->

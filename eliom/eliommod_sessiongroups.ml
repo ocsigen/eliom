@@ -23,13 +23,13 @@
 
 let (>>=) = Lwt.bind
 
-let make_full_group_name ri site_dir_string = function
+let make_full_group_name ri site_dir_string ipv4mask ipv6mask = function
   | None -> (site_dir_string, 
              Ocsigen_lib.Right 
                (Ocsigen_lib.network_of_ip
                   (Lazy.force ri.Ocsigen_extensions.ri_remote_ip_parsed)
-                  Eliom_common.ipv4mask
-                  Eliom_common.ipv6mask
+                  ipv4mask
+                  ipv6mask
                ))
   | Some g -> (site_dir_string, Ocsigen_lib.Left g)
 
@@ -159,9 +159,9 @@ module Data =
            session data tables *)
 
     let maxgroup sitedata =
-      sitedata.Eliom_common.max_volatile_data_sessions_per_group
+      (fst sitedata.Eliom_common.max_volatile_data_sessions_per_group)
     let maxip sitedata =
-      sitedata.Eliom_common.max_volatile_data_sessions_per_subnet
+      (fst sitedata.Eliom_common.max_volatile_data_sessions_per_subnet)
   end)
 
 module Serv =
@@ -172,9 +172,9 @@ module Serv =
       Eliom_common.SessionCookies.remove 
         sitedata.Eliom_common.session_services sess_id
     let maxgroup sitedata =
-      sitedata.Eliom_common.max_service_sessions_per_group
+      (fst sitedata.Eliom_common.max_service_sessions_per_group)
     let maxip sitedata =
-      sitedata.Eliom_common.max_service_sessions_per_subnet
+      (fst sitedata.Eliom_common.max_service_sessions_per_subnet)
   end)
 
 

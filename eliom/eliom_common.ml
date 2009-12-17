@@ -241,7 +241,71 @@ type datacookiestable = datacookiestablecontent SessionCookies.t
 
 
 (*****************************************************************************)
+let ipv4mask = ref 0b11111111111111110000000000000000l    (* /16 *)
+let ipv6mask = ref (0b1111111111111111111111111111111111111111111111111111111100000000L, 0L) (* /56 (???) *)
 
+let get_mask4 m = 
+  match fst m with
+    | Some m -> m
+    | None -> !ipv4mask
+      
+let get_mask6 m =
+  match fst m with
+    | Some m -> m
+    | None -> !ipv6mask
+
+module Net_addr_Hashtbl = 
+  (* keys are IP address modulo "network equivalence" *)
+  (struct
+     include Hashtbl.Make(struct
+                            type t = Ocsigen_lib.ip_address
+                            let equal = (=)
+                            let hash = Hashtbl.hash
+                          end)
+
+     let add m4 m6 t k v = 
+       add t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
+         
+     let remove m4 m6 t k = 
+       remove t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+
+     let find m4 m6 t k = 
+       find t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+
+     let find_all m4 m6 t k = 
+       find_all t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+         
+     let replace m4 m6 t k v = 
+       replace t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
+         
+     let mem m4 m6 t k = 
+       mem t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+
+   end : sig
+
+     type key = Ocsigen_lib.ip_address
+     type 'a t
+     val create : int -> 'a t
+     val clear : 'a t -> unit
+     val copy : 'a t -> 'a t
+     val add : 
+       int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> 'a -> unit
+     val remove : int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> unit
+     val find : int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> 'a
+     val find_all :
+       int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> 'a list
+     val replace : 
+       int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> 'a -> unit
+     val mem : int32 option * 'bb -> (int64 * int64) option * 'bb -> 'a t -> key -> bool
+     val iter : (key -> 'a -> unit) -> 'a t -> unit
+     val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+     val length : 'a t -> int
+
+   end)
+
+let create_dlist_ip_table = Net_addr_Hashtbl.create
+let find_dlist_ip_table = Net_addr_Hashtbl.find
+(*****************************************************************************)
 
 type page_table_key =
     {key_state : att_key_serv * att_key_serv;
@@ -379,13 +443,20 @@ and sitedata =
    mutable exn_handler: server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
    mutable unregistered_services: Ocsigen_lib.url_path list;
    mutable unregistered_na_services: na_key_serv list;
-   mutable max_volatile_data_sessions_per_group : int;
-   mutable max_volatile_data_sessions_per_subnet : int;
-   mutable max_service_sessions_per_group : int;
-   mutable max_service_sessions_per_subnet : int;
-   mutable max_persistent_data_sessions_per_group : int option;
-   mutable max_anonymous_services_per_session : int;
+   mutable max_volatile_data_sessions_per_group : int * bool;
+   mutable max_volatile_data_sessions_per_subnet : int * bool;
+   mutable max_service_sessions_per_group : int * bool;
+   mutable max_service_sessions_per_subnet : int * bool;
+   mutable max_persistent_data_sessions_per_group : int option * bool;
+   mutable max_anonymous_services_per_session : int * bool;
+   mutable max_anonymous_services_per_subnet : int * bool;
+   dlist_ip_table : dlist_ip_table;
+   mutable ipv4mask : int32 option * bool;
+   mutable ipv6mask : (int64 * int64) option * bool;
  }
+
+and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
+    Ocsigen_lib.leftright Ocsigen_cache.Dlist.t Net_addr_Hashtbl.t
 
 
 (*****************************************************************************)
@@ -401,58 +472,70 @@ let make_server_params sitedata all_cookie_info ri suffix si fullsessname
 
 
 (*****************************************************************************)
+(* The current registration directory *)
+let absolute_change_sitedata,
+  get_current_sitedata,
+  end_current_sitedata =
+  let f2 : sitedata list ref = ref [] in
+  let popf2 () =
+    match !f2 with
+    | _::t -> f2 := t
+    | [] -> f2 := []
+  in
+  ((fun sitedata -> f2 := sitedata::!f2) (* absolute_change_sitedata *),
+   (fun () ->  match !f2 with
+   | [] -> raise (Eliom_function_forbidden_outside_site_loading
+                    "get_current_sitedata")
+   | sd::_ -> sd) (* get_current_sitedata *),
+   (fun () -> popf2 ()) (* end_current_sitedata *))
+(* Warning: these functions are used only during the initialisation
+   phase, which is not threaded ... That's why it works, but ...
+   it is not really clean ... public registration relies on this
+   directory (defined for each site in the config file)
+ *)
+
+(*****************************************************************************)
+let add_unregistered sitedata a =
+  sitedata.unregistered_services <- a::sitedata.unregistered_services
+
+let add_unregistered_na sitedata a =
+  sitedata.unregistered_na_services <- a::sitedata.unregistered_na_services
+
+let remove_unregistered sitedata a =
+  sitedata.unregistered_services <-
+    Ocsigen_lib.list_remove_first_if_any a sitedata.unregistered_services
+
+let remove_unregistered_na sitedata a =
+  sitedata.unregistered_na_services <-
+    Ocsigen_lib.list_remove_first_if_any a sitedata.unregistered_na_services
+
+let verify_all_registered sitedata =
+  match sitedata.unregistered_services, sitedata.unregistered_na_services with
+  | [], [] -> ()
+  | l1, l2 ->
+      raise (Eliom_there_are_unregistered_services (sitedata.site_dir, l1, l2))
+
+
+let during_eliom_module_loading,
+  begin_load_eliom_module,
+  end_load_eliom_module =
+  let during_eliom_module_loading_ = ref false in
+  ((fun () -> !during_eliom_module_loading_),
+   (fun () -> during_eliom_module_loading_ := true),
+   (fun () -> during_eliom_module_loading_ := false))
+
+let global_register_allowed () =
+  if (Ocsigen_extensions.during_initialisation ())
+    && (during_eliom_module_loading ())
+  then Some get_current_sitedata
+  else None
+
+(*****************************************************************************)
 (*****************************************************************************)
 (* The table of dynamic pages for each virtual server, and naservices        *)
 (* Each node contains either a list of nodes (case directory)
     or a table of "answers" (functions that will generate the page) *)
 
-let ipv4mask = 0b11111111111111110000000000000000l    (* /16 *)
-let ipv6mask = 0b1111111111111111111111111111111111111111111111111111111100000000L, 0L (* /56 (???) *)
-
-module Net_addr_Hashtbl = (* keys are IP address modulo "network equivalence" *)
-  (struct
-     include Hashtbl.Make(struct
-                            type t = Ocsigen_lib.ip_address
-                            let equal = (=)
-                            let hash = Hashtbl.hash
-                          end)
-       
-     let add t k v = 
-       add t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask) v
-         
-     let remove t k = 
-       remove t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask)
-
-     let find t k = 
-       find t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask)
-
-     let find_all t k = 
-       find_all t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask)
-         
-     let replace t k v = 
-       replace t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask) v
-         
-     let mem t k = 
-       mem t (Ocsigen_lib.network_of_ip k ipv4mask ipv6mask)
-
-   end : sig
-
-     type key = Ocsigen_lib.ip_address
-     type 'a t
-     val create : int -> 'a t
-     val clear : 'a t -> unit
-     val copy : 'a t -> 'a t
-     val add : 'a t -> key -> 'a -> unit
-     val remove : 'a t -> key -> unit
-     val find : 'a t -> key -> 'a
-     val find_all : 'a t -> key -> 'a list
-     val replace : 'a t -> key -> 'a -> unit
-     val mem : 'a t -> key -> bool
-     val iter : (key -> 'a -> unit) -> 'a t -> unit
-     val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-     val length : 'a t -> int
-
-   end)
 
 let empty_page_table () = Serv_Table.empty
 let empty_dircontent () = Vide
@@ -475,14 +558,15 @@ let dlist_finaliser na_table_ref node =
     | Ocsigen_lib.Right na_key_serv ->
         na_table_ref := remove_naservice_table !na_table_ref na_key_serv
 
-let dlist_finaliser_ip dlist_table ip na_table_ref node =
+let dlist_finaliser_ip sitedata ip na_table_ref node =
   dlist_finaliser na_table_ref node;
   match Ocsigen_cache.Dlist.list_of node with
     | Some cl ->
         if Ocsigen_cache.Dlist.size cl = 1
         then
           (try
-             Net_addr_Hashtbl.remove dlist_table ip
+             Net_addr_Hashtbl.remove
+               sitedata.ipv4mask sitedata.ipv6mask sitedata.dlist_ip_table ip
            with Not_found -> ())
     | None -> ()
 
@@ -493,8 +577,6 @@ let add_dlist_ dlist v =
     | None -> assert false
 
 let empty_tables max forsession =
-  let dlist_table = Net_addr_Hashtbl.create 100 in
-    (*VVV One for each tables or a global one? *)
   let t1 = ref (empty_dircontent ()) in
   let t2 = ref (empty_naservice_table ()) in
   {table_services = t1;
@@ -511,27 +593,44 @@ let empty_tables max forsession =
         fun ?sp v -> add_dlist_ dlist v
       else
         fun ?sp v ->
-          let ip =
+          let ip, max, sitedata =
             match sp with
-              | None -> Ocsigen_lib.inet6_addr_loopback
+              | None ->
+                  Ocsigen_lib.inet6_addr_loopback, max,
+                  (match global_register_allowed () with
+                     | None -> 
+                         failwith "global tables created outside initialisation"
+                     | Some get -> get ())
               | Some sp -> 
-                  Lazy.force 
-                    sp.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_remote_ip_parsed
+                  ((Lazy.force 
+                      sp.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_remote_ip_parsed),
+                   (fst sp.sp_sitedata.max_anonymous_services_per_subnet),
+                   sp.sp_sitedata
+                  )
           in
           let dlist =
             try
-              Net_addr_Hashtbl.find dlist_table ip
+              Net_addr_Hashtbl.find
+                sitedata.ipv4mask sitedata.ipv6mask sitedata.dlist_ip_table ip
             with Not_found ->
               let dlist = Ocsigen_cache.Dlist.create max in
+              Net_addr_Hashtbl.add 
+                sitedata.ipv4mask sitedata.ipv6mask sitedata.dlist_ip_table ip dlist;
               Ocsigen_cache.Dlist.set_finaliser 
-                (dlist_finaliser_ip dlist_table ip t2) dlist;
+                (dlist_finaliser_ip sitedata ip t2) 
+                dlist;
               dlist
           in
           add_dlist_ dlist v
   }
 
 let new_service_session_tables sitedata = 
-  empty_tables sitedata.max_anonymous_services_per_session true
+  empty_tables
+    (fst sitedata.max_anonymous_services_per_session)
+    true
+
+let get_mask4 sitedata = get_mask4 sitedata.ipv4mask
+let get_mask6 sitedata = get_mask6 sitedata.ipv6mask
 
 (*****************************************************************************)
 open Lwt
@@ -884,63 +983,4 @@ let remove_from_all_persistent_tables key =
       Ocsipersist.remove (Ocsipersist.open_table t) key >>= Lwt_unix.yield)
     (return ())
     !perstables
-
-(*****************************************************************************)
-(* The current registration directory *)
-let absolute_change_sitedata,
-  get_current_sitedata,
-  end_current_sitedata =
-  let f2 : sitedata list ref = ref [] in
-  let popf2 () =
-    match !f2 with
-    | _::t -> f2 := t
-    | [] -> f2 := []
-  in
-  ((fun sitedata -> f2 := sitedata::!f2) (* absolute_change_sitedata *),
-   (fun () ->  match !f2 with
-   | [] -> raise (Eliom_function_forbidden_outside_site_loading
-                    "get_current_sitedata")
-   | sd::_ -> sd) (* get_current_sitedata *),
-   (fun () -> popf2 ()) (* end_current_sitedata *))
-(* Warning: these functions are used only during the initialisation
-   phase, which is not threaded ... That's why it works, but ...
-   it is not really clean ... public registration relies on this
-   directory (defined for each site in the config file)
- *)
-
-(*****************************************************************************)
-let add_unregistered sitedata a =
-  sitedata.unregistered_services <- a::sitedata.unregistered_services
-
-let add_unregistered_na sitedata a =
-  sitedata.unregistered_na_services <- a::sitedata.unregistered_na_services
-
-let remove_unregistered sitedata a =
-  sitedata.unregistered_services <-
-    Ocsigen_lib.list_remove_first_if_any a sitedata.unregistered_services
-
-let remove_unregistered_na sitedata a =
-  sitedata.unregistered_na_services <-
-    Ocsigen_lib.list_remove_first_if_any a sitedata.unregistered_na_services
-
-let verify_all_registered sitedata =
-  match sitedata.unregistered_services, sitedata.unregistered_na_services with
-  | [], [] -> ()
-  | l1, l2 ->
-      raise (Eliom_there_are_unregistered_services (sitedata.site_dir, l1, l2))
-
-
-let during_eliom_module_loading,
-  begin_load_eliom_module,
-  end_load_eliom_module =
-  let during_eliom_module_loading_ = ref false in
-  ((fun () -> !during_eliom_module_loading_),
-   (fun () -> during_eliom_module_loading_ := true),
-   (fun () -> during_eliom_module_loading_ := false))
-
-let global_register_allowed () =
-  if (Ocsigen_extensions.during_initialisation ())
-    && (during_eliom_module_loading ())
-  then Some get_current_sitedata
-  else None
 
