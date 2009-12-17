@@ -12,6 +12,7 @@ Simplexmlparser
 Xhtmlpretty
 Xhtmlcompact
 Polytables
+Ocsigen_cache
 }
 
 {4 Extending Ocsigen}
@@ -34,6 +35,7 @@ Eliom_services
 Eliom_parameters 
 Eliom_sessions 
 Eliom_common
+Eliom_obrowser
 }
 
 {4 Generating pages with OcamlDuce}
