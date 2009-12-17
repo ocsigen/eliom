@@ -1109,7 +1109,6 @@ See the urls:
       (implemented in monadic style
       by Jérôme Vouillon) which make them really easy
       to use (see <<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>> module).
-      
           
 
           

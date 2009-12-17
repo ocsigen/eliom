@@ -2337,6 +2337,7 @@ or inside a {{{<eliom/>}}} tag (default for one site).
 Timeouts can also be modified programmatically using functions
 like {{{Eliom_sessions.set_global_volatile_timeout}}}, but by default
 these functions will not override configuration files.
+(see module <<ocsigendoc version="dev" file="Eliom_sessions.html"|<<span class="code"|Eliom_sessions>>>> for other functions).
 Thus, a website can set its own defaults and the user can still
 override them from the configuration file.
 If you want to set a timeout programmatically even if it has been
@@ -2397,7 +2398,7 @@ For now, it cannot be set for each site independently
 ====Limiting the number of sessions or coservices
 
 To prevent from denial of service, Eliom limits the number of sessions
-and the number of dynamic coservices. Without thiese limitations, it would
+and the number of dynamic coservices. Without these limitations, it would
 be possible for an attacker to open repeatedly lots of sessions,
 or creating new services (for example CSRF safe coservices can create lots
 of coservices when you reload repeatedly a page). When the limit is reached,
@@ -2433,15 +2434,21 @@ It means that regular users will have their sessions closed
 after 16 minutes of inactivity if they share their sub network with
 someone doing an attack (or if the server is behind a proxy).
 
-For persistent session, there is no limitation per sub network for now.
+For persistent sessions, there is no limitation per sub network for now.
 1 billion sessions take 1 TB. If somebody opens 1000 sessions per second, 
 then it will take 1 million s (16000 minutes = 266 h = 11 days) 
 to reach 1TB.
 
 =====Limiting services
 
-The number of dynamic services is limited by session or by sub network
-if the service is registered in the global table.
+The number of anonymous coservices is limited by session
+or by sub network if the service is registered in the global table.
+Default values: 1000 for one session, and 500000 for one subnet.
+
+Note that there is no limitation of named coservices or regular services.
+It is not a good practice to allow the creation of too much services
+of this kinds dynamically.
+
 
 =====How to set limits
 
@@ -2449,7 +2456,8 @@ The limits and the subnet mask can be set programmatically by each module
 (for example to adapt the values to the size of session data) or in the
 configuration file
 (for example to adapt the values to the size of memory or network 
-configuration).
+configuration)
+(see module <<ocsigendoc version="dev" file="Eliom_sessions.html"|<<span class="code"|Eliom_sessions>>>>).
 By default, functions like 
 {{{Eliom_sessions.set_default_max_volatile_sessions_per_group}}}
 will not override a value set in the configuration file
