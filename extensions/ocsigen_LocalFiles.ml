@@ -78,7 +78,14 @@ let check_symlinks ~no_check_for ~filename policy =
     | DoNotFollowSymlinks -> aux never_follow_symlinks
     | FollowSymlinksIfOwnerMatch -> aux follow_symlinks_if_owner_match
 
-
+let check_dotdot =
+  let regexp = Netstring_pcre.regexp "(/\\.\\./)|(/\\.\\.$)" in
+  fun ~filename ->
+    (* We always reject .. in filenames.
+       In URLs, .. have already been removed by the server,
+       but the filename may come from somewhere else than URLs ... *)
+    try ignore (Netstring_pcre.search_forward regexp filename 0); false
+    with Not_found -> true
 
 let can_send filename request =
   let filename =
@@ -123,6 +130,13 @@ type resolved =
 *)
 (* See also module Files in eliom.ml *)
 let resolve ?no_check_for ~request ~filename =
+  (* We only accept absolute filenames, 
+     as we do not really know what is the current directory *)
+  let filename = 
+    if filename.[0] = '/'
+    then filename
+    else "/"^filename
+  in
   try
     Ocsigen_messages.debug
       (fun () -> "--LocalFiles: Testing \""^filename^"\".");
@@ -163,9 +177,15 @@ let resolve ?no_check_for ~request ~filename =
 
       else (filename, stat)
     in
-    if check_symlinks ~filename ~no_check_for
-      request.request_config.follow_symlinks then (
-      can_send filename request.request_config;
+    if not (check_dotdot ~filename)
+    then
+      (Ocsigen_messages.debug
+         (fun () -> "--Filenames cannot contain .. as in \""^filename^"\".");
+       raise Failed_403)
+    else if check_symlinks ~filename ~no_check_for
+      request.request_config.follow_symlinks 
+    then (
+        can_send filename request.request_config;
       (* If the previous function did not fail, we are authorized to
          send this file *)
       Ocsigen_messages.debug
