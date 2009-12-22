@@ -2737,7 +2737,7 @@ It is now also possible to handle static pages with Eliom, using
       %<span class="code"|Eliom_predefmod.Files>% ([[eliom/manual/dev/3#p3eliomfiles|see later]]).
       
           
-      <!-- h4>Static parts of a page</h4>      <em>To be available soon</em -->
+      %<|h4>Static parts of a page</h4>      <em>To be available soon</em>%
     
         >%
 

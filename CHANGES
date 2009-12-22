@@ -1,5 +1,7 @@
 ===== Development version (ocsigen.dev branch) =====
 
+//Nothing//
+
 ===== 1.3.0 =====
   * Server: Each request now has a polymorphic data table
     (called //request cache//), where you can
