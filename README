@@ -5,15 +5,17 @@ Instructions:
 
 ---
 Requirements: 
-ocaml (tested with versions 3.08.4, 3.09.1 and following, 3.10.x. 
-      Does not work with 3.08.1)
+ocaml (Version >= 3.11 but may work with some
+      earlier versions with limited features)
 camlp4 (and camlp4rf etc.)
 ocamlduce recommanded (otherwise you won't have all the features)
+  (same version as ocaml)
 findlib (ocamlfind)
-lwt >= 1.1.0
+lwt >= 2.0
+obrowser
 pcre-ocaml
-ocamlnet >= 2.2.0 (actually only module netstring, netsys, pcre) 
-ocamlssl (sometimes called libssl-ocaml) >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)
+ocamlnet >= 2.2.0 (actually only modules netstring, netsys, pcre) 
+ocamlssl (sometimes called libssl-ocaml) >= 0.4.3
 ocamlsqlite3 >= 0.21.0 (needs sqlite)
 (You may also use the dbm database (for example gdbm) instead of sqlite.
  In that case, you need dbm with headers (libgdbm-dev package for ex))
