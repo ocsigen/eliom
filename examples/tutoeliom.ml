@@ -45,7 +45,7 @@ open Eliom_predefmod.Xhtml
           
 %<ocsigendoc version="dev" file="Lwt.html"|%<span class="code"|Lwt>%>%
       (lightweight threads) is the cooperative thread library used by Ocsigen
-      ([[eliom/manual/dev/1#p1threads|see later]]).
+      ([[manual/dev/1#p1threads|see later]]).
           
 
           
@@ -83,7 +83,7 @@ let coucou =
 As you can see,
       %<ocsigendoc version="dev" file="Lwt.html" fragment="VALreturn"|%<span class="code"|return>%>% is a function from %<ocsigendoc version="dev" file="Lwt.html"|%<span class="code"|Lwt>%>%.
       Use it like this for now, and
-      [[eliom/manual/dev/1#p1threads|see later]] for more advanced use.
+      [[manual/dev/1#p1threads|see later]] for more advanced use.
           
 
           
@@ -249,7 +249,7 @@ To compile this syntax, you need a camlp4 syntax extension:
 
             
          As the syntax extension is using the same typing system as XHTML.M,
-         You can mix the two syntaxes ([[eliom/manual/dev/1#p1postforms|see later]]).
+         You can mix the two syntaxes ([[manual/dev/1#p1postforms|see later]]).
       
             
 
@@ -923,7 +923,7 @@ let form = register_new_service ["form"] unit
 Note that if you want to use typed parameters,
        you cannot use functions like %<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALinput"|%<span class="code"|XHTML.M.input>%>% to
        create your forms (if you want to use parameters defined with
-       %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|%<span class="code"|Eliom_parameters.any>%>%, [[eliom/manual/dev/1#p1any|see later]]). Indeed, parameter names are typed to force them
+       %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|%<span class="code"|Eliom_parameters.any>%>%, [[manual/dev/1#p1any|see later]]). Indeed, parameter names are typed to force them
        be used properly. In our example, %<span class="code"|number_name>% has type
        %<span class="code"|int param_name>% and must be used with
        %<span class="code"|int_input>% (or other widgets), whereas
@@ -1754,7 +1754,7 @@ We will see in the following of this tutorial how to improve
       Eliom allows to replace a public service by a service valid only for
       one user.
       Use this to personalise main services for one user (or to create new
-      coservices available only to one user, [[eliom/manual/dev/2#p2calc|see later]]).
+      coservices available only to one user, [[manual/dev/2#p2calc|see later]]).
       To create a "session service", register the service in
       a "session service table" (valid only for one client)
       instead of the public table. To do that,
@@ -1790,7 +1790,7 @@ The following example shows how to reimplement the previous one
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
       useful, for example with coservices (see
-      [[eliom/manual/dev/2#p2coservicesinsessiontable|later]]).
+      [[manual/dev/2#p2coservicesinsessiontable|later]]).
       
           
 
@@ -1993,7 +1993,7 @@ Most of the time, GET coservices are created dynamically with
    in the session table. They allow to give a precise semantics to the
    "back" button of the browser (be sure that you will go back in the
    past) or bookmarks, or duplication of the browser's window.
-   (See the [[eliom/manual/dev/2#p2calc|%<span class="code"|calc>%]] example below).
+   (See the [[manual/dev/2#p2calc|%<span class="code"|calc>%]] example below).
    
           
 
@@ -2105,7 +2105,7 @@ In this example, coservices do not take any parameters
       parameters. Note that the fallback of a GET coservice cannot take
       parameters. Actually as coservices parameters have special
       names, it is possible to use a "pre-applied" service as fallback
-      ([[eliom/manual/dev/2#p3preapplied|see later]]).
+      ([[manual/dev/2#p3preapplied|see later]]).
           
 
 
@@ -2118,7 +2118,7 @@ In this example, coservices do not take any parameters
         It is better for ergonomics, but it would be even better to stay
         on the same page~ ... How to do that with POST coservices?
         A much better solution will be seen in the
-        [[eliom/manual/dev/2#p2actions|section
+        [[manual/dev/2#p2actions|section
         about actions and non-attached coservices]].
       
           
@@ -2170,7 +2170,7 @@ Eliom is using the concept of //continuation//.
             
 Coservices allow to create dynamically
         new continuations that depend on previous interactions with users
-        ([[eliom/manual/dev/2#p2calc|See the %<span class="code"|calc>% example below]]).
+        ([[manual/dev/2#p2calc|See the %<span class="code"|calc>% example below]]).
         Such a behaviour is difficult to simulate with traditional Web
         programming.
             
@@ -2203,7 +2203,7 @@ As for attached coservices, there are GET and POST versions.
        link or form to be present on every page but you don't want the
        URL to change. Very often, non-attached POST coservices are
        used with //actions// or //redirections//
-       ([[eliom/manual/dev/2#p2actions|see more details and an example in the section about
+       ([[manual/dev/2#p2actions|see more details and an example in the section about
           actions below]]).
        
           
@@ -2573,7 +2573,7 @@ let () =
 
           
       Note that actions return %<span class="code"|()>%.
-      [[eliom/manual/dev/3#p3infofallbacks|See later for more advanced use]]
+      [[manual/dev/3#p3infofallbacks|See later for more advanced use]]
      
           
 
@@ -2581,7 +2581,7 @@ let () =
 
           
        That version of the site with connection solves the main problems of
-       [[eliom/manual/dev/2#p2sessiondata|%<span class="code"|sessdata>%]]:
+       [[manual/dev/2#p2sessiondata|%<span class="code"|sessdata>%]]:
      
           
 
@@ -2597,9 +2597,9 @@ let () =
 
           
        We'll see later
-      [[eliom/manual/dev/3#p3infofallbacks|how to display an error message]]
+      [[manual/dev/3#p3infofallbacks|how to display an error message]]
        if the connection goes wrong, and
-      [[eliom/manual/dev/3#p3persistenceofsessions|how to have persistent sessions]]
+      [[manual/dev/3#p3persistenceofsessions|how to have persistent sessions]]
       (that stay opened even if the server is re-launched).
      
           
@@ -2649,7 +2649,7 @@ let () =
 *GET coservices (whithout POST parameters) can be registered
         only with a main service without GET/POST parameters as fallback.
         But it may be a
-      [[eliom/manual/dev/3#p3preapplied|//preapplied//]]
+      [[manual/dev/3#p3preapplied|//preapplied//]]
         service (see below).
         
 *Services with POST parameters (main service or coservice)
@@ -2734,7 +2734,7 @@ creates this link:
 
           
 It is now also possible to handle static pages with Eliom, using
-      %<span class="code"|Eliom_predefmod.Files>% ([[eliom/manual/dev/3#p3eliomfiles|see later]]).
+      %<span class="code"|Eliom_predefmod.Files>% ([[manual/dev/3#p3eliomfiles|see later]]).
       
           
       %<|h4>Static parts of a page</h4>      <em>To be available soon</em>%
@@ -2809,7 +2809,7 @@ let redir1 = Eliom_predefmod.Redirection.register_new_service
           
      If you want to give parameters to such services, use
      %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpreapply"|%<span class="code"|Eliom_services.preapply>%>% (see also 
-     [[eliom/manual/dev/3#p3preapplied|later in the tutorial]]).
+     [[manual/dev/3#p3preapplied|later in the tutorial]]).
      Example:
     
           
@@ -3220,7 +3220,7 @@ The following example is a new version of our site
        (%<span class="code"|login_box>%, %<span class="code"|disconnect_box>%
        and %<span class="code"|disconnect_action>%
        are the same as
-      [[eliom/manual/dev/2#p2actions|before]]).
+      [[manual/dev/2#p2actions|before]]).
       
           
 
@@ -3451,7 +3451,7 @@ It is also possible to send other information to fallback,
 
           
     Here is a new version of the
-          [[eliom/manual/dev/2#p2actions|example of session with actions,]] using the polymorphic request data table:
+          [[manual/dev/2#p2actions|example of session with actions,]] using the polymorphic request data table:
     
 *wiki*)
 (************************************************************)

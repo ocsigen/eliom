@@ -225,7 +225,7 @@ We will see in the following of this tutorial how to improve
       Eliom allows to replace a public service by a service valid only for
       one user.
       Use this to personalise main services for one user (or to create new
-      coservices available only to one user, [[eliom/manual/dev/2#p2calc|see later]]).
+      coservices available only to one user, [[manual/dev/2#p2calc|see later]]).
       To create a "session service", register the service in
       a "session service table" (valid only for one client)
       instead of the public table. To do that,
@@ -261,7 +261,7 @@ The following example shows how to reimplement the previous one
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
       useful, for example with coservices (see
-      [[eliom/manual/dev/2#p2coservicesinsessiontable|later]]).
+      [[manual/dev/2#p2coservicesinsessiontable|later]]).
       
           
 
@@ -452,7 +452,7 @@ Most of the time, GET coservices are created dynamically with
    in the session table. They allow to give a precise semantics to the
    "back" button of the browser (be sure that you will go back in the
    past) or bookmarks, or duplication of the browser's window.
-   (See the [[eliom/manual/dev/2#p2calc|<<span class="code"|calc>>]] example below).
+   (See the [[manual/dev/2#p2calc|<<span class="code"|calc>>]] example below).
    
           
 
@@ -564,7 +564,7 @@ In this example, coservices do not take any parameters
       parameters. Note that the fallback of a GET coservice cannot take
       parameters. Actually as coservices parameters have special
       names, it is possible to use a "pre-applied" service as fallback
-      ([[eliom/manual/dev/2#p3preapplied|see later]]).
+      ([[manual/dev/2#p3preapplied|see later]]).
           
 
 
@@ -577,7 +577,7 @@ In this example, coservices do not take any parameters
         It is better for ergonomics, but it would be even better to stay
         on the same page~ ... How to do that with POST coservices?
         A much better solution will be seen in the
-        [[eliom/manual/dev/2#p2actions|section
+        [[manual/dev/2#p2actions|section
         about actions and non-attached coservices]].
       
           
@@ -629,7 +629,7 @@ Eliom is using the concept of //continuation//.
             
 Coservices allow to create dynamically
         new continuations that depend on previous interactions with users
-        ([[eliom/manual/dev/2#p2calc|See the <<span class="code"|calc>> example below]]).
+        ([[manual/dev/2#p2calc|See the <<span class="code"|calc>> example below]]).
         Such a behaviour is difficult to simulate with traditional Web
         programming.
             
@@ -662,7 +662,7 @@ As for attached coservices, there are GET and POST versions.
        link or form to be present on every page but you don't want the
        URL to change. Very often, non-attached POST coservices are
        used with //actions// or //redirections//
-       ([[eliom/manual/dev/2#p2actions|see more details and an example in the section about
+       ([[manual/dev/2#p2actions|see more details and an example in the section about
           actions below]]).
        
           
@@ -943,7 +943,7 @@ let () =
 
           
       Note that actions return <<span class="code"|()>>.
-      [[eliom/manual/dev/3#p3infofallbacks|See later for more advanced use]]
+      [[manual/dev/3#p3infofallbacks|See later for more advanced use]]
      
           
 
@@ -951,7 +951,7 @@ let () =
 
           
        That version of the site with connection solves the main problems of
-       [[eliom/manual/dev/2#p2sessiondata|<<span class="code"|sessdata>>]]:
+       [[manual/dev/2#p2sessiondata|<<span class="code"|sessdata>>]]:
      
           
 
@@ -967,9 +967,9 @@ let () =
 
           
        We'll see later
-      [[eliom/manual/dev/3#p3infofallbacks|how to display an error message]]
+      [[manual/dev/3#p3infofallbacks|how to display an error message]]
        if the connection goes wrong, and
-      [[eliom/manual/dev/3#p3persistenceofsessions|how to have persistent sessions]]
+      [[manual/dev/3#p3persistenceofsessions|how to have persistent sessions]]
       (that stay opened even if the server is re-launched).
      
           
@@ -1019,7 +1019,7 @@ let () =
 *GET coservices (whithout POST parameters) can be registered
         only with a main service without GET/POST parameters as fallback.
         But it may be a
-      [[eliom/manual/dev/3#p3preapplied|//preapplied//]]
+      [[manual/dev/3#p3preapplied|//preapplied//]]
         service (see below).
         
 *Services with POST parameters (main service or coservice)

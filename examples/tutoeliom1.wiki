@@ -36,7 +36,7 @@ open Eliom_predefmod.Xhtml
           
 <<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>>
       (lightweight threads) is the cooperative thread library used by Ocsigen
-      ([[eliom/manual/dev/1#p1threads|see later]]).
+      ([[manual/dev/1#p1threads|see later]]).
           
 
           
@@ -74,7 +74,7 @@ let coucou =
 As you can see,
       <<ocsigendoc version="dev" file="Lwt.html" fragment="VALreturn"|<<span class="code"|return>>>> is a function from <<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>>.
       Use it like this for now, and
-      [[eliom/manual/dev/1#p1threads|see later]] for more advanced use.
+      [[manual/dev/1#p1threads|see later]] for more advanced use.
           
 
           
@@ -240,7 +240,7 @@ To compile this syntax, you need a camlp4 syntax extension:
 
             
          As the syntax extension is using the same typing system as XHTML.M,
-         You can mix the two syntaxes ([[eliom/manual/dev/1#p1postforms|see later]]).
+         You can mix the two syntaxes ([[manual/dev/1#p1postforms|see later]]).
       
             
 
@@ -902,7 +902,7 @@ let form = register_new_service ["form"] unit
 Note that if you want to use typed parameters,
        you cannot use functions like <<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALinput"|<<span class="code"|XHTML.M.input>>>> to
        create your forms (if you want to use parameters defined with
-       <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|<<span class="code"|Eliom_parameters.any>>>>, [[eliom/manual/dev/1#p1any|see later]]). Indeed, parameter names are typed to force them
+       <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|<<span class="code"|Eliom_parameters.any>>>>, [[manual/dev/1#p1any|see later]]). Indeed, parameter names are typed to force them
        be used properly. In our example, <<span class="code"|number_name>> has type
        <<span class="code"|int param_name>> and must be used with
        <<span class="code"|int_input>> (or other widgets), whereas

@@ -56,10 +56,10 @@ creates this link:
 
           
 It is now also possible to handle static pages with Eliom, using
-      <<span class="code"|Eliom_predefmod.Files>> ([[eliom/manual/dev/3#p3eliomfiles|see later]]).
+      <<span class="code"|Eliom_predefmod.Files>> ([[manual/dev/3#p3eliomfiles|see later]]).
       
           
-      <!-- h4>Static parts of a page</h4>      <em>To be available soon</em -->
+      <<|h4>Static parts of a page</h4>      <em>To be available soon</em>>
     
         >>
 
@@ -131,7 +131,7 @@ let redir1 = Eliom_predefmod.Redirection.register_new_service
           
      If you want to give parameters to such services, use
      <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpreapply"|<<span class="code"|Eliom_services.preapply>>>> (see also 
-     [[eliom/manual/dev/3#p3preapplied|later in the tutorial]]).
+     [[manual/dev/3#p3preapplied|later in the tutorial]]).
      Example:
     
           
@@ -542,7 +542,7 @@ The following example is a new version of our site
        (<<span class="code"|login_box>>, <<span class="code"|disconnect_box>>
        and <<span class="code"|disconnect_action>>
        are the same as
-      [[eliom/manual/dev/2#p2actions|before]]).
+      [[manual/dev/2#p2actions|before]]).
       
           
 
@@ -729,7 +729,7 @@ It is also possible to send other information to fallback,
 
           
     Here is a new version of the
-          [[eliom/manual/dev/2#p2actions|example of session with actions,]] using the polymorphic request data table:
+          [[manual/dev/2#p2actions|example of session with actions,]] using the polymorphic request data table:
     
 <<code language="ocaml" |
 (************************************************************)
