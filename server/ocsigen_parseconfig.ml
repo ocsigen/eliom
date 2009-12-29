@@ -211,16 +211,19 @@ let correct_hostname =
   let regexp = Netstring_pcre.regexp "^[a-zA-Z0-9]+((\\.|-)[a-zA-Z0-9]+)*$" in
   fun h -> Netstring_pcre.string_match regexp h 0 <> None
 
-(* Splits the [host] field, first according to spaces (which encode disjunction),
+(* Splits the [host] field, first according to spaces
+   (which encode disjunction),
    and then according to wildcards '*' ; we then transform the hosts-with-regexp
-   into a regepx that matches a potential host. The whole result is cached. *)
+   into a regepx that matches a potential host. 
+   The whole result is cached because user config files (for userconf)
+   are read at each request. *)
 let parse_host_field =
   let h = Hashtbl.create 17 in
   (fun (hostfilter : string option) ->
      try Hashtbl.find h hostfilter
      with Not_found ->
        let r = match hostfilter with
-         | None -> ["*", Netstring_pcre.regexp ".*", None] (* default = "*:*" *)
+         | None -> ["*", Netstring_pcre.regexp ".*$", None] (* default = "*:*" *)
          | Some s ->
              let parse_one_host ss =
                let host, port =
@@ -245,9 +248,9 @@ let parse_host_field =
                (host,
                 Netstring_pcre.regexp
                   (String.concat ""
-                     (List.map split_host
-                        (Netstring_str.full_split
-                           (Netstring_str.regexp "[*]+") host))),
+                     ((List.map split_host
+                         (Netstring_str.full_split
+                            (Netstring_str.regexp "[*]+") host))@["$"])),
                 port)
              in
              List.map parse_one_host
