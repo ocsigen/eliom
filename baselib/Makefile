@@ -32,10 +32,13 @@ byte: $(OBJS) $(CMI) parsecommandline.cma donotparsecommandline.cma
 #	cp -f $(OBJS) $(CMI) ../lib
 
 
-DEPOPTBASE=$(OBJSOPT) $(CMI) parsecommandline.cmxa \
+# please do not forget CMXS!
+CMXA= polytables.cmxa parsecommandline.cmxa \
 	donotparsecommandline.cmxa
+CMXS=$(CMXA:.cmxa=.cmxs)
+DEPOPTBASE=$(OBJSOPT) $(CMI) $(CMXA)
 ifeq "$(NATDYNLINK)" "YES"
-  DEPOPT=$(DEPOPTBASE) polytables.cmxs
+  DEPOPT=$(DEPOPTBASE) $(CMXS)
 else
   DEPOPT=$(DEPOPTBASE)
 endif
@@ -54,11 +57,11 @@ parsecommandline.cmxa: commandline/ocsigen_getcommandline.cmx
 donotparsecommandline.cmxa: nocommandline/ocsigen_getcommandline.cmx
 	$(CAMLOPT) -a -o $@  $<
 
-.cmx.cmxs:
-	$(CAMLOPT) -shared -linkall -o $@ $<
+polytables.cmxa: polytables.cmx
+	$(CAMLOPT) -a -o $@  $<
 
 .SUFFIXES:
-.SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
+.SUFFIXES: .ml .mli .cmo .cmi .cmxa .cmx .cmxs
 
 .PHONY: doc depend
 
@@ -70,8 +73,13 @@ dynlink_wrapper.cmx:
 
 .mli.cmi:
 	$(CAMLC) -c $<
+
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
+
+.cmxa.cmxs:
+	$(CAMLOPT) -shared -linkall -o $@ $<
+
 
 ocsigen_config.ml: ocsigen_config.ml.in
 	cat ocsigen_config.ml.in \
@@ -100,7 +108,7 @@ clean:
 	cd nocommandline; rm -f *.cm[iox]* *.annot *.o
 
 depend: ocsigen_config.ml
-	$(CAMLDEP) $(PP) $(LIBDIRS) $(FILES:.ml=.mli) $(FILES) > .depend
+	$(CAMLDEP) $(PP) $(LIBDIRS) $(FILES:.ml=.mli) $(FILES) $(CMXS) > .depend
 
 FORCE:
 

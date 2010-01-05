@@ -98,8 +98,10 @@ METAS = files/META files/META.ocsigen files/META.eliom_examples files/META.eliom
 INSTALL = install
 TARGETSBYTE = baselib.byte xmlp4.byte http.byte server.byte extensions.byte eliom.byte examples.byte
 
+# plugins are cma (and cmxs) that can be loaded dynamically by the server
 PLUGINSCMATOINSTALL = $(SQLITECMATOINSTALL) $(DBMCMATOINSTALL) \
-	eliom/eliom.cma $(DEFLATEMODCMATOINSTALL) $(DUCECMA)
+	eliom/eliom.cma $(DEFLATEMODCMATOINSTALL) $(DUCECMA) \
+	baselib/parsecommandline.cma baselib/donotparsecommandline.cma
 PLUGINSCMOTOINSTALL = \
 	$(SQLITECMOTOINSTALL) $(DBMCMOTOINSTALL) $(DEFLATEMODCMOTOINSTALL) \
 	extensions/staticmod.cmo extensions/cgimod.cmo \
@@ -119,9 +121,9 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
        baselib/polytables.cmi
 
+# Put here only those which do not have cmxs (Vincent: Why?)
 CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/xhtmlpretty.cma	\
-	xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma			\
-	baselib/parsecommandline.cma baselib/donotparsecommandline.cma
+	xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma
 CMOTOINSTALL = server/server_main.cmo
 CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi	\
@@ -376,6 +378,14 @@ partialinstall:
 	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)/extensions
 #	$(INSTALL) -m 644 META.ocsigen_ext.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
 	$(INSTALL) -m 644 files/META.eliom_examples.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
+	chmod a+rx $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)
+	chmod a+r $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/*
+	chmod a+rx $(TEMPROOT)$(MODULEINSTALLDIR)
+	chmod a+rx $(TEMPROOT)$(EXAMPLESINSTALLDIR)
+	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)
+	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/METAS
+	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/extensions
+	chmod a+rx "$(TEMPROOT)$(MODULEINSTALLDIR)"
 
 docinstall: doc/index.html
 	mkdir -p $(TEMPROOT)$(DOCDIR)

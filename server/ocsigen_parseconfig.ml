@@ -400,9 +400,11 @@ let parse_server isreloading c =
           in begin
             match modules with
               | `Files modules ->
-                  Ocsigen_loader.loadfiles (preloadfile l) postloadfile false modules;
+                  Ocsigen_loader.loadfiles
+                    (preloadfile l) postloadfile false modules;
               | `Name name ->
-                  Ocsigen_loader.init_module (preloadfile l) postloadfile false name
+                  Ocsigen_loader.init_module
+                    (preloadfile l) postloadfile false name
           end;
           parse_server_aux ll
       | (Element ("library", atts, l))::ll ->
