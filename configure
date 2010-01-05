@@ -529,6 +529,30 @@ else
     exit 1
 fi
 
+######################################################################
+# Check Obrowser
+
+printf "%s" "Checking for obrowser... "
+if ocamlfind query obrowser >/dev/null 2>/dev/null; then
+    echo "found"
+else
+    echo "not found"
+    echo "Required dependency obrowser not found!"
+    exit 1
+fi
+
+######################################################################
+# Check Ocamlnet
+
+printf "%s" "Checking for netstring... "
+if ocamlfind query netstring >/dev/null 2>/dev/null; then
+    echo "found"
+else
+    echo "not found"
+    echo "Required library netstring not found!"
+    exit 1
+fi
+
 
 ######################################################################
 # Check SQLITE3
