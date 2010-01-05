@@ -92,7 +92,7 @@ clean:
 
 depend:
 	$(MAKE) -C miniwiki depend
-	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
+	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) | sed s%ocsipersist.cmx%ocsipersist.cmi%g > .depend
 
 FORCE:
 

@@ -11,6 +11,7 @@ ifeq "$(OCSIPERSISTSQLITE)" "YES"
 FILESSQLITE= ocsipersist.ml
 OBJSQLITE= ocsipersist-sqlite.cma
 PACKSQLITE=,sqlite3
+REMOVECMX=removecmx
 else
 
 endif
@@ -64,21 +65,27 @@ OBJSOPT = $(CMXS1) $(OBJSQLITE:.cma=.cmxa) \
           $(CMXS2)
 
 
-byte: $(OBJDBMBYTE) $(OBJS)
-
-opt: $(OBJDBMOPT) $(OBJSOPT)
-
-
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs .cmxa
 
-.PHONY: doc depend dbm-byte dbm-opt
+.PHONY: doc depend dbm-byte dbm-opt removecmx forceremovecmx
+
+byte: $(OBJDBMBYTE) $(OBJS)
+
+opt: $(OBJDBMOPT) $(REMOVECMX) $(OBJSOPT) forceremovecmx
+
 
 dbm-byte:
 	$(MAKE) -C ocsipersist-dbm byte
 
 dbm-opt:
 	$(MAKE) -C ocsipersist-dbm opt
+
+removecmx:
+	-[ -f ocsipersist.cmx ] && rm ocsipersist.cmx
+
+forceremovecmx:
+	-rm -f ocsipersist.cmx
 
 ocsipersist-sqlite.cma: ocsipersist.cmo
 	$(CAMLC) -a -o ocsipersist-sqlite.cma ocsipersist.cmo

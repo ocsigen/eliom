@@ -103,7 +103,7 @@ doc:
 	$(CAMLDOC) -d doc -html ocsicache.mli
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *.o *.a *~ *.annot ocsigen_config.ml
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *~ *.annot ocsigen_config.ml
 	cd commandline; rm -f *.cm[iox]* *.annot *.o
 	cd nocommandline; rm -f *.cm[iox]* *.annot *.o
 
