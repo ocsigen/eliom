@@ -15,7 +15,7 @@ lwt >= 2.0
 obrowser
 pcre-ocaml
 ocamlnet >= 2.2.0 (actually only modules netstring, netsys, pcre) 
-ocamlssl (sometimes called libssl-ocaml) >= 0.4.3
+ocamlssl (sometimes called libssl-ocaml) >= 0.4.4
 ocamlsqlite3 >= 0.21.0 (needs sqlite)
 (You may also use the dbm database (for example gdbm) instead of sqlite.
  In that case, you need dbm with headers (libgdbm-dev package for ex))
