@@ -9,11 +9,11 @@ function caml_run_from_table (vm, id, marg) {
     vm.run ();
 }
 
-RT.caml_register_closure = function (id, clos) {
+function caml_register_closure(id, clos) {
     caml_closure_table[id] = clos;
     return 0;
 }
 
-RT.caml_get_closure_arg = function (unit) {
+function caml_get_closure_arg(unit) {
     return caml_closure_arg;
 }

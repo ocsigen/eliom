@@ -30,6 +30,66 @@ open Eliom_parameters
 open Eliom_sessions
 open Lwt
 
+(* sums in parameters types *)
+
+let sumserv = register_new_service
+    ~path:["sum"]
+    ~get_params:(sum (int "i") (sum (int "ii") (string "s")))
+    (fun sp g () ->
+       return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata "You sent: ";
+                      strong [pcdata
+                                (match g with
+                                   | Inj1 i
+                                   | Inj2 (Inj1 i) -> string_of_int i
+                                   | Inj2 (Inj2 s) -> s) ]]])))
+
+let create_form =
+  (fun (name1, (name2, name3)) ->
+    [p [
+       Eliom_predefmod.Xhtml.int_input 
+         ~name:name1 ~input_type:`Submit ~value:48 ();
+       Eliom_predefmod.Xhtml.int_input 
+         ~name:name2 ~input_type:`Submit ~value:55 ();
+       Eliom_predefmod.Xhtml.string_input 
+         ~name:name3 ~input_type:`Submit ~value:"plop" ();
+     ]])
+
+let sumform = register_new_service ["sumform"] unit
+  (fun sp () () ->
+     let f = Eliom_predefmod.Xhtml.get_form sumserv sp create_form in
+     return
+       (html
+         (head (title (pcdata "")) [])
+         (body [f])))
+
+
+let sumform2 = new_service ~path:["sumform2"] ~get_params:unit ()
+
+let sumserv = register_new_post_service
+    ~fallback:sumform2
+    ~post_params:(sum (int "i") (sum (int "ii") (string "s")))
+    (fun sp () post ->
+       return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata "You sent: ";
+                      strong [pcdata
+                                (match post with
+                                   | Inj1 i
+                                   | Inj2 (Inj1 i) -> string_of_int i
+                                   | Inj2 (Inj2 s) -> s) ]]])))
+
+let () = register sumform2
+  (fun sp () () ->
+     let f = Eliom_predefmod.Xhtml.post_form sumserv sp create_form () in
+     return
+       (html
+         (head (title (pcdata "")) [])
+         (body [f])))
+
 
 (******)
 (* unregistering services *)
@@ -1492,6 +1552,8 @@ let mainpage = register_new_service ["tests"] unit
         p
         [
          a coucou sp [pcdata "coucou"] (); br ();
+         a sumform sp [pcdata "alternative parameters"] (); br ();
+         a sumform2 sp [pcdata "alternative parameters with POST"] (); br ();
          a optform sp [pcdata "Optional parameters"] (); br ();
          a sfail sp [pcdata "Service raising an exception"] (); br ();
          a sraise sp [pcdata "Wrong use of exceptions during service"] (); br ();

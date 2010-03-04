@@ -22,6 +22,7 @@ ocamlsqlite3 >= 0.21.0 (needs sqlite)
 camlzip (libzip-ocaml)
 cryptokit
 A C compiler
+the command uuencode
 
 If ocaml/ocamlduce/ocamlfind/ocamlnet/ocamlssl... 
 are not installed on your computer, 
@@ -89,7 +90,7 @@ verify he has read access to
  - and rwx access to log directory.
 
 
-To run the web server:
+To run Ocsigen Server:
 
   ocsigen
 
@@ -116,7 +117,7 @@ system-wide location.
 If it does not work, look at the logs or run ocsigen with options -v or -V
 (verbose and debug mode)
 
-See the file modules/tutorial.ml for a tutorial or http://www.ocsigen.org
+If you want to program with Eliom, see http://www.ocsigen.org for a tutorial
 
 If you make install, it will generate and install the documentation.
 Otherwise, you can generate it in the doc directory by typing:
@@ -125,6 +126,10 @@ make doc
 By default, the tutorial is configured at URL /
 and Miniwiki at URL /miniwiki
 
+To run the native code version, use ocsigen.opt. Note that you may need 
+to generate cmxs files for the libraries you need, if they are not included
+in your distribution.
+See http://ocsigen.org/ocsigenserver/miscserver
 
 ------------------------------------------------------------------
 For debugging purpose, there is now a toplevel with all ocsigen
@@ -147,6 +152,8 @@ Written by:
 
 Vincent Balat
  (project coordinator, Web server, Ocsigenmod, Eliom, Staticmod, xhtml syntax extension, documentation, Ocsimore, extension mechanism, Ocsidbm, Ocsipersist with DBM ...) 
+Boris Yakobowski
+ (Web server, extensions, extended configuration ...)
 Jérôme Vouillon
  (lwt library, Web server) 
 Gabriel Kerneis

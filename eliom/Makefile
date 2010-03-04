@@ -199,6 +199,7 @@ clean:
 	$(MAKE) -C obrowser clean
 
 depend:
+	make -C obrowser depend
 	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) $(OBROWSERFILES) > .depend
 	sed -i.bak s%../extensions/ocsipersist.cmx%% .depend
 

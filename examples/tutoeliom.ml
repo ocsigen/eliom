@@ -1,10 +1,7 @@
 (*zap*
-   this is the Eliom Tutorial.
-   It is mainly written in html.
+   This is the Eliom Documentation.
+   It is mainly written in wikicreole syntax.
    You can find a more readable version of comments on http://www.ocsigen.org
-*zap*)
-(*zap*
-~/bin/caml2html -css -hc2 -oc tutoeliom.ml
 *zap*)
 (*wiki*
 %<div class='leftcol'|%<leftcoldoc version="dev">%>%

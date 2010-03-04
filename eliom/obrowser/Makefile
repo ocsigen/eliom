@@ -1,13 +1,37 @@
-
 CMA:= eliom_obrowser_client.cma
-OCAMLBUILD:= ocamlbuild -classic-display
+OBROWSERLIB:= $(shell ocamlfind query obrowser)
+STUBDIR:=$(shell ocamlfind printconf stdlib)/stublibs
+OCAMLFIND = CAML_LD_LIBRARY_PATH=$(STUBDIR) CAMLLIB=$(OBROWSERLIB) ocamlfind
+OCAMLC:= $(OCAMLFIND) ocamlc
+OCAMLDEP:= $(OCAMLFIND) ocamldep
+OCAMLMKLIB:= ocamlmklib
+PACKAGES:= -package netstring,obrowser,str,lwt
+MLS:= ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_parameters.ml eliom_services.ml eliom_mkforms.ml polytables.ml eliom_obrowser_client.ml
+CMOS=$(MLS:.ml=.cmo)
 
-all: $(CMA)
+.SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-$(CMA): mls
-	$(OCAMLBUILD) $(CMA)
+.PHONY: depend clean
 
-mls: eliom_parameters.ml eliom_services.ml eliom_common.ml eliom_mkforms.ml ocsigen_lib_obrowser.ml polytables.ml
+
+all: $(MLS) $(CMA)
+
+$(CMA):  eliom_obrowser_client_stubs.o $(CMOS) ../../files/tutorial/eliom_obrowser.js
+	$(OCAMLMKLIB) -o $(CMA:.cma=) eliom_obrowser_client_stubs.o $(CMOS)
+
+../../files/tutorial/eliom_obrowser.js: eliom_obrowser.js
+	cp -f eliom_obrowser.js $@
+
+
+.c.o:
+	$(OCAMLC) -c $<
+
+.ml.cmo:
+	$(OCAMLC) $(PACKAGES) -c $<
+
+.mli.cmi:
+	$(OCAMLC) $(PACKAGES) -c $<
+
 
 eliom_parameters.ml: ../eliom_parameters_obrowser.ml
 	cp -f ../eliom_parameters_obrowser.ml eliom_parameters.ml
@@ -21,15 +45,11 @@ eliom_common.ml: ../eliom_common_obrowser.ml
 eliom_mkforms.ml: ../eliom_mkforms.ml
 	cp -f ../eliom_mkforms.ml .
 
-ocsigen_lib_obrowser.ml: ../../baselib/ocsigen_lib_obrowser.ml .
+ocsigen_lib_obrowser.ml: ../../baselib/ocsigen_lib_obrowser.ml
 	cp -f ../../baselib/ocsigen_lib_obrowser.ml .
 
 polytables.ml: ../../baselib/polytables.ml
 	cp -f ../../baselib/polytables.ml .
-
-#_build/pa_eliom_obrowser.cmo:
-#	$(OCAMLBUILD) $@
-
 
 #eliom_obrowser_client.cmo:
 #	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser_client.ml
@@ -40,5 +60,10 @@ polytables.ml: ../../baselib/polytables.ml
 #eliom_obrowser_client.cma: lwt_obrowser.cmo eliom_obrowser_client.cmo
 #	$(CAMLC) -a -o $@ $^
 
-clean:
-	rm -rf _build
+depend: $(MLS)
+	$(OCAMLDEP) $(MLS) > .depend
+
+clean: 
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so
+
+-include .depend

@@ -19,10 +19,10 @@ package "monitoring" (
 )
 
 package "tutoeliom" (
-  exists_if = "tutoeliom.cmo,tutoeliom.cmxs"
+  exists_if = "tutoeliom.cma,tutoeliom.cmxs"
   version = "[distributed with Ocsigen]"
   description = "Eliom tutorial"
-  archive(plugin,byte) = "tutoeliom.cmo"
+  archive(plugin,byte) = "tutoeliom.cma"
   archive(plugin,native) = "tutoeliom.cmxs"
 )
 

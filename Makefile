@@ -139,7 +139,7 @@ CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi		\
 	baselib/ocsigen_stream.cmi baselib/ocsigen_messages.cmi		\
 	extensions/ocsigen_LocalFiles.cmi files/META
-EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo	\
+EXAMPLESCMOA = examples/tutoeliom.cma examples/monitoring.cmo	\
 	examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 
 EXAMPLESCMI = examples/tutoeliom.cmi
@@ -148,7 +148,7 @@ ifeq "$(BYTECODE)" "YES"
 TOINSTALLBYTE=$(CMATOINSTALL) $(CMOTOINSTALL)\
 	      $(PLUGINSCMATOINSTALL) $(PLUGINSCMOTOINSTALL)
 PLUGINSTOINSTALLBYTE=$(PLUGINSCMATOINSTALL) $(PLUGINSCMOTOINSTALL)
-EXAMPLESBYTE=$(EXAMPLESCMO)
+EXAMPLESBYTE=$(EXAMPLESCMOA)
 BYTE=byte
 else
 TOINSTALLBYTE=
@@ -159,7 +159,7 @@ endif
 
 ifeq "$(NATDYNLINK)" "YES"
 CMXS=$(PLUGINSCMOTOINSTALL:.cmo=.cmxs) $(PLUGINSCMATOINSTALL:.cma=.cmxs)
-EXAMPLECMXS=$(EXAMPLESCMO:.cmo=.cmxs)
+EXAMPLECMXS=$($(EXAMPLESCMOA:.cmo=.cmxs):.cma=.cmxs)
 else
 CMXS=
 EXAMPLECMXS=
@@ -190,7 +190,7 @@ endif
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_obrowser.cmo eliom/obrowser/_build/eliom_obrowser_client.cma eliom/obrowser/_build/eliom_obrowser_client.cmi eliom/obrowser/_build/lwt_obrowser.cmi eliom/obrowser/eliom_obrowser.js
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_obrowser.cmo eliom/obrowser/eliom_obrowser_client.cma eliom/obrowser/eliom_obrowser_client.cmi eliom/obrowser/eliom_obrowser.js
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
@@ -282,8 +282,7 @@ files/META: files/META.in VERSION
 files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
-	-ln -sf ../eliom/obrowser/_builde/eliom_obrowser_client.cma extensions
-	-ln -sf ../eliom/obrowser/_build/lwt_obrowser.cmo extensions
+	-ln -sf ../eliom/obrowser/eliom_obrowser_client.cma extensions
 	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cma extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cma extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cma extensions
@@ -450,6 +449,8 @@ installnodoc: partialinstall
 	$(INSTALL) -m 644 files/tutorial/style.css $(TEMPROOT)$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/tutorial/bulles-bleues.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/tutorial/ocsigen5.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tutorial/vm.js $(TEMPROOT)$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tutorial/tutoeliom_ocsigen2_client.uue $(TEMPROOT)$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)$(STATICPAGESDIR)/ocsigenstuff
 	$(INSTALL) -m 644 examples/miniwiki/files/style.css $(TEMPROOT)$(STATICPAGESDIR)/miniwiki
 	$(INSTALL) -m 644 examples/miniwiki/wikidata/* $(TEMPROOT)$(DATADIR)/miniwiki

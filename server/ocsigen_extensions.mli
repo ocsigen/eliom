@@ -206,7 +206,7 @@ exception Ocsigen_Is_a_directory of request
 
 type answer =
   | Ext_do_nothing
-      (** Do nothing *)
+      (** I don't want to do anything *)
   | Ext_found of (unit -> Ocsigen_http_frame.result Lwt.t)
       (** "OK stop! I will take the page.
           You can start the following request of the same pipelined connection.
