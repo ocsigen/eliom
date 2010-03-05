@@ -1,11 +1,5 @@
-(*zap*
-   This is the Eliom documentation.
-   You can find a more readable version of comments on http://www.ocsigen.org
-*zap*)
-(*wiki*
-%<||1>%
-%<div class='leftcol'|%<leftcoldoc version="dev">%>%
-      %<div class="colprincipale"|
+<<div class='leftcol'|<<leftcoldoc version="dev">>>>
+      <<div class="colprincipale"|
         ==4. 
      
 //Warning: Features presented here are experimental.
@@ -14,9 +8,9 @@ The manual is very basic for now. Turn back in a few days!//
    
         ===@@id="p4basics"@@
         
-        %<div class="onecol"|
+        <<div class="onecol"|
           
-*wiki*)
+<<code language="ocaml" |
 open XHTML.M
 open Eliom_parameters
 open Eliom_predefmod.Xhtml
@@ -44,10 +38,8 @@ let obrowser =
            (body [h1 ~a:[a_onclick 
                            ((fun.client (() : unit) -> Js.alert "clicked!") ())]
                     [pcdata "I am a clickable title"]])))
-(*wiki*
-        %> <<|onecol>>
-      %> <<|colprincipale>>
-*wiki*)
-(*wiki*
-%<||2>%
-*wiki*)
+>>
+        %> <<|onecol~>>
+      %> <<|colprincipale~>>
+<<code language="ocaml" |
+>>

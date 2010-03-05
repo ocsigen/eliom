@@ -2,7 +2,7 @@ include ../Makefile.config
 
 FILES=$(wildcard *.ml)
 
-TUTOWIKI= tutoeliom1.wiki tutoeliom2.wiki tutoeliom3.wiki
+TUTOWIKI= tutoeliom1.wiki tutoeliom2.wiki tutoeliom3.wiki tutoeliom4.wiki
 
 ifeq "$(OCAMLDUCE)" "YES"
 DUCEMODBYTE=exampleduce.cmo
@@ -72,7 +72,7 @@ tutoeliom3.wiki: tutoeliom.ml
 	cat tutoeliom.ml | sed '/%<||4>%/,$$ d' | sed '1,/%<||3>%/d' | /bin/sh ./tutomake.sh > tutoeliom3.wiki
 
 tutoeliom4.wiki: tutoeliom_ocsigen2.eliom
-	cat tutoeliom_ocsigen2.eliom | sed '/%<||1>%/,$$ d' | sed '1,/%<||2>%/d' | /bin/sh ./tutomake.sh > tutoeliom4.wiki
+	cat tutoeliom_ocsigen2.eliom | sed '/%<||2>%/,$$ d' | sed '1,/%<||1>%/d' | /bin/sh ./tutomake.sh > tutoeliom4.wiki
 
 tutoeliom_ocsigen2_client.uue: tutoeliom_ocsigen2_client
 	uuencode $< stdout > $@
