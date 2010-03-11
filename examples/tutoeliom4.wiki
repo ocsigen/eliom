@@ -1,13 +1,29 @@
 <<div class='leftcol'|<<leftcoldoc version="dev">>>>
       <<div class="colprincipale"|
-        ==4. 
+        ==4. Using Eliom client side
      
 //Warning: Features presented here are experimental.
-They are currently worked on, but will be released very soon.
-The manual is very basic for now. Turn back in a few days!//
+We have been working on them for more than two years and
+they will be released very soon.
+Use it if you want to test,
+but syntax and interfaces will change a lot during the next weeks,
+as we are currently working on simplifying the syntax and
+uniformizing server and client sides.//
+
+//The manual is very basic for now. 
+Turn back in a few days for a more complete manual!//
    
-        ===@@id="p4basics"@@
+This part of the manuel describes how to use Eliom for mixing client side
+and server side programming.
+Eliom allows to write the client and server parts of a Web application
+fully in Objectice Caml.
+For now it is using O'Browser to run OCaml programs in the browser.
+But Eliom will probably be available for other platforms soon.
+
+
+===@@id="p4basics"@@
         
+====Your first client-side function
         <<div class="onecol"|
           
 <<code language="ocaml" |
@@ -16,9 +32,9 @@ open Eliom_parameters
 open Eliom_predefmod.Xhtml
 open Eliom_services
 
-let obrowser =
+let eliomobrowser1 =
   Eliom_predefmod.Xhtml.register_new_service
-    ~path:["obrowser"]
+    ~path:["eliomobrowser1"]
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
@@ -35,9 +51,77 @@ let obrowser =
       "window.onload = function () {
         main_vm = exec_caml (\"tutoeliom_ocsigen2_client.uue\") ;
       }")])
-           (body [h1 ~a:[a_onclick 
+           (body [p ~a:[a_onclick 
                            ((fun.client (() : unit) -> Js.alert "clicked!") ())]
-                    [pcdata "I am a clickable title"]])))
+                    [pcdata "I am a clickable paragraph"];
+
+                 ])))
+>>
+====Compiling
+//soon (have a look at Ocsigen source for now -- //examples// directory)// 
+
+====Using a distant Eliom service in client side code
+
+The code will look like:
+<<code language="ocaml"|
+p ~onclick:{{Eliom_obrowser.post_request ~sp ~service:myblockservice ()
+                   ~>>= Node.append bodynode}}
+        [pcdata "Click here to add content from the server."];
+~>>
+
+For now, you can do:
+<<code language="ocaml" |
+let eliomobrowser2 = new_service ~path:["eliomobrowser2"] ~get_params:unit ()
+
+let myblockservice =
+  Eliom_predefmod.Blocks.register_new_post_coservice
+    ~fallback:eliomobrowser2
+    ~post_params:unit
+    (fun _ () () -> 
+       Lwt.return
+         [p [pcdata ("I come from a distant service! Here is a random value: "^
+                       string_of_int (Random.int 100))]])
+
+let _ =
+  Eliom_predefmod.Xhtml.register
+    eliomobrowser2
+    (fun sp () () ->
+
+         (body ~a:[a_id "body"]
+            [p 
+               ~a:[
+                 a_onclick 
+                   ((fun.client
+                       (sp : Eliom_client_types.server_params)
+                       (myblockservice : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                       let body = Js.get_element_by_id "body" in
+                       Eliom_client.call_service 
+                         ~sp ~service:myblockservice () () ~>>= fun s ->
+                       Js.alert s;
+(*                       Js.Node.append body s; *)
+                       Lwt.return ()
+                    ) (Eliom_obrowser.client_sp sp) myblockservice)
+(* Eliom_session.client_sp pas écrite. On ne peut pas sérialiser tout sp. *)
+(* il ne faut pas envoyer sp à chaque fois, mais un sp global pour la page *)
+(* je me suis fait avoir en mettant let bodyid = "body" in
+... Js.get_element_by_id bodyid ...
+sans le passer en paramètre à la fun.client
+Il faut vraiment automatiser ça...
+*)
+               ]
+               [pcdata "Click here to add content from the server."];
+              
+            ])))
+>>
+====Implicit registration of services to implement distant function calls
+<<code language="ocaml" |
+>>
+====
+<<code language="ocaml" |
+>>
+<<code language="ocaml" |
+>>
+<<code language="ocaml" |
 >>
         %> <<|onecol~>>
       %> <<|colprincipale~>>

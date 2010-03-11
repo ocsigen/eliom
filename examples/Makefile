@@ -23,7 +23,7 @@ OBROWSERDIR := $(shell ocamlfind query obrowser)
 #ELIOMOBROWSERDIR := $(shell ocamlfind query ocsigen.eliom_obrowser_client)
 #PAELIOMOBROWSERDIR := $(shell ocamlfind query ocsigen.eliom_obrowser_syntax)
 LWTDIR := $(shell ocamlfind query lwt)
-ELIOMOBROWSERDIR := ../eliom/obrowser
+ELIOMOBROWSERDIR := ../eliom/client
 PAELIOMOBROWSERDIR := ../eliom
 
 LIB = $(LIBDIRS) -package lwt.unix,netstring,camlp4
@@ -79,7 +79,7 @@ tutoeliom_ocsigen2_client.uue: tutoeliom_ocsigen2_client
 	cp -f $@ ../files/tutorial
 
 tutoeliom_ocsigen2_client: $(ELIOMOBROWSERDIR)/eliom_obrowser_client.cma client/tutoeliom_ocsigen2_client.ml
-	CAMLLIB=$(OBROWSERDIR) ocamlc -o $@ -I $(ELIOMOBROWSERDIR) $(LWTDIR)/lwt.cma $(OBROWSERDIR)/lwt_obrowser.cma $^
+	CAMLLIB=$(OBROWSERDIR) ocamlc -o $@ -I $(ELIOMOBROWSERDIR) -I $(LWTDIR) $(LWTDIR)/lwt.cma $(OBROWSERDIR)/lwt_obrowser.cma $^
 
 tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom
 	camlp4of $(PAELIOMOBROWSERDIR)/pa_eliom_obrowser.cmo -impl $< -o $@ \

@@ -69,14 +69,6 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
 
 
 
-(*****************************************************************************)
-let rec contains_suffix = function
-  | TProd (a, b) -> 
-      (match contains_suffix a with
-         | None -> contains_suffix b
-         | c -> c)
-  | TSuffix (b, _) -> Some b
-  | _ -> None
 
 
 

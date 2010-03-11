@@ -126,16 +126,6 @@ let rec remove_slash_at_end = function
   | [""] -> []
   | a::l -> a::(remove_slash_at_end l)
 
-let remove_internal_slash u =
-  let rec aux = function
-    | [] -> []
-    | [a] -> [a]
-    | ""::l -> aux l
-    | a::l -> a::(aux l)
-  in match u with
-  | [] -> []
-  | a::l -> a::(aux l)
-
 let rec add_end_slash_if_missing = function
   | [] -> [""]
   | [""] as a -> a

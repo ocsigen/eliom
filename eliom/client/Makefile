@@ -6,7 +6,7 @@ OCAMLC:= $(OCAMLFIND) ocamlc
 OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,obrowser,str,lwt
-MLS:= ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_parameters.ml eliom_services.ml eliom_mkforms.ml polytables.ml eliom_obrowser_client.ml
+MLS:= ocsigen_lib.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_mkforms.ml polytables.ml eliom_obrowser_client.ml eliom_client.ml
 CMOS=$(MLS:.ml=.cmo)
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -17,10 +17,10 @@ CMOS=$(MLS:.ml=.cmo)
 all: $(MLS) $(CMA)
 
 $(CMA):  eliom_obrowser_client_stubs.o $(CMOS) ../../files/tutorial/eliom_obrowser.js
-	$(OCAMLMKLIB) -o $(CMA:.cma=) eliom_obrowser_client_stubs.o $(CMOS)
+	$(OCAMLMKLIB) -o $(CMA:.cma=) eliom_obrowser_client_stubs.o polytables.cmo $(CMOS)
 
 ../../files/tutorial/eliom_obrowser.js: eliom_obrowser.js
-	cp -f eliom_obrowser.js $@
+	cp -f $< $@
 
 
 .c.o:
@@ -34,22 +34,25 @@ $(CMA):  eliom_obrowser_client_stubs.o $(CMOS) ../../files/tutorial/eliom_obrows
 
 
 eliom_parameters.ml: ../eliom_parameters_obrowser.ml
-	cp -f ../eliom_parameters_obrowser.ml eliom_parameters.ml
+	cp -f $< $@ 
 
 eliom_services.ml: ../eliom_services_obrowser.ml
-	cp -f ../eliom_services_obrowser.ml eliom_services.ml
+	cp -f $< $@ 
+
+eliom_client_types.ml: ../eliom_client_types.ml
+	cp -f $< $@ 
 
 eliom_common.ml: ../eliom_common_obrowser.ml
-	cp -f ../eliom_common_obrowser.ml eliom_common.ml
+	cp -f $< $@ 
 
 eliom_mkforms.ml: ../eliom_mkforms.ml
-	cp -f ../eliom_mkforms.ml .
+	cp -f $< $@ 
 
 ocsigen_lib_obrowser.ml: ../../baselib/ocsigen_lib_obrowser.ml
-	cp -f ../../baselib/ocsigen_lib_obrowser.ml .
+	cp -f $< $@ 
 
 polytables.ml: ../../baselib/polytables.ml
-	cp -f ../../baselib/polytables.ml .
+	cp -f $< $@ 
 
 #eliom_obrowser_client.cmo:
 #	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser_client.ml
@@ -65,5 +68,8 @@ depend: $(MLS)
 
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so
+	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml \
+	    eliom_common.ml eliom_mkforms.ml ocsigen_lib_obrowser.ml \
+            polytables.ml
 
 -include .depend

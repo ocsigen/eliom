@@ -443,3 +443,13 @@ let add_nl_parameter s t v =
 let table_of_nl_params_set = Ocsigen_lib.id
 
 let get_nl_params_names t = snd (make_params_names (TNLParams t))
+
+
+(*****************************************************************************)
+let rec contains_suffix = function
+  | TProd (a, b) -> 
+      (match contains_suffix a with
+         | None -> contains_suffix b
+         | c -> c)
+  | TSuffix (b, _) -> Some b
+  | _ -> None

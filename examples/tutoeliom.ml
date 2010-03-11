@@ -780,7 +780,7 @@ let links = register_new_service ["rep";"links"] unit
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
               ~get_params:(suffix (all_suffix "suff"))
-              ~post_params:unit ())
+              ())
            sp
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
@@ -1089,7 +1089,7 @@ let form4 = register_new_service ["form4"] unit
   (fun sp () () ->
      let f  =
        (Eliom_predefmod.Xhtml.post_form
-          (new_external_service
+          (new_external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
              ~get_params:(int "i")
@@ -5430,144 +5430,3 @@ Ocsigen's source code contains an example of Wiki written with
 
 %<||4>%
 *wiki*)
-(*zap* *)
-
-
-(* Main page for this example *)
-let main = new_service [] unit ()
-
-let _ = Eliom_predefmod.Xhtmlcompact.register main
-  (fun sp () () ->
-    (* Do not register a page after initialisation.
-       This will cause an error:
-       let coucou6 =
-       new_service
-        ~path:["coucou6"]
-        ~server_params:no_server_param
-        ~get_params:no_get_param
-        ()
-       in *)
-    (* This will be ignored: register coucou1 %< <html></html> >%; *)
-    return
-     <<
-       <html>
-       <!-- This is a comment! -->
-       <head>
-         $css_link (make_uri ~service:(static_dir sp) ~sp ["style.css"]) ()$
-         <title>Eliom Tutorial</title>
-       </head>
-       <body>
-
-         <h1>$img ~alt:"Ocsigen" ~src:(Eliom_predefmod.Xhtml.make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"]) ()$</h1>
-
-       <h3>Eliom examples</h3>
-       <h4>Simple pages</h4>
-       <p>
-         A simple page: $a coucou sp <:xmllist< <code>coucou</code> >> ()$ <br/>
-         A page with a counter: $a count sp <:xmllist< <code>count</code> >> ()$ <br/>
-         A page in a directory:
-           $a hello sp <:xmllist< <code>dir/hello</code> >> ()$ <br/>
-       Default page of a directory:
-           $a default sp <:xmllist< <code>rep/</code> >> ()$</p>
-       <h4>Parameters</h4>
-       <p>
-         A page with GET parameters:
-           $a coucou_params sp <:xmllist< <code>coucou</code> with params >> (45,(22,"krokodile"))$ (what if the first parameter is not an integer?)<br/>
-         A page with "suffix" URL that knows the IP and user-agent of the client:
-           $a uasuffix sp <:xmllist< <code>uasuffix</code> >> (2007,6)$ <br/>
-         A page with "suffix" URL and GET parameters :
-           $a isuffix sp <:xmllist< <code>isuffix</code> >> ((111, ["OO";"II";"OO"]), 333)$ <br/>
-         A page with constants in suffix: 
-           $a constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"))$ <br/>
-         Form towards page with suffix: 
-           $a suffixform sp [pcdata "formsuffix"] ()$ <br/>
-         A page with a parameter of user-defined type :
-             $a mytype sp <:xmllist< <code>mytype</code> >> A$ </p>
-       <h4>Links and Forms</h4>
-       <p>
-         A page with links: $a links sp <:xmllist< <code>links</code> >>  ()$ <br/>
-         A page with a link towards itself:
-             $a linkrec sp <:xmllist< <code>linkrec</code> >> ()$ <br/>
-         The $a main sp <:xmllist< default page >> ()$
-             of this directory (myself) <br/>
-         A page with a GET form that leads to the "coucou" page with parameters:
-             $a form sp <:xmllist< <code>form</code> >> ()$ <br/>
-         A POST form towards the "post" page:
-             $a form2 sp <:xmllist< <code>form2</code> >> ()$ <br/>
-         The "post" page, when it does not receive parameters:
-             $a no_post_param_service sp <:xmllist< <code>post</code> without post_params >> ()$ <br/>
-         A POST form towards a service with GET parameters:
-             $a form3 sp <:xmllist< <code>form3</code> >> ()$ <br/>
-         A POST form towards an external page:
-             $a form4 sp <:xmllist< <code>form4</code> >> ()$ </p>
-       <h4>Sessions</h4>
-       <p>
-         Coservices:
-             $a coservices_example sp <:xmllist< <code>coservice</code> >> ()$ <br/>
-         A session based on cookies, implemented with session data:
-             $a session_data_example sp <:xmllist< <code>sessdata</code> >> ()$ <br/>
-         A session based on cookies, implemented with actions:
-             $a connect_example3 sp <:xmllist< <code>actions</code> >> ()$ <br/>
-         A session based on cookies, with session services:
-             $a session_services_example sp <:xmllist< <code>sessionservices</code> >> ()$ <br/>
-         A session based on cookies, implemented with actions, with session groups:
-             $a connect_example5 sp <:xmllist< <code>groups</code> >> ()$ <br/>
-         The same with wrong user if not "toto":
-             $a connect_example6 sp <:xmllist< <code>actions2</code> >> ()$ <br/>
-         Coservices in the session table:
-             $a calc sp <:xmllist< <code>calc</code> >> ()$ <br/>
-       <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< <code>shop</code> >> ()$) -->
-         Persistent sessions:
-             $a persist_session_example sp <:xmllist< <code>persist</code> >> ()$ <br/>
-       </p>
-       <h4>Other</h4>
-       <p>
-       A page that is very slow, implemented in cooperative way:
-             $a looong sp <:xmllist< <code>looong</code> >> ()$<br/>
-       A page that is very slow, using preemptive threads:
-             $a looong sp <:xmllist< <code>looong2</code> >> ()$<br/>
-       Catching errors:
-             $a catch sp <:xmllist< <code>catch</code> >> 22$ (change the value in the URL)<br/>
-       Redirection:
-             $a redir sp <:xmllist< <code>redir</code> >> 11$<br/>
-       Cookies:
-             $a cookies sp <:xmllist< <code>cookies</code> >> ()$<br/>
-       Disposable coservices:
-             $a disposable sp <:xmllist< <code>disposable</code> >> ()$<br/>
-       Coservice with timeout:
-             $a timeout sp <:xmllist< <code>timeout</code> >> ()$<br/>
-       Public coservice created after initialization (with timeout):
-             $a publiccoduringsess sp <:xmllist< <code>publiccoduringsess</code> >> ()$<br/>
-       The following URL send either a statically checked page, or a text page:
-             $a send_any sp <:xmllist< <code>send_any</code> >> "valid"$<br/>
-       A page with a persistent counter:
-             $a count2 sp <:xmllist< <code>count2</code> >> ()$ <br/>
-       $a hier1 sp [pcdata "Hierarchical menu"] ()$ <br/>
-       $a divpage sp <:xmllist< <code>a link sending a &lt;div&gt; page</code> >> ()$ <br/>
-       $a tonlparams sp [pcdata "Non localized parameters"] ()$ <br/>
-       $a nlparams sp [pcdata "Non localized parameters (absent)"] 4$ <br/>
-       $a nlparams_with_nlp sp [pcdata "Non localized parameters (present)"] (22, (11, "aa"))$<br/>
-       $a csrfsafe_example sp [pcdata "CSRF safe services"] ()$<br/>
-       </p>
-       <h4>Advanced forms</h4>
-       <p>
-       A page that parses a parameter using a regular expression:
-          $a regexpserv sp <:xmllist< <code>regexpserv</code> >> "[toto]"$.<br/>
-       A form with a checkbox:
-          $a form_bool sp <:xmllist< Try it >> ()$.<br/>
-       A page that takes a set of parameters:
-             $a set sp <:xmllist< <code>set</code> >> ["Ciao";"bello";"ciao"]$ <br/>
-       A form to the previous one:
-             $a setform sp <:xmllist< <code>setform</code> >> ()$ <br/>
-       A page that takes any parameter:
-             $a raw_serv sp <:xmllist< <code>raw_serv</code> >> [("a","hello"); ("b","ciao")]$ <br/>
-       A form to the previous one:
-             $a raw_form sp <:xmllist< <code>raw_form</code> >> ()$ <br/>
-       A form for a list of parameters:
-             $a listform sp <:xmllist< Try it >> ()$.<br/>
-       </p>
-       </body>
-     </html> >>)
-
-
-(* *zap*)

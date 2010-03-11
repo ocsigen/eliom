@@ -69,46 +69,38 @@ type getpost = [ `Get | `Post ]
        *)
 
 type attached_service_kind =
-    [ `Internal of servcoserv * getpost
-    | `External]
-
-type get_attached_service_kind =
-    [ `Internal of servcoserv * [ `Get ]
-    | `External ]
-
-type post_attached_service_kind =
-    [ `Internal of servcoserv * [ `Post ]
+    [ `Internal of servcoserv
     | `External ]
 
 type internal =
-    [ `Internal of servcoserv * getpost ]
+    [ `Internal of servcoserv ]
 
 type registrable = [ `Registrable | `Unregistrable ]
 (** You can call register function only on registrable services *)
 (* Registrable means not pre-applied *)
 
-type +'a a_s
+type (+'a, +'b) a_s
 
 type +'a na_s
 
 type service_kind =
-    [ `Attached of attached_service_kind a_s
+    [ `Attached of (attached_service_kind, getpost) a_s
+    | `Nonattached of getpost na_s ]
+
+type internal_service_kind =
+    [ `Attached of (internal, getpost) a_s
     | `Nonattached of getpost na_s ]
 
 type get_service_kind =
-    [ `Attached of get_attached_service_kind a_s
+    [ `Attached of (attached_service_kind, [ `Get ]) a_s
     | `Nonattached of [ `Get ] na_s ]
 
 type post_service_kind =
-    [ `Attached of post_attached_service_kind a_s
+    [ `Attached of (attached_service_kind, [ `Post ]) a_s
     | `Nonattached of [ `Post ] na_s ]
 
-type internal_service_kind =
-    [ `Attached of internal a_s
-    | `Nonattached of getpost na_s ]
-
 type attached =
-    [ `Attached of attached_service_kind a_s ]
+    [ `Attached of (attached_service_kind, getpost) a_s ]
 
 type nonattached =
     [ `Nonattached of getpost na_s ]
@@ -128,6 +120,9 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
  *)
 
 
+val get_get_or_post : ('a, 'b, service_kind, 'd, 'e, 'f, 'g) service -> 
+  getpost
+  
 
 (***** Static dir and actions do not depend on the type of pages ******)
 
@@ -162,7 +157,7 @@ val new_service :
   unit ->
   ('get,unit,
    [> `Attached of
-      [> `Internal of [> `Service ] * [>`Get] ] a_s ],
+      ([> `Internal of [> `Service ] ], [> `Get ]) a_s ],
    'tipo,'gn,
    unit, [> `Registrable ]) service
 (** [new_service ~path:p ~get_params:pa ()] creates an {!Eliom_services.service} associated
@@ -181,11 +176,10 @@ val new_external_service :
   path:Ocsigen_lib.url_path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
   unit ->
-  ('get, 'post, [> `Attached of [> `External ] a_s ], 'tipo,
-   'gn, 'pn, [> `Unregistrable ]) service
-(** Creates an service for an external web site.
+  ('get, unit, [> `Attached of ([> `External ], [> `Get ]) a_s ], 'tipo,
+   'gn, unit, [> `Unregistrable ]) service
+(** Creates an service for an external web site, that will use GET method.
    Allows to creates links or forms towards other Web sites using
    Eliom's syntax.
 
@@ -200,19 +194,34 @@ val new_external_service :
    server.
  *)
 
+val new_external_post_service :
+  prefix: string ->
+  path:Ocsigen_lib.url_path ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  unit ->
+  ('get, 'post, [> `Attached of ([> `External ], [> `Post ]) a_s ], 'tipo,
+   'gn, 'pn, [> `Unregistrable ]) service
+(** Same, with POST method. *)
+
+
+
+
 val new_post_service :
   ?sp: Eliom_sessions.server_params ->
   ?https:bool ->
   fallback: ('get, unit,
-             [`Attached of [`Internal of
-                              ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
+             [`Attached of 
+                ([`Internal of
+                    ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
              [< suff] as 'tipo, 'gn, unit,
              [< `Registrable ]) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
   ('get, 'post, [> `Attached of
-                   [> `Internal of 'kind * [> `Post]] a_s ],
+                   ([> `Internal of 'kind ], [> `Post]) a_s ],
    'tipo, 'gn, 'pn, [> `Registrable ]) service
 (** Creates an service that takes POST parameters.
     [fallback] is the a service without POST parameters.
@@ -235,7 +244,7 @@ val new_coservice :
   ?timeout:float ->
   ?https:bool ->
   fallback:
-    (unit, unit, [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
+    (unit, unit, [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
      [ `WithoutSuffix ] as 'tipo,
      unit, unit, [< registrable ]) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
@@ -243,7 +252,7 @@ val new_coservice :
     ('get,[`WithoutSuffix],'gn) params_type ->
   unit ->
   ('get,unit,[> `Attached of
-                [> `Internal of [> `Coservice] * [> `Get]] a_s ],
+                ([> `Internal of [> `Coservice] ], [> `Get]) a_s ],
    'tipo, 'gn, unit,
    [> `Registrable ]) service
 (** Creates a coservice. A coservice is another version of an
@@ -295,7 +304,8 @@ val new_post_coservice :
   ?timeout:float ->
   ?https:bool ->
   fallback: ('get, unit, [ `Attached of
-                             [`Internal of [<`Service | `Coservice] * [`Get]] a_s ],
+                             ([`Internal of [<`Service | `Coservice] ],
+                              [`Get]) a_s ],
              [< suff ] as 'tipo,
              'gn, unit, [< `Registrable ]) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
@@ -303,7 +313,7 @@ val new_post_coservice :
   unit ->
   ('get, 'post,
    [> `Attached of
-      [> `Internal of [> `Coservice] * [> `Post]] a_s ],
+      ([> `Internal of [> `Coservice] ], [> `Post]) a_s ],
    'tipo, 'gn, 'pn, [> `Registrable ]) service
 (** Creates a coservice with POST parameters *)
 
@@ -378,7 +388,7 @@ val new_get_post_coservice' :
 val static_dir :
   sp:Eliom_sessions.server_params ->
   (string list, unit, [> `Attached of
-                         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+                         ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
    [ `WithSuffix ],
    [ `One of string list ] param_name, unit, [> `Unregistrable ])
     service
@@ -392,7 +402,7 @@ val static_dir :
 val https_static_dir :
   sp:Eliom_sessions.server_params ->
   (string list, unit, [> `Attached of
-                         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+                         ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
    [ `WithSuffix ],
    [ `One of string list ] param_name, unit, [> `Unregistrable ])
     service
@@ -405,7 +415,7 @@ val static_dir_with_params :
   unit ->
   ((string list * 'a), unit,
    [> `Attached of
-      [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
    [ `WithSuffix ],
    [ `One of string list ] param_name *'an, unit, [> `Unregistrable ])
     service
@@ -418,7 +428,7 @@ val https_static_dir_with_params :
   unit ->
   ((string list * 'a), unit,
    [> `Attached of
-      [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
    [ `WithSuffix ],
    [ `One of string list ] param_name *'an, unit, [> `Unregistrable ])
     service
@@ -468,7 +478,7 @@ val https_void_hidden_coservice' :
 (** {2 Misc} *)
 
 val preapply :
-    service:('a, 'b, [> `Attached of 'd a_s ] as 'c,
+    service:('a, 'b, [> `Attached of ('d, 'dd) a_s ] as 'c,
      [< suff ], 'e, 'f, 'g)
     service ->
       'a ->
@@ -494,7 +504,7 @@ val add_non_localized_post_parameters :
 
 val unregister :
   ?sp:Eliom_sessions.server_params ->
-  ('a, 'b, [< `Attached of [> `Internal of 'c * [> `Get ] ] a_s
+  ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post ]) a_s
    | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h) service ->
   unit
 (** Unregister a service from global table *)
@@ -503,7 +513,7 @@ val unregister_for_session :
   sp:Eliom_sessions.server_params ->
   ?session_name:string ->
   ?secure:bool ->
-  ('a, 'b, [< `Attached of [> `Internal of 'c * [> `Get ] ] a_s
+  ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post ]) a_s
    | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h) service ->
   unit
 (** Unregister a service from session table *)
@@ -531,6 +541,8 @@ val set_exn_handler :
 
 (**/**)
 val get_kind_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 'c
+val get_or_post_ : ('a, [< `Get | `Post ]) a_s ->
+  Ocsigen_http_frame.Http_header.http_method
 val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   (string * string) list Ocsigen_lib.String_Table.t *
   (string * string) list
@@ -538,13 +550,13 @@ val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('a, 'd, 'e) Eliom_parameters.params_type
 val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('b, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type
-val get_att_kind_ : 'a a_s -> 'a
-val get_sub_path_ : 'a a_s -> Ocsigen_lib.url_path
-val get_full_path_ : 'a a_s -> Ocsigen_lib.url_path
-val get_prefix_ : 'a a_s -> string
-val get_get_name_ : 'a a_s -> Eliom_common.att_key_serv
-val get_post_name_ : 'a a_s -> Eliom_common.att_key_serv
-val get_redirect_suffix_ : 'a a_s -> bool
+val get_att_kind_ : ('a, 'b) a_s -> 'a
+val get_sub_path_ : ('a, 'b) a_s -> Ocsigen_lib.url_path
+val get_full_path_ : ('a, 'b) a_s -> Ocsigen_lib.url_path
+val get_prefix_ : ('a, 'b) a_s -> string
+val get_get_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
+val get_post_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
+val get_redirect_suffix_ : ('a, 'b) a_s -> bool
 val get_na_name_ : 'a na_s -> Eliom_common.na_key_serv
 val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option
@@ -558,14 +570,11 @@ val eccookiel_of_escookiel : cookie list -> Eliom_common.cookie list
 val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
   [ `All | `Persistent | `None ]
 
-val get_or_post : [> `Internal of 'a * [> `Get ] ] ->
-  Ocsigen_http_frame.Http_header.http_method
-
 val change_get_num :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
-  'h a_s ->
+  ('h, 'hh) a_s ->
   Eliom_common.att_key_serv ->
-  ('a, 'b, [> `Attached of 'h a_s ], 'd, 'e, 'f, 'i) service
+  ('a, 'b, [> `Attached of ('h, 'hh) a_s ], 'd, 'e, 'f, 'i) service
 
 
 val new_state : unit -> string

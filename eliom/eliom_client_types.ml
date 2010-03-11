@@ -1,5 +1,7 @@
 (* Ocsigen
- * Copyright (C) 2009 Vincent Balat - Gerd Stolpmann
+ * http://www.ocsigen.org
+ * Module eliom_client_types.ml
+ * Copyright (C) 2010 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,19 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Ocsigen_lib_obrowser
 
-let encode ?plus s = AXOCom.urlencode_string s
-(* plus has no effect here :-/ *)
+(* Some types are different on client side: *)
 
-let mk_url_encoded_parameters nv_pairs =
-    String.concat "&"
-      (List.map
-	 (fun (name,value) ->
-	    let name_encoded = encode name in
-	    let value_encoded = encode value in
-	    name_encoded ^ "=" ^ value_encoded
-	 )
-	 nv_pairs
-      )
-  ;;
+
+
+type sitedata =
+  {site_dir: Ocsigen_lib.url_path;
+   site_dir_string: string;
+  }
+
+
+type server_params =
+    {
+     sp_si: Eliom_common.sess_info;
+     sp_sitedata: sitedata (* data for the whole site *);
+(*     sp_cookie_info: tables cookie_info; *)
+     sp_suffix: Ocsigen_lib.url_path option (* suffix *);
+     sp_fullsessname: string option (* the name of the session
+                                       to which belong the service
+                                       that answered
+                                       (if it is a session service) *)}

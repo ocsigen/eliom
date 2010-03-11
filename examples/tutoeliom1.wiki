@@ -772,7 +772,7 @@ let links = register_new_service ["rep";"links"] unit
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
               ~get_params:(suffix (all_suffix "suff"))
-              ~post_params:unit ())
+              ())
            sp
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
@@ -1071,7 +1071,7 @@ let form4 = register_new_service ["form4"] unit
   (fun sp () () ->
      let f  =
        (Eliom_predefmod.Xhtml.post_form
-          (new_external_service
+          (new_external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
              ~get_params:(int "i")

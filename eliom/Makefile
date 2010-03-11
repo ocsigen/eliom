@@ -90,7 +90,7 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom.cma $(DUCEMODBYTE) obrowser pa_eliom_obrowser.cmo
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom.cma $(DUCEMODBYTE) client pa_eliom_obrowser.cmo
 
 opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom.cmxa $(CMXS3) pa_eliom_obrowser.cmo
 
@@ -98,10 +98,10 @@ opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom.cmxa $(CMXS3) pa_eliom_obrowser.cm
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-.PHONY: doc depend obrowser
+.PHONY: doc depend client
 
-obrowser:
-	$(MAKE) -C obrowser all
+client:
+	$(MAKE) -C client all
 
 eliom_sessions.cmx: eliom_sessions.ml
 #	-rm ../extensions/ocsipersist.cmx
@@ -196,11 +196,11 @@ bugdbg:
 .PHONY: clean
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
-	$(MAKE) -C obrowser clean
+	$(MAKE) -C client clean
 
 depend:
-	make -C obrowser depend
-	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) $(OBROWSERFILES) > .depend
+	make -C client depend
+	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
 	sed -i.bak s%../extensions/ocsipersist.cmx%% .depend
 
 FORCE:

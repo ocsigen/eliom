@@ -190,7 +190,7 @@ endif
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_obrowser.cmo eliom/obrowser/eliom_obrowser_client.cma eliom/obrowser/eliom_obrowser_client.cmi eliom/obrowser/eliom_obrowser.js
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_obrowser.cmo eliom/client/eliom_obrowser_client.cma eliom/client/eliom_obrowser_client.cmi eliom/client/eliom_obrowser.js
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
@@ -282,7 +282,7 @@ files/META: files/META.in VERSION
 files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
-	-ln -sf ../eliom/obrowser/eliom_obrowser_client.cma extensions
+	-ln -sf ../eliom/client/eliom_obrowser_client.cma extensions
 	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cma extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cma extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cma extensions
@@ -310,7 +310,7 @@ files/META.eliom_examples.global: files/META.eliom_examples.in VERSION
 
 $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	cat files/ocsigen.conf.in \
-	| sed s%\<port\>80\</port\>%\<port\>8080\</port\>%g \
+	| sed s%80\</port\>%8080\</port\>%g \
 	| sed s%_LOGDIR_%$(SRC)/var/log%g \
 	| sed s%_STATICPAGESDIR_%$(SRC)/files%g \
 	| sed s%_CONFIGDIR_%$(SRC)/etc/ocsigen%g \

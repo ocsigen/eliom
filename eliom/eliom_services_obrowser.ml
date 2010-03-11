@@ -35,28 +35,21 @@ type getpost = [ `Get | `Post ]
          `Get is for all the other cases.
        *)
 type attached_service_kind =
-    [ `Internal of servcoserv * getpost
-    | `External]
-
-type get_attached_service_kind =
-    [ `Internal of servcoserv * [ `Get ]
-    | `External ]
-
-type post_attached_service_kind =
-    [ `Internal of servcoserv * [ `Post ]
+    [ `Internal of servcoserv
     | `External ]
 
 type internal =
-    [ `Internal of servcoserv * getpost ]
+    [ `Internal of servcoserv ]
 
 type registrable = [ `Registrable | `Unregistrable ]
 
-type +'a a_s =
+type (+'a, +'b) a_s =
     {prefix: string; (* name of the server and protocol,
                         for external links. Ex: http://ocsigen.org *)
      subpath: Ocsigen_lib.url_path; (* name of the service without parameters *)
      fullpath: Ocsigen_lib.url_path; (* full path of the service = site_dir@subpath *)
      att_kind: 'a; (* < attached_service_kind *)
+     get_or_post: 'b; (* < getpost *)
      get_name: Eliom_common.att_key_serv;
      post_name: Eliom_common.att_key_serv;
      redirect_suffix: bool;
@@ -74,23 +67,23 @@ type +'a na_s =
     }
 
 type service_kind =
-    [ `Attached of attached_service_kind a_s
+    [ `Attached of (attached_service_kind, getpost) a_s
     | `Nonattached of getpost na_s ]
 
 type internal_service_kind =
-    [ `Attached of internal a_s
+    [ `Attached of (internal, getpost) a_s
     | `Nonattached of getpost na_s ]
 
 type get_service_kind =
-    [ `Attached of get_attached_service_kind a_s
+    [ `Attached of (attached_service_kind, [ `Get ]) a_s
     | `Nonattached of [ `Get ] na_s ]
 
 type post_service_kind =
-    [ `Attached of post_attached_service_kind a_s
+    [ `Attached of (attached_service_kind, [ `Post ]) a_s
     | `Nonattached of [ `Post ] na_s ]
 
 type attached =
-    [ `Attached of attached_service_kind a_s ]
+    [ `Attached of (attached_service_kind, getpost) a_s ]
 
 type nonattached =
     [ `Nonattached of getpost na_s ]
@@ -129,6 +122,12 @@ let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
 
+let get_get_or_post s =
+  match get_kind_ s with
+    | `Attached attser -> attser.get_or_post
+    | `Nonattached { na_kind = `Post keep_get_na_param } -> `Post
+    | _ -> `Get
+
 let change_get_num service attser n =
   {service with
      kind = `Attached {attser with
@@ -144,15 +143,16 @@ let static_dir_ ?(https = false) ~sp () =
      max_use= None;
      timeout= None;
      kind = `Attached
-       {prefix = "";
-        subpath = [""];
-        fullpath = (Eliom_sessions.get_site_dir sp) @ 
-           [Eliom_common.eliom_suffix_internal_name];
-        get_name = Eliom_common.SAtt_no;
-        post_name = Eliom_common.SAtt_no;
-        att_kind = `Internal (`Service, `Get);
-        redirect_suffix = true;
-      };
+        {prefix = "";
+         subpath = [""];
+         fullpath = (Eliom_sessions.get_site_dir sp) @ 
+            [Eliom_common.eliom_suffix_internal_name];
+         get_name = Eliom_common.SAtt_no;
+         post_name = Eliom_common.SAtt_no;
+         att_kind = `Internal `Service;
+         get_or_post = `Get;
+         redirect_suffix = true;
+        };
      https = https;
      keep_nl_params = `None;
    }
@@ -179,7 +179,8 @@ let get_static_dir_ ?(https = false) ~sp
            [Eliom_common.eliom_suffix_internal_name];
         get_name = Eliom_common.SAtt_no;
         post_name = Eliom_common.SAtt_no;
-        att_kind = `Internal (`Service, `Get);
+        att_kind = `Internal `Service;
+        get_or_post = `Get;
         redirect_suffix = true;
       };
      https = https;
@@ -290,3 +291,96 @@ let register_delayed_get_or_na_coservice ~sp s =
 
 let register_delayed_post_coservice  ~sp s getname =
   failwith "CSRF coservice not implemented in obrowser for now"
+
+
+
+
+(* external services *)
+(** Create a main service (not a coservice) internal or external, get only *)
+let new_service_aux_aux
+    ~https
+    ~prefix
+    ~(path : Ocsigen_lib.url_path)
+    ~site_dir
+    ~kind
+    ~getorpost
+    ?(redirect_suffix = true)
+    ?(keep_nl_params = `None)
+    ~get_params
+    ~post_params =
+(* ici faire une vérification "duplicate parameter" ? *)
+  {
+   pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
+   get_params_type = get_params;
+   post_params_type = post_params;
+   max_use= None;
+   timeout= None;
+   kind = `Attached
+     {prefix = prefix;
+      subpath = path;
+      fullpath = site_dir @ path;
+      att_kind = kind;
+      get_or_post = getorpost;
+      get_name = Eliom_common.SAtt_no;
+      post_name = Eliom_common.SAtt_no;
+      redirect_suffix = redirect_suffix
+    };
+   https = https;
+   keep_nl_params = keep_nl_params;
+ }
+
+
+let new_external_service_
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~getorpost
+    ~get_params
+    ~post_params
+    () =
+  let suffix = Eliom_parameters.contains_suffix get_params in
+  new_service_aux_aux
+    ~https:false (* not used for external links *)
+    ~prefix
+    ~path:(remove_internal_slash
+            (match suffix with
+               | None -> path
+               | _ -> path@[Eliom_common.eliom_suffix_internal_name]))
+    ~site_dir:[]
+    ~kind:`External
+    ~getorpost
+    ?keep_nl_params
+    ~redirect_suffix:false
+    ~get_params
+    ~post_params
+
+let new_external_post_service
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~get_params
+    ~post_params
+    () =
+  new_external_service_
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~getorpost:`Post
+    ~get_params
+    ~post_params
+    ()
+
+let new_external_service
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~get_params
+    () =
+  new_external_service_
+    ~prefix
+    ~path
+    ?keep_nl_params
+    ~getorpost:`Get
+    ~get_params
+    ~post_params:Eliom_parameters.unit
+    ()

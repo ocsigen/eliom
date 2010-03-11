@@ -74,7 +74,7 @@ let links = register_new_service ["links"] unit
                 ~prefix:"http://fr.wikipedia.org"
                 ~path:["wiki"]
                 ~get_params:(suffix (string "a"))
-                ~post_params:unit ())
+                ())
              sp
              {{ "ocaml on wikipedia" }}
              "OCaml" }}]]] }})

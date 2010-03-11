@@ -73,11 +73,9 @@ let new_state = Eliommod_cookies.make_new_cookie_value
    to implement CSRF-safe services.
 *)
 
-let get_or_post = function
-  | `Internal (_, `Get) -> Ocsigen_http_frame.Http_header.GET
-  | _ -> Ocsigen_http_frame.Http_header.POST
-(*  | `External -> POST ? *)
-
+let get_or_post_ s = match s.get_or_post with
+  | `Get -> Ocsigen_http_frame.Http_header.GET
+  | `Post -> Ocsigen_http_frame.Http_header.POST
 
 (*****************************************************************************)
 (*****************************************************************************)
@@ -102,37 +100,6 @@ let uniqueid =
 (****************************************************************************)
 
 (** Definition of services *)
-(** Create a main service (not a coservice) internal or external, get only *)
-let new_service_aux_aux
-    ~https
-    ~prefix
-    ~(path : Ocsigen_lib.url_path)
-    ~site_dir
-    ~kind
-    ?(redirect_suffix = true)
-    ?(keep_nl_params = `None)
-    ~get_params
-    ~post_params =
-(* ici faire une vérification "duplicate parameter" ? *)
-  {
-   pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
-   get_params_type = get_params;
-   post_params_type = post_params;
-   max_use= None;
-   timeout= None;
-   kind = `Attached
-     {prefix = prefix;
-      subpath = path;
-      fullpath = site_dir @ path;
-      att_kind = kind;
-      get_name = Eliom_common.SAtt_no;
-      post_name = Eliom_common.SAtt_no;
-      redirect_suffix = redirect_suffix
-    };
-   https = https;
-   keep_nl_params = keep_nl_params;
- }
-
 let new_service_aux
     ?sp
     ~https
@@ -155,7 +122,8 @@ let new_service_aux
             ~prefix:""
             ~path
             ~site_dir: sitedata.Eliom_common.site_dir
-            ~kind:(`Internal (`Service, `Get))
+            ~kind:(`Internal `Service)
+            ~getorpost:`Get
             ?redirect_suffix
             ?keep_nl_params
             ~get_params
@@ -177,34 +145,12 @@ let new_service_aux
         ~prefix:""
         ~path:path
         ~site_dir:(Eliom_sessions.get_site_dir sp)
-        ~kind:(`Internal (`Service, `Get))
+        ~kind:(`Internal `Service)
+        ~getorpost:`Get
         ?redirect_suffix
         ?keep_nl_params
         ~get_params
         ~post_params:unit
-
-
-let new_external_service
-    ~prefix
-    ~path
-    ?keep_nl_params
-    ~get_params
-    ~post_params
-    () =
-  let suffix = contains_suffix get_params in
-  new_service_aux_aux
-    ~https:false (* not used for external links *)
-    ~prefix
-    ~path:(remove_internal_slash
-            (match suffix with
-               | None -> path
-               | _ -> path@[Eliom_common.eliom_suffix_internal_name]))
-    ~site_dir:[]
-    ~kind:`External
-    ?keep_nl_params
-    ~redirect_suffix:false
-    ~get_params
-    ~post_params
 
 let new_service
     ?sp
@@ -255,7 +201,8 @@ let new_coservice
             (match name with
                | None -> Eliom_common.SAtt_anon (new_state ())
                | Some name -> Eliom_common.SAtt_named name));
-        att_kind = `Internal (`Coservice, `Get);
+        att_kind = `Internal `Coservice;
+        get_or_post = `Get;
      };
    https = https || fallback.https;
    keep_nl_params = match keep_nl_params with 
@@ -316,7 +263,7 @@ let new_post_service_aux ~sp ~https ~fallback
 (* Create a main service (not a coservice) internal, post only *)
 (* ici faire une vérification "duplicate parameter" ? *)
   let `Attached k1 = fallback.kind in
-  let `Internal (k, _) = k1.att_kind in
+  let `Internal k = k1.att_kind in
   {
    pre_applied_parameters = fallback.pre_applied_parameters;
    get_params_type = fallback.get_params_type;
@@ -327,7 +274,8 @@ let new_post_service_aux ~sp ~https ~fallback
      {prefix = k1.prefix;
       subpath = k1.subpath;
       fullpath = k1.fullpath;
-      att_kind = `Internal (k, `Post);
+      att_kind = `Internal k;
+      get_or_post = `Post;
       get_name = k1.get_name;
       post_name = Eliom_common.SAtt_no;
       redirect_suffix = false;
@@ -346,7 +294,7 @@ let new_post_service ?sp ?(https = false) ~fallback
       that the service will answer to a POST request only.
     *)
   let `Attached k1 = fallback.kind in
-  let `Internal (kind, _) = k1.att_kind in
+  let `Internal kind = k1.att_kind in
   let path = k1.subpath in
   let u = new_post_service_aux ~sp ~https ~fallback 
     ?keep_nl_params ~post_params 
@@ -390,8 +338,9 @@ let new_post_coservice
    timeout= timeout;
    kind = `Attached
      {k1 with
-      att_kind = `Internal (`Coservice, `Post);
-      post_name = 
+        att_kind = `Internal `Coservice;
+        get_or_post = `Post;
+        post_name = 
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             csrf_session_name,
@@ -555,7 +504,7 @@ let set_delayed_post_registration_function tables k f =
 let remove_service table service =
   match get_kind_ service with
     | `Attached attser ->
-        let key_kind = get_or_post (get_att_kind_ attser) in
+        let key_kind = get_or_post_ attser in
         let attserget = get_get_name_ attser in
         let attserpost = get_post_name_ attser in
         let sgpt = get_get_params_type_ service in
@@ -582,9 +531,9 @@ let unregister ?sp service =
              | Some get_current_sitedata ->
                  let sitedata = get_current_sitedata () in
                  sitedata.Eliom_common.global_services
-           | _ -> raise
-               (Eliom_common.Eliom_function_forbidden_outside_site_loading
-                  "unregister"))
+             | _ -> raise
+                 (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                    "unregister"))
       | Some sp -> get_global_table sp
   in
   remove_service table service

@@ -73,3 +73,18 @@ type file_info = {tmp_filename: string;
 type ip_address =
   | IPv4 of int32
   | IPv6 of int64 * int64
+
+
+
+
+(*****************************************************************************)
+let remove_internal_slash u =
+  let rec aux = function
+    | [] -> []
+    | [a] -> [a]
+    | ""::l -> aux l
+    | a::l -> a::(aux l)
+  in match u with
+  | [] -> []
+  | a::l -> a::(aux l)
+
