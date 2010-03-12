@@ -116,32 +116,50 @@ let _ =
 (*wiki*
 {{{...<same header>...}}}
 *wiki*)
-(* *zap*)
-         (body ~a:[a_id "body"]
-            [p 
-               ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-                 a_onclick 
-                   ((fun.client
-                       (sp : Eliom_client_types.server_params)
-                       (myblockservice : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
-                       let body = Js.get_element_by_id "body" in
-                       Eliom_client.call_service 
-                         ~sp ~service:myblockservice () () >>= fun s ->
-                       Js.alert s;
-(*                       Js.Node.append body s; *)
-                       Lwt.return ()
-                    ) (Eliom_obrowser.client_sp sp) myblockservice)
-(* Eliom_session.client_sp pas écrite. On ne peut pas sérialiser tout sp. *)
-(* il ne faut pas envoyer sp à chaque fois, mais un sp global pour la page *)
+           (* *zap*)
+           (body
+              [
+                p 
+                  ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+                    a_onclick 
+                      ((fun.client
+                          (sp : Eliom_client_types.server_params)
+                          (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                            Eliom_client.exit_to ~sp ~service () ()
+                       ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
+                  ]
+                  [pcdata "Click here to go to another page."];
+
+                p 
+                  ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+                    a_onclick 
+                      ((fun.client
+                          (sp : Eliom_client_types.server_params)
+                          (myblockservice : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                            let body = JSOO.eval "document.body" in
+                            (*Js.get_element_by_id "bodyid"*)
+                            Eliom_client.call_service
+                              ~sp ~service:myblockservice () () >>= fun s ->
+                                (try
+                                   let l = Js.Node.children (Js.dom_of_xml s) in
+                                   List.iter (Js.Node.append body) l
+                                 with e -> Js.alert (Printexc.to_string e));
+                                Lwt.return ()
+                       ) (Eliom_obrowser.client_sp sp) myblockservice)
+(*zap*
+  Problème ave le type du service : il faut l'écrire en entier et exactement
+  sinon on n'a pas de vérif de type côté client *)
 (* je me suis fait avoir en mettant let bodyid = "body" in
-... Js.get_element_by_id bodyid ...
-sans le passer en paramètre à la fun.client
-Il faut vraiment automatiser ça...
-*)
-               ]
-               [pcdata "Click here to add content from the server."];
+   ... Js.get_element_by_id bodyid ...
+   sans le passer en paramètre à la fun.client
+   Il faut vraiment automatiser ça...
+*zap*)
+                  ]
+                  [pcdata "Click here to add content from the server."];
+             
+             
               
-            ])))
+              ])))
 (*wiki*
 ====Implicit registration of services to implement distant function calls
 *wiki*)

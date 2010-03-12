@@ -1,7 +1,7 @@
 CMA:= eliom_obrowser_client.cma
 OBROWSERLIB:= $(shell ocamlfind query obrowser)
 STUBDIR:=$(shell ocamlfind printconf stdlib)/stublibs
-OCAMLFIND = CAML_LD_LIBRARY_PATH=$(STUBDIR) CAMLLIB=$(OBROWSERLIB) ocamlfind
+OCAMLFIND = CAML_LD_LIBRARY_PATH=$(OBROWSERLIB) CAMLLIB=$(OBROWSERLIB) ocamlfind
 OCAMLC:= $(OCAMLFIND) ocamlc
 OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib

@@ -43,3 +43,23 @@ let call_service ?https ~sp ~service ?fragment ?keep_nl_params ?nl_params g p =
   if code = 200
   then Lwt.return s
   else Lwt.fail (Failed_service code)
+
+
+
+
+let exit_to ?https ~sp ~service ?fragment ?keep_nl_params ?nl_params g p =
+  match Eliom_services.get_get_or_post service with
+    | `Get ->
+        let uri =
+          Eliom_mkforms.make_string_uri
+            ?https ~sp ~service ?fragment ?keep_nl_params ?nl_params g
+        in
+        Js.redirect_get uri
+    | `Post ->
+        let path, g, fragment, p =
+          Eliom_mkforms.make_post_uri_components ~sp ~service g p
+        in
+        let uri = 
+          Eliom_mkforms.make_string_uri_from_components (path, g, fragment) 
+        in
+        Js.redirect_post uri p
