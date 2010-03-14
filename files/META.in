@@ -199,9 +199,3 @@ package "eliom_obrowser_syntax" (
   archive(syntax,toploop) = "pa_eliom_obrowser.cmo"
 )
 
-package "lwt_obrowser" (
-    requires = "lwt"
-    version = "[distributed with Ocsigen]"
-    description = "Using Lwt in OBrowser"
-    archive(byte) = "lwt_obrowser.cma"
-  )
