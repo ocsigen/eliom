@@ -74,11 +74,11 @@ let eliomobrowser1 =
 ====Using a distant Eliom service in client side code
 
 The code will look like:
-<<code language="ocaml"|
+%<code language="ocaml"|
 p ~onclick:{{Eliom_obrowser.post_request ~sp ~service:myblockservice ()
                    >>= Node.append bodynode}}
         [pcdata "Click here to add content from the server."];
->>
+>%
 
 For now, you can do:
 *wiki*)
@@ -147,7 +147,7 @@ let _ =
                                 Lwt.return ()
                        ) (Eliom_obrowser.client_sp sp) myblockservice)
 (*zap*
-  Problème ave le type du service : il faut l'écrire en entier et exactement
+  Problème avec le type du service : il faut l'écrire en entier et exactement
   sinon on n'a pas de vérif de type côté client *)
 (* je me suis fait avoir en mettant let bodyid = "body" in
    ... Js.get_element_by_id bodyid ...
@@ -157,6 +157,17 @@ let _ =
                   ]
                   [pcdata "Click here to add content from the server."];
              
+                p 
+                  ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+                    a_onclick 
+                      ((fun.client
+                          (sp : Eliom_client_types.server_params)
+                          (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                            Eliom_client.change_url ~sp ~service ()
+                       ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
+                  ]
+                  [pcdata "Click here to change the URL."];
+
              
               
               ])))
@@ -171,8 +182,8 @@ let _ =
 (*wiki*
 *wiki*)
 (*wiki*
-        %> <<|onecol>>
-      %> <<|colprincipale>>
+        >% <<|onecol>>
+      >% <<|colprincipale>>
 *wiki*)
 (*wiki*
 %<||2>%

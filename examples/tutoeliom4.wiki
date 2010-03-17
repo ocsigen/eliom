@@ -67,7 +67,7 @@ The code will look like:
 p ~onclick:{{Eliom_obrowser.post_request ~sp ~service:myblockservice ()
                    ~>>= Node.append bodynode}}
         [pcdata "Click here to add content from the server."];
-~>>
+>>
 
 For now, you can do:
 <<code language="ocaml" |
@@ -88,39 +88,52 @@ let _ =
     (fun sp () () ->
 
            (body
-            [p 
-               ~a:[
-                 a_onclick 
-                   ((fun.client
-                       (sp : Eliom_client_types.server_params)
-                       (myblockservice : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
-                         let body = JSOO.eval "document.body" in
-(*Js.get_element_by_id "bodyid"*)
-                         Eliom_client.call_service
-                           ~sp ~service:myblockservice () () ~>>= fun s ->
-                             (try
-                                let l = Js.Node.children (Js.dom_of_xml s) in
-                                List.iter (Js.Node.append body) l
-                              with e -> Js.alert (Printexc.to_string e));
-                             Lwt.return ()
-                    ) (Eliom_obrowser.client_sp sp) myblockservice)
+              [
+                p 
+                  ~a:[
+                    a_onclick 
+                      ((fun.client
+                          (sp : Eliom_client_types.server_params)
+                          (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                            Eliom_client.exit_to ~sp ~service () ()
+                       ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
+                  ]
+                  [pcdata "Click here to go to another page."];
 
-               ]
-               [pcdata "Click here to add content from the server."];
+                p 
+                  ~a:[
+                    a_onclick 
+                      ((fun.client
+                          (sp : Eliom_client_types.server_params)
+                          (myblockservice : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                            let body = JSOO.eval "document.body" in
+                            (*Js.get_element_by_id "bodyid"*)
+                            Eliom_client.call_service
+                              ~sp ~service:myblockservice () () ~>>= fun s ->
+                                (try
+                                   let l = Js.Node.children (Js.dom_of_xml s) in
+                                   List.iter (Js.Node.append body) l
+                                 with e -> Js.alert (Printexc.to_string e));
+                                Lwt.return ()
+                       ) (Eliom_obrowser.client_sp sp) myblockservice)
+
+                  ]
+                  [pcdata "Click here to add content from the server."];
              
+                p 
+                  ~a:[
+                    a_onclick 
+                      ((fun.client
+                          (sp : Eliom_client_types.server_params)
+                          (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                            Eliom_client.change_url ~sp ~service ()
+                       ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
+                  ]
+                  [pcdata "Click here to change the URL."];
+
              
-             p 
-               ~a:[
-                 a_onclick 
-                   ((fun.client
-                       (sp : Eliom_client_types.server_params)
-                       (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
-                       Eliom_client.exit_to ~sp ~service () ()
-                    ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
-               ]
-               [pcdata "Click here to go to another page."];
               
-            ])))
+              ])))
 >>
 ====Implicit registration of services to implement distant function calls
 <<code language="ocaml" |
@@ -132,7 +145,7 @@ let _ =
 >>
 <<code language="ocaml" |
 >>
-        %> <<|onecol~>>
-      %> <<|colprincipale~>>
+        >> <<|onecol~>>
+      >> <<|colprincipale~>>
 <<code language="ocaml" |
 >>
