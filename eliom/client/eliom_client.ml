@@ -24,41 +24,7 @@ exception Failed_service of int
 let (>>=) = Lwt.bind
 let (>>>) x f = f x
 
-let call_service
-    ?absolute ?absolute_path ?https
-    ~sp ~service
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-    g p =
-  (match Eliom_services.get_get_or_post service with
-     | `Get ->
-         let uri =
-           Eliom_mkforms.make_string_uri
-             ?absolute ?absolute_path ?https
-             ~sp ~service
-             ?hostname ?port ?fragment ?keep_nl_params ?nl_params g
-         in
-         Lwt_obrowser.http_get uri []
-     | `Post ->
-         let path, g, fragment, p =
-           Eliom_mkforms.make_post_uri_components
-             ?absolute ?absolute_path ?https
-             ~sp ~service
-             ?hostname ?port ?fragment ?keep_nl_params ?nl_params
-             ?keep_get_na_params g p
-         in
-         let uri = 
-           Eliom_mkforms.make_string_uri_from_components (path, g, fragment) 
-         in
-         Lwt_obrowser.http_post uri p)
-  >>= fun (code, s) ->
-  if code = 200
-  then Lwt.return s
-  else Lwt.fail (Failed_service code)
-
-
-
-
-let exit_to
+let create_request_
     ?absolute ?absolute_path ?https
     ~sp ~service
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
@@ -71,7 +37,7 @@ let exit_to
             ~sp ~service
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params g
         in
-        Js.redirect_get uri
+        Ocsigen_lib.Left uri
     | `Post ->
         let path, g, fragment, p =
           Eliom_mkforms.make_post_uri_components
@@ -83,9 +49,40 @@ let exit_to
         let uri = 
           Eliom_mkforms.make_string_uri_from_components (path, g, fragment) 
         in
-        Js.redirect_post uri p
+        Ocsigen_lib.Right (uri, p)
 
 
+let call_service
+    ?absolute ?absolute_path ?https
+    ~sp ~service
+    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+    g p =
+  (match create_request_
+     ?absolute ?absolute_path ?https
+     ~sp ~service
+     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+     g p
+   with
+     | Ocsigen_lib.Left uri -> Lwt_obrowser.http_get uri []
+     | Ocsigen_lib.Right (uri, p) -> Lwt_obrowser.http_post uri p)
+  >>= fun (code, s) ->
+  if code = 200
+  then Lwt.return s
+  else Lwt.fail (Failed_service code)
+
+let exit_to
+    ?absolute ?absolute_path ?https
+    ~sp ~service
+    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+    g p =
+  (match create_request_
+     ?absolute ?absolute_path ?https
+     ~sp ~service
+     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+     g p
+   with
+     | Ocsigen_lib.Left uri -> Js.redirect_get uri
+     | Ocsigen_lib.Right (uri, p) -> Js.redirect_post uri p)
 
 
 
@@ -93,21 +90,56 @@ let url_fragment_prefix = "!"
 
 (** This will change the URL, without doing a request.
     As browsers do not not allow to change the URL,
-    we write the new URL in the fragment part of the URL,
-    a script must do the redirection if there is something in the fragment.
-    Usually this function is only fior internal use.
+    we write the new URL in the fragment part of the URL.
+    A script must do the redirection if there is something in the fragment.
+    Usually this function is only for internal use.
 *)
 let change_url
 (*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
     ?absolute ?absolute_path ?https
     ~sp ~service
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params g =
-(*VVV only for GET services?   ?keep_get_na_params g p = *)
+    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+    g p =
+(*VVV only for GET services? *)
   let uri =
-    Eliom_mkforms.make_string_uri
-      ?absolute ?absolute_path ?https
-      ~sp ~service
-      ?hostname ?port ?fragment ?keep_nl_params ?nl_params g
+    (match create_request_
+       ?absolute ?absolute_path ?https
+       ~sp ~service
+       ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+       g p
+     with
+       | Ocsigen_lib.Left uri -> uri
+       | Ocsigen_lib.Right (uri, p) -> uri)
   in
   JSOO.eval "window.location" >>> 
   JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)))
+
+
+
+let change_page
+    ?absolute ?absolute_path ?https
+    ~sp ~service
+    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+    g p =
+  (match create_request_
+     ?absolute ?absolute_path ?https
+     ~sp ~service
+     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+     g p
+   with
+     | Ocsigen_lib.Left uri -> 
+         Lwt_obrowser.http_get uri [] >>= fun r ->
+         Lwt.return (r, uri)
+     | Ocsigen_lib.Right (uri, p) -> Lwt_obrowser.http_post uri p >>= fun r ->
+         Lwt.return (r, uri))
+  >>= fun ((code, s), uri) ->
+  if code <> 200
+  then Lwt.fail (Failed_service code)
+  else begin
+    Ocsigen_lib.body >>> JSOO.set "innerHTML" (JSOO.string s);
+    JSOO.eval "window.location" >>> 
+    JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)));
+(*VVV change the URL only if it is different? *)
+    Lwt.return ()
+  end
+

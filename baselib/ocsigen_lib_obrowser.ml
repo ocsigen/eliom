@@ -22,6 +22,8 @@ exception Ocsigen_Internal_Error of string
 external id : 'a -> 'a = "%identity"
 let (>>=) = Lwt.bind
 
+type ('a, 'b) leftright = Left of 'a | Right of 'b
+
 let comp f g x = f (g x)
 
 let apply_option f = function

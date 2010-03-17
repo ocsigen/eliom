@@ -622,7 +622,6 @@ let extension filename =
 
 
 (* *)
-type ('a, 'b) leftright = Left of 'a | Right of 'b
 type yesnomaybe = Yes | No | Maybe
 
 module StringSet = Set.Make(String)

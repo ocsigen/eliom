@@ -113,12 +113,16 @@ let _ =
         main_vm = exec_caml (\"tutoeliom_ocsigen2_client.uue\") ;
       }"
                   )])
+           (* *zap*)
 (*wiki*
 {{{...<same header>...}}}
 *wiki*)
-           (* *zap*)
            (body
               [
+(*wiki*
+  The following examples shows how to go to another service,
+  exactly like pressing a link:
+*wiki*)
                 p 
                   ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                     a_onclick 
@@ -130,6 +134,10 @@ let _ =
                   ]
                   [pcdata "Click here to go to another page."];
 
+(*wiki*
+  The following examples shows how to do a request to a service,
+  and use the content:
+*wiki*)
                 p 
                   ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                     a_onclick 
@@ -157,6 +165,14 @@ let _ =
                   ]
                   [pcdata "Click here to add content from the server."];
              
+(*wiki*
+  The following examples shows how to change the URL.
+  This is a low level function and is usually not to be used directly.
+  As browsers do not not allow to change the URL,
+  we write the new URL in the fragment part of the URL.
+  A script must do the redirection if there is something in the fragment
+  while the page is loading.
+*wiki*)
                 p 
                   ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                     a_onclick 
@@ -167,6 +183,21 @@ let _ =
                        ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
                   ]
                   [pcdata "Click here to change the URL."];
+
+(*wiki*
+  The following examples shows how to change the current page,
+  without stopping the client side program.
+*wiki*)
+                p 
+                  ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+                    a_onclick 
+                      ((fun.client
+                          (sp : Eliom_client_types.server_params)
+                          (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                            Eliom_client.change_page ~sp ~service () ()
+                       ) (Eliom_obrowser.client_sp sp) myblockservice)
+                  ]
+                  [pcdata "Click here to change the page without stopping the program."];
 
              
               

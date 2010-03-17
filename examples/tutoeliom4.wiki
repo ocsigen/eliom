@@ -87,8 +87,15 @@ let _ =
     eliomobrowser2
     (fun sp () () ->
 
+>>
+{{{...<same header>...}}}
+<<code language="ocaml" |
            (body
               [
+>>
+  The following examples shows how to go to another service,
+  exactly like pressing a link:
+<<code language="ocaml" |
                 p 
                   ~a:[
                     a_onclick 
@@ -100,6 +107,10 @@ let _ =
                   ]
                   [pcdata "Click here to go to another page."];
 
+>>
+  The following examples shows how to do a request to a service,
+  and use the content:
+<<code language="ocaml" |
                 p 
                   ~a:[
                     a_onclick 
@@ -120,6 +131,14 @@ let _ =
                   ]
                   [pcdata "Click here to add content from the server."];
              
+>>
+  The following examples shows how to change the URL.
+  This is a low level function and is usually not to be used directly.
+  As browsers do not not allow to change the URL,
+  we write the new URL in the fragment part of the URL.
+  A script must do the redirection if there is something in the fragment
+  while the page is loading.
+<<code language="ocaml" |
                 p 
                   ~a:[
                     a_onclick 
@@ -130,6 +149,21 @@ let _ =
                        ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
                   ]
                   [pcdata "Click here to change the URL."];
+
+>>
+  The following examples shows how to change the current page,
+  without stopping the client side program.
+<<code language="ocaml" |
+                p 
+                  ~a:[
+                    a_onclick 
+                      ((fun.client
+                          (sp : Eliom_client_types.server_params)
+                          (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                            Eliom_client.change_page ~sp ~service () ()
+                       ) (Eliom_obrowser.client_sp sp) myblockservice)
+                  ]
+                  [pcdata "Click here to change the page without stopping the program."];
 
              
               
