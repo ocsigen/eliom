@@ -63,7 +63,13 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
 			     let l'' = Loc.merge l l' in
 			       Ast.ExCom (l'', a, <:expr< $lid:na$ >>), l''
 		       end)) tl
-	    in let _loc = loc in <:expr< fun ( $lid:na$ : $t$) -> $e$ >>
+	    in let _loc = loc in
+
+      match t with
+	| Syntax.Ast.TyId (s, Syntax.Ast.IdLid (_, "node")) ->
+            <:expr< fun ( $lid:na$ : 'a) -> let $lid:na$ = XML.ref_node (XHTML.M.toelt $lid:na$) in $e$ >>
+        | _ ->
+            <:expr< fun ( $lid:na$ : $t$) -> $e$ >>
     in tup_args None args
 
   let client_file = ref "_client.ml"
@@ -81,7 +87,14 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
     let id = Printf.sprintf "0x%X" (hash loc) in
     let old = !client_str in
     let p, t = tup_args args in
-    let e = <:expr< fun ($p$ : $t$) -> $e$ >> in
+    let e =
+      match p, t with
+	| Syntax.Ast.PaId (l, pn), Syntax.Ast.TyId (s, Syntax.Ast.IdLid (_, "node")) ->
+	    let en = Syntax.Ast.ExId (l, pn) in
+	    <:expr< fun ($p$ : int) -> let $p$ = (Eliom_obrowser_client.retrieve_node $en$ : Js.Node.t) in $e$ >>
+        | _ ->
+	    <:expr< fun ($p$ : $t$) -> $e$ >>
+    in
     client_str := <:str_item< $old$ ;; let _ = Eliom_obrowser_client.register_closure $int:id$ ($e$) ;; >> ;
     ClientDump.print_implem
       ~output_file:(!client_file)
@@ -107,7 +120,46 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
 	  [ l = args ; "->" ; e = expr -> dump_obrofun l _loc e ]
       ];
       str_item: [
-	[ "begin" ; "." ; "client" ; s = str_items ; "end" -> dump_obroglo _loc s ; <:str_item< (* ---8<-- client code --->8-- *) >>]
+	[ "open" ; i = module_longident ->
+	    let e = <:str_item< open $i$>> in dump_obroglo _loc e ; e
+	| "open" ; "." ; "client" ; i = module_longident ->
+	    dump_obroglo _loc <:str_item< open $i$>> ;             <:str_item< (* ---8<-->8-- *) >>
+	| "open" ; "." ; "server" ; i = module_longident ->
+	    dump_obroglo _loc <:str_item< (* ---8<--->8-- *) >> ;  <:str_item< open $i$ >> 
+        | "module" ; i = a_UIDENT; mb = module_binding0 ->
+	    let e = <:str_item< module $i$ = $mb$ >> in dump_obroglo _loc e ; e
+	| "module" ; "." ; "client" ; i = a_UIDENT; mb = module_binding0 ->
+	    dump_obroglo _loc <:str_item< module $i$ = $mb$ >> ;   <:str_item< (* ---8<-->8-- *) >>
+        | "module" ; "." ; "server" ; i = a_UIDENT; mb = module_binding0 ->
+	    dump_obroglo _loc <:str_item< (* ---8<--->8-- *) >> ;  <:str_item< module $i$ = $mb$ >>
+        | "let" ; r = opt_rec; bi = binding ->
+	    let e = 
+              match bi with
+		| <:binding< _ = $e$ >> -> <:str_item< $exp:e$ >>
+		| _ -> <:str_item< let $rec:r$ $bi$ >> 
+	    in
+	      dump_obroglo _loc e ; e
+        | "let" ; "." ; "client" ; r = opt_rec; bi = binding ->
+	    let e = 
+              match bi with
+		| <:binding< _ = $e$ >> -> <:str_item< $exp:e$ >>
+		| _ -> <:str_item< let $rec:r$ $bi$ >> 
+	    in
+	      dump_obroglo _loc e ; <:str_item< (* ---8<--->8-- *) >>
+        | "let" ; "." ; "server" ; r = opt_rec; bi = binding ->
+	    let e = 
+              match bi with
+		| <:binding< _ = $e$ >> -> <:str_item< $exp:e$ >>
+		| _ -> <:str_item< let $rec:r$ $bi$ >>
+	    in
+	      dump_obroglo _loc <:str_item< (* ---8<--->8-- *) >> ; e
+        | "let" ; "module"; m = a_UIDENT; mb = module_binding0; "in"; e = expr ->
+	    let e = <:str_item< let module $m$ = $mb$ in $e$ >> in dump_obroglo _loc e ; e
+        | "let" ; "." ; "client" ; "module"; m = a_UIDENT; mb = module_binding0; "in"; e = expr ->
+	    dump_obroglo _loc <:str_item< let module $m$ = $mb$ in $e$ >> ;<:str_item< (* ---8<--->8-- *) >>
+        | "let" ; "." ; "server" ; "module"; m = a_UIDENT; mb = module_binding0; "in"; e = expr ->
+	    dump_obroglo _loc <:str_item< (* ---8<--->8-- *) >> ; <:str_item< let module $m$ = $mb$ in $e$ >>
+	]
       ];
       args: [
 	"arg" RIGHTA

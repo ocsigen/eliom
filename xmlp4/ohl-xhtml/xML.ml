@@ -52,7 +52,7 @@ let attrib_to_string encode a =
 
 
 type ename = string
-type elt =
+type elt_content =
   | Empty
   | Comment of string
 (* I add, for the Ocsigen syntax xml extension: *)
@@ -68,18 +68,30 @@ type elt =
   | Entity of string
   | Leaf of ename * attrib list
   | Node of ename * attrib list * elt list
+and elt = {
+  mutable ref : int ;
+  elt : elt_content ;
+}
 
-let amap1 f = function
-  | Empty | Comment _ | PCDATA _ | Entity _ as elt -> elt
-  | Leaf (name, attribs) -> Leaf (name, f name attribs)
-  | Node (name, attribs, elts) -> Node (name, f name attribs, elts)
-  | _ -> failwith "not implemented for Ocsigen syntax extension"
+let amap1 f n = {
+  ref = 0;
+  elt =
+    match n.elt with
+      | Empty | Comment _ | PCDATA _ | Entity _ as elt -> elt
+      | Leaf (name, attribs) -> Leaf (name, f name attribs)
+      | Node (name, attribs, elts) -> Node (name, f name attribs, elts)
+      | _ -> failwith "not implemented for Ocsigen syntax extension"
+}
 
-let rec amap f = function
-  | Empty | Comment _ | PCDATA _ | Entity _ as elt -> elt
-  | Leaf (name, attribs) -> Leaf (name, f name attribs)
-  | Node (name, attribs, elts) -> Node (name, f name attribs, List.map (amap f) elts)
-  | _ -> failwith "not implemented for Ocsigen syntax extension"
+let rec amap f n = {
+  ref = 0;
+  elt =
+    match n.elt with
+      | Empty | Comment _ | PCDATA _ | Entity _ as elt -> elt
+      | Leaf (name, attribs) -> Leaf (name, f name attribs)
+      | Node (name, attribs, elts) -> Node (name, f name attribs, List.map (amap f) elts)
+      | _ -> failwith "not implemented for Ocsigen syntax extension"
+}
 
 let rec add_int_attrib name value = function
   | [] -> [AInt (name, value)]
@@ -137,17 +149,18 @@ let rec map_string_attrib_in_list is_attrib f = function
       AStrL (sep, name, List.map f values) :: map_string_attrib_in_list is_attrib f tail
   | head :: tail -> head :: map_string_attrib_in_list is_attrib f tail
 
-let rec fold of_empty of_comment of_pcdata of_entity of_leaf of_node = function
-  | Empty -> of_empty ()
-  | Comment s -> of_comment s
-  | PCDATA s -> of_pcdata s
-  | Entity s -> of_entity s
-  | Leaf (name, attribs) -> of_leaf name attribs
-  | Node (name, attribs, elts) ->
-      of_node name attribs
-        (List.map (fold of_empty of_comment of_pcdata of_entity of_leaf of_node) elts)
-  | _ -> failwith "not implemented for Ocsigen syntax extension"
-
+let rec fold of_empty of_comment of_pcdata of_entity of_leaf of_node n =
+  match n.elt with
+    | Empty -> of_empty ()
+    | Comment s -> of_comment s
+    | PCDATA s -> of_pcdata s
+    | Entity s -> of_entity s
+    | Leaf (name, attribs) -> of_leaf name attribs
+    | Node (name, attribs, elts) ->
+	of_node name attribs
+          (List.map (fold of_empty of_comment of_pcdata of_entity of_leaf of_node) elts)
+    | _ -> failwith "not implemented for Ocsigen syntax extension"
+	
 (* (* is this AT ALL useful??? *)
 let rec foldx of_empty of_comment of_pcdata of_entity of_leaf of_node update_state state = function
   | Empty -> of_empty ()
@@ -177,45 +190,51 @@ let all_entities elt =
     (fun ename attribs -> []) (fun ename attribs elts -> List.flatten elts)
     elt
 
-let empty () = Empty
+let empty () = { elt = Empty ; ref = 0 }
 
-let comment c = Comment c
+let comment c = { elt = Comment c ; ref = 0 }
 
-let pcdata d = PCDATA d
-let entity e = Entity e
+let pcdata d = { elt = PCDATA d ; ref = 0 }
+let encodedpcdata d = { elt = EncodedPCDATA d ; ref = 0 }
+let entity e = { elt = Entity e ; ref = 0 }
 
 let leaf ?a name =
-  match a with
-  | Some a -> Leaf (name, a)
-  | None -> Leaf (name, [])
+  { elt =
+      (match a with
+	 | Some a -> Leaf (name, a)
+	 | None -> Leaf (name, [])) ;
+    ref = 0 }
 
 let node ?a name children =
-  match a with
-  | Some a -> Node (name, a, children)
-  | None -> Node (name, [], children)
+  { elt =
+      (match a with
+	 | Some a -> Node (name, a, children)
+	 | None -> Node (name, [], children)) ;
+    ref = 0 }
 
 let rec flatmap f = function
   | [] -> []
   | x :: rest -> f x @ flatmap f rest
 
-let translate root_leaf root_node sub_leaf sub_node update_state state elt =
-  let rec translate' state = function
-    | (Empty | Comment _ | PCDATA _ | Entity _) as elt -> [elt]
-    | Leaf (name, attribs) ->
-        sub_leaf state name attribs
-    | Node (name, attribs, elts) ->
-        sub_node state name attribs
-          (flatmap (translate' (update_state name attribs state)) elts)
-    | _ -> failwith "not implemented for Ocsigen syntax extension"
+let translate root_leaf root_node sub_leaf sub_node update_state state n =
+  let rec translate' state  n =
+    match n.elt with
+      | (Empty | Comment _ | PCDATA _ | Entity _) -> [n]
+      | Leaf (name, attribs) ->
+          sub_leaf state name attribs
+      | Node (name, attribs, elts) ->
+          sub_node state name attribs
+            (flatmap (translate' (update_state name attribs state)) elts)
+      | _ -> failwith "not implemented for Ocsigen syntax extension"
   in
-  match elt with
-  | (Empty | Comment _ | PCDATA _ | Entity _) as elt -> elt
-  | Leaf (name, attribs) ->
-      root_leaf name attribs
-  | Node (name, attribs, elts) ->
-      root_node name attribs (flatmap (translate' state) elts)
-  | _ -> failwith "not implemented for Ocsigen syntax extension"
-
+    match n.elt with
+      | (Empty | Comment _ | PCDATA _ | Entity _) -> n
+      | Leaf (name, attribs) ->
+	  root_leaf name attribs
+      | Node (name, attribs, elts) ->
+	  root_node name attribs (flatmap (translate' state) elts)
+      | _ -> failwith "not implemented for Ocsigen syntax extension"
+	  
 (** {1 Output} *)
 
 module Elt_Set =
@@ -279,33 +298,34 @@ let newline ios outs =
   if ios.allow_break then
     outs "\n"
 
-let rec output' ios encode outs = function
-  | Empty -> ()
-  | Comment c ->
-      outs ("<!-- " ^ encode c ^ " -->");
-      newline ios outs
-  | PCDATA d ->
-      outs (encode d);
-      newline ios outs
-  | Entity e ->
-      outs ("&" ^ e ^ ";");  (* No {e not} encode these! *)
-      newline ios outs
-  | Leaf (name, attribs) ->
-      outs ("<" ^ name);
-      List.iter (fun a -> outs " "; outs (attrib_to_string encode a)) attribs;
-      outs " />";
-      newline ios outs
-  | Node (name, attribs, children) ->
-      let ios_elt = update_io_state name attribs ios in
-      outs ("<" ^ name);
-      List.iter (fun a -> outs " "; outs (attrib_to_string encode a)) attribs;
-      outs ">";
-      newline ios_elt outs;
-      List.iter (output' ios_elt encode outs) children;
-      outs ("</" ^ name ^ ">");
-      newline ios outs
-  | _ -> failwith "not implemented for Ocsigen syntax extension"
-
+let rec output' ios encode outs  n =
+  match n.elt with
+    | Empty -> ()
+    | Comment c ->
+	outs ("<!-- " ^ encode c ^ " -->");
+	newline ios outs
+    | PCDATA d ->
+	outs (encode d);
+	newline ios outs
+    | Entity e ->
+	outs ("&" ^ e ^ ";");  (* No {e not} encode these! *)
+	newline ios outs
+    | Leaf (name, attribs) ->
+	outs ("<" ^ name);
+	List.iter (fun a -> outs " "; outs (attrib_to_string encode a)) attribs;
+	outs " />";
+	newline ios outs
+    | Node (name, attribs, children) ->
+	let ios_elt = update_io_state name attribs ios in
+	  outs ("<" ^ name);
+	  List.iter (fun a -> outs " "; outs (attrib_to_string encode a)) attribs;
+	  outs ">";
+	  newline ios_elt outs;
+	  List.iter (output' ios_elt encode outs) children;
+	  outs ("</" ^ name ^ ">");
+	  newline ios outs
+    | _ -> failwith "not implemented for Ocsigen syntax extension"
+	
 let output ?preformatted ?no_break ?(encode = encode_unsafe) outs elt =
   output' (initial_io_state ?preformatted ?no_break ()) encode outs elt
 
@@ -369,7 +389,8 @@ let print_string ios f s =
 let print_space ios f () =
   Format.pp_print_space f ()
 
-let rec to_formatter ios encode f = function
+let rec to_formatter ios encode f n =
+  match n.elt with
   | Empty -> ()
   | Comment c ->
       force_newline ios f ();
@@ -421,4 +442,38 @@ let decl ?(version = "1.0") ?(encoding = "ISO-8859-1") outs () =
   outs ("<?xml version=\"" ^ version ^ "\" encoding=\"" ^ encoding ^ "\"?>\n")
 
 
+let fresh_ref = let v = ref 0 in fun () -> incr v ; !v
 
+let ref_node node =
+  if node.ref = 0 then
+    node.ref <- fresh_ref () ;
+  node.ref
+
+type ref_tree = Ref_tree of int option * (int * ref_tree) list
+
+let make_ref_tree root =
+  let rec map_children l =
+    let rec map i = function
+      | e :: es ->
+	  begin match make e with
+	    | Ref_tree (None, []) -> map (succ i) es
+	    | v -> (i, v) :: map (succ i) es
+	  end
+      | [] -> []
+    in map 0 l
+  and make root =
+    let children =
+      match root.elt with
+	| Empty | EncodedPCDATA _ | PCDATA _ | Entity _
+	| Leaf (_, _) | Comment _ | Whitespace _ ->
+	    []
+	| Element (_, _, elts) | BlockElement (_, _, elts)
+	| SemiBlockElement (_, _, elts) | Node (_, _, elts) ->
+	    map_children elts
+    in
+      Ref_tree ((if root.ref = 0 then None else Some root.ref), children)
+  in
+    make root
+
+
+	

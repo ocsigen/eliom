@@ -167,17 +167,17 @@ struct
     let loc = s.loc in
     match pop s with
       [ (`PCData s, _) ->
-          <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $str:String.escaped s$))
+          <:expr< ((XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $str:String.escaped s$}))
                      : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
       | (`CamlString s, _) ->
-          <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $get_expr s loc$))
+          <:expr< ((XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $get_expr s loc$}))
                      : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
       | (`CamlList s, _) -> raise (CamlListExc s)
       | (`CamlExpr s, _) -> get_expr s loc
       | (`Whitespace s, _) ->
-          <:expr< XHTML.M.tot (XML.Whitespace $str:String.escaped s$) >>
+          <:expr< XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.Whitespace $str:String.escaped s$}) >>
       | (`Comment s, _) ->
-          <:expr< XHTML.M.tot (XML.Comment $str:String.escaped s$) >>
+          <:expr< XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.Comment $str:String.escaped s$}) >>
       | (`Tag (tag, attlist, closed), s) ->
           let constr =
             if List.mem tag blocktags
@@ -188,17 +188,17 @@ struct
           in
           match closed with
           [ True ->
-              <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
-                                       $read_attlist s attlist$ []))
+              <:expr< ((XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
+                                       $read_attlist s attlist$ []}))
                          : XHTML.M.elt [> `$uid: String.capitalize tag$])>>
           | False ->
               let foo = <:expr<
                 ($read_elems ~tag s$ :>
                    list (XHTML.M.elt [< Xhtmltypes.$lid:tag^"_content"$]))>>
               in
-              <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
+              <:expr< ((XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
                                        $read_attlist s attlist$
-                                       (XHTML.M.toeltl $foo$) ))
+                                       (XHTML.M.toeltl $foo$)} ))
                          : XHTML.M.elt [> `$uid: String.capitalize tag$])
               >>
           ]

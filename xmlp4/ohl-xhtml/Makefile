@@ -34,7 +34,7 @@ DOLLAR = $$
 
 SUBDIRS = examples experimental private
 
-SRC_ML = xML.ml xHTML.ml
+SRC_ML = xML.ml xHTML.ml xHTML_obrowser.ml
 SRC_MLI = $(SRC_ML:.ml=.mli)
 
 DISTFILES = README ChangeLog COPYING Makefile $(SRC_MLI) $(SRC_ML) \
@@ -104,6 +104,8 @@ examples/homepage: all
 
 ########################################################################
 
+xHTML_obrowser.cmo: xML.cmi xHTML_obrowser.cmi 
+xHTML_obrowser.cmx: xML.cmx xHTML_obrowser.cmi 
 xHTML.cmo: xML.cmi xHTML.cmi 
 xHTML.cmx: xML.cmx xHTML.cmi 
 xHTML_sample.cmo: xHTML.cmi 

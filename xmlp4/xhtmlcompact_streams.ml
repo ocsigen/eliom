@@ -71,38 +71,38 @@ let x_stream, xh_stream =
 
       | [] -> cont ()
 
-      | (Comment texte)::queue ->
+      | { elt = Comment texte }::queue ->
           xh_print_text ("<!--"^(encode texte)^"-->")
           (fun () -> xh_print_taglist queue cont)
 
-      | (Entity e)::queue ->
+      | { elt = Entity e }::queue ->
           xh_print_text ("&"^e^";") (* no encoding *)
           (fun () -> xh_print_taglist queue cont)
 
-      | (PCDATA texte)::queue ->
+      | { elt = PCDATA texte }::queue ->
           xh_print_text (encode texte)
           (fun () -> xh_print_taglist queue cont)
 
-      | (EncodedPCDATA texte)::queue ->
+      | { elt = EncodedPCDATA texte }::queue ->
           xh_print_text texte
           (fun () -> xh_print_taglist queue cont)
 
               (* Nodes and Leafs *)
-      | (Element (name, xh_attrs, xh_taglist))::queue
-      | (BlockElement (name, xh_attrs, xh_taglist))::queue
-      | (SemiBlockElement (name, xh_attrs, xh_taglist))::queue
-      | (Node (name, xh_attrs, xh_taglist))::queue ->
+      | { elt = Element (name, xh_attrs, xh_taglist )}::queue
+      | { elt = BlockElement (name, xh_attrs, xh_taglist )}::queue
+      | { elt = SemiBlockElement (name, xh_attrs, xh_taglist )}::queue
+      | { elt = Node (name, xh_attrs, xh_taglist )}::queue ->
           print_nodes name xh_attrs xh_taglist queue cont
 
-      | (Leaf (name,xh_attrs))::queue ->
+      | { elt = Leaf (name,xh_attrs )}::queue ->
           print_nodes name xh_attrs [] queue cont
 
             (* Whitespaces *)
-      | (Whitespace(texte))::queue ->
+      | { elt = Whitespace(texte )}::queue ->
           xh_print_text (encode texte)
           (fun () -> xh_print_taglist queue cont)
 
-      | Empty::queue ->
+      | { elt = Empty }::queue ->
           xh_print_taglist queue cont
 
 

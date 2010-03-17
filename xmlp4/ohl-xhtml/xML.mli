@@ -32,7 +32,7 @@ val attrib_to_string : (string -> string) -> attrib -> string
 type ename = string
 
 (* For Ocsigen I need to unabstract elt: *)
-type elt =
+type elt_content =
   | Empty
   | Comment of string
 (* I add, for the Ocsigen syntax xml extension: *)
@@ -48,12 +48,17 @@ type elt =
   | Entity of string
   | Leaf of ename * attrib list
   | Node of ename * attrib list * elt list
-(* Vincent *)
+and elt = {
+  (* the element is boxed with some meta-information *)
+  mutable ref : int ;
+  elt : elt_content ;
+}
 
 val empty : unit -> elt
 
 val comment : string -> elt
 val pcdata : string -> elt
+val encodedpcdata : string -> elt
 val entity : string -> elt
 (** Neither [comment], [pcdata] nor [entity] check their argument for invalid
     characters.  Unsafe characters will be escaped later by the output routines.  *)
@@ -143,5 +148,7 @@ val translate :
 
 
 
+type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
-
+val ref_node : elt -> int
+val make_ref_tree : elt -> ref_tree

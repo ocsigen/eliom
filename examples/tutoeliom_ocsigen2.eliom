@@ -1,7 +1,6 @@
 (*zap* *)
-begin.client
-  let (>>=) = Lwt.bind
-end
+let.client (>>=) = Lwt.bind
+
 (* *zap*)
 (*zap*
    This is the Eliom documentation.
@@ -39,11 +38,12 @@ But Eliom will probably be available for other platforms soon.
           
 *wiki*)
 open XHTML.M
-open Eliom_parameters
-open Eliom_predefmod.Xhtml
-open Eliom_services
 
-let eliomobrowser1 =
+open.server Eliom_parameters
+open.server Eliom_predefmod.Xhtml
+open.server Eliom_services
+
+let.server eliomobrowser1 =
   Eliom_predefmod.Xhtml.register_new_service
     ~path:["eliomobrowser1"]
     ~get_params:unit
@@ -82,9 +82,9 @@ p ~onclick:{{Eliom_obrowser.post_request ~sp ~service:myblockservice ()
 
 For now, you can do:
 *wiki*)
-let eliomobrowser2 = new_service ~path:["eliomobrowser2"] ~get_params:unit ()
+let.server eliomobrowser2 = new_service ~path:["eliomobrowser2"] ~get_params:unit ()
 
-let myblockservice =
+let.server myblockservice =
   Eliom_predefmod.Blocks.register_new_post_coservice
     ~fallback:eliomobrowser2
     ~post_params:unit
@@ -93,7 +93,7 @@ let myblockservice =
          [p [pcdata ("I come from a distant service! Here is a random value: "^
                        string_of_int (Random.int 100))]])
 
-let _ =
+let.server _ =
   Eliom_predefmod.Xhtml.register
     eliomobrowser2
     (fun sp () () ->
@@ -225,12 +225,12 @@ let _ =
 
 
 (*zap* *)
-open Tutoeliom
+open.server Tutoeliom
 
 (* Main page for this example *)
-let main = new_service [] unit ()
+let.server main = new_service [] unit ()
 
-let _ = Eliom_predefmod.Xhtmlcompact.register main
+let.server _ = Eliom_predefmod.Xhtmlcompact.register main
   (fun sp () () ->
     Lwt.return
      (html
@@ -484,7 +484,4 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
 
 (* *zap*)
 
-;;
-begin.client
-  let _ = Lwt_obrowser.run (fst (Lwt.wait ()))
-end
+let.client _ = Lwt_obrowser.run (fst (Lwt.wait ()))

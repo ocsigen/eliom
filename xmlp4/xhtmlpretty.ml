@@ -145,7 +145,7 @@ let x_print, xh_print =
 
     and xh_print_taglist_removews taglist i is_first =
       match taglist with
-        (Whitespace s)::l -> xh_print_taglist_removews l i is_first
+        { elt = Whitespace s }::l -> xh_print_taglist_removews l i is_first
       | l -> xh_print_taglist l i is_first true
 
 
@@ -168,85 +168,85 @@ let x_print, xh_print =
       [] -> pp_open_tbox xh_string ();
         pp_close_tbox xh_string ();
 
-    | (Comment texte)::queue ->
+    | { elt = Comment texte }::queue ->
         xh_print_text ("<!--"^(encode texte)^"-->") i is_first;
         xh_print_taglist queue i false removetailingws;
 
-    | (Entity e)::queue ->
+    | { elt = Entity e }::queue ->
         xh_print_text ("&"^e^";") i is_first; (* no encoding *)
         xh_print_taglist queue i false removetailingws;
 
-    | (PCDATA texte)::queue ->
+    | { elt = PCDATA texte }::queue ->
         xh_print_text (encode texte) i is_first;
         xh_print_taglist queue i false removetailingws;
 
-    | (EncodedPCDATA texte)::queue ->
+    | { elt = EncodedPCDATA texte }::queue ->
         xh_print_text texte i is_first;
         xh_print_taglist queue i false removetailingws;
 
-    | (Whitespace _)::(Element ("hr",xh_attrs,[]))::(Whitespace _)::queue
-    | (Element ("hr",xh_attrs,[]))::(Whitespace _)::queue
-    | (Whitespace _)::(Element ("hr",xh_attrs,[]))::queue
-    | (Element ("hr",xh_attrs,[]))::queue ->
+    | { elt = Whitespace _ }::{ elt = Element ("hr",xh_attrs,[] )}::{ elt = Whitespace _ }::queue
+    | { elt = Element ("hr",xh_attrs,[] )}::{ elt = Whitespace _ }::queue
+    | { elt = Whitespace _ }::{ elt = Element ("hr",xh_attrs,[] )}::queue
+    | { elt = Element ("hr",xh_attrs,[] )}::queue ->
         xh_print_closedtag id "hr" xh_attrs i is_first;
         xh_print_taglist queue i false removetailingws;
 
-    | (Element (name, xh_attrs, []))::queue ->
+    | { elt = Element (name, xh_attrs, [] )}::queue ->
         xh_print_closedtag id name xh_attrs i is_first;
         xh_print_taglist queue i false removetailingws;
 
         (* Balises de presentation, type inline *)
-    | (Element (name, xh_attrs, xh_taglist))::queue ->
+    | { elt = Element (name, xh_attrs, xh_taglist )}::queue ->
         xh_print_inlinetag id name xh_attrs xh_taglist i is_first;
         xh_print_taglist queue i false removetailingws;
 
         (* Balises de type block *)
-    | (Whitespace _)::(BlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-    | (BlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-    | (Whitespace _)::(BlockElement (name,xh_attrs,xh_taglist))::queue
-    | (BlockElement (name,xh_attrs,xh_taglist))::queue ->
+    | { elt = Whitespace _ }::{ elt = BlockElement (name,xh_attrs,xh_taglist )}::{ elt = Whitespace _ }::queue
+    | { elt = BlockElement (name,xh_attrs,xh_taglist )}::{ elt = Whitespace _ }::queue
+    | { elt = Whitespace _ }::{ elt = BlockElement (name,xh_attrs,xh_taglist )}::queue
+    | { elt = BlockElement (name,xh_attrs,xh_taglist )}::queue ->
         xh_print_blocktag id name xh_attrs xh_taglist i;
         xh_print_taglist queue i false removetailingws;
 
         (* Balises de type "semi block", for ex <pre> *)
-    | (Whitespace _)::(SemiBlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-    | (SemiBlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-    | (Whitespace _)::(SemiBlockElement (name,xh_attrs,xh_taglist))::queue
-    | (SemiBlockElement (name,xh_attrs,xh_taglist))::queue ->
+    | { elt = Whitespace _ }::{ elt = SemiBlockElement (name,xh_attrs,xh_taglist )}::{ elt = Whitespace _ }::queue
+    | { elt = SemiBlockElement (name,xh_attrs,xh_taglist )}::{ elt = Whitespace _ }::queue
+    | { elt = Whitespace _ }::{ elt = SemiBlockElement (name,xh_attrs,xh_taglist )}::queue
+    | { elt = SemiBlockElement (name,xh_attrs,xh_taglist )}::queue ->
         xh_print_semiblocktag id name xh_attrs xh_taglist i;
         xh_print_taglist queue i false removetailingws;
 
         (* Nodes and Leafs *)
-    | (Whitespace ws1)::(Node (name,xh_attrs,xh_taglist))::(Whitespace ws2)::queue ->
+    | { elt = Whitespace ws1 }::{ elt = Node (name,xh_attrs,xh_taglist )}::{ elt = Whitespace ws2 }::queue ->
         print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws
 
-    | (Node (name,xh_attrs,xh_taglist))::(Whitespace ws2)::queue ->
+    | { elt = Node (name,xh_attrs,xh_taglist )}::{ elt = Whitespace ws2 }::queue ->
         print_nodes "" name xh_attrs xh_taglist ws2 queue i is_first removetailingws
 
-    | (Whitespace ws1)::(Node (name,xh_attrs,xh_taglist))::queue ->
+    | { elt = Whitespace ws1 }::{ elt = Node (name,xh_attrs,xh_taglist )}::queue ->
         print_nodes ws1 name xh_attrs xh_taglist "" queue i is_first removetailingws
 
-    | (Node (name,xh_attrs,xh_taglist))::queue ->
+    | { elt = Node (name,xh_attrs,xh_taglist )}::queue ->
         print_nodes "" name xh_attrs xh_taglist "" queue i is_first removetailingws
 
-    | (Whitespace ws1)::(Leaf (name,xh_attrs))::(Whitespace ws2)::queue ->
+    | { elt = Whitespace ws1 }::{ elt = Leaf (name,xh_attrs )}::{ elt = Whitespace ws2 }::queue ->
         print_nodes ws1 name xh_attrs [] ws2 queue i is_first removetailingws
 
-    | (Leaf (name,xh_attrs))::(Whitespace ws2)::queue ->
+    | { elt = Leaf (name,xh_attrs )}::{ elt = Whitespace ws2 }::queue ->
         print_nodes "" name xh_attrs [] ws2 queue i is_first removetailingws
 
-    | (Whitespace ws1)::(Leaf (name,xh_attrs))::queue ->
+    | { elt = Whitespace ws1 }::{ elt = Leaf (name,xh_attrs )}::queue ->
         print_nodes ws1 name xh_attrs [] "" queue i is_first removetailingws
 
-    | (Leaf (name,xh_attrs))::queue ->
+    | { elt = Leaf (name,xh_attrs )}::queue ->
         print_nodes "" name xh_attrs [] "" queue i is_first removetailingws
 
           (* Whitespaces *)
-    | (Whitespace(texte))::queue ->
+    | { elt = Whitespace(texte )}::queue ->
         xh_print_text (encode texte) i is_first;
         xh_print_taglist queue i false removetailingws
 
-    | Empty::queue ->
+    | { elt = Empty }::queue ->
         xh_print_taglist queue i false removetailingws
 
 

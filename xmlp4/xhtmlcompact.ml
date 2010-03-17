@@ -96,42 +96,42 @@ let x_print, xh_print =
 
       | [] -> ()
 
-      | (Comment texte)::queue ->
+      | { elt = Comment texte }::queue ->
           add_string b "<!--";
           add_string b (encode texte);
           add_string b "-->";
           xh_print_taglist queue;
 
-      | (Entity e)::queue ->
+      | { elt = Entity e }::queue ->
           add_char b '&';
           add_string b e; (* no encoding *)
           add_char b ';';
           xh_print_taglist queue;
 
-      | (PCDATA texte)::queue ->
+      | { elt = PCDATA texte }::queue ->
           add_string b (encode texte);
           xh_print_taglist queue;
 
-      | (EncodedPCDATA texte)::queue ->
+      | { elt = EncodedPCDATA texte }::queue ->
           add_string b texte;
           xh_print_taglist queue;
 
           (* Nodes and Leafs *)
-      | (Element (name, xh_attrs, xh_taglist))::queue
-      | (BlockElement (name, xh_attrs, xh_taglist))::queue
-      | (SemiBlockElement (name, xh_attrs, xh_taglist))::queue
-      | (Node (name, xh_attrs, xh_taglist))::queue ->
+      | { elt = Element (name, xh_attrs, xh_taglist )}::queue
+      | { elt = BlockElement (name, xh_attrs, xh_taglist )}::queue
+      | { elt = SemiBlockElement (name, xh_attrs, xh_taglist )}::queue
+      | { elt = Node (name, xh_attrs, xh_taglist )}::queue ->
           print_nodes name xh_attrs xh_taglist queue
 
-      | (Leaf (name,xh_attrs))::queue ->
+      | { elt = Leaf (name,xh_attrs )}::queue ->
           print_nodes name xh_attrs [] queue
 
             (* Whitespaces *)
-      | (Whitespace(texte))::queue ->
+      | { elt = Whitespace(texte )}::queue ->
           add_string b (encode texte);
           xh_print_taglist queue
 
-      | Empty::queue ->
+      | { elt = Empty }::queue ->
           xh_print_taglist queue
 
     in

@@ -377,16 +377,16 @@ module type T =
                     `OnMouseOver | `OnMouseMove | `OnMouseOut | `OnKeyPress |
                     `OnKeyDown | `OnKeyUp ]
 
-    val a_onclick : cdata -> [>`OnClick] attrib
-    val a_ondblclick : cdata -> [>`OnDblClick] attrib
-    val a_onmousedown : cdata -> [>`OnMouseDown] attrib
-    val a_onmouseup : cdata -> [>`OnMouseUp] attrib
-    val a_onmouseover : cdata -> [>`OnMouseOver] attrib
-    val a_onmousemove : cdata -> [>`OnMouseMove] attrib
-    val a_onmouseout : cdata -> [>`OnMouseOut] attrib
-    val a_onkeypress : cdata -> [>`OnKeyPress] attrib
-    val a_onkeydown : cdata -> [>`OnKeyDown] attrib
-    val a_onkeyup : cdata -> [>`OnKeyUp] attrib
+    val a_onclick : (unit -> unit) -> [>`OnClick] attrib
+    val a_ondblclick : (unit -> unit) -> [>`OnDblClick] attrib
+    val a_onmousedown : (unit -> unit) -> [>`OnMouseDown] attrib
+    val a_onmouseup : (unit -> unit) -> [>`OnMouseUp] attrib
+    val a_onmouseover : (unit -> unit) -> [>`OnMouseOver] attrib
+    val a_onmousemove : (unit -> unit) -> [>`OnMouseMove] attrib
+    val a_onmouseout : (unit -> unit) -> [>`OnMouseOut] attrib
+    val a_onkeypress : (unit -> unit) -> [>`OnKeyPress] attrib
+    val a_onkeydown : (unit -> unit) -> [>`OnKeyDown] attrib
+    val a_onkeyup : (unit -> unit) -> [>`OnKeyUp] attrib
 
 
     type common = [ core | i18n | events ]
@@ -1060,14 +1060,14 @@ module type T =
         | `Doctype of string ]
 
     val doctype : [< doctypes ] -> string
-
+(*
     val output : ?encode:(string -> string) -> ?encoding:string ->
       (string -> unit) -> html -> unit
 
     val pretty_print : ?width:int ->
       ?encode:(string -> string) -> ?encoding:string ->
         (string -> unit) -> html -> unit
-
+*)
 (** {1 Tools} *)
 
     val version : string
@@ -1077,6 +1077,7 @@ module type T =
 (** A hyperlink to the W3C validator, including the logo.
     @see <http://validator.w3.org> Validator *)
 
+(*
     val addto_class : string -> 'a elt -> 'a elt
 (** Add the element and all its subelements to a class.  Note that this
    is only almost typesafe, because a few elements from the structure class
@@ -1090,7 +1091,7 @@ module type T =
 (** Set the rowspan attribute for the element. *)
 
     val rewrite_hrefs : (string -> string) -> 'a elt -> 'a elt
-
+*)
 (*
     val amap : (string -> 'a attribs -> 'a attribs) -> 'b elt -> 'b elt
     val amap1 : (string -> 'a attribs -> 'a attribs) -> 'b elt -> 'b elt
@@ -1163,6 +1164,7 @@ module Version =
     let string_attrib = XML.string_attrib
     let space_sep_attrib = XML.space_sep_attrib
     let comma_sep_attrib = XML.comma_sep_attrib
+    let event_attrib = XML.event_attrib
 
     type cdata = string
     type id = string
@@ -1302,16 +1304,16 @@ module Version =
 
     (* Events: *)
 
-    let a_onclick = string_attrib "onclick"
-    let a_ondblclick = string_attrib "ondblclick"
-    let a_onmousedown = string_attrib "onmousedown"
-    let a_onmouseup = string_attrib "onmouseup"
-    let a_onmouseover = string_attrib "onmouseover"
-    let a_onmousemove = string_attrib "onmousemove"
-    let a_onmouseout = string_attrib "onmouseout"
-    let a_onkeypress = string_attrib "onkeypress"
-    let a_onkeydown = string_attrib "onkeydown"
-    let a_onkeyup = string_attrib "onkeyup"
+    let a_onclick = event_attrib "onclick"
+    let a_ondblclick = event_attrib "ondblclick"
+    let a_onmousedown = event_attrib "onmousedown"
+    let a_onmouseup = event_attrib "onmouseup"
+    let a_onmouseover = event_attrib "onmouseover"
+    let a_onmousemove = event_attrib "onmousemove"
+    let a_onmouseout = event_attrib "onmouseout"
+    let a_onkeypress = event_attrib "onkeypress"
+    let a_onkeydown = event_attrib "onkeydown"
+    let a_onkeyup = event_attrib "onkeyup"
 
 
     (* Other Attributes *)
@@ -1508,35 +1510,14 @@ module Version =
 
     let space () = entity "nbsp"
 
-    let cdata s = (* GK *)
-      (* For security reasons, we do not allow "]]>" inside CDATA
-         (as this string is to be considered as the end of the cdata)
-       *)
-      let s' = "\n<![CDATA[\n"^
-        (Netstring_pcre.global_replace
-           (Netstring_pcre.regexp_string "]]>") "" s)
-        ^"\n]]>\n" in
-      XML.encodedpcdata s'
+    let cdata s =
+      XML.encodedpcdata s
 
-    let cdata_script s = (* GK *)
-      (* For security reasons, we do not allow "]]>" inside CDATA
-         (as this string is to be considered as the end of the cdata)
-       *)
-      let s' = "\n//<![CDATA[\n"^
-        (Netstring_pcre.global_replace
-           (Netstring_pcre.regexp_string "]]>") "" s)
-        ^"\n//]]>\n" in
-      XML.encodedpcdata s'
+    let cdata_script s =
+      XML.encodedpcdata s
 
-    let cdata_style s = (* GK *)
-      (* For security reasons, we do not allow "]]>" inside CDATA
-         (as this string is to be considered as the end of the cdata)
-       *)
-      let s' = "\n/* <![CDATA[ */\n"^
-        (Netstring_pcre.global_replace
-           (Netstring_pcre.regexp_string "]]>") "" s)
-        ^"\n/* ]]> */\n" in
-      XML.encodedpcdata s'
+    let cdata_style s =
+      XML.encodedpcdata s
 
     let unsafe_data s = XML.encodedpcdata s
 
@@ -1873,16 +1854,6 @@ module Version =
     let preformatted =
       ["pre"]
 
-    let output version ?encode ?encoding outs page =
-      (* XML.decl ?encoding outs (); Does not work with IE *)
-      outs (doctype version);
-      XML.output ~preformatted ~no_break ?encode outs page
-
-    let pretty_print version ?width ?encode ?encoding outs page =
-      (* XML.decl ?encoding outs (); Does not work with IE *)
-      outs (doctype version);
-      XML.pretty_print ?width ~preformatted ~no_break ?encode outs page
-
     (* Tools *)
 
     let version = function
@@ -1906,6 +1877,7 @@ module Version =
       | `XHTML_01_01 -> compose_validator_icon
             "http://www.w3.org/Icons/valid-xhtml11" "Valid XHTML 1.1!"
 
+(*
     let addto_class name =
       XML.amap (fun _ a -> XML.add_space_sep_attrib "class" name a)
 
@@ -1923,6 +1895,7 @@ module Version =
 
     let rm_attrib = XML.rm_attrib
     let rm_attrib_from_list = XML.rm_attrib_from_list
+*)
 
     (******************************************************************)
     (* In the following, my own stuffs for Ocsigen -- Vincent: *)
@@ -1941,8 +1914,6 @@ module M_01_00 : T_01_00 =
     let xhtml_version = `XHTML_01_00
     let version = M.version xhtml_version
     let standard = M.standard xhtml_version
-    let output = M.output xhtml_version
-    let pretty_print = M.pretty_print xhtml_version
     let validator_icon () = M.validator_icon xhtml_version
   end
 
@@ -1953,8 +1924,6 @@ module M_01_01 : T_01_01 =
     let xhtml_version = `XHTML_01_01
     let version = M.version xhtml_version
     let standard = M.standard xhtml_version
-    let output = M.output xhtml_version
-    let pretty_print = M.pretty_print xhtml_version
     let validator_icon () = M.validator_icon xhtml_version
   end
 

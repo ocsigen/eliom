@@ -35,9 +35,9 @@ PP = -syntax camlp4o -ppopt "../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(CMXS)
 
-byte: $(OBJS) tutoeliom.cma tutoeliom_ocsigen2_client.uue $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../files/tutorial/vm.js
+byte: $(OBJS) tutoeliom.cma tutoeliom_ocsigen3_client.uue tutoeliom_ocsigen2_client.uue $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../files/tutorial/vm.js
 
-opt: $(OBJSOPT) tutoeliom.cmxs tutoeliom_ocsigen2_client.uue $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../files/tutorial/vm.js
+opt: $(OBJSOPT) tutoeliom.cmxs tutoeliom_ocsigen3_client.uue tutoeliom_ocsigen2_client.uue $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../files/tutorial/vm.js
 
 exampleduce.cmo: ocamlduce/exampleduce.cmo
 	cp ocamlduce/exampleduce.cmo .
@@ -83,17 +83,30 @@ tutoeliom_ocsigen2_client: $(ELIOMOBROWSERDIR)/eliom_obrowser_client.cma client/
 
 tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom
 	camlp4of $(PAELIOMOBROWSERDIR)/pa_eliom_obrowser.cmo -impl $< -o $@ \
-	  -client client/tutoeliom_ocsigen2_client.ml # -prologue tutoeliom_ocsigen2_client_prologue
+	  -client client/tutoeliom_ocsigen2_client.ml
 
 client/tutoeliom_ocsigen2_client.ml: tutoeliom_ocsigen2.ml
+
+tutoeliom_ocsigen3_client.uue: tutoeliom_ocsigen3_client
+	uuencode $< stdout > $@
+	cp -f $@ ../files/tutorial
+
+tutoeliom_ocsigen3_client: $(ELIOMOBROWSERDIR)/eliom_obrowser_client.cma client/tutoeliom_ocsigen3_client.ml
+	CAMLLIB=$(OBROWSERDIR) ocamlc -o $@ -I $(ELIOMOBROWSERDIR) -I $(LWTDIR) $(LWTDIR)/lwt.cma $(OBROWSERDIR)/lwt_obrowser.cma $^
+
+tutoeliom_ocsigen3.ml: tutoeliom_ocsigen3.eliom
+	camlp4of $(PAELIOMOBROWSERDIR)/pa_eliom_obrowser.cmo -impl $< -o $@ \
+	  -client client/tutoeliom_ocsigen3_client.ml
+
+client/tutoeliom_ocsigen3_client.ml: tutoeliom_ocsigen3.ml
 
 ../files/tutorial/vm.js: $(OBROWSERDIR)/vm.js
 	cp -f $< $@
 
-tutoeliom.cma: tutoeliom.cmo tutoeliom_ocsigen2.cmo
+tutoeliom.cma: tutoeliom.cmo tutoeliom_ocsigen3.cmo tutoeliom_ocsigen2.cmo
 	$(OCAMLDUCEFIND) ocamlc -a -o $@ $^
 
-tutoeliom.cmxs: tutoeliom.cmx tutoeliom_ocsigen2.cmx
+tutoeliom.cmxs: tutoeliom.cmx tutoeliom_ocsigen3.cmx tutoeliom_ocsigen2.cmx
 	$(OCAMLDUCEFIND) ocamlopt -linkall -shared -o $@ $^
 
 .SUFFIXES:
@@ -119,7 +132,7 @@ tutoeliom.cmxs: tutoeliom.cmx tutoeliom_ocsigen2.cmx
 
 clean:
 	$(MAKE) -C miniwiki clean
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot tutoeliom_ocsigen2_client* tutoeliom_ocsigen2.ml tutoeliom_ocsigen3_client* tutoeliom_ocsigen3.ml
 
 depend:
 	$(MAKE) -C miniwiki depend
