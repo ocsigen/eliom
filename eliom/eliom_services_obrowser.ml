@@ -89,7 +89,8 @@ type nonattached =
     [ `Nonattached of getpost na_s ]
 
 
-type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
+type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) service =
+(* 'return is the value returned by the service *)
     {
      pre_applied_parameters: 
        (string * string) list Ocsigen_lib.String_Table.t

@@ -72,7 +72,7 @@ module type XHTMLFORMSSIG = sig
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
@@ -106,7 +106,7 @@ module type XHTMLFORMSSIG = sig
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -124,7 +124,7 @@ module type XHTMLFORMSSIG = sig
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -145,7 +145,7 @@ module type XHTMLFORMSSIG = sig
       ?https:bool ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -175,7 +175,7 @@ module type XHTMLFORMSSIG = sig
       ?a:a_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -237,7 +237,7 @@ module type XHTMLFORMSSIG = sig
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -258,7 +258,7 @@ module type XHTMLFORMSSIG = sig
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -277,7 +277,7 @@ module type XHTMLFORMSSIG = sig
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
@@ -304,7 +304,7 @@ module type XHTMLFORMSSIG = sig
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
@@ -919,7 +919,7 @@ module Redirection : Eliom_mkreg.ELIOMREGSIG with
   type page =
   (unit, unit, Eliom_services.get_service_kind,
    [ `WithoutSuffix ],
-   unit, unit, Eliom_services.registrable)
+   unit, unit, Eliom_services.registrable, 'return)
     Eliom_services.service
   and type options = [ `Temporary | `Permanent ]
 

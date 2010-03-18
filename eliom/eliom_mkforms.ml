@@ -246,7 +246,7 @@ module type ELIOMFORMSIG =
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
@@ -280,7 +280,7 @@ module type ELIOMFORMSIG =
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -298,7 +298,7 @@ module type ELIOMFORMSIG =
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -319,7 +319,7 @@ module type ELIOMFORMSIG =
       ?https:bool ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -349,7 +349,7 @@ module type ELIOMFORMSIG =
       ?a:a_attrib_t ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -411,7 +411,7 @@ module type ELIOMFORMSIG =
       ?a:form_attrib_t ->
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -432,7 +432,7 @@ module type ELIOMFORMSIG =
       ?a:form_attrib_t ->
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -451,7 +451,7 @@ module type ELIOMFORMSIG =
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
@@ -478,7 +478,7 @@ module type ELIOMFORMSIG =
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
