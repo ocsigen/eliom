@@ -224,7 +224,7 @@ val new_post_service :
                    ([> `Internal of 'kind ], [> `Post]) a_s ],
    'tipo, 'gn, 'pn, [> `Registrable ]) service
 (** Creates an service that takes POST parameters.
-    [fallback] is the a service without POST parameters.
+    [fallback] is a service without POST parameters.
     You can't create an service with POST parameters
     if the same service does not exist without POST parameters.
     Thus, the user can't bookmark a page that does not exist.

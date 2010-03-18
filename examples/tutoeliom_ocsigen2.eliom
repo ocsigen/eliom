@@ -1,6 +1,7 @@
 (*zap* *)
 let.client (>>=) = Lwt.bind
 
+
 (* *zap*)
 (*zap*
    This is the Eliom documentation.
@@ -37,31 +38,33 @@ But Eliom will probably be available for other platforms soon.
         %<div class="onecol"|
           
 *wiki*)
+(****** code on both side *******)
 open XHTML.M
 
+let item () = li [pcdata Sys.ocaml_version]
+
+(****** server only *******)
 open.server Eliom_parameters
-open.server Eliom_predefmod.Xhtml
+open.server Eliom_predefmod.Xhtmlcompact
 open.server Eliom_services
 
+(* for client side only : open.client *)
+
+module.server Xhtmlobrowser =
+  Eliom_predefmod.Xhtmlobrowser (
+    struct
+      let client_name = "tutoeliom_ocsigen2_client"
+    end)
+
+
 let.server eliomobrowser1 =
-  Eliom_predefmod.Xhtml.register_new_service
+  Xhtmlobrowser.register_new_service
     ~path:["eliomobrowser1"]
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
         (html
-           (head
-              (title (pcdata "Eliom + O'Browser"))
-              [
-                js_script 
-                  ~uri:(make_uri ~service:(static_dir sp) ~sp ["vm.js"]) ();
-                js_script 
-                  ~uri:(make_uri ~service:(static_dir sp) ~sp ["eliom_obrowser.js"]) ();
-                script ~contenttype:"text/javascript"
-                  (cdata_script
-      "window.onload = function () {
-        main_vm = exec_caml (\"tutoeliom_ocsigen2_client.uue\") ;
-      }")])
+           (head (title (pcdata "Eliom + O'Browser")) [])
            (body [p ~a:[a_onclick 
                            ((fun.client (() : unit) -> Js.alert "clicked!") ())]
                     [pcdata "I am a clickable paragraph"];
@@ -94,29 +97,12 @@ let.server myblockservice =
                        string_of_int (Random.int 100))]])
 
 let.server _ =
-  Eliom_predefmod.Xhtml.register
+  Xhtmlobrowser.register
     eliomobrowser2
     (fun sp () () ->
-(*zap* *)
       Lwt.return
         (html
-           (head
-              (title (pcdata "Eliom + O'Browser"))
-              [
-                js_script 
-                  ~uri:(make_uri ~service:(static_dir sp) ~sp ["vm.js"]) ();
-                js_script 
-                  ~uri:(make_uri ~service:(static_dir sp) ~sp ["eliom_obrowser.js"]) ();
-                script ~contenttype:"text/javascript"
-                  (cdata_script
-      "window.onload = function () {
-        main_vm = exec_caml (\"tutoeliom_ocsigen2_client.uue\") ;
-      }"
-                  )])
-           (* *zap*)
-(*wiki*
-{{{...<same header>...}}}
-*wiki*)
+           (head (title (pcdata "Eliom + O'Browser")) [])
            (body
               [
 (*wiki*
@@ -128,7 +114,7 @@ let.server _ =
                     a_onclick 
                       ((fun.client
                           (sp : Eliom_client_types.server_params)
-                          (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                          (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
                             Eliom_client.exit_to ~sp ~service () ()
                        ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
                   ]
@@ -143,7 +129,7 @@ let.server _ =
                     a_onclick 
                       ((fun.client
                           (sp : Eliom_client_types.server_params)
-                          (myblockservice : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                          (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
                             let body = JSOO.eval "document.body" in
                             (*Js.get_element_by_id "bodyid"*)
                             Eliom_client.call_service
@@ -154,14 +140,6 @@ let.server _ =
                                  with e -> Js.alert (Printexc.to_string e));
                                 Lwt.return ()
                        ) (Eliom_obrowser.client_sp sp) myblockservice)
-(*zap*
-  Problème avec le type du service : il faut l'écrire en entier et exactement
-  sinon on n'a pas de vérif de type côté client *)
-(* je me suis fait avoir en mettant let bodyid = "body" in
-   ... Js.get_element_by_id bodyid ...
-   sans le passer en paramètre à la fun.client
-   Il faut vraiment automatiser ça...
-*zap*)
                   ]
                   [pcdata "Click here to add content from the server."];
              
@@ -178,7 +156,7 @@ let.server _ =
                     a_onclick 
                       ((fun.client
                           (sp : Eliom_client_types.server_params)
-                          (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                          (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
                             Eliom_client.change_url ~sp ~service ()
                        ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
                   ]
@@ -193,14 +171,25 @@ let.server _ =
                     a_onclick 
                       ((fun.client
                           (sp : Eliom_client_types.server_params)
-                          (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                          (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
                             Eliom_client.change_page ~sp ~service () ()
                        ) (Eliom_obrowser.client_sp sp) myblockservice)
                   ]
                   [pcdata "Click here to change the page without stopping the program."];
 
              
-              
+(*wiki*
+====Refering to parts of the page in client side code
+*wiki*)
+
+                let container = ul (item ()) [ item () ; item ()] in
+                div [p ~a:[a_onclick 
+                            ((fun.client (container : node) ->
+                                let nl = XHTML.M.toelt (item ()) in
+                                Js.Node.append container nl) container)]
+                     [pcdata "Click here to add an item below with the current version of OCaml"];
+                   container];
+
               ])))
 (*wiki*
 ====Implicit registration of services to implement distant function calls
@@ -221,6 +210,23 @@ let.server _ =
 *wiki*)
 
 
+let.server obrowser =
+  Xhtmlobrowser.register_new_service
+    ~path:["obrowser"]
+    ~get_params:unit
+    (fun sp () () ->
+      Lwt.return
+        (html
+          (head
+            (title (pcdata "Eliom + O'Browser")) [])
+          (let container = ul (item ()) [ item () ; item ()] in
+            body [h1 ~a:[a_onclick 
+                           ((fun.client (container : node) ->
+                               let nl = XHTML.M.toelt (item ()) in
+                                 Js.Node.append container nl) container)]
+                    [pcdata "Click me !"];
+                  container])))
+;;
 
 
 
