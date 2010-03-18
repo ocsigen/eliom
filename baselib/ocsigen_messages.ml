@@ -147,12 +147,9 @@ let unexpected_exception e s =
 (*
 
 Re: [Caml-list] log function without evaluate arguments
-De :
-tmp123 <tmp123@menta.net>
-  À :
-caml-list@inria.fr
-  Date :
-Aujourd'hui 11:31:04
+From: tmp123 <tmp123@menta.net>
+To: caml-list@inria.fr
+Date: Nov 7 2007, 10:37 am
 
 Hello,
 
