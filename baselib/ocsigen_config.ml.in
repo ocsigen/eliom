@@ -41,8 +41,8 @@ let builtin_packages =
     ["unix"; "threads"; "ssl"; "react"; "lwt.unix";
      "lwt"; "lwt.preemptive"; "lwt.ssl"; "lwt.extra";
      "netstring"; "netsys"; "pcre"; "dynlink"; "findlib";
-     "ocsigen"; "ocsigen.server"; "ocsigen.xhtml";
-     "ocsigen.xhtml"; "camlp4.lib"; "ocsigen.ext.polytables"]
+     "ocsigen"; "ocsigen.server"; "ocsigen_xhtml";
+     "camlp4.lib"; "ocsigen.ext.polytables"]
 
 (* Server config: *)
 let (uploaddir : string option ref) = ref None
@@ -159,5 +159,3 @@ let display_version () =
   print_string version_number;
   print_newline ();
   exit 0
-
-

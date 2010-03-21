@@ -1,8 +1,9 @@
 ===== Development version (ocsigen.dev branch) =====
 
-//Nothing//
+  * Split out ocsigen_xhtml findlib package
 
-===== 1.3.0 =====
+===== 1.3.0 (2010-01-22) =====
+
   * Server: Each request now has a polymorphic data table
     (called //request cache//), where you can
     store the data you want to keep during the whole page generation.
@@ -13,7 +14,7 @@
   * Eliom: efficient implementation of limitation of sessions by groups
     (or now IP) for large limits
   * Eliom: the number of anonymous coservices by session is now limited
-  * Eliom: the number of anonymous coservices without session 
+  * Eliom: the number of anonymous coservices without session
   by IP address is now limited
   * Eliom: now possible to unregister services
   * Eliom: New (very) experimental module {{{Eliom_obrowser}}}
@@ -49,7 +50,7 @@
   * Server: correct missing xmlns in Xhtml DTD
   * Server: now send last-modified and etag headers when returning a 403
   * Server: Now accepting several requests at a time
-    (as explained in "Accept()able strategies" by Tim Brecht & all) 
+    (as explained in "Accept()able strategies" by Tim Brecht & all)
   * Rewritemod: more rewriting possibilities (still very basic)
   * Eliom menus are now more robust when finding which item is active
   * Fixed handling of incorrectly-sized multipart requests. Thanks to

@@ -8,6 +8,7 @@ DOCPREF=./
 SED_COMMAND_FOR_META =
 SED_COMMAND_FOR_META += -e "s/_VERSION_/$(VERSION)/"
 SED_COMMAND_FOR_META += -e "s/_CAMLZIPNAME_/$(CAMLZIPNAME)/"
+SED_COMMAND_FOR_META += -e "s@_DIRECTORY_@$(MODULEINSTALLDIR)/$(OCSIGENNAME)@"
 
 ifeq "$(OCAMLDUCE)" "YES"
 DUCECMA=eliom/eliom_duce.cma
@@ -92,7 +93,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)xmlp4/newocaml/pp/xhtmltypes.ml			\
 	$(DUCEDOC)
 
-METAS = files/META files/META.ocsigen files/META.eliom_examples files/META.eliom_examples.global
+METAS = files/META files/META.ocsigen_xhtml files/META.ocsigen files/META.eliom_examples files/META.eliom_examples.global
 
 
 INSTALL = install
@@ -194,6 +195,7 @@ TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) 
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
+STD_METAS_DIR=$(MODULEINSTALLDIR)
 
 all: $(BYTE) $(OPT) $(OCSIGENNAME).conf.local $(METAS)
 
@@ -277,6 +279,9 @@ doc:
 doc/index.html: doc
 
 files/META: files/META.in VERSION
+	sed $(SED_COMMAND_FOR_META) < $< > $@
+
+files/META.ocsigen_xhtml: files/META.ocsigen_xhtml.in VERSION
 	sed $(SED_COMMAND_FOR_META) < $< > $@
 
 files/META.ocsigen: files/META.in VERSION
@@ -367,6 +372,7 @@ partialinstall:
 	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/METAS
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/extensions
+	mkdir -p $(TEMPROOT)$(STD_METAS_DIR)
 	$(MAKE) -C server install
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
@@ -377,6 +383,7 @@ partialinstall:
 	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)/extensions
 #	$(INSTALL) -m 644 META.ocsigen_ext.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
 	$(INSTALL) -m 644 files/META.eliom_examples.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
+	$(INSTALL) -m 644 files/META.ocsigen_xhtml $(TEMPROOT)$(STD_METAS_DIR)
 	chmod a+rx $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)
 	chmod a+r $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/*
 	chmod a+rx $(TEMPROOT)$(MODULEINSTALLDIR)
