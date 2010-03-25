@@ -1,0 +1,14 @@
+description = "XHTML pages typed with polymorphic variants"
+version = "_VERSION_"
+requires = "netstring"
+directory = "_DIRECTORY_"
+archive(byte) = "xhtml.cma xhtmlpretty.cma"
+archive(native) = "xhtml.cmxa xhtmlpretty.cmxa"
+
+package "syntax" (
+    description = "XHTML syntax extension"
+    version = "_VERSION_"
+    requires = "ocsigen_xhtml,camlp4"
+    archive(syntax,preprocessor) = "xhtmlsyntax.cma"
+    archive(syntax,toploop) = "xhtmlsyntax.cma"
+)
