@@ -46,7 +46,7 @@ let code_of_code_option = function
   | None -> 200
   | Some c -> c
 
-module Xhtmlobrowserreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
+module Eliom_appl_reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
                    with type t = [ `Html ] XHTML.M.elt
                    and type options = [ `HTML_v03_02 | `HTML_v04_01
                    | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
@@ -106,6 +106,28 @@ module Xhtmlobrowserreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
       let rec aux e =
 	let body = get_body e in
 	let obro = [
+(* This will do a redirection if there is a #! in the URL *)
+	  XHTML.M.toelt (script ~contenttype:"text/javascript"
+			   (cdata_script
+			      ("function redir () {
+  var str_url = window.location.toString() ;
+  try{
+  //  var match = str_url.match(\"/(^[^?#]+)(\\?.*)?(#!(https?://)?(.*$))?/\");
+    var match = str_url.match(\"(.*)/[^#/?]*(\\\\?.*)?#!((https?://)?(.*))$\");
+          //but what if there's a # the search ?
+    if(match) {
+      if(match[4]) { //absolute
+        window.location = match[3];
+        alert(\"Absolute redirection to \"+window.location);
+      }
+      else { //relative
+        window.location = match[1] + \"/\" + match[3] ;
+        alert(\"Relative redirection to \"+match[1] + \" / \" + match[3]);
+      }
+    }
+  } catch(e) {} ;
+};
+redir ();")));
 	  XHTML.M.toelt (script ~a:[a_src (uri_of_string "/vm.js")] ~contenttype:"text/javascript" (pcdata "")) ;
 	  XHTML.M.toelt (script ~a:[a_src (uri_of_string "/eliom_obrowser.js")] ~contenttype:"text/javascript" (pcdata "")) ;
 	  XHTML.M.toelt (script ~contenttype:"text/javascript"
@@ -1811,9 +1833,9 @@ module Xhtmlcompact = struct
   include Xhtmlcompactreg
 end
 
-module Xhtmlobrowser (Client_params : sig val client_name : string end) = struct
+module Eliom_appl (Client_params : sig val client_name : string end) = struct
   include Xhtmlforms
-  include MakeRegister(Xhtmlobrowserreg_(Ocsigen_senders.Xhtmlcompact_content)(Client_params))
+  include MakeRegister(Eliom_appl_reg_(Ocsigen_senders.Xhtmlcompact_content)(Client_params))
 end
 
 (****************************************************************************)

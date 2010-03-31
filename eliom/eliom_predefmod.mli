@@ -792,7 +792,7 @@ module Xhtmlcompact : sig
 
 end
 
-module Xhtmlobrowser (Client_params : sig val client_name : string end) : sig
+module Eliom_appl (Client_params : sig val client_name : string end) : sig
   include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt
                                   and type options = XHTML.M.doctypes
 

@@ -50,15 +50,15 @@ open.server Eliom_services
 
 (* for client side only : open.client *)
 
-module.server Xhtmlobrowser =
-  Eliom_predefmod.Xhtmlobrowser (
+module.server Eliom_appl =
+  Eliom_predefmod.Eliom_appl (
     struct
       let client_name = "tutoeliom_ocsigen2_client"
     end)
 
 
 let.server eliomobrowser1 =
-  Xhtmlobrowser.register_new_service
+  Eliom_appl.register_new_service
     ~path:["eliomobrowser1"]
     ~get_params:unit
     (fun sp () () ->
@@ -97,7 +97,7 @@ let.server myblockservice =
                        string_of_int (Random.int 100))]])
 
 let.server _ =
-  Xhtmlobrowser.register
+  Eliom_appl.register
     eliomobrowser2
     (fun sp () () ->
       Lwt.return
@@ -187,8 +187,8 @@ let.server _ =
                             ((fun.client (container : node) ->
                                 let nl = XHTML.M.toelt (item ()) in
                                 Js.Node.append container nl) container)]
-                     [pcdata "Click here to add an item below with the current version of OCaml"];
-                   container];
+                     [pcdata "Click here to add an item below with the current version of OCaml."];
+                     container];
 
               ])))
 (*wiki*
@@ -208,25 +208,6 @@ let.server _ =
 (*wiki*
 %<||2>%
 *wiki*)
-
-
-let.server obrowser =
-  Xhtmlobrowser.register_new_service
-    ~path:["obrowser"]
-    ~get_params:unit
-    (fun sp () () ->
-      Lwt.return
-        (html
-          (head
-            (title (pcdata "Eliom + O'Browser")) [])
-          (let container = ul (item ()) [ item () ; item ()] in
-            body [h1 ~a:[a_onclick 
-                           ((fun.client (container : node) ->
-                               let nl = XHTML.M.toelt (item ()) in
-                                 Js.Node.append container nl) container)]
-                    [pcdata "Click me !"];
-                  container])))
-;;
 
 
 
