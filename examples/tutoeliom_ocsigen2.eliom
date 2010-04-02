@@ -34,15 +34,18 @@ But Eliom will probably be available for other platforms soon.
 
 ===@@id="p4basics"@@
         
-====Your first client-side function
+====Your first client-side application
         %<div class="onecol"|
+
+First, I need to create my Eliom application, by applying the functor
+{{{Eliom_predefmod.Eliom_appl}}}. You can define here what will be
+the default title for pages belonging to this application, the
+default container for pages, the default stylesheets you want for your
+whole application.
           
 *wiki*)
-(****** code on both side *******)
+(****** open on both side *******)
 open XHTML.M
-
-let item () = li [pcdata Sys.ocaml_version]
-
 (****** server only *******)
 open.server Eliom_parameters
 open.server Eliom_predefmod.Xhtmlcompact
@@ -53,9 +56,23 @@ open.server Eliom_services
 module.server Eliom_appl =
   Eliom_predefmod.Eliom_appl (
     struct
-      let client_name = "tutoeliom_ocsigen2_client"
+      let.server client_name = "tutoeliom_ocsigen2_client"
+      let.server default_params =
+        {Eliom_predefmod.default_appl_params with
+           Eliom_predefmod.ap_title = "Eliom application example"
+        }
     end)
 
+(*wiki*
+
+Now I can define my first service belonging to that application.
+All services belonging to the application will be entry points to the 
+application. It means that if you call such a service, the client side
+code will be sent to the browser, and the client side execution will
+start, //and will not stop if you go to another service belonging to
+the same application!//
+
+  *wiki*)
 
 let.server eliomobrowser1 =
   Eliom_appl.register_new_service
@@ -63,13 +80,11 @@ let.server eliomobrowser1 =
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
-        (html
-           (head (title (pcdata "Eliom + O'Browser")) [])
-           (body [p ~a:[a_onclick 
-                           ((fun.client (() : unit) -> Js.alert "clicked!") ())]
-                    [pcdata "I am a clickable paragraph"];
-
-                 ])))
+        [p ~a:[a_onclick 
+                 ((fun.client (() : unit) -> Js.alert "clicked!") ())]
+           [pcdata "I am a clickable paragraph"];
+         
+        ])
 (*wiki*
 ====Compiling
 //soon (have a look at Ocsigen source for now -- //examples// directory)// 
@@ -96,52 +111,52 @@ let.server myblockservice =
          [p [pcdata ("I come from a distant service! Here is a random value: "^
                        string_of_int (Random.int 100))]])
 
+let item () = li [pcdata Sys.ocaml_version]
+
 let.server _ =
   Eliom_appl.register
     eliomobrowser2
     (fun sp () () ->
       Lwt.return
-        (html
-           (head (title (pcdata "Eliom + O'Browser")) [])
-           (body
-              [
+        [
 (*wiki*
   The following examples shows how to go to another service,
-  exactly like pressing a link:
+  exactly like pressing a link (here a service that do not belong to
+  the application):
 *wiki*)
-                p 
-                  ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-                    a_onclick 
-                      ((fun.client
-                          (sp : Eliom_client_types.server_params)
-                          (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
-                            Eliom_client.exit_to ~sp ~service () ()
-                       ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
-                  ]
-                  [pcdata "Click here to go to another page."];
-
+          p 
+            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+              a_onclick 
+                ((fun.client
+                    (sp : Eliom_client_types.server_params)
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                      Eliom_client.exit_to ~sp ~service () ()
+                 ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
+            ]
+            [pcdata "Click here to go to another page."];
+          
 (*wiki*
   The following examples shows how to do a request to a service,
   and use the content:
 *wiki*)
-                p 
-                  ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-                    a_onclick 
-                      ((fun.client
-                          (sp : Eliom_client_types.server_params)
-                          (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
-                            let body = JSOO.eval "document.body" in
-                            (*Js.get_element_by_id "bodyid"*)
-                            Eliom_client.call_service
-                              ~sp ~service:myblockservice () () >>= fun s ->
-                                (try
-                                   let l = Js.Node.children (Js.dom_of_xml s) in
-                                   List.iter (Js.Node.append body) l
-                                 with e -> Js.alert (Printexc.to_string e));
-                                Lwt.return ()
-                       ) (Eliom_obrowser.client_sp sp) myblockservice)
-                  ]
-                  [pcdata "Click here to add content from the server."];
+          p 
+            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+              a_onclick 
+                ((fun.client
+                    (sp : Eliom_client_types.server_params)
+                    (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                      let body = JSOO.eval "document.body" in
+                      (*Js.get_element_by_id "bodyid"*)
+                      Eliom_client.call_service
+                        ~sp ~service:myblockservice () () >>= fun s ->
+                          (try
+                             let l = Js.Node.children (Js.dom_of_xml s) in
+                             List.iter (Js.Node.append body) l
+                           with e -> Js.alert (Printexc.to_string e));
+                          Lwt.return ()
+                 ) (Eliom_obrowser.client_sp sp) myblockservice)
+            ]
+            [pcdata "Click here to add content from the server."];
              
 (*wiki*
   The following examples shows how to change the URL.
@@ -151,46 +166,46 @@ let.server _ =
   A script must do the redirection if there is something in the fragment
   while the page is loading.
 *wiki*)
-                p 
-                  ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-                    a_onclick 
-                      ((fun.client
-                          (sp : Eliom_client_types.server_params)
-                          (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
-                            Eliom_client.change_url ~sp ~service ()
-                       ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
-                  ]
-                  [pcdata "Click here to change the URL."];
-
+          p 
+            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+              a_onclick 
+                ((fun.client
+                    (sp : Eliom_client_types.server_params)
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                      Eliom_client.change_url ~sp ~service ()
+                 ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
+            ]
+            [pcdata "Click here to change the URL."];
+          
 (*wiki*
   The following examples shows how to change the current page,
   without stopping the client side program.
 *wiki*)
-                p 
-                  ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-                    a_onclick 
-                      ((fun.client
-                          (sp : Eliom_client_types.server_params)
-                          (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
-                            Eliom_client.change_page ~sp ~service () ()
-                       ) (Eliom_obrowser.client_sp sp) myblockservice)
-                  ]
-                  [pcdata "Click here to change the page without stopping the program."];
+          p 
+            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+              a_onclick 
+                ((fun.client
+                    (sp : Eliom_client_types.server_params)
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                      Eliom_client.change_page ~sp ~service () ()
+                 ) (Eliom_obrowser.client_sp sp) myblockservice)
+            ]
+            [pcdata "Click here to change the page without stopping the program."];
 
              
 (*wiki*
 ====Refering to parts of the page in client side code
 *wiki*)
 
-                let container = ul (item ()) [ item () ; item ()] in
-                div [p ~a:[a_onclick 
-                            ((fun.client (container : node) ->
-                                let nl = XHTML.M.toelt (item ()) in
-                                Js.Node.append container nl) container)]
-                     [pcdata "Click here to add an item below with the current version of OCaml."];
-                     container];
-
-              ])))
+          let container = ul (item ()) [ item () ; item ()] in
+          div [p ~a:[a_onclick 
+                       ((fun.client (container : node) ->
+                           let nl = XHTML.M.toelt (item ()) in
+                           Js.Node.append container nl) container)]
+                 [pcdata "Click here to add an item below with the current version of OCaml."];
+               container];
+          
+        ])
 (*wiki*
 ====Implicit registration of services to implement distant function calls
 *wiki*)

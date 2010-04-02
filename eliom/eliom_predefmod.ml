@@ -46,70 +46,56 @@ let code_of_code_option = function
   | None -> 200
   | Some c -> c
 
-module Eliom_appl_reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-                   with type t = [ `Html ] XHTML.M.elt
-                   and type options = [ `HTML_v03_02 | `HTML_v04_01
-                   | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
-                ) (Client_params : sig val client_name : string end) = struct
+type appl_service_params =
+    {
+      ap_doctype: XHTML.M.doctypes;
+      ap_title: string;
+      ap_container : 
+        Xhtmltypes.body_content elt list -> Xhtmltypes.body_content elt list;
+      ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
+    }
+
+module type APPL_PARAMS = sig
+     val client_name : string
+     val default_params : appl_service_params
+end
+
+let default_appl_params =
+  { ap_doctype = `XHTML_01_01;
+    ap_title = "Eliom application";
+    ap_container = Ocsigen_lib.id;
+    ap_headers = [];
+  }
+
+module Eliom_appl_reg_
+  (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
+   with type t = [ `Html ] XHTML.M.elt
+   and type options = XHTML.M.doctypes
+  )
+  (Appl_params : APPL_PARAMS) = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = xhtml elt
+  type page = body_content elt list
 
-  type options = [ `HTML_v03_02 | `HTML_v04_01
-  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+  type options = appl_service_params
 
   module Xhtml_content = struct
 
     include Xhtml_content
 
-    let add_css (a : 'a) : 'a =
-      let css =
-        XHTML.M.toelt
-          (XHTML.M.style ~contenttype:"text/css"
-             [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"])
-      in
-      let rec aux = function
-        | { XML.elt = XML.Element ("head",al,el ) } as e::l ->
-	    { e with XML.elt = XML.Element ("head",al,css::el) }::l
-        | { XML.elt = XML.BlockElement ("head",al,el) } as e::l ->
-            { e with XML.elt = XML.BlockElement ("head",al,css::el) }::l
-        | { XML.elt = XML.SemiBlockElement ("head",al,el) } as e::l ->
-            { e with XML.elt = XML.SemiBlockElement ("head",al,css::el) }::l
-        | { XML.elt = XML.Node ("head",al,el) } as e::l ->
-	    { e with XML.elt = XML.Node ("head",al,css::el) }::l
-        | e::l -> e::(aux l)
-        | [] -> []
-      in
-      XHTML.M.tot
-        (match XHTML.M.toelt a with
-           | { XML.elt = XML.Element ("html",al,el) } as e ->
-	       { e with XML.elt = XML.Element ("html",al,aux el) }
-           | { XML.elt = XML.BlockElement ("html",al,el) } as e ->
-	       { e with XML.elt = XML.BlockElement ("html",al,aux el) }
-           | { XML.elt = XML.SemiBlockElement ("html",al,el) } as e ->
-               { e with XML.elt = XML.SemiBlockElement ("html",al,aux el) }
-           | { XML.elt = XML.Node ("html",al,el) } as e ->
-	       { e with XML.elt = XML.Node ("html",al,aux el) }
-           | e -> e)
+    let create_page ~options content = 
+      let body = XHTML.M.body (options.ap_container content) in
+      XHTML.M.html
+        (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata options.ap_title)) 
+           (
+             XHTML.M.style ~contenttype:"text/css"
+               [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"]::
 
-    let add_obrowser (a : 'a) : 'a =
-      let rec get_body e =
-	match e with
-          | ({ XML.elt = XML.Element ("body",al,el ) } as e :: _)
-          | ({ XML.elt = XML.BlockElement ("body",al,el) } as e :: _)
-          | ({ XML.elt = XML.SemiBlockElement ("body",al,el) } as e::_)
-          | ({ XML.elt = XML.Node ("body",al,el) } as e::_) -> e
-          | _::l -> get_body l
-          | [] -> assert false
-      in
-      let rec aux e =
-	let body = get_body e in
-	let obro = [
 (* This will do a redirection if there is a #! in the URL *)
-	  XHTML.M.toelt (script ~contenttype:"text/javascript"
-			   (cdata_script
-			      ("function redir () {
+             XHTML.M.script ~contenttype:"text/javascript"
+               (cdata_script
+                  ("function redir () {
   var str_url = window.location.toString() ;
   try{
   //  var match = str_url.match(\"/(^[^?#]+)(\\?.*)?(#!(https?://)?(.*$))?/\");
@@ -127,50 +113,33 @@ module Eliom_appl_reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
     }
   } catch(e) {} ;
 };
-redir ();")));
-	  XHTML.M.toelt (script ~a:[a_src (uri_of_string "/vm.js")] ~contenttype:"text/javascript" (pcdata "")) ;
-	  XHTML.M.toelt (script ~a:[a_src (uri_of_string "/eliom_obrowser.js")] ~contenttype:"text/javascript" (pcdata "")) ;
-	  XHTML.M.toelt (script ~contenttype:"text/javascript"
-			   (cdata_script
-			      ("window.onload = function () { \n"
-			       ^ "  eliom_id_tree = input_val (" ^ (Eliom_obrowser.jsmarshal (XML.make_ref_tree body)) ^ "); \n"
-			       ^ "  main_vm = exec_caml (\"" ^ Client_params.client_name ^ ".uue\") ; \n"
-			       ^ " }")))
-	]
-	in
-	let rec aux e =
-	  match e with
-            | { XML.elt = XML.Element ("head",al,el ) } as e :: l ->
-		{ e with XML.elt = XML.Element ("head",al,obro@el) }::l
-            | { XML.elt = XML.BlockElement ("head",al,el) } as e::l ->
-		{ e with XML.elt = XML.BlockElement ("head",al,obro@el) }::l
-            | { XML.elt = XML.SemiBlockElement ("head",al,el) } as e::l ->
-		{ e with XML.elt = XML.SemiBlockElement ("head",al,obro@el) }::l
-            | { XML.elt = XML.Node ("head",al,el) } as e::l ->
-		{ e with XML.elt = XML.Node ("head",al,obro@el) }::l
-            | e::l -> e::(aux l)
-            | [] -> []
-	in aux e
-      in
-	XHTML.M.tot
-        (match XHTML.M.toelt a with
-           | { XML.elt = XML.Element ("html",al,el) } as e ->
-	       { e with XML.elt = XML.Element ("html",al,aux el) }
-           | { XML.elt = XML.BlockElement ("html",al,el) } as e ->
-	       { e with XML.elt = XML.BlockElement ("html",al,aux el) }
-           | { XML.elt = XML.SemiBlockElement ("html",al,el) } as e ->
-               { e with XML.elt = XML.SemiBlockElement ("html",al,aux el) }
-           | { XML.elt = XML.Node ("html",al,el) } as e ->
-	       { e with XML.elt = XML.Node ("html",al,aux el) }
-           | e -> e)
+redir ();"))::
 
-    let get_etag c = get_etag (add_css (add_obrowser c))
+             XHTML.M.script ~a:[a_src (uri_of_string "/vm.js")] ~contenttype:"text/javascript" (pcdata "")::
+             XHTML.M.script ~a:[a_src (uri_of_string "/eliom_obrowser.js")] ~contenttype:"text/javascript" (pcdata "")::
+             XHTML.M.script ~contenttype:"text/javascript"
+               (cdata_script
+                  ("window.onload = function () { \n"
+                   ^ "  eliom_id_tree = input_val (" ^ (Eliom_obrowser.jsmarshal (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
+                   ^ "  main_vm = exec_caml (\"" ^ Appl_params.client_name ^ ".uue\") ; \n"
+                   ^ " }"))::
+               options.ap_headers
 
-    let result_of_content ?options c = result_of_content ?options (add_css (add_obrowser c))
+           ))
+        body
+
+
+    let get_etag ?(options = Appl_params.default_params) c = 
+      get_etag ~options:options.ap_doctype (create_page ~options c)
+
+    let result_of_content ?(options = Appl_params.default_params) c =
+      let page = create_page ~options c in
+      let options = options.ap_doctype in
+      result_of_content ~options page
 
   end
 
-  let send ?(options = `XHTML_01_01) ?(cookies=[]) ?charset ?code
+  let send ?(options = Appl_params.default_params) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     Xhtml_content.result_of_content ~options content >>= fun r ->
     Lwt.return
@@ -196,17 +165,15 @@ redir ();")));
 end
 
 module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-			 with type t = [ `Html ] XHTML.M.elt
-                   and type options = [ `HTML_v03_02 | `HTML_v04_01
-                   | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+                         with type t = [ `Html ] XHTML.M.elt
+                   and type options = XHTML.M.doctypes
                 ) = struct
   open XHTML.M
   open Xhtmltypes
 
   type page = xhtml elt
 
-  type options = [ `HTML_v03_02 | `HTML_v04_01
-  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+  type options = XHTML.M.doctypes
 
   module Xhtml_content = struct
 
@@ -220,29 +187,29 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
       in
       let rec aux = function
         | { XML.elt = XML.Element ("head",al,el ) } as e::l ->
-	    { e with XML.elt = XML.Element ("head",al,css::el) }::l
+            { e with XML.elt = XML.Element ("head",al,css::el) }::l
         | { XML.elt = XML.BlockElement ("head",al,el) } as e::l ->
             { e with XML.elt = XML.BlockElement ("head",al,css::el) }::l
         | { XML.elt = XML.SemiBlockElement ("head",al,el) } as e::l ->
             { e with XML.elt = XML.SemiBlockElement ("head",al,css::el) }::l
         | { XML.elt = XML.Node ("head",al,el) } as e::l ->
-	    { e with XML.elt = XML.Node ("head",al,css::el) }::l
+            { e with XML.elt = XML.Node ("head",al,css::el) }::l
         | e::l -> e::(aux l)
         | [] -> []
       in
       XHTML.M.tot
         (match XHTML.M.toelt a with
            | { XML.elt = XML.Element ("html",al,el) } as e ->
-	       { e with XML.elt = XML.Element ("html",al,aux el) }
+               { e with XML.elt = XML.Element ("html",al,aux el) }
            | { XML.elt = XML.BlockElement ("html",al,el) } as e ->
-	       { e with XML.elt = XML.BlockElement ("html",al,aux el) }
+               { e with XML.elt = XML.BlockElement ("html",al,aux el) }
            | { XML.elt = XML.SemiBlockElement ("html",al,el) } as e ->
                { e with XML.elt = XML.SemiBlockElement ("html",al,aux el) }
            | { XML.elt = XML.Node ("html",al,el) } as e ->
-	       { e with XML.elt = XML.Node ("html",al,aux el) }
+               { e with XML.elt = XML.Node ("html",al,aux el) }
            | e -> e)
 
-    let get_etag c = get_etag (add_css c)
+    let get_etag ?options c = get_etag (add_css c)
 
     let result_of_content ?options c = result_of_content ?options (add_css c)
 
@@ -1833,9 +1800,11 @@ module Xhtmlcompact = struct
   include Xhtmlcompactreg
 end
 
-module Eliom_appl (Client_params : sig val client_name : string end) = struct
+module Eliom_appl (Appl_params : APPL_PARAMS) = struct
   include Xhtmlforms
-  include MakeRegister(Eliom_appl_reg_(Ocsigen_senders.Xhtmlcompact_content)(Client_params))
+  include MakeRegister(Eliom_appl_reg_
+                         (Ocsigen_senders.Xhtmlcompact_content)
+                         (Appl_params))
 end
 
 (****************************************************************************)
@@ -1879,7 +1848,7 @@ module SubXhtml = functor(T : sig type content end) ->
 
         let get_etag_aux x = None
 
-        let get_etag c = None
+        let get_etag ?options c = None
 
         let result_of_content c =
           let x = Xhtmlpretty_streams.xhtml_list_stream c in

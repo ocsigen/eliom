@@ -39,7 +39,7 @@ module Old_Xhtml_content =
     let get_etag_aux x =
       Some (Digest.to_hex (Digest.string x))
 
-    let get_etag c =
+    let get_etag ?options c =
       let x = Xhtmlpretty.xhtml_print c in
       get_etag_aux x
 
@@ -79,7 +79,7 @@ module Xhtml_content_(Xhtmlprinter : sig
 
     let get_etag_aux x = None
 
-    let get_etag c = None
+    let get_etag ?options c = None
 
     let result_of_content ?(options = `XHTML_01_01) c =
       let x = Xhtmlprinter.xhtml_stream ~version:options c in
@@ -105,7 +105,7 @@ module Text_content =
 
     type options = unit
 
-    let get_etag (x, _) =
+    let get_etag ?options (x, _) =
       Some (Digest.to_hex (Digest.string x))
 
     let result_of_content ?(options = ()) ((c, ct) as content) =
@@ -135,7 +135,7 @@ module Stream_content =
 
     type options = unit
 
-    let get_etag c = None
+    let get_etag ?options c = None
 
     let result_of_content ?(options = ()) c =
       let default_result = default_result () in
@@ -156,7 +156,7 @@ module Streamlist_content =
 
     type options = unit
 
-    let get_etag c = None
+    let get_etag ?options c = None
 
     let result_of_content ?(options = ()) (c, ct) =
       let finalizer = ref (fun () -> Lwt.return ()) in
@@ -214,7 +214,7 @@ module Empty_content =
 
     type options = unit
 
-    let get_etag c = None
+    let get_etag ?options c = None
 
     let result_of_content ?(options = ()) c = Lwt.return (empty_result ())
 
@@ -255,7 +255,7 @@ module File_content =
       Some (Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
               st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime)
 
-    let get_etag (f, _, _) =
+    let get_etag ?options (f, _, _) =
       let st = Unix.LargeFile.stat f in
       get_etag_aux st
 
@@ -314,7 +314,7 @@ module Directory_content =
       Some (Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
               st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime)
 
-    let get_etag (f, _) =
+    let get_etag ?options (f, _) =
       let st = Unix.LargeFile.stat f in
       get_etag_aux st
 
@@ -478,7 +478,7 @@ module Error_content =
 
     type options = unit
 
-    let get_etag c = None
+    let get_etag ?options c = None
 
     let error_page s msg c =
       XHTML.M.html

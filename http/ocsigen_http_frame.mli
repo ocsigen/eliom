@@ -99,7 +99,7 @@ module type HTTP_CONTENT =
     type t
     type options
     val result_of_content : ?options:options -> t -> result Lwt.t
-    val get_etag : t -> etag option
+    val get_etag : ?options:options -> t -> etag option
   end
 module Http_header :
   sig

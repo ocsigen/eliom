@@ -188,7 +188,7 @@ module type HTTP_CONTENT =
     val result_of_content : ?options:options -> t -> result Lwt.t
 
     (** compute etag for content *)
-    val get_etag : t -> etag option
+    val get_etag : ?options:options -> t -> etag option
   end
 
 

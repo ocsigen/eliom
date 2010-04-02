@@ -792,9 +792,26 @@ module Xhtmlcompact : sig
 
 end
 
-module Eliom_appl (Client_params : sig val client_name : string end) : sig
-  include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt
-                                  and type options = XHTML.M.doctypes
+type appl_service_params =
+    {
+      ap_doctype: XHTML.M.doctypes;
+      ap_title: string;
+      ap_container : 
+        Xhtmltypes.body_content elt list -> Xhtmltypes.body_content elt list;
+      ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
+    }
+
+val default_appl_params : appl_service_params
+
+module type APPL_PARAMS = sig
+     val client_name : string
+     val default_params : appl_service_params
+end
+
+module Eliom_appl (Appl_params : APPL_PARAMS) : sig
+  include Eliom_mkreg.ELIOMREGSIG 
+    with type page = Xhtmltypes.body_content elt list
+    and type options = appl_service_params
 
   include XHTMLFORMSSIG
 end
