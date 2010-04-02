@@ -377,23 +377,6 @@ let rec add_pref_params pref = function
 (*****************************************************************************)
 (* Non localized parameters *)
 
-let make_non_localized_parameters
-    ~prefix
-    ~name
-    ?(persistent = false)
-    (p : ('a, [ `WithoutSuffix ], 'b) params_type) 
-    : ('a, [ `WithoutSuffix ], 'b) non_localized_params =
-  let pr = if persistent then "p_" else "n_" in
-  let name = pr^prefix^"-"^name in
-  if String.contains name '.'
-  then failwith "Non localized parameters names cannot contain dots."
-  else
-    (name,
-     persistent,
-     (Polytables.make_key () (* GET *), 
-      Polytables.make_key () (* POST *)),
-     add_pref_params (Eliom_common.nl_param_prefix^name^".") p)
-
 
 let get_non_localized_parameters params getorpost ~sp
     (name, _, keys, paramtype) =

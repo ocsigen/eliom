@@ -457,3 +457,6 @@ val remove_from_nlp :
 
 val table_of_nl_params_set : nl_params_set -> 
   (string * string) list Ocsigen_lib.String_Table.t
+
+val eliom_appl_flag :
+  (bool, [ `WithoutSuffix ], [ `One of bool ] param_name) non_localized_params

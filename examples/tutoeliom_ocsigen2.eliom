@@ -62,17 +62,7 @@ module.server Eliom_appl =
            Eliom_predefmod.ap_title = "Eliom application example"
         }
     end)
-
-(*wiki*
-
-Now I can define my first service belonging to that application.
-All services belonging to the application will be entry points to the 
-application. It means that if you call such a service, the client side
-code will be sent to the browser, and the client side execution will
-start, //and will not stop if you go to another service belonging to
-the same application!//
-
-  *wiki*)
+(*wiki* Now I can define my first service belonging to that application: *wiki*)
 
 let.server eliomobrowser1 =
   Eliom_appl.register_new_service
@@ -86,6 +76,12 @@ let.server eliomobrowser1 =
          
         ])
 (*wiki*
+All services belonging to the application will be entry points to the 
+application. It means that if you call such a service, the client side
+code will be sent to the browser, and the client side execution will
+start, //and will not stop if you go to another service belonging to
+the same application!//
+
 ====Compiling
 //soon (have a look at Ocsigen source for now -- //examples// directory)// 
 
@@ -98,7 +94,8 @@ p ~onclick:{{Eliom_obrowser.post_request ~sp ~service:myblockservice ()
         [pcdata "Click here to add content from the server."];
 >%
 
-For now, you can do:
+For now, the syntax extension has not been implemented, thus the syntax
+is somewhat more complicated. Here are some examples of what you can do:
 *wiki*)
 let.server eliomobrowser2 = new_service ~path:["eliomobrowser2"] ~get_params:unit ()
 
@@ -120,7 +117,7 @@ let.server _ =
       Lwt.return
         [
 (*wiki*
-  The following examples shows how to go to another service,
+  The following example shows how to go to another service,
   exactly like pressing a link (here a service that do not belong to
   the application):
 *wiki*)
@@ -171,8 +168,8 @@ let.server _ =
               a_onclick 
                 ((fun.client
                     (sp : Eliom_client_types.server_params)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
-                      Eliom_client.change_url ~sp ~service ()
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) ->
+                      Eliom_client.change_url ~sp ~service () ()
                  ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
             ]
             [pcdata "Click here to change the URL."];
@@ -188,7 +185,7 @@ let.server _ =
                     (sp : Eliom_client_types.server_params)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
                       Eliom_client.change_page ~sp ~service () ()
-                 ) (Eliom_obrowser.client_sp sp) myblockservice)
+                 ) (Eliom_obrowser.client_sp sp) eliomobrowser1)
             ]
             [pcdata "Click here to change the page without stopping the program."];
 

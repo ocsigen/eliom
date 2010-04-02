@@ -414,6 +414,38 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
 
 let string_of_param_name = id
 
+
+
+(* Add a prefix to parameters *)
+let rec add_pref_params pref = function
+  | TNLParams (a, b, c, t) -> TNLParams (a, b, c, add_pref_params pref t)
+  | TProd (t1, t2) -> TProd ((add_pref_params pref t1),
+                             (add_pref_params pref t2))
+  | TOption t -> TOption (add_pref_params pref t)
+  | TBool name -> TBool (pref^name)
+  | TList (list_name, t) -> TList (pref^list_name, t)
+  | TSet t -> TSet (add_pref_params pref t)
+  | TSum (t1, t2) -> TSum ((add_pref_params pref t1),
+                           (add_pref_params pref t2))
+  | TString name -> TString (pref^name)
+  | TInt name -> TInt (pref^name)
+  | TInt32 name -> TInt32 (pref^name)
+  | TInt64 name -> TInt64 (pref^name)
+  | TFloat name -> TFloat (pref^name)
+  | TFile name -> TFile (pref^name)
+  | TUserType (name, of_string, string_of) ->
+      TUserType (pref^name, of_string, string_of)
+  | TCoord name -> TCoord (pref^name)
+  | TCoordv (t, name) -> TCoordv ((add_pref_params pref t), pref^name)
+  | TUnit -> TUnit
+  | TAny -> TAny
+  | TConst v -> TConst v
+  | TESuffix n -> TESuffix n
+  | TESuffixs n -> TESuffixs n
+  | TESuffixu a -> TESuffixu a
+  | TSuffix s -> TSuffix s
+
+
 (*****************************************************************************)
 (* Non localized parameters *)
 
@@ -443,6 +475,34 @@ let add_nl_parameter s t v =
 let table_of_nl_params_set = Ocsigen_lib.id
 
 let get_nl_params_names t = snd (make_params_names (TNLParams t))
+
+let make_non_localized_parameters
+    ~prefix
+    ~name
+    ?(persistent = false)
+    (p : ('a, [ `WithoutSuffix ], 'b) params_type) 
+    : ('a, [ `WithoutSuffix ], 'b) non_localized_params =
+  let pr = if persistent then "p_" else "n_" in
+  let name = pr^prefix^"-"^name in
+  if String.contains name '.'
+  then failwith "Non localized parameters names cannot contain dots."
+  else
+    (name,
+     persistent,
+     (Polytables.make_key () (* GET *), 
+      Polytables.make_key () (* POST *)),
+     add_pref_params (Eliom_common.nl_param_prefix^name^".") p)
+
+
+(* One predefined nl param for Eliom applications.
+   If present, the Eliom_appl module will send only the body content
+   and not headers.
+*)
+let eliom_appl_flag = 
+  make_non_localized_parameters
+    ~prefix:"Eliom"
+    ~name:"appl_request"
+    (bool "contentonly")
 
 
 (*****************************************************************************)

@@ -46,6 +46,18 @@ let code_of_code_option = function
   | None -> 200
   | Some c -> c
 
+let result_of_content_subxhtml get_etag c =
+  let x = Xhtmlpretty_streams.xhtml_list_stream c in
+  let default_result = default_result () in
+  Lwt.return
+    {default_result with
+       res_content_length = None;
+       res_content_type = Some "text/html";
+       res_etag = get_etag c;
+       res_headers= Http_headers.dyn_headers;
+       res_stream = (x, None)
+    }
+
 type appl_service_params =
     {
       ap_doctype: XHTML.M.doctypes;
@@ -141,7 +153,15 @@ redir ();"))::
 
   let send ?(options = Appl_params.default_params) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
-    Xhtml_content.result_of_content ~options content >>= fun r ->
+    let content_only = 
+      (Eliom_parameters.get_non_localized_get_parameters
+         sp Eliom_parameters.eliom_appl_flag = Some true)
+    in
+    (if content_only
+(*VVV do not send container! *)
+     then result_of_content_subxhtml 
+       Xhtml_content.get_etag (options.ap_container content)
+     else Xhtml_content.result_of_content ~options content) >>= fun r ->
     Lwt.return
       {r with
          res_cookies=
@@ -1850,17 +1870,7 @@ module SubXhtml = functor(T : sig type content end) ->
 
         let get_etag ?options c = None
 
-        let result_of_content c =
-          let x = Xhtmlpretty_streams.xhtml_list_stream c in
-          let default_result = default_result () in
-          Lwt.return
-            {default_result with
-             res_content_length = None;
-             res_content_type = Some "text/html";
-             res_etag = get_etag c;
-             res_headers= Http_headers.dyn_headers;
-             res_stream = (x, None)
-           }
+        let result_of_content c = result_of_content_subxhtml get_etag c
 
       end
 

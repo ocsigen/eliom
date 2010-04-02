@@ -22,8 +22,6 @@
 
 (* Some types are different on client side: *)
 
-
-
 type sitedata =
   {site_dir: Ocsigen_lib.url_path;
    site_dir_string: string;
@@ -40,3 +38,5 @@ type server_params =
                                        to which belong the service
                                        that answered
                                        (if it is a session service) *)}
+
+

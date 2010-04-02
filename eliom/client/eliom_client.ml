@@ -119,12 +119,18 @@ let change_url
 let change_page
     ?absolute ?absolute_path ?https
     ~sp ~service
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+    ?hostname ?port ?fragment ?keep_nl_params
+    ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
     g p =
   (match create_request_
      ?absolute ?absolute_path ?https
      ~sp ~service
-     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+     ?hostname ?port ?fragment ?keep_nl_params
+     ~nl_params:(Eliom_parameters.add_nl_parameter
+                   nl_params
+                   Eliom_parameters.eliom_appl_flag
+                   true)
+     ?keep_get_na_params
      g p
    with
      | Ocsigen_lib.Left uri -> 
@@ -136,9 +142,18 @@ let change_page
   if code <> 200
   then Lwt.fail (Failed_service code)
   else begin
+(*VVV change only the content of the container, not the full body! *)
     Ocsigen_lib.body >>> JSOO.set "innerHTML" (JSOO.string s);
-    JSOO.eval "window.location" >>> 
-    JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)));
+(*VVV The URL is created twice ... 
+  Once with eliom_appl_flag (for the request), 
+  and once without it (we do not want it to appear in the URL).
+  How to avoid this?
+*)
+    change_url
+      ?absolute ?absolute_path ?https
+      ~sp ~service
+      ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+      g p;
 (*VVV change the URL only if it is different? *)
     Lwt.return ()
   end
