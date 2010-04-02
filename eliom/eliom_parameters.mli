@@ -350,6 +350,17 @@ val suffix_const :
     but anywhere you want in the path, e.g. [/param1/const/param2]).
 *)
 
+type 'a caml = string
+(** marshaled OCaml values of type 'a *)
+
+val caml :
+    string ->
+      ('a, [ `WithoutSuffix ], [ `One of 'a caml ] param_name) params_type
+(** [caml s] tells that the service is expecting some caml (client side)
+    program to send some value of type 'a, marshaled.
+    As usual [s] is the name of the parameter. *)
+
+
 (** {2 Non localized parameters} *)
 type ('a, +'tipo, +'names) non_localized_params
 

@@ -67,13 +67,13 @@ type ('a, +'tipo, +'names) params_type =
   | TAny (* 'a = (string * string) list *)
   | TConst of string (* 'a = unit; 'names = unit *)
   | TNLParams of ('a, 'tipo, 'names) non_localized_params
+  | TMarshal of string (* 'a = '_b caml *)
 
 and ('a, 'tipo, +'names) non_localized_params = 
     string *
       bool (* persistent *) *
       ('a option Polytables.key * 'a option Polytables.key) *
       ('a, 'tipo, 'names) params_type
-
 
 
 (* As GADT are not implemented in OCaml for now, we define our own
@@ -217,6 +217,14 @@ let suffix_prod ?(redirect_if_not_suffix = true)
                                 Obj.magic t)))
 
 
+type 'a caml = string (* marshaled values of type 'a *)
+
+let caml (n : string)
+    : ('a, [`WithoutSuffix], [ `One of 'a caml ] param_name) params_type =
+  TMarshal n
+
+
+
 (******************************************************************)
 let make_list_suffix i = "["^(string_of_int i)^"]"
 
@@ -269,6 +277,7 @@ let construct_params_list_raw
     | TESuffixs _ -> [Obj.magic params]
     | TAny | TESuffix _ -> (match Obj.magic params with [] -> [""] | p -> p)
     | TESuffixu (_, of_string, string_of) -> [string_of (Obj.magic params)]
+    | TMarshal _ -> [ Marshal.to_string params [] ]
     | _ -> raise (Ocsigen_lib.Ocsigen_Internal_Error
                     "Bad parameter type in suffix")
   in
@@ -339,6 +348,8 @@ let construct_params_list_raw
     | TESuffixu _ -> raise (Ocsigen_lib.Ocsigen_Internal_Error
                               "Bad use of suffix")
     | TSuffix (_, s) -> Some (make_suffix s (Obj.magic params)), nlp, l
+    | TMarshal name -> psuff, nlp, ((pref^name^suff), 
+                                    (Marshal.to_string params []))::l
   in
   aux typ None nlp params "" "" []
 
@@ -379,10 +390,13 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
     | TFile name
     | TUserType (name, _, _)
     | TCoord name
-    | TCoordv (_, name) -> issuffix, Obj.magic (prefix^name^suffix)
+    | TCoordv (_, name)
+    | TMarshal name
+      -> issuffix, Obj.magic (prefix^name^suffix)
     | TUnit
     | TAny
-    | TConst _ -> issuffix, Obj.magic ()
+    | TConst _ 
+      -> issuffix, Obj.magic ()
     | TSet t -> Obj.magic (aux issuffix prefix suffix t)
     | TESuffix n
     | TESuffixs n
@@ -444,6 +458,7 @@ let rec add_pref_params pref = function
   | TESuffixs n -> TESuffixs n
   | TESuffixu a -> TESuffixu a
   | TSuffix s -> TSuffix s
+  | TMarshal name -> TMarshal (pref^name)
 
 
 (*****************************************************************************)

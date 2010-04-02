@@ -204,10 +204,40 @@ let.server _ =
           
         ])
 (*wiki*
-====Implicit registration of services to implement distant function calls
+====Sending OCaml values using as service parameters
+It is now possible to send OCaml values to services.
+To do that, use the {{{Eliom_parameters.caml}}} function:
+*wiki*)
+let.server eliomobrowser3' =
+  Eliom_appl.register_new_post_coservice'
+    ~post_params:(caml "isb")
+    (fun sp () (i, s, l) ->
+      Lwt.return
+        [p (pcdata (Printf.sprintf "i = %d, s = %s" i s)::
+              List.map (fun a -> pcdata a) l
+           )])
+
+let.server eliomobrowser3 =
+  Eliom_appl.register_new_service
+    ~path:["eliomobrowser3"]
+    ~get_params:unit
+    (fun sp () () ->
+      Lwt.return
+        [p ~a:[a_onclick 
+                 ((fun.client
+                    (sp : Eliom_client_types.server_params)
+                    (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                     Eliom_client.change_page ~sp ~service
+                       () (22, "oo", ["a";"b";"c"]))
+                    (Eliom_obrowser.client_sp sp) eliomobrowser3')]
+           [pcdata "Click to send Ocaml data"]
+        ])
+(*wiki*
+====Sending OCaml values using services
+It is possible to do services that send any caml value. For example:
 *wiki*)
 (*wiki*
-====
+====Implicit registration of services to implement distant function calls
 *wiki*)
 (*wiki*
 *wiki*)
@@ -475,6 +505,8 @@ let.server _ = Eliom_predefmod.Xhtmlcompact.register main
               br ();
 
               a eliomobrowser2 sp [pcdata "Using Eliom services in client side code"] ();
+            br ();
+              a eliomobrowser3 sp [pcdata "Caml values in service parameters"] ();
             br ();
           ]
           ]

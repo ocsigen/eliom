@@ -175,6 +175,7 @@ let reconstruct_params
                  Obj.magic (a, {abscissa = r; ordinate=rr}), ll)
       | TNLParams _, _ -> 
           failwith "It is not possible to have non localized parameters in suffix"
+      | TMarshal _, v::l -> Marshal.from_string v 0, l
       | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   let aux2 typ params =
@@ -319,16 +320,19 @@ let reconstruct_params
             (try Res_ ((Obj.magic (of_string v)), l, files)
              with e -> Errors_ ([(pref^n^suff), e], l, files))
         | TSuffix (_, s) ->
-            match urlsuffix with
-              | None ->
-                  if nosuffixversion
-                    (* the special page name "nosuffix" is present *)
-                  then aux s params files pref suff
-                  else raise Eliom_common.Eliom_Wrong_parameter
-              | Some urlsuffix ->
-                  match parse_suffix s urlsuffix with
-                    | p, [] -> Res_ (p, params, files)
-                    | _ -> raise Eliom_common.Eliom_Wrong_parameter
+            (match urlsuffix with
+               | None ->
+                   if nosuffixversion
+                     (* the special page name "nosuffix" is present *)
+                   then aux s params files pref suff
+                   else raise Eliom_common.Eliom_Wrong_parameter
+               | Some urlsuffix ->
+                   (match parse_suffix s urlsuffix with
+                      | p, [] -> Res_ (p, params, files)
+                      | _ -> raise Eliom_common.Eliom_Wrong_parameter))
+        | TMarshal name ->
+            let v,l = list_assoc_remove (pref^name^suff) params in
+            Res_ ((Marshal.from_string v 0),l,files)
     in
     match Obj.magic (aux typ params files "" "") with
       | Res_ (v, l, files) ->
@@ -343,35 +347,6 @@ let reconstruct_params
   try Obj.magic (aux2 typ params) with
     | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
-
-(* Add a prefix to parameters *)
-let rec add_pref_params pref = function
-  | TNLParams (a, b, c, t) -> TNLParams (a, b, c, add_pref_params pref t)
-  | TProd (t1, t2) -> TProd ((add_pref_params pref t1),
-                             (add_pref_params pref t2))
-  | TOption t -> TOption (add_pref_params pref t)
-  | TBool name -> TBool (pref^name)
-  | TList (list_name, t) -> TList (pref^list_name, t)
-  | TSet t -> TSet (add_pref_params pref t)
-  | TSum (t1, t2) -> TSum ((add_pref_params pref t1),
-                           (add_pref_params pref t2))
-  | TString name -> TString (pref^name)
-  | TInt name -> TInt (pref^name)
-  | TInt32 name -> TInt32 (pref^name)
-  | TInt64 name -> TInt64 (pref^name)
-  | TFloat name -> TFloat (pref^name)
-  | TFile name -> TFile (pref^name)
-  | TUserType (name, of_string, string_of) ->
-      TUserType (pref^name, of_string, string_of)
-  | TCoord name -> TCoord (pref^name)
-  | TCoordv (t, name) -> TCoordv ((add_pref_params pref t), pref^name)
-  | TUnit -> TUnit
-  | TAny -> TAny
-  | TConst v -> TConst v
-  | TESuffix n -> TESuffix n
-  | TESuffixs n -> TESuffixs n
-  | TESuffixu a -> TESuffixu a
-  | TSuffix s -> TSuffix s
 
 
 (*****************************************************************************)
