@@ -68,6 +68,8 @@ let get_get_params_string ~sp = sp.sp_request.request_info.ri_get_params_string
 let get_post_params ~sp = Lazy.force sp.sp_request.request_info.ri_post_params
 let get_all_post_params ~sp = sp.sp_si.Eliom_common.si_all_post_params
 *)
+let loc_ = JSOO.eval "window.location"
+
 let full_path_ =
   Ocsigen_lib.urldecode_string
     ((JSOO.eval "window.location") >>> JSOO.get "pathname" >>> JSOO.as_string)
@@ -86,10 +88,17 @@ let get_header_hostname ~sp = sp.sp_request.request_info.ri_host
 let get_default_hostname ~sp = sp.sp_request.request_config.default_hostname
 *)
 
-let get_hostname ~sp = "toto" (*VVV !!!!!!!!! *)
+let host_ =
+  Ocsigen_lib.urldecode_string
+    (loc_ >>> JSOO.get "hostname" >>> JSOO.as_string)
+
+let port_ =
+  (loc_ >>> JSOO.get "port" >>> JSOO.as_int)
+
+let get_hostname ~sp = host_
 let get_default_port ~sp = 80 (*VVV !!!!!!!!! *)
 let get_default_sslport ~sp = 443 (*VVV !!!!!!!!! *)
-let get_server_port ~sp = 8888888 (*VVV !!!!!!!!! *)
+let get_server_port ~sp = port_
 
 let get_ssl ~sp = false (*VVV !!!!!!!!! *)
 let get_other_get_params ~sp = 
