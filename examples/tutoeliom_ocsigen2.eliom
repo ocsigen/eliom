@@ -126,7 +126,7 @@ let.server _ =
               a_onclick 
                 ((fun.client
                     (sp : Eliom_client_types.server_params)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
                       Eliom_client.exit_to ~sp ~service () ()
                  ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
             ]
@@ -141,7 +141,7 @@ let.server _ =
               a_onclick 
                 ((fun.client
                     (sp : Eliom_client_types.server_params)
-                    (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                    (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
                       let body = JSOO.eval "document.body" in
                       (*Js.get_element_by_id "bodyid"*)
                       Eliom_client.call_service
@@ -168,7 +168,7 @@ let.server _ =
               a_onclick 
                 ((fun.client
                     (sp : Eliom_client_types.server_params)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) ->
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, 'ret) Eliom_services.service) ->
                       Eliom_client.change_url ~sp ~service () ()
                  ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
             ]
@@ -183,7 +183,7 @@ let.server _ =
               a_onclick 
                 ((fun.client
                     (sp : Eliom_client_types.server_params)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
                       Eliom_client.change_page ~sp ~service () ()
                  ) (Eliom_obrowser.client_sp sp) eliomobrowser1)
             ]
@@ -204,7 +204,7 @@ let.server _ =
           
         ])
 (*wiki*
-====Sending OCaml values using as service parameters
+====Using OCaml values as service parameters
 It is now possible to send OCaml values to services.
 To do that, use the {{{Eliom_parameters.caml}}} function:
 *wiki*)
@@ -226,7 +226,7 @@ let.server eliomobrowser3 =
         [p ~a:[a_onclick 
                  ((fun.client
                     (sp : Eliom_client_types.server_params)
-                    (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g) Eliom_services.service) -> 
+                    (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
                      Eliom_client.change_page ~sp ~service
                        () (22, "oo", ["a";"b";"c"]))
                     (Eliom_obrowser.client_sp sp) eliomobrowser3')]
@@ -236,6 +236,35 @@ let.server eliomobrowser3 =
 ====Sending OCaml values using services
 It is possible to do services that send any caml value. For example:
 *wiki*)
+let.server eliomobrowser4' =
+  Eliom_services.new_post_coservice' ~post_params:unit ()
+let.server _ = 
+  Eliom_predefmod.Caml.register
+    eliomobrowser4'
+    (fun sp () () -> Lwt.return [1; 2; 3])
+
+let.server eliomobrowser4 =
+  Eliom_appl.register_new_service
+    ~path:["eliomobrowser4"]
+    ~get_params:unit
+    (fun sp () () ->
+      Lwt.return
+        [p ~a:[a_onclick 
+                 ((fun.client
+                    (sp : Eliom_client_types.server_params)
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, int list Eliom_parameters.caml) Eliom_services.service) -> 
+                      let body = JSOO.eval "document.body" in
+                      Eliom_client.call_caml_service ~sp ~service () ()
+                      >>= fun l ->
+                      List.iter 
+                        (fun i -> Js.Node.append body 
+                           (Js.Node.text (string_of_int i)))
+                        l;
+                      Lwt.return ()
+                  )
+                    (Eliom_obrowser.client_sp sp) eliomobrowser4')]
+           [pcdata "Click to receive Ocaml data"]
+        ])
 (*wiki*
 ====Implicit registration of services to implement distant function calls
 *wiki*)
@@ -507,6 +536,8 @@ let.server _ = Eliom_predefmod.Xhtmlcompact.register main
               a eliomobrowser2 sp [pcdata "Using Eliom services in client side code"] ();
             br ();
               a eliomobrowser3 sp [pcdata "Caml values in service parameters"] ();
+            br ();
+              a eliomobrowser4 sp [pcdata "A service sending a Caml value"] ();
             br ();
           ]
           ]

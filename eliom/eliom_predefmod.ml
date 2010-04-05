@@ -70,6 +70,8 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   type options = XHTML.M.doctypes
 
+  type return = Eliom_services.http
+
   module Xhtml_content = struct
 
     include Xhtml_content
@@ -334,7 +336,7 @@ module type XHTMLFORMSSIG = sig
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
@@ -368,7 +370,7 @@ module type XHTMLFORMSSIG = sig
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -386,7 +388,7 @@ module type XHTMLFORMSSIG = sig
       ?https:bool ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -407,7 +409,7 @@ module type XHTMLFORMSSIG = sig
       ?https:bool ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -437,7 +439,7 @@ module type XHTMLFORMSSIG = sig
       ?a:a_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -499,7 +501,7 @@ module type XHTMLFORMSSIG = sig
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -520,7 +522,7 @@ module type XHTMLFORMSSIG = sig
       ?a:form_attrib attrib list ->
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -539,7 +541,7 @@ module type XHTMLFORMSSIG = sig
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
@@ -566,7 +568,7 @@ module type XHTMLFORMSSIG = sig
       ?a:form_attrib attrib list ->
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
-               [< registrable ]) service ->
+               [< registrable ], 'return) service ->
       sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
@@ -1034,7 +1036,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
       ?a:a_attrib attrib list ->
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, 'pn,
-         [< registrable ]) service ->
+         [< registrable ], 'return) service ->
            sp:server_params -> 
             ?hostname:string ->
             ?port:int ->
@@ -1049,7 +1051,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
       ?a:a_attrib attrib list ->
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, 'pn,
-         [< registrable ]) service ->
+         [< registrable ], 'return) service ->
            sp:server_params ->
             ?hostname:string ->
             ?port:int ->
@@ -1077,7 +1079,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                    ?https:bool ->
                    service:('get, unit, [< get_service_kind ],
                             [< suff ], 'gn, unit,
-                            [< registrable ]) service ->
+                            [< registrable ], 'return) service ->
                    sp:server_params ->
                    ?hostname:string ->
                    ?port:int ->
@@ -1093,7 +1095,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                    ?a:form_attrib attrib list ->
                    service:('get, unit, [< get_service_kind ],
                             [<suff ], 'gn, 'pn,
-                            [< registrable ]) service ->
+                            [< registrable ], 'return) service ->
                    sp:server_params ->
                    ?hostname:string ->
                    ?port:int ->
@@ -1107,7 +1109,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                    ?a:form_attrib attrib list ->
                    service:('get, unit, [< get_service_kind ],
                             [<suff ], 'gn, 'pn,
-                            [< registrable ]) service ->
+                            [< registrable ], 'return) service ->
                    sp:server_params ->
                    ?hostname:string ->
                    ?port:int ->
@@ -1124,7 +1126,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                        ?a:form_attrib attrib list ->
                        service:('get, unit, [< get_service_kind ],
                                 [<suff ], 'gn, 'pn,
-                                [< registrable ]) service ->
+                                [< registrable ], 'return) service ->
                        sp:server_params ->
                        ?hostname:string ->
                        ?port:int ->
@@ -1138,7 +1140,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                        ?a:form_attrib attrib list ->
                        service:('get, unit, [< get_service_kind ],
                                 [<suff ], 'gn, 'pn,
-                                [< registrable ]) service ->
+                                [< registrable ], 'return) service ->
                        sp:server_params ->
                        ?hostname:string ->
                        ?port:int ->
@@ -1156,7 +1158,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                     ?a:form_attrib attrib list ->
                     service:('get, 'post, [< post_service_kind ],
                              [< suff ], 'gn, 'pn,
-                             [< registrable ]) service ->
+                             [< registrable ], 'return) service ->
                     sp:server_params ->
                     ?hostname:string ->
                     ?port:int ->
@@ -1171,7 +1173,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                     ?a:form_attrib attrib list ->
                     service:('get, 'post, [< post_service_kind ],
                              [< suff ], 'gn, 'pn,
-                             [< registrable ]) service ->
+                             [< registrable ], 'return) service ->
                     sp:server_params ->
                     ?hostname:string ->
                     ?port:int ->
@@ -1188,7 +1190,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                         ?a:form_attrib attrib list ->
                         service:('get, 'post, [< post_service_kind ],
                                  [< suff ], 'gn, 'pn,
-                                 [< registrable ]) service ->
+                                 [< registrable ], 'return) service ->
                         sp:server_params ->
                         ?hostname:string ->
                         ?port:int ->
@@ -1204,7 +1206,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                         ?a:form_attrib attrib list ->
                         service:('get, 'post, [< post_service_kind ],
                                  [< suff ], 'gn, 'pn,
-                                 [< registrable ]) service ->
+                                 [< registrable ], 'return) service ->
                         sp:server_params ->
                         ?hostname:string ->
                         ?port:int ->
@@ -1751,6 +1753,8 @@ module SubXhtml = functor(T : sig type content end) ->
 
       type options = unit
 
+      type return = Eliom_services.http
+
       let send ?options ?(cookies=[]) ?charset ?code 
           ?content_type ?headers ~sp content =
         Cont_content.result_of_content content >>= fun r ->
@@ -1785,6 +1789,8 @@ module SubXhtml = functor(T : sig type content end) ->
   end : sig
 
     include ELIOMREGSIG with type page = T.content XHTML.M.elt list
+                        and type options = unit
+                        and type return = Eliom_services.http
     include XHTMLFORMSSIG
 
   end)
@@ -1804,6 +1810,8 @@ module Textreg_ = struct
   type page = (string * string)
 
   type options = unit
+
+  type return = Eliom_services.http
 
   let send ?options ?(cookies=[]) ?charset ?code 
       ?content_type ?headers ~sp content =
@@ -1841,6 +1849,8 @@ module CssTextreg_ = struct
   type page = string
 
   type options = unit
+
+  type return = Eliom_services.http
 
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
@@ -1882,6 +1892,8 @@ module HtmlTextreg_ = struct
 
   type options = unit
 
+  type return = Eliom_services.http
+          
   let send ?options ?(cookies=[]) ?charset ?code 
       ?content_type ?headers ~sp content =
     Ocsigen_senders.Text_content.result_of_content (content, "text/html")
@@ -2092,6 +2104,8 @@ module Actionreg_ = struct
 
   type options = [ `Reload | `NoReload ]
 
+  type return = Eliom_services.http
+
   let send
       ?(options = `Reload) ?(cookies=[]) ?charset ?(code = 204)
       ?content_type ?headers ~sp () =
@@ -2277,6 +2291,8 @@ module Unitreg_ = struct
 
   type options = unit
 
+  type return = Eliom_services.http
+
   let send ?options ?(cookies=[]) ?charset ?(code = 204)
       ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
@@ -2321,6 +2337,8 @@ module String_redirreg_ = struct
 
   type options = [ `Temporary | `Permanent ]
 
+  type return = Eliom_services.http
+
   let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
@@ -2364,10 +2382,12 @@ module Redirreg_ = struct
   type page = 
       (unit, unit, Eliom_services.get_service_kind,
        [ `WithoutSuffix ], 
-       unit, unit, Eliom_services.registrable)
+       unit, unit, Eliom_services.registrable, Eliom_services.http)
         Eliom_services.service
 
   type options = [ `Temporary | `Permanent ]
+
+  type return = Eliom_services.http
 
   let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
@@ -2416,6 +2436,8 @@ module Anyreg_ = struct
 
   type options = unit
 
+  type return = Eliom_services.http
+
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp res =
     Lwt.return
@@ -2453,6 +2475,8 @@ module Filesreg_ = struct
   type page = string
 
   type options = unit
+
+  type return = Eliom_services.http
 
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp filename =
@@ -2505,6 +2529,7 @@ module Streamlistreg_ = struct
 
   type options = unit
 
+  type return = Eliom_services.http
 
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
@@ -2571,6 +2596,8 @@ module Eliom_appl_reg_
   type page = body_content elt list
 
   type options = appl_service_params
+
+  type return = Eliom_services.appl_service
 
   let create_page ~sp ~options content = 
     let body = XHTML.M.body (options.ap_container content) in
@@ -2671,3 +2698,61 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
+module Camlreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = string
+
+  type options = unit
+
+  type return = Eliom_services.http
+
+  let send ?options ?cookies ?charset ?code 
+      ?content_type ?headers ~sp content =
+    Text.send ?options ?cookies ?charset ?code 
+      ?content_type ?headers ~sp (content, "application/x-eliom")
+
+end
+
+module Caml = struct
+  module M = MakeRegister(Camlreg_)
+
+  type options = unit
+
+  let register
+    ?options
+    ?cookies
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    ?sp
+    ~(service : ('get, 'post,
+                 [< internal_service_kind ],
+                 [< suff ], 'gn, 'pn, [ `Registrable ], 
+                 'return Eliom_parameters.caml) service)
+    ?(error_handler : (Eliom_sessions.server_params ->
+                         (string * exn) list -> 'return Lwt.t) option)
+    (f : (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t)) =
+    M.register
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?sp
+      ~service:(Eliom_services.to_http_service_ service)
+      ?error_handler:(match error_handler with
+                        | None -> None
+                        | Some eh -> 
+                            Some (fun sp l -> 
+                                    eh sp l >>= fun r ->
+                                    Lwt.return (Marshal.to_string r [])))
+      (fun sp g p -> 
+         f sp g p >>= fun r -> 
+         Lwt.return (Marshal.to_string r []))
+
+
+end

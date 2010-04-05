@@ -70,6 +70,21 @@ let call_service
   then Lwt.return s
   else Lwt.fail (Failed_service code)
 
+
+let call_caml_service
+    ?absolute ?absolute_path ?https
+    ~sp ~service
+    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+    g p =
+  call_service
+    ?absolute ?absolute_path ?https
+    ~sp ~service
+    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+    g p
+  >>= fun s ->
+  Lwt.return (Marshal.from_string s 0)
+
+
 let exit_to
     ?absolute ?absolute_path ?https
     ~sp ~service

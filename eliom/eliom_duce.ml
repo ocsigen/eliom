@@ -101,6 +101,8 @@ module Xhtmlreg_ = struct
 
   type options = unit
 
+  type return = Eliom_services.http
+
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     Ocamlduce_content.result_of_content content >>= fun r ->
@@ -360,7 +362,8 @@ module type XhtmlFormsSig = Eliom_mkforms.ELIOMFORMSIG with
 
 module type XhtmlSig =
 sig
-  include Eliom_mkreg.ELIOMREGSIG with type options = unit
+  include Eliom_mkreg.ELIOMREGSIG with type options = unit and type return = Eliom_services.http
+
   include XhtmlFormsSig
 end
 
@@ -414,6 +417,8 @@ module SubXhtml =
       type page = T.content
 
       type options = unit
+
+      type return = Eliom_services.http
 
       let send ?options ?(cookies=[]) ?charset ?code
           ?content_type ?headers ~sp content =

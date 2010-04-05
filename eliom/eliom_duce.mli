@@ -73,7 +73,8 @@ module type XhtmlFormsSig = Eliom_mkforms.ELIOMFORMSIG with
 
 module type XhtmlSig =
 sig
-  include Eliom_mkreg.ELIOMREGSIG with type options = unit
+  include Eliom_mkreg.ELIOMREGSIG with type options = unit and type return = Eliom_services.http
+
   include XhtmlFormsSig
 end
 

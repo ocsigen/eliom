@@ -64,7 +64,7 @@ polytables.ml: ../../baselib/polytables.ml
 #	$(CAMLC) -a -o $@ $^
 
 depend: $(MLS)
-	$(OCAMLDEP) $(MLS) > .depend
+	$(OCAMLDEP) $(MLS) $(MLS:.ml=.mli) > .depend
 
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so

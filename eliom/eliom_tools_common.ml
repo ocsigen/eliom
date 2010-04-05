@@ -25,7 +25,7 @@ type ('a, 'b) one_page =
      'a,
      [ `WithoutSuffix ],
      unit, unit,
-     'b) service
+     'b, Eliom_services.http) service
 
 let menu_class = "eliomtools_menu"
 let last_class = "eliomtools_last"

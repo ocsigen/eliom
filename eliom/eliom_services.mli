@@ -105,6 +105,11 @@ type attached =
 type nonattached =
     [ `Nonattached of getpost na_s ]
 
+type http (** default return type for services *)
+
+type appl_service (** return type for service that are entry points for an
+                      application *)
+
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) service
 (** Type of services.
     - [ 'get] is the type of GET parameters
@@ -579,6 +584,9 @@ val change_get_num :
 
 
 val new_state : unit -> string
+
+val to_http_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> 
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, http) service
 
 (*****************************************************************************)
 

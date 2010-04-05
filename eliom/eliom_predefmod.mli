@@ -763,6 +763,7 @@ module Xhtml : sig
 
   include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt 
                                   and type options = XHTML.M.doctypes
+                                  and type return = Eliom_services.http
 
   include XHTMLFORMSSIG
 
@@ -771,6 +772,7 @@ end
 module Xhtmlforms : XHTMLFORMSSIG
 module Xhtmlreg : Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt 
                                   and type options = XHTML.M.doctypes
+                                  and type return = Eliom_services.http
 
 module Xhtmlreg_ : 
   functor(Xhtml_content : 
@@ -778,6 +780,7 @@ module Xhtmlreg_ :
                                             and type options = XHTML.M.doctypes
          ) -> Eliom_mkreg.REGCREATE with type page =  Xhtml_content.t
                                     and type options = XHTML.M.doctypes
+                                    and type return = Eliom_services.http
 
 
 
@@ -787,6 +790,7 @@ module Xhtmlcompact : sig
 
   include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt
                                   and type options = XHTML.M.doctypes
+                                  and type return = Eliom_services.http
 
   include XHTMLFORMSSIG
 
@@ -812,6 +816,7 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
   include Eliom_mkreg.ELIOMREGSIG 
     with type page = Xhtmltypes.body_content elt list
     and type options = appl_service_params
+    and type return = Eliom_services.appl_service
 
   include XHTMLFORMSSIG
 end
@@ -819,12 +824,15 @@ end
 
 module Xhtmlcompactreg : Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt 
                                   and type options = XHTML.M.doctypes
+                                  and type return = Eliom_services.http
 
 (** {3 Module to register subpages of type [block]} *)
 
 module Blocks : sig
 
   include Eliom_mkreg.ELIOMREGSIG with type page = body_content elt list
+                                  and type options = unit
+                                  and type return = Eliom_services.http
   include XHTMLFORMSSIG
 
 end
@@ -895,9 +903,11 @@ module Text : Eliom_mkreg.ELIOMREGSIG with type page = string * string
     If you give the optional parameter
     [~options:`NoReload] to the registration function, no page will be sent.
  *)
-module Action : Eliom_mkreg.ELIOMREGSIG with
-  type page = unit
+module Action : Eliom_mkreg.ELIOMREGSIG 
+  with
+    type page = unit
   and type options = [ `Reload | `NoReload ]
+  and type return = Eliom_services.http
 
 
 (** Like actions, but the page is not reloaded. Just do something and do
@@ -919,9 +929,10 @@ module Redirection : Eliom_mkreg.ELIOMREGSIG with
   type page =
   (unit, unit, Eliom_services.get_service_kind,
    [ `WithoutSuffix ],
-   unit, unit, Eliom_services.registrable, 'return)
+   unit, unit, Eliom_services.registrable, Eliom_services.http)
     Eliom_services.service
   and type options = [ `Temporary | `Permanent ]
+  and type return = Eliom_services.http
 
 (** Allows to create redirections towards other URLs.
    A 301 or 307 code is sent to the browser to ask it to redo the request to
@@ -936,6 +947,7 @@ module Redirection : Eliom_mkreg.ELIOMREGSIG with
 module String_redirection : Eliom_mkreg.ELIOMREGSIG with
   type page = XHTML.M.uri
   and type options = [ `Temporary | `Permanent ]
+  and type return = Eliom_services.http
 (*VVV Would be better to define the type uri elsewhere *)
 
 (** Allows to send files. The content is the name of the file to send. *)
@@ -967,3 +979,28 @@ module Streamlist : Eliom_mkreg.ELIOMREGSIG with
   type page = (((unit -> string Ocsigen_stream.t Lwt.t) list) *
                  string)
 
+
+
+(** Allows to register services that send caml values. *)
+module Caml : sig
+
+  type options = unit
+
+  val register :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?sp: Eliom_sessions.server_params ->
+    service:('get, 'post,
+             [< internal_service_kind ],
+             [< suff ], 'gn, 'pn, [ `Registrable ], 
+             'return Eliom_parameters.caml) service ->
+    ?error_handler:(Eliom_sessions.server_params ->
+                      (string * exn) list -> 'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t) ->
+    unit
+
+end

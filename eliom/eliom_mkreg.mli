@@ -42,6 +42,8 @@ module type REGCREATE =
 
     type options
 
+    type return
+
     val send :
       ?options:options ->
       ?cookies:Eliom_services.cookie list ->
@@ -62,6 +64,8 @@ module type ELIOMREGSIG1 =
     type page
 
     type options
+
+    type return
 
     val send :
       ?options:options ->
@@ -84,7 +88,7 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       service:('get, 'post,
                [< internal_service_kind ],
-               [< suff ], 'gn, 'pn, [ `Registrable ], page) service ->
+               [< suff ], 'gn, 'pn, [ `Registrable ], return) service ->
       ?error_handler:(Eliom_sessions.server_params ->
                         (string * exn) list -> page Lwt.t) ->
       (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
@@ -135,7 +139,7 @@ module type ELIOMREGSIG1 =
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       service:('get, 'post, [< internal_service_kind ],
-               [< suff ], 'gn, 'pn, [ `Registrable ], page) service ->
+               [< suff ], 'gn, 'pn, [ `Registrable ], return) service ->
       ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
                         page Lwt.t) ->
       (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) -> 
@@ -187,7 +191,7 @@ module type ELIOMREGSIG1 =
        [> `Attached of
           ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
        'tipo, 'gn, unit,
-       [> `Registrable ], page) service
+       [> `Registrable ], return) service
 (** Same as [new_service] followed by [register] *)
 
     val register_new_coservice :
@@ -208,7 +212,7 @@ module type ELIOMREGSIG1 =
       fallback:(unit, unit,
                 [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
                 [ `WithoutSuffix ] as 'tipo,
-                unit, unit, [< registrable ], page)
+                unit, unit, [< registrable ], return)
         service ->
       get_params:
         ('get, [`WithoutSuffix], 'gn) params_type ->
@@ -219,7 +223,7 @@ module type ELIOMREGSIG1 =
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
        'tipo, 'gn, unit,
-       [> `Registrable ], page)
+       [> `Registrable ], return)
         service
 (** Same as [new_coservice] followed by [register] *)
 
@@ -245,7 +249,7 @@ module type ELIOMREGSIG1 =
       (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Nonattached of [> `Get] na_s ],
-       'tipo, 'gn, unit, [> `Registrable ], page)
+       'tipo, 'gn, unit, [> `Registrable ], return)
         service
 (** Same as [new_coservice'] followed by [register] *)
 
@@ -267,7 +271,7 @@ module type ELIOMREGSIG1 =
       fallback:(unit, unit,
                 [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
                 [ `WithoutSuffix ] as 'tipo,
-                unit, unit, [< registrable ], page)
+                unit, unit, [< registrable ], return)
         service ->
       get_params:
         ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
@@ -278,7 +282,7 @@ module type ELIOMREGSIG1 =
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
        'tipo, 'gn, unit,
-       [> `Registrable ], page)
+       [> `Registrable ], return)
         service
 (** Same as [new_coservice] followed by [register_for_session] *)
 
@@ -304,7 +308,7 @@ module type ELIOMREGSIG1 =
       (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
       ('get, unit, [> `Nonattached of [> `Get] na_s ],
        'tipo, 'gn, unit,
-       [> `Registrable ], page)
+       [> `Registrable ], return)
         service
 (** Same as [new_coservice'] followed by [register_for_session] *)
 
@@ -322,7 +326,7 @@ module type ELIOMREGSIG1 =
                     ([ `Internal of
                          ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
                 [< suff ] as 'tipo, 'gn,
-                unit, [< `Registrable ], page)
+                unit, [< `Registrable ], return)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
       ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
@@ -330,7 +334,7 @@ module type ELIOMREGSIG1 =
       (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
       ('get, 'post, [> `Attached of
                        ([> `Internal of 'kind ], [> `Post]) a_s ],
-       'tipo, 'gn, 'pn, [> `Registrable ], page)
+       'tipo, 'gn, 'pn, [> `Registrable ], return)
         service
 (** Same as [new_post_service] followed by [register] *)
 
@@ -353,7 +357,7 @@ module type ELIOMREGSIG1 =
                 [ `Attached of
                     ([ `Internal of [< `Service | `Coservice ] ], [`Get]) a_s ],
                 [< suff ] as 'tipo,
-                'gn, unit, [< `Registrable ], page)
+                'gn, unit, [< `Registrable ], return)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
       ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
@@ -362,7 +366,7 @@ module type ELIOMREGSIG1 =
       ('get, 'post,
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
-       'tipo, 'gn, 'pn, [> `Registrable ], page)
+       'tipo, 'gn, 'pn, [> `Registrable ], return)
         service
 (** Same as [new_post_coservice] followed by [register] *)
 
@@ -388,7 +392,7 @@ module type ELIOMREGSIG1 =
       (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
       (unit, 'post, [> `Nonattached of [> `Post] na_s ],
        [ `WithoutSuffix ], unit, 'pn,
-       [> `Registrable ], page)
+       [> `Registrable ], return)
         service
 (** Same as [new_post_coservice'] followed by [register] *)
 
@@ -438,7 +442,7 @@ module type ELIOMREGSIG1 =
                 [ `Attached of ([ `Internal of
                                    [< `Service | `Coservice ] ], [`Get]) a_s ],
                 [< suff ] as 'tipo,
-                'gn, unit, [ `Registrable ], page)
+                'gn, unit, [ `Registrable ], return)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
       ?error_handler:(Eliom_sessions.server_params ->
@@ -447,7 +451,7 @@ module type ELIOMREGSIG1 =
       ('get, 'post,
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
-       'tipo, 'gn, 'pn, [> `Registrable ], page)
+       'tipo, 'gn, 'pn, [> `Registrable ], return)
         service
 (** Same as [new_post_coservice] followed by [register_for_session] *)
 
@@ -473,7 +477,7 @@ module type ELIOMREGSIG1 =
       (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
       (unit, 'post, [> `Nonattached of [> `Post] na_s ],
        [ `WithoutSuffix ], unit, 'pn,
-       [> `Registrable ], page)
+       [> `Registrable ], return)
         service
 (** Same as [new_post_coservice'] followed by [register_for_session] *)
 
@@ -504,6 +508,8 @@ module type ELIOMREGSIG1 =
 
 
 
+
+
   end
 
 
@@ -518,7 +524,8 @@ module type ELIOMREGSIG =
 
 
 
-module MakeRegister : functor (Pages: REGCREATE) -> ELIOMREGSIG with
-type page = Pages.page
-and type options = Pages.options
-
+module MakeRegister : functor (Pages: REGCREATE) -> 
+  ELIOMREGSIG with
+                type page = Pages.page
+              and type options = Pages.options
+              and type return = Pages.return

@@ -88,6 +88,10 @@ type attached =
 type nonattached =
     [ `Nonattached of getpost na_s ]
 
+type http (** default return type for services *)
+
+type appl_service (** return type for service that are entry points for an
+                      application *)
 
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) service =
 (* 'return is the value returned by the service *)
@@ -385,3 +389,9 @@ let new_external_service
     ~get_params
     ~post_params:Eliom_parameters.unit
     ()
+
+
+
+let to_http_service_ s = 
+  (s : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
+   :> ('a, 'b, 'c, 'd, 'e, 'f, 'g, http) service)

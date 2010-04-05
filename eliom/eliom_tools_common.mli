@@ -29,7 +29,7 @@ type ('a, 'b) one_page =
      'a,
      [ `WithoutSuffix ],
      unit, unit,
-     'b) service
+     'b, Eliom_services.http) service
 
 
 (** {2 Hierchical sites } *)
