@@ -23,7 +23,7 @@
    instead of serialising it to the client
 *)
 
-
+let (>>>) x f = f x
 
 include Eliom_client_types
 
@@ -68,9 +68,15 @@ let get_get_params_string ~sp = sp.sp_request.request_info.ri_get_params_string
 let get_post_params ~sp = Lazy.force sp.sp_request.request_info.ri_post_params
 let get_all_post_params ~sp = sp.sp_si.Eliom_common.si_all_post_params
 *)
-let get_original_full_path_string ~sp =
-  "AAAAAAAAAAAAAAAAAAAAA" (*VVV !!!!!!!!! *)
-let get_original_full_path ~sp = ["AAAAAAAAAAAAAAAAAAAAA"] (*VVV !!!!!!!!! *)
+let full_path_ =
+  Ocsigen_lib.urldecode_string
+    ((JSOO.eval "window.location") >>> JSOO.get "pathname" >>> JSOO.as_string)
+
+let get_original_full_path_string ~sp = full_path_
+
+let get_original_full_path ~sp = 
+  Array.to_list (Regexp.split (Regexp.make "/") full_path_)
+
 (*
 let get_current_full_path ~sp = sp.sp_request.request_info.ri_full_path
 let get_current_full_path_string ~sp = sp.sp_request.request_info.ri_full_path_string

@@ -25,10 +25,16 @@ let window = JSOO.eval "window"
 let document = JSOO.eval "document"
 let body = JSOO.eval "document.body"
 
-(* one function from AXO: *)
+(* functions from AXO: *)
 (* internal only : encode a string according to percent-encoding system *)
 let urlencode_string str =
   window >>> JSOO.call_method "escape" [| JSOO.string str |] >>> JSOO.as_string
+
+(* decode a string according to percent encoding system *)
+let urldecode_string str =
+  window >>> JSOO.call_method "unescape" [| JSOO.string str |]
+  >>> JSOO.as_string
+
 
 let encode ?plus s = urlencode_string s
 (* plus has no effect here :-/ *)
