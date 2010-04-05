@@ -31,56 +31,82 @@
  *
  *)
 
+(* Shortening names of modules : basically Osmthg is for Ocsigen_smthg *)
 module OFrame = Ocsigen_http_frame
 module OStream = Ocsigen_stream
 module OX = Ocsigen_extensions
 module Pxml = Simplexmlparser
-let ( >>= ) = Lwt.bind
 
-(* a tiny addition to Lwt library : filter_map *)
-let filter_map_rev_s f l =
-  let rec aux accu = function
+(* infix monad binder *)
+let ( >>= ) = Lwt.( >>= )
+let ( >|= ) = Lwt.( >|= )
+
+(* a tiny deforestating addition to Lwt library : take_filter_map *)
+let take_filter_map_rev_s limit func lst =
+  let rec aux count accu = function
     | [] -> Lwt.return accu
-    | x::xs -> f x >>= function
-        | Some y -> aux (y :: accu) xs
-        | None -> aux accu xs
-  in aux [] l
-let filter_map_s f l =
-  filter_map_rev_s f l >>= fun l -> Lwt.return (List.rev l)
+    | x::xs -> func x >>= function
+        | Some y ->
+            if succ count >= limit
+            then Lwt.return (y :: accu)
+            else aux (succ count) (y :: accu) xs
+        | None -> aux count accu xs
+  in aux 0 [] lst
+let take_filter_map_s lim f l =
+  take_filter_map_rev_s lim f l >|= List.rev
 
 (* timeout for comet connections : if no value has been written in the ellapsed
-* time, connection will be closed. Should be equal to client timeout. *)
+ * time, connection will be closed. Should be equal to client timeout. *)
+(* TODO: make value customizable via conf file *)
 let timeout = 20.
 
-(* HOWTO limit the number of connections (to avoid DOS) *)
+(* the maximum number of channels a client can register upon. An application
+ * really needs one channel and can use multiplexing (as will be provided soon
+ * in eliom_comet !) in order to acheive multichannel listening. *)
+(* TODO: make value customizable via conf file *)
+let chan_number_upper_limit = 5
+
+(* HOWTO limit the number of connections (to avoid DOS) ? *)
 module Channels :
 sig
 
   type t
     (* the type of channels :
-     * channels can be written on or read from
+     * channels can be written on or read from using the following functions
      *)
 
   val new_channel : unit -> t
-    (* channels carrying 'a values *)
+    (* creating a fresh channel *)
   val write  : t -> string -> unit
-    (* [write ch v] sends v over ch *)
+    (* [write ch v] sends [v] over [ch] all clients currently listening to [ch]
+     * are being sent [v]. *)
   val read : t -> string Lwt.t
-    (* [read ch] will return whenever a value is written on it. The result is
-     * the value written on it *)
+    (* [read ch] will return whenever a value is written on [ch]. The result is
+     * the value written on it. This is the way for clients to listen on a
+     * channel. Note that while channels can be used to emulates events the
+     * implementation does not really suits it. *)
 
   val find_channel : int -> t
-    (* may raise Not_found if the channel was destroyed *)
+    (* may raise Not_found if the channel was destroyed or never created.
+     * Basically ids are meant for clients to tell a server to start listening
+     * to it. *)
   val get_id : t -> int
-    (* [find_channel (get_id ch)] returns [ch] *)
+    (* [find_channel (get_id ch)] returns [ch] if the channel wasn't destroyed
+     * that is. *)
 
   val destroy_channel : t -> unit
     (* Makes the subsequent calls to find_channel fail for this channel, also
      * makes the channel GCable as far as this module is concerned. If other
-     * references are kept, it won't be. *)
+     * references are kept, it obviously won't be. Remember to destroy any
+     * channel. *)
+    (* TODO: have the channels automattically made collectable. Weak ? Channel
+     * creator keeping the one and only reference and passing a retrieval
+     * function when creating ? *)
 
 end = struct
 
+  (* In order to being able to retrieve channels by there IDs, let's have a map
+   * *)
   module CMap = Map.Make (struct type t = int let compare = compare end)
 
   type t =
@@ -90,7 +116,9 @@ end = struct
         mutable ch_writer : string Lwt.u ;
       }
 
+  (* storage and ID manipulation *)
   let cmap : t CMap.t ref = ref CMap.empty
+  (* TODO: generate id randomly for security reasons *)
   let new_id = let c = ref 0 in fun () -> incr c ; !c
 
   let find_channel i = CMap.find i !cmap
@@ -100,6 +128,7 @@ end = struct
   let destroy_channel ch =
     cmap := CMap.remove ch.ch_id !cmap
 
+  (* creation : newly created channel is stored in the map as a side effect *)
   let new_channel () =
     let (reader, writer) = Lwt.wait () in
     let ch =
@@ -110,12 +139,15 @@ end = struct
       }
     in cmap := CMap.add ch.ch_id ch !cmap ; ch
 
+  (* writing on a channel : wakeup the writer with the given value and reload
+   * both reader and writer. *)
   let write ch v =
     Lwt.wakeup ch.ch_writer v ;
     let (reader, writer) = Lwt.wait () in
     ch.ch_writer <- writer ;
     ch.ch_reader <- reader
 
+  (* reading a channel : just getting a hang on the reader thread *)
   let read ch = ch.ch_reader
 
 end
@@ -139,7 +171,8 @@ end = struct
     (* Is the split cooperative enough ? *)
     let re = Netstring_pcre.regexp ";" in
     Lwt.return (Netstring_pcre.split re s) >>=
-    filter_map_s
+    take_filter_map_s
+      chan_number_upper_limit
       (fun s ->
          Lwt.catch
            (fun () ->
@@ -158,7 +191,7 @@ end = struct
 
   let rec encode_outgoing_step l =
     let rec aux accu = function (*TODO: use a fold *)
-      | [] -> print_endline ("accu : " ^ accu) ; accu
+      | [] -> accu
       | None :: tl -> aux accu tl
       | Some (chan, str) :: tl ->
           aux
@@ -182,10 +215,11 @@ sig
 
   val treat_incoming :
     OX.request_info -> OFrame.result Lwt.t
-    (* treat an incoming request *)
+    (* treat an incoming request from a client *)
 
 end = struct
 
+  (* A timeout that that return a choosen value instead of failing *)
   let armless_timeout t r =
     Lwt.catch
       (fun () -> Lwt_unix.timeout t)
@@ -194,13 +228,14 @@ end = struct
          | exc -> Lwt.fail exc
       )
 
-  let rec treat_decoded chans =
+  (* Once channel list is obtain, use this function to return a thread that
+   * terminates when one of the channel is written upon. *)
+  let treat_decoded chans =
     Lwt.choose
       (   armless_timeout timeout None
        :: List.map
             (fun chan ->
                Channels.read chan >>= fun value ->
-               print_endline ("read : " ^ value) ;
                Lwt.return (Some (chan, value))
             )
             chans
@@ -208,8 +243,8 @@ end = struct
     fun x -> Lwt.return [ x ] >>= (*TODO: replace Lwt.choose with a proper "select" and delete this line *)
     Messages.encode_outgoing
 
+  (* This is just a mashup of the other functions in the module. *)
   let treat_incoming r =
-    print_endline "incoming" ;
     Messages.decode_incomming r >>= treat_decoded >>= fun stream ->
       let res = OFrame.default_result () in
         Lwt.return
@@ -248,6 +283,8 @@ let parse_config _ _ _ = function
   | _ -> raise (OX.Error_in_config_file "Unexpected data in config file")
 let site_creator (hostpattern : OX.virtual_hosts) = parse_config
 let user_site_creator (path : OX.userconf_info) = site_creator
+
+(* registering extension *)
 let () = OX.register_extension
   ~name:"comet"
   ~fun_site:site_creator
