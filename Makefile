@@ -110,6 +110,7 @@ PLUGINSCMOTOINSTALL = \
         extensions/outputfilter.cmo extensions/authbasic.cmo \
 	extensions/redirectmod.cmo extensions/rewritemod.cmo \
 	extensions/accesscontrol.cmo extensions/extendconfiguration.cmo \
+	extensions/comet.cmo \
 	baselib/polytables.cmo $(DUCECMO)
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
@@ -119,6 +120,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
+       extensions/comet.cmi \
        extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
        baselib/polytables.cmi
 

@@ -179,6 +179,15 @@ package "ext" (
     archive(native) = "rewritemod.cmx"
   )
 
+  package "comet" (
+    exists_if = "comet.cmo,comet.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Comet server-to-client communication"
+    archive(byte) = "comet.cmo"
+    archive(native) = "comet.cmx"
+  )
+
 )
 
 package "eliom_obrowser_client" (
