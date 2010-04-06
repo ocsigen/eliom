@@ -71,8 +71,10 @@ let get_all_post_params ~sp = sp.sp_si.Eliom_common.si_all_post_params
 let loc_ = JSOO.eval "window.location"
 
 let full_path_ =
-  Ocsigen_lib.urldecode_string
-    ((JSOO.eval "window.location") >>> JSOO.get "pathname" >>> JSOO.as_string)
+  Ocsigen_lib.urldecode_string (loc_ >>> JSOO.get "pathname" >>> JSOO.as_string)
+
+let full_uri =
+  Ocsigen_lib.urldecode_string (loc_ >>> JSOO.get "href" >>> JSOO.as_string)
 
 let get_original_full_path_string ~sp = full_path_
 
@@ -93,7 +95,7 @@ let host_ =
     (loc_ >>> JSOO.get "hostname" >>> JSOO.as_string)
 
 let port_ =
-  (loc_ >>> JSOO.get "port" >>> JSOO.as_int)
+  (loc_ >>> JSOO.get "port" >>> JSOO.as_string >>> int_of_string)
 
 let get_hostname ~sp = host_
 let get_default_port ~sp = 80 (*VVV !!!!!!!!! *)

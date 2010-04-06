@@ -24,6 +24,8 @@ exception Failed_service of int
 let (>>=) = Lwt.bind
 let (>>>) x f = f x
 
+let current_fragment = ref ""
+  
 let create_request_
     ?absolute ?absolute_path ?https
     ~sp ~service
@@ -126,6 +128,7 @@ let change_url
        | Ocsigen_lib.Left uri -> uri
        | Ocsigen_lib.Right (uri, p) -> uri)
   in
+  current_fragment := "#!"^uri; 
   JSOO.eval "window.location" >>> 
   JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)))
 
@@ -172,3 +175,60 @@ let change_page
 (*VVV change the URL only if it is different? *)
     Lwt.return ()
   end
+
+
+
+
+(*****************************************************************************)
+(* Make the back button work when only the fragment has changed ... *)
+(*VVV We check the fragment every t second ... :-( *)
+
+let write_fragment s =
+  Ocsigen_lib.window >>> JSOO.get "location" >>> JSOO.set "hash" s
+
+let read_fragment () =
+  Ocsigen_lib.window >>> JSOO.get "location"
+                     >>> JSOO.get "hash"
+                     >>> JSOO.as_string
+
+
+let (fragment, set_fragment_signal) = React.S.create (read_fragment ())
+
+let rec fragment_polling () =
+  Lwt_obrowser.sleep 0.2 >>= fun () ->
+  let new_fragment = read_fragment () in
+  if new_fragment <> (React.S.value fragment)
+  then set_fragment_signal new_fragment;
+  fragment_polling ()
+
+let _ = fragment_polling ()
+
+let auto_change_page fragment =
+  ignore
+    (let l = String.length fragment in
+     if (l = 0) || ((l > 1) && (fragment.[1] = '!'))
+     then 
+       if fragment <> !current_fragment
+       then
+         (
+         current_fragment := fragment; 
+         let uri =
+           match l with
+             | 2 -> "./" (* fix for firefox *)
+             | 0 | 1 -> Eliom_sessions.full_uri
+             | _ ->
+                 String.sub fragment 2 ((String.length fragment) - 2) 
+         in
+         Js.alert ("loading "^uri);
+         Lwt_obrowser.http_get uri [] >>= fun (code, s) ->
+         if code <> 200
+         then Lwt.fail (Failed_service code)
+         else begin
+(*VVV change only the content of the container, not the full body! *)
+           Ocsigen_lib.body >>> JSOO.set "innerHTML" (JSOO.string s);
+           Lwt.return ()
+         end)
+       else Lwt.return ()
+     else Lwt.return ())
+
+let _ = React.E.map auto_change_page (React.S.changes fragment)

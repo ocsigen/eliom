@@ -248,7 +248,7 @@ let.server eliomobrowser4 =
                       List.iter 
                         (fun i -> Js.Node.append body 
                            (Js.Node.text (string_of_int i)))
-                        [1;4];
+                        l;
                       Lwt.return ()
                   )
                     (Eliom_obrowser.client_sp sp) eliomobrowser4')]
