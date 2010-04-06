@@ -585,8 +585,8 @@ val change_get_num :
 
 val new_state : unit -> string
 
-val to_http_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> 
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, http) service
+val untype_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service
 
 (*****************************************************************************)
 

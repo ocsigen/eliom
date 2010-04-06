@@ -392,6 +392,6 @@ let new_external_service
 
 
 
-let to_http_service_ s = 
+let untype_service_ s = 
   (s : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
-   :> ('a, 'b, 'c, 'd, 'e, 'f, 'g, http) service)
+   :> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'http) service)

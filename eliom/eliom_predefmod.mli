@@ -59,13 +59,6 @@ module type XHTMLFORMSSIG = sig
 
 
 
-
-
-
-
-
-
-
     val make_string_uri :
       ?absolute:bool ->
       ?absolute_path:bool ->
@@ -981,7 +974,10 @@ module Streamlist : Eliom_mkreg.ELIOMREGSIG with
 
 
 
-(** Allows to register services that send caml values. *)
+(** Allows to register services that send caml values.
+    Note that this kind of services are most of the time
+    POST coservices, and GET (co)services are probably useless here.
+*)
 module Caml : sig
 
   type options = unit
@@ -1002,5 +998,295 @@ module Caml : sig
                       (string * exn) list -> 'return Lwt.t) ->
     (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t) ->
     unit
+
+  val register_for_session :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure:bool ->
+    sp:Eliom_sessions.server_params ->
+    service:('get, 'post, [< internal_service_kind ],
+             [< suff ], 'gn, 'pn, [ `Registrable ],
+             'return Eliom_parameters.caml) service ->
+    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                      'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t) -> 
+    unit
+
+  val register_new_service :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?sp: Eliom_sessions.server_params ->
+    ?https:bool ->
+    path:Ocsigen_lib.url_path ->
+    get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                      'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> unit -> 'return Lwt.t) ->
+    ('get, unit,
+     [> `Attached of
+        ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+     'tipo, 'gn, unit,
+     [> `Registrable ], 'return Eliom_parameters.caml) service
+
+  val register_new_coservice :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?sp: Eliom_sessions.server_params ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?csrf_session_name: string ->
+    ?csrf_secure_session: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:(unit, unit,
+              [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
+              [ `WithoutSuffix ] as 'tipo,
+              unit, unit, [< registrable ], 'return Eliom_parameters.caml)
+      service ->
+    get_params:
+      ('get, [`WithoutSuffix], 'gn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params ->
+                      (string * exn) list -> 'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> unit -> 'return Lwt.t) ->
+    ('get, unit,
+     [> `Attached of
+        ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
+     'tipo, 'gn, unit,
+     [> `Registrable ], 'return Eliom_parameters.caml)
+      service
+
+  val register_new_coservice' :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?sp: Eliom_sessions.server_params ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?csrf_session_name: string ->
+    ?csrf_secure_session: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    get_params:
+      ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params ->
+                      (string * exn) list -> 'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> unit -> 'return Lwt.t) ->
+    ('get, unit,
+     [> `Nonattached of [> `Get] na_s ],
+     'tipo, 'gn, unit, [> `Registrable ], 'return Eliom_parameters.caml)
+      service
+
+  val register_new_coservice_for_session :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure:bool ->
+    sp:Eliom_sessions.server_params ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:(unit, unit,
+              [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
+              [ `WithoutSuffix ] as 'tipo,
+              unit, unit, [< registrable ], 'return Eliom_parameters.caml)
+      service ->
+    get_params:
+      ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                      'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> unit -> 'return Lwt.t) ->
+    ('get, unit,
+     [> `Attached of
+        ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
+     'tipo, 'gn, unit,
+     [> `Registrable ], 'return Eliom_parameters.caml)
+      service
+
+  val register_new_coservice_for_session' :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure:bool ->
+    sp:Eliom_sessions.server_params ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    get_params:
+      ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                      'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> unit -> 'return Lwt.t) ->
+    ('get, unit, [> `Nonattached of [> `Get] na_s ],
+     'tipo, 'gn, unit,
+     [> `Registrable ], 'return Eliom_parameters.caml)
+      service
+
+  val register_new_post_service :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?sp: Eliom_sessions.server_params ->
+    ?https:bool ->
+    fallback:('get, unit,
+              [ `Attached of
+                  ([ `Internal of
+                       ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
+              [< suff ] as 'tipo, 'gn,
+              unit, [< `Registrable ], 'return Eliom_parameters.caml)
+      service ->
+    post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                      'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t) ->
+    ('get, 'post, [> `Attached of
+                     ([> `Internal of 'kind ], [> `Post]) a_s ],
+     'tipo, 'gn, 'pn, [> `Registrable ], 'return Eliom_parameters.caml)
+      service
+
+  val register_new_post_coservice :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?sp: Eliom_sessions.server_params ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?csrf_session_name: string ->
+    ?csrf_secure_session: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:('get, unit ,
+              [ `Attached of
+                  ([ `Internal of [< `Service | `Coservice ] ], [`Get]) a_s ],
+              [< suff ] as 'tipo,
+              'gn, unit, [< `Registrable ], 'return Eliom_parameters.caml)
+      service ->
+    post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                      'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t) ->
+    ('get, 'post,
+     [> `Attached of
+        ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
+     'tipo, 'gn, 'pn, [> `Registrable ], 'return Eliom_parameters.caml)
+      service
+
+  val register_new_post_coservice' :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?sp: Eliom_sessions.server_params ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?csrf_session_name: string ->
+    ?csrf_secure_session: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?keep_get_na_params:bool ->
+    ?https:bool ->
+    post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                      'return Lwt.t) ->
+    (Eliom_sessions.server_params -> unit -> 'post -> 'return Lwt.t) ->
+    (unit, 'post, [> `Nonattached of [> `Post] na_s ],
+     [ `WithoutSuffix ], unit, 'pn,
+     [> `Registrable ], 'return Eliom_parameters.caml)
+      service
+
+  val register_new_post_coservice_for_session :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure:bool ->
+    sp:Eliom_sessions.server_params ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?https:bool ->
+    fallback:('get, unit,
+              [ `Attached of ([ `Internal of
+                                  [< `Service | `Coservice ] ], [`Get]) a_s ],
+              [< suff ] as 'tipo,
+              'gn, unit, [ `Registrable ], 'return Eliom_parameters.caml)
+      service ->
+    post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params ->
+                      (string * exn) list -> 'return Lwt.t) ->
+    (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t) ->
+    ('get, 'post,
+     [> `Attached of
+        ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
+     'tipo, 'gn, 'pn, [> `Registrable ], 'return Eliom_parameters.caml)
+      service
+
+  val register_new_post_coservice_for_session' :
+    ?options:options ->
+    ?cookies:Eliom_services.cookie list ->
+    ?charset:string ->
+    ?code: int ->
+    ?content_type:string ->
+    ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure:bool ->
+    sp:Eliom_sessions.server_params ->
+    ?name: string ->
+    ?csrf_safe: bool ->
+    ?max_use:int ->
+    ?timeout:float ->
+    ?keep_get_na_params:bool ->
+    ?https:bool ->
+    post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+    ?error_handler:(Eliom_sessions.server_params ->
+                      (string * exn) list -> 'return Lwt.t) ->
+    (Eliom_sessions.server_params -> unit -> 'post -> 'return Lwt.t) ->
+    (unit, 'post, [> `Nonattached of [> `Post] na_s ],
+     [ `WithoutSuffix ], unit, 'pn,
+     [> `Registrable ], 'return Eliom_parameters.caml)
+      service
+
 
 end

@@ -237,10 +237,8 @@ let.server eliomobrowser3 =
 It is possible to do services that send any caml value. For example:
 *wiki*)
 let.server eliomobrowser4' =
-  Eliom_services.new_post_coservice' ~post_params:unit ()
-let.server _ = 
-  Eliom_predefmod.Caml.register
-    eliomobrowser4'
+  Eliom_predefmod.Caml.register_new_post_coservice'
+    ~post_params:unit
     (fun sp () () -> Lwt.return [1; 2; 3])
 
 let.server eliomobrowser4 =

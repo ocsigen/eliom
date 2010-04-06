@@ -2720,21 +2720,33 @@ module Caml = struct
 
   type options = unit
 
+  let make_eh = function
+    | None -> None
+    | Some eh -> 
+        Some (fun sp l -> 
+                eh sp l >>= fun r ->
+                Lwt.return (Marshal.to_string r []))
+
+  let make_service_handler f =
+    fun sp g p -> 
+      f sp g p >>= fun r -> 
+      Lwt.return (Marshal.to_string r [])
+
   let register
-    ?options
-    ?cookies
-    ?charset
-    ?code
-    ?content_type
-    ?headers
-    ?sp
-    ~(service : ('get, 'post,
-                 [< internal_service_kind ],
-                 [< suff ], 'gn, 'pn, [ `Registrable ], 
-                 'return Eliom_parameters.caml) service)
-    ?(error_handler : (Eliom_sessions.server_params ->
-                         (string * exn) list -> 'return Lwt.t) option)
-    (f : (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t)) =
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?sp
+      ~(service : ('get, 'post,
+                   [< internal_service_kind ],
+                   [< suff ], 'gn, 'pn, [ `Registrable ], 
+                   'return Eliom_parameters.caml) service)
+      ?(error_handler : (Eliom_sessions.server_params ->
+                           (string * exn) list -> 'return Lwt.t) option)
+      (f : (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t)) =
     M.register
       ?options
       ?cookies
@@ -2743,16 +2755,398 @@ module Caml = struct
       ?content_type
       ?headers
       ?sp
-      ~service:(Eliom_services.to_http_service_ service)
-      ?error_handler:(match error_handler with
-                        | None -> None
-                        | Some eh -> 
-                            Some (fun sp l -> 
-                                    eh sp l >>= fun r ->
-                                    Lwt.return (Marshal.to_string r [])))
-      (fun sp g p -> 
-         f sp g p >>= fun r -> 
-         Lwt.return (Marshal.to_string r []))
+      ~service:(Eliom_services.untype_service_ service)
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
 
+
+  let register_for_session
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?session_name
+      ?secure
+      ~sp
+      ~service
+      ?error_handler
+      f =
+    M.register_for_session
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?session_name
+      ?secure
+      ~sp
+      ~service:(Eliom_services.untype_service_ service)
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_new_service 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?sp
+      ?https
+      ~path
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_service 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?sp
+                                      ?https
+                                      ~path
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_new_coservice 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_session_name
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_coservice 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?sp
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_session_name
+                                      ?csrf_secure_session
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~fallback:(Eliom_services.untype_service_ fallback)
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_new_coservice' 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_session_name
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_coservice' 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?sp
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_session_name
+                                      ?csrf_secure_session
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_new_coservice_for_session 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?session_name
+      ?secure
+      ~sp
+      ?name
+      ?csrf_safe
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_coservice_for_session 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?session_name
+                                      ?secure
+                                      ~sp
+                                      ?name
+                                      ?csrf_safe
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~fallback:(Eliom_services.untype_service_ fallback)
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_new_coservice_for_session' 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?session_name
+      ?secure
+      ~sp
+      ?name
+      ?csrf_safe
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_coservice_for_session' 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?session_name
+                                      ?secure
+                                      ~sp
+                                      ?name
+                                      ?csrf_safe
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~get_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_new_post_service 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?sp
+      ?https
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_post_service 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?sp
+                                      ?https
+                                      ~fallback:(Eliom_services.untype_service_ fallback)
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_new_post_coservice 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_session_name
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_post_coservice 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?sp
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_session_name
+                                      ?csrf_secure_session
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~fallback:(Eliom_services.untype_service_ fallback)
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_new_post_coservice' 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_session_name
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_post_coservice' 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?sp
+                                      ?name
+                                      ?csrf_safe
+                                      ?csrf_session_name
+                                      ?csrf_secure_session
+                                      ?max_use
+                                      ?timeout
+                                      ?keep_get_na_params
+                                      ?https
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f))
+
+  let register_new_post_coservice_for_session 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?session_name
+      ?secure
+      ~sp
+      ?name
+      ?csrf_safe
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_post_coservice_for_session 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?session_name
+                                      ?secure
+                                      ~sp
+                                      ?name
+                                      ?csrf_safe
+                                      ?max_use
+                                      ?timeout
+                                      ?https
+                                      ~fallback:(Eliom_services.untype_service_ fallback)
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f)) 
+
+  let register_new_post_coservice_for_session' 
+      ?options
+      ?cookies
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?session_name
+      ?secure
+      ~sp
+      ?name
+      ?csrf_safe
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
+      ~post_params
+      ?error_handler
+      f =
+    Eliom_services.untype_service_ (M.register_new_post_coservice_for_session' 
+                                      ?options
+                                      ?cookies
+                                      ?charset
+                                      ?code
+                                      ?content_type
+                                      ?headers
+                                      ?session_name
+                                      ?secure
+                                      ~sp
+                                      ?name
+                                      ?csrf_safe
+                                      ?max_use
+                                      ?timeout
+                                      ?keep_get_na_params
+                                      ?https
+                                      ~post_params
+                                      ?error_handler:(make_eh error_handler)
+                                      (make_service_handler f)) 
 
 end
