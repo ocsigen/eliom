@@ -54,11 +54,17 @@ val parse_host_field: string option -> Ocsigen_extensions.virtual_hosts
 val parser_config : Simplexmlparser.xml list ->
   Simplexmlparser.xml list list
 val parse_server : bool -> Simplexmlparser.xml list -> unit
+
+type socket_type =
+  | IPv4 of Unix.inet_addr
+  | IPv6 of Unix.inet_addr
+  | All
+
 val extract_info :
   Simplexmlparser.xml list ->
   (string option * string option) *
   ((string option * string option) option *
-     (Unix.inet_addr option * int) list * (Unix.inet_addr option * int) list) * (int * int)
+     (socket_type * int) list * (socket_type * int) list) * (int * int)
 val parse_config :
   ?file:string ->
   unit ->

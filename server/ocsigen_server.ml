@@ -55,11 +55,41 @@ let _ =
 external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
 external initgroups : string -> int -> unit = "initgroups_stub"
 
-let option_get_default x d = match x with Some x -> x | None -> d
-let local_addr addr num = 
-  Unix.ADDR_INET (option_get_default addr Unix.inet_addr_any, num)
-let local_addr6 addr num = 
-  Unix.ADDR_INET (option_get_default addr Unix.inet6_addr_any, num)
+let make_ipv6_socket addr port =
+  let socket = Lwt_unix.socket Unix.PF_INET6 Unix.SOCK_STREAM 0 in
+  Lwt_unix.set_close_on_exec socket;
+  Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
+  Lwt_unix.setsockopt socket Unix.IPV6_ONLY true;
+  Lwt_unix.bind socket (Unix.ADDR_INET (addr, port));
+  socket
+
+let make_ipv4_socket addr port =
+  let socket = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
+  Lwt_unix.set_close_on_exec socket;
+  Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
+  Lwt_unix.bind socket (Unix.ADDR_INET (addr, port));
+  socket
+
+let make_sockets addr port =
+  match addr with
+    | All ->
+        (* The user didn't specify a protocol in the configuration
+           file; we try to open an IPv6 socket (listening to IPv6
+           only) if possible and we open an IPv4 socket anyway. This
+           corresponds to the net.ipv6.bindv6only=0 behaviour on Linux,
+           but is portable and should work with
+           net.ipv6.bindv6only=1 as well. *)
+        let ipv6_socket =
+          try [make_ipv6_socket Unix.inet6_addr_any port]
+          with Unix.Unix_error
+              ((Unix.EAFNOSUPPORT | Unix.EPROTONOSUPPORT),
+               _, _) -> []
+        in
+        (make_ipv4_socket Unix.inet_addr_any port)::ipv6_socket
+    | IPv4 addr ->
+        [make_ipv4_socket addr port]
+    | IPv6 addr ->
+        [make_ipv6_socket addr port]
 
 let sslctx = Ocsigen_http_client.sslcontext
 
@@ -940,32 +970,11 @@ let stop m n =
 
 (** Thread waiting for events on a the listening port *)
 let listen use_ssl (addr, port) wait_end_init =
-  let listening_socket =
+  let listening_sockets =
     try
-      let socket =
-        try
-          let socket = Lwt_unix.socket Unix.PF_INET6 Unix.SOCK_STREAM 0 in
-          Lwt_unix.set_close_on_exec socket;
-          Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
-          Lwt_unix.bind socket (local_addr6 addr port);
-          socket
-        with e ->
-(*VVV CATCH only the IPv6 exception.
-Is it:
-| ENOPROTOOPT  (*  Protocol not available  *) ?
-| EPROTONOSUPPORT  (*  Protocol not supported  *)???
-| ...
-*)
-          Ocsigen_messages.warning
-            ("Exception while creating IPv6 socket: "^Ocsigen_lib.string_of_exn e);
-          let socket = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
-          Lwt_unix.set_close_on_exec socket;
-          Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
-          Lwt_unix.bind socket (local_addr addr port);
-          socket
-      in
-      Lwt_unix.listen socket 1024;
-      socket
+      let sockets = make_sockets addr port in
+      List.iter (fun x -> Lwt_unix.listen x 1024) sockets;
+      sockets
     with
     | Unix.Unix_error (Unix.EACCES, _, _) ->
         stop
@@ -976,9 +985,10 @@ Is it:
     | exn ->
         stop ("Fatal - Uncaught exception: " ^ string_of_exn exn) 100
   in
-  ignore (wait_end_init >>= fun () ->
-          wait_connection use_ssl port listening_socket);
-  listening_socket
+  List.iter (fun x ->
+               ignore (wait_end_init >>= fun () ->
+                       wait_connection use_ssl port x)) listening_sockets;
+  listening_sockets
 
 (* fatal errors messages *)
 let errmsg = function
@@ -1133,11 +1143,17 @@ let start_server () = try
     Lwt_unix.run
       (let wait_end_init, wait_end_init_awakener = wait () in
       (* Listening on all ports: *)
-      sockets := List.map (fun i -> listen false i wait_end_init) ports;
-      sslsockets := List.map (fun i -> listen true i wait_end_init) sslports;
+      sockets := List.fold_left (fun a i -> (listen false i wait_end_init)@a) [] ports;
+      sslsockets := List.fold_left (fun a i -> (listen true i wait_end_init)@a) [] sslports;
 
-      Ocsigen_config.set_ports ports;
-      Ocsigen_config.set_sslports sslports;
+      begin match ports with
+        | (_, p)::_ -> Ocsigen_config.set_default_port p
+        | _ -> ()
+      end;
+      begin match sslports with
+        | (_, p)::_ -> Ocsigen_config.set_default_sslport p
+        | _ -> ()
+      end;
 
       let current_uid = Unix.getuid () in
 

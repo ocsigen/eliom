@@ -491,17 +491,13 @@ let parse_server isreloading c =
               | None, None -> "utf-8"
           in
           let defaulthttpport = match defaulthttpport with
-            | None ->
-                (try snd (List.hd (Ocsigen_config.get_ports ())) 
-                with Failure _ -> 80)
+            | None -> Ocsigen_config.get_default_port ()
             | Some p -> int_of_string "host" p
           in
           let defaulthostname = get_defaulthostname
             ~defaulthostname ~defaulthttpport ~host in
           let defaulthttpsport = match defaulthttpsport with
-            | None ->
-                (try snd (List.hd (Ocsigen_config.get_sslports ())) 
-                with Failure _ -> 443)
+            | None -> Ocsigen_config.get_default_sslport ()
             | Some p -> int_of_string "host" p
           in
           let parse_host = Ocsigen_extensions.parse_config_item host in
@@ -575,6 +571,11 @@ let parse_server isreloading c =
   in Ocsigen_extensions.set_hosts (parse_server_aux c)
 
 
+(* Types of socket declarable in configuration file *)
+type socket_type =
+  | IPv4 of Unix.inet_addr
+  | IPv6 of Unix.inet_addr
+  | All
 
 (* Parsing <port> tags *)
 let parse_port =
@@ -586,16 +587,16 @@ let parse_port =
     let do_match r = Netstring_pcre.string_match r s 0 in
     let get x i = Netstring_pcre.matched_group x i s in
     match do_match all_ipv6 with
-      | Some r -> Some (Unix.inet6_addr_any), int_of_string "port" (get r 1)
+      | Some r -> IPv6 (Unix.inet6_addr_any), int_of_string "port" (get r 1)
       | None -> match do_match all_ipv4 with
-      | Some r -> Some (Unix.inet_addr_any), int_of_string "port" (get r 1)
+      | Some r -> IPv4 (Unix.inet_addr_any), int_of_string "port" (get r 1)
       | None -> match do_match single_ipv6 with
-      | Some r -> Some (Unix.inet_addr_of_string (get r 1)), 
+      | Some r -> IPv6 (Unix.inet_addr_of_string (get r 1)),
           int_of_string "port" (get r 2)
       | None -> match do_match single_ipv4 with
-      | Some r -> Some (Unix.inet_addr_of_string (get r 1)), 
+      | Some r -> IPv4 (Unix.inet_addr_of_string (get r 1)),
           int_of_string "port" (get r 2)
-      | None -> None, int_of_string "port" s
+      | None -> All, int_of_string "port" s
 
 
 (* First parsing of config file *)

@@ -1,6 +1,8 @@
 ===== Development version (ocsigen.dev branch) =====
 
   * Split out ocsigen_xhtml findlib package
+  * Configuration file: when no protocol is specified in {{{<port>}}}, listen
+    on IPv6 (if possible) and IPv4 (always)
 
 ===== 1.3.0 (2010-01-22) =====
 

@@ -36,8 +36,8 @@ val set_debugmode : bool -> unit
 val set_disablepartialrequests : bool -> unit
 val set_usedefaulthostname : bool -> unit
 val set_respect_pipeline : unit -> unit
-val set_ports : (Unix.inet_addr option * int) list -> unit
-val set_sslports : (Unix.inet_addr option * int) list -> unit
+val set_default_port : int -> unit
+val set_default_sslport : int -> unit
 val set_maxretries : int -> unit
 val set_shutdown_timeout : float option -> unit
 
@@ -73,8 +73,8 @@ val get_debugmode : unit -> bool
 val get_disablepartialrequests : unit -> bool
 val get_usedefaulthostname : unit -> bool
 val get_respect_pipeline : unit -> bool
-val get_ports : unit -> (Unix.inet_addr option * int) list
-val get_sslports : unit -> (Unix.inet_addr option * int) list
+val get_default_port : unit -> int
+val get_default_sslport : unit -> int
 val get_maxretries : unit -> int
 val get_shutdown_timeout : unit -> float option
 

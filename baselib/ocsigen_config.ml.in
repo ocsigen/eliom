@@ -72,8 +72,8 @@ let debugmode = ref false
 let disablepartialrequests = ref false
 let usedefaulthostname = ref false
 let respectpipeline = ref false
-let ports = ref []
-let sslports = ref []
+let default_port = ref 80
+let default_sslport = ref 443
 let maxretries = ref 10
 let shutdowntimeout = ref (Some 10.)
 
@@ -110,8 +110,8 @@ let set_debugmode s = debugmode := s
 let set_disablepartialrequests s = disablepartialrequests := s
 let set_usedefaulthostname s = usedefaulthostname := s
 let set_respect_pipeline () = respectpipeline := true
-let set_ports l = ports := l
-let set_sslports l = sslports := l
+let set_default_port p = default_port := p
+let set_default_sslport p = default_sslport := p
 let set_maxretries i = maxretries := i
 let set_shutdown_timeout s = shutdowntimeout := s
 
@@ -150,8 +150,8 @@ let get_debugmode () = !debugmode
 let get_disablepartialrequests () = !disablepartialrequests
 let get_usedefaulthostname () = !usedefaulthostname
 let get_respect_pipeline () = !respectpipeline
-let get_ports () = !ports
-let get_sslports () = !sslports
+let get_default_port () = !default_port
+let get_default_sslport () = !default_sslport
 let get_maxretries () = !maxretries
 let get_shutdown_timeout () = !shutdowntimeout
 
