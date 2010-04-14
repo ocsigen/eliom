@@ -23,7 +23,7 @@ But Eliom will probably be available for other platforms soon.
 
 ===@@id="p4basics"@@
         
-====Your first client-side application
+====Your first client-server application
         <<div class="onecol"|
 
 First, I need to create my Eliom application, by applying the functor
@@ -206,6 +206,8 @@ let.server eliomobrowser3' =
               List.map (fun a -> pcdata a) l
            )])
 
+
+
 let.server eliomobrowser3 =
   Eliom_appl.register_new_service
     ~path:["eliomobrowser3"]
@@ -216,6 +218,7 @@ let.server eliomobrowser3 =
                  ((fun.client
                     (sp : Eliom_client_types.server_params)
                     (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
+  Js.alert (string_of_int (String.length (Marshal.to_string (22, "oo", ["a";"b";"c"]) [])));
                      Eliom_client.change_page ~sp ~service
                        () (22, "oo", ["a";"b";"c"]))
                     (Eliom_obrowser.client_sp sp) eliomobrowser3')]
@@ -241,8 +244,11 @@ let.server eliomobrowser4 =
                     (sp : Eliom_client_types.server_params)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, int list Eliom_parameters.caml) Eliom_services.service) -> 
                       let body = JSOO.eval "document.body" in
+Js.alert "popo";
                       Eliom_client.call_caml_service ~sp ~service () ()
                       ~>>= fun l ->
+Js.alert "aaaa";
+Js.alert (string_of_int (List.hd l));
                       List.iter 
                         (fun i -> Js.Node.append body 
                            (Js.Node.text (string_of_int i)))

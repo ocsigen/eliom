@@ -440,16 +440,29 @@ let getnameinfo ia p =
 (************************************************************************)
 (* URL parsing *)
 
-(*VVV Ces deux trucs sont dans Neturl version 1.1.2 mais en attendant qu'ils
-   soient dans debian, je les mets ici *)
-let problem_re = Netstring_pcre.regexp "[ <>\"{}|\\\\^\\[\\]`]"
+(* Taken from Neturl version 1.1.2 *)
+let problem_re1 = Netstring_pcre.regexp "[ <>\"{}|\\\\^\\[\\]`]"
 
-let fixup_url_string =
+let fixup_url_string1 =
   Netstring_pcre.global_substitute
-    problem_re
+    problem_re1
     (fun m s ->
        Printf.sprintf "%%%02x"
         (Char.code s.[Netstring_pcre.match_beginning m]))
+
+(* I add this fixup to handle %uxxxx sent by browsers.
+   Translated to %xx%xx *)
+let problem_re2 = Netstring_pcre.regexp "\\%u(..)(..)"
+
+let fixup_url_string s =
+  fixup_url_string1
+    (Netstring_pcre.global_substitute
+       problem_re2
+       (fun m s ->
+          String.concat "" ["%"; Netstring_pcre.matched_group m 1 s; 
+                            "%"; Netstring_pcre.matched_group m 2 s]
+       )
+       s)
 
 (*VVV This is in Netencoding but we have a problem with ~ 
   (not encoded by browsers). Here is a patch that does not encode '~': *)
@@ -464,14 +477,6 @@ module MyUrl = struct
     s.[0] <- hex_digits.( (k lsr 4) land 15 );
     s.[1] <- hex_digits.( k land 15 );
     s ;;
-
-  let of_hex1 c =
-    match c with
-      | ('0'..'9') -> Char.code c - Char.code '0'
-      | ('A'..'F') -> Char.code c - Char.code 'A' + 10
-      | ('a'..'f') -> Char.code c - Char.code 'a' + 10
-      | _ ->
-        raise Not_found ;;
 
   let url_encoding_re =
     Netstring_pcre.regexp "[^A-Za-z0-9~_.!*\\-]";;
@@ -511,11 +516,14 @@ let parse_url =
   let url_relax_re = Netstring_pcre.regexp "^[Hh][Tt][Tt][Pp][Ss]?://[^/]+" in
 
   fun url ->
+
+    let fixed_url = fixup_url_string url in
+
     let (https, host, port, url2) =
       try
         let url2 = Neturl.parse_url
           ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
-          (fixup_url_string url)
+          fixed_url
         in
         let https = 
           try (match Neturl.url_scheme url2 with
@@ -551,7 +559,7 @@ let parse_url =
 
     (* We don't do it before because we don't want [] of IPv6
        addresses to be escaped *)
-    let url = fixup_url_string url in
+    let url = fixed_url in
 
     (* We keep only the path part of the URL *)
     let url = Netstring_pcre.replace_first url_relax_re "" url in

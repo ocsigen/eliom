@@ -73,6 +73,7 @@ let call_service
   else Lwt.fail (Failed_service code)
 
 
+
 let call_caml_service
     ?absolute ?absolute_path ?https
     ~sp ~service
@@ -84,7 +85,9 @@ let call_caml_service
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p
   >>= fun s ->
-  Lwt.return (Marshal.from_string s 0)
+(* the string is urlencoded because otherwise js does strange things
+   with strings ... *)
+  Lwt.return (Marshal.from_string (Ocsigen_lib.urldecode_string s) 0)
 
 
 let exit_to

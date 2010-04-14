@@ -34,7 +34,7 @@ But Eliom will probably be available for other platforms soon.
 
 ===@@id="p4basics"@@
         
-====Your first client-side application
+====Your first client-server application
         %<div class="onecol"|
 
 First, I need to create my Eliom application, by applying the functor
@@ -217,6 +217,8 @@ let.server eliomobrowser3' =
               List.map (fun a -> pcdata a) l
            )])
 
+
+
 let.server eliomobrowser3 =
   Eliom_appl.register_new_service
     ~path:["eliomobrowser3"]
@@ -227,6 +229,7 @@ let.server eliomobrowser3 =
                  ((fun.client
                     (sp : Eliom_client_types.server_params)
                     (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
+  Js.alert (string_of_int (String.length (Marshal.to_string (22, "oo", ["a";"b";"c"]) [])));
                      Eliom_client.change_page ~sp ~service
                        () (22, "oo", ["a";"b";"c"]))
                     (Eliom_obrowser.client_sp sp) eliomobrowser3')]

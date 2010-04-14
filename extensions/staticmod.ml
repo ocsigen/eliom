@@ -122,7 +122,6 @@ let find_static_page ~request ~usermode ~dir ~err ~pathstring =
              "Staticmod: cannot use '..' in user paths")
 
 
-
 let gen ~usermode dir = function
   | Ocsigen_extensions.Req_found (_, r) ->
       Lwt.return (Ocsigen_extensions.Ext_do_nothing)

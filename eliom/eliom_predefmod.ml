@@ -2643,8 +2643,11 @@ redir ();"))::
              XHTML.M.script ~contenttype:"text/javascript"
              (cdata_script
                 ("window.onload = function () { \n"
-                 ^ "  eliom_id_tree = input_val (" ^ (Eliom_obrowser.jsmarshal (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
-                 ^ "  main_vm = exec_caml (\"" ^ Appl_params.client_name ^ ".uue\") ; \n"
+                 ^ "  eliom_id_tree = input_val (" ^ 
+                 (Eliom_obrowser.jsmarshal
+                    (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
+                 ^ "  main_vm = exec_caml (\"" ^ 
+                 Appl_params.client_name ^ ".uue\") ; \n"
                  ^ " }"))::
              options.ap_headers
 
@@ -2720,17 +2723,22 @@ module Caml = struct
 
   type options = unit
 
+
+(* the string is urlencoded because otherwise js does strange things
+   with strings ... *)
+  let encode_data r = Ocsigen_lib.encode (Marshal.to_string r [])
+
   let make_eh = function
     | None -> None
     | Some eh -> 
         Some (fun sp l -> 
                 eh sp l >>= fun r ->
-                Lwt.return (Marshal.to_string r []))
+                Lwt.return (encode_data r))
 
   let make_service_handler f =
     fun sp g p -> 
       f sp g p >>= fun r -> 
-      Lwt.return (Marshal.to_string r [])
+      Lwt.return (encode_data r)
 
   let register
       ?options

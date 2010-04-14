@@ -161,10 +161,9 @@ and find_post_params_form_urlencoded body_gen =
        let body = Ocsigen_stream.get body_gen in
        (* BY, adapted from a previous comment. Should this stream be
           consumed in case of error? *)
-       Ocsigen_stream.string_of_stream body
-       >>= fun r ->
-       Lwt.return
-         ((Netencoding.Url.dest_url_encoded_parameters r), [])
+       Ocsigen_stream.string_of_stream body >>= fun r ->
+       let r = Ocsigen_lib.fixup_url_string r in
+       Lwt.return ((Netencoding.Url.dest_url_encoded_parameters r), [])
     )
     (function
        | Ocsigen_stream.String_too_large -> fail Input_is_too_large
