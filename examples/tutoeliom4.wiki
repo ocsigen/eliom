@@ -48,7 +48,10 @@ module.server Eliom_appl =
       let.server client_name = "tutoeliom_ocsigen2_client"
       let.server default_params =
         {Eliom_predefmod.default_appl_params with
-           Eliom_predefmod.ap_title = "Eliom application example"
+           Eliom_predefmod.ap_title = "Eliom application example";
+           Eliom_predefmod.ap_headers = 
+            [XHTML.M.style ~contenttype:"text/css"
+               [XHTML.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]]
         }
     end)
 >> Now I can define my first service belonging to that application: <<code language="ocaml" |
@@ -244,11 +247,8 @@ let.server eliomobrowser4 =
                     (sp : Eliom_client_types.server_params)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, int list Eliom_parameters.caml) Eliom_services.service) -> 
                       let body = JSOO.eval "document.body" in
-Js.alert "popo";
                       Eliom_client.call_caml_service ~sp ~service () ()
                       ~>>= fun l ->
-Js.alert "aaaa";
-Js.alert (string_of_int (List.hd l));
                       List.iter 
                         (fun i -> Js.Node.append body 
                            (Js.Node.text (string_of_int i)))

@@ -59,7 +59,10 @@ module.server Eliom_appl =
       let.server client_name = "tutoeliom_ocsigen2_client"
       let.server default_params =
         {Eliom_predefmod.default_appl_params with
-           Eliom_predefmod.ap_title = "Eliom application example"
+           Eliom_predefmod.ap_title = "Eliom application example";
+           Eliom_predefmod.ap_headers = 
+            [XHTML.M.style ~contenttype:"text/css"
+               [XHTML.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]]
         }
     end)
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
@@ -70,7 +73,7 @@ let.server eliomobrowser1 =
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
-        [p ~a:[a_onclick 
+        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
                  ((fun.client (() : unit) -> Js.alert "clicked!") ())]
            [pcdata "I am a clickable paragraph"];
          
@@ -195,7 +198,7 @@ let.server _ =
 *wiki*)
 
           let container = ul (item ()) [ item () ; item ()] in
-          div [p ~a:[a_onclick 
+          div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
                        ((fun.client (container : node) ->
                            let nl = XHTML.M.toelt (item ()) in
                            Js.Node.append container nl) container)]
@@ -225,7 +228,7 @@ let.server eliomobrowser3 =
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
-        [p ~a:[a_onclick 
+        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
                  ((fun.client
                     (sp : Eliom_client_types.server_params)
                     (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
@@ -250,7 +253,7 @@ let.server eliomobrowser4 =
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
-        [p ~a:[a_onclick 
+        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
                  ((fun.client
                     (sp : Eliom_client_types.server_params)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, int list Eliom_parameters.caml) Eliom_services.service) -> 
