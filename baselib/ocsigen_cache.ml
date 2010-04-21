@@ -47,7 +47,7 @@ module Dlist = (struct
        mutable finaliser : 'a node -> unit;
       }
 
-(* Checks:
+(* Checks (by BY):
 
   let compute_length c =
     let rec aux i = function
@@ -86,6 +86,7 @@ module Dlist = (struct
 
   (* Remove an element from its list - don't finalise *)
   let remove' node l =
+    (* assertion (node.mylist = Some l' with l' == l); *)
     let oldest =
       match l.oldest with
         | Some n when node == n -> node.succ
@@ -111,14 +112,18 @@ module Dlist = (struct
   let remove node =
     match node.mylist with
       | None -> ()
-      | Some l ->
-          l.finaliser node;
-          remove' node l
+      | Some l as a ->
+          try
+            l.finaliser node;
+            assert (node.mylist == a);
+            remove' node l
+          with e ->
+            remove' node l;
+            raise e
 
   (* Add a node that do not belong to any list to a list.
      The fields [succ] and [prev] are overridden.
-     If the list is too long, the function removes the oldest value from the
-     list, and returns it.
+     If the list is too long, the function returns the oldest value.
      The node added becomes the element [list] of the list *)
   (* do not finalise *)
   (* not exported *)
@@ -166,7 +171,7 @@ module Dlist = (struct
             | Some n when node == n -> ()
             | _ ->
                 remove' node l;
-                ignore (add_node node l)
+                ignore (add_node node l) (* assertion: = None *)
                   (* we must not change the physical address => use add_node *)
 
   let rec remove_n_oldest l n = (* remove the n oldest values 
@@ -205,7 +210,12 @@ end : sig
   val newest : 'a t -> 'a node option
   val oldest : 'a t -> 'a node option
 
-  (** Remove an element from its list. *)
+  (** Removes an element from its list.
+      If the element is not in a list, it does nothing.
+      If it is in a list, it calls the finaliser, then removes the element.
+      If the finaliser fails with an exception, 
+      the element is removed and the exception is raised again.
+  *)
   val remove : 'a node -> unit
 
   (** Removes the element from its list without finalising, 
@@ -283,9 +293,10 @@ struct
     Weak.add clear_all f_clear;
     cache
 
-  let poke r node =
+  (* not exported *)
+  let poke cache node =
     assert (match Dlist.list_of node with
-              | None -> false | Some l -> r.pointers == l);
+              | None -> false | Some l -> cache.pointers == l);
     Dlist.up node
 
   let find_in_cache cache k =

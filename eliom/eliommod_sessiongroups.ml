@@ -89,10 +89,7 @@ struct
     match Ocsigen_cache.Dlist.list_of node with
       | Some cl ->
           if Ocsigen_cache.Dlist.size cl = 1
-          then 
-            (try
-               GroupTable.remove grouptable sess_grp
-             with Not_found -> ())
+          then GroupTable.remove grouptable sess_grp
       | None -> ()
 
   let add ?set_max sitedata sess_id sess_grp =

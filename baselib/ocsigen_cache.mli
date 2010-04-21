@@ -73,7 +73,12 @@ module Dlist : sig
       size was exceeded. *)
   val add : 'a -> 'a t -> 'a option
 
-  (** Removes an element from its list (if it is in a list). *)
+  (** Removes an element from its list.
+      If it is not in a list, it does nothing.
+      If it is in a list, it calls the finaliser, then removes the element.
+      If the finaliser fails with an exception, 
+      the element is removed and the exception is raised again.
+  *)
   val remove : 'a node -> unit
 
   (** Removes the element from its list without finalising, 
