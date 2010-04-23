@@ -1,4 +1,4 @@
-===== Development version (ocsigen.dev branch) =====
+===== 1.3.1 (2010-04-23) =====
 
   * Split out ocsigen_xhtml findlib package
   * Configuration file: when no protocol is specified in {{{<port>}}}, listen
