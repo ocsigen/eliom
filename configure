@@ -630,7 +630,7 @@ fi
 
 if [ "$enable_dbm" -gt 0 ]; then
     printf "%s" "Checking for dbm... "
-    if ocamlc -custom -o /dev/null dbm.cma >/dev/null 2>/dev/null; then
+    if ocamlc -o /dev/null dbm.cma >/dev/null 2>/dev/null; then
         echo "found"
     elif [ "$enable_dbm" -gt 1 ]; then
         echo "not found, but --enable-dbm specified"
