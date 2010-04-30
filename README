@@ -11,7 +11,7 @@ camlp4 (and camlp4rf etc.)
 ocamlduce recommanded (otherwise you won't have all the features)
   (same version as ocaml)
 findlib (ocamlfind)
-lwt >= 2.0
+lwt >= 2.1
 obrowser
 pcre-ocaml
 ocamlnet >= 2.2.0 (actually only modules netstring, netsys, pcre) 
