@@ -58,9 +58,5 @@ val unexpected_exception : exn -> string -> unit
 
 (**/**)
 
-val access : string * out_channel ref * Unix.file_descr ref
-val warningfile : string * out_channel ref * Unix.file_descr ref
-val error : string * out_channel ref * Unix.file_descr ref
-
 val open_files : unit -> unit
 val bip : int -> unit

@@ -17,74 +17,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(*
+FIX:
+- ocsidbm used to write directly to the error file
+  (extensions/ocsipersist-dbm/ocsipersist.ml)
+  What should we do now?
+- we should close log files on exec
+*)
 
 (** Writing messages in the logs *)
-
-let access = "access.log", ref stdout, ref Unix.stdout
-let warningfile = "warnings.log", ref stderr, ref Unix.stderr
-let error = "errors.log", ref stderr, ref Unix.stderr
-
-
-(* Several processes will access the same files, but if I am right,
-   it is not a problem when opening with O_APPEND
- *)
-let open_files =
-  let opened = ref false in
-  let openlog f =
-    Unix.openfile
-      ((Ocsigen_config.get_logdir ())^"/"^f)
-      [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640
-  in
-  fun () ->
-    if !opened
-    then begin
-      Unix.close !(Ocsigen_lib.thd3 access);
-      Unix.close !(Ocsigen_lib.thd3 warningfile);
-      Unix.close !(Ocsigen_lib.thd3 error)
-    end;
-    opened := true;
-    let acc = openlog (Ocsigen_lib.fst3 access) in
-    let war = openlog (Ocsigen_lib.fst3 warningfile) in
-    let err = openlog (Ocsigen_lib.fst3 error) in
-    Ocsigen_lib.snd3 access := Unix.out_channel_of_descr acc;
-    Ocsigen_lib.snd3 warningfile := Unix.out_channel_of_descr war;
-    Ocsigen_lib.snd3 error := Unix.out_channel_of_descr err;
-    Ocsigen_lib.thd3 access := acc;
-    Ocsigen_lib.thd3 warningfile := war;
-    Ocsigen_lib.thd3 error := err;
-    Unix.set_close_on_exec acc;
-    Unix.set_close_on_exec war;
-    Unix.set_close_on_exec err
-
-let log_aux file console_print s =
-  let date =
-    let t = Unix.localtime (Unix.time ()) in
-    Printf.sprintf
-      "%04d-%02d-%02d %02d:%02d:%02d"
-      (1900 + t.Unix.tm_year)
-      (t.Unix.tm_mon + 1)
-      t.Unix.tm_mday
-      t.Unix.tm_hour
-      t.Unix.tm_min
-      t.Unix.tm_sec
-  in
-  if console_print then
-    prerr_endline ("["^(Ocsigen_lib.fst3 file)^"] "^date^" - "^s);
-  output_string !(Ocsigen_lib.snd3 file) date;
-  output_string !(Ocsigen_lib.snd3 file) " - ";
-  output_string !(Ocsigen_lib.snd3 file) s;
-  output_string !(Ocsigen_lib.snd3 file) "\n";
-  flush !(Ocsigen_lib.snd3 file)
-
-
-let accesslog s =
-  log_aux access (Ocsigen_config.get_verbose ()) s
-
-let errlog s =
-  log_aux error (not (Ocsigen_config.get_silent ())) s
-
-let warning s =
-  log_aux warningfile (Ocsigen_config.get_verbose ()) s
 
 (*
 let lwtlog =
@@ -96,6 +37,59 @@ let lwtlog =
     Syslog.closelog syslog
 *)
 
+(*******************************)
+
+let access_file = "access.log"
+let warning_file = "warnings.log"
+let error_file = "errors.log"
+
+let stderr = Lwt_log.channel `Keep Lwt_io.stderr ()
+
+let loggers = ref []
+
+let open_files () =
+  (* CHECK: we are closing asynchronously!  That should be ok, though. *)
+  List.iter (fun l -> ignore (Lwt_log.close l : unit Lwt.t)) !loggers;
+  (* FIX: these files should be closed on exec, but Lwt_log does not allows
+     this easily at the moment... *)
+  let acc = Lwt_log.file access_file () in
+  let war = Lwt_log.file warning_file () in
+  let err = Lwt_log.file error_file () in
+  loggers := [acc; war; err];
+  Lwt_log.default :=
+    Lwt_log.broadcast
+      [Lwt_log.dispatch
+         (fun sect lev ->
+            if Lwt_log.Section.name sect = "access" then acc else
+            match lev with
+              Lwt_log.Error | Lwt_log.Fatal -> err
+            | _                             -> war);
+       Lwt_log.dispatch
+         (fun sect lev ->
+            let show =
+              match lev with
+                Lwt_log.Error | Lwt_log.Fatal ->
+                  not (Ocsigen_config.get_silent ())
+              | _ ->
+                  Ocsigen_config.get_verbose ()
+            in
+            if show then stderr else Lwt_log.null)]
+                
+(****)
+
+let access_sect = Lwt_log.Section.make "access"
+
+let accesslog s =
+  ignore (Lwt_log.notice ~section:access_sect s : unit Lwt.t)
+
+let errlog s = ignore (Lwt_log.error s : unit Lwt.t)
+
+let warning s = ignore (Lwt_log.warning s : unit Lwt.t)
+
+let unexpected_exception e s =
+  warning ("Unexpected exception in "^s^": "^Ocsigen_lib.string_of_exn e)
+
+(****)
 
 let debug_noel =
   if Ocsigen_config.get_veryverbose () then
@@ -138,11 +132,6 @@ let console2 =
     print_endline
   else
     (fun s -> ())
-
-let unexpected_exception e s =
-  warning ("Unexpected exception in "^s^": "^Ocsigen_lib.string_of_exn e)
-
-
 
 (*
 

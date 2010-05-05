@@ -79,11 +79,10 @@ let rec try_connect sname =
                         " on directory "^(!directory)^".");
       let param = [|!ocsidbm; !directory|] in
       let child () =
+(* FIX: what should we do here?
         let err = !(Ocsigen_lib.thd3 Ocsigen_messages.error) in
         Unix.dup2 err Unix.stderr;
-        Unix.close !(Ocsigen_lib.thd3 Ocsigen_messages.error);
-        Unix.close !(Ocsigen_lib.thd3 Ocsigen_messages.access);
-        Unix.close !(Ocsigen_lib.thd3 Ocsigen_messages.warningfile);
+*)
         let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
         Unix.dup2 devnull Unix.stdout;
         Unix.close devnull;
