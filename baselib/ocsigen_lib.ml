@@ -710,3 +710,26 @@ module Int_Table = Map.Make(struct
   let compare = compare
 end)
 
+let make_cryptographic_safe_string =
+  let rng = Cryptokit.Random.device_rng "/dev/urandom"
+  and to_hex = Cryptokit.Hexa.encode () in
+  fun () ->
+      let random_part =
+          let random_number = Cryptokit.Random.string rng 20 in
+          Cryptokit.transform_string to_hex random_number
+      and sequential_part =
+          Printf.sprintf "%Lx" (Int64.bits_of_float (Unix.gettimeofday ())) in
+      random_part ^ sequential_part
+
+(*
+
+The string is produced from the concatenation of two components: a
+160-bit random sequence obtained from /dev/urandom, and a 64-bit sequential
+component derived from the system clock.  The former is supposed to prevent
+session spoofing.  The assumption is that given the high cryptographic quality
+of /dev/urandom, it is impossible for an attacker to deduce the sequence of
+random numbers produced.  As for the latter component, it exists to prevent
+a theoretical (though infinitesimally unlikely) session ID collision if the
+server were to be restarted.
+*)
+

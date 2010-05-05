@@ -56,7 +56,7 @@ CAMLMKTOP = $(OCAMLFIND) $(CAMLMKTOPNAME) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
-LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNLINK)threads$(CAMLP4PACKAGES),findlib $(LIBDIRS)
+LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNLINK)threads$(CAMLP4PACKAGES),findlib,cryptokit $(LIBDIRS)
 # also modify builtin_package in ocsigen_config.ml if you modify the former line!
 PP = 
 PP2 = 
