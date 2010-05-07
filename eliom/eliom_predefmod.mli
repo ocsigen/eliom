@@ -957,7 +957,7 @@ module Any : Eliom_mkreg.ELIOMREGSIG with
   type page = Ocsigen_http_frame.result
 
 (** Allows to send raw data using Ocsigen's streams.
-    The content is a pair conatining:
+    The content is a pair containing:
 
     - a list of functions returning a stream and the
     function to close it,

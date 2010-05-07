@@ -221,8 +221,7 @@ let.server eliomobrowser3 =
                  ((fun.client
                     (sp : Eliom_client_types.server_params)
                     (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-  Js.alert (string_of_int (String.length (Marshal.to_string (22, "oo", ["a";"b";"c"]) [])));
-                     Eliom_client.change_page ~sp ~service
+                      Eliom_client.change_page ~sp ~service
                        () (22, "oo", ["a";"b";"c"]))
                     (Eliom_obrowser.client_sp sp) eliomobrowser3')]
            [pcdata "Click to send Ocaml data"]

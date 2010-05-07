@@ -819,9 +819,9 @@ Here is one simple example. Suppose you wrote a function
           
 <<code language="ocaml"|
 let remove_action =
-  Eliom_services.register_new_post_coservice'
+  Eliom_predefmod.Action.register_new_post_coservice'
     ~post_params:(Eliom_parameters.int "id")
-    (fun sp () id -> remove id ~>>= fun () -> Lwt.return [])
+    (fun sp () id -> remove id)
 >>
 
           
