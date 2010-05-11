@@ -140,7 +140,7 @@ p.footer {
   font-size: 70%;
   border-top: 1px solid #000000;
   margin: 0px 10px 0px 10px;
-  padding: 5px 0px 0px Opx;
+  padding: 5px 0px 0px 0px;
 }
 p.footer img {
   vertical-align: middle;
