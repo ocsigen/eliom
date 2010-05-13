@@ -197,13 +197,26 @@ let.server _ =
 ====Refering to parts of the page in client side code
 *wiki*)
 
-          let container = ul (item ()) [ item () ; item ()] in
-          div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
+          (let container = ul (item ()) [ item () ; item ()] in
+           div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
                        ((fun.client (container : node) ->
                            let nl = XHTML.M.toelt (item ()) in
                            Js.Node.append container nl) container)]
                  [pcdata "Click here to add an item below with the current version of OCaml."];
-               container];
+                container]);
+          
+(*wiki*
+====Refering to server side data in client side code
+  In the case you want to send some server side value with your page,
+  just do:
+*wiki*)
+
+          let my_int = 123456789 in
+          p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
+            ((fun.client (my_int : int Eliom_client_types.data_key) ->
+                Js.alert (string_of_int (Eliom_obrowser_client.unwrap my_int))) 
+               (Eliom_obrowser.wrap ~sp my_int))]
+            [pcdata "Click here to see a server side value sent with the page."];
           
         ])
 (*wiki*

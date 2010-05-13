@@ -39,6 +39,7 @@ let retrieve_node id =
 
 type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
+(* Relinking DOM nodes *)
 let _ =
   let rec recons root = fun (Ref_tree (id, subs)) ->
     begin match id with
@@ -56,3 +57,29 @@ let _ =
   in recons
        (JSOO.eval "document.body")
        (Obj.obj (eval "eliom_id_tree" >>> as_block) : ref_tree)
+
+
+(* == Global application data *)
+let global_appl_data_table : ((float * int), unit) Hashtbl.t = Hashtbl.create 50
+
+(* Loading global Eliom application data *)
+let _ =
+  let create_global_data_table ((reqnum, size), l) =
+    List.fold_left
+      (fun b v -> 
+         let n = b-1 in
+         Hashtbl.replace global_appl_data_table (reqnum, n) v;
+         n
+      )
+      size
+      l
+  in
+  create_global_data_table
+    (Obj.obj (eval "eliom_global_data" >>> as_block) : 
+       (float * int) * (unit list))
+
+let unwrap (key : 'a Eliom_client_types.data_key) : 'a = 
+  Obj.magic (Hashtbl.find global_appl_data_table 
+               (Eliom_client_types.of_data_key_ key))
+
+

@@ -2612,10 +2612,10 @@ module Eliom_appl_reg_
              (* This will do a redirection if there is a #! in the URL *)
              XHTML.M.script ~contenttype:"text/javascript"
              (cdata_script
-                ("function redir () {
+                ("// Redirect if the URL contains #! while loading the page
+function redir () {
   var str_url = window.location.toString() ;
   try{
-  //  var match = str_url.match(\"/(^[^?#]+)(\\?.*)?(#!(https?://)?(.*$))?/\");
     var match = str_url.match(\"(.*)/[^#/?]*(\\\\?.*)?#!((https?://)?(.*))$\");
           //but what if there's a # the search ?
     if(match) {
@@ -2632,22 +2632,38 @@ module Eliom_appl_reg_
 };
 redir ();"))::
 
+             (* O'Browser: *)
              XHTML.M.script ~a:[a_src (Xhtml.make_uri 
                                          (Eliom_services.static_dir ~sp)
                                          sp
                                          ["vm.js"])]
              ~contenttype:"text/javascript" (pcdata "")::
+
+             (* JS part of Eliom client for O'Browser: *)
              XHTML.M.script ~a:[a_src (Xhtml.make_uri 
                                          (Eliom_services.static_dir ~sp)
                                          sp
                                          ["eliom_obrowser.js"])]
              ~contenttype:"text/javascript" (pcdata "")::
+
+             
              XHTML.M.script ~contenttype:"text/javascript"
              (cdata_script
+                (* eliom_id_tree is some information for relinking the
+                   nodes on client side.
+                   Relinking is done in Eliom_obrowser_client.
+                *)
                 ("window.onload = function () { \n"
                  ^ "  eliom_id_tree = input_val (" ^ 
                  (Eliom_obrowser.jsmarshal
                     (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
+
+                 ^ "  eliom_global_data = input_val (" ^ 
+                 (Eliom_obrowser.jsmarshal
+                    (Eliom_obrowser.get_global_eliom_appl_data_ ~sp)
+                 ) ^ "); \n"
+
+                 (* The main client side program: *)
                  ^ "  main_vm = exec_caml (\"" ^ 
                  Appl_params.client_name ^ ".uue\") ; \n"
                  ^ " }"))::

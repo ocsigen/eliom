@@ -106,3 +106,21 @@ let client_sp s =
    Eliom_client_types.sp_fullsessname = s.Eliom_common.sp_fullsessname;}
 
 
+let global_eliom_appl_data_key : ((float * int) * unit list) Polytables.key = 
+  Polytables.make_key ()
+
+let get_global_eliom_appl_data_ ~sp = 
+  let rc = Eliom_sessions.get_request_cache ~sp in
+  try 
+    Polytables.get ~table:rc ~key:global_eliom_appl_data_key
+  with Not_found -> ((0.0, 0), [])
+
+let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key = 
+  let rc = Eliom_sessions.get_request_cache ~sp in
+  let ((reqnum, num) as n, data) = 
+    try Polytables.get ~table:rc ~key:global_eliom_appl_data_key
+    with Not_found -> ((Unix.gettimeofday (), 0), [])
+  in
+  Polytables.set ~table:rc ~key:global_eliom_appl_data_key
+    ~value:((reqnum, num+1), Obj.magic v::data);
+  Eliom_client_types.to_data_key_ n

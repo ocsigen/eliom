@@ -40,3 +40,7 @@ type server_params =
                                        (if it is a session service) *)}
 
 
+type 'a data_key = float * int
+
+let to_data_key_ v = v
+let of_data_key_ v = v

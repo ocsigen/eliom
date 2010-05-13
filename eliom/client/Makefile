@@ -8,6 +8,7 @@ OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,obrowser,str,lwt
 LIBS:=-I $(shell ocamlfind query react)
 MLS:= ocsigen_lib.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_mkforms.ml polytables.ml eliom_obrowser_client.ml eliom_client.ml xML.ml xHTML.ml
+MLIS:= eliom_client_types.mli
 CMOS=$(MLS:.ml=.cmo)
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -15,7 +16,7 @@ CMOS=$(MLS:.ml=.cmo)
 .PHONY: depend clean
 
 
-all: $(MLS) $(CMA)
+all: $(MLIS) $(MLS) $(CMA)
 
 $(CMA):  eliom_obrowser_client_stubs.o $(CMOS) ../../files/tutorial/eliom_obrowser.js
 	$(OCAMLMKLIB) -o $(CMA:.cma=) eliom_obrowser_client_stubs.o polytables.cmo $(CMOS)
@@ -41,6 +42,9 @@ eliom_services.ml: ../eliom_services_obrowser.ml
 	cp -f $< $@ 
 
 eliom_client_types.ml: ../eliom_client_types.ml
+	cp -f $< $@ 
+
+eliom_client_types.mli: ../eliom_client_types.mli
 	cp -f $< $@ 
 
 eliom_common.ml: ../eliom_common_obrowser.ml
