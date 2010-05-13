@@ -83,3 +83,4 @@ let unwrap (key : 'a Eliom_client_types.data_key) : 'a =
                (Eliom_client_types.of_data_key_ key))
 
 
+let unwrap_sp = unwrap

@@ -128,10 +128,11 @@ let.server _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick 
                 ((fun.client
-                    (sp : Eliom_client_types.server_params)
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
+                      let sp = Eliom_obrowser_client.unwrap_sp sp in
                       Eliom_client.exit_to ~sp ~service () ()
-                 ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
+                 ) (Eliom_obrowser.wrap_sp sp) Tutoeliom.coucou)
             ]
             [pcdata "Click here to go to another page."];
           
@@ -143,8 +144,9 @@ let.server _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick 
                 ((fun.client
-                    (sp : Eliom_client_types.server_params)
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
+                      let sp = Eliom_obrowser_client.unwrap_sp sp in
                       let body = JSOO.eval "document.body" in
                       (*Js.get_element_by_id "bodyid"*)
                       Eliom_client.call_service
@@ -154,7 +156,7 @@ let.server _ =
                              List.iter (Js.Node.append body) l
                            with e -> Js.alert (Printexc.to_string e));
                           Lwt.return ()
-                 ) (Eliom_obrowser.client_sp sp) myblockservice)
+                 ) (Eliom_obrowser.wrap_sp sp) myblockservice)
             ]
             [pcdata "Click here to add content from the server."];
              
@@ -170,10 +172,11 @@ let.server _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick 
                 ((fun.client
-                    (sp : Eliom_client_types.server_params)
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, 'ret) Eliom_services.service) ->
+                      let sp = Eliom_obrowser_client.unwrap_sp sp in
                       Eliom_client.change_url ~sp ~service () ()
-                 ) (Eliom_obrowser.client_sp sp) Tutoeliom.coucou)
+                 ) (Eliom_obrowser.wrap_sp sp) Tutoeliom.coucou)
             ]
             [pcdata "Click here to change the URL."];
           
@@ -185,10 +188,11 @@ let.server _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick 
                 ((fun.client
-                    (sp : Eliom_client_types.server_params)
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
+                      let sp = Eliom_obrowser_client.unwrap_sp sp in
                       Eliom_client.change_page ~sp ~service () ()
-                 ) (Eliom_obrowser.client_sp sp) eliomobrowser1)
+                 ) (Eliom_obrowser.wrap_sp sp) eliomobrowser1)
             ]
             [pcdata "Click here to change the page without stopping the program."];
 
@@ -243,11 +247,12 @@ let.server eliomobrowser3 =
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
                  ((fun.client
-                    (sp : Eliom_client_types.server_params)
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
+                      let sp = Eliom_obrowser_client.unwrap_sp sp in
                       Eliom_client.change_page ~sp ~service
                        () (22, "oo", ["a";"b";"c"]))
-                    (Eliom_obrowser.client_sp sp) eliomobrowser3')]
+                    (Eliom_obrowser.wrap_sp sp) eliomobrowser3')]
            [pcdata "Click to send Ocaml data"]
         ])
 (*wiki*
@@ -267,8 +272,9 @@ let.server eliomobrowser4 =
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
                  ((fun.client
-                    (sp : Eliom_client_types.server_params)
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, int list Eliom_parameters.caml) Eliom_services.service) -> 
+                      let sp = Eliom_obrowser_client.unwrap_sp sp in
                       let body = JSOO.eval "document.body" in
                       Eliom_client.call_caml_service ~sp ~service () ()
                       >>= fun l ->
@@ -278,7 +284,7 @@ let.server eliomobrowser4 =
                         l;
                       Lwt.return ()
                   )
-                    (Eliom_obrowser.client_sp sp) eliomobrowser4')]
+                    (Eliom_obrowser.wrap_sp sp) eliomobrowser4')]
            [pcdata "Click to receive Ocaml data"]
         ])
 (*wiki*

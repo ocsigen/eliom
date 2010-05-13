@@ -124,3 +124,6 @@ let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
   Polytables.set ~table:rc ~key:global_eliom_appl_data_key
     ~value:((reqnum, num+1), Obj.magic v::data);
   Eliom_client_types.to_data_key_ n
+
+
+let wrap_sp ~sp = wrap ~sp (client_sp sp)
