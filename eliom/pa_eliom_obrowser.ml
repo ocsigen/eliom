@@ -66,8 +66,8 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
 	    in let _loc = loc in
 
       match t with
-	| Syntax.Ast.TyId (s, Syntax.Ast.IdLid (_, "node")) ->
-            <:expr< fun ( $lid:na$ : 'a) -> let $lid:na$ = XML.ref_node (XHTML.M.toelt $lid:na$) in $e$ >>
+(*	| Syntax.Ast.TyId (s, Syntax.Ast.IdLid (_, "node")) ->
+            <:expr< fun ( $lid:na$ : 'a) -> let $lid:na$ = XML.ref_node (XHTML.M.toelt $lid:na$) in $e$ >> *)
         | _ ->
             <:expr< fun ( $lid:na$ : $t$) -> $e$ >>
     in tup_args None args
@@ -89,9 +89,9 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
     let p, t = tup_args args in
     let e =
       match p, t with
-	| Syntax.Ast.PaId (l, pn), Syntax.Ast.TyId (s, Syntax.Ast.IdLid (_, "node")) ->
+(*	| Syntax.Ast.PaId (l, pn), Syntax.Ast.TyId (s, Syntax.Ast.IdLid (_, "node")) ->
 	    let en = Syntax.Ast.ExId (l, pn) in
-	    <:expr< fun ($p$ : int) -> let $p$ = (Eliom_obrowser_client.retrieve_node $en$ : Js.Node.t) in $e$ >>
+	    <:expr< fun ($p$ : int) -> let $p$ = (Eliom_obrowser_client.retrieve_node $en$ : Js.Node.t) in $e$ >> *)
         | _ ->
 	    <:expr< fun ($p$ : $t$) -> $e$ >>
     in

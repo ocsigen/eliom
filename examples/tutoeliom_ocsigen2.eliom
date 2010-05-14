@@ -203,9 +203,11 @@ let.server _ =
 
           (let container = ul (item ()) [ item () ; item ()] in
            div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
-                       ((fun.client (container : node) ->
+                       ((fun.client (container : 'node Eliom_client_types.data_key) ->
+                           let container = Eliom_obrowser_client.unwrap_node container in
                            let nl = XHTML.M.toelt (item ()) in
-                           Js.Node.append container nl) container)]
+                           Js.Node.append container nl) 
+                          (Eliom_obrowser.wrap_node ~sp container))]
                  [pcdata "Click here to add an item below with the current version of OCaml."];
                 container]);
           

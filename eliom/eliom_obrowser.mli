@@ -15,3 +15,5 @@ val wrap : sp:Eliom_sessions.server_params -> 'a ->
 val wrap_sp : sp:Eliom_sessions.server_params ->
   Eliom_client_types.server_params Eliom_client_types.data_key
 
+val wrap_node : sp:Eliom_sessions.server_params ->
+  'a XHTML.M.elt -> 'node Eliom_client_types.data_key

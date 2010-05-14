@@ -29,7 +29,7 @@ let register_closure id f =
                          with _ ->
                            Thread.exit ())
 
-let nodes : (int, Js.Node.t) Hashtbl.t = Hashtbl.create 200
+let nodes : (int (* !!! *), Js.Node.t) Hashtbl.t = Hashtbl.create 200
 
 let set_node_id node id =
   Hashtbl.replace nodes id node
@@ -60,7 +60,8 @@ let _ =
 
 
 (* == Global application data *)
-let global_appl_data_table : ((float * int), unit) Hashtbl.t = Hashtbl.create 50
+let global_appl_data_table : (((*float !!! *) int), unit) Hashtbl.t = 
+  Hashtbl.create 50
 
 (* Loading global Eliom application data *)
 let _ =
@@ -68,7 +69,7 @@ let _ =
     List.fold_left
       (fun b v -> 
          let n = b-1 in
-         Hashtbl.replace global_appl_data_table (reqnum, n) v;
+         Hashtbl.replace global_appl_data_table ((*reqnum,*) n) v;
          n
       )
       size
@@ -80,7 +81,9 @@ let _ =
 
 let unwrap (key : 'a Eliom_client_types.data_key) : 'a = 
   Obj.magic (Hashtbl.find global_appl_data_table 
-               (Eliom_client_types.of_data_key_ key))
+               ((*!!!*) snd (Eliom_client_types.of_data_key_ key)))
 
 
 let unwrap_sp = unwrap
+
+let unwrap_node k = retrieve_node ((*!!!*) snd (Eliom_client_types.of_data_key_ k))
