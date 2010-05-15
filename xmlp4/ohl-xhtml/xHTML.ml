@@ -578,6 +578,8 @@ module type T =
     attribute is not set, the initial value is set to the contents of
     the [option] element. *)
 
+    val a_value_type : [< `Data | `Ref | `Object ] -> [>`Value_Type] attrib
+
 
 (** {3 5.5.2. Forms Module} *)
 
@@ -1009,6 +1011,8 @@ module type T =
 
     val object_ : ([< common | `Declare | `Classid | `Codebase | `Data | `Type | `Codetype | `Archive | `Standby | `Height | `Width | `Name | `Tabindex ],[< `PCDATA | flow | `Param | `Usemap ],[> `Object ]) star
 
+    val param : ([< `Id | `Name | `Value | `Value_Type | `Type ], [> `Param ]) nullary
+
 (** {2 Frames} *)
 
     val frameset : ?noframes:([< `Noframes ] elt) ->
@@ -1357,7 +1361,12 @@ module Version =
     let a_maxlength = int_attrib "maxlength"
     let a_name = string_attrib "name"
 
-
+    let a_value_type it =
+      string_attrib "valuetype"
+        (match it with
+        | `Data -> "data"
+        | `Ref -> "ref"
+        | `Object -> "object")
 
 (* XHTML 1.0 allows the name attribute for more elements:*)
     let a_name_01_00 = string_attrib "name"
@@ -1749,6 +1758,7 @@ module Version =
     let tfoot = plus "tfoot"
 
     let object_ = star "object"
+    let param = terminal "param"
 
     module IMAGE =
       struct
