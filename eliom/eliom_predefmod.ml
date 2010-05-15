@@ -2237,7 +2237,8 @@ module Actionreg_ = struct
                            ri_cookies= lazy ric;
                            ri_get_params = 
                             lazy si.Eliom_common.si_other_get_params;
-                           ri_post_params = fun _ -> Lwt.return [];
+                           ri_post_params = (fun _ -> Lwt.return []);
+                           ri_files = (fun _ -> Lwt.return []);
                         }
                       in
                       Ocsigen_extensions.serve_request
@@ -2265,7 +2266,8 @@ Warning: is it possible to have POST method but no POST parameter?
                            ri_cookies= lazy ric;
                            ri_get_params = 
                             lazy si.Eliom_common.si_other_get_params;
-                           ri_post_params = fun _ -> Lwt.return [];
+                           ri_post_params = (fun _ -> Lwt.return []);
+                           ri_files = (fun _ -> Lwt.return []);
                         }
                       in
                       Ocsigen_extensions.serve_request
