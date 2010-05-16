@@ -940,7 +940,7 @@ module type T =
                     [< `PCDATA | `Legend | flow ], [>`Fieldset]) star
     val legend : ([< common | `Accesskey ],
                     [< `PCDATA | inline ], [>`Legend]) star
-    val button : ([< common | `Name | `Value | `Button_Type ],
+    val button : ([< common | `Name | `Value | `Button_Type | `Disabled | `Accesskey | `Tabindex ],
                     [< `PCDATA | buttoncontent ], [>`Button]) star
 
 (** {2 Tables} *)
