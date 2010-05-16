@@ -39,6 +39,7 @@ type link = [ = `Link ];
 type script = [ = `Script ];
 type input = [ = `Input ];
 type textarea = [ = `Textarea ];
+type param = [ = `Param ];
 type select = [ = `Select ];
 type selectoption = [ = `Option ];
 type optgroup = [ = `Optgroup ];
@@ -196,7 +197,7 @@ type select_attrib =
   ];
 type optgroup_attrib = [ = common | `Disabled | `Label ];
 type option_attrib = [ = common | `Selected | `Value | `Disabled | `Label ];
-type button_attrib = [ = common | `Name | `Value | `Button_Type ];
+type button_attrib = [ = common | `Name | `Value | `Button_Type | `Disabled | `Accesskey | `Tabindex ];
 type fieldset_attrib = common;
 type label_attrib = [ = common | `Accesskey | `For ];
 type legend_attrib = [ = common | `Accesskey ];
