@@ -341,7 +341,7 @@ div.sanstitre {
   border: 2px solid #3860aa;
 }
 .encadre th a {
-  color: ff5555;
+  color: #ff5555;
 }
 th.row {
   text-align: right;
@@ -355,7 +355,7 @@ th.col {
   padding: 0.5em;
 }
 .encadre td a {
-  color: ff8888;
+  color: #ff8888;
 }
 .encadre td.empty {
   background-color: #3860aa;
