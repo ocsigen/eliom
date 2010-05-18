@@ -451,29 +451,27 @@ let ref_node node =
 
 type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
-let make_ref_tree root =
-  let rec map_children l =
-    let rec map i = function
-      | e :: es ->
-	  begin match make e with
-	    | Ref_tree (None, []) -> map (succ i) es
-	    | v -> (i, v) :: map (succ i) es
-	  end
-      | [] -> []
-    in map 0 l
-  and make root =
-    let children =
-      match root.elt with
-	| Empty | EncodedPCDATA _ | PCDATA _ | Entity _
-	| Leaf (_, _) | Comment _ | Whitespace _ ->
-	    []
-	| Element (_, _, elts) | BlockElement (_, _, elts)
-	| SemiBlockElement (_, _, elts) | Node (_, _, elts) ->
-	    map_children elts
-    in
-      Ref_tree ((if root.ref = 0 then None else Some root.ref), children)
+
+let rec make_ref_tree_list l =
+  let rec map i = function
+    | e :: es ->
+	begin match make_ref_tree e with
+	  | Ref_tree (None, []) -> map (succ i) es
+	  | v -> (i, v) :: map (succ i) es
+	end
+    | [] -> []
+  in map 0 l
+and make_ref_tree root =
+  let children =
+    match root.elt with
+      | Empty | EncodedPCDATA _ | PCDATA _ | Entity _
+      | Leaf (_, _) | Comment _ | Whitespace _ ->
+	  []
+      | Element (n_, _, elts) | BlockElement (n_, _, elts)
+      | SemiBlockElement (n_, _, elts) | Node (n_, _, elts) ->
+	  make_ref_tree_list elts
   in
-    make root
+  Ref_tree ((if root.ref = 0 then None else Some root.ref), children)
 
 
 	

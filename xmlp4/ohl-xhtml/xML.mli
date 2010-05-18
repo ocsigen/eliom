@@ -152,3 +152,4 @@ type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
 val ref_node : elt -> int
 val make_ref_tree : elt -> ref_tree
+val make_ref_tree_list : elt list -> (int * ref_tree) list

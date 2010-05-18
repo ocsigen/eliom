@@ -383,6 +383,7 @@ let get_request_infos
           ri_request_cache = Polytables.create ();
           ri_client = Ocsigen_extensions.client_of_connection receiver;
           ri_range = lazy (Ocsigen_headers.get_range http_frame);
+          ri_timeofday = Unix.gettimeofday ();
           ri_nb_tries = 0;
         }
     )
@@ -1272,8 +1273,7 @@ let start_server () = try
                   with Not_found -> None, (a::l)
           in
           Ocsigen_extensions.get_command_function () ?prefix s c
-        with Unknown_command -> 
-          Ocsigen_messages.warning "Unknown command: ");
+        with Unknown_command -> Ocsigen_messages.warning "Unknown command");
         f ()
       in ignore (f ());
 

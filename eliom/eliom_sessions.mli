@@ -158,6 +158,8 @@ val get_suffix : sp:server_params -> Ocsigen_lib.url_path option
 (** returns the cookies sent by the browser *)
 val get_cookies : sp:server_params -> string Ocsigen_lib.String_Table.t
 
+(** returns an Unix timestamp associated to the request *)
+val get_timeofday : sp:server_params -> float
 
 
 

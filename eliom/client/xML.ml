@@ -88,6 +88,5 @@ let node ?a name children =
     (match a with
        | Some a -> List.iter (fun (p, v) -> n >>> set p v >>> ignore) a
        | None -> ()) ;
-    n ;
     List.iter (Node.append n) children ;
     n

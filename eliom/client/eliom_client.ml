@@ -135,6 +135,21 @@ let change_url
   JSOO.eval "window.location" >>> 
   JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)))
 
+let set_inner_html code s =
+  if code <> 200
+  then Lwt.fail (Failed_service code)
+  else begin
+    let (ref_tree_list, (((timeofday, _), _) as global_data), content) = 
+      Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
+    in
+(*VVV change only the content of the container, not the full body! *)
+    let body = Ocsigen_lib.body in
+    body >>> JSOO.set "innerHTML" (JSOO.string content);
+    Eliom_obrowser_client.relink_dom_list 
+      timeofday (Js.Node.children body) ref_tree_list;
+    Eliom_obrowser_client.fill_global_data_table global_data;
+    Lwt.return ()
+  end
 
 
 let change_page
@@ -160,24 +175,19 @@ let change_page
      | Ocsigen_lib.Right (uri, p) -> Lwt_obrowser.http_post uri p >>= fun r ->
          Lwt.return (r, uri))
   >>= fun ((code, s), uri) ->
-  if code <> 200
-  then Lwt.fail (Failed_service code)
-  else begin
-(*VVV change only the content of the container, not the full body! *)
-    Ocsigen_lib.body >>> JSOO.set "innerHTML" (JSOO.string s);
+  set_inner_html code s >>= fun () ->
 (*VVV The URL is created twice ... 
   Once with eliom_appl_flag (for the request), 
   and once without it (we do not want it to appear in the URL).
   How to avoid this?
 *)
-    change_url
-      ?absolute ?absolute_path ?https
-      ~sp ~service
-      ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-      g p;
+  change_url
+    ?absolute ?absolute_path ?https
+    ~sp ~service
+    ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+    g p;
 (*VVV change the URL only if it is different? *)
-    Lwt.return ()
-  end
+  Lwt.return ()
 
 
 
@@ -206,6 +216,14 @@ let rec fragment_polling () =
 
 let _ = fragment_polling ()
 
+
+let eliom_appl_flag =
+  Eliom_parameters.string_of_nl_params_set
+    (Eliom_parameters.add_nl_parameter
+       Eliom_parameters.empty_nl_params_set
+       Eliom_parameters.eliom_appl_flag
+       true)
+
 let auto_change_page fragment =
   ignore
     (let l = String.length fragment in
@@ -222,16 +240,16 @@ let auto_change_page fragment =
              | _ ->
                  String.sub fragment 2 ((String.length fragment) - 2) 
          in
-         Js.alert ("loading "^uri);
+         let uri =
+           if String.contains uri '?'
+           then String.concat "&" [uri; eliom_appl_flag]
+           else String.concat "?" [uri; eliom_appl_flag]
+         in
          Lwt_obrowser.http_get uri [] >>= fun (code, s) ->
-         if code <> 200
-         then Lwt.fail (Failed_service code)
-         else begin
-(*VVV change only the content of the container, not the full body! *)
-           Ocsigen_lib.body >>> JSOO.set "innerHTML" (JSOO.string s);
-           Lwt.return ()
-         end)
+         set_inner_html code s
+         )
        else Lwt.return ()
      else Lwt.return ())
 
 let _ = React.E.map auto_change_page (React.S.changes fragment)
+

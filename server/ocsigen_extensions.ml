@@ -239,6 +239,7 @@ type request_info =
      (** Range HTTP header. [None] means all the document. 
          List of intervals + possibly from an index to the end of the document.
      *)
+     ri_timeofday: float; (** An Unix timestamp computed at the beginning of the request *)
      mutable ri_nb_tries: int; (** For internal use: 
                                    used to prevent loops of requests *)
    }

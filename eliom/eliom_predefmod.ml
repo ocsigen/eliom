@@ -1692,6 +1692,7 @@ module Xhtml = struct
   include Xhtmlreg
 end
 
+module Xhtmlcompact' = Xhtmlcompact
 module Xhtmlcompact = struct
   include Xhtmlforms
   include Xhtmlcompactreg
@@ -2565,160 +2566,6 @@ module Streamlist = MakeRegister(Streamlistreg_)
 (****************************************************************************)
 (****************************************************************************)
 
-type appl_service_params =
-    {
-      ap_doctype: XHTML.M.doctypes;
-      ap_title: string;
-      ap_container : 
-        Xhtmltypes.body_content elt list -> Xhtmltypes.body_content elt list;
-      ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
-    }
-
-module type APPL_PARAMS = sig
-     val client_name : string
-     val default_params : appl_service_params
-end
-
-let default_appl_params =
-  { ap_doctype = `XHTML_01_01;
-    ap_title = "Eliom application";
-    ap_container = Ocsigen_lib.id;
-    ap_headers = [];
-  }
-
-module Eliom_appl_reg_
-  (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-   with type t = [ `Html ] XHTML.M.elt
-   and type options = XHTML.M.doctypes
-  )
-  (Appl_params : APPL_PARAMS) = struct
-  open XHTML.M
-  open Xhtmltypes
-
-  type page = body_content elt list
-
-  type options = appl_service_params
-
-  type return = Eliom_services.appl_service
-
-  let create_page ~sp ~options content = 
-    let body = XHTML.M.body (options.ap_container content) in
-    XHTML.M.html
-      (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata options.ap_title)) 
-         (
-           XHTML.M.style ~contenttype:"text/css"
-             [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"]::
-
-             (* This will do a redirection if there is a #! in the URL *)
-             XHTML.M.script ~contenttype:"text/javascript"
-             (cdata_script
-                ("// Redirect if the URL contains #! while loading the page
-function redir () {
-  var str_url = window.location.toString() ;
-  try{
-    var match = str_url.match(\"(.*)/[^#/?]*(\\\\?.*)?#!((https?://)?(.*))$\");
-          //but what if there's a # the search ?
-    if(match) {
-      if(match[4]) { //absolute
-        window.location = match[3];
-        alert(\"Absolute redirection to \"+window.location);
-      }
-      else { //relative
-        window.location = match[1] + \"/\" + match[3] ;
-        alert(\"Relative redirection to \"+match[1] + \" / \" + match[3]);
-      }
-    }
-  } catch(e) {} ;
-};
-redir ();"))::
-
-             (* O'Browser: *)
-             XHTML.M.script ~a:[a_src (Xhtml.make_uri 
-                                         (Eliom_services.static_dir ~sp)
-                                         sp
-                                         ["vm.js"])]
-             ~contenttype:"text/javascript" (pcdata "")::
-
-             (* JS part of Eliom client for O'Browser: *)
-             XHTML.M.script ~a:[a_src (Xhtml.make_uri 
-                                         (Eliom_services.static_dir ~sp)
-                                         sp
-                                         ["eliom_obrowser.js"])]
-             ~contenttype:"text/javascript" (pcdata "")::
-
-             
-             XHTML.M.script ~contenttype:"text/javascript"
-             (cdata_script
-                (* eliom_id_tree is some information for relinking the
-                   nodes on client side.
-                   Relinking is done in Eliom_obrowser_client.
-                *)
-                ("window.onload = function () { \n"
-                 ^ "  eliom_id_tree = input_val (" ^ 
-                 (Eliom_obrowser.jsmarshal
-                    (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
-
-                 ^ "  eliom_global_data = input_val (" ^ 
-                 (Eliom_obrowser.jsmarshal
-                    (Eliom_obrowser.get_global_eliom_appl_data_ ~sp)
-                 ) ^ "); \n"
-
-                 (* The main client side program: *)
-                 ^ "  main_vm = exec_caml (\"" ^ 
-                 Appl_params.client_name ^ ".uue\") ; \n"
-                 ^ " }"))::
-             options.ap_headers
-
-         ))
-      body
-
-  let send ?(options = Appl_params.default_params) ?(cookies=[]) ?charset ?code
-      ?content_type ?headers ~sp content =
-    let content_only = 
-      (Eliom_parameters.get_non_localized_get_parameters
-         sp Eliom_parameters.eliom_appl_flag = Some true)
-    in
-    (if content_only
-(*VVV do not send container! *)
-     then result_of_content_subxhtml 
-       (fun ?options c -> None) (options.ap_container content)
-     else 
-       let page = create_page ~sp ~options content in
-       let options = options.ap_doctype in
-       Xhtml_content.result_of_content ~options page)
-    >>= fun r ->
-    Lwt.return
-      {r with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-         res_code= code_of_code_option code;
-         res_charset= (match charset with
-                         | None -> Some (get_config_default_charset sp)
-                         | _ -> charset
-                      );
-         res_content_type= (match content_type with
-                              | None -> r.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> r.res_headers
-                         | Some headers -> 
-                             Http_headers.with_defaults headers r.res_headers
-                      );
-      }
-
-end
-
-module Eliom_appl (Appl_params : APPL_PARAMS) = struct
-  include Xhtmlforms
-  include MakeRegister(Eliom_appl_reg_
-                         (Ocsigen_senders.Xhtmlcompact_content)
-                         (Appl_params))
-end
-
-(****************************************************************************)
-(****************************************************************************)
-
 module Camlreg_ = struct
   open XHTML.M
   open Xhtmltypes
@@ -2741,10 +2588,9 @@ module Caml = struct
 
   type options = unit
 
-
 (* the string is urlencoded because otherwise js does strange things
    with strings ... *)
-  let encode_data r = Ocsigen_lib.encode (Marshal.to_string r [])
+  let encode_data r = Ocsigen_lib.encode ~plus:false (Marshal.to_string r [])
 
   let make_eh = function
     | None -> None
@@ -2757,6 +2603,11 @@ module Caml = struct
     fun sp g p -> 
       f sp g p >>= fun r -> 
       Lwt.return (encode_data r)
+
+  let send ?options ?cookies ?charset ?code 
+      ?content_type ?headers ~sp content =
+    M.send ?options ?cookies ?charset ?code 
+      ?content_type ?headers ~sp (encode_data content)
 
   let register
       ?options
@@ -3176,3 +3027,165 @@ module Caml = struct
                                       (make_service_handler f)) 
 
 end
+
+(****************************************************************************)
+(****************************************************************************)
+
+type appl_service_params =
+    {
+      ap_doctype: XHTML.M.doctypes;
+      ap_title: string;
+      ap_container : 
+        Xhtmltypes.body_content elt list -> Xhtmltypes.body_content elt list;
+      ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
+    }
+
+module type APPL_PARAMS = sig
+     val client_name : string
+     val default_params : appl_service_params
+end
+
+let default_appl_params =
+  { ap_doctype = `XHTML_01_01;
+    ap_title = "Eliom application";
+    ap_container = Ocsigen_lib.id;
+    ap_headers = [];
+  }
+
+module Eliom_appl_reg_
+  (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
+   with type t = [ `Html ] XHTML.M.elt
+   and type options = XHTML.M.doctypes
+  )
+  (Appl_params : APPL_PARAMS) = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = body_content elt list
+
+  type options = appl_service_params
+
+  type return = Eliom_services.appl_service
+
+  let create_page ~sp ~options content = 
+    let body = XHTML.M.body (options.ap_container content) in
+    XHTML.M.html
+      (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata options.ap_title)) 
+         (
+           XHTML.M.style ~contenttype:"text/css"
+             [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"]::
+
+             (* This will do a redirection if there is a #! in the URL *)
+             XHTML.M.script ~contenttype:"text/javascript"
+             (cdata_script
+                ("// Redirect if the URL contains #! while loading the page
+function redir () {
+  var str_url = window.location.toString() ;
+  try{
+    var match = str_url.match(\"(.*)/[^#/?]*(\\\\?.*)?#!((https?://)?(.*))$\");
+          //but what if there's a # the search ?
+    if(match) {
+      if(match[4]) { //absolute
+        window.location = match[3];
+        alert(\"Absolute redirection to \"+window.location);
+      }
+      else { //relative
+        window.location = match[1] + \"/\" + match[3] ;
+        alert(\"Relative redirection to \"+match[1] + \" / \" + match[3]);
+      }
+    }
+  } catch(e) {} ;
+};
+redir ();"))::
+
+             (* O'Browser: *)
+             XHTML.M.script ~a:[a_src (Xhtml.make_uri 
+                                         (Eliom_services.static_dir ~sp)
+                                         sp
+                                         ["vm.js"])]
+             ~contenttype:"text/javascript" (pcdata "")::
+
+             (* JS part of Eliom client for O'Browser: *)
+             XHTML.M.script ~a:[a_src (Xhtml.make_uri 
+                                         (Eliom_services.static_dir ~sp)
+                                         sp
+                                         ["eliom_obrowser.js"])]
+             ~contenttype:"text/javascript" (pcdata "")::
+
+             
+             XHTML.M.script ~contenttype:"text/javascript"
+             (cdata_script
+                (* eliom_id_tree is some information for relinking the
+                   nodes on client side.
+                   Relinking is done in Eliom_obrowser_client.
+                *)
+                ("window.onload = function () { \n"
+                 ^ "  eliom_id_tree = input_val (" ^ 
+                 (Eliom_obrowser.jsmarshal
+                    (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
+
+                 ^ "  eliom_global_data = input_val (" ^ 
+                 (Eliom_obrowser.jsmarshal
+                    (Eliom_obrowser.get_global_eliom_appl_data_ ~sp)
+                 ) ^ "); \n"
+
+                 (* The main client side program: *)
+                 ^ "  main_vm = exec_caml (\"" ^ 
+                 Appl_params.client_name ^ ".uue\") ; \n"
+                 ^ " }"))::
+             options.ap_headers
+
+         ))
+      body
+
+  let send ?(options = Appl_params.default_params) ?(cookies=[]) ?charset ?code
+      ?content_type ?headers ~sp content =
+    let content_only = 
+      (Eliom_parameters.get_non_localized_get_parameters
+         sp Eliom_parameters.eliom_appl_flag = Some true)
+    in
+    (if content_only
+(*VVV do not send container! *)
+     then 
+(*       result_of_content_subxhtml 
+         (fun ?options c -> None) (options.ap_container content) *)
+(*VVV Here we do not send a stream *)
+       Caml.send ~sp (let c = options.ap_container content in
+                      ((XML.make_ref_tree_list (XHTML.M.toeltl c)),
+                       (Eliom_obrowser.get_global_eliom_appl_data_ ~sp),
+(*VVV Use another serialization format than XML for the page? *)
+                       Xhtmlcompact'.xhtml_list_print c))
+     else 
+       let page = create_page ~sp ~options content in
+       let options = options.ap_doctype in
+       Xhtml_content.result_of_content ~options page)
+    >>= fun r ->
+    Lwt.return
+      {r with
+         res_cookies=
+          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+         res_code= code_of_code_option code;
+         res_charset= (match charset with
+                         | None -> Some (get_config_default_charset sp)
+                         | _ -> charset
+                      );
+         res_content_type= (match content_type with
+                              | None -> r.res_content_type
+                              | _ -> content_type
+                           );
+         res_headers= (match headers with
+                         | None -> r.res_headers
+                         | Some headers -> 
+                             Http_headers.with_defaults headers r.res_headers
+                      );
+      }
+
+end
+
+module Eliom_appl (Appl_params : APPL_PARAMS) = struct
+  include Xhtmlforms
+  include MakeRegister(Eliom_appl_reg_
+                         (Ocsigen_senders.Xhtmlcompact_content)
+                         (Appl_params))
+end
+

@@ -114,7 +114,7 @@ let get_global_eliom_appl_data_ ~sp =
   try 
     Polytables.get ~table:rc ~key:global_eliom_appl_data_key
   with Not_found -> 
-    let d = ((Unix.gettimeofday (), 0), []) in
+    let d = ((Eliom_sessions.get_timeofday ~sp, 0), []) in
     Polytables.set ~table:rc ~key:global_eliom_appl_data_key ~value:d;
     d
 
@@ -122,7 +122,7 @@ let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
   let rc = Eliom_sessions.get_request_cache ~sp in
   let ((reqnum, num) as n, data) = 
     try Polytables.get ~table:rc ~key:global_eliom_appl_data_key
-    with Not_found -> ((Unix.gettimeofday (), 0), [])
+    with Not_found -> ((Eliom_sessions.get_timeofday ~sp, 0), [])
   in
   Polytables.set ~table:rc ~key:global_eliom_appl_data_key
     ~value:((reqnum, num+1), Obj.magic v::data);
@@ -132,5 +132,5 @@ let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
 let wrap_sp ~sp = wrap ~sp (client_sp sp)
 
 let wrap_node ~sp n = 
-  let ((reqnum, _), _) = get_global_eliom_appl_data_ ~sp in
+  let reqnum = Eliom_sessions.get_timeofday ~sp in
   Eliom_client_types.to_data_key_ (reqnum, XML.ref_node (XHTML.M.toelt n))
