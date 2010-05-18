@@ -71,7 +71,13 @@ let get_all_post_params ~sp = sp.sp_si.Eliom_common.si_all_post_params
 let loc_ = JSOO.eval "window.location"
 
 let full_path_ =
-  Ocsigen_lib.urldecode_string (loc_ >>> JSOO.get "pathname" >>> JSOO.as_string)
+  let s = 
+    Ocsigen_lib.urldecode_string
+      (loc_ >>> JSOO.get "pathname" >>> JSOO.as_string)
+  in
+  if String.length s > 0 && s.[0] = '/'
+  then String.sub s 1 (String.length s - 1)
+  else s
 
 let full_uri =
   Ocsigen_lib.urldecode_string (loc_ >>> JSOO.get "href" >>> JSOO.as_string)

@@ -107,6 +107,7 @@ let exit_to
 
 
 let url_fragment_prefix = "!"
+let url_fragment_prefix_with_sharp = "#!"
 
 (** This will change the URL, without doing a request.
     As browsers do not not allow to change the URL,
@@ -131,7 +132,7 @@ let change_url
        | Ocsigen_lib.Left uri -> uri
        | Ocsigen_lib.Right (uri, p) -> uri)
   in
-  current_fragment := "#!"^uri; 
+  current_fragment := url_fragment_prefix_with_sharp^uri; 
   JSOO.eval "window.location" >>> 
   JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)))
 
