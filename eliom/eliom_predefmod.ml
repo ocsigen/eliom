@@ -3035,8 +3035,12 @@ type appl_service_params =
     {
       ap_doctype: XHTML.M.doctypes;
       ap_title: string;
-      ap_container : 
-        Xhtmltypes.body_content elt list -> Xhtmltypes.body_content elt list;
+      ap_container : 'a.
+        ((([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option *
+           (Xhtmltypes.body_content elt -> Xhtmltypes.body_content elt list))
+        option;
+      ap_body_attributes : 
+        'a. (([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option;
       ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
     }
 
@@ -3048,7 +3052,8 @@ end
 let default_appl_params =
   { ap_doctype = `XHTML_01_01;
     ap_title = "Eliom application";
-    ap_container = Ocsigen_lib.id;
+    ap_container = None;
+    ap_body_attributes = None;
     ap_headers = [];
   }
 
@@ -3068,7 +3073,16 @@ module Eliom_appl_reg_
   type return = Eliom_services.appl_service
 
   let create_page ~sp ~options content = 
-    let body = XHTML.M.body (options.ap_container content) in
+    let body, container_node = match options.ap_container with
+      | None -> let b = XHTML.M.body ?a:options.ap_body_attributes content in
+        (b, (XHTML.M.toelt b))
+      | Some (a, container) ->
+          let d = XHTML.M.div ?a content in
+          (XHTML.M.body
+             ?a:options.ap_body_attributes 
+             (container d),
+           (XHTML.M.toelt d))
+    in
     XHTML.M.html
       (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata options.ap_title)) 
          (
@@ -3129,6 +3143,13 @@ redir ();"))::
                     (Eliom_obrowser.get_global_eliom_appl_data_ ~sp)
                  ) ^ "); \n"
 
+                 ^ "  container_node = input_val (" ^ 
+                 let reqnum = Eliom_sessions.get_timeofday ~sp in
+                 (Eliom_obrowser.jsmarshal
+                    (Eliom_client_types.to_data_key_ 
+                       (reqnum, XML.ref_node container_node))
+                 ) ^ "); \n"
+
                  (* The main client side program: *)
                  ^ "  main_vm = exec_caml (\"" ^ 
                  Appl_params.client_name ^ ".uue\") ; \n"
@@ -3147,14 +3168,11 @@ redir ();"))::
     (if content_only
 (*VVV do not send container! *)
      then 
-(*       result_of_content_subxhtml 
-         (fun ?options c -> None) (options.ap_container content) *)
 (*VVV Here we do not send a stream *)
-       Caml.send ~sp (let c = options.ap_container content in
-                      ((XML.make_ref_tree_list (XHTML.M.toeltl c)),
-                       (Eliom_obrowser.get_global_eliom_appl_data_ ~sp),
+       Caml.send ~sp ((XML.make_ref_tree_list (XHTML.M.toeltl content)),
+                      (Eliom_obrowser.get_global_eliom_appl_data_ ~sp),
 (*VVV Use another serialization format than XML for the page? *)
-                       Xhtmlcompact'.xhtml_list_print c))
+                      Xhtmlcompact'.xhtml_list_print content)
      else 
        let page = create_page ~sp ~options content in
        let options = options.ap_doctype in

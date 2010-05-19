@@ -136,6 +136,11 @@ let change_url
   JSOO.eval "window.location" >>> 
   JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)))
 
+
+let container_node = 
+  Eliom_obrowser_client.unwrap_node 
+    (Obj.obj (JSOO.eval "container_node" >>> JSOO.as_block))
+
 let set_inner_html code s =
   if code <> 200
   then Lwt.fail (Failed_service code)
@@ -144,10 +149,10 @@ let set_inner_html code s =
       Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
     in
 (*VVV change only the content of the container, not the full body! *)
-    let body = Ocsigen_lib.body in
-    body >>> JSOO.set "innerHTML" (JSOO.string content);
+    let container = container_node in
+    container >>> JSOO.set "innerHTML" (JSOO.string content);
     Eliom_obrowser_client.relink_dom_list 
-      timeofday (Js.Node.children body) ref_tree_list;
+      timeofday (Js.Node.children container) ref_tree_list;
     Eliom_obrowser_client.fill_global_data_table global_data;
     Lwt.return ()
   end

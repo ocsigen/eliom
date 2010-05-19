@@ -793,8 +793,12 @@ type appl_service_params =
     {
       ap_doctype: XHTML.M.doctypes;
       ap_title: string;
-      ap_container : 
-        Xhtmltypes.body_content elt list -> Xhtmltypes.body_content elt list;
+      ap_container : 'a.
+        ((([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option *
+           (Xhtmltypes.body_content elt -> Xhtmltypes.body_content elt list))
+        option;
+      ap_body_attributes : 
+        'a. (([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option;
       ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
     }
 

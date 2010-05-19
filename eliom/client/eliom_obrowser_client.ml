@@ -54,7 +54,6 @@ let ((timeofday, _), _) as global_data =
 let _ = fill_global_data_table global_data
 
 
-
 (* == Relinking DOM nodes *)
 let nodes : ((float * int), Js.Node.t) Hashtbl.t = Hashtbl.create 200
 

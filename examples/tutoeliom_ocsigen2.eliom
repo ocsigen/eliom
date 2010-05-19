@@ -62,7 +62,9 @@ module.server Eliom_appl =
            Eliom_predefmod.ap_title = "Eliom application example";
            Eliom_predefmod.ap_headers = 
             [XHTML.M.style ~contenttype:"text/css"
-               [XHTML.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]]
+               [XHTML.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]];
+           Eliom_predefmod.ap_container = 
+            Some (None, fun div -> [h1 [pcdata "Eliom application"]; div ])
         }
     end)
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
