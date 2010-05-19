@@ -137,7 +137,7 @@ let.server _ =
                  ) (Eliom_obrowser.wrap_sp sp) Tutoeliom.coucou)
             ]
             [pcdata "Click here to go to another page."];
-          
+(*zap* *)
 (*wiki*
   The following examples shows how to do a request to a service,
   and use the content:
@@ -153,14 +153,16 @@ let.server _ =
                       (*Js.get_element_by_id "bodyid"*)
                       Eliom_client.call_service
                         ~sp ~service:myblockservice () () >>= fun s ->
-                          (try
-                             let l = Js.Node.children (Js.dom_of_xml s) in
-                             List.iter (Js.Node.append body) l
-                           with e -> Js.alert (Printexc.to_string e));
-                          Lwt.return ()
+                      (try
+                         let l = Js.Node.children (Js.dom_of_xml s) in
+                         List.iter (Js.Node.append body) l
+                       with e -> Js.alert (Printexc.to_string e));
+(* does not work with chrome. A solution is probably to use set "innerHTML". *)
+                       Lwt.return ()
                  ) (Eliom_obrowser.wrap_sp sp) myblockservice)
             ]
             [pcdata "Click here to add content from the server."];
+(* *zap*)
              
 (*wiki*
   The following examples shows how to change the URL.
@@ -197,6 +199,24 @@ let.server _ =
                  ) (Eliom_obrowser.wrap_sp sp) eliomobrowser1)
             ]
             [pcdata "Click here to change the page without stopping the program."];
+
+(*wiki*
+  The following examples shows how to get a subpage from the server,
+  and put it inside your page.
+*wiki*)
+          p 
+            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+              a_onclick 
+                ((fun.client
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
+                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      Eliom_client.get_subpage ~sp ~service () () >>= fun blocks ->
+                      List.iter (Js.Node.append Ocsigen_lib.body) (XHTML.M.toeltl blocks);
+                      Lwt.return ()
+                 ) (Eliom_obrowser.wrap_sp sp) eliomobrowser1)
+            ]
+            [pcdata "Click here to get a subpage from server."];
 
              
 (*wiki*

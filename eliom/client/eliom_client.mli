@@ -132,3 +132,23 @@ val change_page :
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
+
+val get_subpage :
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  sp:Eliom_client_types.server_params ->
+  service:('a, 'b,
+           [ `Attached of
+               ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
+           | `Nonattached of 'c Eliom_services.na_s ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f,
+           Eliom_services.appl_service)
+          Eliom_services.service ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?keep_get_na_params:bool -> 'a -> 'b -> 
+  [< `PCDATA | XHTML.M.flow ] XHTML.M.elt list Lwt.t

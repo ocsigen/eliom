@@ -148,11 +148,9 @@ let set_inner_html code s =
     let (ref_tree_list, (((timeofday, _), _) as global_data), content) = 
       Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
     in
-(*VVV change only the content of the container, not the full body! *)
-    let container = container_node in
-    container >>> JSOO.set "innerHTML" (JSOO.string content);
+    container_node >>> JSOO.set "innerHTML" (JSOO.string content);
     Eliom_obrowser_client.relink_dom_list 
-      timeofday (Js.Node.children container) ref_tree_list;
+      timeofday (Js.Node.children container_node) ref_tree_list;
     Eliom_obrowser_client.fill_global_data_table global_data;
     Lwt.return ()
   end
@@ -194,6 +192,47 @@ let change_page
     g p;
 (*VVV change the URL only if it is different? *)
   Lwt.return ()
+
+
+let fake_page = 
+  XHTML.M.toelt (XHTML.M.body [])
+
+let get_subpage
+    ?absolute ?absolute_path ?https
+    ~sp ~service
+    ?hostname ?port ?fragment ?keep_nl_params
+    ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
+    g p =
+  (match create_request_
+     ?absolute ?absolute_path ?https
+     ~sp ~service
+     ?hostname ?port ?fragment ?keep_nl_params
+     ~nl_params:(Eliom_parameters.add_nl_parameter
+                   nl_params
+                   Eliom_parameters.eliom_appl_flag
+                   true)
+     ?keep_get_na_params
+     g p
+   with
+     | Ocsigen_lib.Left uri -> 
+         Lwt_obrowser.http_get uri []
+     | Ocsigen_lib.Right (uri, p) -> Lwt_obrowser.http_post uri p)
+  >>= fun (code, s) ->
+  if code <> 200
+  then Lwt.fail (Failed_service code)
+  else begin
+    let (ref_tree_list, (((timeofday, _), _) as global_data), content) = 
+      Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
+    in
+    (* Hack to make the result considered as XHTML: *)
+    fake_page >>> JSOO.set "innerHTML" (JSOO.string content);
+    let nodes = Js.Node.children fake_page in
+    fake_page >>> JSOO.set "innerHTML" (JSOO.string "");
+    Eliom_obrowser_client.relink_dom_list timeofday nodes ref_tree_list;
+    Eliom_obrowser_client.fill_global_data_table global_data;
+    Lwt.return (XHTML.M.totl nodes)
+  end
+
 
 
 
