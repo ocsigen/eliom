@@ -3183,7 +3183,9 @@ redir ();"))::
                  ) ^ "\"; \n"
 
                  ^ "  appl_instance_id = \"" ^ 
-                 (Eliommod_cookies.make_new_cookie_value ()
+                 (match Eliom_sessions.get_application_instance ~sp with
+                    | Some s -> s
+                    | None -> "<error: application instance id not created>"
                  ) ^ "\"; \n"
 
                  (* The main client side program: *)
@@ -3195,7 +3197,19 @@ redir ();"))::
          ))
       body
 
-  let pre_service ?options ~sp = Lwt.return ()
+  let pre_service ?options ~sp =
+    (* If we launch a new application, we must set the application name
+       and create an application instance id *)
+    if Eliom_sessions.get_content_only ~sp (* the application already exists *)
+    then Lwt.return ()
+    else begin
+      let rc = Eliom_sessions.get_request_cache ~sp in
+      Polytables.set ~table:rc ~key:Eliom_parameters.appl_name_key
+        ~value:(Some Appl_params.application_name);
+      Polytables.set ~table:rc ~key:Eliom_parameters.appl_instance_key 
+        ~value:(Some (Eliommod_cookies.make_new_cookie_value ()));
+      Lwt.return ()
+    end
 
   let send ?(options = Appl_params.default_params) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
