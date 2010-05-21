@@ -3074,7 +3074,7 @@ type appl_service_params =
 
 module type APPL_PARAMS = sig
      val application_name : string
-     val default_params : appl_service_params
+     val params : appl_service_params
 end
 
 let default_appl_params =
@@ -3096,23 +3096,23 @@ module Eliom_appl_reg_
 
   type page = body_content elt list
 
-  type options = appl_service_params
+  type options = bool
 
   type return = Eliom_services.appl_service
 
-  let create_page ~sp ~options content = 
-    let body, container_node = match options.ap_container with
-      | None -> let b = XHTML.M.body ?a:options.ap_body_attributes content in
+  let create_page ~sp params do_not_launch_application content = 
+    let body, container_node = match params.ap_container with
+      | None -> let b = XHTML.M.body ?a:params.ap_body_attributes content in
         (b, (XHTML.M.toelt b))
       | Some (a, container) ->
           let d = XHTML.M.div ?a content in
           (XHTML.M.body
-             ?a:options.ap_body_attributes 
+             ?a:params.ap_body_attributes 
              (container d),
            (XHTML.M.toelt d))
     in
     XHTML.M.html
-      (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata options.ap_title)) 
+      (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata params.ap_title)) 
          (
            XHTML.M.style ~contenttype:"text/css"
              [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"]::
@@ -3140,67 +3140,71 @@ function redir () {
 };
 redir ();"))::
 
-             (* O'Browser: *)
-             XHTML.M.script ~a:[a_src (Xhtml.make_uri 
-                                         (Eliom_services.static_dir ~sp)
-                                         sp
-                                         ["vm.js"])]
-             ~contenttype:"text/javascript" (pcdata "")::
-
-             (* JS part of Eliom client for O'Browser: *)
-             XHTML.M.script ~a:[a_src (Xhtml.make_uri 
-                                         (Eliom_services.static_dir ~sp)
-                                         sp
-                                         ["eliom_obrowser.js"])]
-             ~contenttype:"text/javascript" (pcdata "")::
-
-             
-             XHTML.M.script ~contenttype:"text/javascript"
-             (cdata_script
-                (* eliom_id_tree is some information for relinking the
-                   nodes on client side.
-                   Relinking is done in Eliom_obrowser_client.
-                *)
-                ("window.onload = function () { \n"
-                 ^ "  eliom_id_tree = input_val (" ^ 
-                 (Eliom_obrowser.jsmarshal
-                    (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
-
-                 ^ "  eliom_global_data = input_val (" ^ 
-                 (Eliom_obrowser.jsmarshal
-                    (Eliom_obrowser.get_global_eliom_appl_data_ ~sp)
-                 ) ^ "); \n"
-
-                 ^ "  container_node = input_val (" ^ 
-                 let reqnum = Eliom_sessions.get_timeofday ~sp in
-                 (Eliom_obrowser.jsmarshal
-                    (Eliom_client_types.to_data_key_ 
-                       (reqnum, XML.ref_node container_node))
-                 ) ^ "); \n"
-
-                 ^ "  appl_name = \"" ^ 
-                 (Appl_params.application_name
-                 ) ^ "\"; \n"
-
-                 ^ "  appl_instance_id = \"" ^ 
-                 (match Eliom_sessions.get_application_instance ~sp with
-                    | Some s -> s
-                    | None -> "<error: application instance id not created>"
-                 ) ^ "\"; \n"
-
-                 (* The main client side program: *)
-                 ^ "  main_vm = exec_caml (\"" ^ 
-                 Appl_params.application_name ^ ".uue\") ; \n"
-                 ^ " }"))::
-             options.ap_headers
+             if not do_not_launch_application
+             then
+               (* O'Browser: *)
+               XHTML.M.script ~a:[a_src (Xhtml.make_uri 
+                                           (Eliom_services.static_dir ~sp)
+                                           sp
+                                           ["vm.js"])]
+                 ~contenttype:"text/javascript" (pcdata "")::
+                 
+                 (* JS part of Eliom client for O'Browser: *)
+                 XHTML.M.script ~a:[a_src (Xhtml.make_uri 
+                                             (Eliom_services.static_dir ~sp)
+                                             sp
+                                             ["eliom_obrowser.js"])]
+                 ~contenttype:"text/javascript" (pcdata "")::
+                 
+                 
+                 XHTML.M.script ~contenttype:"text/javascript"
+                 (cdata_script
+                    (* eliom_id_tree is some information for relinking the
+                       nodes on client side.
+                       Relinking is done in Eliom_obrowser_client.
+                    *)
+                    ("window.onload = function () { \n"
+                     ^ "  eliom_id_tree = input_val (" ^ 
+                     (Eliom_obrowser.jsmarshal
+                        (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
+                     
+                     ^ "  eliom_global_data = input_val (" ^ 
+                     (Eliom_obrowser.jsmarshal
+                        (Eliom_obrowser.get_global_eliom_appl_data_ ~sp)
+                     ) ^ "); \n"
+                     
+                     ^ "  container_node = input_val (" ^ 
+                     let reqnum = Eliom_sessions.get_timeofday ~sp in
+                     (Eliom_obrowser.jsmarshal
+                        (Eliom_client_types.to_data_key_ 
+                           (reqnum, XML.ref_node container_node))
+                     ) ^ "); \n"
+                       
+                     ^ "  appl_name = \"" ^ 
+                       (Appl_params.application_name
+                       ) ^ "\"; \n"
+                       
+                     ^ "  appl_instance_id = \"" ^ 
+                       (match Eliom_sessions.get_application_instance ~sp with
+                          | Some s -> s
+                          | None -> "<error: application instance id not created>"
+                       ) ^ "\"; \n"
+                       
+                     (* The main client side program: *)
+                     ^ "  main_vm = exec_caml (\"" ^ 
+                       Appl_params.application_name ^ ".uue\") ; \n"
+                     ^ " }"))::
+                 params.ap_headers
+             else params.ap_headers
 
          ))
       body
 
-  let pre_service ?options ~sp =
+  let pre_service ?(options = false) ~sp =
     (* If we launch a new application, we must set the application name
        and create an application instance id *)
-    if Eliom_sessions.get_content_only ~sp (* the application already exists *)
+    if options ||
+      Eliom_sessions.get_content_only ~sp (* the application already exists *)
     then Lwt.return ()
     else begin
       let rc = Eliom_sessions.get_request_cache ~sp in
@@ -3211,7 +3215,7 @@ redir ();"))::
       Lwt.return ()
     end
 
-  let send ?(options = Appl_params.default_params) ?(cookies=[]) ?charset ?code
+  let send ?(options = false) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     let content_only = Eliom_sessions.get_content_only ~sp in
     (if content_only
@@ -3223,8 +3227,9 @@ redir ();"))::
 (*VVV Use another serialization format than XML for the page? *)
                       Xhtmlcompact'.xhtml_list_print content)
      else 
-       let page = create_page ~sp ~options content in
-       let options = options.ap_doctype in
+(*VVV for now not possible to give other params for one page *)
+       let page = create_page ~sp Appl_params.params options content in
+       let options = Appl_params.params.ap_doctype in
        Xhtml_content.result_of_content ~options page)
     >>= fun r ->
     Lwt.return

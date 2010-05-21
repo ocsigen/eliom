@@ -57,7 +57,7 @@ module.server Eliom_appl =
   Eliom_predefmod.Eliom_appl (
     struct
       let.server application_name = "tutoeliom_ocsigen2_client"
-      let.server default_params =
+      let.server params =
         {Eliom_predefmod.default_appl_params with
            Eliom_predefmod.ap_title = "Eliom application example";
            Eliom_predefmod.ap_headers = 
@@ -315,6 +315,61 @@ let.server eliomobrowser4 =
                     (Eliom_obrowser.wrap_sp sp) eliomobrowser4')]
            [pcdata "Click to receive Ocaml data"]
         ])
+(*wiki*
+====Other tests:
+*wiki*)
+let.server withoutobrowser =
+  Eliom_services.new_service
+    ~path:["withoutobrowser"]
+    ~get_params:unit
+    ()
+
+let.server gotowithoutobrowser =
+  Eliom_services.new_service
+    ~path:["gotowithoutobrowser"]
+    ~get_params:unit
+    ()
+
+
+let.server _ =
+  Eliom_appl.register
+    ~options:true
+    ~service:withoutobrowser
+    (fun sp () () ->
+       Lwt.return
+         [p [pcdata "If the application was not launched before coming here (or if you reload), this page will not launch it. But if it was launched before, it is still running."];
+          p 
+            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+              a_onclick 
+                ((fun.client
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
+                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      Eliom_client.change_page ~sp ~service () ()
+                 ) (Eliom_obrowser.wrap_sp sp) gotowithoutobrowser)
+            ]
+            [pcdata "Click here to go to a page that launches the application every time."]
+         ]);
+  Eliom_appl.register
+    ~service:gotowithoutobrowser
+    (fun sp () () ->
+       Lwt.return
+         [p [pcdata "The application is launched."];
+          p 
+            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+              a_onclick 
+                ((fun.client
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
+                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
+                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      Eliom_client.change_page ~sp ~service () ()
+                 ) (Eliom_obrowser.wrap_sp sp) withoutobrowser)
+            ]
+            [pcdata "Click here to see the page that does not launch the application."]
+         ])
+
+
+
 (*wiki*
 ====Implicit registration of services to implement distant function calls
 *wiki*)
@@ -588,6 +643,8 @@ let.server _ = Eliom_predefmod.Xhtmlcompact.register main
               a eliomobrowser3 sp [pcdata "Caml values in service parameters"] ();
             br ();
               a eliomobrowser4 sp [pcdata "A service sending a Caml value"] ();
+            br ();
+              a gotowithoutobrowser sp [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
             br ();
           ]
           ]

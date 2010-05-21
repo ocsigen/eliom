@@ -813,13 +813,13 @@ module type APPL_PARAMS = sig
   *)
   val application_name : string
 
-  val default_params : appl_service_params
+  val params : appl_service_params
 end
 
 module Eliom_appl (Appl_params : APPL_PARAMS) : sig
   include Eliom_mkreg.ELIOMREGSIG 
     with type page = Xhtmltypes.body_content elt list
-    and type options = appl_service_params
+    and type options = bool
     and type return = Eliom_services.appl_service
 
   include XHTMLFORMSSIG
