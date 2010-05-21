@@ -25,6 +25,9 @@ let (>>=) = Lwt.bind
 let (>>>) x f = f x
 
 let current_fragment = ref ""
+
+let appl_instance_id =
+  ((JSOO.eval "appl_instance_id" >>> JSOO.as_string) : string)
   
 let create_request_
     ?absolute ?absolute_path ?https
@@ -169,7 +172,7 @@ let change_page
      ~nl_params:(Eliom_parameters.add_nl_parameter
                    nl_params
                    Eliom_parameters.eliom_appl_flag
-                   true)
+                   appl_instance_id)
      ?keep_get_na_params
      g p
    with
@@ -210,7 +213,7 @@ let get_subpage
      ~nl_params:(Eliom_parameters.add_nl_parameter
                    nl_params
                    Eliom_parameters.eliom_appl_flag
-                   true)
+                   appl_instance_id)
      ?keep_get_na_params
      g p
    with
@@ -267,7 +270,7 @@ let eliom_appl_flag =
     (Eliom_parameters.add_nl_parameter
        Eliom_parameters.empty_nl_params_set
        Eliom_parameters.eliom_appl_flag
-       true)
+       appl_instance_id)
 
 let auto_change_page fragment =
   ignore

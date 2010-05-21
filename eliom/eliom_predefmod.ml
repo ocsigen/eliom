@@ -3150,6 +3150,10 @@ redir ();"))::
                        (reqnum, XML.ref_node container_node))
                  ) ^ "); \n"
 
+                 ^ "  appl_instance_id = \"" ^ 
+                 (Eliommod_cookies.make_new_cookie_value ()
+                 ) ^ "\"; \n"
+
                  (* The main client side program: *)
                  ^ "  main_vm = exec_caml (\"" ^ 
                  Appl_params.client_name ^ ".uue\") ; \n"
@@ -3163,7 +3167,7 @@ redir ();"))::
       ?content_type ?headers ~sp content =
     let content_only = 
       (Eliom_parameters.get_non_localized_get_parameters
-         sp Eliom_parameters.eliom_appl_flag = Some true)
+         sp Eliom_parameters.eliom_appl_flag <> None)
     in
     (if content_only
 (*VVV do not send container! *)

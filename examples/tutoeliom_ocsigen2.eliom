@@ -137,7 +137,7 @@ let.server _ =
                  ) (Eliom_obrowser.wrap_sp sp) Tutoeliom.coucou)
             ]
             [pcdata "Click here to go to another page."];
-(*zap* *)
+(*zap* 
 (*wiki*
   The following examples shows how to do a request to a service,
   and use the content:
@@ -162,7 +162,7 @@ let.server _ =
                  ) (Eliom_obrowser.wrap_sp sp) myblockservice)
             ]
             [pcdata "Click here to add content from the server."];
-(* *zap*)
+ *zap*)
              
 (*wiki*
   The following examples shows how to change the URL.

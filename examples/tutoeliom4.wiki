@@ -145,7 +145,7 @@ let.server _ =
                  ) (Eliom_obrowser.wrap_sp sp) myblockservice)
             ]
             [pcdata "Click here to add content from the server."];
-(* 
+ 
 *zap*)
              
 >>

@@ -521,7 +521,7 @@ let eliom_appl_flag =
   make_non_localized_parameters
     ~prefix:"Eliom"
     ~name:"appl_request"
-    (bool "contentonly")
+    (string "appl_instance")
 
 
 (*****************************************************************************)
