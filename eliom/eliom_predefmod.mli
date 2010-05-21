@@ -805,8 +805,15 @@ type appl_service_params =
 val default_appl_params : appl_service_params
 
 module type APPL_PARAMS = sig
-     val client_name : string
-     val default_params : appl_service_params
+
+  (** Name of the application. 
+      The name of the client side program must be the this name plus
+      ".uue" suffix.
+      Two distincts applications must have distincts names.
+  *)
+  val application_name : string
+
+  val default_params : appl_service_params
 end
 
 module Eliom_appl (Appl_params : APPL_PARAMS) : sig
@@ -816,6 +823,13 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
     and type return = Eliom_services.appl_service
 
   include XHTMLFORMSSIG
+
+  (** Unique identifier for this application.
+      It is the application name.
+      Warning: do not mix up with the "application instance id",
+      that is unique for each instance of the application.
+  *)
+  val application_name : string
 end
 
 

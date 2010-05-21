@@ -45,7 +45,7 @@ open.server Eliom_services
 module.server Eliom_appl =
   Eliom_predefmod.Eliom_appl (
     struct
-      let.server client_name = "tutoeliom_ocsigen2_client"
+      let.server application_name = "tutoeliom_ocsigen2_client"
       let.server default_params =
         {Eliom_predefmod.default_appl_params with
            Eliom_predefmod.ap_title = "Eliom application example";

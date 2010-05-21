@@ -3045,7 +3045,7 @@ type appl_service_params =
     }
 
 module type APPL_PARAMS = sig
-     val client_name : string
+     val application_name : string
      val default_params : appl_service_params
 end
 
@@ -3150,13 +3150,17 @@ redir ();"))::
                        (reqnum, XML.ref_node container_node))
                  ) ^ "); \n"
 
+                 ^ "  appl_id = \"" ^ 
+                 (Appl_params.application_name
+                 ) ^ "\"; \n"
+
                  ^ "  appl_instance_id = \"" ^ 
                  (Eliommod_cookies.make_new_cookie_value ()
                  ) ^ "\"; \n"
 
                  (* The main client side program: *)
                  ^ "  main_vm = exec_caml (\"" ^ 
-                 Appl_params.client_name ^ ".uue\") ; \n"
+                 Appl_params.application_name ^ ".uue\") ; \n"
                  ^ " }"))::
              options.ap_headers
 
@@ -3209,5 +3213,12 @@ module Eliom_appl (Appl_params : APPL_PARAMS) = struct
   include MakeRegister(Eliom_appl_reg_
                          (Ocsigen_senders.Xhtmlcompact_content)
                          (Appl_params))
+
+  (** Unique identifier for this application.
+      It is the application name.
+      Warning: do not mix up with the "application instance id",
+      that is unique for each instance of the application.
+  *)
+  let application_name = Appl_params.application_name
 end
 
