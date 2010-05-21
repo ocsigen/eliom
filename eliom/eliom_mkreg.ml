@@ -66,6 +66,12 @@ module type REGCREATE =
       ?options:options ->
       sp:Eliom_sessions.server_params -> unit Lwt.t
 
+    (** The following field is usually [None]. 
+        This value is recorded inside each service just after registration.
+        (Use in [Eliom_predefmod.Eliom_appl])
+    *)
+    val application_name : string option
+
   end
 
 
@@ -579,288 +585,290 @@ module MakeRegister = functor
               raise (Eliom_common.Eliom_Typing_Error l))
             page_generator =
           let sp = Ocsigen_lib.apply_option Eliom_sessions.esp_of_sp sp in
-          match get_kind_ service with
-          | `Attached attser ->
-              let key_kind = get_or_post_ attser in
-              let attserget = get_get_name_ attser in
-              let attserpost = get_post_name_ attser in
-              let suffix_with_redirect = get_redirect_suffix_ attser in
-              let sgpt = get_get_params_type_ service in
-              let sppt = get_post_params_type_ service in
-              let f table ((attserget, attserpost) as attsernames) = 
-                Eliommod_services.add_service
-                  table
-                  ?sp
-                  (get_sub_path_ attser)
-                  {Eliom_common.key_state = attsernames;
-                   Eliom_common.key_kind = key_kind}
-                  ((if attserget = Eliom_common.SAtt_no
-                      || attserpost = Eliom_common.SAtt_no
-                    then (anonymise_params_type sgpt,
-                          anonymise_params_type sppt)
-                    else (0, 0)),
-                   ((match get_max_use_ service with
-                       | None -> None
-                       | Some i -> Some (ref i)),
-                    (match get_timeout_ service with
-                       | None -> None
-                       | Some t -> Some (t, ref (t +. Unix.time ()))),
-                     (fun nosuffixversion sp ->
-                        let sp2 = Eliom_sessions.sp_of_esp sp in
-                        let ri = get_ri ~sp:sp2
-                        and ci = get_config_info ~sp:sp2
-                        and suff = get_suffix ~sp:sp2 in
-                        (catch (fun () ->
-                                  ri.ri_post_params ci >>= fun post_params ->
+          begin
+            match get_kind_ service with
+              | `Attached attser ->
+                  let key_kind = get_or_post_ attser in
+                  let attserget = get_get_name_ attser in
+                  let attserpost = get_post_name_ attser in
+                  let suffix_with_redirect = get_redirect_suffix_ attser in
+                  let sgpt = get_get_params_type_ service in
+                  let sppt = get_post_params_type_ service in
+                  let f table ((attserget, attserpost) as attsernames) = 
+                    Eliommod_services.add_service
+                      table
+                      ?sp
+                      (get_sub_path_ attser)
+                      {Eliom_common.key_state = attsernames;
+                       Eliom_common.key_kind = key_kind}
+                      ((if attserget = Eliom_common.SAtt_no
+                          || attserpost = Eliom_common.SAtt_no
+                        then (anonymise_params_type sgpt,
+                              anonymise_params_type sppt)
+                        else (0, 0)),
+                       ((match get_max_use_ service with
+                           | None -> None
+                           | Some i -> Some (ref i)),
+                        (match get_timeout_ service with
+                           | None -> None
+                           | Some t -> Some (t, ref (t +. Unix.time ()))),
+                        (fun nosuffixversion sp ->
+                           let sp2 = Eliom_sessions.sp_of_esp sp in
+                           let ri = get_ri ~sp:sp2
+                           and ci = get_config_info ~sp:sp2
+                           and suff = get_suffix ~sp:sp2 in
+                           (catch (fun () ->
+                                     ri.ri_post_params ci >>= fun post_params ->
+                                       ri.ri_files ci >>= fun files ->
+                                         let g = reconstruct_params
+                                           ~sp
+                                           sgpt
+                                           (force ri.ri_get_params)
+                                           []
+                                           nosuffixversion
+                                           suff
+                                         in
+                                         let p = reconstruct_params
+                                           ~sp
+                                           sppt
+                                           post_params
+                                           files
+                                           false
+                                           None
+                                         in
+                                         if nosuffixversion && suffix_with_redirect &&
+                                           files=[] && post_params = []
+                                         then (* it is a suffix service in version 
+                                                 without suffix. We redirect. *)
+                                           Lwt.fail
+                                             (Eliom_common.Eliom_Suffix_redirection
+                                                (Eliom_mkforms.make_string_uri
+                                                   ~absolute:true
+                                                   ~service:(service : 
+                                                               ('a, 'b, [< Eliom_services.internal_service_kind ],
+                                                                [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                                                                'return) Eliom_services.service :> 
+                                                               ('a, 'b, Eliom_services.service_kind,
+                                                                [< Eliom_services.suff ], 'c, 'd, 
+                                                                [< Eliom_services.registrable ], 'return)
+                                                               Eliom_services.service)
+                                                   ~sp:sp2
+                                                   g))
+                                         else
+                                           (Pages.pre_service ?options ~sp:sp2 >>= fun () ->
+                                              page_generator sp2 g p)))
+                             (function
+                                | Eliom_common.Eliom_Typing_Error l ->
+                                    error_handler sp2 l
+                                | e -> fail e)
+                           >>= fun (content, cookies_to_set) ->
+                             Pages.send
+                               ?options
+                               ~cookies:(cookies_to_set@cookies)
+                               ?charset
+                               ?code
+                               ?content_type
+                               ?headers
+                               ~sp:sp2 content)))
+                  in
+                  (match (key_kind, attserget, attserpost) with
+                     | (Ocsigen_http_frame.Http_header.POST, _,
+                        Eliom_common.SAtt_csrf_safe (id, session_name, secure)) ->
+                         let tablereg, forsession =
+                           match table with
+                             | Ocsigen_lib.Left globtbl -> globtbl, false
+                             | Ocsigen_lib.Right (sp, sn, sec) ->
+                                 if sn <> session_name || secure <> sec
+                                 then raise
+                                   Wrong_session_table_for_CSRF_safe_coservice;
+                                 !(Eliom_sessions.get_session_service_table
+                                     ?secure ?session_name ~sp ()), true
+                         in
+                         Eliom_services.set_delayed_post_registration_function
+                           tablereg
+                           id
+                           (fun ~sp attserget ->
+                              let n = Eliom_services.new_state () in
+                              let attserpost = Eliom_common.SAtt_anon n in
+                              let table = 
+                                if forsession
+                                then tablereg
+                                else
+                                  let sp = Eliom_sessions.sp_of_esp sp in
+                                  (* we do not register in global table,
+                                     but in the table specified while creating
+                                     the csrf safe service *)
+                                  !(Eliom_sessions.get_session_service_table
+                                      ?secure ?session_name ~sp ())
+                              in
+                              f table (attserget, attserpost);
+                              n)
+                     | (Ocsigen_http_frame.Http_header.GET,
+                        Eliom_common.SAtt_csrf_safe (id, session_name, secure),
+                        _) ->
+                         let tablereg, forsession =
+                           match table with
+                             | Ocsigen_lib.Left globtbl -> globtbl, false
+                             | Ocsigen_lib.Right (sp, sn, sec) ->
+                                 if sn <> session_name || secure <> sec
+                                 then raise
+                                   Wrong_session_table_for_CSRF_safe_coservice;
+                                 !(Eliom_sessions.get_session_service_table
+                                     ?secure ?session_name ~sp ()), true
+                         in
+                         Eliom_services.set_delayed_get_or_na_registration_function
+                           tablereg
+                           id
+                           (fun ~sp ->
+                              let n = Eliom_services.new_state () in
+                              let attserget = Eliom_common.SAtt_anon n in
+                              let table = 
+                                if forsession
+                                then tablereg
+                                else
+                                  let sp = Eliom_sessions.sp_of_esp sp in
+                                  (* we do not register in global table,
+                                     but in the table specified while creating
+                                     the csrf safe service *)
+                                  !(Eliom_sessions.get_session_service_table
+                                      ?secure ?session_name ~sp ())
+                              in
+                              f table (attserget, attserpost);
+                              n)
+                     | _ -> 
+                         let tablereg =
+                           match table with
+                             | Ocsigen_lib.Left globtbl -> globtbl
+                             | Ocsigen_lib.Right (sp, session_name, secure) ->
+                                 !(Eliom_sessions.get_session_service_table
+                                     ?secure ?session_name ~sp ())
+                         in
+                         f tablereg (attserget, attserpost))
+              | `Nonattached naser ->
+                  let na_name = get_na_name_ naser in
+                  let f table na_name = 
+                    Eliommod_naservices.add_naservice
+                      table
+                      ?sp
+                      na_name
+                      ((match get_max_use_ service with
+                          | None -> None
+                          | Some i -> Some (ref i)),
+                       (match get_timeout_ service with
+                          | None -> None
+                          | Some t -> Some (t, ref (t +. Unix.time ()))),
+                       (fun sp ->
+                          let sp2 = Eliom_sessions.sp_of_esp sp in
+                          let ri = get_ri sp2
+                          and ci = get_config_info sp2 in
+                          (catch
+                             (fun () ->
+                                get_post_params sp2 >>= fun post_params ->
                                   ri.ri_files ci >>= fun files ->
-                                  let g = reconstruct_params
-                                    ~sp
-                                    sgpt
-                                    (force ri.ri_get_params)
-                                    []
-                                    nosuffixversion
-                                    suff
-                                  in
-                                  let p = reconstruct_params
-                                    ~sp
-                                    sppt
-                                    post_params
-                                    files
-                                    false
-                                    None
-                                  in
-                                  if nosuffixversion && suffix_with_redirect &&
-                                    files=[] && post_params = []
-                                  then (* it is a suffix service in version 
-                                          without suffix. We redirect. *)
-                                    Lwt.fail
-                                      (Eliom_common.Eliom_Suffix_redirection
-                                         (Eliom_mkforms.make_string_uri
-                                            ~absolute:true
-                                            ~service:(service : 
-                     ('a, 'b, [< Eliom_services.internal_service_kind ],
-                      [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
-                      'return) Eliom_services.service :> 
-                     ('a, 'b, Eliom_services.service_kind,
-                      [< Eliom_services.suff ], 'c, 'd, 
-                      [< Eliom_services.registrable ], 'return)
-                     Eliom_services.service)
-                                            ~sp:sp2
-                                            g))
-                                  else
-                                    (Pages.pre_service ?options ~sp:sp2 >>= fun () ->
-                                     page_generator sp2 g p)))
-                          (function
-                             | Eliom_common.Eliom_Typing_Error l ->
-                                 error_handler sp2 l
-                             | e -> fail e)
-                        >>= fun (content, cookies_to_set) ->
-                        Pages.send
-                          ?options
-                          ~cookies:(cookies_to_set@cookies)
-                          ?charset
-                          ?code
-                          ?content_type
-                          ?headers
-                          ~sp:sp2 content)))
-              in
-              (match (key_kind, attserget, attserpost) with
-                 | (Ocsigen_http_frame.Http_header.POST, _,
-                    Eliom_common.SAtt_csrf_safe (id, session_name, secure)) ->
-                     let tablereg, forsession =
-                       match table with
-                         | Ocsigen_lib.Left globtbl -> globtbl, false
-                         | Ocsigen_lib.Right (sp, sn, sec) ->
-                             if sn <> session_name || secure <> sec
-                             then raise
-                               Wrong_session_table_for_CSRF_safe_coservice;
-                             !(Eliom_sessions.get_session_service_table
-                                 ?secure ?session_name ~sp ()), true
-                     in
-                     Eliom_services.set_delayed_post_registration_function
-                       tablereg
-                       id
-                       (fun ~sp attserget ->
-                          let n = Eliom_services.new_state () in
-                          let attserpost = Eliom_common.SAtt_anon n in
-                          let table = 
-                            if forsession
-                            then tablereg
-                            else
-                              let sp = Eliom_sessions.sp_of_esp sp in
-                              (* we do not register in global table,
-                                 but in the table specified while creating
-                                 the csrf safe service *)
-                              !(Eliom_sessions.get_session_service_table
-                                  ?secure ?session_name ~sp ())
-                          in
-                          f table (attserget, attserpost);
-                          n)
-                 | (Ocsigen_http_frame.Http_header.GET,
-                    Eliom_common.SAtt_csrf_safe (id, session_name, secure),
-                    _) ->
-                     let tablereg, forsession =
-                       match table with
-                         | Ocsigen_lib.Left globtbl -> globtbl, false
-                         | Ocsigen_lib.Right (sp, sn, sec) ->
-                             if sn <> session_name || secure <> sec
-                             then raise
-                               Wrong_session_table_for_CSRF_safe_coservice;
-                             !(Eliom_sessions.get_session_service_table
-                                 ?secure ?session_name ~sp ()), true
-                     in
-                     Eliom_services.set_delayed_get_or_na_registration_function
-                       tablereg
-                       id
-                       (fun ~sp ->
-                          let n = Eliom_services.new_state () in
-                          let attserget = Eliom_common.SAtt_anon n in
-                          let table = 
-                            if forsession
-                            then tablereg
-                            else
-                              let sp = Eliom_sessions.sp_of_esp sp in
-                              (* we do not register in global table,
-                                 but in the table specified while creating
-                                 the csrf safe service *)
-                              !(Eliom_sessions.get_session_service_table
-                                  ?secure ?session_name ~sp ())
-                          in
-                          f table (attserget, attserpost);
-                          n)
-                 | _ -> 
-                     let tablereg =
-                       match table with
-                         | Ocsigen_lib.Left globtbl -> globtbl
-                         | Ocsigen_lib.Right (sp, session_name, secure) ->
-                             !(Eliom_sessions.get_session_service_table
-                                 ?secure ?session_name ~sp ())
-                     in
-                     f tablereg (attserget, attserpost))
-          | `Nonattached naser ->
-              let na_name = get_na_name_ naser in
-              let f table na_name = 
-                Eliommod_naservices.add_naservice
-                  table
-                  ?sp
-                  na_name
-                  ((match get_max_use_ service with
-                      | None -> None
-                      | Some i -> Some (ref i)),
-                   (match get_timeout_ service with
-                      | None -> None
-                      | Some t -> Some (t, ref (t +. Unix.time ()))),
-                   (fun sp ->
-                      let sp2 = Eliom_sessions.sp_of_esp sp in
-                      let ri = get_ri sp2
-                      and ci = get_config_info sp2 in
-                      (catch
-                         (fun () ->
-                            get_post_params sp2 >>= fun post_params ->
-                            ri.ri_files ci >>= fun files ->
-                            Pages.pre_service ?options ~sp:sp2 >>= fun () ->
-                            page_generator sp2
-                              (reconstruct_params
-                                 ~sp
-                                 (get_get_params_type_ service)
-                                 (force ri.ri_get_params)
-                                 []
-                                 false
-                                 None)
-                              (reconstruct_params
-                                 ~sp
-                                 (get_post_params_type_ service)
-                                 post_params
-                                 files
-                                 false
-                                 None)))
-                        (function
-                           | Eliom_common.Eliom_Typing_Error l ->
-                               error_handler sp2 l
-                           | e -> fail e) >>= fun (content, cookies_to_set) ->
-                        Pages.send
-                          ?options
-                          ~cookies:(cookies_to_set@cookies)
-                          ?charset
-                          ?code
-                          ?content_type
-                          ?headers
-                          ~sp:sp2 content)
-                  )
-              in
-              match na_name with
-                | Eliom_common.SNa_get_csrf_safe (id, session_name, secure) ->
-                    (* CSRF safe coservice: we'll do the registration later *)
-                    let tablereg, forsession =
-                      match table with
-                        | Ocsigen_lib.Left globtbl -> globtbl, false
-                         | Ocsigen_lib.Right (sp, sn, sec) ->
-                             if sn <> session_name || secure <> sec
-                             then raise
-                               Wrong_session_table_for_CSRF_safe_coservice;
-                            !(Eliom_sessions.get_session_service_table
-                                ?secure ?session_name ~sp ()), true
-                    in
-                    set_delayed_get_or_na_registration_function
-                      tablereg
-                      id
-                      (fun ~sp ->
-                         let n = Eliom_services.new_state () in
-                         let na_name = Eliom_common.SNa_get' n in
-                         let table =
-                            if forsession
-                            then tablereg
-                            else
-                              let sp = Eliom_sessions.sp_of_esp sp in
-                              (* we do not register in global table,
-                                 but in the table specified while creating
-                                 the csrf safe service *)
-                              !(Eliom_sessions.get_session_service_table
-                                  ?secure ?session_name ~sp ())
-                         in
-                         f table na_name;
-                         n)
-                | Eliom_common.SNa_post_csrf_safe (id, session_name, secure) ->
-                    (* CSRF safe coservice: we'll do the registration later *)
-                    let tablereg, forsession =
-                      match table with
-                        | Ocsigen_lib.Left globtbl -> globtbl, false
-                         | Ocsigen_lib.Right (sp, sn, sec) ->
-                             if sn <> session_name || secure <> sec
-                             then raise
-                               Wrong_session_table_for_CSRF_safe_coservice;
-                            !(Eliom_sessions.get_session_service_table
-                                ?secure ?session_name ~sp ()), true
-                    in
-                    set_delayed_get_or_na_registration_function
-                      tablereg
-                      id
-                      (fun ~sp ->
-                         let n = Eliom_services.new_state () in
-                         let na_name = Eliom_common.SNa_post' n in
-                         let table =
-                            if forsession
-                            then tablereg
-                            else
-                              let sp = Eliom_sessions.sp_of_esp sp in
-                              (* we do not register in global table,
-                                 but in the table specified while creating
-                                 the csrf safe service *)
-                              !(Eliom_sessions.get_session_service_table
-                                  ?secure ?session_name ~sp ())
-                         in
-                         f table na_name;
-                         n)
-                | _ -> 
-                     let tablereg =
-                       match table with
-                         | Ocsigen_lib.Left globtbl -> globtbl
-                         | Ocsigen_lib.Right (sp, session_name, secure) ->
-                             !(Eliom_sessions.get_session_service_table
-                                 ?secure ?session_name ~sp ())
-                     in
-                     f tablereg na_name
-
+                                    Pages.pre_service ?options ~sp:sp2 >>= fun () ->
+                                      page_generator sp2
+                                        (reconstruct_params
+                                           ~sp
+                                           (get_get_params_type_ service)
+                                           (force ri.ri_get_params)
+                                           []
+                                           false
+                                           None)
+                                        (reconstruct_params
+                                           ~sp
+                                           (get_post_params_type_ service)
+                                           post_params
+                                           files
+                                           false
+                                           None)))
+                            (function
+                               | Eliom_common.Eliom_Typing_Error l ->
+                                   error_handler sp2 l
+                               | e -> fail e) >>= fun (content, cookies_to_set) ->
+                              Pages.send
+                                ?options
+                                ~cookies:(cookies_to_set@cookies)
+                                ?charset
+                                ?code
+                                ?content_type
+                                ?headers
+                                ~sp:sp2 content)
+                      )
+                  in
+                  match na_name with
+                    | Eliom_common.SNa_get_csrf_safe (id, session_name, secure) ->
+                        (* CSRF safe coservice: we'll do the registration later *)
+                        let tablereg, forsession =
+                          match table with
+                            | Ocsigen_lib.Left globtbl -> globtbl, false
+                            | Ocsigen_lib.Right (sp, sn, sec) ->
+                                if sn <> session_name || secure <> sec
+                                then raise
+                                  Wrong_session_table_for_CSRF_safe_coservice;
+                                !(Eliom_sessions.get_session_service_table
+                                    ?secure ?session_name ~sp ()), true
+                        in
+                        set_delayed_get_or_na_registration_function
+                          tablereg
+                          id
+                          (fun ~sp ->
+                             let n = Eliom_services.new_state () in
+                             let na_name = Eliom_common.SNa_get' n in
+                             let table =
+                               if forsession
+                               then tablereg
+                               else
+                                 let sp = Eliom_sessions.sp_of_esp sp in
+                                 (* we do not register in global table,
+                                    but in the table specified while creating
+                                    the csrf safe service *)
+                                 !(Eliom_sessions.get_session_service_table
+                                     ?secure ?session_name ~sp ())
+                             in
+                             f table na_name;
+                             n)
+                    | Eliom_common.SNa_post_csrf_safe (id, session_name, secure) ->
+                        (* CSRF safe coservice: we'll do the registration later *)
+                        let tablereg, forsession =
+                          match table with
+                            | Ocsigen_lib.Left globtbl -> globtbl, false
+                            | Ocsigen_lib.Right (sp, sn, sec) ->
+                                if sn <> session_name || secure <> sec
+                                then raise
+                                  Wrong_session_table_for_CSRF_safe_coservice;
+                                !(Eliom_sessions.get_session_service_table
+                                    ?secure ?session_name ~sp ()), true
+                        in
+                        set_delayed_get_or_na_registration_function
+                          tablereg
+                          id
+                          (fun ~sp ->
+                             let n = Eliom_services.new_state () in
+                             let na_name = Eliom_common.SNa_post' n in
+                             let table =
+                               if forsession
+                               then tablereg
+                               else
+                                 let sp = Eliom_sessions.sp_of_esp sp in
+                                 (* we do not register in global table,
+                                    but in the table specified while creating
+                                    the csrf safe service *)
+                                 !(Eliom_sessions.get_session_service_table
+                                     ?secure ?session_name ~sp ())
+                             in
+                             f table na_name;
+                             n)
+                    | _ -> 
+                        let tablereg =
+                          match table with
+                            | Ocsigen_lib.Left globtbl -> globtbl
+                            | Ocsigen_lib.Right (sp, session_name, secure) ->
+                                !(Eliom_sessions.get_session_service_table
+                                    ?secure ?session_name ~sp ())
+                        in
+                        f tablereg na_name
+          end;
+          Eliom_services.set_application_name service (Pages.application_name)
 
         let register 
             ?options

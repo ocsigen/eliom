@@ -114,6 +114,8 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   let pre_service ?options ~sp = Lwt.return ()
 
+  let application_name = None
+
   let send ?(options = `XHTML_01_01) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     Xhtml_content.result_of_content ~options content >>= fun r ->
@@ -1760,6 +1762,8 @@ module SubXhtml = functor(T : sig type content end) ->
 
       let pre_service ?options ~sp = Lwt.return ()
 
+      let application_name = None
+
       let send ?options ?(cookies=[]) ?charset ?code 
           ?content_type ?headers ~sp content =
         Cont_content.result_of_content content >>= fun r ->
@@ -1820,6 +1824,8 @@ module Textreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
+  let application_name = None
+
   let send ?options ?(cookies=[]) ?charset ?code 
       ?content_type ?headers ~sp content =
     Ocsigen_senders.Text_content.result_of_content content >>= fun r ->
@@ -1860,6 +1866,8 @@ module CssTextreg_ = struct
   type return = Eliom_services.http
 
   let pre_service ?options ~sp = Lwt.return ()
+
+  let application_name = None
 
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
@@ -1904,6 +1912,8 @@ module HtmlTextreg_ = struct
   type return = Eliom_services.http
 
   let pre_service ?options ~sp = Lwt.return ()
+
+  let application_name = None
 
   let send ?options ?(cookies=[]) ?charset ?code 
       ?content_type ?headers ~sp content =
@@ -2119,6 +2129,8 @@ module Actionreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
+  let application_name = None
+
   let send
       ?(options = `Reload) ?(cookies=[]) ?charset ?(code = 204)
       ?content_type ?headers ~sp () =
@@ -2310,6 +2322,8 @@ module Unitreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
+  let application_name = None
+
   let send ?options ?(cookies=[]) ?charset ?(code = 204)
       ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
@@ -2357,6 +2371,8 @@ module String_redirreg_ = struct
   type return = Eliom_services.http
 
   let pre_service ?options ~sp = Lwt.return ()
+
+  let application_name = None
 
   let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
@@ -2410,6 +2426,8 @@ module Redirreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
+  let application_name = None
+
   let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
@@ -2461,6 +2479,8 @@ module Anyreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
+  let application_name = None
+
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp res =
     Lwt.return
@@ -2502,6 +2522,8 @@ module Filesreg_ = struct
   type return = Eliom_services.http
 
   let pre_service ?options ~sp = Lwt.return ()
+
+  let application_name = None
 
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp filename =
@@ -2558,6 +2580,8 @@ module Streamlistreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
+  let application_name = None
+
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     Ocsigen_senders.Streamlist_content.result_of_content content >>= fun r ->
@@ -2602,6 +2626,8 @@ module Camlreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
+  let application_name = None
+
   let send ?options ?cookies ?charset ?code 
       ?content_type ?headers ~sp content =
     Text.send ?options ?cookies ?charset ?code 
@@ -2631,6 +2657,8 @@ module Caml = struct
       Lwt.return (encode_data r)
 
   let pre_service ?options ~sp = Lwt.return ()
+
+  let application_name = None
 
   let send ?options ?cookies ?charset ?code 
       ?content_type ?headers ~sp content =
@@ -3214,6 +3242,8 @@ redir ();"))::
         ~value:(Some (Eliommod_cookies.make_new_cookie_value ()));
       Lwt.return ()
     end
+
+  let application_name = Some Appl_params.application_name
 
   let send ?(options = false) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =

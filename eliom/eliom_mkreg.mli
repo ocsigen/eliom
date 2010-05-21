@@ -64,6 +64,12 @@ module type REGCREATE =
       ?options:options ->
       sp:Eliom_sessions.server_params -> unit Lwt.t
 
+    (** The following field is usually [None]. 
+        This value is recorded inside each service just after registration.
+        (Use in [Eliom_predefmod.Eliom_appl])
+    *)
+    val application_name : string option
+
   end
 
 

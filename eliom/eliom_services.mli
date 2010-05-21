@@ -128,7 +128,9 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
 
 val get_get_or_post : ('a, 'b, service_kind, 'd, 'e, 'f, 'g, 'h) service -> 
   getpost
-  
+
+(** Returns the name of the application to which belongs the service, if any. *)
+val get_application_name : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> string option
 
 (***** Static dir and actions do not depend on the type of pages ******)
 
@@ -609,3 +611,5 @@ val set_delayed_post_registration_function :
   (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string) -> 
   unit
 
+val set_application_name :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> string option -> unit

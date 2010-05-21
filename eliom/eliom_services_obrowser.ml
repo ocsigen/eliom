@@ -108,6 +108,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
      kind: 'kind; (* < service_kind *)
      https: bool; (* force https *)
      keep_nl_params: [ `All | `Persistent | `None ];
+     mutable application_name : string option; (* the name of the application to which the service belongs *)
    }
 
 let get_kind_ s = s.kind
@@ -126,6 +127,8 @@ let get_na_kind_ s = s.na_kind
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
+
+let set_application_name s n = s.application_name <- n
 
 let get_get_or_post s =
   match get_kind_ s with
@@ -160,6 +163,7 @@ let static_dir_ ?(https = false) ~sp () =
         };
      https = https;
      keep_nl_params = `None;
+     application_name = None;
    }
 
 let static_dir ~sp = static_dir_ ~sp ()
@@ -190,6 +194,7 @@ let get_static_dir_ ?(https = false) ~sp
       };
      https = https;
      keep_nl_params = keep_nl_params;
+     application_name = None;
    }
 
 let static_dir_with_params ~sp ?keep_nl_params ~get_params () = 
@@ -244,6 +249,7 @@ let void_coservice' =
       };
     https = false;
     keep_nl_params = `All;
+    application_name = None;
   }
 
 let https_void_coservice' =
@@ -259,6 +265,7 @@ let https_void_coservice' =
       };
     https = true;
     keep_nl_params = `All;
+    application_name = None;
   }
 
 let void_hidden_coservice' = {void_coservice' with 
@@ -332,6 +339,7 @@ let new_service_aux_aux
     };
    https = https;
    keep_nl_params = keep_nl_params;
+   application_name = None;
  }
 
 
