@@ -57,6 +57,15 @@ module type REGCREATE =
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
+    (** This function is executed just before the service
+        when we know exactly which service will answer
+        (and after decoding parameters).
+        Usually it does nothing.
+    *)
+    val pre_service :
+      ?options:options ->
+      sp:Eliom_sessions.server_params -> unit Lwt.t
+
   end
 
 
@@ -638,7 +647,9 @@ module MakeRegister = functor
                      Eliom_services.service)
                                             ~sp:sp2
                                             g))
-                                  else page_generator sp2 g p))
+                                  else
+                                    (Pages.pre_service ?options ~sp:sp2 >>= fun () ->
+                                     page_generator sp2 g p)))
                           (function
                              | Eliom_common.Eliom_Typing_Error l ->
                                  error_handler sp2 l
@@ -747,6 +758,7 @@ module MakeRegister = functor
                          (fun () ->
                             get_post_params sp2 >>= fun post_params ->
                             ri.ri_files ci >>= fun files ->
+                            Pages.pre_service ?options ~sp:sp2 >>= fun () ->
                             page_generator sp2
                               (reconstruct_params
                                  ~sp

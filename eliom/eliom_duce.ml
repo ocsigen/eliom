@@ -103,6 +103,8 @@ module Xhtmlreg_ = struct
 
   type return = Eliom_services.http
 
+  let pre_service ?options ~sp = Lwt.return ()
+
   let send ?options ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     Ocamlduce_content.result_of_content content >>= fun r ->
@@ -419,6 +421,8 @@ module SubXhtml =
       type options = unit
 
       type return = Eliom_services.http
+
+      let pre_service ?options ~sp = Lwt.return ()
 
       let send ?options ?(cookies=[]) ?charset ?code
           ?content_type ?headers ~sp content =
