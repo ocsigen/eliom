@@ -162,6 +162,16 @@ let get_persistent_data_session_cookie ?session_name ?secure ~sp () =
        | Not_found | Eliom_common.Eliom_Session_expired -> return None
        | e -> fail e)
 
+
+let get_application_name_ = ref (fun ~sp -> failwith "will be linked later")
+let get_application_instance_ = ref (fun ~sp -> failwith "will be linked later")
+let get_content_only_ = ref (fun ~sp -> failwith "will be linked later")
+
+let get_application_name ~sp = !get_application_name_ ~sp
+let get_application_instance ~sp = !get_application_instance_ ~sp
+let get_content_only ~sp = !get_content_only_ ~sp
+
+
 (*
 let get_default_service_session_timeout = Eliommod_timeouts.get_default_service_timeout
 let set_default_service_session_timeout = Eliommod_timeouts.set_default_service_timeout

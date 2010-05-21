@@ -36,9 +36,9 @@ PP = -syntax camlp4o -ppopt "../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(CMXS)
 
-byte: $(OBJS) tutoeliom.cma tutoeliom_ocsigen2_client.uue $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../files/tutorial/vm.js
+byte: $(OBJS) tutoeliom.cma tutoeliom_ocsigen2_client.uue $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../files/tutorial/vm.js ../files/tutorial/tutoeliom_ocsigen2_client.uue
 
-opt: $(OBJSOPT) tutoeliom.cmxs tutoeliom_ocsigen2_client.uue $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../files/tutorial/vm.js
+opt: $(OBJSOPT) tutoeliom.cmxs tutoeliom_ocsigen2_client.uue $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../files/tutorial/vm.js ../files/tutorial/tutoeliom_ocsigen2_client.uue
 
 exampleduce.cmo: ocamlduce/exampleduce.cmo
 	cp ocamlduce/exampleduce.cmo .
@@ -77,7 +77,9 @@ tutoeliom4.wiki: tutoeliom_ocsigen2.eliom
 
 tutoeliom_ocsigen2_client.uue: tutoeliom_ocsigen2_client
 	uuencode $< stdout > $@
-	cp -f $@ ../files/tutorial
+
+../files/tutorial/tutoeliom_ocsigen2_client.uue: tutoeliom_ocsigen2_client.uue
+	cp -f $< $@
 
 tutoeliom_ocsigen2_client: $(ELIOMOBROWSERDIR)/eliom_obrowser_client.cma client/tutoeliom_ocsigen2_client.ml
 	CAMLLIB=$(OBROWSERDIR) ocamlc -o $@ -I $(ELIOMOBROWSERDIR) -I $(LWTDIR) $(REACTDIR)/react.cmo $(LWTDIR)/lwt.cma $(OBROWSERDIR)/lwt_obrowser.cma $^

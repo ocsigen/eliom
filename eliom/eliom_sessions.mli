@@ -161,6 +161,12 @@ val get_cookies : sp:server_params -> string Ocsigen_lib.String_Table.t
 (** returns an Unix timestamp associated to the request *)
 val get_timeofday : sp:server_params -> float
 
+(** returns the name of the application running client side, if any. *)
+val get_application_name : sp:server_params -> string option
+
+(** returns the unique identifier of the application instance running
+    client side, if any. *)
+val get_application_instance : sp:server_params -> string option
 
 
 
@@ -1306,3 +1312,9 @@ val esp_of_sp : server_params -> Eliom_common.server_params
 
 (**/**)
 val get_si :sp:server_params -> Eliom_common.sess_info
+
+val get_application_name_ : (sp:server_params -> string option) ref
+val get_application_instance_ : (sp:server_params -> string option) ref
+val get_content_only_ : (sp:server_params -> bool) ref
+
+val get_content_only : sp:server_params -> bool

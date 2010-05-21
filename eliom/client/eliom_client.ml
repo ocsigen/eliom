@@ -26,6 +26,9 @@ let (>>>) x f = f x
 
 let current_fragment = ref ""
 
+let appl_name =
+  ((JSOO.eval "appl_name" >>> JSOO.as_string) : string)
+  
 let appl_instance_id =
   ((JSOO.eval "appl_instance_id" >>> JSOO.as_string) : string)
   
@@ -171,8 +174,8 @@ let change_page
      ?hostname ?port ?fragment ?keep_nl_params
      ~nl_params:(Eliom_parameters.add_nl_parameter
                    nl_params
-                   Eliom_parameters.eliom_appl_flag
-                   appl_instance_id)
+                   Eliom_parameters.eliom_appl_nlp
+                   (appl_name, appl_instance_id))
      ?keep_get_na_params
      g p
    with
@@ -184,7 +187,7 @@ let change_page
   >>= fun ((code, s), uri) ->
   set_inner_html code s >>= fun () ->
 (*VVV The URL is created twice ... 
-  Once with eliom_appl_flag (for the request), 
+  Once with eliom_appl_instance_id (for the request), 
   and once without it (we do not want it to appear in the URL).
   How to avoid this?
 *)
@@ -212,8 +215,8 @@ let get_subpage
      ?hostname ?port ?fragment ?keep_nl_params
      ~nl_params:(Eliom_parameters.add_nl_parameter
                    nl_params
-                   Eliom_parameters.eliom_appl_flag
-                   appl_instance_id)
+                   Eliom_parameters.eliom_appl_nlp
+                   (appl_name, appl_instance_id))
      ?keep_get_na_params
      g p
    with
@@ -265,12 +268,12 @@ let rec fragment_polling () =
 let _ = fragment_polling ()
 
 
-let eliom_appl_flag =
+let eliom_appl_nlp =
   Eliom_parameters.string_of_nl_params_set
     (Eliom_parameters.add_nl_parameter
        Eliom_parameters.empty_nl_params_set
-       Eliom_parameters.eliom_appl_flag
-       appl_instance_id)
+       Eliom_parameters.eliom_appl_nlp
+       (appl_name, appl_instance_id))
 
 let auto_change_page fragment =
   ignore
@@ -290,8 +293,8 @@ let auto_change_page fragment =
          in
          let uri =
            if String.contains uri '?'
-           then String.concat "&" [uri; eliom_appl_flag]
-           else String.concat "?" [uri; eliom_appl_flag]
+           then String.concat "&" [uri; eliom_appl_nlp]
+           else String.concat "?" [uri; eliom_appl_nlp]
          in
          Lwt_obrowser.http_get uri [] >>= fun (code, s) ->
          set_inner_html code s

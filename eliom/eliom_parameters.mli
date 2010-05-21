@@ -471,5 +471,7 @@ val table_of_nl_params_set : nl_params_set ->
 
 val string_of_nl_params_set : nl_params_set -> string
 
-val eliom_appl_flag :
-  (string, [ `WithoutSuffix ], [ `One of string ] param_name) non_localized_params
+val eliom_appl_nlp :
+  (string * string, [ `WithoutSuffix ], 
+   [ `One of string ] param_name * [ `One of string ] param_name) 
+  non_localized_params

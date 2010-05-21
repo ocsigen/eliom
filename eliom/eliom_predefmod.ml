@@ -3150,7 +3150,7 @@ redir ();"))::
                        (reqnum, XML.ref_node container_node))
                  ) ^ "); \n"
 
-                 ^ "  appl_id = \"" ^ 
+                 ^ "  appl_name = \"" ^ 
                  (Appl_params.application_name
                  ) ^ "\"; \n"
 
@@ -3169,10 +3169,7 @@ redir ();"))::
 
   let send ?(options = Appl_params.default_params) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
-    let content_only = 
-      (Eliom_parameters.get_non_localized_get_parameters
-         sp Eliom_parameters.eliom_appl_flag <> None)
-    in
+    let content_only = Eliom_sessions.get_content_only ~sp in
     (if content_only
 (*VVV do not send container! *)
      then 
