@@ -77,7 +77,6 @@ let get_or_post_ s = match s.get_or_post with
   | `Get -> Ocsigen_http_frame.Http_header.GET
   | `Post -> Ocsigen_http_frame.Http_header.POST
 
-let get_application_name s = s.application_name
 
 (*****************************************************************************)
 (*****************************************************************************)

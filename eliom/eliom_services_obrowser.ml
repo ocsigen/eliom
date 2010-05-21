@@ -127,7 +127,7 @@ let get_na_kind_ s = s.na_kind
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
-
+let get_application_name s = s.application_name
 let set_application_name s n = s.application_name <- n
 
 let get_get_or_post s =

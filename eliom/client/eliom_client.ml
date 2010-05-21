@@ -168,37 +168,46 @@ let change_page
     ?hostname ?port ?fragment ?keep_nl_params
     ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
     g p =
-  (match create_request_
-     ?absolute ?absolute_path ?https
-     ~sp ~service
-     ?hostname ?port ?fragment ?keep_nl_params
-     ~nl_params:(Eliom_parameters.add_nl_parameter
-                   nl_params
-                   Eliom_parameters.eliom_appl_nlp
-                   (appl_name, appl_instance_id))
-     ?keep_get_na_params
-     g p
-   with
-     | Ocsigen_lib.Left uri -> 
-         Lwt_obrowser.http_get uri [] >>= fun r ->
-         Lwt.return (r, uri)
-     | Ocsigen_lib.Right (uri, p) -> Lwt_obrowser.http_post uri p >>= fun r ->
-         Lwt.return (r, uri))
-  >>= fun ((code, s), uri) ->
-  set_inner_html code s >>= fun () ->
+  if Eliom_services.get_application_name service <> (Some appl_name)
+  then
+    Lwt.return (exit_to
+                  ?absolute ?absolute_path ?https
+                  ~sp ~service
+                  ?hostname ?port ?fragment ?keep_nl_params
+                  ~nl_params ?keep_get_na_params
+                  g p)
+  else
+    (match create_request_
+       ?absolute ?absolute_path ?https
+       ~sp ~service
+       ?hostname ?port ?fragment ?keep_nl_params
+       ~nl_params:(Eliom_parameters.add_nl_parameter
+                     nl_params
+                     Eliom_parameters.eliom_appl_nlp
+                     (appl_name, appl_instance_id))
+       ?keep_get_na_params
+       g p
+     with
+       | Ocsigen_lib.Left uri -> 
+           Lwt_obrowser.http_get uri [] >>= fun r ->
+             Lwt.return (r, uri)
+           | Ocsigen_lib.Right (uri, p) -> Lwt_obrowser.http_post uri p >>= fun r ->
+               Lwt.return (r, uri))
+    >>= fun ((code, s), uri) ->
+    set_inner_html code s >>= fun () ->
 (*VVV The URL is created twice ... 
   Once with eliom_appl_instance_id (for the request), 
   and once without it (we do not want it to appear in the URL).
   How to avoid this?
 *)
-  change_url
-    ?absolute ?absolute_path ?https
-    ~sp ~service
-    ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-    g p;
+    change_url
+      ?absolute ?absolute_path ?https
+      ~sp ~service
+      ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+      g p;
 (*VVV change the URL only if it is different? *)
-  Lwt.return ()
-
+    Lwt.return ()
+        
 
 let fake_page = 
   XHTML.M.toelt (XHTML.M.body [])

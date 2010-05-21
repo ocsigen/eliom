@@ -87,7 +87,7 @@ val exit_to :
                ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
            | `Nonattached of 'c Eliom_services.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f,
-           Eliom_services.http)
+           'return)
           Eliom_services.service ->
   ?hostname:string ->
   ?port:int ->
@@ -124,7 +124,7 @@ val change_page :
                ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
            | `Nonattached of 'c Eliom_services.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f,
-           Eliom_services.appl_service)
+           'return)
           Eliom_services.service ->
   ?hostname:string ->
   ?port:int ->
