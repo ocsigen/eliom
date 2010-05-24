@@ -1,0 +1,1 @@
+let warning = Js.alert

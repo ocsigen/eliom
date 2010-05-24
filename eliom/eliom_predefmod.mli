@@ -89,6 +89,10 @@ module Xhtmlcompact : sig
 
 end
 
+
+
+(** {3 Eliom client/server applications} *)
+
 type appl_service_params =
     {
       ap_doctype: XHTML.M.doctypes;
@@ -115,6 +119,13 @@ module type APPL_PARAMS = sig
 
   val params : appl_service_params
 end
+
+(** The option is a boolean.
+    If you set it to [true] for a service, it will send the page
+    without launching the client side program if it is not already launched.
+    Use this if some of your pages are not using the client side program,
+    and you want to make them load faster (for example the main page).
+*)
 
 module Eliom_appl (Appl_params : APPL_PARAMS) : sig
   include Eliom_mkreg.ELIOMREGSIG 

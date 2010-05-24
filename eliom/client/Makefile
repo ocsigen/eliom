@@ -7,7 +7,7 @@ OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,obrowser,str,lwt
 LIBS:=-I $(shell ocamlfind query react)
-MLS:= ocsigen_lib.ml xML.ml xHTML.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_uri.ml eliom_obrowser.ml eliom_client.ml eliom_mkforms.ml polytables.ml eliom_client.ml xhtmltypes.ml eliom_predefmod.ml
+MLS:= ocsigen_lib.ml xML.ml xHTML.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_uri.ml eliom_obrowser.ml eliom_client.ml ocsigen_messages.ml eliom_mkforms.ml polytables.ml eliom_client.ml xhtmltypes.ml eliom_predefmod.ml
 MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli
 CMOS=$(MLS:.ml=.cmo)
 
