@@ -84,6 +84,9 @@ let get_header_hostname ~sp =
   sp.Eliom_common.sp_request.request_info.ri_host
 let get_timeofday ~sp =
   sp.Eliom_common.sp_request.request_info.ri_timeofday
+let get_request_id ~sp = 
+(*VVV PUT A FLOAT OR INT64 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! *)
+  Int32.to_int (Int32.shift_right_logical (Int64.to_int32 (Int64.bits_of_float (get_timeofday ~sp))) 1)
 let get_default_hostname ~sp =
   sp.Eliom_common.sp_request.request_config.default_hostname
 let get_hostname ~sp =

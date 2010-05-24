@@ -96,7 +96,8 @@ module type FORMCREATE =
     val select_content_of_option : option_elt -> select_content_elt
 
     val make_pcdata : string -> pcdata_elt
-    val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
+    val make_a : ?a:a_attrib_t -> ?href:string -> ?onclick:string ->
+      a_content_elt_list -> a_elt
     val make_get_form : ?a:form_attrib_t ->
       action:string ->
         form_content_elt -> form_content_elt_list -> form_elt
@@ -307,6 +308,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?use_href:bool ->
       a_content_elt_list -> 
       'get -> 
       a_elt
@@ -344,6 +346,12 @@ module type ELIOMFORMSIG =
     If [~keep_nl_params] is [`Persistent] (resp. [`All]),
     persistent (resp all) non localized GET parameters
     will be kept in the URL (default is the default for the service).
+
+    If a client side application is running, and unless
+    [~use_href:true] is specified, it will use [<a onclick=...>]
+    instead of [<a href=...>] in case of link inside a same Eliom application.
+    Thus, the client side application will not be stopped when the link
+    is clicked.
 
 *)
 

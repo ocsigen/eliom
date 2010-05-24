@@ -175,6 +175,7 @@ module type XHTMLFORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?use_href:bool ->
       a_content elt list -> 
       'get -> 
     [> a] XHTML.M.elt
@@ -212,6 +213,12 @@ module type XHTMLFORMSSIG = sig
     If [~keep_nl_params] is [`Persistent] (resp. [`All]),
     persistent (resp all) non localized GET parameters
     will be kept in the URL (default is the default for the service).
+
+    If a client side application is running, and unless
+    [~use_href:true] is specified, it will use [<a onclick=...>]
+    instead of [<a href=...>] in case of link inside a same Eliom application.
+    Thus, the client side application will not be stopped when the link
+    is clicked.
 
 *)
 

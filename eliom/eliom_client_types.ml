@@ -40,7 +40,25 @@ type server_params =
                                        (if it is a session service) *)}
 
 
-type 'a data_key = float * int
+type 'a data_key = int * int
 
 let to_data_key_ v = v
 let of_data_key_ v = v
+
+let string_map f s =
+  let r = ref [] in
+  for i = String.length s - 1 downto 0 do
+    r := f s.[i] :: !r;
+  done;
+  !r
+
+let jsmarshal v =
+  let s = Marshal.to_string v [] in
+  let s' = string_map (fun c -> Printf.sprintf "0x%02X" (Char.code c)) s in
+  Printf.sprintf "[%s]" (String.concat "," s')
+
+(* For client side program, we sometimes simulate links and forms
+   with client side functions.
+   Here are there identifiers: *)
+let a_closure_id = 0x0
+let a_closure_id_string = Printf.sprintf "0x%X" a_closure_id

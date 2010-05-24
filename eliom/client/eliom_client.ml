@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+
 exception Failed_service of int
 
 let (>>=) = Lwt.bind
@@ -26,15 +27,15 @@ let (>>>) x f = f x
 
 let current_fragment = ref ""
 
-let appl_name =
-  ((JSOO.eval "appl_name" >>> JSOO.as_string) : string)
+let appl_name = Eliom_sessions.appl_name
   
 let appl_instance_id =
   ((JSOO.eval "appl_instance_id" >>> JSOO.as_string) : string)
+
   
 let create_request_
     ?absolute ?absolute_path ?https
-    ~sp ~service
+    ~service ~sp
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p =
   match Eliom_services.get_get_or_post service with
@@ -42,7 +43,7 @@ let create_request_
         let uri =
           Eliom_mkforms.make_string_uri
             ?absolute ?absolute_path ?https
-            ~sp ~service
+            ~service ~sp
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params g
         in
         Ocsigen_lib.Left uri
@@ -50,7 +51,7 @@ let create_request_
         let path, g, fragment, p =
           Eliom_mkforms.make_post_uri_components
             ?absolute ?absolute_path ?https
-            ~sp ~service
+            ~service ~sp
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params
             ?keep_get_na_params g p
         in
@@ -62,12 +63,12 @@ let create_request_
 
 let call_service
     ?absolute ?absolute_path ?https
-    ~sp ~service
+    ~service ~sp
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p =
   (match create_request_
      ?absolute ?absolute_path ?https
-     ~sp ~service
+     ~service ~sp
      ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
      g p
    with
@@ -82,12 +83,12 @@ let call_service
 
 let call_caml_service
     ?absolute ?absolute_path ?https
-    ~sp ~service
+    ~service ~sp
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p =
   call_service
     ?absolute ?absolute_path ?https
-    ~sp ~service
+    ~service ~sp
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p
   >>= fun s ->
@@ -98,12 +99,12 @@ let call_caml_service
 
 let exit_to
     ?absolute ?absolute_path ?https
-    ~sp ~service
+    ~service ~sp
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p =
   (match create_request_
      ?absolute ?absolute_path ?https
-     ~sp ~service
+     ~service ~sp
      ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
      g p
    with
@@ -124,14 +125,14 @@ let url_fragment_prefix_with_sharp = "#!"
 let change_url
 (*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
     ?absolute ?absolute_path ?https
-    ~sp ~service
+    ~service ~sp
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p =
 (*VVV only for GET services? *)
   let uri =
     (match create_request_
        ?absolute ?absolute_path ?https
-       ~sp ~service
+       ~service ~sp
        ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
        g p
      with
@@ -144,8 +145,10 @@ let change_url
 
 
 let container_node = 
-  Eliom_obrowser_client.unwrap_node 
+  Eliom_obrowser.unwrap_node 
     (Obj.obj (JSOO.eval "container_node" >>> JSOO.as_block))
+
+
 
 let set_inner_html code s =
   if code <> 200
@@ -155,16 +158,16 @@ let set_inner_html code s =
       Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
     in
     container_node >>> JSOO.set "innerHTML" (JSOO.string content);
-    Eliom_obrowser_client.relink_dom_list 
+    Eliom_obrowser.relink_dom_list 
       timeofday (Js.Node.children container_node) ref_tree_list;
-    Eliom_obrowser_client.fill_global_data_table global_data;
+    Eliom_obrowser.fill_global_data_table global_data;
     Lwt.return ()
   end
 
 
 let change_page
     ?absolute ?absolute_path ?https
-    ~sp ~service
+    ~service ~sp
     ?hostname ?port ?fragment ?keep_nl_params
     ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
     g p =
@@ -172,14 +175,14 @@ let change_page
   then
     Lwt.return (exit_to
                   ?absolute ?absolute_path ?https
-                  ~sp ~service
+                  ~service ~sp
                   ?hostname ?port ?fragment ?keep_nl_params
                   ~nl_params ?keep_get_na_params
                   g p)
   else
     (match create_request_
        ?absolute ?absolute_path ?https
-       ~sp ~service
+       ~service ~sp
        ?hostname ?port ?fragment ?keep_nl_params
        ~nl_params:(Eliom_parameters.add_nl_parameter
                      nl_params
@@ -202,7 +205,7 @@ let change_page
 *)
     change_url
       ?absolute ?absolute_path ?https
-      ~sp ~service
+      ~service ~sp
       ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
       g p;
 (*VVV change the URL only if it is different? *)
@@ -214,13 +217,14 @@ let fake_page =
 
 let get_subpage
     ?absolute ?absolute_path ?https
-    ~sp ~service
+    ~service ~sp
     ?hostname ?port ?fragment ?keep_nl_params
     ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
     g p =
+(*VVV Should we fail if the service does not belong to the same application? *)
   (match create_request_
      ?absolute ?absolute_path ?https
-     ~sp ~service
+     ~service ~sp
      ?hostname ?port ?fragment ?keep_nl_params
      ~nl_params:(Eliom_parameters.add_nl_parameter
                    nl_params
@@ -243,8 +247,8 @@ let get_subpage
     fake_page >>> JSOO.set "innerHTML" (JSOO.string content);
     let nodes = Js.Node.children fake_page in
     fake_page >>> JSOO.set "innerHTML" (JSOO.string "");
-    Eliom_obrowser_client.relink_dom_list timeofday nodes ref_tree_list;
-    Eliom_obrowser_client.fill_global_data_table global_data;
+    Eliom_obrowser.relink_dom_list timeofday nodes ref_tree_list;
+    Eliom_obrowser.fill_global_data_table global_data;
     Lwt.return (XHTML.M.totl nodes)
   end
 
@@ -312,4 +316,28 @@ let auto_change_page fragment =
      else Lwt.return ())
 
 let _ = React.E.map auto_change_page (React.S.changes fragment)
+
+(* ==A closure that is registered by default to simulate <a> *)
+let _ =
+  Eliom_obrowser.register_closure
+    Eliom_client_types.a_closure_id
+    (fun
+       (absolute, absolute_path, https, service, sp, hostname, port,
+        fragment, keep_nl_params, nl_params, getparams)
+       ->
+         let absolute = Eliom_obrowser.unwrap absolute in
+         let https = Eliom_obrowser.unwrap https in
+         let service = Eliom_obrowser.unwrap service in
+         let sp = Eliom_obrowser.unwrap_sp sp in
+         let hostname = Eliom_obrowser.unwrap hostname in
+         let port = Eliom_obrowser.unwrap port in
+         let fragment = Eliom_obrowser.unwrap fragment in
+         let keep_nl_params = Eliom_obrowser.unwrap keep_nl_params in
+         let nl_params = Eliom_obrowser.unwrap nl_params in
+         let getparams = Eliom_obrowser.unwrap getparams in
+         let absolute_path = Eliom_obrowser.unwrap absolute_path in
+         change_page
+           ?absolute ?absolute_path ?https
+           ~service ~sp ?hostname ?port ?fragment ?keep_nl_params ?nl_params
+           getparams ())
 

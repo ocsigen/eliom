@@ -81,7 +81,6 @@ let rec relative_url_path_to_myself = function
 
 
 
-
 module type FORMCREATE =
   sig
     type form_content_elt
@@ -147,7 +146,8 @@ module type FORMCREATE =
     val select_content_of_option : option_elt -> select_content_elt
 
     val make_pcdata : string -> pcdata_elt
-    val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
+    val make_a : ?a:a_attrib_t -> ?href:string -> ?onclick:string ->
+      a_content_elt_list -> a_elt
     val make_get_form : ?a:form_attrib_t ->
       action:string ->
         form_content_elt -> form_content_elt_list -> form_elt
@@ -356,6 +356,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?use_href:bool ->
       a_content_elt_list -> 
       'get -> 
       a_elt
@@ -393,6 +394,12 @@ module type ELIOMFORMSIG =
     If [~keep_nl_params] is [`Persistent] (resp. [`All]),
     persistent (resp all) non localized GET parameters
     will be kept in the URL (default is the default for the service).
+
+    If a client side application is running, and unless
+    [~use_href:true] is specified, it will use [<a onclick=...>]
+    instead of [<a href=...>] in case of link inside a same Eliom application.
+    Thus, the client side application will not be stopped when the link
+    is clicked.
 
 *)
 
@@ -1469,7 +1476,7 @@ module MakeForms = functor
                                ?hostname ?port ?keep_nl_params ?nl_params gp)
 
 
-      let a 
+      let a
           ?absolute
           ?absolute_path
           ?https
@@ -1481,8 +1488,29 @@ module MakeForms = functor
           ?fragment
           ?keep_nl_params
           ?nl_params
+          ?(use_href = false)
           content
           getparams =
+        if not use_href &&
+          (Eliom_sessions.get_application_name ~sp = 
+              Eliom_services.get_application_name service)
+        then
+          Eliom_obrowser.make_a_with_onclick
+            (fun ?a ~onclick c -> Pages.make_a ?a ~onclick c)
+            ?absolute
+            ?absolute_path
+            ?https
+            ?a
+            ~service
+            ~sp
+            ?hostname
+            ?port
+            ?fragment
+            ?keep_nl_params
+            ?nl_params
+            content
+            getparams 
+        else
         let href = 
           make_string_uri
             ?absolute

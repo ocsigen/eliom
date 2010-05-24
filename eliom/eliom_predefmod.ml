@@ -223,8 +223,16 @@ module Xhtmlforms_ = struct
 
   let make_pcdata s = pcdata s
 
-  let make_a ?(a=[]) ~href l : a_elt =
-    XHTML.M.a ~a:((a_href (uri_of_string href))::a) l
+  let make_a ?(a=[]) ?href ?onclick l : a_elt =
+    let a = match href with
+      | None -> a
+      | Some v -> (a_href (uri_of_string v))::a
+    in
+    let a = match onclick with
+      | None -> a
+      | Some v -> (a_onclick v)::a
+    in
+    XHTML.M.a ~a l
 
   let make_get_form ?(a=[]) ~action elt1 elts : form_elt =
     form ~a:((a_method `Get)::a)
@@ -450,6 +458,7 @@ module type XHTMLFORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?use_href:bool ->
       a_content elt list -> 
       'get -> 
     [> a] XHTML.M.elt
@@ -487,6 +496,12 @@ module type XHTMLFORMSSIG = sig
     If [~keep_nl_params] is [`Persistent] (resp. [`All]),
     persistent (resp all) non localized GET parameters
     will be kept in the URL (default is the default for the service).
+
+    If a client side application is running, and unless
+    [~use_href:true] is specified, it will use [<a onclick=...>]
+    instead of [<a href=...>] in case of link inside a same Eliom application.
+    Thus, the client side application will not be stopped when the link
+    is clicked.
 
 *)
 
@@ -1047,6 +1062,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
             ?fragment:string ->
             ?keep_nl_params:[ `All | `Persistent | `None ] ->
             ?nl_params: Eliom_parameters.nl_params_set ->
+            ?use_href:bool ->
              a_content elt list -> 'get ->
              a XHTML.M.elt :>
              ?absolute:bool ->
@@ -1062,6 +1078,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
             ?fragment:string ->
             ?keep_nl_params:[ `All | `Persistent | `None ] ->
             ?nl_params: Eliom_parameters.nl_params_set ->
+            ?use_href:bool ->
             a_content elt list -> 'get ->
              [> a] XHTML.M.elt)
 
@@ -2012,8 +2029,16 @@ module HtmlTextforms_ = struct
 
   let make_pcdata = id
 
-  let make_a ?(a="") ~href l : a_elt =
-    "<a href=\""^href^"\""^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
+  let make_a ?(a="") ?href ?onclick l : a_elt =
+    let a = match href with
+      | None -> a
+      | Some v -> " href=\""^v^"\" "^a
+    in
+    let a = match onclick with
+      | None -> a
+      | Some v -> " onclick=\""^v^"\" "^a
+    in
+    "<a "^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 
   let make_get_form ?(a="") ~action elt1 elts : form_elt =
     "<form method=\"get\" action=\""^(uri_of_string action)^"\""^a^">"^
@@ -3193,17 +3218,17 @@ redir ();"))::
                     *)
                     ("window.onload = function () { \n"
                      ^ "  eliom_id_tree = input_val (" ^ 
-                     (Eliom_obrowser.jsmarshal
+                     (Eliom_client_types.jsmarshal
                         (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
                      
                      ^ "  eliom_global_data = input_val (" ^ 
-                     (Eliom_obrowser.jsmarshal
+                     (Eliom_client_types.jsmarshal
                         (Eliom_obrowser.get_global_eliom_appl_data_ ~sp)
                      ) ^ "); \n"
                      
                      ^ "  container_node = input_val (" ^ 
-                     let reqnum = Eliom_sessions.get_timeofday ~sp in
-                     (Eliom_obrowser.jsmarshal
+                     let reqnum = Eliom_sessions.get_request_id ~sp in
+                     (Eliom_client_types.jsmarshal
                         (Eliom_client_types.to_data_key_ 
                            (reqnum, XML.ref_node container_node))
                      ) ^ "); \n"

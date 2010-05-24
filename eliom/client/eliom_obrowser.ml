@@ -32,7 +32,7 @@ let register_closure id f =
 
 
 (* == Global application data *)
-let global_appl_data_table : ((float * int), unit) Hashtbl.t = 
+let global_appl_data_table : ((int * int), unit) Hashtbl.t = 
   Hashtbl.create 50
 
 (* Loading global Eliom application data *)
@@ -49,13 +49,13 @@ let fill_global_data_table ((reqnum, size), l) =
 
 let ((timeofday, _), _) as global_data =
   (Obj.obj (eval "eliom_global_data" >>> as_block)
-     : (float * int) * (unit list))
+     : (int * int) * (unit list))
 
 let _ = fill_global_data_table global_data
 
 
 (* == Relinking DOM nodes *)
-let nodes : ((float * int), Js.Node.t) Hashtbl.t = Hashtbl.create 200
+let nodes : ((int * int), Js.Node.t) Hashtbl.t = Hashtbl.create 200
 
 let set_node_id node id =
   Hashtbl.replace nodes id node
@@ -93,8 +93,10 @@ let _ =
 (* == unwraping server data *)
 
 let unwrap (key : 'a Eliom_client_types.data_key) : 'a = 
-  Obj.magic (Hashtbl.find global_appl_data_table 
-               (Eliom_client_types.of_data_key_ key))
+  try
+    Obj.magic (Hashtbl.find global_appl_data_table 
+                 (Eliom_client_types.of_data_key_ key))
+  with Not_found -> Obj.magic ()
 
 
 let unwrap_sp = unwrap
@@ -102,3 +104,24 @@ let unwrap_sp = unwrap
 let unwrap_node k = 
   retrieve_node (Eliom_client_types.of_data_key_ k)
 
+
+
+
+
+
+let make_a_with_onclick
+    make_a
+    ?absolute
+    ?absolute_path
+    ?https
+    ?a
+    ~service
+    ~sp
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    content
+    getparams =
+  failwith "not implemented"

@@ -161,6 +161,9 @@ val get_cookies : sp:server_params -> string Ocsigen_lib.String_Table.t
 (** returns an Unix timestamp associated to the request *)
 val get_timeofday : sp:server_params -> float
 
+(** returns an unique id associated to the request *)
+val get_request_id : sp:server_params -> int
+
 (** returns the name of the application running client side, if any. *)
 val get_application_name : sp:server_params -> string option
 

@@ -26,13 +26,13 @@ val create_request_ :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  sp:Eliom_client_types.server_params ->
   service:('a, 'b,
            [ `Attached of
                ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
            | `Nonattached of 'c Eliom_services.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f, 'return)
           Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -45,13 +45,13 @@ val call_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  sp:Eliom_client_types.server_params ->
   service:('a, 'b,
            [ `Attached of
                ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
            | `Nonattached of 'c Eliom_services.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f, 'return)
           Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -63,13 +63,13 @@ val call_caml_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  sp:Eliom_client_types.server_params ->
   service:('a, 'b,
            [ `Attached of
                ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
            | `Nonattached of 'c Eliom_services.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f, 'return Eliom_parameters.caml)
           Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -81,7 +81,6 @@ val exit_to :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  sp:Eliom_client_types.server_params ->
   service:('a, 'b,
            [ `Attached of
                ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
@@ -89,6 +88,7 @@ val exit_to :
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f,
            'return)
           Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -100,13 +100,13 @@ val change_url :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  sp:Eliom_client_types.server_params ->
   service:('a, 'b,
            [ `Attached of
                ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
            | `Nonattached of 'c Eliom_services.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f, 'return)
           Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -118,7 +118,6 @@ val change_page :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  sp:Eliom_client_types.server_params ->
   service:('a, 'b,
            [ `Attached of
                ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
@@ -126,6 +125,7 @@ val change_page :
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f,
            'return)
           Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -137,7 +137,6 @@ val get_subpage :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  sp:Eliom_client_types.server_params ->
   service:('a, 'b,
            [ `Attached of
                ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
@@ -145,6 +144,7 @@ val get_subpage :
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f,
            Eliom_services.appl_service)
           Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->

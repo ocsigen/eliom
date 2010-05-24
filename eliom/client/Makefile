@@ -7,7 +7,7 @@ OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,obrowser,str,lwt
 LIBS:=-I $(shell ocamlfind query react)
-MLS:= ocsigen_lib.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_mkforms.ml polytables.ml eliom_obrowser_client.ml xML.ml xHTML.ml eliom_client.ml
+MLS:= ocsigen_lib.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_obrowser.ml eliom_mkforms.ml polytables.ml xML.ml xHTML.ml eliom_client.ml
 MLIS:= eliom_client_types.mli
 CMOS=$(MLS:.ml=.cmo)
 
@@ -59,13 +59,13 @@ ocsigen_lib_obrowser.ml: ../../baselib/ocsigen_lib_obrowser.ml
 polytables.ml: ../../baselib/polytables.ml
 	cp -f $< $@ 
 
-#eliom_obrowser_client.cmo:
-#	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser_client.ml
+#eliom_obrowser.cmo:
+#	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser.ml
 #
 #lwt_obrowser.cmo:
 #	ocamlfind ocamlc -package obrowser,lwt.syntax -syntax camlp4o -c lwt_obrowser.ml
 #
-#eliom_obrowser_client.cma: lwt_obrowser.cmo eliom_obrowser_client.cmo
+#eliom_obrowser_client.cma: lwt_obrowser.cmo eliom_obrowser.cmo
 #	$(CAMLC) -a -o $@ $^
 
 depend: $(MLS)

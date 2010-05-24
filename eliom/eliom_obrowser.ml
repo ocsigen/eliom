@@ -1,15 +1,3 @@
-let string_map f s =
-  let r = ref [] in
-  for i = String.length s - 1 downto 0 do
-    r := f s.[i] :: !r;
-  done;
-  !r
-
-let jsmarshal v =
-  let s = Marshal.to_string v [] in
-  let s' = string_map (fun c -> Printf.sprintf "0x%02X" (Char.code c)) s in
-  Printf.sprintf "[%s]" (String.concat "," s')
-
 
 let fresh_id = 
   let c = ref 0 in
@@ -106,7 +94,7 @@ let client_sp s =
    Eliom_client_types.sp_fullsessname = s.Eliom_common.sp_fullsessname;}
 
 
-let global_eliom_appl_data_key : ((float * int) * unit list) Polytables.key = 
+let global_eliom_appl_data_key : ((int * int) * unit list) Polytables.key = 
   Polytables.make_key ()
 
 let get_global_eliom_appl_data_ ~sp = 
@@ -114,15 +102,15 @@ let get_global_eliom_appl_data_ ~sp =
   try 
     Polytables.get ~table:rc ~key:global_eliom_appl_data_key
   with Not_found -> 
-    let d = ((Eliom_sessions.get_timeofday ~sp, 0), []) in
+    let d = ((Eliom_sessions.get_request_id ~sp, 0), []) in
     Polytables.set ~table:rc ~key:global_eliom_appl_data_key ~value:d;
     d
 
-let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key = 
+let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
   let rc = Eliom_sessions.get_request_cache ~sp in
   let ((reqnum, num) as n, data) = 
     try Polytables.get ~table:rc ~key:global_eliom_appl_data_key
-    with Not_found -> ((Eliom_sessions.get_timeofday ~sp, 0), [])
+    with Not_found -> ((Eliom_sessions.get_request_id ~sp, 0), [])
   in
   Polytables.set ~table:rc ~key:global_eliom_appl_data_key
     ~value:((reqnum, num+1), Obj.magic v::data);
@@ -132,5 +120,47 @@ let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
 let wrap_sp ~sp = wrap ~sp (client_sp sp)
 
 let wrap_node ~sp n = 
-  let reqnum = Eliom_sessions.get_timeofday ~sp in
+  let reqnum = Eliom_sessions.get_request_id ~sp in
   Eliom_client_types.to_data_key_ (reqnum, XML.ref_node (XHTML.M.toelt n))
+
+
+
+let make_a_with_onclick
+    make_a
+    ?absolute
+    ?absolute_path
+    ?https
+    ?a
+    ~service
+    ~sp
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    content
+    getparams =
+  make_a
+    ?a
+    ~onclick:
+    ((fun arg1 arg2 arg3 arg4 arg5 arg6
+        arg7 arg8 arg9 arg10 arg11 ->
+          "caml_run_from_table (main_vm, "^
+            Eliom_client_types.a_closure_id_string^","^
+            ((Eliom_client_types.jsmarshal
+                (arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8,
+                 arg9, arg10, arg11))
+             ^ ")"))
+       (wrap ~sp absolute)
+        (wrap ~sp absolute_path)
+        (wrap ~sp https)
+        (wrap ~sp service)
+        (wrap_sp sp)
+        (wrap ~sp hostname)
+        (wrap ~sp port)
+        (wrap ~sp fragment)
+        (wrap ~sp keep_nl_params)
+        (wrap ~sp nl_params)
+        (wrap ~sp getparams))
+    content
+    

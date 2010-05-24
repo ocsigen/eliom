@@ -125,7 +125,7 @@ let.server _ =
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.exit_to ~sp ~service () ()
                  ) (Eliom_obrowser.wrap_sp sp) Tutoeliom.coucou)
             ]
@@ -135,7 +135,7 @@ let.server _ =
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       let body = JSOO.eval "document.body" in
                       (*Js.get_element_by_id "bodyid"*)
                       Eliom_client.call_service
@@ -166,7 +166,7 @@ let.server _ =
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, 'ret) Eliom_services.service) ->
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.change_url ~sp ~service () ()
                  ) (Eliom_obrowser.wrap_sp sp) Tutoeliom.coucou)
             ]
@@ -182,18 +182,29 @@ let.server _ =
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.change_page ~sp ~service () ()
                  ) (Eliom_obrowser.wrap_sp sp) eliomobrowser1)
             ]
             [pcdata "Click here to change the page without stopping the program."];
+
+>> Actually the usual {{{a}}} function to create link will
+  use {{{change_page}}} if you do a link inside the same application.
+  The latter example is equivalent to the following. <<code language="ocaml" |
+          p [a 
+               ~sp
+               ~service:eliomobrowser1
+               [pcdata "Click here to change the page without stopping the program (with ";
+                code [pcdata "a"];
+                pcdata ")."]
+               ()];
           p 
             ~a:[
               a_onclick 
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.change_page ~sp ~service () ()
                  ) (Eliom_obrowser.wrap_sp sp) Tutoeliom.coucou)
             ]
@@ -206,11 +217,44 @@ let.server _ =
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.exit_to ~sp ~service () ()
                  ) (Eliom_obrowser.wrap_sp sp) eliomobrowser2)
             ]
             [pcdata "Click here to relaunch the program the program by reloading the page."];
+          p 
+            ~a:[
+              a_onclick 
+                ((fun.client
+                    (absolute : 'ze12)
+                    (absolute_path : 'ze11)
+                    (https : 'ze10)
+                    (service : 'ze8)
+                    (sp : 'ze7)
+                    (hostname : 'ze6)
+                    (port : 'ze5)
+                    (fragment : 'ze4)
+                    (keep_nl_params : 'ze3)
+                    (nl_params : 'ze2)
+                    (getparams : 'ze1) ->
+                      let sp = Eliom_obrowser.unwrap_sp sp in
+                      Eliom_client.change_page ~sp ~service () ()
+                 ) 
+                   None
+                   None
+                   None
+                   eliomobrowser1
+                   (Eliom_obrowser.wrap_sp sp) 
+                   None
+                   None
+                   None
+                   None
+                   None
+                    ())
+            ]
+            [pcdata "A generic client-side function for calling ";
+             code [pcdata "change_page"];
+             pcdata "."];
 
 >>
   The following examples shows how to get a subpage from the server,
@@ -222,7 +266,7 @@ let.server _ =
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.get_subpage ~sp ~service () () ~>>= fun blocks ->
                       List.iter (Js.Node.append Ocsigen_lib.body) (XHTML.M.toeltl blocks);
                       Lwt.return ()
@@ -238,7 +282,7 @@ let.server _ =
           (let container = ul (item ()) [ item () ; item ()] in
            div [p ~a:[a_onclick 
                   ((fun.client (container : 'node Eliom_client_types.data_key) ->
-                      let container = Eliom_obrowser_client.unwrap_node container in
+                      let container = Eliom_obrowser.unwrap_node container in
                       let nl = XHTML.M.toelt (item ()) in
                       Js.Node.append container nl) 
                      (Eliom_obrowser.wrap_node ~sp container))]
@@ -251,11 +295,11 @@ let.server _ =
   just do:
 <<code language="ocaml" |
 
-          let my_int = 123456789 in
+          let my_value = 1.12345 in 
           p ~a:[a_onclick 
-            ((fun.client (my_int : int Eliom_client_types.data_key) ->
-                Js.alert (string_of_int (Eliom_obrowser_client.unwrap my_int))) 
-               (Eliom_obrowser.wrap ~sp my_int))]
+            ((fun.client (my_value : float Eliom_client_types.data_key) ->
+                Js.alert (string_of_float (Eliom_obrowser.unwrap my_value))) 
+               (Eliom_obrowser.wrap ~sp my_value))]
             [pcdata "Click here to see a server side value sent with the page."];
           
         ])
@@ -285,7 +329,7 @@ let.server eliomobrowser3 =
                  ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.change_page ~sp ~service
                        () (22, "oo", ["a";"b";"c"]))
                     (Eliom_obrowser.wrap_sp sp) eliomobrowser3')]
@@ -310,7 +354,7 @@ let.server eliomobrowser4 =
                  ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, int list Eliom_parameters.caml) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       let body = JSOO.eval "document.body" in
                       Eliom_client.call_caml_service ~sp ~service () ()
                       ~>>= fun l ->
@@ -352,11 +396,14 @@ let.server _ =
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.change_page ~sp ~service () ()
                  ) (Eliom_obrowser.wrap_sp sp) gotowithoutobrowser)
             ]
-            [pcdata "Click here to go to a page that launches the application every time."]
+            [pcdata "Click here to go to a page that launches the application every time."];
+          p [a  ~sp ~service:gotowithoutobrowser
+               [pcdata "Same link with "; 
+                code [pcdata "a"]; pcdata "."] ()];
          ]);
   Eliom_appl.register
     ~service:gotowithoutobrowser
@@ -369,11 +416,14 @@ let.server _ =
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser_client.unwrap_sp sp in
+                      let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.change_page ~sp ~service () ()
                  ) (Eliom_obrowser.wrap_sp sp) withoutobrowser)
             ]
-            [pcdata "Click here to see the page that does not launch the application."]
+            [pcdata "Click here to see the page that does not launch the application."];
+          p [a  ~sp ~service:withoutobrowser
+               [pcdata "Same link with "; 
+                code [pcdata "a"]; pcdata "."] ()];
          ])
 
 

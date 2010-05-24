@@ -13,5 +13,18 @@ val unwrap_node : Eliom_client_types.server_params Eliom_client_types.data_key -
 
 
 (**/**)
-val relink_dom_list : float -> Js.Node.t list -> (int * ref_tree) list -> unit
-val fill_global_data_table : (float * int) * unit list -> unit
+val relink_dom_list : int -> Js.Node.t list -> (int * ref_tree) list -> unit
+val fill_global_data_table : (int * int) * unit list -> unit
+
+val make_a_with_onclick :
+  (?a:'a -> onclick:string -> 'b -> 'c) ->
+  ?absolute:'d ->
+  ?absolute_path:'e ->
+  ?https:'f ->
+  ?a:'a ->
+  service:'g ->
+  sp:Eliom_sessions.server_params ->
+  ?hostname:'h ->
+  ?port:'i ->
+  ?fragment:'j ->
+  ?keep_nl_params:'k -> ?nl_params:'l -> 'b -> 'm -> 'c

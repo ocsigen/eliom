@@ -50,7 +50,7 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
 		  let e = Ast.ExTup (l', a) in
 		  let _loc = loc in
 		  let s = Printf.sprintf "caml_run_from_table (main_vm, 0x%X," (hash loc) in
-		    <:expr< $str:s$ ^ Eliom_obrowser.jsmarshal $e$ ^ ")" >>
+		    <:expr< $str:s$ ^ Eliom_client_types.jsmarshal $e$ ^ ")" >>
 	    end
 	| (_, t, l) :: tl ->
 	    let na = mkarg () in
@@ -91,11 +91,11 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
       match p, t with
 (*	| Syntax.Ast.PaId (l, pn), Syntax.Ast.TyId (s, Syntax.Ast.IdLid (_, "node")) ->
 	    let en = Syntax.Ast.ExId (l, pn) in
-	    <:expr< fun ($p$ : int) -> let $p$ = (Eliom_obrowser_client.retrieve_node $en$ : Js.Node.t) in $e$ >> *)
+	    <:expr< fun ($p$ : int) -> let $p$ = (Eliom_obrowser.retrieve_node $en$ : Js.Node.t) in $e$ >> *)
         | _ ->
 	    <:expr< fun ($p$ : $t$) -> $e$ >>
     in
-    client_str := <:str_item< $old$ ;; let _ = Eliom_obrowser_client.register_closure $int:id$ ($e$) ;; >> ;
+    client_str := <:str_item< $old$ ;; let _ = Eliom_obrowser.register_closure $int:id$ ($e$) ;; >> ;
     ClientDump.print_implem
       ~output_file:(!client_file)
       !client_str

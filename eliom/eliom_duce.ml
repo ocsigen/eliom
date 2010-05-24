@@ -203,8 +203,16 @@ module Xhtmlforms_ = struct
 
   let make_pcdata s = str s
 
-  let make_a ?(a={{ {} }}) ~href l : a_elt =
-    {{ <a ({href=(str href) } ++ a)> l }}
+  let make_a ?(a={{ {} }}) ?href ?onclick l : a_elt =
+    let href_attr = match href with
+      | None -> {{ {} }}
+      | Some v -> {{ { href=(str v) } }} 
+    in
+    let onclick_attr = match onclick with
+      | None -> {{ {} }}
+      | Some v -> {{ { onclick=(str v) } }} 
+    in
+    {{ <a (href_attr ++ onclick_attr ++ a)> l }}
 
   let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt =
     {{ <form ({method="get"
