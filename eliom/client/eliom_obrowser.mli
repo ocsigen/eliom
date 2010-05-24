@@ -1,3 +1,26 @@
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Module eliom_obrowser.ml
+ * Copyright (C) 2010 Vincent Balat
+ * Laboratoire PPS - CNRS Université Paris Diderot
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception;
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
+
+
+
 (*external get_closure_arg : unit -> 'a = "caml_get_closure_arg"*)
 val register_closure : int -> ('a -> 'b) -> unit
 (*val nodes : (int, Js.Node.t) Hashtbl.t
@@ -16,15 +39,3 @@ val unwrap_node : Eliom_client_types.server_params Eliom_client_types.data_key -
 val relink_dom_list : int -> Js.Node.t list -> (int * ref_tree) list -> unit
 val fill_global_data_table : (int * int) * unit list -> unit
 
-val make_a_with_onclick :
-  (?a:'a -> onclick:string -> 'b -> 'c) ->
-  ?absolute:'d ->
-  ?absolute_path:'e ->
-  ?https:'f ->
-  ?a:'a ->
-  service:'g ->
-  sp:Eliom_sessions.server_params ->
-  ?hostname:'h ->
-  ?port:'i ->
-  ?fragment:'j ->
-  ?keep_nl_params:'k -> ?nl_params:'l -> 'b -> 'm -> 'c

@@ -91,3 +91,6 @@ let node ?a name children =
     List.iter (Node.append n) children ;
     n
 
+
+let register_event elt name f v =
+  Lwt_obrowser.register_event elt "onclick" f v

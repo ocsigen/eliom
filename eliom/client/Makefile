@@ -7,8 +7,8 @@ OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,obrowser,str,lwt
 LIBS:=-I $(shell ocamlfind query react)
-MLS:= ocsigen_lib.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_obrowser.ml eliom_mkforms.ml polytables.ml xML.ml xHTML.ml eliom_client.ml
-MLIS:= eliom_client_types.mli
+MLS:= ocsigen_lib.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_uri.ml eliom_obrowser.ml eliom_mkforms.ml polytables.ml xML.ml xHTML.ml eliom_client.ml
+MLIS:= eliom_mkforms.mli eliom_client_types.mli
 CMOS=$(MLS:.ml=.cmo)
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -53,6 +53,15 @@ eliom_common.ml: ../eliom_common_obrowser.ml
 eliom_mkforms.ml: ../eliom_mkforms.ml
 	cp -f $< $@ 
 
+eliom_mkforms.mli: ../eliom_mkforms.mli
+	cp -f $< $@ 
+
+eliom_uri.ml: ../eliom_uri.ml
+	cp -f $< $@ 
+
+eliom_uri.mli: ../eliom_uri.mli
+	cp -f $< $@ 
+
 ocsigen_lib_obrowser.ml: ../../baselib/ocsigen_lib_obrowser.ml
 	cp -f $< $@ 
 
@@ -74,7 +83,8 @@ depend: $(MLS)
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so
 	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml \
-	    eliom_common.ml eliom_mkforms.ml ocsigen_lib_obrowser.ml \
+	    eliom_common.ml eliom_mkforms.ml* eliom_uri.ml* \
+	    ocsigen_lib_obrowser.ml \
             polytables.ml
 
 -include .depend

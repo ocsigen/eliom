@@ -131,7 +131,9 @@ let get_application_name s = s.application_name
 let set_application_name s n = s.application_name <- n
 
 let get_get_or_post s =
-  match get_kind_ s with
+  match get_kind_ (s : ('a, 'b, [< `Attached of (attached_service_kind, [< getpost]) a_s
+                        | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service :> ('a, 'b, service_kind, 'd, 'e, 'f, 'g, 'h) service) 
+  with
     | `Attached attser -> attser.get_or_post
     | `Nonattached { na_kind = `Post keep_get_na_param } -> `Post
     | _ -> `Get
@@ -140,6 +142,7 @@ let change_get_num service attser n =
   {service with
      kind = `Attached {attser with
                          get_name = n}}
+
 
 (** Satic directories **)
 let static_dir_ ?(https = false) ~sp () =

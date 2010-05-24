@@ -1,0 +1,59 @@
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Module eliom_obrowser.ml
+ * Copyright (C) 2010 Vincent Balat
+ * Laboratoire PPS - CNRS Université Paris Diderot
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception;
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
+
+
+
+(* Fresh name generator *)
+val fresh_id : unit -> string
+
+
+(**/**)
+val get_global_eliom_appl_data_ : 
+  sp:Eliom_sessions.server_params -> (int * int) * unit list
+
+val wrap : sp:Eliom_sessions.server_params -> 'a -> 
+  'a Eliom_client_types.data_key
+
+val wrap_sp : sp:Eliom_sessions.server_params ->
+  Eliom_client_types.server_params Eliom_client_types.data_key
+
+val wrap_node : sp:Eliom_sessions.server_params ->
+  'a XHTML.M.elt -> 'node Eliom_client_types.data_key
+
+
+val make_a_with_onclick :
+  (?a:'a -> ?onclick:string -> 'c -> 'd) ->
+  ('d -> string -> (unit -> unit Lwt.t) -> unit -> 'f) ->
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  ?a:'a ->
+  service:('get, unit, [< Eliom_services.get_service_kind ],
+           [< Eliom_services.suff ], 'gn, 'pn,
+           [< Eliom_services.registrable ], 'return)
+    Eliom_services.service ->
+  sp:Eliom_sessions.server_params ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Eliom_parameters.nl_params_set ->
+  'c -> 'get -> 'd

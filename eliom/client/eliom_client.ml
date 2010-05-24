@@ -24,24 +24,29 @@ exception Failed_service of int
 
 let (>>=) = Lwt.bind
 let (>>>) x f = f x
-
 let current_fragment = ref ""
-
+let url_fragment_prefix = "!"
+let url_fragment_prefix_with_sharp = "#!"
 let appl_name = Eliom_sessions.appl_name
   
 let appl_instance_id =
   ((JSOO.eval "appl_instance_id" >>> JSOO.as_string) : string)
 
-  
 let create_request_
     ?absolute ?absolute_path ?https
-    ~service ~sp
+    ~(service : ('get, 'post, 
+                 [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
+                 | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
+                 [< Eliom_services.suff ], 'h, 'i,
+                 [< Eliom_services.registrable ], 'j)
+        Eliom_services.service)
+    ~sp
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p =
   match Eliom_services.get_get_or_post service with
     | `Get ->
         let uri =
-          Eliom_mkforms.make_string_uri
+          Eliom_uri.make_string_uri
             ?absolute ?absolute_path ?https
             ~service ~sp
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params g
@@ -49,16 +54,149 @@ let create_request_
         Ocsigen_lib.Left uri
     | `Post ->
         let path, g, fragment, p =
-          Eliom_mkforms.make_post_uri_components
+          Eliom_uri.make_post_uri_components
             ?absolute ?absolute_path ?https
             ~service ~sp
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params
             ?keep_get_na_params g p
         in
         let uri = 
-          Eliom_mkforms.make_string_uri_from_components (path, g, fragment) 
+          Eliom_uri.make_string_uri_from_components (path, g, fragment) 
         in
         Ocsigen_lib.Right (uri, p)
+
+
+let exit_to
+    ?absolute ?absolute_path ?https
+    ~(service : ('get, 'post, 
+                 [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
+                 | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
+                 [< Eliom_services.suff ], 'h, 'i,
+                 [< Eliom_services.registrable ], 'j)
+        Eliom_services.service)
+    ~sp
+    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+    g p =
+  (match create_request_
+     ?absolute ?absolute_path ?https
+     ~service ~sp
+     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+     g p
+   with
+     | Ocsigen_lib.Left uri -> Js.redirect_get uri
+     | Ocsigen_lib.Right (uri, p) -> Js.redirect_post uri p)
+
+
+(** This will change the URL, without doing a request.
+    As browsers do not not allow to change the URL,
+    we write the new URL in the fragment part of the URL.
+    A script must do the redirection if there is something in the fragment.
+    Usually this function is only for internal use.
+*)
+let change_url
+(*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
+    ?absolute ?absolute_path ?https
+    ~(service : ('get, 'post, 
+                 [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
+                 | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
+                 [< Eliom_services.suff ], 'h, 'i,
+                 [< Eliom_services.registrable ], 'j)
+        Eliom_services.service)
+    ~sp
+    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+    g p =
+(*VVV only for GET services? *)
+  let uri =
+    (match create_request_
+       ?absolute ?absolute_path ?https
+       ~service ~sp
+       ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+       g p
+     with
+       | Ocsigen_lib.Left uri -> uri
+       | Ocsigen_lib.Right (uri, p) -> uri)
+  in
+  current_fragment := url_fragment_prefix_with_sharp^uri; 
+  JSOO.eval "window.location" >>> 
+  JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)))
+
+
+let container_node = 
+  Eliom_obrowser.unwrap_node
+    (Obj.obj (JSOO.eval "container_node" >>> JSOO.as_block))
+
+
+
+let set_inner_html code s =
+  if code <> 200
+  then Lwt.fail (Failed_service code)
+  else begin
+    let (ref_tree_list, (((timeofday, _), _) as global_data), content) = 
+      Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
+    in
+    container_node >>> JSOO.set "innerHTML" (JSOO.string content);
+    Eliom_obrowser.relink_dom_list 
+      timeofday (Js.Node.children container_node) ref_tree_list;
+    Eliom_obrowser.fill_global_data_table global_data;
+    Lwt.return ()
+  end
+
+
+let change_page
+    ?absolute ?absolute_path ?https
+    ~(service : ('get, 'post, 
+                 [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
+                 | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
+                 [< Eliom_services.suff ], 'h, 'i,
+                 [< Eliom_services.registrable ], 'j)
+        Eliom_services.service)
+    ~sp
+    ?hostname ?port ?fragment ?keep_nl_params
+    ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
+    (g : 'get) (p : 'post) =
+  if Eliom_services.get_application_name service <> (Some appl_name)
+  then
+    Lwt.return (exit_to
+                  ?absolute ?absolute_path ?https
+                  ~service ~sp
+                  ?hostname ?port ?fragment ?keep_nl_params
+                  ~nl_params ?keep_get_na_params
+                  g p)
+  else
+    (match create_request_
+       ?absolute ?absolute_path ?https
+       ~service ~sp
+       ?hostname ?port ?fragment ?keep_nl_params
+       ~nl_params:(Eliom_parameters.add_nl_parameter
+                     nl_params
+                     Eliom_parameters.eliom_appl_nlp
+                     (appl_name, appl_instance_id))
+       ?keep_get_na_params
+       g p
+     with
+       | Ocsigen_lib.Left uri -> 
+           Lwt_obrowser.http_get uri [] >>= fun r ->
+           Lwt.return (r, uri)
+       | Ocsigen_lib.Right (uri, p) -> 
+           Lwt_obrowser.http_post uri p >>= fun r ->
+           Lwt.return (r, uri))
+    >>= fun ((code, s), uri) ->
+    set_inner_html code s >>= fun () ->
+(*VVV The URL is created twice ... 
+  Once with eliom_appl_instance_id (for the request), 
+  and once without it (we do not want it to appear in the URL).
+  How to avoid this?
+*)
+    change_url
+      ?absolute ?absolute_path ?https
+      ~service ~sp
+      ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+      g p;
+(*VVV change the URL only if it is different? *)
+    Lwt.return ()
+
+
+
 
 
 let call_service
@@ -97,120 +235,7 @@ let call_caml_service
   Lwt.return (Marshal.from_string (Ocsigen_lib.urldecode_string s) 0)
 
 
-let exit_to
-    ?absolute ?absolute_path ?https
-    ~service ~sp
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-    g p =
-  (match create_request_
-     ?absolute ?absolute_path ?https
-     ~service ~sp
-     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-     g p
-   with
-     | Ocsigen_lib.Left uri -> Js.redirect_get uri
-     | Ocsigen_lib.Right (uri, p) -> Js.redirect_post uri p)
-
-
-
-let url_fragment_prefix = "!"
-let url_fragment_prefix_with_sharp = "#!"
-
-(** This will change the URL, without doing a request.
-    As browsers do not not allow to change the URL,
-    we write the new URL in the fragment part of the URL.
-    A script must do the redirection if there is something in the fragment.
-    Usually this function is only for internal use.
-*)
-let change_url
-(*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
-    ?absolute ?absolute_path ?https
-    ~service ~sp
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-    g p =
-(*VVV only for GET services? *)
-  let uri =
-    (match create_request_
-       ?absolute ?absolute_path ?https
-       ~service ~sp
-       ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-       g p
-     with
-       | Ocsigen_lib.Left uri -> uri
-       | Ocsigen_lib.Right (uri, p) -> uri)
-  in
-  current_fragment := url_fragment_prefix_with_sharp^uri; 
-  JSOO.eval "window.location" >>> 
-  JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)))
-
-
-let container_node = 
-  Eliom_obrowser.unwrap_node 
-    (Obj.obj (JSOO.eval "container_node" >>> JSOO.as_block))
-
-
-
-let set_inner_html code s =
-  if code <> 200
-  then Lwt.fail (Failed_service code)
-  else begin
-    let (ref_tree_list, (((timeofday, _), _) as global_data), content) = 
-      Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
-    in
-    container_node >>> JSOO.set "innerHTML" (JSOO.string content);
-    Eliom_obrowser.relink_dom_list 
-      timeofday (Js.Node.children container_node) ref_tree_list;
-    Eliom_obrowser.fill_global_data_table global_data;
-    Lwt.return ()
-  end
-
-
-let change_page
-    ?absolute ?absolute_path ?https
-    ~service ~sp
-    ?hostname ?port ?fragment ?keep_nl_params
-    ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
-    g p =
-  if Eliom_services.get_application_name service <> (Some appl_name)
-  then
-    Lwt.return (exit_to
-                  ?absolute ?absolute_path ?https
-                  ~service ~sp
-                  ?hostname ?port ?fragment ?keep_nl_params
-                  ~nl_params ?keep_get_na_params
-                  g p)
-  else
-    (match create_request_
-       ?absolute ?absolute_path ?https
-       ~service ~sp
-       ?hostname ?port ?fragment ?keep_nl_params
-       ~nl_params:(Eliom_parameters.add_nl_parameter
-                     nl_params
-                     Eliom_parameters.eliom_appl_nlp
-                     (appl_name, appl_instance_id))
-       ?keep_get_na_params
-       g p
-     with
-       | Ocsigen_lib.Left uri -> 
-           Lwt_obrowser.http_get uri [] >>= fun r ->
-             Lwt.return (r, uri)
-           | Ocsigen_lib.Right (uri, p) -> Lwt_obrowser.http_post uri p >>= fun r ->
-               Lwt.return (r, uri))
-    >>= fun ((code, s), uri) ->
-    set_inner_html code s >>= fun () ->
-(*VVV The URL is created twice ... 
-  Once with eliom_appl_instance_id (for the request), 
-  and once without it (we do not want it to appear in the URL).
-  How to avoid this?
-*)
-    change_url
-      ?absolute ?absolute_path ?https
-      ~service ~sp
-      ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-      g p;
-(*VVV change the URL only if it is different? *)
-    Lwt.return ()
-        
+       
 
 let fake_page = 
   XHTML.M.toelt (XHTML.M.body [])
@@ -341,3 +366,37 @@ let _ =
            ~service ~sp ?hostname ?port ?fragment ?keep_nl_params ?nl_params
            getparams ())
 
+
+
+let make_a_with_onclick 
+    make_a
+    register_event
+    ?absolute
+    ?absolute_path
+    ?https
+    ?a
+    ~service
+    ~sp
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    content
+    getparams = 
+  let node = make_a ?a ?onclick:None content in
+  register_event node "onclick"
+    (fun () -> change_page
+       ?absolute
+       ?absolute_path
+       ?https
+       ~service
+       ~sp
+       ?hostname
+       ?port
+       ?fragment
+       ?keep_nl_params
+       ?nl_params
+       getparams ())
+    ();
+  node

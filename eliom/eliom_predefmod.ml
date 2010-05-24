@@ -316,6 +316,8 @@ module Xhtmlforms_ = struct
   let make_js_script ?(a=[]) ~uri () =
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
+  let register_event node = XML.register_event (XHTML.M.toelt node)
+
 end
 
 
@@ -2119,6 +2121,9 @@ module HtmlTextforms_ = struct
   let make_js_script ?(a="") ~uri () =
     "<script src=\""^uri^" contenttype=\"text/javascript\" "^a^"></script>"
 
+  let register_event elt ev callback v =
+    failwith "register_event not implemented for text"
+
 end
 
 
@@ -3223,7 +3228,7 @@ redir ();"))::
                      
                      ^ "  eliom_global_data = input_val (" ^ 
                      (Eliom_client_types.jsmarshal
-                        (Eliom_obrowser.get_global_eliom_appl_data_ ~sp)
+                        (Eliom_client.get_global_eliom_appl_data_ ~sp)
                      ) ^ "); \n"
                      
                      ^ "  container_node = input_val (" ^ 
@@ -3278,7 +3283,7 @@ redir ();"))::
      then 
 (*VVV Here we do not send a stream *)
        Caml.send ~sp ((XML.make_ref_tree_list (XHTML.M.toeltl content)),
-                      (Eliom_obrowser.get_global_eliom_appl_data_ ~sp),
+                      (Eliom_client.get_global_eliom_appl_data_ ~sp),
 (*VVV Use another serialization format than XML for the page? *)
                       Xhtmlcompact'.xhtml_list_print content)
      else 

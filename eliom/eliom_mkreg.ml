@@ -642,7 +642,7 @@ module MakeRegister = functor
                                                  without suffix. We redirect. *)
                                            Lwt.fail
                                              (Eliom_common.Eliom_Suffix_redirection
-                                                (Eliom_mkforms.make_string_uri
+                                                (Eliom_uri.make_string_uri
                                                    ~absolute:true
                                                    ~service:(service : 
                                                                ('a, 'b, [< Eliom_services.internal_service_kind ],

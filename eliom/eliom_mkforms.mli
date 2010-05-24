@@ -27,7 +27,6 @@
 
 
 open Lwt
-open Ocsigen_extensions
 open Eliom_parameters
 open Eliom_services
 
@@ -143,6 +142,7 @@ module type FORMCREATE =
 
     val make_js_script : ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 
+    val register_event : a_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
 
   end
 
@@ -299,9 +299,10 @@ module type ELIOMFORMSIG =
       ?absolute_path:bool ->
       ?https:bool ->
       ?a:a_attrib_t ->
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, 'pn,
-               [< registrable ], 'return) service ->
+      service:('get, unit, [< Eliom_services.get_service_kind ],
+               [< Eliom_services.suff ], 'd, 'e,
+               [< Eliom_services.registrable ], 'f)
+        Eliom_services.service ->
       sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
@@ -923,26 +924,3 @@ and type input_type_t = Pages.input_type_t
 and type button_type_t = Pages.button_type_t
 
 
-(** Constructs a relative link (low level).
-    The first parameter is the current URL,
-    the second is the destination.
-*)
-val reconstruct_relative_url_path : 
-  string list -> string list -> string list
-
- 
-(**/**)
-
-val make_string_uri :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:('a, 'b, [< Eliom_services.service_kind ],
-           [< Eliom_services.suff ], 'c, 'd, [< Eliom_services.registrable ],
-           'return) Eliom_services.service ->
-  sp:Eliom_sessions.server_params ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set -> 'a -> string

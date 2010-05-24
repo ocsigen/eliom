@@ -126,7 +126,10 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
  *)
 
 
-val get_get_or_post : ('a, 'b, service_kind, 'd, 'e, 'f, 'g, 'h) service -> 
+val get_get_or_post : 
+  ('a, 'b, 
+   [< `Attached of (attached_service_kind, [< getpost]) a_s
+   | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service -> 
   getpost
 
 (** Returns the name of the application to which belongs the service, if any. *)

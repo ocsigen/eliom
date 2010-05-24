@@ -19,37 +19,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
 exception Failed_service of int
-
-val create_request_ :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:('a, 'b,
-           [ `Attached of
-               ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
-           | `Nonattached of 'c Eliom_services.na_s ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f, 'return)
-          Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
-  ?keep_get_na_params:bool ->
-  'a -> 'b -> (string, string * (string * string) list) Ocsigen_lib.leftright
 
 val call_service :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [ `Attached of
-               ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
-           | `Nonattached of 'c Eliom_services.na_s ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f, 'return)
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   sp:Eliom_client_types.server_params ->
   ?hostname:string ->
@@ -64,10 +43,9 @@ val call_caml_service :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [ `Attached of
-               ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
-           | `Nonattached of 'c Eliom_services.na_s ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f, 'return Eliom_parameters.caml)
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return Eliom_parameters.caml)
           Eliom_services.service ->
   sp:Eliom_client_types.server_params ->
   ?hostname:string ->
@@ -82,11 +60,9 @@ val exit_to :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [ `Attached of
-               ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
-           | `Nonattached of 'c Eliom_services.na_s ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f,
-           'return)
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   sp:Eliom_client_types.server_params ->
   ?hostname:string ->
@@ -101,10 +77,9 @@ val change_url :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [ `Attached of
-               ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
-           | `Nonattached of 'c Eliom_services.na_s ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f, 'return)
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   sp:Eliom_client_types.server_params ->
   ?hostname:string ->
@@ -119,11 +94,9 @@ val change_page :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [ `Attached of
-               ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
-           | `Nonattached of 'c Eliom_services.na_s ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f,
-           'return)
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   sp:Eliom_client_types.server_params ->
   ?hostname:string ->
@@ -138,11 +111,9 @@ val get_subpage :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [ `Attached of
-               ([> `External ], [ `Get | `Post ]) Eliom_services.a_s
-           | `Nonattached of 'c Eliom_services.na_s ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 'f,
-           Eliom_services.appl_service)
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   sp:Eliom_client_types.server_params ->
   ?hostname:string ->
@@ -152,3 +123,25 @@ val get_subpage :
   ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> 
   [< `PCDATA | XHTML.M.flow ] XHTML.M.elt list Lwt.t
+
+
+(**/**)
+
+val make_a_with_onclick :
+  (?a:'a -> ?onclick:string -> 'c -> 'd) ->
+  ('d -> string -> (unit -> unit Lwt.t) -> unit -> 'f) ->
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  ?a:'a ->
+  service:('get, unit, [< Eliom_services.get_service_kind ],
+           [< Eliom_services.suff ], 'gn, 'pn,
+           [< Eliom_services.registrable ], 'return)
+    Eliom_services.service ->
+  sp:Eliom_sessions.server_params ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Eliom_parameters.nl_params_set ->
+  'c -> 'get -> 'd

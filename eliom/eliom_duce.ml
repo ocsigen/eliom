@@ -310,6 +310,9 @@ module Xhtmlforms_ = struct
     {{ <script ({type="text/javascript"
                  src=(str uri) } ++ a)> [] }}
 
+  let register_event elt ev callback =
+    failwith "register_event not implemented for ocamlduce"
+
 end
 
 module Xhtmlreg = Eliom_mkreg.MakeRegister(Xhtmlreg_)
