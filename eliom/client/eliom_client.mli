@@ -128,7 +128,7 @@ val get_subpage :
 (**/**)
 
 val make_a_with_onclick :
-  (?a:'a -> ?onclick:string -> 'c -> 'd) ->
+  (?a:'a -> ?onclick:XML.event -> 'c -> 'd) ->
   ('d -> string -> (unit -> unit Lwt.t) -> unit -> 'f) ->
   ?absolute:bool ->
   ?absolute_path:bool ->

@@ -34,6 +34,7 @@ let int_attrib name value = AInt (name, value)
 let string_attrib name value = AStr (name, value)
 let space_sep_attrib name values = AStrL (Space, name, values)
 let comma_sep_attrib name values = AStrL (Comma, name, values)
+let event_attrib name value = AStr (name, value)
 
 let attrib_value_to_string encode = function
   | AInt (_, i) -> Printf.sprintf "\"%d\"" i
@@ -49,7 +50,7 @@ let attrib_name = function
 let attrib_to_string encode a =
   Printf.sprintf "%s=%s" (attrib_name a) (attrib_value_to_string encode a)
 
-
+type event = string
 
 type ename = string
 type elt_content =
@@ -197,6 +198,38 @@ let comment c = { elt = Comment c ; ref = 0 }
 let pcdata d = { elt = PCDATA d ; ref = 0 }
 let encodedpcdata d = { elt = EncodedPCDATA d ; ref = 0 }
 let entity e = { elt = Entity e ; ref = 0 }
+
+let cdata s = (* GK *)
+  (* For security reasons, we do not allow "]]>" inside CDATA
+     (as this string is to be considered as the end of the cdata)
+  *)
+  let s' = "\n<![CDATA[\n"^
+    (Netstring_pcre.global_replace
+       (Netstring_pcre.regexp_string "]]>") "" s)
+    ^"\n]]>\n" in
+  encodedpcdata s'
+
+let cdata_script s = (* GK *)
+  (* For security reasons, we do not allow "]]>" inside CDATA
+     (as this string is to be considered as the end of the cdata)
+  *)
+  let s' = "\n//<![CDATA[\n"^
+    (Netstring_pcre.global_replace
+       (Netstring_pcre.regexp_string "]]>") "" s)
+    ^"\n//]]>\n" in
+  encodedpcdata s'
+
+let cdata_style s = (* GK *)
+  (* For security reasons, we do not allow "]]>" inside CDATA
+     (as this string is to be considered as the end of the cdata)
+  *)
+  let s' = "\n/* <![CDATA[ */\n"^
+    (Netstring_pcre.global_replace
+       (Netstring_pcre.regexp_string "]]>") "" s)
+    ^"\n/* ]]> */\n" in
+  encodedpcdata s'
+
+
 
 let leaf ?a name =
   { elt =

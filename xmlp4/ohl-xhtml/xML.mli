@@ -18,12 +18,15 @@
 
 type aname = string
 type separator = Space | Comma
+type event = string
+
 type attrib
 type attribs
 val int_attrib : aname -> int -> attrib
 val string_attrib : aname -> string -> attrib
 val space_sep_attrib : aname -> string list -> attrib
 val comma_sep_attrib : aname -> string list -> attrib
+val event_attrib : aname -> string -> attrib
 
 val attrib_name : attrib -> aname
 val attrib_value_to_string : (string -> string) -> attrib -> string
@@ -66,6 +69,10 @@ val entity : string -> elt
 val leaf : ?a:(attrib list) -> ename -> elt
 val node : ?a:(attrib list) -> ename -> elt list -> elt
 (** NB: [Leaf ("foo", []) -> "<foo />"], but [Node ("foo", [], []) -> "<foo></foo>"] *)
+
+val cdata : string -> elt
+val cdata_script : string -> elt
+val cdata_style : string -> elt
 
 val encode_unsafe : string -> string
 (** The encoder maps strings to HTML and {e must} encode the unsafe characters

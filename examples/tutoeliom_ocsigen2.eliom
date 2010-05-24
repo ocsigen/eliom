@@ -311,12 +311,39 @@ let.server _ =
   just do:
 *wiki*)
 
-          let my_value = 1.12345 in 
-          p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
-            ((fun.client (my_value : float Eliom_client_types.data_key) ->
-                Js.alert (string_of_float (Eliom_obrowser.unwrap my_value))) 
-               (Eliom_client.wrap ~sp my_value))]
-            [pcdata "Click here to see a server side value sent with the page."];
+          (let my_value = 1.12345 in 
+           p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
+             ((fun.client (my_value : float Eliom_client_types.data_key) ->
+                 Js.alert (string_of_float (Eliom_obrowser.unwrap my_value))) 
+                (Eliom_client.wrap ~sp my_value))]
+             [pcdata "Click here to see a server side value sent with the page."]);
+
+(*wiki*
+====Other tests
+  *wiki*)
+
+          p 
+            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+              a_onclick 
+                ((fun.client
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
+                    (s1 : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service)
+                    (s2 : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
+                      let sp = Eliom_obrowser.unwrap_sp sp in
+                      (Js.Node.append
+                         Ocsigen_lib.body
+                         (XHTML.M.toelt (p [Eliom_predefmod.Xhtml.a ~sp ~service:s1
+                                              [pcdata "An external link generated client side"] ();
+                                            pcdata " and ";
+                                            Eliom_predefmod.Xhtml.a (*zap* *)~a:[a_class ["clickable"]](* *zap*)~sp ~service:s2
+                                              [pcdata "another, inside the application."] ()]))
+                      );
+                      Lwt.return ()
+                 ) (Eliom_client.wrap_sp sp) Tutoeliom.coucou eliomobrowser1)
+            ]
+            [pcdata "Click here to add client side generated links."];
+
+
           
         ])
 (*wiki*

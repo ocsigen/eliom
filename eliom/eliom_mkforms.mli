@@ -95,7 +95,7 @@ module type FORMCREATE =
     val select_content_of_option : option_elt -> select_content_elt
 
     val make_pcdata : string -> pcdata_elt
-    val make_a : ?a:a_attrib_t -> ?href:string -> ?onclick:string ->
+    val make_a : ?a:a_attrib_t -> ?href:string -> ?onclick:XML.event ->
       a_content_elt_list -> a_elt
     val make_get_form : ?a:form_attrib_t ->
       action:string ->

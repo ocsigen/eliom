@@ -23,11 +23,20 @@ open JSOO
 type aname = string
 type attrib = string * JSOO.obj
 type attribs = attrib list
+type event = unit -> unit
 
 let int_attrib name value = (name, JSOO.int value)
 let string_attrib name value = (name, JSOO.string value)
-let space_sep_attrib name values = (name, JSOO.string (List.fold_left (fun r s -> r ^ " " ^ s) "" values))
-let comma_sep_attrib name values = (name, JSOO.string  (List.fold_left (fun r s -> r ^ "," ^ s) "" values))
+let space_sep_attrib name values = 
+  (name, JSOO.string 
+     (match values with
+        | [] -> ""
+        | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l))
+let comma_sep_attrib name values =
+  (name, JSOO.string
+     (match values with
+        | [] -> ""
+        | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l))
 let event_attrib name value = (name, JSOO.wrap_event (fun _ -> ignore (value ())))
 
 let attrib_name = fst
@@ -75,6 +84,18 @@ let comment c = Node.text c
 let pcdata d = Node.text d
 let encodedpcdata d = Node.text d
 let entity e = assert false
+
+let cdata s =
+  encodedpcdata s
+    
+let cdata_script s =
+  encodedpcdata s
+    
+let cdata_style s =
+  encodedpcdata s
+
+
+
 
 let leaf ?a name =
   let n = Node.element name in
