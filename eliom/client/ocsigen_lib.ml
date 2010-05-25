@@ -49,8 +49,13 @@ let urldecode_string s =
   let rec aux pos len =
     if len > 0
     then
-      try
-        let percent = String.index_from s pos '%' in
+      let percent = 
+        try String.index_from s pos '%'
+        with Not_found -> -1
+      in
+      if percent = -1 
+      then Buffer.add_substring buf s pos len
+      else begin
         if percent + 3 > pos + len
         then failwith "urldecode_string_"
         else begin
@@ -62,7 +67,7 @@ let urldecode_string s =
 	  Buffer.add_char buf (Char.chr((k1 lsl 4) lor k2));
           aux (percent+3) ((len - (percent - pos)) - 3)
         end
-      with Not_found -> Buffer.add_substring buf s pos len
+      end
   in
   aux 0 len;
   Buffer.contents buf
