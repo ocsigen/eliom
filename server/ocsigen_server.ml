@@ -900,6 +900,15 @@ let handle_connection port in_ch sockaddr =
   handle_request ()
 
 let rec wait_connection use_ssl port socket =
+  let handle_exn = function
+    | Socket_closed ->
+        Ocsigen_messages.debug2 "Socket closed";
+        Lwt.return ()
+    | e ->
+        Ocsigen_messages.debug
+          (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
+        wait_connection use_ssl port socket
+  in
   try_bind'
     (fun () -> 
        (* if too much connections,
@@ -917,15 +926,8 @@ let rec wait_connection use_ssl port socket =
        (* We do several accept(), as explained in 
          "Accept()able strategies ..." by Tim Brecht & al. *)
        Lwt_unix.accept_n socket 50)
-    (function
-       | Socket_closed -> 
-           Ocsigen_messages.debug2 "Socket closed";
-           Lwt.return ()
-       | e ->
-           Ocsigen_messages.debug
-             (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
-           wait_connection use_ssl port socket)
-    (fun l -> 
+    handle_exn
+    (fun (l, e) ->
        let number_of_accepts = List.length l in
        Ocsigen_messages.debug
          (fun () -> "received "^string_of_int number_of_accepts^" accepts" );
@@ -961,7 +963,10 @@ let rec wait_connection use_ssl port socket =
          decr_connected ()
        in
 
-       Lwt_util.iter handle_one l)
+       Lwt_util.iter handle_one l >>= fun () ->
+       match e with
+         | Some e -> handle_exn e
+         | None -> Lwt.return ())
 
 
 
