@@ -104,11 +104,6 @@ let port_of_sockaddr = function
 
 
 let get_boundary ctparams = List.assoc "boundary" ctparams
-(*
-  let (_, res) = Netstring_pcre.search_forward
-      (Netstring_pcre.regexp "boundary=([^;]*);?") cont_enc 0 in
-  Netstring_pcre.matched_group res 1 cont_enc
-*)
 
 let find_field field content_disp =
   let (_, res) = Netstring_pcre.search_forward
