@@ -109,15 +109,6 @@ module type T =
 (** A space-separated list of character encodings, as per RFC2045 (MIME).
     @see <http://www.ietf.org/rfc/rfc2045.txt> RFC2045 *)
 
-    type color =
-        [ `Aqua | `Black | `Blue | `Fuchsia | `Gray | `Green | `Lime | `Maroon
-        | `Navy | `Olive | `Purple | `Red | `Silver | `Teal | `White | `Yellow
-        | `Hex of string | `RGB of int * int * int ]
-(** The attribute value type [color] refers to color definitions as specified in
-    SRGB.  A color value may either be a hexadecimal number (prefixed by a hash mark)
-    or one of the following sixteen color names. The color names are case-insensitive.
-    @see <http://www.w3.org/Graphics/Color/sRGB> A Standard Default Color Space for the Internet. *)
-
     type contenttype = string
 (** A media type, as per RFC2045 (MIME).
     @see <http://www.ietf.org/rfc/rfc2045.txt> RFC2045 *)
@@ -626,13 +617,7 @@ module type T =
     val a_rules : [< `None | `Groups | `Rows | `Cols | `All ] -> [>`Rules] attrib
     val a_char : character -> [>`Char] attrib
     val a_charoff : length -> [>`Charoff] attrib
-
-(** {2 5.7. Image Module} *)
-
-    module IMAGE :
-        sig
-          type inline = [ `Img ]
-        end
+    val a_span : number -> [>`Span] attrib
 
     val a_alt : text -> [>`Alt] attrib
     val a_height : length -> [>`Height] attrib
@@ -648,6 +633,7 @@ module type T =
     val a_usemap : idref -> [>`Usemap] attrib
 
 (** {2 5.9. Server-side Image Map Module} *)
+    val a_ismap : [< `Ismap ] -> [>`Ismap] attrib
 
 (** {2 5.10. Object Module} *)
 
@@ -675,7 +661,6 @@ module type T =
 
     val a_target : frametarget -> [>`Target] attrib
 
-(** {2 5.13. Iframe Module} *)
 
 (** {2 5.14. Intrinsic Events Module} *)
 
@@ -743,7 +728,15 @@ module type T =
 
 (* VB *)
 
+(* CH *)
+    module RUBY : sig
+      type inline = [ `Ruby_simple1 | `Ruby_simple2 | `Ruby_complex ]
+      type flow = inline
+    end
 
+    type no_ruby_inline = [ TEXT.inline | PRESENTATION.inline | HYPERTEXT.inline | SPECIAL.inline | FORMS.inline | i18nclass ]
+    type no_ruby_content = [ `PCDATA | no_ruby_inline | misc ]
+(* CH *)
 
 (** {1 Combined Element Sets:} *)
 
@@ -753,29 +746,30 @@ module type T =
         [ TEXT.block | PRESENTATION.block | TABLES.block | TEXT.heading | LIST.list | misc ]
 
     type flow =
-        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | TABLES.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc ]
+        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | TABLES.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc | RUBY.flow ]
     type flow_sans_table =
-        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc ]
+        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc | RUBY.flow ]
 
     type inline =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
-        | FORMS.inline | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
+        | FORMS.inline | SPECIAL.inline | i18nclass | misc | RUBY.inline ]
 
     type inline_sans_a_mix =
         [ TEXT.inline | PRESENTATION.inline
-        | FORMS.inline | IMAGE.inline | SPECIAL.inline | i18nclass |misc ]
+        | FORMS.inline | SPECIAL.inline | i18nclass | misc | RUBY.inline ]
 
     type buttoncontent = (* VB *)
         [ TEXT.inline | PRESENTATION.inline
-      | IMAGE.inline | SPECIAL.inline | i18nclass | block_sans_form ]
+        | SPECIAL.inline | i18nclass | block_sans_form ]
     type precontent = (* VB *)
         [ TEXT.inline | HYPERTEXT.inline | `Tt | `I | `B | `Script | `Map |
           i18nclass ]
     type inline_sans_label =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
-        | FORMS.inline_sans_label | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
+        | FORMS.inline_sans_label | SPECIAL.inline | i18nclass | misc ]
 
     type heading = TEXT.heading
+
 
 (** {1 Elements} *)
 
@@ -787,6 +781,10 @@ module type T =
     type ('a, 'b) nullary = ?a:('a attrib list) -> unit -> 'b elt
     type ('a, 'b, 'c) unary = ?a:('a attrib list) -> 'b elt -> 'c elt
     type ('a, 'b, 'c, 'd) binary = ?a:('a attrib list) -> 'b elt -> 'c elt -> 'd elt
+
+(* CH *)
+    type ('a, 'b, 'c, 'd, 'e, 'f) quadry= ?a:('a attrib list) -> 'b elt -> 'c elt -> 'd elt -> 'e elt -> 'f elt
+(* CH *)
 
     type ('a, 'b, 'c) star = ?a:('a attrib list) -> 'b elt list -> 'c elt
 (** Star '*' denotes any number of children, uncluding zero. *)
@@ -879,15 +877,17 @@ module type T =
     val sup : ([< common ], [< `PCDATA | inline ], [>`Sup]) star
     val tt : ([< common ], [< `PCDATA | inline ], [>`Tt]) star
 
-(* VB *)
-    val bdo : ([< core | `Dir | `XML_lang ],[< `PCDATA | inline ],[> `Bdo ]) star
+(* CH *)
+    val bdo : dir:[< `Ltr | `Rtl ] -> ([< core | `XML_lang ],[< `PCDATA | inline ],[> `Bdo ]) star
+(* CH *)
+
     val area : alt:text -> ([< common | `Href | `Shape | `Coords | `Nohref | `Tabindex | `Accesskey ],[>`Area]) nullary
 
-    val map : id:id -> ([< `XMLns | `Class | `Title | i18n ],[< block | `Area ],[>`Map]) plus
+    val map : id:id -> ([< events | core | `XMLns | `Class | `Title | i18n ],[< block | `Area ],[>`Map]) plus
 
     val del : ([< common | `Cite | `Datetime ],[< `PCDATA | flow ],[>`Del]) star
     val ins : ([< common | `Cite | `Datetime ],[< `PCDATA | flow ],[>`Ins]) star
-    val script : contenttype:contenttype -> ([< `XMLns | `Charset | `Src | `Defer | `XML_space ],[< `PCDATA ],[>`Script]) unary
+    val script : contenttype:contenttype -> ([< `XMLns | `Id | `Charset | `Src | `Defer | `XML_space ],[< `PCDATA ],[>`Script]) unary
     val noscript : ([< common ],[< block ],[>`Noscript]) plus
 (* VB *)
 
@@ -923,7 +923,7 @@ module type T =
       ([< common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept ],
        [< block_sans_form | `Fieldset ], [>`Form]) plus
     val input : ([< common | `Accesskey | `Checked | `Maxlength | `Name | `Size
-  | `Src | `Tabindex | `Input_Type | `Value | `Disabled | `Readonly | `Alt | `Accept | `Usemap ], [>`Input]) nullary
+  | `Src | `Tabindex | `Input_Type | `Value | `Disabled | `Readonly | `Alt | `Accept | `Usemap |`Ismap ], [>`Input]) nullary
     val label : ([< common | `Accesskey | `For ],
                  [< `PCDATA | inline_sans_label ], [>`Label]) star
     val optgroup : label:text ->
@@ -1005,13 +1005,14 @@ module type T =
 (** {2 Image} *)
 
     val img : src:uri -> alt:text ->
-      ([< common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap ], [>`Img]) nullary
+      ([< common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap |`Ismap ], [>`Img]) nullary
 
 (** {2 Object} VB *)
 
-    val object_ : ([< common | `Declare | `Classid | `Codebase | `Data | `Type | `Codetype | `Archive | `Standby | `Height | `Width | `Name | `Tabindex ],[< `PCDATA | flow | `Param | `Usemap ],[> `Object ]) star
+    val object_ : ([< common | `Declare | `Classid | `Codebase | `Data | `Type | `Codetype | `Archive | `Standby
+                   | `Height | `Width | `Name | `Tabindex | `Usemap],[< `PCDATA | flow | `Param ],[> `Object ]) star
 
-    val param : ([< `Id | `Name | `Value | `Value_Type | `Type ], [> `Param ]) nullary
+    val param : name:text ->([< `XMLns |`Id | `Value | `Value_Type | `Type ], [> `Param ]) nullary
 
 (** {2 Frames} *)
 
@@ -1032,7 +1033,7 @@ module type T =
 (** {2 Style Sheets} *)
 
     val style : contenttype:contenttype ->
-      ([< i18n | `Media | `Title | `XML_space ], [< `PCDATA ], [>`Style]) star
+      ([< i18n |`XMLns |`Id | `Media | `Title | `XML_space ], [< `PCDATA ], [>`Style]) star
 
 (** {2 Link} *)
 
@@ -1042,6 +1043,27 @@ module type T =
 (** {2 Base} *)
 
     val base : href:uri -> unit -> [>`Base] elt
+    (*val base : href:uri -> ([`XMLns], [>`Base] elt)*)
+
+(** {2 Ruby} *)
+
+    val ruby_simple1 : ?a:([< common] attrib list) ->
+      [< `Rb ] elt -> [< `Rt ] elt -> [>`Ruby_simple1] elt
+    val ruby_simple2 : ?a:([< common] attrib list) ->
+      [< `Rb ] elt -> [< `Rp ] elt -> [< `Rt ] elt -> [< `Rp ] elt -> [>`Ruby_simple2] elt
+    val ruby_complex : ?a:([< common] attrib list) ->
+      [< `Rbc ] elt -> [< `Rtc_complex ] elt -> [>`Ruby_complex] elt
+
+    val rbc : ([< common ], [< `Rb ], [>`Rbc]) plus
+    val rtc : ([< common ], [< `Rt ], [>`Rtc]) plus
+    val rtc_complex : ([< common ], [< `Rt_complex ], [>`Rtc]) plus
+    val rb : ([< common ], [< no_ruby_content ], [>`Rb]) star
+    val rt : ([< common ], [< no_ruby_content ], [>`Rt]) star
+    val rt_complex : ([< common | `Rbspan], [< no_ruby_content ], [>`Rt]) star
+    val rp : ([< common ], [< `PCDATA ], [>`Rp]) star
+
+    val a_rbspan : number -> [>`Rbspan] attrib
+
 
 (** {1 Output} *)
 
@@ -1184,10 +1206,7 @@ module Version =
     type character = char
     type charset = string
     type charsets = charset list (* space-separated *)
-    type color =
-        [ `Aqua | `Black | `Blue | `Fuchsia | `Gray | `Green | `Lime | `Maroon
-        | `Navy | `Olive | `Purple | `Red | `Silver | `Teal | `White | `Yellow
-        | `Hex of string | `RGB of int * int * int ]
+
     type contenttype = string
     type contenttypes = contenttype list (* comma-separated *)
     type coords = string list (* Comma separated list of coordinates to use in defining areas. *)
@@ -1214,28 +1233,6 @@ module Version =
     type uris = uri (* space-separated *)
     let uri_of_string s = s
     let string_of_uri s = s
-
-    let color_attrib name value =
-      string_attrib name
-        (match value with
-        | `Aqua -> "aqua"
-        | `Black -> "black"
-        | `Blue -> "blue"
-        | `Fuchsia -> "fuchsia"
-        | `Gray -> "gray"
-        | `Green -> "green"
-        | `Lime -> "lime"
-        | `Maroon -> "maroon"
-        | `Navy -> "navy"
-        | `Olive -> "olive"
-        | `Purple -> "purple"
-        | `Red -> "red"
-        | `Silver -> "silver"
-        | `Teal -> "teal"
-        | `White -> "white"
-        | `Yellow -> "yellow"
-        | `Hex h -> ("#" ^ h)
-        | `RGB (r, g, b) -> Printf.sprintf "#%02X%02X%02X" r g b)
 
     let length_attrib name = function
       | `Pixels p -> int_attrib name p
@@ -1359,11 +1356,15 @@ module Version =
       string_attrib "method" (match m with `Get ->  "get" | `Post -> "post")
     let a_enctype = string_attrib "enctype"
 
+    let a_ismap `Ismap = string_attrib "ismap" "ismap"
+
     let a_checked `Checked = string_attrib "checked" "checked"
     let a_disabled `Disabled = string_attrib "disabled" "disabled"
     let a_readonly `Readonly = string_attrib "readonly" "readonly"
     let a_maxlength = int_attrib "maxlength"
     let a_name = string_attrib "name"
+
+   let a_span = int_attrib "span"
 
     let a_value_type it =
       string_attrib "valuetype"
@@ -1496,6 +1497,9 @@ module Version =
     type ('a, 'b) nullary = ?a:('a attrib list) -> unit -> 'b elt
     type ('a, 'b, 'c) unary = ?a:('a attrib list) -> 'b elt -> 'c elt
     type ('a, 'b, 'c, 'd) binary = ?a:('a attrib list) -> 'b elt -> 'c elt -> 'd elt
+(* CH *)
+    type ('a, 'b, 'c, 'd, 'e, 'f) quadry= ?a:('a attrib list) -> 'b elt -> 'c elt -> 'd elt -> 'e elt -> 'f elt
+(* CH *)
     type ('a, 'b, 'c) star = ?a:('a attrib list) -> 'b elt list -> 'c elt
     type ('a, 'b, 'c) plus = ?a:('a attrib list) -> 'b elt -> 'b elt list -> 'c elt
 
@@ -1505,6 +1509,11 @@ module Version =
     let binary tag ?a elt1 elt2 = XML.node ?a tag [elt1; elt2]
     let star tag ?a elts = XML.node ?a tag elts
     let plus tag ?a elt elts = XML.node ?a tag (elt :: elts)
+
+(* CH *)
+    let quadry tag ?a elt1 elt2 elt3 elt4 = XML.node ?a tag [elt1; elt2; elt3; elt4]
+(* CH *)
+
 
     module STRUCTURE =
       struct
@@ -1610,11 +1619,16 @@ module Version =
     type i18nclass = [ `Bdo ]
     type shape = [ `Rect | `Circle | `Poly | `Default ]
 
-    let bdo = star "bdo"
 
     let a_datetime = string_attrib "datetime"
+
     let a_dir d =
       string_attrib "dir" (match d with `Rtl -> "rtl" | `Ltr -> "ltr")
+
+(* CH *)
+    let bdo ~dir ?(a = []) elts =
+      XML.node ~a:(a_dir dir :: a) "bdo" elts
+(* CH *)
 
     let a_shape d =
       string_attrib "shape"
@@ -1642,7 +1656,6 @@ module Version =
       XML.node ~a:(a_type contenttype :: a) "script" [elt]
     let noscript = plus "noscript"
 (* VB *)
-
 
     module FORMS =
       struct
@@ -1738,12 +1751,8 @@ module Version =
     let tfoot = plus "tfoot"
 
     let object_ = star "object"
-    let param = terminal "param"
-
-    module IMAGE =
-      struct
-        type inline = [ `Img ]
-      end
+    let param ~name ?(a = []) () =
+      XML.leaf ~a:(a_name name :: a) "param"
 
     let img ~src ~alt ?(a = []) () =
       XML.leaf ~a:(a_src src :: a_alt alt :: a) "img"
@@ -1786,6 +1795,21 @@ module Version =
     let base ~href () =
       XML.leaf ~a:[a_href href] "base"
 
+    let ruby_simple1 = binary "ruby"
+    let ruby_simple2 = quadry "ruby"
+    let ruby_complex = binary "ruby"
+
+    let rbc = plus "rbc"
+    let rtc = plus "rtc"
+    let rtc_complex= plus "rtc"
+    let rb = star "rb"
+    let rt = star "rt"
+    let rt_complex = star "rt"
+    let rp = star "rp"
+
+    let a_rbspan = int_attrib "rbspan"
+
+
 (* VB *)
     type edit = [ `Ins | `Del ]
     type scripttag = [ `Script | `Noscript ]
@@ -1799,6 +1823,15 @@ module Version =
 
 (* VB *)
 
+(* CH *)
+    module RUBY = struct
+      type inline = [ `Ruby_simple1 | `Ruby_simple2 | `Ruby_complex ]
+      type flow =  inline 
+    end
+
+    type no_ruby_inline = [ TEXT.inline | PRESENTATION.inline | HYPERTEXT.inline | SPECIAL.inline | FORMS.inline | i18nclass ]
+    type no_ruby_content = [ `PCDATA | no_ruby_inline | misc ]
+(* CH *)
 
     type block =
         [ TEXT.block | PRESENTATION.block | FORMS.block | TABLES.block | SPECIAL.block | TEXT.heading | LIST.list | misc ]
@@ -1806,29 +1839,30 @@ module Version =
         [ TEXT.block | PRESENTATION.block | TABLES.block | TEXT.heading | LIST.list | misc ]
 
     type flow =
-        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | TABLES.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc ]
+        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | TABLES.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc | RUBY.flow ]
     type flow_sans_table =
-        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc ]
+        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc | RUBY.flow ]
 
     type inline =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
-        | FORMS.inline | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
+        | FORMS.inline | SPECIAL.inline | i18nclass | misc | RUBY.inline ]
 
     type inline_sans_a_mix =
         [ TEXT.inline | PRESENTATION.inline
-        | FORMS.inline | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
+        | FORMS.inline | SPECIAL.inline | i18nclass | misc | RUBY.inline ]
 
     type buttoncontent = (* VB *)
         [ TEXT.inline | PRESENTATION.inline
-      | IMAGE.inline | SPECIAL.inline | i18nclass | block_sans_form ]
+        | SPECIAL.inline | i18nclass | block_sans_form ]
     type precontent = (* VB *)
         [ TEXT.inline | HYPERTEXT.inline | `Tt | `I | `B | `Script | `Map |
           i18nclass ]
     type inline_sans_label =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
-        | FORMS.inline_sans_label | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
+        | FORMS.inline_sans_label | SPECIAL.inline | i18nclass | misc ]
 
     type heading = TEXT.heading
+
 
     (* I/O *)
 

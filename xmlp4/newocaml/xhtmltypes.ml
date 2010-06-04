@@ -44,6 +44,7 @@ type select = [ = `Select ];
 type selectoption = [ = `Option ];
 type optgroup = [ = `Optgroup ];
 type button = [ = `Button ];
+type ruby = [ = `Ruby_simple1 | `Ruby_simple2 | `Ruby_complex ];
 type pcdata = [ = `PCDATA ];
 type notag;
 type html_content = [ = `Body | `Head | `Frameset ];
