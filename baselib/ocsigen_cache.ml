@@ -284,10 +284,10 @@ struct
 
   let create f size =
     let rec cache = {pointers = Dlist.create size;
-                 table = H.create size;
-                 finder = f;
-                 clear = f_clear;
-                }
+                     table = H.create size;
+                     finder = f;
+                     clear = f_clear;
+                    }
     and f_clear = (fun () -> clear cache)
     in
     Weak.add clear_all f_clear;
@@ -336,7 +336,9 @@ struct
        Lwt.return (find_in_cache cache k)
      with Not_found ->
        cache.finder k >>= fun r ->
-       add_no_remove cache k r;
+       (try (* it may have been added during cache.finder *)
+          ignore (find_in_cache cache k)
+        with Not_found -> add_no_remove cache k r);
        Lwt.return r)
 
   class cache f size_c =
