@@ -1,7 +1,11 @@
 ===== 1.3.3 =====
 
-  * Fix some typos
-  * Fix usage of {{{accept_n}}} to avoid file descriptor leakage
+  * Eliom: Fix some typos in Eliom's tutorial stylesheet
+  * Server: Fix usage of {{{accept_n}}} to avoid file descriptor leakage
+  * XHTML: Adding missing elements and attributes in XHTML.M
+  * Cleaning Ocsigen_cache
+  * Eliom: Fixing actions with uploads
+
 
 ===== 1.3.2 (2010-04-30) =====
 
