@@ -27,7 +27,7 @@ REACTDIR := $(shell ocamlfind query react)
 ELIOMOBROWSERDIR := ../eliom/client
 PAELIOMOBROWSERDIR := ../eliom
 
-LIB = $(LIBDIRS) -package lwt.unix,netstring,camlp4
+LIB = $(LIBDIRS) -package lwt.unix,netstring,camlp4,react
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIB)
@@ -82,7 +82,13 @@ tutoeliom_ocsigen2_client.uue: tutoeliom_ocsigen2_client
 	cp -f $< $@
 
 tutoeliom_ocsigen2_client: $(ELIOMOBROWSERDIR)/eliom_obrowser_client.cma client/tutoeliom_ocsigen2_client.ml
-	CAMLLIB=$(OBROWSERDIR) ocamlc -o $@ -I $(ELIOMOBROWSERDIR) -I $(LWTDIR) $(REACTDIR)/react.cmo $(LWTDIR)/lwt.cma $(OBROWSERDIR)/lwt_obrowser.cma $^
+	CAMLLIB=$(OBROWSERDIR) \
+	ocamlc -o $@ \
+	-I $(ELIOMOBROWSERDIR) \
+	-I $(LWTDIR) $(LWTDIR)/lwt.cma \
+	-I $(REACTDIR) $(REACTDIR)/react.cmo \
+	-I $(OBROWSERDIR) $(OBROWSERDIR)/lwt_obrowser.cma \
+	$^
 
 tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom
 	camlp4of $(PAELIOMOBROWSERDIR)/pa_eliom_obrowser.cmo -impl $< -o $@ \
