@@ -1,5 +1,5 @@
 (*zap* *)
-let.client (>>=) = Lwt.bind
+let (>>=) = Lwt.bind
 
 
 (* *zap*)
@@ -487,6 +487,64 @@ let.server _ =
 *wiki*)
 
 
+(*wiki*
+====Comet programming
+It's very low level right now but it should evolve...
+ *wiki*)
+
+(* client code : read the next value from a channel *)
+let.client read_one_value_from_channel chan =
+  Lwt.return (
+    Js.http_post
+      "./"
+      "x-ocsigen-comet" (* content-type *)
+      chan
+  )
+
+(* client code : read values from a channel *)
+let.client rec read_again_and_again chan action =
+  read_one_value_from_channel chan >>= fun (_,y) ->
+  action y >>= fun () ->
+  read_again_and_again  chan action
+
+(* client code : what to do with server pushed messages *)
+let.client channel_action = function
+  | "" -> Lwt.return ()
+  | s  -> Js.alert s ; Lwt.return ()
+
+(* server code : create a communication channel *)
+let.server channel1 = Comet.Channels.new_channel ()
+
+(* server code : randomly write on the channel *)
+let.server rec rand_tick () =
+  Lwt_unix.sleep (float_of_int (5 + (Random.int 5))) >>= fun () ->
+  Comet.Channels.write channel1 (string_of_int (Random.int 99)) ; rand_tick ()
+let.server _ = rand_tick ()
+
+
+let.server comet1 =
+  Eliom_appl.register_new_service
+    ~path:["comet1"]
+    ~get_params:unit
+    (fun _ () () ->
+       Lwt.return
+         [
+           div
+             [pcdata "To fully understand the meaning of this, use a \
+                      couple browsers on this page. Note that channel \
+                     dentifier is printed along with the value."] ;
+           div
+             ~a:[a_onclick
+                   ((fun.client (i : string) ->
+                       read_again_and_again i channel_action
+                   ) (Comet.Channels.get_id channel1)
+                   )
+             ]
+             [pcdata "Click here to start public channel listening"] ;
+         ]
+    )
+
+
 
 (*zap* *)
 open.server Tutoeliom
@@ -746,6 +804,8 @@ let.server _ = Eliom_predefmod.Xhtmlcompact.register main
               a eliomobrowser4 sp [pcdata "A service sending a Caml value"] ();
             br ();
               a gotowithoutobrowser sp [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
+            br ();
+              a comet1 sp [pcdata "A really simple comet example"] ();
             br ();
           ]
           ]
