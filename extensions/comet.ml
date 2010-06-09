@@ -169,9 +169,8 @@ end
 module Messages :
   (* All about messages from between clients and server *)
   (* 
-   * The client has to send a registration request : the content-type for the
-   * HTTP request has to contain x-ocsigen-comet, the content of the HTTP
-   * request must be a list of (channel) ids separated by a semi-colon.
+   * The client sends a POST request with a "registration" parameter containing
+   * a list of channel ids. Separator for the list are semi-colon : ';'.
    *
    * The server sends result to the client in the form of a list of :
    * channel_id ^ " : " ^ value ^ { ";" ^ channel_id ^ " : " ^ value }*
@@ -183,7 +182,7 @@ sig
   exception Incorrect_encoding
 
   val decode_incomming :
-    OX.request_info -> Channels.chan list Lwt.t
+    OX.request -> Channels.chan list Lwt.t
     (* decode incomming message : the result is the list of channels to listen
      * to. *)
 
@@ -191,30 +190,34 @@ sig
     (Channels.chan * string) option list -> string OStream.t Lwt.t
 
 end = struct
-  (*TODO: improve safety by "catching" improperly encoded messages *)
 
   exception Incorrect_encoding
 
+  let channel_separator_regexp = Netstring_pcre.regexp ";"
+
+  (* string -> Channels.chan list Lwt.t *)
   let decode_string s =
-    (* Is the split cooperative enough ? It must be, the server uses it too *)
-    let re = Netstring_pcre.regexp ";" in
-    Lwt.return (Netstring_pcre.split re s) >>=
     filter_map_s
       (fun s ->
          Lwt.catch
-           (fun () ->
-              Lwt.return (Some (Channels.find_channel s))
-           )
+           (fun () -> Lwt.return (Some (Channels.find_channel s)))
            (function
               | Not_found -> Lwt.return None
               | exc -> Lwt.fail exc
            )
       )
+      (Netstring_pcre.split channel_separator_regexp s)
 
-  let decode_incomming { OX.ri_http_frame = { OFrame.frame_content = fc } } =
-    match fc with
-      | None -> Lwt.return []
-      | Some fc -> OStream.string_of_stream (OStream.get fc) >>= decode_string
+  (* (string * string) list -> Channels.chan list Lwt.t *)
+  let rec decode_param_list = function
+    | []                       -> Lwt.return []
+    | ("registration", s) :: _ -> decode_string s
+    | (_, _) :: tl             -> decode_param_list tl
+
+  (* OX.request -> Channels.chan list Lwt.t *)
+  let decode_incomming r =
+    r.OX.request_info.OX.ri_post_params r.OX.request_config
+      >>= decode_param_list
 
 
   let rec encode_outgoing_step l =
@@ -240,8 +243,7 @@ module Main :
    * is bound and return with the first result. *)
 sig
 
-  val treat_incoming :
-    OX.request_info -> OFrame.result Lwt.t
+  val treat_incoming : OX.request -> OFrame.result Lwt.t
     (* treat an incoming request from a client *)
 
 end = struct
@@ -258,7 +260,7 @@ end = struct
   (* Once channel list is obtain, use this function to return a thread that
    * terminates when one of the channel is written upon. *)
   let treat_decoded chans =
-    Lwt.nchoose (* seems useless for it only one thread return *)
+    let listening_list =
       (   armless_timeout timeout None
        :: List.map
             (fun chan ->
@@ -266,8 +268,11 @@ end = struct
                Lwt.return (Some (chan, value))
             )
             chans
-      ) >>=
-    Messages.encode_outgoing
+      )
+    in
+      Lwt.choose  listening_list >>= fun _ ->
+      Lwt_unix.yield () >>= fun () -> (* To increase multiplexing *)
+      Lwt.nchoose listening_list >>= Messages.encode_outgoing
 
   (* This is just a mashup of the other functions in the module. *)
   let treat_incoming r =
@@ -285,17 +290,16 @@ end
 
 let comet_regexp = Netstring_pcre.regexp ".*x-ocsigen-comet.*"
 let main = function
-  | OX.Req_found _ ->
-      Lwt.return OX.Ext_do_nothing
-  | OX.Req_not_found (_, rq) ->
+
+  | OX.Req_found _ -> (* If recognized by some other extension... *)
+      Lwt.return OX.Ext_do_nothing (* ...do nothing *)
+
+  | OX.Req_not_found (_, rq) -> (* Else... *)
       match rq.OX.request_info.OX.ri_content_type_string with
-        | Some s ->
+        | Some s -> (* ...check content-type... *)
             begin match Netstring_pcre.string_match comet_regexp s 0 with
-                | Some _ ->
-                    Lwt.return
-                      (OX.Ext_found
-                         (fun () -> Main.treat_incoming rq.OX.request_info)
-                      )
+                | Some _ -> (* ...for x-ocsigen-comet *)
+                    Lwt.return (OX.Ext_found (fun () -> Main.treat_incoming rq))
                 | None -> Lwt.return OX.Ext_do_nothing
             end
         | None -> Lwt.return OX.Ext_do_nothing
