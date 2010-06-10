@@ -544,7 +544,7 @@ fi
 ######################################################################
 # Check Ocamlnet
 
-printf "%s" "Checking for netstring... "
+printf "%s" "Checking for netstring (from Ocamlnet)... "
 if ocamlfind query netstring >/dev/null 2>/dev/null; then
     echo "found"
 else
