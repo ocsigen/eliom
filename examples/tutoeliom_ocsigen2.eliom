@@ -542,6 +542,75 @@ let.server comet1 =
          ]
     )
 
+(*wiki*
+This second example involves private channels and client-to-server push.
+ *wiki*)
+
+let.client get_event_from_channel i = (* This is to be automated *)
+  let (evt, push) = React.E.create () in
+  let _ = read_again_and_again i (fun x -> push x ; Lwt.return ()) in
+  evt
+
+let.server comet2 =
+  let priv_channel = Comet.Channels.new_channel () in
+  let push_back =
+    let a = ref 0 in
+    let b = ref 0 in
+    function
+      | "A" -> incr a ; Comet.Channels.write priv_channel (string_of_int !a)
+      | "B" -> incr b ; Comet.Channels.write priv_channel (string_of_int !b)
+      | _ -> Comet.Channels.write priv_channel "what ?"
+  in
+  let evt_distant_writer =
+    Eliom_predefmod.Action.register_new_post_coservice'
+      ~options:`NoReload
+      ~post_params:(string "evt") (*for a string event... *)
+      (fun _ () s -> push_back s ; Lwt.return ())
+  in
+  Eliom_appl.register_new_service
+    ~path:["comet2"]
+    ~get_params:unit
+    (fun sp () () ->
+       Lwt.return [
+         h1 [pcdata "Dual events"] ;
+         div
+           ~a:[a_onclick
+                 ((fun.client (chan : string) ->
+                     React.E.map
+                       Js.alert
+                       (get_event_from_channel chan)
+                  ) (Comet.Channels.get_id priv_channel)
+                 )
+              ]
+           [pcdata "START"] ;
+         div
+           ~a:[a_onclick
+                 ((fun.client
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
+                    (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) Eliom_services.service) ->
+                     let sp = Eliom_obrowser.unwrap_sp sp in
+                     Eliom_client.call_service ~sp ~service () "A"
+                 ) (Eliom_client.wrap_sp sp)
+                    evt_distant_writer
+                 )
+              ]
+           [pcdata "Push A"] ;
+         div
+           ~a:[a_onclick
+                 ((fun.client
+                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
+                    (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) Eliom_services.service) ->
+                     let sp = Eliom_obrowser.unwrap_sp sp in
+                     Eliom_client.call_service ~sp ~service () "B"
+                 ) (Eliom_client.wrap_sp sp)
+                    evt_distant_writer
+                 )
+              ]
+           [pcdata "Push B"] ;
+       ]
+    )
+
+
 
 
 (*zap* *)
@@ -804,6 +873,8 @@ let.server _ = Eliom_predefmod.Xhtmlcompact.register main
               a gotowithoutobrowser sp [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
             br ();
               a comet1 sp [pcdata "A really simple comet example"] ();
+            br ();
+              a comet2 sp [pcdata "A comet example with private channels and client to server push"] ();
             br ();
           ]
           ]
