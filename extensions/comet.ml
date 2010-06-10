@@ -35,6 +35,7 @@
 module OFrame = Ocsigen_http_frame
 module OStream = Ocsigen_stream
 module OX = Ocsigen_extensions
+module OLib = Ocsigen_lib
 module Pxml = Simplexmlparser
 
 (* infix monad binder *)
@@ -216,7 +217,24 @@ end = struct
 
   (* OX.request -> Channels.chan list Lwt.t *)
   let decode_incomming r =
-    r.OX.request_info.OX.ri_post_params r.OX.request_config
+    (* RRR This next line makes it fail with Ocsigen_unsupported_media, hence
+     * the http_frame version *)
+    (* r.OX.request_info.OX.ri_post_params r.OX.request_config *)
+    Lwt.catch
+      (fun () ->
+         match r.OX.request_info.OX.ri_http_frame.OFrame.frame_content with
+           | None ->
+               Lwt.return []
+           | Some body ->
+               Lwt.return (OStream.get body) >>=
+               OStream.string_of_stream >|=
+               Ocsigen_lib.fixup_url_string >|=
+               Netencoding.Url.dest_url_encoded_parameters
+      )
+      (function
+         | OStream.String_too_large -> Lwt.fail OLib.Input_is_too_large
+         | e -> Lwt.fail e
+      )
       >>= decode_param_list
 
 
@@ -243,7 +261,7 @@ module Main :
    * is bound and return with the first result. *)
 sig
 
-  val treat_incoming : OX.request -> OFrame.result Lwt.t
+  val treat_incoming : OX.request -> unit -> OFrame.result Lwt.t
     (* treat an incoming request from a client *)
 
 end = struct
@@ -271,38 +289,45 @@ end = struct
       )
     in
       Lwt.choose  listening_list >>= fun _ ->
-      Lwt_unix.yield () >>= fun () -> (* To increase multiplexing *)
+      Lwt_unix.yield () >>= fun () -> (* To allow multiplexing *)
       Lwt.nchoose listening_list >>= Messages.encode_outgoing
 
   (* This is just a mashup of the other functions in the module. *)
-  let treat_incoming r =
+  let treat_incoming r () =
     Messages.decode_incomming r >>= treat_decoded >>= fun stream ->
       let res = OFrame.default_result () in
         Lwt.return
           { res with
                 OFrame.res_stream = (stream, None) ;
                 OFrame.res_content_length = None ;
-                OFrame.res_content_type = Some "text" ;
+                OFrame.res_content_type = Some "text/html" ;
           }
 
 
 end
 
-let comet_regexp = Netstring_pcre.regexp ".*x-ocsigen-comet.*"
+let rec has_comet_content_type = function
+  | [] -> false
+  | ("application", "x-ocsigen-comet") :: _ -> true
+  | (s1, s2) :: tl ->
+      print_endline s1 ; print_endline s2 ;
+      has_comet_content_type tl
+
 let main = function
 
   | OX.Req_found _ -> (* If recognized by some other extension... *)
       Lwt.return OX.Ext_do_nothing (* ...do nothing *)
 
-  | OX.Req_not_found (_, rq) -> (* Else... *)
-      match rq.OX.request_info.OX.ri_content_type_string with
-        | Some s -> (* ...check content-type... *)
-            begin match Netstring_pcre.string_match comet_regexp s 0 with
-                | Some _ -> (* ...for x-ocsigen-comet *)
-                    Lwt.return (OX.Ext_found (fun () -> Main.treat_incoming rq))
-                | None -> Lwt.return OX.Ext_do_nothing
-            end
+  | OX.Req_not_found (_, rq) -> (* Else check for content type *)
+      match rq.OX.request_info.OX.ri_content_type with
+        | Some (hd,tl) ->
+            if has_comet_content_type (hd :: tl)
+            then Lwt.return (OX.Ext_found (Main.treat_incoming rq))
+            else Lwt.return OX.Ext_do_nothing
         | None -> Lwt.return OX.Ext_do_nothing
+
+
+
 
 
 (* registering extension and the such *)

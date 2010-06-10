@@ -494,18 +494,16 @@ It's very low level right now but it should evolve...
 
 (* client code : read the next value from a channel *)
 let.client read_one_value_from_channel chan =
-  Lwt.return (
-    Js.http_post
-      "./"
-      "x-ocsigen-comet" (* content-type *)
-      chan
-  )
+  Lwt_obrowser.http_post_with_content_type
+    "./"
+    "application/x-ocsigen-comet" (* content-type *)
+    [("registration", chan)]
 
 (* client code : read values from a channel *)
 let.client rec read_again_and_again chan action =
   read_one_value_from_channel chan >>= fun (_,y) ->
   action y >>= fun () ->
-  read_again_and_again  chan action
+  read_again_and_again chan action
 
 (* client code : what to do with server pushed messages *)
 let.client channel_action = function
