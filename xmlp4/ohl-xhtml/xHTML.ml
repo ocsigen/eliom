@@ -368,19 +368,19 @@ module type T =
                     `OnMouseOver | `OnMouseMove | `OnMouseOut | `OnKeyPress |
                     `OnKeyDown | `OnKeyUp ]
 
-    val a_onclick : XML.event -> [>`OnClick] attrib
-    val a_ondblclick : XML.event -> [>`OnDblClick] attrib
-    val a_onmousedown : XML.event -> [>`OnMouseDown] attrib
-    val a_onmouseup : XML.event -> [>`OnMouseUp] attrib
-    val a_onmouseover : XML.event -> [>`OnMouseOver] attrib
-    val a_onmousemove : XML.event -> [>`OnMouseMove] attrib
-    val a_onmouseout : XML.event -> [>`OnMouseOut] attrib
-    val a_onkeypress : XML.event -> [>`OnKeyPress] attrib
-    val a_onkeydown : XML.event -> [>`OnKeyDown] attrib
-    val a_onkeyup : XML.event -> [>`OnKeyUp] attrib
+    val a_onclick : cdata -> [>`OnClick] attrib
+    val a_ondblclick : cdata -> [>`OnDblClick] attrib
+    val a_onmousedown : cdata -> [>`OnMouseDown] attrib
+    val a_onmouseup : cdata -> [>`OnMouseUp] attrib
+    val a_onmouseover : cdata -> [>`OnMouseOver] attrib
+    val a_onmousemove : cdata -> [>`OnMouseMove] attrib
+    val a_onmouseout : cdata -> [>`OnMouseOut] attrib
+    val a_onkeypress : cdata -> [>`OnKeyPress] attrib
+    val a_onkeydown : cdata -> [>`OnKeyDown] attrib
+    val a_onkeyup : cdata -> [>`OnKeyUp] attrib
 
 
-    type common = [ core | i18n | events ]
+    type common = [ core | i18n | events | `Style_Attr]
 
 
 (** {1 Modules, Element Sets and Attributes } *)
@@ -692,6 +692,8 @@ module type T =
 
 (** {2 5.18. Style Attribute Module} *)
 
+    val a_style : string -> [>`Style_Attr] attrib
+
 (** {2 5.19. Link Module} *)
 
     module LINK :
@@ -803,7 +805,7 @@ module type T =
         [< `Meta | `Link | `Style | `Object | `Script ] elt list
         -> [>`Head] elt
     val title : ([< i18n ], [< `PCDATA ], [>`Title]) unary
-    val body : ([< common ], [< block ], [>`Body]) star
+    val body : ([< common |`OnLoad |`OnUnload ], [< block ], [>`Body]) star
 
 (** {2 Data} *)
 
@@ -854,7 +856,7 @@ module type T =
 
     val a : ([< common | `Accesskey | `Charset | `Href | `Hreflang
              | `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type
-             | `Shape | `Coords ],
+             | `Shape | `Coords | `OnBlur |`OnFocus],
              [< `PCDATA | inline_sans_a_mix ], [>`A]) star
 
 (** {2 List} *)
@@ -881,7 +883,7 @@ module type T =
     val bdo : dir:[< `Ltr | `Rtl ] -> ([< core | `XML_lang ],[< `PCDATA | inline ],[> `Bdo ]) star
 (* CH *)
 
-    val area : alt:text -> ([< common | `Href | `Shape | `Coords | `Nohref | `Tabindex | `Accesskey ],[>`Area]) nullary
+    val area : alt:text -> ([< common | `Href | `Shape | `Coords | `Nohref | `Tabindex | `Accesskey |`OnBlur |`OnFocus],[>`Area]) nullary
 
     val map : id:id -> ([< events | core | `XMLns | `Class | `Title | i18n ],[< block | `Area ],[>`Map]) plus
 
@@ -901,18 +903,18 @@ module type T =
     module Basic_Forms :
         sig
           val form : action:uri ->
-            ([< common | `Enctype | `Method | `Name_01_00 | `Target ],
+            ([< common | `Enctype | `Method | `Name_01_00 | `Target |`OnReset | `OnSubmit],
              [< block_sans_form ], [>`Form]) plus
           val input : ([< common | `Accesskey | `Checked | `Maxlength | `Name | `Size
-                       | `Src | `Tabindex | `Input_Type | `Value | `Usemap ], [>`Input]) nullary
+                       | `Src | `Tabindex | `Input_Type | `Value | `Usemap|`OnBlur |`OnChange |`OnFocus | `OnSelect], [>`Input]) nullary
           val label : ([< common | `Accesskey | `For ],
                        [< `PCDATA | inline_sans_label ], [>`Label]) star
           val option : ([< common | `Selected | `Value ],
                         [< `PCDATA ], [>`Option]) unary
-          val select : ([< common | `Multiple | `Name | `Size | `Tabindex ],
+          val select : ([< common | `Multiple | `Name | `Size | `Tabindex |`OnBlur |`OnChange |`OnFocus ],
                         [< `Option ], [>`Select]) plus
           val textarea : rows:number -> cols:number ->
-            ([< common | `Accesskey | `Name | `Tabindex ],
+            ([< common | `Accesskey | `Name | `Tabindex |`OnBlur |`OnChange |`OnFocus | `OnSelect],
              [< `PCDATA ], [>`Textarea]) unary
         end
 
@@ -920,27 +922,27 @@ module type T =
 
 (** Generic forms. WARNING: If you find a bug or if something is missing please send a bug report to the Ocsigen project! -- VB *)
     val form : action:uri ->
-      ([< common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept ],
+      ([< common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept |`OnReset | `OnSubmit],
        [< block_sans_form | `Fieldset ], [>`Form]) plus
     val input : ([< common | `Accesskey | `Checked | `Maxlength | `Name | `Size
-  | `Src | `Tabindex | `Input_Type | `Value | `Disabled | `Readonly | `Alt | `Accept | `Usemap |`Ismap ], [>`Input]) nullary
-    val label : ([< common | `Accesskey | `For ],
+  | `Src | `Tabindex | `Input_Type | `Value | `Disabled | `Readonly | `Alt | `Accept | `Usemap |`Ismap |`OnBlur |`OnChange |`OnFocus | `OnSelect], [>`Input]) nullary
+    val label : ([< common | `Accesskey | `For |`OnBlur |`OnFocus],
                  [< `PCDATA | inline_sans_label ], [>`Label]) star
     val optgroup : label:text ->
       ([< common | `Disabled ],
        [< `Option ], [>`Optgroup]) plus
     val option : ([< common | `Selected | `Value | `Disabled | `Label ],
                   [< `PCDATA ], [>`Option]) unary
-    val select : ([< common | `Multiple | `Name | `Size | `Tabindex | `Disabled ],
+    val select : ([< common | `Multiple | `Name | `Size | `Tabindex | `Disabled |`OnBlur |`OnChange |`OnFocus ],
                   [< `Option | `Optgroup ], [>`Select]) plus
     val textarea : rows:number -> cols:number ->
-      ([< common | `Accesskey | `Name | `Tabindex | `Disabled | `Readonly ],
+      ([< common | `Accesskey | `Name | `Tabindex | `Disabled | `Readonly |`OnBlur |`OnChange |`OnFocus | `OnSelect],
        [< `PCDATA ], [>`Textarea]) unary
     val fieldset : ([< common ],
                     [< `PCDATA | `Legend | flow ], [>`Fieldset]) star
     val legend : ([< common | `Accesskey ],
                     [< `PCDATA | inline ], [>`Legend]) star
-    val button : ([< common | `Name | `Value | `Button_Type | `Disabled | `Accesskey | `Tabindex ],
+    val button : ([< common | `Name | `Value | `Button_Type | `Disabled | `Accesskey | `Tabindex |`OnBlur |`OnFocus],
                     [< `PCDATA | buttoncontent ], [>`Button]) star
 
 (** {2 Tables} *)
@@ -1017,7 +1019,7 @@ module type T =
 (** {2 Frames} *)
 
     val frameset : ?noframes:([< `Noframes ] elt) ->
-      ([< core | `FS_Rows | `FS_Cols ], [< `Frameset | `Frame ], [>`Frameset]) plus
+      ([< core | `FS_Rows | `FS_Cols |`OnLoad |`OnUnload], [< `Frameset | `Frame ], [>`Frameset]) plus
 
     val frame : src:uri ->
       ([< core | `Frameborder | `Longdesc | `Marginheight | `Marginwidth
@@ -1181,7 +1183,7 @@ module Version =
                     `OnMouseOver | `OnMouseMove | `OnMouseOut | `OnKeyPress |
                     `OnKeyDown | `OnKeyUp ]
 
-    type common = [ core | i18n | events ]
+    type common = [ core | i18n | events | `Style_Attr]
 
     type 'a attrib = XML.attrib
     type 'a attribs = XML.attribs
@@ -1307,16 +1309,16 @@ module Version =
 
     (* Events: *)
 
-    let a_onclick = event_attrib "onclick"
-    let a_ondblclick = event_attrib "ondblclick"
-    let a_onmousedown = event_attrib "onmousedown"
-    let a_onmouseup = event_attrib "onmouseup"
-    let a_onmouseover = event_attrib "onmouseover"
-    let a_onmousemove = event_attrib "onmousemove"
-    let a_onmouseout = event_attrib "onmouseout"
-    let a_onkeypress = event_attrib "onkeypress"
-    let a_onkeydown = event_attrib "onkeydown"
-    let a_onkeyup = event_attrib "onkeyup"
+    let a_onclick = string_attrib "onclick"
+    let a_ondblclick = string_attrib "ondblclick"
+    let a_onmousedown = string_attrib "onmousedown"
+    let a_onmouseup = string_attrib "onmouseup"
+    let a_onmouseover = string_attrib "onmouseover"
+    let a_onmousemove = string_attrib "onmousemove"
+    let a_onmouseout = string_attrib "onmouseout"
+    let a_onkeypress = string_attrib "onkeypress"
+    let a_onkeydown = string_attrib "onkeydown"
+    let a_onkeyup = string_attrib "onkeyup"
 
 
     (* Other Attributes *)
