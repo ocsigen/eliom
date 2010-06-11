@@ -895,10 +895,16 @@ let handle_connection port in_ch sockaddr =
   handle_request ()
 
 let rec wait_connection use_ssl port socket =
-  let handle_exn = function
+  let handle_exn e =
+    Lwt_unix.yield () >>= fun () -> match e with
     | Socket_closed ->
         Ocsigen_messages.debug2 "Socket closed";
         Lwt.return ()
+    | Unix.Unix_error ((Unix.EMFILE | Unix.ENFILE), _, _) ->
+        (* this should not happen, report it *)
+        Ocsigen_messages.errlog
+          "Max number of file descriptors reached unexpectedly, please check...";
+        wait_connection use_ssl port socket
     | e ->
         Ocsigen_messages.debug
           (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
