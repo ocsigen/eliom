@@ -182,13 +182,14 @@ sig
 
   exception Incorrect_encoding
 
-  val decode_incomming :
+  val decode_upcomming :
     OX.request -> Channels.chan list Lwt.t
     (* decode incomming message : the result is the list of channels to listen
      * to. *)
 
-  val encode_outgoing :
+  val encode_downgoing :
     (Channels.chan * string) option list -> string OStream.t Lwt.t
+    (* Encode outgoing messages : results in the stream to send to the client *)
 
 end = struct
 
@@ -216,9 +217,9 @@ end = struct
     | (_, _) :: tl             -> decode_param_list tl
 
   (* OX.request -> Channels.chan list Lwt.t *)
-  let decode_incomming r =
+  let decode_upcomming r =
     (* RRR This next line makes it fail with Ocsigen_unsupported_media, hence
-     * the http_frame version *)
+     * the http_frame low level version *)
     (* r.OX.request_info.OX.ri_post_params r.OX.request_config *)
     Lwt.catch
       (fun () ->
@@ -249,7 +250,7 @@ end = struct
          l
       )
  
-  let encode_outgoing l =
+  let encode_downgoing l =
     Lwt.return (OStream.of_string (encode_outgoing_step l))
 
 
@@ -290,11 +291,11 @@ end = struct
     in
       Lwt.choose  listening_list >>= fun _ ->
       Lwt_unix.yield () >>= fun () -> (* To allow multiplexing *)
-      Lwt.nchoose listening_list >>= Messages.encode_outgoing
+      Lwt.nchoose listening_list >>= Messages.encode_downgoing
 
   (* This is just a mashup of the other functions in the module. *)
   let treat_incoming r () =
-    Messages.decode_incomming r >>= treat_decoded >>= fun stream ->
+    Messages.decode_upcomming r >>= treat_decoded >>= fun stream ->
       let res = OFrame.default_result () in
         Lwt.return
           { res with
