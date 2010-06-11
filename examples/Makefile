@@ -101,10 +101,10 @@ client/tutoeliom_ocsigen2_client.ml: tutoeliom_ocsigen2.ml
 	cp -f $< $@
 
 tutoeliom.cma: tutoeliom.cmo tutoeliom_ocsigen2.cmo
-	$(OCAMLDUCEFIND) ocamlc -a -o $@ $^
+	$(OCAMLFIND) ocamlc -a -o $@ $^
 
 tutoeliom.cmxs: tutoeliom.cmx tutoeliom_ocsigen2.cmx
-	$(OCAMLDUCEFIND) ocamlopt -linkall -shared -o $@ $^
+	$(OCAMLFIND) ocamlopt -linkall -shared -o $@ $^
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
