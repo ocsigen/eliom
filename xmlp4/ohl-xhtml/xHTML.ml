@@ -368,17 +368,24 @@ module type T =
                     `OnMouseOver | `OnMouseMove | `OnMouseOut | `OnKeyPress |
                     `OnKeyDown | `OnKeyUp ]
 
-    val a_onclick : cdata -> [>`OnClick] attrib
-    val a_ondblclick : cdata -> [>`OnDblClick] attrib
-    val a_onmousedown : cdata -> [>`OnMouseDown] attrib
-    val a_onmouseup : cdata -> [>`OnMouseUp] attrib
-    val a_onmouseover : cdata -> [>`OnMouseOver] attrib
-    val a_onmousemove : cdata -> [>`OnMouseMove] attrib
-    val a_onmouseout : cdata -> [>`OnMouseOut] attrib
-    val a_onkeypress : cdata -> [>`OnKeyPress] attrib
-    val a_onkeydown : cdata -> [>`OnKeyDown] attrib
-    val a_onkeyup : cdata -> [>`OnKeyUp] attrib
-
+    val a_onblur : XML.event -> [>`OnBlur] attrib
+    val a_onclick : XML.event -> [>`OnClick] attrib
+    val a_ondblclick : XML.event -> [>`OnDblClick] attrib
+    val a_onchange : XML.event -> [>`OnChange] attrib
+    val a_onfocus : XML.event -> [>`OnFocus] attrib
+    val a_onload : XML.event -> [>`OnLoad] attrib
+    val a_onunload : XML.event -> [>`OnUnload] attrib
+    val a_onreset : XML.event -> [>`OnReset] attrib
+    val a_onselect : XML.event -> [>`OnSelect] attrib
+    val a_onsubmit : XML.event -> [>`OnSubmit] attrib
+    val a_onmousedown : XML.event -> [>`OnMouseDown] attrib
+    val a_onmouseup : XML.event -> [>`OnMouseUp] attrib
+    val a_onmouseover : XML.event -> [>`OnMouseOver] attrib
+    val a_onmousemove : XML.event -> [>`OnMouseMove] attrib
+    val a_onmouseout : XML.event -> [>`OnMouseOut] attrib
+    val a_onkeypress : XML.event -> [>`OnKeyPress] attrib
+    val a_onkeydown : XML.event -> [>`OnKeyDown] attrib
+    val a_onkeyup : XML.event -> [>`OnKeyUp] attrib
 
     type common = [ core | i18n | events | `Style_Attr]
 
@@ -1309,16 +1316,24 @@ module Version =
 
     (* Events: *)
 
-    let a_onclick = string_attrib "onclick"
-    let a_ondblclick = string_attrib "ondblclick"
-    let a_onmousedown = string_attrib "onmousedown"
-    let a_onmouseup = string_attrib "onmouseup"
-    let a_onmouseover = string_attrib "onmouseover"
-    let a_onmousemove = string_attrib "onmousemove"
-    let a_onmouseout = string_attrib "onmouseout"
-    let a_onkeypress = string_attrib "onkeypress"
-    let a_onkeydown = string_attrib "onkeydown"
-    let a_onkeyup = string_attrib "onkeyup"
+    let a_onblur = event_attrib "onblur"
+    let a_onclick = event_attrib "onclick"
+    let a_ondblclick = event_attrib "ondblclick"
+    let a_onchange = event_attrib "onchange"
+    let a_onfocus = event_attrib "onfocus"
+    let a_onload = event_attrib "onload"
+    let a_onunload = event_attrib "onunload"
+    let a_onreset = event_attrib "onreset"
+    let a_onselect = event_attrib "onselect"
+    let a_onsubmit = event_attrib "onsubmit"
+    let a_onmousedown = event_attrib "onmousedown"
+    let a_onmouseup = event_attrib "onmouseup"
+    let a_onmouseover = event_attrib "onmouseover"
+    let a_onmousemove = event_attrib "onmousemove"
+    let a_onmouseout = event_attrib "onmouseout"
+    let a_onkeypress = event_attrib "onkeypress"
+    let a_onkeydown = event_attrib "onkeydown"
+    let a_onkeyup = event_attrib "onkeyup"
 
 
     (* Other Attributes *)
