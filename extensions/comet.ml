@@ -174,7 +174,7 @@ module Messages :
    * a list of channel ids. Separator for the list are semi-colon : ';'.
    *
    * The server sends result to the client in the form of a list of :
-   * channel_id ^ " : " ^ value ^ { ";" ^ channel_id ^ " : " ^ value }*
+   * channel_id ^ ":" ^ value ^ { ";" ^ channel_id ^ " " ^ value }*
    * where channel_id is the id of a channel that the client registered upon and
    * value is the string that was written upon the associated channel.
    * *)

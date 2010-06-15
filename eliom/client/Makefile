@@ -81,6 +81,13 @@ ocsigen_lib_obrowser.ml: ../../baselib/ocsigen_lib_obrowser.ml
 polytables.ml: ../../baselib/polytables.ml
 	cp -f $< $@ 
 
+eliom_common_comet.ml: ../eliom_common_comet.ml
+	cp -f $< $@ 
+
+eliom_common_comet.mli: ../eliom_common_comet.mli
+	cp -f $< $@ 
+
+
 #eliom_obrowser.cmo:
 #	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser.ml
 #

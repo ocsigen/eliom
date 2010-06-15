@@ -1,5 +1,6 @@
 (*zap* *)
-let (>>=) = Lwt.bind
+let (>>=) = Lwt.(>>=)
+let (>|=) = Lwt.(>|=)
 
 
 (* *zap*)
@@ -511,15 +512,15 @@ let.client rec read_again_and_again chan action =
 (* client code : what to do with server pushed messages *)
 let.client channel_action = function
   | "" -> Lwt.return ()
-  | s  -> Dom_html.window##alert (Js.string s) ; Lwt.return ()
+  | s  -> Js.alert s ; Lwt.return ()
 
 (* server code : create a communication channel *)
-let.server channel1 = Comet.Channels.new_channel ()
+let.server channel1 = Eliom_comet.Channels.new_channel ()
 
 (* server code : randomly write on the channel *)
 let.server rec rand_tick () =
   Lwt_unix.sleep (float_of_int (5 + (Random.int 5))) >>= fun () ->
-  Comet.Channels.write channel1 (string_of_int (Random.int 99)) ; rand_tick ()
+  Eliom_comet.Channels.write channel1 (Random.int 99) ; rand_tick ()
 let.server _ = rand_tick ()
 
 
@@ -527,60 +528,55 @@ let.server comet1 =
   Eliom_appl.register_new_service
     ~path:["comet1"]
     ~get_params:unit
-    (fun _ () () ->
-       Lwt.return
-         [
-           div
-             [pcdata "To fully understand the meaning of this, use a \
-                      couple browsers on this page. Note that channel \
-                     dentifier is printed along with the value."] ;
-           div
-             ~a:[a_onclick
-                   ((fun.client (i : string) ->
-                       read_again_and_again i channel_action
-                   ) (Comet.Channels.get_id channel1)
-                   )
-             ]
-             [pcdata "Click here to start public channel listening"] ;
-         ]
+    (fun sp () () -> Lwt.return
+       [
+         div
+           [pcdata "To fully understand the meaning of this, use a \
+                    couple browsers on this page."] ;
+         div
+           ~a:[a_onclick
+                 ((fun.client
+                     (c : int Eliom_common_comet.chan_id Eliom_client_types.data_key) ->
+                     let c = Eliom_client_comet.unwrap_channel c in
+                     Eliom_client_comet.Registration.register c
+                       (fun s -> Js.alert (string_of_int s) ; Lwt.return ())
+                 ) (Eliom_comet.wrap_channel ~sp channel1)
+                 )
+           ]
+           [pcdata "Click here to start public channel listening"] ;
+       ]
     )
 
 (*wiki*
-This second example involves private channels and client-to-server push.
+This second example involves client-to-server and server to client event
+ propagation.
  *wiki*)
 
-let.client get_event_from_channel i = (* This is to be automated *)
-  let (evt, push) = React.E.create () in
-  let _ = read_again_and_again i (fun x -> push x ; Lwt.return ()) in
-  evt
 
 let.server comet2 =
-  let priv_channel = Comet.Channels.new_channel () in
-  let push_back =
-    let a = ref 0 in
-    let b = ref 0 in
-    function
-      | "A" -> incr a ; Comet.Channels.write priv_channel (string_of_int !a)
-      | "B" -> incr b ; Comet.Channels.write priv_channel (string_of_int !b)
-      | _ -> Comet.Channels.write priv_channel "what ?"
-  in
-  let evt_distant_writer =
-    Eliom_predefmod.Action.register_new_post_coservice'
-      ~options:`NoReload
-      ~post_params:(string "evt") (*for a string event... *)
-      (fun _ () s -> push_back s ; Lwt.return ())
-  in
   Eliom_appl.register_new_service
     ~path:["comet2"]
     ~get_params:unit
     (fun sp () () ->
+       let (e, push_up) =
+         Eliom_event.create_up_event ~sp (string "letter")
+       in
+       let m =
+         React.E.map
+           (function | "A" -> "alpha" | "B" -> "beta" | _ -> "what ?")
+           e
+       in
+       let wrapped_evt =
+         Eliom_event.wrap_down_event ~sp m
+       in
+
        Lwt.return [
          h1 [pcdata "Dual events"] ;
          div
            ~a:[a_onclick
                  ((fun.client (chan : string) ->
                      React.E.map
-                       (fun s -> Dom_html.window##alert (Js.string s))
+                       Js.alert
                        (get_event_from_channel chan)
                   ) (Comet.Channels.get_id priv_channel)
                  )
@@ -594,7 +590,7 @@ let.server comet2 =
                      let sp = Eliom_obrowser.unwrap_sp sp in
                      Eliom_client.call_service ~sp ~service () "A"
                  ) (Eliom_client.wrap_sp sp)
-                    evt_distant_writer
+                    push_up
                  )
               ]
            [pcdata "Push A"] ;
@@ -606,13 +602,12 @@ let.server comet2 =
                      let sp = Eliom_obrowser.unwrap_sp sp in
                      Eliom_client.call_service ~sp ~service () "B"
                  ) (Eliom_client.wrap_sp sp)
-                    evt_distant_writer
+                    push_up
                  )
               ]
            [pcdata "Push B"] ;
        ]
     )
-
 
 
 
@@ -877,7 +872,7 @@ let.server _ = Eliom_predefmod.Xhtmlcompact.register main
             br ();
               a comet1 sp [pcdata "A really simple comet example"] ();
             br ();
-              a comet2 sp [pcdata "A comet example with private channels and client to server push"] ();
+              a comet2 sp [pcdata "A comet example with server to client and client to server asynchronous events"] ();
             br ();
           ]
           ]

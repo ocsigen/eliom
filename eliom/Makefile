@@ -16,7 +16,9 @@ FILES:= error_pages.ml \
 	eliom_client_types.ml eliom_client.ml \
         eliom_uri.ml eliom_mkforms.ml eliom_mkreg.ml \
 	eliom_predefmod_client.ml eliom_predefmod.ml \
-        eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml
+        eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
+	eliom_common_comet.ml eliom_comet.ml  \
+	eliom_event.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
 ifeq "$(NATDYNLINK)" "YES"
@@ -76,7 +78,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package lwt.unix,netstring,cryptokit $(LIBDIRS)
+LIB = -thread -package lwt.unix,netstring,cryptokit,react $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
