@@ -42,13 +42,13 @@ module Pxml = Simplexmlparser
 let ( >>= ) = Lwt.( >>= )
 let ( >|= ) = Lwt.( >|= )
 
-(* a tiny deforestating addition to Lwt library : take_filter_map *)
+(* a tiny deforestating addition to Lwt library : filter_map *)
 let filter_map_rev_s func lst =
   let rec aux accu = function
     | [] -> Lwt.return accu
-    | x::xs -> func x >>= function
+    | x::xs -> func x >>= (function
         | Some y -> aux (y :: accu) xs
-        | None -> aux accu xs
+        | None -> aux accu xs)
   in aux [] lst
 let filter_map_s f l =
   filter_map_rev_s f l >|= List.rev
