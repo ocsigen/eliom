@@ -15,13 +15,16 @@ endif
 
 FILES= ocsigen_cache.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml \
        ocsigen_messages.ml ocsigen_config.ml ocsigen_stream.ml \
-       ocsigen_commandline.ml ocsigen_loader.ml dynlink_wrapper.ml polytables.ml
+       ocsigen_commandline.ml ocsigen_loader.ml \
+       dynlink_wrapper.ml \
+       polytables.ml \
+       react_lib.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB = -package lwt.unix,netstring,findlib,cryptokit -I +camlp4 $(LIBDIRS)
+LIB = -package lwt.unix,netstring,findlib,cryptokit,react -I +camlp4 $(LIBDIRS)
 PP =
 
 OBJS = $(FILES:.ml=.cmo)

@@ -80,7 +80,7 @@ sig
      * channels can be written on or read from using the following functions
      *)
 
-  val create : unit -> chan
+  val create : ?event:string React.E.t -> unit -> chan
     (* creating a fresh virtual channel, a client can request registraton to  *)
 
   val write  : chan -> string -> unit
@@ -152,8 +152,11 @@ end = struct
     CTbl.find ctbl (dummy_chan i)
 
   (* creation : newly created channel is stored in the map as a side effect *)
-  let create () =
-    let (client_event, tell_client) = React.E.create () in
+  let create ?event () =
+    let (client_event, tell_client) = match event with
+      | None -> React.E.create ()
+      | Some e -> React_lib.E.create_half_primitive e
+    in
     let (server_event, tell_server) = React.E.create () in
     let ch =
       {

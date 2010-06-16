@@ -21,8 +21,12 @@
  *)
 
 (* The Comet server extension only provides untyped channels (channels that
- * ransport string content. Here we add type information and we keep only
- * usefull functions. *)
+ * transport string content).
+ * The first abstraction layer we add here is typped channels. The whole
+ * marshalling/unmarshalling process is taken care of automatically. The client
+ * dual of this file is eliom_client_comet.ml, located in ./client/, the two
+ * modules work together and uses identical marshalling/unmarshalling
+ * convention. Don't forget to adapt the dual file when necessary. *)
 
 module Ecc = Eliom_common_comet
 let (>>=) = Lwt.(>>=)
@@ -30,7 +34,8 @@ let (>|=) = Lwt.(>|=)
 
 
 (* A module that provides primitive for server-side channel handling. The only
- * needed operations are : creating, writing, getting id. *)
+ * needed operations are : creating, writing, getting id. This just wraps
+ * functions from the Comet module. *)
 module Channels :
 sig
 
@@ -39,7 +44,6 @@ sig
 
   val create : unit -> 'a chan
 
-  (* /!\ Uses Marshaling to pass information /!\ *)
   val write  : 'a chan -> 'a -> unit
 
   val get_id : 'a chan -> 'a Ecc.chan_id
@@ -63,8 +67,6 @@ let wrap_channel ~sp (c : 'a Channels.chan)
   Eliom_client.wrap ~sp (Channels.get_id c)
 
 
-(*TODO: high level functions to handle channels (buffered...)*)
-
 
 module Buffers :
 sig
@@ -75,6 +77,8 @@ sig
 
   val create :
     max_size:int -> sizer:('a -> int) -> timer:('a -> float option) -> 'a t
+
+  val set_max_size : int -> 'a t -> unit
 
   val push : 'a -> 'a t -> unit
   val pop : 'a t -> 'a option
@@ -93,11 +97,13 @@ end = struct
   type 'a t =
       {
         (*   *) b_queue    : 'a disposable_value Queue.t ;
-        (*   *) b_max_size : int ;
+        mutable b_max_size : int ;
         mutable b_size     : int ;
         (*   *) b_sizer    : 'a -> int ;
         (*   *) b_timer    : 'a -> float option ;
       }
+
+  let set_max_size s t =  t.b_max_size <- s
 
   let new_disposable_value size timer x =
     let v =
@@ -148,7 +154,7 @@ end = struct
     in aux ()
 
   let push x t =
-    (* computing value size *)
+    (* computing the value size *)
     let size = t.b_sizer x in
     (* checking for fitability *)
     if size > t.b_max_size
