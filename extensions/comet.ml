@@ -1,34 +1,23 @@
-(* Comet server extension for ocsigen *)
-(* /!\ PROTOTYPE /!\ *)
-(* For now only an UDP style connection is available :
- * a module can use :
- *   Comet.Channels.new_channel to obtain a channel
- *   Comet.Channels.get_id to communicate a channel's id to a client
- *   Comet.Channels.write to send a message to all connected clients currently
- *     listening on this channel
- *   Comet.Channels.destroy_channel if a channel is not needed anymore
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Module server.ml
+ * Copyright (C) 2010
+ * Raphaël Proust
+ * Laboratoire PPS - CNRS Université Paris Diderot
  *
- * Clients have to start a new connection from time to time (see [timeout] in
- * order to recheck the server. The connection is then held by the server
- * waiting for a channel to be written on. Every client listening to this
- * channel is then sent the value written on the channel. If a client is
- * disconnected, nothing happens !
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception;
+ * either version 2.1 of the License, or (at your option) any later version.
  *
- * Eg :
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  *
- * let ch = Comet.Channels.new_channel () (* as a global value for the module *)
- *
- * let serve_page () =
- *   generate_script_using_ch (Comet.Channels.get_id ch) >>= fun script ->
- *   serve_page_with_script_to_client script other_parameter
- *
- * let rec tick =
- *   let count = ref 0 in
- *   fun () ->
- *     incr c ;
- *     Comet.Channels.write ch (string_of_int !count) ;
- *     Lwt_unix.sleep 10. >>= tick
- *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
 (* Shortening names of modules : basically Osmthg is for Ocsigen_smthg *)
