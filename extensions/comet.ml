@@ -86,18 +86,17 @@ sig
   val write  : chan -> string -> unit
     (* [write ch v] sends [v] over [ch] all clients currently listening to [ch]
      * are being sent [v]. *)
-  val read : chan -> string Lwt.t
-    (* [read ch] will return whenever a value is written on [ch]. The result is
-     * the value written on it. This is the way for clients to listen on a
-     * channel. Note that while channels can be used to emulates events the
-     * implementation does not really suits it. *)
+  val read : chan -> string React.E.t
+    (* [read ch] is an event with occurrences for each call to [write]. The
+     * carried value is the argument given to [write]. This is the way for
+     * clients to listen on a channel. *)
 
   (* MEMORY LEAKS ? *)
   val notify : chan -> string -> unit
-    (* [notify c s] sends [s] to threads bindied to [notification c]. *)
-  val notification : chan -> string Lwt.t
-    (* [notification c] is a thread that returns on the next call to [notify c
-     * s] with the value [s]. *)
+    (* [notify c s] sends [s] to [notification c] event. *)
+  val notification : chan -> string React.E.t
+    (* [notification c] is an event with an [x] occurrence for each call to
+     * [notify c x]. *)
 
   val find_channel : string -> chan
     (* may raise Not_found if the channel was collected or never created.
@@ -112,10 +111,10 @@ end = struct
   type chan =
       {
         ch_id : string ;
-        mutable ch_reader : string Lwt.t ;
-        mutable ch_writer : string Lwt.u ;
-        mutable ch_notifiee : string Lwt.t ;
-        mutable ch_notifier : string Lwt.u ;
+        ch_tell_client  : string -> unit ;
+        ch_client_event : string React.E.t ;
+        ch_tell_server  : string -> unit ;
+        ch_server_event : string React.E.t ;
       }
 
   let get_id ch = ch.ch_id
@@ -138,14 +137,14 @@ end = struct
   (* because Hashtables allow search for elements with a corresponding hash, we
    * have to create a dummy channel in order to retreive the original channel.
    * Is there a KISSer way to do that ? *)
-  let (dummy_r, dummy_w) = Lwt.wait ()
+  let (dummy1, dummy2) = React.E.create ()
   let dummy_chan i =
     {
       ch_id = i ;
-      ch_reader = dummy_r ;
-      ch_writer = dummy_w ;
-      ch_notifiee = dummy_r ;
-      ch_notifier = dummy_w ;
+      ch_tell_client  = dummy2 ;
+      ch_client_event = dummy1 ;
+      ch_tell_server  = dummy2 ;
+      ch_server_event = dummy1 ;
     }
 
   (* May raise Not_found *)
@@ -154,39 +153,29 @@ end = struct
 
   (* creation : newly created channel is stored in the map as a side effect *)
   let create () =
-    let (reader, writer) = Lwt.wait () in
-    let (notifiee, notifier) = Lwt.wait () in
+    let (client_event, tell_client) = React.E.create () in
+    let (server_event, tell_server) = React.E.create () in
     let ch =
       {
         ch_id = new_id () ;
-        ch_reader = reader ;
-        ch_writer = writer ;
-        ch_notifiee = notifiee ;
-        ch_notifier = notifier ;
+        ch_tell_client  = tell_client  ;
+        ch_client_event = client_event ;
+        ch_tell_server  = tell_server  ;
+        ch_server_event = server_event ;
       }
     in CTbl.add ctbl ch ; ch
 
   (* writing on a channel : wakeup the writer with the given value and reload
    * both reader and writer. *)
-  let write ch v =
-    Lwt.wakeup ch.ch_writer v ; (* DO NOT cooperate here
-                                   (to avoid using twice the same wakener)
-                                 *)
-    let (reader, writer) = Lwt.wait () in
-    ch.ch_writer <- writer ;
-    ch.ch_reader <- reader
+  let write ch v = ch.ch_tell_client v
 
   (* reading a channel : just getting a hang on the reader thread *)
-  let read ch = ch.ch_reader
+  let read ch = ch.ch_client_event
 
   (* notification *)
-  let notify ch v =
-    Lwt.wakeup ch.ch_notifier v ; (*DO NOT COOPERATE !*)
-    let (notifiee, notifier) = Lwt.wait () in
-    ch.ch_notifier <- notifier ;
-    ch.ch_notifiee <- notifiee
+  let notify ch v = ch.ch_tell_server v
 
-  let notification ch = ch.ch_notifiee
+  let notification ch = ch.ch_server_event
 
 end
 
@@ -207,12 +196,12 @@ sig
   exception Incorrect_encoding
 
   val decode_upcomming :
-    OX.request -> Channels.chan list Lwt.t
+    OX.request -> (Channels.chan list * (unit -> unit) list) Lwt.t
     (* decode incomming message : the result is the list of channels to listen
        to. *)
 
   val encode_downgoing :
-    (Channels.chan * string) option list -> string OStream.t Lwt.t
+    (Channels.chan * string) list option -> string OStream.t Lwt.t
     (* Encode outgoing messages : results in the stream to send to the client *)
 
 end = struct
@@ -232,9 +221,9 @@ end = struct
       (Netstring_pcre.split channel_separator_regexp s)
       accu
 
-  let decode_notification_string s =
-    let rec aux = function
-      | [] -> ()
+  let decode_notification_string s accu =
+    let rec aux accu = function
+      | [] -> accu
       |    Netstring_pcre.Text c
         :: Netstring_pcre.Delim ":"
         :: Netstring_pcre.Text s
@@ -244,35 +233,39 @@ end = struct
         :: Netstring_pcre.Delim ":"
         :: Netstring_pcre.Text s
         :: ([] as tl)
-         -> (try Channels.notify (Channels.find_channel c) s
-             with | Not_found -> ()) ;
-            aux tl
-      | _ -> (* Client encoding error : stop *) ()
+         -> aux
+              (   (fun () ->
+                     try Channels.notify (Channels.find_channel c) s
+                     with | Not_found -> ())
+               :: accu)
+             tl
+      | _ -> (* Client encoding error : stop *) []
     in
-      aux (Netstring_pcre.full_split separator_regexp s)
+      aux accu (Netstring_pcre.full_split separator_regexp s)
 
-  (* (string * string) list -> Channels.chan list *)
-  (*TODO: return notifications instead of applying them directly *)
+  let unopt v d = match v with
+    | Some x -> x
+    | None -> d
+
+  (* (string * string) list -> (Channels.chan list * (unit -> unit) list) *)
   let decode_param_list params =
-    let rec aux tmp_reg = function
-      | [] ->
-          begin match tmp_reg with
-            | Some x -> x
-            | None -> []
-          end
+    let rec aux tmp_reg tmp_not = function
+      | [] -> (unopt tmp_reg [], unopt tmp_not [])
       | ("registration", s) :: tl ->
-          begin match tmp_reg with
-            | Some x -> aux (Some (decode_registration_string s x)) tl
-            | None -> aux (Some (decode_registration_string s [])) tl
+          begin 
+            aux
+              (Some (decode_registration_string s (unopt tmp_reg []))) tmp_not
+              tl
           end
       | ("notification", s) :: tl ->
-         begin
-           decode_notification_string s ;
-           aux tmp_reg tl
-         end
-      | _ :: tl             -> aux tmp_reg tl
+          begin
+            aux
+              tmp_reg (Some (decode_notification_string s (unopt tmp_not [])))
+              tl
+          end
+      | _ :: tl -> aux tmp_reg tmp_not tl
     in
-      aux None params
+      aux None None params
 
   (* OX.request -> Channels.chan list Lwt.t *)
   let decode_upcomming r =
@@ -297,31 +290,24 @@ end = struct
       >|= decode_param_list
 
 
-  let rec encode_outgoing_step l =
-    (*TODO: make a one pass version *)
-    String.concat ";"
-      (filter_map
-         (function
-            | None -> None
-            | Some (chan, str) -> Some (Channels.get_id chan ^ ":" ^ str)
-         )
-         l
-      )
- 
-  let encode_downgoing l =
-    Lwt.return (OStream.of_string (encode_outgoing_step l))
-
+  let encode_downgoing lo =
+    let str = match lo with
+      | None -> ""
+      | Some l -> String.concat ";"
+                    (List.map (fun (c,s) -> Channels.get_id c ^ ":" ^ s) l)
+    in
+    Lwt.return (OStream.of_string str)
 
 end
 
 module Main :
-  (* binding Lwt threads *)
-  (* using Lwt.choose, a client can wait for all the channels thread on which it
-   * is bound and return with the first result. *)
+  (* using React.merge, a client can wait for all the channels on which it
+   * is registered and return with the first result. *)
 sig
 
-  val treat_incoming : OX.request -> unit -> OFrame.result Lwt.t
-    (* treat an incoming request from a client *)
+  val main : OX.request -> unit -> OFrame.result Lwt.t
+  (* treat an incoming request from a client. The unit part is for partial
+   * application in Ext_found parameter. *)
 
 end = struct
 
@@ -336,24 +322,25 @@ end = struct
 
   (* Once channel list is obtain, use this function to return a thread that
    * terminates when one of the channel is written upon. *)
-  let treat_decoded chans =
-    let listening_list =
-      (   armless_timeout timeout None
-       :: List.map
-            (fun chan ->
-               Channels.read chan >>= fun value ->
-               Lwt.return (Some (chan, value))
-            )
-            chans
-      )
+  let treat_decoded chans notifications =
+    let merged =
+        (Lwt_event.next (
+           React.E.merge
+             (fun acc v -> v :: acc)
+             []
+             (List.map
+                (fun c -> React.E.map (fun v -> (c, v)) (Channels.read c))
+                chans)
+         ) >|= fun x -> Some x)
     in
-      Lwt.choose  listening_list >>= fun _ ->
-      Lwt_unix.yield () >>= fun () -> (* To allow multiplexing *)
-      Lwt.nchoose listening_list >>= Messages.encode_downgoing
+    List.iter (fun f -> f ()) notifications ;
+    Lwt.choose [ merged ; (Lwt_unix.sleep timeout >|= fun () -> None) ] >>=
+    Messages.encode_downgoing
 
   (* This is just a mashup of the other functions in the module. *)
-  let treat_incoming r () =
-    Messages.decode_upcomming r >>= treat_decoded >>= fun stream ->
+  let main r () =
+    Messages.decode_upcomming r >>=
+    OLib.uncurry2 treat_decoded >>= fun stream ->
       let res = OFrame.default_result () in
         Lwt.return
           { res with
@@ -379,7 +366,7 @@ let main = function
       match rq.OX.request_info.OX.ri_content_type with
         | Some (hd,tl) ->
             if has_comet_content_type (hd :: tl)
-            then Lwt.return (OX.Ext_found (Main.treat_incoming rq))
+            then Lwt.return (OX.Ext_found (Main.main rq))
             else Lwt.return OX.Ext_do_nothing
         | None -> Lwt.return OX.Ext_do_nothing
 

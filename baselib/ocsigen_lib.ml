@@ -27,6 +27,8 @@ exception Ocsigen_Request_too_long
 
 let comp f g x = f (g x)
 
+let uncurry2 f (x, y) = f x y
+
 let rec list_remove_first_if_any a = function
   |  [] -> []
   | b::l when a = b -> l

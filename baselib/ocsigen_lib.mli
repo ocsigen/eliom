@@ -10,6 +10,7 @@ val string_of_url_path : encode:bool -> string list -> string
 
 
 val comp : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+val uncurry2 : ('a -> 'b -> 'c) -> ('a * 'b) -> 'c
 val list_remove_first_if_any : 'a -> 'a list -> 'a list
 val list_remove_first_if_any_q : 'a -> 'a list -> 'a list
 val list_remove_first : 'a -> 'a list -> 'a list
