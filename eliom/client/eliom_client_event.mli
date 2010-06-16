@@ -20,30 +20,39 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* Module for event unwrapping *)
+module Down :
+sig
 
-
-module Down =
-struct
-
-  let unwrap
-        (c : 'a Eliom_common_comet.chan_id Eliom_client_types.data_key)
-        : 'a React.E.t
-    =
-    let chan : string = Eliom_client_comet.unwrap_channel c in
-    let (e, push) = React.E.create () in
-    Eliom_client_comet.Registration.register
-      chan
-      (fun s -> push s ; Lwt.return ()) ;
-    e
+  val unwrap :
+    'a Eliom_common_comet.chan_id Eliom_client_types.data_key -> 'a React.E.t
 
 end
 
-module Up =
-struct
+module Up :
+sig
 
-  let unwrap service ~sp x =
-    Eliom_client.call_service ~sp ~service () x
+  val unwrap :
+    (* WAS (but didn't type) :
+    (unit,
+     'a,
+     [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+     [ `WithoutSuffix ],
+     unit,
+     [`One of 'a] Eliom_parameters.param_name,
+     [ `Registrable ], Eliom_services.http)
+       Eliom_services.service
+     *)
+    (unit,
+     'a,
+     [< Eliom_services.service_kind ],
+     [< `WithSuffix | `WithoutSuffix ],
+     'b,
+     'c,
+     [< Eliom_services.registrable ],
+     'd)
+        Eliom_services.service
+  -> sp:Eliom_client_types.server_params
+  -> 'a
+  -> string Lwt.t
 
 end
-

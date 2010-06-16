@@ -20,16 +20,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** The type of channels transporting values of type 'a. Values are marshalled
-    before transmition, it is for the client to properly unmarshall it. The
-    Eliom_client_comet module provides primitives that allow just that. *)
-type 'a chan
 
 module Channels :
 (** A module with all the base primitive needed for server push.*)
 sig
 
-  val new_channel : unit -> 'a chan
+  type 'a chan
+  (** The type of channels transporting values of type 'a. Values are marshalled
+      before transmition, it is for the client to properly unmarshall it. The
+      Eliom_client_comet module provides primitives that allow just that. *)
+
+  val create : unit -> 'a chan
   (** [new_channel ()] makes a fresh new channel immediatly usable. The id can
       be transmitted to a client in order to let him collect information passed
       on it. *)
@@ -51,4 +52,5 @@ end
     use in this matter. *)
 val wrap_channel :
   sp:Eliom_sessions.server_params ->
-  'a chan -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
+  'a Channels.chan -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
+

@@ -20,16 +20,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* Shortening names of modules : basically Osmthg is for Ocsigen_smthg *)
-module OFrame = Ocsigen_http_frame
-module OStream = Ocsigen_stream
-module OX = Ocsigen_extensions
-module OLib = Ocsigen_lib
-module Pxml = Simplexmlparser
+(* Comet server extension for ocsigen *)
 
-(* infix monad binder *)
+(* Shortening names of modules *)
+module OFrame  = Ocsigen_http_frame
+module OStream = Ocsigen_stream
+module OX      = Ocsigen_extensions
+module OLib    = Ocsigen_lib
+module Pxml    = Simplexmlparser
+
+(* infix monad binders *)
 let ( >>= ) = Lwt.( >>= )
-let ( >|= ) = Lwt.( >|= )
+let ( >|= ) = Lwt.( >|= ) (* AKA map, AKA lift *)
 
 (* a tiny deforestating addition to Lwt library : filter_map *)
 let filter_map_rev_s func lst =
@@ -51,6 +53,15 @@ let filter_map f l =
       )
   in aux [] l
 
+let filter_map_accu func lst accu =
+  let rec aux accu = function
+    | [] -> accu
+    | x :: xs -> match func x with
+        | Some y -> aux (y :: accu) xs
+        | None -> aux accu xs
+  in
+    aux accu lst
+
 (* timeout for comet connections : if no value has been written in the ellapsed
  * time, connection will be closed. Should be equal to client timeout. *)
 (* TODO: make value customizable via conf file *)
@@ -69,8 +80,9 @@ sig
      * channels can be written on or read from using the following functions
      *)
 
-  val new_channel : unit -> chan
+  val create : unit -> chan
     (* creating a fresh virtual channel, a client can request registraton to  *)
+
   val write  : chan -> string -> unit
     (* [write ch v] sends [v] over [ch] all clients currently listening to [ch]
      * are being sent [v]. *)
@@ -79,6 +91,13 @@ sig
      * the value written on it. This is the way for clients to listen on a
      * channel. Note that while channels can be used to emulates events the
      * implementation does not really suits it. *)
+
+  (* MEMORY LEAKS ? *)
+  val notify : chan -> string -> unit
+    (* [notify c s] sends [s] to threads bindied to [notification c]. *)
+  val notification : chan -> string Lwt.t
+    (* [notification c] is a thread that returns on the next call to [notify c
+     * s] with the value [s]. *)
 
   val find_channel : string -> chan
     (* may raise Not_found if the channel was collected or never created.
@@ -95,6 +114,8 @@ end = struct
         ch_id : string ;
         mutable ch_reader : string Lwt.t ;
         mutable ch_writer : string Lwt.u ;
+        mutable ch_notifiee : string Lwt.t ;
+        mutable ch_notifier : string Lwt.u ;
       }
 
   let get_id ch = ch.ch_id
@@ -123,6 +144,8 @@ end = struct
       ch_id = i ;
       ch_reader = dummy_r ;
       ch_writer = dummy_w ;
+      ch_notifiee = dummy_r ;
+      ch_notifier = dummy_w ;
     }
 
   (* May raise Not_found *)
@@ -130,13 +153,16 @@ end = struct
     CTbl.find ctbl (dummy_chan i)
 
   (* creation : newly created channel is stored in the map as a side effect *)
-  let new_channel () =
+  let create () =
     let (reader, writer) = Lwt.wait () in
+    let (notifiee, notifier) = Lwt.wait () in
     let ch =
       {
         ch_id = new_id () ;
         ch_reader = reader ;
         ch_writer = writer ;
+        ch_notifiee = notifiee ;
+        ch_notifier = notifier ;
       }
     in CTbl.add ctbl ch ; ch
 
@@ -152,6 +178,15 @@ end = struct
 
   (* reading a channel : just getting a hang on the reader thread *)
   let read ch = ch.ch_reader
+
+  (* notification *)
+  let notify ch v =
+    Lwt.wakeup ch.ch_notifier v ; (*DO NOT COOPERATE !*)
+    let (notifiee, notifier) = Lwt.wait () in
+    ch.ch_notifier <- notifier ;
+    ch.ch_notifiee <- notifiee
+
+  let notification ch = ch.ch_notifiee
 
 end
 
@@ -174,7 +209,7 @@ sig
   val decode_upcomming :
     OX.request -> Channels.chan list Lwt.t
     (* decode incomming message : the result is the list of channels to listen
-     * to. *)
+       to. *)
 
   val encode_downgoing :
     (Channels.chan * string) option list -> string OStream.t Lwt.t
@@ -185,25 +220,59 @@ end = struct
   exception Incorrect_encoding
 
   let channel_separator_regexp = Netstring_pcre.regexp ";"
+  let separator_regexp = Netstring_pcre.regexp ":;"
 
-  (* string -> Channels.chan list Lwt.t *)
-  let decode_string s =
-    filter_map_s
+  (* string -> Channels.chan list -> Channels.chan list *)
+  let decode_registration_string s accu =
+    filter_map_accu
       (fun s ->
-         Lwt.catch
-           (fun () -> Lwt.return (Some (Channels.find_channel s)))
-           (function
-              | Not_found -> Lwt.return None
-              | exc -> Lwt.fail exc
-           )
+         try Some (Channels.find_channel s)
+         with | Not_found -> None
       )
       (Netstring_pcre.split channel_separator_regexp s)
+      accu
 
-  (* (string * string) list -> Channels.chan list Lwt.t *)
-  let rec decode_param_list = function
-    | []                       -> Lwt.return []
-    | ("registration", s) :: _ -> decode_string s
-    | (_, _) :: tl             -> decode_param_list tl
+  let decode_notification_string s =
+    let rec aux = function
+      | [] -> ()
+      |    Netstring_pcre.Text c
+        :: Netstring_pcre.Delim ":"
+        :: Netstring_pcre.Text s
+        :: Netstring_pcre.Delim ";"
+        :: tl 
+      |    Netstring_pcre.Text c
+        :: Netstring_pcre.Delim ":"
+        :: Netstring_pcre.Text s
+        :: ([] as tl)
+         -> (try Channels.notify (Channels.find_channel c) s
+             with | Not_found -> ()) ;
+            aux tl
+      | _ -> (* Client encoding error : stop *) ()
+    in
+      aux (Netstring_pcre.full_split separator_regexp s)
+
+  (* (string * string) list -> Channels.chan list *)
+  (*TODO: return notifications instead of applying them directly *)
+  let decode_param_list params =
+    let rec aux tmp_reg = function
+      | [] ->
+          begin match tmp_reg with
+            | Some x -> x
+            | None -> []
+          end
+      | ("registration", s) :: tl ->
+          begin match tmp_reg with
+            | Some x -> aux (Some (decode_registration_string s x)) tl
+            | None -> aux (Some (decode_registration_string s [])) tl
+          end
+      | ("notification", s) :: tl ->
+         begin
+           decode_notification_string s ;
+           aux tmp_reg tl
+         end
+      | _ :: tl             -> aux tmp_reg tl
+    in
+      aux None params
 
   (* OX.request -> Channels.chan list Lwt.t *)
   let decode_upcomming r =
@@ -225,7 +294,7 @@ end = struct
          | OStream.String_too_large -> Lwt.fail OLib.Input_is_too_large
          | e -> Lwt.fail e
       )
-      >>= decode_param_list
+      >|= decode_param_list
 
 
   let rec encode_outgoing_step l =
@@ -299,9 +368,7 @@ end
 let rec has_comet_content_type = function
   | [] -> false
   | ("application", "x-ocsigen-comet") :: _ -> true
-  | (s1, s2) :: tl ->
-      print_endline s1 ; print_endline s2 ;
-      has_comet_content_type tl
+  | _ :: tl -> has_comet_content_type tl
 
 let main = function
 

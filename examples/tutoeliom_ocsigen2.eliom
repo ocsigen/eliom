@@ -493,7 +493,9 @@ let.server _ =
 
 (*wiki*
 ====Comet programming
-It's very low level right now but it should evolve...
+The first example demonstrate server-to-client channel communication. Channels
+are used directly which is not as high level as we want it to be. Higher level
+usage is shown in the second example.
  *wiki*)
 
 (* client code : read the next value from a channel *)
@@ -515,7 +517,7 @@ let.client channel_action = function
   | s  -> Js.alert s ; Lwt.return ()
 
 (* server code : create a communication channel *)
-let.server channel1 = Eliom_comet.Channels.new_channel ()
+let.server channel1 = Eliom_comet.Channels.create ()
 
 (* server code : randomly write on the channel *)
 let.server rec rand_tick () =
@@ -538,6 +540,10 @@ let.server comet1 =
                  ((fun.client
                      (c : int Eliom_common_comet.chan_id Eliom_client_types.data_key) ->
                      let c = Eliom_client_comet.unwrap_channel c in
+                     (* Client code : register to the public channel with an
+                        alert on each received value. Remember that this is just
+                        an example: Js.alert should not be used because it stops
+                        the virtual machine. *)
                      Eliom_client_comet.Registration.register c
                        (fun s -> Js.alert (string_of_int s) ; Lwt.return ())
                  ) (Eliom_comet.wrap_channel ~sp channel1)
@@ -549,7 +555,7 @@ let.server comet1 =
 
 (*wiki*
 This second example involves client-to-server and server to client event
- propagation.
+propagation. There is no manual handling of channel, only events are used.
  *wiki*)
 
 
@@ -558,21 +564,20 @@ let.server comet2 =
     ~path:["comet2"]
     ~get_params:unit
     (fun sp () () ->
-       let (e, push_up) =
-         Eliom_event.create_up_event ~sp (string "letter")
-       in
-       let m =
+       (* First create a server-readable client-writable event AKA up event AKA
+          client-to-server asynchronous edge *)
+       let e_up = Eliom_event.Up.create ~sp (string "letter") in
+       (* We map the server side of this event for a little fun... *)
+       let mapped =
          React.E.map
            (function | "A" -> "alpha" | "B" -> "beta" | _ -> "what ?")
-           e
-       in
-       let wrapped_evt =
-         Eliom_event.wrap_down_event ~sp m
+           (Eliom_event.Up.react_event_of_up_event e_up)
        in
 
+       (* We can send the page *)
        Lwt.return [
-         h1 [pcdata "Dual events"] ;
-         div
+         h2 [pcdata "Dual events"] ;
+         div (* There's a start "button" right now, but it's gonna change *)
            ~a:[a_onclick
                  ((fun.client (chan : string) ->
                      React.E.map
@@ -582,27 +587,29 @@ let.server comet2 =
                  )
               ]
            [pcdata "START"] ;
-         div
+         div (* This div is for pushing "A" to the server side event *)
            ~a:[a_onclick
                  ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) Eliom_services.service) ->
+                    (e_up : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) Eliom_services.service) ->
                      let sp = Eliom_obrowser.unwrap_sp sp in
-                     Eliom_client.call_service ~sp ~service () "A"
+                     let push = Eliom_client_event.Up.unwrap e_up ~sp in
+                     push "A"
                  ) (Eliom_client.wrap_sp sp)
-                    push_up
+                   (Eliom_event.Up.wrap e_up)
                  )
               ]
            [pcdata "Push A"] ;
-         div
+         div (* This one is for pushing "B" *)
            ~a:[a_onclick
                  ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) Eliom_services.service) ->
+                    (e_up : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) Eliom_services.service) ->
                      let sp = Eliom_obrowser.unwrap_sp sp in
-                     Eliom_client.call_service ~sp ~service () "B"
+                     let push = Eliom_client_event.Up.unwrap e_up ~sp in
+                     push "B"
                  ) (Eliom_client.wrap_sp sp)
-                    push_up
+                   (Eliom_event.Up.wrap e_up)
                  )
               ]
            [pcdata "Push B"] ;
