@@ -958,8 +958,9 @@ module MakeForms = functor
           content
           getparams =
         if not use_href &&
-          (Eliom_sessions.get_application_name ~sp = 
-              Eliom_services.get_application_name service)
+          (let n = Eliom_sessions.get_application_name ~sp in
+           (n <> None) &&
+             (n = Eliom_services.get_application_name service))
         then
           Eliom_client.make_a_with_onclick
             (fun ?a ?onclick c -> Pages.make_a ?a ?onclick c)
