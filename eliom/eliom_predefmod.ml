@@ -1645,9 +1645,9 @@ redir ();"))::
                     *)
                     ("var eliom_id_tree = " ^
                      (Eliom_client_types.jsmarshal
-                        (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
-                     
-                     ^ "  eliom_global_data = input_val (" ^ 
+                        (XML.make_ref_tree (XHTML.M.toelt body))) ^ "; \n"
+
+                     ^ "var eliom_global_data = " ^
                      (Eliom_client_types.jsmarshal
                         (Eliom_client.get_global_eliom_appl_data_ ~sp)
                      ) ^ "; \n"

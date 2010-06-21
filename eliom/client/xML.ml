@@ -109,4 +109,4 @@ let node ?a name children =
 let leaf ?a name = node ?a name []
 
 let register_event elt name f v =
-  elt##onclick <- Dom_html.handler (fun _ -> ignore (f v); Js._false)
+  (Js.Unsafe.coerce elt)##onclick <- Dom_html.handler (fun _ -> ignore (f v); Js._false)

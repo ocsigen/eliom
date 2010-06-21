@@ -47,15 +47,14 @@ let fill_global_data_table ((reqnum, size), l) =
        size
        l)
 
-let ((timeofday, _), _) as global_data =
-  (Obj.obj (eval "eliom_global_data" >>> as_block)
-     : (int * int) * (unit list))
+let ((timeofday, _), _) as global_data : (int64 * int) * (unit list) =
+  unmarshal (Js.Unsafe.variable "eliom_global_data")
 
 let _ = fill_global_data_table global_data
 
 
 (* == Relinking DOM nodes *)
-let nodes : ((int * int), Js.Node.t) Hashtbl.t = Hashtbl.create 200
+let nodes : ((int64 * int), Dom.node Js.t) Hashtbl.t = Hashtbl.create 200
 
 let set_node_id node id =
   Hashtbl.replace nodes id node

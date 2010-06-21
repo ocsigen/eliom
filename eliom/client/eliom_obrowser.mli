@@ -36,6 +36,6 @@ val unwrap_node : Eliom_client_types.server_params Eliom_client_types.data_key -
 
 
 (**/**)
-val relink_dom_list : int -> Js.Node.t list -> (int * ref_tree) list -> unit
-val fill_global_data_table : (int * int) * unit list -> unit
+val relink_dom_list : int64 -> Dom.node Dom.nodeList Js.t -> (int * ref_tree) list -> unit
+val fill_global_data_table : (int64 * int) * unit list -> unit
 
