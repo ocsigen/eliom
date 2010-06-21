@@ -238,12 +238,13 @@ let.server _ =
                     (nl_params : 'ze2)
                     (getparams : 'ze1) ->
                       let sp = Eliom_obrowser.unwrap_sp sp in
+                      let service = Eliom_obrowser.unwrap service in
                       Eliom_client.change_page ~sp ~service () ()
                  ) 
                    None
                    None
                    None
-                   eliomobrowser1
+                   (Eliom_client.wrap ~sp eliomobrowser1)
                    (Eliom_client.wrap_sp sp) 
                    None
                    None
@@ -301,6 +302,7 @@ let.server _ =
                  Js.alert (string_of_float (Eliom_obrowser.unwrap my_value))) 
                 (Eliom_client.wrap ~sp my_value))]
              [pcdata "Click here to see a server side value sent with the page."]);
+
 
 >>
 ====Other tests

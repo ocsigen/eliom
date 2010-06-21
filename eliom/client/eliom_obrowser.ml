@@ -56,7 +56,7 @@ let register_closure id f =
 
 
 (* == Global application data *)
-let global_appl_data_table : ((int * int), unit) Hashtbl.t = 
+let global_appl_data_table : ((int64 * int), unit) Hashtbl.t = 
   Hashtbl.create 50
 
 (* Loading global Eliom application data *)
@@ -71,15 +71,16 @@ let fill_global_data_table ((reqnum, size), l) =
        size
        l)
 
+
 let ((timeofday, _), _) as global_data =
   (Obj.obj (eval "eliom_global_data" >>> as_block)
-     : (int * int) * (unit list))
+     : (int64 * int) * (unit list))
 
 let _ = fill_global_data_table global_data
 
 
 (* == Relinking DOM nodes *)
-let nodes : ((int * int), Js.Node.t) Hashtbl.t = Hashtbl.create 200
+let nodes : ((int64 * int), Js.Node.t) Hashtbl.t = Hashtbl.create 200
 
 let set_node_id node id =
   Hashtbl.replace nodes id node
@@ -113,20 +114,15 @@ let _ =
     (Obj.obj (eval "eliom_id_tree" >>> as_block) : ref_tree)
 
 
-
 (* == unwraping server data *)
 
 let unwrap (key : 'a Eliom_client_types.data_key) : 'a = 
-  try
-    Obj.magic (Hashtbl.find global_appl_data_table 
-                 (Eliom_client_types.of_data_key_ key))
-  with Not_found -> Obj.magic ()
+  Obj.magic (Hashtbl.find global_appl_data_table 
+               (Eliom_client_types.of_data_key_ key))
 
 
 let unwrap_sp = unwrap
 
 let unwrap_node k = 
   retrieve_node (Eliom_client_types.of_data_key_ k)
-
-
 

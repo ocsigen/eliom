@@ -33,7 +33,7 @@
     </extension-->
 
     <extension findlib-package="ocsigen.ext.eliom"/>
-
+    <extension findlib-package="ocsigen.ext.comet"/>
 
     <!-- Inclusion of all external configuration files matching *.conf
          from the directory 'dir' (in alphabetical order): -->
@@ -43,6 +43,8 @@
 
 
     <host charset="iso-8859-1" hostfilter="*">
+
+      <comet/>
 
       <site path="ocsigenstuff" charset="iso-8859-1">
         <static dir="_STATICPAGESDIR_/ocsigenstuff" />

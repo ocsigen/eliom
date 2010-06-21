@@ -18,8 +18,8 @@ type server_params =
 
 type 'a data_key
 
-val to_data_key_ : (int * int) -> 'a data_key
-val of_data_key_ : 'a data_key -> (int * int)
+val to_data_key_ : (int64 * int) -> 'a data_key
+val of_data_key_ : 'a data_key -> (int64 * int)
 
 (* Marshal an OCaml value into a string. All characters are escaped *)
 val jsmarshal : 'a -> string

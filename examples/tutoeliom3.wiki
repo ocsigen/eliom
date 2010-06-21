@@ -670,7 +670,7 @@ let preappl = Eliom_services.preapply coucou_params (3,(4,"cinq"))
           ====@@id="p3preapplied"@@Void coservices **[New in 1.1.0]**
           
           
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_coservice'"|<<span class="code"|Eliom_services.void_coservice'>>>>:
+<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_coservice'"|<<span class="code"|Eliom_services.void_coservice'>>>>
      is a special non-attached action, with special behaviour:
      it has no parameter at all, even non-attached parameters.
      Use it if you want to make a link to the current page

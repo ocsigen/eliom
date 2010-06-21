@@ -27,7 +27,7 @@ val fresh_id : unit -> string
 
 (**/**)
 val get_global_eliom_appl_data_ : 
-  sp:Eliom_sessions.server_params -> (int * int) * unit list
+  sp:Eliom_sessions.server_params -> (int64 * int) * unit list
 
 val wrap : sp:Eliom_sessions.server_params -> 'a -> 
   'a Eliom_client_types.data_key

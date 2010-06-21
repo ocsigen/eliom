@@ -7,8 +7,8 @@ OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,obrowser,str,lwt
 LIBS:=-I $(shell ocamlfind query react)
-MLS:= ocsigen_lib.ml xML.ml xHTML.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_uri.ml eliom_obrowser.ml eliom_client.ml ocsigen_messages.ml eliom_mkforms.ml polytables.ml eliom_client.ml xhtmltypes.ml eliom_predefmod.ml
-MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli
+MLS:= ocsigen_lib.ml xML.ml xHTML.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_uri.ml eliom_obrowser.ml eliom_client.ml ocsigen_messages.ml eliom_mkforms.ml polytables.ml xhtmltypes.ml eliom_predefmod.ml
+MLIS:= xHTML.mli eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli
 CMOS=$(MLS:.ml=.cmo)
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -36,6 +36,9 @@ $(CMA):  eliom_obrowser_client_stubs.o $(CMOS) ../../files/tutorial/eliom_obrows
 
 
 xHTML.ml: ../../xmlp4/ohl-xhtml/xHTML.ml
+	cp -f $< $@ 
+
+xHTML.mli: ../../xmlp4/ohl-xhtml/xHTML.mli
 	cp -f $< $@ 
 
 xhtmltypes.ml: ../../xmlp4/newocaml/pp/xhtmltypes.ml
@@ -91,13 +94,14 @@ polytables.ml: ../../baselib/polytables.ml
 #eliom_obrowser_client.cma: lwt_obrowser.cmo eliom_obrowser.cmo
 #	$(CAMLC) -a -o $@ $^
 
-depend: $(MLS)
+depend: $(MLS) $(MLIS)
 	$(OCAMLDEP) $(MLS) $(MLS:.ml=.mli) > .depend
 
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so
-	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml \
+	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml* \
 	    eliom_common.ml eliom_mkforms.ml* eliom_uri.ml* \
+            eliom_predefmod.ml* xHTML.ml*\
 	    ocsigen_lib_obrowser.ml \
             polytables.ml
 

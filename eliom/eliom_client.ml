@@ -115,7 +115,7 @@ let client_sp s =
    Eliom_client_types.sp_fullsessname = s.Eliom_common.sp_fullsessname;}
 
 
-let global_eliom_appl_data_key : ((int * int) * unit list) Polytables.key = 
+let global_eliom_appl_data_key : ((int64 * int) * unit list) Polytables.key = 
   Polytables.make_key ()
 
 let get_global_eliom_appl_data_ ~sp = 
@@ -129,7 +129,7 @@ let get_global_eliom_appl_data_ ~sp =
 
 let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
   let rc = Eliom_sessions.get_request_cache ~sp in
-  let ((reqnum, num) as n, data) = 
+  let ((reqnum, num) as n, data) =
     try Polytables.get ~table:rc ~key:global_eliom_appl_data_key
     with Not_found -> ((Eliom_sessions.get_request_id ~sp, 0), [])
   in
@@ -191,7 +191,7 @@ let (make_a_with_onclick :
                       (arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8,
                        arg9, arg10, arg11))
                    ^ ")"))
-             (wrap ~sp absolute)
+              (wrap ~sp absolute)
               (wrap ~sp absolute_path)
               (wrap ~sp https)
               (wrap ~sp service)
@@ -201,6 +201,7 @@ let (make_a_with_onclick :
               (wrap ~sp fragment)
               (wrap ~sp keep_nl_params)
               (wrap ~sp nl_params)
-              (wrap ~sp getparams)))
+              (wrap ~sp getparams)
+     ))
     content
-    
+

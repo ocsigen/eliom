@@ -181,7 +181,7 @@ package "ext" (
 
   package "comet" (
     exists_if = "comet.cmo,comet.cmx"
-    requires = "ocsigen.server"
+    requires = "ocsigen.server react"
     version = "[distributed with Ocsigen]"
     description = "Comet server-to-client communication"
     archive(byte) = "comet.cmo"

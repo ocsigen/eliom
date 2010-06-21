@@ -142,6 +142,7 @@ let set_inner_html code s =
   end
 
 
+
 let change_page
     ?absolute ?absolute_path ?https
     ~(service : ('get, 'post, 
@@ -163,16 +164,17 @@ let change_page
                   ~nl_params ?keep_get_na_params
                   g p)
   else
-    (match create_request_
-       ?absolute ?absolute_path ?https
-       ~service ~sp
-       ?hostname ?port ?fragment ?keep_nl_params
-       ~nl_params:(Eliom_parameters.add_nl_parameter
-                     nl_params
-                     Eliom_parameters.eliom_appl_nlp
-                     (appl_name, appl_instance_id))
-       ?keep_get_na_params
-       g p
+    (match
+        create_request_
+          ?absolute ?absolute_path ?https
+          ~service ~sp
+          ?hostname ?port ?fragment ?keep_nl_params
+          ~nl_params:(Eliom_parameters.add_nl_parameter
+                        nl_params
+                        Eliom_parameters.eliom_appl_nlp
+                        (appl_name, appl_instance_id))
+          ?keep_get_na_params
+          g p
      with
        | Ocsigen_lib.Left uri -> 
            Lwt_obrowser.http_get uri [] >>= fun r ->
@@ -365,7 +367,6 @@ let _ =
            ?absolute ?absolute_path ?https
            ~service ~sp ?hostname ?port ?fragment ?keep_nl_params ?nl_params
            getparams ())
-
 
 
 let make_a_with_onclick 

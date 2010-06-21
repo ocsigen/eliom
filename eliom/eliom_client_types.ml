@@ -40,7 +40,7 @@ type server_params =
                                        (if it is a session service) *)}
 
 
-type 'a data_key = int * int
+type 'a data_key = int64 * int
 
 let to_data_key_ v = v
 let of_data_key_ v = v
@@ -61,4 +61,4 @@ let jsmarshal v =
    with client side functions.
    Here are there identifiers: *)
 let a_closure_id = 0x0
-let a_closure_id_string = Printf.sprintf "0x%X" a_closure_id
+let a_closure_id_string = Printf.sprintf "0x%02X" a_closure_id
