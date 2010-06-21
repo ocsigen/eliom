@@ -488,7 +488,7 @@ let handle_result_frame ri res send =
   match r with
     | `Unmodified ->
         Ocsigen_messages.debug2 "-> Sending 304 Not modified ";
-        Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
+        Ocsigen_stream.finalize (fst res.res_stream) `Success >>= fun () ->
         send { (Ocsigen_http_frame.empty_result ()) with
                  res_code = 304  (* Not modified *);
                  res_lastmodified = res.res_lastmodified;
@@ -498,7 +498,7 @@ let handle_result_frame ri res send =
     | `Precondition_failed ->
         Ocsigen_messages.debug2 "-> Sending 412 Precondition Failed \
                      (conditional headers)";
-        Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
+        Ocsigen_stream.finalize (fst res.res_stream) `Success >>= fun () ->
         send { (Ocsigen_http_frame.empty_result ()) with
                  res_code = 412 (* Precondition failed *)}
 
@@ -575,9 +575,9 @@ let service receiver sender_slot request meth url port sockaddr =
           ignore
             (Lwt.catch
                (fun () ->
-                  Ocsigen_stream.finalize f (* will consume the stream and
-                                               unlock the mutex
-                                               if not already done *)
+                  Ocsigen_stream.finalize f `Success
+                      (* will consume the stream and unlock the mutex
+                         if not already done *)
                )
                (function
                  | e ->

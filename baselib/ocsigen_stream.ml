@@ -31,10 +31,12 @@ and 'a step =
                                     (usefull for substreams) *)
   | Cont of 'a * 'a stream       (* Current buffer, what follows *)
 
+type outcome = [`Success | `Failure]
+
 type 'a t =
   { mutable stream : 'a stream;
     mutable in_use : bool;
-    mutable finalizer : unit -> unit Lwt.t }
+    mutable finalizer : outcome -> unit Lwt.t }
 
 let empty follow =
   match follow with
@@ -44,7 +46,7 @@ let empty follow =
 let cont stri f =
   Lwt.return (Cont (stri, Lazy.lazy_from_fun f))
 
-let make ?finalize:(g = fun () -> Lwt.return ()) f =
+let make ?finalize:(g = fun _ -> Lwt.return ()) f =
   { stream = Lazy.lazy_from_fun f; in_use = false; finalizer = g }
 
 let next = Lazy.force
@@ -83,16 +85,16 @@ let cancel st =
 let consume st =
   consume_aux st.stream
 
-let finalize st =
+let finalize st status =
   let f = st.finalizer in
-  st.finalizer <- (fun () -> Lwt.return ());
-  f () >>= fun () ->
+  st.finalizer <- (fun _ -> Lwt.return ());
+  f status >>= fun () ->
   st.stream <- lazy (Lwt.fail Finalized);
   Lwt.return ()
 
 let add_finalizer st g =
   let f = st.finalizer in
-  st.finalizer <- fun () -> f () >>= fun () -> g ()
+  st.finalizer <- fun status -> f status >>= fun () -> g status
 
 (****)
 
@@ -237,7 +239,7 @@ let of_file filename =
         Lwt_chan.input_line ch >>= fun s ->
         (cont s aux))
       (function End_of_file -> empty None | e -> fail e)
-  in make ~finalize:(fun () -> Lwt.return (Lwt_unix.close fd)) aux
+  in make ~finalize:(fun _ -> Lwt.return (Lwt_unix.close fd)) aux
 
 let of_string s =
   make (fun () -> cont s (fun () -> empty None))

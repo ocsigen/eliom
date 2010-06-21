@@ -159,18 +159,18 @@ module Streamlist_content =
     let get_etag ?options c = None
 
     let result_of_content ?(options = ()) (c, ct) =
-      let finalizer = ref (fun () -> Lwt.return ()) in
-      let finalize () =
+      let finalizer = ref (fun _ -> Lwt.return ()) in
+      let finalize status =
         let f = !finalizer in
-        finalizer := (fun () -> Lwt.return ());
-        f ()
+        finalizer := (fun _ -> Lwt.return ());
+        f status
       in
       let rec next stream l =
         Lwt.try_bind (fun () -> Ocsigen_stream.next stream)
           (fun s ->
              match s with
                Ocsigen_stream.Finished None ->
-                 finalize () >>= fun () ->
+                 finalize `Success >>= fun () ->
                  next_stream l
              | Ocsigen_stream.Finished (Some stream) ->
                  next stream l
@@ -185,13 +185,14 @@ module Streamlist_content =
         | f :: l ->
             Lwt.try_bind f
               (fun stream ->
-                 finalizer := (fun () -> Ocsigen_stream.finalize stream);
+                 finalizer :=
+                   (fun status -> Ocsigen_stream.finalize stream status);
                  next (Ocsigen_stream.get stream) l)
               (fun e -> exnhandler e l)
       and exnhandler e l =
         Ocsigen_messages.warning
           ("Error while reading stream list: " ^ Ocsigen_lib.string_of_exn e);
-        finalize () >>= fun () ->
+        finalize `Failure >>= fun () ->
         next_stream l
       in
       let default_result = default_result () in
@@ -200,7 +201,7 @@ module Streamlist_content =
          res_content_length = None;
          res_etag = get_etag c;
          res_stream = 
-            (Ocsigen_stream.make ~finalize (fun () -> next_stream c), None);
+            (Ocsigen_stream.make ~finalize (fun _ -> next_stream c), None);
          res_headers= Http_headers.dyn_headers;
          res_content_type = Some ct}
 
@@ -288,7 +289,7 @@ module File_content =
                res_stream =
                 (Ocsigen_stream.make
                    ~finalize:
-                   (fun () ->
+                   (fun _ ->
                       Ocsigen_messages.debug2 "closing file";
                       Lwt_unix.close fd;
                       return ())

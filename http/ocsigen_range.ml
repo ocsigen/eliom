@@ -65,12 +65,14 @@ let select_range length beg endopt skipfun stream =
        Lwt.return
          (match endopt with
            | None -> 
-               Ocsigen_stream.make 
-                 ~finalize:(fun () -> Ocsigen_stream.finalize stream)
+               Ocsigen_stream.make
+                 ~finalize:
+                    (fun status -> Ocsigen_stream.finalize stream status)
                  (fun () -> Lwt.return new_s)
            | Some endc -> 
                Ocsigen_stream.make
-                 ~finalize:(fun () -> Ocsigen_stream.finalize stream)
+                 ~finalize:
+                    (fun status -> Ocsigen_stream.finalize stream status)
                  (aux new_s length))
     )
     (function

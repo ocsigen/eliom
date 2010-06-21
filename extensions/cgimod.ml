@@ -438,7 +438,7 @@ let recupere_cgi head re doc_root filename ri hostname =
       (fun () ->
         Ocsigen_http_com.get_http_frame ~head receiver
           >>= fun http_frame ->
-        return (http_frame, fun () -> Lwt_unix.close cgi_out; Lwt.return ()))
+        return (http_frame, fun _ -> Lwt_unix.close cgi_out; Lwt.return ()))
       (fun e -> Lwt_unix.close cgi_out; fail e);
 
   with e -> fail e
@@ -505,7 +505,7 @@ let gen reg = function
               in
               match code, loc with
               | None, Some loc ->
-                  Ocsigen_stream.finalize content >>= fun () ->
+                  Ocsigen_stream.finalize content `Success >>= fun () ->
                   if loc <> "" && loc.[0] = '/' then
                     Lwt.return
                       (Ext_retry_with ({ ri with request_info =
@@ -533,20 +533,27 @@ let gen reg = function
                   Lwt.return
                     (Ext_found
                        (fun () ->
+(*VVV NO! If sending is interrupted, we probably must do something else! *)
+                          Ocsigen_stream.add_finalizer content
+                            (fun outcome ->
+                               match outcome with
+                                 `Failure ->
+                                   frame.Ocsigen_http_frame.frame_abort ()
+                               | `Success ->
+                                   Lwt.return ());
                           Lwt.return
                             {default_result with
                                res_content_length = None;
                                res_stream = (content, None);
-                               res_stop_stream =
-                                frame.Ocsigen_http_frame.frame_abort;
-(*VVV NO! If sending is interrupted, we probably must do something else! *)
                                res_location= loc;
                                res_headers =
                                 Http_headers.replace_opt
                                   Http_headers.status None
                                   header.Http_header.headers;
                                res_code = code})))
-           (fun e -> Ocsigen_stream.finalize content >>= fun () -> Lwt.fail e))
+           (fun e ->
+              Ocsigen_stream.finalize content `Failure >>= fun () ->
+              Lwt.fail e))
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Lost_connection _ as e -> fail e

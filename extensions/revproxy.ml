@@ -188,11 +188,18 @@ let gen dir = function
                      let length =
                        Ocsigen_headers.get_content_length http_frame
                      in
+                     Ocsigen_stream.add_finalizer
+                       (fst empty_result.Ocsigen_http_frame.res_stream)
+                       (fun outcome ->
+                          match outcome with
+                            `Failure ->
+                              http_frame.Ocsigen_http_frame.frame_abort ()
+                          | `Success ->
+                              Lwt.return ());
                      Lwt.return
                        {empty_result with
                           Ocsigen_http_frame.res_content_length = length;
                           res_headers= headers;
-                          res_stop_stream = http_frame.Ocsigen_http_frame.frame_abort;
                           res_code= code;
                        }
                  | Some stream ->
@@ -202,12 +209,17 @@ let gen dir = function
                      let length =
                        Ocsigen_headers.get_content_length http_frame
                      in
+                     Ocsigen_stream.add_finalizer stream
+                       (fun outcome ->
+                          match outcome with
+                            `Failure ->
+                              http_frame.Ocsigen_http_frame.frame_abort ()
+                          | `Success ->
+                              Lwt.return ());
                      Lwt.return
                        {default_result with
                           Ocsigen_http_frame.res_content_length = length;
                           res_stream = (stream, None);
-                          res_stop_stream =
-                           http_frame.Ocsigen_http_frame.frame_abort;
                           res_headers= headers;
                           res_code= code;
                        }

@@ -477,7 +477,7 @@ NOT IMPLEMENTED
     (match b with
        | None -> Lwt_mutex.unlock receiver.read_mutex; None
        | Some s ->
-           Ocsigen_stream.add_finalizer s (fun () -> Ocsigen_stream.consume s);
+           Ocsigen_stream.add_finalizer s (fun _ -> Ocsigen_stream.consume s);
            Some s
     )
   in
@@ -862,11 +862,10 @@ let send
          Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers
                                   are not flushed by the reverse proxy *)
              >>= fun () ->
-         Ocsigen_stream.finalize (fst res.res_stream)
+         Ocsigen_stream.finalize (fst res.res_stream) `Success
       )
       (fun e ->
-        res.res_stop_stream () >>= fun () ->
-        Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
+        Ocsigen_stream.finalize (fst res.res_stream) `Failure >>= fun () ->
         Lwt.fail e
       )
 
