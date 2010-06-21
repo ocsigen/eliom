@@ -589,7 +589,7 @@ let service receiver sender_slot request meth url port sockaddr =
                      | Ocsigen_http_com.Timeout ->
                          warn sockaddr "timeout while reading contents"
                      | Ocsigen_http_com.Aborted ->
-                         warn sockaddr "reading thread aborted"
+                         dbg sockaddr "reading thread aborted"
                      | Http_error.Http_exception (code, mesg, _) ->
                          warn sockaddr (Http_error.string_of_http_exception e)
                      | _ ->
@@ -782,7 +782,7 @@ let handle_connection port in_ch sockaddr =
     | Ocsigen_http_com.Timeout ->
         warn sockaddr "timeout"
     | Ocsigen_http_com.Aborted ->
-        warn sockaddr "writing thread aborted"
+        dbg sockaddr "writing thread aborted"
     | Ocsigen_stream.Interrupted e' ->
         warn sockaddr ("interrupted content stream (" ^ string_of_exn e' ^ ")")
     | _ ->
@@ -812,7 +812,7 @@ let handle_connection port in_ch sockaddr =
         Ocsigen_http_com.abort receiver;
         Ocsigen_http_com.wait_all_senders receiver
     | Ocsigen_http_com.Aborted ->
-        warn sockaddr "reading thread aborted";
+        dbg sockaddr "reading thread aborted";
         Ocsigen_http_com.wait_all_senders receiver
     | Http_error.Http_exception (code, mes, _) ->
         warn sockaddr (Http_error.string_of_http_exception e);

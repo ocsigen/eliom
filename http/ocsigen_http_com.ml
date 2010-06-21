@@ -61,6 +61,20 @@ let request_too_large max =
   Ocsigen_http_frame.Http_error.Http_exception
     (413, Some "request contents too large", None)
 
+let convert_io_error e =
+  match e with
+    Unix.Unix_error(Unix.ECONNRESET,_,_)
+  | Ssl.Read_error (Ssl.Error_syscall | Ssl.Error_ssl)
+  | End_of_file
+  | Ssl.Write_error (Ssl.Error_zero_return | Ssl.Error_syscall | Ssl.Error_ssl)
+  | Unix.Unix_error (Unix.EPIPE, _, _) ->
+      Lost_connection e
+  | _ ->
+      e
+
+let catch_io_errors f =
+  Lwt.catch f (fun e -> Lwt.fail (convert_io_error e))
+
 (****)
 
 type mode = Answer | Query | Nofirstline
@@ -113,9 +127,11 @@ let create_receiver timeout mode fd =
       Lwt_chan.make_out_channel
         (fun buf pos len ->
            Lwt_timeout.start timeout;
-           Lwt.finalize
+           Lwt.try_bind
              (fun () -> Lwt_ssl.write fd buf pos len)
-             (fun () -> Lwt_timeout.stop timeout; Lwt.return ()));
+             (fun l  -> Lwt_timeout.stop timeout; Lwt.return l)
+             (fun e  -> Lwt_timeout.stop timeout;
+                        Lwt.fail (convert_io_error e)));
     timeout = timeout;
     r_mode = mode;
     buf=String.create buffer_size;
@@ -182,20 +198,6 @@ let rec fill receiver len =
     receive receiver >>= fun () ->
     fill receiver len
   end
-
-let convert_io_error e =
-  match e with
-    Unix.Unix_error(Unix.ECONNRESET,_,_)
-  | Ssl.Read_error (Ssl.Error_syscall | Ssl.Error_ssl)
-  | End_of_file
-  | Ssl.Write_error (Ssl.Error_zero_return | Ssl.Error_syscall | Ssl.Error_ssl)
-  | Unix.Unix_error (Unix.EPIPE, _, _) ->
-      Lost_connection e
-  | _ ->
-      e
-
-let catch_io_errors f =
-  Lwt.catch f (fun e -> Lwt.fail (convert_io_error e))
 
 (****)
 
