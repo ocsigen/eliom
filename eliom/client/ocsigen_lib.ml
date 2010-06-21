@@ -21,14 +21,14 @@ include Ocsigen_lib_obrowser
 
 let (>>>) x f = f x
 
-let window = JSOO.eval "window"
-let document = JSOO.eval "document"
-let body = JSOO.eval "document.body"
+let window = Dom_html.window
+let document = Dom_html.document
 
 (* functions from AXO: *)
 (* internal only : encode a string according to percent-encoding system *)
-let urlencode_string str =
-  window >>> JSOO.call_method "escape" [| JSOO.string str |] >>> JSOO.as_string
+let escape : Js.js_string Js.t -> Js.js_string Js.t =
+  Js.Unsafe.variable "escape"
+let urlencode_string str = Js.to_string (escape (Js.string str))
 
 (* decode a string according to percent encoding system *)
 (* we do not use this one because it does not work with marshaled data *)

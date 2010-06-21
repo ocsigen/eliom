@@ -80,7 +80,7 @@ let.server eliomobrowser1 =
     (fun sp () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
-                 ((fun.client (() : unit) -> Js.alert "clicked!") ())]
+                 ((fun.client (() : unit) -> Dom_html.window##alert(Js.string "clicked!")) ())]
            [pcdata "I am a clickable paragraph"];
          
         ])
@@ -99,7 +99,7 @@ the same application!//
 The code will look like:
 %<code language="ocaml"|
 p ~onclick:{{Eliom_client.post_request ~sp ~service:myblockservice ()
-                   >>= Node.append bodynode}}
+                   >>= Dom.appendChild bodynode}}
         [pcdata "Click here to add content from the server."];
 >%
 
@@ -153,14 +153,14 @@ let.server _ =
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
                       let sp = Eliom_obrowser.unwrap_sp sp in
-                      let body = JSOO.eval "document.body" in
-                      (*Js.get_element_by_id "bodyid"*)
+                      let body = Dom_html.document##body in
+                      (*Js_old.get_element_by_id "bodyid"*)
                       Eliom_client.call_service
                         ~sp ~service:myblockservice () () >>= fun s ->
                       (try
-                         let l = Js.Node.children (Js.dom_of_xml s) in
-                         List.iter (Js.Node.append body) l
-                       with e -> Js.alert (Printexc.to_string e));
+                         let l = Js_old.Node.children (Js_old.dom_of_xml s) in
+                         List.iter (Js_old.Node.append body) l
+                       with e -> Js_old.alert (Printexc.to_string e));
 (* does not work with chrome. A solution is probably to use set "innerHTML". *)
                        Lwt.return ()
                  ) (Eliom_client.wrap_sp sp) myblockservice)
@@ -285,7 +285,7 @@ let.server _ =
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
                       let sp = Eliom_obrowser.unwrap_sp sp in
                       Eliom_client.get_subpage ~sp ~service () () >>= fun blocks ->
-                      List.iter (Js.Node.append Ocsigen_lib.body) (XHTML.M.toeltl blocks);
+                      List.iter (Dom.appendChild Dom_html.document##body) (XHTML.M.toeltl blocks);
                       Lwt.return ()
                  ) (Eliom_client.wrap_sp sp) eliomobrowser1)
             ]
@@ -301,7 +301,7 @@ let.server _ =
                   ((fun.client (container : 'node Eliom_client_types.data_key) ->
                       let container = Eliom_obrowser.unwrap_node container in
                       let nl = XHTML.M.toelt (item ()) in
-                      Js.Node.append container nl) 
+                      Dom.appendChild container nl) 
                      (Eliom_client.wrap_node ~sp container))]
                   [pcdata "Click here to add an item below with the current version of OCaml."];
                 container]);
@@ -315,7 +315,7 @@ let.server _ =
           (let my_value = 1.12345 in 
            p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
              ((fun.client (my_value : float Eliom_client_types.data_key) ->
-                 Js.alert (string_of_float (Eliom_obrowser.unwrap my_value))) 
+                 Dom_html.window##alert (Js.string (string_of_float (Eliom_obrowser.unwrap my_value)))) 
                 (Eliom_client.wrap ~sp my_value))]
              [pcdata "Click here to see a server side value sent with the page."]);
 
@@ -332,8 +332,8 @@ let.server _ =
                     (s1 : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service)
                     (s2 : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
                       let sp = Eliom_obrowser.unwrap_sp sp in
-                      (Js.Node.append
-                         Ocsigen_lib.body
+                      (Dom.appendChild
+                         (Dom_html.document##body)
                          (XHTML.M.toelt (p [Eliom_predefmod.Xhtml.a ~sp ~service:s1
                                               [pcdata "An external link generated client side"] ();
                                             pcdata " and ";
@@ -400,12 +400,13 @@ let.server eliomobrowser4 =
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, int list Eliom_parameters.caml) Eliom_services.service) -> 
                       let sp = Eliom_obrowser.unwrap_sp sp in
-                      let body = JSOO.eval "document.body" in
+                      let body = Dom_html.document##body in
                       Eliom_client.call_caml_service ~sp ~service () ()
                       >>= fun l ->
                       List.iter 
-                        (fun i -> Js.Node.append body 
-                           (Js.Node.text (string_of_int i)))
+                        (fun i -> Dom.appendChild body 
+                           (Dom_html.document##createTextNode
+                              (Js.string (string_of_int i))))
                         l;
                       Lwt.return ()
                   )
@@ -510,7 +511,7 @@ let.client rec read_again_and_again chan action =
 (* client code : what to do with server pushed messages *)
 let.client channel_action = function
   | "" -> Lwt.return ()
-  | s  -> Js.alert s ; Lwt.return ()
+  | s  -> Dom_html.window##alert (Js.string s) ; Lwt.return ()
 
 (* server code : create a communication channel *)
 let.server channel1 = Comet.Channels.new_channel ()
@@ -579,7 +580,7 @@ let.server comet2 =
            ~a:[a_onclick
                  ((fun.client (chan : string) ->
                      React.E.map
-                       Js.alert
+                       (fun s -> Dom_html.window##alert (Js.string s))
                        (get_event_from_channel chan)
                   ) (Comet.Channels.get_id priv_channel)
                  )

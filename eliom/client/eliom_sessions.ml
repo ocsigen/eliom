@@ -68,19 +68,16 @@ let get_get_params_string ~sp = sp.sp_request.request_info.ri_get_params_string
 let get_post_params ~sp = Lazy.force sp.sp_request.request_info.ri_post_params
 let get_all_post_params ~sp = sp.sp_si.Eliom_common.si_all_post_params
 *)
-let loc_ = JSOO.eval "window.location"
+let loc_ = Dom_html.window##location
 
 let full_path_ =
-  let s = 
-    Ocsigen_lib.urldecode_string
-      (loc_ >>> JSOO.get "pathname" >>> JSOO.as_string)
-  in
+  let s = Ocsigen_lib.urldecode_string (Js.to_string loc_##pathname) in
   if String.length s > 0 && s.[0] = '/'
   then String.sub s 1 (String.length s - 1)
   else s
 
 let full_uri =
-  Ocsigen_lib.urldecode_string (loc_ >>> JSOO.get "href" >>> JSOO.as_string)
+  Ocsigen_lib.urldecode_string (Js.to_string loc_##href)
 
 let get_original_full_path_string ~sp = full_path_
 
@@ -96,12 +93,9 @@ let get_header_hostname ~sp = sp.sp_request.request_info.ri_host
 let get_default_hostname ~sp = sp.sp_request.request_config.default_hostname
 *)
 
-let host_ =
-  Ocsigen_lib.urldecode_string
-    (loc_ >>> JSOO.get "hostname" >>> JSOO.as_string)
+let host_ = Ocsigen_lib.urldecode_string (Js.to_string loc_##hostname)
 
-let port_ =
-  (loc_ >>> JSOO.get "port" >>> JSOO.as_string >>> int_of_string)
+let port_ = int_of_string (Js.to_string loc_##port)
 
 let get_hostname ~sp = host_
 let get_default_port ~sp = 80 (*VVV !!!!!!!!! *)
@@ -158,7 +152,6 @@ let get_site_dir ~sp = sp.sp_sitedata.site_dir
 let get_site_dir_string ~sp =
   sp.sp_sitedata.site_dir_string
 
-let appl_name =
-  ((JSOO.eval "appl_name" >>> JSOO.as_string) : string)
+let appl_name = Js.to_string (Js.Unsafe.variable "appl_name")
 
 let get_application_name ~sp = Some appl_name

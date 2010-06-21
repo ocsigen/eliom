@@ -52,10 +52,43 @@ let string_map f s =
   done;
   !r
 
+let string_escape s =
+  let l = String.length s in
+  let b = Buffer.create (4 * l) in
+  let conv = "0123456789abcdef" in
+  for i = 0 to l - 1 do
+    let c = s.[i] in
+    match c with
+      '\000' when i = l - 1 || s.[i + 1] < '0' || s.[i + 1] > '9' ->
+        Buffer.add_string b "\\0"
+    | '\b' ->
+        Buffer.add_string b "\\b"
+    | '\t' ->
+        Buffer.add_string b "\\t"
+    | '\n' ->
+        Buffer.add_string b "\\n"
+    | '\011' ->
+        Buffer.add_string b "\\v"
+    | '\012' ->
+        Buffer.add_string b "\\f"
+    | '\r' ->
+        Buffer.add_string b "\\r"
+    | '\'' ->
+        Buffer.add_string b "\\'"
+    | '\\' ->
+        Buffer.add_string b "\\\\"
+    | '\000' .. '\031' | '\127' .. '\255' | '&' | '<' ->
+        let c = Char.code c in
+        Buffer.add_string b "\\x";
+        Buffer.add_char b conv.[c lsr 4];
+        Buffer.add_char b conv.[c land 0xf]
+    | _ ->
+        Buffer.add_char b c
+  done;
+  Buffer.contents b
+
 let jsmarshal v =
-  let s = Marshal.to_string v [] in
-  let s' = string_map (fun c -> Printf.sprintf "0x%02X" (Char.code c)) s in
-  Printf.sprintf "[%s]" (String.concat "," s')
+  Format.sprintf "\'%s\'" (string_escape (Marshal.to_string v []))
 
 (* For client side program, we sometimes simulate links and forms
    with client side functions.

@@ -28,9 +28,13 @@ let current_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
 let appl_name = Eliom_sessions.appl_name
-  
-let appl_instance_id =
-  ((JSOO.eval "appl_instance_id" >>> JSOO.as_string) : string)
+
+external string_of_byte_string : int Js.js_array Js.t -> string =
+  "caml_string_of_byte_string"
+let unmarshal v =
+  Marshal.from_string (string_of_byte_string (Js.Unsafe.variable v)) 0
+
+let appl_instance_id = Js.to_string (Js.Unsafe.variable "appl_instance_id")
 
 let create_request_
     ?absolute ?absolute_path ?https
@@ -66,6 +70,23 @@ let create_request_
         Ocsigen_lib.Right (uri, p)
 
 
+let redirect_get url = Dom_html.window##location##href <- Js.string url
+
+let redirect_post url params =
+  let f = Dom_html.createForm Dom_html.document in
+  f##action <- Js.string url;
+  f##_method <- Js.string "post";
+  List.iter
+    (fun (n, v) ->
+       let i =
+         Dom_html.createInput
+           ~_type:(Js.string "text") ~name:(Js.string n) Dom_html.document in
+       i##value <- Js.string v;
+       Dom.appendChild f i)
+    params;
+  f##submit ()
+
+
 let exit_to
     ?absolute ?absolute_path ?https
     ~(service : ('get, 'post, 
@@ -83,8 +104,8 @@ let exit_to
      ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
      g p
    with
-     | Ocsigen_lib.Left uri -> Js.redirect_get uri
-     | Ocsigen_lib.Right (uri, p) -> Js.redirect_post uri p)
+     | Ocsigen_lib.Left uri -> redirect_get uri
+     | Ocsigen_lib.Right (uri, p) -> redirect_post uri p)
 
 
 (** This will change the URL, without doing a request.
@@ -116,14 +137,11 @@ let change_url
        | Ocsigen_lib.Left uri -> uri
        | Ocsigen_lib.Right (uri, p) -> uri)
   in
-  current_fragment := url_fragment_prefix_with_sharp^uri; 
-  JSOO.eval "window.location" >>> 
-  JSOO.set "hash" (JSOO.inject (JSOO.String (url_fragment_prefix^uri)))
+  current_fragment := url_fragment_prefix_with_sharp^uri;
+  Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
 
 
-let container_node = 
-  Eliom_obrowser.unwrap_node
-    (Obj.obj (JSOO.eval "container_node" >>> JSOO.as_block))
+let container_node = lazy (Js.Unsafe.coerce (Eliom_obrowser.unwrap_node (unmarshal "container_node")): Dom_html.element Js.t)
 
 
 
@@ -134,9 +152,10 @@ let set_inner_html code s =
     let (ref_tree_list, (((timeofday, _), _) as global_data), content) = 
       Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
     in
-    container_node >>> JSOO.set "innerHTML" (JSOO.string content);
+    let container_node = Lazy.force container_node in
+    container_node##innerHTML <- Js.string content;
     Eliom_obrowser.relink_dom_list 
-      timeofday (Js.Node.children container_node) ref_tree_list;
+      timeofday (container_node##childNodes) ref_tree_list;
     Eliom_obrowser.fill_global_data_table global_data;
     Lwt.return ()
   end
@@ -239,8 +258,10 @@ let call_caml_service
 
        
 
-let fake_page = 
+let fake_page = Dom_html.createBody Dom_html.document
+(*FIX: is that correct?
   XHTML.M.toelt (XHTML.M.body [])
+*)
 
 let get_subpage
     ?absolute ?absolute_path ?https
@@ -271,12 +292,16 @@ let get_subpage
       Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
     in
     (* Hack to make the result considered as XHTML: *)
-    fake_page >>> JSOO.set "innerHTML" (JSOO.string content);
-    let nodes = Js.Node.children fake_page in
-    fake_page >>> JSOO.set "innerHTML" (JSOO.string "");
+    fake_page##innerHTML <- Js.string content;
+    let nodes = fake_page##childNodes in
+    let node_list = ref [] in
+    for i = nodes##length - 1 downto 0 do
+      node_list := nodes##item (i) :: !node_list
+    done;
     Eliom_obrowser.relink_dom_list timeofday nodes ref_tree_list;
+    fake_page##innerHTML <- Js.string "";
     Eliom_obrowser.fill_global_data_table global_data;
-    Lwt.return (XHTML.M.totl nodes)
+    Lwt.return (XHTML.M.totl !node_list)
   end
 
 
@@ -287,13 +312,9 @@ let get_subpage
 (* Make the back button work when only the fragment has changed ... *)
 (*VVV We check the fragment every t second ... :-( *)
 
-let write_fragment s =
-  Ocsigen_lib.window >>> JSOO.get "location" >>> JSOO.set "hash" s
+let write_fragment s = Ocsigen_lib.window##location##hash <- Js.string s
 
-let read_fragment () =
-  Ocsigen_lib.window >>> JSOO.get "location"
-                     >>> JSOO.get "hash"
-                     >>> JSOO.as_string
+let read_fragment () = Js.to_string Ocsigen_lib.window##location##hash
 
 
 let (fragment, set_fragment_signal) = React.S.create (read_fragment ())
@@ -363,10 +384,11 @@ let _ =
          let nl_params = Eliom_obrowser.unwrap nl_params in
          let getparams = Eliom_obrowser.unwrap getparams in
          let absolute_path = Eliom_obrowser.unwrap absolute_path in
-         change_page
-           ?absolute ?absolute_path ?https
-           ~service ~sp ?hostname ?port ?fragment ?keep_nl_params ?nl_params
-           getparams ())
+         ignore
+           (change_page
+              ?absolute ?absolute_path ?https
+              ~service ~sp ?hostname ?port ?fragment ?keep_nl_params ?nl_params
+              getparams ()))
 
 
 let make_a_with_onclick 

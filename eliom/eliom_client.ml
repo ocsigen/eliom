@@ -185,7 +185,7 @@ let (make_a_with_onclick :
     ?onclick:
     (Some ((fun arg1 arg2 arg3 arg4 arg5 arg6
               arg7 arg8 arg9 arg10 arg11 ->
-                "caml_run_from_table (main_vm, "^
+                "caml_run_from_table ("^
                   Eliom_client_types.a_closure_id_string^","^
                   ((Eliom_client_types.jsmarshal
                       (arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8,

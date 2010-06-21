@@ -16,34 +16,33 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  *)
 
-open Js
-open JSOO
-
+module Html = Dom_html
 
 type aname = string
-type attrib = string * JSOO.obj
+type attrib = string * Js.Unsafe.any
 type attribs = attrib list
 type event = unit -> unit
 
-let int_attrib name value = (name, JSOO.int value)
-let string_attrib name value = (name, JSOO.string value)
+let int_attrib name value = (name, Js.Unsafe.inject value)
+let string_attrib name value = (name, Js.Unsafe.inject (Js.string value))
 let space_sep_attrib name values = 
-  (name, JSOO.string 
+  (name, Js.Unsafe.inject (Js.string
      (match values with
         | [] -> ""
-        | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l))
+        | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l)))
 let comma_sep_attrib name values =
-  (name, JSOO.string
+  (name, Js.Unsafe.inject (Js.string
      (match values with
         | [] -> ""
-        | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l))
-let event_attrib name value = (name, JSOO.wrap_event (fun _ -> ignore (value ())))
+        | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l)))
+(*FIX: wrong type*)
+let event_attrib name value = (name, Js.Unsafe.inject (Dom_html.handler (fun _ -> ignore (value ()); Js._false)))
 
 let attrib_name = fst
 
 type ename = string
 
-type elt = Js.Node.t
+type elt = Dom.node Js.t
 
 (*
 type node_type =
@@ -77,41 +76,37 @@ let node_type n =
   | _ -> assert false    
 *)
 
-let empty () = inject Nil
+let empty () = assert false  (*FIX: what is this supposed to be?*)
 
-let comment c = Node.text c
+let comment c = assert false (*FIX*)
 
-let pcdata d = Node.text d
-let encodedpcdata d = Node.text d
-let entity e = assert false
+(*FIX: what should we quote?*)
+let pcdata d = (Dom_html.document##createTextNode (Js.string d) :> elt)
+let encodedpcdata d = (Dom_html.document##createTextNode (Js.string d) :> elt)
+let entity e = assert false (*FIX: should implement*)
 
-let cdata s =
+let cdata s = (*FIX: what should we quote?*)
   encodedpcdata s
     
-let cdata_script s =
+let cdata_script s =(*FIX: what should we quote?*)
   encodedpcdata s
     
-let cdata_style s =
+let cdata_style s =(*FIX: what should we quote?*)
   encodedpcdata s
 
 
-
-
-let leaf ?a name =
-  let n = Node.element name in
-    (match a with
-       | Some a -> List.iter (fun (p, v) -> n >>> set p v >>> ignore) a
-       | None -> ()) ;
-    n
-
+(*FIX: cannot set input/name with IE  *)
 let node ?a name children =
-  let n = Node.element name in
-    (match a with
-       | Some a -> List.iter (fun (p, v) -> n >>> set p v >>> ignore) a
-       | None -> ()) ;
-    List.iter (Node.append n) children ;
-    n
+  let n = Dom_html.document##createElement (Js.string name) in
+  begin match a with
+  | Some a -> List.iter (fun (p, v) -> Js.Unsafe.set n p v) a
+  | None -> ()
+  end;
+  List.iter (fun c -> Dom.appendChild n c) children;
+  (n :> elt)
 
+(*FIX: cannot set input/name with IE  *)
+let leaf ?a name = node ?a name []
 
 let register_event elt name f v =
-  Lwt_obrowser.register_event elt "onclick" f v
+  elt##onclick <- Dom_html.handler (fun _ -> ignore (f v); Js._false)

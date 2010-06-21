@@ -49,7 +49,7 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
 	      | Some (a, l') ->
 		  let e = Ast.ExTup (l', a) in
 		  let _loc = loc in
-		  let s = Printf.sprintf "caml_run_from_table (main_vm, 0x%X," (hash loc) in
+		  let s = Printf.sprintf "caml_run_from_table (0x%X," (hash loc) in
 		    <:expr< $str:s$ ^ Eliom_client_types.jsmarshal $e$ ^ ")" >>
 	    end
 	| (_, t, l) :: tl ->

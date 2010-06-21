@@ -1637,58 +1637,43 @@ redir ();"))::
 
              if not do_not_launch_application
              then
-               (* O'Browser: *)
-               XHTML.M.script ~a:[a_src (Xhtml.make_uri 
-                                           (Eliom_services.static_dir ~sp)
-                                           sp
-                                           ["vm.js"])]
-                 ~contenttype:"text/javascript" (pcdata "")::
-                 
-                 (* JS part of Eliom client for O'Browser: *)
-                 XHTML.M.script ~a:[a_src (Xhtml.make_uri 
-                                             (Eliom_services.static_dir ~sp)
-                                             sp
-                                             ["eliom_obrowser.js"])]
-                 ~contenttype:"text/javascript" (pcdata "")::
-                 
-                 
                  XHTML.M.script ~contenttype:"text/javascript"
                  (cdata_script
                     (* eliom_id_tree is some information for relinking the
                        nodes on client side.
                        Relinking is done in Eliom_obrowser_client.
                     *)
-                    ("window.onload = function () { \n"
-                     ^ "  eliom_id_tree = input_val (" ^ 
+                    ("var eliom_id_tree = " ^
                      (Eliom_client_types.jsmarshal
                         (XML.make_ref_tree (XHTML.M.toelt body))) ^ "); \n"
-
+                     
                      ^ "  eliom_global_data = input_val (" ^ 
                      (Eliom_client_types.jsmarshal
                         (Eliom_client.get_global_eliom_appl_data_ ~sp)
-                     ) ^ "); \n"
-                     
-                     ^ "  container_node = input_val (" ^ 
+                     ) ^ "; \n"
+
+                     ^ "var container_node = " ^
                      let reqnum = Eliom_sessions.get_request_id ~sp in
                      (Eliom_client_types.jsmarshal
-                        (Eliom_client_types.to_data_key_ 
+                        (Eliom_client_types.to_data_key_
                            (reqnum, XML.ref_node container_node))
-                     ) ^ "); \n"
-                       
-                     ^ "  appl_name = \"" ^ 
+                     ) ^ "; \n"
+
+                     ^ "var appl_name = \"" ^
                        (Appl_params.application_name
                        ) ^ "\"; \n"
-                       
-                     ^ "  appl_instance_id = \"" ^ 
+
+                     ^ "var appl_instance_id = \"" ^
                        (match Eliom_sessions.get_application_instance ~sp with
                           | Some s -> s
                           | None -> "<error: application instance id not created>"
-                       ) ^ "\"; \n"
-                       
-                     (* The main client side program: *)
-                     ^ "  main_vm = exec_caml (\"" ^ 
-                       Appl_params.application_name ^ ".uue\") ; \n"
-                     ^ " }"))::
+                       ) ^ "\"; \n")) ::
+               (* Javascript program: *)
+               XHTML.M.script ~a:[a_src (Xhtml.make_uri 
+                                           (Eliom_services.static_dir ~sp)
+                                           sp
+                                           [Appl_params.application_name ^ ".js"])]
+                 ~contenttype:"text/javascript" (pcdata "")::
                  params.ap_headers
              else params.ap_headers
 

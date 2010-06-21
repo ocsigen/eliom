@@ -1,14 +1,13 @@
 CMA:= eliom_obrowser_client.cma
-OBROWSERLIB:= $(shell ocamlfind query obrowser)
 STUBDIR:=$(shell ocamlfind printconf stdlib)/stublibs
-OCAMLFIND = CAML_LD_LIBRARY_PATH=$(OBROWSERLIB) CAMLLIB=$(OBROWSERLIB) ocamlfind
-OCAMLC:= $(OCAMLFIND) ocamlc
+OCAMLFIND = ocamlfind
+OCAMLC:= $(OCAMLFIND) ocamlc -verbose
 OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
-PACKAGES:= -package netstring,obrowser,str,lwt
+PACKAGES:= -package netstring,str,lwt,js_of_ocaml -syntax camlp4o
 LIBS:=-I $(shell ocamlfind query react)
-MLS:= ocsigen_lib.ml xML.ml xHTML.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_uri.ml eliom_obrowser.ml eliom_client.ml ocsigen_messages.ml eliom_mkforms.ml polytables.ml xhtmltypes.ml eliom_predefmod.ml
-MLIS:= xHTML.mli eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli
+MLS:= ocsigen_lib.ml xML.ml xHTML.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_uri.ml eliom_obrowser.ml eliom_client.ml ocsigen_messages.ml eliom_mkforms.ml polytables.ml eliom_client.ml xhtmltypes.ml eliom_predefmod.ml
+MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli
 CMOS=$(MLS:.ml=.cmo)
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -18,11 +17,8 @@ CMOS=$(MLS:.ml=.cmo)
 
 all: $(MLIS) $(MLS) $(CMA)
 
-$(CMA):  eliom_obrowser_client_stubs.o $(CMOS) ../../files/tutorial/eliom_obrowser.js
+$(CMA):  eliom_obrowser_client_stubs.o $(CMOS)
 	$(OCAMLMKLIB) -o $(CMA:.cma=) eliom_obrowser_client_stubs.o polytables.cmo $(CMOS)
-
-../../files/tutorial/eliom_obrowser.js: eliom_obrowser.js
-	cp -f $< $@
 
 
 .c.o:
@@ -89,13 +85,13 @@ polytables.ml: ../../baselib/polytables.ml
 #	$(CAMLC) -package obrowser $(PP) -c eliom_obrowser.ml
 #
 #lwt_obrowser.cmo:
-#	ocamlfind ocamlc -package obrowser,lwt.syntax -syntax camlp4o -c lwt_obrowser.ml
+#	ocamlfind ocamlc -I /usr/lib/ocaml -package js_of_ocaml -syntax camlp4o -c lwt_obrowser.ml
 #
 #eliom_obrowser_client.cma: lwt_obrowser.cmo eliom_obrowser.cmo
 #	$(CAMLC) -a -o $@ $^
 
 depend: $(MLS) $(MLIS)
-	$(OCAMLDEP) $(MLS) $(MLS:.ml=.mli) > .depend
+	$(OCAMLDEP) $(MLS) $(MLS:.ml=.mli) $(PACKAGES) > .depend
 
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so

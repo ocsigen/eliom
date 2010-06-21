@@ -1,2 +1,6 @@
-int caml_register_closure = 0;
-int caml_get_closure_arg = 0;
+#include <stdlib.h>
+#define D(f) void f () { exit(1); }
+D(caml_register_closure)
+D(caml_regexp_make)
+D(caml_regexp_split)
+D(caml_string_of_byte_string)

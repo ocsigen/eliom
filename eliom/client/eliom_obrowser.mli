@@ -32,10 +32,10 @@ val unwrap : 'a Eliom_client_types.data_key -> 'a
 val unwrap_sp : Eliom_client_types.server_params Eliom_client_types.data_key ->
   Eliom_client_types.server_params
 
-val unwrap_node : Eliom_client_types.server_params Eliom_client_types.data_key -> Js.Node.t
+val unwrap_node : Eliom_client_types.server_params Eliom_client_types.data_key -> Dom.node Js.t
 
 
 (**/**)
-val relink_dom_list : int64 -> Js.Node.t list -> (int * ref_tree) list -> unit
-val fill_global_data_table : (int64 * int) * unit list -> unit
+val relink_dom_list : int -> Js.Node.t list -> (int * ref_tree) list -> unit
+val fill_global_data_table : (int * int) * unit list -> unit
 

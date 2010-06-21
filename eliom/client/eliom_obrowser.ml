@@ -19,41 +19,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
 exception Failed_service of int
 
-open Js
-open JSOO
-
-(*
-let register_closure : int -> (unit -> unit) -> unit =
-  match js_external "caml_register_closure" 2 with
-    | None -> failwith "unbound external"
-    | Some f -> f
-
-let get_closure_arg : unit -> Obj.t =
-  match js_external "caml_get_closure_arg" 1 with
-    | None -> failwith "unbound external"
-    | Some f -> f
-*)
+external string_of_byte_string : int Js.js_array Js.t -> string =
+  "caml_string_of_byte_string"
+let unmarshal x = Marshal.from_string (string_of_byte_string x) 0
 
 external register_closure
-  : int -> (unit -> unit) -> unit
+  : int -> (_ -> _) -> unit
   = "caml_register_closure"
 
-external get_closure_arg
-  : unit -> 'a
-  = "caml_get_closure_arg"
-
-let register_closure id f =
-  register_closure id (fun () ->
-                         try
-                           ignore (f (Obj.obj (get_closure_arg ()))) ;
-                           Thread.exit ()
-                         with _ ->
-                           Thread.exit ())
-
-
+let register_closure id f = register_closure id (fun x -> f (unmarshal x))
 
 (* == Global application data *)
 let global_appl_data_table : ((int64 * int), unit) Hashtbl.t = 
@@ -71,16 +47,15 @@ let fill_global_data_table ((reqnum, size), l) =
        size
        l)
 
-
 let ((timeofday, _), _) as global_data =
   (Obj.obj (eval "eliom_global_data" >>> as_block)
-     : (int64 * int) * (unit list))
+     : (int * int) * (unit list))
 
 let _ = fill_global_data_table global_data
 
 
 (* == Relinking DOM nodes *)
-let nodes : ((int64 * int), Js.Node.t) Hashtbl.t = Hashtbl.create 200
+let nodes : ((int * int), Js.Node.t) Hashtbl.t = Hashtbl.create 200
 
 let set_node_id node id =
   Hashtbl.replace nodes id node
@@ -98,20 +73,22 @@ let rec relink_dom timeofday root = fun (Ref_tree (id, subs)) ->
     | None ->
 	()
   end ;
-  let children = Node.children root in
+  let children = root##childNodes in
   relink_dom_list timeofday children subs
 and relink_dom_list timeofday dom_nodes subs =
   List.iter
     (fun (n, sub) ->
-       relink_dom timeofday (List.nth dom_nodes n) sub
+       relink_dom timeofday (dom_nodes##item (n)) sub
     )
     subs
 
 let _ =
+Dom_html.window##onload <- Dom_html.handler (fun _ ->
   relink_dom
     timeofday
-    (JSOO.eval "document.body")
-    (Obj.obj (eval "eliom_id_tree" >>> as_block) : ref_tree)
+    (Dom_html.document##body :> Dom.node Js.t)
+    (unmarshal (Js.Unsafe.variable "eliom_id_tree") : ref_tree);
+  Js._false)
 
 
 (* == unwraping server data *)
