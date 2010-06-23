@@ -33,6 +33,8 @@ let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 
 
+
+
 (* A module that provides primitive for server-side channel handling. The only
  * needed operations are : creating, writing, getting id. This just wraps
  * functions from the Comet module. *)
@@ -62,7 +64,7 @@ end
 
 
 (* Here is a wrap for channels. This can be used to transmit it to a client. *)
-let wrap_channel ~sp (c : 'a Channels.chan)
+let wrap ~sp (c : 'a Channels.chan)
       : 'a Ecc.chan_id Eliom_client_types.data_key =
   Eliom_client.wrap ~sp (Channels.get_id c)
 

@@ -30,7 +30,7 @@ sig
   type chan
   (** The type of server-to-client communication channels *)  
 
-  val create : ?event:string React.E.t -> unit -> chan
+  val create : unit -> chan
   (** [create ()] makes a fresh new channel immediately usable. [create ~event:e
     * ()] makes a channel on which a message is sent both when [write] is called
     * and [event] has an occurrence. *)

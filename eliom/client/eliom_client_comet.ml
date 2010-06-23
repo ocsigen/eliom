@@ -128,7 +128,8 @@ end = struct
       | regs ->
           let up_msg = Messages.encode_upgoing regs in
           Lwt.catch (fun () ->
-            (*TODO: treat server errors properly *)
+            (*TODO: treat server errors properly : exponential waiting time *)
+            (*TODO: get rid of alert in error handling *)
 
             Lwt_obrowser.http_post_with_content_type
               "./"
@@ -165,9 +166,7 @@ end
 
 (* Unwrapping of channels *)
 
-let unwrap_channel
-      (c : 'a Ecc.chan_id Eliom_client_types.data_key)
-      : 'a Ecc.chan_id =
+let unwrap (c : 'a Ecc.chan_id Eliom_client_types.data_key) : 'a Ecc.chan_id =
   Eliom_obrowser.unwrap c
 
 

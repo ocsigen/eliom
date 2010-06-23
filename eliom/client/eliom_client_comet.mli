@@ -33,6 +33,6 @@ sig
   val unregister : 'a Eliom_common_comet.chan_id -> unit
 end
 
-val unwrap_channel :
+val unwrap :
   'a Eliom_common_comet.chan_id Eliom_client_types.data_key
   -> 'a Eliom_common_comet.chan_id

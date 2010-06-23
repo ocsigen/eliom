@@ -33,6 +33,18 @@ module Pxml    = Simplexmlparser
 let ( >>= ) = Lwt.( >>= )
 let ( >|= ) = Lwt.( >|= ) (* AKA map, AKA lift *)
 
+(* A few React related functions... TODO: move to some appropriate place *)
+
+let create_half_primitive evt =
+  let (prim_evt, prim_push) = React.E.create () in
+  (React.E.select [evt ; prim_evt], prim_push)
+
+let branch f e =
+  let ee = React.E.map f e in
+  (React.E.map fst ee, React.E.map snd ee)
+
+
+
 (* a tiny deforestating addition to Lwt library : filter_map *)
 let filter_map_rev_s func lst =
   let rec aux accu = function
@@ -80,7 +92,7 @@ sig
      * channels can be written on or read from using the following functions
      *)
 
-  val create : ?event:string React.E.t -> unit -> chan
+  val create : unit -> chan
     (* creating a fresh virtual channel, a client can request registraton to  *)
 
   val write  : chan -> string -> unit
@@ -152,11 +164,8 @@ end = struct
     CTbl.find ctbl (dummy_chan i)
 
   (* creation : newly created channel is stored in the map as a side effect *)
-  let create ?event () =
-    let (client_event, tell_client) = match event with
-      | None -> React.E.create ()
-      | Some e -> React_lib.E.create_half_primitive e
-    in
+  let create () =
+    let (client_event, tell_client) = React.E.create () in
     let (server_event, tell_server) = React.E.create () in
     let ch =
       {
@@ -326,6 +335,9 @@ end = struct
   (* Once channel list is obtain, use this function to return a thread that
    * terminates when one of the channel is written upon. *)
   let treat_decoded chans notifications =
+    (*RRR: [merged] must be created before performing [notifications]. If not,
+     * an application's message written on one of the merged channels as a
+     * REACTion of notifications won't reach the client. *)
     let merged =
         (Lwt_event.next (
            React.E.merge
@@ -336,6 +348,7 @@ end = struct
                 chans)
          ) >|= fun x -> Some x)
     in
+    (*TODO: find a way to send all the notifications simultaneously *)
     List.iter (fun f -> f ()) notifications ;
     Lwt.choose [ merged ; (Lwt_unix.sleep timeout >|= fun () -> None) ] >>=
     Messages.encode_downgoing

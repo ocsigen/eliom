@@ -4,9 +4,19 @@ OCAMLFIND = ocamlfind
 OCAMLC:= $(OCAMLFIND) ocamlc -verbose
 OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
-PACKAGES:= -package netstring,obrowser,str,lwt
+PACKAGES:= -package netstring,obrowser,str,lwt.react -syntax camlp4o
 LIBS:=-I $(shell ocamlfind query react)
-MLS:= ocsigen_lib.ml xML.ml xHTML.ml eliom_client_types.ml ocsigen_lib_obrowser.ml ocsigen_lib.ml eliom_common.ml eliom_sessions.ml eliom_parameters.ml eliom_services.ml eliom_uri.ml eliom_obrowser.ml eliom_client.ml eliom_mkforms.ml polytables.ml eliom_client.ml xhtmltypes.ml eliom_predefmod.ml
+MLS:= xML.ml xHTML.ml \
+	eliom_client_types.ml \
+	regexp.ml lwt_obrowser.ml \
+	ocsigen_lib_obrowser.ml ocsigen_lib.ml \
+	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
+	eliom_services.ml eliom_uri.ml \
+	eliom_obrowser.ml eliom_client.ml \
+	eliom_mkforms.ml polytables.ml \
+	xhtmltypes.ml eliom_predefmod.ml \
+	eliom_common_comet.ml eliom_client_comet.ml \
+	eliom_client_event.ml
 MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli
 CMOS=$(MLS:.ml=.cmo)
 

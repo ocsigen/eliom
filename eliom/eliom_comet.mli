@@ -50,7 +50,7 @@ end
     of type ['a chan_id] and it is the client responsability to register to the
     channel. Functions in Eliom_client_comet and Eliom_client_event can be of
     use in this matter. *)
-val wrap_channel :
+val wrap :
   sp:Eliom_sessions.server_params ->
   'a Channels.chan -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
 
