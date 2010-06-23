@@ -31,8 +31,9 @@ This part of the manuel describes how to use Eliom for mixing client side
 and server side programming.
 Eliom allows to write the client and server parts of a Web application
 fully in Objectice Caml.
-For now it is using O'Browser to run OCaml programs in the browser.
-But Eliom will probably be available for other platforms soon.
+Running OCaml in the client's browser is acheived by compiling OCaml bytecode
+into Javascript. Check the [[wiki(30):/|js_of_ocaml]] project for news and
+information.
 
 
 ===@@id="p4basics"@@
@@ -58,9 +59,9 @@ open Eliom_predefmod.Xhtmlcompact
 open Eliom_services
 }}
 
-(* for client side only : {client{ ... }} *)
+(* for client side only, one can use : {client{ ... }} *)
 
-(* This is server only because there are no delimiters *)
+(* This is server only because there are no delimiters. *)
 module Eliom_appl =
   Eliom_predefmod.Eliom_appl (
     struct
@@ -88,6 +89,8 @@ let eliomobrowser1 =
     (fun sp () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+                        (* with {{ expr }}, the expression is executed by the
+                         * client. *)
                         a_onclick {{Dom_html.window##alert(Js.string "clicked!") ; Lwt.return ()}}]
            [pcdata "I am a clickable paragraph"];
          
@@ -104,13 +107,6 @@ the same application!//
 
 ====Using a distant Eliom service in client side code
 
-The code will look like:
-%<code language="ocaml"|
-p ~onclick:{{Eliom_client.post_request ~sp ~service:myblockservice ()
-                   >>= Dom.appendChild bodynode}}
-        [pcdata "Click here to add content from the server."];
->%
-
 For now, the syntax extension has not been implemented, thus the syntax
 is somewhat more complicated. Here are some examples of what you can do:
 *wiki*)
@@ -125,8 +121,10 @@ let myblockservice =
          [p [pcdata ("I come from a distant service! Here is a random value: "^
                        string_of_int (Random.int 100))]])
 
-;; (*This is necessary in order to have the "shared" following entry being
-     parsed as "str_item" (instead of "expr")*)
+;; (* This ";;" is necessary in order to have the "shared" following entry being
+      parsed as "str_item" (instead of "expr"). This is Camlp4 related, it may
+      evolve.
+    *)
 
 {shared{
 let item () = li [pcdata Sys.ocaml_version]
@@ -147,12 +145,20 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick 
                 {{Eliom_client.exit_to
-                    ~sp:\sp:sp
-                    ~service:\w:Tutoeliom.coucou
+                    ~sp:\sp:sp (* Here [sp] is sent by the server *)
+                    ~service:\w:Tutoeliom.coucou (* just as [coucou] *)
                     () ()
                 }}
             ]
             [pcdata "Click here to go to another page."];
+
+(*wiki*
+To use server values inside client code one should use the syntax {{{\w:e}}}
+where {{{w}}} is the wrapper keyword and {{{e}}} the sent expression. Note that
+{{{e}}} is evaluated by the server and the resulting value is send to the
+client.
+*wiki*)
+
 (*zap* 
 (*wiki*
   The following examples shows how to do a request to a service,
@@ -279,7 +285,7 @@ let _ =
            div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                                a_onclick {{
                                  Dom.appendChild
-                                   \node:container
+                                   \node:container (* node is the wrapper keyword for XHTML.M nodes. *)
                                    (XHTML.M.toelt (item ()))
                                }}
                   ]
@@ -467,14 +473,14 @@ let _ =
 (*wiki*
 ====Comet programming
 The first example demonstrate server-to-client channel communication. Channels
-are used directly which is not as high level as we want it to be. Higher level
-usage is shown in the second example.
+are wrapped and sent to the client. A second example uses channels to transmit
+occurrences of an event.
  *wiki*)
 
-(* server code : create a communication channel *)
+(* create a communication channel *)
 let c1 = Eliom_comet.Channels.create ()
 
-(* server code : randomly write on the channel *)
+(* randomly write on the channel *)
 let rec rand_tick () =
   Lwt_unix.sleep (float_of_int (5 + (Random.int 5))) >>= fun () ->
   Eliom_comet.Channels.write c1 (Random.int 99) ; rand_tick ()
@@ -491,7 +497,7 @@ let comet1 =
            [pcdata "To fully understand the meaning of this, use a \
                     couple browsers on this page."] ;
          div
-           ~a:[a_onclick{{
+           ~a:[a_onclick{{ (* The [channel] wrapper keyword is used for channels *)
                      Eliom_client_comet.Registration.register \channel:c1
                        (fun s -> Dom_html.window##alert (Js.string s) ; Lwt.return ())
            }}
@@ -528,16 +534,17 @@ let comet2 =
                                     | "B" -> "beta"
                                     | _ -> "what ?")
                                  (Eliom_event.Up.react_event_of_up_event e_up)
-                  )
+                  ) (* The whole expression evaluates to a down_event which is then wrapped and sent. *)
                                  
            }}
               ]
            [pcdata "START"] ;
          div (* This div is for pushing "A" to the server side event *)
-           ~a:[a_onclick {{ \up_event:e_up "A" }} ]
+           (*TODO: fix client side sp and simplify up_event unwrapping *)
+           ~a:[a_onclick {{ let sp = \sp:sp in \up_event:e_up "A" }} ]
            [pcdata "Push A"] ;
          div (* This one is for pushing "B" *)
-           ~a:[a_onclick {{ \up_event:e_up "B" }} ]
+           ~a:[a_onclick {{ let sp = \sp:sp in \up_event:e_up "B" }} ]
            [pcdata "Push B"] ;
        ]
     )

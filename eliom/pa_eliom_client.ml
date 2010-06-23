@@ -21,23 +21,28 @@
  *)
 
 
-(* It does not seem possible to write anything in camlp4 w/out opening that *)
+(* It does not seem reasonable to write some camlp4 w/out opening that *)
 open Camlp4
 open Camlp4.PreCast
 
 
 (*** Options for parser ***)
+
+(* The file the client side is sent to *)
 let client_file = ref "client_file.ml"
 let _ = Camlp4.Options.add
           "-client"
           (Arg.Set_string client_file)
           "set client code output file name"
+
+(* option for pretty printing of client side. The default behavior is to dump
+ * the client code AST. *)
 let pretty = ref false
 let _ = Camlp4.Options.add
           "-pretty"
           (Arg.Set pretty)
           "pretty print client code instead of dumping it"
-(*TODO: option for plain text output DumpOCamlAst <- OCaml*)
+
 
 
 (*** Syntax Identity module ***)
@@ -48,12 +53,17 @@ module Id : Camlp4.Sig.Id = struct
 
 end
 
+
+
 (*** Core ***)
 module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
+  (* Syntax inclusion seems necessary. Although a would be doc might explain
+   * why, none is available. *)
   include Syntax
 
 
   (*TODO: extensible wrapper list *)
+  (* This is the list associating wrapper-keywords to actual wrappers. *)
   let wrappers =
     let _loc = Loc.ghost in
     [
@@ -73,33 +83,35 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
   exception Not_a_registered_wrapper of string
 
   let find_wrapper i =
-    try
-      (List.assoc i wrappers)
-    with
-      | Not_found -> raise (Not_a_registered_wrapper i)
+    try (List.assoc i wrappers)
+    with Not_found -> raise (Not_a_registered_wrapper i)
 
 
 
+  (* Random int64 and name generation. Collisions are possible but unlikely. *)
   let rnd = Random.State.make [|0x513511d4|]
   let random_int64 () = Random.State.int64 rnd 0x100000000L
   let random_arg_name () =
     Format.sprintf "a%08Lx" (random_int64 ())
 
 
-  (* Client printer *)
+  (* Client printers *)
   module Client_code_dumper = Camlp4.Printers.DumpOCamlAst.Make(Syntax)
   module Client_code_printer = Camlp4.Printers.OCaml.Make(Syntax)
 
+  (* A reference to an empty str_item *)
   let client_dump = (* from pa_eliom_obrowser, KISSer way ? *)
     ref (let _loc = Loc.ghost in <:str_item< (* generated file *) >>)
+  (* The reference is updated for each piece of client code. *)
   let emit_client _loc ss =
     List.iter
       (fun s -> client_dump := <:str_item< $!client_dump$ ;; $s$ ;; >>)
       ss
+  (* The client file is written once *)
   let _ =
     at_exit
       (fun () ->
-         (if !pretty
+         (if !pretty (* Depending on !pretty, a different printer is used *)
           then Client_code_printer.print_implem
           else Client_code_dumper.print_implem
          )
@@ -110,6 +122,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
     
 
+  (* Client side code emission. *)
   let register_closure _loc num args expr =
     let rec clo_args_aux acc = function
       | [] -> <:patt< ($acc$) >>
@@ -126,8 +139,9 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
                 (fun $clo_arg$ -> $expr$)
     >>
 
-    
 
+
+  (* Server side code emission *)
   let closure_call _loc num args =
     let rec expr_of_args_aux acc = function
       | [] -> <:expr< ($acc$) >>
@@ -146,48 +160,14 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
     >>
 
 
-(*
-  (* Adding a few keywords *)
 
-  (* defining a filter to add '{{', '{...{' and '}}' as keywords *)
-  let client_server_filter old_filter stream =
-    let rec f = parser
-      | [< '(Sig.KEYWORD "{", loc) ; whatnot >] ->
-          (match whatnot with parser
-             | [< '(Sig.KEYWORD "{", _) ; wwhatnot >] ->
-                 (match wwhatnot with parser
-                    | [< '(Sig.LIDENT "client", _) ; wwwhatnot >]
-                     -> [< '(Sig.KEYWORD "{{client", loc) ; f wwwhatnot >]
-                    | [< '(Sig.LIDENT "shared", _) ; wwwhatnot >]
-                     -> [< '(Sig.KEYWORD "{{shared", loc) ; f wwwhatnot >]
-                    | [< '(Sig.LIDENT "server", _) ; wwwhatnot >]
-                     -> [< '(Sig.KEYWORD "{{server", loc) ; f wwwhatnot >]
-                 )
-          )
-      | [< '(Sig.KEYWORD "}", loc) ; whatnot >] ->
-          (match whatnot with parser
-             | [< '(Sig.KEYWORD "}", _) ; wwhatnot >]
-                     -> [< '(Sig.KEYWORD "}}", loc) ; f wwhatnot >]
-             | [< wwhatnot>]
-                     -> [< '(Sig.KEYWORD "}", loc) ; f wwhatnot >]
-          )
-      | [< 'smthg ; whatnot >] -> [< 'smthg ; f whatnot >]
-    in
-      old_filter (f stream)
-
-  (* registering filter *)
-  let () = Token.Filter.define_filter
-             (Gram.get_filter ())
-             client_server_filter
-*)
-
-
-  (* Parsing with side effects... Ugly but it just works ! *)
-  let client_exprs_ref = ref []
-  let inside = ref false
+  (* We use parsing with side effects... It's ugly but it just works ! *)
+  let client_exprs_ref = ref [] (* This ref accumulates \wrapper:expr while in a
+                                   {{ expr }} *)
+  let inside = ref false (* true when inside a {{ expr }} ; false when not. *)
 
   (* Parsing exceptions *)
-  exception Dollar_bounded_expr_outside_curly_bounds
+  exception Wrapper_expr_outside_curly_bounds
   exception Nested_curly_bounds
 
   (* Extending syntax *)
@@ -195,10 +175,11 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
   EXTEND Gram
     GLOBAL: str_item expr;
 
+    (* To str_item we add {client{ LIST0 SELF }}; {server{ LIST0 SELF }}; and
+     * {shared{ LIST0 SELF }} *)
     str_item : BEFORE "top"
                [[ "{" ; "shared" ; "{" ; s = empty_start ;
                     e = LIST0 SELF ;
-
                   "}" ; "}" ; s = empty_stop ->
                     (emit_client _loc e ;
                      List.fold_left
@@ -226,6 +207,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
                   ]];
     empty_stop : [[ -> inside := false ]];
 
+    (* To expr we add {{ SELF }} and \lid:SELF *)
     expr : BEFORE "simple"
            [[ KEYWORD "{" ; KEYWORD "{" ; s = empty_start ;
                 e = SELF ;
@@ -238,7 +220,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
             | "\\" ; i = a_LIDENT ; ":" ; e = expr ->
                 if !inside = false
-                then raise Dollar_bounded_expr_outside_curly_bounds
+                then raise Wrapper_expr_outside_curly_bounds
                 else
                   (let n = random_arg_name () in
                    let (wrapper, unwrapper) = find_wrapper i in
