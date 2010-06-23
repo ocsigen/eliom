@@ -144,8 +144,10 @@ end = struct
             run
 
           ) (function
-               | Messages.Incorrect_encoding -> run ()
-               | e -> stop () ; Js.alert (Printexc.to_string e) ; Lwt.fail e
+               | Messages.Incorrect_encoding -> Lwt_obrowser.sleep 2. >>= run
+               | e -> stop () ;
+                      Dom_html.window##alert (Js.string (Printexc.to_string e)) ;
+                      Lwt.fail e
           )
 
   (* Loops and notifications *)

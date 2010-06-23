@@ -42,7 +42,8 @@ sig
      [ `Registrable ], Eliom_services.http)
        Eliom_services.service
      *)
-    (unit,
+     sp:Eliom_client_types.server_params
+  -> (unit,
      'a,
      [< Eliom_services.service_kind ],
      [< `WithSuffix | `WithoutSuffix ],
@@ -51,7 +52,6 @@ sig
      [< Eliom_services.registrable ],
      'd)
         Eliom_services.service
-  -> sp:Eliom_client_types.server_params
   -> 'a
   -> string Lwt.t
 

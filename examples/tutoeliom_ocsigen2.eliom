@@ -1,6 +1,8 @@
 (*zap* *)
-let (>>=) = Lwt.(>>=)
-let (>|=) = Lwt.(>|=)
+{shared{
+  let (>>=) = Lwt.(>>=)
+  let (>|=) = Lwt.(>|=)
+}}
 
 
 (* *zap*)
@@ -46,19 +48,24 @@ whole application.
           
 *wiki*)
 (****** open on both side *******)
+{shared{
 open XHTML.M
+}}
 (****** server only *******)
-open.server Eliom_parameters
-open.server Eliom_predefmod.Xhtmlcompact
-open.server Eliom_services
+{server{ (* note that {server{ ... }} is optionnal. *)
+open Eliom_parameters
+open Eliom_predefmod.Xhtmlcompact
+open Eliom_services
+}}
 
-(* for client side only : open.client *)
+(* for client side only : {client{ ... }} *)
 
-module.server Eliom_appl =
+(* This is server only because there are no delimiters *)
+module Eliom_appl =
   Eliom_predefmod.Eliom_appl (
     struct
-      let.server application_name = "tutoeliom_ocsigen2_client"
-      let.server params =
+      let application_name = "tutoeliom_ocsigen2_client"
+      let params =
         {Eliom_predefmod.default_appl_params with
            Eliom_predefmod.ap_title = "Eliom application example";
            Eliom_predefmod.ap_headers = 
@@ -74,14 +81,14 @@ module.server Eliom_appl =
     end)
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
 
-let.server eliomobrowser1 =
+let eliomobrowser1 =
   Eliom_appl.register_new_service
     ~path:["eliomobrowser1"]
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
-        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
-                 ((fun.client (() : unit) -> Dom_html.window##alert(Js.string "clicked!")) ())]
+        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+                        a_onclick {{Dom_html.window##alert(Js.string "clicked!") ; Lwt.return ()}}]
            [pcdata "I am a clickable paragraph"];
          
         ])
@@ -107,9 +114,9 @@ p ~onclick:{{Eliom_client.post_request ~sp ~service:myblockservice ()
 For now, the syntax extension has not been implemented, thus the syntax
 is somewhat more complicated. Here are some examples of what you can do:
 *wiki*)
-let.server eliomobrowser2 = new_service ~path:["eliomobrowser2"] ~get_params:unit ()
+let eliomobrowser2 = new_service ~path:["eliomobrowser2"] ~get_params:unit ()
 
-let.server myblockservice =
+let myblockservice =
   Eliom_predefmod.Blocks.register_new_post_coservice
     ~fallback:eliomobrowser2
     ~post_params:unit
@@ -118,9 +125,14 @@ let.server myblockservice =
          [p [pcdata ("I come from a distant service! Here is a random value: "^
                        string_of_int (Random.int 100))]])
 
-let item () = li [pcdata Sys.ocaml_version]
+;; (*This is necessary in order to have the "shared" following entry being
+     parsed as "str_item" (instead of "expr")*)
 
-let.server _ =
+{shared{
+let item () = li [pcdata Sys.ocaml_version]
+}}
+
+let _ =
   Eliom_appl.register
     eliomobrowser2
     (fun sp () () ->
@@ -134,12 +146,11 @@ let.server _ =
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick 
-                ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      Eliom_client.exit_to ~sp ~service () ()
-                 ) (Eliom_client.wrap_sp sp) Tutoeliom.coucou)
+                {{Eliom_client.exit_to
+                    ~sp:\sp:sp
+                    ~service:\w:Tutoeliom.coucou
+                    () ()
+                }}
             ]
             [pcdata "Click here to go to another page."];
 (*zap* 
@@ -179,13 +190,12 @@ let.server _ =
 *wiki*)
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
-                ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, 'ret) Eliom_services.service) ->
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      Eliom_client.change_url ~sp ~service () ()
-                 ) (Eliom_client.wrap_sp sp) Tutoeliom.coucou)
+              a_onclick {{
+                Eliom_client.change_url
+                  ~sp:\sp:sp
+                  ~service:\w:Tutoeliom.coucou
+                  () ()
+              }}
             ]
             [pcdata "Click here to change the URL."];
           
@@ -196,12 +206,11 @@ let.server _ =
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick 
-                ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      Eliom_client.change_page ~sp ~service () ()
-                 ) (Eliom_client.wrap_sp sp) eliomobrowser1)
+                {{Eliom_client.change_page
+                    ~sp:\sp:sp
+                    ~service:\w:eliomobrowser1
+                    () ()
+                }}
             ]
             [pcdata "Click here to change the page without stopping the program."];
 
@@ -217,58 +226,27 @@ let.server _ =
                ()];
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
-                ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      Eliom_client.change_page ~sp ~service () ()
-                 ) (Eliom_client.wrap_sp sp) Tutoeliom.coucou)
+              a_onclick{{ 
+                Eliom_client.change_page ~sp:\sp:sp ~service:\w:Tutoeliom.coucou
+                  () ()
+              }}
             ]
             [pcdata "Click here to go to a page outside the application, using ";
              code [pcdata "change_page"];
              pcdata "."];
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
-                ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      Eliom_client.exit_to ~sp ~service () ()
-                 ) (Eliom_client.wrap_sp sp) eliomobrowser2)
+              a_onclick {{
+                Eliom_client.exit_to ~sp:\sp:sp ~service:\w:eliomobrowser2 () ()
+              }}
             ]
             [pcdata "Click here to relaunch the program the program by reloading the page."];
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
-                ((fun.client
-                    (absolute : 'ze12)
-                    (absolute_path : 'ze11)
-                    (https : 'ze10)
-                    (service : 'ze8)
-                    (sp : 'ze7)
-                    (hostname : 'ze6)
-                    (port : 'ze5)
-                    (fragment : 'ze4)
-                    (keep_nl_params : 'ze3)
-                    (nl_params : 'ze2)
-                    (getparams : 'ze1) ->
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      let service = Eliom_obrowser.unwrap service in
-                      Eliom_client.change_page ~sp ~service () ()
-                 ) 
-                   None
-                   None
-                   None
-                   (Eliom_client.wrap ~sp eliomobrowser1)
-                   (Eliom_client.wrap_sp sp) 
-                   None
-                   None
-                   None
-                   None
-                   None
-                    ())
+              a_onclick {{
+                Eliom_client.change_page ~sp:\sp:sp ~service:\w:eliomobrowser1
+                  () ()
+              }}
             ]
             [pcdata "A generic client-side function for calling ";
              code [pcdata "change_page"];
@@ -280,15 +258,15 @@ let.server _ =
 *wiki*)
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
-                ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      Eliom_client.get_subpage ~sp ~service () () >>= fun blocks ->
-                      List.iter (Dom.appendChild Dom_html.document##body) (XHTML.M.toeltl blocks);
-                      Lwt.return ()
-                 ) (Eliom_client.wrap_sp sp) eliomobrowser1)
+              a_onclick {{
+                Eliom_client.get_subpage
+                  ~sp:\sp:sp
+                  ~service:\w:eliomobrowser1
+                  () () >|= fun blocks ->
+                List.iter
+                  (Dom.appendChild Dom_html.document##body)
+                  (XHTML.M.toeltl blocks)
+              }}
             ]
             [pcdata "Click here to get a subpage from server."];
 
@@ -298,12 +276,13 @@ let.server _ =
 *wiki*)
 
           (let container = ul (item ()) [ item () ; item ()] in
-           div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
-                  ((fun.client (container : 'node Eliom_client_types.data_key) ->
-                      let container = Eliom_obrowser.unwrap_node container in
-                      let nl = XHTML.M.toelt (item ()) in
-                      Dom.appendChild container nl) 
-                     (Eliom_client.wrap_node ~sp container))]
+           div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+                               a_onclick {{
+                                 Dom.appendChild
+                                   \node:container
+                                   (XHTML.M.toelt (item ()))
+                               }}
+                  ]
                   [pcdata "Click here to add an item below with the current version of OCaml."];
                 container]);
           
@@ -315,9 +294,11 @@ let.server _ =
 
           (let my_value = 1.12345 in 
            p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
-             ((fun.client (my_value : float Eliom_client_types.data_key) ->
-                 Dom_html.window##alert (Js.string (string_of_float (Eliom_obrowser.unwrap my_value)))) 
-                (Eliom_client.wrap ~sp my_value))]
+                {{ Dom_html.window##alert
+                     (Js.string (string_of_float \w:my_value)) ;
+                   Lwt.return ()
+                }}
+                ]
              [pcdata "Click here to see a server side value sent with the page."]);
 
 
@@ -327,22 +308,25 @@ let.server _ =
 
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
-                ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (s1 : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service)
-                    (s2 : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      (Dom.appendChild
-                         (Dom_html.document##body)
-                         (XHTML.M.toelt (p [Eliom_predefmod.Xhtml.a ~sp ~service:s1
-                                              [pcdata "An external link generated client side"] ();
-                                            pcdata " and ";
-                                            Eliom_predefmod.Xhtml.a (*zap* *)~a:[a_class ["clickable"]](* *zap*)~sp ~service:s2
-                                              [pcdata "another, inside the application."] ()]))
-                      );
-                      Lwt.return ()
-                 ) (Eliom_client.wrap_sp sp) Tutoeliom.coucou eliomobrowser1)
+              a_onclick {{
+                (Dom.appendChild
+                   (Dom_html.document##body)
+                   (XHTML.M.toelt
+                      (p [Eliom_predefmod.Xhtml.a
+                            ~sp:\sp:sp ~service:\w:Tutoeliom.coucou
+                            [pcdata "An external link generated client side"]
+                            ();
+                          pcdata " and ";
+                          Eliom_predefmod.Xhtml.a
+                            (*zap* *)~a:[a_class ["clickable"]](* *zap*)
+                            ~sp:\sp:sp ~service:\w:eliomobrowser1
+                            [pcdata "another, inside the application."]
+                            ()
+                         ]
+                      ))
+                );
+                Lwt.return ()
+              }}
             ]
             [pcdata "Click here to add client side generated links."];
 
@@ -354,7 +338,7 @@ let.server _ =
 It is now possible to send OCaml values to services.
 To do that, use the {{{Eliom_parameters.caml}}} function:
 *wiki*)
-let.server eliomobrowser3' =
+let eliomobrowser3' =
   Eliom_appl.register_new_post_coservice'
     ~post_params:(caml "isb")
     (fun sp () (i, s, l) ->
@@ -365,72 +349,65 @@ let.server eliomobrowser3' =
 
 
 
-let.server eliomobrowser3 =
+let eliomobrowser3 =
   Eliom_appl.register_new_service
     ~path:["eliomobrowser3"]
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
-                 ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, (int * string * string list), 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      Eliom_client.change_page ~sp ~service
-                       () (22, "oo", ["a";"b";"c"]))
-                    (Eliom_client.wrap_sp sp) eliomobrowser3')]
+                {{ Eliom_client.change_page
+                     ~sp:\sp:sp ~service:\w:eliomobrowser3'
+                     () (22, "oo", ["a";"b";"c"])
+                }}
+              ]
            [pcdata "Click to send Ocaml data"]
         ])
 (*wiki*
 ====Sending OCaml values using services
 It is possible to do services that send any caml value. For example:
 *wiki*)
-let.server eliomobrowser4' =
+let eliomobrowser4' =
   Eliom_predefmod.Caml.register_new_post_coservice'
     ~post_params:unit
     (fun sp () () -> Lwt.return [1; 2; 3])
 
-let.server eliomobrowser4 =
+let eliomobrowser4 =
   Eliom_appl.register_new_service
     ~path:["eliomobrowser4"]
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
-                 ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, int list Eliom_parameters.caml) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      let body = Dom_html.document##body in
-                      Eliom_client.call_caml_service ~sp ~service () ()
-                      >>= fun l ->
-                      List.iter 
-                        (fun i -> Dom.appendChild body 
-                           (Dom_html.document##createTextNode
-                              (Js.string (string_of_int i))))
-                        l;
-                      Lwt.return ()
-                  )
-                    (Eliom_client.wrap_sp sp) eliomobrowser4')]
+                 {{let body = Dom_html.document##body in
+                   Eliom_client.call_caml_service
+                     ~sp:\sp:sp ~service:\w:eliomobrowser4'
+                     () () >|=
+                   List.iter 
+                     (fun i -> Dom.appendChild body 
+                                 (Dom_html.document##createTextNode
+                                    (Js.string (string_of_int i))))
+                 }}
+              ]
            [pcdata "Click to receive Ocaml data"]
         ])
 (*wiki*
 ====Other tests:
 *wiki*)
-let.server withoutobrowser =
+let withoutobrowser =
   Eliom_services.new_service
     ~path:["withoutobrowser"]
     ~get_params:unit
     ()
 
-let.server gotowithoutobrowser =
+let gotowithoutobrowser =
   Eliom_services.new_service
     ~path:["gotowithoutobrowser"]
     ~get_params:unit
     ()
 
 
-let.server _ =
+let _ =
   Eliom_appl.register
     ~options:true
     ~service:withoutobrowser
@@ -439,13 +416,11 @@ let.server _ =
          [p [pcdata "If the application was not launched before coming here (or if you reload), this page will not launch it. But if it was launched before, it is still running."];
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
-                ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      Eliom_client.change_page ~sp ~service () ()
-                 ) (Eliom_client.wrap_sp sp) gotowithoutobrowser)
+              a_onclick {{
+                Eliom_client.change_page
+                  ~sp:\sp:sp ~service:\w:gotowithoutobrowser
+                  () ()
+              }}
             ]
             [pcdata "Click here to go to a page that launches the application every time."];
           p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:gotowithoutobrowser
@@ -459,13 +434,11 @@ let.server _ =
          [p [pcdata "The application is launched."];
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
-                ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (service : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.appl_service) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
-                      Eliom_client.change_page ~sp ~service () ()
-                 ) (Eliom_client.wrap_sp sp) withoutobrowser)
+              a_onclick {{
+                Eliom_client.change_page
+                  ~sp:\sp:sp ~service:\w:withoutobrowser
+                  () ()
+              }}
             ]
             [pcdata "Click here to see the page that does not launch the application."];
           p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:withoutobrowser
@@ -498,35 +471,17 @@ are used directly which is not as high level as we want it to be. Higher level
 usage is shown in the second example.
  *wiki*)
 
-(* client code : read the next value from a channel *)
-let.client read_one_value_from_channel chan =
-  Lwt_obrowser.http_post_with_content_type
-    "./"
-    "application/x-ocsigen-comet" (* content-type *)
-    [("registration", chan)]
-
-(* client code : read values from a channel *)
-let.client rec read_again_and_again chan action =
-  read_one_value_from_channel chan >>= fun (_,y) ->
-  action y >>= fun () ->
-  read_again_and_again chan action
-
-(* client code : what to do with server pushed messages *)
-let.client channel_action = function
-  | "" -> Lwt.return ()
-  | s  -> Js.alert s ; Lwt.return ()
-
 (* server code : create a communication channel *)
-let.server channel1 = Eliom_comet.Channels.create ()
+let c1 = Eliom_comet.Channels.create ()
 
 (* server code : randomly write on the channel *)
-let.server rec rand_tick () =
+let rec rand_tick () =
   Lwt_unix.sleep (float_of_int (5 + (Random.int 5))) >>= fun () ->
-  Eliom_comet.Channels.write channel1 (Random.int 99) ; rand_tick ()
-let.server _ = rand_tick ()
+  Eliom_comet.Channels.write c1 (Random.int 99) ; rand_tick ()
+let _ = rand_tick ()
 
 
-let.server comet1 =
+let comet1 =
   Eliom_appl.register_new_service
     ~path:["comet1"]
     ~get_params:unit
@@ -536,18 +491,10 @@ let.server comet1 =
            [pcdata "To fully understand the meaning of this, use a \
                     couple browsers on this page."] ;
          div
-           ~a:[a_onclick
-                 ((fun.client
-                     (c : int Eliom_common_comet.chan_id Eliom_client_types.data_key) ->
-                     let c = Eliom_client_comet.unwrap_channel c in
-                     (* Client code : register to the public channel with an
-                        alert on each received value. Remember that this is just
-                        an example: Js.alert should not be used because it stops
-                        the virtual machine. *)
-                     Eliom_client_comet.Registration.register c
-                       (fun s -> Js.alert (string_of_int s) ; Lwt.return ())
-                 ) (Eliom_comet.wrap_channel ~sp channel1)
-                 )
+           ~a:[a_onclick{{
+                     Eliom_client_comet.Registration.register \channel:c1
+                       (fun s -> Dom_html.window##alert (Js.string s) ; Lwt.return ())
+           }}
            ]
            [pcdata "Click here to start public channel listening"] ;
        ]
@@ -559,7 +506,7 @@ propagation. There is no manual handling of channel, only events are used.
  *wiki*)
 
 
-let.server comet2 =
+let comet2 =
   Eliom_appl.register_new_service
     ~path:["comet2"]
     ~get_params:unit
@@ -567,51 +514,30 @@ let.server comet2 =
        (* First create a server-readable client-writable event AKA up event AKA
           client-to-server asynchronous edge *)
        let e_up = Eliom_event.Up.create ~sp (string "letter") in
-       (* We map the server side of this event for a little fun... *)
-       let mapped =
-         React.E.map
-           (function | "A" -> "alpha" | "B" -> "beta" | _ -> "what ?")
-           (Eliom_event.Up.react_event_of_up_event e_up)
-       in
 
        (* We can send the page *)
        Lwt.return [
          h2 [pcdata "Dual events"] ;
          div (* There's a start "button" right now, but it's gonna change *)
-           ~a:[a_onclick
-                 ((fun.client (chan : string) ->
-                     React.E.map
-                       Js.alert
-                       (get_event_from_channel chan)
-                  ) (Comet.Channels.get_id priv_channel)
-                 )
+           ~a:[a_onclick {{
+                React.E.map
+                  (fun s -> Dom_html.window##alert (Js.string s))
+                  \down_event:(React.E.map
+                                 (function
+                                    | "A" -> "alpha"
+                                    | "B" -> "beta"
+                                    | _ -> "what ?")
+                                 (Eliom_event.Up.react_event_of_up_event e_up)
+                  )
+                                 
+           }}
               ]
            [pcdata "START"] ;
          div (* This div is for pushing "A" to the server side event *)
-           ~a:[a_onclick
-                 ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (e_up : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) Eliom_services.service) ->
-                     let sp = Eliom_obrowser.unwrap_sp sp in
-                     let push = Eliom_client_event.Up.unwrap e_up ~sp in
-                     push "A"
-                 ) (Eliom_client.wrap_sp sp)
-                   (Eliom_event.Up.wrap e_up)
-                 )
-              ]
+           ~a:[a_onclick {{ \up_event:e_up "A" }} ]
            [pcdata "Push A"] ;
          div (* This one is for pushing "B" *)
-           ~a:[a_onclick
-                 ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (e_up : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) Eliom_services.service) ->
-                     let sp = Eliom_obrowser.unwrap_sp sp in
-                     let push = Eliom_client_event.Up.unwrap e_up ~sp in
-                     push "B"
-                 ) (Eliom_client.wrap_sp sp)
-                   (Eliom_event.Up.wrap e_up)
-                 )
-              ]
+           ~a:[a_onclick {{ \up_event:e_up "B" }} ]
            [pcdata "Push B"] ;
        ]
     )
@@ -619,12 +545,12 @@ let.server comet2 =
 
 
 (*zap* *)
-open.server Tutoeliom
+open Tutoeliom
 
 (* Main page for this example *)
-let.server main = new_service [] unit ()
+let main = new_service [] unit ()
 
-let.server _ = Eliom_predefmod.Xhtmlcompact.register main
+let _ = Eliom_predefmod.Xhtmlcompact.register main
   (fun sp () () ->
     Lwt.return
      (html
@@ -884,8 +810,10 @@ let.server _ = Eliom_predefmod.Xhtmlcompact.register main
           ]
           ]
        )))
-
+;;
 
 (* *zap*)
 
-let.client _ = Lwt_obrowser.run (fst (Lwt.wait ()))
+{client{ (* This is useless with js_of_ocaml *)
+let _ = Lwt_obrowser.run (fst (Lwt.wait ()))
+}}

@@ -4,7 +4,7 @@ OCAMLFIND = ocamlfind
 OCAMLC:= $(OCAMLFIND) ocamlc -verbose
 OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
-PACKAGES:= -package netstring,obrowser,str,lwt.react -syntax camlp4o
+PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml -syntax camlp4o
 LIBS:=-I $(shell ocamlfind query react)
 MLS:= xML.ml xHTML.ml \
 	eliom_client_types.ml \

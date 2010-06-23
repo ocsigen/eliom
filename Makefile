@@ -193,7 +193,7 @@ endif
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_obrowser.cmo eliom/client/eliom_obrowser_client.cma eliom/client/eliom_obrowser.js
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_client.cmo eliom/client/eliom_obrowser_client.cma eliom/client/eliom_obrowser.js
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)

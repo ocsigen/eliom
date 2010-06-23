@@ -93,9 +93,9 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom.cma $(DUCEMODBYTE) client pa_eliom_obrowser.cmo
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom.cma $(DUCEMODBYTE) client pa_eliom_client.cmo
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom.cmxa $(CMXS3) pa_eliom_obrowser.cmo
+opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom.cmxa $(CMXS3) pa_eliom_client.cmo
 
 
 .SUFFIXES:
@@ -174,9 +174,9 @@ ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 	$(CAMLOPT) -a -shared -linkall -o ocsigenrss.cmxa $^
 
-pa_eliom_obrowser.cmo: pa_eliom_obrowser.ml
+pa_eliom_client.cmo: pa_eliom_client.ml
 	ocamlc -c -I +camlp4 -I +camlp4/Camlp4Printers \
-	  -I +camlp4/Camlp4Parsers -pp camlp4of pa_eliom_obrowser.ml
+	  -I +camlp4/Camlp4Parsers -pp camlp4of $^
 
 # There is a bug with ocamlduce when -g is supplied
 bugdbg:

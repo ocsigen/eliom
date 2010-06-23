@@ -42,7 +42,7 @@ end
 module Up =
 struct
 
-  let unwrap service ~sp x =
+  let unwrap ~sp service x =
     Eliom_client.call_service ~sp ~service () x
 
 end

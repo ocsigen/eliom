@@ -81,16 +81,18 @@ tutoeliom_ocsigen2_client.js: tutoeliom_ocsigen2_client
 	cp -f $< $@
 
 tutoeliom_ocsigen2_client: $(ELIOMOBROWSERDIR)/eliom_obrowser_client.cma client/tutoeliom_ocsigen2_client.ml
-	CAMLLIB=$(OBROWSERDIR) \
-	ocamlc -o $@ \
-	-I $(ELIOMOBROWSERDIR) \
-	-I $(LWTDIR) $(LWTDIR)/lwt.cma \
-	-I $(REACTDIR) $(REACTDIR)/react.cmo \
-	-I $(OBROWSERDIR) $(OBROWSERDIR)/lwt_obrowser.cma \
-	$^
+	ocamlfind ocamlc -o $@ \
+	  -I ../eliom/client \
+	  -package lwt.react,js_of_ocaml -syntax camlp4o -linkpkg \
+	  -verbose \
+	  -I /usr/lib/ocaml/react /usr/lib/ocaml/react/react.cmo \
+	  ../eliom/client/eliom_obrowser_client.cma client/tutoeliom_ocsigen2_client.ml
 
-tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom
-	camlp4of $(PAELIOMOBROWSERDIR)/pa_eliom_obrowser.cmo -I /usr/local/lib/ocaml/3.11.2/js_of_ocaml pa_js.cmo -impl $< -o $@ \
+tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom ../eliom/pa_eliom_client.cmo
+	camlp4of $(PAELIOMOBROWSERDIR)/pa_eliom_client.cmo \
+	  -I /usr/local/lib/ocaml/3.11.2/js_of_ocaml pa_js.cmo \
+	  -impl $< -o $@ \
+	  -pretty -verbose \
 	  -client client/tutoeliom_ocsigen2_client.ml
 
 client/tutoeliom_ocsigen2_client.ml: tutoeliom_ocsigen2.ml
