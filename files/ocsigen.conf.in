@@ -33,7 +33,6 @@
     </extension-->
 
     <extension findlib-package="ocsigen.ext.eliom"/>
-    <extension findlib-package="ocsigen.ext.comet"/>
 
     <!-- Inclusion of all external configuration files matching *.conf
          from the directory 'dir' (in alphabetical order): -->
