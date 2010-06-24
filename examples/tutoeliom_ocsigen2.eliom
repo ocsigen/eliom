@@ -246,7 +246,7 @@ client.
                 Eliom_client.exit_to ~sp:\sp:sp ~service:\w:eliomobrowser2 () ()
               }}
             ]
-            [pcdata "Click here to relaunch the program the program by reloading the page."];
+            [pcdata "Click here to relaunch the program by reloading the page."];
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
@@ -520,6 +520,12 @@ let comet2 =
        (* First create a server-readable client-writable event AKA up event AKA
           client-to-server asynchronous edge *)
        let e_up = Eliom_event.Up.create ~sp (string "letter") in
+       let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
+       let e_down = React.E.map
+                      (function "A" -> "alpha" | "B" -> "beta" | _ -> "what ?")
+                      e_up_real
+       in
+       let `R _ = React.E.retain e_up_real (fun () -> ignore e_down) in
 
        (* We can send the page *)
        Lwt.return [
@@ -528,14 +534,7 @@ let comet2 =
            ~a:[a_onclick {{
                 React.E.map
                   (fun s -> Dom_html.window##alert (Js.string s))
-                  \down_event:(React.E.map
-                                 (function
-                                    | "A" -> "alpha"
-                                    | "B" -> "beta"
-                                    | _ -> "what ?")
-                                 (Eliom_event.Up.react_event_of_up_event e_up)
-                  ) (* The whole expression evaluates to a down_event which is then wrapped and sent. *)
-                                 
+                  \down_event:e_down
            }}
               ]
            [pcdata "START"] ;

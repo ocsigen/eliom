@@ -25,8 +25,11 @@
  * The first abstraction layer we add here is typped channels. The whole
  * marshalling/unmarshalling process is taken care of automatically. The client
  * dual of this file is eliom_client_comet.ml, located in ./client/, the two
- * modules work together and uses identical marshalling/unmarshalling
- * convention. Don't forget to adapt the dual file when necessary. *)
+ * modules work together and uses dual marshalling/unmarshalling
+ * conventions.
+ *
+ * WARNING: /!\ Don't forget to adapt the dual file to keep compatibility /!\
+ * *)
 
 module Ecc = Eliom_common_comet
 let (>>=) = Lwt.(>>=)
@@ -36,8 +39,8 @@ let (>|=) = Lwt.(>|=)
 
 
 (* A module that provides primitive for server-side channel handling. The only
- * needed operations are : creating, writing, getting id. This just wraps
- * functions from the Comet module. *)
+ * needed operations are : creating, writing, getting id, watching listener
+ * count. This just wraps functions from the Comet module. *)
 module Channels :
 sig
 
@@ -54,16 +57,15 @@ end = struct
 
   type 'a chan = Comet.Channels.chan
   let create () = Comet.Channels.create ()
-  let encode_data r = Ocsigen_lib.encode ~plus:false (Marshal.to_string r [])
-  let write c x =
-    Comet.Channels.write c
-      (Ocsigen_lib.encode ~plus:false (Marshal.to_string x []))
+  let encode s = Ocsigen_lib.encode ~plus:false (Marshal.to_string s [])
+  let write c x = Comet.Channels.write c (encode x)
   let get_id c = Comet.Channels.get_id c
 
 end
 
 
-(* Here is a wrap for channels. This can be used to transmit it to a client. *)
+(* Here is a wrap for channels. This is used by pa_eliom_client syntax extension
+ * to wrap channels. The associated unwrapping function is in the dual file. *)
 let wrap ~sp (c : 'a Channels.chan)
       : 'a Ecc.chan_id Eliom_client_types.data_key =
   Eliom_client.wrap ~sp (Channels.get_id c)

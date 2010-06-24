@@ -31,6 +31,8 @@ struct
     let () =
       let m = React.E.map (fun x -> Eliom_comet.Channels.write chan x) e in
       let `R k = React.E.retain e (fun () -> ()) in
+        (* what if the GC is triggered at this precise point ?
+         * [k], [m] and [chan] are on the stack ! *)
         ignore (React.E.retain e (fun () -> k () ; ignore m ; ignore chan))
     in
       Eliom_client.wrap ~sp (Eliom_comet.Channels.get_id chan)
@@ -66,7 +68,7 @@ struct
         ~options:`NoReload
         ~sp
         ~post_params:post_param
-        (fun _ () msg -> push msg ; Lwt.return ())
+        (fun _ () value -> push value ; Lwt.return ())
     in
       (e, e_writer)
 

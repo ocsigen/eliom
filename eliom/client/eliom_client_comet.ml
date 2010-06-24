@@ -46,25 +46,27 @@ end = struct
 
   let encode_upgoing = String.concat channel_separator
 
-  (* Right now we use Obrowser's Regexp module *)
-  let down_chan_delimiter_regexp = Regexp.make ";"
-  let down_msg_delimiter_regexp = Regexp.make ":"
+  (* Right now we use Regexp module *)
+  let chan_delim_regexp = Regexp.make ";"
+  let msg_delim_regexp = Regexp.make ":"
 
   let decode_downcoming s =
     (*TODO: make one pass (or two...)*)
-    let splited = Regexp.split down_chan_delimiter_regexp s in
-    let splited_twice =
-      Array.map (Regexp.split down_msg_delimiter_regexp) splited
+    let splited = Regexp.split chan_delim_regexp s in
+    let splited_twice = Array.map (Regexp.split msg_delim_regexp) splited in
+    let rec aux acc i =
+      if i >= Array.length splited_twice
+      then acc
+      else aux
+             (((function
+                 | [|chan; msg|] -> (chan, msg)
+                 | _ -> raise Incorrect_encoding
+               ) splited_twice.(i)
+              ) :: acc
+             )
+             (succ i)
     in
-    let prepared =
-      Array.map
-        (function
-           | [| chan; msg |] -> (chan, msg)
-           | _ -> raise Incorrect_encoding
-        )
-        splited_twice
-    in
-      Array.to_list prepared
+      aux [] 0
 
 end
 
@@ -123,31 +125,43 @@ end = struct
       )
 
   (* action *)
-  let rec run () = match list_registered () with
+  let rec run slp = match list_registered () with
       | [] -> Lwt.pause () >|= stop
       | regs ->
           let up_msg = Messages.encode_upgoing regs in
           Lwt.catch (fun () ->
-            (*TODO: treat server errors properly : exponential waiting time *)
             (*TODO: get rid of alert in error handling *)
 
             Lwt_obrowser.http_post_with_content_type
               "./"
               "application/x-ocsigen-comet"
-              [("registration", up_msg)]            >|= snd >|=
-            Messages.decode_downcoming              >>=
-            Lwt_list.iter_s
-              (fun (c,m) ->
-                 try (Cmap.find c !cmap) m
-                 with Not_found -> Lwt.return ()
-              )                                     >>=
-            run
+              [("registration", up_msg)]             >>= fun (code, msg) ->
+            match code / 100 with
+              | 0 | 3 | 4 -> (stop () ; Lwt.return ())
+              | 1 -> run slp
+              | 2 -> begin
+                  Lwt_list.iter_s
+                    (fun (c,m) ->
+                       try (Cmap.find c !cmap) m with Not_found -> Lwt.return ()
+                    )
+                    (Messages.decode_downcoming msg) >>= fun () ->
+                  run 1. (* reset sleeping counter *)
+                end
+              | 5 -> begin
+                   Lwt_obrowser.sleep (1. +. Random.float slp) >>= fun () ->
+                   run (2. *. slp)
+                end
+              | _ -> (stop () ; Lwt.return ())
 
           ) (function
-               | Messages.Incorrect_encoding -> Lwt_obrowser.sleep 2. >>= run
-               | e -> stop () ;
-                      Dom_html.window##alert (Js.string (Printexc.to_string e)) ;
-                      Lwt.fail e
+               | Messages.Incorrect_encoding ->
+                   (Lwt_obrowser.sleep (1. +. Random.float slp) >>= fun () ->
+                    run (2. *. slp))
+               | Lwt.Canceled -> Lwt.return ()
+               | e ->
+                   (stop () ;
+                    Dom_html.window##alert (Js.string (Printexc.to_string e)) ;
+                    Lwt.fail e)
           )
 
   (* Loops and notifications *)
@@ -155,7 +169,7 @@ end = struct
     let run_thread = ref None in
     Lwt_event.always_notify_s
       (function
-         | true  -> run_thread := Some (run ()) ; Lwt.return ()
+         | true  -> run_thread := Some (run 1.) ; Lwt.return ()
          | false -> match !run_thread with
              | Some t -> Lwt.cancel t ; run_thread := None ; Lwt.return ()
              | None -> Lwt.return ()
@@ -180,9 +194,8 @@ sig
 
 end = struct
 
-  let register c f =
-    Engine.register c
-      (fun x -> f (Marshal.from_string (Ocsigen_lib.urldecode_string x) 0))
+  let decode s = Marshal.from_string (Ocsigen_lib.urldecode_string s) 0
+  let register c f = Engine.register c (fun x -> f (decode x))
   let unregister c = Engine.unregister c
 
 end

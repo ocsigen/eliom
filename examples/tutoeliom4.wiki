@@ -227,7 +227,7 @@ client.
                 Eliom_client.exit_to ~sp:\sp:sp ~service:\w:eliomobrowser2 () ()
               }}
             ]
-            [pcdata "Click here to relaunch the program the program by reloading the page."];
+            [pcdata "Click here to relaunch the program by reloading the page."];
           p 
             ~a:[
               a_onclick {{

@@ -32,8 +32,8 @@ sig
 
   val create : unit -> chan
   (** [create ()] makes a fresh new channel immediately usable. [create ~event:e
-    * ()] makes a channel on which a message is sent both when [write] is called
-    * and [event] has an occurrence. *)
+      ()] makes a channel on which a message is sent both when [write] is called
+      and [event] has an occurrence. *)
 
   val write : chan -> string -> unit
   (** [write c s] transmit the string [s] onto the channel [c]. Any client
