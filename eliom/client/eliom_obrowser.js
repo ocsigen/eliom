@@ -61,7 +61,7 @@ function caml_regexp_split (vr, vs) {
     var res = s.split (r);
     var vres = [0];
     for (var i = 0;i < res.length;i++) {
-        vres[i] = new MlString (res[i]);
+        vres[i + 1] = new MlWrappedString (res[i]);
     }
     return vres;
 }
