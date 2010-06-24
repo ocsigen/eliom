@@ -92,29 +92,30 @@ struct
           then GroupTable.remove grouptable sess_grp
       | None -> ()
 
+  let get_cl ?set_max sitedata sess_grp =
+    try
+      let cl = find sess_grp in
+      (match set_max with
+        | None -> ()
+        | Some v -> ignore (Ocsigen_cache.Dlist.set_maxsize cl v));
+      cl
+    with Not_found ->
+      let size = match set_max, sess_grp with
+        | None, (_, Ocsigen_lib.Left _) -> A.maxgroup sitedata
+        | None, (_, Ocsigen_lib.Right _) -> A.maxip sitedata
+        | Some v, _ -> v
+      in
+      let cl = Ocsigen_cache.Dlist.create size in
+      Ocsigen_cache.Dlist.set_finaliser
+        (fun node ->
+          A.close_session sitedata (Ocsigen_cache.Dlist.value node);
+          remove_if_empty sess_grp node)
+        cl;
+      GroupTable.add grouptable sess_grp cl;
+      cl
+
   let add ?set_max sitedata sess_id sess_grp =
-    let cl = 
-      try
-        let cl = find sess_grp in
-        (match set_max with
-           | None -> ()
-           | Some v -> ignore (Ocsigen_cache.Dlist.set_maxsize cl v));
-        cl
-      with Not_found ->
-        let size = match set_max, sess_grp with
-          | None, (_, Ocsigen_lib.Left _) -> A.maxgroup sitedata
-          | None, (_, Ocsigen_lib.Right _) -> A.maxip sitedata
-          | Some v, _ -> v
-        in
-        let cl = Ocsigen_cache.Dlist.create size in
-        Ocsigen_cache.Dlist.set_finaliser
-          (fun node ->
-             A.close_session sitedata (Ocsigen_cache.Dlist.value node);
-             remove_if_empty sess_grp node)
-          cl;
-        GroupTable.add grouptable sess_grp cl;
-        cl
-    in
+    let cl = get_cl ?set_max sitedata sess_grp in
     ignore (Ocsigen_cache.Dlist.add sess_id cl);
     match Ocsigen_cache.Dlist.newest cl with
       | Some v -> v
@@ -126,11 +127,14 @@ struct
   let up node =
     Ocsigen_cache.Dlist.up node
 
-  let move ?set_max sitedata node grp2 =
+  let move ?set_max sitedata node sess_grp =
 (*    if set_max <> None || grp1 <> grp2 then begin *)
     let sess_id = Ocsigen_cache.Dlist.value node in
-    remove node;
-    add ?set_max sitedata sess_id grp2
+    let cl = get_cl ?set_max sitedata sess_grp in
+    ignore (Ocsigen_cache.Dlist.move node cl);
+    match Ocsigen_cache.Dlist.newest cl with
+      | Some v -> v
+      | None -> assert false
 (*    end
     else [] *)
 
