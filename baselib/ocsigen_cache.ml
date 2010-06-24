@@ -187,6 +187,17 @@ module Dlist = (struct
             remove node; (* and finalise! *)
             v::remove_n_oldest l (n-1)
 
+
+  (* Move a node from one dlist to another one, without finalizing *)
+  let move node l =
+    (match node.mylist with
+      | None -> ()
+      | Some l as a -> remove' node l);
+    match add_node node l with
+      | None -> None
+      | Some v -> remove v; Some v.value
+    
+
   let set_maxsize l m =
     let size = l.size in
     if m >= size
@@ -231,6 +242,11 @@ end : sig
   (** remove the n oldest values ; 
       returns the list of removed values *)
   val remove_n_oldest : 'a t -> int -> 'a list
+
+  (** Move a node from one dlist to another one, without finalizing.
+      If one value is removed from the destination list (because its
+      maximum size is reached), it is returned (after finalisation). *)
+  val move : 'a node -> 'a t -> 'a option
 
   (** change the maximum size ;
       returns the list of removed values, if any. *)
