@@ -27,6 +27,12 @@ open Camlp4.PreCast
 
 
 (*** Options for parser ***)
+(* There are only to options for now :
+ * -client <filename>     to indicate the file in which the client code should
+ *                        be printed.
+ * -pretty                to set pretty printing of client code (instead of AST
+ *                        dump). This is provided for syntax extension debugging
+ * *)
 
 (* The file the client side is sent to *)
 let client_file = ref "client_file.ml"
@@ -49,7 +55,7 @@ let _ = Camlp4.Options.add
 module Id : Camlp4.Sig.Id = struct
 
   let name = "Eliom/Client-Server Symmetric Syntax"
-  let version = "building"
+  let version = "alpha"
 
 end
 
@@ -80,8 +86,10 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
       ("down_event",
        (<:expr<Eliom_event.Down.wrap ~sp>>, <:expr<Eliom_client_event.Down.unwrap>>));
     ]
+  (* Exception raised when an unknown wrapper-keyword is used. *)
   exception Not_a_registered_wrapper of string
 
+  (* associating wrapper-keywords *)
   let find_wrapper i =
     try (List.assoc i wrappers)
     with Not_found -> raise (Not_a_registered_wrapper i)
@@ -131,7 +139,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
     in
     let clo_arg = match args with
       | [] -> <:patt< () >>
-      | n::ns as l -> clo_args_aux <:patt< $lid:n$ >> ns
+      | n::ns -> clo_args_aux <:patt< $lid:n$ >> ns
     in
     <:str_item<
       let _ = Eliom_obrowser.register_closure
@@ -161,7 +169,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
 
 
-  (* We use parsing with side effects... It's ugly but it just works ! *)
+  (* We use parsing with side effects... It's ugly but it works ! *)
   let client_exprs_ref = ref [] (* This ref accumulates \wrapper:expr while in a
                                    {{ expr }} *)
   let inside = ref false (* true when inside a {{ expr }} ; false when not. *)
@@ -174,6 +182,13 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
   EXTEND Gram
     GLOBAL: str_item expr;
+
+    (* dummy rules for side effects *)
+    empty_start : [[ -> if !inside = true
+                        then raise Nested_curly_bounds
+                        else (inside := true ; client_exprs_ref := [])
+                  ]];
+    empty_stop : [[ -> inside := false ]];
 
     (* To str_item we add {client{ LIST0 SELF }}; {server{ LIST0 SELF }}; and
      * {shared{ LIST0 SELF }} *)
@@ -200,12 +215,6 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
                      <:str_item< >>
                     )
                ]];
-
-    empty_start : [[ -> if !inside = true
-                        then raise Nested_curly_bounds
-                        else (inside := true ; client_exprs_ref := [])
-                  ]];
-    empty_stop : [[ -> inside := false ]];
 
     (* To expr we add {{ SELF }} and \lid:SELF *)
     expr : BEFORE "simple"

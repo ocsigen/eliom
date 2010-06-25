@@ -63,7 +63,7 @@ end = struct
   let decode s = Marshal.from_string s 0
   let write c x = Comet.Channels.write c (encode x)
   let get_id c = Comet.Channels.get_id c
-  let outcomes c =
+  let outcomes c = (* is it possible not to unmarshall this ? lazy ? *)
     React.E.map (fun (c,s) -> (c, decode s)) (Comet.Channels.outcomes c)
 
 end

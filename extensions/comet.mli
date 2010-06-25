@@ -58,7 +58,7 @@ end
       1) create needed channels
       2) transmit their identifiers to clients
       3) write on a channel when appropriate
-      3') optionnaly lift the notification event for feedback
+      3') optionally lift the outcome event for feedback
    
     On the client :
       1) make a XmlHttpRequest (XHR) with the encoded list of channel ids and

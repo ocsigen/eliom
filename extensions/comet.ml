@@ -20,7 +20,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* Comet server extension for ocsigen *)
+(* Comet extension for Ocsigen server
+ * ``Comet'' is a set of <strike>hacks</strike> techniques providing basic
+ * server-to-client communication. Using HTTP, it is not possible for the server
+ * to send a message to the client, it is only possible to answer a client's
+ * request.
+ *
+ * This implementation is to evolve and will change a lot with HTML5's
+ * WebSockets support.
+ *)
 
 (* Shortening names of modules *)
 module OFrame  = Ocsigen_http_frame
@@ -76,14 +84,18 @@ let filter_map_accu func lst accu =
 
 (* timeout for comet connections : if no value has been written in the ellapsed
  * time, connection will be closed. Should be equal to client timeout. *)
-(* TODO: make value customizable via conf file *)
+(*TODO: make value customizable via conf file *)
 let timeout = 20.
 
 (* the size initialization for the channel hashtable *)
-(* TODO: make value customizable via conf file *)
+(*TODO: make value customizable via conf file *)
 let tbl_initial_size = 42
 
-(* HOWTO limit the number of connections (to avoid DOS) ? *)
+(*TODO: make value customizable vi conf file *)
+let channel_throttling = 1.
+
+(*TODO: keep track of client count and provide a way to limit it *)
+
 module Channels :
 sig
 
@@ -172,9 +184,15 @@ end = struct
 
   (* creation : newly created channel is stored in the map as a side effect *)
   let create () =
-    let (client_event, tell_client) = React.E.create () in
+    let (client_event_pre, tell_client) = React.E.create () in
+    let client_event = Lwt_event.limit
+                         (fun () -> Lwt_unix.sleep channel_throttling)
+                         client_event_pre
+    in
+
     let (listen_event, tell_listen) = React.E.create () in
     let listeners = React.S.fold (+) 0 listen_event in
+
     let (outcomes_pre, tell_outcome) = React.E.create () in
     let outcomes =
       React.E.select (* These events can not be simultaneous ! *)
@@ -184,6 +202,7 @@ end = struct
             (React.E.map (fun s -> (`Failure, s)) client_event)
         ]
     in
+
     let ch =
       {
         ch_id = new_id () ;
@@ -394,8 +413,6 @@ let main = function
 
 
 (* registering extension and the such *)
-let begin_init () = ()
-let end_init () = ()
 let parse_config _ _ _ = function
   | Pxml.Element ("comet", [], []) -> main
   | Pxml.Element (t, _, _) -> raise (OX.Bad_config_tag_for_extension t)
