@@ -103,12 +103,15 @@ sig
      * carried value is the argument given to [write]. This is the way for
      * clients to listen on a channel. *)
 
-  (* MEMORY LEAKS ? *)
-  val notify : chan -> string -> unit
-    (* [notify c s] sends [s] to [notification c] event. *)
-  val notification : chan -> string React.E.t
-    (* [notification c] is an event with an [x] occurrence for each call to
-     * [notify c x]. *)
+  val change_listeners : chan -> int -> unit
+    (* [change_listeners c x] adds [x] to [listeners c]. Note that [x] might be
+     * negative. *)
+
+  val outcomes : chan -> (OStream.outcome * string) React.E.t
+    (* The result of writes on the channel. [`Failure,s] on a failed [write s]
+     * and [`Success,s] on a successful [write s].*)
+  val send_outcome : chan -> (OStream.outcome * string) -> unit
+    (* triggers the [outcomes] event associated to the channel. *)
 
   val find_channel : string -> chan
     (* may raise Not_found if the channel was collected or never created.
@@ -125,8 +128,9 @@ end = struct
         ch_id : string ;
         ch_tell_client  : string -> unit ;
         ch_client_event : string React.E.t ;
-        ch_tell_server  : string -> unit ;
-        ch_server_event : string React.E.t ;
+        ch_listen    : int -> unit ;
+        ch_tell_outcome : (OStream.outcome * string) -> unit ;
+        ch_outcomes     : (OStream.outcome * string) React.E.t ;
       }
 
   let get_id ch = ch.ch_id
@@ -149,14 +153,17 @@ end = struct
   (* because Hashtables allow search for elements with a corresponding hash, we
    * have to create a dummy channel in order to retreive the original channel.
    * Is there a KISSer way to do that ? *)
-  let (dummy1, dummy2) = React.E.create ()
+  let (dummy2, dummy1) = React.E.create ()
+  let dummy3 _ = ()
+  let (dummy5, dummy4) = React.E.create ()
   let dummy_chan i =
     {
       ch_id = i ;
-      ch_tell_client  = dummy2 ;
-      ch_client_event = dummy1 ;
-      ch_tell_server  = dummy2 ;
-      ch_server_event = dummy1 ;
+      ch_tell_client  = dummy1 ;
+      ch_client_event = dummy2 ;
+      ch_listen       = dummy3 ;
+      ch_tell_outcome = dummy4 ;
+      ch_outcomes     = dummy5 ;
     }
 
   (* May raise Not_found *)
@@ -166,14 +173,25 @@ end = struct
   (* creation : newly created channel is stored in the map as a side effect *)
   let create () =
     let (client_event, tell_client) = React.E.create () in
-    let (server_event, tell_server) = React.E.create () in
+    let (listen_event, tell_listen) = React.E.create () in
+    let listeners = React.S.fold (+) 0 listen_event in
+    let (outcomes_pre, tell_outcome) = React.E.create () in
+    let outcomes =
+      React.E.select (* These events can not be simultaneous ! *)
+        [ outcomes_pre ;
+          React.E.when_
+            (React.S.l1 ((=) 0) listeners)
+            (React.E.map (fun s -> (`Failure, s)) client_event)
+        ]
+    in
     let ch =
       {
         ch_id = new_id () ;
         ch_tell_client  = tell_client  ;
         ch_client_event = client_event ;
-        ch_tell_server  = tell_server  ;
-        ch_server_event = server_event ;
+        ch_listen       = tell_listen  ;
+        ch_outcomes     = outcomes     ;
+        ch_tell_outcome = tell_outcome ;
       }
     in CTbl.add ctbl ch ; ch
 
@@ -184,10 +202,12 @@ end = struct
   (* reading a channel : just getting a hang on the reader thread *)
   let read ch = ch.ch_client_event
 
-  (* notification *)
-  let notify ch v = ch.ch_tell_server v
+  (* listeners *)
+  let change_listeners ch x = ch.ch_listen x
 
-  let notification ch = ch.ch_server_event
+  (* outcomes *)
+  let outcomes ch = ch.ch_outcomes
+  let send_outcome ch x = ch.ch_tell_outcome x
 
 end
 
@@ -208,12 +228,12 @@ sig
   exception Incorrect_encoding
 
   val decode_upcomming :
-    OX.request -> (Channels.chan list * (unit -> unit) list) Lwt.t
+    OX.request -> Channels.chan list Lwt.t
     (* decode incomming message : the result is the list of channels to listen
        to. *)
 
   val encode_downgoing :
-    (Channels.chan * string) list option -> string OStream.t Lwt.t
+    (Channels.chan * string) list option -> string OStream.t
     (* Encode outgoing messages : results in the stream to send to the client *)
 
 end = struct
@@ -233,51 +253,23 @@ end = struct
       (Netstring_pcre.split channel_separator_regexp s)
       accu
 
-  let decode_notification_string s accu =
-    let rec aux accu = function
-      | [] -> accu
-      |    Netstring_pcre.Text c
-        :: Netstring_pcre.Delim ":"
-        :: Netstring_pcre.Text s
-        :: Netstring_pcre.Delim ";"
-        :: tl 
-      |    Netstring_pcre.Text c
-        :: Netstring_pcre.Delim ":"
-        :: Netstring_pcre.Text s
-        :: ([] as tl)
-         -> aux
-              (   (fun () ->
-                     try Channels.notify (Channels.find_channel c) s
-                     with | Not_found -> ())
-               :: accu)
-             tl
-      | _ -> (* Client encoding error : stop *) []
-    in
-      aux accu (Netstring_pcre.full_split separator_regexp s)
-
   let unopt v d = match v with
     | Some x -> x
     | None -> d
 
   (* (string * string) list -> (Channels.chan list * (unit -> unit) list) *)
   let decode_param_list params =
-    let rec aux tmp_reg tmp_not = function
-      | [] -> (unopt tmp_reg [], unopt tmp_not [])
+    let rec aux tmp_reg = function
+      | [] -> unopt tmp_reg []
       | ("registration", s) :: tl ->
           begin 
             aux
-              (Some (decode_registration_string s (unopt tmp_reg []))) tmp_not
+              (Some (decode_registration_string s (unopt tmp_reg [])))
               tl
           end
-      | ("notification", s) :: tl ->
-          begin
-            aux
-              tmp_reg (Some (decode_notification_string s (unopt tmp_not [])))
-              tl
-          end
-      | _ :: tl -> aux tmp_reg tmp_not tl
+      | _ :: tl -> aux tmp_reg tl
     in
-      aux None None params
+      aux None params
 
   (* OX.request -> Channels.chan list Lwt.t *)
   let decode_upcomming r =
@@ -301,14 +293,24 @@ end = struct
       )
       >|= decode_param_list
 
+  let encode_downgoing_non_opt l =
+    String.concat ";" (List.map (fun (c,s) -> Channels.get_id c ^ ":" ^ s) l)
 
-  let encode_downgoing lo =
-    let str = match lo with
-      | None -> ""
-      | Some l -> String.concat ";"
-                    (List.map (fun (c,s) -> Channels.get_id c ^ ":" ^ s) l)
-    in
-    Lwt.return (OStream.of_string str)
+  let stream_result_notification l outcome =
+    (*TODO: find a way to send outcomes simultaneously *)
+    List.iter (fun (c,s) -> Channels.send_outcome c (outcome, s)) l ;
+    Lwt.return ()
+
+  let encode_downgoing = function
+    | None ->
+        OStream.of_string (OLib.encode ~plus:false "")
+    | Some l ->
+        let stream =
+          OStream.of_string
+            (OLib.encode ~plus:false (encode_downgoing_non_opt l))
+        in
+        OStream.add_finalizer stream (stream_result_notification l) ;
+        stream
 
 end
 
@@ -334,36 +336,37 @@ end = struct
 
   (* Once channel list is obtain, use this function to return a thread that
    * terminates when one of the channel is written upon. *)
-  let treat_decoded chans notifications =
-    (*RRR: [merged] must be created before performing [notifications]. If not,
+  let treat_decoded chans =
+    (*RRR: [merged] must be created before changing listeners. If not,
      * an application's message written on one of the merged channels as a
-     * REACTion of notifications won't reach the client. *)
+     * REACTion of listeners change won't reach the client. *)
     let merged =
-        (Lwt_event.next (
-           React.E.merge
-             (fun acc v -> v :: acc)
-             []
-             (List.map
-                (fun c -> React.E.map (fun v -> (c, v)) (Channels.read c))
-                chans)
-         ) >|= fun x -> Some x)
+      Lwt_event.next (
+        React.E.merge
+          (fun acc v -> v :: acc)
+          []
+          (List.map
+             (fun c -> React.E.map (fun v -> (c, v)) (Channels.read c))
+             chans)
+      )
     in
-    (*TODO: find a way to send all the notifications simultaneously *)
-    List.iter (fun f -> f ()) notifications ;
-    Lwt.choose [ merged ; (Lwt_unix.sleep timeout >|= fun () -> None) ] >>=
-    Messages.encode_downgoing
+    (*TODO: find a way to change all these simultaneously *)
+    List.iter (fun c -> Channels.change_listeners c 1) chans ;
+    Lwt.choose [ (merged >|= fun x -> Some x) ;
+                 (Lwt_unix.sleep timeout >|= fun () -> None) ;
+               ] >|= fun x ->
+    List.iter (fun c -> Channels.change_listeners c (-1)) chans ;
+    Messages.encode_downgoing x
 
   (* This is just a mashup of the other functions in the module. *)
   let main r () =
     Messages.decode_upcomming r >>=
-    OLib.uncurry2 treat_decoded >>= fun stream ->
-      let res = OFrame.default_result () in
-        Lwt.return
-          { res with
-                OFrame.res_stream = (stream, None) ;
-                OFrame.res_content_length = None ;
-                OFrame.res_content_type = Some "text/html" ;
-          }
+    treat_decoded >|= fun stream ->
+    { (OFrame.default_result ()) with
+          OFrame.res_stream = (stream, None) ;
+          OFrame.res_content_length = None ;
+          OFrame.res_content_type = Some "text/html" ;
+    }
 
 
 end

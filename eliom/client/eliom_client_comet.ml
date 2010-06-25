@@ -140,12 +140,16 @@ end = struct
               | 0 | 3 | 4 -> (stop () ; Lwt.return ())
               | 1 -> run slp
               | 2 -> begin
-                  Lwt_list.iter_s
-                    (fun (c,m) ->
-                       try (Cmap.find c !cmap) m with Not_found -> Lwt.return ()
-                    )
-                    (Messages.decode_downcoming msg) >>= fun () ->
-                  run 1. (* reset sleeping counter *)
+                  (if msg = "" (* no server message *)
+                   then Lwt.return ()
+                   else
+                     Lwt_list.iter_s
+                       (fun (c,m) ->
+                          try (Cmap.find c !cmap) m
+                          with Not_found -> Lwt.return ()
+                       )
+                       (Messages.decode_downcoming msg)
+                  ) >>= fun () -> run 1. (* reset sleeping counter *)
                 end
               | 5 -> begin
                    Lwt_obrowser.sleep (1. +. Random.float slp) >>= fun () ->
@@ -194,7 +198,7 @@ sig
 
 end = struct
 
-  let decode s = Marshal.from_string (Ocsigen_lib.urldecode_string s) 0
+  let decode s = Marshal.from_string s 0
   let register c f = Engine.register c (fun x -> f (decode x))
   let unregister c = Engine.unregister c
 

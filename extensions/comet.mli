@@ -39,10 +39,12 @@ sig
   (** [write c s] transmit the string [s] onto the channel [c]. Any client
       collecting values from [c] will receive [s]. *)
 
-  val notification : chan -> string React.E.t
-  (** [notification c] is an event that occurs with [s] whenever a client sends
-      a notification [s] for the channel [c]. This is useful to implement an ACK
-      system on private channels. *)
+  val outcomes : chan -> (Ocsigen_stream.outcome * string) React.E.t
+  (** [outcomes c] is an event triggered with [`Failure,s] when a call to [write
+      c s] fails (eg. when no one is listening) and [`Success,s] when a call to
+      [write c s] is successful.
+      Note that this information is only measured by server. The client takes no
+      part in occurrences of this event ! *)
 
   val get_id : chan -> string
   (** [get_id c] returns a unique identifier associated to [c]. The client can
@@ -70,7 +72,8 @@ end
       2) wait for the encoded reply
            encoding for reply : list (separated by semi-colon) of pairs
            (separated by colon) of channel identifier and string message. Eg :
-           "a:foo;b:bar" for message "foo" on the channel "a" and "bar" on "b"
+           "a:foo;b:bar" for message "foo" on the channel "a" and "bar" on "b".
+           Note that the whole string is url-encoded
       3) GOTO 1
 
     WARNING : in between the server answering the request and the client
