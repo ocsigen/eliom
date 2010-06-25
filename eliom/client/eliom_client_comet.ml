@@ -30,6 +30,10 @@ let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 
 
+(* comet specific constants *)
+let content_type = "application/x-ocsigen-comet"
+
+
 (* Messages : encoding and decoding, comet protocol *)
 module Messages : sig
 
@@ -42,31 +46,31 @@ end = struct
 
   exception  Incorrect_encoding
 
-  let channel_separator = ";"
+  (* constants *)
+  let channel_separator = "\n"
+  let field_separator = ":"
+  let url_decode x = Ocsigen_lib.urldecode_string x
 
+  (* encoding *)
   let encode_upgoing = String.concat channel_separator
 
-  (* Right now we use Regexp module *)
-  let chan_delim_regexp = Regexp.make ";"
-  let msg_delim_regexp = Regexp.make ":"
+  (* decoding *)
+  let chan_delim_regexp  = Regexp.make channel_separator
+  let field_delim_regexp = Regexp.make field_separator
 
   let decode_downcoming s =
-    (*TODO: make one pass (or two...)*)
     let splited = Regexp.split chan_delim_regexp s in
-    let splited_twice = Array.map (Regexp.split msg_delim_regexp) splited in
-    let rec aux acc i =
-      if i >= Array.length splited_twice
-      then acc
-      else aux
-             (((function
-                 | [|chan; msg|] -> (chan, msg)
-                 | _ -> raise Incorrect_encoding
-               ) splited_twice.(i)
-              ) :: acc
-             )
-             (succ i)
+    let splited_twice =
+      Array.map
+        (fun s ->
+           let a = Regexp.split field_delim_regexp s in
+           match a with
+             | [|chan; msg|] -> (chan, url_decode msg)
+             | _ -> raise Incorrect_encoding
+        )
+        splited
     in
-      aux [] 0
+      Array.to_list splited_twice
 
 end
 
@@ -134,7 +138,7 @@ end = struct
 
             Lwt_obrowser.http_post_with_content_type
               "./"
-              "application/x-ocsigen-comet"
+              content_type
               [("registration", up_msg)]             >>= fun (code, msg) ->
             match code / 100 with
               | 0 | 3 | 4 -> (stop () ; Lwt.return ())

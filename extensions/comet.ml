@@ -103,6 +103,7 @@ sig
     (* the type of channels :
      * channels can be written on or read from using the following functions
      *)
+  type chan_id = string
 
   val create : unit -> chan
     (* creating a fresh virtual channel, a client can request registraton to  *)
@@ -125,19 +126,20 @@ sig
   val send_outcome : chan -> (OStream.outcome * string) -> unit
     (* triggers the [outcomes] event associated to the channel. *)
 
-  val find_channel : string -> chan
+  val find_channel : chan_id -> chan
     (* may raise Not_found if the channel was collected or never created.
      * Basically ids are meant for clients to tell a server to start listening
      * to it. *)
-  val get_id : chan -> string
+  val get_id : chan -> chan_id
     (* [find_channel (get_id ch)] returns [ch] if the channel wasn't destroyed
      * that is. *)
 
 end = struct
 
+  type chan_id = string
   type chan =
       {
-        ch_id : string ;
+        ch_id : chan_id ;
         ch_tell_client  : string -> unit ;
         ch_client_event : string React.E.t ;
         ch_listen    : int -> unit ;
@@ -259,11 +261,14 @@ end = struct
 
   exception Incorrect_encoding
 
-  let channel_separator_regexp = Netstring_pcre.regexp ";"
-  let separator_regexp = Netstring_pcre.regexp ":;"
+  (* constants *)
+  let channel_separator = "\n"
+  let field_separator = ":"
+  let channel_separator_regexp = Netstring_pcre.regexp channel_separator
+  let url_encode x = OLib.encode ~plus:false x
 
   (* string -> Channels.chan list -> Channels.chan list *)
-  let decode_registration_string s accu =
+  let decode_string s accu =
     filter_map_accu
       (fun s ->
          try Some (Channels.find_channel s)
@@ -272,23 +277,14 @@ end = struct
       (Netstring_pcre.split channel_separator_regexp s)
       accu
 
-  let unopt v d = match v with
-    | Some x -> x
-    | None -> d
-
   (* (string * string) list -> (Channels.chan list * (unit -> unit) list) *)
   let decode_param_list params =
     let rec aux tmp_reg = function
-      | [] -> unopt tmp_reg []
-      | ("registration", s) :: tl ->
-          begin 
-            aux
-              (Some (decode_registration_string s (unopt tmp_reg [])))
-              tl
-          end
+      | [] -> tmp_reg
+      | ("registration", s) :: tl -> aux (decode_string s tmp_reg) tl
       | _ :: tl -> aux tmp_reg tl
     in
-      aux None params
+      aux [] params
 
   (* OX.request -> Channels.chan list Lwt.t *)
   let decode_upcomming r =
@@ -313,7 +309,11 @@ end = struct
       >|= decode_param_list
 
   let encode_downgoing_non_opt l =
-    String.concat ";" (List.map (fun (c,s) -> Channels.get_id c ^ ":" ^ s) l)
+    String.concat
+      channel_separator
+      (List.map
+         (fun (c,s) -> Channels.get_id c ^ field_separator ^ url_encode s)
+         l)
 
   let stream_result_notification l outcome =
     (*TODO: find a way to send outcomes simultaneously *)
@@ -321,13 +321,9 @@ end = struct
     Lwt.return ()
 
   let encode_downgoing = function
-    | None ->
-        OStream.of_string (OLib.encode ~plus:false "")
+    | None -> OStream.of_string ""
     | Some l ->
-        let stream =
-          OStream.of_string
-            (OLib.encode ~plus:false (encode_downgoing_non_opt l))
-        in
+        let stream = OStream.of_string (encode_downgoing_non_opt l) in
         OStream.add_finalizer stream (stream_result_notification l) ;
         stream
 
@@ -344,7 +340,7 @@ sig
 
 end = struct
 
-  (* A timeout that that return a choosen value instead of failing *)
+  (* A timeout that return a choosen value instead of failing *)
   let armless_timeout t r =
     Lwt.catch
       (fun () -> Lwt_unix.timeout t)

@@ -28,7 +28,10 @@ module Channels :
 sig
 
   type chan
-  (** The type of server-to-client communication channels *)  
+  (** The type of server-to-client communication channels. *)
+
+  type chan_id = string
+  (** The type of channel identifier. *)
 
   val create : unit -> chan
   (** [create ()] makes a fresh new channel immediately usable. [create ~event:e
@@ -46,12 +49,13 @@ sig
       Note that this information is only measured by server. The client takes no
       part in occurrences of this event ! *)
 
-  val get_id : chan -> string
+  val get_id : chan -> chan_id
   (** [get_id c] returns a unique identifier associated to [c]. The client can
       register to [c] using the returned identifier. *)
 
 end
 
+(*TODO: acurate, up to date, and nice protocol description *)
 (** Usage :
    
     On the server side :
