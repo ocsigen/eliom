@@ -54,7 +54,7 @@ let urlencode_ args =
    )
 
 let http_get url args =
-  let (res, w) = Lwt.wait () in
+  let (res, w) = Lwt.task () in
   let url = if args = [] then url else url ^ urlencode args in
   let req = XmlHttpRequest.create () in
   req##_open (js "GET", js url, Js._true);
@@ -63,10 +63,11 @@ let http_get url args =
        if req##readyState = XmlHttpRequest.DONE then
          Lwt.wakeup w (req##status, Js.to_string req##responseText));
   req##send (Js.null);
+  Lwt.on_cancel res (fun () -> req##abort ()) ;
   res
 
 let http_post_full url typ post_args =
-  let (res, w) = Lwt.wait () in
+  let (res, w) = Lwt.task () in
   let req = XmlHttpRequest.create () in
   req##_open (js "POST", js url, Js._true);
   req##setRequestHeader (js"Content-type",js typ);
@@ -75,6 +76,7 @@ let http_post_full url typ post_args =
        if req##readyState = XmlHttpRequest.DONE then
          Lwt.wakeup w (req##status, Js.to_string req##responseText));
   req##send (Js.some (js (urlencode_ post_args)));
+  Lwt.on_cancel res (fun () -> req##abort ()) ;
   res
 
 let http_post url post_args =
