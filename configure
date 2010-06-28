@@ -516,6 +516,19 @@ else
     exit 1
 fi
 
+######################################################################
+# Check lwt.react
+
+printf "%s" "Checking for lwt.react... "
+if ocamlfind query lwt.react >/dev/null 2>/dev/null; then
+    echo "found"
+else
+    echo "not found"
+    echo "Make sure that ocamlfind is in your PATH, or install lwt.react"
+    echo "(from www.ocsigen.org)"
+    exit 1
+fi
+
 
 ######################################################################
 # Check SSL

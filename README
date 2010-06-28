@@ -11,8 +11,8 @@ camlp4 (and camlp4rf etc.)
 ocamlduce recommanded (otherwise you won't have all the features)
   (same version as ocaml)
 findlib (ocamlfind)
-lwt >= 2.1
-obrowser
+lwt with react support >= 2.1
+react >= 0.9.2
 pcre-ocaml
 ocamlnet >= 2.2.0 (actually only modules netstring, netsys, pcre) 
 ocamlssl (sometimes called libssl-ocaml) >= 0.4.4
