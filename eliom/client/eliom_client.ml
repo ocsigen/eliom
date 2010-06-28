@@ -30,10 +30,8 @@ let url_fragment_prefix_with_sharp = "#!"
 let appl_name = Eliom_sessions.appl_name
 
 
-external string_of_byte_string : int Js.js_array Js.t -> string =
-  "caml_string_of_byte_string"
 let unmarshal v =
-  Marshal.from_string (string_of_byte_string (Js.Unsafe.variable v)) 0
+  Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable v)) 0
 
 let appl_instance_id = Js.to_string (Js.Unsafe.variable "appl_instance_id")
 
@@ -314,9 +312,9 @@ let get_subpage
 (* Make the back button work when only the fragment has changed ... *)
 (*VVV We check the fragment every t second ... :-( *)
 
-let write_fragment s = Ocsigen_lib.window##location##hash <- Js.string s
+let write_fragment s = Dom_html.window##location##hash <- Js.string s
 
-let read_fragment () = Js.to_string Ocsigen_lib.window##location##hash
+let read_fragment () = Js.to_string Dom_html.window##location##hash
 
 
 let (fragment, set_fragment_signal) = React.S.create (read_fragment ())

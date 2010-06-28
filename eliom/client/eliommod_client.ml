@@ -20,9 +20,7 @@
 
 exception Failed_service of int
 
-external string_of_byte_string : int Js.js_array Js.t -> string =
-  "caml_string_of_byte_string"
-let unmarshal x = Marshal.from_string (string_of_byte_string x) 0
+let unmarshal x = Marshal.from_string (Js.to_bytestring x) 0
 
 external register_closure
   : int -> (_ -> _) -> unit

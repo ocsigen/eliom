@@ -3,4 +3,3 @@
 D(caml_register_closure)
 D(caml_regexp_make)
 D(caml_regexp_split)
-D(caml_string_of_byte_string)
