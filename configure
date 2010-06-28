@@ -492,7 +492,7 @@ esac
 ######################################################################
 # Check ocamlfind
 
-printf "%s" "Checking for findlib... "
+printf "%s" "Checking for findlib ... "
 if ocamlfind query stdlib >/dev/null 2>/dev/null; then
     echo "found"
 else
@@ -506,7 +506,7 @@ fi
 ######################################################################
 # Check lwt
 
-printf "%s" "Checking for lwt... "
+printf "%s" "Checking for lwt ... "
 if ocamlfind query lwt >/dev/null 2>/dev/null; then
     echo "found"
 else
@@ -519,7 +519,7 @@ fi
 ######################################################################
 # Check lwt.react
 
-printf "%s" "Checking for lwt.react... "
+printf "%s" "Checking for lwt.react ... "
 if ocamlfind query lwt.react >/dev/null 2>/dev/null; then
     echo "found"
 else
@@ -533,7 +533,7 @@ fi
 ######################################################################
 # Check SSL
 
-printf "%s" "Checking for ssl... "
+printf "%s" "Checking for ssl ... "
 if ocamlfind query ssl >/dev/null 2>/dev/null; then
     echo "found"
 else
@@ -545,7 +545,7 @@ fi
 ######################################################################
 # Check Obrowser
 
-#printf "%s" "Checking for obrowser... "
+#printf "%s" "Checking for obrowser ... "
 #if ocamlfind query obrowser >/dev/null 2>/dev/null; then
 #    echo "found"
 #else
@@ -555,9 +555,21 @@ fi
 #fi
 
 ######################################################################
+# Check js_of_ocaml
+
+printf "%s" "Checking for js_of_ocaml ... "
+if ocamlfind query js_of_ocaml >/dev/null 2>/dev/null; then
+    echo "found"
+else
+    echo "not found"
+    echo "Required dependency js_of_ocaml not found!"
+    exit 1
+fi
+
+######################################################################
 # Check Ocamlnet
 
-printf "%s" "Checking for netstring (from Ocamlnet)... "
+printf "%s" "Checking for netstring (from Ocamlnet) ... "
 if ocamlfind query netstring >/dev/null 2>/dev/null; then
     echo "found"
 else
@@ -571,7 +583,7 @@ fi
 # Check SQLITE3
 
 if [ "$enable_sqlite" -gt 0 ]; then
-    printf "%s" "Checking for sqlite3... "
+    printf "%s" "Checking for sqlite3 ... "
     if ocamlfind query sqlite3 >/dev/null 2>/dev/null; then
         echo "found"
     else
@@ -588,7 +600,7 @@ fi
 # Check Camlzip
 
 if [ "$enable_camlzip" -gt 0 ]; then
-    printf "%s" "Checking for camlzip... "
+    printf "%s" "Checking for camlzip ... "
     if ocamlfind query camlzip >/dev/null 2>/dev/null; then
         echo "found camlzip"
         camlzipdir=`ocamlfind query camlzip`
@@ -609,7 +621,7 @@ fi
 ######################################################################
 # Check Cryptokit
 
-printf "%s" "Checking for Cryptokit... "
+printf "%s" "Checking for Cryptokit ... "
 if ocamlfind query cryptokit >/dev/null 2>/dev/null; then
     echo "found"
 else
@@ -625,7 +637,7 @@ cryptokitdir=`ocamlfind query cryptokit`
 # Check ocamlduce
 
 if [ "$enable_ocamlduce" -gt 0 ]; then
-    printf "%s" "Checking for ocamlduce... "
+    printf "%s" "Checking for ocamlduce ... "
     if which ocamlduce >/dev/null 2>/dev/null; then
         echo "found"
     elif [ "$enable_ocamlduce" -gt 1 ]; then
@@ -642,7 +654,7 @@ fi
 # Check dbm
 
 if [ "$enable_dbm" -gt 0 ]; then
-    printf "%s" "Checking for dbm... "
+    printf "%s" "Checking for dbm ... "
     if ocamlc -o /dev/null dbm.cma >/dev/null 2>/dev/null; then
         echo "found"
     elif [ "$enable_dbm" -gt 1 ]; then
@@ -673,7 +685,7 @@ esac
 
 ######################################################################
 # Check camlp4o
-#printf "%s" "Finding out which camlp4o to use... "
+#printf "%s" "Finding out which camlp4o to use ... "
 #if which camlp4o.byte >/dev/null 2>/dev/null; then
 #    echo "camlp4o.byte"
 #    camlp4o="camlp4o.byte"
