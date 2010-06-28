@@ -81,7 +81,6 @@ sig
 
   (* [register c f] registers to the channel [c], calling [f] on each server
    * pushed value.
-   * It should only be called once per channel_id.
    * If the engine isn't running at this point, it is started. *)
   val register : Ecc.chan_id_pre -> (string -> unit Lwt.t) -> unit
 
@@ -104,21 +103,6 @@ end = struct
   let (start_e, start) = React.E.create ()
   let (stop_e,  stop)  = React.E.create ()
 
-
-  (* Managing registration set (map actually) *)
-
-  module Cmap =
-    Map.Make (struct type t = Ecc.chan_id_pre let compare = compare end)
-
-  let cmap = ref Cmap.empty
-
-  let register c f = cmap := Cmap.add c f !cmap ; start ()
-  let unregister c = cmap := Cmap.remove c !cmap
-  let registered c = Cmap.mem c !cmap
-
-  let list_registered () = Cmap.fold (fun k _ l -> k :: l) !cmap []
-
-
   (* derivated events and signals *)
   let running =
     React.S.hold
@@ -128,26 +112,62 @@ end = struct
            React.E.map (fun () -> false) stop_e ; ]
       )
 
+  let (restart_e, restart) =
+    let (restart_e_pre, restart) = React.E.create () in
+    (React.E.map (fun () -> true) restart_e_pre, restart)
+
+  (* This event also capture restarts for internal use only ! *)
+  let running_changes =
+    (* these two events can't be simultaneous ! *)
+    React.E.select [ React.S.changes running ; restart_e ]
+
+
+  (* Managing registration set (map actually) *)
+
+  module Cmap =
+    Map.Make (struct type t = Ecc.chan_id_pre let compare = compare end)
+
+  let cmap = ref Cmap.empty
+
+  let registered c = Cmap.mem c !cmap
+  let register c f =
+    if registered c                       (* if already registered...         *)
+    then cmap := Cmap.add c f !cmap       (*...just change the closure...     *)
+    else (cmap := Cmap.add c f !cmap ;    (*...else don't forget to restart ! *)
+          restart ())
+  let unregister c = cmap := Cmap.remove c !cmap
+
+  let list_registered () = Cmap.fold (fun k _ l -> k :: l) !cmap []
+
+
   (* action *)
   let rec run slp = match list_registered () with
       | [] -> Lwt.pause () >|= stop
       | regs ->
           let up_msg = Messages.encode_upgoing regs in
           Lwt.catch (fun () ->
-            (*TODO: get rid of alert in error handling *)
 
-            Lwt_obrowser.http_post_with_content_type
-              "./"
-              content_type
-              [("registration", up_msg)]             >>= fun (code, msg) ->
+          (* make asynchronous request *)
+            XmlHttpRequest.send_asynchronous_request
+              ~content_type
+              ~post_args:[("registration", up_msg)]
+              "./"                                       >>= fun (code, msg) ->
+          (* check returned code *)
             match code / 100 with
+          (* treat failure *)
               | 0 | 3 | 4 -> (stop () ; Lwt.return ())
+          (* treat semi-failure *)
               | 1 -> run slp
+              | 5 -> begin
+                   Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
+                   run (2. *. slp)
+                end
+          (* treat success *)
               | 2 -> begin
                   (if msg = "" (* no server message *)
                    then Lwt.return ()
                    else
-                     Lwt_list.iter_s
+                     Lwt_list.iter_p
                        (fun (c,m) ->
                           try (Cmap.find c !cmap) m
                           with Not_found -> Lwt.return ()
@@ -155,16 +175,16 @@ end = struct
                        (Messages.decode_downcoming msg)
                   ) >>= fun () -> run 1. (* reset sleeping counter *)
                 end
-              | 5 -> begin
-                   Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
-                   run (2. *. slp)
-                end
+          (* other response code is a serious problem. It can happen when going
+           * offline. *)
               | _ -> (stop () ; Lwt.return ())
 
           ) (function
                | Messages.Incorrect_encoding ->
                    (Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
                     run (2. *. slp))
+                 (* cancel should be catched in http_post_with_content_type if
+                  * thrown before reception. *)
                | Lwt.Canceled -> Lwt.return ()
                | e ->
                    (stop () ;
@@ -177,12 +197,22 @@ end = struct
     let run_thread = ref None in
     Lwt_event.always_notify_s
       (function
-         | true  -> run_thread := Some (run 1.) ; Lwt.return ()
-         | false -> match !run_thread with
-             | Some t -> Lwt.cancel t ; run_thread := None ; Lwt.return ()
-             | None -> Lwt.return ()
+         | true  ->
+             begin match !run_thread with
+   (*  start*) | None   -> run_thread := Some (run 1.) ;
+                           Lwt.return ()
+   (*restart*) | Some t -> Lwt.cancel t ; run_thread := None ; (*stop*)
+                           run_thread := Some (run 1.) ;       (*start*)
+                           Lwt.return ()
+             end
+         | false ->
+            begin match !run_thread with
+   (*  stop*) | Some t -> Lwt.cancel t ; run_thread := None ;
+                          Lwt.return ()
+   (*ignore*) | None   -> Lwt.return ()
+            end
       )
-      (React.S.changes running)
+      running_changes
 
 
 end
