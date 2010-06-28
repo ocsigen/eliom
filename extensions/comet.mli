@@ -33,14 +33,9 @@ sig
   type chan_id = string
   (** The type of channel identifier. *)
 
-  val create : unit -> chan
-  (** [create ()] makes a fresh new channel immediately usable. [create ~event:e
-      ()] makes a channel on which a message is sent both when [write] is called
-      and [event] has an occurrence. *)
-
-  val write : chan -> string -> unit
-  (** [write c s] transmit the string [s] onto the channel [c]. Any client
-      collecting values from [c] will receive [s]. *)
+  val create : string React.E.t -> chan
+  (** [create e] makes a fresh new channel upon which a message is sent whenever
+      [e] has an occurrence. *)
 
   val outcomes : chan -> (Ocsigen_stream.outcome * string) React.E.t
   (** [outcomes c] is an event triggered with [`Failure,s] when a call to [write
@@ -55,35 +50,35 @@ sig
 
 end
 
-(*TODO: acurate, up to date, and nice protocol description *)
 (** Usage :
-   
-    On the server side :
-      1) create needed channels
-      2) transmit their identifiers to clients
-      3) write on a channel when appropriate
-      3') optionally lift the outcome event for feedback
-   
-    On the client :
-      1) make a XmlHttpRequest (XHR) with the encoded list of channel ids and
-         some notification notice if appropriate.
-           encoding for request :
-             content-type is : "application/x-ocsigen-comet"
-             POST parameter "registration" : list of channel ids (in clear text)
-               separated by semi-colon character
-             POST parameter "notification" : list (separated by semi-colon) of
-               pairs (separated by colon) of channel id and string.
-      2) wait for the encoded reply
-           encoding for reply : list (separated by semi-colon) of pairs
-           (separated by colon) of channel identifier and string message. Eg :
-           "a:foo;b:bar" for message "foo" on the channel "a" and "bar" on "b".
-           Note that the whole string is url-encoded
-      3) GOTO 1
 
-    WARNING : in between the server answering the request and the client
-    reopening it, messages written upon a channel won't reach the said client.
-   
-    *)
+  On the server side :
+    1) create needed channels with appropriate events
+    2) transmit their identifiers to clients
+    3) optionally lift the outcome event for feedback
+
+  On the client :
+    1) make a XmlHttpRequest (XHR) with a list of channel identifiers.
+    2) wait for the reply
+    3) GOTO 1
+
+  Encoding for client-to-server requests:
+    * The content type header should be set to "application/x-ocsigen-comet"
+      (without quotes)
+    * A POST parameter is required. Its name should be "registration" and its
+      content should be a list of channel identifiers separated by "\n"
+      (newline) characters.
+    * Name and content of the said POST parameter should be encoded according to
+      Lwt_obrowser.urlencode_string_. (*TODO: make encoding optionnal and get rig of it in comet *)
+
+
+  Encoding for server-to-client answer:
+    * The server answer is either empty (when no channel was written upon before
+      timeout) or a list of pairs of channel identifiers and message content.
+      The pairs are separated by ":" (colon) while the list elements are
+      separated by "\n" (newline) characters.
+
+  *)
 
 (** Note to Eliom users :
     Although it is possible to use Comet as an extension to the Ocsigen Server,
@@ -92,4 +87,10 @@ end
     provides typed channels (with automatic marshaling) and channel wrapping,
     the later automates decoding and unmarshaling and manages channel
     registration and unregistration.
-    *)
+
+    The low level Ocisgen server extension can however be used with classic
+    Javascript clients (whereas the high level Eliom module requires Ocaml
+    compatible unmarshalling which may be difficult to find in a non
+    js_of_ocaml/O'browser based client). It may also be used to add your own
+    high level wrapper with a custom communication protocol.
+  *)

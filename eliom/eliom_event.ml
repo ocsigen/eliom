@@ -27,15 +27,12 @@ module Down =
 struct
 
   let wrap ~sp e =
-    let chan = Eliom_comet.Channels.create () in
-    let () =
-      let m = React.E.map (fun x -> Eliom_comet.Channels.write chan x) e in
-      let `R k = React.E.retain e (fun () -> ()) in
-        (* what if the GC is triggered at this precise point ?
-         * [k], [m] and [chan] are on the stack ! *)
-        ignore (React.E.retain e (fun () -> k () ; ignore m ; ignore chan))
-    in
-      Eliom_client.wrap ~sp (Eliom_comet.Channels.get_id chan)
+    let chan = Eliom_comet.Channels.create e in
+    let `R r = React.E.retain e (fun () -> ()) in
+    let `R _ = React.E.retain e (fun () -> r () ; ignore chan) in
+    Eliom_client.wrap
+      ~sp
+      (Eliom_comet.Channels.get_id chan)
 
 end
 

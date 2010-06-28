@@ -105,16 +105,12 @@ sig
      *)
   type chan_id = string
 
-  val create : unit -> chan
+  val create : string React.E.t -> chan
     (* creating a fresh virtual channel, a client can request registraton to  *)
 
-  val write  : chan -> string -> unit
-    (* [write ch v] sends [v] over [ch] all clients currently listening to [ch]
-     * are being sent [v]. *)
   val read : chan -> string React.E.t
-    (* [read ch] is an event with occurrences for each call to [write]. The
-     * carried value is the argument given to [write]. This is the way for
-     * clients to listen on a channel. *)
+    (* [read ch] is an event with occurrences for each occurrence of the event
+     * used to create the channel. *)
 
   val change_listeners : chan -> int -> unit
     (* [change_listeners c x] adds [x] to [listeners c]. Note that [x] might be
@@ -140,7 +136,6 @@ end = struct
   type chan =
       {
         ch_id : chan_id ;
-        ch_tell_client  : string -> unit ;
         ch_client_event : string React.E.t ;
         ch_listen    : int -> unit ;
         ch_tell_outcome : (OStream.outcome * string) -> unit ;
@@ -167,17 +162,16 @@ end = struct
   (* because Hashtables allow search for elements with a corresponding hash, we
    * have to create a dummy channel in order to retreive the original channel.
    * Is there a KISSer way to do that ? *)
-  let (dummy2, dummy1) = React.E.create ()
-  let dummy3 _ = ()
-  let (dummy5, dummy4) = React.E.create ()
+  let (dummy1, _) = React.E.create ()
+  let dummy2 _ = ()
+  let (dummy4, dummy3) = React.E.create ()
   let dummy_chan i =
     {
       ch_id = i ;
-      ch_tell_client  = dummy1 ;
-      ch_client_event = dummy2 ;
-      ch_listen       = dummy3 ;
-      ch_tell_outcome = dummy4 ;
-      ch_outcomes     = dummy5 ;
+      ch_client_event = dummy1 ;
+      ch_listen       = dummy2 ;
+      ch_tell_outcome = dummy3 ;
+      ch_outcomes     = dummy4 ;
     }
 
   (* May raise Not_found *)
@@ -185,11 +179,11 @@ end = struct
     CTbl.find ctbl (dummy_chan i)
 
   (* creation : newly created channel is stored in the map as a side effect *)
-  let create () =
-    let (client_event_pre, tell_client) = React.E.create () in
-    let client_event = Lwt_event.limit
-                         (fun () -> Lwt_unix.sleep channel_throttling)
-                         client_event_pre
+  let create client_event_pre =
+    let client_event =
+      Lwt_event.limit
+        (fun () -> Lwt_unix.sleep channel_throttling)
+        client_event_pre
     in
 
     let (listen_event, tell_listen) = React.E.create () in
@@ -208,17 +202,12 @@ end = struct
     let ch =
       {
         ch_id = new_id () ;
-        ch_tell_client  = tell_client  ;
         ch_client_event = client_event ;
         ch_listen       = tell_listen  ;
         ch_outcomes     = outcomes     ;
         ch_tell_outcome = tell_outcome ;
       }
     in CTbl.add ctbl ch ; ch
-
-  (* writing on a channel : wakeup the writer with the given value and reload
-   * both reader and writer. *)
-  let write ch v = ch.ch_tell_client v
 
   (* reading a channel : just getting a hang on the reader thread *)
   let read ch = ch.ch_client_event

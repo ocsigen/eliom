@@ -47,9 +47,7 @@ sig
   (* Type of typed channels *)
   type 'a chan = Comet.Channels.chan
 
-  val create : unit -> 'a chan
-
-  val write  : 'a chan -> 'a -> unit
+  val create : 'a React.E.t -> 'a chan
 
   val get_id : 'a chan -> 'a Ecc.chan_id
 
@@ -57,11 +55,11 @@ sig
 
 end = struct
 
-  type 'a chan = Comet.Channels.chan
-  let create () = Comet.Channels.create ()
   let encode s = Marshal.to_string s []
   let decode s = Marshal.from_string s 0
-  let write c x = Comet.Channels.write c (encode x)
+
+  type 'a chan = Comet.Channels.chan
+  let create e = Comet.Channels.create (React.E.map encode e)
   let get_id c = Comet.Channels.get_id c
   let outcomes c = (* is it possible not to unmarshall this ? lazy ? *)
     React.E.map (fun (c,s) -> (c, decode s)) (Comet.Channels.outcomes c)

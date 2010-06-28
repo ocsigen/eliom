@@ -30,14 +30,10 @@ sig
       before transmition, it is for the client to properly unmarshall it. The
       Eliom_client_comet module provides primitives that allow just that. *)
 
-  val create : unit -> 'a chan
-  (** [new_channel ()] makes a fresh new channel immediatly usable. The id can
+  val create : 'a React.E.t -> 'a chan
+  (** [create e] makes a fresh new channel immediatly usable. The id can
       be transmitted to a client in order to let him collect information passed
       on it. *)
-
-  val write : 'a chan -> 'a -> unit
-  (** [write c x] transmit the value [x] (in a marshelled form) onto the channel
-      [c]. Any client collecting values from [c] can unmarshall [x]. *)
 
   val get_id : 'a chan -> 'a Eliom_common_comet.chan_id
   (** [get_id c] returns a unique identifier associated to [c]. The client can

@@ -478,12 +478,14 @@ occurrences of an event.
  *wiki*)
 
 (* create a communication channel *)
-let c1 = Eliom_comet.Channels.create ()
+let (c1, write_c1) =
+  let (e, push_e) = React.E.create () in
+  (Eliom_comet.Channels.create e, push_e)
 
 (* randomly write on the channel *)
 let rec rand_tick () =
   Lwt_unix.sleep (float_of_int (5 + (Random.int 5))) >>= fun () ->
-  Eliom_comet.Channels.write c1 (Random.int 99) ; rand_tick ()
+  write_c1 (Random.int 99) ; rand_tick ()
 let _ = rand_tick ()
 
 
@@ -545,6 +547,51 @@ let comet2 =
          div (* This one is for pushing "B" *)
            ~a:[a_onclick {{ let sp = \sp:sp in \up_event:e_up "B" }} ]
            [pcdata "Push B"] ;
+       ]
+    )
+
+(*wiki*
+ This third example demonstrates the capacity for simultaneous server push.
+ *wiki*)
+
+
+let comet3 =
+  Eliom_appl.register_new_service
+    ~path:["comet3"]
+    ~get_params:unit
+    (fun sp () () ->
+       (* First create a server-readable client-writable event AKA up event AKA
+          client-to-server asynchronous edge *)
+       let e_up = Eliom_event.Up.create ~sp (string "double") in
+       let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
+       let e_down_1 = React.E.map
+                        (let i = ref 0 in fun _ -> incr i ; !i)
+                        e_up_real
+       in
+       let e_down_2 = React.E.map (fun _ -> "haha") e_up_real in
+       let `R _ = React.E.retain e_up_real
+                    (fun () -> ignore e_down_1 ; ignore e_down_2)
+       in
+
+       (* We can send the page *)
+       Lwt.return [
+         h2 [pcdata "Simultaneous events"] ;
+         div (* There's a start "button" right now, but it's gonna change *)
+           ~a:[a_onclick {{
+                React.E.map
+                  (fun s -> Dom_html.window##alert (Js.string s))
+                  (React.E.merge
+                     (^) ""
+                     [ React.E.map string_of_int \down_event:e_down_1 ;
+                       \down_event:e_down_2 ;
+                     ]
+                  )
+           }}
+              ]
+           [pcdata "START"] ;
+         div (*TODO: fix client side sp and simplify up_event unwrapping *)
+           ~a:[a_onclick {{ let sp = \sp:sp in \up_event:e_up "" }} ]
+           [pcdata "Send me two values from different events !"] ;
        ]
     )
 
@@ -812,6 +859,8 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               a comet1 sp [pcdata "A really simple comet example"] ();
             br ();
               a comet2 sp [pcdata "A comet example with server to client and client to server asynchronous events"] ();
+            br ();
+              a comet3 sp [pcdata "Server simultaneous events, transmitted together"] ();
             br ();
           ]
           ]
