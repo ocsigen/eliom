@@ -35,7 +35,7 @@ Eliom_services
 Eliom_parameters 
 Eliom_sessions 
 Eliom_common
-Eliom_obrowser
+Eliom_client
 }
 
 {4 Generating pages with OcamlDuce}

@@ -391,6 +391,7 @@ let _ =
               getparams ()))
 
 
+
 let make_a_with_onclick 
     make_a
     register_event
@@ -406,7 +407,7 @@ let make_a_with_onclick
     ?keep_nl_params
     ?nl_params
     content
-    getparams = 
+    getparams =
   let node = make_a ?a ?onclick:None content in
   register_event node "onclick"
     (fun () -> change_page
@@ -423,3 +424,5 @@ let make_a_with_onclick
        getparams ())
     ();
   node
+
+

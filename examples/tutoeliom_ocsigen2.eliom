@@ -82,9 +82,9 @@ module Eliom_appl =
     end)
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
 
-let eliomobrowser1 =
+let eliomclient1 =
   Eliom_appl.register_new_service
-    ~path:["eliomobrowser1"]
+    ~path:["eliomclient1"]
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
@@ -110,11 +110,11 @@ the same application!//
 For now, the syntax extension has not been implemented, thus the syntax
 is somewhat more complicated. Here are some examples of what you can do:
 *wiki*)
-let eliomobrowser2 = new_service ~path:["eliomobrowser2"] ~get_params:unit ()
+let eliomclient2 = new_service ~path:["eliomclient2"] ~get_params:unit ()
 
 let myblockservice =
   Eliom_predefmod.Blocks.register_new_post_coservice
-    ~fallback:eliomobrowser2
+    ~fallback:eliomclient2
     ~post_params:unit
     (fun _ () () -> 
        Lwt.return
@@ -132,7 +132,7 @@ let item () = li [pcdata Sys.ocaml_version]
 
 let _ =
   Eliom_appl.register
-    eliomobrowser2
+    eliomclient2
     (fun sp () () ->
       Lwt.return
         [
@@ -170,7 +170,7 @@ client.
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
-                      let sp = Eliom_obrowser.unwrap_sp sp in
+                      let sp = Eliommod_client.unwrap_sp sp in
                       let body = Dom_html.document##body in
                       (*Js_old.get_element_by_id "bodyid"*)
                       Eliom_client.call_service
@@ -214,7 +214,7 @@ client.
               a_onclick 
                 {{Eliom_client.change_page
                     ~sp:\sp:sp
-                    ~service:\w:eliomobrowser1
+                    ~service:\w:eliomclient1
                     () ()
                 }}
             ]
@@ -225,7 +225,7 @@ client.
   The latter example is equivalent to the following. *wiki*)
           p [a (*zap* *) ~a:[a_class ["clickable"]](* *zap*)
                ~sp
-               ~service:eliomobrowser1
+               ~service:eliomclient1
                [pcdata "Click here to change the page without stopping the program (with ";
                 code [pcdata "a"];
                 pcdata ")."]
@@ -243,14 +243,14 @@ client.
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.exit_to ~sp:\sp:sp ~service:\w:eliomobrowser2 () ()
+                Eliom_client.exit_to ~sp:\sp:sp ~service:\w:eliomclient2 () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_page ~sp:\sp:sp ~service:\w:eliomobrowser1
+                Eliom_client.change_page ~sp:\sp:sp ~service:\w:eliomclient1
                   () ()
               }}
             ]
@@ -267,7 +267,7 @@ client.
               a_onclick {{
                 Eliom_client.get_subpage
                   ~sp:\sp:sp
-                  ~service:\w:eliomobrowser1
+                  ~service:\w:eliomclient1
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -326,7 +326,7 @@ client.
                           pcdata " and ";
                           Eliom_predefmod.Xhtml.a
                             (*zap* *)~a:[a_class ["clickable"]](* *zap*)
-                            ~sp:\sp:sp ~service:\w:eliomobrowser1
+                            ~sp:\sp:sp ~service:\w:eliomclient1
                             [pcdata "another, inside the application."]
                             ()
                          ]
@@ -345,7 +345,7 @@ client.
 It is now possible to send OCaml values to services.
 To do that, use the {{{Eliom_parameters.caml}}} function:
 *wiki*)
-let eliomobrowser3' =
+let eliomclient3' =
   Eliom_appl.register_new_post_coservice'
     ~post_params:(caml "isb")
     (fun sp () (i, s, l) ->
@@ -356,15 +356,15 @@ let eliomobrowser3' =
 
 
 
-let eliomobrowser3 =
+let eliomclient3 =
   Eliom_appl.register_new_service
-    ~path:["eliomobrowser3"]
+    ~path:["eliomclient3"]
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
                 {{ Eliom_client.change_page
-                     ~sp:\sp:sp ~service:\w:eliomobrowser3'
+                     ~sp:\sp:sp ~service:\w:eliomclient3'
                      () (22, "oo", ["a";"b";"c"])
                 }}
               ]
@@ -374,21 +374,21 @@ let eliomobrowser3 =
 ====Sending OCaml values using services
 It is possible to do services that send any caml value. For example:
 *wiki*)
-let eliomobrowser4' =
+let eliomclient4' =
   Eliom_predefmod.Caml.register_new_post_coservice'
     ~post_params:unit
     (fun sp () () -> Lwt.return [1; 2; 3])
 
-let eliomobrowser4 =
+let eliomclient4 =
   Eliom_appl.register_new_service
-    ~path:["eliomobrowser4"]
+    ~path:["eliomclient4"]
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~sp:\sp:sp ~service:\w:eliomobrowser4'
+                     ~sp:\sp:sp ~service:\w:eliomclient4'
                      () () >|=
                    List.iter 
                      (fun i -> Dom.appendChild body 
@@ -401,15 +401,15 @@ let eliomobrowser4 =
 (*wiki*
 ====Other tests:
 *wiki*)
-let withoutobrowser =
+let withoutclient =
   Eliom_services.new_service
-    ~path:["withoutobrowser"]
+    ~path:["withoutclient"]
     ~get_params:unit
     ()
 
-let gotowithoutobrowser =
+let gotowithoutclient =
   Eliom_services.new_service
-    ~path:["gotowithoutobrowser"]
+    ~path:["gotowithoutclient"]
     ~get_params:unit
     ()
 
@@ -417,7 +417,7 @@ let gotowithoutobrowser =
 let _ =
   Eliom_appl.register
     ~options:true
-    ~service:withoutobrowser
+    ~service:withoutclient
     (fun sp () () ->
        Lwt.return
          [p [pcdata "If the application was not launched before coming here (or if you reload), this page will not launch it. But if it was launched before, it is still running."];
@@ -425,17 +425,17 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\sp:sp ~service:\w:gotowithoutobrowser
+                  ~sp:\sp:sp ~service:\w:gotowithoutclient
                   () ()
               }}
             ]
             [pcdata "Click here to go to a page that launches the application every time."];
-          p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:gotowithoutobrowser
+          p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:gotowithoutclient
                [pcdata "Same link with "; 
                 code [pcdata "a"]; pcdata "."] ()];
          ]);
   Eliom_appl.register
-    ~service:gotowithoutobrowser
+    ~service:gotowithoutclient
     (fun sp () () ->
        Lwt.return
          [p [pcdata "The application is launched."];
@@ -443,12 +443,12 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\sp:sp ~service:\w:withoutobrowser
+                  ~sp:\sp:sp ~service:\w:withoutclient
                   () ()
               }}
             ]
             [pcdata "Click here to see the page that does not launch the application."];
-          p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:withoutobrowser
+          p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:withoutclient
                [pcdata "Same link with "; 
                 code [pcdata "a"]; pcdata "."] ()];
          ])
@@ -846,16 +846,16 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
 
             h3 [pcdata "Eliom Client"];
             p [
-              a eliomobrowser1 sp [pcdata "Simple example of client side code"] ();
+              a eliomclient1 sp [pcdata "Simple example of client side code"] ();
               br ();
 
-              a eliomobrowser2 sp [pcdata "Using Eliom services in client side code"] ();
+              a eliomclient2 sp [pcdata "Using Eliom services in client side code"] ();
             br ();
-              a eliomobrowser3 sp [pcdata "Caml values in service parameters"] ();
+              a eliomclient3 sp [pcdata "Caml values in service parameters"] ();
             br ();
-              a eliomobrowser4 sp [pcdata "A service sending a Caml value"] ();
+              a eliomclient4 sp [pcdata "A service sending a Caml value"] ();
             br ();
-              a gotowithoutobrowser sp [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
+              a gotowithoutclient sp [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
             br ();
               a comet1 sp [pcdata "A really simple comet example"] ();
             br ();

@@ -12,7 +12,7 @@ MLS:= xML.ml xHTML.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
 	eliom_services.ml eliom_uri.ml \
-	eliommod_client.ml eliom_client.ml \
+	eliommod_client.ml eliom_client.ml eliommod_mkforms.ml \
 	eliom_mkforms.ml polytables.ml \
 	xhtmltypes.ml eliom_predefmod.ml \
 	eliom_common_comet.ml eliom_client_comet.ml \

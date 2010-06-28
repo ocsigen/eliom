@@ -458,8 +458,6 @@ installnodoc: partialinstall
 	$(INSTALL) -m 644 files/tutorial/style.css $(TEMPROOT)$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/tutorial/bulles-bleues.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/tutorial/ocsigen5.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 files/tutorial/vm.js $(TEMPROOT)$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 files/tutorial/tutoeliom_ocsigen2_client.uue $(TEMPROOT)$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)$(STATICPAGESDIR)/ocsigenstuff
 	$(INSTALL) -m 644 examples/miniwiki/files/style.css $(TEMPROOT)$(STATICPAGESDIR)/miniwiki
 	$(INSTALL) -m 644 examples/miniwiki/wikidata/* $(TEMPROOT)$(DATADIR)/miniwiki

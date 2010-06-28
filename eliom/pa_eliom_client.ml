@@ -74,11 +74,11 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
     let _loc = Loc.ghost in
     [
       ("w",
-       (<:expr<Eliom_client.wrap ~sp>>, <:expr<Eliommod_client.unwrap>>));
+       (<:expr<Eliommod_client.wrap ~sp>>, <:expr<Eliommod_client.unwrap>>));
       ("sp",
-       (<:expr<Eliom_client.wrap_sp>>, <:expr<Eliommod_client.unwrap_sp>>));
+       (<:expr<Eliommod_client.wrap_sp>>, <:expr<Eliommod_client.unwrap_sp>>));
       ("node",
-       (<:expr<Eliom_client.wrap_node ~sp>>, <:expr<Eliommod_client.unwrap_node>>));
+       (<:expr<Eliommod_client.wrap_node ~sp>>, <:expr<Eliommod_client.unwrap_node>>));
       ("channel",
        (<:expr<Eliom_comet.wrap ~sp>>, <:expr<Eliom_client_comet.unwrap>>));
       ("up_event",

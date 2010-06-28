@@ -1,6 +1,5 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliom_obrowser.ml
  * Copyright (C) 2010 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -20,12 +19,11 @@
  *)
 
 
+(**/**)
 
 (* Fresh name generator *)
 val fresh_id : unit -> string
 
-
-(**/**)
 val get_global_eliom_appl_data_ : 
   sp:Eliom_sessions.server_params -> (int64 * int) * unit list
 
@@ -38,22 +36,3 @@ val wrap_sp : sp:Eliom_sessions.server_params ->
 val wrap_node : sp:Eliom_sessions.server_params ->
   'a XHTML.M.elt -> 'node Eliom_client_types.data_key
 
-
-val make_a_with_onclick :
-  (?a:'a -> ?onclick:XML.event -> 'c -> 'd) ->
-  ('d -> string -> (unit -> unit Lwt.t) -> unit -> 'f) ->
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  ?a:'a ->
-  service:('get, unit, [< Eliom_services.get_service_kind ],
-           [< Eliom_services.suff ], 'gn, 'pn,
-           [< Eliom_services.registrable ], 'return)
-    Eliom_services.service ->
-  sp:Eliom_sessions.server_params ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
-  'c -> 'get -> 'd

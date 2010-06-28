@@ -1649,7 +1649,7 @@ redir ();"))::
 
                      ^ "var eliom_global_data = " ^
                      (Eliom_client_types.jsmarshal
-                        (Eliom_client.get_global_eliom_appl_data_ ~sp)
+                        (Eliommod_client.get_global_eliom_appl_data_ ~sp)
                      ) ^ "; \n"
 
                      ^ "var container_node = " ^
@@ -1705,7 +1705,7 @@ redir ();"))::
      then 
 (*VVV Here we do not send a stream *)
        Caml.send ~sp ((XML.make_ref_tree_list (XHTML.M.toeltl content)),
-                      (Eliom_client.get_global_eliom_appl_data_ ~sp),
+                      (Eliommod_client.get_global_eliom_appl_data_ ~sp),
 (*VVV Use another serialization format than XML for the page? *)
                       Xhtmlcompact'.xhtml_list_print content)
      else 

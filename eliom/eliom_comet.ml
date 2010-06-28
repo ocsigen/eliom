@@ -71,7 +71,7 @@ end
  * to wrap channels. The associated unwrapping function is in the dual file. *)
 let wrap ~sp (c : 'a Channels.chan)
       : 'a Ecc.chan_id Eliom_client_types.data_key =
-  Eliom_client.wrap ~sp (Channels.get_id c)
+  Eliommod_client.wrap ~sp (Channels.get_id c)
 
 
 

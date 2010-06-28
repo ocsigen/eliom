@@ -962,7 +962,7 @@ module MakeForms = functor
            (n <> None) &&
              (n = Eliom_services.get_application_name service))
         then
-          Eliom_client.make_a_with_onclick
+          Eliommod_mkforms.make_a_with_onclick
             (fun ?a ?onclick c -> Pages.make_a ?a ?onclick c)
             Pages.register_event
             ?absolute

@@ -19,23 +19,21 @@
  *)
 
 
-
-(*external get_closure_arg : unit -> 'a = "caml_get_closure_arg"*)
-val register_closure : int -> ('a -> 'b) -> unit
-(*val nodes : (int, Js.Node.t) Hashtbl.t
-val set_node_id : Js.Node.t -> int -> unit*)
-type ref_tree
-
-val unwrap : 'a Eliom_client_types.data_key -> 'a
-
-val unwrap_sp : Eliom_client_types.server_params Eliom_client_types.data_key ->
-  Eliom_client_types.server_params
-
-val unwrap_node : Eliom_client_types.server_params Eliom_client_types.data_key -> Dom.node Js.t
-
-
-(**/**)
-val relink_dom_list : int64 -> Dom.node Dom.nodeList Js.t -> (int * ref_tree) list -> unit
-val fill_global_data_table : (int64 * int) * unit list -> unit
-
-
+val make_a_with_onclick :
+  (?a:'a -> ?onclick:XML.event -> 'c -> 'd) ->
+  ('d -> string -> (unit -> unit Lwt.t) -> unit -> 'f) ->
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  ?a:'a ->
+  service:('get, unit, [< Eliom_services.get_service_kind ],
+           [< Eliom_services.suff ], 'gn, 'pn,
+           [< Eliom_services.registrable ], 'return)
+    Eliom_services.service ->
+  sp:Eliom_sessions.server_params ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Eliom_parameters.nl_params_set ->
+  'c -> 'get -> 'd

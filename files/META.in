@@ -190,18 +190,18 @@ package "ext" (
 
 )
 
-package "eliom_obrowser_client" (
+package "eliom_client" (
     requires = ""
     version = "[distributed with Ocsigen]"
-    description = "Using Eliom with OBrowser"
-    archive(byte) = "eliom_obrowser_client.cma"
+    description = "Eliom client-side"
+    archive(byte) = "eliom_client.cma"
   )
 
-package "eliom_obrowser_syntax" (
+package "eliom_client_syntax" (
   requires = "camlp4"
   description = "Syntax extension: Ocaml function calls from pages"
-  archive(syntax,preprocessor) = "pa_eliom_obrowser.cmo"
-  archive(syntax,toploop) = "pa_eliom_obrowser.cmo"
+  archive(syntax,preprocessor) = "pa_eliom_client.cmo"
+  archive(syntax,toploop) = "pa_eliom_client.cmo"
 )
 
 package "eliom_client_server_syntax" (

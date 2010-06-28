@@ -126,7 +126,7 @@ tutoeliom.cmxs: tutoeliom.cmx tutoeliom_ocsigen2.cmx
 
 clean:
 	$(MAKE) -C miniwiki clean
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot tutoeliom_ocsigen2_client* tutoeliom_ocsigen2.ml
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot tutoeliom_ocsigen2_client* tutoeliom_ocsigen2.ml client/tutoeliom_ocsigen2_client.ml client/tutoeliom_ocsigen2.ml client/tutoeliom_ocsigen2_client.js ../files/tutorial/tutoeliom_ocsigen2_client.js tutoeliom_ocsigen2_client client/*.cm[ioax] client/*.cmxa client/*.cmxs client/*.o client/*~ 
 
 depend:
 	$(MAKE) -C miniwiki depend
