@@ -204,3 +204,9 @@ package "eliom_obrowser_syntax" (
   archive(syntax,toploop) = "pa_eliom_obrowser.cmo"
 )
 
+package "eliom_client_server_syntax" (
+  requires = "camlp4"
+  description = "Syntax extension: spliting client and server code"
+  archive(syntax,preprocessor) = "pa_eliom_client.cmo"
+)
+
