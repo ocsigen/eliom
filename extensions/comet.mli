@@ -63,20 +63,20 @@ end
     3) GOTO 1
 
   Encoding for client-to-server requests:
-    * The content type header should be set to "application/x-ocsigen-comet"
+    * The content type header should be set to [application/x-ocsigen-comet]
       (without quotes)
-    * A POST parameter is required. Its name should be "registration" and its
-      content should be a list of channel identifiers separated by "\n"
+    * A POST parameter is required. Its name should be [registration] and its
+      content should be a list of channel identifiers separated by [\n]
       (newline) characters.
     * Name and content of the said POST parameter should be encoded according to
-      Lwt_obrowser.urlencode_string_. (*TODO: make encoding optionnal and get rig of it in comet *)
+      [escape] JavaScript primitive
 
 
   Encoding for server-to-client answer:
     * The server answer is either empty (when no channel was written upon before
       timeout) or a list of pairs of channel identifiers and message content.
-      The pairs are separated by ":" (colon) while the list elements are
-      separated by "\n" (newline) characters.
+      The pairs are separated by [:] (colon) while the list elements are
+      separated by [\n] (newline) characters.
 
   *)
 
