@@ -22,7 +22,7 @@
 
 open Ocsigen_lib
 
-include Eliom_parameters_obrowser
+include Eliom_parameters_cli
 
 
 type anon_params_type = int

@@ -18,12 +18,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-external magic : 'a -> 'b = "%identity"
-
-let sleep = Lwt_js.sleep
-let yield = Lwt_js.yield
-let run _ = magic ()
-
 let js = Js.string
 
 let escape : Js.js_string Js.t -> Js.js_string Js.t = Js.Unsafe.variable "escape"

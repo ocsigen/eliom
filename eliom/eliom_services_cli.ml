@@ -1,6 +1,5 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliom_services_obrowser.ml
  * Copyright (C) 2007-2010 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *

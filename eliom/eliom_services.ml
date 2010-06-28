@@ -1,6 +1,5 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliomservices.ml
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -28,7 +27,7 @@ open Lazy
 
 (* Manipulation of services - this code can be use only on server side. *)
 
-include Eliom_services_obrowser
+include Eliom_services_cli
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 

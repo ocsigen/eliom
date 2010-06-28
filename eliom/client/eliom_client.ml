@@ -143,7 +143,7 @@ let change_url
   Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
 
 
-let container_node = lazy (Js.Unsafe.coerce (Eliom_obrowser.unwrap_node (unmarshal "container_node")): Dom_html.element Js.t)
+let container_node = lazy (Js.Unsafe.coerce (Eliommod_client.unwrap_node (unmarshal "container_node")): Dom_html.element Js.t)
 
 
 
@@ -156,9 +156,9 @@ let set_inner_html code s =
     in
     let container_node = Lazy.force container_node in
     container_node##innerHTML <- Js.string content;
-    Eliom_obrowser.relink_dom_list 
+    Eliommod_client.relink_dom_list 
       timeofday (container_node##childNodes) ref_tree_list;
-    Eliom_obrowser.fill_global_data_table global_data;
+    Eliommod_client.fill_global_data_table global_data;
     Lwt.return ()
   end
 
@@ -300,9 +300,9 @@ let get_subpage
     for i = nodes##length - 1 downto 0 do
       node_list := nodes##item (i) :: !node_list
     done;
-    Eliom_obrowser.relink_dom_list timeofday nodes ref_tree_list;
+    Eliommod_client.relink_dom_list timeofday nodes ref_tree_list;
     fake_page##innerHTML <- Js.string "";
-    Eliom_obrowser.fill_global_data_table global_data;
+    Eliommod_client.fill_global_data_table global_data;
     Lwt.return (XHTML.M.totl !node_list)
   end
 
@@ -322,7 +322,7 @@ let read_fragment () = Js.to_string Ocsigen_lib.window##location##hash
 let (fragment, set_fragment_signal) = React.S.create (read_fragment ())
 
 let rec fragment_polling () =
-  Lwt_obrowser.sleep 0.2 >>= fun () ->
+  Lwt_js.sleep 0.2 >>= fun () ->
   let new_fragment = read_fragment () in
   if new_fragment <> (React.S.value fragment)
   then set_fragment_signal new_fragment;
@@ -369,23 +369,23 @@ let _ = React.E.map auto_change_page (React.S.changes fragment)
 
 (* ==A closure that is registered by default to simulate <a> *)
 let _ =
-  Eliom_obrowser.register_closure
+  Eliommod_client.register_closure
     Eliom_client_types.a_closure_id
     (fun
        (absolute, absolute_path, https, service, sp, hostname, port,
         fragment, keep_nl_params, nl_params, getparams)
        ->
-         let absolute = Eliom_obrowser.unwrap absolute in
-         let https = Eliom_obrowser.unwrap https in
-         let service = Eliom_obrowser.unwrap service in
-         let sp = Eliom_obrowser.unwrap_sp sp in
-         let hostname = Eliom_obrowser.unwrap hostname in
-         let port = Eliom_obrowser.unwrap port in
-         let fragment = Eliom_obrowser.unwrap fragment in
-         let keep_nl_params = Eliom_obrowser.unwrap keep_nl_params in
-         let nl_params = Eliom_obrowser.unwrap nl_params in
-         let getparams = Eliom_obrowser.unwrap getparams in
-         let absolute_path = Eliom_obrowser.unwrap absolute_path in
+         let absolute = Eliommod_client.unwrap absolute in
+         let https = Eliommod_client.unwrap https in
+         let service = Eliommod_client.unwrap service in
+         let sp = Eliommod_client.unwrap_sp sp in
+         let hostname = Eliommod_client.unwrap hostname in
+         let port = Eliommod_client.unwrap port in
+         let fragment = Eliommod_client.unwrap fragment in
+         let keep_nl_params = Eliommod_client.unwrap keep_nl_params in
+         let nl_params = Eliommod_client.unwrap nl_params in
+         let getparams = Eliommod_client.unwrap getparams in
+         let absolute_path = Eliommod_client.unwrap absolute_path in
          ignore
            (change_page
               ?absolute ?absolute_path ?https

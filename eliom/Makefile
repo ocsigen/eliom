@@ -2,7 +2,7 @@ include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= error_pages.ml \
-	eliom_common_obrowser.ml eliom_common.ml \
+	eliom_common_cli.ml eliom_common.ml \
 	eliommod_sessiongroups.ml eliommod_cookies.ml \
 	eliommod_sersess.ml eliommod_datasess.ml eliommod_persess.ml \
 	eliommod_gc.ml \
@@ -11,8 +11,8 @@ FILES:= error_pages.ml \
 	eliommod_timeouts.ml \
 	eliommod_pagegen.ml \
 	eliommod.ml eliom_sessions.ml eliom_extensions.ml\
-        eliom_parameters_obrowser.ml eliom_parameters.ml \
-	eliom_services_obrowser.ml eliom_services.ml \
+        eliom_parameters_cli.ml eliom_parameters.ml \
+	eliom_services_cli.ml eliom_services.ml \
 	eliom_client_types.ml eliom_client.ml \
         eliom_uri.ml eliom_mkforms.ml eliom_mkreg.ml \
 	eliom_predefmod_client.ml eliom_predefmod.ml \
@@ -78,7 +78,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package lwt.unix,netstring,cryptokit,react $(LIBDIRS)
+LIB = -thread -package lwt.unix,netstring,cryptokit,lwt.react $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)

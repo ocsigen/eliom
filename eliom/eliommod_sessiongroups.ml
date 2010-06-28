@@ -129,7 +129,6 @@ struct
 
   let move ?set_max sitedata node sess_grp =
 (*    if set_max <> None || grp1 <> grp2 then begin *)
-    let sess_id = Ocsigen_cache.Dlist.value node in
     let cl = get_cl ?set_max sitedata sess_grp in
     ignore (Ocsigen_cache.Dlist.move node cl);
     match Ocsigen_cache.Dlist.newest cl with

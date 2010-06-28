@@ -20,21 +20,6 @@
 
 (** This module corresponds to Lwt_unix but in an O'Browser environment. *)
 
-(** {6 Sleeping} *)
-
-val sleep : float -> unit Lwt.t
-  (** [sleep d] is a threads which remain suspended for [d] seconds
-      and then terminates. *)
-
-val yield : unit -> unit Lwt.t
-  (** [yield ()] is a threads which suspends itself and then resumes
-      as soon as possible and terminates.
-      Unlike [Lwt_preemtive.yield],
-      that version will also let the browser work if it has something to
-      do (for example redraw the page).
-  *)
-
-val run : 'a Lwt.t -> 'a
 
 (*
 exception Timeout

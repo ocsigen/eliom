@@ -22,7 +22,8 @@ ocamlsqlite3 >= 0.21.0 (needs sqlite)
 camlzip (libzip-ocaml)
 cryptokit
 A C compiler
-the command uuencode
+js_of_ocaml
+
 
 If ocaml/ocamlduce/ocamlfind/ocamlnet/ocamlssl... 
 are not installed on your computer, 

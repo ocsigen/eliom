@@ -82,7 +82,6 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)baselib/ocsigen_stream.mli				\
 	$(DOCPREF)eliom/eliom_tools_common.mli			 	\
 	$(DOCPREF)eliom/eliom_tools.mli					\
-	$(DOCPREF)eliom/eliom_obrowser.mli					\
 	$(DOCPREF)baselib/polytables.mli				\
 	$(DOCPREF)baselib/ocsigen_cache.mli				\
 	$(DOCPREF)extensions/ocsipersist.mli				\
@@ -115,7 +114,6 @@ PLUGINSCMOTOINSTALL = \
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
        eliom/eliom_tools_common.cmi eliom/eliom_tools.cmi \
-       eliom/eliom_obrowser.cmi \
        $(DUCECMI) \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
@@ -193,7 +191,7 @@ endif
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_client.cmo eliom/client/eliom_obrowser_client.cma eliom/client/eliom_obrowser.js
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_client.cmo eliom/client/eliom_client.cma eliom/client/eliom_client.js
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
@@ -289,7 +287,7 @@ files/META.ocsigen_xhtml: files/META.ocsigen_xhtml.in VERSION
 files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
-	-ln -sf ../eliom/client/eliom_obrowser_client.cma extensions
+	-ln -sf ../eliom/client/eliom_client.cma extensions
 	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cma extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cma extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cma extensions
@@ -304,7 +302,9 @@ files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../xmlp4/xhtmlpretty.cmxs extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cmxs extensions
 	-ln -sf ../baselib/parsecommandline.cma extensions
+	-ln -sf ../baselib/parsecommandline.cmxs extensions
 	-ln -sf ../baselib/donotparsecommandline.cma extensions
+	-ln -sf ../baselib/donotparsecommandline.cmxs extensions
 	echo directory = \"$(SRC)/extensions\" > $@
 	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< >> $@
 #	sed "s%\"xhtml\" (%\"xhtml\" (\n  directory = \"$(SRC)/xmlp4/ohl-xhtml/\"%g" >> $@

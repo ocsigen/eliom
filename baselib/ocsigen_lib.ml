@@ -19,7 +19,7 @@
 
 (* TODO: organize this ... *)
 
-include Ocsigen_lib_obrowser
+include Ocsigen_lib_cli
 
 exception Input_is_too_large
 exception Ocsigen_Bad_Request

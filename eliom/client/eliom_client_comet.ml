@@ -156,14 +156,14 @@ end = struct
                   ) >>= fun () -> run 1. (* reset sleeping counter *)
                 end
               | 5 -> begin
-                   Lwt_obrowser.sleep (1. +. Random.float slp) >>= fun () ->
+                   Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
                    run (2. *. slp)
                 end
               | _ -> (stop () ; Lwt.return ())
 
           ) (function
                | Messages.Incorrect_encoding ->
-                   (Lwt_obrowser.sleep (1. +. Random.float slp) >>= fun () ->
+                   (Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
                     run (2. *. slp))
                | Lwt.Canceled -> Lwt.return ()
                | e ->
@@ -191,7 +191,7 @@ end
 (* Unwrapping of channels *)
 
 let unwrap (c : 'a Ecc.chan_id Eliom_client_types.data_key) : 'a Ecc.chan_id =
-  Eliom_obrowser.unwrap c
+  Eliommod_client.unwrap c
 
 
 module Registration :

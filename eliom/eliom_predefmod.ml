@@ -1641,7 +1641,7 @@ redir ();"))::
                  (cdata_script
                     (* eliom_id_tree is some information for relinking the
                        nodes on client side.
-                       Relinking is done in Eliom_obrowser_client.
+                       Relinking is done in client/eliommod_client.ml
                     *)
                     ("var eliom_id_tree = " ^
                      (Eliom_client_types.jsmarshal

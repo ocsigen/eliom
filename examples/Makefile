@@ -19,12 +19,12 @@ else
 CMXS=
 endif
 
-#ELIOMOBROWSERDIR := $(shell ocamlfind query ocsigen.eliom_obrowser_client)
-#PAELIOMOBROWSERDIR := $(shell ocamlfind query ocsigen.eliom_obrowser_syntax)
+#ELIOMCLIENTDIR := $(shell ocamlfind query ocsigen.eliom_client)
+#PAELIOMCLIENTDIR := $(shell ocamlfind query ocsigen.eliom_client_syntax)
 LWTDIR := $(shell ocamlfind query lwt)
 REACTDIR := $(shell ocamlfind query react)
-ELIOMOBROWSERDIR := ../eliom/client
-PAELIOMOBROWSERDIR := ../eliom
+ELIOMCLIENTDIR := ../eliom/client
+PAELIOMCLIENTDIR := ../eliom
 
 LIB = $(LIBDIRS) -package lwt.unix,netstring,camlp4,react,lwt.react
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
@@ -75,21 +75,20 @@ tutoeliom4.wiki: tutoeliom_ocsigen2.eliom
 	cat tutoeliom_ocsigen2.eliom | sed '/%<||2>%/,$$ d' | sed '1,/%<||1>%/d' | /bin/sh ./tutomake.sh > tutoeliom4.wiki
 
 tutoeliom_ocsigen2_client.js: tutoeliom_ocsigen2_client
-	js_of_ocaml -pretty $(ELIOMOBROWSERDIR)/eliom_obrowser.js $< -o $@
+	js_of_ocaml -pretty $(ELIOMCLIENTDIR)/eliom_client.js $< -o $@
 
 ../files/tutorial/tutoeliom_ocsigen2_client.js: tutoeliom_ocsigen2_client.js
 	cp -f $< $@
 
-tutoeliom_ocsigen2_client: $(ELIOMOBROWSERDIR)/eliom_obrowser_client.cma client/tutoeliom_ocsigen2_client.ml
+tutoeliom_ocsigen2_client: $(ELIOMCLIENTDIR)/eliom_client.cma client/tutoeliom_ocsigen2_client.ml
 	ocamlfind ocamlc -o $@ \
 	  -I ../eliom/client \
-	  -package lwt.react,js_of_ocaml -syntax camlp4o -linkpkg \
+	  -package lwt.react,react,js_of_ocaml -syntax camlp4o -linkpkg \
 	  -verbose \
-	  -I /usr/lib/ocaml/react /usr/lib/ocaml/react/react.cmo \
-	  ../eliom/client/eliom_obrowser_client.cma client/tutoeliom_ocsigen2_client.ml
+	  ../eliom/client/eliom_client.cma client/tutoeliom_ocsigen2_client.ml
 
 tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom ../eliom/pa_eliom_client.cmo
-	camlp4of $(PAELIOMOBROWSERDIR)/pa_eliom_client.cmo \
+	camlp4of $(PAELIOMCLIENTDIR)/pa_eliom_client.cmo \
 	  -I /usr/local/lib/ocaml/3.11.2/js_of_ocaml pa_js.cmo \
 	  -impl $< -o $@ \
 	  -pretty -verbose \

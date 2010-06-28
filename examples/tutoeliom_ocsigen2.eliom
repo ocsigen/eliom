@@ -308,6 +308,7 @@ client.
              [pcdata "Click here to see a server side value sent with the page."]);
 
 
+
 (*wiki*
 ====Other tests
   *wiki*)
@@ -869,6 +870,3 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
 
 (* *zap*)
 
-{client{ (* This is useless with js_of_ocaml *)
-let _ = Lwt_obrowser.run (fst (Lwt.wait ()))
-}}
