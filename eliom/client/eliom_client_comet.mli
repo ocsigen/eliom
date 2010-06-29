@@ -27,12 +27,26 @@ sig
   val running : bool React.S.t
 end
 
-module Registration :
+module Channels :
 sig
+
+  val unwrap :
+     'a Eliom_common_comet.chan_id Eliom_client_types.data_key
+  -> 'a Eliom_common_comet.chan_id
+
   val register : 'a Eliom_common_comet.chan_id -> ('a -> unit Lwt.t) -> unit
   val unregister : 'a Eliom_common_comet.chan_id -> unit
+
 end
 
-val unwrap :
-  'a Eliom_common_comet.chan_id Eliom_client_types.data_key
-  -> 'a Eliom_common_comet.chan_id
+module Buffered_channels :
+sig
+
+  val unwrap :
+     'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
+  -> 'a Eliom_common_comet.buffered_chan_id
+
+  val register : 'a Eliom_common_comet.buffered_chan_id -> ('a -> unit Lwt.t) -> unit
+  val unregister : 'a Eliom_common_comet.buffered_chan_id -> unit
+
+end

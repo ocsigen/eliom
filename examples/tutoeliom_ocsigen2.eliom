@@ -501,7 +501,7 @@ let comet1 =
                     couple browsers on this page."] ;
          div
            ~a:[a_onclick{{ (* The [channel] wrapper keyword is used for channels *)
-                     Eliom_client_comet.Registration.register \channel:c1
+                     Eliom_client_comet.Channels.register \channel:c1
                        (fun s -> Dom_html.window##alert (Js.string s) ; Lwt.return ())
            }}
            ]
@@ -565,9 +565,13 @@ let comet3 =
           client-to-server asynchronous edge *)
        let e_up = Eliom_event.Up.create ~sp (string "double") in
        let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
-       let e_down_1 = React.E.map
-                        (let i = ref 0 in fun _ -> incr i ; !i)
-                        e_up_real
+       let e_down_1 =
+         Lwt_event.limit (*TODO: integrate throttling to events*)
+           (fun () -> Lwt_unix.sleep 3.)
+           (React.E.map
+              (let i = ref 0 in fun _ -> incr i ; !i)
+              e_up_real
+           )
        in
        let e_down_2 = React.E.map (fun _ -> "haha") e_up_real in
        let `R _ = React.E.retain e_up_real
@@ -591,8 +595,13 @@ let comet3 =
               ]
            [pcdata "START"] ;
          div (*TODO: fix client side sp and simplify up_event unwrapping *)
-           ~a:[a_onclick {{ let sp = \sp:sp in \up_event:e_up "" }} ]
+           ~a:[
+             (*zap* *)a_class ["clickable"];(* *zap*)
+             a_onclick {{ let sp = \sp:sp in \up_event:e_up "" }} ]
            [pcdata "Send me two values from different events !"] ;
+         div [pcdata "Note that one of the two events has a greater rate limit \
+                      (using throttle control). Hence you might receive only \
+                      one if you click with high frequency."] ;
        ]
     )
 

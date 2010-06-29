@@ -39,8 +39,8 @@ module Messages : sig
 
   exception  Incorrect_encoding
 
-  val encode_upgoing : Ecc.chan_id_pre list -> string
-  val decode_downcoming : string -> (Ecc.chan_id_pre * string) list
+  val encode_upgoing : string list -> string
+  val decode_downcoming : string -> (string * string) list
 
 end = struct
 
@@ -82,14 +82,14 @@ sig
   (* [register c f] registers to the channel [c], calling [f] on each server
    * pushed value.
    * If the engine isn't running at this point, it is started. *)
-  val register : Ecc.chan_id_pre -> (string -> unit Lwt.t) -> unit
+  val register : string -> (string -> unit Lwt.t) -> unit
 
   (* [unregister c] cancels all registration on channel [c] *)
-  val unregister : Ecc.chan_id_pre -> unit
+  val unregister : string -> unit
 
   (* [registered c] is [true] if [c] has already been registered, else it's
    * [false] *)
-  val registered : Ecc.chan_id_pre -> bool
+  val registered : string -> bool
 
   (* started is true when the engine is running and false otherwise *)
   val running : bool React.S.t
@@ -125,7 +125,7 @@ end = struct
   (* Managing registration set (map actually) *)
 
   module Cmap =
-    Map.Make (struct type t = Ecc.chan_id_pre let compare = compare end)
+    Map.Make (struct type t = string let compare = compare end)
 
   let cmap = ref Cmap.empty
 
@@ -218,22 +218,32 @@ end = struct
 end
 
 
-(* Unwrapping of channels *)
+module Channels =
+struct
 
-let unwrap (c : 'a Ecc.chan_id Eliom_client_types.data_key) : 'a Ecc.chan_id =
-  Eliommod_client.unwrap c
-
-
-module Registration :
-sig
-
-  val register : 'a Ecc.chan_id -> ('a -> unit Lwt.t) -> unit
-  val unregister : 'a Ecc.chan_id -> unit
-
-end = struct
+  let unwrap (c : 'a Ecc.chan_id Eliom_client_types.data_key) : 'a Ecc.chan_id =
+    Eliommod_client.unwrap c
 
   let decode s = Marshal.from_string s 0
-  let register c f = Engine.register c (fun x -> f (decode x))
+  let register c f =
+    Engine.register
+      (Ecc.string_of_chan_id c)
+      (fun x -> f (decode x))
+  let unregister c = Engine.unregister c
+
+end
+
+module Buffered_channels =
+struct
+
+  let unwrap (c : 'a Ecc.buffered_chan_id Eliom_client_types.data_key) : 'a Ecc.buffered_chan_id =
+    Eliommod_client.unwrap c
+
+  let decode s = Marshal.from_string s 0
+  let register c f =
+    Engine.register
+      (Ecc.string_of_buffered_chan_id c)
+      (fun l -> Lwt_list.iter_s (fun (x, _) -> f x) (decode l))
   let unregister c = Engine.unregister c
 
 end

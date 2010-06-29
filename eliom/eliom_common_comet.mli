@@ -20,5 +20,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-type chan_id_pre = string
-type 'a chan_id = chan_id_pre
+type 'a chan_id
+type 'a buffered_chan_id
+
+val string_of_chan_id : 'a chan_id -> string
+val chan_id_of_string : string -> 'a chan_id
+val string_of_buffered_chan_id : 'a buffered_chan_id -> string
+val buffered_chan_id_of_string : string -> 'a buffered_chan_id

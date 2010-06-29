@@ -30,9 +30,9 @@ struct
         (c : 'a Eliom_common_comet.chan_id Eliom_client_types.data_key)
         : 'a React.E.t
     =
-    let chan : string = Eliom_client_comet.unwrap c in
+    let chan : string = Eliom_client_comet.Channels.unwrap c in
     let (e, push) = React.E.create () in
-    Eliom_client_comet.Registration.register
+    Eliom_client_comet.Channels.register
       chan
       (fun s -> push s ; Lwt.return ()) ;
     e

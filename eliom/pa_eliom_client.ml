@@ -80,7 +80,9 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
       ("node",
        (<:expr<Eliommod_client.wrap_node ~sp>>, <:expr<Eliommod_client.unwrap_node>>));
       ("channel",
-       (<:expr<Eliom_comet.wrap ~sp>>, <:expr<Eliom_client_comet.unwrap>>));
+       (<:expr<Eliom_comet.Channels.wrap ~sp>>, <:expr<Eliom_client_comet.Channels.unwrap>>));
+      ("buffchan",
+       (<:expr<Eliom_comet.Buffered_channels.wrap ~sp>>, <:expr<Eliom_client_comet.Buffered_channels.unwrap>>));
       ("up_event",
        (<:expr<Eliom_event.Up.wrap>>, <:expr<Eliom_client_event.Up.unwrap ~sp>>));
       ("down_event",

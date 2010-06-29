@@ -30,6 +30,9 @@
  * WebSockets support.
  *)
 
+
+(*** PREAMBLE ***)
+
 (* Shortening names of modules *)
 module OFrame  = Ocsigen_http_frame
 module OStream = Ocsigen_stream
@@ -41,38 +44,7 @@ module Pxml    = Simplexmlparser
 let ( >>= ) = Lwt.( >>= )
 let ( >|= ) = Lwt.( >|= ) (* AKA map, AKA lift *)
 
-(* A few React related functions... TODO: move to some appropriate place *)
-
-let create_half_primitive evt =
-  let (prim_evt, prim_push) = React.E.create () in
-  (React.E.select [evt ; prim_evt], prim_push)
-
-let branch f e =
-  let ee = React.E.map f e in
-  (React.E.map fst ee, React.E.map snd ee)
-
-
-
-(* a tiny deforestating addition to Lwt library : filter_map *)
-let filter_map_rev_s func lst =
-  let rec aux accu = function
-    | [] -> Lwt.return accu
-    | x::xs -> func x >>= (function
-        | Some y -> aux (y :: accu) xs
-        | None -> aux accu xs)
-  in aux [] lst
-let filter_map_s f l =
-  filter_map_rev_s f l >|= List.rev
-
-let filter_map f l =
-  let rec aux accu = function
-    | [] -> List.rev accu
-    | x::xs -> (match f x with
-                  | None -> aux accu xs
-                  | Some y -> aux (y::accu) xs
-      )
-  in aux [] l
-
+(* small addition to the standard library *)
 let filter_map_accu func lst accu =
   let rec aux accu = function
     | [] -> accu
@@ -82,22 +54,33 @@ let filter_map_accu func lst accu =
   in
     aux accu lst
 
+
+
+(*** EXTENSION OPTIONS ***)
+
+
 (* timeout for comet connections : if no value has been written in the ellapsed
  * time, connection will be closed. Should be equal to client timeout. *)
-(*TODO: make value customizable via conf file *)
 let timeout = 20.
 
 (* the size initialization for the channel hashtable *)
 (*TODO: make value customizable via conf file *)
 let tbl_initial_size = 42
 
-(*TODO: make value customizable vi conf file *)
-let channel_throttling = 1.
+(*TODO: make value customizable via conf file *)
+let max_virtual_channels = None
+let max_actual_channels = None
 
-(*TODO: keep track of client count and provide a way to limit it *)
+
+(*** CORE ***)
 
 module Channels :
 sig
+
+  exception Too_many_virtual_channels
+    (* raised when calling [create] while [max_virtual_channels] is [Some x] and
+     * creating a new channel would make the virtual channel count greater than
+     * [x]. *)
 
   type chan
     (* the type of channels :
@@ -105,22 +88,23 @@ sig
      *)
   type chan_id = string
 
-  val create : string React.E.t -> chan
+  val create : (string * int option) React.E.t -> chan
     (* creating a fresh virtual channel, a client can request registraton to  *)
 
-  val read : chan -> string React.E.t
+  val read : chan -> (string * int option) React.E.t
     (* [read ch] is an event with occurrences for each occurrence of the event
      * used to create the channel. *)
 
-  val change_listeners : chan -> int -> unit
-    (* [change_listeners c x] adds [x] to [listeners c]. Note that [x] might be
-     * negative. *)
-
-  val outcomes : chan -> (OStream.outcome * string) React.E.t
+  val outcomes : chan -> (OStream.outcome * int) React.E.t
     (* The result of writes on the channel. [`Failure,s] on a failed [write s]
      * and [`Success,s] on a successful [write s].*)
-  val send_outcome : chan -> (OStream.outcome * string) -> unit
+  val send_outcome : chan -> (OStream.outcome * int) -> unit
     (* triggers the [outcomes] event associated to the channel. *)
+
+  val listeners : chan -> int React.S.t
+    (* The up-to-date count of registered clients *)
+  val send_listeners : chan -> int -> unit
+    (* [send_listeners c i] adds [i] to [listeners c]. [i] may be negative. *)
 
   val find_channel : chan_id -> chan
     (* may raise Not_found if the channel was collected or never created.
@@ -132,14 +116,17 @@ sig
 
 end = struct
 
+  exception Too_many_virtual_channels
+
   type chan_id = string
   type chan =
       {
         ch_id : chan_id ;
-        ch_client_event : string React.E.t ;
-        ch_listen    : int -> unit ;
-        ch_tell_outcome : (OStream.outcome * string) -> unit ;
-        ch_outcomes     : (OStream.outcome * string) React.E.t ;
+        ch_client_event   : (string * int option) React.E.t ;
+        ch_tell_outcome   : (OStream.outcome * int) -> unit ;
+        ch_outcomes       : (OStream.outcome * int) React.E.t ;
+        ch_tell_listeners : int -> unit ;
+        ch_listeners      : int React.S.t ;
       }
 
   let get_id ch = ch.ch_id
@@ -163,57 +150,61 @@ end = struct
    * have to create a dummy channel in order to retreive the original channel.
    * Is there a KISSer way to do that ? *)
   let (dummy1, _) = React.E.create ()
-  let dummy2 _ = ()
-  let (dummy4, dummy3) = React.E.create ()
+  let (dummy3, dummy2) = React.E.create ()
+  let (dummy5, dummy4) = React.S.create 0
   let dummy_chan i =
     {
       ch_id = i ;
       ch_client_event = dummy1 ;
-      ch_listen       = dummy2 ;
-      ch_tell_outcome = dummy3 ;
-      ch_outcomes     = dummy4 ;
+      ch_tell_outcome = dummy2 ;
+      ch_outcomes     = dummy3 ;
+      ch_tell_listeners = dummy4 ;
+      ch_listeners      = dummy5 ;
     }
 
   (* May raise Not_found *)
   let find_channel i =
     CTbl.find ctbl (dummy_chan i)
 
+  (* virtual channel count *)
+  let (chan_count, incr_chan_count, decr_chan_count) =
+    let cc = ref 0 in
+    ((fun () -> !cc), (fun () -> incr cc), (fun _ -> decr cc))
+  let maxed_out_virtual_channels () = match max_virtual_channels with
+    | None -> false
+    | Some y -> chan_count () >= y
+
+
   (* creation : newly created channel is stored in the map as a side effect *)
-  let create client_event_pre =
-    let client_event =
-      Lwt_event.limit
-        (fun () -> Lwt_unix.sleep channel_throttling)
-        client_event_pre
-    in
-
-    let (listen_event, tell_listen) = React.E.create () in
-    let listeners = React.S.fold (+) 0 listen_event in
-
-    let (outcomes_pre, tell_outcome) = React.E.create () in
-    let outcomes =
-      React.E.select (* These events can not be simultaneous ! *)
-        [ outcomes_pre ;
-          React.E.when_
-            (React.S.l1 ((=) 0) listeners)
-            (React.E.map (fun s -> (`Failure, s)) client_event)
-        ]
-    in
-
-    let ch =
-      {
-        ch_id = new_id () ;
-        ch_client_event = client_event ;
-        ch_listen       = tell_listen  ;
-        ch_outcomes     = outcomes     ;
-        ch_tell_outcome = tell_outcome ;
-      }
-    in CTbl.add ctbl ch ; ch
+  let create client_event =
+    if maxed_out_virtual_channels ()
+    then raise Too_many_virtual_channels
+    else
+      let (listeners_e, tell_listeners) = React.E.create () in
+      let listeners = React.S.fold (+) 0 listeners_e in
+      let (outcomes, tell_outcome) = React.E.create () in
+      let ch =
+        {
+          ch_id = new_id () ;
+          ch_client_event = client_event ;
+          ch_outcomes     = outcomes     ;
+          ch_tell_outcome = tell_outcome ;
+          ch_tell_listeners = tell_listeners ;
+          ch_listeners      = listeners ;
+        }
+      in
+        incr_chan_count ();
+        CTbl.add ctbl ch;
+        (*TODO: document use of Gc.finalise in comments about Too_many_virtual_channels*)
+        Gc.finalise decr_chan_count ch;
+        ch
 
   (* reading a channel : just getting a hang on the reader thread *)
   let read ch = ch.ch_client_event
 
   (* listeners *)
-  let change_listeners ch x = ch.ch_listen x
+  let listeners ch = ch.ch_listeners
+  let send_listeners ch x = ch.ch_tell_listeners x
 
   (* outcomes *)
   let outcomes ch = ch.ch_outcomes
@@ -243,7 +234,7 @@ sig
        to. *)
 
   val encode_downgoing :
-    (Channels.chan * string) list option -> string OStream.t
+    (Channels.chan * string * int option) list option -> string OStream.t
     (* Encode outgoing messages : results in the stream to send to the client *)
 
 end = struct
@@ -301,12 +292,16 @@ end = struct
     String.concat
       channel_separator
       (List.map
-         (fun (c,s) -> Channels.get_id c ^ field_separator ^ url_encode s)
+         (fun (c, s, _) -> Channels.get_id c ^ field_separator ^ url_encode s)
          l)
 
   let stream_result_notification l outcome =
     (*TODO: find a way to send outcomes simultaneously *)
-    List.iter (fun (c,s) -> Channels.send_outcome c (outcome, s)) l ;
+    List.iter
+      (function
+         | (c, _, Some x) -> Channels.send_outcome c (outcome, x)
+         | (_, _, None) -> ()
+      ) l ;
     Lwt.return ()
 
   let encode_downgoing = function
@@ -329,37 +324,28 @@ sig
 
 end = struct
 
-  (* A timeout that return a choosen value instead of failing *)
-  let armless_timeout t r =
-    Lwt.catch
-      (fun () -> Lwt_unix.timeout t)
-      (function
-         | Lwt_unix.Timeout -> Lwt.return r
-         | exc -> Lwt.fail exc
-      )
+  let react_timeout t v =
+    let (e, s) = React.E.create () in
+    let _ = Lwt_unix.sleep t >|= fun () -> s v in
+    e
 
   (* Once channel list is obtain, use this function to return a thread that
    * terminates when one of the channel is written upon. *)
   let treat_decoded chans =
-    (*RRR: [merged] must be created before changing listeners. If not,
-     * an application's message written on one of the merged channels as a
-     * REACTion of listeners change won't reach the client. *)
     let merged =
-      Lwt_event.next (
         React.E.merge
           (fun acc v -> v :: acc)
           []
           (List.map
-             (fun c -> React.E.map (fun v -> (c, v)) (Channels.read c))
+             (fun c -> React.E.map (fun (v, x) -> (c, v, x)) (Channels.read c))
              chans)
-      )
     in
-    (*TODO: find a way to change all these simultaneously *)
-    List.iter (fun c -> Channels.change_listeners c 1) chans ;
-    Lwt.choose [ (merged >|= fun x -> Some x) ;
+    List.iter (fun c -> Channels.send_listeners c 1) chans ;
+    let nexted = Lwt_event.next merged in
+    Lwt.choose [ (nexted >|= fun x -> Some x) ;
                  (Lwt_unix.sleep timeout >|= fun () -> None) ;
                ] >|= fun x ->
-    List.iter (fun c -> Channels.change_listeners c (-1)) chans ;
+    List.iter (fun c -> Channels.send_listeners c (-1)) chans ;
     Messages.encode_downgoing x
 
   (* This is just a mashup of the other functions in the module. *)
@@ -380,6 +366,10 @@ let rec has_comet_content_type = function
   | ("application", "x-ocsigen-comet") :: _ -> true
   | _ :: tl -> has_comet_content_type tl
 
+
+
+(*** MAIN FUNCTION ***)
+
 let main = function
 
   | OX.Req_found _ -> (* If recognized by some other extension... *)
@@ -396,6 +386,8 @@ let main = function
 
 
 
+
+(*** EPILOGUE ***)
 
 (* registering extension and the such *)
 let parse_config _ _ _ = function
