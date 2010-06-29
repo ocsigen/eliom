@@ -22,12 +22,13 @@
 
 
 let (>>=) = Lwt.bind
+let (!!) = Lazy.force
 
 let make_full_group_name ri site_dir_string ipv4mask ipv6mask = function
   | None -> (site_dir_string, 
              Ocsigen_lib.Right 
                (Ocsigen_lib.network_of_ip
-                  (Lazy.force ri.Ocsigen_extensions.ri_remote_ip_parsed)
+                  (!!(ri.Ocsigen_extensions.ri_remote_ip_parsed))
                   ipv4mask
                   ipv6mask
                ))
@@ -198,8 +199,12 @@ let cut n l =
 
 module Pers = struct
 
-  let grouptable : (nbmax * string list) Ocsipersist.table =
-    Ocsipersist.open_table "__eliom_session_group_table"
+  let grouptable : (nbmax * string list) Ocsipersist.table Lazy.t =
+    lazy (Ocsipersist.open_table "__eliom_session_group_table")
+      (* It is lazy because if the module is linked statically,
+         the creation of the table must happen after initialisation
+         of ocsipersist (after reading the configuration file to know
+         the location of the table) *)
 
   let find g =
     match g with
@@ -207,7 +212,7 @@ module Pers = struct
     | Some g ->
         Lwt.catch
           (fun () ->
-             Ocsipersist.find grouptable g >>= fun (_, a) ->
+             Ocsipersist.find !!grouptable g >>= fun (_, a) ->
              Lwt.return a)
           (function
             | Not_found -> Lwt.return []
@@ -218,7 +223,7 @@ module Pers = struct
     | Some sg ->
         Lwt.catch
           (fun () ->
-            Ocsipersist.find grouptable sg >>= fun (max2, cl) ->
+            Ocsipersist.find !!grouptable sg >>= fun (max2, cl) ->
             let max, newmax = match set_max with
               | None -> ((match max2 with
                             | Default -> defaultmax
@@ -228,7 +233,7 @@ module Pers = struct
               | Some (Some v) -> Some v, Val v
             in
             let cl, toclose = cut max cl in
-            Ocsipersist.replace_if_exists grouptable sg (newmax, (sess_id::cl))
+            Ocsipersist.replace_if_exists !!grouptable sg (newmax, (sess_id::cl))
             >>= fun () ->
             Lwt.return toclose)
           (function
@@ -238,7 +243,7 @@ module Pers = struct
                   | Some None -> Nolimit
                   | Some (Some v) -> Val v
                 in
-                Ocsipersist.add grouptable sg (max, [sess_id]) >>= fun () ->
+                Ocsipersist.add !!grouptable sg (max, [sess_id]) >>= fun () ->
                 Lwt.return []
             | e -> Lwt.fail e)
     | None -> Lwt.return []
@@ -248,11 +253,11 @@ module Pers = struct
     | Some sg ->
         Lwt.catch
           (fun () ->
-             Ocsipersist.find grouptable sg >>= fun (max, cl) ->
+             Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
              let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
              (match newcl with
-                | [] -> Ocsipersist.remove grouptable sg
-                | _ -> Ocsipersist.replace_if_exists grouptable sg (max, newcl)
+                | [] -> Ocsipersist.remove !!grouptable sg
+                | _ -> Ocsipersist.replace_if_exists !!grouptable sg (max, newcl)
              )
           )
           (function
@@ -262,7 +267,7 @@ module Pers = struct
 
   let remove_group sess_grp =
     match sess_grp with
-    | Some sess_grp -> Ocsipersist.remove grouptable sess_grp
+    | Some sess_grp -> Ocsipersist.remove !!grouptable sess_grp
     | None -> Lwt.return ()
 
   let up sess_id grp =
@@ -271,9 +276,9 @@ module Pers = struct
       | Some sg ->
           Lwt.catch
             (fun () ->
-               Ocsipersist.find grouptable sg >>= fun (max, cl) ->
+               Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
                let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
-               Ocsipersist.replace_if_exists grouptable sg (max, sess_id::newcl)
+               Ocsipersist.replace_if_exists !!grouptable sg (max, sess_id::newcl)
             )
             (function
                | Not_found -> Lwt.return ()
@@ -286,6 +291,6 @@ module Pers = struct
     end
     else Lwt.return []
 
-  let length () = Ocsipersist.length grouptable
+  let length () = Ocsipersist.length !!grouptable
 
 end
