@@ -5287,16 +5287,17 @@ From version 1.2, it is possible to link extensions and Eliom modules
 To initialize the module from the configuration file, use the
   syntax:
           
-
-          %<div class="pre"|<eliommodule name="//name//"> ... </eliom>
+          %<div class="pre"|<eliommodule name="//name//"> ... </eliommodule>
 >%
+(or %<span class="code"|<eliom name="//name//"> ... </eliom> >%)
 
           
 which is equivalent to:
           
 
-          %<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliom>
+          %<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliommodule>
 >%
+(or %<span class="code"|<eliom module="//name.cmxs//"> ... </eliom> >%)
 
           
 with the exception that it does not load the module using %<span class="code"|Dynlink>%, but calls the initialization function.
