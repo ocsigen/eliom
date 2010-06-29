@@ -32,7 +32,7 @@ package "commandline" (
 )
 
 package "server" (
-  requires = "lwt.extra,lwt.ssl,lwt.preemptive,ocsigen.commandline,ocsigen,ocsigen_xhtml,findlib,camlp4.lib"
+  requires = "lwt.extra,lwt.ssl,lwt.preemptive,ocsigen.commandline,ocsigen,ocsigen_xhtml,findlib,camlp4.lib,cryptokit,pcre"
   version = "_VERSION_"
   description = "Ocsigen server library"
   archive(byte) = "ocsigen.cma"
