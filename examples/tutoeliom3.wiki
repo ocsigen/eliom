@@ -2562,7 +2562,14 @@ which is equivalent to:
           
 with the exception that it does not load the module using <<span class="code"|Dynlink>>, but calls the initialization function.
           
-  
+
+Example: if you are using some function like 
+<<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALcreate_volatile_table"|<<span class="code"|Eliom_sessions.create_volatile_table>>>>
+that takes an optional {{{?sp}}} parameter, it means that the function
+needs some information about the site (here, volatile tables are associated to a site). Either you want to create the table during a service (and in that case you must give the {{{~sp}}} parameter that contains the information about the site), or you want to create the table during the initialization phase, and in that case the table must be created during the function given to <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|<<span class="code"|Eliom_services.register_eliom_module>>>>.
+(One solution is to use a lazy value to delay the creation of the table,
+and force that value during the registration function).
+
         >>
 
 
