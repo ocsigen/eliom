@@ -450,6 +450,21 @@ Note that persistent data are serialized on hard drive using
  chance a client with an old cookie reconnects, you get a segfault on the
  server, because of the type change in the data stored in the DB backend ...
    
+It is possible to customize the location of the database on the 
+file system. For example, with sqlite:
+<<div class="pre"|
+    <extension findlib-package="ocsigen.ext.ocsipersist-sqlite">
+      <database file="_DATADIR_/ocsidb"/>
+    </extension>
+ >>
+And with DBM, you can customize the location of the database and the
+name of the {{{ocsidbm}}} process you want to use:
+<<div class="pre"|
+    <extension findlib-package="ocsigen.ext.ocsipersist-dbm">
+      <store dir="_DATADIR_"/>
+      <ocsidbm name="_EXTRALIBDIR_/ocsidbm"/>
+    </extension>
+ >>
           
 
           ====Persistent references
