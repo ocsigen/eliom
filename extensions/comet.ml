@@ -45,15 +45,14 @@ let ( >>= ) = Lwt.( >>= )
 let ( >|= ) = Lwt.( >|= ) (* AKA map, AKA lift *)
 
 (* small addition to the standard library *)
-let filter_map_accu func lst accu =
-  let rec aux accu = function
-    | [] -> accu
+let map_rev_accu_split func lst accu1 accu2 =
+  let rec aux accu1 accu2 = function
+    | [] -> (accu1, accu2)
     | x :: xs -> match func x with
-        | Some y -> aux (y :: accu) xs
-        | None -> aux accu xs
+        | OLib.Left y -> aux (y :: accu1) accu2 xs
+        | OLib.Right y -> aux accu1 (y :: accu2) xs
   in
-    aux accu lst
-
+    aux accu1 accu2 lst
 
 
 (*** EXTENSION OPTIONS ***)
@@ -229,13 +228,18 @@ sig
   exception Incorrect_encoding
 
   val decode_upcomming :
-    OX.request -> Channels.chan list Lwt.t
+    OX.request -> (Channels.chan list * Channels.chan_id list) Lwt.t
     (* decode incomming message : the result is the list of channels to listen
-       to. *)
+       to (on the left) or to signal non existence (on the right). *)
 
   val encode_downgoing :
-    (Channels.chan * string * int option) list option -> string OStream.t
-    (* Encode outgoing messages : results in the stream to send to the client *)
+       string
+    -> (Channels.chan * string * int option) list option
+    -> string OStream.t
+    (* Encode outgoing messages : the first argument is the end notice
+       (obtained via encode_ended) results in the stream to send to the client*)
+
+  val encode_ended : Channels.chan_id list -> string
 
 end = struct
 
@@ -248,23 +252,24 @@ end = struct
   let url_encode x = OLib.encode ~plus:false x
 
   (* string -> Channels.chan list -> Channels.chan list *)
-  let decode_string s accu =
-    filter_map_accu
+  let decode_string s accu1 accu2 =
+    map_rev_accu_split
       (fun s ->
-         try Some (Channels.find_channel s)
-         with | Not_found -> None
+         try OLib.Left (Channels.find_channel s)
+         with | Not_found -> OLib.Right s
       )
       (Netstring_pcre.split channel_separator_regexp s)
-      accu
+      accu1
+      accu2
 
   (* (string * string) list -> (Channels.chan list * (unit -> unit) list) *)
   let decode_param_list params =
-    let rec aux tmp_reg = function
-      | [] -> tmp_reg
-      | ("registration", s) :: tl -> aux (decode_string s tmp_reg) tl
-      | _ :: tl -> aux tmp_reg tl
+    let rec aux ((tmp_reg, tmp_end) as tmp) = function
+      | [] -> (tmp_reg, tmp_end)
+      | ("registration", s) :: tl -> aux (decode_string s tmp_reg tmp_end) tl
+      | _ :: tl -> aux tmp tl
     in
-      aux [] params
+      aux ([], []) params
 
   (* OX.request -> Channels.chan list Lwt.t *)
   let decode_upcomming r =
@@ -295,6 +300,11 @@ end = struct
          (fun (c, s, _) -> Channels.get_id c ^ field_separator ^ url_encode s)
          l)
 
+  let encode_ended l =
+    String.concat
+      channel_separator
+      (List.map (fun c -> c ^ field_separator ^ "ENDED_CHANNEL") l)
+
   let stream_result_notification l outcome =
     (*TODO: find a way to send outcomes simultaneously *)
     List.iter
@@ -304,10 +314,15 @@ end = struct
       ) l ;
     Lwt.return ()
 
-  let encode_downgoing = function
-    | None -> OStream.of_string ""
+  let encode_downgoing s = function
+    | None -> OStream.of_string s
     | Some l ->
-        let stream = OStream.of_string (encode_downgoing_non_opt l) in
+        let stream =
+          OStream.of_string
+            (match s with
+               | "" -> encode_downgoing_non_opt l
+               | _ -> s ^ field_separator ^ encode_downgoing_non_opt l)
+        in
         OStream.add_finalizer stream (stream_result_notification l) ;
         stream
 
@@ -331,33 +346,53 @@ end = struct
 
   (* Once channel list is obtain, use this function to return a thread that
    * terminates when one of the channel is written upon. *)
-  let treat_decoded chans =
-    let merged =
-        React.E.merge
-          (fun acc v -> v :: acc)
-          []
-          (List.map
-             (fun c -> React.E.map (fun (v, x) -> (c, v, x)) (Channels.read c))
-             chans)
-    in
-    List.iter (fun c -> Channels.send_listeners c 1) chans ;
-    let nexted = Lwt_event.next merged in
-    Lwt.choose [ (nexted >|= fun x -> Some x) ;
-                 (Lwt_unix.sleep timeout >|= fun () -> None) ;
-               ] >|= fun x ->
-    List.iter (fun c -> Channels.send_listeners c (-1)) chans ;
-    Messages.encode_downgoing x
+  let treat_decoded (chans, dead_chans) = match (chans, dead_chans) with
+    | [], [] -> (* error : empty request *)
+        Lwt.return
+          { (OFrame.default_result ()) with
+               OFrame.res_stream =
+                 (OStream.of_string "Empty or incorrect registration", None) ;
+               OFrame.res_code = 400 ;(* BAD REQUEST *)
+               OFrame.res_content_type = Some "text/html" ;
+          }
+
+    | [], (_::_ as ended) ->
+        let end_notice = Messages.encode_ended ended in
+        Lwt.return
+          { (OFrame.default_result ()) with
+               OFrame.res_stream = (OStream.of_string end_notice, None) ;
+               OFrame.res_content_type = Some "text/html" ;
+          }
+
+    | (_::_ as active), ended ->
+        let merged =
+          React.E.merge
+            (fun acc v -> v :: acc)
+            []
+            (List.map
+               (fun c -> React.E.map
+                           (fun (v, x) -> (c, v, x))
+                           (Channels.read c)
+               )
+               active
+            )
+        in
+        List.iter (fun c -> Channels.send_listeners c 1) chans ;
+        let nexted = Lwt_event.next merged in
+        Lwt.choose [ (nexted >|= fun x -> Some x) ;
+                     (Lwt_unix.sleep timeout >|= fun () -> None) ;
+                   ] >|= fun x ->
+        List.iter (fun c -> Channels.send_listeners c (-1)) chans ;
+        let s = Messages.encode_downgoing (Messages.encode_ended ended) x in
+        { (OFrame.default_result ()) with
+             OFrame.res_stream = (s, None) ;
+             OFrame.res_content_length = None ;
+             OFrame.res_content_type = Some "text/html" ;
+        }
+
 
   (* This is just a mashup of the other functions in the module. *)
-  let main r () =
-    Messages.decode_upcomming r >>=
-    treat_decoded >|= fun stream ->
-    { (OFrame.default_result ()) with
-          OFrame.res_stream = (stream, None) ;
-          OFrame.res_content_length = None ;
-          OFrame.res_content_type = Some "text/html" ;
-    }
-
+  let main r () = Messages.decode_upcomming r >>= treat_decoded
 
 end
 

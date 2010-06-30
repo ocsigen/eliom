@@ -517,7 +517,7 @@ let comet1 =
                      (fun i ->
                         Dom.appendChild (Dom_html.document##body)
                           (Dom_html.document##createTextNode
-                             (Js.string ("public: " ^ string_of_int i))) ;
+                             (Js.string ("public: "^ string_of_int i ^";  "))) ;
                         Lwt.return ()
                      )
                 }} ]
@@ -528,7 +528,7 @@ let comet1 =
                      (fun i ->
                         Dom.appendChild (Dom_html.document##body)
                           (Dom_html.document##createTextNode
-                             (Js.string ("private: " ^ string_of_int i))) ;
+                             (Js.string ("private: "^ string_of_int i ^"; "))) ;
                         Lwt.return ()
                      )
                 }} ]

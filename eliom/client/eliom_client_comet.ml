@@ -170,7 +170,10 @@ end = struct
                        (fun (c,m) ->
                           (*RRR: create the thread immediatly so that canceling
                            * can't happen here !*)
-                          try let _ = (Cmap.find c !cmap) m in ()
+                          try
+                            if m = "ENDED_CHANNEL"
+                            then unregister c
+                            else let _ = (Cmap.find c !cmap) m in ()
                           with Not_found -> ()
                        )
                        (Messages.decode_downcoming msg) ;
