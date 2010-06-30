@@ -100,18 +100,49 @@ sig
   exception Value_larger_than_buffer_max_size
 
   type 'a t
+  (* The type of buffers with values of type ['a]. See [create] comment for
+   * explanations. *)
 
   val create :
     max_size:int -> sizer:('a -> int) -> timer:('a -> float option) -> 'a t
+    (* [create ~max_size ~sizer ~timer] makes a buffer respecting the following
+       conditions :
+       * the sum of the size of elements won't (ever) be more than [max_size]
+       * an elements size is measured once with the function [sizer]
+       * when pushing a value [x], if [timer x] is [Some t] then [x] will be
+         thrown away after [t] seconds
+       This data structure is used to temporarily store information. *)
 
   val set_max_size : int -> 'a t -> unit
+    (* The [max_size] value may be changed at any time. Obviously, it won't
+     * bring back lost values... *)
 
-  val is_empty : 'a t -> bool    (* true if argument is empty *)
-  val push : 'a -> 'a t -> unit  (*may raise Value_larger_than_buffer_max_size*)
-  val pop : 'a t -> 'a option    (* None if empty buffer *)
-  val pop_all : 'a t -> 'a list  (* empty list if empty buffer *)
-  val peek : 'a t -> 'a option   (* None if empty buffer *)
+  val is_empty : 'a t -> bool
+    (* [is_empty t] is true if [t] contains no value *)
+
+  val push : 'a -> 'a t -> unit
+    (* [push x t] places [x] into buffer [t]. Some values in [t] may be thrown
+     * away if space is required. Additionally,
+     * [Value_larger_than_buffer_max_size] may be raised if [sizer x] is greater
+     * then [max_size]. *)
+
+  val pop : 'a t -> 'a option
+    (* [pop t] returns [None] if [t] is empty and [Some x] if [x] is the oldest
+     * still alive value pushed into [t]. *)
+
+  val pop_all : 'a t -> 'a list
+    (* [pop_all t] returns the list of all available values in [t] (all but the
+     * lost ones). *)
+
+  val peek : 'a t -> 'a option
+    (* [peek t] is [None] if [t] is empty and [Some x] if [x] is the oldest yet
+     * alive value in [t]. Note that peeking two times in a row may bring
+     * different results as the value may be lost when it's time is up. *)
+
   val junk_until : ('a -> bool) -> 'a t -> unit
+    (* [junk_until f t] starts casting old values in [t] into oblivion. It stops
+     * as soon as it encounters a value [x] such as [f x] is true (in which case
+     * [x] is not lost). *)
 
 end = struct
 
@@ -157,8 +188,6 @@ end = struct
       b_sizer    = sizer ;
       b_timer    = timer ;
     }
-
-  let is_empty {b_queue = q} = Queue.is_empty q
 
   let peek t =
     let rec aux () =
@@ -220,6 +249,10 @@ end = struct
     in
       aux ()
 
+  let is_empty t = match peek t with
+    | None -> true
+    | Some _ -> false
+
 end
 
 
@@ -241,7 +274,7 @@ sig
 
 end = struct
 
-  type 'a chan = ('a Channels.chan * int)
+  type 'a chan = ('a Channels.chan * int ref)
 
   let create ~max_size ?(sizer = fun _ -> 1) ?(timer = fun _ -> None) e_pre =
 
@@ -293,9 +326,10 @@ end = struct
       Lwt_event.notify_p
         (fun x ->
            Buffers.push (x, index ()) buff ;
+           Lwt.pause () >|= fun () ->
            if React.S.value (Channels.listeners chan) = 0
-           then Lwt.return ()
-           else Lwt.pause () >|= buff_push
+           then ()
+           else buff_push ()
         )
         e_pre
     in
@@ -312,7 +346,7 @@ end = struct
 
     (* cleaning *)
     (*TODO: find a better way to manage memory. *)
-    let collectable = Random.int 2 in
+    let collectable = ref (Random.int 2) in
     let finaliser _ =
       Lwt_event.disable not1 ;
       Lwt_event.disable not2 ;

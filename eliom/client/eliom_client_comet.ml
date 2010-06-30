@@ -100,8 +100,9 @@ sig
 end = struct
 
   (* Primitive events for the reactive engine *)
-  let (start_e, start) = React.E.create ()
-  let (stop_e,  stop)  = React.E.create ()
+  let (start_e,   start  ) = React.E.create ()
+  let (stop_e,    stop   ) = React.E.create ()
+  let (restart_e, restart) = React.E.create ()
 
   (* derivated events and signals *)
   let running =
@@ -112,14 +113,12 @@ end = struct
            React.E.map (fun () -> false) stop_e ; ]
       )
 
-  let (restart_e, restart) =
-    let (restart_e_pre, restart) = React.E.create () in
-    (React.E.map (fun () -> true) restart_e_pre, restart)
-
-  (* This event also capture restarts for internal use only ! *)
   let running_changes =
-    (* these two events can't be simultaneous ! *)
-    React.E.select [ React.S.changes running ; restart_e ]
+    React.E.select
+      [
+        React.S.changes running;
+        React.E.map (fun () -> true) restart_e;
+      ]
 
 
   (* Managing registration set (map actually) *)
@@ -158,7 +157,7 @@ end = struct
               | 0 | 3 | 4 -> (stop () ; Lwt.return ())
           (* treat semi-failure *)
               | 1 -> run slp
-              | 5 -> begin
+              | 5 -> begin (* server error *)
                    Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
                    run (2. *. slp)
                 end
@@ -166,14 +165,17 @@ end = struct
               | 2 -> begin
                   (if msg = "" (* no server message *)
                    then Lwt.return ()
-                   else
-                     Lwt_list.iter_p
+                   else begin
+                     List.iter
                        (fun (c,m) ->
-                          try (Cmap.find c !cmap) m
-                          with Not_found -> Lwt.return ()
+                          (*RRR: create the thread immediatly so that canceling
+                           * can't happen here !*)
+                          try let _ = (Cmap.find c !cmap) m in ()
+                          with Not_found -> ()
                        )
-                       (Messages.decode_downcoming msg)
-                  ) >>= fun () -> run 1. (* reset sleeping counter *)
+                       (Messages.decode_downcoming msg) ;
+                     Lwt.return ()
+                   end) >>= fun () -> run 1. (* reset sleeping counter *)
                 end
           (* other response code is a serious problem. It can happen when going
            * offline. *)
@@ -183,8 +185,6 @@ end = struct
                | Messages.Incorrect_encoding ->
                    (Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
                     run (2. *. slp))
-                 (* cancel should be catched in http_post_with_content_type if
-                  * thrown before reception. *)
                | Lwt.Canceled -> Lwt.return ()
                | e ->
                    (stop () ;
@@ -199,16 +199,14 @@ end = struct
       (function
          | true  ->
              begin match !run_thread with
-   (*  start*) | None   -> run_thread := Some (run 1.) ;
-                           Lwt.return ()
-   (*restart*) | Some t -> Lwt.cancel t ; run_thread := None ; (*stop*)
-                           run_thread := Some (run 1.) ;       (*start*)
-                           Lwt.return ()
+   (*  start*) | None   -> run_thread := Some (run 1.) ; Lwt.return ()
+   (*restart*) | Some t -> Lwt.cancel t ; run_thread := None ; (*stop *)
+                           Lwt_js.yield () >|= fun () ->       (*pause*)
+                           run_thread := Some (run 1.)         (*start*)
              end
          | false ->
             begin match !run_thread with
-   (*  stop*) | Some t -> Lwt.cancel t ; run_thread := None ;
-                          Lwt.return ()
+   (*  stop*) | Some t -> Lwt.cancel t ; run_thread := None ; Lwt.return ()
    (*ignore*) | None   -> Lwt.return ()
             end
       )
@@ -229,7 +227,7 @@ struct
     Engine.register
       (Ecc.string_of_chan_id c)
       (fun x -> f (decode x))
-  let unregister c = Engine.unregister c
+  let unregister c = Engine.unregister (Ecc.string_of_chan_id c)
 
 end
 
@@ -244,6 +242,6 @@ struct
     Engine.register
       (Ecc.string_of_buffered_chan_id c)
       (fun l -> Lwt_list.iter_s (fun (x, _) -> f x) (decode l))
-  let unregister c = Engine.unregister c
+  let unregister c = Engine.unregister (Ecc.string_of_buffered_chan_id c)
 
 end

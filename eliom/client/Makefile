@@ -17,7 +17,7 @@ MLS:= xML.ml xHTML.ml \
 	xhtmltypes.ml eliom_predefmod.ml \
 	eliom_common_comet.ml eliom_client_comet.ml \
 	eliom_client_event.ml
-MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli
+MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli eliom_common_comet.mli
 CMOS=$(MLS:.ml=.cmo)
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx

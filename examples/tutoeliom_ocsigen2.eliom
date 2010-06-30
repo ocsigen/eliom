@@ -494,19 +494,46 @@ let comet1 =
   Eliom_appl.register_new_service
     ~path:["comet1"]
     ~get_params:unit
-    (fun sp () () -> Lwt.return
-       [
-         div
-           [pcdata "To fully understand the meaning of this, use a \
-                    couple browsers on this page."] ;
-         div
-           ~a:[a_onclick{{ (* The [channel] wrapper keyword is used for channels *)
-                     Eliom_client_comet.Channels.register \channel:c1
-                       (fun s -> Dom_html.window##alert (Js.string s) ; Lwt.return ())
-           }}
-           ]
-           [pcdata "Click here to start public channel listening"] ;
-       ]
+    (fun sp () () ->
+       let (c2, write_c2) =
+         let (e, push_e) = React.E.create () in
+           (Eliom_comet.Buffered_channels.create ~max_size:20 e, push_e)
+       in
+       let t2 = ref 0 in
+       let rec tick_2 () =
+         Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->
+         write_c2 !t2 ; incr t2 ; Lwt.pause () >>= fun () ->
+         write_c2 !t2 ; incr t2 ; write_c2 !t2 ; incr t2 ; tick_2 ()
+       in
+       let _ = tick_2 () in
+       Lwt.return
+         [
+           div
+             [pcdata "To fully understand the meaning of the public channel, \
+                      use a couple browsers on this page."] ;
+           div
+             ~a:[a_onclick{{
+                   Eliom_client_comet.Channels.register \channel:c1
+                     (fun i ->
+                        Dom.appendChild (Dom_html.document##body)
+                          (Dom_html.document##createTextNode
+                             (Js.string ("public: " ^ string_of_int i))) ;
+                        Lwt.return ()
+                     )
+                }} ]
+             [pcdata "Click here to start public channel listening"] ;
+           div
+             ~a:[a_onclick{{
+                   Eliom_client_comet.Buffered_channels.register \buffchan:c2
+                     (fun i ->
+                        Dom.appendChild (Dom_html.document##body)
+                          (Dom_html.document##createTextNode
+                             (Js.string ("private: " ^ string_of_int i))) ;
+                        Lwt.return ()
+                     )
+                }} ]
+             [pcdata "Click here to start private buffered channel listening"] ;
+         ]
     )
 
 (*wiki*
