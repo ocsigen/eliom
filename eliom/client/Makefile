@@ -8,7 +8,7 @@ PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml -syntax camlp4o
 LIBS:=
 MLS:= xML.ml xHTML.ml \
 	eliom_client_types.ml \
-	regexp.ml lwt_obrowser.ml \
+	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
 	eliom_services.ml eliom_uri.ml \

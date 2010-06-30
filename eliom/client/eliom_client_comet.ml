@@ -147,7 +147,7 @@ end = struct
           Lwt.catch (fun () ->
 
           (* make asynchronous request *)
-            XmlHttpRequest.send_asynchronous_request
+            XmlHttpRequest.send
               ~content_type
               ~post_args:[("registration", up_msg)]
               "./"                                       >>= fun (code, msg) ->

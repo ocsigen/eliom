@@ -35,6 +35,9 @@ let unmarshal v =
 
 let appl_instance_id = Js.to_string (Js.Unsafe.variable "appl_instance_id")
 
+let http_get url get_args = XmlHttpRequest.send ~get_args url
+let http_post url post_args = XmlHttpRequest.send ~post_args url
+
 
 let create_request_
     ?absolute ?absolute_path ?https
@@ -196,10 +199,10 @@ let change_page
           g p
      with
        | Ocsigen_lib.Left uri -> 
-           Lwt_obrowser.http_get uri [] >>= fun r ->
+           http_get uri [] >>= fun r ->
            Lwt.return (r, uri)
        | Ocsigen_lib.Right (uri, p) -> 
-           Lwt_obrowser.http_post uri p >>= fun r ->
+           http_post uri p >>= fun r ->
            Lwt.return (r, uri))
     >>= fun ((code, s), uri) ->
     set_inner_html code s >>= fun () ->
@@ -231,8 +234,8 @@ let call_service
      ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
      g p
    with
-     | Ocsigen_lib.Left uri -> Lwt_obrowser.http_get uri []
-     | Ocsigen_lib.Right (uri, p) -> Lwt_obrowser.http_post uri p)
+     | Ocsigen_lib.Left uri -> http_get uri []
+     | Ocsigen_lib.Right (uri, p) -> http_post uri p)
   >>= fun (code, s) ->
   if code = 200
   then Lwt.return s
@@ -281,9 +284,8 @@ let get_subpage
      ?keep_get_na_params
      g p
    with
-     | Ocsigen_lib.Left uri -> 
-         Lwt_obrowser.http_get uri []
-     | Ocsigen_lib.Right (uri, p) -> Lwt_obrowser.http_post uri p)
+     | Ocsigen_lib.Left uri -> http_get uri []
+     | Ocsigen_lib.Right (uri, p) -> http_post uri p)
   >>= fun (code, s) ->
   if code <> 200
   then Lwt.fail (Failed_service code)
@@ -357,7 +359,7 @@ let auto_change_page fragment =
            then String.concat "&" [uri; eliom_appl_nlp]
            else String.concat "?" [uri; eliom_appl_nlp]
          in
-         Lwt_obrowser.http_get uri [] >>= fun (code, s) ->
+         http_get uri [] >>= fun (code, s) ->
          set_inner_html code s
          )
        else Lwt.return ()
