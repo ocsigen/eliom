@@ -146,6 +146,8 @@ sig
 
 end = struct
 
+  (*TODO: make a function to update [size] when some values are time wasted. *)
+
   exception Value_larger_than_buffer_max_size
 
   type 'a disposable_value =
@@ -259,7 +261,7 @@ end
 module Buffered_channels :
 sig
 
-  type 'a chan
+  type 'a chan = 'a Channels.chan * int ref
 
   val create :
        max_size:int -> ?sizer:('a -> int) -> ?timer:('a -> float option)
@@ -305,7 +307,7 @@ end = struct
                raw_push (prepare_content l)
     in
 
-    (* first : for each positive change in the listener count we flush the buffer
+    (* first: for each positive change in the listener count we flush the buffer
        content into the channel (if any). *)
     let not1 =
       Lwt_event.notify_p
@@ -351,7 +353,6 @@ end = struct
       Lwt_event.disable not1 ;
       Lwt_event.disable not2 ;
       Lwt_event.disable not3 ;
-      ignore (Buffers.pop_all buff)
     in
     Gc.finalise finaliser collectable ;
 
@@ -362,8 +363,107 @@ end = struct
     Ecc.buffered_chan_id_of_string
       (Ecc.string_of_chan_id (Channels.get_id c))
 
-  let wrap ~sp (c : 'a chan) : 'a Ecc.buffered_chan_id Eliom_client_types.data_key =
+  let wrap ~sp (c : 'a chan)
+        : 'a Ecc.buffered_chan_id Eliom_client_types.data_key =
     Eliommod_client.wrap ~sp (get_id c)
+
+end
+
+
+module Dlisted_channels :
+sig
+
+  type 'a chan = 'a Buffered_channels.chan
+
+  val create : max_size:int -> 'a React.E.t -> 'a chan
+
+end = struct
+
+  module Dlist = Ocsigen_cache.Dlist
+
+  type 'a chan = 'a Buffered_channels.chan
+
+  let create ~max_size e_pre =
+    (*TODO: prevent max_int related error*)
+    let index = let i = ref 0 in fun () -> incr i ; !i in
+
+    let dlist = Dlist.create max_size in
+
+    let (e, raw_push) = React.E.create () in
+    let chan = Channels.really_create e in
+
+    (* these are intermediary functions *)
+    let prepare_content l =
+      let rec aux accu curr_max = function
+        | [] -> (List.rev accu, Some curr_max)
+        | ((_, i) as v) :: tl -> aux (v :: accu) (max curr_max i) tl
+      in
+        aux [] (-1) l
+    in
+    let dlist_push () = match Dlist.remove_n_oldest dlist max_size with
+      | [] -> ()
+      | l -> List.iter (fun x -> ignore (Dlist.add x dlist)) l ;
+             raw_push (prepare_content l)
+    in
+
+    (* first: for each positive change in the listener count we flush the dlist
+       content into the channel (if any). *)
+    let not1 =
+      Lwt_event.notify_p
+        (fun () ->
+           if Dlist.size dlist = 0
+           then Lwt.return ()
+           else (Lwt.pause () >|= dlist_push)
+        )
+        (React.E.fmap
+           (fun x -> if x > 0 then Some () else None)
+           (React.S.changes (Channels.listeners chan))
+        )
+    in
+
+    (* we also check for listeners before actually pushing *)
+    let not2 =
+      Lwt_event.notify_p
+        (fun x ->
+           Dlist.add (x, index ()) dlist ;
+           Lwt.pause () >|= fun () ->
+           if React.S.value (Channels.listeners chan) = 0
+           then ()
+           else dlist_push ()
+        )
+        e_pre
+    in
+
+    (* finaly we use feedback to remove elements from the dlist when it's ok *)
+    let not3 =
+      Lwt_event.notify
+        (function
+           | `Failure, _ -> ()
+           | `Success, x ->
+               let l = Dlist.remove_n_oldest dlist max_size in
+               List.iter
+                 (fun ((_, y) as v) ->
+                    if x>=y
+                    then ()
+                    else ignore (Dlist.add v dlist)
+                 )
+                 l
+        )
+        (Channels.outcomes chan)
+    in
+
+    (* cleaning *)
+    (*TODO: find a better way to manage memory. *)
+    let collectable = ref (Random.int 2) in
+    let finaliser _ =
+      Lwt_event.disable not1 ;
+      Lwt_event.disable not2 ;
+      Lwt_event.disable not3 ;
+    in
+    Gc.finalise finaliser collectable ;
+
+    (chan, collectable)
+
 
 end
 

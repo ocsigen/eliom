@@ -106,6 +106,10 @@ end
       timeout) or a list of pairs of channel identifiers and message content.
       The pairs are separated by [:] (colon) while the list elements are
       separated by [\n] (newline) characters.
+    * In the list, channels that no longer exists on the server side are marked
+      as pairs of channel identifier and the special string [ENDED_CHANNEL].
+      When receiving such a message, the client should lose hope of ever
+      connecting to that particular channel ever again.
 
   *)
 

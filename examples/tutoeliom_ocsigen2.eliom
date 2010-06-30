@@ -497,7 +497,7 @@ let comet1 =
     (fun sp () () ->
        let (c2, write_c2) =
          let (e, push_e) = React.E.create () in
-           (Eliom_comet.Buffered_channels.create ~max_size:20 e, push_e)
+           (Eliom_comet.Dlisted_channels.create ~max_size:15 e, push_e)
        in
        let t2 = ref 0 in
        let rec tick_2 () =

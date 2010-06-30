@@ -248,6 +248,7 @@ end = struct
   (* constants *)
   let channel_separator = "\n"
   let field_separator = ":"
+  let ended_message = "ENDED_CHANNEL"
   let channel_separator_regexp = Netstring_pcre.regexp channel_separator
   let url_encode x = OLib.encode ~plus:false x
 
@@ -303,7 +304,7 @@ end = struct
   let encode_ended l =
     String.concat
       channel_separator
-      (List.map (fun c -> c ^ field_separator ^ "ENDED_CHANNEL") l)
+      (List.map (fun c -> c ^ field_separator ^ ended_message) l)
 
   let stream_result_notification l outcome =
     (*TODO: find a way to send outcomes simultaneously *)
