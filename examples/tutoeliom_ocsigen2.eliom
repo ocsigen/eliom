@@ -89,8 +89,7 @@ let eliomclient1 =
     (fun sp () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-                        (* with {{ expr }}, the expression is executed by the
-                         * client. *)
+                        (* with {{ expr }}, the expression is executed by the client. *)
                         a_onclick {{Dom_html.window##alert(Js.string "clicked!") ; Lwt.return ()}}]
            [pcdata "I am a clickable paragraph"];
          
@@ -159,11 +158,12 @@ where {{{w}}} is the wrapper keyword and {{{e}}} the sent expression. Note that
 client.
 *wiki*)
 
-(*zap* 
+(*zap* *)
 (*wiki*
   The following examples shows how to do a request to a service,
   and use the content:
 *wiki*)
+(*
           p 
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick 
@@ -184,7 +184,8 @@ client.
                  ) (Eliom_client.wrap_sp sp) myblockservice)
             ]
             [pcdata "Click here to add content from the server."];
- *zap*)
+ *)
+(* *zap*)
              
 (*wiki*
   The following examples shows how to change the URL.
@@ -633,6 +634,79 @@ let comet3 =
     )
 
 
+(*zap* *)
+(*wiki*
+ Here is the code for a small minimalist message board.
+ *wiki*)
+
+(* First is the event on the server corresponding to a new message. *)
+let message_up = Eliom_event.Up.create (string "content")
+
+(* Then is the page hosting the board *)
+let comet_message_board =
+  Eliom_appl.register_new_service
+    ~path:["message_board"]
+    ~get_params:unit
+    (fun sp () () ->
+       let message_down =
+         React.E.map (fun x -> x)
+         (Eliom_event.Up.react_event_of_up_event message_up)
+       in
+
+       Lwt.return (
+         let container = ul (li [pcdata "This is the message board"]) [] in
+         let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
+         let go =
+           div
+             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+                  a_onclick {{
+                    let sp = \sp:sp in
+                    let field =
+                        (Js.Opt.get
+                           (Dom_html.CoerceTo.input
+                              (Js.Opt.get
+                                 (Dom_html.document##getElementById (Js.string "msg"))
+                                 (fun () -> failwith "No field found")
+                              )
+                           )
+                           (fun () -> failwith "No field found")
+                        )
+                    in
+                    let v = Js.to_string field##value in
+                    field##value <- Js.string "" ;
+                    \up_event:message_up v
+                  }}
+             ]
+             [pcdata "send"]
+         in
+
+         [ h2 [pcdata "Message board"];
+           div
+             ~a:[ (*zap* *)a_class ["clickable"];(* *zap*)
+                  a_onclick {{
+                    ignore (
+                      React.E.map
+                        (fun msg ->
+                            Dom.appendChild \node:container
+                              (XHTML.M.toelt (li [pcdata msg]))
+                        )
+                        \down_event:message_down
+                    ) ;
+                    Eliom_client_comet.Engine.start ()
+                  }}
+                ]
+             [pcdata "Go online"];
+           div
+             ~a:[ (*zap* *)a_class ["clickable"];(* *zap*)
+                  a_onclick {{ Eliom_client_comet.Engine.stop () }}
+                ]
+             [pcdata "Go offline"];
+           form (uri_of_string "") (div [field; go]) [];
+           container;
+         ])
+    )
+(* *zap*)
+
 
 (*zap* *)
 open Tutoeliom
@@ -898,6 +972,8 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               a comet2 sp [pcdata "A comet example with server to client and client to server asynchronous events"] ();
             br ();
               a comet3 sp [pcdata "Server simultaneous events, transmitted together"] ();
+            br ();
+              a comet_message_board sp [pcdata "Minimalistic message board"] ();
             br ();
           ]
           ]

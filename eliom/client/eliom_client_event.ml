@@ -27,14 +27,14 @@ module Down =
 struct
 
   let unwrap
-        (c : 'a Eliom_common_comet.chan_id Eliom_client_types.data_key)
+        (c : 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key)
         : 'a React.E.t
     =
-    let chan : 'a Eliom_common_comet.chan_id =
-      Eliom_client_comet.Channels.unwrap c
+    let chan : 'a Eliom_common_comet.buffered_chan_id =
+      Eliom_client_comet.Buffered_channels.unwrap c
     in
     let (e, push) = React.E.create () in
-    Eliom_client_comet.Channels.register
+    Eliom_client_comet.Buffered_channels.register
       chan
       (fun s -> push s ; Lwt.return ()) ;
     e

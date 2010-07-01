@@ -24,7 +24,8 @@ module Down :
 sig
 
   val unwrap :
-    'a Eliom_common_comet.chan_id Eliom_client_types.data_key -> 'a React.E.t
+       'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
+    -> 'a React.E.t
 
 end
 

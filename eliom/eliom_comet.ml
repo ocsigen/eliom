@@ -425,7 +425,7 @@ end = struct
     let not2 =
       Lwt_event.notify_p
         (fun x ->
-           Dlist.add (x, index ()) dlist ;
+           ignore (Dlist.add (x, index ()) dlist) ;
            Lwt.pause () >|= fun () ->
            if React.S.value (Channels.listeners chan) = 0
            then ()

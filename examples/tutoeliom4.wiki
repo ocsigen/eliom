@@ -75,8 +75,7 @@ let eliomclient1 =
     (fun sp () () ->
       Lwt.return
         [p ~a:[
-                        (* with {{ expr }}, the expression is executed by the
-                         * client. *)
+                        (* with {{ expr }}, the expression is executed by the client. *)
                         a_onclick {{Dom_html.window##alert(Js.string "clicked!") ; Lwt.return ()}}]
            [pcdata "I am a clickable paragraph"];
          
@@ -164,7 +163,8 @@ client.
                  ) (Eliom_client.wrap_sp sp) myblockservice)
             ]
             [pcdata "Click here to add content from the server."];
- 
+ *)
+(* 
 *zap*)
              
 >>

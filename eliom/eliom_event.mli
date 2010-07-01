@@ -26,7 +26,7 @@ sig
   val wrap :
       sp:Eliom_sessions.server_params
     -> 'a React.E.t
-    -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
+    -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
 
 end
 
@@ -45,7 +45,7 @@ sig
          Eliom_services.service
 
   val create :
-      sp:Eliom_sessions.server_params
+       ?sp:Eliom_sessions.server_params
     -> ('a, [ `WithoutSuffix ], [`One of 'a ] Eliom_parameters.param_name)
          Eliom_parameters.params_type
     -> 'a event

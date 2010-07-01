@@ -27,10 +27,11 @@ module Down =
 struct
 
   let wrap ~sp e =
-    let chan = Eliom_comet.Channels.create e in
+    (*TODO: use optionnal argument for max_size. *)
+    let chan = Eliom_comet.Dlisted_channels.create ~max_size:5 e in
     let `R r = React.E.retain e (fun () -> ()) in
     let `R _ = React.E.retain e (fun () -> r () ; ignore chan) in
-    Eliom_comet.Channels.wrap ~sp chan
+    Eliom_comet.Buffered_channels.wrap ~sp chan
 
 end
 
@@ -56,12 +57,12 @@ struct
 
   (* An event is created along with a service responsible for it's occurences. 
    * function takes sp and a param_type *)
-  let create ~sp post_param =
+  let create ?sp post_param =
     let (e, push) = React.E.create () in
     let e_writer =
       Eliom_predefmod.Action.register_new_post_coservice'
         ~options:`NoReload
-        ~sp
+        ?sp
         ~post_params:post_param
         (fun _ () value -> push value ; Lwt.return ())
     in
