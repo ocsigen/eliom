@@ -496,17 +496,16 @@ let comet1 =
     ~path:["comet1"]
     ~get_params:unit
     (fun sp () () ->
-       let (c2, write_c2) =
-         let (e, push_e) = React.E.create () in
-           (Eliom_comet.Dlisted_channels.create ~max_size:15 e, push_e)
-       in
+       let (c2_pre, write_c2) = React.E.create () in
+       let c2 = Eliom_comet.Dlisted_channels.create ~max_size:15 c2_pre in
        let t2 = ref 0 in
        let rec tick_2 () =
          Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->
          write_c2 !t2 ; incr t2 ; Lwt.pause () >>= fun () ->
          write_c2 !t2 ; incr t2 ; write_c2 !t2 ; incr t2 ; tick_2 ()
        in
-       let _ = tick_2 () in
+       let t = tick_2 () in
+       let `R _ = React.E.retain c2_pre (fun () -> ignore t; ignore c2) in
        Lwt.return
          [
            div
@@ -634,7 +633,6 @@ let comet3 =
     )
 
 
-(*zap* *)
 (*wiki*
  Here is the code for a small minimalist message board.
  *wiki*)
@@ -705,7 +703,6 @@ let comet_message_board =
            container;
          ])
     )
-(* *zap*)
 
 
 (*zap* *)
