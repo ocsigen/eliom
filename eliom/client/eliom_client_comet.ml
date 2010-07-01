@@ -140,31 +140,35 @@ end = struct
 
 
   (* action *)
-  let rec run slp = match list_registered () with
+  let rec run slp wt = match list_registered () with
       | [] -> Lwt.pause () >|= stop
       | regs ->
           let up_msg = Messages.encode_upgoing regs in
           Lwt.catch (fun () ->
 
           (* make asynchronous request *)
-            XmlHttpRequest.send
-              ~content_type
-              ~post_args:[("registration", up_msg)]
-              "./"                                       >>= fun (code, msg) ->
+            let async =
+              XmlHttpRequest.send
+                ~content_type
+                ~post_args:[("registration", up_msg)]
+                "./"
+            in
+            Lwt.on_cancel wt (fun () -> Lwt.cancel async) ;
+            async >>= fun (code, msg) ->
           (* check returned code *)
             match code / 100 with
           (* treat failure *)
               | 0 | 3 | 4 -> (stop () ; Lwt.return ())
           (* treat semi-failure *)
-              | 1 -> run slp
+              | 1 -> run slp wt
               | 5 -> begin (* server error *)
                    Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
-                   run (2. *. slp)
+                   run (2. *. slp) wt
                 end
           (* treat success *)
-              | 2 -> begin
+              | 2 ->
                   (if msg = "" (* no server message *)
-                   then Lwt.return ()
+                   then run 1. wt
                    else begin
                      List.iter
                        (fun (c,m) ->
@@ -177,17 +181,14 @@ end = struct
                           with Not_found -> ()
                        )
                        (Messages.decode_downcoming msg) ;
-                     Lwt.return ()
-                   end) >>= fun () -> run 1. (* reset sleeping counter *)
-                end
-          (* other response code is a serious problem. It can happen when going
-           * offline. *)
+                       run 1. wt
+                   end)
               | _ -> (stop () ; Lwt.return ())
 
           ) (function
                | Messages.Incorrect_encoding ->
                    (Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
-                    run (2. *. slp))
+                    run (2. *. slp) wt)
                | Lwt.Canceled -> Lwt.return ()
                | e ->
                    (stop () ;
@@ -197,20 +198,20 @@ end = struct
 
   (* Loops and notifications *)
   let _ =
-    let run_thread = ref None in
-    Lwt_event.always_notify_s
+    let run_wk = ref None in
+    Lwt_event.always_notify
       (function
          | true  ->
-             begin match !run_thread with
-   (*  start*) | None   -> run_thread := Some (run 1.) ; Lwt.return ()
-   (*restart*) | Some t -> Lwt.cancel t ; run_thread := None ; (*stop *)
-                           Lwt_js.yield () >|= fun () ->       (*pause*)
-                           run_thread := Some (run 1.)         (*start*)
+             let (wt, wk) = Lwt.task () in
+             begin match !run_wk with
+   (*  start*) | None   -> run_wk := Some wk ; let _ = run 1. wt in ()
+   (*restart*) | Some u -> Lwt.wakeup_exn u Lwt.Canceled ;             (*stop *)
+                           run_wk := Some wk ; let _ = run 1. wt in () (*start*)
              end
          | false ->
-            begin match !run_thread with
-   (*  stop*) | Some t -> Lwt.cancel t ; run_thread := None ; Lwt.return ()
-   (*ignore*) | None   -> Lwt.return ()
+            begin match !run_wk with
+   (*  stop*) | Some u -> Lwt.wakeup_exn u Lwt.Canceled ; run_wk := None ;
+   (*ignore*) | None   -> ()
             end
       )
       running_changes
