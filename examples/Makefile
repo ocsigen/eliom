@@ -87,7 +87,7 @@ tutoeliom_ocsigen2_client: $(ELIOMCLIENTDIR)/eliom_client.cma client/tutoeliom_o
 	  -verbose \
 	  ../eliom/client/eliom_client.cma client/tutoeliom_ocsigen2_client.ml
 
-tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom ../eliom/pa_eliom_client.cmo
+tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom ../eliom/pa_eliom_client.cmo ../eliom/eliom_comet.cmo
 	camlp4of $(PAELIOMCLIENTDIR)/pa_eliom_client.cmo \
 	  -I /usr/local/lib/ocaml/3.11.2/js_of_ocaml pa_js.cmo \
 	  -impl $< -o $@ \

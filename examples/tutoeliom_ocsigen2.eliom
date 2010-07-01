@@ -497,7 +497,7 @@ let comet1 =
     ~get_params:unit
     (fun sp () () ->
        let (c2_pre, write_c2) = React.E.create () in
-       let c2 = Eliom_comet.Dlisted_channels.create ~max_size:15 c2_pre in
+       let c2 = Eliom_comet.Buffered_channels.create ~max_size:15 c2_pre in
        let t2 = ref 0 in
        let rec tick_2 () =
          Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->

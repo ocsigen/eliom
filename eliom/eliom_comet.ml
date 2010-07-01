@@ -91,10 +91,14 @@ end
  * communication system. This is acheived by watching the number of listeners
  * the channel currently has and sending messages only when it has chances of
  * succeeding.
- *
- * Note that this is yet to be tested. *)
+ * *)
 
-module Buffers :
+(* The type of buffered channels. We propose two implementation and then
+ * abstract over them. *)
+type 'a buffered_chan = 'a Channels.chan * int ref
+
+
+module SpaceTimeBuffers :
 sig
 
   exception Value_larger_than_buffer_max_size
@@ -258,21 +262,19 @@ end = struct
 end
 
 
-module Buffered_channels :
+
+
+
+
+module SpaceTimeBuffered_channels :
 sig
 
-  type 'a chan = 'a Channels.chan * int ref
+  type 'a chan = 'a buffered_chan
 
   val create :
        max_size:int -> ?sizer:('a -> int) -> ?timer:('a -> float option)
     -> 'a React.E.t
     -> 'a chan
-
-  val get_id : 'a chan -> 'a Ecc.buffered_chan_id
-
-  val wrap :
-    sp:Eliom_sessions.server_params ->
-    'a chan -> 'a Ecc.buffered_chan_id Eliom_client_types.data_key
 
 end = struct
 
@@ -284,7 +286,7 @@ end = struct
     let index = let i = ref 0 in fun () -> incr i ; !i in
 
     let buff =
-      Buffers.create
+      SpaceTimeBuffers.create
         ~max_size
         ~sizer:(fun (x,_) -> sizer x)
         ~timer:(fun (x,_) -> timer x)
@@ -301,9 +303,9 @@ end = struct
         aux [] (-1) l
     in
     let buff_push () = (* side effect: refresh the values in the buffer *)
-      match Buffers.pop_all buff with
+      match SpaceTimeBuffers.pop_all buff with
         | [] -> ()
-        | l -> List.iter (fun x -> Buffers.push x buff) l ;
+        | l -> List.iter (fun x -> SpaceTimeBuffers.push x buff) l ;
                raw_push (prepare_content l)
     in
 
@@ -312,7 +314,7 @@ end = struct
     let not1 =
       Lwt_event.notify_p
         (fun () ->
-           if Buffers.is_empty buff
+           if SpaceTimeBuffers.is_empty buff
            then Lwt.return ()
            else (Lwt.pause () >|= buff_push)
         )
@@ -327,7 +329,7 @@ end = struct
       (*TODO: REACTify this... But what about recursion? *)
       Lwt_event.notify_p
         (fun x ->
-           Buffers.push (x, index ()) buff ;
+           SpaceTimeBuffers.push (x, index ()) buff ;
            Lwt.pause () >|= fun () ->
            if React.S.value (Channels.listeners chan) = 0
            then ()
@@ -341,7 +343,7 @@ end = struct
       Lwt_event.notify
         (function
            | `Failure, _ -> ()
-           | `Success, x -> Buffers.junk_until (fun (_, i) -> i>x) buff
+           | `Success, x -> SpaceTimeBuffers.junk_until (fun (_, i) -> i>x) buff
         )
         (Channels.outcomes chan)
     in
@@ -358,22 +360,13 @@ end = struct
 
     (chan, collectable)
 
-
-  let get_id (c, _) =
-    Ecc.buffered_chan_id_of_string
-      (Ecc.string_of_chan_id (Channels.get_id c))
-
-  let wrap ~sp (c : 'a chan)
-        : 'a Ecc.buffered_chan_id Eliom_client_types.data_key =
-    Eliommod_client.wrap ~sp (get_id c)
-
 end
 
 
 module Dlisted_channels :
 sig
 
-  type 'a chan = 'a Buffered_channels.chan
+  type 'a chan = 'a buffered_chan
 
   val create : max_size:int -> 'a React.E.t -> 'a chan
 
@@ -381,7 +374,7 @@ end = struct
 
   module Dlist = Ocsigen_cache.Dlist
 
-  type 'a chan = 'a Buffered_channels.chan
+  type 'a chan = 'a buffered_chan
 
   let create ~max_size e_pre =
     (*TODO: prevent max_int related error*)
@@ -464,6 +457,26 @@ end = struct
 
     (chan, collectable)
 
+
+end
+
+module Buffered_channels =
+struct
+
+  type 'a chan = 'a buffered_chan
+  let create ~max_size ?sizer ?timer e =
+    match sizer, timer with
+      | None, None -> Dlisted_channels.create ~max_size e
+      | _ -> SpaceTimeBuffered_channels.create ~max_size ?sizer ?timer e
+
+
+  let get_id (c, _) =
+    Ecc.buffered_chan_id_of_string
+      (Ecc.string_of_chan_id (Channels.get_id c))
+
+  let wrap ~sp (c : 'a chan)
+        : 'a Ecc.buffered_chan_id Eliom_client_types.data_key =
+    Eliommod_client.wrap ~sp (get_id c)
 
 end
 

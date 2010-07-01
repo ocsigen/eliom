@@ -88,30 +88,3 @@ sig
 
 end
 
-module Dlisted_channels :
-(** A module with primitives needed for dlisted channels manipulation. A
-    dlisted channel will not loose data except when space is needed. This
-    implementation uses Ocsigen_cache.Dlist modules as opposed to an internal
-    richer (but heavier) representation for buffered channels. If you just want
-    to limit the number of pending messages in the buffer, Dlisted is what you
-    need. If you need to treat different kind of messages differently, use
-    Buffered.
-    *)
-sig
-
-  type 'a chan = 'a Buffered_channels.chan
-  (** The type of dlisted channels. Such channels transport values of type [('a
-      * int) list] (where the [int] is an increasing identifier for values of
-      type ['a]. [Eliom_client_comet] provides a module to use these. *)
-
-  val create :
-     max_size:int
-  -> 'a React.E.t
-  -> 'a chan
-  (** [create ~max_size e] creates a channel with [e] as a
-      triggering event. Wheneever room is needed (because of occurrences of [e])
-      some previous elements may be erased too.
-      *)
-
-end
-
