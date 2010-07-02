@@ -489,26 +489,26 @@ let raw_request
                        Ocsigen_http_frame.res_headers = headers}
 
               | Some stream ->
-                  Ocsigen_senders.Stream_content.result_of_content
-                    stream >>= fun r ->
-                    Ocsigen_http_com.send
-                      ?reopen
-                      slot
-                      ~mode:query
-                      ~head:false (* We want to send the full request *)
-                      ~clientproto:Ocsigen_http_frame.Http_header.HTTP11
-                      ~keep_alive:keep_alive_asked
-                      ~sender:request_sender
-                      {r with
-                         Ocsigen_http_frame.res_content_length= content_length;
-                         Ocsigen_http_frame.res_headers= headers;
-                      }) >>= fun () ->
-
-             Ocsigen_messages.debug2 "--Ocsigen_http_client: request sent";
-             Lwt.wakeup request_sent_awakener ();
-             Lwt.return ())
+                Ocsigen_senders.Stream_content.result_of_content
+                  stream >>= fun r ->
+                Ocsigen_http_com.send
+                  ?reopen
+                  slot
+                  ~mode:query
+                  ~head:false (* We want to send the full request *)
+                  ~clientproto:Ocsigen_http_frame.Http_header.HTTP11
+                  ~keep_alive:keep_alive_asked
+                  ~sender:request_sender
+                  {r with
+                    Ocsigen_http_frame.res_content_length= content_length;
+                    Ocsigen_http_frame.res_headers= headers;
+                  }) >>= fun () ->
+          
+          Ocsigen_messages.debug2 "--Ocsigen_http_client: request sent";
+          Lwt.wakeup request_sent_awakener ();
+          Lwt.return ())
         (fun e -> Lwt.wakeup_exn request_sent_awakener e; Lwt.fail e)
-
+        
     in
 
 
@@ -685,11 +685,12 @@ let raw_request
 
 
 (*****************************************************************************)
-let get ?https ?port ~host ~uri () =
+let get ?https ?port ?headers ~host ~uri () =
   Ocsigen_lib.get_inet_addr host >>= fun inet_addr ->
   raw_request
     ?https
     ?port
+    ?headers
     ~http_method:Ocsigen_http_frame.Http_header.GET
     ~content:None
     ~host:(match port with None -> host | Some p -> host^":"^string_of_int p)
@@ -698,9 +699,31 @@ let get ?https ?port ~host ~uri () =
     ()
     ()
 
+(*****************************************************************************)
+let post_string ?https ?port ?(headers = Http_headers.empty)
+    ~host ~uri ~content ~content_type () =
+  Ocsigen_lib.get_inet_addr host >>= fun inet_addr ->
+  let content_type = String.concat "/" [fst content_type; snd content_type] in
+  raw_request
+    ?https
+    ?port
+    ~http_method:Ocsigen_http_frame.Http_header.POST
+    ~content:(Some (Ocsigen_stream.of_string content))
+    ~content_length:(Int64.of_int (String.length content))
+    ~headers:(Http_headers.add Http_headers.content_type content_type headers)
+    ~host:(match port with None -> host | Some p -> host^":"^string_of_int p)
+    ~inet_addr
+    ~uri
+    ()
+    ()
 
-(*VVV missing: post *)
-
+(*****************************************************************************)
+let post_urlencoded ?https ?port ?headers ~host ~uri ~content () =
+  post_string ?https ?port ?headers
+    ~host ~uri
+    ~content:(Netencoding.Url.mk_url_encoded_parameters content) 
+    ~content_type:("application","x-www-form-urlencoded")
+    ()
 
 
 (*****************************************************************************)
