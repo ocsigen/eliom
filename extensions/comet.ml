@@ -362,6 +362,7 @@ end = struct
         Lwt.return
           { (OFrame.default_result ()) with
                OFrame.res_stream = (OStream.of_string end_notice, None) ;
+               OFrame.res_content_length = None ;
                OFrame.res_content_type = Some "text/html" ;
           }
 
