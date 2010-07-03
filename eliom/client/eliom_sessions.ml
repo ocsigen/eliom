@@ -152,6 +152,3 @@ let get_site_dir ~sp = sp.sp_sitedata.site_dir
 let get_site_dir_string ~sp =
   sp.sp_sitedata.site_dir_string
 
-let appl_name = Js.to_string (Js.Unsafe.variable "appl_name")
-
-let get_application_name ~sp = Some appl_name

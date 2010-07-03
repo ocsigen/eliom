@@ -471,10 +471,3 @@ val table_of_nl_params_set : nl_params_set ->
 
 val string_of_nl_params_set : nl_params_set -> string
 
-val eliom_appl_nlp :
-  (string * string, [ `WithoutSuffix ], 
-   [ `One of string ] param_name * [ `One of string ] param_name) 
-  non_localized_params
-
-val appl_name_key : string option Polytables.key
-val appl_instance_key : string option Polytables.key

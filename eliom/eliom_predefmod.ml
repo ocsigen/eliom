@@ -1663,10 +1663,10 @@ redir ();"))::
                        (Appl_params.application_name
                        ) ^ "\"; \n"
 
-                     ^ "var appl_instance_id = \"" ^
-                       (match Eliom_sessions.get_application_instance ~sp with
+                     ^ "var process_id = \"" ^
+                       (match Eliom_process.get_process_id ~sp with
                           | Some s -> s
-                          | None -> "<error: application instance id not created>"
+                          | None -> "<error: process id not created>"
                        ) ^ "\"; \n")) ::
                (* Javascript program: *)
                XHTML.M.script ~a:[a_src (Xhtml.make_uri 
@@ -1684,13 +1684,13 @@ redir ();"))::
     (* If we launch a new application, we must set the application name
        and create an application instance id *)
     if options ||
-      Eliom_sessions.get_content_only ~sp (* the application already exists *)
+      Eliom_process.get_content_only ~sp (* the application already exists *)
     then Lwt.return ()
     else begin
       let rc = Eliom_sessions.get_request_cache ~sp in
-      Polytables.set ~table:rc ~key:Eliom_parameters.appl_name_key
+      Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
         ~value:(Some Appl_params.application_name);
-      Polytables.set ~table:rc ~key:Eliom_parameters.appl_instance_key 
+      Polytables.set ~table:rc ~key:Eliom_process.process_key 
         ~value:(Some (Eliommod_cookies.make_new_cookie_value ()));
       Lwt.return ()
     end
@@ -1699,7 +1699,7 @@ redir ();"))::
 
   let send ?(options = false) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
-    let content_only = Eliom_sessions.get_content_only ~sp in
+    let content_only = Eliom_process.get_content_only ~sp in
     (if content_only
 (*VVV do not send container! *)
      then 

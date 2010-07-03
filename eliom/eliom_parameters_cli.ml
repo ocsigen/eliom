@@ -512,16 +512,6 @@ let make_non_localized_parameters
      add_pref_params (Eliom_common.nl_param_prefix^name^".") p)
 
 
-(* Two predefined nl parameters for Eliom applications.
-   If present, the Eliom_appl module will send only the body content
-   and not headers.
-*)
-let eliom_appl_nlp = 
-  make_non_localized_parameters
-    ~prefix:"Eliom"
-    ~name:"appl_request"
-    (string "appl" ** string "appl_instance")
-
 
 
 (*****************************************************************************)

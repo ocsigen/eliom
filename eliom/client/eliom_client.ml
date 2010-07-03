@@ -27,13 +27,13 @@ let (>>>) x f = f x
 let current_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
-let appl_name = Eliom_sessions.appl_name
+let appl_name = Eliom_process.appl_name
 
 
 let unmarshal v =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable v)) 0
 
-let appl_instance_id = Js.to_string (Js.Unsafe.variable "appl_instance_id")
+let process_id = Eliom_process.process_id
 
 let http_get url get_args = XmlHttpRequest.send ~get_args url
 let http_post url post_args = XmlHttpRequest.send ~post_args url
@@ -193,8 +193,8 @@ let change_page
           ?hostname ?port ?fragment ?keep_nl_params
           ~nl_params:(Eliom_parameters.add_nl_parameter
                         nl_params
-                        Eliom_parameters.eliom_appl_nlp
-                        (appl_name, appl_instance_id))
+                        Eliom_process.eliom_appl_nlp
+                        (appl_name, process_id))
           ?keep_get_na_params
           g p
      with
@@ -207,7 +207,7 @@ let change_page
     >>= fun ((code, s), uri) ->
     set_inner_html code s >>= fun () ->
 (*VVV The URL is created twice ... 
-  Once with eliom_appl_instance_id (for the request), 
+  Once with eliom_process_id (for the request), 
   and once without it (we do not want it to appear in the URL).
   How to avoid this?
 *)
@@ -279,8 +279,8 @@ let get_subpage
      ?hostname ?port ?fragment ?keep_nl_params
      ~nl_params:(Eliom_parameters.add_nl_parameter
                    nl_params
-                   Eliom_parameters.eliom_appl_nlp
-                   (appl_name, appl_instance_id))
+                   Eliom_process.eliom_appl_nlp
+                   (appl_name, process_id))
      ?keep_get_na_params
      g p
    with
@@ -335,8 +335,8 @@ let eliom_appl_nlp =
   Eliom_parameters.string_of_nl_params_set
     (Eliom_parameters.add_nl_parameter
        Eliom_parameters.empty_nl_params_set
-       Eliom_parameters.eliom_appl_nlp
-       (appl_name, appl_instance_id))
+       Eliom_process.eliom_appl_nlp
+       (appl_name, process_id))
 
 let auto_change_page fragment =
   ignore

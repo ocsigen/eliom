@@ -1,7 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliomsessions.ml
- * Copyright (C) 2007 Vincent Balat
+ * Copyright (C) 2010 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,153 +18,73 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Lwt
-open Ocsigen_extensions
+
+include Eliom_process_cli
 
 (*****************************************************************************)
-(* Making accessible some types from Eliom_common: *)
+let appl_name_key = Polytables.make_key ()
+let process_key = Polytables.make_key ()
+let content_only_key = Polytables.make_key ()
 
-type server_params = Eliom_common.server_params
-
-
-let get_config () =
-  match Eliom_common.global_register_allowed () with
-  | Some _ -> !Eliommod.config
-  | None ->
-      raise
-        (Eliom_common.Eliom_function_forbidden_outside_site_loading
-           "get_config")
-
-let find_sitedata fun_name = function
-  | Some sp -> sp.Eliom_common.sp_sitedata
-  | None ->
-      match Eliom_common.global_register_allowed () with
-      | Some get_current_sitedata -> get_current_sitedata ()
-      | _ ->
-          raise
-            (Eliom_common.Eliom_function_forbidden_outside_site_loading
-               fun_name)
+(*VVV better put this somewhere else than in rc? directly in sp? *)
+let get_eliom_appl_nlp_ ~sp =
+  let esp = Eliom_sessions.esp_of_sp sp in
+  let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
+  let (a, b, c) as d =
+    match Eliom_parameters.get_non_localized_get_parameters sp eliom_appl_nlp
+    with
+      | None -> None, None, false
+      | Some (a, b) -> Some a, Some b, true
+  in
+  Polytables.set ~table:rc ~key:appl_name_key ~value:a;
+  Polytables.set ~table:rc ~key:process_key ~value:b;
+  Polytables.set ~table:rc ~key:content_only_key ~value:c;
+  d
 
 
-let get_user_agent ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_user_agent
-let get_full_url ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_url_string
-let get_remote_ip ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_remote_ip
-let get_remote_inet_addr ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_remote_inet_addr
-let get_get_params ~sp =
-  Lazy.force sp.Eliom_common.sp_request.request_info.ri_get_params
-let get_all_current_get_params ~sp =
-  sp.Eliom_common.sp_si.Eliom_common.si_all_get_params
-let get_initial_get_params ~sp =
-  Lazy.force sp.Eliom_common.sp_request.request_info.ri_initial_get_params
-let get_get_params_string ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_get_params_string
-let get_post_params ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_post_params
-    sp.Eliom_common.sp_request.request_config
-let get_all_post_params ~sp =
-  sp.Eliom_common.sp_si.Eliom_common.si_all_post_params
-let get_original_full_path_string ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_original_full_path_string
-let get_original_full_path ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_original_full_path
-let get_current_full_path ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_full_path
-let get_current_full_path_string ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_full_path_string
-let get_current_sub_path ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_sub_path
-let get_current_sub_path_string ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_sub_path_string
-let get_header_hostname ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_host
-let get_timeofday ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_timeofday
-let get_request_id ~sp = Int64.bits_of_float (get_timeofday ~sp)
-let get_default_hostname ~sp =
-  sp.Eliom_common.sp_request.request_config.default_hostname
-let get_hostname ~sp =
-  Ocsigen_extensions.get_hostname sp.Eliom_common.sp_request
-let get_default_port ~sp =
-  sp.Eliom_common.sp_request.request_config.default_httpport
-let get_default_sslport ~sp =
-  sp.Eliom_common.sp_request.request_config.default_httpsport
-let get_server_port ~sp =
-  Ocsigen_extensions.get_port sp.Eliom_common.sp_request
-let get_ssl ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_ssl
-let get_other_get_params ~sp =
-  sp.Eliom_common.sp_si.Eliom_common.si_other_get_params
-let get_nl_get_params ~sp =
-  sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params
-let get_persistent_nl_get_params ~sp =
-  Lazy.force sp.Eliom_common.sp_si.Eliom_common.si_persistent_nl_get_params
-let get_nl_post_params ~sp =
-  sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params
-let get_suffix ~sp =
-  sp.Eliom_common.sp_suffix
-let get_session_name ~sp =
-  sp.Eliom_common.sp_fullsessname
-let get_request_cache ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_request_cache
-let clean_request_cache ~sp =
-  sp.Eliom_common.sp_request.request_info.ri_request_cache <- 
-    Polytables.create ()
-let get_link_too_old ~sp =
-  try
-    Polytables.get
-      ~table:sp.Eliom_common.sp_request.request_info.ri_request_cache
-      ~key:Eliom_common.eliom_link_too_old
-  with Not_found -> false
-let get_expired_service_sessions ~sp =
-  try
-    Polytables.get
-      ~table:sp.Eliom_common.sp_request.request_info.ri_request_cache
-      ~key:Eliom_common.eliom_service_session_expired
-  with Not_found -> []
-let get_config_default_charset ~sp =
-  Ocsigen_charset_mime.default_charset
-    sp.Eliom_common.sp_request.request_config.charset_assoc
-let get_cookies ~sp =
-  Lazy.force sp.Eliom_common.sp_request.request_info.ri_cookies
-let get_data_cookies ~sp =
-  sp.Eliom_common.sp_si.Eliom_common.si_data_session_cookies
-let get_persistent_cookies ~sp =
-  sp.Eliom_common.sp_si.Eliom_common.si_persistent_session_cookies
-let get_previous_extension_error_code ~sp =
-  sp.Eliom_common.sp_si.Eliom_common.si_previous_extension_error
-let get_si ~sp =
-  sp.Eliom_common.sp_si
+let get_application_name ~sp =
+  let esp = Eliom_sessions.esp_of_sp sp in
+  let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
+  try 
+    Polytables.get ~table:rc ~key:appl_name_key
+  with Not_found ->
+    Ocsigen_lib.fst3 (get_eliom_appl_nlp_ ~sp)
 
-let get_service_session_cookie ?session_name ?secure ~sp () =
-  try
-    let c = Eliommod_sersess.find_service_cookie_only ?session_name ~secure ~sp () in
-    Some c.Eliom_common.sc_value
-  with Not_found | Eliom_common.Eliom_Session_expired -> None
+let get_process_id ~sp =
+  let esp = Eliom_sessions.esp_of_sp sp in
+  let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
+  try 
+    Polytables.get ~table:rc ~key:process_key
+  with Not_found -> 
+    Ocsigen_lib.snd3 (get_eliom_appl_nlp_ ~sp)
 
-let get_volatile_data_session_cookie ?session_name ?secure ~sp () =
-  try
-    let c = Eliommod_datasess.find_data_cookie_only ?session_name ~secure ~sp () in
-    Some c.Eliom_common.dc_value
-  with Not_found | Eliom_common.Eliom_Session_expired -> None
-
-let get_persistent_data_session_cookie ?session_name ?secure ~sp () =
-  catch
-    (fun () ->
-      Eliommod_persess.find_persistent_cookie_only
-        ?session_name ~secure ~sp () >>= fun c ->
-      return (Some c.Eliom_common.pc_value)
-    )
-    (function
-       | Not_found | Eliom_common.Eliom_Session_expired -> return None
-       | e -> fail e)
+let get_content_only ~sp =
+  let esp = Eliom_sessions.esp_of_sp sp in
+  let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
+  try 
+    Polytables.get ~table:rc ~key:content_only_key
+  with Not_found -> 
+    Ocsigen_lib.thd3 (get_eliom_appl_nlp_ ~sp)
 
 
+(*
+let _ =
+  Eliom_process.get_application_name_ := get_application_name;
+  Eliom_process.get_process_id_ := get_process_id_;
+  Eliom_process.get_content_only_ := get_content_only
+
+let get_application_name_ = ref (fun ~sp -> failwith "will be linked later")
+let get_process_id_ = ref (fun ~sp -> failwith "will be linked later")
+let get_content_only_ = ref (fun ~sp -> failwith "will be linked later")
+
+let get_application_name ~sp = !get_application_name_ ~sp
+let get_process_id ~sp = !get_application_instance_ ~sp
+let get_content_only ~sp = !get_content_only_ ~sp
+
+*)
 
 
+(*
 (*
 let get_default_service_session_timeout = Eliommod_timeouts.get_default_service_timeout
 let set_default_service_session_timeout = Eliommod_timeouts.set_default_service_timeout
@@ -1112,3 +1031,4 @@ let number_of_persistent_table_elements () =
 (*****************************************************************************)
 let sp_of_esp = Ocsigen_lib.id
 let esp_of_sp = Ocsigen_lib.id
+*)

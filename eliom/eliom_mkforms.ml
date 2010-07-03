@@ -958,7 +958,7 @@ module MakeForms = functor
           content
           getparams =
         if not use_href &&
-          (let n = Eliom_sessions.get_application_name ~sp in
+          (let n = Eliom_process.get_application_name ~sp in
            (n <> None) &&
              (n = Eliom_services.get_application_name service))
         then
