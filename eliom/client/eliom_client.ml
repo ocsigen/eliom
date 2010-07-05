@@ -23,7 +23,6 @@
 exception Failed_service of int
 
 let (>>=) = Lwt.bind
-let (>>>) x f = f x
 let current_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"

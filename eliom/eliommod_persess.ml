@@ -107,7 +107,7 @@ let close_persistent_session ?(close_group = false) ?session_name
 
 
 let rec new_persistent_cookie sitedata fullsessgrp fullsessname =
-  let c = Eliommod_cookies.make_new_cookie_value () in
+  let c = Eliommod_cookies.make_new_session_id () in
 (*  catch
     (fun () ->
       Ocsipersist.find persistent_cookies_table c >>= (* useless *)

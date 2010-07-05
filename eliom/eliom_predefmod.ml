@@ -1691,7 +1691,7 @@ redir ();"))::
       Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
         ~value:(Some Appl_params.application_name);
       Polytables.set ~table:rc ~key:Eliom_process.process_key 
-        ~value:(Some (Eliommod_cookies.make_new_cookie_value ()));
+        ~value:(Some (Eliommod_cookies.make_new_session_id ()));
       Lwt.return ()
     end
 

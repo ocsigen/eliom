@@ -24,7 +24,7 @@
 open Lwt
 
 (*****************************************************************************)
-let make_new_cookie_value = Ocsigen_lib.make_cryptographic_safe_string
+let make_new_session_id = Ocsigen_lib.make_cryptographic_safe_string
 
 
 

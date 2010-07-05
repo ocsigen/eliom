@@ -58,7 +58,7 @@ let sync f sp g p = Lwt.return (f sp g p)
 
 
 (**********)
-let new_state = Eliommod_cookies.make_new_cookie_value
+let new_state = Eliommod_cookies.make_new_session_id
 (* WAS:
   (* This does not need to be cryptographickly robust.
      We just want to avoid the same values when the server is relaunched.

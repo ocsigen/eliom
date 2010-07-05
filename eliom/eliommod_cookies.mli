@@ -1,4 +1,4 @@
-val make_new_cookie_value : unit -> string
+val make_new_session_id : unit -> string
 
 val get_cookie_info :
   float ->

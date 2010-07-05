@@ -69,7 +69,7 @@ let close_data_session ?(close_group = false) ?session_name ~secure ~sp () =
 
 
 let rec new_data_cookie sitedata fullsessgrp fullsessname table =
-  let c = Eliommod_cookies.make_new_cookie_value () in
+  let c = Eliommod_cookies.make_new_session_id () in
   try
     ignore (Eliom_common.SessionCookies.find table c);
     (* Actually not needed for the cookies we use *)
