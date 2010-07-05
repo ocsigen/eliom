@@ -36,6 +36,14 @@ let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 
 
+(*TODO: move to Ocsigen_lib ???*)
+let filter_map f l =
+  let rec aux ys = function
+    | [] -> List.rev ys
+    | x :: xs -> match f x with
+       | Some y -> aux (y :: ys) xs
+       | None -> aux ys xs
+  in aux [] l
 
 
 (* A module that provides primitive for server-side channel handling. The only
@@ -143,14 +151,124 @@ sig
      * alive value in [t]. Note that peeking two times in a row may bring
      * different results as the value may be lost when it's time is up. *)
 
-  val junk_until : ('a -> bool) -> 'a t -> unit
-    (* [junk_until f t] starts casting old values in [t] into oblivion. It stops
+  val filter : ('a -> bool) -> 'a t -> unit
+    (* [filter f t] starts casting old values in [t] into oblivion. It stops
      * as soon as it encounters a value [x] such as [f x] is true (in which case
      * [x] is not lost). *)
 
 end = struct
+    (*TODO: improve efficiency and beautify code *)
 
-  (*TODO: make a function to update [size] when some values are time wasted. *)
+  (* We use a double-linked list as a support for the buffer *)
+  module DLList =
+  struct
+
+    (* a node carries a value and up to two pointers *)
+    type 'a node_pointers =
+      | Oldest  of 'a node
+      | Newest  of 'a node
+                 (*    old * new    *)
+      | Neither of 'a node * 'a node
+      | Both
+    and 'a node = {
+      (*   *) value    : 'a ;
+      mutable pointers : 'a node_pointers ;
+    }
+
+    type 'a t = ('a node * 'a node) option ref
+
+    let create () = ref None
+    let reset t = t := None
+
+    let set_oldest n = match n.pointers with
+      | Oldest _ | Both -> ()
+      | Newest _ -> n.pointers <- Both
+      | Neither (_, m) -> n.pointers <- Oldest m
+    let set_newest n = match n.pointers with
+      | Newest _ | Both -> ()
+      | Oldest _ -> n.pointers <- Both
+      | Neither (o, _) -> n.pointers <- Newest o
+    let set_older n m = match n.pointers with
+      | Oldest x -> n.pointers <- Neither (m, x)
+      | Both -> n.pointers <- Newest m
+      | Neither (_, x) -> n.pointers <- Neither (m, x)
+      | Newest _ -> n.pointers <- Newest m
+    let set_newer n m = match n.pointers with
+      | Newest x -> n.pointers <- Neither (x, m)
+      | Both -> n.pointers <- Oldest m
+      | Neither (x, _) -> n.pointers <- Neither (x, m)
+      | Oldest _ -> n.pointers <- Oldest m
+
+
+    (* precondition: n is in l (exists p such as n = l.oldest.(newer^p))*)
+    let remove n l = match n.pointers with
+      | Both -> reset l
+      | Oldest o -> (* n is the oldest node *)
+          begin match !l with
+            | Some (_, m) -> set_oldest o ; l := Some (o, m)
+            | None        -> (assert false)
+          end
+      | Newest m -> (* n is the newest node *)
+          begin match !l with
+            | Some (o, _) -> set_newest m ; l := Some (o, m)
+            | None        -> (assert false)
+         end
+      | Neither (m, o) -> (* n is neither oldest nor newest *)
+          set_older m o ; set_newer o m
+
+    let push x t = match !t with
+      | None ->
+          let node_x = {
+            value = x ;
+            pointers = Both ;
+          } in
+          t := Some (node_x, node_x)
+      | Some (o, n) ->
+          let node_x = {
+            value = x ;
+            pointers = Newest n ;
+          } in
+          set_newer n node_x ;
+          t := Some (o, node_x)
+
+    let peek t = match !t with
+      | None                  -> None
+      | Some ({value = v}, _) -> Some v
+
+    let pop t = match !t with
+      | None -> None
+      | Some ({value = v ; pointers = Both}, _) ->
+          reset t ;
+          Some v
+      | Some ({value = v ; pointers = Newest o}, n) ->
+          t := Some (o, n) ;
+          set_newest o ;
+          Some v
+      | Some ({pointers = (Oldest _|Neither _)},_) -> (assert false)
+
+    let pop_all t =
+      let rec aux accu n = match n.pointers with
+        | Oldest _ | Both -> List.rev (n.value :: accu)
+        | Newest o | Neither (o, _) -> aux (n.value :: accu) o
+      in
+        match !t with
+          | None -> []
+          | Some (_, n) -> let res = aux [] n in reset t ; res
+
+    let filter f t =
+      let rec aux accu = function
+        | {value = v; pointers = (Both|Oldest _)} ->
+            if f v then accu else (reset t; v :: accu)
+        | {value = v; pointers = (Newest o | Neither (o, _))} as n ->
+            if f v
+            then aux accu o
+            else (remove n t; aux (v :: accu) o)
+      in
+        match !t with
+          | None -> []
+          | Some (_, n) -> aux [] n
+
+  end
 
   exception Value_larger_than_buffer_max_size
 
@@ -163,7 +281,7 @@ end = struct
 
   type 'a t =
       {
-        (*   *) b_queue    : 'a disposable_value Queue.t ;
+        (*   *) b_dllist   : 'a disposable_value DLList.t ;
         mutable b_max_size : int ;
         mutable b_size     : int ;
         (*   *) b_sizer    : 'a -> int ;
@@ -188,45 +306,37 @@ end = struct
 
   let create ~max_size ~sizer ~timer =
     {
-      b_queue    = Queue.create () ;
+      b_dllist   = DLList.create () ;
       b_max_size = max_size ;
       b_size     = 0 ;
       b_sizer    = sizer ;
       b_timer    = timer ;
     }
 
-  let peek t =
-    let rec aux () =
-      try
-        let p = Queue.peek t.b_queue in
-        match p.dv_val with
-          | Some _ as x -> x
-          | None ->
-              t.b_size <- t.b_size - p.dv_size ;
-              ignore (Queue.pop t.b_queue) ;
-              aux ()
-      with
-        | Queue.Empty -> None
-    in aux ()
+  let sanitize t =
+    List.iter
+      (fun {dv_size = s} -> t.b_size <- t.b_size - s)
+      (DLList.filter
+         (function
+            | {dv_val = None} -> false
+            | {dv_val = Some _} -> true
+         )
+         t.b_dllist
+      )
 
-  let pop t =
-    let rec aux () =
-      try
-        let v = Queue.pop t.b_queue in
-        t.b_size <- t.b_size - v.dv_size ;
-        match v.dv_val with
-          | None -> aux () (* Value already lost *)
-          | Some p -> Lwt.cancel v.dv_timer ; Some p
-      with
-        | Queue.Empty -> None
-    in aux ()
+  let rec peek t = match DLList.peek t.b_dllist with
+    | None -> None
+    | Some {dv_val = Some v} -> Some v
+    | Some {dv_val = None} -> sanitize t ; peek t
+
+  let rec pop t = match DLList.pop t.b_dllist with
+    | None -> None
+    | Some {dv_val = Some v; dv_size = s} -> t.b_size <- t.b_size - s; Some v
+    | Some {dv_val = None} -> sanitize t; pop t
 
   let pop_all t =
-    let rec aux acc = match pop t with
-      | None -> acc
-      | Some x -> aux (x::acc)
-    in
-      aux []
+    t.b_size <- 0 ;
+    filter_map (fun {dv_val = v} -> v) (DLList.pop_all t.b_dllist)
 
   let push x t =
     (* computing the value size *)
@@ -241,23 +351,24 @@ end = struct
         then (ignore (pop t) ; aux ())
         else ()
       in
-        aux () ;
-        t.b_size <- t.b_size + size ;
-        Queue.push (new_disposable_value size t.b_timer x) t.b_queue
+      sanitize t ;
+      aux () ;
+      t.b_size <- t.b_size + size ;
+      DLList.push (new_disposable_value size t.b_timer x) t.b_dllist
 
-  let junk_until f t =
-    let rec aux () = match peek t with
-      | None -> ()
-      | Some x ->
-          if f x
-          then ()
-          else (ignore (pop t) ;  aux ())
+  let filter f t =
+    let l = DLList.filter
+              (function
+                 | {dv_val = None} -> false
+                 | {dv_val = Some v} -> f v
+              )
+              t.b_dllist
     in
-      aux ()
+    List.iter
+      (fun {dv_size = s} -> t.b_size <- t.b_size - s)
+      l
 
-  let is_empty t = match peek t with
-    | None -> true
-    | Some _ -> false
+  let is_empty t = sanitize t ; peek t = None
 
 end
 
@@ -343,7 +454,7 @@ end = struct
       Lwt_event.notify
         (function
            | `Failure, _ -> ()
-           | `Success, x -> SpaceTimeBuffers.junk_until (fun (_, i) -> i>x) buff
+           | `Success, x -> SpaceTimeBuffers.filter (fun (_, i) -> i>x) buff
         )
         (Channels.outcomes chan)
     in
