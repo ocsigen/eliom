@@ -38,6 +38,7 @@ module OFrame  = Ocsigen_http_frame
 module OStream = Ocsigen_stream
 module OX      = Ocsigen_extensions
 module OLib    = Ocsigen_lib
+module OMsg    = Ocsigen_messages
 module Pxml    = Simplexmlparser
 
 (* infix monad binders *)
@@ -185,7 +186,8 @@ end = struct
   (* creation : newly created channel is stored in the map as a side effect *)
   let create client_event =
     if maxed_out_virtual_channels ()
-    then raise Too_many_virtual_channels
+    then (OMsg.warning "Too many virtual channels, associated exception raised";
+          raise Too_many_virtual_channels)
     else
       let (listeners_e, tell_listeners) = React.E.create () in
       let listeners = React.S.fold (+) 0 listeners_e in
@@ -202,7 +204,6 @@ end = struct
       in
         incr_chan_count ();
         CTbl.add ctbl ch;
-        (*TODO: document use of Gc.finalise in comments about Too_many_virtual_channels*)
         Gc.finalise decr_chan_count ch;
         ch
 
@@ -233,25 +234,22 @@ module Messages :
    * *)
 sig
 
-  exception Incorrect_encoding
-
   val decode_upcomming :
     OX.request -> (Channels.chan list * Channels.chan_id list) Lwt.t
     (* decode incomming message : the result is the list of channels to listen
        to (on the left) or to signal non existence (on the right). *)
 
   val encode_downgoing :
-       string
+       Channels.chan_id list
     -> (Channels.chan * string * int option) list option
     -> string OStream.t
-    (* Encode outgoing messages : the first argument is the end notice
-       (obtained via encode_ended) results in the stream to send to the client*)
+    (* Encode outgoing messages : the first argument is the list of channels
+     * that have already been collected.
+     * The results is the stream to send to the client*)
 
   val encode_ended : Channels.chan_id list -> string
 
 end = struct
-
-  exception Incorrect_encoding
 
   (* constants *)
   let channel_separator = "\n"
@@ -260,7 +258,6 @@ end = struct
   let channel_separator_regexp = Netstring_pcre.regexp channel_separator
   let url_encode x = OLib.encode ~plus:false x
 
-  (* string -> Channels.chan list -> Channels.chan list *)
   let decode_string s accu1 accu2 =
     map_rev_accu_split
       (fun s ->
@@ -271,7 +268,6 @@ end = struct
       accu1
       accu2
 
-  (* (string * string) list -> (Channels.chan list * (unit -> unit) list) *)
   let decode_param_list params =
     let rec aux ((tmp_reg, tmp_end) as tmp) = function
       | [] -> (tmp_reg, tmp_end)
@@ -280,7 +276,6 @@ end = struct
     in
       aux ([], []) params
 
-  (* OX.request -> Channels.chan list Lwt.t *)
   let decode_upcomming r =
     (* RRR This next line makes it fail with Ocsigen_unsupported_media, hence
      * the http_frame low level version *)
@@ -323,14 +318,16 @@ end = struct
       ) l ;
     Lwt.return ()
 
-  let encode_downgoing s = function
-    | None -> OStream.of_string s
+  let encode_downgoing e = function
+    | None -> OStream.of_string (encode_ended e)
     | Some l ->
         let stream =
           OStream.of_string
-            (match s with
-               | "" -> encode_downgoing_non_opt l
-               | _ -> s ^ field_separator ^ encode_downgoing_non_opt l)
+            (match e with
+               | [] -> encode_downgoing_non_opt l
+               | e ->   encode_ended e
+                      ^ field_separator
+                      ^ encode_downgoing_non_opt l)
         in
         OStream.add_finalizer stream (stream_result_notification l) ;
         stream
@@ -357,6 +354,7 @@ end = struct
    * terminates when one of the channel is written upon. *)
   let treat_decoded = function
     | [], [] -> (* error : empty request *)
+        OMsg.debug (fun () -> "Incorrect or empty Comet request");
         Lwt.return
           { (OFrame.default_result ()) with
                OFrame.res_stream =
@@ -367,6 +365,7 @@ end = struct
 
     | [], (_::_ as ended) ->
         let end_notice = Messages.encode_ended ended in
+        OMsg.debug (fun () -> "Comet request served");
         Lwt.return
           { (OFrame.default_result ()) with
                OFrame.res_stream = (OStream.of_string end_notice, None) ;

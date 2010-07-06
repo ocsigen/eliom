@@ -40,18 +40,20 @@ sig
 
   val create : (string * int option) React.E.t -> chan
   (** [create e] makes a fresh new channel upon which a message is sent whenever
-      [e] has an occurrence. When [e] as an occurence of value [s, None] then
-      [s] is sent and no effort is made to detect transmition errors. If [s,
+      [e] has an occurrence. When [e] as an occurrence of value [s, None] then
+      [s] is sent and no effort is made to detect transmission errors. If [s,
       Some n] is sent upon [e] AND a client is registered to the channel, then
       [outcomes] will be triggered with [x] as a witness.
 
       The [Too_many_virtual_channels] exception may be raised if [create] is
-      called when the count of channels exceed [max_virtual_channels]. *)
+      called when the count of channels exceed [max_virtual_channels]. Note that
+      the count of channels reflect channels that are kept in memory. It is
+      especially useful to know that only Gc cycles may decrease this count.*)
 
   val outcomes : chan -> (Ocsigen_stream.outcome * int) React.E.t
   (** [outcomes c] is an event triggered with [o, x] when an occurrence of
       the event associated to [c] is triggered with [Some x] as a second
-      composant. The value of [o] is either [`Failure] or [`Success] depending
+      component. The value of [o] is either [`Failure] or [`Success] depending
       on the way the communication went.
 
       There are several limitations to this :
@@ -71,7 +73,7 @@ sig
       may still be registered as active while they have in fact closed the
       connection. In such a case, [outcomes c] will trigger an event (providing
       the event used to create the channel have an actual value in the second
-      composant of it's occurence). *)
+      component of it's occurrence). *)
 
   val get_id : chan -> chan_id
   (** [get_id c] returns a unique identifier associated to [c]. The client can
