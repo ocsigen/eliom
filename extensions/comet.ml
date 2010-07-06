@@ -334,6 +334,86 @@ end = struct
 
 end
 
+module Security :
+sig
+
+  val set_timeout : ?reset:bool -> float -> unit
+    (* Set the [timeout] constant for new connections. Existing connections are
+     * not affected. *)
+
+  val deactivate : unit -> unit
+    (* Stop serving comet connections and kill all current connections. *)
+
+  val activate : unit -> unit
+    (* (Re)start serving connections *)
+
+  val activated : bool React.S.t
+    (* activation state *)
+
+  val kill : unit React.E.t
+    (* The event reflecting willingness to kill connections *)
+
+  val command_function : string -> string list -> unit
+    (* To be registered with Ocsigen_extension.register_command_function *)
+
+end = struct
+
+  let activated, activate, deactivate =
+    let (activated, send_activated) = React.S.create true in
+      (activated,
+       (fun () -> send_activated true),
+       (fun () -> send_activated false)
+      )
+
+  let warn_activate =
+    React.E.map
+      (function
+         | true -> OMsg.warning "Comet is being activated"
+         | false -> OMsg.warning "Comet is being deactivated"
+      )
+      (React.S.changes activated)
+  let `R _ = React.S.retain activated (fun () -> ignore warn_activate)
+
+  let (kill, kill_all_connections) =
+    let (kill_pre, kill_all_connections) = React.E.create () in
+    (React.E.select
+       [React.E.fmap
+          (function false -> Some () | true -> None)
+          (React.S.changes activated);
+        kill_pre
+       ],
+     kill_all_connections)
+
+  let warn_kill =
+    React.E.map
+     (fun () -> OMsg.warning "Comet connections kill notice is being sent.")
+      kill
+  let `R _ = React.E.retain kill (fun () -> ignore warn_kill)
+
+  let set_timeout ?(reset=false) f =
+    timeout_ref := f ;
+    if reset
+    then kill_all_connections ()
+    else ()
+
+  let command_function _ = function
+    | ["deactivate"] -> deactivate ()
+    | ["activate"]   -> activate ()
+    | "set_timeout" :: f :: tl ->
+        (try
+           set_timeout
+             ~reset:(match tl with
+                       | ["KILL"] -> true
+                       | [] -> false
+                       | _ -> raise OX.Unknown_command
+             )
+             (float_of_string f)
+         with Failure _ -> raise OX.Unknown_command)
+    | _ -> raise OX.Unknown_command
+
+
+end
+
 module Main :
   (* using React.merge, a client can wait for all the channels on which it
    * is registered and return with the first result. *)
@@ -345,10 +425,13 @@ sig
 
 end = struct
 
-  let react_timeout t v =
-    let (e, s) = React.E.create () in
-    let _ = Lwt_unix.sleep t >|= fun () -> s v in
-    e
+  let frame_503 =
+    { (OFrame.default_result ()) with
+          OFrame.res_code = 503 ;(*Service Unavailable*)
+          OFrame.res_content_type = Some "text/html"
+    }
+
+  exception Kill
 
   (* Once channel list is obtain, use this function to return a thread that
    * terminates when one of the channel is written upon. *)
@@ -387,20 +470,41 @@ end = struct
             )
         in
         List.iter (fun c -> Channels.send_listeners c 1) active ;
-        Lwt.choose [ (Lwt_event.next merged >|= fun x -> Some x) ;
-                     (Lwt_unix.sleep (get_timeout ()) >|= fun () -> None) ;
-                   ] >|= fun x ->
-        List.iter (fun c -> Channels.send_listeners c (-1)) active ;
-        let s = Messages.encode_downgoing (Messages.encode_ended ended) x in
-        { (OFrame.default_result ()) with
-             OFrame.res_stream = (s, None) ;
-             OFrame.res_content_length = None ;
-             OFrame.res_content_type = Some "text/html" ;
-        }
+        Lwt.catch
+          (fun () ->
+             Lwt.choose [ (Lwt_event.next merged >|= fun x -> Some x);
+                          (Lwt_unix.sleep (get_timeout ()) >|= fun () -> None);
+                          (Lwt_event.next Security.kill >>= fun () ->
+                           Lwt.fail Kill);
+                        ] >|= fun x ->
+             List.iter (fun c -> Channels.send_listeners c (-1)) active ;
+             let s = Messages.encode_downgoing ended x in
+             OMsg.debug (fun () -> "Comet request served");
+             { (OFrame.default_result ()) with
+                   OFrame.res_stream = (s, None) ;
+                   OFrame.res_content_length = None ;
+                   OFrame.res_content_type = Some "text/html" ;
+             }
+          )
+          (function
+             | Kill ->
+                 List.iter (fun c -> Channels.send_listeners c (-1)) active ;
+                 OMsg.debug (fun () -> "Killed Comet request handling");
+                 Lwt.return frame_503 (* so that not all clients reopen the
+                                         connection "simultaneously" *)
+             | e -> Lwt.fail e
+          )
 
 
   (* This is just a mashup of the other functions in the module. *)
-  let main r () = Messages.decode_upcomming r >>= treat_decoded
+  let main r () =
+    if React.S.value Security.activated
+    then
+      (OMsg.debug (fun () -> "Serving Comet request");
+       Messages.decode_upcomming r >>= treat_decoded)
+    else
+        (OMsg.debug (fun () -> "Refusing Comet request (Comet deactivated)");
+         Lwt.return frame_503)
 
 end
 
@@ -448,3 +552,6 @@ let () = OX.register_extension
   ~fun_site:site_creator
   ~user_fun_site:user_site_creator
   ()
+let () = OX.register_command_function
+           ~prefix:"comet"
+           Security.command_function

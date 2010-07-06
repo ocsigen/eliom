@@ -81,6 +81,39 @@ sig
 
 end
 
+module Security :
+(** This module is to be used carefully, it provides functions to interrupt and
+    restart Comet related connections. It is however useful to prevent Comet
+    based DOS attacks. These functions can also be called from the Ocsigen
+    command pipe. *)
+sig
+
+  val set_timeout : ?reset:bool -> float -> unit
+  (** [set_timeout ?reset f] sets the timeout value for future Comet connections
+      to [f]. If [reset] is [true] then current connections are closed and the
+      new timeout value will apply to the reopened connections. Default value
+      for [reset] is false. *)
+
+  val deactivate : unit -> unit
+  (** [deactivate ()] ceases all Comet related activity. Each opened connection
+      is closed. Further attempts to connect to the server with a Comet specific
+      content type will result in a HTTP status code 503 (Unavailable).
+      [activated] is set to [false]. If called when Comet is not activated it
+      does nothing (not even logging the deactivation attempt. *)
+
+  val activate : unit -> unit
+  (** [activate ()] sets [activated] to [true] and starts serving Comet
+      requests. It is the client's own responsibility to reopen a connection. If
+      Comet was already activated it keeps going and nothing happens. *)
+
+  val activated : bool React.S.t
+  (** [activated] is a signal reflecting the activation state of the Comet
+      module. If [false] it indicates that Comet connections are answered with a
+      HTTP status code 503. If [true] it indicates that Comet connections are
+      handled in a standard fashion by the server. *)
+
+end
+
 (** Usage :
 
   On the server side :
@@ -114,14 +147,63 @@ end
       connecting to that particular channel ever again.
 
   *)
+(** Conf-file options:
+
+    One can use the configuration file to tweak Comet settings. The two
+    supported options are:
+
+    * max_virtual_channels:
+      * default: [None]
+      * syntax: "" is for [None], "i" is for [Some (int_of_string i)]
+      * [max_virtual_channels] is an upper limit to the number of active
+        channels. It does not limit the number of connections but the number of
+        values of type [Comet.Channels.chan] that can be used simultaneously. If
+        one calls [Comet.Channels.create] while the number of channels is
+        already maxed out, the exception
+        [Comet.Channels.Too_many_virtual_channels] is raised.
+
+    * timeout:
+      * default: [20.]
+      * syntax: "f" is for [float_of_string f]
+      * [timeout] is the number of seconds a Comet connection is kept alive. A
+        low value will increase the frequency of connection closing/reopening
+        and the chance of message loss. A high value will ease DOS attacks by
+        keeping resources (file-descriptors) occupied for a longer time.
+
+  *)
+(** Commands
+
+    Comet provides commands (to be piped to the command pipe). The complete list
+    of commands is described here. Don't forget to use the Comet prefix: each
+    command is to be prefixed by "comet:" (without quotes).
+
+    * deactivate:
+      * deactivate is a command that stops all Comet activity. It is equivalent
+        to a call to [Comet.Security.deactivate].
+
+    * activate:
+      * activate is the dual command to deactivate. It resumes Comet activity
+        (or do nothing is Comet is already activated) with exactly the same
+        effect as a call to [Comet.Security.activate] would have.
+
+    * set_timeout:
+      * parameter: f : float
+      * optional parameter: s : "KILL"
+      * set_timeout allows one to dynamically change the value of Comet
+        connections timeout to [f]. Previously activated connections are closed
+        if the second optional parameter is used. If not, connections are
+        carried out with their old timeout unchanged.
+
+  *)
+
 
 (** Note to Eliom users :
     Although it is possible to use Comet as an extension to the Ocsigen Server,
     it is recommended to use the higher level Eliom modules, namely Eliom_comet
     (for server side) and Eliom_client_comet (for client side). The former
     provides typed channels (with automatic marshaling) and channel wrapping,
-    the later automates decoding and unmarshaling and manages channel
-    registration and unregistration.
+    the later automates decoding and demarshaling and manages channel
+    registration and deregistration.
 
     The low level Ocisgen server extension can however be used with classic
     Javascript clients (whereas the high level Eliom module requires Ocaml
