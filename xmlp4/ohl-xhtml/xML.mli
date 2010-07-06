@@ -22,6 +22,7 @@ type event = string
 
 type attrib
 type attribs
+val float_attrib : aname -> float -> attrib
 val int_attrib : aname -> int -> attrib
 val string_attrib : aname -> string -> attrib
 val space_sep_attrib : aname -> string list -> attrib

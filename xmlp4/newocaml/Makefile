@@ -2,7 +2,7 @@ include ../../Makefile.config
 
 
 FILESR = xmllexer.ml camllexer.ml
-FILES = basicTypes.ml xhtmltypes.ml simplexmlparser.ml xhtmlsyntax.ml xhtmlparser.ml 
+FILES = basicTypes.ml xhtmltypes.ml xhtml5types.ml simplexmlparser.ml xhtmlsyntax.ml xhtmlparser.ml 
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) 
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) 
@@ -22,24 +22,22 @@ pp/simplexmlparser.mli:
 
 pp/xhtmltypes.ml:
 	camlp4r xhtmltypes.ml -printer o > pp/xhtmltypes.ml
-
-byte: ohl-xhtml-byte $(CMA) $(OBJS) pp/simplexmlparser.mli pp/xhtmltypes.ml
 	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmo newocaml/basicTypes.cmi newocaml/basicTypes.cmo newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmo newocaml/xmllexer.cmi newocaml/xmllexer.cmo newocaml/camllexer.cmi newocaml/camllexer.cmo newocaml/xhtmlsyntax.cma ..
 
 opt: ohl-xhtml-opt $(CMXA) $(OBJSOPT)
-	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmx newocaml/xhtmltypes.o newocaml/basicTypes.cmi newocaml/basicTypes.cmx newocaml/basicTypes.o newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmx newocaml/simplexmlparser.o newocaml/xmllexer.cmi newocaml/xmllexer.cmx newocaml/xmllexer.o newocaml/camllexer.cmi newocaml/camllexer.cmx newocaml/camllexer.o newocaml/xhtmlsyntax.cmxa newocaml/xhtmlsyntax.a ..
+	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtml5types.cmi newocaml/xhtmltypes.cmx newocaml/xhtmltypes.o newocaml/xhtml5types.cmx newocaml/xhtml5types.o newocaml/basicTypes.cmi newocaml/basicTypes.cmx newocaml/basicTypes.o newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmx newocaml/simplexmlparser.o newocaml/xmllexer.cmi newocaml/xmllexer.cmx newocaml/xmllexer.o newocaml/camllexer.cmi newocaml/camllexer.cmx newocaml/camllexer.o newocaml/xhtmlsyntax.cmxa newocaml/xhtmlsyntax.a ..
 
 .PHONY: depend ohl-xhtml-byte ohl-xhtml-opt
 
 ohl-xhtml-byte:
-	-rm -f ../xhtmltypes.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
+	-rm -f ../xhtmltypes.cmi ../xhtml5types.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
 	$(MAKE) -C ../ohl-xhtml byte
-	cp ../ohl-xhtml/xhtml.cma ../ohl-xhtml/xHTML.cmi ../ohl-xhtml/xML.cmi ..
+	cp ../ohl-xhtml/xhtml.cma ../ohl-xhtml/xHTML.cmi ../ohl-xhtml/xHTML5.cmi ../ohl-xhtml/xML.cmi ..
 
 ohl-xhtml-opt:
-	-rm -f ../xhtmltypes.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
+	-rm -f ../xhtmltypes.cmi ../xhtml5types.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
 	$(MAKE) -C ../ohl-xhtml opt
-	cp ../ohl-xhtml/xhtml.cmxa ../ohl-xhtml/xhtml.a ../ohl-xhtml/xHTML.cmi ../ohl-xhtml/xML.cmi ..
+	cp ../ohl-xhtml/xhtml.cmxa ../ohl-xhtml/xhtml.a ../ohl-xhtml/xHTML.cmi  ../ohl-xhtml/xHTML5.cmi ../ohl-xhtml/xML.cmi ..
 
 $(CMA): basicTypes.cmo xmllexer.cmo camllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
 	$(CAMLC) -a -o $(CMA) xmllexer.cmo camllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo

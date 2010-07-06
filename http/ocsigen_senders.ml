@@ -567,3 +567,49 @@ let send_error
     ~head
     ~sender
     r
+
+
+
+
+
+
+
+
+
+
+
+module Xhtml5_content_(Xhtmlprinter : sig
+                        val xhtml_stream :
+                          ?version:[< `HTML_v03_02 | `HTML_v04_01
+                          | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string
+                              > `XHTML_01_01 ] ->
+                          ?width:int ->
+                          ?encode:(string -> string) ->
+                          ?html_compat:bool ->
+                          [ `Html ] XHTML5.M.elt -> string Ocsigen_stream.t
+                      end) =
+  struct
+    type t = [ `Html ] XHTML5.M.elt
+
+    type options = [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+
+    let get_etag_aux x = None
+
+    let get_etag ?options c = None
+
+    let result_of_content ?(options = `XHTML_01_01) c =
+      let x = Xhtmlprinter.xhtml_stream ~version:options c in
+      let default_result = default_result () in
+      Lwt.return
+        {default_result with
+         res_content_length = None;
+         res_content_type = Some "text/html";
+         res_etag = get_etag c;
+         res_headers= Http_headers.dyn_headers;
+         res_stream = (x, None)
+       }
+
+  end
+
+module Xhtml5_content = Xhtml5_content_(Xhtml5pretty_streams)
+module Xhtml5compact_content = Xhtml5_content_(Xhtml5compact_streams)

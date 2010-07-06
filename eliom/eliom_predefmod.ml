@@ -1750,3 +1750,103 @@ module Eliom_appl (Appl_params : APPL_PARAMS) = struct
   let application_name = Appl_params.application_name
 end
 
+
+
+
+
+
+
+
+
+
+module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
+                         with type t = [ `Html ] XHTML5.M.elt
+                   and type options = XHTML5.M.doctypes
+                ) = struct
+  open XHTML5.M
+  open Xhtmltypes
+
+  type page = xhtml elt
+
+  type options = XHTML5.M.doctypes
+
+  type return = Eliom_services.http
+
+  module Xhtml_content = struct
+
+    include Xhtml_content
+
+    let add_css (a : 'a) : 'a =
+      let css =
+        XHTML5.M.toelt
+          (XHTML5.M.style ~contenttype:"text/css"
+             [XHTML5.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"])
+      in
+      let rec aux = function
+        | { XML.elt = XML.Element ("head",al,el ) } as e::l ->
+            { e with XML.elt = XML.Element ("head",al,css::el) }::l
+        | { XML.elt = XML.BlockElement ("head",al,el) } as e::l ->
+            { e with XML.elt = XML.BlockElement ("head",al,css::el) }::l
+        | { XML.elt = XML.SemiBlockElement ("head",al,el) } as e::l ->
+            { e with XML.elt = XML.SemiBlockElement ("head",al,css::el) }::l
+        | { XML.elt = XML.Node ("head",al,el) } as e::l ->
+            { e with XML.elt = XML.Node ("head",al,css::el) }::l
+        | e::l -> e::(aux l)
+        | [] -> []
+      in
+      XHTML5.M.tot
+        (match XHTML5.M.toelt a with
+           | { XML.elt = XML.Element ("html",al,el) } as e ->
+               { e with XML.elt = XML.Element ("html",al,aux el) }
+           | { XML.elt = XML.BlockElement ("html",al,el) } as e ->
+               { e with XML.elt = XML.BlockElement ("html",al,aux el) }
+           | { XML.elt = XML.SemiBlockElement ("html",al,el) } as e ->
+               { e with XML.elt = XML.SemiBlockElement ("html",al,aux el) }
+           | { XML.elt = XML.Node ("html",al,el) } as e ->
+               { e with XML.elt = XML.Node ("html",al,aux el) }
+           | e -> e)
+
+    let get_etag ?options c = get_etag (add_css c)
+
+    let result_of_content ?options c = result_of_content ?options (add_css c)
+
+  end
+
+  let send ?(options = `XHTML_01_01) ?(cookies=[]) ?charset ?code
+      ?content_type ?headers ~sp content =
+    Xhtml_content.result_of_content ~options content >>= fun r ->
+    Lwt.return
+      {r with
+         res_cookies=
+          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+         res_code= code_of_code_option code;
+         res_charset= (match charset with
+                         | None -> Some (get_config_default_charset sp)
+                         | _ -> charset
+                      );
+         res_content_type= (match content_type with
+                              | None -> r.res_content_type
+                              | _ -> content_type
+                           );
+         res_headers= (match headers with
+                         | None -> r.res_headers
+                         | Some headers -> 
+                             Http_headers.with_defaults headers r.res_headers
+                      );
+      }
+
+end
+
+module Xhtml5reg = MakeRegister(Xhtml5reg_(Ocsigen_senders.Xhtml5_content))
+module Xhtml5compactreg =
+  MakeRegister(Xhtml5reg_(Ocsigen_senders.Xhtml5compact_content))
+
+module Xhtml5 = struct
+(*  include Xhtmlforms *)
+  include Xhtml5reg
+end
+
+module Xhtml5compact = struct
+(*  include Xhtmlforms *)
+  include Xhtml5compactreg
+end

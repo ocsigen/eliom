@@ -34,7 +34,7 @@ DOLLAR = $$
 
 SUBDIRS = examples experimental private
 
-SRC_ML = xML.ml xHTML.ml xHTML_obrowser.ml
+SRC_ML = xML.ml xHTML.ml xHTML5.ml xHTML_obrowser.ml
 SRC_MLI = $(SRC_ML:.ml=.mli)
 
 DISTFILES = README ChangeLog COPYING Makefile $(SRC_MLI) $(SRC_ML) \
@@ -50,10 +50,10 @@ byte: xhtml.cma
 bin: xhtml.cma
 opt: xhtml.cmxa
 
-xhtml.cmxa: xML.cmx xHTML.cmx
+xhtml.cmxa: xML.cmx xHTML.cmx xHTML5.cmx
 	$(OCAMLOPT) -a -o $@ $^
 
-xhtml.cma: xML.cmo xHTML.cmo
+xhtml.cma: xML.cmo xHTML.cmo xHTML5.cmo
 	$(OCAMLC) -a -g -o $@ $^
 
 %.cmx: %.ml
@@ -77,6 +77,11 @@ doc/index.html: xML.mli xHTML.mli
 	ocamldoc -html -d doc $^
 
 xHTML.mli: xHTML.ml
+	@$(SED) -n '/BEGIN INTERFACE/,/END INTERFACE/p' $< \
+	  | $(SED) -e '/BEGIN INTERFACE/d' -e '/END INTERFACE/d' > $@.new
+	@if [ -e $@ ] && $(DIFF) -q -I'\$(DOLLAR)Id: ' $@.new $@; then $(RM) $@.new; else $(MV) $@.new $@; fi
+
+xHTML5.mli: xHTML5.ml
 	@$(SED) -n '/BEGIN INTERFACE/,/END INTERFACE/p' $< \
 	  | $(SED) -e '/BEGIN INTERFACE/d' -e '/END INTERFACE/d' > $@.new
 	@if [ -e $@ ] && $(DIFF) -q -I'\$(DOLLAR)Id: ' $@.new $@; then $(RM) $@.new; else $(MV) $@.new $@; fi
@@ -106,6 +111,8 @@ examples/homepage: all
 
 xHTML_obrowser.cmo: xML.cmi xHTML_obrowser.cmi 
 xHTML_obrowser.cmx: xML.cmx xHTML_obrowser.cmi 
+xHTML5.cmo: xML.cmi xHTML5.cmi
+xHTML5.cmx: xML.cmx xHTML5.cmi
 xHTML.cmo: xML.cmi xHTML.cmi 
 xHTML.cmx: xML.cmx xHTML.cmi 
 xHTML_sample.cmo: xHTML.cmi 

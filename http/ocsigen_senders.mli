@@ -76,3 +76,26 @@ val send_error :
     sender:Ocsigen_http_com.sender_type ->
     unit ->
     unit Lwt.t
+
+
+
+
+
+
+
+
+
+
+
+module Xhtml5_content :
+  Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML5.M.elt
+                                  and type options = 
+  [ `HTML_v03_02 | `HTML_v04_01
+  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+
+module Xhtml5compact_content :
+  Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML5.M.elt
+                                  and type options = 
+  [ `HTML_v03_02 | `HTML_v04_01
+  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+

@@ -619,3 +619,30 @@ module Caml : sig
 
 
 end
+
+
+
+
+
+
+module Xhtml5 : sig
+
+  include Eliom_mkreg.ELIOMREGSIG 
+  with type page = Xhtml5types.xhtml XHTML5.M.elt 
+  and type options = XHTML5.M.doctypes
+  and type return = Eliom_services.http
+
+(*  include XHTMLFORMSSIG *)
+
+end
+
+module Xhtml5compact : sig
+
+  include Eliom_mkreg.ELIOMREGSIG 
+  with type page = Xhtml5types.xhtml XHTML5.M.elt
+  and type options = XHTML5.M.doctypes
+  and type return = Eliom_services.http
+
+(*  include XHTMLFORMSSIG *)
+
+end

@@ -1,7 +1,9 @@
 include ../Makefile.config
 
 FILES = xhtmlpretty.ml xhtmlcompact.ml \
-	xhtmlpretty_streams.ml xhtmlcompact_streams.ml
+	xhtmlpretty_streams.ml xhtmlcompact_streams.ml \
+	xhtml5pretty.ml xhtml5compact.ml \
+	xhtml5pretty_streams.ml xhtml5compact_streams.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) -package camlp4
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) -package camlp4
@@ -26,11 +28,11 @@ optdep:
 	$(MAKE) -C newocaml opt
 
 
-xhtmlpretty.cma: xhtmlpretty.cmo xhtmlcompact.cmo
-	$(CAMLC) -a -o xhtmlpretty.cma xhtmlpretty.cmo xhtmlcompact.cmo
+xhtmlpretty.cma: xhtmlpretty.cmo xhtmlcompact.cmo xhtml5pretty.cmo xhtml5compact.cmo
+	$(CAMLC) -a -o $@ $^
 
-xhtmlpretty.cmxa: xhtmlpretty.cmx xhtmlcompact.cmx
-	$(CAMLOPT) -a -o xhtmlpretty.cmxa xhtmlpretty.cmx xhtmlcompact.cmx
+xhtmlpretty.cmxa: xhtmlpretty.cmx xhtmlcompact.cmx xhtml5pretty.cmx xhtml5compact.cmx
+	$(CAMLOPT) -a -o $@ $^
 
 # Common rules
 .SUFFIXES: .ml .mli .cmo .cmi .cmx

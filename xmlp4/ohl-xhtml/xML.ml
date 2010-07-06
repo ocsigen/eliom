@@ -25,11 +25,13 @@ let separator_to_string = function
 
 type aname = string
 type attrib =
+  | AFloat of aname * float (* Cecile *)
   | AInt of aname * int
   | AStr of aname * string
   | AStrL of separator * aname * string list
 type attribs = attrib list
 
+let float_attrib name value = AFloat (name, value) (* Cecile *)
 let int_attrib name value = AInt (name, value)
 let string_attrib name value = AStr (name, value)
 let space_sep_attrib name values = AStrL (Space, name, values)
@@ -37,6 +39,7 @@ let comma_sep_attrib name values = AStrL (Comma, name, values)
 let event_attrib name value = AStr (name, value)
 
 let attrib_value_to_string encode = function
+  | AFloat (_, f) -> Printf.sprintf "\"%e\"" f (* Cecile *)
   | AInt (_, i) -> Printf.sprintf "\"%d\"" i
   | AStr (_, s) -> Printf.sprintf "\"%s\"" (encode s)
   | AStrL (sep, _, slist) ->
@@ -44,7 +47,7 @@ let attrib_value_to_string encode = function
         (encode (String.concat (separator_to_string sep) slist))
 
 let attrib_name = function
-  | AInt (n, _) | AStr (n, _) | AStrL (_, n, _) -> n
+    | AFloat (n, _) (* Cecile *) | AInt (n, _) | AStr (n, _) | AStrL (_, n, _) -> n
 
 
 let attrib_to_string encode a =
@@ -94,6 +97,20 @@ let rec amap f n = {
       | _ -> failwith "not implemented for Ocsigen syntax extension"
 }
 
+  (* Cecile *)
+let rec add_float_attrib name value = function
+  | [] -> [AFloat (name, value)]
+  | AFloat (name', _) :: tail when name' = name -> AFloat (name, value) :: tail
+  | head :: tail -> head :: add_float_attrib name value tail
+
+let rec map_float_attrib is_attrib f = function
+  | [] -> []
+  | AFloat (name, value) :: tail when is_attrib name ->
+      AFloat (name, f value) :: map_float_attrib is_attrib f tail
+  | head :: tail -> head :: map_float_attrib is_attrib f tail
+  (* Cecile *)
+
+
 let rec add_int_attrib name value = function
   | [] -> [AInt (name, value)]
   | AInt (name', _) :: tail when name' = name ->
@@ -102,7 +119,7 @@ let rec add_int_attrib name value = function
 
 let rec rm_attrib is_attrib = function
   | [] -> []
-  | (AInt (name, _) | AStr (name, _) | AStrL (_, name, _)) :: tail
+  | (AFloat (name, _) (* Cecile *) | AInt (name, _) | AStr (name, _) | AStrL (_, name, _)) :: tail
     when is_attrib name -> rm_attrib is_attrib tail
   | head :: tail -> head :: rm_attrib is_attrib tail
 

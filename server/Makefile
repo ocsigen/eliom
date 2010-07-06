@@ -87,6 +87,7 @@ CMOS = ../baselib/ocsigen_lib_cli.cmo \
        ../http/http_lexer.cmo ../http/http_parser.cmo \
        ../http/framepp.cmo ../http/ocsigen_http_com.cmo \
        ../xmlp4/xhtmlpretty_streams.cmo ../xmlp4/xhtmlcompact_streams.cmo \
+       ../xmlp4/xhtml5pretty_streams.cmo ../xmlp4/xhtml5compact_streams.cmo\
        ../http/ocsigen_charset_mime.cmo ../http/ocsigen_senders.cmo \
        ../baselib/polytables.cmo
 # also modify builtin_package in ocsigen_config.ml if you modify the former line!
