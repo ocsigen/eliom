@@ -76,8 +76,6 @@ let rec parse_options = function
         max_virtual_channels_ref := None ; parse_options tl
   | ("max_virtual_channels", s) :: tl ->
         max_virtual_channels_ref := Some (int_of_string s) ; parse_options tl
-  | ("timeout", s) :: tl ->
-        timeout_ref := float_of_string s ; parse_options tl
   | _ :: _ -> raise (OX.Error_in_config_file "Unexpected data in config file")
 
 (*** CORE ***)
@@ -347,7 +345,7 @@ sig
   val activate : unit -> unit
     (* (Re)start serving connections *)
 
-  val activated : bool React.S.t
+  val activated : unit -> bool
     (* activation state *)
 
   val kill : unit React.E.t
@@ -358,31 +356,21 @@ sig
 
 end = struct
 
+  let (kill, kill_all_connections) = React.E.create ()
+
   let activated, activate, deactivate =
-    let (activated, send_activated) = React.S.create true in
-      (activated,
-       (fun () -> send_activated true),
-       (fun () -> send_activated false)
+    let activated = ref true in
+      ((fun () -> !activated),
+       (fun () -> if !activated
+                  then ()
+                  else (OMsg.warning "Comet is being activated";
+                        activated := true)),
+       (fun () -> if !activated
+                  then (OMsg.warning "Comet is being deactivated";
+                        activated := false;
+                        kill_all_connections ())
+                  else ())
       )
-
-  let warn_activate =
-    React.E.map
-      (function
-         | true -> OMsg.warning "Comet is being activated"
-         | false -> OMsg.warning "Comet is being deactivated"
-      )
-      (React.S.changes activated)
-  let `R _ = React.S.retain activated (fun () -> ignore warn_activate)
-
-  let (kill, kill_all_connections) =
-    let (kill_pre, kill_all_connections) = React.E.create () in
-    (React.E.select
-       [React.E.fmap
-          (function false -> Some () | true -> None)
-          (React.S.changes activated);
-        kill_pre
-       ],
-     kill_all_connections)
 
   let warn_kill =
     React.E.map
@@ -425,11 +413,14 @@ sig
 
 end = struct
 
-  let frame_503 =
-    { (OFrame.default_result ()) with
-          OFrame.res_code = 503 ;(*Service Unavailable*)
-          OFrame.res_content_type = Some "text/html"
-    }
+  let frame_503 () =
+    Lwt.return
+      { (OFrame.default_result ()) with
+            OFrame.res_stream = (OStream.of_string "", None);
+            OFrame.res_code = 503; (*Service Unavailable*)
+            OFrame.res_content_length = None;
+            OFrame.res_content_type = Some "text/html";
+      }
 
   exception Kill
 
@@ -490,7 +481,7 @@ end = struct
              | Kill ->
                  List.iter (fun c -> Channels.send_listeners c (-1)) active ;
                  OMsg.debug (fun () -> "Killed Comet request handling");
-                 Lwt.return frame_503 (* so that not all clients reopen the
+                 frame_503 () (* so that not all clients reopen the
                                          connection "simultaneously" *)
              | e -> Lwt.fail e
           )
@@ -498,13 +489,13 @@ end = struct
 
   (* This is just a mashup of the other functions in the module. *)
   let main r () =
-    if React.S.value Security.activated
+    if Security.activated ()
     then
       (OMsg.debug (fun () -> "Serving Comet request");
        Messages.decode_upcomming r >>= treat_decoded)
     else
-        (OMsg.debug (fun () -> "Refusing Comet request (Comet deactivated)");
-         Lwt.return frame_503)
+      (OMsg.debug (fun () -> "Refusing Comet request (Comet deactivated)");
+       frame_503 ())
 
 end
 
@@ -519,17 +510,16 @@ let rec has_comet_content_type = function
 
 let main = function
 
+  | OX.Req_not_found (_, rq) -> (* Else check for content type *)
+      begin match rq.OX.request_info.OX.ri_content_type with
+        | Some (hd,tl) when has_comet_content_type (hd :: tl) ->
+            Lwt.return (OX.Ext_found (Main.main rq))
+
+        | Some _ | None -> Lwt.return OX.Ext_do_nothing
+      end
+
   | OX.Req_found _ -> (* If recognized by some other extension... *)
       Lwt.return OX.Ext_do_nothing (* ...do nothing *)
-
-  | OX.Req_not_found (_, rq) -> (* Else check for content type *)
-      match rq.OX.request_info.OX.ri_content_type with
-        | Some (hd,tl) ->
-            if has_comet_content_type (hd :: tl)
-            then Lwt.return (OX.Ext_found (Main.main rq))
-            else Lwt.return OX.Ext_do_nothing
-        | None -> Lwt.return OX.Ext_do_nothing
-
 
 
 

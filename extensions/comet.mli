@@ -106,8 +106,8 @@ sig
       requests. It is the client's own responsibility to reopen a connection. If
       Comet was already activated it keeps going and nothing happens. *)
 
-  val activated : bool React.S.t
-  (** [activated] is a signal reflecting the activation state of the Comet
+  val activated : unit -> bool
+  (** [activated ()] reflects the activation state of the Comet
       module. If [false] it indicates that Comet connections are answered with a
       HTTP status code 503. If [true] it indicates that Comet connections are
       handled in a standard fashion by the server. *)
@@ -149,8 +149,8 @@ end
   *)
 (** Conf-file options:
 
-    One can use the configuration file to tweak Comet settings. The two
-    supported options are:
+    One can use the configuration file to tweak Comet settings. The supported
+    options are:
 
     * max_virtual_channels:
       * default: [None]
@@ -161,14 +161,6 @@ end
         one calls [Comet.Channels.create] while the number of channels is
         already maxed out, the exception
         [Comet.Channels.Too_many_virtual_channels] is raised.
-
-    * timeout:
-      * default: [20.]
-      * syntax: "f" is for [float_of_string f]
-      * [timeout] is the number of seconds a Comet connection is kept alive. A
-        low value will increase the frequency of connection closing/reopening
-        and the chance of message loss. A high value will ease DOS attacks by
-        keeping resources (file-descriptors) occupied for a longer time.
 
   *)
 (** Commands
@@ -187,8 +179,8 @@ end
         effect as a call to [Comet.Security.activate] would have.
 
     * set_timeout:
-      * parameter: f : float
-      * optional parameter: s : "KILL"
+      * parameter: f (float)
+      * optional parameter: s ("KILL")
       * set_timeout allows one to dynamically change the value of Comet
         connections timeout to [f]. Previously activated connections are closed
         if the second optional parameter is used. If not, connections are
