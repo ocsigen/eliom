@@ -99,9 +99,6 @@ sig
 
 end = struct
 
-  (* constants *)
-  let max_wait = 128.
-
   (* Primitive events for the reactive engine *)
   let (start_e,   start  ) = React.E.create ()
   let (stop_e,    stop   ) = React.E.create ()
@@ -141,7 +138,7 @@ end = struct
 
   let list_registered () = Cmap.fold (fun k _ l -> k :: l) !cmap []
 
-  let more_slp f = min (2. *. f) max_wait
+  let more_slp f = if f >= 64. then 128. else 2. *. f
 
   (* action *)
   let rec run slp wt = match list_registered () with
