@@ -60,16 +60,24 @@ let map_rev_accu_split func lst accu1 accu2 =
 
 (* timeout for comet connections : if no value has been written in the ellapsed
  * time, connection will be closed. Should be equal to client timeout. *)
-let timeout = 20.
+let timeout_ref = ref 20.
+let get_timeout () = !timeout_ref
 
 (* the size initialization for the channel hashtable *)
-(*TODO: make value customizable via conf file *)
-let tbl_initial_size = 42
+let tbl_initial_size = 16
 
-(*TODO: make value customizable via conf file *)
-let max_virtual_channels = None
-let max_actual_channels = None
+let max_virtual_channels_ref = ref None
+let get_max_virtual_channels () = !max_virtual_channels_ref
 
+let rec parse_options = function
+  | [] -> ()
+  | ("max_virtual_channels", "") :: tl ->
+        max_virtual_channels_ref := None ; parse_options tl
+  | ("max_virtual_channels", s) :: tl ->
+        max_virtual_channels_ref := Some (int_of_string s) ; parse_options tl
+  | ("timeout", s) :: tl ->
+        timeout_ref := float_of_string s ; parse_options tl
+  | _ :: _ -> raise (OX.Error_in_config_file "Unexpected data in config file")
 
 (*** CORE ***)
 
@@ -169,7 +177,7 @@ end = struct
   let (chan_count, incr_chan_count, decr_chan_count) =
     let cc = ref 0 in
     ((fun () -> !cc), (fun () -> incr cc), (fun _ -> decr cc))
-  let maxed_out_virtual_channels () = match max_virtual_channels with
+  let maxed_out_virtual_channels () = match get_max_virtual_channels () with
     | None -> false
     | Some y -> chan_count () >= y
 
@@ -347,7 +355,7 @@ end = struct
 
   (* Once channel list is obtain, use this function to return a thread that
    * terminates when one of the channel is written upon. *)
-  let treat_decoded (chans, dead_chans) = match (chans, dead_chans) with
+  let treat_decoded = function
     | [], [] -> (* error : empty request *)
         Lwt.return
           { (OFrame.default_result ()) with
@@ -379,12 +387,11 @@ end = struct
                active
             )
         in
-        List.iter (fun c -> Channels.send_listeners c 1) chans ;
-        let nexted = Lwt_event.next merged in
-        Lwt.choose [ (nexted >|= fun x -> Some x) ;
-                     (Lwt_unix.sleep timeout >|= fun () -> None) ;
+        List.iter (fun c -> Channels.send_listeners c 1) active ;
+        Lwt.choose [ (Lwt_event.next merged >|= fun x -> Some x) ;
+                     (Lwt_unix.sleep (get_timeout ()) >|= fun () -> None) ;
                    ] >|= fun x ->
-        List.iter (fun c -> Channels.send_listeners c (-1)) chans ;
+        List.iter (fun c -> Channels.send_listeners c (-1)) active ;
         let s = Messages.encode_downgoing (Messages.encode_ended ended) x in
         { (OFrame.default_result ()) with
              OFrame.res_stream = (s, None) ;
@@ -428,11 +435,13 @@ let main = function
 
 (* registering extension and the such *)
 let parse_config _ _ _ = function
-  | Pxml.Element ("comet", [], []) -> main
+  | Pxml.Element ("comet", attrs, []) ->
+      parse_options attrs ;
+      main
   | Pxml.Element (t, _, _) -> raise (OX.Bad_config_tag_for_extension t)
   | _ -> raise (OX.Error_in_config_file "Unexpected data in config file")
-let site_creator (hostpattern : OX.virtual_hosts) = parse_config
-let user_site_creator (path : OX.userconf_info) = site_creator
+let site_creator (_ : OX.virtual_hosts) = parse_config
+let user_site_creator (_ : OX.userconf_info) = site_creator
 
 (* registering extension *)
 let () = OX.register_extension
