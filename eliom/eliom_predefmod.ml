@@ -1772,6 +1772,10 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   type return = Eliom_services.http
 
+  let pre_service ?options ~sp = Lwt.return ()
+
+  let application_name = None
+
   module Xhtml_content = struct
 
     include Xhtml_content
@@ -1818,7 +1822,8 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
     Lwt.return
       {r with
          res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
