@@ -48,6 +48,7 @@ type cookie =
     If [?oldtable] is present, cookies are added to this table
  *)
 val cookie_table_of_eliom_cookies :
+  Eliom_common.cookie_type ->
   ?oldtable:Ocsigen_http_frame.cookieset ->
   sp:Eliom_sessions.server_params -> 
   cookie list -> 

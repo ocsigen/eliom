@@ -123,7 +123,8 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
     Lwt.return
       {r with
          res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
@@ -226,7 +227,8 @@ module SubXhtml = functor(T : sig type content end) ->
         Lwt.return
           {r with
              res_cookies= 
-              Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+              Eliom_services.cookie_table_of_eliom_cookies
+                Eliom_common.CBrowser ~sp cookies;
              res_code= code_of_code_option code;
              res_charset= (match charset with
                              | None -> Some (get_config_default_charset sp)
@@ -288,7 +290,8 @@ module Textreg_ = struct
     Lwt.return
       {r with
          res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None ->  Some (get_config_default_charset sp)
@@ -332,7 +335,8 @@ module CssTextreg_ = struct
     Lwt.return
       {r with
          res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
@@ -378,7 +382,8 @@ module HtmlTextreg_ = struct
     Lwt.return
       {r with
          res_cookies= 
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
@@ -608,7 +613,8 @@ module Actionreg_ = struct
       Lwt.return
         {empty_result with
            res_cookies=
-            Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+            Eliom_services.cookie_table_of_eliom_cookies
+              Eliom_common.CBrowser ~sp cookies;
            res_code= code;
            res_content_type= (match content_type with
                                 | None -> empty_result.res_content_type
@@ -799,7 +805,8 @@ module Unitreg_ = struct
     Lwt.return
       {empty_result with
          res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code;
          res_content_type= (match content_type with
                               | None -> empty_result.res_content_type
@@ -856,7 +863,8 @@ module String_redirreg_ = struct
     Lwt.return
       {empty_result with
          res_cookies= 
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code;
          res_location = Some (XHTML.M.string_of_uri content);
          res_content_type= (match content_type with
@@ -911,7 +919,8 @@ module Redirreg_ = struct
     Lwt.return
       {empty_result with
          res_cookies= 
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code;
          res_location = Some uri;
          res_content_type= (match content_type with
@@ -956,6 +965,7 @@ module Anyreg_ = struct
       {res with
          res_cookies=
           Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser 
             ~oldtable:res.res_cookies
             ~sp
             cookies;
@@ -1009,7 +1019,8 @@ module Filesreg_ = struct
     Lwt.return
       { r with
           res_cookies =
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
           res_code = code_of_code_option code;
           res_charset = (match charset with
                            | None ->
@@ -1057,7 +1068,8 @@ module Streamlistreg_ = struct
     Lwt.return
       {r with
          res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None ->  Some (get_config_default_charset sp)
@@ -1597,7 +1609,7 @@ module Eliom_appl_reg_
 
   type return = Eliom_services.appl_service
 
-  let create_page ~sp params do_not_launch_application content = 
+  let create_page ~sp params do_not_launch_application cookies content = 
     let body, container_node = match params.ap_container with
       | None -> let b = XHTML.M.body ?a:params.ap_body_attributes content in
         (b, (XHTML.M.toelt b))
@@ -1669,7 +1681,22 @@ redir ();"))::
                        (match Eliom_process.get_process_id ~sp with
                           | Some s -> s
                           | None -> "<error: process id not created>"
-                       ) ^ "\"; \n")) ::
+                       ) ^ "\"; \n"
+
+                     ^ "var tab_cookies = \"" ^
+                       (let cookies =
+                          Eliommod_cookies.compute_cookies_to_send
+                            Eliom_common.CTab
+                            (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_sitedata
+                            (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_cookie_info
+                            (Eliom_services.cookie_table_of_eliom_cookies
+                               Eliom_common.CTab ~sp cookies)
+                        in
+                        Eliom_client_types.jsmarshal cookies
+                       ) ^ "\"; \n"
+
+                    )
+                 ) ::
                (* Javascript program: *)
                XHTML.M.script ~a:[a_src (Xhtml.make_uri 
                                            (Eliom_services.static_dir ~sp)
@@ -1712,14 +1739,15 @@ redir ();"))::
                       Xhtmlcompact'.xhtml_list_print content)
      else 
 (*VVV for now not possible to give other params for one page *)
-       let page = create_page ~sp Appl_params.params options content in
+       let page = create_page ~sp Appl_params.params options cookies content in
        let options = Appl_params.params.ap_doctype in
        Xhtml_content.result_of_content ~options page)
     >>= fun r ->
     Lwt.return
       {r with
          res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          Eliom_services.cookie_table_of_eliom_cookies
+            Eliom_common.CBrowser ~sp cookies;
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
