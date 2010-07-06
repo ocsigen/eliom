@@ -84,8 +84,8 @@ type 'a res_reconstr_param =
                   (string * string) list *
                   (string * Ocsigen_lib.file_info) list)
 
-let reconstruct_params
-    ~sp
+let reconstruct_params_
+    req
     (typ : ('a, [<`WithSuffix|`WithoutSuffix], 'b) params_type)
     params files nosuffixversion urlsuffix : 'a =
   let rec parse_suffix typ suff =
@@ -108,8 +108,7 @@ let reconstruct_params
       | TList (_, t), l | TSet t, l ->
           let b, l = Obj.magic (parse_suffix t l) in
           (match l with
-             | [] -> raise (Ocsigen_extensions.Ocsigen_Is_a_directory
-                              sp.Eliom_common.sp_request)
+             | [] -> raise (Ocsigen_extensions.Ocsigen_Is_a_directory req)
              | [""] -> Obj.magic [b], []
              | _ -> 
                  let c, l = Obj.magic (parse_suffix typ l) in
@@ -120,8 +119,7 @@ let reconstruct_params
       | TProd (t1, t2), l ->
           (match parse_suffix t1 l with
              | _, [] -> 
-                 raise (Ocsigen_extensions.Ocsigen_Is_a_directory
-                          sp.Eliom_common.sp_request)
+                 raise (Ocsigen_extensions.Ocsigen_Is_a_directory req)
              | r, l -> 
                  let rr, ll = parse_suffix t2 l in 
                  Obj.magic (r, rr), ll)
@@ -348,6 +346,8 @@ let reconstruct_params
     | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
 
+let reconstruct_params ~sp = reconstruct_params_ sp.Eliom_common.sp_request
+
 
 (*****************************************************************************)
 (* Non localized parameters *)
@@ -389,3 +389,24 @@ let get_non_localized_post_parameters ~sp p =
     sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params snd ~sp p
 
 
+(* tab cookies: *)
+let tab_cookies_nlp =
+  make_non_localized_parameters
+    ~prefix:"__eliom"
+    ~name:"tab_cookies"
+    (list "l" (string "n" ** string "v"))
+
+let _ =
+  let (name, _, keys, paramtype) = tab_cookies_nlp in
+  Eliom_common.get_tab_cookies :=
+    (fun req get_nlp ->
+      let l = 
+        try
+          let params = Ocsigen_lib.String_Table.find name get_nlp in
+          reconstruct_params_ req paramtype params [] false None
+        with Eliom_common.Eliom_Wrong_parameter | Not_found -> []
+      in
+      List.fold_left
+        (fun beg (n, v) -> Ocsigen_lib.String_Table.add n v beg)
+        Ocsigen_lib.String_Table.empty l
+    )

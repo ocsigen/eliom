@@ -637,6 +637,7 @@ module Actionreg_ = struct
       let ri = Eliom_sessions.get_request ~sp in
       let all_user_cookies =
         Eliommod_cookies.add_cookie_list_to_send
+          Eliom_common.CBrowser
           sitedata
           (Eliom_services.eccookiel_of_escookiel cookies_set_by_page)
           Ocsigen_http_frame.Cookies.empty
@@ -664,6 +665,7 @@ module Actionreg_ = struct
                >>= fun ric ->
 
                Eliommod_cookies.compute_cookies_to_send
+                 Eliom_common.CBrowser
                  sitedata
                  all_cookie_info
                  all_user_cookies

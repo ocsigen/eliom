@@ -267,11 +267,15 @@ You may also use <<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|<<sp
           
 <<code language="ocaml"|
 type cookie =
-  | Set of string list option * float option * string * string * bool
-  | Unset of string list option * string
+  | Set of Eliom_common.cookie_type * 
+  string list option * float option * string * string * bool
+  | Unset of Eliom_common.cookie_type * string list option * string
 
 >>
 
+{{{Eliom_common.cookie_type}}} is {{{Eliom_common.CBrowser}}}
+for regular browser cookies, or {{{Eliom_common.CTab}}} for tab cookies
+(available only if you have a client side Eliom program).
           
 **[New in 1.1.0]** For version 1.0.0, the type 
 <<span class="code"|cookie>> was slightly different (no secure cookies).
@@ -326,7 +330,8 @@ let _ = Cookies.register cookies
                            with _ -> "<cookie not set>");
                    br ();
                    a cookies sp [pcdata "send other cookie"] ()]])),
-        [Eliom_services.Set (None, None,
+        [Eliom_services.Set (Eliom_common.CBrowser,
+                             None, None,
                              cookiename,
                              string_of_int (Random.int 100),
                              false)]))

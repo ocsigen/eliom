@@ -36,10 +36,19 @@ exception Eliom_function_forbidden_outside_site_loading of string
        For some functions, you must add the [~sp] parameter during a session.
      *)
 
+(** Eliom is using regular (browser) cookies but can also use
+    browser tab cookies (only if you are using a client side program)
+*)
+type cookie_type = CBrowser | CTab
+
+type fullsessionname = cookie_type * string
+module Fullsessionname_Table : Map.S with type key = fullsessionname
+
+
 val eliom_link_too_old : bool Polytables.key
 (** If present and true in request data, it means that
     the previous coservice does not exist any more *)
-val eliom_service_session_expired : (string list) Polytables.key
+val eliom_service_session_expired : (fullsessionname list) Polytables.key
 (** If present in request data,  means that
     the service session cookies does not exist any more.
     The string lists are the list of names of expired sessions
@@ -126,20 +135,40 @@ val spersistentcookiename : string
 val persistent_cookie_table_version : string
 val eliom_persistent_cookie_table : string
 
+
+(** Type used for cookies to set.
+    The float option is the timestamp for the expiration date.
+    The strings are names and values.
+ *)
 type cookie =
-  | Set of Ocsigen_lib.url_path option * float option * string * string * bool
-  | Unset of Ocsigen_lib.url_path option * string
+  | Set of
+      cookie_type *
+        Ocsigen_lib.url_path option * float option * string * string * bool
+  | Unset of cookie_type * Ocsigen_lib.url_path option * string
+
+
+
 type sess_info = {
   si_other_get_params : (string * string) list;
   si_all_get_params : (string * string) list;
   si_all_post_params : (string * string) list;
-  si_service_session_cookies : string Ocsigen_lib.String_Table.t;
-  si_data_session_cookies : string Ocsigen_lib.String_Table.t;
-  si_persistent_session_cookies : string Ocsigen_lib.String_Table.t;
+
+  si_service_session_cookies : string Fullsessionname_Table.t;
+  si_data_session_cookies : string Fullsessionname_Table.t;
+  si_persistent_session_cookies : string Fullsessionname_Table.t;
   si_secure_cookie_info:
-    (string Ocsigen_lib.String_Table.t *
-       string Ocsigen_lib.String_Table.t *
-       string Ocsigen_lib.String_Table.t) option;
+    (string Fullsessionname_Table.t *
+       string Fullsessionname_Table.t *
+       string Fullsessionname_Table.t) option;
+
+  si_service_session_cookies_tab: string Fullsessionname_Table.t;
+  si_data_session_cookies_tab: string Fullsessionname_Table.t;
+  si_persistent_session_cookies_tab: string Fullsessionname_Table.t;
+  si_secure_cookie_info_tab:
+    (string Fullsessionname_Table.t *
+       string Fullsessionname_Table.t *
+       string Fullsessionname_Table.t) option;
+
   si_nonatt_info : na_key_req;
   si_state_info: (att_key_req * att_key_req);
   si_previous_extension_error : int;
@@ -161,6 +190,7 @@ type sessgrp = (string * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
        If there is no session group, 
        we limit the number of sessions by IP address *)
 type perssessgrp = string (* the same pair, marshaled *)
+
 
 
 
@@ -198,26 +228,26 @@ type one_persistent_cookie_info = {
 
 type 'a cookie_info1 =
     (string option * 'a one_service_cookie_info session_cookie ref)
-    Ocsigen_lib.String_Table.t ref *
+    Fullsessionname_Table.t ref *
     (string option * one_data_cookie_info session_cookie ref) Lazy.t
-    Ocsigen_lib.String_Table.t ref *
+    Fullsessionname_Table.t ref *
     ((string * timeout * float option *
       perssessgrp option)
      option * one_persistent_cookie_info session_cookie ref)
-    Lwt.t Lazy.t Ocsigen_lib.String_Table.t ref
+    Lwt.t Lazy.t Fullsessionname_Table.t ref
 
 type 'a cookie_info =
     'a cookie_info1 (* unsecure *) * 
       'a cookie_info1 option (* secure, if https *)
 
 type 'a servicecookiestablecontent =
-    string * 'a * float option ref * timeout ref *
+    fullsessionname * 'a * float option ref * timeout ref *
       sessgrp ref *
       string Ocsigen_cache.Dlist.node
 type 'a servicecookiestable = 
     'a servicecookiestablecontent SessionCookies.t
 type datacookiestablecontent =
-    string * float option ref * timeout ref *
+    fullsessionname * float option ref * timeout ref *
       sessgrp ref *
       string Ocsigen_cache.Dlist.node
 type datacookiestable = 
@@ -239,7 +269,7 @@ type server_params = {
   sp_sitedata : sitedata;
   sp_cookie_info : tables cookie_info;
   sp_suffix : Ocsigen_lib.url_path option;
-  sp_fullsessname : string option;
+  sp_fullsessname : fullsessionname option;
 }
 and page_table = page_table_content Serv_Table.t
 
@@ -321,16 +351,23 @@ and sitedata = {
   site_dir_string : string;
 
    (* Timeouts:
-       - default for site
+       - default for site (browser sessions)
+       - default for site (tab sessions)
        - then default for each full session name
       The booleans means "has been set from config file"
    *)
    mutable servtimeout: 
-     (float option * bool) option * ((string * (float option * bool)) list);
+     (float option * bool) option *
+     (float option * bool) option *
+     ((fullsessionname * (float option * bool)) list);
    mutable datatimeout: 
-     (float option * bool) option * ((string * (float option * bool)) list);
+     (float option * bool) option *
+     (float option * bool) option *
+     ((fullsessionname * (float option * bool)) list);
    mutable perstimeout: 
-     (float option * bool) option * ((string * (float option * bool)) list);
+     (float option * bool) option *
+     (float option * bool) option *
+     ((fullsessionname * (float option * bool)) list);
 
   global_services : tables;
   session_services : tables servicecookiestable;
@@ -356,7 +393,7 @@ val make_server_params :
   tables cookie_info ->
   Ocsigen_extensions.request ->
   Ocsigen_lib.url_path option -> 
-  sess_info -> string option -> server_params
+  sess_info -> fullsessionname option -> server_params
 val empty_page_table : unit -> page_table
 val empty_dircontent : unit -> dircontent
 val empty_naservice_table : unit -> naservice_table
@@ -366,14 +403,21 @@ val new_service_session_tables : sitedata -> tables
 val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val getcookies :
-  string -> 'a Ocsigen_lib.String_Table.t -> 'a Ocsigen_lib.String_Table.t
+  string -> 'a Ocsigen_lib.String_Table.t -> 'a Fullsessionname_Table.t
 val get_session_info :
   Ocsigen_extensions.request ->
   int -> (Ocsigen_extensions.request * sess_info) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
+
 val make_full_cookie_name : string -> string -> string
-val make_fullsessname : sp:server_params -> string option -> string
-val make_fullsessname2 : string -> string option -> string
+val make_fullsessname : 
+  sp:server_params -> cookie_type -> string option -> fullsessionname
+val make_fullsessname2 : 
+  string -> cookie_type -> string option -> fullsessionname
+
+
+
+
 exception Eliom_retry_with of
             (Ocsigen_extensions.request * sess_info * 
              tables cookie_info)
@@ -386,7 +430,7 @@ module Perstables :
 val perstables : string list ref
 val create_persistent_table : string -> 'a Ocsipersist.table
 val persistent_cookies_table :
-  (string * float option * timeout * perssessgrp option)
+  (fullsessionname * float option * timeout * perssessgrp option)
   Ocsipersist.table Lazy.t
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 val absolute_change_sitedata : sitedata -> unit
@@ -429,3 +473,8 @@ val find_dlist_ip_table :
   (page_table ref * page_table_key, na_key_serv)
     Ocsigen_lib.leftright Ocsigen_cache.Dlist.t
   
+val get_tab_cookies : 
+  (Ocsigen_extensions.request ->
+   (string * string) list Ocsigen_lib.String_Table.t ->
+   string Ocsigen_lib.String_Table.t) ref
+

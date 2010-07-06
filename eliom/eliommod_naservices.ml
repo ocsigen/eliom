@@ -133,7 +133,7 @@ let make_naservice
 
   let rec find_aux sci =
     match
-      Ocsigen_lib.String_Table.fold
+      Eliom_common.Fullsessionname_Table.fold
         (fun fullsessname (_, r) beg ->
           match beg with
           | Eliom_common.Found _ -> beg

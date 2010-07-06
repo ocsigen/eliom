@@ -55,10 +55,12 @@ let close_all_service_sessions2 ?(close_group = false) fullsessname sitedata =
     If the optional parameter [?session_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_service_sessions ?close_group ?session_name sitedata =
+let close_all_service_sessions ?close_group ?session_name
+    ?(cookie_type = Eliom_common.CBrowser) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string session_name
+      sitedata.Eliom_common.site_dir_string 
+      cookie_type session_name
   in
   close_all_service_sessions2 ?close_group fullsessname sitedata
 
@@ -80,10 +82,11 @@ let close_all_data_sessions2 ?(close_group = false) fullsessname sitedata =
     If the optional parameter [?session_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_data_sessions ?close_group ?session_name sitedata =
+let close_all_data_sessions ?close_group ?session_name
+    ?(cookie_type = Eliom_common.CBrowser) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string session_name
+      sitedata.Eliom_common.site_dir_string cookie_type session_name
   in
   close_all_data_sessions2 ?close_group fullsessname sitedata
 
@@ -104,10 +107,11 @@ let close_all_persistent_sessions2 ?(close_group = false) fullsessname =
     If the optional parameter [?session_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_persistent_sessions ?close_group ?session_name sitedata =
+let close_all_persistent_sessions ?close_group ?session_name
+    ?(cookie_type = Eliom_common.CBrowser) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string session_name
+      sitedata.Eliom_common.site_dir_string cookie_type session_name
   in
   close_all_persistent_sessions2 ?close_group fullsessname
 

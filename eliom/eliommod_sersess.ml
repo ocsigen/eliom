@@ -43,13 +43,17 @@ let compute_cookie_info secure secure_ci cookie_info =
 let close_service_group fullsessgrp =
     Eliommod_sessiongroups.Serv.remove_group fullsessgrp
 
-let close_service_session ?(close_group = false) ?session_name ~secure ~sp () =
+let close_service_session 
+    ?(close_group = false) ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ~secure ~sp () =
   try
-    let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
+    let fullsessname = 
+      Eliom_common.make_fullsessname ~sp cookie_type session_name 
+    in
     let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
     let cookie_info = compute_cookie_info secure secure_ci cookie_info in
     let (_, ior) = 
-      Ocsigen_lib.String_Table.find fullsessname !cookie_info 
+      Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info 
     in
     match !ior with
       | Eliom_common.SC c ->
@@ -101,10 +105,13 @@ let rec new_service_cookie sitedata fullsessgrp fullsessname table =
 
 
 let find_or_create_service_cookie
-    ?set_session_group ?session_name ~secure ~sp () =
+    ?set_session_group ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
-  let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
+  let fullsessname = 
+    Eliom_common.make_fullsessname ~sp cookie_type session_name 
+  in
   let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let fullsessgrp =
@@ -116,7 +123,9 @@ let find_or_create_service_cookie
       set_session_group
   in
   try
-    let (old, ior) = Ocsigen_lib.String_Table.find fullsessname !cookie_info in
+    let (old, ior) = 
+      Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info 
+    in
     match !ior with
     | Eliom_common.SCData_session_expired
         (* We do not trust the value sent by the client,
@@ -149,20 +158,25 @@ let find_or_create_service_cookie
         sp.Eliom_common.sp_sitedata.Eliom_common.session_services
     in
     cookie_info :=
-      Ocsigen_lib.String_Table.add
+      Eliom_common.Fullsessionname_Table.add
         fullsessname
         (None, ref (Eliom_common.SC v))
         !cookie_info;
     v
 
 
-let find_service_cookie_only ?session_name ~secure ~sp () =
+let find_service_cookie_only
+    ?session_name ?(cookie_type = Eliom_common.CBrowser) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
-  let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
+  let fullsessname = 
+    Eliom_common.make_fullsessname ~sp cookie_type session_name 
+  in
   let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
-  let (_, ior) = Ocsigen_lib.String_Table.find fullsessname !cookie_info in
+  let (_, ior) = 
+    Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info 
+  in
   match !ior with
   | Eliom_common.SCNo_data -> raise Not_found
   | Eliom_common.SCData_session_expired ->

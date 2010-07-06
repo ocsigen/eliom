@@ -51,7 +51,7 @@ let execute
   let update_exp (service_cookies_info, data_cookies_info, pers_cookies_info) =
 
     (* Update service expiration date and value *)
-    Ocsigen_lib.String_Table.iter
+    Eliom_common.Fullsessionname_Table.iter
 
       (fun name (oldvalue, newr) ->
         (* catch fun () -> *)
@@ -75,7 +75,7 @@ let execute
       !service_cookies_info;
 
     (* Update "in memory data" expiration date and value *)
-    Ocsigen_lib.String_Table.iter
+    Eliom_common.Fullsessionname_Table.iter
 
       (fun name v ->
         if Lazy.lazy_is_val v (* Only sessions that have been used *)
@@ -103,7 +103,7 @@ let execute
 
     (* Update persistent expiration date, user timeout and value *)
     (* Lwt_util.iter *)
-    Ocsigen_lib.String_Table.fold
+    Eliom_common.Fullsessionname_Table.fold
 
       (fun name v thr ->
         let thr2 =
@@ -248,6 +248,7 @@ let gen is_eliom_extension sitedata = function
                in
            
                Eliommod_cookies.compute_cookies_to_send
+                 Eliom_common.CBrowser
                  sitedata
                  all_cookie_info
                  all_user_cookies

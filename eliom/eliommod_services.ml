@@ -461,7 +461,7 @@ let get_page
     =
 
   let find_aux e sci =
-    Ocsigen_lib.String_Table.fold
+    Eliom_common.Fullsessionname_Table.fold
       (fun fullsessname (_, r) beg ->
         catch
           (fun () -> beg)

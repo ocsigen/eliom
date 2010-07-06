@@ -30,17 +30,16 @@ let content_only_key = Polytables.make_key ()
 let get_eliom_appl_nlp_ ~sp =
   let esp = Eliom_sessions.esp_of_sp sp in
   let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
-  let (a, b, c) as d =
+  let (appl, proc, co) as d =
     match Eliom_parameters.get_non_localized_get_parameters sp eliom_appl_nlp
     with
       | None -> None, None, false
-      | Some (a, b) -> Some a, Some b, true
+      | Some (appl, proc) -> Some appl, Some proc, true
   in
-  Polytables.set ~table:rc ~key:appl_name_key ~value:a;
-  Polytables.set ~table:rc ~key:process_key ~value:b;
-  Polytables.set ~table:rc ~key:content_only_key ~value:c;
+  Polytables.set ~table:rc ~key:appl_name_key ~value:appl;
+  Polytables.set ~table:rc ~key:process_key ~value:proc;
+  Polytables.set ~table:rc ~key:content_only_key ~value:co;
   d
-
 
 let get_application_name ~sp =
   let esp = Eliom_sessions.esp_of_sp sp in
@@ -55,7 +54,7 @@ let get_process_id ~sp =
   let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
   try 
     Polytables.get ~table:rc ~key:process_key
-  with Not_found -> 
+  with Not_found ->
     Ocsigen_lib.snd3 (get_eliom_appl_nlp_ ~sp)
 
 let get_content_only ~sp =
@@ -63,25 +62,57 @@ let get_content_only ~sp =
   let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
   try 
     Polytables.get ~table:rc ~key:content_only_key
-  with Not_found -> 
+  with Not_found ->
     Ocsigen_lib.thd3 (get_eliom_appl_nlp_ ~sp)
 
 
 (*
-let _ =
-  Eliom_process.get_application_name_ := get_application_name;
-  Eliom_process.get_process_id_ := get_process_id_;
-  Eliom_process.get_content_only_ := get_content_only
+(** {3 Volatile process tables} *)
 
-let get_application_name_ = ref (fun ~sp -> failwith "will be linked later")
-let get_process_id_ = ref (fun ~sp -> failwith "will be linked later")
-let get_content_only_ = ref (fun ~sp -> failwith "will be linked later")
+type 'a process_data =
+  | PNo_data
+  | PProcess_closed
+  | PData of 'a
 
-let get_application_name ~sp = !get_application_name_ ~sp
-let get_process_id ~sp = !get_application_instance_ ~sp
-let get_content_only ~sp = !get_content_only_ ~sp
+
+type 'a process_table = 'a Eliom_common.SessionCookies.t
+
+let create_process_table = Eliom_sessions.create_volatile_table
+
+let get_volatile_session_data ?session_name ?secure ~table ~sp () =
+  try
+    let c = 
+      Eliommod_datasess.find_data_cookie_only ?session_name ~secure ~sp () 
+    in
+    Data (Eliom_common.SessionCookies.find table c.Eliom_common.dc_value)
+  with
+  | Not_found -> No_data
+  | Eliom_common.Eliom_Session_expired -> Data_session_expired
+
+let set_volatile_session_data ?session_name ?secure ~table ~sp value =
+  let c = 
+    Eliommod_datasess.find_or_create_data_cookie ?session_name ~secure ~sp () 
+  in
+  Eliom_common.SessionCookies.replace table c.Eliom_common.dc_value value
+
+let remove_volatile_session_data ?session_name ?secure ~table ~sp () =
+  try
+    let c = 
+      Eliommod_datasess.find_data_cookie_only ?session_name ~secure ~sp () 
+    in
+    Eliom_common.SessionCookies.remove table c.Eliom_common.dc_value
+  with Not_found | Eliom_common.Eliom_Session_expired -> ()
+
 
 *)
+
+
+
+
+
+
+
+
 
 
 (*
@@ -728,42 +759,6 @@ let remove_persistent_session_data ?session_name ?secure ~table ~sp () =
 
 
 (*****************************************************************************)
-(** {2 session data in memory} *)
-type 'a volatile_table = 'a Eliom_common.SessionCookies.t
-
-let create_volatile_table ?sp () =
-  match sp with
-  | None ->
-      (match Eliom_common.global_register_allowed () with
-      | Some get_current_sitedata -> Eliommod_datasess.create_volatile_table ()
-      | None -> raise
-            (Eliom_common.Eliom_function_forbidden_outside_site_loading
-               "create_volatile_table"))
-  | Some sp -> Eliommod_datasess.create_volatile_table_during_session sp
-
-let get_volatile_session_data ?session_name ?secure ~table ~sp () =
-  try
-    let c = 
-      Eliommod_datasess.find_data_cookie_only ?session_name ~secure ~sp () 
-    in
-    Data (Eliom_common.SessionCookies.find table c.Eliom_common.dc_value)
-  with
-  | Not_found -> No_data
-  | Eliom_common.Eliom_Session_expired -> Data_session_expired
-
-let set_volatile_session_data ?session_name ?secure ~table ~sp value =
-  let c = 
-    Eliommod_datasess.find_or_create_data_cookie ?session_name ~secure ~sp () 
-  in
-  Eliom_common.SessionCookies.replace table c.Eliom_common.dc_value value
-
-let remove_volatile_session_data ?session_name ?secure ~table ~sp () =
-  try
-    let c = 
-      Eliommod_datasess.find_data_cookie_only ?session_name ~secure ~sp () 
-    in
-    Eliom_common.SessionCookies.remove table c.Eliom_common.dc_value
-  with Not_found | Eliom_common.Eliom_Session_expired -> ()
 
 
 

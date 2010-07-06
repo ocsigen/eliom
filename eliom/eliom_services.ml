@@ -35,13 +35,16 @@ exception Wrong_session_table_for_CSRF_safe_coservice
     The float option is the timestamp for the expiration date.
     The strings are names and values.
  *)
-type cookie = Eliom_common.cookie =
-  | Set of Ocsigen_lib.url_path option * float option * string * string * bool
-  | Unset of Ocsigen_lib.url_path option * string
+type cookie = 
+    Eliom_common.cookie =
+  | Set of Eliom_common.cookie_type *
+      Ocsigen_lib.url_path option * float option * string * string * bool
+  | Unset of Eliom_common.cookie_type * Ocsigen_lib.url_path option * string
 
 let cookie_table_of_eliom_cookies
     ?(oldtable= Ocsigen_http_frame.Cookies.empty) ~sp cl =
   Eliommod_cookies.add_cookie_list_to_send
+    Eliom_common.CBrowser
     (Eliom_sessions.get_sitedata sp)
     cl oldtable
 

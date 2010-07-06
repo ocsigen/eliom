@@ -92,13 +92,22 @@ let npnl_param_prefix = nl_param_prefix^"n_"
 
 let nl_is_persistent n = n.[0] = 'p'
 
+(******************************************************************)
+type cookie_type = CBrowser | CTab
+
+type fullsessionname = cookie_type * string
+
+module Fullsessionname_Table = Map.Make(struct
+  type t = fullsessionname
+  let compare = compare
+end)
 (*****************************************************************************)
 
 
 let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
 (** The coservice does not exist any more *)
 
-let eliom_service_session_expired : (string list) Polytables.key = 
+let eliom_service_session_expired : (fullsessionname list) Polytables.key = 
   Polytables.make_key ()
 (** If present in request data,  means that
     the service session cookies does not exist any more.
@@ -115,23 +124,32 @@ type sess_info =
      si_all_get_params: (string * string) list;
      si_all_post_params: (string * string) list;
 
-     si_service_session_cookies: string Ocsigen_lib.String_Table.t;
+     si_service_session_cookies: string Fullsessionname_Table.t;
      (* the session service cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_data_session_cookies: string Ocsigen_lib.String_Table.t;
+     si_data_session_cookies: string Fullsessionname_Table.t;
      (* the session data cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_persistent_session_cookies: string Ocsigen_lib.String_Table.t;
+     si_persistent_session_cookies: string Fullsessionname_Table.t;
      (* the persistent session cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
      si_secure_cookie_info:
-       (string Ocsigen_lib.String_Table.t *
-          string Ocsigen_lib.String_Table.t *
-          string Ocsigen_lib.String_Table.t) option;
+       (string Fullsessionname_Table.t *
+          string Fullsessionname_Table.t *
+          string Fullsessionname_Table.t) option;
      (* the same, but for secure cookies, if https *)
+
+     (* now for tab cookies: *)
+     si_service_session_cookies_tab: string Fullsessionname_Table.t;
+     si_data_session_cookies_tab: string Fullsessionname_Table.t;
+     si_persistent_session_cookies_tab: string Fullsessionname_Table.t;
+     si_secure_cookie_info_tab:
+       (string Fullsessionname_Table.t *
+          string Fullsessionname_Table.t *
+          string Fullsessionname_Table.t) option;
 
      si_nonatt_info: na_key_req;
      si_state_info: (att_key_req * att_key_req);

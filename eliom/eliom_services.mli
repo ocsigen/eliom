@@ -40,15 +40,18 @@ val sync : ('a -> 'b -> 'c -> 'd) -> 'a -> 'b -> 'c -> 'd Lwt.t
     The strings are names and values.
  *)
 type cookie =
-  | Set of Ocsigen_lib.url_path option * float option * string * string * bool
-  | Unset of Ocsigen_lib.url_path option * string
+  | Set of Eliom_common.cookie_type * 
+      Ocsigen_lib.url_path option * float option * string * string * bool
+  | Unset of Eliom_common.cookie_type * Ocsigen_lib.url_path option * string
 
 (** Conversion fonction from Eliom cookies to server cookies.
     If [?oldtable] is present, cookies are added to this table
  *)
 val cookie_table_of_eliom_cookies :
-    ?oldtable:Ocsigen_http_frame.cookieset ->
-      sp:Eliom_sessions.server_params -> cookie list -> Ocsigen_http_frame.cookieset
+  ?oldtable:Ocsigen_http_frame.cookieset ->
+  sp:Eliom_sessions.server_params -> 
+  cookie list -> 
+  Ocsigen_http_frame.cookieset
 
 
 

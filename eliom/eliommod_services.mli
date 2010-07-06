@@ -2,7 +2,7 @@ val find_page_table :
   bool ->
   float ->
   Eliom_common.page_table ref ->
-  string option ->
+  Eliom_common.fullsessionname option ->
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_extensions.request ->
@@ -32,7 +32,7 @@ exception Exn1
 val find_service :
   float ->
   Eliom_common.tables ->
-  string option ->
+  Eliom_common.fullsessionname option ->
   Eliom_common.sitedata * Eliom_common.tables Eliom_common.cookie_info *
   Ocsigen_extensions.request * Eliom_common.sess_info ->
   Ocsigen_http_frame.result Lwt.t

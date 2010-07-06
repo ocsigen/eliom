@@ -11,7 +11,7 @@ val iter_data_sessions :
   unit Lwt.t
 val iter_persistent_sessions :
   (string *
-   (string * float option * Eliom_common.timeout *
+   (Eliom_common.fullsessionname * float option * Eliom_common.timeout *
     Eliom_common.perssessgrp option) ->
    unit Lwt.t) ->
   unit Lwt.t
@@ -28,7 +28,7 @@ val fold_data_sessions :
   'a -> 'a Lwt.t
 val fold_persistent_sessions :
   (string *
-   (string * float option * Eliom_common.timeout *
+   (Eliom_common.fullsessionname * float option * Eliom_common.timeout *
     Eliom_common.perssessgrp option) ->
    'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t

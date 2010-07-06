@@ -408,11 +408,13 @@ let headers =
     ~code:666
     ~charset:"plopcharset"
 (*    ~content_type:"custom/contenttype" *)
-    ~cookies:[Eliom_services.Set (Some [], None,
+    ~cookies:[Eliom_services.Set (Eliom_common.CBrowser,
+                                  Some [], None,
                                   "Customcookie", 
                                   "Value",
                                   true);
-              Eliom_services.Set (Some [], None,
+              Eliom_services.Set (Eliom_common.CBrowser,
+                                  Some [], None,
                                   "Customcookie2", 
                                   "Value2",
                                   true);
@@ -796,45 +798,57 @@ let _ = Cookies.register cookies
                     )])),
        let now = Unix.time () in
        let cookies =
-         [Eliom_services.Set (Some [], Some (now +. 10.),
+         [Eliom_services.Set (Eliom_common.CBrowser,
+                              Some [], Some (now +. 10.),
                               (cookiename^"6"), 
                               (string_of_int (Random.int 100)),
                               true);
-          Eliom_services.Set (Some [], Some (now +. 10.),
+          Eliom_services.Set (Eliom_common.CBrowser,
+                              Some [], Some (now +. 10.),
                               (cookiename^"7"), 
                               (string_of_int (Random.int 100)),
                               true);
-          Eliom_services.Set (Some ["c";"plop"], None,
+          Eliom_services.Set (Eliom_common.CBrowser,
+                              Some ["c";"plop"], None,
                               (cookiename^"8"), 
                               (string_of_int (Random.int 100)),
                               false);
-          Eliom_services.Set (Some ["c";"plop"], None,
+          Eliom_services.Set (Eliom_common.CBrowser,
+                              Some ["c";"plop"], None,
                               (cookiename^"9"),
                               (string_of_int (Random.int 100)),
                               false);
-          Eliom_services.Set (Some ["c";"plop"], None,
+          Eliom_services.Set (Eliom_common.CBrowser,
+                              Some ["c";"plop"], None,
                               (cookiename^"10"), 
                               (string_of_int (Random.int 100)),
                               true);
-          Eliom_services.Set (Some ["c";"plop"], None,
+          Eliom_services.Set (Eliom_common.CBrowser,
+                              Some ["c";"plop"], None,
                               (cookiename^"11"), 
                               (string_of_int (Random.int 100)),
                               true);
-          Eliom_services.Set (Some ["c";"plop"], None,
+          Eliom_services.Set (Eliom_common.CBrowser,
+                              Some ["c";"plop"], None,
                               (cookiename^"12"), 
                               (string_of_int (Random.int 100)),
                               true);
         ]
        in if Ocsigen_lib.String_Table.mem (cookiename^"1") (get_cookies sp)
        then
-         (Eliom_services.Unset (None, (cookiename^"1")))::
-         (Eliom_services.Unset (None, (cookiename^"2")))::cookies
+         (Eliom_services.Unset (Eliom_common.CBrowser,
+                                None, (cookiename^"1")))::
+         (Eliom_services.Unset (Eliom_common.CBrowser,
+                                None, (cookiename^"2")))::cookies
        else
-         (Eliom_services.Set (None, None, (cookiename^"1"),
+         (Eliom_services.Set (Eliom_common.CBrowser,
+                              None, None, (cookiename^"1"),
                               (string_of_int (Random.int 100)), true))::
-          (Eliom_services.Set (None, None, (cookiename^"2"),
+          (Eliom_services.Set (Eliom_common.CBrowser,
+                               None, None, (cookiename^"2"),
                                (string_of_int (Random.int 100)), false))::
-          (Eliom_services.Set (None, None, (cookiename^"3"),
+          (Eliom_services.Set (Eliom_common.CBrowser,
+                               None, None, (cookiename^"3"),
                                (string_of_int (Random.int 100)), false))
           ::cookies
       ))
@@ -863,7 +877,8 @@ let sendany =
          ((html
              (head (title (pcdata "")) [])
              (body [p [pcdata "This page does set a cookie"]])),
-          [Eliom_services.Set (None, None, "arf", 
+          [Eliom_services.Set (Eliom_common.CBrowser,
+                               None, None, "arf", 
                                (string_of_int (Random.int 100)), false)])
    )
 

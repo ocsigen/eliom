@@ -91,9 +91,9 @@ let new_sitedata =
           let sitedata =
             let dlist_table = Eliom_common.create_dlist_ip_table 100 in
             (* One dlist for each site? *)
-            {Eliom_common.servtimeout = None, [];
-             datatimeout = None, [];
-             perstimeout = None, [];
+            {Eliom_common.servtimeout = None, None, [];
+             datatimeout =  None, None, [];
+             perstimeout =  None, None, [];
              site_dir = site_dir;
 (*VVV encode=false??? *)
              site_dir_string = Ocsigen_lib.string_of_url_path
@@ -180,19 +180,29 @@ let parse_eliom_option
     )
     = 
   let parse_timeout_attrs tn attrs = 
-    let aux = function
-      | [("value", s)] -> s, None
-      | [("sessionname", sn); ("value", s)]
-      | [("value", s); ("sessionname", sn)] -> s, Some sn
+    let rec aux ((v, sn, ct) as res) = function
+      | [] -> res
+      | ("value", s)::l -> aux (Some s, sn, ct) l
+      | ("sessionname", sn)::l -> aux (v, Some sn, ct) l
+      | ("sessiontype", "browser")::l -> aux (v, sn, Eliom_common.CBrowser) l
+      | ("sessiontype", "tab")::l -> aux (v, sn, Eliom_common.CTab) l
+      | ("sessiontype", _)::l -> 
+          raise 
+            (Error_in_config_file
+               ("Eliom: Wrong attribute value for sessiontype in "^tn^" tag"))
       | _ -> 
           raise 
             (Error_in_config_file
                ("Eliom: Wrong attribute name for "^tn^" tag"))
     in 
-    let a, sn = aux attrs in
+    let (a, sn, ct) = aux (None, None, Eliom_common.CBrowser) attrs in
     let a = match a with
-      | "infinity" -> None
-      | a -> 
+      | None ->
+        raise 
+          (Error_in_config_file
+             ("Eliom: Missing value for "^tn^" tag"))
+      | Some "infinity" -> None
+      | Some a -> 
           try Some (float_of_string a)
           with Failure _ -> 
             raise 
@@ -205,7 +215,7 @@ let parse_eliom_option
         | None -> None
         | Some "" -> Some None
         | c -> Some c
-      in a, sn
+      in (a, sn, ct)
     else
       raise 
         (Error_in_config_file
@@ -213,17 +223,17 @@ let parse_eliom_option
   in
   function
   | (Element ("volatiletimeout", attrs, [])) ->
-      let t, snoo = parse_timeout_attrs "volatiletimeout" attrs in
-      set_volatile_timeout snoo t
+      let t, snoo, ct = parse_timeout_attrs "volatiletimeout" attrs in
+      set_volatile_timeout ct snoo t
   | (Element ("datatimeout", attrs, [])) ->
-      let t, snoo = parse_timeout_attrs "datatimeout" attrs in
-      set_data_timeout snoo t
+      let t, snoo, ct = parse_timeout_attrs "datatimeout" attrs in
+      set_data_timeout ct snoo t
   | (Element ("servicetimeout", attrs, [])) ->
-      let t, snoo = parse_timeout_attrs "servicetimeout" attrs in
-      set_service_timeout snoo t
+      let t, snoo, ct = parse_timeout_attrs "servicetimeout" attrs in
+      set_service_timeout ct snoo t
   | (Element ("persistenttimeout", attrs, [])) ->
-      let t, snoo = parse_timeout_attrs "persistenttimeout" attrs in
-      set_persistent_timeout snoo t
+      let t, snoo, ct = parse_timeout_attrs "persistenttimeout" attrs in
+      set_persistent_timeout ct snoo t
 
   | (Element ("maxvolatilesessionspergroup", [("value", v)], [])) ->
       (try 
@@ -381,10 +391,10 @@ let rec parse_global_config = function
   | e::ll ->
       parse_eliom_option
         false
-        ((fun _ -> Eliommod_timeouts.set_default_volatile_timeout),
-         (fun _ -> Eliommod_timeouts.set_default_data_timeout),
-         (fun _ -> Eliommod_timeouts.set_default_service_timeout),
-         (fun _ -> Eliommod_timeouts.set_default_persistent_timeout),
+        ((fun ct _ -> Eliommod_timeouts.set_default_volatile_timeout ct),
+         (fun ct _ -> Eliommod_timeouts.set_default_data_timeout ct),
+         (fun ct _ -> Eliommod_timeouts.set_default_service_timeout ct),
+         (fun ct _ -> Eliommod_timeouts.set_default_persistent_timeout ct),
          (fun v -> default_max_service_sessions_per_group := v),
          (fun v -> default_max_service_sessions_per_subnet := v),
          (fun v -> default_max_data_sessions_per_group := v),
@@ -603,12 +613,14 @@ let parse_config hostpattern site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
  *)
-        let set_timeout f session_name_oo v =
+        let set_timeout f cookie_type session_name_oo v =
           f
             ?fullsessname:(Ocsigen_lib.apply_option 
                              (Eliom_common.make_fullsessname2
-                                sitedata.Eliom_common.site_dir_string)
+                                sitedata.Eliom_common.site_dir_string
+                                cookie_type)
                              session_name_oo)
+            ?cookie_type:(Some cookie_type)
             ~recompute_expdates:false
             true
             true
@@ -618,13 +630,13 @@ let parse_config hostpattern site_dir =
         let oldipv6mask = sitedata.Eliom_common.ipv6mask in
         let content =
           parse_eliom_options
-            ((fun snoo v -> 
-                set_timeout Eliommod_timeouts.set_global_data_timeout2 snoo v;
-                set_timeout Eliommod_timeouts.set_global_service_timeout2 snoo v
+            ((fun ct snoo v -> 
+              set_timeout Eliommod_timeouts.set_global_data_timeout_ ct snoo v;
+              set_timeout Eliommod_timeouts.set_global_service_timeout_ ct snoo v
              ),
-             (set_timeout Eliommod_timeouts.set_global_data_timeout2),
-             (set_timeout Eliommod_timeouts.set_global_service_timeout2),
-             (set_timeout Eliommod_timeouts.set_global_persistent_timeout2),
+             (set_timeout Eliommod_timeouts.set_global_data_timeout_),
+             (set_timeout Eliommod_timeouts.set_global_service_timeout_),
+             (set_timeout Eliommod_timeouts.set_global_persistent_timeout_),
              (fun v -> sitedata.Eliom_common.max_service_sessions_per_group <- v, true),
              (fun v -> sitedata.Eliom_common.max_service_sessions_per_subnet <- v, true),
              (fun v -> sitedata.Eliom_common.max_volatile_data_sessions_per_group <- v, true),
