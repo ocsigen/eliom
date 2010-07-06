@@ -99,6 +99,9 @@ sig
 
 end = struct
 
+  (* constants *)
+  let max_wait = 128.
+
   (* Primitive events for the reactive engine *)
   let (start_e,   start  ) = React.E.create ()
   let (stop_e,    stop   ) = React.E.create ()
@@ -138,6 +141,7 @@ end = struct
 
   let list_registered () = Cmap.fold (fun k _ l -> k :: l) !cmap []
 
+  let more_slp f = min (2. *. f) max_wait
 
   (* action *)
   let rec run slp wt = match list_registered () with
@@ -163,7 +167,7 @@ end = struct
               | 1 -> run slp wt
               | 5 -> begin (* server error *)
                    Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
-                   run (2. *. slp) wt
+                   run (more_slp slp) wt
                 end
           (* treat success *)
               | 2 ->
@@ -188,7 +192,7 @@ end = struct
           ) (function
                | Messages.Incorrect_encoding ->
                    (Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
-                    run (2. *. slp) wt)
+                    run (more_slp slp) wt)
                | Lwt.Canceled -> Lwt.return ()
                | e ->
                    (stop () ;
