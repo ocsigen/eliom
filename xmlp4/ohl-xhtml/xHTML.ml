@@ -1,8 +1,8 @@
 (* BEGIN INTERFACE *)
-(* $Id: xHTML.ml,v 1.31 2005/06/20 17:57:58 ohl Exp $
-
+(*
    Copyright (C) 2004 by Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
    Copyright (C) 2007 by Vincent Balat, Gabriel Kerneis, CNRS, Université Paris Diderot
+   Copyright (C) 2010 by Cecile Herbelin, CNRS, Université Paris Diderot
 
    XHTML is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -18,25 +18,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  *)
 
-(* Warning:
-   I hacked this module to try to handle more things and to be closer
-   to the DTD (and to make it compatible with Ocsigen).
-   BUT: This hack is not very clean because I don't think I follow
-   Thorsten Ohl's conventions.
-   I verified lots of types but not all and I am not sure that it
-   corresponds exactly to the dtd. (Actually, I am almost sure that it doesn't).
-   This module would deserve a complete verification and to be cleaned
-   following Ohl's conventions.
-   Vincent Balat
- *)
-
 (* IDEAS:
-
-     It might be possible to factorize attributes and elements into separate
-     modules.  Problems are attributes like [class] and [for] that class with
-     reserved words.  Then the [a_] prefix would have to be maintained and the
-     only advantage are a potentially better mapping of the XHTML modularization
-     to O'Caml modules. *)
+      The [a_] prefix would have to be maintained and the
+   only advantage are a potentially better mapping of the XHTML modularization
+   to O'Caml modules. *)
 
 (** Typesafe constructors for XHTML 1.1 documents.
     @see <http://www.w3.org/TR/xhtml-modularization/abstract_modules.html> W3C Recommendation *)
@@ -325,7 +310,7 @@ module type T =
 
 (** {2 Core} *)
 
-    type core = [ `Class | `Id | `Title ]
+    type core = [ `Class | `Id | `Title | `XML_space ]
 
     val a_class : nmtokens -> [>`Class] attrib
 (** This attribute assigns a class name or set of class names to an
@@ -352,7 +337,7 @@ module type T =
 
 (** {2 I18N} *)
 
-    type i18n = [ `XML_lang ]
+    type i18n = [ `XML_lang | `Dir ]
     val a_xml_lang : nmtoken -> [>`XML_lang] attrib
 
 
@@ -400,7 +385,7 @@ module type T =
         sig
           type t = [ `Body | `Head | `Html | `Title ]
         end
-
+      
     val a_profile : uri -> [>`Profile] attrib
     val a_version : cdata -> [>`Version] attrib
     val a_xmlns : [< `W3_org_1999_xhtml ] -> [>`XMLns] attrib
@@ -720,6 +705,19 @@ module type T =
     using [`Name_01_00] . *)
 
 (** {2 5.22. Legacy Module} *)
+(* CH
+    this module contain these elements :
+     basefont
+     center
+     dir
+     font
+     isindex
+     menu
+     s
+     strike
+     u
+   attributes are missing in some elements if this module is actived
+  CH *)
 
 (** *)
 (* VB *)
@@ -770,9 +768,7 @@ module type T =
     type buttoncontent = (* VB *)
         [ TEXT.inline | PRESENTATION.inline
         | SPECIAL.inline | i18nclass | block_sans_form ]
-    type precontent = (* VB *)
-        [ TEXT.inline | HYPERTEXT.inline | `Tt | `I | `B | `Script | `Map |
-          i18nclass ]
+    type precontent = inline
     type inline_sans_label =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
         | FORMS.inline_sans_label | SPECIAL.inline | i18nclass | misc ]
@@ -805,13 +801,13 @@ module type T =
 
     type html = [`Html] elt
 
-    val html : ?a:([< i18n | `Version | `XMLns ] attrib list) ->
+    val html : ?a:([< i18n | `Version | `XMLns | `Id ] attrib list) ->
       [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
-    val head : ?a:([< i18n | `Profile ] attrib list) ->
+    val head : ?a:([< i18n | `Profile | `Id ] attrib list) ->
       [< `Base | `Title ] elt ->
         [< `Meta | `Link | `Style | `Object | `Script ] elt list
         -> [>`Head] elt
-    val title : ([< i18n ], [< `PCDATA ], [>`Title]) unary
+    val title : ([< i18n | `Id ], [< `PCDATA ], [>`Title]) unary
     val body : ([< common |`OnLoad |`OnUnload ], [< block ], [>`Body]) star
 
 (** {2 Data} *)
@@ -913,7 +909,7 @@ module type T =
             ([< common | `Enctype | `Method | `Name_01_00 | `Target |`OnReset | `OnSubmit],
              [< block_sans_form ], [>`Form]) plus
           val input : ([< common | `Accesskey | `Checked | `Maxlength | `Name | `Size
-                       | `Src | `Tabindex | `Input_Type | `Value | `Usemap|`OnBlur |`OnChange |`OnFocus | `OnSelect], [>`Input]) nullary
+                       | `Src | `Tabindex | `Input_Type | `Value | `Usemap|`Ismap |`OnBlur |`OnChange |`OnFocus | `OnSelect], [>`Input]) nullary
           val label : ([< common | `Accesskey | `For ],
                        [< `PCDATA | inline_sans_label ], [>`Label]) star
           val option : ([< common | `Selected | `Value ],
@@ -1034,10 +1030,15 @@ module type T =
 
     val noframes : ([< common ], [< `Body ], [>`Noframes]) unary
 
+    val iframe : ([< core | `Frameborder | `Longdesc | `Marginheight | `Marginwidth
+                  | `Src | `Scrolling | `Name_01_00 | `Width | `Height ],
+                  [< `PCDATA | flow ], [>`Iframe]) star
+
+
 (** {2 Meta} *)
 
     val meta : content:cdata ->
-      ([< i18n | `Http_equiv | `Name | `Scheme ], [>`Meta]) nullary
+      ([< i18n |`Id | `Http_equiv | `Name | `Scheme ], [>`Meta]) nullary
 
 (** {2 Style Sheets} *)
 
@@ -1050,9 +1051,9 @@ module type T =
                 | `Rel | `Rev | `Target | `Type ], [>`Link]) nullary
 
 (** {2 Base} *)
-
-    val base : href:uri -> unit -> [>`Base] elt
-    (*val base : href:uri -> ([`XMLns], [>`Base] elt)*)
+      (* in the DTD of xHTML1.1 xmlns attribute
+         in the doc of xHTML1.1 id attribute *)
+    val base : href:uri -> ([`XMLns | `Target ], [>`Base]) nullary
 
 (** {2 Ruby} *)
 
@@ -1183,8 +1184,8 @@ module Version =
 
     (* Directly from http://www.w3.org/TR/xhtml-modularization/abstract_modules.html *)
 
-    type core = [ `Class | `Id | `Title ]
-    type i18n = [ `XML_lang ]
+    type core = [ `Class | `Id | `Title | `XML_space ]
+    type i18n = [ `XML_lang | `Dir ]
 
     type events = [ `OnClick | `OnDblClick | `OnMouseDown | `OnMouseUp |
                     `OnMouseOver | `OnMouseMove | `OnMouseOut | `OnKeyPress |
@@ -1780,6 +1781,7 @@ module Version =
     let frame ~src ?(a = []) () =
       XML.leaf ~a:(a_src src :: a) "frame"
     let noframes = unary "noframes"
+    let iframe = star "iframe"
 
     module METAINFORMATION =
       struct
@@ -1809,8 +1811,8 @@ module Version =
         type t = [ `Base ]
       end
 
-    let base ~href () =
-      XML.leaf ~a:[a_href href] "base"
+    let base ~href ?(a = []) ()=
+      XML.leaf ~a:(a_href href :: a) "base"
 
     let ruby_simple1 = binary "ruby"
     let ruby_simple2 = quadry "ruby"
@@ -1871,9 +1873,7 @@ module Version =
     type buttoncontent = (* VB *)
         [ TEXT.inline | PRESENTATION.inline
         | SPECIAL.inline | i18nclass | block_sans_form ]
-    type precontent = (* VB *)
-        [ TEXT.inline | HYPERTEXT.inline | `Tt | `I | `B | `Script | `Map |
-          i18nclass ]
+    type precontent = inline
     type inline_sans_label =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
         | FORMS.inline_sans_label | SPECIAL.inline | i18nclass | misc ]
