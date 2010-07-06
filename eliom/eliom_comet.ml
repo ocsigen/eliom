@@ -55,7 +55,7 @@ sig
   (* Type of typed channels *)
   type 'a chan = Comet.Channels.chan
 
-  val create : 'a React.E.t -> 'a chan
+  val create : ?name:string -> 'a React.E.t -> 'a chan
 
   val really_create : ('a * int option) React.E.t -> 'a chan
 
@@ -74,8 +74,8 @@ end = struct
   let encode s = Marshal.to_string s []
 
   type 'a chan = Comet.Channels.chan
-  let create e =
-    Comet.Channels.create (React.E.map (fun x -> (encode x, None)) e)
+  let create ?name e =
+    Comet.Channels.create ?name (React.E.map (fun x -> (encode x, None)) e)
   let really_create e =
     Comet.Channels.create (React.E.map (fun (x, i) -> (encode x, i)) e)
   let get_id c = Ecc.chan_id_of_string (Comet.Channels.get_id c)

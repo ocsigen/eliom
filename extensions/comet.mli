@@ -32,18 +32,25 @@ sig
       [max_virtual_channels]. Note that by default [max_virtual_channels] is set
       to [None] so that the exception may never be raised. *)
 
+  exception Non_unique_channel_name
+  (** An exception raised when creating a channel with a name already associated
+      to another channel. It is strictly forbidden to name several channel with
+      the same string. *)
+
   type chan
   (** The type of server-to-client communication channels. *)
 
   type chan_id = string
   (** The type of channel identifier. *)
 
-  val create : (string * int option) React.E.t -> chan
-  (** [create e] makes a fresh new channel upon which a message is sent whenever
-      [e] has an occurrence. When [e] as an occurrence of value [s, None] then
-      [s] is sent and no effort is made to detect transmission errors. If [s,
-      Some n] is sent upon [e] AND a client is registered to the channel, then
-      [outcomes] will be triggered with [x] as a witness.
+  val create : ?name:string -> (string * int option) React.E.t -> chan
+  (** [create ? name e] makes a fresh new channel upon which a message is sent
+      whenever [e] has an occurrence. When [e] as an occurrence of value [s,
+      None] then [s] is sent and no effort is made to detect transmission
+      errors. If [s, Some n] is sent upon [e] AND a client is registered to the
+      channel, then [outcomes] will be triggered with [x] as a witness. If
+      [?name] is [None] then a identifier is automatically generated. If [?name]
+      is [Some s] the identifier for the newly created channel is [s].
 
       The [Too_many_virtual_channels] exception may be raised if [create] is
       called when the count of channels exceed [max_virtual_channels]. Note that

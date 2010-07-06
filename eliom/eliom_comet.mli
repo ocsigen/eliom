@@ -30,10 +30,11 @@ sig
       before transmition, it is for the client to properly unmarshall it. The
       Eliom_client_comet module provides primitives that allow just that. *)
 
-  val create : 'a React.E.t -> 'a chan
+  val create : ?name:string -> 'a React.E.t -> 'a chan
   (** [create e] makes a fresh new channel immediatly usable. The id can
       be transmitted to a client in order to let him collect information passed
-      on it.
+      on it. The identifier for the channel can be manually specified so that it
+      will still be valid after server restart.
 
       [Comet.Too_many_virtual_channels] may be raised if [max_virtual_channels]
       is exceeded. *)
@@ -77,7 +78,9 @@ sig
       time given to the value is computed with [timer x]. When the time for [x]
       is up, it is erased from the buffer. And whenever more room is needed
       (because of occurrences of [e]) some previous elements may be erased too.
-      *)
+      No option is given for specifying the channel name. Named channels are for
+      public use only and buffered channels don't behave as they should for
+      multiple listeners. *)
 
   val get_id : 'a chan -> 'a Eliom_common_comet.buffered_chan_id
   (** Returns the unique identifier associated to the channel. *)

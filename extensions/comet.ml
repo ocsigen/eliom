@@ -87,6 +87,8 @@ sig
     (* raised when calling [create] while [max_virtual_channels] is [Some x] and
      * creating a new channel would make the virtual channel count greater than
      * [x]. *)
+  exception Non_unique_channel_name
+    (* raised when creating a channel with a name already associated. *)
 
   type chan
     (* the type of channels :
@@ -94,7 +96,7 @@ sig
      *)
   type chan_id = string
 
-  val create : (string * int option) React.E.t -> chan
+  val create : ?name:string -> (string * int option) React.E.t -> chan
     (* creating a fresh virtual channel, a client can request registraton to  *)
 
   val read : chan -> (string * int option) React.E.t
@@ -123,6 +125,7 @@ sig
 end = struct
 
   exception Too_many_virtual_channels
+  exception Non_unique_channel_name
 
   type chan_id = string
   type chan =
@@ -182,7 +185,7 @@ end = struct
 
 
   (* creation : newly created channel is stored in the map as a side effect *)
-  let create client_event =
+  let do_create name client_event =
     if maxed_out_virtual_channels ()
     then (OMsg.warning "Too many virtual channels, associated exception raised";
           raise Too_many_virtual_channels)
@@ -192,7 +195,7 @@ end = struct
       let (outcomes, tell_outcome) = React.E.create () in
       let ch =
         {
-          ch_id = new_id () ;
+          ch_id = name ;
           ch_client_event = client_event ;
           ch_outcomes     = outcomes     ;
           ch_tell_outcome = tell_outcome ;
@@ -204,6 +207,13 @@ end = struct
         CTbl.add ctbl ch;
         Gc.finalise decr_chan_count ch;
         ch
+
+  let create ?name client_event =
+    match name with
+      | None -> do_create (new_id ()) client_event
+      | Some n ->
+          try ignore (find_channel n) ; raise Non_unique_channel_name
+          with Not_found -> do_create n client_event
 
   (* reading a channel : just getting a hang on the reader thread *)
   let read ch = ch.ch_client_event

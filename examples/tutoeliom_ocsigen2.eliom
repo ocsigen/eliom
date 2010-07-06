@@ -479,10 +479,11 @@ are wrapped and sent to the client. A second example uses channels to transmit
 occurrences of an event.
  *wiki*)
 
-(* create a communication channel *)
+(* create a communication channel. Because it is public, we give an explicit
+* name for it. *)
 let (c1, write_c1) =
   let (e, push_e) = React.E.create () in
-  (Eliom_comet.Channels.create e, push_e)
+  (Eliom_comet.Channels.create ~name:"comet1_public_channel" e, push_e)
 
 (* randomly write on the channel *)
 let rec rand_tick () =
