@@ -1609,6 +1609,14 @@ module Eliom_appl_reg_
 
   type return = Eliom_services.appl_service
 
+  let get_cook sp cookies =
+    Eliommod_cookies.compute_cookies_to_send
+      Eliom_common.CTab
+      (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_sitedata
+      (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_cookie_info
+      (Eliom_services.cookie_table_of_eliom_cookies
+         Eliom_common.CTab ~sp cookies)
+                        
   let create_page ~sp params do_not_launch_application cookies content = 
     let body, container_node = match params.ap_container with
       | None -> let b = XHTML.M.body ?a:params.ap_body_attributes content in
@@ -1684,15 +1692,7 @@ redir ();"))::
                        ) ^ "\"; \n"
 
                      ^ "var tab_cookies = \"" ^
-                       (let cookies =
-                          Eliommod_cookies.compute_cookies_to_send
-                            Eliom_common.CTab
-                            (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_sitedata
-                            (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_cookie_info
-                            (Eliom_services.cookie_table_of_eliom_cookies
-                               Eliom_common.CTab ~sp cookies)
-                        in
-                        Eliom_client_types.jsmarshal cookies
+                       (Eliom_client_types.jsmarshal (get_cook sp cookies)
                        ) ^ "\"; \n"
 
                     )
@@ -1735,6 +1735,7 @@ redir ();"))::
 (*VVV Here we do not send a stream *)
        Caml.send ~sp ((XML.make_ref_tree_list (XHTML.M.toeltl content)),
                       (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
+                      (get_cook sp cookies),
 (*VVV Use another serialization format than XML for the page? *)
                       Xhtmlcompact'.xhtml_list_print content)
      else 

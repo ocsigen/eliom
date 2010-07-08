@@ -151,7 +151,10 @@ let set_inner_html code s =
   if code <> 200
   then Lwt.fail (Failed_service code)
   else begin
-    let (ref_tree_list, (((timeofday, _), _) as global_data), content) = 
+    let (ref_tree_list, 
+         (((timeofday, _), _) as global_data),
+         cookies,
+         content) = 
       Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
     in
     let container_node = Lazy.force container_node in
