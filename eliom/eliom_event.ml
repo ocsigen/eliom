@@ -31,9 +31,7 @@ struct
     let chan = Eliom_comet.Buffered_channels.create ~max_size:5 e in
     let `R r = React.E.retain e (fun () -> ()) in
     let `R _ = React.E.retain e (fun () -> r () ; ignore chan) in
-    Eliommod_client.wrap
-      ~sp
-      (Eliom_comet.Channels.get_id chan)
+    Eliom_comet.Buffered_channels.wrap ~sp chan
 
 end
 

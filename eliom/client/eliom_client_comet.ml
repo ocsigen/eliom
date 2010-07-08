@@ -224,8 +224,8 @@ end
 module Channels =
 struct
 
-let unwrap (c : 'a Ecc.chan_id Eliom_client_types.data_key) : 'a Ecc.chan_id =
-  Eliommod_client.unwrap c
+  let unwrap (c : 'a Ecc.chan_id Eliom_client_types.data_key) : 'a Ecc.chan_id =
+    Eliommod_cli.unwrap c
 
   let decode s = Marshal.from_string s 0
   let register c f =
@@ -241,7 +241,7 @@ struct
 
   let unwrap (c : 'a Ecc.buffered_chan_id Eliom_client_types.data_key)
         : 'a Ecc.buffered_chan_id =
-    Eliommod_client.unwrap c
+    Eliommod_cli.unwrap c
 
   let decode s = Marshal.from_string s 0
   let register c f =

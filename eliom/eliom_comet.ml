@@ -86,17 +86,11 @@ end = struct
      extension to wrap channels. The associated unwrapping function is in the
      dual file.  *)
   let wrap ~sp (c : 'a chan) : 'a Ecc.chan_id Eliom_client_types.data_key =
-    Eliommod_client.wrap ~sp (get_id c)
+    Eliommod_cli.wrap ~sp (get_id c)
 
 
 end
 
-
-(* Here is a wrap for channels. This is used by pa_eliom_client syntax extension
- * to wrap channels. The associated unwrapping function is in the dual file. *)
-let wrap ~sp (c : 'a Channels.chan)
-      : 'a Ecc.chan_id Eliom_client_types.data_key =
-  Eliommod_client.wrap ~sp (Channels.get_id c)
 
 
 
@@ -592,7 +586,7 @@ struct
 
   let wrap ~sp (c : 'a chan)
         : 'a Ecc.buffered_chan_id Eliom_client_types.data_key =
-    Eliommod_client.wrap ~sp (get_id c)
+    Eliommod_cli.wrap ~sp (get_id c)
 
 end
 
