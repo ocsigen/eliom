@@ -15,7 +15,7 @@
 %<div class='leftcol'|%<leftcoldoc version="dev">%>%
       %<div class="colprincipale"|
         ==4. Using Eliom client side
-     
+
 //Warning: Features presented here are experimental.
 We have been working on them for more than two years and
 they will be released very soon.
@@ -24,9 +24,9 @@ but syntax and interfaces will change a lot during the next weeks,
 as we are currently working on simplifying the syntax and
 uniformizing server and client sides.//
 
-//The manual is very basic for now. 
+//The manual is very basic for now.
 Turn back in a few days for a more complete manual!//
-   
+
 This part of the manuel describes how to use Eliom for mixing client side
 and server side programming.
 Eliom allows to write the client and server parts of a Web application
@@ -37,7 +37,7 @@ information.
 
 
 ===@@id="p4basics"@@
-        
+
 ====Your first client-server application
         %<div class="onecol"|
 
@@ -46,7 +46,7 @@ First, I need to create my Eliom application, by applying the functor
 the default title for pages belonging to this application, the
 default container for pages, the default stylesheets you want for your
 whole application.
-          
+
 *wiki*)
 (****** open on both side *******)
 {shared{
@@ -69,12 +69,12 @@ module Eliom_appl =
       let params =
         {Eliom_predefmod.default_appl_params with
            Eliom_predefmod.ap_title = "Eliom application example";
-           Eliom_predefmod.ap_headers = 
+           Eliom_predefmod.ap_headers =
             [XHTML.M.style ~contenttype:"text/css"
                [XHTML.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]];
-           Eliom_predefmod.ap_container = 
-            Some (None, 
-                  fun div -> [h1 [pcdata "Eliom application"]; 
+           Eliom_predefmod.ap_container =
+            Some (None,
+                  fun div -> [h1 [pcdata "Eliom application"];
                               p [pcdata "Random value in the container: ";
                                  pcdata (string_of_int (Random.int 1000))];
                               div ])
@@ -92,17 +92,17 @@ let eliomclient1 =
                         (* with {{ expr }}, the expression is executed by the client. *)
                         a_onclick {{Dom_html.window##alert(Js.string "clicked!") ; Lwt.return ()}}]
            [pcdata "I am a clickable paragraph"];
-         
+
         ])
 (*wiki*
-All services belonging to the application will be entry points to the 
+All services belonging to the application will be entry points to the
 application. It means that if you call such a service, the client side
 code will be sent to the browser, and the client side execution will
 start, //and will not stop if you go to another service belonging to
 the same application!//
 
 ====Compiling
-//soon (have a look at Ocsigen source for now -- //examples// directory)// 
+//soon (have a look at Ocsigen source for now -- //examples// directory)//
 
 ====Using a distant Eliom service in client side code
 
@@ -115,7 +115,7 @@ let myblockservice =
   Eliom_predefmod.Blocks.register_new_post_coservice
     ~fallback:eliomclient2
     ~post_params:unit
-    (fun _ () () -> 
+    (fun _ () () ->
        Lwt.return
          [p [pcdata ("I come from a distant service! Here is a random value: "^
                        string_of_int (Random.int 100))]])
@@ -140,9 +140,9 @@ let _ =
   exactly like pressing a link (here a service that do not belong to
   the application):
 *wiki*)
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
+              a_onclick
                 {{Eliom_client.exit_to
                     ~sp:\sp:sp (* Here [sp] is sent by the server *)
                     ~service:\w:Tutoeliom.coucou (* just as [coucou] *)
@@ -164,12 +164,12 @@ client.
   and use the content:
 *wiki*)
 (*
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
+              a_onclick
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
+                    (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) ->
                       let sp = Eliommod_client.unwrap_sp sp in
                       let body = Dom_html.document##body in
                       (*Js_old.get_element_by_id "bodyid"*)
@@ -186,7 +186,7 @@ client.
             [pcdata "Click here to add content from the server."];
  *)
 (* *zap*)
-             
+
 (*wiki*
   The following examples shows how to change the URL.
   This is a low level function and is usually not to be used directly.
@@ -195,7 +195,7 @@ client.
   A script must do the redirection if there is something in the fragment
   while the page is loading.
 *wiki*)
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_url
@@ -205,14 +205,14 @@ client.
               }}
             ]
             [pcdata "Click here to change the URL."];
-          
+
 (*wiki*
   The following examples shows how to change the current page,
   without stopping the client side program.
 *wiki*)
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick 
+              a_onclick
                 {{Eliom_client.change_page
                     ~sp:\sp:sp
                     ~service:\w:eliomclient1
@@ -231,9 +231,9 @@ client.
                 code [pcdata "a"];
                 pcdata ")."]
                ()];
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick{{ 
+              a_onclick{{
                 Eliom_client.change_page ~sp:\sp:sp ~service:\w:Tutoeliom.coucou
                   () ()
               }}
@@ -241,14 +241,14 @@ client.
             [pcdata "Click here to go to a page outside the application, using ";
              code [pcdata "change_page"];
              pcdata "."];
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.exit_to ~sp:\sp:sp ~service:\w:eliomclient2 () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page ~sp:\sp:sp ~service:\w:eliomclient1
@@ -263,7 +263,7 @@ client.
   The following examples shows how to get a subpage from the server,
   and put it inside your page.
 *wiki*)
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.get_subpage
@@ -277,7 +277,7 @@ client.
             ]
             [pcdata "Click here to get a subpage from server."];
 
-             
+
 (*wiki*
 ====Refering to parts of the page in client side code
 *wiki*)
@@ -292,15 +292,15 @@ client.
                   ]
                   [pcdata "Click here to add an item below with the current version of OCaml."];
                 container]);
-          
+
 (*wiki*
 ====Refering to server side data in client side code
   In the case you want to send some server side value with your page,
   just do:
 *wiki*)
 
-          (let my_value = 1.12345 in 
-           p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
+          (let my_value = 1.12345 in
+           p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Dom_html.window##alert
                      (Js.string (string_of_float \w:my_value)) ;
                    Lwt.return ()
@@ -314,7 +314,7 @@ client.
 ====Other tests
   *wiki*)
 
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 (Dom.appendChild
@@ -339,7 +339,7 @@ client.
             [pcdata "Click here to add client side generated links."];
 
 
-          
+
         ])
 (*wiki*
 ====Using OCaml values as service parameters
@@ -363,7 +363,7 @@ let eliomclient3 =
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
-        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
+        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Eliom_client.change_page
                      ~sp:\sp:sp ~service:\w:eliomclient3'
                      () (22, "oo", ["a";"b";"c"])
@@ -386,13 +386,13 @@ let eliomclient4 =
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
-        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick 
+        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
                      ~sp:\sp:sp ~service:\w:eliomclient4'
                      () () >|=
-                   List.iter 
-                     (fun i -> Dom.appendChild body 
+                   List.iter
+                     (fun i -> Dom.appendChild body
                                  (Dom_html.document##createTextNode
                                     (Js.string (string_of_int i))))
                  }}
@@ -422,7 +422,7 @@ let _ =
     (fun sp () () ->
        Lwt.return
          [p [pcdata "If the application was not launched before coming here (or if you reload), this page will not launch it. But if it was launched before, it is still running."];
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
@@ -432,7 +432,7 @@ let _ =
             ]
             [pcdata "Click here to go to a page that launches the application every time."];
           p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:gotowithoutclient
-               [pcdata "Same link with "; 
+               [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ]);
   Eliom_appl.register
@@ -440,7 +440,7 @@ let _ =
     (fun sp () () ->
        Lwt.return
          [p [pcdata "The application is launched."];
-          p 
+          p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
@@ -450,7 +450,7 @@ let _ =
             ]
             [pcdata "Click here to see the page that does not launch the application."];
           p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:withoutclient
-               [pcdata "Same link with "; 
+               [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ])
 
@@ -739,7 +739,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               a count sp [code [pcdata "count"]] ();
               br ();
 
-              
+
               pcdata "A page in a directory: ";
               a hello sp [code [pcdata "dir/hello"]] ();
               br ();
@@ -755,7 +755,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               a coucou_params sp [code [pcdata "coucou"]; pcdata " with params"] (45,(22,"krokodile"));
               pcdata "(what if the first parameter is not an integer?)";
               br ();
-              
+
               pcdata "A page with \"suffix\" URL that knows the IP and user-agent of the client: ";
               a uasuffix sp [code [pcdata "uasuffix"]] (2007,6);
               br ();
@@ -828,8 +828,8 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               pcdata "A session based on cookies, implemented with session data: ";
               a session_data_example sp [code [pcdata "sessdata"]] ();
               br ();
-              
-              
+
+
               pcdata "A session based on cookies, implemented with actions: ";
               a connect_example3 sp [code [pcdata "actions"]] ();
               br ();
@@ -888,7 +888,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               pcdata "Disposable coservices: ";
               a disposable sp [code [pcdata "disposable"]] ();
               br ();
-              
+
               pcdata "Coservice with timeout: ";
               a timeout sp [code [pcdata "timeout"]] ();
               br ();
@@ -897,7 +897,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               a publiccoduringsess sp [code [pcdata "publiccoduringsess"]] ();
               br ();
 
-              
+
               pcdata "The following URL send either a statically checked page, or a text page: ";
               a send_any sp [code [pcdata "send_any"]] "valid";
               br ();
@@ -931,7 +931,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               pcdata "A page that parses a parameter using a regular expression: ";
               a regexpserv sp [code [pcdata "regexpserv"]] "[toto]";
               br ();
-              
+
               pcdata "A form with a checkbox: ";
               a form_bool sp [pcdata "Try it"] ();
               br ();

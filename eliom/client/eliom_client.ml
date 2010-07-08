@@ -394,7 +394,7 @@ let _ =
 
 
 
-let make_a_with_onclick 
+let make_a_with_onclick
     make_a
     register_event
     ?absolute

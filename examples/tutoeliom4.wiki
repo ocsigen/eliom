@@ -148,7 +148,7 @@ client.
               a_onclick 
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
-                    (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) -> 
+                    (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) ->
                       let sp = Eliommod_client.unwrap_sp sp in
                       let body = Dom_html.document##body in
                       (*Js_old.get_element_by_id "bodyid"*)
@@ -166,7 +166,7 @@ client.
  *)
 (* 
 *zap*)
-             
+
 >>
   The following examples shows how to change the URL.
   This is a low level function and is usually not to be used directly.
@@ -175,7 +175,7 @@ client.
   A script must do the redirection if there is something in the fragment
   while the page is loading.
 <<code language="ocaml" |
-          p 
+          p
             ~a:[
               a_onclick {{
                 Eliom_client.change_url
@@ -185,14 +185,14 @@ client.
               }}
             ]
             [pcdata "Click here to change the URL."];
-          
+
 >>
   The following examples shows how to change the current page,
   without stopping the client side program.
 <<code language="ocaml" |
-          p 
+          p
             ~a:[
-              a_onclick 
+              a_onclick
                 {{Eliom_client.change_page
                     ~sp:\sp:sp
                     ~service:\w:eliomclient1
@@ -211,9 +211,9 @@ client.
                 code [pcdata "a"];
                 pcdata ")."]
                ()];
-          p 
+          p
             ~a:[
-              a_onclick{{ 
+              a_onclick{{
                 Eliom_client.change_page ~sp:\sp:sp ~service:\w:Tutoeliom.coucou
                   () ()
               }}
@@ -221,14 +221,14 @@ client.
             [pcdata "Click here to go to a page outside the application, using ";
              code [pcdata "change_page"];
              pcdata "."];
-          p 
+          p
             ~a:[
               a_onclick {{
                 Eliom_client.exit_to ~sp:\sp:sp ~service:\w:eliomclient2 () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
-          p 
+          p
             ~a:[
               a_onclick {{
                 Eliom_client.change_page ~sp:\sp:sp ~service:\w:eliomclient1
@@ -243,7 +243,7 @@ client.
   The following examples shows how to get a subpage from the server,
   and put it inside your page.
 <<code language="ocaml" |
-          p 
+          p
             ~a:[
               a_onclick {{
                 Eliom_client.get_subpage
@@ -257,7 +257,7 @@ client.
             ]
             [pcdata "Click here to get a subpage from server."];
 
-             
+
 >>
 ====Refering to parts of the page in client side code
 <<code language="ocaml" |
@@ -272,15 +272,15 @@ client.
                   ]
                   [pcdata "Click here to add an item below with the current version of OCaml."];
                 container]);
-          
+
 >>
 ====Refering to server side data in client side code
   In the case you want to send some server side value with your page,
   just do:
 <<code language="ocaml" |
 
-          (let my_value = 1.12345 in 
-           p ~a:[a_onclick 
+          (let my_value = 1.12345 in
+           p ~a:[a_onclick
                 {{ Dom_html.window##alert
                      (Js.string (string_of_float \w:my_value)) ;
                    Lwt.return ()
@@ -294,7 +294,7 @@ client.
 ====Other tests
   <<code language="ocaml" |
 
-          p 
+          p
             ~a:[
               a_onclick {{
                 (Dom.appendChild
@@ -319,7 +319,7 @@ client.
             [pcdata "Click here to add client side generated links."];
 
 
-          
+
         ])
 >>
 ====Using OCaml values as service parameters
@@ -343,7 +343,7 @@ let eliomclient3 =
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
-        [p ~a:[a_onclick 
+        [p ~a:[a_onclick
                 {{ Eliom_client.change_page
                      ~sp:\sp:sp ~service:\w:eliomclient3'
                      () (22, "oo", ["a";"b";"c"])
@@ -366,13 +366,13 @@ let eliomclient4 =
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
-        [p ~a:[a_onclick 
+        [p ~a:[a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
                      ~sp:\sp:sp ~service:\w:eliomclient4'
                      () () >|=
-                   List.iter 
-                     (fun i -> Dom.appendChild body 
+                   List.iter
+                     (fun i -> Dom.appendChild body
                                  (Dom_html.document##createTextNode
                                     (Js.string (string_of_int i))))
                  }}
@@ -402,7 +402,7 @@ let _ =
     (fun sp () () ->
        Lwt.return
          [p [pcdata "If the application was not launched before coming here (or if you reload), this page will not launch it. But if it was launched before, it is still running."];
-          p 
+          p
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
@@ -412,7 +412,7 @@ let _ =
             ]
             [pcdata "Click here to go to a page that launches the application every time."];
           p [a  ~sp ~service:gotowithoutclient
-               [pcdata "Same link with "; 
+               [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ]);
   Eliom_appl.register
@@ -420,7 +420,7 @@ let _ =
     (fun sp () () ->
        Lwt.return
          [p [pcdata "The application is launched."];
-          p 
+          p
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
@@ -430,7 +430,7 @@ let _ =
             ]
             [pcdata "Click here to see the page that does not launch the application."];
           p [a  ~sp ~service:withoutclient
-               [pcdata "Same link with "; 
+               [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ])
 
