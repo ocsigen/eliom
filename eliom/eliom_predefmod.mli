@@ -25,8 +25,6 @@
    untyped (text) pages, actions, redirections, files ...
  *)
 
-open XHTML.M
-open Xhtmltypes
 open Eliom_services
 open Eliom_parameters
 open Eliom_mkforms
@@ -43,10 +41,7 @@ end
 (** {2 Module for registering Xhtml pages typed with polymorphic variants using {!XHTML.M}} *)
 
 
-module type XHTMLFORMSSIG = Eliom_predefmod_client.XHTMLFORMSSIG
-
-module Xhtmlforms : XHTMLFORMSSIG
-
+module type XHTMLFORMSSIG = Eliom_predefmod_cli.XHTMLFORMSSIG
 
 
 
@@ -55,7 +50,7 @@ module Xhtmlforms : XHTMLFORMSSIG
       (** Eliom forms and service registration functions for XHTML *)
 module Xhtml : sig
 
-  include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt 
+  include Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.xhtml XHTML.M.elt 
                                   and type options = XHTML.M.doctypes
                                   and type return = Eliom_services.http
 
@@ -63,9 +58,10 @@ module Xhtml : sig
 
 end
 
-module Xhtmlreg : Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt 
+
+module Xhtmlforms : XHTMLFORMSSIG
+module Xhtmlreg : Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.xhtml XHTML.M.elt 
                                   and type options = XHTML.M.doctypes
-                                  and type return = Eliom_services.http
 
 module Xhtmlreg_ : 
   functor(Xhtml_content : 
@@ -73,7 +69,7 @@ module Xhtmlreg_ :
                                             and type options = XHTML.M.doctypes
          ) -> Eliom_mkreg.REGCREATE with type page =  Xhtml_content.t
                                     and type options = XHTML.M.doctypes
-                                    and type return = Eliom_services.http
+
 
 
 
@@ -81,7 +77,7 @@ module Xhtmlreg_ :
           compact markup (i.e., without pretty-printing). *)
 module Xhtmlcompact : sig
 
-  include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt
+  include Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.xhtml XHTML.M.elt
                                   and type options = XHTML.M.doctypes
                                   and type return = Eliom_services.http
 
@@ -99,11 +95,11 @@ type appl_service_params =
       ap_title: string;
       ap_container : 'a.
         ((([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option *
-           (Xhtmltypes.body_content elt -> Xhtmltypes.body_content elt list))
+           (Xhtmltypes.body_content XHTML.M.elt -> Xhtmltypes.body_content XHTML.M.elt list))
         option;
       ap_body_attributes : 
         'a. (([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option;
-      ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
+      ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] XHTML.M.elt list
     }
 
 val default_appl_params : appl_service_params
@@ -129,7 +125,7 @@ end
 
 module Eliom_appl (Appl_params : APPL_PARAMS) : sig
   include Eliom_mkreg.ELIOMREGSIG 
-    with type page = Xhtmltypes.body_content elt list
+    with type page = Xhtmltypes.body_content XHTML.M.elt list
     and type options = bool
     and type return = Eliom_services.appl_service
 
@@ -144,7 +140,7 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
 end
 
 
-module Xhtmlcompactreg : Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt 
+module Xhtmlcompactreg : Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.xhtml XHTML.M.elt 
                                   and type options = XHTML.M.doctypes
                                   and type return = Eliom_services.http
 
@@ -152,7 +148,7 @@ module Xhtmlcompactreg : Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt
 
 module Blocks : sig
 
-  include Eliom_mkreg.ELIOMREGSIG with type page = body_content elt list
+  include Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.body_content XHTML.M.elt list
                                   and type options = unit
                                   and type return = Eliom_services.http
   include XHTMLFORMSSIG
@@ -166,7 +162,7 @@ end
 module SubXhtml : functor (T : sig type content end) ->
   sig
 
-    include Eliom_mkreg.ELIOMREGSIG with type page = T.content elt list
+    include Eliom_mkreg.ELIOMREGSIG with type page = T.content XHTML.M.elt list
     include XHTMLFORMSSIG
 
   end
@@ -624,6 +620,7 @@ end
 
 
 
+module type XHTML5FORMSSIG = Eliom_predefmod_cli.XHTML5FORMSSIG
 
 module Xhtml5 : sig
 
@@ -632,7 +629,7 @@ module Xhtml5 : sig
   and type options = XHTML5.M.doctypes
   and type return = Eliom_services.http
 
-(*  include XHTMLFORMSSIG *)
+  include XHTML5FORMSSIG
 
 end
 
@@ -643,6 +640,6 @@ module Xhtml5compact : sig
   and type options = XHTML5.M.doctypes
   and type return = Eliom_services.http
 
-(*  include XHTMLFORMSSIG *)
+  include XHTML5FORMSSIG
 
 end

@@ -22,9 +22,11 @@ pp/simplexmlparser.mli:
 
 pp/xhtmltypes.ml:
 	camlp4r xhtmltypes.ml -printer o > pp/xhtmltypes.ml
+
+pp/xhtml5types.ml:
 	camlp4r xhtml5types.ml -printer o > pp/xhtml5types.ml
 
-byte: ohl-xhtml-byte $(CMA) $(OBJS) pp/simplexmlparser.mli pp/xhtmltypes.ml
+byte: ohl-xhtml-byte $(CMA) $(OBJS) pp/simplexmlparser.mli pp/xhtmltypes.ml pp/xhtml5types.ml
 	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtml5types.cmi newocaml/xhtmltypes.cmo newocaml/xhtml5types.cmo newocaml/basicTypes.cmi newocaml/basicTypes.cmo newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmo newocaml/xmllexer.cmi newocaml/xmllexer.cmo newocaml/camllexer.cmi newocaml/camllexer.cmo newocaml/xhtmlsyntax.cma ..
 
 

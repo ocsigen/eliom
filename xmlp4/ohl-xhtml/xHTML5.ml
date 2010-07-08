@@ -522,8 +522,7 @@ module type T =
     number between 0 and 32767. User agents should ignore leading
     zeros. *)
 
-    val a_mim_type : charset -> [>`Mim_Type] attrib
-    val a_type : contenttype -> [>`Type] attrib
+    val a_mime_type : contenttype -> [>`Mime_type] attrib
 (** This attribute gives an advisory hint as to the content type of
     the content available at the link target address. It allows user
     agents to opt to use a fallback mechanism rather than fetch the
@@ -587,7 +586,10 @@ module type T =
     attribute is not set, the initial value is set to the contents of
     the [option] element. *)
     val a_int_value : number ->[>`Int_Value] attrib
-    (*val a_input_value*)
+
+(*VVV NO *)
+    val a_value : cdata -> [>`Value] attrib
+
     val a_float_value : float_number -> [>`Float_Value] attrib
 
     val a_disabled : [< `Disabled ] -> [>`Disabled] attrib
@@ -899,8 +901,8 @@ module type T =
   (* a's children are transparents*)
   (********************************)
 
-    val a : ([< common | `Href | `Hreflang | `Media | `Rel | `Target | `Mim_Type ], [< phrasing_without_interactive], [>`A]) star
-    val a_flow : ([< common | `Href | `Hreflang | `Media | `Rel | `Target | `Mim_Type ], [< flow5_without_interactive], [>`A_flow]) star
+    val a : ([< common | `Href | `Hreflang | `Media | `Rel | `Target | `Mime_type ], [< phrasing_without_interactive], [>`A]) star
+    val a_flow : ([< common | `Href | `Hreflang | `Media | `Rel | `Target | `Mime_type ], [< flow5_without_interactive], [>`A_flow]) star
 
 (** {2 Edit} *)
     (**********************************)
@@ -925,9 +927,9 @@ module type T =
     (*object's children are transparents*)
     (************************************)
     val object_ : ?param:([< `Params of ([< `Param ] elt list )]) ->
-      ([< common | `Data | `Form | `Mim_Type | `Height | `Width | `Name | `Usemap ],[< phrasing], [> `Object ]) star
+      ([< common | `Data | `Form | `Mime_type | `Height | `Width | `Name | `Usemap ],[< phrasing], [> `Object ]) star
     val object_flow : ?param:([< `Params of ([< `Param ] elt list )]) ->
-      ([< common | `Data | `Form | `Mim_Type | `Height | `Width | `Name | `Usemap ],[< flow5], [> `Object_flow ]) star
+      ([< common | `Data | `Form | `Mime_type | `Height | `Width | `Name | `Usemap ],[< flow5], [> `Object_flow ]) star
 
     val param : ([< common | `Name | `Text_Value ],[> `Param ]) nullary
 
@@ -946,7 +948,7 @@ module type T =
   (*These attributes are then passed*)
   (*  as parameters to the plugin.  *)
   (**********************************)
-    val embed : ([< common | `Src | `Height | `Mim_Type | `Width], [>`Embed]) nullary
+    val embed : ([< common | `Src | `Height | `Mime_type | `Width], [>`Embed]) nullary
 
   (**************************************)
   (*         In Audio and Video         *)
@@ -981,7 +983,7 @@ module type T =
     (************************************)
     val canvas : ([< common |`Width |`Height],[< phrasing ], [>`Canvas]) star
     val canvas_flow : ([< common |`Width |`Height],[< flow5 ], [>`Canvas_flow]) star
-    val source : ([< common |`Src |`Mim_Type |`Media ], [>`Source]) nullary
+    val source : ([< common |`Src |`Mime_type |`Media ], [>`Source]) nullary
 
 
   (********************************)
@@ -993,7 +995,7 @@ module type T =
   (*   attribute is not present.  *)
   (********************************)
     val area : alt:text -> ([< common | `Coords | `Shape| `Target
-                            | `Rel | `Media| `Hreflang | `Mim_Type],[>`Area]) nullary
+                            | `Rel | `Media| `Hreflang | `Mime_type],[>`Area]) nullary
     (**********************************)
     (* map's children are transparents*)
     (**********************************)
@@ -1065,19 +1067,20 @@ module type T =
 
 (** {2 Forms} *)
 
-   val form : ([< common |`Accept_charset | `Action | `Enctype | `Method | `Name | `Target | `Autocomplete | `Novalidate ],
-       [< flow5_without_form ], [>`Form]) plus
-    val fieldset : ?legend:([ `Legend ] elt) ->
-      ([< common | `Disabled | `Form | `Name], [< flow5 ], [>`Fieldset]) star
-    val legend : ([< common ],[< phrasing], [>`Legend]) star
-    val label : ([< common | `For | `Form ],[< phrasing_without_lab_form_and_label], [>`Label]) star
-    val input : ([< common | `Accept | `Alt | `Autocomplete
-                 | `Autofocus | `Checked | `Disabled | `Form
-                 | `Formation | `Formenctype | `Formmethod
-                 | `Formnovalidate | `Formtarget | `Height | `List
-                 | `Input_Max | `Maxlength | `Input_Min | `Multiple | `Name
-                 | `Pattern | `Placeholder | `ReadOnly | `Required|`Size
-                 | `Src | `Step | `Input_Type | (*`Input_*)`Value | `Width ], [>`Input]) nullary
+   val form : ([< common |`Accept_charset | `Action | `Enctype | `Method
+               | `Name | `Target | `Autocomplete | `Novalidate ],
+               [< flow5_without_form ], [>`Form]) plus
+   val fieldset : ?legend:([ `Legend ] elt) ->
+     ([< common | `Disabled | `Form | `Name], [< flow5 ], [>`Fieldset]) star
+   val legend : ([< common ],[< phrasing], [>`Legend]) star
+   val label : ([< common | `For | `Form ],[< phrasing_without_lab_form_and_label], [>`Label]) star
+   val input : ([< common | `Accept | `Alt | `Autocomplete
+                | `Autofocus | `Checked | `Disabled | `Form
+                | `Formation | `Formenctype | `Formmethod
+                | `Formnovalidate | `Formtarget | `Height | `List
+                | `Input_Max | `Maxlength | `Input_Min | `Multiple | `Name
+                | `Pattern | `Placeholder | `ReadOnly | `Required|`Size
+                | `Src | `Step | `Input_Type | `Value | `Width ], [>`Input]) nullary
 
 
   (********************************)
@@ -1138,7 +1141,7 @@ module type T =
 
 (** {2 Scripting} *)
 
-    val script : contenttype:contenttype -> ([< common | `Async | `Charset | `Src | `Defer |`Mim_Type ],[< `Script |`Noscript (*a implem. |`Script-Documentation*) ],[>`Script]) unary
+    val script : contenttype:contenttype -> ([< common | `Async | `Charset | `Src | `Defer |`Mime_type ], [< `PCDATA (*VVV ??? `Script |`Noscript (*a implem. |`Script-Documentation*)*) ], [>`Script]) unary
 
   (****************************************************)
   (*                   In Noscript                    *)
@@ -1181,13 +1184,13 @@ module type T =
   (*********************************)
   (*          BUT WHAT ???         *)
   (*********************************)
-    val style : contenttype:text -> ([< common | `Media | `Mim_Type | `Scoped ], [< `PCDATA ], [>`Style]) star
+    val style : contenttype:text -> ([< common | `Media | `Mime_type | `Scoped ], [< `PCDATA ], [>`Style]) star
 
 (** {2 Link} *)
 
     val link : href:uri -> rel:linktypes ->
       ([< common | `Href | `Hreflang | `Media
-       | `Rel | `Sizes | `Mim_Type ], [>`Link]) nullary
+       | `Rel | `Sizes | `Mime_type ], [>`Link]) nullary
 
 (** {2 Base} *)
 
@@ -1210,54 +1213,19 @@ module type T =
 
     type doctypes = 
         [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01
-        | `Doctype of string ]
+        | `XHTML_05_00 | `Doctype of string ]
 
     val doctype : [< doctypes ] -> string
-
-      val output : ?encode:(string -> string) -> ?encoding:string ->
-      (string -> unit) -> html -> unit
-
-    val pretty_print : ?width:int ->
-      ?encode:(string -> string) -> ?encoding:string ->
-        (string -> unit) -> html -> unit
 
 (** {1 Tools} *)
 
     val version : string
     val standard : uri
+(*
     val validator : uri
     val validator_icon : unit -> [>`A] elt
 (** A hyperlink to the W3C validator, including the logo.
     @see <http://validator.w3.org> Validator *)
-
-    val addto_class : string -> 'a elt -> 'a elt
-(** Add the element and all its subelements to a class.  Note that this
-   is only almost typesafe, because a few elements from the structure class
-   do not support the class attribute.   On the other hand, listing all
-   allowed elements would be too tedious right now.  *)
-
-    val addto_class1 : string -> 'a elt -> 'a elt
-(** Add the element to a class. *)
-
-    val set_rowspan : int -> ([< `Th | `Td ] as 'a) elt -> 'a elt
-(** Set the rowspan attribute for the element. *)
-
-    val rewrite_hrefs : (string -> string) -> 'a elt -> 'a elt
-
-(*
-    val amap : (string -> 'a attribs -> 'a attribs) -> 'b elt -> 'b elt
-    val amap1 : (string -> 'a attribs -> 'a attribs) -> 'b elt -> 'b elt
-
-    val rm_attrib : (string -> bool) -> 'a attribs -> 'a attribs
-    val rm_attrib_from_list :
-        (string -> bool) -> (string -> bool) -> 'a attribs -> 'a attribs
-
-(** Exporting the following will drive a hole through the type system,
-   because they allow to add any attribute to any element. *)
-    val add_int_attrib : string -> int -> 'a attribs -> 'a attribs
-    val add_string_attrib : string -> string -> 'a attribs -> 'a attribs
-    val add_comma_sep_attrib : string -> string -> 'a attribs -> 'a attribs
-    val add_space_sep_attrib : string -> string -> 'a attribs -> 'a attribs
 *)
 
     val tot : XML.elt -> 'a elt
@@ -1311,6 +1279,7 @@ module Version =
     let string_attrib = XML.string_attrib
     let space_sep_attrib = XML.space_sep_attrib
     let comma_sep_attrib = XML.comma_sep_attrib
+    let event_attrib = XML.event_attrib
 
     type cdata = string
     type id = string
@@ -1438,75 +1407,75 @@ module Version =
 
     (* Events: *)
 
-    let a_onabort = string_attrib "onabort"
-    let a_onafterprint = string_attrib "onafterprint"
-    let a_onbeforeprint = string_attrib "onbeforeprint"
-    let a_onbeforeunload = string_attrib "onbeforeunload"
-    let a_onblur = string_attrib "onblur"
-    let a_oncanplay = string_attrib "oncanplay"
-    let a_oncanplaythrough = string_attrib "oncanplaythrough"
-    let a_onchange = string_attrib "onchange"
-    let a_onclick = string_attrib "onclick"
-    let a_oncontextmenu = string_attrib "oncontextmenu"
-    let a_ondblclick = string_attrib "ondblclick"
-    let a_ondrag = string_attrib "ondrag"
-    let a_ondragend = string_attrib "ondragend"
-    let a_ondragenter = string_attrib "ondragenter"
-    let a_ondragleave = string_attrib "ondragleave"
-    let a_ondragover = string_attrib "ondragover"
-    let a_ondragstart = string_attrib "ondragstart"
-    let a_ondrop = string_attrib "ondrop"
-    let a_ondurationchange = string_attrib "ondurationchange"
-    let a_onemptied = string_attrib "onemptied"
-    let a_onended = string_attrib "onended"
-    let a_onerror = string_attrib "onerror"
-    let a_onfocus = string_attrib "onfocus"
-    let a_onformchange = string_attrib "onformchange"
-    let a_onforminput = string_attrib "onforminput"
-    let a_onhashchange = string_attrib "onhashchange"
-    let a_oninput = string_attrib "oninput"
-    let a_oninvalid = string_attrib "oninvalid"
-    let a_onmousedown = string_attrib "onmousedown"
-    let a_onmouseup = string_attrib "onmouseup"
-    let a_onmouseover = string_attrib "onmouseover"
-    let a_onmousemove = string_attrib "onmousemove"
-    let a_onmouseout = string_attrib "onmouseout"
-    let a_onmousewheel = string_attrib "onmousewheel"
-    let a_onoffline = string_attrib "onoffline"
-    let a_ononline = string_attrib "ononline"
-    let a_onpause = string_attrib "onpause"
-    let a_onplay = string_attrib "onplay"
-    let a_onplaying = string_attrib "onplaying" 
-    let a_onpagehide = string_attrib "onpagehide"
-    let a_onpageshow = string_attrib "onpageshow"
-    let a_onpopstate = string_attrib "onpopstate"
-    let a_onprogress = string_attrib "onprogress"
-    let a_onratechange = string_attrib "onratechange"
-    let a_onreadystatechange = string_attrib "onreadystatechange"
-    let a_onredo = string_attrib "onredo"
-    let a_onresize = string_attrib "onresize"
-    let a_onscroll = string_attrib "onscroll"
-    let a_onseeked = string_attrib "onseeked"
-    let a_onseeking = string_attrib "onseeking"
-    let a_onselect = string_attrib "onselect"
-    let a_onshow = string_attrib "onshow"
-    let a_onstalled = string_attrib "onstalled"
-    let a_onstorage = string_attrib "onstorage"
-    let a_onsubmit = string_attrib "onsubmit"
-    let a_onsuspend = string_attrib "onsuspend"
-    let a_ontimeupdate = string_attrib "ontimeupdate"
-    let a_onundo = string_attrib "onundo"
-    let a_onunload = string_attrib "onunload"
-    let a_onvolumechange = string_attrib "onvolumechange"
-    let a_onwaiting = string_attrib "onwaiting"
-    let a_onkeypress = string_attrib "onkeypress"
-    let a_onkeydown = string_attrib "onkeydown"
-    let a_onkeyup = string_attrib "onkeyup"
-    let a_onload = string_attrib "onload"
-    let a_onloadeddata = string_attrib "onloadeddata"
-    let a_onloadedmetadata = string_attrib ""
-    let a_onloadstart = string_attrib "onloadstart"
-    let a_onmessage = string_attrib "onmessage"
+    let a_onabort = event_attrib "onabort"
+    let a_onafterprint = event_attrib "onafterprint"
+    let a_onbeforeprint = event_attrib "onbeforeprint"
+    let a_onbeforeunload = event_attrib "onbeforeunload"
+    let a_onblur = event_attrib "onblur"
+    let a_oncanplay = event_attrib "oncanplay"
+    let a_oncanplaythrough = event_attrib "oncanplaythrough"
+    let a_onchange = event_attrib "onchange"
+    let a_onclick = event_attrib "onclick"
+    let a_oncontextmenu = event_attrib "oncontextmenu"
+    let a_ondblclick = event_attrib "ondblclick"
+    let a_ondrag = event_attrib "ondrag"
+    let a_ondragend = event_attrib "ondragend"
+    let a_ondragenter = event_attrib "ondragenter"
+    let a_ondragleave = event_attrib "ondragleave"
+    let a_ondragover = event_attrib "ondragover"
+    let a_ondragstart = event_attrib "ondragstart"
+    let a_ondrop = event_attrib "ondrop"
+    let a_ondurationchange = event_attrib "ondurationchange"
+    let a_onemptied = event_attrib "onemptied"
+    let a_onended = event_attrib "onended"
+    let a_onerror = event_attrib "onerror"
+    let a_onfocus = event_attrib "onfocus"
+    let a_onformchange = event_attrib "onformchange"
+    let a_onforminput = event_attrib "onforminput"
+    let a_onhashchange = event_attrib "onhashchange"
+    let a_oninput = event_attrib "oninput"
+    let a_oninvalid = event_attrib "oninvalid"
+    let a_onmousedown = event_attrib "onmousedown"
+    let a_onmouseup = event_attrib "onmouseup"
+    let a_onmouseover = event_attrib "onmouseover"
+    let a_onmousemove = event_attrib "onmousemove"
+    let a_onmouseout = event_attrib "onmouseout"
+    let a_onmousewheel = event_attrib "onmousewheel"
+    let a_onoffline = event_attrib "onoffline"
+    let a_ononline = event_attrib "ononline"
+    let a_onpause = event_attrib "onpause"
+    let a_onplay = event_attrib "onplay"
+    let a_onplaying = event_attrib "onplaying" 
+    let a_onpagehide = event_attrib "onpagehide"
+    let a_onpageshow = event_attrib "onpageshow"
+    let a_onpopstate = event_attrib "onpopstate"
+    let a_onprogress = event_attrib "onprogress"
+    let a_onratechange = event_attrib "onratechange"
+    let a_onreadystatechange = event_attrib "onreadystatechange"
+    let a_onredo = event_attrib "onredo"
+    let a_onresize = event_attrib "onresize"
+    let a_onscroll = event_attrib "onscroll"
+    let a_onseeked = event_attrib "onseeked"
+    let a_onseeking = event_attrib "onseeking"
+    let a_onselect = event_attrib "onselect"
+    let a_onshow = event_attrib "onshow"
+    let a_onstalled = event_attrib "onstalled"
+    let a_onstorage = event_attrib "onstorage"
+    let a_onsubmit = event_attrib "onsubmit"
+    let a_onsuspend = event_attrib "onsuspend"
+    let a_ontimeupdate = event_attrib "ontimeupdate"
+    let a_onundo = event_attrib "onundo"
+    let a_onunload = event_attrib "onunload"
+    let a_onvolumechange = event_attrib "onvolumechange"
+    let a_onwaiting = event_attrib "onwaiting"
+    let a_onkeypress = event_attrib "onkeypress"
+    let a_onkeydown = event_attrib "onkeydown"
+    let a_onkeyup = event_attrib "onkeyup"
+    let a_onload = event_attrib "onload"
+    let a_onloadeddata = event_attrib "onloadeddata"
+    let a_onloadedmetadata = event_attrib ""
+    let a_onloadstart = event_attrib "onloadstart"
+    let a_onmessage = event_attrib "onmessage"
 
     (* Other Attributes *)
 
@@ -1528,8 +1497,7 @@ module Version =
     let a_rel = linktypes_attrib "rel"
     let a_tabindex = int_attrib "tabindex"
 
-    let a_mim_type =  string_attrib "type"
-    let a_type = string_attrib "type"
+    let a_mime_type =  string_attrib "type"
 
     let a_alt = string_attrib "alt"
     let a_height p = int_attrib "height" p
@@ -1542,7 +1510,7 @@ module Version =
       | `Selected -> string_attrib "selected" "selected"
     let a_text_value = string_attrib "value"
     let a_int_value = int_attrib "value"
-    (*let a_input_value*)
+    let a_value = string_attrib "value"
     let a_float_value = float_attrib "value"
     let a_action = string_attrib "action"
     let a_method m =
@@ -1833,35 +1801,13 @@ module Version =
 
     let space () = entity "nbsp"
 
-    let cdata s = (* GK *)
-      (* For security reasons, we do not allow "]]>" inside CDATA
-         (as this string is to be considered as the end of the cdata)
-       *)
-      let s' = "\n<![CDATA[\n"^
-        (Netstring_pcre.global_replace
-           (Netstring_pcre.regexp_string "]]>") "" s)
-        ^"\n]]>\n" in
-      XML.encodedpcdata s'
+    let cdata = XML.cdata
 
-    let cdata_script s = (* GK *)
-      (* For security reasons, we do not allow "]]>" inside CDATA
-         (as this string is to be considered as the end of the cdata)
-       *)
-      let s' = "\n//<![CDATA[\n"^
-        (Netstring_pcre.global_replace
-           (Netstring_pcre.regexp_string "]]>") "" s)
-        ^"\n//]]>\n" in
-      XML.encodedpcdata s'
+    let cdata_script = XML.cdata_script
 
-    let cdata_style s = (* GK *)
-      (* For security reasons, we do not allow "]]>" inside CDATA
-         (as this string is to be considered as the end of the cdata)
-       *)
-      let s' = "\n/* <![CDATA[ */\n"^
-        (Netstring_pcre.global_replace
-           (Netstring_pcre.regexp_string "]]>") "" s)
-        ^"\n/* ]]> */\n" in
-      XML.encodedpcdata s'
+    let cdata_style = XML.cdata_style
+
+    let unsafe_data s = XML.encodedpcdata s
 
     let unsafe_data s = XML.encodedpcdata s
 
@@ -1961,7 +1907,7 @@ module Version =
     let ins = star "ins"
     let ins_flow = star "ins"
     let script ~contenttype ?(a = []) elt =
-      XML.node ~a:(a_type contenttype :: a) "script" [elt]
+      XML.node ~a:(a_mime_type contenttype :: a) "script" [elt]
     let noscript = plus "noscript"
 
     let article = star "article"
@@ -2000,7 +1946,7 @@ module Version =
     let meter = star "meter"
     let output_elt = star "output"
 
-    let form =plus "form"
+    let form = plus "form"
     let input = terminal "input"
     let keygen = terminal "keygen"
     let label = star "label"
@@ -2060,7 +2006,7 @@ module Version =
     let meta = terminal "meta"
 
    let style ~contenttype ?(a = []) elts =
-      XML.node ~a:(a_type contenttype :: a) "style" elts
+      XML.node ~a:(a_mime_type contenttype :: a) "style" elts
 
     let link ~href ~rel ?(a = []) () =
       XML.leaf ~a:(a_href href :: a_rel rel :: a) "link"
@@ -2144,7 +2090,7 @@ module Version =
 
     type doctypes = 
         [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01
-        | `Doctype of string ]
+        | `XHTML_05_00 | `Doctype of string ]
 
     let doctype = function
       | `HTML_v03_02 ->
@@ -2158,6 +2104,8 @@ module Version =
       | `XHTML_01_01 ->
           compose_doctype "html" ["-//W3C//DTD XHTML 1.1//EN";
                                   "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"]
+(*VVV Vérifier !!! *)
+      | `XHTML_05_00 -> "<!DOCTYPE html>"
       | `Doctype s -> s
 
     let no_break =
@@ -2169,26 +2117,19 @@ module Version =
     let preformatted =
       ["pre"]
 
-      let output version ?encode ?encoding outs page =
-      (* XML.decl ?encoding outs (); Does not work with IE *)
-      outs (doctype version);
-      XML.output ~preformatted ~no_break ?encode outs page
-
-    let pretty_print version ?width ?encode ?encoding outs page =
-      (* XML.decl ?encoding outs (); Does not work with IE *)
-      outs (doctype version);
-      XML.pretty_print ?width ~preformatted ~no_break ?encode outs page
-
     (* Tools *)
 
     let version = function
       | `XHTML_01_00 -> "XHTML 1.0"
       | `XHTML_01_01 -> "XHTML 1.1"
+      | `XHTML_05_00 -> "XHTML 5.0"
 
     let standard = function
       | `XHTML_01_00 -> "http://www.w3.org/TR/xhtml1/"
       | `XHTML_01_01 -> "http://www.w3.org/TR/xhtml11/"
+      | `XHTML_05_00 -> "http://www.w3.org/TR/xhtml5"
 
+(*
     let validator =
       "http://validator.w3.org/check/referer"
 
@@ -2201,24 +2142,8 @@ module Version =
             "http://www.w3.org/Icons/valid-xhtml10" "Valid XHTML 1.0!"
       | `XHTML_01_01 -> compose_validator_icon
             "http://www.w3.org/Icons/valid-xhtml11" "Valid XHTML 1.1!"
-
-    let addto_class name =
-      XML.amap (fun _ a -> XML.add_space_sep_attrib "class" name a)
-
-    let addto_class1 name =
-      XML.amap1 (fun _ a -> XML.add_space_sep_attrib "class" name a)
-
-    let set_rowspan n =
-      XML.amap1 (fun _ a -> XML.add_int_attrib "rowspan" n a)
-
-    let rewrite_hrefs f =
-      XML.amap (fun _ a -> XML.map_string_attrib ((=) "href") f a)
-
-    let amap = XML.amap
-    let amap1 = XML.amap1
-
-    let rm_attrib = XML.rm_attrib
-    let rm_attrib_from_list = XML.rm_attrib_from_list
+      | `XHTML_05_00 -> ???
+*)
 
     (******************************************************************)
     (* In the following, my own stuffs for Ocsigen -- Vincent: *)
@@ -2234,12 +2159,9 @@ module M_05_00 : T_05_00 =
   struct
     module M = Version
     include M
-    let xhtml_version = `XHTML_01_00
+    let xhtml_version = `XHTML_05_00
     let version = M.version xhtml_version
     let standard = M.standard xhtml_version
-    let output = M.output xhtml_version
-    let pretty_print = M.pretty_print xhtml_version
-    let validator_icon () = M.validator_icon xhtml_version
   end
 
 module M = M_05_00

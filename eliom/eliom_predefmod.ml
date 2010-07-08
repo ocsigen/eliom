@@ -1556,7 +1556,7 @@ end
 
 type appl_service_params =
     {
-      ap_doctype: XHTML.M.doctypes;
+      ap_doctype: XHTML5.M.doctypes;
       ap_title: string;
       ap_container : 'a.
         ((([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option *
@@ -1583,7 +1583,7 @@ let default_appl_params =
 module Eliom_appl_reg_
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
    with type t = [ `Html ] XHTML.M.elt
-   and type options = XHTML.M.doctypes
+   and type options = XHTML5.M.doctypes
   )
   (Appl_params : APPL_PARAMS) = struct
   open XHTML.M
@@ -1760,9 +1760,9 @@ end
 
 
 module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-                         with type t = [ `Html ] XHTML5.M.elt
-                   and type options = XHTML5.M.doctypes
-                ) = struct
+                  with type t = [ `Html ] XHTML5.M.elt
+                  and type options = XHTML5.M.doctypes
+) = struct
   open XHTML5.M
   open Xhtmltypes
 
@@ -1816,7 +1816,7 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   end
 
-  let send ?(options = `XHTML_01_01) ?(cookies=[]) ?charset ?code
+  let send ?(options = `XHTML_05_00) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     Xhtml_content.result_of_content ~options content >>= fun r ->
     Lwt.return
@@ -1847,11 +1847,11 @@ module Xhtml5compactreg =
   MakeRegister(Xhtml5reg_(Ocsigen_senders.Xhtml5compact_content))
 
 module Xhtml5 = struct
-(*  include Xhtmlforms *)
+  include Xhtml5forms
   include Xhtml5reg
 end
 
 module Xhtml5compact = struct
-(*  include Xhtmlforms *)
+  include Xhtml5forms
   include Xhtml5compactreg
 end

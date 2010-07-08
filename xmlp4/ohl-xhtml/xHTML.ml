@@ -1093,7 +1093,7 @@ module type T =
 
     type doctypes = 
         [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01
-        | `Doctype of string ]
+        | `XHTML_05_00 | `Doctype of string ]
 
     val doctype : [< doctypes ] -> string
 
@@ -1110,11 +1110,11 @@ module type T =
 
     val version : string
     val standard : uri
-    val validator : uri
+(*    val validator : uri
     val validator_icon : unit -> [>`A] elt
 (** A hyperlink to the W3C validator, including the logo.
     @see <http://validator.w3.org> Validator *)
-
+*)
 (*
     val addto_class : string -> 'a elt -> 'a elt
 (** Add the element and all its subelements to a class.  Note that this
@@ -1889,7 +1889,7 @@ module Version =
 
     type doctypes = 
         [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01
-        | `Doctype of string ]
+        | `XHTML_05_00 | `Doctype of string ]
 
     let doctype = function
       | `HTML_v03_02 ->
@@ -1903,6 +1903,8 @@ module Version =
       | `XHTML_01_01 ->
           compose_doctype "html" ["-//W3C//DTD XHTML 1.1//EN";
                                   "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"]
+(*VVV Check *)
+      | `XHTML_05_00 -> "<!DOCTYPE html>"
       | `Doctype s -> s
 
     let no_break =
@@ -1931,11 +1933,14 @@ module Version =
     let version = function
       | `XHTML_01_00 -> "XHTML 1.0"
       | `XHTML_01_01 -> "XHTML 1.1"
+      | `XHTML_05_00 -> "XHTML 5.0"
 
     let standard = function
       | `XHTML_01_00 -> "http://www.w3.org/TR/xhtml1/"
       | `XHTML_01_01 -> "http://www.w3.org/TR/xhtml11/"
+      | `XHTML_05_00 -> "http://www.w3.org/TR/xhtml5"
 
+(*
     let validator =
       "http://validator.w3.org/check/referer"
 
@@ -1948,6 +1953,7 @@ module Version =
             "http://www.w3.org/Icons/valid-xhtml10" "Valid XHTML 1.0!"
       | `XHTML_01_01 -> compose_validator_icon
             "http://www.w3.org/Icons/valid-xhtml11" "Valid XHTML 1.1!"
+        *)
 
 (*
     let addto_class name =
@@ -1988,7 +1994,7 @@ module M_01_00 : T_01_00 =
     let standard = M.standard xhtml_version
 (*    let output = M.output xhtml_version
     let pretty_print = M.pretty_print xhtml_version *)
-    let validator_icon () = M.validator_icon xhtml_version
+(*    let validator_icon () = M.validator_icon xhtml_version*)
   end
 
 module M_01_01 : T_01_01 =
@@ -2000,7 +2006,7 @@ module M_01_01 : T_01_01 =
     let standard = M.standard xhtml_version
 (*    let output = M.output xhtml_version
     let pretty_print = M.pretty_print xhtml_version *)
-    let validator_icon () = M.validator_icon xhtml_version
+(*    let validator_icon () = M.validator_icon xhtml_version*)
   end
 
 module M = M_01_01

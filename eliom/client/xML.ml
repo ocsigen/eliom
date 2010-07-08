@@ -24,6 +24,7 @@ type attribs = attrib list
 type event = unit -> unit
 
 let int_attrib name value = (name, Js.Unsafe.inject value)
+let float_attrib name value = (name, Js.Unsafe.inject value)
 let string_attrib name value = (name, Js.Unsafe.inject (Js.string value))
 let space_sep_attrib name values = 
   (name, Js.Unsafe.inject (Js.string

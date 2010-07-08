@@ -28,13 +28,13 @@ module Xhtml_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
                                   and type options = 
   [ `HTML_v03_02 | `HTML_v04_01
-  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+  | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
 
 module Xhtmlcompact_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
                                   and type options = 
   [ `HTML_v03_02 | `HTML_v04_01
-  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+  | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
 
 (** content * content-type *)
 module Text_content :
@@ -91,11 +91,11 @@ module Xhtml5_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML5.M.elt
                                   and type options = 
   [ `HTML_v03_02 | `HTML_v04_01
-  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+  | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
 
 module Xhtml5compact_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML5.M.elt
                                   and type options = 
   [ `HTML_v03_02 | `HTML_v04_01
-  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+  | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
 

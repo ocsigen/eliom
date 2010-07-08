@@ -30,7 +30,7 @@ type tag = [ `Br | `Span | `Bdo | `Map | `Object | `Img | `Tt | `I | `B | `Big
            | `Legend | `Caption | `Thead | `Tfoot | `Tbody | `Colgroup
            | `Col | `Tr | `Th | `Td]
 *)
-open XHTML.M;
+open XHTML5.M;
 type xhtml = [ = `Html ];
 type form = [ = `Form ];
 type a = [ = `A ];
@@ -46,39 +46,18 @@ type button = [ = `Button ];
 type pcdata = [ = `PCDATA ];
 type notag;
 type html_content = [ = `Body | `Head | `Frameset ];
-type body_content = block;
-(* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
-| `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol
-| `P | `Pre | `Script | `Table | `Ul ] *)
-type div_content = [ = `PCDATA | flow ];
-(* [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ] *)
-type object_content = [ = `PCDATA | flow | `Param ];
-(* [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `Param | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ] *)
-type fieldset_content = [ = `PCDATA | `Legend | flow ];
-(* [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Legend | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ] *)
-type button_content = [ = `PCDATA | buttoncontent ];
-(* [ `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Ins | `Kbd | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Tt | `Ul | `Var ] *)
-type head_content =
-  [ = `Base | `Link | `Object | `Script | `Style | `Title | `Meta
-  ];
-(* [ `Base | `Link | `Object | `Script | `Style | `Title | `Meta ] *)
-type form_content = [ = block_sans_form | `Fieldset ];
-(* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ] *)
-type blockquote_content = [ = `PCDATA | block ];
-(* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table  | `Ul ] *)
-type map_content = [ = block | `Area ];
-(* [ `Address | `Area | `Blockquote | `Del | `Div | `Dl | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ] *)
-(* type inline_content =
-    [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var ]
-*)
-type inlinemix = [ = `PCDATA | inline ];
-(* [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var ] *)
-type label_content = [ = `PCDATA | inline_sans_label ];
-(* [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var | `Noscript ] *)
-type a_content = [ = `PCDATA | inline_sans_a_mix ];
-(* [ `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var | `Noscript ] *)
-type pre_content = [ = `PCDATA | precontent ];
-(* [ `A | `Abbr | `Acronym | `B | `Bdo | `Br | `Cite | `Code | `Dfn | `Em | `I | `Kbd | `Map | `PCDATA | `Q | `Samp | `Script | `Span | `Strong | `Tt | `Var ] *)
+type body_content = flow5;
+type div_content = flow5;
+type object_content = phrasing;
+type fieldset_content = flow5;
+type button_content = phrasing_without_interactive;
+type head_content = [ = metadata | `Title ];
+type form_content = flow5_without_form;
+type blockquote_content = flow5;
+type map_content = [ = phrasing | `Area ];
+type label_content = text;
+type a_content = phrasing_without_interactive;
+type pre_content = phrasing;
 type dl_content = [ = `Dd | `Dt ];
 type optgroup_content = [ = `Option ];
 type colgroup_content = [ = `Col ];
@@ -89,37 +68,37 @@ type table_content =
   [ = `Caption | `Col | `Colgroup | `Tbody | `Tfoot | `Thead | `Tr
   ];
 type tr_content = [ = `Td | `Th ];
-type abbr_content = inlinemix;
-type acronym_content = inlinemix;
-type address_content = inlinemix;
-type b_content = inlinemix;
-type bdo_content = inlinemix;
-type big_content = inlinemix;
-type caption_content = inlinemix;
-type cite_content = inlinemix;
-type code_content = inlinemix;
-type dfn_content = inlinemix;
-type dt_content = inlinemix;
-type em_content = inlinemix;
-type h1_content = inlinemix;
-type h2_content = inlinemix;
-type h3_content = inlinemix;
-type h4_content = inlinemix;
-type h5_content = inlinemix;
-type h6_content = inlinemix;
-type i_content = inlinemix;
-type kbd_content = inlinemix;
-type legend_content = inlinemix;
-type p_content = inlinemix;
-type q_content = inlinemix;
-type samp_content = inlinemix;
-type small_content = inlinemix;
-type span_content = inlinemix;
-type strong_content = inlinemix;
-type sub_content = inlinemix;
-type sup_content = inlinemix;
-type tt_content = inlinemix;
-type var_content = inlinemix;
+type abbr_content = phrasing;
+type acronym_content = phrasing;
+type address_content = phrasing;
+type b_content = phrasing;
+type bdo_content = phrasing;
+type big_content = phrasing;
+type caption_content = phrasing;
+type cite_content = phrasing;
+type code_content = phrasing;
+type dfn_content = phrasing;
+type dt_content = phrasing;
+type em_content = phrasing;
+type h1_content = phrasing;
+type h2_content = phrasing;
+type h3_content = phrasing;
+type h4_content = phrasing;
+type h5_content = phrasing;
+type h6_content = phrasing;
+type i_content = phrasing;
+type kbd_content = phrasing;
+type legend_content = phrasing;
+type p_content = phrasing;
+type q_content = phrasing;
+type samp_content = phrasing;
+type small_content = phrasing;
+type span_content = phrasing;
+type strong_content = phrasing;
+type sub_content = phrasing;
+type sup_content = phrasing;
+type tt_content = phrasing;
+type var_content = phrasing;
 type dd_content = div_content;
 type del_content = div_content;
 (* type div_content = div_content *)
@@ -167,36 +146,38 @@ type ol_content = ul_content;
 type thead_content = tbody_content;
 type tfoot_content = tbody_content;
 type a_attrib =
-  [ = common | `Accesskey | `Charset | `Href | `Hreflang | `Name_01_00 | `Rel
-    | `Rev | `Tabindex | `Target | `Type | `Shape | `Coords
-  ];
+  [ = common | `Href | `Hreflang | `Media | `Rel | `Target | `Mime_type ];
 type link_attrib =
-  [ = common | `Charset | `Href | `Hreflang | `Media | `Rel | `Rev | `Target
-    | `Type
-  ];
-type script_attrib = [ = `XMLns | `Charset | `Src | `Defer | `XML_space ];
+  [ = common | `Href | `Hreflang | `Media
+  | `Rel | `Sizes | `Mime_type ];
+type script_attrib = 
+  [ = common | `Async | `Charset | `Src | `Defer |`Mime_type ];
 type form_attrib =
-  [ = common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset
-    | `Accept
-  ];
+  [ = common |`Accept_charset | `Action | `Enctype | `Method | `Name | `Target | `Autocomplete | `Novalidate ];
 type img_attrib =
   [ = common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap
   ];
 type div_attrib = common;
 type input_attrib =
-  [ = common | `Accesskey | `Checked | `Maxlength | `Name | `Size | `Src
-    | `Tabindex | `Input_Type | `Value | `Disabled | `Readonly | `Alt
-    | `Accept | `Usemap
-  ];
+  [ = common | `Accept | `Alt | `Autocomplete
+  | `Autofocus | `Checked | `Disabled | `Form
+  | `Formation | `Formenctype | `Formmethod
+  | `Formnovalidate | `Formtarget | `Height | `List
+  | `Input_Max | `Maxlength | `Input_Min | `Multiple | `Name
+  | `Pattern | `Placeholder | `ReadOnly | `Required|`Size
+  | `Src | `Step | `Input_Type | `Value | `Width ];
 type textarea_attrib =
-  [ = common | `Accesskey | `Name | `Tabindex | `Disabled | `Readonly
-  ];
+  [ = common | `Autofocus | `Disabled | `Form | `Maxlength
+  | `Name | `Placeholder| `Readonly| `Required | `Wrap | `Rows | `Cols];
 type select_attrib =
   [ = common | `Multiple | `Name | `Size | `Tabindex | `Disabled
   ];
 type optgroup_attrib = [ = common | `Disabled | `Label ];
-type option_attrib = [ = common | `Selected | `Value | `Disabled | `Label ];
-type button_attrib = [ = common | `Name | `Value | `Button_Type ];
+type option_attrib = [ = common | `Selected | `Text_Value | `Disabled | `Label ];
+type button_attrib = [ = common | `Autofocus | `Disabled | `Form
+                     | `Formaction | `Formenctype | `Formmethod
+                     | `Formnovalidate | `Formtarget | `Name
+                     | `Text_Value | `Button_Type ];
 type fieldset_attrib = common;
 type label_attrib = [ = common | `Accesskey | `For ];
 type legend_attrib = [ = common | `Accesskey ];

@@ -65,7 +65,8 @@ module Old_Xhtml_content =
 module Xhtml_content_(Xhtmlprinter : sig
                         val xhtml_stream :
                           ?version:[< `HTML_v03_02 | `HTML_v04_01
-                          | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string
+                          | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00
+                          | `Doctype of string
                               > `XHTML_01_01 ] ->
                           ?width:int ->
                           ?encode:(string -> string) ->
@@ -75,7 +76,7 @@ module Xhtml_content_(Xhtmlprinter : sig
   struct
     type t = [ `Html ] XHTML.M.elt
 
-    type options = [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+    type options = [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
 
     let get_etag_aux x = None
 
@@ -581,7 +582,8 @@ let send_error
 module Xhtml5_content_(Xhtmlprinter : sig
                         val xhtml_stream :
                           ?version:[< `HTML_v03_02 | `HTML_v04_01
-                          | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string
+                          | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00
+                          | `Doctype of string
                               > `XHTML_01_01 ] ->
                           ?width:int ->
                           ?encode:(string -> string) ->
@@ -591,7 +593,7 @@ module Xhtml5_content_(Xhtmlprinter : sig
   struct
     type t = [ `Html ] XHTML5.M.elt
 
-    type options = [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+    type options = [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
 
     let get_etag_aux x = None
 
