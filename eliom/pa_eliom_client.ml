@@ -74,11 +74,11 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
     let _loc = Loc.ghost in
     [
       ("w",
-       (<:expr<Eliommod_client.wrap ~sp>>, <:expr<Eliommod_client.unwrap>>));
+       (<:expr<Eliommod_cli.wrap ~sp>>, <:expr<Eliommod_cli.unwrap>>));
       ("sp",
-       (<:expr<Eliommod_client.wrap_sp>>, <:expr<Eliommod_client.unwrap_sp>>));
+       (<:expr<Eliommod_cli.wrap_sp>>, <:expr<Eliommod_cli.unwrap_sp>>));
       ("node",
-       (<:expr<Eliommod_client.wrap_node ~sp>>, <:expr<Eliommod_client.unwrap_node>>));
+       (<:expr<Eliommod_cli.wrap_node ~sp>>, <:expr<Eliommod_cli.unwrap_node>>));
       ("channel",
        (<:expr<Eliom_comet.Channels.wrap ~sp>>, <:expr<Eliom_client_comet.Channels.unwrap>>));
       ("buffchan",
@@ -144,7 +144,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
       | n::ns -> clo_args_aux <:patt< $lid:n$ >> ns
     in
     <:str_item<
-      let _ = Eliommod_client.register_closure
+      let _ = Eliommod_cli.register_closure
                 $`int:Int64.to_int num$
                 (fun $clo_arg$ -> $expr$)
     >>

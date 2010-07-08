@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliom_client.ml
+ * Module eliom_cli.ml
  * Copyright (C) 2010 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -144,7 +144,7 @@ let change_url
   Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
 
 
-let container_node = lazy (Js.Unsafe.coerce (Eliommod_client.unwrap_node (unmarshal "container_node")): Dom_html.element Js.t)
+let container_node = lazy (Js.Unsafe.coerce (Eliommod_cli.unwrap_node (unmarshal "container_node")): Dom_html.element Js.t)
 
 
 
@@ -157,9 +157,9 @@ let set_inner_html code s =
     in
     let container_node = Lazy.force container_node in
     container_node##innerHTML <- Js.string content;
-    Eliommod_client.relink_dom_list 
+    Eliommod_cli.relink_dom_list 
       timeofday (container_node##childNodes) ref_tree_list;
-    Eliommod_client.fill_global_data_table global_data;
+    Eliommod_cli.fill_global_data_table global_data;
     Lwt.return ()
   end
 
@@ -300,9 +300,9 @@ let get_subpage
     for i = nodes##length - 1 downto 0 do
       node_list := nodes##item (i) :: !node_list
     done;
-    Eliommod_client.relink_dom_list timeofday nodes ref_tree_list;
+    Eliommod_cli.relink_dom_list timeofday nodes ref_tree_list;
     fake_page##innerHTML <- Js.string "";
-    Eliommod_client.fill_global_data_table global_data;
+    Eliommod_cli.fill_global_data_table global_data;
     Lwt.return (XHTML.M.totl !node_list)
   end
 
@@ -369,23 +369,23 @@ let _ = React.E.map auto_change_page (React.S.changes fragment)
 
 (* ==A closure that is registered by default to simulate <a> *)
 let _ =
-  Eliommod_client.register_closure
+  Eliommod_cli.register_closure
     Eliom_client_types.a_closure_id
     (fun
        (absolute, absolute_path, https, service, sp, hostname, port,
         fragment, keep_nl_params, nl_params, getparams)
        ->
-         let absolute = Eliommod_client.unwrap absolute in
-         let https = Eliommod_client.unwrap https in
-         let service = Eliommod_client.unwrap service in
-         let sp = Eliommod_client.unwrap_sp sp in
-         let hostname = Eliommod_client.unwrap hostname in
-         let port = Eliommod_client.unwrap port in
-         let fragment = Eliommod_client.unwrap fragment in
-         let keep_nl_params = Eliommod_client.unwrap keep_nl_params in
-         let nl_params = Eliommod_client.unwrap nl_params in
-         let getparams = Eliommod_client.unwrap getparams in
-         let absolute_path = Eliommod_client.unwrap absolute_path in
+         let absolute = Eliommod_cli.unwrap absolute in
+         let https = Eliommod_cli.unwrap https in
+         let service = Eliommod_cli.unwrap service in
+         let sp = Eliommod_cli.unwrap_sp sp in
+         let hostname = Eliommod_cli.unwrap hostname in
+         let port = Eliommod_cli.unwrap port in
+         let fragment = Eliommod_cli.unwrap fragment in
+         let keep_nl_params = Eliommod_cli.unwrap keep_nl_params in
+         let nl_params = Eliommod_cli.unwrap nl_params in
+         let getparams = Eliommod_cli.unwrap getparams in
+         let absolute_path = Eliommod_cli.unwrap absolute_path in
          ignore
            (change_page
               ?absolute ?absolute_path ?https

@@ -92,6 +92,11 @@ end = struct
 end
 
 
+(* Here is a wrap for channels. This is used by pa_eliom_client syntax extension
+ * to wrap channels. The associated unwrapping function is in the dual file. *)
+let wrap ~sp (c : 'a Channels.chan)
+      : 'a Ecc.chan_id Eliom_client_types.data_key =
+  Eliommod_client.wrap ~sp (Channels.get_id c)
 
 
 

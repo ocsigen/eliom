@@ -12,7 +12,7 @@ MLS:= xML.ml xHTML.ml xHTML5.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
 	eliom_services.ml eliom_uri.ml \
-	eliommod_client.ml eliom_client.ml eliommod_mkforms.ml \
+	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
 	eliom_mkforms.ml polytables.ml \
 	xhtmltypes.ml xhtml5types.ml eliom_predefmod.ml \
 	eliom_common_comet.ml eliom_client_comet.ml \
@@ -86,12 +86,12 @@ eliom_uri.ml: ../eliom_uri.ml
 eliom_uri.mli: ../eliom_uri.mli
 	cp -f $< $@ 
 
-eliom_predefmod.ml: ../eliom_predefmod_client.ml
+eliom_predefmod.ml: ../eliom_predefmod_cli.ml
 	cp -f $< $@
 	echo "module Xhtml = Xhtmlforms" >> $@
 	echo "module Xhtml5 = Xhtml5forms" >> $@
 
-eliom_predefmod.mli: ../eliom_predefmod_client.mli
+eliom_predefmod.mli: ../eliom_predefmod_cli.mli
 	cp -f $< $@ 
 	echo "module Xhtml : XHTMLFORMSSIG" >> $@
 	echo "module Xhtml5 : XHTML5FORMSSIG" >> $@
