@@ -39,7 +39,7 @@ sig
 
 end
 
-module Buffered_channels :
+module Dlisted_channels :
 sig
 
   val unwrap :

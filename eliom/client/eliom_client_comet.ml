@@ -236,7 +236,7 @@ struct
 
 end
 
-module Buffered_channels =
+module Dlisted_channels =
 struct
 
   let unwrap (c : 'a Ecc.buffered_chan_id Eliom_client_types.data_key)

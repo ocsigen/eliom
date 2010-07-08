@@ -37,11 +37,21 @@ module Make :
   functor (A : sig type key type value end) ->
     sig
 
-      class cache : (A.key -> A.value Lwt.t) -> int ->
+      class cache : (A.key -> A.value Lwt.t) -> ?timer:float -> int ->
+      (** [new cache finder ?timer size] creates a cache object where [finder]
+          is the function responsible for retrieving non-cached data, [timer] is
+          the life span of cached values (in seconds) (values in the cache are
+          removed after their time is up) and [size] is the upper bound to the
+          number of cached elements. When a value is retrieved it's lifespan is
+          reset to the [timer] value (if [timer] is not [None]).
+
+          Using [timer] allow one to create a cache
+          bounded both in space and time. It is to be noted that real lifespan
+          of values can be slightly greater than [timer]. *)
       object
 
       (** Find the cached value associated to the key, or binds this
-         value in the cache using the function passed as argument
+         value in the cache using the function [finder] passed as argument
          to [create], and returns this value *)
       method find : A.key -> A.value Lwt.t
 
@@ -62,11 +72,12 @@ val clear_all_caches : unit -> unit
 
 
 
-(** Doubly-linked lists with maximum size. *)
+(** Doubly-linked lists with maximum number of entries and limited lifespan for
+ * entries. *)
 module Dlist : sig
   type 'a t
   type 'a node
-  val create : int -> 'a t
+  val create : ?timer:float -> int -> 'a t
 
   (** Adds an element to the list, 
       and possibly returns the element that has been removed if the maximum

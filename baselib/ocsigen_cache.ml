@@ -26,13 +26,60 @@ Cache.
 
 let (>>=) = Lwt.bind
 
-module Dlist = (struct
+module Dlist :
+sig
+
+  type 'a t
+  type 'a node
+  val create : ?timer:float -> int -> 'a t
+  val add : 'a -> 'a t -> 'a option
+  val newest : 'a t -> 'a node option
+  val oldest : 'a t -> 'a node option
+
+  (** Removes an element from its list.
+      If the element is not in a list, it does nothing.
+      If it is in a list, it calls the finaliser, then removes the element.
+      If the finaliser fails with an exception,
+      the element is removed and the exception is raised again.
+  *)
+  val remove : 'a node -> unit
+
+  (** Removes the element from its list without finalising,
+      then adds it as newest. *)
+  val up : 'a node -> unit
+
+  val size : 'a t -> int
+  val maxsize : 'a t -> int
+
+  val value : 'a node -> 'a
+  val list_of : 'a node -> 'a t option
+
+  (** remove the n oldest values ;
+      returns the list of removed values *)
+  val remove_n_oldest : 'a t -> int -> 'a list
+
+  (** Move a node from one dlist to another one, without finalizing.
+      If one value is removed from the destination list (because its
+      maximum size is reached), it is returned (after finalisation). *)
+  val move : 'a node -> 'a t -> 'a option
+
+  (** change the maximum size ;
+      returns the list of removed values, if any. *)
+  val set_maxsize : 'a t -> int -> 'a list
+
+  (** set a function to be called automatically on a piece of data
+      when it disappears from the list
+      (either by explicit removal or because the maximum size is exceeded) *)
+  val set_finaliser : ('a node -> unit) -> 'a t -> unit
+  val get_finaliser : 'a t -> ('a node -> unit)
+end = struct
 
   type 'a node =
       { mutable value : 'a;
         mutable succ : 'a node option; (* the node added just after *)
         mutable prev : 'a node option; (* the node added just before *)
         mutable mylist : 'a t option; (* the list to which it belongs *)
+        mutable collection : float option; (* the timestamp for removal *)
       }
 
   (* Doubly-linked list with maximum size.
@@ -45,7 +92,12 @@ module Dlist = (struct
        mutable size : int;
        mutable maxsize : int;
        mutable finaliser : 'a node -> unit;
+       (*   *) time_bound : time_bound option;
       }
+  and time_bound =
+    { (*   *) timer : float;
+      mutable collector : unit Lwt.t option;
+    }
 
 (* Checks (by BY):
 
@@ -77,12 +129,18 @@ module Dlist = (struct
        | Some n -> n.succ = None)
 *)
 
-  let create size = 
+  let create ?timer size =
     {newest = None;
-     oldest = None; 
+     oldest = None;
      size = 0;
-     maxsize = size; 
-     finaliser = fun _ -> ()}
+     maxsize = size;
+     finaliser = (fun _ -> ());
+     time_bound =
+       (match timer with
+          | None -> None
+          | Some t -> Some {timer = t; collector = None;}
+       );
+    }
 
   (* Remove an element from its list - don't finalise *)
   let remove' node l =
@@ -121,6 +179,46 @@ module Dlist = (struct
             remove' node l;
             raise e
 
+  (* These next functions are for the collecting thread *)
+
+  (* computing the timestamp for a node *)
+  let collect_timer = function
+    | {time_bound = Some {timer = t} } -> Some (t +. (Unix.gettimeofday ()))
+    | {time_bound = None} -> None
+
+  (* do collect. We first check if the node is still in the list and then if
+   * its collection hasn't been rescheduled ! *)
+  let collect dl n = match n.mylist with
+    | Some l when l == dl ->
+        begin match n.collection with
+          | None -> assert false
+          | Some c -> if c < Unix.gettimeofday () then remove n else ()
+        end
+    | None | Some _ -> ()
+
+  let sleep_until = function
+    | None -> assert false (* collection is set to None and collector to Some *)
+    | Some t ->
+        let duration = t -. Unix.gettimeofday () in
+        if duration <= 0.
+        then Lwt.return ()
+        else Lwt_unix.sleep duration
+
+  (* a function to set the collector. *)
+  let rec update_collector r = match r.time_bound with
+    | None (* Not time bounded dlist *)
+    | Some {collector = Some _} -> () (* Already collecting *)
+    | Some ({collector = None} as t) -> match r.oldest with
+        | None -> () (* Empty dlist *)
+        | Some n ->
+                t.collector <- Some (sleep_until n.collection >>= fun () ->
+                                     collect r n;
+                                     t.collector <- None;
+                                     update_collector r;
+                                     Lwt.return ()
+                                    )
+
+
   (* Add a node that do not belong to any list to a list.
      The fields [succ] and [prev] are overridden.
      If the list is too long, the function returns the oldest value.
@@ -130,26 +228,37 @@ module Dlist = (struct
   let add_node node r =
     assert (node.mylist = None);
     node.mylist <- Some r;
-    match r.newest with
-      | None ->
-          node.succ <- None;
-          node.prev <- None;
-          r.newest <- Some node;
-          r.oldest <- r.newest;
-          r.size <- 1;
-          None
-      | Some rl ->
-          node.succ <- None;
-          node.prev <- r.newest;
-          rl.succ <- Some node;
-          r.newest <- Some node;
-          r.size <- r.size + 1;
-          if r.size > r.maxsize
-          then r.oldest
-          else None
+    let res =
+      match r.newest with
+        | None ->
+            node.succ <- None;
+            node.prev <- None;
+            r.newest <- Some node;
+            r.oldest <- r.newest;
+            r.size <- 1;
+            None
+        | Some rl ->
+            node.succ <- None;
+            node.prev <- r.newest;
+            rl.succ <- Some node;
+            r.newest <- Some node;
+            r.size <- r.size + 1;
+            if r.size > r.maxsize
+            then r.oldest
+            else None
+    in
+    node.collection <- collect_timer r;
+    update_collector r;
+    res
 
-  let add x l = 
-    let create_one a = { value = a; succ = None; prev = None; mylist = None;} in
+  let add x l =
+    let create_one a = {
+      value = a;
+      succ = None;
+      prev = None;
+      mylist = None;
+      collection = None;
+    } in
     (* create_one not exported *)
     match add_node (create_one x) l with
       | None -> None
@@ -166,7 +275,7 @@ module Dlist = (struct
   let up node =
     match node.mylist with
       | None -> ()
-      | Some l -> 
+      | Some l ->
           match l.newest with
             | Some n when node == n -> ()
             | _ ->
@@ -174,15 +283,15 @@ module Dlist = (struct
                 ignore (add_node node l) (* assertion: = None *)
                   (* we must not change the physical address => use add_node *)
 
-  let rec remove_n_oldest l n = (* remove the n oldest values 
+  let rec remove_n_oldest l n = (* remove the n oldest values
                                    (or less if the list is not long enough) ;
                                    returns the list of removed values *)
-    if n <= 0 
+    if n <= 0
     then []
     else
       match l.oldest with
         | None -> []
-        | Some node -> 
+        | Some node ->
             let v = node.value in
             remove node; (* and finalise! *)
             v::remove_n_oldest l (n-1)
@@ -192,11 +301,11 @@ module Dlist = (struct
   let move node l =
     (match node.mylist with
       | None -> ()
-      | Some l as a -> remove' node l);
+      | Some l -> remove' node l);
     match add_node node l with
       | None -> None
       | Some v -> remove v; Some v.value
-    
+
 
   let set_maxsize l m =
     let size = l.size in
@@ -204,7 +313,7 @@ module Dlist = (struct
     then (l.maxsize <- m; [])
     else if m <= 0
     then failwith "Dlist.set_maxsize"
-    else 
+    else
       let ll = remove_n_oldest l (size - m) in
       l.maxsize <- m;
       ll
@@ -213,51 +322,7 @@ module Dlist = (struct
 
   let get_finaliser l = l.finaliser
 
-end : sig
-  type 'a t
-  type 'a node
-  val create : int -> 'a t
-  val add : 'a -> 'a t -> 'a option
-  val newest : 'a t -> 'a node option
-  val oldest : 'a t -> 'a node option
-
-  (** Removes an element from its list.
-      If the element is not in a list, it does nothing.
-      If it is in a list, it calls the finaliser, then removes the element.
-      If the finaliser fails with an exception, 
-      the element is removed and the exception is raised again.
-  *)
-  val remove : 'a node -> unit
-
-  (** Removes the element from its list without finalising, 
-      then adds it as newest. *)
-  val up : 'a node -> unit
-
-  val size : 'a t -> int
-  val maxsize : 'a t -> int
-
-  val value : 'a node -> 'a
-  val list_of : 'a node -> 'a t option
-
-  (** remove the n oldest values ; 
-      returns the list of removed values *)
-  val remove_n_oldest : 'a t -> int -> 'a list
-
-  (** Move a node from one dlist to another one, without finalizing.
-      If one value is removed from the destination list (because its
-      maximum size is reached), it is returned (after finalisation). *)
-  val move : 'a node -> 'a t -> 'a option
-
-  (** change the maximum size ;
-      returns the list of removed values, if any. *)
-  val set_maxsize : 'a t -> int -> 'a list
-
-  (** set a function to be called automatically on a piece of data
-      when it disappears from the list
-      (either by explicit removal or because the maximum size is exceeded) *)
-  val set_finaliser : ('a node -> unit) -> 'a t -> unit
-  val get_finaliser : 'a t -> ('a node -> unit)
-end)
+end
 
 
 module Weak =  Weak.Make(struct type t = unit -> unit
@@ -298,8 +363,8 @@ struct
     cache.pointers <- Dlist.create size;
     cache.table <- H.create size
 
-  let create f size =
-    let rec cache = {pointers = Dlist.create size;
+  let create f ?timer size =
+    let rec cache = {pointers = Dlist.create ?timer size;
                      table = H.create size;
                      finder = f;
                      clear = f_clear;
@@ -357,8 +422,8 @@ struct
         with Not_found -> add_no_remove cache k r);
        Lwt.return r)
 
-  class cache f size_c =
-    let c = create f size_c in
+  class cache f ?timer size_c =
+    let c = create f ?timer size_c in
   object
     method clear () = clear c
     method find = find c

@@ -498,10 +498,9 @@ let comet1 =
     ~get_params:unit
     (fun sp () () ->
        let (c2_pre, write_c2) = React.E.create () in
-       let c2 = Eliom_comet.Buffered_channels.create
+       let c2 = Eliom_comet.Dlisted_channels.create
                   ~max_size:6
-                  ~sizer:(fun _ -> 1)
-                  ~timer:(fun _ -> Some 18.)
+                  ~timer:16.
                   c2_pre
        in
        let t2 = ref 0 in
@@ -530,7 +529,7 @@ let comet1 =
              [pcdata "Click here to start public channel listening"] ;
            div
              ~a:[a_onclick{{
-                   Eliom_client_comet.Buffered_channels.register \buffchan:c2
+                   Eliom_client_comet.Dlisted_channels.register \buffchan:c2
                      (fun i ->
                         Dom.appendChild (Dom_html.document##body)
                           (Dom_html.document##createTextNode

@@ -55,7 +55,7 @@ sig
 
 end
 
-module Buffered_channels :
+module Dlisted_channels :
 (** A module with primitives needed for buffered channels manipulation. A
     buffered channel will not loose data (except for user specified case). *)
 sig
@@ -67,17 +67,14 @@ sig
 
   val create :
      max_size:int
-  -> ?sizer:('a -> int)
-  -> ?timer:('a -> float option)
+  -> ?timer:float
   -> 'a React.E.t
   -> 'a chan
-  (** [create ~max_size ?sizer ?timer e] creates a channel with [e] as a
-      triggering event. The [sizer] argument defaults to [fun _ -> 1] and the
-      [timer] argument defaults to [fun _ -> None]. When an occurrence of [e]
-      happens, the size of the carried value [x] is computed with [sizer x]. The
-      time given to the value is computed with [timer x]. When the time for [x]
-      is up, it is erased from the buffer. And whenever more room is needed
-      (because of occurrences of [e]) some previous elements may be erased too.
+  (** [create ~max_size ?timer e] creates a channel with [e] as a triggering
+      event. Whenever [e] occurs, it's value is either send or placed in a
+      buffer. There may never be more than [max_size] values queued in the
+      buffer and values are removed after [timer] if the argument is provided.
+
       No option is given for specifying the channel name. Named channels are for
       public use only and buffered channels don't behave as they should for
       multiple listeners. *)

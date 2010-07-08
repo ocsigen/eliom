@@ -31,10 +31,10 @@ struct
         : 'a React.E.t
     =
     let chan : 'a Eliom_common_comet.buffered_chan_id =
-      Eliom_client_comet.Buffered_channels.unwrap c
+      Eliom_client_comet.Dlisted_channels.unwrap c
     in
     let (e, push) = React.E.create () in
-    Eliom_client_comet.Buffered_channels.register
+    Eliom_client_comet.Dlisted_channels.register
       chan
       (fun s -> push s ; Lwt.return ()) ;
     e
