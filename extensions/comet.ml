@@ -445,6 +445,7 @@ end = struct
                  (OStream.of_string "Empty or incorrect registration", None) ;
                OFrame.res_code = 400 ;(* BAD REQUEST *)
                OFrame.res_content_type = Some "text/html" ;
+               OFrame.res_content_length = None ;
           }
 
     | [], (_::_ as ended) ->
