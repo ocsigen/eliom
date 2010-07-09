@@ -73,7 +73,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
   let wrappers =
     let _loc = Loc.ghost in
     [
-      ("w",
+      ("magic",
        (<:expr<Eliommod_cli.wrap ~sp>>, <:expr<Eliommod_cli.unwrap>>));
       ("sp",
        (<:expr<Eliommod_cli.wrap_sp>>, <:expr<Eliommod_cli.unwrap_sp>>));
@@ -130,7 +130,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
       )
 
 
-    
+
 
   (* Client side code emission. *)
   let register_closure _loc num args expr =
@@ -174,11 +174,13 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
   (* We use parsing with side effects... It's ugly but it works ! *)
   let client_exprs_ref = ref [] (* This ref accumulates \wrapper:expr while in a
                                    {{ expr }} *)
-  let inside = ref false (* true when inside a {{ expr }} ; false when not. *)
+  let curr_lvl = ref 0 (* 1 when inside a {{ expr }}
+                          2 when inside a \toto:expr *)
 
   (* Parsing exceptions *)
   exception Wrapper_expr_outside_curly_bounds
   exception Nested_curly_bounds
+  exception Curly_brackets_in_antiquoted_expr
 
   (* Extending syntax *)
 
@@ -186,18 +188,25 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
     GLOBAL: str_item expr;
 
     (* dummy rules for side effects *)
-    empty_start : [[ -> if !inside = true
-                        then raise Nested_curly_bounds
-                        else (inside := true ; client_exprs_ref := [])
-                  ]];
-    empty_stop : [[ -> inside := false ]];
+    empty_start_lvl1 : [[ -> if !curr_lvl <> 0
+                             then raise Nested_curly_bounds
+                          else (curr_lvl := 1 ; client_exprs_ref := [])
+                       ]];
+    empty_start_lvl2 : [[ -> (*if !curr_lvl > 1
+                             then raise Curly_brackets_in_antiquoted_expr
+                             else *)
+                               if !curr_lvl < 1
+                               then raise Wrapper_expr_outside_curly_bounds
+                               else curr_lvl := 2
+                       ]];
+    empty_stop_lvl1 : [[ -> curr_lvl := 0 ]];
 
     (* To str_item we add {client{ LIST0 SELF }}; {server{ LIST0 SELF }}; and
      * {shared{ LIST0 SELF }} *)
     str_item : BEFORE "top"
-               [[ "{" ; "shared" ; "{" ; s = empty_start ;
+               [[ "{" ; "shared" ; "{" ; s = empty_start_lvl1 ;
                     e = LIST0 SELF ;
-                  "}" ; "}" ; s = empty_stop ->
+                  "}" ; "}" ; s = empty_stop_lvl1 ->
                     (emit_client _loc e ;
                      List.fold_left
                        (fun x y -> <:str_item< $x$ ;; $y$ ;; >>)
@@ -210,33 +219,44 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
                         <:str_item< >>
                         e
                      )
-                | "{" ; "client" ; "{" ; s = empty_start ;
+                | "{" ; "client" ; "{" ; s = empty_start_lvl1 ;
                     e = LIST0 SELF ;
-                  "}" ; "}" ; ss = empty_stop ->
+                  "}" ; "}" ; ss = empty_stop_lvl1 ->
                     (emit_client _loc e ;
                      <:str_item< >>
                     )
                ]];
 
-    (* To expr we add {{ SELF }} and \lid:SELF *)
+    (* To expr we add {{ SELF }} and \lid:SELF and \magic:SELF and *)
     expr : BEFORE "simple"
-           [[ KEYWORD "{" ; KEYWORD "{" ; s = empty_start ;
+           [[ KEYWORD "{" ; KEYWORD "{" ; s = empty_start_lvl1 ;
                 e = SELF ;
-              KEYWORD "}" ; KEYWORD "}" ; ss = empty_stop ->
+              KEYWORD "}" ; KEYWORD "}" ; ss = empty_stop_lvl1 ->
                 (let num = random_int64 () in
                  let (cl_args, serv_args) = List.split !client_exprs_ref in
                  emit_client _loc [register_closure _loc num cl_args e] ;
                  <:expr< $closure_call _loc num serv_args$ >>
                 )
 
-            | "\\" ; i = a_LIDENT ; ":" ; e = expr ->
-                if !inside = false
-                then raise Wrapper_expr_outside_curly_bounds
-                else
+            | "\\" ; "(" ; s = empty_start_lvl2 ;
+                e = expr ; ":" ; t = ctyp ;
+              ")" ->
+                  (let n = random_arg_name () in
+                   let (wrapper, unwrapper) = find_wrapper "magic" in
+                   client_exprs_ref :=
+                        (n, <:expr< $wrapper$ ($e$: $t$)>>)
+                     :: !client_exprs_ref;
+                   <:expr< $unwrapper$ ($lid:n$ : $t$ Eliom_client_types.data_key) >>
+                  )
+
+            | "\\" ; i = a_LIDENT ; "(" ; s = empty_start_lvl2 ;
+                e = expr ;
+              ")" ->
                   (let n = random_arg_name () in
                    let (wrapper, unwrapper) = find_wrapper i in
                    client_exprs_ref :=
-                     (n, <:expr< $wrapper$ $e$>>) :: !client_exprs_ref ;
+                        (n, <:expr< $wrapper$ $e$>>)
+                     :: !client_exprs_ref ;
                    <:expr< $unwrapper$ $lid:n$ >>
                   )
             ]];
