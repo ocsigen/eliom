@@ -53,9 +53,9 @@ struct
         Eliom_services.service
 
   let react_event_of_up_event = fst
-  let wrap = snd
+  let wrap ~sp (_, s) = Eliommod_cli.wrap ~sp s
 
-  (* An event is created along with a service responsible for it's occurences. 
+  (* An event is created along with a service responsible for it's occurences.
    * function takes sp and a param_type *)
   let create ?sp post_param =
     let (e, push) = React.E.create () in

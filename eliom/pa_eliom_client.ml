@@ -84,7 +84,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
       ("buffchan",
        (<:expr<Eliom_comet.Dlisted_channels.wrap ~sp>>, <:expr<Eliom_client_comet.Dlisted_channels.unwrap>>));
       ("up_event",
-       (<:expr<Eliom_event.Up.wrap>>, <:expr<Eliom_client_event.Up.unwrap ~sp>>));
+       (<:expr<Eliom_event.Up.wrap ~sp>>, <:expr<Eliom_client_event.Up.unwrap ~sp>>));
       ("down_event",
        (<:expr<Eliom_event.Down.wrap ~sp>>, <:expr<Eliom_client_event.Down.unwrap>>));
     ]

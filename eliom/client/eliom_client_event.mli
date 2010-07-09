@@ -52,8 +52,7 @@ sig
      'c,
      [< Eliom_services.registrable ],
      'd)
-        Eliom_services.service
-  -> 'a
-  -> string Lwt.t
+        Eliom_services.service Eliom_client_types.data_key
+  -> ('a -> string Lwt.t)
 
 end

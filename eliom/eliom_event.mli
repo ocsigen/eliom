@@ -38,11 +38,12 @@ sig
   val react_event_of_up_event : 'a event -> 'a React.E.t
 
   val wrap :
-      'a event
+      sp:Eliom_sessions.server_params
+    -> 'a event
     -> (unit, 'a, [ `Nonattached of [ `Post ] Eliom_services.na_s ],
         [ `WithoutSuffix ], unit, [`One of 'a] Eliom_parameters.param_name,
         [ `Registrable ], Eliom_predefmod.Action.return)
-         Eliom_services.service
+         Eliom_services.service Eliom_client_types.data_key
 
   val create :
        ?sp:Eliom_sessions.server_params
