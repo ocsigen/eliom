@@ -20,6 +20,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+
+(** This module is the client part of the shared event scheme used in Eliom. It
+    is to be used with [Eliom_event] as it defines an unwrapping function for
+    each possible wrap in the dual module. *)
+
+
 module Down :
 sig
 
