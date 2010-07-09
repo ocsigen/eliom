@@ -21,25 +21,53 @@
  *)
 
 module Engine :
+(** The [Engine] is responsible for making asynchronous calls to the server,
+  * associate results with registered channels and triggering associated events.
+  * The interface is trimmed down to prevent low-level tampering and because of
+  * some implementation choices. When the engine is running a comet connection
+  * is opened to the server. *)
 sig
+
   val start : unit -> unit
+  (** [start ()] makes the engine start. If it was already running, nothing
+      happens. *)
+
   val stop : unit -> unit
+  (** [stop ()] makes the engine stop. If it wasn't running, nothing happens. *)
+
   val running : bool React.S.t
+  (** [running] is a signal which value always reflect the state the engine is
+      in. *)
+
 end
 
 module Channels :
+(** [Channels] is a module for basic channel manipulation. On basic channels,
+    messages may be lost. *)
 sig
 
   val unwrap :
      'a Eliom_common_comet.chan_id Eliom_client_types.data_key
   -> 'a Eliom_common_comet.chan_id
+  (** [unwrap c] returns a channel. *)
 
   val register : 'a Eliom_common_comet.chan_id -> ('a -> unit Lwt.t) -> unit
+  (** [register c f] registers the channel [c] associated to [f] on the engine.
+      If the engine wasn't running it is automatically started. Whenever a
+      message [m] from the server reaches the client over the channel [c], the
+      function [f] is called with [m] as argument. *)
+
   val unregister : 'a Eliom_common_comet.chan_id -> unit
+  (** [unregister c] cancel registration on [c]. The function associated to [c]
+      won't be called anymore. *)
 
 end
 
 module Dlisted_channels :
+(** [Dlisted_channels] is a module for buffered channels manipulation. Such a
+    channel tends not to lose as many messages. All the functions have the same
+    semantic, the only difference is on the server side (where some values are
+    stored and retransmitted when needed). *)
 sig
 
   val unwrap :

@@ -63,8 +63,7 @@ end = struct
     let splited_twice =
       Array.map
         (fun s ->
-           let a = Regexp.split field_delim_regexp s in
-           match a with
+           match Regexp.split field_delim_regexp s with
              | [|chan; msg|] -> (chan, url_decode msg)
              | _ -> raise Incorrect_encoding
         )
@@ -84,7 +83,7 @@ sig
    * If the engine isn't running at this point, it is started. *)
   val register : string -> (string -> unit Lwt.t) -> unit
 
-  (* [unregister c] cancels all registration on channel [c] *)
+  (* [unregister c] cancels registration on channel [c] *)
   val unregister : string -> unit
 
   (* [registered c] is [true] if [c] has already been registered, else it's
@@ -95,6 +94,9 @@ sig
   val running : bool React.S.t
 
   val start : unit -> unit
+
+  (* The engine is stoped on [stop] calls and several other events: server
+     serious error, no no registered channels. *)
   val stop : unit -> unit
 
 end = struct
