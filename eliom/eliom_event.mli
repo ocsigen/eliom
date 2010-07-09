@@ -1,6 +1,5 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module server.ml
  * Copyright (C) 2010
  * Raphaël Proust
  * Laboratoire PPS - CNRS Université Paris Diderot

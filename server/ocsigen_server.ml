@@ -1,6 +1,5 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module server.ml
  * Copyright (C) 2005
  * Vincent Balat, Denis Berthod, Nataliya Guts, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
