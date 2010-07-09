@@ -1,7 +1,7 @@
 <<div class='leftcol'|<<leftcoldoc version="dev">>>>
       <<div class="colprincipale"|
         ==4. Using Eliom client side
-     
+
 //Warning: Features presented here are experimental.
 We have been working on them for more than two years and
 they will be released very soon.
@@ -10,9 +10,9 @@ but syntax and interfaces will change a lot during the next weeks,
 as we are currently working on simplifying the syntax and
 uniformizing server and client sides.//
 
-//The manual is very basic for now. 
+//The manual is very basic for now.
 Turn back in a few days for a more complete manual!//
-   
+
 This part of the manuel describes how to use Eliom for mixing client side
 and server side programming.
 Eliom allows to write the client and server parts of a Web application
@@ -23,7 +23,7 @@ information.
 
 
 ===@@id="p4basics"@@
-        
+
 ====Your first client-server application
         <<div class="onecol"|
 
@@ -32,7 +32,7 @@ First, I need to create my Eliom application, by applying the functor
 the default title for pages belonging to this application, the
 default container for pages, the default stylesheets you want for your
 whole application.
-          
+
 <<code language="ocaml" |
 (****** open on both side *******)
 {shared{
@@ -55,12 +55,12 @@ module Eliom_appl =
       let params =
         {Eliom_predefmod.default_appl_params with
            Eliom_predefmod.ap_title = "Eliom application example";
-           Eliom_predefmod.ap_headers = 
+           Eliom_predefmod.ap_headers =
             [XHTML.M.style ~contenttype:"text/css"
                [XHTML.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]];
-           Eliom_predefmod.ap_container = 
-            Some (None, 
-                  fun div -> [h1 [pcdata "Eliom application"]; 
+           Eliom_predefmod.ap_container =
+            Some (None,
+                  fun div -> [h1 [pcdata "Eliom application"];
                               p [pcdata "Random value in the container: ";
                                  pcdata (string_of_int (Random.int 1000))];
                               div ])
@@ -78,17 +78,17 @@ let eliomclient1 =
                         (* with {{ expr }}, the expression is executed by the client. *)
                         a_onclick {{Dom_html.window##alert(Js.string "clicked!") ; Lwt.return ()}}]
            [pcdata "I am a clickable paragraph"];
-         
+
         ])
 >>
-All services belonging to the application will be entry points to the 
+All services belonging to the application will be entry points to the
 application. It means that if you call such a service, the client side
 code will be sent to the browser, and the client side execution will
 start, //and will not stop if you go to another service belonging to
 the same application!//
 
 ====Compiling
-//soon (have a look at Ocsigen source for now -- //examples// directory)// 
+//soon (have a look at Ocsigen source for now -- //examples// directory)//
 
 ====Using a distant Eliom service in client side code
 
@@ -101,7 +101,7 @@ let myblockservice =
   Eliom_predefmod.Blocks.register_new_post_coservice
     ~fallback:eliomclient2
     ~post_params:unit
-    (fun _ () () -> 
+    (fun _ () () ->
        Lwt.return
          [p [pcdata ("I come from a distant service! Here is a random value: "^
                        string_of_int (Random.int 100))]])
@@ -113,7 +113,7 @@ let myblockservice =
 
 {shared{
 let item () = li [pcdata Sys.ocaml_version]
-}}
+}} ;;
 
 let _ =
   Eliom_appl.register
@@ -126,26 +126,26 @@ let _ =
   exactly like pressing a link (here a service that do not belong to
   the application):
 <<code language="ocaml" |
-          p 
+          p
             ~a:[
-              a_onclick 
+              a_onclick
                 {{Eliom_client.exit_to
-                    ~sp:\sp:sp (* Here [sp] is sent by the server *)
-                    ~service:\w:Tutoeliom.coucou (* just as [coucou] *)
+                    ~sp:\sp(sp) (* Here [sp] is sent by the server *)
+                    ~service:\magic(Tutoeliom.coucou) (* just as [coucou] *)
                     () ()
                 }}
             ]
             [pcdata "Click here to go to another page."];
 
 >>
-To use server values inside client code one should use the syntax {{{\w:e}}}
-where {{{w}}} is the wrapper keyword and {{{e}}} the sent expression. Note that
+To use server values inside client code one should use the syntax {{{ \k(e) }}}
+where {{{k}}} is the wrapper keyword and {{{e}}} the sent expression. Note that
 {{{e}}} is evaluated by the server and the resulting value is send to the
-client.
+client at loading time.
 <<code language="ocaml" |
 
 
-              a_onclick 
+              a_onclick
                 ((fun.client
                     (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) ->
@@ -179,8 +179,8 @@ client.
             ~a:[
               a_onclick {{
                 Eliom_client.change_url
-                  ~sp:\sp:sp
-                  ~service:\w:Tutoeliom.coucou
+                  ~sp:\sp(sp)
+                  ~service:\magic(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -194,8 +194,8 @@ client.
             ~a:[
               a_onclick
                 {{Eliom_client.change_page
-                    ~sp:\sp:sp
-                    ~service:\w:eliomclient1
+                    ~sp:\sp(sp)
+                    ~service:\magic(eliomclient1)
                     () ()
                 }}
             ]
@@ -214,7 +214,7 @@ client.
           p
             ~a:[
               a_onclick{{
-                Eliom_client.change_page ~sp:\sp:sp ~service:\w:Tutoeliom.coucou
+                Eliom_client.change_page ~sp:\sp(sp) ~service:\magic(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -224,14 +224,14 @@ client.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.exit_to ~sp:\sp:sp ~service:\w:eliomclient2 () ()
+                Eliom_client.exit_to ~sp:\sp(sp) ~service:\magic(eliomclient2) () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p
             ~a:[
               a_onclick {{
-                Eliom_client.change_page ~sp:\sp:sp ~service:\w:eliomclient1
+                Eliom_client.change_page ~sp:\sp(sp) ~service:\magic(eliomclient1)
                   () ()
               }}
             ]
@@ -246,9 +246,7 @@ client.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.get_subpage
-                  ~sp:\sp:sp
-                  ~service:\w:eliomclient1
+                Eliom_client.get_subpage ~sp:\sp(sp) ~service:\magic(eliomclient1)
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -266,7 +264,7 @@ client.
            div [p ~a:[
                                a_onclick {{
                                  Dom.appendChild
-                                   \node:container (* node is the wrapper keyword for XHTML.M nodes. *)
+                                   \node(container) (* node is the wrapper keyword for XHTML.M nodes. *)
                                    (XHTML.M.toelt (item ()))
                                }}
                   ]
@@ -282,7 +280,7 @@ client.
           (let my_value = 1.12345 in
            p ~a:[a_onclick
                 {{ Dom_html.window##alert
-                     (Js.string (string_of_float \w:my_value)) ;
+                     (Js.string (string_of_float \(my_value:float))) ;
                    Lwt.return ()
                 }}
                 ]
@@ -301,13 +299,13 @@ client.
                    (Dom_html.document##body)
                    (XHTML.M.toelt
                       (p [Eliom_predefmod.Xhtml.a
-                            ~sp:\sp:sp ~service:\w:Tutoeliom.coucou
+                            ~sp:\sp(sp) ~service:\magic(Tutoeliom.coucou)
                             [pcdata "An external link generated client side"]
                             ();
                           pcdata " and ";
                           Eliom_predefmod.Xhtml.a
                             
-                            ~sp:\sp:sp ~service:\w:eliomclient1
+                            ~sp:\sp(sp) ~service:\magic(eliomclient1)
                             [pcdata "another, inside the application."]
                             ()
                          ]
@@ -345,7 +343,7 @@ let eliomclient3 =
       Lwt.return
         [p ~a:[a_onclick
                 {{ Eliom_client.change_page
-                     ~sp:\sp:sp ~service:\w:eliomclient3'
+                     ~sp:\sp(sp) ~service:\magic(eliomclient3')
                      () (22, "oo", ["a";"b";"c"])
                 }}
               ]
@@ -369,7 +367,7 @@ let eliomclient4 =
         [p ~a:[a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~sp:\sp:sp ~service:\w:eliomclient4'
+                     ~sp:\sp(sp) ~service:\magic(eliomclient4')
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
@@ -406,7 +404,7 @@ let _ =
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\sp:sp ~service:\w:gotowithoutclient
+                  ~sp:\sp(sp) ~service:\magic(gotowithoutclient)
                   () ()
               }}
             ]
@@ -424,7 +422,7 @@ let _ =
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\sp:sp ~service:\w:withoutclient
+                  ~sp:\sp(sp) ~service:\magic(withoutclient)
                   () ()
               }}
             ]
