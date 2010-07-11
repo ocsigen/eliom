@@ -1036,7 +1036,8 @@ module type T =
   (* a's children are transparents*)
   (********************************)
 
-    val a : ([< common | `Href | `Hreflang | `Media | `Rel | `Target | `Mime_type ], 'a, [> `A of 'a ]) star
+    val a : ([< common | `Href | `Hreflang | `Media | `Rel | `Target | `Mime_type ], 
+             'a, [> `A of 'a ]) star
 (*    val a_flow : ([< common | `Href | `Hreflang | `Media | `Rel | `Target | `Mime_type ], [< flow5_without_interactive], [>`A_flow]) star*)
 
 (** {2 Edit} *)
@@ -1070,7 +1071,7 @@ module type T =
 
     val object_ : ?params:[< `Param ] elt list -> usemap: (('b, idref) expl_attrib) ->
       ([< common | `Data | `Form | `Mime_type | `Height | `Width | `Name | `Usemap ],
-       ([< flow5] as 'a), [> `Object of ('a * 'b)]) star
+       'a, [> `Object of ('a * 'b)]) star
 
     val param : ([< common | `Name | `Text_Value ],[> `Param ]) nullary
 
@@ -1108,13 +1109,13 @@ module type T =
     val audio : ?srcs:(uri * [< `Source ] elt list) ->
       controls:('b, unit) expl_attrib ->
       ([< common |`Preload |`Autoplay |`Loop |`Controls],
-       ([< flow5_without_media] as 'a), [>`Audio of ('a * 'b)]) star
+       'a, [>`Audio of ('a * 'b)]) star
     val video : ?srcs:(uri * [< `Source ] elt list) ->
       controls:('b, unit) expl_attrib ->
       ([< common |`Poster |`Preload |`Autoplay |`Loop 
-       |`Controls |`Width |`Height], ([< flow5_without_media ] as 'a), [>`Video of 'a * 'b]) star
+       |`Controls |`Width |`Height], 'a, [>`Video of 'a * 'b]) star
 
-    val canvas : ([< common |`Width |`Height],([< flow5 ] as 'a), [>`Canvas of 'a]) star
+    val canvas : ([< common |`Width |`Height],'a, [>`Canvas of 'a]) star
 
     val source : ([< common |`Src |`Mime_type |`Media ], [>`Source]) nullary
 
@@ -1132,7 +1133,7 @@ module type T =
     (**********************************)
     (* map's children are transparents*)
     (**********************************)
-    val map : ([<common | `Name ],([< flow5 | `Area ] as 'a),[>`Map of 'a]) plus
+    val map : ([<common | `Name ],'a, [>`Map of 'a]) plus
 
 
 (** {2 Tables Data} *)
@@ -1304,7 +1305,7 @@ module type T =
   (*   a parse error                                  *)
   (****************************************************)
     (* PLUS ?? *)
-    val noscript : ([< common ],([< flow5_without_noscript | `Link | `Style | `Meta ] as 'a),[>`Noscript of 'a]) plus
+    val noscript : ([< common ], 'a, [>`Noscript of 'a]) plus
 
     val meta : ([< common | `Http_equiv | `Name | `Content | `Charset ], [>`Meta]) nullary
 
