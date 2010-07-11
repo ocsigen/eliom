@@ -673,8 +673,7 @@ module type T =
     type heading = [`H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hgroup]
     type sectioning = [ `Section | `Nav | `Aside | `Article]
     type resetable = [ `Textarea | `Select | `Output | `Keygen | `Input ]
-    type submitable = [`Textarea | `Select | `Object | `Keygen | `Input| `Button ]
-    type embedded = [`Video | `Video_src|(* `Math |`Svg |*) `Object | `Img | `Iframe | `Embed | `Canvas | `Audio | `Audio_src]
+    type submitable = [`Textarea | `Select | `Keygen | `Input| `Button ]
 
     type labelable = [ resetable | `Progress | `Meter | `Button]
     type formatblock = [ heading | sectioning | `Pre | `P | `Header | `Footer | `Div | `Blockquote | `Address ]
@@ -700,12 +699,39 @@ module type T =
            - links
            - noscript
            - ins / del
-           - object with attribute usemap *)
-    type ('a, 'b, 'c) transparent = [ `A of 'a | `Noscript of 'b | `Ins of 'c | `Del of 'c ] 
-    type 'a transparent_without_interactive = [ `Noscript of 'a | `Ins of 'a | `Del of 'a]
-    type 'a transparent_without_noscript = [ `A of 'a | `Ins of 'a | `Del of 'a]
+           - object with attribute usemap, 
+           - audio/vidoe with attribute controls set
+        *)
+
+    (* a boolean at the type-level *)
+    type on = [ `On ] 
+    type off = [ `Off ] 
+    type on_off = [ on | off ]
+
+    type ('interactive, 'noscript, 'regular, 'media) transparent = 
+      [ `A of 'interactive 
+      | `Noscript of 'noscript 
+      | `Ins of 'regular | `Del of 'regular | `Object of ('regular * on_off)
+      | `Audio of ('media * on_off) | `Video of ('media * on_off) ] 
+
+    type 'a transparent_without_interactive = 
+      [ `Noscript of 'a | `Ins of 'a | `Del of 'a
+      | `Object of 'a * off
+      | `Audio of 'a * off | `Video of 'a * off ]
+
+    type 'a transparent_without_noscript = 
+      [ `A of 'a | `Ins of 'a | `Del of 'a
+      | `Object of ('a * on_off) 
+      | `Video of ('a * on_off) 
+      | `Audio of ('a * on_off)]
+
+    type 'a transparent_without_media = 
+      [ `A of 'a | `Ins of 'a | `Del of 'a | `Object of ('a * on_off)]
+
     (** Metadata without title *)
-    type metadata_without_title = [ `Style | `Script | `Noscript of [ `Meta | `Link | `Style ] | `Meta | `Link | `Command | `Base]
+    type metadata_without_title = [ `Style | `Script | `Noscript of [ `Meta | `Link | `Style ] 
+                                  | `Meta | `Link | `Command | `Base]
+
     (** Metadata contents. Used specially in <head> *)
     type metadata = [ metadata_without_title | `Title ]
 
@@ -713,104 +739,114 @@ module type T =
         (Forms, link, etc.) *)
     (** Core element types are element types without transparent. *)
 
-    type core_interactive = [ `Video |`Video_src| `Textarea | `Select | `Object | `Menu | `Label 
-                       | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `Audio 
-                       | `Audio_src ]
+    type core_interactive = [ `Textarea | `Select | `Menu | `Label 
+                            | `Keygen | `Input | `Img of on | `Iframe | `Embed | `Details | `Button ]
  
-    type interactive = [ core_interactive | interactive transparent_without_interactive ]
-
-    type core_interactive_flow = [ core_interactive | `Video_flow | `Video_src_flow| `Object_flow 
-                            | `Audio_flow | `Audio_src_flow ]
-    type interactive_flow = [ core_interactive_flow | interactive_flow transparent_without_interactive ]
+    type interactive = [ core_interactive 
+                       | interactive transparent_without_interactive ]
 
     (** Phrasing contents is inline contents : bold text, span, and so on. *)
-    type core_phrasing = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
-                    | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd
-                    | `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA ]
+    type core_phrasing = 
+      [labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
+      | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd
+      | `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA ]
 
-    type phrasing_without_noscript = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong
-                                     | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd 
-                                     | `I |`Em | `Dfn 
-                                     | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA | phrasing_without_noscript transparent_without_noscript ]
+    type phrasing_without_noscript = 
+      [labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong
+      | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd 
+      | `I |`Em | `Dfn 
+      | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA 
+      | phrasing_without_noscript transparent_without_noscript ]
+
+    type core_phrasing_without_media = [ labelable | submitable 
+                                       |(* `Math |`Svg |*) `Img of on_off| `Iframe | `Embed 
+                                       | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+                                       | `Span | `Small | `Script | `Samp | `Ruby | `Q |  `Mark 
+                                       | `Map |`Label| `Kbd |  `I |`Em | `Dfn | `Datalist | `Command 
+                                       | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA  ]
+    type phrasing_without_media =  [
+      core_phrasing_without_media | phrasing_without_media transparent_without_media
+    ]
 
     type core_phrasing_without_interactive 
-      =  [embedded | labelable | submitable | `Wbr | `Var | `Time 
+      =  [labelable | submitable | `Wbr | `Var | `Time 
          | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby
-         | `Q | `Mark | `Map | `Kbd | `I |`Em | `Dfn |  `Datalist 
+         | `Q | `Mark | `Map | `Kbd | `Img of off | `I |`Em | `Dfn |  `Datalist 
          | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA ]
-    type phrasing_without_interactive = [ core_phrasing_without_interactive | phrasing_without_interactive transparent_without_interactive]
-    type phrasing = [ (phrasing_without_interactive, phrasing_without_noscript, phrasing) transparent | core_phrasing ]
+
+
+    type phrasing_without_interactive = 
+      [ core_phrasing_without_interactive | 
+          phrasing_without_interactive transparent_without_interactive]
+    type phrasing = [ (phrasing_without_interactive, phrasing_without_noscript, phrasing, phrasing_without_media) transparent | core_phrasing ]
     (** Phrasing without the interactive markups *)
 
 
-    type phrasing_without_dfn = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+    type phrasing_without_dfn = [labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
                                 | `Span | `Small | `Script | `Samp | `Ruby | `Q |  `Mark | `Map |`Label
                                 | `Kbd | `I |`Em |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo 
-                                | `B  | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_dfn) transparent ]
+                                | `B  | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_dfn, phrasing_without_media) transparent ]
 
-    type phrasing_without_lab_form_and_label = [embedded | `Wbr | `Var | `Time | `Sup | `Sub 
+    type phrasing_without_lab_form_and_label = [ `Wbr | `Var | `Time | `Sup | `Sub 
                                                | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q 
                                                | `Mark | `Map | `Kbd | `I |`Em | `Dfn 
                                                | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA 
-                                               | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_lab_form_and_label) transparent ]
+                                               | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_lab_form_and_label, phrasing_without_media) transparent ]
 
-    type phrasing_without_progress = [embedded | resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+    type phrasing_without_progress = [resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
                                      | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Meter | `Mark | `Map 
                                      |`Label| `Kbd |  `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite 
-                                     |`Button | `Br | `Bdo | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_progress) transparent]
+                                     |`Button | `Br | `Bdo | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_progress, phrasing_without_media) transparent]
 
-    type phrasing_without_time = [embedded | labelable | submitable | `Wbr | `Var | `Sup | `Sub | `Strong | `Span 
+    type phrasing_without_time = [ labelable | submitable | `Wbr | `Var | `Sup | `Sub | `Strong | `Span 
                                  | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd 
                                  |  `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo 
-                                 | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_time) transparent ]
+                                 | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_time, phrasing_without_media ) transparent ]
 
-    type core_phrasing_without_media = [ labelable | submitable |(* `Math |`Svg |*) `Object | `Img | `Iframe | `Embed 
-                                  | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script 
-                                  | `Samp | `Ruby | `Q |  `Mark | `Map |`Label| `Kbd |  `I |`Em | `Dfn
-                                  | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA  ]
-    type phrasing_without_media =  [core_phrasing_without_media | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_media) transparent ]
 
-    type phrasing_without_meter = [embedded | submitable | resetable | `Progress | `Button| `Wbr | `Var | `Time 
+    type phrasing_without_meter = [submitable | resetable | `Progress | `Button| `Wbr | `Var | `Time 
                                   | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q 
                                   | `Mark | `Map |`Label| `Kbd |  `I |`Em | `Dfn |  `Datalist | `Command
-                                  | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_meter) transparent ]
+                                  | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_meter, phrasing_without_media) transparent ]
         (******************)
         (* Map  Ins
            Del  A         *)
         (*  in Phrasing   *)
         (* with conditions*)
         (******************)
-    type core_flow5 = [ core_phrasing | core_interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol 
+    type core_flow5 = [ core_phrasing | formassociated | formatblock | `Ul | `Table |`Style | `Ol 
                       | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure|  `Dl| `Canvas_flow]
 
     type flow5_without_interactive = [ core_flow5 | flow5_without_interactive transparent_without_interactive ]
     type flow5_without_noscript = [ core_flow5 | flow5_without_noscript transparent_without_noscript ]
 
-    type flow5 = [ core_flow5 | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+    type flow5_without_media = 
+      [ core_phrasing_without_media |  `Textarea | `Select | `Menu | `Label 
+      | `Keygen | `Input | `Img of on_off | `Iframe | `Embed | `Details | `Button
+      | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr 
+      | `Form |`Figure | `Dl| flow5_without_media transparent_without_media]
+
+    type flow5 = [ core_flow5 | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
 
-    type flow5_without_table = [ core_phrasing | core_interactive_flow | formassociated | formatblock | `Ul |`Style 
+    type flow5_without_table = [ core_phrasing | formassociated | formatblock | `Ul |`Style 
                                | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins_flow 
-                               | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+                               | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_header_footer = [ heading | sectioning | `Pre | `P | `Div | `Blockquote | `Address 
-                                       | core_phrasing | core_interactive_flow | formassociated | `Ul | `Table |`Style 
+                                       | core_phrasing | formassociated | `Ul | `Table |`Style 
                                        | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins_flow 
-                                       | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+                                       | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
-    type flow5_without_form = [ core_phrasing | core_interactive_flow | formassociated | formatblock | `Ul | `Table |`Style 
+    type flow5_without_form = [ core_phrasing | formassociated | formatblock | `Ul | `Table |`Style 
                               | `Ol | `Menu | `Map |`Map_flow| `Hr |`Figure | `Dl
-                              | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+                              | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_sectioning_heading_header_footer_address = 
-      [ core_phrasing | core_interactive_flow | formassociated | `Pre | `P 
+      [ core_phrasing | formassociated | `Pre | `P 
       | `Div | `Blockquote| `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow 
       | `Hr | `Form |`Figure | `Dl| `Canvas_flow
-      | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
-    type flow5_without_media = [ core_phrasing_without_media |  `Textarea | `Select |`Object_flow | `Object | `Menu | `Label 
-                               | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button
-                               | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr 
-                               | `Form |`Figure | `Dl| (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+      | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
         (******************)
         (* Style  in Flow *)
@@ -1018,10 +1054,22 @@ module type T =
 
 (** {2 Embedded} *)
 
-    val img : src:uri -> alt:text ->
-      ([< common | `Height | `Ismap | `Width | `Usemap ], [>`Img]) nullary
+      (** About images, objects and other things like that.
+          Depending on the attributes given to the element,
+          the category (interactive, or not) or even the behaviour (transparent) 
+          may change. You need to specify these attributes explictly for now. *)
 
-    val iframe : ([< common | `Src (*| `Srcdoc*) | `Name | `Sandbox | `Seamless | `Width | `Height ], [< `PCDATA], [>`Iframe]) star
+    type ('a, 'b) expl_attrib
+    val expl_attrib : 'b -> ([ `On ], 'b) expl_attrib
+    val expl_none : ([ `Off ], 'b) expl_attrib
+
+      (** The usemap attrib is mandatory, and you should [expl_attrib] and [expl_none]
+          to make such attributes. *)
+    val img : src:uri -> alt:text -> usemap:(('a, idref) expl_attrib) ->
+      ([< common | `Height | `Ismap | `Width  ], [>`Img of 'a]) nullary
+
+    val iframe : ([< common | `Src (*| `Srcdoc*) | `Name | `Sandbox | `Seamless | `Width | `Height ],
+                  [< `PCDATA], [>`Iframe]) star
 
     (************************************)
     (*object's children are transparents*)
@@ -2101,8 +2149,17 @@ module Version =
       XML.node ?a "object" (param_option param @ elts)
     let param = terminal "param"
 
-    let img ~src ~alt ?(a = []) () =
-      XML.leaf ~a:(a_src src :: a_alt alt :: a) "img"
+    type ('a, 'b) expl_attrib = 'b option
+    let expl_attrib x = Some x
+    let expl_none = None
+
+    let img ~src ~alt ~usemap ?(a = []) () = 
+      let li = a_src src :: a_alt alt :: a in
+      let a = match usemap with
+      | Some usemap -> a_usemap usemap :: li
+      | _ -> li
+      in
+        XML.leaf ~a "img"
 
     let meta = terminal "meta"
 
@@ -2121,8 +2178,7 @@ module Version =
     type heading = [`H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hgroup]
     type sectioning = [ `Section | `Nav | `Aside | `Article]
     type resetable = [ `Textarea | `Select | `Output | `Keygen | `Input ]
-    type submitable = [`Textarea | `Select | `Object | `Keygen | `Input| `Button ]
-    type embedded = [`Video | `Video_src|(* `Math |`Svg |*) `Object | `Img | `Iframe | `Embed | `Canvas | `Audio| `Audio_src]
+    type submitable = [`Textarea | `Select | `Keygen | `Input| `Button ]
 
     type labelable = [ resetable | `Progress | `Meter | `Button]
     type formatblock = [ heading | sectioning | `Pre | `P | `Header | `Footer | `Div | `Blockquote | `Address ]
@@ -2140,11 +2196,34 @@ module Version =
         (* in Interactive *)
         (* with conditions*)
         (******************)
-    type ('a, 'b, 'c) transparent = [ `A of 'a | `Noscript of 'b | `Ins of 'c | `Del of 'c ] 
-    type 'a transparent_without_interactive = [ `Noscript of 'a | `Ins of 'a | `Del of 'a]
-    type 'a transparent_without_noscript = [ `A of 'a | `Ins of 'a | `Del of 'a]
+    type on = [ `On ] 
+    type off = [ `Off ] 
+    type on_off = [ on | off ]
+
+    type ('interactive, 'noscript, 'regular, 'media) transparent = 
+      [ `A of 'interactive 
+      | `Noscript of 'noscript 
+      | `Ins of 'regular | `Del of 'regular | `Object of ('regular * on_off)
+      | `Audio of ('media * on_off) | `Video of ('media * on_off) ] 
+
+    type 'a transparent_without_interactive = 
+      [ `Noscript of 'a | `Ins of 'a | `Del of 'a
+      | `Object of 'a * off
+      | `Audio of 'a * off | `Video of 'a * off ]
+
+    type 'a transparent_without_noscript = 
+      [ `A of 'a | `Ins of 'a | `Del of 'a
+      | `Object of ('a * on_off) 
+      | `Video of ('a * on_off) 
+      | `Audio of ('a * on_off)]
+
+    type 'a transparent_without_media = 
+      [ `A of 'a | `Ins of 'a | `Del of 'a | `Object of ('a * on_off)]
+
     (** Metadata without title *)
-    type metadata_without_title = [ `Style | `Script | `Noscript of [ `Meta | `Link | `Style ] | `Meta | `Link | `Command | `Base]
+    type metadata_without_title = [ `Style | `Script | `Noscript of [ `Meta | `Link | `Style ] 
+                                  | `Meta | `Link | `Command | `Base]
+
     (** Metadata contents. Used specially in <head> *)
     type metadata = [ metadata_without_title | `Title ]
 
@@ -2152,104 +2231,114 @@ module Version =
         (Forms, link, etc.) *)
     (** Core element types are element types without transparent. *)
 
-    type core_interactive = [ `Video |`Video_src| `Textarea | `Select | `Object | `Menu | `Label 
-                       | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `Audio 
-                       | `Audio_src ]
+    type core_interactive = [ `Textarea | `Select | `Menu | `Label 
+                            | `Keygen | `Input | `Img of on | `Iframe | `Embed | `Details | `Button ]
  
-    type interactive = [ core_interactive | interactive transparent_without_interactive ]
-
-    type core_interactive_flow = [ core_interactive | `Video_flow | `Video_src_flow| `Object_flow 
-                            | `Audio_flow | `Audio_src_flow ]
-    type interactive_flow = [ core_interactive_flow | interactive_flow transparent_without_interactive ]
+    type interactive = [ core_interactive 
+                       | interactive transparent_without_interactive ]
 
     (** Phrasing contents is inline contents : bold text, span, and so on. *)
-    type core_phrasing = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
-                    | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd
-                    | `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA ]
+    type core_phrasing = 
+      [labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
+      | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd
+      | `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA ]
 
-    type phrasing_without_noscript = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong
-                                     | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd 
-                                     | `I |`Em | `Dfn 
-                                     | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA | phrasing_without_noscript transparent_without_noscript ]
+    type phrasing_without_noscript = 
+      [labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong
+      | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd 
+      | `I |`Em | `Dfn 
+      | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA 
+      | phrasing_without_noscript transparent_without_noscript ]
+
+    type core_phrasing_without_media = [ labelable | submitable 
+                                       |(* `Math |`Svg |*) `Img of on_off| `Iframe | `Embed 
+                                       | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+                                       | `Span | `Small | `Script | `Samp | `Ruby | `Q |  `Mark 
+                                       | `Map |`Label| `Kbd |  `I |`Em | `Dfn | `Datalist | `Command 
+                                       | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA  ]
+    type phrasing_without_media =  [
+      core_phrasing_without_media | phrasing_without_media transparent_without_media
+    ]
 
     type core_phrasing_without_interactive 
-      =  [embedded | labelable | submitable | `Wbr | `Var | `Time 
+      =  [labelable | submitable | `Wbr | `Var | `Time 
          | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby
-         | `Q | `Mark | `Map | `Kbd | `I |`Em | `Dfn |  `Datalist 
+         | `Q | `Mark | `Map | `Kbd |`Img of off |  `I |`Em | `Dfn |  `Datalist 
          | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA ]
-    type phrasing_without_interactive = [ core_phrasing_without_interactive | phrasing_without_interactive transparent_without_interactive]
-    type phrasing = [ (phrasing_without_interactive, phrasing_without_noscript, phrasing) transparent | core_phrasing ]
+
+
+    type phrasing_without_interactive = 
+      [ core_phrasing_without_interactive | 
+          phrasing_without_interactive transparent_without_interactive]
+    type phrasing = [ (phrasing_without_interactive, phrasing_without_noscript, phrasing, phrasing_without_media) transparent | core_phrasing ]
     (** Phrasing without the interactive markups *)
 
 
-    type phrasing_without_dfn = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+    type phrasing_without_dfn = [labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
                                 | `Span | `Small | `Script | `Samp | `Ruby | `Q |  `Mark | `Map |`Label
                                 | `Kbd | `I |`Em |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo 
-                                | `B  | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_dfn) transparent ]
+                                | `B  | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_dfn, phrasing_without_media) transparent ]
 
-    type phrasing_without_lab_form_and_label = [embedded | `Wbr | `Var | `Time | `Sup | `Sub 
+    type phrasing_without_lab_form_and_label = [ `Wbr | `Var | `Time | `Sup | `Sub 
                                                | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q 
                                                | `Mark | `Map | `Kbd | `I |`Em | `Dfn 
                                                | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA 
-                                               | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_lab_form_and_label) transparent ]
+                                               | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_lab_form_and_label, phrasing_without_media) transparent ]
 
-    type phrasing_without_progress = [embedded | resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+    type phrasing_without_progress = [resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
                                      | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Meter | `Mark | `Map 
                                      |`Label| `Kbd |  `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite 
-                                     |`Button | `Br | `Bdo | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_progress) transparent]
+                                     |`Button | `Br | `Bdo | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_progress, phrasing_without_media) transparent]
 
-    type phrasing_without_time = [embedded | labelable | submitable | `Wbr | `Var | `Sup | `Sub | `Strong | `Span 
+    type phrasing_without_time = [ labelable | submitable | `Wbr | `Var | `Sup | `Sub | `Strong | `Span 
                                  | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd 
                                  |  `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo 
-                                 | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_time) transparent ]
+                                 | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_time, phrasing_without_media ) transparent ]
 
-    type core_phrasing_without_media = [ labelable | submitable |(* `Math |`Svg |*) `Object | `Img | `Iframe | `Embed 
-                                  | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script 
-                                  | `Samp | `Ruby | `Q |  `Mark | `Map |`Label| `Kbd |  `I |`Em | `Dfn
-                                  | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA  ]
-    type phrasing_without_media =  [core_phrasing_without_media | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_media) transparent ]
 
-    type phrasing_without_meter = [embedded | submitable | resetable | `Progress | `Button| `Wbr | `Var | `Time 
+    type phrasing_without_meter = [submitable | resetable | `Progress | `Button| `Wbr | `Var | `Time 
                                   | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q 
                                   | `Mark | `Map |`Label| `Kbd |  `I |`Em | `Dfn |  `Datalist | `Command
-                                  | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_meter) transparent ]
+                                  | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_meter, phrasing_without_media) transparent ]
         (******************)
         (* Map  Ins
            Del  A         *)
         (*  in Phrasing   *)
         (* with conditions*)
         (******************)
-    type core_flow5 = [ core_phrasing | core_interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol 
+    type core_flow5 = [ core_phrasing | formassociated | formatblock | `Ul | `Table |`Style | `Ol 
                       | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure|  `Dl| `Canvas_flow]
 
     type flow5_without_interactive = [ core_flow5 | flow5_without_interactive transparent_without_interactive ]
     type flow5_without_noscript = [ core_flow5 | flow5_without_noscript transparent_without_noscript ]
 
-    type flow5 = [ core_flow5 | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+    type flow5_without_media = 
+      [ core_phrasing_without_media |  `Textarea | `Select | `Menu | `Label 
+      | `Keygen | `Input | `Img of on_off | `Iframe | `Embed | `Details | `Button
+      | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr 
+      | `Form |`Figure | `Dl| flow5_without_media transparent_without_media]
+
+    type flow5 = [ core_flow5 | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
 
-    type flow5_without_table = [ core_phrasing | core_interactive_flow | formassociated | formatblock | `Ul |`Style 
+    type flow5_without_table = [ core_phrasing | formassociated | formatblock | `Ul |`Style 
                                | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins_flow 
-                               | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+                               | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_header_footer = [ heading | sectioning | `Pre | `P | `Div | `Blockquote | `Address 
-                                       | core_phrasing | core_interactive_flow | formassociated | `Ul | `Table |`Style 
+                                       | core_phrasing | formassociated | `Ul | `Table |`Style 
                                        | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins_flow 
-                                       | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+                                       | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
-    type flow5_without_form = [ core_phrasing | core_interactive_flow | formassociated | formatblock | `Ul | `Table |`Style 
+    type flow5_without_form = [ core_phrasing | formassociated | formatblock | `Ul | `Table |`Style 
                               | `Ol | `Menu | `Map |`Map_flow| `Hr |`Figure | `Dl
-                              | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+                              | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_sectioning_heading_header_footer_address = 
-      [ core_phrasing | core_interactive_flow | formassociated | `Pre | `P 
+      [ core_phrasing | formassociated | `Pre | `P 
       | `Div | `Blockquote| `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow 
       | `Hr | `Form |`Figure | `Dl| `Canvas_flow
-      | (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
-    type flow5_without_media = [ core_phrasing_without_media |  `Textarea | `Select |`Object_flow | `Object | `Menu | `Label 
-                               | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button
-                               | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr 
-                               | `Form |`Figure | `Dl| (flow5_without_interactive, flow5_without_noscript, flow5) transparent]
+      | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type rt = 
       [ `Rt of [ `Rt ] elt
