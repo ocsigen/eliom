@@ -883,8 +883,8 @@ module type T =
   (*      one or more dd  elements*)
   (********************************)
     val dl : ([< common ], [< `Dt | `Dd ], [>`Dl]) star
-    val ol : ([< common | `Reserved |`Start ], [< `Li ], [>`Ol]) star
-    val ul : ([< common ], [< `Li ], [>`Ul]) star
+    val ol : ([< common | `Reserved |`Start ], [< `Li of [< common | `Int_Value ]], [>`Ol]) star
+    val ul : ([< common ], [< `Li of [< common] ], [>`Ul]) star
     val dd : ([< common ], [< flow5 ], [>`Dd]) star
     val dt : ([< common ], [< phrasing], [>`Dt]) star
   (********************************)
@@ -894,7 +894,10 @@ module type T =
   (*  child of an ol element:     *)
   (*          value attribute     *)
   (********************************)
-    val li : ([< common | `Int_Value], [<flow5 ], [>`Li]) star
+    (** A list element.
+        The 'a type is used to know whether the element has
+        a int_value attribute or not. *)
+    val li : (([< common | `Int_Value] as 'a), [<flow5 ], [>`Li of 'a]) star
 
     val figcaption : ([< common ], [< flow5], [>`Figcaption]) star
 
@@ -1211,7 +1214,7 @@ module type T =
     val summary : ([< common ],[< phrasing ], [>`Summary]) star
 
     val command : label:text -> ([< common |`Icon |`Disabled |`Checked|`Radiogroup |`Command_Type], [>`Command]) nullary
-    val menu : ?child:([<`Lis of ([< `Li ] elt list) | `Flows of ([< flow5 ]elt list) ]) -> ([< common |`Label |`Menu_Type  ],[>`Menu]) nullary
+    val menu : ?child:([<`Lis of ([< `Li of [< common ]] elt list) | `Flows of ([< flow5 ]elt list) ]) -> ([< common |`Label |`Menu_Type  ],[>`Menu]) nullary
 
 (** {2 Scripting} *)
 
