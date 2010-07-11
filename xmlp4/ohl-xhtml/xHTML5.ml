@@ -697,37 +697,90 @@ module type T =
         (* in Interactive *)
         (* with conditions*)
         (******************)
-    type interactive = [ `Video |`Video_src| `Textarea | `Select | `Object | `Menu | `Label | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `Audio | `Audio_src | `A ]
-    type interactive_flow = [ interactive | `Video_flow | `Video_src_flow| `Object_flow | `Audio_flow | `Audio_src_flow | `A_flow ]
+    type interactive = [ `Video |`Video_src| `Textarea | `Select | `Object | `Menu | `Label 
+                       | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `Audio 
+                       | `Audio_src | `A ]
+    type interactive_flow = [ interactive | `Video_flow | `Video_src_flow| `Object_flow 
+                            | `Audio_flow | `Audio_src_flow | `A_flow ]
 
-    type phrasing_without_interactive =  [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby| `Q | `Noscript | `Mark | `Map | `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA ]
-    type phrasing_without_dfn = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B  | `Abbr | `A | `A_flow |`PCDATA ]
-    type phrasing_without_lab_form_and_label = [embedded | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map | `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_progress = [embedded | resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Meter | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite |`Button | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_time = [embedded | labelable | submitable | `Wbr | `Var | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_media = [ labelable | submitable |(* `Math |`Svg |*) `Object | `Img | `Iframe | `Embed | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_meter = [embedded | submitable | resetable | `Progress | `Button| `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_noscript = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+    type phrasing_without_interactive =  [embedded | labelable | submitable | `Wbr | `Var | `Time 
+                                         | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby
+                                         | `Q | `Noscript | `Mark | `Map | `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist 
+                                         | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA ]
+
+    type phrasing_without_dfn = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+                                | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label
+                                | `Kbd | `Ins | `I |`Em | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo 
+                                | `B  | `Abbr | `A | `A_flow |`PCDATA ]
+
+    type phrasing_without_lab_form_and_label = [embedded | `Wbr | `Var | `Time | `Sup | `Sub 
+                                               | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q 
+                                               | `Noscript | `Mark | `Map | `Kbd | `Ins | `I |`Em | `Dfn | `Del 
+                                               | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+
+    type phrasing_without_progress = [embedded | resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+                                     | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Meter | `Mark | `Map 
+                                     |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite 
+                                     |`Button | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+
+    type phrasing_without_time = [embedded | labelable | submitable | `Wbr | `Var | `Sup | `Sub | `Strong | `Span 
+                                 | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd 
+                                 | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo 
+                                 | `B | `Abbr | `A |`PCDATA ]
+
+    type phrasing_without_media = [ labelable | submitable |(* `Math |`Svg |*) `Object | `Img | `Iframe | `Embed 
+                                  | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script 
+                                  | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn
+                                  | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+
+    type phrasing_without_meter = [embedded | submitable | resetable | `Progress | `Button| `Wbr | `Var | `Time 
+                                  | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript 
+                                  | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command
+                                  | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+    type phrasing_without_noscript = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong
+                                     | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd 
+                                     | `Ins | `I |`Em | `Dfn | `Del 
+                                     | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
         (******************)
         (* Map  Ins
            Del  A         *)
         (*  in Phrasing   *)
         (* with conditions*)
         (******************)
-    type phrasing = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+    type phrasing = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
+                    | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins 
+                    | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
 
-    type flow5_without_interactive = [ phrasing_without_interactive | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
-    type flow5_without_table = [ phrasing | interactive_flow | formassociated | formatblock | `Ul |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
-    type flow5_without_header_footer = [ heading | sectioning | `Pre | `P | `Div | `Blockquote | `Address | phrasing | interactive_flow | formassociated | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
-    type flow5_without_form = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr |`Figure | `Dl|`Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
-    type flow5_without_sectioning_heading_header_footer_address = [ phrasing | interactive_flow | formassociated | `Pre | `P | `Div | `Blockquote| `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
-    type flow5_without_media = [phrasing_without_media |  `Textarea | `Select |`Object_flow | `Object | `Menu | `Label | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `A | `A_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins |`Ins_flow | `Del| `Del_flow]
+    type flow5_without_interactive = [ phrasing_without_interactive | formassociated | formatblock | `Ul 
+                                     | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure 
+                                     | `Dl|`Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
+
+    type flow5_without_table = [ phrasing | interactive_flow | formassociated | formatblock | `Ul |`Style 
+                               | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins |`Ins_flow 
+                               | `Del| `Del_flow| `Canvas_flow]
+
+    type flow5_without_header_footer = [ heading | sectioning | `Pre | `P | `Div | `Blockquote | `Address 
+                                       | phrasing | interactive_flow | formassociated | `Ul | `Table |`Style 
+                                       | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins |`Ins_flow 
+                                       | `Del| `Del_flow| `Canvas_flow]
+    type flow5_without_form = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style 
+                              | `Ol | `Menu | `Map |`Map_flow| `Hr |`Figure | `Dl|`Ins |`Ins_flow | `Del
+                              | `Del_flow| `Canvas_flow]
+
+    type flow5_without_sectioning_heading_header_footer_address = [ phrasing | interactive_flow | formassociated | `Pre | `P 
+                                                                  | `Div | `Blockquote| `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow 
+                                                                  | `Hr | `Form |`Figure | `Dl|`Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
+    type flow5_without_media = [phrasing_without_media |  `Textarea | `Select |`Object_flow | `Object | `Menu | `Label 
+                               | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `A | `A_flow 
+                               | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr 
+                               | `Form |`Figure | `Dl|`Ins |`Ins_flow | `Del| `Del_flow]
 
         (******************)
         (* Style  in Flow *)
         (* with conditions*)
         (******************)
-    type flow5 = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure| `Ins |`Ins_flow | `Dl| `Del| `Del_flow| `Canvas_flow]
+    type flow5 = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol 
+                 | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure| `Ins |`Ins_flow | `Dl| `Del| `Del_flow| `Canvas_flow]
 
 (** {1 Elements} *)
 
@@ -2051,38 +2104,80 @@ module Version =
         (* in Interactive *)
         (* with conditions*)
         (******************)
-    type interactive = [ `Video |`Video_src| `Textarea | `Select | `Object | `Menu | `Label | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `Audio | `Audio_src | `A ]
+    type interactive = [ `Video |`Video_src| `Textarea | `Select | `Object | `Menu | `Label | `Keygen | `Input | `Img | `Iframe 
+                       | `Embed | `Details | `Button | `Audio | `Audio_src | `A ]
     type interactive_flow = [ interactive | `Video_flow | `Video_src_flow| `Object_flow | `Audio_flow | `Audio_src_flow | `A_flow ]
 
-    type phrasing_without_dfn = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A | `A_flow |`PCDATA ]
-    type phrasing_without_interactive =  [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map | `Kbd | `Ins | `I |`Em | `Dfn | `Ins | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA ]
-    type phrasing_without_lab_form_and_label = [embedded | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map | `Kbd | `Ins | `I |`Em | `Dfn | `Ins | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_progress = [embedded | resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Meter | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite |`Button | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_time = [embedded | labelable | submitable | `Wbr | `Var | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `I |`Em | `Dfn | `Ins | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_media = [ labelable | submitable |(*a ajouter* `Math |`Svg |*) `Object | `Img | `Iframe | `Embed | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `I | `Ins |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_meter = [embedded | submitable | resetable | `Progress | `Button| `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
-    type phrasing_without_noscript = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd | `I |`Em | `Dfn | `Ins | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+    type phrasing_without_dfn = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
+                                | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins 
+                                | `I |`Em | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A 
+                                | `A_flow |`PCDATA ]
+    type phrasing_without_interactive =  [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+                                         | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map | `Kbd 
+                                         | `Ins | `I |`Em | `Dfn | `Ins | `Del | `Datalist | `Command | `Code | `Cite | `Br 
+                                         | `Bdo | `B | `Abbr |`PCDATA ]
+    type phrasing_without_lab_form_and_label = [embedded | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small 
+                                               | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map | `Kbd | `Ins | `I |`Em 
+                                               | `Dfn | `Ins | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+
+    type phrasing_without_progress = [embedded | resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
+                                     | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Meter | `Mark | `Map |`Label| `Kbd | `Ins 
+                                     | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite |`Button | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+
+    type phrasing_without_time = [embedded | labelable | submitable | `Wbr | `Var | `Sup | `Sub | `Strong | `Span | `Small 
+                                 | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `I |`Em | `Dfn | `Ins 
+                                 | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+
+    type phrasing_without_media = [ labelable | submitable |(*a ajouter* `Math |`Svg |*) `Object | `Img | `Iframe | `Embed 
+                                  | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp 
+                                  | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `I | `Ins |`Em | `Dfn | `Del | `Datalist 
+                                  | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+
+    type phrasing_without_meter = [embedded | submitable | resetable | `Progress | `Button| `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+                                  | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins | `I |`Em 
+                                  | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+
+    type phrasing_without_noscript = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small 
+                                     | `Script | `Samp | `Ruby | `Q | `Mark | `Map |`Label| `Kbd | `I |`Em | `Dfn | `Ins | `Del | `Datalist 
+                                     | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
         (******************)
         (* Map  Ins
            Del  A         *)
         (*  in Phrasing   *)
         (* with conditions*)
         (******************)
-    type phrasing = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd  | `I |`Em | `Dfn | `Ins | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A | `PCDATA ]
+    type phrasing = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span | `Small 
+                    | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd  | `I |`Em | `Dfn | `Ins 
+                    | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A | `PCDATA ]
 
-    type flow5_without_interactive = [ phrasing_without_interactive | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl| `Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
-    type flow5_without_table = [ phrasing | interactive_flow | formassociated | formatblock | `Ul |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl| `Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
-    type flow5_without_header_footer = [ heading | sectioning | `Pre | `P | `Div | `Blockquote | `Address | phrasing | interactive_flow | formassociated | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Ins |`Ins_flow | `Dl| `Del| `Del_flow| `Canvas_flow]
-    type flow5_without_form = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr |`Figure | `Ins |`Ins_flow | `Dl| `Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
-    type flow5_without_sectioning_heading_header_footer_address = [ phrasing | interactive_flow | formassociated | `Pre | `P | `Div | `Blockquote| `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl| `Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
+    type flow5_without_interactive = [ phrasing_without_interactive | formassociated | formatblock | `Ul 
+                                     | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure 
+                                     | `Dl| `Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
+    type flow5_without_table = [ phrasing | interactive_flow | formassociated | formatblock | `Ul |`Style 
+                               | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl| `Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
+    type flow5_without_header_footer = [ heading | sectioning | `Pre | `P | `Div | `Blockquote | `Address 
+                                       | phrasing | interactive_flow | formassociated | `Ul | `Table |`Style 
+                                       | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Ins |`Ins_flow 
+                                       | `Dl| `Del| `Del_flow| `Canvas_flow]
+    type flow5_without_form = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style 
+                              | `Ol | `Menu | `Map |`Map_flow| `Hr |`Figure | `Ins |`Ins_flow | `Dl| `Ins |`Ins_flow 
+                              | `Del| `Del_flow| `Canvas_flow]
 
-    type flow5_without_media = [phrasing_without_media |  `Textarea | `Select |`Object_flow | `Object | `Menu | `Label | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `A | `A_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl| `Ins |`Ins_flow | `Del | `Del_flow]
+    type flow5_without_sectioning_heading_header_footer_address = [ phrasing | interactive_flow | formassociated | `Pre 
+                                                                  | `P | `Div | `Blockquote| `Ul | `Table |`Style | `Ol | `Menu 
+                                                                  | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl| `Ins |`Ins_flow | `Del| `Del_flow| `Canvas_flow]
+
+    type flow5_without_media = [phrasing_without_media |  `Textarea | `Select |`Object_flow | `Object | `Menu 
+                               | `Label | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `A | `A_flow 
+                               | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form 
+                               |`Figure | `Dl| `Ins |`Ins_flow | `Del | `Del_flow]
 
         (******************)
         (* Style  in Flow *)
         (* with conditions*)
         (******************)
-    type flow5 = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Ins |`Ins_flow | `Hr | `Form |`Figure | `Dl| `Del| `Del_flow| `Canvas_flow]
+    type flow5 = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Ins 
+                 |`Ins_flow | `Hr | `Form |`Figure | `Dl| `Del| `Del_flow| `Canvas_flow]
 
 
     type rt = 
