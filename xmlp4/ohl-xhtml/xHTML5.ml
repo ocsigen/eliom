@@ -682,7 +682,11 @@ module type T =
     type sectionningroot = [`Td | `Figure | `Fieldset | `Details | `Body | `Blockquote]
     type listed = [resetable | submitable | `Fieldset]
     type formassociated = [ listed | `Progress | `Meter | `Label]
+
+        
+    (** Metadata without title *)
     type metadata_without_title = [ `Style | `Script | `Noscript | `Meta | `Link | `Command | `Base]
+    (** Metadata contents. Used specially in <head> *)
     type metadata = [ metadata_without_title | `Title ]
 
 
@@ -697,12 +701,22 @@ module type T =
         (* in Interactive *)
         (* with conditions*)
         (******************)
+
+    (** Interactive contents : contents that require user-interaction 
+        (Forms, link, etc.) *)
     type interactive = [ `Video |`Video_src| `Textarea | `Select | `Object | `Menu | `Label 
                        | `Keygen | `Input | `Img | `Iframe | `Embed | `Details | `Button | `Audio 
                        | `Audio_src | `A ]
+
     type interactive_flow = [ interactive | `Video_flow | `Video_src_flow| `Object_flow 
                             | `Audio_flow | `Audio_src_flow | `A_flow ]
-
+        
+    (** Phrasing contents is inline contents : bold text, span, and so on. *)
+    type phrasing = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
+                    | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins 
+                    | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+        
+    (** Phrasing without the interactive markups *)
     type phrasing_without_interactive =  [embedded | labelable | submitable | `Wbr | `Var | `Time 
                                          | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby
                                          | `Q | `Noscript | `Mark | `Map | `Kbd | `Ins | `I |`Em | `Dfn | `Del | `Datalist 
@@ -747,9 +761,9 @@ module type T =
         (*  in Phrasing   *)
         (* with conditions*)
         (******************)
-    type phrasing = [embedded | labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
-                    | `Small | `Script | `Samp | `Ruby | `Q | `Noscript | `Mark | `Map |`Label| `Kbd | `Ins 
-                    | `I |`Em | `Dfn | `Del | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `A |`PCDATA ]
+    (** Flow contents: anything that can be set in the <body> tag *)
+    type flow5 = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol 
+                 | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure| `Ins |`Ins_flow | `Dl| `Del| `Del_flow| `Canvas_flow]
 
     type flow5_without_interactive = [ phrasing_without_interactive | formassociated | formatblock | `Ul 
                                      | `Table |`Style | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure 
@@ -779,8 +793,6 @@ module type T =
         (* Style  in Flow *)
         (* with conditions*)
         (******************)
-    type flow5 = [ phrasing | interactive_flow | formassociated | formatblock | `Ul | `Table |`Style | `Ol 
-                 | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure| `Ins |`Ins_flow | `Dl| `Del| `Del_flow| `Canvas_flow]
 
 (** {1 Elements} *)
 
