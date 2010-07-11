@@ -306,7 +306,7 @@ module type T =
 (** {2 Core} *)
     type i18n = [ `XML_lang ]
 
-    type core = [ `Accesskey | `Class | `Contenteditable | `Contextmenu | `Dir | `Draggable | `Hidden | `Id | i18n | `Spellcheck | `Style_Attr | `Tabindex| `Title ]
+    type core = [ `Accesskey | `Class | `Contenteditable | `Contextmenu | `Dir | `Draggable | `Hidden | `Id | i18n | `Spellcheck | `Style_Attr | `Tabindex| `Title | `User_data]
 
    val a_autocomplete : [< `On | `Off ] -> [>`Autocomplete] attrib
    val a_async : [< `Async ] -> [>`Async] attrib
@@ -365,9 +365,17 @@ module type T =
     element. Any number of elements may be assigned the same class
     name or names.  *)
 
+   val a_user_data : nmtoken -> text -> [> `User_data] attrib
+(** May be used to specify custom attribs.
+    The example given by the W3C is as follows :
+    <ol>
+    <li data-length="2m11s">Beyond The Sea</li>
+    </ol>
+    It should be used for preprocessing ends only. *)
+
     val a_id : text -> [>`Id] attrib
 (** This attribute assigns a name to an element. This name must be
-    unique in a document. *)
+    unique in a document. The text should be without any space. *)
 
     val a_title : text -> [>`Title] attrib
 (** This attribute offers advisory information about the element for
@@ -1253,7 +1261,7 @@ module Version =
 
     (* Directly from http://www.w3.org/TR/xhtml-modularization/abstract_modules.html *)
     type i18n = [ `XML_lang ]
-    type core = [ `Accesskey | `Class | `Contenteditable | `Contextmenu | `Dir | `Draggable | `Hidden | `Id  | i18n | `Spellcheck | `Style_Attr | `Tabindex| `Title ]
+    type core = [ `Accesskey | `Class | `Contenteditable | `Contextmenu | `Dir | `Draggable | `Hidden | `Id  | i18n | `Spellcheck | `Style_Attr | `Tabindex| `Title | `User_data ]
 
     type events = [ `OnAbort|`OnBlur | `OnCanPlay |`OnCanPlayThrough
     |`OnChange | `OnClick|`OnContextMenu | `OnDblClick |`OnDrag |`OnDragEnd
@@ -1394,6 +1402,7 @@ module Version =
 
     let a_class = space_sep_attrib "class"
     let a_id = string_attrib "id"
+    let a_user_data name = string_attrib ("data-"^name)
     let a_title = string_attrib "title"
 
     (* I18N: *)
