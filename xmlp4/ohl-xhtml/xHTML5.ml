@@ -1071,13 +1071,9 @@ module type T =
     val iframe : ([< common | `Src (*| `Srcdoc*) | `Name | `Sandbox | `Seamless | `Width | `Height ],
                   [< `PCDATA], [>`Iframe]) star
 
-    (************************************)
-    (*object's children are transparents*)
-    (************************************)
-    val object_ : ?param:([< `Params of ([< `Param ] elt list )]) ->
-      ([< common | `Data | `Form | `Mime_type | `Height | `Width | `Name | `Usemap ],[< phrasing], [> `Object ]) star
-    val object_flow : ?param:([< `Params of ([< `Param ] elt list )]) ->
-      ([< common | `Data | `Form | `Mime_type | `Height | `Width | `Name | `Usemap ],[< flow5], [> `Object_flow ]) star
+    val object_ : ?params:[< `Param ] elt list -> usemap: (('b, idref) expl_attrib) ->
+      ([< common | `Data | `Form | `Mime_type | `Height | `Width | `Name | `Usemap ],
+       ([< phrasing] as 'a), [> `Object of ('a * 'b)]) star
 
     val param : ([< common | `Name | `Text_Value ],[> `Param ]) nullary
 
@@ -1111,26 +1107,22 @@ module type T =
   (*   element descendants.             *)
   (**************************************)
 
-    (************************************)
-    (* audio's children are transparents*)
-    (************************************)
-    val audio : ?srcs:([<`Srcs of ([< `Source ] elt list)]) -> ([< common |`Preload |`Autoplay |`Loop |`Controls],[< phrasing_without_media], [>`Audio]) star
-    val audio_flow : ?srcs:([<`Srcs of ([< `Source ] elt list)]) -> ([< common |`Preload |`Autoplay |`Loop |`Controls],[< flow5_without_media], [>`Audio_flow]) star
-    val audio_src : src:uri -> ([< common |`Preload |`Autoplay |`Loop |`Controls],[< phrasing_without_media ], [>`Audio_src]) star
-    val audio_src_flow : src:uri -> ([< common |`Preload |`Autoplay |`Loop |`Controls],[< flow5_without_media ], [>`Audio_src_flow]) star
 
-    (************************************)
-    (* video's children are transparents*)
-    (************************************)
-    val video : ?srcs:([<`Srcs of ([< `Source ] elt list)]) -> ([< common |`Poster |`Preload |`Autoplay |`Loop |`Controls |`Width |`Height],[< phrasing_without_media ], [>`Video]) star
-    val video_flow : ?srcs:([<`Srcs of ([< `Source ] elt list)]) -> ([< common |`Poster |`Preload |`Autoplay |`Loop |`Controls |`Width |`Height],[< flow5_without_media ], [>`Video_flow]) star
-    val video_src : src:uri -> ([< common |`Poster |`Preload |`Autoplay |`Loop |`Controls |`Width |`Height],[< phrasing_without_media ], [>`Video_src]) star
-    val video_src_flow : src:uri -> ([< common |`Poster |`Preload |`Autoplay |`Loop |`Controls |`Width |`Height],[< flow5_without_media ], [>`Video_src_flow]) star
+    val audio : ?srcs:(uri * [< `Source ] elt list) ->
+      controls:('b, unit) expl_attrib ->
+      ([< common |`Preload |`Autoplay |`Loop |`Controls],
+       ([< phrasing_without_media] as 'a), [>`Audio of ('a * 'b)]) star
+    val video : ?srcs:(uri * [< `Source ] elt list) ->
+      controls:('b, unit) expl_attrib ->
+      ([< common |`Poster |`Preload |`Autoplay |`Loop 
+       |`Controls |`Width |`Height], ([< phrasing_without_media ] as 'a), [>`Video of 'a * 'b]) star
+
     (************************************)
     (*canvas's children are transparents*)
     (************************************)
     val canvas : ([< common |`Width |`Height],[< phrasing ], [>`Canvas]) star
     val canvas_flow : ([< common |`Width |`Height],[< flow5 ], [>`Canvas_flow]) star
+
     val source : ([< common |`Src |`Mime_type |`Media ], [>`Source]) nullary
 
 
@@ -1991,7 +1983,8 @@ module Version =
     let a = star "a"
     let a_flow = star "a"
 
-    let dl ?a list = XML.node ?a "dl" (List.concat (List.map (fun ((elt, elts), (elt', elts')) -> elt :: elts @ elt' :: elts') list))
+    let dl ?a list = XML.node ?a "dl" 
+      (List.concat (List.map (fun ((elt, elts), (elt', elts')) -> elt :: elts @ elt' :: elts') list))
     let ol = star "ol"
     let ul = star "ul"
     let dd = star "dd"
@@ -2062,27 +2055,18 @@ module Version =
     let article = star "article"
     let aside = star "aside"
  
-   let audio ?srcs ?a elts =
-      XML.node ?a "audio"
-        (srcs_option srcs @ elts)
-    let audio_flow ?srcs ?a elts =
-      XML.node ?a "audio"
-        (srcs_option srcs @ elts)
-    let audio_src ~src ?(a = []) elts =
-      XML.node ~a:(a_src src :: a) "audio" elts
-    let audio_src_flow ~src ?(a = []) elts =
-      XML.node ~a:(a_src src :: a) "audio" elts
-
-    let video ?srcs ?a elts =
-      XML.node ?a "video"
-        (srcs_option srcs @ elts)
-    let video_flow ?srcs ?a elts =
-      XML.node ?a "video"
-        (srcs_option srcs @ elts) 
-    let video_src ~src ?(a = []) elts =
-      XML.node ~a:(a_src src :: a) "video" elts
-    let video_src_flow ~src ?(a = []) elts =
-      XML.node ~a:(a_src src :: a) "video" elts
+   let video_audio name ?srcs ~controls ?(a = []) elts =
+     let a = match controls with
+       | Some () -> a_controls `Controls :: a
+       | None -> a
+     in
+     let a, children = match srcs with
+         | None -> a, elts
+         | Some (uri, srcs) -> a_src uri :: a, srcs @ elts 
+     in
+      XML.node ~a name children
+   let audio = video_audio "audio"
+   let video = video_audio "video"
 
     let canvas = star "canvas"
     let canvas_flow = star "canvas"
@@ -2143,10 +2127,12 @@ module Version =
     let tfoot = star "tfoot"
 
     let iframe = star "iframe"
-    let object_ ?param ?a elts =
-      XML.node ?a "object" (param_option param @ elts)
-    let object_flow ?param ?a elts =
-      XML.node ?a "object" (param_option param @ elts)
+    let object_ ?(params = []) ~usemap ?(a = []) elts =
+      let a = match usemap with
+        | Some idref -> a_usemap idref :: a
+        | None -> a
+      in
+      XML.node ~a "object" (params @ elts)
     let param = terminal "param"
 
     type ('a, 'b) expl_attrib = 'b option
