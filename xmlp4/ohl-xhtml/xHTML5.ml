@@ -683,18 +683,6 @@ module type T =
 
         
 
-        (******************)
-        (* Video 
-           Type
-           Object
-           Menu
-           Input
-           Img (if usemap attribute)
-           Audio          *)
-        (* in Interactive *)
-        (* with conditions*)
-        (******************)
-
         (* transparents are
            - links
            - noscript
@@ -711,22 +699,27 @@ module type T =
     type ('interactive, 'noscript, 'regular, 'media) transparent = 
       [ `A of 'interactive 
       | `Noscript of 'noscript 
+      | `Canvas of 'regular
       | `Ins of 'regular | `Del of 'regular | `Object of ('regular * on_off)
       | `Audio of ('media * on_off) | `Video of ('media * on_off) ] 
 
     type 'a transparent_without_interactive = 
       [ `Noscript of 'a | `Ins of 'a | `Del of 'a
       | `Object of 'a * off
+      | `Canvas of 'a
       | `Audio of 'a * off | `Video of 'a * off ]
 
     type 'a transparent_without_noscript = 
       [ `A of 'a | `Ins of 'a | `Del of 'a
+      | `Canvas of 'a
       | `Object of ('a * on_off) 
       | `Video of ('a * on_off) 
       | `Audio of ('a * on_off)]
 
     type 'a transparent_without_media = 
-      [ `A of 'a | `Ins of 'a | `Del of 'a | `Object of ('a * on_off)]
+      [ `A of 'a | `Ins of 'a | `Del of 'a 
+      | `Canvas of 'a
+      | `Object of ('a * on_off)]
 
     (** Metadata without title *)
     type metadata_without_title = [ `Style | `Script | `Noscript of [ `Meta | `Link | `Style ] 
@@ -760,7 +753,7 @@ module type T =
 
     type core_phrasing_without_media = [ labelable | submitable 
                                        |(* `Math |`Svg |*) `Img of on_off| `Iframe | `Embed 
-                                       | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+                                       | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
                                        | `Span | `Small | `Script | `Samp | `Ruby | `Q |  `Mark 
                                        | `Map |`Label| `Kbd |  `I |`Em | `Dfn | `Datalist | `Command 
                                        | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA  ]
@@ -815,7 +808,7 @@ module type T =
         (* with conditions*)
         (******************)
     type core_flow5 = [ core_phrasing | formassociated | formatblock | `Ul | `Table |`Style | `Ol 
-                      | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure|  `Dl| `Canvas_flow]
+                      | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure|  `Dl ]
 
     type flow5_without_interactive = [ core_flow5 | flow5_without_interactive transparent_without_interactive ]
     type flow5_without_noscript = [ core_flow5 | flow5_without_noscript transparent_without_noscript ]
@@ -831,21 +824,21 @@ module type T =
 
     type flow5_without_table = [ core_phrasing | formassociated | formatblock | `Ul |`Style 
                                | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins_flow 
-                               | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
+                               | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_header_footer = [ heading | sectioning | `Pre | `P | `Div | `Blockquote | `Address 
                                        | core_phrasing | formassociated | `Ul | `Table |`Style 
                                        | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins_flow 
-                                       | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
+                                       |  (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_form = [ core_phrasing | formassociated | formatblock | `Ul | `Table |`Style 
                               | `Ol | `Menu | `Map |`Map_flow| `Hr |`Figure | `Dl
-                              | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
+                              | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_sectioning_heading_header_footer_address = 
       [ core_phrasing | formassociated | `Pre | `P 
       | `Div | `Blockquote| `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow 
-      | `Hr | `Form |`Figure | `Dl| `Canvas_flow
+      | `Hr | `Form |`Figure | `Dl
       | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
         (******************)
@@ -1073,7 +1066,7 @@ module type T =
 
     val object_ : ?params:[< `Param ] elt list -> usemap: (('b, idref) expl_attrib) ->
       ([< common | `Data | `Form | `Mime_type | `Height | `Width | `Name | `Usemap ],
-       ([< phrasing] as 'a), [> `Object of ('a * 'b)]) star
+       ([< flow5] as 'a), [> `Object of ('a * 'b)]) star
 
     val param : ([< common | `Name | `Text_Value ],[> `Param ]) nullary
 
@@ -1111,17 +1104,13 @@ module type T =
     val audio : ?srcs:(uri * [< `Source ] elt list) ->
       controls:('b, unit) expl_attrib ->
       ([< common |`Preload |`Autoplay |`Loop |`Controls],
-       ([< phrasing_without_media] as 'a), [>`Audio of ('a * 'b)]) star
+       ([< flow5_without_media] as 'a), [>`Audio of ('a * 'b)]) star
     val video : ?srcs:(uri * [< `Source ] elt list) ->
       controls:('b, unit) expl_attrib ->
       ([< common |`Poster |`Preload |`Autoplay |`Loop 
-       |`Controls |`Width |`Height], ([< phrasing_without_media ] as 'a), [>`Video of 'a * 'b]) star
+       |`Controls |`Width |`Height], ([< flow5_without_media ] as 'a), [>`Video of 'a * 'b]) star
 
-    (************************************)
-    (*canvas's children are transparents*)
-    (************************************)
-    val canvas : ([< common |`Width |`Height],[< phrasing ], [>`Canvas]) star
-    val canvas_flow : ([< common |`Width |`Height],[< flow5 ], [>`Canvas_flow]) star
+    val canvas : ([< common |`Width |`Height],([< flow5 ] as 'a), [>`Canvas of 'a]) star
 
     val source : ([< common |`Src |`Mime_type |`Media ], [>`Source]) nullary
 
@@ -1312,7 +1301,7 @@ module type T =
   (*   a parse error                                  *)
   (****************************************************)
     (* PLUS ?? *)
-    val noscript : ([< common ],([< phrasing_without_noscript | `Link | `Style | `Meta ] as 'a),[>`Noscript of 'a]) plus
+    val noscript : ([< common ],([< flow5_without_noscript | `Link | `Style | `Meta ] as 'a),[>`Noscript of 'a]) plus
 
     val meta : ([< common | `Http_equiv | `Name | `Content | `Charset ], [>`Meta]) nullary
 
@@ -2182,6 +2171,7 @@ module Version =
         (* in Interactive *)
         (* with conditions*)
         (******************)
+    (* a boolean at the type-level *)
     type on = [ `On ] 
     type off = [ `Off ] 
     type on_off = [ on | off ]
@@ -2189,22 +2179,27 @@ module Version =
     type ('interactive, 'noscript, 'regular, 'media) transparent = 
       [ `A of 'interactive 
       | `Noscript of 'noscript 
+      | `Canvas of 'regular
       | `Ins of 'regular | `Del of 'regular | `Object of ('regular * on_off)
       | `Audio of ('media * on_off) | `Video of ('media * on_off) ] 
 
     type 'a transparent_without_interactive = 
       [ `Noscript of 'a | `Ins of 'a | `Del of 'a
       | `Object of 'a * off
+      | `Canvas of 'a
       | `Audio of 'a * off | `Video of 'a * off ]
 
     type 'a transparent_without_noscript = 
       [ `A of 'a | `Ins of 'a | `Del of 'a
+      | `Canvas of 'a
       | `Object of ('a * on_off) 
       | `Video of ('a * on_off) 
       | `Audio of ('a * on_off)]
 
     type 'a transparent_without_media = 
-      [ `A of 'a | `Ins of 'a | `Del of 'a | `Object of ('a * on_off)]
+      [ `A of 'a | `Ins of 'a | `Del of 'a 
+      | `Canvas of 'a
+      | `Object of ('a * on_off)]
 
     (** Metadata without title *)
     type metadata_without_title = [ `Style | `Script | `Noscript of [ `Meta | `Link | `Style ] 
@@ -2238,7 +2233,7 @@ module Version =
 
     type core_phrasing_without_media = [ labelable | submitable 
                                        |(* `Math |`Svg |*) `Img of on_off| `Iframe | `Embed 
-                                       | `Canvas | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
+                                       | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
                                        | `Span | `Small | `Script | `Samp | `Ruby | `Q |  `Mark 
                                        | `Map |`Label| `Kbd |  `I |`Em | `Dfn | `Datalist | `Command 
                                        | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA  ]
@@ -2249,7 +2244,7 @@ module Version =
     type core_phrasing_without_interactive 
       =  [labelable | submitable | `Wbr | `Var | `Time 
          | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby
-         | `Q | `Mark | `Map | `Kbd |`Img of off |  `I |`Em | `Dfn |  `Datalist 
+         | `Q | `Mark | `Map | `Kbd | `Img of off | `I |`Em | `Dfn |  `Datalist 
          | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA ]
 
 
@@ -2293,7 +2288,7 @@ module Version =
         (* with conditions*)
         (******************)
     type core_flow5 = [ core_phrasing | formassociated | formatblock | `Ul | `Table |`Style | `Ol 
-                      | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure|  `Dl| `Canvas_flow]
+                      | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure|  `Dl ]
 
     type flow5_without_interactive = [ core_flow5 | flow5_without_interactive transparent_without_interactive ]
     type flow5_without_noscript = [ core_flow5 | flow5_without_noscript transparent_without_noscript ]
@@ -2309,21 +2304,21 @@ module Version =
 
     type flow5_without_table = [ core_phrasing | formassociated | formatblock | `Ul |`Style 
                                | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins_flow 
-                               | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
+                               | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_header_footer = [ heading | sectioning | `Pre | `P | `Div | `Blockquote | `Address 
                                        | core_phrasing | formassociated | `Ul | `Table |`Style 
                                        | `Ol | `Menu | `Map |`Map_flow| `Hr | `Form |`Figure | `Dl|`Ins_flow 
-                                       | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
+                                       |  (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_form = [ core_phrasing | formassociated | formatblock | `Ul | `Table |`Style 
                               | `Ol | `Menu | `Map |`Map_flow| `Hr |`Figure | `Dl
-                              | `Canvas_flow | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
+                              | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type flow5_without_sectioning_heading_header_footer_address = 
       [ core_phrasing | formassociated | `Pre | `P 
       | `Div | `Blockquote| `Ul | `Table |`Style | `Ol | `Menu | `Map |`Map_flow 
-      | `Hr | `Form |`Figure | `Dl| `Canvas_flow
+      | `Hr | `Form |`Figure | `Dl
       | (flow5_without_interactive, flow5_without_noscript, flow5, flow5_without_media) transparent]
 
     type rt = 
