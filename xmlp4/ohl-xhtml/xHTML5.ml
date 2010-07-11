@@ -1150,7 +1150,8 @@ module type T =
 
 (** {2 Scripting} *)
 
-    val script : contenttype:contenttype -> ([< common | `Async | `Charset | `Src | `Defer |`Mime_type ], [< `PCDATA (*VVV ??? `Script |`Noscript (*a implem. |`Script-Documentation*)*) ], [>`Script]) unary
+    val script : ([< common | `Async | `Charset | `Src | `Defer |`Mime_type ], 
+                  [< `PCDATA ], [>`Script]) unary
 
   (****************************************************)
   (*                   In Noscript                    *)
@@ -1192,19 +1193,17 @@ module type T =
   (*the value of the type attribute*)
   (*********************************)
   (*          BUT WHAT ???         *)
+  (* SC: contenttype defaults to   *)
+  (*  text/css                     *)
   (*********************************)
-    val style : contenttype:text -> ([< common | `Media | `Mime_type | `Scoped ], [< `PCDATA ], [>`Style]) star
+    val style : ([< common | `Media | `Mime_type | `Scoped ], [< `PCDATA ], [>`Style]) star
 
 (** {2 Link} *)
 
-    val link : href:uri -> rel:linktypes ->
-      ([< common | `Href | `Hreflang | `Media
-       | `Rel | `Sizes | `Mime_type ], [>`Link]) nullary
-
-(** {2 Base} *)
-
-    val base : ([< common | `Target| `Href],[>`Base]) nullary
-
+    val link : rel:linktypes ->
+      ([< common | `Hreflang | `Href | `Media
+       | `Sizes | `Mime_type ], [>`Link]) nullary
+        (* SC: link may have no href attribute *)
 
 (** [?encode] maps strings to HTML and {e must} encode the unsafe characters
     ['<'], ['>'], ['"'], ['&'] and the control characters 0-8, 11-12, 14-31, 127
@@ -1916,8 +1915,8 @@ module Version =
     let del_flow = star "del"
     let ins = star "ins"
     let ins_flow = star "ins"
-    let script ~contenttype ?(a = []) elt =
-      XML.node ~a:(a_mime_type contenttype :: a) "script" [elt]
+    let script ?(a = []) elt =
+      XML.node ~a "script" [elt]
     let noscript = plus "noscript"
 
     let article = star "article"
@@ -2015,11 +2014,11 @@ module Version =
 
     let meta = terminal "meta"
 
-   let style ~contenttype ?(a = []) elts =
-      XML.node ~a:(a_mime_type contenttype :: a) "style" elts
+   let style ?(a = []) elts =
+      XML.node ~a "style" elts
 
-    let link ~href ~rel ?(a = []) () =
-      XML.leaf ~a:(a_href href :: a_rel rel :: a) "link"
+    let link ~rel ?(a = []) () =
+      XML.leaf ~a:(a_rel rel :: a) "link"
 
     let base = terminal "base"
 
