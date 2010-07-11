@@ -682,7 +682,8 @@ module type T =
     type sectionningroot = [`Td | `Figure | `Fieldset | `Details | `Body | `Blockquote]
     type listed = [resetable | submitable | `Fieldset]
     type formassociated = [ listed | `Progress | `Meter | `Label]
-    type metadata = [ `Title | `Style | `Script | `Noscript | `Meta | `Link | `Command | `Base]
+    type metadata_without_title = [ `Style | `Script | `Noscript | `Meta | `Link | `Command | `Base]
+    type metadata = [ metadata_without_title | `Title ]
 
 
         (******************)
@@ -771,7 +772,7 @@ module type T =
   (*exactly one is a title element*)
   (********************************)
     val head : ?a:([< common ] attrib list) ->
-       [< `Title ] elt -> [< metadata ] elt list -> [>`Head] elt
+       [< `Title ] elt -> [< metadata_without_title ] elt list -> [>`Head] elt
     val title : ([< common], [< `PCDATA],[>`Title]) unary
     val body : ([< common | `OnAfterPrint | `OnBeforePrint | `OneBeforeUnload
                 | `OnHashChange
@@ -2038,7 +2039,8 @@ module Version =
     type sectionningroot = [`Td | `Figure | `Fieldset | `Details | `Body | `Blockquote]
     type listed = [resetable | submitable | `Fieldset]
     type formassociated = [ listed | `Progress | `Meter | `Label]
-    type metadata = [ `Title | `Style | `Script | `Noscript | `Meta | `Link | `Command | `Base]
+    type metadata_without_title = [ `Style | `Script | `Noscript | `Meta | `Link | `Command | `Base]
+    type metadata = [ metadata_without_title | `Title ]
         (******************)
         (* Video 
            Type
