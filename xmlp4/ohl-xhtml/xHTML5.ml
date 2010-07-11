@@ -882,7 +882,9 @@ module type T =
   (*      followed by             *)
   (*      one or more dd  elements*)
   (********************************)
-    val dl : ([< common ], [< `Dt | `Dd ], [>`Dl]) star
+    val dl : ?a:([< common ] attrib list)-> 
+      (([< `Dt ] elt * [< `Dt ] elt list) * ([< `Dd ] elt * [< `Dd ] elt list)) list -> [> `Dl] elt
+
     val ol : ([< common | `Reserved |`Start ], [< `Li of [< common | `Int_Value ]], [>`Ol]) star
     val ul : ([< common ], [< `Li of [< common] ], [>`Ul]) star
     val dd : ([< common ], [< flow5 ], [>`Dd]) star
@@ -1919,7 +1921,7 @@ module Version =
     let a = star "a"
     let a_flow = star "a"
 
-    let dl = star "dl"
+    let dl ?a list = XML.node ?a "dl" (List.concat (List.map (fun ((elt, elts), (elt', elts')) -> elt :: elts @ elt' :: elts') list))
     let ol = star "ol"
     let ul = star "ul"
     let dd = star "dd"
