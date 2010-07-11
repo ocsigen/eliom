@@ -44,14 +44,13 @@ let fill_global_data_table ((reqnum, size), l) =
        size
        l)
 
-let ((timeofday, _), _) as global_data : (int64 * int) * (unit list) =
-  unmarshal (Js.Unsafe.variable "eliom_global_data")
 
-let _ = fill_global_data_table global_data
+
 
 
 (* == Relinking DOM nodes *)
-let nodes : ((int64 * int), Dom.node Js.t) Hashtbl.t = Hashtbl.create 200
+let nodes : ((int64 * int), Dom_html.element Js.t) Hashtbl.t =
+  Hashtbl.create 200
 
 let set_node_id node id =
   Hashtbl.replace nodes id node
@@ -59,32 +58,32 @@ let set_node_id node id =
 let retrieve_node id =
   Hashtbl.find nodes id
 
-type ref_tree = Ref_tree of int option * (int * ref_tree) list
+
 
 (* Relinking DOM nodes *)
-let rec relink_dom timeofday root = fun (Ref_tree (id, subs)) ->
-  begin match id with
-    | Some id ->
+let rec relink_dom timeofday root = 
+  fun (XML.Ref_tree (id, subs)) ->
+    begin match id with
+      | Some id ->
 	set_node_id root (timeofday, id)
-    | None ->
+      | None ->
 	()
-  end ;
-  let children = root##childNodes in
-  relink_dom_list timeofday children subs
-and relink_dom_list timeofday dom_nodes subs =
+    end ;
+(*VVV How to avoid the Unsafe.coerce? *)
+    let children = (Js.Unsafe.coerce root##childNodes : 
+                      Dom_html.element Dom.nodeList Js.t)
+    in
+    relink_dom_list timeofday children subs
+and relink_dom_list timeofday 
+    (dom_nodes : Dom_html.element Dom.nodeList Js.t) subs =
   List.iter
     (fun (n, sub) ->
-       relink_dom timeofday (dom_nodes##item (n)) sub
+      relink_dom timeofday (dom_nodes##item (n)) sub
     )
     subs
 
-let _ =
-Dom_html.window##onload <- Dom_html.handler (fun _ ->
-  relink_dom
-    timeofday
-    (Dom_html.document##body :> Dom.node Js.t)
-    (unmarshal (Js.Unsafe.variable "eliom_id_tree") : ref_tree);
-  Js._false)
+
+
 
 
 (* == unwraping server data *)
@@ -92,7 +91,6 @@ Dom_html.window##onload <- Dom_html.handler (fun _ ->
 let unwrap (key : 'a Eliom_client_types.data_key) : 'a = 
   Obj.magic (Hashtbl.find global_appl_data_table 
                (Eliom_client_types.of_data_key_ key))
-
 
 let unwrap_sp = unwrap
 

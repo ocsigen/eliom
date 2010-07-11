@@ -19,9 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
-
-
 open Lwt
 open Ocsigen_lib
 open XHTML.M
@@ -646,7 +643,7 @@ module Actionreg_ = struct
           Eliom_common.CBrowser
           sitedata
           (Eliom_services.eccookiel_of_escookiel cookies_set_by_page)
-          Ocsigen_http_frame.Cookies.empty
+          Ocsigen_cookies.Cookies.empty
       in
 
       (match si.Eliom_common.si_nonatt_info,
@@ -1617,7 +1614,8 @@ module Eliom_appl_reg_
       (Eliom_services.cookie_table_of_eliom_cookies
          Eliom_common.CTab ~sp cookies)
                         
-  let create_page ~sp params do_not_launch_application cookies content = 
+  let create_page
+      ~sp params do_not_launch_application cookies_to_send content = 
     let body, container_node = match params.ap_container with
       | None -> let b = XHTML.M.body ?a:params.ap_body_attributes content in
         (b, (XHTML.M.toelt b))
@@ -1628,6 +1626,9 @@ module Eliom_appl_reg_
              (container d),
            (XHTML.M.toelt d))
     in
+    ignore (XML.ref_node container_node); (* The ref must be created 
+                                             for container before
+                                             calling make_ref_tree! *)
     XHTML.M.html
       (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata params.ap_title)) 
          (
@@ -1661,39 +1662,39 @@ redir ();"))::
              then
                  XHTML.M.script ~contenttype:"text/javascript"
                  (cdata_script
-                    (* eliom_id_tree is some information for relinking the
-                       nodes on client side.
-                       Relinking is done in client/eliommod_cli.ml
-                    *)
-                    ("var eliom_id_tree = " ^
-                     (Eliom_client_types.jsmarshal
-                        (XML.make_ref_tree (XHTML.M.toelt body))) ^ "; \n"
-
-                     ^ "var eliom_global_data = " ^
-                     (Eliom_client_types.jsmarshal
-                        (Eliommod_cli.get_global_eliom_appl_data_ ~sp)
-                     ) ^ "; \n"
-
-                     ^ "var container_node = " ^
+                    (
+                     "var container_node = \'" ^
                      let reqnum = Eliom_sessions.get_request_id ~sp in
                      (Eliom_client_types.jsmarshal
                         (Eliom_client_types.to_data_key_
                            (reqnum, XML.ref_node container_node))
-                     ) ^ "; \n"
+                     ) ^ "\'; \n"
 
-                     ^ "var appl_name = \"" ^
-                       (Appl_params.application_name
-                       ) ^ "\"; \n"
+                     ^ "var appl_name = \'" ^
+                       (Eliom_client_types.string_escape
+                          Appl_params.application_name
+                       ) ^ "\'; \n"
 
-                     ^ "var process_id = \"" ^
+                     ^ "var process_id = \'" ^
                        (match Eliom_process.get_process_id ~sp with
                           | Some s -> s
                           | None -> "<error: process id not created>"
-                       ) ^ "\"; \n"
+                       ) ^ "\'; \n"
 
-                     ^ "var tab_cookies = \"" ^
-                       (Eliom_client_types.jsmarshal (get_cook sp cookies)
-                       ) ^ "\"; \n"
+                     ^ "var eliom_data = \'" ^
+                       (Eliom_client_types.jsmarshal
+                          ((Ocsigen_lib.Left
+                              (XML.make_ref_tree (XHTML.M.toelt body)),
+                            (* Warning: due to right_to_left evaluation,
+                               make_ref_tree is called before the previous
+                               items. Do not create new node refs in
+                               previous items!
+                            *)
+                            (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
+                            cookies_to_send) :
+                               Eliom_client_types.eliom_data_type
+                          )
+                       ) ^ "\'; \n"
 
                     )
                  ) ::
@@ -1729,20 +1730,26 @@ redir ();"))::
   let send ?(options = false) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     let content_only = Eliom_process.get_content_only ~sp in
+    get_cook sp cookies >>= fun cookies_to_send ->
     (if content_only
 (*VVV do not send container! *)
      then 
 (*VVV Here we do not send a stream *)
-       Caml.send ~sp ((XML.make_ref_tree_list (XHTML.M.toeltl content)),
-                      (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
-                      (get_cook sp cookies),
+        Caml.send ~sp (((Ocsigen_lib.Right
+                           (XML.make_ref_tree_list (XHTML.M.toeltl content)),
+                         (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
+                         cookies_to_send),
 (*VVV Use another serialization format than XML for the page? *)
-                      Xhtmlcompact'.xhtml_list_print content)
+                        Xhtmlcompact'.xhtml_list_print content) :
+                          Eliom_client_types.eliom_data_type * string
+        )
      else 
 (*VVV for now not possible to give other params for one page *)
-       let page = create_page ~sp Appl_params.params options cookies content in
-       let options = Appl_params.params.ap_doctype in
-       Xhtml_content.result_of_content ~options page)
+        let page =
+          create_page ~sp Appl_params.params options cookies_to_send content 
+        in
+        let options = Appl_params.params.ap_doctype in
+        Xhtml_content.result_of_content ~options page)
     >>= fun r ->
     Lwt.return
       {r with

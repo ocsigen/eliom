@@ -28,8 +28,8 @@ let url_fragment_prefix_with_sharp = "#!"
 let appl_name = Eliom_process.appl_name
 
 
-let unmarshal v =
-  Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable v)) 0
+let unmarshal_js_var s =
+  Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
 let process_id = Eliom_process.process_id
 
@@ -142,25 +142,39 @@ let change_url
   Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
 
 
-let container_node = lazy (Js.Unsafe.coerce (Eliommod_cli.unwrap_node (unmarshal "container_node")): Dom_html.element Js.t)
+(* lazy because we want the page to be loaded *)
+let container_node = 
+  lazy ((Eliommod_cli.unwrap_node (unmarshal_js_var "container_node"))
+           : Dom_html.element Js.t)
 
 
+let get_eliom_data_ s : Eliom_client_types.eliom_data_type * string =
+  Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
+
+let load_eliom_data_
+    ((tree, (((timeofday, _), _) as global_data), cookies) :
+        Eliom_client_types.eliom_data_type)
+    node : unit =
+  (match tree with
+    | Ocsigen_lib.Left ref_tree ->
+      Eliommod_cli.relink_dom timeofday node ref_tree;
+    | Ocsigen_lib.Right ref_tree_list ->
+      Eliommod_cli.relink_dom_list 
+        timeofday
+        (Js.Unsafe.coerce node##childNodes : Dom_html.element Dom.nodeList Js.t)
+        ref_tree_list);
+  Eliommod_cli.fill_global_data_table global_data;
+  Eliommod_client_cookies.update_cookie_table cookies
 
 let set_inner_html code s =
   if code <> 200
   then Lwt.fail (Failed_service code)
   else begin
-    let (ref_tree_list, 
-         (((timeofday, _), _) as global_data),
-         cookies,
-         content) = 
-      Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
-    in
+    let a = Js.to_bytestring (Js.unescape (Js.bytestring s)) in
+    let (ed, content) = Marshal.from_string a 0 in
     let container_node = Lazy.force container_node in
     container_node##innerHTML <- Js.string content;
-    Eliommod_cli.relink_dom_list 
-      timeofday (container_node##childNodes) ref_tree_list;
-    Eliommod_cli.fill_global_data_table global_data;
+    load_eliom_data_ ed container_node;
     Lwt.return ()
   end
 
@@ -288,12 +302,12 @@ let get_subpage
      | Ocsigen_lib.Left uri -> http_get uri []
      | Ocsigen_lib.Right (uri, p) -> http_post uri p)
   >>= fun (code, s) ->
+
   if code <> 200
   then Lwt.fail (Failed_service code)
   else begin
-    let (ref_tree_list, (((timeofday, _), _) as global_data), content) = 
-      Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
-    in
+    let (ed, content) = get_eliom_data_ s in
+
     (* Hack to make the result considered as XHTML: *)
     fake_page##innerHTML <- Js.string content;
     let nodes = fake_page##childNodes in
@@ -301,9 +315,9 @@ let get_subpage
     for i = nodes##length - 1 downto 0 do
       node_list := nodes##item (i) :: !node_list
     done;
-    Eliommod_cli.relink_dom_list timeofday nodes ref_tree_list;
+
+    load_eliom_data_ ed fake_page;
     fake_page##innerHTML <- Js.string "";
-    Eliommod_cli.fill_global_data_table global_data;
     Lwt.return (XHTML.M.totl !node_list)
   end
 
@@ -428,4 +442,10 @@ let make_a_with_onclick
     ();
   node
 
+
+let _ =
+  Dom_html.window##onload <- Dom_html.handler (fun _ ->
+    let eliom_data = unmarshal_js_var "eliom_data" in
+    load_eliom_data_ eliom_data Dom_html.document##body;
+    Js._false)
 

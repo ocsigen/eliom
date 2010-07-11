@@ -164,8 +164,8 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
       | _::_::_ as l -> expr_of_args_aux <:expr< >> l
     in
     <:expr<
-         $str:"caml_run_from_table(" ^ string_of_int (Int64.to_int num) ^ ","$
-       ^ Eliom_client_types.jsmarshal $expr_of_args$ ^ ")"
+         $str:"caml_run_from_table(" ^ string_of_int (Int64.to_int num) ^ ", \'"$
+       ^ Eliom_client_types.jsmarshal $expr_of_args$ ^ "\')"
     >>
 
 

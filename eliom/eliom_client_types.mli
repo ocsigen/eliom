@@ -24,10 +24,14 @@ val of_data_key_ : 'a data_key -> (int64 * int)
 
 (* Marshal an OCaml value into a string. All characters are escaped *)
 val jsmarshal : 'a -> string
+val string_escape : string -> string
 
 
 (**/**)
 val a_closure_id : int
 val a_closure_id_string : string
 
-
+type eliom_data_type =
+    ((XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
+        ((int64 * int) * unit list) *
+        Ocsigen_cookies.cookieset)

@@ -111,3 +111,6 @@ let leaf ?a name = node ?a name []
 
 let register_event elt name f v =
   (Js.Unsafe.coerce elt)##onclick <- Dom_html.handler (fun _ -> ignore (f v); Js._false)
+
+
+type ref_tree = Ref_tree of int option * (int * ref_tree) list

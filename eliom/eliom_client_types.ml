@@ -19,6 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+type eliom_data_type =
+    ((XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
+        ((int64 * int) * unit list) *
+        Ocsigen_cookies.cookieset)
+
 
 (* Some types are different on client side: *)
 
@@ -88,8 +93,7 @@ let string_escape s =
   done;
   Buffer.contents b
 
-let jsmarshal v =
-  Format.sprintf "\'%s\'" (string_escape (Marshal.to_string v []))
+let jsmarshal v = string_escape (Marshal.to_string v [])
 
 (* For client side program, we sometimes simulate links and forms
    with client side functions.

@@ -13,6 +13,7 @@ MLS:= xML.ml xHTML.ml xHTML5.ml \
 	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
 	eliom_process_cli.ml eliom_process.ml \
 	eliom_services.ml eliom_uri.ml \
+	eliommod_client_cookies.ml \
 	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
 	eliom_mkforms.ml polytables.ml \
 	xhtmltypes.ml xhtml5types.ml eliom_predefmod.ml \
