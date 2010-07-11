@@ -476,7 +476,7 @@ module Directory_content =
 module Error_content =
 (** sends an error page that fit the error number *)
   struct
-    type t = int option * exn option * Ocsigen_http_frame.cookieset
+    type t = int option * exn option * Ocsigen_cookies.cookieset
 
     type options = unit
 
@@ -554,7 +554,7 @@ let send_error
     ~clientproto
     ?mode
     ?proto
-    ?(cookies = Ocsigen_http_frame.Cookies.empty)
+    ?(cookies = Ocsigen_cookies.Cookies.empty)
     ~head
     ~sender
     ()

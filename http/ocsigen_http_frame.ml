@@ -26,26 +26,13 @@ the operation on this protocol*)
     frame *)
 
 open Ocsigen_stream
+open Ocsigen_cookies
 
 type etag = string
-type url_path = string list
 
-module Cookies =
-  Map.Make(struct type t = url_path let compare = compare end)
 
-type cookie =
-  | OSet of float option * string * bool
-  | OUnset
-
-type cookieset = cookie Ocsigen_lib.String_Table.t Cookies.t
-
-let add_cookie path n v t =
-  let ct =
-    try Cookies.find path t
-    with Not_found -> Ocsigen_lib.String_Table.empty
-  in
-  (* We replace the old value if it exists *)
-  Cookies.add path (Ocsigen_lib.String_Table.add n v ct) t
+(* The following cookie function are not in Ocsigen_cookies
+   because they are not used client side *)
 
 (* [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
    to [oldcookies]. If cookies are already bound in oldcookies,
@@ -71,7 +58,7 @@ let add_cookies newcookies oldcookies =
 (* [compute_new_ri_cookies now path ri_cookies cookies_to_set]
    adds the cookies from [cookies_to_set]
    to [ri_cookies], as if the cookies
-   add been send to the browser and the browser
+   had been send to the browser and the browser
    was doing a new request to the url [path].
    Only the cookies that match [path] (current path) are added. *)
 let compute_new_ri_cookies

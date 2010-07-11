@@ -35,7 +35,7 @@
 open Lwt
 open Ocsigen_lib
 
-exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
+exception Ocsigen_http_error of (Ocsigen_cookies.cookieset * int)
 exception Ocsigen_Looping_request
 
 
@@ -275,39 +275,39 @@ type answer =
                         Same as Ext_continue_with but does not change
                         the request.
                      *)
-  | Ext_stop_site of (Ocsigen_http_frame.cookieset * int)
+  | Ext_stop_site of (Ocsigen_cookies.cookieset * int)
                     (** Error. Do not try next extension, but
                         try next site.
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_stop_host of (Ocsigen_http_frame.cookieset * int)
+  | Ext_stop_host of (Ocsigen_cookies.cookieset * int)
                     (** Error. Do not try next extension,
                         do not try next site,
                         but try next host.
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_stop_all of (Ocsigen_http_frame.cookieset * int)
+  | Ext_stop_all of (Ocsigen_cookies.cookieset * int)
                     (** Error. Do not try next extension,
                         do not try next site,
                         do not try next host.
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_continue_with of (request * Ocsigen_http_frame.cookieset * int)
+  | Ext_continue_with of (request * Ocsigen_cookies.cookieset * int)
         (** Used to modify the request before giving it to next extension.
             The extension returns the request (possibly modified)
             and a set of cookies if it wants to set or cookies
-            ({!Ocsigen_http_frame.Cookies.empty} for no cookies).
+            ({!Ocsigen_cookies.Cookies.empty} for no cookies).
             You must add these cookies yourself in request if you
             want them to be seen by subsequent extensions,
             for example using {!Ocsigen_http_frame.compute_new_ri_cookies}.
             The integer is usually equal to the error code received
             from preceding extension (but you may want to modify it).
          *)
-  | Ext_retry_with of request * Ocsigen_http_frame.cookieset
+  | Ext_retry_with of request * Ocsigen_cookies.cookieset
         (** Used to retry all the extensions with a new request.
             The extension returns the request (possibly modified)
             and a set of cookies if it wants to set or cookies
-            ({!Ocsigen_http_frame.Cookies.empty} for no cookies).
+            ({!Ocsigen_cookies.Cookies.empty} for no cookies).
             You must add these cookies yourself in request if you
             want them to be seen by subsequent extensions,
             for example using {!Ocsigen_http_frame.compute_new_ri_cookies}.
@@ -334,9 +334,9 @@ and request_state =
 
 and extension2 =
     (unit -> unit) ->
-      Ocsigen_http_frame.cookieset ->
+      Ocsigen_cookies.cookieset ->
       request_state ->
-      (answer * Ocsigen_http_frame.cookieset) Lwt.t
+      (answer * Ocsigen_cookies.cookieset) Lwt.t
 
 
 type extension = request_state -> answer Lwt.t
@@ -388,7 +388,7 @@ let site_match request (site_path : string list) url =
 
 
 let add_to_res_cookies res cookies_to_set =
-  if cookies_to_set = Ocsigen_http_frame.Cookies.empty then
+  if cookies_to_set = Ocsigen_cookies.Cookies.empty then
     res
   else
     {res with
@@ -409,20 +409,20 @@ let make_ext awake cookies_to_set req_state (genfun : extension) (genfun2 : exte
         in
         genfun2
           Ocsigen_lib.id (* already awoken *)
-          Ocsigen_http_frame.Cookies.empty
+          Ocsigen_cookies.Cookies.empty
           (Req_found (ri, add_to_res_cookies r' cookies_to_set))
     | Ext_found_continue_with r ->
         awake ();
         r () >>= fun (r', req) ->
         genfun2
           Ocsigen_lib.id (* already awoken *)
-          Ocsigen_http_frame.Cookies.empty
+          Ocsigen_cookies.Cookies.empty
           (Req_found (req, add_to_res_cookies r' cookies_to_set))
     | Ext_found_continue_with' (r', req) ->
         awake ();
         genfun2
           Ocsigen_lib.id (* already awoken *)
-          Ocsigen_http_frame.Cookies.empty
+          Ocsigen_cookies.Cookies.empty
           (Req_found (req, add_to_res_cookies r' cookies_to_set))
     | Ext_next e ->
         let ri = match req_state with
@@ -545,7 +545,7 @@ let rec default_parse_config
                     | (Ext_do_nothing, cookies_to_set) ->
                         Lwt.return 
                           (Ext_continue_with (oldri, 
-                                              Ocsigen_http_frame.Cookies.empty,
+                                              Ocsigen_cookies.Cookies.empty,
                                               e), cookies_to_set)
                     | r -> Lwt.return r
       in
@@ -570,7 +570,7 @@ and make_parse_config path parse_host l : extension2 =
           | Req_not_found (e, ri) ->
               Lwt.return
                 (Ext_continue_with
-                   (ri, Ocsigen_http_frame.Cookies.empty, e), cookies_to_set))
+                   (ri, Ocsigen_cookies.Cookies.empty, e), cookies_to_set))
 (* was Lwt.return (Ext_next e, cookies_to_set))
    but to use make_parse_site with userconf,
    we need to know current ri after parsing the sub-configuration.
@@ -786,7 +786,7 @@ let string_of_host (h : virtual_hosts) =
 
 
 let serve_request
-    ?(previous_cookies = Ocsigen_http_frame.Cookies.empty)
+    ?(previous_cookies = Ocsigen_cookies.Cookies.empty)
     ?(awake_next_request = false) ri =
 
   let host = ri.ri_host in

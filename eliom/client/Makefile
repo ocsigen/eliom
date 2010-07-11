@@ -7,7 +7,7 @@ OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml -syntax camlp4o
 LIBS:=
 MLS:= xML.ml xHTML.ml xHTML5.ml \
-	eliom_client_types.ml \
+	ocsigen_cookies.ml eliom_client_types.ml \
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
@@ -58,6 +58,12 @@ xhtmltypes.ml: ../../xmlp4/newocaml/pp/xhtmltypes.ml
 	cp -f $< $@ 
 
 xhtml5types.ml: ../../xmlp4/newocaml/pp/xhtml5types.ml
+	cp -f $< $@ 
+
+ocsigen_cookies.ml: ../../http/ocsigen_cookies.ml ocsigen_cookies.mli
+	cp -f $< $@ 
+
+ocsigen_cookies.mli: ../../http/ocsigen_cookies.mli
 	cp -f $< $@ 
 
 eliom_parameters.ml: ../eliom_parameters_cli.ml

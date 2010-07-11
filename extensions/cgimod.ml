@@ -510,7 +510,7 @@ let gen reg = function
                     Lwt.return
                       (Ext_retry_with ({ ri with request_info =
                                            ri_of_url loc ri.request_info },
-                                       Ocsigen_http_frame.Cookies.empty))
+                                       Ocsigen_cookies.Cookies.empty))
                   else
                     let default_result = Ocsigen_http_frame.default_result () in
                     Lwt.return

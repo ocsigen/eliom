@@ -97,7 +97,7 @@ let gen regexp = function
                 Ocsigen_extensions.ri_of_url
                   ~full_rewrite:fullrewrite
                   redir ri.request_info },
-            Ocsigen_http_frame.Cookies.empty)
+            Ocsigen_cookies.Cookies.empty)
         )
     )
     (function

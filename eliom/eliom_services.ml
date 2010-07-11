@@ -42,7 +42,7 @@ type cookie =
   | Unset of Eliom_common.cookie_type * Ocsigen_lib.url_path option * string
 
 let cookie_table_of_eliom_cookies
-    cookie_type ?(oldtable= Ocsigen_http_frame.Cookies.empty) ~sp cl =
+    cookie_type ?(oldtable= Ocsigen_cookies.Cookies.empty) ~sp cl =
   Eliommod_cookies.add_cookie_list_to_send
     cookie_type
     (Eliom_sessions.get_sitedata sp)

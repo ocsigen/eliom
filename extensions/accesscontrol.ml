@@ -218,7 +218,7 @@ let parse_config parse_fun = function
       (fun rs ->
          Ocsigen_messages.debug2 "--Access control: taking in charge 404";
          Lwt.return (Ocsigen_extensions.Ext_stop_all
-                       (Ocsigen_http_frame.Cookies.empty, 404)))
+                       (Ocsigen_cookies.Cookies.empty, 404)))
   | Element ("notfound" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("nextsite", [], []) ->
@@ -228,7 +228,7 @@ let parse_config parse_fun = function
                            (fun () -> Lwt.return r))
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ocsigen_extensions.Ext_stop_site 
-                           (Ocsigen_http_frame.Cookies.empty, 404)))
+                           (Ocsigen_cookies.Cookies.empty, 404)))
 
   | Element ("nexthost", [], []) ->
       (function
@@ -237,7 +237,7 @@ let parse_config parse_fun = function
                            (fun () -> Lwt.return r))
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ocsigen_extensions.Ext_stop_host
-                           (Ocsigen_http_frame.Cookies.empty, 404)))
+                           (Ocsigen_cookies.Cookies.empty, 404)))
   | Element ("nextsite" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("stop", [], []) ->
@@ -247,14 +247,14 @@ let parse_config parse_fun = function
                            (fun () -> Lwt.return r))
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ocsigen_extensions.Ext_stop_all
-                           (Ocsigen_http_frame.Cookies.empty, 404)))
+                           (Ocsigen_cookies.Cookies.empty, 404)))
   | Element ("stop" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("forbidden", [], []) ->
       (fun rs ->
          Ocsigen_messages.debug2 "--Access control: taking in charge 403";
          Lwt.return (Ocsigen_extensions.Ext_stop_all
-                       (Ocsigen_http_frame.Cookies.empty, 403)))
+                       (Ocsigen_cookies.Cookies.empty, 403)))
   | Element ("forbidden" as s, _, _) -> badconfig "Bad syntax for tag %s" s
 
   | Element ("iffound", [], sub) ->

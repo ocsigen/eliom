@@ -38,7 +38,7 @@ let gen configfun = function
       Lwt.return
         (Ocsigen_extensions.Ext_continue_with
            (updated_request,
-            Ocsigen_http_frame.Cookies.empty,
+            Ocsigen_cookies.Cookies.empty,
             err
            ))
 

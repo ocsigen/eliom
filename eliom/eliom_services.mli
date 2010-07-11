@@ -49,10 +49,10 @@ type cookie =
  *)
 val cookie_table_of_eliom_cookies :
   Eliom_common.cookie_type ->
-  ?oldtable:Ocsigen_http_frame.cookieset ->
+  ?oldtable:Ocsigen_cookies.cookieset ->
   sp:Eliom_sessions.server_params -> 
   cookie list -> 
-  Ocsigen_http_frame.cookieset
+  Ocsigen_cookies.cookieset
 
 
 

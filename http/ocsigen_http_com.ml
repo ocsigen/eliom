@@ -39,6 +39,7 @@ http://www.tools.ietf.org/html/draft-ietf-http-connection-00
 
 
 open Ocsigen_http_frame
+open Ocsigen_cookies
 
 (** this module provide a mecanism to communicate with some http frames *)
 
@@ -905,8 +906,8 @@ let send
     Ocsigen_lib.String_Table.fold
       (fun name c h ->
         let exp, v, secure = match c with
-        | Ocsigen_http_frame.OUnset -> (Some 0., "", false)
-        | Ocsigen_http_frame.OSet (t, v, secure) -> (t, v, secure)
+        | Ocsigen_cookies.OUnset -> (Some 0., "", false)
+        | Ocsigen_cookies.OSet (t, v, secure) -> (t, v, secure)
         in
         Http_headers.add 
           Http_headers.set_cookie (mkcook path exp name v secure) h)

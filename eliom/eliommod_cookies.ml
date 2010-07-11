@@ -330,28 +330,28 @@ let compute_session_cookies_to_send
                 (match old, newc with
                   | None, None -> beg
                   | Some _, None ->
-                    Ocsigen_http_frame.add_cookie
+                    Ocsigen_cookies.add_cookie
                       sitedata.Eliom_common.site_dir
                       (Eliom_common.make_full_cookie_name cookiename name)
-                      Ocsigen_http_frame.OUnset
+                      Ocsigen_cookies.OUnset
                       beg
               (* the path is always site_dir because the cookie cannot
                  have been unset by a service outside
                  this site directory *)
                   | None, Some (v, exp) ->
-                    Ocsigen_http_frame.add_cookie
+                    Ocsigen_cookies.add_cookie
                       sitedata.Eliom_common.site_dir
                       (Eliom_common.make_full_cookie_name cookiename name)
-                      (Ocsigen_http_frame.OSet (ch_exp exp, v, secure))
+                      (Ocsigen_cookies.OSet (ch_exp exp, v, secure))
                       beg
                   | Some oldv, Some (newv, exp) ->
                     if exp = Eliom_common.CENothing && oldv = newv
                     then beg
                     else 
-                      Ocsigen_http_frame.add_cookie
+                      Ocsigen_cookies.add_cookie
                         sitedata.Eliom_common.site_dir
                         (Eliom_common.make_full_cookie_name cookiename name)
-                        (Ocsigen_http_frame.OSet (ch_exp exp, newv, secure))
+                        (Ocsigen_cookies.OSet (ch_exp exp, newv, secure))
                         beg
                 )
           )
@@ -392,11 +392,11 @@ let add_cookie_list_to_send cookie_type sitedata l t =
     (fun t v ->
       match v with
       | Eliom_common.Set (ct, upo, expo, n, v, secure) when ct = cookie_type ->
-        Ocsigen_http_frame.add_cookie (change_pathopt upo) n
-          (Ocsigen_http_frame.OSet (expo, v, secure)) t
+        Ocsigen_cookies.add_cookie (change_pathopt upo) n
+          (Ocsigen_cookies.OSet (expo, v, secure)) t
       | Eliom_common.Unset (ct, upo, n) when ct = cookie_type ->
-        Ocsigen_http_frame.add_cookie (change_pathopt upo) n
-          Ocsigen_http_frame.OUnset t
+        Ocsigen_cookies.add_cookie (change_pathopt upo) n
+          Ocsigen_cookies.OUnset t
       | _ -> t
     )
     t

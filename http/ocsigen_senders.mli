@@ -59,7 +59,7 @@ module Directory_content :
 (** error code and/or exception *)
 module Error_content :
   Ocsigen_http_frame.HTTP_CONTENT
-with type t = int option * exn option * Ocsigen_http_frame.cookieset
+with type t = int option * exn option * Ocsigen_cookies.cookieset
 
 
 
@@ -71,7 +71,7 @@ val send_error :
     clientproto:Ocsigen_http_frame.Http_header.proto ->
     ?mode:Ocsigen_http_frame.Http_header.http_mode ->
     ?proto:Ocsigen_http_frame.Http_header.proto ->
-    ?cookies:Ocsigen_http_frame.cookieset ->
+    ?cookies:Ocsigen_cookies.cookieset ->
     head:bool ->
     sender:Ocsigen_http_com.sender_type ->
     unit ->

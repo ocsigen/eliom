@@ -34,7 +34,7 @@ exception NoConfFile
 (*****************************************************************************)
 
 let err_500 =
-  Ocsigen_extensions.Ext_stop_site (Ocsigen_http_frame.Cookies.empty, 500)
+  Ocsigen_extensions.Ext_stop_site (Ocsigen_cookies.Cookies.empty, 500)
 
 
 (* Catch invalid userconf files and report an error *)
@@ -93,7 +93,7 @@ let subresult new_req user_parse_site conf previous_err req req_state =
          (fun e ->
             handle_parsing_error req e >>=
             fun answer ->
-            Lwt.return (answer, Ocsigen_http_frame.Cookies.empty))
+            Lwt.return (answer, Ocsigen_cookies.Cookies.empty))
     )
 
 
