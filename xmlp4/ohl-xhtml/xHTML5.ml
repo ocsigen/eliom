@@ -1336,10 +1336,9 @@ module type T =
 
 (** {2 Link} *)
 
-    val link : rel:linktypes ->
-      ([< common | `Hreflang | `Href | `Media
+    val link : rel:linktypes -> href:uri ->
+      ([< common | `Hreflang | `Media
        | `Sizes | `Mime_type ], [>`Link]) nullary
-        (* SC: link may have no href attribute *)
 
 (** [?encode] maps strings to HTML and {e must} encode the unsafe characters
     ['<'], ['>'], ['"'], ['&'] and the control characters 0-8, 11-12, 14-31, 127
@@ -2161,8 +2160,8 @@ module Version =
    let style ?(a = []) elts =
       XML.node ~a "style" elts
 
-    let link ~rel ?(a = []) () =
-      XML.leaf ~a:(a_rel rel :: a) "link"
+    let link ~rel ~href ?(a = []) () =
+      XML.leaf ~a:(a_rel rel :: a_href href :: a) "link"
 
     let base = terminal "base"
 
