@@ -1217,6 +1217,7 @@ module type T =
    (* XXX: label do not authorize form elements instead the one they label. *)
       
    val label : ([< common | `For | `Form ],[< phrasing_without_label], [>`Label]) star
+  (* XXX: If the attribute is true, it is not interactive content *)
    val input : ([< common | `Accept | `Alt | `Autocomplete
                 | `Autofocus | `Checked | `Disabled | `Form
                 | `Formation | `Formenctype | `Formmethod
@@ -1243,7 +1244,7 @@ module type T =
                   [< phrasing_without_interactive ], [>`Button]) star
 
     val select : ([< common |`Autofocus | `Multiple | `Name | `Size | `Form | `Disabled ], [ `Optgroup | `Option ],[>`Select]) star
-    val datalist : ?child:([< `Options of ([< `Option ] elt list) | `Phras of ([< phrasing ] elt list) ]) -> ([< common ], [>`Datalist]) nullary
+    val datalist : ?children:([< `Options of ([< `Option ] elt list) | `Phras of ([< phrasing ] elt list) ]) -> ([< common ], [>`Datalist]) nullary
     val optgroup : label:text ->
       ([< common | `Disabled ],
        [< `Option ], [>`Optgroup]) star
@@ -2091,8 +2092,11 @@ module Version =
     let select = star "select"
     let textarea = unary "textarea"
     let button = star "button"
-    let datalist ?child ?a ()=
-      XML.node ?a "datalist" (opt_option child)
+    let datalist ?children ?a () =
+      let children = match children with
+          Some (`Options x) -> x | Some (`Phras x) -> x | None -> []
+      in
+      XML.node ?a "datalist" children
     let progress = star "proress"
     let legend = star "legend"
     let details = plus "details"
