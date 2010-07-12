@@ -22,6 +22,8 @@
 exception Failed_service of int
 
 let (>>=) = Lwt.bind
+let (!!) = Lazy.force
+
 let current_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
@@ -207,7 +209,7 @@ let make_cookie_nlp' https path nl_params =
   let cookielist = Eliommod_client_cookies.get_cookies_to_send https path in
   Eliom_parameters.add_nl_parameter
     nl_params
-    Eliom_process.cookies_nlp
+    Eliom_parameters.tab_cookies_nlp
     cookielist
 
 let make_cookie_nlp ~https ~service nl_params g =
@@ -236,7 +238,7 @@ let change_page
     ?hostname ?port ?fragment ?keep_nl_params
     ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
     (g : 'get) (p : 'post) =
-  if Eliom_services.get_application_name service <> (Some appl_name)
+  if Eliom_services.get_application_name service <> (Some !!appl_name)
   then
     Lwt.return (exit_to
                   ?absolute ?absolute_path ?https

@@ -522,3 +522,14 @@ let rec contains_suffix = function
          | c -> c)
   | TSuffix (b, _) -> Some b
   | _ -> None
+
+
+(*****************************************************************************)
+
+
+(* Predefined nl parameter for tab cookies. *)
+let tab_cookies_nlp = 
+  make_non_localized_parameters
+    ~prefix:"__eliom"
+    ~name:"cookies"
+    (list "l" (string "n" ** string "v"))

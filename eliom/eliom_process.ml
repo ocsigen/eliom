@@ -45,7 +45,7 @@ let get_application_name ~sp =
   with Not_found -> None
     (* If it is a Eliom_app service, 
        the value has already been set in pre_service. *)
-    
+
 let get_content_only ~sp =
   let esp = Eliom_sessions.esp_of_sp sp in
   let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in

@@ -428,7 +428,7 @@ let _ =
                   () ()
               }}
             ]
-            [pcdata "Click here to go to a page that launches the application every time."];
+            [pcdata "Click here to go to a page that launches the application every time (this link does not work if the appl is not launched)."];
           p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:gotowithoutclient
                [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];

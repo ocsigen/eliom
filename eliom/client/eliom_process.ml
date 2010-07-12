@@ -23,12 +23,13 @@ include Eliom_process_cli
 
 
 let appl_name = 
-  let (_, v, _) =
-    (Ocsigen_lib.String_Table.find
-       Eliom_common.appl_name_cookie_name
-       (Ocsigen_cookies.Cookies.find
-          [""]
-          !(Eliommod_client_cookies.cookie_table)))
-  in v
+  lazy 
+    (let (_, v, _) =
+       (Ocsigen_lib.String_Table.find
+          Eliom_common.appl_name_cookie_name
+          (Ocsigen_cookies.Cookies.find
+             []
+             !(Eliommod_client_cookies.cookie_table)))
+     in v)
 
-let get_application_name ~sp = Some appl_name
+let get_application_name ~sp = Some (Lazy.force appl_name)

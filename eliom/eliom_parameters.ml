@@ -390,12 +390,6 @@ let get_non_localized_post_parameters ~sp p =
 
 
 (* tab cookies: *)
-let tab_cookies_nlp =
-  make_non_localized_parameters
-    ~prefix:"__eliom"
-    ~name:"tab_cookies"
-    (list "l" (string "n" ** string "v"))
-
 
 let request_tab_cookies_key = Polytables.make_key ()
 

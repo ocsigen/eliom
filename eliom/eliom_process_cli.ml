@@ -19,14 +19,6 @@
  *)
 
 
-open Eliom_parameters
 
 
-(* Predefined nl parameter for tab cookies. *)
-let cookies_nlp = 
-  Eliom_parameters.make_non_localized_parameters
-    ~prefix:"Eliom"
-    ~name:"cookies"
-    (Eliom_parameters.list "l"
-       (Eliom_parameters.string "name" ** Eliom_parameters.string "value"))
 
