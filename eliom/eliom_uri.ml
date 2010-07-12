@@ -44,7 +44,9 @@ let rec string_of_url_path_suff u = function
   | Some suff -> 
       let pref = string_of_url_path' u in
       let suf = string_of_url_path' suff in
-      if pref = "" then suf else String.concat "/" [pref; suf]
+      if pref = ""
+      then suf
+      else String.concat "/" [pref; suf]
 
 let reconstruct_absolute_url_path = string_of_url_path_suff
 
@@ -294,11 +296,10 @@ let make_uri_components
     match suff with
       | None -> uri
       | Some suff ->
-          if uri = "./" 
-          then 
-            let r = string_of_url_path' suff in
-            if String.length r = 0 then "./" else r
-          else String.concat "/" [uri; string_of_url_path' suff]
+        let suff = string_of_url_path' suff in
+        if uri.[String.length uri - 1] = '/'
+        then uri ^ suff
+        else String.concat "/" [uri; suff]
   in
   let fragment = Ocsigen_lib.apply_option Ocsigen_lib.encode fragment in
   (uri, (params@pregetparams), fragment)
