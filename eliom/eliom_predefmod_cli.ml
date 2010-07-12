@@ -1698,7 +1698,7 @@ module Xhtml5forms_ = struct
 
   let make_pcdata s = pcdata s
 
-  let make_a ?(a=[]) ?href ?onclick l : a_elt =
+  let make_a ?(a=[]) ?href ?onclick (l : a_content_elt_list) : a_elt =
     let a = match href with
       | None -> a
       | Some v -> (a_href (uri_of_string v))::a
@@ -1789,7 +1789,7 @@ module Xhtml5forms_ = struct
     link ~href:uri ~rel:[`Stylesheet]  ~a:((a_mime_type "text/css")::a) ()
 
   let make_js_script ?(a=[]) ~uri () =
-    script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
+    script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
   let register_event node = XML.register_event (XHTML5.M.toelt node)
 

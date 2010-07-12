@@ -33,8 +33,8 @@ type tag = [ `Br | `Span | `Bdo | `Map | `Object | `Img | `Tt | `I | `B | `Big
 open XHTML5.M;
 type xhtml = [ = `Html ];
 type form = [ = `Form ];
-type a = [ = `A ];
-type img = [ = `Img ];
+type a = [ = `A of flow5_without_interactive ];
+type img = [ = `Img of on_off ];
 type link = [ = `Link ];
 type script = [ = `Script ];
 type input = [ = `Input ];
@@ -56,7 +56,7 @@ type form_content = flow5_without_form;
 type blockquote_content = flow5;
 type map_content = [ = phrasing | `Area ];
 type label_content = text;
-type a_content = phrasing_without_interactive;
+type a_content = flow5_without_interactive;
 type pre_content = phrasing;
 type dl_content = [ = `Dd | `Dt ];
 type optgroup_content = [ = `Option ];
@@ -148,8 +148,8 @@ type tfoot_content = tbody_content;
 type a_attrib =
   [ = common | `Href | `Hreflang | `Media | `Rel | `Target | `Mime_type ];
 type link_attrib =
-  [ = common | `Href | `Hreflang | `Media
-  | `Rel | `Sizes | `Mime_type ];
+  [ = common | `Hreflang | `Media
+  | `Sizes | `Mime_type ];
 type script_attrib = 
   [ = common | `Async | `Charset | `Src | `Defer |`Mime_type ];
 type form_attrib =

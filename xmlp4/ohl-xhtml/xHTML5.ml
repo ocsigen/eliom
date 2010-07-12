@@ -901,6 +901,8 @@ module type T =
   (********************************)
     val head : ?a:([< common ] attrib list) ->
        [< `Title ] elt -> [< metadata_without_title ] elt list -> [>`Head] elt
+    val base : ([< common | `Href | `Target], [> `Base ]) nullary
+
     val title : ([< common], [< `PCDATA],[>`Title]) unary
     val body : ([< common | `OnAfterPrint | `OnBeforePrint | `OneBeforeUnload
                 | `OnHashChange
@@ -1984,7 +1986,6 @@ module Version =
     let var = star "var"
 
     let a = star "a"
-    let a_flow = star "a"
 
     let dl ?a list = XML.node ?a "dl" 
       (List.concat (List.map (fun ((elt, elts), (elt', elts')) -> elt :: elts @ elt' :: elts') list))
@@ -2046,11 +2047,8 @@ module Version =
     let area ~alt ?(a = []) () =
       XML.leaf ~a:(a_alt alt :: a) "area"
     let map = plus "map"
-    let map_flow = plus "map"
     let del = star "del"
-    let del_flow = star "del"
     let ins = star "ins"
-    let ins_flow = star "ins"
     let script ?(a = []) elt =
       XML.node ~a "script" [elt]
     let noscript = plus "noscript"
@@ -2073,7 +2071,6 @@ module Version =
    let video = video_audio "video"
 
     let canvas = star "canvas"
-    let canvas_flow = star "canvas"
     let command ~label ?(a = []) () =
       XML.leaf ~a:(a_label label :: a) "command"
     let menu ?child ?a () =

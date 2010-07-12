@@ -1885,7 +1885,7 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
     let add_css (a : 'a) : 'a =
       let css =
         XHTML5.M.toelt
-          (XHTML5.M.style ~contenttype:"text/css"
+          (XHTML5.M.style
              [XHTML5.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"])
       in
       let rec aux = function
