@@ -21,12 +21,14 @@
 
 include Eliom_process_cli
 
-let appl_name = Js.to_string (Js.Unsafe.variable "appl_name")
+
+let appl_name = 
+  let (_, v, _) =
+    (Ocsigen_lib.String_Table.find
+       Eliom_common.appl_name_cookie_name
+       (Ocsigen_cookies.Cookies.find
+          [""]
+          !(Eliommod_client_cookies.cookie_table)))
+  in v
 
 let get_application_name ~sp = Some appl_name
-
-let process_id = Js.to_string (Js.Unsafe.variable "process_id")
-
-let get_process_id ~sp = Some process_id
-
-

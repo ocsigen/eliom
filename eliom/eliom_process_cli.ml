@@ -21,16 +21,6 @@
 
 open Eliom_parameters
 
-(* Two predefined nl parameters for Eliom applications.
-   If present, the Eliom_appl module will send only the body content
-   and not headers.
-*)
-let eliom_appl_nlp = 
-  Eliom_parameters.make_non_localized_parameters
-    ~prefix:"Eliom"
-    ~name:"appl_request"
-    (Eliom_parameters.string "appl" ** Eliom_parameters.string "process")
-
 
 (* Predefined nl parameter for tab cookies. *)
 let cookies_nlp = 

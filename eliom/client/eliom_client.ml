@@ -31,8 +31,6 @@ let appl_name = Eliom_process.appl_name
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
-let process_id = Eliom_process.process_id
-
 let http_get url get_args = XmlHttpRequest.send ~get_args url
 let http_post url post_args = XmlHttpRequest.send ~post_args url
 
@@ -265,7 +263,7 @@ let change_page
     >>= fun ((code, s), uri) ->
     set_inner_html code s >>= fun () ->
 (*VVV The URL is created twice ... 
-  Once with eliom_process_id (for the request), 
+  Once with tab cookies nlp (for the request), 
   and once without it (we do not want it to appear in the URL).
   How to avoid this?
 *)

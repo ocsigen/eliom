@@ -9,11 +9,10 @@ LIBS:=
 MLS:= xML.ml xHTML.ml xHTML5.ml \
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
-	ocsigen_cookies.ml eliom_client_types.ml \
+	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
 	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
 	eliom_process_cli.ml eliom_process.ml \
 	eliom_services.ml eliom_uri.ml \
-	eliommod_client_cookies.ml \
 	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
 	eliom_mkforms.ml polytables.ml \
 	xhtmltypes.ml xhtml5types.ml eliom_predefmod.ml \

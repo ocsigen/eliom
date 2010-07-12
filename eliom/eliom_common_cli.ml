@@ -89,6 +89,7 @@ let na_co_param_prefix = "__na_eliom_"
 let nl_param_prefix = "__nl_"
 let pnl_param_prefix = nl_param_prefix^"p_"
 let npnl_param_prefix = nl_param_prefix^"n_"
+let appl_name_cookie_name = "__eliom_appl_name"
 
 let nl_is_persistent n = n.[0] = 'p'
 

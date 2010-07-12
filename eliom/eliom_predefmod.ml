@@ -1606,7 +1606,7 @@ module Eliom_appl_reg_
 
   type return = Eliom_services.appl_service
 
-  let get_cook sp cookies =
+  let get_tab_cook sp cookies =
     Eliommod_cookies.compute_cookies_to_send
       Eliom_common.CTab
       (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_sitedata
@@ -1673,18 +1673,7 @@ redir ();"))::
                                  (reqnum, XML.ref_node container_node))
                            )) ; "\'; \n";
 
-                          "var appl_name = \'";
-                          (Eliom_client_types.string_escape
-                             Appl_params.application_name
-                          ) ; "\'; \n"
-                            
-                          ; "var process_id = \'" ;
-                          (match Eliom_process.get_process_id ~sp with
-                            | Some s -> s
-                            | None -> "<error: process id not created>"
-                          ) ; "\'; \n"
-                            
-                          ; "var eliom_data = \'" ;
+                          "var eliom_data = \'" ;
                           (Eliom_client_types.jsmarshal
                              ((Ocsigen_lib.Left
                                  (XML.make_ref_tree (XHTML.M.toelt body)),
@@ -1715,42 +1704,70 @@ redir ();"))::
       body
 
   let pre_service ?(options = false) ~sp =
-    (* If we launch a new application, we must set the application name
-       and create an application instance id *)
-    if options ||
-      Eliom_process.get_content_only ~sp (* the application already exists *)
-    then Lwt.return ()
-    else begin
-      let rc = Eliom_sessions.get_request_cache ~sp in
-      Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
-        ~value:(Some Appl_params.application_name);
-      Polytables.set ~table:rc ~key:Eliom_process.process_key 
-        ~value:(Some (Eliommod_cookies.make_new_session_id ()));
-      Lwt.return ()
-    end
-
+    (* If we launch a new application, we must set the application name.
+       Otherwise, we get it from cookie. *)
+    let rc = Eliom_sessions.get_request_cache ~sp in
+(*
+    (match ... with
+      | Some appl_name_cookie ->
+        Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
+          ~value:appl_name_cookie;
+        Polytables.set ~table:rc ~key:Eliom_process.content_only_key
+          ~value:true
+      | None -> (* The application was not launched *)
+        if not options
+        then
+          Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
+            ~value:(Some Appl_params.application_name)
+        else
+          Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
+            ~value:None;
+        Polytables.set ~table:rc ~key:Eliom_process.content_only_key
+          ~value:false);
+*)
+    Lwt.return ()
+    
   let application_name = Some Appl_params.application_name
 
   let send ?(options = false) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     let content_only = Eliom_process.get_content_only ~sp in
-    get_cook sp cookies >>= fun cookies_to_send ->
     (if content_only
 (*VVV do not send container! *)
      then 
+        get_tab_cook sp cookies >>= fun tab_cookies_to_send ->
 (*VVV Here we do not send a stream *)
         Caml.send ~sp (((Ocsigen_lib.Right
                            (XML.make_ref_tree_list (XHTML.M.toeltl content)),
                          (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
-                         cookies_to_send),
+                         tab_cookies_to_send),
 (*VVV Use another serialization format than XML for the page? *)
                         Xhtmlcompact'.xhtml_list_print content) :
                           Eliom_client_types.eliom_data_type * string
         )
      else 
+        get_tab_cook sp
+          ((Eliom_services.Set (Eliom_common.CTab,
+                                None,
+                                None,
+                                Eliom_common.appl_name_cookie_name,
+                                Appl_params.application_name,
+                                false)
+           )::cookies)
+        >>= fun tab_cookies_to_send ->
+        let do_not_launch = options (* || 
+          (Ocsigen_cookies.length tab_cookies_to_send > 1)
+          (* If there are cookies, we launch the application *)
+                                       Actually, no, we trust options ...
+                                       Because we must decide whether to launch
+                                       the application or not before
+                                       creating links and forms.
+                                    *)
+        in
 (*VVV for now not possible to give other params for one page *)
         let page =
-          create_page ~sp Appl_params.params options cookies_to_send content 
+          create_page
+            ~sp Appl_params.params do_not_launch tab_cookies_to_send content 
         in
         let options = Appl_params.params.ap_doctype in
         Xhtml_content.result_of_content ~options page)
