@@ -18,17 +18,13 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  *)
 
-(* I had based on the file xHTML.ml to create xHTML5.ml
-*)
-
-(* to do :
-   attributes srcdoc, script-documentation, input_value
-   module MathML and Svg
-   element noscript may be transparent
+(* TODO :
+   - MathML and SVG
+   - forbid construction like that noscript (a [a []])
+   by playing on interactive_without*
 *)
 
 (* IDEAS:
-
      The [a_] prefix would have to be maintained and the
      only advantage are a potentially better mapping of the XHTML modularization
      to O'Caml modules. *)
@@ -542,9 +538,8 @@ module type T =
 
 
 
-(* VB *)
     val a_datetime : cdata -> [>`Datetime] attrib
-(* VB *)
+
 
     val a_action : uri -> [>`Action] attrib
 (** This attribute specifies a form processing agent. User agent
@@ -593,7 +588,7 @@ module type T =
 (** This attribute specifies the initial value of the control. If this
     attribute is not set, the initial value is set to the contents of
     the [option] element. *)
-    val a_int_value : number ->[>`Int_Value] attrib
+    val a_int_value : number -> [>`Int_Value] attrib
 
 (*VVV NO *)
     val a_value : cdata -> [>`Value] attrib
@@ -653,9 +648,7 @@ module type T =
     val a_content : text -> [>`Content] attrib
     val a_http_equiv : text -> [>`Http_equiv] attrib
 
-(* VB *)
     val a_defer : [< `Defer ] -> [>`Defer] attrib
-(* VB *)
 
     val a_media : mediadesc -> [>`Media] attrib
 
@@ -683,19 +676,25 @@ module type T =
 
         
 
-        (* transparents are
-           - links
-           - noscript
-           - ins / del
-           - object with attribute usemap, 
-           - audio/vidoe with attribute controls set
-        *)
 
-    (* a boolean at the type-level *)
+    (** Boolean to the type-level. Used to know whether some
+        element has some attribute. For instance, it is used
+        to know if a <img> element has an attribute usemap. *)
+    type on_off = [ `On | `Off ]
     type on = [ `On ] 
     type off = [ `Off ] 
-    type on_off = [ on | off ]
 
+
+    (** Transparent elements. 
+        Such elements have a part of they children in their dataconstructor,
+        and behaves like them. We could do something like [a: 'a elt list -> 'a elt]
+        but the information about the node name would be forgotten and would allow
+        things like that : [p [a [a []]]]. 
+        This system allow to build non-conforming terms such as [a [a []]] but when passed
+        to a standard element (such as [p]), it will yield an error.
+        Exception to that : if you embdedd the element in another transparent (of an
+        another kind) : [p [noscript (a [a []])]] will be correctly typed.
+    *)
     type ('interactive, 'noscript, 'regular, 'media) transparent = 
       [ `A of 'interactive 
       | `Noscript of 'noscript 
@@ -734,8 +733,8 @@ module type T =
 
     (** Interactive contents : contents that require user-interaction 
         (Forms, link, etc.) *)
-    (** Core element types are element types without transparent. *)
 
+    (** Core element types are element types without transparent. *)
     type core_interactive = [ `Textarea | `Select | `Menu | `Label 
                             | `Keygen | `Input | `Img of on | `Iframe | `Embed | `Details | `Button ]
  
@@ -789,13 +788,6 @@ module type T =
       | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Kbd
       | `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA 
       | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_label, phrasing_without_media) transparent]
-
-    (* XXX: unused ? *)
-    type phrasing_without_lab_form_and_label = [ `Wbr | `Var | `Time | `Sup | `Sub 
-                                               | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q 
-                                               | `Mark | `Kbd | `I |`Em | `Dfn 
-                                               | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA 
-                                               | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_lab_form_and_label, phrasing_without_media) transparent ]
 
     type phrasing_without_progress = [resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
                                      | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Meter | `Mark 
@@ -1216,10 +1208,14 @@ module type T =
      ([< common | `Disabled | `Form | `Name], [< flow5 ], [>`Fieldset]) star
    val legend : ([< common ],[< phrasing], [>`Legend]) star
 
-   (* XXX: label do not authorize form elements instead the one they label. *)
-      
+    (** Label authorizes only one  control inside them
+        that should be labelled with a [for] attribute
+        (although it is not necessary). Such constraints are not currently
+        enforced by the type-system *)
    val label : ([< common | `For | `Form ],[< phrasing_without_label], [>`Label]) star
-  (* XXX: If the attribute is true, it is not interactive content *)
+
+    (** If the [type] attribute is not "hidden", must be considered
+        as interactive. Distinction not made for now. *)
    val input : ([< common | `Accept | `Alt | `Autocomplete
                 | `Autofocus | `Checked | `Disabled | `Form
                 | `Formation | `Formenctype | `Formmethod
@@ -2285,11 +2281,6 @@ module Version =
       | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Kbd
       | `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA 
       | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_label, phrasing_without_media) transparent]
-    type phrasing_without_lab_form_and_label = [ `Wbr | `Var | `Time | `Sup | `Sub 
-                                               | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q 
-                                               | `Mark | `Kbd | `I |`Em | `Dfn 
-                                               | `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr |`PCDATA 
-                                               | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_lab_form_and_label, phrasing_without_media) transparent ]
 
     type phrasing_without_progress = [resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong 
                                      | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Meter | `Mark 
@@ -2375,7 +2366,6 @@ module Version =
       | `XHTML_01_01 ->
           compose_doctype "html" ["-//W3C//DTD XHTML 1.1//EN";
                                   "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"]
-(*VVV Vérifier !!! *)
       | `XHTML_05_00 -> "<!DOCTYPE html>"
       | `Doctype s -> s
 
