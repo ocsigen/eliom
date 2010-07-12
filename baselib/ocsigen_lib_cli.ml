@@ -38,7 +38,7 @@ let add_to_string s1 sep = function
 let concat_strings s1 sep s2 = match s1, s2 with
 | _, "" -> s1
 | "", _ -> s2
-| _ -> s1^sep^s2
+| _ -> String.concat sep [s1;s2]
 
 
 type url_path = string list

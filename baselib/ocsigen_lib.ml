@@ -509,90 +509,80 @@ let string_of_url_path ~encode l =
                            MyUrl.encode l))
   else String.concat "/" l (* BYXXX : check illicit characters *)
 
+
 let parse_url =
 
   (*SSS Neturl doesn't recognize http://[2002::1]:80. Workaround: we
     chop the http://host:port part and use Neturl for the rest.
     We do not accept http://login:pwd@host:port (should we?). *)
-  let url_re = Netstring_pcre.regexp "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?(/.*)$" in
-  let url_relax_re = Netstring_pcre.regexp "^[Hh][Tt][Tt][Pp][Ss]?://[^/]+" in
-
+  let url_re = Netstring_pcre.regexp "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$" in
+  let short_url_re = Netstring_pcre.regexp "^/([^\\?]*)(\\?(.*))?$" in
+(*  let url_relax_re = Netstring_pcre.regexp "^[Hh][Tt][Tt][Pp][Ss]?://[^/]+" in
+*)
   fun url ->
 
-    let fixed_url = fixup_url_string url in
+    let match_re = Netstring_pcre.string_match url_re url 0 in
 
-    let (https, host, port, url2) =
-      try
-        let url2 = Neturl.parse_url
-          ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
-          fixed_url
-        in
-        let https = 
-          try (match Neturl.url_scheme url2 with
-                 | "http" -> Some false
-                 | "https" -> Some true
-                 | _ -> None) 
-          with Not_found -> None 
-        in
-        let host = try Some (Neturl.url_host url2) with Not_found -> None in
-        let port = try Some (Neturl.url_port url2) with Not_found -> None in
-        (https, host, port, url2)
-      with Neturl.Malformed_URL ->
-        match Netstring_pcre.string_match url_re url 0 with
-          | None -> raise Neturl.Malformed_URL
-          | Some m ->
-              let url2 = Neturl.parse_url
-                ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
-                (fixup_url_string (Netstring_pcre.matched_group m 5 url)) in
-              let https =
-                try (match Netstring_pcre.matched_group m 1 url with
-                       | "http" -> Some false
-                       | "https" -> Some true
-                       | _ -> None)
-                with Not_found -> None in
-              let host =
-                try Some (Netstring_pcre.matched_group m 2 url)
-                with Not_found -> None in
-              let port =
-                try Some (int_of_string (Netstring_pcre.matched_group m 4 url))
-                with Not_found -> None in
-              (https, host, port, url2)
+    let (https, host, port, pathstring, query) =
+      match match_re with
+        | None ->
+          (match Netstring_pcre.string_match short_url_re url 0 with
+            | None -> raise Ocsigen_Bad_Request
+            | Some m ->
+              let path = 
+                fixup_url_string (Netstring_pcre.matched_group m 1 url)
+              in
+              let query =
+                try 
+                  Some (fixup_url_string (Netstring_pcre.matched_group m 3 url))
+                with Not_found -> None 
+              in
+              (None, None, None, path, query))
+        | Some m ->
+          let path = fixup_url_string (Netstring_pcre.matched_group m 5 url) in
+          let query =
+            try Some (fixup_url_string (Netstring_pcre.matched_group m 7 url))
+            with Not_found -> None
+          in
+          let https =
+            try (match Netstring_pcre.matched_group m 1 url with
+              | "http" -> Some false
+              | "https" -> Some true
+              | _ -> None)
+            with Not_found -> None in
+          let host =
+            try Some (Netstring_pcre.matched_group m 2 url)
+            with Not_found -> None in
+          let port =
+            try Some (int_of_string (Netstring_pcre.matched_group m 4 url))
+            with Not_found -> None in
+          (https, host, port, path, query)
     in
-
-    (* We don't do it before because we don't want [] of IPv6
-       addresses to be escaped *)
-    let url = fixed_url in
-
-    (* We keep only the path part of the URL *)
-    let url = Netstring_pcre.replace_first url_relax_re "" url in
 
     (* Note that the fragment (string after #) is not sent by browsers *)
 
-    let params =
-      try Some (Neturl.url_query ~encoded:true url2)
-      with Not_found -> None
-    in
-
     let get_params =
       lazy begin
-        let params_string =
-          try Neturl.url_query ~encoded:true url2
-          with Not_found -> ""
-        in try 
+        let params_string = match query with None -> "" | Some s -> s in
+        try 
           Netencoding.Url.dest_url_encoded_parameters params_string
         with Failure _ -> raise Ocsigen_Bad_Request
       end
     in
 
-    let path =
-      remove_dotdot (* and remove "//" *)
-        (remove_slash_at_beginning (Neturl.url_path url2))
+    let path = List.map Netencoding.Url.decode (Neturl.split_path pathstring) in
+
+    let path = remove_dotdot path (* and remove "//" *)
         (* here we remove .. from paths, as it is dangerous.
            But in some very particular cases, we may want them?
            I prefer forbid that. *)
     in
+    let uri_string = match query with
+      | None -> pathstring
+      | Some s -> String.concat "?" [pathstring; s]
+    in
 
-    (https, host, port, url, url2, path, params, get_params)
+    (https, host, port, uri_string, path, query, get_params)
 
 
 

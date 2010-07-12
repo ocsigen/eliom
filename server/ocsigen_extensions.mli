@@ -136,7 +136,6 @@ type ifrange = IR_No | IR_Ifunmodsince of float | IR_ifmatch of string
 (** The request *)
 type request_info =
     {ri_url_string: string; (** full URL *)
-     ri_url: Neturl.url;
      ri_method: Ocsigen_http_frame.Http_header.http_method; (** GET, POST, HEAD... *)
      ri_protocol: Ocsigen_http_frame.Http_header.proto; (** HTTP protocol used by client (1.0 or 1.1) *)
      ri_ssl: bool; (** true if HTTPS, false if HTTP *)

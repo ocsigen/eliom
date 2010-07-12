@@ -102,7 +102,7 @@ val extension_no_directory : string -> string
 val fixup_url_string : string -> string
 val parse_url : string ->
   bool option * string option * int option *
-    string * Neturl.url * string list * string option *
+    string * string list * string option *
     (string * string) list Lazy.t
 
 val make_absolute_url : 

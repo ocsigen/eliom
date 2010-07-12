@@ -189,7 +189,6 @@ type ifrange = IR_No | IR_Ifunmodsince of float | IR_ifmatch of string
 
 type request_info =
     {ri_url_string: string;
-     ri_url: Neturl.url;
      ri_method: Ocsigen_http_frame.Http_header.http_method;
      ri_protocol: Ocsigen_http_frame.Http_header.proto; (** HTTP protocol used by client *)
      ri_ssl: bool; (** true if HTTPS, false if HTTP *)
@@ -889,7 +888,7 @@ let serve_request
 
 (* used to modify the url in ri (for example for retrying after rewrite) *)
 let ri_of_url ?(full_rewrite = false) url ri =
-  let (_, host, _, url, url2, path, params, get_params) = parse_url url in
+  let (_, host, _, url, path, params, get_params) = parse_url url in
   let host = match host with
     | Some h -> host
     | None -> ri.ri_host
@@ -903,7 +902,6 @@ let ri_of_url ?(full_rewrite = false) url ri =
      (* ri_original_full_path is not changed *)
   {ri with
    ri_url_string = url;
-   ri_url = url2;
    ri_host = host;
    ri_full_path_string = path_string;
    ri_full_path = path;

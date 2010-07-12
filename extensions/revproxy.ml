@@ -97,7 +97,7 @@ let gen dir = function
        let (https, host, port, uri) = 
          try
            match Ocsigen_lib.parse_url dest with
-             | (Some https, Some host, port, uri, _, _, _, _) -> 
+             | (Some https, Some host, port, uri, _, _, _) -> 
                  let port = match port with
                    | None -> if https then 443 else 80
                    | Some p -> p

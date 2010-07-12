@@ -128,6 +128,8 @@ let dbg sockaddr s =
 
 let r_content_type = Netstring_pcre.regexp "([^ ]*)"
 
+let http_url_syntax = Hashtbl.find Neturl.common_url_syntax "http"
+
 let rec find_post_params http_frame ct filenames uploaddir =
   match http_frame.Ocsigen_http_frame.frame_content with
     | None -> return ([], [])
@@ -249,7 +251,7 @@ let get_request_infos
   Lwt.catch
     (fun () ->
 
-       let (_, headerhost, headerport, url, parsed_url, path, params, get_params) =
+       let (_, headerhost, headerport, url, path, params, get_params) =
          Ocsigen_lib.parse_url url
        in
 
@@ -336,7 +338,6 @@ let get_request_infos
 
        Lwt.return
          {ri_url_string = url;
-          ri_url = parsed_url;
           ri_method = meth;
           ri_protocol = http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.proto;
           ri_ssl = Lwt_ssl.is_ssl (Ocsigen_http_com.connection_fd receiver);
@@ -667,7 +668,7 @@ let service receiver sender_slot request meth url port sockaddr =
                        urls become correct *)
                     Ocsigen_messages.debug2 "-> Sending 301 Moved permanently";
                     let port = Ocsigen_extensions.get_port request in
-                    let new_url = Neturl.default_url
+                    let new_url = Neturl.make_url
                       ~scheme:(if ri.ri_ssl then "https" else "http")
                       ~host:(Ocsigen_extensions.get_hostname request)
                       ?port:(if (port = 80 && not ri.ri_ssl)
@@ -676,7 +677,8 @@ let service receiver sender_slot request meth url port sockaddr =
                              else Some port)
                       ~path:(""::(Ocsigen_lib.add_end_slash_if_missing
                                     ri.ri_full_path))
-                      (Neturl.remove_from_url ~path:true ri.ri_url)
+                      ?query:ri.ri_get_params_string
+                      http_url_syntax
                     in
                     send_aux {
                       (Ocsigen_http_frame.empty_result ()) with
