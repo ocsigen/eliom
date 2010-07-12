@@ -471,3 +471,5 @@ val table_of_nl_params_set : nl_params_set ->
 
 val string_of_nl_params_set : nl_params_set -> string
 
+(**/**)
+val request_tab_cookies_key : string Ocsigen_lib.String_Table.t Polytables.key

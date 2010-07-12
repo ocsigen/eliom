@@ -1707,11 +1707,10 @@ redir ();"))::
     (* If we launch a new application, we must set the application name.
        Otherwise, we get it from cookie. *)
     let rc = Eliom_sessions.get_request_cache ~sp in
-(*
-    (match ... with
+    (match Eliom_process.get_application_name_cookie ~sp with
       | Some appl_name_cookie ->
         Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
-          ~value:appl_name_cookie;
+          ~value:(Some appl_name_cookie);
         Polytables.set ~table:rc ~key:Eliom_process.content_only_key
           ~value:true
       | None -> (* The application was not launched *)
@@ -1724,7 +1723,6 @@ redir ();"))::
             ~value:None;
         Polytables.set ~table:rc ~key:Eliom_process.content_only_key
           ~value:false);
-*)
     Lwt.return ()
     
   let application_name = Some Appl_params.application_name
