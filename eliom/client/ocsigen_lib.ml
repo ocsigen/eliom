@@ -35,3 +35,15 @@ let mk_url_encoded_parameters nv_pairs =
 	 nv_pairs
       )
 
+let rec split_path s =
+  try
+    let length = String.length s in
+    if length = 0 then []
+    else
+      let pos_slash = String.index s '/' in
+      if pos_slash = 0
+      then ""::split_path (String.sub s 1 (length-1))
+      else
+        let prefix = String.sub s 0 pos_slash in
+        prefix::(split_path (String.sub s (pos_slash+1) (length - pos_slash - 1)))
+  with Not_found -> [s]

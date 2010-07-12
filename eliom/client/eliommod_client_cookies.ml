@@ -21,10 +21,10 @@
 
 let cookie_table = ref Ocsigen_cookies.Cookies.empty
 
+let now () = Js.to_float (Js.date##now ())
+
 let update_cookie_table cookieset =
-  let now = Js.to_float ((jsnew Js.date_now ())##valueOf ()) in
-  Firebug.console##log (3.14);
-  Firebug.console##log (now);
+  let now = now () in
   Ocsigen_cookies.Cookies.iter
     (fun path table ->
       Ocsigen_lib.String_Table.iter
@@ -41,3 +41,28 @@ let update_cookie_table cookieset =
         table
     )
     cookieset
+
+
+let get_cookies_to_send https path =
+  let now = now () in
+  Ocsigen_cookies.Cookies.fold
+    (fun cpath t cookie_list ->
+      if Ocsigen_lib.list_is_prefix_skip_end_slash cpath path
+      then Ocsigen_lib.String_Table.fold
+        (fun name (exp, value, secure) cookie_list ->
+          match exp with
+            | Some exp when exp <= now ->
+              cookie_table := 
+                Ocsigen_cookies.remove_cookie cpath name !cookie_table;
+              cookie_list
+            | _ ->
+              if (not secure) || https
+              then (name, value)::cookie_list
+              else cookie_list
+        )
+        t
+        cookie_list
+      else cookie_list
+    )
+    !cookie_table
+    []

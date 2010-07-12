@@ -93,3 +93,17 @@ let remove_internal_slash u =
 
 
 (*****************************************************************************)
+
+let rec list_is_prefix l1 l2 =
+  match (l1, l2) with
+  | [], _ -> true
+  | a::ll1, b::ll2 when a=b -> list_is_prefix ll1 ll2
+  | _ -> false
+
+let rec list_is_prefix_skip_end_slash l1 l2 =
+  match (l1, l2) with
+  | [""], _
+  | [], _ -> true
+  | a::ll1, b::ll2 when a=b -> list_is_prefix_skip_end_slash ll1 ll2
+  | _ -> false
+

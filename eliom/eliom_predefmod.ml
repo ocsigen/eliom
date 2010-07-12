@@ -1663,38 +1663,42 @@ redir ();"))::
                  XHTML.M.script ~contenttype:"text/javascript"
                  (cdata_script
                     (
-                     "var container_node = \'" ^
-                     let reqnum = Eliom_sessions.get_request_id ~sp in
-                     (Eliom_client_types.jsmarshal
-                        (Eliom_client_types.to_data_key_
-                           (reqnum, XML.ref_node container_node))
-                     ) ^ "\'; \n"
+                      String.concat
+                        ""
+                        [
+                          "var container_node = \'";
+                          (let reqnum = Eliom_sessions.get_request_id ~sp in
+                           (Eliom_client_types.jsmarshal
+                              (Eliom_client_types.to_data_key_
+                                 (reqnum, XML.ref_node container_node))
+                           )) ; "\'; \n";
 
-                     ^ "var appl_name = \'" ^
-                       (Eliom_client_types.string_escape
-                          Appl_params.application_name
-                       ) ^ "\'; \n"
-
-                     ^ "var process_id = \'" ^
-                       (match Eliom_process.get_process_id ~sp with
-                          | Some s -> s
-                          | None -> "<error: process id not created>"
-                       ) ^ "\'; \n"
-
-                     ^ "var eliom_data = \'" ^
-                       (Eliom_client_types.jsmarshal
-                          ((Ocsigen_lib.Left
-                              (XML.make_ref_tree (XHTML.M.toelt body)),
+                          "var appl_name = \'";
+                          (Eliom_client_types.string_escape
+                             Appl_params.application_name
+                          ) ; "\'; \n"
+                            
+                          ; "var process_id = \'" ;
+                          (match Eliom_process.get_process_id ~sp with
+                            | Some s -> s
+                            | None -> "<error: process id not created>"
+                          ) ; "\'; \n"
+                            
+                          ; "var eliom_data = \'" ;
+                          (Eliom_client_types.jsmarshal
+                             ((Ocsigen_lib.Left
+                                 (XML.make_ref_tree (XHTML.M.toelt body)),
                             (* Warning: due to right_to_left evaluation,
                                make_ref_tree is called before the previous
                                items. Do not create new node refs in
                                previous items!
                             *)
-                            (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
-                            cookies_to_send) :
-                               Eliom_client_types.eliom_data_type
-                          )
-                       ) ^ "\'; \n"
+                               (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
+                               cookies_to_send) :
+                                 Eliom_client_types.eliom_data_type
+                             )
+                          ) ; "\'; \n"
+                        ]
 
                     )
                  ) ::

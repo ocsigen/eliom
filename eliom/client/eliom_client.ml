@@ -179,6 +179,52 @@ let set_inner_html code s =
   end
 
 
+exception External_service
+
+let get_path (* simplified version of make_uri_components.
+                Returns only the absolute path without protocol/server/port *)
+    ~service
+    getparams =
+
+  match Eliom_services.get_kind_ service with
+    | `Attached attser ->
+      let uri =
+        if (Eliom_services.get_att_kind_ attser) = `External
+        then raise External_service
+        else Eliom_services.get_full_path_ attser
+      in
+      let suff, _ =
+        Eliom_parameters.construct_params_list
+          Ocsigen_lib.String_Table.empty
+          (Eliom_services.get_get_params_type_ service) getparams 
+      in
+      (match suff with
+        | None -> uri
+        | Some suff -> uri@suff)
+    | `Nonattached naser -> Eliom_sessions.full_path_
+
+
+
+let make_cookie_nlp' https path nl_params =
+  let cookielist = Eliommod_client_cookies.get_cookies_to_send https path in
+  Eliom_parameters.add_nl_parameter
+    nl_params
+    Eliom_process.cookies_nlp
+    cookielist
+
+let make_cookie_nlp ~https ~service nl_params g =
+  try
+    let path = get_path ~service g in
+    let ssl = Eliom_sessions.ssl_ in
+    let https = 
+      (https = Some true) || 
+        (Eliom_services.get_https service) ||
+        (https = None && ssl)
+    in
+    make_cookie_nlp' https path nl_params
+  with External_service -> nl_params
+
+
 
 let change_page
     ?absolute ?absolute_path ?https
@@ -206,10 +252,7 @@ let change_page
           ?absolute ?absolute_path ?https
           ~service ~sp
           ?hostname ?port ?fragment ?keep_nl_params
-          ~nl_params:(Eliom_parameters.add_nl_parameter
-                        nl_params
-                        Eliom_process.eliom_appl_nlp
-                        (appl_name, process_id))
+          ~nl_params:(make_cookie_nlp ~https ~service nl_params g)
           ?keep_get_na_params
           g p
      with
@@ -274,8 +317,6 @@ let call_caml_service
   Lwt.return (Marshal.from_string (Ocsigen_lib.urldecode_string s) 0)
 
 
-       
-
 let fake_page = Dom_html.createBody Dom_html.document
 (*FIX: is that correct?
   XHTML.M.toelt (XHTML.M.body [])
@@ -292,10 +333,7 @@ let get_subpage
      ?absolute ?absolute_path ?https
      ~service ~sp
      ?hostname ?port ?fragment ?keep_nl_params
-     ~nl_params:(Eliom_parameters.add_nl_parameter
-                   nl_params
-                   Eliom_process.eliom_appl_nlp
-                   (appl_name, process_id))
+     ~nl_params:(make_cookie_nlp ~https ~service nl_params g)
      ?keep_get_na_params
      g p
    with
@@ -346,12 +384,11 @@ let rec fragment_polling () =
 let _ = fragment_polling ()
 
 
-let eliom_appl_nlp =
-  Eliom_parameters.string_of_nl_params_set
-    (Eliom_parameters.add_nl_parameter
-       Eliom_parameters.empty_nl_params_set
-       Eliom_process.eliom_appl_nlp
-       (appl_name, process_id))
+let short_url_re =
+  jsnew Js.regExp (Js.bytestring "^([^\\?]*)(\\?(.*))?$")
+
+let url_re =
+  jsnew Js.regExp (Js.bytestring "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$")
 
 let auto_change_page fragment =
   ignore
@@ -369,14 +406,65 @@ let auto_change_page fragment =
              | _ ->
                  String.sub fragment 2 ((String.length fragment) - 2) 
          in
-         let uri =
-           if String.contains uri '?'
-           then String.concat "&" [uri; eliom_appl_nlp]
-           else String.concat "?" [uri; eliom_appl_nlp]
-         in
-         http_get uri [] >>= fun (code, s) ->
-         set_inner_html code s
-         )
+         let uri_js = Js.bytestring uri in
+         Js.Opt.get
+           (Js.Opt.bind
+              (Js.Opt.case
+                 (url_re##exec (uri_js))
+                 (fun () ->
+                   (Js.Opt.case (short_url_re##exec (uri_js))
+                      (fun () -> Js.Opt.empty)
+                      (fun res ->
+                       let match_result = Js.match_result res in
+                       let path =
+                         Ocsigen_lib.split_path
+                           (Js.to_string 
+                              (Js.Optdef.get (Js.array_get match_result 1) 
+                                 (fun () -> assert false)))
+                       in
+                       let path = match path with
+                         | ""::_ -> path (* absolute *)
+                         | _ -> 
+                           Eliom_uri.make_actual_path
+                             (Eliom_sessions.full_path_ @ path)
+                       in
+                       Js.Opt.return (None, path)
+                      )
+                   )
+                 )
+                 (fun res ->
+                   let match_result = Js.match_result res in
+                   let protocol =
+                     Js.Optdef.get (Js.array_get match_result 1) 
+                       (fun () -> assert false)
+                   in
+                   let https = protocol##length = 5 in
+                   let path =
+                     Ocsigen_lib.split_path
+                       (Js.to_string 
+                          (Js.Optdef.get (Js.array_get match_result 4) 
+                             (fun () -> assert false)))
+                   in
+                   Js.Opt.return (Some https, path)))
+              (fun (https, path) ->
+                (let https = (https = Some true) || 
+                   (https = None && Eliom_sessions.ssl_) 
+                 in
+                 let nlp = 
+                   Eliom_parameters.string_of_nl_params_set
+                     (make_cookie_nlp'
+                        https path
+                        Eliom_parameters.empty_nl_params_set)
+                 in
+                 let uri =
+                   if String.contains uri '?'
+                   then String.concat "&" [uri; nlp]
+                   else String.concat "?" [uri; nlp]
+                 in
+                 Js.Opt.return (http_get uri [] >>= fun (code, s) ->
+                                set_inner_html code s)))
+           )
+           Lwt.return)
        else Lwt.return ()
      else Lwt.return ())
 

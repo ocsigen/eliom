@@ -81,19 +81,6 @@ let rec list_assoc_remove a = function
   | (b, c)::l when a = b -> c, l
   | b::l -> let v, ll = list_assoc_remove a l in (v, b::ll)
 
-let rec list_is_prefix l1 l2 =
-  match (l1, l2) with
-  | [], _ -> true
-  | a::ll1, b::ll2 when a=b -> list_is_prefix ll1 ll2
-  | _ -> false
-
-let rec list_is_prefix_skip_end_slash l1 l2 =
-  match (l1, l2) with
-  | [""], _
-  | [], _ -> true
-  | a::ll1, b::ll2 when a=b -> list_is_prefix ll1 ll2
-  | _ -> false
-
 
 (** various functions for URLs *)
 
@@ -144,26 +131,8 @@ let remove_end_slash s =
     else s
   with Invalid_argument _ -> s
 
-
-
-(* This function is in Neturl (split_path)
-   let rec cut_url s =
-   try
-   let length = String.length s in
-   if length = 0 then []
-   else
-   let pos_slash = String.index s '/' in
-   if pos_slash = 0
-   then cut_url (String.sub s 1 (length-1))
-   else
-   let prefix = String.sub s 0 pos_slash in
-   (*  if length > (pos_slash+1)
-      then *)
-   prefix::(cut_url (String.sub s (pos_slash+1) (length - pos_slash - 1)))
-   (* else [prefix] *)
-   with ? -> [s]
- *)
-
+let split_path = Neturl.split_path 
+(* there is an implementation in Ocsigen_lib for client side *)
 
 let rec string_first_diff s1 s2 n last =
 (* returns the index of the first difference between s1 and s2,
@@ -512,9 +481,7 @@ let string_of_url_path ~encode l =
 
 let parse_url =
 
-  (*SSS Neturl doesn't recognize http://[2002::1]:80. Workaround: we
-    chop the http://host:port part and use Neturl for the rest.
-    We do not accept http://login:pwd@host:port (should we?). *)
+  (* We do not accept http://login:pwd@host:port (should we?). *)
   let url_re = Netstring_pcre.regexp "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$" in
   let short_url_re = Netstring_pcre.regexp "^/([^\\?]*)(\\?(.*))?$" in
 (*  let url_relax_re = Netstring_pcre.regexp "^[Hh][Tt][Tt][Pp][Ss]?://[^/]+" in

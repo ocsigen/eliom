@@ -79,6 +79,19 @@ let rec relative_url_path_to_myself = function
   | [""] -> Eliom_common.defaultpagename
   | [a] -> a
   | a::l -> relative_url_path_to_myself l
+
+(* make a path by going up when there is a '..' *)
+let make_actual_path path =
+  let rec aux accu path =
+    match (accu, path) with
+      | ([], ".."::path') -> aux accu path'
+      | (_::accu',  ".."::path') -> aux accu' path'
+      | (_,  a::path') -> aux (a::accu) path'
+      | (_,  []) -> accu
+  in match path with
+    | ""::path -> ""::List.rev (aux [] path)
+    | _ -> List.rev (aux [] path)
+
 (*****************************************************************************)
 
 
@@ -219,7 +232,6 @@ let make_uri_components_ (* does not take into account getparams *)
                 (uri, 
                  ((Eliom_common.get_numstate_param_name, s)::hiddenparams),
                  fragment)
-                  
 
         end
     | `Nonattached naser ->
@@ -303,6 +315,8 @@ let make_uri_components
   in
   let fragment = Ocsigen_lib.apply_option Ocsigen_lib.encode fragment in
   (uri, (params@pregetparams), fragment)
+
+
 
 
 

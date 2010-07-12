@@ -70,19 +70,22 @@ let get_all_post_params ~sp = sp.sp_si.Eliom_common.si_all_post_params
 *)
 let loc_ = Dom_html.window##location
 
-let full_path_ =
+let full_path_string_ =
   let s = Ocsigen_lib.urldecode_string (Js.to_string loc_##pathname) in
   if String.length s > 0 && s.[0] = '/'
   then String.sub s 1 (String.length s - 1)
   else s
 
+let full_path_ =
+  Array.to_list (Regexp.split (Regexp.make "/") full_path_string_)
+
 let full_uri =
   Ocsigen_lib.urldecode_string (Js.to_string loc_##href)
 
-let get_original_full_path_string ~sp = full_path_
+let get_original_full_path_string ~sp = full_path_string_
 
-let get_original_full_path ~sp = 
-  Array.to_list (Regexp.split (Regexp.make "/") full_path_)
+let get_original_full_path ~sp = full_path_
+
 
 (*
 let get_current_full_path ~sp = sp.sp_request.request_info.ri_full_path
@@ -102,7 +105,12 @@ let get_default_port ~sp = 80 (*VVV !!!!!!!!! *)
 let get_default_sslport ~sp = 443 (*VVV !!!!!!!!! *)
 let get_server_port ~sp = port_
 
-let get_ssl ~sp = false (*VVV !!!!!!!!! *)
+let ssl_ =
+(*VVV Warning to_bytestring works only for characters below 2555! *)
+  Js.to_bytestring (Dom_html.window##location##protocol) = "https:"
+
+let get_ssl ~sp = ssl_
+
 let get_other_get_params ~sp = 
   sp.Eliom_client_types.sp_si.Eliom_common.si_other_get_params
 let get_nl_get_params ~sp = 
