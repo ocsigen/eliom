@@ -17,13 +17,13 @@ OBJSOPT = $(FILESR:.ml=.cmx) $(FILES:.ml=.cmx)
 CMA = xhtmlsyntax.cma
 CMXA = xhtmlsyntax.cmxa
 
-pp/simplexmlparser.mli:
+pp/simplexmlparser.mli: simplexmlparser.mli
 	camlp4r simplexmlparser.mli -printer o > pp/simplexmlparser.mli
 
-pp/xhtmltypes.ml:
+pp/xhtmltypes.ml: xhtmltypes.ml
 	camlp4r xhtmltypes.ml -printer o > pp/xhtmltypes.ml
 
-pp/xhtml5types.ml:
+pp/xhtml5types.ml: xhtml5types.ml
 	camlp4r xhtml5types.ml -printer o > pp/xhtml5types.ml
 
 byte: ohl-xhtml-byte $(CMA) $(OBJS) pp/simplexmlparser.mli pp/xhtmltypes.ml pp/xhtml5types.ml
