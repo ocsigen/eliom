@@ -1246,7 +1246,7 @@ module type T =
     val select : ([< common |`Autofocus | `Multiple | `Name | `Size | `Form | `Disabled ], [ `Optgroup | `Option ],[>`Select]) star
     val datalist : ?children:([< `Options of ([< `Option ] elt list) | `Phras of ([< phrasing ] elt list) ]) -> ([< common ], [>`Datalist]) nullary
     val optgroup : label:text ->
-      ([< common | `Disabled ],
+      ([< common | `Disabled | `Label ],
        [< `Option ], [>`Optgroup]) star
     val option : ([< common | `Selected | `Text_Value | `Disabled | `Label ],
                   [<`PCDATA], [>`Option]) unary
