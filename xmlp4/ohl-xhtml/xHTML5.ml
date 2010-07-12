@@ -1250,6 +1250,7 @@ module type T =
        [< `Option ], [>`Optgroup]) star
     val option : ([< common | `Selected | `Text_Value | `Disabled | `Label ],
                   [<`PCDATA], [>`Option]) unary
+
     val textarea : ([< common | `Autofocus | `Disabled | `Form | `Maxlength
        | `Name | `Placeholder| `Readonly| `Required | `Wrap | `Rows | `Cols],
        [<`PCDATA], [>`Textarea]) unary
@@ -1276,8 +1277,7 @@ module type T =
 
 (** {2 Interactive} *)
 
-    val details : ?a:([< common | `Open ] attrib list) ->
-      [< `Summary ] elt -> [< flow5] elt list -> [>`Details] elt
+    val details : [< `Summary ] elt -> ([< common | `Open ], [< flow5] elt, [> `Details]) star
     val summary : ([< common ],[< phrasing ], [>`Summary]) star
 
     val command : label:text -> ([< common |`Icon |`Disabled |`Checked|`Radiogroup |`Command_Type], [>`Command]) nullary
@@ -2099,7 +2099,8 @@ module Version =
       XML.node ?a "datalist" children
     let progress = star "proress"
     let legend = star "legend"
-    let details = plus "details"
+    let details summary ?a children = 
+      XML.node "details" ?a (summary :: children)
     let summary = star "summary"
     let fieldset ?legend ?a elts =
       XML.node ?a "fieldset" (list_of_option legend @ elts)
