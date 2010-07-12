@@ -784,6 +784,13 @@ module type T =
                                 | `Kbd | `I |`Em |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo 
                                 | `B  | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_dfn, phrasing_without_media) transparent ]
 
+    type phrasing_without_label = 
+      [labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
+      | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Kbd
+      | `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA 
+      | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_label, phrasing_without_media) transparent]
+
+    (* XXX: unused ? *)
     type phrasing_without_lab_form_and_label = [ `Wbr | `Var | `Time | `Sup | `Sub 
                                                | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q 
                                                | `Mark | `Kbd | `I |`Em | `Dfn 
@@ -1130,9 +1137,9 @@ module type T =
   (********************************)
     val area : alt:text -> ([< common | `Coords | `Shape| `Target
                             | `Rel | `Media| `Hreflang | `Mime_type],[>`Area]) nullary
-    (**********************************)
-    (* map's children are transparents*)
-    (**********************************)
+
+      (* XXX: SC : the current system doesn't allow
+         to put <area> tag inside a map (a priori) *)
     val map : ([<common | `Name ],'a, [>`Map of 'a]) plus
 
 
@@ -1206,7 +1213,10 @@ module type T =
    val fieldset : ?legend:([ `Legend ] elt) ->
      ([< common | `Disabled | `Form | `Name], [< flow5 ], [>`Fieldset]) star
    val legend : ([< common ],[< phrasing], [>`Legend]) star
-   val label : ([< common | `For | `Form ],[< phrasing_without_lab_form_and_label], [>`Label]) star
+
+   (* XXX: label do not authorize form elements instead the one they label. *)
+      
+   val label : ([< common | `For | `Form ],[< phrasing_without_label], [>`Label]) star
    val input : ([< common | `Accept | `Alt | `Autocomplete
                 | `Autofocus | `Checked | `Disabled | `Form
                 | `Formation | `Formenctype | `Formmethod
@@ -2269,6 +2279,11 @@ module Version =
                                 | `Kbd | `I |`Em |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo 
                                 | `B  | `Abbr | `PCDATA | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_dfn, phrasing_without_media) transparent ]
 
+    type phrasing_without_label = 
+      [labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub | `Strong | `Span 
+      | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Kbd
+      | `I |`Em | `Dfn |  `Datalist | `Command | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA 
+      | (phrasing_without_interactive, phrasing_without_noscript, phrasing_without_label, phrasing_without_media) transparent]
     type phrasing_without_lab_form_and_label = [ `Wbr | `Var | `Time | `Sup | `Sub 
                                                | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q 
                                                | `Mark | `Kbd | `I |`Em | `Dfn 
