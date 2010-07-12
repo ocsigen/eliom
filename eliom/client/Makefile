@@ -11,7 +11,7 @@ MLS:= xML.ml xHTML.ml xHTML5.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
 	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
-	eliom_process_cli.ml eliom_process.ml \
+	eliom_process.ml \
 	eliom_services.ml eliom_uri.ml \
 	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
 	eliom_mkforms.ml polytables.ml \
@@ -79,9 +79,6 @@ eliom_client_types.mli: ../eliom_client_types.mli
 	cp -f $< $@ 
 
 eliom_common.ml: ../eliom_common_cli.ml
-	cp -f $< $@ 
-
-eliom_process_cli.ml: ../eliom_process_cli.ml
 	cp -f $< $@ 
 
 eliom_mkforms.ml: ../eliom_mkforms.ml

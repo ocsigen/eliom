@@ -19,8 +19,6 @@
  *)
 
 
-include Eliom_process_cli
-
 (*****************************************************************************)
 let appl_name_key = Polytables.make_key ()
 let content_only_key = Polytables.make_key ()

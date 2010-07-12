@@ -12,7 +12,7 @@ FILES:= error_pages.ml \
 	eliommod_pagegen.ml \
 	eliommod.ml eliom_sessions.ml eliom_extensions.ml\
         eliom_parameters_cli.ml eliom_parameters.ml \
-	eliom_process_cli.ml eliom_process.ml \
+	eliom_process.ml \
 	eliom_services_cli.ml eliom_services.ml \
 	eliom_client_types.ml eliommod_cli.ml eliommod_mkforms.ml \
         eliom_uri.ml eliom_mkforms.ml eliom_mkreg.ml \

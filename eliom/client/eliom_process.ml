@@ -19,9 +19,6 @@
  *)
 
 
-include Eliom_process_cli
-
-
 let appl_name = 
   lazy 
     (let (_, v, _) =
