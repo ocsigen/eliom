@@ -1161,11 +1161,11 @@ module type T =
   (*         CHILD IN TOTAL       *)
   (********************************)
     val table : ?caption:([< `Caption ] elt) ->
-      ?columns:([< `Colgroups of ([< `Colgroup ] elt list )]) ->
+      ?columns:([< `Colgroup ] elt list ) ->
       ?thead:([< `Thead ] elt) -> ?tfoot:([< `Tfoot ] elt) ->
       ([< common | `Summary ], [< `Tr ], [>`Table]) plus
     val tablex : ?caption:([< `Caption ] elt) ->
-      ?columns:([< `Colgroups of ([< `Colgroup ] elt list) ]) ->
+      ?columns:([< `Colgroup ] elt list) ->
       ?thead:([< `Thead ] elt) -> ?tfoot:([< `Tfoot ] elt) ->
       ([< common | `Summary ], [< `Tbody ], [>`Table]) star
 
@@ -2099,14 +2099,14 @@ module Version =
 
     let caption = star "caption"
 
-    let table ?caption ?columns ?thead ?tfoot ?a elt elts =
+    let table ?caption ?(columns = []) ?thead ?tfoot ?a elt elts =
       XML.node ?a "table"
-        (list_of_option caption @ colg_option columns @
+        (list_of_option caption @ columns @
            list_of_option thead @ list_of_option tfoot @ elt ::elts)
 
-    let tablex ?caption ?columns ?thead ?tfoot ?a elts =
+    let tablex ?caption ?(columns = []) ?thead ?tfoot ?a elts =
       XML.node ?a "table"
-        (list_of_option caption @ colg_option columns @
+        (list_of_option caption @ columns @
          list_of_option thead @ list_of_option tfoot @ elts)
 
     let td = star "td"
