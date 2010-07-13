@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* FIX: the log file is never reopened *)
 
 (** Module Ocsipersist: persistent data *)
 
@@ -79,10 +80,11 @@ let rec try_connect sname =
                         " on directory "^(!directory)^".");
       let param = [|!ocsidbm; !directory|] in
       let child () =
-(* FIX: what should we do here?
-        let err = !(Ocsigen_lib.thd3 Ocsigen_messages.error) in
-        Unix.dup2 err Unix.stderr;
-*)
+        let log =
+          Unix.openfile (Ocsigen_messages.error_log_path ())
+            [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640 in
+        Unix.dup2 log Unix.stderr;
+        Unix.close log;
         let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
         Unix.dup2 devnull Unix.stdout;
         Unix.close devnull;

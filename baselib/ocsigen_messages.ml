@@ -17,31 +17,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(*
-FIX:
-- ocsidbm used to write directly to the error file
-  (extensions/ocsipersist-dbm/ocsipersist.ml)
-  What should we do now?
-- we should close log files on exec
-*)
-
 (** Writing messages in the logs *)
-
-(*
-let lwtlog =
-  fun s ->
-    let s = s^"\n" in
-    let syslog = Syslog.openlog ~facility:`LOG_DAEMON ~logpath:????
-           ~flags:[ `LOG_CONS ] "ocsigen" in
-    Syslog.syslog syslog `LOG_NOTICE s;
-    Syslog.closelog syslog
-*)
-
-(*******************************)
 
 let access_file = "access.log"
 let warning_file = "warnings.log"
 let error_file = "errors.log"
+
+let full_path f = Filename.concat (Ocsigen_config.get_logdir ()) f
+
+let error_log_path () = full_path error_file
 
 let stderr = Lwt_log.channel `Keep Lwt_io.stderr ()
 
@@ -50,11 +34,9 @@ let loggers = ref []
 let open_files () =
   (* CHECK: we are closing asynchronously!  That should be ok, though. *)
   List.iter (fun l -> ignore (Lwt_log.close l : unit Lwt.t)) !loggers;
-  (* FIX: these files should be closed on exec, but Lwt_log does not allows
-     this easily at the moment... *)
-  let acc = Lwt_log.file access_file () in
-  let war = Lwt_log.file warning_file () in
-  let err = Lwt_log.file error_file () in
+  let acc = Lwt_log.file (full_path access_file) () in
+  let war = Lwt_log.file (full_path warning_file) () in
+  let err = Lwt_log.file (full_path error_file) () in
   loggers := [acc; war; err];
   Lwt_log.default :=
     Lwt_log.broadcast

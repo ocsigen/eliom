@@ -55,6 +55,8 @@ val console2 : string -> unit
  *)
 val unexpected_exception : exn -> string -> unit
 
+(** Path to the error log file *)
+val error_log_path : unit -> string
 
 (**/**)
 
