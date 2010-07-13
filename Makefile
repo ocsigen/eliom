@@ -67,12 +67,12 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)server/ocsigen_extensions.mli				\
 	$(DOCPREF)server/ocsigen_parseconfig.mli			\
 	$(DOCPREF)server/ocsigen_server.mli				\
-	$(DOCPREF)xmlp4/xhtmlpretty_streams.mli				\
-	$(DOCPREF)xmlp4/xhtmlcompact_streams.mli			\
-	$(DOCPREF)xmlp4/xhtmlpretty.mli					\
-	$(DOCPREF)xmlp4/xhtmlcompact.mli				\
-	$(DOCPREF)xmlp4/ohl-xhtml/xHTML.mli				\
-	$(DOCPREF)xmlp4/ohl-xhtml/xHTML5.mli				\
+	$(DOCPREF)xmlp4/xml-prettyxhtmlpretty_streams.mli		\
+	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact_streams.mli		\
+	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty.mli			\
+	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact.mli			\
+#	$(DOCPREF)xmlp4/ohl-xhtml/xHTML.mli				\
+#	$(DOCPREF)xmlp4/ohl-xhtml/xHTML5.mli				\
 	$(DOCPREF)baselib/ocsigen_messages.mli				\
 	$(DOCPREF)http/ocsigen_headers.mli				\
 	$(DOCPREF)server/ocsigen_http_client.mli			\

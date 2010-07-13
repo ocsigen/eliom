@@ -6,7 +6,8 @@ OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml -syntax camlp4o
 LIBS:=
-MLS:= xML.ml xHTML.ml xHTML5.ml \
+MLS:= xML.ml xHTML.ml xhtml5types.ml xHTML5.ml \
+	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	ocsigen_cookies.ml eliom_client_types.ml \
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
