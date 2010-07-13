@@ -76,6 +76,9 @@ module type REGCREATE =
 module type ELIOMREGSIG1 =
   sig
 
+
+
+
     type page
 
     type options
@@ -151,6 +154,7 @@ module type ELIOMREGSIG1 =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
+      ?cookie_type:Eliom_common.cookie_type ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       service:('get, 'post, [< internal_service_kind ],
@@ -174,6 +178,10 @@ module type ELIOMREGSIG1 =
     [?session_name] is the name of the session, if you want several
     service sessions on the same site.
     
+    [?cookie_type] allows to choose if you want a traditional browser
+    session (default) or a tab session (works only if there is a client
+    side program running).
+
     If [~secure] is false when the protocol is https, the service will be 
     registered in the unsecure session, 
     otherwise in the secure session with https, the unsecure one with http.
@@ -220,6 +228,7 @@ module type ELIOMREGSIG1 =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
+      ?csrf_cookie_type: Eliom_common.cookie_type ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -253,6 +262,7 @@ module type ELIOMREGSIG1 =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
+      ?csrf_cookie_type: Eliom_common.cookie_type ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -276,6 +286,7 @@ module type ELIOMREGSIG1 =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
+      ?cookie_type:Eliom_common.cookie_type ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -309,6 +320,7 @@ module type ELIOMREGSIG1 =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
+      ?cookie_type:Eliom_common.cookie_type ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -364,6 +376,7 @@ module type ELIOMREGSIG1 =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
+      ?csrf_cookie_type: Eliom_common.cookie_type ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -396,6 +409,7 @@ module type ELIOMREGSIG1 =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
+      ?csrf_cookie_type: Eliom_common.cookie_type ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -446,6 +460,7 @@ module type ELIOMREGSIG1 =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
+      ?cookie_type:Eliom_common.cookie_type ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -478,6 +493,7 @@ module type ELIOMREGSIG1 =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
+      ?cookie_type:Eliom_common.cookie_type ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -500,6 +516,7 @@ module type ELIOMREGSIG1 =
     val register_new_get_post_coservice_for_session' :
         ?options:options ->
         ?session_name:string ->
+      ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
         sp:Eliom_sessions.server_params ->
   ?name: string ->
@@ -520,7 +537,6 @@ module type ELIOMREGSIG1 =
                         service
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
-
 
 
 

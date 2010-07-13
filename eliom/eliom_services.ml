@@ -177,6 +177,7 @@ let new_coservice
     ?name
     ?(csrf_safe = false)
     ?csrf_session_name
+    ?csrf_cookie_type
     ?csrf_secure_session
     ?max_use
     ?timeout
@@ -199,6 +200,7 @@ let new_coservice
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             csrf_session_name,
+                                            csrf_cookie_type,
                                             csrf_secure_session)
           else
             (match name with
@@ -219,6 +221,7 @@ let new_coservice'
     ?name 
     ?(csrf_safe = false)
     ?csrf_session_name
+    ?csrf_cookie_type
     ?csrf_secure_session
     ?max_use
     ?timeout
@@ -247,6 +250,7 @@ let new_coservice'
                 (if csrf_safe
                  then Eliom_common.SNa_get_csrf_safe (uniqueid (),
                                                       csrf_session_name,
+                                                      csrf_cookie_type,
                                                       csrf_secure_session)
                  else
                    match name with
@@ -325,6 +329,7 @@ let new_post_coservice
     ?name
     ?(csrf_safe = false)
     ?csrf_session_name
+    ?csrf_cookie_type
     ?csrf_secure_session
     ?max_use
     ?timeout
@@ -349,6 +354,7 @@ let new_post_coservice
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             csrf_session_name,
+                                            csrf_cookie_type,
                                             csrf_secure_session)
           else
             (match name with
@@ -370,6 +376,7 @@ let new_post_coservice'
     ?name
     ?(csrf_safe = false)
     ?csrf_session_name
+    ?csrf_cookie_type
     ?csrf_secure_session
     ?max_use ?timeout
     ?(https = false)
@@ -391,6 +398,7 @@ let new_post_coservice'
           (if csrf_safe
            then Eliom_common.SNa_post_csrf_safe (uniqueid (),
                                                  csrf_session_name,
+                                                 csrf_cookie_type,
                                                  csrf_secure_session)
            else
              (match name with
@@ -455,11 +463,12 @@ let escookiel_of_eccookiel = Ocsigen_lib.id
 (*****************************************************************************)
 exception Unregistered_CSRF_safe_coservice
 
-let register_delayed_get_or_na_coservice ~sp (k, session_name, secure) =
+let register_delayed_get_or_na_coservice ~sp (k, session_name, 
+                                              cookie_type, secure) =
   let f =
     try
       let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      ?session_name ?secure ~sp ())
+                      ?session_name ?cookie_type ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_get_or_na_registration_functions
@@ -473,11 +482,12 @@ let register_delayed_get_or_na_coservice ~sp (k, session_name, secure) =
   f ~sp:(Eliom_sessions.esp_of_sp sp)
 
 
-let register_delayed_post_coservice ~sp (k, session_name, secure) getname =
+let register_delayed_post_coservice ~sp (k, session_name,
+                                         cookie_type, secure) getname =
   let f =
     try
       let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      ?session_name ?secure ~sp ())
+                      ?session_name ?cookie_type ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_post_registration_functions
@@ -545,8 +555,9 @@ let unregister ?sp service =
   remove_service table service
 
 
-let unregister_for_session ~sp ?session_name ?secure service =
+let unregister_for_session ~sp ?session_name ?cookie_type ?secure service =
   let table =
-    !(Eliom_sessions.get_session_service_table ?secure ?session_name ~sp ())
+    !(Eliom_sessions.get_session_service_table
+        ?secure ?session_name ?cookie_type ~sp ())
   in
   remove_service table service

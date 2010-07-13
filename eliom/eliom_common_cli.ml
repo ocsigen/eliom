@@ -18,12 +18,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+
+(******************************************************************)
+type cookie_type = CBrowser | CTab
+
+type fullsessionname = cookie_type * string
+
+module Fullsessionname_Table = Map.Make(struct
+  type t = fullsessionname
+  let compare = compare
+end)
+
+
+(******************************************************************)
 (* Service kinds: *)
 type att_key_serv =
   | SAtt_no (* regular service *)
   | SAtt_named of string (* named coservice *)
   | SAtt_anon of string (* anonymous coservice *)
-  | SAtt_csrf_safe of (int * string option * bool option)
+  | SAtt_csrf_safe of (int * string option * cookie_type option * bool option)
       (* CSRF safe anonymous coservice *)
       (* CSRF safe service registration delayed until form/link creation *)
       (* the int is an unique id,
@@ -40,9 +53,9 @@ type na_key_serv =
   | SNa_post_ of string (* named *)
   | SNa_get' of string (* anonymous *)
   | SNa_post' of string (* anonymous *)
-  | SNa_get_csrf_safe of (int * string option * bool option)
+  | SNa_get_csrf_safe of (int * string option * cookie_type option * bool option)
       (* CSRF safe anonymous coservice *)
-  | SNa_post_csrf_safe of (int * string option * bool option)
+  | SNa_post_csrf_safe of (int * string option * cookie_type option * bool option)
       (* CSRF safe anonymous coservice *)
 
 (* the same, for incoming requests: *)
@@ -93,15 +106,6 @@ let appl_name_cookie_name = "__eliom_appl_name"
 
 let nl_is_persistent n = n.[0] = 'p'
 
-(******************************************************************)
-type cookie_type = CBrowser | CTab
-
-type fullsessionname = cookie_type * string
-
-module Fullsessionname_Table = Map.Make(struct
-  type t = fullsessionname
-  let compare = compare
-end)
 (*****************************************************************************)
 
 
