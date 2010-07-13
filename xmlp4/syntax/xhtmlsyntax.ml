@@ -23,8 +23,12 @@
 *)
 open Xhtmlparser;
 open Camlp4.PreCast;
-module Parser = Xhtmlparser.Make(Syntax)(struct value module_id = "XHTML"; end);
-module Parser5 = Xhtmlparser.Make(Syntax)(struct value module_id = "XHTML5"; end);
+module Parser = Xhtmlparser.Make(Syntax)(struct value module_id = "XHTML"; 
+  value module_types_id = "Xhtmltypes";
+end);
+module Parser5 = Xhtmlparser.Make(Syntax)(struct value module_id = "XHTML5"; 
+  value module_types_id = "Xhtml5types";
+end);
 do {
   Syntax.Quotation.add "xml" Syntax.Quotation.DynAst.expr_tag Parser.xml_exp ;
   Syntax.Quotation.add "xmllist" Syntax.Quotation.DynAst.expr_tag

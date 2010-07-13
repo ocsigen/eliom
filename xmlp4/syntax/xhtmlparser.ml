@@ -69,7 +69,7 @@ module LexerArg = struct
 end;
 
 module Make (Syntax: Camlp4.Sig.Camlp4Syntax with module Loc = Loc and module Ast = Ast)
-  (S : sig value module_id: string; end) =
+  (S : sig value module_id: string; value module_types_id : string; end) =
 struct
   module Xmllexer =
     Xmllexer.Make(LexerArg);
@@ -171,10 +171,10 @@ struct
     match pop s with
       [ (`PCData s, _) ->
           <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $str:String.escaped s$}))
-                     : $uid:S.module_id$.M.elt [> Xhtmltypes.pcdata ]) >>
+                     : $uid:S.module_id$.M.elt [> $uid:S.module_types_id$.pcdata ]) >>
       | (`CamlString s, _) ->
           <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $get_expr s loc$}))
-                     : $uid:S.module_id$.M.elt [> Xhtmltypes.pcdata ]) >>
+                     : $uid:S.module_id$.M.elt [> $uid:S.module_types_id$.pcdata ]) >>
       | (`CamlList s, _) -> raise (CamlListExc s)
       | (`CamlExpr s, _) -> get_expr s loc
       | (`Whitespace s, _) ->
@@ -189,20 +189,30 @@ struct
                   then "SemiBlockElement"
                   else "Element")
           in
+          let typename = match tag with
+            [ "option" -> "selectoption"
+            | x -> x ]
+          in
+          let make_type = 
+            if S.module_types_id = "Xhtml5types" then
+              <:ctyp< [< $uid: S.module_types_id$.$lid: typename$ ]>>
+            else
+              <:ctyp< [> `$uid: String.capitalize tag$] >>
+          in
           match closed with
           [ True ->
               <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
                                        $read_attlist s attlist$ []}))
-                         : $uid:S.module_id$.M.elt [> `$uid: String.capitalize tag$])>>
+                         : $uid:S.module_id$.M.elt $make_type$) >>
           | False ->
               let foo = <:expr<
                 ($read_elems ~tag s$ :>
-                   list ($uid:S.module_id$.M.elt [< Xhtmltypes.$lid:tag^"_content"$]))>>
+                   list ($uid:S.module_id$.M.elt [< $uid:S.module_types_id$.$lid:tag^"_content"$]))>>
               in
               <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
                                        $read_attlist s attlist$
                                        ($uid:S.module_id$.M.toeltl $foo$)} ))
-                         : $uid:S.module_id$.M.elt [> `$uid: String.capitalize tag$])
+                         : $uid:S.module_id$.M.elt $make_type$)
               >>
           ]
       | ((`Endtag _ | `Eof as t),_) ->
