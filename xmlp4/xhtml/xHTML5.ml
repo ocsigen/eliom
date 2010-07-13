@@ -370,8 +370,9 @@ module type T =
     (*   metadata content, of which *)
     (*exactly one is a title element*)
     (********************************)
+    value html : ?a: (list (attrib html_attrib)) -> elt [ < `Head ] -> elt [ < `Body ] -> elt [ > `Html ];
     value head : ?a: (list (attrib head_attrib)) -> elt [ < `Title ] -> 
-                     list (elt head_content_fun) -> elt head;
+                     list (elt head_content_fun) -> elt [> head];
     value base : nullary [< base_attrib] [> base];
     value title : unary title_attrib [ < title_content_fun ] [> title];
     value body : star [< body_attrib ] [ < body_content_fun ] [> body];
@@ -496,16 +497,16 @@ module type T =
     (********************************)
     (* a's children are transparents*)
     (********************************)
-    value a : star [< a_attrib ] [ < a_content_fun ] [> a];
+    value a : star [< a_attrib ] 'a [> `A of 'a];
     (** {2 Edit} *)
     (**********************************)
     (* del's children are transparents*)
     (**********************************)
-    value del : star [< del_attrib ] [ < del_content_fun ] [> del];
+    value del : star [< del_attrib ] 'a [> `Del of 'a];
     (**********************************)
     (* ins's children are transparents*)
     (**********************************)
-    value ins : star [< ins_attrib ] [ < ins_content_fun ] [> ins];
+    value ins : star [< ins_attrib ] 'a [> `Ins of 'a];
     (** {2 Embedded} *)
     (** About images, objects and other things like that.
           Depending on the attributes given to the element,
@@ -571,7 +572,7 @@ module type T =
             [ < common | `Poster | `Preload | `Autoplay | `Loop | `Controls
               | `Width | `Height
             ] 'a [ > `Video of ('a * 'b)];
-    value canvas : star [< canvas_attrib ] [ < canvas_content_fun ] [> canvas];
+    value canvas : star [< canvas_attrib ] 'a [> `Canvas of 'a];
     value source : nullary [< source_attrib] [> source];
     (********************************)
     (*           In Area            *)
@@ -589,7 +590,7 @@ module type T =
           ] [ > `Area];
     (* XXX: SC : the current system doesn't allow
          to put <area> tag inside a map (a priori) *)
-    value map : plus [< map_attrib ] [ < map_content_fun ] [> map];
+    value map : plus [< map_attrib ] 'a [> `A of 'a];
     (** {2 Tables Data} *)
     value caption : star [< caption_attrib ] [ < caption_content_fun ] [> caption];
     (********************************)
