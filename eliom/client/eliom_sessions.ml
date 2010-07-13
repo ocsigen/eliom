@@ -101,8 +101,9 @@ let host_ = Ocsigen_lib.urldecode_string (Js.to_string loc_##hostname)
 let port_ = int_of_string (Js.to_string loc_##port)
 
 let get_hostname ~sp = host_
-let get_default_port ~sp = 80 (*VVV !!!!!!!!! *)
-let get_default_sslport ~sp = 443 (*VVV !!!!!!!!! *)
+let get_default_hostname ?sp () = host_
+let get_default_port ?sp () = 80 (*VVV !!!!!!!!! *)
+let get_default_sslport ?sp () = 443 (*VVV !!!!!!!!! *)
 let get_server_port ~sp = port_
 
 let ssl_ =

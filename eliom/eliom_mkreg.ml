@@ -939,7 +939,7 @@ module MakeRegister = functor
                 ?content_type
                 ?headers
                 ?error_handler
-                (Ocsigen_lib.Left (get_global_table sp))
+                (Ocsigen_lib.Left (get_global_table ~sp ()))
                 ~sp
                 ~service
                 page_gen

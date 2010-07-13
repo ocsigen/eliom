@@ -1560,9 +1560,9 @@ let mainpage = register_new_service ["tests"] unit
    return
     (html
      (head (title (pcdata "Test"))
-        [css_link (make_uri (static_dir sp) sp ["style.css"]) ()])
+        [css_link (make_uri ~service:(static_dir sp) ~sp ["style.css"]) ()])
      (body
-       [h1 [img ~alt:"Ocsigen" ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"]) ()];
+       [h1 [img ~alt:"Ocsigen" ~src:(make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"]) ()];
         h3 [pcdata "Eliom tests"];
         p
         [

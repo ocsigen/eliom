@@ -473,7 +473,7 @@ let register_delayed_get_or_na_coservice ~sp (k, session_name,
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_get_or_na_registration_functions
     with Not_found ->
-      let table = Eliom_sessions.get_global_table ~sp in
+      let table = Eliom_sessions.get_global_table ~sp () in
       try
         Ocsigen_lib.Int_Table.find
           k table.Eliom_common.csrf_get_or_na_registration_functions
@@ -492,7 +492,7 @@ let register_delayed_post_coservice ~sp (k, session_name,
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_post_registration_functions
     with Not_found ->
-      let table = Eliom_sessions.get_global_table ~sp in
+      let table = Eliom_sessions.get_global_table ~sp () in
       try
         Ocsigen_lib.Int_Table.find
           k table.Eliom_common.csrf_post_registration_functions
@@ -550,7 +550,7 @@ let unregister ?sp service =
              | _ -> raise
                  (Eliom_common.Eliom_function_forbidden_outside_site_loading
                     "unregister"))
-      | Some sp -> get_global_table sp
+      | Some sp -> get_global_table ~sp ()
   in
   remove_service table service
 

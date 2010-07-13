@@ -352,6 +352,7 @@ and tables =
 and sitedata = {
   site_dir : Ocsigen_lib.url_path;
   site_dir_string : string;
+  config_info: Ocsigen_extensions.config_info;
 
    (* Timeouts:
        - default for site (browser sessions)

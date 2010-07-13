@@ -59,6 +59,7 @@ let coucou =
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Hallo!"]])))
+
 (*wiki*
 The same, written with fully qualified values:
           

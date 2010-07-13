@@ -82,7 +82,7 @@ let new_sitedata =
                               end)
   in
   let t = S.create 5 in
-  fun host site_dir ->
+  fun host site_dir config_info ->
     let key = (host, site_dir) in
     try
       S.find t key
@@ -98,6 +98,7 @@ let new_sitedata =
 (*VVV encode=false??? *)
              site_dir_string = Ocsigen_lib.string_of_url_path
                 ~encode:false site_dir;
+             config_info = config_info;
              global_services = 
                 Eliom_common.empty_tables
                   !default_max_anonymous_services_per_subnet
@@ -552,7 +553,7 @@ let default_module_action _ = failwith "default_module_action"
 (** Parsing of config file for each site: *)
 let parse_config hostpattern conf_info site_dir =
 (*--- if we put the following line here: *)
-  let sitedata = new_sitedata hostpattern site_dir in
+  let sitedata = new_sitedata hostpattern site_dir conf_info in
 (*--- then there is one service tree for each <site> *)
 (*--- (mutatis mutandis for the following line:) *)
   Eliom_common.absolute_change_sitedata sitedata;

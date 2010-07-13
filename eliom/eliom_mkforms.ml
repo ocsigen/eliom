@@ -194,7 +194,7 @@ module type ELIOMFORMSIG =
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -228,7 +228,7 @@ module type ELIOMFORMSIG =
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -246,7 +246,7 @@ module type ELIOMFORMSIG =
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -280,7 +280,7 @@ module type ELIOMFORMSIG =
 (** Like [make_uri_components], but also creates a table of post parameters. *)
 
     val make_proto_prefix :
-      sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
       bool ->
@@ -934,11 +934,11 @@ module MakeForms = functor
       let make_uri
           ?absolute
           ?absolute_path
-          ?https ~service ~sp ?hostname ?port ?fragment
+          ?https ~service ?sp ?hostname ?port ?fragment
           ?keep_nl_params ?nl_params gp =
         Pages.uri_of_string (make_string_uri
                                ?absolute ?absolute_path
-                               ?https ?fragment ~service ~sp
+                               ?https ?fragment ~service ?sp
                                ?hostname ?port ?keep_nl_params ?nl_params gp)
 
 

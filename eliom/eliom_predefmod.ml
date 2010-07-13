@@ -1692,10 +1692,11 @@ redir ();"))::
                     )
                  ) ::
                (* Javascript program: *)
-               XHTML.M.script ~a:[a_src (Xhtml.make_uri 
-                                           (Eliom_services.static_dir ~sp)
-                                           sp
-                                           [Appl_params.application_name ^ ".js"])]
+               XHTML.M.script
+                   ~a:[a_src (Xhtml.make_uri 
+                                ~service:(Eliom_services.static_dir ~sp)
+                                ~sp
+                                [Appl_params.application_name ^ ".js"])]
                  ~contenttype:"text/javascript" (pcdata "")::
                  params.ap_headers
              else params.ap_headers

@@ -84,14 +84,17 @@ let get_header_hostname ~sp =
 let get_timeofday ~sp =
   sp.Eliom_common.sp_request.request_info.ri_timeofday
 let get_request_id ~sp = Int64.bits_of_float (get_timeofday ~sp)
-let get_default_hostname ~sp =
-  sp.Eliom_common.sp_request.request_config.default_hostname
+let get_default_hostname ?sp () =
+  let sitedata = find_sitedata "get_default_hostname" sp in
+  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_hostname
 let get_hostname ~sp =
   Ocsigen_extensions.get_hostname sp.Eliom_common.sp_request
-let get_default_port ~sp =
-  sp.Eliom_common.sp_request.request_config.default_httpport
-let get_default_sslport ~sp =
-  sp.Eliom_common.sp_request.request_config.default_httpsport
+let get_default_port ?sp () =
+  let sitedata = find_sitedata "get_default_port" sp in
+  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpport
+let get_default_sslport ?sp () =
+  let sitedata = find_sitedata "get_default_sslport" sp in
+  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpsport
 let get_server_port ~sp =
   Ocsigen_extensions.get_port sp.Eliom_common.sp_request
 let get_ssl ~sp =
@@ -785,8 +788,9 @@ let get_tmp_filename fi = fi.Ocsigen_lib.tmp_filename
 let get_filesize fi = fi.Ocsigen_lib.filesize
 let get_original_filename fi = fi.Ocsigen_lib.original_basename
 
-let get_global_table ~sp = 
-  sp.Eliom_common.sp_sitedata.Eliom_common.global_services
+let get_global_table ?sp () =
+  let sitedata = find_sitedata "get_global_table" sp in
+  sitedata.Eliom_common.global_services
 
 let get_sitedata ~sp = sp.Eliom_common.sp_sitedata
 

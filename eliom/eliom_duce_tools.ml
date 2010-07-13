@@ -256,12 +256,12 @@ let structure_links (default, pages) ?service ~sp =
     match s with
     | None -> {{ [ !{: endlist :} ] }}
     | Some s ->
-        {{ [ <link rev="Subsection" href={: make_uri s sp () :}>[] 
+        {{ [ <link rev="Subsection" href={: make_uri ~service:s ~sp () :}>[] 
                !{: endlist :} ] }}
   in
   let make_rel s =
     (* s is a subsection of mine *)
-                {{ <link rel="Subsection" href={: make_uri s sp () :}>[] }}
+                {{ <link rel="Subsection" href={: make_uri ~service:s ~sp () :}>[] }}
   in
   let make_rels beg a =
     match snd a with

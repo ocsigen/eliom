@@ -42,11 +42,11 @@ let same_service_opt sp s sopt =
 
 
 let same_service_opt sp s sopt =
-  let same_url url = make_uri s sp () = url in
+  let same_url url = make_uri ~service:s ~sp () = url in
   match sopt with
     | None -> same_url (XHTML.M.uri_of_string
                           (Eliom_sessions.get_current_sub_path_string sp))
-    | Some s' -> same_url (make_uri s' sp ())
+    | Some s' -> same_url (make_uri ~service:s' ~sp ())
 
 
 
@@ -241,13 +241,13 @@ let structure_links (default, pages) ?service ~sp =
     | None -> endlist
     | Some s ->
         (link ~a:[a_rev [`Subsection];
-                 a_href (make_uri s sp ());
+                 a_href (make_uri ~service:s ~sp ());
                ] ())::endlist
   in
   let make_rel s =
     (* s is a subsection of mine *)
     link ~a:[a_rel [`Subsection];
-             a_href (make_uri s sp ());
+             a_href (make_uri ~service:s ~sp ());
            ] ()
   in
   let make_rels beg a =

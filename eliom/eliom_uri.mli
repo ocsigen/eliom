@@ -44,7 +44,7 @@ val make_string_uri :
            | `Nonattached of [< Eliom_services.getpost ] na_s ],
            [< Eliom_services.suff ], 'c, 'd, [< Eliom_services.registrable ],
            'return) Eliom_services.service ->
-  sp:Eliom_sessions.server_params ->
+  ?sp:Eliom_sessions.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -80,7 +80,7 @@ val make_string_uri_from_components :
   string * (string * string) list * string option -> string
 
 val make_proto_prefix :
-  sp:Eliom_sessions.server_params ->
+  ?sp:Eliom_sessions.server_params ->
   ?hostname:string -> ?port:int -> bool -> string
 
 val make_uri_components_ :
@@ -92,7 +92,7 @@ val make_uri_components_ :
            | `Nonattached of 'd Eliom_services.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
     Eliom_services.service ->
-  sp:Eliom_sessions.server_params ->
+  ?sp:Eliom_sessions.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -109,7 +109,7 @@ val make_uri_components :
            | `Nonattached of 'd Eliom_services.na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
     Eliom_services.service ->
-  sp:Eliom_sessions.server_params ->
+  ?sp:Eliom_sessions.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->

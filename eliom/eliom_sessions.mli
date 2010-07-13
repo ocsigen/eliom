@@ -125,7 +125,7 @@ val get_header_hostname : sp:server_params -> string option
 (** returns the hostname declared in the config file 
     ([<host defaulthostname="...">]).
  *)
-val get_default_hostname : sp:server_params -> string
+val get_default_hostname : ?sp:server_params -> unit -> string
 
 (** returns the hostname used for absolute links.
     It is either the [Host] header sent by the browser or the default hostname
@@ -136,11 +136,11 @@ val get_hostname : sp:server_params -> string
 
 (** returns the port number declared in the config file ([<host defaulthttpport="...">]).
  *)
-val get_default_port : sp:server_params -> int
+val get_default_port : ?sp:server_params -> unit -> int
 
 (** returns the https port number declared in the config file ([<host defaulthttpsport="...">]).
  *)
-val get_default_sslport : sp:server_params -> int
+val get_default_sslport : ?sp:server_params -> unit -> int
 
 (** returns the port of the server. 
     It is either the default port in the configuration file,
@@ -1310,7 +1310,7 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
    result in some case (with a version of ocsipersist based on Dbm) *)
 
 
-val get_global_table : sp:server_params -> Eliom_common.tables
+val get_global_table : ?sp:server_params -> unit -> Eliom_common.tables
 
 val get_session_service_table :
   ?session_name:string -> 

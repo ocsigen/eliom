@@ -53,6 +53,7 @@ let coucou =
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Hallo!"]])))
+
 >>
 The same, written with fully qualified values:
           
@@ -780,6 +781,10 @@ let links = register_new_service ["rep";"links"] unit
            ~a:[a_href (uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
            [pcdata "OCaml on wikipedia"]
        ]])))
+let _ = print_endline (Eliom_uri.make_string_uri ~service:coucou ())
+let _ = print_endline (Eliom_uri.make_string_uri ~service:links ())
+let _ = print_endline (Eliom_uri.make_string_uri ~absolute:true ~service:coucou ())
+let _ = print_endline (Eliom_uri.make_string_uri ~absolute:true ~service:links ())
 
 >>
 

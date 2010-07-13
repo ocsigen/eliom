@@ -235,7 +235,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -269,7 +269,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -287,7 +287,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -321,7 +321,7 @@ module type XHTMLFORMSSIG = sig
 (** Like [make_uri_components], but also creates a table of post parameters. *)
 
     val make_proto_prefix :
-      sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
       bool ->
@@ -987,7 +987,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                    service:('get, unit, [< get_service_kind ],
                             [< suff ], 'gn, unit,
                             [< registrable ], 'return) service ->
-                   sp:server_params ->
+                   ?sp:server_params ->
                    ?hostname:string ->
                    ?port:int ->
                    ?fragment:string ->
@@ -1811,7 +1811,7 @@ module type XHTML5FORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -1845,7 +1845,7 @@ module type XHTML5FORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -1863,7 +1863,7 @@ module type XHTML5FORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_sessions.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -1897,7 +1897,7 @@ module type XHTML5FORMSSIG = sig
 (** Like [make_uri_components], but also creates a table of post parameters. *)
 
     val make_proto_prefix :
-      sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_sessions.server_params ->
       ?hostname:string ->
       ?port:int ->
       bool ->
@@ -2563,7 +2563,7 @@ module Xhtml5forms : XHTML5FORMSSIG = struct
                    service:('get, unit, [< get_service_kind ],
                             [< suff ], 'gn, unit,
                             [< registrable ], 'return) service ->
-                   sp:server_params ->
+                   ?sp:server_params ->
                    ?hostname:string ->
                    ?port:int ->
                    ?fragment:string ->
