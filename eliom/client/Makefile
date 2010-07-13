@@ -7,15 +7,16 @@ OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml -syntax camlp4o
 LIBS:=
 MLS:= xML.ml xHTML.ml xHTML5.ml \
+	ocsigen_cookies.ml eliom_client_types.ml \
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
-	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
+	ocsigen_cookies.ml eliom_client_types.ml \
 	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
 	eliom_process.ml \
 	eliom_services.ml eliom_uri.ml \
 	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
 	eliom_mkforms.ml polytables.ml \
-	xhtmltypes.ml xhtml5types.ml eliom_predefmod.ml \
+	xhtmltypes.ml eliom_predefmod.ml \
 	eliom_common_comet.ml eliom_client_comet.ml \
 	eliom_client_event.ml
 MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli eliom_common_comet.mli
@@ -42,22 +43,22 @@ $(CMA):  eliom_client_stubs.o $(CMOS)
 	$(OCAMLC) $(LIBS) $(PACKAGES) -c $<
 
 
-xHTML.ml: ../../xmlp4/ohl-xhtml/xHTML.ml
+xHTML.ml: ../../xmlp4/xhtml/xHTML.ml
 	cp -f $< $@ 
 
-xHTML.mli: ../../xmlp4/ohl-xhtml/xHTML.mli
+#xHTML.mli: ../../xmlp4/xhtml/xHTML.mli
+#	cp -f $< $@ 
+
+xHTML5.ml: ../../xmlp4/xhtml/xHTML5.ml
+	camlp4r -printer o $< > $@
+
+#xHTML5.mli: ../../xmlp4/xhtml/xHTML5.mli
+#	cp -f $< $@ 
+
+xhtmltypes.ml: ../../xmlp4/syntax/pp/xhtmltypes.ml
 	cp -f $< $@ 
 
-xHTML5.ml: ../../xmlp4/ohl-xhtml/xHTML5.ml
-	cp -f $< $@ 
-
-xHTML5.mli: ../../xmlp4/ohl-xhtml/xHTML5.mli
-	cp -f $< $@ 
-
-xhtmltypes.ml: ../../xmlp4/newocaml/pp/xhtmltypes.ml
-	cp -f $< $@ 
-
-xhtml5types.ml: ../../xmlp4/newocaml/pp/xhtml5types.ml
+xhtml5types.ml: ../../xmlp4/syntax/pp/xhtml5types.ml
 	cp -f $< $@ 
 
 ocsigen_cookies.ml: ../../http/ocsigen_cookies.ml ocsigen_cookies.mli
@@ -124,7 +125,7 @@ clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so
 	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml* \
 	    eliom_common.ml eliom_mkforms.ml* eliom_uri.ml* \
-            eliom_predefmod.ml* xHTML.ml*\
+            eliom_predefmod.ml* xHTML.ml xHTML5.ml xhtml5types.ml \
 	    ocsigen_lib_cli.ml \
             polytables.ml
 

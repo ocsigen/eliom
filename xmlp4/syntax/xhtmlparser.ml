@@ -17,7 +17,9 @@
  *)
 
 open Camlp4.PreCast;
-
+(*
+module XHTML = XHTML5;
+*)
 
 (* For Camlp4 error handling when parsing xhtml inlined in OCaml code *)
 module Error = struct
@@ -66,7 +68,8 @@ module LexerArg = struct
 
 end;
 
-module Make (Syntax: Camlp4.Sig.Camlp4Syntax with module Loc = Loc and module Ast = Ast) =
+module Make (Syntax: Camlp4.Sig.Camlp4Syntax with module Loc = Loc and module Ast = Ast)
+  (S : sig value module_id: string; end) =
 struct
   module Xmllexer =
     Xmllexer.Make(LexerArg);
@@ -167,17 +170,17 @@ struct
     let loc = s.loc in
     match pop s with
       [ (`PCData s, _) ->
-          <:expr< ((XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $str:String.escaped s$}))
-                     : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
+          <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $str:String.escaped s$}))
+                     : $uid:S.module_id$.M.elt [> Xhtmltypes.pcdata ]) >>
       | (`CamlString s, _) ->
-          <:expr< ((XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $get_expr s loc$}))
-                     : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
+          <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $get_expr s loc$}))
+                     : $uid:S.module_id$.M.elt [> Xhtmltypes.pcdata ]) >>
       | (`CamlList s, _) -> raise (CamlListExc s)
       | (`CamlExpr s, _) -> get_expr s loc
       | (`Whitespace s, _) ->
-          <:expr< XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.Whitespace $str:String.escaped s$}) >>
+          <:expr< $uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.Whitespace $str:String.escaped s$}) >>
       | (`Comment s, _) ->
-          <:expr< XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.Comment $str:String.escaped s$}) >>
+          <:expr< $uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.Comment $str:String.escaped s$}) >>
       | (`Tag (tag, attlist, closed), s) ->
           let constr =
             if List.mem tag blocktags
@@ -188,18 +191,18 @@ struct
           in
           match closed with
           [ True ->
-              <:expr< ((XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
+              <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
                                        $read_attlist s attlist$ []}))
-                         : XHTML.M.elt [> `$uid: String.capitalize tag$])>>
+                         : $uid:S.module_id$.M.elt [> `$uid: String.capitalize tag$])>>
           | False ->
               let foo = <:expr<
                 ($read_elems ~tag s$ :>
-                   list (XHTML.M.elt [< Xhtmltypes.$lid:tag^"_content"$]))>>
+                   list ($uid:S.module_id$.M.elt [< Xhtmltypes.$lid:tag^"_content"$]))>>
               in
-              <:expr< ((XHTML.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
+              <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
                                        $read_attlist s attlist$
-                                       (XHTML.M.toeltl $foo$)} ))
-                         : XHTML.M.elt [> `$uid: String.capitalize tag$])
+                                       ($uid:S.module_id$.M.toeltl $foo$)} ))
+                         : $uid:S.module_id$.M.elt [> `$uid: String.capitalize tag$])
               >>
           ]
       | ((`Endtag _ | `Eof as t),_) ->
@@ -257,7 +260,7 @@ struct
         <:expr< [ (XML.string_attrib $get_expr a loc$ $get_expr v loc$) ::
                     $read_attlist s l$ ] >>
     | [`CamlAttributes cl ::l] ->
-        <:expr< [ (XHTML.M.to_xmlattribs $get_expr cl loc$) ::
+        <:expr< [ ($uid:S.module_id$.M.to_xmlattribs $get_expr cl loc$) ::
                     $read_attlist s l$ ] >>
     ];
 
