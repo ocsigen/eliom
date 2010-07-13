@@ -1,6 +1,5 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliomsessions.ml
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -125,7 +124,7 @@ let get_expired_service_sessions ~sp =
     Polytables.get
       ~table:sp.Eliom_common.sp_request.request_info.ri_request_cache
       ~key:Eliom_common.eliom_service_session_expired
-  with Not_found -> []
+  with Not_found -> ([], [])
 let get_config_default_charset ~sp =
   Ocsigen_charset_mime.default_charset
     sp.Eliom_common.sp_request.request_config.charset_assoc

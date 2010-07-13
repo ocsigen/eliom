@@ -28,9 +28,9 @@ open Lwt
 
 let def_handler sp e = fail e
 
-let handle_site_exn exn (ri, si, aci) sitedata =
+let handle_site_exn exn (ri, si, aci, aci_tab) sitedata =
   sitedata.Eliom_common.exn_handler
-    (Eliom_common.make_server_params sitedata aci ri None si None) exn 
+    (Eliom_common.make_server_params sitedata aci aci_tab ri None si None) exn 
   >>= fun r -> 
   return r
 
@@ -45,7 +45,9 @@ let execute
     ((ri,
       si,
       ((service_cookies_info, data_cookies_info, pers_cookies_info), 
-       secure_ci)) as info)
+       secure_ci),
+      ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info), 
+       secure_ci_tab)) as info)
     sitedata =
 
   let update_exp (service_cookies_info, data_cookies_info, pers_cookies_info) =
@@ -194,7 +196,7 @@ let execute
 
 (** Set expired sessions in request data *)
 let set_expired_sessions ri closedservsessions =
-  if closedservsessions = []
+  if closedservsessions = ([], [])
   then ()
   else
     Polytables.set
@@ -220,8 +222,16 @@ let gen is_eliom_extension sitedata = function
       si.Eliom_common.si_persistent_session_cookies
       si.Eliom_common.si_secure_cookie_info
   in
-  set_expired_sessions ri closedsessions;
-  let rec gen_aux ((ri, si, all_cookie_info) as info) =
+  let (all_tab_cookie_info, closedsessions_tab) =
+    Eliommod_cookies.get_cookie_info now
+      sitedata
+      si.Eliom_common.si_service_session_cookies_tab
+      si.Eliom_common.si_data_session_cookies_tab
+      si.Eliom_common.si_persistent_session_cookies_tab
+      si.Eliom_common.si_secure_cookie_info_tab
+  in
+  set_expired_sessions ri (closedsessions, closedsessions_tab);
+  let rec gen_aux ((ri, si, all_cookie_info, all_tab_cookie_info) as info) =
     match is_eliom_extension with
       | Some ext -> 
           Eliommod_extensions.run_eliom_extension ext now info sitedata
@@ -311,6 +321,6 @@ let gen is_eliom_extension sitedata = function
                                   Ocsigen_http_frame.res_location = Some uri}))
                | e -> fail e)
   in
-  gen_aux (ri, si, all_cookie_info)
+  gen_aux (ri, si, all_cookie_info, all_tab_cookie_info)
   | Ocsigen_extensions.Req_not_found (_, ri) ->
       Lwt.return Ocsigen_extensions.Ext_do_nothing

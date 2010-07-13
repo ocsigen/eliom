@@ -48,7 +48,8 @@ module Fullsessionname_Table : Map.S with type key = fullsessionname
 val eliom_link_too_old : bool Polytables.key
 (** If present and true in request data, it means that
     the previous coservice does not exist any more *)
-val eliom_service_session_expired : (fullsessionname list) Polytables.key
+val eliom_service_session_expired : 
+  (fullsessionname list * fullsessionname list) Polytables.key
 (** If present in request data,  means that
     the service session cookies does not exist any more.
     The string lists are the list of names of expired sessions
@@ -269,6 +270,7 @@ type server_params = {
   sp_si : sess_info;
   sp_sitedata : sitedata;
   sp_cookie_info : tables cookie_info;
+  sp_tab_cookie_info : tables cookie_info;
   sp_suffix : Ocsigen_lib.url_path option;
   sp_fullsessname : fullsessionname option;
 }
@@ -392,6 +394,7 @@ and sitedata = {
 val make_server_params :
   sitedata ->
   tables cookie_info ->
+  tables cookie_info ->
   Ocsigen_extensions.request ->
   Ocsigen_lib.url_path option -> 
   sess_info -> fullsessionname option -> server_params
@@ -403,8 +406,6 @@ val empty_tables : int -> bool -> tables
 val new_service_session_tables : sitedata -> tables
 val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
-val getcookies :
-  string -> 'a Ocsigen_lib.String_Table.t -> 'a Fullsessionname_Table.t
 val get_session_info :
   Ocsigen_extensions.request ->
   int -> (Ocsigen_extensions.request * sess_info) Lwt.t
@@ -421,7 +422,8 @@ val make_fullsessname2 :
 
 exception Eliom_retry_with of
             (Ocsigen_extensions.request * sess_info * 
-             tables cookie_info)
+             tables cookie_info * tables cookie_info)
+
 module Perstables :
   sig
     val empty : 'a list
@@ -479,3 +481,4 @@ val get_tab_cookies :
    (string * string) list Ocsigen_lib.String_Table.t ->
    string Ocsigen_lib.String_Table.t) ref
 
+val get_cookie_info : server_params -> cookie_type -> tables cookie_info

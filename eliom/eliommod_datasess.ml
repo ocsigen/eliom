@@ -48,7 +48,9 @@ let close_data_session ?(close_group = false) ?session_name
     let fullsessname = 
       Eliom_common.make_fullsessname ~sp cookie_type session_name
     in
-    let ((_, cookie_info, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+    let ((_, cookie_info, _), secure_ci) = 
+      Eliom_common.get_cookie_info sp cookie_type
+    in
     let cookie_info = compute_cookie_info secure secure_ci cookie_info in
     let (_, ior) =
       Lazy.force 
@@ -112,7 +114,9 @@ let find_or_create_data_cookie ?set_session_group ?session_name
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_type session_name 
   in
-  let ((_, cookie_info, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let ((_, cookie_info, _), secure_ci) =
+    Eliom_common.get_cookie_info sp cookie_type
+  in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let fullsessgrp =
     Eliommod_sessiongroups.make_full_group_name
@@ -170,7 +174,9 @@ let find_data_cookie_only ?session_name
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_type session_name 
   in
-  let ((_, cookie_info, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let ((_, cookie_info, _), secure_ci) =
+    Eliom_common.get_cookie_info sp cookie_type
+  in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let (_, ior) =
     Lazy.force 

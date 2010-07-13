@@ -5,6 +5,7 @@ val find_page_table :
   Eliom_common.fullsessionname option ->
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
+  Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_extensions.request ->
   Ocsigen_lib.url_path option ->
   Eliom_common.page_table_key ->
@@ -33,12 +34,16 @@ val find_service :
   float ->
   Eliom_common.tables ->
   Eliom_common.fullsessionname option ->
-  Eliom_common.sitedata * Eliom_common.tables Eliom_common.cookie_info *
-  Ocsigen_extensions.request * Eliom_common.sess_info ->
+  Eliom_common.sitedata *
+    Eliom_common.tables Eliom_common.cookie_info *
+    Eliom_common.tables Eliom_common.cookie_info *
+    Ocsigen_extensions.request *
+    Eliom_common.sess_info ->
   Ocsigen_http_frame.result Lwt.t
 val get_page :
   float ->
   Ocsigen_extensions.request * Eliom_common.sess_info * 
+    Eliom_common.tables Eliom_common.cookie_info *
     Eliom_common.tables Eliom_common.cookie_info ->
   Eliom_common.sitedata -> 
   Ocsigen_http_frame.result Lwt.t

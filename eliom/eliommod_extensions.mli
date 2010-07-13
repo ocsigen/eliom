@@ -32,6 +32,7 @@ val run_eliom_extension :
   eliom_extension_sig ->
   float ->
   Ocsigen_extensions.request * Eliom_common.sess_info *
+  Eliom_common.tables Eliom_common.cookie_info *
   Eliom_common.tables Eliom_common.cookie_info ->
   Eliom_common.sitedata ->
   Ocsigen_extensions.answer Lwt.t

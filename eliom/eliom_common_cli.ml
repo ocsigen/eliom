@@ -105,20 +105,6 @@ end)
 (*****************************************************************************)
 
 
-let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
-(** The coservice does not exist any more *)
-
-let eliom_service_session_expired : (fullsessionname list) Polytables.key = 
-  Polytables.make_key ()
-(** If present in request data,  means that
-    the service session cookies does not exist any more.
-    The string lists are the list of names of expired sessions
-*)
-
-
-
-(*****************************************************************************)
-
 
 type sess_info =
     {si_other_get_params: (string * string) list;

@@ -1610,7 +1610,7 @@ module Eliom_appl_reg_
     Eliommod_cookies.compute_cookies_to_send
       Eliom_common.CTab
       (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_sitedata
-      (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_cookie_info
+      (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_tab_cookie_info
       (Eliom_services.cookie_table_of_eliom_cookies
          Eliom_common.CTab ~sp cookies)
                         

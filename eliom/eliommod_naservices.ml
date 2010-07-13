@@ -127,7 +127,8 @@ let make_naservice
     now
     (ri,
      si,
-     (((service_cookies_info, _, _), secure_ci) as all_cookie_info))
+     (((service_cookies_info, _, _), secure_ci) as all_cookie_info),
+     (((service_tab_cookies_info, _, _), secure_ci_tab) as all_tab_cookie_info))
     sitedata
     =
 
@@ -156,110 +157,130 @@ let make_naservice
         (Eliom_common.Notfound ())
     with
     | Eliom_common.Found v -> v
-    | Eliom_common.Notfound _ ->
-        (find_naservice now sitedata.Eliom_common.global_services
-           (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info),
-         sitedata.Eliom_common.global_services,
-         None)
+    | Eliom_common.Notfound _ -> raise Not_found
   in
-  (try
-     (try
-        (* look in the secure session service tables 
-           corresponding to cookies sent
-           and then in the global table to find the service *)
-        match secure_ci with
-          | None -> raise Not_found
-          | Some (service_cookies_info, _, _) -> 
-              return (find_aux !service_cookies_info)
-      with
-        | Not_found ->
-            (* look in the session service tables corresponding to cookies sent
-               and then in the global table to find the service *)
-            return (find_aux !service_cookies_info)
-     )
-  with
-  | Not_found ->
-      (* The non-attached service has not been found.
-         We call the same URL without non-attached parameters.
-       *)
-      match si.Eliom_common.si_nonatt_info with
-      | Eliom_common.RNa_no -> assert false
-      | Eliom_common.RNa_post_ _
-      | Eliom_common.RNa_post' _ ->
-(*VVV (Some, Some) or (_, Some)? *)
-          Ocsigen_messages.debug2
-            "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
-          Polytables.set 
-            ri.request_info.ri_request_cache
-            Eliom_common.eliom_link_too_old
-            true;
-          Eliom_common.get_session_info
-            {ri with Ocsigen_extensions.request_info =
-                { ri.Ocsigen_extensions.request_info with
-                    Ocsigen_extensions.ri_get_params =
-                      lazy si.Eliom_common.si_other_get_params;
-                    ri_post_params = (fun _ -> return []);
-                    ri_files = (fun _ -> Lwt.return []);
-                    ri_method = Ocsigen_http_frame.Http_header.GET;
-            }}
-            si.Eliom_common.si_previous_extension_error
-          >>=
-            (fun (ri', si') ->
-               fail (Eliom_common.Eliom_retry_with (ri', 
-                                                    si',
-                                                    all_cookie_info)))
 
-      | Eliom_common.RNa_get_ _
-      | Eliom_common.RNa_get' _ ->
-          Ocsigen_messages.debug2
-            "--Eliom: Link too old. I will try without non-attached parameters:";
-          Polytables.set 
-            ri.request_info.ri_request_cache
-            Eliom_common.eliom_link_too_old
-            true;
-          Eliom_common.get_session_info
-            {ri with request_info =
-                { ri.request_info with
-                    ri_get_params =
-                      lazy si.Eliom_common.si_other_get_params;
-                    ri_post_params = (fun _ -> return []);
-                    ri_files = (fun _ -> Lwt.return []);
-                    ri_method = Ocsigen_http_frame.Http_header.GET;
-                }
+
+  let tables = [] in
+  let tables = (!service_cookies_info, "session table")::tables in
+  let tables = 
+    match secure_ci with
+      | Some (service_cookies_info, _, _) -> 
+        (!service_cookies_info, "secure session table")::tables
+      | _ -> tables
+  in
+  let tables = (!service_tab_cookies_info, "tab session table")::tables in
+  let tables = 
+    match secure_ci_tab with
+      | Some (service_cookies_info, _, _) -> 
+        (!service_cookies_info, "secure tab session table")::tables
+      | _ -> tables
+  in
+
+  (try
+     try
+       let rec f = function
+         | [] -> raise Not_found
+         | (table, table_name)::l ->
+           Ocsigen_messages.debug
+             (fun () -> String.concat ""
+               ["--Eliom: I'm looking a non attached service in the "; 
+                table_name; ":"]);
+           try return (find_aux table)
+           with Not_found -> f l
+       in f tables
+     with Not_found ->
+       return
+         (find_naservice now sitedata.Eliom_common.global_services
+            (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info),
+          sitedata.Eliom_common.global_services,
+          None)
+   with Not_found ->
+    (* The non-attached service has not been found.
+       We call the same URL without non-attached parameters.
+    *)
+     match si.Eliom_common.si_nonatt_info with
+       | Eliom_common.RNa_no -> assert false
+       | Eliom_common.RNa_post_ _
+       | Eliom_common.RNa_post' _ ->
+        (*VVV (Some, Some) or (_, Some)? *)
+         Ocsigen_messages.debug2
+           "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
+         Polytables.set 
+           ri.request_info.ri_request_cache
+           Eliom_common.eliom_link_too_old
+           true;
+         Eliom_common.get_session_info
+           {ri with Ocsigen_extensions.request_info =
+               { ri.Ocsigen_extensions.request_info with
+                 Ocsigen_extensions.ri_get_params =
+                   lazy si.Eliom_common.si_other_get_params;
+                 ri_post_params = (fun _ -> return []);
+                 ri_files = (fun _ -> Lwt.return []);
+                 ri_method = Ocsigen_http_frame.Http_header.GET;
+               }}
+           si.Eliom_common.si_previous_extension_error
+         >>=
+           (fun (ri', si') ->
+             fail (Eliom_common.Eliom_retry_with (ri', 
+                                                  si',
+                                                  all_cookie_info,
+                                                  all_tab_cookie_info)))
+           
+       | Eliom_common.RNa_get_ _
+       | Eliom_common.RNa_get' _ ->
+         Ocsigen_messages.debug2
+           "--Eliom: Link too old. I will try without non-attached parameters:";
+         Polytables.set 
+           ri.request_info.ri_request_cache
+           Eliom_common.eliom_link_too_old
+           true;
+         Eliom_common.get_session_info
+           {ri with request_info =
+               { ri.request_info with
+                 ri_get_params =
+                   lazy si.Eliom_common.si_other_get_params;
+                 ri_post_params = (fun _ -> return []);
+                 ri_files = (fun _ -> Lwt.return []);
+                 ri_method = Ocsigen_http_frame.Http_header.GET;
+               }
            }
-            si.Eliom_common.si_previous_extension_error
-            >>=
-          (fun (ri', si') ->
-            fail (Eliom_common.Eliom_retry_with (ri', si',
-                                                 all_cookie_info)))
-  ) >>=
-  (fun ((_, max_use, expdate, naservice, node), 
-        tablewhereithasbeenfound,
-        fullsessname) ->
-    (naservice
-       (Eliom_common.make_server_params
-          sitedata
-          all_cookie_info
-          ri
-          None
-          si
-          fullsessname)) >>=
-    (fun r ->
-      Ocsigen_messages.debug2
-        "--Eliom: Non attached page found and generated successfully";
-      (match expdate with
-      | Some (timeout, e) -> e := timeout +. now
-      | None -> ());
-      (match max_use with
-      | None -> ()
-      | Some r ->
-          if !r = 1
-          then 
-            remove_naservice_
-              tablewhereithasbeenfound 
-              (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info)
-              node
-          else r := !r - 1);
-      return r))
+           si.Eliom_common.si_previous_extension_error
+         >>=
+           (fun (ri', si') ->
+             fail (Eliom_common.Eliom_retry_with (ri', si',
+                                                  all_cookie_info,
+                                                  all_tab_cookie_info)))
+  )
+  >>=
+    (fun ((_, max_use, expdate, naservice, node), 
+          tablewhereithasbeenfound,
+          fullsessname) ->
+      (naservice
+         (Eliom_common.make_server_params
+            sitedata
+            all_cookie_info
+            all_tab_cookie_info
+            ri
+            None
+            si
+            fullsessname)) >>=
+        (fun r ->
+          Ocsigen_messages.debug2
+            "--Eliom: Non attached page found and generated successfully";
+          (match expdate with
+            | Some (timeout, e) -> e := timeout +. now
+            | None -> ());
+          (match max_use with
+            | None -> ()
+            | Some r ->
+              if !r = 1
+              then 
+                remove_naservice_
+                  tablewhereithasbeenfound 
+                  (Eliom_common.na_key_serv_of_req si.Eliom_common.si_nonatt_info)
+                  node
+              else r := !r - 1);
+          return r))
 
 

@@ -50,7 +50,9 @@ let close_service_session
     let fullsessname = 
       Eliom_common.make_fullsessname ~sp cookie_type session_name 
     in
-    let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+    let ((cookie_info, _, _), secure_ci) =
+      Eliom_common.get_cookie_info sp cookie_type
+    in
     let cookie_info = compute_cookie_info secure secure_ci cookie_info in
     let (_, ior) = 
       Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info 
@@ -112,7 +114,9 @@ let find_or_create_service_cookie
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_type session_name 
   in
-  let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let ((cookie_info, _, _), secure_ci) =
+    Eliom_common.get_cookie_info sp cookie_type
+  in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let fullsessgrp =
     Eliommod_sessiongroups.make_full_group_name
@@ -172,7 +176,9 @@ let find_service_cookie_only
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_type session_name 
   in
-  let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let ((cookie_info, _, _), secure_ci) =
+      Eliom_common.get_cookie_info sp cookie_type
+    in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let (_, ior) = 
     Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info 

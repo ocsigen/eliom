@@ -59,6 +59,21 @@ let spersistentcookiename = "Seliompersistentsession|"
 
 (*****************************************************************************)
 
+let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
+(** The coservice does not exist any more *)
+
+let eliom_service_session_expired : 
+    (fullsessionname list * fullsessionname list) Polytables.key = 
+  Polytables.make_key ()
+(** If present in request data,  means that
+    the service session cookies does not exist any more.
+    The string lists are the list of names of expired sessions
+*)
+
+
+
+(*****************************************************************************)
+
 (** Type used for cookies to set.
     The float option is the timestamp for the expiration date.
     The strings are names and values.
@@ -333,6 +348,7 @@ type server_params =
      sp_si: sess_info;
      sp_sitedata: sitedata (* data for the whole site *);
      sp_cookie_info: tables cookie_info;
+     sp_tab_cookie_info: tables cookie_info;
      sp_suffix: Ocsigen_lib.url_path option (* suffix *);
      sp_fullsessname: fullsessionname option (* the name of the session
                                                 to which belong the service
@@ -487,14 +503,22 @@ let make_fullsessname2 site_dir_string cookie_type = function
   | Some s -> (cookie_type, site_dir_string^"|"^s)
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
+let get_cookie_info sp = function
+  | CBrowser -> sp.sp_cookie_info
+  | CTab -> sp.sp_tab_cookie_info
+
+
+
 (*****************************************************************************)
     (** Create server parameters record *)
-let make_server_params sitedata all_cookie_info ri suffix si fullsessname
+let make_server_params 
+    sitedata all_cookie_info all_tab_cookie_info ri suffix si fullsessname
     : server_params =
   {sp_request=ri;
    sp_si=si;
    sp_sitedata=sitedata;
    sp_cookie_info=all_cookie_info;
+   sp_tab_cookie_info=all_tab_cookie_info;
    sp_suffix=suffix;
    sp_fullsessname= fullsessname}
 
@@ -700,7 +724,7 @@ let split_nl_prefix_param =
     in
     aux [] Ocsigen_lib.String_Table.empty l
 
-let getcookies cookiename cookies =
+let getcookies cookie_type cookiename cookies =
   let length = String.length cookiename in
   let last = length - 1 in
   Ocsigen_lib.String_Table.fold
@@ -708,7 +732,7 @@ let getcookies cookiename cookies =
       if Ocsigen_lib.string_first_diff cookiename name 0 last = length
       then
         Fullsessionname_Table.add
-          (CBrowser, (String.sub name length ((String.length name) - length)))
+          (cookie_type, (String.sub name length ((String.length name) - length)))
           value
           beg
       else beg
@@ -764,17 +788,17 @@ let get_session_info req previous_extension_err =
 
   let browser_cookies = Lazy.force ri.Ocsigen_extensions.ri_cookies in
 
-  let data_cookies = getcookies datacookiename browser_cookies in
-  let service_cookies = getcookies servicecookiename browser_cookies in
-  let persistent_cookies = getcookies persistentcookiename browser_cookies in
+  let data_cookies = getcookies CBrowser datacookiename browser_cookies in
+  let service_cookies = getcookies CBrowser servicecookiename browser_cookies in
+  let persistent_cookies = getcookies CBrowser persistentcookiename browser_cookies in
   
   let secure_cookie_info =
     if ri.Ocsigen_extensions.ri_ssl
     then
-      let sdata_cookies = getcookies sdatacookiename browser_cookies in
-      let sservice_cookies = getcookies sservicecookiename browser_cookies in
+      let sdata_cookies = getcookies CBrowser sdatacookiename browser_cookies in
+      let sservice_cookies = getcookies CBrowser sservicecookiename browser_cookies in
       let spersistent_cookies =
-        getcookies spersistentcookiename browser_cookies
+        getcookies CBrowser spersistentcookiename browser_cookies
       in
       Some (sservice_cookies, sdata_cookies, spersistent_cookies)
     else None
@@ -894,16 +918,16 @@ let get_session_info req previous_extension_err =
 
   let tab_cookies = (!get_tab_cookies) req_whole nl_get_params in
 
-  let data_cookies_tab = getcookies datacookiename tab_cookies in
-  let service_cookies_tab = getcookies servicecookiename tab_cookies in
-  let persistent_cookies_tab = getcookies persistentcookiename tab_cookies in
+  let data_cookies_tab = getcookies CTab datacookiename tab_cookies in
+  let service_cookies_tab = getcookies CTab servicecookiename tab_cookies in
+  let persistent_cookies_tab = getcookies CTab persistentcookiename tab_cookies in
   
   let secure_cookie_info_tab =
     if ri.Ocsigen_extensions.ri_ssl
     then
-      let sdata_cookies = getcookies sdatacookiename tab_cookies in
-      let sservice_cookies = getcookies sservicecookiename tab_cookies in
-      let spersistent_cookies = getcookies spersistentcookiename tab_cookies in
+      let sdata_cookies = getcookies CTab sdatacookiename tab_cookies in
+      let sservice_cookies = getcookies CTab sservicecookiename tab_cookies in
+      let spersistent_cookies = getcookies CTab spersistentcookiename tab_cookies in
       Some (sservice_cookies, sdata_cookies, spersistent_cookies)
     else None
   in
@@ -964,8 +988,8 @@ exception Eliom_retry_with of
   (Ocsigen_extensions.request *
      sess_info *
 (*     Ocsigen_http_frame.cookieset (* user cookies set by previous pages *) * *)
-     tables cookie_info
-     (* current cookie info *)
+     tables cookie_info (* current browser cookie info *) *
+     tables cookie_info (* current tab cookie info *)
   )
 
 

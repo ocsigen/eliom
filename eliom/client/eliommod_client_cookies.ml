@@ -41,6 +41,7 @@ let update_cookie_table cookieset =
           | Ocsigen_cookies.OSet (exp, value, secure) ->
             Firebug.console##log (Js.string ("set"));
             Firebug.console##log (Js.string (name));
+            Firebug.console##log (Js.string (value));
             cookie_table := 
               Ocsigen_cookies.add_cookie
               path name (exp, value, secure)

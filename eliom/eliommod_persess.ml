@@ -102,7 +102,9 @@ let close_persistent_session ?(close_group = false) ?session_name
       let fullsessname = 
         Eliom_common.make_fullsessname ~sp cookie_type session_name 
       in
-      let ((_, _, cookie_info), secure_ci) = sp.Eliom_common.sp_cookie_info in
+      let ((_, _, cookie_info), secure_ci) =
+        Eliom_common.get_cookie_info sp cookie_type
+      in
       let cookie_info = compute_cookie_info secure secure_ci cookie_info in
       Lazy.force (Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info)
       >>= fun (_, ior) ->
@@ -168,7 +170,9 @@ let find_or_create_persistent_cookie ?session_group ?session_name
       sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
       session_group
   in
-  let ((_, _, cookie_info), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let ((_, _, cookie_info), secure_ci) =
+    Eliom_common.get_cookie_info sp cookie_type
+  in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   catch
     (fun () ->
@@ -207,7 +211,9 @@ let find_persistent_cookie_only ?session_name
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_type session_name 
   in
-  let ((_, _, cookie_info), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let ((_, _, cookie_info), secure_ci) =
+    Eliom_common.get_cookie_info sp cookie_type
+  in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   Lazy.force (Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info)
   >>= fun (_, ior) ->

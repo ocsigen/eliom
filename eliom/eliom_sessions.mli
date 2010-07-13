@@ -660,8 +660,10 @@ val clean_request_cache : sp:server_params -> unit
 val get_link_too_old : sp:server_params -> bool
 
 (** returns the list of names of service sessions expired for the current 
-    request. *)
-val get_expired_service_sessions : sp:server_params -> Eliom_common.fullsessionname list
+    request, for browser sessions and tab sessions. *)
+val get_expired_service_sessions : 
+  sp:server_params -> (Eliom_common.fullsessionname list *
+                       Eliom_common.fullsessionname list)
 
 (** returns the HTTP error code sent by the Ocsigen extension
    that tried to answer to the request before Eliom.
