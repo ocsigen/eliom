@@ -11,11 +11,11 @@ PPLEXER = -pp "camlp4of -- -loc loc"
 
 predep: pp/simplexmlparser.mli pp/xhtmltypes.ml pp/xhtml5types.ml
 
-byte: xhtmlsyntax.cma ../simplexmlparser.cmo 
-	cp -f xhtmlsyntax.cma $(FILES:.ml=.cmi) xmllexer.cmo ..
+byte: ../xhtmlsyntax.cma ../simplexmlparser.cmo 
+	cp -f $(FILES:.ml=.cmi) xmllexer.cmo ..
 
-opt: xhtmlsyntax.cmxa ../simplexmlparser.cmx 
-	cp -f xhtmlsyntax.cmxa $(FILES:.ml=.cmi) xmllexer.cmx xmllexer.o $(FILES:.ml=.o) ..
+opt: ../xhtmlsyntax.cmxa ../simplexmlparser.cmx 
+	cp -f $(FILES:.ml=.cmi) xmllexer.cmx xmllexer.o $(FILES:.ml=.o) ..
 
 
 ../simplexmlparser.cmi: simplexmlparser.mli
@@ -29,10 +29,10 @@ opt: xhtmlsyntax.cmxa ../simplexmlparser.cmx
 ../simplexmlparser.cmx: ../simplexmlparser.cmi simplexmlparser.ml
 	$(CAMLOPT) -c simplexmlparser.ml -o $@ $(PP)
 
-xhtmlsyntax.cma: basicTypes.cmo xmllexer.cmo camllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
+../xhtmlsyntax.cma: basicTypes.cmo xmllexer.cmo camllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
 	$(CAMLC) -a -o $@ xmllexer.cmo camllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
 
-xhtmlsyntax.cmxa: basicTypes.cmx xmllexer.cmx camllexer.cmx xhtmlparser.cmx xhtmlsyntax.cmx
+../xhtmlsyntax.cmxa: basicTypes.cmx xmllexer.cmx camllexer.cmx xhtmlparser.cmx xhtmlsyntax.cmx
 	$(CAMLOPT) -a -o $@ xmllexer.cmx camllexer.cmx xhtmlparser.cmx xhtmlsyntax.cmx
 
 

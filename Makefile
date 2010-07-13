@@ -67,7 +67,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)server/ocsigen_extensions.mli				\
 	$(DOCPREF)server/ocsigen_parseconfig.mli			\
 	$(DOCPREF)server/ocsigen_server.mli				\
-	$(DOCPREF)xmlp4/xml-prettyxhtmlpretty_streams.mli		\
+	$(DOCPREF)xmlp4/xml-prettyx/htmlpretty_streams.mli		\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact_streams.mli		\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty.mli			\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact.mli			\
@@ -125,15 +125,16 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
 
 # Put here only those which do not have cmxs (Vincent: Why?)
 CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/xhtmlpretty.cma	\
-	xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma
+	xmlp4/xhtml.cma server/ocsigen.cma 
 CMOTOINSTALL = server/server_main.cmo
 CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi	\
 	server/ocsigen_server.cmi server/ocsigen_http_client.cmi	\
 	xmlp4/xhtmlpretty.cmi xmlp4/xhtmlpretty_streams.cmi		\
-	xmlp4/xhtmlcompact.cmi                                          \
-	xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xHTML5.cmi		\
-	xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi			\
+	xmlp4/xhtmlcompact.cmi      	   				\
+	xmlp4/xhtml5types.cmi                          			\
+	xmlp4/xHTML.cmi xmlp4/xHTML5.cmi				\
+	xmlp4/xML.cmi xmlp4/xhtmltypes.cmi				\
 	xmlp4/simplexmlparser.cmi http/ocsigen_charset_mime.cmi		\
 	http/ocsigen_senders.cmi http/framepp.cmi			\
 	http/ocsigen_http_com.cmi http/http_headers.cmi			\
@@ -290,17 +291,17 @@ files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
 	-ln -sf ../eliom/client/eliom_client.cma extensions
-	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cma extensions
+	-ln -sf ../xmlp4/xhtml.cma extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cma extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cma extensions
 	-ln -sf ../eliom/eliom.cmxa extensions
 	-ln -sf ../eliom/eliom_duce.cmxa extensions
-	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cmxa extensions
+	-ln -sf ../xmlp4/xhtml.cmxa extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cmxa extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cmxa extensions
 	-ln -sf ../eliom/eliom.cmxs extensions
 	-ln -sf ../eliom/eliom_duce.cmxs extensions
-	-ln -sf ../xmlp4/ohl-xhtml/xhtml.cmxs extensions
+	-ln -sf ../xmlp4/xhtml.cmxs extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cmxs extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cmxs extensions
 	-ln -sf ../baselib/parsecommandline.cma extensions
@@ -309,7 +310,7 @@ files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../baselib/donotparsecommandline.cmxs extensions
 	echo directory = \"$(SRC)/extensions\" > $@
 	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< >> $@
-#	sed "s%\"xhtml\" (%\"xhtml\" (\n  directory = \"$(SRC)/xmlp4/ohl-xhtml/\"%g" >> $@
+#	sed "s%\"xhtml\" (%\"xhtml\" (\n  directory = \"$(SRC)/xmlp4/xhtml/\"%g" >> $@
 
 files/META.eliom_examples: files/META.eliom_examples.in VERSION
 	sed $(SED_COMMAND_FOR_META) -e "s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g" < $< > $@
