@@ -174,7 +174,10 @@ let exn_handler = raise
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
      {- return something of type [extension] (filter or page generator)}}
 *)
-let site_creator (hostpattern : Ocsigen_extensions.virtual_hosts) = parse_config
+let site_creator 
+    (hostpattern : Ocsigen_extensions.virtual_hosts)
+    (config_info : Ocsigen_extensions.config_info)
+    = parse_config
    (* hostpattern has type Ocsigen_extensions.virtual_hosts
       and represents the name of the virtual host.
       The path and the charset are declared in <site path... charset=.../>

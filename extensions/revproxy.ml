@@ -297,8 +297,8 @@ let parse_config = function
 (** Registration of the extension *)
 let () = register_extension
   ~name:"revproxy"
-  ~fun_site:(fun _ _ _ _ -> parse_config)
-  ~user_fun_site:(fun _ _ _ _ _ -> parse_config)
+  ~fun_site:(fun _ _ _ _ _ -> parse_config)
+  ~user_fun_site:(fun _ _ _ _ _ _ -> parse_config)
   ~respect_pipeline:true (* We ask ocsigen to respect pipeline order
                             when sending to extensions! *)
   ()

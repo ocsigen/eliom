@@ -176,7 +176,7 @@ type options = {
   opt_root_checks: Ocsigen_extensions.ud_string option;
 }
 
-let parse_config userconf : parse_config_aux = fun _ _ _ ->
+let parse_config userconf _ : parse_config_aux = fun _ _ _ ->
   let rec parse_attrs l opt =
     match l with
       | [] -> opt

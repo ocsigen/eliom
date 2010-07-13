@@ -117,16 +117,16 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) = function
       | Some _ ->
           try
             Ocsigen_messages.debug2 "--Userconf: Using user configuration";
-            let conf = Ocsigen_extensions.replace_user_dir regexp conf path in
+            let conf0 = Ocsigen_extensions.replace_user_dir regexp conf path in
             let url = Netstring_pcre.global_replace regexp url path
             and prefix = Netstring_pcre.global_replace regexp prefix path
             and userconf_options = {
               Ocsigen_extensions.localfiles_root =
                 Ocsigen_extensions.replace_user_dir regexp localpath path }
-            and conf = conf_to_xml conf
+            and conf = conf_to_xml conf0
             in
             let user_parse_host = Ocsigen_extensions.parse_user_site_item
-              userconf_options hostpattern in
+              userconf_options hostpattern req.request_config in
             (* Inside userconf, we create a new virtual site starting
                after [prefix], and use a request modified accordingly*)
             let user_parse_site = Ocsigen_extensions.make_parse_config
@@ -157,7 +157,7 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) = function
 (** Parsing of config file *)
 open Simplexmlparser
 
-let parse_config hostpattern path = fun _ _ ->
+let parse_config hostpattern _ path = fun _ _ ->
   let rec parse_attrs_local l ((regexp, conf, url, prefix, path) as r) =
     match l with
     | [] -> r

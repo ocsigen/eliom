@@ -340,6 +340,6 @@ let parse_config = function
 (** Registration of the extension *)
 let () = Ocsigen_extensions.register_extension
   ~name:"deflatemod"
-  ~fun_site:(fun _ _ _ _ -> parse_config)
+  ~fun_site:(fun _ _ _ _ _ -> parse_config)
   ~init_fun:parse_global_config
   ()

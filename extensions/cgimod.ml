@@ -578,7 +578,7 @@ let rec set_env = function
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
-let parse_config path _ _ = function
+let parse_config _ path _ _ = function
   | Element ("cgi", atts, l) ->
       let good_root r =
         Regexp.quote (string_conform2 r) 

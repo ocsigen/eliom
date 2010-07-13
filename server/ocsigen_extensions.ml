@@ -455,6 +455,7 @@ let fun_exn = ref (fun exn -> (raise exn : string))
 
 let rec default_parse_config
     (host : virtual_hosts)
+    config_info
     prevpath
     (Parse_host parse_host)
     (parse_fun : parse_fun) = function
@@ -612,7 +613,7 @@ type userconf_info = {
   localfiles_root : string;
 }
 
-type parse_config = virtual_hosts -> parse_config_aux
+type parse_config = virtual_hosts -> config_info -> parse_config_aux
 and parse_config_user = userconf_info -> parse_config
 and parse_config_aux =
     url_path -> parse_host ->
@@ -622,11 +623,12 @@ and parse_config_aux =
 
 
 
-let user_extension_void_fun_site : parse_config_user = fun _ _ _ _ _ -> function
+let user_extension_void_fun_site : parse_config_user =
+  fun _ _ _ _ _ _ -> function
   | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "Unexpected data in config file")
 
-let extension_void_fun_site : parse_config = fun _ _ _ _ -> function
+let extension_void_fun_site : parse_config = fun _ _ _ _ _ -> function
   | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "Unexpected data in config file")
 
@@ -653,9 +655,9 @@ let register_extension, parse_config_item, parse_user_site_item, get_beg_init, g
          | Some fun_site ->
              let old_fun_site = !ref_fun_site in
              ref_fun_site :=
-               (fun host ->
-                  let oldf = old_fun_site host in
-                  let newf = fun_site host in
+               (fun host conf_info ->
+                  let oldf = old_fun_site host conf_info in
+                  let newf = fun_site host conf_info in
                   fun path parse_host ->
                     let oldf = oldf path parse_host in
                     let newf = newf path parse_host in
@@ -672,9 +674,9 @@ let register_extension, parse_config_item, parse_user_site_item, get_beg_init, g
          | Some user_fun_site ->
              let old_fun_site = !ref_user_fun_site in
              ref_user_fun_site :=
-               (fun path host ->
-                  let oldf = old_fun_site path host in
-                  let newf = user_fun_site path host in
+               (fun path host conf_info ->
+                  let oldf = old_fun_site path host conf_info in
+                  let newf = user_fun_site path host conf_info in
                   fun path parse_host ->
                     let oldf = oldf path parse_host in
                     let newf = newf path parse_host in
@@ -698,10 +700,10 @@ let register_extension, parse_config_item, parse_user_site_item, get_beg_init, g
 
 
    (* ********* parse_config_item ********* *)
-   (fun host -> !ref_fun_site host),
+   (fun host conf -> !ref_fun_site host conf),
 
    (* ********* parse_user_site_item ********* *)
-   (fun host -> !ref_user_fun_site host),
+   (fun host conf -> !ref_user_fun_site host conf),
 
    (* ********* get_beg_init ********* *)
    (fun () -> !fun_beg),

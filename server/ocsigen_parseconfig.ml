@@ -500,7 +500,6 @@ let parse_server isreloading c =
             | None -> Ocsigen_config.get_default_sslport ()
             | Some p -> int_of_string "host" p
           in
-          let parse_host = Ocsigen_extensions.parse_config_item host in
           let serve_everything = {
             Ocsigen_extensions.do_not_serve_regexps = [];
             do_not_serve_files = [];
@@ -522,6 +521,7 @@ let parse_server isreloading c =
             maxuploadfilesize = Ocsigen_config.get_maxuploadfilesize ();
           }
           in
+          let parse_host = Ocsigen_extensions.parse_config_item host conf in
           let parse_config =
             Ocsigen_extensions.make_parse_config [] parse_host
           in

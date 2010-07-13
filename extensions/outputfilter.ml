@@ -96,6 +96,6 @@ let parse_config = function
 (** Registration of the extension *)
 let () = register_extension
   ~name:"outputfilter"
-  ~fun_site:(fun _ _ _ _ -> parse_config)
-  ~user_fun_site:(fun _ _ _ _ _ -> parse_config)
+  ~fun_site:(fun _ _ _ _ _ -> parse_config)
+  ~user_fun_site:(fun _ _ _ _ _ _ -> parse_config)
   ()

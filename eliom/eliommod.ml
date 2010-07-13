@@ -550,7 +550,7 @@ let gen_nothing () _ =
 let default_module_action _ = failwith "default_module_action"
 
 (** Parsing of config file for each site: *)
-let parse_config hostpattern site_dir =
+let parse_config hostpattern conf_info site_dir =
 (*--- if we put the following line here: *)
   let sitedata = new_sitedata hostpattern site_dir in
 (*--- then there is one service tree for each <site> *)

@@ -344,7 +344,7 @@ type userconf_info = {
     inside an userconf file. They take one more parameter, of type userconf_info
 *)
 type parse_config =
-  virtual_hosts -> parse_config_aux
+  virtual_hosts -> config_info -> parse_config_aux
 and parse_config_user =
     userconf_info -> parse_config
 and parse_config_aux =

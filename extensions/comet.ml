@@ -543,7 +543,7 @@ let parse_config _ _ _ = function
       main
   | Pxml.Element (t, _, _) -> raise (OX.Bad_config_tag_for_extension t)
   | _ -> raise (OX.Error_in_config_file "Unexpected data in config file")
-let site_creator (_ : OX.virtual_hosts) = parse_config
+let site_creator (_ : OX.virtual_hosts) _ = parse_config
 let user_site_creator (_ : OX.userconf_info) = site_creator
 
 (* registering extension *)
