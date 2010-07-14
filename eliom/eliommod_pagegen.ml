@@ -258,7 +258,6 @@ let gen is_eliom_extension sitedata = function
                in
            
                Eliommod_cookies.compute_cookies_to_send
-                 Eliom_common.CBrowser
                  sitedata
                  all_cookie_info
                  all_user_cookies

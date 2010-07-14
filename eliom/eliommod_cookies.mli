@@ -16,13 +16,11 @@ val new_service_cookie_table :
   unit -> Eliom_common.tables Eliom_common.servicecookiestable
 val new_data_cookie_table : unit -> Eliom_common.datacookiestable
 val compute_session_cookies_to_send :
-  Eliom_common.cookie_type ->
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_cookies.cookieset -> 
   Ocsigen_cookies.cookieset Lwt.t
 val compute_cookies_to_send :
-  Eliom_common.cookie_type ->
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_cookies.cookieset -> 

@@ -668,7 +668,6 @@ module Actionreg_ = struct
                >>= fun ric ->
 
                Eliommod_cookies.compute_cookies_to_send
-                 Eliom_common.CBrowser
                  sitedata
                  all_cookie_info
                  all_user_cookies
@@ -1608,7 +1607,6 @@ module Eliom_appl_reg_
 
   let get_tab_cook sp cookies =
     Eliommod_cookies.compute_cookies_to_send
-      Eliom_common.CTab
       (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_sitedata
       (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_tab_cookie_info
       (Eliom_services.cookie_table_of_eliom_cookies
