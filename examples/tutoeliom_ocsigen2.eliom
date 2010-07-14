@@ -942,8 +942,6 @@ let () =
 
 
 
-(*$$$$$$$$$$$$$$$$$$$$$$
-
 (************************************************************)
 (************** Coservices. Basic examples ******************)
 (************************************************************)
@@ -951,21 +949,21 @@ let () =
 (* -------------------------------------------------------- *)
 (* We create one main service and two coservices:           *)
 
-let coservices_example =
+let tcoservices_example =
   Eliom_services.new_service
-    ~path:["coserv"]
+    ~path:["tcoserv"]
     ~get_params:Eliom_parameters.unit
     ()
 
-let coservices_example_post =
+let tcoservices_example_post =
   Eliom_services.new_post_coservice
-    ~fallback:coservices_example
+    ~fallback:tcoservices_example
     ~post_params:Eliom_parameters.unit
     ()
 
-let coservices_example_get =
+let tcoservices_example_get =
   Eliom_services.new_coservice
-    ~fallback:coservices_example
+    ~fallback:tcoservices_example
     ~get_params:Eliom_parameters.unit
     ()
 
@@ -977,30 +975,31 @@ let coservices_example_get =
 let _ =
   let c = ref 0 in
   let page sp () () =
-    let l3 = Eliom_predefmod.Xhtml.post_form coservices_example_post sp
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l3 = Eliom_appl.post_form tcoservices_example_post sp
+        (fun _ -> [p [Eliom_appl.string_input
                         ~input_type:`Submit
                         ~value:"incr i (post)" ()]]) ()
     in
-    let l4 = Eliom_predefmod.Xhtml.get_form coservices_example_get sp
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l4 = Eliom_appl.get_form tcoservices_example_get sp
+        (fun _ -> [p [Eliom_appl.string_input
                         ~input_type:`Submit
                         ~value:"incr i (get)" ()]])
     in
     return
-      (html
-       (head (title (pcdata "")) [])
-       (body [p [pcdata "i is equal to ";
-                 pcdata (string_of_int !c); br ();
-                 a coservices_example sp [pcdata "reload"] (); br ();
-                 a coservices_example_get sp [pcdata "incr i"] ()];
-              l3;
-              l4]))
+      [p [pcdata "i is equal to ";
+          pcdata (string_of_int !c); br ();
+          a tcoservices_example sp [pcdata "internal application link to myself"] (); br ();
+          a tcoservices_example_get sp [pcdata "incr i"] ()];
+       l3;
+       l4]
   in
-  Eliom_predefmod.Xhtml.register coservices_example page;
+  Eliom_appl.register tcoservices_example page;
   let f sp () () = c := !c + 1; page sp () () in
-  Eliom_predefmod.Xhtml.register coservices_example_post f;
-  Eliom_predefmod.Xhtml.register coservices_example_get f
+  Eliom_appl.register tcoservices_example_post f;
+  Eliom_appl.register tcoservices_example_get f
+
+
+
 (************************************************************)
 (*************** calc: sum of two integers ******************)
 (************************************************************)
@@ -1012,15 +1011,15 @@ let session_name = "calc_example"
 (* We create two main services on the same URL,             *)
 (* one with a GET integer parameter:                        *)
 
-let calc =
+let tcalc =
   new_service
-    ~path:["calc"]
+    ~path:["tcalc"]
     ~get_params:unit
     ()
 
-let calc_i =
+let tcalc_i =
   new_service
-    ~path:["calc"]
+    ~path:["tcalc"]
     ~get_params:(int "i")
     ()
 
@@ -1029,18 +1028,15 @@ let calc_i =
 (* The handler for the service without parameter.           *)
 (* It displays a form where you can write an integer value: *)
 
-let calc_handler sp () () =
+let tcalc_handler sp () () =
   let create_form intname =
     [p [pcdata "Write a number: ";
-        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:intname ();
+        Eliom_appl.int_input ~input_type:`Text ~name:intname ();
         br ();
-        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
+        Eliom_appl.string_input ~input_type:`Submit ~value:"Send" ()]]
   in
-  let f = Eliom_predefmod.Xhtml.get_form calc_i sp create_form in
-  return
-    (html
-       (head (title (pcdata "")) [])
-       (body [f]))
+  let f = Eliom_appl.get_form tcalc_i sp create_form in
+  return [f]
 
 
 (* -------------------------------------------------------- *)
@@ -1050,7 +1046,7 @@ let calc_handler sp () () =
 (* This new coservice depends on the first value (i)        *)
 (* entered by the user.                                     *)
 
-let calc_i_handler sp i () =
+let tcalc_i_handler sp i () =
   let create_form is =
     (fun entier ->
        [p [pcdata (is^" + ");
@@ -1059,33 +1055,28 @@ let calc_i_handler sp i () =
            string_input ~input_type:`Submit ~value:"Sum" ()]])
   in
   let is = string_of_int i in
-  let calc_result =
-    register_new_coservice_for_session
+  let tcalc_result =
+    Eliom_appl.register_new_coservice_for_session
+      ~cookie_type:Eliom_common.CTab
       ~sp
-      ~fallback:calc
+      ~fallback:tcalc
       ~get_params:(int "j")
       (fun sp j () ->
         let js = string_of_int j in
         let ijs = string_of_int (i+j) in
-        return
-          (html
-             (head (title (pcdata "")) [])
-             (body
-                [p [pcdata (is^" + "^js^" = "^ijs)]])))
+        return [p [pcdata (is^" + "^js^" = "^ijs)]])
   in
-  let f = get_form calc_result sp (create_form is) in
-  return
-    (html
-       (head (title (pcdata "")) [])
-       (body [f]))
+  let f = get_form tcalc_result sp (create_form is) in
+  return [f]
 
 
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register calc   calc_handler;
-  Eliom_predefmod.Xhtml.register calc_i calc_i_handler
+  Eliom_appl.register tcalc   tcalc_handler;
+  Eliom_appl.register tcalc_i tcalc_i_handler
+
 
 (************************************************************)
 (************ Connection of users, version 3 ****************)
@@ -1098,41 +1089,42 @@ let session_name = "connect_example3"
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
 
-let connect_example3 =
+let tconnect_example3 =
   Eliom_services.new_service
-    ~path:["action"]
+    ~path:["taction"]
     ~get_params:Eliom_parameters.unit
     ()
 
-let connect_action =
+let tconnect_action =
   Eliom_services.new_post_coservice'
-    ~name:"connect3"
+    ~name:"tconnect3"
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 (* As the handler is very simple, we register it now: *)
-let disconnect_action =
+let tdisconnect_action =
   Eliom_predefmod.Action.register_new_post_coservice'
-    ~name:"disconnect3"
+    ~name:"tdisconnect3"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_sessions.close_session
+ (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp ())
 
 
 (* -------------------------------------------------------- *)
 (* login ang logout boxes:                                  *)
 
-let disconnect_box sp s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action sp
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+let tdisconnect_box sp s =
+  Eliom_appl.post_form tdisconnect_action sp
+    (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
-let login_box sp =
-  Eliom_predefmod.Xhtml.post_form connect_action sp
+let tlogin_box sp =
+  Eliom_appl.post_form tconnect_action sp
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_predefmod.Xhtml.string_input
+                   Eliom_appl.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -1142,27 +1134,27 @@ let login_box sp =
 (* -------------------------------------------------------- *)
 (* Handler for the "connect_example3" service (main page):    *)
 
-let connect_example3_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+let tconnect_example3_handler sp () () =
+  let sessdat = Eliom_sessions.get_volatile_session_data
+ (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~table:my_table ~sp () in
   return
-    (html
-       (head (title (pcdata "")) [])
-       (body
-          (match sessdat with
-          | Eliom_sessions.Data name ->
-              [p [pcdata ("Hello "^name); br ()];
-              disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired
-          | Eliom_sessions.No_data -> [login_box sp]
-          )))
+    (match sessdat with
+      | Eliom_sessions.Data name ->
+        [p [pcdata ("Hello "^name); br ()];
+         tdisconnect_box sp "Close session"]
+      | Eliom_sessions.Data_session_expired
+      | Eliom_sessions.No_data -> [tlogin_box sp]
+    )
 
 
 (* -------------------------------------------------------- *)
 (* Handler for connect_action (user logs in):               *)
 
-let connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
+let tconnect_action_handler sp () login =
+  Eliom_sessions.close_session
+ (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp () >>= fun () ->
+  Eliom_sessions.set_volatile_session_data
+ (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~table:my_table ~sp login;
   return ()
 
 
@@ -1170,34 +1162,8 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
-
-
-(*
-
-let cookiename = "mycookie"
-
-let cookies = new_service ["cookies"] unit ()
-
-let _ = Cookies.register cookies
-    (fun sp () () ->
-      return
-       ((html
-         (head (title (pcdata "")) [])
-         (body [p [pcdata (try
-                             "cookie value: "^
-                             (Ocsigen_lib.String_Table.find
-                                cookiename (Eliom_sessions.get_cookies sp))
-                           with _ -> "<cookie not set>");
-                   br ();
-                   a cookies sp [pcdata "send other cookie"] ()]])),
-        [Eliom_services.Set (Eliom_common.CBrowser,
-                             None, None,
-                             cookiename,
-                             string_of_int (Random.int 100),
-                             false)]))
-*)
+  Eliom_appl.register ~service:tconnect_example3 tconnect_example3_handler;
+  Eliom_predefmod.Action.register ~service:tconnect_action tconnect_action_handler
 
 
 
@@ -1209,22 +1175,22 @@ let _ = Cookies.register cookies
 (*zap* *)
 let session_name = "persistent_sessions"
 (* *zap*)
-let my_persistent_table =
-  create_persistent_table "eliom_example_table"
+let tmy_persistent_table =
+  Eliom_sessions.create_persistent_table "teliom_example_table"
 
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
 
-let persist_session_example =
+let tpersist_session_example =
   Eliom_services.new_service
-    ~path:["persist"]
+    ~path:["tpersist"]
     ~get_params:unit
     ()
 
-let persist_session_connect_action =
+let tpersist_session_connect_action =
   Eliom_services.new_post_coservice'
-    ~name:"connect4"
+    ~name:"tconnect4"
     ~post_params:(string "login")
     ()
 
@@ -1238,16 +1204,16 @@ let persist_session_connect_action =
    same session name :-) *)
 (* new disconnect action and box:                           *)
 
-let disconnect_action =
+let tdisconnect_action =
   Eliom_predefmod.Action.register_new_post_coservice'
-    ~name:"disconnect4"
+    ~name:"tdisconnect4"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~session_name ~sp ())
+      Eliom_sessions.close_session ~session_name ~cookie_type:Eliom_common.CTab  ~sp ())
 
-let disconnect_box sp s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action sp
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+let tdisconnect_box sp s =
+  Eliom_appl.post_form tdisconnect_action sp
+    (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let bad_user_key = Polytables.make_key ()
@@ -1257,8 +1223,8 @@ let get_bad_user table =
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
 
-let login_box sp session_expired action =
-  Eliom_predefmod.Xhtml.post_form action sp
+let tlogin_box sp session_expired action =
+  Eliom_appl.post_form action sp
     (fun loginname ->
       let l =
         [pcdata "login: ";
@@ -1278,34 +1244,33 @@ let login_box sp session_expired action =
 (* ----------------------------------------------------------- *)
 (* Handler for "persist_session_example" service (main page):  *)
 
-let persist_session_example_handler sp () () =
+let tpersist_session_example_handler sp () () =
   Eliom_sessions.get_persistent_session_data (*zap* *) ~session_name (* *zap*)
-    ~table:my_persistent_table ~sp () >>= fun sessdat ->
+    ~cookie_type:Eliom_common.CTab ~table:tmy_persistent_table ~sp () >>= fun sessdat ->
   return
-    (html
-       (head (title (pcdata "")) [])
-       (body
-          (match sessdat with
-          | Eliom_sessions.Data name ->
-              [p [pcdata ("Hello "^name); br ()];
-              disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired ->
-              [login_box sp true persist_session_connect_action;
-               p [em [pcdata "The only user is 'toto'."]]]
-          | Eliom_sessions.No_data ->
-              [login_box sp false persist_session_connect_action;
-               p [em [pcdata "The only user is 'toto'."]]]
-          )))
+    (match sessdat with
+      | Eliom_sessions.Data name ->
+        [p [pcdata ("Hello "^name); br ()];
+         tdisconnect_box sp "Close session"]
+      | Eliom_sessions.Data_session_expired ->
+        [tlogin_box sp true tpersist_session_connect_action;
+         p [em [pcdata "The only user is 'toto'."]]]
+      | Eliom_sessions.No_data ->
+        [tlogin_box sp false tpersist_session_connect_action;
+         p [em [pcdata "The only user is 'toto'."]]]
+    )
 
 
 (* ----------------------------------------------------------- *)
 (* Handler for persist_session_connect_action (user logs in):  *)
 
-let persist_session_connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+let tpersist_session_connect_action_handler sp () login =
+  Eliom_sessions.close_session
+ (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then
-    Eliom_sessions.set_persistent_session_data (*zap* *) ~session_name (* *zap*) ~table:my_persistent_table ~sp login
+    Eliom_sessions.set_persistent_session_data
+ (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~table:tmy_persistent_table ~sp login
   else ((*zap* *)Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;(* *zap*)return ())
 
 
@@ -1313,12 +1278,14 @@ let persist_session_connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register
-    ~service:persist_session_example
-    persist_session_example_handler;
+  Eliom_appl.register
+    ~service:tpersist_session_example
+    tpersist_session_example_handler;
   Eliom_predefmod.Action.register
-    ~service:persist_session_connect_action
-    persist_session_connect_action_handler
+    ~service:tpersist_session_connect_action
+    tpersist_session_connect_action_handler
+
+
 
 
 (************************************************************)
@@ -1331,30 +1298,30 @@ let session_name = "connect_example6"
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
 
-let connect_example6 =
+let tconnect_example6 =
   Eliom_services.new_service
-    ~path:["action2"]
+    ~path:["taction2"]
     ~get_params:unit
     ()
 
-let connect_action =
+let tconnect_action =
   Eliom_services.new_post_coservice'
-    ~name:"connect6"
+    ~name:"tconnect6"
     ~post_params:(string "login")
     ()
 
 (* new disconnect action and box:                           *)
 
-let disconnect_action =
+let tdisconnect_action =
   Eliom_predefmod.Action.register_new_post_coservice'
-    ~name:"disconnect6"
+    ~name:"tdisconnect6"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab  ~sp ())
 
-let disconnect_box sp s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action sp
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+let tdisconnect_box sp s =
+  Eliom_appl.post_form tdisconnect_action sp
+    (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 
@@ -1365,8 +1332,8 @@ let get_bad_user table =
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
 
-let login_box sp session_expired action =
-  Eliom_predefmod.Xhtml.post_form action sp
+let tlogin_box sp session_expired action =
+  Eliom_appl.post_form action sp
     (fun loginname ->
       let l =
         [pcdata "login: ";
@@ -1384,34 +1351,34 @@ let login_box sp session_expired action =
 (* -------------------------------------------------------- *)
 (* Handler for the "connect_example6" service (main page):   *)
 
-let connect_example6_handler sp () () =
+let tconnect_example6_handler sp () () =
   let group =
-    Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp ()
+    Eliom_sessions.get_volatile_data_session_group
+ (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp ()
   in
   return
-    (html
-       (head (title (pcdata "")) [])
-       (body
-          (match group with
-          | Eliom_sessions.Data name ->
-              [p [pcdata ("Hello "^name); br ()];
-              disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired ->
-              [login_box sp true connect_action;
-               p [em [pcdata "The only user is 'toto'."]]]
-          | Eliom_sessions.No_data ->
-              [login_box sp false connect_action;
-               p [em [pcdata "The only user is 'toto'."]]]
-          )))
+    (match group with
+      | Eliom_sessions.Data name ->
+        [p [pcdata ("Hello "^name); br ()];
+         tdisconnect_box sp "Close session"]
+      | Eliom_sessions.Data_session_expired ->
+        [tlogin_box sp true tconnect_action;
+         p [em [pcdata "The only user is 'toto'."]]]
+      | Eliom_sessions.No_data ->
+        [tlogin_box sp false tconnect_action;
+         p [em [pcdata "The only user is 'toto'."]]]
+    )
 
 (* -------------------------------------------------------- *)
 (* New handler for connect_action (user logs in):           *)
 
-let connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+let tconnect_action_handler sp () login =
+  Eliom_sessions.close_session
+ (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
+    Eliom_sessions.set_volatile_data_session_group
+      ~set_max:4 (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp login;
     return ()
   end
   else begin
@@ -1424,9 +1391,8 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register ~service:connect_example6 connect_example6_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
-
+  Eliom_appl.register ~service:tconnect_example6 tconnect_example6_handler;
+  Eliom_predefmod.Action.register ~service:tconnect_action tconnect_action_handler
 
 
 (************************************************************)
@@ -1440,41 +1406,41 @@ let session_name = "connect_example5"
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
 
-let connect_example5 =
+let tconnect_example5 =
   Eliom_services.new_service
-    ~path:["groups"]
+    ~path:["tgroups"]
     ~get_params:Eliom_parameters.unit
     ()
 
-let connect_action =
+let tconnect_action =
   Eliom_services.new_post_coservice'
-    ~name:"connect5"
+    ~name:"tconnect5"
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 (* As the handler is very simple, we register it now: *)
-let disconnect_action =
+let tdisconnect_action =
   Eliom_predefmod.Action.register_new_post_coservice'
-    ~name:"disconnect5"
+    ~name:"tdisconnect5"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp ())
 
 
 (* -------------------------------------------------------- *)
 (* login ang logout boxes:                                  *)
 
-let disconnect_box sp s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action sp
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+let tdisconnect_box sp s =
+  Eliom_appl.post_form tdisconnect_action sp
+    (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
-let login_box sp =
-  Eliom_predefmod.Xhtml.post_form connect_action sp
+let tlogin_box sp =
+  Eliom_appl.post_form tconnect_action sp
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_predefmod.Xhtml.string_input
+                   Eliom_appl.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -1484,27 +1450,26 @@ let login_box sp =
 (* -------------------------------------------------------- *)
 (* Handler for the "connect_example5" service (main page):    *)
 
-let connect_example5_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
+let tconnect_example5_handler sp () () =
+  let sessdat = Eliom_sessions.get_volatile_data_session_group
+ (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp () in
   return
-    (html
-       (head (title (pcdata "")) [])
-       (body
-          (match sessdat with
-          | Eliom_sessions.Data name ->
-              [p [pcdata ("Hello "^name); br ()];
-              disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired
-          | Eliom_sessions.No_data -> [login_box sp]
-          )))
+    (match sessdat with
+      | Eliom_sessions.Data name ->
+        [p [pcdata ("Hello "^name); br ()];
+         tdisconnect_box sp "Close session"]
+      | Eliom_sessions.Data_session_expired
+      | Eliom_sessions.No_data -> [tlogin_box sp]
+    )
 
 
 (* -------------------------------------------------------- *)
 (* Handler for connect_action (user logs in):               *)
 
-let connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
+let tconnect_action_handler sp () login =
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp () >>= fun () ->
+  Eliom_sessions.set_volatile_data_session_group
+    ~set_max:4 (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp login;
   return ()
 
 
@@ -1512,64 +1477,48 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+  Eliom_appl.register ~service:tconnect_example5 tconnect_example5_handler;
+  Eliom_predefmod.Action.register ~service:tconnect_action tconnect_action_handler
 
 
 
 
 
 
-let csrfsafe_example =
+let tcsrfsafe_example =
   Eliom_services.new_service
-    ~path:["csrf"]
+    ~path:["tcsrf"]
     ~get_params:Eliom_parameters.unit
     ()
 
-let csrfsafe_example_post =
+let tcsrfsafe_example_post =
   Eliom_services.new_post_coservice
     ~csrf_safe:true
     ~csrf_session_name:"csrf"
+    ~csrf_cookie_type:Eliom_common.CTab
     ~csrf_secure_session:true
     ~timeout:10.
     ~max_use:1
     ~https:true
-    ~fallback:csrfsafe_example
+    ~fallback:tcsrfsafe_example
     ~post_params:Eliom_parameters.unit
     ()
 
 let _ =
   let page sp () () =
-    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_post sp
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
-                        ~input_type:`Submit
-                        ~value:"Click" ()]]) ()
+    let l3 = Eliom_appl.post_form tcsrfsafe_example_post sp
+        (fun _ -> [p [Eliom_appl.string_input
+                         ~input_type:`Submit
+                         ~value:"Click" ()]]) ()
     in
-    return
-      (html
-       (head (title (pcdata "CSRF safe service example")) [])
-       (body [p [pcdata "A new coservice will be created each time this form is displayed"];
-              l3]))
+    Lwt.return 
+      [p [pcdata "A new coservice will be created each time this form is displayed"];
+       l3]
   in
-  Eliom_predefmod.Xhtml.register csrfsafe_example page;
-  Eliom_predefmod.Xhtml.register csrfsafe_example_post
+  Eliom_appl.register tcsrfsafe_example page;
+  Eliom_appl.register tcsrfsafe_example_post
     (fun sp () () ->
-       Lwt.return
-         (html
-            (head (title (pcdata "CSRF safe service")) [])
-            (body [p [pcdata "This is a CSRF safe service"]])))
-
-
-
-    $$$$$$$$$$$$$$$$$$$$$$$$$$$$$ *)
-
-
-
-
-
-
-
-
+      Lwt.return [p [pcdata "This is a CSRF safe service"]])
 
 
 
@@ -1847,44 +1796,48 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
 
             h4 [pcdata "Tab sessions"];
             p [
-(*              pcdata "Coservices: ";
-              a coservices_example sp [code [pcdata "coservice"]] ();
+              pcdata "Coservices: ";
+              a tcoservices_example sp [code [pcdata "tcoservice"]] ();
               br ();
-*)
+
 
               pcdata "A session based on cookies, implemented with session data: ";
               a tsession_data_example sp [code [pcdata "tsessdata"]] ();
               br ();
-(*
+
 
               pcdata "A session based on cookies, implemented with actions: ";
-              a connect_example3 sp [code [pcdata "actions"]] ();
+              a tconnect_example3 sp [code [pcdata "tactions"]] ();
               br ();
-*)
+
 
               pcdata "A session based on cookies, with session services: ";
               a tsession_services_example sp [code [pcdata "tsessionservices"]] ();
               br ();
-(*
+
               pcdata "A session based on cookies, implemented with actions, with session groups: ";
               a connect_example5 sp [code [pcdata "groups"]] ();
               br ();
 
 
               pcdata "The same with wrong user if not \"toto\": ";
-              a connect_example6 sp [code [pcdata "actions2"]] ();
+              a tconnect_example6 sp [code [pcdata "tactions2"]] ();
               br ();
 
 
+
               pcdata "Coservices in the session table: ";
-              a calc sp [code [pcdata "calc"]] ();
+              a tcalc sp [code [pcdata "tcalc"]] ();
               br ();
 
 
               pcdata "Persistent sessions: ";
-              a persist_session_example sp [code [pcdata "persist"]] ();
+              a tpersist_session_example sp [code [pcdata "tpersist"]] ();
               br ();
-*)
+
+
+              a tcsrfsafe_example sp [pcdata "CSRF safe services"] ();
+              br ();
             ];
 
           ]
