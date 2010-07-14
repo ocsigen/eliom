@@ -1605,6 +1605,10 @@ module Eliom_appl_reg_
 
   type return = Eliom_services.appl_service
 
+  let eliom_appl_session_name = "__eliom_appl_internal"
+
+  let change_page_event_table = Eliom_sessions.create_volatile_table ()
+
   let get_tab_cook sp cookies =
     Eliommod_cookies.compute_cookies_to_send
       (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_sitedata
@@ -1613,7 +1617,8 @@ module Eliom_appl_reg_
          Eliom_common.CTab ~sp cookies)
                         
   let create_page
-      ~sp params do_not_launch_application cookies_to_send content = 
+      ~sp params do_not_launch_application cookies_to_send
+      change_page_event content = 
     let body, container_node = match params.ap_container with
       | None -> let b = XHTML.M.body ?a:params.ap_body_attributes content in
         (b, (XHTML.M.toelt b))
@@ -1684,6 +1689,11 @@ redir ();"))::
                                cookies_to_send) :
                                  Eliom_client_types.eliom_data_type
                              )
+                          ) ; "\'; \n" ;
+
+                          "var change_page_event = \'" ;
+                          (Eliom_client_types.jsmarshal
+                             (Eliom_event.Down.wrap ~sp change_page_event)
                           ) ; "\'; \n"
                         ]
 
@@ -1762,9 +1772,19 @@ redir ();"))::
                                     *)
         in
 (*VVV for now not possible to give other params for one page *)
+        let change_page_event, change_current_page =
+          (* This event allows the server to ask the client to change 
+             current page content *)
+          React.E.create ()
+        in
+        Eliom_sessions.set_volatile_session_data
+          ~session_name:eliom_appl_session_name
+          ~cookie_type:Eliom_common.CTab
+          ~table:change_page_event_table ~sp change_current_page;
         let page =
           create_page
-            ~sp Appl_params.params do_not_launch tab_cookies_to_send content 
+            ~sp Appl_params.params do_not_launch tab_cookies_to_send 
+            change_page_event content 
         in
         let options = Appl_params.params.ap_doctype in
         Xhtml_content.result_of_content ~options page)
