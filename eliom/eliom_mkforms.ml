@@ -304,7 +304,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      ?use_href:bool ->
+      ?no_appl:bool ->
       a_content_elt_list -> 
       'get -> 
       a_elt
@@ -344,7 +344,7 @@ module type ELIOMFORMSIG =
     will be kept in the URL (default is the default for the service).
 
     If a client side application is running, and unless
-    [~use_href:true] is specified, it will use [<a onclick=...>]
+    [~no_appl:true] is specified, it will use [<a onclick=...>]
     instead of [<a href=...>] in case of link inside a same Eliom application.
     Thus, the client side application will not be stopped when the link
     is clicked.
@@ -373,6 +373,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('gn -> form_content_elt_list) -> 
       form_elt
 (** [get_form service sp formgen] creates a GET form to [service].
@@ -394,6 +395,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('gn -> form_content_elt_list Lwt.t) -> 
       form_elt Lwt.t
 (** The same but taking a cooperative function. *)
@@ -414,6 +416,7 @@ module type ELIOMFORMSIG =
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('pn -> form_content_elt_list) -> 
       'get -> 
       form_elt
@@ -441,6 +444,7 @@ module type ELIOMFORMSIG =
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('pn -> form_content_elt_list Lwt.t) -> 
       'get -> 
       form_elt Lwt.t
@@ -954,10 +958,10 @@ module MakeForms = functor
           ?fragment
           ?keep_nl_params
           ?nl_params
-          ?(use_href = false)
+          ?(no_appl = false)
           content
           getparams =
-        if not use_href &&
+        if not no_appl &&
           (let n = Eliom_process.get_application_name ~sp in
            (n <> None) &&
              (n = Eliom_services.get_application_name service))
@@ -990,6 +994,14 @@ module MakeForms = functor
         Pages.make_a ?a ~href content
 
 
+
+      let nl_internal_appl_form =
+        Eliom_parameters.make_non_localized_parameters
+          ~prefix:"__eliom"
+          ~name:"_internal_form"
+          (Eliom_parameters.bool "b")
+
+
       let get_form_
           bind
           return
@@ -1002,9 +1014,23 @@ module MakeForms = functor
           ?hostname
           ?port
           ?fragment
-          ?nl_params
+          ?(nl_params = Eliom_parameters.empty_nl_params_set) 
           ?keep_nl_params
+          ?(no_appl = false)
           f =
+
+        let internal_appl_form =
+          (not no_appl &&
+             (let n = Eliom_process.get_application_name ~sp in
+              (n <> None) &&
+                (n = Eliom_services.get_application_name service)))
+        in
+        let nl_params = 
+          if internal_appl_form
+          then Some (Eliom_parameters.add_nl_parameter
+                       nl_params nl_internal_appl_form true)
+          else Some nl_params
+        in
 
         let (uri, hiddenparams, fragment) =
           make_uri_components_
@@ -1060,21 +1086,21 @@ module MakeForms = functor
       let get_form
           ?absolute ?absolute_path
           ?https ?a ~service ~sp ?hostname ?port ?fragment
-          ?keep_nl_params ?nl_params f =
+          ?keep_nl_params ?nl_params ?no_appl f =
         get_form_ (fun x f -> f x) (fun x -> x) 
           ?absolute ?absolute_path
           ?https ?a ~service ~sp ?keep_nl_params
-          ?nl_params ?hostname ?port ?fragment f
+          ?nl_params ?hostname ?port ?fragment ?no_appl f
 
       let lwt_get_form
           ?absolute ?absolute_path
           ?https ?a ~service ~sp ?hostname ?port ?fragment
-          ?keep_nl_params ?nl_params f =
+          ?keep_nl_params ?nl_params ?no_appl f =
         get_form_ 
           Lwt.bind Lwt.return
           ?absolute ?absolute_path
           ?https ?a ~service ~sp ?hostname ?port ?fragment
-          ?nl_params ?keep_nl_params f
+          ?nl_params ?keep_nl_params ?no_appl f
 
 
       let post_form_
@@ -1089,11 +1115,25 @@ module MakeForms = functor
           ?hostname
           ?port
           ?fragment
-          ?nl_params
+          ?(nl_params = Eliom_parameters.empty_nl_params_set) 
           ?(keep_nl_params : [ `All | `Persistent | `None ] option)
           ?keep_get_na_params
+          ?(no_appl = false)
           f
           getparams =
+
+        let internal_appl_form =
+          (not no_appl &&
+             (let n = Eliom_process.get_application_name ~sp in
+              (n <> None) &&
+                (n = Eliom_services.get_application_name service)))
+        in
+        let nl_params = 
+          if internal_appl_form
+          then Some (Eliom_parameters.add_nl_parameter
+                       nl_params nl_internal_appl_form true)
+          else Some nl_params
+        in
 
         let getparamstype = get_post_params_type_ service in
         let _, paramnames = make_params_names getparamstype in
@@ -1142,22 +1182,23 @@ module MakeForms = functor
           ?absolute ?absolute_path
           ?https ?a ~service ~sp ?hostname ?port
           ?fragment ?keep_nl_params ?keep_get_na_params 
-          ?nl_params f getparams =
+          ?nl_params ?no_appl f getparams =
         post_form_ (fun x f -> f x) (fun x -> x)
           ?absolute ?absolute_path
           ?https ?a ~service ~sp ?hostname ?port
           ?fragment ?keep_get_na_params 
-          ?keep_nl_params ?nl_params f getparams
+          ?keep_nl_params ?nl_params ?no_appl f getparams
 
       let lwt_post_form
           ?absolute ?absolute_path
           ?https ?a ~service ~sp ?hostname ?port
           ?fragment ?keep_nl_params ?keep_get_na_params 
-          ?nl_params f getparams =
+          ?nl_params ?no_appl f getparams =
         post_form_ Lwt.bind Lwt.return
           ?absolute ?absolute_path
           ?https ?a ~service ~sp ?hostname ?port
-          ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params f getparams
+          ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params ?no_appl 
+          f getparams
 
 
 

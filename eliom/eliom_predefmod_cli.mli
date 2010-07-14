@@ -153,7 +153,7 @@ module type XHTMLFORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      ?use_href:bool ->
+      ?no_appl:bool ->
       a_content elt list -> 
       'get -> 
     [> a] XHTML.M.elt
@@ -193,7 +193,7 @@ module type XHTMLFORMSSIG = sig
     will be kept in the URL (default is the default for the service).
 
     If a client side application is running, and unless
-    [~use_href:true] is specified, it will use [<a onclick=...>]
+    [~no_appl:true] is specified, it will use [<a onclick=...>]
     instead of [<a href=...>] in case of link inside a same Eliom application.
     Thus, the client side application will not be stopped when the link
     is clicked.
@@ -222,6 +222,7 @@ module type XHTMLFORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('gn -> form_content elt list) -> 
       [>form] elt
 (** [get_form service sp formgen] creates a GET form to [service].
@@ -243,6 +244,7 @@ module type XHTMLFORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('gn -> form_content elt list Lwt.t) -> 
       [>form] elt Lwt.t
 (** The same but taking a cooperative function. *)
@@ -263,6 +265,7 @@ module type XHTMLFORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('pn -> form_content elt list) -> 
       'get -> 
       [>form] elt
@@ -290,6 +293,7 @@ module type XHTMLFORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('pn -> form_content elt list Lwt.t) -> 
       'get -> 
       [>form] elt Lwt.t
@@ -868,7 +872,7 @@ module type XHTML5FORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      ?use_href:bool ->
+      ?no_appl:bool ->
       a_content elt list -> 
       'get -> 
     [> a] XHTML5.M.elt
@@ -908,7 +912,7 @@ module type XHTML5FORMSSIG = sig
     will be kept in the URL (default is the default for the service).
 
     If a client side application is running, and unless
-    [~use_href:true] is specified, it will use [<a onclick=...>]
+    [~no_appl:true] is specified, it will use [<a onclick=...>]
     instead of [<a href=...>] in case of link inside a same Eliom application.
     Thus, the client side application will not be stopped when the link
     is clicked.
@@ -937,6 +941,7 @@ module type XHTML5FORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('gn -> form_content elt list) -> 
       [>form] elt
 (** [get_form service sp formgen] creates a GET form to [service].
@@ -958,6 +963,7 @@ module type XHTML5FORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('gn -> form_content elt list Lwt.t) -> 
       [>form] elt Lwt.t
 (** The same but taking a cooperative function. *)
@@ -978,6 +984,7 @@ module type XHTML5FORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('pn -> form_content elt list) -> 
       'get -> 
       [>form] elt
@@ -1005,6 +1012,7 @@ module type XHTML5FORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('pn -> form_content elt list Lwt.t) -> 
       'get -> 
       [>form] elt Lwt.t

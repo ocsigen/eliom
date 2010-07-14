@@ -139,7 +139,7 @@ let make_uri_components_ (* does not take into account getparams *)
     ?port
     ?fragment
     ?keep_nl_params
-    ?(nl_params = Eliom_parameters.empty_nl_params_set) 
+    ?(nl_params = Eliom_parameters.empty_nl_params_set)
     () =
 
   let ssl =

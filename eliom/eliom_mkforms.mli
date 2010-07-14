@@ -309,7 +309,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      ?use_href:bool ->
+      ?no_appl:bool ->
       a_content_elt_list -> 
       'get -> 
       a_elt
@@ -349,7 +349,7 @@ module type ELIOMFORMSIG =
     will be kept in the URL (default is the default for the service).
 
     If a client side application is running, and unless
-    [~use_href:true] is specified, it will use [<a onclick=...>]
+    [~no_appl:true] is specified, it will use [<a onclick=...>]
     instead of [<a href=...>] in case of link inside a same Eliom application.
     Thus, the client side application will not be stopped when the link
     is clicked.
@@ -378,6 +378,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('gn -> form_content_elt_list) -> 
       form_elt
 (** [get_form service sp formgen] creates a GET form to [service].
@@ -399,6 +400,7 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('gn -> form_content_elt_list Lwt.t) -> 
       form_elt Lwt.t
 (** The same but taking a cooperative function. *)
@@ -419,6 +421,7 @@ module type ELIOMFORMSIG =
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('pn -> form_content_elt_list) -> 
       'get -> 
       form_elt
@@ -446,6 +449,7 @@ module type ELIOMFORMSIG =
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
+      ?no_appl:bool ->
       ('pn -> form_content_elt_list Lwt.t) -> 
       'get -> 
       form_elt Lwt.t
