@@ -880,6 +880,13 @@ end
 
 
 
+let nl_internal_appl_form =
+  Eliom_parameters.make_non_localized_parameters
+    ~prefix:"__eliom"
+    ~name:"_internal_form"
+    (Eliom_parameters.bool "b")
+
+
 
 module MakeForms = functor
   (Pages : FORMCREATE) ->
@@ -993,13 +1000,6 @@ module MakeForms = functor
         in
         Pages.make_a ?a ~href content
 
-
-
-      let nl_internal_appl_form =
-        Eliom_parameters.make_non_localized_parameters
-          ~prefix:"__eliom"
-          ~name:"_internal_form"
-          (Eliom_parameters.bool "b")
 
 
       let get_form_

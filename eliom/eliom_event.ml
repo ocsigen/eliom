@@ -22,19 +22,7 @@
 (* Module for event wrapping and related functions *)
 
 
-module Down =
-struct
-
-  let wrap ~sp e =
-    (*TODO: use optionnal argument for max_size. *)
-    let chan = Eliom_comet.Dlisted_channels.create ~max_size:5 e in
-    let `R r = React.E.retain e (fun () -> ()) in
-    let `R _ = React.E.retain e (fun () -> r () ; ignore chan) in
-    Eliom_comet.Dlisted_channels.wrap ~sp chan
-
-end
-
-
+include Eliommod_event
 
 module Up =
 struct

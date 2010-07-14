@@ -16,9 +16,10 @@ FILES:= error_pages.ml \
 	eliom_services_cli.ml eliom_services.ml \
 	eliom_client_types.ml eliommod_cli.ml eliommod_mkforms.ml \
         eliom_uri.ml eliom_mkforms.ml eliom_mkreg.ml \
+	eliom_common_comet.ml eliom_comet.ml  \
+	eliommod_event.ml \
 	eliom_predefmod_cli.ml eliom_predefmod.ml \
         eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
-	eliom_common_comet.ml eliom_comet.ml  \
 	eliom_event.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 

@@ -1607,7 +1607,8 @@ module Eliom_appl_reg_
 
   let eliom_appl_session_name = "__eliom_appl_internal"
 
-  let change_page_event_table = Eliom_sessions.create_volatile_table ()
+  let change_page_event_table : ('a -> unit) Eliom_sessions.volatile_table =
+    Eliom_sessions.create_volatile_table ()
 
   let get_tab_cook sp cookies =
     Eliommod_cookies.compute_cookies_to_send
@@ -1618,7 +1619,16 @@ module Eliom_appl_reg_
                         
   let create_page
       ~sp params do_not_launch_application cookies_to_send
-      change_page_event content = 
+      content = 
+    let change_page_event, change_current_page =
+          (* This event allows the server to ask the client to change 
+             current page content *)
+      React.E.create ()
+    in
+    Eliom_sessions.set_volatile_session_data
+      ~session_name:eliom_appl_session_name
+      ~cookie_type:Eliom_common.CTab
+      ~table:change_page_event_table ~sp change_current_page;
     let body, container_node = match params.ap_container with
       | None -> let b = XHTML.M.body ?a:params.ap_body_attributes content in
         (b, (XHTML.M.toelt b))
@@ -1693,7 +1703,7 @@ redir ();"))::
 
                           "var change_page_event = \'" ;
                           (Eliom_client_types.jsmarshal
-                             (Eliom_event.Down.wrap ~sp change_page_event)
+                             (Eliommod_event.Down.wrap ~sp change_page_event)
                           ) ; "\'; \n"
                         ]
 
@@ -1736,23 +1746,49 @@ redir ();"))::
     
   let application_name = Some Appl_params.application_name
 
+
+  let get_eliom_page_content sp cookies content =
+    get_tab_cook sp cookies >>= fun tab_cookies_to_send ->
+(*VVV Here we do not send a stream *)
+    Lwt.return (((Ocsigen_lib.Right
+                    (XML.make_ref_tree_list (XHTML.M.toeltl content)),
+                  (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
+                  tab_cookies_to_send),
+(*VVV Use another serialization format than XML for the page? *)
+                 Xhtmlcompact'.xhtml_list_print content) :
+                   Eliom_client_types.eliom_data_type * string
+    )
+
+
   let send ?(options = false) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     let content_only = Eliom_process.get_content_only ~sp in
     (if content_only
 (*VVV do not send container! *)
      then 
-        get_tab_cook sp cookies >>= fun tab_cookies_to_send ->
-(*VVV Here we do not send a stream *)
-        Caml.send ~sp (((Ocsigen_lib.Right
-                           (XML.make_ref_tree_list (XHTML.M.toeltl content)),
-                         (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
-                         tab_cookies_to_send),
-(*VVV Use another serialization format than XML for the page? *)
-                        Xhtmlcompact'.xhtml_list_print content) :
-                          Eliom_client_types.eliom_data_type * string
-        )
-     else 
+        get_eliom_page_content sp cookies content >>= Caml.send ~sp
+     else if
+         (Eliom_parameters.get_non_localized_get_parameters
+            ~sp Eliom_mkforms.nl_internal_appl_form) = Some true
+     then begin (* It was an internal form.
+                   We want to change only the content.
+                   But the browser is not doing an xhr.
+                   We send 204 No Content 
+                   and use the change_page_event to update the content. *)
+       match (Eliom_sessions.get_volatile_session_data
+                ~session_name:eliom_appl_session_name
+                ~cookie_type:Eliom_common.CTab
+                ~table:change_page_event_table ~sp ())
+       with Eliom_sessions.Data change_current_page ->
+         get_eliom_page_content sp cookies content >>= fun data ->
+         change_current_page data;
+         Lwt.return (Ocsigen_http_frame.empty_result ())
+         | Eliom_sessions.Data_session_expired
+         | Eliom_sessions.No_data ->
+(*VVV What to do here? *)
+           Lwt.fail Eliom_process.Server_side_process_closed
+     end
+     else
         get_tab_cook sp
           ((Eliom_services.Set (Eliom_common.CTab,
                                 None,
@@ -1772,19 +1808,9 @@ redir ();"))::
                                     *)
         in
 (*VVV for now not possible to give other params for one page *)
-        let change_page_event, change_current_page =
-          (* This event allows the server to ask the client to change 
-             current page content *)
-          React.E.create ()
-        in
-        Eliom_sessions.set_volatile_session_data
-          ~session_name:eliom_appl_session_name
-          ~cookie_type:Eliom_common.CTab
-          ~table:change_page_event_table ~sp change_current_page;
         let page =
           create_page
-            ~sp Appl_params.params do_not_launch tab_cookies_to_send 
-            change_page_event content 
+            ~sp Appl_params.params do_not_launch tab_cookies_to_send content 
         in
         let options = Appl_params.params.ap_doctype in
         Xhtml_content.result_of_content ~options page)

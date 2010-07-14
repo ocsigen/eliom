@@ -928,3 +928,8 @@ and type input_type_t = Pages.input_type_t
 and type button_type_t = Pages.button_type_t
 
 
+(**/**)
+val nl_internal_appl_form :
+  (bool, [ `WithoutSuffix ],
+   [ `One of bool ] Eliom_parameters.param_name)
+           Eliom_parameters.non_localized_params

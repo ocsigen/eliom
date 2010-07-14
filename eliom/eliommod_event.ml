@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2010 Vincent Balat
- * Laboratoire PPS - CNRS Universit� Paris Diderot
+ * Copyright (C) 2010
+ * Raphaël Proust
+ * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,22 +19,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-exception Server_side_process_closed
-
-(** {3 Application name} *)
-
-(** returns the name of the application running client side, 
-    as sent by the client in tab cookies (if any). *)
-val get_application_name_cookie :
-  sp:Eliom_sessions.server_params -> string option
-
-(** returns the name of the application. *)
-val get_application_name :
-  sp:Eliom_sessions.server_params -> string option
+(* Module for event wrapping and related functions *)
 
 
-(**/**)
-val get_content_only : sp:Eliom_sessions.server_params -> bool
+module Down =
+struct
 
-val appl_name_key : string option Polytables.key
-val content_only_key : bool Polytables.key
+  let wrap ~sp e =
+    (*TODO: use optionnal argument for max_size. *)
+    let chan = Eliom_comet.Dlisted_channels.create ~max_size:5 e in
+    let `R r = React.E.retain e (fun () -> ()) in
+    let `R _ = React.E.retain e (fun () -> r () ; ignore chan) in
+    Eliom_comet.Dlisted_channels.wrap ~sp chan
+
+end
