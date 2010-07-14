@@ -49,3 +49,12 @@ struct
 
 end
 
+
+
+(* ===change page event *)
+(*VVV Put this somewhere else? *)
+let change_page_event = 
+  (Down.unwrap (Eliom_client.unmarshal_js_var "change_page_event"))
+
+let _ = React.E.map (Eliom_client.set_inner_html 200) change_page_event
+

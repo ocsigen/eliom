@@ -144,3 +144,7 @@ val make_a_with_onclick :
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:Eliom_parameters.nl_params_set ->
   'c -> 'get -> 'd
+
+val set_inner_html : int -> string -> unit Lwt.t
+
+val unmarshal_js_var : string -> 'a
