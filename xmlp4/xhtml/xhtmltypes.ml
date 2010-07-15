@@ -179,7 +179,7 @@ type link_attrib =
 type script_attrib = [ = `XMLns | `Charset | `Src | `Defer | `XML_space ];
 type form_attrib =
   [ = common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset
-    | `Accept
+    | `Accept | `OnSubmit (*VVV il en manque plein *)
   ];
 type img_attrib =
   [ = common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap
