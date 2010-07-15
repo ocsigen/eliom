@@ -32,6 +32,7 @@ Authbasic
 {4 Main modules}
 {!modules: 
 Eliom_services 
+Eliom_uri 
 Eliom_parameters 
 Eliom_sessions 
 Eliom_common

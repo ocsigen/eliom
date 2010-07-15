@@ -62,6 +62,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)eliom/eliom_common.mli				\
 	$(DOCPREF)eliom/eliom_parameters.mli				\
 	$(DOCPREF)eliom/eliom_services.mli				\
+	$(DOCPREF)eliom/eliom_uri.mli				\
 	$(DOCPREF)eliom/eliom_sessions.mli				\
 	$(DOCPREF)eliom/eliom_extensions.mli				\
 	$(DOCPREF)server/ocsigen_extensions.mli				\
@@ -118,6 +119,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        $(DUCECMI) \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
+       eliom/eliom_uri.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
        extensions/comet.cmi \
        extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
