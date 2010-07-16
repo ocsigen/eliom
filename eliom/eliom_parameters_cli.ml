@@ -494,14 +494,17 @@ let string_of_nl_params_set nlp =
 
 let get_nl_params_names t = snd (make_params_names (TNLParams t))
 
+let make_nlp_name persistent prefix name =
+  let pr = if persistent then "p_" else "n_" in
+  pr^prefix^"-"^name
+
 let make_non_localized_parameters
     ~prefix
     ~name
     ?(persistent = false)
     (p : ('a, [ `WithoutSuffix ], 'b) params_type) 
     : ('a, [ `WithoutSuffix ], 'b) non_localized_params =
-  let pr = if persistent then "p_" else "n_" in
-  let name = pr^prefix^"-"^name in
+  let name = make_nlp_name persistent prefix name in
   if String.contains name '.'
   then failwith "Non localized parameters names cannot contain dots."
   else
@@ -528,8 +531,10 @@ let rec contains_suffix = function
 
 
 (* Predefined nl parameter for tab cookies. *)
+let nlp_tab_cookies_name = "cookies"
+
 let tab_cookies_nlp = 
   make_non_localized_parameters
-    ~prefix:"__eliom"
-    ~name:"cookies"
+    ~prefix:Eliom_common.eliom_internal_nlp_prefix
+    ~name:nlp_tab_cookies_name
     (list "l" (string "n" ** string "v"))

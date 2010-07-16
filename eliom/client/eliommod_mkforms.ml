@@ -26,12 +26,12 @@ let make_a_with_onclick = Eliom_client.make_a_with_onclick
 let add_tab_cookies_to_post_form' node =
   let action = Js.to_string node##action in
   let action = Eliom_client.add_cookie_nlp_to_uri action in
-  node##action <- Js.string action;
+  node##action <- Js.string action; 
   Lwt_js.sleep 0.05 >|=
   Eliom_client_comet.Engine.restart
 
+
 let add_tab_cookies_to_post_form node () =
-  Firebug.console##log (Js.string "add");
   let node = Js.Unsafe.coerce (XHTML.M.toelt node) in
   add_tab_cookies_to_post_form' node
 

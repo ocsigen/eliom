@@ -892,7 +892,7 @@ end
 
 let nl_internal_appl_form =
   Eliom_parameters.make_non_localized_parameters
-    ~prefix:"__eliom"
+    ~prefix:Eliom_common.eliom_internal_nlp_prefix
     ~name:"_internal_form"
     (Eliom_parameters.bool "b")
 

@@ -209,7 +209,7 @@ let get_path (* simplified version of make_uri_components.
 
 
 
-let make_cookie_nlp_string https path nl_params =
+let make_cookie_nlp_aux https path nl_params =
   let cookielist = Eliommod_client_cookies.get_cookies_to_send https path in
   Eliom_parameters.add_nl_parameter
     nl_params
@@ -225,7 +225,7 @@ let make_cookie_nlp ~https ~service nl_params g =
         (Eliom_services.get_https service) ||
         (https = None && ssl)
     in
-    make_cookie_nlp_string https path nl_params
+    make_cookie_nlp_aux https path nl_params
   with External_service -> nl_params
 
 let short_url_re =
@@ -233,6 +233,29 @@ let short_url_re =
 
 let url_re =
   jsnew Js.regExp (Js.bytestring "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$")
+
+let cookie_nlp_re =
+  let p_cookie_nlp_prefix =
+    Eliom_parameters.make_nlp_name 
+      false 
+      Eliom_common.eliom_internal_nlp_prefix
+      Eliom_parameters.nlp_tab_cookies_name
+  in
+  let np_cookie_nlp_prefix =
+    Eliom_parameters.make_nlp_name 
+      true
+      Eliom_common.eliom_internal_nlp_prefix
+      Eliom_parameters.nlp_tab_cookies_name
+  in
+  jsnew Js.regExp (Js.bytestring ("(\\?|&)"^Eliom_common.nl_param_prefix^
+                                     "("^
+                                     p_cookie_nlp_prefix^
+                                     "|"^
+                                     np_cookie_nlp_prefix
+                                  ^")(.*)$"))
+
+let remove_tab_cookies uri =
+  uri##replace (cookie_nlp_re, (Js.string ""))
 
 let add_cookie_nlp_to_uri uri =
   let uri_js = Js.bytestring uri in
@@ -282,10 +305,11 @@ let add_cookie_nlp_to_uri uri =
          in
          let nlp = 
            Eliom_parameters.string_of_nl_params_set
-             (make_cookie_nlp_string
+             (make_cookie_nlp_aux
                 https path
                 Eliom_parameters.empty_nl_params_set)
          in
+         let uri = Js.to_string (remove_tab_cookies uri_js) in
          let uri =
            if String.contains uri '?'
            then String.concat "&" [uri; nlp]
