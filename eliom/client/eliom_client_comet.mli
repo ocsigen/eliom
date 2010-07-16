@@ -39,6 +39,10 @@ sig
   (** [running] is a signal which value always reflect the state the engine is
       in. *)
 
+  val restart : unit -> unit
+  (** [restart ()] makes the engine restart. If it was started, the current XHR
+      is canceled and a new one is created. *)
+
 end
 
 module Channels :

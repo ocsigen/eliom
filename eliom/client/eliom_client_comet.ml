@@ -99,6 +99,10 @@ sig
      serious error, no no registered channels. *)
   val stop : unit -> unit
 
+  (* restart send a start signal to the engine (even if it's already running) *)
+  val restart : unit -> unit
+
+
 end = struct
 
   (* Primitive events for the reactive engine *)
