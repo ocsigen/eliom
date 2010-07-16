@@ -95,8 +95,23 @@ let string_escape s =
 
 let jsmarshal v = string_escape (Marshal.to_string v [])
 
+
 (* For client side program, we sometimes simulate links and forms
    with client side functions.
    Here are there identifiers: *)
 let a_closure_id = 0x0
 let a_closure_id_string = Printf.sprintf "0x%02X" a_closure_id
+
+let add_tab_cookies_to_get_form_id = 0x1
+let add_tab_cookies_to_get_form_id_string =
+  Printf.sprintf "0x%02X" add_tab_cookies_to_get_form_id
+let add_tab_cookies_to_post_form_id = 0x2
+let add_tab_cookies_to_post_form_id_string =
+  Printf.sprintf "0x%02X" add_tab_cookies_to_post_form_id
+
+let add_tab_cookies_to_get_form5_id = 0x3
+let add_tab_cookies_to_get_form5_id_string =
+  Printf.sprintf "0x%02X" add_tab_cookies_to_get_form5_id
+let add_tab_cookies_to_post_form5_id = 0x4
+let add_tab_cookies_to_post_form5_id_string =
+  Printf.sprintf "0x%02X" add_tab_cookies_to_post_form5_id

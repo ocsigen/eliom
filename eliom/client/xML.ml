@@ -109,8 +109,13 @@ let node ?a name children =
 (*FIX: cannot set input/name with IE  *)
 let leaf ?a name = node ?a name []
 
-let register_event elt name f v =
+let lwt_register_event elt name f v =
   (Js.Unsafe.coerce elt)##onclick <- Dom_html.handler (fun _ -> ignore (f v); Js._false)
+
+let register_event elt name f v =
+  (Js.Unsafe.coerce elt)##onclick <- Dom_html.handler (fun _ -> f v; Js._false)
 
 
 type ref_tree = Ref_tree of int option * (int * ref_tree) list
+
+let ref_node n = 0 (* not needed on client side *)

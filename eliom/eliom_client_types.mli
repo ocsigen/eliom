@@ -28,10 +28,18 @@ val string_escape : string -> string
 
 
 (**/**)
-val a_closure_id : int
-val a_closure_id_string : string
-
 type eliom_data_type =
     ((XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
         ((int64 * int) * unit list) *
         Ocsigen_cookies.cookieset)
+
+val a_closure_id : int
+val a_closure_id_string : string
+val add_tab_cookies_to_get_form_id : int
+val add_tab_cookies_to_get_form_id_string : string
+val add_tab_cookies_to_post_form_id : int
+val add_tab_cookies_to_post_form_id_string : string
+val add_tab_cookies_to_get_form5_id : int
+val add_tab_cookies_to_get_form5_id_string : string
+val add_tab_cookies_to_post_form5_id : int
+val add_tab_cookies_to_post_form5_id_string : string

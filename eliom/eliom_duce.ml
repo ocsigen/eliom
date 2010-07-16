@@ -215,23 +215,33 @@ module Xhtmlforms_ = struct
     in
     {{ <a (href_attr ++ onclick_attr ++ a)> l }}
 
-  let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt =
-    {{ <form ({method="get"
-               action=(str action)}
+  let make_get_form ?(a={{ {} }}) ~(action : uri) ?onsubmit elt1 elts : form_elt =
+    let onsubmit_attr = match onsubmit with
+      | None -> {{ {} }}
+      | Some v -> {{ { onsubmit=(str v) } }} 
+    in
+    {{ <form (onsubmit_attr ++
+                {method="get"
+                   action=(str action)}
               ++ a )>
        [ elt1 !elts ] }}
 
-  let make_post_form ?(a={{ {} }}) ~(action : uri) ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a={{ {} }}) ~(action : uri) ?onsubmit ?id ?(inline = false) elt1 elts
       : form_elt =
     let id_attr = (match id with
     | None -> {{ {} }}
     | Some (i : string) -> {{ { id=(str i) } }})
     in
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
+    let onsubmit_attr = match onsubmit with
+      | None -> {{ {} }}
+      | Some v -> {{ { onsubmit=(str v) } }} 
+    in
     {{ <form ({action=(str action)
                enctype="multipart/form-data"
                method="post"}
               ++ inline_attr
+              ++ onsubmit_attr
               ++ id_attr
               ++ a)>
        [ elt1
@@ -311,8 +321,23 @@ module Xhtmlforms_ = struct
     {{ <script ({type="text/javascript"
                  src=(str uri) } ++ a)> [] }}
 
-  let register_event elt ev callback =
-    failwith "register_event not implemented for ocamlduce"
+  let register_event_a elt ev callback =
+    failwith "register_event_a not implemented for ocamlduce"
+
+  let register_event_form elt ev callback =
+    failwith "register_event_form not implemented for ocamlduce"
+
+  let add_tab_cookies_to_get_form _ () = 
+    failwith "add_tab_cookies_to_get_form not implemented for ocamlduce"
+
+  let add_tab_cookies_to_post_form _ () = 
+    failwith "add_tab_cookies_to_post_form not implemented for ocamlduce"
+
+  let add_tab_cookies_to_get_form_id_string = "not implemented for text"
+   
+  let add_tab_cookies_to_post_form_id_string =
+    add_tab_cookies_to_get_form_id_string
+
 
 end
 

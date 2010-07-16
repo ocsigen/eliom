@@ -30,6 +30,7 @@ open Lwt
 open Eliom_parameters
 open Eliom_services
 
+
 module type FORMCREATE =
   sig
     type form_content_elt
@@ -99,10 +100,13 @@ module type FORMCREATE =
       a_content_elt_list -> a_elt
     val make_get_form : ?a:form_attrib_t ->
       action:string ->
-        form_content_elt -> form_content_elt_list -> form_elt
+      ?onsubmit:XML.event ->
+      form_content_elt -> form_content_elt_list -> form_elt
     val make_post_form : ?a:form_attrib_t ->
-      action:string -> ?id:string -> ?inline:bool ->
-        form_content_elt -> form_content_elt_list -> form_elt
+      action:string ->
+      ?onsubmit:XML.event ->
+      ?id:string -> ?inline:bool ->
+      form_content_elt -> form_content_elt_list -> form_elt
     val make_hidden_field : input_elt option -> form_content_elt
     val remove_first :
         form_content_elt_list -> form_content_elt * form_content_elt_list
@@ -142,7 +146,14 @@ module type FORMCREATE =
 
     val make_js_script : ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 
-    val register_event : a_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
+    val register_event_a : a_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
+    val register_event_form : form_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
+
+    val add_tab_cookies_to_get_form : form_elt -> unit -> unit Lwt.t
+    val add_tab_cookies_to_post_form : form_elt -> unit -> unit Lwt.t
+    val add_tab_cookies_to_get_form_id_string : string
+    val add_tab_cookies_to_post_form_id_string : string
+
 
   end
 

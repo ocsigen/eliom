@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010
- * Raphaël Proust
+ * Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,33 +19,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* Module for event unwrapping *)
+let _ =
+  Dom_html.window##onload <- Dom_html.handler (fun _ ->
+    let eliom_data = Eliom_client.unmarshal_js_var "eliom_data" in
+    Eliom_client.load_eliom_data_ eliom_data Dom_html.document##body;
 
-
-
-module Down =
-struct
-
-  let unwrap
-        (c : 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key)
-        : 'a React.E.t
-    =
-    let chan : 'a Eliom_common_comet.buffered_chan_id =
-      Eliom_client_comet.Dlisted_channels.unwrap c
+    (* ===change page event *)
+    let change_page_event
+        : (Eliom_client_types.eliom_data_type * string) React.E.t = 
+      (Eliom_client_event.Down.unwrap
+         (Eliom_client.unmarshal_js_var "change_page_event"))
     in
-    let (e, push) = React.E.create () in
-    Eliom_client_comet.Dlisted_channels.register
-      chan
-      (fun s -> push s ; Lwt.return ()) ;
-    e
+    let retain_event = 
+      React.E.map (fun v ->
+        Firebug.console##log (Js.string "sih");
+        Eliom_client.set_inner_html v) change_page_event
+    in
+    
+    let `R r = React.E.retain change_page_event (fun () -> ()) in
+    ignore 
+      (React.E.retain change_page_event (fun () -> r (); ignore retain_event));
 
-end
-
-module Up =
-struct
-
-  let unwrap ~sp s x =
-    let service = Eliommod_cli.unwrap s in
-    Eliom_client.call_service ~sp ~service () x
-
-end
+    Js._false)

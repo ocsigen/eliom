@@ -196,7 +196,7 @@ endif
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_client.cmo eliom/client/eliom_client.cma eliom/client/eliom_client.js
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_client.cmo eliom/client/eliom_client.cma eliom/client/eliom_client_main.cmo eliom/client/eliom_client.js
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
@@ -293,6 +293,7 @@ files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
 	-ln -sf ../eliom/client/eliom_client.cma extensions
+	-ln -sf ../eliom/client/eliom_client_main.cmo extensions
 	-ln -sf ../xmlp4/xhtml.cma extensions
 	-ln -sf ../xmlp4/xhtmlpretty.cma extensions
 	-ln -sf ../xmlp4/xhtmlsyntax.cma extensions

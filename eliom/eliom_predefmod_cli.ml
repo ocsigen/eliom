@@ -121,21 +121,40 @@ module Xhtmlforms_ = struct
     in
     XHTML.M.a ~a l
 
-  let make_get_form ?(a=[]) ~action elt1 elts : form_elt =
-    form ~a:((a_method `Get)::a)
-      ~action:(uri_of_string action) elt1 elts
+  let make_get_form ?(a=[]) ~action ?onsubmit elt1 elts : form_elt =
+    let a = (match onsubmit with
+      | None -> a
+      | Some s -> (a_onsubmit s)::a)
+    in
+    let r = 
+      form ~a:((a_method `Get)::a)
+        ~action:(uri_of_string action) elt1 elts
+    in
+  (* if onsubmit is true, the node ref must exist: *)
+    if onsubmit <> None then ignore (XML.ref_node (XHTML.M.toelt r));
+    r
 
-  let make_post_form ?(a=[]) ~action ?id ?(inline = false) elt1 elts
+
+  let make_post_form ?(a=[]) ~action ?onsubmit ?id ?(inline = false) elt1 elts
       : form_elt =
+    let a = (match onsubmit with
+      | None -> a
+      | Some s -> (a_onsubmit s)::a)
+    in
     let aa = (match id with
     | None -> a
     | Some i -> (a_id i)::a)
     in
-    form ~a:((XHTML.M.a_enctype "multipart/form-data")::
+    let r = 
+      form ~a:((XHTML.M.a_enctype "multipart/form-data")::
              (* Always Multipart!!! How to test if there is a file?? *)
-             (a_method `Post)::
-             (if inline then (a_class ["inline"])::aa else aa))
-      ~action:(uri_of_string action) elt1 elts
+                  (a_method `Post)::
+                  (if inline then (a_class ["inline"])::aa else aa))
+        ~action:(uri_of_string action) elt1 elts
+    in
+  (* if onsubmit is true, the node ref must exist: *)
+    if onsubmit <> None then ignore (XML.ref_node (XHTML.M.toelt r));
+    r
 
   let make_hidden_field content =
     let c = match content with
@@ -203,7 +222,21 @@ module Xhtmlforms_ = struct
   let make_js_script ?(a=[]) ~uri () =
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
-  let register_event node = XML.register_event (XHTML.M.toelt node)
+  let register_event_a node = XML.register_event (XHTML.M.toelt node)
+  let register_event_form node = XML.register_event (XHTML.M.toelt node)
+
+  let add_tab_cookies_to_get_form = 
+    Eliommod_mkforms.add_tab_cookies_to_get_form
+  (* implementation is different on server and client sides *)
+
+  let add_tab_cookies_to_post_form = 
+    Eliommod_mkforms.add_tab_cookies_to_post_form
+
+  let add_tab_cookies_to_get_form_id_string =
+    Eliom_client_types.add_tab_cookies_to_get_form_id_string
+
+  let add_tab_cookies_to_post_form_id_string =
+    Eliom_client_types.add_tab_cookies_to_post_form_id_string
 
 end
 
@@ -1708,22 +1741,40 @@ module Xhtml5forms_ = struct
     in
     XHTML5.M.a ~a l
 
-  let make_get_form ?(a=[]) ~action elt1 elts : form_elt =
-    XHTML5.M.form ~a:((a_method `Get)::(a_action (uri_of_string action))::a)
-      elt1 elts
+  let make_get_form ?(a=[]) ~action ?onsubmit elt1 elts : form_elt =
+    let a = (match onsubmit with
+      | None -> a
+      | Some s -> (a_onsubmit s)::a)
+    in
+    let r = 
+      XHTML5.M.form ~a:((a_method `Get)::(a_action (uri_of_string action))::a)
+        elt1 elts
+    in
+  (* if onsubmit is true, the node ref must exist: *)
+    if onsubmit <> None then ignore (XML.ref_node (XHTML5.M.toelt r));
+    r
 
-  let make_post_form ?(a=[]) ~action ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a=[]) ~action ?onsubmit ?id ?(inline = false) elt1 elts
       : form_elt =
+    let a = (match onsubmit with
+      | None -> a
+      | Some s -> (a_onsubmit s)::a)
+    in
     let aa = (match id with
     | None -> a
     | Some i -> (a_id i)::a)
     in
-    form ~a:((XHTML5.M.a_enctype "multipart/form-data")::
+    let r = 
+      form ~a:((XHTML5.M.a_enctype "multipart/form-data")::
                 (* Always Multipart!!! How to test if there is a file?? *)
-                (a_action (uri_of_string action))::
-                (a_method `Post)::
-                (if inline then (a_class ["inline"])::aa else aa))
-       elt1 elts
+                  (a_action (uri_of_string action))::
+                  (a_method `Post)::
+                  (if inline then (a_class ["inline"])::aa else aa))
+        elt1 elts
+    in
+  (* if onsubmit is true, the node ref must exist: *)
+    if onsubmit <> None then ignore (XML.ref_node (XHTML5.M.toelt r));
+    r
 
   let make_hidden_field content =
     let c = match content with
@@ -1790,7 +1841,22 @@ module Xhtml5forms_ = struct
   let make_js_script ?(a=[]) ~uri () =
     script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
-  let register_event node = XML.register_event (XHTML5.M.toelt node)
+  let register_event_a node = XML.register_event (XHTML5.M.toelt node)
+  let register_event_form node = XML.register_event (XHTML5.M.toelt node)
+
+  let add_tab_cookies_to_get_form = 
+    Eliommod_mkforms.add_tab_cookies_to_get_form5
+  (* implementation is different on server and client sides *)
+
+  let add_tab_cookies_to_post_form = 
+    Eliommod_mkforms.add_tab_cookies_to_post_form5
+
+  let add_tab_cookies_to_get_form_id_string =
+    Eliom_client_types.add_tab_cookies_to_get_form5_id_string
+
+  let add_tab_cookies_to_post_form_id_string =
+    Eliom_client_types.add_tab_cookies_to_post_form5_id_string
+
 
 end
 

@@ -766,17 +766,17 @@ let tsession_data_example_handler sp _ _  =
         | Eliom_sessions.Data name ->
           p [pcdata ("Hello "^name);
              br ();
-             Eliom_predefmod.Xhtml.a
+             Eliom_appl.a
                tsession_data_example_close
                sp [pcdata "close session"] ()]
         | Eliom_sessions.Data_session_expired
         | Eliom_sessions.No_data ->
-          Eliom_predefmod.Xhtml.post_form
+          Eliom_appl.post_form
             tsession_data_example_with_post_params
             sp
             (fun login ->
               [p [pcdata "login: ";
-                  Eliom_predefmod.Xhtml.string_input
+                  Eliom_appl.string_input
                     ~input_type:`Text ~name:login ()]]) ()
     ]
 
@@ -792,7 +792,7 @@ let tsession_data_example_with_post_params_handler sp _ login =
   return
     [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
         br ();
-        Eliom_predefmod.Xhtml.a tsession_data_example sp [pcdata "Try again"] ()
+        Eliom_appl.a tsession_data_example sp [pcdata "Try again"] ()
        ]]
 
 
@@ -811,7 +811,7 @@ let tsession_data_example_close_handler sp () () =
         | Eliom_sessions.Data_session_expired -> p [pcdata "Your session has expired."]
         | Eliom_sessions.No_data -> p [pcdata "You were not connected."]
         | Eliom_sessions.Data _ -> p [pcdata "You have been disconnected."]);
-      p [Eliom_predefmod.Xhtml.a tsession_data_example sp [pcdata "Retry"] () ]]
+      p [Eliom_appl.a tsession_data_example sp [pcdata "Retry"] () ]]
 
 
 (* -------------------------------------------------------- *)

@@ -145,6 +145,12 @@ val make_a_with_onclick :
   ?nl_params:Eliom_parameters.nl_params_set ->
   'c -> 'get -> 'd
 
-val set_inner_html : int -> string -> unit Lwt.t
+val set_inner_html : Eliom_client_types.eliom_data_type * string -> unit Lwt.t
 
 val unmarshal_js_var : string -> 'a
+
+val add_cookie_nlp_to_uri : string -> string
+
+val load_eliom_data_ :
+  Eliom_client_types.eliom_data_type ->
+  Dom_html.element Js.t -> unit

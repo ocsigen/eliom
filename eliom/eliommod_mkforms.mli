@@ -37,3 +37,30 @@ val make_a_with_onclick :
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:Eliom_parameters.nl_params_set ->
   'c -> 'get -> 'd
+
+
+
+val make_get_form_with_onsubmit :
+  (?a:'a -> action:'b -> ?onsubmit:XML.event -> 'c -> 'd -> 'form) ->
+  ('form -> string -> (unit -> unit Lwt.t) -> 'g) ->
+  ('form -> unit -> unit Lwt.t) ->
+  string ->
+  sp:Eliom_sessions.server_params ->
+  ?a:'a -> action:'b -> 'c -> 'd -> 'form
+
+val make_post_form_with_onsubmit :
+  (?a:'a -> action:'b -> ?onsubmit:XML.event ->
+   ?id:string ->
+   ?inline:bool ->
+   'c -> 'd -> 'form) ->
+  ('form -> string -> (unit -> unit Lwt.t) -> 'g) ->
+  ('form -> unit -> unit Lwt.t) ->
+  string ->
+  sp:Eliom_sessions.server_params ->
+  ?a:'a -> action:'b -> 'c -> 'd -> 'form
+
+val add_tab_cookies_to_get_form : 'form XHTML.M.elt -> unit -> unit Lwt.t
+val add_tab_cookies_to_post_form : 'form XHTML.M.elt -> unit -> unit Lwt.t
+
+val add_tab_cookies_to_get_form5 : 'form XHTML5.M.elt -> unit -> unit Lwt.t
+val add_tab_cookies_to_post_form5 : 'form XHTML5.M.elt -> unit -> unit Lwt.t

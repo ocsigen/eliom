@@ -18,5 +18,71 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+let (>>=) = Lwt.bind
 
 let make_a_with_onclick = Eliom_client.make_a_with_onclick
+
+let restart_comet () =
+  Firebug.console##log (Js.string "sleep");
+  Lwt_js.sleep 0.05 >>= fun () ->
+  Firebug.console##log (Js.string "stop");
+  Eliom_client_comet.Engine.stop ();
+  Firebug.console##log (Js.string "start");
+  Eliom_client_comet.Engine.start ();
+  Lwt.return ()
+
+let add_tab_cookies_to_post_form' node =
+  let action = Js.to_string node##action in
+  let action = Eliom_client.add_cookie_nlp_to_uri action in
+  node##action <- Js.string action;
+  restart_comet ()
+
+let add_tab_cookies_to_post_form node () =
+  Firebug.console##log (Js.string "add");
+  let node = Js.Unsafe.coerce (XHTML.M.toelt node) in
+  add_tab_cookies_to_post_form' node
+
+let add_tab_cookies_to_post_form5 node () =
+  let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
+  add_tab_cookies_to_post_form' node
+
+let add_tab_cookies_to_get_form node () =
+  failwith "unimpl"
+
+let add_tab_cookies_to_get_form5 =
+  add_tab_cookies_to_get_form
+
+let make_get_form_with_onsubmit
+    make_get_form register_event add_tab_cookies_to_get_form _
+    ~(sp:Eliom_sessions.server_params) ?a ~action i1 i =
+  let node = 
+    make_get_form ?a ~action ?onsubmit:(None : XML.event option) i1 i in
+  register_event node "onsubmit" (add_tab_cookies_to_get_form node);
+  node
+
+let make_post_form_with_onsubmit
+    make_post_form register_event add_tab_cookies_to_post_form _
+    ~sp ?a ~action i1 i =
+  let node = make_post_form ?a ~action ?onsubmit:None
+    ?id:None ?inline:None i1 i
+  in
+  register_event node "onsubmit" (add_tab_cookies_to_post_form node);
+  node
+
+
+
+let _ =
+  Eliommod_cli.register_closure
+    Eliom_client_types.add_tab_cookies_to_get_form_id
+    (fun node ->
+         let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
+         add_tab_cookies_to_get_form (XHTML.M.tot node) ();
+         Js._true)
+
+let _ =
+  Eliommod_cli.register_closure
+    Eliom_client_types.add_tab_cookies_to_post_form_id
+    (fun node ->
+         let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
+         add_tab_cookies_to_post_form (XHTML.M.tot node) ();
+         Js._true)

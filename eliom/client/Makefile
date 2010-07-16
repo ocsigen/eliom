@@ -13,12 +13,13 @@ MLS:= xML.ml xHTML.ml xhtml5types.ml xHTML5.ml \
 	eliom_common.ml eliom_sessions.ml eliom_parameters.ml \
 	eliom_process.ml \
 	eliom_services.ml eliom_uri.ml \
-	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
-	eliom_mkforms.ml polytables.ml \
-	xhtmltypes.ml eliom_predefmod.ml \
+	eliommod_cli.ml eliom_client.ml \
+	xhtmltypes.ml polytables.ml \
 	eliom_common_comet.ml eliom_client_comet.ml \
+        eliommod_mkforms.ml eliom_mkforms.ml \
+	eliom_predefmod.ml \
 	eliom_client_event.ml
-MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli eliom_common_comet.mli
+MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli eliom_common_comet.mli eliommod_mkforms.mli
 CMOS=$(MLS:.ml=.cmo)
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -26,7 +27,8 @@ CMOS=$(MLS:.ml=.cmo)
 .PHONY: depend clean
 
 
-all: $(MLIS) $(MLS) $(CMA)
+all: $(MLIS) $(MLS) $(CMA) eliom_client_main.cmo
+
 
 $(CMA):  eliom_client_stubs.o $(CMOS)
 	$(OCAMLMKLIB) -o $(CMA:.cma=) eliom_client_stubs.o polytables.cmo $(CMOS)
@@ -91,6 +93,9 @@ eliom_uri.ml: ../eliom_uri.ml
 	cp -f $< $@ 
 
 eliom_uri.mli: ../eliom_uri.mli
+	cp -f $< $@ 
+
+eliommod_mkforms.mli: ../eliommod_mkforms.mli
 	cp -f $< $@ 
 
 eliom_predefmod.ml: ../eliom_predefmod_cli.ml

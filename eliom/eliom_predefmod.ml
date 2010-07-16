@@ -481,12 +481,20 @@ module HtmlTextforms_ = struct
     in
     "<a "^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 
-  let make_get_form ?(a="") ~action elt1 elts : form_elt =
+  let make_get_form ?(a="") ~action ?onsubmit elt1 elts : form_elt =
+    let a = match onsubmit with
+      | None -> a
+      | Some v -> " onsubmit=\""^v^"\" "^a
+    in
     "<form method=\"get\" action=\""^(uri_of_string action)^"\""^a^">"^
     elt1^(*List.fold_left (^) "" elts *) elts^"</form>"
 
-  let make_post_form ?(a="") ~action ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a="") ~action ?onsubmit ?id ?(inline = false) elt1 elts
       : form_elt =
+    let a = match onsubmit with
+      | None -> a
+      | Some v -> " onsubmit=\""^v^"\" "^a
+    in
     let aa = "enctype=\"multipart/form-data\" "
         (* Always Multipart!!! How to test if there is a file?? *)
       ^(match id with
@@ -560,8 +568,22 @@ module HtmlTextforms_ = struct
   let make_js_script ?(a="") ~uri () =
     "<script src=\""^uri^" contenttype=\"text/javascript\" "^a^"></script>"
 
-  let register_event elt ev callback v =
-    failwith "register_event not implemented for text"
+  let register_event_a elt ev callback v =
+    failwith "register_event_a not implemented for text"
+
+  let register_event_form elt ev callback v =
+    failwith "register_event_form not implemented for text"
+
+  let add_tab_cookies_to_get_form _ () = 
+    failwith "add_tab_cookies_to_get_form not implemented for text"
+
+  let add_tab_cookies_to_post_form _ () = 
+    failwith "add_tab_cookies_to_post_form not implemented for text"
+
+  let add_tab_cookies_to_get_form_id_string = "not implemented for text"
+   
+  let add_tab_cookies_to_post_form_id_string =
+    add_tab_cookies_to_get_form_id_string
 
 end
 
@@ -1619,16 +1641,7 @@ module Eliom_appl_reg_
                         
   let create_page
       ~sp params do_not_launch_application cookies_to_send
-      content = 
-    let change_page_event, change_current_page =
-          (* This event allows the server to ask the client to change 
-             current page content *)
-      React.E.create ()
-    in
-    Eliom_sessions.set_volatile_session_data
-      ~session_name:eliom_appl_session_name
-      ~cookie_type:Eliom_common.CTab
-      ~table:change_page_event_table ~sp change_current_page;
+      change_page_event content = 
     let body, container_node = match params.ap_container with
       | None -> let b = XHTML.M.body ?a:params.ap_body_attributes content in
         (b, (XHTML.M.toelt b))
@@ -1763,13 +1776,9 @@ redir ();"))::
   let send ?(options = false) ?(cookies=[]) ?charset ?code
       ?content_type ?headers ~sp content =
     let content_only = Eliom_process.get_content_only ~sp in
-    (if content_only
-(*VVV do not send container! *)
-     then 
-        get_eliom_page_content sp cookies content >>= Caml.send ~sp
-     else if
-         (Eliom_parameters.get_non_localized_get_parameters
-            ~sp Eliom_mkforms.nl_internal_appl_form) = Some true
+    (if content_only &&
+        (Eliom_parameters.get_non_localized_get_parameters
+           ~sp Eliom_mkforms.nl_internal_appl_form) = Some true
      then begin (* It was an internal form.
                    We want to change only the content.
                    But the browser is not doing an xhr.
@@ -1779,26 +1788,40 @@ redir ();"))::
                 ~session_name:eliom_appl_session_name
                 ~cookie_type:Eliom_common.CTab
                 ~table:change_page_event_table ~sp ())
-       with Eliom_sessions.Data change_current_page ->
-         get_eliom_page_content sp cookies content >>= fun data ->
-         change_current_page data;
-         Lwt.return (Ocsigen_http_frame.empty_result ())
+       with
+         | Eliom_sessions.Data change_current_page ->
+           get_eliom_page_content sp cookies content >>= fun data ->
+           change_current_page data;
+           Lwt.return (Ocsigen_http_frame.empty_result ())
          | Eliom_sessions.Data_session_expired
          | Eliom_sessions.No_data ->
 (*VVV What to do here? *)
            Lwt.fail Eliom_process.Server_side_process_closed
      end
-     else
-        get_tab_cook sp
-          ((Eliom_services.Set (Eliom_common.CTab,
-                                None,
-                                None,
-                                Eliom_common.appl_name_cookie_name,
-                                Appl_params.application_name,
-                                false)
-           )::cookies)
-        >>= fun tab_cookies_to_send ->
-        let do_not_launch = options (* || 
+     else if content_only
+(*VVV do not send container! *)
+     then 
+        get_eliom_page_content sp cookies content >>= Caml.send ~sp
+     else begin
+       let change_page_event, change_current_page =
+         (* This event allows the server to ask the client to change 
+            current page content *)
+         React.E.create ()
+       in
+       Eliom_sessions.set_volatile_session_data
+         ~session_name:eliom_appl_session_name
+         ~cookie_type:Eliom_common.CTab
+         ~table:change_page_event_table ~sp change_current_page;
+       get_tab_cook sp
+         ((Eliom_services.Set (Eliom_common.CTab,
+                               None,
+                               None,
+                               Eliom_common.appl_name_cookie_name,
+                               Appl_params.application_name,
+                               false)
+          )::cookies)
+       >>= fun tab_cookies_to_send ->
+       let do_not_launch = options (* || 
           (Ocsigen_cookies.length tab_cookies_to_send > 1)
           (* If there are cookies, we launch the application *)
                                        Actually, no, we trust options ...
@@ -1810,31 +1833,34 @@ redir ();"))::
 (*VVV for now not possible to give other params for one page *)
         let page =
           create_page
-            ~sp Appl_params.params do_not_launch tab_cookies_to_send content 
+            ~sp Appl_params.params do_not_launch tab_cookies_to_send
+            change_page_event content 
         in
         let options = Appl_params.params.ap_doctype in
-        Xhtml_content.result_of_content ~options page)
-    >>= fun r ->
-    Lwt.return
-      {r with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
-         res_code= code_of_code_option code;
-         res_charset= (match charset with
-                         | None -> Some (get_config_default_charset sp)
-                         | _ -> charset
-                      );
-         res_content_type= (match content_type with
-                              | None -> r.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> r.res_headers
-                         | Some headers -> 
-                             Http_headers.with_defaults headers r.res_headers
-                      );
-      }
+        Xhtml_content.result_of_content ~options page
+       >>= fun r ->
+        Lwt.return
+          {r with
+            res_cookies=
+              Eliom_services.cookie_table_of_eliom_cookies
+                Eliom_common.CBrowser ~sp cookies;
+            res_code= code_of_code_option code;
+            res_charset= (match charset with
+              | None -> Some (get_config_default_charset sp)
+              | _ -> charset
+            );
+            res_content_type= (match content_type with
+              | None -> r.res_content_type
+              | _ -> content_type
+            );
+            res_headers= (match headers with
+              | None -> r.res_headers
+              | Some headers -> 
+                Http_headers.with_defaults headers r.res_headers
+            );
+          }
+     end
+    )
 
 end
 

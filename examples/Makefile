@@ -80,12 +80,12 @@ tutoeliom_ocsigen2_client.js: tutoeliom_ocsigen2_client
 ../files/tutorial/tutoeliom_ocsigen2_client.js: tutoeliom_ocsigen2_client.js
 	cp -f $< $@
 
-tutoeliom_ocsigen2_client: $(ELIOMCLIENTDIR)/eliom_client.cma client/tutoeliom_ocsigen2_client.ml
+tutoeliom_ocsigen2_client: $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/eliom_client_main.cmo client/tutoeliom_ocsigen2_client.ml
 	ocamlfind ocamlc -o $@ \
 	  -I ../eliom/client \
 	  -package lwt.react,react,js_of_ocaml -syntax camlp4o -linkpkg \
 	  -verbose \
-	  ../eliom/client/eliom_client.cma client/tutoeliom_ocsigen2_client.ml
+	  $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/eliom_client_main.cmo client/tutoeliom_ocsigen2_client.ml
 
 tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom ../eliom/pa_eliom_client.cmo ../eliom/eliom_comet.cmo
 	camlp4of $(PAELIOMCLIENTDIR)/pa_eliom_client.cmo \

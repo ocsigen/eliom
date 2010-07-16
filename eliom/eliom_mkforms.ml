@@ -26,6 +26,7 @@ open Eliom_services
 open Eliom_sessions
 open Eliom_uri
 
+
 module type FORMCREATE =
   sig
     type form_content_elt
@@ -95,9 +96,12 @@ module type FORMCREATE =
       a_content_elt_list -> a_elt
     val make_get_form : ?a:form_attrib_t ->
       action:string ->
-        form_content_elt -> form_content_elt_list -> form_elt
+      ?onsubmit:XML.event ->
+      form_content_elt -> form_content_elt_list -> form_elt
     val make_post_form : ?a:form_attrib_t ->
-      action:string -> ?id:string -> ?inline:bool ->
+      action:string ->
+      ?onsubmit:XML.event ->
+      ?id:string -> ?inline:bool ->
         form_content_elt -> form_content_elt_list -> form_elt
     val make_hidden_field : input_elt option -> form_content_elt
     val remove_first :
@@ -138,7 +142,13 @@ module type FORMCREATE =
 
     val make_js_script : ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 
-    val register_event : a_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
+    val register_event_a : a_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
+    val register_event_form : form_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
+
+    val add_tab_cookies_to_get_form : form_elt -> unit -> unit Lwt.t
+    val add_tab_cookies_to_post_form : form_elt -> unit -> unit Lwt.t
+    val add_tab_cookies_to_get_form_id_string : string
+    val add_tab_cookies_to_post_form_id_string : string
 
   end
 
@@ -975,7 +985,7 @@ module MakeForms = functor
         then
           Eliommod_mkforms.make_a_with_onclick
             (fun ?a ?onclick c -> Pages.make_a ?a ?onclick c)
-            Pages.register_event
+            Pages.register_event_a
             ?absolute
             ?absolute_path
             ?https
@@ -1079,7 +1089,15 @@ module MakeForms = functor
                  hiddenparams
              in
              let i1, i = Pages.remove_first inside in
-             return (Pages.make_get_form ?a ~action:uri i1 i))
+             if internal_appl_form
+             then
+               return (Eliommod_mkforms.make_get_form_with_onsubmit
+                         Pages.make_get_form Pages.register_event_form
+                         Pages.add_tab_cookies_to_get_form
+                         Pages.add_tab_cookies_to_get_form_id_string
+                         ~sp ?a ~action:uri i1 i)
+             else 
+               return (Pages.make_get_form ?a ~action:uri i1 i))
 
 
 
@@ -1174,8 +1192,15 @@ module MakeForms = functor
              let uri = 
                make_string_uri_from_components (uri, getparams, fragment) 
              in
-             return (Pages.make_post_form ?a ~action:uri i1 i))
-
+             if internal_appl_form
+             then
+               return (Eliommod_mkforms.make_post_form_with_onsubmit
+                         Pages.make_post_form Pages.register_event_form
+                         Pages.add_tab_cookies_to_post_form
+                         Pages.add_tab_cookies_to_post_form_id_string
+                         ~sp ?a ~action:uri i1 i)
+             else 
+               return (Pages.make_post_form ?a ~action:uri i1 i))
 
 
       let post_form

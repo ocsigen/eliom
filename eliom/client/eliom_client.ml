@@ -166,18 +166,19 @@ let load_eliom_data_
   Eliommod_cli.fill_global_data_table global_data;
   Eliommod_client_cookies.update_cookie_table cookies
 
-let set_inner_html code s =
+
+let set_inner_html (ed, content) =
+  let container_node = Lazy.force container_node in
+  container_node##innerHTML <- Js.string content;
+  load_eliom_data_ ed container_node;
+  Lwt.return ()
+
+let set_inner_html_from_string code s =
   if code <> 200
   then Lwt.fail (Failed_service code)
-  else begin
+  else
     let a = Js.to_bytestring (Js.unescape (Js.bytestring s)) in
-    let (ed, content) = Marshal.from_string a 0 in
-    let container_node = Lazy.force container_node in
-    container_node##innerHTML <- Js.string content;
-    load_eliom_data_ ed container_node;
-    Lwt.return ()
-  end
-
+    set_inner_html (Marshal.from_string a 0)
 
 
 
@@ -208,7 +209,7 @@ let get_path (* simplified version of make_uri_components.
 
 
 
-let make_cookie_nlp' https path nl_params =
+let make_cookie_nlp_string https path nl_params =
   let cookielist = Eliommod_client_cookies.get_cookies_to_send https path in
   Eliom_parameters.add_nl_parameter
     nl_params
@@ -224,10 +225,77 @@ let make_cookie_nlp ~https ~service nl_params g =
         (Eliom_services.get_https service) ||
         (https = None && ssl)
     in
-    make_cookie_nlp' https path nl_params
+    make_cookie_nlp_string https path nl_params
   with External_service -> nl_params
 
+let short_url_re =
+  jsnew Js.regExp (Js.bytestring "^([^\\?]*)(\\?(.*))?$")
 
+let url_re =
+  jsnew Js.regExp (Js.bytestring "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$")
+
+let add_cookie_nlp_to_uri uri =
+  let uri_js = Js.bytestring uri in
+  Js.Opt.get
+    (Js.Opt.bind
+(*VVV Put this in a separate js_of_ocaml library for URL decoding *)
+       (Js.Opt.case
+          (url_re##exec (uri_js))
+          (fun () ->
+            (Js.Opt.case (short_url_re##exec (uri_js))
+               (fun () -> Js.Opt.empty)
+               (fun res ->
+                 let match_result = Js.match_result res in
+                 let path =
+                   Ocsigen_lib.split_path
+                     (Js.to_string 
+                        (Js.Optdef.get (Js.array_get match_result 1) 
+                           (fun () -> assert false)))
+                 in
+                 let path = match path with
+                   | ""::_ -> path (* absolute *)
+                   | _ -> 
+                     Eliom_uri.make_actual_path
+                       (Eliom_sessions.full_path_ @ path)
+                 in
+                 Js.Opt.return (None, path)
+               )
+            )
+          )
+          (fun res ->
+            let match_result = Js.match_result res in
+            let protocol =
+              Js.Optdef.get (Js.array_get match_result 1) 
+                (fun () -> assert false)
+            in
+            let https = protocol##length = 5 in
+            let path =
+              Ocsigen_lib.split_path
+                (Js.to_string 
+                   (Js.Optdef.get (Js.array_get match_result 4) 
+                      (fun () -> assert false)))
+            in
+            Js.Opt.return (Some https, path)))
+       (fun (https, path) ->
+         let https = (https = Some true) || 
+           (https = None && Eliom_sessions.ssl_) 
+         in
+         let nlp = 
+           Eliom_parameters.string_of_nl_params_set
+             (make_cookie_nlp_string
+                https path
+                Eliom_parameters.empty_nl_params_set)
+         in
+         let uri =
+           if String.contains uri '?'
+           then String.concat "&" [uri; nlp]
+           else String.concat "?" [uri; nlp]
+         in
+         Js.Opt.return uri
+       )
+    )
+(*VVV or raise an exception? v *)
+    (fun () -> uri)
 
 let change_page
     ?absolute ?absolute_path ?https
@@ -260,18 +328,18 @@ let change_page
           g p
      with
        | Ocsigen_lib.Left uri -> 
-           http_get uri [] >>= fun r ->
-           Lwt.return (r, uri)
-       | Ocsigen_lib.Right (uri, p) -> 
-           http_post uri p >>= fun r ->
-           Lwt.return (r, uri))
-    >>= fun ((code, s), uri) ->
-    set_inner_html code s >>= fun () ->
-(*VVV The URL is created twice ... 
-  Once with tab cookies nlp (for the request), 
-  and once without it (we do not want it to appear in the URL).
-  How to avoid this?
-*)
+         http_get uri [] >>= fun r ->
+         Lwt.return (r, uri)
+           | Ocsigen_lib.Right (uri, p) -> 
+             http_post uri p >>= fun r ->
+             Lwt.return (r, uri))
+     >>= fun ((code, s), uri) ->
+  set_inner_html_from_string code s >>= fun () ->
+    (*VVV The URL is created twice ... 
+      Once with tab cookies nlp (for the request), 
+      and once without it (we do not want it to appear in the URL).
+      How to avoid this?
+    *)
     change_url
       ?absolute ?absolute_path ?https
       ~service ~sp
@@ -386,13 +454,6 @@ let rec fragment_polling () =
 
 let _ = fragment_polling ()
 
-
-let short_url_re =
-  jsnew Js.regExp (Js.bytestring "^([^\\?]*)(\\?(.*))?$")
-
-let url_re =
-  jsnew Js.regExp (Js.bytestring "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$")
-
 let auto_change_page fragment =
   ignore
     (let l = String.length fragment in
@@ -409,65 +470,9 @@ let auto_change_page fragment =
              | _ ->
                  String.sub fragment 2 ((String.length fragment) - 2) 
          in
-         let uri_js = Js.bytestring uri in
-         Js.Opt.get
-           (Js.Opt.bind
-              (Js.Opt.case
-                 (url_re##exec (uri_js))
-                 (fun () ->
-                   (Js.Opt.case (short_url_re##exec (uri_js))
-                      (fun () -> Js.Opt.empty)
-                      (fun res ->
-                       let match_result = Js.match_result res in
-                       let path =
-                         Ocsigen_lib.split_path
-                           (Js.to_string 
-                              (Js.Optdef.get (Js.array_get match_result 1) 
-                                 (fun () -> assert false)))
-                       in
-                       let path = match path with
-                         | ""::_ -> path (* absolute *)
-                         | _ -> 
-                           Eliom_uri.make_actual_path
-                             (Eliom_sessions.full_path_ @ path)
-                       in
-                       Js.Opt.return (None, path)
-                      )
-                   )
-                 )
-                 (fun res ->
-                   let match_result = Js.match_result res in
-                   let protocol =
-                     Js.Optdef.get (Js.array_get match_result 1) 
-                       (fun () -> assert false)
-                   in
-                   let https = protocol##length = 5 in
-                   let path =
-                     Ocsigen_lib.split_path
-                       (Js.to_string 
-                          (Js.Optdef.get (Js.array_get match_result 4) 
-                             (fun () -> assert false)))
-                   in
-                   Js.Opt.return (Some https, path)))
-              (fun (https, path) ->
-                (let https = (https = Some true) || 
-                   (https = None && Eliom_sessions.ssl_) 
-                 in
-                 let nlp = 
-                   Eliom_parameters.string_of_nl_params_set
-                     (make_cookie_nlp'
-                        https path
-                        Eliom_parameters.empty_nl_params_set)
-                 in
-                 let uri =
-                   if String.contains uri '?'
-                   then String.concat "&" [uri; nlp]
-                   else String.concat "?" [uri; nlp]
-                 in
-                 Js.Opt.return (http_get uri [] >>= fun (code, s) ->
-                                set_inner_html code s)))
-           )
-           Lwt.return)
+         let uri = add_cookie_nlp_to_uri uri in
+         http_get uri [] >>= fun (code, s) ->
+         set_inner_html_from_string code s)
        else Lwt.return ()
      else Lwt.return ())
 
@@ -532,11 +537,3 @@ let make_a_with_onclick
        getparams ())
     ();
   node
-
-
-let _ =
-  Dom_html.window##onload <- Dom_html.handler (fun _ ->
-    let eliom_data = unmarshal_js_var "eliom_data" in
-    load_eliom_data_ eliom_data Dom_html.document##body;
-    Js._false)
-

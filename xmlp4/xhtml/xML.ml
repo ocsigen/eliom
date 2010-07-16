@@ -492,7 +492,10 @@ let decl ?(version = "1.0") ?(encoding = "ISO-8859-1") outs () =
   outs ("<?xml version=\"" ^ version ^ "\" encoding=\"" ^ encoding ^ "\"?>\n")
 
 
-let fresh_ref = let v = ref 0 in fun () -> incr v ; !v
+let fresh_ref, next_ref = 
+  let v = ref 0 in 
+  ((fun () -> incr v ; !v),
+   (fun () -> !v + 1))
 
 let ref_node node =
   if node.ref = 0 then

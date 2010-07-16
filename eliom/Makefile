@@ -20,7 +20,7 @@ FILES:= error_pages.ml \
 	eliommod_event.ml \
 	eliom_predefmod_cli.ml eliom_predefmod.ml \
         eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
-	eliom_event.ml
+	eliom_event.ml \
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
 ifeq "$(NATDYNLINK)" "YES"

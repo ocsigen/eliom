@@ -243,6 +243,7 @@ struct
 
   let unwrap (c : 'a Ecc.buffered_chan_id Eliom_client_types.data_key)
         : 'a Ecc.buffered_chan_id =
+Firebug.console##log (Js.string "unw");
     Eliommod_cli.unwrap c
 
   let decode s = Marshal.from_string s 0
@@ -250,7 +251,7 @@ struct
     (*TODO: use second composant*)
     Engine.register
       (Ecc.string_of_buffered_chan_id c)
-      (fun l -> Lwt_list.iter_s (fun (x, _) -> f x) (decode l))
+      (fun l -> Firebug.console##log (Js.string "l"); Lwt_list.iter_s (fun (x, _) -> f x) (decode l))
   let unregister c = Engine.unregister (Ecc.string_of_buffered_chan_id c)
 
 end

@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* This module is different on client and server side *)
 
 let (make_a_with_onclick :
        (?a:'a -> ?onclick:string -> 'c -> 'd) ->
@@ -56,25 +57,54 @@ let (make_a_with_onclick :
   make_a
     ?a
     ?onclick:
-    (Some ((fun arg1 arg2 arg3 arg4 arg5 arg6
-              arg7 arg8 arg9 arg10 arg11 ->
-                "caml_run_from_table ("^
-                  Eliom_client_types.a_closure_id_string^", \'"^
-                  ((Eliom_client_types.jsmarshal
-                      (arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8,
-                       arg9, arg10, arg11))
-                   ^ "\')"))
-              (Eliommod_cli.wrap ~sp absolute)
-              (Eliommod_cli.wrap ~sp absolute_path)
-              (Eliommod_cli.wrap ~sp https)
-              (Eliommod_cli.wrap ~sp service)
-              (Eliommod_cli.wrap_sp sp)
-              (Eliommod_cli.wrap ~sp hostname)
-              (Eliommod_cli.wrap ~sp port)
-              (Eliommod_cli.wrap ~sp fragment)
-              (Eliommod_cli.wrap ~sp keep_nl_params)
-              (Eliommod_cli.wrap ~sp nl_params)
-              (Eliommod_cli.wrap ~sp getparams)
+    (Some ("caml_run_from_table ("^
+              Eliom_client_types.a_closure_id_string^", \'"^
+              (Eliom_client_types.jsmarshal
+                 ((Eliommod_cli.wrap ~sp absolute),
+                  (Eliommod_cli.wrap ~sp absolute_path),
+                  (Eliommod_cli.wrap ~sp https),
+                  (Eliommod_cli.wrap ~sp service),
+                  (Eliommod_cli.wrap_sp sp),
+                  (Eliommod_cli.wrap ~sp hostname),
+                  (Eliommod_cli.wrap ~sp port),
+                  (Eliommod_cli.wrap ~sp fragment),
+                  (Eliommod_cli.wrap ~sp keep_nl_params),
+                  (Eliommod_cli.wrap ~sp nl_params),
+                  (Eliommod_cli.wrap ~sp getparams))
+               ^ "\')")
      ))
     content
 
+
+let make_add_tab_cookies_to_form id ~sp form_ref =
+  let reqnum = Eliom_sessions.get_request_id ~sp in
+  "caml_run_from_table (" ^
+    id^", \'" ^
+    (Eliom_client_types.jsmarshal (reqnum, form_ref)) ^
+    "\')"
+
+let make_get_form_with_onsubmit
+    make_get_form register_event _ id ~sp ?a ~action i1 i =
+  let onsubmit = Some (make_add_tab_cookies_to_form id ~sp (XML.next_ref ()))
+  in
+  make_get_form ?a ~action ?onsubmit i1 i
+
+
+let make_post_form_with_onsubmit
+    make_post_form register_event _ id ~sp ?a ~action i1 i =
+  let onsubmit = Some (make_add_tab_cookies_to_form id ~sp (XML.next_ref ()))
+  in
+  make_post_form ?a ~action ?onsubmit ?id:None ?inline:None i1 i
+
+
+let add_tab_cookies_to_get_form node = Lwt.return
+  (* implemented only client side *)
+  
+let add_tab_cookies_to_post_form node = Lwt.return
+  (* implemented only client side *)
+
+let add_tab_cookies_to_get_form5 node = Lwt.return
+  (* implemented only client side *)
+  
+let add_tab_cookies_to_post_form5 node = Lwt.return
+  (* implemented only client side *)
