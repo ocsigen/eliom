@@ -78,7 +78,11 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
       let css =
         XHTML.M.toelt
           (XHTML.M.style ~contenttype:"text/css"
-             [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"])
+             [XHTML.M.pcdata "\n.";
+             XHTML.M.pcdata Eliom_common.inline_class_name;
+             XHTML.M.pcdata " {display: inline}\n.";
+             XHTML.M.pcdata Eliom_common.nodisplay_class_name;
+             XHTML.M.pcdata " {display: none}\n"])
       in
       let rec aux = function
         | { XML.elt = XML.Element ("head",al,el ) } as e::l ->
@@ -1912,7 +1916,11 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
       let css =
         XHTML5.M.toelt
           (XHTML5.M.style
-             [XHTML5.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"])
+             [XHTML5.M.pcdata "\n.";
+             XHTML5.M.pcdata Eliom_common.inline_class_name;
+             XHTML5.M.pcdata " {display: inline}\n.";
+             XHTML5.M.pcdata Eliom_common.nodisplay_class_name;
+             XHTML5.M.pcdata " {display: none}\n"])
       in
       let rec aux = function
         | { XML.elt = XML.Element ("head",al,el ) } as e::l ->

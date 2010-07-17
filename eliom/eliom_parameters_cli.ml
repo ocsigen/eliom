@@ -488,9 +488,10 @@ let add_nl_parameter s t v =
 
 let table_of_nl_params_set = Ocsigen_lib.id
 
+let list_of_nl_params_set nlp = snd (construct_params_list nlp unit ())
+
 let string_of_nl_params_set nlp =
-  Ocsigen_lib.mk_url_encoded_parameters
-    (snd (construct_params_list nlp unit ()))
+  Ocsigen_lib.mk_url_encoded_parameters (list_of_nl_params_set nlp)
 
 let get_nl_params_names t = snd (make_params_names (TNLParams t))
 

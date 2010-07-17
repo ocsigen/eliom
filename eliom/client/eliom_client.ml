@@ -255,10 +255,9 @@ let cookie_nlp_re =
                                   ^")(.*)$"))
 
 let remove_tab_cookies uri =
-  uri##replace (cookie_nlp_re, (Js.string ""))
+  uri##replace (cookie_nlp_re, Js.string "")
 
-let add_cookie_nlp_to_uri uri =
-  let uri_js = Js.bytestring uri in
+let get_cookie_nlp_for_uri uri_js =
   Js.Opt.get
     (Js.Opt.bind
 (*VVV Put this in a separate js_of_ocaml library for URL decoding *)
@@ -303,23 +302,23 @@ let add_cookie_nlp_to_uri uri =
          let https = (https = Some true) || 
            (https = None && Eliom_sessions.ssl_) 
          in
-         let nlp = 
-           Eliom_parameters.string_of_nl_params_set
-             (make_cookie_nlp_aux
-                https path
-                Eliom_parameters.empty_nl_params_set)
-         in
-         let uri = Js.to_string (remove_tab_cookies uri_js) in
-         let uri =
-           if String.contains uri '?'
-           then String.concat "&" [uri; nlp]
-           else String.concat "?" [uri; nlp]
-         in
-         Js.Opt.return uri
+         Js.Opt.return
+           (make_cookie_nlp_aux https path Eliom_parameters.empty_nl_params_set)
        )
     )
 (*VVV or raise an exception? v *)
-    (fun () -> uri)
+    (fun () -> Eliom_parameters.empty_nl_params_set)
+
+
+let add_cookie_nlp_to_uri uri =
+  let uri_js = Js.bytestring uri in
+  let nlp = get_cookie_nlp_for_uri uri_js in
+  let nlp = Eliom_parameters.string_of_nl_params_set nlp in
+  let uri = Js.to_string (remove_tab_cookies uri_js) in
+  if String.contains uri '?'
+  then String.concat "&" [uri; nlp]
+  else String.concat "?" [uri; nlp]
+
 
 let change_page
     ?absolute ?absolute_path ?https

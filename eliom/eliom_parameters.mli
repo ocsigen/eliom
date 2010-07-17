@@ -469,6 +469,8 @@ val remove_from_nlp :
 val table_of_nl_params_set : nl_params_set -> 
   (string * string) list Ocsigen_lib.String_Table.t
 
+val list_of_nl_params_set : nl_params_set -> (string * string) list
+
 val string_of_nl_params_set : nl_params_set -> string
 
 (**/**)

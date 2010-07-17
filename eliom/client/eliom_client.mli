@@ -21,74 +21,10 @@
 
 exception Failed_service of int
 
-val call_service :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:('a, 'b,
-           [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
-           [< Eliom_services.registrable ], 'return)
-          Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
-
-val call_caml_service :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:('a, 'b,
-           [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
-           [< Eliom_services.registrable ], 'return Eliom_parameters.caml)
-          Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> 'return Lwt.t
-
-val exit_to :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:('a, 'b,
-           [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
-           [< Eliom_services.registrable ], 'return)
-          Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> unit
-
-val change_url :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:('a, 'b,
-           [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
-           [< Eliom_services.registrable ], 'return)
-          Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> unit
-
+(** Call a server side service and change the current page.
+    If the service belongs to the same application,
+    the client side program is not stopped, and only
+    the content (not the container) is reloaded. *)
 val change_page :
   ?absolute:bool ->
   ?absolute_path:bool ->
@@ -106,6 +42,44 @@ val change_page :
   ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
 
+(** Call a server side service that return a Caml value. *)
+val call_caml_service :
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('a, 'b,
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return Eliom_parameters.caml)
+          Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?keep_get_na_params:bool -> 'a -> 'b -> 'return Lwt.t
+
+
+(** Stop current program and load a new page. *)
+val exit_to :
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('a, 'b,
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return)
+          Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?keep_get_na_params:bool -> 'a -> 'b -> unit
+
+(** Call a service returning a list of html blocks. *)
 val get_subpage :
   ?absolute:bool ->
   ?absolute_path:bool ->
@@ -124,8 +98,50 @@ val get_subpage :
   ?keep_get_na_params:bool -> 'a -> 'b -> 
   [< `PCDATA | XHTML.M.flow ] XHTML.M.elt list Lwt.t
 
+(** (low level) Call a server side service and return the content
+    of the resulting HTTP frame as a string. *)
+val call_service :
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('a, 'b,
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return)
+          Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
+
+(** (low level) Change the URL, without doing a request.
+    As browsers do not not allow to change the URL (for security reasons),
+    we write the new URL in the fragment part of the URL.
+    A script must do the redirection if there is something in the fragment.
+    Usually this function is only for internal use.
+*)
+val change_url :
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('a, 'b,
+           [< Eliom_services.service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< Eliom_services.registrable ], 'return)
+          Eliom_services.service ->
+  sp:Eliom_client_types.server_params ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
 (**/**)
+
 val make_a_with_onclick :
   (?a:'a -> ?onclick:XML.event -> 'c -> 'd) ->
   ('d -> string -> (unit -> unit Lwt.t) -> unit -> 'f) ->
@@ -150,6 +166,8 @@ val set_inner_html : Eliom_client_types.eliom_data_type * string -> unit Lwt.t
 val unmarshal_js_var : string -> 'a
 
 val add_cookie_nlp_to_uri : string -> string
+
+val get_cookie_nlp_for_uri : Js.js_string Js.t -> Eliom_parameters.nl_params_set
 
 val load_eliom_data_ :
   Eliom_client_types.eliom_data_type ->

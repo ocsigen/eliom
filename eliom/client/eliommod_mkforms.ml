@@ -26,10 +26,11 @@ let make_a_with_onclick = Eliom_client.make_a_with_onclick
 let add_tab_cookies_to_post_form' node =
   let action = Js.to_string node##action in
   let action = Eliom_client.add_cookie_nlp_to_uri action in
-  node##action <- Js.string action; 
+  node##action <- Js.string action;
+  (* We need to restart the comet engine,
+     because browsers stop xml http requests when submitting forms: *)
   Lwt_js.sleep 0.05 >|=
   Eliom_client_comet.Engine.restart
-
 
 let add_tab_cookies_to_post_form node () =
   let node = Js.Unsafe.coerce (XHTML.M.toelt node) in
@@ -39,11 +40,53 @@ let add_tab_cookies_to_post_form5 node () =
   let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
   add_tab_cookies_to_post_form' node
 
-let add_tab_cookies_to_get_form node () =
-  failwith "unimpl"
 
-let add_tab_cookies_to_get_form5 =
-  add_tab_cookies_to_get_form
+let tab_cookie_class = "__eliom_tab_cookies"
+
+let remove_tab_cookie_fields node =
+  let children = node##childNodes in
+  for i = children##length - 1 downto 0 do
+    let child = children##item (i) in
+    let classes = Ocsigen_lib.split
+                    ~multisep:true ' ' (Js.to_string child##className)
+    in
+    if List.mem tab_cookie_class classes
+    then node##removeChild (child)
+  done
+
+let add_tab_cookie_fields l node =
+  if l = []
+  then ()
+  else
+    let my_div = 
+      XHTML.M.div ~a:[XHTML.M.a_class [tab_cookie_class;
+                                       Eliom_common.nodisplay_class_name]]
+        (List.map (fun (n, v) ->
+(*VVV Warning: This is not xhtml5! *)
+          XHTML.M.input ~a:[XHTML.M.a_input_type `Hidden;
+                            XHTML.M.a_name n;
+                            XHTML.M.a_value v] ())
+           l)
+    in
+    node##appendChild (my_div)
+
+let add_tab_cookies_to_get_form' node =
+  let action = node##action in
+  let nlp = Eliom_client.get_cookie_nlp_for_uri action in
+  let l = Eliom_parameters.list_of_nl_params_set nlp in
+  remove_tab_cookie_fields node;
+  add_tab_cookie_fields l node;
+  Lwt_js.sleep 0.05 >|=
+  Eliom_client_comet.Engine.restart
+
+let add_tab_cookies_to_get_form node () =
+  let node = Js.Unsafe.coerce (XHTML.M.toelt node) in
+  add_tab_cookies_to_get_form' node
+
+let add_tab_cookies_to_get_form5 node () =
+  let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
+  add_tab_cookies_to_get_form' node
+
 
 let make_get_form_with_onsubmit
     make_get_form register_event add_tab_cookies_to_get_form _

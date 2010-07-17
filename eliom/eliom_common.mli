@@ -138,6 +138,8 @@ val persistent_cookie_table_version : string
 val eliom_persistent_cookie_table : string
 
 val appl_name_cookie_name : string
+val inline_class_name : string
+val nodisplay_class_name : string
 
 (** Type used for cookies to set.
     The float option is the timestamp for the expiration date.

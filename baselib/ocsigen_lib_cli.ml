@@ -107,3 +107,61 @@ let rec list_is_prefix_skip_end_slash l1 l2 =
   | a::ll1, b::ll2 when a=b -> list_is_prefix_skip_end_slash ll1 ll2
   | _ -> false
 
+
+(*****************************************************************************)
+
+(* Cut a string to the next separator *)
+let basic_sep char s =
+  try
+    let seppos = String.index s char in
+    ((String.sub s 0 seppos),
+     (String.sub s (seppos+1)
+        (1 + (String.length s) - seppos)))
+  with Invalid_argument _ -> raise Not_found
+
+
+(* Returns a copy of the string from beg to endd,
+   removing spaces at the beginning and at the end *)
+let remove_spaces s beg endd =
+  let rec find_not_space s i step =
+    if (i>endd) || (i < beg)
+    then i
+    else
+      if s.[i] = ' '
+      then find_not_space s (i+step) step
+      else i
+  in
+  let first = find_not_space s beg 1 in
+  let last = find_not_space s endd (-1) in
+  if last >= first
+  then String.sub s first (1+ last - first)
+  else ""
+
+
+(** Cut a string to the next separator, removing spaces.
+   Raises Not_found if the separator connot be found.
+ *)
+let sep char s =
+  let len = String.length s in
+  let seppos = String.index s char in
+  ((remove_spaces s 0 (seppos-1)),
+   (remove_spaces s (seppos+1) (len-1)))
+
+
+(** splits a string, for ex azert,   sdfmlskdf,    dfdsfs *)
+let rec split ?(multisep=false) char s =
+  let longueur = String.length s in
+  let rec aux deb =
+    if deb >= longueur
+    then []
+    else
+      try
+        let firstsep = String.index_from s deb char in
+        if multisep && firstsep = deb then
+          aux (deb + 1)
+        else
+        (remove_spaces s deb (firstsep-1))::
+        (aux (firstsep+1))
+      with Not_found -> [remove_spaces s deb (longueur-1)]
+  in
+  aux 0

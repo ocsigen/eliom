@@ -104,6 +104,8 @@ let pnl_param_prefix = nl_param_prefix^"p_"
 let npnl_param_prefix = nl_param_prefix^"n_"
 let appl_name_cookie_name = "__eliom_appl_name"
 let eliom_internal_nlp_prefix = "__eliom"
+let nodisplay_class_name = "eliom_nodisplay"
+let inline_class_name = "eliom_inline"
 
 let nl_is_persistent n = n.[0] = 'p'
 
