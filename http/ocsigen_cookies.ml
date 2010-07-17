@@ -29,6 +29,8 @@ type cookie =
 
 type cookieset = cookie Ocsigen_lib.String_Table.t Cookies.t
 
+let empty_cookieset = Cookies.empty
+
 let add_cookie path n v t =
   let ct =
     try Cookies.find path t

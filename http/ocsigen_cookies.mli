@@ -42,12 +42,17 @@ type cookieset = cookie Ocsigen_lib.String_Table.t Cookies.t
 (** [add_cookie path c v cookie_table] 
     adds the cookie [c] to the table [cookie_table].
     If the cookie is already bound, the previous binding disappear. *)
-val add_cookie :
-  url_path -> string -> 'a -> 'a Ocsigen_lib.String_Table.t Cookies.t ->
+val add_cookie : url_path -> string -> 'a ->
+  'a Ocsigen_lib.String_Table.t Cookies.t ->
   'a Ocsigen_lib.String_Table.t Cookies.t
 
 (** [remove_cookie c cookie_table] removes the cookie [c]
-    from the table [cookie_table]. *)
-val remove_cookie :
-  url_path -> string -> 'a Ocsigen_lib.String_Table.t Cookies.t ->
+    from the table [cookie_table].
+    Warning: it is not equivalent to [add_cookie ... OUnset ...]).
+*)
+val remove_cookie : url_path -> string -> 
+  'a Ocsigen_lib.String_Table.t Cookies.t ->
   'a Ocsigen_lib.String_Table.t Cookies.t
+
+val empty_cookieset : 'a Ocsigen_lib.String_Table.t Cookies.t
+

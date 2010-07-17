@@ -274,6 +274,9 @@ type server_params = {
   sp_sitedata : sitedata;
   sp_cookie_info : tables cookie_info;
   sp_tab_cookie_info : tables cookie_info;
+  mutable sp_user_cookies: Ocsigen_cookies.cookieset;
+  (* cookies (un)set by the user during service *)
+  mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
   sp_suffix : Ocsigen_lib.url_path option;
   sp_fullsessname : fullsessionname option;
 }

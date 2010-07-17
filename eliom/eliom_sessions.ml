@@ -1189,3 +1189,39 @@ let number_of_persistent_table_elements () =
 (*****************************************************************************)
 let sp_of_esp = Ocsigen_lib.id
 let esp_of_sp = Ocsigen_lib.id
+
+
+
+
+(*****************************************************************************)
+(** {2 User cookies} *)
+
+let change_pathopt_ sp = function
+  | None -> sp.Eliom_common.sp_sitedata.Eliom_common.site_dir
+    (* Not possible to set a cookie for another site (?) *)
+  | Some p -> sp.Eliom_common.sp_sitedata.Eliom_common.site_dir@p
+
+let set_cookie
+    ~sp ?(cookie_type = Eliom_common.CBrowser) ?path ?exp ~name ~value 
+    ?(secure = false) () =
+  let path = change_pathopt_ sp path in
+  match cookie_type with
+    | Eliom_common.CBrowser ->
+      sp.Eliom_common.sp_user_cookies <- Ocsigen_cookies.add_cookie
+        path name (Ocsigen_cookies.OSet (exp, value, secure))
+        sp.Eliom_common.sp_user_cookies
+    | Eliom_common.CTab ->
+      sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookies.add_cookie
+        path name (Ocsigen_cookies.OSet (exp, value, secure))
+        sp.Eliom_common.sp_user_tab_cookies
+
+let unset_cookie
+    ~sp ?(cookie_type = Eliom_common.CBrowser) ?path ~name () =
+  let path = change_pathopt_ sp path in
+  match cookie_type with
+    | Eliom_common.CBrowser ->
+      sp.Eliom_common.sp_user_cookies <- Ocsigen_cookies.add_cookie
+        path name Ocsigen_cookies.OUnset sp.Eliom_common.sp_user_cookies
+    | Eliom_common.CTab ->
+      sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookies.add_cookie
+        path name Ocsigen_cookies.OUnset sp.Eliom_common.sp_user_tab_cookies

@@ -586,7 +586,7 @@ val set_max_volatile_data_sessions_for_group_or_subnet :
   unit
 
 
-(** {3 Cookies} *)
+(** {3 Session cookies} *)
 
 (** The functions in this section ask the browser to set the cookie
     expiration date, for the different kinds of session, in seconds,
@@ -890,6 +890,23 @@ val close_service_session :
   sp:server_params ->
   unit ->
   unit
+
+
+
+(*****************************************************************************)
+(** {2 User cookies} *)
+
+val set_cookie :
+  sp:Eliom_common.server_params ->
+  ?cookie_type:Eliom_common.cookie_type ->
+  ?path:string list ->
+  ?exp:float -> name:string -> value:string -> ?secure:bool -> unit -> unit
+
+val unset_cookie :
+  sp:Eliom_common.server_params ->
+  ?cookie_type:Eliom_common.cookie_type ->
+  ?path:string list ->
+  name:string -> unit -> unit
 
 
 
