@@ -897,13 +897,13 @@ val close_service_session :
 (** {2 User cookies} *)
 
 val set_cookie :
-  sp:Eliom_common.server_params ->
+  sp:server_params ->
   ?cookie_type:Eliom_common.cookie_type ->
   ?path:string list ->
   ?exp:float -> name:string -> value:string -> ?secure:bool -> unit -> unit
 
 val unset_cookie :
-  sp:Eliom_common.server_params ->
+  sp:server_params ->
   ?cookie_type:Eliom_common.cookie_type ->
   ?path:string list ->
   name:string -> unit -> unit
@@ -1390,5 +1390,7 @@ val esp_of_sp : server_params -> Eliom_common.server_params
 
 
 (**/**)
-val get_si :sp:server_params -> Eliom_common.sess_info
+val get_si : sp:server_params -> Eliom_common.sess_info
 
+val get_user_cookies : sp:server_params -> Ocsigen_cookies.cookieset
+val get_user_tab_cookies : sp:server_params -> Ocsigen_cookies.cookieset

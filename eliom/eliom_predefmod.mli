@@ -309,7 +309,6 @@ module Caml : sig
 
   val register :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -326,7 +325,6 @@ module Caml : sig
 
   val register_for_session :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -344,7 +342,6 @@ module Caml : sig
 
   val register_new_service :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -364,7 +361,6 @@ module Caml : sig
 
   val register_new_coservice :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -396,7 +392,6 @@ module Caml : sig
 
   val register_new_coservice' :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -421,7 +416,6 @@ module Caml : sig
 
   val register_new_coservice_for_session :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -453,7 +447,6 @@ module Caml : sig
 
   val register_new_coservice_for_session' :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -478,7 +471,6 @@ module Caml : sig
 
   val register_new_post_service :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -503,7 +495,6 @@ module Caml : sig
 
   val register_new_post_coservice :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -534,7 +525,6 @@ module Caml : sig
 
   val register_new_post_coservice' :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -559,7 +549,6 @@ module Caml : sig
 
   val register_new_post_coservice_for_session :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
@@ -590,7 +579,6 @@ module Caml : sig
 
   val register_new_post_coservice_for_session' :
     ?options:options ->
-    ?cookies:Eliom_services.cookie list ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->

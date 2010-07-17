@@ -4,7 +4,7 @@
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
-2 * This program is free software; you can redistribute it and/or modify
+ * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
@@ -48,7 +48,6 @@ module type REGCREATE =
 
     val send :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -75,7 +74,7 @@ module type REGCREATE =
   end
 
 
-module type ELIOMREGSIG1 =
+module type ELIOMREGSIG =
 (* pasted from mli *)
   sig
 
@@ -89,7 +88,6 @@ module type ELIOMREGSIG1 =
 
     val send :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -100,7 +98,6 @@ module type ELIOMREGSIG1 =
 
     val register :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -150,7 +147,6 @@ module type ELIOMREGSIG1 =
 
     val register_for_session :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -200,7 +196,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_service :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -221,7 +216,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -255,7 +249,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice' :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -282,7 +275,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice_for_session :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -316,7 +308,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice_for_session' :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -343,7 +334,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_service :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -369,7 +359,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -402,7 +391,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice' :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -427,36 +415,9 @@ module type ELIOMREGSIG1 =
         service
 (** Same as [new_post_coservice'] followed by [register] *)
 
-(*
-    val register_new_get_post_coservice' :
-        ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
-      ?charset:string ->
-      ?code: int ->
-      ?content_type:string ->
-      ?headers: Http_headers.t ->
-        ?sp: Eliom_sessions.server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-      ?https:bool ->
-        fallback:('get, unit ,
-                  [ `Nonattached of [`Get] na_s ],
-                   [< suff ] as 'tipo,
-                   'gn, unit, [< `Registrable ])
-        service ->
-          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-            ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-              page Lwt.t) ->
-                (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
-                  ('get, 'post, [> `Nonattached of [> `Post] na_s ],
-                   [> 'tipo], 'gn, 'pn, [> `Registrable ])
-                    service
-(* * Same as [new_get_post_coservice'] followed by [register] *)
-*)
 
     val register_new_post_coservice_for_session :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -489,7 +450,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice_for_session' :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -514,46 +474,7 @@ module type ELIOMREGSIG1 =
         service
 (** Same as [new_post_coservice'] followed by [register_for_session] *)
 
-(*
-    val register_new_get_post_coservice_for_session' :
-        ?options:options ->
-        ?session_name:string ->
-      ?cookie_type:Eliom_common.cookie_type ->
-  ?secure:bool ->
-        sp:Eliom_sessions.server_params ->
-  ?name: string ->
-      ?csrf_safe: bool ->
-        ?max_use:int ->
-        ?timeout:float ->
-      ?https:bool ->
-          fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
-                    [< suff ] as 'tipo,
-                    'gn, unit, [< `Registrable ])
-            service ->
-              post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-                ?error_handler:(Eliom_sessions.server_params ->
-                  (string * exn) list -> page Lwt.t) ->
-                    (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
-                      ('get, 'post, [> `NonAttached of [> `Post] na_s ],
-                       'tipo, 'gn, 'pn, [> `Registrable ])
-                        service
-(* * Same as [new_get_post_coservice] followed by [register_for_session] *)
-*)
 
-
-
-
-
-
-  end
-
-
-
-module type ELIOMREGSIG =
-  sig
-    include ELIOMREGSIG1
-    module Cookies : ELIOMREGSIG1
-    with type page = page * Eliom_services.cookie list
   end
 
 
@@ -572,902 +493,371 @@ module MakeRegister = functor
 
       let send = Pages.send
 
-      module Cookies = struct
-
-        type page = Pages.page * Eliom_services.cookie list
-
-        type options = Pages.options
-
-        type return = Pages.return
-
-        let send ?options ?(cookies=[]) ?charset ?code
-            ?content_type ?headers ~sp (p, cl) =
-          Pages.send ?options ~cookies:(cookies@cl) ?charset ?code
-            ?content_type ?headers ~sp p
-
-        let register_aux
-            ?options
-            ?(cookies = [])
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            table
-            ?sp (* if registering during session *)
-            ~service
-            ?(error_handler = fun sp l ->
-              raise (Eliom_common.Eliom_Typing_Error l))
-            page_generator =
-          let sp = Ocsigen_lib.apply_option Eliom_sessions.esp_of_sp sp in
-          begin
-            match get_kind_ service with
-              | `Attached attser ->
-                let key_kind = get_or_post_ attser in
-                let attserget = get_get_name_ attser in
-                let attserpost = get_post_name_ attser in
-                let suffix_with_redirect = get_redirect_suffix_ attser in
-                let sgpt = get_get_params_type_ service in
-                let sppt = get_post_params_type_ service in
-                let f table ((attserget, attserpost) as attsernames) = 
-                  Eliommod_services.add_service
-                    table
-                    ?sp
-                    (get_sub_path_ attser)
-                    {Eliom_common.key_state = attsernames;
-                     Eliom_common.key_kind = key_kind}
-                    ((if attserget = Eliom_common.SAtt_no
-                      || attserpost = Eliom_common.SAtt_no
-                      then (anonymise_params_type sgpt,
-                            anonymise_params_type sppt)
-                      else (0, 0)),
-                     ((match get_max_use_ service with
-                       | None -> None
-                       | Some i -> Some (ref i)),
-                      (match get_timeout_ service with
-                        | None -> None
-                        | Some t -> Some (t, ref (t +. Unix.time ()))),
-                      (fun nosuffixversion sp ->
-                        let sp2 = Eliom_sessions.sp_of_esp sp in
-                        let ri = get_ri ~sp:sp2
-                        and ci = get_config_info ~sp:sp2
-                        and suff = get_suffix ~sp:sp2 in
-                        (catch (fun () ->
-                          ri.ri_post_params ci >>= fun post_params ->
-                          ri.ri_files ci >>= fun files ->
-                          let g = reconstruct_params
-                            ~sp
-                            sgpt
-                            (force ri.ri_get_params)
-                            []
-                            nosuffixversion
-                            suff
-                          in
-                          let p = reconstruct_params
-                            ~sp
-                            sppt
-                            post_params
-                            files
-                            false
-                            None
-                          in
-                          if nosuffixversion && suffix_with_redirect &&
-                            files=[] && post_params = []
-                          then (* it is a suffix service in version 
-                                  without suffix. We redirect. *)
-                            Lwt.fail
-                              (Eliom_common.Eliom_Suffix_redirection
-                                 (Eliom_uri.make_string_uri
-                                    ~absolute:true
-                                    ~service:(service : 
-                                                ('a, 'b, [< Eliom_services.internal_service_kind ],
-                                                 [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
-                                                 'return) Eliom_services.service :> 
-                                                ('a, 'b, Eliom_services.service_kind,
-                                                 [< Eliom_services.suff ], 'c, 'd, 
-                                                 [< Eliom_services.registrable ], 'return)
-                                                Eliom_services.service)
-                                    ~sp:sp2
-                                    g))
-                          else
-                            (Pages.pre_service ?options ~sp:sp2 >>= fun () ->
-                             page_generator sp2 g p)))
-                          (function
-                            | Eliom_common.Eliom_Typing_Error l ->
-                              error_handler sp2 l
-                            | e -> fail e)
-                        >>= fun (content, cookies_to_set) ->
-                        Pages.send
-                          ?options
-                          ~cookies:(cookies_to_set@cookies)
-                          ?charset
-                          ?code
-                          ?content_type
-                          ?headers
-                          ~sp:sp2 content)))
-                in
-                (match (key_kind, attserget, attserpost) with
-                  | (Ocsigen_http_frame.Http_header.POST, _,
-                     Eliom_common.SAtt_csrf_safe (id, session_name,
-                                                  cookie_type, secure)) ->
-                    let tablereg, forsession =
-                      match table with
-                        | Ocsigen_lib.Left globtbl -> globtbl, false
-                        | Ocsigen_lib.Right (sp, sn, ct, sec) ->
-                          if sn <> session_name || secure <> sec
-                            || cookie_type <> ct
-                          then raise
-                            Wrong_session_table_for_CSRF_safe_coservice;
-                          !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ()),
-                            true
-                    in
-                    Eliom_services.set_delayed_post_registration_function
-                      tablereg
-                      id
-                      (fun ~sp attserget ->
-                        let n = Eliom_services.new_state () in
-                        let attserpost = Eliom_common.SAtt_anon n in
-                        let table = 
-                          if forsession
-                          then tablereg
-                          else
-                            let sp = Eliom_sessions.sp_of_esp sp in
-                              (* we do not register in global table,
-                                 but in the table specified while creating
-                                 the csrf safe service *)
-                            !(Eliom_sessions.get_session_service_table
-                                ?secure ?session_name ?cookie_type ~sp ())
-                        in
-                        f table (attserget, attserpost);
-                        n)
-                  | (Ocsigen_http_frame.Http_header.GET,
-                     Eliom_common.SAtt_csrf_safe (id, session_name,
-                                                  cookie_type, secure),
-                     _) ->
-                    let tablereg, forsession =
-                      match table with
-                        | Ocsigen_lib.Left globtbl -> globtbl, false
-                        | Ocsigen_lib.Right (sp, sn, ct, sec) ->
-                          if sn <> session_name || secure <> sec
-                            || ct <> cookie_type
-                          then raise
-                            Wrong_session_table_for_CSRF_safe_coservice;
-                          !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ()), true
-                    in
-                    Eliom_services.set_delayed_get_or_na_registration_function
-                      tablereg
-                      id
-                      (fun ~sp ->
-                        let n = Eliom_services.new_state () in
-                        let attserget = Eliom_common.SAtt_anon n in
-                        let table = 
-                          if forsession
-                          then tablereg
-                          else
-                            let sp = Eliom_sessions.sp_of_esp sp in
-                              (* we do not register in global table,
-                                 but in the table specified while creating
-                                 the csrf safe service *)
-                            !(Eliom_sessions.get_session_service_table
-                                ?secure ?session_name ?cookie_type ~sp ())
-                        in
-                        f table (attserget, attserpost);
-                        n)
-                  | _ -> 
-                    let tablereg =
-                      match table with
-                        | Ocsigen_lib.Left globtbl -> globtbl
-                        | Ocsigen_lib.Right (sp, session_name, 
-                                             cookie_type, secure) ->
-                          !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ())
-                    in
-                    f tablereg (attserget, attserpost))
-              | `Nonattached naser ->
-                let na_name = get_na_name_ naser in
-                let f table na_name = 
-                  Eliommod_naservices.add_naservice
-                    table
-                    ?sp
-                    na_name
-                    ((match get_max_use_ service with
-                      | None -> None
-                      | Some i -> Some (ref i)),
-                     (match get_timeout_ service with
-                       | None -> None
-                       | Some t -> Some (t, ref (t +. Unix.time ()))),
-                     (fun sp ->
-                       let sp2 = Eliom_sessions.sp_of_esp sp in
-                       let ri = get_ri sp2
-                       and ci = get_config_info sp2 in
-                       (catch
-                          (fun () ->
-                            get_post_params sp2 >>= fun post_params ->
-                            ri.ri_files ci >>= fun files ->
-                            Pages.pre_service ?options ~sp:sp2 >>= fun () ->
-                            page_generator sp2
-                              (reconstruct_params
-                                 ~sp
-                                 (get_get_params_type_ service)
-                                 (force ri.ri_get_params)
-                                 []
-                                 false
-                                 None)
-                              (reconstruct_params
-                                 ~sp
-                                 (get_post_params_type_ service)
-                                 post_params
-                                 files
-                                 false
-                                 None)))
-                         (function
-                           | Eliom_common.Eliom_Typing_Error l ->
-                             error_handler sp2 l
-                           | e -> fail e) >>= fun (content, cookies_to_set) ->
-                       Pages.send
-                         ?options
-                         ~cookies:(cookies_to_set@cookies)
-                         ?charset
-                         ?code
-                         ?content_type
-                         ?headers
-                         ~sp:sp2 content)
-                    )
-                in
-                match na_name with
-                  | Eliom_common.SNa_get_csrf_safe (id, session_name, 
-                                                    cookie_type, secure) ->
-                    (* CSRF safe coservice: we'll do the registration later *)
-                    let tablereg, forsession =
-                      match table with
-                        | Ocsigen_lib.Left globtbl -> globtbl, false
-                        | Ocsigen_lib.Right (sp, sn, ct, sec) ->
-                          if sn <> session_name || secure <> sec
-                            || ct <> cookie_type
-                          then raise
-                            Wrong_session_table_for_CSRF_safe_coservice;
-                          !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ()), true
-                    in
-                    set_delayed_get_or_na_registration_function
-                      tablereg
-                      id
-                      (fun ~sp ->
-                        let n = Eliom_services.new_state () in
-                        let na_name = Eliom_common.SNa_get' n in
-                        let table =
-                          if forsession
-                          then tablereg
-                          else
-                            let sp = Eliom_sessions.sp_of_esp sp in
-                            (* we do not register in global table,
-                               but in the table specified while creating
-                               the csrf safe service *)
-                            !(Eliom_sessions.get_session_service_table
-                                ?secure ?session_name ?cookie_type ~sp ())
-                        in
-                        f table na_name;
-                        n)
-                  | Eliom_common.SNa_post_csrf_safe (id, session_name, 
-                                                     cookie_type, secure) ->
-                    (* CSRF safe coservice: we'll do the registration later *)
-                    let tablereg, forsession =
-                      match table with
-                        | Ocsigen_lib.Left globtbl -> globtbl, false
-                        | Ocsigen_lib.Right (sp, sn, ct, sec) ->
-                          if sn <> session_name || secure <> sec
-                            || ct <> cookie_type
-                          then raise
-                            Wrong_session_table_for_CSRF_safe_coservice;
-                          !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ()), true
-                    in
-                    set_delayed_get_or_na_registration_function
-                      tablereg
-                      id
-                      (fun ~sp ->
-                        let n = Eliom_services.new_state () in
-                        let na_name = Eliom_common.SNa_post' n in
-                        let table =
-                          if forsession
-                          then tablereg
-                          else
-                            let sp = Eliom_sessions.sp_of_esp sp in
-                            (* we do not register in global table,
-                               but in the table specified while creating
-                               the csrf safe service *)
-                            !(Eliom_sessions.get_session_service_table
-                                ?secure ?session_name ?cookie_type ~sp ())
-                        in
-                        f table na_name;
-                        n)
-                  | _ -> 
-                    let tablereg =
-                      match table with
-                        | Ocsigen_lib.Left globtbl -> globtbl
-                        | Ocsigen_lib.Right (sp, session_name, 
-                                             cookie_type, secure) ->
-                          !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ())
-                    in
-                    f tablereg na_name
-          end;
-          Eliom_services.set_application_name service (Pages.application_name)
-
-        let register 
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp 
-            ~service
-            ?error_handler
-            page_gen =
-          match sp with
-          | None ->
-              (match Eliom_common.global_register_allowed () with
-              | Some get_current_sitedata ->
-                  let sitedata = get_current_sitedata () in
-                  (match get_kind_ service with
-                  | `Attached attser ->
-                      Eliom_common.remove_unregistered
-                        sitedata (get_sub_path_ attser)
-                  | `Nonattached naser ->
-                      Eliom_common.remove_unregistered_na
-                        sitedata (get_na_name_ naser));
-                  register_aux
-                    ?options
-                    ?cookies
-                    ?charset
-                    ?code
-                    ?content_type
-                    ?headers
-                    (Ocsigen_lib.Left sitedata.Eliom_common.global_services)
-                    ~service ?error_handler page_gen
-              | _ -> raise
-                    (Eliom_common.Eliom_function_forbidden_outside_site_loading
-                       "register"))
-          | Some sp ->
-              register_aux
-                ?options
-                ?cookies
-                ?charset
-                ?code
-                ?content_type
-                ?headers
-                ?error_handler
-                (Ocsigen_lib.Left (get_global_table ~sp ()))
-                ~sp
-                ~service
-                page_gen
-
-
-(* WARNING: if we create a new service without registering it,
-   we can have a link towards a page that does not exist!!! :-(
-   That's why I impose to register all service during init.
-   The only other way I see to avoid this is to impose a syntax extension
-   like "let rec" for service...
- *)
-
-
-
-        let register_for_session
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?session_name
-            ?cookie_type
-            ?secure
-            ~sp
-            ~service
-            ?error_handler
-            page =
-          register_aux
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?error_handler
-            (Ocsigen_lib.Right (sp, session_name, cookie_type, secure))
-            ~sp
-            ~service page
-
-
-
-        let register_new_service
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp
-            ?https
-            ~path
-            ~get_params
-            ?error_handler
-            page =
-          let u = new_service ?sp ?https ~path ~get_params () in
-          register ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp ~service:u ?error_handler page;
-          u
-
-        let register_new_coservice
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp
-            ?name
-            ?csrf_safe
-            ?csrf_session_name
-            ?csrf_cookie_type
-            ?csrf_secure_session
-            ?max_use
-            ?timeout
-            ?https
-            ~fallback
-            ~get_params
-            ?error_handler
-            page =
-          let u = 
-            new_coservice ?name
-              ?csrf_safe
-              ?csrf_session_name
-              ?csrf_cookie_type
-              ?csrf_secure_session
-              ?max_use ?timeout ?https
-              ~fallback ~get_params () 
-          in
-          register ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp ~service:u ?error_handler page;
-          u
-
-        let register_new_coservice'
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp
-            ?name
-            ?csrf_safe
-            ?csrf_session_name
-            ?csrf_cookie_type
-            ?csrf_secure_session
-            ?max_use
-            ?timeout
-            ?https
-            ~get_params
-            ?error_handler
-            page =
-          let u = 
-            new_coservice' 
-              ?name
-              ?csrf_safe
-              ?csrf_session_name
-              ?csrf_cookie_type
-              ?csrf_secure_session
-              ?max_use ?timeout ?https ~get_params () 
-          in
-          register ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp ~service:u ?error_handler page;
-          u
-
-        let register_new_coservice_for_session
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?session_name
-            ?cookie_type
-            ?secure
-            ~sp
-            ?name
-            ?csrf_safe
-(*            ?csrf_session_name = ~session_name
-              ?csrf_cookie_type
-              ?csrf_secure_session = ~secure *)
-            ?max_use
-            ?timeout
-            ?https
-            ~fallback
-            ~get_params
-            ?error_handler
-            page =
-          let u = 
-            new_coservice ?name 
-              ?csrf_safe
-              ?csrf_session_name:session_name
-              ?csrf_cookie_type:cookie_type
-              ?csrf_secure_session:secure
-              ?max_use ?timeout ?https
-              ~fallback ~get_params () 
-          in
-          register_for_session
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?session_name
-            ?cookie_type
-            ?secure ~sp ~service:u ?error_handler page;
-          u
-
-        let register_new_coservice_for_session'
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?session_name
-            ?cookie_type
-            ?secure
-            ~sp
-            ?name
-            ?csrf_safe
-(*            ?csrf_session_name
-              ?csrf_cookie_type
-              ?csrf_secure_session *)
-            ?max_use
-            ?timeout
-            ?https
-            ~get_params
-            ?error_handler
-            page =
-          let u = new_coservice' 
-            ?name 
-            ?csrf_safe
-            ?csrf_session_name:session_name
-            ?csrf_cookie_type:cookie_type
-            ?csrf_secure_session:secure
-            ?max_use ?https ~get_params () 
-          in
-          register_for_session
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?session_name
-            ?cookie_type
-            ?secure ~sp ~service:u ?error_handler page;
-          u
-
-
-        let register_new_post_service
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp
-            ?https
-            ~fallback
-            ~post_params
-            ?error_handler
-            page_gen =
-          let u = new_post_service ?sp ?https
-              ~fallback:fallback ~post_params:post_params () in
-          register ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp ~service:u ?error_handler page_gen;
-          u
-
-        let register_new_post_coservice
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp
-            ?name
-            ?csrf_safe
-            ?csrf_session_name
-            ?csrf_cookie_type
-            ?csrf_secure_session
-            ?max_use
-            ?timeout
-            ?https
-            ~fallback
-            ~post_params
-            ?error_handler
-            page_gen =
-          let u =
-            new_post_coservice ?name 
-              ?csrf_safe
-              ?csrf_session_name
-              ?csrf_cookie_type
-              ?csrf_secure_session
-              ?max_use ?timeout ?https
-              ~fallback ~post_params () in
-          register ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp ~service:u ?error_handler page_gen;
-          u
-
-        let register_new_post_coservice'
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp
-            ?name
-            ?csrf_safe
-            ?csrf_session_name
-            ?csrf_cookie_type
-            ?csrf_secure_session
-            ?max_use
-            ?timeout
-            ?keep_get_na_params
-            ?https
-            ~post_params
-            ?error_handler
-            page_gen =
-          let u =
-            new_post_coservice'
-              ?name
-              ?csrf_safe
-              ?csrf_session_name
-              ?csrf_cookie_type
-              ?csrf_secure_session
-              ?keep_get_na_params
-              ?max_use
-              ?timeout
-              ?https
-              ~post_params ()
-          in
-          register ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?sp ~service:u ?error_handler page_gen;
-          u
-
-(*
-   let register_new_get_post_coservice'
-  ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-  ?sp
-?name
-?csrf_safe
-            ?csrf_session_name
-              ?csrf_cookie_type
-            ?csrf_secure_session
-   ?max_use
-   ?timeout
-  ?https
-   ~fallback
-   ~post_params
-   ?error_handler
-   page_gen =
-   let u = new_get_post_coservice' ?name ?csrf_safe
-            ?csrf_session_name
-              ?csrf_cookie_type
-            ?csrf_secure_session
-   ?max_use ?timeout ?https ~fallback ~post_params () in
-   register ?options 
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-?sp ~service:u ?error_handler page_gen;
-   u
- *)
-
-        let register_new_post_coservice_for_session
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?session_name
-            ?cookie_type
-            ?secure
-            ~sp
-            ?name
-            ?csrf_safe
-(*            ?csrf_session_name
-              ?csrf_cookie_type
-              ?csrf_secure_session *)
-            ?max_use
-            ?timeout
-            ?https
-            ~fallback
-            ~post_params
-            ?error_handler
-            page_gen =
-          let u = new_post_coservice ?name 
-            ?csrf_safe
-            ?csrf_session_name:session_name
-            ?csrf_cookie_type:cookie_type
-            ?csrf_secure_session:secure
-            ?max_use ?timeout ?https ~fallback ~post_params () in
-          register_for_session
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?session_name
-            ?cookie_type
-            ?secure ~sp ~service:u ?error_handler page_gen;
-          u
-
-        let register_new_post_coservice_for_session'
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?session_name
-            ?cookie_type
-            ?secure
-            ~sp
-            ?name
-            ?csrf_safe
-(*            ?csrf_session_name
-              ?csrf_cookie_type
-              ?csrf_secure_session *)
-            ?max_use
-            ?timeout
-            ?keep_get_na_params
-            ?https
-            ~post_params
-            ?error_handler
-            page_gen =
-          let u =
-            new_post_coservice'
-              ?name
-              ?csrf_safe
-              ?csrf_session_name:session_name
-              ?csrf_cookie_type:cookie_type
-              ?csrf_secure_session:secure
-              ?keep_get_na_params
-              ?max_use
-              ?timeout
-              ?https
-              ~post_params ()
-          in
-          register_for_session
-            ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-            ?session_name
-            ?cookie_type
-            ?secure ~sp ~service:u ?error_handler page_gen;
-          u
-
-(*
-   let register_new_get_post_coservice_for_session'
-  ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
-  ?session_name
-            ?cookie_type
-            ?secure
-   ~sp
-?name
-?csrf_safe
-(*            ?csrf_session_name
-              ?csrf_cookie_type
-              ?csrf_secure_session *)
-   ?max_use
-   ?timeout
-  ?https
-   ~fallback
-   ~post_params
-   ?error_handler
-   page_gen =
-   let u = new_get_post_coservice' ?name ?csrf_safe
-            ?csrf_session_name:session_name
-              ?csrf_cookie_type:cookie_type
-            ?csrf_secure_session:secure
-   ?max_use ?timeout ?https ~fallback ~post_params () in
-   register_for_session
-  ?options
-            ?cookies
-            ?charset
-            ?code
-            ?content_type
-            ?headers
- ?session_name
-            ?cookie_type
- ?secure ~sp ~service:u ?error_handler page_gen;
-   u
- *)
-
-
-      end
-
-
-      let make_error_handler ?error_handler () =
-        match error_handler with
-          None -> None
-        | Some eh -> Some (fun sp l -> eh sp l >>= (fun r -> return (r, [])))
-
-      let register ?options
-          ?cookies
-          ?charset
-          ?code
-          ?content_type
-          ?headers
-          ?sp ~service ?error_handler page_gen =
-        Cookies.register
+      let register_aux
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
           ?headers
-          ?sp
+          table
+          ?sp (* if registering during session *)
           ~service
-          ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
+          ?(error_handler = fun sp l ->
+            raise (Eliom_common.Eliom_Typing_Error l))
+          page_generator =
+        let sp = Ocsigen_lib.apply_option Eliom_sessions.esp_of_sp sp in
+        begin
+          match get_kind_ service with
+            | `Attached attser ->
+              let key_kind = get_or_post_ attser in
+              let attserget = get_get_name_ attser in
+              let attserpost = get_post_name_ attser in
+              let suffix_with_redirect = get_redirect_suffix_ attser in
+              let sgpt = get_get_params_type_ service in
+              let sppt = get_post_params_type_ service in
+              let f table ((attserget, attserpost) as attsernames) = 
+                Eliommod_services.add_service
+                  table
+                  ?sp
+                  (get_sub_path_ attser)
+                  {Eliom_common.key_state = attsernames;
+                   Eliom_common.key_kind = key_kind}
+                  ((if attserget = Eliom_common.SAtt_no
+                    || attserpost = Eliom_common.SAtt_no
+                    then (anonymise_params_type sgpt,
+                          anonymise_params_type sppt)
+                    else (0, 0)),
+                   ((match get_max_use_ service with
+                     | None -> None
+                     | Some i -> Some (ref i)),
+                    (match get_timeout_ service with
+                      | None -> None
+                      | Some t -> Some (t, ref (t +. Unix.time ()))),
+                    (fun nosuffixversion sp ->
+                      let sp2 = Eliom_sessions.sp_of_esp sp in
+                      let ri = get_ri ~sp:sp2
+                      and ci = get_config_info ~sp:sp2
+                      and suff = get_suffix ~sp:sp2 in
+                      (catch (fun () ->
+                        ri.ri_post_params ci >>= fun post_params ->
+                        ri.ri_files ci >>= fun files ->
+                        let g = reconstruct_params
+                          ~sp
+                          sgpt
+                          (force ri.ri_get_params)
+                          []
+                          nosuffixversion
+                          suff
+                        in
+                        let p = reconstruct_params
+                          ~sp
+                          sppt
+                          post_params
+                          files
+                          false
+                          None
+                        in
+                        if nosuffixversion && suffix_with_redirect &&
+                          files=[] && post_params = []
+                        then (* it is a suffix service in version 
+                                without suffix. We redirect. *)
+                          Lwt.fail
+                            (Eliom_common.Eliom_Suffix_redirection
+                               (Eliom_uri.make_string_uri
+                                  ~absolute:true
+                                  ~service:(service : 
+                                              ('a, 'b, [< Eliom_services.internal_service_kind ],
+                                               [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                                               'return) Eliom_services.service :> 
+                                              ('a, 'b, Eliom_services.service_kind,
+                                               [< Eliom_services.suff ], 'c, 'd, 
+                                               [< Eliom_services.registrable ], 'return)
+                                              Eliom_services.service)
+                                  ~sp:sp2
+                                  g))
+                        else
+                          (Pages.pre_service ?options ~sp:sp2 >>= fun () ->
+                           page_generator sp2 g p)))
+                        (function
+                          | Eliom_common.Eliom_Typing_Error l ->
+                            error_handler sp2 l
+                          | e -> fail e)
+                      >>= fun content ->
+                      Pages.send
+                        ?options
+                        ?charset
+                        ?code
+                        ?content_type
+                        ?headers
+                        ~sp:sp2 content)))
+              in
+              (match (key_kind, attserget, attserpost) with
+                | (Ocsigen_http_frame.Http_header.POST, _,
+                   Eliom_common.SAtt_csrf_safe (id, session_name,
+                                                cookie_type, secure)) ->
+                  let tablereg, forsession =
+                    match table with
+                      | Ocsigen_lib.Left globtbl -> globtbl, false
+                      | Ocsigen_lib.Right (sp, sn, ct, sec) ->
+                        if sn <> session_name || secure <> sec
+                          || cookie_type <> ct
+                        then raise
+                          Wrong_session_table_for_CSRF_safe_coservice;
+                        !(Eliom_sessions.get_session_service_table
+                            ?secure ?session_name ?cookie_type ~sp ()),
+                          true
+                  in
+                  Eliom_services.set_delayed_post_registration_function
+                    tablereg
+                    id
+                    (fun ~sp attserget ->
+                      let n = Eliom_services.new_state () in
+                      let attserpost = Eliom_common.SAtt_anon n in
+                      let table = 
+                        if forsession
+                        then tablereg
+                        else
+                          let sp = Eliom_sessions.sp_of_esp sp in
+                          (* we do not register in global table,
+                             but in the table specified while creating
+                             the csrf safe service *)
+                          !(Eliom_sessions.get_session_service_table
+                              ?secure ?session_name ?cookie_type ~sp ())
+                      in
+                      f table (attserget, attserpost);
+                      n)
+                | (Ocsigen_http_frame.Http_header.GET,
+                   Eliom_common.SAtt_csrf_safe (id, session_name,
+                                                cookie_type, secure),
+                   _) ->
+                  let tablereg, forsession =
+                    match table with
+                      | Ocsigen_lib.Left globtbl -> globtbl, false
+                      | Ocsigen_lib.Right (sp, sn, ct, sec) ->
+                        if sn <> session_name || secure <> sec
+                          || ct <> cookie_type
+                        then raise
+                          Wrong_session_table_for_CSRF_safe_coservice;
+                        !(Eliom_sessions.get_session_service_table
+                            ?secure ?session_name ?cookie_type ~sp ()), true
+                  in
+                  Eliom_services.set_delayed_get_or_na_registration_function
+                    tablereg
+                    id
+                    (fun ~sp ->
+                      let n = Eliom_services.new_state () in
+                      let attserget = Eliom_common.SAtt_anon n in
+                      let table = 
+                        if forsession
+                        then tablereg
+                        else
+                          let sp = Eliom_sessions.sp_of_esp sp in
+                          (* we do not register in global table,
+                             but in the table specified while creating
+                             the csrf safe service *)
+                          !(Eliom_sessions.get_session_service_table
+                              ?secure ?session_name ?cookie_type ~sp ())
+                      in
+                      f table (attserget, attserpost);
+                      n)
+                | _ -> 
+                  let tablereg =
+                    match table with
+                      | Ocsigen_lib.Left globtbl -> globtbl
+                      | Ocsigen_lib.Right (sp, session_name, 
+                                           cookie_type, secure) ->
+                        !(Eliom_sessions.get_session_service_table
+                            ?secure ?session_name ?cookie_type ~sp ())
+                  in
+                  f tablereg (attserget, attserpost))
+            | `Nonattached naser ->
+              let na_name = get_na_name_ naser in
+              let f table na_name = 
+                Eliommod_naservices.add_naservice
+                  table
+                  ?sp
+                  na_name
+                  ((match get_max_use_ service with
+                    | None -> None
+                    | Some i -> Some (ref i)),
+                   (match get_timeout_ service with
+                     | None -> None
+                     | Some t -> Some (t, ref (t +. Unix.time ()))),
+                   (fun sp ->
+                     let sp2 = Eliom_sessions.sp_of_esp sp in
+                     let ri = get_ri sp2
+                     and ci = get_config_info sp2 in
+                     (catch
+                        (fun () ->
+                          get_post_params sp2 >>= fun post_params ->
+                          ri.ri_files ci >>= fun files ->
+                          Pages.pre_service ?options ~sp:sp2 >>= fun () ->
+                          page_generator sp2
+                            (reconstruct_params
+                               ~sp
+                               (get_get_params_type_ service)
+                               (force ri.ri_get_params)
+                               []
+                               false
+                               None)
+                            (reconstruct_params
+                               ~sp
+                               (get_post_params_type_ service)
+                               post_params
+                               files
+                               false
+                               None)))
+                       (function
+                         | Eliom_common.Eliom_Typing_Error l ->
+                           error_handler sp2 l
+                         | e -> fail e) >>= fun content ->
+                     Pages.send
+                       ?options
+                       ?charset
+                       ?code
+                       ?content_type
+                       ?headers
+                       ~sp:sp2 content)
+                  )
+              in
+              match na_name with
+                | Eliom_common.SNa_get_csrf_safe (id, session_name, 
+                                                  cookie_type, secure) ->
+                  (* CSRF safe coservice: we'll do the registration later *)
+                  let tablereg, forsession =
+                    match table with
+                      | Ocsigen_lib.Left globtbl -> globtbl, false
+                      | Ocsigen_lib.Right (sp, sn, ct, sec) ->
+                        if sn <> session_name || secure <> sec
+                          || ct <> cookie_type
+                        then raise
+                          Wrong_session_table_for_CSRF_safe_coservice;
+                        !(Eliom_sessions.get_session_service_table
+                            ?secure ?session_name ?cookie_type ~sp ()), true
+                  in
+                  set_delayed_get_or_na_registration_function
+                    tablereg
+                    id
+                    (fun ~sp ->
+                      let n = Eliom_services.new_state () in
+                      let na_name = Eliom_common.SNa_get' n in
+                      let table =
+                        if forsession
+                        then tablereg
+                        else
+                          let sp = Eliom_sessions.sp_of_esp sp in
+                          (* we do not register in global table,
+                             but in the table specified while creating
+                             the csrf safe service *)
+                          !(Eliom_sessions.get_session_service_table
+                              ?secure ?session_name ?cookie_type ~sp ())
+                      in
+                      f table na_name;
+                      n)
+                | Eliom_common.SNa_post_csrf_safe (id, session_name, 
+                                                   cookie_type, secure) ->
+                  (* CSRF safe coservice: we'll do the registration later *)
+                  let tablereg, forsession =
+                    match table with
+                      | Ocsigen_lib.Left globtbl -> globtbl, false
+                      | Ocsigen_lib.Right (sp, sn, ct, sec) ->
+                        if sn <> session_name || secure <> sec
+                          || ct <> cookie_type
+                        then raise
+                          Wrong_session_table_for_CSRF_safe_coservice;
+                        !(Eliom_sessions.get_session_service_table
+                            ?secure ?session_name ?cookie_type ~sp ()), true
+                  in
+                  set_delayed_get_or_na_registration_function
+                    tablereg
+                    id
+                    (fun ~sp ->
+                      let n = Eliom_services.new_state () in
+                      let na_name = Eliom_common.SNa_post' n in
+                      let table =
+                        if forsession
+                        then tablereg
+                        else
+                          let sp = Eliom_sessions.sp_of_esp sp in
+                          (* we do not register in global table,
+                             but in the table specified while creating
+                             the csrf safe service *)
+                          !(Eliom_sessions.get_session_service_table
+                              ?secure ?session_name ?cookie_type ~sp ())
+                      in
+                      f table na_name;
+                      n)
+                | _ -> 
+                  let tablereg =
+                    match table with
+                      | Ocsigen_lib.Left globtbl -> globtbl
+                      | Ocsigen_lib.Right (sp, session_name, 
+                                           cookie_type, secure) ->
+                        !(Eliom_sessions.get_session_service_table
+                            ?secure ?session_name ?cookie_type ~sp ())
+                  in
+                  f tablereg na_name
+        end;
+        Eliom_services.set_application_name service (Pages.application_name)
+
+      let register 
+          ?options
+          ?charset
+          ?code
+          ?content_type
+          ?headers
+          ?sp 
+          ~service
+          ?error_handler
+          page_gen =
+        match sp with
+          | None ->
+            (match Eliom_common.global_register_allowed () with
+              | Some get_current_sitedata ->
+                let sitedata = get_current_sitedata () in
+                (match get_kind_ service with
+                  | `Attached attser ->
+                    Eliom_common.remove_unregistered
+                      sitedata (get_sub_path_ attser)
+                  | `Nonattached naser ->
+                    Eliom_common.remove_unregistered_na
+                      sitedata (get_na_name_ naser));
+                register_aux
+                  ?options
+                  ?charset
+                  ?code
+                  ?content_type
+                  ?headers
+                  (Ocsigen_lib.Left sitedata.Eliom_common.global_services)
+                  ~service ?error_handler page_gen
+              | _ -> raise
+                (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                   "register"))
+          | Some sp ->
+            register_aux
+              ?options
+              ?charset
+              ?code
+              ?content_type
+              ?headers
+              ?error_handler
+              (Ocsigen_lib.Left (get_global_table ~sp ()))
+              ~sp
+              ~service
+              page_gen
+
+
+      (* WARNING: if we create a new service without registering it,
+         we can have a link towards a page that does not exist!!! :-(
+         That's why I impose to register all service during init.
+         The only other way I see to avoid this is to impose a syntax extension
+         like "let rec" for service...
+      *)
+
+
 
       let register_for_session
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1479,24 +869,21 @@ module MakeRegister = functor
           ~service
           ?error_handler
           page =
-        Cookies.register_for_session
+        register_aux
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
           ?headers
-          ?session_name
-          ?cookie_type
-          ?secure
+          ?error_handler
+          (Ocsigen_lib.Right (sp, session_name, cookie_type, secure))
           ~sp
-          ~service
-          ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
+          ~service page
+
+
 
       let register_new_service
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1507,24 +894,17 @@ module MakeRegister = functor
           ~get_params
           ?error_handler
           page =
-        Cookies.register_new_service
-          ?options
-          ?cookies
+        let u = new_service ?sp ?https ~path ~get_params () in
+        register ?options
           ?charset
           ?code
           ?content_type
           ?headers
-          ?sp
-          ?https
-          ~path
-          ~get_params
-          ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
-
+          ?sp ~service:u ?error_handler page;
+        u
 
       let register_new_coservice
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1542,30 +922,25 @@ module MakeRegister = functor
           ~get_params
           ?error_handler
           page =
-        Cookies.register_new_coservice
-          ?options
-          ?cookies
+        let u = 
+          new_coservice ?name
+            ?csrf_safe
+            ?csrf_session_name
+            ?csrf_cookie_type
+            ?csrf_secure_session
+            ?max_use ?timeout ?https
+            ~fallback ~get_params () 
+        in
+        register ?options
           ?charset
           ?code
           ?content_type
           ?headers
-          ?sp
-          ?name
-          ?csrf_safe
-          ?csrf_session_name
-          ?csrf_cookie_type
-          ?csrf_secure_session
-          ?max_use
-          ?timeout
-          ?https
-          ~fallback
-          ~get_params
-          ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
+          ?sp ~service:u ?error_handler page;
+        u
 
       let register_new_coservice'
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1582,29 +957,25 @@ module MakeRegister = functor
           ~get_params
           ?error_handler
           page =
-        Cookies.register_new_coservice'
-          ?options
-          ?cookies
+        let u = 
+          new_coservice' 
+            ?name
+            ?csrf_safe
+            ?csrf_session_name
+            ?csrf_cookie_type
+            ?csrf_secure_session
+            ?max_use ?timeout ?https ~get_params () 
+        in
+        register ?options
           ?charset
           ?code
           ?content_type
           ?headers
-          ?sp
-          ?name
-          ?csrf_safe
-          ?csrf_session_name
-          ?csrf_cookie_type
-          ?csrf_secure_session
-          ?max_use
-          ?timeout
-          ?https
-          ~get_params
-          ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
+          ?sp ~service:u ?error_handler page;
+        u
 
       let register_new_coservice_for_session
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1615,9 +986,9 @@ module MakeRegister = functor
           ~sp
           ?name
           ?csrf_safe
-(*          ?csrf_session_name
-            ?csrf_cookie_type
-            ?csrf_secure_session *)
+          (*            ?csrf_session_name = ~session_name
+                        ?csrf_cookie_type
+                        ?csrf_secure_session = ~secure *)
           ?max_use
           ?timeout
           ?https
@@ -1625,33 +996,28 @@ module MakeRegister = functor
           ~get_params
           ?error_handler
           page =
-      Cookies.register_new_coservice_for_session
-        ?options
-        ?cookies
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?session_name
-        ?cookie_type
-        ?secure
-        ~sp
-        ?name
-        ?csrf_safe
-(*        ?csrf_session_name
-          ?csrf_cookie_type
-          ?csrf_secure_session *)
-        ?max_use
-        ?timeout
-        ?https
-        ~fallback
-        ~get_params
-        ?error_handler:(make_error_handler ?error_handler ())
-        (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
+        let u = 
+          new_coservice ?name 
+            ?csrf_safe
+            ?csrf_session_name:session_name
+            ?csrf_cookie_type:cookie_type
+            ?csrf_secure_session:secure
+            ?max_use ?timeout ?https
+            ~fallback ~get_params () 
+        in
+        register_for_session
+          ?options
+          ?charset
+          ?code
+          ?content_type
+          ?headers
+          ?session_name
+          ?cookie_type
+          ?secure ~sp ~service:u ?error_handler page;
+        u
 
       let register_new_coservice_for_session'
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1662,41 +1028,37 @@ module MakeRegister = functor
           ~sp
           ?name
           ?csrf_safe
-(*          ?csrf_session_name
-          ?csrf_cookie_type
-            ?csrf_secure_session *)
+          (*            ?csrf_session_name
+                        ?csrf_cookie_type
+                        ?csrf_secure_session *)
           ?max_use
           ?timeout
           ?https
           ~get_params
           ?error_handler
           page =
-      Cookies.register_new_coservice_for_session'
-        ?options
-        ?cookies
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?session_name
-        ?cookie_type
-        ?secure
-        ~sp
-        ?name
-        ?csrf_safe
-(*        ?csrf_session_name
-          ?csrf_cookie_type
-          ?csrf_secure_session *)
-        ?max_use
-        ?timeout
-        ?https
-        ~get_params
-        ?error_handler:(make_error_handler ?error_handler ())
-        (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
+        let u = new_coservice' 
+          ?name 
+          ?csrf_safe
+          ?csrf_session_name:session_name
+          ?csrf_cookie_type:cookie_type
+          ?csrf_secure_session:secure
+          ?max_use ?https ~get_params () 
+        in
+        register_for_session
+          ?options
+          ?charset
+          ?code
+          ?content_type
+          ?headers
+          ?session_name
+          ?cookie_type
+          ?secure ~sp ~service:u ?error_handler page;
+        u
+
 
       let register_new_post_service
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1707,23 +1069,18 @@ module MakeRegister = functor
           ~post_params
           ?error_handler
           page_gen =
-      Cookies.register_new_post_service
-        ?options
-        ?cookies
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?sp
-        ?https
-        ~fallback
-        ~post_params
-        ?error_handler:(make_error_handler ?error_handler ())
-        (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
+        let u = new_post_service ?sp ?https
+          ~fallback:fallback ~post_params:post_params () in
+        register ?options
+          ?charset
+          ?code
+          ?content_type
+          ?headers
+          ?sp ~service:u ?error_handler page_gen;
+        u
 
       let register_new_post_coservice
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1741,30 +1098,24 @@ module MakeRegister = functor
           ~post_params
           ?error_handler
           page_gen =
-        Cookies.register_new_post_coservice
-          ?options
-          ?cookies
+        let u =
+          new_post_coservice ?name 
+            ?csrf_safe
+            ?csrf_session_name
+            ?csrf_cookie_type
+            ?csrf_secure_session
+            ?max_use ?timeout ?https
+            ~fallback ~post_params () in
+        register ?options
           ?charset
           ?code
           ?content_type
           ?headers
-          ?sp
-          ?name
-          ?csrf_safe
-          ?csrf_session_name
-          ?csrf_cookie_type
-          ?csrf_secure_session
-          ?max_use
-          ?timeout
-          ?https
-          ~fallback
-          ~post_params
-          ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
+          ?sp ~service:u ?error_handler page_gen;
+        u
 
       let register_new_post_coservice'
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1782,74 +1133,30 @@ module MakeRegister = functor
           ~post_params
           ?error_handler
           page_gen =
-        Cookies.register_new_post_coservice'
-          ?options
-          ?cookies
-          ?charset
-          ?code
-          ?content_type
-          ?headers
-          ?sp
-          ?name
-          ?csrf_safe
-          ?csrf_session_name
-          ?csrf_cookie_type
-          ?csrf_secure_session
-          ?max_use
-          ?timeout
-          ?keep_get_na_params
-          ?https
-          ~post_params
-          ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
-
-(*
-   let register_new_get_post_coservice'
-  ?options
-          ?cookies
-          ?charset
-          ?code
-          ?content_type
-          ?headers
-  ?sp
-  ?name
-  ?csrf_safe
+        let u =
+          new_post_coservice'
+            ?name
+            ?csrf_safe
             ?csrf_session_name
-          ?csrf_cookie_type
+            ?csrf_cookie_type
             ?csrf_secure_session
-          ?max_use
-          ?timeout
-  ?https
-   ~fallback
-   ~post_params
-   ?error_handler
-   page_gen =
-   Cookies.register_new_get_post_coservice'
-  ?options
-          ?cookies
+            ?keep_get_na_params
+            ?max_use
+            ?timeout
+            ?https
+            ~post_params ()
+        in
+        register ?options
           ?charset
           ?code
           ?content_type
           ?headers
-   ?sp
-  ?name
-  ?csrf_safe
-            ?csrf_session_name
-          ?csrf_cookie_type
-            ?csrf_secure_session
-          ?max_use
-          ?timeout
-?https
-   ~fallback
-   ~post_params
-   ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
+          ?sp ~service:u ?error_handler page_gen;
+        u
 
- *)
 
       let register_new_post_coservice_for_session
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1860,9 +1167,9 @@ module MakeRegister = functor
           ~sp
           ?name
           ?csrf_safe
-(*          ?csrf_session_name
-          ?csrf_cookie_type
-            ?csrf_secure_session *)
+          (*            ?csrf_session_name
+                        ?csrf_cookie_type
+                        ?csrf_secure_session *)
           ?max_use
           ?timeout
           ?https
@@ -1870,33 +1177,25 @@ module MakeRegister = functor
           ~post_params
           ?error_handler
           page_gen =
-        Cookies.register_new_post_coservice_for_session
+        let u = new_post_coservice ?name 
+          ?csrf_safe
+          ?csrf_session_name:session_name
+          ?csrf_cookie_type:cookie_type
+          ?csrf_secure_session:secure
+          ?max_use ?timeout ?https ~fallback ~post_params () in
+        register_for_session
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
           ?headers
           ?session_name
           ?cookie_type
-          ?secure
-          ~sp
-          ?name
-          ?csrf_safe
-(*          ?csrf_session_name
-          ?csrf_cookie_type
-            ?csrf_secure_session *)
-          ?max_use
-          ?timeout
-          ?https
-          ~fallback
-          ~post_params
-          ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
+          ?secure ~sp ~service:u ?error_handler page_gen;
+        u
 
       let register_new_post_coservice_for_session'
           ?options
-          ?cookies
           ?charset
           ?code
           ?content_type
@@ -1907,9 +1206,9 @@ module MakeRegister = functor
           ~sp
           ?name
           ?csrf_safe
-(*          ?csrf_session_name
-          ?csrf_cookie_type
-            ?csrf_secure_session *)
+          (*            ?csrf_session_name
+                        ?csrf_cookie_type
+                        ?csrf_secure_session *)
           ?max_use
           ?timeout
           ?keep_get_na_params
@@ -1917,79 +1216,31 @@ module MakeRegister = functor
           ~post_params
           ?error_handler
           page_gen =
-      Cookies.register_new_post_coservice_for_session'
-        ?options
-        ?cookies
-        ?charset
-        ?code
-        ?content_type
-        ?headers
-        ?session_name
-        ?cookie_type
-        ?secure
-        ~sp
-        ?name
-        ?csrf_safe
-(*        ?csrf_session_name
-          ?csrf_cookie_type
-          ?csrf_secure_session *)
-        ?max_use
-        ?timeout
-        ?keep_get_na_params
-        ?https
-        ~post_params
-        ?error_handler:(make_error_handler ?error_handler ())
-        (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
-
-(*
-   let register_new_get_post_coservice_for_session'
-  ?options
-          ?cookies
+        let u =
+          new_post_coservice'
+            ?name
+            ?csrf_safe
+            ?csrf_session_name:session_name
+            ?csrf_cookie_type:cookie_type
+            ?csrf_secure_session:secure
+            ?keep_get_na_params
+            ?max_use
+            ?timeout
+            ?https
+            ~post_params ()
+        in
+        register_for_session
+          ?options
           ?charset
           ?code
           ?content_type
           ?headers
-  ?session_name
-  ?cookie_type
-  ?secure
-   sp
-  ?name
-  ?csrf_safe
-(*  ?csrf_session_name
-          ?csrf_cookie_type
-    ?csrf_secure_session *)
-  ?max_use
-  ?timeout
-  ?https
-   ~fallback
-   ~post_params
-   ?error_handler
-   page_gen =
-   Cookies.register_new_get_post_coservice_for_session'
-  ?options
-          ?cookies
-          ?charset
-          ?code
-          ?content_type
-          ?headers
-  ?session_name
-  ?cookie_type
-  ?secure
-  ~sp
-  ?name
-  ?csrf_safe
-(*  ?csrf_session_name
-          ?csrf_cookie_type
-    ?csrf_secure_session *)
-  ?max_use
-  ?timeout
-  ?https
-  ~fallback
-  ~post_params
-  ?error_handler:(make_error_handler ?error_handler ())
-          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
+          ?session_name
+          ?cookie_type
+          ?secure ~sp ~service:u ?error_handler page_gen;
+        u
 
- *)
+
 
 
      end : ELIOMREGSIG with

@@ -374,60 +374,39 @@ let compute_session_cookies_to_send
 
 let compute_cookies_to_send = compute_session_cookies_to_send
 
-
-(* add a list of Eliom's cookies to two
-   Ocsigen_http_frame cookie tables 
-   (one table for browser cookies, the other one for tab cookies) *)
-let add_cookie_list_to_send cookie_type sitedata l t =
-  let change_pathopt = function
-    | None -> sitedata.Eliom_common.site_dir
-          (* Not possible to set a cookie for another site (?) *)
-    | Some p -> sitedata.Eliom_common.site_dir@p
-  in
-  List.fold_left
-    (fun t v ->
-      match v with
-      | Eliom_common.Set (ct, upo, expo, n, v, secure) when ct = cookie_type ->
-        Ocsigen_cookies.add_cookie (change_pathopt upo) n
-          (Ocsigen_cookies.OSet (expo, v, secure)) t
-      | Eliom_common.Unset (ct, upo, n) when ct = cookie_type ->
-        Ocsigen_cookies.add_cookie (change_pathopt upo) n
-          Ocsigen_cookies.OUnset t
-      | _ -> t
-    )
-    t
-    l
-
-
 let compute_new_ri_cookies'
     now
     ripath
     ricookies
     cookies_set_by_page =
 
-  let prefix upo p = match upo with
-    | None -> true
-    | Some path ->
-        Ocsigen_lib.list_is_prefix_skip_end_slash
-          (Ocsigen_lib.remove_slash_at_beginning path)
-          (Ocsigen_lib.remove_slash_at_beginning p)
-  in
-  List.fold_left
-    (fun tab v ->
-      match v with
-      | Eliom_common.Set (cookietype, upo, Some t, n, v, _)
-          when t>now && prefix upo ripath ->
-        Ocsigen_lib.String_Table.add n v tab
-      | Eliom_common.Set (cookietype, upo, None, n, v, _) 
-          when prefix upo ripath ->
-        Ocsigen_lib.String_Table.add n v tab
-      | Eliom_common.Set (cookietype, upo, _, n, _, _)
-      | Eliom_common.Unset (cookietype, upo, n) when prefix upo ripath ->
-        Ocsigen_lib.String_Table.remove n tab
-      | _ -> tab
-    )
-    ricookies
+  Ocsigen_cookies.Cookies.fold
+    (fun cpath t cookies ->
+      if Ocsigen_lib.list_is_prefix_skip_end_slash
+        (Ocsigen_lib.remove_slash_at_beginning cpath)
+        (Ocsigen_lib.remove_slash_at_beginning ripath)
+      then
+        Ocsigen_lib.String_Table.fold
+          (fun name v cookies ->
+(*VVV We always keep secure cookies, event if the protocol is not secure,
+  because this function is for actions only. Is that right? *)
+            match v with
+              | Ocsigen_cookies.OSet (Some exp, value, secure)
+                  when exp>now ->
+                Ocsigen_lib.String_Table.add name value cookies
+              | Ocsigen_cookies.OSet (None, value, secure) ->
+                Ocsigen_lib.String_Table.add name value cookies
+              | Ocsigen_cookies.OSet (Some exp, value, secure)
+                  when exp<=now ->
+                Ocsigen_lib.String_Table.remove name cookies
+              | Ocsigen_cookies.OUnset ->
+                Ocsigen_lib.String_Table.remove name cookies
+              | _ -> cookies)
+          t
+          cookies
+      else cookies)
     cookies_set_by_page
+    ricookies
 
 
 (** Compute new ri.ri_cookies value
@@ -440,9 +419,11 @@ let compute_new_ri_cookies
     (ci, secure_ci)
     cookies_set_by_page =
 
+  (* first we add cookies set by page: *)
   let ric =
     compute_new_ri_cookies' now ripath ricookies cookies_set_by_page
   in
+  (* then session cookies: *)
   let f (service_cookie_info, data_cookie_info, pers_cookie_info) ric 
       (scn, dcn, pcn) =
     let ric =
@@ -518,6 +499,8 @@ let compute_new_ri_cookies
   match secure_ci with
     | None -> Lwt.return ric
     | Some ci -> 
+(*VVV We always keep secure cookies, event if the protocol is not secure,
+  because this function is for actions only. Is that right? *)
         f ci ric
           (Eliom_common.sservicecookiename, 
            Eliom_common.sdatacookiename, 

@@ -55,7 +55,9 @@ let get_cookies_to_send https path =
   let now = now () in
   Ocsigen_cookies.Cookies.fold
     (fun cpath t cookie_list ->
-      if Ocsigen_lib.list_is_prefix_skip_end_slash cpath path
+      if Ocsigen_lib.list_is_prefix_skip_end_slash
+          (Ocsigen_lib.remove_slash_at_beginning cpath)
+          (Ocsigen_lib.remove_slash_at_beginning path)
       then Ocsigen_lib.String_Table.fold
         (fun name (exp, value, secure) cookie_list ->
           match exp with

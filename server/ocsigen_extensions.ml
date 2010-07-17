@@ -392,7 +392,8 @@ let add_to_res_cookies res cookies_to_set =
   else
     {res with
      Ocsigen_http_frame.res_cookies =
-     Ocsigen_http_frame.add_cookies res.Ocsigen_http_frame.res_cookies cookies_to_set}
+        Ocsigen_cookies.add_cookies
+          res.Ocsigen_http_frame.res_cookies cookies_to_set}
 
 let make_ext awake cookies_to_set req_state (genfun : extension) (genfun2 : extension2) =
   genfun req_state
@@ -432,7 +433,7 @@ let make_ext awake cookies_to_set req_state (genfun : extension) (genfun2 : exte
     | Ext_continue_with (ri, cook, e) ->
         genfun2
           awake
-          (Ocsigen_http_frame.add_cookies cook cookies_to_set)
+          (Ocsigen_cookies.add_cookies cook cookies_to_set)
           (Req_not_found (e, ri))
     | Ext_found_stop _
     | Ext_stop_site _
@@ -850,17 +851,17 @@ let serve_request
                 (* try next site *)
           | Ext_stop_host (cook, e)
           | Ext_stop_site (cook, e) ->
-              aux_host ri e (Ocsigen_http_frame.add_cookies cook cookies_to_set) l
+              aux_host ri e (Ocsigen_cookies.add_cookies cook cookies_to_set) l
                 (* try next site *)
           | Ext_stop_all (cook, e) ->
               fail (Ocsigen_http_error (cookies_to_set, e))
           | Ext_continue_with (_, cook, e) ->
               aux_host ri e
-                (Ocsigen_http_frame.add_cookies cook cookies_to_set) l
+                (Ocsigen_cookies.add_cookies cook cookies_to_set) l
           | Ext_retry_with (request2, cook) ->
               do2
                 (get_hosts ())
-                (Ocsigen_http_frame.add_cookies cook cookies_to_set)
+                (Ocsigen_cookies.add_cookies cook cookies_to_set)
                 request2.request_info
                 (* retry all *)
           | Ext_sub_result sr ->

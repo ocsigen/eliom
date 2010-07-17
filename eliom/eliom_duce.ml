@@ -107,14 +107,12 @@ module Xhtmlreg_ = struct
 
   let application_name = None
 
-  let send ?options ?(cookies=[]) ?charset ?code
+  let send ?options ?charset ?code
       ?content_type ?headers ~sp content =
     Ocamlduce_content.result_of_content content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= Some "utf-8" (* For Eliom_duce, we impose utf-8 *);
          res_content_type= (match content_type with
@@ -465,14 +463,12 @@ module SubXhtml =
 
       let application_name = None
 
-      let send ?options ?(cookies=[]) ?charset ?code
+      let send ?options ?charset ?code
           ?content_type ?headers ~sp content =
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
           {r with
-             res_cookies=
-              Eliom_services.cookie_table_of_eliom_cookies
-                Eliom_common.CBrowser ~sp cookies;
+             res_cookies= (Eliom_sessions.get_user_cookies ~sp);
              res_code= code_of_code_option code;
              res_charset= Some "utf-8" 
               (* For Eliom_duce, we impose utf-8 *);

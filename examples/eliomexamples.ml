@@ -408,17 +408,6 @@ let headers =
     ~code:666
     ~charset:"plopcharset"
 (*    ~content_type:"custom/contenttype" *)
-    ~cookies:[Eliom_services.Set (Eliom_common.CBrowser,
-                                  Some [], None,
-                                  "Customcookie", 
-                                  "Value",
-                                  true);
-              Eliom_services.Set (Eliom_common.CBrowser,
-                                  Some [], None,
-                                  "Customcookie2", 
-                                  "Value2",
-                                  true);
-             ]
     ~headers:(Http_headers.add
                 (Http_headers.name "XCustom-header")
                 "This is an example" 
@@ -426,10 +415,14 @@ let headers =
     ~path:["httpheaders"] 
     ~get_params:unit
     (fun sp () () ->
-       return
-         (html
-            (head (title (pcdata "")) [])
-            (body [h1 [pcdata "Look at my HTTP headers"]])))
+      Eliom_sessions.set_cookie
+        ~sp ~path:[] ~name:"Customcookie" ~value:"Value" ~secure:true ();
+      Eliom_sessions.set_cookie
+        ~sp ~path:[] ~name:"Customcookie2" ~value:"Value2" ();
+      Lwt.return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Look at my HTTP headers"]])))
 
 
 (* form towards a suffix service with constants *)
@@ -782,105 +775,60 @@ let cookiename = "c"
 
 let cookies = new_service ["c";""] (suffix (all_suffix_string "s")) ()
 
-let _ = Cookies.register cookies
-    (fun sp s () ->  return
-      ((html
-        (head (title (pcdata "")) [])
-        (body [p
-                 (Ocsigen_lib.String_Table.fold
-                    (fun n v l ->
-                      (pcdata (n^"="^v))::
-                      (br ())::l
-                    )
-                    (get_cookies sp)
-                    [a cookies sp [pcdata "send other cookies"] ""; br ();
-                     a cookies sp [pcdata "send other cookies and see the url /c/plop"] "plop"]
-                    )])),
-       let now = Unix.time () in
-       let cookies =
-         [Eliom_services.Set (Eliom_common.CBrowser,
-                              Some [], Some (now +. 10.),
-                              (cookiename^"6"), 
-                              (string_of_int (Random.int 100)),
-                              true);
-          Eliom_services.Set (Eliom_common.CBrowser,
-                              Some [], Some (now +. 10.),
-                              (cookiename^"7"), 
-                              (string_of_int (Random.int 100)),
-                              true);
-          Eliom_services.Set (Eliom_common.CBrowser,
-                              Some ["c";"plop"], None,
-                              (cookiename^"8"), 
-                              (string_of_int (Random.int 100)),
-                              false);
-          Eliom_services.Set (Eliom_common.CBrowser,
-                              Some ["c";"plop"], None,
-                              (cookiename^"9"),
-                              (string_of_int (Random.int 100)),
-                              false);
-          Eliom_services.Set (Eliom_common.CBrowser,
-                              Some ["c";"plop"], None,
-                              (cookiename^"10"), 
-                              (string_of_int (Random.int 100)),
-                              true);
-          Eliom_services.Set (Eliom_common.CBrowser,
-                              Some ["c";"plop"], None,
-                              (cookiename^"11"), 
-                              (string_of_int (Random.int 100)),
-                              true);
-          Eliom_services.Set (Eliom_common.CBrowser,
-                              Some ["c";"plop"], None,
-                              (cookiename^"12"), 
-                              (string_of_int (Random.int 100)),
-                              true);
-        ]
-       in if Ocsigen_lib.String_Table.mem (cookiename^"1") (get_cookies sp)
-       then
-         (Eliom_services.Unset (Eliom_common.CBrowser,
-                                None, (cookiename^"1")))::
-         (Eliom_services.Unset (Eliom_common.CBrowser,
-                                None, (cookiename^"2")))::cookies
-       else
-         (Eliom_services.Set (Eliom_common.CBrowser,
-                              None, None, (cookiename^"1"),
-                              (string_of_int (Random.int 100)), true))::
-          (Eliom_services.Set (Eliom_common.CBrowser,
-                               None, None, (cookiename^"2"),
-                               (string_of_int (Random.int 100)), false))::
-          (Eliom_services.Set (Eliom_common.CBrowser,
-                               None, None, (cookiename^"3"),
-                               (string_of_int (Random.int 100)), false))
-          ::cookies
-      ))
+let _ = Eliom_predefmod.Xhtml.register cookies
+    (fun sp s () -> 
+      let now = Unix.time () in
+      Eliom_sessions.set_cookie
+        ~sp ~path:[] ~exp:(now +. 10.) ~name:(cookiename^"6")
+        ~value:(string_of_int (Random.int 100)) ~secure:true ();
+      Eliom_sessions.set_cookie
+        ~sp ~path:[] ~exp:(now +. 10.) ~name:(cookiename^"7")
+        ~value:(string_of_int (Random.int 100)) ~secure:true ();
+      Eliom_sessions.set_cookie
+        ~sp ~path:["c";"plop"] ~name:(cookiename^"8")
+        ~value:(string_of_int (Random.int 100)) ();
+      Eliom_sessions.set_cookie
+        ~sp ~path:["c";"plop"] ~name:(cookiename^"9")
+        ~value:(string_of_int (Random.int 100)) ();
+      Eliom_sessions.set_cookie
+        ~sp ~path:["c";"plop"] ~name:(cookiename^"10")
+        ~value:(string_of_int (Random.int 100)) ~secure:true ();
+      Eliom_sessions.set_cookie
+        ~sp ~path:["c";"plop"] ~name:(cookiename^"11")
+        ~value:(string_of_int (Random.int 100)) ~secure:true ();
+      Eliom_sessions.set_cookie
+        ~sp ~path:["c";"plop"] ~name:(cookiename^"12") 
+        ~value:(string_of_int (Random.int 100)) ~secure:true ();
+      if Ocsigen_lib.String_Table.mem (cookiename^"1") (get_cookies sp)
+      then
+        (Eliom_sessions.unset_cookie ~sp ~name:(cookiename^"1") ();
+         Eliom_sessions.unset_cookie ~sp ~name:(cookiename^"2") ())
+      else begin
+        Eliom_sessions.set_cookie
+          ~sp ~name:(cookiename^"1") ~value:(string_of_int (Random.int 100))
+          ~secure:true ();
+        Eliom_sessions.set_cookie
+          ~sp ~name:(cookiename^"2") ~value:(string_of_int (Random.int 100)) ();
+        Eliom_sessions.set_cookie
+          ~sp ~name:(cookiename^"3") ~value:(string_of_int (Random.int 100)) ()
+      end;
+
+      Lwt.return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p
+                     (Ocsigen_lib.String_Table.fold
+                        (fun n v l ->
+                          (pcdata (n^"="^v))::
+                            (br ())::l
+                        )
+                        (get_cookies sp)
+                        [a cookies sp [pcdata "send other cookies"] ""; br ();
+                         a cookies sp [pcdata "send other cookies and see the url /c/plop"] "plop"]
+                     )]))
+    )
 
 
-(* Cookies or not cookies with Any *)
-let sendany =
-  Any.register_new_service
-    ~path:["sendany2"]
-    ~get_params:(suffix (all_suffix_string "type"))
-   (fun sp s () ->
-     if s = "nocookie"
-     then
-       Xhtml.send
-         ~headers:(Http_headers.add
-                     (Http_headers.name "XCustom-header")
-                     "This is an example" 
-                     Http_headers.empty)
-         ~sp
-         (html
-            (head (title (pcdata "")) [])
-            (body [p [pcdata "This page does not set cookies"]]))
-     else
-       Xhtml.Cookies.send
-         sp
-         ((html
-             (head (title (pcdata "")) [])
-             (body [p [pcdata "This page does set a cookie"]])),
-          [Eliom_services.Set (Eliom_common.CBrowser,
-                               None, None, "arf", 
-                               (string_of_int (Random.int 100)), false)])
-   )
 
 
 (* Send file *)
@@ -1580,7 +1528,6 @@ let mainpage = register_new_service ["tests"] unit
          a constform sp [pcdata "Form towards suffix service with constants"] (); br ();
          a getact sp [pcdata "action on GET attached coservice, etc"] 127; br ();
          a cookies sp [pcdata "Many cookies"] "le suffixe de l'URL"; br ();
-         a sendany sp [pcdata "Cookie or not with Any"] "change this suffix to \"nocookie\""; br ();
          a headers sp [pcdata "Customizing HTTP headers"] (); br ();
          a sendfileex sp [pcdata "Send file"] (); br ();
          a sendfile2 sp [pcdata "Send file 2"] "style.css"; br ();

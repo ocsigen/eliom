@@ -25,20 +25,9 @@ val compute_cookies_to_send :
   Eliom_common.tables Eliom_common.cookie_info ->
   Ocsigen_cookies.cookieset -> 
   Ocsigen_cookies.cookieset Lwt.t
-val add_cookie_list_to_send :
-  Eliom_common.cookie_type ->
-  Eliom_common.sitedata ->
-  Eliom_common.cookie list -> 
-  Ocsigen_cookies.cookieset -> 
-  Ocsigen_cookies.cookieset
-val compute_new_ri_cookies' :
-  float ->
-  string list ->
-  string Ocsigen_lib.String_Table.t ->
-  Eliom_common.cookie list -> string Ocsigen_lib.String_Table.t
 val compute_new_ri_cookies :
   float ->
   string list ->
   string Ocsigen_lib.String_Table.t ->
   Eliom_common.tables Eliom_common.cookie_info ->
-  Eliom_common.cookie list -> string Ocsigen_lib.String_Table.t Lwt.t
+  Ocsigen_cookies.cookieset -> string Ocsigen_lib.String_Table.t Lwt.t

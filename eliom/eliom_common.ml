@@ -74,17 +74,6 @@ let eliom_service_session_expired :
 
 (*****************************************************************************)
 
-(** Type used for cookies to set.
-    The float option is the timestamp for the expiration date.
-    The strings are names and values.
- *)
-type cookie =
-  | Set of
-      cookie_type *
-        Ocsigen_lib.url_path option * float option * string * string * bool
-  | Unset of cookie_type * Ocsigen_lib.url_path option * string
-
-
 type 'a session_cookie =
   | SCNo_data
   | SCData_session_expired

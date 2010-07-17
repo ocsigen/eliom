@@ -46,7 +46,6 @@ module type REGCREATE =
 
     val send :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code:int ->
       ?content_type:string ->
@@ -73,11 +72,8 @@ module type REGCREATE =
   end
 
 
-module type ELIOMREGSIG1 =
+module type ELIOMREGSIG =
   sig
-
-
-
 
     type page
 
@@ -87,7 +83,6 @@ module type ELIOMREGSIG1 =
 
     val send :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -98,7 +93,6 @@ module type ELIOMREGSIG1 =
 
     val register :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -148,7 +142,6 @@ module type ELIOMREGSIG1 =
 
     val register_for_session :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -198,7 +191,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_service :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -219,7 +211,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -253,7 +244,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice' :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -280,7 +270,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice_for_session :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -314,7 +303,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice_for_session' :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -341,7 +329,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_service :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -367,7 +354,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -400,7 +386,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice' :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -428,7 +413,6 @@ module type ELIOMREGSIG1 =
 (*
     val register_new_get_post_coservice' :
         ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -454,7 +438,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice_for_session :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -487,7 +470,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice_for_session' :
       ?options:options ->
-      ?cookies:Eliom_services.cookie list ->
       ?charset:string ->
       ?code: int ->
       ?content_type:string ->
@@ -545,13 +527,6 @@ module type ELIOMREGSIG1 =
 
 
 
-
-module type ELIOMREGSIG =
-  sig
-    include ELIOMREGSIG1
-    module Cookies : ELIOMREGSIG1
-    with type page = page * Eliom_services.cookie list
-  end
 
 
 

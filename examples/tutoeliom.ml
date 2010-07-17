@@ -2918,7 +2918,7 @@ let send_any =
           
 
           
-You may also use %<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|%<span class="code"|Eliom_predefmod.Any>%>% to send cookies or to choose a
+You may also use %<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|%<span class="code"|Eliom_predefmod.Any>%>% to choose a
          different charset than the default
         (default charset is set in configuration file)
          for the page you send. To do that use the optional parameters
@@ -2930,59 +2930,48 @@ You may also use %<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|%<sp
           ====Cookies
           
           
-      A simplest way to set your own cookies on the client is to use
-      functions like
-      %<span class="code"|Eliom_predefmod.Xhtml.Cookies.register>% instead of
-      %<span class="code"|Eliom_predefmod.Xhtml.register>%.
-      The function you register returns a pair containing the page (as usual)
-      and a list of cookies, of type %<span class="code"|Eliom_services.cookie>%
-      defined by:
-      
-          
-
-          
+      To set or unset your own cookies on the client, use the function
 %<code language="ocaml"|
-type cookie =
-  | Set of Eliom_common.cookie_type * 
-  string list option * float option * string * string * bool
-  | Unset of Eliom_common.cookie_type * string list option * string
+val set_cookie :
+  sp:server_params ->
+  ?cookie_type:Eliom_common.cookie_type ->
+  ?path:string list ->
+  ?exp:float -> name:string -> value:string -> ?secure:bool -> unit -> unit
+>>
+ and
+%<code language="ocaml"|
+val unset_cookie :
+  sp:server_params ->
+  ?cookie_type:Eliom_common.cookie_type ->
+  ?path:string list ->
+  name:string -> unit -> unit
+>>
 
->%
+  
+  The %<span class="code"|?path>% argument is the path for which you want
+  to set/unset the cookie (relative to the main directory of your site,
+  defined
+  in the configuration file).
+  %<span class="code"|None>% means for all your site.
+  
+  The %<span class="code"|?exp>% parameter is a the expiration date
+  (Unix timestamp, in seconds since the epoch).
+  %<span class="code"|None>% means that the cookie will expire when the browser
+  will be closed.
 
-{{{Eliom_common.cookie_type}}} is {{{Eliom_common.CBrowser}}}
-for regular browser cookies, or {{{Eliom_common.CTab}}} for tab cookies
-(available only if you have a client side Eliom program).
-          
-**[New in 1.1.0]** For version 1.0.0, the type 
-%<span class="code"|cookie>% was slightly different (no secure cookies).
-          
+  If the %<span class="code"|?secure>% argument 
+  is set to true (default: false) and the protocol is https, 
+  the server will ask the browser to send the cookie only through
+  secure connections.
 
-          
-     The %<span class="code"|string list option>% is a the path for which you want
-     to set/unset the cookie (relative to the main directory of your site,
-   defined
-     in the configuration file). %<span class="code"|None>% means for all your site.
-     
-          
+The %<span class="code"|?cookie_type>> argument
+  is {{{Eliom_common.CBrowser}}} for regular browser cookies (default),
+  or {{{Eliom_common.CTab}}} for tab cookies
+  (available only if you have a client side Eliom program).
 
-          
-     The %<span class="code"|float option>% is a the expiration date
-     (Unix timestamp, in seconds since the epoch).
-     %<span class="code"|None>% means that the cookie will expire when the browser
-     will be closed.
-     
-          
 
-          
-     If the %<span class="code"|bool>% is true and the protocol is https, 
-     the server will ask the browser to send the cookie only through
-     secure connections.
-     
-          
-
-          
-      You can access the cookies sent by the browser using
-      %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_cookies"|%<span class="code"|Eliom_sessions.get_cookies sp>%>%.
+  You can access the cookies sent by the browser using
+  %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_cookies"|%<span class="code"|Eliom_sessions.get_cookies sp>%>%.
      
           
 
@@ -2994,23 +2983,20 @@ let cookiename = "mycookie"
 
 let cookies = new_service ["cookies"] unit ()
 
-let _ = Cookies.register cookies
-    (fun sp () () ->
-      return
-       ((html
+let _ = Eliom_predefmod.Xhtml.register cookies
+  (fun sp () () ->
+    Eliom_sessions.set_cookie
+      ~sp ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
+    Lwt.return
+      (html
          (head (title (pcdata "")) [])
          (body [p [pcdata (try
                              "cookie value: "^
-                             (Ocsigen_lib.String_Table.find
-                                cookiename (Eliom_sessions.get_cookies sp))
+                               (Ocsigen_lib.String_Table.find
+                                  cookiename (Eliom_sessions.get_cookies sp))
                            with _ -> "<cookie not set>");
                    br ();
-                   a cookies sp [pcdata "send other cookie"] ()]])),
-        [Eliom_services.Set (Eliom_common.CBrowser,
-                             None, None,
-                             cookiename,
-                             string_of_int (Random.int 100),
-                             false)]))
+                   a cookies sp [pcdata "send other cookie"] ()]])))
 (*wiki*
 
           

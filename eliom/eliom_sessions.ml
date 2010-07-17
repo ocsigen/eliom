@@ -142,6 +142,9 @@ let get_previous_extension_error_code ~sp =
 let get_si ~sp =
   sp.Eliom_common.sp_si
 
+let get_user_cookies ~sp = sp.Eliom_common.sp_user_cookies
+let get_user_tab_cookies ~sp = sp.Eliom_common.sp_user_tab_cookies
+
 let get_service_session_cookie
     ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
   try

@@ -23,14 +23,6 @@ open Ocsigen_cookies
 
 type etag = string
 
-(** [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
-   to [oldcookies]. If cookies are already bound in oldcookies,
-   the previous binding disappear. *)
-val add_cookies :
-    cookie Ocsigen_lib.String_Table.t Cookies.t ->
-      cookie Ocsigen_lib.String_Table.t Cookies.t ->
-        cookie Ocsigen_lib.String_Table.t Cookies.t
-
 (** [compute_new_ri_cookies now path ri_cookies cookies_to_set]
    adds the cookies from [cookies_to_set]
    to [ri_cookies], as if the cookies

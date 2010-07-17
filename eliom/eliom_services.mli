@@ -35,30 +35,6 @@ exception Wrong_session_table_for_CSRF_safe_coservice
 val sync : ('a -> 'b -> 'c -> 'd) -> 'a -> 'b -> 'c -> 'd Lwt.t
 
 
-(** Type used for other cookies to set or unset.
-    The float option is the timestamp for the expiration date.
-    The strings are names and values.
- *)
-type cookie =
-  | Set of Eliom_common.cookie_type * 
-      Ocsigen_lib.url_path option * float option * string * string * bool
-  | Unset of Eliom_common.cookie_type * Ocsigen_lib.url_path option * string
-
-(** Conversion fonction from Eliom cookies to server cookies.
-    If [?oldtable] is present, cookies are added to this table
- *)
-val cookie_table_of_eliom_cookies :
-  Eliom_common.cookie_type ->
-  ?oldtable:Ocsigen_cookies.cookieset ->
-  sp:Eliom_sessions.server_params -> 
-  cookie list -> 
-  Ocsigen_cookies.cookieset
-
-
-
-
-
-
 
 (** {2 Types of services} *)
 
@@ -588,8 +564,7 @@ val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool
 (* val reconstruct_absolute_url_path : Ocsigen_lib.url_path -> Ocsigen_lib.url_path -> Ocsigen_lib.url_path option -> string
 val reconstruct_relative_url_path : Ocsigen_lib.url_path -> Ocsigen_lib.url_path -> Ocsigen_lib.url_path option -> string
 *)
-val escookiel_of_eccookiel : Eliom_common.cookie list -> cookie list
-val eccookiel_of_escookiel : cookie list -> Eliom_common.cookie list
+
 val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> 
   [ `All | `Persistent | `None ]
 

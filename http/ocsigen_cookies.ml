@@ -47,3 +47,24 @@ let remove_cookie path n t =
     then Cookies.remove path t
     else (* We replace the old value *) Cookies.add path newct t
   with Not_found -> t
+
+(* [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
+   to [oldcookies]. If cookies are already bound in oldcookies,
+   the previous binding disappear. *)
+let add_cookies newcookies oldcookies =
+  Cookies.fold
+    (fun path ct t ->
+      Ocsigen_lib.String_Table.fold
+        (fun n v beg ->
+          match v with
+          | OSet (expo, v, secure) ->
+              add_cookie path n (OSet (expo, v, secure)) beg
+          | OUnset ->
+              add_cookie path n OUnset beg
+        )
+        ct
+        t
+    )
+    newcookies
+    oldcookies
+

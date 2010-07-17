@@ -26,6 +26,62 @@ type ('a, 'b) leftright = Left of 'a | Right of 'b
 
 let comp f g x = f (g x)
 
+let uncurry2 f (x, y) = f x y
+
+let rec list_remove_first_if_any a = function
+  |  [] -> []
+  | b::l when a = b -> l
+  | b::l -> b::(list_remove_first_if_any a l)
+
+let rec list_remove_first_if_any_q a = function
+  |  [] -> []
+  | b::l when a == b -> l
+  | b::l -> b::(list_remove_first_if_any_q a l)
+
+let rec list_remove_first a = function
+  |  [] -> raise Not_found
+  | b::l when a = b -> l
+  | b::l -> b::(list_remove_first a l)
+
+let rec list_remove_first_q a = function
+  | [] -> raise Not_found
+  | b::l when a == b -> l
+  | b::l -> b::(list_remove_first_q a l)
+
+let rec list_remove_all a = function
+  | [] -> []
+  | b::l when a = b -> list_remove_all a l
+  | b::l -> b::(list_remove_all a l)
+
+let rec list_remove_all_q a = function
+  | [] -> []
+  | b::l when a == b -> list_remove_all_q a l
+  | b::l -> b::(list_remove_all_q a l)
+
+let rec list_remove_all_assoc a = function
+  | [] -> []
+  | (b, _)::l when a = b -> list_remove_all_assoc a l
+  | b::l -> b::(list_remove_all_assoc a l)
+
+let rec list_remove_all_assoc_q a = function
+  | [] -> []
+  | (b,_)::l when a == b -> list_remove_all_assoc_q a l
+  | b::l -> b::(list_remove_all_assoc_q a l)
+
+
+
+let rec list_last = function
+  |  [] -> raise Not_found
+  | [b] -> b
+  | _::l -> list_last l
+
+let rec list_assoc_remove a = function
+  | [] -> raise Not_found
+  | (b, c)::l when a = b -> c, l
+  | b::l -> let v, ll = list_assoc_remove a l in (v, b::ll)
+
+
+
 let apply_option f = function
   | None -> None
   | Some v -> Some (f v)
@@ -165,3 +221,70 @@ let rec split ?(multisep=false) char s =
       with Not_found -> [remove_spaces s deb (longueur-1)]
   in
   aux 0
+
+
+(** various functions for URLs *)
+
+let remove_dotdot =
+  (* removes "../" *) 
+  let rec aux = function
+    | [] -> []
+    | [""] as l -> l
+(*    | ""::l -> aux l *) (* we do not remove "//" any more, 
+                             because of optional suffixes in Eliom *)
+    | ".."::l -> aux l
+    | a::l -> a::(aux l)
+  in function
+    | [] -> []
+    | ""::l -> ""::(aux l)
+    | l -> aux l
+
+let remove_slash_at_beginning = function
+  | [] -> []
+  | [""] -> [""]
+  | ""::l -> l
+  | l -> l
+
+let rec recursively_remove_slash_at_beginning = function
+  | [] -> []
+  | [""] -> [""]
+  | ""::l -> recursively_remove_slash_at_beginning l
+  | l -> l
+
+let rec remove_slash_at_end = function
+  | []
+  | [""] -> []
+  | a::l -> a::(remove_slash_at_end l)
+
+let rec add_end_slash_if_missing = function
+  | [] -> [""]
+  | [""] as a -> a
+  | a::l -> a::(add_end_slash_if_missing l)
+
+let change_empty_list = function
+  | [] -> [""] (* It is not possible to register an empty URL *)
+  | l -> l
+
+let remove_end_slash s =
+  try
+    if s.[(String.length s) - 1] = '/'
+    then String.sub s 0 ((String.length s) - 1)
+    else s
+  with Invalid_argument _ -> s
+
+
+let rec string_first_diff s1 s2 n last =
+(* returns the index of the first difference between s1 and s2,
+   starting from n and ending at last.
+   returns (last + 1) if no difference is found.
+ *)
+  try
+    if s1.[n] = s2.[n]
+    then begin
+      if n = last
+      then last+1
+      else string_first_diff s1 s2 (n+1) last
+    end
+    else n
+  with Invalid_argument _ -> n
+

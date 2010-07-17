@@ -141,16 +141,6 @@ val appl_name_cookie_name : string
 val inline_class_name : string
 val nodisplay_class_name : string
 
-(** Type used for cookies to set.
-    The float option is the timestamp for the expiration date.
-    The strings are names and values.
- *)
-type cookie =
-  | Set of
-      cookie_type *
-        Ocsigen_lib.url_path option * float option * string * string * bool
-  | Unset of cookie_type * Ocsigen_lib.url_path option * string
-
 
 
 type sess_info = {

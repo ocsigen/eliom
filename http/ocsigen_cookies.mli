@@ -38,6 +38,8 @@ type cookie =
 
 type cookieset = cookie Ocsigen_lib.String_Table.t Cookies.t
 
+val empty_cookieset : 'a Ocsigen_lib.String_Table.t Cookies.t
+
 
 (** [add_cookie path c v cookie_table] 
     adds the cookie [c] to the table [cookie_table].
@@ -54,5 +56,11 @@ val remove_cookie : url_path -> string ->
   'a Ocsigen_lib.String_Table.t Cookies.t ->
   'a Ocsigen_lib.String_Table.t Cookies.t
 
-val empty_cookieset : 'a Ocsigen_lib.String_Table.t Cookies.t
+(** [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
+   to [oldcookies]. If cookies are already bound in oldcookies,
+   the previous binding disappear. *)
+val add_cookies :
+    cookie Ocsigen_lib.String_Table.t Cookies.t ->
+      cookie Ocsigen_lib.String_Table.t Cookies.t ->
+        cookie Ocsigen_lib.String_Table.t Cookies.t
 

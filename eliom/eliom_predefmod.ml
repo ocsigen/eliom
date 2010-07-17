@@ -118,14 +118,12 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   let application_name = None
 
-  let send ?(options = `XHTML_01_01) ?(cookies=[]) ?charset ?code
+  let send ?(options = `XHTML_01_01) ?charset ?code
       ?content_type ?headers ~sp content =
     Xhtml_content.result_of_content ~options content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
@@ -222,14 +220,12 @@ module SubXhtml = functor(T : sig type content end) ->
 
       let application_name = None
 
-      let send ?options ?(cookies=[]) ?charset ?code 
+      let send ?options ?charset ?code 
           ?content_type ?headers ~sp content =
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
           {r with
-             res_cookies= 
-              Eliom_services.cookie_table_of_eliom_cookies
-                Eliom_common.CBrowser ~sp cookies;
+             res_cookies= (Eliom_sessions.get_user_cookies ~sp);
              res_code= code_of_code_option code;
              res_charset= (match charset with
                              | None -> Some (get_config_default_charset sp)
@@ -285,14 +281,12 @@ module Textreg_ = struct
 
   let application_name = None
 
-  let send ?options ?(cookies=[]) ?charset ?code 
+  let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
     Ocsigen_senders.Text_content.result_of_content content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None ->  Some (get_config_default_charset sp)
@@ -329,15 +323,13 @@ module CssTextreg_ = struct
 
   let application_name = None
 
-  let send ?options ?(cookies=[]) ?charset ?code
+  let send ?options ?charset ?code
       ?content_type ?headers ~sp content =
     Ocsigen_senders.Text_content.result_of_content (content, "text/css")
     >>= fun r ->
     Lwt.return
       {r with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
@@ -376,15 +368,13 @@ module HtmlTextreg_ = struct
 
   let application_name = None
 
-  let send ?options ?(cookies=[]) ?charset ?code 
+  let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
     Ocsigen_senders.Text_content.result_of_content (content, "text/html")
     >>= fun r ->
     Lwt.return
       {r with
-         res_cookies= 
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
@@ -627,28 +617,26 @@ module Actionreg_ = struct
   let application_name = None
 
   let send
-      ?(options = `Reload) ?(cookies=[]) ?charset ?(code = 204)
+      ?(options = `Reload) ?charset ?(code = 204)
       ?content_type ?headers ~sp () =
-    let cookies_set_by_page = cookies in
+    let cookies_set_by_page = (Eliom_sessions.get_user_cookies ~sp) in
     if options = `NoReload
     then
       let empty_result = Ocsigen_http_frame.empty_result () in
       Lwt.return
         {empty_result with
-           res_cookies=
-            Eliom_services.cookie_table_of_eliom_cookies
-              Eliom_common.CBrowser ~sp cookies;
-           res_code= code;
-           res_content_type= (match content_type with
-                                | None -> empty_result.res_content_type
-                                | _ -> content_type
-                             );
-           res_headers= (match headers with
-                           | None -> empty_result.res_headers
-                           | Some headers -> 
-                               Http_headers.with_defaults 
-                                 headers empty_result.res_headers
-                        );
+          res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+          res_code= code;
+          res_content_type= (match content_type with
+            | None -> empty_result.res_content_type
+            | _ -> content_type
+          );
+          res_headers= (match headers with
+            | None -> empty_result.res_headers
+            | Some headers -> 
+              Http_headers.with_defaults 
+                headers empty_result.res_headers
+          );
         }
     else
       (* It is an action, we reload the page.
@@ -660,140 +648,137 @@ module Actionreg_ = struct
          If no GET state,
          we do not reload, otherwise it will loop.
       *)
-(* be very careful while re-reading this *)
+      (* be very careful while re-reading this *)
       let sitedata = Eliom_sessions.get_sitedata ~sp in
       let si = Eliom_sessions.get_si ~sp in
       let ri = Eliom_sessions.get_request ~sp in
       let all_user_cookies =
-        Eliommod_cookies.add_cookie_list_to_send
-          Eliom_common.CBrowser
-          sitedata
-          (Eliom_services.eccookiel_of_escookiel cookies_set_by_page)
-          Ocsigen_cookies.Cookies.empty
+        Ocsigen_cookies.add_cookies
+          cookies_set_by_page
+          (Eliom_sessions.get_user_cookies ~sp)
       in
 
       (match si.Eliom_common.si_nonatt_info,
-         si.Eliom_common.si_state_info,
-         ri.request_info.ri_method with
-           | Eliom_common.RNa_no,
-             (Eliom_common.RAtt_no, Eliom_common.RAtt_no), 
-             Ocsigen_http_frame.Http_header.GET ->
-             let empty_result = Ocsigen_http_frame.empty_result () in
-             Lwt.return empty_result 
-           | _ ->
-
-               let all_cookie_info = 
-                 (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_cookie_info 
+        si.Eliom_common.si_state_info,
+        ri.request_info.ri_method with
+          | Eliom_common.RNa_no,
+        (Eliom_common.RAtt_no, Eliom_common.RAtt_no), 
+        Ocsigen_http_frame.Http_header.GET ->
+            let empty_result = Ocsigen_http_frame.empty_result () in
+            Lwt.return empty_result 
+          | _ ->
+            let all_cookie_info = 
+              (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_cookie_info 
+            in
+            Eliommod_cookies.compute_new_ri_cookies
+              (Unix.time ())
+              ri.request_info.ri_sub_path
+              (Lazy.force ri.request_info.ri_cookies)
+              all_cookie_info
+              cookies_set_by_page
+            >>= fun ric ->
+            
+            Eliommod_cookies.compute_cookies_to_send
+              sitedata
+              all_cookie_info
+              all_user_cookies
+            >>= fun all_new_cookies ->
+            
+            (match
+                (si.Eliom_common.si_nonatt_info,
+                 si.Eliom_common.si_state_info,
+                 ri.request_info.ri_method)
+             with
+               | (Eliom_common.RNa_get_ _,
+                  (_, Eliom_common.RAtt_no), 
+                  Ocsigen_http_frame.Http_header.GET)
+               | (Eliom_common.RNa_get' _,
+                  (_, Eliom_common.RAtt_no), 
+                  Ocsigen_http_frame.Http_header.GET)
+                  (* no post params, GET na coservice *)
+               | (Eliom_common.RNa_no,
+                  (_, Eliom_common.RAtt_no), 
+                  Ocsigen_http_frame.Http_header.GET)
+                    (* no post params, GET attached coservice *)
+             ->
+                 Polytables.set
+                   ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                   Eliom_common.eliom_params_after_action
+                   (si.Eliom_common.si_all_get_params,
+                    si.Eliom_common.si_all_post_params, (* is [] *)
+                    si.Eliom_common.si_nl_get_params,
+                    si.Eliom_common.si_nl_post_params,
+                    si.Eliom_common.si_all_get_but_nl)
+               ;
+               let ri =
+                 {ri.request_info with
+                   ri_cookies= lazy ric;
+                   ri_get_params = 
+                     lazy si.Eliom_common.si_other_get_params;
+                        (* Here we modify ri, 
+                           thus the request can be taken by other extensions, 
+                           with its new parameters *)
+                 }
                in
-               Eliommod_cookies.compute_new_ri_cookies
-                 (Unix.time ())
-                 ri.request_info.ri_sub_path
-                 (Lazy.force ri.request_info.ri_cookies)
-                 all_cookie_info
-                 (Eliom_services.eccookiel_of_escookiel cookies_set_by_page)
-               >>= fun ric ->
+               Ocsigen_extensions.serve_request 
+                 ~previous_cookies:all_new_cookies ri
+                 
 
-               Eliommod_cookies.compute_cookies_to_send
-                 sitedata
-                 all_cookie_info
-                 all_user_cookies
-               >>= fun all_new_cookies ->
-
-               (match
-                  si.Eliom_common.si_nonatt_info,
-                  si.Eliom_common.si_state_info,
-                  ri.request_info.ri_method
-                with
-                  | Eliom_common.RNa_get_ _,
-                    (_, Eliom_common.RAtt_no), 
-                    Ocsigen_http_frame.Http_header.GET
-                  | Eliom_common.RNa_get' _,
-                    (_, Eliom_common.RAtt_no), 
-                    Ocsigen_http_frame.Http_header.GET
-                      (* no post params, GET na coservice *)
-                  | Eliom_common.RNa_no,
-                    (_, Eliom_common.RAtt_no), 
-                    Ocsigen_http_frame.Http_header.GET
-                      (* no post params, GET attached coservice *)
-                    ->
-                      Polytables.set
-                        ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-                        Eliom_common.eliom_params_after_action
-                        (si.Eliom_common.si_all_get_params,
-                         si.Eliom_common.si_all_post_params, (* is [] *)
-                         si.Eliom_common.si_nl_get_params,
-                         si.Eliom_common.si_nl_post_params,
-                         si.Eliom_common.si_all_get_but_nl)
-                      ;
-                      let ri =
-                        {ri.request_info with
-                           ri_cookies= lazy ric;
-                           ri_get_params = 
-                            lazy si.Eliom_common.si_other_get_params;
-       (* Here we modify ri, 
-          thus the request can be taken by other extensions, 
-          with its new parameters *)
-                        }
-                      in
-                      Ocsigen_extensions.serve_request 
-                        ~previous_cookies:all_new_cookies ri
-                        
-
-                  | Eliom_common.RNa_post_ _, (_, _), _
-                  | Eliom_common.RNa_post' _, (_, _), _ ->
+               | (Eliom_common.RNa_post_ _, (_, _), _)
+               | (Eliom_common.RNa_post' _, (_, _), _) ->
                       (* POST na coservice *)
                       (* retry without POST params *)
-                      
-                      Polytables.set
-                        ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-                        Eliom_common.eliom_params_after_action
-                        (si.Eliom_common.si_all_get_params,
-                         si.Eliom_common.si_all_post_params,
-                         si.Eliom_common.si_nl_get_params,
-                         si.Eliom_common.si_nl_post_params,
-                         si.Eliom_common.si_all_get_but_nl)
-                      ;
-                      let ri =
-                        {ri.request_info with
-                           ri_method = Ocsigen_http_frame.Http_header.GET;
-                           ri_cookies= lazy ric;
-                           ri_get_params = 
-                            lazy si.Eliom_common.si_other_get_params;
-                           ri_post_params = (fun _ -> Lwt.return []);
-                           ri_files = (fun _ -> Lwt.return []);
-                        }
-                      in
-                      Ocsigen_extensions.serve_request
-                        ~previous_cookies:all_new_cookies ri
+                 
+                 Polytables.set
+                   ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                   Eliom_common.eliom_params_after_action
+                   (si.Eliom_common.si_all_get_params,
+                    si.Eliom_common.si_all_post_params,
+                    si.Eliom_common.si_nl_get_params,
+                    si.Eliom_common.si_nl_post_params,
+                    si.Eliom_common.si_all_get_but_nl)
+                 ;
+                 let ri =
+                   {ri.request_info with
+                     ri_method = Ocsigen_http_frame.Http_header.GET;
+                     ri_cookies= lazy ric;
+                     ri_get_params = 
+                       lazy si.Eliom_common.si_other_get_params;
+                     ri_post_params = (fun _ -> Lwt.return []);
+                     ri_files = (fun _ -> Lwt.return []);
+                   }
+                 in
+                 Ocsigen_extensions.serve_request
+                   ~previous_cookies:all_new_cookies ri
 
-                  | _ ->
-                        (* retry without POST params *)
-(*VVV 
-Warning: is it possible to have POST method but no POST parameter?
---> may loop...
-(we impose GET)
-*)
-                      Polytables.set
-                        ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-                        Eliom_common.eliom_params_after_action
-                        (si.Eliom_common.si_all_get_params,
-                         si.Eliom_common.si_all_post_params,
-                         si.Eliom_common.si_nl_get_params,
-                         si.Eliom_common.si_nl_post_params,
-                         si.Eliom_common.si_all_get_but_nl)
-                      ;
-                      let ri = 
-                        {ri.request_info with
-                           ri_method = Ocsigen_http_frame.Http_header.GET;
-                           ri_cookies= lazy ric;
-                           ri_get_params = 
-                            lazy si.Eliom_common.si_other_get_params;
-                           ri_post_params = (fun _ -> Lwt.return []);
-                           ri_files = (fun _ -> Lwt.return []);
-                        }
-                      in
-                      Ocsigen_extensions.serve_request
-                        ~previous_cookies:all_new_cookies ri)
+               | _ ->
+                      (* retry without POST params *)
+                      (*VVV 
+                        Warning: is it possible to have POST method but no POST parameter?
+                        --> may loop...
+                        (we impose GET)
+                      *)
+                 Polytables.set
+                   ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                   Eliom_common.eliom_params_after_action
+                   (si.Eliom_common.si_all_get_params,
+                    si.Eliom_common.si_all_post_params,
+                    si.Eliom_common.si_nl_get_params,
+                    si.Eliom_common.si_nl_post_params,
+                    si.Eliom_common.si_all_get_but_nl)
+                 ;
+                 let ri = 
+                   {ri.request_info with
+                     ri_method = Ocsigen_http_frame.Http_header.GET;
+                     ri_cookies= lazy ric;
+                     ri_get_params = 
+                       lazy si.Eliom_common.si_other_get_params;
+                     ri_post_params = (fun _ -> Lwt.return []);
+                     ri_files = (fun _ -> Lwt.return []);
+                   }
+                 in
+                 Ocsigen_extensions.serve_request
+                   ~previous_cookies:all_new_cookies ri)
       )
 
 end
@@ -821,14 +806,12 @@ module Unitreg_ = struct
 
   let application_name = None
 
-  let send ?options ?(cookies=[]) ?charset ?(code = 204)
+  let send ?options ?charset ?(code = 204)
       ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
     Lwt.return
       {empty_result with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code;
          res_content_type= (match content_type with
                               | None -> empty_result.res_content_type
@@ -872,7 +855,7 @@ module String_redirreg_ = struct
 
   let application_name = None
 
-  let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code
+  let send ?(options = `Permanent) ?charset ?code
       ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
     let code = match code with
@@ -884,9 +867,7 @@ module String_redirreg_ = struct
     in
     Lwt.return
       {empty_result with
-         res_cookies= 
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code;
          res_location = Some (XHTML.M.string_of_uri content);
          res_content_type= (match content_type with
@@ -927,7 +908,7 @@ module Redirreg_ = struct
 
   let application_name = None
 
-  let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code
+  let send ?(options = `Permanent) ?charset ?code
       ?content_type ?headers ~sp content =
     let empty_result = Ocsigen_http_frame.empty_result () in
     let uri = Xhtml.make_string_uri ~absolute:true ~sp ~service:content () in
@@ -940,9 +921,7 @@ module Redirreg_ = struct
     in
     Lwt.return
       {empty_result with
-         res_cookies= 
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code;
          res_location = Some uri;
          res_content_type= (match content_type with
@@ -981,16 +960,14 @@ module Anyreg_ = struct
 
   let application_name = None
 
-  let send ?options ?(cookies=[]) ?charset ?code
+  let send ?options ?charset ?code
       ?content_type ?headers ~sp res =
     Lwt.return
       {res with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser 
-            ~oldtable:res.res_cookies
-            ~sp
-            cookies;
+         res_cookies= 
+          Ocsigen_cookies.add_cookies
+            (Eliom_sessions.get_user_cookies ~sp)
+            res.res_cookies;
          res_charset= (match charset with
                          | None -> res.res_charset
                          | _ -> charset);
@@ -1026,7 +1003,7 @@ module Filesreg_ = struct
 
   let application_name = None
 
-  let send ?options ?(cookies=[]) ?charset ?code
+  let send ?options ?charset ?code
       ?content_type ?headers ~sp filename =
     let file =
       try Ocsigen_LocalFiles.resolve (Eliom_sessions.get_request sp) filename
@@ -1040,9 +1017,7 @@ module Filesreg_ = struct
     >>= fun r ->
     Lwt.return
       { r with
-          res_cookies =
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+          res_cookies = (Eliom_sessions.get_user_cookies ~sp);
           res_code = code_of_code_option code;
           res_charset = (match charset with
                            | None ->
@@ -1084,14 +1059,12 @@ module Streamlistreg_ = struct
 
   let application_name = None
 
-  let send ?options ?(cookies=[]) ?charset ?code
+  let send ?options ?charset ?code
       ?content_type ?headers ~sp content =
     Ocsigen_senders.Streamlist_content.result_of_content content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None ->  Some (get_config_default_charset sp)
@@ -1131,9 +1104,9 @@ module Camlreg_ = struct
 
   let application_name = None
 
-  let send ?options ?cookies ?charset ?code 
+  let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
-    Text.send ?options ?cookies ?charset ?code 
+    Text.send ?options ?charset ?code 
       ?content_type ?headers ~sp (content, "application/x-eliom")
 
 end
@@ -1163,14 +1136,13 @@ module Caml = struct
 
   let application_name = None
 
-  let send ?options ?cookies ?charset ?code 
+  let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
-    M.send ?options ?cookies ?charset ?code 
+    M.send ?options ?charset ?code 
       ?content_type ?headers ~sp (encode_data content)
 
   let register
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1185,7 +1157,6 @@ module Caml = struct
       (f : (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t)) =
     M.register
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1198,7 +1169,6 @@ module Caml = struct
 
   let register_for_session
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1211,7 +1181,6 @@ module Caml = struct
       f =
     M.register_for_session
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1225,7 +1194,6 @@ module Caml = struct
 
   let register_new_service 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1238,7 +1206,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_service 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1252,7 +1219,6 @@ module Caml = struct
 
   let register_new_coservice 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1271,7 +1237,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_coservice 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1291,7 +1256,6 @@ module Caml = struct
 
   let register_new_coservice' 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1309,7 +1273,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_coservice' 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1328,7 +1291,6 @@ module Caml = struct
 
   let register_new_coservice_for_session 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1347,7 +1309,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_coservice_for_session 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1367,7 +1328,6 @@ module Caml = struct
 
   let register_new_coservice_for_session' 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1385,7 +1345,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_coservice_for_session' 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1404,7 +1363,6 @@ module Caml = struct
 
   let register_new_post_service 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1417,7 +1375,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_post_service 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1431,7 +1388,6 @@ module Caml = struct
 
   let register_new_post_coservice 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1450,7 +1406,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_post_coservice 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1470,7 +1425,6 @@ module Caml = struct
 
   let register_new_post_coservice' 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1489,7 +1443,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_post_coservice' 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1509,7 +1462,6 @@ module Caml = struct
 
   let register_new_post_coservice_for_session 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1528,7 +1480,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_post_coservice_for_session 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1548,7 +1499,6 @@ module Caml = struct
 
   let register_new_post_coservice_for_session' 
       ?options
-      ?cookies
       ?charset
       ?code
       ?content_type
@@ -1567,7 +1517,6 @@ module Caml = struct
       f =
     Eliom_services.untype_service_ (M.register_new_post_coservice_for_session' 
                                       ?options
-                                      ?cookies
                                       ?charset
                                       ?code
                                       ?content_type
@@ -1636,12 +1585,11 @@ module Eliom_appl_reg_
   let change_page_event_table : ('a -> unit) Eliom_sessions.volatile_table =
     Eliom_sessions.create_volatile_table ()
 
-  let get_tab_cook sp cookies =
+  let get_tab_cook sp =
     Eliommod_cookies.compute_cookies_to_send
       (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_sitedata
       (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_tab_cookie_info
-      (Eliom_services.cookie_table_of_eliom_cookies
-         Eliom_common.CTab ~sp cookies)
+      (Eliom_sessions.get_user_tab_cookies ~sp)
                         
   let create_page
       ~sp params do_not_launch_application cookies_to_send
@@ -1764,8 +1712,8 @@ redir ();"))::
   let application_name = Some Appl_params.application_name
 
 
-  let get_eliom_page_content sp cookies content =
-    get_tab_cook sp cookies >>= fun tab_cookies_to_send ->
+  let get_eliom_page_content sp content =
+    get_tab_cook sp >>= fun tab_cookies_to_send ->
 (*VVV Here we do not send a stream *)
     Lwt.return (((Ocsigen_lib.Right
                     (XML.make_ref_tree_list (XHTML.M.toeltl content)),
@@ -1777,7 +1725,7 @@ redir ();"))::
     )
 
 
-  let send ?(options = false) ?(cookies=[]) ?charset ?code
+  let send ?(options = false) ?charset ?code
       ?content_type ?headers ~sp content =
     let content_only = Eliom_process.get_content_only ~sp in
     (if content_only &&
@@ -1794,7 +1742,7 @@ redir ();"))::
                 ~table:change_page_event_table ~sp ())
        with
          | Eliom_sessions.Data change_current_page ->
-           get_eliom_page_content sp cookies content >>= fun data ->
+           get_eliom_page_content sp content >>= fun data ->
            change_current_page data;
            Lwt.return (Ocsigen_http_frame.empty_result ())
          | Eliom_sessions.Data_session_expired
@@ -1805,7 +1753,7 @@ redir ();"))::
      else if content_only
 (*VVV do not send container! *)
      then 
-        get_eliom_page_content sp cookies content >>= Caml.send ~sp
+        get_eliom_page_content sp content >>= Caml.send ~sp
      else begin
        let change_page_event, change_current_page =
          (* This event allows the server to ask the client to change 
@@ -1816,15 +1764,11 @@ redir ();"))::
          ~session_name:eliom_appl_session_name
          ~cookie_type:Eliom_common.CTab
          ~table:change_page_event_table ~sp change_current_page;
-       get_tab_cook sp
-         ((Eliom_services.Set (Eliom_common.CTab,
-                               None,
-                               None,
-                               Eliom_common.appl_name_cookie_name,
-                               Appl_params.application_name,
-                               false)
-          )::cookies)
-       >>= fun tab_cookies_to_send ->
+       Eliom_sessions.set_cookie ~sp
+         ~cookie_type:Eliom_common.CTab
+         ~name:Eliom_common.appl_name_cookie_name
+         ~value:Appl_params.application_name ();
+       get_tab_cook sp >>= fun tab_cookies_to_send ->
        let do_not_launch = options (* || 
           (Ocsigen_cookies.length tab_cookies_to_send > 1)
           (* If there are cookies, we launch the application *)
@@ -1845,9 +1789,7 @@ redir ();"))::
        >>= fun r ->
         Lwt.return
           {r with
-            res_cookies=
-              Eliom_services.cookie_table_of_eliom_cookies
-                Eliom_common.CBrowser ~sp cookies;
+            res_cookies= (Eliom_sessions.get_user_cookies ~sp);
             res_code= code_of_code_option code;
             res_charset= (match charset with
               | None -> Some (get_config_default_charset sp)
@@ -1952,14 +1894,12 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   end
 
-  let send ?(options = `XHTML_05_00) ?(cookies=[]) ?charset ?code
+  let send ?(options = `XHTML_05_00) ?charset ?code
       ?content_type ?headers ~sp content =
     Xhtml_content.result_of_content ~options content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies=
-          Eliom_services.cookie_table_of_eliom_cookies
-            Eliom_common.CBrowser ~sp cookies;
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)

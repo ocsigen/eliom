@@ -31,25 +31,6 @@ include Eliom_services_cli
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
-(** Type used for cookies to set.
-    The float option is the timestamp for the expiration date.
-    The strings are names and values.
- *)
-type cookie = 
-    Eliom_common.cookie =
-  | Set of Eliom_common.cookie_type *
-      Ocsigen_lib.url_path option * float option * string * string * bool
-  | Unset of Eliom_common.cookie_type * Ocsigen_lib.url_path option * string
-
-let cookie_table_of_eliom_cookies
-    cookie_type ?(oldtable= Ocsigen_cookies.Cookies.empty) ~sp cl =
-  Eliommod_cookies.add_cookie_list_to_send
-    cookie_type
-    (Eliom_sessions.get_sitedata sp)
-    cl oldtable
-
-
-
 
 
 (** This function may be used for services that cannot be interrupted
@@ -456,8 +437,6 @@ let set_exn_handler ?sp h =
 let add_service = Eliommod_services.add_service
 let add_naservice = Eliommod_naservices.add_naservice
 
-let eccookiel_of_escookiel = Ocsigen_lib.id
-let escookiel_of_eccookiel = Ocsigen_lib.id
 
 
 (*****************************************************************************)

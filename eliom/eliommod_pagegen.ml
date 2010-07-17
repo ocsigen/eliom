@@ -253,9 +253,7 @@ let gen is_eliom_extension sitedata = function
                  info
                  sitedata >>= fun res ->
 
-               let all_user_cookies = 
-                 res.Ocsigen_http_frame.res_cookies
-               in
+               let all_user_cookies = res.Ocsigen_http_frame.res_cookies in
            
                Eliommod_cookies.compute_cookies_to_send
                  sitedata
