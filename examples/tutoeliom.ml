@@ -2993,7 +2993,7 @@ let _ = Eliom_predefmod.Xhtml.register cookies
          (body [p [pcdata (try
                              "cookie value: "^
                                (Ocsigen_lib.String_Table.find
-                                  cookiename (Eliom_sessions.get_cookies sp))
+                                  cookiename (Eliom_sessions.get_cookies ~sp ()))
                            with _ -> "<cookie not set>");
                    br ();
                    a cookies sp [pcdata "send other cookie"] ()]])))

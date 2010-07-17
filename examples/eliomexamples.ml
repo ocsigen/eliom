@@ -799,7 +799,7 @@ let _ = Eliom_predefmod.Xhtml.register cookies
       Eliom_sessions.set_cookie
         ~sp ~path:["c";"plop"] ~name:(cookiename^"12") 
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
-      if Ocsigen_lib.String_Table.mem (cookiename^"1") (get_cookies sp)
+      if Ocsigen_lib.String_Table.mem (cookiename^"1") (get_cookies ~sp ())
       then
         (Eliom_sessions.unset_cookie ~sp ~name:(cookiename^"1") ();
          Eliom_sessions.unset_cookie ~sp ~name:(cookiename^"2") ())
@@ -822,7 +822,7 @@ let _ = Eliom_predefmod.Xhtml.register cookies
                           (pcdata (n^"="^v))::
                             (br ())::l
                         )
-                        (get_cookies sp)
+                        (get_cookies ~sp ())
                         [a cookies sp [pcdata "send other cookies"] ""; br ();
                          a cookies sp [pcdata "send other cookies and see the url /c/plop"] "plop"]
                      )]))

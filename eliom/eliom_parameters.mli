@@ -474,5 +474,4 @@ val list_of_nl_params_set : nl_params_set -> (string * string) list
 val string_of_nl_params_set : nl_params_set -> string
 
 (**/**)
-val request_tab_cookies_key : string Ocsigen_lib.String_Table.t Polytables.key
 val nlp_tab_cookies_name : string

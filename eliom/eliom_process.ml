@@ -27,11 +27,8 @@ let content_only_key = Polytables.make_key ()
 (*VVV better put this somewhere else than in rc? directly in sp? *)
 let get_application_name_cookie ~sp =
   let esp = Eliom_sessions.esp_of_sp sp in
-  let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
+  let cookie_table = esp.Eliom_common.sp_si.Eliom_common.si_tab_cookies in
   try
-    let cookie_table =
-      Polytables.get ~table:rc ~key:Eliom_parameters.request_tab_cookies_key
-    in
     Some (Ocsigen_lib.String_Table.find
             Eliom_common.appl_name_cookie_name cookie_table)
   with Not_found -> None

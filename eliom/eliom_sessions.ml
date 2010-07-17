@@ -131,8 +131,14 @@ let get_expired_service_sessions ~sp =
 let get_config_default_charset ~sp =
   Ocsigen_charset_mime.default_charset
     sp.Eliom_common.sp_request.request_config.charset_assoc
-let get_cookies ~sp =
-  Lazy.force sp.Eliom_common.sp_request.request_info.ri_cookies
+
+let get_cookies ?(cookie_type = Eliom_common.CBrowser) ~sp () =
+  match cookie_type with
+    | Eliom_common.CBrowser ->
+      Lazy.force sp.Eliom_common.sp_request.request_info.ri_cookies
+    | Eliom_common.CTab ->
+      sp.Eliom_common.sp_si.Eliom_common.si_tab_cookies
+
 let get_data_cookies ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_data_session_cookies
 let get_persistent_cookies ~sp =

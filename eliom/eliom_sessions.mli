@@ -156,7 +156,8 @@ val get_ssl : sp:server_params -> bool
 val get_suffix : sp:server_params -> Ocsigen_lib.url_path option
 
 (** returns the cookies sent by the browser *)
-val get_cookies : sp:server_params -> string Ocsigen_lib.String_Table.t
+val get_cookies : ?cookie_type:Eliom_common.cookie_type ->
+  sp:server_params -> unit -> string Ocsigen_lib.String_Table.t
 
 (** returns an Unix timestamp associated to the request *)
 val get_timeofday : sp:server_params -> float

@@ -950,6 +950,8 @@ let get_session_info req previous_extension_err =
      si_persistent_session_cookies_tab= persistent_cookies_tab;
      si_secure_cookie_info_tab= secure_cookie_info_tab;
 
+     si_tab_cookies= tab_cookies;
+
      si_nonatt_info= naservice_info;
      si_state_info= (get_state, post_state);
      si_other_get_params= other_get_params;

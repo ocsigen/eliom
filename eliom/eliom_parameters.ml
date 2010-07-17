@@ -391,30 +391,17 @@ let get_non_localized_post_parameters ~sp p =
 
 (* tab cookies: *)
 
-let request_tab_cookies_key = Polytables.make_key ()
-
 let _ =
   let (name, _, keys, paramtype) = tab_cookies_nlp in
   Eliom_common.get_tab_cookies :=
     (fun req get_nlp ->
-      let rc = 
-        req.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+      let l = 
+        try
+          let params = Ocsigen_lib.String_Table.find name get_nlp in
+          reconstruct_params_ req paramtype params [] false None
+        with Eliom_common.Eliom_Wrong_parameter | Not_found -> []
       in
-      try
-        Polytables.get ~table:rc ~key:request_tab_cookies_key
-      with Not_found ->
-        let l = 
-          try
-            let params = Ocsigen_lib.String_Table.find name get_nlp in
-            reconstruct_params_ req paramtype params [] false None
-          with Eliom_common.Eliom_Wrong_parameter | Not_found -> []
-        in
-        let tab_cookie_table =
-          List.fold_left
-            (fun beg (n, v) -> Ocsigen_lib.String_Table.add n v beg)
-            Ocsigen_lib.String_Table.empty l
-        in
-        Polytables.set ~table:rc ~key:request_tab_cookies_key
-          ~value:tab_cookie_table;
-        tab_cookie_table
+      List.fold_left
+        (fun beg (n, v) -> Ocsigen_lib.String_Table.add n v beg)
+        Ocsigen_lib.String_Table.empty l
     )

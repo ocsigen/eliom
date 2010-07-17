@@ -212,8 +212,7 @@ let gen is_eliom_extension sitedata = function
     Lwt.return Ocsigen_extensions.Ext_do_nothing
 | Ocsigen_extensions.Req_not_found (404 as previous_extension_err, req) ->
   let now = Unix.time () in
-  Eliom_common.get_session_info req previous_extension_err
-  >>= fun (ri, si) ->
+  Eliom_common.get_session_info req previous_extension_err >>= fun (ri, si) ->
   let (all_cookie_info, closedsessions) =
     Eliommod_cookies.get_cookie_info now
       sitedata

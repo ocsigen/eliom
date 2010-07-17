@@ -145,6 +145,8 @@ type sess_info =
           string Fullsessionname_Table.t *
           string Fullsessionname_Table.t) option;
 
+     si_tab_cookies: string Ocsigen_lib.String_Table.t;
+
      si_nonatt_info: na_key_req;
      si_state_info: (att_key_req * att_key_req);
      si_previous_extension_error: int;
