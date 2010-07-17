@@ -25,3 +25,4 @@ val lwt_register_event : elt -> 'a -> ('b -> 'c Lwt.t) -> 'b -> unit
 val register_event : elt -> 'a -> ('b -> 'c) -> 'b -> unit
 type ref_tree = Ref_tree of int option * (int * ref_tree) list
 val ref_node : elt -> int
+val class_name : string

@@ -164,3 +164,5 @@ val make_ref_tree : elt -> ref_tree
 val make_ref_tree_list : elt list -> (int * ref_tree) list
 
 val register_event : elt -> string -> ('a -> 'b) -> 'a -> unit
+
+val class_name : string

@@ -1302,7 +1302,11 @@ module Version =
 
     (* Core: *)
 
-    let a_class = space_sep_attrib "class"
+    let a_class = space_sep_attrib XML.class_name
+      (* class is different on client side.
+         We put the value in xML.ml 
+         because this file has a different implementation client side.
+      *)
     let a_id = string_attrib "id"
     let a_title = string_attrib "title"
 

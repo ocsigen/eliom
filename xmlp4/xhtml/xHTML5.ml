@@ -889,7 +889,11 @@ module M_05_00 : T_05_00 =
       string_attrib name
         (String.concat ", " (List.map mediadesc_to_string mediadescs));
     (* Core: *)
-    value a_class = space_sep_attrib "class";
+    value a_class = space_sep_attrib XML.class_name;
+      (* class is different on client side.
+         We put the value in xML.ml 
+         because this file has a different implementation client side.
+      *)
     value a_id = string_attrib "id";
     value a_user_data name = string_attrib ("data-" ^ name);
     value a_title = string_attrib "title";

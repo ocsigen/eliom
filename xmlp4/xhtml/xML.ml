@@ -529,3 +529,5 @@ and make_ref_tree root =
 
 	
 let register_event elt name f v = failwith "not implemented server side"
+
+let class_name = "class" (* see xHTML.ml *)

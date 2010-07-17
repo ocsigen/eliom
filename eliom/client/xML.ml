@@ -119,3 +119,5 @@ let register_event elt name f v =
 type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
 let ref_node n = 0 (* not needed on client side *)
+
+let class_name = "className" (* see xHTML.ml *)
