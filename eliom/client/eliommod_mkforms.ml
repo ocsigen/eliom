@@ -112,7 +112,7 @@ let _ =
     Eliom_client_types.add_tab_cookies_to_get_form_id
     (fun node ->
          let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
-         add_tab_cookies_to_get_form (XHTML.M.tot node) ();
+         ignore (add_tab_cookies_to_get_form (XHTML.M.tot node) ());
          Js._true)
 
 let _ =
@@ -120,5 +120,5 @@ let _ =
     Eliom_client_types.add_tab_cookies_to_post_form_id
     (fun node ->
          let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
-         add_tab_cookies_to_post_form (XHTML.M.tot node) ();
+         ignore (add_tab_cookies_to_post_form (XHTML.M.tot node) ());
          Js._true)
