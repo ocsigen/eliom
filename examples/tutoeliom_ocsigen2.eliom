@@ -1521,13 +1521,34 @@ let _ =
       Lwt.return [p [pcdata "This is a CSRF safe service"]])
 
 
+(***** User cookies *****)
+let cookiename = "mycookie"
+
+let cookies = new_service ["tcookies"] unit ()
+
+let _ = Eliom_appl.register cookies
+  (fun sp () () ->
+    Eliom_sessions.set_cookie
+      ~sp ~cookie_type:Eliom_common.CTab
+      ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
+    Lwt.return
+      [p [pcdata (try
+                    "cookie value: "^
+                      (Ocsigen_lib.String_Table.find
+                         cookiename
+                         (Eliom_sessions.get_cookies
+                            ~cookie_type:Eliom_common.CTab ~sp ()))
+        with _ -> "<cookie not set>");
+          br ();
+          a cookies sp [pcdata "send other cookie"] ()]])
+
 
 
 
 
 (*zap* *)
 open Tutoeliom
-
+       
 (* Main page for this example *)
 let main = new_service [] unit ()
 
