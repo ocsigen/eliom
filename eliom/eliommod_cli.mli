@@ -24,7 +24,7 @@
 (* Fresh name generator *)
 val fresh_id : unit -> string
 
-val get_global_eliom_appl_data_ : 
+val get_eliom_appl_page_data_ : 
   sp:Eliom_sessions.server_params -> (int64 * int) * unit list
 
 val wrap : sp:Eliom_sessions.server_params -> 'a -> 

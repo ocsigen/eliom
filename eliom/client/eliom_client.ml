@@ -152,7 +152,7 @@ let get_eliom_data_ s : Eliom_client_types.eliom_data_type * string =
   Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
 
 let load_eliom_data_
-    ((tree, (((timeofday, _), _) as global_data), cookies) :
+    ((tree, (((timeofday, _), _) as page_data), cookies) :
         Eliom_client_types.eliom_data_type)
     node : unit =
   (match tree with
@@ -163,7 +163,7 @@ let load_eliom_data_
         timeofday
         (Js.Unsafe.coerce node##childNodes : Dom_html.element Dom.nodeList Js.t)
         ref_tree_list);
-  Eliommod_cli.fill_global_data_table global_data;
+  Eliommod_cli.fill_page_data_table page_data;
   Eliommod_client_cookies.update_cookie_table cookies
 
 

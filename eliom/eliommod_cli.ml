@@ -115,25 +115,25 @@ let client_sp s =
    Eliom_client_types.sp_fullsessname = s.Eliom_common.sp_fullsessname;}
 
 
-let global_eliom_appl_data_key : ((int64 * int) * unit list) Polytables.key = 
+let eliom_appl_page_data_key : ((int64 * int) * unit list) Polytables.key = 
   Polytables.make_key ()
 
-let get_global_eliom_appl_data_ ~sp = 
+let get_eliom_appl_page_data_ ~sp = 
   let rc = Eliom_sessions.get_request_cache ~sp in
   try 
-    Polytables.get ~table:rc ~key:global_eliom_appl_data_key
+    Polytables.get ~table:rc ~key:eliom_appl_page_data_key
   with Not_found -> 
     let d = ((Eliom_sessions.get_request_id ~sp, 0), []) in
-    Polytables.set ~table:rc ~key:global_eliom_appl_data_key ~value:d;
+    Polytables.set ~table:rc ~key:eliom_appl_page_data_key ~value:d;
     d
 
 let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
   let rc = Eliom_sessions.get_request_cache ~sp in
   let ((reqnum, num) as n, data) =
-    try Polytables.get ~table:rc ~key:global_eliom_appl_data_key
+    try Polytables.get ~table:rc ~key:eliom_appl_page_data_key
     with Not_found -> ((Eliom_sessions.get_request_id ~sp, 0), [])
   in
-  Polytables.set ~table:rc ~key:global_eliom_appl_data_key
+  Polytables.set ~table:rc ~key:eliom_appl_page_data_key
     ~value:((reqnum, num+1), Obj.magic v::data);
   Eliom_client_types.to_data_key_ n
 

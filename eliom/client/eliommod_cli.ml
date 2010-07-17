@@ -28,17 +28,17 @@ external register_closure
 
 let register_closure id f = register_closure id (fun x -> f (unmarshal x))
 
-(* == Global application data *)
-let global_appl_data_table : ((int64 * int), unit) Hashtbl.t = 
+(* == Page application data *)
+let page_appl_data_table : ((int64 * int), unit) Hashtbl.t = 
   Hashtbl.create 50
 
-(* Loading global Eliom application data *)
-let fill_global_data_table ((reqnum, size), l) =
+(* Loading page Eliom application data *)
+let fill_page_data_table ((reqnum, size), l) =
   ignore
     (List.fold_left
        (fun b v -> 
           let n = b-1 in
-          Hashtbl.replace global_appl_data_table (reqnum, n) v;
+          Hashtbl.replace page_appl_data_table (reqnum, n) v;
           n
        )
        size
@@ -89,7 +89,7 @@ and relink_dom_list timeofday
 (* == unwraping server data *)
 
 let unwrap (key : 'a Eliom_client_types.data_key) : 'a = 
-  Obj.magic (Hashtbl.find global_appl_data_table 
+  Obj.magic (Hashtbl.find page_appl_data_table 
                (Eliom_client_types.of_data_key_ key))
 
 let unwrap_sp = unwrap

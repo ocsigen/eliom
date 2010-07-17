@@ -1712,7 +1712,7 @@ redir ();"))::
                                items. Do not create new node refs in
                                previous items!
                             *)
-                               (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
+                               (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
                                cookies_to_send) :
                                  Eliom_client_types.eliom_data_type
                              )
@@ -1769,7 +1769,7 @@ redir ();"))::
 (*VVV Here we do not send a stream *)
     Lwt.return (((Ocsigen_lib.Right
                     (XML.make_ref_tree_list (XHTML.M.toeltl content)),
-                  (Eliommod_cli.get_global_eliom_appl_data_ ~sp),
+                  (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
                   tab_cookies_to_send),
 (*VVV Use another serialization format than XML for the page? *)
                  Xhtmlcompact'.xhtml_list_print content) :
