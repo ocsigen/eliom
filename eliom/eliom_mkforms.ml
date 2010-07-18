@@ -978,10 +978,7 @@ module MakeForms = functor
           ?(no_appl = false)
           content
           getparams =
-        if not no_appl &&
-          (let n = Eliom_process.get_application_name ~sp in
-           (n <> None) &&
-             (n = Eliom_services.get_application_name service))
+        if not no_appl && (Eliom_services.do_appl_xhr ~sp service)
         then
           Eliommod_mkforms.make_a_with_onclick
             (fun ?a ?onclick c -> Pages.make_a ?a ?onclick c)
@@ -1030,10 +1027,7 @@ module MakeForms = functor
           f =
 
         let internal_appl_form =
-          (not no_appl &&
-             (let n = Eliom_process.get_application_name ~sp in
-              (n <> None) &&
-                (n = Eliom_services.get_application_name service)))
+          not no_appl && (Eliom_services.do_appl_xhr ~sp service)
         in
         let nl_params = 
           if internal_appl_form
@@ -1141,10 +1135,7 @@ module MakeForms = functor
           getparams =
 
         let internal_appl_form =
-          (not no_appl &&
-             (let n = Eliom_process.get_application_name ~sp in
-              (n <> None) &&
-                (n = Eliom_services.get_application_name service)))
+          not no_appl && (Eliom_services.do_appl_xhr ~sp service)
         in
         let nl_params = 
           if internal_appl_form

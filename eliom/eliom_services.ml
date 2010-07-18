@@ -241,7 +241,7 @@ let new_coservice'
             };
           https = https;
           keep_nl_params = keep_nl_params;
-          application_name = None;
+          do_appl_xhr = XNever;
         }
 
 
@@ -271,7 +271,7 @@ let new_post_service_aux ~sp ~https ~fallback
     };
    https = https;
    keep_nl_params = keep_nl_params;
-   application_name = None;
+   do_appl_xhr = XNever;
  }
 
 let new_post_service ?sp ?(https = false) ~fallback 
@@ -390,7 +390,7 @@ let new_post_coservice'
       };
     https = https;
     keep_nl_params = keep_nl_params;
-    application_name = None;
+    do_appl_xhr = XNever;
   }
 
 

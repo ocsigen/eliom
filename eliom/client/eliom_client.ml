@@ -27,8 +27,6 @@ let (!!) = Lazy.force
 let current_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
-let appl_name = Eliom_process.appl_name
-
 
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
@@ -332,7 +330,7 @@ let change_page
     ?hostname ?port ?fragment ?keep_nl_params
     ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
     (g : 'get) (p : 'post) =
-  if Eliom_services.get_application_name service <> (Some !!appl_name)
+  if Eliom_services.do_appl_xhr ~sp service
   then
     Lwt.return (exit_to
                   ?absolute ?absolute_path ?https
@@ -363,13 +361,13 @@ let change_page
       and once without it (we do not want it to appear in the URL).
       How to avoid this?
     *)
-    change_url
-      ?absolute ?absolute_path ?https
-      ~service ~sp
-      ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-      g p;
-(*VVV change the URL only if it is different? *)
-    Lwt.return ()
+  change_url
+    ?absolute ?absolute_path ?https
+    ~service ~sp
+    ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+    g p;
+    (*VVV change the URL only if it is different? *)
+  Lwt.return ()
 
 
 

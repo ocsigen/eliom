@@ -32,7 +32,6 @@ let _ =
     in
     let retain_event = 
       React.E.map (fun v ->
-        Firebug.console##log (Js.string "sih");
         Eliom_client.set_inner_html v) change_page_event
     in
     

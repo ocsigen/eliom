@@ -92,6 +92,11 @@ type http (** default return type for services *)
 type appl_service (** return type for service that are entry points for an
                       application *)
 
+type do_appl_xhr =
+  | XNever
+  | XAlways
+  | XSame_appl of string
+
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) service =
 (* 'return is the value returned by the service *)
     {
@@ -107,7 +112,8 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
      kind: 'kind; (* < service_kind *)
      https: bool; (* force https *)
      keep_nl_params: [ `All | `Persistent | `None ];
-     mutable application_name : string option; (* the name of the application to which the service belongs *)
+     mutable do_appl_xhr : do_appl_xhr 
+   (* the string is the name of the application to which the service belongs *)
    }
 
 let get_kind_ s = s.kind
@@ -126,8 +132,6 @@ let get_na_kind_ s = s.na_kind
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
-let get_application_name s = s.application_name
-let set_application_name s n = s.application_name <- n
 
 let get_get_or_post s =
   match get_kind_ (s : ('a, 'b, [< `Attached of (attached_service_kind, [< getpost]) a_s
@@ -165,7 +169,7 @@ let static_dir_ ?(https = false) ~sp () =
         };
      https = https;
      keep_nl_params = `None;
-     application_name = None;
+     do_appl_xhr = XNever;
    }
 
 let static_dir ~sp = static_dir_ ~sp ()
@@ -196,7 +200,7 @@ let get_static_dir_ ?(https = false) ~sp
       };
      https = https;
      keep_nl_params = keep_nl_params;
-     application_name = None;
+     do_appl_xhr = XNever;
    }
 
 let static_dir_with_params ~sp ?keep_nl_params ~get_params () = 
@@ -207,6 +211,17 @@ let https_static_dir_with_params ~sp ?keep_nl_params ~get_params () =
 
 
 (****************************************************************************)
+let get_do_appl_xhr s = s.do_appl_xhr
+let set_do_appl_xhr s n = s.do_appl_xhr <- n
+
+let do_appl_xhr ~sp s =
+  let n = Eliom_process.get_application_name ~sp in
+  (n <> None) && 
+    (match s.do_appl_xhr with
+      | XAlways -> true
+      | XNever -> false
+      | XSame_appl an -> Some an = n)
+
 (****************************************************************************)
 
 
@@ -251,7 +266,7 @@ let void_coservice' =
       };
     https = false;
     keep_nl_params = `All;
-    application_name = None;
+    do_appl_xhr = XNever;
   }
 
 let https_void_coservice' =
@@ -267,7 +282,7 @@ let https_void_coservice' =
       };
     https = true;
     keep_nl_params = `All;
-    application_name = None;
+    do_appl_xhr = XNever;
   }
 
 let void_hidden_coservice' = {void_coservice' with 
@@ -341,7 +356,7 @@ let new_service_aux_aux
     };
    https = https;
    keep_nl_params = keep_nl_params;
-   application_name = None;
+   do_appl_xhr = XNever;
  }
 
 

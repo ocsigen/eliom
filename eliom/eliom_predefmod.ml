@@ -116,7 +116,7 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?(options = `XHTML_01_01) ?charset ?code
       ?content_type ?headers ~sp content =
@@ -218,7 +218,7 @@ module SubXhtml = functor(T : sig type content end) ->
 
       let pre_service ?options ~sp = Lwt.return ()
 
-      let application_name = None
+      let do_appl_xhr = Eliom_services.XNever
 
       let send ?options ?charset ?code 
           ?content_type ?headers ~sp content =
@@ -279,7 +279,7 @@ module Textreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
@@ -321,7 +321,7 @@ module CssTextreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers ~sp content =
@@ -366,7 +366,7 @@ module HtmlTextreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
@@ -614,7 +614,8 @@ module Actionreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XAlways
+  (* The post action service will decide later *)
 
   let send
       ?(options = `Reload) ?charset ?(code = 204)
@@ -804,7 +805,7 @@ module Unitreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?(code = 204)
       ?content_type ?headers ~sp content =
@@ -853,7 +854,7 @@ module String_redirreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?(options = `Permanent) ?charset ?code
       ?content_type ?headers ~sp content =
@@ -906,7 +907,7 @@ module Redirreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?(options = `Permanent) ?charset ?code
       ?content_type ?headers ~sp content =
@@ -958,7 +959,7 @@ module Anyreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers ~sp res =
@@ -1001,7 +1002,7 @@ module Filesreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers ~sp filename =
@@ -1057,7 +1058,7 @@ module Streamlistreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers ~sp content =
@@ -1102,7 +1103,7 @@ module Camlreg_ = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
@@ -1134,7 +1135,7 @@ module Caml = struct
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
@@ -1709,7 +1710,7 @@ redir ();"))::
           ~value:false);
     Lwt.return ()
     
-  let application_name = Some Appl_params.application_name
+  let do_appl_xhr = Eliom_services.XSame_appl Appl_params.application_name
 
 
   let get_eliom_page_content sp content =
@@ -1848,7 +1849,7 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   let pre_service ?options ~sp = Lwt.return ()
 
-  let application_name = None
+  let do_appl_xhr = Eliom_services.XNever
 
   module Xhtml_content = struct
 

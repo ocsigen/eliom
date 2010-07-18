@@ -112,9 +112,6 @@ val get_get_or_post :
    | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service -> 
   getpost
 
-(** Returns the name of the application to which belongs the service, if any. *)
-val get_application_name : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> string option
-
 (***** Static dir and actions do not depend on the type of pages ******)
 
 (** {2 Registration of named modules}
@@ -603,5 +600,18 @@ val set_delayed_post_registration_function :
   (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string) -> 
   unit
 
-val set_application_name :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> string option -> unit
+type do_appl_xhr =
+  | XNever
+  | XAlways (** always if it was an xhr asking for content only *)
+  | XSame_appl of string (** The string is the application name *)
+
+val set_do_appl_xhr :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> do_appl_xhr -> unit
+
+(** Returns the name of the application to which belongs the service, if any. *)
+val get_do_appl_xhr : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> do_appl_xhr
+
+val do_appl_xhr :
+  sp:Eliom_sessions.server_params -> 
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
+
