@@ -161,3 +161,4 @@ let get_site_dir ~sp = sp.sp_sitedata.site_dir
 let get_site_dir_string ~sp =
   sp.sp_sitedata.site_dir_string
 
+let get_sp_appl_name = Eliom_process.get_application_name

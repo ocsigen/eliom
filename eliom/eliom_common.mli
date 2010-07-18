@@ -269,6 +269,12 @@ type server_params = {
   mutable sp_user_cookies: Ocsigen_cookies.cookieset;
   (* cookies (un)set by the user during service *)
   mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
+  mutable sp_content_only: bool; (* The client side program asked
+                                    to send only the content of the page,
+                                    with eliom data. *)
+  mutable sp_appl_name: string option; (* The application name,
+                                          as sent by the browser,
+                                          or by the service. *)
   sp_suffix : Ocsigen_lib.url_path option;
   sp_fullsessname : fullsessionname option;
 }

@@ -341,6 +341,12 @@ type server_params =
      mutable sp_user_cookies: Ocsigen_cookies.cookieset;
      (* cookies (un)set by the user during service *)
      mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
+     mutable sp_content_only: bool; (* The client side program asked
+                                       to send only the content of the page,
+                                       with eliom data. *)
+     mutable sp_appl_name: string option; (* The application name,
+                                             as sent by the browser,
+                                             or by the service. *)
      sp_suffix: Ocsigen_lib.url_path option (* suffix *);
      sp_fullsessname: fullsessionname option (* the name of the session
                                                 to which belong the service
@@ -503,10 +509,17 @@ let get_cookie_info sp = function
 
 
 (*****************************************************************************)
-    (** Create server parameters record *)
+(** Create server parameters record *)
 let make_server_params 
     sitedata all_cookie_info all_tab_cookie_info ri suffix si fullsessname
     : server_params =
+  let appl_name, content_only =
+    try
+      (Some (Ocsigen_lib.String_Table.find
+               appl_name_cookie_name si.si_tab_cookies), true)
+    (* It is an XHR from the client application, or an internal form *)
+    with Not_found -> (None, false)
+  in
   {sp_request=ri;
    sp_si=si;
    sp_sitedata=sitedata;
@@ -514,6 +527,8 @@ let make_server_params
    sp_tab_cookie_info=all_tab_cookie_info;
    sp_user_cookies= Ocsigen_cookies.empty_cookieset;
    sp_user_tab_cookies= Ocsigen_cookies.empty_cookieset;
+   sp_content_only= content_only;
+   sp_appl_name= appl_name;
    sp_suffix=suffix;
    sp_fullsessname= fullsessname}
 

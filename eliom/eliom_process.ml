@@ -19,33 +19,3 @@
  *)
 
 exception Server_side_process_closed
-
-(*****************************************************************************)
-let appl_name_key = Polytables.make_key ()
-let content_only_key = Polytables.make_key ()
-
-(*VVV better put this somewhere else than in rc? directly in sp? *)
-let get_application_name_cookie ~sp =
-  let esp = Eliom_sessions.esp_of_sp sp in
-  let cookie_table = esp.Eliom_common.sp_si.Eliom_common.si_tab_cookies in
-  try
-    Some (Ocsigen_lib.String_Table.find
-            Eliom_common.appl_name_cookie_name cookie_table)
-  with Not_found -> None
-
-let get_application_name ~sp =
-  let esp = Eliom_sessions.esp_of_sp sp in
-  let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
-  try
-    Polytables.get ~table:rc ~key:appl_name_key
-  with Not_found -> None
-    (* If it is a Eliom_app service, 
-       the value has already been set in pre_service. *)
-
-let get_content_only ~sp =
-  let esp = Eliom_sessions.esp_of_sp sp in
-  let rc = esp.Eliom_common.sp_request.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache in
-  try 
-    Polytables.get ~table:rc ~key:content_only_key
-  with Not_found ->
-    false

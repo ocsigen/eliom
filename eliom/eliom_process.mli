@@ -20,20 +20,3 @@
 
 exception Server_side_process_closed
 
-(** {3 Application name} *)
-
-(** returns the name of the application running client side, 
-    as sent by the client in tab cookies (if any). *)
-val get_application_name_cookie :
-  sp:Eliom_sessions.server_params -> string option
-
-(** returns the name of the application. *)
-val get_application_name :
-  sp:Eliom_sessions.server_params -> string option
-
-
-(**/**)
-val get_content_only : sp:Eliom_sessions.server_params -> bool
-
-val appl_name_key : string option Polytables.key
-val content_only_key : bool Polytables.key

@@ -179,7 +179,10 @@ let get_persistent_data_session_cookie
        | e -> fail e)
 
 
-
+let get_sp_appl_name ~sp = sp.Eliom_common.sp_appl_name
+let get_sp_content_only ~sp = sp.Eliom_common.sp_content_only
+let set_sp_appl_name ~sp v = sp.Eliom_common.sp_appl_name <- v
+let set_sp_content_only ~sp v = sp.Eliom_common.sp_content_only <- v
 
 (*
 let get_default_service_session_timeout = Eliommod_timeouts.get_default_service_timeout

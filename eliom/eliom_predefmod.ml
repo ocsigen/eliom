@@ -1691,23 +1691,20 @@ redir ();"))::
   let pre_service ?(options = false) ~sp =
     (* If we launch a new application, we must set the application name.
        Otherwise, we get it from cookie. *)
-    let rc = Eliom_sessions.get_request_cache ~sp in
-    (match Eliom_process.get_application_name_cookie ~sp with
+    (match Eliom_sessions.get_sp_appl_name ~sp (* sent by the browser *) with
       | Some appl_name_cookie ->
-        Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
-          ~value:(Some appl_name_cookie);
-        Polytables.set ~table:rc ~key:Eliom_process.content_only_key
-          ~value:true
+        if appl_name_cookie <> Appl_params.application_name
+        then begin
+          Eliom_sessions.set_sp_appl_name ~sp 
+            (Some Appl_params.application_name);
+          Eliom_sessions.set_sp_content_only ~sp false;
+        end
       | None -> (* The application was not launched *)
-        if not options
-        then
-          Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
-            ~value:(Some Appl_params.application_name)
-        else
-          Polytables.set ~table:rc ~key:Eliom_process.appl_name_key
-            ~value:None;
-        Polytables.set ~table:rc ~key:Eliom_process.content_only_key
-          ~value:false);
+        if not options (* if options is true, we do not launch the client side
+                          program. *)
+        then Eliom_sessions.set_sp_appl_name ~sp
+          (Some Appl_params.application_name);
+    );
     Lwt.return ()
     
   let do_appl_xhr = Eliom_services.XSame_appl Appl_params.application_name
@@ -1728,7 +1725,7 @@ redir ();"))::
 
   let send ?(options = false) ?charset ?code
       ?content_type ?headers ~sp content =
-    let content_only = Eliom_process.get_content_only ~sp in
+    let content_only = Eliom_sessions.get_sp_content_only ~sp in
     (if content_only &&
         (Eliom_parameters.get_non_localized_get_parameters
            ~sp Eliom_mkforms.nl_internal_appl_form) = Some true

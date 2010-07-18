@@ -215,7 +215,7 @@ let get_do_appl_xhr s = s.do_appl_xhr
 let set_do_appl_xhr s n = s.do_appl_xhr <- n
 
 let do_appl_xhr ~sp s =
-  let n = Eliom_process.get_application_name ~sp in
+  let n = Eliom_sessions.get_sp_appl_name sp in
   (n <> None) && 
     (match s.do_appl_xhr with
       | XAlways -> true
