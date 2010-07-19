@@ -146,9 +146,6 @@ let container_node =
            : Dom_html.element Js.t)
 
 
-let get_eliom_data_ s : Eliom_client_types.eliom_data_type * string =
-  Marshal.from_string (Ocsigen_lib.urldecode_string s) 0 
-
 let load_eliom_data_
     ((tree, (((timeofday, _), _) as page_data), cookies) :
         Eliom_client_types.eliom_data_type)
@@ -176,13 +173,15 @@ let set_content = function
   | Eliom_client_types.EAExitRedir uri ->
     Lwt.return (redirect_get uri)
 
-let set_content_string code s =
+let decode_result code s : Eliom_client_types.eliom_appl_answer =
   if code <> 200
-  then Lwt.fail (Failed_service code)
+  then raise (Failed_service code)
   else
     let a = Js.to_bytestring (Js.unescape (Js.bytestring s)) in
-    set_content (Marshal.from_string a 0)
+    Marshal.from_string a 0
 
+let set_content_string code s =
+  set_content (decode_result code s)
 
 exception External_service
 
@@ -447,10 +446,10 @@ let get_subpage
      | Ocsigen_lib.Right (uri, p) -> http_post uri p)
   >>= fun (code, s) ->
 
-  if code <> 200
-  then Lwt.fail (Failed_service code)
-  else begin
-    let (ed, content) = get_eliom_data_ s in
+  match decode_result code s with
+  | Eliom_client_types.EAExitRedir _ -> Lwt.fail (Failed_service code)
+(*VVV ??? *)
+  | Eliom_client_types.EAContent (ed, content) ->
 
     (* Hack to make the result considered as XHTML: *)
     fake_page##innerHTML <- Js.string content;
@@ -459,11 +458,10 @@ let get_subpage
     for i = nodes##length - 1 downto 0 do
       node_list := nodes##item (i) :: !node_list
     done;
-
+  
     load_eliom_data_ ed fake_page;
     fake_page##innerHTML <- Js.string "";
     Lwt.return (XHTML.M.totl !node_list)
-  end
 
 
 
