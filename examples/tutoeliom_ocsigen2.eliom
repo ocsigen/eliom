@@ -1524,9 +1524,9 @@ let _ =
 (***** User cookies *****)
 let cookiename = "mycookie"
 
-let cookies = new_service ["tcookies"] unit ()
+let tcookies = new_service ["tcookies"] unit ()
 
-let _ = Eliom_appl.register cookies
+let _ = Eliom_appl.register tcookies
   (fun sp () () ->
     Eliom_sessions.set_cookie
       ~sp ~cookie_type:Eliom_common.CTab
@@ -1540,7 +1540,30 @@ let _ = Eliom_appl.register cookies
                             ~cookie_type:Eliom_common.CTab ~sp ()))
         with _ -> "<cookie not set>");
           br ();
-          a cookies sp [pcdata "send other cookie"] ()]])
+          a tcookies sp [pcdata "send other cookie"] ()]])
+
+
+
+
+
+(***** Action outside the application: 
+       will ask the client program to do a redirection *****)
+
+let coucouaction =
+  Eliom_predefmod.Action.register_new_coservice
+    ~fallback:Tutoeliom.coucou
+    ~get_params:unit
+    (fun _ () () -> Lwt.return ())
+
+let actionoutside =
+  Eliom_appl.register_new_service
+    ~path:["actionoutside"]
+    ~get_params:unit
+    (fun sp () () ->
+      Lwt.return
+        [p [a ~service:coucouaction ~sp 
+               [ pcdata "Click to do an action outside the application"] () ];
+        ])
 
 
 
@@ -1858,12 +1881,19 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
 
 
               a tcsrfsafe_example sp [pcdata "CSRF safe services"] ();
-              br ();
+              br ()
             ];
-
-          ]
-       )))
-;;
+            h4 [ pcdata "Other" ];
+            p
+              [ pcdata "User tab cookies: ";
+                a tcookies sp
+                  [ code [ pcdata "tcookies" ] ] ();
+                br ();
+                pcdata "A link inside the application that ascks for an action outside the application. Eliom will ask the client side program to so a redirection: ";
+                a actionoutside sp [ code [ pcdata "actionoutside" ] ] ();
+                br ();
+              ]
+          ])))
 
 (* *zap*)
 
