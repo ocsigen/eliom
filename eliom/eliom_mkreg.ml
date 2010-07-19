@@ -20,8 +20,6 @@
  *)
 
 
-
-
 open Lwt
 open Ocsigen_extensions
 open Eliom_sessions
@@ -30,12 +28,7 @@ open Eliom_parameters
 open Lazy
 
 
-
-
-
 (****************************************************************************)
-
-
 
 module type REGCREATE =
   sig
@@ -506,6 +499,7 @@ module MakeRegister = functor
             raise (Eliom_common.Eliom_Typing_Error l))
           page_generator =
         let sp = Ocsigen_lib.apply_option Eliom_sessions.esp_of_sp sp in
+        Eliom_services.set_do_appl_xhr service (Pages.do_appl_xhr);
         begin
           match get_kind_ service with
             | `Attached attser ->
@@ -562,34 +556,96 @@ module MakeRegister = functor
                         then (* it is a suffix service in version 
                                 without suffix. We redirect. *)
                           Lwt.fail
-                            (Eliom_common.Eliom_Suffix_redirection
+                            (Eliom_common.Eliom_do_redirection
                                (Eliom_uri.make_string_uri
                                   ~absolute:true
-                                  ~service:(service : 
-                                              ('a, 'b, [< Eliom_services.internal_service_kind ],
-                                               [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
-                                               'return) Eliom_services.service :> 
-                                              ('a, 'b, Eliom_services.service_kind,
-                                               [< Eliom_services.suff ], 'c, 'd, 
-                                               [< Eliom_services.registrable ], 'return)
-                                              Eliom_services.service)
+                                  ~service:
+                                  (service : 
+                                     ('a, 'b, [< Eliom_services.internal_service_kind ],
+                                      [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                                      'return) Eliom_services.service :> 
+                                     ('a, 'b, Eliom_services.service_kind,
+                                      [< Eliom_services.suff ], 'c, 'd, 
+                                      [< Eliom_services.registrable ], 'return)
+                                     Eliom_services.service)
                                   ~sp:sp2
                                   g))
                         else
-                          (Pages.pre_service ?options ~sp:sp2 >>= fun () ->
-                           page_generator sp2 g p)))
-                        (function
-                          | Eliom_common.Eliom_Typing_Error l ->
-                            error_handler sp2 l
-                          | e -> fail e)
-                      >>= fun content ->
-                      Pages.send
-                        ?options
-                        ?charset
-                        ?code
-                        ?content_type
-                        ?headers
-                        ~sp:sp2 content)))
+                          let redir =
+                            (* If it is an xmlHTTPrequest who
+                               asked for an internal application
+                               service but the current service 
+                               does not belong to the same application,
+                               we ask the browser to stop the program and
+                               do a redirection.
+                               This can happen for example after an action,
+                               when the fallback service does not belong
+                               to the application.
+                               We can not do a regular redirection because
+                               it is an XHR. We use our own redirections.
+                            *)
+(*VVV
+  An alternative, to avoid the redirection with rc, 
+  would be to answer the full page and to detect on client side that it is not
+  the answer of an XRH (using content-type) and ask the browser to act as if
+  it were a regular request. Is it possible to do that?
+  Drawback: The URL will be wrong
+
+  Other solution: send the page and ask the browser to put it in the cache 
+  during a few seconds. Then redirect. But can we trust the browser cache?
+*)
+                            match sp.Eliom_common.sp_appl_name with
+                              (* the appl name as sent by browser *)
+                              | None -> false (* the browser did not ask
+                                                 application eliom data,
+                                                 we don not send a redirection 
+                                              *)
+                              | Some anr ->
+                                (* the browser asked application eliom data
+                                   (content only) for application anr *)
+                                match Eliom_services.get_do_appl_xhr service
+                                (* the appl name of the service *)
+                                with
+                                  | Eliom_services.XSame_appl an
+                                      when (an = anr)
+                                        -> (* Same appl, it is ok *) false
+                                  | Eliom_services.XAlways -> 
+                                     (* It is an action *) false
+                                  | _ -> true
+                          in
+                          if redir
+                          then
+                            Lwt.fail
+                              (* we answer to the xhr
+                                 by asking an HTTP redirection *)
+                              (Eliom_common.Eliom_do_half_xhr_redirection
+                                 ("/"^
+                                     Ocsigen_lib.concat_strings 
+                                     ri.Ocsigen_extensions.ri_original_full_path_string
+                                     "?"
+                                     (Eliom_parameters.construct_params_string
+                                        (Lazy.force
+                                           ri.Ocsigen_extensions.ri_get_params)
+                                     )))
+                          (* We do not put hostname and port.
+                             It is ok with this kind of redirections. *)
+                          (* If an action occured before, 
+                             it may have removed some get params form ri *)
+                          else
+                            (Pages.pre_service ?options ~sp:sp2 >>= fun () ->
+                             page_generator sp2 g p))
+                         (function
+                           | Eliom_common.Eliom_Typing_Error l ->
+                             error_handler sp2 l
+                           | e -> fail e)
+                        >>= fun content ->
+                       Pages.send
+                         ?options
+                         ?charset
+                         ?code
+                         ?content_type
+                         ?headers
+                         ~sp:sp2 content))))
               in
               (match (key_kind, attserget, attserpost) with
                 | (Ocsigen_http_frame.Http_header.POST, _,
@@ -797,8 +853,7 @@ module MakeRegister = functor
                             ?secure ?session_name ?cookie_type ~sp ())
                   in
                   f tablereg na_name
-        end;
-        Eliom_services.set_do_appl_xhr service (Pages.do_appl_xhr)
+        end
 
       let register 
           ?options

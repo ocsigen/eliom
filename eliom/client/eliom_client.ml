@@ -343,7 +343,7 @@ let change_page
     ?hostname ?port ?fragment ?keep_nl_params
     ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
     (g : 'get) (p : 'post) =
-  if Eliom_services.do_appl_xhr ~sp service
+  if not (Eliom_services.do_appl_xhr ~sp service)
   then
     Lwt.return (exit_to
                   ?absolute ?absolute_path ?https

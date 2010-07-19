@@ -47,3 +47,6 @@ let rec split_path s =
         let prefix = String.sub s 0 pos_slash in
         prefix::(split_path (String.sub s (pos_slash+1) (length - pos_slash - 1)))
   with Not_found -> [s]
+
+
+let debug a = Firebug.console##log (Js.string a)

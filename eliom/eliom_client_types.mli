@@ -47,3 +47,6 @@ val add_tab_cookies_to_get_form5_id : int
 val add_tab_cookies_to_get_form5_id_string : string
 val add_tab_cookies_to_post_form5_id : int
 val add_tab_cookies_to_post_form5_id_string : string
+
+val eliom_appl_answer_content_type : string
+val encode_eliom_data : 'a -> string

@@ -58,8 +58,11 @@ val eliom_service_session_expired :
 
 (**/**)
 
-exception Eliom_Suffix_redirection of string 
-  (* We redirect to the suffix version of the service *)
+(*VVV Warning: raising these exceptions will NOT send cookies!
+  Do not use them inside services! *)
+exception Eliom_do_redirection of string 
+(* Used to redirect to the suffix version of the service *)
+exception Eliom_do_half_xhr_redirection of string 
 
 
 (* Service kinds: *)

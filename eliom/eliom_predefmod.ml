@@ -729,9 +729,9 @@ module Actionreg_ = struct
                    ri_cookies= lazy ric;
                    ri_get_params = 
                      lazy si.Eliom_common.si_other_get_params;
-                        (* Here we modify ri, 
-                           thus the request can be taken by other extensions, 
-                           with its new parameters *)
+                 (* Here we modify ri, 
+                    thus the request can be taken by other extensions, 
+                    with its new parameters *)
                  }
                in
                Ocsigen_extensions.serve_request 
@@ -766,12 +766,13 @@ module Actionreg_ = struct
                    ~previous_cookies:all_new_cookies ri
 
                | _ ->
-                      (* retry without POST params *)
-                      (*VVV 
-                        Warning: is it possible to have POST method but no POST parameter?
-                        --> may loop...
-                        (we impose GET)
-                      *)
+                 (* retry without POST params *)
+(*VVV 
+  Warning: is it possible to have an Eliom service with POST method
+  but no POST parameter?
+  --> may loop...
+  (we impose GET to prevent that)
+*)
                  Polytables.set
                    ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
                    Eliom_common.eliom_params_after_action
@@ -1121,7 +1122,9 @@ module Camlreg_ = struct
   let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
     Text.send ?options ?charset ?code 
-      ?content_type ?headers ~sp (content, "application/x-eliom")
+      ?content_type ?headers ~sp
+      (content,
+       Eliom_client_types.eliom_appl_answer_content_type)
 
 end
 
@@ -1130,21 +1133,17 @@ module Caml = struct
 
   type options = unit
 
-(* the string is urlencoded because otherwise js does strange things
-   with strings ... *)
-  let encode_data r = Ocsigen_lib.encode ~plus:false (Marshal.to_string r [])
-
   let make_eh = function
     | None -> None
     | Some eh -> 
         Some (fun sp l -> 
                 eh sp l >>= fun r ->
-                Lwt.return (encode_data r))
+                Lwt.return (Eliom_client_types.encode_eliom_data r))
 
   let make_service_handler f =
     fun sp g p -> 
       f sp g p >>= fun r -> 
-      Lwt.return (encode_data r)
+      Lwt.return (Eliom_client_types.encode_eliom_data r)
 
   let pre_service ?options ~sp = Lwt.return ()
 
@@ -1153,7 +1152,7 @@ module Caml = struct
   let send ?options ?charset ?code 
       ?content_type ?headers ~sp content =
     M.send ?options ?charset ?code 
-      ?content_type ?headers ~sp (encode_data content)
+      ?content_type ?headers ~sp (Eliom_client_types.encode_eliom_data content)
 
   let register
       ?options
@@ -1639,11 +1638,9 @@ function redir () {
     if(match) {
       if(match[4]) { //absolute
         window.location = match[3];
-        alert(\"Absolute redirection to \"+window.location);
       }
       else { //relative
         window.location = match[1] + \"/\" + match[3] ;
-        alert(\"Relative redirection to \"+match[1] + \" / \" + match[3]);
       }
     }
   } catch(e) {} ;
@@ -1708,11 +1705,11 @@ redir ();"))::
       | Some appl_name_cookie ->
         if appl_name_cookie <> Appl_params.application_name
         then begin
-          Eliom_sessions.set_sp_appl_name ~sp 
+          Eliom_sessions.set_sp_appl_name ~sp
             (Some Appl_params.application_name);
           Eliom_sessions.set_sp_content_only ~sp false;
         end
-      | None -> (* The application was not launched *)
+      | None -> (* The application was not launched on client side *)
         if not options (* if options is true, we do not launch the client side
                           program. *)
         then Eliom_sessions.set_sp_appl_name ~sp

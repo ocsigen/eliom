@@ -160,3 +160,5 @@ val make_cryptographic_safe_string : unit -> string
 
 (*****************************************************************************)
 
+val debug : string -> unit
+

@@ -19,9 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+let (>>=) = Lwt.bind
+
 type eliom_data_type =
-    ((XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
+    ((* The ref tree, to relink the DOM *)
+      (XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
+        (* Table of page data *)
         ((int64 * int) * unit list) *
+        (* Tab cookies to set or unset *)
         Ocsigen_cookies.cookieset)
 
 type eliom_appl_answer =
@@ -29,6 +34,12 @@ type eliom_appl_answer =
   | EAExitRedir of string (* Exit the program by doing a redirection *)
 
 let eliom_appl_answer_content_type = "application/x-eliom"
+
+(* the string is urlencoded because otherwise js does strange things
+   with strings ... *)
+let encode_eliom_data r =
+  Ocsigen_lib.encode ~plus:false (Marshal.to_string r [])
+
 
 
 (* Some types are different on client side: *)

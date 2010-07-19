@@ -602,7 +602,8 @@ val set_delayed_post_registration_function :
 
 type do_appl_xhr =
   | XNever
-  | XAlways (** always if it was an xhr asking for content only *)
+  | XAlways (** always if it was an xhr asking for content only.
+                Used by actions. *)
   | XSame_appl of string (** The string is the application name *)
 
 val set_do_appl_xhr :

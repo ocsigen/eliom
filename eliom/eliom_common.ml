@@ -32,7 +32,8 @@ exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
 
 exception Eliom_404
-exception Eliom_Suffix_redirection of string
+exception Eliom_do_redirection of string
+exception Eliom_do_half_xhr_redirection of string
 
 
 (*****************************************************************************)

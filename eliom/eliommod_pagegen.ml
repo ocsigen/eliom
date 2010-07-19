@@ -323,18 +323,29 @@ let gen is_eliom_extension sitedata = function
                                 Ocsigen_http_frame.res_code= 500;
                              }))
                | Eliom_common.Eliom_404 ->
-                   Lwt.return
-                     (Ocsigen_extensions.Ext_next previous_extension_err)
+                 Lwt.return
+                   (Ocsigen_extensions.Ext_next previous_extension_err)
                | Eliom_common.Eliom_retry_with a -> gen_aux a
-               | Eliom_common.Eliom_Suffix_redirection uri ->
-                   let e = Ocsigen_http_frame.empty_result () in
-                   Lwt.return 
-                       (Ocsigen_extensions.Ext_found
-                          (fun () ->
-                             Lwt.return
-                               {e with
-                                  Ocsigen_http_frame.res_code= 307;
-                                  Ocsigen_http_frame.res_location = Some uri}))
+               | Eliom_common.Eliom_do_redirection uri ->
+                 let e = Ocsigen_http_frame.empty_result () in
+                 Lwt.return 
+                   (Ocsigen_extensions.Ext_found
+                      (fun () ->
+                        Lwt.return
+                          {e with
+                            Ocsigen_http_frame.res_code= 307;
+                            Ocsigen_http_frame.res_location = Some uri}))
+               | Eliom_common.Eliom_do_half_xhr_redirection uri ->
+                 Lwt.return 
+                   (Ocsigen_extensions.Ext_found
+                      (fun () ->
+                        let content = 
+                          Eliom_client_types.encode_eliom_data
+                            (Eliom_client_types.EAExitRedir uri)
+                        in
+                        Ocsigen_senders.Text_content.result_of_content 
+                          (content, 
+                           Eliom_client_types.eliom_appl_answer_content_type)))
                | e -> fail e)
   in
   gen_aux (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
