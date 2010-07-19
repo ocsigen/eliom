@@ -245,15 +245,25 @@ let cookie_nlp_re =
       Eliom_common.eliom_internal_nlp_prefix
       Eliom_parameters.nlp_tab_cookies_name
   in
-  jsnew Js.regExp (Js.bytestring ("(\\?|&)"^Eliom_common.nl_param_prefix^
-                                     "("^
-                                     p_cookie_nlp_prefix^
-                                     "|"^
-                                     np_cookie_nlp_prefix
-                                  ^")(.*)$"))
+  jsnew Js.regExp_withFlags
+    (Js.bytestring ("(\\?|&)"^Eliom_common.nl_param_prefix^
+                       "("^
+                       p_cookie_nlp_prefix^
+                       "|"^
+                       np_cookie_nlp_prefix
+                    ^")([^\\?&$]*)"),
+     Js.string "g")
 
 let remove_tab_cookies uri =
-  uri##replace (cookie_nlp_re, Js.string "")
+  let uri = Js.to_bytestring (uri##replace (cookie_nlp_re, Js.string "")) in
+(*VVV do this in JS? *)
+(*VVV Argh. If there is not '?', we replace the first '&' *)
+  if not (String.contains uri '?')
+  then (try
+         let i = String.index uri '&' in
+         uri.[i] <- '?'
+    with Not_found -> ());
+  Js.bytestring uri
 
 let get_cookie_nlp_for_uri uri_js =
   Js.Opt.get
