@@ -36,11 +36,9 @@ let register_eliom_extension f =
 let get_eliom_extension () = !module_action
 
 
-let run_eliom_extension (fext : eliom_extension_sig) now
-    (ri, si, all_cookie_info, all_tab_cookie_info) sitedata  =
+let run_eliom_extension (fext : eliom_extension_sig) now info sitedata  =
 
   let sp =
-    Eliom_common.make_server_params 
-      sitedata all_cookie_info all_tab_cookie_info ri None si None
+    Eliom_common.make_server_params sitedata info None None
   in
   fext sp

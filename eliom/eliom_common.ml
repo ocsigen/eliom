@@ -510,8 +510,9 @@ let get_cookie_info sp = function
 
 (*****************************************************************************)
 (** Create server parameters record *)
-let make_server_params 
-    sitedata all_cookie_info all_tab_cookie_info ri suffix si fullsessname
+let make_server_params
+    sitedata (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
+    suffix fullsessname
     : server_params =
   let appl_name, content_only =
     try
@@ -526,7 +527,7 @@ let make_server_params
    sp_cookie_info=all_cookie_info;
    sp_tab_cookie_info=all_tab_cookie_info;
    sp_user_cookies= Ocsigen_cookies.empty_cookieset;
-   sp_user_tab_cookies= Ocsigen_cookies.empty_cookieset;
+   sp_user_tab_cookies= user_tab_cookies;
    sp_content_only= content_only;
    sp_appl_name= appl_name;
    sp_suffix=suffix;
@@ -996,14 +997,14 @@ type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 
 (*****************************************************************************)
-exception Eliom_retry_with of
-  (Ocsigen_extensions.request *
-     sess_info *
-(*     Ocsigen_http_frame.cookieset (* user cookies set by previous pages *) * *)
-     tables cookie_info (* current browser cookie info *) *
-     tables cookie_info (* current tab cookie info *)
-  )
+type info =
+    (Ocsigen_extensions.request * 
+       sess_info * 
+       tables cookie_info (* current browser cookie info *) * 
+       tables cookie_info (* current tab cookie info *) * 
+       Ocsigen_cookies.cookieset (* current user tab cookies *))
 
+exception Eliom_retry_with of info
 
 (*****************************************************************************)
 (* Each persistent table created by sites correspond to a file on the disk.
@@ -1045,4 +1046,7 @@ let remove_from_all_persistent_tables key =
       Ocsipersist.remove (Ocsipersist.open_table t) key >>= Lwt_unix.yield)
     (return ())
     !perstables
+
+(*****************************************************************************)
+let tab_cookie_action_info_key = Polytables.make_key ()
 

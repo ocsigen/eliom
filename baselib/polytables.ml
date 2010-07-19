@@ -46,6 +46,9 @@ let get ~(table : t) ~key:((k, r) : 'a key) =
     | Some v -> r:= None; v
     | None -> failwith "Polytables.get"
 
+let remove ~(table : t) ~key:((k, r) : 'a key) =
+  table := T.remove k !table
+
 let clear ~(table : t) =
   table := T.empty
 

@@ -44,6 +44,9 @@ val set : table:t -> key:'a key -> value:'a -> unit
 (** [get t k] returns the current binding of [k] in [t] or raises [Not_found] *)
 val get : table:t -> key:'a key -> 'a
 
+(** [remove t k] remove the current binding of [k] in [t] if it exists *)
+val remove : table:t -> key:'a key -> unit
+
 (** [clear t] remove all data from t *)
 val clear : table:t -> unit
 

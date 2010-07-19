@@ -28,9 +28,9 @@ open Lwt
 
 let def_handler sp e = fail e
 
-let handle_site_exn exn (ri, si, aci, aci_tab) sitedata =
+let handle_site_exn exn info sitedata =
   sitedata.Eliom_common.exn_handler
-    (Eliom_common.make_server_params sitedata aci aci_tab ri None si None) exn 
+    (Eliom_common.make_server_params sitedata info None None) exn 
   >>= fun r -> 
   return r
 
@@ -47,7 +47,8 @@ let execute
       ((service_cookies_info, data_cookies_info, pers_cookies_info), 
        secure_ci),
       ((service_tab_cookies_info, data_tab_cookies_info, pers_tab_cookies_info), 
-       secure_ci_tab)) as info)
+       secure_ci_tab),
+      user_tab_cookies) as info)
     sitedata =
 
   let update_exp (service_cookies_info, data_cookies_info, pers_cookies_info) =
@@ -221,16 +222,35 @@ let gen is_eliom_extension sitedata = function
       si.Eliom_common.si_persistent_session_cookies
       si.Eliom_common.si_secure_cookie_info
   in
-  let (all_tab_cookie_info, closedsessions_tab) =
-    Eliommod_cookies.get_cookie_info now
-      sitedata
-      si.Eliom_common.si_service_session_cookies_tab
-      si.Eliom_common.si_data_session_cookies_tab
-      si.Eliom_common.si_persistent_session_cookies_tab
-      si.Eliom_common.si_secure_cookie_info_tab
+  let ((all_tab_cookie_info, closedsessions_tab), user_tab_cookies) =
+    (* If tab cookie info exists in rc (because an action put them here),
+       we get it from here.
+       Otherwise we get it from tab cookies in parameters.
+    *)
+    try
+      let rc =
+        ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+      in
+      let (atc, utc) =
+        Polytables.get ~table:rc ~key:Eliom_common.tab_cookie_action_info_key
+      in
+      Polytables.remove ~table:rc ~key:Eliom_common.tab_cookie_action_info_key;
+      ((atc, []), utc)
+    with Not_found ->
+      ((Eliommod_cookies.get_cookie_info now
+          sitedata
+          si.Eliom_common.si_service_session_cookies_tab
+          si.Eliom_common.si_data_session_cookies_tab
+          si.Eliom_common.si_persistent_session_cookies_tab
+          si.Eliom_common.si_secure_cookie_info_tab),
+       Ocsigen_cookies.empty_cookieset
+      )
   in
   set_expired_sessions ri (closedsessions, closedsessions_tab);
-  let rec gen_aux ((ri, si, all_cookie_info, all_tab_cookie_info) as info) =
+  let rec gen_aux ((ri, si, 
+                    all_cookie_info,
+                    all_tab_cookie_info,
+                    user_tab_cookies) as info) =
     match is_eliom_extension with
       | Some ext -> 
           Eliommod_extensions.run_eliom_extension ext now info sitedata
@@ -317,6 +337,6 @@ let gen is_eliom_extension sitedata = function
                                   Ocsigen_http_frame.res_location = Some uri}))
                | e -> fail e)
   in
-  gen_aux (ri, si, all_cookie_info, all_tab_cookie_info)
+  gen_aux (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
   | Ocsigen_extensions.Req_not_found (_, ri) ->
       Lwt.return Ocsigen_extensions.Ext_do_nothing

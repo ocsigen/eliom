@@ -659,12 +659,12 @@ module Actionreg_ = struct
           (Eliom_sessions.get_user_cookies ~sp)
       in
 
-      (match si.Eliom_common.si_nonatt_info,
-        si.Eliom_common.si_state_info,
-        ri.request_info.ri_method with
-          | Eliom_common.RNa_no,
-        (Eliom_common.RAtt_no, Eliom_common.RAtt_no), 
-        Ocsigen_http_frame.Http_header.GET ->
+      (match (si.Eliom_common.si_nonatt_info,
+              si.Eliom_common.si_state_info,
+              ri.request_info.ri_method) with
+          | (Eliom_common.RNa_no,
+             (Eliom_common.RAtt_no, Eliom_common.RAtt_no), 
+             Ocsigen_http_frame.Http_header.GET) ->
             let empty_result = Ocsigen_http_frame.empty_result () in
             Lwt.return empty_result 
           | _ ->
@@ -684,7 +684,20 @@ module Actionreg_ = struct
               all_cookie_info
               all_user_cookies
             >>= fun all_new_cookies ->
-            
+
+            (* Now tab cookies:
+               As tab cookies are sent only by Eliom_app services,
+               we just need to keep them in rc.
+               If the fallback service is not Eliom_app, they will
+               be lost.
+            *)
+            let rc = Eliom_sessions.get_request_cache ~sp in
+            Polytables.set
+              ~table:rc ~key:Eliom_common.tab_cookie_action_info_key
+              ~value:(Eliom_sessions.get_sp_tab_cookie_info ~sp,
+                      Eliom_sessions.get_user_tab_cookies ~sp);
+
+            (* Now removing some parameters to decide the following service: *)
             (match
                 (si.Eliom_common.si_nonatt_info,
                  si.Eliom_common.si_state_info,

@@ -179,6 +179,7 @@ let get_persistent_data_session_cookie
        | e -> fail e)
 
 
+let get_sp_tab_cookie_info ~sp = sp.Eliom_common.sp_tab_cookie_info
 let get_sp_appl_name ~sp = sp.Eliom_common.sp_appl_name
 let get_sp_content_only ~sp = sp.Eliom_common.sp_content_only
 let set_sp_appl_name ~sp v = sp.Eliom_common.sp_appl_name <- v

@@ -396,13 +396,20 @@ and sitedata = {
   mutable ipv4mask : int32 option * bool;
   mutable ipv6mask : (int64 * int64) option * bool;
 }
+
+
+
+type info =
+    (Ocsigen_extensions.request * sess_info * 
+       tables cookie_info * tables cookie_info * Ocsigen_cookies.cookieset)
+
+exception Eliom_retry_with of info
+
 val make_server_params :
   sitedata ->
-  tables cookie_info ->
-  tables cookie_info ->
-  Ocsigen_extensions.request ->
+  info ->
   Ocsigen_lib.url_path option -> 
-  sess_info -> fullsessionname option -> server_params
+  fullsessionname option -> server_params
 val empty_page_table : unit -> page_table
 val empty_dircontent : unit -> dircontent
 val empty_naservice_table : unit -> naservice_table
@@ -423,11 +430,6 @@ val make_fullsessname2 :
   string -> cookie_type -> string option -> fullsessionname
 
 
-
-
-exception Eliom_retry_with of
-            (Ocsigen_extensions.request * sess_info * 
-             tables cookie_info * tables cookie_info)
 
 module Perstables :
   sig
@@ -487,3 +489,6 @@ val get_tab_cookies :
    string Ocsigen_lib.String_Table.t) ref
 
 val get_cookie_info : server_params -> cookie_type -> tables cookie_info
+
+val tab_cookie_action_info_key : (tables cookie_info * 
+                                    Ocsigen_cookies.cookieset) Polytables.key

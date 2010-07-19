@@ -1396,6 +1396,7 @@ val get_si : sp:server_params -> Eliom_common.sess_info
 val get_user_cookies : sp:server_params -> Ocsigen_cookies.cookieset
 val get_user_tab_cookies : sp:server_params -> Ocsigen_cookies.cookieset
 
+val get_sp_tab_cookie_info : sp:server_params -> Eliom_common.tables Eliom_common.cookie_info
 val get_sp_appl_name : sp:server_params -> string option
 val get_sp_content_only : sp:server_params -> bool
 val set_sp_appl_name : sp:server_params -> string option -> unit

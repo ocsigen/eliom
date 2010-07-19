@@ -38,16 +38,15 @@ let find_page_table
     (pagetableref : Eliom_common.page_table ref)
     fullsessname
     sitedata
-    all_cookie_info
-    all_tab_cookie_info
-    ri
+    ((ri,
+      si,
+      all_cookie_info,
+      all_tab_cookie_info,
+      user_tab_cookies) as info)
     urlsuffix
     k
-    si
     =
-  let sp =
-    Eliom_common.make_server_params
-      sitedata all_cookie_info all_tab_cookie_info ri urlsuffix si fullsessname
+  let sp = Eliom_common.make_server_params sitedata info urlsuffix fullsessname
   in
   (catch
      (fun () -> return (Eliom_common.Serv_Table.find k !pagetableref))
@@ -364,11 +363,12 @@ let find_service
     now
     tables
     fullsessname
-    (sitedata,
-     all_cookie_info,
-     all_tab_cookie_info,
-     ri,
-     si) =
+    sitedata
+    ((ri,
+      si,
+      all_cookie_info,
+      all_tab_cookie_info,
+      user_tab_cookies) as info) =
 
   let rec search_page_table dircontent =
     let find nosuffixversion page_table_ref suffix =
@@ -378,9 +378,7 @@ let find_service
         page_table_ref
         fullsessname
         sitedata
-        all_cookie_info
-        all_tab_cookie_info
-        ri
+        info
         suffix
         {Eliom_common.key_state = 
             (Eliom_common.att_key_serv_of_req 
@@ -388,7 +386,6 @@ let find_service
              Eliom_common.att_key_serv_of_req 
                (snd si.Eliom_common.si_state_info));
          Eliom_common.key_kind = ri.request_info.ri_method}
-        si
     in
     let aux a l =
       let aa = match a with
@@ -457,10 +454,12 @@ let find_service
 (* attached services                                              *)
 let get_page
     now
-    (ri,
-     si,
-     (((service_cookies_info, _, _), secure_ci) as all_cookie_info),
-     (((service_cookies_info_tab, _, _), secure_ci_tab) as all_tab_cookie_info))
+    ((ri,
+      si,
+      (((service_cookies_info, _, _), secure_ci) as all_cookie_info),
+      (((service_cookies_info_tab, _, _), secure_ci_tab)
+          as all_tab_cookie_info),
+      user_tab_cookies) as info)
     sitedata
     =
 
@@ -480,11 +479,8 @@ let get_page
                       now
                       !(c.Eliom_common.sc_table)
                       (Some fullsessname)
-                      (sitedata,
-                       all_cookie_info,
-                       all_tab_cookie_info,
-                       ri,
-                       si))
+                      sitedata
+                      info)
             | e -> fail e)
       )
       sci
@@ -536,11 +532,8 @@ let get_page
                now
                sitedata.Eliom_common.global_services
                None
-               (sitedata,
-                all_cookie_info,
-                all_tab_cookie_info,
-                ri,
-                si))
+               sitedata
+               info)
            (function
              | Eliom_common.Eliom_404
              | Eliom_common.Eliom_Wrong_parameter as exn ->
@@ -573,7 +566,8 @@ let get_page
                                 (g, Eliom_common.RAtt_no);
                             },
                             all_cookie_info,
-                            all_tab_cookie_info
+                            all_tab_cookie_info,
+                            user_tab_cookies
                            ))
                  | (Eliom_common.RAtt_named _, Eliom_common.RAtt_no)
                  | (Eliom_common.RAtt_anon _, Eliom_common.RAtt_no) ->
@@ -607,7 +601,8 @@ let get_page
                               Eliom_common.si_other_get_params=[];
                             },
                             all_cookie_info,
-                            all_tab_cookie_info))
+                            all_tab_cookie_info,
+                            user_tab_cookies))
                )
              | e -> fail e)
        | e -> fail e)

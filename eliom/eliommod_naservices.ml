@@ -125,10 +125,13 @@ let remove_naservice tables name =
 (* non attached services                                          *)
 let make_naservice
     now
-    (ri,
-     si,
-     (((service_cookies_info, _, _), secure_ci) as all_cookie_info),
-     (((service_tab_cookies_info, _, _), secure_ci_tab) as all_tab_cookie_info))
+    ((ri,
+      si,
+      (((service_cookies_info, _, _), secure_ci) as all_cookie_info),
+      (((service_tab_cookies_info, _, _), secure_ci_tab)
+          as all_tab_cookie_info),
+      user_tab_cookies
+     ) as info)
     sitedata
     =
 
@@ -220,12 +223,12 @@ let make_naservice
                  ri_method = Ocsigen_http_frame.Http_header.GET;
                }}
            si.Eliom_common.si_previous_extension_error
-         >>=
-           (fun (ri', si') ->
-             fail (Eliom_common.Eliom_retry_with (ri', 
-                                                  si',
-                                                  all_cookie_info,
-                                                  all_tab_cookie_info)))
+         >>= (fun (ri', si') ->
+           fail (Eliom_common.Eliom_retry_with (ri', 
+                                                si',
+                                                all_cookie_info,
+                                                all_tab_cookie_info,
+                                                user_tab_cookies)))
            
        | Eliom_common.RNa_get_ _
        | Eliom_common.RNa_get' _ ->
@@ -250,7 +253,8 @@ let make_naservice
            (fun (ri', si') ->
              fail (Eliom_common.Eliom_retry_with (ri', si',
                                                   all_cookie_info,
-                                                  all_tab_cookie_info)))
+                                                  all_tab_cookie_info,
+                                                  user_tab_cookies)))
   )
   >>=
     (fun ((_, max_use, expdate, naservice, node), 
@@ -259,11 +263,8 @@ let make_naservice
       (naservice
          (Eliom_common.make_server_params
             sitedata
-            all_cookie_info
-            all_tab_cookie_info
-            ri
+            info
             None
-            si
             fullsessname)) >>=
         (fun r ->
           Ocsigen_messages.debug2
