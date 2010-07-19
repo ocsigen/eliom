@@ -24,6 +24,12 @@ type eliom_data_type =
         ((int64 * int) * unit list) *
         Ocsigen_cookies.cookieset)
 
+type eliom_appl_answer =
+  | EAContent of (eliom_data_type * string)
+  | EAExitRedir of string (* Exit the program by doing a redirection *)
+
+let eliom_appl_answer_content_type = "application/x-eliom"
+
 
 (* Some types are different on client side: *)
 

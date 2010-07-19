@@ -27,21 +27,13 @@ let update_cookie_table cookieset =
   let now = now () in
   Ocsigen_cookies.Cookies.iter
     (fun path table ->
-      Firebug.console##log (Js.string (String.concat "/" path));
       Ocsigen_lib.String_Table.iter
         (fun name -> function 
           | Ocsigen_cookies.OSet (Some exp, _, _) when exp <= now ->
-            Firebug.console##log (Js.string ("unset"));
-            Firebug.console##log (Js.string (name));
             cookie_table := Ocsigen_cookies.remove_cookie path name !cookie_table
           | Ocsigen_cookies.OUnset -> 
-            Firebug.console##log (Js.string ("unset"));
-            Firebug.console##log (Js.string (name));
             cookie_table := Ocsigen_cookies.remove_cookie path name !cookie_table
           | Ocsigen_cookies.OSet (exp, value, secure) ->
-            Firebug.console##log (Js.string ("set"));
-            Firebug.console##log (Js.string (name));
-            Firebug.console##log (Js.string (value));
             cookie_table := 
               Ocsigen_cookies.add_cookie
               path name (exp, value, secure)

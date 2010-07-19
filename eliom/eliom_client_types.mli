@@ -33,6 +33,10 @@ type eliom_data_type =
         ((int64 * int) * unit list) *
         Ocsigen_cookies.cookieset)
 
+type eliom_appl_answer =
+  | EAContent of (eliom_data_type * string)
+  | EAExitRedir of string (* Exit the program by doing a redirection *)
+
 val a_closure_id : int
 val a_closure_id_string : string
 val add_tab_cookies_to_get_form_id : int

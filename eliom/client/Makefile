@@ -123,7 +123,7 @@ eliom_common_comet.mli: ../eliom_common_comet.mli
 
 
 depend: $(MLS) $(MLIS)
-	$(OCAMLDEP) $(MLS) $(MLS:.ml=.mli) $(PACKAGES) > .depend
+	$(OCAMLDEP) $(MLS) eliom_client_main.ml $(MLS:.ml=.mli) $(PACKAGES) > .depend
 
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so

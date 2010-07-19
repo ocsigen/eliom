@@ -171,14 +171,17 @@ let set_inner_html (ed, content) =
   load_eliom_data_ ed container_node;
   Lwt.return ()
 
-let set_inner_html_from_string code s =
+let set_content = function
+  | Eliom_client_types.EAContent c -> set_inner_html c
+  | Eliom_client_types.EAExitRedir uri ->
+    Lwt.return (redirect_get uri)
+
+let set_content_string code s =
   if code <> 200
   then Lwt.fail (Failed_service code)
   else
     let a = Js.to_bytestring (Js.unescape (Js.bytestring s)) in
-    set_inner_html (Marshal.from_string a 0)
-
-
+    set_content (Marshal.from_string a 0)
 
 
 exception External_service
@@ -348,7 +351,7 @@ let change_page
                   ?hostname ?port ?fragment ?keep_nl_params
                   ~nl_params ?keep_get_na_params
                   g p)
-  else
+  else begin
     (match
         create_request_
           ?absolute ?absolute_path ?https
@@ -361,23 +364,24 @@ let change_page
        | Ocsigen_lib.Left uri -> 
          http_get uri [] >>= fun r ->
          Lwt.return (r, uri)
-           | Ocsigen_lib.Right (uri, p) -> 
-             http_post uri p >>= fun r ->
-             Lwt.return (r, uri))
+       | Ocsigen_lib.Right (uri, p) -> 
+         http_post uri p >>= fun r ->
+         Lwt.return (r, uri))
      >>= fun ((code, s), uri) ->
-  set_inner_html_from_string code s >>= fun () ->
-    (*VVV The URL is created twice ... 
-      Once with tab cookies nlp (for the request), 
-      and once without it (we do not want it to appear in the URL).
-      How to avoid this?
-    *)
-  change_url
-    ?absolute ?absolute_path ?https
-    ~service ~sp
-    ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-    g p;
-    (*VVV change the URL only if it is different? *)
-  Lwt.return ()
+    set_content_string code s >>= fun () ->
+  (*VVV The URL is created twice ... 
+    Once with tab cookies nlp (for the request), 
+    and once without it (we do not want it to appear in the URL).
+    How to avoid this?
+  *)
+    change_url
+      ?absolute ?absolute_path ?https
+      ~service ~sp
+      ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
+      g p;
+  (*VVV change the URL only if it is different? *)
+    Lwt.return ()
+  end
 
 
 
@@ -503,7 +507,7 @@ let auto_change_page fragment =
          in
          let uri = add_cookie_nlp_to_uri uri in
          http_get uri [] >>= fun (code, s) ->
-         set_inner_html_from_string code s)
+         set_content_string code s)
        else Lwt.return ()
      else Lwt.return ())
 

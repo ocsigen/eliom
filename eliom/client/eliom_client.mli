@@ -161,7 +161,7 @@ val make_a_with_onclick :
   ?nl_params:Eliom_parameters.nl_params_set ->
   'c -> 'get -> 'd
 
-val set_inner_html : Eliom_client_types.eliom_data_type * string -> unit Lwt.t
+val set_content : Eliom_client_types.eliom_appl_answer -> unit Lwt.t
 
 val unmarshal_js_var : string -> 'a
 

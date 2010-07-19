@@ -26,13 +26,13 @@ let _ =
 
     (* ===change page event *)
     let change_page_event
-        : (Eliom_client_types.eliom_data_type * string) React.E.t = 
+        : Eliom_client_types.eliom_appl_answer React.E.t = 
       (Eliom_client_event.Down.unwrap
          (Eliom_client.unmarshal_js_var "change_page_event"))
     in
     let retain_event = 
       React.E.map (fun v ->
-        Eliom_client.set_inner_html v) change_page_event
+        Eliom_client.set_content v) change_page_event
     in
     
     let `R r = React.E.retain change_page_event (fun () -> ()) in

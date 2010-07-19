@@ -1726,14 +1726,15 @@ redir ();"))::
   let get_eliom_page_content sp content =
     get_tab_cook sp >>= fun tab_cookies_to_send ->
 (*VVV Here we do not send a stream *)
-    Lwt.return (((Ocsigen_lib.Right
-                    (XML.make_ref_tree_list (XHTML.M.toeltl content)),
-                  (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
-                  tab_cookies_to_send),
+    Lwt.return 
+      (Eliom_client_types.EAContent
+         ((Ocsigen_lib.Right
+             (XML.make_ref_tree_list (XHTML.M.toeltl content)),
+           (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
+           tab_cookies_to_send),
 (*VVV Use another serialization format than XML for the page? *)
-                 Xhtmlcompact'.xhtml_list_print content) :
-                   Eliom_client_types.eliom_data_type * string
-    )
+          Xhtmlcompact'.xhtml_list_print content)
+      )
 
 
   let send ?(options = false) ?charset ?code
