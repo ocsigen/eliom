@@ -134,10 +134,18 @@ module Xhtmlreg = MakeRegister(Xhtmlreg_(Ocsigen_senders.Xhtml_content))
 module Xhtmlcompactreg =
   MakeRegister(Xhtmlreg_(Ocsigen_senders.Xhtmlcompact_content))
 
+module Xhtmlprettyreg =
+  MakeRegister(Xhtmlreg_(Ocsigen_senders.Xhtmlpretty_content))
+
 
 module Xhtml = struct
   include Xhtmlforms
   include Xhtmlreg
+end
+
+module Xhtmlpretty = struct
+  include Xhtmlforms
+  include Xhtmlprettyreg
 end
 
 module Xhtmlcompact' = Xhtmlcompact
@@ -2129,6 +2137,9 @@ module Xhtml5reg = MakeRegister(Xhtml5reg_(Ocsigen_senders.Xhtml5_content))
 module Xhtml5compactreg =
   MakeRegister(Xhtml5reg_(Ocsigen_senders.Xhtml5compact_content))
 
+module Xhtml5prettyreg =
+  MakeRegister(Xhtml5reg_(Ocsigen_senders.Xhtml5pretty_content))
+
 module Xhtml5 = struct
   include Xhtml5forms
   include Xhtml5reg
@@ -2137,4 +2148,9 @@ end
 module Xhtml5compact = struct
   include Xhtml5forms
   include Xhtml5compactreg
+end
+
+module Xhtml5pretty = struct
+  include Xhtml5forms
+  include Xhtml5prettyreg
 end

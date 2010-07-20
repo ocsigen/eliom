@@ -189,7 +189,7 @@ struct
           in
           let make_type = 
             if S.module_types_id = "Xhtml5types" then
-              <:ctyp< [< $uid: S.module_types_id$.$lid: typename$ ]>>
+              <:ctyp< [> $uid: S.module_types_id$.$lid: typename$ ]>>
             else
               <:ctyp< [> `$uid: String.capitalize tag$] >>
           in

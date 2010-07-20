@@ -36,6 +36,12 @@ module Xhtmlcompact_content :
   [ `HTML_v03_02 | `HTML_v04_01
   | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
 
+module Xhtmlpretty_content :
+  Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
+                                  and type options = 
+  [ `HTML_v03_02 | `HTML_v04_01
+  | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
+
 (** content * content-type *)
 module Text_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = string * string
@@ -88,6 +94,12 @@ val send_error :
 
 
 module Xhtml5_content :
+  Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML5.M.elt
+                                  and type options = 
+  [ `HTML_v03_02 | `HTML_v04_01
+  | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
+
+module Xhtml5pretty_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML5.M.elt
                                   and type options = 
   [ `HTML_v03_02 | `HTML_v04_01

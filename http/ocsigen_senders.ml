@@ -96,10 +96,13 @@ end) = struct
 
 module Xhtml_content = Xhtml_content_(struct 
   include Xhtml_format.XhtmlInfo 
-  include Xhtmlpretty_streams
+  include Xhtmlcompact_streams
 end)
-module Xhtmlcompact_content = Xhtml_content_(struct include Xhtml_format.XhtmlInfo 
-                                                    include Xhtmlcompact_streams
+module Xhtmlcompact_content = Xhtml_content
+
+module Xhtmlpretty_content = Xhtml_content_
+  (struct include Xhtml_format.XhtmlInfo 
+          include Xhtmlpretty_streams
 end)
 
 (*****************************************************************************)
@@ -580,8 +583,18 @@ let send_error
 
 
 
-
 module Xhtml5_content = Xhtml_content_
-  (struct include Xhtml_format.Xhtml5Info include Xhtml5pretty_streams end)
+  (struct 
+    include Xhtml_format.Xhtml5Info 
+    include Xhtml5compact_streams 
+   end)
+module Xhtml5pretty_content = Xhtml_content_
+  (struct 
+    include Xhtml_format.Xhtml5Info 
+    include Xhtml5pretty_streams 
+   end)
 module Xhtml5compact_content = Xhtml_content_
-  (struct include Xhtml_format.Xhtml5Info include Xhtml5compact_streams end)
+  (struct 
+    include Xhtml_format.Xhtml5Info 
+    include Xhtml5compact_streams 
+   end)
