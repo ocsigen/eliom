@@ -132,7 +132,7 @@ module type T =
       
     val a_required : [< | `Required] -> [> | `Required] attrib
       
-    val a_reserved : [< | `Reserved] -> [> | `Reserved] attrib
+    val a_reversed : [< | `Reversed] -> [> | `Reversed] attrib
       
     val a_sandbox :
       [< | `AllowSameOrigin | `AllowForms | `AllowScript] list ->
@@ -476,7 +476,6 @@ module type T =
     val a_disabled : [< | `Disabled] -> [> | `Disabled] attrib
       
     val a_readonly : [< | `Readonly] -> [> | `Readonly] attrib
-      
     val a_button_type :
       [< | `Button | `Submit | `Reset] -> [> | `Button_Type] attrib
       
@@ -816,24 +815,12 @@ module type T =
     val ins : ([< | ins_attrib], 'a, [> | `Ins of 'a]) star
       
     (** {2 Embedded} *)
-    (** About images, objects and other things like that.
-          Depending on the attributes given to the element,
-          the category (interactive, or not) or even the behaviour (transparent) 
-          may change. You need to specify these attributes explictly for now. *)
-    type ('a, 'b) expl_attrib
-    
-    val expl_attrib : 'b -> ([ | `On ], 'b) expl_attrib
-      
-    val expl_none : ([ | `Off ], 'b) expl_attrib
-      
-    (** The usemap attrib is mandatory, and you should [expl_attrib] and [expl_none]
-          to make such attributes. *)
+
     val img :
       src: uri ->
         alt: text ->
-          usemap: (('a, idref) expl_attrib) ->
-            ([< | common | `Height | `Ismap | `Width], [> | `Img of 'a])
-              nullary
+      ([< | common | `Height | `Ismap | `Width], [> `Img ])
+        nullary
       
     val iframe : (*| `Srcdoc*)
       ([< | common | `Src | `Name | `Sandbox | `Seamless | `Width | `Height],
@@ -841,17 +828,16 @@ module type T =
       
     val object_ :
       ?params: (([< | `Param] elt) list) ->
-        usemap: (('b, idref) expl_attrib) ->
-          ([<
-             | common
-             | `Data
-             | `Form
-             | `Mime_type
-             | `Height
-             | `Width
-             | `Name
-             | `Usemap
-            ], 'a, [> | `Object of ('a * 'b)]) star
+      ([<
+       | common
+       | `Data
+       | `Form
+       | `Mime_type
+       | `Height
+       | `Width
+       | `Name
+       | `Usemap
+       ], 'a, [> | `Object of 'a ]) star
       
     val param : ([< | param_attrib], [> | param]) nullary
       
@@ -888,13 +874,11 @@ module type T =
     (**************************************)
     val audio :
       ?srcs: (uri * (([< | `Source] elt) list)) ->
-        controls: (('b, unit) expl_attrib) ->
-          ([< | common | `Preload | `Autoplay | `Loop | `Controls], 'a,
-            [> | `Audio of ('a * 'b)]) star
+      ([< | common | `Preload | `Autoplay | `Loop | `Controls], 'a,
+       [> | `Audio of 'a ]) star
       
     val video :
       ?srcs: (uri * (([< | `Source] elt) list)) ->
-        controls: (('b, unit) expl_attrib) ->
           ([<
              | common
              | `Poster
@@ -904,7 +888,7 @@ module type T =
              | `Controls
              | `Width
              | `Height
-            ], 'a, [> | `Video of ('a * 'b)]) star
+            ], 'a, [> | `Video of 'a]) star
       
     val canvas : ([< | canvas_attrib], 'a, [> | `Canvas of 'a]) star
       
@@ -1684,8 +1668,8 @@ module M_05_00 : T_05_00 =
     let a_required =
       function | `Required -> string_attrib "required" "required"
       
-    let a_reserved =
-      function | `Reserved -> string_attrib "reserved" "reserved"
+    let a_reversed =
+      function | `Reversed -> string_attrib "reserved" "reserved"
       
     let rec a_sandbox sb =
       let rec aux sb =
@@ -2091,11 +2075,7 @@ module M_05_00 : T_05_00 =
       
     let aside = star "aside"
       
-    let video_audio name ?srcs ~controls ?(a = []) elts =
-      let a =
-        match controls with
-        | Some () -> (a_controls `Controls) :: a
-        | None -> a in
+    let video_audio name ?srcs ?(a = []) elts =
       let (a, children) =
         match srcs with
         | None -> (a, elts)
@@ -2232,24 +2212,14 @@ module M_05_00 : T_05_00 =
       
     let iframe = star "iframe"
       
-    let object_ ?(params = []) ~usemap ?(a = []) elts =
-      let a =
-        match usemap with | Some idref -> (a_usemap idref) :: a | None -> a
-      in XML.node ~a "object" (params @ elts)
+    let object_ ?(params = []) ?(a = []) elts =
+      XML.node ~a "object" (params @ elts)
       
     let param = terminal "param"
       
-    type ('a, 'b) expl_attrib = 'b option
-    
-    let expl_attrib x = Some x
-      
-    let expl_none = None
-      
-    let img ~src ~alt ~usemap ?(a = []) () =
-      let li = (a_src src) :: (a_alt alt) :: a in
-      let a =
-        match usemap with | Some usemap -> (a_usemap usemap) :: li | _ -> li
-      in XML.leaf ~a "img"
+    let img ~src ~alt ?(a = []) () =
+      let a = (a_src src) :: (a_alt alt) :: a in
+      XML.leaf ~a "img"
       
     let meta = terminal "meta"
       
@@ -2261,624 +2231,6 @@ module M_05_00 : T_05_00 =
     let base = terminal "base"
       
     (* VB *)
-    type scripttag = [ | `Script | `Noscript ]
-    
-    type misc = scripttag
-    
-    type heading = [ | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hgroup ]
-    
-    type sectioning = [ | `Section | `Nav | `Aside | `Article ]
-    
-    type resetable = [ | `Textarea | `Select | `Output | `Keygen | `Input ]
-    
-    type submitable = [ | `Textarea | `Select | `Keygen | `Input | `Button ]
-    
-    type labelable = [ | resetable | `Progress | `Meter | `Button ]
-    
-    type formatblock =
-      [
-        | heading
-        | sectioning
-        | `Pre
-        | `P
-        | `Header
-        | `Footer
-        | `Div
-        | `Blockquote
-        | `Address
-      ]
-    
-    type sectionningroot =
-      [ | `Td | `Figure | `Fieldset | `Details | `Body | `Blockquote
-      ]
-    
-    type listed = [ | resetable | submitable | `Fieldset ]
-    
-    type formassociated = [ | listed | `Progress | `Meter | `Label ]
-    
-    (******************)
-    (* Video 
-           Type
-           Object
-           Menu
-           Input
-           Img (if usemap attribute)
-           Audio          *)
-    (* in Interactive *)
-    (* with conditions*)
-    (******************)
-    (* a boolean at the type-level *)
-    type on = [ | `On ]
-    
-    type off = [ | `Off ]
-    
-    type on_off = [ | on | off ]
-    
-    type ('interactive, 'noscript, 'regular, 'media) transparent =
-      [
-        | `A of 'interactive
-        | `Noscript of 'noscript
-        | `Canvas of 'regular
-        | `Map of 'regular
-        | `Ins of 'regular
-        | `Del of 'regular
-        | `Object of ('regular * on_off)
-        | `Audio of ('media * on_off)
-        | `Video of ('media * on_off)
-      ]
-    
-    type 'a transparent_without_interactive =
-      [
-        | `Noscript of 'a
-        | `Ins of 'a
-        | `Del of 'a
-        | `Object of ('a * off)
-        | `Canvas of 'a
-        | `Map of 'a
-        | `Audio of ('a * off)
-        | `Video of ('a * off)
-      ]
-    
-    type 'a transparent_without_noscript =
-      [
-        | `A of 'a
-        | `Ins of 'a
-        | `Del of 'a
-        | `Canvas of 'a
-        | `Map of 'a
-        | `Object of ('a * on_off)
-        | `Video of ('a * on_off)
-        | `Audio of ('a * on_off)
-      ]
-    
-    type 'a transparent_without_media =
-      [
-        | `A of 'a
-        | `Ins of 'a
-        | `Del of 'a
-        | `Map of 'a
-        | `Canvas of 'a
-        | `Object of ('a * on_off)
-      ]
-    
-    (** Metadata without title *)
-    type metadata_without_title =
-      [
-        | `Style
-        | `Script
-        | `Noscript of [ | `Meta | `Link | `Style ]
-        | `Meta
-        | `Link
-        | `Command
-        | `Base
-      ]
-    
-    (** Metadata contents. Used specially in <head> *)
-    type metadata = [ | metadata_without_title | `Title ]
-    
-    (** Interactive contents : contents that require user-interaction 
-        (Forms, link, etc.) *)
-    (** Core element types are element types without transparent. *)
-    type core_interactive =
-      [
-        | `Textarea
-        | `Select
-        | `Menu
-        | `Label
-        | `Keygen
-        | `Input
-        | `Img of on
-        | `Iframe
-        | `Embed
-        | `Details
-        | `Button
-      ]
-    
-    type interactive =
-      [ | core_interactive | interactive transparent_without_interactive
-      ]
-    
-    (** Phrasing contents is inline contents : bold text, span, and so on. *)
-    type core_phrasing =
-      [
-        | labelable
-        | submitable
-        | `Wbr
-        | `Var
-        | `Time
-        | `Sup
-        | `Sub
-        | `Strong
-        | `Span
-        | `Small
-        | `Script
-        | `Samp
-        | `Ruby
-        | `Q
-        | `Mark
-        | `Label
-        | `Kbd
-        | `I
-        | `Em
-        | `Dfn
-        | `Datalist
-        | `Command
-        | `Code
-        | `Cite
-        | `Br
-        | `Bdo
-        | `B
-        | `Abbr
-        | `PCDATA
-      ]
-    
-    type phrasing_without_noscript =
-      [
-        | labelable
-        | submitable
-        | `Wbr
-        | `Var
-        | `Time
-        | `Sup
-        | `Sub
-        | `Strong
-        | `Span
-        | `Small
-        | `Script
-        | `Samp
-        | `Ruby
-        | `Q
-        | `Mark
-        | `Label
-        | `Kbd
-        | `I
-        | `Em
-        | `Dfn
-        | `Datalist
-        | `Command
-        | `Code
-        | `Cite
-        | `Br
-        | `Bdo
-        | `B
-        | `Abbr
-        | `PCDATA
-        | phrasing_without_noscript transparent_without_noscript
-      ]
-    
-    type core_phrasing_without_media =
-      [
-        | labelable
-        | submitable
-        | (* `Math |`Svg |*)
-        `Img of on_off
-        | `Iframe
-        | `Embed
-        | `Wbr
-        | `Var
-        | `Time
-        | `Sup
-        | `Sub
-        | `Strong
-        | `Span
-        | `Small
-        | `Script
-        | `Samp
-        | `Ruby
-        | `Q
-        | `Mark
-        | `Label
-        | `Kbd
-        | `I
-        | `Em
-        | `Dfn
-        | `Datalist
-        | `Command
-        | `Code
-        | `Cite
-        | `Br
-        | `Bdo
-        | `B
-        | `Abbr
-        | `PCDATA
-      ]
-    
-    type phrasing_without_media =
-      [
-        | core_phrasing_without_media
-        | phrasing_without_media transparent_without_media
-      ]
-    
-    type core_phrasing_without_interactive =
-      [
-        | labelable
-        | submitable
-        | `Wbr
-        | `Var
-        | `Time
-        | `Sup
-        | `Sub
-        | `Strong
-        | `Span
-        | `Small
-        | `Script
-        | `Samp
-        | `Ruby
-        | `Q
-        | `Mark
-        | `Kbd
-        | `Img of off
-        | `I
-        | `Em
-        | `Dfn
-        | `Datalist
-        | `Command
-        | `Code
-        | `Cite
-        | `Br
-        | `Bdo
-        | `B
-        | `Abbr
-        | `PCDATA
-      ]
-    
-    type phrasing_without_interactive =
-      [
-        | core_phrasing_without_interactive
-        | phrasing_without_interactive transparent_without_interactive
-      ]
-    
-    type phrasing =
-      [
-        | (phrasing_without_interactive, phrasing_without_noscript, phrasing,
-            phrasing_without_media) transparent
-        | core_phrasing
-      ]
-    
-    (** Phrasing without the interactive markups *)
-    type phrasing_without_dfn =
-      [
-        | labelable
-        | submitable
-        | `Wbr
-        | `Var
-        | `Time
-        | `Sup
-        | `Sub
-        | `Strong
-        | `Span
-        | `Small
-        | `Script
-        | `Samp
-        | `Ruby
-        | `Q
-        | `Mark
-        | `Label
-        | `Kbd
-        | `I
-        | `Em
-        | `Datalist
-        | `Command
-        | `Code
-        | `Cite
-        | `Br
-        | `Bdo
-        | `B
-        | `Abbr
-        | `PCDATA
-        | (phrasing_without_interactive, phrasing_without_noscript,
-            phrasing_without_dfn, phrasing_without_media) transparent
-      ]
-    
-    type phrasing_without_label =
-      [
-        | labelable
-        | submitable
-        | `Wbr
-        | `Var
-        | `Time
-        | `Sup
-        | `Sub
-        | `Strong
-        | `Span
-        | `Small
-        | `Script
-        | `Samp
-        | `Ruby
-        | `Q
-        | `Mark
-        | `Kbd
-        | `I
-        | `Em
-        | `Dfn
-        | `Datalist
-        | `Command
-        | `Code
-        | `Cite
-        | `Br
-        | `Bdo
-        | `B
-        | `Abbr
-        | `PCDATA
-        | (phrasing_without_interactive, phrasing_without_noscript,
-            phrasing_without_label, phrasing_without_media) transparent
-      ]
-    
-    type phrasing_without_progress =
-      [
-        | resetable
-        | submitable
-        | `Wbr
-        | `Var
-        | `Time
-        | `Sup
-        | `Sub
-        | `Strong
-        | `Span
-        | `Small
-        | `Script
-        | `Samp
-        | `Ruby
-        | `Q
-        | `Meter
-        | `Mark
-        | `Label
-        | `Kbd
-        | `I
-        | `Em
-        | `Dfn
-        | `Datalist
-        | `Command
-        | `Code
-        | `Cite
-        | `Button
-        | `Br
-        | `Bdo
-        | `B
-        | `Abbr
-        | `PCDATA
-        | (phrasing_without_interactive, phrasing_without_noscript,
-            phrasing_without_progress, phrasing_without_media) transparent
-      ]
-    
-    type phrasing_without_time =
-      [
-        | labelable
-        | submitable
-        | `Wbr
-        | `Var
-        | `Sup
-        | `Sub
-        | `Strong
-        | `Span
-        | `Small
-        | `Script
-        | `Samp
-        | `Ruby
-        | `Q
-        | `Mark
-        | `Label
-        | `Kbd
-        | `I
-        | `Em
-        | `Dfn
-        | `Datalist
-        | `Command
-        | `Code
-        | `Cite
-        | `Br
-        | `Bdo
-        | `B
-        | `Abbr
-        | `PCDATA
-        | (phrasing_without_interactive, phrasing_without_noscript,
-            phrasing_without_time, phrasing_without_media) transparent
-      ]
-    
-    type phrasing_without_meter =
-      [
-        | submitable
-        | resetable
-        | `Progress
-        | `Button
-        | `Wbr
-        | `Var
-        | `Time
-        | `Sup
-        | `Sub
-        | `Strong
-        | `Span
-        | `Small
-        | `Script
-        | `Samp
-        | `Ruby
-        | `Q
-        | `Mark
-        | `Label
-        | `Kbd
-        | `I
-        | `Em
-        | `Dfn
-        | `Datalist
-        | `Command
-        | `Code
-        | `Cite
-        | `Br
-        | `Bdo
-        | `B
-        | `Abbr
-        | `PCDATA
-        | (phrasing_without_interactive, phrasing_without_noscript,
-            phrasing_without_meter, phrasing_without_media) transparent
-      ]
-    
-    (******************)
-    (* Map  Ins
-           Del  A         *)
-    (*  in Phrasing   *)
-    (* with conditions*)
-    (******************)
-    type core_flow5 =
-      [
-        | core_phrasing
-        | formassociated
-        | formatblock
-        | `Ul
-        | `Table
-        | `Style
-        | `Ol
-        | `Menu
-        | `Hr
-        | `Form
-        | `Figure
-        | `Dl
-      ]
-    
-    type flow5_without_interactive =
-      [
-        | core_flow5
-        | flow5_without_interactive transparent_without_interactive
-      ]
-    
-    type flow5_without_noscript =
-      [ | core_flow5 | flow5_without_noscript transparent_without_noscript
-      ]
-    
-    type flow5_without_media =
-      [
-        | core_phrasing_without_media
-        | `Textarea
-        | `Select
-        | `Menu
-        | `Label
-        | `Keygen
-        | `Input
-        | `Img of on_off
-        | `Iframe
-        | `Embed
-        | `Details
-        | `Button
-        | formassociated
-        | formatblock
-        | `Ul
-        | `Table
-        | `Style
-        | `Ol
-        | `Menu
-        | `Hr
-        | `Form
-        | `Figure
-        | `Dl
-        | flow5_without_media transparent_without_media
-      ]
-    
-    type flow5 =
-      [
-        | core_flow5
-        | (flow5_without_interactive, flow5_without_noscript, flow5,
-            flow5_without_media) transparent
-      ]
-    
-    type flow5_without_table =
-      [
-        | core_phrasing
-        | formassociated
-        | formatblock
-        | `Ul
-        | `Style
-        | `Ol
-        | `Menu
-        | `Hr
-        | `Form
-        | `Figure
-        | `Dl
-        | `Ins_flow
-        | (flow5_without_interactive, flow5_without_noscript, flow5,
-            flow5_without_media) transparent
-      ]
-    
-    type flow5_without_header_footer =
-      [
-        | heading
-        | sectioning
-        | `Pre
-        | `P
-        | `Div
-        | `Blockquote
-        | `Address
-        | core_phrasing
-        | formassociated
-        | `Ul
-        | `Table
-        | `Style
-        | `Ol
-        | `Menu
-        | `Hr
-        | `Form
-        | `Figure
-        | `Dl
-        | `Ins_flow
-        | (flow5_without_interactive, flow5_without_noscript, flow5,
-            flow5_without_media) transparent
-      ]
-    
-    type flow5_without_form =
-      [
-        | core_phrasing
-        | formassociated
-        | formatblock
-        | `Ul
-        | `Table
-        | `Style
-        | `Ol
-        | `Menu
-        | `Hr
-        | `Figure
-        | `Dl
-        | (flow5_without_interactive, flow5_without_noscript, flow5,
-            flow5_without_media) transparent
-      ]
-    
-    type flow5_without_sectioning_heading_header_footer_address =
-      [
-        | core_phrasing
-        | formassociated
-        | `Pre
-        | `P
-        | `Div
-        | `Blockquote
-        | `Ul
-        | `Table
-        | `Style
-        | `Ol
-        | `Menu
-        | `Hr
-        | `Form
-        | `Figure
-        | `Dl
-        | (flow5_without_interactive, flow5_without_noscript, flow5,
-            flow5_without_media) transparent
-      ]
     
     type rt =
       [

@@ -603,7 +603,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 let preappl2 = preapply uasuffix (1999,01)
 
 let mymenu current sp =
-  Eliom_tools.menu ~classe:["menuprincipal"]
+  Eliom_tools.Xhtml.menu ~classe:["menuprincipal"]
     (coucou, <:xmllist< coucou >>)
     [
      (preappl, <:xmllist< params >>);

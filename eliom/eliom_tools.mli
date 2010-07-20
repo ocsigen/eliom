@@ -25,32 +25,34 @@ open Eliom_parameters
 open Eliom_sessions
 open Eliom_tools_common
 
+(** {1 XHTML tools} *)
+module Xhtml : sig
 (** {2 Menus } *)
 
-val menu :
-  ?classe:Xhtmltypes.nmtoken list ->
-  ?id:string ->
-  (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
-     Xhtmltypes.a_content XHTML.M.elt list)
-  ->
-  (('a, 'b) one_page *
-     Xhtmltypes.a_content XHTML.M.elt list)
-    list ->
-  ?service:('a, 'b) one_page ->
-  sp:Eliom_sessions.server_params ->
-  [> `Ul ] XHTML.M.elt
+  val menu :
+    ?classe:Xhtmltypes.nmtoken list ->
+    ?id:string ->
+    (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
+        Xhtmltypes.a_content XHTML.M.elt list)
+    ->
+    (('a, 'b) one_page *
+        Xhtmltypes.a_content XHTML.M.elt list)
+      list ->
+    ?service:('a, 'b) one_page ->
+    sp:Eliom_sessions.server_params ->
+    [> `Ul ] XHTML.M.elt
 (** Creates a menu
 
-   Example:
+    Example:
 
-  [menu ~classe:["mainmenu"]
+    [menu ~classe:["mainmenu"]
     [
-     (home, <:xmllist< Home >>);
-     (infos, <:xmllist< More infos >>)
-   ] current sp]
+    (home, <:xmllist< Home >>);
+    (infos, <:xmllist< More infos >>)
+    ] current sp]
 
-   The [service] argument is used to find which item(s) to highlight. If
-   service is [None], the current url is used.
+    The [service] argument is used to find which item(s) to highlight. If
+    service is [None], the current url is used.
 
 *)
 
@@ -58,65 +60,168 @@ val menu :
 
 
 (**
-    [hierarchical_menu_depth_first menu] constructs a function taking
-    as parameters a service and [~sp] (server parameters)
-    and displaying a hierarchical menu for this service.
+   [hierarchical_menu_depth_first menu] constructs a function taking
+   as parameters a service and [~sp] (server parameters)
+   and displaying a hierarchical menu for this service.
 
-    The menu is constructed by exploring the tree using
-    a depth-first algorithm. It means that the first menu item will be
-    displayed, followed by the whole sub-menu for this item, then the second
-    menu item with its sub-menu, and so on.
-    By default, only the sub-menus for to the url corresponding to
-    the argument [service] are displayed. If you want all the sub-menus to be
-    displayed, specify [?whole_tree=true]. If [service] is [None], the current
-    page is used.
- *)
-val hierarchical_menu_depth_first :
-  ?classe:Xhtmltypes.nmtoken list ->
-  ?id:string ->
-  ?whole_tree:bool ->
-  ([< Eliom_services.get_service_kind ] as 'a,
-   [< Eliom_services.registrable ] as 'b,
-   Xhtmltypes.a_content XHTML.M.elt list)
+   The menu is constructed by exploring the tree using
+   a depth-first algorithm. It means that the first menu item will be
+   displayed, followed by the whole sub-menu for this item, then the second
+   menu item with its sub-menu, and so on.
+   By default, only the sub-menus for to the url corresponding to
+   the argument [service] are displayed. If you want all the sub-menus to be
+   displayed, specify [?whole_tree=true]. If [service] is [None], the current
+   page is used.
+*)
+  val hierarchical_menu_depth_first :
+    ?classe:Xhtmltypes.nmtoken list ->
+    ?id:string ->
+    ?whole_tree:bool ->
+    ([< Eliom_services.get_service_kind ] as 'a,
+     [< Eliom_services.registrable ] as 'b,
+     Xhtmltypes.a_content XHTML.M.elt list)
       hierarchical_site ->
-  ?service:('a, 'b) one_page ->
-  sp:Eliom_sessions.server_params ->
+    ?service:('a, 'b) one_page ->
+    sp:Eliom_sessions.server_params ->
     [> `Ul ] XHTML.M.elt list
 
 
 
 (**
-    [hierarchical_menu_breadth_first menu] constructs a function taking
-    as parameters a service and [~sp] (server parameters)
-    and displaying a hierarchical menu for this service.
+   [hierarchical_menu_breadth_first menu] constructs a function taking
+   as parameters a service and [~sp] (server parameters)
+   and displaying a hierarchical menu for this service.
 
-    The menu is constructed by exploring the tree using
-    a breadth_first algorithm. It means that the whole menu for one
-    level will be displayed, followed by all sub-menus.
+   The menu is constructed by exploring the tree using
+   a breadth_first algorithm. It means that the whole menu for one
+   level will be displayed, followed by all sub-menus.
 
-    Only the sub-menus for to the url corresponding to the argument [service]
-    are displayed. If [service] is [None], the current url is used.
- *)
-val hierarchical_menu_breadth_first :
-  ?classe:Xhtmltypes.nmtoken list ->
-  ?id:string ->
-  ([< Eliom_services.get_service_kind ] as 'a,
-   [< Eliom_services.registrable ] as 'b,
-   Xhtmltypes.a_content XHTML.M.elt list)
+   Only the sub-menus for to the url corresponding to the argument [service]
+   are displayed. If [service] is [None], the current url is used.
+*)
+  val hierarchical_menu_breadth_first :
+    ?classe:Xhtmltypes.nmtoken list ->
+    ?id:string ->
+    ([< Eliom_services.get_service_kind ] as 'a,
+     [< Eliom_services.registrable ] as 'b,
+     Xhtmltypes.a_content XHTML.M.elt list)
       hierarchical_site ->
-  ?service:('a, 'b) one_page ->
-  sp:Eliom_sessions.server_params ->
+    ?service:('a, 'b) one_page ->
+    sp:Eliom_sessions.server_params ->
     [> `Ul ] XHTML.M.elt list
 
 
 (** Returns the tags [<link rel="subsection" ...>] and
-   [<link rev="subsection" ...>] for the given hierarchical site.
- *)
-val structure_links :
+    [<link rev="subsection" ...>] for the given hierarchical site.
+*)
+  val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
      Xhtmltypes.a_content XHTML.M.elt list)
     hierarchical_site ->
-  ?service:('a, 'b) one_page ->
-  sp:Eliom_sessions.server_params ->
-  [> `Link ] XHTML.M.elt list
+    ?service:('a, 'b) one_page ->
+    sp:Eliom_sessions.server_params ->
+    [> `Link ] XHTML.M.elt list
+end
+
+(** {2 XHTML5} *)
+
+(** Same functions as above, but with XHTML5 elements *)
+module Xhtml5 : sig
+    
+(** {2 Menus } *)
+
+  val menu :
+    ?classe:Xhtml5types.nmtoken list ->
+    ?id:string ->
+    (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
+        Xhtml5types.flow5_without_interactive XHTML5.M.elt list)
+    ->
+    (('a, 'b) one_page *
+        Xhtml5types.flow5_without_interactive XHTML5.M.elt list)
+      list ->
+    ?service:('a, 'b) one_page ->
+    sp:Eliom_sessions.server_params ->
+    [> `Ul ] XHTML5.M.elt
+(** Creates a menu
+
+    Example:
+
+    [menu ~classe:["mainmenu"]
+    [
+    (home, <:xmllist< Home >>);
+    (infos, <:xmllist< More infos >>)
+    ] current sp]
+
+    The [service] argument is used to find which item(s) to highlight. If
+    service is [None], the current url is used.
+
+*)
+
+(** {2 Hierchical sites } *)
+
+
+(**
+   [hierarchical_menu_depth_first menu] constructs a function taking
+   as parameters a service and [~sp] (server parameters)
+   and displaying a hierarchical menu for this service.
+
+   The menu is constructed by exploring the tree using
+   a depth-first algorithm. It means that the first menu item will be
+   displayed, followed by the whole sub-menu for this item, then the second
+   menu item with its sub-menu, and so on.
+   By default, only the sub-menus for to the url corresponding to
+   the argument [service] are displayed. If you want all the sub-menus to be
+   displayed, specify [?whole_tree=true]. If [service] is [None], the current
+   page is used.
+*)
+  val hierarchical_menu_depth_first :
+    ?classe:Xhtml5types.nmtoken list ->
+    ?id:string ->
+    ?whole_tree:bool ->
+    ([< Eliom_services.get_service_kind ] as 'a,
+     [< Eliom_services.registrable ] as 'b,
+     Xhtml5types.a_content XHTML5.M.elt list)
+      hierarchical_site ->
+    ?service:('a, 'b) one_page ->
+    sp:Eliom_sessions.server_params ->
+    [> `Ul ] XHTML5.M.elt list
+
+
+
+(**
+   [hierarchical_menu_breadth_first menu] constructs a function taking
+   as parameters a service and [~sp] (server parameters)
+   and displaying a hierarchical menu for this service.
+
+   The menu is constructed by exploring the tree using
+   a breadth_first algorithm. It means that the whole menu for one
+   level will be displayed, followed by all sub-menus.
+
+   Only the sub-menus for to the url corresponding to the argument [service]
+   are displayed. If [service] is [None], the current url is used.
+*)
+  val hierarchical_menu_breadth_first :
+    ?classe:Xhtml5types.nmtoken list ->
+    ?id:string ->
+    ([< Eliom_services.get_service_kind ] as 'a,
+     [< Eliom_services.registrable ] as 'b,
+     Xhtml5types.a_content XHTML5.M.elt list)
+      hierarchical_site ->
+    ?service:('a, 'b) one_page ->
+    sp:Eliom_sessions.server_params ->
+    [> `Ul ] XHTML5.M.elt list
+
+
+(** Returns the tags [<link rel="subsection" ...>] and
+    [<link rev="subsection" ...>] for the given hierarchical site.
+*)
+  val structure_links :
+    ([< Eliom_services.get_service_kind ] as 'a,
+     [< Eliom_services.registrable ] as 'b,
+     Xhtml5types.a_content XHTML5.M.elt list)
+    hierarchical_site ->
+    ?service:('a, 'b) one_page ->
+    sp:Eliom_sessions.server_params ->
+    [> `Link ] XHTML5.M.elt list
+end
