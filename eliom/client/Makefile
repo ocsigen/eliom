@@ -6,7 +6,7 @@ OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml -syntax camlp4o
 LIBS:=
-MLS:= xML.ml xHTML.ml xhtml5types.ml xHTML5.ml \
+MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml xhtml5types.ml xHTML5.ml \
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
@@ -16,11 +16,14 @@ MLS:= xML.ml xHTML.ml xhtml5types.ml xHTML5.ml \
 	eliom_request.ml \
 	eliommod_cli.ml eliom_client.ml \
 	xhtmltypes.ml polytables.ml \
+	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
+	polytables.ml \
+	eliom_predefmod.ml \
 	eliom_common_comet.ml eliom_client_comet.ml \
         eliommod_mkforms.ml eliom_mkforms.ml \
 	eliom_predefmod.ml \
 	eliom_client_event.ml
-MLIS:= eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli eliom_common_comet.mli eliommod_mkforms.mli
+MLIS:= uri.mli xhtml5types.mli xhtmltypes.mli xHTML.mli xHTML5.mli eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli eliom_common_comet.mli eliommod_mkforms.ml
 CMOS=$(MLS:.ml=.cmo)
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -48,19 +51,31 @@ $(CMA):  eliom_client_stubs.o $(CMOS)
 xHTML.ml: ../../xmlp4/xhtml/xHTML.ml
 	cp -f $< $@ 
 
-#xHTML.mli: ../../xmlp4/xhtml/xHTML.mli
-#	cp -f $< $@ 
-
-xHTML5.ml: ../../xmlp4/xhtml/xHTML5.ml
-	camlp4r -printer o $< > $@
-
-#xHTML5.mli: ../../xmlp4/xhtml/xHTML5.mli
-#	cp -f $< $@ 
-
-xhtmltypes.ml: ../../xmlp4/syntax/pp/xhtmltypes.ml
+xHTML.mli: ../../xmlp4/xhtml/xHTML.mli
 	cp -f $< $@ 
 
-xhtml5types.ml: ../../xmlp4/syntax/pp/xhtml5types.ml
+xHTML5.ml: ../../xmlp4/xhtml/xHTML5.ml
+	cp -f $< $@
+
+uri.ml: ../../xmlp4/xhtml/uri.ml
+	cp -f $< $@
+
+uri.mli: ../../xmlp4/xhtml/uri.mli
+	cp -f $< $@
+
+xHTML5.mli: ../../xmlp4/xhtml/xHTML5.mli
+	cp -f $< $@ 
+
+xhtmltypes.ml: ../../xmlp4/xhtml/xhtmltypes.ml
+	cp -f $< $@ 
+
+xhtml5types.ml: ../../xmlp4/xhtml/xhtml5types.ml
+	cp -f $< $@ 
+
+xhtmltypes.mli: ../../xmlp4/xhtml/xhtmltypes.mli
+	cp -f $< $@ 
+
+xhtml5types.mli: ../../xmlp4/xhtml/xhtml5types.mli
 	cp -f $< $@ 
 
 ocsigen_cookies.ml: ../../http/ocsigen_cookies.ml ocsigen_cookies.mli
@@ -130,7 +145,8 @@ clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so
 	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml* \
 	    eliom_common.ml eliom_mkforms.ml* eliom_uri.ml* \
-            eliom_predefmod.ml* xHTML.ml xHTML5.ml xhtml5types.ml \
+            eliom_predefmod.ml* xHTML.ml* xHTML5.ml* xhtml5types.ml* \
+            xhtmltypes.ml* uri.ml* \
 	    ocsigen_lib_cli.ml \
             polytables.ml
 

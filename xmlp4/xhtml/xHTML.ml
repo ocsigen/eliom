@@ -25,7 +25,7 @@
 
 (** Typesafe constructors for XHTML 1.1 documents.
     @see <http://www.w3.org/TR/xhtml-modularization/abstract_modules.html> W3C Recommendation *)
-
+open Xhtmltypes
 module type T =
   sig
 
@@ -51,247 +51,17 @@ module type T =
 
     The phantom type is always the {e most general} required by any (supported)
     version of the standard.  Type discipline is enforced by exporting or not-exporting
-    the corresponding constructor.  *)
+    the corresponding constructor.  
 
-(** {1 Attribute Types}
-    @see <http://www.w3.org/TR/xhtml-modularization/abstraction.html#s_common_attrtypes> Modularization of XHTML *)
+    The type defining group of html elements are in {!Xhtmltypes}
+*)
 
-    type cdata = string
-(** Character data *)
-
-    type id = string
-(** A document-unique identifier *)
-
-    type idref = string
-(** A reference to a document-unique identifier *)
-
-    type idrefs = idref list
-(** A space-separated list of references to document-unique identifiers *)
-
-    type name = string
-(** A name with the same character constraints as ID above *)
-
-    type nmtoken = string
-(** A name composed of only name tokens as defined in XML 1.0
-    @see <http://www.w3.org/TR/2000/REC-xml-20001006> XML 1.0 *)
-
-    type nmtokens = nmtoken list
-(** One or more white space separated NMTOKEN values *)
-
-    type pcdata = string
-(** Processed character data *)
-
-(** {2 Data Types} *)
-
-    type character = char
-(** A single character from ISO 10646. *)
-
-    type charset = string
-(** A character encoding, as per RFC2045 (MIME).
-    @see <http://www.ietf.org/rfc/rfc2045.txt> RFC2045 *)
-
-    type charsets = charset list
-(** A space-separated list of character encodings, as per RFC2045 (MIME).
-    @see <http://www.ietf.org/rfc/rfc2045.txt> RFC2045 *)
-
-    type contenttype = string
-(** A media type, as per RFC2045 (MIME).
-    @see <http://www.ietf.org/rfc/rfc2045.txt> RFC2045 *)
-
-    type contenttypes = contenttype list
-(** A comma-separated list of media types, as per RFC2045 (MIME).
-    @see <http://www.ietf.org/rfc/rfc2045.txt> RFC2045 *)
-
-    type coords = string list
-(** Comma- separated list of coordinates to use in defining areas. *)
-
-    type datetime = string
-(** Date and time information. *)
-
-    type fpi = string
-(** A character string representing an SGML Formal Public Identifier. *)
-
-    type frametarget = string
-(** Frame name used as destination for results of certain actions. *)
-
-    type languagecode = string
-(** A language code, as per RFC3066.
-    @see <http://www.ietf.org/rfc/rfc3066.txt> RFC3066 *)
-
-    type length = [ `Pixels of int | `Percent of int ]
-(** The value may be either in pixels or a percentage of the available
-    horizontal or vertical space. Thus, the value [`Percent 50] means half of
-    the available space. *)
-
-    type linktypes =
-        [ `Alternate | `Appendix | `Bookmark | `Chapter | `Contents
-        | `Copyright | `Glossary | `Help | `Index | `Next | `Prev
-        | `Section | `Start | `Stylesheet | `Subsection | `Other of string] list
-(** Authors may use the following recognized link types, listed here with
-    their conventional interpretations. A LinkTypes value refers to a
-    space-separated list of link types. White space characters are not
-    permitted within link types.  These link types are case-insensitive, i.e.,
-    ["Alternate"] has the same meaning as ["alternate"].
-
-    User agents, search engines, etc. may interpret these link types in a
-    variety of ways. For example, user agents may provide access to linked
-    documents through a navigation bar.
-
-    {ul
-      {- [`Alternate]:
-         Designates substitute versions for the document in which the link occurs.
-         When used together with the hreflang attribute, it implies a translated
-         version of the document. When used together with the media attribute,
-         it implies a version designed for a different medium (or media).}
-      {- [`Stylesheet]:
-         Refers to an external style sheet. See the Style Module for details.
-         This is used together with the link type ["Alternate"] for user-selectable
-         alternate style sheets.}
-      {- [`Start]:
-         Refers to the first document in a collection of documents.
-         This link type tells search engines which document is considered
-         by the author to be the starting point of the collection.}
-      {- [`Next]:
-         Refers to the next document in a linear sequence of documents.
-         User agents may choose to pre-load the "next" document, to reduce
-         the perceived load time.}
-      {- [`Prev]:
-         Refers to the previous document in an ordered series of documents.
-         Some user agents also support the synonym "Previous".}
-      {- [`Contents]:
-         Refers to a document serving as a table of contents. Some user
-         agents also support the synonym ToC (from "Table of Contents").}
-      {- [`Index]:
-         Refers to a document providing an index for the current document.}
-      {- [`Glossary]:
-         Refers to a document providing a glossary of terms that pertain to
-         the current document.}
-      {- [`Copyright]:
-         Refers to a copyright statement for the current document.}
-      {- [`Chapter]:
-         Refers to a document serving as a chapter in a collection of documents.}
-      {- [`Section]:
-         Refers to a document serving as a section in a collection of documents.}
-      {- [`Subsection]:
-         Refers to a document serving as a subsection in a collection of documents.}
-      {- [`Appendix]:
-         Refers to a document serving as an appendix in a collection of documents.}
-      {- [`Help]:
-         Refers to a document offering help (more information, links to other
-         sources information, etc.)}
-      {- [`Bookmark]:
-         Refers to a bookmark. A bookmark is a link to a key entry point within
-         an extended document. The title attribute may be used, for example, to
-         label the bookmark. Note that several bookmarks may be defined in each
-         document.}
-      {- [`Other]:
-         refers to any other type (for example [icon] or [shortcut]).
-         }} *)
-
-    type mediadesc =
-        [ `All | `Aural | `Braille | `Handheld | `Print
-        | `Projection | `Screen | `TTY | `TV ] list
-(** The MediaDesc attribute is a comma-separated list of media descriptors.
-    The following is a list of recognized media descriptors:
-    {ul
-      {- [`Screen]:
-         Intended for non-paged computer screens.}
-      {- [`TTY]:
-         Intended for media using a fixed-pitch character grid, such as
-         teletypes, terminals, or portable devices with limited display
-         capabilities.}
-      {- [`TV]:
-         Intended for television-type devices (low resolution, color,
-         limited scrollability).}
-      {- [`Projection]:
-         Intended for projectors.}
-      {- [`Handheld]:
-         Intended for handheld devices (small screen, monochrome,
-         bitmapped graphics, limited bandwidth).}
-      {- [`Print]:
-         Intended for paged, opaque material and for documents viewed
-         on screen in print preview mode.}
-      {- [`Braille]:
-         Intended for braille tactile feedback devices.}
-      {- [`Aural]:
-         Intended for speech synthesizers.}
-      {- [`All]:
-         Suitable for all devices.}}
-
-    Future versions of XHTML may introduce new values and may allow
-    parameterized values. To facilitate the introduction of these
-    extensions, conforming user agents must be able to parse the media
-    attribute value as follows:
-    {ol
-      {- The value is a comma-separated list of entries. For example,
-         [media="screen, 3d-glasses, print and resolution > 90dpi"]
-         is mapped to: ["screen"], ["3d-glasses"],
-         ["print and resolution > 90dpi"].}
-      {- Each entry is truncated just before the first character that
-         isn't a US ASCII letter [\[a-zA-Z\]] (ISO 10646 hex 41-5a,
-         61-7a), digit [\[0-9\]] (hex 30-39), or hyphen-minus (hex 2d).
-         In the example, this gives: ["screen"], ["3d-glasses"], ["print"].}
-      {- A case-insensitive match is then made with the set of media
-         types defined above. User agents may ignore entries that
-         don't match.  In the example we are left with ["screen"] and
-         ["print"].}}
-
-    Note. Style sheets may include media-dependent variations within them
-    (e.g., the [CSS \@media] construct). In such cases it may be appropriate
-    to use ["media=all"]. *)
-
-    type multilength = [ length | `Relative of int ]
-(** The value may be a Length or a relative length. A relative length
-    has the form ["i*"], where ["i"] is an integer. When allotting space
-    among elements competing for that space, user agents allot pixel
-    and percentage lengths first, then divide up remaining available
-    space among relative lengths. Each relative length receives a
-    portion of the available space that is proportional to the integer
-    preceding the ["*"]. The value ["*"] is equivalent to ["1*"]. Thus, if
-    60 pixels of space are available after the user agent allots pixel
-    and percentage space, and the competing relative lengths are ["1*"],
-    ["2*"], and ["3*"], the ["1*"] will be allotted 10 pixels, the ["2*"] will be
-    allotted 20 pixels, and the ["3*"] will be allotted 30 pixels. *)
-
-    type multilengths = multilength list (* comma-separated *)
-(** A comma separated list of items of type MultiLength. *)
-
-    type number = int
-(** One or more digits. *)
-
-    type pixels = int
-
-(** The value is an integer that represents the number of pixels of
-    the canvas (screen, paper). Thus, the value ["50"] means fifty
-    pixels. For normative information about the definition of a pixel,
-    please consult CSS2.
-    @see <http://www.w3.org/TR/1998/REC-CSS2-19980512> CSS2 *)
-
-    type script = string
-(** Script data can be the content of the ["script"] element and the
-    value of intrinsic event attributes. User agents must not evaluate
-    script data as HTML markup but instead must pass it on as data to a
-    script engine.
-
-    The case-sensitivity of script data depends on the scripting
-    language.
-
-    Please note that script data that is element content may not
-    contain character references, but script data that is the value of
-    an attribute may contain them. *)
-
-    type text = string
-(** Arbitrary textual data, likely meant to be human-readable. *)
-
-    type uri (* I abstract this for Ocsigen -- VB *)
+    (** An abstract type for URI. 
+        @deprecated Provided for backward-compatibility. You should directly use {!Uri}'s type and functions for URI management.
+    *)
+    type uri = Uri.uri
     val uri_of_string : string -> uri
     val string_of_uri : uri -> string
-(** A Uniform Resource Identifier, as per RFC2396.
-    @see <http://www.ietf.org/rfc/rfc2396.txt> RFC2396 *)
-
-    type uris = uri
-(** A space-separated list of Uniform Resource Identifiers, as per RFC2396.
-    @see <http://www.ietf.org/rfc/rfc2396.txt> RFC2396 *)
 
 
 (** {1 Common Attributes} *)
@@ -309,8 +79,6 @@ module type T =
        phantom types, but the implementation is likely to be more involved. *)
 
 (** {2 Core} *)
-
-    type core = [ `Class | `Id | `Title | `XML_space ]
 
     val a_class : nmtokens -> [>`Class] attrib
 (** This attribute assigns a class name or set of class names to an
@@ -337,7 +105,6 @@ module type T =
 
 (** {2 I18N} *)
 
-    type i18n = [ `XML_lang | `Dir ]
     val a_xml_lang : nmtoken -> [>`XML_lang] attrib
 
 
@@ -348,10 +115,6 @@ module type T =
 (** {2 Events} *)
 
 (** Javascript events *)
-
-    type events = [ `OnClick | `OnDblClick | `OnMouseDown | `OnMouseUp |
-                    `OnMouseOver | `OnMouseMove | `OnMouseOut | `OnKeyPress |
-                    `OnKeyDown | `OnKeyUp ]
 
     val a_onblur : XML.event -> [>`OnBlur] attrib
     val a_onclick : XML.event -> [>`OnClick] attrib
@@ -372,46 +135,15 @@ module type T =
     val a_onkeydown : XML.event -> [>`OnKeyDown] attrib
     val a_onkeyup : XML.event -> [>`OnKeyUp] attrib
 
-    type common = [ core | i18n | events | `Style_Attr]
-
 
 (** {1 Modules, Element Sets and Attributes } *)
 
-(** {2 5.2. Core Modules} *)
 
-(** {3 5.2.1. Structure Module} *)
-
-    module STRUCTURE :
-        sig
-          type t = [ `Body | `Head | `Html | `Title ]
-        end
-      
     val a_profile : uri -> [>`Profile] attrib
     val a_version : cdata -> [>`Version] attrib
     val a_xmlns : [< `W3_org_1999_xhtml ] -> [>`XMLns] attrib
-
-(** {3 5.2.2. Text Module} *)
-
-    module TEXT :
-        sig
-          type heading = [ `H1 | `H2 | `H3 | `H4 | `H5 | `H6 ]
-          type block = [ `Address | `Blockquote | `Div | `P | `Pre ]
-          type inline =
-              [ `Abbr | `Acronym | `Br | `Cite | `Code | `Dfn
-              | `Em | `Kbd | `Q | `Samp | `Span | `Strong | `Var ]
-          type flow = [ heading | block | inline ]
-        end
-
     val a_cite : uri -> [>`Cite] attrib
     val a_xml_space : [< `Preserve ] -> [>`XML_space] attrib
-
-(** {3 5.2.3. Hypertext Module} *)
-
-    module HYPERTEXT :
-        sig
-          type inline = [ `A ]
-          type flow = inline
-        end
 
     val a_accesskey : character -> [>`Accesskey] attrib
 (** This attribute assigns an access key to an element. An access key
@@ -462,58 +194,14 @@ module type T =
     inconsistent with the content available at the link target
     address. *)
 
-(** {3 5.2.3. List Module} *)
-
-    module LIST :
-        sig
-          type list = [ `Dl | `Ol | `Ul ]
-          type t = [ `Dd | `Dt | `Li ]
-          type flow = list
-        end
-
-(** {2 5.3. Applet Module}
-    This module is deprecated. Similar functionality
-    can be found in the Object Module. *)
-
-(** {2 5.4. Text Extension Modules} *)
-
-(** {3 5.4.1. Presentation Module} *)
-
-    module PRESENTATION :
-        sig
-          type block = [ `Hr ]
-          type inline = [ `B | `Big | `I | `Small | `Sub | `Sup | `Tt ]
-          type flow = [ inline | block ]
-        end
-
-(** {3 5.4.2. Edit Module} *)
-
-(* VB *)
     val a_datetime : cdata -> [>`Datetime] attrib
-(* VB *)
 
-(** {3 5.4.3. Bi-directional Text Module} *)
 
-(* VB *)
+(** {3 Bi-directional Text Attributes} *)
+
     val a_dir : [< `Ltr | `Rtl ] -> [>`Dir] attrib
-(* VB *)
 
-(** {2 5.5. Forms Modules} *)
-
-(** {3 5.5.1. Basic Forms Module} *)
-
-    module FORMS :
-        sig
-          type t = [ `Option ]
-          type form = [ `Form ]
-          type formctrl_sans_label = [ `Input | `Select | `Textarea | `Button ]
-          type formctrl = [ formctrl_sans_label | `Label ]
-          type block = form
-          type inline_sans_label = formctrl_sans_label
-          type inline = formctrl
-          type flow_sans_label = [block | inline_sans_label ]
-          type flow = [ block | inline ]
-        end
+(** {3 Forms attributes} *)
 
     val a_action : uri -> [>`Action] attrib
 (** This attribute specifies a form processing agent. User agent
@@ -564,8 +252,6 @@ module type T =
     val a_value_type : [< `Data | `Ref | `Object ] -> [>`Value_Type] attrib
 
 
-(** {3 5.5.2. Forms Module} *)
-
     val a_disabled : [< `Disabled ] -> [>`Disabled] attrib
     val a_readonly : [< `Readonly ] -> [>`Readonly] attrib
     val a_button_type : [< `Button | `Submit | `Reset ] ->
@@ -574,16 +260,7 @@ module type T =
     val a_label : text -> [> `Label ] attrib
 
 
-(** {2 5.6. Table Modules} *)
-
-(** {3 5.6.1. Basic Tables Module} *)
-
-    module TABLES :
-        sig
-          type t = [ `Caption | `Td | `Th | `Tr ]
-          type block = [ `Table ]
-          type flow = block
-        end
+(** {2 Attributes for tables} *)
 
     val a_abbr : text -> [>`Abbr] attrib
     val a_align : [< `Left | `Center | `Right | `Justify | `Char ] ->
@@ -596,8 +273,6 @@ module type T =
     val a_summary : text -> [>`Summary] attrib
     val a_valign : [< `Top | `Middle | `Bottom | `Baseline ] ->
       [>`Valign] attrib
-
-(** {3 5.6.2. Tables Module} *)
 
     val a_border : pixels -> [>`Border] attrib
     val a_cellpadding : length -> [>`Cellpadding] attrib
@@ -616,7 +291,7 @@ module type T =
     val a_longdesc : uri -> [>`Longdesc] attrib
     val a_width : length -> [>`Width] attrib
 
-(** {2 5.8. Client-side Image Map Module} *)
+(** {2 Attributes for client-side image map} *)
 
     type shape = [ `Rect | `Circle | `Poly | `Default ]
     val a_shape : shape -> [>`Shape] attrib
@@ -624,12 +299,11 @@ module type T =
     val a_nohref : [< `Nohref ] -> [>`Nohref] attrib
     val a_usemap : idref -> [>`Usemap] attrib
 
-(** {2 5.9. Server-side Image Map Module} *)
+(** {2 Attributes for Server-side Image Map} *)
     val a_ismap : [< `Ismap ] -> [>`Ismap] attrib
 
-(** {2 5.10. Object Module} *)
+(** {2 Attributes for Object} *)
 
-(* VB *)
     val a_declare : [< `Declare ] -> [> `Declare ] attrib
     val a_classid : uri -> [> `Classid ] attrib
     val a_codebase : uri -> [> `Codebase ] attrib
@@ -637,9 +311,8 @@ module type T =
     val a_codetype : contenttype -> [>`Codetype] attrib
     val a_archive : uris -> [>`Archive] attrib
     val a_standby : text -> [>`Standby] attrib
-(* VB *)
 
-(** {2 5.11. Frames Module} *)
+(** {2 Attributes for Frames } *)
 
     val a_fs_rows : multilengths -> [>`FS_Rows] attrib
     val a_fs_cols : multilengths -> [>`FS_Cols] attrib
@@ -649,136 +322,26 @@ module type T =
     val a_noresize : [< `Noresize ] -> [>`Noresize] attrib
     val a_scrolling : [< `Yes | `No | `Auto ] -> [>`Scrolling] attrib
 
-(** {2 5.12. Target Module} *)
-
     val a_target : frametarget -> [>`Target] attrib
 
 
-(** {2 5.14. Intrinsic Events Module} *)
-
-(** {2 5.15. Metainformation Module} *)
-
-    module METAINFORMATION :
-        sig
-          type t = [ `Meta ]
-        end
+(** {2 Attributes for metadata} *)
 
     val a_content : cdata -> [>`Content] attrib
     val a_http_equiv : nmtoken -> [>`Http_equiv] attrib
     val a_scheme : cdata -> [>`Scheme] attrib
 
-(** {2 5.16. Scripting Module} *)
 
-(* VB *)
     val a_defer : [< `Defer ] -> [>`Defer] attrib
-(* VB *)
 
-(** {2 5.17. Style Sheet Module} *)
-
-    module STYLE_SHEET :
-        sig
-          type t = [ `Style ]
-        end
+(** {3 Style attributes }*)
 
     val a_media : mediadesc -> [>`Media] attrib
-
-(** {2 5.18. Style Attribute Module} *)
-
     val a_style : string -> [>`Style_Attr] attrib
-
-(** {2 5.19. Link Module} *)
-
-    module LINK :
-        sig
-          type t = [ `Link ]
-        end
-
-(** {2 5.20. Base Module} *)
-
-    module BASE :
-        sig
-          type t = [ `Base ]
-        end
-
-(** {2 5.21. Name Identification Module}
-    This module is deprecated in XHTML 1.1, but supported for XHTML 1.0
-    using [`Name_01_00] . *)
-
-(** {2 5.22. Legacy Module} *)
-(* CH
-    this module contain these elements :
-     basefont
-     center
-     dir
-     font
-     isindex
-     menu
-     s
-     strike
-     u
-   attributes are missing in some elements if this module is actived
-  CH *)
-
-(** *)
-(* VB *)
-    type edit = [ `Ins | `Del ]
-    type scripttag = [ `Script | `Noscript ]
-    type misc = [ edit | scripttag ]
-
-    module SPECIAL : sig
-      type inline = [ `Img | `Map | `Object ]
-      type block = [ `Table | `Form | `Fieldset ]
-      type flow = [ inline | block ]
-    end
-
-    type i18nclass = [ `Bdo ]
-
-(* VB *)
-
-(* CH *)
-    module RUBY : sig
-      type inline = [ `Ruby_simple1 | `Ruby_simple2 | `Ruby_complex ]
-      type flow = inline
-    end
-
-    type no_ruby_inline = [ TEXT.inline | PRESENTATION.inline | HYPERTEXT.inline | SPECIAL.inline | FORMS.inline | i18nclass ]
-    type no_ruby_content = [ `PCDATA | no_ruby_inline | misc ]
-(* CH *)
-
-(** {1 Combined Element Sets:} *)
-
-    type block =
-        [ TEXT.block | PRESENTATION.block | FORMS.block | TABLES.block | SPECIAL.block | TEXT.heading | LIST.list | misc ]
-    type block_sans_form =
-        [ TEXT.block | PRESENTATION.block | TABLES.block | TEXT.heading | LIST.list | misc ]
-
-    type flow =
-        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | TABLES.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc | RUBY.flow ]
-    type flow_sans_table =
-        [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc | RUBY.flow ]
-
-    type inline =
-        [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
-        | FORMS.inline | SPECIAL.inline | i18nclass | misc | RUBY.inline ]
-
-    type inline_sans_a_mix =
-        [ TEXT.inline | PRESENTATION.inline
-        | FORMS.inline | SPECIAL.inline | i18nclass | misc | RUBY.inline ]
-
-    type buttoncontent = (* VB *)
-        [ TEXT.inline | PRESENTATION.inline
-        | SPECIAL.inline | i18nclass | block_sans_form ]
-    type precontent = inline
-    type inline_sans_label =
-        [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
-        | FORMS.inline_sans_label | SPECIAL.inline | i18nclass | misc ]
-
-    type heading = TEXT.heading
 
 
 (** {1 Elements} *)
 
-    (* For Ocsigen I need to specify the variance --Vincent *)
     type +'a elt
 
 (** {2 Element Constructor Types} *)
@@ -787,9 +350,8 @@ module type T =
     type ('a, 'b, 'c) unary = ?a:('a attrib list) -> 'b elt -> 'c elt
     type ('a, 'b, 'c, 'd) binary = ?a:('a attrib list) -> 'b elt -> 'c elt -> 'd elt
 
-(* CH *)
     type ('a, 'b, 'c, 'd, 'e, 'f) quadry= ?a:('a attrib list) -> 'b elt -> 'c elt -> 'd elt -> 'e elt -> 'f elt
-(* CH *)
+
 
     type ('a, 'b, 'c) star = ?a:('a attrib list) -> 'b elt list -> 'c elt
 (** Star '*' denotes any number of children, uncluding zero. *)
@@ -801,14 +363,15 @@ module type T =
 
     type html = [`Html] elt
 
-    val html : ?a:([< i18n | `Version | `XMLns | `Id ] attrib list) ->
-      [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
-    val head : ?a:([< i18n | `Profile | `Id ] attrib list) ->
-      [< `Base | `Title ] elt ->
-        [< `Meta | `Link | `Style | `Object | `Script ] elt list
-        -> [>`Head] elt
-    val title : ([< i18n | `Id ], [< `PCDATA ], [>`Title]) unary
-    val body : ([< common |`OnLoad |`OnUnload ], [< block ], [>`Body]) star
+    val html : ?a:([< i18n | `Version | `XMLns | `Id ] attrib list) -> [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
+    val head : ?a:([< i18n | `Profile | `Id ] attrib list) -> [< `Base | `Title ] elt -> 
+      [< `Meta | `Link | `Style | `Object | `Script ] elt list -> [>`Head] elt
+(* CHANGED (from:     val title : ([< i18n | `Id ], [< `PCDATA ], [>`Title]) unary)*)
+(* CHANGED (from:     val title : ([< title_attrib] , [< title_content], [> title ]) unary)*)
+val title : ([< title_attrib] , [< title_content], [> title ]) unary
+(* CHANGED (from:     val body : ([< common |`OnLoad |`OnUnload ], [< block ], [>`Body]) star)*)
+(* CHANGED (from:     val body : ([< body_attrib] , [< body_content], [> body ]) star)*)
+val body : ([< body_attrib] , [< body_content], [> body ]) star
 
 (** {2 Data} *)
 
@@ -826,76 +389,153 @@ module type T =
 
 (** {2 Text} *)
 
-    val h1 : ([< common ], [< `PCDATA | inline ], [>`H1]) star
-    val h2 : ([< common ], [< `PCDATA | inline ], [>`H2]) star
-    val h3 : ([< common ], [< `PCDATA | inline ], [>`H3]) star
-    val h4 : ([< common ], [< `PCDATA | inline ], [>`H4]) star
-    val h5 : ([< common ], [< `PCDATA | inline ], [>`H5]) star
-    val h6 : ([< common ], [< `PCDATA | inline ], [>`H6]) star
+(* CHANGED (from:     val h1 : ([< common ], [< `PCDATA | inline ], [>`H1]) star)*)
+(* CHANGED (from:     val h1 : ([< h1_attrib] , [< h1_content], [> h1 ]) star)*)
+val h1 : ([< h1_attrib] , [< h1_content], [> h1 ]) star
+(* CHANGED (from:     val h2 : ([< common ], [< `PCDATA | inline ], [>`H2]) star)*)
+(* CHANGED (from:     val h2 : ([< h2_attrib] , [< h2_content], [> h2 ]) star)*)
+val h2 : ([< h2_attrib] , [< h2_content], [> h2 ]) star
+(* CHANGED (from:     val h3 : ([< common ], [< `PCDATA | inline ], [>`H3]) star)*)
+(* CHANGED (from:     val h3 : ([< h3_attrib] , [< h3_content], [> h3 ]) star)*)
+val h3 : ([< h3_attrib] , [< h3_content], [> h3 ]) star
+(* CHANGED (from:     val h4 : ([< common ], [< `PCDATA | inline ], [>`H4]) star)*)
+(* CHANGED (from:     val h4 : ([< h4_attrib] , [< h4_content], [> h4 ]) star)*)
+val h4 : ([< h4_attrib] , [< h4_content], [> h4 ]) star
+(* CHANGED (from:     val h5 : ([< common ], [< `PCDATA | inline ], [>`H5]) star)*)
+(* CHANGED (from:     val h5 : ([< h5_attrib] , [< h5_content], [> h5 ]) star)*)
+val h5 : ([< h5_attrib] , [< h5_content], [> h5 ]) star
+(* CHANGED (from:     val h6 : ([< common ], [< `PCDATA | inline ], [>`H6]) star)*)
+(* CHANGED (from:     val h6 : ([< h6_attrib] , [< h6_content], [> h6 ]) star)*)
+val h6 : ([< h6_attrib] , [< h6_content], [> h6 ]) star
 
-    val address : ([< common ], [< `PCDATA | inline ], [>`Address]) star
+(* CHANGED (from:     val address : ([< common ], [< `PCDATA | inline ], [>`Address]) star)*)
+(* CHANGED (from:     val address : ([< address_attrib] , [< address_content], [> address ]) star)*)
+val address : ([< address_attrib] , [< address_content], [> address ]) star
     val blockquote : ([< common | `Cite ],
                       [< `PCDATA | block ], [>`Blockquote]) star
-    val div : ([< common ], [< `PCDATA | flow ], [>`Div]) star
-    val p : ([< common ], [< `PCDATA | inline ], [>`P]) star
+(* CHANGED (from:     val div : ([< common ], [< `PCDATA | flow ], [>`Div]) star)*)
+(* CHANGED (from:     val div : ([< div_attrib] , [< div_content], [> div ]) star)*)
+val div : ([< div_attrib] , [< div_content], [> div ]) star
+(* CHANGED (from:     val p : ([< common ], [< `PCDATA | inline ], [>`P]) star)*)
+(* CHANGED (from:     val p : ([< p_attrib] , [< p_content], [> p ]) star)*)
+val p : ([< p_attrib] , [< p_content], [> p ]) star
     val pre : ([< common | `XML_space ],
                [< `PCDATA | precontent ], [>`Pre]) star
-
-    val abbr : ([< common ], [< `PCDATA | inline ], [>`Abbr]) star
-    val acronym : ([< common ], [< `PCDATA | inline ], [>`Acronym]) star
-    val br :  ([< core ], [>`Br]) nullary
-    val cite : ([< common ], [< `PCDATA | inline ], [>`Cite]) star
-    val code : ([< common ], [< `PCDATA | inline ], [>`Code]) star
-    val dfn : ([< common ], [< `PCDATA | inline ], [>`Dfn]) star
-    val em : ([< common ], [< `PCDATA | inline ], [>`Em]) star
-    val kbd : ([< common ], [< `PCDATA | inline ], [>`Kbd]) star
-    val q : ([< common | `Cite ], [< `PCDATA | inline ], [>`Q]) star
-    val samp : ([< common ], [< `PCDATA | inline ], [>`Samp]) star
-    val span : ([< common ], [< `PCDATA | inline ], [>`Span]) star
-    val strong : ([< common ], [< `PCDATA | inline ], [>`Strong]) star
-    val var : ([< common ], [< `PCDATA | inline ], [>`Var]) star
+      
+(* CHANGED (from:     val abbr : ([< common ], [< `PCDATA | inline ], [>`Abbr]) star)*)
+(* CHANGED (from:     val abbr : ([< abbr_attrib] , [< abbr_content], [> abbr ]) star)*)
+val abbr : ([< abbr_attrib] , [< abbr_content], [> abbr ]) star
+(* CHANGED (from:     val acronym : ([< common ], [< `PCDATA | inline ], [>`Acronym]) star)*)
+(* CHANGED (from:     val acronym : ([< acronym_attrib] , [< acronym_content], [> acronym ]) star)*)
+val acronym : ([< acronym_attrib] , [< acronym_content], [> acronym ]) star
+(* CHANGED (from:     val br :  ([< core ], [>`Br]) nullary)*)
+(* CHANGED (from:     val br : ([< br_attrib ], [> br]) nullary)*)
+val br : ([< br_attrib ], [> br]) nullary
+(* CHANGED (from:     val cite : ([< common ], [< `PCDATA | inline ], [>`Cite]) star)*)
+(* CHANGED (from:     val cite : ([< cite_attrib] , [< cite_content], [> cite ]) star)*)
+val cite : ([< cite_attrib] , [< cite_content], [> cite ]) star
+(* CHANGED (from:     val code : ([< common ], [< `PCDATA | inline ], [>`Code]) star)*)
+(* CHANGED (from:     val code : ([< code_attrib] , [< code_content], [> code ]) star)*)
+val code : ([< code_attrib] , [< code_content], [> code ]) star
+(* CHANGED (from:     val dfn : ([< common ], [< `PCDATA | inline ], [>`Dfn]) star)*)
+(* CHANGED (from:     val dfn : ([< dfn_attrib] , [< dfn_content], [> dfn ]) star)*)
+val dfn : ([< dfn_attrib] , [< dfn_content], [> dfn ]) star
+(* CHANGED (from:     val em : ([< common ], [< `PCDATA | inline ], [>`Em]) star)*)
+(* CHANGED (from:     val em : ([< em_attrib] , [< em_content], [> em ]) star)*)
+val em : ([< em_attrib] , [< em_content], [> em ]) star
+(* CHANGED (from:     val kbd : ([< common ], [< `PCDATA | inline ], [>`Kbd]) star)*)
+(* CHANGED (from:     val kbd : ([< kbd_attrib] , [< kbd_content], [> kbd ]) star)*)
+val kbd : ([< kbd_attrib] , [< kbd_content], [> kbd ]) star
+(* CHANGED (from:     val q : ([< common | `Cite ], [< `PCDATA | inline ], [>`Q]) star)*)
+(* CHANGED (from:     val q : ([< q_attrib] , [< q_content], [> q ]) star)*)
+val q : ([< q_attrib] , [< q_content], [> q ]) star
+(* CHANGED (from:     val samp : ([< common ], [< `PCDATA | inline ], [>`Samp]) star)*)
+(* CHANGED (from:     val samp : ([< samp_attrib] , [< samp_content], [> samp ]) star)*)
+val samp : ([< samp_attrib] , [< samp_content], [> samp ]) star
+(* CHANGED (from:     val span : ([< common ], [< `PCDATA | inline ], [>`Span]) star)*)
+(* CHANGED (from:     val span : ([< span_attrib] , [< span_content], [> span ]) star)*)
+val span : ([< span_attrib] , [< span_content], [> span ]) star
+(* CHANGED (from:     val strong : ([< common ], [< `PCDATA | inline ], [>`Strong]) star)*)
+(* CHANGED (from:     val strong : ([< strong_attrib] , [< strong_content], [> strong ]) star)*)
+val strong : ([< strong_attrib] , [< strong_content], [> strong ]) star
+(* CHANGED (from:     val var : ([< common ], [< `PCDATA | inline ], [>`Var]) star)*)
+(* CHANGED (from:     val var : ([< var_attrib] , [< var_content], [> var ]) star)*)
+val var : ([< var_attrib] , [< var_content], [> var ]) star
 
 (** {2 Hypertext} *)
 
-    val a : ([< common | `Accesskey | `Charset | `Href | `Hreflang
-             | `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type
-             | `Shape | `Coords | `OnBlur |`OnFocus],
-             [< `PCDATA | inline_sans_a_mix ], [>`A]) star
+(* CHANGED (from:     val a : ([< common | `Accesskey | `Charset | `Href | `Hreflang  | `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type | `Shape | `Coords | `OnBlur |`OnFocus],  [< `PCDATA | inline_sans_a_mix ], [>`A]) star)*)
+(* CHANGED (from:     val a : ([< a_attrib] , [< a_content], [> a ]) star)*)
+val a : ([< a_attrib] , [< a_content], [> a ]) star
 
 (** {2 List} *)
 
-    val dl : ([< common ], [< `Dt | `Dd ], [>`Dl]) plus
-    val ol : ([< common ], [< `Li ], [>`Ol]) plus
-    val ul : ([< common ], [< `Li ], [>`Ul]) plus
-    val dd : ([< common ], [< `PCDATA | flow ], [>`Dd]) star
-    val dt : ([< common ], [< `PCDATA | inline ], [>`Dt]) star
-    val li : ([< common ], [< `PCDATA | flow ], [>`Li]) star
-
+(* CHANGED (from:     val dl : ([< common ], [< `Dt | `Dd ], [>`Dl]) plus)*)
+(* CHANGED (from:     val dl : ([< dl_attrib] , [< dl_content], [> dl ]) plus)*)
+val dl : ([< dl_attrib] , [< dl_content], [> dl ]) plus
+(* CHANGED (from:     val ol : ([< common ], [< `Li ], [>`Ol]) plus)*)
+(* CHANGED (from:     val ol : ([< ol_attrib] , [< ol_content], [> ol ]) plus)*)
+val ol : ([< ol_attrib] , [< ol_content], [> ol ]) plus
+(* CHANGED (from:     val ul : ([< common ], [< `Li ], [>`Ul]) plus)*)
+(* CHANGED (from:     val ul : ([< ul_attrib] , [< ul_content], [> ul ]) plus)*)
+val ul : ([< ul_attrib] , [< ul_content], [> ul ]) plus
+(* CHANGED (from:     val dd : ([< common ], [< `PCDATA | flow ], [>`Dd]) star)*)
+(* CHANGED (from:     val dd : ([< dd_attrib] , [< dd_content], [> dd ]) star)*)
+val dd : ([< dd_attrib] , [< dd_content], [> dd ]) star
+(* CHANGED (from:     val dt : ([< common ], [< `PCDATA | inline ], [>`Dt]) star)*)
+(* CHANGED (from:     val dt : ([< dt_attrib] , [< dt_content], [> dt ]) star)*)
+val dt : ([< dt_attrib] , [< dt_content], [> dt ]) star
+(* CHANGED (from:     val li : ([< common ], [< `PCDATA | flow ], [>`Li]) star)*)
+(* CHANGED (from:     val li : ([< li_attrib] , [< li_content], [> li ]) star)*)
+val li : ([< li_attrib] , [< li_content], [> li ]) star
+      
 (** {2 Presentation} *)
 
-    val hr : ([< common ], [>`Hr]) nullary
-    val b : ([< common ], [< `PCDATA | inline ], [>`B]) star
-    val big : ([< common ], [< `PCDATA | inline ], [>`Big]) star
-    val i : ([< common ], [< `PCDATA | inline ], [>`I]) star
-    val small : ([< common ], [< `PCDATA | inline ], [>`Small]) star
-    val sub : ([< common ], [< `PCDATA | inline ], [>`Sub]) star
-    val sup : ([< common ], [< `PCDATA | inline ], [>`Sup]) star
-    val tt : ([< common ], [< `PCDATA | inline ], [>`Tt]) star
-
+(* CHANGED (from:     val hr : ([< common ], [>`Hr]) nullary)*)
+(* CHANGED (from:     val hr : ([< hr_attrib ], [> hr]) nullary)*)
+val hr : ([< hr_attrib ], [> hr]) nullary
+(* CHANGED (from:     val b : ([< common ], [< `PCDATA | inline ], [>`B]) star)*)
+(* CHANGED (from:     val b : ([< b_attrib] , [< b_content], [> b ]) star)*)
+val b : ([< b_attrib] , [< b_content], [> b ]) star
+(* CHANGED (from:     val big : ([< common ], [< `PCDATA | inline ], [>`Big]) star)*)
+(* CHANGED (from:     val big : ([< big_attrib] , [< big_content], [> big ]) star)*)
+val big : ([< big_attrib] , [< big_content], [> big ]) star
+(* CHANGED (from:     val i : ([< common ], [< `PCDATA | inline ], [>`I]) star)*)
+(* CHANGED (from:     val i : ([< i_attrib] , [< i_content], [> i ]) star)*)
+val i : ([< i_attrib] , [< i_content], [> i ]) star
+(* CHANGED (from:     val small : ([< common ], [< `PCDATA | inline ], [>`Small]) star)*)
+(* CHANGED (from:     val small : ([< small_attrib] , [< small_content], [> small ]) star)*)
+val small : ([< small_attrib] , [< small_content], [> small ]) star
+(* CHANGED (from:     val sub : ([< common ], [< `PCDATA | inline ], [>`Sub]) star)*)
+(* CHANGED (from:     val sub : ([< sub_attrib] , [< sub_content], [> sub ]) star)*)
+val sub : ([< sub_attrib] , [< sub_content], [> sub ]) star
+(* CHANGED (from:     val sup : ([< common ], [< `PCDATA | inline ], [>`Sup]) star)*)
+(* CHANGED (from:     val sup : ([< sup_attrib] , [< sup_content], [> sup ]) star)*)
+val sup : ([< sup_attrib] , [< sup_content], [> sup ]) star
+(* CHANGED (from:     val tt : ([< common ], [< `PCDATA | inline ], [>`Tt]) star)*)
+(* CHANGED (from:     val tt : ([< tt_attrib] , [< tt_content], [> tt ]) star)*)
+val tt : ([< tt_attrib] , [< tt_content], [> tt ]) star
+      
+    (* CH *)
+    (* CHANGED (from:     val bdo : dir:[< `Ltr | `Rtl ] -> ([< core | `XML_lang ],[< `PCDATA | inline ],[> `Bdo ]) star)*)
+(* CHANGED (from:     val bdo : dir:[< `Ltr | `Rtl ]  -> ([< bdo_attrib] , [< bdo_content], [> bdo ]) star)*)
+    val bdo : dir:[< `Ltr | `Rtl ]   ->([< bdo_attrib] , [< bdo_content], [> bdo ]) star
 (* CH *)
-    val bdo : dir:[< `Ltr | `Rtl ] -> ([< core | `XML_lang ],[< `PCDATA | inline ],[> `Bdo ]) star
-(* CH *)
 
-    val area : alt:text -> ([< common | `Href | `Shape | `Coords | `Nohref | `Tabindex | `Accesskey |`OnBlur |`OnFocus],[>`Area]) nullary
+(* CHANGED (from:     val area : alt:text -> ([< area_attrib ], [> area ]) nullary)*)
+    val area : alt:text  ->([< area_attrib ], [> area]) nullary
+      
+(* CHANGED (from:     val map : id:id -> ([< events | core | `XMLns | `Class | `Title | i18n ],[< block | `Area ],[>`Map]) plus)*)
+    val map : id:id  ->([< map_attrib] , [< map_content], [> map ]) plus
 
-    val map : id:id -> ([< events | core | `XMLns | `Class | `Title | i18n ],[< block | `Area ],[>`Map]) plus
-
-    val del : ([< common | `Cite | `Datetime ],[< `PCDATA | flow ],[>`Del]) star
-    val ins : ([< common | `Cite | `Datetime ],[< `PCDATA | flow ],[>`Ins]) star
-    val script : contenttype:contenttype -> ([< `XMLns | `Id | `Charset | `Src | `Defer | `XML_space ],[< `PCDATA ],[>`Script]) unary
-    val noscript : ([< common ],[< block ],[>`Noscript]) plus
-(* VB *)
-
+(* CHANGED (from:     val del : ([< del_attrib ], [< del_content ], [> del]) star)*)
+val del : ([< del_attrib] , [< del_content], [> del ]) star
+(* CHANGED (from:     val ins : ([< ins_attrib ],[< ins_content ],[>` ins]) star)*)
+val ins : ([< ins_attrib] , [< ins_content], [> ins ]) star
+(* CHANGED (from:     val script : contenttype:contenttype -> ([< script_attrib ], [< script_content],  [> script ]) unary)*)
+    val script : contenttype:contenttype  ->([< script_attrib] , [< script_content], [> script ]) unary
+(* CHANGED (from:     val noscript : ([< common ],[< block ],[>`Noscript]) plus)*)
+val noscript : ([< noscript_attrib] , [< noscript_content], [> noscript ]) plus
 
 (** {2 Forms} *)
 
@@ -905,48 +545,43 @@ module type T =
 
     module Basic_Forms :
         sig
-          val form : action:uri ->
-            ([< common | `Enctype | `Method | `Name_01_00 | `Target |`OnReset | `OnSubmit],
-             [< block_sans_form ], [>`Form]) plus
-          val input : ([< common | `Accesskey | `Checked | `Maxlength | `Name | `Size
-                       | `Src | `Tabindex | `Input_Type | `Value | `Usemap|`Ismap |`OnBlur |`OnChange |`OnFocus | `OnSelect], [>`Input]) nullary
-          val label : ([< common | `Accesskey | `For ],
-                       [< `PCDATA | inline_sans_label ], [>`Label]) star
-          val option : ([< common | `Selected | `Value ],
-                        [< `PCDATA ], [>`Option]) unary
-          val select : ([< common | `Multiple | `Name | `Size | `Tabindex |`OnBlur |`OnChange |`OnFocus ],
-                        [< `Option ], [>`Select]) plus
-          val textarea : rows:number -> cols:number ->
-            ([< common | `Accesskey | `Name | `Tabindex |`OnBlur |`OnChange |`OnFocus | `OnSelect],
-             [< `PCDATA ], [>`Textarea]) unary
+(* CHANGED (from:           val form : action:uri -> ([< common | `Enctype | `Method | `Name_01_00 | `Target |`OnReset | `OnSubmit],       [< block_sans_form ], [>`Form]) plus)*)
+          val form : action:uri  ->([< form_attrib] , [< form_content], [> form ]) plus
+(* CHANGED (from:           val input : ([< common | `Accesskey | `Checked | `Maxlength | `Name | `Size                       | `Src | `Tabindex | `Input_Type | `Value | `Usemap|`Ismap |`OnBlur |`OnChange |`OnFocus | `OnSelect], [>`Input]) nullary)*)
+val input : ([< input_attrib ], [> input]) nullary
+(* CHANGED (from:           val label : ([< common | `Accesskey | `For ],                       [< `PCDATA | inline_sans_label ], [>`Label]) star)*)
+val label : ([< label_attrib] , [< label_content], [> label ]) star
+(* CHANGED (from:           val option : ([< common | `Selected | `Value ],                        [< `PCDATA ], [>`Option]) unary)*)
+val option : ([< option_attrib] , [< option_content], [> selectoption ]) unary
+(* CHANGED (from:           val select : ([< common | `Multiple | `Name | `Size | `Tabindex |`OnBlur |`OnChange |`OnFocus ],                        [< `Option ], [>`Select]) plus)*)
+val select : ([< select_attrib] , [< select_content], [> select ]) plus
+(* CHANGED (from:           val textarea : rows:number -> cols:number ->            ([< common | `Accesskey | `Name | `Tabindex |`OnBlur |`OnChange |`OnFocus | `OnSelect],             [< `PCDATA ], [>`Textarea]) unary)*)
+          val textarea : rows:number  -> cols:number  ->([< textarea_attrib] , [< textarea_content], [> textarea ]) unary
         end
 
 (** {3 Forms} *)
 
 (** Generic forms. WARNING: If you find a bug or if something is missing please send a bug report to the Ocsigen project! -- VB *)
-    val form : action:uri ->
-      ([< common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept |`OnReset | `OnSubmit],
-       [< block_sans_form | `Fieldset ], [>`Form]) plus
-    val input : ([< common | `Accesskey | `Checked | `Maxlength | `Name | `Size
-  | `Src | `Tabindex | `Input_Type | `Value | `Disabled | `Readonly | `Alt | `Accept | `Usemap |`Ismap |`OnBlur |`OnChange |`OnFocus | `OnSelect], [>`Input]) nullary
-    val label : ([< common | `Accesskey | `For |`OnBlur |`OnFocus],
-                 [< `PCDATA | inline_sans_label ], [>`Label]) star
-    val optgroup : label:text ->
-      ([< common | `Disabled ],
-       [< `Option ], [>`Optgroup]) plus
-    val option : ([< common | `Selected | `Value | `Disabled | `Label ],
-                  [< `PCDATA ], [>`Option]) unary
-    val select : ([< common | `Multiple | `Name | `Size | `Tabindex | `Disabled |`OnBlur |`OnChange |`OnFocus ],
-                  [< `Option | `Optgroup ], [>`Select]) plus
-    val textarea : rows:number -> cols:number ->
-      ([< common | `Accesskey | `Name | `Tabindex | `Disabled | `Readonly |`OnBlur |`OnChange |`OnFocus | `OnSelect],
-       [< `PCDATA ], [>`Textarea]) unary
-    val fieldset : ([< common ],
-                    [< `PCDATA | `Legend | flow ], [>`Fieldset]) star
-    val legend : ([< common | `Accesskey ],
-                    [< `PCDATA | inline ], [>`Legend]) star
-    val button : ([< common | `Name | `Value | `Button_Type | `Disabled | `Accesskey | `Tabindex |`OnBlur |`OnFocus],
-                    [< `PCDATA | buttoncontent ], [>`Button]) star
+(* CHANGED (from:     val form : action:uri ->      ([< common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept |`OnReset | `OnSubmit],       [< block_sans_form | `Fieldset ], [>`Form]) plus)*)
+    val form : action:uri  ->([< form_attrib] , [< form_content], [> form ]) plus
+(* CHANGED (from:     val input : ([< common | `Accesskey | `Checked | `Maxlength | `Name | `Size  | `Src | `Tabindex | `Input_Type | `Value | `Disabled | `Readonly | `Alt | `Accept | `Usemap |`Ismap |`OnBlur |`OnChange |`OnFocus | `OnSelect], [>`Input]) nullary)*)
+val input : ([< input_attrib ], [> input]) nullary
+(* CHANGED (from:     val label : ([< common | `Accesskey | `For |`OnBlur |`OnFocus],                 [< `PCDATA | inline_sans_label ], [>`Label]) star)*)
+val label : ([< label_attrib] , [< label_content], [> label ]) star
+(* CHANGED (from:     val optgroup : label:text ->      ([< common | `Disabled ],       [< `Option ], [>`Optgroup]) plus)*)
+    val optgroup : label:text  ->([< optgroup_attrib] , [< optgroup_content], [> optgroup ]) plus
+(* CHANGED (from:     val option : ([< common | `Selected | `Value | `Disabled | `Label ],                  [< `PCDATA ], [>`Option]) unary)*)
+val option : ([< option_attrib] , [< option_content], [> selectoption ]) unary
+(* CHANGED (from:     val select : ([< common | `Multiple | `Name | `Size | `Tabindex | `Disabled |`OnBlur |`OnChange |`OnFocus ],                  [< `Option | `Optgroup ], [>`Select]) plus)*)
+val select : ([< select_attrib] , [< select_content], [> select ]) plus
+(* CHANGED (from:     val textarea : rows:number -> cols:number ->      ([< common | `Accesskey | `Name | `Tabindex | `Disabled | `Readonly |`OnBlur |`OnChange |`OnFocus | `OnSelect],       [< `PCDATA ], [>`Textarea]) unary)*)
+    val textarea : rows:number  -> cols:number  ->([< textarea_attrib] , [< textarea_content], [> textarea ]) unary
+(* CHANGED (from:     val fieldset : ([< common ],                    [< `PCDATA | `Legend | flow ], [>`Fieldset]) star)*)
+val fieldset : ([< fieldset_attrib] , [< fieldset_content], [> fieldset ]) star
+(* CHANGED (from:     val legend : ([< common | `Accesskey ],                    [< `PCDATA | inline ], [>`Legend]) star)*)
+val legend : ([< legend_attrib] , [< legend_content], [> legend ]) star
+(* CHANGED (from:     val button : ([< common | `Name | `Value | `Button_Type | `Disabled | `Accesskey | `Tabindex |`OnBlur |`OnFocus],                    [< `PCDATA | buttoncontent ], [>`Button]) star)*)
+val button : ([< button_attrib] , [< button_content], [> button ]) star
 
 (** {2 Tables} *)
 
@@ -960,117 +595,116 @@ module type T =
         val a_scope : [< `Row | `Col ] -> [>`Scope] attrib
         val a_valign : [< `Top | `Middle | `Bottom ] -> [>`Valign] attrib
 
-        val caption : ([< common ], [< `PCDATA | inline ], [>`Caption]) star
-        val table : ?caption:([< `Caption ] elt) ->
-            ([< common | `Summary | `Width ], [< `Tr ], [>`Table]) plus
-        val td : ([< common | `Abbr | `Align | `Axis | `Colspan | `Headers | `Rowspan
-                  | `Scope | `Valign ], [< `PCDATA | flow_sans_table ], [>`Td]) star
-        val th : ([< common |  `Abbr | `Align | `Axis | `Colspan | `Headers | `Rowspan
-                  | `Scope | `Valign ], [< `PCDATA | flow_sans_table ], [>`Th]) star
-        val tr : ([< common | `Align | `Valign ], [< `Td | `Th ], [>`Tr]) plus
+(* CHANGED (from:         val caption : ([< common ], [< `PCDATA | inline ], [>`Caption]) star)*)
+val caption : ([< caption_attrib] , [< caption_content], [> caption ]) star
+(* CHANGED (from:         val table : ?caption:([< `Caption ] elt) ->            ([< common | `Summary | `Width ], [< `Tr ], [>`Table]) plus)*)
+        val table : ?caption:([< `Caption ] elt)  ->([< table_attrib] , [< table_content], [> table ]) plus
+(* CHANGED (from:         val td : ([< common | `Abbr | `Align | `Axis | `Colspan | `Headers | `Rowspan                  | `Scope | `Valign ], [< `PCDATA | flow_sans_table ], [>`Td]) star)*)
+val td : ([< td_attrib] , [< td_content], [> td ]) star
+(* CHANGED (from:         val th : ([< common |  `Abbr | `Align | `Axis | `Colspan | `Headers | `Rowspan                  | `Scope | `Valign ], [< `PCDATA | flow_sans_table ], [>`Th]) star)*)
+val th : ([< th_attrib] , [< th_content], [> th ]) star
+(* CHANGED (from:         val tr : ([< common | `Align | `Valign ], [< `Td | `Th ], [>`Tr]) plus)*)
+val tr : ([< tr_attrib] , [< tr_content], [> tr ]) plus
       end
 
 (** {3 Tables} *)
 
-    val caption : ([< common ], [< `PCDATA | inline ], [>`Caption]) star
+(* CHANGED (from:     val caption : ([< common ], [< `PCDATA | inline ], [>`Caption]) star)*)
+val caption : ([< caption_attrib] , [< caption_content], [> caption ]) star
 
-    val table : ?caption:([< `Caption ] elt) ->
-      ?columns:([< `Cols of ([< `Col ] elt list)
-                | `Colgroups of ([< `Colgroup ] elt list) ]) ->
-        ([< common | `Border | `Cellpadding | `Cellspacing | `Datapagesize
-         | `Frame | `Rules | `Summary | `Width ], [< `Tr ], [>`Table]) plus
+    val table : ?caption:([< `Caption ] elt) ->      ?columns:([< `Cols of ([< `Col ] elt list)
+                | `Colgroups of ([< `Colgroup ] elt list) ]) ->        ([< common | `Border | `Cellpadding | `Cellspacing | `Datapagesize         | `Frame | `Rules | `Summary | `Width ], [< `Tr ], [>`Table]) plus
 
-    val tablex : ?caption:([< `Caption ] elt) ->
-      ?columns:([< `Cols of ([< `Col ] elt list)
-                | `Colgroups of ([< `Colgroup ] elt list) ]) ->
-        ?thead:([< `Thead ] elt) -> ?tfoot:([< `Tfoot ] elt) ->
-          ([< common | `Border | `Cellpadding | `Cellspacing | `Datapagesize
-           | `Frame | `Rules | `Summary | `Width ], [< `Tbody ], [>`Table]) plus
+    val tablex : ?caption:([< `Caption ] elt) ->      ?columns:([< `Cols of ([< `Col ] elt list)
+                | `Colgroups of ([< `Colgroup ] elt list) ]) ->        ?thead:([< `Thead ] elt) -> ?tfoot:([< `Tfoot ] elt) ->          ([< common | `Border | `Cellpadding | `Cellspacing | `Datapagesize           | `Frame | `Rules | `Summary | `Width ], [< `Tbody ], [>`Table]) plus
 
-    val td : ([< common |  `Abbr | `Align | `Axis | `Char | `Charoff
-              | `Colspan | `Headers | `Rowspan | `Scope | `Valign ],
-              [< `PCDATA | flow ], [>`Td]) star
-    val th : ([< common |  `Abbr | `Align | `Axis | `Char | `Charoff
-              | `Colspan | `Headers | `Rowspan | `Scope | `Valign ],
-              [< `PCDATA | flow ], [>`Th]) star
-    val tr : ([< common | `Align | `Char | `Charoff | `Valign ],
-              [< `Td | `Th ], [>`Tr]) plus
+(* CHANGED (from:     val td : ([< common |  `Abbr | `Align | `Axis | `Char | `Charoff              | `Colspan | `Headers | `Rowspan | `Scope | `Valign ],              [< `PCDATA | flow ], [>`Td]) star)*)
+val td : ([< td_attrib] , [< td_content], [> td ]) star
+(* CHANGED (from:     val th : ([< common |  `Abbr | `Align | `Axis | `Char | `Charoff              | `Colspan | `Headers | `Rowspan | `Scope | `Valign ],              [< `PCDATA | flow ], [>`Th]) star)*)
+val th : ([< th_attrib] , [< th_content], [> th ]) star
+(* CHANGED (from:     val tr : ([< common | `Align | `Char | `Charoff | `Valign ],              [< `Td | `Th ], [>`Tr]) plus)*)
+val tr : ([< tr_attrib] , [< tr_content], [> tr ]) plus
 
-    val col : ([< common | `Align | `Char | `Charoff
-               | `Span | `Valign | `Width ], [>`Col]) nullary
-    val colgroup : ([< common | `Align | `Char | `Charoff
-                    | `Span | `Valign | `Width ], [< `Col ], [>`Colgroup]) star
-    val thead : ([< common | `Align | `Char | `Charoff | `Valign ],
-                 [< `Tr ], [>`Thead]) plus
-    val tbody : ([< common | `Align | `Char | `Charoff | `Valign ],
-                 [< `Tr ], [>`Tbody]) plus
-    val tfoot : ([< common | `Align | `Char | `Charoff | `Valign ],
-                 [< `Tr ], [>`Tfoot]) plus
+(* CHANGED (from:     val col : ([< common | `Align | `Char | `Charoff               | `Span | `Valign | `Width ], [>`Col]) nullary)*)
+val col : ([< col_attrib ], [> col]) nullary
+(* CHANGED (from:     val colgroup : ([< common | `Align | `Char | `Charoff                    | `Span | `Valign | `Width ], [< `Col ], [>`Colgroup]) star)*)
+val colgroup : ([< colgroup_attrib] , [< colgroup_content], [> colgroup ]) star
+(* CHANGED (from:     val thead : ([< common | `Align | `Char | `Charoff | `Valign ],                 [< `Tr ], [>`Thead]) plus)*)
+val thead : ([< thead_attrib] , [< thead_content], [> thead ]) plus
+(* CHANGED (from:     val tbody : ([< common | `Align | `Char | `Charoff | `Valign ],                 [< `Tr ], [>`Tbody]) plus)*)
+val tbody : ([< tbody_attrib] , [< tbody_content], [> tbody ]) plus
+(* CHANGED (from:     val tfoot : ([< common | `Align | `Char | `Charoff | `Valign ],                 [< `Tr ], [>`Tfoot]) plus)*)
+val tfoot : ([< tfoot_attrib] , [< tfoot_content], [> tfoot ]) plus
 
 (** {2 Image} *)
 
-    val img : src:uri -> alt:text ->
-      ([< common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap |`Ismap ], [>`Img]) nullary
+(* CHANGED (from:     val img : src:uri -> alt:text ->      ([< common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap |`Ismap ], [>`Img]) nullary)*)
+    val img : src:uri  -> alt:text  ->([< img_attrib ], [> img]) nullary
 
 (** {2 Object} VB *)
 
-    val object_ : ([< common | `Declare | `Classid | `Codebase | `Data | `Type | `Codetype | `Archive | `Standby
-                   | `Height | `Width | `Name | `Tabindex | `Usemap],[< `PCDATA | flow | `Param ],[> `Object ]) star
+(* CHANGED (from:     val object_ : ([< common | `Declare | `Classid | `Codebase | `Data | `Type | `Codetype | `Archive | `Standby                   | `Height | `Width | `Name | `Tabindex | `Usemap],[< `PCDATA | flow | `Param ],[> `Object ]) star)*)
+val object_ : ([< object__attrib] , [< object__content], [> object_ ]) star
 
-    val param : name:text ->([< `XMLns |`Id | `Value | `Value_Type | `Type ], [> `Param ]) nullary
+(* CHANGED (from:     val param : name:text ->([< `XMLns |`Id | `Value | `Value_Type | `Type ], [> `Param ]) nullary)*)
+    val param : name:text  ->([< param_attrib ], [> param]) nullary
 
 (** {2 Frames} *)
 
-    val frameset : ?noframes:([< `Noframes ] elt) ->
-      ([< core | `FS_Rows | `FS_Cols |`OnLoad |`OnUnload], [< `Frameset | `Frame ], [>`Frameset]) plus
+(* CHANGED (from:     val frameset : ?noframes:([< `Noframes ] elt) ->      ([< core | `FS_Rows | `FS_Cols |`OnLoad |`OnUnload], [< `Frameset | `Frame ], [>`Frameset]) plus)*)
+    val frameset : ?noframes:([< `Noframes ] elt)  ->([< frameset_attrib] , [< frameset_content], [> frameset ]) plus
 
-    val frame : src:uri ->
-      ([< core | `Frameborder | `Longdesc | `Marginheight | `Marginwidth
-       | `Name_01_00 | `Noresize | `Scrolling ], [>`Frame]) nullary
+(* CHANGED (from:     val frame : src:uri ->      ([< core | `Frameborder | `Longdesc | `Marginheight | `Marginwidth       | `Name_01_00 | `Noresize | `Scrolling ], [>`Frame]) nullary)*)
+    val frame : src:uri  ->([< frame_attrib ], [> frame]) nullary
 
-    val noframes : ([< common ], [< `Body ], [>`Noframes]) unary
+(* CHANGED (from:     val noframes : ([< common ], [< `Body ], [>`Noframes]) unary)*)
+val noframes : ([< noframes_attrib] , [< noframes_content], [> noframes ]) unary
 
-    val iframe : ([< core | `Frameborder | `Longdesc | `Marginheight | `Marginwidth
-                  | `Src | `Scrolling | `Name_01_00 | `Width | `Height ],
-                  [< `PCDATA | flow ], [>`Iframe]) star
+(* CHANGED (from:     val iframe : ([< core | `Frameborder | `Longdesc | `Marginheight | `Marginwidth                  | `Src | `Scrolling | `Name_01_00 | `Width | `Height ],                  [< `PCDATA | flow ], [>`Iframe]) star)*)
+val iframe : ([< iframe_attrib] , [< iframe_content], [> iframe ]) star
 
 
 (** {2 Meta} *)
 
-    val meta : content:cdata ->
-      ([< i18n |`Id | `Http_equiv | `Name | `Scheme ], [>`Meta]) nullary
+(* CHANGED (from:     val meta : content:cdata ->      ([< i18n |`Id | `Http_equiv | `Name | `Scheme ], [>`Meta]) nullary)*)
+    val meta : content:cdata  ->([< meta_attrib ], [> meta]) nullary
 
 (** {2 Style Sheets} *)
 
-    val style : contenttype:contenttype ->
-      ([< i18n |`XMLns |`Id | `Media | `Title | `XML_space ], [< `PCDATA ], [>`Style]) star
+(* CHANGED (from:     val style : contenttype:contenttype ->      ([< i18n |`XMLns |`Id | `Media | `Title | `XML_space ], [< `PCDATA ], [>`Style]) star)*)
+    val style : contenttype:contenttype  ->([< style_attrib] , [< style_content], [> style ]) star
 
 (** {2 Link} *)
 
-    val link : ([< common | `Charset | `Href | `Hreflang | `Media
-                | `Rel | `Rev | `Target | `Type ], [>`Link]) nullary
+(* CHANGED (from:     val link : ([< common | `Charset | `Href | `Hreflang | `Media | `Rel | `Rev | `Target | `Type ], [>`Link]) nullary)*)
+val link : ([< link_attrib ], [> link]) nullary
 
 (** {2 Base} *)
       (* in the DTD of xHTML1.1 xmlns attribute
          in the doc of xHTML1.1 id attribute *)
-    val base : href:uri -> ([`XMLns | `Target ], [>`Base]) nullary
+(* CHANGED (from:     val base : href:uri -> ([`XMLns | `Target ], [>`Base]) nullary)*)
+    val base : href:uri  ->([< base_attrib ], [> base]) nullary
 
 (** {2 Ruby} *)
 
-    val ruby_simple1 : ?a:([< common] attrib list) ->
-      [< `Rb ] elt -> [< `Rt ] elt -> [>`Ruby_simple1] elt
-    val ruby_simple2 : ?a:([< common] attrib list) ->
-      [< `Rb ] elt -> [< `Rp ] elt -> [< `Rt ] elt -> [< `Rp ] elt -> [>`Ruby_simple2] elt
-    val ruby_complex : ?a:([< common] attrib list) ->
-      [< `Rbc ] elt -> [< `Rtc_complex ] elt -> [>`Ruby_complex] elt
+    val ruby_simple1 : ?a:([< common] attrib list) ->      [< `Rb ] elt -> [< `Rt ] elt -> [>`Ruby_simple1] elt
+    val ruby_simple2 : ?a:([< common] attrib list) ->      [< `Rb ] elt -> [< `Rp ] elt -> [< `Rt ] elt -> [< `Rp ] elt -> [>`Ruby_simple2] elt
+    val ruby_complex : ?a:([< common] attrib list) ->      [< `Rbc ] elt -> [< `Rtc_complex ] elt -> [>`Ruby_complex] elt
 
-    val rbc : ([< common ], [< `Rb ], [>`Rbc]) plus
-    val rtc : ([< common ], [< `Rt ], [>`Rtc]) plus
-    val rtc_complex : ([< common ], [< `Rt_complex ], [>`Rtc]) plus
-    val rb : ([< common ], [< no_ruby_content ], [>`Rb]) star
-    val rt : ([< common ], [< no_ruby_content ], [>`Rt]) star
-    val rt_complex : ([< common | `Rbspan], [< no_ruby_content ], [>`Rt]) star
-    val rp : ([< common ], [< `PCDATA ], [>`Rp]) star
+(* CHANGED (from:     val rbc : ([< common ], [< `Rb ], [>`Rbc]) plus)*)
+val rbc : ([< rbc_attrib] , [< rbc_content], [> rbc ]) plus
+(* CHANGED (from:     val rtc : ([< common ], [< `Rt ], [>`Rtc]) plus)*)
+val rtc : ([< rtc_attrib] , [< rtc_content], [> rtc ]) plus
+(* CHANGED (from:     val rtc_complex : ([< common ], [< `Rt_complex ], [>`Rtc]) plus)*)
+val rtc_complex : ([< rtc_complex_attrib] , [< rtc_complex_content], [> rtc_complex ]) plus
+(* CHANGED (from:     val rb : ([< common ], [< no_ruby_content ], [>`Rb]) star)*)
+val rb : ([< rb_attrib] , [< rb_content], [> rb ]) star
+(* CHANGED (from:     val rt : ([< common ], [< no_ruby_content ], [>`Rt]) star)*)
+val rt : ([< rt_attrib] , [< rt_content], [> rt ]) star
+(* CHANGED (from:     val rt_complex : ([< common | `Rbspan], [< no_ruby_content ], [>`Rt]) star)*)
+val rt_complex : ([< rt_complex_attrib] , [< rt_complex_content], [> rt_complex ]) star
+(* CHANGED (from:     val rp : ([< common ], [< `PCDATA ], [>`Rp]) star)*)
+val rp : ([< rp_attrib] , [< rp_content], [> rp ]) star
 
     val a_rbspan : number -> [>`Rbspan] attrib
 
@@ -1181,7 +815,7 @@ module M_01_00 : T_01_00
 
 module Version =
   struct
-
+    include Uri
     (* Directly from http://www.w3.org/TR/xhtml-modularization/abstract_modules.html *)
 
     type core = [ `Class | `Id | `Title | `XML_space ]
@@ -1200,6 +834,7 @@ module Version =
 
     let int_attrib = XML.int_attrib
     let string_attrib = XML.string_attrib
+    let uri_attrib a b = XML.string_attrib a (string_of_uri b)
     let space_sep_attrib = XML.space_sep_attrib
     let comma_sep_attrib = XML.comma_sep_attrib
     let event_attrib = XML.event_attrib
@@ -1239,10 +874,6 @@ module Version =
     type pixels = int
     type script = string
     type text = string
-    type uri = string
-    type uris = uri (* space-separated *)
-    let uri_of_string s = s
-    let string_of_uri s = s
 
     let length_attrib name = function
       | `Pixels p -> int_attrib name p
@@ -1343,12 +974,12 @@ module Version =
 
     (* Other Attributes *)
 
-    let a_profile = string_attrib "profile"
+    let a_profile = uri_attrib "profile"
     let a_version = string_attrib "version"
     let a_xmlns = function
       | `W3_org_1999_xhtml -> string_attrib "xmlns" "http://www.w3.org/1999/xhtml"
 
-    let a_cite = string_attrib "cite"
+    let a_cite = uri_attrib "cite"
     let a_xml_space = function
       | `Preserve -> string_attrib "xml:space" "preserve"
 
@@ -1356,7 +987,7 @@ module Version =
     let a_charset = string_attrib "charset"
     let a_accept_charset = string_attrib "accept-charset"
     let a_accept = string_attrib "accept"
-    let a_href = string_attrib "href"
+    let a_href = uri_attrib "href"
     let a_hreflang = string_attrib "hreflang"
     let a_rel = linktypes_attrib "rel"
     let a_rev = linktypes_attrib "rev"
@@ -1365,15 +996,15 @@ module Version =
 
     let a_alt = string_attrib "alt"
     let a_height p = length_attrib "height" p
-    let a_longdesc = string_attrib "longdesc"
-    let a_src = string_attrib "src"
+    let a_longdesc = uri_attrib "longdesc"
+    let a_src = uri_attrib "src"
     let a_width p = length_attrib "width" p
 
     let a_for = string_attrib "for"
     let a_selected = function
       | `Selected -> string_attrib "selected" "selected"
     let a_value = string_attrib "value"
-    let a_action = string_attrib "action"
+    let a_action = uri_attrib "action"
     let a_method m =
       string_attrib "method" (match m with `Get ->  "get" | `Post -> "post")
     let a_enctype = string_attrib "enctype"
@@ -1481,11 +1112,11 @@ module Version =
     let a_charoff = length_attrib "charoff"
 
     let a_declare `Declare = string_attrib "declare" "declare"
-    let a_classid = string_attrib "classid"
-    let a_codebase = string_attrib "codebase"
-    let a_data = string_attrib "data"
+    let a_classid = uri_attrib "classid"
+    let a_codebase = uri_attrib "codebase"
+    let a_data = uri_attrib "data"
     let a_codetype = string_attrib "codetype"
-    let a_archive = string_attrib "archive"
+    let a_archive = uri_attrib "archive"
     let a_standby = string_attrib "standby"
 
     let a_fs_rows mls = multilengths_attrib "rows" mls
@@ -1940,9 +1571,9 @@ module Version =
       | `XHTML_05_00 -> "XHTML 5.0"
 
     let standard = function
-      | `XHTML_01_00 -> "http://www.w3.org/TR/xhtml1/"
-      | `XHTML_01_01 -> "http://www.w3.org/TR/xhtml11/"
-      | `XHTML_05_00 -> "http://www.w3.org/TR/xhtml5"
+      | `XHTML_01_00 -> uri_of_string "http://www.w3.org/TR/xhtml1/"
+      | `XHTML_01_01 -> uri_of_string "http://www.w3.org/TR/xhtml11/"
+      | `XHTML_05_00 -> uri_of_string "http://www.w3.org/TR/xhtml5"
 
 (*
     let validator =

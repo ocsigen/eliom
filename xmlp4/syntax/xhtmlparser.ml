@@ -178,17 +178,11 @@ struct
       | (`CamlList s, _) -> raise (CamlListExc s)
       | (`CamlExpr s, _) -> get_expr s loc
       | (`Whitespace s, _) ->
-          <:expr< $uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.Whitespace $str:String.escaped s$}) >>
+          <:expr< $uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.PCDATA $str:String.escaped s$}) >>
       | (`Comment s, _) ->
           <:expr< $uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.Comment $str:String.escaped s$}) >>
       | (`Tag (tag, attlist, closed), s) ->
-          let constr =
-            if List.mem tag blocktags
-            then "BlockElement"
-            else (if List.mem tag semiblocktags
-                  then "SemiBlockElement"
-                  else "Element")
-          in
+          let constr = "Node" in
           let typename = match tag with
             [ "option" -> "selectoption"
             | x -> x ]

@@ -28,13 +28,17 @@
      to O'Caml modules. *)
 (** Typesafe constructors for HTML5 documents.
     @see <http://www.w3.org/TR/html5/> W3C Recommendation *)
-open Xhtml5types;
+open Xhtml5types
+  
 module type T =
   sig
     (** {1 Common Attributes} *)
-    type attrib +'a;
-    type attribs +'a;
-    value to_xmlattribs : list (attrib 'a) -> list XML.attrib;
+    type +'a attrib
+    
+    type +'a attribs
+    
+    val to_xmlattribs : ('a attrib) list -> XML.attrib list
+      
     (* VB *)
     (** ['a] is known as a {i phantom type}.  The implementation is
        actually monomorphic (the different element types are distinguished
@@ -43,77 +47,129 @@ module type T =
 
        NB: It might be possible to use polymorphic variants directly, without
        phantom types, but the implementation is likely to be more involved. *)
-    value a_autocomplete : [ < `On | `Off] -> attrib [ > `Autocomplete];
-    value a_async : [ < `Async] -> attrib [ > `Async];
-    value a_autofocus : [ < `Autofocus] -> attrib [ > `Autofocus];
-    value a_autoplay : [ < `Autoplay] -> attrib [ > `Autoplay];
-    value a_challenge : text -> attrib [ > `Challenge];
-    value a_contenteditable :
-      [ < `True | `False] -> attrib [ > `Contexteditable];
-    value a_contextmenu : idref -> attrib [ > `Contextmenu];
-    value a_controls : [ < `Controls] -> attrib [ > `Controls];
-    value a_dir : [ < `Rtl | `Ltr] -> attrib [ > `Dir];
-    value a_draggable : [ < `True | `False] -> attrib [ > `Draggable];
-    value a_form : idref -> attrib [ > `Form];
-    value a_formaction : uri -> attrib [ > `Formaction];
-    value a_formenctype : contenttype -> attrib [ > `Formenctype];
-    value a_formmethod :
-      [ < `Get | `Post | `Put | `Delete] -> attrib [ > `Formmethod];
-    value a_formnovalidate :
-      [ < `Formnovalidate] -> attrib [ > `Formnovalidate];
-    value a_formtarget : text -> attrib [ > `Formtarget];
-    value a_hidden : [ < `Hidden] -> attrib [ > `Hidden];
-    value a_high : float_number -> attrib [ > `High];
-    value a_icon : uri -> attrib [ > `Icon];
-    value a_ismap : [ < `Ismap] -> attrib [ > `Ismap];
-    value a_keytype : text -> attrib [ > `Keytype];
-    value a_list : idref -> attrib [ > `List];
-    value a_loop : [ < `Loop] -> attrib [ > `Loop];
-    value a_low : float_number -> attrib [ > `High];
-    value a_max : float_number -> attrib [ > `Max];
-    value a_input_max : number -> attrib [ > `Max];
-    value a_min : float_number -> attrib [ > `Min];
-    value a_input_min : number -> attrib [ > `Min];
-    value a_novalidate : [ < `Novalidate] -> attrib [ > `Novalidate];
-    value a_open : [ < `Open] -> attrib [ > `Open];
-    value a_optimum : float_number -> attrib [ > `Optimum];
-    value a_pattern : text -> attrib [ > `Pattern];
-    value a_placeholder : text -> attrib [ > `Placeholder];
-    value a_poster : uri -> attrib [ > `Poster];
-    value a_preload :
-      [ < `None | `Metadata | `Audio] -> attrib [ > `Preload];
-    value a_pubdate : [ < `Pubdate] -> attrib [ > `Pubdate];
-    value a_radiogroup : text -> attrib [ > `Radiogroup];
-    value a_required : [ < `Required] -> attrib [ > `Required];
-    value a_reserved : [ < `Reserved] -> attrib [ > `Reserved];
-    value a_sandbox :
-      list [ < `AllowSameOrigin | `AllowForms | `AllowScript] ->
-        attrib [ > `Sandbox];
-    value a_spellcheck : [ < `True | `False] -> attrib [ > `Spellcheck];
-    value a_scoped : [ < `Scoped] -> attrib [ > `Scoped];
-    value a_seamless : [ < `Seamless] -> attrib [ > `Seamless];
-    value a_sizes : numbers -> attrib [ > `Sizes];
-    value a_span : number -> attrib [ > `Span];
+    val a_autocomplete : [< | `On | `Off] -> [> | `Autocomplete] attrib
+      
+    val a_async : [< | `Async] -> [> | `Async] attrib
+      
+    val a_autofocus : [< | `Autofocus] -> [> | `Autofocus] attrib
+      
+    val a_autoplay : [< | `Autoplay] -> [> | `Autoplay] attrib
+      
+    val a_challenge : text -> [> | `Challenge] attrib
+      
+    val a_contenteditable :
+      [< | `True | `False] -> [> | `Contexteditable] attrib
+      
+    val a_contextmenu : idref -> [> | `Contextmenu] attrib
+      
+    val a_controls : [< | `Controls] -> [> | `Controls] attrib
+      
+    val a_dir : [< | `Rtl | `Ltr] -> [> | `Dir] attrib
+      
+    val a_draggable : [< | `True | `False] -> [> | `Draggable] attrib
+      
+    val a_form : idref -> [> | `Form] attrib
+      
+    val a_formaction : uri -> [> | `Formaction] attrib
+      
+    val a_formenctype : contenttype -> [> | `Formenctype] attrib
+      
+    val a_formmethod :
+      [< | `Get | `Post | `Put | `Delete] -> [> | `Formmethod] attrib
+      
+    val a_formnovalidate :
+      [< | `Formnovalidate] -> [> | `Formnovalidate] attrib
+      
+    val a_formtarget : text -> [> | `Formtarget] attrib
+      
+    val a_hidden : [< | `Hidden] -> [> | `Hidden] attrib
+      
+    val a_high : float_number -> [> | `High] attrib
+      
+    val a_icon : uri -> [> | `Icon] attrib
+      
+    val a_ismap : [< | `Ismap] -> [> | `Ismap] attrib
+      
+    val a_keytype : text -> [> | `Keytype] attrib
+      
+    val a_list : idref -> [> | `List] attrib
+      
+    val a_loop : [< | `Loop] -> [> | `Loop] attrib
+      
+    val a_low : float_number -> [> | `High] attrib
+      
+    val a_max : float_number -> [> | `Max] attrib
+      
+    val a_input_max : number -> [> | `Max] attrib
+      
+    val a_min : float_number -> [> | `Min] attrib
+      
+    val a_input_min : number -> [> | `Min] attrib
+      
+    val a_novalidate : [< | `Novalidate] -> [> | `Novalidate] attrib
+      
+    val a_open : [< | `Open] -> [> | `Open] attrib
+      
+    val a_optimum : float_number -> [> | `Optimum] attrib
+      
+    val a_pattern : text -> [> | `Pattern] attrib
+      
+    val a_placeholder : text -> [> | `Placeholder] attrib
+      
+    val a_poster : uri -> [> | `Poster] attrib
+      
+    val a_preload : [< | `None | `Metadata | `Audio] -> [> | `Preload] attrib
+      
+    val a_pubdate : [< | `Pubdate] -> [> | `Pubdate] attrib
+      
+    val a_radiogroup : text -> [> | `Radiogroup] attrib
+      
+    val a_required : [< | `Required] -> [> | `Required] attrib
+      
+    val a_reserved : [< | `Reserved] -> [> | `Reserved] attrib
+      
+    val a_sandbox :
+      [< | `AllowSameOrigin | `AllowForms | `AllowScript] list ->
+        [> | `Sandbox] attrib
+      
+    val a_spellcheck : [< | `True | `False] -> [> | `Spellcheck] attrib
+      
+    val a_scoped : [< | `Scoped] -> [> | `Scoped] attrib
+      
+    val a_seamless : [< | `Seamless] -> [> | `Seamless] attrib
+      
+    val a_sizes : numbers -> [> | `Sizes] attrib
+      
+    val a_span : number -> [> | `Span] attrib
+      
     (*val a_srcdoc*)
-    value a_srclang : nmtoken -> attrib [ > `XML_lang];
-    value a_start : number -> attrib [ > `Start];
-    value a_step : float_number -> attrib [ > `Step];
-    value a_wrap : [ < `Soft | `Hard] -> attrib [ > `Wrap];
-    value a_class : nmtokens -> attrib [ > `Class];
+    val a_srclang : nmtoken -> [> | `XML_lang] attrib
+      
+    val a_start : number -> [> | `Start] attrib
+      
+    val a_step : float_number -> [> | `Step] attrib
+      
+    val a_wrap : [< | `Soft | `Hard] -> [> | `Wrap] attrib
+      
+    val a_class : nmtokens -> [> | `Class] attrib
+      
     (** This attribute assigns a class name or set of class names to an
     element. Any number of elements may be assigned the same class
     name or names.  *)
-    value a_user_data : nmtoken -> text -> attrib [ > `User_data];
+    val a_user_data : nmtoken -> text -> [> | `User_data] attrib
+      
     (** May be used to specify custom attribs.
     The example given by the W3C is as follows :
-    <ol>
+    {v <ol>
     <li data-length="2m11s">Beyond The Sea</li>
-    </ol>
+    </ol> v}
     It should be used for preprocessing ends only. *)
-    value a_id : text -> attrib [ > `Id];
+    val a_id : text -> [> | `Id] attrib
+      
     (** This attribute assigns a name to an element. This name must be
     unique in a document. The text should be without any space. *)
-    value a_title : text -> attrib [ > `Title];
+    val a_title : text -> [> | `Title] attrib
+      
     (** This attribute offers advisory information about the element for
     which it is set. *)
     (** Values of the title attribute may be rendered by user agents in a
@@ -125,115 +181,198 @@ module type T =
     element to designate an external style sheet. Please consult the
     section on links and style sheets for details.  *)
     (** {2 I18N} *)
-    value a_xml_lang : nmtoken -> attrib [ > `XML_lang];
+    val a_xml_lang : nmtoken -> [> | `XML_lang] attrib
+      
     (** {2 Events} *)
     (** Javascript events *)
-    value a_onabort : XML.event -> attrib [ > `OnAbort];
-    value a_onafterprint : XML.event -> attrib [ > `OnAfterPrint];
-    value a_onbeforeprint : XML.event -> attrib [ > `OnBeforePrint];
-    value a_onbeforeunload : XML.event -> attrib [ > `OnBeforeUnload];
-    value a_onblur : XML.event -> attrib [ > `OnBlur];
-    value a_oncanplay : XML.event -> attrib [ > `OnCanPlay];
-    value a_oncanplaythrough : XML.event -> attrib [ > `OnCanPlayThrough];
-    value a_onchange : XML.event -> attrib [ > `OnChange];
-    value a_onclick : XML.event -> attrib [ > `OnClick];
-    value a_oncontextmenu : XML.event -> attrib [ > `OnContextMenu];
-    value a_ondblclick : XML.event -> attrib [ > `OnDblClick];
-    value a_ondrag : XML.event -> attrib [ > `OnDrag];
-    value a_ondragend : XML.event -> attrib [ > `OnDragEnd];
-    value a_ondragenter : XML.event -> attrib [ > `OnDragEnter];
-    value a_ondragleave : XML.event -> attrib [ > `OnDragLeave];
-    value a_ondragover : XML.event -> attrib [ > `OnDragOver];
-    value a_ondragstart : XML.event -> attrib [ > `OnDragStart];
-    value a_ondrop : XML.event -> attrib [ > `OnDrop];
-    value a_ondurationchange : XML.event -> attrib [ > `OnDurationChange];
-    value a_onemptied : XML.event -> attrib [ > `OnEmptied];
-    value a_onended : XML.event -> attrib [ > `OnEnded];
-    value a_onerror : XML.event -> attrib [ > `OnError];
-    value a_onfocus : XML.event -> attrib [ > `OnFocus];
-    value a_onformchange : XML.event -> attrib [ > `OnFormChange];
-    value a_onforminput : XML.event -> attrib [ > `OnFormInput];
-    value a_onhashchange : XML.event -> attrib [ > `OnHashChange];
-    value a_oninput : XML.event -> attrib [ > `OnInput];
-    value a_oninvalid : XML.event -> attrib [ > `OnInvalid];
-    value a_onmousedown : XML.event -> attrib [ > `OnMouseDown];
-    value a_onmouseup : XML.event -> attrib [ > `OnMouseUp];
-    value a_onmouseover : XML.event -> attrib [ > `OnMouseOver];
-    value a_onmousemove : XML.event -> attrib [ > `OnMouseMove];
-    value a_onmouseout : XML.event -> attrib [ > `OnMouseOut];
-    value a_onmousewheel : XML.event -> attrib [ > `OnMouseWheel];
-    value a_onoffline : XML.event -> attrib [ > `OnOffLine];
-    value a_ononline : XML.event -> attrib [ > `OnOnLine];
-    value a_onpause : XML.event -> attrib [ > `OnPause];
-    value a_onplay : XML.event -> attrib [ > `OnPlay];
-    value a_onplaying : XML.event -> attrib [ > `OnPlaying];
-    value a_onpagehide : XML.event -> attrib [ > `OnPageHide];
-    value a_onpageshow : XML.event -> attrib [ > `OnPageShow];
-    value a_onpopstate : XML.event -> attrib [ > `OnPopState];
-    value a_onprogress : XML.event -> attrib [ > `OnProgress];
-    value a_onratechange : XML.event -> attrib [ > `OnRateChange];
-    value a_onreadystatechange :
-      XML.event -> attrib [ > `OnReadyStateChange];
-    value a_onredo : XML.event -> attrib [ > `OnRedo];
-    value a_onresize : XML.event -> attrib [ > `OnResize];
-    value a_onscroll : XML.event -> attrib [ > `OnScroll];
-    value a_onseeked : XML.event -> attrib [ > `OnSeeked];
-    value a_onseeking : XML.event -> attrib [ > `OnSeeking];
-    value a_onselect : XML.event -> attrib [ > `OnSelect];
-    value a_onshow : XML.event -> attrib [ > `OnShow];
-    value a_onstalled : XML.event -> attrib [ > `OnStalled];
-    value a_onstorage : XML.event -> attrib [ > `OnStorage];
-    value a_onsubmit : XML.event -> attrib [ > `OnSubmit];
-    value a_onsuspend : XML.event -> attrib [ > `OnSuspend];
-    value a_ontimeupdate : XML.event -> attrib [ > `OnTimeUpdate];
-    value a_onundo : XML.event -> attrib [ > `OnUndo];
-    value a_onunload : XML.event -> attrib [ > `OnUnload];
-    value a_onvolumechange : XML.event -> attrib [ > `OnVolumeChange];
-    value a_onwaiting : XML.event -> attrib [ > `OnWaiting];
-    value a_onkeypress : XML.event -> attrib [ > `OnKeyPress];
-    value a_onkeydown : XML.event -> attrib [ > `OnKeyDown];
-    value a_onkeyup : XML.event -> attrib [ > `OnKeyUp];
-    value a_onload : XML.event -> attrib [ > `OnLoad];
-    value a_onloadeddata : XML.event -> attrib [ > `OnLoadedData];
-    value a_onloadedmetadata : XML.event -> attrib [ > `OnLoadedMetaData];
-    value a_onloadstart : XML.event -> attrib [ > `OnLoadStart];
-    value a_onmessage : XML.event -> attrib [ > `OnMessage];
-    value a_version : cdata -> attrib [ > `Version];
-    value a_xmlns : [ < `W3_org_1999_xhtml] -> attrib [ > `XMLns];
-    value a_manifest : uri -> attrib [ > `Manifest];
-    value a_cite : uri -> attrib [ > `Cite];
-    value a_xml_space : [ < `Preserve] -> attrib [ > `XML_space];
-    value a_accesskey : character -> attrib [ > `Accesskey];
+    val a_onabort : XML.event -> [> | `OnAbort] attrib
+      
+    val a_onafterprint : XML.event -> [> | `OnAfterPrint] attrib
+      
+    val a_onbeforeprint : XML.event -> [> | `OnBeforePrint] attrib
+      
+    val a_onbeforeunload : XML.event -> [> | `OnBeforeUnload] attrib
+      
+    val a_onblur : XML.event -> [> | `OnBlur] attrib
+      
+    val a_oncanplay : XML.event -> [> | `OnCanPlay] attrib
+      
+    val a_oncanplaythrough : XML.event -> [> | `OnCanPlayThrough] attrib
+      
+    val a_onchange : XML.event -> [> | `OnChange] attrib
+      
+    val a_onclick : XML.event -> [> | `OnClick] attrib
+      
+    val a_oncontextmenu : XML.event -> [> | `OnContextMenu] attrib
+      
+    val a_ondblclick : XML.event -> [> | `OnDblClick] attrib
+      
+    val a_ondrag : XML.event -> [> | `OnDrag] attrib
+      
+    val a_ondragend : XML.event -> [> | `OnDragEnd] attrib
+      
+    val a_ondragenter : XML.event -> [> | `OnDragEnter] attrib
+      
+    val a_ondragleave : XML.event -> [> | `OnDragLeave] attrib
+      
+    val a_ondragover : XML.event -> [> | `OnDragOver] attrib
+      
+    val a_ondragstart : XML.event -> [> | `OnDragStart] attrib
+      
+    val a_ondrop : XML.event -> [> | `OnDrop] attrib
+      
+    val a_ondurationchange : XML.event -> [> | `OnDurationChange] attrib
+      
+    val a_onemptied : XML.event -> [> | `OnEmptied] attrib
+      
+    val a_onended : XML.event -> [> | `OnEnded] attrib
+      
+    val a_onerror : XML.event -> [> | `OnError] attrib
+      
+    val a_onfocus : XML.event -> [> | `OnFocus] attrib
+      
+    val a_onformchange : XML.event -> [> | `OnFormChange] attrib
+      
+    val a_onforminput : XML.event -> [> | `OnFormInput] attrib
+      
+    val a_onhashchange : XML.event -> [> | `OnHashChange] attrib
+      
+    val a_oninput : XML.event -> [> | `OnInput] attrib
+      
+    val a_oninvalid : XML.event -> [> | `OnInvalid] attrib
+      
+    val a_onmousedown : XML.event -> [> | `OnMouseDown] attrib
+      
+    val a_onmouseup : XML.event -> [> | `OnMouseUp] attrib
+      
+    val a_onmouseover : XML.event -> [> | `OnMouseOver] attrib
+      
+    val a_onmousemove : XML.event -> [> | `OnMouseMove] attrib
+      
+    val a_onmouseout : XML.event -> [> | `OnMouseOut] attrib
+      
+    val a_onmousewheel : XML.event -> [> | `OnMouseWheel] attrib
+      
+    val a_onoffline : XML.event -> [> | `OnOffLine] attrib
+      
+    val a_ononline : XML.event -> [> | `OnOnLine] attrib
+      
+    val a_onpause : XML.event -> [> | `OnPause] attrib
+      
+    val a_onplay : XML.event -> [> | `OnPlay] attrib
+      
+    val a_onplaying : XML.event -> [> | `OnPlaying] attrib
+      
+    val a_onpagehide : XML.event -> [> | `OnPageHide] attrib
+      
+    val a_onpageshow : XML.event -> [> | `OnPageShow] attrib
+      
+    val a_onpopstate : XML.event -> [> | `OnPopState] attrib
+      
+    val a_onprogress : XML.event -> [> | `OnProgress] attrib
+      
+    val a_onratechange : XML.event -> [> | `OnRateChange] attrib
+      
+    val a_onreadystatechange : XML.event -> [> | `OnReadyStateChange] attrib
+      
+    val a_onredo : XML.event -> [> | `OnRedo] attrib
+      
+    val a_onresize : XML.event -> [> | `OnResize] attrib
+      
+    val a_onscroll : XML.event -> [> | `OnScroll] attrib
+      
+    val a_onseeked : XML.event -> [> | `OnSeeked] attrib
+      
+    val a_onseeking : XML.event -> [> | `OnSeeking] attrib
+      
+    val a_onselect : XML.event -> [> | `OnSelect] attrib
+      
+    val a_onshow : XML.event -> [> | `OnShow] attrib
+      
+    val a_onstalled : XML.event -> [> | `OnStalled] attrib
+      
+    val a_onstorage : XML.event -> [> | `OnStorage] attrib
+      
+    val a_onsubmit : XML.event -> [> | `OnSubmit] attrib
+      
+    val a_onsuspend : XML.event -> [> | `OnSuspend] attrib
+      
+    val a_ontimeupdate : XML.event -> [> | `OnTimeUpdate] attrib
+      
+    val a_onundo : XML.event -> [> | `OnUndo] attrib
+      
+    val a_onunload : XML.event -> [> | `OnUnload] attrib
+      
+    val a_onvolumechange : XML.event -> [> | `OnVolumeChange] attrib
+      
+    val a_onwaiting : XML.event -> [> | `OnWaiting] attrib
+      
+    val a_onkeypress : XML.event -> [> | `OnKeyPress] attrib
+      
+    val a_onkeydown : XML.event -> [> | `OnKeyDown] attrib
+      
+    val a_onkeyup : XML.event -> [> | `OnKeyUp] attrib
+      
+    val a_onload : XML.event -> [> | `OnLoad] attrib
+      
+    val a_onloadeddata : XML.event -> [> | `OnLoadedData] attrib
+      
+    val a_onloadedmetadata : XML.event -> [> | `OnLoadedMetaData] attrib
+      
+    val a_onloadstart : XML.event -> [> | `OnLoadStart] attrib
+      
+    val a_onmessage : XML.event -> [> | `OnMessage] attrib
+      
+    val a_version : cdata -> [> | `Version] attrib
+      
+    val a_xmlns : [< | `W3_org_1999_xhtml] -> [> | `XMLns] attrib
+      
+    val a_manifest : uri -> [> | `Manifest] attrib
+      
+    val a_cite : uri -> [> | `Cite] attrib
+      
+    val a_xml_space : [< | `Preserve] -> [> | `XML_space] attrib
+      
+    val a_accesskey : character -> [> | `Accesskey] attrib
+      
     (** This attribute assigns an access key to an element. An access key
     is a single character from the document character
     set. NB: authors should consider the input method of the
     expected reader when specifying an accesskey. *)
-    value a_charset : charset -> attrib [ > `Charset];
+    val a_charset : charset -> [> | `Charset] attrib
+      
     (** This attribute specifies the character encoding of the resource
     designated by the link. Please consult the section on character
     encodings for more details. *)
-    value a_accept_charset : charsets -> attrib [ > `Accept_charset];
-    value a_accept : contenttypes -> attrib [ > `Accept];
-    value a_href : uri -> attrib [ > `Href];
+    val a_accept_charset : charsets -> [> | `Accept_charset] attrib
+      
+    val a_accept : contenttypes -> [> | `Accept] attrib
+      
+    val a_href : uri -> [> | `Href] attrib
+      
     (** This attribute specifies the location of a Web resource, thus
     defining a link between the current element (the source anchor)
     and the destination anchor defined by this attribute. *)
-    value a_hreflang : languagecode -> attrib [ > `Hreflang];
+    val a_hreflang : languagecode -> [> | `Hreflang] attrib
+      
     (** This attribute specifies the base language of the resource
     designated by href and may only be used when href is specified. *)
-    value a_rel : linktypes -> attrib [ > `Rel];
+    val a_rel : linktypes -> [> | `Rel] attrib
+      
     (** This attribute describes the relationship from the current document
     to the anchor specified by the href attribute. The value of this attribute
     is a space-separated list of link types. *)
     (** This attribute is used to describe a reverse link from the anchor specified
     by the href attribute to the current document. The value of this attribute
     is a space-separated list of link types. *)
-    value a_tabindex : number -> attrib [ > `Tabindex];
+    val a_tabindex : number -> [> | `Tabindex] attrib
+      
     (** This attribute specifies the position of the current element in
     the tabbing order for the current document. This value must be a
     number between 0 and 32767. User agents should ignore leading
     zeros. *)
-    value a_mime_type : contenttype -> attrib [ > `Mime_type];
+    val a_mime_type : contenttype -> [> | `Mime_type] attrib
+      
     (** This attribute gives an advisory hint as to the content type of
     the content available at the link target address. It allows user
     agents to opt to use a fallback mechanism rather than fetch the
@@ -242,121 +381,212 @@ module type T =
     take responsibility to manage the risk that it may become
     inconsistent with the content available at the link target
     address. *)
-    value a_datetime : cdata -> attrib [ > `Datetime];
-    value a_action : uri -> attrib [ > `Action];
+    val a_datetime : cdata -> [> | `Datetime] attrib
+      
+    val a_action : uri -> [> | `Action] attrib
+      
     (** This attribute specifies a form processing agent. User agent
     behavior for a value other than an HTTP URI is undefined. *)
-    value a_checked : [ < `Checked] -> attrib [ > `Checked];
+    val a_checked : [< | `Checked] -> [> | `Checked] attrib
+      
     (** When the [type] attribute has the value ["radio"] or ["checkbox"],
     this boolean attribute specifies that the button is on. User
     agents must ignore this attribute for other control types. *)
-    value a_cols : number -> attrib [ > `Cols];
+    val a_cols : number -> [> | `Cols] attrib
+      
     (** This attribute specifies the visible width in average character
     widths. Users should be able to enter longer lines than this, so
     user agents should provide some means to scroll through the
     contents of the control when the contents extend beyond the
     visible area. User agents may wrap visible text lines to keep long
     lines visible without the need for scrolling. *)
-    value a_enctype : contenttype -> attrib [ > `Enctype];
-    value a_for : idref -> attrib [ > `For];
-    value a_for_list : idrefs -> attrib [ > `For_List];
-    value a_maxlength : number -> attrib [ > `Maxlength];
-    value a_method :
-      [ < `Get | `Post | `Put | `Delete] -> attrib [ > `Method];
-    value a_multiple : [ < `Multiple] -> attrib [ > `Multiple];
-    value a_name : text -> attrib [ > `Name];
+    val a_enctype : contenttype -> [> | `Enctype] attrib
+      
+    val a_for : idref -> [> | `For] attrib
+      
+    val a_for_list : idrefs -> [> | `For_List] attrib
+      
+    val a_maxlength : number -> [> | `Maxlength] attrib
+      
+    val a_method :
+      [< | `Get | `Post | `Put | `Delete] -> [> | `Method] attrib
+      
+    val a_multiple : [< | `Multiple] -> [> | `Multiple] attrib
+      
+    val a_name : text -> [> | `Name] attrib
+      
     (** This attribute assigns the control name. *)
-    value a_rows : number -> attrib [ > `Rows];
+    val a_rows : number -> [> | `Rows] attrib
+      
     (** This attribute specifies the number of visible text lines. Users
     should be able to enter more lines than this, so user agents
     should provide some means to scroll through the contents of the
     control when the contents extend beyond the visible area. *)
-    value a_selected : [ < `Selected] -> attrib [ > `Selected];
+    val a_selected : [< | `Selected] -> [> | `Selected] attrib
+      
     (** When set, this boolean attribute specifies that this option is pre-selected. *)
-    value a_size : number -> attrib [ > `Size];
-    value a_src : uri -> attrib [ > `Src];
-    value a_input_type :
-      [ < `Url | `Tel | `Text | `Time | `Search | `Password | `Checkbox
-        | `Range | `Radio | `Submit | `Reset | `Number | `Hidden | `Month
-        | `Week | `File | `Email | `Image | `Datetime_local | `Datetime
-        | `Date | `Color | `Button] -> attrib [ > `Input_Type];
-    value a_text_value : text -> attrib [ > `Text_Value];
+    val a_size : number -> [> | `Size] attrib
+      
+    val a_src : uri -> [> | `Src] attrib
+      
+    val a_input_type :
+      [<
+        | `Url
+        | `Tel
+        | `Text
+        | `Time
+        | `Search
+        | `Password
+        | `Checkbox
+        | `Range
+        | `Radio
+        | `Submit
+        | `Reset
+        | `Number
+        | `Hidden
+        | `Month
+        | `Week
+        | `File
+        | `Email
+        | `Image
+        | `Datetime_local
+        | `Datetime
+        | `Date
+        | `Color
+        | `Button] -> [> | `Input_Type] attrib
+      
+    val a_text_value : text -> [> | `Text_Value] attrib
+      
     (** This attribute specifies the initial value of the control. If this
     attribute is not set, the initial value is set to the contents of
     the [option] element. *)
-    value a_int_value : number -> attrib [ > `Int_Value];
+    val a_int_value : number -> [> | `Int_Value] attrib
+      
     (*VVV NO *)
-    value a_value : cdata -> attrib [ > `Value];
-    value a_float_value : float_number -> attrib [ > `Float_Value];
-    value a_disabled : [ < `Disabled] -> attrib [ > `Disabled];
-    value a_readonly : [ < `Readonly] -> attrib [ > `Readonly];
-    value a_button_type :
-      [ < `Button | `Submit | `Reset] -> attrib [ > `Button_Type];
-    value a_command_type :
-      [ < `Command | `Checkbox | `Radio] -> attrib [ > `Command_Type];
-    value a_menu_type : [ < `Context | `Toolbar] -> attrib [ > `Menu_Type];
-    value a_label : text -> attrib [ > `Label];
-    value a_align :
-      [ < `Left | `Right | `Justify | `Char] -> attrib [ > `Align];
-    value a_axis : cdata -> attrib [ > `Axis];
-    value a_colspan : number -> attrib [ > `Colspan];
-    value a_headers : idrefs -> attrib [ > `Headers];
-    value a_rowspan : number -> attrib [ > `Rowspan];
-    value a_scope :
-      [ < `Row | `Col | `Rowgroup | `Colgroup] -> attrib [ > `Scope];
-    value a_summary : text -> attrib [ > `Summary];
-    value a_border : pixels -> attrib [ > `Border];
-    value a_cellpadding : length -> attrib [ > `Cellpadding];
-    value a_cellspacing : length -> attrib [ > `Cellspacing];
-    value a_datapagesize : cdata -> attrib [ > `Datapagesize];
-    value a_rules :
-      [ < `None | `Groups | `Rows | `Cols | `All] -> attrib [ > `Rules];
-    value a_char : character -> attrib [ > `Char];
-    value a_charoff : length -> attrib [ > `Charoff];
-    value a_alt : text -> attrib [ > `Alt];
-    value a_height : number -> attrib [ > `Height];
-    value a_width : number -> attrib [ > `Width];
-    type shape = [ = `Rect | `Circle | `Poly | `Default ];
-    value a_shape : shape -> attrib [ > `Shape];
-    value a_coords : numbers -> attrib [ > `Coords];
-    value a_usemap : idref -> attrib [ > `Usemap];
-    value a_data : uri -> attrib [ > `Data];
-    value a_codetype : contenttype -> attrib [ > `Codetype];
-    value a_fs_rows : multilengths -> attrib [ > `FS_Rows];
-    value a_fs_cols : multilengths -> attrib [ > `FS_Cols];
-    value a_frameborder : [ < `Zero | `One] -> attrib [ > `Frameborder];
-    value a_marginheight : pixels -> attrib [ > `Marginheight];
-    value a_marginwidth : pixels -> attrib [ > `Marginwidth];
-    value a_scrolling : [ < `Yes | `No | `Auto] -> attrib [ > `Scrolling];
-    value a_target : frametarget -> attrib [ > `Target];
-    value a_content : text -> attrib [ > `Content];
-    value a_http_equiv : text -> attrib [ > `Http_equiv];
-    value a_defer : [ < `Defer] -> attrib [ > `Defer];
-    value a_media : mediadesc -> attrib [ > `Media];
-    value a_style : string -> attrib [ > `Style_Attr];
-
-
-  (** {1 Phantom types and XML elements} *)
-  (* For Ocsigen I need to specify the variance --Vincent *)
-  type elt +'a;
-  type nullary 'a 'b = ?a:(list (attrib 'a) ) -> unit -> elt 'b;
-  type unary 'a 'b 'c = ?a:(list (attrib 'a)) -> elt 'b -> elt 'c ;
-  type binary 'a 'b 'c 'd = ?a:(list (attrib 'a)) -> elt 'b -> elt 'c -> elt 'd;
-  type tri 'b 'c 'd 'e = elt 'b -> elt 'c -> elt 'd -> elt 'e;
-  type star 'a 'b 'c = ?a:(list (attrib 'a)) -> list (elt 'b) -> elt 'c;
-      (** Star '*' denotes any number of children, uncluding zero. *)
-  
-  type plus 'a 'b 'c = ?a:(list (attrib 'a)) -> elt 'b -> list (elt 'b) -> elt 'c;
-  
-  (** Root element *)
-  type html = elt [=`Html] ;
-  type rt = 
-    [= `Rt of elt [= `Rt ]
-    | `Rpt of (elt [= `Rp ] * elt [= `Rt ] * elt [= `Rp ])];
-  type ruby_content = (list (elt phrasing) * rt);
-  type rp = (list (attrib common) * list (elt phrasing));
-  
-
+    val a_value : cdata -> [> | `Value] attrib
+      
+    val a_float_value : float_number -> [> | `Float_Value] attrib
+      
+    val a_disabled : [< | `Disabled] -> [> | `Disabled] attrib
+      
+    val a_readonly : [< | `Readonly] -> [> | `Readonly] attrib
+      
+    val a_button_type :
+      [< | `Button | `Submit | `Reset] -> [> | `Button_Type] attrib
+      
+    val a_command_type :
+      [< | `Command | `Checkbox | `Radio] -> [> | `Command_Type] attrib
+      
+    val a_menu_type : [< | `Context | `Toolbar] -> [> | `Menu_Type] attrib
+      
+    val a_label : text -> [> | `Label] attrib
+      
+    val a_align :
+      [< | `Left | `Right | `Justify | `Char] -> [> | `Align] attrib
+      
+    val a_axis : cdata -> [> | `Axis] attrib
+      
+    val a_colspan : number -> [> | `Colspan] attrib
+      
+    val a_headers : idrefs -> [> | `Headers] attrib
+      
+    val a_rowspan : number -> [> | `Rowspan] attrib
+      
+    val a_scope :
+      [< | `Row | `Col | `Rowgroup | `Colgroup] -> [> | `Scope] attrib
+      
+    val a_summary : text -> [> | `Summary] attrib
+      
+    val a_border : pixels -> [> | `Border] attrib
+      
+    val a_cellpadding : length -> [> | `Cellpadding] attrib
+      
+    val a_cellspacing : length -> [> | `Cellspacing] attrib
+      
+    val a_datapagesize : cdata -> [> | `Datapagesize] attrib
+      
+    val a_rules :
+      [< | `None | `Groups | `Rows | `Cols | `All] -> [> | `Rules] attrib
+      
+    val a_char : character -> [> | `Char] attrib
+      
+    val a_charoff : length -> [> | `Charoff] attrib
+      
+    val a_alt : text -> [> | `Alt] attrib
+      
+    val a_height : number -> [> | `Height] attrib
+      
+    val a_width : number -> [> | `Width] attrib
+      
+    type shape = [ | `Rect | `Circle | `Poly | `Default ]
+    
+    val a_shape : shape -> [> | `Shape] attrib
+      
+    val a_coords : numbers -> [> | `Coords] attrib
+      
+    val a_usemap : idref -> [> | `Usemap] attrib
+      
+    val a_data : uri -> [> | `Data] attrib
+      
+    val a_codetype : contenttype -> [> | `Codetype] attrib
+      
+    val a_fs_rows : multilengths -> [> | `FS_Rows] attrib
+      
+    val a_fs_cols : multilengths -> [> | `FS_Cols] attrib
+      
+    val a_frameborder : [< | `Zero | `One] -> [> | `Frameborder] attrib
+      
+    val a_marginheight : pixels -> [> | `Marginheight] attrib
+      
+    val a_marginwidth : pixels -> [> | `Marginwidth] attrib
+      
+    val a_scrolling : [< | `Yes | `No | `Auto] -> [> | `Scrolling] attrib
+      
+    val a_target : frametarget -> [> | `Target] attrib
+      
+    val a_content : text -> [> | `Content] attrib
+      
+    val a_http_equiv : text -> [> | `Http_equiv] attrib
+      
+    val a_defer : [< | `Defer] -> [> | `Defer] attrib
+      
+    val a_media : mediadesc -> [> | `Media] attrib
+      
+    val a_style : string -> [> | `Style_Attr] attrib
+      
+    (** {1 Phantom types and XML elements} *)
+    (* For Ocsigen I need to specify the variance --Vincent *)
+    type +'a elt
+    
+    type ('a, 'b) nullary = ?a: (('a attrib) list) -> unit -> 'b elt
+    
+    type ('a, 'b, 'c) unary = ?a: (('a attrib) list) -> 'b elt -> 'c elt
+    
+    type ('a, 'b, 'c, 'd) binary =
+      ?a: (('a attrib) list) -> 'b elt -> 'c elt -> 'd elt
+    
+    type ('b, 'c, 'd, 'e) tri = 'b elt -> 'c elt -> 'd elt -> 'e elt
+    
+    type ('a, 'b, 'c) star =
+      ?a: (('a attrib) list) -> ('b elt) list -> 'c elt
+    
+    (** Star '*' denotes any number of children, uncluding zero. *)
+    type ('a, 'b, 'c) plus =
+      ?a: (('a attrib) list) -> 'b elt -> ('b elt) list -> 'c elt
+    
+    (** Root element *)
+    type html = [ | `Html ] elt
+    
+    type rt =
+      [
+        | `Rt of [ | `Rt ] elt
+        | `Rpt of (([ | `Rp ] elt) * ([ | `Rt ] elt) * ([ | `Rp ] elt))
+      ]
+    
+    type ruby_content = (((phrasing elt) list) * rt)
+    
+    type rp = (((common attrib) list) * ((phrasing elt) list))
+    
     (** {1 Combined Element Sets:} *)
     (********************************)
     (*  If the document is an       *)
@@ -370,34 +600,67 @@ module type T =
     (*   metadata content, of which *)
     (*exactly one is a title element*)
     (********************************)
-    value html : ?a: (list (attrib html_attrib)) -> elt [ < `Head ] -> elt [ < `Body ] -> elt [ > `Html ];
-    value head : ?a: (list (attrib head_attrib)) -> elt [ < `Title ] -> 
-                     list (elt head_content_fun) -> elt [> head];
-    value base : nullary [< base_attrib] [> base];
-    value title : unary title_attrib [ < title_content_fun ] [> title];
-    value body : star [< body_attrib ] [ < body_content_fun ] [> body];
+    val html :
+      ?a: ((html_attrib attrib) list) ->
+        [< | `Head] elt -> [< | `Body] elt -> [> | `Html] elt
+      
+    val head :
+      ?a: ((head_attrib attrib) list) ->
+        [< | `Title] elt -> (head_content_fun elt) list -> [> | head] elt
+      
+    val base : ([< | base_attrib], [> | base]) nullary
+      
+    val title : (title_attrib, [< | title_content_fun], [> | title]) unary
+      
+    val body : ([< | body_attrib], [< | body_content_fun], [> | body]) star
+      
     (** {2 Section} *)
-    value footer :
-      star [ < common] [ < flow5_without_header_footer] [ > `Footer];
-    value header :
-      star [ < common] [ < flow5_without_header_footer] [ > `Header];
-    value section : star [< section_attrib ] [ < section_content_fun ] [> section];
-    value nav : star [< nav_attrib ] [ < nav_content_fun ] [> nav];
-    value h1 : star [< h1_attrib ] [ < h1_content_fun ] [> h1];
-    value h2 : star [< h2_attrib ] [ < h2_content_fun ] [> h2];
-    value h3 : star [< h3_attrib ] [ < h3_content_fun ] [> h3];
-    value h4 : star [< h4_attrib ] [ < h4_content_fun ] [> h4];
-    value h5 : star [< h5_attrib ] [ < h5_content_fun ] [> h5];
-    value h6 : star [< h6_attrib ] [ < h6_content_fun ] [> h6];
-    value hgroup : plus [< hgroup_attrib ] [ < hgroup_content_fun ] [> hgroup];
-    value address : star [< address_attrib ] [ < address_content_fun ] [> address];
-    value article : star [< article_attrib ] [ < article_content_fun ] [> article];
-    value aside : star [< aside_attrib ] [ < aside_content_fun ] [> aside];
+    val footer :
+      ([< | common], [< | flow5_without_header_footer], [> | `Footer]) star
+      
+    val header :
+      ([< | common], [< | flow5_without_header_footer], [> | `Header]) star
+      
+    val section :
+      ([< | section_attrib], [< | section_content_fun], [> | section]) star
+      
+    val nav : ([< | nav_attrib], [< | nav_content_fun], [> | nav]) star
+      
+    val h1 : ([< | h1_attrib], [< | h1_content_fun], [> | h1]) star
+      
+    val h2 : ([< | h2_attrib], [< | h2_content_fun], [> | h2]) star
+      
+    val h3 : ([< | h3_attrib], [< | h3_content_fun], [> | h3]) star
+      
+    val h4 : ([< | h4_attrib], [< | h4_content_fun], [> | h4]) star
+      
+    val h5 : ([< | h5_attrib], [< | h5_content_fun], [> | h5]) star
+      
+    val h6 : ([< | h6_attrib], [< | h6_content_fun], [> | h6]) star
+      
+    val hgroup :
+      ([< | hgroup_attrib], [< | hgroup_content_fun], [> | hgroup]) plus
+      
+    val address :
+      ([< | address_attrib], [< | address_content_fun], [> | address]) star
+      
+    val article :
+      ([< | article_attrib], [< | article_content_fun], [> | article]) star
+      
+    val aside :
+      ([< | aside_attrib], [< | aside_content_fun], [> | aside]) star
+      
     (** {2 Grouping content} *)
-    value p : star [< p_attrib ] [ < p_content_fun ] [> p];
-    value pre : star [< pre_attrib ] [ < pre_content_fun ] [> pre];
-    value blockquote : star [< blockquote_attrib ] [ < blockquote_content_fun ] [> blockquote];
-    value div : star [< div_attrib ] [ < div_content_fun ] [> div];
+    val p : ([< | p_attrib], [< | p_content_fun], [> | p]) star
+      
+    val pre : ([< | pre_attrib], [< | pre_content_fun], [> | pre]) star
+      
+    val blockquote :
+      ([< | blockquote_attrib], [< | blockquote_content_fun], [> | blockquote
+        ]) star
+      
+    val div : ([< | div_attrib], [< | div_content_fun], [> | div]) star
+      
     (********************************)
     (*            In Dl             *)
     (********************************)
@@ -407,16 +670,19 @@ module type T =
     (*      followed by             *)
     (*      one or more dd  elements*)
     (********************************)
-    value dl :
-      ?a: (list (attrib [ < common])) ->
-        list
-          (((elt [ < `Dt]) * (list (elt [ < `Dt]))) *
-           ((elt [ < `Dd]) * (list (elt [ < `Dd]))))
-          -> elt [ > `Dl];
-    value ol : star [< ol_attrib ] [ < ol_content_fun ] [> ol];
-    value ul : star [< ul_attrib ] [ < ul_content_fun ] [> ul];
-    value dd : star [< dd_attrib ] [ < dd_content_fun ] [> dd];
-    value dt : star [< dt_attrib ] [ < dt_content_fun ] [> dt];
+    val dl :
+      ?a: (([< | common] attrib) list) ->
+        ((([< | `Dt] elt) * (([< | `Dt] elt) list)) *
+         (([< | `Dd] elt) * (([< | `Dd] elt) list))) list -> [> | `Dl] elt
+      
+    val ol : ([< | ol_attrib], [< | ol_content_fun], [> | ol]) star
+      
+    val ul : ([< | ul_attrib], [< | ul_content_fun], [> | ul]) star
+      
+    val dd : ([< | dd_attrib], [< | dd_content_fun], [> | dd]) star
+      
+    val dt : ([< | dt_attrib], [< | dt_content_fun], [> | dt]) star
+      
     (********************************)
     (*            In Li             *)
     (********************************)
@@ -427,8 +693,12 @@ module type T =
     (** A list element.
         The 'a type is used to know whether the element has
         a int_value attribute or not. *)
-    value li : star [< li_attrib ] [ < li_content_fun ] [> li];
-    value figcaption : star [< figcaption_attrib ] [ < figcaption_content_fun ] [> figcaption];
+    val li : ([< | li_attrib], [< | li_content_fun], [> | li]) star
+      
+    val figcaption :
+      ([< | figcaption_attrib], [< | figcaption_content_fun], [> | figcaption
+        ]) star
+      
     (********************************)
     (*          In Figure           *)
     (********************************)
@@ -438,10 +708,12 @@ module type T =
     (*     one figcaption element.  *)
     (*Or: Flow content.             *)
     (********************************)
-    value figure :
-      ?figcaption: (elt [ < `Figcaption]) ->
-        star [ < common] [ < flow5] [ > `Figure];
-    value hr : nullary [< hr_attrib] [> hr];
+    val figure :
+      ?figcaption: ([< | `Figcaption] elt) ->
+        ([< | common], [< | flow5], [> | `Figure]) star
+      
+    val hr : ([< | hr_attrib], [> | hr]) nullary
+      
     (** {2 Ruby} *)
     (**********************************)
     (*            In Ruby             *)
@@ -453,37 +725,64 @@ module type T =
     (*       an rt element, and       *)
     (*       another rp element.      *)
     (**********************************)
-    value rt :
+    val rt :
       ?rp: (rp * rp) ->
-        ?a: (list (attrib [ < common])) -> list (elt [ < phrasing]) -> rt;
-    value rp :
-      ?a: (list (attrib [ < common])) -> list (elt [ < phrasing]) -> rp;
-    value ruby :
-      ?a: (list (attrib [ < common])) ->
-        ruby_content -> list ruby_content -> elt [ > `Ruby];
+        ?a: (([< | common] attrib) list) -> ([< | phrasing] elt) list -> rt
+      
+    val rp :
+      ?a: (([< | common] attrib) list) -> ([< | phrasing] elt) list -> rp
+      
+    val ruby :
+      ?a: (([< | common] attrib) list) ->
+        ruby_content -> ruby_content list -> [> | `Ruby] elt
+      
     (** {2 Semantic} *)
-    value b : star [< b_attrib ] [ < b_content_fun ] [> b];
-    value i : star [< i_attrib ] [ < i_content_fun ] [> i];
-    value small : star [< small_attrib ] [ < small_content_fun ] [> small];
-    value sub : star [< sub_attrib ] [ < sub_content_fun ] [> sub];
-    value sup : star [< sup_attrib ] [ < sup_content_fun ] [> sup];
-    value mark : star [< mark_attrib ] [ < mark_content_fun ] [> mark];
-    value wbr : nullary [< wbr_attrib] [> wbr];
-    value bdo :
-      ~dir: [ < `Ltr | `Rtl] -> star [ < common] [ < phrasing] [ > `Bdo];
-    value abbr : star [< abbr_attrib ] [ < abbr_content_fun ] [> abbr];
-    value br : nullary [< br_attrib] [> br];
-    value cite : star [< cite_attrib ] [ < cite_content_fun ] [> cite];
-    value code : star [< code_attrib ] [ < code_content_fun ] [> code];
-    value dfn : star [< dfn_attrib ] [ < dfn_content_fun ] [> dfn];
-    value em : star [< em_attrib ] [ < em_content_fun ] [> em];
-    value kbd : star [< kbd_attrib ] [ < kbd_content_fun ] [> kbd];
-    value q : star [< q_attrib ] [ < q_content_fun ] [> q];
-    value samp : star [< samp_attrib ] [ < samp_content_fun ] [> samp];
-    value span : star [< span_attrib ] [ < span_content_fun ] [> span];
-    value strong : star [< strong_attrib ] [ < strong_content_fun ] [> strong];
-    value time : star [< time_attrib ] [ < time_content_fun ] [> time];
-    value var : star [< var_attrib ] [ < var_content_fun ] [> var];
+    val b : ([< | b_attrib], [< | b_content_fun], [> | b]) star
+      
+    val i : ([< | i_attrib], [< | i_content_fun], [> | i]) star
+      
+    val small :
+      ([< | small_attrib], [< | small_content_fun], [> | small]) star
+      
+    val sub : ([< | sub_attrib], [< | sub_content_fun], [> | sub]) star
+      
+    val sup : ([< | sup_attrib], [< | sup_content_fun], [> | sup]) star
+      
+    val mark : ([< | mark_attrib], [< | mark_content_fun], [> | mark]) star
+      
+    val wbr : ([< | wbr_attrib], [> | wbr]) nullary
+      
+    val bdo :
+      dir: [< | `Ltr | `Rtl] ->
+        ([< | common], [< | phrasing], [> | `Bdo]) star
+      
+    val abbr : ([< | abbr_attrib], [< | abbr_content_fun], [> | abbr]) star
+      
+    val br : ([< | br_attrib], [> | br]) nullary
+      
+    val cite : ([< | cite_attrib], [< | cite_content_fun], [> | cite]) star
+      
+    val code : ([< | code_attrib], [< | code_content_fun], [> | code]) star
+      
+    val dfn : ([< | dfn_attrib], [< | dfn_content_fun], [> | dfn]) star
+      
+    val em : ([< | em_attrib], [< | em_content_fun], [> | em]) star
+      
+    val kbd : ([< | kbd_attrib], [< | kbd_content_fun], [> | kbd]) star
+      
+    val q : ([< | q_attrib], [< | q_content_fun], [> | q]) star
+      
+    val samp : ([< | samp_attrib], [< | samp_content_fun], [> | samp]) star
+      
+    val span : ([< | span_attrib], [< | span_content_fun], [> | span]) star
+      
+    val strong :
+      ([< | strong_attrib], [< | strong_content_fun], [> | strong]) star
+      
+    val time : ([< | time_attrib], [< | time_content_fun], [> | time]) star
+      
+    val var : ([< | var_attrib], [< | var_content_fun], [> | var]) star
+      
     (** {2 Hypertext} *)
     (********************************)
     (*             In A             *)
@@ -497,40 +796,59 @@ module type T =
     (********************************)
     (* a's children are transparents*)
     (********************************)
-    value a : star [< a_attrib ] 'a [> `A of 'a];
+    val a : ([< | a_attrib], 'a, [> | `A of 'a]) star
+      
     (** {2 Edit} *)
     (**********************************)
     (* del's children are transparents*)
     (**********************************)
-    value del : star [< del_attrib ] 'a [> `Del of 'a];
+    val del : ([< | del_attrib], 'a, [> | `Del of 'a]) star
+      
     (**********************************)
     (* ins's children are transparents*)
     (**********************************)
-    value ins : star [< ins_attrib ] 'a [> `Ins of 'a];
+    val ins : ([< | ins_attrib], 'a, [> | `Ins of 'a]) star
+      
     (** {2 Embedded} *)
     (** About images, objects and other things like that.
           Depending on the attributes given to the element,
           the category (interactive, or not) or even the behaviour (transparent) 
           may change. You need to specify these attributes explictly for now. *)
-    type expl_attrib 'a 'b;
-    value expl_attrib : 'b -> expl_attrib [ = `On ] 'b;
-    value expl_none : expl_attrib [ = `Off ] 'b;
+    type ('a, 'b) expl_attrib
+    
+    val expl_attrib : 'b -> ([ | `On ], 'b) expl_attrib
+      
+    val expl_none : ([ | `Off ], 'b) expl_attrib
+      
     (** The usemap attrib is mandatory, and you should [expl_attrib] and [expl_none]
           to make such attributes. *)
-    value img :
-      ~src: uri ->
-        ~alt: text ->
-          ~usemap: (expl_attrib 'a idref) ->
-            nullary [ < common | `Height | `Ismap | `Width] [ > `Img of 'a];
-    value iframe : (*| `Srcdoc*) star [ < common | `Src | `Name | `Sandbox | `Seamless | `Width | `Height] [ < `PCDATA] [ > `Iframe];
-    value object_ :
-      ?params: (list (elt [ < `Param])) ->
-        ~usemap: (expl_attrib 'b idref) ->
-          star
-            [ < common | `Data | `Form | `Mime_type | `Height | `Width
-              | `Name | `Usemap
-            ] 'a [ > `Object of ('a * 'b)];
-    value param : nullary [< param_attrib] [> param];
+    val img :
+      src: uri ->
+        alt: text ->
+          usemap: (('a, idref) expl_attrib) ->
+            ([< | common | `Height | `Ismap | `Width], [> | `Img of 'a])
+              nullary
+      
+    val iframe : (*| `Srcdoc*)
+      ([< | common | `Src | `Name | `Sandbox | `Seamless | `Width | `Height],
+        [< | `PCDATA], [> | `Iframe]) star
+      
+    val object_ :
+      ?params: (([< | `Param] elt) list) ->
+        usemap: (('b, idref) expl_attrib) ->
+          ([<
+             | common
+             | `Data
+             | `Form
+             | `Mime_type
+             | `Height
+             | `Width
+             | `Name
+             | `Usemap
+            ], 'a, [> | `Object of ('a * 'b)]) star
+      
+    val param : ([< | param_attrib], [> | param]) nullary
+      
     (**********************************)
     (*            In Embed            *)
     (**********************************)
@@ -546,8 +864,10 @@ module type T =
     (*These attributes are then passed*)
     (*  as parameters to the plugin.  *)
     (**********************************)
-    value embed :
-      nullary [ < common | `Src | `Height | `Mime_type | `Width] [ > `Embed];
+    val embed :
+      ([< | common | `Src | `Height | `Mime_type | `Width], [> | `Embed])
+        nullary
+      
     (**************************************)
     (*         In Audio and Video         *)
     (**************************************)
@@ -560,20 +880,30 @@ module type T =
     (*   transparent, but with no media   *)
     (*   element descendants.             *)
     (**************************************)
-    value audio :
-      ?srcs: (uri * (list (elt [ < `Source]))) ->
-        ~controls: (expl_attrib 'b unit) ->
-          star [ < common | `Preload | `Autoplay | `Loop | `Controls] 'a
-            [ > `Audio of ('a * 'b)];
-    value video :
-      ?srcs: (uri * (list (elt [ < `Source]))) ->
-        ~controls: (expl_attrib 'b unit) ->
-          star
-            [ < common | `Poster | `Preload | `Autoplay | `Loop | `Controls
-              | `Width | `Height
-            ] 'a [ > `Video of ('a * 'b)];
-    value canvas : star [< canvas_attrib ] 'a [> `Canvas of 'a];
-    value source : nullary [< source_attrib] [> source];
+    val audio :
+      ?srcs: (uri * (([< | `Source] elt) list)) ->
+        controls: (('b, unit) expl_attrib) ->
+          ([< | common | `Preload | `Autoplay | `Loop | `Controls], 'a,
+            [> | `Audio of ('a * 'b)]) star
+      
+    val video :
+      ?srcs: (uri * (([< | `Source] elt) list)) ->
+        controls: (('b, unit) expl_attrib) ->
+          ([<
+             | common
+             | `Poster
+             | `Preload
+             | `Autoplay
+             | `Loop
+             | `Controls
+             | `Width
+             | `Height
+            ], 'a, [> | `Video of ('a * 'b)]) star
+      
+    val canvas : ([< | canvas_attrib], 'a, [> | `Canvas of 'a]) star
+      
+    val source : ([< | source_attrib], [> | source]) nullary
+      
     (********************************)
     (*           In Area            *)
     (********************************)
@@ -582,17 +912,28 @@ module type T =
     (*  must be omitted if the href *)
     (*   attribute is not present.  *)
     (********************************)
-    value area :
-      ~alt: text ->
-        nullary
-          [ < common | `Alt | `Coords | `Shape | `Target | `Rel | `Media
-            | `Hreflang | `Mime_type
-          ] [ > `Area];
+    val area :
+      alt: text ->
+        ([<
+           | common
+           | `Alt
+           | `Coords
+           | `Shape
+           | `Target
+           | `Rel
+           | `Media
+           | `Hreflang
+           | `Mime_type
+          ], [> | `Area]) nullary
+      
     (* XXX: SC : the current system doesn't allow
          to put <area> tag inside a map (a priori) *)
-    value map : plus [< map_attrib ] 'a [> `A of 'a];
+    val map : ([< | map_attrib], 'a, [> | `A of 'a]) plus
+      
     (** {2 Tables Data} *)
-    value caption : star [< caption_attrib ] [ < caption_content_fun ] [> caption];
+    val caption :
+      ([< | caption_attrib], [< | caption_content_fun], [> | caption]) star
+      
     (********************************)
     (*      In Table and Tablex     *)
     (********************************)
@@ -613,18 +954,20 @@ module type T =
     (*   BUT ONLY ONE FOOT ELEMENT  *)
     (*         CHILD IN TOTAL       *)
     (********************************)
-    value table :
-      ?caption: (elt [ < `Caption]) ->
-        ?columns: (list (elt [ < `Colgroup])) ->
-          ?thead: (elt [ < `Thead]) ->
-            ?tfoot: (elt [ < `Tfoot]) ->
-              plus [ < common | `Summary] [ < `Tr] [ > `Table];
-    value tablex :
-      ?caption: (elt [ < `Caption]) ->
-        ?columns: (list (elt [ < `Colgroup])) ->
-          ?thead: (elt [ < `Thead]) ->
-            ?tfoot: (elt [ < `Tfoot]) ->
-              star [ < common | `Summary] [ < `Tbody] [ > `Table];
+    val table :
+      ?caption: ([< | `Caption] elt) ->
+        ?columns: (([< | `Colgroup] elt) list) ->
+          ?thead: ([< | `Thead] elt) ->
+            ?tfoot: ([< | `Tfoot] elt) ->
+              ([< | common | `Summary], [< | `Tr], [> | `Table]) plus
+      
+    val tablex :
+      ?caption: ([< | `Caption] elt) ->
+        ?columns: (([< | `Colgroup] elt) list) ->
+          ?thead: ([< | `Thead] elt) ->
+            ?tfoot: ([< | `Tfoot] elt) ->
+              ([< | common | `Summary], [< | `Tbody], [> | `Table]) star
+      
     (********************************)
     (*          In Colgroup         *)
     (********************************)
@@ -633,13 +976,25 @@ module type T =
     (*       -absent: Zero or more  *)
     (*                col elements. *)
     (********************************)
-    value colgroup : star [< colgroup_attrib ] [ < colgroup_content_fun ] [> colgroup];
-    value col : nullary [< col_attrib] [> col];
-    value thead : star [< thead_attrib ] [ < thead_content_fun ] [> thead];
-    value tbody : star [< tbody_attrib ] [ < tbody_content_fun ] [> tbody];
-    value tfoot : star [< tfoot_attrib ] [ < tfoot_content_fun ] [> tfoot];
-    value td : star [< td_attrib ] [ < td_content_fun ] [> td];
-    value th : star [< th_attrib ] [ < th_content_fun ] [> th];
+    val colgroup :
+      ([< | colgroup_attrib], [< | colgroup_content_fun], [> | colgroup])
+        star
+      
+    val col : ([< | col_attrib], [> | col]) nullary
+      
+    val thead :
+      ([< | thead_attrib], [< | thead_content_fun], [> | thead]) star
+      
+    val tbody :
+      ([< | tbody_attrib], [< | tbody_content_fun], [> | tbody]) star
+      
+    val tfoot :
+      ([< | tfoot_attrib], [< | tfoot_content_fun], [> | tfoot]) star
+      
+    val td : ([< | td_attrib], [< | td_content_fun], [> | td]) star
+      
+    val th : ([< | th_attrib], [< | th_content_fun], [> | th]) star
+      
     (****************************************)
     (*                 In Tr                *)
     (****************************************)
@@ -648,22 +1003,30 @@ module type T =
     (* Otherwise:                           *)
     (*    Zero or more td or th elements    *)
     (****************************************)
-    value tr : star [< tr_attrib ] [ < tr_content_fun ] [> tr];
+    val tr : ([< | tr_attrib], [< | tr_content_fun], [> | tr]) star
+      
     (** {2 Forms} *)
-    value form : plus [< form_attrib ] [ < form_content_fun ] [> form];
-    value fieldset :
-      ?legend: (elt [ = `Legend ]) ->
-        star [ < common | `Disabled | `Form | `Name] [ < flow5] [ > `Fieldset
-          ];
-    value legend : star [< legend_attrib ] [ < legend_content_fun ] [> legend];
+    val form : ([< | form_attrib], [< | form_content_fun], [> | form]) plus
+      
+    val fieldset :
+      ?legend: ([ | `Legend ] elt) ->
+        ([< | common | `Disabled | `Form | `Name], [< | flow5],
+          [> | `Fieldset]) star
+      
+    val legend :
+      ([< | legend_attrib], [< | legend_content_fun], [> | legend]) star
+      
     (** Label authorizes only one  control inside them
         that should be labelled with a [for] attribute
         (although it is not necessary). Such constraints are not currently
         enforced by the type-system *)
-    value label : star [< label_attrib ] [ < label_content_fun ] [> label];
+    val label :
+      ([< | label_attrib], [< | label_content_fun], [> | label]) star
+      
     (** If the [type] attribute is not "hidden", must be considered
         as interactive. Distinction not made for now. *)
-    value input : nullary [< input_attrib] [> input];
+    val input : ([< | input_attrib], [> | input]) nullary
+      
     (********************************)
     (*          In Button           *)
     (********************************)
@@ -674,53 +1037,95 @@ module type T =
     (* type  attribute is not in the*)
     (*     Submit Button  state.    *)
     (********************************)
-    value button : star [< button_attrib ] [ < button_content_fun ] [> button];
-    value select : star [< select_attrib ] [ < select_content_fun ] [> select];
-    value datalist :
+    val button :
+      ([< | button_attrib], [< | button_content_fun], [> | button]) star
+      
+    val select :
+      ([< | select_attrib], [< | select_content_fun], [> | select]) star
+      
+    val datalist :
       ?children:
-        [ < `Options of list (elt [ < `Option])
-          | `Phras of list (elt [ < phrasing])
-        ] -> nullary [ < common] [ > `Datalist];
-    value optgroup :
-      ~label: text ->
-        star [ < common | `Disabled | `Label] [ < `Option] [ > `Optgroup];
-    value option : unary [< option_attrib ] [ < option_content_fun ] [> selectoption ];
-    value textarea : unary [< textarea_attrib ] [ < textarea_content_fun ] [> textarea];
-    value keygen : nullary [< keygen_attrib] [> keygen];
-    value progress : star [< progress_attrib ] [ < progress_content_fun ] [> progress];
-    value meter : star [< meter_attrib ] [ < meter_content_fun ] [> meter];
-    value output_elt : star [< output_elt_attrib ] [ < output_elt_content_fun ] [> output_elt];
+        [<
+          | `Options of ([< | `Option] elt) list
+          | `Phras of ([< | phrasing] elt) list
+        ] -> ([< | common], [> | `Datalist]) nullary
+      
+    val optgroup :
+      label: text ->
+        ([< | common | `Disabled | `Label], [< | `Option], [> | `Optgroup])
+          star
+      
+    val option :
+      ([< | option_attrib], [< | option_content_fun], [> | selectoption])
+        unary
+      
+    val textarea :
+      ([< | textarea_attrib], [< | textarea_content_fun], [> | textarea])
+        unary
+      
+    val keygen : ([< | keygen_attrib], [> | keygen]) nullary
+      
+    val progress :
+      ([< | progress_attrib], [< | progress_content_fun], [> | progress])
+        star
+      
+    val meter :
+      ([< | meter_attrib], [< | meter_content_fun], [> | meter]) star
+      
+    val output_elt :
+      ([< | output_elt_attrib], [< | output_elt_content_fun], [> | output_elt
+        ]) star
+      
     (** {2 Data} *)
-    value pcdata : string -> elt [ > `PCDATA];
-    value entity : string -> elt [ > `PCDATA];
-    value space : unit -> elt [ > `PCDATA];
-    value cdata : string -> elt [ > `PCDATA];
+    val pcdata : string -> [> | `PCDATA] elt
+      
+    val entity : string -> [> | `PCDATA] elt
+      
+    val space : unit -> [> | `PCDATA] elt
+      
+    val cdata : string -> [> | `PCDATA] elt
+      
     (* GK *)
-    value cdata_script : string -> elt [ > `PCDATA];
+    val cdata_script : string -> [> | `PCDATA] elt
+      
     (* GK *)
-    value cdata_style : string -> elt [ > `PCDATA];
+    val cdata_style : string -> [> | `PCDATA] elt
+      
     (* GK *)
     (**/**)
-    value unsafe_data : string -> elt 'a;
+    val unsafe_data : string -> 'a elt
+      
     (**/**)
     (** {2 Interactive} *)
-    value details :
-      elt [ < `Summary] ->
-        star [ < common | `Open] (elt [ < flow5]) [ > `Details];
-    value summary : star [< summary_attrib ] [ < summary_content_fun ] [> summary];
-    value command :
-      ~label: text ->
-        nullary
-          [ < common | `Icon | `Disabled | `Checked | `Radiogroup
-            | `Command_Type
-          ] [ > `Command];
-    value menu :
+    val details :
+      [< | `Summary] elt ->
+        ([< | common | `Open], [< | flow5] elt, [> | `Details]) star
+      
+    val summary :
+      ([< | summary_attrib], [< | summary_content_fun], [> | summary]) star
+      
+    val command :
+      label: text ->
+        ([<
+           | common
+           | `Icon
+           | `Disabled
+           | `Checked
+           | `Radiogroup
+           | `Command_Type
+          ], [> | `Command]) nullary
+      
+    val menu :
       ?child:
-        [ < `Lis of list (elt [ < `Li of [ < common]])
-          | `Flows of list (elt [ < flow5])
-        ] -> nullary [ < common | `Label | `Menu_Type] [ > `Menu];
+        [<
+          | `Lis of ([< | `Li of [< | common]] elt) list
+          | `Flows of ([< | flow5] elt) list
+        ] -> ([< | common | `Label | `Menu_Type], [> | `Menu]) nullary
+      
     (** {2 Scripting} *)
-    value script : unary [< script_attrib ] [ < script_content_fun ] [> script];
+    val script :
+      ([< | script_attrib], [< | script_content_fun], [> | script]) unary
+      
     (****************************************************)
     (*                   In Noscript                    *)
     (****************************************************)
@@ -749,8 +1154,12 @@ module type T =
     (*   a parse error                                  *)
     (****************************************************)
     (* PLUS ?? *)
-    value noscript : plus [< noscript_attrib ] [ < noscript_content_fun ] [> noscript];
-    value meta : nullary [< meta_attrib] [> meta];
+    val noscript :
+      ([< | noscript_attrib], [< | noscript_content_fun], [> | noscript])
+        plus
+      
+    val meta : ([< | meta_attrib], [> | meta]) nullary
+      
     (** {2 Style Sheets} *)
     (*********************************)
     (*            In Style           *)
@@ -762,15 +1171,23 @@ module type T =
     (* SC: contenttype defaults to   *)
     (*  text/css                     *)
     (*********************************)
-    value style : star [< style_attrib ] [ < style_content_fun ] [> style];
+    val style :
+      ([< | style_attrib], [< | style_content_fun], [> | style]) star
+      
     (** {2 Link} *)
-    value link :
-      ~rel: linktypes ->
-        ~href: uri ->
-          nullary
-            [ < common | `Hreflang | `Media | `Rel | `Href | `Sizes
-              | `Mime_type
-            ] [ > `Link];
+    val link :
+      rel: linktypes ->
+        href: uri ->
+          ([<
+             | common
+             | `Hreflang
+             | `Media
+             | `Rel
+             | `Href
+             | `Sizes
+             | `Mime_type
+            ], [> | `Link]) nullary
+      
     (** [?encode] maps strings to HTML and {e must} encode the unsafe characters
     ['<'], ['>'], ['"'], ['&'] and the control characters 0-8, 11-12, 14-31, 127
     to HTML entities.  [XML.encode_unsafe] is the default for [?encode] in [output]
@@ -784,27 +1201,42 @@ module type T =
     (** [~encoding] is the official name of the external character set encoding that
     is used by [outs : string -> unit]. *)
     type doctypes =
-      [ = `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01
-        | `XHTML_05_00 | `Doctype of string
-      ];
-    value doctype : [ < doctypes] -> string;
+      [
+        | `HTML_v03_02
+        | `HTML_v04_01
+        | `XHTML_01_00
+        | `XHTML_01_01
+        | `XHTML_05_00
+        | `Doctype of string
+      ]
+    
+    val doctype : [< | doctypes] -> string
+      
     (** {1 Tools} *)
-    value version : string;
-    value standard : uri;
+    val version : string
+      
+    val standard : uri
+      
     (*
     val validator : uri
     val validator_icon : unit -> [>`A] elt
 (** A hyperlink to the W3C validator, including the logo.
     @see <http://validator.w3.org> Validator *)
 *)
-    value tot : XML.elt -> elt 'a;
-    value totl : list XML.elt -> list (elt 'a);
-    value toelt : elt 'a -> XML.elt;
-    value toeltl : list (elt 'a) -> list XML.elt;
-  end;
+    val tot : XML.elt -> 'a elt
+      
+    val totl : XML.elt list -> ('a elt) list
+      
+    val toelt : 'a elt -> XML.elt
+      
+    val toeltl : ('a elt) list -> XML.elt list
+      
+  end
+  
 (** An alias for XHTML5:
     @see <http://www.w3.org/TR/html5/> HTML5 *)
-module type T_05_00 = T;
+module type T_05_00 = T
+  
 (* END INTERFACE *)
 (* BEGIN INTERFACE
 
@@ -814,39 +1246,53 @@ module M_05_00 : T_05_00
    END INTERFACE *)
 module M_05_00 : T_05_00 =
   struct
-    type attrib 'a = XML.attrib;
-    type attribs 'a = XML.attribs;
-    value to_xmlattribs x = x;
+    type 'a attrib = XML.attrib
+    
+    type 'a attribs = XML.attribs
+    
+    let to_xmlattribs x = x
+      
     (* VB *)
-    value float_attrib = XML.float_attrib;
-    value int_attrib = XML.int_attrib;
-    value string_attrib = XML.string_attrib;
-    value uri_attrib a s = XML.string_attrib a (string_of_uri s);
-    value space_sep_attrib = XML.space_sep_attrib;
-    value comma_sep_attrib = XML.comma_sep_attrib;
-    value event_attrib = XML.event_attrib;
+    let float_attrib = XML.float_attrib
+      
+    let int_attrib = XML.int_attrib
+      
+    let string_attrib = XML.string_attrib
+      
+    let uri_attrib a s = XML.string_attrib a (string_of_uri s)
+      
+    let space_sep_attrib = XML.space_sep_attrib
+      
+    let comma_sep_attrib = XML.comma_sep_attrib
+      
+    let event_attrib = XML.event_attrib
+      
     (* space-separated *)
-    value length_attrib name =
-      fun
-      [ `Pixels p -> int_attrib name p
-      | `Percent p -> string_attrib name ((string_of_int p) ^ "%") ];
-    value multilength_attrib name =
-      fun
-      [ (#length as l) -> length_attrib name l
+    let length_attrib name =
+      function
+      | `Pixels p -> int_attrib name p
+      | `Percent p -> string_attrib name ((string_of_int p) ^ "%")
+      
+    let multilength_attrib name =
+      function
+      | (#length as l) -> length_attrib name l
       | `Relative 1 -> string_attrib name "*"
-      | `Relative i -> string_attrib name ((string_of_int i) ^ "*") ];
-    value multilength_to_string =
-      fun
-      [ `Pixels p -> string_of_int p
+      | `Relative i -> string_attrib name ((string_of_int i) ^ "*")
+      
+    let multilength_to_string =
+      function
+      | `Pixels p -> string_of_int p
       | `Percent p -> (string_of_int p) ^ "%"
       | `Relative 1 -> "*"
-      | `Relative i -> (string_of_int i) ^ "*" ];
-    value multilengths_attrib name multilengths =
+      | `Relative i -> (string_of_int i) ^ "*"
+      
+    let multilengths_attrib name multilengths =
       string_attrib name
-        (String.concat ", " (List.map multilength_to_string multilengths));
-    value linktype_to_string =
-      fun
-      [ `Alternate -> "alternate"
+        (String.concat ", " (List.map multilength_to_string multilengths))
+      
+    let linktype_to_string =
+      function
+      | `Alternate -> "alternate"
       | `Archives -> "archives"
       | `Author -> "author"
       | `Bookmark -> "bookmark"
@@ -868,13 +1314,15 @@ module M_05_00 : T_05_00 =
       | `Sidebar -> "sidebar"
       | `Tag -> "tag"
       | `Up -> "up"
-      | `Other t -> t ];
-    value linktypes_attrib name linktypes =
+      | `Other t -> t
+      
+    let linktypes_attrib name linktypes =
       string_attrib name
-        (String.concat " " (List.map linktype_to_string linktypes));
-    value mediadesc_to_string =
-      fun
-      [ `All -> "all"
+        (String.concat " " (List.map linktype_to_string linktypes))
+      
+    let mediadesc_to_string =
+      function
+      | `All -> "all"
       | `Aural -> "aural"
       | `Braille -> "braille"
       | `Embossed -> "embossed"
@@ -884,235 +1332,394 @@ module M_05_00 : T_05_00 =
       | `Screen -> "screen"
       | `Speech -> "speech"
       | `TTY -> "tty"
-      | `TV -> "tv" ];
-    value mediadesc_attrib name mediadescs =
+      | `TV -> "tv"
+      
+    let mediadesc_attrib name mediadescs =
       string_attrib name
-        (String.concat ", " (List.map mediadesc_to_string mediadescs));
+        (String.concat ", " (List.map mediadesc_to_string mediadescs))
+      
     (* Core: *)
-    value a_class = space_sep_attrib XML.class_name;
+    let a_class = space_sep_attrib XML.class_name
       (* class is different on client side.
          We put the value in xML.ml 
          because this file has a different implementation client side.
       *)
-    value a_id = string_attrib "id";
-    value a_user_data name = string_attrib ("data-" ^ name);
-    value a_title = string_attrib "title";
+      
+    let a_id = string_attrib "id"
+      
+    let a_user_data name = string_attrib ("data-" ^ name)
+      
+    let a_title = string_attrib "title"
+      
     (* I18N: *)
-    value a_xml_lang = string_attrib "xml:lang";
+    let a_xml_lang = string_attrib "xml:lang"
+      
     (* Style: *)
-    value a_style = string_attrib "style";
+    let a_style = string_attrib "style"
+      
     (* Events: *)
-    value a_onabort = event_attrib "onabort";
-    value a_onafterprint = event_attrib "onafterprint";
-    value a_onbeforeprint = event_attrib "onbeforeprint";
-    value a_onbeforeunload = event_attrib "onbeforeunload";
-    value a_onblur = event_attrib "onblur";
-    value a_oncanplay = event_attrib "oncanplay";
-    value a_oncanplaythrough = event_attrib "oncanplaythrough";
-    value a_onchange = event_attrib "onchange";
-    value a_onclick = event_attrib "onclick";
-    value a_oncontextmenu = event_attrib "oncontextmenu";
-    value a_ondblclick = event_attrib "ondblclick";
-    value a_ondrag = event_attrib "ondrag";
-    value a_ondragend = event_attrib "ondragend";
-    value a_ondragenter = event_attrib "ondragenter";
-    value a_ondragleave = event_attrib "ondragleave";
-    value a_ondragover = event_attrib "ondragover";
-    value a_ondragstart = event_attrib "ondragstart";
-    value a_ondrop = event_attrib "ondrop";
-    value a_ondurationchange = event_attrib "ondurationchange";
-    value a_onemptied = event_attrib "onemptied";
-    value a_onended = event_attrib "onended";
-    value a_onerror = event_attrib "onerror";
-    value a_onfocus = event_attrib "onfocus";
-    value a_onformchange = event_attrib "onformchange";
-    value a_onforminput = event_attrib "onforminput";
-    value a_onhashchange = event_attrib "onhashchange";
-    value a_oninput = event_attrib "oninput";
-    value a_oninvalid = event_attrib "oninvalid";
-    value a_onmousedown = event_attrib "onmousedown";
-    value a_onmouseup = event_attrib "onmouseup";
-    value a_onmouseover = event_attrib "onmouseover";
-    value a_onmousemove = event_attrib "onmousemove";
-    value a_onmouseout = event_attrib "onmouseout";
-    value a_onmousewheel = event_attrib "onmousewheel";
-    value a_onoffline = event_attrib "onoffline";
-    value a_ononline = event_attrib "ononline";
-    value a_onpause = event_attrib "onpause";
-    value a_onplay = event_attrib "onplay";
-    value a_onplaying = event_attrib "onplaying";
-    value a_onpagehide = event_attrib "onpagehide";
-    value a_onpageshow = event_attrib "onpageshow";
-    value a_onpopstate = event_attrib "onpopstate";
-    value a_onprogress = event_attrib "onprogress";
-    value a_onratechange = event_attrib "onratechange";
-    value a_onreadystatechange = event_attrib "onreadystatechange";
-    value a_onredo = event_attrib "onredo";
-    value a_onresize = event_attrib "onresize";
-    value a_onscroll = event_attrib "onscroll";
-    value a_onseeked = event_attrib "onseeked";
-    value a_onseeking = event_attrib "onseeking";
-    value a_onselect = event_attrib "onselect";
-    value a_onshow = event_attrib "onshow";
-    value a_onstalled = event_attrib "onstalled";
-    value a_onstorage = event_attrib "onstorage";
-    value a_onsubmit = event_attrib "onsubmit";
-    value a_onsuspend = event_attrib "onsuspend";
-    value a_ontimeupdate = event_attrib "ontimeupdate";
-    value a_onundo = event_attrib "onundo";
-    value a_onunload = event_attrib "onunload";
-    value a_onvolumechange = event_attrib "onvolumechange";
-    value a_onwaiting = event_attrib "onwaiting";
-    value a_onkeypress = event_attrib "onkeypress";
-    value a_onkeydown = event_attrib "onkeydown";
-    value a_onkeyup = event_attrib "onkeyup";
-    value a_onload = event_attrib "onload";
-    value a_onloadeddata = event_attrib "onloadeddata";
-    value a_onloadedmetadata = event_attrib "";
-    value a_onloadstart = event_attrib "onloadstart";
-    value a_onmessage = event_attrib "onmessage";
+    let a_onabort = event_attrib "onabort"
+      
+    let a_onafterprint = event_attrib "onafterprint"
+      
+    let a_onbeforeprint = event_attrib "onbeforeprint"
+      
+    let a_onbeforeunload = event_attrib "onbeforeunload"
+      
+    let a_onblur = event_attrib "onblur"
+      
+    let a_oncanplay = event_attrib "oncanplay"
+      
+    let a_oncanplaythrough = event_attrib "oncanplaythrough"
+      
+    let a_onchange = event_attrib "onchange"
+      
+    let a_onclick = event_attrib "onclick"
+      
+    let a_oncontextmenu = event_attrib "oncontextmenu"
+      
+    let a_ondblclick = event_attrib "ondblclick"
+      
+    let a_ondrag = event_attrib "ondrag"
+      
+    let a_ondragend = event_attrib "ondragend"
+      
+    let a_ondragenter = event_attrib "ondragenter"
+      
+    let a_ondragleave = event_attrib "ondragleave"
+      
+    let a_ondragover = event_attrib "ondragover"
+      
+    let a_ondragstart = event_attrib "ondragstart"
+      
+    let a_ondrop = event_attrib "ondrop"
+      
+    let a_ondurationchange = event_attrib "ondurationchange"
+      
+    let a_onemptied = event_attrib "onemptied"
+      
+    let a_onended = event_attrib "onended"
+      
+    let a_onerror = event_attrib "onerror"
+      
+    let a_onfocus = event_attrib "onfocus"
+      
+    let a_onformchange = event_attrib "onformchange"
+      
+    let a_onforminput = event_attrib "onforminput"
+      
+    let a_onhashchange = event_attrib "onhashchange"
+      
+    let a_oninput = event_attrib "oninput"
+      
+    let a_oninvalid = event_attrib "oninvalid"
+      
+    let a_onmousedown = event_attrib "onmousedown"
+      
+    let a_onmouseup = event_attrib "onmouseup"
+      
+    let a_onmouseover = event_attrib "onmouseover"
+      
+    let a_onmousemove = event_attrib "onmousemove"
+      
+    let a_onmouseout = event_attrib "onmouseout"
+      
+    let a_onmousewheel = event_attrib "onmousewheel"
+      
+    let a_onoffline = event_attrib "onoffline"
+      
+    let a_ononline = event_attrib "ononline"
+      
+    let a_onpause = event_attrib "onpause"
+      
+    let a_onplay = event_attrib "onplay"
+      
+    let a_onplaying = event_attrib "onplaying"
+      
+    let a_onpagehide = event_attrib "onpagehide"
+      
+    let a_onpageshow = event_attrib "onpageshow"
+      
+    let a_onpopstate = event_attrib "onpopstate"
+      
+    let a_onprogress = event_attrib "onprogress"
+      
+    let a_onratechange = event_attrib "onratechange"
+      
+    let a_onreadystatechange = event_attrib "onreadystatechange"
+      
+    let a_onredo = event_attrib "onredo"
+      
+    let a_onresize = event_attrib "onresize"
+      
+    let a_onscroll = event_attrib "onscroll"
+      
+    let a_onseeked = event_attrib "onseeked"
+      
+    let a_onseeking = event_attrib "onseeking"
+      
+    let a_onselect = event_attrib "onselect"
+      
+    let a_onshow = event_attrib "onshow"
+      
+    let a_onstalled = event_attrib "onstalled"
+      
+    let a_onstorage = event_attrib "onstorage"
+      
+    let a_onsubmit = event_attrib "onsubmit"
+      
+    let a_onsuspend = event_attrib "onsuspend"
+      
+    let a_ontimeupdate = event_attrib "ontimeupdate"
+      
+    let a_onundo = event_attrib "onundo"
+      
+    let a_onunload = event_attrib "onunload"
+      
+    let a_onvolumechange = event_attrib "onvolumechange"
+      
+    let a_onwaiting = event_attrib "onwaiting"
+      
+    let a_onkeypress = event_attrib "onkeypress"
+      
+    let a_onkeydown = event_attrib "onkeydown"
+      
+    let a_onkeyup = event_attrib "onkeyup"
+      
+    let a_onload = event_attrib "onload"
+      
+    let a_onloadeddata = event_attrib "onloadeddata"
+      
+    let a_onloadedmetadata = event_attrib ""
+      
+    let a_onloadstart = event_attrib "onloadstart"
+      
+    let a_onmessage = event_attrib "onmessage"
+      
     (* Other Attributes *)
-    value a_version = string_attrib "version";
-    value a_xmlns =
-      fun
-      [ `W3_org_1999_xhtml ->
-          string_attrib "xmlns" "http://www.w3.org/1999/xhtml" ];
-    value a_manifest = uri_attrib "manifest";
-    value a_cite = uri_attrib "cite";
-    value a_xml_space =
-      fun [ `Preserve -> string_attrib "xml:space" "preserve" ];
-    value a_accesskey c = string_attrib "accesskey" (String.make 1 c);
-    value a_charset = string_attrib "charset";
-    value a_accept_charset = space_sep_attrib "accept-charset";
-    value a_accept = space_sep_attrib "accept";
-    value a_href = uri_attrib "href";
-    value a_hreflang = string_attrib "hreflang";
-    value a_rel = linktypes_attrib "rel";
-    value a_tabindex = int_attrib "tabindex";
-    value a_mime_type = string_attrib "type";
-    value a_alt = string_attrib "alt";
-    value a_height p = int_attrib "height" p;
-    value a_src = uri_attrib "src";
-    value a_width p = int_attrib "width" p;
-    value a_for = string_attrib "for";
-    value a_for_list = space_sep_attrib "for";
-    value a_selected =
-      fun [ `Selected -> string_attrib "selected" "selected" ];
-    value a_text_value = string_attrib "value";
-    value a_int_value = int_attrib "value";
-    value a_value = string_attrib "value";
-    value a_float_value = float_attrib "value";
-    value a_action = uri_attrib "action";
-    value a_method m =
+    let a_version = string_attrib "version"
+      
+    let a_xmlns =
+      function
+      | `W3_org_1999_xhtml ->
+          string_attrib "xmlns" "http://www.w3.org/1999/xhtml"
+      
+    let a_manifest = uri_attrib "manifest"
+      
+    let a_cite = uri_attrib "cite"
+      
+    let a_xml_space =
+      function | `Preserve -> string_attrib "xml:space" "preserve"
+      
+    let a_accesskey c = string_attrib "accesskey" (String.make 1 c)
+      
+    let a_charset = string_attrib "charset"
+      
+    let a_accept_charset = space_sep_attrib "accept-charset"
+      
+    let a_accept = space_sep_attrib "accept"
+      
+    let a_href = uri_attrib "href"
+      
+    let a_hreflang = string_attrib "hreflang"
+      
+    let a_rel = linktypes_attrib "rel"
+      
+    let a_tabindex = int_attrib "tabindex"
+      
+    let a_mime_type = string_attrib "type"
+      
+    let a_alt = string_attrib "alt"
+      
+    let a_height p = int_attrib "height" p
+      
+    let a_src = uri_attrib "src"
+      
+    let a_width p = int_attrib "width" p
+      
+    let a_for = string_attrib "for"
+      
+    let a_for_list = space_sep_attrib "for"
+      
+    let a_selected =
+      function | `Selected -> string_attrib "selected" "selected"
+      
+    let a_text_value = string_attrib "value"
+      
+    let a_int_value = int_attrib "value"
+      
+    let a_value = string_attrib "value"
+      
+    let a_float_value = float_attrib "value"
+      
+    let a_action = uri_attrib "action"
+      
+    let a_method m =
       string_attrib "method"
         (match m with
-         [ `Get -> "GET"
+         | `Get -> "GET"
          | `Post -> "POST"
          | `Put -> "PUT"
-         | `Delete -> "DELETE" ]);
-    value a_enctype = string_attrib "enctype";
-    value a_checked = fun [ `Checked -> string_attrib "checked" "checked" ];
-    value a_disabled =
-      fun [ `Disabled -> string_attrib "disabled" "disabled" ];
-    value a_readonly =
-      fun [ `Readonly -> string_attrib "readonly" "readonly" ];
-    value a_maxlength = int_attrib "maxlength";
-    value a_name = string_attrib "name";
-    value a_autocomplete ac =
+         | `Delete -> "DELETE")
+      
+    let a_enctype = string_attrib "enctype"
+      
+    let a_checked = function | `Checked -> string_attrib "checked" "checked"
+      
+    let a_disabled =
+      function | `Disabled -> string_attrib "disabled" "disabled"
+      
+    let a_readonly =
+      function | `Readonly -> string_attrib "readonly" "readonly"
+      
+    let a_maxlength = int_attrib "maxlength"
+      
+    let a_name = string_attrib "name"
+      
+    let a_autocomplete ac =
       string_attrib "autocomplete"
-        (match ac with [ `On -> "on" | `Off -> "off" ]);
-    value a_async = fun [ `Async -> string_attrib "async" "async" ];
-    value a_autofocus =
-      fun [ `Autofocus -> string_attrib "autofocus" "autofocus" ];
-    value a_autoplay =
-      fun [ `Autoplay -> string_attrib "autoplay" "autoplay" ];
-    value a_challenge = string_attrib "challenge";
-    value a_contenteditable ce =
+        (match ac with | `On -> "on" | `Off -> "off")
+      
+    let a_async = function | `Async -> string_attrib "async" "async"
+      
+    let a_autofocus =
+      function | `Autofocus -> string_attrib "autofocus" "autofocus"
+      
+    let a_autoplay =
+      function | `Autoplay -> string_attrib "autoplay" "autoplay"
+      
+    let a_challenge = string_attrib "challenge"
+      
+    let a_contenteditable ce =
       string_attrib "contexteditable"
-        (match ce with [ `True -> "true" | `False -> "false" ]);
-    value a_contextmenu = string_attrib "contextmenu";
-    value a_controls =
-      fun [ `Controls -> string_attrib "controls" "controls" ];
-    value a_dir d =
-      string_attrib "dir" (match d with [ `Ltr -> "ltr" | `Rtl -> "rtl" ]);
-    value a_draggable d =
+        (match ce with | `True -> "true" | `False -> "false")
+      
+    let a_contextmenu = string_attrib "contextmenu"
+      
+    let a_controls =
+      function | `Controls -> string_attrib "controls" "controls"
+      
+    let a_dir d =
+      string_attrib "dir" (match d with | `Ltr -> "ltr" | `Rtl -> "rtl")
+      
+    let a_draggable d =
       string_attrib "draggable"
-        (match d with [ `True -> "true" | `False -> "false" ]);
-    value a_form = string_attrib "form";
-    value a_formaction = uri_attrib "formaction";
-    value a_formenctype = string_attrib "formenctype";
-    value a_formmethod m =
+        (match d with | `True -> "true" | `False -> "false")
+      
+    let a_form = string_attrib "form"
+      
+    let a_formaction = uri_attrib "formaction"
+      
+    let a_formenctype = string_attrib "formenctype"
+      
+    let a_formmethod m =
       string_attrib "method"
         (match m with
-         [ `Get -> "GET"
+         | `Get -> "GET"
          | `Post -> "POST"
          | `Put -> "PUT"
-         | `Delete -> "DELETE" ]);
-    value a_formnovalidate =
-      fun
-      [ `Formnovalidate -> string_attrib "formnovalidate" "formnovalidate" ];
-    value a_formtarget = string_attrib "formtarget";
-    value a_hidden = fun [ `Hidden -> string_attrib "hidden" "hidden" ];
-    value a_high = float_attrib "high";
-    value a_icon = uri_attrib "icon"; 
-    value a_ismap = fun [ `Ismap -> string_attrib "ismap" "ismap" ];
-    value a_keytype = string_attrib "keytype";
-    value a_list = string_attrib "list";
-    value a_loop = fun [ `Loop -> string_attrib "loop" "loop" ];
-    value a_low = float_attrib "low";
-    value a_max = float_attrib "max";
-    value a_input_max = int_attrib "max";
-    value a_min = float_attrib "min";
-    value a_input_min = int_attrib "min";
-    value a_novalidate =
-      fun [ `Novalidate -> string_attrib "novalidate" "novalidate" ];
-    value a_open = fun [ `Open -> string_attrib "open" "open" ];
-    value a_optimum = float_attrib "optimum";
-    value a_pattern = string_attrib "pattern";
-    value a_placeholder = string_attrib "placeholder";
-    value a_poster = uri_attrib "poster";
-    value a_preload pl =
+         | `Delete -> "DELETE")
+      
+    let a_formnovalidate =
+      function
+      | `Formnovalidate -> string_attrib "formnovalidate" "formnovalidate"
+      
+    let a_formtarget = string_attrib "formtarget"
+      
+    let a_hidden = function | `Hidden -> string_attrib "hidden" "hidden"
+      
+    let a_high = float_attrib "high"
+      
+    let a_icon = uri_attrib "icon"
+      
+    let a_ismap = function | `Ismap -> string_attrib "ismap" "ismap"
+      
+    let a_keytype = string_attrib "keytype"
+      
+    let a_list = string_attrib "list"
+      
+    let a_loop = function | `Loop -> string_attrib "loop" "loop"
+      
+    let a_low = float_attrib "low"
+      
+    let a_max = float_attrib "max"
+      
+    let a_input_max = int_attrib "max"
+      
+    let a_min = float_attrib "min"
+      
+    let a_input_min = int_attrib "min"
+      
+    let a_novalidate =
+      function | `Novalidate -> string_attrib "novalidate" "novalidate"
+      
+    let a_open = function | `Open -> string_attrib "open" "open"
+      
+    let a_optimum = float_attrib "optimum"
+      
+    let a_pattern = string_attrib "pattern"
+      
+    let a_placeholder = string_attrib "placeholder"
+      
+    let a_poster = uri_attrib "poster"
+      
+    let a_preload pl =
       string_attrib "preload"
         (match pl with
-         [ `None -> "none"
+         | `None -> "none"
          | `Metadata -> "metadata"
-         | `Audio -> "audio" ]);
-    value a_pubdate = fun [ `Pubdate -> string_attrib "pubdate" "pubdate" ];
-    value a_radiogroup = string_attrib "radiogroup";
-    value a_required =
-      fun [ `Required -> string_attrib "required" "required" ];
-    value a_reserved =
-      fun [ `Reserved -> string_attrib "reserved" "reserved" ];
-    value rec a_sandbox sb =
+         | `Audio -> "audio")
+      
+    let a_pubdate = function | `Pubdate -> string_attrib "pubdate" "pubdate"
+      
+    let a_radiogroup = string_attrib "radiogroup"
+      
+    let a_required =
+      function | `Required -> string_attrib "required" "required"
+      
+    let a_reserved =
+      function | `Reserved -> string_attrib "reserved" "reserved"
+      
+    let rec a_sandbox sb =
       let rec aux sb =
         match sb with
-        [ [ `AllowSameOrigin :: a ] -> [ "allow-same-origin" :: aux a ]
-        | [ `AllowForms :: a ] -> [ "allow-forms" :: aux a ]
-        | [ `AllowScript :: a ] -> [ "allow-script" :: aux a ]
-        | [] -> [] ]
-      in space_sep_attrib "sandbox" (aux sb);
-    value a_spellcheck sc =
+        | `AllowSameOrigin :: a -> "allow-same-origin" :: (aux a)
+        | `AllowForms :: a -> "allow-forms" :: (aux a)
+        | `AllowScript :: a -> "allow-script" :: (aux a)
+        | [] -> []
+      in space_sep_attrib "sandbox" (aux sb)
+      
+    let a_spellcheck sc =
       string_attrib "spellckeck"
-        (match sc with [ `True -> "true" | `False -> "false" ]);
-    value a_scoped = fun [ `Scoped -> string_attrib "scoped" "scoped" ];
-    value a_seamless =
-      fun [ `Seamless -> string_attrib "seamless" "seamless" ];
-    value a_sizes sizes =
+        (match sc with | `True -> "true" | `False -> "false")
+      
+    let a_scoped = function | `Scoped -> string_attrib "scoped" "scoped"
+      
+    let a_seamless =
+      function | `Seamless -> string_attrib "seamless" "seamless"
+      
+    let a_sizes sizes =
       string_attrib "sizes"
-        (String.concat " " (List.map string_of_int sizes));
-    value a_span = int_attrib "span";
+        (String.concat " " (List.map string_of_int sizes))
+      
+    let a_span = int_attrib "span"
+      
     (*let a_srcdoc*)
-    value a_srclang = string_attrib "xml:lang";
-    value a_start = int_attrib "start";
-    value a_step = float_attrib "step";
-    value a_wrap w =
-      string_attrib "wrap"
-        (match w with [ `Soft -> "soft" | `Hard -> "hard" ]);
-    value a_size = int_attrib "size";
-    value a_input_type it =
+    let a_srclang = string_attrib "xml:lang"
+      
+    let a_start = int_attrib "start"
+      
+    let a_step = float_attrib "step"
+      
+    let a_wrap w =
+      string_attrib "wrap" (match w with | `Soft -> "soft" | `Hard -> "hard")
+      
+    let a_size = int_attrib "size"
+      
+    let a_input_type it =
       string_attrib "type"
         (match it with
-         [ `Url -> "url"
+         | `Url -> "url"
          | `Tel -> "tel"
          | `Text -> "text"
          | `Time -> "time"
@@ -1134,327 +1741,554 @@ module M_05_00 : T_05_00 =
          | `Datetime_local -> "datetime-locale"
          | `Color -> "color"
          | `Button -> "button"
-         | `Hidden -> "hidden" ]);
-    value a_menu_type mt =
+         | `Hidden -> "hidden")
+      
+    let a_menu_type mt =
       string_attrib "type"
-        (match mt with [ `Context -> "context" | `Toolbar -> "toolbar" ]);
-    value a_command_type ct =
+        (match mt with | `Context -> "context" | `Toolbar -> "toolbar")
+      
+    let a_command_type ct =
       string_attrib "type"
         (match ct with
-         [ `Command -> "command"
+         | `Command -> "command"
          | `Checkbox -> "checkbox"
-         | `Radio -> "radio" ]);
-    value a_button_type bt =
+         | `Radio -> "radio")
+      
+    let a_button_type bt =
       string_attrib "type"
         (match bt with
-         [ `Button -> "button"
+         | `Button -> "button"
          | `Submit -> "submit"
-         | `Reset -> "reset" ]);
-    value a_multiple =
-      fun [ `Multiple -> string_attrib "multiple" "multiple" ];
-    value a_cols = int_attrib "cols";
-    value a_rows = int_attrib "rows";
-    value a_summary = string_attrib "summary";
-    value a_align a =
+         | `Reset -> "reset")
+      
+    let a_multiple =
+      function | `Multiple -> string_attrib "multiple" "multiple"
+      
+    let a_cols = int_attrib "cols"
+      
+    let a_rows = int_attrib "rows"
+      
+    let a_summary = string_attrib "summary"
+      
+    let a_align a =
       string_attrib "align"
         (match a with
-         [ `Left -> "left"
+         | `Left -> "left"
          | `Right -> "right"
          | `Justify -> "justify"
-         | `Char -> "char" ]);
-    value a_axis = string_attrib "axis";
-    value a_colspan = int_attrib "colspan";
-    value a_headers = space_sep_attrib "headers";
-    value a_rowspan = int_attrib "rowspan";
-    value a_scope s =
+         | `Char -> "char")
+      
+    let a_axis = string_attrib "axis"
+      
+    let a_colspan = int_attrib "colspan"
+      
+    let a_headers = space_sep_attrib "headers"
+      
+    let a_rowspan = int_attrib "rowspan"
+      
+    let a_scope s =
       string_attrib "scope"
         (match s with
-         [ `Row -> "row"
+         | `Row -> "row"
          | `Col -> "col"
          | `Rowgroup -> "rowgroup"
-         | `Colgroup -> "colgroup" ]);
-    value a_border = int_attrib "border";
-    value a_cellpadding = length_attrib "cellpadding";
-    value a_cellspacing = length_attrib "cellspacing";
-    value a_datapagesize = string_attrib "datapagesize";
-    value a_rules r =
+         | `Colgroup -> "colgroup")
+      
+    let a_border = int_attrib "border"
+      
+    let a_cellpadding = length_attrib "cellpadding"
+      
+    let a_cellspacing = length_attrib "cellspacing"
+      
+    let a_datapagesize = string_attrib "datapagesize"
+      
+    let a_rules r =
       string_attrib "rules"
         (match r with
-         [ `None -> "none"
+         | `None -> "none"
          | `Groups -> "groups"
          | `Rows -> "rows"
          | `Cols -> "cols"
-         | `All -> "all" ]);
-    value a_char c = string_attrib "char" (String.make 1 c);
-    value a_charoff = length_attrib "charoff";
-    value a_data = uri_attrib "data";
-    value a_codetype = string_attrib "codetype";
-    value a_fs_rows mls = multilengths_attrib "rows" mls;
-    value a_fs_cols mls = multilengths_attrib "cols" mls;
-    value a_frameborder b =
-      int_attrib "frameborder" (match b with [ `Zero -> 0 | `One -> 1 ]);
-    value a_marginheight = int_attrib "marginheight";
-    value a_marginwidth = int_attrib "marginwidth";
-    value a_scrolling s =
+         | `All -> "all")
+      
+    let a_char c = string_attrib "char" (String.make 1 c)
+      
+    let a_charoff = length_attrib "charoff"
+      
+    let a_data = uri_attrib "data"
+      
+    let a_codetype = string_attrib "codetype"
+      
+    let a_fs_rows mls = multilengths_attrib "rows" mls
+      
+    let a_fs_cols mls = multilengths_attrib "cols" mls
+      
+    let a_frameborder b =
+      int_attrib "frameborder" (match b with | `Zero -> 0 | `One -> 1)
+      
+    let a_marginheight = int_attrib "marginheight"
+      
+    let a_marginwidth = int_attrib "marginwidth"
+      
+    let a_scrolling s =
       string_attrib "scrolling"
-        (match s with [ `Yes -> "yes" | `No -> "no" | `Auto -> "auto" ]);
-    value a_target = string_attrib "target";
-    value a_content = string_attrib "content";
-    value a_http_equiv = string_attrib "http-equiv";
-    value a_media = mediadesc_attrib "media";
-    type elt 'a = XML.elt;
-    type html = elt [ = `Html ];
+        (match s with | `Yes -> "yes" | `No -> "no" | `Auto -> "auto")
+      
+    let a_target = string_attrib "target"
+      
+    let a_content = string_attrib "content"
+      
+    let a_http_equiv = string_attrib "http-equiv"
+      
+    let a_media = mediadesc_attrib "media"
+      
+    type 'a elt = XML.elt
+    
+    type html = [ | `Html ] elt
+    
     (* NB: These are more general than the ones in xHTML.mli *)
-    type nullary 'a 'b = ?a: (list (attrib 'a)) -> unit -> elt 'b;
-    type unary 'a 'b 'c = ?a: (list (attrib 'a)) -> elt 'b -> elt 'c;
-    type binary 'a 'b 'c 'd =
-      ?a: (list (attrib 'a)) -> elt 'b -> elt 'c -> elt 'd;
-    type tri 'b 'c 'd 'e = elt 'b -> elt 'c -> elt 'd -> elt 'e;
-    type star 'a 'b 'c = ?a: (list (attrib 'a)) -> list (elt 'b) -> elt 'c;
-    type plus 'a 'b 'c =
-      ?a: (list (attrib 'a)) -> elt 'b -> list (elt 'b) -> elt 'c;
-    value terminal tag ?a () = XML.leaf ?a tag;
+    type ('a, 'b) nullary = ?a: (('a attrib) list) -> unit -> 'b elt
+    
+    type ('a, 'b, 'c) unary = ?a: (('a attrib) list) -> 'b elt -> 'c elt
+    
+    type ('a, 'b, 'c, 'd) binary =
+      ?a: (('a attrib) list) -> 'b elt -> 'c elt -> 'd elt
+    
+    type ('b, 'c, 'd, 'e) tri = 'b elt -> 'c elt -> 'd elt -> 'e elt
+    
+    type ('a, 'b, 'c) star =
+      ?a: (('a attrib) list) -> ('b elt) list -> 'c elt
+    
+    type ('a, 'b, 'c) plus =
+      ?a: (('a attrib) list) -> 'b elt -> ('b elt) list -> 'c elt
+    
+    let terminal tag ?a () = XML.leaf ?a tag
+      
     (* let nullary tag ?a () = XML.node ?a tag [] *)
-    value unary tag ?a elt = XML.node ?a tag [ elt ];
-    value binary tag ?a elt1 elt2 = XML.node ?a tag [ elt1; elt2 ];
-    value tri tag elt1 elt2 elt3 = XML.node tag [ elt1; elt2; elt3 ];
-    value star tag ?a elts = XML.node ?a tag elts;
-    value plus tag ?a elt elts = XML.node ?a tag [ elt :: elts ];
-    value list_of_option = fun [ Some x -> [ x ] | None -> [] ];
-    value list_of_list_option = fun [ Some x -> x | None -> [] ];
-    value srcs_option = fun [ Some (`Srcs s) -> s | None -> [] ];
-    value phrasing_option = fun [ Some (`Phras p) -> p | None -> [] ];
-    value ruby_option =
-      fun [ Some (`Rt_elt r) -> r | Some (`Group g) -> g | None -> [] ];
-    value body_option =
-      fun [ Some (`Body b) -> b | Some (`Trs t) -> t | None -> [] ];
-    value colg_option = fun [ Some (`Colgroups c) -> c | None -> [] ];
-    value opts_option =
-      fun [ Some (`Options o) -> o | Some (`Optgroups o) -> o | None -> [] ];
-    value li_option =
-      fun [ Some (`Lis l) -> l | Some (`Flows f) -> f | None -> [] ];
-    value opt_option =
-      fun [ Some (`Options o) -> o | Some (`Phras p) -> p | None -> [] ];
-    value param_option = fun [ Some (`Params p) -> p | None -> [] ];
-    value cols_option =
-      fun [ Some (`Cols c) -> c | Some (`Colgroups c) -> c | None -> [] ];
-    value body = star "body";
-    value head = plus "head";
-    value title = unary "title";
-    value html = binary "html";
-    value footer = star "footer";
-    value header = star "header";
-    value section = star "section";
-    value nav = star "nav";
-    value pcdata = XML.pcdata;
-    value entity = XML.entity;
-    value space () = entity "nbsp";
-    value cdata = XML.cdata;
-    value cdata_script = XML.cdata_script;
-    value cdata_style = XML.cdata_style;
-    value unsafe_data s = XML.encodedpcdata s;
-    value unsafe_data s = XML.encodedpcdata s;
-    value h1 = star "h1";
-    value h2 = star "h2";
-    value h3 = star "h3";
-    value h4 = star "h4";
-    value h5 = star "h5";
-    value h6 = star "h6";
-    value hgroup = plus "hgroup";
-    value address = star "address";
-    value blockquote = star "blockquote";
-    value div = star "div";
-    value p = star "p";
-    value pre = star "pre";
-    value abbr = star "abbr";
-    value br = terminal "br";
-    value cite = star "cite";
-    value code = star "code";
-    value dfn = star "dfn";
-    value em = star "em";
-    value kbd = star "kbd";
-    value q = star "q";
-    value samp = star "samp";
-    value span = star "span";
-    value strong = star "strong";
-    value time = star "time";
-    value var = star "var";
-    value a = star "a";
-    value dl ?a list =
+    let unary tag ?a elt = XML.node ?a tag [ elt ]
+      
+    let binary tag ?a elt1 elt2 = XML.node ?a tag [ elt1; elt2 ]
+      
+    let tri tag elt1 elt2 elt3 = XML.node tag [ elt1; elt2; elt3 ]
+      
+    let star tag ?a elts = XML.node ?a tag elts
+      
+    let plus tag ?a elt elts = XML.node ?a tag (elt :: elts)
+      
+    let list_of_option = function | Some x -> [ x ] | None -> []
+      
+    let list_of_list_option = function | Some x -> x | None -> []
+      
+    let srcs_option = function | Some (`Srcs s) -> s | None -> []
+      
+    let phrasing_option = function | Some (`Phras p) -> p | None -> []
+      
+    let ruby_option =
+      function | Some (`Rt_elt r) -> r | Some (`Group g) -> g | None -> []
+      
+    let body_option =
+      function | Some (`Body b) -> b | Some (`Trs t) -> t | None -> []
+      
+    let colg_option = function | Some (`Colgroups c) -> c | None -> []
+      
+    let opts_option =
+      function
+      | Some (`Options o) -> o
+      | Some (`Optgroups o) -> o
+      | None -> []
+      
+    let li_option =
+      function | Some (`Lis l) -> l | Some (`Flows f) -> f | None -> []
+      
+    let opt_option =
+      function | Some (`Options o) -> o | Some (`Phras p) -> p | None -> []
+      
+    let param_option = function | Some (`Params p) -> p | None -> []
+      
+    let cols_option =
+      function | Some (`Cols c) -> c | Some (`Colgroups c) -> c | None -> []
+      
+    let body = star "body"
+      
+    let head = plus "head"
+      
+    let title = unary "title"
+      
+    let html = binary "html"
+      
+    let footer = star "footer"
+      
+    let header = star "header"
+      
+    let section = star "section"
+      
+    let nav = star "nav"
+      
+    let pcdata = XML.pcdata
+      
+    let entity = XML.entity
+      
+    let space () = entity "nbsp"
+      
+    let cdata = XML.cdata
+      
+    let cdata_script = XML.cdata_script
+      
+    let cdata_style = XML.cdata_style
+      
+    let unsafe_data s = XML.encodedpcdata s
+      
+    let unsafe_data s = XML.encodedpcdata s
+      
+    let h1 = star "h1"
+      
+    let h2 = star "h2"
+      
+    let h3 = star "h3"
+      
+    let h4 = star "h4"
+      
+    let h5 = star "h5"
+      
+    let h6 = star "h6"
+      
+    let hgroup = plus "hgroup"
+      
+    let address = star "address"
+      
+    let blockquote = star "blockquote"
+      
+    let div = star "div"
+      
+    let p = star "p"
+      
+    let pre = star "pre"
+      
+    let abbr = star "abbr"
+      
+    let br = terminal "br"
+      
+    let cite = star "cite"
+      
+    let code = star "code"
+      
+    let dfn = star "dfn"
+      
+    let em = star "em"
+      
+    let kbd = star "kbd"
+      
+    let q = star "q"
+      
+    let samp = star "samp"
+      
+    let span = star "span"
+      
+    let strong = star "strong"
+      
+    let time = star "time"
+      
+    let var = star "var"
+      
+    let a = star "a"
+      
+    let dl ?a list =
       XML.node ?a "dl"
         (List.concat
            (List.map
               (fun ((elt, elts), (elt', elts')) ->
-                 [ elt :: elts ] @ [ elt' :: elts' ])
-              list));
-    value ol = star "ol";
-    value ul = star "ul";
-    value dd = star "dd";
-    value dt = star "dt";
-    value li = star "li";
-    value hr = terminal "hr";
-    value b = star "b";
-    value i = star "i";
-    value small = star "small";
-    value sub = star "sub";
-    value sup = star "sup";
-    value mark = star "mark";
-    value rp ?(a = []) elts = (a, elts);
-    value rt ?rp ?a elts =
+                 (elt :: elts) @ (elt' :: elts'))
+              list))
+      
+    let ol = star "ol"
+      
+    let ul = star "ul"
+      
+    let dd = star "dd"
+      
+    let dt = star "dt"
+      
+    let li = star "li"
+      
+    let hr = terminal "hr"
+      
+    let b = star "b"
+      
+    let i = star "i"
+      
+    let small = star "small"
+      
+    let sub = star "sub"
+      
+    let sup = star "sup"
+      
+    let mark = star "mark"
+      
+    let rp ?(a = []) elts = (a, elts)
+      
+    let rt ?rp ?a elts =
       match rp with
-      [ Some (a1, e1) (a2, e2) ->
-          `Rpt (XML.node ~a: a1 "rp" e1) (XML.node ?a "rt" elts)
-            (XML.node ~a: a2 "rp" e2)
-      | None -> `Rt (XML.node ?a "rt" elts) ];
-    value ruby ?a elt elts =
+      | Some ((a1, e1), (a2, e2)) ->
+          `Rpt (XML.node ~a: a1 "rp" e1, XML.node ?a "rt" elts,
+            XML.node ~a: a2 "rp" e2)
+      | None -> `Rt (XML.node ?a "rt" elts)
+      
+    let ruby ?a elt elts =
       let rec aux =
-        fun
-        [ [] -> []
-        | [ (pel, `Rt e) :: l ] -> pel @ [ e :: aux l ]
-        | [ (pel, `Rpt e1 e2 e3) :: l ] -> pel @ [ e1; e2; e3 :: aux l ] ]
-      in XML.node ?a "ruby" (aux [ elt :: elts ]);
-    value wbr = terminal "wbr";
+        function
+        | [] -> []
+        | (pel, `Rt e) :: l -> pel @ (e :: (aux l))
+        | (pel, `Rpt (e1, e2, e3)) :: l -> pel @ (e1 :: e2 :: e3 :: (aux l))
+      in XML.node ?a "ruby" (aux (elt :: elts))
+      
+    let wbr = terminal "wbr"
+      
     (* VB *)
-    type shape = [ = `Rect | `Circle | `Poly | `Default ];
-    value bdo ~dir ?(a = []) elts =
-      XML.node ~a: [ a_dir dir :: a ] "bdo" elts;
-    value a_datetime = string_attrib "datetime";
-    value a_shape d =
+    type shape = [ | `Rect | `Circle | `Poly | `Default ]
+    
+    let bdo ~dir ?(a = []) elts = XML.node ~a: ((a_dir dir) :: a) "bdo" elts
+      
+    let a_datetime = string_attrib "datetime"
+      
+    let a_shape d =
       string_attrib "shape"
         (match d with
-         [ `Rect -> "rect"
+         | `Rect -> "rect"
          | `Circle -> "circle"
          | `Poly -> "poly"
-         | `Default -> "default" ]);
-    value a_coords coords =
+         | `Default -> "default")
+      
+    let a_coords coords =
       string_attrib "coords"
-        (String.concat "," (List.map string_of_int coords));
-    value a_usemap = string_attrib "usemap";
-    value a_defer = fun [ `Defer -> string_attrib "defer" "defer" ];
-    value a_label = string_attrib "label";
-    value area ~alt ?(a = []) () = XML.leaf ~a: [ a_alt alt :: a ] "area";
-    value map = plus "map";
-    value del = star "del";
-    value ins = star "ins";
-    value script ?(a = []) elt = XML.node ~a "script" [ elt ];
-    value noscript = plus "noscript";
-    value article = star "article";
-    value aside = star "aside";
-    value video_audio name ?srcs ~controls ?(a = []) elts =
+        (String.concat "," (List.map string_of_int coords))
+      
+    let a_usemap = string_attrib "usemap"
+      
+    let a_defer = function | `Defer -> string_attrib "defer" "defer"
+      
+    let a_label = string_attrib "label"
+      
+    let area ~alt ?(a = []) () = XML.leaf ~a: ((a_alt alt) :: a) "area"
+      
+    let map = plus "map"
+      
+    let del = star "del"
+      
+    let ins = star "ins"
+      
+    let script ?(a = []) elt = XML.node ~a "script" [ elt ]
+      
+    let noscript = plus "noscript"
+      
+    let article = star "article"
+      
+    let aside = star "aside"
+      
+    let video_audio name ?srcs ~controls ?(a = []) elts =
       let a =
         match controls with
-        [ Some () -> [ a_controls `Controls :: a ]
-        | None -> a ] in
+        | Some () -> (a_controls `Controls) :: a
+        | None -> a in
       let (a, children) =
         match srcs with
-        [ None -> (a, elts)
-        | Some uri srcs -> ([ a_src uri :: a ], (srcs @ elts)) ]
-      in XML.node ~a name children;
-    value audio = video_audio "audio";
-    value video = video_audio "video";
-    value canvas = star "canvas";
-    value command ~label ?(a = []) () =
-      XML.leaf ~a: [ a_label label :: a ] "command";
-    value menu ?child ?a () = XML.node ?a "menu" (li_option child);
-    value embed = terminal "embed";
-    value source = terminal "source";
-    value meter = star "meter";
-    value output_elt = star "output";
-    value form = plus "form";
+        | None -> (a, elts)
+        | Some (uri, srcs) -> (((a_src uri) :: a), (srcs @ elts))
+      in XML.node ~a name children
+      
+    let audio = video_audio "audio"
+      
+    let video = video_audio "video"
+      
+    let canvas = star "canvas"
+      
+    let command ~label ?(a = []) () =
+      XML.leaf ~a: ((a_label label) :: a) "command"
+      
+    let menu ?child ?a () = XML.node ?a "menu" (li_option child)
+      
+    let embed = terminal "embed"
+      
+    let source = terminal "source"
+      
+    let meter = star "meter"
+      
+    let output_elt = star "output"
+      
+    let form = plus "form"
+      
     type input_attr =
-      [ = common | `Accept | `Alt | `Autocomplete | `Autofocus | `Checked
-        | `Disabled | `Form | `Formation | `Formenctype | `Formmethod
-        | `Formnovalidate | `Formtarget | `Height | `List | `Input_Max
-        | `Maxlength | `Input_Min | `Multiple | `Name | `Pattern
-        | `Placeholder | `ReadOnly | `Required | `Size | `Src | `Step
-        | `Input_Type | `Value | `Width
-      ];
-    value input = terminal "input";
-    value keygen = terminal "keygen";
-    value label = star "label";
-    value option = unary "option";
-    value select = star "select";
-    value textarea = unary "textarea";
-    value button = star "button";
-    value datalist ?children ?a () =
+      [
+        | common
+        | `Accept
+        | `Alt
+        | `Autocomplete
+        | `Autofocus
+        | `Checked
+        | `Disabled
+        | `Form
+        | `Formation
+        | `Formenctype
+        | `Formmethod
+        | `Formnovalidate
+        | `Formtarget
+        | `Height
+        | `List
+        | `Input_Max
+        | `Maxlength
+        | `Input_Min
+        | `Multiple
+        | `Name
+        | `Pattern
+        | `Placeholder
+        | `ReadOnly
+        | `Required
+        | `Size
+        | `Src
+        | `Step
+        | `Input_Type
+        | `Value
+        | `Width
+      ]
+    
+    let input = terminal "input"
+      
+    let keygen = terminal "keygen"
+      
+    let label = star "label"
+      
+    let option = unary "option"
+      
+    let select = star "select"
+      
+    let textarea = unary "textarea"
+      
+    let button = star "button"
+      
+    let datalist ?children ?a () =
       let children =
         match children with
-        [ Some (`Options x) -> x
+        | Some (`Options x) -> x
         | Some (`Phras x) -> x
-        | None -> [] ]
-      in XML.node ?a "datalist" children;
-    value progress = star "proress";
-    value legend = star "legend";
-    value details summary ?a children =
-      XML.node "details" ?a [ summary :: children ];
-    value summary = star "summary";
-    value fieldset ?legend ?a elts =
-      XML.node ?a "fieldset" ((list_of_option legend) @ elts);
-    value optgroup ~label ?(a = []) elts =
-      XML.node ~a: [ a_label label :: a ] "optgroup" elts;
-    value figcaption = star "figcaption";
-    value figure ?figcaption ?a elts =
-      XML.node ?a "figure" ((list_of_option figcaption) @ elts);
-    value caption = star "caption";
-    value table ?caption ?(columns = []) ?thead ?tfoot ?a elt elts =
+        | None -> []
+      in XML.node ?a "datalist" children
+      
+    let progress = star "proress"
+      
+    let legend = star "legend"
+      
+    let details summary ?a children =
+      XML.node "details" ?a (summary :: children)
+      
+    let summary = star "summary"
+      
+    let fieldset ?legend ?a elts =
+      XML.node ?a "fieldset" ((list_of_option legend) @ elts)
+      
+    let optgroup ~label ?(a = []) elts =
+      XML.node ~a: ((a_label label) :: a) "optgroup" elts
+      
+    let figcaption = star "figcaption"
+      
+    let figure ?figcaption ?a elts =
+      XML.node ?a "figure" ((list_of_option figcaption) @ elts)
+      
+    let caption = star "caption"
+      
+    let table ?caption ?(columns = []) ?thead ?tfoot ?a elt elts =
       XML.node ?a "table"
         ((list_of_option caption) @
            (columns @
               ((list_of_option thead) @
-                 ((list_of_option tfoot) @ [ elt :: elts ]))));
-    value tablex ?caption ?(columns = []) ?thead ?tfoot ?a elts =
+                 ((list_of_option tfoot) @ (elt :: elts)))))
+      
+    let tablex ?caption ?(columns = []) ?thead ?tfoot ?a elts =
       XML.node ?a "table"
         ((list_of_option caption) @
            (columns @
-              ((list_of_option thead) @ ((list_of_option tfoot) @ elts))));
-    value td = star "td";
-    value th = star "th";
-    value tr = star "tr";
-    value colgroup = star "colgroup";
-    value col = terminal "col";
-    value thead = star "thead";
-    value tbody = star "tbody";
-    value tfoot = star "tfoot";
-    value iframe = star "iframe";
-    value object_ ?(params = []) ~usemap ?(a = []) elts =
+              ((list_of_option thead) @ ((list_of_option tfoot) @ elts))))
+      
+    let td = star "td"
+      
+    let th = star "th"
+      
+    let tr = star "tr"
+      
+    let colgroup = star "colgroup"
+      
+    let col = terminal "col"
+      
+    let thead = star "thead"
+      
+    let tbody = star "tbody"
+      
+    let tfoot = star "tfoot"
+      
+    let iframe = star "iframe"
+      
+    let object_ ?(params = []) ~usemap ?(a = []) elts =
       let a =
-        match usemap with
-        [ Some idref -> [ a_usemap idref :: a ]
-        | None -> a ]
-      in XML.node ~a "object" (params @ elts);
-    value param = terminal "param";
-    type expl_attrib 'a 'b = option 'b;
-    value expl_attrib x = Some x;
-    value expl_none = None;
-    value img ~src ~alt ~usemap ?(a = []) () =
-      let li = [ a_src src; a_alt alt :: a ] in
+        match usemap with | Some idref -> (a_usemap idref) :: a | None -> a
+      in XML.node ~a "object" (params @ elts)
+      
+    let param = terminal "param"
+      
+    type ('a, 'b) expl_attrib = 'b option
+    
+    let expl_attrib x = Some x
+      
+    let expl_none = None
+      
+    let img ~src ~alt ~usemap ?(a = []) () =
+      let li = (a_src src) :: (a_alt alt) :: a in
       let a =
-        match usemap with
-        [ Some usemap -> [ a_usemap usemap :: li ]
-        | _ -> li ]
-      in XML.leaf ~a "img";
-    value meta = terminal "meta";
-    value style ?(a = []) elts = XML.node ~a "style" elts;
-    value link ~rel ~href ?(a = []) () =
-      XML.leaf ~a: [ a_rel rel; a_href href :: a ] "link";
-    value base = terminal "base";
+        match usemap with | Some usemap -> (a_usemap usemap) :: li | _ -> li
+      in XML.leaf ~a "img"
+      
+    let meta = terminal "meta"
+      
+    let style ?(a = []) elts = XML.node ~a "style" elts
+      
+    let link ~rel ~href ?(a = []) () =
+      XML.leaf ~a: ((a_rel rel) :: (a_href href) :: a) "link"
+      
+    let base = terminal "base"
+      
     (* VB *)
-    type scripttag = [ = `Script | `Noscript ];
-    type misc = scripttag;
-    type heading = [ = `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hgroup ];
-    type sectioning = [ = `Section | `Nav | `Aside | `Article ];
-    type resetable = [ = `Textarea | `Select | `Output | `Keygen | `Input ];
-    type submitable = [ = `Textarea | `Select | `Keygen | `Input | `Button ];
-    type labelable = [ = resetable | `Progress | `Meter | `Button ];
+    type scripttag = [ | `Script | `Noscript ]
+    
+    type misc = scripttag
+    
+    type heading = [ | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hgroup ]
+    
+    type sectioning = [ | `Section | `Nav | `Aside | `Article ]
+    
+    type resetable = [ | `Textarea | `Select | `Output | `Keygen | `Input ]
+    
+    type submitable = [ | `Textarea | `Select | `Keygen | `Input | `Button ]
+    
+    type labelable = [ | resetable | `Progress | `Meter | `Button ]
+    
     type formatblock =
-      [ = heading | sectioning | `Pre | `P | `Header | `Footer | `Div
-        | `Blockquote | `Address
-      ];
+      [
+        | heading
+        | sectioning
+        | `Pre
+        | `P
+        | `Header
+        | `Footer
+        | `Div
+        | `Blockquote
+        | `Address
+      ]
+    
     type sectionningroot =
-      [ = `Td | `Figure | `Fieldset | `Details | `Body | `Blockquote
-      ];
-    type listed = [ = resetable | submitable | `Fieldset ];
-    type formassociated = [ = listed | `Progress | `Meter | `Label ];
+      [ | `Td | `Figure | `Fieldset | `Details | `Body | `Blockquote
+      ]
+    
+    type listed = [ | resetable | submitable | `Fieldset ]
+    
+    type formassociated = [ | listed | `Progress | `Meter | `Label ]
+    
     (******************)
     (* Video 
            Type
@@ -1467,128 +2301,430 @@ module M_05_00 : T_05_00 =
     (* with conditions*)
     (******************)
     (* a boolean at the type-level *)
-    type on = [ = `On ];
-    type off = [ = `Off ];
-    type on_off = [ = on | off ];
-    type transparent 'interactive 'noscript 'regular 'media =
-      [ = `A of 'interactive | `Noscript of 'noscript | `Canvas of 'regular
-        | `Map of 'regular | `Ins of 'regular | `Del of 'regular
-        | `Object of ('regular * on_off) | `Audio of ('media * on_off)
+    type on = [ | `On ]
+    
+    type off = [ | `Off ]
+    
+    type on_off = [ | on | off ]
+    
+    type ('interactive, 'noscript, 'regular, 'media) transparent =
+      [
+        | `A of 'interactive
+        | `Noscript of 'noscript
+        | `Canvas of 'regular
+        | `Map of 'regular
+        | `Ins of 'regular
+        | `Del of 'regular
+        | `Object of ('regular * on_off)
+        | `Audio of ('media * on_off)
         | `Video of ('media * on_off)
-      ];
-    type transparent_without_interactive 'a =
-      [ = `Noscript of 'a | `Ins of 'a | `Del of 'a | `Object of ('a * off)
-        | `Canvas of 'a | `Map of 'a | `Audio of ('a * off)
+      ]
+    
+    type 'a transparent_without_interactive =
+      [
+        | `Noscript of 'a
+        | `Ins of 'a
+        | `Del of 'a
+        | `Object of ('a * off)
+        | `Canvas of 'a
+        | `Map of 'a
+        | `Audio of ('a * off)
         | `Video of ('a * off)
-      ];
-    type transparent_without_noscript 'a =
-      [ = `A of 'a | `Ins of 'a | `Del of 'a | `Canvas of 'a | `Map of 'a
-        | `Object of ('a * on_off) | `Video of ('a * on_off)
-        | `Audio of ('a * on_off)
-      ];
-    type transparent_without_media 'a =
-      [ = `A of 'a | `Ins of 'a | `Del of 'a | `Map of 'a | `Canvas of 'a
+      ]
+    
+    type 'a transparent_without_noscript =
+      [
+        | `A of 'a
+        | `Ins of 'a
+        | `Del of 'a
+        | `Canvas of 'a
+        | `Map of 'a
         | `Object of ('a * on_off)
-      ];
+        | `Video of ('a * on_off)
+        | `Audio of ('a * on_off)
+      ]
+    
+    type 'a transparent_without_media =
+      [
+        | `A of 'a
+        | `Ins of 'a
+        | `Del of 'a
+        | `Map of 'a
+        | `Canvas of 'a
+        | `Object of ('a * on_off)
+      ]
+    
     (** Metadata without title *)
     type metadata_without_title =
-      [ = `Style | `Script | `Noscript of [ = `Meta | `Link | `Style ]
-        | `Meta | `Link | `Command | `Base
-      ];
+      [
+        | `Style
+        | `Script
+        | `Noscript of [ | `Meta | `Link | `Style ]
+        | `Meta
+        | `Link
+        | `Command
+        | `Base
+      ]
+    
     (** Metadata contents. Used specially in <head> *)
-    type metadata = [ = metadata_without_title | `Title ];
+    type metadata = [ | metadata_without_title | `Title ]
+    
     (** Interactive contents : contents that require user-interaction 
         (Forms, link, etc.) *)
     (** Core element types are element types without transparent. *)
     type core_interactive =
-      [ = `Textarea | `Select | `Menu | `Label | `Keygen | `Input
-        | `Img of on | `Iframe | `Embed | `Details | `Button
-      ];
+      [
+        | `Textarea
+        | `Select
+        | `Menu
+        | `Label
+        | `Keygen
+        | `Input
+        | `Img of on
+        | `Iframe
+        | `Embed
+        | `Details
+        | `Button
+      ]
+    
     type interactive =
-      [ = core_interactive | transparent_without_interactive interactive
-      ];
+      [ | core_interactive | interactive transparent_without_interactive
+      ]
+    
     (** Phrasing contents is inline contents : bold text, span, and so on. *)
     type core_phrasing =
-      [ = labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub
-        | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark
-        | `Label | `Kbd | `I | `Em | `Dfn | `Datalist | `Command | `Code
-        | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA
-      ];
+      [
+        | labelable
+        | submitable
+        | `Wbr
+        | `Var
+        | `Time
+        | `Sup
+        | `Sub
+        | `Strong
+        | `Span
+        | `Small
+        | `Script
+        | `Samp
+        | `Ruby
+        | `Q
+        | `Mark
+        | `Label
+        | `Kbd
+        | `I
+        | `Em
+        | `Dfn
+        | `Datalist
+        | `Command
+        | `Code
+        | `Cite
+        | `Br
+        | `Bdo
+        | `B
+        | `Abbr
+        | `PCDATA
+      ]
+    
     type phrasing_without_noscript =
-      [ = labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub
-        | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark
-        | `Label | `Kbd | `I | `Em | `Dfn | `Datalist | `Command | `Code
-        | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA
-        | transparent_without_noscript phrasing_without_noscript
-      ];
+      [
+        | labelable
+        | submitable
+        | `Wbr
+        | `Var
+        | `Time
+        | `Sup
+        | `Sub
+        | `Strong
+        | `Span
+        | `Small
+        | `Script
+        | `Samp
+        | `Ruby
+        | `Q
+        | `Mark
+        | `Label
+        | `Kbd
+        | `I
+        | `Em
+        | `Dfn
+        | `Datalist
+        | `Command
+        | `Code
+        | `Cite
+        | `Br
+        | `Bdo
+        | `B
+        | `Abbr
+        | `PCDATA
+        | phrasing_without_noscript transparent_without_noscript
+      ]
+    
     type core_phrasing_without_media =
-      [ = labelable | submitable | (* `Math |`Svg |*) `Img of on_off
-        | `Iframe | `Embed | `Wbr | `Var | `Time | `Sup | `Sub | `Strong
-        | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Label
-        | `Kbd | `I | `Em | `Dfn | `Datalist | `Command | `Code | `Cite | `Br
-        | `Bdo | `B | `Abbr | `PCDATA
-      ];
+      [
+        | labelable
+        | submitable
+        | (* `Math |`Svg |*)
+        `Img of on_off
+        | `Iframe
+        | `Embed
+        | `Wbr
+        | `Var
+        | `Time
+        | `Sup
+        | `Sub
+        | `Strong
+        | `Span
+        | `Small
+        | `Script
+        | `Samp
+        | `Ruby
+        | `Q
+        | `Mark
+        | `Label
+        | `Kbd
+        | `I
+        | `Em
+        | `Dfn
+        | `Datalist
+        | `Command
+        | `Code
+        | `Cite
+        | `Br
+        | `Bdo
+        | `B
+        | `Abbr
+        | `PCDATA
+      ]
+    
     type phrasing_without_media =
-      [ = core_phrasing_without_media
-        | transparent_without_media phrasing_without_media
-      ];
+      [
+        | core_phrasing_without_media
+        | phrasing_without_media transparent_without_media
+      ]
+    
     type core_phrasing_without_interactive =
-      [ = labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub
-        | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark
-        | `Kbd | `Img of off | `I | `Em | `Dfn | `Datalist | `Command | `Code
-        | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA
-      ];
+      [
+        | labelable
+        | submitable
+        | `Wbr
+        | `Var
+        | `Time
+        | `Sup
+        | `Sub
+        | `Strong
+        | `Span
+        | `Small
+        | `Script
+        | `Samp
+        | `Ruby
+        | `Q
+        | `Mark
+        | `Kbd
+        | `Img of off
+        | `I
+        | `Em
+        | `Dfn
+        | `Datalist
+        | `Command
+        | `Code
+        | `Cite
+        | `Br
+        | `Bdo
+        | `B
+        | `Abbr
+        | `PCDATA
+      ]
+    
     type phrasing_without_interactive =
-      [ = core_phrasing_without_interactive
-        | transparent_without_interactive phrasing_without_interactive
-      ];
+      [
+        | core_phrasing_without_interactive
+        | phrasing_without_interactive transparent_without_interactive
+      ]
+    
     type phrasing =
-      [ =
-        transparent phrasing_without_interactive phrasing_without_noscript
-          phrasing phrasing_without_media
+      [
+        | (phrasing_without_interactive, phrasing_without_noscript, phrasing,
+            phrasing_without_media) transparent
         | core_phrasing
-      ];
+      ]
+    
     (** Phrasing without the interactive markups *)
     type phrasing_without_dfn =
-      [ = labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub
-        | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark
-        | `Label | `Kbd | `I | `Em | `Datalist | `Command | `Code | `Cite
-        | `Br | `Bdo | `B | `Abbr | `PCDATA
-        | transparent phrasing_without_interactive phrasing_without_noscript
-            phrasing_without_dfn phrasing_without_media
-      ];
+      [
+        | labelable
+        | submitable
+        | `Wbr
+        | `Var
+        | `Time
+        | `Sup
+        | `Sub
+        | `Strong
+        | `Span
+        | `Small
+        | `Script
+        | `Samp
+        | `Ruby
+        | `Q
+        | `Mark
+        | `Label
+        | `Kbd
+        | `I
+        | `Em
+        | `Datalist
+        | `Command
+        | `Code
+        | `Cite
+        | `Br
+        | `Bdo
+        | `B
+        | `Abbr
+        | `PCDATA
+        | (phrasing_without_interactive, phrasing_without_noscript,
+            phrasing_without_dfn, phrasing_without_media) transparent
+      ]
+    
     type phrasing_without_label =
-      [ = labelable | submitable | `Wbr | `Var | `Time | `Sup | `Sub
-        | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark
-        | `Kbd | `I | `Em | `Dfn | `Datalist | `Command | `Code | `Cite | `Br
-        | `Bdo | `B | `Abbr | `PCDATA
-        | transparent phrasing_without_interactive phrasing_without_noscript
-            phrasing_without_label phrasing_without_media
-      ];
+      [
+        | labelable
+        | submitable
+        | `Wbr
+        | `Var
+        | `Time
+        | `Sup
+        | `Sub
+        | `Strong
+        | `Span
+        | `Small
+        | `Script
+        | `Samp
+        | `Ruby
+        | `Q
+        | `Mark
+        | `Kbd
+        | `I
+        | `Em
+        | `Dfn
+        | `Datalist
+        | `Command
+        | `Code
+        | `Cite
+        | `Br
+        | `Bdo
+        | `B
+        | `Abbr
+        | `PCDATA
+        | (phrasing_without_interactive, phrasing_without_noscript,
+            phrasing_without_label, phrasing_without_media) transparent
+      ]
+    
     type phrasing_without_progress =
-      [ = resetable | submitable | `Wbr | `Var | `Time | `Sup | `Sub
-        | `Strong | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Meter
-        | `Mark | `Label | `Kbd | `I | `Em | `Dfn | `Datalist | `Command
-        | `Code | `Cite | `Button | `Br | `Bdo | `B | `Abbr | `PCDATA
-        | transparent phrasing_without_interactive phrasing_without_noscript
-            phrasing_without_progress phrasing_without_media
-      ];
+      [
+        | resetable
+        | submitable
+        | `Wbr
+        | `Var
+        | `Time
+        | `Sup
+        | `Sub
+        | `Strong
+        | `Span
+        | `Small
+        | `Script
+        | `Samp
+        | `Ruby
+        | `Q
+        | `Meter
+        | `Mark
+        | `Label
+        | `Kbd
+        | `I
+        | `Em
+        | `Dfn
+        | `Datalist
+        | `Command
+        | `Code
+        | `Cite
+        | `Button
+        | `Br
+        | `Bdo
+        | `B
+        | `Abbr
+        | `PCDATA
+        | (phrasing_without_interactive, phrasing_without_noscript,
+            phrasing_without_progress, phrasing_without_media) transparent
+      ]
+    
     type phrasing_without_time =
-      [ = labelable | submitable | `Wbr | `Var | `Sup | `Sub | `Strong
-        | `Span | `Small | `Script | `Samp | `Ruby | `Q | `Mark | `Label
-        | `Kbd | `I | `Em | `Dfn | `Datalist | `Command | `Code | `Cite | `Br
-        | `Bdo | `B | `Abbr | `PCDATA
-        | transparent phrasing_without_interactive phrasing_without_noscript
-            phrasing_without_time phrasing_without_media
-      ];
+      [
+        | labelable
+        | submitable
+        | `Wbr
+        | `Var
+        | `Sup
+        | `Sub
+        | `Strong
+        | `Span
+        | `Small
+        | `Script
+        | `Samp
+        | `Ruby
+        | `Q
+        | `Mark
+        | `Label
+        | `Kbd
+        | `I
+        | `Em
+        | `Dfn
+        | `Datalist
+        | `Command
+        | `Code
+        | `Cite
+        | `Br
+        | `Bdo
+        | `B
+        | `Abbr
+        | `PCDATA
+        | (phrasing_without_interactive, phrasing_without_noscript,
+            phrasing_without_time, phrasing_without_media) transparent
+      ]
+    
     type phrasing_without_meter =
-      [ = submitable | resetable | `Progress | `Button | `Wbr | `Var | `Time
-        | `Sup | `Sub | `Strong | `Span | `Small | `Script | `Samp | `Ruby
-        | `Q | `Mark | `Label | `Kbd | `I | `Em | `Dfn | `Datalist | `Command
-        | `Code | `Cite | `Br | `Bdo | `B | `Abbr | `PCDATA
-        | transparent phrasing_without_interactive phrasing_without_noscript
-            phrasing_without_meter phrasing_without_media
-      ];
+      [
+        | submitable
+        | resetable
+        | `Progress
+        | `Button
+        | `Wbr
+        | `Var
+        | `Time
+        | `Sup
+        | `Sub
+        | `Strong
+        | `Span
+        | `Small
+        | `Script
+        | `Samp
+        | `Ruby
+        | `Q
+        | `Mark
+        | `Label
+        | `Kbd
+        | `I
+        | `Em
+        | `Dfn
+        | `Datalist
+        | `Command
+        | `Code
+        | `Cite
+        | `Br
+        | `Bdo
+        | `B
+        | `Abbr
+        | `PCDATA
+        | (phrasing_without_interactive, phrasing_without_noscript,
+            phrasing_without_meter, phrasing_without_media) transparent
+      ]
+    
     (******************)
     (* Map  Ins
            Del  A         *)
@@ -1596,74 +2732,179 @@ module M_05_00 : T_05_00 =
     (* with conditions*)
     (******************)
     type core_flow5 =
-      [ = core_phrasing | formassociated | formatblock | `Ul | `Table
-        | `Style | `Ol | `Menu | `Hr | `Form | `Figure | `Dl
-      ];
+      [
+        | core_phrasing
+        | formassociated
+        | formatblock
+        | `Ul
+        | `Table
+        | `Style
+        | `Ol
+        | `Menu
+        | `Hr
+        | `Form
+        | `Figure
+        | `Dl
+      ]
+    
     type flow5_without_interactive =
-      [ = core_flow5
-        | transparent_without_interactive flow5_without_interactive
-      ];
+      [
+        | core_flow5
+        | flow5_without_interactive transparent_without_interactive
+      ]
+    
     type flow5_without_noscript =
-      [ = core_flow5 | transparent_without_noscript flow5_without_noscript
-      ];
+      [ | core_flow5 | flow5_without_noscript transparent_without_noscript
+      ]
+    
     type flow5_without_media =
-      [ = core_phrasing_without_media | `Textarea | `Select | `Menu | `Label
-        | `Keygen | `Input | `Img of on_off | `Iframe | `Embed | `Details
-        | `Button | formassociated | formatblock | `Ul | `Table | `Style
-        | `Ol | `Menu | `Hr | `Form | `Figure | `Dl
-        | transparent_without_media flow5_without_media
-      ];
+      [
+        | core_phrasing_without_media
+        | `Textarea
+        | `Select
+        | `Menu
+        | `Label
+        | `Keygen
+        | `Input
+        | `Img of on_off
+        | `Iframe
+        | `Embed
+        | `Details
+        | `Button
+        | formassociated
+        | formatblock
+        | `Ul
+        | `Table
+        | `Style
+        | `Ol
+        | `Menu
+        | `Hr
+        | `Form
+        | `Figure
+        | `Dl
+        | flow5_without_media transparent_without_media
+      ]
+    
     type flow5 =
-      [ = core_flow5
-        | transparent flow5_without_interactive flow5_without_noscript flow5
-            flow5_without_media
-      ];
+      [
+        | core_flow5
+        | (flow5_without_interactive, flow5_without_noscript, flow5,
+            flow5_without_media) transparent
+      ]
+    
     type flow5_without_table =
-      [ = core_phrasing | formassociated | formatblock | `Ul | `Style | `Ol
-        | `Menu | `Hr | `Form | `Figure | `Dl | `Ins_flow
-        | transparent flow5_without_interactive flow5_without_noscript flow5
-            flow5_without_media
-      ];
+      [
+        | core_phrasing
+        | formassociated
+        | formatblock
+        | `Ul
+        | `Style
+        | `Ol
+        | `Menu
+        | `Hr
+        | `Form
+        | `Figure
+        | `Dl
+        | `Ins_flow
+        | (flow5_without_interactive, flow5_without_noscript, flow5,
+            flow5_without_media) transparent
+      ]
+    
     type flow5_without_header_footer =
-      [ = heading | sectioning | `Pre | `P | `Div | `Blockquote | `Address
-        | core_phrasing | formassociated | `Ul | `Table | `Style | `Ol
-        | `Menu | `Hr | `Form | `Figure | `Dl | `Ins_flow
-        | transparent flow5_without_interactive flow5_without_noscript flow5
-            flow5_without_media
-      ];
+      [
+        | heading
+        | sectioning
+        | `Pre
+        | `P
+        | `Div
+        | `Blockquote
+        | `Address
+        | core_phrasing
+        | formassociated
+        | `Ul
+        | `Table
+        | `Style
+        | `Ol
+        | `Menu
+        | `Hr
+        | `Form
+        | `Figure
+        | `Dl
+        | `Ins_flow
+        | (flow5_without_interactive, flow5_without_noscript, flow5,
+            flow5_without_media) transparent
+      ]
+    
     type flow5_without_form =
-      [ = core_phrasing | formassociated | formatblock | `Ul | `Table
-        | `Style | `Ol | `Menu | `Hr | `Figure | `Dl
-        | transparent flow5_without_interactive flow5_without_noscript flow5
-            flow5_without_media
-      ];
+      [
+        | core_phrasing
+        | formassociated
+        | formatblock
+        | `Ul
+        | `Table
+        | `Style
+        | `Ol
+        | `Menu
+        | `Hr
+        | `Figure
+        | `Dl
+        | (flow5_without_interactive, flow5_without_noscript, flow5,
+            flow5_without_media) transparent
+      ]
+    
     type flow5_without_sectioning_heading_header_footer_address =
-      [ = core_phrasing | formassociated | `Pre | `P | `Div | `Blockquote
-        | `Ul | `Table | `Style | `Ol | `Menu | `Hr | `Form | `Figure | `Dl
-        | transparent flow5_without_interactive flow5_without_noscript flow5
-            flow5_without_media
-      ];
+      [
+        | core_phrasing
+        | formassociated
+        | `Pre
+        | `P
+        | `Div
+        | `Blockquote
+        | `Ul
+        | `Table
+        | `Style
+        | `Ol
+        | `Menu
+        | `Hr
+        | `Form
+        | `Figure
+        | `Dl
+        | (flow5_without_interactive, flow5_without_noscript, flow5,
+            flow5_without_media) transparent
+      ]
+    
     type rt =
-      [ = `Rt of elt [ = `Rt ]
-        | `Rpt of ((elt [ = `Rp ]) * (elt [ = `Rt ]) * (elt [ = `Rp ]))
-      ];
-    type ruby_content = ((list (elt phrasing)) * rt);
-    type rp = ((list (attrib common)) * (list (elt phrasing)));
+      [
+        | `Rt of [ | `Rt ] elt
+        | `Rpt of (([ | `Rp ] elt) * ([ | `Rt ] elt) * ([ | `Rp ] elt))
+      ]
+    
+    type ruby_content = (((phrasing elt) list) * rt)
+    
+    type rp = (((common attrib) list) * ((phrasing elt) list))
+    
     (* I/O *)
-    value compose_doctype dt args =
+    let compose_doctype dt args =
       "<!DOCTYPE " ^
         (dt ^
            (" PUBLIC " ^
               ((String.concat " "
                   (List.map (fun a -> "\"" ^ (a ^ "\"")) args))
-                 ^ ">\n")));
+                 ^ ">\n")))
+      
     type doctypes =
-      [ = `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01
-        | `XHTML_05_00 | `Doctype of string
-      ];
-    value doctype =
-      fun
-      [ `HTML_v03_02 ->
+      [
+        | `HTML_v03_02
+        | `HTML_v04_01
+        | `XHTML_01_00
+        | `XHTML_01_01
+        | `XHTML_05_00
+        | `Doctype of string
+      ]
+    
+    let doctype =
+      function
+      | `HTML_v03_02 ->
           compose_doctype "html" [ "-//W3C//DTD HTML 3.2 Final//EN" ]
       | `HTML_v04_01 ->
           compose_doctype "html"
@@ -1678,22 +2919,27 @@ module M_05_00 : T_05_00 =
             [ "-//W3C//DTD XHTML 1.1//EN";
               "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd" ]
       | `XHTML_05_00 -> "<!DOCTYPE html>"
-      | `Doctype s -> s ];
-    value no_break =
+      | `Doctype s -> s
+      
+    let no_break =
       [ "title"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "address"; "blockquote";
-        "div"; "p"; "li"; "dd"; "dt"; "td"; "th" ];
-    value preformatted = [ "pre" ];
+        "div"; "p"; "li"; "dd"; "dt"; "td"; "th" ]
+      
+    let preformatted = [ "pre" ]
+      
     (* Tools *)
-    value version =
-      fun
-      [ `XHTML_01_00 -> "XHTML 1.0"
+    let version =
+      function
+      | `XHTML_01_00 -> "XHTML 1.0"
       | `XHTML_01_01 -> "XHTML 1.1"
-      | `XHTML_05_00 -> "XHTML 5.0" ];
-    value standard =
-      fun
-      [ `XHTML_01_00 -> uri_of_string "http://www.w3.org/TR/xhtml1/"
+      | `XHTML_05_00 -> "XHTML 5.0"
+      
+    let standard =
+      function
+      | `XHTML_01_00 -> uri_of_string "http://www.w3.org/TR/xhtml1/"
       | `XHTML_01_01 -> uri_of_string "http://www.w3.org/TR/xhtml11/"
-      | `XHTML_05_00 -> uri_of_string "http://www.w3.org/TR/xhtml5" ];
+      | `XHTML_05_00 -> uri_of_string "http://www.w3.org/TR/xhtml5"
+      
     (*
     let validator =
       "http://validator.w3.org/check/referer"
@@ -1711,13 +2957,22 @@ module M_05_00 : T_05_00 =
 *)
     (******************************************************************)
     (* In the following, my own stuffs for Ocsigen -- Vincent: *)
-    value tot x = x;
-    value totl x = x;
-    value toelt x = x;
-    value toeltl x = x;
-    value xhtml_version = `XHTML_05_00;
-    value version = version xhtml_version;
-    value standard = standard xhtml_version;
-  end;
-module M = M_05_00;
+    let tot x = x
+      
+    let totl x = x
+      
+    let toelt x = x
+      
+    let toeltl x = x
+      
+    let xhtml_version = `XHTML_05_00
+      
+    let version = version xhtml_version
+      
+    let standard = standard xhtml_version
+      
+  end
+  
+module M = M_05_00
+  
 

@@ -63,27 +63,24 @@ module Old_Xhtml_content =
   end
 
 module Xhtml_content_(Xhtmlprinter : sig
-                        val xhtml_stream :
-                          ?version:[< `HTML_v03_02 | `HTML_v04_01
-                          | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00
-                          | `Doctype of string
-                              > `XHTML_01_01 ] ->
-                          ?width:int ->
-                          ?encode:(string -> string) ->
-                          ?html_compat:bool ->
-                          [ `Html ] XHTML.M.elt -> string Ocsigen_stream.t
-                      end) =
-  struct
-    type t = [ `Html ] XHTML.M.elt
+    include Xhtml_format.Info
+    val xhtml_stream :
+      ?version:doctypes ->
+      ?width:int ->
+      ?encode:(string -> string) ->
+      ?html_compat:bool ->
+      [ `Html ] elt -> string Ocsigen_stream.t
+end) = struct
+  type t = [ `Html ] Xhtmlprinter.elt
 
-    type options = [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
+    type options = Xhtmlprinter.doctypes
 
     let get_etag_aux x = None
 
     let get_etag ?options c = None
 
-    let result_of_content ?(options = `XHTML_01_01) c =
-      let x = Xhtmlprinter.xhtml_stream ~version:options c in
+    let result_of_content ?options c =
+      let x = Xhtmlprinter.xhtml_stream ?version:options c in
       let default_result = default_result () in
       Lwt.return
         {default_result with
@@ -96,8 +93,14 @@ module Xhtml_content_(Xhtmlprinter : sig
 
   end
 
-module Xhtml_content = Xhtml_content_(Xhtmlpretty_streams)
-module Xhtmlcompact_content = Xhtml_content_(Xhtmlcompact_streams)
+
+module Xhtml_content = Xhtml_content_(struct 
+  include Xhtml_format.XhtmlInfo 
+  include Xhtmlpretty_streams
+end)
+module Xhtmlcompact_content = Xhtml_content_(struct include Xhtml_format.XhtmlInfo 
+                                                    include Xhtmlcompact_streams
+end)
 
 (*****************************************************************************)
 module Text_content =
@@ -578,40 +581,7 @@ let send_error
 
 
 
-
-module Xhtml5_content_(Xhtmlprinter : sig
-                        val xhtml_stream :
-                          ?version:[< `HTML_v03_02 | `HTML_v04_01
-                          | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00
-                          | `Doctype of string
-                              > `XHTML_01_01 ] ->
-                          ?width:int ->
-                          ?encode:(string -> string) ->
-                          ?html_compat:bool ->
-                          [ `Html ] XHTML5.M.elt -> string Ocsigen_stream.t
-                      end) =
-  struct
-    type t = [ `Html ] XHTML5.M.elt
-
-    type options = [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 | `XHTML_05_00 | `Doctype of string ]
-
-    let get_etag_aux x = None
-
-    let get_etag ?options c = None
-
-    let result_of_content ?(options = `XHTML_01_01) c =
-      let x = Xhtmlprinter.xhtml_stream ~version:options c in
-      let default_result = default_result () in
-      Lwt.return
-        {default_result with
-         res_content_length = None;
-         res_content_type = Some "text/html";
-         res_etag = get_etag c;
-         res_headers= Http_headers.dyn_headers;
-         res_stream = (x, None)
-       }
-
-  end
-
-module Xhtml5_content = Xhtml5_content_(Xhtml5pretty_streams)
-module Xhtml5compact_content = Xhtml5_content_(Xhtml5compact_streams)
+module Xhtml5_content = Xhtml_content_
+  (struct include Xhtml_format.Xhtml5Info include Xhtml5pretty_streams end)
+module Xhtml5compact_content = Xhtml_content_
+  (struct include Xhtml_format.Xhtml5Info include Xhtml5compact_streams end)

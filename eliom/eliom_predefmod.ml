@@ -85,12 +85,6 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
              XHTML.M.pcdata " {display: none}\n"])
       in
       let rec aux = function
-        | { XML.elt = XML.Element ("head",al,el ) } as e::l ->
-            { e with XML.elt = XML.Element ("head",al,css::el) }::l
-        | { XML.elt = XML.BlockElement ("head",al,el) } as e::l ->
-            { e with XML.elt = XML.BlockElement ("head",al,css::el) }::l
-        | { XML.elt = XML.SemiBlockElement ("head",al,el) } as e::l ->
-            { e with XML.elt = XML.SemiBlockElement ("head",al,css::el) }::l
         | { XML.elt = XML.Node ("head",al,el) } as e::l ->
             { e with XML.elt = XML.Node ("head",al,css::el) }::l
         | e::l -> e::(aux l)
@@ -98,12 +92,6 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
       in
       XHTML.M.tot
         (match XHTML.M.toelt a with
-           | { XML.elt = XML.Element ("html",al,el) } as e ->
-               { e with XML.elt = XML.Element ("html",al,aux el) }
-           | { XML.elt = XML.BlockElement ("html",al,el) } as e ->
-               { e with XML.elt = XML.BlockElement ("html",al,aux el) }
-           | { XML.elt = XML.SemiBlockElement ("html",al,el) } as e ->
-               { e with XML.elt = XML.SemiBlockElement ("html",al,aux el) }
            | { XML.elt = XML.Node ("html",al,el) } as e ->
                { e with XML.elt = XML.Node ("html",al,aux el) }
            | e -> e)
@@ -848,6 +836,117 @@ end
 module Unit = MakeRegister(Unitreg_)
 
 
+(** Redirection services are like services, but send a redirection instead
+ of a page.
+
+   The HTTP/1.1 RFC says:
+   If the 301 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
+
+   Here redirections are done towards services without parameters.
+   (possibly preapplied).
+
+ *)
+module String_redirreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = XHTML.M.uri
+
+  type options = [ `Temporary | `Permanent ]
+
+  type return = Eliom_services.http
+
+  let pre_service ?options ~sp = Lwt.return ()
+
+  let do_appl_xhr = Eliom_services.XNever
+
+  let send ?(options = `Permanent) ?charset ?code
+      ?content_type ?headers ~sp content =
+    let empty_result = Ocsigen_http_frame.empty_result () in
+    let code = match code with
+    | Some c -> c
+    | None ->
+        if options = `Temporary
+        then 307 (* Temporary move *)
+        else 301 (* Moved permanently *)
+    in
+    Lwt.return
+      {empty_result with
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_code= code;
+         res_location = Some (XHTML.M.string_of_uri content);
+         res_content_type= (match content_type with
+                              | None -> empty_result.res_content_type
+                              | _ -> content_type
+                           );
+         res_headers= (match headers with
+                         | None -> empty_result.res_headers
+                         | Some headers -> 
+                             Http_headers.with_defaults
+                               headers empty_result.res_headers
+                      );
+      }
+
+end
+
+
+module String_redirection = MakeRegister(String_redirreg_)
+
+
+
+
+module Redirreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = 
+      (unit, unit, Eliom_services.get_service_kind,
+       [ `WithoutSuffix ], 
+       unit, unit, Eliom_services.registrable, Eliom_services.http)
+        Eliom_services.service
+
+  type options = [ `Temporary | `Permanent ]
+
+  type return = Eliom_services.http
+
+  let pre_service ?options ~sp = Lwt.return ()
+
+  let do_appl_xhr = Eliom_services.XNever
+
+  let send ?(options = `Permanent) ?charset ?code
+      ?content_type ?headers ~sp content =
+    let empty_result = Ocsigen_http_frame.empty_result () in
+    let uri = Xhtml.make_string_uri ~absolute:true ~sp ~service:content () in
+    let code = match code with
+    | Some c -> c
+    | None ->
+        if options = `Temporary
+        then 307 (* Temporary move *)
+        else 301 (* Moved permanently *)
+    in
+    Lwt.return
+      {empty_result with
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_code= code;
+         res_location = Some uri;
+         res_content_type= (match content_type with
+                              | None -> empty_result.res_content_type
+                              | _ -> content_type
+                           );
+         res_headers= (match headers with
+                         | None -> empty_result.res_headers
+                         | Some headers -> 
+                             Http_headers.with_defaults
+                               headers empty_result.res_headers
+                      );
+      }
+
+end
+
+
+module Redirection = MakeRegister(Redirreg_)
+
+
 
 (* Any is a module allowing to register services that decide themselves
    what they want to send.
@@ -1448,11 +1547,11 @@ type appl_service_params =
       ap_doctype: XHTML5.M.doctypes;
       ap_title: string;
       ap_container : 'a.
-        ((([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option *
+        ((([< Xhtmltypes.common ] as 'a) XHTML.M.attrib list) option *
            (Xhtmltypes.body_content elt -> Xhtmltypes.body_content elt list))
         option;
       ap_body_attributes : 
-        'a. (([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option;
+        'a. (([< Xhtmltypes.common ] as 'a) XHTML.M.attrib list) option;
       ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
     }
 
@@ -1481,7 +1580,7 @@ let default_appl_params =
 module Eliom_appl_reg_
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
    with type t = [ `Html ] XHTML.M.elt
-   and type options = XHTML5.M.doctypes
+   and type options = XHTML.M.doctypes
   )
   (Appl_params : APPL_PARAMS) = struct
   open XHTML.M
@@ -1985,12 +2084,6 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
              XHTML5.M.pcdata " {display: none}\n"])
       in
       let rec aux = function
-        | { XML.elt = XML.Element ("head",al,el ) } as e::l ->
-            { e with XML.elt = XML.Element ("head",al,css::el) }::l
-        | { XML.elt = XML.BlockElement ("head",al,el) } as e::l ->
-            { e with XML.elt = XML.BlockElement ("head",al,css::el) }::l
-        | { XML.elt = XML.SemiBlockElement ("head",al,el) } as e::l ->
-            { e with XML.elt = XML.SemiBlockElement ("head",al,css::el) }::l
         | { XML.elt = XML.Node ("head",al,el) } as e::l ->
             { e with XML.elt = XML.Node ("head",al,css::el) }::l
         | e::l -> e::(aux l)
@@ -1998,12 +2091,6 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
       in
       XHTML5.M.tot
         (match XHTML5.M.toelt a with
-           | { XML.elt = XML.Element ("html",al,el) } as e ->
-               { e with XML.elt = XML.Element ("html",al,aux el) }
-           | { XML.elt = XML.BlockElement ("html",al,el) } as e ->
-               { e with XML.elt = XML.BlockElement ("html",al,aux el) }
-           | { XML.elt = XML.SemiBlockElement ("html",al,el) } as e ->
-               { e with XML.elt = XML.SemiBlockElement ("html",al,aux el) }
            | { XML.elt = XML.Node ("html",al,el) } as e ->
                { e with XML.elt = XML.Node ("html",al,aux el) }
            | e -> e)

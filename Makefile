@@ -68,12 +68,15 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)server/ocsigen_extensions.mli				\
 	$(DOCPREF)server/ocsigen_parseconfig.mli			\
 	$(DOCPREF)server/ocsigen_server.mli				\
-	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty_streams.mli		\
+	$(DOCPREF)xmlp4/xml-prettyx/htmlpretty_streams.mli		\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact_streams.mli		\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty.mli			\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact.mli			\
-#	$(DOCPREF)xmlp4/ohl-xhtml/xHTML.mli				\
-#	$(DOCPREF)xmlp4/ohl-xhtml/xHTML5.mli				\
+	$(DOCPREF)xmlp4/xhtml/xHTML.mli					\
+	$(DOCPREF)xmlp4/xhtml/xhtmltypes.mli				\
+	$(DOCPREF)xmlp4/xhtml/xhtml5types.mli				\
+	$(DOCPREF)xmlp4/xhtml/uri.mli					\
+	$(DOCPREF)xmlp4/xhtml/xHTML5.mli				\
 	$(DOCPREF)baselib/ocsigen_messages.mli				\
 	$(DOCPREF)http/ocsigen_headers.mli				\
 	$(DOCPREF)server/ocsigen_http_client.mli			\
@@ -90,8 +93,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)extensions/authbasic.mli				\
 	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
 	$(DOCPREF)baselib/ocsigen_getcommandline.mli                    \
-	$(DOCPREF)xmlp4/newocaml/pp/simplexmlparser.mli			\
-	$(DOCPREF)xmlp4/newocaml/pp/xhtmltypes.ml			\
+	$(DOCPREF)xmlp4/syntax/simplexmlparser.mli			\
 	$(DUCEDOC)
 
 METAS = files/META files/META.ocsigen_xhtml files/META.ocsigen files/META.eliom_examples files/META.eliom_examples.global

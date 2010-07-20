@@ -59,15 +59,7 @@ type ename = string
 type elt_content =
   | Empty
   | Comment of string
-(* I add, for the Ocsigen syntax xml extension: *)
-  | Whitespace of string
-  | Element of ename * attrib list * elt list
-  | BlockElement of ename * attrib list * elt list
-  | SemiBlockElement of ename * attrib list * elt list
   | EncodedPCDATA of string
-(* Element is a Node that is not a BlockElement nor a SemiBlockElement *)
-(* Pretty-printing of Element/ BlockElement/ SemiBlockElement is faster *)
-(* Vincent *)
   | PCDATA of string
   | Entity of string
   | Leaf of ename * attrib list
@@ -517,12 +509,11 @@ let rec make_ref_tree_list l =
 and make_ref_tree root =
   let children =
     match root.elt with
+        Node (n_, _, elts) ->
+          make_ref_tree_list elts
       | Empty | EncodedPCDATA _ | PCDATA _ | Entity _
-      | Leaf (_, _) | Comment _ | Whitespace _ ->
+      | Leaf (_, _) | Comment _  ->
 	  []
-      | Element (n_, _, elts) | BlockElement (n_, _, elts)
-      | SemiBlockElement (n_, _, elts) | Node (n_, _, elts) ->
-	  make_ref_tree_list elts
   in
   Ref_tree ((if root.ref = 0 then None else Some root.ref), children)
 

@@ -40,12 +40,6 @@ opt: ../xhtmlsyntax.cmxa ../simplexmlparser.cmx
 pp/simplexmlparser.mli: simplexmlparser.mli
 	camlp4r $^ -printer o > $@
 
-pp/xhtmltypes.ml: ../xhtml/xhtmltypes.ml
-	camlp4r $^ -printer o > $@
-
-pp/xhtml5types.ml: ../xhtml/xhtml5types.ml
-	camlp4r $^ -printer o > $@
-
 xmllexer.cmo: xmllexer.ml
 	$(CAMLC) $(PPLEXER) -c $<
 

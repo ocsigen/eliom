@@ -20,15 +20,19 @@
 include ../../Makefile.config
 
 
-FILES=xML.ml xhtml5types.ml xHTML5.ml xHTML.ml xhtmltypes.ml
+FILES=uri.ml xML.ml xhtml5types.ml xHTML5.ml xhtmltypes.ml xHTML.ml
 
 LIB = -package netstring
 OCAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 OCAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
-
-
+SED=sed
+RM=rm
+MV=mv
+DIFF=diff
+DOLLAR=$$
 byte: ../xhtml.cma
 	cp -f $(FILES:.ml=.cmi) ..
+
 opt: ../xhtml.cmxa
 	cp -f $(FILES:.ml=.cmi) $(FILES:.ml=.o) ..
 
@@ -47,34 +51,60 @@ xML.cmo: xML.cmi xML.ml
 xML.cmx: xML.cmi xML.ml
 	$(OCAMLOPT) -c xML.ml
 
-xHTML5.cmo: xHTML5.ml
-	$(OCAMLC) -c xHTML5.ml -pp 'camlp4r'
+%.cmi: %.mli	
+	$(OCAMLC) -c $^
 
-xHTML5.cmx: xHTML5.ml
-	$(OCAMLOPT) -c xHTML5.ml  -pp 'camlp4r'
+xML.mli: xML.ml
+	true
+%.mli: %.ml
+	awk ' BEGIN { ok = 1; } /^include/ { next; } /\(\*I/ { $$1=""; $$NF=""; } \
+	 /= struct/ { ok = 0; } ok == 1; /end/ { ok = 1; }' $^ | sed -e s/struct/sig/g -e 's/module \(.*\) =/module \1 :/g'> $@
 
-xHTML.cmo: xHTML.ml
+xHTML5.cmo: xHTML5.cmi xHTML5.ml
+	$(OCAMLC) -c xHTML5.ml
+
+xHTML5.cmx: xHTML5.cmi xHTML5.ml
+	$(OCAMLOPT) -c xHTML5.ml
+
+xHTML.cmo: xHTML.cmi xHTML.ml
 	$(OCAMLC) -c xHTML.ml
 
-xHTML.cmx: xHTML.ml
+xHTML.cmx: xHTML.cmi xHTML.ml
 	$(OCAMLOPT) -c xHTML.ml
 
+uri.cmo: uri.cmi uri.ml	
+	$(OCAMLC) uri.ml -c
+uri.cmx: uri.cmi uri.ml	
+	$(OCAMLOPT) uri.ml -c
 
-xhtmltypes.cmo: xhtmltypes.ml
-	$(OCAMLC) -c $^  -pp 'camlp4r'
+uri.cmi: uri.mli
+	$(OCAMLC) -c $<
 
-xhtmltypes.cmx: xhtmltypes.ml
-	$(OCAMLOPT) -c $^  -pp 'camlp4r'
+xhtmltypes.mli:
+xhtml5types.mli: 
 
-xhtml5types.cmo: xhtml5types.ml
-	$(OCAMLC) -c $^ -pp 'camlp4r'
+xhtmltypes.cmx: xhtmltypes.cmi xhtmltypes.ml
+	$(OCAMLOPT) -c xhtmltypes.ml
 
-xhtml5types.cmx: xhtml5types.ml
-	$(OCAMLOPT) -c $^ -pp 'camlp4r'
+xhtmltypes.cmo: xhtmltypes.cmi xhtmltypes.ml
+	$(OCAMLC) -c xhtmltypes.ml
 
+xhtml5types.cmo: xhtml5types.cmi xhtml5types.ml
+	$(OCAMLC) -c xhtml5types.ml
 
+xhtml5types.cmx: xhtml5types.cmi xhtml5types.ml
+	$(OCAMLOPT) -c xhtml5types.ml
+
+xHTML.mli: xHTML.ml
+	@$(SED) -n '/BEGIN INTERFACE/,/END INTERFACE/p' $< \
+	  | $(SED) -e '/BEGIN INTERFACE/d' -e '/END INTERFACE/d' > $@.new
+	@if [ -e $@ ] && $(DIFF) -q -I'\$(DOLLAR)Id: ' $@.new $@; then $(RM) $@.new; else $(MV) $@.new $@; fi
+xHTML5.mli: xHTML5.ml
+	@$(SED) -n '/BEGIN INTERFACE/,/END INTERFACE/p' $< \
+	  | $(SED) -e '/BEGIN INTERFACE/d' -e '/END INTERFACE/d' > $@.new
+	@if [ -e $@ ] && $(DIFF) -q -I'\$(DOLLAR)Id: ' $@.new $@; then $(RM) $@.new; else $(MV) $@.new $@; fi
 clean:
-	rm -f *cm* 
+	rm -f *cm* xHTML5.mli xHTML.mli xhtmltypes.mli xhtml5types.mli
 
 depend: *.mli *.ml
 	-rm -f xmllexer.ml camllexer.ml

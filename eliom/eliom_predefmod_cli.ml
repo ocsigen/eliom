@@ -34,7 +34,7 @@ module Xhtmlforms_ = struct
 
   type form_content_elt = form_content elt
   type form_content_elt_list = form_content elt list
-  type uri = XHTML.M.uri
+  type uri = Xhtmltypes.uri
 
   type a_content_elt = a_content elt
   type a_content_elt_list = a_content elt list
@@ -99,7 +99,7 @@ module Xhtmlforms_ = struct
 
   let buttonsubmit = `Submit
 
-  let uri_of_string = XHTML.M.uri_of_string
+  let uri_of_string = uri_of_string
 
   let empty_seq = []
   let cons_form a l = a::l

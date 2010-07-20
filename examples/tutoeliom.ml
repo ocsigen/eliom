@@ -230,6 +230,8 @@ let coucou1 =
              <head><title></title></head>
              <body><h1>Coucou</h1></body>
            </html> >>)
+
+
 (*wiki*
             
 To compile this syntax, you need a camlp4 syntax extension:

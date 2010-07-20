@@ -39,15 +39,7 @@ type ename = string
 type elt_content =
   | Empty
   | Comment of string
-(* I add, for the Ocsigen syntax xml extension: *)
-  | Whitespace of string
-  | Element of ename * attrib list * elt list
-  | BlockElement of ename * attrib list * elt list
-  | SemiBlockElement of ename * attrib list * elt list
   | EncodedPCDATA of string
-(* Element is a Node that is not a BlockElement nor a SemiBlockElement *)
-(* Pretty-printing of Element/ BlockElement/ SemiBlockElement is faster *)
-(* Vincent *)
   | PCDATA of string
   | Entity of string
   | Leaf of ename * attrib list

@@ -28,7 +28,7 @@ open Eliom_tools_common
 (** {2 Menus } *)
 
 val menu :
-  ?classe:XHTML.M.nmtoken list ->
+  ?classe:Xhtmltypes.nmtoken list ->
   ?id:string ->
   (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
      Xhtmltypes.a_content XHTML.M.elt list)
@@ -72,7 +72,7 @@ val menu :
     page is used.
  *)
 val hierarchical_menu_depth_first :
-  ?classe:XHTML.M.nmtoken list ->
+  ?classe:Xhtmltypes.nmtoken list ->
   ?id:string ->
   ?whole_tree:bool ->
   ([< Eliom_services.get_service_kind ] as 'a,
@@ -98,7 +98,7 @@ val hierarchical_menu_depth_first :
     are displayed. If [service] is [None], the current url is used.
  *)
 val hierarchical_menu_breadth_first :
-  ?classe:XHTML.M.nmtoken list ->
+  ?classe:Xhtmltypes.nmtoken list ->
   ?id:string ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,

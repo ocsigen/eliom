@@ -5,10 +5,11 @@ include ../../Makefile.config
 #	xhtml5pretty.ml xhtml5compact.ml \
 #	xhtml5pretty_streams.ml xhtml5compact_streams.ml
 
-FILES = xhtmlpretty.ml xhtmlcompact.ml \
+FILES = xhtml_format.ml xhtml_mkcompact.ml xhtml_mkpretty.ml xhtmlpretty.ml xhtmlcompact.ml \
 	xhtml5pretty.ml xhtml5compact.ml
 
-FILES_STREAM = xhtmlpretty_streams.ml xhtmlcompact_streams.ml \
+FILES_STREAM = xhtml_mkpretty_streams.ml xhtml_mkcompact_streams.ml \
+	xhtmlpretty_streams.ml xhtmlcompact_streams.ml \
 	xhtml5pretty_streams.ml xhtml5compact_streams.ml
 
 

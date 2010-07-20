@@ -95,11 +95,11 @@ type appl_service_params =
       ap_doctype: XHTML.M.doctypes;
       ap_title: string;
       ap_container : 'a.
-        ((([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option *
+        ((([< Xhtmltypes.common ] as 'a) XHTML.M.attrib list) option *
            (Xhtmltypes.body_content XHTML.M.elt -> Xhtmltypes.body_content XHTML.M.elt list))
         option;
       ap_body_attributes : 
-        'a. (([< XHTML.M.common ] as 'a) XHTML.M.attrib list) option;
+        'a. (([< Xhtmltypes.common ] as 'a) XHTML.M.attrib list) option;
       ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] XHTML.M.elt list
     }
 
@@ -276,7 +276,7 @@ module Redirection : Eliom_mkreg.ELIOMREGSIG with
    For example: [register ~options:`Temporary ...].
  *)
 module String_redirection : Eliom_mkreg.ELIOMREGSIG with
-  type page = XHTML.M.uri
+  type page = Xhtmltypes.uri
   and type options = [ `Temporary | `Permanent ]
   and type return = Eliom_services.http
 (*VVV Would be better to define the type uri elsewhere *)

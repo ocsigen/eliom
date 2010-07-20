@@ -24,7 +24,7 @@
    if you want to print with a syntax closer to html (not xml).
  *)
 val xhtml_stream :
-    ?version:[< XHTML5.M.doctypes > `XHTML_01_01 ] ->
+    ?version:XHTML5.M.doctypes ->
       ?width:int -> ?encode:(string -> string) ->
         ?html_compat:bool ->
           [ `Html ] XHTML5.M.elt -> string Ocsigen_stream.t
@@ -33,7 +33,7 @@ val xhtml_stream :
    [html_compat] is an option to set
    if you want to print with a syntax closer to html (not xml). *)
 val xhtml_list_stream :
-    ?version:[< XHTML5.M.doctypes > `XHTML_01_01 ] ->
+    ?version:XHTML5.M.doctypes -> 
       ?width:int -> ?encode:(string -> string) ->
         ?html_compat:bool ->
           'a XHTML5.M.elt list -> string Ocsigen_stream.t
