@@ -35,7 +35,6 @@ type eliom_data_type =
 
 type eliom_appl_answer =
   | EAContent of (eliom_data_type * string)
-  | EAExitRedir of string (* Exit the program by doing a redirection *)
 
 val a_closure_id : int
 val a_closure_id_string : string

@@ -161,7 +161,9 @@ end = struct
                 "./"
             in
             Lwt.on_cancel wt (fun () -> Lwt.cancel async) ;
-            async >>= fun (code, msg) ->
+            async >>= fun r ->
+            let code = r.XmlHttpRequest.code in
+            let msg = r.XmlHttpRequest.content in
           (* check returned code *)
             match code / 100 with
           (* treat failure *)

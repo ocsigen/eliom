@@ -23,24 +23,6 @@ let (>|=) = Lwt.(>|=)
 
 let make_a_with_onclick = Eliom_client.make_a_with_onclick
 
-let add_tab_cookies_to_post_form' node =
-  Ocsigen_lib.jsdebug (node##action);
-  let action = Js.to_string node##action in
-  let action = Eliom_client.add_cookie_nlp_to_uri action in
-  node##action <- Js.string action;
-  (* We need to restart the comet engine,
-     because browsers stop xml http requests when submitting forms: *)
-  Lwt_js.sleep 0.05 >|=
-  Eliom_client_comet.Engine.restart
-
-let add_tab_cookies_to_post_form node () =
-  let node = Js.Unsafe.coerce (XHTML.M.toelt node) in
-  add_tab_cookies_to_post_form' node
-
-let add_tab_cookies_to_post_form5 node () =
-  let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
-  add_tab_cookies_to_post_form' node
-
 
 let tab_cookie_class = "__eliom_tab_cookies"
 
@@ -71,14 +53,47 @@ let add_tab_cookie_fields l node =
     in
     node##appendChild (my_div)
 
-let add_tab_cookies_to_get_form' node =
-  let action = node##action in
-  let nlp = Eliom_client.get_cookie_nlp_for_uri action in
-  let l = Eliom_parameters.list_of_nl_params_set nlp in
+
+
+let add_tab_cookies_to_form' l node =
   remove_tab_cookie_fields node;
   add_tab_cookie_fields l node;
   Lwt_js.sleep 0.05 >|=
   Eliom_client_comet.Engine.restart
+
+let add_tab_cookies_to_post_form' node =
+  let action = node##action in
+  let (https, path) = Eliom_request.get_cookie_info_for_uri_js action in
+  let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
+  let l = [(Eliom_common.tab_cookies_header_name,
+            Eliom_client_types.encode_eliom_data cookies)]
+  in
+  add_tab_cookies_to_form' l node
+
+let add_tab_cookies_to_post_form node () =
+  let node = Js.Unsafe.coerce (XHTML.M.toelt node) in
+  add_tab_cookies_to_post_form' node
+
+let add_tab_cookies_to_post_form5 node () =
+  let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
+  add_tab_cookies_to_post_form' node
+
+
+
+let add_tab_cookies_to_get_form' node =
+  (* we transform the form into POST form:
+     - to avoid long URLs (not supported by (old?) IE)
+     - ...
+  *)
+  node##_method <- "post";
+  let action = node##action in
+  let (https, path) = Eliom_request.get_cookie_info_for_uri_js action in
+  let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
+  let l = [(Eliom_common.get_request_post_param_name, "1");
+           (Eliom_common.tab_cookies_header_name,
+            Eliom_client_types.encode_eliom_data cookies)]
+  in
+  add_tab_cookies_to_form' l node
 
 let add_tab_cookies_to_get_form node () =
   let node = Js.Unsafe.coerce (XHTML.M.toelt node) in

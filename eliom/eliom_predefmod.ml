@@ -1725,6 +1725,7 @@ end
 
 
 (*****************************************************************************)
+
 (** Redirection services are like services, but send a redirection instead
  of a page.
 
@@ -1760,6 +1761,10 @@ module String_redirreg_ = struct
         then 307 (* Temporary move *)
         else 301 (* Moved permanently *)
     in
+
+
+???
+
     Lwt.return
       {empty_result with
          res_cookies= (Eliom_sessions.get_user_cookies ~sp);
@@ -1816,65 +1821,63 @@ module Redirreg_ = struct
        the destination service is the same
        - a half xhr redirection otherwise
     *)
-    let httpredir =
-      match Eliom_sessions.get_sp_appl_name ~sp with
-      (* the appl name as sent by browser *)
-        | None -> true
-        (* the browser did not ask application eliom data,
-           we send a regular redirection *)
-        | Some anr ->
-        (* the browser asked application eliom data
-           (content only) for application anr *)
-          match Eliom_services.get_do_appl_xhr content with
+    match sp.Eliom_common.sp_appl_name with
+        (* the appl name as sent by browser *)
+      | None -> (* the browser did not ask application eliom data,
+                   we send a regular redirection *)
+        let empty_result = Ocsigen_http_frame.empty_result () in
+        let code = match code with
+          | Some c -> c
+          | None ->
+            if options = `Temporary
+            then 307 (* Temporary move *)
+            else 301 (* Moved permanently *)
+        in
+        let cookies = Eliom_sessions.get_user_cookies ~sp in
+        let content_type = match content_type with
+          | None -> empty_result.res_content_type
+          | _ -> content_type
+        in
+        let headers = match headers with
+          | None -> empty_result.res_headers
+          | Some headers -> 
+            Http_headers.with_defaults
+              headers empty_result.res_headers
+        in
+        Lwt.return
+          {empty_result with
+            res_cookies= cookies;
+            res_code= code;
+            res_location = Some uri;
+            res_content_type= content_type;
+            res_headers= headers;
+          }
+      | Some anr ->
+          (* the browser asked application eliom data
+             (content only) for application anr *)
+        match Eliom_services.get_do_appl_xhr content with
             (* the appl name of the destination service *)
-            | Eliom_services.XSame_appl an when (an = anr) -> true
-            (* Same appl, we do a full xhr, but keep tab cookies *)
-(*VVV FAUX!!!!!!!!!!!!! Il faut garder les tab cookies *)
-            | Eliom_services.XAlways -> true
+          | Eliom_services.XSame_appl an when (an = anr) ->
+            (* Same appl, we do a full xhr redirection
+               (not an http redirection, because we want to
+               send back tab cookies) *)
+            Caml.send ?charset ?code ?content_type ?headers ~sp
+              (Eliom_client_types.EAApplRedir uri)
+              
+          | Eliom_services.XAlways ->
             (* It is probably an action, full xhr again *)
-(*VVV FAUX!!!!!!!!!!!!! Il faut garder les tab cookies *)
-            | _ -> (* No application, or another application.
-                      We ask the browser to do an HTTP redirection. *)
-              false
-    in
-    if httpredir
-    then
-      let empty_result = Ocsigen_http_frame.empty_result () in
-      let code = match code with
-        | Some c -> c
-        | None ->
-          if options = `Temporary
-          then 307 (* Temporary move *)
-          else 301 (* Moved permanently *)
-      in
-      let cookies = Eliom_sessions.get_user_cookies ~sp in
-      let content_type = match content_type with
-        | None -> empty_result.res_content_type
-        | _ -> content_type
-      in
-      let headers = match headers with
-        | None -> empty_result.res_headers
-        | Some headers -> 
-          Http_headers.with_defaults
-            headers empty_result.res_headers
-      in
-      Lwt.return
-        {empty_result with
-          res_cookies= cookies;
-          res_code= code;
-          res_location = Some uri;
-          res_content_type= content_type;
-          res_headers= headers;
-        }
-    else
-      Caml.send ?charset ?code ?content_type ?headers ~sp
-        (Eliom_client_types.EAExitRedir uri)
+            Caml.send ?charset ?code ?content_type ?headers ~sp
+              (Eliom_client_types.EAApplRedir uri)
+          | _ -> (* No application, or another application.
+                    We ask the browser to do an HTTP redirection. *)
+            Caml.send ?charset ?code ?content_type ?headers ~sp
+              (Eliom_client_types.EAExitRedir uri)
+
 
 end
 
 
 module Redirection = MakeRegister(Redirreg_)
-
 
 (*****************************************************************************)
 

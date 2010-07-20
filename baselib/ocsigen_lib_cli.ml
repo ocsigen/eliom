@@ -115,10 +115,7 @@ let make_absolute_url ~https ~host ~port uri =
 
 
 (*****************************************************************************)
-module String_Table = Map.Make(struct
-  type t = string
-  let compare = compare
-end)
+module String_Table = Map.Make(String)
 
 type file_info = {tmp_filename: string;
                   filesize: int64;

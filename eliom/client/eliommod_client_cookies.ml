@@ -46,25 +46,25 @@ let update_cookie_table cookieset =
 let get_cookies_to_send https path =
   let now = now () in
   Ocsigen_cookies.Cookies.fold
-    (fun cpath t cookie_list ->
+    (fun cpath t cookies_to_send ->
       if Ocsigen_lib.list_is_prefix_skip_end_slash
           (Ocsigen_lib.remove_slash_at_beginning cpath)
           (Ocsigen_lib.remove_slash_at_beginning path)
       then Ocsigen_lib.String_Table.fold
-        (fun name (exp, value, secure) cookie_list ->
+        (fun name (exp, value, secure) cookies_to_send ->
           match exp with
             | Some exp when exp <= now ->
               cookie_table := 
                 Ocsigen_cookies.remove_cookie cpath name !cookie_table;
-              cookie_list
+              cookies_to_send
             | _ ->
               if (not secure) || https
-              then (name, value)::cookie_list
-              else cookie_list
+              then Ocsigen_lib.String_Table.add name value cookies_to_send
+              else cookies_to_send
         )
         t
-        cookie_list
-      else cookie_list
+        cookies_to_send
+      else cookies_to_send
     )
     !cookie_table
-    []
+    Ocsigen_lib.String_Table.empty

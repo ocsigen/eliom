@@ -102,10 +102,16 @@ let na_co_param_prefix = "__na_eliom_"
 let nl_param_prefix = "__nl_"
 let pnl_param_prefix = nl_param_prefix^"p_"
 let npnl_param_prefix = nl_param_prefix^"n_"
-let appl_name_cookie_name = "__eliom_appl_name"
-let eliom_internal_nlp_prefix = "__eliom"
 let nodisplay_class_name = "eliom_nodisplay"
 let inline_class_name = "eliom_inline"
+
+let eliom_internal_nlp_prefix = "__eliom"
+let tab_cookies_header_name = "__eliom_P_tab_cookies"
+let get_request_post_param_name = "__eliom_P_was_GET"
+let appl_name_cookie_name = "__eliom_appl_name"
+let full_xhr_redir_header = "x-eliom-location-full"
+let half_xhr_redir_header = "x-eliom-location-half"
+
 
 let nl_is_persistent n = n.[0] = 'p'
 

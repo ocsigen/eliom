@@ -140,10 +140,14 @@ val spersistentcookiename : string
 val persistent_cookie_table_version : string
 val eliom_persistent_cookie_table : string
 
-val appl_name_cookie_name : string
 val inline_class_name : string
 val nodisplay_class_name : string
 
+val appl_name_cookie_name : string
+val tab_cookies_header_name : string
+val get_request_post_param_name : string
+val full_xhr_redir_header : string
+val half_xhr_redir_header : string
 
 
 type sess_info = {

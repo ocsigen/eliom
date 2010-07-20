@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-exception Failed_service of int
-
 (** Call a server side service and change the current page.
     If the service belongs to the same application,
     the client side program is not stopped, and only
@@ -165,10 +163,7 @@ val set_content : Eliom_client_types.eliom_appl_answer -> unit Lwt.t
 
 val unmarshal_js_var : string -> 'a
 
-val add_cookie_nlp_to_uri : string -> string
-
-val get_cookie_nlp_for_uri : Js.js_string Js.t -> Eliom_parameters.nl_params_set
-
 val load_eliom_data_ :
   Eliom_client_types.eliom_data_type ->
   Dom_html.element Js.t -> unit
+

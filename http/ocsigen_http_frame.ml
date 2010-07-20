@@ -175,8 +175,8 @@ module Http_header =
 
       type proto = HTTP10 | HTTP11
 
-        (** type of the http headers *)
-        type http_header =
+      (** type of the http headers *)
+      type http_header =
           {
             (** the mode of the header : Query or Answer *)
             mode:http_mode;
