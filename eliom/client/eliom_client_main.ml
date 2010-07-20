@@ -31,8 +31,7 @@ let _ =
          (Eliom_client.unmarshal_js_var "change_page_event"))
     in
     let retain_event = 
-      React.E.map (fun v ->
-        Eliom_client.set_content v) change_page_event
+      React.E.map Eliom_client.set_content change_page_event
     in
     
     let `R r = React.E.retain change_page_event (fun () -> ()) in

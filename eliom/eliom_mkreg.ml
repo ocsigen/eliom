@@ -598,7 +598,7 @@ module MakeRegister = functor
                               (* the appl name as sent by browser *)
                               | None -> false (* the browser did not ask
                                                  application eliom data,
-                                                 we don not send a redirection 
+                                                 we do not send a redirection 
                                               *)
                               | Some anr ->
                                 (* the browser asked application eliom data

@@ -31,7 +31,8 @@ type eliom_data_type =
 
 type eliom_appl_answer =
   | EAContent of (eliom_data_type * string)
-  | EAExitRedir of string (* Exit the program by doing a redirection *)
+  | EAExitRedir of string (* Exit the program by doing a redirection -
+                             Half XHR redirection. *)
 
 let eliom_appl_answer_content_type = "application/x-eliom"
 

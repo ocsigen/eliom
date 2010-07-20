@@ -846,117 +846,6 @@ end
 module Unit = MakeRegister(Unitreg_)
 
 
-(** Redirection services are like services, but send a redirection instead
- of a page.
-
-   The HTTP/1.1 RFC says:
-   If the 301 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
-
-   Here redirections are done towards services without parameters.
-   (possibly preapplied).
-
- *)
-module String_redirreg_ = struct
-  open XHTML.M
-  open Xhtmltypes
-
-  type page = XHTML.M.uri
-
-  type options = [ `Temporary | `Permanent ]
-
-  type return = Eliom_services.http
-
-  let pre_service ?options ~sp = Lwt.return ()
-
-  let do_appl_xhr = Eliom_services.XNever
-
-  let send ?(options = `Permanent) ?charset ?code
-      ?content_type ?headers ~sp content =
-    let empty_result = Ocsigen_http_frame.empty_result () in
-    let code = match code with
-    | Some c -> c
-    | None ->
-        if options = `Temporary
-        then 307 (* Temporary move *)
-        else 301 (* Moved permanently *)
-    in
-    Lwt.return
-      {empty_result with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
-         res_code= code;
-         res_location = Some (XHTML.M.string_of_uri content);
-         res_content_type= (match content_type with
-                              | None -> empty_result.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> empty_result.res_headers
-                         | Some headers -> 
-                             Http_headers.with_defaults
-                               headers empty_result.res_headers
-                      );
-      }
-
-end
-
-
-module String_redirection = MakeRegister(String_redirreg_)
-
-
-
-
-module Redirreg_ = struct
-  open XHTML.M
-  open Xhtmltypes
-
-  type page = 
-      (unit, unit, Eliom_services.get_service_kind,
-       [ `WithoutSuffix ], 
-       unit, unit, Eliom_services.registrable, Eliom_services.http)
-        Eliom_services.service
-
-  type options = [ `Temporary | `Permanent ]
-
-  type return = Eliom_services.http
-
-  let pre_service ?options ~sp = Lwt.return ()
-
-  let do_appl_xhr = Eliom_services.XNever
-
-  let send ?(options = `Permanent) ?charset ?code
-      ?content_type ?headers ~sp content =
-    let empty_result = Ocsigen_http_frame.empty_result () in
-    let uri = Xhtml.make_string_uri ~absolute:true ~sp ~service:content () in
-    let code = match code with
-    | Some c -> c
-    | None ->
-        if options = `Temporary
-        then 307 (* Temporary move *)
-        else 301 (* Moved permanently *)
-    in
-    Lwt.return
-      {empty_result with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
-         res_code= code;
-         res_location = Some uri;
-         res_content_type= (match content_type with
-                              | None -> empty_result.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> empty_result.res_headers
-                         | Some headers -> 
-                             Http_headers.with_defaults
-                               headers empty_result.res_headers
-                      );
-      }
-
-end
-
-
-module Redirection = MakeRegister(Redirreg_)
-
-
 
 (* Any is a module allowing to register services that decide themselves
    what they want to send.
@@ -1835,7 +1724,159 @@ end
 
 
 
+(*****************************************************************************)
+(** Redirection services are like services, but send a redirection instead
+ of a page.
 
+   The HTTP/1.1 RFC says:
+   If the 301 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
+
+   Here redirections are done towards services without parameters.
+   (possibly preapplied).
+
+ *)
+module String_redirreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = XHTML.M.uri
+
+  type options = [ `Temporary | `Permanent ]
+
+  type return = Eliom_services.http
+
+  let pre_service ?options ~sp = Lwt.return ()
+
+  let do_appl_xhr = Eliom_services.XAlways
+  (* actually, the service will decide itself *)
+
+  let send ?(options = `Permanent) ?charset ?code
+      ?content_type ?headers ~sp content =
+    let empty_result = Ocsigen_http_frame.empty_result () in
+    let code = match code with
+    | Some c -> c
+    | None ->
+        if options = `Temporary
+        then 307 (* Temporary move *)
+        else 301 (* Moved permanently *)
+    in
+    Lwt.return
+      {empty_result with
+         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_code= code;
+         res_location = Some (XHTML.M.string_of_uri content);
+         res_content_type= (match content_type with
+                              | None -> empty_result.res_content_type
+                              | _ -> content_type
+                           );
+         res_headers= (match headers with
+                         | None -> empty_result.res_headers
+                         | Some headers -> 
+                             Http_headers.with_defaults
+                               headers empty_result.res_headers
+                      );
+      }
+
+end
+
+
+module String_redirection = MakeRegister(String_redirreg_)
+
+
+
+
+module Redirreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = 
+      (unit, unit, Eliom_services.get_service_kind,
+       [ `WithoutSuffix ], 
+       unit, unit, Eliom_services.registrable, Eliom_services.http)
+        Eliom_services.service
+
+  type options = [ `Temporary | `Permanent ]
+
+  type return = Eliom_services.http
+
+  let pre_service ?options ~sp = Lwt.return ()
+
+  let do_appl_xhr = Eliom_services.XAlways
+  (* actually, the service will decide itself *)
+
+  let send ?(options = `Permanent) ?charset ?code
+      ?content_type ?headers ~sp content =
+    let uri = Xhtml.make_string_uri ~absolute:true ~sp ~service:content () in
+                           
+    (* Now we decide the kind of redirection we do.
+       If the request is an xhr done by a client side Eliom program,
+       we cannot send an HTTP redirection.
+       In that case, we send:
+       - a full xhr redirection if the application to which belongs
+       the destination service is the same
+       - a half xhr redirection otherwise
+    *)
+    let httpredir =
+      match Eliom_sessions.get_sp_appl_name ~sp with
+      (* the appl name as sent by browser *)
+        | None -> true
+        (* the browser did not ask application eliom data,
+           we send a regular redirection *)
+        | Some anr ->
+        (* the browser asked application eliom data
+           (content only) for application anr *)
+          match Eliom_services.get_do_appl_xhr content with
+            (* the appl name of the destination service *)
+            | Eliom_services.XSame_appl an when (an = anr) -> true
+            (* Same appl, we do a full xhr, but keep tab cookies *)
+(*VVV FAUX!!!!!!!!!!!!! Il faut garder les tab cookies *)
+            | Eliom_services.XAlways -> true
+            (* It is probably an action, full xhr again *)
+(*VVV FAUX!!!!!!!!!!!!! Il faut garder les tab cookies *)
+            | _ -> (* No application, or another application.
+                      We ask the browser to do an HTTP redirection. *)
+              false
+    in
+    if httpredir
+    then
+      let empty_result = Ocsigen_http_frame.empty_result () in
+      let code = match code with
+        | Some c -> c
+        | None ->
+          if options = `Temporary
+          then 307 (* Temporary move *)
+          else 301 (* Moved permanently *)
+      in
+      let cookies = Eliom_sessions.get_user_cookies ~sp in
+      let content_type = match content_type with
+        | None -> empty_result.res_content_type
+        | _ -> content_type
+      in
+      let headers = match headers with
+        | None -> empty_result.res_headers
+        | Some headers -> 
+          Http_headers.with_defaults
+            headers empty_result.res_headers
+      in
+      Lwt.return
+        {empty_result with
+          res_cookies= cookies;
+          res_code= code;
+          res_location = Some uri;
+          res_content_type= content_type;
+          res_headers= headers;
+        }
+    else
+      Caml.send ?charset ?code ?content_type ?headers ~sp
+        (Eliom_client_types.EAExitRedir uri)
+
+end
+
+
+module Redirection = MakeRegister(Redirreg_)
+
+
+(*****************************************************************************)
 
 
 

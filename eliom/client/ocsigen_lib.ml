@@ -50,3 +50,4 @@ let rec split_path s =
 
 
 let debug a = Firebug.console##log (Js.string a)
+let jsdebug a = Firebug.console##log (a)
