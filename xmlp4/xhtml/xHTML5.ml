@@ -1,8 +1,8 @@
 (* BEGIN INTERFACE *)
 (*
    Copyright (C) 2004 by Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
-   Copyright (C) 2007 by Vincent Balat, Gabriel Kerneis, CNRS, Université Paris Diderot
-   Copyright (C) 2010 by Cecile Herbelin, CNRS, Université Paris Diderot
+   Copyright (C) 2007 by Vincent Balat, Gabriel Kerneis, CNRS, UniversitÃ© Paris Diderot
+   Copyright (C) 2010 by Cecile Herbelin, CNRS, UniversitÃ© Paris Diderot
 
    xHTML5.ml is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -32,6 +32,12 @@ open Xhtml5types
   
 module type T =
   sig
+    (** Uri â€” Alias for the module Uri *)
+    type uri = Uri.uri
+    type uris = Uri.uris
+    val string_of_uri: uri -> string
+    val uri_of_string: string -> uri
+
     (** {1 Common Attributes} *)
     type +'a attrib
     
@@ -1246,6 +1252,7 @@ module M_05_00 : T_05_00
    END INTERFACE *)
 module M_05_00 : T_05_00 =
   struct
+    include Uri
     type 'a attrib = XML.attrib
     
     type 'a attribs = XML.attribs

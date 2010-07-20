@@ -134,10 +134,10 @@ module Xhtmlforms_ = struct
   type form_content_elt = form_content
   type form_content_elt_list = {{ [ form_content* ] }}
   type form_elt = form
-  type a_content_elt = a_content
-  type a_content_elt_list = {{ [ a_content* ] }}
-  type a_elt = a
-  type a_elt_list = {{ [ a* ] }}
+  type 'a a_content_elt = a_content
+  type 'a a_content_elt_list = {{ [ a_content* ] }}
+  type 'a a_elt = a
+  type 'a a_elt_list = {{ [ a* ] }}
   type div_content_elt = div_content
   type div_content_elt_list = flows
   type uri = string
@@ -202,7 +202,7 @@ module Xhtmlforms_ = struct
 
   let make_pcdata s = str s
 
-  let make_a ?(a={{ {} }}) ?href ?onclick l : a_elt =
+  let make_a ?(a={{ {} }}) ?href ?onclick l : 'a a_elt =
     let href_attr = match href with
       | None -> {{ {} }}
       | Some v -> {{ { href=(str v) } }} 
@@ -355,10 +355,10 @@ module type XhtmlFormsSig = Eliom_mkforms.ELIOMFORMSIG with
   type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
   and type form_elt = form
-  and type a_content_elt = a_content
-  and type a_content_elt_list = {{ [ a_content* ] }}
-  and type a_elt = a
-  and type a_elt_list = {{ [ a* ] }}
+  and type 'a a_content_elt = a_content
+  and type 'a a_content_elt_list = {{ [ a_content* ] }}
+  and type 'a a_elt = a
+  and type 'a a_elt_list = {{ [ a* ] }}
   and type div_content_elt = div_content
   and type div_content_elt_list = flows
   and type uri = string

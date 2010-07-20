@@ -188,7 +188,7 @@ let hierarchical_menu_breadth_first
     ?id
     (((page, pages): ([< Eliom_services.get_service_kind],
                 [< Eliom_services.registrable ],
-                Eliom_duce.Blocks.a_content_elt_list) hierarchical_site) as the_menu)
+                'elts Eliom_duce.Blocks.a_content_elt_list) hierarchical_site) as the_menu)
     ?service
     ~sp =
 

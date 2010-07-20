@@ -31,10 +31,10 @@ val menu :
   ?classe:string list ->
   ?id:string ->
   (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
-     Eliom_duce.Blocks.a_content_elt_list)
+     'elts Eliom_duce.Blocks.a_content_elt_list)
   ->
   (('a, 'b) one_page *
-     Eliom_duce.Blocks.a_content_elt_list)
+     'elts Eliom_duce.Blocks.a_content_elt_list)
     list ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->
@@ -76,7 +76,7 @@ val hierarchical_menu_depth_first :
   ?whole_tree:bool ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
-   Eliom_duce.Blocks.a_content_elt_list)
+   'elts Eliom_duce.Blocks.a_content_elt_list)
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->
@@ -101,7 +101,7 @@ val hierarchical_menu_breadth_first :
   ?id:string ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
-   Eliom_duce.Blocks.a_content_elt_list)
+   'elts Eliom_duce.Blocks.a_content_elt_list)
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->
@@ -114,7 +114,7 @@ val hierarchical_menu_breadth_first :
 val structure_links :
   ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     Eliom_duce.Blocks.a_content_elt_list)
+     'elts Eliom_duce.Blocks.a_content_elt_list)
     hierarchical_site ->
   ?service:('a, 'b) one_page ->
   sp:Eliom_sessions.server_params ->

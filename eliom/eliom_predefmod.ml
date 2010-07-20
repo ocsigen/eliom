@@ -44,17 +44,6 @@ let code_of_code_option = function
   | None -> 200
   | Some c -> c
 
-let result_of_content_subxhtml get_etag c =
-  let x = Xhtmlpretty_streams.xhtml_list_stream c in
-  let default_result = default_result () in
-  Lwt.return
-    {default_result with
-       res_content_length = None;
-       res_content_type = Some "text/html";
-       res_etag = get_etag c;
-       res_headers= Http_headers.dyn_headers;
-       res_stream = (x, None)
-    }
 
 
 module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
@@ -157,42 +146,28 @@ end
 
 (****************************************************************************)
 (****************************************************************************)
-module SubXhtml = functor(T : sig type content end) ->
+module SubXhtml(Format : sig 
+      type doctypes
+      type content
+      type 'a elt
+      val xhtml_list_stream : ?version:doctypes -> ?width: int -> ?encode:(string->string) 
+        -> ?html_compat : bool -> content elt list -> string Ocsigen_stream.t end) = 
   (struct
-(*    module Old_Cont_content =
-      (* Pasted from ocsigen_senders.ml and modified *)
-      struct
-        type t = T.content XHTML.M.elt list
-
-        let get_etag_aux x =
-          Some (Digest.to_hex (Digest.string x))
-
-        let get_etag c =
-          let x = (Xhtmlpretty.ocsigen_xprint c) in
-          get_etag_aux x
-
-        let result_of_content c =
-          let x = Xhtmlpretty.ocsigen_xprint c in
-          let md5 = get_etag_aux x in
-          let default_result = default_result () in
-          Lwt.return
-            {default_result with
-             res_content_length = Some (Int64.of_int (String.length x));
-             res_content_type = Some "text/html";
-             res_etag = md5;
-             res_headers= Http_headers.dyn_headers;
-             res_stream =
-             Ocsigen_stream.make
-               (fun () -> Ocsigen_stream.cont x
-                   (fun () -> Ocsigen_stream.empty None))
-           }
-
-      end *)
-
+    let result_of_content_subxhtml get_etag c =
+      let x = Format.xhtml_list_stream c in
+      let default_result = default_result () in
+      Lwt.return
+        {default_result with
+          res_content_length = None;
+          res_content_type = Some "text/html";
+          res_etag = get_etag c;
+          res_headers= Http_headers.dyn_headers;
+          res_stream = (x, None)
+        }
     module Cont_content =
       (* Pasted from ocsigen_senders.ml and modified *)
       struct
-        type t = T.content XHTML.M.elt list
+        type t = Format.content Format.elt list
 
         let get_etag_aux x = None
 
@@ -206,7 +181,7 @@ module SubXhtml = functor(T : sig type content end) ->
       open XHTML.M
       open Xhtmltypes
 
-      type page = T.content XHTML.M.elt list
+      type page = Format.content Format.elt list
 
       type options = unit
 
@@ -248,7 +223,7 @@ module SubXhtml = functor(T : sig type content end) ->
 
   end : sig
 
-    include ELIOMREGSIG with type page = T.content XHTML.M.elt list
+    include ELIOMREGSIG with type page = Format.content Format.elt list
                         and type options = unit
                         and type return = Eliom_services.http
     include XHTMLFORMSSIG
@@ -257,6 +232,14 @@ module SubXhtml = functor(T : sig type content end) ->
 
 module Blocks = SubXhtml(struct
   type content = Xhtmltypes.body_content
+  include Xhtml_format.XhtmlInfo
+  include Xhtmlpretty_streams
+end)
+
+module Blocks5 = SubXhtml(struct
+  type content = Xhtml5types.body_content
+  include Xhtml_format.Xhtml5Info
+  include Xhtml5pretty_streams
 end)
 
 
@@ -395,13 +378,13 @@ module HtmlTextforms_ = struct
   type form_content_elt = string
   type form_content_elt_list = string
   type uri = string
-  type a_content_elt = string
-  type a_content_elt_list = string
+  type 'a a_content_elt = string
+  type 'a a_content_elt_list = string
   type div_content_elt = string
   type div_content_elt_list = string
 
-  type a_elt = string
-  type a_elt_list = string
+  type 'a a_elt = string
+  type 'a a_elt_list = string
   type form_elt = string
 
   type textarea_elt = string
@@ -460,7 +443,7 @@ module HtmlTextforms_ = struct
 
   let make_pcdata = id
 
-  let make_a ?(a="") ?href ?onclick l : a_elt =
+  let make_a ?(a="") ?href ?onclick l : 'a a_elt =
     let a = match href with
       | None -> a
       | Some v -> " href=\""^v^"\" "^a

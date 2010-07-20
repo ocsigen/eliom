@@ -873,9 +873,9 @@ module type XHTML5FORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      a_content elt list -> 
+      'a elt list -> 
       'get -> 
-    [> a] XHTML5.M.elt
+    [> 'a a] XHTML5.M.elt
 (** [a service sp cont ()] creates a link to [service].
    The text of
    the link is [cont]. For example [cont] may be something like

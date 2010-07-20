@@ -36,14 +36,14 @@ module Xhtmlforms_ = struct
   type form_content_elt_list = form_content elt list
   type uri = Xhtmltypes.uri
 
-  type a_content_elt = a_content elt
-  type a_content_elt_list = a_content elt list
+  type 'a a_content_elt = a_content elt
+  type 'a a_content_elt_list = a_content elt list
 
   type div_content_elt = div_content elt
   type div_content_elt_list = div_content elt list
 
-  type a_elt = a elt
-  type a_elt_list = a elt list
+  type 'a a_elt = a elt
+  type 'a a_elt_list = a elt list
   type form_elt = form elt
 
   type textarea_elt = textarea elt
@@ -110,7 +110,7 @@ module Xhtmlforms_ = struct
 
   let make_pcdata s = pcdata s
 
-  let make_a ?(a=[]) ?href ?onclick l : a_elt =
+  let make_a ?(a=[]) ?href ?onclick l : 'a a_elt =
     let a = match href with
       | None -> a
       | Some v -> (a_href (uri_of_string v))::a
@@ -1656,14 +1656,14 @@ module Xhtml5forms_ = struct
   type form_content_elt = form_content elt
   type form_content_elt_list = form_content elt list
   type uri = Xhtml5types.uri
-  type a_content_elt = a_content elt
-  type a_content_elt_list = a_content elt list
+  type 'a a_content_elt = 'a elt
+  type 'a a_content_elt_list = 'a elt list
 
   type div_content_elt = div_content elt
   type div_content_elt_list = div_content elt list
 
-  type a_elt = a elt
-  type a_elt_list = a elt list
+  type 'a a_elt = 'a a elt
+  type 'a a_elt_list = 'a a elt list
   type form_elt = form elt
 
   type textarea_elt = textarea elt
@@ -1730,7 +1730,7 @@ module Xhtml5forms_ = struct
 
   let make_pcdata s = pcdata s
 
-  let make_a ?(a=[]) ?href ?onclick (l : a_content_elt_list) : a_elt =
+  let make_a ?(a=[]) ?href ?onclick (l : 'a a_content_elt_list) : 'a a_elt =
     let a = match href with
       | None -> a
       | Some v -> (a_href (uri_of_string v))::a
@@ -1998,9 +1998,9 @@ module type XHTML5FORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      a_content elt list -> 
+      'a elt list -> 
       'get -> 
-    [> a] XHTML5.M.elt
+    [> 'a a] XHTML5.M.elt
 (** [a service sp cont ()] creates a link to [service].
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -2606,8 +2606,8 @@ module Xhtml5forms : XHTML5FORMSSIG = struct
             ?keep_nl_params:[ `All | `Persistent | `None ] ->
             ?nl_params: Eliom_parameters.nl_params_set ->
             ?no_appl:bool ->
-             a_content elt list -> 'get ->
-             a XHTML5.M.elt :>
+             'a elt list -> 'get ->
+             'a a XHTML5.M.elt :>
              ?absolute:bool ->
       ?absolute_path:bool ->
       ?https:bool ->
@@ -2622,8 +2622,8 @@ module Xhtml5forms : XHTML5FORMSSIG = struct
             ?keep_nl_params:[ `All | `Persistent | `None ] ->
             ?nl_params: Eliom_parameters.nl_params_set ->
             ?no_appl:bool ->
-            a_content elt list -> 'get ->
-             [> a] XHTML5.M.elt)
+            'a elt list -> 'get ->
+             [> 'a a] XHTML5.M.elt)
 
   let css_link = (css_link :
                     ?a:(link_attrib attrib list) ->

@@ -158,10 +158,20 @@ module Xhtmlcompactreg : Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.xht
                                   and type return = Eliom_services.http
 
 (** {3 Module to register subpages of type [block]} *)
-
+(** For XHTML *)
 module Blocks : sig
 
   include Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.body_content XHTML.M.elt list
+                                  and type options = unit
+                                  and type return = Eliom_services.http
+  include XHTMLFORMSSIG
+
+end
+
+(** For XHTML5 *)
+module Blocks5 : sig
+
+  include Eliom_mkreg.ELIOMREGSIG with type page = Xhtml5types.body_content XHTML5.M.elt list
                                   and type options = unit
                                   and type return = Eliom_services.http
   include XHTMLFORMSSIG
@@ -172,10 +182,15 @@ end
 
 (** {3 Functor to create modules to register subpages for other subtypes of XHTML} *)
 
-module SubXhtml : functor (T : sig type content end) ->
+module SubXhtml(Format : sig 
+      type doctypes
+      type content
+      type 'a elt
+      val xhtml_list_stream : ?version:doctypes -> ?width: int -> ?encode:(string->string) 
+        -> ?html_compat : bool -> content elt list -> string Ocsigen_stream.t end) :
   sig
 
-    include Eliom_mkreg.ELIOMREGSIG with type page = T.content XHTML.M.elt list
+    include Eliom_mkreg.ELIOMREGSIG with type page = Format.content Format.elt list
     include XHTMLFORMSSIG
 
   end
@@ -191,10 +206,10 @@ type page = string
 and type form_content_elt = string
 and type form_content_elt_list = string
 and type form_elt = string
-and type a_content_elt = string
-and type a_content_elt_list = string
-and type a_elt = string
-and type a_elt_list = string
+and type 'a a_content_elt = string
+and type 'a a_content_elt_list = string
+and type 'a a_elt = string
+and type 'a a_elt_list = string
 and type div_content_elt = string
 and type div_content_elt_list = string
 and type uri = string

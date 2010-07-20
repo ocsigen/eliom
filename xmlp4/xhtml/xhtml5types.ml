@@ -1473,26 +1473,25 @@ type a_content = flow5_without_interactive
 
 type a_content_fun = flow5_without_interactive
 
-type a = [ | `A of a_content ]
-
+type 'a a = [ | `A of 'a ]
+type a_ = [ `A of a_content ] (* should not be used as it may break *)
 type a_attrib =
   [ | common | `Href | `Hreflang | `Media | `Rel | `Target | `Mime_type
   ]
 
 (* NAME: del, KIND: star, TYPE: [= common | `Cite | `Datetime ], 'a,[=`Del of 'a], ARG: 'a, ATTRIB:  OUT: [=`Del of 'a] *)
-type del = [ | `Del of flow5 ]
-
+type 'a del = [ | `Del of 'a ]
 type del_content = flow5
-
+type del_ = del_content del
 type del_content_fun = flow5
 
 type del_attrib = [ | common | `Cite | `Datetime ]
 
 (* NAME: ins, KIND: star, TYPE: [= common | `Cite | `Datetime ],'a ,[=`Ins of 'a], ARG: 'a , ATTRIB:  OUT: [=`Ins of 'a] *)
-type ins = [ | `Ins of flow5 ]
+type 'a ins = [ | `Ins of 'a ]
 
 type ins_content = flow5
-
+type ins_ = ins_content ins
 type ins_content_fun = flow5
 
 type ins_attrib = [ | common | `Cite | `Datetime ]
@@ -1520,8 +1519,8 @@ type object__content = [ | flow5 | `Param ]
 
 type object__content_fun = flow5
 
-type object_ = [ | `Object of (object__content * on_off) ]
-
+type 'a object_ = [ | `Object of ('a * on_off) ]
+type object__ = object__content object_
 type object__attrib =
   [
     | common
@@ -1552,9 +1551,11 @@ type embed_content_fun = notag
 
 type embed_attrib = [ | common | `Src | `Height | `Mime_type | `Width ]
 
-type audio = [ | `Video of (flow5_without_media * on_off) ]
+type 'a audio = [ | `Audio of ('a * on_off) ]
 
 type audio_content = flow5_without_media
+
+type audio_ = audio_content audio
 
 type audio_content_fun = flow5_without_media
 
@@ -1570,10 +1571,10 @@ type audio_attrib =
     | `Height
   ]
 
-type video = [ | `Video of (flow5_without_media * on_off) ]
+type 'a video = [ | `Video of ('a * on_off) ]
 
 type video_content = flow5_without_media
-
+type video_ = video_content video
 type video_content_fun = flow5_without_media
 
 type video_attrib =
@@ -1589,10 +1590,10 @@ type video_attrib =
   ]
 
 (* NAME: canvas, KIND: star, TYPE: [= common |`Width |`Height],'a, [=`Canvas of 'a], ARG: 'a, ATTRIB:  OUT: [=`Canvas of 'a] *)
-type canvas = [ | `Canvas of flow5 ]
+type 'a canvas = [ | `Canvas of 'a ]
 
 type canvas_content = flow5
-
+type canvas_ = canvas_content canvas
 type canvas_content_fun = flow5
 
 type canvas_attrib = [ | common | `Width | `Height ]
@@ -1627,9 +1628,10 @@ type area_attrib =
   ]
 
 (* NAME: map, KIND: plus, TYPE: [=common | `Name ],'a, [=`Map of 'a], ARG: 'a, ATTRIB:  OUT: [=`Map of 'a] *)
-type map = [ | `Map of flow5 ]
+type 'a map = [ | `Map of 'a ]
 
 type map_content = flow5
+type map_ = map_content map
 
 type map_content_fun = flow5
 

@@ -26,16 +26,22 @@ open Eliom_services
 open Eliom_sessions
 open Eliom_uri
 
+let nl_internal_appl_form =
+  Eliom_parameters.make_non_localized_parameters
+    ~prefix:Eliom_common.eliom_internal_nlp_prefix
+    ~name:"_internal_form"
+    (Eliom_parameters.bool "b")
 
 module type FORMCREATE =
   sig
     type form_content_elt
     type form_content_elt_list
     type form_elt
-    type a_content_elt
-    type a_content_elt_list
-    type a_elt
-    type a_elt_list
+    type 'a a_content_elt
+    type 'a a_content_elt_list
+(* This is a hack to cope with HTML5 *)
+    type 'a a_elt
+    type 'a a_elt_list
     type div_content_elt
     type div_content_elt_list
     type uri
@@ -93,7 +99,7 @@ module type FORMCREATE =
 
     val make_pcdata : string -> pcdata_elt
     val make_a : ?a:a_attrib_t -> ?href:string -> ?onclick:XML.event ->
-      a_content_elt_list -> a_elt
+      'a a_content_elt_list -> 'a a_elt
     val make_get_form : ?a:form_attrib_t ->
       action:string ->
       ?onsubmit:XML.event ->
@@ -142,7 +148,7 @@ module type FORMCREATE =
 
     val make_js_script : ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 
-    val register_event_a : a_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
+    val register_event_a : 'elt a_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
     val register_event_form : form_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
 
     val add_tab_cookies_to_get_form : form_elt -> unit -> unit Lwt.t
@@ -160,10 +166,10 @@ module type ELIOMFORMSIG =
     type form_content_elt
     type form_content_elt_list
     type form_elt
-    type a_content_elt
-    type a_content_elt_list
-    type a_elt
-    type a_elt_list
+    type 'a a_content_elt
+    type 'a a_content_elt_list
+    type 'a a_elt
+    type 'a a_elt_list
     type div_content_elt
     type div_content_elt_list
     type uri
@@ -315,9 +321,9 @@ module type ELIOMFORMSIG =
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      a_content_elt_list -> 
+      'a a_content_elt_list -> 
       'get -> 
-      a_elt
+      'a a_elt
 (** [a service sp cont ()] creates a link to [service].
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -890,11 +896,6 @@ end
 
 
 
-let nl_internal_appl_form =
-  Eliom_parameters.make_non_localized_parameters
-    ~prefix:Eliom_common.eliom_internal_nlp_prefix
-    ~name:"_internal_form"
-    (Eliom_parameters.bool "b")
 
 
 
@@ -905,10 +906,10 @@ module MakeForms = functor
       type form_content_elt = Pages.form_content_elt
       type form_content_elt_list = Pages.form_content_elt_list
       type form_elt = Pages.form_elt
-      type a_content_elt = Pages.a_content_elt
-      type a_content_elt_list = Pages.a_content_elt_list
-      type a_elt = Pages.a_elt
-      type a_elt_list = Pages.a_elt_list
+      type 'a a_content_elt = 'a Pages.a_content_elt
+      type 'a a_content_elt_list = 'a Pages.a_content_elt_list
+      type 'a a_elt = 'a Pages.a_elt
+      type 'a a_elt_list = 'a Pages.a_elt_list
       type div_content_elt = Pages.div_content_elt
       type div_content_elt_list = Pages.div_content_elt_list
       type uri = Pages.uri
@@ -1592,10 +1593,10 @@ module MakeForms = functor
 type form_content_elt = Pages.form_content_elt
 and type form_content_elt_list = Pages.form_content_elt_list
 and type form_elt = Pages.form_elt
-and type a_content_elt = Pages.a_content_elt
-and type a_content_elt_list = Pages.a_content_elt_list
-and type a_elt = Pages.a_elt
-and type a_elt_list = Pages.a_elt_list
+and type 'a a_content_elt = 'a Pages.a_content_elt
+and type 'a a_content_elt_list = 'a Pages.a_content_elt_list
+and type 'a a_elt = 'a Pages.a_elt
+and type 'a a_elt_list = 'a Pages.a_elt_list
 and type div_content_elt = Pages.div_content_elt
 and type div_content_elt_list = Pages.div_content_elt_list
 and type uri = Pages.uri
