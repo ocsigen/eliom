@@ -415,7 +415,8 @@ let gotowithoutclient =
 
 let _ =
   Eliom_appl.register
-    ~options:true
+    ~options:{Eliom_predefmod.default_appl_service_options
+              with Eliom_predefmod.do_not_launch = true}
     ~service:withoutclient
     (fun sp () () ->
        Lwt.return
@@ -452,6 +453,30 @@ let _ =
                 code [pcdata "a"]; pcdata "."] ()];
          ])
 
+
+
+
+let on_load =
+  Eliom_appl.register_new_service
+    ~path:["onload"]
+    ~get_params:unit
+    (fun sp () () ->
+      let div =
+        div [p [a ~service:eliomclient1 ~sp [pcdata "go to another page"] ()] ]
+      in
+      Eliom_services.set_on_load ~sp
+        {{ Lwt_js.sleep 1. >|= fun () ->
+           Dom.appendChild \node(div)
+             (XHTML.M.toelt (p [pcdata "on_load executed after 1s."]))
+         }};
+      Eliom_services.set_on_unload ~sp
+        {{
+          Dom.appendChild \node(div)
+          (XHTML.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
+          Lwt_js.sleep 1.
+        }};
+      Lwt.return [div]
+    )
 
 
 (*wiki*
@@ -1827,6 +1852,8 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               a eliomclient4 sp [pcdata "A service sending a Caml value"] ();
             br ();
               a gotowithoutclient sp [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
+            br ();
+              a on_load sp [pcdata "A service using on_unload and on_change"] ();
             br ();
               a comet1 sp [pcdata "A really simple comet example"] ();
             br ();

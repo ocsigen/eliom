@@ -126,11 +126,13 @@ let container_node =
   lazy ((Eliommod_cli.unwrap_node (unmarshal_js_var "container_node"))
            : Dom_html.element Js.t)
 
+let on_unload_script = ref None
+
 
 let load_eliom_data_
-    ((tree, (((timeofday, _), _) as page_data), cookies) :
+    ((tree, (((timeofday, _), _) as page_data), cookies, onload, onunload) :
         Eliom_client_types.eliom_data_type)
-    node : unit =
+    node : unit Lwt.t =
   (match tree with
     | Ocsigen_lib.Left ref_tree ->
       Eliommod_cli.relink_dom timeofday node ref_tree;
@@ -140,10 +142,18 @@ let load_eliom_data_
         (Js.Unsafe.coerce node##childNodes : Dom_html.element Dom.nodeList Js.t)
         ref_tree_list);
   Eliommod_cli.fill_page_data_table page_data;
-  Eliommod_client_cookies.update_cookie_table cookies
+  Eliommod_client_cookies.update_cookie_table cookies;
+  on_unload_script := onunload;
+  match onload with
+    | None -> Lwt.return ()
+    | Some script -> Js.Unsafe.variable script
 
 
 let set_inner_html (ed, content) =
+  (match !on_unload_script with
+    | None -> Lwt.return ()
+    | Some script -> Js.Unsafe.variable script) >>= fun () ->
+  on_unload_script := None;
   let container_node = Lazy.force container_node in
   container_node##innerHTML <- Js.string content;
   load_eliom_data_ ed container_node;
@@ -272,7 +282,7 @@ let get_subpage
         node_list := nodes##item (i) :: !node_list
       done;
   
-      load_eliom_data_ ed fake_page;
+      load_eliom_data_ ed fake_page >>= fun () ->
       fake_page##innerHTML <- Js.string "";
       Lwt.return (XHTML.M.totl !node_list)
 

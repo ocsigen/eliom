@@ -515,6 +515,21 @@ val unregister_for_session :
 (** Unregister a service from session table *)
 
 
+(** {2 Eliom application services} *)
+
+(** This function will register a function that will be executed on
+    client side once the [Eliom_appl] page is loaded.
+    Use it with Eliom's syntax extension for client side code.
+    For example: [set_on_load ~sp {{ ... }}]
+*)
+val set_on_load : sp:Eliom_sessions.server_params -> XML.event -> unit
+
+(** This function will register a function that will be executed on
+    client side when leaving current [Eliom_appl] page. *)
+val set_on_unload : sp:Eliom_sessions.server_params -> XML.event -> unit
+
+
+
 (** {2 Using your own error pages} *)
 
 
@@ -616,3 +631,7 @@ val do_appl_xhr :
   sp:Eliom_sessions.server_params -> 
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
 
+
+
+val get_on_load : sp:Eliom_sessions.server_params -> string option
+val get_on_unload : sp:Eliom_sessions.server_params -> string option

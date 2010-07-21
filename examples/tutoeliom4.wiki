@@ -395,7 +395,8 @@ let gotowithoutclient =
 
 let _ =
   Eliom_appl.register
-    ~options:true
+    ~options:{Eliom_predefmod.default_appl_service_options
+              with Eliom_predefmod.do_not_launch = true}
     ~service:withoutclient
     (fun sp () () ->
        Lwt.return
@@ -432,6 +433,30 @@ let _ =
                 code [pcdata "a"]; pcdata "."] ()];
          ])
 
+
+
+
+let on_load =
+  Eliom_appl.register_new_service
+    ~path:["onload"]
+    ~get_params:unit
+    (fun sp () () ->
+      let div =
+        div [p [a ~service:eliomclient1 ~sp [pcdata "go to another page"] ()] ]
+      in
+      Eliom_services.set_on_load ~sp
+        {{ Lwt_js.sleep 1. >|= fun () ->
+           Dom.appendChild \node(div)
+             (XHTML.M.toelt (p [pcdata "on_load executed after 1s."]))
+         }};
+      Eliom_services.set_on_unload ~sp
+        {{
+          Dom.appendChild \node(div)
+          (XHTML.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
+          Lwt_js.sleep 1.
+        }};
+      Lwt.return [div]
+    )
 
 
 >>

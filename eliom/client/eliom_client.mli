@@ -165,5 +165,5 @@ val unmarshal_js_var : string -> 'a
 
 val load_eliom_data_ :
   Eliom_client_types.eliom_data_type ->
-  Dom_html.element Js.t -> unit
+  Dom_html.element Js.t -> unit Lwt.t
 

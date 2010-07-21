@@ -89,6 +89,7 @@ end
 
 (** {3 Eliom client/server applications} *)
 
+(** Parameters for an Eliom application *)
 type appl_service_params =
     {
       ap_doctype: XHTML.M.doctypes;
@@ -104,6 +105,8 @@ type appl_service_params =
 
 val default_appl_params : appl_service_params
 
+
+
 module type APPL_PARAMS = sig
 
   (** Name of the application. 
@@ -116,17 +119,27 @@ module type APPL_PARAMS = sig
   val params : appl_service_params
 end
 
-(** The option is a boolean.
-    If you set it to [true] for a service, it will send the page
+
+(** Parameters for an Eliom application service *)
+type appl_service_options =
+    {
+      do_not_launch : bool; (** Do not launch the client side program
+                                if it is not already launched.
+                                Default: [false]. *)
+    }
+(** 
+    If you set do_not_launch to [true] for a service, it will send the page
     without launching the client side program if it is not already launched.
     Use this if some of your pages are not using the client side program,
     and you want to make them load faster (for example the main page).
 *)
 
+val default_appl_service_options : appl_service_options
+
 module Eliom_appl (Appl_params : APPL_PARAMS) : sig
   include Eliom_mkreg.ELIOMREGSIG 
     with type page = Xhtmltypes.body_content XHTML.M.elt list
-    and type options = bool
+    and type options = appl_service_options
     and type return = Eliom_services.appl_service
 
   include XHTMLFORMSSIG

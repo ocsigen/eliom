@@ -27,7 +27,10 @@ type eliom_data_type =
         (* Table of page data *)
         ((int64 * int) * unit list) *
         (* Tab cookies to set or unset *)
-        Ocsigen_cookies.cookieset)
+        Ocsigen_cookies.cookieset *
+        string option (* on load script *) *
+        string option (* on change script *)
+    )
 
 type eliom_appl_answer =
   | EAContent of (eliom_data_type * string)

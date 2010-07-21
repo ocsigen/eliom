@@ -1456,6 +1456,15 @@ type appl_service_params =
       ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
     }
 
+type appl_service_options =
+    {
+      do_not_launch : bool; (** Do not launch the client side program
+                                       if it is not already launched.
+                                       Default: [false]. *)
+    }
+
+let default_appl_service_options = {do_not_launch = false; }
+
 module type APPL_PARAMS = sig
      val application_name : string
      val params : appl_service_params
@@ -1480,7 +1489,7 @@ module Eliom_appl_reg_
 
   type page = body_content elt list
 
-  type options = bool
+  type options = appl_service_options
 
   type return = Eliom_services.appl_service
 
@@ -1496,17 +1505,27 @@ module Eliom_appl_reg_
       (Eliom_sessions.get_user_tab_cookies ~sp)
                         
   let create_page
-      ~sp params do_not_launch_application cookies_to_send
+      ~options ~sp params cookies_to_send
       change_page_event content = 
+    let do_not_launch = options.do_not_launch
+        (* || 
+           (Ocsigen_cookies.length tab_cookies_to_send > 1)
+        (* If there are cookies, we launch the application *)
+           Actually, no, we trust options ...
+           Because we must decide whether to launch
+           the application or not before
+           creating links and forms.
+        *)
+    in
     let body, container_node = match params.ap_container with
       | None -> let b = XHTML.M.body ?a:params.ap_body_attributes content in
-        (b, (XHTML.M.toelt b))
+                (b, (XHTML.M.toelt b))
       | Some (a, container) ->
-          let d = XHTML.M.div ?a content in
-          (XHTML.M.body
-             ?a:params.ap_body_attributes 
-             (container d),
-           (XHTML.M.toelt d))
+        let d = XHTML.M.div ?a content in
+        (XHTML.M.body
+           ?a:params.ap_body_attributes 
+           (container d),
+         (XHTML.M.toelt d))
     in
     ignore (XML.ref_node container_node); (* The ref must be created 
                                              for container before
@@ -1538,7 +1557,7 @@ function redir () {
 };
 redir ();"))::
 
-             if not do_not_launch_application
+             if not do_not_launch
              then
                  XHTML.M.script ~contenttype:"text/javascript"
                  (cdata_script
@@ -1563,7 +1582,10 @@ redir ();"))::
                                previous items!
                             *)
                                (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
-                               cookies_to_send) :
+                               cookies_to_send,
+                               Eliom_services.get_on_load ~sp,
+                               Eliom_services.get_on_unload ~sp
+                              ) :
                                  Eliom_client_types.eliom_data_type
                              )
                           ) ; "\'; \n" ;
@@ -1589,7 +1611,7 @@ redir ();"))::
          ))
       body
 
-  let pre_service ?(options = false) ~sp =
+  let pre_service ?(options = default_appl_service_options) ~sp =
     (* If we launch a new application, we must set the application name.
        Otherwise, we get it from cookie. *)
     (match Eliom_sessions.get_sp_appl_name ~sp (* sent by the browser *) with
@@ -1601,8 +1623,9 @@ redir ();"))::
           Eliom_sessions.set_sp_content_only ~sp false;
         end
       | None -> (* The application was not launched on client side *)
-        if not options (* if options is true, we do not launch the client side
-                          program. *)
+        if not options.do_not_launch
+        (* if do_not_launch is true,
+           we do not launch the client side program. *)
         then Eliom_sessions.set_sp_appl_name ~sp
           (Some Appl_params.application_name);
     );
@@ -1611,7 +1634,7 @@ redir ();"))::
   let do_appl_xhr = Eliom_services.XSame_appl Appl_params.application_name
 
 
-  let get_eliom_page_content sp content =
+  let get_eliom_page_content ~options sp content =
     get_tab_cook sp >>= fun tab_cookies_to_send ->
 (*VVV Here we do not send a stream *)
     Lwt.return 
@@ -1619,13 +1642,16 @@ redir ();"))::
          ((Ocsigen_lib.Right
              (XML.make_ref_tree_list (XHTML.M.toeltl content)),
            (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
-           tab_cookies_to_send),
+           tab_cookies_to_send,
+           Eliom_services.get_on_load ~sp,
+           Eliom_services.get_on_unload ~sp
+          ),
 (*VVV Use another serialization format than XML for the page? *)
           Xhtmlcompact'.xhtml_list_print content)
       )
 
 
-  let send ?(options = false) ?charset ?code
+  let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers ~sp content =
     let content_only = Eliom_sessions.get_sp_content_only ~sp in
     (if content_only &&
@@ -1644,7 +1670,7 @@ redir ();"))::
                 ~table:change_page_event_table ~sp ())
        with
          | Eliom_sessions.Data change_current_page ->
-           get_eliom_page_content sp content >>= fun data ->
+           get_eliom_page_content ~options sp content >>= fun data ->
            change_current_page data;
            Lwt.return (Ocsigen_http_frame.empty_result ())
          | Eliom_sessions.Data_session_expired
@@ -1655,7 +1681,7 @@ redir ();"))::
      else if content_only
 (*VVV do not send container! *)
      then 
-        get_eliom_page_content sp content >>= Caml.send ~sp
+        get_eliom_page_content ~options sp content >>= Caml.send ~sp
      else begin
        let change_page_event, change_current_page =
          (* This event allows the server to ask the client to change 
@@ -1671,23 +1697,14 @@ redir ();"))::
          ~name:Eliom_common.appl_name_cookie_name
          ~value:Appl_params.application_name ();
        get_tab_cook sp >>= fun tab_cookies_to_send ->
-       let do_not_launch = options (* || 
-          (Ocsigen_cookies.length tab_cookies_to_send > 1)
-          (* If there are cookies, we launch the application *)
-                                       Actually, no, we trust options ...
-                                       Because we must decide whether to launch
-                                       the application or not before
-                                       creating links and forms.
-                                    *)
-        in
 (*VVV for now not possible to give other params for one page *)
-        let page =
-          create_page
-            ~sp Appl_params.params do_not_launch tab_cookies_to_send
-            change_page_event content 
-        in
-        let options = Appl_params.params.ap_doctype in
-        Xhtml_content.result_of_content ~options page
+       let page =
+         create_page
+           ~options ~sp Appl_params.params tab_cookies_to_send
+           change_page_event content 
+       in
+       let options = Appl_params.params.ap_doctype in
+       Xhtml_content.result_of_content ~options page
        >>= fun r ->
         Lwt.return
           {r with

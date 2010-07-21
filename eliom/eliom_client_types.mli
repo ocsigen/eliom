@@ -31,7 +31,10 @@ val string_escape : string -> string
 type eliom_data_type =
     ((XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
         ((int64 * int) * unit list) *
-        Ocsigen_cookies.cookieset)
+        Ocsigen_cookies.cookieset *
+        string option (* on load script *) *
+        string option (* on change script *)
+    )
 
 type eliom_appl_answer =
   | EAContent of (eliom_data_type * string)

@@ -540,3 +540,39 @@ let unregister_for_session ~sp ?session_name ?cookie_type ?secure service =
         ?secure ?session_name ?cookie_type ~sp ())
   in
   remove_service table service
+
+
+
+
+
+(*****************************************************************************)
+(** {2 on_load and on_unload for Eliom_appl services } *)
+
+(* We keep them in rc because we want them to apply to the next page that
+   will be displayed. That is, event after an action or a (stateful) 
+   redirection.
+*)
+
+let on_load_key : string Polytables.key = Polytables.make_key ()
+
+let get_on_load ~sp = 
+  let rc = Eliom_sessions.get_request_cache ~sp in
+  try 
+    Some (Polytables.get ~table:rc ~key:on_load_key)
+  with Not_found -> None
+
+let on_unload_key : string Polytables.key = Polytables.make_key ()
+
+let get_on_unload ~sp = 
+  let rc = Eliom_sessions.get_request_cache ~sp in
+  try 
+    Some (Polytables.get ~table:rc ~key:on_unload_key)
+  with Not_found -> None
+
+let set_on_load ~sp s =
+  let rc = Eliom_sessions.get_request_cache ~sp in
+  Polytables.set ~table:rc ~key:on_load_key ~value:s
+
+let set_on_unload ~sp s =
+  let rc = Eliom_sessions.get_request_cache ~sp in
+  Polytables.set ~table:rc ~key:on_unload_key ~value:s

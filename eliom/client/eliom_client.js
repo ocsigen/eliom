@@ -4,7 +4,7 @@ var caml_closure_table = [] ;
 function caml_run_from_table (id, marg) {
   if (caml_closure_table [id] == null)
     caml_failwith ("unbound closure");
-  caml_closure_table [id] (marg);
+  return caml_closure_table [id] (marg);
 }
 
 function caml_register_closure(id, clos) {
