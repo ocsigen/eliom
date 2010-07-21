@@ -435,8 +435,8 @@ type 'a session_data =
 
 
 let set_service_session_group ?set_max
-    ?session_name ?(cookie_type = Eliom_common.CBrowser)
-    ?secure ~sp session_group =
+    ?session_name ?secure ~sp session_group =
+  let cookie_type = Eliom_common.CBrowser in
   let c =
     Eliommod_sersess.find_or_create_service_cookie
       ~set_session_group:session_group
@@ -449,7 +449,8 @@ let set_service_session_group ?set_max
           c.Eliom_common.sc_session_group_node m
 
 let unset_service_session_group ?set_max
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?secure ~sp () =
+  let cookie_type = Eliom_common.CBrowser in
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -473,7 +474,8 @@ let unset_service_session_group ?set_max
     | Eliom_common.Eliom_Session_expired -> ()
 
 let get_service_session_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?secure ~sp () =
+  let cookie_type = Eliom_common.CBrowser in
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only
@@ -487,8 +489,9 @@ let get_service_session_group
     | Eliom_common.Eliom_Session_expired -> Data_session_expired
 
 let set_volatile_data_session_group
-    ?set_max ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ?set_max ?session_name
     ?secure ~sp session_group =
+  let cookie_type = Eliom_common.CBrowser in
   let c = 
     Eliommod_datasess.find_or_create_data_cookie
       ~set_session_group:session_group
@@ -501,7 +504,8 @@ let set_volatile_data_session_group
           c.Eliom_common.dc_session_group_node m
 
 let unset_volatile_data_session_group ?set_max
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?secure ~sp () =
+  let cookie_type = Eliom_common.CBrowser in
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -525,7 +529,8 @@ let unset_volatile_data_session_group ?set_max
     | Eliom_common.Eliom_Session_expired -> ()
 
 let get_volatile_data_session_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?secure ~sp () =
+  let cookie_type = Eliom_common.CBrowser in
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -538,7 +543,8 @@ let get_volatile_data_session_group
     | Eliom_common.Eliom_Session_expired -> Data_session_expired
 
 let set_persistent_data_session_group ?set_max
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp n =
+    ?session_name ?secure ~sp n =
+  let cookie_type = Eliom_common.CBrowser in
   Eliommod_persess.find_or_create_persistent_cookie
     ?session_name ~cookie_type ~secure ~sp () >>= fun c ->
   let n =
@@ -555,7 +561,8 @@ let set_persistent_data_session_group ?set_max
   Lwt.return (grp := n)
 
 let unset_persistent_data_session_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?secure ~sp () =
+  let cookie_type = Eliom_common.CBrowser in
   Lwt.catch
     (fun () ->
        Eliommod_persess.find_persistent_cookie_only
@@ -572,7 +579,8 @@ let unset_persistent_data_session_group
 
 
 let get_persistent_data_session_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?secure ~sp () =
+  let cookie_type = Eliom_common.CBrowser in
   catch
     (fun () ->
        Eliommod_persess.find_persistent_cookie_only
@@ -694,7 +702,8 @@ let set_ipv6_subnet_mask ?sp ?(override_configfile = false) n =
 
 
 let set_max_service_sessions_for_group_or_subnet
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp m =
+    ?session_name ?secure ~sp m =
+  let cookie_type = Eliom_common.CBrowser in
   let c =
     Eliommod_sersess.find_or_create_service_cookie
       ?session_name ~cookie_type ~secure ~sp ()
@@ -702,16 +711,17 @@ let set_max_service_sessions_for_group_or_subnet
   Eliommod_sessiongroups.Data.set_max c.Eliom_common.sc_session_group_node m
 
 let set_max_volatile_data_sessions_for_group_or_subnet
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp m =
+    ?session_name ?secure ~sp m =
+  let cookie_type = Eliom_common.CBrowser in
   let c =
     Eliommod_datasess.find_or_create_data_cookie ?session_name ~cookie_type ~secure ~sp ()
   in
   Eliommod_sessiongroups.Data.set_max c.Eliom_common.dc_session_group_node m
 
 let set_max_volatile_sessions_for_group_or_subnet
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp m =
-  set_max_service_sessions_for_group_or_subnet ?session_name ~cookie_type ?secure ~sp m;
-  set_max_volatile_data_sessions_for_group_or_subnet ?session_name ~cookie_type ?secure ~sp m
+    ?session_name ?secure ~sp m =
+  set_max_service_sessions_for_group_or_subnet ?session_name ?secure ~sp m;
+  set_max_volatile_data_sessions_for_group_or_subnet ?session_name ?secure ~sp m
 
 
 

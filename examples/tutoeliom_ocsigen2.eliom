@@ -1373,9 +1373,7 @@ let tlogin_box sp session_expired action =
 (* Handler for the "connect_example6" service (main page):   *)
 
 let tconnect_example6_handler sp () () =
-  let group =
-    Eliom_sessions.get_volatile_data_session_group
- (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp ()
+  let group = Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp ()
   in
   return
     (match group with
@@ -1398,8 +1396,7 @@ let tconnect_action_handler sp () login =
  (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_sessions.set_volatile_data_session_group
-      ~set_max:4 (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp login;
+    Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
     return ()
   end
   else begin
@@ -1416,90 +1413,6 @@ let () =
   Eliom_predefmod.Action.register ~service:tconnect_action tconnect_action_handler
 
 
-(************************************************************)
-(************ Connection of users, version 5 ****************)
-(************************************************************)
-
-(*zap* *)
-let session_name = "connect_example5"
-(* *zap*)
-(* -------------------------------------------------------- *)
-(* We create one main service and two (POST) actions        *)
-(* (for connection and disconnection)                       *)
-
-let tconnect_example5 =
-  Eliom_services.new_service
-    ~path:["tgroups"]
-    ~get_params:Eliom_parameters.unit
-    ()
-
-let tconnect_action =
-  Eliom_services.new_post_coservice'
-    ~name:"tconnect5"
-    ~post_params:(Eliom_parameters.string "login")
-    ()
-
-(* As the handler is very simple, we register it now: *)
-let tdisconnect_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
-    ~name:"tdisconnect5"
-    ~post_params:Eliom_parameters.unit
-    (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp ())
-
-
-(* -------------------------------------------------------- *)
-(* login ang logout boxes:                                  *)
-
-let tdisconnect_box sp s =
-  Eliom_appl.post_form tdisconnect_action sp
-    (fun _ -> [p [Eliom_appl.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
-
-let tlogin_box sp =
-  Eliom_appl.post_form tconnect_action sp
-    (fun loginname ->
-      [p
-         (let l = [pcdata "login: ";
-                   Eliom_appl.string_input
-                     ~input_type:`Text ~name:loginname ()]
-         in l)
-     ])
-    ()
-
-
-(* -------------------------------------------------------- *)
-(* Handler for the "connect_example5" service (main page):    *)
-
-let tconnect_example5_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_data_session_group
- (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp () in
-  return
-    (match sessdat with
-      | Eliom_sessions.Data name ->
-        [p [pcdata ("Hello "^name); br ()];
-         tdisconnect_box sp "Close session"]
-      | Eliom_sessions.Data_session_expired
-      | Eliom_sessions.No_data -> [tlogin_box sp]
-    )
-
-
-(* -------------------------------------------------------- *)
-(* Handler for connect_action (user logs in):               *)
-
-let tconnect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_data_session_group
-    ~set_max:4 (*zap* *) ~session_name (* *zap*) ~cookie_type:Eliom_common.CTab ~sp login;
-  return ()
-
-
-(* -------------------------------------------------------- *)
-(* Registration of main services:                           *)
-
-let () =
-  Eliom_appl.register ~service:tconnect_example5 tconnect_example5_handler;
-  Eliom_predefmod.Action.register ~service:tconnect_action tconnect_action_handler
 
 
 

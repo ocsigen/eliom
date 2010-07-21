@@ -399,11 +399,14 @@ type 'a session_data =
     If [~secure] is false when the protocol is https, it will affect
     the unsecure session, otherwise, il will affect the secure session in 
     https, the unsecure one in http.
+
+    It is possibe to set the groupe only for regular browser sessions.
+    Tab sessions are automatically put in a group which corresponds
+    to the browser session.
 *)
 val set_service_session_group :
   ?set_max: int ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   string ->
@@ -413,7 +416,6 @@ val set_service_session_group :
 val unset_service_session_group :
   ?set_max: int ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -425,7 +427,6 @@ val unset_service_session_group :
 *)
 val get_service_session_group :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -438,7 +439,6 @@ val get_service_session_group :
 val set_volatile_data_session_group :
   ?set_max: int ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   string ->
@@ -448,7 +448,6 @@ val set_volatile_data_session_group :
 val unset_volatile_data_session_group :
   ?set_max: int ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -460,7 +459,6 @@ val unset_volatile_data_session_group :
 *)
 val get_volatile_data_session_group :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -473,7 +471,6 @@ val get_volatile_data_session_group :
 val set_persistent_data_session_group :
   ?set_max: int option ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   string ->
@@ -482,7 +479,6 @@ val set_persistent_data_session_group :
 (** Remove the session from its group *)
 val unset_persistent_data_session_group :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -494,7 +490,6 @@ val unset_persistent_data_session_group :
 *)
 val get_persistent_data_session_group :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -568,7 +563,6 @@ val set_ipv6_subnet_mask :
 *)
 val set_max_service_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -580,7 +574,6 @@ val set_max_service_sessions_for_group_or_subnet :
 *)
 val set_max_volatile_data_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   int ->
