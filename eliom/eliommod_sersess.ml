@@ -72,45 +72,76 @@ let close_service_session
   with Not_found -> ()
 
 
-let rec new_service_cookie sitedata fullsessgrp fullsessname table =
-  let c = Eliommod_cookies.make_new_session_id () in
-  try
-    ignore (Eliom_common.SessionCookies.find table c);
-                                   (* Actually not needed
-                                      for the cookies we use *)
-    new_service_cookie sitedata fullsessgrp fullsessname table
-  with Not_found ->
-    let str = ref (Eliom_common.new_service_session_tables sitedata) in
-    let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-    let serverexp = ref None (*Some 0.*) (* None = never. We'll change it later. *) in
-    let fullsessgrpref = ref fullsessgrp in
-    let node = Eliommod_sessiongroups.Serv.add sitedata c fullsessgrp in
-    Eliom_common.SessionCookies.replace
-      (* actually it will add the cookie *)
-      table
-      c
-      (fullsessname,
-       !str,
-       serverexp (* exp on server *),
-       usertimeout,
-       fullsessgrpref,
-       node);
-    {Eliom_common.sc_value= c;
-     Eliom_common.sc_table= str;
-     Eliom_common.sc_timeout= usertimeout;
-     Eliom_common.sc_exp= serverexp;
-     Eliom_common.sc_cookie_exp= ref Eliom_common.CENothing
-       (* exp on client - nothing to set *);
-     Eliom_common.sc_session_group= fullsessgrpref;
-     Eliom_common.sc_session_group_node= node;
-   }
 
+let fullsessgrp ~sp set_session_group =
+  Eliommod_sessiongroups.make_full_group_name
+    sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
+    sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
+    (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
+    (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
+    set_session_group
 
-let find_or_create_service_cookie
+let rec find_or_create_service_cookie
     ?set_session_group ?session_name ?(cookie_type = Eliom_common.CBrowser)
     ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
+
+
+  let rec new_service_cookie sitedata fullsessname table =
+
+    let set_session_group =
+      if cookie_type = Eliom_common.CTab
+      then begin (* We create a group whose name is the
+                    browser session cookie 
+                    and put the tab session into it. *)
+        Some (find_or_create_service_cookie
+                ?session_name
+                ~cookie_type:Eliom_common.CBrowser
+                ~secure
+                ~sp
+                ()).Eliom_common.sc_value
+      end
+      else set_session_group
+    in
+    let fullsessgrp = fullsessgrp ~sp set_session_group in
+
+    let rec aux () =
+      let c = Eliommod_cookies.make_new_session_id () in
+      try
+        ignore (Eliom_common.SessionCookies.find table c);
+      (* Actually not needed
+         for the cookies we use *)
+        aux ()
+      with Not_found ->
+        let str = ref (Eliom_common.new_service_session_tables sitedata) in
+        let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
+        let serverexp = ref None (*Some 0.*) (* None = never. We'll change it later. *) in
+        let fullsessgrpref = ref fullsessgrp in
+        let node = Eliommod_sessiongroups.Serv.add sitedata c fullsessgrp in
+        Eliom_common.SessionCookies.replace
+        (* actually it will add the cookie *)
+          table
+          c
+          (fullsessname,
+           !str,
+           serverexp (* exp on server *),
+           usertimeout,
+           fullsessgrpref,
+           node);
+        {Eliom_common.sc_value= c;
+         Eliom_common.sc_table= str;
+         Eliom_common.sc_timeout= usertimeout;
+         Eliom_common.sc_exp= serverexp;
+         Eliom_common.sc_cookie_exp= ref Eliom_common.CENothing
+       (* exp on client - nothing to set *);
+         Eliom_common.sc_session_group= fullsessgrpref;
+         Eliom_common.sc_session_group_node= node;
+        }
+    in aux ()
+  in
+
+
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_type session_name 
   in
@@ -118,14 +149,6 @@ let find_or_create_service_cookie
     Eliom_common.get_cookie_info sp cookie_type
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
-  let fullsessgrp =
-    Eliommod_sessiongroups.make_full_group_name
-      sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
-      sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
-      (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
-      (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
-      set_session_group
-  in
   try
     let (old, ior) = 
       Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info 
@@ -135,30 +158,31 @@ let find_or_create_service_cookie
         (* We do not trust the value sent by the client,
            for security reasons *)
     | Eliom_common.SCNo_data ->
-        let v =
-          new_service_cookie
-            sp.Eliom_common.sp_sitedata
-            fullsessgrp fullsessname
-            sp.Eliom_common.sp_sitedata.Eliom_common.session_services
-        in
-        ior := Eliom_common.SC v;
-        v
+      let v =
+        new_service_cookie
+          sp.Eliom_common.sp_sitedata
+          fullsessname
+          sp.Eliom_common.sp_sitedata.Eliom_common.session_services
+      in
+      ior := Eliom_common.SC v;
+      v
     | Eliom_common.SC c -> 
-        (match set_session_group with
-          | None -> ()
-          | Some session_group -> 
-              let node = Eliommod_sessiongroups.Serv.move
-                sp.Eliom_common.sp_sitedata
-                c.Eliom_common.sc_session_group_node fullsessgrp
-              in
-              c.Eliom_common.sc_session_group_node <- node;
-              c.Eliom_common.sc_session_group := fullsessgrp
-        );
-        c
+      let fullsessgrp = fullsessgrp ~sp set_session_group in
+      (match set_session_group with
+        | None -> ()
+        | Some session_group -> 
+          let node = Eliommod_sessiongroups.Serv.move
+            sp.Eliom_common.sp_sitedata
+            c.Eliom_common.sc_session_group_node fullsessgrp
+          in
+          c.Eliom_common.sc_session_group_node <- node;
+          c.Eliom_common.sc_session_group := fullsessgrp
+      );
+      c
   with Not_found ->
     let v =
       new_service_cookie
-        sp.Eliom_common.sp_sitedata fullsessgrp fullsessname
+        sp.Eliom_common.sp_sitedata fullsessname
         sp.Eliom_common.sp_sitedata.Eliom_common.session_services
     in
     cookie_info :=
