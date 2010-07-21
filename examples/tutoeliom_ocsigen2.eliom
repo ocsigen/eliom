@@ -534,33 +534,30 @@ let comet1 =
        in
        let t = tick_2 () in
        let `R _ = React.E.retain c2_pre (fun () -> ignore t; ignore c2) in
+
+       Eliom_services.set_on_load ~sp
+         {{
+           Eliom_client_comet.Channels.register \channel(c1)
+           (fun i ->
+             Dom.appendChild (Dom_html.document##body)
+               (Dom_html.document##createTextNode
+                  (Js.string ("public: "^ string_of_int i ^";  "))) ;
+             Lwt.return ()
+           );
+           Eliom_client_comet.Dlisted_channels.register \buffchan(c2)
+           (fun i ->
+             Dom.appendChild (Dom_html.document##body)
+               (Dom_html.document##createTextNode
+                  (Js.string ("private: "^ string_of_int i ^"; "))) ;
+             Lwt.return ()
+           )
+         }};
+
        Lwt.return
          [
            div
              [pcdata "To fully understand the meaning of the public channel, \
                       use a couple browsers on this page."] ;
-           div
-             ~a:[a_onclick{{
-                   Eliom_client_comet.Channels.register \channel(c1)
-                     (fun i ->
-                        Dom.appendChild (Dom_html.document##body)
-                          (Dom_html.document##createTextNode
-                             (Js.string ("public: "^ string_of_int i ^";  "))) ;
-                        Lwt.return ()
-                     )
-                }} ]
-             [pcdata "Click here to start public channel listening"] ;
-           div
-             ~a:[a_onclick{{
-                   Eliom_client_comet.Dlisted_channels.register \buffchan(c2)
-                     (fun i ->
-                        Dom.appendChild (Dom_html.document##body)
-                          (Dom_html.document##createTextNode
-                             (Js.string ("private: "^ string_of_int i ^"; "))) ;
-                        Lwt.return ()
-                     )
-                }} ]
-             [pcdata "Click here to start private buffered channel listening"] ;
          ]
     )
 
@@ -584,24 +581,22 @@ let comet2 =
                       e_up_real
        in
        let `R _ = React.E.retain e_up_real (fun () -> ignore e_down) in
+       Eliom_services.set_on_load ~sp
+         {{
+           React.E.map
+           (fun s -> Dom_html.window##alert (Js.string s))
+           \down_event(e_down)
+         }};
 
        (* We can send the page *)
        Lwt.return [
          h2 [pcdata "Dual events"] ;
-         div (* There's a start "button" right now, but it's gonna change *)
-           ~a:[a_onclick {{
-                React.E.map
-                  (fun s -> Dom_html.window##alert (Js.string s))
-                  \down_event(e_down)
-           }}
-              ]
-           [pcdata "START"] ;
          div (* This div is for pushing "A" to the server side event *)
            (*TODO: fix client side sp and simplify up_event unwrapping *)
-           ~a:[a_onclick {{ let sp = \sp(sp) in \up_event(e_up) "A" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = \sp(sp) in \up_event(e_up) "A" }} ]
            [pcdata "Push A"] ;
          div (* This one is for pushing "B" *)
-           ~a:[a_onclick {{ let sp = \sp(sp) in \up_event(e_up) "B" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = \sp(sp) in \up_event(e_up) "B" }} ]
            [pcdata "Push B"] ;
        ]
     )
@@ -632,27 +627,23 @@ let comet3 =
        let `R _ = React.E.retain e_up_real
                     (fun () -> ignore e_down_1 ; ignore e_down_2)
        in
+       Eliom_services.set_on_load ~sp
+         {{
+           React.E.map
+           (fun s -> Dom_html.window##alert (Js.string s))
+           (React.E.merge
+              (^) ""
+              [ React.E.map string_of_int \down_event(e_down_1) ;
+                \down_event(e_down_2) ;
+              ]
+           )
+         }};
 
        (* We can send the page *)
        Lwt.return [
          h2 [pcdata "Simultaneous events"] ;
-         div (* There's a start "button" right now, but it's gonna change *)
-           ~a:[a_onclick {{
-                React.E.map
-                  (fun s -> Dom_html.window##alert (Js.string s))
-                  (React.E.merge
-                     (^) ""
-                     [ React.E.map string_of_int \down_event(e_down_1) ;
-                       \down_event(e_down_2) ;
-                     ]
-                  )
-           }}
-              ]
-           [pcdata "START"] ;
          div (*TODO: fix client side sp and simplify up_event unwrapping *)
-           ~a:[
-             (*zap* *)a_class ["clickable"];(* *zap*)
-             a_onclick {{ let sp = \sp(sp) in \up_event(e_up) "" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = \sp(sp) in \up_event(e_up) "" }} ]
            [pcdata "Send me two values from different events !"] ;
          div [pcdata "Note that one of the two events has a greater rate limit \
                       (using throttle control). Hence you might receive only \
@@ -682,6 +673,21 @@ let comet_message_board =
        Lwt.return (
          let container = ul (li [pcdata "This is the message board"]) [] in
          let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
+         let go_online = 
+           {{
+             ignore (
+               React.E.map
+                 (fun msg ->
+                   Dom.appendChild \node(container)
+                     (XHTML.M.toelt (li [pcdata msg]))
+                 )
+                 \down_event(message_down)
+             ) ;
+             Eliom_client_comet.Engine.start ()
+           }}
+         in
+         Eliom_services.set_on_load ~sp go_online;
+         
          let go =
            div
              ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
@@ -709,17 +715,7 @@ let comet_message_board =
          [ h2 [pcdata "Message board"];
            div
              ~a:[ (*zap* *)a_class ["clickable"];(* *zap*)
-                  a_onclick {{
-                    ignore (
-                      React.E.map
-                        (fun msg ->
-                            Dom.appendChild \node(container)
-                              (XHTML.M.toelt (li [pcdata msg]))
-                        )
-                        \down_event(message_down)
-                    ) ;
-                    Eliom_client_comet.Engine.start ()
-                  }}
+                  a_onclick go_online
                 ]
              [pcdata "Go online"];
            div
