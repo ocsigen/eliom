@@ -46,30 +46,30 @@ let (set_default_service_timeout,
   let tab_persistent_t = ref (Some 86400.) in (* 1 day by default *)
   ((fun cookie_type timeout -> 
     match cookie_type with
-      | Eliom_common.CBrowser -> service_t := timeout
-      | Eliom_common.CTab -> tab_service_t := timeout
+      | `Browser -> service_t := timeout
+      | `Tab -> tab_service_t := timeout
    ),
    (fun cookie_type timeout -> 
      match cookie_type with
-       | Eliom_common.CBrowser -> data_t := timeout
-       | Eliom_common.CTab -> tab_data_t := timeout
+       | `Browser -> data_t := timeout
+       | `Tab -> tab_data_t := timeout
    ),
    (fun cookie_type timeout -> 
      match cookie_type with
-       | Eliom_common.CBrowser -> persistent_t := timeout
-       | Eliom_common.CTab -> tab_persistent_t := timeout
+       | `Browser -> persistent_t := timeout
+       | `Tab -> tab_persistent_t := timeout
    ),
    (function
-      | Eliom_common.CBrowser -> !service_t
-      | Eliom_common.CTab -> !tab_service_t
+      | `Browser -> !service_t
+      | `Tab -> !tab_service_t
    ),
    (function
-      | Eliom_common.CBrowser -> !data_t
-      | Eliom_common.CTab -> !tab_data_t
+      | `Browser -> !data_t
+      | `Tab -> !tab_data_t
    ),
    (function
-      | Eliom_common.CBrowser -> !persistent_t
-      | Eliom_common.CTab -> !tab_persistent_t
+      | `Browser -> !persistent_t
+      | `Tab -> !tab_persistent_t
    ))
 
 let set_default_volatile_timeout ct t =
@@ -87,17 +87,17 @@ let set_timeout_ get set get_default update =
       match fullsessname with
         | None -> (* means default timeout *)
           (match def_bro, def_tab, cookie_type with
-            | Some (_, true), _, Some Eliom_common.CBrowser
+            | Some (_, true), _, Some `Browser
               when not override_configfile -> ()
                (* if it has been set by config file 
                   and we do not ask to override, we do nothing *)
-            | _, Some (_, true), Some Eliom_common.CTab
+            | _, Some (_, true), Some `Tab
               when not override_configfile -> ()
                (* if it has been set by config file 
                   and we do not ask to override, we do nothing *)
-            | _, _, Some Eliom_common.CBrowser -> 
+            | _, _, Some `Browser -> 
               set sitedata (Some (t, fromconfigfile), def_tab, tl)
-            | _, _, Some Eliom_common.CTab -> 
+            | _, _, Some `Tab -> 
               set sitedata (def_bro, Some (t, fromconfigfile), tl)
             | _ -> failwith "set_timeout_"
           )
@@ -126,8 +126,8 @@ let set_timeout_ get set get_default update =
                 | Some o -> o
                 | None ->
                     match def_bro, def_tab, (fst fullsessname) with
-                      | Some (t, _), _, Eliom_common.CBrowser -> t
-                      | _, Some (t, _), Eliom_common.CTab -> t
+                      | Some (t, _), _, `Browser -> t
+                      | _, Some (t, _), `Tab -> t
                       | _, _, ct -> get_default ct
               in
               ignore 
@@ -158,8 +158,8 @@ let (find_global_service_timeout,
         fst (List.assoc fullsessname tl)
       with Not_found -> 
         match def_bro, def_tab, (fst fullsessname) with
-          | Some (t, _), _, Eliom_common.CBrowser -> t
-          | _, Some (t, _), Eliom_common.CTab -> t
+          | Some (t, _), _, `Browser -> t
+          | _, Some (t, _), `Tab -> t
           | _, _, ct -> get_default_service_timeout ct),
 
    (* find_global_data_timeout *)
@@ -169,8 +169,8 @@ let (find_global_service_timeout,
         fst (List.assoc fullsessname tl)
       with Not_found ->
         match def_bro, def_tab, (fst fullsessname) with
-          | Some (t, _), _, Eliom_common.CBrowser -> t
-          | _, Some (t, _), Eliom_common.CTab -> t
+          | Some (t, _), _, `Browser -> t
+          | _, Some (t, _), `Tab -> t
           | _, _, ct -> get_default_data_timeout ct),
 
    (* find_global_persistent_timeout *)
@@ -180,8 +180,8 @@ let (find_global_service_timeout,
         fst (List.assoc fullsessname tl)
       with Not_found ->
         match def_bro, def_tab, (fst fullsessname) with
-          | Some (t, _), _, Eliom_common.CBrowser -> t
-          | _, Some (t, _), Eliom_common.CTab -> t
+          | Some (t, _), _, `Browser -> t
+          | _, Some (t, _), `Tab -> t
           | _, _, ct -> get_default_persistent_timeout ct),
 
    (* set_global_service_timeout_ *)

@@ -39,7 +39,11 @@ exception Eliom_function_forbidden_outside_site_loading of string
 (** Eliom is using regular (browser) cookies but can also use
     browser tab cookies (only if you are using a client side program)
 *)
-type cookie_type = CBrowser | CTab
+type cookie_type = [ `Browser | `Tab ]
+(** It is possible to define data tables or service table for one
+    (browser) session, for one tab, or for one group of sessions.
+*)
+type table_type = [ `Group | `Browser | `Tab ]
 
 type fullsessionname = cookie_type * string
 module Fullsessionname_Table : Map.S with type key = fullsessionname
@@ -436,9 +440,9 @@ type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 val make_full_cookie_name : string -> string -> string
 val make_fullsessname : 
-  sp:server_params -> cookie_type -> string option -> fullsessionname
+  sp:server_params -> [< cookie_type ] -> string option -> fullsessionname
 val make_fullsessname2 : 
-  string -> cookie_type -> string option -> fullsessionname
+  string -> [< cookie_type ] -> string option -> fullsessionname
 
 
 
@@ -494,7 +498,7 @@ val find_dlist_ip_table :
   (page_table ref * page_table_key, na_key_serv)
     Ocsigen_lib.leftright Ocsigen_cache.Dlist.t
   
-val get_cookie_info : server_params -> cookie_type -> tables cookie_info
+val get_cookie_info : server_params -> [< cookie_type ] -> tables cookie_info
 
 val tab_cookie_action_info_key : (tables cookie_info * 
                                     Ocsigen_cookies.cookieset *

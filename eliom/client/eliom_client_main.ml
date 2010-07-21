@@ -22,7 +22,7 @@
 let _ =
   Dom_html.window##onload <- Dom_html.handler (fun _ ->
     let eliom_data = Eliom_client.unmarshal_js_var "eliom_data" in
-    Eliom_client.load_eliom_data_ eliom_data Dom_html.document##body;
+    ignore (Eliom_client.load_eliom_data_ eliom_data Dom_html.document##body);
 
     (* ===change page event *)
     let change_page_event

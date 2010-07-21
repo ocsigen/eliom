@@ -43,7 +43,7 @@ let close_data_group fullsessgrp =
 
 (* to be called during a request *)
 let close_data_session ?(close_group = false) ?session_name
-    ?(cookie_type = Eliom_common.CBrowser) ~secure ~sp () =
+    ?(cookie_type = `Browser) ~secure ~sp () =
   try
     let fullsessname = 
       Eliom_common.make_fullsessname ~sp cookie_type session_name
@@ -81,20 +81,20 @@ let fullsessgrp ~sp set_session_group =
     set_session_group
 
 let rec find_or_create_data_cookie ?set_session_group ?session_name
-    ?(cookie_type = Eliom_common.CBrowser) ~secure ~sp () =
+    ?(cookie_type = `Browser) ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
 
   let new_data_cookie sitedata fullsessname table =
 
     let set_session_group =
-      if cookie_type = Eliom_common.CTab
+      if cookie_type = `Tab
       then begin (* We create a group whose name is the
                     browser session cookie 
                     and put the tab session into it. *)
         let v = find_or_create_data_cookie
           ?session_name
-          ~cookie_type:Eliom_common.CBrowser
+          ~cookie_type:`Browser
           ~secure
           ~sp
           ()
@@ -193,7 +193,7 @@ let rec find_or_create_data_cookie ?set_session_group ?session_name
     v
 
 let find_data_cookie_only ?session_name 
-    ?(cookie_type = Eliom_common.CBrowser) ~secure ~sp () =
+    ?(cookie_type = `Browser) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = 

@@ -20,7 +20,8 @@
 
 
 (******************************************************************)
-type cookie_type = CBrowser | CTab
+type cookie_type = [ `Browser | `Tab ]
+type table_type = [ `Group | `Browser | `Tab ]
 
 type fullsessionname = cookie_type * string
 

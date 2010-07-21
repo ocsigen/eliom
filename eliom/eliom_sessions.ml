@@ -132,11 +132,11 @@ let get_config_default_charset ~sp =
   Ocsigen_charset_mime.default_charset
     sp.Eliom_common.sp_request.request_config.charset_assoc
 
-let get_cookies ?(cookie_type = Eliom_common.CBrowser) ~sp () =
+let get_cookies ?(cookie_type = `Browser) ~sp () =
   match cookie_type with
-    | Eliom_common.CBrowser ->
+    | `Browser ->
       Lazy.force sp.Eliom_common.sp_request.request_info.ri_cookies
-    | Eliom_common.CTab ->
+    | `Tab ->
       sp.Eliom_common.sp_si.Eliom_common.si_tab_cookies
 
 let get_data_cookies ~sp =
@@ -152,7 +152,7 @@ let get_user_cookies ~sp = sp.Eliom_common.sp_user_cookies
 let get_user_tab_cookies ~sp = sp.Eliom_common.sp_user_tab_cookies
 
 let get_service_session_cookie
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   try
     let c = Eliommod_sersess.find_service_cookie_only
       ?session_name ~cookie_type ~secure ~sp () in
@@ -160,14 +160,14 @@ let get_service_session_cookie
   with Not_found | Eliom_common.Eliom_Session_expired -> None
 
 let get_volatile_data_session_cookie
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   try
     let c = Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () in
     Some c.Eliom_common.dc_value
   with Not_found | Eliom_common.Eliom_Session_expired -> None
 
 let get_persistent_data_session_cookie
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
@@ -206,7 +206,7 @@ let set_default_persistent_data_session_timeout =
   *)
 
 let set_global_service_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ?session_name ?(cookie_type = `Browser)
     ?sp ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
   let sitedata = find_sitedata "set_global_service_timeout" sp in
@@ -220,7 +220,7 @@ let set_global_service_session_timeout
           cookie_type override_configfile false sitedata timeout
 
 let set_global_volatile_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ?session_name ?(cookie_type = `Browser)
     ?sp ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
   let sitedata = find_sitedata "set_global_data_timeout" sp in
@@ -234,7 +234,7 @@ let set_global_volatile_data_session_timeout
           cookie_type override_configfile false sitedata timeout
 
 let set_global_volatile_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ?session_name ?(cookie_type = `Browser)
     ?sp ?(recompute_expdates = false) 
     ?(override_configfile = false) timeout =
   let sitedata = find_sitedata "set_global_volatile_timeouts" sp in
@@ -253,7 +253,7 @@ let set_global_volatile_session_timeout
           cookie_type override_configfile false sitedata timeout
 
 let set_global_persistent_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ?session_name ?(cookie_type = `Browser)
     ?sp ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
   let sitedata = find_sitedata "set_global_persistent_timeout" sp in
@@ -268,18 +268,18 @@ let set_global_persistent_data_session_timeout
 
 
 let get_global_service_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?sp () =
+    ?session_name ?(cookie_type = `Browser) ?sp () =
   let sitedata = find_sitedata "get_global_timeout" sp in
   Eliommod_timeouts.get_global_service_timeout ?session_name ~cookie_type sitedata
 
 let get_global_volatile_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?sp () =
+    ?session_name ?(cookie_type = `Browser) ?sp () =
   let sitedata = find_sitedata "get_global_timeout" sp in
   Eliommod_timeouts.get_global_data_timeout
     ?session_name ~cookie_type sitedata
 
 let get_global_persistent_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?sp () =
+    ?session_name ?(cookie_type = `Browser) ?sp () =
   let sitedata = find_sitedata "get_global_persistent_timeout" sp in
   Eliommod_timeouts.get_global_persistent_timeout ?session_name ~cookie_type sitedata
 
@@ -287,7 +287,7 @@ let get_global_persistent_data_session_timeout
 
 (* Now for current session *)
 let set_service_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp t =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp t =
   let c = 
     Eliommod_sersess.find_or_create_service_cookie ?session_name ~cookie_type ~secure ~sp () 
   in
@@ -297,7 +297,7 @@ let set_service_session_timeout
   | Some t -> tor := Eliom_common.TSome t
 
 let set_volatile_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp t =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp t =
   let c = 
     Eliommod_datasess.find_or_create_data_cookie
       ?session_name ~cookie_type ~secure ~sp () 
@@ -309,7 +309,7 @@ let set_volatile_data_session_timeout
 
 
 let unset_service_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -319,7 +319,7 @@ let unset_service_session_timeout
   with Not_found | Eliom_common.Eliom_Session_expired -> ()
 
 let unset_volatile_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -330,7 +330,7 @@ let unset_volatile_data_session_timeout
 
 
 let get_service_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -347,7 +347,7 @@ let get_service_session_timeout
       ?session_name ~cookie_type sp.Eliom_common.sp_sitedata
 
 let get_volatile_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -365,12 +365,12 @@ let get_volatile_data_session_timeout
 
 
 let set_volatile_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp t =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp t =
   set_service_session_timeout ?session_name ~cookie_type ?secure ~sp t;
   set_volatile_data_session_timeout ?session_name ~cookie_type ?secure ~sp t
 
 let unset_volatile_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   unset_service_session_timeout ?session_name ~cookie_type ?secure ~sp ();
   unset_volatile_data_session_timeout ?session_name ~cookie_type ?secure ~sp ()
 
@@ -380,7 +380,7 @@ let unset_volatile_session_timeout
 
 
 let set_persistent_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp t =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp t =
   Eliommod_persess.find_or_create_persistent_cookie
     ?session_name ~cookie_type ~secure ~sp () >>= fun c ->
   let tor = c.Eliom_common.pc_timeout in
@@ -390,7 +390,7 @@ let set_persistent_data_session_timeout
       | Some t -> tor := Eliom_common.TSome t)
 
 let unset_persistent_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
@@ -404,7 +404,7 @@ let unset_persistent_data_session_timeout
        | e -> fail e)
 
 let get_persistent_data_session_timeout
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
@@ -436,7 +436,7 @@ type 'a session_data =
 
 let set_service_session_group ?set_max
     ?session_name ?secure ~sp session_group =
-  let cookie_type = Eliom_common.CBrowser in
+  let cookie_type = `Browser in
   let c =
     Eliommod_sersess.find_or_create_service_cookie
       ~set_session_group:session_group
@@ -450,7 +450,7 @@ let set_service_session_group ?set_max
 
 let unset_service_session_group ?set_max
     ?session_name ?secure ~sp () =
-  let cookie_type = Eliom_common.CBrowser in
+  let cookie_type = `Browser in
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -475,7 +475,7 @@ let unset_service_session_group ?set_max
 
 let get_service_session_group
     ?session_name ?secure ~sp () =
-  let cookie_type = Eliom_common.CBrowser in
+  let cookie_type = `Browser in
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only
@@ -491,7 +491,7 @@ let get_service_session_group
 let set_volatile_data_session_group
     ?set_max ?session_name
     ?secure ~sp session_group =
-  let cookie_type = Eliom_common.CBrowser in
+  let cookie_type = `Browser in
   let c = 
     Eliommod_datasess.find_or_create_data_cookie
       ~set_session_group:session_group
@@ -505,7 +505,7 @@ let set_volatile_data_session_group
 
 let unset_volatile_data_session_group ?set_max
     ?session_name ?secure ~sp () =
-  let cookie_type = Eliom_common.CBrowser in
+  let cookie_type = `Browser in
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -530,7 +530,7 @@ let unset_volatile_data_session_group ?set_max
 
 let get_volatile_data_session_group
     ?session_name ?secure ~sp () =
-  let cookie_type = Eliom_common.CBrowser in
+  let cookie_type = `Browser in
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -544,7 +544,7 @@ let get_volatile_data_session_group
 
 let set_persistent_data_session_group ?set_max
     ?session_name ?secure ~sp n =
-  let cookie_type = Eliom_common.CBrowser in
+  let cookie_type = `Browser in
   Eliommod_persess.find_or_create_persistent_cookie
     ?session_name ~cookie_type ~secure ~sp () >>= fun c ->
   let n =
@@ -562,7 +562,7 @@ let set_persistent_data_session_group ?set_max
 
 let unset_persistent_data_session_group
     ?session_name ?secure ~sp () =
-  let cookie_type = Eliom_common.CBrowser in
+  let cookie_type = `Browser in
   Lwt.catch
     (fun () ->
        Eliommod_persess.find_persistent_cookie_only
@@ -580,7 +580,7 @@ let unset_persistent_data_session_group
 
 let get_persistent_data_session_group
     ?session_name ?secure ~sp () =
-  let cookie_type = Eliom_common.CBrowser in
+  let cookie_type = `Browser in
   catch
     (fun () ->
        Eliommod_persess.find_persistent_cookie_only
@@ -739,7 +739,7 @@ let set_ipv6_subnet_mask ?sp ?(override_configfile = false) n =
 
 
 let set_max_service_sessions_for_group_or_subnet
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp m =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp m =
   let c =
     Eliommod_sersess.find_or_create_service_cookie
       ?session_name ~cookie_type ~secure ~sp ()
@@ -747,7 +747,7 @@ let set_max_service_sessions_for_group_or_subnet
   Eliommod_sessiongroups.Data.set_max c.Eliom_common.sc_session_group_node m
 
 let set_max_volatile_data_sessions_for_group_or_subnet
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp m =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp m =
   let c =
     Eliommod_datasess.find_or_create_data_cookie ?session_name ~cookie_type ~secure ~sp ()
   in
@@ -767,7 +767,7 @@ let set_max_volatile_sessions_for_group_or_subnet
 
 (* expiration dates *)
 let set_service_session_cookie_exp_date
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp t =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp t =
   let c = 
     Eliommod_sersess.find_or_create_service_cookie ?session_name ~cookie_type ~secure ~sp () 
   in
@@ -777,7 +777,7 @@ let set_service_session_cookie_exp_date
   | Some t -> exp := Eliom_common.CESome t
 
 (*
-let get_service_session_cookie_exp_date ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+let get_service_session_cookie_exp_date ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   try
     let (_, _, _, _, exp) = find_service_cookie_only ?session_name ~cookie_type ~secure ~sp () in
   let exp = c.Eliom_common.sc_cookie_exp in
@@ -786,7 +786,7 @@ let get_service_session_cookie_exp_date ?session_name ?(cookie_type = Eliom_comm
 *)
 
 let set_volatile_data_session_cookie_exp_date
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp t =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp t =
   let c = 
     Eliommod_datasess.find_or_create_data_cookie ?session_name ~cookie_type ~secure ~sp () 
   in
@@ -796,7 +796,7 @@ let set_volatile_data_session_cookie_exp_date
   | Some t -> exp := Eliom_common.CESome t
 
 (*
-let get_volatile_data_session_cookie_exp_date ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+let get_volatile_data_session_cookie_exp_date ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   try
     let c = find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () in
     let exp = c.Eliom_common.dc_cookie_exp in
@@ -805,13 +805,13 @@ let get_volatile_data_session_cookie_exp_date ?session_name ?(cookie_type = Elio
 *)
 
 let set_volatile_session_cookies_exp_date
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp t =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp t =
   set_service_session_cookie_exp_date ?session_name ~cookie_type ?secure ~sp t;
   set_volatile_data_session_cookie_exp_date ?session_name ~cookie_type ?secure ~sp t
 
 
 let set_persistent_data_session_cookie_exp_date
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp t =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp t =
   Eliommod_persess.find_or_create_persistent_cookie ?session_name ~cookie_type ~secure ~sp ()
   >>= fun c ->
   let exp = c.Eliom_common.pc_cookie_exp in
@@ -821,7 +821,7 @@ let set_persistent_data_session_cookie_exp_date
       | Some t -> exp := Eliom_common.CESome t)
 
 let get_persistent_data_session_cookie_exp_date
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
@@ -858,7 +858,7 @@ let get_sitedata ~sp = sp.Eliom_common.sp_sitedata
 (** If the session does not exist, we create it
    (new cookie, new session service table) *)
 let get_session_service_table 
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   let c = 
     Eliommod_sersess.find_or_create_service_cookie ?session_name ~cookie_type ~secure ~sp () 
   in
@@ -866,7 +866,7 @@ let get_session_service_table
 
 (** If the session does not exist, we raise Not_found *)
 let get_session_service_table_if_exists
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -891,7 +891,7 @@ type 'a persistent_table = (int64 * 'a) Ocsipersist.table
 let create_persistent_table = Eliom_common.create_persistent_table
 
 let get_persistent_session_data 
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~table ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~table ~sp () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
@@ -905,14 +905,14 @@ let get_persistent_session_data
       | e -> fail e)
 
 let set_persistent_session_data
-    ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ?session_name ?(cookie_type = `Browser)
     ?secure ~table ~sp value =
   Eliommod_persess.find_or_create_persistent_cookie
     ?session_name ~cookie_type ~secure ~sp () >>= fun c ->
   Ocsipersist.add table c.Eliom_common.pc_value (Int64.zero, value)
 
 let remove_persistent_session_data
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~table ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~table ~sp () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
@@ -938,7 +938,7 @@ let create_volatile_table ?sp () =
   | Some sp -> Eliommod_datasess.create_volatile_table_during_session sp
 
 let get_volatile_session_data
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~table ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~table ~sp () =
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -949,7 +949,7 @@ let get_volatile_session_data
   | Eliom_common.Eliom_Session_expired -> Data_session_expired
 
 let set_volatile_session_data
-    ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ?session_name ?(cookie_type = `Browser)
     ?secure ~table ~sp value =
   let c = 
     Eliommod_datasess.find_or_create_data_cookie ?session_name ~cookie_type ~secure ~sp () 
@@ -957,7 +957,7 @@ let set_volatile_session_data
   Eliom_common.SessionCookies.replace table c.Eliom_common.dc_value value
 
 let remove_volatile_session_data
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~table ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~table ~sp () =
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
@@ -970,7 +970,7 @@ let remove_volatile_session_data
 (*****************************************************************************)
 (** Close a session *)
 let close_persistent_data_session ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser)
+    ?session_name ?(cookie_type = `Browser)
     ?secure ~sp () = 
   match secure with
     | None ->
@@ -983,7 +983,7 @@ let close_persistent_data_session ?close_group
           ~secure ~sp ()
 
 let close_service_session ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () = 
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () = 
   match secure with
     | None ->
         Eliommod_sersess.close_service_session 
@@ -995,7 +995,7 @@ let close_service_session ?close_group
           ?close_group ?session_name ~cookie_type ~secure ~sp ()
 
 let close_volatile_data_session ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   match secure with
     | None ->
         Eliommod_datasess.close_data_session 
@@ -1007,41 +1007,41 @@ let close_volatile_data_session ?close_group
           ?close_group ?session_name ~cookie_type ~secure ~sp ()
 
 let close_volatile_session ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () = 
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () = 
   close_volatile_data_session ?close_group ?session_name ~cookie_type ?secure ~sp ();
   close_service_session ?close_group ?session_name ~cookie_type ?secure ~sp ()
 
 let close_session ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?secure ~sp () =
+    ?session_name ?(cookie_type = `Browser) ?secure ~sp () =
   close_volatile_session ?close_group ?session_name ~cookie_type ?secure ~sp ();
   close_persistent_data_session ?close_group ?session_name ~cookie_type ?secure ~sp ()
 
 let close_all_volatile_data_sessions ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?sp () =
+    ?session_name ?(cookie_type = `Browser) ?sp () =
   let sitedata = find_sitedata "close_all_data_sessions" sp in
   Eliommod_sessadmin.close_all_data_sessions ?close_group ?session_name ~cookie_type sitedata
 
 let close_all_service_sessions ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?sp () =
+    ?session_name ?(cookie_type = `Browser) ?sp () =
   let sitedata = find_sitedata "close_all_service_sessions" sp in
   Eliommod_sessadmin.close_all_service_sessions ?close_group ?session_name ~cookie_type sitedata
 
 let close_all_volatile_sessions ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?sp () =
+    ?session_name ?(cookie_type = `Browser) ?sp () =
   close_all_volatile_data_sessions ?close_group ?session_name ~cookie_type ?sp () >>=
   close_all_service_sessions ?close_group ?session_name ~cookie_type ?sp
 
 
 
 let close_all_persistent_data_sessions ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?sp () =
+    ?session_name ?(cookie_type = `Browser) ?sp () =
   let sitedata =
     find_sitedata "close_all_persistent_sessions" sp
   in
   Eliommod_sessadmin.close_all_persistent_sessions ?close_group ?session_name ~cookie_type sitedata
 
 let close_all_sessions ?close_group
-    ?session_name ?(cookie_type = Eliom_common.CBrowser) ?sp () =
+    ?session_name ?(cookie_type = `Browser) ?sp () =
  close_all_volatile_sessions ?close_group ?session_name ~cookie_type ?sp () >>=
  close_all_persistent_data_sessions ?close_group ?session_name ~cookie_type ?sp
 
@@ -1263,27 +1263,27 @@ let change_pathopt_ sp = function
   | Some p -> sp.Eliom_common.sp_sitedata.Eliom_common.site_dir@p
 
 let set_cookie
-    ~sp ?(cookie_type = Eliom_common.CBrowser) ?path ?exp ~name ~value 
+    ~sp ?(cookie_type = `Browser) ?path ?exp ~name ~value 
     ?(secure = false) () =
   let path = change_pathopt_ sp path in
   match cookie_type with
-    | Eliom_common.CBrowser ->
+    | `Browser ->
       sp.Eliom_common.sp_user_cookies <- Ocsigen_cookies.add_cookie
         path name (Ocsigen_cookies.OSet (exp, value, secure))
         sp.Eliom_common.sp_user_cookies
-    | Eliom_common.CTab ->
+    | `Tab ->
       sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookies.add_cookie
         path name (Ocsigen_cookies.OSet (exp, value, secure))
         sp.Eliom_common.sp_user_tab_cookies
 
 let unset_cookie
-    ~sp ?(cookie_type = Eliom_common.CBrowser) ?path ~name () =
+    ~sp ?(cookie_type = `Browser) ?path ~name () =
   let path = change_pathopt_ sp path in
   match cookie_type with
-    | Eliom_common.CBrowser ->
+    | `Browser ->
       sp.Eliom_common.sp_user_cookies <- Ocsigen_cookies.add_cookie
         path name Ocsigen_cookies.OUnset sp.Eliom_common.sp_user_cookies
-    | Eliom_common.CTab ->
+    | `Tab ->
       sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookies.add_cookie
         path name Ocsigen_cookies.OUnset sp.Eliom_common.sp_user_tab_cookies
 

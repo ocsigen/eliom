@@ -198,8 +198,8 @@ let parse_eliom_option
       | [] -> res
       | ("value", s)::l -> aux (Some s, sn, ct) l
       | ("sessionname", sn)::l -> aux (v, Some sn, ct) l
-      | ("sessiontype", "browser")::l -> aux (v, sn, Eliom_common.CBrowser) l
-      | ("sessiontype", "tab")::l -> aux (v, sn, Eliom_common.CTab) l
+      | ("sessiontype", "browser")::l -> aux (v, sn, `Browser) l
+      | ("sessiontype", "tab")::l -> aux (v, sn, `Tab) l
       | ("sessiontype", _)::l -> 
           raise 
             (Error_in_config_file
@@ -209,7 +209,7 @@ let parse_eliom_option
             (Error_in_config_file
                ("Eliom: Wrong attribute name for "^tn^" tag"))
     in 
-    let (a, sn, ct) = aux (None, None, Eliom_common.CBrowser) attrs in
+    let (a, sn, ct) = aux (None, None, `Browser) attrs in
     let a = match a with
       | None ->
         raise 

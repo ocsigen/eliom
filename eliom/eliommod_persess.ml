@@ -33,14 +33,14 @@ open Lwt
 
 (*
 let string_of_fullsessionname (ct, fsn) = match ct with
-  | Eliom_common.CBrowser -> "b"^fsn
-  | Eliom_common.CTab -> "t"^fsn
+  | `Browser -> "b"^fsn
+  | `Tab -> "t"^fsn
 
 let fullsessionname_of_string s =
   let ct =
     match s.[0] with
-      | 't' -> Eliom_common.CTab
-      | 'b' -> Eliom_common.CBrowser
+      | 't' -> `Tab
+      | 'b' -> `Browser
       | _ -> failwith "fullsessionname_of_string"
   in
   (ct, String.sub s 1 (String.length s - 1))
@@ -96,7 +96,7 @@ let close_persistent_group fullsessgrp =
 
 (* close current persistent session *)
 let close_persistent_session ?(close_group = false) ?session_name 
-    ?(cookie_type = Eliom_common.CBrowser) ~secure ~sp () =
+    ?(cookie_type = `Browser) ~secure ~sp () =
   catch
     (fun () ->
       let fullsessname = 
@@ -135,13 +135,13 @@ let fullsessgrp ~sp session_group =
 
 let rec find_or_create_persistent_cookie_
     ?set_max_in_group ?set_session_group ?session_name
-    ?(cookie_type = Eliom_common.CBrowser) ~secure ~sp () =
+    ?(cookie_type = `Browser) ~secure ~sp () =
   (* if it exists, do not create it, but returns its value *)
 
 
   let new_persistent_cookie sitedata fullsessname =
 
-    (if cookie_type = Eliom_common.CTab
+    (if cookie_type = `Tab
      then begin (* We create a group whose name is the
                    browser session cookie 
                    and put the tab session into it. *)
@@ -149,7 +149,7 @@ let rec find_or_create_persistent_cookie_
          ~set_max_in_group:
          (fst sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group)
          ?session_name
-         ~cookie_type:Eliom_common.CBrowser
+         ~cookie_type:`Browser
          ~secure
          ~sp
          () >>= fun r -> Lwt.return (Some r.Eliom_common.pc_value)
@@ -226,7 +226,7 @@ let find_or_create_persistent_cookie
 
 
 let find_persistent_cookie_only ?session_name
-    ?(cookie_type = Eliom_common.CBrowser) ~secure ~sp () =
+    ?(cookie_type = `Browser) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = 

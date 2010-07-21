@@ -497,18 +497,18 @@ and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
 let make_full_cookie_name a b = a^b
 
 let make_fullsessname ~sp cookie_type = function
-  | None -> (cookie_type, sp.sp_sitedata.site_dir_string)
-  | Some s -> (cookie_type, sp.sp_sitedata.site_dir_string^"|"^s)
+  | None -> ((cookie_type :> cookie_type), sp.sp_sitedata.site_dir_string)
+  | Some s -> ((cookie_type :> cookie_type), sp.sp_sitedata.site_dir_string^"|"^s)
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
 let make_fullsessname2 site_dir_string cookie_type = function
-  | None -> (cookie_type, site_dir_string)
-  | Some s -> (cookie_type, site_dir_string^"|"^s)
+  | None -> ((cookie_type :> cookie_type), site_dir_string)
+  | Some s -> ((cookie_type :> cookie_type), site_dir_string^"|"^s)
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
 let get_cookie_info sp = function
-  | CBrowser -> sp.sp_cookie_info
-  | CTab -> sp.sp_tab_cookie_info
+  | `Browser -> sp.sp_cookie_info
+  | `Tab -> sp.sp_tab_cookie_info
 
 
 
@@ -836,17 +836,17 @@ let get_session_info req previous_extension_err =
 
   let browser_cookies = Lazy.force ri.Ocsigen_extensions.ri_cookies in
 
-  let data_cookies = getcookies CBrowser datacookiename browser_cookies in
-  let service_cookies = getcookies CBrowser servicecookiename browser_cookies in
-  let persistent_cookies = getcookies CBrowser persistentcookiename browser_cookies in
+  let data_cookies = getcookies `Browser datacookiename browser_cookies in
+  let service_cookies = getcookies `Browser servicecookiename browser_cookies in
+  let persistent_cookies = getcookies `Browser persistentcookiename browser_cookies in
   
   let secure_cookie_info =
     if ri.Ocsigen_extensions.ri_ssl
     then
-      let sdata_cookies = getcookies CBrowser sdatacookiename browser_cookies in
-      let sservice_cookies = getcookies CBrowser sservicecookiename browser_cookies in
+      let sdata_cookies = getcookies `Browser sdatacookiename browser_cookies in
+      let sservice_cookies = getcookies `Browser sservicecookiename browser_cookies in
       let spersistent_cookies =
-        getcookies CBrowser spersistentcookiename browser_cookies
+        getcookies `Browser spersistentcookiename browser_cookies
       in
       Some (sservice_cookies, sdata_cookies, spersistent_cookies)
     else None
@@ -964,16 +964,16 @@ let get_session_info req previous_extension_err =
          nl_get_params Ocsigen_lib.String_Table.empty)
   in
 
-  let data_cookies_tab = getcookies CTab datacookiename tab_cookies in
-  let service_cookies_tab = getcookies CTab servicecookiename tab_cookies in
-  let persistent_cookies_tab = getcookies CTab persistentcookiename tab_cookies in
+  let data_cookies_tab = getcookies `Tab datacookiename tab_cookies in
+  let service_cookies_tab = getcookies `Tab servicecookiename tab_cookies in
+  let persistent_cookies_tab = getcookies `Tab persistentcookiename tab_cookies in
   
   let secure_cookie_info_tab =
     if ri.Ocsigen_extensions.ri_ssl
     then
-      let sdata_cookies = getcookies CTab sdatacookiename tab_cookies in
-      let sservice_cookies = getcookies CTab sservicecookiename tab_cookies in
-      let spersistent_cookies = getcookies CTab spersistentcookiename tab_cookies in
+      let sdata_cookies = getcookies `Tab sdatacookiename tab_cookies in
+      let sservice_cookies = getcookies `Tab sservicecookiename tab_cookies in
+      let spersistent_cookies = getcookies `Tab spersistentcookiename tab_cookies in
       Some (sservice_cookies, sdata_cookies, spersistent_cookies)
     else None
   in

@@ -1666,7 +1666,7 @@ redir ();"))::
                    and use the change_page_event to update the content. *)
        match (Eliom_sessions.get_volatile_session_data
                 ~session_name:eliom_appl_session_name
-                ~cookie_type:Eliom_common.CTab
+                ~cookie_type:`Tab
                 ~table:change_page_event_table ~sp ())
        with
          | Eliom_sessions.Data change_current_page ->
@@ -1690,10 +1690,10 @@ redir ();"))::
        in
        Eliom_sessions.set_volatile_session_data
          ~session_name:eliom_appl_session_name
-         ~cookie_type:Eliom_common.CTab
+         ~cookie_type:`Tab
          ~table:change_page_event_table ~sp change_current_page;
        Eliom_sessions.set_cookie ~sp
-         ~cookie_type:Eliom_common.CTab
+         ~cookie_type:`Tab
          ~name:Eliom_common.appl_name_cookie_name
          ~value:Appl_params.application_name ();
        get_tab_cook sp >>= fun tab_cookies_to_send ->
