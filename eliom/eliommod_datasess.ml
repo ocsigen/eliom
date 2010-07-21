@@ -133,10 +133,7 @@ let rec find_or_create_data_cookie ?set_session_group ?session_name
         }
     in
     aux ()
-
-
   in
-
 
   let fullsessname =
     Eliom_common.make_fullsessname ~sp cookie_type session_name 

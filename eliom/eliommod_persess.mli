@@ -15,12 +15,8 @@ val close_persistent_session :
   ?cookie_type:Eliom_common.cookie_type ->
   secure:bool option ->
   sp:Eliom_common.server_params -> unit -> unit Lwt.t
-val new_persistent_cookie :
-  Eliom_common.sitedata ->
-  Eliom_common.perssessgrp option ->
-  Eliom_common.fullsessionname -> Eliom_common.one_persistent_cookie_info Lwt.t
 val find_or_create_persistent_cookie :
-  ?session_group:string ->
+  ?set_session_group:string ->
   ?session_name:string ->
   ?cookie_type:Eliom_common.cookie_type ->
   secure:bool option ->

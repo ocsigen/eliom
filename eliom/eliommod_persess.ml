@@ -126,49 +126,61 @@ let close_persistent_session ?(close_group = false) ?session_name
       | e -> fail e)
 
 
-let rec new_persistent_cookie sitedata fullsessgrp fullsessname =
-  let c = Eliommod_cookies.make_new_session_id () in
-(*  catch
-    (fun () ->
-      Ocsipersist.find persistent_cookies_table c >>= (* useless *)
-      (fun _ -> new_persistent_cookie sitedata fullsessgrp fullsessname))(* never succeeds *)
-    (function
-      | Not_found ->
-          begin *)
-            let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
-            Ocsipersist.add
-              (Lazy.force persistent_cookies_table) c
-              (fullsessname,
-               None (* Some 0. *) (* exp on server - We'll change it later *),
-               Eliom_common.TGlobal (* timeout - see global config *),
-               fullsessgrp)
-            >>= fun () ->
-            Eliommod_sessiongroups.Pers.add
-              (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
-              c fullsessgrp >>= fun l ->
-            Lwt_util.iter
-              (close_persistent_session2 None) l >>= fun () ->
-            return {Eliom_common.pc_value= c;
-                    Eliom_common.pc_timeout= usertimeout;
-                    Eliom_common.pc_cookie_exp=
-                    ref Eliom_common.CENothing (* exp on client *);
-                    Eliom_common.pc_session_group= ref fullsessgrp
-                  }
-(*          end
-      | e -> fail e) *)
+let fullsessgrp ~sp session_group =
+  Eliommod_sessiongroups.make_persistent_full_group_name
+    sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
+    sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
+    session_group
 
 
-let find_or_create_persistent_cookie ?session_group ?session_name
+let rec find_or_create_persistent_cookie ?set_session_group ?session_name
     ?(cookie_type = Eliom_common.CBrowser) ~secure ~sp () =
   (* if it exists, do not create it, but returns its value *)
+
+
+  let new_persistent_cookie sitedata fullsessname =
+
+    (if cookie_type = Eliom_common.CTab
+     then begin (* We create a group whose name is the
+                   browser session cookie 
+                   and put the tab session into it. *)
+       find_or_create_persistent_cookie
+         ?session_name
+         ~cookie_type:Eliom_common.CBrowser
+         ~secure
+         ~sp
+         () >>= fun r -> Lwt.return (Some r.Eliom_common.pc_value)
+     end
+     else Lwt.return set_session_group) >>= fun set_session_group ->
+
+    let fullsessgrp = fullsessgrp ~sp set_session_group in
+
+    let c = Eliommod_cookies.make_new_session_id () in
+  (* We do not need to verify if it already exists.
+     make_new_session_id does never generate twice the same cookie. *)
+    let usertimeout = ref Eliom_common.TGlobal (* See global table *) in
+    Ocsipersist.add
+      (Lazy.force persistent_cookies_table) c
+      (fullsessname,
+       None (* Some 0. *) (* exp on server - We'll change it later *),
+       Eliom_common.TGlobal (* timeout - see global config *),
+       fullsessgrp)
+    >>= fun () ->
+    Eliommod_sessiongroups.Pers.add
+      (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
+      c fullsessgrp >>= fun l ->
+    Lwt_util.iter
+      (close_persistent_session2 None) l >>= fun () ->
+    return {Eliom_common.pc_value= c;
+            Eliom_common.pc_timeout= usertimeout;
+            Eliom_common.pc_cookie_exp=
+        ref Eliom_common.CENothing (* exp on client *);
+            Eliom_common.pc_session_group= ref fullsessgrp
+           }
+  in
+
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_type session_name 
-  in
-  let fullsessgrp =
-    Eliommod_sessiongroups.make_persistent_full_group_name
-      sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
-      sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
-      session_group
   in
   let ((_, _, cookie_info), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_type
@@ -176,30 +188,31 @@ let find_or_create_persistent_cookie ?session_group ?session_name
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   catch
     (fun () ->
-      Lazy.force (Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info)
+      Lazy.force
+        (Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info)
       >>= fun (old, ior) ->
       match !ior with
       | Eliom_common.SCData_session_expired
           (* We do not trust the value sent by the client,
              for security reasons *)
       | Eliom_common.SCNo_data ->
-          new_persistent_cookie
-            sp.Eliom_common.sp_sitedata
-            fullsessgrp fullsessname >>= fun v ->
-          ior := Eliom_common.SC v;
-          return v
+        new_persistent_cookie
+          sp.Eliom_common.sp_sitedata
+          fullsessname >>= fun v ->
+        ior := Eliom_common.SC v;
+        return v
       | Eliom_common.SC v -> return v)
     (function
       | Not_found ->
-          new_persistent_cookie
-            sp.Eliom_common.sp_sitedata
-            fullsessgrp fullsessname >>= fun v ->
-          cookie_info :=
-            Eliom_common.Fullsessionname_Table.add
-              fullsessname
-              (Lazy.lazy_from_val (return (None, ref (Eliom_common.SC v))))
-              !cookie_info;
-          return v
+        (new_persistent_cookie
+           sp.Eliom_common.sp_sitedata
+           fullsessname >>= fun v ->
+         cookie_info :=
+           Eliom_common.Fullsessionname_Table.add
+           fullsessname
+           (Lazy.lazy_from_val (return (None, ref (Eliom_common.SC v))))
+           !cookie_info;
+         return v)
       | e -> fail e)
 
 
