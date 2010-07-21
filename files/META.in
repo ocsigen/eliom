@@ -152,6 +152,23 @@ package "ext" (
     archive(native) = "eliom.cmxa"
   )
 
+  package "eliom_client" (
+    requires = ""
+    version = "[distributed with Ocsigen]"
+    description = "Eliom client-side"
+    archive(byte) = "eliom_client.cma eliom_client_main.cmo"
+    directory = "client"
+  )
+
+  package "eliom_client_syntax" (
+    requires = "camlp4"
+    version = "[distributed with Ocsigen]"
+    description = "Syntax extension: spliting client and server code"
+    archive(syntax,preprocessor) = "pa_eliom_client.cmo"
+    archive(syntax,toploop) = "pa_eliom_client.cmo"
+    directory = "client"
+  )
+
   package "deflatemod" (
     exists_if = "deflatemod.cmo,deflatemod.cmx"
     requires = "ocsigen.server,_CAMLZIPNAME_"
@@ -188,25 +205,5 @@ package "ext" (
     archive(native) = "comet.cmx"
   )
 
-)
-
-package "eliom_client" (
-    requires = ""
-    version = "[distributed with Ocsigen]"
-    description = "Eliom client-side"
-    archive(byte) = "eliom_client.cma"
-  )
-
-package "eliom_client_syntax" (
-  requires = "camlp4"
-  description = "Syntax extension: Ocaml function calls from pages"
-  archive(syntax,preprocessor) = "pa_eliom_client.cmo"
-  archive(syntax,toploop) = "pa_eliom_client.cmo"
-)
-
-package "eliom_client_server_syntax" (
-  requires = "camlp4"
-  description = "Syntax extension: spliting client and server code"
-  archive(syntax,preprocessor) = "pa_eliom_client.cmo"
 )
 

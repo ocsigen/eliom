@@ -68,7 +68,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)server/ocsigen_extensions.mli				\
 	$(DOCPREF)server/ocsigen_parseconfig.mli			\
 	$(DOCPREF)server/ocsigen_server.mli				\
-	$(DOCPREF)xmlp4/xml-prettyx/htmlpretty_streams.mli		\
+	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty_streams.mli		\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact_streams.mli		\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty.mli			\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact.mli			\
@@ -125,6 +125,10 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
        baselib/polytables.cmi
 
+CLIENTSCMITOINSTALL = \
+       eliom/client/eliom_client.cmi eliom/client/eliom_client_comet.cmi \
+       eliom/client/eliom_client_event.cmi
+
 # Put here only those which do not have cmxs (Vincent: Why?)
 CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/xhtmlpretty.cma	\
 	xmlp4/xhtml.cma server/ocsigen.cma 
@@ -151,8 +155,7 @@ EXAMPLESCMOA = examples/tutoeliom.cma examples/monitoring.cmo	\
 EXAMPLESCMI = examples/tutoeliom.cmi
 
 ifeq "$(BYTECODE)" "YES"
-TOINSTALLBYTE=$(CMATOINSTALL) $(CMOTOINSTALL)\
-	      $(PLUGINSCMATOINSTALL) $(PLUGINSCMOTOINSTALL)
+TOINSTALLBYTE=$(CMATOINSTALL) $(CMOTOINSTALL)
 PLUGINSTOINSTALLBYTE=$(PLUGINSCMATOINSTALL) $(PLUGINSCMOTOINSTALL)
 EXAMPLESBYTE=$(EXAMPLESCMOA)
 BYTE=byte
@@ -196,7 +199,33 @@ endif
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) eliom/pa_eliom_client.cmo eliom/client/eliom_client.cma eliom/client/eliom_client_main.cmo eliom/client/eliom_client.js
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) 
+CLIENTCMOTOINSTALL=eliom/pa_eliom_client.cmo eliom/client/eliom_client.cma eliom/client/eliom_client_main.cmo eliom/client/eliom_client.js
+CLIENTCMITOINSTALL= \
+        eliom/client/eliom_client.cmi \
+	eliom/client/eliom_common_comet.cmi \
+        eliom/client/eliom_predefmod.cmi \
+        eliom/client/ocsigen_cookies.cmi \
+        eliom/client/xhtml5types.cmi \
+        eliom/client/eliom_client_comet.cmi \
+        eliom/client/eliom_mkforms.cmi \
+        eliom/client/eliom_process.cmi \
+        eliom/client/xHTML.cmi \
+        eliom/client/eliom_client_event.cmi \
+        eliom/client/eliom_request.cmi \
+        eliom/client/ocsigen_lib.cmi \
+        eliom/client/xhtmltypes.cmi \
+        eliom/client/eliom_services.cmi \
+        eliom/client/polytables.cmi \
+        eliom/client/xML.cmi \
+        eliom/client/eliom_client_types.cmi \
+        eliom/client/eliom_sessions.cmi \
+        eliom/client/regexp.cmi \
+        eliom/client/eliom_common.cmi \
+        eliom/client/eliom_parameters.cmi \
+        eliom/client/eliom_uri.cmi \
+        eliom/client/xHTML5.cmi
+
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
@@ -377,6 +406,7 @@ depend:
 .PHONY: partialinstall install doc docinstall installnodoc logrotate dist
 partialinstall:
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
+	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)/client
 	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/METAS
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/extensions
@@ -384,6 +414,7 @@ partialinstall:
 	$(MAKE) -C server install
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
+	$(INSTALL) -m 644 $(CLIENTCMITOINSTALL) $(CLIENTCMOTOINSTALL) $(TEMPROOT)$(MODULEINSTALLDIR)/client
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 #	$(INSTALL) -m 644 $(PLUGINSTOINSTALL) $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)/extensions
