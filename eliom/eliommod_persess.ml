@@ -133,7 +133,8 @@ let fullsessgrp ~sp session_group =
     session_group
 
 
-let rec find_or_create_persistent_cookie ?set_session_group ?session_name
+let rec find_or_create_persistent_cookie_
+    ?set_max_in_group ?set_session_group ?session_name
     ?(cookie_type = Eliom_common.CBrowser) ~secure ~sp () =
   (* if it exists, do not create it, but returns its value *)
 
@@ -144,7 +145,9 @@ let rec find_or_create_persistent_cookie ?set_session_group ?session_name
      then begin (* We create a group whose name is the
                    browser session cookie 
                    and put the tab session into it. *)
-       find_or_create_persistent_cookie
+       find_or_create_persistent_cookie_
+         ~set_max_in_group:
+         (fst sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group)
          ?session_name
          ~cookie_type:Eliom_common.CBrowser
          ~secure
@@ -167,6 +170,7 @@ let rec find_or_create_persistent_cookie ?set_session_group ?session_name
        fullsessgrp)
     >>= fun () ->
     Eliommod_sessiongroups.Pers.add
+      ?set_max:set_max_in_group
       (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
       c fullsessgrp >>= fun l ->
     Lwt_util.iter
@@ -215,6 +219,10 @@ let rec find_or_create_persistent_cookie ?set_session_group ?session_name
          return v)
       | e -> fail e)
 
+let find_or_create_persistent_cookie
+    ?set_session_group ?session_name ?cookie_type ~secure ~sp () =
+  find_or_create_persistent_cookie_
+    ?set_session_group ?session_name ?cookie_type ~secure ~sp ()
 
 
 let find_persistent_cookie_only ?session_name

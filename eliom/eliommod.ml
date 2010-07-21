@@ -40,7 +40,11 @@ let default_max_service_sessions_per_group = ref 5
 let default_max_service_sessions_per_subnet = ref 1000000
 let default_max_data_sessions_per_group = ref 5
 let default_max_data_sessions_per_subnet = ref 1000000
-(* Must be large enough, because it must work behind a reverse proxy.
+let default_max_persistent_tab_sessions_per_group = ref 50
+let default_max_service_tab_sessions_per_group = ref 50
+let default_max_data_tab_sessions_per_group = ref 50
+
+(* Subnet defaults be large enough, because it must work behind a reverse proxy.
 
    If 1 session takes 1000 bytes (data + tables etc),
    1 million sessions take 1 GB.
@@ -116,6 +120,12 @@ let new_sitedata =
                 !default_max_service_sessions_per_group, false;
              max_persistent_data_sessions_per_group =
                 Some !default_max_persistent_sessions_per_group, false;
+             max_service_tab_sessions_per_group =
+                !default_max_service_tab_sessions_per_group, false;
+             max_volatile_data_tab_sessions_per_group =
+                !default_max_service_tab_sessions_per_group, false;
+             max_persistent_data_tab_sessions_per_group =
+                Some !default_max_persistent_tab_sessions_per_group, false;
              max_service_sessions_per_subnet =
                 !default_max_data_sessions_per_subnet, false;
              max_volatile_data_sessions_per_subnet =
@@ -174,6 +184,9 @@ let parse_eliom_option
      set_max_data_sessions_per_group,
      set_max_data_sessions_per_subnet,
      set_max_persistent_sessions_per_group,
+     set_max_service_tab_sessions_per_group,
+     set_max_data_tab_sessions_per_group,
+     set_max_persistent_tab_sessions_per_group,
      set_max_services_per_session,
      set_max_services_per_subnet,
      set_ipv4mask,
@@ -289,6 +302,37 @@ let parse_eliom_option
          raise 
            (Error_in_config_file
               ("Eliom: Wrong attribute value for maxpersistentsessionspergroup tag")))
+  | (Element ("maxvolatiletabsessionspergroup", [("value", v)], [])) ->
+      (try 
+         let i = int_of_string v in
+         set_max_service_tab_sessions_per_group i;
+         set_max_data_tab_sessions_per_group i
+       with Failure _ -> 
+         raise 
+           (Error_in_config_file
+              ("Eliom: Wrong attribute value for maxvolatiletabsessionspergroup tag")))
+  | (Element ("maxservicetabsessionspergroup", [("value", v)], [])) ->
+      (try 
+         let i = int_of_string v in
+         set_max_service_tab_sessions_per_group i;
+       with Failure _ ->
+         raise (Error_in_config_file
+                  ("Eliom: Wrong attribute value for maxservicetabsessionspergroup tag")))
+  | (Element ("maxdatatabsessionspergroup", [("value", v)], [])) ->
+      (try 
+         let i = int_of_string v in
+         set_max_data_tab_sessions_per_group i
+       with Failure _ -> 
+         raise (Error_in_config_file
+                  ("Eliom: Wrong attribute value for maxdatatabsessionspergroup tag")))
+  | (Element ("maxpersistenttabsessionspergroup", [("value", v)], [])) ->
+      (try 
+         let i = int_of_string v in
+         set_max_persistent_tab_sessions_per_group i;
+       with Failure _ -> 
+         raise 
+           (Error_in_config_file
+              ("Eliom: Wrong attribute value for maxpersistenttabsessionspergroup tag")))
   | (Element ("maxanonymouscoservicespersession", [("value", v)], [])) ->
       (try 
          let i = int_of_string v in
@@ -401,6 +445,9 @@ let rec parse_global_config = function
          (fun v -> default_max_data_sessions_per_group := v),
          (fun v -> default_max_data_sessions_per_subnet := v),
          (fun v -> default_max_persistent_sessions_per_group := v),
+         (fun v -> default_max_service_tab_sessions_per_group := v),
+         (fun v -> default_max_data_tab_sessions_per_group := v),
+         (fun v -> default_max_persistent_tab_sessions_per_group := v),
          (fun v -> default_max_anonymous_services_per_session := v),
          (fun v -> default_max_anonymous_services_per_subnet := v),
          (fun v -> Eliom_common.ipv4mask := v),
@@ -643,6 +690,9 @@ let parse_config hostpattern conf_info site_dir =
              (fun v -> sitedata.Eliom_common.max_volatile_data_sessions_per_group <- v, true),
              (fun v -> sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <- v, true),
              (fun v -> sitedata.Eliom_common.max_persistent_data_sessions_per_group <- Some v,true),
+             (fun v -> sitedata.Eliom_common.max_service_tab_sessions_per_group <- v, true),
+             (fun v -> sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group <- v, true),
+             (fun v -> sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group <- Some v,true),
              (fun v -> sitedata.Eliom_common.max_anonymous_services_per_session <- v, true),
              (fun v -> 
                 sitedata.Eliom_common.max_anonymous_services_per_subnet <- v, true;

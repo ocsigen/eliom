@@ -473,9 +473,12 @@ and sitedata =
    mutable unregistered_na_services: na_key_serv list;
    mutable max_volatile_data_sessions_per_group : int * bool;
    mutable max_volatile_data_sessions_per_subnet : int * bool;
+   mutable max_volatile_data_tab_sessions_per_group : int * bool;
    mutable max_service_sessions_per_group : int * bool;
    mutable max_service_sessions_per_subnet : int * bool;
+   mutable max_service_tab_sessions_per_group : int * bool;
    mutable max_persistent_data_sessions_per_group : int option * bool;
+   mutable max_persistent_data_tab_sessions_per_group : int option * bool;
    mutable max_anonymous_services_per_session : int * bool;
    mutable max_anonymous_services_per_subnet : int * bool;
    dlist_ip_table : dlist_ip_table;

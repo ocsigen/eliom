@@ -92,12 +92,17 @@ let rec find_or_create_data_cookie ?set_session_group ?session_name
       then begin (* We create a group whose name is the
                     browser session cookie 
                     and put the tab session into it. *)
-        Some (find_or_create_data_cookie
-                ?session_name
-                ~cookie_type:Eliom_common.CBrowser
-                ~secure
-                ~sp
-                ()).Eliom_common.dc_value
+        let v = find_or_create_data_cookie
+          ?session_name
+          ~cookie_type:Eliom_common.CBrowser
+          ~secure
+          ~sp
+          ()
+        in
+        Eliommod_sessiongroups.Data.set_max
+          v.Eliom_common.dc_session_group_node
+          (fst sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group);
+        Some v.Eliom_common.dc_value
       end
       else set_session_group
     in

@@ -526,6 +526,12 @@ val set_default_max_volatile_data_sessions_per_group :
 val set_default_max_persistent_data_sessions_per_group :
   ?sp:server_params -> ?override_configfile:bool -> int option -> unit
 
+(** Sets the maximum number of volatile sessions (data and service) in a session
+    group (see above).
+*)
+val set_default_max_volatile_sessions_per_group :
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
+
 (** Sets the maximum number of service sessions in a subnet (see above).
 *)
 val set_default_max_service_sessions_per_subnet :
@@ -536,17 +542,38 @@ val set_default_max_service_sessions_per_subnet :
 val set_default_max_volatile_data_sessions_per_subnet :
   ?sp:server_params -> ?override_configfile:bool -> int -> unit
 
-(** Sets the maximum number of volatile sessions (data and service) in a session
-    group (see above).
-*)
-val set_default_max_volatile_sessions_per_group :
-  ?sp:server_params -> ?override_configfile:bool -> int -> unit
-
 (** Sets the maximum number of volatile sessions (data and service) 
     in a subnet (see above).
 *)
 val set_default_max_volatile_sessions_per_subnet :
   ?sp:server_params -> ?override_configfile:bool -> int -> unit
+
+
+(** Sets the maximum number of tab service sessions in a session group
+    (see above).
+*)
+val set_default_max_service_tab_sessions_per_group :
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
+
+(** Sets the maximum number of volatile data tab sessions in a session
+    group (see above).
+*)
+val set_default_max_volatile_data_tab_sessions_per_group :
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
+
+(** Sets the maximum number of persistent data tab sessions in a session
+    group (see above).
+*)
+val set_default_max_persistent_data_tab_sessions_per_group :
+  ?sp:server_params -> ?override_configfile:bool -> int option -> unit
+
+(** Sets the maximum number of volatile tab sessions (data and service)
+    in a session group (see above).
+*)
+val set_default_max_volatile_tab_sessions_per_group :
+  ?sp:server_params -> ?override_configfile:bool -> int -> unit
+
+
 
 (** Sets the mask for subnet (IPV4). *)
 val set_ipv4_subnet_mask :
@@ -563,6 +590,7 @@ val set_ipv6_subnet_mask :
 *)
 val set_max_service_sessions_for_group_or_subnet :
   ?session_name:string ->
+  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -574,6 +602,19 @@ val set_max_service_sessions_for_group_or_subnet :
 *)
 val set_max_volatile_data_sessions_for_group_or_subnet :
   ?session_name:string ->
+  ?cookie_type:Eliom_common.cookie_type ->
+  ?secure:bool ->
+  sp:server_params ->
+  int ->
+  unit
+
+(** Sets the maximum number of volatile sessions 
+    (both data and service sessions) in the current 
+    group (or for the client sub network, if there is no group).
+*)
+val set_max_volatile_sessions_for_group_or_subnet :
+  ?session_name:string ->
+  ?cookie_type:Eliom_common.cookie_type ->
   ?secure:bool ->
   sp:server_params ->
   int ->
