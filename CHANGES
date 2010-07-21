@@ -1,3 +1,40 @@
+===== dev =====
+
+  * Eliom: new implementation of user cookies.
+  * New module Eliom client for client/server Eliom programs using js_of_ocaml.
+  * Eliom client: calling a service from client side code.
+  * Eliom: Services taking Caml values as parameters.
+  * Eliom: services sending Caml values.
+  * **SOON** Eliom client: sending forms to caml services from client side code.
+  * Eliom: new implementation of forms and links to be compatible with
+    client side programs.
+  * Eliom: Tab cookies. Like usual browser cookies but for one client side 
+    process.
+  * Eliom: Tab session data. Like session data but for one client side process.
+  * Eliom: Tab session services.
+  * **SOON** Eliom: Session group data. Like session data but for all sessions
+    in a session group.
+  * **SOON** Eliom: Session group services.
+  * Eliom client: Possible to call another service without stopping the
+    client side program, with bookmark suuport and back button support.
+  * New extension Comet to allow server -> client communication.
+  * Eliom: client/server reactive programming.
+  * Eliom client: syntax extension for separating client and server code.
+  * Eliom: New module Eliom_predefmod.Eliom_appl for registering pages
+    that belong to the same Eliom application.
+  * Eliom client: syntax extension and wrapping/unwrapping mechanism to
+    access server side values in client side code.
+  * Eliom client: Relinking the DOM on client side after loading a (portion of)
+    page. This allows to use directly nodes created on server side in client
+    side code.
+  * Eliom client: XHR redirections for Eliom applications.
+  * **SOON** Eliom: Stateful redirections. The request cache is restored after
+    redirection.
+  * **SOON** Eliom: simplification of sessions. Now restoring session data and
+    process data automatically as a new parameter for service handlers.
+  * Xhtml: Experimental Xhtml5 support
+  * //and many other things ...//
+
 ===== 1.3.3 (2010-06-13) =====
 
   * Eliom: Fix some typos in Eliom's tutorial stylesheet
