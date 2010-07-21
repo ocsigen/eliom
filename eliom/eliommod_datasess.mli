@@ -6,13 +6,6 @@ val close_data_session :
   ?cookie_type:Eliom_common.cookie_type ->
   secure:bool option ->
   sp:Eliom_common.server_params -> unit -> unit
-val new_data_cookie :
-  Eliom_common.sitedata ->
-  Eliom_common.sessgrp ->
-  'a ->
-  ('a * float option ref * Eliom_common.timeout ref *
-   Eliom_common.sessgrp ref * string Ocsigen_cache.Dlist.node)
-  Eliom_common.SessionCookies.t -> Eliom_common.one_data_cookie_info
 val find_or_create_data_cookie :
   ?set_session_group:string ->
   ?session_name:string ->
