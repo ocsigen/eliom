@@ -769,14 +769,47 @@ let remove_prefixed_param pref l =
    but these ones: *)
 let eliom_params_after_action = Polytables.make_key ()
 
-let get_tab_cookies = ref (fun req nlp -> failwith "will be linked later")
+(* After an ction, we get tab_cookies info from rc: *)
+let tab_cookie_action_info_key = Polytables.make_key ()
 
 let get_session_info req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen_extensions.request_info
   and ci = req.Ocsigen_extensions.request_config in
   ri.Ocsigen_extensions.ri_post_params ci >>= fun post_params ->
-  let get_params = Lazy.force ri.Ocsigen_extensions.ri_get_params in
+
+  let (previous_tab_cookies_info, tab_cookies, post_params) =
+    try
+      let rc = ri.Ocsigen_extensions.ri_request_cache in
+      let (tci, utc, tc) = 
+        Polytables.get ~table:rc ~key:tab_cookie_action_info_key
+      in
+      Polytables.remove ~table:rc ~key:tab_cookie_action_info_key;
+      (Some (tci, utc), tc, post_params)
+    with Not_found ->
+      let tab_cookies, post_params =
+        try
+          let (tc, pp) = 
+            Ocsigen_lib.list_assoc_remove tab_cookies_param_name post_params
+          in
+(*VVV unsafe unmarshal! *)
+          (Marshal.from_string (Ocsigen_lib.decode tc) 0, pp)
+        with Not_found -> Ocsigen_lib.String_Table.empty, post_params
+      in
+      (None, tab_cookies, post_params)
+  in
+
+  let post_params, get_params, to_be_considered_as_get =
+    try
+      ([],
+       snd (Ocsigen_lib.list_assoc_remove 
+              get_request_post_param_name post_params),
+       true)
+    (* It was a POST request to be considered as GET *)
+    with Not_found ->
+      (post_params, Lazy.force ri.Ocsigen_extensions.ri_get_params, false)
+  in
+  
   let get_params0 = get_params in
   let post_params0 = post_params in
 
@@ -928,8 +961,6 @@ let get_session_info req previous_extension_err =
          nl_get_params Ocsigen_lib.String_Table.empty)
   in
 
-  let tab_cookies = (!get_tab_cookies) req_whole nl_get_params in
-
   let data_cookies_tab = getcookies CTab datacookiename tab_cookies in
   let service_cookies_tab = getcookies CTab servicecookiename tab_cookies in
   let persistent_cookies_tab = getcookies CTab persistentcookiename tab_cookies in
@@ -947,7 +978,10 @@ let get_session_info req previous_extension_err =
   let ri', sess =
     {ri with
        Ocsigen_extensions.ri_method =
-        (if ri.Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.HEAD
+        (if
+            (ri.Ocsigen_extensions.ri_method =
+                Ocsigen_http_frame.Http_header.HEAD) ||
+              to_be_considered_as_get
          then Ocsigen_http_frame.Http_header.GET
          else ri.Ocsigen_extensions.ri_method);
        (* Here we modify ri, instead of putting service parameters in si.
@@ -988,7 +1022,8 @@ let get_session_info req previous_extension_err =
     }
   in
   Lwt.return
-    ({ req_whole with Ocsigen_extensions.request_info = ri' }, sess)
+    ({ req_whole with Ocsigen_extensions.request_info = ri' }, sess, 
+     previous_tab_cookies_info)
 
 
 
@@ -1048,6 +1083,4 @@ let remove_from_all_persistent_tables key =
     (return ())
     !perstables
 
-(*****************************************************************************)
-let tab_cookie_action_info_key = Polytables.make_key ()
 

@@ -144,7 +144,7 @@ val inline_class_name : string
 val nodisplay_class_name : string
 
 val appl_name_cookie_name : string
-val tab_cookies_header_name : string
+val tab_cookies_param_name : string
 val get_request_post_param_name : string
 val full_xhr_redir_header : string
 val half_xhr_redir_header : string
@@ -427,7 +427,8 @@ val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val get_session_info :
   Ocsigen_extensions.request ->
-  int -> (Ocsigen_extensions.request * sess_info) Lwt.t
+  int -> (Ocsigen_extensions.request * sess_info * 
+            (tables cookie_info * Ocsigen_cookies.cookieset) option) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 val make_full_cookie_name : string -> string -> string
@@ -490,12 +491,8 @@ val find_dlist_ip_table :
   (page_table ref * page_table_key, na_key_serv)
     Ocsigen_lib.leftright Ocsigen_cache.Dlist.t
   
-val get_tab_cookies : 
-  (Ocsigen_extensions.request ->
-   (string * string) list Ocsigen_lib.String_Table.t ->
-   string Ocsigen_lib.String_Table.t) ref
-
 val get_cookie_info : server_params -> cookie_type -> tables cookie_info
 
 val tab_cookie_action_info_key : (tables cookie_info * 
-                                    Ocsigen_cookies.cookieset) Polytables.key
+                                    Ocsigen_cookies.cookieset *
+                                    string Ocsigen_lib.String_Table.t) Polytables.key

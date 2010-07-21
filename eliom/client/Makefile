@@ -10,10 +10,10 @@ MLS:= xML.ml xHTML.ml xhtml5types.ml xHTML5.ml \
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
-	eliom_request.ml \
 	eliom_common.ml	eliom_process.ml \
 	eliom_sessions.ml eliom_parameters.ml \
 	eliom_services.ml eliom_uri.ml \
+	eliom_request.ml \
 	eliommod_cli.ml eliom_client.ml \
 	xhtmltypes.ml polytables.ml \
 	eliom_common_comet.ml eliom_client_comet.ml \

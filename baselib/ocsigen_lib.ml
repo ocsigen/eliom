@@ -290,6 +290,7 @@ module MyUrl = struct
 end
 
 let encode = MyUrl.encode
+let decode = Netencoding.Url.decode
 
 let mk_url_encoded_parameters = Netencoding.Url.mk_url_encoded_parameters
 

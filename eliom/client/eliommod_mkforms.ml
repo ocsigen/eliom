@@ -65,8 +65,8 @@ let add_tab_cookies_to_post_form' node =
   let action = node##action in
   let (https, path) = Eliom_request.get_cookie_info_for_uri_js action in
   let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
-  let l = [(Eliom_common.tab_cookies_header_name,
-            Eliom_client_types.encode_eliom_data cookies)]
+  let l = [(Eliom_common.tab_cookies_param_name,
+            Ocsigen_lib.encode_form_value cookies)]
   in
   add_tab_cookies_to_form' l node
 
@@ -90,8 +90,8 @@ let add_tab_cookies_to_get_form' node =
   let (https, path) = Eliom_request.get_cookie_info_for_uri_js action in
   let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
   let l = [(Eliom_common.get_request_post_param_name, "1");
-           (Eliom_common.tab_cookies_header_name,
-            Eliom_client_types.encode_eliom_data cookies)]
+           (Eliom_common.tab_cookies_param_name,
+            Ocsigen_lib.encode_form_value cookies)]
   in
   add_tab_cookies_to_form' l node
 

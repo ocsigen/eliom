@@ -129,14 +129,14 @@ let send ?cookies_info ?get_args ?post_args url =
       | None -> (* GET *) [(Eliom_common.get_request_post_param_name, "1")]
       | Some p -> p
     in
-    let post_args = (Eliom_common.tab_cookies_header_name,
-                     Eliom_client_types.encode_eliom_data cookies)::
-      post_args
+    let post_args =
+      (Eliom_common.tab_cookies_param_name,
+       Ocsigen_lib.encode_form_value cookies)::
+        post_args
     in
     XmlHttpRequest.send ?get_args ~post_args url >>= fun r ->
-    if r.XmlHttpRequest.code <> 200
-    then Lwt.fail (Failed_request r.XmlHttpRequest.code)
-    else
+    if r.XmlHttpRequest.code = 204
+    then
       match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
         | Some uri ->
           if i < 12 
@@ -145,7 +145,11 @@ let send ?cookies_info ?get_args ?post_args url =
         | None ->
           match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
             | Some uri -> redirect_get uri; Lwt.fail Program_terminated
-            | None -> Lwt.return r.XmlHttpRequest.content
+            | None -> Lwt.fail (Failed_request r.XmlHttpRequest.code)
+    else
+      if r.XmlHttpRequest.code = 200
+      then Lwt.return r.XmlHttpRequest.content
+      else Lwt.fail (Failed_request r.XmlHttpRequest.code)
   in aux 0 ?cookies_info ?get_args ?post_args url
 
 

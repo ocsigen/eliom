@@ -213,7 +213,8 @@ let gen is_eliom_extension sitedata = function
     Lwt.return Ocsigen_extensions.Ext_do_nothing
 | Ocsigen_extensions.Req_not_found (404 as previous_extension_err, req) ->
   let now = Unix.time () in
-  Eliom_common.get_session_info req previous_extension_err >>= fun (ri, si) ->
+  Eliom_common.get_session_info req previous_extension_err
+  >>= fun (ri, si, previous_tab_cookies_info) ->
   let (all_cookie_info, closedsessions) =
     Eliommod_cookies.get_cookie_info now
       sitedata
@@ -227,24 +228,17 @@ let gen is_eliom_extension sitedata = function
        we get it from here.
        Otherwise we get it from tab cookies in parameters.
     *)
-    try
-      let rc =
-        ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-      in
-      let (atc, utc) =
-        Polytables.get ~table:rc ~key:Eliom_common.tab_cookie_action_info_key
-      in
-      Polytables.remove ~table:rc ~key:Eliom_common.tab_cookie_action_info_key;
-      ((atc, []), utc)
-    with Not_found ->
-      ((Eliommod_cookies.get_cookie_info now
-          sitedata
-          si.Eliom_common.si_service_session_cookies_tab
-          si.Eliom_common.si_data_session_cookies_tab
-          si.Eliom_common.si_persistent_session_cookies_tab
-          si.Eliom_common.si_secure_cookie_info_tab),
-       Ocsigen_cookies.empty_cookieset
-      )
+    match previous_tab_cookies_info with
+      | Some (atci, utc) -> ((atci, []), utc)
+      | None ->
+        ((Eliommod_cookies.get_cookie_info now
+            sitedata
+            si.Eliom_common.si_service_session_cookies_tab
+            si.Eliom_common.si_data_session_cookies_tab
+            si.Eliom_common.si_persistent_session_cookies_tab
+            si.Eliom_common.si_secure_cookie_info_tab),
+         Ocsigen_cookies.empty_cookieset
+        )
   in
   set_expired_sessions ri (closedsessions, closedsessions_tab);
   let rec gen_aux ((ri, si, 
@@ -339,13 +333,15 @@ let gen is_eliom_extension sitedata = function
                  Lwt.return 
                    (Ocsigen_extensions.Ext_found
                       (fun () ->
-                        let content = 
-                          Eliom_client_types.encode_eliom_data
-                            (Eliom_client_types.EAExitRedir uri)
-                        in
-                        Ocsigen_senders.Text_content.result_of_content 
-                          (content, 
-                           Eliom_client_types.eliom_appl_answer_content_type)))
+                        let empty_result = Ocsigen_http_frame.empty_result () in
+                        Lwt.return
+                          {empty_result with
+                            Ocsigen_http_frame.res_headers= 
+                              Http_headers.add
+                                (Http_headers.name 
+                                   Eliom_common.half_xhr_redir_header)
+                                uri empty_result.Ocsigen_http_frame.res_headers
+                          }))
                | e -> fail e)
   in
   gen_aux (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)

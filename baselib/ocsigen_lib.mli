@@ -153,6 +153,7 @@ type file_info = {tmp_filename: string; (** Where the file is stored on the serv
 val mk_url_encoded_parameters : (string * string) list -> string
 
 val encode : ?plus:bool -> string -> string
+val decode : ?plus:bool -> string -> string
 
 val make_cryptographic_safe_string : unit -> string
 (* This function generates a new (224 bits long) string of 56 hexadecimal

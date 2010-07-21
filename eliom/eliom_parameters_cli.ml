@@ -530,12 +530,3 @@ let rec contains_suffix = function
 
 (*****************************************************************************)
 
-
-(* Predefined nl parameter for tab cookies. *)
-let nlp_tab_cookies_name = "cookies"
-
-let tab_cookies_nlp = 
-  make_non_localized_parameters
-    ~prefix:Eliom_common.eliom_internal_nlp_prefix
-    ~name:nlp_tab_cookies_name
-    (list "l" (string "n" ** string "v"))

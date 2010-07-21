@@ -51,3 +51,11 @@ let rec split_path s =
 
 let debug a = Firebug.console##log (Js.string a)
 let jsdebug a = Firebug.console##log (a)
+let alert a = Dom_html.window##alert (Js.string a)
+let jsalert a = Dom_html.window##alert (a)
+
+(* to marshal data and put it in a form *)
+let encode_form_value v =
+  Js.to_string (Js.escape (Js.bytestring (Marshal.to_string v [])))
+    (* I encode the data because it seems that multipart does not
+       like \0 character ... *)

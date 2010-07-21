@@ -173,6 +173,7 @@ let reconstruct_params_
                  Obj.magic (a, {abscissa = r; ordinate=rr}), ll)
       | TNLParams _, _ -> 
           failwith "It is not possible to have non localized parameters in suffix"
+(*VVV unsafe unmarshal! *)
       | TMarshal _, v::l -> Marshal.from_string v 0, l
       | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
@@ -330,6 +331,7 @@ let reconstruct_params_
                       | _ -> raise Eliom_common.Eliom_Wrong_parameter))
         | TMarshal name ->
             let v,l = list_assoc_remove (pref^name^suff) params in
+(*VVV unsafe unmarshal! *)
             Res_ ((Marshal.from_string v 0),l,files)
     in
     match Obj.magic (aux typ params files "" "") with
@@ -388,20 +390,3 @@ let get_non_localized_post_parameters ~sp p =
   get_non_localized_parameters
     sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params snd ~sp p
 
-
-(* tab cookies: *)
-
-let _ =
-  let (name, _, keys, paramtype) = tab_cookies_nlp in
-  Eliom_common.get_tab_cookies :=
-    (fun req get_nlp ->
-      let l = 
-        try
-          let params = Ocsigen_lib.String_Table.find name get_nlp in
-          reconstruct_params_ req paramtype params [] false None
-        with Eliom_common.Eliom_Wrong_parameter | Not_found -> []
-      in
-      List.fold_left
-        (fun beg (n, v) -> Ocsigen_lib.String_Table.add n v beg)
-        Ocsigen_lib.String_Table.empty l
-    )
