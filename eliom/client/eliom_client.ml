@@ -127,7 +127,29 @@ let container_node =
            : Dom_html.element Js.t)
 
 let on_unload_script = ref None
+let at_exit_script = ref None
 
+(*
+let _ =
+  Dom_html.window##onbeforeunload <-
+    (Dom_html.handler
+       (fun ev ->
+(* We cannot wait for the lwt thread to finish before exiting ...
+*)
+         ignore
+           ((match !on_unload_script with
+             | None -> Lwt.return ()
+             | Some script -> Js.Unsafe.variable script) >>= fun () ->
+            (match !at_exit_script with
+              | None -> Lwt.return ()
+              | Some script -> Js.Unsafe.variable script));
+         Js.bool true))
+
+(* Also:
+  May be we can add automatically a special "close_process" coservice for each
+  Eliom site, that will be called by the process when exiting.
+*)
+*)
 
 let load_eliom_data_
     ((tree, (((timeofday, _), _) as page_data), cookies, onload, onunload) :
