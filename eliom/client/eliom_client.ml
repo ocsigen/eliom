@@ -178,8 +178,7 @@ let set_inner_html (ed, content) =
   on_unload_script := None;
   let container_node = Lazy.force container_node in
   container_node##innerHTML <- Js.string content;
-  load_eliom_data_ ed container_node;
-  Lwt.return ()
+  load_eliom_data_ ed container_node
 
 let set_content = function
   | Eliom_client_types.EAContent c -> set_inner_html c

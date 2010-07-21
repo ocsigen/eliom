@@ -1774,30 +1774,57 @@ module String_redirreg_ = struct
 
   let send ?(options = `Permanent) ?charset ?code
       ?content_type ?headers ~sp content =
+    let uri = XHTML.M.string_of_uri content in
     let empty_result = Ocsigen_http_frame.empty_result () in
-    let code = match code with
-    | Some c -> c
-    | None ->
-        if options = `Temporary
-        then 307 (* Temporary move *)
-        else 301 (* Moved permanently *)
+    let cookies = Eliom_sessions.get_user_cookies ~sp in
+    let content_type = match content_type with
+      | None -> empty_result.res_content_type
+      | _ -> content_type
     in
-    Lwt.return
-      {empty_result with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
-         res_code= code;
-         res_location = Some (XHTML.M.string_of_uri content);
-         res_content_type= (match content_type with
-                              | None -> empty_result.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> empty_result.res_headers
-                         | Some headers -> 
-                             Http_headers.with_defaults
-                               headers empty_result.res_headers
-                      );
-      }
+    let headers = match headers with
+      | None -> empty_result.res_headers
+      | Some headers -> 
+        Http_headers.with_defaults
+          headers empty_result.res_headers
+    in
+
+    (* Now we decide the kind of redirection we do.
+       If the request is an xhr done by a client side Eliom program,
+       we do not send an HTTP redirection.
+       In that case, we send a full xhr redirection.
+       If the application to which belongs the destination service is the same,
+       then it is ok, otherwise, there will be another redirection ...
+    *)
+    match Eliom_sessions.get_sp_appl_name ~sp with
+        (* the appl name as sent by browser *)
+      | None -> (* the browser did not ask application eliom data,
+                   we send a regular redirection *)
+        let code = match code with
+          | Some c -> c
+          | None ->
+            if options = `Temporary
+            then 307 (* Temporary move *)
+            else 301 (* Moved permanently *)
+        in
+        Lwt.return
+          {empty_result with
+            res_cookies= cookies;
+            res_code= code;
+            res_location = Some uri;
+            res_content_type= content_type;
+            res_headers= headers;
+          }
+      | _ ->
+        Lwt.return
+          {empty_result with
+            res_cookies= cookies;
+            res_content_type= content_type;
+            res_headers= 
+              Http_headers.add
+                (Http_headers.name Eliom_common.full_xhr_redir_header)
+                uri headers
+          }
+
 
 end
 
@@ -1827,8 +1854,8 @@ module Redirreg_ = struct
   (* actually, the service will decide itself *)
 
   let send ?(options = `Permanent) ?charset ?code
-      ?content_type ?headers ~sp content =
-    let uri = Xhtml.make_string_uri ~absolute:true ~sp ~service:content () in
+      ?content_type ?headers ~sp service =
+    let uri = Xhtml.make_string_uri ~absolute:true ~sp ~service () in
 
     let empty_result = Ocsigen_http_frame.empty_result () in
     let cookies = Eliom_sessions.get_user_cookies ~sp in
@@ -1845,10 +1872,10 @@ module Redirreg_ = struct
 
     (* Now we decide the kind of redirection we do.
        If the request is an xhr done by a client side Eliom program,
-       we cannot send an HTTP redirection.
+       we do not send an HTTP redirection.
        In that case, we send:
        - a full xhr redirection if the application to which belongs
-       the destination service is the same
+       the destination service is the same (thus it will send back tab cookies)
        - a half xhr redirection otherwise
     *)
     match Eliom_sessions.get_sp_appl_name ~sp with
@@ -1872,8 +1899,8 @@ module Redirreg_ = struct
 
       | Some anr ->
           (* the browser asked application eliom data
-             (content only) for application anr *)
-        match Eliom_services.get_do_appl_xhr content with
+             (content only) for the application called anr *)
+        match Eliom_services.get_do_appl_xhr service with
             (* the appl name of the destination service *)
           | Eliom_services.XSame_appl an when (an = anr) ->
             (* Same appl, we do a full xhr redirection
