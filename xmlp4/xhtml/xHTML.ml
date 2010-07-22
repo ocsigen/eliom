@@ -865,8 +865,8 @@ module Version =
         | `Copyright | `Glossary | `Help | `Index | `Next | `Prev
         | `Section | `Start | `Stylesheet | `Subsection | `Other of string] list
     type mediadesc =
-        [ `All | `Aural | `Braille | `Handheld | `Print
-        | `Projection | `Screen | `TTY | `TV ] list
+        [ `All | `Aural | `Braille | `Embossed | `Handheld | `Print
+        | `Projection | `Screen | `Speech | `TTY | `TV ] list
 
     type multilength = [ length | `Relative of int ]
     type multilengths = multilength list (* comma-separated *)
@@ -920,10 +920,12 @@ module Version =
       | `All -> "all"
       | `Aural -> "aural"
       | `Braille -> "braille"
+      | `Embossed -> "embossed"
       | `Handheld -> "handheld"
       | `Print -> "print"
       | `Projection -> "projection"
       | `Screen -> "screen"
+      | `Speech -> "speech"
       | `TTY -> "tty"
       | `TV -> "tv"
 
