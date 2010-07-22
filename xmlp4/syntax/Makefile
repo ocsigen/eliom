@@ -9,7 +9,7 @@ PP = -pp "camlp4rf -- -loc loc"
 PPLEXER = -pp "camlp4of -- -loc loc"
 
 
-predep: pp/simplexmlparser.mli pp/xhtmltypes.ml pp/xhtml5types.ml
+predep: pp/simplexmlparser.mli 
 
 byte: ../xhtmlsyntax.cma ../simplexmlparser.cmo 
 	cp -f $(FILES:.ml=.cmi) xmllexer.cmo ..
