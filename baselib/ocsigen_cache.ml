@@ -196,7 +196,7 @@ end = struct
         end
     | None | Some _ -> ()
 
-  let sleep_until = function
+  let sleep_until = function (*/!\ COOPERATES*)
     | None -> assert false (* collection is set to None and collector to Some *)
     | Some t ->
         let duration = t -. Unix.gettimeofday () in

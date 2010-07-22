@@ -1,4 +1,4 @@
-(* Ocsimore
+(* Ocsigen
  * Copyright (C) 2008
  * Laboratoire PPS - Université Paris Diderot - CNRS
  *
@@ -39,24 +39,27 @@ module Make :
 
       class cache : (A.key -> A.value Lwt.t) -> ?timer:float -> int ->
       (** [new cache finder ?timer size] creates a cache object where [finder]
-          is the function responsible for retrieving non-cached data, [timer] is
-          the life span of cached values (in seconds) (values in the cache are
-          removed after their time is up) and [size] is the upper bound to the
-          number of cached elements. When a value is retrieved it's lifespan is
-          reset to the [timer] value (if [timer] is not [None]).
+          is the function responsible for retrieving non-cached data, [timer]
+          (if any) is the life span of cached values (in seconds) (values in the
+          cache are removed after their time is up) and [size] is the upper
+          bound to the number of simultaneoulsy cached elements.
+
+          Whenever a value is found (using [find] method), it's lifespan is set
+          to [timer] (or not if the cache is not time bounded). If the value was
+          already cached, it's lifespan is reset to [timer].
 
           Using [timer] allow one to create a cache
           bounded both in space and time. It is to be noted that real lifespan
-          of values can be slightly greater than [timer]. *)
+          of values is always slightly greater than [timer]. *)
       object
 
       (** Find the cached value associated to the key, or binds this
-         value in the cache using the function [finder] passed as argument
-         to [create], and returns this value *)
+          value in the cache using the function [finder] passed as argument
+          to [create], and returns this value *)
       method find : A.key -> A.value Lwt.t
 
       (** Find the cached value associated to the key. Raises [Not_found]
-         if the key is not present in the cache *)
+          if the key is not present in the cache *)
       method find_in_cache : A.key -> A.value
 
       method remove : A.key -> unit
@@ -73,7 +76,7 @@ val clear_all_caches : unit -> unit
 
 
 (** Doubly-linked lists with maximum number of entries and limited lifespan for
- * entries. *)
+    entries. *)
 module Dlist : sig
   type 'a t
   type 'a node
