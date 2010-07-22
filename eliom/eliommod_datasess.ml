@@ -224,7 +224,7 @@ let counttableelements = ref []
 
 let create_volatile_table, create_volatile_table_during_session =
   let aux ~level ~session_name ~secure sitedata =
-    let t = Eliom_common.SessionCookies.create 1000 in
+    let t = Eliom_common.SessionCookies.create 100 in
     let old_remove_session_data =
       sitedata.Eliom_common.remove_session_data
     in

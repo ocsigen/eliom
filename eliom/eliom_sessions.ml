@@ -787,7 +787,8 @@ let get_service_session_cookie_exp_date ?session_name ?(cookie_type = `Browser) 
 let set_volatile_data_session_cookie_exp_date
     ?session_name ?(cookie_type = `Browser) ?secure ~sp t =
   let c = 
-    Eliommod_datasess.find_or_create_data_cookie ?session_name ~cookie_type ~secure ~sp () 
+    Eliommod_datasess.find_or_create_data_cookie
+      ?session_name ~cookie_type ~secure ~sp () 
   in
   let exp = c.Eliom_common.dc_cookie_exp in
   match t with

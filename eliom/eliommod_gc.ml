@@ -240,7 +240,18 @@ let data_session_gc sitedata =
                | _ ->
                    match !session_group_ref with
                      | (_, Ocsigen_lib.Right _)
-                         when not_bound_in_data_tables k ->
+                         when
+                           (Eliommod_sessiongroups.Data.group_size
+                              (sitedata.Eliom_common.site_dir_string,
+                               Ocsigen_lib.Left k)
+                            = 0)
+(*VVV 201007 à vérifier ^ ^ ^ *)
+                           &&
+                             not_bound_in_data_tables k ->
+                       (* The session is not used in any table
+                          and is not in a group,
+                          and is not associated to any tab session.
+                          We can remove it. *)
                          Eliommod_sessiongroups.Data.remove session_group_node;
                          Lwt.return ()
                      | _ -> Lwt.return ()
