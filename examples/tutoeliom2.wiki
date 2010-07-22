@@ -73,7 +73,7 @@ Coservices, but also //actions//, are also means to control
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
-let my_table = Eliom_sessions.create_volatile_table ()
+let my_table = Eliom_sessions.create_volatile_table  ()
 
 
 (* -------------------------------------------------------- *)
@@ -103,7 +103,7 @@ let session_data_example_close =
 (* Handler for the "session_data_example" service:          *)
 
 let session_data_example_handler sp _ _  =
-  let sessdat = Eliom_sessions.get_volatile_session_data  ~table:my_table ~sp () in
+  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -133,7 +133,7 @@ let session_data_example_handler sp _ _  =
 
 let session_data_example_with_post_params_handler sp _ login =
   Eliom_sessions.close_session  ~sp () ~>>= fun () ->
-  Eliom_sessions.set_volatile_session_data  ~table:my_table ~sp login;
+  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
   return
     (html
        (head (title (pcdata "")) [])
@@ -149,8 +149,8 @@ let session_data_example_with_post_params_handler sp _ login =
 (* Handler for the "session_data_example_close" service:    *)
 
 let session_data_example_close_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data  ~table:my_table ~sp () in
-  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
+  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
+  Eliom_sessions.close_session ~sp () ~>>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -855,7 +855,9 @@ Here we rewrite the example <<span class="code"|session_data_example>>
 (************ Connection of users, version 3 ****************)
 (************************************************************)
 
-
+ ()
+(* 
+*zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -905,7 +907,7 @@ let login_box sp =
 (* Handler for the "connect_example3" service (main page):    *)
 
 let connect_example3_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data  ~table:my_table ~sp () in
+  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -924,7 +926,7 @@ let connect_example3_handler sp () () =
 
 let connect_action_handler sp () login =
   Eliom_sessions.close_session  ~sp () ~>>= fun () ->
-  Eliom_sessions.set_volatile_session_data  ~table:my_table ~sp login;
+  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
   return ()
 
 

@@ -1547,7 +1547,7 @@ let session_name = "session_data"
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
-let my_table = Eliom_sessions.create_volatile_table ()
+let my_table = Eliom_sessions.create_volatile_table (*zap* *) ~session_name (* *zap*) ()
 
 
 (* -------------------------------------------------------- *)
@@ -1577,7 +1577,7 @@ let session_data_example_close =
 (* Handler for the "session_data_example" service:          *)
 
 let session_data_example_handler sp _ _  =
-  let sessdat = Eliom_sessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -1607,7 +1607,7 @@ let session_data_example_handler sp _ _  =
 
 let session_data_example_with_post_params_handler sp _ login =
   Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
+  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
   return
     (html
        (head (title (pcdata "")) [])
@@ -1623,8 +1623,8 @@ let session_data_example_with_post_params_handler sp _ login =
 (* Handler for the "session_data_example_close" service:    *)
 
 let session_data_example_close_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
+  Eliom_sessions.close_session ~sp () >>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -1652,7 +1652,7 @@ let () =
 (*zap* old version:
 type session_info = string
 
-let my_table = create_volatile_table ()
+let my_table = create_volatile_table ~session_name ()
 
 let sessdata = new_service ["sessdata"] unit ()
 
@@ -2485,6 +2485,7 @@ Here we rewrite the example %<span class="code"|session_data_example>%
 
 (*zap* *)
 let session_name = "connect_example3"
+let my_table = Eliom_sessions.create_volatile_table (*zap* *) ~session_name (* *zap*) ()
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -2535,7 +2536,7 @@ let login_box sp =
 (* Handler for the "connect_example3" service (main page):    *)
 
 let connect_example3_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -2554,7 +2555,7 @@ let connect_example3_handler sp () () =
 
 let connect_action_handler sp () login =
   Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
+  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
   return ()
 
 
@@ -4053,6 +4054,8 @@ Then create your link as usual, for example:
 ===@@id="p3sessiongroups"@@[New in 0.99.5] Session groups
         
         %<div class="onecol"|
+
+====Grouping sessions
           
 The idea is complementary to that of
 the "session name".  While the
@@ -4178,9 +4181,121 @@ let () =
       (services, volatile data and persistent data).
       It is highly recommended to set a group for each of them!
     
+====[New in 1.9] Group tables
           
+  It is now possible to create session tables and session services
+  for a whole group. To do that use the {{{~level:`Group}}}
+  parameter when creating a table or a session service.
+
+  *wiki*)
+(************************************************************)
+(********************* Group tables *************************)
+(************************************************************)
+
+(*zap* *)
+let session_name = "group_tables"
+(* *zap*)
+let my_table =
+  Eliom_sessions.create_volatile_table
+    ~level:`Group (*zap* *) ~session_name (* *zap*) ()
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let group_tables_example =
+  Eliom_services.new_service
+    ~path:["grouptables"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let connect_action =
+  Eliom_services.new_post_coservice'
+    ~name:"connect7"
+    ~post_params:(Eliom_parameters.string "login")
+    ()
+
+let disconnect_action =
+  Eliom_predefmod.Action.register_new_post_coservice'
+    ~name:"disconnectgt"
+    ~post_params:Eliom_parameters.unit
+    (fun sp () () ->
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
 
 
+(* -------------------------------------------------------- *)
+(* login ang logout boxes:                                  *)
+
+let disconnect_box sp s =
+  Eliom_predefmod.Xhtml.post_form disconnect_action sp
+    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+let login_box sp =
+  Eliom_predefmod.Xhtml.post_form connect_action sp
+    (fun loginname ->
+      [p
+         (let l = [pcdata "login: ";
+                   Eliom_predefmod.Xhtml.string_input
+                     ~input_type:`Text ~name:loginname ()]
+         in l)
+     ])
+    ()
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "group_tables_example" service (main page): *)
+
+let group_tables_example_handler sp () () =
+  let sessdat = Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
+  let groupdata = Eliom_sessions.get_volatile_session_data
+    ~table:my_table ~sp ()
+  in
+  let group_info name =
+    match groupdata with
+      | Eliom_sessions.Data_session_expired
+      | Eliom_sessions.No_data ->
+        let d = string_of_int (Random.int 1000) in
+        Eliom_sessions.set_volatile_session_data ~table:my_table ~sp d;
+        d
+      | Eliom_sessions.Data d -> d
+  in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          (match sessdat with
+          | Eliom_sessions.Data name ->
+              [p [pcdata ("Hello "^name); br ()];
+               (let d = group_info name in
+                p [pcdata "Your group data is: ";
+                   pcdata d;
+                   pcdata ". It is common to all the sessions for the same user ";
+                   pcdata name;
+                   pcdata ". Try with another browser!"
+                  ]);
+               disconnect_box sp "Close session"]
+          | Eliom_sessions.Data_session_expired
+          | Eliom_sessions.No_data -> [login_box sp]
+          )))
+
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler sp () login =
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
+  return ()
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_predefmod.Xhtml.register ~service:group_tables_example group_tables_example_handler;
+  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+
+(*wiki*
     
         >%
 
