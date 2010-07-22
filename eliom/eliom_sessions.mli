@@ -773,13 +773,14 @@ type 'a volatile_table
    you must give the [~sp] parameter, otherwise it will raise the exception
    {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val create_volatile_table : ?sp:server_params -> unit -> 'a volatile_table
+val create_volatile_table :
+  ?session_name:string ->
+  ?level:Eliom_common.level ->
+  ?secure:bool ->
+  ?sp:server_params -> unit -> 'a volatile_table
 
 (** gets session data for the current session (if any). *)
 val get_volatile_session_data : 
-  ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
-  ?secure:bool ->
   table:'a volatile_table -> 
   sp:server_params -> 
   unit -> 
@@ -787,9 +788,6 @@ val get_volatile_session_data :
 
 (** sets session data for the current session. *)
 val set_volatile_session_data : 
-  ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
-  ?secure:bool ->
   table:'a volatile_table -> 
   sp:server_params -> 
   'a -> 
@@ -800,9 +798,6 @@ val set_volatile_session_data :
    If the session does not exist, does nothing.
  *)
 val remove_volatile_session_data : 
-  ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
-  ?secure:bool ->
   table:'a volatile_table -> 
   sp:server_params -> 
   unit -> 

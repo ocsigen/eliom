@@ -43,7 +43,7 @@ type cookie_type = [ `Browser | `Tab ]
 (** It is possible to define data tables or service table for one
     (browser) session, for one tab, or for one group of sessions.
 *)
-type table_type = [ `Group | `Browser | `Tab ]
+type level = [ `Group | `Browser | `Tab ]
 
 type fullsessionname = cookie_type * string
 module Fullsessionname_Table : Map.S with type key = fullsessionname
@@ -153,6 +153,7 @@ val get_request_post_param_name : string
 val full_xhr_redir_header : string
 val half_xhr_redir_header : string
 
+val default_group_name : string
 
 type sess_info = {
   si_other_get_params : (string * string) list;

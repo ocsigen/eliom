@@ -21,7 +21,7 @@
 
 (******************************************************************)
 type cookie_type = [ `Browser | `Tab ]
-type table_type = [ `Group | `Browser | `Tab ]
+type level = [ `Group | `Browser | `Tab ]
 
 type fullsessionname = cookie_type * string
 
@@ -113,6 +113,7 @@ let appl_name_cookie_name = "__eliom_appl_name"
 let full_xhr_redir_header = "x-eliom-location-full"
 let half_xhr_redir_header = "x-eliom-location-half"
 
+let default_group_name = "__eliom$%@default_group"
 
 let nl_is_persistent n = n.[0] = 'p'
 

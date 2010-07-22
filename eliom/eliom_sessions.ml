@@ -528,8 +528,7 @@ let unset_volatile_data_session_group ?set_max
     | Not_found
     | Eliom_common.Eliom_Session_expired -> ()
 
-let get_volatile_data_session_group
-    ?session_name ?secure ~sp () =
+let get_volatile_data_session_group ?session_name ?secure ~sp () =
   let cookie_type = `Browser in
   try
     let c = 
@@ -925,44 +924,75 @@ let remove_persistent_session_data
 
 (*****************************************************************************)
 (** {2 session data in memory} *)
-type 'a volatile_table = 'a Eliom_common.SessionCookies.t
 
-let create_volatile_table ?sp () =
+type 'a volatile_table =
+    (Eliom_common.level * 
+       string option *
+       bool *
+       'a Eliom_common.SessionCookies.t)
+
+let create_volatile_table
+    ?session_name ?(level = `Browser) ?(secure = false) ?sp () =
   match sp with
   | None ->
       (match Eliom_common.global_register_allowed () with
-      | Some get_current_sitedata -> Eliommod_datasess.create_volatile_table ()
+      | Some get_current_sitedata -> 
+        Eliommod_datasess.create_volatile_table ~level ~session_name ~secure
       | None -> raise
             (Eliom_common.Eliom_function_forbidden_outside_site_loading
                "create_volatile_table"))
-  | Some sp -> Eliommod_datasess.create_volatile_table_during_session sp
+  | Some sp ->
+    Eliommod_datasess.create_volatile_table_during_session
+      ~level ~session_name ~secure sp
 
-let get_volatile_session_data
-    ?session_name ?(cookie_type = `Browser) ?secure ~table ~sp () =
+let get_table_key_ ~table:(level, (session_name : string option), secure, table) ~sp 
+    (find_cookie : ?session_name:string ->
+     ?cookie_type:Eliom_common.cookie_type ->
+     secure:bool option ->
+     sp:Eliom_common.server_params ->
+     unit -> Eliom_common.one_data_cookie_info) =
+  let cookie_type = match level with
+    | `Browser
+    | `Group -> `Browser
+    | `Tab -> `Tab
+  in
+  let c = find_cookie ?session_name ~cookie_type ~secure:(Some secure) ~sp () in
+  let key = match level with
+    | `Group ->
+      (match get_volatile_data_session_group ?session_name ~secure ~sp () 
+       with Data a -> a
+         | _ -> Eliom_common.default_group_name)
+    | _ -> c.Eliom_common.dc_value
+  in
+  (table, key)
+
+
+let get_volatile_session_data ~table ~sp () =
   try
-    let c = 
-      Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
+    let (table, key) =
+      get_table_key_ ~table ~sp Eliommod_datasess.find_data_cookie_only
     in
-    Data (Eliom_common.SessionCookies.find table c.Eliom_common.dc_value)
+    Data (Eliom_common.SessionCookies.find table key)
   with
   | Not_found -> No_data
   | Eliom_common.Eliom_Session_expired -> Data_session_expired
 
-let set_volatile_session_data
-    ?session_name ?(cookie_type = `Browser)
-    ?secure ~table ~sp value =
-  let c = 
-    Eliommod_datasess.find_or_create_data_cookie ?session_name ~cookie_type ~secure ~sp () 
-  in
-  Eliom_common.SessionCookies.replace table c.Eliom_common.dc_value value
+let f__ ?session_name ?cookie_type ~secure ~sp () =
+  Eliommod_datasess.find_or_create_data_cookie
+    ?session_name ?cookie_type ~secure ~sp ()
 
-let remove_volatile_session_data
-    ?session_name ?(cookie_type = `Browser) ?secure ~table ~sp () =
+let set_volatile_session_data ~table ~sp value =
+  let (table, key) =
+    get_table_key_ ~table ~sp f__
+  in
+  Eliom_common.SessionCookies.replace table key value
+
+let remove_volatile_session_data ~table ~sp () =
   try
-    let c = 
-      Eliommod_datasess.find_data_cookie_only ?session_name ~cookie_type ~secure ~sp () 
+    let (table, key) =
+      get_table_key_ ~table ~sp Eliommod_datasess.find_data_cookie_only
     in
-    Eliom_common.SessionCookies.remove table c.Eliom_common.dc_value
+    Eliom_common.SessionCookies.remove table key
   with Not_found | Eliom_common.Eliom_Session_expired -> ()
 
 
@@ -1112,14 +1142,14 @@ module Session_admin = struct
     else
       Eliommod_persess.close_persistent_session2 sg cookie
 
-  let get_volatile_session_data ~session:(cookie, _, _) ~table =
-    Eliom_common.SessionCookies.find table cookie
+  let get_volatile_session_data ~session:(cookie, _, _) ~table:(_, _, _, t) =
+    Eliom_common.SessionCookies.find t cookie
 
   let get_persistent_session_data ~session:(cookie, _) ~table =
     Ocsipersist.find table cookie >>= fun (_, a) -> return a
 
-  let remove_volatile_session_data ~session:(cookie, _, _) ~table =
-    Eliom_common.SessionCookies.remove table cookie
+  let remove_volatile_session_data ~session:(cookie, _, _) ~table:(_, _, _, t) =
+    Eliom_common.SessionCookies.remove t cookie
 
   let remove_persistent_session_data ~session:(cookie, _) ~table =
     Ocsipersist.remove table cookie

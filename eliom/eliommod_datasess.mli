@@ -18,6 +18,14 @@ val find_data_cookie_only :
   secure:bool option ->
   sp:Eliom_common.server_params -> unit -> Eliom_common.one_data_cookie_info
 val counttableelements : (unit -> int) list ref
-val create_volatile_table : unit -> 'a Eliom_common.SessionCookies.t
+val create_volatile_table : 
+  level:Eliom_common.level ->
+  session_name:string option ->
+  secure:bool ->
+  (Eliom_common.level * string option * bool * 'a Eliom_common.SessionCookies.t)
 val create_volatile_table_during_session :
-  Eliom_common.server_params -> 'a Eliom_common.SessionCookies.t
+  level:Eliom_common.level ->
+  session_name:string option ->
+  secure:bool ->
+  Eliom_common.server_params -> 
+  (Eliom_common.level * string option * bool *'a Eliom_common.SessionCookies.t)

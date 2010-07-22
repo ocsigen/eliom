@@ -68,7 +68,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)server/ocsigen_extensions.mli				\
 	$(DOCPREF)server/ocsigen_parseconfig.mli			\
 	$(DOCPREF)server/ocsigen_server.mli				\
-	$(DOCPREF)xmlp4/xml-prettyx/htmlpretty_streams.mli		\
+	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty_streams.mli		\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact_streams.mli		\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty.mli			\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact.mli			\

@@ -748,7 +748,7 @@ let session_name = "tsession_data"
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
-let my_table = Eliom_sessions.create_volatile_table ()
+let my_table = Eliom_sessions.create_volatile_table ~session_name ~level:`Tab ()
 
 
 (* -------------------------------------------------------- *)
@@ -779,8 +779,8 @@ let tsession_data_example_close =
 
 let tsession_data_example_handler sp _ _  =
   let sessdat = 
-    Eliom_sessions.get_volatile_session_data
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~table:my_table ~sp () in
+    Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () 
+  in
   return
     [
       match sessdat with
@@ -809,7 +809,7 @@ let tsession_data_example_with_post_params_handler sp _ login =
   Eliom_sessions.close_session
  (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
   Eliom_sessions.set_volatile_session_data
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~table:my_table ~sp login;
+    ~table:my_table ~sp login;
   return
     [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
         br ();
@@ -823,7 +823,7 @@ let tsession_data_example_with_post_params_handler sp _ login =
 
 let tsession_data_example_close_handler sp () () =
   let sessdat = Eliom_sessions.get_volatile_session_data
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~table:my_table ~sp () in
+    ~table:my_table ~sp () in
   Eliom_sessions.close_session
  (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
   return
@@ -1157,7 +1157,7 @@ let tlogin_box sp =
 
 let tconnect_example3_handler sp () () =
   let sessdat = Eliom_sessions.get_volatile_session_data
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~table:my_table ~sp () in
+    ~table:my_table ~sp () in
   return
     (match sessdat with
       | Eliom_sessions.Data name ->
@@ -1174,8 +1174,7 @@ let tconnect_example3_handler sp () () =
 let tconnect_action_handler sp () login =
   Eliom_sessions.close_session
  (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_session_data
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~table:my_table ~sp login;
+  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
   return ()
 
 

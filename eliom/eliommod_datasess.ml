@@ -223,7 +223,7 @@ let counttableelements = ref []
 (* Here only for exploration functions *)
 
 let create_volatile_table, create_volatile_table_during_session =
-  let aux sitedata =
+  let aux ~level ~session_name ~secure sitedata =
     let t = Eliom_common.SessionCookies.create 1000 in
     let old_remove_session_data =
       sitedata.Eliom_common.remove_session_data
@@ -244,11 +244,12 @@ let create_volatile_table, create_volatile_table_during_session =
     counttableelements :=
       (fun () -> Eliom_common.SessionCookies.length t)::
       !counttableelements;
-    t
+    (level, session_name, secure, t)
   in
-  ((fun () ->
+  ((fun ~level ~session_name ~secure ->
     let sitedata = Eliom_common.get_current_sitedata () in
-    aux sitedata),
-   (fun sp -> aux sp.Eliom_common.sp_sitedata))
+    aux ~level ~session_name ~secure sitedata),
+   (fun ~level ~session_name ~secure sp ->
+     aux ~level ~session_name ~secure sp.Eliom_common.sp_sitedata))
 
 

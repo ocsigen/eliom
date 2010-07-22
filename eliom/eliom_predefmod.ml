@@ -827,117 +827,6 @@ end
 module Unit = MakeRegister(Unitreg_)
 
 
-(** Redirection services are like services, but send a redirection instead
- of a page.
-
-   The HTTP/1.1 RFC says:
-   If the 301 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
-
-   Here redirections are done towards services without parameters.
-   (possibly preapplied).
-
- *)
-module String_redirreg_ = struct
-  open XHTML.M
-  open Xhtmltypes
-
-  type page = XHTML.M.uri
-
-  type options = [ `Temporary | `Permanent ]
-
-  type return = Eliom_services.http
-
-  let pre_service ?options ~sp = Lwt.return ()
-
-  let do_appl_xhr = Eliom_services.XNever
-
-  let send ?(options = `Permanent) ?charset ?code
-      ?content_type ?headers ~sp content =
-    let empty_result = Ocsigen_http_frame.empty_result () in
-    let code = match code with
-    | Some c -> c
-    | None ->
-        if options = `Temporary
-        then 307 (* Temporary move *)
-        else 301 (* Moved permanently *)
-    in
-    Lwt.return
-      {empty_result with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
-         res_code= code;
-         res_location = Some (XHTML.M.string_of_uri content);
-         res_content_type= (match content_type with
-                              | None -> empty_result.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> empty_result.res_headers
-                         | Some headers -> 
-                             Http_headers.with_defaults
-                               headers empty_result.res_headers
-                      );
-      }
-
-end
-
-
-module String_redirection = MakeRegister(String_redirreg_)
-
-
-
-
-module Redirreg_ = struct
-  open XHTML.M
-  open Xhtmltypes
-
-  type page = 
-      (unit, unit, Eliom_services.get_service_kind,
-       [ `WithoutSuffix ], 
-       unit, unit, Eliom_services.registrable, Eliom_services.http)
-        Eliom_services.service
-
-  type options = [ `Temporary | `Permanent ]
-
-  type return = Eliom_services.http
-
-  let pre_service ?options ~sp = Lwt.return ()
-
-  let do_appl_xhr = Eliom_services.XNever
-
-  let send ?(options = `Permanent) ?charset ?code
-      ?content_type ?headers ~sp content =
-    let empty_result = Ocsigen_http_frame.empty_result () in
-    let uri = Xhtml.make_string_uri ~absolute:true ~sp ~service:content () in
-    let code = match code with
-    | Some c -> c
-    | None ->
-        if options = `Temporary
-        then 307 (* Temporary move *)
-        else 301 (* Moved permanently *)
-    in
-    Lwt.return
-      {empty_result with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
-         res_code= code;
-         res_location = Some uri;
-         res_content_type= (match content_type with
-                              | None -> empty_result.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> empty_result.res_headers
-                         | Some headers -> 
-                             Http_headers.with_defaults
-                               headers empty_result.res_headers
-                      );
-      }
-
-end
-
-
-module Redirection = MakeRegister(Redirreg_)
-
-
 
 (* Any is a module allowing to register services that decide themselves
    what they want to send.
@@ -1586,7 +1475,10 @@ module Eliom_appl_reg_
   let eliom_appl_session_name = "__eliom_appl_internal"
 
   let change_page_event_table : ('a -> unit) Eliom_sessions.volatile_table =
-    Eliom_sessions.create_volatile_table ()
+    Eliom_sessions.create_volatile_table
+      ~session_name:eliom_appl_session_name
+      ~level:`Tab
+      ()
 
   let get_tab_cook sp =
     Eliommod_cookies.compute_cookies_to_send
@@ -1755,8 +1647,6 @@ redir ();"))::
                    We send 204 No Content 
                    and use the change_page_event to update the content. *)
        match (Eliom_sessions.get_volatile_session_data
-                ~session_name:eliom_appl_session_name
-                ~cookie_type:`Tab
                 ~table:change_page_event_table ~sp ())
        with
          | Eliom_sessions.Data change_current_page ->
@@ -1779,8 +1669,6 @@ redir ();"))::
          React.E.create ()
        in
        Eliom_sessions.set_volatile_session_data
-         ~session_name:eliom_appl_session_name
-         ~cookie_type:`Tab
          ~table:change_page_event_table ~sp change_current_page;
        Eliom_sessions.set_cookie ~sp
          ~cookie_type:`Tab
