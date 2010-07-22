@@ -53,7 +53,8 @@ module type MEMTAB =
       string Ocsigen_cache.Dlist.node ->
       Eliom_common.sessgrp -> string Ocsigen_cache.Dlist.node
     val up : string Ocsigen_cache.Dlist.node -> unit
-    val length : unit -> int
+    val nb_of_groups : unit -> int
+    val group_size : Eliom_common.sessgrp -> int
     val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
   end
 
@@ -138,7 +139,13 @@ struct
 (*    end
     else [] *)
 
-  let length () = GroupTable.length grouptable
+  let nb_of_groups () = GroupTable.length grouptable
+
+  let group_size sess_grp =
+    try
+      let cl = find sess_grp in
+      Ocsigen_cache.Dlist.size cl
+    with Not_found -> 0
 
   let set_max node i =
     match Ocsigen_cache.Dlist.list_of node with
@@ -291,6 +298,6 @@ module Pers = struct
     end
     else Lwt.return []
 
-  let length () = Ocsipersist.length !!grouptable
+  let nb_of_groups () = Ocsipersist.length !!grouptable
 
 end

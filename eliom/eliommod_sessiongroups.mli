@@ -42,7 +42,8 @@ module type MEMTAB =
       string Ocsigen_cache.Dlist.node ->
       Eliom_common.sessgrp -> string Ocsigen_cache.Dlist.node
     val up : string Ocsigen_cache.Dlist.node -> unit
-    val length : unit -> int
+    val nb_of_groups : unit -> int
+    val group_size : Eliom_common.sessgrp -> int
     val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
   end
 
@@ -64,5 +65,5 @@ module Pers :
       Eliom_common.perssessgrp option ->
       string list Lwt.t
     val up : string -> Eliom_common.perssessgrp option -> unit Lwt.t
-    val length : unit -> int Lwt.t
+    val nb_of_groups : unit -> int Lwt.t
   end
