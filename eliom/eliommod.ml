@@ -149,7 +149,7 @@ let new_sitedata =
            ipv6mask = None, false;
           }
         in
-        Ocsigen_cache.Dlist.set_finaliser
+        Ocsigen_cache.Dlist.set_finaliser_after
           (fun (node : [ `Browser ] Eliom_common.sessgrp 
                   Ocsigen_cache.Dlist.node) ->
             let fullbrowsersessgrp = Ocsigen_cache.Dlist.value node in

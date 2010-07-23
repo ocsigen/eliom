@@ -68,10 +68,16 @@ sig
   val set_maxsize : 'a t -> int -> 'a list
 
   (** set a function to be called automatically on a piece of data
-      when it disappears from the list
+      just before it disappears from the list
       (either by explicit removal or because the maximum size is exceeded) *)
-  val set_finaliser : ('a node -> unit) -> 'a t -> unit
-  val get_finaliser : 'a t -> ('a node -> unit)
+  val set_finaliser_before : ('a node -> unit) -> 'a t -> unit
+  val get_finaliser_before : 'a t -> ('a node -> unit)
+
+  (** set a function to be called automatically on a piece of data
+      just after it disappears from the list
+      (either by explicit removal or because the maximum size is exceeded) *)
+  val set_finaliser_after : ('a node -> unit) -> 'a t -> unit
+  val get_finaliser_after : 'a t -> ('a node -> unit)
 end = struct
 
   type 'a node =
@@ -91,7 +97,8 @@ end = struct
        mutable oldest : 'a node option;
        mutable size : int;
        mutable maxsize : int;
-       mutable finaliser : 'a node -> unit;
+       mutable finaliser_before : 'a node -> unit;
+       mutable finaliser_after : 'a node -> unit;
        (*   *) time_bound : time_bound option;
       }
   and time_bound =
@@ -134,7 +141,8 @@ end = struct
      oldest = None;
      size = 0;
      maxsize = size;
-     finaliser = (fun _ -> ());
+     finaliser_before = (fun _ -> ());
+     finaliser_after = (fun _ -> ());
      time_bound =
        (match timer with
           | None -> None
@@ -171,13 +179,14 @@ end = struct
     match node.mylist with
       | None -> ()
       | Some l as a ->
-          try
-            l.finaliser node;
-            assert (node.mylist == a);
-            remove' node l
-          with e ->
-            remove' node l;
-            raise e
+        (try
+           l.finaliser_before node;
+           assert (node.mylist == a);
+           remove' node l
+         with e ->
+           remove' node l;
+           raise e);
+        l.finaliser_after node
 
   (* These next functions are for the collecting thread *)
 
@@ -318,9 +327,13 @@ end = struct
       l.maxsize <- m;
       ll
 
-  let set_finaliser f l = l.finaliser <- f
+  let set_finaliser_before f l = l.finaliser_before <- f
 
-  let get_finaliser l = l.finaliser
+  let get_finaliser_before l = l.finaliser_before
+
+  let set_finaliser_after f l = l.finaliser_after <- f
+
+  let get_finaliser_after l = l.finaliser_after
 
 end
 

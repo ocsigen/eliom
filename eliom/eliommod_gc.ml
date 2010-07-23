@@ -239,23 +239,28 @@ let data_session_gc sitedata =
                    return ()
                | _ ->
                    match !session_group_ref with
-                     | (_, level, Ocsigen_lib.Right _)
+                     | (_, level, Ocsigen_lib.Right _) (* no group *)
                          when
                            (Eliommod_sessiongroups.Data.group_size
                               (sitedata.Eliom_common.site_dir_string,
-                               level,
+                               `Tab,
                                Ocsigen_lib.Left k)
-                            = 0)
-(*VVV 201007 à vérifier ^ ^ ^ *)
+                            = 0) (* no tab sessions *)
                            &&
                              not_bound_in_data_tables k ->
                        (* The session is not used in any table
-                          and is not in a group (level must be `Browser),
+                          and is not in a group
+                          (level must be `Browser,
+                          as all tab sessions are in a group),
                           and is not associated to any tab session.
                           We can remove it. *)
-                       Ocsigen_messages.errlog
-                         "Eliom: Group associated to IP has level different from `Browser. Please report the problem.";
+                       if level <> `Browser
+                       then
+                         Ocsigen_messages.errlog
+                           "Eliom: Group associated to IP has level different from `Browser. Please report the problem.";
                        Eliommod_sessiongroups.Data.remove session_group_node;
+                       (* See also the finalisers in Eliommod_sessiongroups
+                          and Eliommod.ml *)
                                Lwt.return ()
                      | _ -> Lwt.return ()
             )

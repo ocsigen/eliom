@@ -668,7 +668,7 @@ let empty_tables max forsession =
       if forsession
       then
         let dlist = Ocsigen_cache.Dlist.create max in
-        Ocsigen_cache.Dlist.set_finaliser (dlist_finaliser t2) dlist;
+        Ocsigen_cache.Dlist.set_finaliser_before (dlist_finaliser t2) dlist;
         fun ?sp v -> add_dlist_ dlist v
       else
         fun ?sp v ->
@@ -695,7 +695,7 @@ let empty_tables max forsession =
               let dlist = Ocsigen_cache.Dlist.create max in
               Net_addr_Hashtbl.add 
                 sitedata.ipv4mask sitedata.ipv6mask sitedata.dlist_ip_table ip dlist;
-              Ocsigen_cache.Dlist.set_finaliser 
+              Ocsigen_cache.Dlist.set_finaliser_before 
                 (dlist_finaliser_ip sitedata ip t2) 
                 dlist;
               dlist

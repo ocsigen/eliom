@@ -4273,6 +4273,8 @@ let group_tables_example_handler sp () () =
                    pcdata name;
                    pcdata ". Try with another browser!"
                   ]);
+               p [pcdata "Check that all sessions with same user name share the value."];
+               p [pcdata "Check that the value disappears when all sessions from the group are closed."];
                disconnect_box sp "Close session"]
           | Eliom_sessions.Data_session_expired
           | Eliom_sessions.No_data -> [login_box sp]

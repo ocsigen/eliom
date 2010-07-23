@@ -102,23 +102,58 @@ struct
       fst (GroupTable.find grouptable g)
     with Not_found -> None
 
+  let remove node =
+    Ocsigen_cache.Dlist.remove node
+
   let remove_group sess_grp =
-    let cl = find sess_grp in
-    let rec close_all cl =
-      match Ocsigen_cache.Dlist.oldest cl with
-        | Some node -> 
+    try
+      let cl = find sess_grp in
+      let rec close_all cl =
+        match Ocsigen_cache.Dlist.oldest cl with
+          | Some node -> 
             Ocsigen_cache.Dlist.remove node;
             close_all cl
-        | None -> ()
-    in
-    close_all cl (* will remove the group using finaliser *)
+          | None -> ()
+      in
+      close_all cl (* will remove the group using finaliser *)
+    with Not_found -> ()
 
-  let remove_if_empty sess_grp node =
-    match Ocsigen_cache.Dlist.list_of node with
-      | Some cl ->
-          if Ocsigen_cache.Dlist.size cl = 1
-          then GroupTable.remove grouptable sess_grp
-      | None -> ()
+  let remove_if_empty sitedata sess_grp cl =
+    if Ocsigen_cache.Dlist.size cl = 0 (* finaliser after *)
+    then begin
+      (* We removed the last session from a group.
+         Do we want to close the group completely?
+         - For browser sessions, yes. No need to keep group data
+         when there is no session in the group.
+         We remove the group of groups from the site dlist.
+         - For tab sessions, yes if the browser cookie is not
+         bound is tables and is not in a group (like in Eliommod_gc)
+         (means that we do not use the browser session).
+         In that case, we remove the cookie info.
+      *)
+      (match sess_grp with
+        | (_, `Tab, Ocsigen_lib.Left sess_id) ->
+          (try
+             let (_, _, _, sgr, sgn) =
+               Eliom_common.SessionCookies.find
+                 sitedata.Eliom_common.session_data sess_id
+             in
+             (match !sgr with
+               | (_, `Browser, Ocsigen_lib.Right _) (* no group *)
+                   when sitedata.Eliom_common.not_bound_in_data_tables
+                     sess_id
+                     ->
+                 remove sgn
+               | _ -> ()
+             )
+           with Not_found -> ())
+        | (_, `Browser, _) -> 
+          (match find_node_in_group_of_groups sess_grp with
+            | Some node -> remove node | None -> ())
+        | _ -> ()
+      );
+      GroupTable.remove grouptable sess_grp
+    end
 
   let get_cl ?set_max sitedata sess_grp =
     try
@@ -141,7 +176,7 @@ struct
       in
       let level = Ocsigen_lib.snd3 sess_grp in
       let cl = Ocsigen_cache.Dlist.create size in
-      Ocsigen_cache.Dlist.set_finaliser
+      Ocsigen_cache.Dlist.set_finaliser_after
         (fun node ->
           let name = Ocsigen_cache.Dlist.value node in
           (* First we close all subsessions
@@ -155,10 +190,12 @@ struct
               (* First we close all tab sessions in the session (subgrp): *)
               let subgrp = make_full_named_group_name_ ~level sitedata name in
               remove_group subgrp
-            | `Tab (* We are closing to close a browser session *) -> ());
+            | `Tab (* We are closing a browser session *) -> ());
           (* Then we close all session tables: *)
           A.close_session sitedata name;
-          remove_if_empty sess_grp node)
+          (* If the dlist is empty, we remove it from the group table
+             (and possibly close the group itself): *)
+          remove_if_empty sitedata sess_grp cl)
         cl;
       let node_in_group_of_group =
         match level with
@@ -177,9 +214,6 @@ struct
     match Ocsigen_cache.Dlist.newest cl with
       | Some v -> v
       | None -> assert false
-
-  let remove node =
-    Ocsigen_cache.Dlist.remove node
 
   let up node =
     Ocsigen_cache.Dlist.up node
