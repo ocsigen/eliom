@@ -37,6 +37,7 @@ module OFrame  = Ocsigen_http_frame
 module OStream = Ocsigen_stream
 module OX      = Ocsigen_extensions
 module OLib    = Ocsigen_lib
+module OConf   = Ocsigen_config
 module OMsg    = Ocsigen_messages
 module Pxml    = Simplexmlparser
 
@@ -296,7 +297,8 @@ end = struct
                Lwt.return []
            | Some body ->
                Lwt.return (OStream.get body) >>=
-               OStream.string_of_stream >|=
+               OStream.string_of_stream
+                 (OConf.get_maxrequestbodysizeinmemory ()) >|=
                Ocsigen_lib.fixup_url_string >|=
                Netencoding.Url.dest_url_encoded_parameters
       )

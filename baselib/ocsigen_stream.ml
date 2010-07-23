@@ -106,21 +106,20 @@ exception Stream_too_small
 exception Stream_error of string
 exception String_too_large
 
-(*XXX Quadratic!!! *)
-let string_of_stream =
-  let rec aux l s =
-    next s >>= fun e ->
-    match e with
-    | Finished _ -> return ""
+let string_of_stream m s =
+  let buff = Buffer.create (m/4) in
+  let rec aux i s =
+    next s >>= function
+    | Finished _ -> Lwt.return buff
     | Cont (s, f) ->
-        let l2 = l+String.length s in
-        if l2 > Ocsigen_config.get_netbuffersize ()
-        then fail String_too_large
-        else
-          aux l2 f >>=
-             (fun r -> return (s^r))
-  in aux 0
+        let i = i + String.length s in
+        if i > m
+        then Lwt.fail String_too_large
+        else (Buffer.add_string buff s; aux i f)
+  in
+  aux 0 s >|= Buffer.contents
 
+(*
 (*XXX Quadratic!!! *)
 let string_of_streams =
   let rec aux l = function
@@ -135,6 +134,7 @@ let string_of_streams =
           aux l2 r >>= fun r ->
           return (s^r)
   in aux 0
+*)
 
 let enlarge_stream = function
   | Finished a -> fail Stream_too_small

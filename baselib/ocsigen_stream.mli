@@ -63,8 +63,9 @@ exception Stream_too_small
 exception Stream_error of string
 exception String_too_large
 
-(** Creates a string from a stream *)
-val string_of_stream : string stream -> string Lwt.t
+(** Creates a string from a stream. The first argument is the upper limit of the
+    string length *)
+val string_of_stream : int -> string stream -> string Lwt.t
 
 (** Read more data in the buffer *)
 val enlarge_stream : string step -> string step Lwt.t

@@ -49,11 +49,11 @@ let sumserv = register_new_service
 let create_form =
   (fun (name1, (name2, name3)) ->
     [p [
-       Eliom_predefmod.Xhtml.int_input 
+       Eliom_predefmod.Xhtml.int_input
          ~name:name1 ~input_type:`Submit ~value:48 ();
-       Eliom_predefmod.Xhtml.int_input 
+       Eliom_predefmod.Xhtml.int_input
          ~name:name2 ~input_type:`Submit ~value:55 ();
-       Eliom_predefmod.Xhtml.string_input 
+       Eliom_predefmod.Xhtml.string_input
          ~name:name3 ~input_type:`Submit ~value:"plop" ();
      ]])
 
@@ -126,7 +126,7 @@ let unregister_example =
        Lwt.return
          (html
             (head (title (pcdata "Unregistering services")) [])
-            (body [p [pcdata 
+            (body [p [pcdata
                         "These services have been registered and unregistered"];
                    p [a s1 sp [pcdata "regular service"] ();
                       pcdata ", ";
@@ -269,14 +269,14 @@ let optsuf =
   register_new_service
     ~path:["optsuf"]
     ~get_params:(suffix(opt(string "q" ** (opt (int "i")))))
-    (fun sp o () -> 
+    (fun sp o () ->
        Lwt.return
          (html
             (head (title (pcdata "")) [])
-            (body [p [pcdata (match o with 
+            (body [p [pcdata (match o with
                                  | None -> "<none>"
-                                 | Some (s, o) -> 
-                                     s^(match o with 
+                                 | Some (s, o) ->
+                                     s^(match o with
                                           | None -> "<none>"
                                           | Some i -> string_of_int i));
                      ]])))
@@ -285,20 +285,20 @@ let optsuf2 =
   register_new_service
     ~path:["optsuf2"]
     ~get_params:(suffix(opt(string "q") ** (opt (int "i"))))
-    (fun sp (s, i) () -> 
+    (fun sp (s, i) () ->
        Lwt.return
          (html
             (head (title (pcdata "")) [])
-            (body [p [pcdata (match s with 
+            (body [p [pcdata (match s with
                                  | None -> "<none>"
                                  | Some s -> s);
-                      pcdata (match i with 
+                      pcdata (match i with
                                 | None -> "<none>"
                                 | Some i -> string_of_int i)];
                      ])))
 
 (*******)
-let my_nl_params = 
+let my_nl_params =
   Eliom_parameters.make_non_localized_parameters
     ~prefix:"tutoeliom"
     ~name:"mynlp"
@@ -333,11 +333,11 @@ let () = register
                               " and month = "^string_of_int bb^
                               ". w = "^string_of_int w^".")];
                  (match Eliom_parameters.get_non_localized_get_parameters
-                    sp my_nl_params 
+                    sp my_nl_params
                   with
-                    | None -> 
+                    | None ->
                         p [pcdata "I do not have my non localized parameters"]
-                    | Some (a, s) -> 
+                    | Some (a, s) ->
                         p [pcdata "I have my non localized parameters, ";
                            pcdata ("with values a = "^string_of_int a^
                                      " and s = "^s^".")]
@@ -349,49 +349,49 @@ let () = register
 
 (*******)
 (* doing requests *)
-let extreq = 
+let extreq =
   register_new_service
-    ~path:["extreq"] 
+    ~path:["extreq"]
     ~get_params:unit
     (fun sp () () ->
        Ocsigen_http_client.get "ocsigen.org" "/" () >>= fun frame ->
        (match frame.Ocsigen_http_frame.frame_content with
          | None -> Lwt.return ""
-         | Some stream -> Ocsigen_stream.string_of_stream (Ocsigen_stream.get stream)) >>= fun s ->
-       (* Here use an XML parser, 
+         | Some stream -> Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream)) >>= fun s ->
+       (* Here use an XML parser,
           or send the stream directly using an appropriate Eliom_mkreg module *)
        return
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata s]])))
 
-let servreq = 
+let servreq =
   register_new_service
-    ~path:["servreq"] 
+    ~path:["servreq"]
     ~get_params:unit
     (fun sp () () ->
        let ri = Eliom_sessions.get_ri sp in
        let ri = Ocsigen_extensions.ri_of_url "tuto/" ri in
        Ocsigen_extensions.serve_request ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
-       Ocsigen_stream.string_of_stream (Ocsigen_stream.get stream) >>= fun s ->
-       (* Here use an XML parser, 
+       Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
+       (* Here use an XML parser,
           or send the stream directly using an appropriate Eliom_mkreg module *)
        return
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata s]])))
 
-let servreqloop = 
+let servreqloop =
   register_new_service
-    ~path:["servreqloop"] 
+    ~path:["servreqloop"]
     ~get_params:unit
     (fun sp () () ->
        let ri = Eliom_sessions.get_ri sp in
        Ocsigen_extensions.serve_request ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
-       Ocsigen_stream.string_of_stream (Ocsigen_stream.get stream) >>= fun s ->
-       (* Here use an XML parser, 
+       Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
+       (* Here use an XML parser,
           or send the stream directly using an appropriate Eliom_mkreg module *)
        return
          (html
@@ -403,16 +403,16 @@ let servreqloop =
 
 
 (* Customizing HTTP headers *)
-let headers = 
+let headers =
   register_new_service
     ~code:666
     ~charset:"plopcharset"
 (*    ~content_type:"custom/contenttype" *)
     ~headers:(Http_headers.add
                 (Http_headers.name "XCustom-header")
-                "This is an example" 
+                "This is an example"
                 Http_headers.empty)
-    ~path:["httpheaders"] 
+    ~path:["httpheaders"]
     ~get_params:unit
     (fun sp () () ->
       Eliom_sessions.set_cookie
@@ -517,7 +517,7 @@ let optform =
 (* testing lwt_get_form *)
        Eliom_predefmod.Xhtml.lwt_get_form
          ~service:optparam ~sp
-         (fun (an, bn) -> 
+         (fun (an, bn) ->
             Lwt.return
               [p [
                  string_input ~input_type:`Text ~name:an ();
@@ -526,9 +526,9 @@ let optform =
                    ~input_type:`Submit
                    ~value:"Click" ()]])
       >>= fun form ->
-      let form = 
+      let form =
         (form : Xhtmltypes.form XHTML.M.elt :> [> Xhtmltypes.form ] XHTML.M.elt)
-      in  
+      in
       return
         (html
            (head (title (pcdata "")) [])
@@ -776,7 +776,7 @@ let cookiename = "c"
 let cookies = new_service ["c";""] (suffix (all_suffix_string "s")) ()
 
 let _ = Eliom_predefmod.Xhtml.register cookies
-    (fun sp s () -> 
+    (fun sp s () ->
       let now = Unix.time () in
       Eliom_sessions.set_cookie
         ~sp ~path:[] ~exp:(now +. 10.) ~name:(cookiename^"6")
@@ -797,7 +797,7 @@ let _ = Eliom_predefmod.Xhtml.register cookies
         ~sp ~path:["c";"plop"] ~name:(cookiename^"11")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
       Eliom_sessions.set_cookie
-        ~sp ~path:["c";"plop"] ~name:(cookiename^"12") 
+        ~sp ~path:["c";"plop"] ~name:(cookiename^"12")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
       if Ocsigen_lib.String_Table.mem (cookiename^"1") (get_cookies ~sp ())
       then
@@ -883,7 +883,7 @@ let suffix3 =
   register_new_service
     ~path:["suffix3";""]
     ~get_params:(suffix_prod
-                   (string "suff1" ** int "ii" ** 
+                   (string "suff1" ** int "ii" **
                       all_suffix_user int_of_string string_of_int "ee")
                    (string "a" ** int "b"))
     (fun sp ((suf1, (ii, ee)), (a, b)) () ->
@@ -979,11 +979,11 @@ let sendfile2 =
     ~path:["files2";""]
 (*    ~get_params:(regexp r "/home/$1/public_html$2" "filename") *)
     ~get_params:(suffix ~redirect_if_not_suffix:false
-                   (all_suffix_regexp r "$u($1)/public_html$2" 
+                   (all_suffix_regexp r "$u($1)/public_html$2"
                       ~to_string:(fun s -> s) "filename"))
     (fun _ s () -> return s)
 
-(* Here I am using redirect_if_not_suffix:false because 
+(* Here I am using redirect_if_not_suffix:false because
    otherwise I would need to write a more sophisticated to_string function *)
 
 (*
@@ -1119,7 +1119,7 @@ let _ = register sufli
          <span>$list:ll$</span>
        </p>
        <p>
-         $a sufli sp [pcdata "myself"] [("a", 2)]$, 
+         $a sufli sp [pcdata "myself"] [("a", 2)]$,
          $a sufli sp [pcdata "myself (empty list)"] []$
        </p>
        </body>
@@ -1171,7 +1171,7 @@ let _ = register sufli2
          j=$str:string_of_int j$.
        </p>
        <p>
-         $a sufli2 sp [pcdata "myself"] ([1; 2], 3)$, 
+         $a sufli2 sp [pcdata "myself"] ([1; 2], 3)$,
          $a sufli2 sp [pcdata "myself (empty list)"] ([], 1)$
        </p>
        </body>
@@ -1199,7 +1199,7 @@ let _ = register sufliopt
          <span>$list:ll$</span>
        </p>
        <p>
-         $a sufliopt sp [pcdata "myself"] [Some "a"; None; Some "po"; None; None; Some "k"; None]$, 
+         $a sufliopt sp [pcdata "myself"] [Some "a"; None; Some "po"; None; None; Some "k"; None]$,
          $a sufliopt sp [pcdata "myself (empty list)"] []$
          $a sufliopt sp [pcdata "myself (list [None; None])"] [None; None]$
          $a sufliopt sp [pcdata "myself (list [None])"] [None]$
@@ -1229,7 +1229,7 @@ let _ = register sufliopt2
          <span>$list:ll$</span>
        </p>
        <p>
-         $a sufliopt2 sp [pcdata "myself"] [Some ("a", "jj"); None; Some ("po", "jjj"); None; None; Some ("k", "pp"); None]$, 
+         $a sufliopt2 sp [pcdata "myself"] [Some ("a", "jj"); None; Some ("po", "jjj"); None; None; Some ("k", "pp"); None]$,
          $a sufliopt2 sp [pcdata "myself (empty list)"] []$
          $a sufliopt2 sp [pcdata "myself (list [None; None])"] [None; None]$
          $a sufliopt2 sp [pcdata "myself (list [None])"] [None]$
@@ -1565,7 +1565,7 @@ let mainpage = register_new_service ["tests"] unit
             [("po?po&po~po/po+po", "lo?\"l     o#lo'lo lo=lo&l      o/lo+lo");
             ("bo=mo@co:ro", "zo^zo%zo$zo:zo?aaa")]); br ();
          a ~service:(static_dir_with_params ~sp ~get_params:Eliom_parameters.any ())
-           ~sp 
+           ~sp
            [pcdata "Static file with GET parameters"]
            (["ocsigen5.png"], [("aa", "lmk"); ("bb", "4")]); br ();
 

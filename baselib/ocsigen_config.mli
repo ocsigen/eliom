@@ -25,6 +25,7 @@ val set_keepopen_timeout : int -> unit *)
 val set_netbuffersize : int -> unit
 val set_filebuffersize : int -> unit
 val set_maxrequestbodysize : int64 option -> unit
+val set_maxrequestbodysizeinmemory : int -> unit
 val set_default_charset : string option -> unit
 val set_datadir : string -> unit
 val set_bindir : string -> unit
@@ -62,6 +63,7 @@ val get_keepopen_timeout : unit -> int*)
 val get_netbuffersize : unit -> int
 val get_filebuffersize : unit -> int
 val get_maxrequestbodysize : unit -> int64 option
+val get_maxrequestbodysizeinmemory : unit -> int
 val get_default_charset : unit -> string option
 val get_datadir : unit -> string
 val get_bindir : unit -> string
