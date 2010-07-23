@@ -102,11 +102,14 @@ module SessionCookies =
                end)
 
 (* session groups *)
-type sessgrp = (string * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
-    (* The full session group is the pair (site_dir_string, session group name).
+type 'a sessgrp =
+    (string * level * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+    (* The full session group is the triple
+       (site_dir_string, level, session group name).
+       The level is the level of group members (`Browser by default).
        If there is no session group, 
-       we limit the number of sessions by IP address (for a sub-network) *)
-type perssessgrp = string (* the same pair, marshaled *)
+       we limit the number of sessions by IP address. *)
+type perssessgrp = string (* the same triple, marshaled *)
 
 
 (* cookies information during page generation: *)
@@ -126,7 +129,8 @@ type 'a one_service_cookie_info =
                                     ref towards cookie table
                                   *);
      sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
-     sc_session_group:sessgrp ref (* session group *);
+     sc_session_group: cookie_level sessgrp ref
+       (* session group *);
      mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
    }
 
@@ -142,7 +146,7 @@ type one_data_cookie_info =
                                            ref towards cookie table
                                          *);
      dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-     dc_session_group: sessgrp ref (* session group *);
+     dc_session_group: cookie_level sessgrp ref (* session group *);
      mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
    }
 
@@ -223,7 +227,7 @@ type 'a servicecookiestablecontent =
      float option ref    (* expiration date by timeout
                             (server side) *) *
      timeout ref         (* user timeout *) *
-     sessgrp ref   (* session group *) *
+     cookie_level sessgrp ref   (* session group *) *
      string Ocsigen_cache.Dlist.node (* session group node *))
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
@@ -242,7 +246,7 @@ type datacookiestablecontent =
      float option ref        (* expiration date by timeout
                                 (server side) *) *
      timeout ref             (* user timeout *) *
-     sessgrp ref   (* session group *) *
+     cookie_level sessgrp ref   (* session group *) *
      string Ocsigen_cache.Dlist.node (* session group node *))
 
 type datacookiestable = datacookiestablecontent SessionCookies.t
@@ -464,8 +468,16 @@ and sitedata =
      ((fullsessionname * (float option * bool)) list);
 
    global_services: tables; (* global service table *)
-   session_services: tables servicecookiestable; (* cookie table for services *)
-   session_data: datacookiestable; (* cookie table for in memory session data *)
+   session_services: tables servicecookiestable;
+   (* cookie table for services
+      (tab and browser sessions) *)
+   session_data: datacookiestable; (* cookie table for in memory session data
+                                      (tab and browser sessions) 
+                                      contains the information about the cookie
+                                      (expiration, group ...).
+                                   *)
+   group_of_groups: [ `Group ] sessgrp Ocsigen_cache.Dlist.t; 
+   (* Limitation of the number of groups per site *)
    mutable remove_session_data: string -> unit;
    mutable not_bound_in_data_tables: string -> bool;
    mutable exn_handler: server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
@@ -496,14 +508,14 @@ and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
 
 let make_full_cookie_name a b = a^b
 
-let make_fullsessname ~sp cookie_type = function
-  | None -> ((cookie_type :> cookie_type), sp.sp_sitedata.site_dir_string)
-  | Some s -> ((cookie_type :> cookie_type), sp.sp_sitedata.site_dir_string^"|"^s)
+let make_fullsessname ~sp cookie_level = function
+  | None -> ((cookie_level :> cookie_level), sp.sp_sitedata.site_dir_string)
+  | Some s -> ((cookie_level :> cookie_level), sp.sp_sitedata.site_dir_string^"|"^s)
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
-let make_fullsessname2 site_dir_string cookie_type = function
-  | None -> ((cookie_type :> cookie_type), site_dir_string)
-  | Some s -> ((cookie_type :> cookie_type), site_dir_string^"|"^s)
+let make_fullsessname2 site_dir_string cookie_level = function
+  | None -> ((cookie_level :> cookie_level), site_dir_string)
+  | Some s -> ((cookie_level :> cookie_level), site_dir_string^"|"^s)
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
 let get_cookie_info sp = function
@@ -739,7 +751,7 @@ let split_nl_prefix_param =
     in
     aux [] Ocsigen_lib.String_Table.empty l
 
-let getcookies cookie_type cookiename cookies =
+let getcookies cookie_level cookiename cookies =
   let length = String.length cookiename in
   let last = length - 1 in
   Ocsigen_lib.String_Table.fold
@@ -747,7 +759,7 @@ let getcookies cookie_type cookiename cookies =
       if Ocsigen_lib.string_first_diff cookiename name 0 last = length
       then
         Fullsessionname_Table.add
-          (cookie_type, (String.sub name length ((String.length name) - length)))
+          (cookie_level, (String.sub name length ((String.length name) - length)))
           value
           beg
       else beg

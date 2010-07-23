@@ -1,20 +1,17 @@
-val close_data_group :
-  Eliom_common.sessgrp -> unit
 val close_data_session :
-  ?close_group:bool ->
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?level:Eliom_common.level ->
   secure:bool option ->
   sp:Eliom_common.server_params -> unit -> unit
 val find_or_create_data_cookie :
   ?set_session_group:string ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   secure:bool option ->
   sp:Eliom_common.server_params -> unit -> Eliom_common.one_data_cookie_info
 val find_data_cookie_only :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   secure:bool option ->
   sp:Eliom_common.server_params -> unit -> Eliom_common.one_data_cookie_info
 val counttableelements : (unit -> int) list ref

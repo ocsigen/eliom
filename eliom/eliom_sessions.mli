@@ -156,7 +156,7 @@ val get_ssl : sp:server_params -> bool
 val get_suffix : sp:server_params -> Ocsigen_lib.url_path option
 
 (** returns the cookies sent by the browser *)
-val get_cookies : ?cookie_type:Eliom_common.cookie_type ->
+val get_cookies : ?cookie_level:Eliom_common.cookie_level ->
   sp:server_params -> unit -> string Ocsigen_lib.String_Table.t
 
 (** returns an Unix timestamp associated to the request *)
@@ -212,7 +212,7 @@ val get_request_id : sp:server_params -> int64
 *)
 val set_global_volatile_session_timeout :
   ?session_name:string option -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
   ?recompute_expdates:bool -> 
   ?override_configfile:bool ->
@@ -222,7 +222,7 @@ val set_global_volatile_session_timeout :
 *)
 val set_global_service_session_timeout :
   ?session_name:string option -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
   ?recompute_expdates:bool -> 
   ?override_configfile:bool ->
@@ -232,7 +232,7 @@ val set_global_service_session_timeout :
 *)
 val set_global_volatile_data_session_timeout :
   ?session_name:string option -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
   ?recompute_expdates:bool -> 
   ?override_configfile:bool ->
@@ -242,7 +242,7 @@ val set_global_volatile_data_session_timeout :
 *)
 val set_global_persistent_data_session_timeout :
   ?session_name:string option ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params -> 
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
@@ -257,21 +257,21 @@ val set_global_persistent_data_session_timeout :
 *)
 val get_global_service_session_timeout :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params -> unit -> float option
 
 (** Returns the timeout for "volatile data" sessions (server side).
 *)
 val get_global_volatile_data_session_timeout :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params -> unit -> float option
 
 (** Returns the timeout for persistent sessions (server side).
 *)
 val get_global_persistent_data_session_timeout :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params -> unit -> float option
 
 
@@ -282,7 +282,7 @@ val get_global_persistent_data_session_timeout :
    in seconds. [None] = no timeout *)
 val set_service_session_timeout :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> float option -> unit
 
@@ -290,7 +290,7 @@ val set_service_session_timeout :
    (and turn back to the default). *)
 val unset_service_session_timeout :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> unit -> unit
 
@@ -299,7 +299,7 @@ val unset_service_session_timeout :
  *)
 val get_service_session_timeout :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> unit -> float option
 
@@ -310,7 +310,7 @@ val get_service_session_timeout :
    in seconds. [None] = no timeout *)
 val set_volatile_data_session_timeout :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> float option -> unit
 
@@ -318,7 +318,7 @@ val set_volatile_data_session_timeout :
    (and turn back to the default). *)
 val unset_volatile_data_session_timeout :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> unit -> unit
 
@@ -327,7 +327,7 @@ val unset_volatile_data_session_timeout :
  *)
 val get_volatile_data_session_timeout :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> unit -> float option
 
@@ -338,7 +338,7 @@ val get_volatile_data_session_timeout :
    in seconds. [None] = no timeout *)
 val set_volatile_session_timeout :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> float option -> unit
 
@@ -347,7 +347,7 @@ val set_volatile_session_timeout :
    (and turn back to the default). *)
 val unset_volatile_session_timeout :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> unit -> unit
 
@@ -360,7 +360,7 @@ val unset_volatile_session_timeout :
    in seconds. [None] = no timeout *)
 val set_persistent_data_session_timeout : 
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> float option -> unit Lwt.t
 
@@ -368,14 +368,14 @@ val set_persistent_data_session_timeout :
    (and turn back to the default). *)
 val unset_persistent_data_session_timeout : 
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> unit -> unit Lwt.t
 
 (** returns the persistent session timeout for one user. [None] = no timeout *)
 val get_persistent_data_session_timeout : 
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> unit -> float option Lwt.t
 
@@ -590,7 +590,7 @@ val set_ipv6_subnet_mask :
 *)
 val set_max_service_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -602,7 +602,7 @@ val set_max_service_sessions_for_group_or_subnet :
 *)
 val set_max_volatile_data_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -614,7 +614,7 @@ val set_max_volatile_data_sessions_for_group_or_subnet :
 *)
 val set_max_volatile_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -634,7 +634,7 @@ val set_max_volatile_sessions_for_group_or_subnet :
 *)
 val set_volatile_session_cookies_exp_date :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> 
   float option -> 
@@ -645,7 +645,7 @@ val set_volatile_session_cookies_exp_date :
 *)
 val set_service_session_cookie_exp_date : 
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> 
   float option -> 
@@ -656,7 +656,7 @@ val set_service_session_cookie_exp_date :
 *)
 val set_volatile_data_session_cookie_exp_date :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> 
   float option -> 
@@ -668,7 +668,7 @@ val set_volatile_data_session_cookie_exp_date :
 *)
 val set_persistent_data_session_cookie_exp_date :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> 
   float option -> 
@@ -816,7 +816,7 @@ val create_persistent_table : string -> 'a persistent_table
 (** gets persistent session data for the current persistent session (if any) *)
 val get_persistent_session_data : 
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   table:'a persistent_table -> 
   sp:server_params ->
@@ -826,7 +826,7 @@ val get_persistent_session_data :
 (** sets persistent session data for the current persistent session *)
 val set_persistent_session_data : 
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   table:'a persistent_table -> 
   sp:server_params -> 
@@ -839,7 +839,7 @@ val set_persistent_session_data :
  *)
 val remove_persistent_session_data : 
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   table:'a persistent_table -> 
   sp:server_params -> 
@@ -865,9 +865,8 @@ val remove_persistent_session_data :
     (See {!Eliom_sessions.get_request_cache}).
 *)
 val close_session :
-  ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -881,9 +880,8 @@ val close_session :
     {!Eliom_sessions.close_service_session}.
  *)
 val close_volatile_session :
-  ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -894,7 +892,7 @@ val close_volatile_session :
 val close_persistent_data_session :
   ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -903,9 +901,8 @@ val close_persistent_data_session :
 (** Close Eliom's current data session, if opened
    (destroying all session data for that user) *)
 val close_volatile_data_session :
-  ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -915,7 +912,7 @@ val close_volatile_data_session :
 val close_service_session :
   ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -928,13 +925,13 @@ val close_service_session :
 
 val set_cookie :
   sp:server_params ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?path:string list ->
   ?exp:float -> name:string -> value:string -> ?secure:bool -> unit -> unit
 
 val unset_cookie :
   sp:server_params ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?path:string list ->
   name:string -> unit -> unit
 
@@ -954,7 +951,7 @@ val unset_cookie :
 val close_all_sessions :
   ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
   unit ->
   unit Lwt.t
@@ -971,7 +968,7 @@ val close_all_sessions :
 val close_all_volatile_sessions :
   ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
   unit ->
   unit Lwt.t
@@ -987,7 +984,7 @@ val close_all_volatile_sessions :
 val close_all_persistent_data_sessions :
   ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
   unit ->
   unit Lwt.t
@@ -1003,7 +1000,7 @@ val close_all_persistent_data_sessions :
 val close_all_service_sessions :
   ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
   unit ->
   unit Lwt.t
@@ -1017,9 +1014,8 @@ val close_all_service_sessions :
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_volatile_data_sessions :
-  ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
   unit ->
   unit Lwt.t
@@ -1083,12 +1079,12 @@ module Session_admin : sig
   val get_persistent_data_session_name :
       session:persistent_session -> string option
 
-  val get_service_session_cookie_type :
-    session:service_session -> Eliom_common.cookie_type
-  val get_volatile_data_session_cookie_type : session:data_session -> 
-    Eliom_common.cookie_type
-  val get_persistent_data_session_cookie_type :
-    session:persistent_session -> Eliom_common.cookie_type
+  val get_service_session_cookie_level :
+    session:service_session -> Eliom_common.cookie_level
+  val get_volatile_data_session_cookie_level : session:data_session -> 
+    Eliom_common.cookie_level
+  val get_persistent_data_session_cookie_level :
+    session:persistent_session -> Eliom_common.cookie_level
 
   val set_service_session_timeout :
       session:service_session -> float option -> unit
@@ -1310,7 +1306,7 @@ val get_session_name : sp:server_params -> Eliom_common.fullsessionname option
  *)
 val get_persistent_data_session_cookie : 
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> unit -> string option Lwt.t
 
@@ -1319,7 +1315,7 @@ val get_persistent_data_session_cookie :
  *)
 val get_service_session_cookie :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params ->
   unit -> string option
@@ -1329,7 +1325,7 @@ val get_service_session_cookie :
  *)
 val get_volatile_data_session_cookie :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params ->
   unit -> string option
@@ -1361,7 +1357,7 @@ val get_global_table : ?sp:server_params -> unit -> Eliom_common.tables
 
 val get_session_service_table :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> 
   unit ->
@@ -1369,7 +1365,7 @@ val get_session_service_table :
 
 val get_session_service_table_if_exists :
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   sp:server_params -> 
   unit ->

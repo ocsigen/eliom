@@ -19,31 +19,54 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+val make_full_named_group_name_ : 
+  level:Eliom_common.level ->
+  Eliom_common.sitedata ->
+  string -> [< Eliom_common.level ] Eliom_common.sessgrp
+
 val make_full_group_name : 
+  level:Eliom_common.level ->
   Ocsigen_extensions.request_info -> string -> 
   int32 -> int64 * int64 ->
-  string option -> Eliom_common.sessgrp
+  string option -> [< Eliom_common.level ] Eliom_common.sessgrp
 val make_persistent_full_group_name :
-  Ocsigen_extensions.request_info -> string -> string option -> Eliom_common.perssessgrp option
+  level:Eliom_common.level ->
+  Ocsigen_extensions.request_info -> string -> string option ->
+  Eliom_common.perssessgrp option
 
 val getsessgrp : 
-  Eliom_common.sessgrp -> string * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright
+  [< Eliom_common.level ] Eliom_common.sessgrp -> 
+  string * Eliom_common.level *
+    (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright
 val getperssessgrp : Eliom_common.perssessgrp -> (string * string)
 
 module type MEMTAB =
   sig
-    val add : ?set_max: int -> Eliom_common.sitedata ->
-      string -> Eliom_common.sessgrp -> string Ocsigen_cache.Dlist.node
+    val add : ?set_max: int -> 
+      Eliom_common.sitedata ->
+      string -> [< Eliom_common.cookie_level ] Eliom_common.sessgrp -> 
+      string Ocsigen_cache.Dlist.node
     val remove : 'a Ocsigen_cache.Dlist.node -> unit
-    val remove_group : Eliom_common.sessgrp -> unit
+    val remove_group : [< Eliom_common.cookie_level ] Eliom_common.sessgrp ->
+      unit
+
+    (** Groups of browser sessions belongs to a group of groups.
+        As these groups are not associated to a cookie,
+        we put this information here. *)
+    val find_node_in_group_of_groups : 
+      [< `Browser ] Eliom_common.sessgrp -> 
+      [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node option
+
     val move :
       ?set_max:int ->
       Eliom_common.sitedata ->
       string Ocsigen_cache.Dlist.node ->
-      Eliom_common.sessgrp -> string Ocsigen_cache.Dlist.node
+      [< Eliom_common.cookie_level ] Eliom_common.sessgrp ->
+      string Ocsigen_cache.Dlist.node
+
     val up : string Ocsigen_cache.Dlist.node -> unit
     val nb_of_groups : unit -> int
-    val group_size : Eliom_common.sessgrp -> int
+    val group_size : [< Eliom_common.cookie_level ] Eliom_common.sessgrp -> int
     val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
   end
 

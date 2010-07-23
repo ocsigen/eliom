@@ -56,23 +56,20 @@ let close_all_service_sessions2 ?(close_group = false) fullsessname sitedata =
     only the session with default name is closed.
  *)
 let close_all_service_sessions ?close_group ?session_name
-    ?(cookie_type = `Browser) sitedata =
+    ?(cookie_level = `Browser) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
       sitedata.Eliom_common.site_dir_string 
-      cookie_type session_name
+      cookie_level session_name
   in
   close_all_service_sessions2 ?close_group fullsessname sitedata
 
-let close_all_data_sessions2 ?(close_group = false) fullsessname sitedata =
+let close_all_data_sessions2 ~cookie_level fullsessname sitedata =
   Eliom_common.SessionCookies.fold
     (fun k (fullsessname2, expref, timeoutref, sessgrpref, sessgrpnode) thr ->
       thr >>= fun () ->
       if fullsessname = fullsessname2 && !timeoutref = Eliom_common.TGlobal
-      then (if close_group then
-        Eliommod_datasess.close_data_group !sessgrpref
-      else
-        Eliommod_sessiongroups.Data.remove sessgrpnode);
+      then Eliommod_sessiongroups.Data.remove sessgrpnode;
       Lwt_unix.yield ()
     )
     sitedata.Eliom_common.session_data
@@ -82,13 +79,17 @@ let close_all_data_sessions2 ?(close_group = false) fullsessname sitedata =
     If the optional parameter [?session_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_data_sessions ?close_group ?session_name
-    ?(cookie_type = `Browser) sitedata =
+let close_all_data_sessions ?session_name ?(cookie_level = `Browser) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_type session_name
+      sitedata.Eliom_common.site_dir_string cookie_level session_name
   in
-  close_all_data_sessions2 ?close_group fullsessname sitedata
+  close_all_data_sessions2 ~cookie_level fullsessname sitedata
+(*VVV Missing:
+   - close all sessions, whatever be the session_name
+   - secure
+   - close all groups (but closing sessions will close the groups (?))
+*)
 
 
 let close_all_persistent_sessions2 ?(close_group = false) fullsessname =
@@ -108,10 +109,10 @@ let close_all_persistent_sessions2 ?(close_group = false) fullsessname =
     only the session with default name is closed.
  *)
 let close_all_persistent_sessions ?close_group ?session_name
-    ?(cookie_type = `Browser) sitedata =
+    ?(cookie_level = `Browser) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_type session_name
+      sitedata.Eliom_common.site_dir_string cookie_level session_name
   in
   close_all_persistent_sessions2 ?close_group fullsessname
 
@@ -151,13 +152,13 @@ let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
       (return ())
 
 (* Update the expiration date for all in memory data sessions                *)
-let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
+let update_data_exp ?(cookie_level = `Browser) fullsessname sitedata old_glob_timeout new_glob_timeout =
   Ocsigen_messages.debug2
     "--Eliom: Updating expiration date for all data sessions";
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
-      close_all_data_sessions2 fullsessname sitedata
+      close_all_data_sessions2 ~cookie_level fullsessname sitedata
   | _ ->
     let now = Unix.time () in
     Eliom_common.SessionCookies.fold

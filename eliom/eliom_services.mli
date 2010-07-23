@@ -227,7 +227,7 @@ val new_coservice :
   ?name: string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_cookie_type: Eliom_common.cookie_type ->
+  ?csrf_cookie_level: Eliom_common.cookie_level ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -274,12 +274,12 @@ val new_coservice :
    service table or in the session service table. But the actual registration,
    that will occure when creating a link or a form, will always take
    place in a session service table. This table is specified by the
-   [~csrf_session_name], [~csrf_cookie_type] 
+   [~csrf_session_name], [~csrf_cookie_level] 
     and [~csrf_secure_session] parameters
-   (that correspond to [~session_name], [~cookie_type]
+   (that correspond to [~session_name], [~cookie_level]
     and [~secure] for the delayed 
     registration); it is default session table if they are absent.
-    Parameters [?session_name], [?cookie_type]
+    Parameters [?session_name], [?cookie_level]
     and [?secure] of [register_for_session]
     must have the same values as the one declared while creating the
     CSRF safe coservice, otherwise the registration will fail
@@ -291,7 +291,7 @@ val new_post_coservice :
   ?name: string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_cookie_type: Eliom_common.cookie_type ->
+  ?csrf_cookie_level: Eliom_common.cookie_level ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -316,7 +316,7 @@ val new_coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_cookie_type: Eliom_common.cookie_type ->
+  ?csrf_cookie_level: Eliom_common.cookie_level ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -341,7 +341,7 @@ val new_post_coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_cookie_type: Eliom_common.cookie_type ->
+  ?csrf_cookie_level: Eliom_common.cookie_level ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -507,7 +507,7 @@ val unregister :
 val unregister_for_session :
   sp:Eliom_sessions.server_params ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   ?secure:bool ->
   ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post ]) a_s
    | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h, 'return) service ->
@@ -596,12 +596,12 @@ val untype_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
 
 val register_delayed_get_or_na_coservice :
   sp:Eliom_sessions.server_params ->
-  (int * string option * Eliom_common.cookie_type option * bool option) -> 
+  (int * string option * Eliom_common.cookie_level option * bool option) -> 
   string
 
 val register_delayed_post_coservice :
   sp:Eliom_sessions.server_params -> 
-  (int * string option * Eliom_common.cookie_type option * bool option) -> 
+  (int * string option * Eliom_common.cookie_level option * bool option) -> 
   Eliom_common.att_key_serv -> string
 
 val set_delayed_get_or_na_registration_function :

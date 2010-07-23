@@ -145,7 +145,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_type:Eliom_common.cookie_type ->
+      ?cookie_level:Eliom_common.cookie_level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       service:('get, 'post, [< internal_service_kind ],
@@ -169,7 +169,7 @@ module type ELIOMREGSIG =
     [?session_name] is the name of the session, if you want several
     service sessions on the same site.
     
-    [?cookie_type] allows to choose if you want a traditional browser
+    [?cookie_level] allows to choose if you want a traditional browser
     session (default) or a tab session (works only if there is a client
     side program running).
 
@@ -217,7 +217,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_cookie_type: Eliom_common.cookie_type ->
+      ?csrf_cookie_level: Eliom_common.cookie_level ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -250,7 +250,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_cookie_type: Eliom_common.cookie_type ->
+      ?csrf_cookie_level: Eliom_common.cookie_level ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -273,7 +273,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_type:Eliom_common.cookie_type ->
+      ?cookie_level:Eliom_common.cookie_level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -306,7 +306,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_type:Eliom_common.cookie_type ->
+      ?cookie_level:Eliom_common.cookie_level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -360,7 +360,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_cookie_type: Eliom_common.cookie_type ->
+      ?csrf_cookie_level: Eliom_common.cookie_level ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -392,7 +392,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_cookie_type: Eliom_common.cookie_type ->
+      ?csrf_cookie_level: Eliom_common.cookie_level ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -416,7 +416,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_type:Eliom_common.cookie_type ->
+      ?cookie_level:Eliom_common.cookie_level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -448,7 +448,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_type:Eliom_common.cookie_type ->
+      ?cookie_level:Eliom_common.cookie_level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -650,17 +650,17 @@ module MakeRegister = functor
               (match (key_kind, attserget, attserpost) with
                 | (Ocsigen_http_frame.Http_header.POST, _,
                    Eliom_common.SAtt_csrf_safe (id, session_name,
-                                                cookie_type, secure)) ->
+                                                cookie_level, secure)) ->
                   let tablereg, forsession =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl, false
                       | Ocsigen_lib.Right (sp, sn, ct, sec) ->
                         if sn <> session_name || secure <> sec
-                          || cookie_type <> ct
+                          || cookie_level <> ct
                         then raise
                           Wrong_session_table_for_CSRF_safe_coservice;
                         !(Eliom_sessions.get_session_service_table
-                            ?secure ?session_name ?cookie_type ~sp ()),
+                            ?secure ?session_name ?cookie_level ~sp ()),
                           true
                   in
                   Eliom_services.set_delayed_post_registration_function
@@ -678,24 +678,24 @@ module MakeRegister = functor
                              but in the table specified while creating
                              the csrf safe service *)
                           !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ())
+                              ?secure ?session_name ?cookie_level ~sp ())
                       in
                       f table (attserget, attserpost);
                       n)
                 | (Ocsigen_http_frame.Http_header.GET,
                    Eliom_common.SAtt_csrf_safe (id, session_name,
-                                                cookie_type, secure),
+                                                cookie_level, secure),
                    _) ->
                   let tablereg, forsession =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl, false
                       | Ocsigen_lib.Right (sp, sn, ct, sec) ->
                         if sn <> session_name || secure <> sec
-                          || ct <> cookie_type
+                          || ct <> cookie_level
                         then raise
                           Wrong_session_table_for_CSRF_safe_coservice;
                         !(Eliom_sessions.get_session_service_table
-                            ?secure ?session_name ?cookie_type ~sp ()), true
+                            ?secure ?session_name ?cookie_level ~sp ()), true
                   in
                   Eliom_services.set_delayed_get_or_na_registration_function
                     tablereg
@@ -712,7 +712,7 @@ module MakeRegister = functor
                              but in the table specified while creating
                              the csrf safe service *)
                           !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ())
+                              ?secure ?session_name ?cookie_level ~sp ())
                       in
                       f table (attserget, attserpost);
                       n)
@@ -721,9 +721,9 @@ module MakeRegister = functor
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl
                       | Ocsigen_lib.Right (sp, session_name, 
-                                           cookie_type, secure) ->
+                                           cookie_level, secure) ->
                         !(Eliom_sessions.get_session_service_table
-                            ?secure ?session_name ?cookie_type ~sp ())
+                            ?secure ?session_name ?cookie_level ~sp ())
                   in
                   f tablereg (attserget, attserpost))
             | `Nonattached naser ->
@@ -778,18 +778,18 @@ module MakeRegister = functor
               in
               match na_name with
                 | Eliom_common.SNa_get_csrf_safe (id, session_name, 
-                                                  cookie_type, secure) ->
+                                                  cookie_level, secure) ->
                   (* CSRF safe coservice: we'll do the registration later *)
                   let tablereg, forsession =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl, false
                       | Ocsigen_lib.Right (sp, sn, ct, sec) ->
                         if sn <> session_name || secure <> sec
-                          || ct <> cookie_type
+                          || ct <> cookie_level
                         then raise
                           Wrong_session_table_for_CSRF_safe_coservice;
                         !(Eliom_sessions.get_session_service_table
-                            ?secure ?session_name ?cookie_type ~sp ()), true
+                            ?secure ?session_name ?cookie_level ~sp ()), true
                   in
                   set_delayed_get_or_na_registration_function
                     tablereg
@@ -806,23 +806,23 @@ module MakeRegister = functor
                              but in the table specified while creating
                              the csrf safe service *)
                           !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ())
+                              ?secure ?session_name ?cookie_level ~sp ())
                       in
                       f table na_name;
                       n)
                 | Eliom_common.SNa_post_csrf_safe (id, session_name, 
-                                                   cookie_type, secure) ->
+                                                   cookie_level, secure) ->
                   (* CSRF safe coservice: we'll do the registration later *)
                   let tablereg, forsession =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl, false
                       | Ocsigen_lib.Right (sp, sn, ct, sec) ->
                         if sn <> session_name || secure <> sec
-                          || ct <> cookie_type
+                          || ct <> cookie_level
                         then raise
                           Wrong_session_table_for_CSRF_safe_coservice;
                         !(Eliom_sessions.get_session_service_table
-                            ?secure ?session_name ?cookie_type ~sp ()), true
+                            ?secure ?session_name ?cookie_level ~sp ()), true
                   in
                   set_delayed_get_or_na_registration_function
                     tablereg
@@ -839,7 +839,7 @@ module MakeRegister = functor
                              but in the table specified while creating
                              the csrf safe service *)
                           !(Eliom_sessions.get_session_service_table
-                              ?secure ?session_name ?cookie_type ~sp ())
+                              ?secure ?session_name ?cookie_level ~sp ())
                       in
                       f table na_name;
                       n)
@@ -848,9 +848,9 @@ module MakeRegister = functor
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl
                       | Ocsigen_lib.Right (sp, session_name, 
-                                           cookie_type, secure) ->
+                                           cookie_level, secure) ->
                         !(Eliom_sessions.get_session_service_table
-                            ?secure ?session_name ?cookie_type ~sp ())
+                            ?secure ?session_name ?cookie_level ~sp ())
                   in
                   f tablereg na_name
         end
@@ -918,7 +918,7 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?session_name
-          ?cookie_type
+          ?cookie_level
           ?secure
           ~sp
           ~service
@@ -931,7 +931,7 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?error_handler
-          (Ocsigen_lib.Right (sp, session_name, cookie_type, secure))
+          (Ocsigen_lib.Right (sp, session_name, cookie_level, secure))
           ~sp
           ~service page
 
@@ -968,7 +968,7 @@ module MakeRegister = functor
           ?name
           ?csrf_safe
           ?csrf_session_name
-          ?csrf_cookie_type
+          ?csrf_cookie_level
           ?csrf_secure_session
           ?max_use
           ?timeout
@@ -981,7 +981,7 @@ module MakeRegister = functor
           new_coservice ?name
             ?csrf_safe
             ?csrf_session_name
-            ?csrf_cookie_type
+            ?csrf_cookie_level
             ?csrf_secure_session
             ?max_use ?timeout ?https
             ~fallback ~get_params () 
@@ -1004,7 +1004,7 @@ module MakeRegister = functor
           ?name
           ?csrf_safe
           ?csrf_session_name
-          ?csrf_cookie_type
+          ?csrf_cookie_level
           ?csrf_secure_session
           ?max_use
           ?timeout
@@ -1017,7 +1017,7 @@ module MakeRegister = functor
             ?name
             ?csrf_safe
             ?csrf_session_name
-            ?csrf_cookie_type
+            ?csrf_cookie_level
             ?csrf_secure_session
             ?max_use ?timeout ?https ~get_params () 
         in
@@ -1036,13 +1036,13 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?session_name
-          ?cookie_type
+          ?cookie_level
           ?secure
           ~sp
           ?name
           ?csrf_safe
           (*            ?csrf_session_name = ~session_name
-                        ?csrf_cookie_type
+                        ?csrf_cookie_level
                         ?csrf_secure_session = ~secure *)
           ?max_use
           ?timeout
@@ -1055,7 +1055,7 @@ module MakeRegister = functor
           new_coservice ?name 
             ?csrf_safe
             ?csrf_session_name:session_name
-            ?csrf_cookie_type:cookie_type
+            ?csrf_cookie_level:cookie_level
             ?csrf_secure_session:secure
             ?max_use ?timeout ?https
             ~fallback ~get_params () 
@@ -1067,7 +1067,7 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?session_name
-          ?cookie_type
+          ?cookie_level
           ?secure ~sp ~service:u ?error_handler page;
         u
 
@@ -1078,13 +1078,13 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?session_name
-          ?cookie_type
+          ?cookie_level
           ?secure
           ~sp
           ?name
           ?csrf_safe
           (*            ?csrf_session_name
-                        ?csrf_cookie_type
+                        ?csrf_cookie_level
                         ?csrf_secure_session *)
           ?max_use
           ?timeout
@@ -1096,7 +1096,7 @@ module MakeRegister = functor
           ?name 
           ?csrf_safe
           ?csrf_session_name:session_name
-          ?csrf_cookie_type:cookie_type
+          ?csrf_cookie_level:cookie_level
           ?csrf_secure_session:secure
           ?max_use ?https ~get_params () 
         in
@@ -1107,7 +1107,7 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?session_name
-          ?cookie_type
+          ?cookie_level
           ?secure ~sp ~service:u ?error_handler page;
         u
 
@@ -1144,7 +1144,7 @@ module MakeRegister = functor
           ?name
           ?csrf_safe
           ?csrf_session_name
-          ?csrf_cookie_type
+          ?csrf_cookie_level
           ?csrf_secure_session
           ?max_use
           ?timeout
@@ -1157,7 +1157,7 @@ module MakeRegister = functor
           new_post_coservice ?name 
             ?csrf_safe
             ?csrf_session_name
-            ?csrf_cookie_type
+            ?csrf_cookie_level
             ?csrf_secure_session
             ?max_use ?timeout ?https
             ~fallback ~post_params () in
@@ -1179,7 +1179,7 @@ module MakeRegister = functor
           ?name
           ?csrf_safe
           ?csrf_session_name
-          ?csrf_cookie_type
+          ?csrf_cookie_level
           ?csrf_secure_session
           ?max_use
           ?timeout
@@ -1193,7 +1193,7 @@ module MakeRegister = functor
             ?name
             ?csrf_safe
             ?csrf_session_name
-            ?csrf_cookie_type
+            ?csrf_cookie_level
             ?csrf_secure_session
             ?keep_get_na_params
             ?max_use
@@ -1217,13 +1217,13 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?session_name
-          ?cookie_type
+          ?cookie_level
           ?secure
           ~sp
           ?name
           ?csrf_safe
           (*            ?csrf_session_name
-                        ?csrf_cookie_type
+                        ?csrf_cookie_level
                         ?csrf_secure_session *)
           ?max_use
           ?timeout
@@ -1235,7 +1235,7 @@ module MakeRegister = functor
         let u = new_post_coservice ?name 
           ?csrf_safe
           ?csrf_session_name:session_name
-          ?csrf_cookie_type:cookie_type
+          ?csrf_cookie_level:cookie_level
           ?csrf_secure_session:secure
           ?max_use ?timeout ?https ~fallback ~post_params () in
         register_for_session
@@ -1245,7 +1245,7 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?session_name
-          ?cookie_type
+          ?cookie_level
           ?secure ~sp ~service:u ?error_handler page_gen;
         u
 
@@ -1256,13 +1256,13 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?session_name
-          ?cookie_type
+          ?cookie_level
           ?secure
           ~sp
           ?name
           ?csrf_safe
           (*            ?csrf_session_name
-                        ?csrf_cookie_type
+                        ?csrf_cookie_level
                         ?csrf_secure_session *)
           ?max_use
           ?timeout
@@ -1276,7 +1276,7 @@ module MakeRegister = functor
             ?name
             ?csrf_safe
             ?csrf_session_name:session_name
-            ?csrf_cookie_type:cookie_type
+            ?csrf_cookie_level:cookie_level
             ?csrf_secure_session:secure
             ?keep_get_na_params
             ?max_use
@@ -1291,7 +1291,7 @@ module MakeRegister = functor
           ?content_type
           ?headers
           ?session_name
-          ?cookie_type
+          ?cookie_level
           ?secure ~sp ~service:u ?error_handler page_gen;
         u
 

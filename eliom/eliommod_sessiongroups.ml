@@ -2,7 +2,7 @@
  * http://www.ocsigen.org
  * Module eliomsessiongroups.ml
  * Copyright (C) 2007 Vincent Balat
- * Laboratoire PPS - CNRS Université Paris Diderot
+ * Laboratoire PPS - CNRS UniversitÃ© Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,19 +24,25 @@
 let (>>=) = Lwt.bind
 let (!!) = Lazy.force
 
-let make_full_group_name ri site_dir_string ipv4mask ipv6mask = function
-  | None -> (site_dir_string, 
+let make_full_named_group_name_ ~level sitedata g =
+  (sitedata.Eliom_common.site_dir_string, level, Ocsigen_lib.Left g)
+
+let make_full_group_name ~level ri site_dir_string ipv4mask ipv6mask = function
+  (* The level is the level of group members (`Browser by default). *)
+  | None -> (site_dir_string,
+             level,
              Ocsigen_lib.Right 
                (Ocsigen_lib.network_of_ip
                   (!!(ri.Ocsigen_extensions.ri_remote_ip_parsed))
                   ipv4mask
                   ipv6mask
                ))
-  | Some g -> (site_dir_string, Ocsigen_lib.Left g)
+  | Some g -> (site_dir_string, level, Ocsigen_lib.Left g)
 
-let make_persistent_full_group_name ri site_dir_string = function
+let make_persistent_full_group_name ~level ri site_dir_string = function
   | None -> None
-  | Some g -> Some (Marshal.to_string (site_dir_string, Ocsigen_lib.Left g) [])
+  | Some g ->
+    Some (Marshal.to_string (site_dir_string, level, Ocsigen_lib.Left g) [])
 
 let getsessgrp a = a
 let getperssessgrp a = Marshal.from_string a 0
@@ -44,37 +50,57 @@ let getperssessgrp a = Marshal.from_string a 0
 module type MEMTAB =
   sig
     val add : ?set_max: int -> Eliom_common.sitedata ->
-      string -> Eliom_common.sessgrp -> string Ocsigen_cache.Dlist.node
+      string -> Eliom_common.cookie_level Eliom_common.sessgrp ->
+      string Ocsigen_cache.Dlist.node
     val remove : 'a Ocsigen_cache.Dlist.node -> unit
-    val remove_group : Eliom_common.sessgrp -> unit
+    val remove_group : Eliom_common.cookie_level Eliom_common.sessgrp -> unit
+
+    (** Groups of browser sessions belongs to a group of groups.
+        As these groups are not associated to a cookie,
+        we put this information here. *)
+    val find_node_in_group_of_groups : 
+      Eliom_common.cookie_level Eliom_common.sessgrp ->
+      [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node option
+
     val move :
       ?set_max:int ->
       Eliom_common.sitedata ->
       string Ocsigen_cache.Dlist.node ->
-      Eliom_common.sessgrp -> string Ocsigen_cache.Dlist.node
+      Eliom_common.cookie_level Eliom_common.sessgrp ->
+      string Ocsigen_cache.Dlist.node
+
     val up : string Ocsigen_cache.Dlist.node -> unit
     val nb_of_groups : unit -> int
-    val group_size : Eliom_common.sessgrp -> int
+    val group_size : Eliom_common.cookie_level Eliom_common.sessgrp -> int
     val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
   end
 
 module GroupTable = Hashtbl.Make(struct
-  type t = Eliom_common.sessgrp
+  type t = Eliom_common.cookie_level Eliom_common.sessgrp
   let equal = (=)
   let hash = Hashtbl.hash
 end)
 
 module Make(A: sig 
-              val table : (string Ocsigen_cache.Dlist.t) GroupTable.t
+              val table : 
+                (([ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node)
+                    option * 
+                    (string Ocsigen_cache.Dlist.t)) GroupTable.t
               val close_session : Eliom_common.sitedata -> string -> unit
-              val maxgroup : Eliom_common.sitedata -> int
-              val maxip : Eliom_common.sitedata -> int
+              val max_tab_per_session : Eliom_common.sitedata -> int
+              val max_session_per_group : Eliom_common.sitedata -> int
+              val max_session_per_ip : Eliom_common.sitedata -> int
             end) : MEMTAB =
 struct
 
   let grouptable = A.table
 
-  let find g = GroupTable.find grouptable g
+  let find g = snd (GroupTable.find grouptable g)
+
+  let find_node_in_group_of_groups g =
+    try
+      fst (GroupTable.find grouptable g)
+    with Not_found -> None
 
   let remove_group sess_grp =
     let cl = find sess_grp in
@@ -102,18 +128,47 @@ struct
         | Some v -> ignore (Ocsigen_cache.Dlist.set_maxsize cl v));
       cl
     with Not_found ->
+      (* We create a group *)
       let size = match set_max, sess_grp with
-        | None, (_, Ocsigen_lib.Left _) -> A.maxgroup sitedata
-        | None, (_, Ocsigen_lib.Right _) -> A.maxip sitedata
+        | None, (_, `Browser, Ocsigen_lib.Left _) ->
+          A.max_session_per_group sitedata
+        | None, (_, `Tab, Ocsigen_lib.Left _) ->
+          A.max_tab_per_session sitedata
+        | None, (_, `Browser, Ocsigen_lib.Right _) ->
+          A.max_session_per_ip sitedata
+        | None, _ -> assert false
         | Some v, _ -> v
       in
+      let level = Ocsigen_lib.snd3 sess_grp in
       let cl = Ocsigen_cache.Dlist.create size in
       Ocsigen_cache.Dlist.set_finaliser
         (fun node ->
-          A.close_session sitedata (Ocsigen_cache.Dlist.value node);
+          let name = Ocsigen_cache.Dlist.value node in
+          (* First we close all subsessions
+             (that is, all sessions in the group associated to the session) *)
+          (match level with
+            | `Group -> assert false
+              (* As there is no table of groups of groups
+                 (only one group of groups for each site),
+                 the finaliser for these groups is created in eliommod.ml *)
+            | `Browser (* We are closing to close a browser session *) ->
+              (* First we close all tab sessions in the session (subgrp): *)
+              let subgrp = make_full_named_group_name_ ~level sitedata name in
+              remove_group subgrp
+            | `Tab (* We are closing to close a browser session *) -> ());
+          (* Then we close all session tables: *)
+          A.close_session sitedata name;
           remove_if_empty sess_grp node)
         cl;
-      GroupTable.add grouptable sess_grp cl;
+      let node_in_group_of_group =
+        match level with
+          | `Browser ->
+            ignore (Ocsigen_cache.Dlist.add
+                      sess_grp sitedata.Eliom_common.group_of_groups);
+            Ocsigen_cache.Dlist.newest sitedata.Eliom_common.group_of_groups
+          | _ -> None
+      in
+      GroupTable.add grouptable sess_grp (node_in_group_of_group, cl);
       cl
 
   let add ?set_max sitedata sess_id sess_grp =
@@ -156,33 +211,56 @@ end
 
 module Data =
   Make (struct
-    let table : (string Ocsigen_cache.Dlist.t) GroupTable.t = 
+    let table : (([ `Group ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node)
+                    option * 
+                    (string Ocsigen_cache.Dlist.t)) GroupTable.t = 
+      (* The table associates the dlist for a group
+         to a full session group name.
+         It work both for groups of tab sessions and
+         groups of browser sessions.
+         For groups of groups, we do not need that table,
+         as there is only one group of groups for each site
+         (the dlist is found in sitedata).
+         The dlist is automatically removed from the table
+         when it becomes empty, using the finaliser of nodes.
+         In the case of groups of browser sessions,
+         the session group is also associated to a node
+         which corresponds to the node of that group in the group
+         of groups (one group of groups for each site).
+      *)
       GroupTable.create 100
 
-    let close_session sitedata sess_id = 
+    let close_session sitedata sess_id =
       Eliom_common.SessionCookies.remove 
         sitedata.Eliom_common.session_data sess_id;
+      (* iterate on all session data tables: *)
       sitedata.Eliom_common.remove_session_data sess_id 
-        (* iterates on all
-           session data tables *)
+    (* see also in eliommod.ml if you modify this *)
 
-    let maxgroup sitedata =
-      (fst sitedata.Eliom_common.max_volatile_data_sessions_per_group)
-    let maxip sitedata =
-      (fst sitedata.Eliom_common.max_volatile_data_sessions_per_subnet)
+    let max_tab_per_session sitedata =
+      fst sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group
+    let max_session_per_group sitedata =
+      fst sitedata.Eliom_common.max_volatile_data_sessions_per_group
+    let max_session_per_ip sitedata =
+      fst sitedata.Eliom_common.max_volatile_data_sessions_per_subnet
   end)
+
 
 module Serv =
   Make (struct
-    let table : (string Ocsigen_cache.Dlist.t) GroupTable.t = 
+    let table : (([ `Group ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node)
+                    option * 
+                    (string Ocsigen_cache.Dlist.t)) GroupTable.t = 
       GroupTable.create 100
     let close_session sitedata sess_id =
       Eliom_common.SessionCookies.remove 
         sitedata.Eliom_common.session_services sess_id
-    let maxgroup sitedata =
-      (fst sitedata.Eliom_common.max_service_sessions_per_group)
-    let maxip sitedata =
-      (fst sitedata.Eliom_common.max_service_sessions_per_subnet)
+    let max_tab_per_session sitedata =
+      fst sitedata.Eliom_common.max_service_tab_sessions_per_group
+    let max_session_per_group sitedata =
+      fst sitedata.Eliom_common.max_service_sessions_per_group
+    let max_session_per_ip sitedata =
+      fst sitedata.Eliom_common.max_service_sessions_per_subnet
   end)
 
 

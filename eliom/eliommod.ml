@@ -71,6 +71,12 @@ let default_max_data_tab_sessions_per_group = ref 50
 let default_max_anonymous_services_per_subnet = ref 500000
 let default_max_anonymous_services_per_session = ref 1000
 
+let default_max_volatile_groups_per_site  = ref 1000000
+(*VVV value ??? *)
+
+
+
+
 let new_sitedata =
   (* We want to keep the old site data even if we reload the server *)
   (* To do that, we keep the site data in a table *)
@@ -92,57 +98,81 @@ let new_sitedata =
       S.find t key
     with
       | Not_found ->
-          let sitedata =
-            let dlist_table = Eliom_common.create_dlist_ip_table 100 in
+        let gog =
+          Ocsigen_cache.Dlist.create !default_max_volatile_groups_per_site
+        in
+        let sitedata =
+          let dlist_table = Eliom_common.create_dlist_ip_table 100 in
             (* One dlist for each site? *)
-            {Eliom_common.servtimeout = None, None, [];
-             datatimeout =  None, None, [];
-             perstimeout =  None, None, [];
-             site_dir = site_dir;
+          {Eliom_common.servtimeout = None, None, [];
+           datatimeout =  None, None, [];
+           perstimeout =  None, None, [];
+           site_dir = site_dir;
 (*VVV encode=false??? *)
-             site_dir_string = Ocsigen_lib.string_of_url_path
-                ~encode:false site_dir;
-             config_info = config_info;
-             global_services = 
-                Eliom_common.empty_tables
-                  !default_max_anonymous_services_per_subnet
-                  false;
-             session_services = Eliommod_cookies.new_service_cookie_table ();
-             session_data = Eliommod_cookies.new_data_cookie_table ();
-             remove_session_data = (fun cookie -> ());
-             not_bound_in_data_tables = (fun cookie -> true);
-             exn_handler = Eliommod_pagegen.def_handler;
-             unregistered_services = [];
-             unregistered_na_services = [];
-             max_service_sessions_per_group =
-                !default_max_service_sessions_per_group, false;
-             max_volatile_data_sessions_per_group =
-                !default_max_service_sessions_per_group, false;
-             max_persistent_data_sessions_per_group =
-                Some !default_max_persistent_sessions_per_group, false;
-             max_service_tab_sessions_per_group =
-                !default_max_service_tab_sessions_per_group, false;
-             max_volatile_data_tab_sessions_per_group =
-                !default_max_service_tab_sessions_per_group, false;
-             max_persistent_data_tab_sessions_per_group =
-                Some !default_max_persistent_tab_sessions_per_group, false;
-             max_service_sessions_per_subnet =
-                !default_max_data_sessions_per_subnet, false;
-             max_volatile_data_sessions_per_subnet =
-                !default_max_data_sessions_per_subnet, false;
-             max_anonymous_services_per_session = 
-                !default_max_anonymous_services_per_session, false;
-             max_anonymous_services_per_subnet = 
-                !default_max_anonymous_services_per_subnet, false;
-             dlist_ip_table = dlist_table;
-             ipv4mask = None, false;
-             ipv6mask = None, false;
-            }
-          in
-          Eliommod_gc.service_session_gc sitedata;
-          Eliommod_gc.data_session_gc sitedata;
-          S.add t key sitedata;
-          sitedata
+           site_dir_string = Ocsigen_lib.string_of_url_path
+              ~encode:false site_dir;
+           config_info = config_info;
+           global_services = 
+              Eliom_common.empty_tables
+                !default_max_anonymous_services_per_subnet
+                false;
+           session_services = Eliommod_cookies.new_service_cookie_table ();
+           session_data = Eliommod_cookies.new_data_cookie_table ();
+           group_of_groups = gog;
+           remove_session_data = (fun cookie -> ());
+           not_bound_in_data_tables = (fun cookie -> true);
+           exn_handler = Eliommod_pagegen.def_handler;
+           unregistered_services = [];
+           unregistered_na_services = [];
+           max_service_sessions_per_group =
+              !default_max_service_sessions_per_group, false;
+           max_volatile_data_sessions_per_group =
+              !default_max_service_sessions_per_group, false;
+           max_persistent_data_sessions_per_group =
+              Some !default_max_persistent_sessions_per_group, false;
+           max_service_tab_sessions_per_group =
+              !default_max_service_tab_sessions_per_group, false;
+           max_volatile_data_tab_sessions_per_group =
+              !default_max_service_tab_sessions_per_group, false;
+           max_persistent_data_tab_sessions_per_group =
+              Some !default_max_persistent_tab_sessions_per_group, false;
+           max_service_sessions_per_subnet =
+              !default_max_data_sessions_per_subnet, false;
+           max_volatile_data_sessions_per_subnet =
+              !default_max_data_sessions_per_subnet, false;
+           max_anonymous_services_per_session = 
+              !default_max_anonymous_services_per_session, false;
+           max_anonymous_services_per_subnet = 
+              !default_max_anonymous_services_per_subnet, false;
+           dlist_ip_table = dlist_table;
+           ipv4mask = None, false;
+           ipv6mask = None, false;
+          }
+        in
+        Ocsigen_cache.Dlist.set_finaliser
+          (fun (node : [ `Browser ] Eliom_common.sessgrp 
+                  Ocsigen_cache.Dlist.node) ->
+            let fullbrowsersessgrp = Ocsigen_cache.Dlist.value node in
+            (* When removing a group from the dlist, we must close it.
+               Actually, it must be the only way to close a group *)
+            (* This finaliser is almost identical to the finaliser for
+               other groups, defined in Eliommod_sessiongroups *)
+            (* First we close all browser sessions in the group,
+               by removing the group from its dlist: *)
+            Eliommod_sessiongroups.Data.remove_group fullbrowsersessgrp;
+            (* Then we close all group tables: *)
+            let key = match thd3 fullbrowsersessgrp with
+              | Ocsigen_lib.Left a -> a
+              | _ -> Eliom_common.default_group_name
+            in
+            (* iterate on all session data tables: *)
+            sitedata.Eliom_common.remove_session_data key
+          )
+          gog;
+        Eliommod_gc.service_session_gc sitedata;
+        Eliommod_gc.data_session_gc sitedata;
+        S.add t key sitedata;
+        sitedata
 
 
 
@@ -189,6 +219,7 @@ let parse_eliom_option
      set_max_persistent_tab_sessions_per_group,
      set_max_services_per_session,
      set_max_services_per_subnet,
+     set_max_volatile_groups_per_site,
      set_ipv4mask,
      set_ipv6mask
     )
@@ -238,7 +269,7 @@ let parse_eliom_option
   function
   | (Element ("volatiletimeout", attrs, [])) ->
       let t, snoo, ct = parse_timeout_attrs "volatiletimeout" attrs in
-      set_volatile_timeout ct snoo t
+      set_volatile_timeout ct snoo (t : float option)
   | (Element ("datatimeout", attrs, [])) ->
       let t, snoo, ct = parse_timeout_attrs "datatimeout" attrs in
       set_data_timeout ct snoo t
@@ -347,6 +378,13 @@ let parse_eliom_option
        with Failure _ -> 
          raise (Error_in_config_file
                   ("Eliom: Wrong attribute value for maxanonymouscoservicespersubnet tag")))
+  | (Element ("maxvolatilegroupspersite", [("value", v)], [])) ->
+      (try 
+         let i = int_of_string v in
+         set_max_volatile_groups_per_site i
+       with Failure _ -> 
+         raise (Error_in_config_file
+                  ("Eliom: Wrong attribute value for maxvolatilegroupspersite tag")))
 
   | (Element ("ipv4subnetmask", [("value", v)], [])) ->
       (try 
@@ -450,6 +488,7 @@ let rec parse_global_config = function
          (fun v -> default_max_persistent_tab_sessions_per_group := v),
          (fun v -> default_max_anonymous_services_per_session := v),
          (fun v -> default_max_anonymous_services_per_subnet := v),
+         (fun v -> default_max_volatile_groups_per_site := v),
          (fun v -> Eliom_common.ipv4mask := v),
          (fun v -> Eliom_common.ipv6mask := v)
         )
@@ -661,14 +700,19 @@ let parse_config hostpattern conf_info site_dir =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
  *)
-        let set_timeout f cookie_type session_name_oo v =
+        let set_timeout (f : ?fullsessname:Eliom_common.fullsessionname ->
+                         ?cookie_level:[< Eliom_common.cookie_level ] ->
+                         recompute_expdates:bool ->
+                         bool -> bool -> Eliom_common.sitedata ->
+                         float option -> unit)
+            cookie_type session_name_oo v =
           f
             ?fullsessname:(Ocsigen_lib.apply_option 
                              (Eliom_common.make_fullsessname2
                                 sitedata.Eliom_common.site_dir_string
                                 cookie_type)
                              session_name_oo)
-            ?cookie_type:(Some cookie_type)
+            ?cookie_level:(Some cookie_type)
             ~recompute_expdates:false
             true
             true
@@ -710,6 +754,9 @@ let parse_config hostpattern conf_info site_dir =
                   ignore (Ocsigen_cache.Dlist.set_maxsize dlist v)
                 with Not_found -> () (* should not occure *)
              ),
+             (fun v ->
+               ignore (Ocsigen_cache.Dlist.set_maxsize
+                         sitedata.Eliom_common.group_of_groups v)),
              (fun v -> sitedata.Eliom_common.ipv4mask <- Some v, true),
              (fun v -> sitedata.Eliom_common.ipv6mask <- Some v, true)
             )

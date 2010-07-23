@@ -44,14 +44,14 @@ let close_service_group fullsessgrp =
     Eliommod_sessiongroups.Serv.remove_group fullsessgrp
 
 let close_service_session 
-    ?(close_group = false) ?session_name ?(cookie_type = `Browser)
+    ?(close_group = false) ?session_name ?(cookie_level = `Browser)
     ~secure ~sp () =
   try
     let fullsessname = 
-      Eliom_common.make_fullsessname ~sp cookie_type session_name 
+      Eliom_common.make_fullsessname ~sp cookie_level session_name 
     in
     let ((cookie_info, _, _), secure_ci) =
-      Eliom_common.get_cookie_info sp cookie_type
+      Eliom_common.get_cookie_info sp cookie_level
     in
     let cookie_info = compute_cookie_info secure secure_ci cookie_info in
     let (_, ior) = 
@@ -73,17 +73,17 @@ let close_service_session
 
 
 
-let fullsessgrp ~sp set_session_group =
+let fullsessgrp ~level ~sp set_session_group =
   Eliommod_sessiongroups.make_full_group_name
+    ~level
     sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
     sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
     (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
     (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
     set_session_group
 
-let rec find_or_create_service_cookie
-    ?set_session_group ?session_name ?(cookie_type = `Browser)
-    ~secure ~sp () =
+let rec find_or_create_service_cookie ?set_session_group
+    ?session_name ?(cookie_level = `Browser) ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
 
@@ -91,13 +91,13 @@ let rec find_or_create_service_cookie
   let rec new_service_cookie sitedata fullsessname table =
 
     let set_session_group =
-      if cookie_type = `Tab
+      if cookie_level = `Tab
       then begin (* We create a group whose name is the
                     browser session cookie 
                     and put the tab session into it. *)
         let v = find_or_create_service_cookie
           ?session_name
-          ~cookie_type:`Browser
+          ~cookie_level:`Browser
           ~secure
           ~sp
           ()
@@ -109,7 +109,9 @@ let rec find_or_create_service_cookie
       end
       else set_session_group
     in
-    let fullsessgrp = fullsessgrp ~sp set_session_group in
+    let fullsessgrp = fullsessgrp ~level:(cookie_level :> Eliom_common.level)
+      ~sp set_session_group
+    in
 
     let rec aux () =
       let c = Eliommod_cookies.make_new_session_id () in
@@ -148,10 +150,10 @@ let rec find_or_create_service_cookie
 
 
   let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_type session_name 
+    Eliom_common.make_fullsessname ~sp cookie_level session_name 
   in
   let ((cookie_info, _, _), secure_ci) =
-    Eliom_common.get_cookie_info sp cookie_type
+    Eliom_common.get_cookie_info sp cookie_level
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   try
@@ -172,7 +174,9 @@ let rec find_or_create_service_cookie
       ior := Eliom_common.SC v;
       v
     | Eliom_common.SC c -> 
-      let fullsessgrp = fullsessgrp ~sp set_session_group in
+      let fullsessgrp = fullsessgrp ~level:(cookie_level :> Eliom_common.level)
+        ~sp set_session_group
+      in
       (match set_session_group with
         | None -> ()
         | Some session_group -> 
@@ -199,14 +203,14 @@ let rec find_or_create_service_cookie
 
 
 let find_service_cookie_only
-    ?session_name ?(cookie_type = `Browser) ~secure ~sp () =
+    ?session_name ?(cookie_level = `Browser) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_type session_name 
+    Eliom_common.make_fullsessname ~sp cookie_level session_name 
   in
   let ((cookie_info, _, _), secure_ci) =
-      Eliom_common.get_cookie_info sp cookie_type
+      Eliom_common.get_cookie_info sp cookie_level
     in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let (_, ior) = 

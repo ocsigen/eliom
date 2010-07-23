@@ -807,7 +807,7 @@ let tsession_data_example_handler sp _ _  =
 
 let tsession_data_example_with_post_params_handler sp _ login =
   Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
+ (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp () >>= fun () ->
   Eliom_sessions.set_volatile_session_data
     ~table:my_table ~sp login;
   return
@@ -825,7 +825,7 @@ let tsession_data_example_close_handler sp () () =
   let sessdat = Eliom_sessions.get_volatile_session_data
     ~table:my_table ~sp () in
   Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
+ (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp () >>= fun () ->
   return
     [
       (match sessdat with
@@ -898,7 +898,7 @@ let tsession_services_example_handler sp () () =
 
 let tsession_services_example_close_handler sp () () =
   Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
+ (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp () >>= fun () ->
   Lwt.return [p [pcdata "You have been disconnected. ";
                  a tsession_services_example
                    sp [pcdata "Retry"] ()
@@ -923,12 +923,12 @@ let tlaunch_session sp () login =
 
   (* If a session was opened, we close it first! *)
   Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
+ (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp () >>= fun () ->
 
   (* Now we register new versions of main services in the
      session service table: *)
   Eliom_appl.register_for_session (*zap* *) ~session_name (* *zap*)
-    ~cookie_type:`Tab
+    ~cookie_level:`Tab
     ~sp
     ~service:tsession_services_example
     (* service is any public service already registered,
@@ -936,7 +936,7 @@ let tlaunch_session sp () login =
     new_main_page;
 
   Eliom_appl.register_for_session (*zap* *) ~session_name (* *zap*)
-    ~cookie_type:`Tab
+    ~cookie_level:`Tab
     ~sp
     ~service:eliomclient1
     (fun _ () () ->
@@ -1078,7 +1078,7 @@ let tcalc_i_handler sp i () =
   let is = string_of_int i in
   let tcalc_result =
     Eliom_appl.register_new_coservice_for_session
-      ~cookie_type:`Tab
+      ~cookie_level:`Tab
       ~sp
       ~fallback:tcalc
       ~get_params:(int "j")
@@ -1129,7 +1129,7 @@ let tdisconnect_action =
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
       Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp ())
+ (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp ())
 
 
 (* -------------------------------------------------------- *)
@@ -1173,7 +1173,7 @@ let tconnect_example3_handler sp () () =
 
 let tconnect_action_handler sp () login =
   Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
+ (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp () >>= fun () ->
   Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
   return ()
 
@@ -1229,7 +1229,7 @@ let tdisconnect_action =
     ~name:"tdisconnect4"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~session_name ~cookie_type:`Tab  ~sp ())
+      Eliom_sessions.close_session ~session_name ~level:`Tab  ~sp ())
 
 let tdisconnect_box sp s =
   Eliom_appl.post_form tdisconnect_action sp
@@ -1266,7 +1266,7 @@ let tlogin_box sp session_expired action =
 
 let tpersist_session_example_handler sp () () =
   Eliom_sessions.get_persistent_session_data (*zap* *) ~session_name (* *zap*)
-    ~cookie_type:`Tab ~table:tmy_persistent_table ~sp () >>= fun sessdat ->
+    ~cookie_level:`Tab ~table:tmy_persistent_table ~sp () >>= fun sessdat ->
   return
     (match sessdat with
       | Eliom_sessions.Data name ->
@@ -1286,11 +1286,11 @@ let tpersist_session_example_handler sp () () =
 
 let tpersist_session_connect_action_handler sp () login =
   Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
+ (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then
     Eliom_sessions.set_persistent_session_data
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~table:tmy_persistent_table ~sp login
+ (*zap* *) ~session_name (* *zap*) ~cookie_level:`Tab ~table:tmy_persistent_table ~sp login
   else ((*zap* *)Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;(* *zap*)return ())
 
 
@@ -1337,7 +1337,7 @@ let tdisconnect_action =
     ~name:"tdisconnect6"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab  ~sp ())
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~level:`Tab  ~sp ())
 
 let tdisconnect_box sp s =
   Eliom_appl.post_form tdisconnect_action sp
@@ -1392,7 +1392,7 @@ let tconnect_example6_handler sp () () =
 
 let tconnect_action_handler sp () login =
   Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~cookie_type:`Tab ~sp () >>= fun () ->
+ (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then begin
     Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
@@ -1428,7 +1428,7 @@ let tcsrfsafe_example_post =
   Eliom_services.new_post_coservice
     ~csrf_safe:true
     ~csrf_session_name:"csrf"
-    ~csrf_cookie_type:`Tab
+    ~csrf_cookie_level:`Tab
     ~csrf_secure_session:true
     ~timeout:10.
     ~max_use:1
@@ -1462,7 +1462,7 @@ let tcookies = new_service ["tcookies"] unit ()
 let _ = Eliom_appl.register tcookies
   (fun sp () () ->
     Eliom_sessions.set_cookie
-      ~sp ~cookie_type:`Tab
+      ~sp ~cookie_level:`Tab
       ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
     Lwt.return
       [p [pcdata (try
@@ -1470,7 +1470,7 @@ let _ = Eliom_appl.register tcookies
                       (Ocsigen_lib.String_Table.find
                          cookiename
                          (Eliom_sessions.get_cookies
-                            ~cookie_type:`Tab ~sp ()))
+                            ~cookie_level:`Tab ~sp ()))
         with _ -> "<cookie not set>");
           br ();
           a tcookies sp [pcdata "send other cookie"] ()]])

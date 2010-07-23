@@ -39,13 +39,15 @@ exception Eliom_function_forbidden_outside_site_loading of string
 (** Eliom is using regular (browser) cookies but can also use
     browser tab cookies (only if you are using a client side program)
 *)
-type cookie_type = [ `Browser | `Tab ]
+type cookie_level = [ `Browser | `Tab ]
 (** It is possible to define data tables or service table for one
     (browser) session, for one tab, or for one group of sessions.
 *)
 type level = [ `Group | `Browser | `Tab ]
 
-type fullsessionname = cookie_type * string
+val cookie_level_of_level : [< level ] -> [> cookie_level ]
+
+type fullsessionname = cookie_level * string
 module Fullsessionname_Table : Map.S with type key = fullsessionname
 
 
@@ -74,7 +76,7 @@ type att_key_serv =
   | SAtt_no (* regular service *)
   | SAtt_named of string (* named coservice *)
   | SAtt_anon of string (* anonymous coservice *)
-  | SAtt_csrf_safe of (int * string option * cookie_type option * bool option)
+  | SAtt_csrf_safe of (int * string option * cookie_level option * bool option)
       (* CSRF safe anonymous coservice *)
       (* CSRF safe service registration delayed until form/link creation *)
       (* the int is an unique id,
@@ -91,9 +93,9 @@ type na_key_serv =
   | SNa_post_ of string (* named *)
   | SNa_get' of string (* anonymous *)
   | SNa_post' of string (* anonymous *)
-  | SNa_get_csrf_safe of (int * string option * cookie_type option * bool option)
+  | SNa_get_csrf_safe of (int * string option * cookie_level option * bool option)
       (* CSRF safe anonymous coservice *)
-  | SNa_post_csrf_safe of (int * string option * cookie_type option * bool option)
+  | SNa_post_csrf_safe of (int * string option * cookie_level option * bool option)
       (* CSRF safe anonymous coservice *)
 
 (* the same, for incoming requests: *)
@@ -194,13 +196,14 @@ type sess_info = {
 module SessionCookies : Hashtbl.S with type key = string
 
 (* session groups *)
-type sessgrp = (string * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
-    (* The full session group is the pair (site_dir_string, session group name).
+type 'a sessgrp =
+    (string * level * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+    (* The full session group is the triple
+       (site_dir_string, level, session group name).
+       The level is the level of group members (`Browser by default).
        If there is no session group, 
-       we limit the number of sessions by IP address *)
-type perssessgrp = string (* the same pair, marshaled *)
-
-
+       we limit the number of sessions by IP address. *)
+type perssessgrp = string (* the same triple, marshaled *)
 
 
 type 'a session_cookie = SCNo_data | SCData_session_expired | SC of 'a
@@ -217,7 +220,7 @@ type 'a one_service_cookie_info = {
   sc_timeout : timeout ref;
   sc_exp : float option ref;
   sc_cookie_exp : cookie_exp ref;
-  sc_session_group:sessgrp ref (* session group *);
+  sc_session_group: cookie_level sessgrp ref (* session group *);
   mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
 }
 type one_data_cookie_info = {
@@ -225,7 +228,7 @@ type one_data_cookie_info = {
   dc_timeout : timeout ref;
   dc_exp : float option ref;
   dc_cookie_exp : cookie_exp ref;
-  dc_session_group: sessgrp ref (* session group *);
+  dc_session_group: cookie_level sessgrp ref (* session group *);
   mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
 }
 type one_persistent_cookie_info = {
@@ -251,13 +254,13 @@ type 'a cookie_info =
 
 type 'a servicecookiestablecontent =
     fullsessionname * 'a * float option ref * timeout ref *
-      sessgrp ref *
+      cookie_level sessgrp ref *
       string Ocsigen_cache.Dlist.node
 type 'a servicecookiestable = 
     'a servicecookiestablecontent SessionCookies.t
 type datacookiestablecontent =
     fullsessionname * float option ref * timeout ref *
-      sessgrp ref *
+      cookie_level sessgrp ref *
       string Ocsigen_cache.Dlist.node
 type datacookiestable = 
     datacookiestablecontent SessionCookies.t
@@ -392,6 +395,8 @@ and sitedata = {
   global_services : tables;
   session_services : tables servicecookiestable;
   session_data : datacookiestable;
+  group_of_groups: [ `Group ] sessgrp Ocsigen_cache.Dlist.t; 
+  (* Limitation of the number of groups per site *)
   mutable remove_session_data : string -> unit;
   mutable not_bound_in_data_tables : string -> bool;
   mutable exn_handler : server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
@@ -441,9 +446,9 @@ type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 val make_full_cookie_name : string -> string -> string
 val make_fullsessname : 
-  sp:server_params -> [< cookie_type ] -> string option -> fullsessionname
+  sp:server_params -> [< cookie_level ] -> string option -> fullsessionname
 val make_fullsessname2 : 
-  string -> [< cookie_type ] -> string option -> fullsessionname
+  string -> [< cookie_level ] -> string option -> fullsessionname
 
 
 
@@ -499,7 +504,7 @@ val find_dlist_ip_table :
   (page_table ref * page_table_key, na_key_serv)
     Ocsigen_lib.leftright Ocsigen_cache.Dlist.t
   
-val get_cookie_info : server_params -> [< cookie_type ] -> tables cookie_info
+val get_cookie_info : server_params -> [< cookie_level ] -> tables cookie_info
 
 val tab_cookie_action_info_key : (tables cookie_info * 
                                     Ocsigen_cookies.cookieset *

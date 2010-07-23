@@ -12,19 +12,19 @@ val close_persistent_group :
 val close_persistent_session :
   ?close_group:bool ->
   ?session_name:string -> 
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   secure:bool option ->
   sp:Eliom_common.server_params -> unit -> unit Lwt.t
 val find_or_create_persistent_cookie :
   ?set_session_group:string ->
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   secure:bool option ->
   sp:Eliom_common.server_params ->
   unit -> Eliom_common.one_persistent_cookie_info Lwt.t
 val find_persistent_cookie_only :
   ?session_name:string ->
-  ?cookie_type:Eliom_common.cookie_type ->
+  ?cookie_level:Eliom_common.cookie_level ->
   secure:bool option ->
   sp:Eliom_common.server_params ->
   unit -> Eliom_common.one_persistent_cookie_info Lwt.t

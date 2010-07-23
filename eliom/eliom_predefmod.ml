@@ -1671,7 +1671,7 @@ redir ();"))::
        Eliom_sessions.set_volatile_session_data
          ~table:change_page_event_table ~sp change_current_page;
        Eliom_sessions.set_cookie ~sp
-         ~cookie_type:`Tab
+         ~cookie_level:`Tab
          ~name:Eliom_common.appl_name_cookie_name
          ~value:Appl_params.application_name ();
        get_tab_cook sp >>= fun tab_cookies_to_send ->

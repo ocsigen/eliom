@@ -96,14 +96,14 @@ let close_persistent_group fullsessgrp =
 
 (* close current persistent session *)
 let close_persistent_session ?(close_group = false) ?session_name 
-    ?(cookie_type = `Browser) ~secure ~sp () =
+    ?(cookie_level = `Browser) ~secure ~sp () =
   catch
     (fun () ->
       let fullsessname = 
-        Eliom_common.make_fullsessname ~sp cookie_type session_name 
+        Eliom_common.make_fullsessname ~sp cookie_level session_name 
       in
       let ((_, _, cookie_info), secure_ci) =
-        Eliom_common.get_cookie_info sp cookie_type
+        Eliom_common.get_cookie_info sp cookie_level
       in
       let cookie_info = compute_cookie_info secure secure_ci cookie_info in
       Lazy.force (Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info)
@@ -135,13 +135,13 @@ let fullsessgrp ~sp session_group =
 
 let rec find_or_create_persistent_cookie_
     ?set_max_in_group ?set_session_group ?session_name
-    ?(cookie_type = `Browser) ~secure ~sp () =
+    ?(cookie_level = `Browser) ~secure ~sp () =
   (* if it exists, do not create it, but returns its value *)
 
 
   let new_persistent_cookie sitedata fullsessname =
 
-    (if cookie_type = `Tab
+    (if cookie_level = `Tab
      then begin (* We create a group whose name is the
                    browser session cookie 
                    and put the tab session into it. *)
@@ -149,14 +149,16 @@ let rec find_or_create_persistent_cookie_
          ~set_max_in_group:
          (fst sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group)
          ?session_name
-         ~cookie_type:`Browser
+         ~cookie_level:`Browser
          ~secure
          ~sp
          () >>= fun r -> Lwt.return (Some r.Eliom_common.pc_value)
      end
      else Lwt.return set_session_group) >>= fun set_session_group ->
 
-    let fullsessgrp = fullsessgrp ~sp set_session_group in
+    let fullsessgrp = fullsessgrp ~level:(cookie_level :> Eliom_common.level)
+      ~sp set_session_group
+    in
 
     let c = Eliommod_cookies.make_new_session_id () in
   (* We do not need to verify if it already exists.
@@ -184,10 +186,10 @@ let rec find_or_create_persistent_cookie_
   in
 
   let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_type session_name 
+    Eliom_common.make_fullsessname ~sp cookie_level session_name 
   in
   let ((_, _, cookie_info), secure_ci) =
-    Eliom_common.get_cookie_info sp cookie_type
+    Eliom_common.get_cookie_info sp cookie_level
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   catch
@@ -220,20 +222,20 @@ let rec find_or_create_persistent_cookie_
       | e -> fail e)
 
 let find_or_create_persistent_cookie
-    ?set_session_group ?session_name ?cookie_type ~secure ~sp () =
+    ?set_session_group ?session_name ?cookie_level ~secure ~sp () =
   find_or_create_persistent_cookie_
-    ?set_session_group ?session_name ?cookie_type ~secure ~sp ()
+    ?set_session_group ?session_name ?cookie_level ~secure ~sp ()
 
 
 let find_persistent_cookie_only ?session_name
-    ?(cookie_type = `Browser) ~secure ~sp () =
+    ?(cookie_level = `Browser) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_type session_name 
+    Eliom_common.make_fullsessname ~sp cookie_level session_name 
   in
   let ((_, _, cookie_info), secure_ci) =
-    Eliom_common.get_cookie_info sp cookie_type
+    Eliom_common.get_cookie_info sp cookie_level
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   Lazy.force (Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info)
