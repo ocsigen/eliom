@@ -131,6 +131,10 @@ struct
          (means that we do not use the browser session).
          In that case, we remove the cookie info.
       *)
+(*VVV See also in Eliommod_gc and 
+  Eliom_sessions.close_volatile_session_if_empty.
+  Should we use this function here?  
+*)
       (match sess_grp with
         | (_, `Tab, Ocsigen_lib.Left sess_id) ->
           (try

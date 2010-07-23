@@ -426,6 +426,52 @@ let get_persistent_data_session_timeout
       | e -> fail e)
 
 
+(* Preventing memory leaks: we must close empty sessions *)
+
+let rec close_volatile_session_if_empty
+    ?session_name ?(level = `Browser) ?secure ~sp () =
+  (* Close the session if it has not data inside
+     and no group and no sub sessions *)
+  (* See also in Eliommod_gc and in Eliommod_sessiongroups. *)
+  try
+    let sitedata = sp.Eliom_common.sp_sitedata in
+    let cookie_level = Eliom_common.cookie_level_of_level level in 
+    let c = Eliommod_datasess.find_data_cookie_only
+      ?session_name ~cookie_level ~secure ~sp ()
+    in
+    match level with
+      | `Browser ->
+        (match !(c.Eliom_common.dc_session_group) with
+          | (_, _, Ocsigen_lib.Right _) (* no group *)
+              when
+                (Eliommod_sessiongroups.Data.group_size
+                   (sitedata.Eliom_common.site_dir_string, `Tab,
+                    Ocsigen_lib.Left c.Eliom_common.dc_value)
+                 = 0) (* no tab sessions *)
+                &&
+                  (sitedata.Eliom_common.not_bound_in_data_tables
+                     c.Eliom_common.dc_value)
+                ->
+            Eliommod_sessiongroups.Data.remove
+              c.Eliom_common.dc_session_group_node
+          | _ -> ())
+      | `Tab -> ()
+(* This should never occure, because we always have tab session data
+   when we have a tab session (at least the change_page_event).
+        if (sitedata.Eliom_common.not_bound_in_data_tables
+              c.Eliom_common.dc_value)
+        then Eliommod_sessiongroups.Data.remove
+          c.Eliom_common.dc_session_group_node *)
+      | `Group -> (* There is a browser session, we do not close the group,
+                     but we may close the browser session (this will close
+                     the group if it is empty). *)
+        close_volatile_session_if_empty
+          ~sp ~level:`Browser ?session_name ?secure ()
+  with Not_found -> ()
+
+
+
+
 (* session groups *)
 
 type 'a session_data =
@@ -512,21 +558,27 @@ let unset_volatile_data_session_group ?set_max
       Eliommod_datasess.find_data_cookie_only
         ?session_name ~cookie_level ~secure ~sp ()
     in
+    let sitedata = sp.Eliom_common.sp_sitedata in
     let n =
       Eliommod_sessiongroups.make_full_group_name
         ~level:cookie_level
         sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
-        sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string 
-        (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
-        (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
+        sitedata.Eliom_common.site_dir_string 
+        (Eliom_common.get_mask4 sitedata)
+        (Eliom_common.get_mask6 sitedata)
         None
     in
     let node = Eliommod_sessiongroups.Data.move ?set_max
-      sp.Eliom_common.sp_sitedata
-      c.Eliom_common.dc_session_group_node n
+      sitedata c.Eliom_common.dc_session_group_node n
     in
     c.Eliom_common.dc_session_group_node <- node;
-    c.Eliom_common.dc_session_group := n
+    c.Eliom_common.dc_session_group := n;
+
+    (* Now we want to close the session if it has not data inside
+       and no tab sessions *)
+    close_volatile_session_if_empty ~level:`Browser 
+      ?session_name ?secure ~sp ()
+
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> ()
@@ -988,12 +1040,19 @@ let set_volatile_session_data ~table ~sp value =
   in
   Eliom_common.SessionCookies.replace table key value
 
+
 let remove_volatile_session_data ~table ~sp () =
   try
+    let (level, session_name, secure, _) = table in
     let (table, key) =
       get_table_key_ ~table ~sp Eliommod_datasess.find_data_cookie_only
     in
-    Eliom_common.SessionCookies.remove table key
+    Eliom_common.SessionCookies.remove table key;
+
+    (* Now we want to close the session if it has not data inside
+       and no group and no sub sessions *)
+    close_volatile_session_if_empty ~sp ~level ?session_name ~secure ()
+
   with Not_found | Eliom_common.Eliom_Session_expired -> ()
 
 
