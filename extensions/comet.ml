@@ -77,6 +77,8 @@ let rec parse_options = function
         max_virtual_channels_ref := Some (int_of_string s) ; parse_options tl
   | _ :: _ -> raise (OX.Error_in_config_file "Unexpected data in config file")
 
+
+
 (*** CORE ***)
 
 module Channels :
@@ -230,7 +232,7 @@ end
 
 module Messages :
   (* All about messages from between clients and server *)
-  (* 
+  (*
    * The client sends a POST request with a "registration" parameter containing
    * a list of channel ids. Separator for the list are semi-colon : ';'.
    *
@@ -346,7 +348,7 @@ sig
 
   val set_timeout : ?reset:bool -> float -> unit
     (* Set the [timeout] constant for new connections. Existing connections are
-     * not affected. *)
+     * not affected unless [?reset] is [Some true] *)
 
   val deactivate : unit -> unit
     (* Stop serving comet connections and kill all current connections. *)
@@ -428,7 +430,7 @@ end = struct
             OFrame.res_stream = (OStream.of_string "", None);
             OFrame.res_code = 503; (*Service Unavailable*)
             OFrame.res_content_length = None;
-            OFrame.res_content_type = Some "text/html";
+            OFrame.res_content_type = Some "text/plain";
       }
 
   exception Kill
@@ -443,21 +445,21 @@ end = struct
                OFrame.res_stream =
                  (OStream.of_string "Empty or incorrect registration", None) ;
                OFrame.res_code = 400 ;(* BAD REQUEST *)
-               OFrame.res_content_type = Some "text/html" ;
+               OFrame.res_content_type = Some "text/plain" ;
                OFrame.res_content_length = None ;
           }
 
-    | [], (_::_ as ended) ->
+    | [], (_::_ as ended) -> (* All channels are closed *)
         let end_notice = Messages.encode_ended ended in
         OMsg.debug (fun () -> "Comet request served");
         Lwt.return
           { (OFrame.default_result ()) with
                OFrame.res_stream = (OStream.of_string end_notice, None) ;
                OFrame.res_content_length = None ;
-               OFrame.res_content_type = Some "text/html" ;
+               OFrame.res_content_type = Some "text/plain" ;
           }
 
-    | (_::_ as active), ended ->
+    | (_::_ as active), ended -> (* generic case *)
         let merged =
           React.E.merge
             (fun acc v -> v :: acc)
@@ -484,15 +486,14 @@ end = struct
              { (OFrame.default_result ()) with
                    OFrame.res_stream = (s, None) ;
                    OFrame.res_content_length = None ;
-                   OFrame.res_content_type = Some "text/html" ;
+                   OFrame.res_content_type = Some "text/plain" ;
              }
           )
           (function
-             | Kill ->
+             | Kill -> (* Comet stopped for security *)
                  List.iter (fun c -> Channels.send_listeners c (-1)) active ;
                  OMsg.debug (fun () -> "Killed Comet request handling");
-                 frame_503 () (* so that not all clients reopen the
-                                         connection "simultaneously" *)
+                 frame_503 ()
              | e -> Lwt.fail e
           )
 

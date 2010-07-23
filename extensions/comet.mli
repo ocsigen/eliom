@@ -47,7 +47,7 @@ sig
       whenever [e] has an occurrence. When [e] as an occurrence of value [s,
       None] then [s] is sent and no effort is made to detect transmission
       errors. If [s, Some n] is sent upon [e] AND a client is registered to the
-      channel, then [outcomes] will be triggered with [x] as a witness. If
+      channel, then [outcomes] will be triggered with [n] as a witness. If
       [?name] is [None] then a identifier is automatically generated. If [?name]
       is [Some s] the identifier for the newly created channel is [s].
 
