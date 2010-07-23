@@ -90,6 +90,11 @@ module Make(A: sig
               val max_tab_per_session : Eliom_common.sitedata -> int
               val max_session_per_group : Eliom_common.sitedata -> int
               val max_session_per_ip : Eliom_common.sitedata -> int
+              val clean_session : Eliom_common.sitedata ->
+                GroupTable.key ->
+                (GroupTable.key -> 'b option) ->
+                (string Ocsigen_cache.Dlist.node -> unit) ->
+                ('b -> unit) -> unit
             end) : MEMTAB =
 struct
 
@@ -121,41 +126,7 @@ struct
   let remove_if_empty sitedata sess_grp cl =
     if Ocsigen_cache.Dlist.size cl = 0 (* finaliser after *)
     then begin
-      (* We removed the last session from a group.
-         Do we want to close the group completely?
-         - For browser sessions, yes. No need to keep group data
-         when there is no session in the group.
-         We remove the group of groups from the site dlist.
-         - For tab sessions, yes if the browser cookie is not
-         bound is tables and is not in a group (like in Eliommod_gc)
-         (means that we do not use the browser session).
-         In that case, we remove the cookie info.
-      *)
-(*VVV See also in Eliommod_gc and 
-  Eliom_sessions.close_volatile_session_if_empty.
-  Should we use this function here?  
-*)
-      (match sess_grp with
-        | (_, `Tab, Ocsigen_lib.Left sess_id) ->
-          (try
-             let (_, _, _, sgr, sgn) =
-               Eliom_common.SessionCookies.find
-                 sitedata.Eliom_common.session_data sess_id
-             in
-             (match !sgr with
-               | (_, `Browser, Ocsigen_lib.Right _) (* no group *)
-                   when sitedata.Eliom_common.not_bound_in_data_tables
-                     sess_id
-                     ->
-                 remove sgn
-               | _ -> ()
-             )
-           with Not_found -> ())
-        | (_, `Browser, _) -> 
-          (match find_node_in_group_of_groups sess_grp with
-            | Some node -> remove node | None -> ())
-        | _ -> ()
-      );
+      A.clean_session sitedata sess_grp find_node_in_group_of_groups remove remove;
       GroupTable.remove grouptable sess_grp
     end
 
@@ -281,6 +252,45 @@ module Data =
       fst sitedata.Eliom_common.max_volatile_data_sessions_per_group
     let max_session_per_ip sitedata =
       fst sitedata.Eliom_common.max_volatile_data_sessions_per_subnet
+
+
+    let clean_session sitedata sess_grp find_node_in_group_of_groups 
+        remove1 remove2 =
+      (* We removed the last session from a group.
+         Do we want to close the group completely?
+         - For browser sessions, yes. No need to keep group data
+         when there is no session in the group.
+         We remove the group of groups from the site dlist.
+         - For tab sessions, yes if the browser cookie is not
+         bound is tables and is not in a group (like in Eliommod_gc)
+         (means that we do not use the browser session).
+      *)
+(*VVV See also in Eliommod_gc and 
+  Eliom_sessions.close_volatile_session_if_empty.
+  Should we use this function here?  
+*)
+(*VVV remove is not polymorphic enough -> remove1 remove2 *)
+      match (sess_grp : GroupTable.key) with
+        | (_, `Tab, Ocsigen_lib.Left sess_id) ->
+          (try
+             let (_, _, _, sgr, sgn) =
+               Eliom_common.SessionCookies.find
+                 sitedata.Eliom_common.session_data sess_id
+             in
+             (match !sgr with
+               | (_, `Browser, Ocsigen_lib.Right _) (* no group *)
+                   when sitedata.Eliom_common.not_bound_in_data_tables
+                     sess_id
+                     ->
+                 remove1 sgn
+               | _ -> ()
+             )
+           with Not_found -> ())
+        | (_, `Browser, _) -> 
+          (match find_node_in_group_of_groups sess_grp with
+            | Some node -> remove2 node | None -> ())
+        | _ -> ()
+
   end)
 
 
@@ -299,6 +309,45 @@ module Serv =
       fst sitedata.Eliom_common.max_service_sessions_per_group
     let max_session_per_ip sitedata =
       fst sitedata.Eliom_common.max_service_sessions_per_subnet
+
+
+    let clean_session sitedata sess_grp find_node_in_group_of_groups 
+        remove1 remove2 =
+      (* We removed the last session from a group.
+         Do we want to close the group completely?
+         - For browser sessions, yes. No need to keep group data
+         when there is no session in the group.
+         We remove the group of groups from the site dlist.
+         - For tab sessions, yes if there are no session services
+         in the browser service table.
+         (means that we do not use the browser session).
+      *)
+(*VVV We close even if browser session is in a group.
+  It is not coherent with data sessions. *)
+(*VVV See also in Eliommod_gc and 
+  Eliom_sessions.close_service_session_if_empty.
+  Should we use this function here?  
+*)
+(*VVV remove is not polymorphic enough -> remove1 remove2 *)
+      match (sess_grp : GroupTable.key) with
+        | (_, `Tab, Ocsigen_lib.Left sess_id) ->
+          (try
+
+             let (_, tables, _, _, sgr, sgn) =
+               Eliom_common.SessionCookies.find
+                 sitedata.Eliom_common.session_services sess_id
+             in
+             if Eliom_common.service_tables_are_empty tables
+             then remove1 sgn
+
+           with Not_found -> ())
+        | (_, `Browser, _) -> 
+          (match find_node_in_group_of_groups sess_grp with
+            | Some node -> remove2 node | None -> ())
+        | _ -> ()
+
+
+
   end)
 
 
