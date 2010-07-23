@@ -590,7 +590,7 @@ val set_ipv6_subnet_mask :
 *)
 val set_max_service_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?cookie_level:Eliom_common.cookie_level ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -602,7 +602,7 @@ val set_max_service_sessions_for_group_or_subnet :
 *)
 val set_max_volatile_data_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?cookie_level:Eliom_common.cookie_level ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -614,7 +614,7 @@ val set_max_volatile_data_sessions_for_group_or_subnet :
 *)
 val set_max_volatile_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?cookie_level:Eliom_common.cookie_level ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -910,9 +910,8 @@ val close_volatile_data_session :
 
 (** Close Eliom's current service session, if opened *)
 val close_service_session :
-  ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_level:Eliom_common.cookie_level ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->

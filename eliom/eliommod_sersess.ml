@@ -40,13 +40,9 @@ let compute_cookie_info secure secure_ci cookie_info =
 
 
 (*****************************************************************************)
-let close_service_group fullsessgrp =
-    Eliommod_sessiongroups.Serv.remove_group fullsessgrp
-
-let close_service_session 
-    ?(close_group = false) ?session_name ?(cookie_level = `Browser)
-    ~secure ~sp () =
+let close_service_session ?session_name ?(level = `Browser) ~secure ~sp () =
   try
+    let cookie_level = Eliom_common.cookie_level_of_level level in
     let fullsessname = 
       Eliom_common.make_fullsessname ~sp cookie_level session_name 
     in
@@ -57,18 +53,29 @@ let close_service_session
     let (_, ior) = 
       Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info 
     in
+
     match !ior with
       | Eliom_common.SC c ->
-          if close_group then
-            close_service_group !(c.Eliom_common.sc_session_group)
-          else
-            (* there is only one way to close a session:
-               remove it from the session group table.
-               It will remove the entry in the session table *)
-            Eliommod_sessiongroups.Serv.remove
-              c.Eliom_common.sc_session_group_node;
-          ior := Eliom_common.SCNo_data
+          (* there is only one way to close a session:
+             remove it from the session group table.
+             It will remove the entry in the session table *)
+        if level = `Group
+        then
+          (* If we want to close all the group of browser sessions,
+             the node is found in the group table: *)
+          match 
+            Eliommod_sessiongroups.Serv.find_node_in_group_of_groups
+              !(c.Eliom_common.sc_session_group)
+          with
+            | None -> Ocsigen_messages.errlog
+              "Eliom: No group of groups. Please report this problem."
+            | Some g -> Eliommod_sessiongroups.Serv.remove g
+        else
+          Eliommod_sessiongroups.Serv.remove
+            c.Eliom_common.sc_session_group_node;
+        ior := Eliom_common.SCNo_data
       | _ -> ()
+
   with Not_found -> ()
 
 
@@ -152,11 +159,13 @@ let rec find_or_create_service_cookie ?set_session_group
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_level session_name 
   in
+
   let ((cookie_info, _, _), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_level
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   try
+
     let (old, ior) = 
       Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info 
     in
@@ -167,19 +176,19 @@ let rec find_or_create_service_cookie ?set_session_group
     | Eliom_common.SCNo_data ->
       let v =
         new_service_cookie
-          sp.Eliom_common.sp_sitedata
-          fullsessname
+          sp.Eliom_common.sp_sitedata fullsessname
           sp.Eliom_common.sp_sitedata.Eliom_common.session_services
       in
       ior := Eliom_common.SC v;
       v
-    | Eliom_common.SC c -> 
-      let fullsessgrp = fullsessgrp ~level:(cookie_level :> Eliom_common.level)
-        ~sp set_session_group
-      in
+    | Eliom_common.SC c ->
       (match set_session_group with
         | None -> ()
         | Some session_group -> 
+          let fullsessgrp =
+            fullsessgrp ~level:(cookie_level :> Eliom_common.level)
+              ~sp set_session_group
+          in
           let node = Eliommod_sessiongroups.Serv.move
             sp.Eliom_common.sp_sitedata
             c.Eliom_common.sc_session_group_node fullsessgrp

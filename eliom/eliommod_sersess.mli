@@ -1,9 +1,6 @@
-val close_service_group :
-  Eliom_common.level Eliom_common.sessgrp -> unit
 val close_service_session :
-  ?close_group:bool ->
   ?session_name:string -> 
-  ?cookie_level:Eliom_common.cookie_level ->
+  ?level:Eliom_common.level ->
   secure: bool option ->
   sp:Eliom_common.server_params -> unit -> unit
 val find_or_create_service_cookie :
