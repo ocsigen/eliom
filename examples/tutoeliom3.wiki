@@ -1492,14 +1492,26 @@ let disconnect_action =
     (fun sp () () ->
       Eliom_sessions.close_session  ~sp ())
 
+let disconnect_g_action =
+  Eliom_predefmod.Action.register_new_post_coservice'
+    ~name:"disconnectgtg"
+    ~post_params:Eliom_parameters.unit
+    (fun sp () () ->
+      Eliom_sessions.close_session ~level:`Group  ~sp ())
+
 
 (* -------------------------------------------------------- *)
 (* login ang logout boxes:                                  *)
 
-let disconnect_box sp s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action sp
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
+let disconnect_box sp =
+  div [
+    Eliom_predefmod.Xhtml.post_form disconnect_action sp
+      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                       ~input_type:`Submit ~value:"Close session" ()]]) ();
+    Eliom_predefmod.Xhtml.post_form disconnect_g_action sp
+      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                       ~input_type:`Submit ~value:"Close group" ()]]) ()
+  ]
 
 let login_box sp =
   Eliom_predefmod.Xhtml.post_form connect_action sp
@@ -1546,7 +1558,8 @@ let group_tables_example_handler sp () () =
                   ]);
                p [pcdata "Check that all sessions with same user name share the value."];
                p [pcdata "Check that the value disappears when all sessions from the group are closed."];
-               disconnect_box sp "Close session"]
+               p [pcdata "Check that the all sessions are closed when clicking on \"close group\" button."];
+               disconnect_box sp]
           | Eliom_sessions.Data_session_expired
           | Eliom_sessions.No_data -> [login_box sp]
           )))
@@ -1567,6 +1580,12 @@ let connect_action_handler sp () login =
 let () =
   Eliom_predefmod.Xhtml.register ~service:group_tables_example group_tables_example_handler;
   Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+
+
+
+
+
+
 
 >>
     

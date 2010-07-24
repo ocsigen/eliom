@@ -4221,14 +4221,26 @@ let disconnect_action =
     (fun sp () () ->
       Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
 
+let disconnect_g_action =
+  Eliom_predefmod.Action.register_new_post_coservice'
+    ~name:"disconnectgtg"
+    ~post_params:Eliom_parameters.unit
+    (fun sp () () ->
+      Eliom_sessions.close_session ~level:`Group (*zap* *) ~session_name (* *zap*) ~sp ())
+
 
 (* -------------------------------------------------------- *)
 (* login ang logout boxes:                                  *)
 
-let disconnect_box sp s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action sp
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
+let disconnect_box sp =
+  div [
+    Eliom_predefmod.Xhtml.post_form disconnect_action sp
+      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                       ~input_type:`Submit ~value:"Close session" ()]]) ();
+    Eliom_predefmod.Xhtml.post_form disconnect_g_action sp
+      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                       ~input_type:`Submit ~value:"Close group" ()]]) ()
+  ]
 
 let login_box sp =
   Eliom_predefmod.Xhtml.post_form connect_action sp
@@ -4275,7 +4287,8 @@ let group_tables_example_handler sp () () =
                   ]);
                p [pcdata "Check that all sessions with same user name share the value."];
                p [pcdata "Check that the value disappears when all sessions from the group are closed."];
-               disconnect_box sp "Close session"]
+               p [pcdata "Check that the all sessions are closed when clicking on \"close group\" button."];
+               disconnect_box sp]
           | Eliom_sessions.Data_session_expired
           | Eliom_sessions.No_data -> [login_box sp]
           )))
@@ -4297,6 +4310,138 @@ let () =
   Eliom_predefmod.Xhtml.register ~service:group_tables_example group_tables_example_handler;
   Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
 
+
+
+
+
+
+(*zap* *)
+
+(************************************************************)
+(**************** Persistent group tables *******************)
+(************************************************************)
+
+let session_name = "pgroup_tables"
+
+let my_table =
+  Eliom_sessions.create_persistent_table
+    ~level:`Group ~session_name "pgroup_table"
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+
+let pgroup_tables_example =
+  Eliom_services.new_service
+    ~path:["pgrouptables"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+
+let connect_action =
+  Eliom_services.new_post_coservice'
+    ~name:"connect8"
+    ~post_params:(Eliom_parameters.string "login")
+    ()
+
+let disconnect_action =
+  Eliom_predefmod.Action.register_new_post_coservice'
+    ~name:"pdisconnectgt"
+    ~post_params:Eliom_parameters.unit
+    (fun sp () () -> Eliom_sessions.close_session ~session_name ~sp ())
+
+let disconnect_g_action =
+  Eliom_predefmod.Action.register_new_post_coservice'
+    ~name:"pdisconnectgtg"
+    ~post_params:Eliom_parameters.unit
+    (fun sp () () ->
+      Eliom_sessions.close_session ~level:`Group ~session_name ~sp ())
+
+
+
+(* -------------------------------------------------------- *)
+(* login ang logout boxes:                                  *)
+
+let disconnect_box sp =
+  div [
+    Eliom_predefmod.Xhtml.post_form disconnect_action sp
+      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                       ~input_type:`Submit ~value:"Close session" ()]]) ();
+    Eliom_predefmod.Xhtml.post_form disconnect_g_action sp
+      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+                       ~input_type:`Submit ~value:"Close group" ()]]) ()
+  ]
+
+let login_box sp =
+  Eliom_predefmod.Xhtml.post_form connect_action sp
+    (fun loginname ->
+      [p
+         (let l = [pcdata "login: ";
+                   Eliom_predefmod.Xhtml.string_input
+                     ~input_type:`Text ~name:loginname ()]
+         in l)
+     ])
+    ()
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "group_tables_example" service (main page): *)
+
+let group_tables_example_handler sp () () =
+  Eliom_sessions.get_persistent_data_session_group ~session_name ~sp ()
+  >>= fun sessdat ->
+  Eliom_sessions.get_persistent_session_data ~table:my_table ~sp ()
+  >>= fun groupdata ->
+  let group_info name =
+    match groupdata with
+      | Eliom_sessions.Data_session_expired
+      | Eliom_sessions.No_data ->
+        let d = string_of_int (Random.int 1000) in
+        Eliom_sessions.set_persistent_session_data ~table:my_table ~sp d
+        >>= fun r -> Lwt.return d
+      | Eliom_sessions.Data d -> Lwt.return d
+  in
+  (match sessdat with
+    | Eliom_sessions.Data name ->
+      (group_info name >>= fun d ->
+       Lwt.return 
+         [p [pcdata ("Hello "^name); br ()];
+          (p [pcdata "Your persistent group data is: ";
+              pcdata d;
+              pcdata ". It is common to all the sessions for the same user ";
+              pcdata name;
+              pcdata ". Try with another browser!"
+             ]);
+          p [pcdata "Check that all sessions with same user name share the value."];
+          p [pcdata "Check that the value disappears when all sessions from the group are closed."];
+          p [pcdata "Check that the all sessions are closed when clicking on \"close group\" button."];
+          p [pcdata "Check that the value is preserved after relaunching the server."];
+          disconnect_box sp ])
+    | Eliom_sessions.Data_session_expired
+    | Eliom_sessions.No_data -> Lwt.return [login_box sp]) >>= fun l ->
+  Lwt.return
+    (html
+       (head (title (pcdata "")) [])
+       (body l))
+
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler sp () login =
+  Eliom_sessions.close_session ~session_name ~sp () >>= fun () ->
+  Eliom_sessions.set_persistent_data_session_group
+    ~set_max:(Some 4) ~session_name ~sp login
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_predefmod.Xhtml.register ~service:pgroup_tables_example group_tables_example_handler;
+  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+
+(* *zap*)
 (*wiki*
     
         >%

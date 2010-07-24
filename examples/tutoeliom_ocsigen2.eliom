@@ -1642,6 +1642,11 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
               a group_tables_example sp [code [pcdata "grouptables"]] ();
               br ();
 
+(*
+              pcdata "A session based on cookies, implemented with actions, with session groups, and using a persistent group table: ";
+              a pgroup_tables_example sp [code [pcdata "pgrouptables"]] ();
+              br ();
+*)
               pcdata "Coservices in the session table: ";
               a calc sp [code [pcdata "calc"]] ();
               br ();
