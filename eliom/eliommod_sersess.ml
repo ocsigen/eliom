@@ -69,7 +69,7 @@ let close_service_session ?session_name ?(level = `Browser) ~secure ~sp () =
           with
             | None -> Ocsigen_messages.errlog
               "Eliom: No group of groups. Please report this problem."
-            | Some g -> Eliommod_sessiongroups.Serv.remove g
+            | Some (service_table, g) -> Eliommod_sessiongroups.Serv.remove g
         else
           Eliommod_sessiongroups.Serv.remove
             c.Eliom_common.sc_session_group_node;

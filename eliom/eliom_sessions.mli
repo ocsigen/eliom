@@ -1356,7 +1356,7 @@ val get_global_table : ?sp:server_params -> unit -> Eliom_common.tables
 
 val get_session_service_table :
   ?session_name:string -> 
-  ?cookie_level:Eliom_common.cookie_level ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params -> 
   unit ->
@@ -1364,7 +1364,7 @@ val get_session_service_table :
 
 val get_session_service_table_if_exists :
   ?session_name:string -> 
-  ?cookie_level:Eliom_common.cookie_level ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params -> 
   unit ->

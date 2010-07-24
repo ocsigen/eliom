@@ -928,7 +928,7 @@ let tlaunch_session sp () login =
   (* Now we register new versions of main services in the
      session service table: *)
   Eliom_appl.register_for_session (*zap* *) ~session_name (* *zap*)
-    ~cookie_level:`Tab
+    ~level:`Tab
     ~sp
     ~service:tsession_services_example
     (* service is any public service already registered,
@@ -936,7 +936,7 @@ let tlaunch_session sp () login =
     new_main_page;
 
   Eliom_appl.register_for_session (*zap* *) ~session_name (* *zap*)
-    ~cookie_level:`Tab
+    ~level:`Tab
     ~sp
     ~service:eliomclient1
     (fun _ () () ->
@@ -1078,7 +1078,7 @@ let tcalc_i_handler sp i () =
   let is = string_of_int i in
   let tcalc_result =
     Eliom_appl.register_new_coservice_for_session
-      ~cookie_level:`Tab
+      ~level:`Tab
       ~sp
       ~fallback:tcalc
       ~get_params:(int "j")
@@ -1428,7 +1428,7 @@ let tcsrfsafe_example_post =
   Eliom_services.new_post_coservice
     ~csrf_safe:true
     ~csrf_session_name:"csrf"
-    ~csrf_cookie_level:`Tab
+    ~csrf_level:`Tab
     ~csrf_secure_session:true
     ~timeout:10.
     ~max_use:1

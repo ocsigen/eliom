@@ -12,9 +12,10 @@
     process.
   * Eliom: Tab session data. Like session data but for one client side process.
   * Eliom: Tab session services.
-  * **SOON** Eliom: Session group data. Like session data but for all sessions
+  * Eliom: Session group data. Like session data but for all sessions
     in a session group.
-  * **SOON** Eliom: Session group services.
+  * Eliom: Session group services.
+  * Eliom: session now have a level: tab, browser or group.
   * Eliom client: Possible to call another service without stopping the
     client side program, with bookmark suuport and back button support.
   * New extension Comet to allow server -> client communication.

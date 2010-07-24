@@ -42,7 +42,7 @@ type att_key_serv =
   | SAtt_no (* regular service *)
   | SAtt_named of string (* named coservice *)
   | SAtt_anon of string (* anonymous coservice *)
-  | SAtt_csrf_safe of (int * string option * cookie_level option * bool option)
+  | SAtt_csrf_safe of (int * string option * level option * bool option)
       (* CSRF safe anonymous coservice *)
       (* CSRF safe service registration delayed until form/link creation *)
       (* the int is an unique id,
@@ -59,9 +59,9 @@ type na_key_serv =
   | SNa_post_ of string (* named *)
   | SNa_get' of string (* anonymous *)
   | SNa_post' of string (* anonymous *)
-  | SNa_get_csrf_safe of (int * string option * cookie_level option * bool option)
+  | SNa_get_csrf_safe of (int * string option * level option * bool option)
       (* CSRF safe anonymous coservice *)
-  | SNa_post_csrf_safe of (int * string option * cookie_level option * bool option)
+  | SNa_post_csrf_safe of (int * string option * level option * bool option)
       (* CSRF safe anonymous coservice *)
 
 (* the same, for incoming requests: *)

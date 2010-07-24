@@ -873,7 +873,7 @@ let set_max_volatile_data_sessions_for_group_or_subnet
           Eliommod_sessiongroups.Serv.find_node_in_group_of_groups
             !(c.Eliom_common.dc_session_group)
        with
-         | Some node -> Eliommod_sessiongroups.Data.set_max node m
+         | Some (_, node) -> Eliommod_sessiongroups.Data.set_max node m
          | _ -> ())
     | _ ->
       Eliommod_sessiongroups.Data.set_max c.Eliom_common.dc_session_group_node m
@@ -986,20 +986,36 @@ let get_sitedata ~sp = sp.Eliom_common.sp_sitedata
 (** If the session does not exist, we create it
    (new cookie, new session service table) *)
 let get_session_service_table 
-    ?session_name ?(cookie_level = `Browser) ?secure ~sp () =
+    ?session_name ?(level = `Browser) ?secure ~sp () =
+  let cookie_level = Eliom_common.cookie_level_of_level level in 
   let c = 
-    Eliommod_sersess.find_or_create_service_cookie ?session_name ~cookie_level ~secure ~sp () 
+    Eliommod_sersess.find_or_create_service_cookie
+      ?session_name ~cookie_level ~secure ~sp () 
   in
-  c.Eliom_common.sc_table
+  if level = `Group
+  then match
+      Eliommod_sessiongroups.Serv.find_node_in_group_of_groups 
+        !(c.Eliom_common.sc_session_group)
+    with None -> raise Not_found
+      | Some (t, _) -> t
+  else c.Eliom_common.sc_table
 
 (** If the session does not exist, we raise Not_found *)
 let get_session_service_table_if_exists
-    ?session_name ?(cookie_level = `Browser) ?secure ~sp () =
+    ?session_name ?(level = `Browser) ?secure ~sp () =
   try
+    let cookie_level = Eliom_common.cookie_level_of_level level in 
     let c = 
-      Eliommod_sersess.find_service_cookie_only ?session_name ~cookie_level ~secure ~sp () 
+      Eliommod_sersess.find_service_cookie_only
+        ?session_name ~cookie_level ~secure ~sp () 
     in
-    c.Eliom_common.sc_table
+    if level = `Group
+    then match
+        Eliommod_sessiongroups.Serv.find_node_in_group_of_groups 
+          !(c.Eliom_common.sc_session_group)
+      with None -> raise Not_found
+        | Some (t, _) -> t
+    else c.Eliom_common.sc_table
   with Eliom_common.Eliom_Session_expired -> raise Not_found
 
 
@@ -1269,7 +1285,7 @@ module Session_admin = struct
       ~session:(cookie, (_, _, _, _, sgr, sgrnode), sitedata) =
     if close_group then
       match Eliommod_sessiongroups.Serv.find_node_in_group_of_groups !sgr with
-        | Some node -> Eliommod_sessiongroups.Serv.remove node
+        | Some (_, node) -> Eliommod_sessiongroups.Serv.remove node
         | None -> (* We want to close the group of a tab session,
                      that is, the browser session associated. *)
           let grp = Eliommod_sessiongroups.make_full_named_group_name_

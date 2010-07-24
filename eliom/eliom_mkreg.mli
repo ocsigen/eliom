@@ -147,7 +147,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_level:Eliom_common.cookie_level ->
+      ?level:Eliom_common.level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       service:('get, 'post, [< internal_service_kind ],
@@ -171,7 +171,7 @@ module type ELIOMREGSIG =
     [?session_name] is the name of the session, if you want several
     service sessions on the same site.
     
-    [?cookie_level] allows to choose if you want a traditional browser
+    [?level] allows to choose if you want a traditional browser
     session (default) or a tab session (works only if there is a client
     side program running).
 
@@ -219,7 +219,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_cookie_level: Eliom_common.cookie_level ->
+      ?csrf_level: Eliom_common.level ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -252,7 +252,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_cookie_level: Eliom_common.cookie_level ->
+      ?csrf_level: Eliom_common.level ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -275,7 +275,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_level:Eliom_common.cookie_level ->
+      ?level:Eliom_common.level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -308,7 +308,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_level:Eliom_common.cookie_level ->
+      ?level:Eliom_common.level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -362,7 +362,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_cookie_level: Eliom_common.cookie_level ->
+      ?csrf_level: Eliom_common.level ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -394,7 +394,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_cookie_level: Eliom_common.cookie_level ->
+      ?csrf_level: Eliom_common.level ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -443,7 +443,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_level:Eliom_common.cookie_level ->
+      ?level:Eliom_common.level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -475,7 +475,7 @@ module type ELIOMREGSIG =
       ?content_type:string ->
       ?headers: Http_headers.t ->
       ?session_name:string ->
-      ?cookie_level:Eliom_common.cookie_level ->
+      ?level:Eliom_common.level ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?name: string ->
@@ -498,7 +498,7 @@ module type ELIOMREGSIG =
     val register_new_get_post_coservice_for_session' :
         ?options:options ->
         ?session_name:string ->
-      ?cookie_level:Eliom_common.cookie_level ->
+      ?level:Eliom_common.level ->
   ?secure:bool ->
         sp:Eliom_sessions.server_params ->
   ?name: string ->

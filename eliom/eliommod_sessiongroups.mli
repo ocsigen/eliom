@@ -42,6 +42,8 @@ val getperssessgrp : Eliom_common.perssessgrp -> (string * string)
 
 module type MEMTAB =
   sig
+    type group_of_group_data
+
     val add : ?set_max: int -> 
       Eliom_common.sitedata ->
       string -> [< Eliom_common.cookie_level ] Eliom_common.sessgrp -> 
@@ -55,7 +57,7 @@ module type MEMTAB =
         we put this information here. *)
     val find_node_in_group_of_groups : 
       [< `Browser ] Eliom_common.sessgrp -> 
-      [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node option
+      group_of_group_data option
 
     val move :
       ?set_max:int ->
@@ -70,8 +72,13 @@ module type MEMTAB =
     val set_max : 'a Ocsigen_cache.Dlist.node -> int -> unit
   end
 
-module Serv : MEMTAB
-module Data : MEMTAB
+module Serv : MEMTAB with type group_of_group_data =
+  (Eliom_common.tables ref *
+     [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node)
+
+module Data : MEMTAB with type group_of_group_data =
+  [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+
 
 module Pers :
   sig

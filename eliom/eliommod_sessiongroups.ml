@@ -49,6 +49,8 @@ let getperssessgrp a = Marshal.from_string a 0
 
 module type MEMTAB =
   sig
+    type group_of_group_data
+
     val add : ?set_max: int -> Eliom_common.sitedata ->
       string -> Eliom_common.cookie_level Eliom_common.sessgrp ->
       string Ocsigen_cache.Dlist.node
@@ -60,7 +62,7 @@ module type MEMTAB =
         we put this information here. *)
     val find_node_in_group_of_groups : 
       Eliom_common.cookie_level Eliom_common.sessgrp ->
-      [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node option
+      group_of_group_data option
 
     val move :
       ?set_max:int ->
@@ -82,21 +84,30 @@ module GroupTable = Hashtbl.Make(struct
 end)
 
 module Make(A: sig 
-              val table : 
-                (([ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node)
-                    option * 
-                    (string Ocsigen_cache.Dlist.t)) GroupTable.t
-              val close_session : Eliom_common.sitedata -> string -> unit
-              val max_tab_per_session : Eliom_common.sitedata -> int
-              val max_session_per_group : Eliom_common.sitedata -> int
-              val max_session_per_ip : Eliom_common.sitedata -> int
-              val clean_session : Eliom_common.sitedata ->
-                GroupTable.key ->
-                (GroupTable.key -> 'b option) ->
-                (string Ocsigen_cache.Dlist.node -> unit) ->
-                ('b -> unit) -> unit
-            end) : MEMTAB =
+  type group_of_group_data
+  val table :
+    (group_of_group_data option * 
+       (string Ocsigen_cache.Dlist.t)) GroupTable.t
+  val close_session : Eliom_common.sitedata -> string -> unit
+  val max_tab_per_session : Eliom_common.sitedata -> int
+  val max_session_per_group : Eliom_common.sitedata -> int
+  val max_session_per_ip : Eliom_common.sitedata -> int
+  val clean_session : Eliom_common.sitedata ->
+    GroupTable.key ->
+    (GroupTable.key -> group_of_group_data option) ->
+    (string Ocsigen_cache.Dlist.node -> unit) ->
+    (group_of_group_data -> unit) -> unit
+  val node_of_group_of_group_data : 
+    group_of_group_data ->
+    [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+  val create_group_of_group_data :
+    Eliom_common.sitedata ->
+    [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node ->
+    group_of_group_data
+end) : MEMTAB with type group_of_group_data = A.group_of_group_data =
 struct
+
+  type group_of_group_data = A.group_of_group_data
 
   let grouptable = A.table
 
@@ -126,7 +137,8 @@ struct
   let remove_if_empty sitedata sess_grp cl =
     if Ocsigen_cache.Dlist.size cl = 0 (* finaliser after *)
     then begin
-      A.clean_session sitedata sess_grp find_node_in_group_of_groups remove remove;
+      A.clean_session sitedata sess_grp find_node_in_group_of_groups remove
+        (fun n -> remove (A.node_of_group_of_group_data n));
       GroupTable.remove grouptable sess_grp
     end
 
@@ -180,7 +192,11 @@ struct
             Ocsigen_cache.Dlist.newest sitedata.Eliom_common.group_of_groups
           | _ -> None
       in
-      GroupTable.add grouptable sess_grp (node_in_group_of_group, cl);
+      let group_of_group_data =
+        Ocsigen_lib.apply_option
+          (A.create_group_of_group_data sitedata) node_in_group_of_group
+      in
+      GroupTable.add grouptable sess_grp (group_of_group_data, cl);
       cl
 
   let add ?set_max sitedata sess_id sess_grp =
@@ -220,9 +236,11 @@ end
 
 module Data =
   Make (struct
-    let table : (([ `Group ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node)
-                    option * 
-                    (string Ocsigen_cache.Dlist.t)) GroupTable.t = 
+    type group_of_group_data = 
+      [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+
+    let table : (group_of_group_data option * 
+                   (string Ocsigen_cache.Dlist.t)) GroupTable.t = 
       (* The table associates the dlist for a group
          to a full session group name.
          It work both for groups of tab sessions and
@@ -291,13 +309,19 @@ module Data =
             | Some node -> remove2 node | None -> ())
         | _ -> ()
 
+    let node_of_group_of_group_data x = x
+    let create_group_of_group_data _ x = x
+
   end)
 
 
 module Serv =
   Make (struct
-    let table : (([ `Group ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node)
-                    option * 
+    type group_of_group_data = 
+        Eliom_common.tables ref * 
+          [ `Browser ] Eliom_common.sessgrp Ocsigen_cache.Dlist.node
+
+    let table : (group_of_group_data option * 
                     (string Ocsigen_cache.Dlist.t)) GroupTable.t = 
       GroupTable.create 100
     let close_session sitedata sess_id =
@@ -346,7 +370,10 @@ module Serv =
             | Some node -> remove2 node | None -> ())
         | _ -> ()
 
-
+    let node_of_group_of_group_data = snd
+    let create_group_of_group_data sitedata x =
+      (ref (Eliom_common.new_service_session_tables sitedata), x)
+(*VVV Check when the table is collected *)
 
   end)
 
