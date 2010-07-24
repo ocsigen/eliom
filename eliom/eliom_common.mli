@@ -203,7 +203,16 @@ type 'a sessgrp =
        The level is the level of group members (`Browser by default).
        If there is no session group, 
        we limit the number of sessions by IP address. *)
-type perssessgrp = string (* the same triple, marshaled *)
+type perssessgrp (* the same triple, marshaled *)
+
+val make_persistent_full_group_name :
+  level:level ->
+  Ocsigen_extensions.request_info -> string -> string option ->
+  perssessgrp option
+
+val getperssessgrp : perssessgrp -> (string * level * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+
+val string_of_perssessgrp : perssessgrp -> string
 
 
 type 'a session_cookie = SCNo_data | SCData_session_expired | SC of 'a

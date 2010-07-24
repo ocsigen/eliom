@@ -1196,7 +1196,7 @@ let () =
 let session_name = "persistent_sessions"
 (* *zap*)
 let tmy_persistent_table =
-  Eliom_sessions.create_persistent_table "teliom_example_table"
+  Eliom_sessions.create_persistent_table ~level:`Tab (*zap* *) ~session_name (* *zap*) "teliom_example_table"
 
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -1265,8 +1265,7 @@ let tlogin_box sp session_expired action =
 (* Handler for "persist_session_example" service (main page):  *)
 
 let tpersist_session_example_handler sp () () =
-  Eliom_sessions.get_persistent_session_data (*zap* *) ~session_name (* *zap*)
-    ~cookie_level:`Tab ~table:tmy_persistent_table ~sp () >>= fun sessdat ->
+  Eliom_sessions.get_persistent_session_data ~table:tmy_persistent_table ~sp () >>= fun sessdat ->
   return
     (match sessdat with
       | Eliom_sessions.Data name ->
@@ -1289,8 +1288,7 @@ let tpersist_session_connect_action_handler sp () login =
  (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then
-    Eliom_sessions.set_persistent_session_data
- (*zap* *) ~session_name (* *zap*) ~cookie_level:`Tab ~table:tmy_persistent_table ~sp login
+    Eliom_sessions.set_persistent_session_data ~table:tmy_persistent_table ~sp login
   else ((*zap* *)Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;(* *zap*)return ())
 
 

@@ -39,13 +39,11 @@ let make_full_group_name ~level ri site_dir_string ipv4mask ipv6mask = function
                ))
   | Some g -> (site_dir_string, level, Ocsigen_lib.Left g)
 
-let make_persistent_full_group_name ~level ri site_dir_string = function
-  | None -> None
-  | Some g ->
-    Some (Marshal.to_string (site_dir_string, level, Ocsigen_lib.Left g) [])
+let make_persistent_full_group_name =
+  Eliom_common.make_persistent_full_group_name
 
 let getsessgrp a = a
-let getperssessgrp a = Marshal.from_string a 0
+let getperssessgrp = Eliom_common.getperssessgrp
 
 module type MEMTAB =
   sig
@@ -411,8 +409,9 @@ module Pers = struct
     | Some g ->
         Lwt.catch
           (fun () ->
-             Ocsipersist.find !!grouptable g >>= fun (_, a) ->
-             Lwt.return a)
+            Ocsipersist.find !!grouptable
+              (Eliom_common.string_of_perssessgrp g) >>= fun (_, a) ->
+            Lwt.return a)
           (function
             | Not_found -> Lwt.return []
             | e -> Lwt.fail e)
@@ -420,69 +419,74 @@ module Pers = struct
   let add ?set_max defaultmax sess_id sess_grp =
     match sess_grp with
     | Some sg ->
-        Lwt.catch
-          (fun () ->
-            Ocsipersist.find !!grouptable sg >>= fun (max2, cl) ->
-            let max, newmax = match set_max with
-              | None -> ((match max2 with
-                            | Default -> defaultmax
-                            | Nolimit -> None
-                            | Val m -> Some m), max2)
-              | Some None -> None, Nolimit
-              | Some (Some v) -> Some v, Val v
+      let sg = Eliom_common.string_of_perssessgrp sg in
+      Lwt.catch
+        (fun () ->
+          Ocsipersist.find !!grouptable sg >>= fun (max2, cl) ->
+          let max, newmax = match set_max with
+            | None -> ((match max2 with
+                | Default -> defaultmax
+                | Nolimit -> None
+                | Val m -> Some m), max2)
+            | Some None -> None, Nolimit
+            | Some (Some v) -> Some v, Val v
+          in
+          let cl, toclose = cut max cl in
+          Ocsipersist.replace_if_exists !!grouptable sg (newmax, (sess_id::cl))
+          >>= fun () ->
+          Lwt.return toclose)
+        (function
+          | Not_found ->
+            let max = match set_max with
+              | None -> Default
+              | Some None -> Nolimit
+              | Some (Some v) -> Val v
             in
-            let cl, toclose = cut max cl in
-            Ocsipersist.replace_if_exists !!grouptable sg (newmax, (sess_id::cl))
-            >>= fun () ->
-            Lwt.return toclose)
-          (function
-            | Not_found ->
-                let max = match set_max with
-                  | None -> Default
-                  | Some None -> Nolimit
-                  | Some (Some v) -> Val v
-                in
-                Ocsipersist.add !!grouptable sg (max, [sess_id]) >>= fun () ->
-                Lwt.return []
-            | e -> Lwt.fail e)
+            Ocsipersist.add !!grouptable sg (max, [sess_id]) >>= fun () ->
+            Lwt.return []
+          | e -> Lwt.fail e)
     | None -> Lwt.return []
-
+      
   let remove sess_id sess_grp =
     match sess_grp with
     | Some sg ->
-        Lwt.catch
-          (fun () ->
-             Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
-             let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
-             (match newcl with
-                | [] -> Ocsipersist.remove !!grouptable sg
-                | _ -> Ocsipersist.replace_if_exists !!grouptable sg (max, newcl)
-             )
+      let sg = Eliom_common.string_of_perssessgrp sg in
+      Lwt.catch
+        (fun () ->
+          Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
+          let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
+          (match newcl with
+            | [] -> Ocsipersist.remove !!grouptable sg
+            | _ -> Ocsipersist.replace_if_exists !!grouptable sg (max, newcl)
           )
-          (function
-             | Not_found -> Lwt.return ()
-             | e -> Lwt.fail e)
+        )
+        (function
+          | Not_found -> Lwt.return ()
+          | e -> Lwt.fail e)
     | None -> Lwt.return ()
 
   let remove_group sess_grp =
     match sess_grp with
-    | Some sess_grp -> Ocsipersist.remove !!grouptable sess_grp
+    | Some sg ->
+      let sg = Eliom_common.string_of_perssessgrp sg in
+      Ocsipersist.remove !!grouptable sg
     | None -> Lwt.return ()
 
   let up sess_id grp =
     match grp with
       | None -> Lwt.return ()
       | Some sg ->
-          Lwt.catch
-            (fun () ->
-               Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
-               let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
-               Ocsipersist.replace_if_exists !!grouptable sg (max, sess_id::newcl)
-            )
-            (function
-               | Not_found -> Lwt.return ()
-               | e -> Lwt.fail e)
-
+        let sg = Eliom_common.string_of_perssessgrp sg in
+        Lwt.catch
+          (fun () ->
+            Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
+            let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
+            Ocsipersist.replace_if_exists !!grouptable sg (max, sess_id::newcl)
+          )
+          (function
+            | Not_found -> Lwt.return ()
+            | e -> Lwt.fail e)
+          
   let move ?set_max max sess_id grp1 grp2 =
     if set_max <> None || grp1 <> grp2 then begin
       remove sess_id grp1 >>= fun () ->

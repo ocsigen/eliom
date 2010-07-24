@@ -29,6 +29,7 @@ val make_full_group_name :
   Ocsigen_extensions.request_info -> string -> 
   int32 -> int64 * int64 ->
   string option -> [< Eliom_common.level ] Eliom_common.sessgrp
+
 val make_persistent_full_group_name :
   level:Eliom_common.level ->
   Ocsigen_extensions.request_info -> string -> string option ->
@@ -38,7 +39,10 @@ val getsessgrp :
   [< Eliom_common.level ] Eliom_common.sessgrp -> 
   string * Eliom_common.level *
     (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright
-val getperssessgrp : Eliom_common.perssessgrp -> (string * string)
+
+val getperssessgrp : Eliom_common.perssessgrp ->
+  (string * Eliom_common.level * 
+     (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
 
 module type MEMTAB =
   sig

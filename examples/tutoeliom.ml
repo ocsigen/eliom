@@ -3241,7 +3241,7 @@ The following example is a new version of our site
 let session_name = "persistent_sessions"
 (* *zap*)
 let my_persistent_table =
-  create_persistent_table "eliom_example_table"
+  create_persistent_table (*zap* *) ~session_name (* *zap*) "eliom_example_table"
 
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -3310,7 +3310,7 @@ let login_box sp session_expired action =
 (* Handler for "persist_session_example" service (main page):  *)
 
 let persist_session_example_handler sp () () =
-  Eliom_sessions.get_persistent_session_data (*zap* *) ~session_name (* *zap*)
+  Eliom_sessions.get_persistent_session_data
     ~table:my_persistent_table ~sp () >>= fun sessdat ->
   return
     (html
@@ -3336,7 +3336,7 @@ let persist_session_connect_action_handler sp () login =
   Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then
-    Eliom_sessions.set_persistent_session_data (*zap* *) ~session_name (* *zap*) ~table:my_persistent_table ~sp login
+    Eliom_sessions.set_persistent_session_data ~table:my_persistent_table ~sp login
   else ((*zap* *)Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;(* *zap*)return ())
 
 

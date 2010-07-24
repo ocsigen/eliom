@@ -93,14 +93,12 @@ let close_all_data_sessions ?session_name ?(cookie_level = `Browser) sitedata =
 *)
 
 
-let close_all_persistent_sessions2 ?(close_group = false) fullsessname =
+let close_all_persistent_sessions2 fullsessname =
   Ocsipersist.iter_table
     (fun k (fullsessname2, old_exp, old_t, sessiongrp) ->
       if fullsessname = fullsessname2 && old_t = Eliom_common.TGlobal
-      then (if close_group then
-        Eliommod_persess.close_persistent_group sessiongrp
-      else Eliommod_persess.close_persistent_session2 sessiongrp k) >>=
-      Lwt_unix.yield
+      then Eliommod_persess.close_persistent_session2 sessiongrp k >>=
+        Lwt_unix.yield
       else return ()
     )
     (Lazy.force Eliommod_persess.persistent_cookies_table)
@@ -109,13 +107,18 @@ let close_all_persistent_sessions2 ?(close_group = false) fullsessname =
     If the optional parameter [?session_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_persistent_sessions ?close_group ?session_name
-    ?(cookie_level = `Browser) sitedata =
+let close_all_persistent_sessions
+    ?session_name ?(cookie_level = `Browser) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
       sitedata.Eliom_common.site_dir_string cookie_level session_name
   in
-  close_all_persistent_sessions2 ?close_group fullsessname
+  close_all_persistent_sessions2 fullsessname
+(*VVV Missing:
+   - close all sessions, whatever be the session_name
+   - secure
+   - close all groups (but closing sessions will close the groups (?))
+*)
 
 
 

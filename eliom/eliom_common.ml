@@ -39,9 +39,10 @@ exception Eliom_do_half_xhr_redirection of string
 (*****************************************************************************)
 (*VVV Do not forget to change the version number
   when the internal format change!!! *)
-let persistent_cookie_table_version = "_v3" 
+let persistent_cookie_table_version = "_v4" 
 (* v2 introduces session groups *)
 (* v3 introduces tab sessions *)
+(* v4 introduces group tables *)
   
 let eliom_persistent_cookie_table =
   "eliom_persist_cookies"^persistent_cookie_table_version
@@ -109,8 +110,16 @@ type 'a sessgrp =
        The level is the level of group members (`Browser by default).
        If there is no session group, 
        we limit the number of sessions by IP address. *)
-type perssessgrp = string (* the same triple, marshaled *)
+type perssessgrp = string (* site_dir_string * level * name, marshaled *)
 
+let make_persistent_full_group_name ~level ri site_dir_string = function
+  | None -> None
+  | Some g ->
+    Some (Marshal.to_string (site_dir_string, level, Ocsigen_lib.Left g) [])
+
+let getperssessgrp a = Marshal.from_string a 0
+
+let string_of_perssessgrp = Ocsigen_lib.id
 
 (* cookies information during page generation: *)
 

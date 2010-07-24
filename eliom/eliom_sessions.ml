@@ -510,6 +510,13 @@ let rec close_volatile_session_if_empty
 
 
 
+
+let rec close_persistent_session_if_empty
+    ?session_name ?(level = `Browser) ?secure ~sp () =
+  Lwt.return ()
+(*VVV Can we implement this function? *)
+
+
 (* session groups *)
 
 type 'a session_data =
@@ -661,7 +668,7 @@ let set_persistent_data_session_group ?set_max
     (fst sp.Eliom_common.sp_sitedata.Eliom_common.max_persistent_data_sessions_per_group)
     c.Eliom_common.pc_value !grp n >>= fun l ->
   Lwt_util.iter
-        (Eliommod_persess.close_persistent_session2 None) l >>= fun () ->
+    (Eliommod_persess.close_persistent_session2 None) l >>= fun () ->
   Lwt.return (grp := n)
 
 let unset_persistent_data_session_group
@@ -674,7 +681,10 @@ let unset_persistent_data_session_group
        let grp = c.Eliom_common.pc_session_group in
        Eliommod_sessiongroups.Pers.remove c.Eliom_common.pc_value !grp >>= fun () ->
        grp := None;
-       Lwt.return ()
+
+       close_persistent_session_if_empty ~level:`Browser 
+         ?session_name ?secure ~sp ()
+
     )
     (function
        | Not_found
@@ -682,8 +692,7 @@ let unset_persistent_data_session_group
        | e -> fail e)
 
 
-let get_persistent_data_session_group
-    ?session_name ?secure ~sp () =
+let get_persistent_data_session_group ?session_name ?secure ~sp () =
   let cookie_level = `Browser in
   catch
     (fun () ->
@@ -692,8 +701,10 @@ let get_persistent_data_session_group
        Lwt.return (match !(c.Eliom_common.pc_session_group) with
                      | None -> No_data
                      | Some v ->
-                         Data (snd (Eliommod_sessiongroups.getperssessgrp v))
-                  )
+                       match Eliommod_sessiongroups.getperssessgrp v with
+                         | (_, _, Ocsigen_lib.Left s) -> Data s
+                         | _ -> No_data
+       )
     )
     (function
        | Not_found -> Lwt.return No_data
@@ -1030,38 +1041,70 @@ let set_site_handler sitedata handler =
 
 open Ocsipersist
 
-type 'a persistent_table = (int64 * 'a) Ocsipersist.table
+type 'a persistent_table =
+    (Eliom_common.level * 
+       string option *
+       bool *
+       (int64 * 'a) Ocsipersist.table)
 
-let create_persistent_table = Eliom_common.create_persistent_table
+let create_persistent_table
+    ?session_name ?(level = `Browser) ?(secure = false) name =
+  let t = Eliom_common.create_persistent_table name in
+  (level, session_name, secure, t)
 
-let get_persistent_session_data 
-    ?session_name ?(cookie_level = `Browser) ?secure ~table ~sp () =
+
+let get_table_key_
+    ~table:(level, (session_name : string option), secure, table) ~sp 
+    (find_cookie : ?session_name:string ->
+     ?cookie_level:Eliom_common.cookie_level ->
+     secure:bool option ->
+     sp:Eliom_common.server_params ->
+     unit -> Eliom_common.one_persistent_cookie_info Lwt.t) =
+  (match level with
+    | `Group ->
+      (get_persistent_data_session_group ?session_name ~secure ~sp ()
+       >>= function
+         | Data a -> Lwt.return a
+         | _ -> Lwt.return Eliom_common.default_group_name)
+    | _ ->
+      let cookie_level = Eliom_common.cookie_level_of_level level in 
+      find_cookie ?session_name ~cookie_level ~secure:(Some secure) ~sp () 
+      >>= fun c -> Lwt.return c.Eliom_common.pc_value)
+  >>= fun key ->
+  Lwt.return (table, key)
+
+let get_persistent_session_data ~table ~sp () =
   catch
     (fun () ->
-      Eliommod_persess.find_persistent_cookie_only
-        ?session_name ~cookie_level ~secure ~sp () >>= fun c ->
-      Ocsipersist.find table c.Eliom_common.pc_value >>= fun (_, v) ->
-      return (Data v)
+      get_table_key_ ~table ~sp Eliommod_persess.find_persistent_cookie_only
+      >>= fun (table, key) ->
+      Ocsipersist.find table key >>= fun (_, v) ->
+      Lwt.return (Data v)
     )
     (function
       | Eliom_common.Eliom_Session_expired -> return Data_session_expired
       | Not_found -> return No_data
       | e -> fail e)
 
-let set_persistent_session_data
-    ?session_name ?(cookie_level = `Browser)
-    ?secure ~table ~sp value =
+let f__ ?session_name ?cookie_level ~secure ~sp () =
   Eliommod_persess.find_or_create_persistent_cookie
-    ?session_name ~cookie_level ~secure ~sp () >>= fun c ->
-  Ocsipersist.add table c.Eliom_common.pc_value (Int64.zero, value)
+    ?session_name ?cookie_level ~secure ~sp ()
 
-let remove_persistent_session_data
-    ?session_name ?(cookie_level = `Browser) ?secure ~table ~sp () =
+let set_persistent_session_data ~table ~sp value =
+  get_table_key_ ~table ~sp f__ >>= fun (table, key) ->
+  Ocsipersist.add table key (Int64.zero, value)
+
+let remove_persistent_session_data ~table ~sp () =
   catch
     (fun () ->
-      Eliommod_persess.find_persistent_cookie_only
-        ?session_name ~cookie_level ~secure ~sp () >>= fun c ->
-      Ocsipersist.remove table c.Eliom_common.pc_value)
+      let (level, session_name, secure, _) = table in
+      get_table_key_ ~table ~sp Eliommod_persess.find_persistent_cookie_only
+      >>= fun (table, key) ->
+      Ocsipersist.remove table key >>= fun () ->
+
+      close_persistent_session_if_empty
+        ~sp ~level ?session_name ~secure ()
+    )
     (function
       | Not_found | Eliom_common.Eliom_Session_expired -> return ()
       | e -> fail e)
@@ -1096,14 +1139,16 @@ let get_table_key_ ~table:(level, (session_name : string option), secure, table)
      secure:bool option ->
      sp:Eliom_common.server_params ->
      unit -> Eliom_common.one_data_cookie_info) =
-  let cookie_level = Eliom_common.cookie_level_of_level level in 
-  let c = find_cookie ?session_name ~cookie_level ~secure:(Some secure) ~sp () in
   let key = match level with
     | `Group ->
       (match get_volatile_data_session_group ?session_name ~secure ~sp () 
        with Data a -> a
          | _ -> Eliom_common.default_group_name)
-    | _ -> c.Eliom_common.dc_value
+    | _ -> 
+      let cookie_level = Eliom_common.cookie_level_of_level level in 
+      let c =
+        find_cookie ?session_name ~cookie_level ~secure:(Some secure) ~sp () in
+      c.Eliom_common.dc_value
   in
   (table, key)
 
@@ -1147,17 +1192,16 @@ let remove_volatile_session_data ~table ~sp () =
 
 (*****************************************************************************)
 (** Close a session *)
-let close_persistent_data_session ?close_group
-    ?session_name ?(cookie_level = `Browser)
-    ?secure ~sp () = 
+let close_persistent_data_session
+    ?session_name ?(level = `Browser) ?secure ~sp () = 
   match secure with
     | None ->
-        Eliommod_persess.close_persistent_session ?close_group ?session_name ~cookie_level 
+        Eliommod_persess.close_persistent_session ?session_name ~level 
           ~secure:(Some true) ~sp () >>=
-        Eliommod_persess.close_persistent_session ?close_group ?session_name ~cookie_level 
+        Eliommod_persess.close_persistent_session ?session_name ~level 
           ~secure:(Some false) ~sp
     | _ ->
-        Eliommod_persess.close_persistent_session ?close_group ?session_name ~cookie_level 
+        Eliommod_persess.close_persistent_session ?session_name ~level 
           ~secure ~sp ()
 
 let close_service_session
@@ -1189,17 +1233,9 @@ let close_volatile_session
   close_volatile_data_session ?session_name ~level ?secure ~sp ();
   close_service_session ?session_name ~level ?secure ~sp ()
 
-let close_session
-    ?session_name ?(level = `Browser) ?secure ~sp () =
+let close_session ?session_name ?(level = `Browser) ?secure ~sp () =
   close_volatile_session ?session_name ~level ?secure ~sp ();
-  let cookie_level = Eliom_common.cookie_level_of_level level in
-  if level = `Group
-  then
-    close_persistent_data_session
-      ~close_group:true ?session_name ~cookie_level ?secure ~sp ()
-  else
-    close_persistent_data_session
-      ~close_group:false ?session_name ~cookie_level ?secure ~sp ()
+  close_persistent_data_session ?session_name ~level ?secure ~sp ()
 
 let close_all_volatile_data_sessions
     ?session_name ?(cookie_level = `Browser) ?sp () =
@@ -1208,31 +1244,31 @@ let close_all_volatile_data_sessions
     ?session_name ~cookie_level sitedata
 (*VVV missing: level group *)
 
-let close_all_service_sessions ?close_group
+let close_all_service_sessions
     ?session_name ?(cookie_level = `Browser) ?sp () =
   let sitedata = find_sitedata "close_all_service_sessions" sp in
   Eliommod_sessadmin.close_all_service_sessions
     ?session_name ~cookie_level sitedata
 (*VVV missing: level group *)
 
-let close_all_volatile_sessions ?close_group
+let close_all_volatile_sessions
     ?session_name ?(cookie_level = `Browser) ?sp () =
   close_all_volatile_data_sessions ?session_name ~cookie_level ?sp () >>=
-  close_all_service_sessions ?close_group ?session_name ~cookie_level ?sp
+  close_all_service_sessions ?session_name ~cookie_level ?sp
 
 
 
-let close_all_persistent_data_sessions ?close_group
+let close_all_persistent_data_sessions
     ?session_name ?(cookie_level = `Browser) ?sp () =
-  let sitedata =
-    find_sitedata "close_all_persistent_sessions" sp
-  in
-  Eliommod_sessadmin.close_all_persistent_sessions ?close_group ?session_name ~cookie_level sitedata
+  let sitedata = find_sitedata "close_all_persistent_sessions" sp in
+  Eliommod_sessadmin.close_all_persistent_sessions
+    ?session_name ~cookie_level sitedata
+(*VVV missing: level group *)
 
-let close_all_sessions ?close_group
+let close_all_sessions
     ?session_name ?(cookie_level = `Browser) ?sp () =
- close_all_volatile_sessions ?close_group ?session_name ~cookie_level ?sp () >>=
- close_all_persistent_data_sessions ?close_group ?session_name ~cookie_level ?sp
+ close_all_volatile_sessions ?session_name ~cookie_level ?sp () >>=
+ close_all_persistent_data_sessions ?session_name ~cookie_level ?sp
 
 
 (*****************************************************************************)
@@ -1313,6 +1349,7 @@ module Session_admin = struct
       Eliommod_sessiongroups.Data.remove sgrnode
 
   let close_persistent_data_session ?(close_group = false)
+(*VVV Is it the right interface for closing group? *)
       ~session:(cookie, (_, _, _, sg)) =
     if close_group then
       Eliommod_persess.close_persistent_group sg
@@ -1322,14 +1359,14 @@ module Session_admin = struct
   let get_volatile_session_data ~session:(cookie, _, _) ~table:(_, _, _, t) =
     Eliom_common.SessionCookies.find t cookie
 
-  let get_persistent_session_data ~session:(cookie, _) ~table =
-    Ocsipersist.find table cookie >>= fun (_, a) -> return a
+  let get_persistent_session_data ~session:(cookie, _) ~table:(_, _, _, t) =
+    Ocsipersist.find t cookie >>= fun (_, a) -> Lwt.return a
 
   let remove_volatile_session_data ~session:(cookie, _, _) ~table:(_, _, _, t) =
     Eliom_common.SessionCookies.remove t cookie
 
-  let remove_persistent_session_data ~session:(cookie, _) ~table =
-    Ocsipersist.remove table cookie
+  let remove_persistent_session_data ~session:(cookie, _) ~table:(_, _, _, t) =
+    Ocsipersist.remove t cookie
 
   let get_service_session_name ~session:(_, ((_, s), _, _, _, _, _), _) =
     try

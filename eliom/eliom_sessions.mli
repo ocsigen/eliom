@@ -811,13 +811,14 @@ type 'a persistent_table
 
 (** creates a table on hard disk where you can store the session data for
    all users. It uses {!Ocsipersist}. *)
-val create_persistent_table : string -> 'a persistent_table
+val create_persistent_table :
+  ?session_name:string ->
+  ?level:Eliom_common.level ->
+  ?secure:bool ->
+  string -> 'a persistent_table
 
 (** gets persistent session data for the current persistent session (if any) *)
 val get_persistent_session_data : 
-  ?session_name:string ->
-  ?cookie_level:Eliom_common.cookie_level ->
-  ?secure:bool ->
   table:'a persistent_table -> 
   sp:server_params ->
   unit -> 
@@ -825,9 +826,6 @@ val get_persistent_session_data :
 
 (** sets persistent session data for the current persistent session *)
 val set_persistent_session_data : 
-  ?session_name:string ->
-  ?cookie_level:Eliom_common.cookie_level ->
-  ?secure:bool ->
   table:'a persistent_table -> 
   sp:server_params -> 
   'a -> 
@@ -838,9 +836,6 @@ val set_persistent_session_data :
    If the session does not exist, does nothing.
  *)
 val remove_persistent_session_data : 
-  ?session_name:string ->
-  ?cookie_level:Eliom_common.cookie_level ->
-  ?secure:bool ->
   table:'a persistent_table -> 
   sp:server_params -> 
   unit -> 
@@ -890,9 +885,8 @@ val close_volatile_session :
 (** Close Eliom's current persistent session if opened
    (destroying all persistent data for that user) *)
 val close_persistent_data_session :
-  ?close_group:bool ->
   ?session_name:string ->
-  ?cookie_level:Eliom_common.cookie_level ->
+  ?level:Eliom_common.level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -948,7 +942,6 @@ val unset_cookie :
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_sessions :
-  ?close_group:bool ->
   ?session_name:string ->
   ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
@@ -965,7 +958,6 @@ val close_all_sessions :
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_volatile_sessions :
-  ?close_group:bool ->
   ?session_name:string ->
   ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
@@ -981,7 +973,6 @@ val close_all_volatile_sessions :
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_persistent_data_sessions :
-  ?close_group:bool ->
   ?session_name:string ->
   ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->
@@ -997,7 +988,6 @@ val close_all_persistent_data_sessions :
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_service_sessions :
-  ?close_group:bool ->
   ?session_name:string ->
   ?cookie_level:Eliom_common.cookie_level ->
   ?sp:server_params ->

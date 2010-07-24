@@ -31,21 +31,6 @@
 
 open Lwt
 
-(*
-let string_of_fullsessionname (ct, fsn) = match ct with
-  | `Browser -> "b"^fsn
-  | `Tab -> "t"^fsn
-
-let fullsessionname_of_string s =
-  let ct =
-    match s.[0] with
-      | 't' -> `Tab
-      | 'b' -> `Browser
-      | _ -> failwith "fullsessionname_of_string"
-  in
-  (ct, String.sub s 1 (String.length s - 1))
-*)
-
 
 let compute_cookie_info secure secure_ci cookie_info =
   let secure = match secure with
@@ -95,10 +80,10 @@ let close_persistent_group fullsessgrp =
     (function Not_found -> Lwt.return () | e -> Lwt.fail e)
 
 (* close current persistent session *)
-let close_persistent_session ?(close_group = false) ?session_name 
-    ?(cookie_level = `Browser) ~secure ~sp () =
+let close_persistent_session ?session_name ?(level = `Browser) ~secure ~sp () =
   catch
     (fun () ->
+      let cookie_level = Eliom_common.cookie_level_of_level level in
       let fullsessname = 
         Eliom_common.make_fullsessname ~sp cookie_level session_name 
       in
@@ -106,19 +91,21 @@ let close_persistent_session ?(close_group = false) ?session_name
         Eliom_common.get_cookie_info sp cookie_level
       in
       let cookie_info = compute_cookie_info secure secure_ci cookie_info in
-      Lazy.force (Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info)
+      Lazy.force
+        (Eliom_common.Fullsessionname_Table.find fullsessname !cookie_info)
       >>= fun (_, ior) ->
+
       match !ior with
       | Eliom_common.SC c ->
-          (if close_group then
+        ((if level = `Group
+          then
             close_persistent_group !(c.Eliom_common.pc_session_group)
           else
-            close_persistent_session2
-              !(c.Eliom_common.pc_session_group)
+            close_persistent_session2 !(c.Eliom_common.pc_session_group)
               c.Eliom_common.pc_value)
-          >>= fun () ->
-          ior := Eliom_common.SCNo_data;
-          return ()
+         >>= fun () ->
+         ior := Eliom_common.SCNo_data;
+         return ())
       | _ -> return ()
     )
     (function
@@ -126,8 +113,9 @@ let close_persistent_session ?(close_group = false) ?session_name
       | e -> fail e)
 
 
-let fullsessgrp ~sp session_group =
+let fullsessgrp ~level ~sp session_group =
   Eliommod_sessiongroups.make_persistent_full_group_name
+    ~level
     sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
     sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
     session_group

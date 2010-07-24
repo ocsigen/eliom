@@ -560,7 +560,7 @@ The following example is a new version of our site
 
 
 let my_persistent_table =
-  create_persistent_table "eliom_example_table"
+  create_persistent_table  "eliom_example_table"
 
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -587,7 +587,7 @@ let persist_session_connect_action =
 (* Handler for "persist_session_example" service (main page):  *)
 
 let persist_session_example_handler sp () () =
-  Eliom_sessions.get_persistent_session_data 
+  Eliom_sessions.get_persistent_session_data
     ~table:my_persistent_table ~sp () ~>>= fun sessdat ->
   return
     (html
@@ -613,7 +613,7 @@ let persist_session_connect_action_handler sp () login =
   Eliom_sessions.close_session  ~sp () ~>>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then
-    Eliom_sessions.set_persistent_session_data  ~table:my_persistent_table ~sp login
+    Eliom_sessions.set_persistent_session_data ~table:my_persistent_table ~sp login
   else (return ())
 
 
