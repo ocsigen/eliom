@@ -2,7 +2,7 @@
  * http://www.ocsigen.org
  * Module eliommod_pagegen.ml
  * Copyright (C) 2007 Vincent Balat
- * Laboratoire PPS - CNRS Université Paris Diderot
+ * Laboratoire PPS - CNRS UniversitÃ© Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,146 @@ let handle_site_exn exn info sitedata =
 
 
 (*****************************************************************************)
+(* Update cookie tables *)
+let update_cookie_table ?now sitedata (ci, sci) =
+  let now = match now with
+    | Some n -> n
+    | None -> Unix.gettimeofday ()
+  in
+
+  let update_exp
+      (service_cookies_info, data_cookies_info, pers_cookies_info) =
+  (* Update service expiration date and value *)
+    Eliom_common.Fullsessionname_Table.iter
+
+      (fun name (oldvalue, newr) ->
+      (* catch fun () -> *)
+        match !newr with
+          | Eliom_common.SCData_session_expired
+          | Eliom_common.SCNo_data -> () (* The cookie has been removed *)
+          | Eliom_common.SC newc ->
+            newc.Eliom_common.sc_exp :=
+              match !(newc.Eliom_common.sc_timeout) with
+                | Eliom_common.TGlobal ->
+                  let globaltimeout =
+                    Eliommod_timeouts.find_global_service_timeout name sitedata
+                  in
+                  (match globaltimeout with
+                    | None -> None
+                    | Some t -> Some (t +. now))
+                | Eliom_common.TNone -> None
+                | Eliom_common.TSome t -> Some (t +. now)
+      )
+
+      !service_cookies_info;
+
+  (* Update "in memory data" expiration date and value *)
+    Eliom_common.Fullsessionname_Table.iter
+
+      (fun name v ->
+        if Lazy.lazy_is_val v (* Only sessions that have been used *)
+        then
+          let (oldvalue, newr) = Lazy.force v in
+          match !newr with
+            | Eliom_common.SCData_session_expired
+            | Eliom_common.SCNo_data -> () (* The cookie has been removed *)
+            | Eliom_common.SC newc ->
+              newc.Eliom_common.dc_exp :=
+                match !(newc.Eliom_common.dc_timeout) with
+                  | Eliom_common.TGlobal ->
+                    let globaltimeout =
+                      Eliommod_timeouts.find_global_data_timeout name sitedata
+                    in
+                    (match globaltimeout with
+                      | None -> None
+                      | Some t -> Some (t +. now))
+                  | Eliom_common.TNone -> None
+                  | Eliom_common.TSome t -> Some (t +. now)
+      )
+
+      !data_cookies_info;
+
+
+  (* Update persistent expiration date, user timeout and value *)
+  (* Lwt_util.iter *)
+    Eliom_common.Fullsessionname_Table.fold
+
+      (fun name v thr ->
+        let thr2 =
+          if Lazy.lazy_is_val v
+          then begin
+            Lazy.force v >>= fun (oldvalue, newr) ->
+            match !newr with
+              | Eliom_common.SCData_session_expired
+              | Eliom_common.SCNo_data -> (* The cookie has been removed *)
+                return ()
+              | Eliom_common.SC newc ->
+                let newexp =
+                  match !(newc.Eliom_common.pc_timeout) with
+                    | Eliom_common.TGlobal ->
+                      let globaltimeout =
+                        Eliommod_timeouts.find_global_persistent_timeout
+                          name sitedata
+                      in
+                      (match globaltimeout with
+                        | None -> None
+                        | Some t -> Some (t +. now))
+                    | Eliom_common.TNone -> None
+                    | Eliom_common.TSome t -> Some (t +. now)
+                in
+                match oldvalue with
+                  | Some (oldv, oldti, oldexp, oldgrp) when
+                      (oldexp = newexp &&
+                          oldti = !(newc.Eliom_common.pc_timeout) &&
+                          oldgrp = !(newc.Eliom_common.pc_session_group) &&
+                          oldv = newc.Eliom_common.pc_value) -> return ()
+                (* nothing to do *)
+                  | Some (oldv, oldti, oldexp, oldgrp) when
+                      oldv = newc.Eliom_common.pc_value ->
+                    catch
+                      (fun () ->
+                        Ocsipersist.replace_if_exists
+                          (Lazy.force Eliommod_persess.persistent_cookies_table)
+                          newc.Eliom_common.pc_value
+                          (name,
+                           newexp,
+                           !(newc.Eliom_common.pc_timeout),
+                           !(newc.Eliom_common.pc_session_group)))
+                      (function
+                        | Not_found -> return ()
+                        (* someone else closed the session *)
+                        | e -> fail e)
+                  | _ ->
+                    Ocsipersist.add
+                      (Lazy.force Eliommod_persess.persistent_cookies_table)
+                      newc.Eliom_common.pc_value
+                      (name,
+                       newexp,
+                       !(newc.Eliom_common.pc_timeout),
+                       !(newc.Eliom_common.pc_session_group))
+
+        (*VVV Do not forget to change persistent_cookie_table_version
+          if you change the type of persistent table data,
+          otherwise the server will crash!!!
+        *)
+          end
+          else return ()
+        in thr >>= fun () -> thr2
+      )
+
+      !pers_cookies_info
+
+      (return ())
+  in
+  update_exp ci >>= fun () ->
+
+  (* the same, for secure cookies: *)
+  (match sci with
+    | Some info -> update_exp info
+    | None -> Lwt.return ())
+    
+
+(*****************************************************************************)
 (* Generation of the page or naservice
    + update the cookie tables (value, expiration date and timeout)        *)
 
@@ -51,144 +191,14 @@ let execute
       user_tab_cookies) as info)
     sitedata =
 
-  let update_exp (service_cookies_info, data_cookies_info, pers_cookies_info) =
 
-    (* Update service expiration date and value *)
-    Eliom_common.Fullsessionname_Table.iter
-
-      (fun name (oldvalue, newr) ->
-        (* catch fun () -> *)
-        match !newr with
-        | Eliom_common.SCData_session_expired
-        | Eliom_common.SCNo_data -> () (* The cookie has been removed *)
-        | Eliom_common.SC newc ->
-            newc.Eliom_common.sc_exp :=
-              match !(newc.Eliom_common.sc_timeout) with
-              | Eliom_common.TGlobal ->
-                  let globaltimeout =
-                    Eliommod_timeouts.find_global_service_timeout name sitedata
-                  in
-                  (match globaltimeout with
-                  | None -> None
-                  | Some t -> Some (t +. now))
-              | Eliom_common.TNone -> None
-              | Eliom_common.TSome t -> Some (t +. now)
-      )
-
-      !service_cookies_info;
-
-    (* Update "in memory data" expiration date and value *)
-    Eliom_common.Fullsessionname_Table.iter
-
-      (fun name v ->
-        if Lazy.lazy_is_val v (* Only sessions that have been used *)
-        then
-          let (oldvalue, newr) = Lazy.force v in
-          match !newr with
-          | Eliom_common.SCData_session_expired
-          | Eliom_common.SCNo_data -> () (* The cookie has been removed *)
-          | Eliom_common.SC newc ->
-              newc.Eliom_common.dc_exp :=
-                match !(newc.Eliom_common.dc_timeout) with
-                | Eliom_common.TGlobal ->
-                    let globaltimeout =
-                      Eliommod_timeouts.find_global_data_timeout name sitedata
-                    in
-                    (match globaltimeout with
-                    | None -> None
-                    | Some t -> Some (t +. now))
-                | Eliom_common.TNone -> None
-                | Eliom_common.TSome t -> Some (t +. now)
-      )
-
-      !data_cookies_info;
-
-
-    (* Update persistent expiration date, user timeout and value *)
-    (* Lwt_util.iter *)
-    Eliom_common.Fullsessionname_Table.fold
-
-      (fun name v thr ->
-        let thr2 =
-          if Lazy.lazy_is_val v
-          then begin
-            Lazy.force v >>= fun (oldvalue, newr) ->
-              match !newr with
-              | Eliom_common.SCData_session_expired
-              | Eliom_common.SCNo_data -> (* The cookie has been removed *)
-                  return ()
-              | Eliom_common.SC newc ->
-                  let newexp =
-                    match !(newc.Eliom_common.pc_timeout) with
-                    | Eliom_common.TGlobal ->
-                        let globaltimeout =
-                          Eliommod_timeouts.find_global_persistent_timeout
-                            name sitedata
-                        in
-                        (match globaltimeout with
-                        | None -> None
-                        | Some t -> Some (t +. now))
-                    | Eliom_common.TNone -> None
-                    | Eliom_common.TSome t -> Some (t +. now)
-                  in
-                  match oldvalue with
-                  | Some (oldv, oldti, oldexp, oldgrp) when
-                      (oldexp = newexp &&
-                       oldti = !(newc.Eliom_common.pc_timeout) &&
-                       oldgrp = !(newc.Eliom_common.pc_session_group) &&
-                       oldv = newc.Eliom_common.pc_value) -> return ()
-                                                           (* nothing to do *)
-                  | Some (oldv, oldti, oldexp, oldgrp) when
-                      oldv = newc.Eliom_common.pc_value ->
-                      catch
-                        (fun () ->
-                          Ocsipersist.replace_if_exists
-                            (Lazy.force 
-                               Eliommod_persess.persistent_cookies_table)
-                            newc.Eliom_common.pc_value
-                            (name,
-                             newexp,
-                             !(newc.Eliom_common.pc_timeout),
-                             !(newc.Eliom_common.pc_session_group)))
-                        (function
-                          | Not_found -> return ()
-                                (* someone else closed the session *)
-                          | e -> fail e)
-                  | _ ->
-                      Ocsipersist.add
-                        (Lazy.force Eliommod_persess.persistent_cookies_table)
-                        newc.Eliom_common.pc_value
-                        (name,
-                         newexp,
-                         !(newc.Eliom_common.pc_timeout),
-                         !(newc.Eliom_common.pc_session_group))
-
-(*VVV Do not forget to change persistent_cookie_table_version
-   if you change the type of persistent table data,
-   otherwise the server will crash!!!
- *)
-          end
-          else return ()
-        in thr >>= fun () -> thr2
-      )
-
-      !pers_cookies_info
-
-      (return ())
-
-  in
   catch
     (fun () -> generate_page now info sitedata)
     (fun e -> handle_site_exn e info sitedata)
   >>= fun result ->
-
-  update_exp (service_cookies_info, data_cookies_info, pers_cookies_info)
-  >>= fun () ->
-
-  (* the same, for secure cookies: *)
-  (match secure_ci with
-    | Some info -> update_exp info
-    | None -> Lwt.return ())
+  
+  update_cookie_table ~now sitedata
+    ((service_cookies_info, data_cookies_info, pers_cookies_info), secure_ci)
   >>= fun () ->
 
   Lwt.return result

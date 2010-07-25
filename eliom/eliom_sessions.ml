@@ -669,7 +669,8 @@ let set_persistent_data_session_group ?set_max
     c.Eliom_common.pc_value !grp n >>= fun l ->
   Lwt_util.iter
     (Eliommod_persess.close_persistent_session2 None) l >>= fun () ->
-  Lwt.return (grp := n)
+  grp := n;
+  Lwt.return ()
 
 let unset_persistent_data_session_group
     ?session_name ?secure ~sp () =
@@ -697,7 +698,7 @@ let get_persistent_data_session_group ?session_name ?secure ~sp () =
   catch
     (fun () ->
        Eliommod_persess.find_persistent_cookie_only
-        ?session_name ~cookie_level ~secure ~sp () >>= fun c ->
+         ?session_name ~cookie_level ~secure ~sp () >>= fun c ->
        Lwt.return (match !(c.Eliom_common.pc_session_group) with
                      | None -> No_data
                      | Some v ->

@@ -480,14 +480,14 @@ let compute_new_ri_cookies
                match !v with
                  | Eliom_common.SCData_session_expired
                  | Eliom_common.SCNo_data ->
-                   return (Ocsigen_lib.String_Table.remove n beg)
+                   Lwt.return (Ocsigen_lib.String_Table.remove n beg)
                  | Eliom_common.SC c ->
-                   return (Ocsigen_lib.String_Table.add 
-                             n c.Eliom_common.pc_value beg))
+                   Lwt.return (Ocsigen_lib.String_Table.add 
+                                 n c.Eliom_common.pc_value beg))
             else return beg
         )
         !pers_cookie_info
-        (return ric)
+        (Lwt.return ric)
     in
     ric
   in

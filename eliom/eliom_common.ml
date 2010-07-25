@@ -800,11 +800,11 @@ let get_session_info req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen_extensions.request_info
   and ci = req.Ocsigen_extensions.request_config in
+  let rc = ri.Ocsigen_extensions.ri_request_cache in
   ri.Ocsigen_extensions.ri_post_params ci >>= fun post_params ->
 
   let (previous_tab_cookies_info, tab_cookies, post_params) =
     try
-      let rc = ri.Ocsigen_extensions.ri_request_cache in
       let (tci, utc, tc) = 
         Polytables.get ~table:rc ~key:tab_cookie_action_info_key
       in

@@ -599,13 +599,13 @@ module Actionreg_ = struct
   let send
       ?(options = `Reload) ?charset ?(code = 204)
       ?content_type ?headers ~sp () =
-    let cookies_set_by_page = (Eliom_sessions.get_user_cookies ~sp) in
+    let user_cookies = Eliom_sessions.get_user_cookies ~sp in
     if options = `NoReload
     then
       let empty_result = Ocsigen_http_frame.empty_result () in
       Lwt.return
         {empty_result with
-          res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+          res_cookies= user_cookies;
           res_code= code;
           res_content_type= (match content_type with
             | None -> empty_result.res_content_type
@@ -632,12 +632,6 @@ module Actionreg_ = struct
       let sitedata = Eliom_sessions.get_sitedata ~sp in
       let si = Eliom_sessions.get_si ~sp in
       let ri = Eliom_sessions.get_request ~sp in
-      let all_user_cookies =
-        Ocsigen_cookies.add_cookies
-          cookies_set_by_page
-          (Eliom_sessions.get_user_cookies ~sp)
-      in
-
       (match (si.Eliom_common.si_nonatt_info,
               si.Eliom_common.si_state_info,
               ri.request_info.ri_method) with
@@ -655,13 +649,13 @@ module Actionreg_ = struct
               ri.request_info.ri_sub_path
               (Lazy.force ri.request_info.ri_cookies)
               all_cookie_info
-              cookies_set_by_page
+              user_cookies
             >>= fun ric ->
-            
+
             Eliommod_cookies.compute_cookies_to_send
               sitedata
               all_cookie_info
-              all_user_cookies
+              user_cookies
             >>= fun all_new_cookies ->
 
             (* Now tab cookies:
@@ -704,6 +698,9 @@ module Actionreg_ = struct
                     si.Eliom_common.si_nl_get_params,
                     si.Eliom_common.si_nl_post_params,
                     si.Eliom_common.si_all_get_but_nl)
+(*VVV Also put all_cookie_info in this,
+  to avoid update_cookie_table and get_cookie_info (?)
+*)
                ;
                let ri =
                  {ri.request_info with
@@ -715,6 +712,8 @@ module Actionreg_ = struct
                     with its new parameters *)
                  }
                in
+               Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
+               >>= fun () ->
                Ocsigen_extensions.serve_request 
                  ~previous_cookies:all_new_cookies ri
                  
@@ -743,6 +742,8 @@ module Actionreg_ = struct
                      ri_files = (fun _ -> Lwt.return []);
                    }
                  in
+                 Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
+                 >>= fun () ->
                  Ocsigen_extensions.serve_request
                    ~previous_cookies:all_new_cookies ri
 
@@ -773,6 +774,8 @@ module Actionreg_ = struct
                      ri_files = (fun _ -> Lwt.return []);
                    }
                  in
+                 Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
+                 >>= fun () ->
                  Ocsigen_extensions.serve_request
                    ~previous_cookies:all_new_cookies ri)
       )
