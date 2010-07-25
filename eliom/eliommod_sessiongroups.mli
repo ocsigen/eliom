@@ -100,4 +100,8 @@ module Pers :
       string list Lwt.t
     val up : string -> Eliom_common.perssessgrp option -> unit Lwt.t
     val nb_of_groups : unit -> int Lwt.t
+
+    val close_persistent_session2 :
+      Eliom_common.perssessgrp option -> string -> unit Lwt.t
   end
+

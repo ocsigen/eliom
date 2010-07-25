@@ -57,27 +57,10 @@ let number_of_persistent_table_elements () =
       Ocsipersist.length (Ocsipersist.open_table t) >>= fun e -> 
       return ((t, e)::l)) (return []) !perstables
 
-(* close a persistent session by cookie *)
-let close_persistent_session2 fullsessgrp cookie =
-  catch
-    (fun () ->
-      Ocsipersist.remove 
-        (Lazy.force persistent_cookies_table) cookie >>= fun () ->
-      Eliommod_sessiongroups.Pers.remove cookie fullsessgrp >>= fun () ->
-      Eliom_common.remove_from_all_persistent_tables cookie
-    )
-    (function
-      | Not_found -> return ()
-      | e -> fail e)
-
-let close_persistent_group fullsessgrp =
-(*VVV VERIFY concurrent access *)
-  Lwt.catch
-    (fun () ->
-       Eliommod_sessiongroups.Pers.find fullsessgrp >>= fun cooklist ->
-       Lwt_util.iter (close_persistent_session2 None) cooklist >>= fun () ->
-       Eliommod_sessiongroups.Pers.remove_group fullsessgrp)
-    (function Not_found -> Lwt.return () | e -> Lwt.fail e)
+let close_persistent_session2 =
+  Eliommod_sessiongroups.Pers.close_persistent_session2
+let close_persistent_group =
+  Eliommod_sessiongroups.Pers.remove_group
 
 (* close current persistent session *)
 let close_persistent_session ?session_name ?(level = `Browser) ~secure ~sp () =

@@ -394,7 +394,11 @@ let cut n l =
     | None -> l, [] (* no limitation *)
     | Some n -> aux n l
 
+
+
+
 module Pers = struct
+(*VVV Verify this carefully! *)
 
   let grouptable : (nbmax * string list) Ocsipersist.table Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
@@ -447,29 +451,73 @@ module Pers = struct
           | e -> Lwt.fail e)
     | None -> Lwt.return []
       
-  let remove sess_id sess_grp =
+
+  let rec remove_group sess_grp =
+(*VVV NEW 201007 closing all sessions in the group
+  and removing group data *)
+  (*VVV VERIFY concurrent access *)
+    Lwt.catch
+      (fun () ->
+        find sess_grp >>= fun cl ->
+        Lwt_util.iter (close_persistent_session2 None) cl >>= fun () ->
+        (* None because we will close the group *)
+        match sess_grp with
+          | Some sg ->
+            (let persessgrp = Eliom_common.getperssessgrp sg in
+             let key_in_group_tables = match persessgrp with
+               | (_, _, Ocsigen_lib.Left s) -> s
+               | _ -> Eliom_common.default_group_name
+             in
+             Eliom_common.remove_from_all_persistent_tables key_in_group_tables
+                                               >>= fun () ->
+             let sg = Eliom_common.string_of_perssessgrp sg in
+             Ocsipersist.remove !!grouptable sg)
+          | None -> Lwt.return ())
+      (function Not_found -> Lwt.return () | e -> Lwt.fail e)
+                
+
+(* close a persistent session by cookie value *)
+  and close_persistent_session2 fullsessgrp cookie =
+    Lwt.catch
+      (fun () ->
+        Ocsipersist.remove 
+          (Lazy.force Eliom_common.persistent_cookies_table) cookie >>= fun () ->
+        remove cookie fullsessgrp >>= fun () ->
+        Eliom_common.remove_from_all_persistent_tables cookie
+      )
+      (function
+        | Not_found -> Lwt.return ()
+        | e -> Lwt.fail e)
+
+
+  and remove sess_id sess_grp =
     match sess_grp with
-    | Some sg ->
-      let sg = Eliom_common.string_of_perssessgrp sg in
+    | Some sg0 ->
+      let sg = Eliom_common.string_of_perssessgrp sg0 in
       Lwt.catch
         (fun () ->
           Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
           let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
           (match newcl with
-            | [] -> Ocsipersist.remove !!grouptable sg
+            | [] -> 
+              (* The last session has been removed from the group.
+                 If it was a browser session, we close the group,
+                 by removing group data.
+                 For tab sessions, no (but see in volatile table clean_session
+                 function for a better behaviour).
+              *)
+              (match Eliom_common.getperssessgrp sg0 with
+                | (_, `Browser, _) ->
+                  remove_group sess_grp
+                | _ -> Lwt.return ()
+              ) >>= fun () ->
+              Ocsipersist.remove !!grouptable sg
             | _ -> Ocsipersist.replace_if_exists !!grouptable sg (max, newcl)
           )
         )
         (function
           | Not_found -> Lwt.return ()
           | e -> Lwt.fail e)
-    | None -> Lwt.return ()
-
-  let remove_group sess_grp =
-    match sess_grp with
-    | Some sg ->
-      let sg = Eliom_common.string_of_perssessgrp sg in
-      Ocsipersist.remove !!grouptable sg
     | None -> Lwt.return ()
 
   let up sess_id grp =
