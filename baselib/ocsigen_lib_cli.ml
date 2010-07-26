@@ -169,7 +169,7 @@ let basic_sep char s =
     let seppos = String.index s char in
     ((String.sub s 0 seppos),
      (String.sub s (seppos+1)
-        (1 + (String.length s) - seppos)))
+        ((String.length s) - seppos - 1)))
   with Invalid_argument _ -> raise Not_found
 
 
