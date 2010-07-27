@@ -199,9 +199,10 @@ struct
                                        $read_attlist s attlist$ []}))
                          : $uid:S.module_id$.M.elt $make_type$) >>
           | False ->
+            let tag' = String.lowercase tag in
               let foo = <:expr<
                 ($read_elems ~tag s$ :>
-                   list ($uid:S.module_id$.M.elt [< $uid:S.module_types_id$.$lid:tag^"_content"$]))>>
+                   list ($uid:S.module_id$.M.elt [< $uid:S.module_types_id$.$lid:tag'^"_content"$]))>>
               in
               <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
                                        $read_attlist s attlist$

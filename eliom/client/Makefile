@@ -6,7 +6,7 @@ OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml -syntax camlp4o
 LIBS:=
-MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml xhtml5types.ml xHTML5.ml \
+MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml svgtypes.ml sVG.ml xhtml5types.ml xHTML5.ml \
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
@@ -68,6 +68,17 @@ xHTML5.mli: ../../xmlp4/xhtml/xHTML5.mli
 	cp -f $< $@ 
 
 xhtmltypes.ml: ../../xmlp4/xhtml/xhtmltypes.ml
+	cp -f $< $@ 
+
+svgtypes.ml: ../../xmlp4/xhtml/svgtypes.ml
+	cp -f $< $@ 
+
+svgtypes.mli: ../../xmlp4/xhtml/svgtypes.mli
+	cp -f $< $@ 
+
+sVG.mli: ../../xmlp4/xhtml/sVG.mli
+	cp -f $< $@ 
+sVG.ml: ../../xmlp4/xhtml/sVG.ml
 	cp -f $< $@ 
 
 xhtml5types.ml: ../../xmlp4/xhtml/xhtml5types.ml
@@ -147,7 +158,7 @@ clean:
 	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml* \
 	    eliom_common.ml eliom_mkforms.ml* eliom_uri.ml* \
             eliom_predefmod.ml* xHTML.ml* xHTML5.ml* xhtml5types.ml* \
-            xhtmltypes.ml* uri.ml* \
+            xhtmltypes.ml* uri.ml* sVG.ml* svgtypes.ml* \
 	    ocsigen_lib_cli.ml \
             polytables.ml
 

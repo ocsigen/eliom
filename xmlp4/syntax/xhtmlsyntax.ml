@@ -29,6 +29,10 @@ end);
 module Parser5 = Xhtmlparser.Make(Syntax)(struct value module_id = "XHTML5"; 
   value module_types_id = "Xhtml5types";
 end);
+module ParserSVG = Xhtmlparser.Make(Syntax)(struct value module_id = "SVG"; 
+  value module_types_id = "Svgtypes";
+end);
+
 do {
   Syntax.Quotation.add "xml" Syntax.Quotation.DynAst.expr_tag Parser.xml_exp ;
   Syntax.Quotation.add "xmllist" Syntax.Quotation.DynAst.expr_tag
@@ -36,6 +40,9 @@ do {
   Syntax.Quotation.default.val := "xml";
   Syntax.Quotation.add "xhtml5" Syntax.Quotation.DynAst.expr_tag Parser5.xml_exp ;
   Syntax.Quotation.add "xhtml5list" Syntax.Quotation.DynAst.expr_tag
-        Parser5.xml_expl
+        Parser5.xml_expl;
+  Syntax.Quotation.add "svg" Syntax.Quotation.DynAst.expr_tag ParserSVG.xml_exp ;
+  Syntax.Quotation.add "svglist" Syntax.Quotation.DynAst.expr_tag
+        ParserSVG.xml_expl
 };
 

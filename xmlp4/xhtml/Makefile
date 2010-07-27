@@ -20,7 +20,7 @@
 include ../../Makefile.config
 
 
-FILES=uri.ml xML.ml xhtml5types.ml xHTML5.ml xhtmltypes.ml xHTML.ml
+FILES=uri.ml xML.ml svgtypes.ml sVG.ml xhtml5types.ml xHTML5.ml xhtmltypes.ml xHTML.ml
 
 LIB = -package netstring
 OCAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
@@ -42,9 +42,6 @@ opt: ../xhtml.cmxa
 ../xhtml.cmxa: $(FILES:.ml=.cmx)
 	$(OCAMLOPT) -a $^ -o $@
 
-xML.cmi: xML.mli
-	$(OCAMLC) -c $^
-
 xML.cmo: xML.cmi xML.ml
 	$(OCAMLC) -c xML.ml
 
@@ -52,13 +49,30 @@ xML.cmx: xML.cmi xML.ml
 	$(OCAMLOPT) -c xML.ml
 
 %.cmi: %.mli	
-	$(OCAMLC) -c $^
+	$(OCAMLC) -c $<
 
 xML.mli: xML.ml
-	true
-%.mli: %.ml
+	@true
+
+svgtypes.mli: svgtypes.ml
+	@true
+
+xhtml5types.mli: xhtml5types.ml
 	awk ' BEGIN { ok = 1; } /^include/ { next; } /\(\*I/ { $$1=""; $$NF=""; } \
-	 /= struct/ { ok = 0; } ok == 1; /end/ { ok = 1; }' $^ | sed -e s/struct/sig/g -e 's/module \(.*\) =/module \1 :/g'> $@
+	 /= struct/ { ok = 0; } ok == 1; /end/ { ok = 1; }' $< | sed -e s/struct/sig/g -e 's/module \(.*\) =/module \1 :/g'> $@
+xhtmltypes.mli: xhtmltypes.ml
+	awk ' BEGIN { ok = 1; } /^include/ { next; } /\(\*I/ { $$1=""; $$NF=""; } \
+	 /= struct/ { ok = 0; } ok == 1; /end/ { ok = 1; }' $< | sed -e s/struct/sig/g -e 's/module \(.*\) =/module \1 :/g'> $@
+
+sVG.cmo: sVG.cmi sVG.ml
+	$(OCAMLC) -c sVG.ml
+sVG.cmx: sVG.cmi sVG.ml
+	$(OCAMLOPT) -c sVG.ml
+
+svgtypes.cmo: xHTML5.cmi svgtypes.ml
+	$(OCAMLC) -c svgtypes.ml
+svgtypes.cmx: xHTML5.cmi svgtypes.ml
+	$(OCAMLOPT) -c svgtypes.ml
 
 xHTML5.cmo: xHTML5.cmi xHTML5.ml
 	$(OCAMLC) -c xHTML5.ml
@@ -81,7 +95,7 @@ uri.cmi: uri.mli
 	$(OCAMLC) -c $<
 
 xhtmltypes.mli:
-xhtml5types.mli: 
+xhtml5types.mli: sVG.cmi
 
 xhtmltypes.cmx: xhtmltypes.cmi xhtmltypes.ml
 	$(OCAMLOPT) -c xhtmltypes.ml
@@ -99,7 +113,12 @@ xHTML.mli: xHTML.ml
 	@$(SED) -n '/BEGIN INTERFACE/,/END INTERFACE/p' $< \
 	  | $(SED) -e '/BEGIN INTERFACE/d' -e '/END INTERFACE/d' > $@.new
 	@if [ -e $@ ] && $(DIFF) -q -I'\$(DOLLAR)Id: ' $@.new $@; then $(RM) $@.new; else $(MV) $@.new $@; fi
-xHTML5.mli: xHTML5.ml
+sVG.mli: sVG.ml svgtypes.cmi
+	@$(SED) -n '/BEGIN INTERFACE/,/END INTERFACE/p' $< \
+	  | $(SED) -e '/BEGIN INTERFACE/d' -e '/END INTERFACE/d' > $@.new
+	@if [ -e $@ ] && $(DIFF) -q -I'\$(DOLLAR)Id: ' $@.new $@; then $(RM) $@.new; else $(MV) $@.new $@; fi
+
+xHTML5.mli: xHTML5.ml xhtml5types.cmi 
 	@$(SED) -n '/BEGIN INTERFACE/,/END INTERFACE/p' $< \
 	  | $(SED) -e '/BEGIN INTERFACE/d' -e '/END INTERFACE/d' > $@.new
 	@if [ -e $@ ] && $(DIFF) -q -I'\$(DOLLAR)Id: ' $@.new $@; then $(RM) $@.new; else $(MV) $@.new $@; fi
@@ -107,8 +126,7 @@ clean:
 	rm -f *cm* xHTML5.mli xHTML.mli xhtmltypes.mli xhtml5types.mli
 
 depend: *.mli *.ml
-	-rm -f xmllexer.ml camllexer.ml
-#	ocamldep *.mli *.ml > .depend
+	ocamldep *.mli *.ml > .depend
 
 FORCE:
 

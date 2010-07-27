@@ -518,6 +518,7 @@ type core_phrasing =
     | submitable
     | `Wbr
     | `Var
+    | `Svg
     | `Time
     | `Sup
     | `Sub
@@ -555,6 +556,7 @@ type core_phrasing_without_noscript =
     | `Time
     | `Sup
     | `Sub
+    | `Svg
     | `Strong
     | `Span
     | `Small
@@ -592,7 +594,8 @@ type core_phrasing_without_interactive =
     | `Strong
     | `Span
     | `Small
-    | `Script
+    | `Script    
+    | `Svg
     | `Samp
     | `Ruby
     | `Q
@@ -614,12 +617,12 @@ type core_phrasing_without_interactive =
   ]
 
 type core_phrasing_without_media =
-  [
+  [  
     | labelable
     | submitable
-    (*|  `Math |`Svg |*)
     | `Img | `Img_interactive
     | `Iframe
+    | `Svg
     | `Embed
     | `Wbr
     | `Var
@@ -1089,6 +1092,10 @@ type body_content = flow5
 
 type body_content_fun = flow5
 
+
+type svg = [ `Svg ]
+type svg_content = Svgtypes.svg_content
+type svg_attrib = Svgtypes.svg_attr
 (* NAME: base, KIND: nullary, TYPE: [= common | `Href | `Target], [= `Base ], ARG: notag, ATTRIB:  OUT: [= `Base ] *)
 type base = [ | `Base ]
 

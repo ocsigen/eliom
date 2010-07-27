@@ -619,6 +619,8 @@ module type T =
       
     val body : ([< | body_attrib], [< | body_content_fun], [> | body]) star
       
+
+    val svg : ?xmlns : string -> ?a : [< svg_attrib ] SVG.M.attrib list -> [< svg_content ] SVG.M.elt list -> [> svg ] elt
     (** {2 Section} *)
     val footer :
       ([< | common], [< | flow5_without_header_footer], [> | `Footer]) star
@@ -2103,6 +2105,9 @@ module M_05_00 : T_05_00 =
       
     let form = plus "form"
       
+    let svg ?(xmlns = "http://www.w3.org/2000/svg")
+        ?(a = []) children = star ~a:(string_attrib "xmlns" xmlns ::(SVG.M.to_xmlattribs a)) 
+      "svg" (SVG.M.toeltl children)
     type input_attr =
       [
         | common

@@ -74,6 +74,8 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact.mli			\
 	$(DOCPREF)xmlp4/xhtml/xHTML.mli					\
 	$(DOCPREF)xmlp4/xhtml/xhtmltypes.mli				\
+	$(DOCPREF)xmlp4/xhtml/sVG.mli					\
+	$(DOCPREF)xmlp4/xhtml/svgtypes.mli				\
 	$(DOCPREF)xmlp4/xhtml/xhtml5types.mli				\
 	$(DOCPREF)xmlp4/xhtml/uri.mli					\
 	$(DOCPREF)xmlp4/xhtml/xHTML5.mli				\
@@ -142,6 +144,7 @@ CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	xmlp4/xhtmlcompact.cmi      	   				\
 	xmlp4/xhtml5types.cmi                          			\
 	xmlp4/xHTML.cmi xmlp4/xHTML5.cmi				\
+	xmlp4/sVG.cmi xmlp4/svgtypes.cmi				\
 	xmlp4/xML.cmi xmlp4/xhtmltypes.cmi				\
 	xmlp4/simplexmlparser.cmi http/ocsigen_charset_mime.cmi		\
 	http/ocsigen_senders.cmi http/framepp.cmi			\
