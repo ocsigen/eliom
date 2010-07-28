@@ -22,7 +22,8 @@ MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml xhtml5types.ml xHTML5.ml \
 	eliom_common_comet.ml eliom_client_comet.ml \
         eliommod_mkforms.ml eliom_mkforms.ml \
 	eliom_predefmod.ml \
-	eliom_client_event.ml
+	eliom_client_event.ml \
+	reactive_dom.ml
 MLIS:= uri.mli xhtml5types.mli xhtmltypes.mli xHTML.mli xHTML5.mli eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli eliom_common_comet.mli eliommod_mkforms.ml
 CMOS=$(MLS:.ml=.cmo)
 
