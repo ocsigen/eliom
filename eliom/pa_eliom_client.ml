@@ -24,6 +24,12 @@
 open Camlp4
 open Camlp4.PreCast
 
+let simpl_split c s =
+  try
+    let p = String.index s c in
+    (String.sub s 0 p, String.sub s (p + 1) (String.length s - p - 1))
+  with Not_found ->
+    (s, "")
 
 (*** Options for parser ***)
 (* There are only to options for now :
@@ -54,7 +60,7 @@ let _ = Camlp4.Options.add
 module Id : Camlp4.Sig.Id = struct
 
   let name = "Eliom/Client-Server Symmetric Syntax"
-  let version = "alpha"
+  let version = "beta"
 
 end
 
@@ -69,32 +75,30 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
 
   (*TODO: extensible wrapper list *)
   (* This is the list associating wrapper-keywords to actual wrappers. *)
-  let wrappers =
-    let _loc = Loc.ghost in
-    [
-      ("magic",
-       (<:expr<Eliommod_cli.wrap ~sp>>, <:expr<Eliommod_cli.unwrap>>));
-      ("sp",
-       (<:expr<Eliommod_cli.wrap_sp>>, <:expr<Eliommod_cli.unwrap_sp>>));
-      ("node",
-       (<:expr<Eliommod_cli.wrap_node ~sp>>, <:expr<Eliommod_cli.unwrap_node>>));
-      ("channel",
-       (<:expr<Eliom_comet.Channels.wrap ~sp>>, <:expr<Eliom_client_comet.Channels.unwrap>>));
-      ("buffchan",
-       (<:expr<Eliom_comet.Dlisted_channels.wrap ~sp>>, <:expr<Eliom_client_comet.Dlisted_channels.unwrap>>));
-      ("up_event",
-       (<:expr<Eliom_event.Up.wrap ~sp>>, <:expr<Eliom_client_event.Up.unwrap ~sp>>));
-      ("down_event",
-       (<:expr<Eliom_event.Down.wrap ~sp>>, <:expr<Eliom_client_event.Down.unwrap>>));
-    ]
+  let wrappers _loc = [
+    ("magic",
+     (fun _ -> (<:expr<Eliommod_cli.wrap ~sp>>, <:expr<Eliommod_cli.unwrap>>)));
+    ("sp",
+     (fun _ -> (<:expr<Eliommod_cli.wrap_sp>>, <:expr<Eliommod_cli.unwrap_sp>>)));
+    ("node",
+     (fun _ -> (<:expr<Eliommod_cli.wrap_node ~sp>>, <:expr<Eliommod_cli.unwrap_node>>)));
+    ("channel",
+     (fun _ -> (<:expr<Eliom_comet.Channels.wrap ~sp>>, <:expr<Eliom_client_comet.Channels.unwrap>>)));
+    ("buffchan",
+     (fun _ -> (<:expr<Eliom_comet.Dlisted_channels.wrap ~sp>>, <:expr<Eliom_client_comet.Dlisted_channels.unwrap>>)));
+    ("up_event",
+     (fun _ -> (<:expr<Eliom_event.Up.wrap ~sp>>, <:expr<Eliom_client_event.Up.unwrap ~sp>>)));
+    ("down_event",
+     (fun _ -> (<:expr<Eliom_event.Down.wrap ~sp>>, <:expr<Eliom_client_event.Down.unwrap>>)));
+  ]
   (* Exception raised when an unknown wrapper-keyword is used. *)
   exception Not_a_registered_wrapper of string
 
   (* associating wrapper-keywords *)
-  let find_wrapper = function
-    | [] -> List.assoc "magic" wrappers
-    | w::opts -> (*TODO: use options*)
-        try (List.assoc w wrappers)
+  let find_wrapper _loc = function
+    | ("", "") -> (List.assoc "magic" (wrappers _loc)) ""
+    | (w, o) ->
+        try (List.assoc w (wrappers _loc)) o
         with Not_found -> raise (Not_a_registered_wrapper w)
 
 
@@ -111,7 +115,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
   module Client_code_printer = Camlp4.Printers.OCaml.Make(Syntax)
 
   (* A reference to an empty str_item *)
-  let client_dump = (* from pa_eliom_obrowser, KISSer way ? *)
+  let client_dump =
     ref (let _loc = Loc.ghost in <:str_item< (* generated file *) >>)
   (* The reference is updated for each piece of client code. *)
   let emit_client _loc ss =
@@ -136,7 +140,7 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
   (* Client side code emission. *)
   let register_closure _loc num args expr =
     let rec clo_args_aux acc = function
-      | [] -> <:patt< ($acc$) >>
+      | [] -> <:patt< $acc$ >>
       | n::tl ->
          clo_args_aux <:patt< $acc$,$lid:n$ >> tl
     in
@@ -155,7 +159,8 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
   (* Server side code emission *)
   let closure_call _loc num args =
     let rec expr_of_args_aux acc = function
-      | [] -> <:expr< ($acc$) >>
+      | [] -> (assert false)
+      | [e] -> <:expr< $acc$,$e$ >>
       | e::tl ->
          expr_of_args_aux <:expr< $acc$,$e$ >> tl
     in
@@ -163,28 +168,15 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
       | [] ->  (* placing 'unit' when no arguments are used *)
           <:expr< () >>
       | [e] -> e
-      | _::_::_ as l -> expr_of_args_aux <:expr< >> l
+      | e1::(_::_ as l) -> expr_of_args_aux <:expr< $e1$ >> l
     in
     <:expr<
          $str:"caml_run_from_table(" ^ string_of_int (Int64.to_int num) ^ ", \'"$
        ^ Eliom_client_types.jsmarshal $expr_of_args$ ^ "\')"
     >>
 
-           (*
-  (* This is were the magic appears !*)
-  let client_exprs_ref = ref [] (* This ref accumulates \wrapper:expr while in a
-                                   {{ expr }} *)
-  type parsing_level =
-    | Base
-    | Without_wrapped
-    | With_wrapped
-    | Wrapped
-  let current_level = ref Base
 
-  exception Wrong_nesting_of_client_syntax
-            *)
-
-           (* WITH ANTIQUOTATIONS *)
+  (* WITH ANTIQUOTATIONS *)
   (* This is were the magic appears !*)
   let parse_wrapped_expr _loc s = Syntax.AntiquotSyntax.parse_expr _loc s
 
@@ -215,15 +207,15 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
       res
 
     (* Here we change the expr behavior *)
-    method expr e =(*match self#get_level with
-      | Base | Without_wrapped -> begin match super#expr e with
+    method expr e = (* match self#get_level with
+      | Base | Without_wrapped | Wrapped -> begin match super#expr e with
         (*| <:expr@_loc< $anti:s$ >> -> raise Wrong_nesting_of_client_syntax*)
           | e -> e
           end
-      | Wrapped -> raise Wrong_nesting_of_client_syntax
       | With_wrapped ->*) begin match super#expr e with
          | <:expr@_loc< $anti:r$ >> ->
            begin
+           (*print_endline ("ANTIQUOT:" ^ r);*)
            self#set_level Wrapped;
 
            if String.sub r 2 6 = "expr: "
@@ -235,7 +227,9 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
                String.sub s (colon + 1) (String.length s - colon - 1)
              in
              let clos_arg_name = random_arg_name () in
-             let (wrapper, unwrapper) = find_wrapper [wrapper_name] in (*TODO: use options *)
+             let (wrapper, unwrapper) =
+               find_wrapper _loc (simpl_split ' ' wrapper_name)
+             in
              let anti_expr =
                <:expr< ($wrapper$ $parse_wrapped_expr _loc wrapped_expr$) >>
              in
@@ -280,44 +274,6 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
                raise Wrong_nesting_of_client_syntax
          end
       ]];
-    (*
-    (* dummies: for level check and level set *)
-    dummy_check_level_base:
-      [[ -> begin match !current_level with
-           | Base -> ()
-           | Wrapped | With_wrapped | Without_wrapped ->
-               raise Wrong_nesting_of_client_syntax
-         end
-      ]];
-    dummy_set_level_base:
-      [[ -> begin match !current_level with
-           | Without_wrapped | With_wrapped | Base ->
-               current_level := Base
-           | Wrapped -> raise Wrong_nesting_of_client_syntax
-         end
-      ]];
-    dummy_set_level_w_antiquotations:
-      [[ -> begin match !current_level with
-           | Base -> current_level := With_wrapped
-           | Wrapped | With_wrapped | Without_wrapped ->
-               raise Wrong_nesting_of_client_syntax
-         end
-      ]];
-    dummy_set_level_wo_antiquotations:
-      [[ -> begin match !current_level with
-           | Base -> current_level := Without_wrapped
-           | Wrapped | With_wrapped | Without_wrapped ->
-               raise Wrong_nesting_of_client_syntax
-         end
-      ]];
-    dummy_set_level_wrapped:
-      [[ -> begin match !current_level with
-           | With_wrapped -> current_level := Wrapped
-           | Base | Without_wrapped | Wrapped ->
-               raise Wrong_nesting_of_client_syntax
-         end
-      ]];
-     *)
 
     (* To str_item we add
      * * {client{ LIST0 SELF }}
@@ -364,26 +320,6 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
             mapper#set_level Base;
             <:expr< $closure_call _loc num server_args$ >>
            )
-(*
-            (let num = random_int64 () in
-             let (cl_args, serv_args) = List.split !client_exprs_ref in
-             emit_client _loc [register_closure _loc num cl_args e] ;
-             <:expr< $closure_call _loc num serv_args$ >>
-            )
- *)
-
-              (*
-       | KEYWORD "$<" ; s = dummy_set_level_wrapped ;
-           l = LIST1 [ x = STRING -> x ] ; KEYWORD ":" ; e = SELF ;
-         KEYWORD ">$" ; s = dummy_set_level_w_antiquotations ->
-           (let n = random_arg_name () in
-            let (wrapper, unwrapper) = find_wrapper l in
-            client_exprs_ref :=
-                 (n, <:expr< $wrapper$ $e$>>)
-              :: !client_exprs_ref;
-            <:expr< $unwrapper$ $lid:n$ >>
-           )
-               *)
       ]];
 
   END

@@ -91,9 +91,12 @@ tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom ../eliom/pa_eliom_client.cmo ../
 	camlp4of \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_client.cmo \
 	  -I /usr/local/lib/ocaml/3.11.2/js_of_ocaml pa_js.cmo \
-	  -impl $< -o $@ \
+	  -impl $< -printer p -o $@ \
           -verbose \
 	  -client client/tutoeliom_ocsigen2_client.ml
+
+tutoeliom_ocsigen2.cmo: tutoeliom_ocsigen2.ml
+	$(CAMLC) -c $<
 
 client/tutoeliom_ocsigen2_client.ml: tutoeliom_ocsigen2.ml
 
