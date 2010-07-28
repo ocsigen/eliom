@@ -91,9 +91,11 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
   exception Not_a_registered_wrapper of string
 
   (* associating wrapper-keywords *)
-  let find_wrapper i =
-    try (List.assoc i wrappers)
-    with Not_found -> raise (Not_a_registered_wrapper i)
+  let find_wrapper = function
+    | [] -> List.assoc "magic" wrappers
+    | w::opts -> (*TODO: use options*)
+        try (List.assoc w wrappers)
+        with Not_found -> raise (Not_a_registered_wrapper w)
 
 
 
@@ -168,97 +170,221 @@ module Make (Syntax : Camlp4.Sig.Camlp4Syntax) = struct
        ^ Eliom_client_types.jsmarshal $expr_of_args$ ^ "\')"
     >>
 
-
-
-  (* We use parsing with side effects... It's ugly but it works ! *)
+           (*
+  (* This is were the magic appears !*)
   let client_exprs_ref = ref [] (* This ref accumulates \wrapper:expr while in a
                                    {{ expr }} *)
-  let curr_lvl = ref 0 (* 1 when inside a {{ expr }}
-                          2 when inside a \toto:expr *)
+  type parsing_level =
+    | Base
+    | Without_wrapped
+    | With_wrapped
+    | Wrapped
+  let current_level = ref Base
 
-  (* Parsing exceptions *)
-  exception Wrapper_expr_outside_curly_bounds
-  exception Nested_curly_bounds
-  exception Curly_brackets_in_antiquoted_expr
+  exception Wrong_nesting_of_client_syntax
+            *)
+
+           (* WITH ANTIQUOTATIONS *)
+  (* This is were the magic appears !*)
+  let parse_wrapped_expr _loc s = Syntax.AntiquotSyntax.parse_expr _loc s
+
+  type parsing_level =
+    | Base
+    | Without_wrapped
+    | With_wrapped
+    | Wrapped
+
+  exception Wrong_nesting_of_client_syntax
+
+  class client_server_ast_map = (* w/ antiquotations *)
+  object (self)
+    inherit Ast.map as super
+
+    val mutable level = Base
+    method set_level l = level <- l
+    method get_level = level
+
+    (* Here we accumulate antiquotations *)
+    val mutable antis_client = []
+    val mutable antis_server = []
+    method push_antis x y = antis_client <- x :: antis_client ;
+                            antis_server <- y :: antis_server
+    method flush_antis =
+      let res = (antis_client, antis_server) in
+      antis_client <- []; antis_server <- [];
+      res
+
+    (* Here we change the expr behavior *)
+    method expr e =(*match self#get_level with
+      | Base | Without_wrapped -> begin match super#expr e with
+        (*| <:expr@_loc< $anti:s$ >> -> raise Wrong_nesting_of_client_syntax*)
+          | e -> e
+          end
+      | Wrapped -> raise Wrong_nesting_of_client_syntax
+      | With_wrapped ->*) begin match super#expr e with
+         | <:expr@_loc< $anti:r$ >> ->
+           begin
+           self#set_level Wrapped;
+
+           if String.sub r 2 6 = "expr: "
+           then
+             let s = String.sub r 8 (String.length r - 8) in
+             let colon = String.index s ':' in
+             let wrapper_name = String.sub s 0 colon in
+             let wrapped_expr =
+               String.sub s (colon + 1) (String.length s - colon - 1)
+             in
+             let clos_arg_name = random_arg_name () in
+             let (wrapper, unwrapper) = find_wrapper [wrapper_name] in (*TODO: use options *)
+             let anti_expr =
+               <:expr< ($wrapper$ $parse_wrapped_expr _loc wrapped_expr$) >>
+             in
+             self#set_level With_wrapped;
+             self#push_antis clos_arg_name anti_expr;
+             <:expr< ($unwrapper$ $lid:clos_arg_name$) >>
+           else failwith "Unknown antiquotation"
+           end
+         | e -> e
+         end
+
+  end
+
+  let mapper = new client_server_ast_map
+
 
   (* Extending syntax *)
 
   EXTEND Gram
     GLOBAL: str_item expr;
 
-    (* dummy rules for side effects *)
-    empty_start_lvl1 : [[ -> if !curr_lvl <> 0
-                             then raise Nested_curly_bounds
-                          else (curr_lvl := 1 ; client_exprs_ref := [])
-                       ]];
-    empty_start_lvl2 : [[ -> (*if !curr_lvl > 1
-                             then raise Curly_brackets_in_antiquoted_expr
-                             else *)
-                               if !curr_lvl < 1
-                               then raise Wrapper_expr_outside_curly_bounds
-                               else curr_lvl := 2
-                       ]];
-    empty_stop_lvl1 : [[ -> curr_lvl := 0 ]];
+    (* dummies: for level check and level set *)
+    dummy_check_level_base:
+      [[ -> begin match mapper#get_level with
+           | Base -> ()
+           | Wrapped | With_wrapped | Without_wrapped ->
+               raise Wrong_nesting_of_client_syntax
+         end
+      ]];
+    dummy_set_level_base: [[ -> mapper#set_level Base ]];
+    dummy_set_level_w_antiquotations:
+      [[ -> begin match mapper#get_level with
+           | Base -> mapper#set_level With_wrapped
+           | Wrapped | With_wrapped | Without_wrapped ->
+               raise Wrong_nesting_of_client_syntax
+         end
+      ]];
+    dummy_set_level_wo_antiquotations:
+      [[ -> begin match mapper#get_level with
+           | Base -> mapper#set_level Without_wrapped
+           | Wrapped | With_wrapped | Without_wrapped ->
+               raise Wrong_nesting_of_client_syntax
+         end
+      ]];
+    (*
+    (* dummies: for level check and level set *)
+    dummy_check_level_base:
+      [[ -> begin match !current_level with
+           | Base -> ()
+           | Wrapped | With_wrapped | Without_wrapped ->
+               raise Wrong_nesting_of_client_syntax
+         end
+      ]];
+    dummy_set_level_base:
+      [[ -> begin match !current_level with
+           | Without_wrapped | With_wrapped | Base ->
+               current_level := Base
+           | Wrapped -> raise Wrong_nesting_of_client_syntax
+         end
+      ]];
+    dummy_set_level_w_antiquotations:
+      [[ -> begin match !current_level with
+           | Base -> current_level := With_wrapped
+           | Wrapped | With_wrapped | Without_wrapped ->
+               raise Wrong_nesting_of_client_syntax
+         end
+      ]];
+    dummy_set_level_wo_antiquotations:
+      [[ -> begin match !current_level with
+           | Base -> current_level := Without_wrapped
+           | Wrapped | With_wrapped | Without_wrapped ->
+               raise Wrong_nesting_of_client_syntax
+         end
+      ]];
+    dummy_set_level_wrapped:
+      [[ -> begin match !current_level with
+           | With_wrapped -> current_level := Wrapped
+           | Base | Without_wrapped | Wrapped ->
+               raise Wrong_nesting_of_client_syntax
+         end
+      ]];
+     *)
 
-    (* To str_item we add {client{ LIST0 SELF }}; {server{ LIST0 SELF }}; and
-     * {shared{ LIST0 SELF }} *)
+    (* To str_item we add
+     * * {client{ LIST0 SELF }}
+     * * {server{ LIST0 SELF }}
+     * * {shared{ LIST0 SELF }}
+     *)
     str_item : BEFORE "top"
-               [[ "{" ; "shared" ; "{" ; s = empty_start_lvl1 ;
-                    e = LIST0 SELF ;
-                  "}" ; "}" ; s = empty_stop_lvl1 ->
-                    (emit_client _loc e ;
-                     List.fold_left
-                       (fun x y -> <:str_item< $x$ ;; $y$ ;; >>)
-                       <:str_item< >>
-                       e
-                    )
-                | "{" ; "server" ; "{" ; e = LIST0 SELF ; "}" ; "}" ->
-                     (List.fold_left
-                        (fun x y -> <:str_item< $x$ ;; $y$ ;; >>)
-                        <:str_item< >>
-                        e
-                     )
-                | "{" ; "client" ; "{" ; s = empty_start_lvl1 ;
-                    e = LIST0 SELF ;
-                  "}" ; "}" ; ss = empty_stop_lvl1 ->
-                    (emit_client _loc e ;
-                     <:str_item< >>
-                    )
-               ]];
+      [[ "{" ; "shared" ; "{" ; s = dummy_set_level_wo_antiquotations ;
+           e = LIST0 SELF ;
+         "}" ; "}" ; s = dummy_set_level_base ->
+           (emit_client _loc e ;
+            List.fold_left
+              (fun x y -> <:str_item< $x$ ;; $y$ ;; >>)
+              <:str_item< >>
+              e
+           )
+       | "{" ; "server" ; "{" ; s = dummy_check_level_base ;
+           e = LIST0 SELF ;
+         "}" ; "}" ; s = dummy_set_level_base ->
+           (List.fold_left
+              (fun x y -> <:str_item< $x$ ;; $y$ ;; >>)
+              <:str_item< >>
+              e
+           )
+       | "{" ; "client" ; "{" ; s = dummy_set_level_w_antiquotations ;
+           e = LIST0 SELF ;
+         "}" ; "}" ; ss = dummy_set_level_base ->
+           (emit_client _loc e ;
+            <:str_item< >>
+           )
+      ]];
 
-    (* To expr we add {{ SELF }} and \lid:SELF and \magic:SELF and *)
+    (* To expr we add
+     * * {{ SELF }} for which the SELF part is mapped
+     *)
     expr : BEFORE "simple"
-           [[ KEYWORD "{" ; KEYWORD "{" ; s = empty_start_lvl1 ;
-                e = SELF ;
-              KEYWORD "}" ; KEYWORD "}" ; ss = empty_stop_lvl1 ->
-                (let num = random_int64 () in
-                 let (cl_args, serv_args) = List.split !client_exprs_ref in
-                 emit_client _loc [register_closure _loc num cl_args e] ;
-                 <:expr< $closure_call _loc num serv_args$ >>
-                )
+      [[ KEYWORD "{" ; KEYWORD "{" ; s = dummy_set_level_w_antiquotations ;
+           e = SELF ;
+         KEYWORD "}" ; KEYWORD "}" ; s = dummy_set_level_base ->
+           (let num = random_int64 () in
+            let mapped_e = mapper#expr e in
+            let (client_args, server_args) = mapper#flush_antis in
+            emit_client _loc [register_closure _loc num client_args mapped_e] ;
+            mapper#set_level Base;
+            <:expr< $closure_call _loc num server_args$ >>
+           )
+(*
+            (let num = random_int64 () in
+             let (cl_args, serv_args) = List.split !client_exprs_ref in
+             emit_client _loc [register_closure _loc num cl_args e] ;
+             <:expr< $closure_call _loc num serv_args$ >>
+            )
+ *)
 
-            | "\\" ; "(" ; s = empty_start_lvl2 ;
-                e = expr ; ":" ; t = ctyp ;
-              ")" ->
-                  (let n = random_arg_name () in
-                   let (wrapper, unwrapper) = find_wrapper "magic" in
-                   client_exprs_ref :=
-                        (n, <:expr< $wrapper$ ($e$: $t$)>>)
-                     :: !client_exprs_ref;
-                   <:expr< $unwrapper$ ($lid:n$ : $t$ Eliom_client_types.data_key) >>
-                  )
-
-            | "\\" ; i = a_LIDENT ; "(" ; s = empty_start_lvl2 ;
-                e = expr ;
-              ")" ->
-                  (let n = random_arg_name () in
-                   let (wrapper, unwrapper) = find_wrapper i in
-                   client_exprs_ref :=
-                        (n, <:expr< $wrapper$ $e$>>)
-                     :: !client_exprs_ref ;
-                   <:expr< $unwrapper$ $lid:n$ >>
-                  )
-            ]];
+              (*
+       | KEYWORD "$<" ; s = dummy_set_level_wrapped ;
+           l = LIST1 [ x = STRING -> x ] ; KEYWORD ":" ; e = SELF ;
+         KEYWORD ">$" ; s = dummy_set_level_w_antiquotations ->
+           (let n = random_arg_name () in
+            let (wrapper, unwrapper) = find_wrapper l in
+            client_exprs_ref :=
+                 (n, <:expr< $wrapper$ $e$>>)
+              :: !client_exprs_ref;
+            <:expr< $unwrapper$ $lid:n$ >>
+           )
+               *)
+      ]];
 
   END
 

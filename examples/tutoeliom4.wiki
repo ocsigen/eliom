@@ -130,15 +130,15 @@ let _ =
             ~a:[
               a_onclick
                 {{Eliom_client.exit_to
-                    ~sp:\sp(sp) (* Here [sp] is sent by the server *)
-                    ~service:\magic(Tutoeliom.coucou) (* just as [coucou] *)
+                    ~sp:$ sp:sp$ (* Here [sp] is sent by the server *)
+                    ~service:$ magic:Tutoeliom.coucou $ (* just as [coucou] *)
                     () ()
                 }}
             ]
             [pcdata "Click here to go to another page."];
 
 >>
-To use server values inside client code one should use the syntax {{{ \k(e) }}}
+To use server values inside client code one should use the syntax {{{ $ k:e $ }}}
 where {{{k}}} is the wrapper keyword and {{{e}}} the sent expression. Note that
 {{{e}}} is evaluated by the server and the resulting value is send to the
 client at loading time.
@@ -179,8 +179,8 @@ client at loading time.
             ~a:[
               a_onclick {{
                 Eliom_client.change_url
-                  ~sp:\sp(sp)
-                  ~service:\magic(Tutoeliom.coucou)
+                  ~sp:$ sp:sp$
+                  ~service:$ magic:Tutoeliom.coucou$
                   () ()
               }}
             ]
@@ -194,8 +194,8 @@ client at loading time.
             ~a:[
               a_onclick
                 {{Eliom_client.change_page
-                    ~sp:\sp(sp)
-                    ~service:\magic(eliomclient1)
+                    ~sp:$ sp:sp $
+                    ~service:$ magic:eliomclient1 $
                     () ()
                 }}
             ]
@@ -214,7 +214,7 @@ client at loading time.
           p
             ~a:[
               a_onclick{{
-                Eliom_client.change_page ~sp:\sp(sp) ~service:\magic(Tutoeliom.coucou)
+                Eliom_client.change_page ~sp:$ sp:sp $ ~service:$ magic:Tutoeliom.coucou $
                   () ()
               }}
             ]
@@ -224,14 +224,14 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.exit_to ~sp:\sp(sp) ~service:\magic(eliomclient2) () ()
+                Eliom_client.exit_to ~sp:$ sp:sp $ ~service:$ magic:eliomclient2 $ () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p
             ~a:[
               a_onclick {{
-                Eliom_client.change_page ~sp:\sp(sp) ~service:\magic(eliomclient1)
+                Eliom_client.change_page ~sp:$ sp:sp $ ~service:$ magic:eliomclient1 $
                   () ()
               }}
             ]
@@ -246,7 +246,7 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.get_subpage ~sp:\sp(sp) ~service:\magic(eliomclient1)
+                Eliom_client.get_subpage ~sp:$ sp:sp $ ~service:$ magic:eliomclient1 $
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -264,7 +264,7 @@ client at loading time.
            div [p ~a:[
                                a_onclick {{
                                  Dom.appendChild
-                                   \node(container) (* node is the wrapper keyword for XHTML.M nodes. *)
+                                   $ node:container $ (* node is the wrapper keyword for XHTML.M nodes. *)
                                    (XHTML.M.toelt (item ()))
                                }}
                   ]
@@ -280,7 +280,7 @@ client at loading time.
           (let my_value = 1.12345 in
            p ~a:[a_onclick
                 {{ Dom_html.window##alert
-                     (Js.string (string_of_float \(my_value:float))) ;
+                     (Js.string (string_of_float $ magic:my_value$)) ;
                    Lwt.return ()
                 }}
                 ]
@@ -299,13 +299,13 @@ client at loading time.
                    (Dom_html.document##body)
                    (XHTML.M.toelt
                       (p [Eliom_predefmod.Xhtml.a
-                            ~sp:\sp(sp) ~service:\magic(Tutoeliom.coucou)
+                            ~sp:$ sp:sp $ ~service:$ magic:Tutoeliom.coucou $
                             [pcdata "An external link generated client side"]
                             ();
                           pcdata " and ";
                           Eliom_predefmod.Xhtml.a
                             
-                            ~sp:\sp(sp) ~service:\magic(eliomclient1)
+                            ~sp:$ sp:sp $ ~service:$ magic:eliomclient1 $
                             [pcdata "another, inside the application."]
                             ()
                          ]
@@ -343,7 +343,7 @@ let eliomclient3 =
       Lwt.return
         [p ~a:[a_onclick
                 {{ Eliom_client.change_page
-                     ~sp:\sp(sp) ~service:\magic(eliomclient3')
+                     ~sp:$ sp:sp $ ~service:$ magic:eliomclient3' $
                      () (22, "oo", ["a";"b";"c"])
                 }}
               ]
@@ -367,7 +367,7 @@ let eliomclient4 =
         [p ~a:[a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~sp:\sp(sp) ~service:\magic(eliomclient4')
+                     ~sp:$ sp:sp $ ~service:$ magic:eliomclient4' $
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
@@ -405,7 +405,7 @@ let _ =
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\sp(sp) ~service:\magic(gotowithoutclient)
+                  ~sp:$ sp:sp $ ~service:$ magic:gotowithoutclient $
                   () ()
               }}
             ]
@@ -423,7 +423,7 @@ let _ =
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\sp(sp) ~service:\magic(withoutclient)
+                  ~sp:$ sp:sp $ ~service:$ magic:withoutclient $
                   () ()
               }}
             ]
@@ -446,12 +446,12 @@ let on_load =
       in
       Eliom_services.set_on_load ~sp
         {{ Lwt_js.sleep 1. >|= fun () ->
-           Dom.appendChild \node(div)
+           Dom.appendChild $ node:div $
              (XHTML.M.toelt (p [pcdata "on_load executed after 1s."]))
          }};
       Eliom_services.set_on_unload ~sp
         {{
-          Dom.appendChild \node(div)
+          Dom.appendChild $ node:div $
           (XHTML.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
           Lwt_js.sleep 1.
         }};
