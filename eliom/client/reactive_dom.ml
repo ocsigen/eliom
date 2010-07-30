@@ -56,58 +56,14 @@ let signalify (cb : (unit -> 'a)) : 'a React.S.t =
   ignore (Engine.register (fun () -> set_s (cb ())));
   s
 
-let eventify_mouse
-      (x : <onclick :     ('self Js.t, Dom_html.mouseEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-            ondblclick :  ('self Js.t, Dom_html.mouseEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-            onmousedown : ('self Js.t, Dom_html.mouseEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-            onmouseup :   ('self Js.t, Dom_html.mouseEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-            onmouseover : ('self Js.t, Dom_html.mouseEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-            onmousemove : ('self Js.t, Dom_html.mouseEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-            onmouseout :  ('self Js.t, Dom_html.mouseEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-           .. > Js.t
-      )
-      (evt :
-         [ `Click
-         | `Dblclick
-         | `Mousedown
-         | `Mouseup
-         | `Mouseover
-         | `Mousemove
-         | `Mouseout ]
-      )
-      (f : #Dom_html.mouseEvent Js.t -> 'a)
-      : 'a React.E.t =
+let eventify_mouse target typ f =
   let (e, push_e) = React.E.create () in
-  let handler = Dom_html.handler (fun b -> push_e (f b); Js._false) in
-  begin match evt with
-    | `Click -> x##onclick <- handler
-    | `Dblclick -> x##ondblclick <- handler
-    | `Mousedown -> x##onmousedown <- handler
-    | `Mouseup -> x##onmouseup <- handler
-    | `Mouseover -> x##onmouseover <- handler
-    | `Mousemove -> x##onmousemove <- handler
-    | `Mouseout -> x##onmouseout <- handler
-  end; e
+  ignore (Events.listen target typ (fun n e -> push_e (f n e)));
+  e
 
-let eventify_keyboard
-      (x : <onkeypress : ('self Js.t, Dom_html.keyboardEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-            onkeydown :  ('self Js.t, Dom_html.keyboardEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-            onkeyup :    ('self Js.t, Dom_html.keyboardEvent Js.t) Dom_html.event_listener Js.writeonly_prop;
-            .. > Js.t
-      )
-      (evt :
-         [ `Keypress
-         | `Keydown
-         | `Keyup ]
-      )
-      (f : #Dom_html.keyboardEvent Js.t -> 'a)
-      : 'a React.E.t =
+
+let eventify_keyboard target typ f =
   let (e, push_e) = React.E.create () in
-  let handler = Dom_html.handler (fun b -> push_e (f b); Js._false) in
-  begin match evt with
-    | `Keypress -> x##onkeypress <- handler
-    | `Keydown -> x##onkeydown <- handler
-    | `Keyup -> x##onkeyup <- handler
-  end; e
-
+  ignore (Events.listen target typ (fun n e -> push_e (f n e)));
+  e
 

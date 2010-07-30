@@ -7,6 +7,7 @@ OCAMLMKLIB:= ocamlmklib
 PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml -syntax camlp4o
 LIBS:=
 MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml svgtypes.ml sVG.ml xhtml5types.ml xHTML5.ml \
+	reactive_dom.ml \
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
@@ -14,7 +15,6 @@ MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml svgtypes.ml sVG.ml xhtml5types.ml xHT
 	eliom_sessions.ml eliom_parameters.ml \
 	eliom_services.ml eliom_uri.ml \
 	eliom_request.ml \
-	eliommod_cli.ml eliom_client.ml \
 	xhtmltypes.ml polytables.ml \
 	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
 	polytables.ml \
@@ -22,8 +22,7 @@ MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml svgtypes.ml sVG.ml xhtml5types.ml xHT
 	eliom_common_comet.ml eliom_client_comet.ml \
         eliommod_mkforms.ml eliom_mkforms.ml \
 	eliom_predefmod.ml \
-	eliom_client_event.ml \
-	reactive_dom.ml
+	eliom_client_event.ml
 MLIS:= uri.mli xhtml5types.mli xhtmltypes.mli xHTML.mli xHTML5.mli eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli eliom_common_comet.mli eliommod_mkforms.ml
 CMOS=$(MLS:.ml=.cmo)
 
