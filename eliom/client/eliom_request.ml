@@ -32,55 +32,27 @@ let url_re =
   jsnew Js.regExp (Js.bytestring "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?/([^\\?]*)(\\?(.*))?$")
 
 let get_cookie_info_for_uri_js uri_js =
-  Js.Opt.get
-    (Js.Opt.bind
-(*VVV Put this in a separate js_of_ocaml library for URL decoding *)
-       (Js.Opt.case
-          (url_re##exec (uri_js))
-          (fun () ->
-            (Js.Opt.case (short_url_re##exec (uri_js))
-               (fun () -> Js.Opt.empty)
-               (fun res ->
-                 let match_result = Js.match_result res in
-                 let path =
-                   Ocsigen_lib.split_path
-                     (Js.to_string 
-                        (Js.Optdef.get (Js.array_get match_result 1) 
-                           (fun () -> assert false)))
-                 in
-                 let path = match path with
-                   | ""::_ -> path (* absolute *)
-                   | _ -> 
-                     Eliom_uri.make_actual_path
-                       (Eliom_sessions.full_path_ @ path)
-                 in
-                 Js.Opt.return (None, path)
-               )
-            )
-          )
-          (fun res ->
+  match Url.url_of_string (Js.to_string uri_js) with
+    | None -> (* Decoding failed *)
+      (Js.Opt.case (short_url_re##exec (uri_js))
+         (fun () -> assert false)
+         (fun res ->
             let match_result = Js.match_result res in
-            let protocol =
-              Js.Optdef.get (Js.array_get match_result 1) 
-                (fun () -> assert false)
-            in
-            let https = protocol##length = 5 in
             let path =
-              Ocsigen_lib.split_path
-                (Js.to_string 
-                   (Js.Optdef.get (Js.array_get match_result 4) 
+              Url.path_of_path_string
+                (Js.to_string
+                   (Js.Optdef.get (Js.array_get match_result 1)
                       (fun () -> assert false)))
             in
-            Js.Opt.return (Some https, path)))
-       (fun (https, path) ->
-         let https = (https = Some true) || 
-           (https = None && Eliom_sessions.ssl_) 
-         in
-         Js.Opt.return (https, path)
-       )
-    )
-(*VVV or raise an exception? v *)
-    (fun () -> assert false)
+            let path = match path with
+              | ""::_ -> path (* absolute *)
+              | _ -> Eliom_uri.make_actual_path (Url.Current.path @ path)
+            in
+            (Eliom_sessions.ssl_, path)
+         )
+      )
+    | Some { Url.protocol = prot; Url.path = path } ->
+      ((prot = Url.Https), path)
 
 let get_cookie_info_for_uri uri =
   let uri_js = Js.bytestring uri in
@@ -89,8 +61,10 @@ let get_cookie_info_for_uri uri =
 
 
 
+(*TODO: use Url.Current.set *)
 let redirect_get url = Dom_html.window##location##href <- Js.string url
 
+(*TODO: add Form to js_of_ocaml libs *)
 let redirect_post url params =
   let f = Dom_html.createForm Dom_html.document in
   f##action <- Js.string url;
@@ -106,7 +80,7 @@ let redirect_post url params =
   f##submit ()
 
 
-(** Same as XmlHttpRequest.send, but:
+(** Same as XmlHttpRequest.send_string, but:
     - sends tab cookies
     - does half and full XHR redirections according to headers
 
@@ -134,7 +108,7 @@ let send ?cookies_info ?get_args ?post_args url =
        Ocsigen_lib.encode_form_value cookies)::
         post_args
     in
-    XmlHttpRequest.send ?get_args ~post_args url >>= fun r ->
+    XmlHttpRequest.send_string ?get_args ~post_args url >>= fun r ->
     if r.XmlHttpRequest.code = 204
     then
       match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
@@ -192,8 +166,7 @@ let make_cookies_info = function
     with External_service -> None
 
 let get_eliom_appl_result a : Eliom_client_types.eliom_appl_answer =
-  let a = Js.to_bytestring (Js.unescape (Js.bytestring a)) in
-  Marshal.from_string a 0
+  Marshal.from_string (Url.urldecode a) 0
 
 let http_get ?cookies_info url get_args : string Lwt.t =
   let cookies_info = make_cookies_info cookies_info in

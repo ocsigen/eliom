@@ -19,34 +19,14 @@
 
 include Ocsigen_lib_cli
 
-let urldecode_string s = Js.to_bytestring (Js.unescape (Js.bytestring s))
+let urldecode_string = Url.urldecode
 
-let encode ?plus s = Js.to_bytestring (Js.escape (Js.bytestring s))
+let encode ?plus s = Url.urlencode s
 (* plus has no effect here :-/ *)
 
-let mk_url_encoded_parameters nv_pairs =
-    String.concat "&"
-      (List.map
-	 (fun (name,value) ->
-	    let name_encoded = encode name in
-	    let value_encoded = encode value in
-	    name_encoded ^ "=" ^ value_encoded
-	 )
-	 nv_pairs
-      )
+let mk_url_encoded_parameters = Url.encode_arguments
 
-let rec split_path s =
-  try
-    let length = String.length s in
-    if length = 0 then []
-    else
-      let pos_slash = String.index s '/' in
-      if pos_slash = 0
-      then ""::split_path (String.sub s 1 (length-1))
-      else
-        let prefix = String.sub s 0 pos_slash in
-        prefix::(split_path (String.sub s (pos_slash+1) (length - pos_slash - 1)))
-  with Not_found -> [s]
+let split_path = Url.path_of_path_string
 
 
 let debug a = Firebug.console##log (Js.string a)

@@ -158,7 +158,10 @@ end = struct
               XmlHttpRequest.send
                 ~content_type
                 ~post_args:[("registration", up_msg)]
-                "./"
+                { (Url.Current.get ()) with
+                     Url.fragment  = "";
+                     Url.arguments = [];
+                }
             in
             Lwt.on_cancel wt (fun () -> Lwt.cancel async) ;
             async >>= fun r ->

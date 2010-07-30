@@ -33,22 +33,22 @@ let si = {
   Eliom_common.si_other_get_params  = [];
   Eliom_common.si_all_get_params = [];
   Eliom_common.si_all_post_params = [];
-  
+
   Eliom_common.si_service_session_cookies = Ocsigen_lib.String_Table.empty;
   Eliom_common.si_data_session_cookies = Ocsigen_lib.String_Table.empty;
   Eliom_common.si_persistent_session_cookies = Ocsigen_lib.String_Table.empty;
   Eliom_common.si_secure_cookie_info = None;
-  
+
   Eliom_common.si_nonatt_info = Eliom_common.RNa_no;
   Eliom_common.si_state_info = (Eliom_common.RAtt_no, Eliom_common.RAtt_no);
   Eliom_common.si_previous_extension_error = 404;
-  
+
   Eliom_common.si_na_get_params = lazy [];
   Eliom_common.si_nl_get_params = Ocsigen_lib.String_Table.empty;
   Eliom_common.si_nl_post_params = Ocsigen_lib.String_Table.empty;
-  Eliom_common.si_persistent_nl_get_params = 
+  Eliom_common.si_persistent_nl_get_params =
     lazy Ocsigen_lib.String_Table.empty;
-  
+
   Eliom_common.si_all_get_but_na_nl = lazy [];
   Eliom_common.si_all_get_but_nl = [];
 }
@@ -68,19 +68,18 @@ let get_get_params_string ~sp = sp.sp_request.request_info.ri_get_params_string
 let get_post_params ~sp = Lazy.force sp.sp_request.request_info.ri_post_params
 let get_all_post_params ~sp = sp.sp_si.Eliom_common.si_all_post_params
 *)
+
+(* Replaced by Url module from js_of_ocaml
 let loc_ = Dom_html.window##location
+ *)
 
-let full_path_string_ =
-  let s = Ocsigen_lib.urldecode_string (Js.to_string loc_##pathname) in
-  if String.length s > 0 && s.[0] = '/'
-  then String.sub s 1 (String.length s - 1)
-  else s
+let full_path_string_ = Url.Current.path_string
 
-let full_path_ =
-  Array.to_list (Regexp.split (Regexp.make "/") full_path_string_)
+let full_path_ = Url.Current.path
 
-let full_uri =
-  Ocsigen_lib.urldecode_string (Js.to_string loc_##href)
+
+
+let full_uri = Url.Current.as_string
 
 let get_original_full_path_string ~sp = full_path_string_
 
@@ -96,25 +95,29 @@ let get_header_hostname ~sp = sp.sp_request.request_info.ri_host
 let get_default_hostname ~sp = sp.sp_request.request_config.default_hostname
 *)
 
-let host_ = Ocsigen_lib.urldecode_string (Js.to_string loc_##hostname)
+let host_ = Url.Current.host
 
-let port_ = int_of_string (Js.to_string loc_##port)
+let port_ = match Url.Current.port with
+  | None ->
+      failwith (  Url.string_of_protocol Url.Current.protocol
+                ^ " not supported in Eliom")
+  | Some p -> p
+
 
 let get_hostname ~sp = host_
 let get_default_hostname ?sp () = host_
-let get_default_port ?sp () = 80 (*VVV !!!!!!!!! *)
-let get_default_sslport ?sp () = 443 (*VVV !!!!!!!!! *)
+let get_default_port ?sp () = 80 (*VVV !!!!!!!!! *) (*RRR ??? replace by Url.default_http_port ???*)
+let get_default_sslport ?sp () = 443 (*VVV !!!!!!!!! *) (*RRR ??? replace by Url.default_https_port ???*)
 let get_server_port ~sp = port_
 
-let ssl_ =
-(*VVV Warning to_bytestring works only for characters below 2555! *)
-  Js.to_bytestring (Dom_html.window##location##protocol) = "https:"
 
+
+let ssl_ = Url.Current.protocol = Url.Https
 let get_ssl ~sp = ssl_
 
-let get_other_get_params ~sp = 
+let get_other_get_params ~sp =
   sp.Eliom_client_types.sp_si.Eliom_common.si_other_get_params
-let get_nl_get_params ~sp = 
+let get_nl_get_params ~sp =
   sp.Eliom_client_types.sp_si.Eliom_common.si_nl_get_params
 let get_persistent_nl_get_params ~sp =
   Lazy.force sp.Eliom_client_types.sp_si.Eliom_common.si_persistent_nl_get_params
@@ -127,7 +130,7 @@ let get_session_name ~sp =
 
 
 (* let get_request_cache ~sp = sp.sp_request.request_info.ri_request_cache
-let clean_request_cache ~sp = sp.sp_request.request_info.ri_request_cache <- 
+let clean_request_cache ~sp = sp.sp_request.request_info.ri_request_cache <-
     Polytables.create ()
 let get_link_too_old ~sp =
   try
