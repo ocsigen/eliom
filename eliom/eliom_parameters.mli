@@ -69,10 +69,10 @@ type 'a param_name
    The names of parameters are not just strings to enforce using
    forms widgets with the right parameter type.
    The parameter of that type is often a subtype of the polymorphic variant
-   type [[ `Set of 'a | `One of 'a | `Opt of 'a ]], where
+   type [[ `Set of 'a | `One of 'a | `Radio of 'a ]], where
    - [`Set of 'a] means: any number of ['a]
    - [`One of 'a] means: exactly one ['a]
-   - [`Opt of 'a] means: zero or one ['a]
+   - [`Radio of 'a] means: zero or one ['a]
  *)
 
 type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
