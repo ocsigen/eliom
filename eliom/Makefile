@@ -21,6 +21,7 @@ FILES:= error_pages.ml \
 	eliom_predefmod_cli.ml eliom_predefmod.ml \
         eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
 	eliom_event.ml \
+   extensions/atom_feed.ml extensions/eliom_atom.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
 ifeq "$(NATDYNLINK)" "YES"
@@ -80,7 +81,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package lwt.unix,netstring,cryptokit,lwt.react $(LIBDIRS)
+LIB = -thread -package lwt.unix,netstring,cryptokit,lwt.react,calendar $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
@@ -200,7 +201,7 @@ bugdbg:
 
 .PHONY: clean
 clean: 
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot extensions/*.cm[iox] extensions/*.o extensions/*.cmxs
 	$(MAKE) -C client clean
 
 depend:

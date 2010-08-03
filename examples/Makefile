@@ -25,8 +25,9 @@ LWTDIR := $(shell ocamlfind query lwt)
 REACTDIR := $(shell ocamlfind query react)
 ELIOMCLIENTDIR := ../eliom/client
 PAELIOMCLIENTDIR := ../eliom
+PAJSDIR := $(shell ocamlfind query js_of_ocaml)
 
-LIB = $(LIBDIRS) -package lwt.unix,netstring,camlp4,react,lwt.react
+LIB = $(LIBDIRS) -package lwt.unix,netstring,camlp4,react,lwt.react,calendar
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIB)
@@ -90,7 +91,7 @@ tutoeliom_ocsigen2_client: $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/
 tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom ../eliom/pa_eliom_client.cmo ../eliom/eliom_comet.cmo tutoeliom.cmi
 	camlp4of \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_client.cmo \
-	  -I /usr/local/lib/ocaml/3.11.2/js_of_ocaml pa_js.cmo \
+	  -I $(PAJSDIR) pa_js.cmo \
 	  -impl $< -printer p -o $@ \
           -verbose \
 	  -client client/tutoeliom_ocsigen2_client.ml
