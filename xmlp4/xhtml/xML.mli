@@ -85,6 +85,10 @@ val encode_unsafe_and_at : string -> string
 
 val output : ?preformatted:ename list -> ?no_break:ename list ->
   ?encode:(string -> string) -> (string -> unit) -> elt -> unit
+
+val output_compact : ?encode:(string -> string) -> 
+   (string -> unit) -> elt -> unit
+
 val pretty_print : ?width:int ->
   ?preformatted:ename list -> ?no_break:ename list ->
     ?encode:(string -> string) -> (string -> unit) -> elt -> unit

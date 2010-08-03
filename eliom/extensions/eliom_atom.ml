@@ -25,7 +25,7 @@ let get_etag c = Some (Digest.to_hex (Digest.string c))
 let result_of_content feed headers =
    let b = Buffer.create 1024 in
    let bufferize s = Buffer.add_string b s in
-   XML.output bufferize (Atom_feed.xml_of_feed feed);
+   XML.output_compact bufferize (Atom_feed.xml_of_feed feed);
    let c = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" ^ Buffer.contents b in
    let md5 = get_etag c in
    let dr = F.default_result () in

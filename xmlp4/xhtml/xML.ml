@@ -371,6 +371,29 @@ let rec output' ios encode outs  n =
 let output ?preformatted ?no_break ?(encode = encode_unsafe) outs elt =
   output' (initial_io_state ?preformatted ?no_break ()) encode outs elt
 
+let rec output_compact' encode outs  n =
+  match n.elt with
+    | Empty -> ()
+    | Comment c ->
+	outs ("<!-- " ^ encode c ^ " -->");
+    | PCDATA d ->
+	outs (encode d);
+    | Entity e ->
+	outs ("&" ^ e ^ ";");  (* No {e not} encode these! *)
+    | Leaf (name, attribs) ->
+	outs ("<" ^ name);
+	List.iter (fun a -> outs " "; outs (attrib_to_string encode a)) attribs;
+	outs " />";
+    | Node (name, attribs, children) ->
+	  outs ("<" ^ name);
+	  List.iter (fun a -> outs " "; outs (attrib_to_string encode a)) attribs;
+	  outs ">";
+	  List.iter (output_compact' encode outs) children;
+	  outs ("</" ^ name ^ ">");
+    | _ -> failwith "not implemented for Ocsigen syntax extension"
+	
+let output_compact ?(encode = encode_unsafe) outs elt =
+  output_compact' encode outs elt
 (** {2 Pretty Printed} *)
 
 let force_newline ios f () =
