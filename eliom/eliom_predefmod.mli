@@ -40,8 +40,10 @@ end
 
 (** {2 Module for registering Xhtml pages typed with polymorphic variants using {!XHTML.M}} *)
 
+(* The sig include A end are a workaround not to have to install
+   the clients .cmi *)
+module type XHTMLFORMSSIG = sig include Eliom_predefmod_cli.XHTMLFORMSSIG end
 
-module type XHTMLFORMSSIG = Eliom_predefmod_cli.XHTMLFORMSSIG
 
 
 
