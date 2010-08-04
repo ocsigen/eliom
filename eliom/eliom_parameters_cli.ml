@@ -355,6 +355,75 @@ let construct_params_list_raw
 
 
 
+(** Given a parameter type, get the two functions
+    that converts from and to strings. You should
+    only use this function on
+    - options ;
+    - basic types : int, int32, int64, float, string
+    - marshal
+    - unit
+    - string
+    - bool
+ *)
+let rec get_to_and_from x = match x with
+  | TOption o -> 
+    let (_to, from) = get_to_and_from o in
+    Obj.magic
+      ((fun s -> try Some (_to s) with _ -> None),
+       (function
+         | Some alpha -> from alpha
+         | None -> ""))
+  | TUserType (_, _to, from) -> Obj.magic (_to, from)
+  | TESuffixu (_, f, g) -> Obj.magic (f, g)
+  | TInt32 _ ->
+    Obj.magic (Int32.of_string, Int32.to_string)
+  | TInt64 _ ->
+    Obj.magic (Int64.of_string, Int64.to_string)
+  | TFloat _ ->
+    Obj.magic (float_of_string, string_of_float)
+  | TInt _ ->
+    Obj.magic (int_of_string, string_of_int)
+  | TBool name -> (* XXX: is that it ? *)
+    Obj.magic ((fun s -> if s = "on" || s = "true" then true else false))
+  | TMarshal _ ->
+    Obj.magic ((fun s -> Marshal.from_string s 0),
+    (fun d -> Marshal.to_string d []))
+  | TUnit ->
+    Obj.magic ((fun _ -> ()), (fun () -> ""))
+  | TString _ ->
+    Obj.magic ((fun s -> s), (fun s -> s))
+  | TNLParams _ | TSuffix _ | TProd (_, _)
+  | TList (_, _) | TSet _ | TSum (_, _) 
+  | TAny | TESuffix _ | TESuffixs _ | TFile _ 
+  | TCoord _ | TCoordv _ | TAny _  | TConst _->
+    failwith "get_to_and_from: not implemented"
+
+
+(** Walk the parameter tree to search for a parameter, given its
+    name *)
+let rec walk_parameter_tree name x = match x with
+  | TUserType (name', _, _) | TInt name' | TInt32 name' | TInt64 name' | TFile name' 
+  | TFloat name' | TString name' | TBool name' | TCoord name'  | TMarshal name' 
+  | TConst name' | TCoordv (_, name') | TESuffix name' | TESuffixs name'
+  | TESuffixs name' | TESuffixu (name', _, _) ->
+    if name = name' then
+      Some (get_to_and_from x)
+    else
+      None
+  | TSuffix ( _, o) -> walk_parameter_tree name o
+  | TAny -> None
+  | TNLParams _ -> None
+  | TUnit -> None
+  | (TOption o | TSet o | TList (_, o)) -> 
+    Obj.magic (walk_parameter_tree name o)
+  | (TProd (a, b) | TSum (a, b)) -> 
+    (match walk_parameter_tree name a with
+      | Some a -> Some a
+      | None -> walk_parameter_tree name b)
+
+
+
+
 (* contruct the string of parameters (& separated) for GET and POST *)
 let construct_params_string =
   Ocsigen_lib.mk_url_encoded_parameters

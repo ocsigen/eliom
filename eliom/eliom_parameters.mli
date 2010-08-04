@@ -409,8 +409,23 @@ val add_nl_parameter :
 val get_nl_params_names : 
   (_, [< `WithSuffix | `WithoutSuffix ], 'a) non_localized_params -> 'a
 
+(** Given a parameter type, get the two functions
+    that converts from and to strings. You should
+    only use this function on
+    - options ;
+    - basic types : int, int32, int64, float, string
+    - marshal
+    - unit
+    - string
+    - bool
+ *)
+val get_to_and_from : ('a, 'b, 'c) params_type -> (string -> 'a) * ('a -> string)
+
+
 (**/**)
 
+val walk_parameter_tree : [ `One of string ] param_name -> ('a, 'b, 'c) params_type
+  -> ((string -> 'd) * ('d -> string)) option
 val contains_suffix : ('a, 'b, 'c) params_type -> bool option
   (* None = no suffix. The bool means : redirect_if_not_suffix *)
 
