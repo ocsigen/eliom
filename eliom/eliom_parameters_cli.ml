@@ -222,8 +222,6 @@ let caml (n : string)
     : ('a, [`WithoutSuffix], [ `One of 'a caml ] param_name) params_type =
   TMarshal n
 
-
-
 (******************************************************************)
 let make_list_suffix i = "["^(string_of_int i)^"]"
 
@@ -398,6 +396,11 @@ let rec get_to_and_from x = match x with
   | TCoord _ | TCoordv _ | TAny _  | TConst _->
     failwith "get_to_and_from: not implemented"
 
+
+let guard construct name guard = 
+  let (from, _to) = get_to_and_from (construct name) in
+  TUserType (name, (fun s -> let alpha = from s in assert (guard alpha); alpha),
+             _to)
 
 (** Walk the parameter tree to search for a parameter, given its
     name *)

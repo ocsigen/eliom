@@ -360,6 +360,11 @@ val caml :
     program to send some value of type 'a, marshaled.
     As usual [s] is the name of the parameter. *)
 
+val guard : (string -> ('a, 'b, [ `One of string] param_name) params_type) -> string
+  -> ('a -> bool) -> ('a, 'b, [ `One of string] param_name) params_type
+(** [guard construct name pred] returns the same parameter
+    as [construct name] but with ensuring that each value must satisfy [pred].
+    For instance: [int "age" ((>=) 0)] *)
 
 (** {2 Non localized parameters} *)
 type ('a, +'tipo, +'names) non_localized_params
