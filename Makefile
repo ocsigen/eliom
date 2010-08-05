@@ -66,8 +66,10 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)eliom/eliom_sessions.mli				\
 	$(DOCPREF)eliom/eliom_extensions.mli				\
 	$(DOCPREF)eliom/extensions/atom_feed.mli \
-   $(DOCPREF)eliom/extensions/eliom_atom.mli \
-   $(DOCPREF)server/ocsigen_extensions.mli				\
+	$(DOCPREF)eliom/extensions/eliom_atom.mli \
+	$(DOCPREF)eliom/extensions/eliom_openid.mli \
+	$(DOCPREF)eliom/extensions/eliom_s2s.mli \
+	$(DOCPREF)server/ocsigen_extensions.mli				\
 	$(DOCPREF)server/ocsigen_parseconfig.mli			\
 	$(DOCPREF)server/ocsigen_server.mli				\
 	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty_streams.mli		\
@@ -126,6 +128,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
        eliom/eliom_uri.cmi \
+	eliom/extensions/eliom_s2s.cmi eliom/extensions/eliom_openid.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
        eliom/extensions/atom_feed.cmi eliom/extensions/eliom_atom.cmi \
        extensions/comet.cmi \
