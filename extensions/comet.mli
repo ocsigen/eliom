@@ -120,7 +120,7 @@ sig
 
 end
 
-(** Usage :
+(** Usage:
 
   On the server side :
     1) create needed channels with appropriate events
@@ -153,6 +153,19 @@ end
       connecting to that particular channel ever again.
 
   *)
+(** Example:
+    let (event, push_event) = React.E.create ()
+    let channel = Comet.Channels.create event
+    let failures =
+      React.E.fmap
+        (function
+          | `Failure, i -> Some i
+          | _ -> None
+        )
+        (Comet.Channels.outcomes channel)
+    let has_listeners =
+      React.S.map ((>) 0) (Comet.Channels.listeners channel)
+  *)
 (** Conf-file options:
 
     One can use the configuration file to tweak Comet settings. The supported
@@ -169,7 +182,7 @@ end
         [Comet.Channels.Too_many_virtual_channels] is raised.
 
   *)
-(** Commands
+(** Commands:
 
     Comet provides commands (to be piped to the command pipe). The complete list
     of commands is described here. Don't forget to use the Comet prefix: each
@@ -195,7 +208,7 @@ end
   *)
 
 
-(** Note to Eliom users :
+(** Note to Eliom users:
     Although it is possible to use Comet as an extension to the Ocsigen Server,
     it is recommended to use the higher level Eliom modules, namely Eliom_comet
     (for server side) and Eliom_client_comet (for client side). The former

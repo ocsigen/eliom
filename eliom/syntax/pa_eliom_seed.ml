@@ -19,8 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* This syntax extension is made of several steps. The global structure should
- * appear in the comments. *)
+
+(* This syntax extension is made of several steps.
+ * This file is the first to be loaded, it modifies the lexer, and the parser.
+ * There are two functors that subsequent extensions (type_filter, client_client
+ * and client_server) use.
+ *
+ * The global structure of this module should appear in the comments. *)
 
 module Id =
 struct
@@ -31,11 +36,11 @@ end
 
 
 (*** OPTIONS ***)
-(* There are only two options for now :
-   -client <filename>     to indicate the file in which the client code should
-                          be printed.
-   -pretty                to set pretty printing of client code (instead of AST
-                          dump). This is provided for syntax extension debugging
+(* Options are:
+ * -pass      The pass executed. May be either "type" for type inference,
+ *            "client" for client code or "server" for server code. The matching
+ *            subsequent filter have to be loaded.
+ * -type_file A filename for the type inferrence intermediary file.
  *)
 
 type pass = Type_pass | Server_pass | Client_pass | Raw_pass
