@@ -1,5 +1,6 @@
 include ../Makefile.config
 
+
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= error_pages.ml \
 	eliom_common_cli.ml eliom_common.ml \
@@ -22,7 +23,7 @@ FILES:= error_pages.ml \
         eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
 	eliom_event.ml \
 	extensions/eliom_s2s.ml extensions/eliom_openid.ml \
-   extensions/atom_feed.ml extensions/eliom_atom.ml
+	extensions/atom_feed.ml extensions/eliom_atom.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
 ifeq "$(NATDYNLINK)" "YES"
@@ -97,18 +98,21 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom.cma $(DUCEMODBYTE) client pa_eliom_client.cmo
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom.cma $(DUCEMODBYTE) syntax client
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom.cmxa $(CMXS3) pa_eliom_client.cmo
+opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom.cmxa $(CMXS3) syntax client
 
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-.PHONY: doc depend client
+.PHONY: doc depend client syntax
 
 client:
 	$(MAKE) -C client all
+
+syntax:
+	$(MAKE) -C syntax all
 
 eliom_sessions.cmx: eliom_sessions.ml
 #	-rm ../extensions/ocsipersist.cmx
@@ -178,10 +182,6 @@ ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 	$(CAMLOPT) -a -shared -linkall -o ocsigenrss.cmxa $^
 
-pa_eliom_client.cmo: pa_eliom_client.ml
-	ocamlc -c -I +camlp4 -I +camlp4/Camlp4Printers \
-	  -I +camlp4/Camlp4Parsers -pp camlp4of $^
-
 # There is a bug with ocamlduce when -g is supplied
 bugdbg:
 	$(MAKE) DEBUG="NO" eliom_duce.cmo
@@ -204,9 +204,11 @@ bugdbg:
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot extensions/*.cm[iox] extensions/*.o extensions/*.cmxs
 	$(MAKE) -C client clean
+	$(MAKE) -C syntax clean
 
 depend:
 	make -C client depend
+	make -C syntax depend
 	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
 	sed -i.bak s%../extensions/ocsipersist.cmx%% .depend
 

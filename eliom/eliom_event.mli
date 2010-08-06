@@ -35,9 +35,18 @@ module Down :
       taken care of automatically. *)
 sig
 
+  type 'a event
+
+  val of_react :
+       ?throttling:float
+    -> ?buffer_size:int
+    -> ?buffer_time:float
+    -> 'a React.E.t
+    -> 'a event
+
   val wrap :
       sp:Eliom_sessions.server_params
-    -> 'a React.E.t
+    -> 'a event
     -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
   (** [wrap ~sp e] wraps the event [e] so that it can be handed to the client.
     *)

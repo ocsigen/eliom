@@ -2,8 +2,7 @@
 {shared{
   let (>>=) = Lwt.(>>=)
   let (>|=) = Lwt.(>|=)
-}}
-
+}} ;;
 
 (* *zap*)
 (*zap*
@@ -48,18 +47,18 @@ default container for pages, the default stylesheets you want for your
 whole application.
 
 *wiki*)
-(****** open on both side *******)
+(* for client side only, one can use : {client{ ... }} and for shared code, one
+* can place {shared{ ... }} *)
 {shared{
 open XHTML.M
-}}
+}} ;;
+
 (****** server only *******)
 {server{ (* note that {server{ ... }} is optionnal. *)
 open Eliom_parameters
 open Eliom_predefmod.Xhtmlcompact
 open Eliom_services
-}}
-
-(* for client side only, one can use : {client{ ... }} *)
+}} ;;
 
 (* This is server only because there are no delimiters. *)
 module Eliom_appl =
@@ -144,15 +143,15 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
                 {{Eliom_client.exit_to
-                    ~sp:$ sp:sp$ (* Here [sp] is sent by the server *)
-                    ~service:$ magic:Tutoeliom.coucou $ (* just as [coucou] *)
+                    ~sp: \(sp) (* Here [sp] is sent by the server *)
+                    ~service:\(Tutoeliom.coucou) (* just as [coucou] *)
                     () ()
                 }}
             ]
             [pcdata "Click here to go to another page."];
 
 (*wiki*
-To use server values inside client code one should use the syntax {{{ $ k:e $ }}}
+To use server values inside client code one should use the syntax {{{ \(e) }}}
 where {{{k}}} is the wrapper keyword and {{{e}}} the sent expression. Note that
 {{{e}}} is evaluated by the server and the resulting value is send to the
 client at loading time.
@@ -199,8 +198,8 @@ client at loading time.
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_url
-                  ~sp:$ sp:sp$
-                  ~service:$ magic:Tutoeliom.coucou$
+                  ~sp:\(sp)
+                  ~service:\(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -214,8 +213,8 @@ client at loading time.
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
                 {{Eliom_client.change_page
-                    ~sp:$ sp:sp $
-                    ~service:$ magic:eliomclient1 $
+                    ~sp:\(sp)
+                    ~service:\(eliomclient1)
                     () ()
                 }}
             ]
@@ -234,7 +233,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick{{
-                Eliom_client.change_page ~sp:$ sp:sp $ ~service:$ magic:Tutoeliom.coucou $
+                Eliom_client.change_page ~sp:\(sp) ~service:\(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -244,14 +243,14 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.exit_to ~sp:$ sp:sp $ ~service:$ magic:eliomclient2 $ () ()
+                Eliom_client.exit_to ~sp:\(sp) ~service:\(eliomclient2) () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_page ~sp:$ sp:sp $ ~service:$ magic:eliomclient1 $
+                Eliom_client.change_page ~sp:\(sp) ~service:\(eliomclient1)
                   () ()
               }}
             ]
@@ -266,7 +265,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.get_subpage ~sp:$ sp:sp $ ~service:$ magic:eliomclient1 $
+                Eliom_client.get_subpage ~sp:\(sp) ~service:\(eliomclient1)
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -284,7 +283,7 @@ client at loading time.
            div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                                a_onclick {{
                                  Dom.appendChild
-                                   $ node:container $ (* node is the wrapper keyword for XHTML.M nodes. *)
+                                   \(container) (* node is the wrapper keyword for XHTML.M nodes. *)
                                    (XHTML.M.toelt (item ()))
                                }}
                   ]
@@ -300,7 +299,7 @@ client at loading time.
           (let my_value = 1.12345 in
            p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Dom_html.window##alert
-                     (Js.string (string_of_float $ magic:my_value$)) ;
+                     (Js.string (string_of_float \(my_value))) ;
                    Lwt.return ()
                 }}
                 ]
@@ -319,13 +318,13 @@ client at loading time.
                    (Dom_html.document##body)
                    (XHTML.M.toelt
                       (p [Eliom_predefmod.Xhtml.a
-                            ~sp:$ sp:sp $ ~service:$ magic:Tutoeliom.coucou $
+                            ~sp:\(sp) ~service:\(Tutoeliom.coucou)
                             [pcdata "An external link generated client side"]
                             ();
                           pcdata " and ";
                           Eliom_predefmod.Xhtml.a
                             (*zap* *)~a:[a_class ["clickable"]](* *zap*)
-                            ~sp:$ sp:sp $ ~service:$ magic:eliomclient1 $
+                            ~sp:\(sp) ~service:\(eliomclient1)
                             [pcdata "another, inside the application."]
                             ()
                          ]
@@ -339,6 +338,8 @@ client at loading time.
 
 
         ])
+
+
 (*wiki*
 ====Using OCaml values as service parameters
 It is now possible to send OCaml values to services.
@@ -354,7 +355,6 @@ let eliomclient3' =
            )])
 
 
-
 let eliomclient3 =
   Eliom_appl.register_new_service
     ~path:["eliomclient3"]
@@ -363,12 +363,13 @@ let eliomclient3 =
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Eliom_client.change_page
-                     ~sp:$ sp:sp $ ~service:$ magic:eliomclient3' $
+                     ~sp:\(sp) ~service:\(eliomclient3')
                      () (22, "oo", ["a";"b";"c"])
                 }}
               ]
            [pcdata "Click to send Ocaml data"]
         ])
+
 (*wiki*
 ====Sending OCaml values using services
 It is possible to do services that send any caml value. For example:
@@ -377,6 +378,7 @@ let eliomclient4' =
   Eliom_predefmod.Caml.register_new_post_coservice'
     ~post_params:unit
     (fun sp () () -> Lwt.return [1; 2; 3])
+
 
 let eliomclient4 =
   Eliom_appl.register_new_service
@@ -387,7 +389,7 @@ let eliomclient4 =
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~sp:$ sp:sp $ ~service:$ magic:eliomclient4' $
+                     ~sp:\(sp) ~service:\(eliomclient4')
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
@@ -397,6 +399,7 @@ let eliomclient4 =
               ]
            [pcdata "Click to receive Ocaml data"]
         ])
+
 (*wiki*
 ====Other tests:
 *wiki*)
@@ -406,11 +409,13 @@ let withoutclient =
     ~get_params:unit
     ()
 
+
 let gotowithoutclient =
   Eliom_services.new_service
     ~path:["gotowithoutclient"]
     ~get_params:unit
     ()
+
 
 
 let _ =
@@ -425,7 +430,7 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:$ sp:sp $ ~service:$ magic:gotowithoutclient $
+                  ~sp:\(sp) ~service:\(gotowithoutclient)
                   () ()
               }}
             ]
@@ -443,7 +448,7 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:$ sp:sp $ ~service:$ magic:withoutclient $
+                  ~sp:\(sp) ~service:\(withoutclient)
                   () ()
               }}
             ]
@@ -452,6 +457,7 @@ let _ =
                [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ])
+
 
 
 
@@ -466,17 +472,18 @@ let on_load =
       in
       Eliom_services.set_on_load ~sp
         {{ Lwt_js.sleep 1. >|= fun () ->
-           Dom.appendChild $ node:div $
+           Dom.appendChild \(div)
              (XHTML.M.toelt (p [pcdata "on_load executed after 1s."]))
          }};
       Eliom_services.set_on_unload ~sp
         {{
-          Dom.appendChild $ node:div $
+          Dom.appendChild \(div)
           (XHTML.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
           Lwt_js.sleep 1.
         }};
       Lwt.return [div]
     )
+
 
 
 (*wiki*
@@ -508,11 +515,14 @@ let (c1, write_c1) =
   let (e, push_e) = React.E.create () in
   (Eliom_comet.Channels.create ~name:"comet1_public_channel" e, push_e)
 
+
 (* randomly write on the channel *)
 let rec rand_tick () =
   Lwt_unix.sleep (float_of_int (5 + (Random.int 5))) >>= fun () ->
   write_c1 (Random.int 99) ; rand_tick ()
+
 let _ = rand_tick ()
+
 
 
 let comet1 =
@@ -537,14 +547,14 @@ let comet1 =
 
        Eliom_services.set_on_load ~sp
          {{
-           Eliom_client_comet.Channels.register $ channel:c1 $
+           Eliom_client_comet.Channels.register \(c1)
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
                   (Js.string ("public: "^ string_of_int i ^";  "))) ;
              Lwt.return ()
            );
-           Eliom_client_comet.Dlisted_channels.register $ buffchan:c2 $
+           Eliom_client_comet.Dlisted_channels.register \(c2)
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
@@ -561,6 +571,7 @@ let comet1 =
          ]
     )
 
+
 (*wiki*
 This second example involves client-to-server and server to client event
 propagation. There is no manual handling of channel, only events are used.
@@ -576,16 +587,19 @@ let comet2 =
           client-to-server asynchronous edge *)
        let e_up = Eliom_event.Up.create ~sp (string "letter") in
        let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
-       let e_down = React.E.map
-                      (function "A" -> "alpha" | "B" -> "beta" | _ -> "what ?")
-                      e_up_real
+       let e_down =
+         Eliom_event.Down.of_react
+           (React.E.map
+              (function "A" -> "alpha" | "B" -> "beta" | _ -> "what ?")
+              e_up_real
+           )
        in
        let `R _ = React.E.retain e_up_real (fun () -> ignore e_down) in
        Eliom_services.set_on_load ~sp
          {{
            React.E.map
            (fun s -> Dom_html.window##alert (Js.string s))
-           $ down_event:e_down $
+           \(e_down)
          }};
 
        (* We can send the page *)
@@ -593,13 +607,14 @@ let comet2 =
          h2 [pcdata "Dual events"] ;
          div (* This div is for pushing "A" to the server side event *)
            (*TODO: fix client side sp and simplify up_event unwrapping *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = $ sp:sp $ in $ up_event:e_up $ "A" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = \(sp) in \(e_up) "A" }} ]
            [pcdata "Push A"] ;
          div (* This one is for pushing "B" *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = $ sp:sp $ in $ up_event:e_up $ "B" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = \(sp) in \(e_up) "B" }} ]
            [pcdata "Push B"] ;
        ]
     )
+
 
 (*wiki*
  This third example demonstrates the capacity for simultaneous server push.
@@ -616,14 +631,16 @@ let comet3 =
        let e_up = Eliom_event.Up.create ~sp (string "double") in
        let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
        let e_down_1 =
-         Lwt_event.limit (*TODO: integrate throttling to events*)
-           (fun () -> Lwt_unix.sleep 3.)
+         Eliom_event.Down.of_react
+           ~throttling:5.
            (React.E.map
               (let i = ref 0 in fun _ -> incr i ; !i)
               e_up_real
            )
        in
-       let e_down_2 = React.E.map (fun _ -> "haha") e_up_real in
+       let e_down_2 =
+         Eliom_event.Down.of_react (React.E.map (fun _ -> "haha") e_up_real)
+       in
        let `R _ = React.E.retain e_up_real
                     (fun () -> ignore e_down_1 ; ignore e_down_2)
        in
@@ -633,8 +650,8 @@ let comet3 =
            (fun s -> Dom_html.window##alert (Js.string s))
            (React.E.merge
               (^) ""
-              [ React.E.map string_of_int $ down_event:e_down_1 $ ;
-                $ down_event:e_down_2 $ ;
+              [ React.E.map string_of_int \(e_down_1) ;
+                \(e_down_2) ;
               ]
            )
          }};
@@ -643,13 +660,14 @@ let comet3 =
        Lwt.return [
          h2 [pcdata "Simultaneous events"] ;
          div (*TODO: fix client side sp and simplify up_event unwrapping *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = $ sp:sp $ in $ up_event:e_up $ "" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = \(sp) in \(e_up) "" }} ]
            [pcdata "Send me two values from different events !"] ;
          div [pcdata "Note that one of the two events has a greater rate limit \
                       (using throttle control). Hence you might receive only \
                       one if you click with high frequency."] ;
        ]
     )
+
 
 
 (*wiki*
@@ -659,6 +677,7 @@ let comet3 =
 (* First is the event on the server corresponding to a new message. *)
 let message_up = Eliom_event.Up.create (string "content")
 
+
 (* Then is the page hosting the board *)
 let comet_message_board =
   Eliom_appl.register_new_service
@@ -666,8 +685,12 @@ let comet_message_board =
     ~get_params:unit
     (fun sp () () ->
        let message_down =
-         React.E.map (fun x -> x)
-         (Eliom_event.Up.react_event_of_up_event message_up)
+         Eliom_event.Down.of_react
+           ~buffer_size:15
+           ~buffer_time:10.
+           (React.E.map (fun x -> x)
+              (Eliom_event.Up.react_event_of_up_event message_up)
+           )
        in
 
        Lwt.return (
@@ -678,10 +701,10 @@ let comet_message_board =
              ignore (
                React.E.map
                  (fun msg ->
-                   Dom.appendChild $ node:container $
+                   Dom.appendChild \(container)
                      (XHTML.M.toelt (li [pcdata msg]))
                  )
-                 $ down_event:message_down $
+                 \(message_down)
              ) ;
              Eliom_client_comet.Engine.start ()
            }}
@@ -692,7 +715,7 @@ let comet_message_board =
            div
              ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                   a_onclick {{
-                    let sp = $ sp:sp $ in
+                    let sp = \(sp) in
                     let field =
                         (Js.Opt.get
                            (Dom_html.CoerceTo.input
@@ -706,7 +729,7 @@ let comet_message_board =
                     in
                     let v = Js.to_string field##value in
                     field##value <- Js.string "" ;
-                    $ up_event:message_up $ v
+                    \(message_up) v
                   }}
              ]
              [pcdata "send"]
@@ -729,6 +752,7 @@ let comet_message_board =
     )
 
 
+
 (*wiki*
 
 ===Tab sessions
@@ -738,18 +762,21 @@ let comet_message_board =
 
 open Lwt
 
+
 (************************************************************)
 (************ Connection of users, version 1 ****************)
 (************************************************************)
 
 (*zap* *)
 let session_name = "tsession_data"
+
 (* *zap*)
 
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
 let my_table = Eliom_sessions.create_volatile_table ~session_name ~level:`Tab ()
+
 
 
 (* -------------------------------------------------------- *)
@@ -761,17 +788,20 @@ let tsession_data_example =
     ~get_params:Eliom_parameters.unit
     ()
 
+
 let tsession_data_example_with_post_params =
   Eliom_services.new_post_service
     ~fallback:tsession_data_example
     ~post_params:(Eliom_parameters.string "login")
     ()
 
+
 let tsession_data_example_close =
   Eliom_services.new_service
     ~path:["tclose"]
     ~get_params:Eliom_parameters.unit
     ()
+
 
 
 
@@ -802,6 +832,7 @@ let tsession_data_example_handler sp _ _  =
                     ~input_type:`Text ~name:login ()]]) ()
     ]
 
+
 (* -------------------------------------------------------- *)
 (* Handler for the "tsession_data_example_with_post_params"  *)
 (* service with POST params:                                *)
@@ -816,6 +847,7 @@ let tsession_data_example_with_post_params_handler sp _ login =
         br ();
         Eliom_appl.a tsession_data_example sp [pcdata "Try again"] ()
        ]]
+
 
 
 
@@ -836,6 +868,7 @@ let tsession_data_example_close_handler sp () () =
       p [Eliom_appl.a tsession_data_example sp [pcdata "Retry"] () ]]
 
 
+
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
@@ -849,12 +882,14 @@ let () =
     tsession_data_example_with_post_params_handler
 
 
+
 (************************************************************)
 (************ Connection of users, version 2 ****************)
 (************************************************************)
 
 (*zap* *)
 let session_name = "tsession_services"
+
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* Create services, but do not register them yet:           *)
@@ -865,17 +900,20 @@ let tsession_services_example =
     ~get_params:Eliom_parameters.unit
     ()
 
+
 let tsession_services_example_with_post_params =
   Eliom_services.new_post_service
     ~fallback:tsession_services_example
     ~post_params:(Eliom_parameters.string "login")
     ()
 
+
 let tsession_services_example_close =
   Eliom_services.new_service
     ~path:["tclose2"]
     ~get_params:Eliom_parameters.unit
     ()
+
 
 
 (* ------------------------------------------------------------- *)
@@ -894,6 +932,7 @@ let tsession_services_example_handler sp () () =
   return [f]
 
 
+
 (* ------------------------------------------------------------- *)
 (* Handler for the "tsession_services_example_close" service:     *)
 
@@ -904,6 +943,7 @@ let tsession_services_example_close_handler sp () () =
                  a tsession_services_example
                    sp [pcdata "Retry"] ()
                 ]]
+
 
 (* ------------------------------------------------------------- *)
 (* Handler for the "session_services_example_with_post_params"   *)
@@ -948,6 +988,7 @@ let tlaunch_session sp () login =
 
   new_main_page sp () ()
 
+
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
@@ -964,6 +1005,7 @@ let () =
 
 
 
+
 (************************************************************)
 (************** Coservices. Basic examples ******************)
 (************************************************************)
@@ -977,17 +1019,20 @@ let tcoservices_example =
     ~get_params:Eliom_parameters.unit
     ()
 
+
 let tcoservices_example_post =
   Eliom_services.new_post_coservice
     ~fallback:tcoservices_example
     ~post_params:Eliom_parameters.unit
     ()
 
+
 let tcoservices_example_get =
   Eliom_services.new_coservice
     ~fallback:tcoservices_example
     ~get_params:Eliom_parameters.unit
     ()
+
 
 
 (* -------------------------------------------------------- *)
@@ -1022,12 +1067,14 @@ let _ =
 
 
 
+
 (************************************************************)
 (*************** calc: sum of two integers ******************)
 (************************************************************)
 
 (*zap* *)
 let session_name = "calc_example"
+
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create two main services on the same URL,             *)
@@ -1039,11 +1086,13 @@ let tcalc =
     ~get_params:unit
     ()
 
+
 let tcalc_i =
   new_service
     ~path:["tcalc"]
     ~get_params:(int "i")
     ()
+
 
 
 (* -------------------------------------------------------- *)
@@ -1059,6 +1108,7 @@ let tcalc_handler sp () () =
   in
   let f = Eliom_appl.get_form tcalc_i sp create_form in
   return [f]
+
 
 
 (* -------------------------------------------------------- *)
@@ -1092,6 +1142,7 @@ let tcalc_i_handler sp i () =
   return [f]
 
 
+
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
@@ -1100,12 +1151,14 @@ let () =
   Eliom_appl.register tcalc_i tcalc_i_handler
 
 
+
 (************************************************************)
 (************ Connection of users, version 3 ****************)
 (************************************************************)
 
 (*zap* *)
 let session_name = "connect_example3"
+
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -1117,11 +1170,13 @@ let tconnect_example3 =
     ~get_params:Eliom_parameters.unit
     ()
 
+
 let tconnect_action =
   Eliom_services.new_post_coservice'
     ~name:"tconnect3"
     ~post_params:(Eliom_parameters.string "login")
     ()
+
 
 (* As the handler is very simple, we register it now: *)
 let tdisconnect_action =
@@ -1133,6 +1188,7 @@ let tdisconnect_action =
  (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp ())
 
 
+
 (* -------------------------------------------------------- *)
 (* login ang logout boxes:                                  *)
 
@@ -1140,6 +1196,7 @@ let tdisconnect_box sp s =
   Eliom_appl.post_form tdisconnect_action sp
     (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
+
 
 let tlogin_box sp =
   Eliom_appl.post_form tconnect_action sp
@@ -1151,6 +1208,7 @@ let tlogin_box sp =
          in l)
      ])
     ()
+
 
 
 (* -------------------------------------------------------- *)
@@ -1169,6 +1227,7 @@ let tconnect_example3_handler sp () () =
     )
 
 
+
 (* -------------------------------------------------------- *)
 (* Handler for connect_action (user logs in):               *)
 
@@ -1177,6 +1236,7 @@ let tconnect_action_handler sp () login =
  (*zap* *) ~session_name (* *zap*) ~level:`Tab ~sp () >>= fun () ->
   Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
   return ()
+
 
 
 (* -------------------------------------------------------- *)
@@ -1188,6 +1248,7 @@ let () =
 
 
 
+
 (************************************************************)
 (************ Connection of users, version 4 ****************)
 (**************** (persistent sessions) *********************)
@@ -1195,9 +1256,11 @@ let () =
 
 (*zap* *)
 let session_name = "persistent_sessions"
+
 (* *zap*)
 let tmy_persistent_table =
   Eliom_sessions.create_persistent_table ~level:`Tab (*zap* *) ~session_name (* *zap*) "teliom_example_table"
+
 
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -1209,11 +1272,13 @@ let tpersist_session_example =
     ~get_params:unit
     ()
 
+
 let tpersist_session_connect_action =
   Eliom_services.new_post_coservice'
     ~name:"tconnect4"
     ~post_params:(string "login")
     ()
+
 
 (* disconnect_action, login_box and disconnect_box have been
    defined in the section about actions *)
@@ -1232,14 +1297,17 @@ let tdisconnect_action =
     (fun sp () () ->
       Eliom_sessions.close_session ~session_name ~level:`Tab  ~sp ())
 
+
 let tdisconnect_box sp s =
   Eliom_appl.post_form tdisconnect_action sp
     (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
+
 let bad_user_key = Polytables.make_key ()
 let get_bad_user table = 
   try Polytables.get ~table ~key:bad_user_key with Not_found -> false
+
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -1259,6 +1327,7 @@ let tlogin_box sp session_expired action =
         else l)
      ])
     ()
+
 
 (* *zap*)
 
@@ -1281,6 +1350,7 @@ let tpersist_session_example_handler sp () () =
     )
 
 
+
 (* ----------------------------------------------------------- *)
 (* Handler for persist_session_connect_action (user logs in):  *)
 
@@ -1291,6 +1361,7 @@ let tpersist_session_connect_action_handler sp () login =
   then
     Eliom_sessions.set_persistent_session_data ~table:tmy_persistent_table ~sp login
   else ((*zap* *)Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;(* *zap*)return ())
+
 
 
 (* -------------------------------------------------------- *)
@@ -1307,11 +1378,13 @@ let () =
 
 
 
+
 (************************************************************)
 (************ Connection of users, version 6 ****************)
 (************************************************************)
 (*zap* *)
 let session_name = "connect_example6"
+
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -1323,11 +1396,13 @@ let tconnect_example6 =
     ~get_params:unit
     ()
 
+
 let tconnect_action =
   Eliom_services.new_post_coservice'
     ~name:"tconnect6"
     ~post_params:(string "login")
     ()
+
 
 (* new disconnect action and box:                           *)
 
@@ -1338,15 +1413,19 @@ let tdisconnect_action =
     (fun sp () () ->
       Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~level:`Tab  ~sp ())
 
+
 let tdisconnect_box sp s =
   Eliom_appl.post_form tdisconnect_action sp
     (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 
+
 let bad_user_key = Polytables.make_key ()
+
 let get_bad_user table = 
   try Polytables.get ~table ~key:bad_user_key with Not_found -> false
+
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -1367,6 +1446,7 @@ let tlogin_box sp session_expired action =
      ])
     ()
 
+
 (* -------------------------------------------------------- *)
 (* Handler for the "connect_example6" service (main page):   *)
 
@@ -1386,6 +1466,7 @@ let tconnect_example6_handler sp () () =
          p [em [pcdata "The only user is 'toto'."]]]
     )
 
+
 (* -------------------------------------------------------- *)
 (* New handler for connect_action (user logs in):           *)
 
@@ -1403,6 +1484,7 @@ let tconnect_action_handler sp () login =
   end
 
 
+
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
@@ -1417,11 +1499,13 @@ let () =
 
 
 
+
 let tcsrfsafe_example =
   Eliom_services.new_service
     ~path:["tcsrf"]
     ~get_params:Eliom_parameters.unit
     ()
+
 
 let tcsrfsafe_example_post =
   Eliom_services.new_post_coservice
@@ -1435,6 +1519,7 @@ let tcsrfsafe_example_post =
     ~fallback:tcsrfsafe_example
     ~post_params:Eliom_parameters.unit
     ()
+
 
 let _ =
   let page sp () () =
@@ -1453,10 +1538,13 @@ let _ =
       Lwt.return [p [pcdata "This is a CSRF safe service"]])
 
 
+
 (***** User cookies *****)
 let cookiename = "mycookie"
 
+
 let tcookies = new_service ["tcookies"] unit ()
+
 
 let _ = Eliom_appl.register tcookies
   (fun sp () () ->
@@ -1478,6 +1566,7 @@ let _ = Eliom_appl.register tcookies
 
 
 
+
 (***** Action outside the application: 
        will ask the client program to do a redirection *****)
 
@@ -1486,6 +1575,7 @@ let coucouaction =
     ~fallback:Tutoeliom.coucou
     ~get_params:unit
     (fun _ () () -> Lwt.return ())
+
 
 let actionoutside =
   Eliom_appl.register_new_service
@@ -1501,11 +1591,14 @@ let actionoutside =
 
 
 
+
 (*zap* *)
 open Tutoeliom
-       
+
+
 (* Main page for this example *)
 let main = new_service [] unit ()
+
 
 let _ = Eliom_predefmod.Xhtmlcompact.register main
   (fun sp () () ->
