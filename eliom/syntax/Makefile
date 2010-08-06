@@ -1,7 +1,7 @@
 include ../../Makefile.config
 
 PP = -pp camlp4of
-LIBS = -I +camlp4 -I +camlp4/Camlp4Printers -I +camlp4/Camlp4Parsers
+LIBS = -I +camlp4 -I +camlp4/Camlp4Printers -I +camlp4/Camlp4Parsers -I +camlp4/Camlp4Filters
 
 OCAMLDEP = $(OCAMLFIND) ocamldep $(LIBS) $(PP)
 OCAMLC = $(OCAMLFIND) $(CAMLCNAME) $(LIBS) $(PP)
@@ -22,4 +22,4 @@ clean:
 depend:
 	$(OCAMLDEP) $(FILES) > .depend
 
-include .depend
+-include .depend
