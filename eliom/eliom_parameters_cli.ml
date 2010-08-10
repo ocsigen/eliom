@@ -393,7 +393,7 @@ let rec get_to_and_from x = match x with
   | TNLParams _ | TSuffix _ | TProd (_, _)
   | TList (_, _) | TSet _ | TSum (_, _) 
   | TAny | TESuffix _ | TESuffixs _ | TFile _ 
-  | TCoord _ | TCoordv _ | TAny _  | TConst _->
+  | TCoord _ | TCoordv _ | TConst _->
     failwith "get_to_and_from: not implemented"
 
 
@@ -402,13 +402,12 @@ let guard construct name guard =
   TUserType (name, (fun s -> let alpha = from s in assert (guard alpha); alpha),
              _to)
 
-(** Walk the parameter tree to search for a parameter, given its
-    name *)
+(** Walk the parameter tree to search for a parameter, given its name *)
 let rec walk_parameter_tree name x = match x with
   | TUserType (name', _, _) | TInt name' | TInt32 name' | TInt64 name' | TFile name' 
   | TFloat name' | TString name' | TBool name' | TCoord name'  | TMarshal name' 
   | TConst name' | TCoordv (_, name') | TESuffix name' | TESuffixs name'
-  | TESuffixs name' | TESuffixu (name', _, _) ->
+  | TESuffixu (name', _, _) ->
     if name = name' then
       Some (get_to_and_from x)
     else
