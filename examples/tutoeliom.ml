@@ -1614,7 +1614,8 @@ let session_data_example_with_post_params_handler sp _ login =
        (body
           [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
               br ();
-              Eliom_predefmod.Xhtml.a session_data_example sp [pcdata "Try again"] ()
+              Eliom_predefmod.Xhtml.a session_data_example sp
+                [pcdata "Try again"] ()
             ]]))
 
 
@@ -1624,7 +1625,7 @@ let session_data_example_with_post_params_handler sp _ login =
 
 let session_data_example_close_handler sp () () =
   let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
-  Eliom_sessions.close_session ~sp () >>= fun () ->
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])

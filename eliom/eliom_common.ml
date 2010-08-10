@@ -104,18 +104,20 @@ module SessionCookies =
 
 (* session groups *)
 type 'a sessgrp =
-    (string * level * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+    (string * cookie_level
+     * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
     (* The full session group is the triple
        (site_dir_string, level, session group name).
        The level is the level of group members (`Browser by default).
        If there is no session group, 
        we limit the number of sessions by IP address. *)
-type perssessgrp = string (* site_dir_string * level * name, marshaled *)
+type perssessgrp = string (* same triple, marshaled *)
 
-let make_persistent_full_group_name ~level ri site_dir_string = function
+let make_persistent_full_group_name ~cookie_level site_dir_string = function
   | None -> None
   | Some g ->
-    Some (Marshal.to_string (site_dir_string, level, Ocsigen_lib.Left g) [])
+    Some (Marshal.to_string
+            (site_dir_string, cookie_level, Ocsigen_lib.Left g) [])
 
 let getperssessgrp a = Marshal.from_string a 0
 

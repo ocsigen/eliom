@@ -550,7 +550,7 @@ let unset_service_session_group ?set_max
     let sitedata = sp.Eliom_common.sp_sitedata in
     let n =
       Eliommod_sessiongroups.make_full_group_name
-        ~level:cookie_level
+        ~cookie_level
         sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
         sitedata.Eliom_common.site_dir_string
         (Eliom_common.get_mask4 sitedata)
@@ -616,7 +616,7 @@ let unset_volatile_data_session_group ?set_max
     let sitedata = sp.Eliom_common.sp_sitedata in
     let n =
       Eliommod_sessiongroups.make_full_group_name
-        ~level:cookie_level
+        ~cookie_level
         sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
         sitedata.Eliom_common.site_dir_string 
         (Eliom_common.get_mask4 sitedata)
@@ -659,16 +659,18 @@ let set_persistent_data_session_group ?set_max
     ?session_name ~cookie_level ~secure ~sp () >>= fun c ->
   let n =
     Eliommod_sessiongroups.make_persistent_full_group_name
-      ~level:cookie_level
-      sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
+      ~cookie_level
       sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string (Some n)
   in
   let grp = c.Eliom_common.pc_session_group in
-  Eliommod_sessiongroups.Pers.move ?set_max
+  Eliommod_sessiongroups.Pers.move
+    sp.Eliom_common.sp_sitedata
+    ?set_max
     (fst sp.Eliom_common.sp_sitedata.Eliom_common.max_persistent_data_sessions_per_group)
     c.Eliom_common.pc_value !grp n >>= fun l ->
   Lwt_util.iter
-    (Eliommod_persess.close_persistent_session2 None) l >>= fun () ->
+    (Eliommod_persess.close_persistent_session2
+       ~cookie_level sp.Eliom_common.sp_sitedata None) l >>= fun () ->
   grp := n;
   Lwt.return ()
 
@@ -680,7 +682,8 @@ let unset_persistent_data_session_group
        Eliommod_persess.find_persistent_cookie_only
         ?session_name ~cookie_level ~secure ~sp () >>= fun c ->
        let grp = c.Eliom_common.pc_session_group in
-       Eliommod_sessiongroups.Pers.remove c.Eliom_common.pc_value !grp >>= fun () ->
+       Eliommod_sessiongroups.Pers.remove
+         sp.Eliom_common.sp_sitedata c.Eliom_common.pc_value !grp >>= fun () ->
        grp := None;
 
        close_persistent_session_if_empty ~level:`Browser 
@@ -1326,7 +1329,7 @@ module Session_admin = struct
         | None -> (* We want to close the group of a tab session,
                      that is, the browser session associated. *)
           let grp = Eliommod_sessiongroups.make_full_named_group_name_
-            ~level:`Tab sitedata cookie
+            ~cookie_level:`Tab sitedata cookie
           in
 (*VVV à vérifier *)
           Eliommod_sessiongroups.Serv.remove_group grp
@@ -1342,7 +1345,7 @@ module Session_admin = struct
         | None -> (* We want to close the group of a tab session,
                      that is, the browser session associated. *)
           let grp = Eliommod_sessiongroups.make_full_named_group_name_
-            ~level:`Tab sitedata cookie
+            ~cookie_level:`Tab sitedata cookie
           in
 (*VVV à vérifier *)
           Eliommod_sessiongroups.Data.remove_group grp
@@ -1351,11 +1354,15 @@ module Session_admin = struct
 
   let close_persistent_data_session ?(close_group = false)
 (*VVV Is it the right interface for closing group? *)
-      ~session:(cookie, (_, _, _, sg)) =
-    if close_group then
-      Eliommod_persess.close_persistent_group sg
+      ~session:(cookie, ((cookie_level, _), _, _, sg)) =
+    failwith "Eliom_sessions.close_persistent_data_session not implemented"
+(*    if close_group then
+      Eliommod_sessiongroups.Pers.remove_group sg
     else
-      Eliommod_persess.close_persistent_session2 sg cookie
+      Eliommod_persess.close_persistent_session2
+        ~cookie_level ???
+        sg cookie
+*)
 
   let get_volatile_session_data ~session:(cookie, _, _) ~table:(_, _, _, t) =
     Eliom_common.SessionCookies.find t cookie

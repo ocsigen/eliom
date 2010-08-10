@@ -93,11 +93,12 @@ let close_all_data_sessions ?session_name ?(cookie_level = `Browser) sitedata =
 *)
 
 
-let close_all_persistent_sessions2 fullsessname =
+let close_all_persistent_sessions2 fullsessname sitedata =
   Ocsipersist.iter_table
-    (fun k (fullsessname2, old_exp, old_t, sessiongrp) ->
+    (fun k ((cookie_level, _) as fullsessname2, old_exp, old_t, sessiongrp) ->
       if fullsessname = fullsessname2 && old_t = Eliom_common.TGlobal
-      then Eliommod_persess.close_persistent_session2 sessiongrp k >>=
+      then Eliommod_persess.close_persistent_session2
+        ~cookie_level sitedata sessiongrp k >>=
         Lwt_unix.yield
       else return ()
     )
@@ -113,7 +114,7 @@ let close_all_persistent_sessions
     Eliom_common.make_fullsessname2
       sitedata.Eliom_common.site_dir_string cookie_level session_name
   in
-  close_all_persistent_sessions2 fullsessname
+  close_all_persistent_sessions2 fullsessname sitedata
 (*VVV Missing:
    - close all sessions, whatever be the session_name
    - secure
@@ -189,17 +190,17 @@ let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
 
 
 (* Update the expiration date for all sessions                               *)
-let update_pers_exp fullsessname _ old_glob_timeout new_glob_timeout =
+let update_pers_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
   Ocsigen_messages.debug2
     "--Eliom: Updating expiration date for all persistent sessions";
   match new_glob_timeout with
   | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
-      close_all_persistent_sessions2 fullsessname
+      close_all_persistent_sessions2 fullsessname sitedata
   | _ ->
     let now = Unix.time () in
     Ocsipersist.iter_table
-      (fun k (fullsessname2, old_exp, old_t, sessgrp) ->
+      (fun k ((cookie_level, _) as fullsessname2, old_exp, old_t, sessgrp) ->
         if fullsessname = fullsessname2 && old_t =
           Eliom_common.TGlobal
         then
@@ -211,7 +212,8 @@ let update_pers_exp fullsessname _ old_glob_timeout new_glob_timeout =
           in
           match newexp with
           | Some t when t <= now ->
-              Eliommod_persess.close_persistent_session2 sessgrp k
+              Eliommod_persess.close_persistent_session2
+                ~cookie_level sitedata sessgrp k
           | _ ->
               Ocsipersist.add
                 (Lazy.force Eliommod_persess.persistent_cookies_table)

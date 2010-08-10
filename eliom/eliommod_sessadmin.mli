@@ -18,4 +18,4 @@ val update_data_exp :
   Eliom_common.sitedata -> float option -> float option -> unit Lwt.t
 val update_pers_exp : 
   Eliom_common.fullsessionname -> 
-  'a -> float option -> float option -> unit Lwt.t
+  Eliom_common.sitedata -> float option -> float option -> unit Lwt.t

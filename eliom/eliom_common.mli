@@ -197,7 +197,8 @@ module SessionCookies : Hashtbl.S with type key = string
 
 (* session groups *)
 type 'a sessgrp =
-    (string * level * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+    (string * cookie_level
+     * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
     (* The full session group is the triple
        (site_dir_string, level, session group name).
        The level is the level of group members (`Browser by default).
@@ -206,11 +207,11 @@ type 'a sessgrp =
 type perssessgrp (* the same triple, marshaled *)
 
 val make_persistent_full_group_name :
-  level:level ->
-  Ocsigen_extensions.request_info -> string -> string option ->
-  perssessgrp option
+  cookie_level:cookie_level -> string -> string option -> perssessgrp option
 
-val getperssessgrp : perssessgrp -> (string * level * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+val getperssessgrp : perssessgrp -> 
+  (string * cookie_level * 
+     (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
 
 val string_of_perssessgrp : perssessgrp -> string
 

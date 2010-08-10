@@ -325,8 +325,7 @@ let (fragment, set_fragment_signal) = React.S.create (read_fragment ())
 let rec fragment_polling () =
   Lwt_js.sleep 0.2 >>= fun () ->
   let new_fragment = read_fragment () in
-  if new_fragment <> (React.S.value fragment)
-  then set_fragment_signal new_fragment;
+  set_fragment_signal new_fragment;
   fragment_polling ()
 
 let _ = fragment_polling ()
@@ -344,8 +343,7 @@ let auto_change_page fragment =
            match l with
              | 2 -> "./" (* fix for firefox *)
              | 0 | 1 -> Eliom_sessions.full_uri
-             | _ ->
-                 String.sub fragment 2 ((String.length fragment) - 2) 
+             | _ -> String.sub fragment 2 ((String.length fragment) - 2) 
          in
          Eliom_request.http_get uri [] >>= fun r ->
          set_content (Eliom_request.get_eliom_appl_result r))

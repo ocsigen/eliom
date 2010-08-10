@@ -80,9 +80,9 @@ let close_service_session ?session_name ?(level = `Browser) ~secure ~sp () =
 
 
 
-let fullsessgrp ~level ~sp set_session_group =
+let fullsessgrp ~cookie_level ~sp set_session_group =
   Eliommod_sessiongroups.make_full_group_name
-    ~level
+    ~cookie_level
     sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
     sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
     (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
@@ -116,7 +116,7 @@ let rec find_or_create_service_cookie ?set_session_group
       end
       else set_session_group
     in
-    let fullsessgrp = fullsessgrp ~level:(cookie_level :> Eliom_common.level)
+    let fullsessgrp = fullsessgrp ~cookie_level
       ~sp set_session_group
     in
 
@@ -185,10 +185,7 @@ let rec find_or_create_service_cookie ?set_session_group
       (match set_session_group with
         | None -> ()
         | Some session_group -> 
-          let fullsessgrp =
-            fullsessgrp ~level:(cookie_level :> Eliom_common.level)
-              ~sp set_session_group
-          in
+          let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
           let node = Eliommod_sessiongroups.Serv.move
             sp.Eliom_common.sp_sitedata
             c.Eliom_common.sc_session_group_node fullsessgrp

@@ -59,8 +59,6 @@ let number_of_persistent_table_elements () =
 
 let close_persistent_session2 =
   Eliommod_sessiongroups.Pers.close_persistent_session2
-let close_persistent_group =
-  Eliommod_sessiongroups.Pers.remove_group
 
 (* close current persistent session *)
 let close_persistent_session ?session_name ?(level = `Browser) ~secure ~sp () =
@@ -80,11 +78,25 @@ let close_persistent_session ?session_name ?(level = `Browser) ~secure ~sp () =
 
       match !ior with
       | Eliom_common.SC c ->
-        ((if level = `Group
-          then
-            close_persistent_group !(c.Eliom_common.pc_session_group)
-          else
-            close_persistent_session2 !(c.Eliom_common.pc_session_group)
+        ((match level with
+          | `Group ->
+            Eliommod_sessiongroups.Pers.remove_group
+              ~cookie_level:`Browser
+              sp.Eliom_common.sp_sitedata
+              !(c.Eliom_common.pc_session_group)
+          | `Browser ->
+            Eliommod_sessiongroups.Pers.remove_group
+              ~cookie_level:(`Tab !(c.Eliom_common.pc_session_group))
+              sp.Eliom_common.sp_sitedata
+              (Eliommod_sessiongroups.make_persistent_full_group_name
+                 ~cookie_level:`Tab
+                 sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
+                 (Some c.Eliom_common.pc_value))
+          | `Tab ->
+            close_persistent_session2
+              ~cookie_level:`Tab
+              sp.Eliom_common.sp_sitedata
+              !(c.Eliom_common.pc_session_group)
               c.Eliom_common.pc_value)
          >>= fun () ->
          ior := Eliom_common.SCNo_data;
@@ -96,10 +108,9 @@ let close_persistent_session ?session_name ?(level = `Browser) ~secure ~sp () =
       | e -> fail e)
 
 
-let fullsessgrp ~level ~sp session_group =
+let fullsessgrp ~cookie_level ~sp session_group =
   Eliommod_sessiongroups.make_persistent_full_group_name
-    ~level
-    sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
+    ~cookie_level
     sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
     session_group
 
@@ -127,9 +138,7 @@ let rec find_or_create_persistent_cookie_
      end
      else Lwt.return set_session_group) >>= fun set_session_group ->
 
-    let fullsessgrp = fullsessgrp ~level:(cookie_level :> Eliom_common.level)
-      ~sp set_session_group
-    in
+    let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
 
     let c = Eliommod_cookies.make_new_session_id () in
   (* We do not need to verify if it already exists.
@@ -147,13 +156,15 @@ let rec find_or_create_persistent_cookie_
       (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
       c fullsessgrp >>= fun l ->
     Lwt_util.iter
-      (close_persistent_session2 None) l >>= fun () ->
-    return {Eliom_common.pc_value= c;
-            Eliom_common.pc_timeout= usertimeout;
-            Eliom_common.pc_cookie_exp=
-        ref Eliom_common.CENothing (* exp on client *);
-            Eliom_common.pc_session_group= ref fullsessgrp
-           }
+      (close_persistent_session2 ~cookie_level sitedata None) l
+    >>= fun () ->
+    Lwt.return
+      { Eliom_common.pc_value= c;
+        Eliom_common.pc_timeout= usertimeout;
+        Eliom_common.pc_cookie_exp =
+          ref Eliom_common.CENothing (* exp on client *);
+        Eliom_common.pc_session_group= ref fullsessgrp
+      }
   in
 
   let fullsessname = 

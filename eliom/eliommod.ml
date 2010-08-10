@@ -171,6 +171,7 @@ let new_sitedata =
           gog;
         Eliommod_gc.service_session_gc sitedata;
         Eliommod_gc.data_session_gc sitedata;
+        Eliommod_gc.persistent_session_gc sitedata;
         S.add t key sitedata;
         sitedata
 
@@ -790,6 +791,5 @@ let () =
     ~end_init
     ~exn_handler:handle_init_exn
     ~init_fun:parse_global_config
-    ();
-  Eliommod_gc.persistent_session_gc ()
+    ()
 

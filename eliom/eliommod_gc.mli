@@ -13,4 +13,4 @@ val gc_timeouted_naservices :
   float -> Eliom_common.naservice_table ref -> unit Lwt.t
 val service_session_gc : Eliom_common.sitedata -> unit
 val data_session_gc : Eliom_common.sitedata -> unit
-val persistent_session_gc : unit -> unit
+val persistent_session_gc : Eliom_common.sitedata -> unit

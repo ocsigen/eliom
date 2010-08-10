@@ -24,20 +24,21 @@
 let (>>=) = Lwt.bind
 let (!!) = Lazy.force
 
-let make_full_named_group_name_ ~level sitedata g =
-  (sitedata.Eliom_common.site_dir_string, level, Ocsigen_lib.Left g)
+let make_full_named_group_name_ ~cookie_level sitedata g =
+  (sitedata.Eliom_common.site_dir_string, cookie_level, Ocsigen_lib.Left g)
 
-let make_full_group_name ~level ri site_dir_string ipv4mask ipv6mask = function
+let make_full_group_name ~cookie_level ri site_dir_string ipv4mask ipv6mask = 
+  function
   (* The level is the level of group members (`Browser by default). *)
   | None -> (site_dir_string,
-             level,
+             cookie_level,
              Ocsigen_lib.Right 
                (Ocsigen_lib.network_of_ip
                   (!!(ri.Ocsigen_extensions.ri_remote_ip_parsed))
                   ipv4mask
                   ipv6mask
                ))
-  | Some g -> (site_dir_string, level, Ocsigen_lib.Left g)
+  | Some g -> (site_dir_string, cookie_level, Ocsigen_lib.Left g)
 
 let make_persistent_full_group_name =
   Eliom_common.make_persistent_full_group_name
@@ -159,21 +160,23 @@ struct
         | None, _ -> assert false
         | Some v, _ -> v
       in
-      let level = Ocsigen_lib.snd3 sess_grp in
+      let cookie_level = Ocsigen_lib.snd3 sess_grp in
       let cl = Ocsigen_cache.Dlist.create size in
       Ocsigen_cache.Dlist.set_finaliser_after
         (fun node ->
           let name = Ocsigen_cache.Dlist.value node in
           (* First we close all subsessions
              (that is, all sessions in the group associated to the session) *)
-          (match level with
-            | `Group -> assert false
-              (* As there is no table of groups of groups
-                 (only one group of groups for each site),
-                 the finaliser for these groups is created in eliommod.ml *)
-            | `Browser (* We are closing to close a browser session *) ->
+          (match cookie_level with
+(*            | `Group -> assert false
+              As there is no table of groups of groups
+              (only one group of groups for each site),
+              the finaliser for these groups is created in eliommod.ml *)
+            | `Browser (* We are closing a browser session *) ->
               (* First we close all tab sessions in the session (subgrp): *)
-              let subgrp = make_full_named_group_name_ ~level sitedata name in
+              let subgrp = 
+                make_full_named_group_name_ ~cookie_level:`Tab sitedata name 
+              in
               remove_group subgrp
             | `Tab (* We are closing a browser session *) -> ());
           (* Then we close all session tables: *)
@@ -183,7 +186,7 @@ struct
           remove_if_empty sitedata sess_grp cl)
         cl;
       let node_in_group_of_group =
-        match level with
+        match cookie_level with
           | `Browser ->
             ignore (Ocsigen_cache.Dlist.add
                       sess_grp sitedata.Eliom_common.group_of_groups);
@@ -399,6 +402,7 @@ let cut n l =
 
 module Pers = struct
 (*VVV Verify this carefully! *)
+(*VVV VERIFY concurrent access *)
 
   let grouptable : (nbmax * string list) Ocsipersist.table Lazy.t =
     lazy (Ocsipersist.open_table "__eliom_session_group_table")
@@ -452,45 +456,92 @@ module Pers = struct
     | None -> Lwt.return []
       
 
-  let rec remove_group sess_grp =
-(*VVV NEW 201007 closing all sessions in the group
-  and removing group data *)
-  (*VVV VERIFY concurrent access *)
+  let rec remove_group ~cookie_level sitedata sess_grp =
+    (* cookie_level is the level of group members *)
+(*VVV NEW 201007 closing all sessions in the group and removing group data *)
+(*VVV VERIFY concurrent access *)
+(*VVV Check this carefully!!!! Verify the order of actions. *)
     Lwt.catch
       (fun () ->
+        (* First we close all sessions in the group *)
         find sess_grp >>= fun cl ->
-        Lwt_util.iter (close_persistent_session2 None) cl >>= fun () ->
+        Lwt_util.iter
+          (close_persistent_session2
+             ~cookie_level:(match cookie_level with
+               | `Tab _ -> `Tab | `Browser -> `Browser)
+             sitedata None) cl
         (* None because we will close the group *)
+        >>= fun () ->
+        
+        (* Then, we remove group data: *)
+        let group_name =
+          match sess_grp with
+            | Some sg ->
+              (match Eliom_common.getperssessgrp sg with
+                | (_, _, Ocsigen_lib.Left s) -> s
+                | _ -> Eliom_common.default_group_name)
+            | None -> Eliom_common.default_group_name
+        in
+        Eliom_common.remove_from_all_persistent_tables group_name
+        >>= fun () ->
+        
+        (* If it is associated to a session,
+           we remove the session from its group,
+           and we remove cookie info: *)
+        (match cookie_level with
+          | `Tab grp -> (* We are closing a browser session,
+                           belonging to the group grp *)
+            (* group_name is the cookie value *)
+            remove sitedata group_name grp >>= fun () ->
+            Ocsipersist.remove 
+              (!!Eliom_common.persistent_cookies_table) group_name
+          | _ -> Lwt.return ())
+        >>= fun () ->
+
+        (* Then, we remove group from group table: *)
         match sess_grp with
           | Some sg ->
-            (let persessgrp = Eliom_common.getperssessgrp sg in
-             let key_in_group_tables = match persessgrp with
-               | (_, _, Ocsigen_lib.Left s) -> s
-               | _ -> Eliom_common.default_group_name
-             in
-             Eliom_common.remove_from_all_persistent_tables key_in_group_tables
-                                               >>= fun () ->
-             let sg = Eliom_common.string_of_perssessgrp sg in
-             Ocsipersist.remove !!grouptable sg)
-          | None -> Lwt.return ())
+            let sg = Eliom_common.string_of_perssessgrp sg in
+            Ocsipersist.remove !!grouptable sg
+          | None -> Lwt.return ()
+      )
       (function Not_found -> Lwt.return () | e -> Lwt.fail e)
-                
 
-(* close a persistent session by cookie value *)
-  and close_persistent_session2 fullsessgrp cookie =
+  (* close a persistent session (tab or browser) 
+     and the associated group (if browser session) by cookie value *)
+  and close_persistent_session2 ~cookie_level sitedata fullsessgrp cookie =
+(*VVV Check this carefully!!!! *)
+(*VVV Optimize the number of marshal/unmarshal (getperssessgrp) *)
     Lwt.catch
       (fun () ->
-        Ocsipersist.remove 
-          (Lazy.force Eliom_common.persistent_cookies_table) cookie >>= fun () ->
-        remove cookie fullsessgrp >>= fun () ->
-        Eliom_common.remove_from_all_persistent_tables cookie
+        match cookie_level with
+          | `Tab -> begin
+            (* We remove cookie info from the table *)
+            Ocsipersist.remove 
+              (!!Eliom_common.persistent_cookies_table) cookie
+            >>= fun () ->
+
+            (* We remove the session from its group: *)
+            remove sitedata cookie fullsessgrp >>= fun () ->
+
+            (* Then, we remove session data: *)
+            Eliom_common.remove_from_all_persistent_tables cookie
+          end
+          | `Browser ->
+            remove_group
+              ~cookie_level:(`Tab fullsessgrp)
+              sitedata
+              (Eliom_common.make_persistent_full_group_name
+                 ~cookie_level:`Tab
+                 sitedata.Eliom_common.site_dir_string
+                 (Some cookie))
       )
       (function
         | Not_found -> Lwt.return ()
         | e -> Lwt.fail e)
 
 
-  and remove sess_id sess_grp =
+  and remove sitedata sess_id sess_grp =
     match sess_grp with
     | Some sg0 ->
       let sg = Eliom_common.string_of_perssessgrp sg0 in
@@ -508,7 +559,7 @@ module Pers = struct
               *)
               (match Eliom_common.getperssessgrp sg0 with
                 | (_, `Browser, _) ->
-                  remove_group sess_grp
+                  remove_group ~cookie_level:`Browser sitedata sess_grp
                 | _ -> Lwt.return ()
               ) >>= fun () ->
               Ocsipersist.remove !!grouptable sg
@@ -535,9 +586,9 @@ module Pers = struct
             | Not_found -> Lwt.return ()
             | e -> Lwt.fail e)
           
-  let move ?set_max max sess_id grp1 grp2 =
+  let move sitedata ?set_max max sess_id grp1 grp2 =
     if set_max <> None || grp1 <> grp2 then begin
-      remove sess_id grp1 >>= fun () ->
+      remove sitedata sess_id grp1 >>= fun () ->
       add ?set_max max sess_id grp2
     end
     else Lwt.return []

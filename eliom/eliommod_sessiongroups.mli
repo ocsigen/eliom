@@ -20,28 +20,28 @@
  *)
 
 val make_full_named_group_name_ : 
-  level:Eliom_common.level ->
+  cookie_level:Eliom_common.cookie_level ->
   Eliom_common.sitedata ->
   string -> [< Eliom_common.level ] Eliom_common.sessgrp
 
 val make_full_group_name : 
-  level:Eliom_common.level ->
+  cookie_level:Eliom_common.cookie_level ->
   Ocsigen_extensions.request_info -> string -> 
   int32 -> int64 * int64 ->
   string option -> [< Eliom_common.level ] Eliom_common.sessgrp
 
 val make_persistent_full_group_name :
-  level:Eliom_common.level ->
-  Ocsigen_extensions.request_info -> string -> string option ->
+  cookie_level:Eliom_common.cookie_level ->
+  string -> string option ->
   Eliom_common.perssessgrp option
 
 val getsessgrp : 
   [< Eliom_common.level ] Eliom_common.sessgrp -> 
-  string * Eliom_common.level *
+  string * Eliom_common.cookie_level *
     (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright
 
 val getperssessgrp : Eliom_common.perssessgrp ->
-  (string * Eliom_common.level * 
+  (string * Eliom_common.cookie_level * 
      (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
 
 module type MEMTAB =
@@ -89,9 +89,14 @@ module Pers :
     val find : Eliom_common.perssessgrp option -> string list Lwt.t
     val add : ?set_max: int option ->
       int option -> string -> Eliom_common.perssessgrp option -> string list Lwt.t
-    val remove : string -> Eliom_common.perssessgrp option -> unit Lwt.t
-    val remove_group : Eliom_common.perssessgrp option -> unit Lwt.t
+    val remove : Eliom_common.sitedata -> 
+      string -> Eliom_common.perssessgrp option -> unit Lwt.t
+    val remove_group :
+      cookie_level:[ `Browser | `Tab of Eliom_common.perssessgrp option ] ->
+      Eliom_common.sitedata ->
+      Eliom_common.perssessgrp option -> unit Lwt.t
     val move :
+      Eliom_common.sitedata ->
       ?set_max: int option ->
       int option ->
       string ->
@@ -102,6 +107,8 @@ module Pers :
     val nb_of_groups : unit -> int Lwt.t
 
     val close_persistent_session2 :
+      cookie_level:[ `Browser | `Tab ] ->
+      Eliom_common.sitedata ->
       Eliom_common.perssessgrp option -> string -> unit Lwt.t
   end
 

@@ -274,7 +274,7 @@ let data_session_gc sitedata =
 
 (* garbage collection of timeouted persistent sessions *)
 (* This is a thread that will work every hour/day *)
-let persistent_session_gc () =
+let persistent_session_gc sitedata =
   match get_persistentsessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
@@ -284,12 +284,15 @@ let persistent_session_gc () =
           let now = Unix.time () in
           Ocsigen_messages.debug2 "--Eliom: GC of persistent sessions";
           (Ocsipersist.iter_table
-             (fun k (_, exp, _, session_group) ->
+             (fun k ((cookie_level, _), exp, _, session_group) ->
                (match exp with
                | Some exp when exp < now ->
 (*VVV ? *)
-                   Eliommod_persess.close_persistent_session2 session_group k
-                     (*WAS: remove_from_all_persistent_tables k *)
+                 Eliommod_persess.close_persistent_session2
+                   ~cookie_level (*VVV ? *)
+                   sitedata
+                   session_group k
+               (*WAS: remove_from_all_persistent_tables k *)
                | _ -> return ())
              )
              (Lazy.force Eliommod_persess.persistent_cookies_table)))
