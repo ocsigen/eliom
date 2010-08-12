@@ -153,7 +153,7 @@ struct
        "_eliom__client__server__this__is__a__reserved__name" ^ string_of_int !r
     )
 
-  let gen_num_base _loc = Int64.of_int (Hashtbl.hash Loc.file_name)
+  let gen_num_base _loc = Int64.of_int (Hashtbl.hash (Loc.file_name _loc))
   let gen_num_count = ref Int64.zero
   let gen_num _loc =
     gen_num_count := Int64.succ !gen_num_count;
