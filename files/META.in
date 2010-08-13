@@ -161,12 +161,11 @@ package "ext" (
   )
 
   package "eliom_client_syntax" (
-    requires = "camlp4"
+    requires = "camlp4,unix"
     version = "[distributed with Ocsigen]"
     description = "Syntax extension: spliting client and server code"
-    archive(syntax,preprocessor) = "pa_eliom_client.cmo"
-    archive(syntax,toploop) = "pa_eliom_client.cmo"
-    directory = "client"
+    archive(syntax,preprocessor) = "pa_eliom_seed.cmo pa_eliom_client_client.cmo pa_eliom_client_server.cmo"
+    directory = "syntax"
   )
 
   package "deflatemod" (

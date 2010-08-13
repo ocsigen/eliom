@@ -90,6 +90,8 @@ tutoeliom_ocsigen2_client.js: $(ELIOMCLIENTDIR)/eliom_client.js syntax_temp_file
 
 tutoeliom_ocsigen2.cmo: syntax_temp_files/tutoeliom_ocsigen2.ml
 	$(CAMLC) -c $< -o $@
+tutoeliom_ocsigen2.cmx: syntax_temp_files/tutoeliom_ocsigen2.ml
+	$(CAMLOPT) -c $< -o $@
 
 
 #HERE IS THE SECTION CONCERNING ELIOM'S SYNTAX EXTENSIONS
