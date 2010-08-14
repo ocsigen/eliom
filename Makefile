@@ -211,7 +211,12 @@ STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
 TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) 
-CLIENTCMOTOINSTALL=eliom/pa_eliom_client.cmo eliom/client/eliom_client.cma eliom/client/eliom_client_main.cmo eliom/client/eliom_client.js
+CLIENTCMOTOINSTALL= \
+	eliom/syntax/pa_eliom_seed.cmo \
+	eliom/syntax/pa_eliom_client_client.cmo eliom/syntax/pa_eliom_client_server.cmo \
+	eliom/syntax/pa_eliom_type_filter.cmo \
+	eliom/client/eliom_client.cma eliom/client/eliom_client_main.cmo \
+	eliom/client/eliom_client.js
 CLIENTCMITOINSTALL= \
         eliom/client/eliom_client.cmi \
 	eliom/client/eliom_common_comet.cmi \
