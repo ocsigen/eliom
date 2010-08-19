@@ -34,6 +34,9 @@
   * **SOON** Eliom: simplification of sessions. Now restoring session data and
     process data automatically as a new parameter for service handlers.
   * Xhtml: Experimental Xhtml5 support
+  * Atom module and Pubsubhubbub
+  * OpenID support
+  * SVG module
   * //and many other things ...//
 
 ===== 1.3.3 (2010-06-13) =====
