@@ -130,14 +130,11 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_uri.cmi \
 	eliom/extensions/eliom_s2s.cmi eliom/extensions/eliom_openid.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
+       eliom/eliom_client_types.cmi \
        eliom/extensions/atom_feed.cmi eliom/extensions/eliom_atom.cmi \
        extensions/comet.cmi \
        extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
        baselib/polytables.cmi
-
-CLIENTSCMITOINSTALL = \
-       eliom/client/eliom_client.cmi eliom/client/eliom_client_comet.cmi \
-       eliom/client/eliom_client_event.cmi
 
 # Put here only those which do not have cmxs (Vincent: Why?)
 CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/xhtmlpretty.cma	\
@@ -211,12 +208,18 @@ STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
 TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) 
-CLIENTCMOTOINSTALL= \
+
+ELIOMSYNTAXTOINSTALL= \
 	eliom/syntax/pa_eliom_seed.cmo \
-	eliom/syntax/pa_eliom_client_client.cmo eliom/syntax/pa_eliom_client_server.cmo \
-	eliom/syntax/pa_eliom_type_filter.cmo \
+	eliom/syntax/pa_eliom_client_client.cmo \
+	eliom/syntax/pa_eliom_client_server.cmo \
+	eliom/syntax/pa_eliom_type_filter.cmo
+
+CLIENTCMOTOINSTALL= \
 	eliom/client/eliom_client.cma eliom/client/eliom_client_main.cmo \
-	eliom/client/eliom_client.js
+	eliom/client/eliom_client.js \
+	eliom/client/dlleliom_client.so
+
 CLIENTCMITOINSTALL= \
         eliom/client/eliom_client.cmi \
 	eliom/client/eliom_common_comet.cmi \
@@ -240,7 +243,8 @@ CLIENTCMITOINSTALL= \
         eliom/client/eliom_common.cmi \
         eliom/client/eliom_parameters.cmi \
         eliom/client/eliom_uri.cmi \
-        eliom/client/xHTML5.cmi
+        eliom/client/xHTML5.cmi \
+	eliom/client/eliommod_cli.cmi
 
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
@@ -422,7 +426,8 @@ depend:
 .PHONY: partialinstall install doc docinstall installnodoc logrotate dist
 partialinstall:
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
-	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)/client
+	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client
+	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/syntax
 	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/METAS
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/extensions
@@ -430,7 +435,8 @@ partialinstall:
 	$(MAKE) -C server install
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
-	$(INSTALL) -m 644 $(CLIENTCMITOINSTALL) $(CLIENTCMOTOINSTALL) $(TEMPROOT)$(MODULEINSTALLDIR)/client
+	$(INSTALL) -m 644 $(CLIENTCMITOINSTALL) $(CLIENTCMOTOINSTALL) $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client
+	$(INSTALL) -m 644 $(ELIOMSYNTAXTOINSTALL) $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/syntax
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 #	$(INSTALL) -m 644 $(PLUGINSTOINSTALL) $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)/extensions
@@ -542,6 +548,7 @@ uninstall:
 	-rm -Rf $(TEMPROOT)$(DOCDIR)
 	-rm -Rf $(TEMPROOT)$(EXTRALIBDIR)
 	-$(MAKE) -C server uninstall
+	-rm -Rf "$(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client"
 	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"
 
 fulluninstall: uninstall
