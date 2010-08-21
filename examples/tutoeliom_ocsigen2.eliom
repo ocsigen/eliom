@@ -2,7 +2,7 @@
 {shared{
   let (>>=) = Lwt.(>>=)
   let (>|=) = Lwt.(>|=)
-}} ;;
+}}
 
 (* *zap*)
 (*zap*
@@ -50,15 +50,15 @@ whole application.
 (* for client side only, one can use : {client{ ... }} and for shared code, one
 * can place {shared{ ... }} *)
 {shared{
-open XHTML.M
-}} ;;
+open XHTML5.M
+}}
 
 (****** server only *******)
 {server{ (* note that {server{ ... }} is optionnal. *)
 open Eliom_parameters
-open Eliom_predefmod.Xhtmlcompact
+open Eliom_predefmod.Xhtml5compact
 open Eliom_services
-}} ;;
+}}
 
 (* This is server only because there are no delimiters. *)
 module Eliom_appl =
@@ -69,8 +69,8 @@ module Eliom_appl =
         {Eliom_predefmod.default_appl_params with
            Eliom_predefmod.ap_title = "Eliom application example";
            Eliom_predefmod.ap_headers =
-            [XHTML.M.style ~contenttype:"text/css"
-               [XHTML.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]];
+            [XHTML5.M.style
+               [XHTML5.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]];
            Eliom_predefmod.ap_container =
             Some (None,
                   fun div -> [h1 [pcdata "Eliom application"];
@@ -111,7 +111,7 @@ is somewhat more complicated. Here are some examples of what you can do:
 let eliomclient2 = new_service ~path:["eliomclient2"] ~get_params:unit ()
 
 let myblockservice =
-  Eliom_predefmod.Blocks.register_new_post_coservice
+  Eliom_predefmod.Blocks5.register_new_post_coservice
     ~fallback:eliomclient2
     ~post_params:unit
     (fun _ () () ->
@@ -269,7 +269,7 @@ client at loading time.
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
-                  (XHTML.M.toeltl blocks)
+                  (XHTML5.M.toeltl blocks)
               }}
             ]
             [pcdata "Click here to get a subpage from server."];
@@ -279,12 +279,12 @@ client at loading time.
 ====Refering to parts of the page in client side code
 *wiki*)
 
-          (let container = ul (item ()) [ item () ; item ()] in
+          (let container = ul [ item () ; item () ; item ()] in
            div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                                a_onclick {{
                                  Dom.appendChild
-                                   \(container) (* node is the wrapper keyword for XHTML.M nodes. *)
-                                   (XHTML.M.toelt (item ()))
+                                   \(container) (* node is the wrapper keyword for XHTML5.M nodes. *)
+                                   (XHTML5.M.toelt (item ()))
                                }}
                   ]
                   [pcdata "Click here to add an item below with the current version of OCaml."];
@@ -314,17 +314,20 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
+                let sp = \(sp) in
+                let coucou = \(Tutoeliom.coucou) in
+                let eliomclient1 = \(eliomclient1) in
                 (Dom.appendChild
                    (Dom_html.document##body)
-                   (XHTML.M.toelt
-                      (p [Eliom_predefmod.Xhtml.a
-                            ~sp:\(sp) ~service:\(Tutoeliom.coucou)
+                   (XHTML5.M.toelt
+                      (p [Eliom_predefmod.Xhtml5.a
+                            ~sp ~service:coucou
                             [pcdata "An external link generated client side"]
                             ();
                           pcdata " and ";
-                          Eliom_predefmod.Xhtml.a
+                          Eliom_predefmod.Xhtml5.a
                             (*zap* *)~a:[a_class ["clickable"]](* *zap*)
-                            ~sp:\(sp) ~service:\(eliomclient1)
+                            ~sp ~service:eliomclient1
                             [pcdata "another, inside the application."]
                             ()
                          ]
@@ -473,12 +476,12 @@ let on_load =
       Eliom_services.set_on_load ~sp
         {{ Lwt_js.sleep 1. >|= fun () ->
            Dom.appendChild \(div)
-             (XHTML.M.toelt (p [pcdata "on_load executed after 1s."]))
+             (XHTML5.M.toelt (p [pcdata "on_load executed after 1s."]))
          }};
       Eliom_services.set_on_unload ~sp
         {{
           Dom.appendChild \(div)
-          (XHTML.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
+          (XHTML5.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
           Lwt_js.sleep 1.
         }};
       Lwt.return [div]
@@ -694,7 +697,7 @@ let comet_message_board =
        in
 
        Lwt.return (
-         let container = ul (li [em [pcdata "This is the message board"]]) [] in
+         let container = ul [li [em [pcdata "This is the message board"]]] in
          let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
          let go_online =
            {{
@@ -702,7 +705,7 @@ let comet_message_board =
                React.E.map
                  (fun msg ->
                    Dom.appendChild \(container)
-                     (XHTML.M.toelt (li [pcdata msg]))
+                     (XHTML5.M.toelt (li [pcdata msg]))
                  )
                  \(message_down)
              ) ;
@@ -746,7 +749,7 @@ let comet_message_board =
                   a_onclick {{ Eliom_client_comet.Engine.stop () }}
                 ]
              [pcdata "Go offline"];
-           form (uri_of_string "") (div [field; go]) [];
+           form ~a:[a_action (uri_of_string "")] (div [field; go]) [];
            container;
          ])
     )
@@ -1600,7 +1603,7 @@ open Tutoeliom
 let main = new_service [] unit ()
 
 
-let _ = Eliom_predefmod.Xhtmlcompact.register main
+let _ = Eliom_predefmod.Xhtml5compact.register main
   (fun sp () () ->
     Lwt.return
      (html
@@ -1609,7 +1612,7 @@ let _ = Eliom_predefmod.Xhtmlcompact.register main
           [css_link (make_uri ~service:(static_dir sp) ~sp ["style.css"]) ()])
        (body
           [
-            h1 [img ~alt:"Ocsigen" ~src:(Eliom_predefmod.Xhtml.make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"]) ()];
+            h1 [img ~alt:"Ocsigen" ~src:(Eliom_predefmod.Xhtml5.make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"]) ()];
 
             h3 [pcdata "Eliom examples"];
             h4 [pcdata "Simple pages"];

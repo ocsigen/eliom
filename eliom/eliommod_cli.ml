@@ -142,6 +142,6 @@ let wrap_sp ~sp = wrap ~sp (client_sp sp)
 
 let wrap_node ~sp n = 
   let reqnum = Eliom_sessions.get_request_id ~sp in
-  Eliom_client_types.to_data_key_ (reqnum, XML.ref_node (XHTML.M.toelt n))
+  Eliom_client_types.to_data_key_ (reqnum, XML.ref_node (XHTML5.M.toelt n))
 
 

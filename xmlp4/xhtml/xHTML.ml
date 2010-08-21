@@ -658,21 +658,21 @@ val object_ : ([< object__attrib] , [< object__content], [> object_ ]) star
     val frame : src:uri  ->([< frame_attrib ], [> frame]) nullary
 
 (* CHANGED (from:     val noframes : ([< common ], [< `Body ], [>`Noframes]) unary)*)
-val noframes : ([< noframes_attrib] , [< noframes_content], [> noframes ]) unary
+val noframes : ([< noframes_attrib], [< noframes_content], [> noframes ]) unary
 
 (* CHANGED (from:     val iframe : ([< core | `Frameborder | `Longdesc | `Marginheight | `Marginwidth                  | `Src | `Scrolling | `Name_01_00 | `Width | `Height ],                  [< `PCDATA | flow ], [>`Iframe]) star)*)
-val iframe : ([< iframe_attrib] , [< iframe_content], [> iframe ]) star
+val iframe : ([< iframe_attrib], [< iframe_content], [> iframe ]) star
 
 
 (** {2 Meta} *)
 
 (* CHANGED (from:     val meta : content:cdata ->      ([< i18n |`Id | `Http_equiv | `Name | `Scheme ], [>`Meta]) nullary)*)
-    val meta : content:cdata  ->([< meta_attrib ], [> meta]) nullary
+    val meta : content:cdata -> ([< meta_attrib ], [> meta]) nullary
 
 (** {2 Style Sheets} *)
 
 (* CHANGED (from:     val style : contenttype:contenttype ->      ([< i18n |`XMLns |`Id | `Media | `Title | `XML_space ], [< `PCDATA ], [>`Style]) star)*)
-    val style : contenttype:contenttype  ->([< style_attrib] , [< style_content], [> style ]) star
+    val style : contenttype:contenttype -> ([< style_attrib] , [< style_content], [> style ]) star
 
 (** {2 Link} *)
 

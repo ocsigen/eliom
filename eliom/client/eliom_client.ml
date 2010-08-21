@@ -305,7 +305,7 @@ let get_subpage
   
       load_eliom_data_ ed fake_page >>= fun () ->
       fake_page##innerHTML <- Js.string "";
-      Lwt.return (XHTML.M.totl !node_list)
+      Lwt.return (XHTML5.M.totl !node_list)
 
 
 

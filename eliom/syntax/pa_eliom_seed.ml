@@ -298,7 +298,7 @@ struct
     );
 
     (let rec aux = function (*node*)
-       | <:ctyp< Xhtmltypes.$lid:_$ >> -> true
+       | <:ctyp< Xhtml5types.$lid:_$ >> -> true
 
        | <:ctyp< [  $t$ ] >>
        | <:ctyp< [> $t$ ] >>
@@ -311,7 +311,7 @@ struct
        | _ -> false
      in
      function
-       | <:ctyp< $t$ XHTML.M.elt >> ->
+       | <:ctyp< $t$ XHTML5.M.elt >> ->
            if aux t
            then (<:expr<Eliommod_cli.wrap_node ~sp>>,
                  <:expr<Eliommod_cli.unwrap_node>>)

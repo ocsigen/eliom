@@ -87,6 +87,32 @@ module Xhtmlcompact : sig
 
 end
 
+(** {2 Same for html 5} *)
+
+module type XHTML5FORMSSIG = Eliom_predefmod_cli.XHTML5FORMSSIG
+
+module Xhtml5 : sig
+
+  include Eliom_mkreg.ELIOMREGSIG 
+  with type page = Xhtml5types.xhtml XHTML5.M.elt 
+  and type options = XHTML5.M.doctypes
+  and type return = Eliom_services.http
+
+  include XHTML5FORMSSIG
+
+end
+
+module Xhtml5compact : sig
+
+  include Eliom_mkreg.ELIOMREGSIG 
+  with type page = Xhtml5types.xhtml XHTML5.M.elt
+  and type options = XHTML5.M.doctypes
+  and type return = Eliom_services.http
+
+  include XHTML5FORMSSIG
+
+end
+
 
 
 (** {3 Eliom client/server applications} *)
@@ -94,15 +120,15 @@ end
 (** Parameters for an Eliom application *)
 type appl_service_params =
     {
-      ap_doctype: XHTML.M.doctypes;
+      ap_doctype: XHTML5.M.doctypes;
       ap_title: string;
       ap_container : 'a.
-        ((([< Xhtmltypes.common ] as 'a) XHTML.M.attrib list) option *
-           (Xhtmltypes.body_content XHTML.M.elt -> Xhtmltypes.body_content XHTML.M.elt list))
+        ((([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option *
+           (Xhtml5types.body_content XHTML5.M.elt -> Xhtml5types.body_content XHTML5.M.elt list))
         option;
       ap_body_attributes : 
-        'a. (([< Xhtmltypes.common ] as 'a) XHTML.M.attrib list) option;
-      ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] XHTML.M.elt list
+        'a. (([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option;
+      ap_headers : Xhtml5types.head_content_fun XHTML5.M.elt list
     }
 
 val default_appl_params : appl_service_params
@@ -140,11 +166,11 @@ val default_appl_service_options : appl_service_options
 
 module Eliom_appl (Appl_params : APPL_PARAMS) : sig
   include Eliom_mkreg.ELIOMREGSIG 
-    with type page = Xhtmltypes.body_content XHTML.M.elt list
+    with type page = Xhtml5types.body_content XHTML5.M.elt list
     and type options = appl_service_options
     and type return = Eliom_services.appl_service
 
-  include XHTMLFORMSSIG
+  include XHTML5FORMSSIG
 
   (** Unique identifier for this application.
       It is the application name.
@@ -155,9 +181,10 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
 end
 
 
-module Xhtmlcompactreg : Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.xhtml XHTML.M.elt 
-                                  and type options = XHTML.M.doctypes
-                                  and type return = Eliom_services.http
+module Xhtmlcompactreg : Eliom_mkreg.ELIOMREGSIG 
+  with type page = Xhtmltypes.xhtml XHTML.M.elt
+  and type options = XHTML.M.doctypes
+  and type return = Eliom_services.http
 
 (** {3 Module to register subpages of type [block]} *)
 (** For XHTML *)
@@ -638,26 +665,3 @@ end
 
 
 
-module type XHTML5FORMSSIG = Eliom_predefmod_cli.XHTML5FORMSSIG
-
-module Xhtml5 : sig
-
-  include Eliom_mkreg.ELIOMREGSIG 
-  with type page = Xhtml5types.xhtml XHTML5.M.elt 
-  and type options = XHTML5.M.doctypes
-  and type return = Eliom_services.http
-
-  include XHTML5FORMSSIG
-
-end
-
-module Xhtml5compact : sig
-
-  include Eliom_mkreg.ELIOMREGSIG 
-  with type page = Xhtml5types.xhtml XHTML5.M.elt
-  and type options = XHTML5.M.doctypes
-  and type return = Eliom_services.http
-
-  include XHTML5FORMSSIG
-
-end

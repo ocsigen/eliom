@@ -1425,17 +1425,19 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
+open XHTML5.M
+
 type appl_service_params =
     {
       ap_doctype: XHTML5.M.doctypes;
       ap_title: string;
       ap_container : 'a.
-        ((([< Xhtmltypes.common ] as 'a) XHTML.M.attrib list) option *
-           (Xhtmltypes.body_content elt -> Xhtmltypes.body_content elt list))
+        ((([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option *
+           (Xhtml5types.body_content elt -> Xhtml5types.body_content elt list))
         option;
       ap_body_attributes : 
-        'a. (([< Xhtmltypes.common ] as 'a) XHTML.M.attrib list) option;
-      ap_headers : [ `Meta | `Link | `Style | `Object | `Script ] elt list
+        'a. (([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option;
+      ap_headers : Xhtml5types.head_content_fun elt list
     }
 
 type appl_service_options =
@@ -1453,21 +1455,22 @@ module type APPL_PARAMS = sig
 end
 
 let default_appl_params =
-  { ap_doctype = `XHTML_01_01;
+  { ap_doctype = `XHTML_05_00;
     ap_title = "Eliom application";
     ap_container = None;
     ap_body_attributes = None;
     ap_headers = [];
   }
 
+
 module Eliom_appl_reg_
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-   with type t = [ `Html ] XHTML.M.elt
-   and type options = XHTML.M.doctypes
+   with type t = [ `Html ] XHTML5.M.elt
+   and type options = XHTML5.M.doctypes
   )
   (Appl_params : APPL_PARAMS) = struct
-  open XHTML.M
-  open Xhtmltypes
+  open XHTML5.M
+  open Xhtml5types
 
   type page = body_content elt list
 
@@ -1503,26 +1506,28 @@ module Eliom_appl_reg_
         *)
     in
     let body, container_node = match params.ap_container with
-      | None -> let b = XHTML.M.body ?a:params.ap_body_attributes content in
-                (b, (XHTML.M.toelt b))
+      | None -> let b = XHTML5.M.body ?a:params.ap_body_attributes content in
+                (b, (XHTML5.M.toelt b))
       | Some (a, container) ->
-        let d = XHTML.M.div ?a content in
-        (XHTML.M.body
+        let d = XHTML5.M.div ?a content in
+        (XHTML5.M.body
            ?a:params.ap_body_attributes 
            (container d),
-         (XHTML.M.toelt d))
+         (XHTML5.M.toelt d))
     in
     ignore (XML.ref_node container_node); (* The ref must be created 
                                              for container before
                                              calling make_ref_tree! *)
-    XHTML.M.html
-      (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata params.ap_title)) 
+    XHTML5.M.html
+      (XHTML5.M.head (XHTML5.M.title (XHTML5.M.pcdata params.ap_title)) 
          (
-           XHTML.M.style ~contenttype:"text/css"
-             [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"]::
+           XHTML5.M.style
+             [
+               XHTML5.M.pcdata
+                 "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"]::
 
              (* This will do a redirection if there is a #! in the URL *)
-             XHTML.M.script ~contenttype:"text/javascript"
+             XHTML5.M.script
              (cdata_script
                 ("// Redirect if the URL contains #! while loading the page
 function redir () {
@@ -1544,7 +1549,7 @@ redir ();"))::
 
              if not do_not_launch
              then
-                 XHTML.M.script ~contenttype:"text/javascript"
+               XHTML5.M.script
                  (cdata_script
                     (
                       String.concat
@@ -1560,7 +1565,7 @@ redir ();"))::
                           "var eliom_data = \'" ;
                           (Eliom_client_types.jsmarshal
                              ((Ocsigen_lib.Left
-                                 (XML.make_ref_tree (XHTML.M.toelt body)),
+                                 (XML.make_ref_tree (XHTML5.M.toelt body)),
                             (* Warning: due to right_to_left evaluation,
                                make_ref_tree is called before the previous
                                items. Do not create new node refs in
@@ -1586,12 +1591,12 @@ redir ();"))::
                     )
                  ) ::
                (* Javascript program: *)
-               XHTML.M.script
+               XHTML5.M.script
                    ~a:[a_src (Xhtml.make_uri 
                                 ~service:(Eliom_services.static_dir ~sp)
                                 ~sp
                                 [Appl_params.application_name ^ ".js"])]
-                 ~contenttype:"text/javascript" (pcdata "")::
+                 (pcdata "")::
                  params.ap_headers
              else params.ap_headers
 
@@ -1627,14 +1632,14 @@ redir ();"))::
     Lwt.return 
       (Eliom_client_types.EAContent
          ((Ocsigen_lib.Right
-             (XML.make_ref_tree_list (XHTML.M.toeltl content)),
+             (XML.make_ref_tree_list (XHTML5.M.toeltl content)),
            (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
            tab_cookies_to_send,
            Eliom_services.get_on_load ~sp,
            Eliom_services.get_on_unload ~sp
           ),
 (*VVV Use another serialization format than XML for the page? *)
-          Xhtmlcompact'.xhtml_list_print content)
+          Xhtml5compact.xhtml_list_print content)
       )
 
 
@@ -1713,9 +1718,9 @@ redir ();"))::
 end
 
 module Eliom_appl (Appl_params : APPL_PARAMS) = struct
-  include Xhtmlforms
+  include Xhtml5forms
   include MakeRegister(Eliom_appl_reg_
-                         (Ocsigen_senders.Xhtmlcompact_content)
+                         (Ocsigen_senders.Xhtml5compact_content)
                          (Appl_params))
 
   (** Unique identifier for this application.
@@ -1741,10 +1746,8 @@ end
 
  *)
 module String_redirreg_ = struct
-  open XHTML.M
-  open Xhtmltypes
 
-  type page = XHTML.M.uri
+  type page = XHTML5.M.uri
 
   type options = [ `Temporary | `Permanent ]
 
@@ -1818,7 +1821,6 @@ module String_redirection = MakeRegister(String_redirreg_)
 
 
 module Redirreg_ = struct
-  open XHTML.M
   open Xhtmltypes
 
   type page = 
@@ -1941,7 +1943,7 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
                   and type options = XHTML5.M.doctypes
 ) = struct
   open XHTML5.M
-  open Xhtmltypes
+  open Xhtml5types
 
   type page = xhtml elt
 

@@ -73,7 +73,7 @@ module Xhtml_content_(Xhtmlprinter : sig
 end) = struct
   type t = [ `Html ] Xhtmlprinter.elt
 
-    type options = Xhtmlprinter.doctypes
+  type options = Xhtmlprinter.doctypes
 
     let get_etag_aux x = None
 
