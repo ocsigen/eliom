@@ -34,7 +34,7 @@ struct
        [ `Nonattached of [ `Post ] Eliom_services.na_s ],
        [ `WithoutSuffix ],
        unit,
-       [`One of 'a] Eliom_parameters.param_name,
+       [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
        [ `Registrable ],
        Eliom_predefmod.Action.return)
         Eliom_services.service

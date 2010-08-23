@@ -586,27 +586,27 @@ let comet2 =
     ~path:["comet2"]
     ~get_params:unit
     (fun sp () () ->
-       (* First create a server-readable client-writable event AKA up event AKA
-          client-to-server asynchronous edge *)
-       let e_up = Eliom_event.Up.create ~sp (string "letter") in
-       let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
-       let e_down =
-         Eliom_event.Down.of_react
-           (React.E.map
-              (function "A" -> "alpha" | "B" -> "beta" | _ -> "what ?")
-              e_up_real
-           )
-       in
-       let `R _ = React.E.retain e_up_real (fun () -> ignore e_down) in
-       Eliom_services.set_on_load ~sp
-         {{
-           React.E.map
-           (fun s -> Dom_html.window##alert (Js.string s))
-           \(e_down)
-         }};
-
-       (* We can send the page *)
-       Lwt.return [
+      (* First create a server-readable client-writable event AKA up event AKA
+         client-to-server asynchronous edge *)
+      let e_up = Eliom_event.Up.create ~sp (Eliom_parameters.caml "letter" : (string, 'aa, 'aaa) params_type) in
+      let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
+      let e_down =
+        Eliom_event.Down.of_react
+          (React.E.map
+             (function "A" -> "alpha" | "B" -> "beta" | _ -> "what ?")
+             e_up_real
+          )
+      in
+      let `R _ = React.E.retain e_up_real (fun () -> ignore e_down) in
+      Eliom_services.set_on_load ~sp
+        {{
+          React.E.map
+          (fun s -> Dom_html.window##alert (Js.string s))
+          \(e_down)
+        }};
+  
+      (* We can send the page *)
+      Lwt.return [
          h2 [pcdata "Dual events"] ;
          div (* This div is for pushing "A" to the server side event *)
            (*TODO: fix client side sp and simplify up_event unwrapping *)
@@ -631,7 +631,7 @@ let comet3 =
     (fun sp () () ->
        (* First create a server-readable client-writable event AKA up event AKA
           client-to-server asynchronous edge *)
-       let e_up = Eliom_event.Up.create ~sp (string "double") in
+       let e_up = Eliom_event.Up.create ~sp (Eliom_parameters.caml "double" : (string, 'aa, 'aaa) params_type) in
        let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
        let e_down_1 =
          Eliom_event.Down.of_react
@@ -678,7 +678,7 @@ let comet3 =
  *wiki*)
 
 (* First is the event on the server corresponding to a new message. *)
-let message_up = Eliom_event.Up.create (string "content")
+let message_up = Eliom_event.Up.create (Eliom_parameters.caml "content" : (string, 'aa, 'aaa) params_type)
 
 
 (* Then is the page hosting the board *)

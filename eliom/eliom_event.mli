@@ -24,8 +24,10 @@
     that occurrence propagation is done asynchronously.
 
     The use of this module is pretty much useless without it's client counter
-    part: [Eliom_client_event]. These two dual files are to be modified together
-    with compatibility issues in mind. *)
+    part: [Eliom_client_event]. *)
+
+(* These two dual files are to be modified together
+   with compatibility issues in mind. *)
 
 
 module Down :
@@ -73,7 +75,8 @@ sig
       sp:Eliom_sessions.server_params
     -> 'a event
     -> (unit, 'a, [ `Nonattached of [ `Post ] Eliom_services.na_s ],
-        [ `WithoutSuffix ], unit, [`One of 'a] Eliom_parameters.param_name,
+        [ `WithoutSuffix ], unit,
+        [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
         [ `Registrable ], Eliom_predefmod.Action.return)
          Eliom_services.service Eliom_client_types.data_key
   (** [wrap e] wraps [e] into a wrapped service. This result is to be handled by
@@ -81,7 +84,8 @@ sig
 
   val create :
        ?sp:Eliom_sessions.server_params
-    -> ('a, [ `WithoutSuffix ], [`One of 'a ] Eliom_parameters.param_name)
+    -> ('a, [ `WithoutSuffix ],
+        [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
          Eliom_parameters.params_type
     -> 'a event
   (** [create ?sp param] creates an Up event. [?sp] has to be set to [Some _]

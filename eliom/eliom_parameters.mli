@@ -350,7 +350,7 @@ val suffix_const :
     but anywhere you want in the path, e.g. [/param1/const/param2]).
 *)
 
-type 'a caml = string
+type 'a caml
 (** marshaled OCaml values of type 'a *)
 
 val caml :
