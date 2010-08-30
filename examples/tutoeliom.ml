@@ -2209,12 +2209,9 @@ As for attached coservices, there are GET and POST versions.
        
           
 
-          
-Non-attached coservices are distinguished by there names
-         (if the optional %<span class="code"|name>% parameter is present), or a number
-         (automatically generated and every times different).
-          
-    
+    Non-attached coservices are distinguished either by name (if the optional %<span class="code"|name>% parameter is present), or by number (automatically generated and different each time).
+      
+   
         >%
         ===@@id="p2coservicesinsessiontable"@@Coservices in session tables
         
