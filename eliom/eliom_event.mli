@@ -85,6 +85,7 @@ sig
 
   val create :
        ?sp:Eliom_sessions.server_params
+    -> ?name:string
     -> ('a, [ `WithoutSuffix ],
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
          Eliom_parameters.params_type
