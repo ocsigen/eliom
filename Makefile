@@ -131,10 +131,13 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
 	eliom/extensions/eliom_s2s.cmi eliom/extensions/eliom_openid.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
        eliom/eliom_client_types.cmi \
+       eliom/eliom_event.cmi eliom/eliom_comet.cmi \
        eliom/extensions/atom_feed.cmi eliom/extensions/eliom_atom.cmi \
        extensions/comet.cmi \
        extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
-       baselib/polytables.cmi
+       baselib/polytables.cmi \
+       eliom/eliommod_cli.cmi
+
 
 # Put here only those which do not have cmxs (Vincent: Why?)
 CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/xhtmlpretty.cma	\
@@ -547,6 +550,8 @@ install: docinstall installnodoc
 uninstall:
 	-rm -Rf $(TEMPROOT)$(DOCDIR)
 	-rm -Rf $(TEMPROOT)$(EXTRALIBDIR)
+	-rm -Rf $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client
+	-rm -Rf $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/syntax
 	-$(MAKE) -C server uninstall
 	-rm -Rf "$(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client"
 	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"

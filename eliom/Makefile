@@ -186,7 +186,6 @@ ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 bugdbg:
 	$(MAKE) DEBUG="NO" eliom_duce.cmo
 
-
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
 
