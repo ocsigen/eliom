@@ -25,14 +25,30 @@
 module Down =
 struct
 
-  type 'a event = (float option * int * float option * 'a React.E.t)
+  type 'a event = 
+      {throttling: float option;
+       buffer_size: int;
+       buffer_time: float option;
+       react: 'a React.E.t;
+       name: string option}
 
-  let of_react ?throttling ?(buffer_size=1) ?buffer_time (e : 'a React.E.t) =
-    ((throttling, buffer_size, buffer_time, e) : 'a event)
+  let of_react
+      ?throttling ?(buffer_size=1) ?buffer_time ?name (e : 'a React.E.t) =
+    {throttling=throttling;
+     buffer_size=buffer_size;
+     buffer_time=buffer_time;
+     react=e;
+     name=name}
 
-  let wrap ~sp ((t, bs, bt, e) : 'a event) =
+  let wrap ~sp
+      {throttling=t;
+       buffer_size=bs;
+       buffer_time=bt;
+       react=e;
+       name=name} =
     let chan =
       Eliom_comet.Dlisted_channels.create
+        ?name
         ~max_size:bs
         ?timer:bt
         (match t with

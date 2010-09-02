@@ -67,6 +67,7 @@ sig
   val create :
      max_size:int
   -> ?timer:float
+  -> ?name:string
   -> 'a React.E.t
   -> 'a chan
   (** [create ~max_size ?timer e] creates a channel with [e] as a triggering

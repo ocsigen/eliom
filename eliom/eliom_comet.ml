@@ -56,7 +56,7 @@ sig
 
   val create : ?name:string -> 'a React.E.t -> 'a chan
 
-  val really_create : ('a * int option) React.E.t -> 'a chan
+  val really_create : ?name:string -> ('a * int option) React.E.t -> 'a chan
 
   val get_id : 'a chan -> 'a Ecc.chan_id
 
@@ -75,8 +75,8 @@ end = struct
   type 'a chan = Comet.Channels.chan
   let create ?name e =
     Comet.Channels.create ?name (React.E.map (fun x -> (encode x, None)) e)
-  let really_create e =
-    Comet.Channels.create (React.E.map (fun (x, i) -> (encode x, i)) e)
+  let really_create ?name e =
+    Comet.Channels.create ?name (React.E.map (fun (x, i) -> (encode x, i)) e)
   let get_id c = Ecc.chan_id_of_string (Comet.Channels.get_id c)
   let outcomes c = Comet.Channels.outcomes c
   let listeners c = Comet.Channels.listeners c
@@ -107,6 +107,7 @@ sig
   val create :
        max_size:int
     -> ?timer:float
+    -> ?name:string
     -> 'a React.E.t
     -> 'a chan
 
@@ -124,14 +125,14 @@ end = struct
 
   type 'a chan = 'a Channels.chan * int ref
 
-  let create ~max_size ?timer e_pre =
+  let create ~max_size ?timer ?name e_pre =
     (*TODO: prevent max_int related error*)
     let index = let i = ref 0 in fun () -> incr i ; !i in
 
     let dlist = Dlist.create ?timer max_size in
 
     let (e, raw_push) = React.E.create () in
-    let chan = Channels.really_create e in
+    let chan = Channels.really_create ?name e in
 
     (* these are intermediary functions *)
     let prepare_content l =

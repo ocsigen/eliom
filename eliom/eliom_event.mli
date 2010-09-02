@@ -43,6 +43,7 @@ sig
        ?throttling:float
     -> ?buffer_size:int
     -> ?buffer_time:float
+    -> ?name:string
     -> 'a React.E.t
     -> 'a event
 
