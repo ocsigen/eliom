@@ -1437,7 +1437,8 @@ type appl_service_params =
         option;
       ap_body_attributes : 
         'a. (([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option;
-      ap_headers : Xhtml5types.head_content_fun elt list
+      ap_headers_before : Xhtml5types.head_content_fun elt list;
+      ap_headers_after : Xhtml5types.head_content_fun elt list
     }
 
 type appl_service_options =
@@ -1459,7 +1460,8 @@ let default_appl_params =
     ap_title = "Eliom application";
     ap_container = None;
     ap_body_attributes = None;
-    ap_headers = [];
+    ap_headers_before = [];
+    ap_headers_after = [];
   }
 
 
@@ -1521,6 +1523,7 @@ module Eliom_appl_reg_
     XHTML5.M.html
       (XHTML5.M.head (XHTML5.M.title (XHTML5.M.pcdata params.ap_title)) 
          (
+           params.ap_headers_before@
            XHTML5.M.style
              [
                XHTML5.M.pcdata
@@ -1597,8 +1600,8 @@ redir ();"))::
                                 ~sp
                                 [Appl_params.application_name ^ ".js"])]
                  (pcdata "")::
-                 params.ap_headers
-             else params.ap_headers
+                 params.ap_headers_after
+             else params.ap_headers_before@params.ap_headers_after
 
          ))
       body

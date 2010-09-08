@@ -55,7 +55,7 @@ module Eliom_appl =
       let params =
         {Eliom_predefmod.default_appl_params with
            Eliom_predefmod.ap_title = "Eliom application example";
-           Eliom_predefmod.ap_headers =
+           Eliom_predefmod.ap_headers_before =
             [XHTML5.M.style
                [XHTML5.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]];
            Eliom_predefmod.ap_container =

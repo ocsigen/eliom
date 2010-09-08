@@ -91,12 +91,12 @@ type frametarget = string
 type languagecode = string
 
 (** A language code, as per RFC3066.
-        @see <http://www.ietf.org/rfc/rfc3066.txt> RFC3066 *)
+    @see <http://www.ietf.org/rfc/rfc3066.txt> RFC3066 *)
 type length = [ | `Pixels of int | `Percent of int ]
 
 (** The value may be either in pixels or a percentage of the available
-        horizontal or vertical space. Thus, the value [`Percent 50] means half of
-        the available space. *)
+    horizontal or vertical space. Thus, the value [`Percent 50] means half of
+    the available space. *)
 type linktypes =
   [
     | `Alternate

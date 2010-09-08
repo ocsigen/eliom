@@ -128,7 +128,10 @@ type appl_service_params =
         option;
       ap_body_attributes : 
         'a. (([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option;
-      ap_headers : Xhtml5types.head_content_fun XHTML5.M.elt list
+      ap_headers_before : Xhtml5types.head_content_fun XHTML5.M.elt list;
+      (** Headers to be added before loading the main program *)
+      ap_headers_after : Xhtml5types.head_content_fun XHTML5.M.elt list
+      (** Headers to be added after loading the main program *)
     }
 
 val default_appl_params : appl_service_params

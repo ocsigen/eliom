@@ -68,7 +68,7 @@ module Eliom_appl =
       let params =
         {Eliom_predefmod.default_appl_params with
            Eliom_predefmod.ap_title = "Eliom application example";
-           Eliom_predefmod.ap_headers =
+           Eliom_predefmod.ap_headers_before =
             [XHTML5.M.style
                [XHTML5.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]];
            Eliom_predefmod.ap_container =
@@ -513,7 +513,7 @@ occurrences of an event.
  *wiki*)
 
 (* create a communication channel. Because it is public, we give an explicit
-* name for it. *)
+ * name for it. *)
 let (c1, write_c1) =
   let (e, push_e) = React.E.create () in
   (Eliom_comet.Channels.create ~name:"comet1_public_channel" e, push_e)
@@ -576,8 +576,8 @@ let comet1 =
 
 
 (*wiki*
-This second example involves client-to-server and server to client event
-propagation. There is no manual handling of channel, only events are used.
+  This second example involves client-to-server and server to client event
+  propagation. There is no manual handling of channel, only events are used.
  *wiki*)
 
 
