@@ -367,7 +367,7 @@ let eliomclient3 =
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Eliom_client.change_page
                      ~sp:\(sp) ~service:\(eliomclient3')
-                     () (22, "oo", ["a";"b";"c"])
+                     () (299, "oo", ["a";"b";"c"])
                 }}
               ]
            [pcdata "Click to send Ocaml data"]

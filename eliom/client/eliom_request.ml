@@ -104,9 +104,8 @@ let send ?cookies_info ?get_args ?post_args url =
       | Some p -> p
     in
     let post_args =
-      (Eliom_common.tab_cookies_param_name,
-       Ocsigen_lib.encode_form_value cookies)::
-        post_args
+      ((Eliom_common.tab_cookies_param_name, (Marshal.to_string cookies []))::
+          post_args)
     in
     XmlHttpRequest.send_string ?get_args ~post_args url >>= fun r ->
     if r.XmlHttpRequest.code = 204

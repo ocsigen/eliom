@@ -21,8 +21,7 @@ include Ocsigen_lib_cli
 
 let urldecode_string = Url.urldecode
 
-let encode ?plus s = Url.urlencode s
-(* plus has no effect here :-/ *)
+let encode ?plus s = Url.urlencode ?with_plus:plus s
 
 let mk_url_encoded_parameters = Url.encode_arguments
 
@@ -35,7 +34,6 @@ let alert a = Dom_html.window##alert (Js.string a)
 let jsalert a = Dom_html.window##alert (a)
 
 (* to marshal data and put it in a form *)
-let encode_form_value v =
-  Js.to_string (Js.escape (Js.bytestring (Marshal.to_string v [])))
+let encode_form_value x = Url.urlencode ~with_plus:true (Marshal.to_string x [])
     (* I encode the data because it seems that multipart does not
        like \0 character ... *)
