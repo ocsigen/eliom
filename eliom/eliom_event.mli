@@ -85,12 +85,18 @@ sig
 
   val create :
        ?sp:Eliom_sessions.server_params
+    -> ?level:[ `Site | `Group | `Browser | `Tab ]
     -> ?name:string
     -> ('a, [ `WithoutSuffix ],
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
          Eliom_parameters.params_type
     -> 'a event
   (** [create ?sp param] creates an Up event. [?sp] has to be set to [Some _]
-      if the event is created dynamically. *)
+      if the event is created dynamically.
+      If [~name] is present, the coservice used to transmit the event will
+      always have the same name, even if the server is restarted.
+      [~level] describes the visibility of the event. By default, it is
+      [`Site] is [~sp] is not specified, [`Tab] otherwise.
+  *)
 
 end
