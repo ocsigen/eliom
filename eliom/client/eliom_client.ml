@@ -126,8 +126,8 @@ let container_node =
   lazy ((Eliommod_cli.unwrap_node (unmarshal_js_var "container_node"))
            : Dom_html.element Js.t)
 
-let on_unload_script = ref None
-let at_exit_script = ref None
+let on_unload_scripts = ref []
+let at_exit_scripts = ref []
 
 (*
 let _ =
@@ -165,17 +165,13 @@ let load_eliom_data_
         ref_tree_list);
   Eliommod_cli.fill_page_data_table page_data;
   Eliommod_client_cookies.update_cookie_table cookies;
-  on_unload_script := onunload;
-  match onload with
-    | None -> Lwt.return ()
-    | Some script -> Js.Unsafe.variable script
+  on_unload_scripts := onunload;
+  Lwt_util.iter_serial Js.Unsafe.variable onload
 
 
 let set_inner_html (ed, content) =
-  (match !on_unload_script with
-    | None -> Lwt.return ()
-    | Some script -> Js.Unsafe.variable script) >>= fun () ->
-  on_unload_script := None;
+  Lwt_util.iter_serial Js.Unsafe.variable !on_unload_scripts >>= fun () ->
+  on_unload_scripts := [];
   let container_node = Lazy.force container_node in
   container_node##innerHTML <- Js.string content;
   load_eliom_data_ ed container_node

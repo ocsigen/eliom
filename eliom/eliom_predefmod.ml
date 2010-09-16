@@ -1576,8 +1576,8 @@ redir ();"))::
                             *)
                                (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
                                cookies_to_send,
-                               Eliom_services.get_on_load ~sp,
-                               Eliom_services.get_on_unload ~sp
+                               Eliom_services.get_onload ~sp,
+                               Eliom_services.get_onunload ~sp
                               ) :
                                  Eliom_client_types.eliom_data_type
                              )
@@ -1638,8 +1638,8 @@ redir ();"))::
              (XML.make_ref_tree_list (XHTML5.M.toeltl content)),
            (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
            tab_cookies_to_send,
-           Eliom_services.get_on_load ~sp,
-           Eliom_services.get_on_unload ~sp
+           Eliom_services.get_onload ~sp,
+           Eliom_services.get_onunload ~sp
           ),
 (*VVV Use another serialization format than XML for the page? *)
           Xhtml5compact.xhtml_list_print content)

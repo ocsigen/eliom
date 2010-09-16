@@ -553,26 +553,32 @@ let unregister_for_session ~sp ?session_name ?level ?secure service =
    redirection.
 *)
 
-let on_load_key : string Polytables.key = Polytables.make_key ()
+let on_load_key : string list Polytables.key = Polytables.make_key ()
 
-let get_on_load ~sp = 
+let get_onload ~sp =
   let rc = Eliom_sessions.get_request_cache ~sp in
   try 
-    Some (Polytables.get ~table:rc ~key:on_load_key)
-  with Not_found -> None
+    List.rev (Polytables.get ~table:rc ~key:on_load_key)
+  with Not_found -> []
 
-let on_unload_key : string Polytables.key = Polytables.make_key ()
+let on_unload_key : string list Polytables.key = Polytables.make_key ()
 
-let get_on_unload ~sp = 
+let get_onunload ~sp = 
   let rc = Eliom_sessions.get_request_cache ~sp in
-  try 
-    Some (Polytables.get ~table:rc ~key:on_unload_key)
-  with Not_found -> None
+  try
+    List.rev (Polytables.get ~table:rc ~key:on_unload_key)
+  with Not_found -> []
 
-let set_on_load ~sp s =
+let onload ~sp s =
   let rc = Eliom_sessions.get_request_cache ~sp in
-  Polytables.set ~table:rc ~key:on_load_key ~value:s
+  let s0 = try Polytables.get ~table:rc ~key:on_load_key
+    with Not_found -> []
+  in
+  Polytables.set ~table:rc ~key:on_load_key ~value:(s::s0)
 
-let set_on_unload ~sp s =
+let onunload ~sp s =
   let rc = Eliom_sessions.get_request_cache ~sp in
-  Polytables.set ~table:rc ~key:on_unload_key ~value:s
+  let s0 = try Polytables.get ~table:rc ~key:on_unload_key
+    with Not_found -> []
+  in
+  Polytables.set ~table:rc ~key:on_unload_key ~value:(s::s0)

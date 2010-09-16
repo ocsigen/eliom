@@ -473,12 +473,17 @@ let on_load =
       let div =
         div [p [a ~service:eliomclient1 ~sp [pcdata "go to another page"] ()] ]
       in
-      Eliom_services.set_on_load ~sp
+      Eliom_services.onload ~sp
         {{ Lwt_js.sleep 1. >|= fun () ->
            Dom.appendChild \(div)
              (XHTML5.M.toelt (p [pcdata "on_load executed after 1s."]))
          }};
-      Eliom_services.set_on_unload ~sp
+      Eliom_services.onload ~sp
+        {{ Lwt_js.sleep 3. >|= fun () ->
+           Dom.appendChild \(div)
+             (XHTML5.M.toelt (p [pcdata "on_load executed after 3s."]))
+         }};
+      Eliom_services.onunload ~sp
         {{
           Dom.appendChild \(div)
           (XHTML5.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
@@ -548,7 +553,7 @@ let comet1 =
        let t = tick_2 () in
        let `R _ = React.E.retain c2_pre (fun () -> ignore t; ignore c2) in
 
-       Eliom_services.set_on_load ~sp
+       Eliom_services.onload ~sp
          {{
            Eliom_client_comet.Channels.register \(c1)
            (fun i ->
@@ -598,7 +603,7 @@ let comet2 =
           )
       in
       let `R _ = React.E.retain e_up_real (fun () -> ignore e_down) in
-      Eliom_services.set_on_load ~sp
+      Eliom_services.onload ~sp
         {{
           React.E.map
           (fun s -> Dom_html.window##alert (Js.string s))
@@ -647,7 +652,7 @@ let comet3 =
        let `R _ = React.E.retain e_up_real
                     (fun () -> ignore e_down_1 ; ignore e_down_2)
        in
-       Eliom_services.set_on_load ~sp
+       Eliom_services.onload ~sp
          {{
            React.E.map
            (fun s -> Dom_html.window##alert (Js.string s))
@@ -712,7 +717,7 @@ let comet_message_board =
              Eliom_client_comet.Engine.start ()
            }}
          in
-         Eliom_services.set_on_load ~sp go_online;
+         Eliom_services.onload ~sp go_online;
 
          let go =
            div

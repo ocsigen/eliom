@@ -28,8 +28,8 @@ type eliom_data_type =
         ((int64 * int) * unit list) *
         (* Tab cookies to set or unset *)
         Ocsigen_cookies.cookieset *
-        string option (* on load script *) *
-        string option (* on change script *)
+        string list (* on load scripts *) *
+        string list (* on change scripts *)
     )
 
 type eliom_appl_answer =
