@@ -268,7 +268,7 @@ let call_caml_service
 
 let fake_page = Dom_html.createBody Dom_html.document
 (*FIX: is that correct?
-  XHTML.M.toelt (XHTML.M.body [])
+  XHTML5.M.toelt (XHTML5.M.body [])
 *)
 
 let get_subpage

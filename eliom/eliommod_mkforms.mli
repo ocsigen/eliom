@@ -59,8 +59,5 @@ val make_post_form_with_onsubmit :
   sp:Eliom_sessions.server_params ->
   ?a:'a -> action:'b -> 'c -> 'd -> 'form
 
-val add_tab_cookies_to_get_form : 'form XHTML.M.elt -> unit -> unit Lwt.t
-val add_tab_cookies_to_post_form : 'form XHTML.M.elt -> unit -> unit Lwt.t
-
-val add_tab_cookies_to_get_form5 : 'form XHTML5.M.elt -> unit -> unit Lwt.t
-val add_tab_cookies_to_post_form5 : 'form XHTML5.M.elt -> unit -> unit Lwt.t
+val add_tab_cookies_to_get_form : 'form XHTML5.M.elt -> unit -> unit Lwt.t
+val add_tab_cookies_to_post_form : 'form XHTML5.M.elt -> unit -> unit Lwt.t

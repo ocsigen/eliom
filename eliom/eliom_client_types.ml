@@ -127,10 +127,3 @@ let add_tab_cookies_to_get_form_id_string =
 let add_tab_cookies_to_post_form_id = 0x2
 let add_tab_cookies_to_post_form_id_string =
   Printf.sprintf "0x%02X" add_tab_cookies_to_post_form_id
-
-let add_tab_cookies_to_get_form5_id = 0x3
-let add_tab_cookies_to_get_form5_id_string =
-  Printf.sprintf "0x%02X" add_tab_cookies_to_get_form5_id
-let add_tab_cookies_to_post_form5_id = 0x4
-let add_tab_cookies_to_post_form5_id_string =
-  Printf.sprintf "0x%02X" add_tab_cookies_to_post_form5_id

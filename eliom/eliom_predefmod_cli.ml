@@ -225,18 +225,16 @@ module Xhtmlforms_ = struct
   let register_event_a node = XML.register_event (XHTML.M.toelt node)
   let register_event_form node = XML.register_event (XHTML.M.toelt node)
 
-  let add_tab_cookies_to_get_form = 
-    Eliommod_mkforms.add_tab_cookies_to_get_form
-  (* implementation is different on server and client sides *)
+  let add_tab_cookies_to_get_form _ () = 
+    failwith "add_tab_cookies_to_get_form not implemented for xhtml1"
 
-  let add_tab_cookies_to_post_form = 
-    Eliommod_mkforms.add_tab_cookies_to_post_form
+  let add_tab_cookies_to_post_form _ () = 
+    failwith "add_tab_cookies_to_post_form not implemented for xhtml1"
 
-  let add_tab_cookies_to_get_form_id_string =
-    Eliom_client_types.add_tab_cookies_to_get_form_id_string
-
+  let add_tab_cookies_to_get_form_id_string = "not implemented for xhtml1"
+   
   let add_tab_cookies_to_post_form_id_string =
-    Eliom_client_types.add_tab_cookies_to_post_form_id_string
+    add_tab_cookies_to_get_form_id_string
 
 end
 
@@ -1845,17 +1843,17 @@ module Xhtml5forms_ = struct
   let register_event_form node = XML.register_event (XHTML5.M.toelt node)
 
   let add_tab_cookies_to_get_form = 
-    Eliommod_mkforms.add_tab_cookies_to_get_form5
+    Eliommod_mkforms.add_tab_cookies_to_get_form
   (* implementation is different on server and client sides *)
 
   let add_tab_cookies_to_post_form = 
-    Eliommod_mkforms.add_tab_cookies_to_post_form5
+    Eliommod_mkforms.add_tab_cookies_to_post_form
 
   let add_tab_cookies_to_get_form_id_string =
-    Eliom_client_types.add_tab_cookies_to_get_form5_id_string
+    Eliom_client_types.add_tab_cookies_to_get_form_id_string
 
   let add_tab_cookies_to_post_form_id_string =
-    Eliom_client_types.add_tab_cookies_to_post_form5_id_string
+    Eliom_client_types.add_tab_cookies_to_post_form_id_string
 
 
 end

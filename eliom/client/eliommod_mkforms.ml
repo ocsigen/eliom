@@ -42,13 +42,13 @@ let add_tab_cookie_fields l node =
   then ()
   else
     let my_div = 
-      XHTML.M.div ~a:[XHTML.M.a_class [tab_cookie_class;
+      XHTML5.M.div ~a:[XHTML5.M.a_class [tab_cookie_class;
                                        Eliom_common.nodisplay_class_name]]
         (List.map (fun (n, v) ->
 (*VVV Warning: This is not xhtml5! *)
-          XHTML.M.input ~a:[XHTML.M.a_input_type `Hidden;
-                            XHTML.M.a_name n;
-                            XHTML.M.a_value v] ())
+          XHTML5.M.input ~a:[XHTML5.M.a_input_type `Hidden;
+                             XHTML5.M.a_name n;
+                             XHTML5.M.a_value v] ())
            l)
     in
     node##appendChild (my_div)
@@ -71,13 +71,8 @@ let add_tab_cookies_to_post_form' node =
   add_tab_cookies_to_form' l node
 
 let add_tab_cookies_to_post_form node () =
-  let node = Js.Unsafe.coerce (XHTML.M.toelt node) in
-  add_tab_cookies_to_post_form' node
-
-let add_tab_cookies_to_post_form5 node () =
   let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
   add_tab_cookies_to_post_form' node
-
 
 
 let add_tab_cookies_to_get_form' node =
@@ -96,13 +91,8 @@ let add_tab_cookies_to_get_form' node =
   add_tab_cookies_to_form' l node
 
 let add_tab_cookies_to_get_form node () =
-  let node = Js.Unsafe.coerce (XHTML.M.toelt node) in
-  add_tab_cookies_to_get_form' node
-
-let add_tab_cookies_to_get_form5 node () =
   let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
   add_tab_cookies_to_get_form' node
-
 
 let make_get_form_with_onsubmit
     make_get_form register_event add_tab_cookies_to_get_form _
@@ -127,14 +117,15 @@ let _ =
   Eliommod_cli.register_closure
     Eliom_client_types.add_tab_cookies_to_get_form_id
     (fun node ->
-         let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
-         ignore (add_tab_cookies_to_get_form (XHTML.M.tot node) ());
-         Js._true)
+      let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
+      ignore (add_tab_cookies_to_get_form (XHTML5.M.tot node) ());
+      Js._true)
 
 let _ =
   Eliommod_cli.register_closure
     Eliom_client_types.add_tab_cookies_to_post_form_id
     (fun node ->
-         let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
-         ignore (add_tab_cookies_to_post_form (XHTML.M.tot node) ());
-         Js._true)
+      let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
+      ignore (add_tab_cookies_to_post_form (XHTML5.M.tot node) ());
+      Js._true)
+
