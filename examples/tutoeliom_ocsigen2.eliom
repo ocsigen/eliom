@@ -73,10 +73,11 @@ module Eliom_appl =
                [XHTML5.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]];
            Eliom_predefmod.ap_container =
             Some (None,
-                  fun div -> [h1 [pcdata "Eliom application"];
-                              p [pcdata "Random value in the container: ";
-                                 pcdata (string_of_int (Random.int 1000))];
-                              div ])
+                  fun ~sp div ->
+                    [h1 [pcdata "Eliom application"];
+                     p [pcdata "Random value in the container: ";
+                        pcdata (string_of_int (Random.int 1000))];
+                     div ])
         }
     end)
 (*wiki* Now I can define my first service belonging to that application: *wiki*)

@@ -124,7 +124,9 @@ type appl_service_params =
       ap_title: string;
       ap_container : 'a.
         ((([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option *
-           (Xhtml5types.body_content XHTML5.M.elt -> Xhtml5types.body_content XHTML5.M.elt list))
+           (sp:Eliom_sessions.server_params -> 
+            Xhtml5types.body_content XHTML5.M.elt ->
+            Xhtml5types.body_content XHTML5.M.elt list))
         option;
       ap_body_attributes : 
         'a. (([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option;

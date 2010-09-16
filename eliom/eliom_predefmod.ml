@@ -1433,7 +1433,9 @@ type appl_service_params =
       ap_title: string;
       ap_container : 'a.
         ((([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option *
-           (Xhtml5types.body_content elt -> Xhtml5types.body_content elt list))
+           (sp:Eliom_sessions.server_params -> 
+            Xhtml5types.body_content elt ->
+            Xhtml5types.body_content elt list))
         option;
       ap_body_attributes : 
         'a. (([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option;
@@ -1514,7 +1516,7 @@ module Eliom_appl_reg_
         let d = XHTML5.M.div ?a content in
         (XHTML5.M.body
            ?a:params.ap_body_attributes 
-           (container d),
+           (container ~sp d),
          (XHTML5.M.toelt d))
     in
     ignore (XML.ref_node container_node); (* The ref must be created 
