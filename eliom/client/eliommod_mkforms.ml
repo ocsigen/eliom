@@ -23,7 +23,6 @@ let (>|=) = Lwt.(>|=)
 
 let make_a_with_onclick = Eliom_client.make_a_with_onclick
 
-
 let tab_cookie_class = "__eliom_tab_cookies"
 
 let remove_tab_cookie_fields node =
@@ -43,9 +42,8 @@ let add_tab_cookie_fields l node =
   else
     let my_div = 
       XHTML5.M.div ~a:[XHTML5.M.a_class [tab_cookie_class;
-                                       Eliom_common.nodisplay_class_name]]
+                                         Eliom_common.nodisplay_class_name]]
         (List.map (fun (n, v) ->
-(*VVV Warning: This is not xhtml5! *)
           XHTML5.M.input ~a:[XHTML5.M.a_input_type `Hidden;
                              XHTML5.M.a_name n;
                              XHTML5.M.a_value v] ())
@@ -73,7 +71,6 @@ let add_tab_cookies_to_post_form' node =
 let add_tab_cookies_to_post_form node () =
   let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
   add_tab_cookies_to_post_form' node
-
 
 let add_tab_cookies_to_get_form' node =
   (* we transform the form into POST form:

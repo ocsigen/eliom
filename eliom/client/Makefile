@@ -127,12 +127,10 @@ eliommod_mkforms.mli: ../eliommod_mkforms.mli
 
 eliom_predefmod.ml: ../eliom_predefmod_cli.ml
 	cp -f $< $@
-	echo "module Xhtml = Xhtmlforms" >> $@
 	echo "module Xhtml5 = Xhtml5forms" >> $@
 
 eliom_predefmod.mli: ../eliom_predefmod_cli.mli
 	cp -f $< $@ 
-	echo "module Xhtml : XHTMLFORMSSIG" >> $@
 	echo "module Xhtml5 : XHTML5FORMSSIG" >> $@
 
 ocsigen_lib_cli.ml: ../../baselib/ocsigen_lib_cli.ml
