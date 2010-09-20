@@ -25,16 +25,20 @@ let make_a_with_onclick = Eliom_client.make_a_with_onclick
 
 let tab_cookie_class = "__eliom_tab_cookies"
 
-let remove_tab_cookie_fields node =
+let remove_tab_cookie_fields (node : #Dom.node Js.t) =
   let children = node##childNodes in
+  let toremove = ref [] in
   for i = children##length - 1 downto 0 do
-    let child = children##item (i) in
-    let classes = Ocsigen_lib.split
-                    ~multisep:true ' ' (Js.to_string child##className)
-    in
-    if List.mem tab_cookie_class classes
-    then node##removeChild (child)
-  done
+      let child = children##item (i) in
+      if child##nodeType = Dom.ELEMENT
+      then let child' : #Dom.element Js.t = Js.Unsafe.coerce child in
+           let classes = Ocsigen_lib.split
+             ~multisep:true ' ' (Js.to_string child'##className)
+           in
+           if List.mem tab_cookie_class classes
+           then toremove := child::!toremove
+  done;
+  List.iter (fun c -> ignore (node##removeChild (c))) !toremove
 
 let add_tab_cookie_fields l node =
   if l = []
@@ -49,7 +53,7 @@ let add_tab_cookie_fields l node =
                              XHTML5.M.a_value v] ())
            l)
     in
-    node##appendChild (my_div)
+    ignore (node##appendChild (XHTML5.M.toelt my_div))
 
 
 
@@ -69,7 +73,7 @@ let add_tab_cookies_to_post_form' node =
   add_tab_cookies_to_form' l node
 
 let add_tab_cookies_to_post_form node () =
-  let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
+  let node : #Dom.node Js.t = Js.Unsafe.coerce (XHTML5.M.toelt node) in
   add_tab_cookies_to_post_form' node
 
 let add_tab_cookies_to_get_form' node =
