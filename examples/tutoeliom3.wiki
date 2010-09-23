@@ -1098,12 +1098,12 @@ let _ = Eliom_services.set_exn_handler
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];
                     p [pcdata "Page not found"]]))
-    | Eliom_common.Eliom_Wrong_parameter ->
+(*    | Eliom_common.Eliom_Wrong_parameter ->
         Eliom_predefmod.Xhtml.send ~sp
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];
-                    p [pcdata "Wrong parameters"]]))
+                    p [pcdata "Wrong parameters"]])) *)
     | e -> fail e)
 >>
 
@@ -2035,8 +2035,7 @@ let imageform2 = register_new_service
           
 Another way (than <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|<<span class="code"|Eliom_parameters.set>>>>) to do variable length forms
         is to use indexed lists (using <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALlist"|<<span class="code"|Eliom_parameters.list>>>>).
-        The use of that feature is a bit more complex than <<span class="code"|set>>
-        and still experimental.
+        The use of that feature is a bit more complex than <<span class="code"|set>>.
         Here is an example of service taking an indexed list as parameter:
         
 <<code language="ocaml" |
@@ -2086,7 +2085,7 @@ let coucou_list = register_new_service
 (* Form with list: *)
 let create_listform f =
   (* Here, f.it is an iterator like List.map,
-     but it must be applied to a function taking 2 arguments
+     but it must be applied to a function taking 3 arguments
      (unlike 1 in map), the first one being the name of the parameter,
      and the second one the element of list.
      The last parameter of f.it is the code that must be appended at the

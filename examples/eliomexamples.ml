@@ -30,6 +30,49 @@ open Eliom_parameters
 open Eliom_sessions
 open Lwt
 
+
+let lilists = new_service [ "lilists" ] unit ()
+
+let lilists2 = new_service
+  ["lilists2"] (list "l" (string "title" ** (list "il" (int "i")))) ()
+
+let create_form f =
+  let l =
+    f.it (fun (sn, l2) v init ->
+            (tr (td [pcdata ("Write a string: ")])
+               ((td [string_input ~input_type:`Text ~name:sn ()])::
+                   (td [pcdata ("Write integers: ")])::
+
+                   (l2.it (fun iname v init ->
+                     (td [int_input ~input_type:`Text ~name:iname ()])::init)
+                      ["A"; "B"]
+                      []))
+
+            )::init)
+      ["one";"two";"three"]
+      []
+  in
+  [table (List.hd l) (List.tl l);
+   p [string_input ~input_type:`Submit ~value:"Click" ()]]
+
+let () = register lilists
+  (fun sp () () ->
+     let f = Eliom_predefmod.Xhtml.get_form lilists2 sp create_form in
+     return
+       (html
+         (head (title (pcdata "")) [])
+         (body [f])))
+
+let () = register lilists2
+  (fun sp ll () ->
+     return
+       (html
+         (head (title (pcdata "")) [])
+         (body 
+            (List.map (fun (s, il) -> p (pcdata s::
+                                           List.map (fun i -> pcdata (string_of_int i)) il)) ll))))
+
+
 (* sums in parameters types *)
 
 let sumserv = register_new_service
@@ -1553,6 +1596,7 @@ let mainpage = register_new_service ["tests"] unit
          a sufset sp [pcdata "Set in suffix"] ["bo";"ba";"bi";"bu"]; br ();
 (*         a sufli2 sp [pcdata "List not in the end of in suffix"] ([1; 2; 3], 4); br (); *)
          a boollistform sp [pcdata "Bool list"] (); br ();
+         a lilists sp [pcdata "List of lists in parameters"] (); br ();
          a preappmenu sp [pcdata "Menu with pre-applied services"] (); br ();
          a exn_act_main sp [pcdata "Actions that raises an exception"] (); br ();
          a close_from_outside sp [pcdata "Closing sessions from outside"] (); br ();

@@ -488,7 +488,7 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
                     (List.fold_right
                        (fun el (i, l2) ->
                           let i'= i-1 in
-                          (i', (f (snd (aux issuffix (prefix^name^".") 
+                          (i', (f (snd (aux issuffix (prefix^name^suffix^".") 
                                           (make_list_suffix i') t1)) el
                                   l2)))
                        l
