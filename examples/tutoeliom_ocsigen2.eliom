@@ -70,7 +70,7 @@ module Eliom_appl =
            Eliom_predefmod.ap_title = "Eliom application example";
            Eliom_predefmod.ap_headers_before =
             [XHTML5.M.style
-               [XHTML5.M.pcdata ".clickable {color: #111188; cursor: pointer;}"]];
+               [XHTML5.M.pcdata "a,.clickable {color: #111188; cursor: pointer;}"]];
            Eliom_predefmod.ap_container =
             Some (None,
                   fun ~sp div ->
@@ -758,6 +758,111 @@ let comet_message_board =
            form ~a:[a_action (uri_of_string "")] (div [field; go]) [];
            container;
          ])
+    )
+
+(*wiki*
+===Events with arrows
+
+ *wiki*)
+
+{client{
+open Event_arrows
+}}
+
+let event_service =
+  Eliom_appl.register_new_service
+    ~path:["events"]
+    ~get_params:Eliom_parameters.unit
+    (fun sp () () ->
+
+      let make_target s = XHTML5.M.p [XHTML5.M.a [XHTML5.M.pcdata s]] in
+      let target1 = make_target "Un seul clic" in
+      let target2 = make_target "Annuler le précédent" in
+      let target3 = make_target "Drag vers la ligne au dessus une seule fois" in
+      let target4 = make_target "Plein de clics seq" in
+      let target5 = make_target "Annuler le précédent" in
+      let target6 = make_target "Deux clics" in
+      let target7 = make_target "Un clic sur deux" in
+      let target8 = make_target "Un clic, puis tous les suivants" in
+      let target9 = make_target "Un des deux, premier" in
+      let target10 = make_target "Un des deux, deuxieme" in
+      let target11 = make_target "Annuler les deux précédents" in
+      let target12 = make_target "Drag" in
+      let target13 = make_target "Annuler le précédent" in
+      let target14 = make_target "Drag with long handler" in
+      let target15 = make_target "Annuler le précédent" in
+
+      let targetresult = XHTML5.M.p [] in
+      Eliom_services.onload ~sp
+        {{
+          let target1 = \(target1) in
+          let target2 = \(target2) in
+          let target3 = \(target3) in
+          let target4 = \(target4) in
+          let target5 = \(target5) in
+          let target6 = \(target6) in
+          let target7 = \(target7) in
+          let target8 = \(target8) in
+          let target9 = \(target9) in
+          let target10 = \(target10) in
+          let target11 = \(target11) in
+          let target12 = \(target12) in
+          let target13 = \(target13) in
+          let target14 = \(target14) in
+          let target15 = \(target15) in
+
+          let targetresult = \(targetresult) in
+    
+          let handler =
+            lwt_arr
+              (fun ev ->
+                ignore (targetresult##appendChild
+                          (XHTML5.M.toelt (XHTML5.M.pcdata " plip")));
+                Lwt.return ())
+          in
+          let handler_long =
+            lwt_arr
+              (fun ev ->
+                Lwt_js.sleep 0.7 >>= fun () ->
+                ignore (targetresult##appendChild
+                          (XHTML5.M.toelt (XHTML5.M.pcdata " plop")));
+                Lwt.return ()
+              )
+          in
+          let cancel c = arr (fun _ -> cancel c) in
+          let c = run (click target1 >>> handler) () in
+          let _ = run (click target2 >>> cancel c) () in
+          let _ = run (mousedown target3 >>> mouseup target2 >>> handler) () in
+          let c = run (clicks target4 handler_long) () in
+          let _ = run (click target5 >>> cancel c) () in
+          let _ = run (click target6 >>> handler >>> click target6 >>> handler) () in
+          let _ = run (clicks target7 (click target7 >>> handler)) () in
+          let _ = run (click target8 >>> clicks target8 handler) () in
+          let c = run (first [click target9 >>> handler;
+                              click target10 >>> handler]) ()
+          in
+          let _ = run (click target11 >>> cancel c) ()
+          in
+          let c = run (mousedowns target12 
+                         (first [mouseup Dom_html.document;
+                                 mousemoves Dom_html.document handler])) ()
+          in
+          let _ = run (click target13 >>> cancel c) ()
+          in
+          let c = run (mousedowns target14
+                         (first [mouseup Dom_html.document;
+                                 mousemoves Dom_html.document handler_long])) ()
+          in
+          let _ = run (click target15 >>> cancel c) ()
+          in
+          ()
+
+        }};
+
+       Lwt.return [target1; target2; target3; target4; target5; target6;
+                   target7; target8; target9; target10; target11;
+                   target12; target13; target14; target15;
+                   targetresult]
     )
 
 
@@ -1858,7 +1963,15 @@ let _ = Eliom_predefmod.Xhtml5compact.register main
               br ();
             ];
 
+            h3 [pcdata "js_of_ocaml events"];
+
+            p [
+              a event_service sp [code [pcdata "Test suite"]] ();
+              br ();
+            ];
+
             h3 [pcdata "Eliom Client"];
+            h4 [pcdata "Interaction"];
             p [
               a eliomclient1 sp [pcdata "Simple example of client side code"] ();
               br ();
