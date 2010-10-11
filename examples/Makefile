@@ -43,9 +43,9 @@ PP = -syntax camlp4o -ppopt "../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(CMXS)
 
-byte: $(OBJS) tutoeliom.cma $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../files/tutorial/tutoeliom_ocsigen2_client.js
+byte: $(OBJS) tutoeliom.cma $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../files/tutorial/testsuite_eliom2_client.js
 
-opt: $(OBJSOPT) tutoeliom.cmxs $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../files/tutorial/tutoeliom_ocsigen2_client.js
+opt: $(OBJSOPT) tutoeliom.cmxs $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../files/tutorial/testsuite_eliom2_client.js
 
 exampleduce.cmo: ocamlduce/exampleduce.cmo
 	cp ocamlduce/exampleduce.cmo .
@@ -79,18 +79,18 @@ tutoeliom2.wiki: tutoeliom.ml
 tutoeliom3.wiki: tutoeliom.ml
 	cat tutoeliom.ml | sed '/%<||4>%/,$$ d' | sed '1,/%<||3>%/d' | /bin/sh ./tutomake.sh > tutoeliom3.wiki
 
-tutoeliom4.wiki: tutoeliom_ocsigen2.eliom
-	cat tutoeliom_ocsigen2.eliom | sed '/%<||2>%/,$$ d' | sed '1,/%<||1>%/d' | /bin/sh ./tutomake.sh > tutoeliom4.wiki
+tutoeliom4.wiki: testsuite_eliom2.eliom
+	cat testsuite_eliom2.eliom | sed '/%<||2>%/,$$ d' | sed '1,/%<||1>%/d' | /bin/sh ./tutomake.sh > tutoeliom4.wiki
 
-tutoeliom_ocsigen2_client.js: $(ELIOMCLIENTDIR)/eliom_client.js syntax_temp_files/tutoeliom_ocsigen2_client
+testsuite_eliom2_client.js: $(ELIOMCLIENTDIR)/eliom_client.js syntax_temp_files/testsuite_eliom2_client
 	js_of_ocaml -pretty $^ -o $@
 
-../files/tutorial/tutoeliom_ocsigen2_client.js: tutoeliom_ocsigen2_client.js
+../files/tutorial/testsuite_eliom2_client.js: testsuite_eliom2_client.js
 	cp -f $< $@
 
-tutoeliom_ocsigen2.cmo: syntax_temp_files/tutoeliom_ocsigen2.ml
+testsuite_eliom2.cmo: syntax_temp_files/testsuite_eliom2.ml
 	$(CAMLC) -c $< -o $@
-tutoeliom_ocsigen2.cmx: syntax_temp_files/tutoeliom_ocsigen2.ml
+testsuite_eliom2.cmx: syntax_temp_files/testsuite_eliom2.ml
 	$(CAMLOPT) -c $< -o $@
 
 
@@ -101,7 +101,7 @@ $(ELIOMCLIENTDIR)/%:
 $(PAELIOMCLIENTDIR)/%:
 	make -C $(PAELIOMCLIENTDIR) all
 
-syntax_temp_files/tutoeliom_ocsigen2_type_inference.ml: tutoeliom_ocsigen2.eliom $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
+syntax_temp_files/testsuite_eliom2_type_inference.ml: testsuite_eliom2.eliom $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	camlp4of \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo \
 	  -pass type \
@@ -110,30 +110,30 @@ syntax_temp_files/tutoeliom_ocsigen2_type_inference.ml: tutoeliom_ocsigen2.eliom
 	  -o $@ -impl $< \
 	  -verbose
 
-syntax_temp_files/tutoeliom_ocsigen2_type_inference.mli: syntax_temp_files/tutoeliom_ocsigen2_type_inference.ml $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
+syntax_temp_files/testsuite_eliom2_type_inference.mli: syntax_temp_files/testsuite_eliom2_type_inference.ml $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	$(CAMLC) -i $< >$@
 
-syntax_temp_files/tutoeliom_ocsigen2.ml: tutoeliom_ocsigen2.eliom syntax_temp_files/tutoeliom_ocsigen2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
+syntax_temp_files/testsuite_eliom2.ml: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	camlp4of \
 	  -I $(PAELIOMCLIENTDIR) pa_eliom_seed.cmo \
 	  -pass server \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_client_server.cmo \
-	  -typefile syntax_temp_files/tutoeliom_ocsigen2_type_inference.mli  \
+	  -typefile syntax_temp_files/testsuite_eliom2_type_inference.mli  \
 	  -I $(JSOFOCAMLDIR) pa_js.cmo \
 	  -impl $< -printer p -o $@ \
           -verbose
 
-syntax_temp_files/tutoeliom_ocsigen2_client.ml: tutoeliom_ocsigen2.eliom syntax_temp_files/tutoeliom_ocsigen2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
+syntax_temp_files/testsuite_eliom2_client.ml: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	camlp4of \
 	  -I $(PAELIOMCLIENTDIR) pa_eliom_seed.cmo \
 	  -pass client \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_client_client.cmo \
-	  -typefile syntax_temp_files/tutoeliom_ocsigen2_type_inference.mli  \
+	  -typefile syntax_temp_files/testsuite_eliom2_type_inference.mli  \
 	  -I $(JSOFOCAMLDIR) pa_js.cmo \
 	  -impl $< -printer p -o $@ \
           -verbose
 
-syntax_temp_files/tutoeliom_ocsigen2_client: $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/eliom_client_main.cmo syntax_temp_files/tutoeliom_ocsigen2_client.ml
+syntax_temp_files/testsuite_eliom2_client: $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/eliom_client_main.cmo syntax_temp_files/testsuite_eliom2_client.ml
 	ocamlfind ocamlc -o $@ \
 	  -I $(ELIOMCLIENTDIR) \
 	  $(CLIENTLIB) -linkpkg \
@@ -143,10 +143,10 @@ syntax_temp_files/tutoeliom_ocsigen2_client: $(ELIOMCLIENTDIR)/eliom_client.cma 
 #END OF SECTION ABOUT ELIOM'S SYNTAX EXTENSIONS
 
 
-tutoeliom.cma: tutoeliom.cmo tutoeliom_ocsigen2.cmo
+tutoeliom.cma: tutoeliom.cmo testsuite_eliom2.cmo
 	$(OCAMLFIND) ocamlc -a -o $@ $^
 
-tutoeliom.cmxs: tutoeliom.cmx tutoeliom_ocsigen2.cmx
+tutoeliom.cmxs: tutoeliom.cmx testsuite_eliom2.cmx
 	$(OCAMLFIND) ocamlopt -linkall -shared -o $@ $^
 
 .SUFFIXES:
@@ -172,7 +172,7 @@ tutoeliom.cmxs: tutoeliom.cmx tutoeliom_ocsigen2.cmx
 
 clean:
 	$(MAKE) -C miniwiki clean
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot tutoeliom_ocsigen2_client* tutoeliom_ocsigen2.ml ../files/tutorial/tutoeliom_ocsigen2_client.js tutoeliom_ocsigen2_client syntax_temp_files/*
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot testsuite_eliom2_client* testsuite_eliom2.ml ../files/tutorial/testsuite_eliom2_client.js testsuite_eliom2_client syntax_temp_files/*
 
 depend:
 	$(MAKE) -C miniwiki depend
