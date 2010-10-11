@@ -41,11 +41,11 @@
 
 
 
-    <host charset="iso-8859-1" hostfilter="*">
+    <host charset="utf-8" hostfilter="*">
 
       <comet/>
 
-      <site path="ocsigenstuff" charset="iso-8859-1">
+      <site path="ocsigenstuff" charset="utf-8">
         <static dir="_STATICPAGESDIR_/ocsigenstuff" />
       </site>
 
