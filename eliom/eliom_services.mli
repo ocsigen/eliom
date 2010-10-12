@@ -136,7 +136,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
 
 (** {3 Main services} *)
 
-val new_service :
+val service :
   ?sp: Eliom_sessions.server_params ->
   ?https:bool ->
   path:Ocsigen_lib.url_path ->
@@ -148,7 +148,7 @@ val new_service :
       ([> `Internal of [> `Service ] ], [> `Get ]) a_s ],
    'tipo,'gn,
    unit, [> `Registrable ], 'return) service
-(** [new_service ~path:p ~get_params:pa ()] creates an {!Eliom_services.service} associated
+(** [service ~path:p ~get_params:pa ()] creates an {!Eliom_services.service} associated
    to the path [p], taking the GET parameters [pa].
 
    If [~https] is true, all links towards that service will use https.
@@ -159,7 +159,7 @@ val new_service :
 *)
 
 
-val new_external_service :
+val external_service :
   prefix: string ->
   path:Ocsigen_lib.url_path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
@@ -182,7 +182,7 @@ val new_external_service :
    server.
  *)
 
-val new_external_post_service :
+val external_post_service :
   prefix: string ->
   path:Ocsigen_lib.url_path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
@@ -196,7 +196,7 @@ val new_external_post_service :
 
 
 
-val new_post_service :
+val post_service :
   ?sp: Eliom_sessions.server_params ->
   ?https:bool ->
   fallback: ('get, unit,
@@ -223,11 +223,11 @@ val new_post_service :
 
 (** {3 Attached coservices} *)
 
-val new_coservice :
+val coservice :
   ?name: string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_level: Eliom_common.level ->
+  ?csrf_level: Eliom_common.session_level ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -287,11 +287,11 @@ val new_coservice :
    
  *)
 
-val new_post_coservice :
+val post_coservice :
   ?name: string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_level: Eliom_common.level ->
+  ?csrf_level: Eliom_common.session_level ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -312,11 +312,11 @@ val new_post_coservice :
 
 (** {3 Non attached coservices} *)
 
-val new_coservice' :
+val coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_level: Eliom_common.level ->
+  ?csrf_level: Eliom_common.session_level ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -337,11 +337,11 @@ val new_coservice' :
    See the tutorial for more informations.
  *)
 
-val new_post_coservice' :
+val post_coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_level: Eliom_common.level ->
+  ?csrf_level: Eliom_common.session_level ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -359,22 +359,6 @@ val new_post_coservice' :
     create a POST form to this coservice.
     Default is [true].
     See also {!Eliom_mkforms.ELIOMFORMSIG.post_form}.
-*)
-
-(*
-val new_get_post_coservice' :
-    ?max_use:int ->
-    ?timeout:float ->
-  ?https:bool ->
-   fallback: ('get, unit, [`Nonattached of [`Get] na_s ],
-   [< suff ] as 'tipo,
-   'gn, unit, [< `Registrable ]) service ->
-   post_params: ('post,[`WithoutSuffix],'pn) params_type ->
-   unit ->
-   ('get, 'post,
-   [> `Nonattached of [> `Post] na_s ],
-   'tipo,'gn,'pn, [> `Registrable ]) service
-(* * Creates a non-attached coservice with GET and POST parameters. The fallback is a non-attached coservice with GET parameters. *)
 *)
 
 
@@ -498,21 +482,14 @@ val add_non_localized_post_parameters :
 
 
 val unregister :
-  ?sp:Eliom_sessions.server_params ->
-  ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post ]) a_s
-   | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h, 'return) service ->
-  unit
-(** Unregister a service from global table *)
-
-val unregister_for_session :
-  sp:Eliom_sessions.server_params ->
-  ?session_name:string ->
   ?level:Eliom_common.level ->
+  ?sp:Eliom_sessions.server_params ->
+  ?session_name:string ->
   ?secure:bool ->
   ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post ]) a_s
    | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h, 'return) service ->
   unit
-(** Unregister a service from session table *)
+(** Unregister a service (by default from the public table) *)
 
 
 (** {2 Eliom application services} *)
@@ -596,12 +573,12 @@ val untype_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
 
 val register_delayed_get_or_na_coservice :
   sp:Eliom_sessions.server_params ->
-  (int * string option * Eliom_common.level option * bool option) -> 
+  (int * string option * Eliom_common.session_level * bool option) -> 
   string
 
 val register_delayed_post_coservice :
   sp:Eliom_sessions.server_params -> 
-  (int * string option * Eliom_common.level option * bool option) -> 
+  (int * string option * Eliom_common.session_level * bool option) -> 
   Eliom_common.att_key_serv -> string
 
 val set_delayed_get_or_na_registration_function :

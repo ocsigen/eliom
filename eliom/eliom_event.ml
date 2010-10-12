@@ -42,40 +42,22 @@ struct
   let react_event_of_up_event = fst
   let wrap ~sp (_, s) = Eliommod_cli.wrap ~sp s
 
-(*VVV change_level is just for typing purpose. Remove if possible. *)
-  let change_level = function
-    | `Tab -> `Tab
-    | `Browser -> `Browser
-    | _ -> `Group
-
   (* An event is created along with a service responsible for it's occurences.
    * function takes sp and a param_type *)
-  let create ?sp ?level ?name post_param =
+  let create ?sp ?level ?name post_params =
     let (e, push) = React.E.create () in
     let level = match sp, level with
       | _, Some l -> l
       | None, _ -> `Site
       | _ -> `Tab
     in
-    let e_writer =
-      match sp, level with
-        | (Some sp, `Tab) | (Some sp, `Browser) | (Some sp, `Group) ->
-          Eliom_predefmod.Action.register_new_post_coservice_for_session'
-            ~options:`NoReload
-            ~level:(change_level level)
-            ~sp
-            ?name
-            ~post_params:post_param
-            (fun _ () value -> push value ; Lwt.return ())
-        | _, `Site
-        | None, _ ->
-          Eliom_predefmod.Action.register_new_post_coservice'
-            ~options:`NoReload
-            ?sp
-            ?name
-            ~post_params:post_param
-            (fun _ () value -> push value ; Lwt.return ())
-    in
+    let e_writer = Eliom_services.post_coservice' ?name ~post_params () in
+    Eliom_predefmod.Action.register
+      ~level
+      ~options:`NoReload
+      ?sp
+      ~service:e_writer
+      (fun _ () value -> push value ; Lwt.return ());
     (e, e_writer)
 
 end

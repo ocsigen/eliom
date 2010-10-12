@@ -32,9 +32,9 @@ module P = Printf
 
 let (>>) f g = g f
 
-let wiki_view_page = new_service [] (suffix (string "p")) ()
-let wiki_edit_page = new_service ["edit"] (string "p") ()
-let wiki_start = Redirection.register_new_service [] unit
+let wiki_view_page = service [] (suffix (string "p")) ()
+let wiki_edit_page = service ["edit"] (string "p") ()
+let wiki_start = Redirection.register_service [] unit
     (fun sp _ _ -> 
        Lwt.return (Eliom_services.preapply wiki_view_page "WikiStart"))
 
@@ -327,7 +327,7 @@ let view_page sp page =
 
 (* Save page as a result of /edit?p=Page *)
 let service_save_page_post =
-  register_new_post_service
+  register_post_service
     ~fallback:wiki_view_page
     ~post_params:(string "value")
     (fun sp page value ->

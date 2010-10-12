@@ -11,7 +11,7 @@ val close_persistent_session2 :
   Eliom_common.perssessgrp option -> string -> unit Lwt.t
 val close_persistent_session :
   ?session_name:string -> 
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   secure:bool option ->
   sp:Eliom_common.server_params -> unit -> unit Lwt.t
 val find_or_create_persistent_cookie :

@@ -326,7 +326,7 @@ let register_delayed_post_coservice  ~sp s getname =
 
 (* external services *)
 (** Create a main service (not a coservice) internal or external, get only *)
-let new_service_aux_aux
+let service_aux_aux
     ~https
     ~prefix
     ~(path : Ocsigen_lib.url_path)
@@ -360,7 +360,7 @@ let new_service_aux_aux
  }
 
 
-let new_external_service_
+let external_service_
     ~prefix
     ~path
     ?keep_nl_params
@@ -369,7 +369,7 @@ let new_external_service_
     ~post_params
     () =
   let suffix = Eliom_parameters.contains_suffix get_params in
-  new_service_aux_aux
+  service_aux_aux
     ~https:false (* not used for external links *)
     ~prefix
     ~path:(remove_internal_slash
@@ -384,14 +384,14 @@ let new_external_service_
     ~get_params
     ~post_params
 
-let new_external_post_service
+let external_post_service
     ~prefix
     ~path
     ?keep_nl_params
     ~get_params
     ~post_params
     () =
-  new_external_service_
+  external_service_
     ~prefix
     ~path
     ?keep_nl_params
@@ -400,13 +400,13 @@ let new_external_post_service
     ~post_params
     ()
 
-let new_external_service
+let external_service
     ~prefix
     ~path
     ?keep_nl_params
     ~get_params
     () =
-  new_external_service_
+  external_service_
     ~prefix
     ~path
     ?keep_nl_params

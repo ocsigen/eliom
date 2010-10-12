@@ -110,9 +110,10 @@ let notify_feed_updates address hubs s =
    nfu_s hubs address; ()
 
 let register_feed ~path ~hubs address f =
-   let s = Reg.register_new_service ~path ~get_params:Eliom_parameters.unit
+   let s = Eliom_services.service ~path ~get_params:Eliom_parameters.unit () in
+   Reg.register ~service:s 
      (fun sp () () -> f () >>= fun feed -> Lwt.return
-         (Atom_feed.insert_hub_links hubs feed)) in
+       (Atom_feed.insert_hub_links hubs feed));
    notify_feed_updates address hubs s;
    {notify_updates = fun () -> notify_feed_updates address hubs s}
 

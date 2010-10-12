@@ -85,7 +85,7 @@ sig
 
   val create :
        ?sp:Eliom_sessions.server_params
-    -> ?level:[ `Site | `Group | `Browser | `Tab ]
+    -> ?level:Eliom_common.level
     -> ?name:string
     -> ('a, [ `WithoutSuffix ],
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)

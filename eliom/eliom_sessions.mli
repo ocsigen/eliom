@@ -590,7 +590,7 @@ val set_ipv6_subnet_mask :
 *)
 val set_max_service_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -602,7 +602,7 @@ val set_max_service_sessions_for_group_or_subnet :
 *)
 val set_max_volatile_data_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -614,7 +614,7 @@ val set_max_volatile_data_sessions_for_group_or_subnet :
 *)
 val set_max_volatile_sessions_for_group_or_subnet :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params ->
   int ->
@@ -775,7 +775,7 @@ type 'a volatile_table
  *)
 val create_volatile_table :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   ?sp:server_params -> unit -> 'a volatile_table
 
@@ -813,7 +813,7 @@ type 'a persistent_table
    all users. It uses {!Ocsipersist}. *)
 val create_persistent_table :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   string -> 'a persistent_table
 
@@ -861,7 +861,7 @@ val remove_persistent_session_data :
 *)
 val close_session :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -876,7 +876,7 @@ val close_session :
  *)
 val close_volatile_session :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -886,7 +886,7 @@ val close_volatile_session :
    (destroying all persistent data for that user) *)
 val close_persistent_data_session :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -896,7 +896,7 @@ val close_persistent_data_session :
    (destroying all session data for that user) *)
 val close_volatile_data_session :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -905,7 +905,7 @@ val close_volatile_data_session :
 (** Close Eliom's current service session, if opened *)
 val close_service_session :
   ?session_name:string ->
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -1346,7 +1346,7 @@ val get_global_table : ?sp:server_params -> unit -> Eliom_common.tables
 
 val get_session_service_table :
   ?session_name:string -> 
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params -> 
   unit ->
@@ -1354,7 +1354,7 @@ val get_session_service_table :
 
 val get_session_service_table_if_exists :
   ?session_name:string -> 
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   ?secure:bool ->
   sp:server_params -> 
   unit ->

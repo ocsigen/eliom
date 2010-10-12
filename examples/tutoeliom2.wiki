@@ -80,19 +80,19 @@ let my_table = Eliom_sessions.create_volatile_table  ()
 (* Create services, but do not register them yet:           *)
 
 let session_data_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["sessdata"]
     ~get_params:Eliom_parameters.unit
     ()
 
 let session_data_example_with_post_params =
-  Eliom_services.new_post_service
+  Eliom_services.post_service
     ~fallback:session_data_example
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 let session_data_example_close =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["close"]
     ~get_params:Eliom_parameters.unit
     ()
@@ -229,10 +229,10 @@ We will see in the following of this tutorial how to improve
       coservices available only to one user, [[manual/dev/2#p2calc|see later]]).
       To create a "session service", register the service in
       a "session service table" (valid only for one client)
-      instead of the public table. To do that,
-      use <<span class="Cem"|<<span class="code"|register_for_session>>>>
-      (for example
-     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_for_session"|<<span class="code"|Eliom_predefmod.Xhtml.register_for_session>>>>>>).            \\
+      instead of the public table. To do that, add the argument
+      {{{~level:`Browser}}} to the 
+      <<span class="Cem"|<<span class="code"|register>>>> function.
+      \\
       
           
 
@@ -249,9 +249,10 @@ We will see in the following of this tutorial how to improve
           
 
           
-Note that <<span class="code"|register_for_session>>
-         and <<span class="code"|close_session>> take <<span class="code"|sp>> as parameter
-         (because sp contains the session table).
+Note that in that case <<span class="code"|register>>
+(and also <<span class="code"|close_session>>)
+must take <<span class="code"|sp>> as parameter
+(because sp contains the session table).
           
 
           
@@ -282,19 +283,19 @@ The following example shows how to reimplement the previous one
 (* Create services, but do not register them yet:           *)
 
 let session_services_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["sessionservices"]
     ~get_params:Eliom_parameters.unit
     ()
 
 let session_services_example_with_post_params =
-  Eliom_services.new_post_service
+  Eliom_services.post_service
     ~fallback:session_services_example
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 let session_services_example_close =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["close2"]
     ~get_params:Eliom_parameters.unit
     ()
@@ -368,14 +369,14 @@ let launch_session sp () login =
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_predefmod.Xhtml.register_for_session 
+  Eliom_predefmod.Xhtml.register ~level:`Browser 
     ~sp
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
-  Eliom_predefmod.Xhtml.register_for_session 
+  Eliom_predefmod.Xhtml.register ~level:`Browser 
     ~sp
     ~service:coucou
     (fun _ () () ->
@@ -386,7 +387,7 @@ let launch_session sp () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliom_predefmod.Xhtml.register_for_session 
+  Eliom_predefmod.Xhtml.register ~level:`Browser 
     ~sp
     ~service:hello
     (fun _ () () ->
@@ -476,9 +477,9 @@ Most of the time, GET coservices are created dynamically with
 
           
    To create a coservice, use
-   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_coservice"|<<span class="code"|Eliom_services.new_coservice>>>>>> and
-   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_post_coservice"|<<span class="code"|Eliom_services.new_post_coservice>>>>>>.
-   Like <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_post_service"|<<span class="code"|Eliom_services.new_post_service>>>>,
+   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALcoservice"|<<span class="code"|Eliom_services.coservice>>>>>> and
+   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpost_coservice"|<<span class="code"|Eliom_services.post_coservice>>>>>>.
+   Like <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpost_service"|<<span class="code"|Eliom_services.post_service>>>>,
    they take a public service as parameter
    (labeled <<span class="code"|fallback>>)
    to be used as fallback when the user comes back without the state
@@ -499,19 +500,19 @@ The following example shows the difference between GET coservices
 (* We create one main service and two coservices:           *)
 
 let coservices_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["coserv"]
     ~get_params:Eliom_parameters.unit
     ()
 
 let coservices_example_post =
-  Eliom_services.new_post_coservice
+  Eliom_services.post_coservice
     ~fallback:coservices_example
     ~post_params:Eliom_parameters.unit
     ()
 
 let coservices_example_get =
-  Eliom_services.new_coservice
+  Eliom_services.coservice
     ~fallback:coservices_example
     ~get_params:Eliom_parameters.unit
     ()
@@ -657,8 +658,8 @@ As for attached coservices, there are GET and POST versions.
 
           
        To create them, use
-       <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_coservice'"|<<span class="code"|Eliom_services.new_coservice'>>>> or
-       <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_post_coservice'"|<<span class="code"|Eliom_services.new_post_coservice'>>>>.
+       <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALcoservice'"|<<span class="code"|Eliom_services.coservice'>>>> or
+       <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpost_coservice'"|<<span class="code"|Eliom_services.post_coservice'>>>>.
        POST non-attached coservices are really useful if you want a
        link or form to be present on every page but you don't want the
        URL to change. Very often, non-attached POST coservices are
@@ -699,13 +700,13 @@ You can register coservices in session tables to create
 (* one with a GET integer parameter:                        *)
 
 let calc =
-  new_service
+  service
     ~path:["calc"]
     ~get_params:unit
     ()
 
 let calc_i =
-  new_service
+  service
     ~path:["calc"]
     ~get_params:(int "i")
     ()
@@ -746,7 +747,7 @@ let calc_i_handler sp i () =
   in
   let is = string_of_int i in
   let calc_result =
-    register_new_coservice_for_session
+    register_coservice ~level:`Browser
       ~sp
       ~fallback:calc
       ~get_params:(int "j")
@@ -800,8 +801,8 @@ Actions are services that do not generate any page.
    instead of <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span class="code"|Eliom_predefmod.Xhtml>>>> (or <<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|<<span class="code"|Eliom_duce.Xhtml>>>>, etc.).
    For example
      <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister"|<<span class="code"|Eliom_predefmod.Action.register>>>>>>,
-     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister_new_service"|<<span class="code"|Eliom_predefmod.Action.register_new_service>>>>>>,
-     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_for_session"|<<span class="code"|Eliom_predefmod.Action.register_for_session>>>>>>.            \\
+     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister_service"|<<span class="code"|Eliom_predefmod.Action.register_service>>>>>>.
+            \\
       
           
 
@@ -817,7 +818,7 @@ Here is one simple example. Suppose you wrote a function
           
 <<code language="ocaml"|
 let remove_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
+  Eliom_predefmod.Action.register_post_coservice'
     ~post_params:(Eliom_parameters.int "id")
     (fun sp () id -> remove id)
 >>
@@ -861,20 +862,20 @@ Here we rewrite the example <<span class="code"|session_data_example>>
 (* (for connection and disconnection)                       *)
 
 let connect_example3 =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["action"]
     ~get_params:Eliom_parameters.unit
     ()
 
 let connect_action =
-  Eliom_services.new_post_coservice'
+  Eliom_services.post_coservice'
     ~name:"connect3"
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
+  Eliom_predefmod.Action.register_post_coservice'
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->

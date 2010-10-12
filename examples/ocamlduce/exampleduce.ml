@@ -26,7 +26,7 @@ open Lwt
 open Xhtmltypes_duce
 
 let s =
-  register_new_service
+  register_service
     ~path:[""]
     ~get_params:unit
     (fun sp () () ->
@@ -46,7 +46,7 @@ let create_form =
              {{ string_input ~input_type:{{ "text" }} ~name:string_name () }}
              {{ string_input ~input_type:{{ "submit" }} ~value:"Click" ()}} ] ] }} )
 
-let form = register_new_service ["form"] unit
+let form = register_service ["form"] unit
   (fun sp () () ->
      let f = get_form Tutoeliom.coucou_params sp create_form in
      return
@@ -54,7 +54,7 @@ let form = register_new_service ["form"] unit
              [<head> [<title> ""]
               <body> [ f ] ]}})
 
-let links = register_new_service ["links"] unit
+let links = register_service ["links"] unit
  (fun sp () () -> return
    {{ <html xmlns="http://www.w3.org/1999/xhtml">
       [ <head> [<title> ""]
@@ -70,7 +70,7 @@ let links = register_new_service ["links"] unit
              {{ "coucou_params" }} (42,(22,"ciao")) }}
            <br> [] *)
            {{ a
-             (new_external_service
+             (external_service
                 ~prefix:"http://fr.wikipedia.org"
                 ~path:["wiki"]
                 ~get_params:(suffix (string "a"))
@@ -82,9 +82,9 @@ let links = register_new_service ["links"] unit
 
 
 
-let main = new_service ~path:["radio"] ~get_params:unit ()
+let main = service ~path:["radio"] ~get_params:unit ()
 let form =
-  new_post_service ~fallback:main ~post_params:(radio string "test") ()
+  post_service ~fallback:main ~post_params:(radio string "test") ()
 
 let gen_form = fun x ->
         {{ [<p>[
@@ -113,7 +113,7 @@ let _ =
 
 
 let blocks =
-  Eliom_duce.Blocks.register_new_service
+  Eliom_duce.Blocks.register_service
     ~path:["blocks"]
     ~get_params:unit
     (fun sp () () ->

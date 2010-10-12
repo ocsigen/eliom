@@ -1086,11 +1086,14 @@ module Caml : sig
   type options = unit
 
   val register :
+    ?level:Eliom_common.level ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
     ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure_session:bool ->
     ?sp: Eliom_sessions.server_params ->
     service:('get, 'post,
              [< internal_service_kind ],
@@ -1101,29 +1104,16 @@ module Caml : sig
     (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t) ->
     unit
 
-  val register_for_session :
+
+  val register_service :
+    ?level:Eliom_common.level ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
     ?headers: Http_headers.t ->
     ?session_name:string ->
-    ?secure:bool ->
-    sp:Eliom_sessions.server_params ->
-    service:('get, 'post, [< internal_service_kind ],
-             [< suff ], 'gn, 'pn, [ `Registrable ],
-             'return Eliom_parameters.caml) service ->
-    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                      'return Lwt.t) ->
-    (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t) -> 
-    unit
-
-  val register_new_service :
-    ?options:options ->
-    ?charset:string ->
-    ?code: int ->
-    ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?secure_session:bool ->
     ?sp: Eliom_sessions.server_params ->
     ?https:bool ->
     path:Ocsigen_lib.url_path ->
@@ -1137,12 +1127,15 @@ module Caml : sig
      'tipo, 'gn, unit,
      [> `Registrable ], 'return Eliom_parameters.caml) service
 
-  val register_new_coservice :
+  val register_coservice :
+    ?level:Eliom_common.level ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
     ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure_session:bool ->
     ?sp: Eliom_sessions.server_params ->
     ?name: string ->
     ?csrf_safe: bool ->
@@ -1168,12 +1161,15 @@ module Caml : sig
      [> `Registrable ], 'return Eliom_parameters.caml)
       service
 
-  val register_new_coservice' :
+  val register_coservice' :
+    ?level:Eliom_common.level ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
     ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure_session:bool ->
     ?sp: Eliom_sessions.server_params ->
     ?name: string ->
     ?csrf_safe: bool ->
@@ -1192,67 +1188,15 @@ module Caml : sig
      'tipo, 'gn, unit, [> `Registrable ], 'return Eliom_parameters.caml)
       service
 
-  val register_new_coservice_for_session :
+  val register_post_service :
+    ?level:Eliom_common.level ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
     ?headers: Http_headers.t ->
     ?session_name:string ->
-    ?secure:bool ->
-    sp:Eliom_sessions.server_params ->
-    ?name: string ->
-    ?csrf_safe: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    fallback:(unit, unit,
-              [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
-              [ `WithoutSuffix ] as 'tipo,
-              unit, unit, [< registrable ], 'return Eliom_parameters.caml)
-      service ->
-    get_params:
-      ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                      'return Lwt.t) ->
-    (Eliom_sessions.server_params -> 'get -> unit -> 'return Lwt.t) ->
-    ('get, unit,
-     [> `Attached of
-        ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
-     'tipo, 'gn, unit,
-     [> `Registrable ], 'return Eliom_parameters.caml)
-      service
-
-  val register_new_coservice_for_session' :
-    ?options:options ->
-    ?charset:string ->
-    ?code: int ->
-    ?content_type:string ->
-    ?headers: Http_headers.t ->
-    ?session_name:string ->
-    ?secure:bool ->
-    sp:Eliom_sessions.server_params ->
-    ?name: string ->
-    ?csrf_safe: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    get_params:
-      ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-    ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                      'return Lwt.t) ->
-    (Eliom_sessions.server_params -> 'get -> unit -> 'return Lwt.t) ->
-    ('get, unit, [> `Nonattached of [> `Get] na_s ],
-     'tipo, 'gn, unit,
-     [> `Registrable ], 'return Eliom_parameters.caml)
-      service
-
-  val register_new_post_service :
-    ?options:options ->
-    ?charset:string ->
-    ?code: int ->
-    ?content_type:string ->
-    ?headers: Http_headers.t ->
+    ?secure_session:bool ->
     ?sp: Eliom_sessions.server_params ->
     ?https:bool ->
     fallback:('get, unit,
@@ -1271,12 +1215,15 @@ module Caml : sig
      'tipo, 'gn, 'pn, [> `Registrable ], 'return Eliom_parameters.caml)
       service
 
-  val register_new_post_coservice :
+  val register_post_coservice :
+    ?level:Eliom_common.level ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
     ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure_session:bool ->
     ?sp: Eliom_sessions.server_params ->
     ?name: string ->
     ?csrf_safe: bool ->
@@ -1301,12 +1248,15 @@ module Caml : sig
      'tipo, 'gn, 'pn, [> `Registrable ], 'return Eliom_parameters.caml)
       service
 
-  val register_new_post_coservice' :
+  val register_post_coservice' :
+    ?level:Eliom_common.level ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
     ?content_type:string ->
     ?headers: Http_headers.t ->
+    ?session_name:string ->
+    ?secure_session:bool ->
     ?sp: Eliom_sessions.server_params ->
     ?name: string ->
     ?csrf_safe: bool ->
@@ -1319,60 +1269,6 @@ module Caml : sig
     post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
     ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
                       'return Lwt.t) ->
-    (Eliom_sessions.server_params -> unit -> 'post -> 'return Lwt.t) ->
-    (unit, 'post, [> `Nonattached of [> `Post] na_s ],
-     [ `WithoutSuffix ], unit, 'pn,
-     [> `Registrable ], 'return Eliom_parameters.caml)
-      service
-
-  val register_new_post_coservice_for_session :
-    ?options:options ->
-    ?charset:string ->
-    ?code: int ->
-    ?content_type:string ->
-    ?headers: Http_headers.t ->
-    ?session_name:string ->
-    ?secure:bool ->
-    sp:Eliom_sessions.server_params ->
-    ?name: string ->
-    ?csrf_safe: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?https:bool ->
-    fallback:('get, unit,
-              [ `Attached of ([ `Internal of
-                                  [< `Service | `Coservice ] ], [`Get]) a_s ],
-              [< suff ] as 'tipo,
-              'gn, unit, [ `Registrable ], 'return Eliom_parameters.caml)
-      service ->
-    post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-    ?error_handler:(Eliom_sessions.server_params ->
-                      (string * exn) list -> 'return Lwt.t) ->
-    (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t) ->
-    ('get, 'post,
-     [> `Attached of
-        ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
-     'tipo, 'gn, 'pn, [> `Registrable ], 'return Eliom_parameters.caml)
-      service
-
-  val register_new_post_coservice_for_session' :
-    ?options:options ->
-    ?charset:string ->
-    ?code: int ->
-    ?content_type:string ->
-    ?headers: Http_headers.t ->
-    ?session_name:string ->
-    ?secure:bool ->
-    sp:Eliom_sessions.server_params ->
-    ?name: string ->
-    ?csrf_safe: bool ->
-    ?max_use:int ->
-    ?timeout:float ->
-    ?keep_get_na_params:bool ->
-    ?https:bool ->
-    post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-    ?error_handler:(Eliom_sessions.server_params ->
-                      (string * exn) list -> 'return Lwt.t) ->
     (Eliom_sessions.server_params -> unit -> 'post -> 'return Lwt.t) ->
     (unit, 'post, [> `Nonattached of [> `Post] na_s ],
      [ `WithoutSuffix ], unit, 'pn,

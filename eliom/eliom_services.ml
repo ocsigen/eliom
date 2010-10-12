@@ -84,7 +84,7 @@ let uniqueid =
 (****************************************************************************)
 
 (** Definition of services *)
-let new_service_aux
+let service_aux
     ?sp
     ~https
     ~path
@@ -101,7 +101,7 @@ let new_service_aux
               (Ocsigen_lib.change_empty_list 
                  (Ocsigen_lib.remove_slash_at_beginning path))
           in
-          let u = new_service_aux_aux
+          let u = service_aux_aux
             ~https
             ~prefix:""
             ~path
@@ -117,14 +117,14 @@ let new_service_aux
           u
       | None ->
           raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
-                   "new_service"))
+                   "service"))
   | Some sp ->
       let path = 
         Ocsigen_lib.remove_internal_slash
           (Ocsigen_lib.change_empty_list 
              (Ocsigen_lib.remove_slash_at_beginning path))
       in
-      new_service_aux_aux
+      service_aux_aux
         ~https
         ~prefix:""
         ~path:path
@@ -136,7 +136,7 @@ let new_service_aux
         ~get_params
         ~post_params:unit
 
-let new_service
+let service
     ?sp
     ?(https = false)
     ~path
@@ -144,7 +144,7 @@ let new_service
     ~get_params
     () =
   let suffix = contains_suffix get_params in
-  new_service_aux
+  service_aux
     ?sp
     ~https
     ~path:(match suffix with
@@ -154,11 +154,11 @@ let new_service
     ?redirect_suffix:suffix
     ~get_params
 
-let new_coservice
+let coservice
     ?name
     ?(csrf_safe = false)
     ?csrf_session_name
-    ?csrf_level
+    ?(csrf_level = `Browser)
     ?csrf_secure_session
     ?max_use
     ?timeout
@@ -198,11 +198,11 @@ let new_coservice
    Preapply services if you want fallbacks with GET parameters *)
 
 
-let new_coservice' 
+let coservice' 
     ?name 
     ?(csrf_safe = false)
     ?csrf_session_name
-    ?csrf_level
+    ?(csrf_level = `Browser)
     ?csrf_secure_session
     ?max_use
     ?timeout
@@ -246,8 +246,8 @@ let new_coservice'
 
 
 (****************************************************************************)
-(* Register a service with post parameters in the server *)
-let new_post_service_aux ~sp ~https ~fallback 
+(* Create a service with post parameters in the server *)
+let post_service_aux ~sp ~https ~fallback 
     ?(keep_nl_params = `None) ~post_params =
 (* Create a main service (not a coservice) internal, post only *)
 (* ici faire une vérification "duplicate parameter" ? *)
@@ -274,7 +274,7 @@ let new_post_service_aux ~sp ~https ~fallback
    do_appl_xhr = XNever;
  }
 
-let new_post_service ?sp ?(https = false) ~fallback 
+let post_service ?sp ?(https = false) ~fallback 
     ?keep_nl_params ~post_params () =
   (* (if post_params = TUnit
   then Ocsigen_messages.warning "Probably error in the module: \
@@ -286,7 +286,7 @@ let new_post_service ?sp ?(https = false) ~fallback
   let `Attached k1 = fallback.kind in
   let `Internal kind = k1.att_kind in
   let path = k1.subpath in
-  let u = new_post_service_aux ~sp ~https ~fallback 
+  let u = post_service_aux ~sp ~https ~fallback 
     ?keep_nl_params ~post_params 
   in
   match sp with
@@ -299,18 +299,18 @@ let new_post_service ?sp ?(https = false) ~fallback
           if kind = `Service
           then
             raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
-                     "new_post_service")
+                     "post_service")
           else u)
   | _ -> u
 (* Warning: strange if post_params = unit... *)
 (* if the fallback is a coservice, do we get a coservice or a service? *)
 
 
-let new_post_coservice 
+let post_coservice 
     ?name
     ?(csrf_safe = false)
     ?csrf_session_name
-    ?csrf_level
+    ?(csrf_level = `Browser)
     ?csrf_secure_session
     ?max_use
     ?timeout
@@ -346,18 +346,18 @@ let new_post_coservice
    keep_nl_params = match keep_nl_params with 
      | None -> fallback.keep_nl_params | Some k -> k;
  }
-(* It is not possible to make a new_post_coservice function
+(* It is not possible to make a post_coservice function
    with an optional ?fallback parameter
    because the type 'get of the result depends on the 'get of the
    fallback. Or we must impose 'get = unit ...
  *)
 
 
-let new_post_coservice'
+let post_coservice'
     ?name
     ?(csrf_safe = false)
     ?csrf_session_name
-    ?csrf_level
+    ?(csrf_level = `Browser)
     ?csrf_secure_session
     ?max_use ?timeout
     ?(https = false)
@@ -394,40 +394,7 @@ let new_post_coservice'
   }
 
 
-(*
-let new_get_post_coservice'
-   ?max_use
-   ?timeout
-?(https = false)
-    ~fallback
-    ~post_params =
-  (* match Eliom_common.global_register_allowed () with
-  | Some _ ->
-  | _ -> ());
-   Eliom_common.add_unregistered None; *)
-   {
-   pre_applied_parameters = fallback.pre_applied_parameters;
-   get_params_type = fallback.na_get_params_type;
-   post_params_type = post_params;
-   max_use= max_use;
-   timeout= timeout;
-   kind = `Nonattached
-   {na_name = (fst fallback.na_name, Some (new_state ()));
-   na_kind = `Internal (`NonAttachedCoservice, `Post);
-   }
-  https = https;
-   }
-(* This is a nonattached coservice with GET and POST parameters!
-   When reloading, the fallback (a nonattached coservice with only GET
-   parameters) will be called.
- *)
-
-Very experimental
-Forms towards that kind of service are not implemented
-*)
-
-
-  
+ 
 
 (*****************************************************************************)
 let set_exn_handler ?sp h =
@@ -447,7 +414,7 @@ let register_delayed_get_or_na_coservice ~sp (k, session_name,
   let f =
     try
       let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      ?session_name ?level ?secure ~sp ())
+                      ?session_name ~level ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_get_or_na_registration_functions
@@ -466,7 +433,7 @@ let register_delayed_post_coservice ~sp (k, session_name,
   let f =
     try
       let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      ?session_name ?level ?secure ~sp ())
+                      ?session_name ~level ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_post_registration_functions
@@ -518,29 +485,34 @@ let remove_service table service =
         Eliommod_naservices.remove_naservice table na_name
 
 
-let unregister ?sp service =
-  let table = 
+let unregister ?(level = `Site) ?sp ?session_name ?secure service =
+  if level = `Site
+  then
+    let table = 
+      match sp with
+        | None ->
+          (match Eliom_common.global_register_allowed () with
+            | Some get_current_sitedata ->
+              let sitedata = get_current_sitedata () in
+              sitedata.Eliom_common.global_services
+            | _ -> raise
+              (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                 "unregister"))
+        | Some sp -> get_global_table ~sp ()
+    in
+    remove_service table service
+  else
     match sp with
       | None ->
-          (match Eliom_common.global_register_allowed () with
-             | Some get_current_sitedata ->
-                 let sitedata = get_current_sitedata () in
-                 sitedata.Eliom_common.global_services
-             | _ -> raise
-                 (Eliom_common.Eliom_function_forbidden_outside_site_loading
-                    "unregister"))
-      | Some sp -> get_global_table ~sp ()
-  in
-  remove_service table service
-
-
-let unregister_for_session ~sp ?session_name ?level ?secure service =
-  let table =
-    !(Eliom_sessions.get_session_service_table
-        ?secure ?session_name ?level ~sp ())
-  in
-  remove_service table service
-
+        raise
+          (failwith "Missing ~sp parameter for unregistering service from session")
+      | Some sp ->
+        let level = Eliom_common.session_level_of_level level in
+        let table =
+          !(Eliom_sessions.get_session_service_table
+              ?secure ?session_name ~level ~sp ())
+        in
+        remove_service table service
 
 
 

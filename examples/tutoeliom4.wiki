@@ -70,7 +70,7 @@ module Eliom_appl =
 >> Now I can define my first service belonging to that application: <<code language="ocaml" |
 
 let eliomclient1 =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["eliomclient1"]
     ~get_params:unit
     (fun sp () () ->
@@ -96,10 +96,10 @@ the same application!//
 For now, the syntax extension has not been implemented, thus the syntax
 is somewhat more complicated. Here are some examples of what you can do:
 <<code language="ocaml" |
-let eliomclient2 = new_service ~path:["eliomclient2"] ~get_params:unit ()
+let eliomclient2 = service ~path:["eliomclient2"] ~get_params:unit ()
 
 let myblockservice =
-  Eliom_predefmod.Blocks5.register_new_post_coservice
+  Eliom_predefmod.Blocks5.register_post_coservice
     ~fallback:eliomclient2
     ~post_params:unit
     (fun _ () () ->
@@ -331,7 +331,7 @@ It is now possible to send OCaml values to services.
 To do that, use the {{{Eliom_parameters.caml}}} function:
 <<code language="ocaml" |
 let eliomclient3' =
-  Eliom_appl.register_new_post_coservice'
+  Eliom_appl.register_post_coservice'
     ~post_params:(caml "isb")
     (fun sp () (i, s, l) ->
       Lwt.return
@@ -341,7 +341,7 @@ let eliomclient3' =
 
 
 let eliomclient3 =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["eliomclient3"]
     ~get_params:unit
     (fun sp () () ->
@@ -360,13 +360,13 @@ let eliomclient3 =
 It is possible to do services that send any caml value. For example:
 <<code language="ocaml" |
 let eliomclient4' =
-  Eliom_predefmod.Caml.register_new_post_coservice'
+  Eliom_predefmod.Caml.register_post_coservice'
     ~post_params:unit
     (fun sp () () -> Lwt.return [1; 2; 3])
 
 
 let eliomclient4 =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["eliomclient4"]
     ~get_params:unit
     (fun sp () () ->
@@ -389,14 +389,14 @@ let eliomclient4 =
 ====Other tests:
 <<code language="ocaml" |
 let withoutclient =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["withoutclient"]
     ~get_params:unit
     ()
 
 
 let gotowithoutclient =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["gotowithoutclient"]
     ~get_params:unit
     ()
@@ -448,7 +448,7 @@ let _ =
 
 
 let on_load =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["onload"]
     ~get_params:unit
     (fun sp () () ->

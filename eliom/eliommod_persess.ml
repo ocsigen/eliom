@@ -64,7 +64,7 @@ let close_persistent_session2 =
 let close_persistent_session ?session_name ?(level = `Browser) ~secure ~sp () =
   catch
     (fun () ->
-      let cookie_level = Eliom_common.cookie_level_of_level level in
+      let cookie_level = Eliom_common.cookie_level_of_session_level level in
       let fullsessname = 
         Eliom_common.make_fullsessname ~sp cookie_level session_name 
       in

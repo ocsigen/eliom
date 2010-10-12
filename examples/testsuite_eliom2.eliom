@@ -83,7 +83,7 @@ module Eliom_appl =
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
 
 let eliomclient1 =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["eliomclient1"]
     ~get_params:unit
     (fun sp () () ->
@@ -109,10 +109,10 @@ the same application!//
 For now, the syntax extension has not been implemented, thus the syntax
 is somewhat more complicated. Here are some examples of what you can do:
 *wiki*)
-let eliomclient2 = new_service ~path:["eliomclient2"] ~get_params:unit ()
+let eliomclient2 = service ~path:["eliomclient2"] ~get_params:unit ()
 
 let myblockservice =
-  Eliom_predefmod.Blocks5.register_new_post_coservice
+  Eliom_predefmod.Blocks5.register_post_coservice
     ~fallback:eliomclient2
     ~post_params:unit
     (fun _ () () ->
@@ -350,7 +350,7 @@ It is now possible to send OCaml values to services.
 To do that, use the {{{Eliom_parameters.caml}}} function:
 *wiki*)
 let eliomclient3' =
-  Eliom_appl.register_new_post_coservice'
+  Eliom_appl.register_post_coservice'
     ~post_params:(caml "isb")
     (fun sp () (i, s, l) ->
       Lwt.return
@@ -360,7 +360,7 @@ let eliomclient3' =
 
 
 let eliomclient3 =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["eliomclient3"]
     ~get_params:unit
     (fun sp () () ->
@@ -379,13 +379,13 @@ let eliomclient3 =
 It is possible to do services that send any caml value. For example:
 *wiki*)
 let eliomclient4' =
-  Eliom_predefmod.Caml.register_new_post_coservice'
+  Eliom_predefmod.Caml.register_post_coservice'
     ~post_params:unit
     (fun sp () () -> Lwt.return [1; 2; 3])
 
 
 let eliomclient4 =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["eliomclient4"]
     ~get_params:unit
     (fun sp () () ->
@@ -408,14 +408,14 @@ let eliomclient4 =
 ====Other tests:
 *wiki*)
 let withoutclient =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["withoutclient"]
     ~get_params:unit
     ()
 
 
 let gotowithoutclient =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["gotowithoutclient"]
     ~get_params:unit
     ()
@@ -467,7 +467,7 @@ let _ =
 
 
 let on_load =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["onload"]
     ~get_params:unit
     (fun sp () () ->
@@ -535,7 +535,7 @@ let _ = rand_tick ()
 
 
 let comet1 =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["comet1"]
     ~get_params:unit
     (fun sp () () ->
@@ -588,7 +588,7 @@ let comet1 =
 
 
 let comet2 =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["comet2"]
     ~get_params:unit
     (fun sp () () ->
@@ -631,7 +631,7 @@ let comet2 =
 
 
 let comet3 =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["comet3"]
     ~get_params:unit
     (fun sp () () ->
@@ -689,7 +689,7 @@ let message_up = Eliom_event.Up.create (Eliom_parameters.caml "content" : (strin
 
 (* Then is the page hosting the board *)
 let comet_message_board =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["message_board"]
     ~get_params:unit
     (fun sp () () ->
@@ -770,7 +770,7 @@ open Event_arrows
 }}
 
 let event_service =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["events"]
     ~get_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -897,21 +897,21 @@ let my_table = Eliom_sessions.create_volatile_table ~session_name ~level:`Tab ()
 (* Create services, but do not register them yet:           *)
 
 let tsession_data_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["tsessdata"]
     ~get_params:Eliom_parameters.unit
     ()
 
 
 let tsession_data_example_with_post_params =
-  Eliom_services.new_post_service
+  Eliom_services.post_service
     ~fallback:tsession_data_example
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 
 let tsession_data_example_close =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["tclose"]
     ~get_params:Eliom_parameters.unit
     ()
@@ -1009,21 +1009,21 @@ let session_name = "tsession_services"
 (* Create services, but do not register them yet:           *)
 
 let tsession_services_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["tsessionservices"]
     ~get_params:Eliom_parameters.unit
     ()
 
 
 let tsession_services_example_with_post_params =
-  Eliom_services.new_post_service
+  Eliom_services.post_service
     ~fallback:tsession_services_example
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 
 let tsession_services_example_close =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["tclose2"]
     ~get_params:Eliom_parameters.unit
     ()
@@ -1082,7 +1082,7 @@ let tlaunch_session sp () login =
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_appl.register_for_session (*zap* *) ~session_name (* *zap*)
+  Eliom_appl.register (*zap* *) ~session_name (* *zap*)
     ~level:`Tab
     ~sp
     ~service:tsession_services_example
@@ -1090,7 +1090,7 @@ let tlaunch_session sp () login =
        here the main page of our site *)
     new_main_page;
 
-  Eliom_appl.register_for_session (*zap* *) ~session_name (* *zap*)
+  Eliom_appl.register (*zap* *) ~session_name (* *zap*)
     ~level:`Tab
     ~sp
     ~service:eliomclient1
@@ -1128,21 +1128,21 @@ let () =
 (* We create one main service and two coservices:           *)
 
 let tcoservices_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["tcoserv"]
     ~get_params:Eliom_parameters.unit
     ()
 
 
 let tcoservices_example_post =
-  Eliom_services.new_post_coservice
+  Eliom_services.post_coservice
     ~fallback:tcoservices_example
     ~post_params:Eliom_parameters.unit
     ()
 
 
 let tcoservices_example_get =
-  Eliom_services.new_coservice
+  Eliom_services.coservice
     ~fallback:tcoservices_example
     ~get_params:Eliom_parameters.unit
     ()
@@ -1195,14 +1195,14 @@ let session_name = "calc_example"
 (* one with a GET integer parameter:                        *)
 
 let tcalc =
-  new_service
+  service
     ~path:["tcalc"]
     ~get_params:unit
     ()
 
 
 let tcalc_i =
-  new_service
+  service
     ~path:["tcalc"]
     ~get_params:(int "i")
     ()
@@ -1242,7 +1242,7 @@ let tcalc_i_handler sp i () =
   in
   let is = string_of_int i in
   let tcalc_result =
-    Eliom_appl.register_new_coservice_for_session
+    Eliom_appl.register_coservice
       ~level:`Tab
       ~sp
       ~fallback:tcalc
@@ -1279,14 +1279,14 @@ let session_name = "connect_example3"
 (* (for connection and disconnection)                       *)
 
 let tconnect_example3 =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["taction"]
     ~get_params:Eliom_parameters.unit
     ()
 
 
 let tconnect_action =
-  Eliom_services.new_post_coservice'
+  Eliom_services.post_coservice'
     ~name:"tconnect3"
     ~post_params:(Eliom_parameters.string "login")
     ()
@@ -1294,7 +1294,7 @@ let tconnect_action =
 
 (* As the handler is very simple, we register it now: *)
 let tdisconnect_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
+  Eliom_predefmod.Action.register_post_coservice'
     ~name:"tdisconnect3"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -1381,14 +1381,14 @@ let tmy_persistent_table =
 (* (for connection and disconnection)                       *)
 
 let tpersist_session_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["tpersist"]
     ~get_params:unit
     ()
 
 
 let tpersist_session_connect_action =
-  Eliom_services.new_post_coservice'
+  Eliom_services.post_coservice'
     ~name:"tconnect4"
     ~post_params:(string "login")
     ()
@@ -1405,7 +1405,7 @@ let tpersist_session_connect_action =
 (* new disconnect action and box:                           *)
 
 let tdisconnect_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
+  Eliom_predefmod.Action.register_post_coservice'
     ~name:"tdisconnect4"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -1505,14 +1505,14 @@ let session_name = "connect_example6"
 (* (for connection and disconnection)                       *)
 
 let tconnect_example6 =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["taction2"]
     ~get_params:unit
     ()
 
 
 let tconnect_action =
-  Eliom_services.new_post_coservice'
+  Eliom_services.post_coservice'
     ~name:"tconnect6"
     ~post_params:(string "login")
     ()
@@ -1521,7 +1521,7 @@ let tconnect_action =
 (* new disconnect action and box:                           *)
 
 let tdisconnect_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
+  Eliom_predefmod.Action.register_post_coservice'
     ~name:"tdisconnect6"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -1615,14 +1615,14 @@ let () =
 
 
 let tcsrfsafe_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["tcsrf"]
     ~get_params:Eliom_parameters.unit
     ()
 
 
 let tcsrfsafe_example_post =
-  Eliom_services.new_post_coservice
+  Eliom_services.post_coservice
     ~csrf_safe:true
     ~csrf_session_name:"csrf"
     ~csrf_level:`Tab
@@ -1657,7 +1657,7 @@ let _ =
 let cookiename = "mycookie"
 
 
-let tcookies = new_service ["tcookies"] unit ()
+let tcookies = service ["tcookies"] unit ()
 
 
 let _ = Eliom_appl.register tcookies
@@ -1685,14 +1685,14 @@ let _ = Eliom_appl.register tcookies
        will ask the client program to do a redirection *****)
 
 let coucouaction =
-  Eliom_predefmod.Action.register_new_coservice
+  Eliom_predefmod.Action.register_coservice
     ~fallback:Tutoeliom.coucou
     ~get_params:unit
     (fun _ () () -> Lwt.return ())
 
 
 let actionoutside =
-  Eliom_appl.register_new_service
+  Eliom_appl.register_service
     ~path:["actionoutside"]
     ~get_params:unit
     (fun sp () () ->
@@ -1711,7 +1711,7 @@ open Tutoeliom
 
 
 (* Main page for this example *)
-let main = new_service [] unit ()
+let main = service [] unit ()
 
 
 let _ = Eliom_predefmod.Xhtml5compact.register main

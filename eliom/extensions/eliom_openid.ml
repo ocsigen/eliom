@@ -500,10 +500,10 @@ module type HiddenServiceInfo = sig
 end
 
 module Make (S : HiddenServiceInfo) = struct
-  let return_service = Eliom_predefmod.Any.register_new_service
-    ~path: S.path
-    ~get_params: any 
-    S.f
+  let return_service = Eliom_services.service ~path:S.path ~get_params:any ()
+
+  let () = Eliom_predefmod.Any.register ~service:return_service S.f
+
   let authentificate ~mode ~ext ~handler ~sp ~discovery =
     let local = match snd discovery with
       | None ->  "http://specs.openid.net/auth/2.0/identifier_select"
@@ -516,7 +516,8 @@ module Make (S : HiddenServiceInfo) = struct
           Eliom_predefmod.Xhtml.make_string_uri ~absolute: true 
           ~service:return_service [] ~sp 
         in
-        let _ = Eliom_predefmod.Any.register_for_session
+        let _ = Eliom_predefmod.Any.register
+          ~level:`Browser
           ~session_name
           ~service:return_service ~sp
           (fun sp args _ -> 

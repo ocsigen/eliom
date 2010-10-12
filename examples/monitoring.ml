@@ -30,7 +30,7 @@ open Lwt
 let launchtime = Unix.time ()
 
 let _ =
-  register_new_service
+  register_service
     ~path:[]
     ~get_params:unit
     (fun sp () () ->

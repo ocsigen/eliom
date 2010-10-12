@@ -435,7 +435,7 @@ let rec close_service_session_if_empty
   (* See also in Eliommod_gc and in Eliommod_sessiongroups. *)
   try
     let sitedata = sp.Eliom_common.sp_sitedata in
-    let cookie_level = Eliom_common.cookie_level_of_level level in 
+    let cookie_level = Eliom_common.cookie_level_of_session_level level in 
     let c = Eliommod_sersess.find_service_cookie_only
       ?session_name ~cookie_level ~secure ~sp ()
     in
@@ -474,7 +474,7 @@ let rec close_volatile_session_if_empty
   (* See also in Eliommod_gc and in Eliommod_sessiongroups. *)
   try
     let sitedata = sp.Eliom_common.sp_sitedata in
-    let cookie_level = Eliom_common.cookie_level_of_level level in 
+    let cookie_level = Eliom_common.cookie_level_of_session_level level in 
     let c = Eliommod_datasess.find_data_cookie_only
       ?session_name ~cookie_level ~secure ~sp ()
     in
@@ -859,7 +859,7 @@ let set_ipv6_subnet_mask ?sp ?(override_configfile = false) n =
 
 let set_max_service_sessions_for_group_or_subnet
     ?session_name ?(level = `Browser) ?secure ~sp m =
-  let cookie_level = Eliom_common.cookie_level_of_level level in
+  let cookie_level = Eliom_common.cookie_level_of_session_level level in
   let c =
     Eliommod_sersess.find_or_create_service_cookie
       ?session_name ~cookie_level ~secure ~sp ()
@@ -877,7 +877,7 @@ let set_max_service_sessions_for_group_or_subnet
 
 let set_max_volatile_data_sessions_for_group_or_subnet
     ?session_name ?(level = `Browser) ?secure ~sp m =
-  let cookie_level = Eliom_common.cookie_level_of_level level in
+  let cookie_level = Eliom_common.cookie_level_of_session_level level in
   let c =
     Eliommod_datasess.find_or_create_data_cookie
       ?session_name ~cookie_level ~secure ~sp ()
@@ -1002,7 +1002,7 @@ let get_sitedata ~sp = sp.Eliom_common.sp_sitedata
    (new cookie, new session service table) *)
 let get_session_service_table 
     ?session_name ?(level = `Browser) ?secure ~sp () =
-  let cookie_level = Eliom_common.cookie_level_of_level level in 
+  let cookie_level = Eliom_common.cookie_level_of_session_level level in 
   let c = 
     Eliommod_sersess.find_or_create_service_cookie
       ?session_name ~cookie_level ~secure ~sp () 
@@ -1019,7 +1019,7 @@ let get_session_service_table
 let get_session_service_table_if_exists
     ?session_name ?(level = `Browser) ?secure ~sp () =
   try
-    let cookie_level = Eliom_common.cookie_level_of_level level in 
+    let cookie_level = Eliom_common.cookie_level_of_session_level level in 
     let c = 
       Eliommod_sersess.find_service_cookie_only
         ?session_name ~cookie_level ~secure ~sp () 
@@ -1046,7 +1046,7 @@ let set_site_handler sitedata handler =
 open Ocsipersist
 
 type 'a persistent_table =
-    (Eliom_common.level * 
+    (Eliom_common.session_level * 
        string option *
        bool *
        (int64 * 'a) Ocsipersist.table)
@@ -1071,7 +1071,7 @@ let get_table_key_
          | Data a -> Lwt.return a
          | _ -> Lwt.return Eliom_common.default_group_name)
     | _ ->
-      let cookie_level = Eliom_common.cookie_level_of_level level in 
+      let cookie_level = Eliom_common.cookie_level_of_session_level level in 
       find_cookie ?session_name ~cookie_level ~secure:(Some secure) ~sp () 
       >>= fun c -> Lwt.return c.Eliom_common.pc_value)
   >>= fun key ->
@@ -1118,7 +1118,7 @@ let remove_persistent_session_data ~table ~sp () =
 (** {2 session data in memory} *)
 
 type 'a volatile_table =
-    (Eliom_common.level * 
+    (Eliom_common.session_level * 
        string option *
        bool *
        'a Eliom_common.SessionCookies.t)
@@ -1149,7 +1149,7 @@ let get_table_key_ ~table:(level, (session_name : string option), secure, table)
        with Data a -> a
          | _ -> Eliom_common.default_group_name)
     | _ -> 
-      let cookie_level = Eliom_common.cookie_level_of_level level in 
+      let cookie_level = Eliom_common.cookie_level_of_session_level level in 
       let c =
         find_cookie ?session_name ~cookie_level ~secure:(Some secure) ~sp () in
       c.Eliom_common.dc_value

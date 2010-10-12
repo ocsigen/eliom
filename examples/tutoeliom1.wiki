@@ -42,10 +42,10 @@ open Eliom_predefmod.Xhtml
           
 Here is an example showing how to create a new service and
          register a page created with XHTML.M. Use the function
-         <<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_new_service"|<<span class="code"|Eliom_predefmod.Xhtml.register_new_service>>>>:
+         <<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_service"|<<span class="code"|Eliom_predefmod.Xhtml.register_service>>>>:
 <<code language="ocaml" |
 let coucou =
-  register_new_service
+  register_service
     ~path:["coucou"]
     ~get_params:unit
     (fun _ () () ->
@@ -59,7 +59,7 @@ The same, written with fully qualified values:
           
 <<code language="ocaml"|
 let coucou =
-  Eliom_predefmod.Xhtml.register_new_service
+  Eliom_predefmod.Xhtml.register_service
     ~path:["coucou"]
     ~get_params:Eliom_parameters.unit
     (fun _ () () ->
@@ -215,7 +215,7 @@ In XHTML, some tags cannot be empty. For example
 
             <<code language="ocaml" |
 let coucou1 =
-  Eliom_predefmod.Xhtml.register_new_service
+  Eliom_predefmod.Xhtml.register_service
     ~path:["coucou1"]
     ~get_params:Eliom_parameters.unit
     (fun _ () () ->
@@ -313,7 +313,7 @@ Here is an example:
 <<code language="ocaml"|open Lwt
 
 let s =
-  Eliom_duce.Xhtml.register_new_service
+  Eliom_duce.Xhtml.register_service
     ~path:[""]
     ~get_params:unit
     (fun sp () () ->
@@ -329,13 +329,13 @@ let s =
             
 If you want to register untyped (text) pages, use the
          functions from <<ocsigendoc version="dev" file="Eliom_predefmod.HtmlText.html"|<<span class="code"|Eliom_predefmod.HtmlText>>>>, for example
-         <<ocsigendoc version="dev" file="Eliom_predefmod.Text.html"|<<span class="code"|Eliom_predefmod.Text.register_new_service>>>> :
+         <<ocsigendoc version="dev" file="Eliom_predefmod.Text.html"|<<span class="code"|Eliom_predefmod.Text.register_service>>>> :
         
             
 
             <<code language="ocaml" |
 let coucoutext =
-  Eliom_predefmod.HtmlText.register_new_service
+  Eliom_predefmod.HtmlText.register_service
     ~path:["coucoutext"]
     ~get_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -355,7 +355,7 @@ let coucoutext =
         
         <<div class="onecol"|
           
-Services registered with <<span class="code"|register_new_service>>
+Services registered with <<span class="code"|register_service>>
          are available for all users. We call them //public services//.
       
           
@@ -371,7 +371,7 @@ let count =
     let c = ref 0 in
       (fun () -> c := !c + 1; !c)
   in
-  register_new_service
+  register_service
     ~path:["count"]
     ~get_params:unit
     (fun _ () () ->
@@ -393,7 +393,7 @@ As usual in OCaml, you can forget labels when the application
           
 <<code language="ocaml" |
 let hello =
-  register_new_service
+  register_service
     ["dir";"hello"]  (* the url dir/hello *)
     unit
     (fun _ () () ->
@@ -419,7 +419,7 @@ The last example shows how to define the default page for
 
           
 <<code language="ocaml" |
-let default = register_new_service ["rep";""] unit
+let default = register_service ["rep";""] unit
   (fun _ () () ->
     return
      (html
@@ -509,7 +509,7 @@ let writeparams _ (i1, (i2, s1)) () =
               pcdata " and ";
               strong [pcdata s1]]]))
 
-let coucou_params = register_new_service
+let coucou_params = register_service
     ~path:["coucou"]
     ~get_params:(int "i" ** (int "ii" ** string "s"))
     writeparams
@@ -545,7 +545,7 @@ The following examples shows how to create a service with "suffix"
 
 <<code language="ocaml" |
 let uasuffix =
-  register_new_service
+  register_service
     ~path:["uasuffix"]
     ~get_params:(suffix (int "year" ** int "month"))
     (fun sp (year, month) () ->
@@ -587,7 +587,7 @@ Suffix parameters have names, because we can create forms towards
 
 <<code language="ocaml" |
 let isuffix =
-  register_new_service
+  register_service
     ~path:["isuffix"]
     ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
     (fun sp ((suff, endsuff), i) () ->
@@ -618,7 +618,7 @@ If you want parameters in the path but not always at the end,
 
   <<code language="ocaml" |
 let constfix =
-  register_new_service
+  register_service
     ~path:["constfix"]
     ~get_params:(suffix (string "s1" ** (Eliom_parameters.suffix_const "toto" ** string "s2")))
     (fun _ (s1, ((), s2))  () ->
@@ -649,7 +649,7 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype =
-  Eliom_predefmod.Xhtml.register_new_service
+  Eliom_predefmod.Xhtml.register_service
     ~path:["mytype"]
     ~get_params:
       (Eliom_parameters.user_type mysum_of_string string_of_mysum "valeur")
@@ -675,7 +675,7 @@ If you want a service that answers to requests with any parameters,
       
           
 <<code language="ocaml" |
-let raw_serv = register_new_service
+let raw_serv = register_service
     ~path:["any"]
     ~get_params:Eliom_parameters.any
   (fun _ l () ->
@@ -710,7 +710,7 @@ You can catch parameters typing errors and write your own
 
 <<code language="ocaml" |
 
-let catch = register_new_service
+let catch = register_service
     ~path:["catch"]
     ~get_params:(int "i")
     ~error_handler:(fun sp l ->
@@ -753,7 +753,7 @@ To create a link (<<span class="code"|<a>>>), use the
 
           
 <<code language="ocaml" |
-let links = register_new_service ["rep";"links"] unit
+let links = register_service ["rep";"links"] unit
  (fun sp () () ->
    return
     (html
@@ -771,7 +771,7 @@ let links = register_new_service ["rep";"links"] unit
          Eliom_predefmod.Xhtml.a raw_serv sp
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
          Eliom_predefmod.Xhtml.a
-           (new_external_service
+           (external_service
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
               ~get_params:(suffix (all_suffix "suff"))
@@ -834,14 +834,14 @@ If you open <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span 
 
           
         If you want to create (mutually or not) recursive pages,
-        create the service using <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_service"|<<span class="code"|Eliom_services.new_service>>>> first,
+        create the service using <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|<<span class="code"|Eliom_services.service>>>> first,
         then register it in the table using (for example)
         <<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|<<span class="code"|Eliom_predefmod.Xhtml.register>>>>:
       
           
 
 <<code language="ocaml" |
-let linkrec = Eliom_services.new_service ["linkrec"] unit ()
+let linkrec = Eliom_services.service ["linkrec"] unit ()
 
 let _ = Eliom_predefmod.Xhtml.register linkrec
     (fun sp () () ->
@@ -887,7 +887,7 @@ let create_form =
         Eliom_predefmod.Xhtml.string_input ~input_type:`Text ~name:string_name ();
         Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
 
-let form = register_new_service ["form"] unit
+let form = register_service ["form"] unit
   (fun sp () () ->
      let f = Eliom_predefmod.Xhtml.get_form coucou_params sp create_form in
      return
@@ -927,7 +927,7 @@ For untyped forms, you may use functions from XHTML.M (or
           
 
 <<code language="ocaml" |
-let raw_form = register_new_service
+let raw_form = register_service
     ~path:["anyform"]
     ~get_params:unit
     (fun sp () () ->
@@ -976,7 +976,7 @@ Try this [[site:tuto/anyform| form]].
           
 <<code language="ocaml" |
 let no_post_param_service =
-  register_new_service
+  register_service
     ~path:["post"]
     ~get_params:unit
     (fun _ () () ->
@@ -987,7 +987,7 @@ let no_post_param_service =
                       "Version of the page without POST parameters"]])))
 
 let my_service_with_post_params =
-  register_new_post_service
+  register_post_service
     ~fallback:no_post_param_service
     ~post_params:(string "value")
     (fun _ () value ->
@@ -1005,7 +1005,7 @@ Services may take both GET and POST parameters:
 
 <<code language="ocaml" |
 let get_no_post_param_service =
-  register_new_service
+  register_service
     ~path:["post2"]
     ~get_params:(int "i")
     (fun _ i () ->
@@ -1015,7 +1015,7 @@ let get_no_post_param_service =
          (body [p [pcdata "No POST parameter, i:";
                    em [pcdata (string_of_int i)]]])))
 
-let my_service_with_get_and_post = register_new_post_service
+let my_service_with_get_and_post = register_post_service
   ~fallback:get_no_post_param_service
   ~post_params:(string "value")
   (fun _ i value ->
@@ -1045,7 +1045,7 @@ let my_service_with_get_and_post = register_new_post_service
           
 
 <<code language="ocaml" |
-let form2 = register_new_service ["form2"] unit
+let form2 = register_service ["form2"] unit
   (fun sp () () ->
      let f =
        (Eliom_predefmod.Xhtml.post_form my_service_with_post_params sp
@@ -1057,7 +1057,7 @@ let form2 = register_new_service ["form2"] unit
          (head (title (pcdata "form")) [])
          (body [f])))
 
-let form3 = register_new_service ["form3"] unit
+let form3 = register_service ["form3"] unit
   (fun sp () () ->
      let f  =
        (Eliom_predefmod.Xhtml.post_form my_service_with_get_and_post sp
@@ -1070,11 +1070,11 @@ let form3 = register_new_service ["form3"] unit
             <head><title></title></head>
             <body>$f$</body></html> ~>>)
 
-let form4 = register_new_service ["form4"] unit
+let form4 = register_service ["form4"] unit
   (fun sp () () ->
      let f  =
        (Eliom_predefmod.Xhtml.post_form
-          (new_external_post_service
+          (external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
              ~get_params:(int "i")
@@ -1129,7 +1129,7 @@ As it doesn't cooperate, the following page will stop the
 
           
 <<code language="ocaml"|let looong =
-  register_new_service
+  register_service
     ~path:["looong"]
     ~get_params:unit
     (fun sp () () ->
@@ -1148,7 +1148,7 @@ To solve this problem, use a cooperative version of
           
 <<code language="ocaml" |
 let looong =
-  register_new_service
+  register_service
     ~path:["looong"]
     ~get_params:unit
     (fun sp () () ->
@@ -1171,7 +1171,7 @@ If you want to use, say, a database library that is not written
           
 <<code language="ocaml" |
 let looong2 =
-  register_new_service
+  register_service
     ~path:["looong2"]
     ~get_params:unit
     (fun sp () () ->
@@ -1231,8 +1231,8 @@ To take into account all possible behaviours with respect to URLs,
         Eliom uses three kinds of services:
 ;@@class="blue"@ @@Main services
 :are the main entry points of your sites.
-        Created by <<span class="code"|new_service>> or
-        <<span class="code"|new_post_service>>.
+        Created by <<span class="code"|service>> or
+        <<span class="code"|post_service>>.
         They correspond to the public URLs of your Web site, and will last
         forever.
 ;(Attached) coservices

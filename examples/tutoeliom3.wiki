@@ -81,7 +81,7 @@ It is now also possible to handle static pages with Eliom, using
 
 <<code language="ocaml" |
 let divpage =
-  Eliom_predefmod.Blocks.register_new_service
+  Eliom_predefmod.Blocks.register_service
     ~path:["div"]
     ~get_params:unit
     (fun sp () () ->
@@ -121,7 +121,7 @@ end)
     
           
 <<code language="ocaml" |
-let redir1 = Eliom_predefmod.Redirection.register_new_service
+let redir1 = Eliom_predefmod.Redirection.register_service
     ~options:`Temporary
     ~path:["redir"]
     ~get_params:Eliom_parameters.unit
@@ -136,7 +136,7 @@ let redir1 = Eliom_predefmod.Redirection.register_new_service
     
           
  <<code language="ocaml" |
-let redir = Eliom_predefmod.Redirection.register_new_service
+let redir = Eliom_predefmod.Redirection.register_service
     ~options:`Temporary
     ~path:["redir"]
     ~get_params:(int "o")
@@ -174,7 +174,7 @@ You may want to register a service that will send files.
           
 <<code language="ocaml"|
 let sendfile =
-  Files.register_new_service
+  Files.register_service
     ~path:["sendfile"]
     ~get_params:unit
     (fun _ () () -> return "filename")
@@ -189,7 +189,7 @@ Other example, with suffix URL:
           
 <<code language="ocaml"|
 let sendfile2 =
-  Files.register_new_service
+  Files.register_service
     ~path:["files"]
     ~get_params:(suffix (all_suffix "filename"))
     (fun _ s () -> return ("//path//"^(Ocsigen_lib.string_of_url_path ~encode:false s)))
@@ -217,7 +217,7 @@ You may want to register a service that will send, for instance,
           
 <<code language="ocaml" |
 let send_any =
-  Eliom_predefmod.Any.register_new_service
+  Eliom_predefmod.Any.register_service
     ~path:["sendany"]
     ~get_params:(string "type")
    (fun sp s () ->
@@ -305,7 +305,7 @@ The <<span class="code"|?cookie_type~>> argument
 <<code language="ocaml" |
 let cookiename = "mycookie"
 
-let cookies = new_service ["cookies"] unit ()
+let cookies = service ["cookies"] unit ()
 
 let _ = Eliom_predefmod.Xhtml.register cookies
   (fun sp () () ->
@@ -485,7 +485,7 @@ let count2 =
             Lwt_mutex.unlock mutex;
             return newc))))
   in
-  register_new_service
+  register_service
     ~path:["count2"]
     ~get_params:unit
     (fun _ () () ->
@@ -567,13 +567,13 @@ let my_persistent_table =
 (* (for connection and disconnection)                       *)
 
 let persist_session_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["persist"]
     ~get_params:unit
     ()
 
 let persist_session_connect_action =
-  Eliom_services.new_post_coservice'
+  Eliom_services.post_coservice'
     ~name:"connect4"
     ~post_params:(string "login")
     ()
@@ -747,13 +747,13 @@ It is also possible to send other information to fallback,
 (* (for connection and disconnection)                       *)
 
 let connect_example6 =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["action2"]
     ~get_params:unit
     ()
 
 let connect_action =
-  Eliom_services.new_post_coservice'
+  Eliom_services.post_coservice'
     ~name:"connect6"
     ~post_params:(string "login")
     ()
@@ -761,7 +761,7 @@ let connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
+  Eliom_predefmod.Action.register_post_coservice'
     ~name:"disconnect6"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -872,14 +872,14 @@ It is possible to set a limit to the number of uses of
 
           
 <<code language="ocaml" |
-let disposable = new_service ["disposable"] unit ()
+let disposable = service ["disposable"] unit ()
 
 let _ = register disposable
     (fun sp () () ->
       let disp_coservice =
-        new_coservice ~max_use:2 ~fallback:disposable ~get_params:unit ()
+        coservice ~max_use:2 ~fallback:disposable ~get_params:unit ()
       in
-      register_for_session sp disp_coservice
+      register ~level:`Browser ~sp ~service:disp_coservice
         (fun sp () () ->
           return
             (html
@@ -980,8 +980,8 @@ Warning: that default may be overriden by each site using
           
 It is also possible to put timeouts on coservices using
       the optional parameter <<span class="code"|?timeout>> of functions
-      <<span class="code"|new_coservice>>,
-      <<span class="code"|new_coservice'>>, etc.
+      <<span class="code"|coservice>>,
+      <<span class="code"|coservice'>>, etc.
      Note that session coservices cannot survive after the end of the session.
      Use this if you don't want your coservice to be available during all the
      session duration. For example if your coservice is here to show the
@@ -991,12 +991,12 @@ It is also possible to put timeouts on coservices using
      
           
 <<code language="ocaml" |
-let timeout = new_service ["timeout"] unit ()
+let timeout = service ["timeout"] unit ()
 
 let _ =
   let page sp () () =
     let timeoutcoserv =
-      register_new_coservice_for_session
+      register_coservice ~level:`Browser
         ~sp ~fallback:timeout ~get_params:unit ~timeout:5.
         (fun _ _ _ ->
            return
@@ -1047,12 +1047,12 @@ If you want to register coservices in the
      the public table:
      
 <<code language="ocaml" |
-let publiccoduringsess = new_service ["publiccoduringsess"] unit ()
+let publiccoduringsess = service ["publiccoduringsess"] unit ()
 
 let _ =
   let page sp () () =
     let timeoutcoserv =
-      register_new_coservice
+      register_coservice
         ~sp ~fallback:publiccoduringsess ~get_params:unit ~timeout:5.
         (fun _ _ _ ->
            return
@@ -1163,7 +1163,7 @@ If you need more sessions (for example several different data sessions)
          for the same site, you can give a name to your sessions by giving
          the optional parameter <<span class="code"|?session_name>> to functions like
      <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_data_session"|<<span class="code"|Eliom_sessions.close_data_session>>>>>>,
-     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_for_session"|<<span class="code"|register_for_session>>>>>>, or
+     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|<<span class="code"|register>>>>>>, or
       <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_volatile_session_data"|<<span class="code"|Eliom_sessions.get_volatile_session_data>>>>.
        Note that this tutorial has been implemented using this feature,
        even if it has been hidden for the sake of simplicity.
@@ -1206,7 +1206,7 @@ For security reasons, Eliom does not use the same cookies in
         <<span class="code"|~secure:false>> when calling functions like
         <<span class="code"|Eliom_sessions.set_volatile_session_data>>,
         <<span class="code"|Eliom_sessions.get_persistent_session_data>>,
-        <<span class="code"|Eliom_predefmod.Xhtml.register_for_session>>, etc.
+        <<span class="code"|Eliom_predefmod.Xhtml.register>>, etc.
 
 ====Non localized parameters**[New in 1.3.0]**
 
@@ -1223,7 +1223,7 @@ let my_nl_params =
     ~name:"mynlparams"
     (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
 
-let nlparams = register_new_service
+let nlparams = register_service
     ~path:["nlparams"]
     ~get_params:(int "i")
     (fun sp i () ->
@@ -1255,7 +1255,7 @@ let nlparams = register_new_service
     
     <<code language="ocaml" |
 
-let tonlparams = register_new_service
+let tonlparams = register_service
     ~path:["nlparams"]
     ~get_params:unit
     (fun sp i () ->
@@ -1371,20 +1371,20 @@ which can be a problem for example if the server is behind a reverse proxy.**
 (* (for connection and disconnection)                       *)
 
 let connect_example5 =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["groups"]
     ~get_params:Eliom_parameters.unit
     ()
 
 let connect_action =
-  Eliom_services.new_post_coservice'
+  Eliom_services.post_coservice'
     ~name:"connect5"
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
+  Eliom_predefmod.Action.register_post_coservice'
     ~name:"disconnect5"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -1474,26 +1474,26 @@ let my_table =
 (* (for connection and disconnection)                       *)
 
 let group_tables_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["grouptables"]
     ~get_params:Eliom_parameters.unit
     ()
 
 let connect_action =
-  Eliom_services.new_post_coservice'
+  Eliom_services.post_coservice'
     ~name:"connect7"
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 let disconnect_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
+  Eliom_predefmod.Action.register_post_coservice'
     ~name:"disconnectgt"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
       Eliom_sessions.close_session  ~sp ())
 
 let disconnect_g_action =
-  Eliom_predefmod.Action.register_new_post_coservice'
+  Eliom_predefmod.Action.register_post_coservice'
     ~name:"disconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -1633,13 +1633,13 @@ Example:
     <<code language="ocaml" |
 
 let csrfsafe_example =
-  Eliom_services.new_service
+  Eliom_services.service
     ~path:["csrf"]
     ~get_params:Eliom_parameters.unit
     ()
 
 let csrfsafe_example_post =
-  Eliom_services.new_post_coservice
+  Eliom_services.post_coservice
     ~csrf_safe:true
     ~csrf_session_name:"csrf"
     ~csrf_secure_session:true
@@ -1680,12 +1680,12 @@ let _ =
      described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}
      (corresponding to {{{?session_name}}} and {{{?secure}}}).
 
-     If you use {{{register_for_session}}}, 
+     If you use {{{register ~level:`Browser}}}, 
      the coservice will be available only for one session.
      The actual registration will take place in the same session table,
      described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}.
      In that case, the parameters 
-     {{?session_name}}} and {{{?secure}}} of {{{register_for_session}}}
+     {{?session_name}}} and {{{?secure}}} of {{{register}}}
      must be exactly the same.
 
 
@@ -1716,7 +1716,7 @@ This section shows more advanced use of page parameters and
 let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
 
 let regexp =
-  Eliom_predefmod.Xhtml.register_new_service
+  Eliom_predefmod.Xhtml.register_service
     ~path:["regexp"]
     ~get_params:(regexp r "$1" "myparam")
     (fun _ g () ->
@@ -1743,7 +1743,7 @@ Page may take parameter of type <<span class="code"|bool>>.
       
 <<code language="ocaml" |
 (* Form with bool checkbox: *)
-let bool_params = register_new_service
+let bool_params = register_service
     ~path:["bool"]
     ~get_params:(bool "case")
   (fun _ case () ->
@@ -1761,7 +1761,7 @@ let create_form_bool casename =
     <:xmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> ~>>
 
-let form_bool = register_new_service ["formbool"] unit
+let form_bool = register_service ["formbool"] unit
   (fun sp () () ->
      let f = get_form bool_params sp create_form_bool in
      return
@@ -1822,7 +1822,7 @@ Page may take several parameters of the same name.
       
 <<code language="ocaml" |
 
-let set = register_new_service
+let set = register_service
     ~path:["set"]
     ~get_params:(set string "s")
   (fun _ l () ->
@@ -1849,7 +1849,7 @@ These parameters may come from several kinds of widgets in forms.
 <<code language="ocaml" |
 
 (* form to set *)
-let setform = register_new_service
+let setform = register_service
     ~path:["setform"]
     ~get_params:unit
     (fun sp () () ->
@@ -1887,7 +1887,7 @@ Once again, note that there is no difference between an empty
 Here is an example of a select box.
           
 <<code language="ocaml" |
-let select_example_result = register_new_service
+let select_example_result = register_service
     ~path:["select"]
     ~get_params:(string "s")
     (fun sp g () ->
@@ -1916,7 +1916,7 @@ let create_select_form =
           ;
         Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]])
 
-let select_example = register_new_service ["select"] unit
+let select_example = register_service ["select"] unit
   (fun sp () () ->
      let f =
        Eliom_predefmod.Xhtml.get_form
@@ -1950,7 +1950,7 @@ Here is an example of clickable image.
       You receive the coordinates the user clicked on.
       
 <<code language="ocaml" |
-let coord = register_new_service
+let coord = register_service
     ~path:["coord"]
     ~get_params:(coordinates "coord")
   (fun _ c () ->
@@ -1966,7 +1966,7 @@ let coord = register_new_service
      </html> ~>>)
 
 (* form to image *)
-let imageform = register_new_service
+let imageform = register_service
     ~path:["imageform"]
     ~get_params:unit
     (fun sp () () ->
@@ -1990,7 +1990,7 @@ let imageform = register_new_service
 You may also send a value with the coordinates:
           
 <<code language="ocaml" |
-let coord2 = register_new_service
+let coord2 = register_service
     ~path:["coord2"]
     ~get_params:(int_coordinates "coord")
   (fun _ (i, c) () ->
@@ -2006,7 +2006,7 @@ let coord2 = register_new_service
      </html> ~>>)
 
 (* form to image *)
-let imageform2 = register_new_service
+let imageform2 = register_service
     ~path:["imageform2"]
     ~get_params:unit
     (fun sp () () ->
@@ -2041,7 +2041,7 @@ Another way (than <<ocsigendoc version="dev" file="Eliom_parameters.html" fragme
 <<code language="ocaml" |
 
 (* lists *)
-let coucou_list = register_new_service
+let coucou_list = register_service
     ~path:["coucou"]
     ~get_params:(list "a" (string "str"))
   (fun _ l () ->
@@ -2097,7 +2097,7 @@ let create_listform f =
     ["one";"two";"three";"four"]
     <:xmllist< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> ~>>
 
-let listform = register_new_service ["listform"] unit
+let listform = register_service ["listform"] unit
   (fun sp () () ->
      let f = get_form coucou_list sp create_listform in
      return
@@ -2144,7 +2144,7 @@ let create_suffixform ((suff, endsuff),i) =
       Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> ~>>
 
-let suffixform = register_new_service ["suffixform"] unit
+let suffixform = register_service ["suffixform"] unit
   (fun sp () () ->
      let f = get_form isuffix sp create_suffixform in
      return
@@ -2206,12 +2206,12 @@ Files are kept in this directory only during the request.
       
           
 <<code language="ocaml" |
-let upload = new_service
+let upload = service
     ~path:["upload"]
     ~get_params:unit
     ()
 
-let upload2 = register_new_post_service
+let upload2 = register_post_service
    ~fallback:upload
    ~post_params:(file "file")
     (fun _ () file ->
@@ -2320,7 +2320,7 @@ To simplify the creation of <<span class="code"|<link>>> tags
           
 Here, <<span class="code"|home>>,  <<span class="code"|infos>>,
         and <<span class="code"|tutorial>> are your three pages (generated for example
-        by <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALnew_service"|<<span class="code"|Eliom_services.new_service>>>>).
+        by <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|<<span class="code"|Eliom_services.service>>>>).
           
 
 
@@ -2367,16 +2367,16 @@ Personalise it in your CSS style-sheet.
 open Eliom_tools_common
 open Eliom_tools
 
-let hier1 = new_service ~path:["hier1"] ~get_params:unit ()
-let hier2 = new_service ~path:["hier2"] ~get_params:unit ()
-let hier3 = new_service ~path:["hier3"] ~get_params:unit ()
-let hier4 = new_service ~path:["hier4"] ~get_params:unit ()
-let hier5 = new_service ~path:["hier5"] ~get_params:unit ()
-let hier6 = new_service ~path:["hier6"] ~get_params:unit ()
-let hier7 = new_service ~path:["hier7"] ~get_params:unit ()
-let hier8 = new_service ~path:["hier8"] ~get_params:unit ()
-let hier9 = new_service ~path:["hier9"] ~get_params:unit ()
-let hier10 = new_service ~path:["hier10"] ~get_params:unit ()
+let hier1 = service ~path:["hier1"] ~get_params:unit ()
+let hier2 = service ~path:["hier2"] ~get_params:unit ()
+let hier3 = service ~path:["hier3"] ~get_params:unit ()
+let hier4 = service ~path:["hier4"] ~get_params:unit ()
+let hier5 = service ~path:["hier5"] ~get_params:unit ()
+let hier6 = service ~path:["hier6"] ~get_params:unit ()
+let hier7 = service ~path:["hier7"] ~get_params:unit ()
+let hier8 = service ~path:["hier8"] ~get_params:unit ()
+let hier9 = service ~path:["hier9"] ~get_params:unit ()
+let hier10 = service ~path:["hier10"] ~get_params:unit ()
 
 let mymenu =
   (
@@ -2719,10 +2719,10 @@ and force that value during the registration function).
 <<code language="ocaml"|
 (* All the services: *)
 
-let main_page = new_service ~path:[""]
+let main_page = service ~path:[""]
     ~get_params:unit ()
 
-let news_page = new_service ["msg"] (int "num") ()
+let news_page = service ["msg"] (int "num") ()
 
 (* Construction of pages *)
 
@@ -2764,12 +2764,12 @@ Now the same example with a login box on each page.
           
 <<code language="ocaml"|(* All the services: *)
 
-let main_page = new_service ~path:[""] ~get_params:unit ()
+let main_page = service ~path:[""] ~get_params:unit ()
 
-let news_page = new_service ["msg"] (int "num") ()
+let news_page = service ["msg"] (int "num") ()
 
 let connect_action =
-  new_post_coservice'
+  post_coservice'
     ~post_params:(string "login" ** string "password")
 
 (* Construction of pages *)

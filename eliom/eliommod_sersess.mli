@@ -1,6 +1,6 @@
 val close_service_session :
   ?session_name:string -> 
-  ?level:Eliom_common.level ->
+  ?level:Eliom_common.session_level ->
   secure: bool option ->
   sp:Eliom_common.server_params -> unit -> unit
 val find_or_create_service_cookie :
