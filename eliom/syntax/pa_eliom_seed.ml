@@ -311,7 +311,7 @@ struct
        | _ -> false
      in
      function
-       | <:ctyp< $t$ XHTML5.M.elt >> ->
+       | <:ctyp< ($t$ XHTML5.M.elt) >> ->
            if aux t
            then (<:expr<Eliommod_cli.wrap_node ~sp>>,
                  <:expr<Eliommod_cli.unwrap_node>>)
@@ -320,28 +320,28 @@ struct
     );
 
     (function (*channel*)
-     | <:ctyp< $_$ Eliom_comet.Channels.chan >> ->
+     | <:ctyp< ($_$ Eliom_comet.Channels.chan) >> ->
          (<:expr<Eliom_comet.Channels.wrap ~sp>>,
           <:expr<Eliom_client_comet.Channels.unwrap>>)
      | _ -> raise Next
     );
 
     (function (*buffchan*)
-     | <:ctyp< $_$ Eliom_comet.Dlisted_channels.chan >> ->
+     | <:ctyp< ($_$ Eliom_comet.Dlisted_channels.chan) >> ->
          (<:expr<Eliom_comet.Dlisted_channels.wrap ~sp>>,
           <:expr<Eliom_client_comet.Dlisted_channels.unwrap>>)
      | _ -> raise Next
     );
 
     (function (*up_event*)
-     | <:ctyp< $_$ Eliom_event.Up.event >> ->
+     | <:ctyp< ($_$ Eliom_event.Up.event) >> ->
          (<:expr<Eliom_event.Up.wrap ~sp>>,
           <:expr<Eliom_client_event.Up.unwrap ~sp>>)
      | _ -> raise Next
     );
 
     (function (*down_event*)
-     | <:ctyp< $_$ Eliom_event.Down.event >> ->
+     | <:ctyp< ($_$ Eliom_event.Down.event) >> ->
          (<:expr<Eliom_event.Down.wrap ~sp>>,
           <:expr<Eliom_client_event.Down.unwrap>>)
      | _ -> raise Next
@@ -353,9 +353,9 @@ struct
        | <:ctyp< string >> | <:ctyp< char >>
        | <:ctyp< bool >>
        | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >>
-       | <:ctyp< $_$ Eliom_services.service >>
+       | <:ctyp< ($_$ Eliom_services.service) >>
          -> true
-       | <:ctyp< $t$ list >> -> aux t
+       | <:ctyp< ($t$ list) >> -> aux t
        | _ -> false
      in
      fun t ->
@@ -538,7 +538,7 @@ struct
 
   let strip_option_ref = function (*TODO: actually check for option and ref *)
   (*| TyApp (_, _ (*ref*), TyApp (_, _ (*option*), t)) -> t*)
-    | <:ctyp< $t$ option ref >> -> t
+    | <:ctyp< ($t$ option ref) >> -> t
     | _ -> failwith "Unexpected type"
 
 end
