@@ -1285,7 +1285,7 @@ let _ = register sufliopt2
 (* set in suffix *)
 let sufset = register_service
     ~path:["sufset"]
-    ~get_params:(suffix (set string "s"))
+    ~get_params:(suffix (Eliom_parameters.set string "s"))
   (fun _ l () ->
     let ll =
       List.map
