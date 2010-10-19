@@ -517,7 +517,7 @@ module Make (S : HiddenServiceInfo) = struct
           ~service:return_service [] ~sp 
         in
         let _ = Eliom_predefmod.Any.register
-          ~level:`Browser
+          ~scope:`Session
           ~session_name
           ~service:return_service ~sp
           (fun sp args _ -> 

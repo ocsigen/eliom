@@ -1086,7 +1086,7 @@ module Caml : sig
   type options = unit
 
   val register :
-    ?level:Eliom_common.level ->
+    ?scope:Eliom_common.scope ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
@@ -1106,7 +1106,7 @@ module Caml : sig
 
 
   val register_service :
-    ?level:Eliom_common.level ->
+    ?scope:Eliom_common.scope ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
@@ -1128,7 +1128,7 @@ module Caml : sig
      [> `Registrable ], 'return Eliom_parameters.caml) service
 
   val register_coservice :
-    ?level:Eliom_common.level ->
+    ?scope:Eliom_common.scope ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
@@ -1162,7 +1162,7 @@ module Caml : sig
       service
 
   val register_coservice' :
-    ?level:Eliom_common.level ->
+    ?scope:Eliom_common.scope ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
@@ -1189,7 +1189,7 @@ module Caml : sig
       service
 
   val register_post_service :
-    ?level:Eliom_common.level ->
+    ?scope:Eliom_common.scope ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
@@ -1216,7 +1216,7 @@ module Caml : sig
       service
 
   val register_post_coservice :
-    ?level:Eliom_common.level ->
+    ?scope:Eliom_common.scope ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->
@@ -1249,7 +1249,7 @@ module Caml : sig
       service
 
   val register_post_coservice' :
-    ?level:Eliom_common.level ->
+    ?scope:Eliom_common.scope ->
     ?options:options ->
     ?charset:string ->
     ?code: int ->

@@ -150,7 +150,7 @@ let new_sitedata =
           }
         in
         Ocsigen_cache.Dlist.set_finaliser_after
-          (fun (node : [ `Browser ] Eliom_common.sessgrp 
+          (fun (node : [ `Session ] Eliom_common.sessgrp 
                   Ocsigen_cache.Dlist.node) ->
             let fullbrowsersessgrp = Ocsigen_cache.Dlist.value node in
             (* When removing a group from the dlist, we must close it.
@@ -230,8 +230,8 @@ let parse_eliom_option
       | [] -> res
       | ("value", s)::l -> aux (Some s, sn, ct) l
       | ("sessionname", sn)::l -> aux (v, Some sn, ct) l
-      | ("sessiontype", "browser")::l -> aux (v, sn, `Browser) l
-      | ("sessiontype", "tab")::l -> aux (v, sn, `Tab) l
+      | ("sessiontype", "browser")::l -> aux (v, sn, `Session) l
+      | ("sessiontype", "tab")::l -> aux (v, sn, `Client_process) l
       | ("sessiontype", _)::l -> 
           raise 
             (Error_in_config_file
@@ -241,7 +241,7 @@ let parse_eliom_option
             (Error_in_config_file
                ("Eliom: Wrong attribute name for "^tn^" tag"))
     in 
-    let (a, sn, ct) = aux (None, None, `Browser) attrs in
+    let (a, sn, ct) = aux (None, None, `Session) attrs in
     let a = match a with
       | None ->
         raise 
@@ -702,7 +702,7 @@ let parse_config hostpattern conf_info site_dir =
   Thus we can have one site in several cmo (with one session).
  *)
         let set_timeout (f : ?fullsessname:Eliom_common.fullsessionname ->
-                         ?cookie_level:[< Eliom_common.cookie_level ] ->
+                         ?cookie_scope:[< Eliom_common.cookie_scope ] ->
                          recompute_expdates:bool ->
                          bool -> bool -> Eliom_common.sitedata ->
                          float option -> unit)
@@ -713,7 +713,7 @@ let parse_config hostpattern conf_info site_dir =
                                 sitedata.Eliom_common.site_dir_string
                                 cookie_type)
                              session_name_oo)
-            ?cookie_level:(Some cookie_type)
+            ?cookie_scope:(Some cookie_type)
             ~recompute_expdates:false
             true
             true

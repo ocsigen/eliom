@@ -94,7 +94,7 @@ module type ELIOMREGSIG =
       Ocsigen_http_frame.result Lwt.t
 
     val register :
-      ?level:Eliom_common.level ->
+      ?scope:Eliom_common.scope ->
       ?options:options ->
       ?charset:string ->
       ?code: int ->
@@ -121,19 +121,19 @@ module type ELIOMREGSIG =
 
    For example if [t] is [Eliom_parameters.int "s"], then [ 'get] is [int].
 
-   The [?level] optional parameter is [`Site] by default, which means that the
+   The [?scope] optional parameter is [`Global] by default, which means that the
    service will be registered in the global table and be available to any client.
    If you want to restrict the visibility of the service to a browser session,
-   use [~level:`Browser].
+   use [~scope:`Session].
    If you want to restrict the visibility of the service to a group of sessions,
-   use [~level:`Group].
+   use [~scope:`Session_group].
    If you have a client side Eliom program running, and you want to restrict
    the visibility of the service to this instance of the program,
-   use [~level:`Tab].
+   use [~scope:`Client_process].
 
    If the same service is registered several times with different visibilities,
    Eliom will choose the service for handling a request in that order:
-   [`Tab], [`Browser], [`Group] and finally [`Site]. It means for example
+   [`Client_process], [`Session], [`Session_group] and finally [`Global]. It means for example
    that you can register a specialized version of a public service for a session.
 
     {e Warning: The [~sp] parameter can be omited only if you 
@@ -165,13 +165,13 @@ module type ELIOMREGSIG =
 
     [?session_name] is the name of the session (browser session or "tab" session),
     if you want several
-    service sessions on the same site. It has no effect for level [`Site].
+    service sessions on the same site. It has no effect for scope [`Global].
     
     If [~secure_session] is false when the protocol is https, the service will be 
     registered in the unsecure session, 
     otherwise in the secure session with https, the unsecure one with http.
     (Secure session means that Eliom will ask the browser to send the cookie
-    only through HTTPS). It has no effect for level [`Site].
+    only through HTTPS). It has no effect for scope [`Global].
 
     Note that in the case of CSRF safe coservices, parameters
     [?session_name] and [?secure_session] must match exactly the session name
@@ -183,7 +183,7 @@ module type ELIOMREGSIG =
 
 
     val register_service :
-      ?level:Eliom_common.level ->
+      ?scope:Eliom_common.scope ->
       ?options:options ->
       ?charset:string ->
       ?code: int ->
@@ -206,7 +206,7 @@ module type ELIOMREGSIG =
 (** Same as [service] followed by [register] *)
 
     val register_coservice :
-      ?level:Eliom_common.level ->
+      ?scope:Eliom_common.scope ->
       ?options:options ->
       ?charset:string ->
       ?code: int ->
@@ -218,7 +218,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_level: Eliom_common.session_level ->
+      ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -242,7 +242,7 @@ module type ELIOMREGSIG =
 (** Same as [coservice] followed by [register] *)
 
     val register_coservice' :
-      ?level:Eliom_common.level ->
+      ?scope:Eliom_common.scope ->
       ?options:options ->
       ?charset:string ->
       ?code: int ->
@@ -254,7 +254,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_level: Eliom_common.session_level ->
+      ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -271,7 +271,7 @@ module type ELIOMREGSIG =
 (** Same as [coservice'] followed by [register] *)
 
     val register_post_service :
-      ?level:Eliom_common.level ->
+      ?scope:Eliom_common.scope ->
       ?options:options ->
       ?charset:string ->
       ?code: int ->
@@ -299,7 +299,7 @@ module type ELIOMREGSIG =
 (** Same as [post_service] followed by [register] *)
 
     val register_post_coservice :
-      ?level:Eliom_common.level ->
+      ?scope:Eliom_common.scope ->
       ?options:options ->
       ?charset:string ->
       ?code: int ->
@@ -311,7 +311,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_level: Eliom_common.session_level ->
+      ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->
@@ -334,7 +334,7 @@ module type ELIOMREGSIG =
 (** Same as [post_coservice] followed by [register] *)
 
     val register_post_coservice' :
-      ?level:Eliom_common.level ->
+      ?scope:Eliom_common.scope ->
       ?options:options ->
       ?charset:string ->
       ?code: int ->
@@ -346,7 +346,7 @@ module type ELIOMREGSIG =
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_session_name: string ->
-      ?csrf_level: Eliom_common.session_level ->
+      ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
       ?timeout:float ->

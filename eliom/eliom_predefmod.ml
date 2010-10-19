@@ -2642,7 +2642,7 @@ module Caml = struct
       ?content_type ?headers ~sp (Eliom_client_types.encode_eliom_data content)
 
   let register
-      ?level
+      ?scope
       ?options
       ?charset
       ?code
@@ -2659,7 +2659,7 @@ module Caml = struct
                            (string * exn) list -> 'return Lwt.t) option)
       (f : (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t)) =
     M.register
-      ?level
+      ?scope
       ?options
       ?charset
       ?code
@@ -2674,7 +2674,7 @@ module Caml = struct
 
 
   let register_service 
-      ?level
+      ?scope
       ?options
       ?charset
       ?code
@@ -2689,7 +2689,7 @@ module Caml = struct
       ?error_handler
       f =
     Eliom_services.untype_service_ (M.register_service 
-                                      ?level
+                                      ?scope
                                       ?options
                                       ?charset
                                       ?code
@@ -2705,7 +2705,7 @@ module Caml = struct
                                       (make_service_handler f))
 
   let register_coservice 
-      ?level
+      ?scope
       ?options
       ?charset
       ?code
@@ -2726,7 +2726,7 @@ module Caml = struct
       ?error_handler
       f =
     Eliom_services.untype_service_ (M.register_coservice 
-                                      ?level
+                                      ?scope
                                       ?options
                                       ?charset
                                       ?code
@@ -2748,7 +2748,7 @@ module Caml = struct
                                       (make_service_handler f))
 
   let register_coservice'
-      ?level
+      ?scope
       ?options
       ?charset
       ?code
@@ -2768,7 +2768,7 @@ module Caml = struct
       ?error_handler
       f =
     Eliom_services.untype_service_ (M.register_coservice' 
-                                      ?level
+                                      ?scope
                                       ?options
                                       ?charset
                                       ?code
@@ -2790,7 +2790,7 @@ module Caml = struct
 
 
   let register_post_service
-      ?level
+      ?scope
       ?options
       ?charset
       ?code
@@ -2805,7 +2805,7 @@ module Caml = struct
       ?error_handler
       f =
     Eliom_services.untype_service_ (M.register_post_service 
-                                      ?level
+                                      ?scope
                                       ?options
                                       ?charset
                                       ?code
@@ -2821,7 +2821,7 @@ module Caml = struct
                                       (make_service_handler f))
 
   let register_post_coservice
-      ?level
+      ?scope
       ?options
       ?charset
       ?code
@@ -2842,7 +2842,7 @@ module Caml = struct
       ?error_handler
       f =
     Eliom_services.untype_service_ (M.register_post_coservice 
-                                      ?level
+                                      ?scope
                                       ?options
                                       ?charset
                                       ?code
@@ -2864,7 +2864,7 @@ module Caml = struct
                                       (make_service_handler f))
 
   let register_post_coservice'
-      ?level
+      ?scope
       ?options
       ?charset
       ?code
@@ -2885,7 +2885,7 @@ module Caml = struct
       ?error_handler
       f =
     Eliom_services.untype_service_ (M.register_post_coservice' 
-                                      ?level
+                                      ?scope
                                       ?options
                                       ?charset
                                       ?code
@@ -2974,7 +2974,7 @@ module Eliom_appl_reg_
   let change_page_event_table : ('a -> unit) Eliom_sessions.volatile_table =
     Eliom_sessions.create_volatile_table
       ~session_name:eliom_appl_session_name
-      ~level:`Tab
+      ~scope:`Client_process
       ()
 
   let get_tab_cook sp =
@@ -3173,7 +3173,7 @@ redir ();"))::
        Eliom_sessions.set_volatile_session_data
          ~table:change_page_event_table ~sp change_current_page;
        Eliom_sessions.set_cookie ~sp
-         ~cookie_level:`Tab
+         ~cookie_scope:`Client_process
          ~name:Eliom_common.appl_name_cookie_name
          ~value:Appl_params.application_name ();
        get_tab_cook sp >>= fun tab_cookies_to_send ->

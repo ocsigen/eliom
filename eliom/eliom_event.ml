@@ -44,16 +44,16 @@ struct
 
   (* An event is created along with a service responsible for it's occurences.
    * function takes sp and a param_type *)
-  let create ?sp ?level ?name post_params =
+  let create ?sp ?scope ?name post_params =
     let (e, push) = React.E.create () in
-    let level = match sp, level with
+    let scope = match sp, scope with
       | _, Some l -> l
-      | None, _ -> `Site
-      | _ -> `Tab
+      | None, _ -> `Global
+      | _ -> `Client_process
     in
     let e_writer = Eliom_services.post_coservice' ?name ~post_params () in
     Eliom_predefmod.Action.register
-      ~level
+      ~scope
       ~options:`NoReload
       ?sp
       ~service:e_writer

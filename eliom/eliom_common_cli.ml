@@ -20,22 +20,22 @@
 
 
 (******************************************************************)
-type cookie_level = [ `Browser | `Tab ]
-type session_level = [ `Group | `Browser | `Tab ]
-type level = [ `Site | `Group | `Browser | `Tab ]
+type cookie_scope = [ `Session | `Client_process ]
+type user_scope = [ `Session_group | `Session | `Client_process ]
+type scope = [ `Global | `Session_group | `Session | `Client_process ]
 
-let cookie_level_of_session_level = function
-  | `Browser
-  | `Group -> `Browser
-  | `Tab -> `Tab
+let cookie_scope_of_user_scope = function
+  | `Session
+  | `Session_group -> `Session
+  | `Client_process -> `Client_process
 
-let session_level_of_level = function
-  | `Site
-  | `Browser -> `Browser
-  | `Group -> `Browser
-  | `Tab -> `Tab
+let user_scope_of_scope = function
+  | `Global
+  | `Session -> `Session
+  | `Session_group -> `Session
+  | `Client_process -> `Client_process
 
-type fullsessionname = cookie_level * string
+type fullsessionname = cookie_scope * string
 
 module Fullsessionname_Table = Map.Make(struct
   type t = fullsessionname
@@ -49,7 +49,7 @@ type att_key_serv =
   | SAtt_no (* regular service *)
   | SAtt_named of string (* named coservice *)
   | SAtt_anon of string (* anonymous coservice *)
-  | SAtt_csrf_safe of (int * string option * session_level * bool option)
+  | SAtt_csrf_safe of (int * string option * user_scope * bool option)
       (* CSRF safe anonymous coservice *)
       (* CSRF safe service registration delayed until form/link creation *)
       (* the int is an unique id,
@@ -66,9 +66,9 @@ type na_key_serv =
   | SNa_post_ of string (* named *)
   | SNa_get' of string (* anonymous *)
   | SNa_post' of string (* anonymous *)
-  | SNa_get_csrf_safe of (int * string option * session_level * bool option)
+  | SNa_get_csrf_safe of (int * string option * user_scope * bool option)
       (* CSRF safe anonymous coservice *)
-  | SNa_post_csrf_safe of (int * string option * session_level * bool option)
+  | SNa_post_csrf_safe of (int * string option * user_scope * bool option)
       (* CSRF safe anonymous coservice *)
 
 (* the same, for incoming requests: *)

@@ -158,7 +158,7 @@ let coservice
     ?name
     ?(csrf_safe = false)
     ?csrf_session_name
-    ?(csrf_level = `Browser)
+    ?(csrf_scope = `Session)
     ?csrf_secure_session
     ?max_use
     ?timeout
@@ -181,7 +181,7 @@ let coservice
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             csrf_session_name,
-                                            csrf_level,
+                                            csrf_scope,
                                             csrf_secure_session)
           else
             (match name with
@@ -202,7 +202,7 @@ let coservice'
     ?name 
     ?(csrf_safe = false)
     ?csrf_session_name
-    ?(csrf_level = `Browser)
+    ?(csrf_scope = `Session)
     ?csrf_secure_session
     ?max_use
     ?timeout
@@ -231,7 +231,7 @@ let coservice'
                 (if csrf_safe
                  then Eliom_common.SNa_get_csrf_safe (uniqueid (),
                                                       csrf_session_name,
-                                                      csrf_level,
+                                                      csrf_scope,
                                                       csrf_secure_session)
                  else
                    match name with
@@ -310,7 +310,7 @@ let post_coservice
     ?name
     ?(csrf_safe = false)
     ?csrf_session_name
-    ?(csrf_level = `Browser)
+    ?(csrf_scope = `Session)
     ?csrf_secure_session
     ?max_use
     ?timeout
@@ -335,7 +335,7 @@ let post_coservice
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             csrf_session_name,
-                                            csrf_level,
+                                            csrf_scope,
                                             csrf_secure_session)
           else
             (match name with
@@ -357,7 +357,7 @@ let post_coservice'
     ?name
     ?(csrf_safe = false)
     ?csrf_session_name
-    ?(csrf_level = `Browser)
+    ?(csrf_scope = `Session)
     ?csrf_secure_session
     ?max_use ?timeout
     ?(https = false)
@@ -379,7 +379,7 @@ let post_coservice'
           (if csrf_safe
            then Eliom_common.SNa_post_csrf_safe (uniqueid (),
                                                  csrf_session_name,
-                                                 csrf_level,
+                                                 csrf_scope,
                                                  csrf_secure_session)
            else
              (match name with
@@ -410,11 +410,11 @@ let add_naservice = Eliommod_naservices.add_naservice
 exception Unregistered_CSRF_safe_coservice
 
 let register_delayed_get_or_na_coservice ~sp (k, session_name, 
-                                              level, secure) =
+                                              scope, secure) =
   let f =
     try
       let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      ?session_name ~level ?secure ~sp ())
+                      ?session_name ~scope ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_get_or_na_registration_functions
@@ -429,11 +429,11 @@ let register_delayed_get_or_na_coservice ~sp (k, session_name,
 
 
 let register_delayed_post_coservice ~sp (k, session_name,
-                                         level, secure) getname =
+                                         scope, secure) getname =
   let f =
     try
       let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      ?session_name ~level ?secure ~sp ())
+                      ?session_name ~scope ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_post_registration_functions
@@ -485,8 +485,8 @@ let remove_service table service =
         Eliommod_naservices.remove_naservice table na_name
 
 
-let unregister ?(level = `Site) ?sp ?session_name ?secure service =
-  if level = `Site
+let unregister ?(scope = `Global) ?sp ?session_name ?secure service =
+  if scope = `Global
   then
     let table = 
       match sp with
@@ -507,10 +507,10 @@ let unregister ?(level = `Site) ?sp ?session_name ?secure service =
         raise
           (failwith "Missing ~sp parameter for unregistering service from session")
       | Some sp ->
-        let level = Eliom_common.session_level_of_level level in
+        let scope = Eliom_common.user_scope_of_scope scope in
         let table =
           !(Eliom_sessions.get_session_service_table
-              ?secure ?session_name ~level ~sp ())
+              ?secure ?session_name ~scope ~sp ())
         in
         remove_service table service
 

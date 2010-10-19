@@ -104,20 +104,20 @@ module SessionCookies =
 
 (* session groups *)
 type 'a sessgrp =
-    (string * cookie_level
+    (string * cookie_scope
      * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
     (* The full session group is the triple
-       (site_dir_string, level, session group name).
-       The level is the level of group members (`Browser by default).
+       (site_dir_string, scope, session group name).
+       The scope is the scope of group members (`Session by default).
        If there is no session group, 
        we limit the number of sessions by IP address. *)
 type perssessgrp = string (* same triple, marshaled *)
 
-let make_persistent_full_group_name ~cookie_level site_dir_string = function
+let make_persistent_full_group_name ~cookie_scope site_dir_string = function
   | None -> None
   | Some g ->
     Some (Marshal.to_string
-            (site_dir_string, cookie_level, Ocsigen_lib.Left g) [])
+            (site_dir_string, cookie_scope, Ocsigen_lib.Left g) [])
 
 let getperssessgrp a = Marshal.from_string a 0
 
@@ -140,7 +140,7 @@ type 'a one_service_cookie_info =
                                     ref towards cookie table
                                   *);
      sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
-     sc_session_group: cookie_level sessgrp ref
+     sc_session_group: cookie_scope sessgrp ref
        (* session group *);
      mutable sc_session_group_node:string Ocsigen_cache.Dlist.node;
    }
@@ -157,7 +157,7 @@ type one_data_cookie_info =
                                            ref towards cookie table
                                          *);
      dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-     dc_session_group: cookie_level sessgrp ref (* session group *);
+     dc_session_group: cookie_scope sessgrp ref (* session group *);
      mutable dc_session_group_node:string Ocsigen_cache.Dlist.node;
    }
 
@@ -238,7 +238,7 @@ type 'a servicecookiestablecontent =
      float option ref    (* expiration date by timeout
                             (server side) *) *
      timeout ref         (* user timeout *) *
-     cookie_level sessgrp ref   (* session group *) *
+     cookie_scope sessgrp ref   (* session group *) *
      string Ocsigen_cache.Dlist.node (* session group node *))
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
@@ -257,7 +257,7 @@ type datacookiestablecontent =
      float option ref        (* expiration date by timeout
                                 (server side) *) *
      timeout ref             (* user timeout *) *
-     cookie_level sessgrp ref   (* session group *) *
+     cookie_scope sessgrp ref   (* session group *) *
      string Ocsigen_cache.Dlist.node (* session group node *))
 
 type datacookiestable = datacookiestablecontent SessionCookies.t
@@ -487,7 +487,7 @@ and sitedata =
                                       contains the information about the cookie
                                       (expiration, group ...).
                                    *)
-   group_of_groups: [ `Group ] sessgrp Ocsigen_cache.Dlist.t; 
+   group_of_groups: [ `Session_group ] sessgrp Ocsigen_cache.Dlist.t; 
    (* Limitation of the number of groups per site *)
    mutable remove_session_data: string -> unit;
    mutable not_bound_in_data_tables: string -> bool;
@@ -519,19 +519,19 @@ and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
 
 let make_full_cookie_name a b = a^b
 
-let make_fullsessname ~sp cookie_level = function
-  | None -> ((cookie_level :> cookie_level), sp.sp_sitedata.site_dir_string)
-  | Some s -> ((cookie_level :> cookie_level), sp.sp_sitedata.site_dir_string^"|"^s)
+let make_fullsessname ~sp cookie_scope = function
+  | None -> ((cookie_scope :> cookie_scope), sp.sp_sitedata.site_dir_string)
+  | Some s -> ((cookie_scope :> cookie_scope), sp.sp_sitedata.site_dir_string^"|"^s)
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
-let make_fullsessname2 site_dir_string cookie_level = function
-  | None -> ((cookie_level :> cookie_level), site_dir_string)
-  | Some s -> ((cookie_level :> cookie_level), site_dir_string^"|"^s)
+let make_fullsessname2 site_dir_string cookie_scope = function
+  | None -> ((cookie_scope :> cookie_scope), site_dir_string)
+  | Some s -> ((cookie_scope :> cookie_scope), site_dir_string^"|"^s)
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
 let get_cookie_info sp = function
-  | `Browser -> sp.sp_cookie_info
-  | `Tab -> sp.sp_tab_cookie_info
+  | `Session -> sp.sp_cookie_info
+  | `Client_process -> sp.sp_tab_cookie_info
 
 
 
@@ -762,7 +762,7 @@ let split_nl_prefix_param =
     in
     aux [] Ocsigen_lib.String_Table.empty l
 
-let getcookies cookie_level cookiename cookies =
+let getcookies cookie_scope cookiename cookies =
   let length = String.length cookiename in
   let last = length - 1 in
   Ocsigen_lib.String_Table.fold
@@ -770,7 +770,7 @@ let getcookies cookie_level cookiename cookies =
       if Ocsigen_lib.string_first_diff cookiename name 0 last = length
       then
         Fullsessionname_Table.add
-          (cookie_level, (String.sub name length ((String.length name) - length)))
+          (cookie_scope, (String.sub name length ((String.length name) - length)))
           value
           beg
       else beg
@@ -859,17 +859,17 @@ let get_session_info req previous_extension_err =
 
   let browser_cookies = Lazy.force ri.Ocsigen_extensions.ri_cookies in
 
-  let data_cookies = getcookies `Browser datacookiename browser_cookies in
-  let service_cookies = getcookies `Browser servicecookiename browser_cookies in
-  let persistent_cookies = getcookies `Browser persistentcookiename browser_cookies in
+  let data_cookies = getcookies `Session datacookiename browser_cookies in
+  let service_cookies = getcookies `Session servicecookiename browser_cookies in
+  let persistent_cookies = getcookies `Session persistentcookiename browser_cookies in
   
   let secure_cookie_info =
     if ri.Ocsigen_extensions.ri_ssl
     then
-      let sdata_cookies = getcookies `Browser sdatacookiename browser_cookies in
-      let sservice_cookies = getcookies `Browser sservicecookiename browser_cookies in
+      let sdata_cookies = getcookies `Session sdatacookiename browser_cookies in
+      let sservice_cookies = getcookies `Session sservicecookiename browser_cookies in
       let spersistent_cookies =
-        getcookies `Browser spersistentcookiename browser_cookies
+        getcookies `Session spersistentcookiename browser_cookies
       in
       Some (sservice_cookies, sdata_cookies, spersistent_cookies)
     else None
@@ -987,16 +987,16 @@ let get_session_info req previous_extension_err =
          nl_get_params Ocsigen_lib.String_Table.empty)
   in
 
-  let data_cookies_tab = getcookies `Tab datacookiename tab_cookies in
-  let service_cookies_tab = getcookies `Tab servicecookiename tab_cookies in
-  let persistent_cookies_tab = getcookies `Tab persistentcookiename tab_cookies in
+  let data_cookies_tab = getcookies `Client_process datacookiename tab_cookies in
+  let service_cookies_tab = getcookies `Client_process servicecookiename tab_cookies in
+  let persistent_cookies_tab = getcookies `Client_process persistentcookiename tab_cookies in
   
   let secure_cookie_info_tab =
     if ri.Ocsigen_extensions.ri_ssl
     then
-      let sdata_cookies = getcookies `Tab sdatacookiename tab_cookies in
-      let sservice_cookies = getcookies `Tab sservicecookiename tab_cookies in
-      let spersistent_cookies = getcookies `Tab spersistentcookiename tab_cookies in
+      let sdata_cookies = getcookies `Client_process sdatacookiename tab_cookies in
+      let sservice_cookies = getcookies `Client_process sservicecookiename tab_cookies in
+      let spersistent_cookies = getcookies `Client_process spersistentcookiename tab_cookies in
       Some (sservice_cookies, sdata_cookies, spersistent_cookies)
     else None
   in

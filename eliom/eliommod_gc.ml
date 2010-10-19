@@ -239,25 +239,25 @@ let data_session_gc sitedata =
                    return ()
                | _ ->
                    match !session_group_ref with
-                     | (_, level, Ocsigen_lib.Right _) (* no group *)
+                     | (_, scope, Ocsigen_lib.Right _) (* no group *)
                          when
                            (Eliommod_sessiongroups.Data.group_size
                               (sitedata.Eliom_common.site_dir_string,
-                               `Tab,
+                               `Client_process,
                                Ocsigen_lib.Left k)
                             = 0) (* no tab sessions *)
                            &&
                              not_bound_in_data_tables k ->
                        (* The session is not used in any table
                           and is not in a group
-                          (level must be `Browser,
+                          (scope must be `Session,
                           as all tab sessions are in a group),
                           and is not associated to any tab session.
                           We can remove it. *)
-                       if level <> `Browser
+                       if scope <> `Session
                        then
                          Ocsigen_messages.errlog
-                           "Eliom: Group associated to IP has level different from `Browser. Please report the problem.";
+                           "Eliom: Group associated to IP has scope different from `Session. Please report the problem.";
                        Eliommod_sessiongroups.Data.remove session_group_node;
                        (* See also the finalisers in Eliommod_sessiongroups
                           and Eliommod.ml *)
@@ -284,12 +284,12 @@ let persistent_session_gc sitedata =
           let now = Unix.time () in
           Ocsigen_messages.debug2 "--Eliom: GC of persistent sessions";
           (Ocsipersist.iter_table
-             (fun k ((cookie_level, _), exp, _, session_group) ->
+             (fun k ((cookie_scope, _), exp, _, session_group) ->
                (match exp with
                | Some exp when exp < now ->
 (*VVV ? *)
                  Eliommod_persess.close_persistent_session2
-                   ~cookie_level (*VVV ? *)
+                   ~cookie_scope (*VVV ? *)
                    sitedata
                    session_group k
                (*WAS: remove_from_all_persistent_tables k *)

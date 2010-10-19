@@ -879,7 +879,7 @@ let _ = register disposable
       let disp_coservice =
         coservice ~max_use:2 ~fallback:disposable ~get_params:unit ()
       in
-      register ~level:`Browser ~sp ~service:disp_coservice
+      register ~scope:`Session ~sp ~service:disp_coservice
         (fun sp () () ->
           return
             (html
@@ -996,7 +996,7 @@ let timeout = service ["timeout"] unit ()
 let _ =
   let page sp () () =
     let timeoutcoserv =
-      register_coservice ~level:`Browser
+      register_coservice ~scope:`Session
         ~sp ~fallback:timeout ~get_params:unit ~timeout:5.
         (fun _ _ _ ->
            return
@@ -1457,7 +1457,7 @@ let () =
 ====[New in 1.9] Group tables
           
   It is now possible to create session tables and session services
-  for a whole group. To do that use the {{{~level:`Group}}}
+  for a whole group. To do that use the {{{~scope:`Session_group}}}
   parameter when creating a table or a session service.
 
   <<code language="ocaml" |
@@ -1468,7 +1468,7 @@ let () =
 
 let my_table =
   Eliom_sessions.create_volatile_table
-    ~level:`Group  ()
+    ~scope:`Session_group  ()
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -1497,7 +1497,7 @@ let disconnect_g_action =
     ~name:"disconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~level:`Group  ~sp ())
+      Eliom_sessions.close_session ~scope:`Session_group  ~sp ())
 
 
 (* -------------------------------------------------------- *)
@@ -1680,7 +1680,7 @@ let _ =
      described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}
      (corresponding to {{{?session_name}}} and {{{?secure}}}).
 
-     If you use {{{register ~level:`Browser}}}, 
+     If you use {{{register ~scope:`Session}}}, 
      the coservice will be available only for one session.
      The actual registration will take place in the same session table,
      described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}.

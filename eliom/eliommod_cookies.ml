@@ -429,7 +429,7 @@ let compute_new_ri_cookies
     let ric =
       Eliom_common.Fullsessionname_Table.fold
         (fun (ct, n) (_, v) beg ->
-          if ct = `Tab
+          if ct = `Client_process
           then beg
           else
             let n = Eliom_common.make_full_cookie_name scn n in
@@ -447,7 +447,7 @@ let compute_new_ri_cookies
     let ric =
       Eliom_common.Fullsessionname_Table.fold
         (fun (ct, n) v beg ->
-          if ct = `Tab
+          if ct = `Client_process
           then beg
           else
             let n = Eliom_common.make_full_cookie_name dcn n in
@@ -469,7 +469,7 @@ let compute_new_ri_cookies
     let ric =
       Eliom_common.Fullsessionname_Table.fold
         (fun (ct, n) v beg ->
-          if ct = `Tab
+          if ct = `Client_process
           then beg
           else
             let n = Eliom_common.make_full_cookie_name pcn n in

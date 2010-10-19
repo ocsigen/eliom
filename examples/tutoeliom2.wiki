@@ -230,7 +230,7 @@ We will see in the following of this tutorial how to improve
       To create a "session service", register the service in
       a "session service table" (valid only for one client)
       instead of the public table. To do that, add the argument
-      {{{~level:`Browser}}} to the 
+      {{{~scope:`Session}}} to the 
       <<span class="Cem"|<<span class="code"|register>>>> function.
       \\
       
@@ -369,14 +369,14 @@ let launch_session sp () login =
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_predefmod.Xhtml.register ~level:`Browser 
+  Eliom_predefmod.Xhtml.register ~scope:`Session 
     ~sp
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
-  Eliom_predefmod.Xhtml.register ~level:`Browser 
+  Eliom_predefmod.Xhtml.register ~scope:`Session 
     ~sp
     ~service:coucou
     (fun _ () () ->
@@ -387,7 +387,7 @@ let launch_session sp () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliom_predefmod.Xhtml.register ~level:`Browser 
+  Eliom_predefmod.Xhtml.register ~scope:`Session 
     ~sp
     ~service:hello
     (fun _ () () ->
@@ -747,7 +747,7 @@ let calc_i_handler sp i () =
   in
   let is = string_of_int i in
   let calc_result =
-    register_coservice ~level:`Browser
+    register_coservice ~scope:`Session
       ~sp
       ~fallback:calc
       ~get_params:(int "j")

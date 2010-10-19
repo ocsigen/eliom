@@ -227,7 +227,7 @@ val coservice :
   ?name: string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_level: Eliom_common.session_level ->
+  ?csrf_scope: Eliom_common.user_scope ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -274,12 +274,12 @@ val coservice :
    service table or in the session service table. But the actual registration,
    that will occure when creating a link or a form, will always take
    place in a session service table. This table is specified by the
-   [~csrf_session_name], [~csrf_level] 
+   [~csrf_session_name], [~csrf_scope] 
     and [~csrf_secure_session] parameters
-   (that correspond to [~session_name], [~level]
+   (that correspond to [~session_name], [~scope]
     and [~secure] for the delayed 
     registration); it is default session table if they are absent.
-    Parameters [?session_name], [?level]
+    Parameters [?session_name], [?scope]
     and [?secure] of [register_for_session]
     must have the same values as the one declared while creating the
     CSRF safe coservice, otherwise the registration will fail
@@ -291,7 +291,7 @@ val post_coservice :
   ?name: string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_level: Eliom_common.session_level ->
+  ?csrf_scope: Eliom_common.user_scope ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -316,7 +316,7 @@ val coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_level: Eliom_common.session_level ->
+  ?csrf_scope: Eliom_common.user_scope ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -341,7 +341,7 @@ val post_coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
   ?csrf_session_name: string ->
-  ?csrf_level: Eliom_common.session_level ->
+  ?csrf_scope: Eliom_common.user_scope ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -482,7 +482,7 @@ val add_non_localized_post_parameters :
 
 
 val unregister :
-  ?level:Eliom_common.level ->
+  ?scope:Eliom_common.scope ->
   ?sp:Eliom_sessions.server_params ->
   ?session_name:string ->
   ?secure:bool ->
@@ -573,12 +573,12 @@ val untype_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
 
 val register_delayed_get_or_na_coservice :
   sp:Eliom_sessions.server_params ->
-  (int * string option * Eliom_common.session_level * bool option) -> 
+  (int * string option * Eliom_common.user_scope * bool option) -> 
   string
 
 val register_delayed_post_coservice :
   sp:Eliom_sessions.server_params -> 
-  (int * string option * Eliom_common.session_level * bool option) -> 
+  (int * string option * Eliom_common.user_scope * bool option) -> 
   Eliom_common.att_key_serv -> string
 
 val set_delayed_get_or_na_registration_function :

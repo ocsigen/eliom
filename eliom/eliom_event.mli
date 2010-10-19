@@ -85,7 +85,7 @@ sig
 
   val create :
        ?sp:Eliom_sessions.server_params
-    -> ?level:Eliom_common.level
+    -> ?scope:Eliom_common.scope
     -> ?name:string
     -> ('a, [ `WithoutSuffix ],
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
@@ -95,8 +95,8 @@ sig
       if the event is created dynamically.
       If [~name] is present, the coservice used to transmit the event will
       always have the same name, even if the server is restarted.
-      [~level] describes the visibility of the event. By default, it is
-      [`Site] is [~sp] is not specified, [`Tab] otherwise.
+      [~scope] describes the visibility of the event. By default, it is
+      [`Global] is [~sp] is not specified, [`Client_process] otherwise.
   *)
 
 end

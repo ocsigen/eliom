@@ -1759,7 +1759,7 @@ We will see in the following of this tutorial how to improve
       To create a "session service", register the service in
       a "session service table" (valid only for one client)
       instead of the public table. To do that, add the argument
-      {{{~level:`Browser}}} to the 
+      {{{~scope:`Session}}} to the 
       %<span class="Cem"|%<span class="code"|register>%>% function.
       \\
       
@@ -1903,14 +1903,14 @@ let launch_session sp () login =
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_predefmod.Xhtml.register ~level:`Browser (*zap* *) ~session_name (* *zap*)
+  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~session_name (* *zap*)
     ~sp
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
-  Eliom_predefmod.Xhtml.register ~level:`Browser (*zap* *) ~session_name (* *zap*)
+  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~session_name (* *zap*)
     ~sp
     ~service:coucou
     (fun _ () () ->
@@ -1921,7 +1921,7 @@ let launch_session sp () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliom_predefmod.Xhtml.register ~level:`Browser (*zap* *) ~session_name (* *zap*)
+  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~session_name (* *zap*)
     ~sp
     ~service:hello
     (fun _ () () ->
@@ -1948,7 +1948,7 @@ let () =
     ~service:session_services_example_with_post_params
     launch_session
 (*zap* Registering for session during initialisation is forbidden:
-let _ = register ~level:`Browser
+let _ = register ~scope:`Session
     ~path:coucou1
     %< <html>
          <head><title></title></head>
@@ -2287,13 +2287,13 @@ let rec page_for_shopping_basket sp shopping_basket =
       ~post_params:unit
       ()
   in
-    register ~level:`Browser (* zap* *) ~session_name (* *zap *)
+    register ~scope:`Session (* zap* *) ~session_name (* *zap *)
       ~sp
       ~service:coshop_with_post_params
       (fun sp () article ->
                  page_for_shopping_basket
                    sp (article::shopping_basket));
-    register ~level:`Browser (* zap* *) ~session_name (* *zap *)
+    register ~scope:`Session (* zap* *) ~session_name (* *zap *)
       ~sp
       ~service:copay
       (fun sp () () ->
@@ -2375,7 +2375,7 @@ let calc_i_handler sp i () =
   in
   let is = string_of_int i in
   let calc_result =
-    register_coservice ~level:`Browser
+    register_coservice ~scope:`Session
       ~sp
       ~fallback:calc
       ~get_params:(int "j")
@@ -3603,7 +3603,7 @@ let _ = register disposable
       let disp_coservice =
         coservice ~max_use:2 ~fallback:disposable ~get_params:unit ()
       in
-      register ~level:`Browser ~sp ~service:disp_coservice
+      register ~scope:`Session ~sp ~service:disp_coservice
         (fun sp () () ->
           return
             (html
@@ -3720,7 +3720,7 @@ let timeout = service ["timeout"] unit ()
 let _ =
   let page sp () () =
     let timeoutcoserv =
-      register_coservice ~level:`Browser
+      register_coservice ~scope:`Session
         ~sp ~fallback:timeout ~get_params:unit ~timeout:5.
         (fun _ _ _ ->
            return
@@ -4183,7 +4183,7 @@ let () =
 ====[New in 1.9] Group tables
           
   It is now possible to create session tables and session services
-  for a whole group. To do that use the {{{~level:`Group}}}
+  for a whole group. To do that use the {{{~scope:`Session_group}}}
   parameter when creating a table or a session service.
 
   *wiki*)
@@ -4196,7 +4196,7 @@ let session_name = "group_tables"
 (* *zap*)
 let my_table =
   Eliom_sessions.create_volatile_table
-    ~level:`Group (*zap* *) ~session_name (* *zap*) ()
+    ~scope:`Session_group (*zap* *) ~session_name (* *zap*) ()
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -4225,7 +4225,7 @@ let disconnect_g_action =
     ~name:"disconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~level:`Group (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_sessions.close_session ~scope:`Session_group (*zap* *) ~session_name (* *zap*) ~sp ())
 
 
 (* -------------------------------------------------------- *)
@@ -4324,7 +4324,7 @@ let session_name = "pgroup_tables"
 
 let my_table =
   Eliom_sessions.create_persistent_table
-    ~level:`Group ~session_name "pgroup_table"
+    ~scope:`Session_group ~session_name "pgroup_table"
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -4354,7 +4354,7 @@ let disconnect_g_action =
     ~name:"pdisconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~level:`Group ~session_name ~sp ())
+      Eliom_sessions.close_session ~scope:`Session_group ~session_name ~sp ())
 
 
 
@@ -4534,7 +4534,7 @@ let _ =
      described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}
      (corresponding to {{{?session_name}}} and {{{?secure}}}).
 
-     If you use {{{register ~level:`Browser}}}, 
+     If you use {{{register ~scope:`Session}}}, 
      the coservice will be available only for one session.
      The actual registration will take place in the same session table,
      described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}.

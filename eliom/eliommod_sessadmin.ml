@@ -53,10 +53,10 @@ let close_all_service_sessions2 fullsessname sitedata =
     only the session with default name is closed.
  *)
 let close_all_service_sessions ?session_name
-    ?(cookie_level = `Browser) sitedata =
+    ?(cookie_scope = `Session) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_level session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope session_name
   in
   close_all_service_sessions2 fullsessname sitedata
 (*VVV Missing:
@@ -80,10 +80,10 @@ let close_all_data_sessions2 fullsessname sitedata =
     If the optional parameter [?session_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_data_sessions ?session_name ?(cookie_level = `Browser) sitedata =
+let close_all_data_sessions ?session_name ?(cookie_scope = `Session) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_level session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope session_name
   in
   close_all_data_sessions2 fullsessname sitedata
 (*VVV Missing:
@@ -95,10 +95,10 @@ let close_all_data_sessions ?session_name ?(cookie_level = `Browser) sitedata =
 
 let close_all_persistent_sessions2 fullsessname sitedata =
   Ocsipersist.iter_table
-    (fun k ((cookie_level, _) as fullsessname2, old_exp, old_t, sessiongrp) ->
+    (fun k ((cookie_scope, _) as fullsessname2, old_exp, old_t, sessiongrp) ->
       if fullsessname = fullsessname2 && old_t = Eliom_common.TGlobal
       then Eliommod_persess.close_persistent_session2
-        ~cookie_level sitedata sessiongrp k >>=
+        ~cookie_scope sitedata sessiongrp k >>=
         Lwt_unix.yield
       else return ()
     )
@@ -109,10 +109,10 @@ let close_all_persistent_sessions2 fullsessname sitedata =
     only the session with default name is closed.
  *)
 let close_all_persistent_sessions
-    ?session_name ?(cookie_level = `Browser) sitedata =
+    ?session_name ?(cookie_scope = `Session) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_level session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope session_name
   in
   close_all_persistent_sessions2 fullsessname sitedata
 (*VVV Missing:
@@ -200,7 +200,7 @@ let update_pers_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
   | _ ->
     let now = Unix.time () in
     Ocsipersist.iter_table
-      (fun k ((cookie_level, _) as fullsessname2, old_exp, old_t, sessgrp) ->
+      (fun k ((cookie_scope, _) as fullsessname2, old_exp, old_t, sessgrp) ->
         if fullsessname = fullsessname2 && old_t =
           Eliom_common.TGlobal
         then
@@ -213,7 +213,7 @@ let update_pers_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
           match newexp with
           | Some t when t <= now ->
               Eliommod_persess.close_persistent_session2
-                ~cookie_level sitedata sessgrp k
+                ~cookie_scope sitedata sessgrp k
           | _ ->
               Ocsipersist.add
                 (Lazy.force Eliommod_persess.persistent_cookies_table)

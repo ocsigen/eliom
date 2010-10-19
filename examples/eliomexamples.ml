@@ -159,14 +159,14 @@ let unregister_example =
          ~get_params:Eliom_parameters.unit
          (fun sp () () -> failwith "s3")
        in
-       Eliom_predefmod.Xhtml.register ~level:`Browser
+       Eliom_predefmod.Xhtml.register ~scope:`Session
          ~sp
          ~service:s1
          (fun sp () () -> failwith "s4");
        Eliom_services.unregister ~sp s1;
        Eliom_services.unregister ~sp s2;
        Eliom_services.unregister ~sp s3;
-       Eliom_services.unregister ~level:`Browser ~sp s1;
+       Eliom_services.unregister ~scope:`Session ~sp s1;
        Lwt.return
          (html
             (head (title (pcdata "Unregistering services")) [])
@@ -280,7 +280,7 @@ let csrfsafe_example_session =
 
 let _ =
   let page sp () () =
-    Eliom_predefmod.Xhtml.register ~level:`Browser
+    Eliom_predefmod.Xhtml.register ~scope:`Session
       ~session_name:"plop"
       ~secure_session:true
       ~sp

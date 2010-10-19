@@ -40,14 +40,14 @@ let compute_cookie_info secure secure_ci cookie_info =
 
 
 (* to be called during a request *)
-let close_data_session ?session_name ?(level = `Browser) ~secure ~sp () =
+let close_data_session ?session_name ?(scope = `Session) ~secure ~sp () =
   try
-    let cookie_level = Eliom_common.cookie_level_of_session_level level in
+    let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
     let fullsessname = 
-      Eliom_common.make_fullsessname ~sp cookie_level session_name
+      Eliom_common.make_fullsessname ~sp cookie_scope session_name
     in
     let ((_, cookie_info, _), secure_ci) = 
-      Eliom_common.get_cookie_info sp cookie_level
+      Eliom_common.get_cookie_info sp cookie_scope
     in
     let cookie_info = compute_cookie_info secure secure_ci cookie_info in
     let (_, ior) =
@@ -61,7 +61,7 @@ let close_data_session ?session_name ?(level = `Browser) ~secure ~sp () =
            remove it from the session group table.
            It will remove all the data table entries
            and also the entry in the session table *)
-        if level = `Group
+        if scope = `Session_group
         then
           (* If we want to close all the group of browser sessions,
              the node is found in the group table: *)
@@ -83,9 +83,9 @@ let close_data_session ?session_name ?(level = `Browser) ~secure ~sp () =
   with Not_found -> ()
 
 
-let fullsessgrp ~cookie_level ~sp set_session_group =
+let fullsessgrp ~cookie_scope ~sp set_session_group =
   Eliommod_sessiongroups.make_full_group_name
-    ~cookie_level
+    ~cookie_scope
     sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
     sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
     (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
@@ -93,20 +93,20 @@ let fullsessgrp ~cookie_level ~sp set_session_group =
     set_session_group
 
 let rec find_or_create_data_cookie ?set_session_group
-    ?session_name ?(cookie_level = `Browser) ~secure ~sp () =
+    ?session_name ?(cookie_scope = `Session) ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
 
   let new_data_cookie sitedata fullsessname table =
 
     let set_session_group =
-      if cookie_level = `Tab
+      if cookie_scope = `Client_process
       then begin (* We create a group whose name is the
                     browser session cookie 
                     and put the tab session into it. *)
         let v = find_or_create_data_cookie
           ?session_name
-          ~cookie_level:`Browser
+          ~cookie_scope:`Session
           ~secure
           ~sp
           ()
@@ -118,7 +118,7 @@ let rec find_or_create_data_cookie ?set_session_group
       end
       else set_session_group
     in
-    let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
+    let fullsessgrp = fullsessgrp ~cookie_scope ~sp set_session_group in
 
     let rec aux () =
       let c = Eliommod_cookies.make_new_session_id () in
@@ -153,11 +153,11 @@ let rec find_or_create_data_cookie ?set_session_group
   in
 
   let fullsessname =
-    Eliom_common.make_fullsessname ~sp cookie_level session_name 
+    Eliom_common.make_fullsessname ~sp cookie_scope session_name 
   in
 
   let ((_, cookie_info, _), secure_ci) =
-    Eliom_common.get_cookie_info sp cookie_level
+    Eliom_common.get_cookie_info sp cookie_scope
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   try
@@ -181,7 +181,7 @@ let rec find_or_create_data_cookie ?set_session_group
         (match set_session_group with
           | None -> ()
           | Some session_group -> 
-            let fullsessgrp = fullsessgrp ~cookie_level ~sp set_session_group in
+            let fullsessgrp = fullsessgrp ~cookie_scope ~sp set_session_group in
             let node = Eliommod_sessiongroups.Data.move
               sp.Eliom_common.sp_sitedata
               c.Eliom_common.dc_session_group_node
@@ -205,14 +205,14 @@ let rec find_or_create_data_cookie ?set_session_group
     v
 
 let find_data_cookie_only ?session_name 
-    ?(cookie_level = `Browser) ~secure ~sp () =
+    ?(cookie_scope = `Session) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_level session_name 
+    Eliom_common.make_fullsessname ~sp cookie_scope session_name 
   in
   let ((_, cookie_info, _), secure_ci) =
-    Eliom_common.get_cookie_info sp cookie_level
+    Eliom_common.get_cookie_info sp cookie_scope
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let (_, ior) =
@@ -235,7 +235,7 @@ let counttableelements = ref []
 (* Here only for exploration functions *)
 
 let create_volatile_table, create_volatile_table_during_session =
-  let aux ~level ~session_name ~secure sitedata =
+  let aux ~scope ~session_name ~secure sitedata =
     let t = Eliom_common.SessionCookies.create 100 in
     let old_remove_session_data =
       sitedata.Eliom_common.remove_session_data
@@ -256,12 +256,12 @@ let create_volatile_table, create_volatile_table_during_session =
     counttableelements :=
       (fun () -> Eliom_common.SessionCookies.length t)::
       !counttableelements;
-    (level, session_name, secure, t)
+    (scope, session_name, secure, t)
   in
-  ((fun ~level ~session_name ~secure ->
+  ((fun ~scope ~session_name ~secure ->
     let sitedata = Eliom_common.get_current_sitedata () in
-    aux ~level ~session_name ~secure sitedata),
-   (fun ~level ~session_name ~secure sp ->
-     aux ~level ~session_name ~secure sp.Eliom_common.sp_sitedata))
+    aux ~scope ~session_name ~secure sitedata),
+   (fun ~scope ~session_name ~secure sp ->
+     aux ~scope ~session_name ~secure sp.Eliom_common.sp_sitedata))
 
 
