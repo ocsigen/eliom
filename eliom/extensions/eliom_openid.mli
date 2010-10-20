@@ -4,16 +4,16 @@
     in stateful mode. *)
 (** {1 Library description} *)
 
-(** The library provides means to authentificate an user
+(** The library provides means to authenticate an user
     to a remote provider using the OpenID protocol.
     Basically, you need to ask the user its OpenID url, and
     the fields you want to require (or none, if you just want to
-    authentificate an user), along with other information.
+    authenticate an user), along with other information.
     
     The library uses an "hidden service" that is needed when the provider
     redirects back to your site. This service is registered in the library, all you have
     to do is to give a path for that service and a default handler 
-    (if the user connects to that service without being in an authentification process.)
+    (if the user connects to that service without being in an authentication process.)
     Here is a short example of how to use the library
     {[
 open Eliom_openid
@@ -24,8 +24,8 @@ let login_form = Eliom_services.new_service
   ~get_params: Eliom_parameters.unit
   ()
 
-(* Initialize the library, and getting the authentificate function *)
-let authentificate = Eliom_openid.init ~path:["__openid_return_service"]
+(* Initialize the library, and getting the authenticate function *)
+let authenticate = Eliom_openid.init ~path:["__openid_return_service"]
     ~f: (fun sp _ _ -> Eliom_predefmod.Redirection.send ~sp login_form)
 
 (* Create the handler for the form *)
@@ -35,7 +35,7 @@ let form_handler = Eliom_predefmod.String_redirection.register_new_post_coservic
     ~fallback: login_form
     ~post_params: (Eliom_parameters.string "url")
     (fun sp _ url ->
-       authentificate ~sp
+       authenticate ~sp
     ~max_auth_age: 4 (* Requires that if the user logged in more that 4 seconds ago
                         he needs to relog in *)
     ~required: [Eliom_openid.Email] (* Requires his e-mail *)
@@ -155,11 +155,11 @@ val pape :
 val ( *** ) : 'a extension -> 'b extension -> ('a * 'b) extension
 (** Product of two extension *)
 
-(** The result of an authentification. *)
-type 'a authentification_result = 
+(** The result of an authentication. *)
+type 'a authentication_result = 
     Canceled (** The user canceled the login (or failed) *)
   | Setup_needed (** The provider has not enough information to complete an immediate
-                     request. Only returned when using an immediate authentification. *)
+                     request. Only returned when using an immediate authentication. *)
   | Result of 'a (** All went ok. *)
 
 
@@ -178,7 +178,7 @@ module type HiddenServiceInfo = sig
     (string * string) list ->
     unit -> Eliom_predefmod.Any.page Lwt.t
 (** The function called when an user connects to the hidden service
-    (not that hidden) without being in an identification process.
+    (not that hidden) without being in an identication process.
     Typically you should redirect the user to the login page. *)
 end
 (** This functor build a hidden service that will be used
@@ -188,20 +188,20 @@ module Make :
   functor
     (S : HiddenServiceInfo) ->
     sig
-      val authentificate :
+      val authenticate :
         mode:string ->
         ext:'a extension ->
-        handler:(Eliom_sessions.server_params ->
-                 'a authentification_result ->
+        handler:(Eliom_state.server_params ->
+                 'a authentication_result ->
                  Eliom_predefmod.Any.page Lwt.t) ->
         sp:Eliom_sessions.server_params ->
         discovery:string * string option -> XHTML.M.uri Lwt.t
-        (** Authentificate an user.
+        (** Authenticate an user.
             - mode: can be [checkid_setup] or [checkid_immediate]
                     whether you want immediate identification or not.
             - ext: the extensions you want to use.
-            - handler: the handler called with the result of the authentification.
-            - sp: the session parameters
+            - handler: the handler called with the result of the authentication.
+            - sp: the server parameters
             - discovery: The discovery information
            In return you get an URI you have to redirect the user to. *)
     end
@@ -211,7 +211,7 @@ module Make :
     the extension you want, without to use them directly.
     It yields a [result]. *)
 
-(** The result yielded by the authentification process *)
+(** The result yielded by the authentication process *)
 type result = { 
   fields : (field * string) list; 
   (** The fields you requested *)
@@ -219,9 +219,9 @@ type result = {
   (** The pape information *)
 }
 
-(** The type of the authentificate function.
+(** The type of the authenticate function.
     - immediate: whether to use immediate identification or not (default: true)
-    - sp: session params
+    - sp: server parameters
     - policy_url: an optional policy url to describe what you do with the data (sreg) (default:none)
     - required: optional fields you really need (although the provier may not provide them) (default:empty)
     - optional: optional fields you don't really need (default: empty)

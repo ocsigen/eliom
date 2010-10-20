@@ -504,7 +504,7 @@ module Make (S : HiddenServiceInfo) = struct
 
   let () = Eliom_predefmod.Any.register ~service:return_service S.f
 
-  let authentificate ~mode ~ext ~handler ~sp ~discovery =
+  let authenticate ~mode ~ext ~handler ~sp ~discovery =
     let local = match snd discovery with
       | None ->  "http://specs.openid.net/auth/2.0/identifier_select"
       | Some l -> l
@@ -569,8 +569,8 @@ type check_fun =
     ?required:field list ->
     ?optional:field list ->
     string ->
-    (Eliom_sessions.server_params ->
-     result authentification_result -> Eliom_predefmod.Any.page Lwt.t) ->
+    (Eliom_state.server_params ->
+     result authentication_result -> Eliom_predefmod.Any.page Lwt.t) ->
     XHTML.M.uri Lwt.t
 
 let check check ?(immediate = true) ~sp ?policy_url ?max_auth_age ?auth_policies
@@ -591,4 +591,4 @@ let check check ?(immediate = true) ~sp ?policy_url ?max_auth_age ?auth_policies
 
 let init ~path ~f = 
   let module K = Make (struct let path = path let f = f end) in
-  check K.authentificate
+  check K.authenticate
