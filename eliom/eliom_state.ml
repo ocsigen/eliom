@@ -1171,6 +1171,51 @@ let remove_volatile_data ~table ~sp () =
 
 
 
+
+
+(*****************************************************************************)
+(** {2 Eliom references} *)
+
+module Eref = struct
+  type 'a eref =
+      'a * ('a volatile_table, 'a persistent_table) Ocsigen_lib.leftright
+
+  let eref
+      ?state_name ?scope ?secure ?persistent ?sp value =
+    match persistent with
+      | None ->
+        (value,
+         Ocsigen_lib.Left 
+           (create_volatile_table ?state_name ?scope ?secure ?sp ()))
+      | Some name ->
+        (value,
+         Ocsigen_lib.Right 
+           (create_persistent_table ?state_name ?scope ?secure name))
+
+  let get ~sp (value, table) =
+    match table with
+      | Ocsigen_lib.Left t ->
+        (match get_volatile_data ~table:t ~sp () with
+          | Data d -> Lwt.return d
+          | _ -> Lwt.return value)
+      | Ocsigen_lib.Right t ->
+        (get_persistent_data ~table:t ~sp () >>= function
+          | Data d -> Lwt.return d
+          | _ -> Lwt.return value)
+
+  let set ~sp (_, table) value =
+    match table with
+      | Ocsigen_lib.Left t -> set_volatile_data ~table:t ~sp value;
+        Lwt.return ()
+      | Ocsigen_lib.Right t -> set_persistent_data ~table:t ~sp value
+
+  let unset ~sp (_, table) =
+    match table with
+      | Ocsigen_lib.Left t -> remove_volatile_data ~table:t ~sp ();
+        Lwt.return ()
+      | Ocsigen_lib.Right t -> remove_persistent_data ~table:t ~sp ()
+end
+
 (*****************************************************************************)
 (** Close a state *)
 let discard_persistent_data ?state_name ?(scope = `Session) ?secure ~sp () = 

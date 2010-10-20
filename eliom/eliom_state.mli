@@ -734,89 +734,56 @@ val get_config_default_charset : sp:server_params -> string
 
 
 (*****************************************************************************)
-(** {2 Session data} *)
+(** {2 Server side state data: Eliom references} *)
 
+(** Eliom references are some kind of references with limited scope.
+    You define the reference with an initial value and a scope
+    (group of sessions, session or client process).
+    When you change the value, it actually changes only for the scope
+    you specified.
 
-(** {3 In memory session data} *)
+    Eliom references are used for example to store session data,
+    or server side data for a client process.
+*)
 
-(** The type of (volatile) session data tables. *)
-type 'a volatile_table
+module Eref : sig
+  (** The type of Eliom references. *)
+  type 'a eref
 
-(** creates a table in memory where you can store the session data for
-   all users.
+  (** Create an Eliom reference for the given scope (default: [`Session]).
 
-   {e Warning: If you use that function after the initialization phase,
-   you must give the [~sp] parameter, otherwise it will raise the exception
-   {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
- *)
-val create_volatile_table :
-  ?state_name:string ->
-  ?scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  ?sp:server_params -> unit -> 'a volatile_table
+      Use the optional parameter [?persistent] if you want the data to survive
+      after relaunching the server. You must give an unique name to the
+      table in which it will be stored on the hard disk (using Ocsipersist).
+      Be very careful to use unique names, and to change the name if
+      you change the type of the data.
 
-(** gets session data for the current session (if any). *)
-val get_volatile_data : 
-  table:'a volatile_table -> 
-  sp:server_params -> 
-  unit -> 
-  'a session_data
+      Use the optional parameter [?secure] if you want the data to be available
+      only using HTTPS (default: false).
 
-(** sets session data for the current session. *)
-val set_volatile_data : 
-  table:'a volatile_table -> 
-  sp:server_params -> 
-  'a -> 
-  unit
+      Use the optional parameter [?state_name] if you want to distinguish
+      between several server side states for the same scope.
 
-(** removes session data for the current session
-   (but does not close the session).
-   If the session does not exist, does nothing.
- *)
-val remove_volatile_data : 
-  table:'a volatile_table -> 
-  sp:server_params -> 
-  unit -> 
-  unit
+      If you create the eref during a request, do not forget to give
+      to [~sp] parameter.
+  *)
+  val eref :
+    ?state_name:string ->
+    ?scope:Eliom_common.user_scope ->
+    ?secure:bool ->
+    ?persistent:string ->
+    ?sp:server_params -> 'a -> 'a eref
 
+  (** Get the value of an Eliom reference. *)
+  val get : sp:server_params -> 'a eref -> 'a Lwt.t
 
-(** {3 Persistent state} *)
+  (** Change the value of an Eliom reference. *)
+  val set : sp:server_params -> 'a eref -> 'a -> unit Lwt.t
 
-(** The type of persistent session data tables. *)
-type 'a persistent_table
-
-(** creates a table on hard disk where you can store the session data for
-   all users. It uses {!Ocsipersist}. *)
-val create_persistent_table :
-  ?state_name:string ->
-  ?scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  string -> 'a persistent_table
-
-(** gets persistent session data for the current persistent session (if any) *)
-val get_persistent_data : 
-  table:'a persistent_table -> 
-  sp:server_params ->
-  unit -> 
-  'a session_data Lwt.t
-
-(** sets persistent session data for the current persistent session *)
-val set_persistent_data : 
-  table:'a persistent_table -> 
-  sp:server_params -> 
-  'a -> 
-  unit Lwt.t
-
-(** removes session data for the current persistent session
-   (but does not close the session).
-   If the session does not exist, does nothing.
- *)
-val remove_persistent_data : 
-  table:'a persistent_table -> 
-  sp:server_params -> 
-  unit -> 
-  unit Lwt.t
-
+  (** Turn back to the default value 
+      (by removing the entry in the server side table) *)
+  val unset : sp:server_params -> 'a eref -> unit Lwt.t
+end
 
 (*****************************************************************************)
 (** {2 Closing sessions, removing state data and services} *)
@@ -901,6 +868,96 @@ val unset_cookie :
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?path:string list ->
   name:string -> unit -> unit
+
+
+
+(*****************************************************************************)
+(** {2 Session data (deprecated interface)} *)
+
+
+(** {3 In memory session data} *)
+
+(** The type of (volatile) session data tables. *)
+type 'a volatile_table
+
+(** creates a table in memory where you can store the session data for
+   all users. (deprecated)
+
+   {e Warning: If you use that function after the initialization phase,
+   you must give the [~sp] parameter, otherwise it will raise the exception
+   {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+ *)
+val create_volatile_table :
+  ?state_name:string ->
+  ?scope:Eliom_common.user_scope ->
+  ?secure:bool ->
+  ?sp:server_params -> unit -> 'a volatile_table
+
+(** gets session data for the current session (if any).  (deprecated) *)
+val get_volatile_data : 
+  table:'a volatile_table -> 
+  sp:server_params -> 
+  unit -> 
+  'a session_data
+
+(** sets session data for the current session.  (deprecated) *)
+val set_volatile_data : 
+  table:'a volatile_table -> 
+  sp:server_params -> 
+  'a -> 
+  unit
+
+(** removes session data for the current session
+   (but does not close the session).
+   If the session does not exist, does nothing.
+ (deprecated)
+ *)
+val remove_volatile_data : 
+  table:'a volatile_table -> 
+  sp:server_params -> 
+  unit -> 
+  unit
+
+
+(** {3 Persistent state} *)
+
+(** The type of persistent session data tables. *)
+type 'a persistent_table
+
+(** creates a table on hard disk where you can store the session data for
+   all users. It uses {!Ocsipersist}.  (deprecated) *)
+val create_persistent_table :
+  ?state_name:string ->
+  ?scope:Eliom_common.user_scope ->
+  ?secure:bool ->
+  string -> 'a persistent_table
+
+(** gets persistent session data for the current persistent session (if any).
+ (deprecated) *)
+val get_persistent_data : 
+  table:'a persistent_table -> 
+  sp:server_params ->
+  unit -> 
+  'a session_data Lwt.t
+
+(** sets persistent session data for the current persistent session.
+ (deprecated) *)
+val set_persistent_data : 
+  table:'a persistent_table -> 
+  sp:server_params -> 
+  'a -> 
+  unit Lwt.t
+
+(** removes session data for the current persistent session
+   (but does not close the session).
+   If the session does not exist, does nothing.
+ (deprecated)
+ *)
+val remove_persistent_data : 
+  table:'a persistent_table -> 
+  sp:server_params -> 
+  unit -> 
+  unit Lwt.t
 
 
 
@@ -1109,6 +1166,7 @@ module Session_admin : sig
     (persistent_session -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
 end
+
 
 
 
