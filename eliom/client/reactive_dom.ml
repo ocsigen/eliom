@@ -58,12 +58,12 @@ let signalify (cb : (unit -> 'a)) : 'a React.S.t =
 
 let eventify_mouse target typ f =
   let (e, push_e) = React.E.create () in
-  ignore (Events.listen target typ (fun n e -> push_e (f n e)));
+  ignore (Dom_events.listen target typ (fun n e -> push_e (f n e)));
   e
 
 
 let eventify_keyboard target typ f =
   let (e, push_e) = React.E.create () in
-  ignore (Events.listen target typ (fun n e -> push_e (f n e)));
+  ignore (Dom_events.listen target typ (fun n e -> push_e (f n e)));
   e
 
