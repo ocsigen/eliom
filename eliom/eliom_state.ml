@@ -178,7 +178,42 @@ let get_persistent_data_cookie
        | Not_found | Eliom_common.Eliom_Session_expired -> return None
        | e -> fail e)
 
+(* Expired session? *)
+type state_status = Alive_state | Empty_state | Expired_state
 
+let service_state_status
+    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+  try
+    ignore (Eliommod_sersess.find_service_cookie_only
+              ?state_name ~cookie_scope ~secure ~sp ());
+    Alive_state
+  with
+    | Not_found -> Empty_state
+    | Eliom_common.Eliom_Session_expired -> Expired_state
+
+let volatile_data_state_status
+    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+  try
+    ignore (Eliommod_datasess.find_data_cookie_only ?state_name ~cookie_scope ~secure ~sp ());
+    Alive_state
+  with
+    | Not_found -> Empty_state
+    | Eliom_common.Eliom_Session_expired -> Expired_state
+
+let persistent_data_state_status
+    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+  catch
+    (fun () ->
+      Eliommod_persess.find_persistent_cookie_only
+        ?state_name ~cookie_scope ~secure ~sp () >>= fun _ ->
+      return Alive_state
+    )
+    (function
+       | Not_found -> Lwt.return Empty_state
+       | Eliom_common.Eliom_Session_expired -> Lwt.return Expired_state
+       | e -> fail e)
+
+(****)
 let get_sp_tab_cookie_info ~sp = sp.Eliom_common.sp_tab_cookie_info
 let get_sp_appl_name ~sp = sp.Eliom_common.sp_appl_name
 let get_sp_content_only ~sp = sp.Eliom_common.sp_content_only

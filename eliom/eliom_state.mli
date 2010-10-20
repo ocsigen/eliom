@@ -170,6 +170,42 @@ val get_request_id : sp:server_params -> int64
 (*****************************************************************************)
 (** {2  Getting and setting information about the current session} *)
 
+(** {3 State status} *)
+
+(** The following function return the current state of the state for a given
+    scope:
+    - [Alive_state] means that data has been recorded for this scope
+    - [Empty_state] means that there is no data for this scope
+    - [Expired_state] means that data for this scope has been removed
+    because the timeout has been reached.
+
+    The default scope is [`Session].
+*)
+
+type state_status = Alive_state | Empty_state | Expired_state
+
+val service_state_status :
+  ?state_name:string -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?secure:bool ->
+  sp:server_params ->
+  unit -> state_status
+
+val volatile_data_state_status :
+  ?state_name:string -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?secure:bool ->
+  sp:server_params ->
+  unit -> state_status
+
+val persistent_data_state_status :
+  ?state_name:string -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?secure:bool ->
+  sp:server_params ->
+  unit -> state_status Lwt.t
+
+
 (** {3 Global configuration of session timeouts} *)
 
 (** The following functions set the timeout for sessions, for the
