@@ -64,7 +64,7 @@ open Eliom_services
 module Eliom_appl =
   Eliom_predefmod.Eliom_appl (
     struct
-      let application_name = "tutoeliom_ocsigen2_client"
+      let application_name = "testsuite_eliom2"
       let params =
         {Eliom_predefmod.default_appl_params with
            Eliom_predefmod.ap_title = "Eliom application example";

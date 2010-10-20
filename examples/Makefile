@@ -43,9 +43,9 @@ PP = -syntax camlp4o -ppopt "../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(CMXS)
 
-byte: $(OBJS) tutoeliom.cma $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../files/tutorial/testsuite_eliom2_client.js
+byte: $(OBJS) tutoeliom.cma $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../files/tutorial/testsuite_eliom2.js
 
-opt: $(OBJSOPT) tutoeliom.cmxs $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../files/tutorial/testsuite_eliom2_client.js
+opt: $(OBJSOPT) tutoeliom.cmxs $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../files/tutorial/testsuite_eliom2.js
 
 exampleduce.cmo: ocamlduce/exampleduce.cmo
 	cp ocamlduce/exampleduce.cmo .
@@ -82,10 +82,10 @@ tutoeliom3.wiki: tutoeliom.ml
 tutoeliom4.wiki: testsuite_eliom2.eliom
 	cat testsuite_eliom2.eliom | sed '/%<||2>%/,$$ d' | sed '1,/%<||1>%/d' | /bin/sh ./tutomake.sh > tutoeliom4.wiki
 
-testsuite_eliom2_client.js: $(ELIOMCLIENTDIR)/eliom_client.js syntax_temp_files/testsuite_eliom2_client
+testsuite_eliom2.js: $(ELIOMCLIENTDIR)/eliom_client.js syntax_temp_files/testsuite_eliom2
 	js_of_ocaml -pretty $^ -o $@
 
-../files/tutorial/testsuite_eliom2_client.js: testsuite_eliom2_client.js
+../files/tutorial/testsuite_eliom2.js: testsuite_eliom2.js
 	cp -f $< $@
 
 testsuite_eliom2.cmo: syntax_temp_files/testsuite_eliom2.ml
@@ -133,7 +133,7 @@ syntax_temp_files/testsuite_eliom2_client.ml: testsuite_eliom2.eliom syntax_temp
 	  -impl $< -printer p -o $@ \
           -verbose
 
-syntax_temp_files/testsuite_eliom2_client: $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/eliom_client_main.cmo syntax_temp_files/testsuite_eliom2_client.ml
+syntax_temp_files/testsuite_eliom2: $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/eliom_client_main.cmo syntax_temp_files/testsuite_eliom2_client.ml
 	ocamlfind ocamlc -o $@ \
 	  -I $(ELIOMCLIENTDIR) \
 	  $(CLIENTLIB) -linkpkg \
@@ -172,7 +172,7 @@ tutoeliom.cmxs: tutoeliom.cmx testsuite_eliom2.cmx
 
 clean:
 	$(MAKE) -C miniwiki clean
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot testsuite_eliom2_client* testsuite_eliom2.ml ../files/tutorial/testsuite_eliom2_client.js testsuite_eliom2_client syntax_temp_files/*
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot testsuite_eliom2.js testsuite_eliom2_client* testsuite_eliom2.ml ../files/tutorial/testsuite_eliom2_client.js testsuite_eliom2 syntax_temp_files/*
 
 depend:
 	$(MAKE) -C miniwiki depend
