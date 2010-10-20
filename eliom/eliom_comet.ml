@@ -65,7 +65,7 @@ sig
   val listeners : 'a chan -> int React.S.t
 
   val wrap :
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     'a chan -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
 
 end = struct
@@ -115,7 +115,7 @@ sig
   (** Returns the unique identifier associated to the channel. *)
 
   val wrap :
-       sp:Eliom_sessions.server_params
+       sp:Eliom_state.server_params
     -> 'a chan
     -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
 

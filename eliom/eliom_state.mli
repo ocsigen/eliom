@@ -43,7 +43,7 @@ open Ocsigen_extensions
 
    If you want several sessions of the same type for one site,
    you can choose a personalized session name by giving the optional
-   parameter [?session_name].
+   parameter [?state_name].
 
    It is highly recommended to put all the sessions for one user in one
    {e session group}. Thus, it will be possible to implement features
@@ -183,10 +183,10 @@ val get_request_id : sp:server_params -> int64
     That is, the difference between the new timeout and the old one
     will be added to their expiration dates (by another Lwt thread).
     Sessions whose timeout has been set individually with
-    {!Eliom_sessions.set_volatile_session_timeout} won't be affected.
+    {!Eliom_state.set_volatile_state_timeout} won't be affected.
 
-    If [~session_name] is not present, it is the default for all session names,
-    and in that case [recompute_expdates] is ignored. [~session_name:None]
+    If [~state_name] is not present, it is the default for all session names,
+    and in that case [recompute_expdates] is ignored. [~state_name:None]
     means the default session name.
 
     If [~override_configfile] is [true] (default ([false]),
@@ -210,38 +210,38 @@ val get_request_id : sp:server_params -> int64
 (** Sets the timeout for volatile (= "in memory") sessions (both
     service session and volatile data session) (server side).
 *)
-val set_global_volatile_session_timeout :
-  ?session_name:string option -> 
+val set_global_volatile_state_timeout :
+  ?state_name:string option -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params ->
   ?recompute_expdates:bool -> 
   ?override_configfile:bool ->
   float option -> unit
 
-(** Sets the timeout for service sessions (server side).
+(** Sets the timeout for service states (server side).
 *)
-val set_global_service_session_timeout :
-  ?session_name:string option -> 
+val set_global_service_state_timeout :
+  ?state_name:string option -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params ->
   ?recompute_expdates:bool -> 
   ?override_configfile:bool ->
   float option -> unit
 
-(** Sets the timeout for volatile (= "in memory") data sessions (server side).
+(** Sets the timeout for volatile (= "in memory") data states (server side).
 *)
-val set_global_volatile_data_session_timeout :
-  ?session_name:string option -> 
+val set_global_volatile_data_state_timeout :
+  ?state_name:string option -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params ->
   ?recompute_expdates:bool -> 
   ?override_configfile:bool ->
   float option -> unit
 
-(** Sets the timeout for persistent sessions (server side).
+(** Sets the timeout for persistent states (server side).
 *)
-val set_global_persistent_data_session_timeout :
-  ?session_name:string option ->
+val set_global_persistent_data_state_timeout :
+  ?state_name:string option ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params -> 
   ?recompute_expdates:bool ->
@@ -253,52 +253,52 @@ val set_global_persistent_data_session_timeout :
 
 
 
-(** Returns the timeout for service sessions (server side).
+(** Returns the timeout for service states (server side).
 *)
-val get_global_service_session_timeout :
-  ?session_name:string ->
+val get_global_service_state_timeout :
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params -> unit -> float option
 
-(** Returns the timeout for "volatile data" sessions (server side).
+(** Returns the timeout for "volatile data" states (server side).
 *)
-val get_global_volatile_data_session_timeout :
-  ?session_name:string ->
+val get_global_volatile_data_state_timeout :
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params -> unit -> float option
 
-(** Returns the timeout for persistent sessions (server side).
+(** Returns the timeout for persistent states (server side).
 *)
-val get_global_persistent_data_session_timeout :
-  ?session_name:string ->
+val get_global_persistent_data_state_timeout :
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params -> unit -> float option
 
 
 
-(** {3 Personalizing session timeouts} *)
+(** {3 Personalizing state timeouts} *)
 
-(** sets the timeout for service session (server side) for one user,
+(** sets the timeout for service state (server side) for one user,
    in seconds. [None] = no timeout *)
-val set_service_session_timeout :
-  ?session_name:string -> 
+val set_service_state_timeout :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> float option -> unit
 
-(** remove the service session timeout for one user
+(** remove the service state timeout for one user
    (and turn back to the default). *)
-val unset_service_session_timeout :
-  ?session_name:string -> 
+val unset_service_state_timeout :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> unit -> unit
 
-(** returns the timeout for current service session.
+(** returns the timeout for current service state.
     [None] = no timeout
  *)
-val get_service_session_timeout :
-  ?session_name:string -> 
+val get_service_state_timeout :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> unit -> float option
@@ -306,75 +306,56 @@ val get_service_session_timeout :
 
 
 
-(** sets the timeout for volatile data session (server side) for one user,
+(** sets the timeout for volatile data state (server side) for one user,
    in seconds. [None] = no timeout *)
-val set_volatile_data_session_timeout :
-  ?session_name:string -> 
+val set_volatile_data_state_timeout :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> float option -> unit
 
-(** remove the "volatile data" session timeout for one user
+(** remove the "volatile data" state timeout for one user
    (and turn back to the default). *)
-val unset_volatile_data_session_timeout :
-  ?session_name:string -> 
+val unset_volatile_data_state_timeout :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> unit -> unit
 
-(** returns the timeout for current volatile data session.
+(** returns the timeout for current volatile data state.
     [None] = no timeout
  *)
-val get_volatile_data_session_timeout :
-  ?session_name:string -> 
+val get_volatile_data_state_timeout :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> unit -> float option
 
 
 
-(** sets the timeout for volatile sessions (service and volatile data)
-    (server side) for one user,
+
+
+
+
+(** sets the timeout for persistent state (server side) for one user,
    in seconds. [None] = no timeout *)
-val set_volatile_session_timeout :
-  ?session_name:string -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  sp:server_params -> float option -> unit
-
-(** remove the session timeout for one user for both service session and
-   volatile data session
-   (and turn back to the default). *)
-val unset_volatile_session_timeout :
-  ?session_name:string -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  sp:server_params -> unit -> unit
-
-
-
-
-
-
-(** sets the timeout for persistent session (server side) for one user,
-   in seconds. [None] = no timeout *)
-val set_persistent_data_session_timeout : 
-  ?session_name:string ->
+val set_persistent_data_state_timeout : 
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> float option -> unit Lwt.t
 
-(** remove the persistent session timeout for one user
+(** remove the persistent state timeout for one user
    (and turn back to the default). *)
-val unset_persistent_data_session_timeout : 
-  ?session_name:string ->
+val unset_persistent_data_state_timeout : 
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> unit -> unit Lwt.t
 
-(** returns the persistent session timeout for one user. [None] = no timeout *)
-val get_persistent_data_session_timeout : 
-  ?session_name:string ->
+(** returns the persistent state timeout for one user. [None] = no timeout *)
+val get_persistent_data_state_timeout : 
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> unit -> float option Lwt.t
@@ -406,7 +387,7 @@ type 'a session_data =
 *)
 val set_service_session_group :
   ?set_max: int ->
-  ?session_name:string ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   string ->
@@ -415,7 +396,7 @@ val set_service_session_group :
 (** Remove the session from its group *)
 val unset_service_session_group :
   ?set_max: int ->
-  ?session_name:string ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -426,7 +407,7 @@ val unset_service_session_group :
     return [None].
 *)
 val get_service_session_group :
-  ?session_name:string ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -438,7 +419,7 @@ val get_service_session_group :
 *)
 val set_volatile_data_session_group :
   ?set_max: int ->
-  ?session_name:string ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   string ->
@@ -447,7 +428,7 @@ val set_volatile_data_session_group :
 (** Remove the session from its group *)
 val unset_volatile_data_session_group :
   ?set_max: int ->
-  ?session_name:string ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -458,7 +439,7 @@ val unset_volatile_data_session_group :
     return [None].
 *)
 val get_volatile_data_session_group :
-  ?session_name:string ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -470,7 +451,7 @@ val get_volatile_data_session_group :
 *)
 val set_persistent_data_session_group :
   ?set_max: int option ->
-  ?session_name:string ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   string ->
@@ -478,7 +459,7 @@ val set_persistent_data_session_group :
 
 (** Remove the session from its group *)
 val unset_persistent_data_session_group :
-  ?session_name:string ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -489,7 +470,7 @@ val unset_persistent_data_session_group :
     return [None].
 *)
 val get_persistent_data_session_group :
-  ?session_name:string ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
@@ -500,7 +481,7 @@ val get_persistent_data_session_group :
     [None] means "no limit". This won't modify existing groups. That
     value will be used only as default value if you do not specify the
     optional parameter [?set_max] of function
-    {!Eliom_sessions.set_volatile_data_session_group}.
+    {!Eliom_state.set_volatile_data_session_group}.
 
     If there is no group, the number of sessions is limitated by sub network
     (which can be a problem for example if the server is behind a
@@ -589,36 +570,39 @@ val set_ipv6_subnet_mask :
     group (or for the client sub network, if there is no group).
 *)
 val set_max_service_sessions_for_group_or_subnet :
-  ?session_name:string ->
+  ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
   sp:server_params ->
   int ->
   unit
+(*VVV renommer! *)
 
 
 (** Sets the maximum number of volatile data sessions in the current session
     group (or for the client sub network, if there is no group).
 *)
 val set_max_volatile_data_sessions_for_group_or_subnet :
-  ?session_name:string ->
+  ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
   sp:server_params ->
   int ->
   unit
+(*VVV renommer! *)
 
 (** Sets the maximum number of volatile sessions 
     (both data and service sessions) in the current 
     group (or for the client sub network, if there is no group).
 *)
 val set_max_volatile_sessions_for_group_or_subnet :
-  ?session_name:string ->
+  ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
   sp:server_params ->
   int ->
   unit
+(*VVV renommer! *)
 
 
 (** {3 Session cookies} *)
@@ -629,50 +613,42 @@ val set_max_volatile_sessions_for_group_or_subnet :
     when the browser is closed. Note: there is no way to set cookies
     for an infinite time on browsers. *)
 
-(** Sets the cookie expiration date for the current volatile sessions
-    (service and data) (see above).
-*)
-val set_volatile_session_cookies_exp_date :
-  ?session_name:string ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  sp:server_params -> 
-  float option -> 
-  unit
-
 (** Sets the cookie expiration date for the current service session
     (see above).
 *)
-val set_service_session_cookie_exp_date : 
-  ?session_name:string ->
+val set_service_cookie_exp_date : 
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> 
   float option -> 
   unit
+(*VVV renommer! *)
 
 (** Sets the cookie expiration date for the current data session (see
     above).
 *)
-val set_volatile_data_session_cookie_exp_date :
-  ?session_name:string ->
+val set_volatile_data_cookie_exp_date :
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> 
   float option -> 
   unit
+(*VVV renommer! *)
 
 
 (** Sets the cookie expiration date for the persistent session (see
     above).
 *)
-val set_persistent_data_session_cookie_exp_date :
-  ?session_name:string ->
+val set_persistent_data_cookie_exp_date :
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> 
   float option -> 
   unit Lwt.t
+(*VVV renommer! *)
 
 
 (** {3 Exceptions and fallbacks} *)
@@ -774,20 +750,20 @@ type 'a volatile_table
    {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val create_volatile_table :
-  ?session_name:string ->
+  ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
   ?sp:server_params -> unit -> 'a volatile_table
 
 (** gets session data for the current session (if any). *)
-val get_volatile_session_data : 
+val get_volatile_data : 
   table:'a volatile_table -> 
   sp:server_params -> 
   unit -> 
   'a session_data
 
 (** sets session data for the current session. *)
-val set_volatile_session_data : 
+val set_volatile_data : 
   table:'a volatile_table -> 
   sp:server_params -> 
   'a -> 
@@ -797,14 +773,14 @@ val set_volatile_session_data :
    (but does not close the session).
    If the session does not exist, does nothing.
  *)
-val remove_volatile_session_data : 
+val remove_volatile_data : 
   table:'a volatile_table -> 
   sp:server_params -> 
   unit -> 
   unit
 
 
-(** {3 Persistent sessions} *)
+(** {3 Persistent state} *)
 
 (** The type of persistent session data tables. *)
 type 'a persistent_table
@@ -812,20 +788,20 @@ type 'a persistent_table
 (** creates a table on hard disk where you can store the session data for
    all users. It uses {!Ocsipersist}. *)
 val create_persistent_table :
-  ?session_name:string ->
+  ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
   string -> 'a persistent_table
 
 (** gets persistent session data for the current persistent session (if any) *)
-val get_persistent_session_data : 
+val get_persistent_data : 
   table:'a persistent_table -> 
   sp:server_params ->
   unit -> 
   'a session_data Lwt.t
 
 (** sets persistent session data for the current persistent session *)
-val set_persistent_session_data : 
+val set_persistent_data : 
   table:'a persistent_table -> 
   sp:server_params -> 
   'a -> 
@@ -835,7 +811,7 @@ val set_persistent_session_data :
    (but does not close the session).
    If the session does not exist, does nothing.
  *)
-val remove_persistent_session_data : 
+val remove_persistent_data : 
   table:'a persistent_table -> 
   sp:server_params -> 
   unit -> 
@@ -843,68 +819,66 @@ val remove_persistent_session_data :
 
 
 (*****************************************************************************)
-(** {2 Closing sessions} *)
+(** {2 Closing sessions, removing state data and services} *)
 
-(** Close Eliom's current sessions if opened (service session,
-   volatile data session and persistent session).
+(** Delete server side state data for a session, a group of sessions or
+    a client process. Default scope: [`Session].
 
-   Shortcut for {!Eliom_sessions.close_volatile_data_session} followed by
-    {!Eliom_sessions.close_service_session} and
-    {!Eliom_sessions.close_persistent_data_session}.
+    Use that function to close a session (using scope [`Session]).
 
-    By default will close both secure and unsecure sessions, but
+    Shortcut for {!Eliom_state.discard_services} followed by
+    {!Eliom_state.discard_data}.
+
+    By default will remove both secure and unsecure data and services, but
     if [~secure] is present.
 
     Warning: you may also want to remove some data from the polymorphic
     request data table when closing a session 
-    (See {!Eliom_sessions.get_request_cache}).
+    (See {!Eliom_state.get_request_cache}).
 *)
+val discard :
+  ?state_name:string ->
+  ?scope:Eliom_common.user_scope ->
+  ?secure:bool ->
+  sp:server_params ->
+  unit ->
+  unit Lwt.t
+
+(** close_session is a synonymous for [discard ~scope:`Session] *)
 val close_session :
-  ?session_name:string ->
-  ?scope:Eliom_common.user_scope ->
+  ?state_name:string ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
   unit Lwt.t
 
-(** Close Eliom's current volatile session if opened
-   (both service session and volatile data session)
-   (destroying all session data for that user).
+(** close_group is a synonymous for [discard ~scope:`Session_group] *)
+val close_group :
+  ?state_name:string ->
+  ?secure:bool ->
+  sp:server_params ->
+  unit ->
+  unit Lwt.t
 
-   Shortcut for {!Eliom_sessions.close_volatile_data_session} followed by
-    {!Eliom_sessions.close_service_session}.
+(** Remove current state data.
+
+    If the optional parameter [?persistent] is not present, will
+    remove both volatile and persistent data. Otherwise only volatile
+    or persistent data.
  *)
-val close_volatile_session :
-  ?session_name:string ->
-  ?scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  sp:server_params ->
-  unit ->
-  unit
-
-(** Close Eliom's current persistent session if opened
-   (destroying all persistent data for that user) *)
-val close_persistent_data_session :
-  ?session_name:string ->
+val discard_data :
+  ?persistent:bool ->
+  ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
   sp:server_params ->
   unit ->
   unit Lwt.t
 
-(** Close Eliom's current data session, if opened
-   (destroying all session data for that user) *)
-val close_volatile_data_session :
-  ?session_name:string ->
-  ?scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  sp:server_params ->
-  unit ->
-  unit
-
-(** Close Eliom's current service session, if opened *)
-val close_service_session :
-  ?session_name:string ->
+(** Remove all services registered for the given scope (the default beeing
+    [`Session]). *)
+val discard_services :
+  ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
   sp:server_params ->
@@ -931,83 +905,65 @@ val unset_cookie :
 
 
 (*****************************************************************************)
-(** {2 Administrating sessions} *)
+(** {2 Administrating server side state} *)
 
-(** Close all persistent and volatile sessions for one session name.
-    If the optional parameter [?session_name] (session name) is not present,
-    the session with default name is closed.
-
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
- *)
-val close_all_sessions :
-  ?session_name:string ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:server_params ->
-  unit ->
-  unit Lwt.t
-
-(** Close all volatile (service and volatile data) sessions
-    for one session name.
-    If the optional parameter [?session_name] (session name) is not present,
-    the session with default name is closed.
+(** Discard all services and persistent and volatile data for one state name.
+    If the optional parameter [?state_name] is not present,
+    the default name will be used.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val close_all_volatile_sessions :
-  ?session_name:string ->
+val discard_all :
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params ->
   unit ->
   unit Lwt.t
+(*VVV missing: scope group *)
+(*VVV missing ~secure? *)
 
-(** Close all persistent sessions for one session name.
-    If the optional parameter [?session_name] (session name) is not present,
-    the session with default name is closed.
+(** Discard server side data for all clients, for the given state name
+    and scope.
+    If the optional parameter [?state_name] is not present,
+    the default name will be used.
+
+    If the optional parameter [?persistent] is not present,
+    both the persistent and volatile data will be removed.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val close_all_persistent_data_sessions :
-  ?session_name:string ->
+val discard_all_data :
+  ?persistent:bool ->
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params ->
   unit ->
   unit Lwt.t
+(*VVV missing: scope group *)
+(*VVV missing ~secure? *)
 
-(** Close all service sessions for one session name.
-    If the optional parameter [?session_name] (session name) is not present,
-    the session with default name is closed.
+
+(** Remove all services registered for clients for the given state name
+    and scope.
+    If the optional parameter [?state_name] is not present,
+    the default name is used.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val close_all_service_sessions :
-  ?session_name:string ->
+val discard_all_services :
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?sp:server_params ->
   unit ->
   unit Lwt.t
-
-(** Close all volatile data sessions for one session name.
-    If the optional parameter [?session_name] (session name) is not present,
-    the session with default name is closed.
-
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
- *)
-val close_all_volatile_data_sessions :
-  ?session_name:string ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:server_params ->
-  unit ->
-  unit Lwt.t
+(*VVV missing: scope group *)
+(*VVV missing ~secure? *)
 
 
 module Session_admin : sig
@@ -1057,15 +1013,15 @@ module Session_admin : sig
       session:persistent_session -> table:'a persistent_table -> unit Lwt.t
 
   (** [None] means default session name *)
-  val get_service_session_name :
+  val get_service_state_name :
     session:service_session -> string option
 
   (** [None] means default session name *)
-  val get_volatile_data_session_name : session:data_session -> 
+  val get_volatile_data_state_name : session:data_session -> 
     string option
 
   (** [None] means default session name *)
-  val get_persistent_data_session_name :
+  val get_persistent_data_state_name :
       session:persistent_session -> string option
 
   val get_service_session_cookie_scope :
@@ -1288,13 +1244,13 @@ val get_request : sp:server_params -> request
 (** returns the name of the sessions to which belongs the running service
     ([None] if it is not a session service)
  *)
-val get_session_name : sp:server_params -> Eliom_common.fullsessionname option
+val get_state_name : sp:server_params -> Eliom_common.fullsessionname option
 
 (** returns the value of the Eliom's cookies for one persistent session.
    Returns [None] is no session is active.
  *)
-val get_persistent_data_session_cookie : 
-  ?session_name:string ->
+val get_persistent_data_cookie : 
+  ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params -> unit -> string option Lwt.t
@@ -1302,8 +1258,8 @@ val get_persistent_data_session_cookie :
 (** returns the value of Eliom's cookies for one service session.
    Returns [None] is no session is active.
  *)
-val get_service_session_cookie :
-  ?session_name:string -> 
+val get_service_cookie :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params ->
@@ -1312,8 +1268,8 @@ val get_service_session_cookie :
 (** returns the value of Eliom's cookies for one "volatile data" session.
    Returns [None] is no session is active.
  *)
-val get_volatile_data_session_cookie :
-  ?session_name:string -> 
+val get_volatile_data_cookie :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
   sp:server_params ->
@@ -1345,7 +1301,7 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 val get_global_table : ?sp:server_params -> unit -> Eliom_common.tables
 
 val get_session_service_table :
-  ?session_name:string -> 
+  ?state_name:string -> 
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
   sp:server_params -> 
@@ -1353,7 +1309,7 @@ val get_session_service_table :
   Eliom_common.tables ref
 
 val get_session_service_table_if_exists :
-  ?session_name:string -> 
+  ?state_name:string -> 
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
   sp:server_params -> 
@@ -1367,14 +1323,14 @@ val get_sitedata : sp:server_params -> Eliom_common.sitedata
    in seconds, since the 1st of january 1970.
    must have been set just before (not saved server side).
  *)
-val get_cookie_exp_date : ?session_name:string -> sp:server_params ->
+val get_cookie_exp_date : ?state_name:string -> sp:server_params ->
   unit -> float option
 
 (** returns the cookie expiration date for the persistent session,
     in seconds, since the 1st of january 1970.
    must have been set just before (not saved server side).
  *)
-val get_persistent_cookie_exp_date : ?session_name:string ->
+val get_persistent_cookie_exp_date : ?state_name:string ->
   sp:server_params -> unit -> float option
 
 *)

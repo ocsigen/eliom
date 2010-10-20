@@ -15,30 +15,30 @@ val find_global_persistent_timeout :
   Eliom_common.fullsessionname -> Eliom_common.sitedata -> float option
 
 val get_global_service_timeout :
-  session_name:string option ->
+  state_name:string option ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   Eliom_common.sitedata -> float option
 val get_global_data_timeout :
-  session_name:string option ->
+  state_name:string option ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   Eliom_common.sitedata -> float option
 val get_global_persistent_timeout :
-  session_name:string option ->
+  state_name:string option ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   Eliom_common.sitedata -> float option
 
 val set_global_service_timeout :
-  session_name:string option ->
+  state_name:string option ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   recompute_expdates:bool -> 
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_data_timeout :
-  session_name:string option ->
+  state_name:string option ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   recompute_expdates:bool -> 
   bool -> Eliom_common.sitedata -> float option -> unit
 val set_global_persistent_timeout :
-  session_name:string option ->
+  state_name:string option ->
   cookie_scope:[< Eliom_common.cookie_scope ] ->
   recompute_expdates:bool -> 
   bool -> Eliom_common.sitedata -> float option -> unit

@@ -24,8 +24,8 @@
 (*****************************************************************************)
 
 type eliom_extension_sig =
-  Eliom_sessions.server_params -> Ocsigen_extensions.answer Lwt.t
+  Eliom_state.server_params -> Ocsigen_extensions.answer Lwt.t
 
 let register_eliom_extension f =
   Eliommod_extensions.register_eliom_extension
-    (fun sp -> f (Eliom_sessions.sp_of_esp sp))
+    (fun sp -> f (Eliom_state.sp_of_esp sp))

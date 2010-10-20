@@ -40,11 +40,11 @@ let compute_cookie_info secure secure_ci cookie_info =
 
 
 (* to be called during a request *)
-let close_data_session ?session_name ?(scope = `Session) ~secure ~sp () =
+let close_data_session ?state_name ?(scope = `Session) ~secure ~sp () =
   try
     let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
     let fullsessname = 
-      Eliom_common.make_fullsessname ~sp cookie_scope session_name
+      Eliom_common.make_fullsessname ~sp cookie_scope state_name
     in
     let ((_, cookie_info, _), secure_ci) = 
       Eliom_common.get_cookie_info sp cookie_scope
@@ -93,7 +93,7 @@ let fullsessgrp ~cookie_scope ~sp set_session_group =
     set_session_group
 
 let rec find_or_create_data_cookie ?set_session_group
-    ?session_name ?(cookie_scope = `Session) ~secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
 
@@ -105,7 +105,7 @@ let rec find_or_create_data_cookie ?set_session_group
                     browser session cookie 
                     and put the tab session into it. *)
         let v = find_or_create_data_cookie
-          ?session_name
+          ?state_name
           ~cookie_scope:`Session
           ~secure
           ~sp
@@ -153,7 +153,7 @@ let rec find_or_create_data_cookie ?set_session_group
   in
 
   let fullsessname =
-    Eliom_common.make_fullsessname ~sp cookie_scope session_name 
+    Eliom_common.make_fullsessname ~sp cookie_scope state_name 
   in
 
   let ((_, cookie_info, _), secure_ci) =
@@ -204,12 +204,12 @@ let rec find_or_create_data_cookie ?set_session_group
         !cookie_info;
     v
 
-let find_data_cookie_only ?session_name 
+let find_data_cookie_only ?state_name 
     ?(cookie_scope = `Session) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_scope session_name 
+    Eliom_common.make_fullsessname ~sp cookie_scope state_name 
   in
   let ((_, cookie_info, _), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_scope
@@ -235,7 +235,7 @@ let counttableelements = ref []
 (* Here only for exploration functions *)
 
 let create_volatile_table, create_volatile_table_during_session =
-  let aux ~scope ~session_name ~secure sitedata =
+  let aux ~scope ~state_name ~secure sitedata =
     let t = Eliom_common.SessionCookies.create 100 in
     let old_remove_session_data =
       sitedata.Eliom_common.remove_session_data
@@ -256,12 +256,12 @@ let create_volatile_table, create_volatile_table_during_session =
     counttableelements :=
       (fun () -> Eliom_common.SessionCookies.length t)::
       !counttableelements;
-    (scope, session_name, secure, t)
+    (scope, state_name, secure, t)
   in
-  ((fun ~scope ~session_name ~secure ->
+  ((fun ~scope ~state_name ~secure ->
     let sitedata = Eliom_common.get_current_sitedata () in
-    aux ~scope ~session_name ~secure sitedata),
-   (fun ~scope ~session_name ~secure sp ->
-     aux ~scope ~session_name ~secure sp.Eliom_common.sp_sitedata))
+    aux ~scope ~state_name ~secure sitedata),
+   (fun ~scope ~state_name ~secure sp ->
+     aux ~scope ~state_name ~secure sp.Eliom_common.sp_sitedata))
 
 

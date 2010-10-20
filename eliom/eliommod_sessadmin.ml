@@ -49,18 +49,18 @@ let close_all_service_sessions2 fullsessname sitedata =
     (return ())
 
 (** Close all service sessions for one session name.
-    If the optional parameter [?session_name] (session name) is not present,
+    If the optional parameter [?state_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_service_sessions ?session_name
+let close_all_service_sessions ?state_name
     ?(cookie_scope = `Session) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope state_name
   in
   close_all_service_sessions2 fullsessname sitedata
 (*VVV Missing:
-   - close all sessions, whatever be the session_name
+   - close all sessions, whatever be the state_name
    - secure
    - close all groups (but closing sessions will close the groups (?))
 *)
@@ -77,17 +77,17 @@ let close_all_data_sessions2 fullsessname sitedata =
     (return ())
 
 (** Close all in memory data sessions for one session name.
-    If the optional parameter [?session_name] (session name) is not present,
+    If the optional parameter [?state_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_data_sessions ?session_name ?(cookie_scope = `Session) sitedata =
+let close_all_data_sessions ?state_name ?(cookie_scope = `Session) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope state_name
   in
   close_all_data_sessions2 fullsessname sitedata
 (*VVV Missing:
-   - close all sessions, whatever be the session_name
+   - close all sessions, whatever be the state_name
    - secure
    - close all groups (but closing sessions will close the groups (?))
 *)
@@ -105,18 +105,18 @@ let close_all_persistent_sessions2 fullsessname sitedata =
     (Lazy.force Eliommod_persess.persistent_cookies_table)
 
 (** Close all persistent sessions for one session name.
-    If the optional parameter [?session_name] (session name) is not present,
+    If the optional parameter [?state_name] (session name) is not present,
     only the session with default name is closed.
  *)
 let close_all_persistent_sessions
-    ?session_name ?(cookie_scope = `Session) sitedata =
+    ?state_name ?(cookie_scope = `Session) sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope state_name
   in
   close_all_persistent_sessions2 fullsessname sitedata
 (*VVV Missing:
-   - close all sessions, whatever be the session_name
+   - close all sessions, whatever be the state_name
    - secure
    - close all groups (but closing sessions will close the groups (?))
 *)

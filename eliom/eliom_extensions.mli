@@ -20,7 +20,7 @@
 
 (** Type of the function that must be registered to declare an eliom extension *)
 type eliom_extension_sig =
-  Eliom_sessions.server_params -> Ocsigen_extensions.answer Lwt.t
+  Eliom_state.server_params -> Ocsigen_extensions.answer Lwt.t
 
 val register_eliom_extension : eliom_extension_sig -> unit
 

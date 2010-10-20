@@ -882,14 +882,14 @@ open Lwt
 (************************************************************)
 
 (*zap* *)
-let session_name = "tsession_data"
+let state_name = "tsession_data"
 
 (* *zap*)
 
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
-let my_table = Eliom_sessions.create_volatile_table ~session_name ~scope:`Client_process ()
+let my_table = Eliom_state.create_volatile_table ~state_name ~scope:`Client_process ()
 
 
 
@@ -924,19 +924,19 @@ let tsession_data_example_close =
 
 let tsession_data_example_handler sp _ _  =
   let sessdat = 
-    Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () 
+    Eliom_state.get_volatile_data ~table:my_table ~sp () 
   in
   return
     [
       match sessdat with
-        | Eliom_sessions.Data name ->
+        | Eliom_state.Data name ->
           p [pcdata ("Hello "^name);
              br ();
              Eliom_appl.a
                tsession_data_example_close
                sp [pcdata "close session"] ()]
-        | Eliom_sessions.Data_session_expired
-        | Eliom_sessions.No_data ->
+        | Eliom_state.Data_session_expired
+        | Eliom_state.No_data ->
           Eliom_appl.post_form
             tsession_data_example_with_post_params
             sp
@@ -952,9 +952,9 @@ let tsession_data_example_handler sp _ _  =
 (* service with POST params:                                *)
 
 let tsession_data_example_with_post_params_handler sp _ login =
-  Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_session_data
+  Eliom_state.discard
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+  Eliom_state.set_volatile_data
     ~table:my_table ~sp login;
   return
     [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
@@ -969,16 +969,16 @@ let tsession_data_example_with_post_params_handler sp _ login =
 (* Handler for the "tsession_data_example_close" service:    *)
 
 let tsession_data_example_close_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data
+  let sessdat = Eliom_state.get_volatile_data
     ~table:my_table ~sp () in
-  Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+  Eliom_state.discard
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
   return
     [
       (match sessdat with
-        | Eliom_sessions.Data_session_expired -> p [pcdata "Your session has expired."]
-        | Eliom_sessions.No_data -> p [pcdata "You were not connected."]
-        | Eliom_sessions.Data _ -> p [pcdata "You have been disconnected."]);
+        | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
+        | Eliom_state.No_data -> p [pcdata "You were not connected."]
+        | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
       p [Eliom_appl.a tsession_data_example sp [pcdata "Retry"] () ]]
 
 
@@ -1002,7 +1002,7 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let session_name = "tsession_services"
+let state_name = "tsession_services"
 
 (* *zap*)
 (* -------------------------------------------------------- *)
@@ -1051,8 +1051,8 @@ let tsession_services_example_handler sp () () =
 (* Handler for the "tsession_services_example_close" service:     *)
 
 let tsession_services_example_close_handler sp () () =
-  Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+  Eliom_state.discard
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
   Lwt.return [p [pcdata "You have been disconnected. ";
                  a tsession_services_example
                    sp [pcdata "Retry"] ()
@@ -1077,12 +1077,12 @@ let tlaunch_session sp () login =
   in
 
   (* If a session was opened, we close it first! *)
-  Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+  Eliom_state.discard
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_appl.register (*zap* *) ~session_name (* *zap*)
+  Eliom_appl.register (*zap* *) ~state_name (* *zap*)
     ~scope:`Client_process
     ~sp
     ~service:tsession_services_example
@@ -1090,7 +1090,7 @@ let tlaunch_session sp () login =
        here the main page of our site *)
     new_main_page;
 
-  Eliom_appl.register (*zap* *) ~session_name (* *zap*)
+  Eliom_appl.register (*zap* *) ~state_name (* *zap*)
     ~scope:`Client_process
     ~sp
     ~service:eliomclient1
@@ -1187,7 +1187,7 @@ let _ =
 (************************************************************)
 
 (*zap* *)
-let session_name = "calc_example"
+let state_name = "calc_example"
 
 (* *zap*)
 (* -------------------------------------------------------- *)
@@ -1271,7 +1271,7 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let session_name = "connect_example3"
+let state_name = "connect_example3"
 
 (* *zap*)
 (* -------------------------------------------------------- *)
@@ -1298,8 +1298,8 @@ let tdisconnect_action =
     ~name:"tdisconnect3"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~scope:`Client_process ~sp ())
+      Eliom_state.discard
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp ())
 
 
 
@@ -1329,15 +1329,15 @@ let tlogin_box sp =
 (* Handler for the "connect_example3" service (main page):    *)
 
 let tconnect_example3_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data
+  let sessdat = Eliom_state.get_volatile_data
     ~table:my_table ~sp () in
   return
     (match sessdat with
-      | Eliom_sessions.Data name ->
+      | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
          tdisconnect_box sp "Close session"]
-      | Eliom_sessions.Data_session_expired
-      | Eliom_sessions.No_data -> [tlogin_box sp]
+      | Eliom_state.Data_session_expired
+      | Eliom_state.No_data -> [tlogin_box sp]
     )
 
 
@@ -1346,9 +1346,9 @@ let tconnect_example3_handler sp () () =
 (* Handler for connect_action (user logs in):               *)
 
 let tconnect_action_handler sp () login =
-  Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
+  Eliom_state.discard
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+  Eliom_state.set_volatile_data ~table:my_table ~sp login;
   return ()
 
 
@@ -1369,11 +1369,11 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let session_name = "persistent_sessions"
+let state_name = "persistent_sessions"
 
 (* *zap*)
 let tmy_persistent_table =
-  Eliom_sessions.create_persistent_table ~scope:`Client_process (*zap* *) ~session_name (* *zap*) "teliom_example_table"
+  Eliom_state.create_persistent_table ~scope:`Client_process (*zap* *) ~state_name (* *zap*) "teliom_example_table"
 
 
 (* -------------------------------------------------------- *)
@@ -1409,7 +1409,7 @@ let tdisconnect_action =
     ~name:"tdisconnect4"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~session_name ~scope:`Client_process  ~sp ())
+      Eliom_state.discard ~state_name ~scope:`Client_process  ~sp ())
 
 
 let tdisconnect_box sp s =
@@ -1433,7 +1433,7 @@ let tlogin_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_sessions.get_request_cache sp)
+      [p (if get_bad_user (Eliom_state.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -1449,16 +1449,16 @@ let tlogin_box sp session_expired action =
 (* Handler for "persist_session_example" service (main page):  *)
 
 let tpersist_session_example_handler sp () () =
-  Eliom_sessions.get_persistent_session_data ~table:tmy_persistent_table ~sp () >>= fun sessdat ->
+  Eliom_state.get_persistent_data ~table:tmy_persistent_table ~sp () >>= fun sessdat ->
   return
     (match sessdat with
-      | Eliom_sessions.Data name ->
+      | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
          tdisconnect_box sp "Close session"]
-      | Eliom_sessions.Data_session_expired ->
+      | Eliom_state.Data_session_expired ->
         [tlogin_box sp true tpersist_session_connect_action;
          p [em [pcdata "The only user is 'toto'."]]]
-      | Eliom_sessions.No_data ->
+      | Eliom_state.No_data ->
         [tlogin_box sp false tpersist_session_connect_action;
          p [em [pcdata "The only user is 'toto'."]]]
     )
@@ -1469,12 +1469,12 @@ let tpersist_session_example_handler sp () () =
 (* Handler for persist_session_connect_action (user logs in):  *)
 
 let tpersist_session_connect_action_handler sp () login =
-  Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+  Eliom_state.discard
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then
-    Eliom_sessions.set_persistent_session_data ~table:tmy_persistent_table ~sp login
-  else ((*zap* *)Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;(* *zap*)return ())
+    Eliom_state.set_persistent_data ~table:tmy_persistent_table ~sp login
+  else ((*zap* *)Polytables.set (Eliom_state.get_request_cache sp) bad_user_key true;(* *zap*)return ())
 
 
 
@@ -1497,7 +1497,7 @@ let () =
 (************ Connection of users, version 6 ****************)
 (************************************************************)
 (*zap* *)
-let session_name = "connect_example6"
+let state_name = "connect_example6"
 
 (* *zap*)
 (* -------------------------------------------------------- *)
@@ -1525,7 +1525,7 @@ let tdisconnect_action =
     ~name:"tdisconnect6"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~scope:`Client_process  ~sp ())
+      Eliom_state.discard (*zap* *) ~state_name (* *zap*) ~scope:`Client_process  ~sp ())
 
 
 let tdisconnect_box sp s =
@@ -1551,7 +1551,7 @@ let tlogin_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_sessions.get_request_cache sp)
+      [p (if get_bad_user (Eliom_state.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -1565,17 +1565,17 @@ let tlogin_box sp session_expired action =
 (* Handler for the "connect_example6" service (main page):   *)
 
 let tconnect_example6_handler sp () () =
-  let group = Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp ()
+  let group = Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ~sp ()
   in
   return
     (match group with
-      | Eliom_sessions.Data name ->
+      | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
          tdisconnect_box sp "Close session"]
-      | Eliom_sessions.Data_session_expired ->
+      | Eliom_state.Data_session_expired ->
         [tlogin_box sp true tconnect_action;
          p [em [pcdata "The only user is 'toto'."]]]
-      | Eliom_sessions.No_data ->
+      | Eliom_state.No_data ->
         [tlogin_box sp false tconnect_action;
          p [em [pcdata "The only user is 'toto'."]]]
     )
@@ -1585,15 +1585,15 @@ let tconnect_example6_handler sp () () =
 (* New handler for connect_action (user logs in):           *)
 
 let tconnect_action_handler sp () login =
-  Eliom_sessions.close_session
- (*zap* *) ~session_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+  Eliom_state.discard
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
+    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) ~sp login;
     return ()
   end
   else begin
-    Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;
+    Polytables.set (Eliom_state.get_request_cache sp) bad_user_key true;
     return ()
   end
 
@@ -1624,7 +1624,7 @@ let tcsrfsafe_example =
 let tcsrfsafe_example_post =
   Eliom_services.post_coservice
     ~csrf_safe:true
-    ~csrf_session_name:"csrf"
+    ~csrf_state_name:"csrf"
     ~csrf_scope:`Client_process
     ~csrf_secure_session:true
     ~timeout:10.
@@ -1662,7 +1662,7 @@ let tcookies = service ["tcookies"] unit ()
 
 let _ = Eliom_appl.register tcookies
   (fun sp () () ->
-    Eliom_sessions.set_cookie
+    Eliom_state.set_cookie
       ~sp ~cookie_scope:`Client_process
       ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
     Lwt.return
@@ -1670,7 +1670,7 @@ let _ = Eliom_appl.register tcookies
                     "cookie value: "^
                       (Ocsigen_lib.String_Table.find
                          cookiename
-                         (Eliom_sessions.get_cookies
+                         (Eliom_state.get_cookies
                             ~cookie_scope:`Client_process ~sp ()))
         with _ -> "<cookie not set>");
           br ();

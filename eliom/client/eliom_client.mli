@@ -152,7 +152,7 @@ val make_a_with_onclick :
            [< Eliom_services.suff ], 'gn, 'pn,
            [< Eliom_services.registrable ], 'return)
     Eliom_services.service ->
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->

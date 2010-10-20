@@ -27,7 +27,7 @@ open Eliom_predefmod.Xhtmlcompact
 open Eliom_predefmod
 open Eliom_services
 open Eliom_parameters
-open Eliom_sessions
+open Eliom_state
 open Lwt
 
 (* Lists of lists *)
@@ -272,7 +272,7 @@ let csrfsafe_session_example =
 let csrfsafe_example_session =
   Eliom_services.post_coservice'
     ~csrf_safe:true
-    ~csrf_session_name:"plop"
+    ~csrf_state_name:"plop"
     ~csrf_secure_session:true
     ~timeout:10.
     ~post_params:Eliom_parameters.unit
@@ -281,7 +281,7 @@ let csrfsafe_example_session =
 let _ =
   let page sp () () =
     Eliom_predefmod.Xhtml.register ~scope:`Session
-      ~session_name:"plop"
+      ~state_name:"plop"
       ~secure_session:true
       ~sp
       ~service:csrfsafe_example_session
@@ -414,7 +414,7 @@ let servreq =
     ~path:["servreq"]
     ~get_params:unit
     (fun sp () () ->
-       let ri = Eliom_sessions.get_ri sp in
+       let ri = Eliom_state.get_ri sp in
        let ri = Ocsigen_extensions.ri_of_url "tuto/" ri in
        Ocsigen_extensions.serve_request ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
@@ -431,7 +431,7 @@ let servreqloop =
     ~path:["servreqloop"]
     ~get_params:unit
     (fun sp () () ->
-       let ri = Eliom_sessions.get_ri sp in
+       let ri = Eliom_state.get_ri sp in
        Ocsigen_extensions.serve_request ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
        Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
@@ -459,9 +459,9 @@ let headers =
     ~path:["httpheaders"]
     ~get_params:unit
     (fun sp () () ->
-      Eliom_sessions.set_cookie
+      Eliom_state.set_cookie
         ~sp ~path:[] ~name:"Customcookie" ~value:"Value" ~secure:true ();
-      Eliom_sessions.set_cookie
+      Eliom_state.set_cookie
         ~sp ~path:[] ~name:"Customcookie2" ~value:"Value2" ();
       Lwt.return
         (html
@@ -822,38 +822,38 @@ let cookies = service ["c";""] (suffix (all_suffix_string "s")) ()
 let _ = Eliom_predefmod.Xhtml.register cookies
     (fun sp s () ->
       let now = Unix.time () in
-      Eliom_sessions.set_cookie
+      Eliom_state.set_cookie
         ~sp ~path:[] ~exp:(now +. 10.) ~name:(cookiename^"6")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
-      Eliom_sessions.set_cookie
+      Eliom_state.set_cookie
         ~sp ~path:[] ~exp:(now +. 10.) ~name:(cookiename^"7")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
-      Eliom_sessions.set_cookie
+      Eliom_state.set_cookie
         ~sp ~path:["c";"plop"] ~name:(cookiename^"8")
         ~value:(string_of_int (Random.int 100)) ();
-      Eliom_sessions.set_cookie
+      Eliom_state.set_cookie
         ~sp ~path:["c";"plop"] ~name:(cookiename^"9")
         ~value:(string_of_int (Random.int 100)) ();
-      Eliom_sessions.set_cookie
+      Eliom_state.set_cookie
         ~sp ~path:["c";"plop"] ~name:(cookiename^"10")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
-      Eliom_sessions.set_cookie
+      Eliom_state.set_cookie
         ~sp ~path:["c";"plop"] ~name:(cookiename^"11")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
-      Eliom_sessions.set_cookie
+      Eliom_state.set_cookie
         ~sp ~path:["c";"plop"] ~name:(cookiename^"12")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
       if Ocsigen_lib.String_Table.mem (cookiename^"1") (get_cookies ~sp ())
       then
-        (Eliom_sessions.unset_cookie ~sp ~name:(cookiename^"1") ();
-         Eliom_sessions.unset_cookie ~sp ~name:(cookiename^"2") ())
+        (Eliom_state.unset_cookie ~sp ~name:(cookiename^"1") ();
+         Eliom_state.unset_cookie ~sp ~name:(cookiename^"2") ())
       else begin
-        Eliom_sessions.set_cookie
+        Eliom_state.set_cookie
           ~sp ~name:(cookiename^"1") ~value:(string_of_int (Random.int 100))
           ~secure:true ();
-        Eliom_sessions.set_cookie
+        Eliom_state.set_cookie
           ~sp ~name:(cookiename^"2") ~value:(string_of_int (Random.int 100)) ();
-        Eliom_sessions.set_cookie
+        Eliom_state.set_cookie
           ~sp ~name:(cookiename^"3") ~value:(string_of_int (Random.int 100)) ()
       end;
 
@@ -1471,8 +1471,8 @@ let close_from_outside =
     ~path:["close_from_outside"]
     ~get_params:unit
     (fun sp () () ->
-      close_all_sessions ~session_name:"persistent_sessions" ~sp () >>= fun () ->
-      close_all_sessions ~session_name:"action_example2" ~sp () >>= fun () ->
+      discard_all ~state_name:"persistent_sessions" ~sp () >>= fun () ->
+      discard_all ~state_name:"action_example2" ~sp () >>= fun () ->
       return
         (html
            (head (title (pcdata "")) [])
@@ -1487,13 +1487,13 @@ register_service
     ~path:["set_timeout"]
     ~get_params:(int "t" ** (bool "recompute" ** bool "overrideconfig"))
     (fun sp (t, (recompute, override_configfile)) () ->
-      set_global_persistent_data_session_timeout
+      set_global_persistent_data_state_timeout
         ~override_configfile
-        ~session_name:(Some "persistent_sessions")
+        ~state_name:(Some "persistent_sessions")
         ~recompute_expdates:recompute ~sp (Some (float_of_int t));
-      set_global_volatile_session_timeout
+      set_global_volatile_state_timeout
         ~override_configfile
-        ~session_name:(Some "action_example2")
+        ~state_name:(Some "action_example2")
         ~recompute_expdates:recompute ~sp (Some (float_of_int t));
       return
         (html

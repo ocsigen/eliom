@@ -22,7 +22,7 @@
 
 open Eliom_services
 open Eliom_parameters
-open Eliom_sessions
+open Eliom_state
 open Eliom_tools_common
 
 (** {1 XHTML tools} *)
@@ -39,7 +39,7 @@ module Xhtml : sig
         Xhtmltypes.a_content XHTML.M.elt list)
       list ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     [> `Ul ] XHTML.M.elt
 (** Creates a menu
 
@@ -82,7 +82,7 @@ module Xhtml : sig
      Xhtmltypes.a_content XHTML.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     [> `Ul ] XHTML.M.elt list
 
 
@@ -107,7 +107,7 @@ module Xhtml : sig
      Xhtmltypes.a_content XHTML.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     [> `Ul ] XHTML.M.elt list
 
 
@@ -120,7 +120,7 @@ module Xhtml : sig
      Xhtmltypes.a_content XHTML.M.elt list)
     hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     [> `Link ] XHTML.M.elt list
 end
 
@@ -141,7 +141,7 @@ module Xhtml5 : sig
         Xhtml5types.flow5_without_interactive XHTML5.M.elt list)
       list ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     [> `Ul ] XHTML5.M.elt
 (** Creates a menu
 
@@ -184,7 +184,7 @@ module Xhtml5 : sig
      Xhtml5types.a_content XHTML5.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     [> `Ul ] XHTML5.M.elt list
 
 
@@ -209,7 +209,7 @@ module Xhtml5 : sig
      Xhtml5types.a_content XHTML5.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     [> `Ul ] XHTML5.M.elt list
 
 
@@ -222,6 +222,6 @@ module Xhtml5 : sig
      Xhtml5types.a_content XHTML5.M.elt list)
     hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     [> `Link ] XHTML5.M.elt list
 end

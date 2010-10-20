@@ -22,7 +22,7 @@ open Eliom_predefmod.Xhtml
 open Eliom_predefmod
 open Eliom_services
 open Eliom_parameters
-open Eliom_sessions
+open Eliom_state
 
 open Simplexmlparser
 open Lwt
@@ -78,7 +78,7 @@ let wiki_file_dir =
       [Element ("wikidata", [("dir", s)],_)] -> s
     | _ -> raise (Ocsigen_extensions.Error_in_config_file ("Unexpected content inside Miniwiki config"))
   in
-  let c = Eliom_sessions.get_config () in
+  let c = Eliom_state.get_config () in
   find_wikidata c
 
 let wiki_page_filename page =

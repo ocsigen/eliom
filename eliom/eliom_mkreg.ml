@@ -22,7 +22,7 @@
 
 open Lwt
 open Ocsigen_extensions
-open Eliom_sessions
+open Eliom_state
 open Eliom_services
 open Eliom_parameters
 open Lazy
@@ -45,7 +45,7 @@ module type REGCREATE =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      sp:Eliom_sessions.server_params ->
+      sp:Eliom_state.server_params ->
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
@@ -56,7 +56,7 @@ module type REGCREATE =
     *)
     val pre_service :
       ?options:options ->
-      sp:Eliom_sessions.server_params -> unit Lwt.t
+      sp:Eliom_state.server_params -> unit Lwt.t
 
     (** The following field is usually [Eliom_services.XNever]. 
         This value is recorded inside each service just after registration.
@@ -85,7 +85,7 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      sp:Eliom_sessions.server_params ->
+      sp:Eliom_state.server_params ->
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
@@ -96,22 +96,22 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       service:('get, 'post,
                [< internal_service_kind ],
                [< suff ], 'gn, 'pn, [ `Registrable ], return) service ->
-      ?error_handler:(Eliom_sessions.server_params ->
+      ?error_handler:(Eliom_state.server_params ->
                         (string * exn) list -> page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> 'post -> page Lwt.t) ->
       unit
 (** Register a service with the associated handler function.
    [register s t f] will associate the service [s] to the function [f].
    [f] is the function that creates a page, called {e service handler}.
 
    The handler function takes three parameters.
-    - The first one has type [Eliom_sessions.server_params]
+    - The first one has type [Eliom_state.server_params]
    and allows to have acces to informations about the request and the session.
     - The second and third ones are respectively GET and POST parameters.
 
@@ -159,7 +159,7 @@ module type ELIOMREGSIG =
     The optional parameters [?charset], [?code], [?content_type] and [?headers]
     can be used to modify the HTTP answer sent by Eliom. Use this with care.
 
-    [?session_name] is the name of the session (browser session or "tab" session),
+    [?state_name] is the name of the session (browser session or "tab" session),
     if you want several
     service sessions on the same site. It has no effect for scope [`Global].
     
@@ -170,7 +170,7 @@ module type ELIOMREGSIG =
     only through HTTPS). It has no effect for scope [`Global].
 
     Note that in the case of CSRF safe coservices, parameters
-    [?session_name] and [?secure_session] must match exactly the session name
+    [?state_name] and [?secure_session] must match exactly the session name
     and secure option specified while creating the CSRF safe service. 
     Otherwise, the registration will fail
     with {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}
@@ -184,15 +184,15 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?https:bool ->
       path:Ocsigen_lib.url_path ->
       get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+      ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
                         page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Attached of
           ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
@@ -207,12 +207,12 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
-      ?csrf_session_name: string ->
+      ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
@@ -225,9 +225,9 @@ module type ELIOMREGSIG =
         service ->
       get_params:
         ('get, [`WithoutSuffix], 'gn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params ->
+      ?error_handler:(Eliom_state.server_params ->
                         (string * exn) list -> page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
@@ -243,12 +243,12 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
-      ?csrf_session_name: string ->
+      ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
@@ -256,9 +256,9 @@ module type ELIOMREGSIG =
       ?https:bool ->
       get_params:
         ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params ->
+      ?error_handler:(Eliom_state.server_params ->
                         (string * exn) list -> page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Nonattached of [> `Get] na_s ],
        'tipo, 'gn, unit, [> `Registrable ], return)
@@ -272,9 +272,9 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?https:bool ->
       fallback:('get, unit,
                 [ `Attached of
@@ -284,9 +284,9 @@ module type ELIOMREGSIG =
                 unit, [< `Registrable ], return)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+      ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
                         page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> 'post -> page Lwt.t) ->
       ('get, 'post, [> `Attached of
                        ([> `Internal of 'kind ], [> `Post]) a_s ],
        'tipo, 'gn, 'pn, [> `Registrable ], return)
@@ -300,12 +300,12 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
-      ?csrf_session_name: string ->
+      ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
@@ -318,9 +318,9 @@ module type ELIOMREGSIG =
                 'gn, unit, [< `Registrable ], return)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+      ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
                         page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> 'post -> page Lwt.t) ->
       ('get, 'post,
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
@@ -335,12 +335,12 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
-      ?csrf_session_name: string ->
+      ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
@@ -348,9 +348,9 @@ module type ELIOMREGSIG =
       ?keep_get_na_params:bool ->
       ?https:bool ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+      ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
                         page Lwt.t) ->
-      (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
+      (Eliom_state.server_params -> unit -> 'post -> page Lwt.t) ->
       (unit, 'post, [> `Nonattached of [> `Post] na_s ],
        [ `WithoutSuffix ], unit, 'pn,
        [> `Registrable ], return)
@@ -388,7 +388,7 @@ module MakeRegister = functor
           ?(error_handler = fun sp l ->
             raise (Eliom_common.Eliom_Typing_Error l))
           page_generator =
-        let sp = Ocsigen_lib.apply_option Eliom_sessions.esp_of_sp sp in
+        let sp = Ocsigen_lib.apply_option Eliom_state.esp_of_sp sp in
         Eliom_services.set_do_appl_xhr service (Pages.do_appl_xhr);
         begin
           match get_kind_ service with
@@ -418,7 +418,7 @@ module MakeRegister = functor
                       | None -> None
                       | Some t -> Some (t, ref (t +. Unix.time ()))),
                     (fun nosuffixversion sp ->
-                      let sp2 = Eliom_sessions.sp_of_esp sp in
+                      let sp2 = Eliom_state.sp_of_esp sp in
                       let ri = get_ri ~sp:sp2
                       and ci = get_config_info ~sp:sp2
                       and suff = get_suffix ~sp:sp2 in
@@ -539,19 +539,19 @@ module MakeRegister = functor
               in
               (match (key_kind, attserget, attserpost) with
                 | (Ocsigen_http_frame.Http_header.POST, _,
-                   Eliom_common.SAtt_csrf_safe (id, session_name,
+                   Eliom_common.SAtt_csrf_safe (id, state_name,
                                                 scope, secure_session)) ->
                   let tablereg, forsession =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl, false
                       | Ocsigen_lib.Right (sp, sn, ct, sec) ->
-                        if sn <> session_name || secure_session <> sec
+                        if sn <> state_name || secure_session <> sec
                           || scope <> ct
                         then raise
                           Wrong_session_table_for_CSRF_safe_coservice;
-                        !(Eliom_sessions.get_session_service_table
+                        !(Eliom_state.get_session_service_table
                             ?secure:secure_session
-                            ?session_name ~scope ~sp ()),
+                            ?state_name ~scope ~sp ()),
                           true
                   in
                   Eliom_services.set_delayed_post_registration_function
@@ -564,31 +564,31 @@ module MakeRegister = functor
                         if forsession
                         then tablereg
                         else
-                          let sp = Eliom_sessions.sp_of_esp sp in
+                          let sp = Eliom_state.sp_of_esp sp in
                           (* we do not register in global table,
                              but in the table specified while creating
                              the csrf safe service *)
-                          !(Eliom_sessions.get_session_service_table
+                          !(Eliom_state.get_session_service_table
                               ?secure:secure_session
-                              ?session_name ~scope ~sp ())
+                              ?state_name ~scope ~sp ())
                       in
                       f table (attserget, attserpost);
                       n)
                 | (Ocsigen_http_frame.Http_header.GET,
-                   Eliom_common.SAtt_csrf_safe (id, session_name,
+                   Eliom_common.SAtt_csrf_safe (id, state_name,
                                                 scope, secure_session),
                    _) ->
                   let tablereg, forsession =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl, false
                       | Ocsigen_lib.Right (sp, sn, ct, sec) ->
-                        if sn <> session_name || secure_session <> sec
+                        if sn <> state_name || secure_session <> sec
                           || ct <> scope
                         then raise
                           Wrong_session_table_for_CSRF_safe_coservice;
-                        !(Eliom_sessions.get_session_service_table
+                        !(Eliom_state.get_session_service_table
                             ?secure:secure_session
-                            ?session_name ~scope ~sp ()), true
+                            ?state_name ~scope ~sp ()), true
                   in
                   Eliom_services.set_delayed_get_or_na_registration_function
                     tablereg
@@ -600,13 +600,13 @@ module MakeRegister = functor
                         if forsession
                         then tablereg
                         else
-                          let sp = Eliom_sessions.sp_of_esp sp in
+                          let sp = Eliom_state.sp_of_esp sp in
                           (* we do not register in global table,
                              but in the table specified while creating
                              the csrf safe service *)
-                          !(Eliom_sessions.get_session_service_table
+                          !(Eliom_state.get_session_service_table
                               ?secure:secure_session
-                              ?session_name ~scope ~sp ())
+                              ?state_name ~scope ~sp ())
                       in
                       f table (attserget, attserpost);
                       n)
@@ -614,10 +614,10 @@ module MakeRegister = functor
                   let tablereg =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl
-                      | Ocsigen_lib.Right (sp, session_name, 
+                      | Ocsigen_lib.Right (sp, state_name, 
                                            scope, secure_session) ->
-                        !(Eliom_sessions.get_session_service_table
-                            ?secure:secure_session ?session_name ~scope ~sp ())
+                        !(Eliom_state.get_session_service_table
+                            ?secure:secure_session ?state_name ~scope ~sp ())
                   in
                   f tablereg (attserget, attserpost))
             | `Nonattached naser ->
@@ -634,7 +634,7 @@ module MakeRegister = functor
                      | None -> None
                      | Some t -> Some (t, ref (t +. Unix.time ()))),
                    (fun sp ->
-                     let sp2 = Eliom_sessions.sp_of_esp sp in
+                     let sp2 = Eliom_state.sp_of_esp sp in
                      let ri = get_ri sp2
                      and ci = get_config_info sp2 in
                      (catch
@@ -671,20 +671,20 @@ module MakeRegister = functor
                   )
               in
               match na_name with
-                | Eliom_common.SNa_get_csrf_safe (id, session_name, 
+                | Eliom_common.SNa_get_csrf_safe (id, state_name, 
                                                   scope, secure_session) ->
                   (* CSRF safe coservice: we'll do the registration later *)
                   let tablereg, forsession =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl, false
                       | Ocsigen_lib.Right (sp, sn, ct, sec) ->
-                        if sn <> session_name || secure_session <> sec
+                        if sn <> state_name || secure_session <> sec
                           || ct <> scope
                         then raise
                           Wrong_session_table_for_CSRF_safe_coservice;
-                        !(Eliom_sessions.get_session_service_table
+                        !(Eliom_state.get_session_service_table
                             ?secure:secure_session
-                            ?session_name ~scope ~sp ()), true
+                            ?state_name ~scope ~sp ()), true
                   in
                   set_delayed_get_or_na_registration_function
                     tablereg
@@ -696,30 +696,30 @@ module MakeRegister = functor
                         if forsession
                         then tablereg
                         else
-                          let sp = Eliom_sessions.sp_of_esp sp in
+                          let sp = Eliom_state.sp_of_esp sp in
                           (* we do not register in global table,
                              but in the table specified while creating
                              the csrf safe service *)
-                          !(Eliom_sessions.get_session_service_table
+                          !(Eliom_state.get_session_service_table
                               ?secure:secure_session
-                              ?session_name ~scope ~sp ())
+                              ?state_name ~scope ~sp ())
                       in
                       f table na_name;
                       n)
-                | Eliom_common.SNa_post_csrf_safe (id, session_name, 
+                | Eliom_common.SNa_post_csrf_safe (id, state_name, 
                                                    scope, secure_session) ->
                   (* CSRF safe coservice: we'll do the registration later *)
                   let tablereg, forsession =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl, false
                       | Ocsigen_lib.Right (sp, sn, ct, sec) ->
-                        if sn <> session_name || secure_session <> sec
+                        if sn <> state_name || secure_session <> sec
                           || ct <> scope
                         then raise
                           Wrong_session_table_for_CSRF_safe_coservice;
-                        !(Eliom_sessions.get_session_service_table
+                        !(Eliom_state.get_session_service_table
                             ?secure:secure_session
-                            ?session_name ~scope ~sp ()), true
+                            ?state_name ~scope ~sp ()), true
                   in
                   set_delayed_get_or_na_registration_function
                     tablereg
@@ -731,13 +731,13 @@ module MakeRegister = functor
                         if forsession
                         then tablereg
                         else
-                          let sp = Eliom_sessions.sp_of_esp sp in
+                          let sp = Eliom_state.sp_of_esp sp in
                           (* we do not register in global table,
                              but in the table specified while creating
                              the csrf safe service *)
-                          !(Eliom_sessions.get_session_service_table
+                          !(Eliom_state.get_session_service_table
                               ?secure:secure_session
-                              ?session_name ~scope ~sp ())
+                              ?state_name ~scope ~sp ())
                       in
                       f table na_name;
                       n)
@@ -745,10 +745,10 @@ module MakeRegister = functor
                   let tablereg =
                     match table with
                       | Ocsigen_lib.Left globtbl -> globtbl
-                      | Ocsigen_lib.Right (sp, session_name, 
+                      | Ocsigen_lib.Right (sp, state_name, 
                                            scope, secure_session) ->
-                        !(Eliom_sessions.get_session_service_table
-                            ?secure:secure_session ?session_name ~scope ~sp ())
+                        !(Eliom_state.get_session_service_table
+                            ?secure:secure_session ?state_name ~scope ~sp ())
                   in
                   f tablereg na_name
         end
@@ -760,7 +760,7 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp
           ~service
@@ -813,7 +813,7 @@ module MakeRegister = functor
               ?content_type
               ?headers
               ?error_handler
-              (Ocsigen_lib.Right (sp, session_name, scope, secure_session))
+              (Ocsigen_lib.Right (sp, state_name, scope, secure_session))
               ~sp
               ~service page_gen
 
@@ -832,7 +832,7 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp
           ?https
@@ -848,7 +848,7 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp ~service:u ?error_handler page;
         u
@@ -860,12 +860,12 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp
           ?name
           ?csrf_safe
-          ?csrf_session_name
+          ?csrf_state_name
           ?csrf_scope
           ?csrf_secure_session
           ?max_use
@@ -878,7 +878,7 @@ module MakeRegister = functor
         let u = 
           coservice ?name
             ?csrf_safe
-            ?csrf_session_name
+            ?csrf_state_name
             ?csrf_scope
             ?csrf_secure_session
             ?max_use ?timeout ?https
@@ -891,7 +891,7 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp ~service:u ?error_handler page;
         u
@@ -903,12 +903,12 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp
           ?name
           ?csrf_safe
-          ?csrf_session_name
+          ?csrf_state_name
           ?csrf_scope
           ?csrf_secure_session
           ?max_use
@@ -921,7 +921,7 @@ module MakeRegister = functor
           coservice' 
             ?name
             ?csrf_safe
-            ?csrf_session_name
+            ?csrf_state_name
             ?csrf_scope
             ?csrf_secure_session
             ?max_use ?timeout ?https ~get_params () 
@@ -933,7 +933,7 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp ~service:u ?error_handler page;
         u
@@ -945,7 +945,7 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp
           ?https
@@ -962,7 +962,7 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp ~service:u ?error_handler page_gen;
         u
@@ -974,12 +974,12 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp
           ?name
           ?csrf_safe
-          ?csrf_session_name
+          ?csrf_state_name
           ?csrf_scope
           ?csrf_secure_session
           ?max_use
@@ -992,7 +992,7 @@ module MakeRegister = functor
         let u =
           post_coservice ?name 
             ?csrf_safe
-            ?csrf_session_name
+            ?csrf_state_name
             ?csrf_scope
             ?csrf_secure_session
             ?max_use ?timeout ?https
@@ -1004,7 +1004,7 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp ~service:u ?error_handler page_gen;
         u
@@ -1016,12 +1016,12 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp
           ?name
           ?csrf_safe
-          ?csrf_session_name
+          ?csrf_state_name
           ?csrf_scope
           ?csrf_secure_session
           ?max_use
@@ -1035,7 +1035,7 @@ module MakeRegister = functor
           post_coservice'
             ?name
             ?csrf_safe
-            ?csrf_session_name
+            ?csrf_state_name
             ?csrf_scope
             ?csrf_secure_session
             ?keep_get_na_params
@@ -1051,7 +1051,7 @@ module MakeRegister = functor
           ?code
           ?content_type
           ?headers
-          ?session_name
+          ?state_name
           ?secure_session
           ?sp ~service:u ?error_handler page_gen;
         u

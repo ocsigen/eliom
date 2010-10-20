@@ -23,7 +23,7 @@ open Lwt
 open Ocsigen_lib
 open Eliom_parameters
 open Eliom_services
-open Eliom_sessions
+open Eliom_state
 open Eliom_uri
 
 let nl_internal_appl_form =
@@ -210,7 +210,7 @@ module type ELIOMFORMSIG =
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      ?sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_state.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -244,7 +244,7 @@ module type ELIOMFORMSIG =
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      ?sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -262,7 +262,7 @@ module type ELIOMFORMSIG =
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      ?sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -283,7 +283,7 @@ module type ELIOMFORMSIG =
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -296,7 +296,7 @@ module type ELIOMFORMSIG =
 (** Like [make_uri_components], but also creates a table of post parameters. *)
 
     val make_proto_prefix :
-      ?sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_state.server_params ->
       ?hostname:string ->
       ?port:int ->
       bool ->
@@ -314,7 +314,7 @@ module type ELIOMFORMSIG =
                [< Eliom_services.suff ], 'd, 'e,
                [< Eliom_services.registrable ], 'f)
         Eliom_services.service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -383,7 +383,7 @@ module type ELIOMFORMSIG =
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -405,7 +405,7 @@ module type ELIOMFORMSIG =
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -425,7 +425,7 @@ module type ELIOMFORMSIG =
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params ->
+      sp:Eliom_state.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -453,7 +453,7 @@ module type ELIOMFORMSIG =
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params ->
+      sp:Eliom_state.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->

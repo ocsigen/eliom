@@ -48,7 +48,7 @@ let get_cookie_info_for_uri_js uri_js =
               | ""::_ -> path (* absolute *)
               | _ -> Eliom_uri.make_actual_path (Url.Current.path @ path)
             in
-            (Eliom_sessions.ssl_, path)
+            (Eliom_state.ssl_, path)
          )
       )
     | Some { Url.protocol = prot; Url.path = path } ->
@@ -146,7 +146,7 @@ let get_path (* simplified version of make_uri_components.
       (match suff with
         | None -> uri
         | Some suff -> uri@suff)
-    | `Nonattached naser -> Eliom_sessions.full_path_
+    | `Nonattached naser -> Eliom_state.full_path_
 
 
 
@@ -155,7 +155,7 @@ let make_cookies_info = function
   | Some (https, service, g) ->
     try
       let path = get_path ~service g in
-      let ssl = Eliom_sessions.ssl_ in
+      let ssl = Eliom_state.ssl_ in
       let https = 
         (https = Some true) || 
           (Eliom_services.get_https service) ||

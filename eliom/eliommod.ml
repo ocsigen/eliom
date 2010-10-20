@@ -706,13 +706,13 @@ let parse_config hostpattern conf_info site_dir =
                          recompute_expdates:bool ->
                          bool -> bool -> Eliom_common.sitedata ->
                          float option -> unit)
-            cookie_type session_name_oo v =
+            cookie_type state_name_oo v =
           f
             ?fullsessname:(Ocsigen_lib.apply_option 
                              (Eliom_common.make_fullsessname2
                                 sitedata.Eliom_common.site_dir_string
                                 cookie_type)
-                             session_name_oo)
+                             state_name_oo)
             ?cookie_scope:(Some cookie_type)
             ~recompute_expdates:false
             true

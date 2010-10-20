@@ -17,7 +17,7 @@
     Here is a short example of how to use the library
     {[
 open Eliom_openid
-let messages = Eliom_sessions.create_volatile_table ()
+let messages = Eliom_state.create_volatile_table ()
 (* The login form *)
 let login_form = Eliom_services.new_service
   ~path:["login-form"]
@@ -48,20 +48,18 @@ let form_handler = Eliom_predefmod.String_redirection.register_new_post_coservic
          | Result result -> 
            try List.assoc Email result.fields with Not_found -> "No e-mail :(" 
      in 
-     Eliom_sessions.set_volatile_session_data ~table:messages ~sp string;
+     Eliom_state.set_volatile_session_data ~table:messages ~sp string;
      Eliom_predefmod.Redirection.send ~sp login_form))
 
 open XHTML.M
 let _ = Eliom_predefmod.Xhtml.register
     ~service: login_form
     (fun sp _ _ ->
-    let message = 
-       match Eliom_sessions.get_volatile_session_data ~table: messages ~sp () with
-       | Eliom_sessions.Data s -> 
-         Eliom_sessions.close_session ~sp ();
-         [p [pcdata ("Authentification result: "^ s)]]
-       | _ -> []
-    in
+    (match Eliom_state.get_volatile_session_data ~table: messages ~sp () with
+     | Eliom_state.Data s -> 
+       Eliom_state.discard ~sp () >>= fun () ->
+       Lwt.return [p [pcdata ("Authentication result: "^ s)]]
+     | _ -> Lwt.return []) >>= fun message ->
     let form = 
     Eliom_predefmod.Xhtml.post_form ~service:form_handler ~sp
       (fun url ->
@@ -174,7 +172,7 @@ module type HiddenServiceInfo = sig
   val path : string list
 (** The path of the hidden service *)
   val f :
-    Eliom_sessions.server_params ->
+    Eliom_state.server_params ->
     (string * string) list ->
     unit -> Eliom_predefmod.Any.page Lwt.t
 (** The function called when an user connects to the hidden service
@@ -194,7 +192,7 @@ module Make :
         handler:(Eliom_state.server_params ->
                  'a authentication_result ->
                  Eliom_predefmod.Any.page Lwt.t) ->
-        sp:Eliom_sessions.server_params ->
+        sp:Eliom_state.server_params ->
         discovery:string * string option -> XHTML.M.uri Lwt.t
         (** Authenticate an user.
             - mode: can be [checkid_setup] or [checkid_immediate]
@@ -235,21 +233,21 @@ type result = {
 *)
 type check_fun =
     ?immediate:bool ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     ?policy_url:string ->
     ?max_auth_age:int ->
     ?auth_policies:string list ->
     ?required:field list ->
     ?optional:field list ->
     string ->
-    (Eliom_sessions.server_params ->
-     result authentification_result -> Eliom_predefmod.Any.page Lwt.t) ->
+    (Eliom_state.server_params ->
+     result authentication_result -> Eliom_predefmod.Any.page Lwt.t) ->
     XHTML.M.uri Lwt.t
 
 (** Init the OpenID for your site.
     Takes a path and a handler for the hidden service *)
 val init :
   path:string list ->
-  f:(Eliom_sessions.server_params ->
+  f:(Eliom_state.server_params ->
      (string * string) list -> unit -> Eliom_predefmod.Any.page Lwt.t) ->
   check_fun

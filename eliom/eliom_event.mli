@@ -48,7 +48,7 @@ sig
     -> 'a event
 
   val wrap :
-      sp:Eliom_sessions.server_params
+      sp:Eliom_state.server_params
     -> 'a event
     -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
   (** [wrap ~sp e] wraps the event [e] so that it can be handed to the client.
@@ -73,7 +73,7 @@ sig
       be manipulated as a standard event. *)
 
   val wrap :
-      sp:Eliom_sessions.server_params
+      sp:Eliom_state.server_params
     -> 'a event
     -> (unit, 'a, [ `Nonattached of [ `Post ] Eliom_services.na_s ],
         [ `WithoutSuffix ], unit,
@@ -84,7 +84,7 @@ sig
       the [Eliom_client_event.Up.unwrap] function. *)
 
   val create :
-       ?sp:Eliom_sessions.server_params
+       ?sp:Eliom_state.server_params
     -> ?scope:Eliom_common.scope
     -> ?name:string
     -> ('a, [ `WithoutSuffix ],

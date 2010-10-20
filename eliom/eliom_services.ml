@@ -20,7 +20,7 @@
 
 open Lwt
 open Ocsigen_lib
-open Eliom_sessions
+open Eliom_state
 open Eliom_parameters
 open Lazy
 
@@ -128,7 +128,7 @@ let service_aux
         ~https
         ~prefix:""
         ~path:path
-        ~site_dir:(Eliom_sessions.get_site_dir sp)
+        ~site_dir:(Eliom_state.get_site_dir sp)
         ~kind:(`Internal `Service)
         ~getorpost:`Get
         ?redirect_suffix
@@ -157,7 +157,7 @@ let service
 let coservice
     ?name
     ?(csrf_safe = false)
-    ?csrf_session_name
+    ?csrf_state_name
     ?(csrf_scope = `Session)
     ?csrf_secure_session
     ?max_use
@@ -180,7 +180,7 @@ let coservice
       get_name =
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
-                                            csrf_session_name,
+                                            csrf_state_name,
                                             csrf_scope,
                                             csrf_secure_session)
           else
@@ -201,7 +201,7 @@ let coservice
 let coservice' 
     ?name 
     ?(csrf_safe = false)
-    ?csrf_session_name
+    ?csrf_state_name
     ?(csrf_scope = `Session)
     ?csrf_secure_session
     ?max_use
@@ -230,7 +230,7 @@ let coservice'
             {na_name = 
                 (if csrf_safe
                  then Eliom_common.SNa_get_csrf_safe (uniqueid (),
-                                                      csrf_session_name,
+                                                      csrf_state_name,
                                                       csrf_scope,
                                                       csrf_secure_session)
                  else
@@ -309,7 +309,7 @@ let post_service ?sp ?(https = false) ~fallback
 let post_coservice 
     ?name
     ?(csrf_safe = false)
-    ?csrf_session_name
+    ?csrf_state_name
     ?(csrf_scope = `Session)
     ?csrf_secure_session
     ?max_use
@@ -334,7 +334,7 @@ let post_coservice
         post_name = 
          (if csrf_safe
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
-                                            csrf_session_name,
+                                            csrf_state_name,
                                             csrf_scope,
                                             csrf_secure_session)
           else
@@ -356,7 +356,7 @@ let post_coservice
 let post_coservice'
     ?name
     ?(csrf_safe = false)
-    ?csrf_session_name
+    ?csrf_state_name
     ?(csrf_scope = `Session)
     ?csrf_secure_session
     ?max_use ?timeout
@@ -378,7 +378,7 @@ let post_coservice'
       {na_name = 
           (if csrf_safe
            then Eliom_common.SNa_post_csrf_safe (uniqueid (),
-                                                 csrf_session_name,
+                                                 csrf_state_name,
                                                  csrf_scope,
                                                  csrf_secure_session)
            else
@@ -398,8 +398,8 @@ let post_coservice'
 
 (*****************************************************************************)
 let set_exn_handler ?sp h =
-  let sitedata = Eliom_sessions.find_sitedata "set_exn_handler" sp in
-  Eliom_sessions.set_site_handler sitedata h
+  let sitedata = Eliom_state.find_sitedata "set_exn_handler" sp in
+  Eliom_state.set_site_handler sitedata h
 
 let add_service = Eliommod_services.add_service
 let add_naservice = Eliommod_naservices.add_naservice
@@ -409,42 +409,42 @@ let add_naservice = Eliommod_naservices.add_naservice
 (*****************************************************************************)
 exception Unregistered_CSRF_safe_coservice
 
-let register_delayed_get_or_na_coservice ~sp (k, session_name, 
+let register_delayed_get_or_na_coservice ~sp (k, state_name, 
                                               scope, secure) =
   let f =
     try
-      let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      ?session_name ~scope ?secure ~sp ())
+      let table = !(Eliom_state.get_session_service_table_if_exists
+                      ?state_name ~scope ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_get_or_na_registration_functions
     with Not_found ->
-      let table = Eliom_sessions.get_global_table ~sp () in
+      let table = Eliom_state.get_global_table ~sp () in
       try
         Ocsigen_lib.Int_Table.find
           k table.Eliom_common.csrf_get_or_na_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice
   in
-  f ~sp:(Eliom_sessions.esp_of_sp sp)
+  f ~sp:(Eliom_state.esp_of_sp sp)
 
 
-let register_delayed_post_coservice ~sp (k, session_name,
+let register_delayed_post_coservice ~sp (k, state_name,
                                          scope, secure) getname =
   let f =
     try
-      let table = !(Eliom_sessions.get_session_service_table_if_exists
-                      ?session_name ~scope ?secure ~sp ())
+      let table = !(Eliom_state.get_session_service_table_if_exists
+                      ?state_name ~scope ?secure ~sp ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_post_registration_functions
     with Not_found ->
-      let table = Eliom_sessions.get_global_table ~sp () in
+      let table = Eliom_state.get_global_table ~sp () in
       try
         Ocsigen_lib.Int_Table.find
           k table.Eliom_common.csrf_post_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice
   in
-  f ~sp:(Eliom_sessions.esp_of_sp sp) getname
+  f ~sp:(Eliom_state.esp_of_sp sp) getname
 
 
 let set_delayed_get_or_na_registration_function tables k f =
@@ -485,7 +485,7 @@ let remove_service table service =
         Eliommod_naservices.remove_naservice table na_name
 
 
-let unregister ?(scope = `Global) ?sp ?session_name ?secure service =
+let unregister ?(scope = `Global) ?sp ?state_name ?secure service =
   if scope = `Global
   then
     let table = 
@@ -509,8 +509,8 @@ let unregister ?(scope = `Global) ?sp ?session_name ?secure service =
       | Some sp ->
         let scope = Eliom_common.user_scope_of_scope scope in
         let table =
-          !(Eliom_sessions.get_session_service_table
-              ?secure ?session_name ~scope ~sp ())
+          !(Eliom_state.get_session_service_table
+              ?secure ?state_name ~scope ~sp ())
         in
         remove_service table service
 
@@ -528,7 +528,7 @@ let unregister ?(scope = `Global) ?sp ?session_name ?secure service =
 let on_load_key : string list Polytables.key = Polytables.make_key ()
 
 let get_onload ~sp =
-  let rc = Eliom_sessions.get_request_cache ~sp in
+  let rc = Eliom_state.get_request_cache ~sp in
   try 
     List.rev (Polytables.get ~table:rc ~key:on_load_key)
   with Not_found -> []
@@ -536,20 +536,20 @@ let get_onload ~sp =
 let on_unload_key : string list Polytables.key = Polytables.make_key ()
 
 let get_onunload ~sp = 
-  let rc = Eliom_sessions.get_request_cache ~sp in
+  let rc = Eliom_state.get_request_cache ~sp in
   try
     List.rev (Polytables.get ~table:rc ~key:on_unload_key)
   with Not_found -> []
 
 let onload ~sp s =
-  let rc = Eliom_sessions.get_request_cache ~sp in
+  let rc = Eliom_state.get_request_cache ~sp in
   let s0 = try Polytables.get ~table:rc ~key:on_load_key
     with Not_found -> []
   in
   Polytables.set ~table:rc ~key:on_load_key ~value:(s::s0)
 
 let onunload ~sp s =
-  let rc = Eliom_sessions.get_request_cache ~sp in
+  let rc = Eliom_state.get_request_cache ~sp in
   let s0 = try Polytables.get ~table:rc ~key:on_unload_key
     with Not_found -> []
   in

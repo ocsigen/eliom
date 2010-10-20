@@ -36,7 +36,7 @@ open Lwt
 open XHTML.M
 open Eliom_services
 open Eliom_parameters
-open Eliom_sessions
+open Eliom_state
 open Eliom_predefmod.Xhtml
 (*wiki*
           
@@ -489,7 +489,7 @@ The parameter labeled
 Functions implementing services are called //service handlers//.
        They take three parameters. The first
        one has type
-       %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="TYPEserver_params"|%<span class="code"|Eliom_sessions.server_params>%>%
+       %<ocsigendoc version="dev" file="Eliom_state.html" fragment="TYPEserver_params"|%<span class="code"|Eliom_state.server_params>%>%
         and
        corresponds to server parameters (user-agent, ip, current-url, etc.
        - see later in that section for examples of use),
@@ -565,9 +565,9 @@ let uasuffix =
                strong [pcdata ((string_of_int year)^"/"
                                ^(string_of_int month))];
                pcdata ", your user-agent is ";
-               strong [pcdata (Eliom_sessions.get_user_agent sp)];
+               strong [pcdata (Eliom_state.get_user_agent sp)];
                pcdata ", your IP is ";
-               strong [pcdata (Eliom_sessions.get_remote_ip sp)]]])))
+               strong [pcdata (Eliom_state.get_remote_ip sp)]]])))
 (*wiki*
           
 This service will answer to URLs like
@@ -1523,10 +1523,10 @@ Coservices, but also //actions//, are also means to control
       restore it at each request. This data is available during the whole
       duration of the session.
       To save session data, create a table using
-      %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALcreate_volatile_table"|%<span class="code"|Eliom_sessions.create_volatile_table>%>%
+      %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALcreate_volatile_table"|%<span class="code"|Eliom_state.create_volatile_table>%>%
       and save and get data from
-      this table using %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_volatile_session_data"|%<span class="code"|Eliom_sessions.set_volatile_session_data>%>% and
-      %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_volatile_session_data"|%<span class="code"|Eliom_sessions.get_volatile_session_data>%>%. The following example shows
+      this table using %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_volatile_data"|%<span class="code"|Eliom_state.set_volatile_data>%>% and
+      %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_volatile_data"|%<span class="code"|Eliom_state.get_volatile_data>%>%. The following example shows
       a site with authentification. The name of the user is asked in the login
       form and saved in a table to be displayed on the page instead of the login
       form while the user is connected. Note that the session is opened
@@ -1541,13 +1541,13 @@ Coservices, but also //actions//, are also means to control
 (************************************************************)
 
 (*zap* *)
-let session_name = "session_data"
+let state_name = "session_data"
 (* *zap*)
 
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
-let my_table = Eliom_sessions.create_volatile_table (*zap* *) ~session_name (* *zap*) ()
+let my_table = Eliom_state.create_volatile_table (*zap* *) ~state_name (* *zap*) ()
 
 
 (* -------------------------------------------------------- *)
@@ -1577,21 +1577,21 @@ let session_data_example_close =
 (* Handler for the "session_data_example" service:          *)
 
 let session_data_example_handler sp _ _  =
-  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
+  let sessdat = Eliom_state.get_volatile_data ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
        (body
           [
            match sessdat with
-           | Eliom_sessions.Data name ->
+           | Eliom_state.Data name ->
                p [pcdata ("Hello "^name);
                   br ();
                   Eliom_predefmod.Xhtml.a
                     session_data_example_close
                     sp [pcdata "close session"] ()]
-           | Eliom_sessions.Data_session_expired
-           | Eliom_sessions.No_data ->
+           | Eliom_state.Data_session_expired
+           | Eliom_state.No_data ->
                Eliom_predefmod.Xhtml.post_form
                  session_data_example_with_post_params
                  sp
@@ -1606,8 +1606,8 @@ let session_data_example_handler sp _ _  =
 (* service with POST params:                                *)
 
 let session_data_example_with_post_params_handler sp _ login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_state.set_volatile_data ~table:my_table ~sp login;
   return
     (html
        (head (title (pcdata "")) [])
@@ -1624,16 +1624,16 @@ let session_data_example_with_post_params_handler sp _ login =
 (* Handler for the "session_data_example_close" service:    *)
 
 let session_data_example_close_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  let sessdat = Eliom_state.get_volatile_data ~table:my_table ~sp () in
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp () >>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
        (body [
         (match sessdat with
-        | Eliom_sessions.Data_session_expired -> p [pcdata "Your session has expired."]
-        | Eliom_sessions.No_data -> p [pcdata "You were not connected."]
-        | Eliom_sessions.Data _ -> p [pcdata "You have been disconnected."]);
+        | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
+        | Eliom_state.No_data -> p [pcdata "You were not connected."]
+        | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
         p [Eliom_predefmod.Xhtml.a session_data_example sp [pcdata "Retry"] () ]]))
 
 
@@ -1653,7 +1653,7 @@ let () =
 (*zap* old version:
 type session_info = string
 
-let my_table = create_volatile_table ~session_name ()
+let my_table = create_volatile_table ~state_name ()
 
 let sessdata = service ["sessdata"] unit ()
 
@@ -1663,7 +1663,7 @@ let close = register_service
     ~path:["disconnect"]
     ~get_params:unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~session_name ~sp () >>=
+      Eliom_state.close_session ~state_name ~sp () >>=
       (fun () ->
         return
           (html
@@ -1674,18 +1674,18 @@ let close = register_service
 let _ = register
     sessdata
     (fun sp _ _ ->
-      let sessdat = Eliom_sessions.get_volatile_session_data table:my_table ~sp () in
+      let sessdat = Eliom_state.get_volatile_data table:my_table ~sp () in
       return
         (html
            (head (title (pcdata "")) [])
            (body
               [match sessdat with
-              | Eliom_sessions.Data name ->
+              | Eliom_state.Data name ->
                   p [pcdata ("Hello "^name); br ();
                      a close sp [pcdata "close session"] ()
                    ]
-              | Eliom_sessions.Data_session_expired
-              | Eliom_sessions.No_data ->
+              | Eliom_state.Data_session_expired
+              | Eliom_state.No_data ->
                   post_form sessdata_with_post_params sp
                     (fun login ->
                       [p [pcdata "login: ";
@@ -1694,9 +1694,9 @@ let _ = register
 let _ = register
     sessdata_with_post_params
     (fun sp _ login ->
-      Eliom_sessions.close_session ~session_name ~sp () >>=
+      Eliom_state.close_session ~state_name ~sp () >>=
       (fun () ->
-        Eliom_sessions.set_volatile_session_data my_table sp login;
+        Eliom_state.set_volatile_data my_table sp login;
         return
           (html
              (head (title (pcdata "")) [])
@@ -1715,7 +1715,7 @@ let _ = register
 
           
        To close a session, use the function
-                %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|%<span class="code"|Eliom_sessions.close_session>%>%>%.
+                %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|%<span class="code"|Eliom_state.close_session>%>%>%.
        Session data will disappear when the session is closed (explicitely
        or by timeout).
        Warning: if your session data contains opened file descriptors,
@@ -1771,7 +1771,7 @@ We will see in the following of this tutorial how to improve
       one public, one for connected users.
                   \\
       To close a session, use
-                %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|%<span class="code"|Eliom_sessions.close_session>%>%>%.
+                %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|%<span class="code"|Eliom_state.close_session>%>%>%.
       Both the session service table and the session data table for that user
       will disappear when the session is closed.
       
@@ -1787,7 +1787,7 @@ must take %<span class="code"|sp>% as parameter
           
 The following example shows how to reimplement the previous one
       (%<span class="code"|session_data_example>%),
-      without using %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_volatile_session_data"|%<span class="code"|Eliom_sessions.set_volatile_session_data>%>%.
+      without using %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_volatile_data"|%<span class="code"|Eliom_state.set_volatile_data>%>%.
       Note that this version is less efficient than the other if your site
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
@@ -1803,15 +1803,15 @@ The following example shows how to reimplement the previous one
 
           
 *wiki*)(*zap* *)
-let () = set_global_volatile_session_timeout (Some 600.)
-let () = set_global_persistent_data_session_timeout (Some 3600.)
+let () = set_global_volatile_state_timeout (Some 600.)
+let () = set_global_persistent_data_state_timeout (Some 3600.)
 (* *zap*)
 (************************************************************)
 (************ Connection of users, version 2 ****************)
 (************************************************************)
 
 (*zap* *)
-let session_name = "session_services"
+let state_name = "session_services"
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* Create services, but do not register them yet:           *)
@@ -1858,7 +1858,7 @@ let session_services_example_handler sp () () =
 (* Handler for the "session_services_example_close" service:     *)
 
 let session_services_example_close_handler sp () () =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp () >>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -1899,18 +1899,18 @@ let launch_session sp () login =
   in
 
   (* If a session was opened, we close it first! *)
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp () >>= fun () ->
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~session_name (* *zap*)
+  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
     ~sp
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
-  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~session_name (* *zap*)
+  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
     ~sp
     ~service:coucou
     (fun _ () () ->
@@ -1921,7 +1921,7 @@ let launch_session sp () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~session_name (* *zap*)
+  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
     ~sp
     ~service:hello
     (fun _ () () ->
@@ -2239,7 +2239,7 @@ You can register coservices in session tables to create
    SEE calc example instead.
 *)
 (* zap* *)
-let session_name = "shop_example"
+let state_name = "shop_example"
 (* *zap *)
 let shop_without_post_params =
   service
@@ -2287,13 +2287,13 @@ let rec page_for_shopping_basket sp shopping_basket =
       ~post_params:unit
       ()
   in
-    register ~scope:`Session (* zap* *) ~session_name (* *zap *)
+    register ~scope:`Session (* zap* *) ~state_name (* *zap *)
       ~sp
       ~service:coshop_with_post_params
       (fun sp () article ->
                  page_for_shopping_basket
                    sp (article::shopping_basket));
-    register ~scope:`Session (* zap* *) ~session_name (* *zap *)
+    register ~scope:`Session (* zap* *) ~state_name (* *zap *)
       ~sp
       ~service:copay
       (fun sp () () ->
@@ -2321,7 +2321,7 @@ let _ = register
 (************************************************************)
 
 (*zap* *)
-let session_name = "calc_example"
+let state_name = "calc_example"
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create two main services on the same URL,             *)
@@ -2483,8 +2483,8 @@ Here we rewrite the example %<span class="code"|session_data_example>%
 (************************************************************)
 
 (*zap* *)
-let session_name = "connect_example3"
-let my_table = Eliom_sessions.create_volatile_table (*zap* *) ~session_name (* *zap*) ()
+let state_name = "connect_example3"
+let my_table = Eliom_state.create_volatile_table (*zap* *) ~state_name (* *zap*) ()
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -2508,7 +2508,7 @@ let disconnect_action =
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp ())
 
 
 (* -------------------------------------------------------- *)
@@ -2535,17 +2535,17 @@ let login_box sp =
 (* Handler for the "connect_example3" service (main page):    *)
 
 let connect_example3_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
+  let sessdat = Eliom_state.get_volatile_data ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
        (body
           (match sessdat with
-          | Eliom_sessions.Data name ->
+          | Eliom_state.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired
-          | Eliom_sessions.No_data -> [login_box sp]
+          | Eliom_state.Data_session_expired
+          | Eliom_state.No_data -> [login_box sp]
           )))
 
 
@@ -2553,8 +2553,8 @@ let connect_example3_handler sp () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_state.set_volatile_data ~table:my_table ~sp login;
   return ()
 
 
@@ -2973,7 +2973,7 @@ The %<span class="code"|?cookie_type>> argument
 
 
   You can access the cookies sent by the browser using
-  %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_cookies"|%<span class="code"|Eliom_sessions.get_cookies sp>%>%.
+  %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_cookies"|%<span class="code"|Eliom_state.get_cookies sp>%>%.
      
           
 
@@ -2987,7 +2987,7 @@ let cookies = service ["cookies"] unit ()
 
 let _ = Eliom_predefmod.Xhtml.register cookies
   (fun sp () () ->
-    Eliom_sessions.set_cookie
+    Eliom_state.set_cookie
       ~sp ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
     Lwt.return
       (html
@@ -2995,7 +2995,7 @@ let _ = Eliom_predefmod.Xhtml.register cookies
          (body [p [pcdata (try
                              "cookie value: "^
                                (Ocsigen_lib.String_Table.find
-                                  cookiename (Eliom_sessions.get_cookies ~sp ()))
+                                  cookiename (Eliom_state.get_cookies ~sp ()))
                            with _ -> "<cookie not set>");
                    br ();
                    a cookies sp [pcdata "send other cookie"] ()]])))
@@ -3237,10 +3237,10 @@ The following example is a new version of our site
 (************************************************************)
 
 (*zap* *)
-let session_name = "persistent_sessions"
+let state_name = "persistent_sessions"
 (* *zap*)
 let my_persistent_table =
-  create_persistent_table (*zap* *) ~session_name (* *zap*) "eliom_example_table"
+  create_persistent_table (*zap* *) ~state_name (* *zap*) "eliom_example_table"
 
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -3273,7 +3273,7 @@ let disconnect_action =
     ~name:"disconnect4"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~session_name ~sp ())
+      Eliom_state.close_session ~state_name ~sp ())
 
 let disconnect_box sp s =
   Eliom_predefmod.Xhtml.post_form disconnect_action sp
@@ -3294,7 +3294,7 @@ let login_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_sessions.get_request_cache sp)
+      [p (if get_bad_user (Eliom_state.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -3309,20 +3309,20 @@ let login_box sp session_expired action =
 (* Handler for "persist_session_example" service (main page):  *)
 
 let persist_session_example_handler sp () () =
-  Eliom_sessions.get_persistent_session_data
+  Eliom_state.get_persistent_data
     ~table:my_persistent_table ~sp () >>= fun sessdat ->
   return
     (html
        (head (title (pcdata "")) [])
        (body
           (match sessdat with
-          | Eliom_sessions.Data name ->
+          | Eliom_state.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired ->
+          | Eliom_state.Data_session_expired ->
               [login_box sp true persist_session_connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
-          | Eliom_sessions.No_data ->
+          | Eliom_state.No_data ->
               [login_box sp false persist_session_connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
           )))
@@ -3332,11 +3332,11 @@ let persist_session_example_handler sp () () =
 (* Handler for persist_session_connect_action (user logs in):  *)
 
 let persist_session_connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then
-    Eliom_sessions.set_persistent_session_data ~table:my_persistent_table ~sp login
-  else ((*zap* *)Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;(* *zap*)return ())
+    Eliom_state.set_persistent_data ~table:my_persistent_table ~sp login
+  else ((*zap* *)Polytables.set (Eliom_state.get_request_cache sp) bad_user_key true;(* *zap*)return ())
 
 
 (* -------------------------------------------------------- *)
@@ -3428,7 +3428,7 @@ There is also
 
           
     The function
-    %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_link_too_old"|%<span class="code"|Eliom_sessions.get_link_too_old>%>%
+    %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_link_too_old"|%<span class="code"|Eliom_state.get_link_too_old>%>%
     returns %<span class="code"|true>% if the coservice called has not been found.
     In that case, the current service is the fallback.
   
@@ -3436,7 +3436,7 @@ There is also
 
           
     The function
-    %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_expired_service_sessions"|%<span class="code"|Eliom_sessions.get_expired_service_sessions>%>%
+    %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_expired_service_sessions"|%<span class="code"|Eliom_state.get_expired_service_sessions>%>%
     returns returns the list of names of service sessions expired 
     for the current request.
     
@@ -3447,7 +3447,7 @@ It is also possible to send other information to fallback,
     about what succeeded before they were called. 
     Put this information in the //request cache//.
     The request cache is a polymorphic table returned by
-     %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_request_cache"|%<span class="code"|Eliom_sessions.get_request_cache sp>%>%.
+     %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_request_cache"|%<span class="code"|Eliom_state.get_request_cache sp>%>%.
      See the module
      %<ocsigendoc version="dev" file="Polytables.html"|%<span class="code"|Polytables>%>% to understand how to use it.
      You may also want to use this table to cache some data during the 
@@ -3464,7 +3464,7 @@ It is also possible to send other information to fallback,
 (************ Connection of users, version 6 ****************)
 (************************************************************)
 (*zap* *)
-let session_name = "connect_example6"
+let state_name = "connect_example6"
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -3489,7 +3489,7 @@ let disconnect_action =
     ~name:"disconnect6"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp ())
 
 let disconnect_box sp s =
   Eliom_predefmod.Xhtml.post_form disconnect_action sp
@@ -3511,7 +3511,7 @@ let login_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_sessions.get_request_cache sp)
+      [p (if get_bad_user (Eliom_state.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -3525,20 +3525,20 @@ let login_box sp session_expired action =
 
 let connect_example6_handler sp () () =
   let group =
-    Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp ()
+    Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ~sp ()
   in
   return
     (html
        (head (title (pcdata "")) [])
        (body
           (match group with
-          | Eliom_sessions.Data name ->
+          | Eliom_state.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired ->
+          | Eliom_state.Data_session_expired ->
               [login_box sp true connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
-          | Eliom_sessions.No_data ->
+          | Eliom_state.No_data ->
               [login_box sp false connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
           )))
@@ -3547,14 +3547,14 @@ let connect_example6_handler sp () () =
 (* New handler for connect_action (user logs in):           *)
 
 let connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
+    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) ~sp login;
     return ()
   end
   else begin
-    Polytables.set (Eliom_sessions.get_request_cache sp) bad_user_key true;
+    Polytables.set (Eliom_state.get_request_cache sp) bad_user_key true;
     return ()
   end
 
@@ -3615,7 +3615,7 @@ let _ = register disposable
       return
         (html
           (head (title (pcdata "")) [])
-          (body [p [(if Eliom_sessions.get_link_too_old sp
+          (body [p [(if Eliom_state.get_link_too_old sp
                     then pcdata "Your link was outdated. I am the fallback. I just created a new disposable coservice. You can use it only twice."
                     else
                     pcdata "I just created a disposable coservice. You can use it only twice.");
@@ -3639,7 +3639,7 @@ The default timeout for sessions in one hour. Sessions will be
 
           
 %<code language="ocaml"|
-Eliom_sessions.set_global_volatile_timeout (Some 7200.)
+Eliom_state.set_global_volatile_timeout (Some 7200.)
 
 >%
 
@@ -3654,7 +3654,7 @@ Here 7200 seconds. %<span class="code"|None>% means no timeout.
 
           
 %<code language="ocaml"|
-Eliom_sessions.set_global_volatile_timeout ~sp (Some 7200.)
+Eliom_state.set_global_volatile_timeout ~sp (Some 7200.)
 
 >%
 
@@ -3664,7 +3664,7 @@ Eliom_sessions.set_global_volatile_timeout ~sp (Some 7200.)
 
           
 %<code language="ocaml"|
-Eliom_sessions.set_volatile_session_timeout ~sp (Some 7200.)
+Eliom_state.set_volatile_session_timeout ~sp (Some 7200.)
 
 >%
 
@@ -3687,12 +3687,12 @@ Eliom_sessions.set_volatile_session_timeout ~sp (Some 7200.)
 
           
 Warning: that default may be overriden by each site using
-        %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_global_volatile_timeout"|%<span class="code"|Eliom_sessions.set_global_volatile_timeout>%>% or
-        %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_default_volatile_timeout"|%<span class="code"|Eliom_sessions.set_default_volatile_timeout>%>%.
+        %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_global_volatile_timeout"|%<span class="code"|Eliom_state.set_global_volatile_timeout>%>% or
+        %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_default_volatile_timeout"|%<span class="code"|Eliom_state.set_default_volatile_timeout>%>%.
         If you want your user to be able to set the default in the
         configuration file for your site (between %<span class="code"|<site>%>
         and %<span class="code"|</site>%>), you must parse the configuration
-        (%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|%<span class="code"|Eliom_sessions.get_config ()>%>% function, see below).
+        (%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|%<span class="code"|Eliom_state.get_config ()>%>% function, see below).
      
           
 
@@ -3847,7 +3847,7 @@ You can add your own options in the configuration
 >%
 
           
-       Use %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|%<span class="code"|Eliom_sessions.get_config ()>%>% during the initialization
+       Use %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|%<span class="code"|Eliom_state.get_config ()>%>% during the initialization
        of your module to get the data between
        %<span class="code"|<eliom>%> and %<span class="code"|</eliom>%>.
        Warning: parsing these data is very basic for now.
@@ -3870,25 +3870,25 @@ By default, Eliom is using three cookies :
 
           
 They correspond to three different sessions (opened only if needed).
-   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|%<span class="code"|Eliom_sessions.close_session>%>%>%
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|%<span class="code"|Eliom_state.close_session>%>%>%
        closes all three sessions, but you may want to desynchronize
        the three sessions by using
-   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_persistent_session"|%<span class="code"|Eliom_sessions.close_persistent_session>%>%>% (persistent session),
-   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_service_session"|%<span class="code"|Eliom_sessions.close_service_session>%>%>% (session services), or
-   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_data_session"|%<span class="code"|Eliom_sessions.close_data_session>%>%>% (volatile data session).
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_persistent_session"|%<span class="code"|Eliom_state.close_persistent_session>%>%>% (persistent session),
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_service_session"|%<span class="code"|Eliom_state.close_service_session>%>%>% (session services), or
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_data_session"|%<span class="code"|Eliom_state.close_data_session>%>%>% (volatile data session).
      There is also
-   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_volatile_session"|%<span class="code"|Eliom_sessions.close_volatile_session>%>%>% for both volatile data session and session services.
-       The module %<ocsigendoc version="dev" file="Eliom_sessions.html"|%<span class="code"|Eliom_sessions>%>% also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
+   %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_volatile_session"|%<span class="code"|Eliom_state.close_volatile_session>%>%>% for both volatile data session and session services.
+       The module %<ocsigendoc version="dev" file="Eliom_state.html"|%<span class="code"|Eliom_state>%>% also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
       
           
 
           
 If you need more sessions (for example several different data sessions)
          for the same site, you can give a name to your sessions by giving
-         the optional parameter %<span class="code"|?session_name>% to functions like
-     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_data_session"|%<span class="code"|Eliom_sessions.close_data_session>%>%>%,
+         the optional parameter %<span class="code"|?state_name>% to functions like
+     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_data_session"|%<span class="code"|Eliom_state.close_data_session>%>%>%,
      %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|%<span class="code"|register>%>%>%, or
-      %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_volatile_session_data"|%<span class="code"|Eliom_sessions.get_volatile_session_data>%>%.
+      %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_volatile_data"|%<span class="code"|Eliom_state.get_volatile_data>%>%.
        Note that this tutorial has been implemented using this feature,
        even if it has been hidden for the sake of simplicity.
        That's how the different examples of sessions in this tutorial are
@@ -3928,8 +3928,8 @@ For security reasons, Eliom does not use the same cookies in
         it is possible to access unsecure session data and to register
         unsecure session services using the optional parameter
         %<span class="code"|~secure:false>% when calling functions like
-        %<span class="code"|Eliom_sessions.set_volatile_session_data>%,
-        %<span class="code"|Eliom_sessions.get_persistent_session_data>%,
+        %<span class="code"|Eliom_state.set_volatile_data>%,
+        %<span class="code"|Eliom_state.get_persistent_data>%,
         %<span class="code"|Eliom_predefmod.Xhtml.register>%, etc.
 
 ====Non localized parameters**[New in 1.3.0]**
@@ -4058,7 +4058,7 @@ Then create your link as usual, for example:
           
 The idea is complementary to that of
 the "session name".  While the
-optional %<span class="code"|session_name>% parameter allows for a single session to have
+optional %<span class="code"|state_name>% parameter allows for a single session to have
 multiple buckets of data associated with it, a session_group parameter
 (also optional) allow multiple sessions to be referenced together.
 For most uses, the session group is the user name.
@@ -4090,7 +4090,7 @@ which can be a problem for example if the server is behind a reverse proxy.**
 (************************************************************)
 
 (*zap* *)
-let session_name = "connect_example5"
+let state_name = "connect_example5"
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -4114,7 +4114,7 @@ let disconnect_action =
     ~name:"disconnect5"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp ())
 
 
 (* -------------------------------------------------------- *)
@@ -4141,17 +4141,17 @@ let login_box sp =
 (* Handler for the "connect_example5" service (main page):    *)
 
 let connect_example5_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
+  let sessdat = Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
        (body
           (match sessdat with
-          | Eliom_sessions.Data name ->
+          | Eliom_state.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired
-          | Eliom_sessions.No_data -> [login_box sp]
+          | Eliom_state.Data_session_expired
+          | Eliom_state.No_data -> [login_box sp]
           )))
 
 
@@ -4159,8 +4159,8 @@ let connect_example5_handler sp () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) ~sp login;
   return ()
 
 
@@ -4192,11 +4192,11 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let session_name = "group_tables"
+let state_name = "group_tables"
 (* *zap*)
 let my_table =
-  Eliom_sessions.create_volatile_table
-    ~scope:`Session_group (*zap* *) ~session_name (* *zap*) ()
+  Eliom_state.create_volatile_table
+    ~scope:`Session_group (*zap* *) ~state_name (* *zap*) ()
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -4218,14 +4218,14 @@ let disconnect_action =
     ~name:"disconnectgt"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp ())
 
 let disconnect_g_action =
   Eliom_predefmod.Action.register_post_coservice'
     ~name:"disconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~scope:`Session_group (*zap* *) ~session_name (* *zap*) ~sp ())
+      Eliom_state.close_group (*zap* *) ~state_name (* *zap*) ~sp ())
 
 
 (* -------------------------------------------------------- *)
@@ -4257,25 +4257,25 @@ let login_box sp =
 (* Handler for the "group_tables_example" service (main page): *)
 
 let group_tables_example_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
-  let groupdata = Eliom_sessions.get_volatile_session_data
+  let sessdat = Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ~sp () in
+  let groupdata = Eliom_state.get_volatile_data
     ~table:my_table ~sp ()
   in
   let group_info name =
     match groupdata with
-      | Eliom_sessions.Data_session_expired
-      | Eliom_sessions.No_data ->
+      | Eliom_state.Data_session_expired
+      | Eliom_state.No_data ->
         let d = string_of_int (Random.int 1000) in
-        Eliom_sessions.set_volatile_session_data ~table:my_table ~sp d;
+        Eliom_state.set_volatile_data ~table:my_table ~sp d;
         d
-      | Eliom_sessions.Data d -> d
+      | Eliom_state.Data d -> d
   in
   return
     (html
        (head (title (pcdata "")) [])
        (body
           (match sessdat with
-          | Eliom_sessions.Data name ->
+          | Eliom_state.Data name ->
               [p [pcdata ("Hello "^name); br ()];
                (let d = group_info name in
                 p [pcdata "Your group data is: ";
@@ -4288,8 +4288,8 @@ let group_tables_example_handler sp () () =
                p [pcdata "Check that the value disappears when all sessions from the group are closed."];
                p [pcdata "Check that the all sessions are closed when clicking on \"close group\" button."];
                disconnect_box sp]
-          | Eliom_sessions.Data_session_expired
-          | Eliom_sessions.No_data -> [login_box sp]
+          | Eliom_state.Data_session_expired
+          | Eliom_state.No_data -> [login_box sp]
           )))
 
 
@@ -4297,8 +4297,8 @@ let group_tables_example_handler sp () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler sp () login =
-  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliom_sessions.set_volatile_data_session_group ~set_max:4 (*zap* *) ~session_name (* *zap*) ~sp login;
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) ~sp login;
   return ()
 
 
@@ -4320,11 +4320,11 @@ let () =
 (**************** Persistent group tables *******************)
 (************************************************************)
 
-let session_name = "pgroup_tables"
+let state_name = "pgroup_tables"
 
 let my_table =
-  Eliom_sessions.create_persistent_table
-    ~scope:`Session_group ~session_name "pgroup_table"
+  Eliom_state.create_persistent_table
+    ~scope:`Session_group ~state_name "pgroup_table"
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -4347,14 +4347,14 @@ let disconnect_action =
   Eliom_predefmod.Action.register_post_coservice'
     ~name:"pdisconnectgt"
     ~post_params:Eliom_parameters.unit
-    (fun sp () () -> Eliom_sessions.close_session ~session_name ~sp ())
+    (fun sp () () -> Eliom_state.close_session ~state_name ~sp ())
 
 let disconnect_g_action =
   Eliom_predefmod.Action.register_post_coservice'
     ~name:"pdisconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session ~scope:`Session_group ~session_name ~sp ())
+      Eliom_state.close_group ~state_name ~sp ())
 
 
 
@@ -4387,21 +4387,21 @@ let login_box sp =
 (* Handler for the "group_tables_example" service (main page): *)
 
 let group_tables_example_handler sp () () =
-  Eliom_sessions.get_persistent_data_session_group ~session_name ~sp ()
+  Eliom_state.get_persistent_data_session_group ~state_name ~sp ()
   >>= fun sessdat ->
-  Eliom_sessions.get_persistent_session_data ~table:my_table ~sp ()
+  Eliom_state.get_persistent_data ~table:my_table ~sp ()
   >>= fun groupdata ->
   let group_info name =
     match groupdata with
-      | Eliom_sessions.Data_session_expired
-      | Eliom_sessions.No_data ->
+      | Eliom_state.Data_session_expired
+      | Eliom_state.No_data ->
         let d = string_of_int (Random.int 1000) in
-        Eliom_sessions.set_persistent_session_data ~table:my_table ~sp d
+        Eliom_state.set_persistent_data ~table:my_table ~sp d
         >>= fun r -> Lwt.return d
-      | Eliom_sessions.Data d -> Lwt.return d
+      | Eliom_state.Data d -> Lwt.return d
   in
   (match sessdat with
-    | Eliom_sessions.Data name ->
+    | Eliom_state.Data name ->
       (group_info name >>= fun d ->
        Lwt.return 
          [p [pcdata ("Hello "^name); br ()];
@@ -4416,8 +4416,8 @@ let group_tables_example_handler sp () () =
           p [pcdata "Check that the all sessions are closed when clicking on \"close group\" button."];
           p [pcdata "Check that the value is preserved after relaunching the server."];
           disconnect_box sp ])
-    | Eliom_sessions.Data_session_expired
-    | Eliom_sessions.No_data -> Lwt.return [login_box sp]) >>= fun l ->
+    | Eliom_state.Data_session_expired
+    | Eliom_state.No_data -> Lwt.return [login_box sp]) >>= fun l ->
   Lwt.return
     (html
        (head (title (pcdata "")) [])
@@ -4428,9 +4428,9 @@ let group_tables_example_handler sp () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler sp () login =
-  Eliom_sessions.close_session ~session_name ~sp () >>= fun () ->
-  Eliom_sessions.set_persistent_data_session_group
-    ~set_max:(Some 4) ~session_name ~sp login
+  Eliom_state.close_session ~state_name ~sp () >>= fun () ->
+  Eliom_state.set_persistent_data_session_group
+    ~set_max:(Some 4) ~state_name ~sp login
 
 
 (* -------------------------------------------------------- *)
@@ -4495,7 +4495,7 @@ let csrfsafe_example =
 let csrfsafe_example_post =
   Eliom_services.post_coservice
     ~csrf_safe:true
-    ~csrf_session_name:"csrf"
+    ~csrf_state_name:"csrf"
     ~csrf_secure_session:true
     ~timeout:10.
     ~max_use:1
@@ -4531,15 +4531,15 @@ let _ =
      If you register in the global service table, 
      the CSRF safe service will be available for everybody.
      But the actual (delayed) registration will take place in a session table,
-     described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}
-     (corresponding to {{{?session_name}}} and {{{?secure}}}).
+     described by {{{?csrf_state_name}}} and {{{?csrf_secure_session}}}
+     (corresponding to {{{?state_name}}} and {{{?secure}}}).
 
      If you use {{{register ~scope:`Session}}}, 
      the coservice will be available only for one session.
      The actual registration will take place in the same session table,
-     described by {{{?csrf_session_name}}} and {{{?csrf_secure_session}}}.
+     described by {{{?csrf_state_name}}} and {{{?csrf_secure_session}}}.
      In that case, the parameters 
-     {{?session_name}}} and {{{?secure}}} of {{{register}}}
+     {{?state_name}}} and {{{?secure}}} of {{{register}}}
      must be exactly the same.
 
 
@@ -4995,7 +4995,6 @@ let listform = register_service ["listform"] unit
 
 
           ====Forms and suffixes
-          
 
           
 Service with "suffix" URLs have an equivalent version with
@@ -5036,7 +5035,7 @@ let suffixform = register_service ["suffixform"] unit
 The %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALfile"|%<span class="code"|Eliom_parameters.file>%>% parameter type allows to send files in your
        request. The service gets something of type
        %<ocsigendoc version="dev" file="Ocsigen_extensions.html" fragment="TYPEfile_info"|%<span class="code"|Ocsigen_extensions.file_info>%>%. You can extract information
-       using this using these functions (from %<ocsigendoc version="dev" file="Eliom_sessions.html"|%<span class="code"|Eliom_sessions>%>%):
+       using this using these functions (from %<ocsigendoc version="dev" file="Eliom_state.html"|%<span class="code"|Eliom_state>%>%):
       
           
 
@@ -5049,9 +5048,9 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 >%
 
           
-%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_tmp_filename"|%<span class="code"|Eliom_sessions.get_tmp_filename>%>% allows to know the actual name
+%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_tmp_filename"|%<span class="code"|Eliom_state.get_tmp_filename>%>% allows to know the actual name
        of the uploaded file on the hard drive.
-        %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_original_filename"|%<span class="code"|Eliom_sessions.get_original_filename>%>% gives the original filename.
+        %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_original_filename"|%<span class="code"|Eliom_state.get_original_filename>%>% gives the original filename.
           
 
           
@@ -5090,8 +5089,8 @@ let upload2 = register_post_service
         (try
           Unix.unlink newname;
         with _ -> ());
-        Ocsigen_messages.console2 (Eliom_sessions.get_tmp_filename file);
-        Unix.link (Eliom_sessions.get_tmp_filename file) newname;
+        Ocsigen_messages.console2 (Eliom_state.get_tmp_filename file);
+        Unix.link (Eliom_state.get_tmp_filename file) newname;
         let fd_in = open_in newname in
         try
           let line = input_line fd_in in close_in fd_in; line (*end*)
@@ -5343,9 +5342,9 @@ Timeouts for sessions can be set either inside tag
 or inside a {{{<eliom/>}}} tag (default for one site).
 
 Timeouts can also be modified programmatically using functions
-like {{{Eliom_sessions.set_global_volatile_timeout}}}, but by default
+like {{{Eliom_state.set_global_volatile_timeout}}}, but by default
 these functions will not override configuration files.
-(see module %<ocsigendoc version="dev" file="Eliom_sessions.html"|%<span class="code"|Eliom_sessions>%>% for other functions).
+(see module %<ocsigendoc version="dev" file="Eliom_state.html"|%<span class="code"|Eliom_state>%>% for other functions).
 Thus, a website can set its own defaults and the user can still
 override them from the configuration file.
 If you want to set a timeout programmatically even if it has been
@@ -5355,7 +5354,7 @@ modified in a configuration file, use the optional parameter
 Timeouts can be set either for all session names, for one precise 
 session name, or for the default session name.
 To do that programmatically, use the optional parameter
-{{{~session_name}}}.
+{{{~state_name}}}.
 To do that in configuration file, use the optional attribute
 {{{sessionname}}} (where an empty string value means default session name).
 If this attribute is absent, the timeout will affect all sessions for which
@@ -5465,9 +5464,9 @@ The limits and the subnet mask can be set programmatically by each module
 configuration file
 (for example to adapt the values to the size of memory or network 
 configuration)
-(see module %<ocsigendoc version="dev" file="Eliom_sessions.html"|%<span class="code"|Eliom_sessions>%>%).
+(see module %<ocsigendoc version="dev" file="Eliom_state.html"|%<span class="code"|Eliom_state>%>%).
 By default, functions like 
-{{{Eliom_sessions.set_default_max_volatile_sessions_per_group}}}
+{{{Eliom_state.set_default_max_volatile_sessions_per_group}}}
 will not override a value set in the configuration file
 (but if you use {{{~override_configfile:true}}}).
 Thus, a website can set its own defaults and the user can still
@@ -5533,7 +5532,7 @@ If you want an Ocsigen extension with access to Eliom's
 From version 1.2, it is possible to link extensions and Eliom modules
   statically ([[site:staticlink|See here]]).
       Obviously, for Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function
-%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|%<span class="code"|Eliom_services.register_eliom_module>%>%. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call %<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_config"|%<span class="code"|Eliom_sessions.get_config>%>% if the module has configuration options).
+%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|%<span class="code"|Eliom_services.register_eliom_module>%>%. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|%<span class="code"|Eliom_state.get_config>%>% if the module has configuration options).
       
           
 
@@ -5558,7 +5557,7 @@ with the exception that it does not load the module using %<span class="code"|Dy
           
 
 Example: if you are using some function like 
-%<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALcreate_volatile_table"|%<span class="code"|Eliom_sessions.create_volatile_table>%>%
+%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALcreate_volatile_table"|%<span class="code"|Eliom_state.create_volatile_table>%>%
 that takes an optional {{{?sp}}} parameter, it means that the function
 needs some information about the site (here, volatile tables are associated to a site). Either you want to create the table during a service (and in that case you must give the {{{~sp}}} parameter that contains the information about the site), or you want to create the table during the initialization phase, and in that case the table must be created during the function given to %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|%<span class="code"|Eliom_services.register_eliom_module>%>%.
 (One solution is to use a lazy value to delay the creation of the table,
@@ -5645,14 +5644,14 @@ let connect_action =
 (* Construction of pages *)
 
 let home sp () () =
-   match get_volatile_session_data ~table:my_table ~sp () with
-   | Eliom_sessions.Data_session_expired
-   | Eliom_sessions.No_data ->
+   match get_volatile_data ~table:my_table ~sp () with
+   | Eliom_state.Data_session_expired
+   | Eliom_state.No_data ->
      page sp
        [h1 [pcdata "My site"];
         login_box sp connect_action;
         news_headers_list_box sp anonymoususer news_page]
-   | Eliom_sessions.Data user ->
+   | Eliom_state.Data user ->
       page sp
         [h1 [pcdata "Mon site"];
          text_box "Bonjour !";
@@ -5660,14 +5659,14 @@ let home sp () () =
          news_headers_list_box sp user news_page]
 
 let print_news_page sp i () =
-   match get_volatile_session_data ~table:my_table ~sp () with
-   | Eliom_sessions.Data_session_expired
-   | Eliom_sessions.No_data ->
+   match get_volatile_data ~table:my_table ~sp () with
+   | Eliom_state.Data_session_expired
+   | Eliom_state.No_data ->
       page sp
         [h1 [pcdata "Info"];
          login_box sp connect_action;
          message_box i anonymoususer]
-   | Eliom_sessions.Data user ->
+   | Eliom_state.Data user ->
       page sp
         [h1 [pcdata "Info"];
          connected_box sp user disconnect_action;
@@ -5684,7 +5683,7 @@ let _ = register
   print_news_page
 
 let launch_session sp user =
-  set_volatile_session_data my_table sp user
+  set_volatile_data my_table sp user
 
 let _ = Eliom_predefmod.Action.register
   ~action:connect_action

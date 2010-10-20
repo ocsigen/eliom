@@ -22,7 +22,7 @@
 
 open Eliom_services
 open Eliom_parameters
-open Eliom_sessions
+open Eliom_state
 open Eliom_tools_common
 
 (** {2 Menus } *)
@@ -37,7 +37,7 @@ val menu :
      'elts Eliom_duce.Blocks.a_content_elt_list)
     list ->
   ?service:('a, 'b) one_page ->
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
   Xhtmltypes_duce.ul
 (** Creates a menu
 
@@ -79,7 +79,7 @@ val hierarchical_menu_depth_first :
    'elts Eliom_duce.Blocks.a_content_elt_list)
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
     {{ [Xhtmltypes_duce.ul*] }}
 
 
@@ -104,7 +104,7 @@ val hierarchical_menu_breadth_first :
    'elts Eliom_duce.Blocks.a_content_elt_list)
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
     {{ [Xhtmltypes_duce.ul*] }}
 
 
@@ -117,6 +117,6 @@ val structure_links :
      'elts Eliom_duce.Blocks.a_content_elt_list)
     hierarchical_site ->
   ?service:('a, 'b) one_page ->
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
   {{ [Xhtmltypes_duce.link*] }}
 

@@ -24,7 +24,7 @@ open Lwt
 open Ocsigen_lib
 open Eliom_parameters
 open Eliom_services
-open Eliom_sessions
+open Eliom_state
 
 
 (*****************************************************************************)
@@ -103,12 +103,12 @@ let make_proto_prefix
     : string =
   let ssl =
     match sp with
-      | Some sp -> Eliom_sessions.get_ssl ~sp
+      | Some sp -> Eliom_state.get_ssl ~sp
       | None -> false
   in
   let host = match hostname, sp with
-    | None, Some sp -> Eliom_sessions.get_hostname ~sp 
-    | None, None -> Eliom_sessions.get_default_hostname () 
+    | None, Some sp -> Eliom_state.get_hostname ~sp 
+    | None, None -> Eliom_state.get_default_hostname () 
     | Some h, _ -> h
   in
   let port = 
@@ -116,14 +116,14 @@ let make_proto_prefix
       | Some p, _ -> p
       | None, Some sp ->
           if https = ssl
-          then Eliom_sessions.get_server_port ~sp 
+          then Eliom_state.get_server_port ~sp 
           else if https
-          then Eliom_sessions.get_default_sslport ~sp ()
-          else Eliom_sessions.get_default_port ~sp ()
+          then Eliom_state.get_default_sslport ~sp ()
+          else Eliom_state.get_default_port ~sp ()
       | None, None ->
         if https
-        then Eliom_sessions.get_default_sslport ()
-        else Eliom_sessions.get_default_port ()
+        then Eliom_state.get_default_sslport ()
+        else Eliom_state.get_default_port ()
   in
   Ocsigen_lib.make_absolute_url https host port "/"
 
@@ -144,7 +144,7 @@ let make_uri_components_ (* does not take into account getparams *)
 
   let ssl =
     match sp with
-      | Some sp -> Eliom_sessions.get_ssl ~sp
+      | Some sp -> Eliom_state.get_ssl ~sp
       | None -> false
   in
   
@@ -178,13 +178,13 @@ let make_uri_components_ (* does not take into account getparams *)
           Ocsigen_lib.String_Table.fold
             (fun key v b -> Ocsigen_lib.String_Table.add key v b)
             preappnlp
-            (Eliom_sessions.get_nl_get_params ~sp)
+            (Eliom_state.get_nl_get_params ~sp)
       | `Persistent, Some sp ->
           (* We replace current nl params by preapplied ones *)
           Ocsigen_lib.String_Table.fold
             (fun key v b -> Ocsigen_lib.String_Table.add key v b)
             preappnlp
-            (Eliom_sessions.get_persistent_nl_get_params ~sp)
+            (Eliom_state.get_persistent_nl_get_params ~sp)
       | `All, None
       | `Persistent, None
       | `None, _ -> preappnlp
@@ -264,9 +264,9 @@ let make_uri_components_ (* does not take into account getparams *)
               | None -> []
               | Some sp ->
                 (if na_name = Eliom_common.SNa_void_keep
-                 then (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_nl
+                 then (Eliom_state.get_si sp).Eliom_common.si_all_get_but_nl
                  else Lazy.force 
-                    (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_nl)
+                    (Eliom_state.get_si sp).Eliom_common.si_all_get_but_na_nl)
           in
           (match na_name, sp with
              | Eliom_common.SNa_void_keep, _
@@ -477,13 +477,13 @@ let make_post_uri_components_ (* do not take into account postparams *)
                     Ocsigen_lib.String_Table.fold
                       (fun key v b -> Ocsigen_lib.String_Table.add key v b)
                       preappnlp
-                      (Eliom_sessions.get_nl_get_params ~sp)
+                      (Eliom_state.get_nl_get_params ~sp)
                 | `Persistent ->
                     (* We replace current nl params by preapplied ones *)
                     Ocsigen_lib.String_Table.fold
                       (fun key v b -> Ocsigen_lib.String_Table.add key v b)
                       preappnlp
-                      (Eliom_sessions.get_persistent_nl_get_params ~sp)
+                      (Eliom_state.get_persistent_nl_get_params ~sp)
                 | `None -> preappnlp
             in
             let nlp =
@@ -518,14 +518,14 @@ let make_post_uri_components_ (* do not take into account postparams *)
               params @
               (if keep_get_na_params
                then
-                 (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_nl
+                 (Eliom_state.get_si sp).Eliom_common.si_all_get_but_nl
                else
                  (Lazy.force
-                   (Eliom_sessions.get_si sp).Eliom_common.si_all_get_but_na_nl))
+                   (Eliom_state.get_si sp).Eliom_common.si_all_get_but_na_nl))
             in
 
 
-            let ssl = Eliom_sessions.get_ssl ~sp in
+            let ssl = Eliom_state.get_ssl ~sp in
             let https = 
               (https = Some true) || 
                 (Eliom_services.get_https service) ||

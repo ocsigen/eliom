@@ -137,7 +137,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
 (** {3 Main services} *)
 
 val service :
-  ?sp: Eliom_sessions.server_params ->
+  ?sp: Eliom_state.server_params ->
   ?https:bool ->
   path:Ocsigen_lib.url_path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
@@ -197,7 +197,7 @@ val external_post_service :
 
 
 val post_service :
-  ?sp: Eliom_sessions.server_params ->
+  ?sp: Eliom_state.server_params ->
   ?https:bool ->
   fallback: ('get, unit,
              [`Attached of 
@@ -226,7 +226,7 @@ val post_service :
 val coservice :
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_session_name: string ->
+  ?csrf_state_name: string ->
   ?csrf_scope: Eliom_common.user_scope ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
@@ -274,12 +274,12 @@ val coservice :
    service table or in the session service table. But the actual registration,
    that will occure when creating a link or a form, will always take
    place in a session service table. This table is specified by the
-   [~csrf_session_name], [~csrf_scope] 
+   [~csrf_state_name], [~csrf_scope] 
     and [~csrf_secure_session] parameters
-   (that correspond to [~session_name], [~scope]
+   (that correspond to [~state_name], [~scope]
     and [~secure] for the delayed 
     registration); it is default session table if they are absent.
-    Parameters [?session_name], [?scope]
+    Parameters [?state_name], [?scope]
     and [?secure] of [register_for_session]
     must have the same values as the one declared while creating the
     CSRF safe coservice, otherwise the registration will fail
@@ -290,7 +290,7 @@ val coservice :
 val post_coservice :
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_session_name: string ->
+  ?csrf_state_name: string ->
   ?csrf_scope: Eliom_common.user_scope ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
@@ -315,7 +315,7 @@ val post_coservice :
 val coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_session_name: string ->
+  ?csrf_state_name: string ->
   ?csrf_scope: Eliom_common.user_scope ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
@@ -340,7 +340,7 @@ val coservice' :
 val post_coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_session_name: string ->
+  ?csrf_state_name: string ->
   ?csrf_scope: Eliom_common.user_scope ->
   ?csrf_secure_session: bool ->
   ?max_use:int ->
@@ -365,7 +365,7 @@ val post_coservice' :
 (** {2 Predefined services} *)
 
 val static_dir :
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
   (string list, unit, [> `Attached of
                          ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
    [ `WithSuffix ],
@@ -379,7 +379,7 @@ val static_dir :
  *)
 
 val https_static_dir :
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
   (string list, unit, [> `Attached of
                          ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
    [ `WithSuffix ],
@@ -388,7 +388,7 @@ val https_static_dir :
 (** The same, but forcing https *)
 
 val static_dir_with_params :
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('a, [`WithoutSuffix], 'an) params_type ->
   unit ->
@@ -401,7 +401,7 @@ val static_dir_with_params :
 (** Like [static_dir], but allows to put GET parameters *)
 
 val https_static_dir_with_params :
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('a, [`WithoutSuffix], 'an) params_type ->
   unit ->
@@ -483,8 +483,8 @@ val add_non_localized_post_parameters :
 
 val unregister :
   ?scope:Eliom_common.scope ->
-  ?sp:Eliom_sessions.server_params ->
-  ?session_name:string ->
+  ?sp:Eliom_state.server_params ->
+  ?state_name:string ->
   ?secure:bool ->
   ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post ]) a_s
    | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h, 'return) service ->
@@ -499,11 +499,11 @@ val unregister :
     Use it with Eliom's syntax extension for client side code.
     For example: [set_onload ~sp {{ ... }}]
 *)
-val onload : sp:Eliom_sessions.server_params -> XML.event -> unit
+val onload : sp:Eliom_state.server_params -> XML.event -> unit
 
 (** This function will register a function that will be executed on
     client side when leaving current [Eliom_appl] page. *)
-val onunload : sp:Eliom_sessions.server_params -> XML.event -> unit
+val onunload : sp:Eliom_state.server_params -> XML.event -> unit
 
 
 
@@ -518,8 +518,8 @@ val onunload : sp:Eliom_sessions.server_params -> XML.event -> unit
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val set_exn_handler :
-  ?sp:Eliom_sessions.server_params ->
-  (Eliom_sessions.server_params -> exn -> Ocsigen_http_frame.result Lwt.t) ->
+  ?sp:Eliom_state.server_params ->
+  (Eliom_state.server_params -> exn -> Ocsigen_http_frame.result Lwt.t) ->
   unit
 
 
@@ -572,12 +572,12 @@ val untype_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
 (*****************************************************************************)
 
 val register_delayed_get_or_na_coservice :
-  sp:Eliom_sessions.server_params ->
+  sp:Eliom_state.server_params ->
   (int * string option * Eliom_common.user_scope * bool option) -> 
   string
 
 val register_delayed_post_coservice :
-  sp:Eliom_sessions.server_params -> 
+  sp:Eliom_state.server_params -> 
   (int * string option * Eliom_common.user_scope * bool option) -> 
   Eliom_common.att_key_serv -> string
 
@@ -605,9 +605,9 @@ val set_do_appl_xhr :
 val get_do_appl_xhr : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> do_appl_xhr
 
 val do_appl_xhr :
-  sp:Eliom_sessions.server_params -> 
+  sp:Eliom_state.server_params -> 
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
 
 
-val get_onload : sp:Eliom_sessions.server_params -> string list
-val get_onunload : sp:Eliom_sessions.server_params -> string list
+val get_onload : sp:Eliom_state.server_params -> string list
+val get_onunload : sp:Eliom_state.server_params -> string list

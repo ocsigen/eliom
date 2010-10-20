@@ -40,13 +40,13 @@ module Xhtml = struct
       | None -> same_url
         (uri_of_string
            ((* MAYBE : use this or get_original_full_path_string *)
-             Eliom_sessions.get_current_sub_path_string sp))
+             Eliom_state.get_current_sub_path_string sp))
       | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ~sp ())
   let same_service_opt sp s sopt =
     let same_url url = make_uri ~service:s ~sp () = url in
     match sopt with
       | None -> same_url (uri_of_string
-                            (Eliom_sessions.get_current_sub_path_string sp))
+                            (Eliom_state.get_current_sub_path_string sp))
       | Some s' -> same_url (make_uri ~service:s' ~sp ())
 
 
@@ -298,13 +298,13 @@ module Xhtml5 = struct
       | None -> same_url
         (uri_of_string
            ((* MAYBE : use this or get_original_full_path_string *)
-             Eliom_sessions.get_current_sub_path_string sp))
+             Eliom_state.get_current_sub_path_string sp))
       | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ~sp ())
   let same_service_opt sp s sopt =
     let same_url url = make_uri ~service:s ~sp () = url in
     match sopt with
       | None -> same_url (uri_of_string
-                            (Eliom_sessions.get_current_sub_path_string sp))
+                            (Eliom_state.get_current_sub_path_string sp))
       | Some s' -> same_url (make_uri ~service:s' ~sp ())
 
 

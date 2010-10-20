@@ -206,50 +206,50 @@ let set_global_persistent_timeout_
 
 
 
-let get_global_service_timeout ~session_name ~cookie_scope sitedata =
+let get_global_service_timeout ~state_name ~cookie_scope sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope state_name
   in
   find_global_service_timeout fullsessname sitedata
 
-let get_global_data_timeout ~session_name ~cookie_scope sitedata =
+let get_global_data_timeout ~state_name ~cookie_scope sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope state_name
   in
   find_global_data_timeout fullsessname sitedata
 
-let get_global_persistent_timeout ~session_name ~cookie_scope sitedata =
+let get_global_persistent_timeout ~state_name ~cookie_scope sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope state_name
   in
   find_global_persistent_timeout fullsessname sitedata
 
-let set_global_service_timeout ~session_name ~cookie_scope ~recompute_expdates 
+let set_global_service_timeout ~state_name ~cookie_scope ~recompute_expdates 
     override_configfile sitedata timeout =
   let fullsessname = Eliom_common.make_fullsessname2
-    sitedata.Eliom_common.site_dir_string cookie_scope session_name
+    sitedata.Eliom_common.site_dir_string cookie_scope state_name
   in
   set_global_service_timeout_ ~fullsessname ~recompute_expdates
     override_configfile false sitedata timeout
 
-let set_global_data_timeout ~session_name ~cookie_scope ~recompute_expdates
+let set_global_data_timeout ~state_name ~cookie_scope ~recompute_expdates
     override_configfile sitedata timeout =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope state_name
   in
   set_global_data_timeout_ ~fullsessname ~recompute_expdates
     override_configfile false sitedata timeout
 
 let set_global_persistent_timeout
-    ~session_name ~cookie_scope ~recompute_expdates
+    ~state_name ~cookie_scope ~recompute_expdates
     override_configfile sitedata timeout =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope session_name
+      sitedata.Eliom_common.site_dir_string cookie_scope state_name
   in
   set_global_persistent_timeout_
     ~fullsessname ~recompute_expdates

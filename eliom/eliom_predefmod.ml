@@ -24,7 +24,7 @@ open Ocsigen_lib
 open XHTML.M
 open Xhtmltypes
 open Ocsigen_extensions
-open Eliom_sessions
+open Eliom_state
 open Eliom_services
 open Eliom_parameters
 open Eliom_mkforms
@@ -287,7 +287,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      ?sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_state.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -321,7 +321,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      ?sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -339,7 +339,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      ?sp:Eliom_sessions.server_params -> 
+      ?sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -360,7 +360,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -373,7 +373,7 @@ module type XHTMLFORMSSIG = sig
 (** Like [make_uri_components], but also creates a table of post parameters. *)
 
     val make_proto_prefix :
-      ?sp:Eliom_sessions.server_params ->
+      ?sp:Eliom_state.server_params ->
       ?hostname:string ->
       ?port:int ->
       bool ->
@@ -390,7 +390,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -459,7 +459,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -481,7 +481,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_state.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -501,7 +501,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params ->
+      sp:Eliom_state.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -529,7 +529,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_sessions.server_params ->
+      sp:Eliom_state.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -1714,7 +1714,7 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
     Xhtml_content.result_of_content ~options content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_cookies= (Eliom_state.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
@@ -1810,7 +1810,7 @@ module SubXhtml(Format : sig
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
           {r with
-             res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+             res_cookies= (Eliom_state.get_user_cookies ~sp);
              res_code= code_of_code_option code;
              res_charset= (match charset with
                              | None -> Some (get_config_default_charset sp)
@@ -1879,7 +1879,7 @@ module Textreg_ = struct
     Ocsigen_senders.Text_content.result_of_content content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_cookies= (Eliom_state.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None ->  Some (get_config_default_charset sp)
@@ -1922,7 +1922,7 @@ module CssTextreg_ = struct
     >>= fun r ->
     Lwt.return
       {r with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_cookies= (Eliom_state.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
@@ -1967,7 +1967,7 @@ module HtmlTextreg_ = struct
     >>= fun r ->
     Lwt.return
       {r with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_cookies= (Eliom_state.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)
@@ -2213,7 +2213,7 @@ module Actionreg_ = struct
   let send
       ?(options = `Reload) ?charset ?(code = 204)
       ?content_type ?headers ~sp () =
-    let user_cookies = Eliom_sessions.get_user_cookies ~sp in
+    let user_cookies = Eliom_state.get_user_cookies ~sp in
     if options = `NoReload
     then
       let empty_result = Ocsigen_http_frame.empty_result () in
@@ -2243,9 +2243,9 @@ module Actionreg_ = struct
          we do not reload, otherwise it will loop.
       *)
       (* be very careful while re-reading this *)
-      let sitedata = Eliom_sessions.get_sitedata ~sp in
-      let si = Eliom_sessions.get_si ~sp in
-      let ri = Eliom_sessions.get_request ~sp in
+      let sitedata = Eliom_state.get_sitedata ~sp in
+      let si = Eliom_state.get_si ~sp in
+      let ri = Eliom_state.get_request ~sp in
       (match (si.Eliom_common.si_nonatt_info,
               si.Eliom_common.si_state_info,
               ri.request_info.ri_method) with
@@ -2256,7 +2256,7 @@ module Actionreg_ = struct
             Lwt.return empty_result 
           | _ ->
             let all_cookie_info = 
-              (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_cookie_info 
+              (Eliom_state.esp_of_sp sp).Eliom_common.sp_cookie_info 
             in
             Eliommod_cookies.compute_new_ri_cookies
               (Unix.time ())
@@ -2278,11 +2278,11 @@ module Actionreg_ = struct
                If the fallback service is not Eliom_app, they will
                be lost.
             *)
-            let rc = Eliom_sessions.get_request_cache ~sp in
+            let rc = Eliom_state.get_request_cache ~sp in
             Polytables.set
               ~table:rc ~key:Eliom_common.tab_cookie_action_info_key
-              ~value:(Eliom_sessions.get_sp_tab_cookie_info ~sp,
-                      Eliom_sessions.get_user_tab_cookies ~sp,
+              ~value:(Eliom_state.get_sp_tab_cookie_info ~sp,
+                      Eliom_state.get_user_tab_cookies ~sp,
                       si.Eliom_common.si_tab_cookies
               );
 
@@ -2424,7 +2424,7 @@ module Unitreg_ = struct
     let empty_result = Ocsigen_http_frame.empty_result () in
     Lwt.return
       {empty_result with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_cookies= (Eliom_state.get_user_cookies ~sp);
          res_code= code;
          res_content_type= (match content_type with
                               | None -> empty_result.res_content_type
@@ -2468,7 +2468,7 @@ module Anyreg_ = struct
       {res with
          res_cookies= 
           Ocsigen_cookies.add_cookies
-            (Eliom_sessions.get_user_cookies ~sp)
+            (Eliom_state.get_user_cookies ~sp)
             res.res_cookies;
          res_charset= (match charset with
                          | None -> res.res_charset
@@ -2508,18 +2508,18 @@ module Filesreg_ = struct
   let send ?options ?charset ?code
       ?content_type ?headers ~sp filename =
     let file =
-      try Ocsigen_LocalFiles.resolve (Eliom_sessions.get_request sp) filename
+      try Ocsigen_LocalFiles.resolve (Eliom_state.get_request sp) filename
       with
         | Ocsigen_LocalFiles.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
         | Ocsigen_LocalFiles.Failed_404
         | Ocsigen_LocalFiles.NotReadableDirectory ->
             raise Eliom_common.Eliom_404
     in
-    Ocsigen_LocalFiles.content ~request:(Eliom_sessions.get_request sp) ~file
+    Ocsigen_LocalFiles.content ~request:(Eliom_state.get_request sp) ~file
     >>= fun r ->
     Lwt.return
       { r with
-          res_cookies = (Eliom_sessions.get_user_cookies ~sp);
+          res_cookies = (Eliom_state.get_user_cookies ~sp);
           res_code = code_of_code_option code;
           res_charset = (match charset with
                            | None ->
@@ -2566,7 +2566,7 @@ module Streamlistreg_ = struct
     Ocsigen_senders.Streamlist_content.result_of_content content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_cookies= (Eliom_state.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None ->  Some (get_config_default_charset sp)
@@ -2648,16 +2648,16 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?session_name
+      ?state_name
       ?secure_session
       ?sp
       ~(service : ('get, 'post,
                    [< internal_service_kind ],
                    [< suff ], 'gn, 'pn, [ `Registrable ], 
                    'return Eliom_parameters.caml) service)
-      ?(error_handler : (Eliom_sessions.server_params ->
+      ?(error_handler : (Eliom_state.server_params ->
                            (string * exn) list -> 'return Lwt.t) option)
-      (f : (Eliom_sessions.server_params -> 'get -> 'post -> 'return Lwt.t)) =
+      (f : (Eliom_state.server_params -> 'get -> 'post -> 'return Lwt.t)) =
     M.register
       ?scope
       ?options
@@ -2665,7 +2665,7 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?session_name
+      ?state_name
       ?secure_session
       ?sp
       ~service:(Eliom_services.untype_service_ service)
@@ -2680,7 +2680,7 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?session_name
+      ?state_name
       ?secure_session
       ?sp
       ?https
@@ -2695,7 +2695,7 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?session_name
+                                      ?state_name
                                       ?secure_session
                                       ?sp
                                       ?https
@@ -2711,12 +2711,12 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?session_name
+      ?state_name
       ?secure_session
       ?sp
       ?name
       ?csrf_safe
-      ?csrf_session_name
+      ?csrf_state_name
       ?csrf_secure_session
       ?max_use
       ?timeout
@@ -2732,12 +2732,12 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?session_name
+                                      ?state_name
                                       ?secure_session
                                       ?sp
                                       ?name
                                       ?csrf_safe
-                                      ?csrf_session_name
+                                      ?csrf_state_name
                                       ?csrf_secure_session
                                       ?max_use
                                       ?timeout
@@ -2754,12 +2754,12 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?session_name
+      ?state_name
       ?secure_session
       ?sp
       ?name
       ?csrf_safe
-      ?csrf_session_name
+      ?csrf_state_name
       ?csrf_secure_session
       ?max_use
       ?timeout
@@ -2774,12 +2774,12 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?session_name
+                                      ?state_name
                                       ?secure_session
                                       ?sp
                                       ?name
                                       ?csrf_safe
-                                      ?csrf_session_name
+                                      ?csrf_state_name
                                       ?csrf_secure_session
                                       ?max_use
                                       ?timeout
@@ -2796,7 +2796,7 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?session_name
+      ?state_name
       ?secure_session
       ?sp
       ?https
@@ -2811,7 +2811,7 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?session_name
+                                      ?state_name
                                       ?secure_session
                                       ?sp
                                       ?https
@@ -2827,12 +2827,12 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?session_name
+      ?state_name
       ?secure_session
       ?sp
       ?name
       ?csrf_safe
-      ?csrf_session_name
+      ?csrf_state_name
       ?csrf_secure_session
       ?max_use
       ?timeout
@@ -2848,12 +2848,12 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?session_name
+                                      ?state_name
                                       ?secure_session
                                       ?sp
                                       ?name
                                       ?csrf_safe
-                                      ?csrf_session_name
+                                      ?csrf_state_name
                                       ?csrf_secure_session
                                       ?max_use
                                       ?timeout
@@ -2870,12 +2870,12 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?session_name
+      ?state_name
       ?secure_session
       ?sp
       ?name
       ?csrf_safe
-      ?csrf_session_name
+      ?csrf_state_name
       ?csrf_secure_session
       ?max_use
       ?timeout
@@ -2891,12 +2891,12 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?session_name
+                                      ?state_name
                                       ?secure_session
                                       ?sp
                                       ?name
                                       ?csrf_safe
-                                      ?csrf_session_name
+                                      ?csrf_state_name
                                       ?csrf_secure_session
                                       ?max_use
                                       ?timeout
@@ -2920,7 +2920,7 @@ type appl_service_params =
       ap_title: string;
       ap_container : 'a.
         ((([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option *
-           (sp:Eliom_sessions.server_params -> 
+           (sp:Eliom_state.server_params -> 
             Xhtml5types.body_content elt ->
             Xhtml5types.body_content elt list))
         option;
@@ -2969,19 +2969,19 @@ module Eliom_appl_reg_
 
   type return = Eliom_services.appl_service
 
-  let eliom_appl_session_name = "__eliom_appl_internal"
+  let eliom_appl_state_name = "__eliom_appl_internal"
 
-  let change_page_event_table : ('a -> unit) Eliom_sessions.volatile_table =
-    Eliom_sessions.create_volatile_table
-      ~session_name:eliom_appl_session_name
+  let change_page_event_table : ('a -> unit) Eliom_state.volatile_table =
+    Eliom_state.create_volatile_table
+      ~state_name:eliom_appl_state_name
       ~scope:`Client_process
       ()
 
   let get_tab_cook sp =
     Eliommod_cookies.compute_cookies_to_send
-      (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_sitedata
-      (Eliom_sessions.esp_of_sp sp).Eliom_common.sp_tab_cookie_info
-      (Eliom_sessions.get_user_tab_cookies ~sp)
+      (Eliom_state.esp_of_sp sp).Eliom_common.sp_sitedata
+      (Eliom_state.esp_of_sp sp).Eliom_common.sp_tab_cookie_info
+      (Eliom_state.get_user_tab_cookies ~sp)
                         
   let create_page
       ~options ~sp params cookies_to_send
@@ -3048,7 +3048,7 @@ redir ();"))::
                         ""
                         [
                           "var container_node = \'";
-                          (let reqnum = Eliom_sessions.get_request_id ~sp in
+                          (let reqnum = Eliom_state.get_request_id ~sp in
                            (Eliom_client_types.jsmarshal
                               (Eliom_client_types.to_data_key_
                                  (reqnum, XML.ref_node container_node))
@@ -3098,19 +3098,19 @@ redir ();"))::
   let pre_service ?(options = default_appl_service_options) ~sp =
     (* If we launch a new application, we must set the application name.
        Otherwise, we get it from cookie. *)
-    (match Eliom_sessions.get_sp_appl_name ~sp (* sent by the browser *) with
+    (match Eliom_state.get_sp_appl_name ~sp (* sent by the browser *) with
       | Some appl_name_cookie ->
         if appl_name_cookie <> Appl_params.application_name
         then begin
-          Eliom_sessions.set_sp_appl_name ~sp
+          Eliom_state.set_sp_appl_name ~sp
             (Some Appl_params.application_name);
-          Eliom_sessions.set_sp_content_only ~sp false;
+          Eliom_state.set_sp_content_only ~sp false;
         end
       | None -> (* The application was not launched on client side *)
         if not options.do_not_launch
         (* if do_not_launch is true,
            we do not launch the client side program. *)
-        then Eliom_sessions.set_sp_appl_name ~sp
+        then Eliom_state.set_sp_appl_name ~sp
           (Some Appl_params.application_name);
     );
     Lwt.return ()
@@ -3137,7 +3137,7 @@ redir ();"))::
 
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers ~sp content =
-    let content_only = Eliom_sessions.get_sp_content_only ~sp in
+    let content_only = Eliom_state.get_sp_content_only ~sp in
     (if content_only &&
         (((Eliom_parameters.get_non_localized_get_parameters
              ~sp Eliom_mkforms.nl_internal_appl_form) = Some true) ||
@@ -3148,15 +3148,15 @@ redir ();"))::
                    But the browser is not doing an xhr.
                    We send 204 No Content 
                    and use the change_page_event to update the content. *)
-       match (Eliom_sessions.get_volatile_session_data
+       match (Eliom_state.get_volatile_data
                 ~table:change_page_event_table ~sp ())
        with
-         | Eliom_sessions.Data change_current_page ->
+         | Eliom_state.Data change_current_page ->
            get_eliom_page_content ~options sp content >>= fun data ->
            change_current_page data;
            Lwt.return (Ocsigen_http_frame.empty_result ())
-         | Eliom_sessions.Data_session_expired
-         | Eliom_sessions.No_data ->
+         | Eliom_state.Data_session_expired
+         | Eliom_state.No_data ->
 (*VVV What to do here? *)
            Lwt.fail Eliom_process.Server_side_process_closed
      end
@@ -3170,9 +3170,9 @@ redir ();"))::
             current page content *)
          React.E.create ()
        in
-       Eliom_sessions.set_volatile_session_data
+       Eliom_state.set_volatile_data
          ~table:change_page_event_table ~sp change_current_page;
-       Eliom_sessions.set_cookie ~sp
+       Eliom_state.set_cookie ~sp
          ~cookie_scope:`Client_process
          ~name:Eliom_common.appl_name_cookie_name
          ~value:Appl_params.application_name ();
@@ -3188,7 +3188,7 @@ redir ();"))::
        >>= fun r ->
         Lwt.return
           {r with
-            res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+            res_cookies= (Eliom_state.get_user_cookies ~sp);
             res_code= code_of_code_option code;
             res_charset= (match charset with
               | None -> Some (get_config_default_charset sp)
@@ -3254,7 +3254,7 @@ module String_redirreg_ = struct
       ?content_type ?headers ~sp content =
     let uri = XHTML.M.string_of_uri content in
     let empty_result = Ocsigen_http_frame.empty_result () in
-    let cookies = Eliom_sessions.get_user_cookies ~sp in
+    let cookies = Eliom_state.get_user_cookies ~sp in
     let content_type = match content_type with
       | None -> empty_result.res_content_type
       | _ -> content_type
@@ -3273,7 +3273,7 @@ module String_redirreg_ = struct
        If the application to which belongs the destination service is the same,
        then it is ok, otherwise, there will be another redirection ...
     *)
-    match Eliom_sessions.get_sp_appl_name ~sp with
+    match Eliom_state.get_sp_appl_name ~sp with
         (* the appl name as sent by browser *)
       | None -> (* the browser did not ask application eliom data,
                    we send a regular redirection *)
@@ -3335,7 +3335,7 @@ module Redirreg_ = struct
     let uri = Xhtml.make_string_uri ~absolute:true ~sp ~service () in
 
     let empty_result = Ocsigen_http_frame.empty_result () in
-    let cookies = Eliom_sessions.get_user_cookies ~sp in
+    let cookies = Eliom_state.get_user_cookies ~sp in
     let content_type = match content_type with
       | None -> empty_result.res_content_type
       | _ -> content_type
@@ -3355,7 +3355,7 @@ module Redirreg_ = struct
        the destination service is the same (thus it will send back tab cookies)
        - a half xhr redirection otherwise
     *)
-    match Eliom_sessions.get_sp_appl_name ~sp with
+    match Eliom_state.get_sp_appl_name ~sp with
         (* the appl name as sent by browser *)
       | None -> (* the browser did not ask application eliom data,
                    we send a regular redirection *)
@@ -3484,7 +3484,7 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
     Xhtml_content.result_of_content ~options content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies= (Eliom_sessions.get_user_cookies ~sp);
+         res_cookies= (Eliom_state.get_user_cookies ~sp);
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (get_config_default_charset sp)

@@ -338,7 +338,7 @@ let auto_change_page fragment =
          let uri =
            match l with
              | 2 -> "./" (* fix for firefox *)
-             | 0 | 1 -> Eliom_sessions.full_uri
+             | 0 | 1 -> Eliom_state.full_uri
              | _ -> String.sub fragment 2 ((String.length fragment) - 2) 
          in
          Eliom_request.http_get uri [] >>= fun r ->

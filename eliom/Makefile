@@ -11,7 +11,7 @@ FILES:= error_pages.ml \
 	eliommod_sessexpl.ml eliommod_sessadmin.ml \
 	eliommod_timeouts.ml \
         eliom_client_types.ml eliommod_pagegen.ml \
-	eliommod.ml eliom_sessions.ml eliom_extensions.ml\
+	eliommod.ml eliom_state.ml eliom_extensions.ml\
         eliom_parameters_cli.ml eliom_parameters.ml \
 	eliom_process.ml \
 	eliom_services_cli.ml eliom_services.ml \
@@ -114,7 +114,7 @@ client:
 syntax:
 	$(MAKE) -C syntax all
 
-eliom_sessions.cmx: eliom_sessions.ml
+eliom_state.cmx: eliom_state.ml
 #	-rm ../extensions/ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
 #	-touch ../extensions/ocsipersist.cmx

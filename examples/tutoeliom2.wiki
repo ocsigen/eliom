@@ -51,10 +51,10 @@ Coservices, but also //actions//, are also means to control
       restore it at each request. This data is available during the whole
       duration of the session.
       To save session data, create a table using
-      <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALcreate_volatile_table"|<<span class="code"|Eliom_sessions.create_volatile_table>>>>
+      <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALcreate_volatile_table"|<<span class="code"|Eliom_state.create_volatile_table>>>>
       and save and get data from
-      this table using <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_volatile_session_data"|<<span class="code"|Eliom_sessions.set_volatile_session_data>>>> and
-      <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALget_volatile_session_data"|<<span class="code"|Eliom_sessions.get_volatile_session_data>>>>. The following example shows
+      this table using <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_volatile_data"|<<span class="code"|Eliom_state.set_volatile_data>>>> and
+      <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_volatile_data"|<<span class="code"|Eliom_state.get_volatile_data>>>>. The following example shows
       a site with authentification. The name of the user is asked in the login
       form and saved in a table to be displayed on the page instead of the login
       form while the user is connected. Note that the session is opened
@@ -73,7 +73,7 @@ Coservices, but also //actions//, are also means to control
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
-let my_table = Eliom_sessions.create_volatile_table  ()
+let my_table = Eliom_state.create_volatile_table  ()
 
 
 (* -------------------------------------------------------- *)
@@ -103,21 +103,21 @@ let session_data_example_close =
 (* Handler for the "session_data_example" service:          *)
 
 let session_data_example_handler sp _ _  =
-  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
+  let sessdat = Eliom_state.get_volatile_data ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
        (body
           [
            match sessdat with
-           | Eliom_sessions.Data name ->
+           | Eliom_state.Data name ->
                p [pcdata ("Hello "^name);
                   br ();
                   Eliom_predefmod.Xhtml.a
                     session_data_example_close
                     sp [pcdata "close session"] ()]
-           | Eliom_sessions.Data_session_expired
-           | Eliom_sessions.No_data ->
+           | Eliom_state.Data_session_expired
+           | Eliom_state.No_data ->
                Eliom_predefmod.Xhtml.post_form
                  session_data_example_with_post_params
                  sp
@@ -132,8 +132,8 @@ let session_data_example_handler sp _ _  =
 (* service with POST params:                                *)
 
 let session_data_example_with_post_params_handler sp _ login =
-  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
-  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
+  Eliom_state.close_session  ~sp () ~>>= fun () ->
+  Eliom_state.set_volatile_data ~table:my_table ~sp login;
   return
     (html
        (head (title (pcdata "")) [])
@@ -150,16 +150,16 @@ let session_data_example_with_post_params_handler sp _ login =
 (* Handler for the "session_data_example_close" service:    *)
 
 let session_data_example_close_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
-  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
+  let sessdat = Eliom_state.get_volatile_data ~table:my_table ~sp () in
+  Eliom_state.close_session  ~sp () ~>>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
        (body [
         (match sessdat with
-        | Eliom_sessions.Data_session_expired -> p [pcdata "Your session has expired."]
-        | Eliom_sessions.No_data -> p [pcdata "You were not connected."]
-        | Eliom_sessions.Data _ -> p [pcdata "You have been disconnected."]);
+        | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
+        | Eliom_state.No_data -> p [pcdata "You were not connected."]
+        | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
         p [Eliom_predefmod.Xhtml.a session_data_example sp [pcdata "Retry"] () ]]))
 
 
@@ -186,7 +186,7 @@ let () =
 
           
        To close a session, use the function
-                <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|<<span class="code"|Eliom_sessions.close_session>>>>>>.
+                <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|<<span class="code"|Eliom_state.close_session>>>>>>.
        Session data will disappear when the session is closed (explicitely
        or by timeout).
        Warning: if your session data contains opened file descriptors,
@@ -242,7 +242,7 @@ We will see in the following of this tutorial how to improve
       one public, one for connected users.
                   \\
       To close a session, use
-                <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|<<span class="code"|Eliom_sessions.close_session>>>>>>.
+                <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|<<span class="code"|Eliom_state.close_session>>>>>>.
       Both the session service table and the session data table for that user
       will disappear when the session is closed.
       
@@ -258,7 +258,7 @@ must take <<span class="code"|sp>> as parameter
           
 The following example shows how to reimplement the previous one
       (<<span class="code"|session_data_example>>),
-      without using <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALset_volatile_session_data"|<<span class="code"|Eliom_sessions.set_volatile_session_data>>>>.
+      without using <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_volatile_data"|<<span class="code"|Eliom_state.set_volatile_data>>>>.
       Note that this version is less efficient than the other if your site
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
@@ -324,7 +324,7 @@ let session_services_example_handler sp () () =
 (* Handler for the "session_services_example_close" service:     *)
 
 let session_services_example_close_handler sp () () =
-  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
+  Eliom_state.close_session  ~sp () ~>>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -365,7 +365,7 @@ let launch_session sp () login =
   in
 
   (* If a session was opened, we close it first! *)
-  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
+  Eliom_state.close_session  ~sp () ~>>= fun () ->
 
   (* Now we register new versions of main services in the
      session service table: *)
@@ -879,7 +879,7 @@ let disconnect_action =
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
-      Eliom_sessions.close_session  ~sp ())
+      Eliom_state.close_session  ~sp ())
 
 
 (* -------------------------------------------------------- *)
@@ -906,17 +906,17 @@ let login_box sp =
 (* Handler for the "connect_example3" service (main page):    *)
 
 let connect_example3_handler sp () () =
-  let sessdat = Eliom_sessions.get_volatile_session_data ~table:my_table ~sp () in
+  let sessdat = Eliom_state.get_volatile_data ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
        (body
           (match sessdat with
-          | Eliom_sessions.Data name ->
+          | Eliom_state.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Eliom_sessions.Data_session_expired
-          | Eliom_sessions.No_data -> [login_box sp]
+          | Eliom_state.Data_session_expired
+          | Eliom_state.No_data -> [login_box sp]
           )))
 
 
@@ -924,8 +924,8 @@ let connect_example3_handler sp () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler sp () login =
-  Eliom_sessions.close_session  ~sp () ~>>= fun () ->
-  Eliom_sessions.set_volatile_session_data ~table:my_table ~sp login;
+  Eliom_state.close_session  ~sp () ~>>= fun () ->
+  Eliom_state.set_volatile_data ~table:my_table ~sp login;
   return ()
 
 

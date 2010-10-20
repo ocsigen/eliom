@@ -334,10 +334,7 @@ let reassociate end_point =
 
 
 (* CHECK *)
-let session_name = "__eliom_openid"
-let group_name = "__eliom_openid_group"
-
-let session_name = "__eliom_openid"
+let state_name = "__eliom_openid"
 let group_name = "__eliom_openid_group"
 
 type field = 
@@ -456,11 +453,11 @@ let ( *** ) e1 e2 = {
 }
 
 (* CHECKING *)
-let check_authentification ret_to endpoint sp assoc args = 
+let check_authentication ret_to endpoint sp assoc args = 
   check_arg args "return_to" ret_to
   &&& check_signature assoc.mac args
 
-type 'a authentification_result = 
+type 'a authentication_result = 
   | Canceled
   | Setup_needed
   | Result of 'a
@@ -468,15 +465,13 @@ type 'a authentification_result =
 let end_login_handler ~sp ext ret_to endpoint assoc f args =
   let args = strip_ns "openid" args in
   let mode = get args "mode" in
-  let _ = Eliom_sessions.close_session ~sp
-    ~session_name ()
-  in
+  let _ = Eliom_state.discard ~sp ~state_name () in
   if mode = "id_res" then
     (if List.mem_assoc "invalidate_handle" args then
         reassociate endpoint
      else
         Lwt.return assoc) >>= 
-      (fun assoc -> check_authentification ret_to endpoint sp assoc args) >>= 
+      (fun assoc -> check_authentication ret_to endpoint sp assoc args) >>= 
       (fun () -> ext.parse args) >>= (fun k -> f sp (Result k))
   else if mode = "cancel" then
     f sp Canceled
@@ -491,7 +486,7 @@ module type HiddenServiceInfo = sig
   val path : string list
 (** The path of the hidden service *)
   val f :
-    Eliom_sessions.server_params ->
+    Eliom_state.server_params ->
     (string * string) list ->
     unit -> Eliom_predefmod.Any.page Lwt.t
 (** The function called when an user connects to the hidden service
@@ -509,40 +504,39 @@ module Make (S : HiddenServiceInfo) = struct
       | None ->  "http://specs.openid.net/auth/2.0/identifier_select"
       | Some l -> l
     in
-    get_assoc (fst discovery) >>=
-      (fun assoc ->
-        let uri = ref "" in
-        let () = uri := 
-          Eliom_predefmod.Xhtml.make_string_uri ~absolute: true 
-          ~service:return_service [] ~sp 
-        in
-        let _ = Eliom_predefmod.Any.register
-          ~scope:`Session
-          ~session_name
-          ~service:return_service ~sp
-          (fun sp args _ -> 
-            end_login_handler ~sp ext !uri (fst discovery) assoc handler args)
-        in
-        let _ = Eliom_sessions.set_global_service_session_timeout
-          ~session_name: (Some session_name)
-          ~sp
-          (Some 60.)
-        in
-        let _ = Eliom_sessions.set_service_session_group
-          ~set_max: 1000
-          ~session_name
-          ~sp
-          group_name
-        in
-        let params = 
-          ["return_to", !uri;
-           "claimed_id", local;
-           "identity", local;
-           "assoc_handle", assoc.assoc_handle;
-           "realm", "http://"^Eliom_sessions.get_hostname ~sp] @ ext.headers
-        in
-        let params = push_ns "openid" (("ns", openid_url) :: ("mode", mode) :: params) in
-        Lwt.return (uri_of_string (format_url (fst discovery) params)))
+    get_assoc (fst discovery) >>= fun assoc ->
+    let uri = ref "" in
+    let () = uri := 
+      Eliom_predefmod.Xhtml.make_string_uri ~absolute: true 
+      ~service:return_service [] ~sp 
+    in
+    let _ = Eliom_predefmod.Any.register
+      ~scope:`Session
+      ~state_name
+      ~service:return_service ~sp
+      (fun sp args _ -> 
+        end_login_handler ~sp ext !uri (fst discovery) assoc handler args)
+    in
+    let _ = Eliom_state.set_global_service_state_timeout
+      ~state_name: (Some state_name)
+      ~sp
+      (Some 60.)
+    in
+    let _ = Eliom_state.set_service_session_group
+      ~set_max: 1000
+      ~state_name
+      ~sp
+      group_name
+    in
+    let params = 
+      ["return_to", !uri;
+       "claimed_id", local;
+       "identity", local;
+       "assoc_handle", assoc.assoc_handle;
+       "realm", "http://"^Eliom_state.get_hostname ~sp] @ ext.headers
+    in
+    let params = push_ns "openid" (("ns", openid_url) :: ("mode", mode) :: params) in
+    Lwt.return (uri_of_string (format_url (fst discovery) params))
 end
 
 (* GLUE *)
@@ -562,7 +556,7 @@ let check = ref (fun ?mode ~ext ~handler ~sp ~discovery -> Lwt.fail (Failure "Ca
 
 type check_fun =
     ?immediate:bool ->
-    sp:Eliom_sessions.server_params ->
+    sp:Eliom_state.server_params ->
     ?policy_url:string ->
     ?max_auth_age:int ->
     ?auth_policies:string list ->

@@ -27,7 +27,7 @@
 
 
 open Ocsigen_extensions
-open Eliom_sessions
+open Eliom_state
 open Eliom_services
 open Eliom_parameters
 
@@ -49,7 +49,7 @@ module type REGCREATE =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      sp:Eliom_sessions.server_params ->
+      sp:Eliom_state.server_params ->
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
@@ -60,7 +60,7 @@ module type REGCREATE =
     *)
     val pre_service :
       ?options:options ->
-      sp:Eliom_sessions.server_params -> unit Lwt.t
+      sp:Eliom_state.server_params -> unit Lwt.t
 
     (** The following field is usually [Eliom_services.XNever]. 
         This value is recorded inside each service just after registration.
@@ -89,7 +89,7 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      sp:Eliom_sessions.server_params ->
+      sp:Eliom_state.server_params ->
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
@@ -100,22 +100,22 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       service:('get, 'post,
                [< internal_service_kind ],
                [< suff ], 'gn, 'pn, [ `Registrable ], return) service ->
-      ?error_handler:(Eliom_sessions.server_params ->
+      ?error_handler:(Eliom_state.server_params ->
                         (string * exn) list -> page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> 'post -> page Lwt.t) ->
       unit
 (** Register a service with the associated handler function.
    [register s t f] will associate the service [s] to the function [f].
    [f] is the function that creates a page, called {e service handler}.
 
    The handler function takes three parameters.
-    - The first one has type [Eliom_sessions.server_params]
+    - The first one has type [Eliom_state.server_params]
    and allows to have acces to informations about the request and the session.
     - The second and third ones are respectively GET and POST parameters.
 
@@ -163,7 +163,7 @@ module type ELIOMREGSIG =
     The optional parameters [?charset], [?code], [?content_type] and [?headers]
     can be used to modify the HTTP answer sent by Eliom. Use this with care.
 
-    [?session_name] is the name of the session (browser session or "tab" session),
+    [?state_name] is the name of the session (browser session or "tab" session),
     if you want several
     service sessions on the same site. It has no effect for scope [`Global].
     
@@ -174,7 +174,7 @@ module type ELIOMREGSIG =
     only through HTTPS). It has no effect for scope [`Global].
 
     Note that in the case of CSRF safe coservices, parameters
-    [?session_name] and [?secure_session] must match exactly the session name
+    [?state_name] and [?secure_session] must match exactly the session name
     and secure option specified while creating the CSRF safe service. 
     Otherwise, the registration will fail
     with {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}
@@ -189,15 +189,15 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?https:bool ->
       path:Ocsigen_lib.url_path ->
       get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+      ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
                         page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Attached of
           ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
@@ -212,12 +212,12 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
-      ?csrf_session_name: string ->
+      ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
@@ -230,9 +230,9 @@ module type ELIOMREGSIG =
         service ->
       get_params:
         ('get, [`WithoutSuffix], 'gn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params ->
+      ?error_handler:(Eliom_state.server_params ->
                         (string * exn) list -> page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
@@ -248,12 +248,12 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
-      ?csrf_session_name: string ->
+      ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
@@ -261,9 +261,9 @@ module type ELIOMREGSIG =
       ?https:bool ->
       get_params:
         ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params ->
+      ?error_handler:(Eliom_state.server_params ->
                         (string * exn) list -> page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Nonattached of [> `Get] na_s ],
        'tipo, 'gn, unit, [> `Registrable ], return)
@@ -277,9 +277,9 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?https:bool ->
       fallback:('get, unit,
                 [ `Attached of
@@ -289,9 +289,9 @@ module type ELIOMREGSIG =
                 unit, [< `Registrable ], return)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+      ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
                         page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> 'post -> page Lwt.t) ->
       ('get, 'post, [> `Attached of
                        ([> `Internal of 'kind ], [> `Post]) a_s ],
        'tipo, 'gn, 'pn, [> `Registrable ], return)
@@ -305,12 +305,12 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
-      ?csrf_session_name: string ->
+      ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
@@ -323,9 +323,9 @@ module type ELIOMREGSIG =
                 'gn, unit, [< `Registrable ], return)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+      ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
                         page Lwt.t) ->
-      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      (Eliom_state.server_params -> 'get -> 'post -> page Lwt.t) ->
       ('get, 'post,
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
@@ -340,12 +340,12 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      ?session_name:string ->
+      ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_sessions.server_params ->
+      ?sp: Eliom_state.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
-      ?csrf_session_name: string ->
+      ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
       ?csrf_secure_session: bool ->
       ?max_use:int ->
@@ -353,9 +353,9 @@ module type ELIOMREGSIG =
       ?keep_get_na_params:bool ->
       ?https:bool ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+      ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
                         page Lwt.t) ->
-      (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
+      (Eliom_state.server_params -> unit -> 'post -> page Lwt.t) ->
       (unit, 'post, [> `Nonattached of [> `Post] na_s ],
        [ `WithoutSuffix ], unit, 'pn,
        [> `Registrable ], return)

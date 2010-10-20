@@ -285,7 +285,7 @@ module Data =
          (means that we do not use the browser session).
       *)
 (*VVV See also in Eliommod_gc and 
-  Eliom_sessions.close_volatile_session_if_empty.
+  Eliom_state.close_volatile_session_if_empty.
   Should we use this function here?  
 *)
 (*VVV remove is not polymorphic enough -> remove1 remove2 *)
@@ -350,7 +350,7 @@ module Serv =
 (*VVV We close even if browser session is in a group.
   It is not coherent with data sessions. *)
 (*VVV See also in Eliommod_gc and 
-  Eliom_sessions.close_service_session_if_empty.
+  Eliom_state.close_service_session_if_empty.
   Should we use this function here?  
 *)
 (*VVV remove is not polymorphic enough -> remove1 remove2 *)

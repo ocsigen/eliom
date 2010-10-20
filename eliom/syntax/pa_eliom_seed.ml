@@ -292,7 +292,7 @@ struct
   let wrappers _loc = [
 
     (function (*sp*)
-     | <:ctyp< Eliom_sessions.server_params >> ->
+     | <:ctyp< Eliom_state.server_params >> ->
          (<:expr<Eliommod_cli.wrap_sp>>, <:expr<Eliommod_cli.unwrap_sp>>)
      | _ -> raise Next
     );

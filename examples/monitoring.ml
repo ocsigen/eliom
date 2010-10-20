@@ -23,7 +23,7 @@ open Eliom_predefmod.Xhtml
 open Eliom_predefmod
 open Eliom_services
 open Eliom_parameters
-open Eliom_sessions
+open Eliom_state
 open Unix
 open Lwt
 
@@ -66,14 +66,14 @@ let _ =
           Some r
         with _ -> None
       in
-      let nssess = Eliom_sessions.number_of_service_sessions sp in
-      let ndsess = Eliom_sessions.number_of_volatile_data_sessions sp in
-      let ntables = Eliom_sessions.number_of_tables () in
-      let ntableselts = Eliom_sessions.number_of_table_elements () in
-      Eliom_sessions.number_of_persistent_data_sessions () >>=
+      let nssess = Eliom_state.number_of_service_sessions sp in
+      let ndsess = Eliom_state.number_of_volatile_data_sessions sp in
+      let ntables = Eliom_state.number_of_tables () in
+      let ntableselts = Eliom_state.number_of_table_elements () in
+      Eliom_state.number_of_persistent_data_sessions () >>=
         (fun nbperssess ->
-          let nbperstab = Eliom_sessions.number_of_persistent_tables () in
-          Eliom_sessions.number_of_persistent_table_elements () >>=
+          let nbperstab = Eliom_state.number_of_persistent_tables () in
+          Eliom_state.number_of_persistent_table_elements () >>=
           (fun nbperstabel ->
             let dot = <:xmllist< . >> in
             let list1 a l = <:xmllist<  with, respectively

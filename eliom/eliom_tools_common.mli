@@ -19,7 +19,7 @@
 
 open Eliom_services
 open Eliom_parameters
-open Eliom_sessions
+open Eliom_state
 
 
 (** {2 Menus } *)

@@ -40,11 +40,11 @@ let compute_cookie_info secure secure_ci cookie_info =
 
 
 (*****************************************************************************)
-let close_service_session ?session_name ?(scope = `Session) ~secure ~sp () =
+let close_service_session ?state_name ?(scope = `Session) ~secure ~sp () =
   try
     let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
     let fullsessname = 
-      Eliom_common.make_fullsessname ~sp cookie_scope session_name 
+      Eliom_common.make_fullsessname ~sp cookie_scope state_name 
     in
     let ((cookie_info, _, _), secure_ci) =
       Eliom_common.get_cookie_info sp cookie_scope
@@ -90,7 +90,7 @@ let fullsessgrp ~cookie_scope ~sp set_session_group =
     set_session_group
 
 let rec find_or_create_service_cookie ?set_session_group
-    ?session_name ?(cookie_scope = `Session) ~secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
 
@@ -103,7 +103,7 @@ let rec find_or_create_service_cookie ?set_session_group
                     browser session cookie 
                     and put the tab session into it. *)
         let v = find_or_create_service_cookie
-          ?session_name
+          ?state_name
           ~cookie_scope:`Session
           ~secure
           ~sp
@@ -157,7 +157,7 @@ let rec find_or_create_service_cookie ?set_session_group
 
 
   let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_scope session_name 
+    Eliom_common.make_fullsessname ~sp cookie_scope state_name 
   in
 
   let ((cookie_info, _, _), secure_ci) =
@@ -209,11 +209,11 @@ let rec find_or_create_service_cookie ?set_session_group
 
 
 let find_service_cookie_only
-    ?session_name ?(cookie_scope = `Session) ~secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_scope session_name 
+    Eliom_common.make_fullsessname ~sp cookie_scope state_name 
   in
   let ((cookie_info, _, _), secure_ci) =
       Eliom_common.get_cookie_info sp cookie_scope
