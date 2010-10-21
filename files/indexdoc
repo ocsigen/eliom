@@ -34,7 +34,7 @@ Authbasic
 Eliom_services 
 Eliom_uri 
 Eliom_parameters 
-Eliom_sessions 
+Eliom_state 
 Eliom_common
 Eliom_client
 }
