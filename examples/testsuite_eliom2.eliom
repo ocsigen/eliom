@@ -601,10 +601,10 @@ let comet2 =
       Eliom_services.onload ~sp
         {{
           React.E.map
-          (fun s -> Dom_html.window##alert (Js.string s))
-          \(e_down)
+            (fun s -> Dom_html.window##alert (Js.string s))
+            \(e_down)
         }};
-  
+
       (* We can send the page *)
       Lwt.return [
          h2 [pcdata "Dual events"] ;
