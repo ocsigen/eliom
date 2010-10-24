@@ -320,28 +320,28 @@ struct
     );
 
     (function (*channel*)
-     | <:ctyp< ($_$ Eliom_comet.Channels.chan) >> ->
+     | <:ctyp< ($_$ Eliom_comet.Channels.t) >> ->
          (<:expr<Eliom_comet.Channels.wrap ~sp>>,
           <:expr<Eliom_client_comet.Channels.unwrap>>)
      | _ -> raise Next
     );
 
     (function (*buffchan*)
-     | <:ctyp< ($_$ Eliom_comet.Dlisted_channels.chan) >> ->
+     | <:ctyp< ($_$ Eliom_comet.Dlisted_channels.t) >> ->
          (<:expr<Eliom_comet.Dlisted_channels.wrap ~sp>>,
           <:expr<Eliom_client_comet.Dlisted_channels.unwrap>>)
      | _ -> raise Next
     );
 
     (function (*up_event*)
-     | <:ctyp< ($_$ Eliom_event.Up.event) >> ->
+     | <:ctyp< ($_$ Eliom_event.Up.t) >> ->
          (<:expr<Eliom_event.Up.wrap ~sp>>,
           <:expr<Eliom_client_event.Up.unwrap ~sp>>)
      | _ -> raise Next
     );
 
     (function (*down_event*)
-     | <:ctyp< ($_$ Eliom_event.Down.event) >> ->
+     | <:ctyp< ($_$ Eliom_event.Down.t) >> ->
          (<:expr<Eliom_event.Down.wrap ~sp>>,
           <:expr<Eliom_client_event.Down.unwrap>>)
      | _ -> raise Next

@@ -39,7 +39,6 @@ module OX      = Ocsigen_extensions
 module OLib    = Ocsigen_lib
 module OConf   = Ocsigen_config
 module OMsg    = Ocsigen_messages
-module Pxml    = Simplexmlparser
 
 (* infix monad binders *)
 let ( >>= ) = Lwt.( >>= )
@@ -92,35 +91,26 @@ sig
   exception Non_unique_channel_name
     (* raised when creating a channel with a name already associated. *)
 
-  type chan
+  type t
     (* the type of channels :
      * channels can be written on or read from using the following functions
      *)
   type chan_id = string
 
-  val create : ?name:string -> (string * int option) React.E.t -> chan
-    (* creating a fresh virtual channel, a client can request registraton to  *)
+  val create : ?name:string -> unit -> t
+  val read : t -> (string * OStream.outcome Lwt.u option) Lwt.t
+  val write : t -> (string * OStream.outcome Lwt.u option) -> unit
 
-  val read : chan -> (string * int option) React.E.t
-    (* [read ch] is an event with occurrences for each occurrence of the event
-     * used to create the channel. *)
-
-  val outcomes : chan -> (OStream.outcome * int) React.E.t
-    (* The result of writes on the channel. [`Failure,s] on a failed [write s]
-     * and [`Success,s] on a successful [write s].*)
-  val send_outcome : chan -> (OStream.outcome * int) -> unit
-    (* triggers the [outcomes] event associated to the channel. *)
-
-  val listeners : chan -> int React.S.t
+  val listeners : t -> int
     (* The up-to-date count of registered clients *)
-  val send_listeners : chan -> int -> unit
+  val send_listeners : t -> int -> unit
     (* [send_listeners c i] adds [i] to [listeners c]. [i] may be negative. *)
 
-  val find_channel : chan_id -> chan
+  val find_channel : chan_id -> t
     (* may raise Not_found if the channel was collected or never created.
      * Basically ids are meant for clients to tell a server to start listening
      * to it. *)
-  val get_id : chan -> chan_id
+  val get_id : t -> chan_id
     (* [find_channel (get_id ch)] returns [ch] if the channel wasn't destroyed
      * that is. *)
 
@@ -130,15 +120,17 @@ end = struct
   exception Non_unique_channel_name
 
   type chan_id = string
-  type chan =
-      {
-        ch_id : chan_id ;
-        ch_client_event   : (string * int option) React.E.t ;
-        ch_tell_outcome   : (OStream.outcome * int) -> unit ;
-        ch_outcomes       : (OStream.outcome * int) React.E.t ;
-        ch_tell_listeners : int -> unit ;
-        ch_listeners      : int React.S.t ;
-      }
+    type t =
+        {
+                  ch_id : chan_id ;
+          mutable ch_read  : (string * OStream.outcome Lwt.u option) Lwt.t ;
+          mutable ch_write : (string * OStream.outcome Lwt.u option) Lwt.u;
+          mutable ch_listeners : int ;
+        }
+  module Dummy = struct
+    (*module added to avoid Ctbl.t cyclicity*)
+    type tt = t
+  end
 
   let get_id ch = ch.ch_id
 
@@ -147,7 +139,7 @@ end = struct
   module CTbl =
     Weak.Make
       (struct
-         type t = chan
+         type t = Dummy.tt
          let equal { ch_id = i } { ch_id = j } = i = j
          let hash { ch_id = c } = Hashtbl.hash c
        end)
@@ -160,17 +152,13 @@ end = struct
   (* because Hashtables allow search for elements with a corresponding hash, we
    * have to create a dummy channel in order to retreive the original channel.
    * Is there a KISSer way to do that ? *)
-  let (dummy1, _) = React.E.create ()
-  let (dummy3, dummy2) = React.E.create ()
-  let (dummy5, dummy4) = React.S.create 0
+  let (dummy1, dummy2) = Lwt.task ()
   let dummy_chan i =
     {
       ch_id = i ;
-      ch_client_event = dummy1 ;
-      ch_tell_outcome = dummy2 ;
-      ch_outcomes     = dummy3 ;
-      ch_tell_listeners = dummy4 ;
-      ch_listeners      = dummy5 ;
+      ch_read  = dummy1 ;
+      ch_write = dummy2 ;
+      ch_listeners = 0 ;
     }
 
   (* May raise Not_found *)
@@ -187,22 +175,18 @@ end = struct
 
 
   (* creation : newly created channel is stored in the map as a side effect *)
-  let do_create name client_event =
+  let do_create name =
     if maxed_out_virtual_channels ()
     then (OMsg.warning "Too many virtual channels, associated exception raised";
           raise Too_many_virtual_channels)
     else
-      let (listeners_e, tell_listeners) = React.E.create () in
-      let listeners = React.S.fold (+) 0 listeners_e in
-      let (outcomes, tell_outcome) = React.E.create () in
+      let (read , write ) = Lwt.task () in
       let ch =
         {
           ch_id = name ;
-          ch_client_event = client_event ;
-          ch_outcomes     = outcomes     ;
-          ch_tell_outcome = tell_outcome ;
-          ch_tell_listeners = tell_listeners ;
-          ch_listeners      = listeners ;
+          ch_read  = read  ;
+          ch_write = write ;
+          ch_listeners = 0 ;
         }
       in
         incr_chan_count ();
@@ -210,23 +194,25 @@ end = struct
         Gc.finalise decr_chan_count ch;
         ch
 
-  let create ?name client_event =
-    match name with
-      | None -> do_create (new_id ()) client_event
-      | Some n ->
-          try ignore (find_channel n) ; raise Non_unique_channel_name
-          with Not_found -> do_create n client_event
+  let write ch x =
+    let (read, write) = Lwt.task () in
+    let old_write = ch.ch_write in
+    ch.ch_write <- write ;
+    ch.ch_read  <- read  ;
+    Lwt.wakeup old_write x
+
+  let create ?name () = match name with
+    | None -> do_create (new_id ())
+    | Some n ->
+        try ignore (find_channel n) ; raise Non_unique_channel_name
+        with Not_found -> do_create n
 
   (* reading a channel : just getting a hang on the reader thread *)
-  let read ch = ch.ch_client_event
+  let read ch = ch.ch_read
 
   (* listeners *)
   let listeners ch = ch.ch_listeners
-  let send_listeners ch x = ch.ch_tell_listeners x
-
-  (* outcomes *)
-  let outcomes ch = ch.ch_outcomes
-  let send_outcome ch x = ch.ch_tell_outcome x
+  let send_listeners ch x = ch.ch_listeners <- ch.ch_listeners + x
 
 end
 
@@ -245,13 +231,13 @@ module Messages :
 sig
 
   val decode_upcomming :
-    OX.request -> (Channels.chan list * Channels.chan_id list) Lwt.t
+    OX.request -> (Channels.t list * Channels.chan_id list) Lwt.t
     (* decode incomming message : the result is the list of channels to listen
        to (on the left) or to signal non existence (on the right). *)
 
   val encode_downgoing :
        Channels.chan_id list
-    -> (Channels.chan * string * int option) list option
+    -> (Channels.t * string * OStream.outcome Lwt.u option) option
     -> string OStream.t
     (* Encode outgoing messages : the first argument is the list of channels
      * that have already been collected.
@@ -308,39 +294,30 @@ end = struct
       )
       >|= decode_param_list
 
-  let encode_downgoing_non_opt l =
-    String.concat
-      channel_separator
-      (List.map
-         (fun (c, s, _) -> Channels.get_id c ^ field_separator ^ url_encode s)
-         l)
+  let encode_downgoing_non_opt (c, s, _) =
+    Channels.get_id c ^ field_separator ^ url_encode s
 
   let encode_ended l =
     String.concat
       channel_separator
       (List.map (fun c -> c ^ field_separator ^ ended_message) l)
 
-  let stream_result_notification l outcome =
-    (*TODO: find a way to send outcomes simultaneously *)
-    List.iter
-      (function
-         | (c, _, Some x) -> Channels.send_outcome c (outcome, x)
-         | (_, _, None) -> ()
-      ) l ;
-    Lwt.return ()
+  let stream_result_notification s outcome = match s with
+    | (c, _, Some x) -> (Lwt.wakeup x outcome ; Lwt.return ())
+    | (_, _, None) -> Lwt.return ()
 
   let encode_downgoing e = function
     | None -> OStream.of_string (encode_ended e)
-    | Some l ->
+    | Some s ->
         let stream =
           OStream.of_string
             (match e with
-               | [] -> encode_downgoing_non_opt l
+               | [] -> encode_downgoing_non_opt s
                | e ->   encode_ended e
                       ^ field_separator
-                      ^ encode_downgoing_non_opt l)
+                      ^ encode_downgoing_non_opt s)
         in
-        OStream.add_finalizer stream (stream_result_notification l) ;
+        OStream.add_finalizer stream (stream_result_notification s) ;
         stream
 
 end
@@ -416,7 +393,7 @@ end = struct
 end
 
 module Main :
-  (* using React.merge, a client can wait for all the channels on which it
+  (* a client can wait for all the channels on which it
    * is registered and return with the first result. *)
 sig
 
@@ -462,26 +439,21 @@ end = struct
           }
 
     | (_::_ as active), ended -> (* generic case *)
-        let merged =
-          React.E.merge
-            (fun acc v -> v :: acc)
-            []
+        let choosed =
+          Lwt.choose
             (List.map
-               (fun c -> React.E.map
-                           (fun (v, x) -> (c, v, x))
-                           (Channels.read c)
-               )
+               (fun c -> Channels.read c >|= fun (v,x) -> (c, v, x))
                active
             )
         in
         List.iter (fun c -> Channels.send_listeners c 1) active ;
         Lwt.catch
           (fun () ->
-             Lwt.choose [ (Lwt_event.next merged >|= fun x -> Some x);
-                          (Lwt_unix.sleep (get_timeout ()) >|= fun () -> None);
-                          (Lwt_event.next Security.kill >>= fun () ->
-                           Lwt.fail Kill);
-                        ] >|= fun x ->
+             Lwt.choose
+               [ (choosed >|= fun x -> Some x);
+                 (Lwt_unix.sleep (get_timeout ()) >|= fun () -> None);
+                 (Lwt_event.next Security.kill >>= fun () -> Lwt.fail Kill);
+               ] >|= fun x ->
              List.iter (fun c -> Channels.send_listeners c (-1)) active ;
              let s = Messages.encode_downgoing ended x in
              OMsg.debug (fun () -> "Comet request served");
@@ -517,6 +489,11 @@ let rec has_comet_content_type = function
   | ("application", "x-ocsigen-comet") :: _ -> true
   | _ :: tl -> has_comet_content_type tl
 
+(*Only for debugging purpose*)
+let rec debug_content_type = function
+  | [] -> ""
+  | (s1,s2) :: tl -> s1 ^ "/" ^ s2 ^ "\n" ^ debug_content_type tl
+
 
 
 (*** MAIN FUNCTION ***)
@@ -525,10 +502,16 @@ let main = function
 
   | OX.Req_not_found (_, rq) -> (* Else check for content type *)
       begin match rq.OX.request_info.OX.ri_content_type with
-        | Some (hd,tl) when has_comet_content_type (hd :: tl) ->
+        | Some (hd, tl) when has_comet_content_type (hd :: tl) ->
+            OMsg.debug (fun () -> "Comet message: " ^ debug_content_type (hd :: tl));
             Lwt.return (OX.Ext_found (Main.main rq))
 
-        | Some _ | None -> Lwt.return OX.Ext_do_nothing
+        | Some (hd, tl) ->
+            OMsg.debug (fun () -> "Non comet message: " ^ debug_content_type (hd :: tl));
+            Lwt.return OX.Ext_do_nothing
+        | None ->
+            OMsg.debug (fun () -> "Non comet message: no content type");
+            Lwt.return OX.Ext_do_nothing
       end
 
   | OX.Req_found _ -> (* If recognized by some other extension... *)
@@ -541,11 +524,13 @@ let main = function
 
 (* registering extension and the such *)
 let parse_config _ _ _ = function
-  | Pxml.Element ("comet", attrs, []) ->
+  | Simplexmlparser.Element ("comet", attrs, []) ->
       parse_options attrs ;
       main
-  | Pxml.Element (t, _, _) -> raise (OX.Bad_config_tag_for_extension t)
-  | _ -> raise (OX.Error_in_config_file "Unexpected data in config file")
+  | Simplexmlparser.Element (t, _, _) ->
+      raise (OX.Bad_config_tag_for_extension t)
+  | _ ->
+      raise (OX.Error_in_config_file "Unexpected data in config file")
 let site_creator (_ : OX.virtual_hosts) _ = parse_config
 let user_site_creator (_ : OX.userconf_info) = site_creator
 

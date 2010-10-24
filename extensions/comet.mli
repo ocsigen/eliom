@@ -36,42 +36,17 @@ sig
       to another channel. It is strictly forbidden to name several channel with
       the same string. *)
 
-  type chan
+  type t
   (** The type of server-to-client communication channels. *)
 
   type chan_id = string
   (** The type of channel identifier. *)
 
-  val create : ?name:string -> (string * int option) React.E.t -> chan
-  (** [create ? name e] makes a fresh new channel upon which a message is sent
-      whenever [e] has an occurrence. When [e] as an occurrence of value [s,
-      None] then [s] is sent and no effort is made to detect transmission
-      errors. If [s, Some n] is sent upon [e] AND a client is registered to the
-      channel, then [outcomes] will be triggered with [n] as a witness. If
-      [?name] is [None] then a identifier is automatically generated. If [?name]
-      is [Some s] the identifier for the newly created channel is [s].
+  val create : ?name:string -> unit -> t
 
-      The [Too_many_virtual_channels] exception may be raised if [create] is
-      called when the count of channels exceed [max_virtual_channels]. Note that
-      the count of channels reflect channels that are kept in memory. It is
-      especially useful to know that only Gc cycles may decrease this count.*)
+  val write : t -> (string * Ocsigen_stream.outcome Lwt.u option) -> unit
 
-  val outcomes : chan -> (Ocsigen_stream.outcome * int) React.E.t
-  (** [outcomes c] is an event triggered with [o, x] when an occurrence of
-      the event associated to [c] is triggered with [Some x] as a second
-      component. The value of [o] is either [`Failure] or [`Success] depending
-      on the way the communication went.
-
-      There are several limitations to this :
-      * The information is only measured by server. The client takes no part in
-        occurrences of this event !
-      * When no client is registered to the channel, no feedback is provided.
-        Because of this, the [listeners] function is provided.
-      * When several clients are registered to the channel it is not possible to
-        distinguish successes and failures on a per client basis.
-      These limitations are being worked upon. *)
-
-  val listeners : chan -> int React.S.t
+  val listeners : t -> int
   (** [listeners c] is the ever updated number of client actively registered on
       [c]. A client is "actively registered" on a channel if an actual
       connection is open for the server to push a message to. Note that this
@@ -81,7 +56,7 @@ sig
       the event used to create the channel have an actual value in the second
       component of it's occurrence). *)
 
-  val get_id : chan -> chan_id
+  val get_id : t -> chan_id
   (** [get_id c] returns a unique identifier associated to [c]. The client can
       register to [c] using the returned identifier. *)
 
@@ -176,7 +151,7 @@ end
       * syntax: "" is for [None], "i" is for [Some (int_of_string i)]
       * [max_virtual_channels] is an upper limit to the number of active
         channels. It does not limit the number of connections but the number of
-        values of type [Comet.Channels.chan] that can be used simultaneously. If
+        values of type [Comet.Channels.t] that can be used simultaneously. If
         one calls [Comet.Channels.create] while the number of channels is
         already maxed out, the exception
         [Comet.Channels.Too_many_virtual_channels] is raised.

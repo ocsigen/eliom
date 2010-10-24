@@ -25,7 +25,7 @@
 module Down =
 struct
 
-  type 'a event = 
+  type 'a t =
       {throttling: float option;
        buffer_size: int;
        buffer_time: float option;
@@ -51,13 +51,18 @@ struct
         ?name
         ~max_size:bs
         ?timer:bt
+        ()
+    in
+    let ee =
+      React.E.map
+        (fun x -> Eliom_comet.Dlisted_channels.write chan x)
         (match t with
            | None -> e
            | Some t -> Lwt_event.limit (fun () -> Lwt_unix.sleep t) e
         )
     in
     let `R r = React.E.retain e (fun () -> ()) in
-    let `R _ = React.E.retain e (fun () -> r () ; ignore chan) in
+    let `R _ = React.E.retain e (fun () -> r () ; ignore chan ; ignore ee) in
     Eliom_comet.Dlisted_channels.wrap ~sp chan
 
 end

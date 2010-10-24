@@ -27,7 +27,7 @@ include Eliommod_event
 module Up =
 struct
 
-  type 'a event =
+  type 'a t =
       'a React.event *
       (unit,
        'a,
@@ -39,7 +39,7 @@ struct
        Eliom_predefmod.Action.return)
         Eliom_services.service
 
-  let react_event_of_up_event = fst
+  let to_react = fst
   let wrap ~sp (_, s) = Eliommod_cli.wrap ~sp s
 
   (* An event is created along with a service responsible for it's occurences.

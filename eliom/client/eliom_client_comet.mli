@@ -35,7 +35,7 @@ sig
   val stop : unit -> unit
   (** [stop ()] makes the engine stop. If it wasn't running, nothing happens. *)
 
-  val running : bool React.S.t
+  val running : unit -> bool
   (** [running] is a signal which value always reflect the state the engine is
       in. *)
 

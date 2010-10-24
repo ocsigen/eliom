@@ -37,7 +37,7 @@ module Down :
       taken care of automatically. *)
 sig
 
-  type 'a event
+  type 'a t
 
   val of_react :
        ?throttling:float
@@ -45,11 +45,11 @@ sig
     -> ?buffer_time:float
     -> ?name:string
     -> 'a React.E.t
-    -> 'a event
+    -> 'a t
 
   val wrap :
       sp:Eliom_state.server_params
-    -> 'a event
+    -> 'a t
     -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
   (** [wrap ~sp e] wraps the event [e] so that it can be handed to the client.
     *)
@@ -63,18 +63,18 @@ module Up :
       callback (or something the client can build a callback with). *)
 sig
 
-  type 'a event
+  type 'a t
   (** The type of events going up from the client to the server. On the server
       such an event is /primitive/ (hence the [create] function) whereas it is
       /effectful/ on the client. *)
 
-  val react_event_of_up_event : 'a event -> 'a React.E.t
+  val to_react : 'a t -> 'a React.E.t
   (** [react_event_of_up_event e] injects up events into events so that it can
       be manipulated as a standard event. *)
 
   val wrap :
       sp:Eliom_state.server_params
-    -> 'a event
+    -> 'a t
     -> (unit, 'a, [ `Nonattached of [ `Post ] Eliom_services.na_s ],
         [ `WithoutSuffix ], unit,
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
@@ -90,7 +90,7 @@ sig
     -> ('a, [ `WithoutSuffix ],
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
          Eliom_parameters.params_type
-    -> 'a event
+    -> 'a t
   (** [create ?sp param] creates an Up event. [?sp] has to be set to [Some _]
       if the event is created dynamically.
       If [~name] is present, the coservice used to transmit the event will

@@ -24,27 +24,22 @@ module Channels :
 (** A module with all the base primitive needed for server push.*)
 sig
 
-  type 'a chan
+  type 'a t
   (** The type of channels transporting values of type 'a. Values are marshalled
       before transmition, it is for the client to properly unmarshall it. The
       Eliom_client_comet module provides primitives that allow just that. *)
 
-  val create : ?name:string -> 'a React.E.t -> 'a chan
-  (** [create e] makes a fresh new channel immediatly usable. The id can
-      be transmitted to a client in order to let him collect information passed
-      on it. The identifier for the channel can be manually specified so that it
-      will still be valid after server restart.
+  val write : 'a t -> 'a -> unit
 
-      [Comet.Too_many_virtual_channels] may be raised if [max_virtual_channels]
-      is exceeded. *)
+  val create : ?name:string -> unit -> 'a t
 
-  val get_id : 'a chan -> 'a Eliom_common_comet.chan_id
+  val get_id : 'a t -> 'a Eliom_common_comet.chan_id
   (** [get_id c] returns a unique identifier associated to [c]. The client can
       register to [c] using the returned identifier. *)
 
   val wrap :
     sp:Eliom_state.server_params ->
-    'a chan -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
+    'a t -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
   (** [wrap sp c] wraps the channel [c] into the global data transmitted
       to the client with the application client-side code. The result is a value
       of type ['a chan_id] and it is the client responsability to register to
@@ -59,32 +54,24 @@ module Dlisted_channels :
     buffered channel will not loose data (except for user specified case). *)
 sig
 
-  type 'a chan
+  type 'a t
   (** The type of buffered channels. Such channels transport values of type [('a
       * int) list] (where the [int] is an increasing identifier for values of
       type ['a]. [Eliom_client_comet] provides a module to use these. *)
 
+  val write : 'a t -> 'a -> unit
+
   val create :
-     max_size:int
-  -> ?timer:float
-  -> ?name:string
-  -> 'a React.E.t
-  -> 'a chan
-  (** [create ~max_size ?timer e] creates a channel with [e] as a triggering
-      event. Whenever [e] occurs, it's value is either send or placed in a
-      buffer. There may never be more than [max_size] values queued in the
-      buffer and values are removed after [timer] if the argument is provided.
+    max_size:int -> ?timer:float ->
+    ?name:string ->
+    unit -> 'a t
 
-      No option is given for specifying the channel name. Named channels are for
-      public use only and buffered channels don't behave as they should for
-      multiple listeners. *)
-
-  val get_id : 'a chan -> 'a Eliom_common_comet.buffered_chan_id
+  val get_id : 'a t -> 'a Eliom_common_comet.buffered_chan_id
   (** Returns the unique identifier associated to the channel. *)
 
   val wrap :
     sp:Eliom_state.server_params ->
-    'a chan -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
+    'a t -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
 
 end
 

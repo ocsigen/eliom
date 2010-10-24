@@ -91,7 +91,7 @@ sig
   val registered : string -> bool
 
   (* started is true when the engine is running and false otherwise *)
-  val running : bool React.S.t
+  val running : unit -> bool
 
   val start : unit -> unit
 
@@ -228,6 +228,7 @@ end = struct
       )
       running_changes
 
+  let running () = React.S.value running
 
 end
 
@@ -256,10 +257,9 @@ struct
 
   let decode s = Marshal.from_string s 0
   let register c f =
-    (*TODO: use second composant*)
     Engine.register
       (Ecc.string_of_buffered_chan_id c)
-      (fun l -> Lwt_list.iter_s (fun (x, _) -> f x) (decode l))
+      (fun l -> Lwt_list.iter_s f (decode l))
   let unregister c = Engine.unregister (Ecc.string_of_buffered_chan_id c)
 
 end

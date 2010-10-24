@@ -520,15 +520,14 @@ occurrences of an event.
 
 (* create a communication channel. Because it is public, we give an explicit
  * name for it. *)
-let (c1, write_c1) =
-  let (e, push_e) = React.E.create () in
-  (Eliom_comet.Channels.create ~name:"comet1_public_channel" e, push_e)
+let c1 =
+  Eliom_comet.Channels.create ~name:"comet1_public_channel" ()
 
 
 (* randomly write on the channel *)
 let rec rand_tick () =
   Lwt_unix.sleep (float_of_int (5 + (Random.int 5))) >>= fun () ->
-  write_c1 (Random.int 99) ; rand_tick ()
+  Eliom_comet.Channels.write c1 (Random.int 99) ; rand_tick ()
 
 let _ = rand_tick ()
 
@@ -539,20 +538,15 @@ let comet1 =
     ~path:["comet1"]
     ~get_params:unit
     (fun sp () () ->
-       let (c2_pre, write_c2) = React.E.create () in
-       let c2 = Eliom_comet.Dlisted_channels.create
-                  ~max_size:6
-                  ~timer:16.
-                  c2_pre
-       in
+       let c2 = Eliom_comet.Dlisted_channels.create ~max_size:6 ~timer:16. () in
+       let write_c2 = Eliom_comet.Dlisted_channels.write c2 in
        let t2 = ref 0 in
        let rec tick_2 () =
          Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->
-         write_c2 !t2 ; incr t2 ; Lwt.pause () >>= fun () ->
-         write_c2 !t2 ; incr t2 ; write_c2 !t2 ; incr t2 ; tick_2 ()
+         write_c2 !t2 ; incr t2 ; Lwt_unix.yield () >>= fun () ->
+         write_c2 !t2 ; incr t2 ; tick_2 ()
        in
        let t = tick_2 () in
-       let `R _ = React.E.retain c2_pre (fun () -> ignore t; ignore c2) in
 
        Eliom_services.onload ~sp
          {{
@@ -595,15 +589,15 @@ let comet2 =
       (* First create a server-readable client-writable event AKA up event AKA
          client-to-server asynchronous edge *)
       let e_up = Eliom_event.Up.create ~sp (Eliom_parameters.caml "letter" : (string, 'aa, 'aaa) params_type) in
-      let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
+      let e_up_react = Eliom_event.Up.to_react e_up in
       let e_down =
         Eliom_event.Down.of_react
           (React.E.map
              (function "A" -> "alpha" | "B" -> "beta" | _ -> "what ?")
-             e_up_real
+             e_up_react
           )
       in
-      let `R _ = React.E.retain e_up_real (fun () -> ignore e_down) in
+      let `R _ = React.E.retain e_up_react (fun () -> ignore e_down) in
       Eliom_services.onload ~sp
         {{
           React.E.map
@@ -638,19 +632,19 @@ let comet3 =
        (* First create a server-readable client-writable event AKA up event AKA
           client-to-server asynchronous edge *)
        let e_up = Eliom_event.Up.create ~sp (Eliom_parameters.caml "double" : (string, 'aa, 'aaa) params_type) in
-       let e_up_real = Eliom_event.Up.react_event_of_up_event e_up in
+       let e_up_react = Eliom_event.Up.to_react e_up in
        let e_down_1 =
          Eliom_event.Down.of_react
            ~throttling:5.
            (React.E.map
               (let i = ref 0 in fun _ -> incr i ; !i)
-              e_up_real
+              e_up_react
            )
        in
        let e_down_2 =
-         Eliom_event.Down.of_react (React.E.map (fun _ -> "haha") e_up_real)
+         Eliom_event.Down.of_react (React.E.map (fun _ -> "haha") e_up_react)
        in
-       let `R _ = React.E.retain e_up_real
+       let `R _ = React.E.retain e_up_react
                     (fun () -> ignore e_down_1 ; ignore e_down_2)
        in
        Eliom_services.onload ~sp
@@ -698,7 +692,7 @@ let comet_message_board =
            ~buffer_size:15
            ~buffer_time:10.
            (React.E.map (fun x -> x)
-              (Eliom_event.Up.react_event_of_up_event message_up)
+              (Eliom_event.Up.to_react message_up)
            )
        in
 
