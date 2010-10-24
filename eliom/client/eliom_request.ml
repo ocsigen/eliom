@@ -51,8 +51,9 @@ let get_cookie_info_for_uri_js uri_js =
             (Eliom_state.ssl_, path)
          )
       )
-    | Some { Url.protocol = prot; Url.path = path } ->
-      ((prot = Url.Https), path)
+    | Some (Url.Https { Url.hu_path = path }) -> (true,  path)
+    | Some (Url.Http  { Url.hu_path = path }) -> (false, path)
+    | Some (Url.File  { Url.fu_path = path }) -> (false, path)
 
 let get_cookie_info_for_uri uri =
   let uri_js = Js.bytestring uri in

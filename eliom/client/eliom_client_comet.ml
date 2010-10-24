@@ -145,6 +145,29 @@ end = struct
 
   let more_slp f = if f >= 64. then 128. else 2. *. f
 
+
+  let comet_url = match Url.Current.get () with
+    | Some (Url.Http u) ->
+        Url.Http
+          {u with
+               Url.hu_fragment = "";
+               Url.hu_arguments = [];
+          }
+    | Some (Url.Https u) ->
+        Url.Https
+          {u with
+               Url.hu_fragment = "";
+               Url.hu_arguments = [];
+          }
+    | Some (Url.File u) ->
+        Url.File
+          {u with
+               Url.fu_fragment = "";
+               Url.fu_arguments = [];
+          }
+    | None ->
+        failwith "invalid url"
+
   (* action *)
   let rec run slp wt = match list_registered () with
       | [] -> Lwt.pause () >|= stop
@@ -157,10 +180,7 @@ end = struct
               XmlHttpRequest.send
                 ~content_type
                 ~post_args:[("registration", up_msg)]
-                { (Url.Current.get ()) with
-                     Url.fragment  = "";
-                     Url.arguments = [];
-                }
+                comet_url
             in
             Lwt.on_cancel wt (fun () -> Lwt.cancel async) ;
             async >>= fun r ->

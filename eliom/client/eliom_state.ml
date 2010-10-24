@@ -77,8 +77,6 @@ let full_path_string_ = Url.Current.path_string
 
 let full_path_ = Url.Current.path
 
-
-
 let full_uri = Url.Current.as_string
 
 let get_original_full_path_string ~sp = full_path_string_
@@ -98,10 +96,8 @@ let get_default_hostname ~sp = sp.sp_request.request_config.default_hostname
 let host_ = Url.Current.host
 
 let port_ = match Url.Current.port with
-  | None ->
-      failwith (  Url.string_of_protocol Url.Current.protocol
-                ^ " not supported in Eliom")
   | Some p -> p
+  | None -> failwith "No port found"
 
 
 let get_hostname ~sp = host_
@@ -112,7 +108,9 @@ let get_server_port ~sp = port_
 
 
 
-let ssl_ = Url.Current.protocol = Url.Https
+let ssl_ = match Url.Current.get () with
+  | Some (Url.Https _) -> true
+  | Some (Url.Http _) | Some (Url.File _) | None -> false
 let get_ssl ~sp = ssl_
 
 let get_other_get_params ~sp =
