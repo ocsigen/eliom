@@ -1140,6 +1140,7 @@ module Caml : sig
     ?name: string ->
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
+    ?csrf_scope:Eliom_common.user_scope ->
     ?csrf_secure_session: bool ->
     ?max_use:int ->
     ?timeout:float ->
@@ -1174,6 +1175,7 @@ module Caml : sig
     ?name: string ->
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
+    ?csrf_scope:Eliom_common.user_scope ->
     ?csrf_secure_session: bool ->
     ?max_use:int ->
     ?timeout:float ->
@@ -1228,6 +1230,7 @@ module Caml : sig
     ?name: string ->
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
+    ?csrf_scope:Eliom_common.user_scope ->
     ?csrf_secure_session: bool ->
     ?max_use:int ->
     ?timeout:float ->
@@ -1261,6 +1264,7 @@ module Caml : sig
     ?name: string ->
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
+    ?csrf_scope:Eliom_common.user_scope ->
     ?csrf_secure_session: bool ->
     ?max_use:int ->
     ?timeout:float ->
@@ -1282,3 +1286,8 @@ end
 
 
 
+module Customize : functor (R : Eliom_mkreg.ELIOMREGSIG) -> 
+  functor (T : sig type page val translate : page -> R.page Lwt.t end) ->
+    Eliom_mkreg.ELIOMREGSIG with type page = T.page
+                            and type options = R.options
+                            and type return = R.return

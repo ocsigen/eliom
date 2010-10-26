@@ -2592,6 +2592,295 @@ module Streamlist = MakeRegister(Streamlistreg_)
 (****************************************************************************)
 (****************************************************************************)
 
+module Customize (R : Eliom_mkreg.ELIOMREGSIG)
+  (T : sig type page val translate : page -> R.page Lwt.t end) = struct
+
+  type page = T.page
+  type options = R.options
+  type return = R.return
+
+  let make_eh = function
+    | None -> None
+    | Some eh -> Some (fun sp l -> eh sp l >>= T.translate)
+
+  let make_service_handler f sp g p = f sp g p >>= T.translate
+
+  let send ?options ?charset ?code ?content_type ?headers ~sp content =
+    T.translate content >>= fun c ->
+    R.send ?options ?charset ?code ?content_type ?headers ~sp c
+
+  let register
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ~service
+      ?error_handler
+      (f : (Eliom_state.server_params -> 'get -> 'post -> 'return Lwt.t)) =
+    R.register
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ~service
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+
+  let register_service 
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?https
+      ~path
+      ~get_params
+      ?error_handler
+      f =
+    R.register_service 
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?https
+      ~path
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_coservice 
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_state_name
+      ?csrf_scope
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~get_params
+      ?error_handler
+      f =
+    R.register_coservice 
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_state_name
+      ?csrf_scope
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback:(Eliom_services.untype_service_ fallback)
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_state_name
+      ?csrf_scope
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler
+      f =
+    R.register_coservice' 
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_state_name
+      ?csrf_scope
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?https
+      ~get_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_post_service
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?https
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    R.register_post_service 
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?https
+      ~fallback:(Eliom_services.untype_service_ fallback)
+      ~post_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_post_coservice
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_state_name
+      ?csrf_scope
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback
+      ~post_params
+      ?error_handler
+      f =
+    R.register_post_coservice 
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_state_name
+      ?csrf_scope
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?https
+      ~fallback:(Eliom_services.untype_service_ fallback)
+      ~post_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+  let register_post_coservice'
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_state_name
+      ?csrf_scope
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
+      ~post_params
+      ?error_handler
+      f =
+    R.register_post_coservice' 
+      ?scope
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      ?state_name
+      ?secure_session
+      ?sp
+      ?name
+      ?csrf_safe
+      ?csrf_state_name
+      ?csrf_scope
+      ?csrf_secure_session
+      ?max_use
+      ?timeout
+      ?keep_get_na_params
+      ?https
+      ~post_params
+      ?error_handler:(make_eh error_handler)
+      (make_service_handler f)
+
+end
+
+(****************************************************************************)
+(****************************************************************************)
 module Camlreg_ = struct
   open XHTML.M
   open Xhtmltypes
@@ -2717,6 +3006,7 @@ module Caml = struct
       ?name
       ?csrf_safe
       ?csrf_state_name
+      ?csrf_scope
       ?csrf_secure_session
       ?max_use
       ?timeout
@@ -2738,6 +3028,7 @@ module Caml = struct
                                       ?name
                                       ?csrf_safe
                                       ?csrf_state_name
+                                      ?csrf_scope
                                       ?csrf_secure_session
                                       ?max_use
                                       ?timeout
@@ -2760,6 +3051,7 @@ module Caml = struct
       ?name
       ?csrf_safe
       ?csrf_state_name
+      ?csrf_scope
       ?csrf_secure_session
       ?max_use
       ?timeout
@@ -2780,6 +3072,7 @@ module Caml = struct
                                       ?name
                                       ?csrf_safe
                                       ?csrf_state_name
+                                      ?csrf_scope
                                       ?csrf_secure_session
                                       ?max_use
                                       ?timeout
@@ -2833,6 +3126,7 @@ module Caml = struct
       ?name
       ?csrf_safe
       ?csrf_state_name
+      ?csrf_scope
       ?csrf_secure_session
       ?max_use
       ?timeout
@@ -2854,6 +3148,7 @@ module Caml = struct
                                       ?name
                                       ?csrf_safe
                                       ?csrf_state_name
+                                      ?csrf_scope
                                       ?csrf_secure_session
                                       ?max_use
                                       ?timeout
@@ -2876,6 +3171,7 @@ module Caml = struct
       ?name
       ?csrf_safe
       ?csrf_state_name
+      ?csrf_scope
       ?csrf_secure_session
       ?max_use
       ?timeout
@@ -2897,6 +3193,7 @@ module Caml = struct
                                       ?name
                                       ?csrf_safe
                                       ?csrf_state_name
+                                      ?csrf_scope
                                       ?csrf_secure_session
                                       ?max_use
                                       ?timeout
