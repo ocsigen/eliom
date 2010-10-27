@@ -155,7 +155,12 @@ val service :
 
    {e Warning: If you use this function after the initialisation phase,
    you must give the [~sp] parameter, otherwise it will raise the
-   exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+   exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to this function
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.
+   }
 *)
 
 
@@ -515,7 +520,11 @@ val onunload : sp:Eliom_state.server_params -> XML.event -> unit
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to this function
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.}
  *)
 val set_exn_handler :
   ?sp:Eliom_state.server_params ->

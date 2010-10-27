@@ -239,8 +239,12 @@ val persistent_data_state_status :
     {e Warning: If you use one of these functions after the
     initialisation phase, you must give the [~sp] parameter, otherwise
     it will raise the exception
-    {!Eliom_common.Eliom_function_forbidden_outside_site_loading}. This
-    remark also applies to [get_*] functions.}
+    {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to these functions
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.
+   This remark also applies to most [get_*] functions.}
 *)
 
 (** Sets the timeout for volatile (= "in memory") sessions (both
@@ -1006,7 +1010,11 @@ val remove_persistent_data :
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to this function
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.}
  *)
 val discard_all :
   ?state_name:string ->
@@ -1027,7 +1035,11 @@ val discard_all :
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to this function
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.}
  *)
 val discard_all_data :
   ?persistent:bool ->
@@ -1047,7 +1059,11 @@ val discard_all_data :
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to this function
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.}
  *)
 val discard_all_services :
   ?state_name:string ->
@@ -1152,7 +1168,11 @@ module Session_admin : sig
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to this function
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.}
    *)
   val iter_service_sessions :
       ?sp:server_params ->
@@ -1163,7 +1183,11 @@ module Session_admin : sig
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to this function
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.}
    *)
   val iter_volatile_data_sessions :
       ?sp:server_params ->
@@ -1179,7 +1203,11 @@ module Session_admin : sig
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to this function
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.}
    *)
   val fold_service_sessions :
       ?sp:server_params ->
@@ -1190,7 +1218,11 @@ module Session_admin : sig
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to this function
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.}
    *)
   val fold_volatile_data_sessions :
       ?sp:server_params ->
