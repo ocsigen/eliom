@@ -486,7 +486,7 @@ module type HiddenServiceInfo = sig
   val path : string list
 (** The path of the hidden service *)
   val f :
-    Eliom_state.server_params ->
+    Eliom_request_info.server_params ->
     (string * string) list ->
     unit -> Eliom_predefmod.Any.page Lwt.t
 (** The function called when an user connects to the hidden service
@@ -533,7 +533,7 @@ module Make (S : HiddenServiceInfo) = struct
        "claimed_id", local;
        "identity", local;
        "assoc_handle", assoc.assoc_handle;
-       "realm", "http://"^Eliom_state.get_hostname ~sp] @ ext.headers
+       "realm", "http://"^Eliom_request_info.get_hostname ~sp] @ ext.headers
     in
     let params = push_ns "openid" (("ns", openid_url) :: ("mode", mode) :: params) in
     Lwt.return (uri_of_string (format_url (fst discovery) params))
@@ -556,14 +556,14 @@ let check = ref (fun ?mode ~ext ~handler ~sp ~discovery -> Lwt.fail (Failure "Ca
 
 type check_fun =
     ?immediate:bool ->
-    sp:Eliom_state.server_params ->
+    sp:Eliom_request_info.server_params ->
     ?policy_url:string ->
     ?max_auth_age:int ->
     ?auth_policies:string list ->
     ?required:field list ->
     ?optional:field list ->
     string ->
-    (Eliom_state.server_params ->
+    (Eliom_request_info.server_params ->
      result authentication_result -> Eliom_predefmod.Any.page Lwt.t) ->
     XHTML.M.uri Lwt.t
 

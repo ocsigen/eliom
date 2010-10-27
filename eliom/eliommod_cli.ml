@@ -105,7 +105,7 @@ let client_si s =
 
 
 let client_sp s =
-  let s = Eliom_state.esp_of_sp s in
+  let s = Eliom_request_info.esp_of_sp s in
   {
 (* Eliom_client_types.sp_request = client_request s.Eliom_common.sp_request; *)
    Eliom_client_types.sp_si = client_si s.Eliom_common.sp_si;
@@ -119,19 +119,19 @@ let eliom_appl_page_data_key : ((int64 * int) * unit list) Polytables.key =
   Polytables.make_key ()
 
 let get_eliom_appl_page_data_ ~sp = 
-  let rc = Eliom_state.get_request_cache ~sp in
+  let rc = Eliom_request_info.get_request_cache ~sp in
   try 
     Polytables.get ~table:rc ~key:eliom_appl_page_data_key
   with Not_found -> 
-    let d = ((Eliom_state.get_request_id ~sp, 0), []) in
+    let d = ((Eliom_request_info.get_request_id ~sp, 0), []) in
     Polytables.set ~table:rc ~key:eliom_appl_page_data_key ~value:d;
     d
 
 let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
-  let rc = Eliom_state.get_request_cache ~sp in
+  let rc = Eliom_request_info.get_request_cache ~sp in
   let ((reqnum, num) as n, data) =
     try Polytables.get ~table:rc ~key:eliom_appl_page_data_key
-    with Not_found -> ((Eliom_state.get_request_id ~sp, 0), [])
+    with Not_found -> ((Eliom_request_info.get_request_id ~sp, 0), [])
   in
   Polytables.set ~table:rc ~key:eliom_appl_page_data_key
     ~value:((reqnum, num+1), Obj.magic v::data);
@@ -141,7 +141,7 @@ let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
 let wrap_sp ~sp = wrap ~sp (client_sp sp)
 
 let wrap_node ~sp n = 
-  let reqnum = Eliom_state.get_request_id ~sp in
+  let reqnum = Eliom_request_info.get_request_id ~sp in
   Eliom_client_types.to_data_key_ (reqnum, XML.ref_node (XHTML5.M.toelt n))
 
 

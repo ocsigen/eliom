@@ -30,7 +30,7 @@ val make_a_with_onclick :
            [< Eliom_services.suff ], 'gn, 'pn,
            [< Eliom_services.registrable ], 'return)
     Eliom_services.service ->
-  sp:Eliom_state.server_params ->
+  sp:Eliom_request_info.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -45,7 +45,7 @@ val make_get_form_with_onsubmit :
   ('form -> string -> (unit -> unit Lwt.t) -> 'g) ->
   ('form -> unit -> unit Lwt.t) ->
   string ->
-  sp:Eliom_state.server_params ->
+  sp:Eliom_request_info.server_params ->
   ?a:'a -> action:'b -> 'c -> 'd -> 'form
 
 val make_post_form_with_onsubmit :
@@ -56,7 +56,7 @@ val make_post_form_with_onsubmit :
   ('form -> string -> (unit -> unit Lwt.t) -> 'g) ->
   ('form -> unit -> unit Lwt.t) ->
   string ->
-  sp:Eliom_state.server_params ->
+  sp:Eliom_request_info.server_params ->
   ?a:'a -> action:'b -> 'c -> 'd -> 'form
 
 val add_tab_cookies_to_get_form : 'form XHTML5.M.elt -> unit -> unit Lwt.t

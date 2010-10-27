@@ -24,7 +24,6 @@ open Lwt
 open Ocsigen_lib
 open Eliom_parameters
 open Eliom_services
-open Eliom_state
 
 
 (*****************************************************************************)
@@ -108,7 +107,7 @@ let make_proto_prefix
   in
   let host = match hostname, sp with
     | None, Some sp -> Eliom_state.get_hostname ~sp 
-    | None, None -> Eliom_state.get_default_hostname () 
+    | None, None -> Eliom_config.get_default_hostname () 
     | Some h, _ -> h
   in
   let port = 
@@ -118,12 +117,12 @@ let make_proto_prefix
           if https = ssl
           then Eliom_state.get_server_port ~sp 
           else if https
-          then Eliom_state.get_default_sslport ~sp ()
-          else Eliom_state.get_default_port ~sp ()
+          then Eliom_config.get_default_sslport ~sp ()
+          else Eliom_config.get_default_port ~sp ()
       | None, None ->
         if https
-        then Eliom_state.get_default_sslport ()
-        else Eliom_state.get_default_port ()
+        then Eliom_config.get_default_sslport ()
+        else Eliom_config.get_default_port ()
   in
   Ocsigen_lib.make_absolute_url https host port "/"
 
@@ -178,13 +177,13 @@ let make_uri_components_ (* does not take into account getparams *)
           Ocsigen_lib.String_Table.fold
             (fun key v b -> Ocsigen_lib.String_Table.add key v b)
             preappnlp
-            (Eliom_state.get_nl_get_params ~sp)
+            (Eliom_request_info.get_nl_get_params ~sp)
       | `Persistent, Some sp ->
           (* We replace current nl params by preapplied ones *)
           Ocsigen_lib.String_Table.fold
             (fun key v b -> Ocsigen_lib.String_Table.add key v b)
             preappnlp
-            (Eliom_state.get_persistent_nl_get_params ~sp)
+            (Eliom_request_info.get_persistent_nl_get_params ~sp)
       | `All, None
       | `Persistent, None
       | `None, _ -> preappnlp
@@ -226,7 +225,7 @@ let make_uri_components_ (* does not take into account getparams *)
                       (get_full_path_ attser) suff
                 | None, Some sp ->
                     reconstruct_relative_url_path_string
-                      (get_original_full_path sp)
+                      (Eliom_state.get_original_full_path sp)
                       (get_full_path_ attser) suff
                 | None, None ->
                     reconstruct_relative_url_path_string
@@ -264,9 +263,9 @@ let make_uri_components_ (* does not take into account getparams *)
               | None -> []
               | Some sp ->
                 (if na_name = Eliom_common.SNa_void_keep
-                 then (Eliom_state.get_si sp).Eliom_common.si_all_get_but_nl
+                 then (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
                  else Lazy.force 
-                    (Eliom_state.get_si sp).Eliom_common.si_all_get_but_na_nl)
+                    (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_na_nl)
           in
           (match na_name, sp with
              | Eliom_common.SNa_void_keep, _
@@ -289,9 +288,10 @@ let make_uri_components_ (* does not take into account getparams *)
         let beg =
           match absolute, sp with
             | Some proto_prefix, Some sp ->
-              proto_prefix^ get_original_full_path_string sp
+              proto_prefix^ Eliom_request_info.get_original_full_path_string sp
             | None, Some sp -> 
-              relative_url_path_to_myself (get_original_full_path sp)
+              relative_url_path_to_myself
+                (Eliom_state.get_original_full_path sp)
             | Some proto_prefix, None ->
               proto_prefix
             | None, None -> 
@@ -477,13 +477,13 @@ let make_post_uri_components_ (* do not take into account postparams *)
                     Ocsigen_lib.String_Table.fold
                       (fun key v b -> Ocsigen_lib.String_Table.add key v b)
                       preappnlp
-                      (Eliom_state.get_nl_get_params ~sp)
+                      (Eliom_request_info.get_nl_get_params ~sp)
                 | `Persistent ->
                     (* We replace current nl params by preapplied ones *)
                     Ocsigen_lib.String_Table.fold
                       (fun key v b -> Ocsigen_lib.String_Table.add key v b)
                       preappnlp
-                      (Eliom_state.get_persistent_nl_get_params ~sp)
+                      (Eliom_request_info.get_persistent_nl_get_params ~sp)
                 | `None -> preappnlp
             in
             let nlp =
@@ -518,10 +518,10 @@ let make_post_uri_components_ (* do not take into account postparams *)
               params @
               (if keep_get_na_params
                then
-                 (Eliom_state.get_si sp).Eliom_common.si_all_get_but_nl
+                 (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_nl
                else
                  (Lazy.force
-                   (Eliom_state.get_si sp).Eliom_common.si_all_get_but_na_nl))
+                   (Eliom_request_info.get_si sp).Eliom_common.si_all_get_but_na_nl))
             in
 
 
@@ -544,9 +544,10 @@ let make_post_uri_components_ (* do not take into account postparams *)
             let uri =
               match absolute with
                 | Some proto_prefix ->
-                    proto_prefix^get_original_full_path_string sp
+                    proto_prefix^Eliom_request_info.get_original_full_path_string sp
                 | None ->
-                    relative_url_path_to_myself (get_original_full_path sp)
+                    relative_url_path_to_myself
+                      (Eliom_state.get_original_full_path sp)
             in
 
             let naservice_line =

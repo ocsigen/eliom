@@ -1427,7 +1427,7 @@ let tlogin_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_state.get_request_cache sp)
+      [p (if get_bad_user (Eliom_request_info.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -1468,7 +1468,7 @@ let tpersist_session_connect_action_handler sp () login =
   if login = "toto" (* Check user and password :-) *)
   then
     Eliom_state.set_persistent_data ~table:tmy_persistent_table ~sp login
-  else ((*zap* *)Polytables.set (Eliom_state.get_request_cache sp) bad_user_key true;(* *zap*)return ())
+  else ((*zap* *)Polytables.set (Eliom_request_info.get_request_cache sp) bad_user_key true;(* *zap*)return ())
 
 
 
@@ -1545,7 +1545,7 @@ let tlogin_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_state.get_request_cache sp)
+      [p (if get_bad_user (Eliom_request_info.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -1587,7 +1587,7 @@ let tconnect_action_handler sp () login =
     return ()
   end
   else begin
-    Polytables.set (Eliom_state.get_request_cache sp) bad_user_key true;
+    Polytables.set (Eliom_request_info.get_request_cache sp) bad_user_key true;
     return ()
   end
 
@@ -1664,7 +1664,7 @@ let _ = Eliom_appl.register tcookies
                     "cookie value: "^
                       (Ocsigen_lib.String_Table.find
                          cookiename
-                         (Eliom_state.get_cookies
+                         (Eliom_request_info.get_cookies
                             ~cookie_scope:`Client_process ~sp ()))
         with _ -> "<cookie not set>");
           br ();

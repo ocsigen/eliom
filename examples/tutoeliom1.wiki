@@ -483,7 +483,7 @@ The parameter labeled
 Functions implementing services are called //service handlers//.
        They take three parameters. The first
        one has type
-       <<ocsigendoc version="dev" file="Eliom_state.html" fragment="TYPEserver_params"|<<span class="code"|Eliom_state.server_params>>>>
+       <<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="TYPEserver_params"|<<span class="code"|Eliom_request_info.server_params>>>>
         and
        corresponds to server parameters (user-agent, ip, current-url, etc.
        - see later in that section for examples of use),
@@ -557,9 +557,9 @@ let uasuffix =
                strong [pcdata ((string_of_int year)^"/"
                                ^(string_of_int month))];
                pcdata ", your user-agent is ";
-               strong [pcdata (Eliom_state.get_user_agent sp)];
+               strong [pcdata (Eliom_request_info.get_user_agent sp)];
                pcdata ", your IP is ";
-               strong [pcdata (Eliom_state.get_remote_ip sp)]]])))
+               strong [pcdata (Eliom_request_info.get_remote_ip sp)]]])))
 >>
           
 This service will answer to URLs like

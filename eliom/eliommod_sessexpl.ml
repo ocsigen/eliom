@@ -105,11 +105,11 @@ let fold_persistent_sessions f beg =
 
 let number_of_service_sessions ~sp =
   Eliom_common.SessionCookies.length
-    sp.Eliom_common.sp_sitedata.Eliom_common.session_services
+    (Eliom_request_info.get_sitedata ~sp).Eliom_common.session_services
 
 let number_of_data_sessions ~sp =
   Eliom_common.SessionCookies.length
-    sp.Eliom_common.sp_sitedata.Eliom_common.session_data
+    (Eliom_request_info.get_sitedata ~sp).Eliom_common.session_data
 
 let number_of_tables () =
   List.length !Eliommod_datasess.counttableelements

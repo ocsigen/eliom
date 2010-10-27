@@ -32,8 +32,8 @@ val fold_persistent_sessions :
     Eliom_common.perssessgrp option) ->
    'a -> 'a Lwt.t) ->
   'a -> 'a Lwt.t
-val number_of_service_sessions : sp:Eliom_common.server_params -> int
-val number_of_data_sessions : sp:Eliom_common.server_params -> int
+val number_of_service_sessions : sp:Eliom_request_info.server_params -> int
+val number_of_data_sessions : sp:Eliom_request_info.server_params -> int
 val number_of_tables : unit -> int
 val number_of_table_elements : unit -> int list
 val number_of_persistent_sessions : unit -> int Lwt.t

@@ -61,7 +61,7 @@ sig
   val get_id : 'a t -> 'a Ecc.chan_id
 
   val wrap :
-    sp:Eliom_state.server_params ->
+    sp:Eliom_request_info.server_params ->
     'a t -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
 
 end = struct
@@ -112,7 +112,7 @@ sig
   (** Returns the unique identifier associated to the channel. *)
 
   val wrap :
-       sp:Eliom_state.server_params
+       sp:Eliom_request_info.server_params
     -> 'a t
     -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
 

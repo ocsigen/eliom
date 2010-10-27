@@ -39,6 +39,6 @@ let get_eliom_extension () = !module_action
 let run_eliom_extension (fext : eliom_extension_sig) now info sitedata  =
 
   let sp =
-    Eliom_common.make_server_params sitedata info None None
+    Eliom_state.make_server_params sitedata info None None
   in
   fext sp

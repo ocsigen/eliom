@@ -128,7 +128,7 @@ let service_aux
         ~https
         ~prefix:""
         ~path:path
-        ~site_dir:(Eliom_state.get_site_dir sp)
+        ~site_dir:(Eliom_request_info.get_site_dir sp)
         ~kind:(`Internal `Service)
         ~getorpost:`Get
         ?redirect_suffix
@@ -398,8 +398,8 @@ let post_coservice'
 
 (*****************************************************************************)
 let set_exn_handler ?sp h =
-  let sitedata = Eliom_state.find_sitedata "set_exn_handler" sp in
-  Eliom_state.set_site_handler sitedata h
+  let sitedata = Eliom_request_info.find_sitedata "set_exn_handler" sp in
+  Eliom_request_info.set_site_handler sitedata h
 
 let add_service = Eliommod_services.add_service
 let add_naservice = Eliommod_naservices.add_naservice
@@ -425,7 +425,7 @@ let register_delayed_get_or_na_coservice ~sp (k, state_name,
           k table.Eliom_common.csrf_get_or_na_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice
   in
-  f ~sp:(Eliom_state.esp_of_sp sp)
+  f ~sp:(Eliom_request_info.esp_of_sp sp)
 
 
 let register_delayed_post_coservice ~sp (k, state_name,
@@ -444,7 +444,7 @@ let register_delayed_post_coservice ~sp (k, state_name,
           k table.Eliom_common.csrf_post_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice
   in
-  f ~sp:(Eliom_state.esp_of_sp sp) getname
+  f ~sp:(Eliom_request_info.esp_of_sp sp) getname
 
 
 let set_delayed_get_or_na_registration_function tables k f =
@@ -528,7 +528,7 @@ let unregister ?(scope = `Global) ?sp ?state_name ?secure service =
 let on_load_key : string list Polytables.key = Polytables.make_key ()
 
 let get_onload ~sp =
-  let rc = Eliom_state.get_request_cache ~sp in
+  let rc = Eliom_request_info.get_request_cache ~sp in
   try 
     List.rev (Polytables.get ~table:rc ~key:on_load_key)
   with Not_found -> []
@@ -536,20 +536,20 @@ let get_onload ~sp =
 let on_unload_key : string list Polytables.key = Polytables.make_key ()
 
 let get_onunload ~sp = 
-  let rc = Eliom_state.get_request_cache ~sp in
+  let rc = Eliom_request_info.get_request_cache ~sp in
   try
     List.rev (Polytables.get ~table:rc ~key:on_unload_key)
   with Not_found -> []
 
 let onload ~sp s =
-  let rc = Eliom_state.get_request_cache ~sp in
+  let rc = Eliom_request_info.get_request_cache ~sp in
   let s0 = try Polytables.get ~table:rc ~key:on_load_key
     with Not_found -> []
   in
   Polytables.set ~table:rc ~key:on_load_key ~value:(s::s0)
 
 let onunload ~sp s =
-  let rc = Eliom_state.get_request_cache ~sp in
+  let rc = Eliom_request_info.get_request_cache ~sp in
   let s0 = try Polytables.get ~table:rc ~key:on_unload_key
     with Not_found -> []
   in

@@ -172,7 +172,7 @@ module type HiddenServiceInfo = sig
   val path : string list
 (** The path of the hidden service *)
   val f :
-    Eliom_state.server_params ->
+    Eliom_request_info.server_params ->
     (string * string) list ->
     unit -> Eliom_predefmod.Any.page Lwt.t
 (** The function called when an user connects to the hidden service
@@ -189,10 +189,10 @@ module Make :
       val authenticate :
         mode:string ->
         ext:'a extension ->
-        handler:(Eliom_state.server_params ->
+        handler:(Eliom_request_info.server_params ->
                  'a authentication_result ->
                  Eliom_predefmod.Any.page Lwt.t) ->
-        sp:Eliom_state.server_params ->
+        sp:Eliom_request_info.server_params ->
         discovery:string * string option -> XHTML.M.uri Lwt.t
         (** Authenticate an user.
             - mode: can be [checkid_setup] or [checkid_immediate]
@@ -233,14 +233,14 @@ type result = {
 *)
 type check_fun =
     ?immediate:bool ->
-    sp:Eliom_state.server_params ->
+    sp:Eliom_request_info.server_params ->
     ?policy_url:string ->
     ?max_auth_age:int ->
     ?auth_policies:string list ->
     ?required:field list ->
     ?optional:field list ->
     string ->
-    (Eliom_state.server_params ->
+    (Eliom_request_info.server_params ->
      result authentication_result -> Eliom_predefmod.Any.page Lwt.t) ->
     XHTML.M.uri Lwt.t
 
@@ -248,6 +248,6 @@ type check_fun =
     Takes a path and a handler for the hidden service *)
 val init :
   path:string list ->
-  f:(Eliom_state.server_params ->
+  f:(Eliom_request_info.server_params ->
      (string * string) list -> unit -> Eliom_predefmod.Any.page Lwt.t) ->
   check_fun

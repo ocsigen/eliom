@@ -63,6 +63,8 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)eliom/eliom_parameters.mli				\
 	$(DOCPREF)eliom/eliom_services.mli				\
 	$(DOCPREF)eliom/eliom_uri.mli				\
+	$(DOCPREF)eliom/eliom_config.mli				\
+	$(DOCPREF)eliom/eliom_request_info.mli				\
 	$(DOCPREF)eliom/eliom_state.mli				\
 	$(DOCPREF)eliom/eliom_extensions.mli				\
 	$(DOCPREF)eliom/extensions/atom_feed.mli \
@@ -125,7 +127,8 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
        eliom/eliom_tools_common.cmi eliom/eliom_tools.cmi \
        $(DUCECMI) \
-       eliom/eliom_state.cmi eliom/eliom_parameters.cmi \
+       eliom/eliom_config.cmi eliom/eliom_request_info.cmi eliom/eliom_state.cmi \
+       eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
        eliom/eliom_uri.cmi \
 	eliom/extensions/eliom_s2s.cmi eliom/extensions/eliom_openid.cmi \
@@ -241,6 +244,8 @@ CLIENTCMITOINSTALL= \
         eliom/client/polytables.cmi \
         eliom/client/xML.cmi \
         eliom/client/eliom_client_types.cmi \
+        eliom/client/eliom_config.cmi \
+        eliom/client/eliom_request_info.cmi \
         eliom/client/eliom_state.cmi \
         eliom/client/regexp.cmi \
         eliom/client/eliom_common.cmi \

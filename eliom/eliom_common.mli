@@ -69,6 +69,8 @@ val eliom_service_session_expired :
 *)
 
 
+
+
 (**/**)
 
 (*VVV Warning: raising these exceptions will NOT send cookies!
@@ -292,6 +294,16 @@ module Serv_Table : Map.S with type key = page_table_key
 type dlist_ip_table
 
 type anon_params_type = int
+
+type client_process_info = (* information about the client process.
+                              Mainly the URL when it has been launched *)
+    {
+      cpi_ssl : bool;
+      cpi_hostname : string;
+      cpi_server_port : int;
+      cpi_original_full_path : Ocsigen_lib.url_path;
+    }
+
 type server_params = {
   sp_request : Ocsigen_extensions.request;
   sp_si : sess_info;
@@ -309,6 +321,11 @@ type server_params = {
                                           or by the service. *)
   sp_suffix : Ocsigen_lib.url_path option;
   sp_fullsessname : fullsessionname option;
+  mutable sp_client_process_info: client_process_info option
+        (* Contains the base URL information from which the client process
+           has been launched (if any). All relative links and forms will be
+           created with respect to this information (if present - from current
+           URL otherwise). *);
 }
 and page_table = page_table_content Serv_Table.t
 
@@ -442,7 +459,7 @@ type info =
 
 exception Eliom_retry_with of info
 
-val make_server_params :
+val make_server_params_ :
   sitedata ->
   info ->
   Ocsigen_lib.url_path option -> 
@@ -526,3 +543,5 @@ val get_cookie_info : server_params -> [< cookie_scope ] -> tables cookie_info
 val tab_cookie_action_info_key : (tables cookie_info * 
                                     Ocsigen_cookies.cookieset *
                                     string Ocsigen_lib.String_Table.t) Polytables.key
+
+

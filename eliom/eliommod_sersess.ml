@@ -41,6 +41,7 @@ let compute_cookie_info secure secure_ci cookie_info =
 
 (*****************************************************************************)
 let close_service_session ?state_name ?(scope = `Session) ~secure ~sp () =
+  let sp = Eliom_request_info.esp_of_sp sp in
   try
     let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
     let fullsessname = 
@@ -83,10 +84,10 @@ let close_service_session ?state_name ?(scope = `Session) ~secure ~sp () =
 let fullsessgrp ~cookie_scope ~sp set_session_group =
   Eliommod_sessiongroups.make_full_group_name
     ~cookie_scope
-    sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
-    sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
-    (Eliom_common.get_mask4 sp.Eliom_common.sp_sitedata)
-    (Eliom_common.get_mask6 sp.Eliom_common.sp_sitedata)
+    (Eliom_request_info.get_request ~sp).Ocsigen_extensions.request_info
+    (Eliom_request_info.get_sitedata ~sp).Eliom_common.site_dir_string
+    (Eliom_common.get_mask4 (Eliom_request_info.get_sitedata ~sp))
+    (Eliom_common.get_mask6 (Eliom_request_info.get_sitedata ~sp))
     set_session_group
 
 let rec find_or_create_service_cookie ?set_session_group
@@ -94,6 +95,7 @@ let rec find_or_create_service_cookie ?set_session_group
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
 
+  let esp = Eliom_request_info.esp_of_sp sp in
 
   let rec new_service_cookie sitedata fullsessname table =
 
@@ -157,11 +159,11 @@ let rec find_or_create_service_cookie ?set_session_group
 
 
   let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_scope state_name 
+    Eliom_common.make_fullsessname ~sp:esp cookie_scope state_name 
   in
 
   let ((cookie_info, _, _), secure_ci) =
-    Eliom_common.get_cookie_info sp cookie_scope
+    Eliom_common.get_cookie_info esp cookie_scope
   in
   let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   try
@@ -176,8 +178,8 @@ let rec find_or_create_service_cookie ?set_session_group
     | Eliom_common.SCNo_data ->
       let v =
         new_service_cookie
-          sp.Eliom_common.sp_sitedata fullsessname
-          sp.Eliom_common.sp_sitedata.Eliom_common.session_services
+          (Eliom_request_info.get_sitedata ~sp) fullsessname
+          (Eliom_request_info.get_sitedata ~sp).Eliom_common.session_services
       in
       ior := Eliom_common.SC v;
       v
@@ -187,7 +189,7 @@ let rec find_or_create_service_cookie ?set_session_group
         | Some session_group -> 
           let fullsessgrp = fullsessgrp ~cookie_scope ~sp set_session_group in
           let node = Eliommod_sessiongroups.Serv.move
-            sp.Eliom_common.sp_sitedata
+            (Eliom_request_info.get_sitedata ~sp)
             c.Eliom_common.sc_session_group_node fullsessgrp
           in
           c.Eliom_common.sc_session_group_node <- node;
@@ -197,8 +199,8 @@ let rec find_or_create_service_cookie ?set_session_group
   with Not_found ->
     let v =
       new_service_cookie
-        sp.Eliom_common.sp_sitedata fullsessname
-        sp.Eliom_common.sp_sitedata.Eliom_common.session_services
+        (Eliom_request_info.get_sitedata ~sp) fullsessname
+        (Eliom_request_info.get_sitedata ~sp).Eliom_common.session_services
     in
     cookie_info :=
       Eliom_common.Fullsessionname_Table.add
@@ -212,6 +214,7 @@ let find_service_cookie_only
     ?state_name ?(cookie_scope = `Session) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
+  let sp = Eliom_request_info.esp_of_sp sp in
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_scope state_name 
   in

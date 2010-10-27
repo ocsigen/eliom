@@ -46,7 +46,7 @@ let find_page_table
     urlsuffix
     k
     =
-  let sp = Eliom_common.make_server_params sitedata info urlsuffix fullsessname
+  let sp = Eliom_state.make_server_params sitedata info urlsuffix fullsessname
   in
   (catch
      (fun () -> return (Eliom_common.Serv_Table.find k !pagetableref))

@@ -1,6 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2008 Vincent Balat
+ * Module eliom_sessions.ml
+ * Copyright (C) 2009 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,15 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-(*****************************************************************************)
-(*****************************************************************************)
-(** Run Ocsigen extensions that can access Eliom data                        *)
-(*****************************************************************************)
-(*****************************************************************************)
 
-type eliom_extension_sig =
-  Eliom_request_info.server_params -> Ocsigen_extensions.answer Lwt.t
-
-let register_eliom_extension f =
-  Eliommod_extensions.register_eliom_extension
-    (fun sp -> f (Eliom_request_info.sp_of_esp sp))
+let get_default_hostname ?sp () = Url.Current.host
+let get_default_port ?sp () = 80 (*VVV !!!!!!!!! *) (*RRR ??? Url.default_http_port ???*)
+let get_default_sslport ?sp () = 443 (*VVV !!!!!!!!! *) (*RRR ??? replace by Url.default_https_port ???*)

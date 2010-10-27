@@ -31,7 +31,7 @@ let (make_a_with_onclick :
                [< Eliom_services.suff ], 'h, 'i,
                [< Eliom_services.registrable ], 'j)
         Eliom_services.service ->
-      sp:Eliom_state.server_params ->
+      sp:Eliom_request_info.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -77,7 +77,7 @@ let (make_a_with_onclick :
 
 
 let make_add_tab_cookies_to_form id ~sp form_ref =
-  let reqnum = Eliom_state.get_request_id ~sp in
+  let reqnum = Eliom_request_info.get_request_id ~sp in
   "caml_run_from_table (" ^
     id^", \'" ^
     (Eliom_client_types.jsmarshal (reqnum, form_ref)) ^

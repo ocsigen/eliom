@@ -62,6 +62,7 @@ let close_persistent_session2 =
 
 (* close current persistent session *)
 let close_persistent_session ?state_name ?(scope = `Session) ~secure ~sp () =
+  let sp = Eliom_request_info.esp_of_sp sp in
   catch
     (fun () ->
       let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
@@ -119,7 +120,6 @@ let rec find_or_create_persistent_cookie_
     ?set_max_in_group ?set_session_group ?state_name
     ?(cookie_scope = `Session) ~secure ~sp () =
   (* if it exists, do not create it, but returns its value *)
-
 
   let new_persistent_cookie sitedata fullsessname =
 
@@ -205,6 +205,7 @@ let rec find_or_create_persistent_cookie_
 
 let find_or_create_persistent_cookie
     ?set_session_group ?state_name ?cookie_scope ~secure ~sp () =
+  let sp = Eliom_request_info.esp_of_sp sp in
   find_or_create_persistent_cookie_
     ?set_session_group ?state_name ?cookie_scope ~secure ~sp ()
 
@@ -213,6 +214,7 @@ let find_persistent_cookie_only ?state_name
     ?(cookie_scope = `Session) ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
+  let sp = Eliom_request_info.esp_of_sp sp in
   let fullsessname = 
     Eliom_common.make_fullsessname ~sp cookie_scope state_name 
   in

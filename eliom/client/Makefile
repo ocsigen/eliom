@@ -12,7 +12,8 @@ MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml svgtypes.ml sVG.ml xhtml5types.ml xHT
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
 	eliom_common.ml	eliom_process.ml \
-	eliom_state.ml eliom_parameters.ml \
+	eliom_config.ml eliom_request_info.ml eliom_state.ml \
+	eliom_parameters.ml \
 	eliom_services.ml eliom_uri.ml \
 	eliom_request.ml \
 	xhtmltypes.ml polytables.ml \

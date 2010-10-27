@@ -30,7 +30,7 @@ let def_handler sp e = fail e
 
 let handle_site_exn exn info sitedata =
   sitedata.Eliom_common.exn_handler
-    (Eliom_common.make_server_params sitedata info None None) exn 
+    (Eliom_state.make_server_params sitedata info None None) exn 
   >>= fun r -> 
   return r
 

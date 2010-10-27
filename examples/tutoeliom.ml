@@ -489,7 +489,7 @@ The parameter labeled
 Functions implementing services are called //service handlers//.
        They take three parameters. The first
        one has type
-       %<ocsigendoc version="dev" file="Eliom_state.html" fragment="TYPEserver_params"|%<span class="code"|Eliom_state.server_params>%>%
+       %<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="TYPEserver_params"|%<span class="code"|Eliom_request_info.server_params>%>%
         and
        corresponds to server parameters (user-agent, ip, current-url, etc.
        - see later in that section for examples of use),
@@ -565,9 +565,9 @@ let uasuffix =
                strong [pcdata ((string_of_int year)^"/"
                                ^(string_of_int month))];
                pcdata ", your user-agent is ";
-               strong [pcdata (Eliom_state.get_user_agent sp)];
+               strong [pcdata (Eliom_request_info.get_user_agent sp)];
                pcdata ", your IP is ";
-               strong [pcdata (Eliom_state.get_remote_ip sp)]]])))
+               strong [pcdata (Eliom_request_info.get_remote_ip sp)]]])))
 (*wiki*
           
 This service will answer to URLs like
@@ -2973,7 +2973,7 @@ The %<span class="code"|?cookie_type>> argument
 
 
   You can access the cookies sent by the browser using
-  %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_cookies"|%<span class="code"|Eliom_state.get_cookies sp>%>%.
+  %<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_cookies"|%<span class="code"|Eliom_request_info.get_cookies sp>%>%.
      
           
 
@@ -2995,7 +2995,7 @@ let _ = Eliom_predefmod.Xhtml.register cookies
          (body [p [pcdata (try
                              "cookie value: "^
                                (Ocsigen_lib.String_Table.find
-                                  cookiename (Eliom_state.get_cookies ~sp ()))
+                                  cookiename (Eliom_request_info.get_cookies ~sp ()))
                            with _ -> "<cookie not set>");
                    br ();
                    a cookies sp [pcdata "send other cookie"] ()]])))
@@ -3294,7 +3294,7 @@ let login_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_state.get_request_cache sp)
+      [p (if get_bad_user (Eliom_request_info.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -3336,7 +3336,7 @@ let persist_session_connect_action_handler sp () login =
   if login = "toto" (* Check user and password :-) *)
   then
     Eliom_state.set_persistent_data ~table:my_persistent_table ~sp login
-  else ((*zap* *)Polytables.set (Eliom_state.get_request_cache sp) bad_user_key true;(* *zap*)return ())
+  else ((*zap* *)Polytables.set (Eliom_request_info.get_request_cache sp) bad_user_key true;(* *zap*)return ())
 
 
 (* -------------------------------------------------------- *)
@@ -3428,7 +3428,7 @@ There is also
 
           
     The function
-    %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_link_too_old"|%<span class="code"|Eliom_state.get_link_too_old>%>%
+    %<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_link_too_old"|%<span class="code"|Eliom_request_info.get_link_too_old>%>%
     returns %<span class="code"|true>% if the coservice called has not been found.
     In that case, the current service is the fallback.
   
@@ -3436,7 +3436,7 @@ There is also
 
           
     The function
-    %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_expired_service_sessions"|%<span class="code"|Eliom_state.get_expired_service_sessions>%>%
+    %<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_expired_service_sessions"|%<span class="code"|Eliom_request_info.get_expired_service_sessions>%>%
     returns returns the list of names of service sessions expired 
     for the current request.
     
@@ -3447,7 +3447,7 @@ It is also possible to send other information to fallback,
     about what succeeded before they were called. 
     Put this information in the //request cache//.
     The request cache is a polymorphic table returned by
-     %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_request_cache"|%<span class="code"|Eliom_state.get_request_cache sp>%>%.
+     %<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_request_cache"|%<span class="code"|Eliom_request_info.get_request_cache sp>%>%.
      See the module
      %<ocsigendoc version="dev" file="Polytables.html"|%<span class="code"|Polytables>%>% to understand how to use it.
      You may also want to use this table to cache some data during the 
@@ -3511,7 +3511,7 @@ let login_box sp session_expired action =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_state.get_request_cache sp)
+      [p (if get_bad_user (Eliom_request_info.get_request_cache sp)
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -3554,7 +3554,7 @@ let connect_action_handler sp () login =
     return ()
   end
   else begin
-    Polytables.set (Eliom_state.get_request_cache sp) bad_user_key true;
+    Polytables.set (Eliom_request_info.get_request_cache sp) bad_user_key true;
     return ()
   end
 
@@ -3615,7 +3615,7 @@ let _ = register disposable
       return
         (html
           (head (title (pcdata "")) [])
-          (body [p [(if Eliom_state.get_link_too_old sp
+          (body [p [(if Eliom_request_info.get_link_too_old sp
                     then pcdata "Your link was outdated. I am the fallback. I just created a new disposable coservice. You can use it only twice."
                     else
                     pcdata "I just created a disposable coservice. You can use it only twice.");
@@ -3692,7 +3692,7 @@ Warning: that default may be overriden by each site using
         If you want your user to be able to set the default in the
         configuration file for your site (between %<span class="code"|<site>%>
         and %<span class="code"|</site>%>), you must parse the configuration
-        (%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|%<span class="code"|Eliom_state.get_config ()>%>% function, see below).
+        (%<ocsigendoc version="dev" file="Eliom_config.html" fragment="VALget_config"|%<span class="code"|Eliom_config.get_config ()>%>% function, see below).
      
           
 
@@ -3847,7 +3847,7 @@ You can add your own options in the configuration
 >%
 
           
-       Use %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|%<span class="code"|Eliom_state.get_config ()>%>% during the initialization
+       Use %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|%<span class="code"|Eliom_config.get_config ()>%>% during the initialization
        of your module to get the data between
        %<span class="code"|<eliom>%> and %<span class="code"|</eliom>%>.
        Warning: parsing these data is very basic for now.
@@ -5035,7 +5035,7 @@ let suffixform = register_service ["suffixform"] unit
 The %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALfile"|%<span class="code"|Eliom_parameters.file>%>% parameter type allows to send files in your
        request. The service gets something of type
        %<ocsigendoc version="dev" file="Ocsigen_extensions.html" fragment="TYPEfile_info"|%<span class="code"|Ocsigen_extensions.file_info>%>%. You can extract information
-       using this using these functions (from %<ocsigendoc version="dev" file="Eliom_state.html"|%<span class="code"|Eliom_state>%>%):
+       using this using these functions (from %<ocsigendoc version="dev" file="Eliom_request_info.html"|%<span class="code"|Eliom_request_info>%>%):
       
           
 
@@ -5048,9 +5048,9 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 >%
 
           
-%<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_tmp_filename"|%<span class="code"|Eliom_state.get_tmp_filename>%>% allows to know the actual name
+%<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_tmp_filename"|%<span class="code"|Eliom_request_info.get_tmp_filename>%>% allows to know the actual name
        of the uploaded file on the hard drive.
-        %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_original_filename"|%<span class="code"|Eliom_state.get_original_filename>%>% gives the original filename.
+        %<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_original_filename"|%<span class="code"|Eliom_request_info.get_original_filename>%>% gives the original filename.
           
 
           
@@ -5089,8 +5089,8 @@ let upload2 = register_post_service
         (try
           Unix.unlink newname;
         with _ -> ());
-        Ocsigen_messages.console2 (Eliom_state.get_tmp_filename file);
-        Unix.link (Eliom_state.get_tmp_filename file) newname;
+        Ocsigen_messages.console2 (Eliom_request_info.get_tmp_filename file);
+        Unix.link (Eliom_request_info.get_tmp_filename file) newname;
         let fd_in = open_in newname in
         try
           let line = input_line fd_in in close_in fd_in; line (*end*)
@@ -5530,9 +5530,9 @@ If you want an Ocsigen extension with access to Eliom's
           
           
 From version 1.2, it is possible to link extensions and Eliom modules
-  statically ([[site:staticlink|See here]]).
+  statically ([[site:ocsigenserver/staticlink|See here]]).
       Obviously, for Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function
-%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|%<span class="code"|Eliom_services.register_eliom_module>%>%. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call %<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|%<span class="code"|Eliom_state.get_config>%>% if the module has configuration options).
+%<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|%<span class="code"|Eliom_services.register_eliom_module>%>%. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call %<ocsigendoc version="dev" file="Eliom_config.html" fragment="VALget_config"|%<span class="code"|Eliom_config.get_config>%>% if the module has configuration options).
       
           
 

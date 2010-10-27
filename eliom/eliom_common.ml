@@ -59,6 +59,8 @@ let spersistentcookiename = "Seliompersistentsession|"
 
 
 
+
+
 (*****************************************************************************)
 
 let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
@@ -348,6 +350,15 @@ end)
 
 type anon_params_type = int
 
+type client_process_info = (* information about the client process.
+                              Mainly the URL when it has been launched *)
+    {
+      cpi_ssl : bool;
+      cpi_hostname : string;
+      cpi_server_port : int;
+      cpi_original_full_path : Ocsigen_lib.url_path;
+    }
+
 type server_params =
     {sp_request: Ocsigen_extensions.request;
      sp_si: sess_info;
@@ -367,7 +378,13 @@ type server_params =
      sp_fullsessname: fullsessionname option (* the name of the session
                                                 to which belong the service
                                                 that answered
-                                                (if it is a session service) *)}
+                                                (if it is a session service) *);
+     mutable sp_client_process_info: client_process_info option
+     (* Contains the base URL information from which the client process
+        has been launched (if any). All relative links and forms will be
+        created with respect to this information (if present - from current
+        URL otherwise). *);
+    }
 
 and page_table = page_table_content Serv_Table.t
 
@@ -537,7 +554,7 @@ let get_cookie_info sp = function
 
 (*****************************************************************************)
 (** Create server parameters record *)
-let make_server_params
+let make_server_params_
     sitedata (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
     suffix fullsessname
     : server_params =
@@ -558,7 +575,10 @@ let make_server_params
    sp_content_only= content_only;
    sp_appl_name= appl_name;
    sp_suffix=suffix;
-   sp_fullsessname= fullsessname}
+   sp_fullsessname= fullsessname;
+   sp_client_process_info = None; (* Will be set later
+                                     from server side state data *)
+  }
 
 
 (*****************************************************************************)
@@ -1108,5 +1128,6 @@ let remove_from_all_persistent_tables key =
       Ocsipersist.remove (Ocsipersist.open_table t) key >>= Lwt_unix.yield)
     (return ())
     !perstables
+
 
 

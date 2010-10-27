@@ -414,7 +414,7 @@ let servreq =
     ~path:["servreq"]
     ~get_params:unit
     (fun sp () () ->
-       let ri = Eliom_state.get_ri sp in
+       let ri = Eliom_request_info.get_ri sp in
        let ri = Ocsigen_extensions.ri_of_url "tuto/" ri in
        Ocsigen_extensions.serve_request ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
@@ -431,7 +431,7 @@ let servreqloop =
     ~path:["servreqloop"]
     ~get_params:unit
     (fun sp () () ->
-       let ri = Eliom_state.get_ri sp in
+       let ri = Eliom_request_info.get_ri sp in
        Ocsigen_extensions.serve_request ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
        Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
@@ -843,7 +843,7 @@ let _ = Eliom_predefmod.Xhtml.register cookies
       Eliom_state.set_cookie
         ~sp ~path:["c";"plop"] ~name:(cookiename^"12")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
-      if Ocsigen_lib.String_Table.mem (cookiename^"1") (get_cookies ~sp ())
+      if Ocsigen_lib.String_Table.mem (cookiename^"1") (Eliom_request_info.get_cookies ~sp ())
       then
         (Eliom_state.unset_cookie ~sp ~name:(cookiename^"1") ();
          Eliom_state.unset_cookie ~sp ~name:(cookiename^"2") ())
@@ -866,7 +866,7 @@ let _ = Eliom_predefmod.Xhtml.register cookies
                           (pcdata (n^"="^v))::
                             (br ())::l
                         )
-                        (get_cookies ~sp ())
+                        (Eliom_request_info.get_cookies ~sp ())
                         [a cookies sp [pcdata "send other cookies"] ""; br ();
                          a cookies sp [pcdata "send other cookies and see the url /c/plop"] "plop"]
                      )]))
@@ -1418,7 +1418,7 @@ let get_param_service =
            (try
              Unix.unlink newname;
            with _ -> ());
-           Unix.link (get_tmp_filename file) newname;
+           Unix.link (Eliom_request_info.get_tmp_filename file) newname;
            let fd_in = open_in newname in
            try
              let line = input_line fd_in in close_in fd_in; line (*end*)

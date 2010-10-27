@@ -59,7 +59,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      ?sp:Eliom_state.server_params ->
+      ?sp:Eliom_request_info.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -93,7 +93,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      ?sp:Eliom_state.server_params -> 
+      ?sp:Eliom_request_info.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -111,7 +111,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit,
                [< registrable ], 'return) service ->
-      ?sp:Eliom_state.server_params -> 
+      ?sp:Eliom_request_info.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -132,7 +132,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_state.server_params -> 
+      sp:Eliom_request_info.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string -> 
@@ -145,7 +145,7 @@ module type XHTMLFORMSSIG = sig
 (** Like [make_uri_components], but also creates a table of post parameters. *)
 
     val make_proto_prefix :
-      ?sp:Eliom_state.server_params ->
+      ?sp:Eliom_request_info.server_params ->
       ?hostname:string ->
       ?port:int ->
       bool ->
@@ -162,7 +162,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_state.server_params -> 
+      sp:Eliom_request_info.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -231,7 +231,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_state.server_params -> 
+      sp:Eliom_request_info.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -253,7 +253,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [<suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_state.server_params -> 
+      sp:Eliom_request_info.server_params -> 
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -273,7 +273,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_state.server_params ->
+      sp:Eliom_request_info.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -301,7 +301,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn,
                [< registrable ], 'return) service ->
-      sp:Eliom_state.server_params ->
+      sp:Eliom_request_info.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -840,7 +840,7 @@ type appl_service_params =
       ap_title: string;
       ap_container : 'a.
         ((([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option *
-           (sp:Eliom_state.server_params -> 
+           (sp:Eliom_request_info.server_params -> 
             Xhtml5types.body_content XHTML5.M.elt ->
             Xhtml5types.body_content XHTML5.M.elt list))
         option;
@@ -1094,14 +1094,14 @@ module Caml : sig
     ?headers: Http_headers.t ->
     ?state_name:string ->
     ?secure_session:bool ->
-    ?sp: Eliom_state.server_params ->
+    ?sp: Eliom_request_info.server_params ->
     service:('get, 'post,
              [< internal_service_kind ],
              [< suff ], 'gn, 'pn, [ `Registrable ], 
              'return Eliom_parameters.caml) service ->
-    ?error_handler:(Eliom_state.server_params ->
+    ?error_handler:(Eliom_request_info.server_params ->
                       (string * exn) list -> 'return Lwt.t) ->
-    (Eliom_state.server_params -> 'get -> 'post -> 'return Lwt.t) ->
+    (Eliom_request_info.server_params -> 'get -> 'post -> 'return Lwt.t) ->
     unit
 
 
@@ -1114,13 +1114,13 @@ module Caml : sig
     ?headers: Http_headers.t ->
     ?state_name:string ->
     ?secure_session:bool ->
-    ?sp: Eliom_state.server_params ->
+    ?sp: Eliom_request_info.server_params ->
     ?https:bool ->
     path:Ocsigen_lib.url_path ->
     get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-    ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
+    ?error_handler:(Eliom_request_info.server_params -> (string * exn) list ->
                       'return Lwt.t) ->
-    (Eliom_state.server_params -> 'get -> unit -> 'return Lwt.t) ->
+    (Eliom_request_info.server_params -> 'get -> unit -> 'return Lwt.t) ->
     ('get, unit,
      [> `Attached of
         ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
@@ -1136,7 +1136,7 @@ module Caml : sig
     ?headers: Http_headers.t ->
     ?state_name:string ->
     ?secure_session:bool ->
-    ?sp: Eliom_state.server_params ->
+    ?sp: Eliom_request_info.server_params ->
     ?name: string ->
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
@@ -1152,9 +1152,9 @@ module Caml : sig
       service ->
     get_params:
       ('get, [`WithoutSuffix], 'gn) params_type ->
-    ?error_handler:(Eliom_state.server_params ->
+    ?error_handler:(Eliom_request_info.server_params ->
                       (string * exn) list -> 'return Lwt.t) ->
-    (Eliom_state.server_params -> 'get -> unit -> 'return Lwt.t) ->
+    (Eliom_request_info.server_params -> 'get -> unit -> 'return Lwt.t) ->
     ('get, unit,
      [> `Attached of
         ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
@@ -1171,7 +1171,7 @@ module Caml : sig
     ?headers: Http_headers.t ->
     ?state_name:string ->
     ?secure_session:bool ->
-    ?sp: Eliom_state.server_params ->
+    ?sp: Eliom_request_info.server_params ->
     ?name: string ->
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
@@ -1182,9 +1182,9 @@ module Caml : sig
     ?https:bool ->
     get_params:
       ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-    ?error_handler:(Eliom_state.server_params ->
+    ?error_handler:(Eliom_request_info.server_params ->
                       (string * exn) list -> 'return Lwt.t) ->
-    (Eliom_state.server_params -> 'get -> unit -> 'return Lwt.t) ->
+    (Eliom_request_info.server_params -> 'get -> unit -> 'return Lwt.t) ->
     ('get, unit,
      [> `Nonattached of [> `Get] na_s ],
      'tipo, 'gn, unit, [> `Registrable ], 'return Eliom_parameters.caml)
@@ -1199,7 +1199,7 @@ module Caml : sig
     ?headers: Http_headers.t ->
     ?state_name:string ->
     ?secure_session:bool ->
-    ?sp: Eliom_state.server_params ->
+    ?sp: Eliom_request_info.server_params ->
     ?https:bool ->
     fallback:('get, unit,
               [ `Attached of
@@ -1209,9 +1209,9 @@ module Caml : sig
               unit, [< `Registrable ], 'return Eliom_parameters.caml)
       service ->
     post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-    ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
+    ?error_handler:(Eliom_request_info.server_params -> (string * exn) list ->
                       'return Lwt.t) ->
-    (Eliom_state.server_params -> 'get -> 'post -> 'return Lwt.t) ->
+    (Eliom_request_info.server_params -> 'get -> 'post -> 'return Lwt.t) ->
     ('get, 'post, [> `Attached of
                      ([> `Internal of 'kind ], [> `Post]) a_s ],
      'tipo, 'gn, 'pn, [> `Registrable ], 'return Eliom_parameters.caml)
@@ -1226,7 +1226,7 @@ module Caml : sig
     ?headers: Http_headers.t ->
     ?state_name:string ->
     ?secure_session:bool ->
-    ?sp: Eliom_state.server_params ->
+    ?sp: Eliom_request_info.server_params ->
     ?name: string ->
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
@@ -1242,9 +1242,9 @@ module Caml : sig
               'gn, unit, [< `Registrable ], 'return Eliom_parameters.caml)
       service ->
     post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-    ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
+    ?error_handler:(Eliom_request_info.server_params -> (string * exn) list ->
                       'return Lwt.t) ->
-    (Eliom_state.server_params -> 'get -> 'post -> 'return Lwt.t) ->
+    (Eliom_request_info.server_params -> 'get -> 'post -> 'return Lwt.t) ->
     ('get, 'post,
      [> `Attached of
         ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
@@ -1260,7 +1260,7 @@ module Caml : sig
     ?headers: Http_headers.t ->
     ?state_name:string ->
     ?secure_session:bool ->
-    ?sp: Eliom_state.server_params ->
+    ?sp: Eliom_request_info.server_params ->
     ?name: string ->
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
@@ -1271,9 +1271,9 @@ module Caml : sig
     ?keep_get_na_params:bool ->
     ?https:bool ->
     post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-    ?error_handler:(Eliom_state.server_params -> (string * exn) list ->
+    ?error_handler:(Eliom_request_info.server_params -> (string * exn) list ->
                       'return Lwt.t) ->
-    (Eliom_state.server_params -> unit -> 'post -> 'return Lwt.t) ->
+    (Eliom_request_info.server_params -> unit -> 'post -> 'return Lwt.t) ->
     (unit, 'post, [> `Nonattached of [> `Post] na_s ],
      [ `WithoutSuffix ], unit, 'pn,
      [> `Registrable ], 'return Eliom_parameters.caml)

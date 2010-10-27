@@ -159,7 +159,7 @@ let static_dir_ ?(https = false) ~sp () =
      kind = `Attached
         {prefix = "";
          subpath = [""];
-         fullpath = (Eliom_state.get_site_dir sp) @ 
+         fullpath = (Eliom_request_info.get_site_dir sp) @ 
             [Eliom_common.eliom_suffix_internal_name];
          get_name = Eliom_common.SAtt_no;
          post_name = Eliom_common.SAtt_no;
@@ -190,7 +190,7 @@ let get_static_dir_ ?(https = false) ~sp
      kind = `Attached
        {prefix = "";
         subpath = [""];
-        fullpath = (Eliom_state.get_site_dir sp) @ 
+        fullpath = (Eliom_request_info.get_site_dir sp) @ 
            [Eliom_common.eliom_suffix_internal_name];
         get_name = Eliom_common.SAtt_no;
         post_name = Eliom_common.SAtt_no;
@@ -215,7 +215,7 @@ let get_do_appl_xhr s = s.do_appl_xhr
 let set_do_appl_xhr s n = s.do_appl_xhr <- n
 
 let do_appl_xhr ~sp s =
-  let n = Eliom_state.get_sp_appl_name sp in
+  let n = Eliom_request_info.get_sp_appl_name sp in
   (n <> None) && 
     (match s.do_appl_xhr with
       | XAlways -> true

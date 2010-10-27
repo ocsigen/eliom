@@ -259,7 +259,7 @@ let make_naservice
            tablewhereithasbeenfound,
            fullsessname) ->
   (naservice
-     (Eliom_common.make_server_params
+     (Eliom_state.make_server_params
         sitedata
         info
         None

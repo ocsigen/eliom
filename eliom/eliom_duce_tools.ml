@@ -30,7 +30,7 @@ let same_service_opt sp s sopt =
   let same_url url = make_uri ~absolute_path:true ~sp ~service:s () = url in
   match sopt with
     | None -> (* MAYBE : use this or get_original_full_path_string *)
-        same_url ("/" ^ Eliom_state.get_current_full_path_string sp)
+        same_url ("/" ^ Eliom_request_info.get_current_full_path_string sp)
     | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ~sp ())
 
 

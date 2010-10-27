@@ -38,7 +38,7 @@ sig
       register to [c] using the returned identifier. *)
 
   val wrap :
-    sp:Eliom_state.server_params ->
+    sp:Eliom_request_info.server_params ->
     'a t -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
   (** [wrap sp c] wraps the channel [c] into the global data transmitted
       to the client with the application client-side code. The result is a value
@@ -70,7 +70,7 @@ sig
   (** Returns the unique identifier associated to the channel. *)
 
   val wrap :
-    sp:Eliom_state.server_params ->
+    sp:Eliom_request_info.server_params ->
     'a t -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
 
 end
