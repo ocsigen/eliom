@@ -4,19 +4,19 @@ include ../Makefile.config
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= error_pages.ml \
 	eliom_common_cli.ml eliom_common.ml \
-	eliom_request_info.ml eliom_config.ml \
+	eliom_request_info.ml \
 	eliommod_sessiongroups.ml eliommod_cookies.ml \
 	eliommod_sersess.ml eliommod_datasess.ml eliommod_persess.ml \
-	eliommod_gc.ml eliom_state.ml \
-	eliommod_extensions.ml eliommod_services.ml eliommod_naservices.ml \
+	eliommod_gc.ml \
 	eliommod_sessexpl.ml eliommod_sessadmin.ml \
-	eliommod_timeouts.ml \
+	eliommod_timeouts.ml eliom_state.ml \
+	eliommod_extensions.ml eliommod_services.ml eliommod_naservices.ml \
         eliom_client_types.ml eliommod_pagegen.ml \
 	eliommod.ml eliom_extensions.ml\
         eliom_parameters_cli.ml eliom_parameters.ml \
 	eliom_process.ml \
 	eliom_services_cli.ml eliom_services.ml \
-        eliommod_cli.ml eliommod_mkforms.ml \
+        eliommod_cli.ml eliom_config.ml eliommod_mkforms.ml \
         eliom_uri.ml eliom_mkforms.ml eliom_mkreg.ml \
 	eliom_common_comet.ml eliom_comet.ml  \
 	eliommod_event.ml \

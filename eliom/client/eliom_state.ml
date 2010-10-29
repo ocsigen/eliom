@@ -19,25 +19,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let host_ = Url.Current.host
-
-let port_ = match Url.Current.port with
-  | Some p -> p
-  | None -> failwith "No port found"
-
-
-let get_hostname ~sp = host_
-let get_server_port ~sp = port_
-
 
 let ssl_ = match Url.Current.get () with
   | Some (Url.Https _) -> true
   | Some (Url.Http _) | Some (Url.File _) | None -> false
+
 let get_ssl ~sp = ssl_
 
+let host_ = Url.Current.host
 
+let get_hostname ~sp = host_
+
+let port_ = match Url.Current.port with
+  | Some p -> p
+  | None -> if ssl_ then 443 else 80
+
+let get_server_port ~sp = port_
 
 let full_path_ = Url.Current.path
-
 
 let get_original_full_path ~sp = full_path_

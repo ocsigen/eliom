@@ -3363,7 +3363,9 @@ redir ();"))::
                                (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
                                cookies_to_send,
                                Eliom_services.get_onload ~sp,
-                               Eliom_services.get_onunload ~sp
+                               Eliom_services.get_onunload ~sp,
+                               Eliommod_cli.client_si
+                                 (Eliom_request_info.get_si ~sp)
                               ) :
                                  Eliom_client_types.eliom_data_type
                              )
@@ -3374,7 +3376,13 @@ redir ();"))::
                              (Eliommod_event.Down.wrap ~sp
                                 (Eliommod_event.Down.of_react change_page_event)
                              )
+                          ) ; "\'; \n" ;
+
+                          "var sitedata = \'" ;
+                          (Eliom_client_types.jsmarshal
+                             (Eliommod_cli.client_sitedata sp)
                           ) ; "\'; \n"
+
                         ]
 
                     )
@@ -3422,8 +3430,7 @@ redir ();"))::
             Eliom_request_info.get_original_full_path ~sp}
       in
       esp.Eliom_common.sp_client_process_info <- (Some cpi);
-      Eliom_state.set_volatile_data
-        ~table:Eliom_state.client_process_info_table ~sp cpi
+      esp.Eliom_common.sp_sitedata.Eliom_common.set_client_process_info esp cpi
     end;
     Lwt.return ()
     
@@ -3440,7 +3447,8 @@ redir ();"))::
            (Eliommod_cli.get_eliom_appl_page_data_ ~sp),
            tab_cookies_to_send,
            Eliom_services.get_onload ~sp,
-           Eliom_services.get_onunload ~sp
+           Eliom_services.get_onunload ~sp,
+           Eliommod_cli.client_si (Eliom_request_info.get_si ~sp)
           ),
 (*VVV Use another serialization format than XML for the page? *)
           Xhtml5compact.xhtml_list_print content)

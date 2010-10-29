@@ -978,6 +978,9 @@ type 'a volatile_table =
        bool *
        'a Eliom_common.SessionCookies.t)
 
+let create_volatile_table_during_session_ = 
+  Eliommod_datasess.create_volatile_table_during_session
+
 let create_volatile_table
     ?state_name ?(scope = `Session) ?(secure = false) ?sp () =
   match sp with
@@ -989,8 +992,8 @@ let create_volatile_table
             (Eliom_common.Eliom_function_forbidden_outside_site_loading
                "create_volatile_table"))
   | Some sp ->
-    Eliommod_datasess.create_volatile_table_during_session
-      ~scope ~state_name ~secure sp
+    create_volatile_table_during_session_
+      ~scope ~state_name ~secure (Eliom_request_info.get_sitedata ~sp)
 
 let get_table_key_ ~table:(scope, (state_name : string option), secure, table) ~sp 
     (find_cookie : ?state_name:string ->
@@ -1484,20 +1487,9 @@ let unset_cookie
 (*****************************************************************************)
 (* Client process info *)
 
-let client_process_info_table
-    : Eliom_common.client_process_info volatile_table =
-  create_volatile_table
-    ~state_name:"__eliom_appl_cpi"
-    ~scope:`Client_process
-    ()
-
 let make_server_params sitedata i suffix fullsessname =
   let esp = Eliom_common.make_server_params_ sitedata i suffix fullsessname in
-  let sp = Eliom_request_info.sp_of_esp esp in
-  let cpi =
-    match get_volatile_data ~table:client_process_info_table ~sp () with
-      | Data cpi -> Some cpi
-      | _ -> None
-  in
+  let get = esp.Eliom_common.sp_sitedata.Eliom_common.get_client_process_info in
+  let cpi = get esp in
   esp.Eliom_common.sp_client_process_info <- cpi;
   esp

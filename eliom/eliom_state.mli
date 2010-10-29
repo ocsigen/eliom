@@ -769,14 +769,14 @@ val create_volatile_table :
 val get_volatile_data : 
   table:'a volatile_table -> 
   sp:Eliom_request_info.server_params -> 
-  unit -> 
+  unit ->
   'a session_data
 
 (** sets session data for the current session.  (deprecated) *)
 val set_volatile_data : 
   table:'a volatile_table -> 
   sp:Eliom_request_info.server_params -> 
-  'a -> 
+  'a ->
   unit
 
 (** removes session data for the current session
@@ -1259,4 +1259,9 @@ val make_server_params :
   Eliom_common.fullsessionname option -> Eliom_common.server_params
 
 
-val client_process_info_table : Eliom_common.client_process_info volatile_table
+val create_volatile_table_during_session_ :
+  scope:Eliom_common.user_scope ->
+  state_name:string option ->
+  secure:bool ->
+  Eliom_common.sitedata -> 
+  'a volatile_table

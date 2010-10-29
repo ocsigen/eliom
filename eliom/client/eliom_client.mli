@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** On client side, sp is a global value. Take it from here. *)
+module Sp : sig val sp : Eliom_client_types.server_params end
+
 (** Call a server side service and change the current page.
     If the service belongs to the same application,
     the client side program is not stopped, and only
@@ -161,8 +164,6 @@ val make_a_with_onclick :
   'c -> 'get -> 'd
 
 val set_content : Eliom_client_types.eliom_appl_answer -> unit Lwt.t
-
-val unmarshal_js_var : string -> 'a
 
 val load_eliom_data_ :
   Eliom_client_types.eliom_data_type ->

@@ -64,7 +64,8 @@ let (make_a_with_onclick :
                   (Eliommod_cli.wrap ~sp absolute_path),
                   (Eliommod_cli.wrap ~sp https),
                   (Eliommod_cli.wrap ~sp service),
-                  (Eliommod_cli.wrap_sp sp),
+(*                  (Eliommod_cli.wrap_sp sp),*)
+                  (),
                   (Eliommod_cli.wrap ~sp hostname),
                   (Eliommod_cli.wrap ~sp port),
                   (Eliommod_cli.wrap ~sp fragment),

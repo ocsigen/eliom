@@ -291,11 +291,13 @@ struct
   exception Next
   let wrappers _loc = [
 
+(*
     (function (*sp*)
      | <:ctyp< Eliom_request_info.server_params >> ->
          (<:expr<Eliommod_cli.wrap_sp>>, <:expr<Eliommod_cli.unwrap_sp>>)
      | _ -> raise Next
     );
+*)
 
     (let rec aux = function (*node*)
        | <:ctyp< Xhtml5types.$lid:_$ >> -> true

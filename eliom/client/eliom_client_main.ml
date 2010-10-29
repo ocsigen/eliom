@@ -24,14 +24,14 @@ let _a = Eliommod_mkforms.make_post_form_with_onsubmit
 
 let _ =
   Dom_html.window##onload <- Dom_html.handler (fun _ ->
-    let eliom_data = Eliom_client.unmarshal_js_var "eliom_data" in
+    let eliom_data = Ocsigen_lib.unmarshal_js_var "eliom_data" in
     ignore (Eliom_client.load_eliom_data_ eliom_data Dom_html.document##body);
 
     (* ===change page event *)
     let change_page_event
         : Eliom_client_types.eliom_appl_answer React.E.t = 
       (Eliom_client_event.Down.unwrap
-         (Eliom_client.unmarshal_js_var "change_page_event"))
+         (Ocsigen_lib.unmarshal_js_var "change_page_event"))
     in
     let retain_event = 
       React.E.map Eliom_client.set_content change_page_event

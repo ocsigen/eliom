@@ -39,6 +39,10 @@ whole application.
 {shared{
 open XHTML5.M
 }}
+{client{
+open Eliom_client.Sp (* On client side, sp is a global variable defined in
+                        this module. *)
+}}
 
 (****** server only *******)
 {server{ (* note that {server{ ... }} is optionnal. *)
@@ -131,7 +135,7 @@ let _ =
             ~a:[
               a_onclick
                 {{Eliom_client.exit_to
-                    ~sp: \(sp) (* Here [sp] is sent by the server *)
+                    ~sp
                     ~service:\(Tutoeliom.coucou) (* just as [coucou] *)
                     () ()
                 }}
@@ -179,8 +183,7 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.change_url
-                  ~sp:\(sp)
+                Eliom_client.change_url ~sp
                   ~service:\(Tutoeliom.coucou)
                   () ()
               }}
@@ -194,8 +197,7 @@ client at loading time.
           p
             ~a:[
               a_onclick
-                {{Eliom_client.change_page
-                    ~sp:\(sp)
+                {{Eliom_client.change_page ~sp
                     ~service:\(eliomclient1)
                     () ()
                 }}
@@ -215,7 +217,7 @@ client at loading time.
           p
             ~a:[
               a_onclick{{
-                Eliom_client.change_page ~sp:\(sp) ~service:\(Tutoeliom.coucou)
+                Eliom_client.change_page ~sp ~service:\(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -225,14 +227,14 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.exit_to ~sp:\(sp) ~service:\(eliomclient2) () ()
+                Eliom_client.exit_to ~sp ~service:\(eliomclient2) () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p
             ~a:[
               a_onclick {{
-                Eliom_client.change_page ~sp:\(sp) ~service:\(eliomclient1)
+                Eliom_client.change_page ~sp ~service:\(eliomclient1)
                   () ()
               }}
             ]
@@ -247,7 +249,7 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.get_subpage ~sp:\(sp) ~service:\(eliomclient1)
+                Eliom_client.get_subpage ~sp ~service:\(eliomclient1)
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -296,7 +298,6 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                let sp = \(sp) in
                 let coucou = \(Tutoeliom.coucou) in
                 let eliomclient1 = \(eliomclient1) in
                 (Dom.appendChild
@@ -348,7 +349,7 @@ let eliomclient3 =
       Lwt.return
         [p ~a:[a_onclick
                 {{ Eliom_client.change_page
-                     ~sp:\(sp) ~service:\(eliomclient3')
+                     ~sp ~service:\(eliomclient3')
                      () (299, "oo", ["a";"b";"c"])
                 }}
               ]
@@ -374,7 +375,7 @@ let eliomclient4 =
         [p ~a:[a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~sp:\(sp) ~service:\(eliomclient4')
+                     ~sp ~service:\(eliomclient4')
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
@@ -415,7 +416,7 @@ let _ =
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\(sp) ~service:\(gotowithoutclient)
+                  ~sp ~service:\(gotowithoutclient)
                   () ()
               }}
             ]
@@ -433,7 +434,7 @@ let _ =
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\(sp) ~service:\(withoutclient)
+                  ~sp ~service:\(withoutclient)
                   () ()
               }}
             ]

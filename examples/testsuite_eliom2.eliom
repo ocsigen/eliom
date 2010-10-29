@@ -52,6 +52,10 @@ whole application.
 {shared{
 open XHTML5.M
 }}
+{client{
+open Eliom_client.Sp (* On client side, sp is a global variable defined in
+                        this module. *)
+}}
 
 (****** server only *******)
 {server{ (* note that {server{ ... }} is optionnal. *)
@@ -144,7 +148,7 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
                 {{Eliom_client.exit_to
-                    ~sp: \(sp) (* Here [sp] is sent by the server *)
+                    ~sp
                     ~service:\(Tutoeliom.coucou) (* just as [coucou] *)
                     () ()
                 }}
@@ -198,8 +202,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_url
-                  ~sp:\(sp)
+                Eliom_client.change_url ~sp
                   ~service:\(Tutoeliom.coucou)
                   () ()
               }}
@@ -213,8 +216,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
-                {{Eliom_client.change_page
-                    ~sp:\(sp)
+                {{Eliom_client.change_page ~sp
                     ~service:\(eliomclient1)
                     () ()
                 }}
@@ -234,7 +236,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick{{
-                Eliom_client.change_page ~sp:\(sp) ~service:\(Tutoeliom.coucou)
+                Eliom_client.change_page ~sp ~service:\(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -244,14 +246,14 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.exit_to ~sp:\(sp) ~service:\(eliomclient2) () ()
+                Eliom_client.exit_to ~sp ~service:\(eliomclient2) () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_page ~sp:\(sp) ~service:\(eliomclient1)
+                Eliom_client.change_page ~sp ~service:\(eliomclient1)
                   () ()
               }}
             ]
@@ -266,7 +268,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.get_subpage ~sp:\(sp) ~service:\(eliomclient1)
+                Eliom_client.get_subpage ~sp ~service:\(eliomclient1)
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -315,7 +317,6 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                let sp = \(sp) in
                 let coucou = \(Tutoeliom.coucou) in
                 let eliomclient1 = \(eliomclient1) in
                 (Dom.appendChild
@@ -367,7 +368,7 @@ let eliomclient3 =
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Eliom_client.change_page
-                     ~sp:\(sp) ~service:\(eliomclient3')
+                     ~sp ~service:\(eliomclient3')
                      () (299, "oo", ["a";"b";"c"])
                 }}
               ]
@@ -393,7 +394,7 @@ let eliomclient4 =
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~sp:\(sp) ~service:\(eliomclient4')
+                     ~sp ~service:\(eliomclient4')
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
@@ -434,7 +435,7 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\(sp) ~service:\(gotowithoutclient)
+                  ~sp ~service:\(gotowithoutclient)
                   () ()
               }}
             ]
@@ -452,7 +453,7 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp:\(sp) ~service:\(withoutclient)
+                  ~sp ~service:\(withoutclient)
                   () ()
               }}
             ]
@@ -610,10 +611,10 @@ let comet2 =
          h2 [pcdata "Dual events"] ;
          div (* This div is for pushing "A" to the server side event *)
            (*TODO: fix client side sp and simplify up_event unwrapping *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = \(sp) in \(e_up) "A" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ \(e_up) "A" }} ]
            [pcdata "Push A"] ;
          div (* This one is for pushing "B" *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = \(sp) in \(e_up) "B" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ \(e_up) "B" }} ]
            [pcdata "Push B"] ;
        ]
     )
@@ -663,7 +664,7 @@ let comet3 =
        Lwt.return [
          h2 [pcdata "Simultaneous events"] ;
          div (*TODO: fix client side sp and simplify up_event unwrapping *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ let sp = \(sp) in \(e_up) "" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ \(e_up) "" }} ]
            [pcdata "Send me two values from different events !"] ;
          div [pcdata "Note that one of the two events has a greater rate limit \
                       (using throttle control). Hence you might receive only \
@@ -718,7 +719,6 @@ let comet_message_board =
            div
              ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                   a_onclick {{
-                    let sp = \(sp) in
                     let field =
                         (Js.Opt.get
                            (Dom_html.CoerceTo.input

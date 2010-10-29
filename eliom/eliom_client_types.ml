@@ -21,6 +21,18 @@
 
 let (>>=) = Lwt.bind
 
+(* Some types are different on client side: *)
+
+type server_params = unit
+
+let sp = ()
+
+type sitedata = (* sent while starting the program *)
+  {site_dir: Ocsigen_lib.url_path;
+   site_dir_string: string;
+  }
+
+(* The data that comes with each page: *)
 type eliom_data_type =
     ((* The ref tree, to relink the DOM *)
       (XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
@@ -29,7 +41,11 @@ type eliom_data_type =
         (* Tab cookies to set or unset *)
         Ocsigen_cookies.cookieset *
         string list (* on load scripts *) *
-        string list (* on change scripts *)
+        string list (* on change scripts *) *
+        Eliom_common.sess_info
+(*VVV si contains too much information ... 
+  We probably don't need to send cookies.
+*)
     )
 
 type eliom_appl_answer =
@@ -42,27 +58,6 @@ let eliom_appl_answer_content_type = "application/x-eliom"
 let encode_eliom_data r =
   Ocsigen_lib.encode ~plus:false (Marshal.to_string r [])
 
-
-
-(* Some types are different on client side: *)
-
-type sitedata =
-  {site_dir: Ocsigen_lib.url_path;
-   site_dir_string: string;
-  }
-
-
-type server_params =
-    {
-     sp_si: Eliom_common.sess_info;
-     sp_sitedata: sitedata (* data for the whole site *);
-(*     sp_cookie_info: tables cookie_info; *)
-     sp_suffix: Ocsigen_lib.url_path option (* suffix *);
-     sp_fullsessname: Eliom_common.fullsessionname option
-                                       (* the name of the session
-                                          to which belong the service
-                                          that answered
-                                          (if it is a session service) *)}
 
 
 type 'a data_key = int64 * int

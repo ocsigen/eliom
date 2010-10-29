@@ -24,5 +24,5 @@ val create_volatile_table_during_session :
   scope:Eliom_common.user_scope ->
   state_name:string option ->
   secure:bool ->
-  Eliom_request_info.server_params -> 
+  Eliom_common.sitedata -> 
   (Eliom_common.user_scope * string option * bool *'a Eliom_common.SessionCookies.t)

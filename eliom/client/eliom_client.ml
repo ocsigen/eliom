@@ -26,11 +26,8 @@ let current_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
 
-let unmarshal_js_var s =
-  Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
-
-
-
+module Sp = (struct let sp = Eliom_client_types.sp end : 
+  sig val sp : Eliom_client_types.server_params end)
 
 let create_request_
     ?absolute ?absolute_path ?https
@@ -123,7 +120,7 @@ let change_url
 
 (* lazy because we want the page to be loaded *)
 let container_node = 
-  lazy ((Eliommod_cli.unwrap_node (unmarshal_js_var "container_node"))
+  lazy ((Eliommod_cli.unwrap_node (Ocsigen_lib.unmarshal_js_var "container_node"))
            : Dom_html.element Js.t)
 
 let on_unload_scripts = ref []
@@ -152,7 +149,7 @@ let _ =
 *)
 
 let load_eliom_data_
-    ((tree, (((timeofday, _), _) as page_data), cookies, onload, onunload) :
+    ((tree, (((timeofday, _), _) as page_data), cookies, onload, onunload, si) :
         Eliom_client_types.eliom_data_type)
     node : unit Lwt.t =
   (match tree with
@@ -165,6 +162,7 @@ let load_eliom_data_
         ref_tree_list);
   Eliommod_cli.fill_page_data_table page_data;
   Eliommod_client_cookies.update_cookie_table cookies;
+  Eliom_request_info.set_session_info si;
   on_unload_scripts := onunload;
   Lwt_util.iter_serial Js.Unsafe.variable onload
 
@@ -359,7 +357,8 @@ let _ =
          let absolute = Eliommod_cli.unwrap absolute in
          let https = Eliommod_cli.unwrap https in
          let service = Eliommod_cli.unwrap service in
-         let sp = Eliommod_cli.unwrap_sp sp in
+(*         let sp = Eliommod_cli.unwrap_sp sp in *)
+         let sp = Sp.sp in
          let hostname = Eliommod_cli.unwrap hostname in
          let port = Eliommod_cli.unwrap port in
          let fragment = Eliommod_cli.unwrap fragment in

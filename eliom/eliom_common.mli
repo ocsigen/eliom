@@ -449,6 +449,8 @@ and sitedata = {
   dlist_ip_table : dlist_ip_table;
   mutable ipv4mask : int32 option * bool;
   mutable ipv6mask : (int64 * int64) option * bool;
+  mutable get_client_process_info : server_params -> client_process_info option;
+  mutable set_client_process_info : server_params -> client_process_info -> unit;
 }
 
 

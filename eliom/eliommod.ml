@@ -103,7 +103,12 @@ let new_sitedata =
         in
         let sitedata =
           let dlist_table = Eliom_common.create_dlist_ip_table 100 in
-            (* One dlist for each site? *)
+          (* One dlist for each site? *)
+          let get_client_process_info, set_client_process_info =
+            let errmsg = "Eliommod: function used before initialisation" in
+            ((fun _ -> failwith errmsg),
+             (fun _ _ -> failwith errmsg))
+          in
           {Eliom_common.servtimeout = None, None, [];
            datatimeout =  None, None, [];
            perstimeout =  None, None, [];
@@ -147,8 +152,34 @@ let new_sitedata =
            dlist_ip_table = dlist_table;
            ipv4mask = None, false;
            ipv6mask = None, false;
+           get_client_process_info = get_client_process_info;
+           set_client_process_info = set_client_process_info;
           }
         in
+        let get_client_process_info, set_client_process_info =
+          let client_process_info_table
+              : Eliom_common.client_process_info Eliom_state.volatile_table =
+            Eliom_state.create_volatile_table_during_session_
+              ~state_name:(Some "__eliom_appl_cpi") (*VVV why? *)
+              ~scope:`Client_process
+              ~secure:false (*VVV do we need "secure" client processes *)
+              sitedata
+          in
+          ((fun esp ->
+            let sp = Eliom_request_info.sp_of_esp esp in
+            match
+              Eliom_state.get_volatile_data
+                ~table:client_process_info_table ~sp ()
+            with
+              | Eliom_state.Data cpi -> Some cpi
+              | _ -> None),
+           (fun esp v ->
+             let sp = Eliom_request_info.sp_of_esp esp in
+             Eliom_state.set_volatile_data
+               ~table:client_process_info_table ~sp v))
+        in
+        sitedata.Eliom_common.get_client_process_info <- get_client_process_info;
+        sitedata.Eliom_common.set_client_process_info <- set_client_process_info;
         Ocsigen_cache.Dlist.set_finaliser_after
           (fun (node : [ `Session ] Eliom_common.sessgrp 
                   Ocsigen_cache.Dlist.node) ->

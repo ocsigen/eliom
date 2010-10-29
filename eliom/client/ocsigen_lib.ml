@@ -37,3 +37,6 @@ let jsalert a = Dom_html.window##alert (a)
 let encode_form_value x = Url.urlencode ~with_plus:true (Marshal.to_string x [])
     (* I encode the data because it seems that multipart does not
        like \0 character ... *)
+
+let unmarshal_js_var s =
+  Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
