@@ -36,6 +36,10 @@ let port_ = match Url.Current.port with
 
 let get_server_port ~sp = port_
 
-let full_path_ = Url.Current.path
+let full_path_ =
+  match Url.Current.path with
+    | ""::l -> l
+    | l -> l
+  
 
 let get_original_full_path ~sp = full_path_

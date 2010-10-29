@@ -19,13 +19,16 @@
  *)
 
 
+let sitedata : Eliom_client_types.sitedata = 
+  Ocsigen_lib.unmarshal_js_var "sitedata"
+
 let appl_name = 
   lazy 
     (let (_, v, _) =
        (Ocsigen_lib.String_Table.find
           Eliom_common.appl_name_cookie_name
           (Ocsigen_cookies.Cookies.find
-             []
+             sitedata.Eliom_client_types.site_dir
              !(Eliommod_client_cookies.cookie_table)))
      in v)
 

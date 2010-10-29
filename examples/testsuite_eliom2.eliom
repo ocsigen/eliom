@@ -88,7 +88,7 @@ module Eliom_appl =
 
 let eliomclient1 =
   Eliom_appl.register_service
-    ~path:["eliomclient1"]
+    ~path:["plop"; "eliomclient1"]
     ~get_params:unit
     (fun sp () () ->
       Lwt.return
@@ -113,7 +113,7 @@ the same application!//
 For now, the syntax extension has not been implemented, thus the syntax
 is somewhat more complicated. Here are some examples of what you can do:
 *wiki*)
-let eliomclient2 = service ~path:["eliomclient2"] ~get_params:unit ()
+let eliomclient2 = service ~path:["plip"; "eliomclient2"] ~get_params:unit ()
 
 let myblockservice =
   Eliom_predefmod.Blocks5.register_post_coservice
@@ -491,6 +491,24 @@ let on_load =
           (XHTML5.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
           Lwt_js.sleep 1.
         }};
+      Lwt.return [div]
+    )
+
+let uri_test =
+  Eliom_appl.register_service
+    ~path:["uritest"]
+    ~get_params:unit
+    (fun sp () () ->
+      let div =
+        div [
+          p [pcdata "The following URLs are computed either on server or client side. They should be equal."];
+          p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ~sp ())];
+            ]
+      in
+      Eliom_services.onload ~sp
+        {{ Dom.appendChild \(div)
+             (XHTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:\(eliomclient1) ~sp ())]))
+         }};
       Lwt.return [div]
     )
 
@@ -1968,6 +1986,9 @@ let _ = Eliom_predefmod.Xhtml5compact.register main
             h4 [pcdata "Interaction"];
             p [
               a eliomclient1 sp [pcdata "Simple example of client side code"] ();
+              br ();
+
+              a uri_test sp [pcdata "Simple test of URL generation"] ();
               br ();
 
               a eliomclient2 sp [pcdata "Using Eliom services in client side code"] ();

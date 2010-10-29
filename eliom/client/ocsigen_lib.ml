@@ -27,7 +27,6 @@ let mk_url_encoded_parameters = Url.encode_arguments
 
 let split_path = Url.path_of_path_string
 
-
 let debug a = Firebug.console##log (Js.string a)
 let jsdebug a = Firebug.console##log (a)
 let alert a = Dom_html.window##alert (Js.string a)

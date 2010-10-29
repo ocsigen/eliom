@@ -31,9 +31,6 @@ let (>>>) x f = f x
 
 include Eliom_client_types
 
-let sitedata : Eliom_client_types.sitedata = 
-  Ocsigen_lib.unmarshal_js_var "sitedata"
-
 let get_sess_info = ref (fun () ->
   failwith "Eliom_request_info.get_sess_info called before initialization")
 
@@ -58,8 +55,8 @@ let get_nl_post_params ~sp =
 
 let get_si ~sp = !get_sess_info ()
 
-let get_site_dir ~sp = sitedata.site_dir
+let get_site_dir ~sp = Eliom_process.sitedata.site_dir
 let get_site_dir_string ~sp =
-  sitedata.site_dir_string
+  Eliom_process.sitedata.site_dir_string
 
 let get_sp_appl_name = Eliom_process.get_application_name
