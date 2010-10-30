@@ -196,12 +196,12 @@ package "ext" (
   )
 
   package "comet" (
-    exists_if = "comet.cmo,comet.cmx"
+    exists_if = "ocsigen_comet.cmo,ocsigen_comet.cmx"
     requires = "ocsigen.server,lwt.react"
     version = "[distributed with Ocsigen]"
     description = "Comet server-to-client communication"
-    archive(byte) = "comet.cmo"
-    archive(native) = "comet.cmx"
+    archive(byte) = "ocsigen_comet.cmo"
+    archive(native) = "ocsigen_comet.cmx"
   )
 
 )

@@ -99,6 +99,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)baselib/ocsigen_cache.mli				\
 	$(DOCPREF)extensions/ocsipersist.mli				\
 	$(DOCPREF)extensions/authbasic.mli				\
+	$(DOCPREF)extensions/ocsigen_comet.mli				\
 	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
 	$(DOCPREF)baselib/ocsigen_getcommandline.mli                    \
 	$(DOCPREF)xmlp4/syntax/simplexmlparser.mli			\
@@ -121,7 +122,7 @@ PLUGINSCMOTOINSTALL = \
         extensions/outputfilter.cmo extensions/authbasic.cmo \
 	extensions/redirectmod.cmo extensions/rewritemod.cmo \
 	extensions/accesscontrol.cmo extensions/extendconfiguration.cmo \
-	extensions/comet.cmo \
+	extensions/ocsigen_comet.cmo \
 	baselib/polytables.cmo $(DUCECMO)
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
@@ -136,7 +137,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_client_types.cmi \
        eliom/eliom_event.cmi eliom/eliom_comet.cmi \
        eliom/extensions/atom_feed.cmi eliom/extensions/eliom_atom.cmi \
-       extensions/comet.cmi \
+       extensions/ocsigen_comet.cmi \
        extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
        baselib/polytables.cmi \
        eliom/eliommod_cli.cmi

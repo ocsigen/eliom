@@ -24,6 +24,7 @@ Ocsigen_http_frame
 Ocsigen_http_client
 Ocsigen_http_com
 Ocsigen_stream
+Ocsigen_comet
 Authbasic
 }
 

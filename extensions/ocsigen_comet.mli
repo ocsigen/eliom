@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Comet server extension : provides low-level server to client communication
+(** Ocsigen_comet server extension : provides low-level server to client communication
     scheme. *)
 
 module Channels :
@@ -140,7 +140,7 @@ end
   *)
 (** Conf-file options:
 
-    One can use the configuration file to tweak Comet settings. The supported
+    One can use the configuration file to tweak Ocsigen_comet settings. The supported
     options are:
 
     * max_virtual_channels:
@@ -148,10 +148,10 @@ end
       * syntax: "" is for [None], "i" is for [Some (int_of_string i)]
       * [max_virtual_channels] is an upper limit to the number of active
         channels. It does not limit the number of connections but the number of
-        values of type [Comet.Channels.t] that can be used simultaneously. If
-        one calls [Comet.Channels.create] while the number of channels is
+        values of type [Ocsigen_comet.Channels.t] that can be used simultaneously. If
+        one calls [Ocsigen_comet.Channels.create] while the number of channels is
         already maxed out, the exception
-        [Comet.Channels.Too_many_virtual_channels] is raised.
+        [Ocsigen_comet.Channels.Too_many_virtual_channels] is raised.
 
   *)
 (** Commands:
@@ -162,12 +162,12 @@ end
 
     * deactivate:
       * deactivate is a command that stops all Comet activity. It is equivalent
-        to a call to [Comet.Security.deactivate].
+        to a call to [Ocsigen_comet.Security.deactivate].
 
     * activate:
       * activate is the dual command to deactivate. It resumes Comet activity
         (or do nothing is Comet is already activated) with exactly the same
-        effect as a call to [Comet.Security.activate] would have.
+        effect as a call to [Ocsigen_comet.Security.activate] would have.
 
     * set_timeout:
       * parameter: f (float)
@@ -181,7 +181,7 @@ end
 
 
 (** Note to Eliom users:
-    Although it is possible to use Comet as an extension to the Ocsigen Server,
+    Although it is possible to use Ocsigen_comet as an extension to the Ocsigen Server,
     it is recommended to use the higher level Eliom modules, namely Eliom_comet
     (for server side) and Eliom_client_comet (for client side). The former
     provides typed channels (with automatic marshaling) and channel wrapping,

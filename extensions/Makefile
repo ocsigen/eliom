@@ -5,7 +5,7 @@ include ../Makefile.config
 FILES:= ocsigen_LocalFiles.ml staticmod.ml cgimod.ml redirectmod.ml	\
 	revproxy.ml extensiontemplate.ml accesscontrol.ml staticmod.ml	\
 	cgimod.ml userconf.ml outputfilter.ml authbasic.ml		\
-	rewritemod.ml extendconfiguration.ml comet.ml
+	rewritemod.ml extendconfiguration.ml ocsigen_comet.ml
 
 ifeq "$(OCSIPERSISTSQLITE)" "YES"
 FILESSQLITE= ocsipersist.ml

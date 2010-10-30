@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* The Comet server extension only provides untyped channels (channels that
+(* The Ocsigen_Comet server extension only provides untyped channels (channels that
  * transport string content).
  * The first abstraction layer we add here is typped channels. The whole
  * marshalling/unmarshalling process is taken care of automatically. The client
@@ -52,7 +52,7 @@ module Channels :
 sig
 
   (* Type of typed channels *)
-  type 'a t = Comet.Channels.t
+  type 'a t = Ocsigen_comet.Channels.t
 
   val write : 'a t -> 'a -> unit
 
@@ -68,13 +68,13 @@ end = struct
 
   let encode s = Marshal.to_string s []
 
-  type 'a t = Comet.Channels.t
+  type 'a t = Ocsigen_comet.Channels.t
 
-  let create ?name () = Comet.Channels.create ?name ()
+  let create ?name () = Ocsigen_comet.Channels.create ?name ()
 
-  let write c x = Comet.Channels.write c (encode x, None)
+  let write c x = Ocsigen_comet.Channels.write c (encode x, None)
 
-  let get_id c = Ecc.chan_id_of_string (Comet.Channels.get_id c)
+  let get_id c = Ecc.chan_id_of_string (Ocsigen_comet.Channels.get_id c)
 
   (* Here is a wrap for channels. This is used by pa_eliom_client syntax
      extension to wrap channels. The associated unwrapping function is in the
@@ -120,17 +120,17 @@ end = struct
 
   module Dlist = Ocsigen_cache.Dlist
 
-  type 'a t = Comet.Channels.t * 'a Dlist.t
+  type 'a t = Ocsigen_comet.Channels.t * 'a Dlist.t
 
   let create ~max_size ?timer ?name () =
-    (Comet.Channels.create ?name (),
+    (Ocsigen_comet.Channels.create ?name (),
      Dlist.create ?timer max_size
     )
 
   let encode s = Marshal.to_string s []
   let raw_write l (chan, dlist) =
     let (outcome_reader, outcome_writer) = Lwt.task () in
-    Comet.Channels.write chan (encode l, Some outcome_writer);
+    Ocsigen_comet.Channels.write chan (encode l, Some outcome_writer);
     let _ = (*leak ?*)
       outcome_reader >>= function
         | `Success -> Lwt.return ()
@@ -150,13 +150,13 @@ end = struct
 
   let write ((chan, dlist) as c) x =
     ignore (Dlist.add x dlist);
-    if Comet.Channels.listeners chan <= 0
+    if Ocsigen_comet.Channels.listeners chan <= 0
     then () (*TODO: set an observer for listeners and flush as soon as client
                     reconnects*)
     else flush c
 
   let get_id (c, _) =
-    Ecc.buffered_chan_id_of_string (Comet.Channels.get_id c)
+    Ecc.buffered_chan_id_of_string (Ocsigen_comet.Channels.get_id c)
 
   let wrap ~sp (c : 'a t)
         : 'a Ecc.buffered_chan_id Eliom_client_types.data_key =
