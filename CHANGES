@@ -8,19 +8,26 @@
   * **SOON** Eliom client: sending forms to caml services from client side code.
   * Eliom: new implementation of forms and links to be compatible with
     client side programs.
-  * Eliom: Tab cookies. Like usual browser cookies but for one client side 
-    process.
-  * Eliom: Tab session data. Like session data but for one client side process.
-  * Eliom: Tab session services.
-  * Eliom: Session group data. Like session data but for all sessions
-    in a session group.
+  * Eliom: New module {{{Eliom_predefmod.Customize}}} to create your
+    own register functions from another registration module
+  * Eliom: session replaced by a more general concept of "server side state".
+    States have a scope: client process, session or group of session.
+  * Eliom: Module {{{Eliom_sessions}}} replaced by {{{Eliom_state}}},
+    {{{Eliom_request_info}}} and {{{Eliom_config}}}.
+  * Eliom: Client process cookies.
+    Like usual browser cookies but for one client side process.
+  * Eliom: Client process server side state data.
+    Like session data but for one client side process.
+  * Eliom: Client process  session services.
+  * Eliom: Session group data.
+    Like session data but for all sessions in a session group.
   * Eliom: Session group services.
-  * Eliom: sessions now have a scope: client process, session or group of sessions.
-  * **SOON** Eliom: session tables replaced by //Eliom references//
+  * Eliom: session tables now deprecated, replaced by //Eliom references//
   * Eliom client: Possible to call another service without stopping the
     client side program, with bookmark support and back button support.
   * New extension Comet to allow server -> client communication.
-  * Eliom: client/server reactive programming.
+  * Eliom: client/server communication channels.
+  * Eliom: client/server reactive programming using React.
   * Eliom client: syntax extension for separating client and server code.
   * Eliom: New module Eliom_predefmod.Eliom_appl for registering pages
     that belong to the same Eliom application.
@@ -32,9 +39,7 @@
   * Eliom client: XHR redirections for Eliom applications.
   * **SOON** Eliom: Stateful redirections. The request cache is restored after
     redirection.
-  * **SOON** Eliom: simplification of sessions. Now restoring session data and
-    process data automatically as a new parameter for service handlers.
-  * Xhtml: Experimental Xhtml5 support
+  * Xhtml: Xhtml5 support
   * Atom module and Pubsubhubbub
   * OpenID support
   * SVG module
