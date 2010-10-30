@@ -278,7 +278,7 @@ struct
   let register c f =
     Engine.register
       (Ecc.string_of_buffered_chan_id c)
-      (fun l -> Lwt_list.iter_s f (decode l))
+      (fun l -> Lwt_list.iter_p f (decode l))
   let unregister c = Engine.unregister (Ecc.string_of_buffered_chan_id c)
 
 end

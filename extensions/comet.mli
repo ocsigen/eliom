@@ -27,37 +27,47 @@ module Channels :
 sig
 
   exception Too_many_virtual_channels
-  (** An exception that may be raised when the channel count exceed
-      [max_virtual_channels]. Note that by default [max_virtual_channels] is set
-      to [None] so that the exception may never be raised. *)
+  (** An exception that may be raised when trying to create a new channel while
+      the channel count exceed [max_virtual_channels]. Note that by default
+      [max_virtual_channels] is set to [None] so that the exception is never
+      raised. *)
 
   exception Non_unique_channel_name
   (** An exception raised when creating a channel with a name already associated
-      to another channel. It is strictly forbidden to name several channel with
+      to another channel. It is strictly forbidden to name several channels with
       the same string. *)
 
   type t
-  (** The type of server-to-client communication channels. *)
+  (** The abstract type of server-to-client communication channels. *)
 
   type chan_id = string
-  (** The type of channel identifier. *)
+  (** The type of channel identifier. Channels are uniquely identified by there
+      chan_id value. *)
 
   val create : ?name:string -> unit -> t
+  (** [create ()] returns a channel with a freshly baked identifier while
+      [create ~name ()] returns a channel with the identifier [name] after
+      checking for uniqueness. If [name] is the identifier of an existing
+      channel, the exception [Non_unique_channel_name] is raised. *)
 
   val write : t -> (string * Ocsigen_stream.outcome Lwt.u option) -> unit
+  (** [write c (s, u)] sends the string [s] on the channel [c]. The argument [u]
+      allow one to observe the result of the operation. If [u] is [None], there
+      is no way to tell if the sending worked as expected. However if [u] is
+      [Some u'] then [u'] will be woken up with the outcome (either [`Falure] or
+      [`Success]) of the stream writing process. *)
 
   val listeners : t -> int
-  (** [listeners c] is the ever updated number of client actively registered on
-      [c]. A client is "actively registered" on a channel if an actual
-      connection is open for the server to push a message to. Note that this
+  (** [listeners c] returns the number of clients currently registered on [c]
+      A client is "currently registered" on a channel if an actual
+      connection is open for the server to push a message onto. Note that this
       information is server-based only, and that because it is so, some clients
       may still be registered as active while they have in fact closed the
-      connection. In such a case, [outcomes c] will trigger an event (providing
-      the event used to create the channel have an actual value in the second
-      component of it's occurrence). *)
+      connection. In such a case, the outcome mechanism in [write] will report
+      the failure. *)
 
   val get_id : t -> chan_id
-  (** [get_id c] returns a unique identifier associated to [c]. The client can
+  (** [get_id c] returns the unique identifier associated to [c]. The client can
       register to [c] using the returned identifier. *)
 
 end
@@ -79,13 +89,13 @@ sig
   (** [deactivate ()] ceases all Comet related activity. Each opened connection
       is closed. Further attempts to connect to the server with a Comet specific
       content type will result in a HTTP status code 503 (Unavailable).
-      [activated] is set to [false]. If called when Comet is not activated it
-      does nothing (not even logging the deactivation attempt. *)
+      If called when Comet is not activated it does nothing (not even logging
+      the deactivation attempt. *)
 
   val activate : unit -> unit
-  (** [activate ()] sets [activated] to [true] and starts serving Comet
-      requests. It is the client's own responsibility to reopen a connection. If
-      Comet was already activated it keeps going and nothing happens. *)
+  (** [activate ()] starts serving Comet requests. It is the client's own
+      responsibility to reopen a connection. If Comet was already activated it
+      keeps going and nothing happens. *)
 
   val activated : unit -> bool
   (** [activated ()] reflects the activation state of the Comet
@@ -98,9 +108,9 @@ end
 (** Usage:
 
   On the server side :
-    1) create needed channels with appropriate events
+    1) create needed channels
     2) transmit their identifiers to clients
-    3) optionally lift the outcome event for feedback
+    3) write when appropriate (using the outcome mechanism if necessary
 
   On the client :
     1) make a XmlHttpRequest (XHR) with a list of channel identifiers.
@@ -114,7 +124,7 @@ end
       content should be a list of channel identifiers separated by [\n]
       (newline) characters.
     * Name and content of the said POST parameter should be encoded according to
-      [escape] JavaScript primitive
+      the [escape] JavaScript primitive
 
 
   Encoding for server-to-client answer:
@@ -127,19 +137,6 @@ end
       When receiving such a message, the client should lose hope of ever
       connecting to that particular channel ever again.
 
-  *)
-(** Example:
-    let (event, push_event) = React.E.create ()
-    let channel = Comet.Channels.create event
-    let failures =
-      React.E.fmap
-        (function
-          | `Failure, i -> Some i
-          | _ -> None
-        )
-        (Comet.Channels.outcomes channel)
-    let has_listeners =
-      React.S.map ((>) 0) (Comet.Channels.listeners channel)
   *)
 (** Conf-file options:
 
@@ -159,9 +156,9 @@ end
   *)
 (** Commands:
 
-    Comet provides commands (to be piped to the command pipe). The complete list
-    of commands is described here. Don't forget to use the Comet prefix: each
-    command is to be prefixed by "comet:" (without quotes).
+    Comet provides commands (to be piped into Ocsigen's command pipe). The
+    complete list of commands is described here. Don't forget to use the Comet
+    prefix: each command is to be prefixed by "comet:" (without quotes).
 
     * deactivate:
       * deactivate is a command that stops all Comet activity. It is equivalent

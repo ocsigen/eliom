@@ -22,22 +22,23 @@
 
 module Engine :
 (** The [Engine] is responsible for making asynchronous calls to the server,
-  * associate results with registered channels and triggering associated events.
-  * The interface is trimmed down to prevent low-level tampering and because of
-  * some implementation choices. When the engine is running a comet connection
-  * is opened to the server. *)
+    associating results with registered channels and triggering associated
+    events. The interface is trimmed down to prevent low-level tampering and
+    because of some implementation choices. When the engine is running a comet
+    connection is opened to the server. *)
 sig
 
   val start : unit -> unit
   (** [start ()] makes the engine start. If it was already running, nothing
-      happens. *)
+      happens. If it wasn't, it first checks for channels of interest and then
+      opens a connection to the server if such channels exists. *)
 
   val stop : unit -> unit
-  (** [stop ()] makes the engine stop. If it wasn't running, nothing happens. *)
+  (** [stop ()] makes the engine stop. If it wasn't running, nothing happens.
+    * Registered channels are kept so that the server can be started again. *)
 
   val running : unit -> bool
-  (** [running] is a signal which value always reflect the state the engine is
-      in. *)
+  (** [running ()] reflects the current state the engine is in. *)
 
   val restart : unit -> unit
   (** [restart ()] makes the engine restart. If it was started, the current XHR
@@ -53,25 +54,29 @@ sig
   val unwrap :
      'a Eliom_common_comet.chan_id Eliom_client_types.data_key
   -> 'a Eliom_common_comet.chan_id
-  (** [unwrap c] returns a channel. *)
+  (** [unwrap c] returns a channel identifier that can be used to register upon.
+    *)
 
   val register : 'a Eliom_common_comet.chan_id -> ('a -> unit Lwt.t) -> unit
-  (** [register c f] registers the channel [c] associated to [f] on the engine.
-      If the engine wasn't running it is automatically started. Whenever a
-      message [m] from the server reaches the client over the channel [c], the
-      function [f] is called with [m] as argument. *)
+  (** [register c f] registers the channel [c], associating it to [f] on the
+      engine.  If the engine wasn't running it is automatically started.
+      Whenever a message [m] from the server reaches the client over the channel
+      [c], the function [f] is called with [m] as argument. Calls to [f] are not
+      sequentialized.
+      *)
 
   val unregister : 'a Eliom_common_comet.chan_id -> unit
   (** [unregister c] cancel registration on [c]. The function associated to [c]
-      won't be called anymore. *)
+      won't be called anymore and further comet related XHR won't mention [c].
+    *)
 
 end
 
 module Dlisted_channels :
 (** [Dlisted_channels] is a module for buffered channels manipulation. Such a
     channel tends not to lose as many messages. All the functions have the same
-    semantic, the only difference is on the server side (where some values are
-    stored and retransmitted when needed). *)
+    semantic, the only difference is in implementation, mainly on the server
+    side (where some values are stored and retransmitted when needed). *)
 sig
 
   val unwrap :

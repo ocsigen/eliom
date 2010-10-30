@@ -31,13 +31,18 @@
 
 
 module Down :
-  (** A "Down event" is an event which occurrences are transmitted
-      asynchronously to the client. The return type of the [wrap]ing function
-      gives insight about how Down events are handled internally, it is however
-      taken care of automatically. *)
+  (** A "Down event" (AKA down-going event) is an event which occurrences are
+      transmitted asynchronously to the client. While named events, it might be
+      better to consider them as asynchronous server-to-client edges in the
+      event dependency graph.
+
+      The return type of the [wrap]ing
+      function gives insight about how Down events are handled internally, it is
+      however taken care of automatically. *)
 sig
 
   type 'a t
+  (** The abstract type of down events. *)
 
   val of_react :
        ?throttling:float
@@ -46,6 +51,11 @@ sig
     -> ?name:string
     -> 'a React.E.t
     -> 'a t
+  (** [of_react ?throttling ?buffer_size ?buffer_time ?name e] create an
+      asynchronous edge originating from [e]. The parameters are: [throttling]
+      for the limit to event propagation rate, [buffer_size] to set an
+      upper-limit to the number of values in the edge buffer, [buffer_time] for
+      buffered value lifespan and [name] for named edges. *)
 
   val wrap :
       sp:Eliom_request_info.server_params
@@ -60,16 +70,17 @@ module Up :
   (** Up events are quite different from Down events. Because of the
       asymmetrical nature of web programming and because of the reactive model
       used, an Up event must be created on the server and wrapped into a
-      callback (or something the client can build a callback with). *)
+      callback (or something the client can build a callback with).
+    *)
 sig
 
   type 'a t
-  (** The type of events going up from the client to the server. On the server
-      such an event is /primitive/ (hence the [create] function) whereas it is
-      /effectful/ on the client. *)
+  (** The type of events that, while being "on the server", are triggered by
+      clients. On the server such an event is /primitive/ (hence the [create]
+      function) whereas it is /effect-full/ on the client. *)
 
   val to_react : 'a t -> 'a React.E.t
-  (** [react_event_of_up_event e] injects up events into events so that it can
+  (** [to_react e] injects the up events [e] into react events so that it can
       be manipulated as a standard event. *)
 
   val wrap :
