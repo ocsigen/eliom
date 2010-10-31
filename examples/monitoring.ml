@@ -114,16 +114,7 @@ Lwt.return
            <li>Maximum size reached by the major heap: $str:top_heap_words$ words.</li>
        </ul>
      <h2>Lwt threads</h2>
-     <p>
-       $str:(string_of_int (Lwt_unix.inputs_length ()))$
-             lwt threads waiting for inputs<br/>
-       $str:(string_of_int (Lwt_unix.outputs_length ()))$
-               lwt threads waiting for outputs<br/>
-       $str:(string_of_int (Lwt_unix.wait_children_length ()))$
-               lwt threads waiting for children<br/>
-       $str:(string_of_int (Lwt_unix.sleep_queue_size ()))$
-               sleeping lwt threads<br/>
-       $str:(string_of_int (Lwt_unix.get_new_sleeps ()))$ new sleeps.<br/>
+     <p><em>removed</em>
      </p>
      <h2>Preemptive threads</h2>
      <p>There are currently $str:(string_of_int (Lwt_preemptive.nbthreads ()))$
@@ -166,3 +157,14 @@ Lwt.return
  </html>
 >>)))
 
+(* Lwt threads:
+       $str:(string_of_int (Lwt_unix.inputs_length ()))$
+             lwt threads waiting for inputs<br/>
+       $str:(string_of_int (Lwt_unix.outputs_length ()))$
+               lwt threads waiting for outputs<br/>
+       $str:(string_of_int (Lwt_unix.wait_children_length ()))$
+               lwt threads waiting for children<br/>
+       $str:(string_of_int (Lwt_unix.sleep_queue_size ()))$
+               sleeping lwt threads<br/>
+       $str:(string_of_int (Lwt_unix.get_new_sleeps ()))$ new sleeps.<br/>
+                   *)
