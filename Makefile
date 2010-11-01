@@ -66,6 +66,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)eliom/eliom_config.mli				\
 	$(DOCPREF)eliom/eliom_request_info.mli				\
 	$(DOCPREF)eliom/eliom_state.mli				\
+	$(DOCPREF)eliom/eliom_references.mli				\
 	$(DOCPREF)eliom/eliom_extensions.mli				\
 	$(DOCPREF)eliom/extensions/atom_feed.mli \
 	$(DOCPREF)eliom/extensions/eliom_atom.mli \
@@ -128,7 +129,8 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
        eliom/eliom_tools_common.cmi eliom/eliom_tools.cmi \
        $(DUCECMI) \
-       eliom/eliom_config.cmi eliom/eliom_request_info.cmi eliom/eliom_state.cmi \
+       eliom/eliom_config.cmi eliom/eliom_request_info.cmi \
+       eliom/eliom_state.cmi eliom/eliom_references.cmi \
        eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
        eliom/eliom_uri.cmi \

@@ -3062,14 +3062,9 @@ These modules allow to:
 *Create persistent association tables,
 *Set persistent session data (using
         %<span class="code"|set_persistent_data>%, see below).
-                  
-          
-
           
 Note that persistent data are serialized on hard drive using
         OCaml's %<span class="code"|Marshal>% module:
-      
-          
 
           %<div class="importantwarning"|
             
@@ -3081,9 +3076,6 @@ Note that persistent data are serialized on hard drive using
  you know what you are doing, you can use the sqlite client to manually
  update the table or a program to create a new sqlite or dbm table
  for the new type.
-        
-                    
-            
    
           >%
           

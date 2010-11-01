@@ -580,58 +580,6 @@ val set_persistent_data_cookie_exp_date :
 
 
 (*****************************************************************************)
-(** {2 Server side state data: Eliom references} *)
-
-(** Eliom references are some kind of references with limited scope.
-    You define the reference with an initial value and a scope
-    (group of sessions, session or client process).
-    When you change the value, it actually changes only for the scope
-    you specified.
-
-    Eliom references are used for example to store session data,
-    or server side data for a client process.
-*)
-
-module Eref : sig
-  (** The type of Eliom references. *)
-  type 'a eref
-
-  (** Create an Eliom reference for the given scope (default: [`Session]).
-
-      Use the optional parameter [?persistent] if you want the data to survive
-      after relaunching the server. You must give an unique name to the
-      table in which it will be stored on the hard disk (using Ocsipersist).
-      Be very careful to use unique names, and to change the name if
-      you change the type of the data.
-
-      Use the optional parameter [?secure] if you want the data to be available
-      only using HTTPS (default: false).
-
-      Use the optional parameter [?state_name] if you want to distinguish
-      between several server side states for the same scope.
-
-      If you create the eref during a request, do not forget to give
-      to [~sp] parameter.
-  *)
-  val eref :
-    ?state_name:string ->
-    ?scope:Eliom_common.user_scope ->
-    ?secure:bool ->
-    ?persistent:string ->
-    'a -> 'a eref
-
-  (** Get the value of an Eliom reference. *)
-  val get : 'a eref -> 'a Lwt.t
-
-  (** Change the value of an Eliom reference. *)
-  val set : 'a eref -> 'a -> unit Lwt.t
-
-  (** Turn back to the default value 
-      (by removing the entry in the server side table) *)
-  val unset : 'a eref -> unit Lwt.t
-end
-
-(*****************************************************************************)
 (** {2 Closing sessions, removing state data and services} *)
 
 (** Delete server side state data for a session, a group of sessions or

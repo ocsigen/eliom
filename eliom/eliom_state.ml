@@ -1084,48 +1084,6 @@ let remove_volatile_data ~table () =
 
 
 
-(*****************************************************************************)
-(** {2 Eliom references} *)
-
-module Eref = struct
-  type 'a eref =
-      'a * ('a volatile_table, 'a persistent_table) Ocsigen_lib.leftright
-
-  let eref
-      ?state_name ?scope ?secure ?persistent value =
-    match persistent with
-      | None ->
-        (value,
-         Ocsigen_lib.Left 
-           (create_volatile_table ?state_name ?scope ?secure ()))
-      | Some name ->
-        (value,
-         Ocsigen_lib.Right 
-           (create_persistent_table ?state_name ?scope ?secure name))
-
-  let get (value, table) =
-    match table with
-      | Ocsigen_lib.Left t ->
-        (match get_volatile_data ~table:t () with
-          | Data d -> Lwt.return d
-          | _ -> Lwt.return value)
-      | Ocsigen_lib.Right t ->
-        (get_persistent_data ~table:t () >>= function
-          | Data d -> Lwt.return d
-          | _ -> Lwt.return value)
-
-  let set (_, table) value =
-    match table with
-      | Ocsigen_lib.Left t -> set_volatile_data ~table:t value;
-        Lwt.return ()
-      | Ocsigen_lib.Right t -> set_persistent_data ~table:t value
-
-  let unset (_, table) =
-    match table with
-      | Ocsigen_lib.Left t -> remove_volatile_data ~table:t ();
-        Lwt.return ()
-      | Ocsigen_lib.Right t -> remove_persistent_data ~table:t ()
-end
 
 (*****************************************************************************)
 (** Close a state *)
