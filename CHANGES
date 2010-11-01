@@ -9,7 +9,8 @@
   * Eliom: new implementation of forms and links to be compatible with
     client side programs.
   * Eliom: sp parameter has been removed (now using Lwt's thread storage)
-  * Eliom: New module {{{Eliom_predefmod.Customize}}} to create your
+  * Eliom: {{{Eliom_predefmod}}} renamed {{{Eliom_output}}}
+  * Eliom: New module {{{Eliom_output.Customize}}} to create your
     own register functions from another registration module
   * Eliom: session replaced by a more general concept of "server side state".
     States have a scope: client process, session or group of session.
@@ -31,7 +32,7 @@
   * Eliom: client/server communication channels.
   * Eliom: client/server reactive programming using React.
   * Eliom client: syntax extension for separating client and server code.
-  * Eliom: New module Eliom_predefmod.Eliom_appl for registering pages
+  * Eliom: New module Eliom_output.Eliom_appl for registering pages
     that belong to the same Eliom application.
   * Eliom client: syntax extension and wrapping/unwrapping mechanism to
     access server side values in client side code.

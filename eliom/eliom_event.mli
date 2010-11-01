@@ -87,7 +87,7 @@ sig
     -> (unit, 'a, [ `Nonattached of [ `Post ] Eliom_services.na_s ],
         [ `WithoutSuffix ], unit,
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
-        [ `Registrable ], Eliom_predefmod.Action.return)
+        [ `Registrable ], Eliom_output.Action.return)
          Eliom_services.service Eliom_client_types.data_key
   (** [wrap e] wraps [e] into a wrapped service. This result is to be handled by
       the [Eliom_client_event.Up.unwrap] function. *)

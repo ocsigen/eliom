@@ -60,7 +60,7 @@ module type REGCREATE =
 
     (** The following field is usually [Eliom_services.XNever]. 
         This value is recorded inside each service just after registration.
-        (Use in [Eliom_predefmod.Eliom_appl])
+        (Use in [Eliom_output.Eliom_appl])
     *)
     val do_appl_xhr : Eliom_services.do_appl_xhr
 

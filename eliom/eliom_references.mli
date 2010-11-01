@@ -60,12 +60,21 @@ val eref :
   ?persistent:string ->
   'a -> 'a eref
 
-(** Get the value of an Eliom reference. *)
+(** Get the value of an Eliom reference.
+    That function introduces a Lwt cooperation point on for persistent
+    references.
+*)
 val get : 'a eref -> 'a Lwt.t
 
-(** Change the value of an Eliom reference. *)
+(** Change the value of an Eliom reference.
+    That function introduces a Lwt cooperation point on for persistent
+    references.
+*)
 val set : 'a eref -> 'a -> unit Lwt.t
 
 (** Turn back to the default value 
-    (by removing the entry in the server side table) *)
+    (by removing the entry in the server side table) 
+    That function introduces a Lwt cooperation point on for persistent
+    references.
+*)
 val unset : 'a eref -> unit Lwt.t

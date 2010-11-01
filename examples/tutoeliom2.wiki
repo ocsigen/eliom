@@ -113,16 +113,16 @@ let session_data_example_handler _ _  =
            | Eliom_state.Data name ->
                p [pcdata ("Hello "^name);
                   br ();
-                  Eliom_predefmod.Xhtml.a
+                  Eliom_output.Xhtml.a
                     session_data_example_close
                     [pcdata "close session"] ()]
            | Eliom_state.Data_session_expired
            | Eliom_state.No_data ->
-               Eliom_predefmod.Xhtml.post_form
+               Eliom_output.Xhtml.post_form
                  session_data_example_with_post_params
                  (fun login ->
                    [p [pcdata "login: ";
-                       Eliom_predefmod.Xhtml.string_input
+                       Eliom_output.Xhtml.string_input
                          ~input_type:`Text ~name:login ()]]) ()
          ]))
 
@@ -139,7 +139,7 @@ let session_data_example_with_post_params_handler _ login =
        (body
           [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
               br ();
-              Eliom_predefmod.Xhtml.a session_data_example
+              Eliom_output.Xhtml.a session_data_example
                 [pcdata "Try again"] ()
             ]]))
 
@@ -159,18 +159,18 @@ let session_data_example_close_handler () () =
         | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
         | Eliom_state.No_data -> p [pcdata "You were not connected."]
         | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
-        p [Eliom_predefmod.Xhtml.a session_data_example [pcdata "Retry"] () ]]))
+        p [Eliom_output.Xhtml.a session_data_example [pcdata "Retry"] () ]]))
 
 
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     session_data_example_close session_data_example_close_handler;
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     session_data_example session_data_example_handler;
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     session_data_example_with_post_params
     session_data_example_with_post_params_handler
 
@@ -297,7 +297,7 @@ let session_services_example_close =
 
 let session_services_example_handler () () =
   let f =
-    Eliom_predefmod.Xhtml.post_form
+    Eliom_output.Xhtml.post_form
       session_services_example_with_post_params
       (fun login ->
         [p [pcdata "login: ";
@@ -358,13 +358,13 @@ let launch_session () login =
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_predefmod.Xhtml.register ~scope:`Session 
+  Eliom_output.Xhtml.register ~scope:`Session 
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
-  Eliom_predefmod.Xhtml.register ~scope:`Session 
+  Eliom_output.Xhtml.register ~scope:`Session 
     ~service:coucou
     (fun () () ->
       return
@@ -374,7 +374,7 @@ let launch_session () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliom_predefmod.Xhtml.register ~scope:`Session 
+  Eliom_output.Xhtml.register ~scope:`Session 
     ~service:hello
     (fun () () ->
       return
@@ -390,13 +390,13 @@ let launch_session () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     ~service:session_services_example
     session_services_example_handler;
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     ~service:session_services_example_close
     session_services_example_close_handler;
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     ~service:session_services_example_with_post_params
     launch_session
 
@@ -511,13 +511,13 @@ let coservices_example_get =
 let _ =
   let c = ref 0 in
   let page () () =
-    let l3 = Eliom_predefmod.Xhtml.post_form coservices_example_post
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l3 = Eliom_output.Xhtml.post_form coservices_example_post
+        (fun _ -> [p [Eliom_output.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"incr i (post)" ()]]) ()
     in
-    let l4 = Eliom_predefmod.Xhtml.get_form coservices_example_get
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l4 = Eliom_output.Xhtml.get_form coservices_example_get
+        (fun _ -> [p [Eliom_output.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"incr i (get)" ()]])
     in
@@ -531,10 +531,10 @@ let _ =
               l3;
               l4]))
   in
-  Eliom_predefmod.Xhtml.register coservices_example page;
+  Eliom_output.Xhtml.register coservices_example page;
   let f () () = c := !c + 1; page () () in
-  Eliom_predefmod.Xhtml.register coservices_example_post f;
-  Eliom_predefmod.Xhtml.register coservices_example_get f
+  Eliom_output.Xhtml.register coservices_example_post f;
+  Eliom_output.Xhtml.register coservices_example_get f
 >>
 
           
@@ -705,11 +705,11 @@ let calc_i =
 let calc_handler () () =
   let create_form intname =
     [p [pcdata "Write a number: ";
-        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:intname ();
+        Eliom_output.Xhtml.int_input ~input_type:`Text ~name:intname ();
         br ();
-        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
+        Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
   in
-  let f = Eliom_predefmod.Xhtml.get_form calc_i create_form in
+  let f = Eliom_output.Xhtml.get_form calc_i create_form in
   return
     (html
        (head (title (pcdata "")) [])
@@ -756,8 +756,8 @@ let calc_i_handler i () =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register calc   calc_handler;
-  Eliom_predefmod.Xhtml.register calc_i calc_i_handler
+  Eliom_output.Xhtml.register calc   calc_handler;
+  Eliom_output.Xhtml.register calc_i calc_i_handler
 >>
 
           
@@ -782,11 +782,11 @@ Actions are services that do not generate any page.
    (for ex a connection form),
    instead of making a version with post params of all these pages,
    you can use only one action, registered on a non-attached coservice.
-   To register actions, just use the module <<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|<<span class="code"|Eliom_predefmod.Action>>>>
-   instead of <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span class="code"|Eliom_predefmod.Xhtml>>>> (or <<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|<<span class="code"|Eliom_duce.Xhtml>>>>, etc.).
+   To register actions, just use the module <<ocsigendoc version="dev" file="Eliom_output.Action.html"|<<span class="code"|Eliom_output.Action>>>>
+   instead of <<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|<<span class="code"|Eliom_output.Xhtml>>>> (or <<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|<<span class="code"|Eliom_duce.Xhtml>>>>, etc.).
    For example
-     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister"|<<span class="code"|Eliom_predefmod.Action.register>>>>>>,
-     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister_service"|<<span class="code"|Eliom_predefmod.Action.register_service>>>>>>.
+     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_output.Action.html" fragment="VALregister"|<<span class="code"|Eliom_output.Action.register>>>>>>,
+     <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_output.Action.html" fragment="VALregister_service"|<<span class="code"|Eliom_output.Action.register_service>>>>>>.
             \\
       
           
@@ -803,7 +803,7 @@ Here is one simple example. Suppose you wrote a function
           
 <<code language="ocaml"|
 let remove_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~post_params:(Eliom_parameters.int "id")
     (fun () id -> remove id)
 >>
@@ -816,11 +816,11 @@ Then wherever you want to add a button to do that action
 
           
 <<code language="ocaml"|
-Eliom_predefmod.Xhtml.post_form remove_action
+Eliom_output.Xhtml.post_form remove_action
   (fun id_name ->
-     Eliom_predefmod.Xhtml.int_input
+     Eliom_output.Xhtml.int_input
        ~input_type:`Hidden ~name:id_name ~value:id ();
-     Eliom_predefmod.Xhtml.string_input
+     Eliom_output.Xhtml.string_input
        ~input_type:`Submit ~value:("remove "^string_of_int id) ())
 
 >>
@@ -860,7 +860,7 @@ let connect_action =
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
@@ -871,16 +871,16 @@ let disconnect_action =
 (* login ang logout boxes:                                  *)
 
 let disconnect_box s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+  Eliom_output.Xhtml.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let login_box () =
-  Eliom_predefmod.Xhtml.post_form connect_action
+  Eliom_output.Xhtml.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_predefmod.Xhtml.string_input
+                   Eliom_output.Xhtml.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -918,8 +918,8 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+  Eliom_output.Xhtml.register ~service:connect_example3 connect_example3_handler;
+  Eliom_output.Action.register ~service:connect_action connect_action_handler
 >>
 
           

@@ -26,7 +26,7 @@ open Uri
 module Xhtml = struct
   open Xhtmltypes
   open XHTML.M
-  open Eliom_predefmod.Xhtml
+  open Eliom_output.Xhtml
   let a_ul classes id level =
     let classes = [a_class classes] in
     match id, level with
@@ -283,7 +283,7 @@ end
 module Xhtml5 = struct
   open Xhtml5types
   open XHTML5.M
-  open Eliom_predefmod.Xhtml5
+  open Eliom_output.Xhtml5
     
   let a_ul classes id level =
     let classes = [a_class classes] in

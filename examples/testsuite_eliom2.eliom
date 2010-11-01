@@ -41,7 +41,7 @@ information.
         %<div class="onecol"|
 
 First, I need to create my Eliom application, by applying the functor
-{{{Eliom_predefmod.Eliom_appl}}}. You can define here what will be
+{{{Eliom_output.Eliom_appl}}}. You can define here what will be
 the default title for pages belonging to this application, the
 default container for pages, the default stylesheets you want for your
 whole application.
@@ -56,22 +56,22 @@ open XHTML5.M
 (****** server only *******)
 {server{ (* note that {server{ ... }} is optionnal. *)
 open Eliom_parameters
-open Eliom_predefmod.Xhtml5compact
+open Eliom_output.Xhtml5compact
 open Eliom_services
 }}
 
 (* This is server only because there are no delimiters. *)
 module Eliom_appl =
-  Eliom_predefmod.Eliom_appl (
+  Eliom_output.Eliom_appl (
     struct
       let application_name = "testsuite_eliom2"
       let params =
-        {Eliom_predefmod.default_appl_params with
-           Eliom_predefmod.ap_title = "Eliom application example";
-           Eliom_predefmod.ap_headers_before =
+        {Eliom_output.default_appl_params with
+           Eliom_output.ap_title = "Eliom application example";
+           Eliom_output.ap_headers_before =
             [XHTML5.M.style
                [XHTML5.M.pcdata "a,.clickable {color: #111188; cursor: pointer;}"]];
-           Eliom_predefmod.ap_container =
+           Eliom_output.ap_container =
             Some (None,
                   fun div ->
                     [h1 [pcdata "Eliom application"];
@@ -112,7 +112,7 @@ is somewhat more complicated. Here are some examples of what you can do:
 let eliomclient2 = service ~path:["plip"; "eliomclient2"] ~get_params:unit ()
 
 let myblockservice =
-  Eliom_predefmod.Blocks5.register_post_coservice
+  Eliom_output.Blocks5.register_post_coservice
     ~fallback:eliomclient2
     ~post_params:unit
     (fun () () ->
@@ -314,12 +314,12 @@ client at loading time.
                 (Dom.appendChild
                    (Dom_html.document##body)
                    (XHTML5.M.toelt
-                      (p [Eliom_predefmod.Xhtml5.a
+                      (p [Eliom_output.Xhtml5.a
                             ~service:coucou
                             [pcdata "An external link generated client side"]
                             ();
                           pcdata " and ";
-                          Eliom_predefmod.Xhtml5.a
+                          Eliom_output.Xhtml5.a
                             (*zap* *)~a:[a_class ["clickable"]](* *zap*)
                             ~service:eliomclient1
                             [pcdata "another, inside the application."]
@@ -372,7 +372,7 @@ let eliomclient3 =
 It is possible to do services that send any caml value. For example:
 *wiki*)
 let eliomclient4' =
-  Eliom_predefmod.Caml.register_post_coservice'
+  Eliom_output.Caml.register_post_coservice'
     ~post_params:unit
     (fun () () -> Lwt.return [1; 2; 3])
 
@@ -417,8 +417,8 @@ let gotowithoutclient =
 
 let _ =
   Eliom_appl.register
-    ~options:{Eliom_predefmod.default_appl_service_options
-              with Eliom_predefmod.do_not_launch = true}
+    ~options:{Eliom_output.default_appl_service_options
+              with Eliom_output.do_not_launch = true}
     ~service:withoutclient
     (fun () () ->
        Lwt.return
@@ -1291,7 +1291,7 @@ let tconnect_action =
 
 (* As the handler is very simple, we register it now: *)
 let tdisconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"tdisconnect3"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
@@ -1355,7 +1355,7 @@ let tconnect_action_handler () login =
 
 let () =
   Eliom_appl.register ~service:tconnect_example3 tconnect_example3_handler;
-  Eliom_predefmod.Action.register ~service:tconnect_action tconnect_action_handler
+  Eliom_output.Action.register ~service:tconnect_action tconnect_action_handler
 
 
 
@@ -1402,7 +1402,7 @@ let tpersist_session_connect_action =
 (* new disconnect action and box:                           *)
 
 let tdisconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"tdisconnect4"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
@@ -1482,7 +1482,7 @@ let () =
   Eliom_appl.register
     ~service:tpersist_session_example
     tpersist_session_example_handler;
-  Eliom_predefmod.Action.register
+  Eliom_output.Action.register
     ~service:tpersist_session_connect_action
     tpersist_session_connect_action_handler
 
@@ -1518,7 +1518,7 @@ let tconnect_action =
 (* new disconnect action and box:                           *)
 
 let tdisconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"tdisconnect6"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
@@ -1601,7 +1601,7 @@ let tconnect_action_handler () login =
 
 let () =
   Eliom_appl.register ~service:tconnect_example6 tconnect_example6_handler;
-  Eliom_predefmod.Action.register ~service:tconnect_action tconnect_action_handler
+  Eliom_output.Action.register ~service:tconnect_action tconnect_action_handler
 
 
 
@@ -1682,7 +1682,7 @@ let _ = Eliom_appl.register tcookies
        will ask the client program to do a redirection *****)
 
 let coucouaction =
-  Eliom_predefmod.Action.register_coservice
+  Eliom_output.Action.register_coservice
     ~fallback:Tutoeliom.coucou
     ~get_params:unit
     (fun () () -> Lwt.return ())
@@ -1711,7 +1711,7 @@ open Tutoeliom
 let main = service [] unit ()
 
 
-let _ = Eliom_predefmod.Xhtml5compact.register main
+let _ = Eliom_output.Xhtml5compact.register main
   (fun () () ->
     Lwt.return
      (html
@@ -1720,7 +1720,7 @@ let _ = Eliom_predefmod.Xhtml5compact.register main
           [css_link (make_uri ~service:(static_dir ()) ["style.css"]) ()])
        (body
           [
-            h1 [img ~alt:"Ocsigen" ~src:(Eliom_predefmod.Xhtml5.make_uri ~service:(static_dir ()) ["ocsigen5.png"]) ()];
+            h1 [img ~alt:"Ocsigen" ~src:(Eliom_output.Xhtml5.make_uri ~service:(static_dir ()) ["ocsigen5.png"]) ()];
 
             h3 [pcdata "Eliom examples"];
             h4 [pcdata "Simple pages"];

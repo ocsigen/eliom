@@ -19,12 +19,12 @@ MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml svgtypes.ml sVG.ml xhtml5types.ml xHT
 	xhtmltypes.ml polytables.ml \
 	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
 	polytables.ml \
-	eliom_predefmod.ml \
+	eliom_output.ml \
 	eliom_common_comet.ml eliom_client_comet.ml \
         eliommod_mkforms.ml eliom_mkforms.ml \
-	eliom_predefmod.ml \
+	eliom_output.ml \
 	eliom_client_event.ml
-MLIS:= uri.mli xhtml5types.mli xhtmltypes.mli xHTML.mli xHTML5.mli eliom_mkforms.mli eliom_client_types.mli eliom_predefmod.mli eliom_common_comet.mli eliommod_mkforms.ml
+MLIS:= uri.mli xhtml5types.mli xhtmltypes.mli xHTML.mli xHTML5.mli eliom_mkforms.mli eliom_client_types.mli eliom_output.mli eliom_common_comet.mli eliommod_mkforms.ml
 CMOS=$(MLS:.ml=.cmo)
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -126,11 +126,11 @@ eliom_uri.mli: ../eliom_uri.mli
 eliommod_mkforms.mli: ../eliommod_mkforms.mli
 	cp -f $< $@ 
 
-eliom_predefmod.ml: ../eliom_predefmod_cli.ml
+eliom_output.ml: ../eliom_output_cli.ml
 	cp -f $< $@
 	echo "module Xhtml5 = Xhtml5forms" >> $@
 
-eliom_predefmod.mli: ../eliom_predefmod_cli.mli
+eliom_output.mli: ../eliom_output_cli.mli
 	cp -f $< $@ 
 	echo "module Xhtml5 : XHTML5FORMSSIG" >> $@
 
@@ -155,7 +155,7 @@ clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so
 	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml* \
 	    eliom_common_cli.ml eliom_mkforms.ml* eliom_uri.ml* \
-            eliom_predefmod.ml* xHTML.ml* xHTML5.ml* xhtml5types.ml* \
+            eliom_output.ml* xHTML.ml* xHTML5.ml* xhtml5types.ml* \
             xhtmltypes.ml* uri.ml* sVG.ml* svgtypes.ml* \
 	    ocsigen_lib_cli.ml \
             polytables.ml

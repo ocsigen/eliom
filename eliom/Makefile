@@ -20,7 +20,7 @@ FILES:= error_pages.ml \
         eliom_uri.ml eliom_mkforms.ml eliom_mkreg.ml \
 	eliom_common_comet.ml eliom_comet.ml  \
 	eliommod_event.ml \
-	eliom_predefmod_cli.ml eliom_predefmod.ml \
+	eliom_output_cli.ml eliom_output.ml \
         eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
 	eliom_event.ml \
 	extensions/eliom_s2s.ml extensions/eliom_openid.ml \

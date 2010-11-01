@@ -19,8 +19,8 @@
 (* A page providing infos about the server (number of sessions, uptime...) *)
 
 open Ocsigen_extensions (* for profiling info *)
-open Eliom_predefmod.Xhtml
-open Eliom_predefmod
+open Eliom_output.Xhtml
+open Eliom_output
 open Eliom_services
 open Eliom_parameters
 open Eliom_state

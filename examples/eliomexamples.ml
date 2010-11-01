@@ -23,8 +23,8 @@
 
 open Tutoeliom
 open XHTML.M
-open Eliom_predefmod.Xhtmlcompact
-open Eliom_predefmod
+open Eliom_output.Xhtmlcompact
+open Eliom_output
 open Eliom_services
 open Eliom_parameters
 open Eliom_state
@@ -58,7 +58,7 @@ let create_form f =
 
 let () = register lilists
   (fun () () ->
-     let f = Eliom_predefmod.Xhtml.get_form lilists2 create_form in
+     let f = Eliom_output.Xhtml.get_form lilists2 create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -93,17 +93,17 @@ let sumserv = register_service
 let create_form =
   (fun (name1, (name2, name3)) ->
     [p [
-       Eliom_predefmod.Xhtml.int_input
+       Eliom_output.Xhtml.int_input
          ~name:name1 ~input_type:`Submit ~value:48 ();
-       Eliom_predefmod.Xhtml.int_input
+       Eliom_output.Xhtml.int_input
          ~name:name2 ~input_type:`Submit ~value:55 ();
-       Eliom_predefmod.Xhtml.string_input
+       Eliom_output.Xhtml.string_input
          ~name:name3 ~input_type:`Submit ~value:"plop" ();
      ]])
 
 let sumform = register_service ["sumform"] unit
   (fun () () ->
-     let f = Eliom_predefmod.Xhtml.get_form sumserv create_form in
+     let f = Eliom_output.Xhtml.get_form sumserv create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -128,7 +128,7 @@ let sumserv = register_post_service
 
 let () = register sumform2
   (fun () () ->
-     let f = Eliom_predefmod.Xhtml.post_form sumserv create_form () in
+     let f = Eliom_output.Xhtml.post_form sumserv create_form () in
      return
        (html
          (head (title (pcdata "")) [])
@@ -138,25 +138,25 @@ let () = register sumform2
 (******)
 (* unregistering services *)
 let unregister_example =
-  Eliom_predefmod.Xhtml.register_service
+  Eliom_output.Xhtml.register_service
     ~path:["unregister"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
-       let s1 = Eliom_predefmod.Xhtml.register_service
+       let s1 = Eliom_output.Xhtml.register_service
          ~path:["unregister1"]
          ~get_params:Eliom_parameters.unit
          (fun () () -> failwith "s1")
        in
-       let s2 = Eliom_predefmod.Xhtml.register_coservice
+       let s2 = Eliom_output.Xhtml.register_coservice
          ~fallback:s1
          ~get_params:Eliom_parameters.unit
          (fun () () -> failwith "s2")
        in
-       let s3 = Eliom_predefmod.Xhtml.register_coservice'
+       let s3 = Eliom_output.Xhtml.register_coservice'
          ~get_params:Eliom_parameters.unit
          (fun () () -> failwith "s3")
        in
-       Eliom_predefmod.Xhtml.register ~scope:`Session
+       Eliom_output.Xhtml.register ~scope:`Session
          ~service:s1
          (fun () () -> failwith "s4");
        Eliom_services.unregister s1;
@@ -198,8 +198,8 @@ let csrfsafe_example_get =
 
 let _ =
   let page () () =
-    let l3 = Eliom_predefmod.Xhtml.get_form csrfsafe_example_get
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l3 = Eliom_output.Xhtml.get_form csrfsafe_example_get
+        (fun _ -> [p [Eliom_output.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]])
     in
@@ -209,8 +209,8 @@ let _ =
        (body [p [pcdata "A new coservice will be created each time this form is displayed"];
               l3]))
   in
-  Eliom_predefmod.Xhtml.register csrfsafe_get_example page;
-  Eliom_predefmod.Xhtml.register csrfsafe_example_get
+  Eliom_output.Xhtml.register csrfsafe_get_example page;
+  Eliom_output.Xhtml.register csrfsafe_example_get
     (fun () () ->
        Lwt.return
          (html
@@ -236,8 +236,8 @@ let csrfsafe_example_post =
 
 let _ =
   let page () () =
-    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_post
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l3 = Eliom_output.Xhtml.post_form csrfsafe_example_post
+        (fun _ -> [p [Eliom_output.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]]) ()
     in
@@ -247,8 +247,8 @@ let _ =
        (body [p [pcdata "A new coservice will be created each time this form is displayed"];
               l3]))
   in
-  Eliom_predefmod.Xhtml.register csrfsafe_postget_example page;
-  Eliom_predefmod.Xhtml.register csrfsafe_example_post
+  Eliom_output.Xhtml.register csrfsafe_postget_example page;
+  Eliom_output.Xhtml.register csrfsafe_example_post
     (fun () () ->
        Lwt.return
          (html
@@ -276,7 +276,7 @@ let csrfsafe_example_session =
 
 let _ =
   let page () () =
-    Eliom_predefmod.Xhtml.register ~scope:`Session
+    Eliom_output.Xhtml.register ~scope:`Session
       ~state_name:"plop"
       ~secure_session:true
       ~service:csrfsafe_example_session
@@ -285,8 +285,8 @@ let _ =
            (html
               (head (title (pcdata "CSRF safe service")) [])
               (body [p [pcdata "This is a POST CSRF safe service"]])));
-    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_session
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l3 = Eliom_output.Xhtml.post_form csrfsafe_example_session
+        (fun _ -> [p [Eliom_output.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]])
         ()
@@ -297,7 +297,7 @@ let _ =
        (body [p [pcdata "A new coservice will be created each time this form is displayed"];
               l3]))
   in
-  Eliom_predefmod.Xhtml.register csrfsafe_session_example page
+  Eliom_output.Xhtml.register csrfsafe_session_example page
 
 
 
@@ -554,14 +554,14 @@ let optform =
     ~get_params:unit
     (fun () () ->
 (* testing lwt_get_form *)
-       Eliom_predefmod.Xhtml.lwt_get_form
+       Eliom_output.Xhtml.lwt_get_form
          ~service:optparam
          (fun (an, bn) ->
             Lwt.return
               [p [
                  string_input ~input_type:`Text ~name:an ();
                  string_input ~input_type:`Text ~name:bn ();
-                 Eliom_predefmod.Xhtml.string_input
+                 Eliom_output.Xhtml.string_input
                    ~input_type:`Submit
                    ~value:"Click" ()]])
       >>= fun form ->
@@ -814,7 +814,7 @@ let cookiename = "c"
 
 let cookies = service ["c";""] (suffix (all_suffix_string "s")) ()
 
-let _ = Eliom_predefmod.Xhtml.register cookies
+let _ = Eliom_output.Xhtml.register cookies
     (fun s () ->
       let now = Unix.time () in
       Eliom_state.set_cookie
@@ -1504,21 +1504,21 @@ register_service
 let create_form =
   (fun (number_name, (bool1name, bool2name)) ->
     [p [pcdata "New timeout: ";
-        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:number_name ();
+        Eliom_output.Xhtml.int_input ~input_type:`Text ~name:number_name ();
         br ();
         pcdata "Check the box if you want to recompute all timeouts: ";
-        Eliom_predefmod.Xhtml.bool_checkbox ~name:bool1name ();
+        Eliom_output.Xhtml.bool_checkbox ~name:bool1name ();
         br ();
         pcdata "Check the box if you want to override configuration file: ";
-        Eliom_predefmod.Xhtml.bool_checkbox ~name:bool2name ();
-        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Submit" ()]])
+        Eliom_output.Xhtml.bool_checkbox ~name:bool2name ();
+        Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Submit" ()]])
 
 let set_timeout_form =
   register_service
     ["set_timeout"]
     unit
     (fun () () ->
-      let f = Eliom_predefmod.Xhtml.get_form set_timeout create_form in
+      let f = Eliom_output.Xhtml.get_form set_timeout create_form in
       return
         (html
            (head (title (pcdata "")) [])

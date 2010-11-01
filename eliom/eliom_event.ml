@@ -36,7 +36,7 @@ struct
        unit,
        [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
        [ `Registrable ],
-       Eliom_predefmod.Action.return)
+       Eliom_output.Action.return)
         Eliom_services.service
 
   let to_react = fst
@@ -53,7 +53,7 @@ struct
       | _ -> `Client_process
     in
     let e_writer = Eliom_services.post_coservice' ?name ~post_params () in
-    Eliom_predefmod.Action.register
+    Eliom_output.Action.register
       ~scope
       ~options:`NoReload
       ~service:e_writer

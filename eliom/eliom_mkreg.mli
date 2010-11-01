@@ -22,7 +22,7 @@
 
 (** This module defines the functor to use to creates modules
    generating functions to register services for your own types of pages.
-   It is used for example in {!Eliom_predefmod}.
+   It is used for example in {!Eliom_output}.
  *)
 
 
@@ -63,7 +63,7 @@ module type REGCREATE =
 
     (** The following field is usually [Eliom_services.XNever]. 
         This value is recorded inside each service just after registration.
-        (Use in [Eliom_predefmod.Eliom_appl])
+        (Use in [Eliom_output.Eliom_appl])
     *)
     val do_appl_xhr : Eliom_services.do_appl_xhr
 

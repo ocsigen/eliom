@@ -58,7 +58,7 @@ else
 endif
 
 DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
-	$(DOCPREF)eliom/eliom_predefmod.mli				\
+	$(DOCPREF)eliom/eliom_output.mli				\
 	$(DOCPREF)eliom/eliom_common.mli				\
 	$(DOCPREF)eliom/eliom_parameters.mli				\
 	$(DOCPREF)eliom/eliom_services.mli				\
@@ -132,7 +132,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_config.cmi eliom/eliom_request_info.cmi \
        eliom/eliom_state.cmi eliom/eliom_references.cmi \
        eliom/eliom_parameters.cmi \
-       eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
+       eliom/eliom_services.cmi eliom/eliom_output.cmi \
        eliom/eliom_uri.cmi \
 	eliom/extensions/eliom_s2s.cmi eliom/extensions/eliom_openid.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
@@ -232,7 +232,7 @@ CLIENTCMOTOINSTALL= \
 CLIENTCMITOINSTALL= \
         eliom/client/eliom_client.cmi \
 	eliom/client/eliom_common_comet.cmi \
-        eliom/client/eliom_predefmod.cmi \
+        eliom/client/eliom_output.cmi \
         eliom/client/ocsigen_cookies.cmi \
         eliom/client/xhtml5types.cmi \
         eliom/client/eliom_client_comet.cmi \

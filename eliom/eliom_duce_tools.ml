@@ -19,7 +19,7 @@
 
 
 (*open XHTML.M *)
-(* open Eliom_predefmod.Xhtml *)
+(* open Eliom_output.Xhtml *)
 open Eliom_duce.Xhtml
 open Eliom_services
 open Xhtmltypes_duce

@@ -24,12 +24,12 @@ Unlike many other Web programming techniques (CGI, PHP,~ ...),
           They are represented by OCaml values, on which
           you must register a function that will generate a page.
           There are several ways to create pages for Eliom. This tutorial
-          is mainly using %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>%, a module allowing
+          is mainly using %<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|%<span class="code"|Eliom_output.Xhtml>%>%, a module allowing
           to register xhtml pages statically typed using OCaml's
           polymorphic variants.
   The %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% module defines functions to construct
           xhtml pages using that type system.
-          As the %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>% redefines some functions
+          As the %<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|%<span class="code"|Eliom_output.Xhtml>%>% redefines some functions
           of %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>%, open the modules in this order:
 *wiki*)
 open Lwt
@@ -37,7 +37,7 @@ open XHTML.M
 open Eliom_services
 open Eliom_parameters
 open Eliom_state
-open Eliom_predefmod.Xhtml
+open Eliom_output.Xhtml
 (*wiki*
           
 %<ocsigendoc version="dev" file="Lwt.html"|%<span class="code"|Lwt>%>%
@@ -48,7 +48,7 @@ open Eliom_predefmod.Xhtml
           
 Here is an example showing how to create a new service and
          register a page created with XHTML.M. Use the function
-         %<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_service"|%<span class="code"|Eliom_predefmod.Xhtml.register_service>%>%:
+         %<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister_service"|%<span class="code"|Eliom_output.Xhtml.register_service>%>%:
 *wiki*)
 let coucou =
   register_service
@@ -65,7 +65,7 @@ The same, written with fully qualified values:
           
 %<code language="ocaml"|
 let coucou =
-  Eliom_predefmod.Xhtml.register_service
+  Eliom_output.Xhtml.register_service
     ~path:["coucou"]
     ~get_params:Eliom_parameters.unit
     (fun _ () () ->
@@ -153,7 +153,7 @@ Here is a sample
           ====Static typing of XHTML with XHTML.M
           
           
-        Typing of xhtml with %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% and %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>%
+        Typing of xhtml with %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% and %<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|%<span class="code"|Eliom_output.Xhtml>%>%
         is very strict and compels you to respect
         xhtml 1.1 standard (with some limitations).
         For example if you write:
@@ -221,7 +221,7 @@ In XHTML, some tags cannot be empty. For example
 
             *wiki*)
 let coucou1 =
-  Eliom_predefmod.Xhtml.register_service
+  Eliom_output.Xhtml.register_service
     ~path:["coucou1"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
@@ -307,7 +307,7 @@ To use it, make sure that you have Eliom compiled with OCamlDuce
           %<span class="code"|eliomduce.cma>% from the configuration file
         (after %<span class="code"|eliom.cma>%).
         Then use %<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|%<span class="code"|Eliom_duce.Xhtml>%>% instead of
-        %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>% to register your pages.
+        %<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|%<span class="code"|Eliom_output.Xhtml>%>% to register your pages.
         
             
 
@@ -330,24 +330,24 @@ let s =
 >%      
           >%
           %<div class="encadre"|
-            ====Eliom_predefmod.HtmlText
+            ====Eliom_output.HtmlText
             
             
 If you want to register untyped (text) pages, use the
-         functions from %<ocsigendoc version="dev" file="Eliom_predefmod.HtmlText.html"|%<span class="code"|Eliom_predefmod.HtmlText>%>%, for example
-         %<ocsigendoc version="dev" file="Eliom_predefmod.Text.html"|%<span class="code"|Eliom_predefmod.Text.register_service>%>% :
+         functions from %<ocsigendoc version="dev" file="Eliom_output.HtmlText.html"|%<span class="code"|Eliom_output.HtmlText>%>%, for example
+         %<ocsigendoc version="dev" file="Eliom_output.Text.html"|%<span class="code"|Eliom_output.Text.register_service>%>% :
         
             
 
             *wiki*)
 let coucoutext =
-  Eliom_predefmod.HtmlText.register_service
+  Eliom_output.HtmlText.register_service
     ~path:["coucoutext"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
       return
         ("<html>n'importe quoi "^
-         (Eliom_predefmod.HtmlText.a coucou "clic" ())^
+         (Eliom_output.HtmlText.a coucou "clic" ())^
          "</html>"))
 (*wiki*
             
@@ -657,7 +657,7 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype =
-  Eliom_predefmod.Xhtml.register_service
+  Eliom_output.Xhtml.register_service
     ~path:["mytype"]
     ~get_params:
       (Eliom_parameters.user_type mysum_of_string string_of_mysum "valeur")
@@ -754,7 +754,7 @@ See [[site:tuto/catch?i=22|%<span class="code"|catch>%]] (change the value
         %<div class="onecol"|
           
 To create a link (%<span class="code"|<a>%>), use the
-          %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_predefmod.Xhtml.a>%>% function (or %<span class="code"|Eliom_duce.Xhtml.a>%, etc),
+          %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_output.Xhtml.a>%>% function (or %<span class="code"|Eliom_duce.Xhtml.a>%, etc),
           as in these examples:
       
           
@@ -768,17 +768,17 @@ let links = register_service ["rep";"links"] unit
      (head (title (pcdata "Links")) [])
      (body
        [p
-        [Eliom_predefmod.Xhtml.a coucou [pcdata "coucou"] (); br ();
-         Eliom_predefmod.Xhtml.a hello [pcdata "hello"] (); br ();
-         Eliom_predefmod.Xhtml.a default
+        [Eliom_output.Xhtml.a coucou [pcdata "coucou"] (); br ();
+         Eliom_output.Xhtml.a hello [pcdata "hello"] (); br ();
+         Eliom_output.Xhtml.a default
            [pcdata "default page of the dir"] (); br ();
-         Eliom_predefmod.Xhtml.a uasuffix
+         Eliom_output.Xhtml.a uasuffix
            [pcdata "uasuffix"] (2007,06); br ();
-         Eliom_predefmod.Xhtml.a coucou_params
+         Eliom_output.Xhtml.a coucou_params
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-         Eliom_predefmod.Xhtml.a raw_serv
+         Eliom_output.Xhtml.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
-         Eliom_predefmod.Xhtml.a
+         Eliom_output.Xhtml.a
            (external_service
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
@@ -804,15 +804,15 @@ See [[site:tuto/rep/links|%<span class="code"|links>%]].
 
 
           
-If you open %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>% after %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>%,
-        %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_predefmod.Xhtml.a>%>%
+If you open %<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|%<span class="code"|Eliom_output.Xhtml>%>% after %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>%,
+        %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_output.Xhtml.a>%>%
    will mask %<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALa"|%<span class="code"|XHTML.M.a>%>%.
         Thus you can avoid to write fully qualified values most of the time.
       
           
 
           
-%<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_predefmod.Xhtml.a>%>% takes as first parameter
+%<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_output.Xhtml.a>%>% takes as first parameter
         the service you want to link to.
       
           
@@ -843,14 +843,14 @@ If you open %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span 
         If you want to create (mutually or not) recursive pages,
         create the service using %<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|%<span class="code"|Eliom_services.service>%>% first,
         then register it in the table using (for example)
-        %<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|%<span class="code"|Eliom_predefmod.Xhtml.register>%>%:
+        %<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|%<span class="code"|Eliom_output.Xhtml.register>%>%:
       
           
 
 *wiki*)
 let linkrec = Eliom_services.service ["linkrec"] unit ()
 
-let _ = Eliom_predefmod.Xhtml.register linkrec
+let _ = Eliom_output.Xhtml.register linkrec
     (fun () () ->
       return
        (html
@@ -885,25 +885,25 @@ let essai =
           ====Forms towards services
           
           
-The function %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALget_form"|%<span class="code"|Eliom_predefmod.Xhtml.get_form>%>% allows to create a form
+The function %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALget_form"|%<span class="code"|Eliom_output.Xhtml.get_form>%>% allows to create a form
       that uses the GET method (parameters in the URL).
-      It works like %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_predefmod.Xhtml.a>%>% but takes a //function// that creates the form from the parameters names as parameter.
+      It works like %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|Eliom_output.Xhtml.a>%>% but takes a //function// that creates the form from the parameters names as parameter.
       
           
 *wiki*)
 let create_form =
   (fun (number_name, (number2_name, string_name)) ->
     [p [pcdata "Write an int: ";
-        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:number_name ();
+        Eliom_output.Xhtml.int_input ~input_type:`Text ~name:number_name ();
         pcdata "Write another int: ";
-        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:number2_name ();
+        Eliom_output.Xhtml.int_input ~input_type:`Text ~name:number2_name ();
         pcdata "Write a string: ";
-        Eliom_predefmod.Xhtml.string_input ~input_type:`Text ~name:string_name ();
-        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
+        Eliom_output.Xhtml.string_input ~input_type:`Text ~name:string_name ();
+        Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
 
 let form = register_service ["form"] unit
   (fun () () ->
-     let f = Eliom_predefmod.Xhtml.get_form coucou_params create_form in
+     let f = Eliom_output.Xhtml.get_form coucou_params create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -927,7 +927,7 @@ Note that if you want to use typed parameters,
        %<span class="code"|string param_name>% and must be used with
        %<span class="code"|string_input>% (or other widgets).
        All functions for creating form widgets are detailed
-       %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html"|here>%.
+       %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html"|here>%.
       
           
 
@@ -950,13 +950,13 @@ let raw_form = register_service
            (head (title (pcdata "")) [])
            (body
               [h1 [pcdata "Any Form"];
-               Eliom_predefmod.Xhtml.get_form raw_serv
+               Eliom_output.Xhtml.get_form raw_serv
                  (fun () ->
                    [p [pcdata "Form to raw_serv: ";
-                       Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plop" ();
-                       Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plip" ();
-                       Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plap" ();
-                       Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
+                       Eliom_output.Xhtml.raw_input ~input_type:`Text ~name:"plop" ();
+                       Eliom_output.Xhtml.raw_input ~input_type:`Text ~name:"plip" ();
+                       Eliom_output.Xhtml.raw_input ~input_type:`Text ~name:"plap" ();
+                       Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 (*wiki*
 
@@ -1046,8 +1046,8 @@ let my_service_with_get_and_post = register_post_service
           
           
  To create a POST form, use the
-           %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALpost_form"|%<span class="code"|Eliom_predefmod.Xhtml.post_form>%>% function.
-           It is similar to %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALget_form"|%<span class="code"|Eliom_predefmod.Xhtml.get_form>%>%
+           %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALpost_form"|%<span class="code"|Eliom_output.Xhtml.post_form>%>% function.
+           It is similar to %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALget_form"|%<span class="code"|Eliom_output.Xhtml.get_form>%>%
            with an additional parameter
            for the GET parameters you want to put in the URL (if any).
            Here, %<span class="code"|form2>% is a page containing a form
@@ -1062,7 +1062,7 @@ let my_service_with_get_and_post = register_post_service
 let form2 = register_service ["form2"] unit
   (fun () () ->
      let f =
-       (Eliom_predefmod.Xhtml.post_form my_service_with_post_params
+       (Eliom_output.Xhtml.post_form my_service_with_post_params
           (fun chaine ->
             [p [pcdata "Write a string: ";
                 string_input ~input_type:`Text ~name:chaine ()]]) ()) in
@@ -1074,7 +1074,7 @@ let form2 = register_service ["form2"] unit
 let form3 = register_service ["form3"] unit
   (fun () () ->
      let f  =
-       (Eliom_predefmod.Xhtml.post_form my_service_with_get_and_post
+       (Eliom_output.Xhtml.post_form my_service_with_get_and_post
           (fun chaine ->
             <:xmllist< <p> Write a string:
                     $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
@@ -1087,7 +1087,7 @@ let form3 = register_service ["form3"] unit
 let form4 = register_service ["form4"] unit
   (fun () () ->
      let f  =
-       (Eliom_predefmod.Xhtml.post_form
+       (Eliom_output.Xhtml.post_form
           (external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
@@ -1320,14 +1320,14 @@ Services can send several types of data,
 
 |@@class="empty"@@|=@@class="col2"@@Services|=@@colspan="2" class="col2"@@Coservices|
 |@@class="empty"@@|=@@class="col2"@@|=@@class="col2"@@attached                \\named~ /~ anonymous|=@@class="col2"@@non-attached                \\named~ /~ anonymous|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>%|@@colspan="4"@@Allows to register functions that
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|%<span class="code"|Eliom_output.Xhtml>%>%|@@colspan="4"@@Allows to register functions that
         generate xhtml pages
         statically checked using polymorphic variant types. You may use
         constructor functions from %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% or a syntax
         extension close to the standard xhtml syntax.|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Xhtmlcompact.html"|%<span class="code"|Eliom_predefmod.Xhtmlcompact>%>%|@@colspan="4"@@Same, but without pretty printing (does not add
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.Xhtmlcompact.html"|%<span class="code"|Eliom_output.Xhtmlcompact>%>%|@@colspan="4"@@Same, but without pretty printing (does not add
             spaces or line breaks).|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Blocks.html"|%<span class="code"|Eliom_predefmod.Blocks>%>%|@@colspan="4"@@Allows to register functions that
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.Blocks.html"|%<span class="code"|Eliom_output.Blocks>%>%|@@colspan="4"@@Allows to register functions that
         generate a portion of page (content of the body tag) using
         %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% or the syntax extension.
         (useful for %<span class="code"|XMLHttpRequest>% requests for example).|
@@ -1336,22 +1336,22 @@ Services can send several types of data,
         statically checked using %<span class="code"|OCamlduce>%. Typing is
         stricter, and you need a modified version of the OCaml compiler
         (OCamlduce).|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.HtmlText.html"|%<span class="code"|Eliom_predefmod.HtmlText>%>%|@@colspan="4"@@Allows to register functions that
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.HtmlText.html"|%<span class="code"|Eliom_output.HtmlText>%>%|@@colspan="4"@@Allows to register functions that
         generate text html pages, without any typechecking of the content.
         The content type sent by the server is "text/html".|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.CssText.html"|%<span class="code"|Eliom_predefmod.CssText>%>%|@@colspan="4"@@Allows to register functions that
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.CssText.html"|%<span class="code"|Eliom_output.CssText>%>%|@@colspan="4"@@Allows to register functions that
         generate CSS pages, without any typechecking of the content.
         The content type sent by the server is "text/css".|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Text.html"|%<span class="code"|Eliom_predefmod.Text>%>%|@@colspan="4"@@Allows to register functions that
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.Text.html"|%<span class="code"|Eliom_output.Text>%>%|@@colspan="4"@@Allows to register functions that
         generate text pages, without any typechecking of the content.
         The services return a pair of strings. The first one is the content
         of the page, the second one is the content type.|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|%<span class="code"|Eliom_predefmod.Action>%>%|@@colspan="4"@@Allows to register actions (
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.Action.html"|%<span class="code"|Eliom_output.Action>%>%|@@colspan="4"@@Allows to register actions (
         functions that do not generate any page). The URL is reloaded after
         the action.|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Unit.html"|%<span class="code"|Eliom_predefmod.Unit>%>%|@@colspan="4"@@is like %<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|%<span class="code"|Eliom_predefmod.Action>%>% but the
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.Unit.html"|%<span class="code"|Eliom_output.Unit>%>%|@@colspan="4"@@is like %<ocsigendoc version="dev" file="Eliom_output.Action.html"|%<span class="code"|Eliom_output.Action>%>% but the
         URL is not reloaded after the action.|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Redirection.html"|%<span class="code"|Eliom_predefmod.Redirection>%>%|@@colspan="4"@@**[New in 1.1.0]** Allows to register HTTP permanent redirections.
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.Redirection.html"|%<span class="code"|Eliom_output.Redirection>%>%|@@colspan="4"@@**[New in 1.1.0]** Allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
             Warning: According to the RFC of the HTTP protocol,
             the URL must be absolute!                \\
@@ -1363,8 +1363,8 @@ Services can send several types of data,
             For example:
             %<span class="code"|register ~options:`Permanent ...>% or
             %<span class="code"|register ~options:`Temporary ...>%.|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Files.html"|%<span class="code"|Eliom_predefmod.Files>%>%|@@colspan="4"@@Allows to register services that send files|
-|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|%<span class="code"|Eliom_predefmod.Any>%>%|@@colspan="4"@@Allows to register services that can choose
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.Files.html"|%<span class="code"|Eliom_output.Files>%>%|@@colspan="4"@@Allows to register services that send files|
+|=@@class="row"@@%<ocsigendoc version="dev" file="Eliom_output.Any.html"|%<span class="code"|Eliom_output.Any>%>%|@@colspan="4"@@Allows to register services that can choose
             what they send, for example an xhtml page
             or a file, depending on some situation (parameter, user logged or
             not, page present in a cache ...).It is also possible to create your own modules for other types
@@ -1583,16 +1583,16 @@ let session_data_example_handler _ _  =
            | Eliom_state.Data name ->
                p [pcdata ("Hello "^name);
                   br ();
-                  Eliom_predefmod.Xhtml.a
+                  Eliom_output.Xhtml.a
                     session_data_example_close
                     [pcdata "close session"] ()]
            | Eliom_state.Data_session_expired
            | Eliom_state.No_data ->
-               Eliom_predefmod.Xhtml.post_form
+               Eliom_output.Xhtml.post_form
                  session_data_example_with_post_params
                  (fun login ->
                    [p [pcdata "login: ";
-                       Eliom_predefmod.Xhtml.string_input
+                       Eliom_output.Xhtml.string_input
                          ~input_type:`Text ~name:login ()]]) ()
          ]))
 
@@ -1609,7 +1609,7 @@ let session_data_example_with_post_params_handler _ login =
        (body
           [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
               br ();
-              Eliom_predefmod.Xhtml.a session_data_example
+              Eliom_output.Xhtml.a session_data_example
                 [pcdata "Try again"] ()
             ]]))
 
@@ -1629,18 +1629,18 @@ let session_data_example_close_handler () () =
         | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
         | Eliom_state.No_data -> p [pcdata "You were not connected."]
         | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
-        p [Eliom_predefmod.Xhtml.a session_data_example [pcdata "Retry"] () ]]))
+        p [Eliom_output.Xhtml.a session_data_example [pcdata "Retry"] () ]]))
 
 
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     session_data_example_close session_data_example_close_handler;
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     session_data_example session_data_example_handler;
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     session_data_example_with_post_params
     session_data_example_with_post_params_handler
 
@@ -1827,7 +1827,7 @@ let session_services_example_close =
 
 let session_services_example_handler () () =
   let f =
-    Eliom_predefmod.Xhtml.post_form
+    Eliom_output.Xhtml.post_form
       session_services_example_with_post_params
       (fun login ->
         [p [pcdata "login: ";
@@ -1888,13 +1888,13 @@ let launch_session () login =
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
+  Eliom_output.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
-  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
+  Eliom_output.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
     ~service:coucou
     (fun () () ->
       return
@@ -1904,7 +1904,7 @@ let launch_session () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliom_predefmod.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
+  Eliom_output.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
     ~service:hello
     (fun () () ->
       return
@@ -1920,13 +1920,13 @@ let launch_session () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     ~service:session_services_example
     session_services_example_handler;
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     ~service:session_services_example_close
     session_services_example_close_handler;
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     ~service:session_services_example_with_post_params
     launch_session
 (*zap* Registering for session during initialisation is forbidden:
@@ -2048,13 +2048,13 @@ let coservices_example_get =
 let _ =
   let c = ref 0 in
   let page () () =
-    let l3 = Eliom_predefmod.Xhtml.post_form coservices_example_post
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l3 = Eliom_output.Xhtml.post_form coservices_example_post
+        (fun _ -> [p [Eliom_output.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"incr i (post)" ()]]) ()
     in
-    let l4 = Eliom_predefmod.Xhtml.get_form coservices_example_get
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l4 = Eliom_output.Xhtml.get_form coservices_example_get
+        (fun _ -> [p [Eliom_output.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"incr i (get)" ()]])
     in
@@ -2068,10 +2068,10 @@ let _ =
               l3;
               l4]))
   in
-  Eliom_predefmod.Xhtml.register coservices_example page;
+  Eliom_output.Xhtml.register coservices_example page;
   let f () () = c := !c + 1; page () () in
-  Eliom_predefmod.Xhtml.register coservices_example_post f;
-  Eliom_predefmod.Xhtml.register coservices_example_get f
+  Eliom_output.Xhtml.register coservices_example_post f;
+  Eliom_output.Xhtml.register coservices_example_get f
 (*wiki*
 
           
@@ -2327,11 +2327,11 @@ let calc_i =
 let calc_handler () () =
   let create_form intname =
     [p [pcdata "Write a number: ";
-        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:intname ();
+        Eliom_output.Xhtml.int_input ~input_type:`Text ~name:intname ();
         br ();
-        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
+        Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
   in
-  let f = Eliom_predefmod.Xhtml.get_form calc_i create_form in
+  let f = Eliom_output.Xhtml.get_form calc_i create_form in
   return
     (html
        (head (title (pcdata "")) [])
@@ -2378,8 +2378,8 @@ let calc_i_handler i () =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register calc   calc_handler;
-  Eliom_predefmod.Xhtml.register calc_i calc_i_handler
+  Eliom_output.Xhtml.register calc   calc_handler;
+  Eliom_output.Xhtml.register calc_i calc_i_handler
 (*wiki*
 
           
@@ -2404,11 +2404,11 @@ Actions are services that do not generate any page.
    (for ex a connection form),
    instead of making a version with post params of all these pages,
    you can use only one action, registered on a non-attached coservice.
-   To register actions, just use the module %<ocsigendoc version="dev" file="Eliom_predefmod.Action.html"|%<span class="code"|Eliom_predefmod.Action>%>%
-   instead of %<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|%<span class="code"|Eliom_predefmod.Xhtml>%>% (or %<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|%<span class="code"|Eliom_duce.Xhtml>%>%, etc.).
+   To register actions, just use the module %<ocsigendoc version="dev" file="Eliom_output.Action.html"|%<span class="code"|Eliom_output.Action>%>%
+   instead of %<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|%<span class="code"|Eliom_output.Xhtml>%>% (or %<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|%<span class="code"|Eliom_duce.Xhtml>%>%, etc.).
    For example
-     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister"|%<span class="code"|Eliom_predefmod.Action.register>%>%>%,
-     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_predefmod.Action.html" fragment="VALregister_service"|%<span class="code"|Eliom_predefmod.Action.register_service>%>%>%.
+     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_output.Action.html" fragment="VALregister"|%<span class="code"|Eliom_output.Action.register>%>%>%,
+     %<span class="Cem"|%<ocsigendoc version="dev" file="Eliom_output.Action.html" fragment="VALregister_service"|%<span class="code"|Eliom_output.Action.register_service>%>%>%.
             \\
       
           
@@ -2425,7 +2425,7 @@ Here is one simple example. Suppose you wrote a function
           
 %<code language="ocaml"|
 let remove_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~post_params:(Eliom_parameters.int "id")
     (fun () id -> remove id)
 >%
@@ -2438,11 +2438,11 @@ Then wherever you want to add a button to do that action
 
           
 %<code language="ocaml"|
-Eliom_predefmod.Xhtml.post_form remove_action
+Eliom_output.Xhtml.post_form remove_action
   (fun id_name ->
-     Eliom_predefmod.Xhtml.int_input
+     Eliom_output.Xhtml.int_input
        ~input_type:`Hidden ~name:id_name ~value:id ();
-     Eliom_predefmod.Xhtml.string_input
+     Eliom_output.Xhtml.string_input
        ~input_type:`Submit ~value:("remove "^string_of_int id) ())
 
 >%
@@ -2483,7 +2483,7 @@ let connect_action =
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
@@ -2494,16 +2494,16 @@ let disconnect_action =
 (* login ang logout boxes:                                  *)
 
 let disconnect_box s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+  Eliom_output.Xhtml.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let login_box () =
-  Eliom_predefmod.Xhtml.post_form connect_action
+  Eliom_output.Xhtml.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_predefmod.Xhtml.string_input
+                   Eliom_output.Xhtml.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -2541,8 +2541,8 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+  Eliom_output.Xhtml.register ~service:connect_example3 connect_example3_handler;
+  Eliom_output.Action.register ~service:connect_action connect_action_handler
 (*wiki*
 
           
@@ -2712,7 +2712,7 @@ creates this link:
 
           
 It is now also possible to handle static pages with Eliom, using
-      %<span class="code"|Eliom_predefmod.Files>% ([[manual/dev/3#p3eliomfiles|see later]]).
+      %<span class="code"|Eliom_output.Files>% ([[manual/dev/3#p3eliomfiles|see later]]).
       
           
       %<|h4>Static parts of a page</h4>      <em>To be available soon</em>%
@@ -2727,7 +2727,7 @@ It is now also possible to handle static pages with Eliom, using
           ====Sending portions of pages
           
           
-     The %<ocsigendoc version="dev" file="Eliom_predefmod.Blocks.html"|%<span class="code"|Eliom_predefmod.Blocks>%>% module allows to register services that
+     The %<ocsigendoc version="dev" file="Eliom_output.Blocks.html"|%<span class="code"|Eliom_output.Blocks>%>% module allows to register services that
      send portions of pages, of any type that may be contained directly in
      a %<span class="code"|<body>%> tag (blocks of xhtml DTD).
      It is useful to create AJAX pages
@@ -2737,7 +2737,7 @@ It is now also possible to handle static pages with Eliom, using
 
 *wiki*)
 let divpage =
-  Eliom_predefmod.Blocks.register_service
+  Eliom_output.Blocks.register_service
     ~path:["div"]
     ~get_params:unit
     (fun () () ->
@@ -2747,9 +2747,9 @@ let divpage =
 (*wiki*
 
           
-     The %<ocsigendoc version="dev" file="Eliom_predefmod.SubXhtml.html"|%<span class="code"|Eliom_predefmod.SubXhtml>%>% module allows to create other modules for
+     The %<ocsigendoc version="dev" file="Eliom_output.SubXhtml.html"|%<span class="code"|Eliom_output.SubXhtml>%>% module allows to create other modules for
      registering portions of pages of other types.
-     For example, %<ocsigendoc version="dev" file="Eliom_predefmod.Blocks.html"|%<span class="code"|Eliom_predefmod.Blocks>%>%
+     For example, %<ocsigendoc version="dev" file="Eliom_output.Blocks.html"|%<span class="code"|Eliom_output.Blocks>%>%
      is defined by:
           
 
@@ -2765,7 +2765,7 @@ end)
           ====Redirections
           
           
-     The %<ocsigendoc version="dev" file="Eliom_predefmod.Redirection.html"|%<span class="code"|Eliom_predefmod.Redirection>%>% module allows to register HTTP redirections.            \\  **[New in 1.1.0. For 1.0.0, please see module %<span class="code"|Eliom_predefmod.Redirections>%.]**            \\
+     The %<ocsigendoc version="dev" file="Eliom_output.Redirection.html"|%<span class="code"|Eliom_output.Redirection>%>% module allows to register HTTP redirections.            \\  **[New in 1.1.0. For 1.0.0, please see module %<span class="code"|Eliom_output.Redirections>%.]**            \\
      If a request is done towards such a service, the server asks the browser
      to retry with another URL. 
     
@@ -2777,7 +2777,7 @@ end)
     
           
 *wiki*)
-let redir1 = Eliom_predefmod.Redirection.register_service
+let redir1 = Eliom_output.Redirection.register_service
     ~options:`Temporary
     ~path:["redir"]
     ~get_params:Eliom_parameters.unit
@@ -2792,7 +2792,7 @@ let redir1 = Eliom_predefmod.Redirection.register_service
     
           
  *wiki*)
-let redir = Eliom_predefmod.Redirection.register_service
+let redir = Eliom_output.Redirection.register_service
     ~options:`Temporary
     ~path:["redir"]
     ~get_params:(int "o")
@@ -2823,7 +2823,7 @@ Note that the cost of a redirection is one more query and
           
           
 You may want to register a service that will send files.
-      To do that, use the %<ocsigendoc version="dev" file="Eliom_predefmod.Files.html"|%<span class="code"|Eliom_predefmod.Files>%>% module. Example:
+      To do that, use the %<ocsigendoc version="dev" file="Eliom_output.Files.html"|%<span class="code"|Eliom_output.Files>%>% module. Example:
       
           
 
@@ -2866,27 +2866,27 @@ The extension %<span class="code"|Staticmod>% is another way to
 You may want to register a service that will send, for instance,
       sometimes
       an xhtml page, sometimes a file, sometimes something else.
-      To do that, use the %<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|%<span class="code"|Eliom_predefmod.Any>%>% module, together
+      To do that, use the %<ocsigendoc version="dev" file="Eliom_output.Any.html"|%<span class="code"|Eliom_output.Any>%>% module, together
       with the %<span class="code"|send>% function of the module you want
       to use. Example:
       
           
 *wiki*)
 let send_any =
-  Eliom_predefmod.Any.register_service
+  Eliom_output.Any.register_service
     ~path:["sendany"]
     ~get_params:(string "type")
    (fun s () ->
      if s = "valid"
      then
-       Eliom_predefmod.Xhtml.send
+       Eliom_output.Xhtml.send
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata
                         "This page has been statically typechecked.
                          If you change the parameter in the URL you will get an unchecked text page"]]))
      else
-       Eliom_predefmod.HtmlText.send
+       Eliom_output.HtmlText.send
          "<html><body><p>It is not a valid page. Put type=\"valid\" in the URL to get a typechecked page.</p></body></html>"
    )
 (*wiki*
@@ -2898,7 +2898,7 @@ let send_any =
           
 
           
-You may also use %<ocsigendoc version="dev" file="Eliom_predefmod.Any.html"|%<span class="code"|Eliom_predefmod.Any>%>% to choose a
+You may also use %<ocsigendoc version="dev" file="Eliom_output.Any.html"|%<span class="code"|Eliom_output.Any>%>% to choose a
          different charset than the default
         (default charset is set in configuration file)
          for the page you send. To do that use the optional parameters
@@ -2961,7 +2961,7 @@ let cookiename = "mycookie"
 
 let cookies = service ["cookies"] unit ()
 
-let _ = Eliom_predefmod.Xhtml.register cookies
+let _ = Eliom_output.Xhtml.register cookies
   (fun () () ->
     Eliom_state.set_cookie
       ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
@@ -3237,15 +3237,15 @@ let persist_session_connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"disconnect4"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
       Eliom_state.close_session ~state_name ())
 
 let disconnect_box s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+  Eliom_output.Xhtml.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let bad_user_key = Polytables.make_key ()
@@ -3256,7 +3256,7 @@ let get_bad_user table =
 (* new login box:                                           *)
 
 let login_box session_expired action =
-  Eliom_predefmod.Xhtml.post_form action
+  Eliom_output.Xhtml.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
@@ -3311,10 +3311,10 @@ let persist_session_connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register
+  Eliom_output.Xhtml.register
     ~service:persist_session_example
     persist_session_example_handler;
-  Eliom_predefmod.Action.register
+  Eliom_output.Action.register
     ~service:persist_session_connect_action
     persist_session_connect_action_handler
 (*wiki*
@@ -3452,15 +3452,15 @@ let connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"disconnect6"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
       Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
 
 let disconnect_box s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+  Eliom_output.Xhtml.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 
@@ -3472,7 +3472,7 @@ let get_bad_user table =
 (* new login box:                                           *)
 
 let login_box session_expired action =
-  Eliom_predefmod.Xhtml.post_form action
+  Eliom_output.Xhtml.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
@@ -3530,8 +3530,8 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register ~service:connect_example6 connect_example6_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+  Eliom_output.Xhtml.register ~service:connect_example6 connect_example6_handler;
+  Eliom_output.Action.register ~service:connect_action connect_action_handler
 
 (*wiki*
           
@@ -3778,13 +3778,13 @@ When an exception is raised during the generation of a page,
 let _ = Eliom_services.set_exn_handler
    (fun e -> match e with
     | Eliom_common.Eliom_404 ->
-        Eliom_predefmod.Xhtml.send ~code:404
+        Eliom_output.Xhtml.send ~code:404
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];
                     p [pcdata "Page not found"]]))
 (*    | Eliom_common.Eliom_Wrong_parameter ->
-        Eliom_predefmod.Xhtml.send
+        Eliom_output.Xhtml.send
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"];
@@ -3891,7 +3891,7 @@ For security reasons, Eliom does not use the same cookies in
         %<span class="code"|~secure:false>% when calling functions like
         %<span class="code"|Eliom_state.set_volatile_data>%,
         %<span class="code"|Eliom_state.get_persistent_data>%,
-        %<span class="code"|Eliom_predefmod.Xhtml.register>%, etc.
+        %<span class="code"|Eliom_output.Xhtml.register>%, etc.
 
 ====Non localized parameters**[New in 1.3.0]**
 
@@ -3934,9 +3934,9 @@ let nlparams = register_service
           
         To create a link or a form with non-localized parameters,
         use the optional parameter %<span class="code"|nl_params>% of functions
-    %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|a>%>%,
-    %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALget_form"|%<span class="code"|get_form>%>% or
-    %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALpost_form"|%<span class="code"|post_form>%>%. Example:
+    %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|%<span class="code"|a>%>%,
+    %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALget_form"|%<span class="code"|get_form>%>% or
+    %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALpost_form"|%<span class="code"|post_form>%>%. Example:
     
     *wiki*)
 
@@ -3966,9 +3966,9 @@ let tonlparams = register_service
                              )
                   (fun iname ->
                      [p [pcdata "form with hidden nl params";
-                         Eliom_predefmod.Xhtml.int_input 
+                         Eliom_output.Xhtml.int_input 
                            ~input_type:`Text ~name:iname ();
-                         Eliom_predefmod.Xhtml.string_input
+                         Eliom_output.Xhtml.string_input
                            ~input_type:`Submit ~value:"Send" ()]]);
                 get_form
                   ~service:nlparams 
@@ -3977,13 +3977,13 @@ let tonlparams = register_service
                        Eliom_parameters.get_nl_params_names my_nl_params
                      in
                      [p [pcdata "form with nl params fiels";
-                         Eliom_predefmod.Xhtml.int_input 
+                         Eliom_output.Xhtml.int_input 
                            ~input_type:`Text ~name:iname ();
-                         Eliom_predefmod.Xhtml.int_input 
+                         Eliom_output.Xhtml.int_input 
                            ~input_type:`Text ~name:aname ();
-                         Eliom_predefmod.Xhtml.string_input 
+                         Eliom_output.Xhtml.string_input 
                            ~input_type:`Text ~name:sname ();
-                         Eliom_predefmod.Xhtml.string_input
+                         Eliom_output.Xhtml.string_input
                            ~input_type:`Submit ~value:"Send" ()]]);
                ]))
     )
@@ -4071,7 +4071,7 @@ let connect_action =
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"disconnect5"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
@@ -4082,16 +4082,16 @@ let disconnect_action =
 (* login ang logout boxes:                                  *)
 
 let disconnect_box s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action
-    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+  Eliom_output.Xhtml.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let login_box () =
-  Eliom_predefmod.Xhtml.post_form connect_action
+  Eliom_output.Xhtml.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_predefmod.Xhtml.string_input
+                   Eliom_output.Xhtml.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -4129,8 +4129,8 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+  Eliom_output.Xhtml.register ~service:connect_example5 connect_example5_handler;
+  Eliom_output.Action.register ~service:connect_action connect_action_handler
 (*wiki*
       Note that in this case, we do not need a session table any more,
       because our session table was containing only the user name,
@@ -4175,14 +4175,14 @@ let connect_action =
     ()
 
 let disconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"disconnectgt"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
       Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
 
 let disconnect_g_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"disconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
@@ -4194,20 +4194,20 @@ let disconnect_g_action =
 
 let disconnect_box () =
   div [
-    Eliom_predefmod.Xhtml.post_form disconnect_action
-      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    Eliom_output.Xhtml.post_form disconnect_action
+      (fun _ -> [p [Eliom_output.Xhtml.string_input
                        ~input_type:`Submit ~value:"Close session" ()]]) ();
-    Eliom_predefmod.Xhtml.post_form disconnect_g_action
-      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    Eliom_output.Xhtml.post_form disconnect_g_action
+      (fun _ -> [p [Eliom_output.Xhtml.string_input
                        ~input_type:`Submit ~value:"Close group" ()]]) ()
   ]
 
 let login_box () =
-  Eliom_predefmod.Xhtml.post_form connect_action
+  Eliom_output.Xhtml.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_predefmod.Xhtml.string_input
+                   Eliom_output.Xhtml.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -4267,8 +4267,8 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register ~service:group_tables_example group_tables_example_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+  Eliom_output.Xhtml.register ~service:group_tables_example group_tables_example_handler;
+  Eliom_output.Action.register ~service:connect_action connect_action_handler
 
 
 
@@ -4305,13 +4305,13 @@ let connect_action =
     ()
 
 let disconnect_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"pdisconnectgt"
     ~post_params:Eliom_parameters.unit
     (fun () () -> Eliom_state.close_session ~state_name ())
 
 let disconnect_g_action =
-  Eliom_predefmod.Action.register_post_coservice'
+  Eliom_output.Action.register_post_coservice'
     ~name:"pdisconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
@@ -4324,20 +4324,20 @@ let disconnect_g_action =
 
 let disconnect_box () =
   div [
-    Eliom_predefmod.Xhtml.post_form disconnect_action
-      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    Eliom_output.Xhtml.post_form disconnect_action
+      (fun _ -> [p [Eliom_output.Xhtml.string_input
                        ~input_type:`Submit ~value:"Close session" ()]]) ();
-    Eliom_predefmod.Xhtml.post_form disconnect_g_action
-      (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    Eliom_output.Xhtml.post_form disconnect_g_action
+      (fun _ -> [p [Eliom_output.Xhtml.string_input
                        ~input_type:`Submit ~value:"Close group" ()]]) ()
   ]
 
 let login_box () =
-  Eliom_predefmod.Xhtml.post_form connect_action
+  Eliom_output.Xhtml.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
-                   Eliom_predefmod.Xhtml.string_input
+                   Eliom_output.Xhtml.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -4398,8 +4398,8 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_predefmod.Xhtml.register ~service:pgroup_tables_example group_tables_example_handler;
-  Eliom_predefmod.Action.register ~service:connect_action connect_action_handler
+  Eliom_output.Xhtml.register ~service:pgroup_tables_example group_tables_example_handler;
+  Eliom_output.Action.register ~service:connect_action connect_action_handler
 
 (* *zap*)
 (*wiki*
@@ -4467,8 +4467,8 @@ let csrfsafe_example_post =
 
 let _ =
   let page () () =
-    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_post
-        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
+    let l3 = Eliom_output.Xhtml.post_form csrfsafe_example_post
+        (fun _ -> [p [Eliom_output.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]]) ()
     in
@@ -4478,8 +4478,8 @@ let _ =
        (body [p [pcdata "A new coservice will be created each time this form is displayed"];
               l3]))
   in
-  Eliom_predefmod.Xhtml.register csrfsafe_example page;
-  Eliom_predefmod.Xhtml.register csrfsafe_example_post
+  Eliom_output.Xhtml.register csrfsafe_example page;
+  Eliom_output.Xhtml.register csrfsafe_example_post
     (fun () () ->
        Lwt.return
          (html
@@ -4531,7 +4531,7 @@ This section shows more advanced use of page parameters and
 let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
 
 let regexp =
-  Eliom_predefmod.Xhtml.register_service
+  Eliom_output.Xhtml.register_service
     ~path:["regexp"]
     ~get_params:(regexp r "$1" "myparam")
     (fun g () ->
@@ -4547,7 +4547,7 @@ let regexp =
 let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 
 let regexpserv =
-  Eliom_predefmod.Xhtml.register_service
+  Eliom_output.Xhtml.register_service
     ~path:["regexp"]
     ~get_params:(regexp myregexp "$1" (fun s -> s) "myparam")
     (fun g () ->
@@ -4727,13 +4727,13 @@ let select_example_result = register_service
 let create_select_form =
   (fun select_name ->
     [p [pcdata "Select something: ";
-        Eliom_predefmod.Xhtml.string_select ~name:select_name
-          (Eliom_predefmod.Xhtml.Option ([] (* attributes *),
+        Eliom_output.Xhtml.string_select ~name:select_name
+          (Eliom_output.Xhtml.Option ([] (* attributes *),
                                         "Bob" (* value *),
                                         None (* Content, if different from value *),
                                         false (* not selected *))) (* first line *)
-          [Eliom_predefmod.Xhtml.Option ([], "Marc", None, false);
-          (Eliom_predefmod.Xhtml.Optgroup
+          [Eliom_output.Xhtml.Option ([], "Marc", None, false);
+          (Eliom_output.Xhtml.Optgroup
           ([],
            "Girls",
            ([], "Karin", None, false),
@@ -4741,12 +4741,12 @@ let create_select_form =
             ([], "Alice", None, true);
             ([], "Germaine", Some (pcdata "Bob's mother"), false)]))]
           ;
-        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]])
+        Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]])
 
 let select_example = register_service ["select"] unit
   (fun () () ->
      let f =
-       Eliom_predefmod.Xhtml.get_form
+       Eliom_output.Xhtml.get_form
          select_example_result create_select_form
      in
      return
@@ -4760,7 +4760,7 @@ let select_example = register_service ["select"] unit
 
           
 To do "multiple" select boxes, use functions like
-   %<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALstring_multiple_select"|%<span class="code"|Eliom_predefmod.Xhtml.string_multiple_select>%>%.
+   %<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALstring_multiple_select"|%<span class="code"|Eliom_output.Xhtml.string_multiple_select>%>%.
    As you can see in the type, the service must be declared with parameters
    of type %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|%<span class="code"|set>%>%.
      
@@ -5102,12 +5102,12 @@ let uploadform = register upload
 
           
 %<code language="ocaml"|img ~alt:"Ocsigen"
-    ~src:(Eliom_predefmod.Xhtml.make_uri ~service:senddoc ["ocsigen1024.jpg"])
+    ~src:(Eliom_output.Xhtml.make_uri ~service:senddoc ["ocsigen1024.jpg"])
     ()
 >%
 
           
-The function %<span class="Cem"|[[site:dev/Eliom_predefmod.XHTMLFORMSSIG.html#VALmake_uri|%<span class="code"|Eliom_predefmod.Xhtml.make_uri>%]]>%
+The function %<span class="Cem"|[[site:dev/Eliom_output.XHTMLFORMSSIG.html#VALmake_uri|%<span class="code"|Eliom_output.Xhtml.make_uri>%]]>%
         creates the relative URL string from current URL
         (see above) to the URL of the image in the static directory
         configured in the configuration file.
@@ -5649,7 +5649,7 @@ let _ = register
 let launch_session user =
   set_volatile_data my_table user
 
-let _ = Eliom_predefmod.Action.register
+let _ = Eliom_output.Action.register
   ~action:connect_action
     (fun h (login, password) ->
       launch_session (connect login password); return [])

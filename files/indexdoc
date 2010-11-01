@@ -36,6 +36,9 @@ Eliom_services
 Eliom_uri 
 Eliom_parameters 
 Eliom_state 
+Eliom_config
+Eliom_request_info
+Eliom_references
 Eliom_common
 Eliom_client
 }
@@ -49,7 +52,7 @@ Eliom_duce_tools
 
 {4 Generating pages typed with polymorphic variants}
 {!modules: 
-Eliom_predefmod.Xhtml 
+Eliom_output.Xhtml 
 XHTML
 Xhtmltypes 
 Eliom_tools
@@ -58,7 +61,7 @@ Eliom_tools_common
 
 {4 Other kinds of pages}
 {!modules: 
-Eliom_predefmod 
+Eliom_output 
 }
 
 {4 Creating your own kinds of pages}
