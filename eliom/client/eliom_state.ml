@@ -24,17 +24,20 @@ let ssl_ = match Url.Current.get () with
   | Some (Url.Https _) -> true
   | Some (Url.Http _) | Some (Url.File _) | None -> false
 
-let get_ssl ~sp = ssl_
+let get_ssl () = ssl_
+let get_ssl_sp = get_ssl
 
 let host_ = Url.Current.host
 
-let get_hostname ~sp = host_
+let get_hostname () = host_
+let get_hostname_sp = get_hostname
 
 let port_ = match Url.Current.port with
   | Some p -> p
   | None -> if ssl_ then 443 else 80
 
-let get_server_port ~sp = port_
+let get_server_port () = port_
+let get_server_port_sp = get_server_port
 
 let full_path_ =
   match Url.Current.path with
@@ -42,4 +45,5 @@ let full_path_ =
     | l -> l
   
 
-let get_original_full_path ~sp = full_path_
+let get_original_full_path () = full_path_
+let get_original_full_path_sp = get_original_full_path

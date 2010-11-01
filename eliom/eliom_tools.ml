@@ -33,54 +33,54 @@ module Xhtml = struct
       | Some id, 0 -> a_id id :: classes
       | _ -> classes
 
-  let same_service_opt sp s sopt =
-    let same_url url = make_uri ~absolute_path:true ~sp ~service:s () = url in
+  let same_service_opt s sopt =
+    let same_url url = make_uri ~absolute_path:true ~service:s () = url in
     match sopt with
       | None -> same_url
         (uri_of_string
            ((* MAYBE : use this or get_original_full_path_string *)
-             Eliom_request_info.get_current_sub_path_string sp))
-      | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ~sp ())
-  let same_service_opt sp s sopt =
-    let same_url url = make_uri ~service:s ~sp () = url in
+             Eliom_request_info.get_current_sub_path_string ()))
+      | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ())
+  let same_service_opt s sopt =
+    let same_url url = make_uri ~service:s () = url in
     match sopt with
       | None -> same_url (uri_of_string
-                            (Eliom_request_info.get_current_sub_path_string sp))
-      | Some s' -> same_url (make_uri ~service:s' ~sp ())
+                            (Eliom_request_info.get_current_sub_path_string ()))
+      | Some s' -> same_url (make_uri ~service:s' ())
 
 
 
-  let menu ?(classe=[]) ?id first l ?service:current ~sp =
+  let menu ?(classe=[]) ?id first l ?service:current () =
     let rec aux = function
       | [] -> []
       | [(url, text)] ->
         let classe = [last_class] in
-        if same_service_opt sp url current
+        if same_service_opt url current
         then [li ~a:[a_class (current_class::classe)] text]
-        else [li ~a:[a_class classe] [a url sp text ()]]
+        else [li ~a:[a_class classe] [a url text ()]]
       | (url, text)::l ->
-        (if same_service_opt sp url current
+        (if same_service_opt url current
          then  (li ~a:[a_class [current_class]] text)
-         else (li [a url sp text ()]))::(aux l)
+         else (li [a url text ()]))::(aux l)
     in match first::l with
       | [] -> assert false
       | [(url, text)] ->
         ul ~a:(a_ul (menu_class::classe) id 0)
           (let liclasse = [first_class; last_class] in
-           if same_service_opt sp url current
+           if same_service_opt url current
            then (li ~a:[a_class (current_class::liclasse)] text)
-           else (li ~a:[a_class liclasse] [a url sp text ()])) []
+           else (li ~a:[a_class liclasse] [a url text ()])) []
       | (url, text)::l ->
         ul ~a:(a_ul (menu_class::classe) id 0)
           (let liclasse = [first_class] in
-           if same_service_opt sp url current
+           if same_service_opt url current
            then (li ~a:[a_class (current_class::liclasse)] text)
-           else (li ~a:[a_class liclasse] [a url sp text ()])) (aux l)
+           else (li ~a:[a_class liclasse] [a url text ()])) (aux l)
 
-  let find_in_hierarchy sp service (main, pages) =
+  let find_in_hierarchy service (main, pages) =
     let rec aux service i = function
       | [] -> raise Not_found
-      | (_, Site_tree (Main_page s, hsl))::_ when same_service_opt sp s service ->
+      | (_, Site_tree (Main_page s, hsl))::_ when same_service_opt s service ->
         (try
            i::aux service 0 hsl
          with Not_found -> [i])
@@ -100,7 +100,7 @@ module Xhtml = struct
       ?(whole_tree=false)
       ((page, pages) as the_menu)
       ?service
-      ~sp =
+      () =
     
     let rec depth_first_fun pages level pos : [ `Ul ] XHTML.M.elt list =
       let rec one_item first last i s =
@@ -128,7 +128,7 @@ module Xhtml = struct
         match s with
           | (text, Site_tree (Default_page page, []))
           | (text, Site_tree (Main_page page, [])) ->
-            li ~a:attclass [a page sp text ()]
+            li ~a:attclass [a page text ()]
           | (text, Site_tree (Not_clickable, [])) ->
             li ~a:attclass text
           | (text, Disabled) ->
@@ -136,7 +136,7 @@ module Xhtml = struct
           | (text, Site_tree (Default_page page, hsl))
           | (text, Site_tree (Main_page page, hsl)) ->
             li ~a:attclass
-              ((a page sp text ())::
+              ((a page text ())::
                   if deplier || whole_tree then
                     (depth_first_fun hsl (level+1) pos2
                        : [ `Ul ] XHTML.M.elt list
@@ -163,7 +163,7 @@ module Xhtml = struct
         | li::lis -> [ul ~a:(a_ul (menu_class::classe) id level) li lis]
     in
 
-    (depth_first_fun pages 0 (find_in_hierarchy sp service the_menu)
+    (depth_first_fun pages 0 (find_in_hierarchy service the_menu)
        : [ `Ul ] XHTML.M.elt list :> [> `Ul ] XHTML.M.elt list)
 
 
@@ -172,7 +172,7 @@ module Xhtml = struct
       ?id
       ((page, pages) as the_menu)
       ?service
-      ~sp =
+      () =
 
     let rec breadth_first_fun pages level pos
         : [ `Ul ] XHTML.M.elt list =
@@ -201,7 +201,7 @@ module Xhtml = struct
         match s with
           | (text, Site_tree (Default_page page, _))
           | (text, Site_tree (Main_page page, _)) ->
-            li ~a:attclass [a page sp text ()]
+            li ~a:attclass [a page text ()]
           | (text, Site_tree (Not_clickable, _)) ->
             li ~a:attclass text
           | (text, Disabled) ->
@@ -229,24 +229,24 @@ module Xhtml = struct
         | li::lis -> (ul ~a:(a_ul (menu_class::classe) id level) li lis)::l
 
     in
-    (breadth_first_fun pages 0 (find_in_hierarchy sp service the_menu)
+    (breadth_first_fun pages 0 (find_in_hierarchy service the_menu)
        : [ `Ul ] XHTML.M.elt list :> [> `Ul ] XHTML.M.elt list)
 
 
-  let structure_links (default, pages) ?service ~sp =
+  let structure_links (default, pages) ?service () =
     let make_rev s endlist =
     (* I am a subsection of s *)
       match s with
         | None -> endlist
         | Some s ->
           (link ~a:[a_rev [`Subsection];
-                    a_href (make_uri ~service:s ~sp ());
+                    a_href (make_uri ~service:s ());
                    ] ())::endlist
     in
     let make_rel s =
     (* s is a subsection of mine *)
       link ~a:[a_rel [`Subsection];
-               a_href (make_uri ~service:s ~sp ());
+               a_href (make_uri ~service:s ());
               ] ()
     in
     let make_rels beg a =
@@ -256,11 +256,11 @@ module Xhtml = struct
     in
     let rec create_rev parent = function
       | [] -> raise Not_found
-      | (_, (Site_tree (Main_page s, [])))::l when same_service_opt sp s service ->
+      | (_, (Site_tree (Main_page s, [])))::l when same_service_opt s service ->
         make_rev parent []
       | (_, Disabled)::l
       | (_, Site_tree (_, []))::l -> create_rev parent l
-      | (_, Site_tree (Main_page page, hsl))::_ when same_service_opt sp page service ->
+      | (_, Site_tree (Main_page page, hsl))::_ when same_service_opt page service ->
         make_rev parent (List.fold_left make_rels [] hsl)
       | (_, Site_tree (Main_page page, hsl))::l ->
         (try create_rev (Some page) hsl
@@ -272,7 +272,7 @@ module Xhtml = struct
     try
       match default with
         | Main_page def ->
-          if same_service_opt sp def service then
+          if same_service_opt def service then
             List.fold_left make_rels [] pages
           else create_rev (Some def) pages
         | _ ->
@@ -291,55 +291,55 @@ module Xhtml5 = struct
       | Some id, 0 -> a_id id :: classes
       | _ -> classes
 
-  let same_service_opt sp s sopt =
-    let same_url url = make_uri ~absolute_path:true ~sp ~service:s () = url in
+  let same_service_opt s sopt =
+    let same_url url = make_uri ~absolute_path:true ~service:s () = url in
     match sopt with
       | None -> same_url
         (uri_of_string
            ((* MAYBE : use this or get_original_full_path_string *)
-             Eliom_request_info.get_current_sub_path_string sp))
-      | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ~sp ())
-  let same_service_opt sp s sopt =
-    let same_url url = make_uri ~service:s ~sp () = url in
+             Eliom_request_info.get_current_sub_path_string ()))
+      | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ())
+  let same_service_opt s sopt =
+    let same_url url = make_uri ~service:s () = url in
     match sopt with
       | None -> same_url (uri_of_string
-                            (Eliom_request_info.get_current_sub_path_string sp))
-      | Some s' -> same_url (make_uri ~service:s' ~sp ())
+                            (Eliom_request_info.get_current_sub_path_string ()))
+      | Some s' -> same_url (make_uri ~service:s' ())
 
 
 
-  let menu ?(classe=[]) ?id first l ?service:current ~sp =
+  let menu ?(classe=[]) ?id first l ?service:current () =
     let rec aux = function
       | [] -> []
       | [(url, text)] ->
         let classe = [last_class] in
-        let _ = li [a url sp text ()] in
-        if same_service_opt sp url current
+        let _ = li [a url text ()] in
+        if same_service_opt url current
         then [li ~a:[a_class (current_class::classe)] text]
-        else [li ~a:[a_class classe] [a url sp text ()]]
+        else [li ~a:[a_class classe] [a url text ()]]
       | (url, text)::l ->
-        (if same_service_opt sp url current
+        (if same_service_opt url current
          then  (li ~a:[a_class [current_class]] text)
-         else (li [a url sp text ()]))::(aux l)
+         else (li [a url text ()]))::(aux l)
     in match first::l with
       | [] -> assert false
       | [(url, text)] ->
         ul ~a:(a_ul (menu_class::classe) id 0)
           [let liclasse = [first_class; last_class] in
-           if same_service_opt sp url current
+           if same_service_opt url current
            then (li ~a:[a_class (current_class::liclasse)] text)
-           else (li ~a:[a_class liclasse] [a url sp text ()])]
+           else (li ~a:[a_class liclasse] [a url text ()])]
       | (url, text)::l ->
         ul ~a:(a_ul (menu_class::classe) id 0)
           (let liclasse = [first_class] in
-           (if same_service_opt sp url current
+           (if same_service_opt url current
            then (li ~a:[a_class (current_class::liclasse)] text)
-           else (li ~a:[a_class liclasse] [a url sp text ()])) :: (aux l))
+           else (li ~a:[a_class liclasse] [a url text ()])) :: (aux l))
 
-  let find_in_hierarchy sp service (main, pages) =
+  let find_in_hierarchy service (main, pages) =
     let rec aux service i = function
       | [] -> raise Not_found
-      | (_, Site_tree (Main_page s, hsl))::_ when same_service_opt sp s service ->
+      | (_, Site_tree (Main_page s, hsl))::_ when same_service_opt s service ->
         (try
            i::aux service 0 hsl
          with Not_found -> [i])
@@ -359,7 +359,7 @@ module Xhtml5 = struct
       ?(whole_tree=false)
       ((page, pages) as the_menu)
       ?service
-      ~sp =
+      () =
     
     let rec depth_first_fun pages level pos = 
       let rec one_item first last i s =
@@ -387,7 +387,7 @@ module Xhtml5 = struct
         match s with
           | (text, Site_tree (Default_page page, []))
           | (text, Site_tree (Main_page page, [])) ->
-            li ~a:attclass [a page sp text ()]
+            li ~a:attclass [a page text ()]
           | (text, Site_tree (Not_clickable, [])) ->
             li ~a:attclass text
           | (text, Disabled) ->
@@ -395,7 +395,7 @@ module Xhtml5 = struct
           | (text, Site_tree (Default_page page, hsl))
           | (text, Site_tree (Main_page page, hsl)) ->
             li ~a:attclass
-              ((a page sp text ())::
+              ((a page text ())::
                   if deplier || whole_tree then
                     (depth_first_fun hsl (level+1) pos2
                        : [ `Ul ] elt list
@@ -420,7 +420,7 @@ module Xhtml5 = struct
       [ul ~a:(a_ul (menu_class::classe) id level) (one_menu true 0 pages)]
     in
 
-    (depth_first_fun pages 0 (find_in_hierarchy sp service the_menu)
+    (depth_first_fun pages 0 (find_in_hierarchy service the_menu)
        : [ `Ul ] elt list :> [> `Ul ] elt list)
 
 
@@ -429,7 +429,7 @@ module Xhtml5 = struct
       ?id
       ((page, pages) as the_menu)
       ?service
-      ~sp =
+      () =
 
     let rec breadth_first_fun pages level pos
         : [ `Ul ] elt list =
@@ -458,7 +458,7 @@ module Xhtml5 = struct
         match s with
           | (text, Site_tree (Default_page page, _))
           | (text, Site_tree (Main_page page, _)) ->
-            li ~a:attclass [a page sp text ()]
+            li ~a:attclass [a page text ()]
           | (text, Site_tree (Not_clickable, _)) ->
             li ~a:attclass text
           | (text, Disabled) ->
@@ -484,23 +484,23 @@ module Xhtml5 = struct
       ul ~a:(a_ul (menu_class::classe) id level) (one_menu true 0 pages)::l
 
     in
-    (breadth_first_fun pages 0 (find_in_hierarchy sp service the_menu)
+    (breadth_first_fun pages 0 (find_in_hierarchy service the_menu)
        : [ `Ul ] elt list :> [> `Ul ] elt list)
 
 
-  let structure_links (default, pages) ?service ~sp =
+  let structure_links (default, pages) ?service () =
     let make_rev s endlist =
     (* I am a subsection of s *)
       match s with
         | None -> endlist
         | Some s ->
           (link ~rel: [ `Next ] (* ?? *)
-             ~href: (make_uri ~service: s ~sp ()) ()) :: endlist
+             ~href: (make_uri ~service: s ()) ()) :: endlist
     in
     let make_rel s =
     (* s is a subsection of mine *)
       link ~rel: [`Next ]
-        ~href: (make_uri ~service: s ~sp ())
+        ~href: (make_uri ~service: s ())
         ()
     in
     let make_rels beg a =
@@ -510,11 +510,11 @@ module Xhtml5 = struct
     in
     let rec create_rev parent = function
       | [] -> raise Not_found
-      | (_, (Site_tree (Main_page s, [])))::l when same_service_opt sp s service ->
+      | (_, (Site_tree (Main_page s, [])))::l when same_service_opt s service ->
         make_rev parent []
       | (_, Disabled)::l
       | (_, Site_tree (_, []))::l -> create_rev parent l
-      | (_, Site_tree (Main_page page, hsl))::_ when same_service_opt sp page service ->
+      | (_, Site_tree (Main_page page, hsl))::_ when same_service_opt page service ->
         make_rev parent (List.fold_left make_rels [] hsl)
       | (_, Site_tree (Main_page page, hsl))::l ->
         (try create_rev (Some page) hsl
@@ -526,7 +526,7 @@ module Xhtml5 = struct
     try
       match default with
         | Main_page def ->
-          if same_service_opt sp def service then
+          if same_service_opt def service then
             List.fold_left make_rels [] pages
           else create_rev (Some def) pages
         | _ ->

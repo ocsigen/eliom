@@ -46,8 +46,8 @@ let find_page_table
     urlsuffix
     k
     =
-  let sp = Eliom_state.make_server_params sitedata info urlsuffix fullsessname
-  in
+  Eliom_state.make_server_params sitedata info urlsuffix fullsessname
+  >>= fun sp ->
   (catch
      (fun () -> return (Eliom_common.Serv_Table.find k !pagetableref))
      (function
@@ -148,9 +148,10 @@ let rec insert_as_last_of_generation generation x = function
 
 
 
-let add_page_table tables ?sp url_act tref
+let add_page_table tables url_act tref
     key (id, ((max_use, expdate, action) as va)) =
 
+  let sp = Eliom_common.get_sp_option () in
   (match expdate with
      | Some _ -> 
          tables.Eliom_common.table_contains_services_with_timeout <- true
@@ -249,9 +250,10 @@ let add_page_table tables ?sp url_act tref
 
 
 
-let remove_page_table _ ?sp _ tref key id =
+let remove_page_table _ _ tref key id =
   (* Actually this does not remove empty directories.
      But this will be done by the next service GC *)
+
   try
     let Eliom_common.Ptc (nodeopt, l) = Eliom_common.Serv_Table.find key !tref
     in
@@ -295,7 +297,6 @@ let find_dircontent dc k =
 let add_or_remove_service
     f
     tables
-    ?sp
     url_act
     page_table_key
     va =
@@ -349,7 +350,7 @@ let add_or_remove_service
   let page_table_ref =
     search_page_table_ref tables.Eliom_common.table_services url_act 
   in
-  f tables ?sp url_act page_table_ref page_table_key va
+  f tables url_act page_table_ref page_table_key va
 
 let add_service = add_or_remove_service add_page_table
 
@@ -381,7 +382,7 @@ let find_service
         info
         suffix
         {Eliom_common.key_state = 
-            (Eliom_common.att_key_serv_of_req 
+            (Eliom_common.att_key_serv_of_req
                (fst si.Eliom_common.si_state_info),
              Eliom_common.att_key_serv_of_req 
                (snd si.Eliom_common.si_state_info));

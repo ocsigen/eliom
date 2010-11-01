@@ -453,7 +453,7 @@ let ( *** ) e1 e2 = {
 }
 
 (* CHECKING *)
-let check_authentication ret_to endpoint sp assoc args = 
+let check_authentication ret_to endpoint assoc args = 
   check_arg args "return_to" ret_to
   &&& check_signature assoc.mac args
 
@@ -462,21 +462,21 @@ type 'a authentication_result =
   | Setup_needed
   | Result of 'a
 
-let end_login_handler ~sp ext ret_to endpoint assoc f args =
+let end_login_handler ext ret_to endpoint assoc f args =
   let args = strip_ns "openid" args in
   let mode = get args "mode" in
-  let _ = Eliom_state.discard ~sp ~state_name () in
+  let _ = Eliom_state.discard ~state_name () in
   if mode = "id_res" then
     (if List.mem_assoc "invalidate_handle" args then
         reassociate endpoint
      else
         Lwt.return assoc) >>= 
-      (fun assoc -> check_authentication ret_to endpoint sp assoc args) >>= 
-      (fun () -> ext.parse args) >>= (fun k -> f sp (Result k))
+      (fun assoc -> check_authentication ret_to endpoint assoc args) >>= 
+      (fun () -> ext.parse args) >>= (fun k -> f (Result k))
   else if mode = "cancel" then
-    f sp Canceled
+    f Canceled
   else if mode = "setup_needed" then
-    f sp Setup_needed
+    f Setup_needed
   else if mode = "error" then
     lwt_fail (Server_error (get args "error"))
   else
@@ -486,7 +486,6 @@ module type HiddenServiceInfo = sig
   val path : string list
 (** The path of the hidden service *)
   val f :
-    Eliom_request_info.server_params ->
     (string * string) list ->
     unit -> Eliom_predefmod.Any.page Lwt.t
 (** The function called when an user connects to the hidden service
@@ -499,7 +498,7 @@ module Make (S : HiddenServiceInfo) = struct
 
   let () = Eliom_predefmod.Any.register ~service:return_service S.f
 
-  let authenticate ~mode ~ext ~handler ~sp ~discovery =
+  let authenticate ~mode ~ext ~handler ~discovery =
     let local = match snd discovery with
       | None ->  "http://specs.openid.net/auth/2.0/identifier_select"
       | Some l -> l
@@ -508,24 +507,22 @@ module Make (S : HiddenServiceInfo) = struct
     let uri = ref "" in
     let () = uri := 
       Eliom_predefmod.Xhtml.make_string_uri ~absolute: true 
-      ~service:return_service [] ~sp 
+      ~service:return_service []
     in
     let _ = Eliom_predefmod.Any.register
       ~scope:`Session
       ~state_name
-      ~service:return_service ~sp
-      (fun sp args _ -> 
-        end_login_handler ~sp ext !uri (fst discovery) assoc handler args)
+      ~service:return_service
+      (fun args _ -> 
+        end_login_handler ext !uri (fst discovery) assoc handler args)
     in
     let _ = Eliom_state.set_global_service_state_timeout
       ~state_name: (Some state_name)
-      ~sp
       (Some 60.)
     in
     let _ = Eliom_state.set_service_session_group
       ~set_max: 1000
       ~state_name
-      ~sp
       group_name
     in
     let params = 
@@ -533,7 +530,7 @@ module Make (S : HiddenServiceInfo) = struct
        "claimed_id", local;
        "identity", local;
        "assoc_handle", assoc.assoc_handle;
-       "realm", "http://"^Eliom_request_info.get_hostname ~sp] @ ext.headers
+       "realm", "http://"^Eliom_request_info.get_hostname ()] @ ext.headers
     in
     let params = push_ns "openid" (("ns", openid_url) :: ("mode", mode) :: params) in
     Lwt.return (uri_of_string (format_url (fst discovery) params))
@@ -545,29 +542,27 @@ type result = {
   pape : pape;
 }
 
-let dispatch f sp = function
+let dispatch f = function
   | Result (l, (l', pape)) ->
     let r = { fields = l @ l'; pape = pape } in
-    f sp (Result r)
-  | (Canceled | Setup_needed) as x -> f sp x
+    f (Result r)
+  | (Canceled | Setup_needed) as x -> f x
 
 
-let check = ref (fun ?mode ~ext ~handler ~sp ~discovery -> Lwt.fail (Failure "Call OpenID.init"))
+let check = ref (fun ?mode ~ext ~handler ~discovery -> Lwt.fail (Failure "Call OpenID.init"))
 
 type check_fun =
     ?immediate:bool ->
-    sp:Eliom_request_info.server_params ->
     ?policy_url:string ->
     ?max_auth_age:int ->
     ?auth_policies:string list ->
     ?required:field list ->
     ?optional:field list ->
     string ->
-    (Eliom_request_info.server_params ->
-     result authentication_result -> Eliom_predefmod.Any.page Lwt.t) ->
+    (result authentication_result -> Eliom_predefmod.Any.page Lwt.t) ->
     XHTML.M.uri Lwt.t
 
-let check check ?(immediate = true) ~sp ?policy_url ?max_auth_age ?auth_policies
+let check check ?(immediate = true) ?policy_url ?max_auth_age ?auth_policies
     ?(required = []) ?(optional = []) user_url handler = 
   let mode = 
     if immediate then "checkid_immediate" 
@@ -580,7 +575,6 @@ let check check ?(immediate = true) ~sp ?policy_url ?max_auth_age ?auth_policies
              sreg ?policy_url ~required ~optional () ***
              pape ?max_auth_age ?auth_policies ())
       ~handler: (dispatch handler)
-      ~sp
       ~discovery)
 
 let init ~path ~f = 

@@ -315,7 +315,7 @@ struct
      function
        | <:ctyp< ($t$ XHTML5.M.elt) >> ->
            if aux t
-           then (<:expr<Eliommod_cli.wrap_node ~sp>>,
+           then (<:expr<Eliommod_cli.wrap_node>>,
                  <:expr<Eliommod_cli.unwrap_node>>)
            else raise Next
        | _ -> raise Next
@@ -323,28 +323,28 @@ struct
 
     (function (*channel*)
      | <:ctyp< ($_$ Eliom_comet.Channels.t) >> ->
-         (<:expr<Eliom_comet.Channels.wrap ~sp>>,
+         (<:expr<Eliom_comet.Channels.wrap>>,
           <:expr<Eliom_client_comet.Channels.unwrap>>)
      | _ -> raise Next
     );
 
     (function (*buffchan*)
      | <:ctyp< ($_$ Eliom_comet.Dlisted_channels.t) >> ->
-         (<:expr<Eliom_comet.Dlisted_channels.wrap ~sp>>,
+         (<:expr<Eliom_comet.Dlisted_channels.wrap>>,
           <:expr<Eliom_client_comet.Dlisted_channels.unwrap>>)
      | _ -> raise Next
     );
 
     (function (*up_event*)
      | <:ctyp< ($_$ Eliom_event.Up.t) >> ->
-         (<:expr<Eliom_event.Up.wrap ~sp>>,
-          <:expr<Eliom_client_event.Up.unwrap ~sp>>)
+         (<:expr<Eliom_event.Up.wrap>>,
+          <:expr<Eliom_client_event.Up.unwrap>>)
      | _ -> raise Next
     );
 
     (function (*down_event*)
      | <:ctyp< ($_$ Eliom_event.Down.t) >> ->
-         (<:expr<Eliom_event.Down.wrap ~sp>>,
+         (<:expr<Eliom_event.Down.wrap>>,
           <:expr<Eliom_client_event.Down.unwrap>>)
      | _ -> raise Next
     );
@@ -362,7 +362,7 @@ struct
      in
      fun t ->
        if aux t
-       then (<:expr<Eliommod_cli.wrap ~sp>>, <:expr<Eliommod_cli.unwrap>>)
+       then (<:expr<Eliommod_cli.wrap>>, <:expr<Eliommod_cli.unwrap>>)
        else raise Next
     );
   ]

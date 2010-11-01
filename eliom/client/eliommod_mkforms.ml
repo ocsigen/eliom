@@ -97,7 +97,7 @@ let add_tab_cookies_to_get_form node () =
 
 let make_get_form_with_onsubmit
     make_get_form register_event add_tab_cookies_to_get_form _
-    ~(sp:Eliom_request_info.server_params) ?a ~action i1 i =
+    ?a ~action i1 i =
   let node =
     make_get_form ?a ~action ?onsubmit:(None : XML.event option) i1 i in
   register_event node "onsubmit" (add_tab_cookies_to_get_form node);
@@ -105,7 +105,7 @@ let make_get_form_with_onsubmit
 
 let make_post_form_with_onsubmit
     make_post_form register_event add_tab_cookies_to_post_form _
-    ~sp ?a ~action i1 i =
+    ?a ~action i1 i =
   let node = make_post_form ?a ~action ?onsubmit:None
     ?id:None ?inline:None i1 i
   in

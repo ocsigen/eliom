@@ -52,10 +52,6 @@ whole application.
 {shared{
 open XHTML5.M
 }}
-{client{
-open Eliom_client.Sp (* On client side, sp is a global variable defined in
-                        this module. *)
-}}
 
 (****** server only *******)
 {server{ (* note that {server{ ... }} is optionnal. *)
@@ -77,7 +73,7 @@ module Eliom_appl =
                [XHTML5.M.pcdata "a,.clickable {color: #111188; cursor: pointer;}"]];
            Eliom_predefmod.ap_container =
             Some (None,
-                  fun ~sp div ->
+                  fun div ->
                     [h1 [pcdata "Eliom application"];
                      p [pcdata "Random value in the container: ";
                         pcdata (string_of_int (Random.int 1000))];
@@ -90,7 +86,7 @@ let eliomclient1 =
   Eliom_appl.register_service
     ~path:["plop"; "eliomclient1"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                         (* with {{ expr }}, the expression is executed by the client. *)
@@ -119,7 +115,7 @@ let myblockservice =
   Eliom_predefmod.Blocks5.register_post_coservice
     ~fallback:eliomclient2
     ~post_params:unit
-    (fun _ () () ->
+    (fun () () ->
        Lwt.return
          [p [pcdata ("I come from a distant service! Here is a random value: "^
                        string_of_int (Random.int 100))]])
@@ -136,7 +132,7 @@ let item () = li [pcdata Sys.ocaml_version]
 let _ =
   Eliom_appl.register
     eliomclient2
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return
         [
 (*wiki*
@@ -148,7 +144,6 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
                 {{Eliom_client.exit_to
-                    ~sp
                     ~service:\(Tutoeliom.coucou) (* just as [coucou] *)
                     () ()
                 }}
@@ -172,20 +167,18 @@ client at loading time.
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
                 ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) ->
-                      let sp = Eliommod_client.unwrap_sp sp in
                       let body = Dom_html.document##body in
                       (*Js_old.get_element_by_id "bodyid"*)
                       Eliom_client.call_service
-                        ~sp ~service:myblockservice () () >>= fun s ->
+                        ~service:myblockservice () () >>= fun s ->
                       (try
                          let l = Js_old.Node.children (Js_old.dom_of_xml s) in
                          List.iter (Js_old.Node.append body) l
                        with e -> Js_old.alert (Printexc.to_string e));
 (* does not work with chrome. A solution is probably to use set "innerHTML". *)
                        Lwt.return ()
-                 ) (Eliom_client.wrap_sp sp) myblockservice)
+                 ) myblockservice)
             ]
             [pcdata "Click here to add content from the server."];
  *)
@@ -202,7 +195,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_url ~sp
+                Eliom_client.change_url
                   ~service:\(Tutoeliom.coucou)
                   () ()
               }}
@@ -216,7 +209,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
-                {{Eliom_client.change_page ~sp
+                {{Eliom_client.change_page
                     ~service:\(eliomclient1)
                     () ()
                 }}
@@ -227,7 +220,6 @@ client at loading time.
   use {{{change_page}}} if you do a link inside the same application.
   The latter example is equivalent to the following. *wiki*)
           p [a (*zap* *) ~a:[a_class ["clickable"]](* *zap*)
-               ~sp
                ~service:eliomclient1
                [pcdata "Click here to change the page without stopping the program (with ";
                 code [pcdata "a"];
@@ -236,7 +228,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick{{
-                Eliom_client.change_page ~sp ~service:\(Tutoeliom.coucou)
+                Eliom_client.change_page ~service:\(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -246,14 +238,14 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.exit_to ~sp ~service:\(eliomclient2) () ()
+                Eliom_client.exit_to ~service:\(eliomclient2) () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_page ~sp ~service:\(eliomclient1)
+                Eliom_client.change_page ~service:\(eliomclient1)
                   () ()
               }}
             ]
@@ -268,7 +260,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.get_subpage ~sp ~service:\(eliomclient1)
+                Eliom_client.get_subpage ~service:\(eliomclient1)
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -323,13 +315,13 @@ client at loading time.
                    (Dom_html.document##body)
                    (XHTML5.M.toelt
                       (p [Eliom_predefmod.Xhtml5.a
-                            ~sp ~service:coucou
+                            ~service:coucou
                             [pcdata "An external link generated client side"]
                             ();
                           pcdata " and ";
                           Eliom_predefmod.Xhtml5.a
                             (*zap* *)~a:[a_class ["clickable"]](* *zap*)
-                            ~sp ~service:eliomclient1
+                            ~service:eliomclient1
                             [pcdata "another, inside the application."]
                             ()
                          ]
@@ -353,7 +345,7 @@ To do that, use the {{{Eliom_parameters.caml}}} function:
 let eliomclient3' =
   Eliom_appl.register_post_coservice'
     ~post_params:(caml "isb")
-    (fun sp () (i, s, l) ->
+    (fun () (i, s, l) ->
       Lwt.return
         [p (pcdata (Printf.sprintf "i = %d, s = %s" i s)::
               List.map (fun a -> pcdata a) l
@@ -364,11 +356,11 @@ let eliomclient3 =
   Eliom_appl.register_service
     ~path:["eliomclient3"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Eliom_client.change_page
-                     ~sp ~service:\(eliomclient3')
+                     ~service:\(eliomclient3')
                      () (299, "oo", ["a";"b";"c"])
                 }}
               ]
@@ -382,19 +374,19 @@ It is possible to do services that send any caml value. For example:
 let eliomclient4' =
   Eliom_predefmod.Caml.register_post_coservice'
     ~post_params:unit
-    (fun sp () () -> Lwt.return [1; 2; 3])
+    (fun () () -> Lwt.return [1; 2; 3])
 
 
 let eliomclient4 =
   Eliom_appl.register_service
     ~path:["eliomclient4"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~sp ~service:\(eliomclient4')
+                     ~service:\(eliomclient4')
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
@@ -428,37 +420,37 @@ let _ =
     ~options:{Eliom_predefmod.default_appl_service_options
               with Eliom_predefmod.do_not_launch = true}
     ~service:withoutclient
-    (fun sp () () ->
+    (fun () () ->
        Lwt.return
          [p [pcdata "If the application was not launched before coming here (or if you reload), this page will not launch it. But if it was launched before, it is still running."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp ~service:\(gotowithoutclient)
+                  ~service:\(gotowithoutclient)
                   () ()
               }}
             ]
             [pcdata "Click here to go to a page that launches the application every time (this link does not work if the appl is not launched)."];
-          p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:gotowithoutclient
+          p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~service:gotowithoutclient
                [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ]);
   Eliom_appl.register
     ~service:gotowithoutclient
-    (fun sp () () ->
+    (fun () () ->
        Lwt.return
          [p [pcdata "The application is launched."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp ~service:\(withoutclient)
+                  ~service:\(withoutclient)
                   () ()
               }}
             ]
             [pcdata "Click here to see the page that does not launch the application."];
-          p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~sp ~service:withoutclient
+          p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~service:withoutclient
                [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ])
@@ -471,21 +463,21 @@ let on_load =
   Eliom_appl.register_service
     ~path:["onload"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       let div =
-        div [p [a ~service:eliomclient1 ~sp [pcdata "go to another page"] ()] ]
+        div [p [a ~service:eliomclient1 [pcdata "go to another page"] ()] ]
       in
-      Eliom_services.onload ~sp
+      Eliom_services.onload
         {{ Lwt_js.sleep 1. >|= fun () ->
            Dom.appendChild \(div)
              (XHTML5.M.toelt (p [pcdata "on_load executed after 1s."]))
          }};
-      Eliom_services.onload ~sp
+      Eliom_services.onload
         {{ Lwt_js.sleep 3. >|= fun () ->
            Dom.appendChild \(div)
              (XHTML5.M.toelt (p [pcdata "on_load executed after 3s."]))
          }};
-      Eliom_services.onunload ~sp
+      Eliom_services.onunload
         {{
           Dom.appendChild \(div)
           (XHTML5.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
@@ -498,16 +490,16 @@ let uri_test =
   Eliom_appl.register_service
     ~path:["uritest"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       let div =
         div [
           p [pcdata "The following URLs are computed either on server or client side. They should be equal."];
-          p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ~sp ())];
+          p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ())];
             ]
       in
-      Eliom_services.onload ~sp
+      Eliom_services.onload
         {{ Dom.appendChild \(div)
-             (XHTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:\(eliomclient1) ~sp ())]))
+             (XHTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:\(eliomclient1) ())]))
          }};
       Lwt.return [div]
     )
@@ -550,13 +542,11 @@ let rec rand_tick () =
 
 let _ = rand_tick ()
 
-
-
 let comet1 =
   Eliom_appl.register_service
     ~path:["comet1"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
        let c2 = Eliom_comet.Dlisted_channels.create ~max_size:6 ~timer:16. () in
        let write_c2 = Eliom_comet.Dlisted_channels.write c2 in
        let t2 = ref 0 in
@@ -565,9 +555,9 @@ let comet1 =
          write_c2 !t2 ; incr t2 ; Lwt_unix.yield () >>= fun () ->
          write_c2 !t2 ; incr t2 ; tick_2 ()
        in
-       let t = tick_2 () in
+       tick_2 ();
 
-       Eliom_services.onload ~sp
+       Eliom_services.onload
          {{
            Eliom_client_comet.Channels.register \(c1)
            (fun i ->
@@ -604,10 +594,10 @@ let comet2 =
   Eliom_appl.register_service
     ~path:["comet2"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       (* First create a server-readable client-writable event AKA up event AKA
          client-to-server asynchronous edge *)
-      let e_up = Eliom_event.Up.create ~sp (Eliom_parameters.caml "letter" : (string, 'aa, 'aaa) params_type) in
+      let e_up = Eliom_event.Up.create (Eliom_parameters.caml "letter" : (string, 'aa, 'aaa) params_type) in
       let e_up_react = Eliom_event.Up.to_react e_up in
       let e_down =
         Eliom_event.Down.of_react
@@ -617,7 +607,7 @@ let comet2 =
           )
       in
       let `R _ = React.E.retain e_up_react (fun () -> ignore e_down) in
-      Eliom_services.onload ~sp
+      Eliom_services.onload
         {{
           React.E.map
             (fun s -> Dom_html.window##alert (Js.string s))
@@ -628,7 +618,7 @@ let comet2 =
       Lwt.return [
          h2 [pcdata "Dual events"] ;
          div (* This div is for pushing "A" to the server side event *)
-           (*TODO: fix client side sp and simplify up_event unwrapping *)
+           (*TODO: simplify up_event unwrapping *)
            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ \(e_up) "A" }} ]
            [pcdata "Push A"] ;
          div (* This one is for pushing "B" *)
@@ -647,10 +637,10 @@ let comet3 =
   Eliom_appl.register_service
     ~path:["comet3"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
        (* First create a server-readable client-writable event AKA up event AKA
           client-to-server asynchronous edge *)
-       let e_up = Eliom_event.Up.create ~sp (Eliom_parameters.caml "double" : (string, 'aa, 'aaa) params_type) in
+       let e_up = Eliom_event.Up.create (Eliom_parameters.caml "double" : (string, 'aa, 'aaa) params_type) in
        let e_up_react = Eliom_event.Up.to_react e_up in
        let e_down_1 =
          Eliom_event.Down.of_react
@@ -666,7 +656,7 @@ let comet3 =
        let `R _ = React.E.retain e_up_react
                     (fun () -> ignore e_down_1 ; ignore e_down_2)
        in
-       Eliom_services.onload ~sp
+       Eliom_services.onload
          {{
            React.E.map
            (fun s -> Dom_html.window##alert (Js.string s))
@@ -681,7 +671,7 @@ let comet3 =
        (* We can send the page *)
        Lwt.return [
          h2 [pcdata "Simultaneous events"] ;
-         div (*TODO: fix client side sp and simplify up_event unwrapping *)
+         div (*TODO: simplify up_event unwrapping *)
            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ \(e_up) "" }} ]
            [pcdata "Send me two values from different events !"] ;
          div [pcdata "Note that one of the two events has a greater rate limit \
@@ -705,7 +695,7 @@ let comet_message_board =
   Eliom_appl.register_service
     ~path:["message_board"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
        let message_down =
          Eliom_event.Down.of_react
            ~buffer_size:15
@@ -731,7 +721,7 @@ let comet_message_board =
              Eliom_client_comet.Engine.start ()
            }}
          in
-         Eliom_services.onload ~sp go_online;
+         Eliom_services.onload go_online;
 
          let go =
            div
@@ -785,7 +775,7 @@ let event_service =
   Eliom_appl.register_service
     ~path:["events"]
     ~get_params:Eliom_parameters.unit
-    (fun sp () () ->
+    (fun () () ->
 
       let make_target s = XHTML5.M.p [XHTML5.M.a [XHTML5.M.pcdata s]] in
       let target1 = make_target "Un seul clic" in
@@ -805,7 +795,7 @@ let event_service =
       let target15 = make_target "Annuler le précédent" in
 
       let targetresult = XHTML5.M.p [] in
-      Eliom_services.onload ~sp
+      Eliom_services.onload
         {{
           let target1 = \(target1) in
           let target2 = \(target2) in
@@ -934,9 +924,9 @@ let tsession_data_example_close =
 (* -------------------------------------------------------- *)
 (* Handler for the "tsession_data_example" service:          *)
 
-let tsession_data_example_handler sp _ _  =
+let tsession_data_example_handler _ _  =
   let sessdat = 
-    Eliom_state.get_volatile_data ~table:my_table ~sp () 
+    Eliom_state.get_volatile_data ~table:my_table () 
   in
   return
     [
@@ -946,12 +936,11 @@ let tsession_data_example_handler sp _ _  =
              br ();
              Eliom_appl.a
                tsession_data_example_close
-               sp [pcdata "close session"] ()]
+               [pcdata "close session"] ()]
         | Eliom_state.Data_session_expired
         | Eliom_state.No_data ->
           Eliom_appl.post_form
             tsession_data_example_with_post_params
-            sp
             (fun login ->
               [p [pcdata "login: ";
                   Eliom_appl.string_input
@@ -963,15 +952,15 @@ let tsession_data_example_handler sp _ _  =
 (* Handler for the "tsession_data_example_with_post_params"  *)
 (* service with POST params:                                *)
 
-let tsession_data_example_with_post_params_handler sp _ login =
+let tsession_data_example_with_post_params_handler _ login =
   Eliom_state.discard
- (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process () >>= fun () ->
   Eliom_state.set_volatile_data
-    ~table:my_table ~sp login;
+    ~table:my_table login;
   return
     [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
         br ();
-        Eliom_appl.a tsession_data_example sp [pcdata "Try again"] ()
+        Eliom_appl.a tsession_data_example [pcdata "Try again"] ()
        ]]
 
 
@@ -980,18 +969,18 @@ let tsession_data_example_with_post_params_handler sp _ login =
 (* -------------------------------------------------------- *)
 (* Handler for the "tsession_data_example_close" service:    *)
 
-let tsession_data_example_close_handler sp () () =
+let tsession_data_example_close_handler () () =
   let sessdat = Eliom_state.get_volatile_data
-    ~table:my_table ~sp () in
+    ~table:my_table () in
   Eliom_state.discard
- (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process () >>= fun () ->
   return
     [
       (match sessdat with
         | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
         | Eliom_state.No_data -> p [pcdata "You were not connected."]
         | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
-      p [Eliom_appl.a tsession_data_example sp [pcdata "Retry"] () ]]
+      p [Eliom_appl.a tsession_data_example [pcdata "Retry"] () ]]
 
 
 
@@ -1046,11 +1035,10 @@ let tsession_services_example_close =
 (* Handler for the "tsession_services_example" service:           *)
 (* It displays the main page of our site, with a login form.     *)
 
-let tsession_services_example_handler sp () () =
+let tsession_services_example_handler () () =
   let f =
     Eliom_appl.post_form
       tsession_services_example_with_post_params
-      sp
       (fun login ->
         [p [pcdata "login: ";
             string_input ~input_type:`Text ~name:login ()]]) ()
@@ -1062,12 +1050,12 @@ let tsession_services_example_handler sp () () =
 (* ------------------------------------------------------------- *)
 (* Handler for the "tsession_services_example_close" service:     *)
 
-let tsession_services_example_close_handler sp () () =
+let tsession_services_example_close_handler () () =
   Eliom_state.discard
- (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process () >>= fun () ->
   Lwt.return [p [pcdata "You have been disconnected. ";
                  a tsession_services_example
-                   sp [pcdata "Retry"] ()
+                   [pcdata "Retry"] ()
                 ]]
 
 
@@ -1075,28 +1063,27 @@ let tsession_services_example_close_handler sp () () =
 (* Handler for the "session_services_example_with_post_params"   *)
 (* service:                                                      *)
 
-let tlaunch_session sp () login =
+let tlaunch_session () login =
 
   (* New handler for the main page: *)
-  let new_main_page sp () () =
+  let new_main_page () () =
     return
       [p [pcdata "Welcome ";
           pcdata login;
           pcdata "!"; br ();
-          a eliomclient1 sp [pcdata "coucou"] (); br ();
+          a eliomclient1 [pcdata "coucou"] (); br ();
           a tsession_services_example_close
-            sp [pcdata "close session"] ()]]
+            [pcdata "close session"] ()]]
   in
 
   (* If a session was opened, we close it first! *)
   Eliom_state.discard
- (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process () >>= fun () ->
 
   (* Now we register new versions of main services in the
      session service table: *)
   Eliom_appl.register (*zap* *) ~state_name (* *zap*)
     ~scope:`Client_process
-    ~sp
     ~service:tsession_services_example
     (* service is any public service already registered,
        here the main page of our site *)
@@ -1104,15 +1091,14 @@ let tlaunch_session sp () login =
 
   Eliom_appl.register (*zap* *) ~state_name (* *zap*)
     ~scope:`Client_process
-    ~sp
     ~service:eliomclient1
-    (fun _ () () ->
+    (fun () () ->
       return
         [p [pcdata "Coucou ";
             pcdata login;
             pcdata "!"]]);
 
-  new_main_page sp () ()
+  new_main_page () ()
 
 
 (* -------------------------------------------------------- *)
@@ -1167,13 +1153,13 @@ let tcoservices_example_get =
 
 let _ =
   let c = ref 0 in
-  let page sp () () =
-    let l3 = Eliom_appl.post_form tcoservices_example_post sp
+  let page () () =
+    let l3 = Eliom_appl.post_form tcoservices_example_post
         (fun _ -> [p [Eliom_appl.string_input
                         ~input_type:`Submit
                         ~value:"incr i (post)" ()]]) ()
     in
-    let l4 = Eliom_appl.get_form tcoservices_example_get sp
+    let l4 = Eliom_appl.get_form tcoservices_example_get
         (fun _ -> [p [Eliom_appl.string_input
                         ~input_type:`Submit
                         ~value:"incr i (get)" ()]])
@@ -1181,13 +1167,13 @@ let _ =
     return
       [p [pcdata "i is equal to ";
           pcdata (string_of_int !c); br ();
-          a tcoservices_example sp [pcdata "internal application link to myself"] (); br ();
-          a tcoservices_example_get sp [pcdata "incr i"] ()];
+          a tcoservices_example [pcdata "internal application link to myself"] (); br ();
+          a tcoservices_example_get [pcdata "incr i"] ()];
        l3;
        l4]
   in
   Eliom_appl.register tcoservices_example page;
-  let f sp () () = c := !c + 1; page sp () () in
+  let f () () = c := !c + 1; page () () in
   Eliom_appl.register tcoservices_example_post f;
   Eliom_appl.register tcoservices_example_get f
 
@@ -1225,14 +1211,14 @@ let tcalc_i =
 (* The handler for the service without parameter.           *)
 (* It displays a form where you can write an integer value: *)
 
-let tcalc_handler sp () () =
+let tcalc_handler () () =
   let create_form intname =
     [p [pcdata "Write a number: ";
         Eliom_appl.int_input ~input_type:`Text ~name:intname ();
         br ();
         Eliom_appl.string_input ~input_type:`Submit ~value:"Send" ()]]
   in
-  let f = Eliom_appl.get_form tcalc_i sp create_form in
+  let f = Eliom_appl.get_form tcalc_i create_form in
   return [f]
 
 
@@ -1244,7 +1230,7 @@ let tcalc_handler sp () () =
 (* This new coservice depends on the first value (i)        *)
 (* entered by the user.                                     *)
 
-let tcalc_i_handler sp i () =
+let tcalc_i_handler i () =
   let create_form is =
     (fun entier ->
        [p [pcdata (is^" + ");
@@ -1256,15 +1242,14 @@ let tcalc_i_handler sp i () =
   let tcalc_result =
     Eliom_appl.register_coservice
       ~scope:`Client_process
-      ~sp
       ~fallback:tcalc
       ~get_params:(int "j")
-      (fun sp j () ->
+      (fun j () ->
         let js = string_of_int j in
         let ijs = string_of_int (i+j) in
         return [p [pcdata (is^" + "^js^" = "^ijs)]])
   in
-  let f = get_form tcalc_result sp (create_form is) in
+  let f = get_form tcalc_result (create_form is) in
   return [f]
 
 
@@ -1309,23 +1294,23 @@ let tdisconnect_action =
   Eliom_predefmod.Action.register_post_coservice'
     ~name:"tdisconnect3"
     ~post_params:Eliom_parameters.unit
-    (fun sp () () ->
+    (fun () () ->
       Eliom_state.discard
- (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp ())
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ())
 
 
 
 (* -------------------------------------------------------- *)
 (* login ang logout boxes:                                  *)
 
-let tdisconnect_box sp s =
-  Eliom_appl.post_form tdisconnect_action sp
+let tdisconnect_box s =
+  Eliom_appl.post_form tdisconnect_action
     (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 
-let tlogin_box sp =
-  Eliom_appl.post_form tconnect_action sp
+let tlogin_box () =
+  Eliom_appl.post_form tconnect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
@@ -1340,16 +1325,16 @@ let tlogin_box sp =
 (* -------------------------------------------------------- *)
 (* Handler for the "connect_example3" service (main page):    *)
 
-let tconnect_example3_handler sp () () =
+let tconnect_example3_handler () () =
   let sessdat = Eliom_state.get_volatile_data
-    ~table:my_table ~sp () in
+    ~table:my_table () in
   return
     (match sessdat with
       | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
-         tdisconnect_box sp "Close session"]
+         tdisconnect_box "Close session"]
       | Eliom_state.Data_session_expired
-      | Eliom_state.No_data -> [tlogin_box sp]
+      | Eliom_state.No_data -> [tlogin_box ()]
     )
 
 
@@ -1357,10 +1342,10 @@ let tconnect_example3_handler sp () () =
 (* -------------------------------------------------------- *)
 (* Handler for connect_action (user logs in):               *)
 
-let tconnect_action_handler sp () login =
+let tconnect_action_handler () login =
   Eliom_state.discard
- (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
-  Eliom_state.set_volatile_data ~table:my_table ~sp login;
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process () >>= fun () ->
+  Eliom_state.set_volatile_data ~table:my_table login;
   return ()
 
 
@@ -1420,12 +1405,12 @@ let tdisconnect_action =
   Eliom_predefmod.Action.register_post_coservice'
     ~name:"tdisconnect4"
     ~post_params:Eliom_parameters.unit
-    (fun sp () () ->
-      Eliom_state.discard ~state_name ~scope:`Client_process  ~sp ())
+    (fun () () ->
+      Eliom_state.discard ~state_name ~scope:`Client_process  ())
 
 
-let tdisconnect_box sp s =
-  Eliom_appl.post_form tdisconnect_action sp
+let tdisconnect_box s =
+  Eliom_appl.post_form tdisconnect_action
     (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
@@ -1438,14 +1423,14 @@ let get_bad_user table =
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
 
-let tlogin_box sp session_expired action =
-  Eliom_appl.post_form action sp
+let tlogin_box session_expired action =
+  Eliom_appl.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_request_info.get_request_cache sp)
+      [p (if get_bad_user (Eliom_request_info.get_request_cache ())
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -1460,18 +1445,18 @@ let tlogin_box sp session_expired action =
 (* ----------------------------------------------------------- *)
 (* Handler for "persist_session_example" service (main page):  *)
 
-let tpersist_session_example_handler sp () () =
-  Eliom_state.get_persistent_data ~table:tmy_persistent_table ~sp () >>= fun sessdat ->
+let tpersist_session_example_handler () () =
+  Eliom_state.get_persistent_data ~table:tmy_persistent_table () >>= fun sessdat ->
   return
     (match sessdat with
       | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
-         tdisconnect_box sp "Close session"]
+         tdisconnect_box "Close session"]
       | Eliom_state.Data_session_expired ->
-        [tlogin_box sp true tpersist_session_connect_action;
+        [tlogin_box true tpersist_session_connect_action;
          p [em [pcdata "The only user is 'toto'."]]]
       | Eliom_state.No_data ->
-        [tlogin_box sp false tpersist_session_connect_action;
+        [tlogin_box false tpersist_session_connect_action;
          p [em [pcdata "The only user is 'toto'."]]]
     )
 
@@ -1480,13 +1465,13 @@ let tpersist_session_example_handler sp () () =
 (* ----------------------------------------------------------- *)
 (* Handler for persist_session_connect_action (user logs in):  *)
 
-let tpersist_session_connect_action_handler sp () login =
+let tpersist_session_connect_action_handler () login =
   Eliom_state.discard
- (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then
-    Eliom_state.set_persistent_data ~table:tmy_persistent_table ~sp login
-  else ((*zap* *)Polytables.set (Eliom_request_info.get_request_cache sp) bad_user_key true;(* *zap*)return ())
+    Eliom_state.set_persistent_data ~table:tmy_persistent_table login
+  else ((*zap* *)Polytables.set (Eliom_request_info.get_request_cache ()) bad_user_key true;(* *zap*)return ())
 
 
 
@@ -1536,12 +1521,12 @@ let tdisconnect_action =
   Eliom_predefmod.Action.register_post_coservice'
     ~name:"tdisconnect6"
     ~post_params:Eliom_parameters.unit
-    (fun sp () () ->
-      Eliom_state.discard (*zap* *) ~state_name (* *zap*) ~scope:`Client_process  ~sp ())
+    (fun () () ->
+      Eliom_state.discard (*zap* *) ~state_name (* *zap*) ~scope:`Client_process  ())
 
 
-let tdisconnect_box sp s =
-  Eliom_appl.post_form tdisconnect_action sp
+let tdisconnect_box s =
+  Eliom_appl.post_form tdisconnect_action
     (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
@@ -1556,14 +1541,14 @@ let get_bad_user table =
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
 
-let tlogin_box sp session_expired action =
-  Eliom_appl.post_form action sp
+let tlogin_box session_expired action =
+  Eliom_appl.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      [p (if get_bad_user (Eliom_request_info.get_request_cache sp)
+      [p (if get_bad_user (Eliom_request_info.get_request_cache ())
       then (pcdata "Wrong user")::(br ())::l
       else
         if session_expired
@@ -1576,19 +1561,19 @@ let tlogin_box sp session_expired action =
 (* -------------------------------------------------------- *)
 (* Handler for the "connect_example6" service (main page):   *)
 
-let tconnect_example6_handler sp () () =
-  let group = Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ~sp ()
+let tconnect_example6_handler () () =
+  let group = Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ()
   in
   return
     (match group with
       | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
-         tdisconnect_box sp "Close session"]
+         tdisconnect_box "Close session"]
       | Eliom_state.Data_session_expired ->
-        [tlogin_box sp true tconnect_action;
+        [tlogin_box true tconnect_action;
          p [em [pcdata "The only user is 'toto'."]]]
       | Eliom_state.No_data ->
-        [tlogin_box sp false tconnect_action;
+        [tlogin_box false tconnect_action;
          p [em [pcdata "The only user is 'toto'."]]]
     )
 
@@ -1596,16 +1581,16 @@ let tconnect_example6_handler sp () () =
 (* -------------------------------------------------------- *)
 (* New handler for connect_action (user logs in):           *)
 
-let tconnect_action_handler sp () login =
+let tconnect_action_handler () login =
   Eliom_state.discard
- (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ~sp () >>= fun () ->
+ (*zap* *) ~state_name (* *zap*) ~scope:`Client_process () >>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) ~sp login;
+    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) login;
     return ()
   end
   else begin
-    Polytables.set (Eliom_request_info.get_request_cache sp) bad_user_key true;
+    Polytables.set (Eliom_request_info.get_request_cache ()) bad_user_key true;
     return ()
   end
 
@@ -1648,8 +1633,8 @@ let tcsrfsafe_example_post =
 
 
 let _ =
-  let page sp () () =
-    let l3 = Eliom_appl.post_form tcsrfsafe_example_post sp
+  let page () () =
+    let l3 = Eliom_appl.post_form tcsrfsafe_example_post
         (fun _ -> [p [Eliom_appl.string_input
                          ~input_type:`Submit
                          ~value:"Click" ()]]) ()
@@ -1660,7 +1645,7 @@ let _ =
   in
   Eliom_appl.register tcsrfsafe_example page;
   Eliom_appl.register tcsrfsafe_example_post
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return [p [pcdata "This is a CSRF safe service"]])
 
 
@@ -1673,9 +1658,9 @@ let tcookies = service ["tcookies"] unit ()
 
 
 let _ = Eliom_appl.register tcookies
-  (fun sp () () ->
+  (fun () () ->
     Eliom_state.set_cookie
-      ~sp ~cookie_scope:`Client_process
+      ~cookie_scope:`Client_process
       ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
     Lwt.return
       [p [pcdata (try
@@ -1683,10 +1668,10 @@ let _ = Eliom_appl.register tcookies
                       (Ocsigen_lib.String_Table.find
                          cookiename
                          (Eliom_request_info.get_cookies
-                            ~cookie_scope:`Client_process ~sp ()))
+                            ~cookie_scope:`Client_process ()))
         with _ -> "<cookie not set>");
           br ();
-          a tcookies sp [pcdata "send other cookie"] ()]])
+          a tcookies [pcdata "send other cookie"] ()]])
 
 
 
@@ -1700,16 +1685,16 @@ let coucouaction =
   Eliom_predefmod.Action.register_coservice
     ~fallback:Tutoeliom.coucou
     ~get_params:unit
-    (fun _ () () -> Lwt.return ())
+    (fun () () -> Lwt.return ())
 
 
 let actionoutside =
   Eliom_appl.register_service
     ~path:["actionoutside"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return
-        [p [a ~service:coucouaction ~sp 
+        [p [a ~service:coucouaction
                [ pcdata "Click to do an action outside the application"] () ];
         ])
 
@@ -1727,343 +1712,343 @@ let main = service [] unit ()
 
 
 let _ = Eliom_predefmod.Xhtml5compact.register main
-  (fun sp () () ->
+  (fun () () ->
     Lwt.return
      (html
        (head
           (title (pcdata "Eliom examples"))
-          [css_link (make_uri ~service:(static_dir sp) ~sp ["style.css"]) ()])
+          [css_link (make_uri ~service:(static_dir ()) ["style.css"]) ()])
        (body
           [
-            h1 [img ~alt:"Ocsigen" ~src:(Eliom_predefmod.Xhtml5.make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"]) ()];
+            h1 [img ~alt:"Ocsigen" ~src:(Eliom_predefmod.Xhtml5.make_uri ~service:(static_dir ()) ["ocsigen5.png"]) ()];
 
             h3 [pcdata "Eliom examples"];
             h4 [pcdata "Simple pages"];
             p [
               pcdata "A simple page: ";
-              a coucou sp [code [pcdata "coucou"]] ();
+              a coucou [code [pcdata "coucou"]] ();
               br ();
 
               pcdata "A page with a counter: ";
-              a count sp [code [pcdata "count"]] ();
+              a count [code [pcdata "count"]] ();
               br ();
 
 
               pcdata "A page in a directory: ";
-              a hello sp [code [pcdata "dir/hello"]] ();
+              a hello [code [pcdata "dir/hello"]] ();
               br ();
 
 
               pcdata "Default page of a directory: ";
-              a default sp [code [pcdata "rep/"]] ()
+              a default [code [pcdata "rep/"]] ()
             ];
 
             h4 [pcdata "Parameters"];
             p [
               pcdata "A page with GET parameters: ";
-              a coucou_params sp [code [pcdata "coucou"]; pcdata " with params"] (45,(22,"krokodile"));
+              a coucou_params [code [pcdata "coucou"]; pcdata " with params"] (45,(22,"krokodile"));
               pcdata "(what if the first parameter is not an integer?)";
               br ();
 
               pcdata "A page with \"suffix\" URL that knows the IP and user-agent of the client: ";
-              a uasuffix sp [code [pcdata "uasuffix"]] (2007,6);
+              a uasuffix [code [pcdata "uasuffix"]] (2007,6);
               br ();
 
 
               pcdata "A page with \"suffix\" URL and GET parameters: ";
-              a isuffix sp [code [pcdata "isuffix"]] ((111, ["OO";"II";"OO"]), 333);
+              a isuffix [code [pcdata "isuffix"]] ((111, ["OO";"II";"OO"]), 333);
               br ();
 
               pcdata "A page with constants in suffix: ";
-              a constfix sp [pcdata "Page with constants in suffix"] ("aa", ((), "bb"));
+              a constfix [pcdata "Page with constants in suffix"] ("aa", ((), "bb"));
               br ();
 
               pcdata "Form towards page with suffix: ";
-              a suffixform sp [pcdata "formsuffix"] ();
+              a suffixform [pcdata "formsuffix"] ();
               br ();
 
               pcdata "A page with a parameter of user-defined type : ";
-              a mytype sp [code [pcdata "mytype"]] A;
+              a mytype [code [pcdata "mytype"]] A;
             ];
 
             h4 [pcdata "Links and Forms"];
             p [
               pcdata "A page with links: ";
-              a links sp [code [pcdata "links"]]  ();
+              a links [code [pcdata "links"]]  ();
               br ();
 
 
               pcdata "A page with a link towards itself: ";
-              a linkrec sp [code [pcdata "linkrec"]] ();
+              a linkrec [code [pcdata "linkrec"]] ();
               br ();
 
 
               pcdata "The ";
-              a main sp [pcdata "default page"] ();
+              a main [pcdata "default page"] ();
               pcdata "of this directory (myself)";
               br ();
 
               pcdata "A page with a GET form that leads to the \"coucou\" page with parameters: ";
-              a form sp [code [pcdata "form"]] ();
+              a form [code [pcdata "form"]] ();
               br ();
 
 
               pcdata "A POST form towards the \"post\" page: ";
-              a form2 sp [code [pcdata "form2"]] ();
+              a form2 [code [pcdata "form2"]] ();
               br ();
 
 
               pcdata "The \"post\" page, when it does not receive parameters: ";
-              a no_post_param_service sp [code [pcdata "post"]; pcdata " without post_params"] ();
+              a no_post_param_service [code [pcdata "post"]; pcdata " without post_params"] ();
               br ();
 
 
               pcdata "A POST form towards a service with GET parameters: ";
-              a form3 sp [code [pcdata "form3"]] ();
+              a form3 [code [pcdata "form3"]] ();
               br ();
 
 
               pcdata "A POST form towards an external page: ";
-              a form4 sp [code [pcdata "form4"]] ();
+              a form4 [code [pcdata "form4"]] ();
             ];
 
             h4 [pcdata "Sessions"];
             p [
               pcdata "Coservices: ";
-              a coservices_example sp [code [pcdata "coservice"]] ();
+              a coservices_example [code [pcdata "coservice"]] ();
               br ();
 
 
               pcdata "A session based on cookies, implemented with session data: ";
-              a session_data_example sp [code [pcdata "sessdata"]] ();
+              a session_data_example [code [pcdata "sessdata"]] ();
               br ();
 
 
               pcdata "A session based on cookies, implemented with actions: ";
-              a connect_example3 sp [code [pcdata "actions"]] ();
+              a connect_example3 [code [pcdata "actions"]] ();
               br ();
 
 
               pcdata "A session based on cookies, with session services: ";
-              a session_services_example sp [code [pcdata "sessionservices"]] ();
+              a session_services_example [code [pcdata "sessionservices"]] ();
               br ();
 
               pcdata "A session based on cookies, implemented with actions, with session groups: ";
-              a connect_example5 sp [code [pcdata "groups"]] ();
+              a connect_example5 [code [pcdata "groups"]] ();
               br ();
 
 
               pcdata "The same with wrong user if not \"toto\": ";
-              a connect_example6 sp [code [pcdata "actions2"]] ();
+              a connect_example6 [code [pcdata "actions2"]] ();
               br ();
 
 
               pcdata "A session based on cookies, implemented with actions, with session groups, and using a group table: ";
-              a group_tables_example sp [code [pcdata "grouptables"]] ();
+              a group_tables_example [code [pcdata "grouptables"]] ();
               br ();
 
 
               pcdata "A session based on cookies, implemented with actions, with session groups, and using a persistent group table: ";
-              a pgroup_tables_example sp [code [pcdata "pgrouptables"]] ();
+              a pgroup_tables_example [code [pcdata "pgrouptables"]] ();
               br ();
 
               pcdata "Coservices in the session table: ";
-              a calc sp [code [pcdata "calc"]] ();
+              a calc [code [pcdata "calc"]] ();
               br ();
 
 
               pcdata "Persistent sessions: ";
-              a persist_session_example sp [code [pcdata "persist"]] ();
+              a persist_session_example [code [pcdata "persist"]] ();
               br ();
             ];
 
             h4 [pcdata "Other"];
             p [
               pcdata "A page that is very slow, implemented in cooperative way: ";
-              a looong sp [code [pcdata "looong"]] ();
+              a looong [code [pcdata "looong"]] ();
               br ();
 
 
               pcdata "A page that is very slow, using preemptive threads: ";
-              a looong sp [code [pcdata "looong2"]] ();
+              a looong [code [pcdata "looong2"]] ();
               br ();
 
 
               pcdata "Catching errors: ";
-              a catch sp [code [pcdata "catch"]] 22;
+              a catch [code [pcdata "catch"]] 22;
               pcdata "(change the value in the URL)";
               br ();
 
               pcdata "Redirection: ";
-              a redir sp [code [pcdata "redir"]] 11;
+              a redir [code [pcdata "redir"]] 11;
               br ();
 
               pcdata "Cookies: ";
-              a cookies sp [code [pcdata "cookies"]] ();
+              a cookies [code [pcdata "cookies"]] ();
               br ();
 
 
               pcdata "Disposable coservices: ";
-              a disposable sp [code [pcdata "disposable"]] ();
+              a disposable [code [pcdata "disposable"]] ();
               br ();
 
               pcdata "Coservice with timeout: ";
-              a timeout sp [code [pcdata "timeout"]] ();
+              a timeout [code [pcdata "timeout"]] ();
               br ();
 
               pcdata "Public coservice created after initialization (with timeout): ";
-              a publiccoduringsess sp [code [pcdata "publiccoduringsess"]] ();
+              a publiccoduringsess [code [pcdata "publiccoduringsess"]] ();
               br ();
 
 
               pcdata "The following URL send either a statically checked page, or a text page: ";
-              a send_any sp [code [pcdata "send_any"]] "valid";
+              a send_any [code [pcdata "send_any"]] "valid";
               br ();
 
 
               pcdata "A page with a persistent counter: ";
-              a count2 sp [code [pcdata "count2"]] ();
+              a count2 [code [pcdata "count2"]] ();
               br ();
 
-              a hier1 sp [pcdata "Hierarchical menu"] ();
+              a hier1 [pcdata "Hierarchical menu"] ();
               br ();
 
-              a divpage sp [code [pcdata "a link sending a &lt;div&gt; page"]] ();
+              a divpage [code [pcdata "a link sending a &lt;div&gt; page"]] ();
               br ();
 
-              a tonlparams sp [pcdata "Non localized parameters"] ();
+              a tonlparams [pcdata "Non localized parameters"] ();
               br ();
 
-              a nlparams sp [pcdata "Non localized parameters (absent)"] 4;
+              a nlparams [pcdata "Non localized parameters (absent)"] 4;
               br ();
 
-              a nlparams_with_nlp sp [pcdata "Non localized parameters (present)"] (22, (11, "aa"));
+              a nlparams_with_nlp [pcdata "Non localized parameters (present)"] (22, (11, "aa"));
               br ();
 
-              a csrfsafe_example sp [pcdata "CSRF safe services"] ();
+              a csrfsafe_example [pcdata "CSRF safe services"] ();
               br ();
             ];
 
             h4 [pcdata "Advanced forms"];
             p [
               pcdata "A page that parses a parameter using a regular expression: ";
-              a regexpserv sp [code [pcdata "regexpserv"]] "[toto]";
+              a regexpserv [code [pcdata "regexpserv"]] "[toto]";
               br ();
 
               pcdata "A form with a checkbox: ";
-              a form_bool sp [pcdata "Try it"] ();
+              a form_bool [pcdata "Try it"] ();
               br ();
 
               pcdata "A page that takes a set of parameters: ";
-              a set sp [code [pcdata "set"]] ["Ciao";"bello";"ciao"];
+              a set [code [pcdata "set"]] ["Ciao";"bello";"ciao"];
               br ();
 
               pcdata "A form to the previous one: ";
-              a setform sp [code [pcdata "setform"]] ();
+              a setform [code [pcdata "setform"]] ();
               br ();
 
               pcdata "A page that takes any parameter: ";
-              a raw_serv sp [code [pcdata "raw_serv"]] [("a","hello"); ("b","ciao")];
+              a raw_serv [code [pcdata "raw_serv"]] [("a","hello"); ("b","ciao")];
               br ();
 
               pcdata "A form to the previous one: ";
-              a raw_form sp [code [pcdata "raw_form"]] ();
+              a raw_form [code [pcdata "raw_form"]] ();
               br ();
 
               pcdata "A form for a list of parameters: ";
-              a listform sp [pcdata "Try it"] ();
+              a listform [pcdata "Try it"] ();
               br ();
             ];
 
             h3 [pcdata "js_of_ocaml events"];
 
             p [
-              a event_service sp [code [pcdata "Test suite"]] ();
+              a event_service [code [pcdata "Test suite"]] ();
               br ();
             ];
 
             h3 [pcdata "Eliom Client"];
             h4 [pcdata "Interaction"];
             p [
-              a eliomclient1 sp [pcdata "Simple example of client side code"] ();
+              a eliomclient1 [pcdata "Simple example of client side code"] ();
               br ();
 
-              a uri_test sp [pcdata "Simple test of URL generation"] ();
+              a uri_test [pcdata "Simple test of URL generation"] ();
               br ();
 
-              a eliomclient2 sp [pcdata "Using Eliom services in client side code"] ();
+              a eliomclient2 [pcdata "Using Eliom services in client side code"] ();
             br ();
-              a eliomclient3 sp [pcdata "Caml values in service parameters"] ();
+              a eliomclient3 [pcdata "Caml values in service parameters"] ();
             br ();
-              a eliomclient4 sp [pcdata "A service sending a Caml value"] ();
+              a eliomclient4 [pcdata "A service sending a Caml value"] ();
             br ();
-              a gotowithoutclient sp [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
+              a gotowithoutclient [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
             br ();
-              a on_load sp [pcdata "A service using on_unload and on_change"] ();
+              a on_load [pcdata "A service using on_unload and on_change"] ();
             br ();
-              a comet1 sp [pcdata "A really simple comet example"] ();
+              a comet1 [pcdata "A really simple comet example"] ();
             br ();
-              a comet2 sp [pcdata "A comet example with server to client and client to server asynchronous events"] ();
+              a comet2 [pcdata "A comet example with server to client and client to server asynchronous events"] ();
             br ();
-              a comet3 sp [pcdata "Server simultaneous events, transmitted together"] ();
+              a comet3 [pcdata "Server simultaneous events, transmitted together"] ();
             br ();
-              a comet_message_board sp [pcdata "Minimalistic message board"] ();
+              a comet_message_board [pcdata "Minimalistic message board"] ();
             br ();
           ];
 
             h4 [pcdata "Tab sessions"];
             p [
               pcdata "Coservices: ";
-              a tcoservices_example sp [code [pcdata "tcoservice"]] ();
+              a tcoservices_example [code [pcdata "tcoservice"]] ();
               br ();
 
 
               pcdata "A session based on cookies, implemented with session data: ";
-              a tsession_data_example sp [code [pcdata "tsessdata"]] ();
+              a tsession_data_example [code [pcdata "tsessdata"]] ();
               br ();
 
 
               pcdata "A session based on cookies, implemented with actions: ";
-              a tconnect_example3 sp [code [pcdata "tactions"]] ();
+              a tconnect_example3 [code [pcdata "tactions"]] ();
               br ();
 
 
               pcdata "A session based on cookies, with session services: ";
-              a tsession_services_example sp [code [pcdata "tsessionservices"]] ();
+              a tsession_services_example [code [pcdata "tsessionservices"]] ();
               br ();
 
               pcdata "A session based on cookies, implemented with actions, with session groups: ";
-              a connect_example5 sp [code [pcdata "groups"]] ();
+              a connect_example5 [code [pcdata "groups"]] ();
               br ();
 
 
               pcdata "The same with wrong user if not \"toto\": ";
-              a tconnect_example6 sp [code [pcdata "tactions2"]] ();
+              a tconnect_example6 [code [pcdata "tactions2"]] ();
               br ();
 
 
 
               pcdata "Coservices in the session table: ";
-              a tcalc sp [code [pcdata "tcalc"]] ();
+              a tcalc [code [pcdata "tcalc"]] ();
               br ();
 
 
               pcdata "Persistent sessions: ";
-              a tpersist_session_example sp [code [pcdata "tpersist"]] ();
+              a tpersist_session_example [code [pcdata "tpersist"]] ();
               br ();
 
 
-              a tcsrfsafe_example sp [pcdata "CSRF safe services"] ();
+              a tcsrfsafe_example [pcdata "CSRF safe services"] ();
               br ()
             ];
             h4 [ pcdata "Other" ];
             p
               [ pcdata "User tab cookies: ";
-                a tcookies sp
+                a tcookies
                   [ code [ pcdata "tcookies" ] ] ();
                 br ();
                 pcdata "A link inside the application that ascks for an action outside the application. Eliom will ask the client side program to so a redirection: ";
-                a actionoutside sp [ code [ pcdata "actionoutside" ] ] ();
+                a actionoutside [ code [ pcdata "actionoutside" ] ] ();
                 br ();
               ]
           ])))

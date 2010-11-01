@@ -380,13 +380,13 @@ let get_non_localized_parameters params getorpost ~sp
        ~value:p;
      p)
 
-let get_non_localized_get_parameters ~sp p =
-  let sp = Eliom_request_info.esp_of_sp sp in
+let get_non_localized_get_parameters p =
+  let sp = Eliom_common.get_sp () in
   get_non_localized_parameters 
     sp.Eliom_common.sp_si.Eliom_common.si_nl_get_params fst ~sp p
 
-let get_non_localized_post_parameters ~sp p =
-  let sp = Eliom_request_info.esp_of_sp sp in
+let get_non_localized_post_parameters p =
+  let sp = Eliom_common.get_sp () in
   get_non_localized_parameters
     sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params snd ~sp p
 

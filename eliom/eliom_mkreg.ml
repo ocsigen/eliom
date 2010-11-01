@@ -33,6 +33,7 @@ open Lazy
 module type REGCREATE =
   sig
 
+
     type page
 
     type options
@@ -45,7 +46,6 @@ module type REGCREATE =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      sp:Eliom_request_info.server_params ->
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
@@ -56,7 +56,7 @@ module type REGCREATE =
     *)
     val pre_service :
       ?options:options ->
-      sp:Eliom_request_info.server_params -> unit Lwt.t
+      unit -> unit Lwt.t
 
     (** The following field is usually [Eliom_services.XNever]. 
         This value is recorded inside each service just after registration.
@@ -85,7 +85,6 @@ module type ELIOMREGSIG =
       ?code: int ->
       ?content_type:string ->
       ?headers: Http_headers.t ->
-      sp:Eliom_request_info.server_params ->
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
@@ -98,21 +97,17 @@ module type ELIOMREGSIG =
       ?headers: Http_headers.t ->
       ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_request_info.server_params ->
       service:('get, 'post,
                [< internal_service_kind ],
                [< suff ], 'gn, 'pn, [ `Registrable ], return) service ->
-      ?error_handler:(Eliom_request_info.server_params ->
-                        (string * exn) list -> page Lwt.t) ->
-      (Eliom_request_info.server_params -> 'get -> 'post -> page Lwt.t) ->
+      ?error_handler:((string * exn) list -> page Lwt.t) ->
+      ('get -> 'post -> page Lwt.t) ->
       unit
 (** Register a service with the associated handler function.
    [register s t f] will associate the service [s] to the function [f].
    [f] is the function that creates a page, called {e service handler}.
 
-   The handler function takes three parameters.
-    - The first one has type [Eliom_request_info.server_params]
-   and allows to have acces to informations about the request and the session.
+   The handler function takes two parameters.
     - The second and third ones are respectively GET and POST parameters.
 
    For example if [t] is [Eliom_parameters.int "s"], then [ 'get] is [int].
@@ -132,18 +127,8 @@ module type ELIOMREGSIG =
    [`Client_process], [`Session], [`Session_group] and finally [`Global]. It means for example
    that you can register a specialized version of a public service for a session.
 
-    {e Warning: The [~sp] parameter can be omited only if you 
-    want to register a service in the global table during the initialisation phase
-    (outside a service).
-    If you register dynamically a new service, you must give the [~sp] parameter,
-    otherwise the function will raise an exception.}
-
-    Warning:
-    - All public services created during initialization must be
+    Warning: All public services created during initialization must be
     registered in the public table during initialisation, never after,
-    - You can't register a service in a session table
-    when no session is active (i.e. outside a service handler, 
-    when you do not have [sp])
 
    Registering services and coservices is always done in memory as there is
    no means of marshalling closures.
@@ -177,6 +162,7 @@ module type ELIOMREGSIG =
  *)
 
 
+
     val register_service :
       ?scope:Eliom_common.scope ->
       ?options:options ->
@@ -186,13 +172,11 @@ module type ELIOMREGSIG =
       ?headers: Http_headers.t ->
       ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_request_info.server_params ->
       ?https:bool ->
       path:Ocsigen_lib.url_path ->
       get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-      ?error_handler:(Eliom_request_info.server_params -> (string * exn) list ->
-                        page Lwt.t) ->
-      (Eliom_request_info.server_params -> 'get -> unit -> page Lwt.t) ->
+      ?error_handler:((string * exn) list -> page Lwt.t) ->
+      ('get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Attached of
           ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
@@ -209,7 +193,6 @@ module type ELIOMREGSIG =
       ?headers: Http_headers.t ->
       ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_request_info.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_state_name: string ->
@@ -225,9 +208,8 @@ module type ELIOMREGSIG =
         service ->
       get_params:
         ('get, [`WithoutSuffix], 'gn) params_type ->
-      ?error_handler:(Eliom_request_info.server_params ->
-                        (string * exn) list -> page Lwt.t) ->
-      (Eliom_request_info.server_params -> 'get -> unit -> page Lwt.t) ->
+      ?error_handler:((string * exn) list -> page Lwt.t) ->
+      ('get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Get]) a_s ],
@@ -245,7 +227,6 @@ module type ELIOMREGSIG =
       ?headers: Http_headers.t ->
       ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_request_info.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_state_name: string ->
@@ -256,9 +237,8 @@ module type ELIOMREGSIG =
       ?https:bool ->
       get_params:
         ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-      ?error_handler:(Eliom_request_info.server_params ->
-                        (string * exn) list -> page Lwt.t) ->
-      (Eliom_request_info.server_params -> 'get -> unit -> page Lwt.t) ->
+      ?error_handler:((string * exn) list -> page Lwt.t) ->
+      ('get -> unit -> page Lwt.t) ->
       ('get, unit,
        [> `Nonattached of [> `Get] na_s ],
        'tipo, 'gn, unit, [> `Registrable ], return)
@@ -274,7 +254,6 @@ module type ELIOMREGSIG =
       ?headers: Http_headers.t ->
       ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_request_info.server_params ->
       ?https:bool ->
       fallback:('get, unit,
                 [ `Attached of
@@ -284,9 +263,8 @@ module type ELIOMREGSIG =
                 unit, [< `Registrable ], return)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-      ?error_handler:(Eliom_request_info.server_params -> (string * exn) list ->
-                        page Lwt.t) ->
-      (Eliom_request_info.server_params -> 'get -> 'post -> page Lwt.t) ->
+      ?error_handler:((string * exn) list -> page Lwt.t) ->
+      ('get -> 'post -> page Lwt.t) ->
       ('get, 'post, [> `Attached of
                        ([> `Internal of 'kind ], [> `Post]) a_s ],
        'tipo, 'gn, 'pn, [> `Registrable ], return)
@@ -302,7 +280,6 @@ module type ELIOMREGSIG =
       ?headers: Http_headers.t ->
       ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_request_info.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_state_name: string ->
@@ -318,9 +295,8 @@ module type ELIOMREGSIG =
                 'gn, unit, [< `Registrable ], return)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-      ?error_handler:(Eliom_request_info.server_params -> (string * exn) list ->
-                        page Lwt.t) ->
-      (Eliom_request_info.server_params -> 'get -> 'post -> page Lwt.t) ->
+      ?error_handler:((string * exn) list -> page Lwt.t) ->
+      ('get -> 'post -> page Lwt.t) ->
       ('get, 'post,
        [> `Attached of
           ([> `Internal of [> `Coservice ] ], [> `Post]) a_s ],
@@ -337,7 +313,6 @@ module type ELIOMREGSIG =
       ?headers: Http_headers.t ->
       ?state_name:string ->
       ?secure_session:bool ->
-      ?sp: Eliom_request_info.server_params ->
       ?name: string ->
       ?csrf_safe: bool ->
       ?csrf_state_name: string ->
@@ -348,9 +323,8 @@ module type ELIOMREGSIG =
       ?keep_get_na_params:bool ->
       ?https:bool ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-      ?error_handler:(Eliom_request_info.server_params -> (string * exn) list ->
-                        page Lwt.t) ->
-      (Eliom_request_info.server_params -> unit -> 'post -> page Lwt.t) ->
+      ?error_handler:((string * exn) list -> page Lwt.t) ->
+      (unit -> 'post -> page Lwt.t) ->
       (unit, 'post, [> `Nonattached of [> `Post] na_s ],
        [ `WithoutSuffix ], unit, 'pn,
        [> `Registrable ], return)
@@ -383,12 +357,9 @@ module MakeRegister = functor
           ?content_type
           ?headers
           table
-          ?sp (* if registering during session *)
           ~service
-          ?(error_handler = fun sp l ->
-            raise (Eliom_common.Eliom_Typing_Error l))
+          ?(error_handler = fun l -> raise (Eliom_common.Eliom_Typing_Error l))
           page_generator =
-        let sp = Ocsigen_lib.apply_option Eliom_request_info.esp_of_sp sp in
         Eliom_services.set_do_appl_xhr service (Pages.do_appl_xhr);
         begin
           match get_kind_ service with
@@ -402,7 +373,6 @@ module MakeRegister = functor
               let f table ((attserget, attserpost) as attsernames) = 
                 Eliommod_services.add_service
                   table
-                  ?sp
                   (get_sub_path_ attser)
                   {Eliom_common.key_state = attsernames;
                    Eliom_common.key_kind = key_kind}
@@ -418,10 +388,9 @@ module MakeRegister = functor
                       | None -> None
                       | Some t -> Some (t, ref (t +. Unix.time ()))),
                     (fun nosuffixversion sp ->
-                      let sp2 = Eliom_request_info.sp_of_esp sp in
-                      let ri = Eliom_request_info.get_ri ~sp:sp2
-                      and ci = Eliom_config.get_config_info ~sp:sp2
-                      and suff = Eliom_request_info.get_suffix ~sp:sp2 in
+                      let ri = Eliom_request_info.get_ri_sp sp
+                      and ci = Eliom_config.get_config_info_sp sp
+                      and suff = Eliom_request_info.get_suffix_sp sp in
                       (catch (fun () ->
                         ri.ri_post_params ci >>= fun post_params ->
                         ri.ri_files ci >>= fun files ->
@@ -458,7 +427,6 @@ module MakeRegister = functor
                                       [< Eliom_services.suff ], 'c, 'd, 
                                       [< Eliom_services.registrable ], 'return)
                                      Eliom_services.service)
-                                  ~sp:sp2
                                   g))
                         else
                           let redir =
@@ -522,11 +490,11 @@ module MakeRegister = functor
                           (* If an action occured before, 
                              it may have removed some get params form ri *)
                           else
-                            (Pages.pre_service ?options ~sp:sp2 >>= fun () ->
-                             page_generator sp2 g p))
+                            (Pages.pre_service ?options () >>= fun () ->
+                             page_generator g p))
                          (function
                            | Eliom_common.Eliom_Typing_Error l ->
-                             error_handler sp2 l
+                             error_handler l
                            | e -> fail e)
                         >>= fun content ->
                        Pages.send
@@ -535,7 +503,7 @@ module MakeRegister = functor
                          ?code
                          ?content_type
                          ?headers
-                         ~sp:sp2 content))))
+                         content))))
               in
               (match (key_kind, attserget, attserpost) with
                 | (Ocsigen_http_frame.Http_header.POST, _,
@@ -564,7 +532,6 @@ module MakeRegister = functor
                         if forsession
                         then tablereg
                         else
-                          let sp = Eliom_request_info.sp_of_esp sp in
                           (* we do not register in global table,
                              but in the table specified while creating
                              the csrf safe service *)
@@ -600,7 +567,6 @@ module MakeRegister = functor
                         if forsession
                         then tablereg
                         else
-                          let sp = Eliom_request_info.sp_of_esp sp in
                           (* we do not register in global table,
                              but in the table specified while creating
                              the csrf safe service *)
@@ -625,7 +591,6 @@ module MakeRegister = functor
               let f table na_name = 
                 Eliommod_naservices.add_naservice
                   table
-                  ?sp
                   na_name
                   ((match get_max_use_ service with
                     | None -> None
@@ -634,15 +599,14 @@ module MakeRegister = functor
                      | None -> None
                      | Some t -> Some (t, ref (t +. Unix.time ()))),
                    (fun sp ->
-                     let sp2 = Eliom_request_info.sp_of_esp sp in
-                     let ri = Eliom_request_info.get_ri sp2
-                     and ci = Eliom_config.get_config_info sp2 in
+                     let ri = Eliom_request_info.get_ri_sp sp
+                     and ci = Eliom_config.get_config_info_sp sp in
                      (catch
                         (fun () ->
-                          Eliom_request_info.get_post_params sp2 >>= fun post_params ->
+                          Eliom_request_info.get_post_params_sp sp >>= fun post_params ->
                           ri.ri_files ci >>= fun files ->
-                          Pages.pre_service ?options ~sp:sp2 >>= fun () ->
-                          page_generator sp2
+                          Pages.pre_service ?options () >>= fun () ->
+                          page_generator
                             (reconstruct_params
                                ~sp
                                (get_get_params_type_ service)
@@ -659,7 +623,7 @@ module MakeRegister = functor
                                None)))
                        (function
                          | Eliom_common.Eliom_Typing_Error l ->
-                           error_handler sp2 l
+                           error_handler l
                          | e -> fail e) >>= fun content ->
                      Pages.send
                        ?options
@@ -667,7 +631,7 @@ module MakeRegister = functor
                        ?code
                        ?content_type
                        ?headers
-                       ~sp:sp2 content)
+                       content)
                   )
               in
               match na_name with
@@ -696,7 +660,6 @@ module MakeRegister = functor
                         if forsession
                         then tablereg
                         else
-                          let sp = Eliom_request_info.sp_of_esp sp in
                           (* we do not register in global table,
                              but in the table specified while creating
                              the csrf safe service *)
@@ -731,7 +694,6 @@ module MakeRegister = functor
                         if forsession
                         then tablereg
                         else
-                          let sp = Eliom_request_info.sp_of_esp sp in
                           (* we do not register in global table,
                              but in the table specified while creating
                              the csrf safe service *)
@@ -762,10 +724,10 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp
           ~service
           ?error_handler
           page_gen =
+        let sp = Eliom_common.get_sp_option () in
         match scope, sp with
           | `Global, None ->
             (match Eliom_common.global_register_allowed () with
@@ -788,7 +750,7 @@ module MakeRegister = functor
                   ~service ?error_handler page_gen
               | _ -> raise
                 (Eliom_common.Eliom_function_forbidden_outside_site_loading
-                   "register (without ~sp)"))
+                   "register"))
           | `Global, Some sp ->
             register_aux
               ?options
@@ -797,13 +759,11 @@ module MakeRegister = functor
               ?content_type
               ?headers
               ?error_handler
-              (Ocsigen_lib.Left (get_global_table ~sp ()))
-              ~sp
+              (Ocsigen_lib.Left (get_global_table ()))
               ~service
               page_gen
           | _, None ->
-            raise
-              (failwith "Missing ~sp parameter for registering service in session")
+            raise (failwith "Missing sp while registering service")
           | scope, Some sp ->
             let scope = Eliom_common.user_scope_of_scope scope in
             register_aux
@@ -814,7 +774,6 @@ module MakeRegister = functor
               ?headers
               ?error_handler
               (Ocsigen_lib.Right (sp, state_name, scope, secure_session))
-              ~sp
               ~service page_gen
 
       (* WARNING: if we create a new service without registering it,
@@ -834,13 +793,12 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp
           ?https
           ~path
           ~get_params
           ?error_handler
           page =
-        let u = service ?sp ?https ~path ~get_params () in
+        let u = service ?https ~path ~get_params () in
         register
           ?scope
           ?options
@@ -850,7 +808,7 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp ~service:u ?error_handler page;
+          ~service:u ?error_handler page;
         u
 
       let register_coservice
@@ -862,7 +820,6 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp
           ?name
           ?csrf_safe
           ?csrf_state_name
@@ -893,7 +850,7 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp ~service:u ?error_handler page;
+          ~service:u ?error_handler page;
         u
 
       let register_coservice'
@@ -905,7 +862,6 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp
           ?name
           ?csrf_safe
           ?csrf_state_name
@@ -935,7 +891,7 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp ~service:u ?error_handler page;
+          ~service:u ?error_handler page;
         u
 
       let register_post_service
@@ -947,13 +903,12 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp
           ?https
           ~fallback
           ~post_params
           ?error_handler
           page_gen =
-        let u = post_service ?sp ?https
+        let u = post_service ?https
           ~fallback:fallback ~post_params:post_params () in
         register
           ?scope
@@ -964,7 +919,7 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp ~service:u ?error_handler page_gen;
+          ~service:u ?error_handler page_gen;
         u
 
       let register_post_coservice
@@ -976,7 +931,6 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp
           ?name
           ?csrf_safe
           ?csrf_state_name
@@ -1006,7 +960,7 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp ~service:u ?error_handler page_gen;
+          ~service:u ?error_handler page_gen;
         u
 
       let register_post_coservice'
@@ -1018,7 +972,6 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp
           ?name
           ?csrf_safe
           ?csrf_state_name
@@ -1053,7 +1006,7 @@ module MakeRegister = functor
           ?headers
           ?state_name
           ?secure_session
-          ?sp ~service:u ?error_handler page_gen;
+          ~service:u ?error_handler page_gen;
         u
 
 

@@ -29,7 +29,7 @@ let s =
   register_service
     ~path:[""]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         ({{ <html xmlns="http://www.w3.org/1999/xhtml">
              [<head> [<title> ""]
@@ -47,26 +47,26 @@ let create_form =
              {{ string_input ~input_type:{{ "submit" }} ~value:"Click" ()}} ] ] }} )
 
 let form = register_service ["form"] unit
-  (fun sp () () ->
-     let f = get_form Tutoeliom.coucou_params sp create_form in
+  (fun () () ->
+     let f = get_form Tutoeliom.coucou_params create_form in
      return
         {{ <html xmlns="http://www.w3.org/1999/xhtml">
              [<head> [<title> ""]
               <body> [ f ] ]}})
 
 let links = register_service ["links"] unit
- (fun sp () () -> return
+ (fun () () -> return
    {{ <html xmlns="http://www.w3.org/1999/xhtml">
       [ <head> [<title> ""]
         <body>
         [<p>
-          [{{ a s sp {{ "first page" }} () }}
+          [{{ a s {{ "first page" }} () }}
            <br> []
-           {{ a form sp {{ "form" }} () }}
+           {{ a form {{ "form" }} () }}
            <br> []
-(*           {{ a s sp {{ "hello" }} () }}
+(*           {{ a s {{ "hello" }} () }}
            <br> []
-           {{ a coucou_params sp
+           {{ a coucou_params
              {{ "coucou_params" }} (42,(22,"ciao")) }}
            <br> [] *)
            {{ a
@@ -75,7 +75,6 @@ let links = register_service ["links"] unit
                 ~path:["wiki"]
                 ~get_params:(suffix (string "a"))
                 ())
-             sp
              {{ "ocaml on wikipedia" }}
              "OCaml" }}]]] }})
 
@@ -97,14 +96,14 @@ let gen_form = fun x ->
 
 let _ =
         register ~service:main
-        (fun sp () () ->
+        (fun () () ->
                 return {{ <html xmlns="http://www.w3.org/1999/xhtml">[
                         <head>[<title>"Main"]
-                        <body>[{: post_form form sp gen_form () :}]
+                        <body>[{: post_form form gen_form () :}]
                 ] }}
         );
         register ~service:form
-        (fun sp () x ->
+        (fun () x ->
                 return {{ <html xmlns="http://www.w3.org/1999/xhtml">[
                                 <head>[<title>"Form"]
                                 <body>[<p>{: match x with None -> "Geen" | Some y -> y :}]
@@ -116,7 +115,7 @@ let blocks =
   Eliom_duce.Blocks.register_service
     ~path:["blocks"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         ({: [ <h1> "This page has been type checked by OcamlDuce"] :} ))
 

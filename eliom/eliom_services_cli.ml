@@ -148,35 +148,35 @@ let change_get_num service attser n =
 
 
 (** Satic directories **)
-let static_dir_ ?(https = false) ~sp () =
-    {
-     pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
-     get_params_type = Eliom_parameters.suffix 
-        (Eliom_parameters.all_suffix Eliom_common.eliom_suffix_name);
-     post_params_type = Eliom_parameters.unit;
-     max_use= None;
-     timeout= None;
-     kind = `Attached
-        {prefix = "";
-         subpath = [""];
-         fullpath = (Eliom_request_info.get_site_dir sp) @ 
-            [Eliom_common.eliom_suffix_internal_name];
-         get_name = Eliom_common.SAtt_no;
-         post_name = Eliom_common.SAtt_no;
-         att_kind = `Internal `Service;
-         get_or_post = `Get;
-         redirect_suffix = true;
-        };
-     https = https;
-     keep_nl_params = `None;
-     do_appl_xhr = XNever;
-   }
+let static_dir_ ?(https = false) () =
+  {
+    pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
+    get_params_type = Eliom_parameters.suffix 
+      (Eliom_parameters.all_suffix Eliom_common.eliom_suffix_name);
+    post_params_type = Eliom_parameters.unit;
+    max_use= None;
+    timeout= None;
+    kind = `Attached
+      {prefix = "";
+       subpath = [""];
+       fullpath = (Eliom_request_info.get_site_dir ()) @ 
+          [Eliom_common.eliom_suffix_internal_name];
+       get_name = Eliom_common.SAtt_no;
+       post_name = Eliom_common.SAtt_no;
+       att_kind = `Internal `Service;
+       get_or_post = `Get;
+       redirect_suffix = true;
+      };
+    https = https;
+    keep_nl_params = `None;
+    do_appl_xhr = XNever;
+  }
 
-let static_dir ~sp = static_dir_ ~sp ()
+let static_dir () = static_dir_ ()
 
-let https_static_dir ~sp = static_dir_ ~https:true ~sp ()
+let https_static_dir () = static_dir_ ~https:true ()
 
-let get_static_dir_ ?(https = false) ~sp
+let get_static_dir_ ?(https = false)
     ?(keep_nl_params = `None) ~get_params () =
     {
      pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
@@ -190,7 +190,7 @@ let get_static_dir_ ?(https = false) ~sp
      kind = `Attached
        {prefix = "";
         subpath = [""];
-        fullpath = (Eliom_request_info.get_site_dir sp) @ 
+        fullpath = (Eliom_request_info.get_site_dir ()) @ 
            [Eliom_common.eliom_suffix_internal_name];
         get_name = Eliom_common.SAtt_no;
         post_name = Eliom_common.SAtt_no;
@@ -203,19 +203,19 @@ let get_static_dir_ ?(https = false) ~sp
      do_appl_xhr = XNever;
    }
 
-let static_dir_with_params ~sp ?keep_nl_params ~get_params () = 
-  get_static_dir_ ~sp ?keep_nl_params ~get_params ()
+let static_dir_with_params ?keep_nl_params ~get_params () = 
+  get_static_dir_ ?keep_nl_params ~get_params ()
 
-let https_static_dir_with_params ~sp ?keep_nl_params ~get_params () = 
-  get_static_dir_ ~https:true ~sp ?keep_nl_params ~get_params ()
+let https_static_dir_with_params ?keep_nl_params ~get_params () = 
+  get_static_dir_ ~https:true ?keep_nl_params ~get_params ()
 
 
 (****************************************************************************)
 let get_do_appl_xhr s = s.do_appl_xhr
 let set_do_appl_xhr s n = s.do_appl_xhr <- n
 
-let do_appl_xhr ~sp s =
-  let n = Eliom_request_info.get_sp_appl_name sp in
+let do_appl_xhr s =
+  let n = Eliom_request_info.get_sp_appl_name () in
   (n <> None) && 
     (match s.do_appl_xhr with
       | XAlways -> true

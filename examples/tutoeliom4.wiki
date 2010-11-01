@@ -39,10 +39,6 @@ whole application.
 {shared{
 open XHTML5.M
 }}
-{client{
-open Eliom_client.Sp (* On client side, sp is a global variable defined in
-                        this module. *)
-}}
 
 (****** server only *******)
 {server{ (* note that {server{ ... }} is optionnal. *)
@@ -64,7 +60,7 @@ module Eliom_appl =
                [XHTML5.M.pcdata "a,.clickable {color: #111188; cursor: pointer;}"]];
            Eliom_predefmod.ap_container =
             Some (None,
-                  fun ~sp div ->
+                  fun div ->
                     [h1 [pcdata "Eliom application"];
                      p [pcdata "Random value in the container: ";
                         pcdata (string_of_int (Random.int 1000))];
@@ -77,7 +73,7 @@ let eliomclient1 =
   Eliom_appl.register_service
     ~path:["plop"; "eliomclient1"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return
         [p ~a:[
                         (* with {{ expr }}, the expression is executed by the client. *)
@@ -106,7 +102,7 @@ let myblockservice =
   Eliom_predefmod.Blocks5.register_post_coservice
     ~fallback:eliomclient2
     ~post_params:unit
-    (fun _ () () ->
+    (fun () () ->
        Lwt.return
          [p [pcdata ("I come from a distant service! Here is a random value: "^
                        string_of_int (Random.int 100))]])
@@ -123,7 +119,7 @@ let item () = li [pcdata Sys.ocaml_version]
 let _ =
   Eliom_appl.register
     eliomclient2
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return
         [
 >>
@@ -135,7 +131,6 @@ let _ =
             ~a:[
               a_onclick
                 {{Eliom_client.exit_to
-                    ~sp
                     ~service:\(Tutoeliom.coucou) (* just as [coucou] *)
                     () ()
                 }}
@@ -152,20 +147,18 @@ client at loading time.
 
               a_onclick
                 ((fun.client
-                    (sp : Eliom_client_types.server_params Eliom_client_types.data_key)
                     (myblockservice : (unit, unit, 'c, 'd, 'e, 'f, 'g, Eliom_services.http) Eliom_services.service) ->
-                      let sp = Eliommod_client.unwrap_sp sp in
                       let body = Dom_html.document##body in
                       (*Js_old.get_element_by_id "bodyid"*)
                       Eliom_client.call_service
-                        ~sp ~service:myblockservice () () ~>>= fun s ->
+                        ~service:myblockservice () () ~>>= fun s ->
                       (try
                          let l = Js_old.Node.children (Js_old.dom_of_xml s) in
                          List.iter (Js_old.Node.append body) l
                        with e -> Js_old.alert (Printexc.to_string e));
 (* does not work with chrome. A solution is probably to use set "innerHTML". *)
                        Lwt.return ()
-                 ) (Eliom_client.wrap_sp sp) myblockservice)
+                 ) myblockservice)
             ]
             [pcdata "Click here to add content from the server."];
  *)
@@ -183,7 +176,7 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.change_url ~sp
+                Eliom_client.change_url
                   ~service:\(Tutoeliom.coucou)
                   () ()
               }}
@@ -197,7 +190,7 @@ client at loading time.
           p
             ~a:[
               a_onclick
-                {{Eliom_client.change_page ~sp
+                {{Eliom_client.change_page
                     ~service:\(eliomclient1)
                     () ()
                 }}
@@ -208,7 +201,6 @@ client at loading time.
   use {{{change_page}}} if you do a link inside the same application.
   The latter example is equivalent to the following. <<code language="ocaml" |
           p [a 
-               ~sp
                ~service:eliomclient1
                [pcdata "Click here to change the page without stopping the program (with ";
                 code [pcdata "a"];
@@ -217,7 +209,7 @@ client at loading time.
           p
             ~a:[
               a_onclick{{
-                Eliom_client.change_page ~sp ~service:\(Tutoeliom.coucou)
+                Eliom_client.change_page ~service:\(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -227,14 +219,14 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.exit_to ~sp ~service:\(eliomclient2) () ()
+                Eliom_client.exit_to ~service:\(eliomclient2) () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p
             ~a:[
               a_onclick {{
-                Eliom_client.change_page ~sp ~service:\(eliomclient1)
+                Eliom_client.change_page ~service:\(eliomclient1)
                   () ()
               }}
             ]
@@ -249,7 +241,7 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.get_subpage ~sp ~service:\(eliomclient1)
+                Eliom_client.get_subpage ~service:\(eliomclient1)
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -304,13 +296,13 @@ client at loading time.
                    (Dom_html.document##body)
                    (XHTML5.M.toelt
                       (p [Eliom_predefmod.Xhtml5.a
-                            ~sp ~service:coucou
+                            ~service:coucou
                             [pcdata "An external link generated client side"]
                             ();
                           pcdata " and ";
                           Eliom_predefmod.Xhtml5.a
                             
-                            ~sp ~service:eliomclient1
+                            ~service:eliomclient1
                             [pcdata "another, inside the application."]
                             ()
                          ]
@@ -334,7 +326,7 @@ To do that, use the {{{Eliom_parameters.caml}}} function:
 let eliomclient3' =
   Eliom_appl.register_post_coservice'
     ~post_params:(caml "isb")
-    (fun sp () (i, s, l) ->
+    (fun () (i, s, l) ->
       Lwt.return
         [p (pcdata (Printf.sprintf "i = %d, s = %s" i s)::
               List.map (fun a -> pcdata a) l
@@ -345,11 +337,11 @@ let eliomclient3 =
   Eliom_appl.register_service
     ~path:["eliomclient3"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return
         [p ~a:[a_onclick
                 {{ Eliom_client.change_page
-                     ~sp ~service:\(eliomclient3')
+                     ~service:\(eliomclient3')
                      () (299, "oo", ["a";"b";"c"])
                 }}
               ]
@@ -363,19 +355,19 @@ It is possible to do services that send any caml value. For example:
 let eliomclient4' =
   Eliom_predefmod.Caml.register_post_coservice'
     ~post_params:unit
-    (fun sp () () -> Lwt.return [1; 2; 3])
+    (fun () () -> Lwt.return [1; 2; 3])
 
 
 let eliomclient4 =
   Eliom_appl.register_service
     ~path:["eliomclient4"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Lwt.return
         [p ~a:[a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~sp ~service:\(eliomclient4')
+                     ~service:\(eliomclient4')
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
@@ -409,37 +401,37 @@ let _ =
     ~options:{Eliom_predefmod.default_appl_service_options
               with Eliom_predefmod.do_not_launch = true}
     ~service:withoutclient
-    (fun sp () () ->
+    (fun () () ->
        Lwt.return
          [p [pcdata "If the application was not launched before coming here (or if you reload), this page will not launch it. But if it was launched before, it is still running."];
           p
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp ~service:\(gotowithoutclient)
+                  ~service:\(gotowithoutclient)
                   () ()
               }}
             ]
             [pcdata "Click here to go to a page that launches the application every time (this link does not work if the appl is not launched)."];
-          p [a  ~sp ~service:gotowithoutclient
+          p [a  ~service:gotowithoutclient
                [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ]);
   Eliom_appl.register
     ~service:gotowithoutclient
-    (fun sp () () ->
+    (fun () () ->
        Lwt.return
          [p [pcdata "The application is launched."];
           p
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~sp ~service:\(withoutclient)
+                  ~service:\(withoutclient)
                   () ()
               }}
             ]
             [pcdata "Click here to see the page that does not launch the application."];
-          p [a  ~sp ~service:withoutclient
+          p [a  ~service:withoutclient
                [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ])
@@ -452,21 +444,21 @@ let on_load =
   Eliom_appl.register_service
     ~path:["onload"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       let div =
-        div [p [a ~service:eliomclient1 ~sp [pcdata "go to another page"] ()] ]
+        div [p [a ~service:eliomclient1 [pcdata "go to another page"] ()] ]
       in
-      Eliom_services.onload ~sp
+      Eliom_services.onload
         {{ Lwt_js.sleep 1. >|= fun () ->
            Dom.appendChild \(div)
              (XHTML5.M.toelt (p [pcdata "on_load executed after 1s."]))
          }};
-      Eliom_services.onload ~sp
+      Eliom_services.onload
         {{ Lwt_js.sleep 3. >|= fun () ->
            Dom.appendChild \(div)
              (XHTML5.M.toelt (p [pcdata "on_load executed after 3s."]))
          }};
-      Eliom_services.onunload ~sp
+      Eliom_services.onunload
         {{
           Dom.appendChild \(div)
           (XHTML5.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
@@ -479,16 +471,16 @@ let uri_test =
   Eliom_appl.register_service
     ~path:["uritest"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       let div =
         div [
           p [pcdata "The following URLs are computed either on server or client side. They should be equal."];
-          p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ~sp ())];
+          p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ())];
             ]
       in
-      Eliom_services.onload ~sp
+      Eliom_services.onload
         {{ Dom.appendChild \(div)
-             (XHTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:\(eliomclient1) ~sp ())]))
+             (XHTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:\(eliomclient1) ())]))
          }};
       Lwt.return [div]
     )

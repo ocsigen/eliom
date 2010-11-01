@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** On client side, sp is a global value. Take it from here. *)
-module Sp : sig val sp : Eliom_client_types.server_params end
 
 (** Call a server side service and change the current page.
     If the service belongs to the same application,
@@ -35,7 +33,6 @@ val change_page :
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -53,7 +50,6 @@ val call_caml_service :
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
            [< Eliom_services.registrable ], 'return Eliom_parameters.caml)
           Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -72,7 +68,6 @@ val exit_to :
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -90,7 +85,6 @@ val get_subpage :
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -110,7 +104,6 @@ val call_service :
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -133,7 +126,6 @@ val change_url :
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
-  sp:Eliom_client_types.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
@@ -155,7 +147,6 @@ val make_a_with_onclick :
            [< Eliom_services.suff ], 'gn, 'pn,
            [< Eliom_services.registrable ], 'return)
     Eliom_services.service ->
-  sp:Eliom_request_info.server_params ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->

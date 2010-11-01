@@ -96,21 +96,18 @@ val service_state_status :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit -> state_status
 
 val volatile_data_state_status :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit -> state_status
 
 val persistent_data_state_status :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit -> state_status Lwt.t
 
 
@@ -161,7 +158,6 @@ val persistent_data_state_status :
 val set_global_volatile_state_timeout :
   ?state_name:string option -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params ->
   ?recompute_expdates:bool -> 
   ?override_configfile:bool ->
   float option -> unit
@@ -171,7 +167,6 @@ val set_global_volatile_state_timeout :
 val set_global_service_state_timeout :
   ?state_name:string option -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params ->
   ?recompute_expdates:bool -> 
   ?override_configfile:bool ->
   float option -> unit
@@ -181,7 +176,6 @@ val set_global_service_state_timeout :
 val set_global_volatile_data_state_timeout :
   ?state_name:string option -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params ->
   ?recompute_expdates:bool -> 
   ?override_configfile:bool ->
   float option -> unit
@@ -191,7 +185,6 @@ val set_global_volatile_data_state_timeout :
 val set_global_persistent_data_state_timeout :
   ?state_name:string option ->
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params -> 
   ?recompute_expdates:bool ->
   ?override_configfile:bool ->
   float option -> unit
@@ -206,21 +199,21 @@ val set_global_persistent_data_state_timeout :
 val get_global_service_state_timeout :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params -> unit -> float option
+  unit -> float option
 
 (** Returns the timeout for "volatile data" states (server side).
 *)
 val get_global_volatile_data_state_timeout :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params -> unit -> float option
+  unit -> float option
 
 (** Returns the timeout for persistent states (server side).
 *)
 val get_global_persistent_data_state_timeout :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params -> unit -> float option
+  unit -> float option
 
 
 
@@ -232,7 +225,7 @@ val set_service_state_timeout :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> float option -> unit
+  float option -> unit
 
 (** remove the service state timeout for one user
    (and turn back to the default). *)
@@ -240,7 +233,7 @@ val unset_service_state_timeout :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> unit -> unit
+  unit -> unit
 
 (** returns the timeout for current service state.
     [None] = no timeout
@@ -249,7 +242,7 @@ val get_service_state_timeout :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> unit -> float option
+  unit -> float option
 
 
 
@@ -260,7 +253,7 @@ val set_volatile_data_state_timeout :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> float option -> unit
+  float option -> unit
 
 (** remove the "volatile data" state timeout for one user
    (and turn back to the default). *)
@@ -268,7 +261,7 @@ val unset_volatile_data_state_timeout :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> unit -> unit
+  unit -> unit
 
 (** returns the timeout for current volatile data state.
     [None] = no timeout
@@ -277,7 +270,7 @@ val get_volatile_data_state_timeout :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> unit -> float option
+  unit -> float option
 
 
 
@@ -291,7 +284,7 @@ val set_persistent_data_state_timeout :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> float option -> unit Lwt.t
+  float option -> unit Lwt.t
 
 (** remove the persistent state timeout for one user
    (and turn back to the default). *)
@@ -299,14 +292,14 @@ val unset_persistent_data_state_timeout :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> unit -> unit Lwt.t
+  unit -> unit Lwt.t
 
 (** returns the persistent state timeout for one user. [None] = no timeout *)
 val get_persistent_data_state_timeout : 
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> unit -> float option Lwt.t
+  unit -> float option Lwt.t
 
 
 (** {3 Session groups} *)
@@ -337,7 +330,6 @@ val set_service_session_group :
   ?set_max: int ->
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   string ->
   unit
 
@@ -346,7 +338,6 @@ val unset_service_session_group :
   ?set_max: int ->
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   unit
 
@@ -357,7 +348,6 @@ val unset_service_session_group :
 val get_service_session_group :
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   string session_data
 
@@ -369,7 +359,6 @@ val set_volatile_data_session_group :
   ?set_max: int ->
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   string ->
   unit
 
@@ -378,7 +367,6 @@ val unset_volatile_data_session_group :
   ?set_max: int ->
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   unit
 
@@ -389,7 +377,6 @@ val unset_volatile_data_session_group :
 val get_volatile_data_session_group :
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   string session_data
 
@@ -401,7 +388,6 @@ val set_persistent_data_session_group :
   ?set_max: int option ->
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   string ->
   unit Lwt.t
 
@@ -409,7 +395,6 @@ val set_persistent_data_session_group :
 val unset_persistent_data_session_group :
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   unit Lwt.t
 
@@ -420,7 +405,6 @@ val unset_persistent_data_session_group :
 val get_persistent_data_session_group :
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   string session_data Lwt.t
 
@@ -441,76 +425,76 @@ val get_persistent_data_session_group :
     (see above).
 *)
 val set_default_max_service_sessions_per_group :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int -> unit
+  ?override_configfile:bool -> int -> unit
 
 (** Sets the maximum number of volatile data sessions in a session
     group (see above).
 *)
 val set_default_max_volatile_data_sessions_per_group :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int -> unit
+  ?override_configfile:bool -> int -> unit
 
 (** Sets the maximum number of persistent data sessions in a session
     group (see above).
 *)
 val set_default_max_persistent_data_sessions_per_group :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int option -> unit
+  ?override_configfile:bool -> int option -> unit
 
 (** Sets the maximum number of volatile sessions (data and service) in a session
     group (see above).
 *)
 val set_default_max_volatile_sessions_per_group :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int -> unit
+  ?override_configfile:bool -> int -> unit
 
 (** Sets the maximum number of service sessions in a subnet (see above).
 *)
 val set_default_max_service_sessions_per_subnet :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int -> unit
+  ?override_configfile:bool -> int -> unit
 
 (** Sets the maximum number of volatile data sessions in a subnet (see above).
 *)
 val set_default_max_volatile_data_sessions_per_subnet :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int -> unit
+  ?override_configfile:bool -> int -> unit
 
 (** Sets the maximum number of volatile sessions (data and service) 
     in a subnet (see above).
 *)
 val set_default_max_volatile_sessions_per_subnet :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int -> unit
+  ?override_configfile:bool -> int -> unit
 
 
 (** Sets the maximum number of tab service sessions in a session group
     (see above).
 *)
 val set_default_max_service_tab_sessions_per_group :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int -> unit
+  ?override_configfile:bool -> int -> unit
 
 (** Sets the maximum number of volatile data tab sessions in a session
     group (see above).
 *)
 val set_default_max_volatile_data_tab_sessions_per_group :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int -> unit
+  ?override_configfile:bool -> int -> unit
 
 (** Sets the maximum number of persistent data tab sessions in a session
     group (see above).
 *)
 val set_default_max_persistent_data_tab_sessions_per_group :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int option -> unit
+  ?override_configfile:bool -> int option -> unit
 
 (** Sets the maximum number of volatile tab sessions (data and service)
     in a session group (see above).
 *)
 val set_default_max_volatile_tab_sessions_per_group :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int -> unit
+  ?override_configfile:bool -> int -> unit
 
 
 
 (** Sets the mask for subnet (IPV4). *)
 val set_ipv4_subnet_mask :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int32 -> unit
+  ?override_configfile:bool -> int32 -> unit
 
 (** Sets the mask for subnet (IPV6). *)
 val set_ipv6_subnet_mask :
-  ?sp:Eliom_request_info.server_params -> ?override_configfile:bool -> int64 * int64 -> unit
+  ?override_configfile:bool -> int64 * int64 -> unit
 
 
 
@@ -521,7 +505,6 @@ val set_max_service_sessions_for_group_or_subnet :
   ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   int ->
   unit
 (*VVV renommer! *)
@@ -534,7 +517,6 @@ val set_max_volatile_data_sessions_for_group_or_subnet :
   ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   int ->
   unit
 (*VVV renommer! *)
@@ -547,7 +529,6 @@ val set_max_volatile_sessions_for_group_or_subnet :
   ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   int ->
   unit
 (*VVV renommer! *)
@@ -568,7 +549,6 @@ val set_service_cookie_exp_date :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> 
   float option -> 
   unit
 (*VVV renommer! *)
@@ -580,7 +560,6 @@ val set_volatile_data_cookie_exp_date :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> 
   float option -> 
   unit
 (*VVV renommer! *)
@@ -593,7 +572,6 @@ val set_persistent_data_cookie_exp_date :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> 
   float option -> 
   unit Lwt.t
 (*VVV renommer! *)
@@ -640,17 +618,17 @@ module Eref : sig
     ?scope:Eliom_common.user_scope ->
     ?secure:bool ->
     ?persistent:string ->
-    ?sp:Eliom_request_info.server_params -> 'a -> 'a eref
+    'a -> 'a eref
 
   (** Get the value of an Eliom reference. *)
-  val get : sp:Eliom_request_info.server_params -> 'a eref -> 'a Lwt.t
+  val get : 'a eref -> 'a Lwt.t
 
   (** Change the value of an Eliom reference. *)
-  val set : sp:Eliom_request_info.server_params -> 'a eref -> 'a -> unit Lwt.t
+  val set : 'a eref -> 'a -> unit Lwt.t
 
   (** Turn back to the default value 
       (by removing the entry in the server side table) *)
-  val unset : sp:Eliom_request_info.server_params -> 'a eref -> unit Lwt.t
+  val unset : 'a eref -> unit Lwt.t
 end
 
 (*****************************************************************************)
@@ -675,7 +653,6 @@ val discard :
   ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   unit Lwt.t
 
@@ -683,7 +660,6 @@ val discard :
 val close_session :
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   unit Lwt.t
 
@@ -691,7 +667,6 @@ val close_session :
 val close_group :
   ?state_name:string ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   unit Lwt.t
 
@@ -706,7 +681,6 @@ val discard_data :
   ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   unit Lwt.t
 
@@ -716,7 +690,6 @@ val discard_services :
   ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit ->
   unit
 
@@ -726,13 +699,11 @@ val discard_services :
 (** {2 User cookies} *)
 
 val set_cookie :
-  sp:Eliom_request_info.server_params ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?path:string list ->
   ?exp:float -> name:string -> value:string -> ?secure:bool -> unit -> unit
 
 val unset_cookie :
-  sp:Eliom_request_info.server_params ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?path:string list ->
   name:string -> unit -> unit
@@ -763,19 +734,17 @@ val create_volatile_table :
   ?state_name:string ->
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  ?sp:Eliom_request_info.server_params -> unit -> 'a volatile_table
+  unit -> 'a volatile_table
 
 (** gets session data for the current session (if any).  (deprecated) *)
 val get_volatile_data : 
   table:'a volatile_table -> 
-  sp:Eliom_request_info.server_params -> 
   unit ->
   'a session_data
 
 (** sets session data for the current session.  (deprecated) *)
 val set_volatile_data : 
   table:'a volatile_table -> 
-  sp:Eliom_request_info.server_params -> 
   'a ->
   unit
 
@@ -786,7 +755,6 @@ val set_volatile_data :
  *)
 val remove_volatile_data : 
   table:'a volatile_table -> 
-  sp:Eliom_request_info.server_params -> 
   unit -> 
   unit
 
@@ -808,7 +776,6 @@ val create_persistent_table :
  (deprecated) *)
 val get_persistent_data : 
   table:'a persistent_table -> 
-  sp:Eliom_request_info.server_params ->
   unit -> 
   'a session_data Lwt.t
 
@@ -816,7 +783,6 @@ val get_persistent_data :
  (deprecated) *)
 val set_persistent_data : 
   table:'a persistent_table -> 
-  sp:Eliom_request_info.server_params -> 
   'a -> 
   unit Lwt.t
 
@@ -827,7 +793,6 @@ val set_persistent_data :
  *)
 val remove_persistent_data : 
   table:'a persistent_table -> 
-  sp:Eliom_request_info.server_params -> 
   unit -> 
   unit Lwt.t
 
@@ -851,7 +816,6 @@ val remove_persistent_data :
 val discard_all :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params ->
   unit ->
   unit Lwt.t
 (*VVV missing: scope group *)
@@ -877,7 +841,6 @@ val discard_all_data :
   ?persistent:bool ->
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params ->
   unit ->
   unit Lwt.t
 (*VVV missing: scope group *)
@@ -900,7 +863,6 @@ val discard_all_data :
 val discard_all_services :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?sp:Eliom_request_info.server_params ->
   unit ->
   unit Lwt.t
 (*VVV missing: scope group *)
@@ -1007,8 +969,7 @@ module Session_admin : sig
    this exception.}
    *)
   val iter_service_sessions :
-      ?sp:Eliom_request_info.server_params ->
-        (service_session -> unit Lwt.t) -> unit Lwt.t
+    (service_session -> unit Lwt.t) -> unit Lwt.t
 
   (** Iterator on data sessions. [Lwt_unix.yield] is called automatically
      after each iteration.
@@ -1022,8 +983,7 @@ module Session_admin : sig
    this exception.}
    *)
   val iter_volatile_data_sessions :
-      ?sp:Eliom_request_info.server_params ->
-        (data_session -> unit Lwt.t) -> unit Lwt.t
+    (data_session -> unit Lwt.t) -> unit Lwt.t
 
   (** Iterator on persistent sessions. [Lwt_unix.yield] is called automatically
      after each iteration. *)
@@ -1042,8 +1002,7 @@ module Session_admin : sig
    this exception.}
    *)
   val fold_service_sessions :
-      ?sp:Eliom_request_info.server_params ->
-        (service_session -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
+    (service_session -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
   (** Iterator on data sessions. [Lwt_unix.yield] is called automatically
      after each iteration.
@@ -1057,8 +1016,7 @@ module Session_admin : sig
    this exception.}
    *)
   val fold_volatile_data_sessions :
-      ?sp:Eliom_request_info.server_params ->
-        (data_session -> 'b -> 'b Lwt.t) -> 'b  -> 'b Lwt.t
+    (data_session -> 'b -> 'b Lwt.t) -> 'b  -> 'b Lwt.t
 
   (** Iterator on persistent sessions. [Lwt_unix.yield] is called automatically
      after each iteration. *)
@@ -1079,7 +1037,7 @@ end
  *)
 
 (** returns the full path of the URL where the process is running *)
-val get_original_full_path : sp:Eliom_request_info.server_params -> Ocsigen_lib.url_path
+val get_original_full_path : unit -> Ocsigen_lib.url_path
 
 (** returns the hostname used for absolute links, computed
     when launching the client side process for the first time.
@@ -1088,7 +1046,7 @@ val get_original_full_path : sp:Eliom_request_info.server_params -> Ocsigen_lib.
     set in the configuration file, depending on server configuration
     ([<usedefaulthostname/>] option).
  *)
-val get_hostname : sp:Eliom_request_info.server_params -> string
+val get_hostname : unit -> string
 
 (** returns the port of the server, used when launching the client side process
     (not the current request). It corresponds to the port in the URL of 
@@ -1096,12 +1054,12 @@ val get_hostname : sp:Eliom_request_info.server_params -> string
     If there is no client side process, same as
     {!Eliom_request_info.get_server_port}.
 *)
-val get_server_port : sp:Eliom_request_info.server_params -> int
+val get_server_port : unit -> int
 
 (** returns true if https is used in the URL of the browser, false if http.
     If there is no client side process, same as {!Eliom_request_info.get_ssl}.
 *)
-val get_ssl : sp:Eliom_request_info.server_params -> bool
+val get_ssl : unit -> bool
 
 
 
@@ -1184,7 +1142,7 @@ val get_persistent_data_cookie :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> unit -> string option Lwt.t
+  unit -> string option Lwt.t
 
 (** returns the value of Eliom's cookies for one service session.
    Returns [None] is no session is active.
@@ -1193,7 +1151,6 @@ val get_service_cookie :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit -> string option
 
 (** returns the value of Eliom's cookies for one "volatile data" session.
@@ -1203,7 +1160,6 @@ val get_volatile_data_cookie :
   ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params ->
   unit -> string option
 
 
@@ -1214,9 +1170,9 @@ val get_volatile_data_cookie :
 
 (**/**)
 (*****************************************************************************)
-val number_of_service_sessions : sp:Eliom_request_info.server_params -> int
+val number_of_service_sessions : unit -> int
 
-val number_of_volatile_data_sessions : sp:Eliom_request_info.server_params -> int
+val number_of_volatile_data_sessions : unit -> int
 
 val number_of_tables : unit -> int
 
@@ -1231,21 +1187,21 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
    result in some case (with a version of ocsipersist based on Dbm) *)
 
 
-val get_global_table : ?sp:Eliom_request_info.server_params -> unit -> Eliom_common.tables
+val get_global_table : unit -> Eliom_common.tables
 
 val get_session_service_table :
+  sp:Eliom_common.server_params ->
   ?state_name:string -> 
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> 
   unit ->
   Eliom_common.tables ref
 
 val get_session_service_table_if_exists :
+  sp:Eliom_common.server_params ->
   ?state_name:string -> 
   ?scope:Eliom_common.user_scope ->
   ?secure:bool ->
-  sp:Eliom_request_info.server_params -> 
   unit ->
   Eliom_common.tables ref
 
@@ -1256,7 +1212,8 @@ val make_server_params :
   Eliom_common.sitedata ->
   Eliom_common.info ->
   Ocsigen_lib.url_path option -> 
-  Eliom_common.fullsessionname option -> Eliom_common.server_params
+  Eliom_common.fullsessionname option ->
+  Eliom_common.server_params Lwt.t
 
 
 val create_volatile_table_during_session_ :
@@ -1265,3 +1222,8 @@ val create_volatile_table_during_session_ :
   secure:bool ->
   Eliom_common.sitedata -> 
   'a volatile_table
+
+val get_original_full_path_sp : Eliom_common.server_params -> Ocsigen_lib.url_path
+val get_hostname_sp : Eliom_common.server_params -> string
+val get_server_port_sp : Eliom_common.server_params -> int
+val get_ssl_sp : Eliom_common.server_params -> bool

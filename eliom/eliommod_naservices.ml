@@ -41,8 +41,9 @@ let find_naservice_table at k =
 
 let add_naservice
     tables
-    ?sp name
+    name
     (max_use, expdate, naservice) =
+  let sp = Eliom_common.get_sp_option () in
   let generation = Ocsigen_extensions.get_numberofreloads () in
   (if (sp = None) (* not duringsession *)
   then
@@ -258,12 +259,12 @@ let make_naservice
   >>= fun ((_, max_use, expdate, naservice, node), 
            tablewhereithasbeenfound,
            fullsessname) ->
-  (naservice
-     (Eliom_state.make_server_params
-        sitedata
-        info
-        None
-        fullsessname)) >>= fun r ->
+  Eliom_state.make_server_params
+    sitedata
+    info
+    None
+    fullsessname >>= fun sp ->
+  naservice sp >>= fun r ->
   Ocsigen_messages.debug2
     "--Eliom: Non attached page found and generated successfully";
   (match expdate with

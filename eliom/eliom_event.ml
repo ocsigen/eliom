@@ -40,12 +40,13 @@ struct
         Eliom_services.service
 
   let to_react = fst
-  let wrap ~sp (_, s) = Eliommod_cli.wrap ~sp s
+  let wrap (_, s) = Eliommod_cli.wrap s
 
   (* An event is created along with a service responsible for it's occurences.
-   * function takes sp and a param_type *)
-  let create ?sp ?scope ?name post_params =
+   * function takes a param_type *)
+  let create ?scope ?name post_params =
     let (e, push) = React.E.create () in
+    let sp = Eliom_common.get_sp_option () in
     let scope = match sp, scope with
       | _, Some l -> l
       | None, _ -> `Global
@@ -55,9 +56,8 @@ struct
     Eliom_predefmod.Action.register
       ~scope
       ~options:`NoReload
-      ?sp
       ~service:e_writer
-      (fun _ () value -> push value ; Lwt.return ());
+      (fun () value -> push value ; Lwt.return ());
     (e, e_writer)
 
 end

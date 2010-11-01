@@ -433,7 +433,7 @@ and sitedata = {
   (* Limitation of the number of groups per site *)
   mutable remove_session_data : string -> unit;
   mutable not_bound_in_data_tables : string -> bool;
-  mutable exn_handler : server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
+  mutable exn_handler : exn -> Ocsigen_http_frame.result Lwt.t;
   mutable unregistered_services : Ocsigen_lib.url_path list;
   mutable unregistered_na_services : na_key_serv list;
   mutable max_volatile_data_sessions_per_group : int * bool;
@@ -449,8 +449,8 @@ and sitedata = {
   dlist_ip_table : dlist_ip_table;
   mutable ipv4mask : int32 option * bool;
   mutable ipv6mask : (int64 * int64) option * bool;
-  mutable get_client_process_info : server_params -> client_process_info option;
-  mutable set_client_process_info : server_params -> client_process_info -> unit;
+  mutable get_client_process_info : unit -> client_process_info option;
+  mutable set_client_process_info : client_process_info -> unit;
 }
 
 
@@ -547,3 +547,7 @@ val tab_cookie_action_info_key : (tables cookie_info *
                                     string Ocsigen_lib.String_Table.t) Polytables.key
 
 
+val set_sp : server_params -> unit Lwt.t
+val get_sp_option : unit -> server_params option
+val get_sp : unit -> server_params
+val sp_of_option : server_params option -> server_params

@@ -444,8 +444,7 @@ and tables =
      mutable csrf_get_or_na_registration_functions :
        (sp:server_params -> string) Ocsigen_lib.Int_Table.t;
      mutable csrf_post_registration_functions :
-       (sp:server_params -> 
-         att_key_serv -> string) Ocsigen_lib.Int_Table.t;
+       (sp:server_params -> att_key_serv -> string) Ocsigen_lib.Int_Table.t;
       (* These two table are used for CSRF safe services:
          We associate to each service unique id the function that will
          register a new anonymous coservice each time we create a link or form.
@@ -508,7 +507,7 @@ and sitedata =
    (* Limitation of the number of groups per site *)
    mutable remove_session_data: string -> unit;
    mutable not_bound_in_data_tables: string -> bool;
-   mutable exn_handler: server_params -> exn -> Ocsigen_http_frame.result Lwt.t;
+   mutable exn_handler: exn -> Ocsigen_http_frame.result Lwt.t;
    mutable unregistered_services: Ocsigen_lib.url_path list;
    mutable unregistered_na_services: na_key_serv list;
    mutable max_volatile_data_sessions_per_group : int * bool;
@@ -524,8 +523,8 @@ and sitedata =
    dlist_ip_table : dlist_ip_table;
    mutable ipv4mask : int32 option * bool;
    mutable ipv6mask : (int64 * int64) option * bool;
-   mutable get_client_process_info : server_params -> client_process_info option;
-   mutable set_client_process_info : server_params -> client_process_info -> unit;
+   mutable get_client_process_info : unit -> client_process_info option;
+   mutable set_client_process_info : client_process_info -> unit;
  }
 
 and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
@@ -582,6 +581,21 @@ let make_server_params_
                                      from server side state data *)
   }
 
+let sp_key = Lwt.new_key ()
+
+let set_sp sp = Lwt.set sp_key (Some sp)
+
+let get_sp_option () = Lwt.get sp_key
+
+let get_sp () =
+  match Lwt.get sp_key with
+    | Some sp -> sp
+    | None -> failwith "sp not initialized"
+
+let sp_of_option sp = 
+  match sp with
+    | None -> get_sp ()
+    | Some sp -> sp
 
 (*****************************************************************************)
 (* The current registration directory *)

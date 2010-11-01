@@ -24,8 +24,8 @@ let fresh_id =
   let c = ref 0 in
   fun () -> c := !c+1; "id"^string_of_int !c
 
-let client_sitedata ~sp =
-  let s = Eliom_request_info.get_sitedata sp in
+let client_sitedata sp =
+  let s = Eliom_request_info.get_sitedata_sp sp in
   {Eliom_client_types.site_dir = s.Eliom_common.site_dir;
    Eliom_client_types.site_dir_string = s.Eliom_common.site_dir_string;
   }
@@ -47,20 +47,21 @@ let client_si s =
 let eliom_appl_page_data_key : ((int64 * int) * unit list) Polytables.key = 
   Polytables.make_key ()
 
-let get_eliom_appl_page_data_ ~sp = 
-  let rc = Eliom_request_info.get_request_cache ~sp in
+let get_eliom_appl_page_data_ sp = 
+  let rc = Eliom_request_info.get_request_cache_sp sp in
   try 
     Polytables.get ~table:rc ~key:eliom_appl_page_data_key
   with Not_found -> 
-    let d = ((Eliom_request_info.get_request_id ~sp, 0), []) in
+    let d = ((Eliom_request_info.get_request_id_sp sp, 0), []) in
     Polytables.set ~table:rc ~key:eliom_appl_page_data_key ~value:d;
     d
 
-let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
-  let rc = Eliom_request_info.get_request_cache ~sp in
+let wrap (v : 'a) : 'a Eliom_client_types.data_key =
+  let sp = Eliom_common.get_sp () in
+  let rc = Eliom_request_info.get_request_cache_sp sp in
   let ((reqnum, num) as n, data) =
     try Polytables.get ~table:rc ~key:eliom_appl_page_data_key
-    with Not_found -> ((Eliom_request_info.get_request_id ~sp, 0), [])
+    with Not_found -> ((Eliom_request_info.get_request_id_sp sp, 0), [])
   in
   Polytables.set ~table:rc ~key:eliom_appl_page_data_key
     ~value:((reqnum, num+1), Obj.magic v::data);
@@ -68,8 +69,9 @@ let wrap ~sp (v : 'a) : 'a Eliom_client_types.data_key =
 
 
 
-let wrap_node ~sp n = 
-  let reqnum = Eliom_request_info.get_request_id ~sp in
+let wrap_node n = 
+  let sp = Eliom_common.get_sp () in
+  let reqnum = Eliom_request_info.get_request_id_sp sp in
   Eliom_client_types.to_data_key_ (reqnum, XML.ref_node (XHTML5.M.toelt n))
 
 

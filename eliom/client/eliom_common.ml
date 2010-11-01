@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2008 Vincent Balat
+ * Copyright (C) 2010 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,23 +18,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Type of the function that must be registered to declare an eliom extension *)
-type eliom_extension_sig =
-  Eliom_common.server_params -> Ocsigen_extensions.answer Lwt.t
+include Eliom_common_cli
 
-val register_eliom_extension : eliom_extension_sig -> unit
+type server_params = unit
 
-(**/**)
-
-val get_eliom_extension : unit -> eliom_extension_sig
-
-val run_eliom_extension :
-  eliom_extension_sig ->
-  float ->
-  (Ocsigen_extensions.request * 
-     Eliom_common.sess_info *
-     Eliom_common.tables Eliom_common.cookie_info *
-     Eliom_common.tables Eliom_common.cookie_info *
-     Ocsigen_cookies.cookieset) ->
-  Eliom_common.sitedata ->
-  Ocsigen_extensions.answer Lwt.t
+let get_sp () = ()
+let get_sp_option () = Some ()

@@ -13,17 +13,17 @@ val close_persistent_session :
   ?state_name:string -> 
   ?scope:Eliom_common.user_scope ->
   secure:bool option ->
-  sp:Eliom_request_info.server_params -> unit -> unit Lwt.t
+  ?sp:Eliom_common.server_params -> unit -> unit Lwt.t
 val find_or_create_persistent_cookie :
   ?set_session_group:string ->
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   secure:bool option ->
-  sp:Eliom_request_info.server_params ->
+  ?sp:Eliom_common.server_params ->
   unit -> Eliom_common.one_persistent_cookie_info Lwt.t
 val find_persistent_cookie_only :
   ?state_name:string ->
   ?cookie_scope:Eliom_common.cookie_scope ->
   secure:bool option ->
-  sp:Eliom_request_info.server_params ->
+  ?sp:Eliom_common.server_params ->
   unit -> Eliom_common.one_persistent_cookie_info Lwt.t

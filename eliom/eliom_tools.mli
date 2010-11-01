@@ -39,7 +39,7 @@ module Xhtml : sig
         Xhtmltypes.a_content XHTML.M.elt list)
       list ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_request_info.server_params ->
+    unit ->
     [> `Ul ] XHTML.M.elt
 (** Creates a menu
 
@@ -49,7 +49,7 @@ module Xhtml : sig
     [
     (home, <:xmllist< Home >>);
     (infos, <:xmllist< More infos >>)
-    ] current sp]
+    ] current ()]
 
     The [service] argument is used to find which item(s) to highlight. If
     service is [None], the current url is used.
@@ -61,7 +61,7 @@ module Xhtml : sig
 
 (**
    [hierarchical_menu_depth_first menu] constructs a function taking
-   as parameters a service and [~sp] (server parameters)
+   as parameters a service
    and displaying a hierarchical menu for this service.
 
    The menu is constructed by exploring the tree using
@@ -82,14 +82,14 @@ module Xhtml : sig
      Xhtmltypes.a_content XHTML.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_request_info.server_params ->
+    unit ->
     [> `Ul ] XHTML.M.elt list
 
 
 
 (**
    [hierarchical_menu_breadth_first menu] constructs a function taking
-   as parameters a service and [~sp] (server parameters)
+   as parameters a service
    and displaying a hierarchical menu for this service.
 
    The menu is constructed by exploring the tree using
@@ -107,7 +107,7 @@ module Xhtml : sig
      Xhtmltypes.a_content XHTML.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_request_info.server_params ->
+    unit ->
     [> `Ul ] XHTML.M.elt list
 
 
@@ -120,7 +120,7 @@ module Xhtml : sig
      Xhtmltypes.a_content XHTML.M.elt list)
     hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_request_info.server_params ->
+    unit ->
     [> `Link ] XHTML.M.elt list
 end
 
@@ -141,7 +141,7 @@ module Xhtml5 : sig
         Xhtml5types.flow5_without_interactive XHTML5.M.elt list)
       list ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_request_info.server_params ->
+    unit ->
     [> `Ul ] XHTML5.M.elt
 (** Creates a menu
 
@@ -151,7 +151,7 @@ module Xhtml5 : sig
     [
     (home, <:xmllist< Home >>);
     (infos, <:xmllist< More infos >>)
-    ] current sp]
+    ] current ()]
 
     The [service] argument is used to find which item(s) to highlight. If
     service is [None], the current url is used.
@@ -163,7 +163,7 @@ module Xhtml5 : sig
 
 (**
    [hierarchical_menu_depth_first menu] constructs a function taking
-   as parameters a service and [~sp] (server parameters)
+   as parameters a service
    and displaying a hierarchical menu for this service.
 
    The menu is constructed by exploring the tree using
@@ -184,7 +184,7 @@ module Xhtml5 : sig
      Xhtml5types.a_content XHTML5.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_request_info.server_params ->
+    unit ->
     [> `Ul ] XHTML5.M.elt list
 
 
@@ -209,7 +209,7 @@ module Xhtml5 : sig
      Xhtml5types.a_content XHTML5.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_request_info.server_params ->
+    unit ->
     [> `Ul ] XHTML5.M.elt list
 
 
@@ -222,6 +222,6 @@ module Xhtml5 : sig
      Xhtml5types.a_content XHTML5.M.elt list)
     hierarchical_site ->
     ?service:('a, 'b) one_page ->
-    sp:Eliom_request_info.server_params ->
+    unit ->
     [> `Link ] XHTML5.M.elt list
 end

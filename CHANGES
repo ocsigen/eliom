@@ -8,6 +8,7 @@
   * **SOON** Eliom client: sending forms to caml services from client side code.
   * Eliom: new implementation of forms and links to be compatible with
     client side programs.
+  * Eliom: sp parameter has been removed (now using Lwt's thread storage)
   * Eliom: New module {{{Eliom_predefmod.Customize}}} to create your
     own register functions from another registration module
   * Eliom: session replaced by a more general concept of "server side state".

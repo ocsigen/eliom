@@ -40,7 +40,7 @@ struct
      react=e;
      name=name}
 
-  let wrap ~sp
+  let wrap
       {throttling=t;
        buffer_size=bs;
        buffer_time=bt;
@@ -63,6 +63,6 @@ struct
     in
     let `R r = React.E.retain e (fun () -> ()) in
     let `R _ = React.E.retain e (fun () -> r () ; ignore chan ; ignore ee) in
-    Eliom_comet.Dlisted_channels.wrap ~sp chan
+    Eliom_comet.Dlisted_channels.wrap chan
 
 end

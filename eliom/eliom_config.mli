@@ -22,18 +22,18 @@
 (** returns the hostname declared in the config file 
     ([<host defaulthostname="...">]).
  *)
-val get_default_hostname : ?sp:Eliom_request_info.server_params -> unit -> string
+val get_default_hostname : unit -> string
 
 (** returns the port number declared in the config file ([<host defaulthttpport="...">]).
  *)
-val get_default_port : ?sp:Eliom_request_info.server_params -> unit -> int
+val get_default_port : unit -> int
 
 (** returns the https port number declared in the config file ([<host defaulthttpsport="...">]).
  *)
-val get_default_sslport : ?sp:Eliom_request_info.server_params -> unit -> int
+val get_default_sslport : unit -> int
 
 (** returns the default charset for this site *)
-val get_config_default_charset : sp:Eliom_request_info.server_params -> string
+val get_config_default_charset : unit -> string
 
 
 (** returns the information of the configuration file concerning that site
@@ -52,5 +52,8 @@ val get_config : unit -> Simplexmlparser.xml list
 
 (** returns the information concerning the request
     from the configuration files. *)
-val get_config_info :
-  sp:Eliom_request_info.server_params -> Ocsigen_extensions.config_info
+val get_config_info : unit -> Ocsigen_extensions.config_info
+
+(**/**)
+val get_config_info_sp : 
+  Eliom_common.server_params -> Ocsigen_extensions.config_info

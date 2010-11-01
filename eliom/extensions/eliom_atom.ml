@@ -50,9 +50,9 @@ module Reg_ = struct
    type options
    type return
    let do_appl_xhr = Eliom_services.XNever
-   let pre_service ?options ~sp = Lwt.return ()
+   let pre_service ?options () = Lwt.return ()
    let send ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers
-    ~sp:_ feed = Lwt.return (result_of_content feed headers )
+     feed = Lwt.return (result_of_content feed headers )
 end
 
 module Reg =  Eliom_mkreg.MakeRegister (Reg_)
@@ -112,7 +112,7 @@ let notify_feed_updates address hubs s =
 let register_feed ~path ~hubs address f =
    let s = Eliom_services.service ~path ~get_params:Eliom_parameters.unit () in
    Reg.register ~service:s 
-     (fun sp () () -> f () >>= fun feed -> Lwt.return
+     (fun () () -> f () >>= fun feed -> Lwt.return
        (Atom_feed.insert_hub_links hubs feed));
    notify_feed_updates address hubs s;
    {notify_updates = fun () -> notify_feed_updates address hubs s}

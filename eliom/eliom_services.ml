@@ -85,12 +85,12 @@ let uniqueid =
 
 (** Definition of services *)
 let service_aux
-    ?sp
     ~https
     ~path
     ?redirect_suffix
     ?keep_nl_params
     ~get_params =
+  let sp = Eliom_common.get_sp_option () in
   match sp with
   | None ->
       (match Eliom_common.global_register_allowed () with
@@ -128,7 +128,7 @@ let service_aux
         ~https
         ~prefix:""
         ~path:path
-        ~site_dir:(Eliom_request_info.get_site_dir sp)
+        ~site_dir:(Eliom_request_info.get_site_dir_sp sp)
         ~kind:(`Internal `Service)
         ~getorpost:`Get
         ?redirect_suffix
@@ -137,7 +137,6 @@ let service_aux
         ~post_params:unit
 
 let service
-    ?sp
     ?(https = false)
     ~path
     ?keep_nl_params
@@ -145,7 +144,6 @@ let service
     () =
   let suffix = contains_suffix get_params in
   service_aux
-    ?sp
     ~https
     ~path:(match suffix with
              | None -> path
@@ -247,7 +245,7 @@ let coservice'
 
 (****************************************************************************)
 (* Create a service with post parameters in the server *)
-let post_service_aux ~sp ~https ~fallback 
+let post_service_aux ~https ~fallback 
     ?(keep_nl_params = `None) ~post_params =
 (* Create a main service (not a coservice) internal, post only *)
 (* ici faire une vérification "duplicate parameter" ? *)
@@ -274,7 +272,7 @@ let post_service_aux ~sp ~https ~fallback
    do_appl_xhr = XNever;
  }
 
-let post_service ?sp ?(https = false) ~fallback 
+let post_service ?(https = false) ~fallback 
     ?keep_nl_params ~post_params () =
   (* (if post_params = TUnit
   then Ocsigen_messages.warning "Probably error in the module: \
@@ -286,9 +284,8 @@ let post_service ?sp ?(https = false) ~fallback
   let `Attached k1 = fallback.kind in
   let `Internal kind = k1.att_kind in
   let path = k1.subpath in
-  let u = post_service_aux ~sp ~https ~fallback 
-    ?keep_nl_params ~post_params 
-  in
+  let sp = Eliom_common.get_sp_option () in
+  let u = post_service_aux ~https ~fallback ?keep_nl_params ~post_params in
   match sp with
   | None ->
       (match Eliom_common.global_register_allowed () with
@@ -397,8 +394,8 @@ let post_coservice'
  
 
 (*****************************************************************************)
-let set_exn_handler ?sp h =
-  let sitedata = Eliom_request_info.find_sitedata "set_exn_handler" sp in
+let set_exn_handler h =
+  let sitedata = Eliom_request_info.find_sitedata "set_exn_handler" in
   Eliom_request_info.set_site_handler sitedata h
 
 let add_service = Eliommod_services.add_service
@@ -409,42 +406,40 @@ let add_naservice = Eliommod_naservices.add_naservice
 (*****************************************************************************)
 exception Unregistered_CSRF_safe_coservice
 
-let register_delayed_get_or_na_coservice ~sp (k, state_name, 
-                                              scope, secure) =
+let register_delayed_get_or_na_coservice ~sp (k, state_name, scope, secure) =
   let f =
     try
-      let table = !(Eliom_state.get_session_service_table_if_exists
-                      ?state_name ~scope ?secure ~sp ())
+      let table = !(Eliom_state.get_session_service_table_if_exists ~sp
+                      ?state_name ~scope ?secure ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_get_or_na_registration_functions
     with Not_found ->
-      let table = Eliom_state.get_global_table ~sp () in
+      let table = Eliom_state.get_global_table () in
       try
         Ocsigen_lib.Int_Table.find
           k table.Eliom_common.csrf_get_or_na_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice
   in
-  f ~sp:(Eliom_request_info.esp_of_sp sp)
+  f ~sp
 
 
-let register_delayed_post_coservice ~sp (k, state_name,
-                                         scope, secure) getname =
+let register_delayed_post_coservice ~sp (k, state_name, scope, secure) getname =
   let f =
     try
-      let table = !(Eliom_state.get_session_service_table_if_exists
-                      ?state_name ~scope ?secure ~sp ())
+      let table = !(Eliom_state.get_session_service_table_if_exists ~sp
+                      ?state_name ~scope ?secure ())
       in
       Ocsigen_lib.Int_Table.find 
         k table.Eliom_common.csrf_post_registration_functions
     with Not_found ->
-      let table = Eliom_state.get_global_table ~sp () in
+      let table = Eliom_state.get_global_table () in
       try
         Ocsigen_lib.Int_Table.find
           k table.Eliom_common.csrf_post_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice
   in
-  f ~sp:(Eliom_request_info.esp_of_sp sp) getname
+  f ~sp getname
 
 
 let set_delayed_get_or_na_registration_function tables k f =
@@ -485,7 +480,8 @@ let remove_service table service =
         Eliommod_naservices.remove_naservice table na_name
 
 
-let unregister ?(scope = `Global) ?sp ?state_name ?secure service =
+let unregister ?(scope = `Global) ?state_name ?secure service =
+  let sp = Eliom_common.get_sp_option () in
   if scope = `Global
   then
     let table = 
@@ -498,19 +494,17 @@ let unregister ?(scope = `Global) ?sp ?state_name ?secure service =
             | _ -> raise
               (Eliom_common.Eliom_function_forbidden_outside_site_loading
                  "unregister"))
-        | Some sp -> get_global_table ~sp ()
+        | Some sp -> get_global_table ()
     in
     remove_service table service
   else
     match sp with
       | None ->
-        raise
-          (failwith "Missing ~sp parameter for unregistering service from session")
+        raise (failwith "Unregistering service for non global scope must be done during a request")
       | Some sp ->
         let scope = Eliom_common.user_scope_of_scope scope in
         let table =
-          !(Eliom_state.get_session_service_table
-              ?secure ?state_name ~scope ~sp ())
+          !(Eliom_state.get_session_service_table ~sp ?secure ?state_name ~scope ())
         in
         remove_service table service
 
@@ -527,29 +521,29 @@ let unregister ?(scope = `Global) ?sp ?state_name ?secure service =
 
 let on_load_key : string list Polytables.key = Polytables.make_key ()
 
-let get_onload ~sp =
-  let rc = Eliom_request_info.get_request_cache ~sp in
+let get_onload sp =
+  let rc = Eliom_request_info.get_request_cache_sp sp in
   try 
     List.rev (Polytables.get ~table:rc ~key:on_load_key)
   with Not_found -> []
 
 let on_unload_key : string list Polytables.key = Polytables.make_key ()
 
-let get_onunload ~sp = 
-  let rc = Eliom_request_info.get_request_cache ~sp in
+let get_onunload sp =
+  let rc = Eliom_request_info.get_request_cache_sp sp in
   try
     List.rev (Polytables.get ~table:rc ~key:on_unload_key)
   with Not_found -> []
 
-let onload ~sp s =
-  let rc = Eliom_request_info.get_request_cache ~sp in
+let onload s =
+  let rc = Eliom_request_info.get_request_cache () in
   let s0 = try Polytables.get ~table:rc ~key:on_load_key
     with Not_found -> []
   in
   Polytables.set ~table:rc ~key:on_load_key ~value:(s::s0)
 
-let onunload ~sp s =
-  let rc = Eliom_request_info.get_request_cache ~sp in
+let onunload s =
+  let rc = Eliom_request_info.get_request_cache () in
   let s0 = try Polytables.get ~table:rc ~key:on_unload_key
     with Not_found -> []
   in

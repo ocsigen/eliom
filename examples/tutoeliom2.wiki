@@ -102,8 +102,8 @@ let session_data_example_close =
 (* -------------------------------------------------------- *)
 (* Handler for the "session_data_example" service:          *)
 
-let session_data_example_handler sp _ _  =
-  let sessdat = Eliom_state.get_volatile_data ~table:my_table ~sp () in
+let session_data_example_handler _ _  =
+  let sessdat = Eliom_state.get_volatile_data ~table:my_table () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -115,12 +115,11 @@ let session_data_example_handler sp _ _  =
                   br ();
                   Eliom_predefmod.Xhtml.a
                     session_data_example_close
-                    sp [pcdata "close session"] ()]
+                    [pcdata "close session"] ()]
            | Eliom_state.Data_session_expired
            | Eliom_state.No_data ->
                Eliom_predefmod.Xhtml.post_form
                  session_data_example_with_post_params
-                 sp
                  (fun login ->
                    [p [pcdata "login: ";
                        Eliom_predefmod.Xhtml.string_input
@@ -131,16 +130,16 @@ let session_data_example_handler sp _ _  =
 (* Handler for the "session_data_example_with_post_params"  *)
 (* service with POST params:                                *)
 
-let session_data_example_with_post_params_handler sp _ login =
-  Eliom_state.close_session  ~sp () ~>>= fun () ->
-  Eliom_state.set_volatile_data ~table:my_table ~sp login;
+let session_data_example_with_post_params_handler _ login =
+  Eliom_state.close_session  () ~>>= fun () ->
+  Eliom_state.set_volatile_data ~table:my_table login;
   return
     (html
        (head (title (pcdata "")) [])
        (body
           [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
               br ();
-              Eliom_predefmod.Xhtml.a session_data_example sp
+              Eliom_predefmod.Xhtml.a session_data_example
                 [pcdata "Try again"] ()
             ]]))
 
@@ -149,9 +148,9 @@ let session_data_example_with_post_params_handler sp _ login =
 (* -------------------------------------------------------- *)
 (* Handler for the "session_data_example_close" service:    *)
 
-let session_data_example_close_handler sp () () =
-  let sessdat = Eliom_state.get_volatile_data ~table:my_table ~sp () in
-  Eliom_state.close_session  ~sp () ~>>= fun () ->
+let session_data_example_close_handler () () =
+  let sessdat = Eliom_state.get_volatile_data ~table:my_table () in
+  Eliom_state.close_session  () ~>>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -160,7 +159,7 @@ let session_data_example_close_handler sp () () =
         | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
         | Eliom_state.No_data -> p [pcdata "You were not connected."]
         | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
-        p [Eliom_predefmod.Xhtml.a session_data_example sp [pcdata "Retry"] () ]]))
+        p [Eliom_predefmod.Xhtml.a session_data_example [pcdata "Retry"] () ]]))
 
 
 (* -------------------------------------------------------- *)
@@ -245,15 +244,6 @@ We will see in the following of this tutorial how to improve
                 <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|<<span class="code"|Eliom_state.close_session>>>>>>.
       Both the session service table and the session data table for that user
       will disappear when the session is closed.
-      
-          
-
-          
-Note that in that case <<span class="code"|register>>
-(and also <<span class="code"|close_session>>)
-must take <<span class="code"|sp>> as parameter
-(because sp contains the session table).
-          
 
           
 The following example shows how to reimplement the previous one
@@ -305,11 +295,10 @@ let session_services_example_close =
 (* Handler for the "session_services_example" service:           *)
 (* It displays the main page of our site, with a login form.     *)
 
-let session_services_example_handler sp () () =
+let session_services_example_handler () () =
   let f =
     Eliom_predefmod.Xhtml.post_form
       session_services_example_with_post_params
-      sp
       (fun login ->
         [p [pcdata "login: ";
             string_input ~input_type:`Text ~name:login ()]]) ()
@@ -323,14 +312,14 @@ let session_services_example_handler sp () () =
 (* ------------------------------------------------------------- *)
 (* Handler for the "session_services_example_close" service:     *)
 
-let session_services_example_close_handler sp () () =
-  Eliom_state.close_session  ~sp () ~>>= fun () ->
+let session_services_example_close_handler () () =
+  Eliom_state.close_session  () ~>>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
        (body [p [pcdata "You have been disconnected. ";
                  a session_services_example
-                   sp [pcdata "Retry"] ()
+                   [pcdata "Retry"] ()
                ]]))
 
 >>
@@ -347,39 +336,37 @@ When the page is called with login parameters,
 (* Handler for the "session_services_example_with_post_params"   *)
 (* service:                                                      *)
 
-let launch_session sp () login =
+let launch_session () login =
 
   (* New handler for the main page: *)
-  let new_main_page sp () () =
+  let new_main_page () () =
     return
       (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "Welcome ";
                  pcdata login;
                  pcdata "!"; br ();
-                 a coucou sp [pcdata "coucou"] (); br ();
-                 a hello sp [pcdata "hello"] (); br ();
-                 a links sp [pcdata "links"] (); br ();
+                 a coucou [pcdata "coucou"] (); br ();
+                 a hello [pcdata "hello"] (); br ();
+                 a links [pcdata "links"] (); br ();
                  a session_services_example_close
-                   sp [pcdata "close session"] ()]]))
+                   [pcdata "close session"] ()]]))
   in
 
   (* If a session was opened, we close it first! *)
-  Eliom_state.close_session  ~sp () ~>>= fun () ->
+  Eliom_state.close_session  () ~>>= fun () ->
 
   (* Now we register new versions of main services in the
      session service table: *)
   Eliom_predefmod.Xhtml.register ~scope:`Session 
-    ~sp
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
   Eliom_predefmod.Xhtml.register ~scope:`Session 
-    ~sp
     ~service:coucou
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
          (head (title (pcdata "")) [])
@@ -388,9 +375,8 @@ let launch_session sp () login =
                    pcdata "!"]])));
 
   Eliom_predefmod.Xhtml.register ~scope:`Session 
-    ~sp
     ~service:hello
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
          (head (title (pcdata "")) [])
@@ -398,7 +384,7 @@ let launch_session sp () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  new_main_page sp () ()
+  new_main_page () ()
 
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
@@ -524,13 +510,13 @@ let coservices_example_get =
 
 let _ =
   let c = ref 0 in
-  let page sp () () =
-    let l3 = Eliom_predefmod.Xhtml.post_form coservices_example_post sp
+  let page () () =
+    let l3 = Eliom_predefmod.Xhtml.post_form coservices_example_post
         (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"incr i (post)" ()]]) ()
     in
-    let l4 = Eliom_predefmod.Xhtml.get_form coservices_example_get sp
+    let l4 = Eliom_predefmod.Xhtml.get_form coservices_example_get
         (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"incr i (get)" ()]])
@@ -540,13 +526,13 @@ let _ =
        (head (title (pcdata "")) [])
        (body [p [pcdata "i is equal to ";
                  pcdata (string_of_int !c); br ();
-                 a coservices_example sp [pcdata "reload"] (); br ();
-                 a coservices_example_get sp [pcdata "incr i"] ()];
+                 a coservices_example [pcdata "reload"] (); br ();
+                 a coservices_example_get [pcdata "incr i"] ()];
               l3;
               l4]))
   in
   Eliom_predefmod.Xhtml.register coservices_example page;
-  let f sp () () = c := !c + 1; page sp () () in
+  let f () () = c := !c + 1; page () () in
   Eliom_predefmod.Xhtml.register coservices_example_post f;
   Eliom_predefmod.Xhtml.register coservices_example_get f
 >>
@@ -716,14 +702,14 @@ let calc_i =
 (* The handler for the service without parameter.           *)
 (* It displays a form where you can write an integer value: *)
 
-let calc_handler sp () () =
+let calc_handler () () =
   let create_form intname =
     [p [pcdata "Write a number: ";
         Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:intname ();
         br ();
         Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
   in
-  let f = Eliom_predefmod.Xhtml.get_form calc_i sp create_form in
+  let f = Eliom_predefmod.Xhtml.get_form calc_i create_form in
   return
     (html
        (head (title (pcdata "")) [])
@@ -737,7 +723,7 @@ let calc_handler sp () () =
 (* This new coservice depends on the first value (i)        *)
 (* entered by the user.                                     *)
 
-let calc_i_handler sp i () =
+let calc_i_handler i () =
   let create_form is =
     (fun entier ->
        [p [pcdata (is^" + ");
@@ -748,10 +734,9 @@ let calc_i_handler sp i () =
   let is = string_of_int i in
   let calc_result =
     register_coservice ~scope:`Session
-      ~sp
       ~fallback:calc
       ~get_params:(int "j")
-      (fun sp j () ->
+      (fun j () ->
         let js = string_of_int j in
         let ijs = string_of_int (i+j) in
         return
@@ -760,7 +745,7 @@ let calc_i_handler sp i () =
              (body
                 [p [pcdata (is^" + "^js^" = "^ijs)]])))
   in
-  let f = get_form calc_result sp (create_form is) in
+  let f = get_form calc_result (create_form is) in
   return
     (html
        (head (title (pcdata "")) [])
@@ -820,7 +805,7 @@ Here is one simple example. Suppose you wrote a function
 let remove_action =
   Eliom_predefmod.Action.register_post_coservice'
     ~post_params:(Eliom_parameters.int "id")
-    (fun sp () id -> remove id)
+    (fun () id -> remove id)
 >>
 
           
@@ -831,7 +816,7 @@ Then wherever you want to add a button to do that action
 
           
 <<code language="ocaml"|
-Eliom_predefmod.Xhtml.post_form remove_action sp
+Eliom_predefmod.Xhtml.post_form remove_action
   (fun id_name ->
      Eliom_predefmod.Xhtml.int_input
        ~input_type:`Hidden ~name:id_name ~value:id ();
@@ -878,20 +863,20 @@ let disconnect_action =
   Eliom_predefmod.Action.register_post_coservice'
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
-    (fun sp () () ->
-      Eliom_state.close_session  ~sp ())
+    (fun () () ->
+      Eliom_state.close_session  ())
 
 
 (* -------------------------------------------------------- *)
 (* login ang logout boxes:                                  *)
 
-let disconnect_box sp s =
-  Eliom_predefmod.Xhtml.post_form disconnect_action sp
+let disconnect_box s =
+  Eliom_predefmod.Xhtml.post_form disconnect_action
     (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
-let login_box sp =
-  Eliom_predefmod.Xhtml.post_form connect_action sp
+let login_box () =
+  Eliom_predefmod.Xhtml.post_form connect_action
     (fun loginname ->
       [p
          (let l = [pcdata "login: ";
@@ -905,8 +890,8 @@ let login_box sp =
 (* -------------------------------------------------------- *)
 (* Handler for the "connect_example3" service (main page):    *)
 
-let connect_example3_handler sp () () =
-  let sessdat = Eliom_state.get_volatile_data ~table:my_table ~sp () in
+let connect_example3_handler () () =
+  let sessdat = Eliom_state.get_volatile_data ~table:my_table () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -914,18 +899,18 @@ let connect_example3_handler sp () () =
           (match sessdat with
           | Eliom_state.Data name ->
               [p [pcdata ("Hello "^name); br ()];
-              disconnect_box sp "Close session"]
+              disconnect_box "Close session"]
           | Eliom_state.Data_session_expired
-          | Eliom_state.No_data -> [login_box sp]
+          | Eliom_state.No_data -> [login_box ()]
           )))
 
 
 (* -------------------------------------------------------- *)
 (* Handler for connect_action (user logs in):               *)
 
-let connect_action_handler sp () login =
-  Eliom_state.close_session  ~sp () ~>>= fun () ->
-  Eliom_state.set_volatile_data ~table:my_table ~sp login;
+let connect_action_handler () login =
+  Eliom_state.close_session  () ~>>= fun () ->
+  Eliom_state.set_volatile_data ~table:my_table login;
   return ()
 
 

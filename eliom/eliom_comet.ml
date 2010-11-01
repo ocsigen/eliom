@@ -61,7 +61,6 @@ sig
   val get_id : 'a t -> 'a Ecc.chan_id
 
   val wrap :
-    sp:Eliom_request_info.server_params ->
     'a t -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
 
 end = struct
@@ -79,8 +78,8 @@ end = struct
   (* Here is a wrap for channels. This is used by pa_eliom_client syntax
      extension to wrap channels. The associated unwrapping function is in the
      dual file.  *)
-  let wrap ~sp (c : 'a t) : 'a Ecc.chan_id Eliom_client_types.data_key =
-    Eliommod_cli.wrap ~sp (get_id c)
+  let wrap (c : 'a t) : 'a Ecc.chan_id Eliom_client_types.data_key =
+    Eliommod_cli.wrap (get_id c)
 
 
 end
@@ -112,8 +111,7 @@ sig
   (** Returns the unique identifier associated to the channel. *)
 
   val wrap :
-       sp:Eliom_request_info.server_params
-    -> 'a t
+       'a t
     -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
 
 end = struct
@@ -158,9 +156,9 @@ end = struct
   let get_id (c, _) =
     Ecc.buffered_chan_id_of_string (Ocsigen_comet.Channels.get_id c)
 
-  let wrap ~sp (c : 'a t)
+  let wrap (c : 'a t)
         : 'a Ecc.buffered_chan_id Eliom_client_types.data_key =
-    Eliommod_cli.wrap ~sp (get_id c)
+    Eliommod_cli.wrap (get_id c)
 
 
 end

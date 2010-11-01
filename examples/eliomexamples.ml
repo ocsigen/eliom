@@ -57,15 +57,15 @@ let create_form f =
    p [string_input ~input_type:`Submit ~value:"Click" ()]]
 
 let () = register lilists
-  (fun sp () () ->
-     let f = Eliom_predefmod.Xhtml.get_form lilists2 sp create_form in
+  (fun () () ->
+     let f = Eliom_predefmod.Xhtml.get_form lilists2 create_form in
      return
        (html
          (head (title (pcdata "")) [])
          (body [f])))
 
 let () = register lilists2
-  (fun sp ll () ->
+  (fun ll () ->
      return
        (html
          (head (title (pcdata "")) [])
@@ -79,7 +79,7 @@ let () = register lilists2
 let sumserv = register_service
     ~path:["sum"]
     ~get_params:(sum (int "i") (sum (int "ii") (string "s")))
-    (fun sp g () ->
+    (fun g () ->
        return
          (html
             (head (title (pcdata "")) [])
@@ -102,8 +102,8 @@ let create_form =
      ]])
 
 let sumform = register_service ["sumform"] unit
-  (fun sp () () ->
-     let f = Eliom_predefmod.Xhtml.get_form sumserv sp create_form in
+  (fun () () ->
+     let f = Eliom_predefmod.Xhtml.get_form sumserv create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -115,7 +115,7 @@ let sumform2 = service ~path:["sumform2"] ~get_params:unit ()
 let sumserv = register_post_service
     ~fallback:sumform2
     ~post_params:(sum (int "i") (sum (int "ii") (string "s")))
-    (fun sp () post ->
+    (fun () post ->
        return
          (html
             (head (title (pcdata "")) [])
@@ -127,8 +127,8 @@ let sumserv = register_post_service
                                    | Inj2 (Inj2 s) -> s) ]]])))
 
 let () = register sumform2
-  (fun sp () () ->
-     let f = Eliom_predefmod.Xhtml.post_form sumserv sp create_form () in
+  (fun () () ->
+     let f = Eliom_predefmod.Xhtml.post_form sumserv create_form () in
      return
        (html
          (head (title (pcdata "")) [])
@@ -141,44 +141,40 @@ let unregister_example =
   Eliom_predefmod.Xhtml.register_service
     ~path:["unregister"]
     ~get_params:Eliom_parameters.unit
-    (fun sp () () ->
+    (fun () () ->
        let s1 = Eliom_predefmod.Xhtml.register_service
-         ~sp
          ~path:["unregister1"]
          ~get_params:Eliom_parameters.unit
-         (fun sp () () -> failwith "s1")
+         (fun () () -> failwith "s1")
        in
        let s2 = Eliom_predefmod.Xhtml.register_coservice
-         ~sp
          ~fallback:s1
          ~get_params:Eliom_parameters.unit
-         (fun sp () () -> failwith "s2")
+         (fun () () -> failwith "s2")
        in
        let s3 = Eliom_predefmod.Xhtml.register_coservice'
-         ~sp
          ~get_params:Eliom_parameters.unit
-         (fun sp () () -> failwith "s3")
+         (fun () () -> failwith "s3")
        in
        Eliom_predefmod.Xhtml.register ~scope:`Session
-         ~sp
          ~service:s1
-         (fun sp () () -> failwith "s4");
-       Eliom_services.unregister ~sp s1;
-       Eliom_services.unregister ~sp s2;
-       Eliom_services.unregister ~sp s3;
-       Eliom_services.unregister ~scope:`Session ~sp s1;
+         (fun () () -> failwith "s4");
+       Eliom_services.unregister s1;
+       Eliom_services.unregister s2;
+       Eliom_services.unregister s3;
+       Eliom_services.unregister ~scope:`Session s1;
        Lwt.return
          (html
             (head (title (pcdata "Unregistering services")) [])
             (body [p [pcdata
                         "These services have been registered and unregistered"];
-                   p [a s1 sp [pcdata "regular service"] ();
+                   p [a s1 [pcdata "regular service"] ();
                       pcdata ", ";
-                      a s2 sp [pcdata "coservice"] ();
+                      a s2 [pcdata "coservice"] ();
                       pcdata ", ";
-                      a s3 sp [pcdata "non attached coservice"] ();
+                      a s3 [pcdata "non attached coservice"] ();
                       pcdata ", ";
-                      a s1 sp [pcdata "session service"] ();
+                      a s1 [pcdata "session service"] ();
                      ]]))
     )
 
@@ -201,8 +197,8 @@ let csrfsafe_example_get =
     ()
 
 let _ =
-  let page sp () () =
-    let l3 = Eliom_predefmod.Xhtml.get_form csrfsafe_example_get sp
+  let page () () =
+    let l3 = Eliom_predefmod.Xhtml.get_form csrfsafe_example_get
         (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]])
@@ -215,7 +211,7 @@ let _ =
   in
   Eliom_predefmod.Xhtml.register csrfsafe_get_example page;
   Eliom_predefmod.Xhtml.register csrfsafe_example_get
-    (fun sp () () ->
+    (fun () () ->
        Lwt.return
          (html
             (head (title (pcdata "CSRF safe service")) [])
@@ -239,8 +235,8 @@ let csrfsafe_example_post =
     ()
 
 let _ =
-  let page sp () () =
-    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_post sp
+  let page () () =
+    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_post
         (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]]) ()
@@ -253,7 +249,7 @@ let _ =
   in
   Eliom_predefmod.Xhtml.register csrfsafe_postget_example page;
   Eliom_predefmod.Xhtml.register csrfsafe_example_post
-    (fun sp () () ->
+    (fun () () ->
        Lwt.return
          (html
             (head (title (pcdata "CSRF safe service")) [])
@@ -279,18 +275,17 @@ let csrfsafe_example_session =
     ()
 
 let _ =
-  let page sp () () =
+  let page () () =
     Eliom_predefmod.Xhtml.register ~scope:`Session
       ~state_name:"plop"
       ~secure_session:true
-      ~sp
       ~service:csrfsafe_example_session
-      (fun sp () () ->
+      (fun () () ->
          Lwt.return
            (html
               (head (title (pcdata "CSRF safe service")) [])
               (body [p [pcdata "This is a POST CSRF safe service"]])));
-    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_session sp
+    let l3 = Eliom_predefmod.Xhtml.post_form csrfsafe_example_session
         (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"Click" ()]])
@@ -313,7 +308,7 @@ let optsuf =
   register_service
     ~path:["optsuf"]
     ~get_params:(suffix(opt(string "q" ** (opt (int "i")))))
-    (fun sp o () ->
+    (fun o () ->
        Lwt.return
          (html
             (head (title (pcdata "")) [])
@@ -329,7 +324,7 @@ let optsuf2 =
   register_service
     ~path:["optsuf2"]
     ~get_params:(suffix(opt(string "q") ** (opt (int "i"))))
-    (fun sp (s, i) () ->
+    (fun (s, i) () ->
        Lwt.return
          (html
             (head (title (pcdata "")) [])
@@ -363,21 +358,21 @@ let nlparams_with_nlp =
 
 let () = register
   nlparams
-  (fun sp ((aa, bb), w) () ->
+  (fun ((aa, bb), w) () ->
      Lwt.return
        (html
           (head (title (pcdata "")) [])
           (body [p [
                    a void_with_nlp
-                     sp [pcdata "void coservice with non loc param"] ((), (11, "aa"));
+                     [pcdata "void coservice with non loc param"] ((), (11, "aa"));
                    a nlparams_with_nlp
-                     sp [pcdata "myself with non loc param"] (((4, 5), 777), (12, "ab"))];
+                     [pcdata "myself with non loc param"] (((4, 5), 777), (12, "ab"))];
                  p [pcdata "I have my suffix, ";
                     pcdata ("with values year = "^string_of_int aa^
                               " and month = "^string_of_int bb^
                               ". w = "^string_of_int w^".")];
                  (match Eliom_parameters.get_non_localized_get_parameters
-                    sp my_nl_params
+                    my_nl_params
                   with
                     | None ->
                         p [pcdata "I do not have my non localized parameters"]
@@ -397,7 +392,7 @@ let extreq =
   register_service
     ~path:["extreq"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
        Ocsigen_http_client.get "ocsigen.org" "/" () >>= fun frame ->
        (match frame.Ocsigen_http_frame.frame_content with
          | None -> Lwt.return ""
@@ -413,8 +408,8 @@ let servreq =
   register_service
     ~path:["servreq"]
     ~get_params:unit
-    (fun sp () () ->
-       let ri = Eliom_request_info.get_ri sp in
+    (fun () () ->
+       let ri = Eliom_request_info.get_ri () in
        let ri = Ocsigen_extensions.ri_of_url "tuto/" ri in
        Ocsigen_extensions.serve_request ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
@@ -430,8 +425,8 @@ let servreqloop =
   register_service
     ~path:["servreqloop"]
     ~get_params:unit
-    (fun sp () () ->
-       let ri = Eliom_request_info.get_ri sp in
+    (fun () () ->
+       let ri = Eliom_request_info.get_ri () in
        Ocsigen_extensions.serve_request ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
        Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
@@ -458,11 +453,11 @@ let headers =
                 Http_headers.empty)
     ~path:["httpheaders"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Eliom_state.set_cookie
-        ~sp ~path:[] ~name:"Customcookie" ~value:"Value" ~secure:true ();
+        ~path:[] ~name:"Customcookie" ~value:"Value" ~secure:true ();
       Eliom_state.set_cookie
-        ~sp ~path:[] ~name:"Customcookie2" ~value:"Value2" ();
+        ~path:[] ~name:"Customcookie2" ~value:"Value2" ();
       Lwt.return
         (html
            (head (title (pcdata "")) [])
@@ -477,8 +472,8 @@ let create_form (n1, (_, n2)) =
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let constform = register_service ["constform"] unit
-  (fun sp () () ->
-     let f = get_form Tutoeliom.constfix sp create_form in
+  (fun () () ->
+     let f = get_form Tutoeliom.constfix create_form in
      return
         (html
           (head (title (pcdata "")) [])
@@ -491,7 +486,7 @@ let su2 =
   register_service
     ~path:["fuffix";""]
     ~get_params:(suffix (all_suffix_string "s"))
-    (fun _ s () ->
+    (fun s () ->
       return
         (html
           (head (title (pcdata "")) [])
@@ -503,7 +498,7 @@ let su =
   register_service
     ~path:["fuffix";"a";"b"]
     ~get_params:unit
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
           (head (title (pcdata "")) [])
@@ -513,7 +508,7 @@ let su3 =
   register_service
     ~path:["fuffix";""]
     ~get_params:unit
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
           (head (title (pcdata "")) [])
@@ -525,8 +520,8 @@ let create_suffixform_su2 s =
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform_su2 = register_service ["suffixform_su2"] unit
-  (fun sp () () ->
-     let f = get_form su2 sp create_suffixform_su2 in
+  (fun () () ->
+     let f = get_form su2 create_suffixform_su2 in
      return
        (html
           (head (title (pcdata "")) [])
@@ -539,7 +534,7 @@ let optparam =
     ~path:["opt"]
     ~get_params:(Eliom_parameters.opt (Eliom_parameters.string "a" **
                                          Eliom_parameters.string "b"))
-    (fun sp o () ->
+    (fun o () ->
       Lwt.return
         (html
            (head (title (pcdata "")) [])
@@ -557,10 +552,10 @@ let optform =
   register_service
     ~path:["optform"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
 (* testing lwt_get_form *)
        Eliom_predefmod.Xhtml.lwt_get_form
-         ~service:optparam ~sp
+         ~service:optparam
          (fun (an, bn) ->
             Lwt.return
               [p [
@@ -589,25 +584,25 @@ let presu_service =
   register_service
     ~path: ["preappliedsuffix2"]
     ~get_params: (suffix (int "i"))
-    (fun _ i () ->
+    (fun i () ->
       Lwt.return
         (html
            (head (title (pcdata "")) [])
            (body [p [ pcdata ("You sent: " ^ (string_of_int i))]])))
 
 
-let creator_handler sp () () =
+let creator_handler () () =
   let create_form () =
     [fieldset [string_input ~input_type:`Submit ~value:"Click" ()]] in
   let myservice = preapply presu_service 10 in
-  let myform = get_form myservice sp create_form in
+  let myform = get_form myservice create_form in
   Lwt.return
     (html
        (head (title (pcdata "")) [])
        (body   [
         p [pcdata "Form with preapplied parameter:"];
         myform;
-        p [a myservice sp [pcdata "Link with preapplied parameter"] ()]
+        p [a myservice [pcdata "Link with preapplied parameter"] ()]
       ]))
 
 let preappliedsuffix =
@@ -623,7 +618,7 @@ let url_encoding =
   register_service
     ~path:["urlencoding&à/=é?ablah"]
     ~get_params:(suffix_prod (all_suffix "s//\\à") any)
-    (fun sp (suf, l) () ->
+    (fun (suf, l) () ->
       let ll =
         List.map
           (fun (a,s) -> << <strong>($str:a$, $str:s$) </strong> >>) l
@@ -646,24 +641,24 @@ let url_encoding =
 let preappl = preapply coucou_params (3,(4,"cinq"))
 let preappl2 = preapply uasuffix (1999,01)
 
-let mymenu current sp =
+let mymenu current =
   Eliom_tools.Xhtml.menu ~classe:["menuprincipal"]
     (coucou, <:xmllist< coucou >>)
     [
      (preappl, <:xmllist< params >>);
      (preappl2, <:xmllist< params and suffix >>);
-   ] ~service:current ~sp
+   ] ~service:current ()
 
 let preappmenu =
   register_service
     ~path:["menu"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         (html
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "Hallo"];
-               mymenu coucou sp ])))
+                 mymenu coucou ])))
 
 
 
@@ -674,12 +669,12 @@ let nonatt = coservice' ~get_params:(string "e") ()
 (* GET coservice with preapplied fallback *)
 (* + Non-attached coservice on a pre-applied coservice *)
 (* + Non-attached coservice on a non-attached coservice *)
-let f sp s =
+let f s =
   (html
      (head (title (pcdata "")) [])
      (body [h1 [pcdata s];
-            p [a nonatt sp [pcdata "clic"] "nonon"];
-            get_form nonatt sp
+            p [a nonatt [pcdata "clic"] "nonon"];
+            get_form nonatt
               (fun string_name ->
                 [p [pcdata "Non attached coservice: ";
                     string_input ~input_type:`Text ~name:string_name ();
@@ -689,20 +684,20 @@ let f sp s =
 let getco = register_coservice
     ~fallback:preappl
     ~get_params:(int "i" ** string "s")
-    (fun sp (i,s) () -> return (f sp s))
+    (fun (i,s) () -> return (f s))
 
-let _ = register nonatt (fun sp s () -> return (f sp s))
+let _ = register nonatt (fun s () -> return (f s))
 
 let getcoex =
   register_service
     ~path:["getco"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         (html
           (head (title (pcdata "")) [])
-          (body [p [a getco sp [pcdata "clic"] (22,"eee") ];
-                 get_form getco sp
+          (body [p [a getco [pcdata "clic"] (22,"eee") ];
+                 get_form getco
                    (fun (number_name,string_name) ->
                      [p [pcdata "Write an int: ";
                          int_input ~input_type:`Text ~name:number_name ();
@@ -718,7 +713,7 @@ let my_service_with_post_params =
   register_post_service
     ~fallback:preappl
     ~post_params:(string "value")
-    (fun _ () value ->  return
+    (fun () value ->  return
       (html
          (head (title (pcdata "")) [])
          (body [h1 [pcdata value]])))
@@ -732,7 +727,7 @@ let getco2 =
   register_coservice
     ~fallback:preappl3
     ~get_params:(int "i2" ** string "s2")
-    (fun sp (i,s) () ->
+    (fun (i,s) () ->
       return
         (html
           (head (title (pcdata "")) [])
@@ -746,15 +741,15 @@ let my_service_with_post_params =
   register_post_service
     ~fallback:getco
     ~post_params:(string "value")
-    (fun _ (i,s) value ->  return
+    (fun (i,s) value ->  return
       (html
          (head (title (pcdata "")) [])
          (body [h1 [pcdata (s^" "^value)]])))
 
 let postcoex = register_service ["postco"] unit
-  (fun sp () () ->
+  (fun () () ->
      let f =
-       (post_form my_service_with_post_params sp
+       (post_form my_service_with_post_params
           (fun chaine ->
             [p [pcdata "Write a string: ";
                 string_input ~input_type:`Text ~name:chaine ()]])
@@ -777,36 +772,36 @@ let getact =
 let act = Action.register_coservice
     ~fallback:(preapply getact 22)
     ~get_params:(int "bip")
-    (fun _ g p -> v := g; return ())
+    (fun g p -> v := g; return ())
 
 (* action on GET non-attached coservice on GET coservice page *)
 let naact = Action.register_coservice'
     ~get_params:(int "bop")
-    (fun _ g p -> v := g; return ())
+    (fun g p -> v := g; return ())
 
 let naunit = Unit.register_coservice'
     ~get_params:(int "bap")
-    (fun _ g p -> v := g; return ())
+    (fun g p -> v := g; return ())
 
 let _ =
   register
     getact
-    (fun sp aa () ->
+    (fun aa () ->
       return
         (html
            (head (title (pcdata "getact")) [])
            (body [h1 [pcdata ("v = "^(string_of_int !v))];
                   p [pcdata ("p = "^(string_of_int aa))];
-                  p [a getact sp [pcdata "link to myself"] 0;
+                  p [a getact [pcdata "link to myself"] 0;
                      br ();
-                     a act sp [pcdata "an attached action to change v"]
+                     a act [pcdata "an attached action to change v"]
                        (Random.int 100);
                      br ();
-                     a naact sp [pcdata "a non attached action to change v"]
+                     a naact [pcdata "a non attached action to change v"]
                        (100 + Random.int 100);
                      pcdata " (Actually if called after the previous one, v won't change. More precisely, it will change and turn back to the former value because the attached coservice is reloaded after action)";
                      br ();
-                     a naunit sp [pcdata "a non attached \"Unit\" page to change v"]
+                     a naunit [pcdata "a non attached \"Unit\" page to change v"]
                        (200 + Random.int 100);
                      pcdata " (Reload after clicking here)"
                    ]])))
@@ -820,41 +815,41 @@ let cookiename = "c"
 let cookies = service ["c";""] (suffix (all_suffix_string "s")) ()
 
 let _ = Eliom_predefmod.Xhtml.register cookies
-    (fun sp s () ->
+    (fun s () ->
       let now = Unix.time () in
       Eliom_state.set_cookie
-        ~sp ~path:[] ~exp:(now +. 10.) ~name:(cookiename^"6")
+        ~path:[] ~exp:(now +. 10.) ~name:(cookiename^"6")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
       Eliom_state.set_cookie
-        ~sp ~path:[] ~exp:(now +. 10.) ~name:(cookiename^"7")
+        ~path:[] ~exp:(now +. 10.) ~name:(cookiename^"7")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
       Eliom_state.set_cookie
-        ~sp ~path:["c";"plop"] ~name:(cookiename^"8")
+        ~path:["c";"plop"] ~name:(cookiename^"8")
         ~value:(string_of_int (Random.int 100)) ();
       Eliom_state.set_cookie
-        ~sp ~path:["c";"plop"] ~name:(cookiename^"9")
+        ~path:["c";"plop"] ~name:(cookiename^"9")
         ~value:(string_of_int (Random.int 100)) ();
       Eliom_state.set_cookie
-        ~sp ~path:["c";"plop"] ~name:(cookiename^"10")
+        ~path:["c";"plop"] ~name:(cookiename^"10")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
       Eliom_state.set_cookie
-        ~sp ~path:["c";"plop"] ~name:(cookiename^"11")
+        ~path:["c";"plop"] ~name:(cookiename^"11")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
       Eliom_state.set_cookie
-        ~sp ~path:["c";"plop"] ~name:(cookiename^"12")
+        ~path:["c";"plop"] ~name:(cookiename^"12")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
-      if Ocsigen_lib.String_Table.mem (cookiename^"1") (Eliom_request_info.get_cookies ~sp ())
+      if Ocsigen_lib.String_Table.mem (cookiename^"1") (Eliom_request_info.get_cookies ())
       then
-        (Eliom_state.unset_cookie ~sp ~name:(cookiename^"1") ();
-         Eliom_state.unset_cookie ~sp ~name:(cookiename^"2") ())
+        (Eliom_state.unset_cookie ~name:(cookiename^"1") ();
+         Eliom_state.unset_cookie ~name:(cookiename^"2") ())
       else begin
         Eliom_state.set_cookie
-          ~sp ~name:(cookiename^"1") ~value:(string_of_int (Random.int 100))
+          ~name:(cookiename^"1") ~value:(string_of_int (Random.int 100))
           ~secure:true ();
         Eliom_state.set_cookie
-          ~sp ~name:(cookiename^"2") ~value:(string_of_int (Random.int 100)) ();
+          ~name:(cookiename^"2") ~value:(string_of_int (Random.int 100)) ();
         Eliom_state.set_cookie
-          ~sp ~name:(cookiename^"3") ~value:(string_of_int (Random.int 100)) ()
+          ~name:(cookiename^"3") ~value:(string_of_int (Random.int 100)) ()
       end;
 
       Lwt.return
@@ -866,9 +861,9 @@ let _ = Eliom_predefmod.Xhtml.register cookies
                           (pcdata (n^"="^v))::
                             (br ())::l
                         )
-                        (Eliom_request_info.get_cookies ~sp ())
-                        [a cookies sp [pcdata "send other cookies"] ""; br ();
-                         a cookies sp [pcdata "send other cookies and see the url /c/plop"] "plop"]
+                        (Eliom_request_info.get_cookies ())
+                        [a cookies [pcdata "send other cookies"] ""; br ();
+                         a cookies [pcdata "send other cookies and see the url /c/plop"] "plop"]
                      )]))
     )
 
@@ -880,7 +875,7 @@ let sendfileex =
   register_service
     ~path:["files";""]
     ~get_params:unit
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
           (head (title (pcdata "")) [])
@@ -890,14 +885,14 @@ let sendfile2 =
   Files.register_service
     ~path:["files";""]
     ~get_params:(suffix (all_suffix "filename"))
-    (fun _ s () ->
+    (fun s () ->
       return ("/var/www/ocsigen/"^(Ocsigen_lib.string_of_url_path ~encode:false s)))
 
 let sendfileexception =
   register_service
     ~path:["files";"exception"]
     ~get_params:unit
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
           (head (title (pcdata "")) [])
@@ -913,7 +908,7 @@ let suffix2 =
 
 let _ =
   register suffix2
-    (fun sp (suf1, (ii, ee)) () ->
+    (fun (suf1, (ii, ee)) () ->
       return
         (html
            (head (title (pcdata "")) [])
@@ -921,7 +916,7 @@ let _ =
               [p [pcdata "The suffix of the url is ";
                   strong [pcdata (suf1^", "^(string_of_int ii)^", "^
                                   (Ocsigen_lib.string_of_url_path ~encode:false ee))]];
-              p [a suffix2 sp [pcdata "link to myself"] ("a", (2, []))]])))
+              p [a suffix2 [pcdata "link to myself"] ("a", (2, []))]])))
 
 let suffix3 =
   register_service
@@ -930,7 +925,7 @@ let suffix3 =
                    (string "suff1" ** int "ii" **
                       all_suffix_user int_of_string string_of_int "ee")
                    (string "a" ** int "b"))
-    (fun sp ((suf1, (ii, ee)), (a, b)) () ->
+    (fun ((suf1, (ii, ee)), (a, b)) () ->
       return
         (html
            (head (title (pcdata "")) [])
@@ -950,8 +945,8 @@ let create_suffixform2 (suf1, (ii, ee)) =
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform2 = register_service ["suffixform2"] unit
-  (fun sp () () ->
-     let f = get_form suffix2 sp create_suffixform2 in
+  (fun () () ->
+     let f = get_form suffix2 create_suffixform2 in
      return
        (html
           (head (title (pcdata "")) [])
@@ -968,8 +963,8 @@ let create_suffixform3 ((suf1, (ii, ee)), (a, b)) =
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform3 = register_service ["suffixform3"] unit
-  (fun sp () () ->
-     let f = get_form suffix3 sp create_suffixform3 in
+  (fun () () ->
+     let f = get_form suffix3 create_suffixform3 in
      return
         (html
           (head (title (pcdata "")) [])
@@ -980,7 +975,7 @@ let suffix5 =
   register_service
     ~path:["suffix5"]
     ~get_params:(suffix (all_suffix "s"))
-    (fun sp s () ->
+    (fun s () ->
       return
         (html
            (head (title (pcdata "")) [])
@@ -993,7 +988,7 @@ let nosuffix =
   register_service
     ~path:["suffix5";"notasuffix"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         (html
            (head (title (pcdata "")) [])
@@ -1010,7 +1005,7 @@ let sendfileregexp =
   register_service
     ~path:["files2";""]
     ~get_params:unit
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
           (head (title (pcdata "")) [])
@@ -1025,7 +1020,7 @@ let sendfile2 =
     ~get_params:(suffix ~redirect_if_not_suffix:false
                    (all_suffix_regexp r "$u($1)/public_html$2"
                       ~to_string:(fun s -> s) "filename"))
-    (fun _ s () -> return s)
+    (fun s () -> return s)
 
 (* Here I am using redirect_if_not_suffix:false because
    otherwise I would need to write a more sophisticated to_string function *)
@@ -1037,7 +1032,7 @@ let sendfile2 =
     ~get_params:(suffix
                    (all_suffix_regexp r "/home/$1/public_html$2" "filename"))
 (*    ~get_params:(suffix (all_suffix_regexp r "$$u($1)$2" "filename")) *)
-    (fun _ s () -> return s)
+    (fun s () -> return s)
 *)
 
 let create_suffixform4 n =
@@ -1046,8 +1041,8 @@ let create_suffixform4 n =
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform4 = register_service ["suffixform4"] unit
-  (fun sp () () ->
-     let f = get_form sendfile2 sp create_suffixform4 in
+  (fun () () ->
+     let f = get_form sendfile2 create_suffixform4 in
      return
         (html
           (head (title (pcdata "")) [])
@@ -1059,7 +1054,7 @@ let suffixform4 = register_service ["suffixform4"] unit
 let any2 = register_service
     ~path:["any2"]
     ~get_params:(int "i" ** any)
-  (fun _ (i,l) () ->
+  (fun (i,l) () ->
     let ll =
       List.map
         (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
@@ -1081,7 +1076,7 @@ let any2 = register_service
 let any3 = register_service
     ~path:["any3"]
     ~get_params:(int "i" ** any ** string "s")
-  (fun _ (i,(l,s)) () ->
+  (fun (i,(l,s)) () ->
     let ll =
       List.map
         (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
@@ -1106,7 +1101,7 @@ let any3 = register_service
 let any4 = register_service
     ~path:["any4"]
     ~get_params:(suffix any)
-  (fun _ l () ->
+  (fun l () ->
     let ll =
       List.map
         (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
@@ -1126,7 +1121,7 @@ let any4 = register_service
 let any5 = register_service
     ~path:["any5"]
     ~get_params:(suffix_prod (string "s") any)
-  (fun _ (s, l) () ->
+  (fun (s, l) () ->
     let ll =
       List.map
         (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
@@ -1149,7 +1144,7 @@ let sufli = service
     ()
 
 let _ = register sufli
-  (fun sp l () ->
+  (fun l () ->
     let ll =
       List.map
         (fun (s, i) -> << <strong> $str:(s^string_of_int i)$ </strong> >>) l
@@ -1163,8 +1158,8 @@ let _ = register sufli
          <span>$list:ll$</span>
        </p>
        <p>
-         $a sufli sp [pcdata "myself"] [("a", 2)]$,
-         $a sufli sp [pcdata "myself (empty list)"] []$
+         $a sufli [pcdata "myself"] [("a", 2)]$,
+         $a sufli [pcdata "myself (empty list)"] []$
        </p>
        </body>
      </html> >>)
@@ -1184,8 +1179,8 @@ let create_sufliform f =
    p [string_input ~input_type:`Submit ~value:"Click" ()]]
 
 let sufliform = register_service ["sufliform"] unit
-  (fun sp () () ->
-     let f = get_form sufli sp create_sufliform in
+  (fun () () ->
+     let f = get_form sufli create_sufliform in
      return
        (html
           (head (title (pcdata "")) [])
@@ -1200,7 +1195,7 @@ let sufli2 = service
     ()
 
 let _ = register sufli2
-  (fun sp (l, j) () ->
+  (fun (l, j) () ->
     let ll =
       List.map (fun i -> << <strong> $str:(string_of_int i)$ </strong> >>) l
     in
@@ -1215,8 +1210,8 @@ let _ = register sufli2
          j=$str:string_of_int j$.
        </p>
        <p>
-         $a sufli2 sp [pcdata "myself"] ([1; 2], 3)$,
-         $a sufli2 sp [pcdata "myself (empty list)"] ([], 1)$
+         $a sufli2 [pcdata "myself"] ([1; 2], 3)$,
+         $a sufli2 [pcdata "myself (empty list)"] ([], 1)$
        </p>
        </body>
      </html> >>)
@@ -1228,7 +1223,7 @@ let sufliopt = service
     ()
 
 let _ = register sufliopt
-  (fun sp l () ->
+  (fun l () ->
     let ll =
       List.map
         (function None -> pcdata "<none>"
@@ -1243,10 +1238,10 @@ let _ = register sufliopt
          <span>$list:ll$</span>
        </p>
        <p>
-         $a sufliopt sp [pcdata "myself"] [Some "a"; None; Some "po"; None; None; Some "k"; None]$,
-         $a sufliopt sp [pcdata "myself (empty list)"] []$
-         $a sufliopt sp [pcdata "myself (list [None; None])"] [None; None]$
-         $a sufliopt sp [pcdata "myself (list [None])"] [None]$
+         $a sufliopt [pcdata "myself"] [Some "a"; None; Some "po"; None; None; Some "k"; None]$,
+         $a sufliopt [pcdata "myself (empty list)"] []$
+         $a sufliopt [pcdata "myself (list [None; None])"] [None; None]$
+         $a sufliopt [pcdata "myself (list [None])"] [None]$
        </p>
        </body>
      </html> >>)
@@ -1258,7 +1253,7 @@ let sufliopt2 = service
     ()
 
 let _ = register sufliopt2
-  (fun sp l () ->
+  (fun l () ->
     let ll =
       List.map
         (function None -> pcdata "<none>"
@@ -1273,10 +1268,10 @@ let _ = register sufliopt2
          <span>$list:ll$</span>
        </p>
        <p>
-         $a sufliopt2 sp [pcdata "myself"] [Some ("a", "jj"); None; Some ("po", "jjj"); None; None; Some ("k", "pp"); None]$,
-         $a sufliopt2 sp [pcdata "myself (empty list)"] []$
-         $a sufliopt2 sp [pcdata "myself (list [None; None])"] [None; None]$
-         $a sufliopt2 sp [pcdata "myself (list [None])"] [None]$
+         $a sufliopt2 [pcdata "myself"] [Some ("a", "jj"); None; Some ("po", "jjj"); None; None; Some ("k", "pp"); None]$,
+         $a sufliopt2 [pcdata "myself (empty list)"] []$
+         $a sufliopt2 [pcdata "myself (list [None; None])"] [None; None]$
+         $a sufliopt2 [pcdata "myself (list [None])"] [None]$
        </p>
        </body>
      </html> >>)
@@ -1286,7 +1281,7 @@ let _ = register sufliopt2
 let sufset = register_service
     ~path:["sufset"]
     ~get_params:(suffix (Eliom_parameters.set string "s"))
-  (fun _ l () ->
+  (fun l () ->
     let ll =
       List.map
         (fun s -> << <strong>$str:s$</strong> >>) l
@@ -1308,12 +1303,12 @@ let sufset = register_service
 let any2form = register_service
     ~path:["any2form"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Any Form"];
-                  get_form any2 sp
+                  get_form any2
                     (fun (iname,grr) ->
                       [p [pcdata "Form to any2: ";
                           int_input ~input_type:`Text ~name:iname ();
@@ -1329,7 +1324,7 @@ let any2form = register_service
 let boollist = register_service
     ~path:["boollist"]
     ~get_params:(list "a" (bool "b"))
-  (fun _ l () ->
+  (fun l () ->
     let ll =
       List.map (fun b ->
         (strong [pcdata (if b then "true" else "false")])) l in
@@ -1358,8 +1353,8 @@ let create_listform f =
    p [raw_input ~input_type:`Submit ~value:"Click" ()]]
 
 let boollistform = register_service ["boolform"] unit
-  (fun sp () () ->
-     let f = get_form boollist sp create_listform in return
+  (fun () () ->
+     let f = get_form boollist create_listform in return
         (html
           (head (title (pcdata "")) [])
           (body [f])))
@@ -1372,7 +1367,7 @@ let boollistform = register_service ["boolform"] unit
 let any = register_post_service
     ~fallback:coucou
     ~post_params:any
-  (fun _ () l ->
+  (fun () l ->
     let ll =
       List.map
         (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
@@ -1392,12 +1387,12 @@ let any = register_post_service
 let anypostform = register_service
     ~path:["anypostform"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Any Form"];
-                  post_form any sp
+                  post_form any
                     (fun () ->
                       [p [pcdata "Empty form to any: ";
                           string_input ~input_type:`Submit ~value:"Click" ()]])
@@ -1412,7 +1407,7 @@ let get_param_service =
   register_service
    ~path:["uploadget"]
    ~get_params:(string "name" ** file "file")
-    (fun _ (name,file) () ->
+    (fun (name,file) () ->
          let to_display =
            let newname = "/tmp/fichier" in
            (try
@@ -1431,11 +1426,11 @@ let get_param_service =
 
 
 let uploadgetform = register_service ["uploadget"] unit
-  (fun sp () () ->
+  (fun () () ->
     let f =
-(* ARG        (post_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] fichier2 sp *)
-     (get_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] ~service:get_param_service ~sp
-     (*post_form my_service_with_post_params sp        *)
+(* ARG        (post_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] fichier2 *)
+     (get_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] ~service:get_param_service
+     (*post_form my_service_with_post_params        *)
         (fun (str, file) ->
           [p [pcdata "Write a string: ";
               string_input ~input_type:`Text ~name:str ();
@@ -1450,18 +1445,18 @@ let uploadgetform = register_service ["uploadget"] unit
 (* Actions that raises an exception *)
 let exn_act = Action.register_coservice'
     ~get_params:unit
-    (fun _ g p -> fail Not_found)
+    (fun g p -> fail Not_found)
 
 let exn_act_main =
   register_service
     ~path:["exnact"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         (html
            (head (title (pcdata "exnact")) [])
            (body [h1 [pcdata "Hello"];
-                  p [a exn_act sp [pcdata "Do the action"] ()
+                  p [a exn_act [pcdata "Do the action"] ()
                    ]])))
 
 
@@ -1470,14 +1465,14 @@ let close_from_outside =
   register_service
     ~path:["close_from_outside"]
     ~get_params:unit
-    (fun sp () () ->
-      discard_all ~state_name:"persistent_sessions" ~sp () >>= fun () ->
-      discard_all ~state_name:"action_example2" ~sp () >>= fun () ->
+    (fun () () ->
+      discard_all ~state_name:"persistent_sessions" () >>= fun () ->
+      discard_all ~state_name:"action_example2" () >>= fun () ->
       return
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "all sessions called \"persistent_sessions\" and \"action_example2\" closed"];
-                  p [a persist_session_example sp [pcdata "try"] ()]])))
+                  p [a persist_session_example [pcdata "try"] ()]])))
 
 
 
@@ -1486,15 +1481,15 @@ let set_timeout =
 register_service
     ~path:["set_timeout"]
     ~get_params:(int "t" ** (bool "recompute" ** bool "overrideconfig"))
-    (fun sp (t, (recompute, override_configfile)) () ->
+    (fun (t, (recompute, override_configfile)) () ->
       set_global_persistent_data_state_timeout
         ~override_configfile
         ~state_name:(Some "persistent_sessions")
-        ~recompute_expdates:recompute ~sp (Some (float_of_int t));
+        ~recompute_expdates:recompute (Some (float_of_int t));
       set_global_volatile_state_timeout
         ~override_configfile
         ~state_name:(Some "action_example2")
-        ~recompute_expdates:recompute ~sp (Some (float_of_int t));
+        ~recompute_expdates:recompute (Some (float_of_int t));
       return
         (html
            (head (title (pcdata "")) [])
@@ -1503,7 +1498,7 @@ register_service
                   if recompute
                   then pcdata ("The timeout for sessions called \"persistent_sessions\" and \"action_example2\" has been set to "^(string_of_int t)^" seconds (all expiration dates updated).")
                   else pcdata ("From now, the timeout for sessions called \"persistent_sessions\" and \"action_example2\" will be "^(string_of_int t)^" seconds (expiration dates not updated)."); br ();
-                  a persist_session_example sp [pcdata "Try"] ()]])))
+                  a persist_session_example [pcdata "Try"] ()]])))
 
 
 let create_form =
@@ -1522,8 +1517,8 @@ let set_timeout_form =
   register_service
     ["set_timeout"]
     unit
-    (fun sp () () ->
-      let f = Eliom_predefmod.Xhtml.get_form set_timeout sp create_form in
+    (fun () () ->
+      let f = Eliom_predefmod.Xhtml.get_form set_timeout create_form in
       return
         (html
            (head (title (pcdata "")) [])
@@ -1537,100 +1532,99 @@ let sraise =
   register_service
     ~path:["raise"]
     ~get_params:unit
-    (fun _ () () -> failwith "Bad use of exceptions")
+    (fun () () -> failwith "Bad use of exceptions")
 
 let sfail =
   register_service
     ~path:["fail"]
     ~get_params:unit
-    (fun _ () () -> Lwt.fail (Failure "Service raising an exception"))
+    (fun () () -> Lwt.fail (Failure "Service raising an exception"))
 
 
 (******************************************************************)
 let mainpage = register_service ["tests"] unit
- (fun sp () () ->
+ (fun () () ->
    return
     (html
      (head (title (pcdata "Test"))
-        [css_link (make_uri ~service:(static_dir sp) ~sp ["style.css"]) ()])
+        [css_link (make_uri ~service:(static_dir ()) ["style.css"]) ()])
      (body
-       [h1 [img ~alt:"Ocsigen" ~src:(make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"]) ()];
+       [h1 [img ~alt:"Ocsigen" ~src:(make_uri ~service:(static_dir ()) ["ocsigen5.png"]) ()];
         h3 [pcdata "Eliom tests"];
         p
         [
-         a coucou sp [pcdata "coucou"] (); br ();
-         a sumform sp [pcdata "alternative parameters"] (); br ();
-         a sumform2 sp [pcdata "alternative parameters with POST"] (); br ();
-         a optform sp [pcdata "Optional parameters"] (); br ();
-         a sfail sp [pcdata "Service raising an exception"] (); br ();
-         a sraise sp [pcdata "Wrong use of exceptions during service"] (); br ();
-         a getcoex sp [pcdata "GET coservice with preapplied fallback, etc"] (); br ();
-         a postcoex sp [pcdata "POST service with coservice fallback"] (); br ();
-         a su sp [pcdata "Suffix and other service at same URL"] (); br ();
-         a suffixform_su2 sp [pcdata "Suffix and other service at same URL: a form towards the suffix service"] (); br ();
-         a preappliedsuffix sp [pcdata "Preapplied suffix"] (); br ();
-         a constform sp [pcdata "Form towards suffix service with constants"] (); br ();
-         a getact sp [pcdata "action on GET attached coservice, etc"] 127; br ();
-         a cookies sp [pcdata "Many cookies"] "le suffixe de l'URL"; br ();
-         a headers sp [pcdata "Customizing HTTP headers"] (); br ();
-         a sendfileex sp [pcdata "Send file"] (); br ();
-         a sendfile2 sp [pcdata "Send file 2"] "style.css"; br ();
-         a sendfileexception sp [pcdata "Do not send file"] (); br ();
-         a sendfileregexp sp [pcdata "Send file with regexp"] (); br ();
-         a suffixform2 sp [pcdata "Suffix 2"] (); br ();
-         a suffixform3 sp [pcdata "Suffix 3"] (); br ();
-         a suffixform4 sp [pcdata "Suffix 4"] (); br ();
-         a nosuffix sp [pcdata "Page without suffix on the same URL of a page with suffix"] (); br ();
-         a anypostform sp [pcdata "POST form to any parameters"] (); br ();
-         a any2 sp [pcdata "int + any parameters"]
+         a coucou [pcdata "coucou"] (); br ();
+         a sumform [pcdata "alternative parameters"] (); br ();
+         a sumform2 [pcdata "alternative parameters with POST"] (); br ();
+         a optform [pcdata "Optional parameters"] (); br ();
+         a sfail [pcdata "Service raising an exception"] (); br ();
+         a sraise [pcdata "Wrong use of exceptions during service"] (); br ();
+         a getcoex [pcdata "GET coservice with preapplied fallback, etc"] (); br ();
+         a postcoex [pcdata "POST service with coservice fallback"] (); br ();
+         a su [pcdata "Suffix and other service at same URL"] (); br ();
+         a suffixform_su2 [pcdata "Suffix and other service at same URL: a form towards the suffix service"] (); br ();
+         a preappliedsuffix [pcdata "Preapplied suffix"] (); br ();
+         a constform [pcdata "Form towards suffix service with constants"] (); br ();
+         a getact [pcdata "action on GET attached coservice, etc"] 127; br ();
+         a cookies [pcdata "Many cookies"] "le suffixe de l'URL"; br ();
+         a headers [pcdata "Customizing HTTP headers"] (); br ();
+         a sendfileex [pcdata "Send file"] (); br ();
+         a sendfile2 [pcdata "Send file 2"] "style.css"; br ();
+         a sendfileexception [pcdata "Do not send file"] (); br ();
+         a sendfileregexp [pcdata "Send file with regexp"] (); br ();
+         a suffixform2 [pcdata "Suffix 2"] (); br ();
+         a suffixform3 [pcdata "Suffix 3"] (); br ();
+         a suffixform4 [pcdata "Suffix 4"] (); br ();
+         a nosuffix [pcdata "Page without suffix on the same URL of a page with suffix"] (); br ();
+         a anypostform [pcdata "POST form to any parameters"] (); br ();
+         a any2 [pcdata "int + any parameters"]
            (3, [("Ciao","bel"); ("ragazzo","!")]); br ();
-         a any3 sp [pcdata "any parameters broken (s after any)"]
+         a any3 [pcdata "any parameters broken (s after any)"]
            (4, ([("Thierry","Richard");("Sébastien","Stéphane")], "s")); br ();
-(* broken        a any4 sp [pcdata "Any in suffix"] [("bo","ba");("bi","bu")]; br (); *)
-         a any5 sp [pcdata "Suffix + any parameters"]
+(* broken        a any4 [pcdata "Any in suffix"] [("bo","ba");("bi","bu")]; br (); *)
+         a any5 [pcdata "Suffix + any parameters"]
            ("ee", [("bo","ba");("bi","bu")]); br ();
-         a uploadgetform sp [pcdata "Upload with GET"] (); br ();
-         a sufli sp [pcdata "List in suffix"] [("bo", 4);("ba", 3);("bi", 2);("bu", 1)]; br ();
-         a sufliform sp [pcdata "Form to list in suffix"] (); br ();
-         a sufliopt sp [pcdata "List of optional values in suffix"] [None; Some "j"]; br ();
-         a sufliopt2 sp [pcdata "List of optional pairs in suffix"] [None; Some ("j", "ee")]; br ();
-         a sufset sp [pcdata "Set in suffix"] ["bo";"ba";"bi";"bu"]; br ();
-(*         a sufli2 sp [pcdata "List not in the end of in suffix"] ([1; 2; 3], 4); br (); *)
-         a boollistform sp [pcdata "Bool list"] (); br ();
-         a lilists sp [pcdata "List of lists in parameters"] (); br ();
-         a preappmenu sp [pcdata "Menu with pre-applied services"] (); br ();
-         a exn_act_main sp [pcdata "Actions that raises an exception"] (); br ();
-         a close_from_outside sp [pcdata "Closing sessions from outside"] (); br ();
-         a set_timeout_form sp [pcdata "Setting timeouts from outside sessions"] (); br ();
+         a uploadgetform [pcdata "Upload with GET"] (); br ();
+         a sufli [pcdata "List in suffix"] [("bo", 4);("ba", 3);("bi", 2);("bu", 1)]; br ();
+         a sufliform [pcdata "Form to list in suffix"] (); br ();
+         a sufliopt [pcdata "List of optional values in suffix"] [None; Some "j"]; br ();
+         a sufliopt2 [pcdata "List of optional pairs in suffix"] [None; Some ("j", "ee")]; br ();
+         a sufset [pcdata "Set in suffix"] ["bo";"ba";"bi";"bu"]; br ();
+(*         a sufli2 [pcdata "List not in the end of in suffix"] ([1; 2; 3], 4); br (); *)
+         a boollistform [pcdata "Bool list"] (); br ();
+         a lilists [pcdata "List of lists in parameters"] (); br ();
+         a preappmenu [pcdata "Menu with pre-applied services"] (); br ();
+         a exn_act_main [pcdata "Actions that raises an exception"] (); br ();
+         a close_from_outside [pcdata "Closing sessions from outside"] (); br ();
+         a set_timeout_form [pcdata "Setting timeouts from outside sessions"] (); br ();
          a
            ~fragment:"a--   ---++&é/@"
-           ~service:url_encoding ~sp
+           ~service:url_encoding
            [pcdata "Urls with strange characters inside"]
            (["l/l%l      &l=l+l)l@";"m\\m\"m";"n?èn~n"],
             [("po?po&po~po/po+po", "lo?\"l     o#lo'lo lo=lo&l      o/lo+lo");
             ("bo=mo@co:ro", "zo^zo%zo$zo:zo?aaa")]); br ();
-         a ~service:(static_dir_with_params ~sp ~get_params:Eliom_parameters.any ())
-           ~sp
+         a ~service:(static_dir_with_params ~get_params:Eliom_parameters.any ())
            [pcdata "Static file with GET parameters"]
            (["ocsigen5.png"], [("aa", "lmk"); ("bb", "4")]); br ();
 
-         a extreq sp [pcdata "External request"] (); br ();
-         a servreq sp [pcdata "Server request"] (); br ();
-         a servreqloop sp [pcdata "Looping server request"] (); br ();
+         a extreq [pcdata "External request"] (); br ();
+         a servreq [pcdata "Server request"] (); br ();
+         a servreqloop [pcdata "Looping server request"] (); br ();
 
-         a nlparams sp [pcdata "nl params and suffix, on void coservice"] ((3, 5), 222); br ();
-         a optsuf sp [pcdata "optional suffix"] None; br ();
-         a optsuf sp [pcdata "optional suffix"] (Some ("<a to/to=3?4=2>", None)); br ();
-         a optsuf sp [pcdata "optional suffix"] (Some ("toto", Some 2)); br ();
-         a optsuf2 sp [pcdata "optional suffix 2"] (Some "un", Some 2); br ();
-         a optsuf2 sp [pcdata "optional suffix 2"] (None, Some 2); br ();
-         a optsuf2 sp [pcdata "optional suffix 2"] (Some "un", None); br ();
-         a optsuf2 sp [pcdata "optional suffix 2"] (None, None); br ();
+         a nlparams [pcdata "nl params and suffix, on void coservice"] ((3, 5), 222); br ();
+         a optsuf [pcdata "optional suffix"] None; br ();
+         a optsuf [pcdata "optional suffix"] (Some ("<a to/to=3?4=2>", None)); br ();
+         a optsuf [pcdata "optional suffix"] (Some ("toto", Some 2)); br ();
+         a optsuf2 [pcdata "optional suffix 2"] (Some "un", Some 2); br ();
+         a optsuf2 [pcdata "optional suffix 2"] (None, Some 2); br ();
+         a optsuf2 [pcdata "optional suffix 2"] (Some "un", None); br ();
+         a optsuf2 [pcdata "optional suffix 2"] (None, None); br ();
 
-         a csrfsafe_get_example sp [pcdata "GET CSRF safe service"] (); br ();
-         a csrfsafe_postget_example sp [pcdata "POST CSRF safe service on GET CSRF safe service"] (); br ();
-         a csrfsafe_session_example sp [pcdata "POST non attached CSRF safe service in session table"] (); br ();
-         a unregister_example sp [pcdata "Unregistering services"] (); br ();
+         a csrfsafe_get_example [pcdata "GET CSRF safe service"] (); br ();
+         a csrfsafe_postget_example [pcdata "POST CSRF safe service on GET CSRF safe service"] (); br ();
+         a csrfsafe_session_example [pcdata "POST non attached CSRF safe service in session table"] (); br ();
+         a unregister_example [pcdata "Unregistering services"] (); br ();
 
 
        ]])))

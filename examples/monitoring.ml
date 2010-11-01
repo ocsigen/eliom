@@ -33,7 +33,7 @@ let _ =
   register_service
     ~path:[]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       let tm = Unix.gmtime ((Unix.time ()) -. launchtime) in
       let year = if tm.tm_year>0 then (string_of_int (tm.tm_year - 70))^" years, "
       else "" in
@@ -66,8 +66,8 @@ let _ =
           Some r
         with _ -> None
       in
-      let nssess = Eliom_state.number_of_service_sessions sp in
-      let ndsess = Eliom_state.number_of_volatile_data_sessions sp in
+      let nssess = Eliom_state.number_of_service_sessions () in
+      let ndsess = Eliom_state.number_of_volatile_data_sessions () in
       let ntables = Eliom_state.number_of_tables () in
       let ntableselts = Eliom_state.number_of_table_elements () in
       Eliom_state.number_of_persistent_data_sessions () >>=

@@ -25,17 +25,15 @@
 val fresh_id : unit -> string
 
 val get_eliom_appl_page_data_ : 
-  sp:Eliom_request_info.server_params -> (int64 * int) * unit list
+  Eliom_common.server_params -> (int64 * int) * unit list
 
 
-val client_sitedata : sp:Eliom_request_info.server_params ->
-  Eliom_client_types.sitedata
+val client_sitedata : 
+  Eliom_common.server_params -> Eliom_client_types.sitedata
 
 val client_si : Eliom_common.sess_info -> Eliom_common.sess_info
 
-val wrap : sp:Eliom_request_info.server_params -> 'a -> 
-  'a Eliom_client_types.data_key
+val wrap : 'a -> 'a Eliom_client_types.data_key
 
-val wrap_node : sp:Eliom_request_info.server_params ->
-  'a XHTML5.M.elt -> 'node Eliom_client_types.data_key
+val wrap_node : 'a XHTML5.M.elt -> 'node Eliom_client_types.data_key
 

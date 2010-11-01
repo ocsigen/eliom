@@ -1,6 +1,5 @@
 val add_naservice :
   Eliom_common.tables ->
-  ?sp:Eliom_common.server_params ->
   Eliom_common.NAserv_Table.key ->
   int ref option * (float * float ref) option *
     (Eliom_common.server_params -> Ocsigen_http_frame.result Lwt.t) ->

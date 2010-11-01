@@ -107,7 +107,7 @@ let new_sitedata =
           let get_client_process_info, set_client_process_info =
             let errmsg = "Eliommod: function used before initialisation" in
             ((fun _ -> failwith errmsg),
-             (fun _ _ -> failwith errmsg))
+             (fun _ -> failwith errmsg))
           in
           {Eliom_common.servtimeout = None, None, [];
            datatimeout =  None, None, [];
@@ -165,18 +165,14 @@ let new_sitedata =
               ~secure:false (*VVV do we need "secure" client processes *)
               sitedata
           in
-          ((fun esp ->
-            let sp = Eliom_request_info.sp_of_esp esp in
+          ((fun () ->
             match
-              Eliom_state.get_volatile_data
-                ~table:client_process_info_table ~sp ()
+              Eliom_state.get_volatile_data ~table:client_process_info_table ()
             with
               | Eliom_state.Data cpi -> Some cpi
               | _ -> None),
-           (fun esp v ->
-             let sp = Eliom_request_info.sp_of_esp esp in
-             Eliom_state.set_volatile_data
-               ~table:client_process_info_table ~sp v))
+           (fun v ->
+             Eliom_state.set_volatile_data ~table:client_process_info_table v))
         in
         sitedata.Eliom_common.get_client_process_info <- get_client_process_info;
         sitedata.Eliom_common.set_client_process_info <- set_client_process_info;
@@ -709,7 +705,7 @@ let parse_config hostpattern conf_info site_dir =
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in fun _ parse_site -> function
     | Element ("eliommodule", atts, content) ->
-        Eliommod_extensions.register_eliom_extension 
+        Eliom_extensions.register_eliom_extension 
           default_module_action;
         (match parse_module_attrs None atts with
           | Some file_or_name ->
@@ -717,11 +713,11 @@ let parse_config hostpattern conf_info site_dir =
               load_eliom_module sitedata file_or_name content;
               exception_during_eliommodule_loading := false
           | _ -> ());
-        if Eliommod_extensions.get_eliom_extension ()
+        if Eliom_extensions.get_eliom_extension ()
           != default_module_action
         then
           Eliommod_pagegen.gen
-            (Some (Eliommod_extensions.get_eliom_extension ()))
+            (Some (Eliom_extensions.get_eliom_extension ()))
             sitedata
         else gen_nothing ()
     | Element ("eliom", atts, content) ->

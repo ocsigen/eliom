@@ -21,24 +21,44 @@
 open Lwt
 open Ocsigen_extensions
 
-let get_original_full_path ~sp =
-   match (Eliom_request_info.get_sp_client_process_info ~sp) with
-     | None -> Eliom_request_info.get_original_full_path ~sp
+let get_original_full_path () =
+   match (Eliom_request_info.get_sp_client_process_info ()) with
+     | None -> Eliom_request_info.get_original_full_path ()
      | Some cpi -> cpi.Eliom_common.cpi_original_full_path
 
-let get_hostname ~sp =
-   match (Eliom_request_info.get_sp_client_process_info ~sp) with
-     | None -> Eliom_request_info.get_hostname ~sp
+let get_hostname () =
+   match (Eliom_request_info.get_sp_client_process_info ()) with
+     | None -> Eliom_request_info.get_hostname ()
      | Some cpi -> cpi.Eliom_common.cpi_hostname
 
-let get_server_port ~sp =
-   match (Eliom_request_info.get_sp_client_process_info ~sp) with
-     | None -> Eliom_request_info.get_server_port ~sp
+let get_server_port () =
+   match (Eliom_request_info.get_sp_client_process_info ()) with
+     | None -> Eliom_request_info.get_server_port ()
      | Some cpi -> cpi.Eliom_common.cpi_server_port
 
-let get_ssl ~sp =
-   match (Eliom_request_info.get_sp_client_process_info ~sp) with
-     | None -> Eliom_request_info.get_ssl ~sp
+let get_ssl () =
+   match (Eliom_request_info.get_sp_client_process_info ()) with
+     | None -> Eliom_request_info.get_ssl ()
+     | Some cpi -> cpi.Eliom_common.cpi_ssl
+
+let get_original_full_path_sp sp =
+   match sp.Eliom_common.sp_client_process_info with
+     | None -> Eliom_request_info.get_original_full_path_sp sp
+     | Some cpi -> cpi.Eliom_common.cpi_original_full_path
+
+let get_hostname_sp sp =
+   match sp.Eliom_common.sp_client_process_info with
+     | None -> Eliom_request_info.get_hostname_sp sp
+     | Some cpi -> cpi.Eliom_common.cpi_hostname
+
+let get_server_port_sp sp =
+   match sp.Eliom_common.sp_client_process_info with
+     | None -> Eliom_request_info.get_server_port_sp sp
+     | Some cpi -> cpi.Eliom_common.cpi_server_port
+
+let get_ssl_sp sp =
+   match sp.Eliom_common.sp_client_process_info with
+     | None -> Eliom_request_info.get_ssl_sp sp
      | Some cpi -> cpi.Eliom_common.cpi_ssl
 
 
@@ -46,31 +66,31 @@ let get_ssl ~sp =
 type state_status = Alive_state | Empty_state | Expired_state
 
 let service_state_status
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   try
     ignore (Eliommod_sersess.find_service_cookie_only
-              ?state_name ~cookie_scope ~secure ~sp ());
+              ?state_name ~cookie_scope ~secure ());
     Alive_state
   with
     | Not_found -> Empty_state
     | Eliom_common.Eliom_Session_expired -> Expired_state
 
 let volatile_data_state_status
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   try
     ignore (Eliommod_datasess.find_data_cookie_only
-              ?state_name ~cookie_scope ~secure ~sp ());
+              ?state_name ~cookie_scope ~secure ());
     Alive_state
   with
     | Not_found -> Empty_state
     | Eliom_common.Eliom_Session_expired -> Expired_state
 
 let persistent_data_state_status
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
-        ?state_name ~cookie_scope ~secure ~sp () >>= fun _ ->
+        ?state_name ~cookie_scope ~secure () >>= fun _ ->
       return Alive_state
     )
     (function
@@ -101,9 +121,9 @@ let set_default_persistent_data_session_timeout =
 
 let set_global_service_state_timeout
     ?state_name ?(cookie_scope = `Session)
-    ?sp ?(recompute_expdates = false)
+    ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
-  let sitedata = Eliom_request_info.find_sitedata "set_global_service_timeout" sp in
+  let sitedata = Eliom_request_info.find_sitedata "set_global_service_timeout" in
   match state_name with
     | Some state_name ->
         Eliommod_timeouts.set_global_service_timeout
@@ -115,9 +135,9 @@ let set_global_service_state_timeout
 
 let set_global_volatile_data_state_timeout
     ?state_name ?(cookie_scope = `Session)
-    ?sp ?(recompute_expdates = false)
+    ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
-  let sitedata = Eliom_request_info.find_sitedata "set_global_data_timeout" sp in
+  let sitedata = Eliom_request_info.find_sitedata "set_global_data_timeout" in
   match state_name with
     | Some state_name ->
         Eliommod_timeouts.set_global_data_timeout
@@ -129,9 +149,9 @@ let set_global_volatile_data_state_timeout
 
 let set_global_volatile_state_timeout
     ?state_name ?(cookie_scope = `Session)
-    ?sp ?(recompute_expdates = false) 
+    ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
-  let sitedata = Eliom_request_info.find_sitedata "set_global_volatile_timeouts" sp in
+  let sitedata = Eliom_request_info.find_sitedata "set_global_volatile_timeouts" in
   match state_name with
     | Some state_name ->
         Eliommod_timeouts.set_global_service_timeout
@@ -148,9 +168,9 @@ let set_global_volatile_state_timeout
 
 let set_global_persistent_data_state_timeout
     ?state_name ?(cookie_scope = `Session)
-    ?sp ?(recompute_expdates = false)
+    ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
-  let sitedata = Eliom_request_info.find_sitedata "set_global_persistent_timeout" sp in
+  let sitedata = Eliom_request_info.find_sitedata "set_global_persistent_timeout" in
   match state_name with
     | Some state_name ->
         Eliommod_timeouts.set_global_persistent_timeout
@@ -162,28 +182,28 @@ let set_global_persistent_data_state_timeout
 
 
 let get_global_service_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?sp () =
-  let sitedata = Eliom_request_info.find_sitedata "get_global_timeout" sp in
+    ?state_name ?(cookie_scope = `Session) () =
+  let sitedata = Eliom_request_info.find_sitedata "get_global_timeout" in
   Eliommod_timeouts.get_global_service_timeout ?state_name ~cookie_scope sitedata
 
 let get_global_volatile_data_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?sp () =
-  let sitedata = Eliom_request_info.find_sitedata "get_global_timeout" sp in
+    ?state_name ?(cookie_scope = `Session) () =
+  let sitedata = Eliom_request_info.find_sitedata "get_global_timeout" in
   Eliommod_timeouts.get_global_data_timeout
     ?state_name ~cookie_scope sitedata
 
 let get_global_persistent_data_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?sp () =
-  let sitedata = Eliom_request_info.find_sitedata "get_global_persistent_timeout" sp in
+    ?state_name ?(cookie_scope = `Session) () =
+  let sitedata = Eliom_request_info.find_sitedata "get_global_persistent_timeout" in
   Eliommod_timeouts.get_global_persistent_timeout ?state_name ~cookie_scope sitedata
 
 
 
 (* Now for current session *)
 let set_service_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp t =
+    ?state_name ?(cookie_scope = `Session) ?secure t =
   let c = 
-    Eliommod_sersess.find_or_create_service_cookie ?state_name ~cookie_scope ~secure ~sp () 
+    Eliommod_sersess.find_or_create_service_cookie ?state_name ~cookie_scope ~secure ()
   in
   let tor = c.Eliom_common.sc_timeout in
   match t with
@@ -191,10 +211,10 @@ let set_service_state_timeout
   | Some t -> tor := Eliom_common.TSome t
 
 let set_volatile_data_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp t =
+    ?state_name ?(cookie_scope = `Session) ?secure t =
   let c = 
     Eliommod_datasess.find_or_create_data_cookie
-      ?state_name ~cookie_scope ~secure ~sp () 
+      ?state_name ~cookie_scope ~secure ()
   in
   let tor = c.Eliom_common.dc_timeout in
   match t with
@@ -203,20 +223,20 @@ let set_volatile_data_state_timeout
 
 
 let unset_service_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   try
     let c = 
-      Eliommod_sersess.find_service_cookie_only ?state_name ~cookie_scope ~secure ~sp () 
+      Eliommod_sersess.find_service_cookie_only ?state_name ~cookie_scope ~secure ()
     in
     let tor = c.Eliom_common.sc_timeout in
     tor := Eliom_common.TGlobal
   with Not_found | Eliom_common.Eliom_Session_expired -> ()
 
 let unset_volatile_data_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   try
     let c = 
-      Eliommod_datasess.find_data_cookie_only ?state_name ~cookie_scope ~secure ~sp () 
+      Eliommod_datasess.find_data_cookie_only ?state_name ~cookie_scope ~secure ()
     in
     let tor = c.Eliom_common.dc_timeout in
     tor := Eliom_common.TGlobal
@@ -224,7 +244,9 @@ let unset_volatile_data_state_timeout
 
 
 let get_service_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
+  let sp = Eliom_common.get_sp () in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only ?state_name ~cookie_scope ~secure ~sp () 
@@ -233,15 +255,17 @@ let get_service_state_timeout
     match !tor with
     | Eliom_common.TGlobal ->
         Eliommod_timeouts.get_global_service_timeout 
-          ?state_name ~cookie_scope (Eliom_request_info.get_sitedata ~sp)
+          ?state_name ~cookie_scope sitedata
     | Eliom_common.TNone -> None
     | Eliom_common.TSome t -> Some t
   with Not_found | Eliom_common.Eliom_Session_expired ->
     Eliommod_timeouts.get_global_service_timeout
-      ?state_name ~cookie_scope (Eliom_request_info.get_sitedata ~sp)
+      ?state_name ~cookie_scope sitedata
 
 let get_volatile_data_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
+  let sp = Eliom_common.get_sp () in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   try
     let c = 
       Eliommod_datasess.find_data_cookie_only ?state_name ~cookie_scope ~secure ~sp () 
@@ -250,12 +274,11 @@ let get_volatile_data_state_timeout
     match !tor with
     | Eliom_common.TGlobal ->
         Eliommod_timeouts.get_global_data_timeout
-          ?state_name ~cookie_scope (Eliom_request_info.get_sitedata ~sp)
+          ?state_name ~cookie_scope sitedata
     | Eliom_common.TNone -> None
     | Eliom_common.TSome t -> Some t
   with Not_found | Eliom_common.Eliom_Session_expired ->
-    Eliommod_timeouts.get_global_data_timeout
-      ?state_name ~cookie_scope (Eliom_request_info.get_sitedata ~sp)
+    Eliommod_timeouts.get_global_data_timeout ?state_name ~cookie_scope sitedata
 
 
 
@@ -264,9 +287,9 @@ let get_volatile_data_state_timeout
 
 
 let set_persistent_data_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp t =
+    ?state_name ?(cookie_scope = `Session) ?secure t =
   Eliommod_persess.find_or_create_persistent_cookie
-    ?state_name ~cookie_scope ~secure ~sp () >>= fun c ->
+    ?state_name ~cookie_scope ~secure () >>= fun c ->
   let tor = c.Eliom_common.pc_timeout in
   return
       (match t with
@@ -274,11 +297,11 @@ let set_persistent_data_state_timeout
       | Some t -> tor := Eliom_common.TSome t)
 
 let unset_persistent_data_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
-        ?state_name ~cookie_scope ~secure ~sp () >>= fun c ->
+        ?state_name ~cookie_scope ~secure () >>= fun c ->
       let tor = c.Eliom_common.pc_timeout in
       tor := Eliom_common.TGlobal;
       return ()
@@ -288,7 +311,9 @@ let unset_persistent_data_state_timeout
        | e -> fail e)
 
 let get_persistent_data_state_timeout
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
+  let sp = Eliom_common.get_sp () in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
@@ -298,7 +323,7 @@ let get_persistent_data_state_timeout
         (match !tor with
         | Eliom_common.TGlobal ->
             Eliommod_timeouts.get_global_persistent_timeout
-              ~state_name ~cookie_scope (Eliom_request_info.get_sitedata ~sp)
+              ~state_name ~cookie_scope sitedata
         | Eliom_common.TNone -> None
         | Eliom_common.TSome t -> Some t)
     )
@@ -306,19 +331,20 @@ let get_persistent_data_state_timeout
       | Not_found | Eliom_common.Eliom_Session_expired ->
           return
             (Eliommod_timeouts.get_global_persistent_timeout
-               ~state_name ~cookie_scope (Eliom_request_info.get_sitedata ~sp))
+               ~state_name ~cookie_scope sitedata)
       | e -> fail e)
 
 
 (* Preventing memory leaks: we must close empty sessions *)
 
 let rec close_service_state_if_empty
-    ?state_name ?(scope = `Session) ?secure ~sp () =
+    ?state_name ?(scope = `Session) ?secure () =
   (* Close the session if it has not services inside
      and no group and no sub sessions *)
   (* See also in Eliommod_gc and in Eliommod_sessiongroups. *)
   try
-    let sitedata = (Eliom_request_info.get_sitedata ~sp) in
+    let sp = Eliom_common.get_sp () in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in 
     let c = Eliommod_sersess.find_service_cookie_only
       ?state_name ~cookie_scope ~secure ~sp ()
@@ -346,18 +372,19 @@ let rec close_service_state_if_empty
                      but we may close the browser session (this will close
                      the group if it is empty). *)
         close_service_state_if_empty
-          ~sp ~scope:`Session ?state_name ?secure ()
+          ~scope:`Session ?state_name ?secure ()
   with Not_found -> ()
 
 
 
 let rec close_volatile_state_if_empty
-    ?state_name ?(scope = `Session) ?secure ~sp () =
+    ?state_name ?(scope = `Session) ?secure () =
   (* Close the session if it has not data inside
      and no group and no sub sessions *)
   (* See also in Eliommod_gc and in Eliommod_sessiongroups. *)
   try
-    let sitedata = (Eliom_request_info.get_sitedata ~sp) in
+    let sp = Eliom_common.get_sp () in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in 
     let c = Eliommod_datasess.find_data_cookie_only
       ?state_name ~cookie_scope ~secure ~sp ()
@@ -389,14 +416,14 @@ let rec close_volatile_state_if_empty
                      but we may close the browser session (this will close
                      the group if it is empty). *)
         close_volatile_state_if_empty
-          ~sp ~scope:`Session ?state_name ?secure ()
+          ~scope:`Session ?state_name ?secure ()
   with Not_found -> ()
 
 
 
 
 let rec close_persistent_state_if_empty
-    ?state_name ?(scope = `Session) ?secure ~sp () =
+    ?state_name ?(scope = `Session) ?secure () =
   Lwt.return ()
 (*VVV Can we implement this function? *)
 
@@ -409,13 +436,11 @@ type 'a session_data =
   | Data of 'a
 
 
-let set_service_session_group ?set_max
-    ?state_name ?secure ~sp session_group =
+let set_service_session_group ?set_max ?state_name ?secure session_group =
   let cookie_scope = `Session in
   let c =
     Eliommod_sersess.find_or_create_service_cookie
-      ~set_session_group:session_group
-      ?state_name ~cookie_scope ~secure ~sp ()
+      ~set_session_group:session_group ?state_name ~cookie_scope ~secure ()
   in
   match set_max with
     | None -> ()
@@ -424,18 +449,19 @@ let set_service_session_group ?set_max
           c.Eliom_common.sc_session_group_node m
 
 let unset_service_session_group ?set_max
-    ?state_name ?secure ~sp () =
+    ?state_name ?secure () =
   let cookie_scope = `Session in
   try
+    let sp = Eliom_common.get_sp () in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     let c = 
       Eliommod_sersess.find_service_cookie_only
         ?state_name ~cookie_scope ~secure ~sp () 
     in
-    let sitedata = (Eliom_request_info.get_sitedata ~sp) in
     let n =
       Eliommod_sessiongroups.make_full_group_name
         ~cookie_scope
-        (Eliom_request_info.get_request ~sp).Ocsigen_extensions.request_info
+        (Eliom_request_info.get_request_sp sp).Ocsigen_extensions.request_info
         sitedata.Eliom_common.site_dir_string
         (Eliom_common.get_mask4 sitedata)
         (Eliom_common.get_mask6 sitedata)
@@ -451,19 +477,18 @@ let unset_service_session_group ?set_max
     (* Now we want to close the session if it has not data inside
        and no tab sessions *)
     close_service_state_if_empty ~scope:`Session 
-      ?state_name ?secure ~sp ()
+      ?state_name ?secure ()
 
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> ()
 
-let get_service_session_group
-    ?state_name ?secure ~sp () =
+let get_service_session_group ?state_name ?secure () =
   let cookie_scope = `Session in
   try
     let c = 
       Eliommod_sersess.find_service_cookie_only
-        ?state_name ~cookie_scope ~secure ~sp () 
+        ?state_name ~cookie_scope ~secure () 
     in
     match !(c.Eliom_common.sc_session_group) with
       | _, _, Ocsigen_lib.Right _ -> No_data
@@ -476,12 +501,12 @@ let get_service_session_group
 
 let set_volatile_data_session_group
     ?set_max ?state_name
-    ?secure ~sp session_group =
+    ?secure session_group =
   let cookie_scope = `Session in
   let c = 
     Eliommod_datasess.find_or_create_data_cookie
       ~set_session_group:session_group
-      ?state_name ~cookie_scope ~secure ~sp () 
+      ?state_name ~cookie_scope ~secure () 
   in
   match set_max with
     | None -> ()
@@ -490,18 +515,19 @@ let set_volatile_data_session_group
           c.Eliom_common.dc_session_group_node m
 
 let unset_volatile_data_session_group ?set_max
-    ?state_name ?secure ~sp () =
+    ?state_name ?secure () =
   let cookie_scope = `Session in
   try
+    let sp = Eliom_common.get_sp () in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     let c = 
       Eliommod_datasess.find_data_cookie_only
         ?state_name ~cookie_scope ~secure ~sp ()
     in
-    let sitedata = (Eliom_request_info.get_sitedata ~sp) in
     let n =
       Eliommod_sessiongroups.make_full_group_name
         ~cookie_scope
-        (Eliom_request_info.get_request ~sp).Ocsigen_extensions.request_info
+        (Eliom_request_info.get_request_sp sp).Ocsigen_extensions.request_info
         sitedata.Eliom_common.site_dir_string 
         (Eliom_common.get_mask4 sitedata)
         (Eliom_common.get_mask6 sitedata)
@@ -516,18 +542,18 @@ let unset_volatile_data_session_group ?set_max
     (* Now we want to close the session if it has not data inside
        and no tab sessions *)
     close_volatile_state_if_empty ~scope:`Session 
-      ?state_name ?secure ~sp ()
+      ?state_name ?secure ()
 
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> ()
 
-let get_volatile_data_session_group ?state_name ?secure ~sp () =
+let get_volatile_data_session_group ?state_name ?secure () =
   let cookie_scope = `Session in
   try
     let c =
       Eliommod_datasess.find_data_cookie_only
-        ?state_name ~cookie_scope ~secure ~sp () 
+        ?state_name ~cookie_scope ~secure () 
     in
     match !(c.Eliom_common.dc_session_group) with
       | _, _, Ocsigen_lib.Right _ -> No_data
@@ -537,41 +563,44 @@ let get_volatile_data_session_group ?state_name ?secure ~sp () =
     | Eliom_common.Eliom_Session_expired -> Data_session_expired
 
 let set_persistent_data_session_group ?set_max
-    ?state_name ?secure ~sp n =
+    ?state_name ?secure n =
   let cookie_scope = `Session in
+  let sp = Eliom_common.get_sp () in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   Eliommod_persess.find_or_create_persistent_cookie
     ?state_name ~cookie_scope ~secure ~sp () >>= fun c ->
   let n =
     Eliommod_sessiongroups.make_persistent_full_group_name
       ~cookie_scope
-      (Eliom_request_info.get_sitedata ~sp).Eliom_common.site_dir_string (Some n)
+      sitedata.Eliom_common.site_dir_string (Some n)
   in
   let grp = c.Eliom_common.pc_session_group in
   Eliommod_sessiongroups.Pers.move
-    (Eliom_request_info.get_sitedata ~sp)
+    sitedata
     ?set_max
-    (fst (Eliom_request_info.get_sitedata ~sp).Eliom_common.max_persistent_data_sessions_per_group)
+    (fst sitedata.Eliom_common.max_persistent_data_sessions_per_group)
     c.Eliom_common.pc_value !grp n >>= fun l ->
   Lwt_util.iter
     (Eliommod_persess.close_persistent_session2
-       ~cookie_scope (Eliom_request_info.get_sitedata ~sp) None) l >>= fun () ->
+       ~cookie_scope sitedata None) l >>= fun () ->
   grp := n;
   Lwt.return ()
 
-let unset_persistent_data_session_group
-    ?state_name ?secure ~sp () =
+let unset_persistent_data_session_group ?state_name ?secure () =
   let cookie_scope = `Session in
+  let sp = Eliom_common.get_sp () in
+  let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   Lwt.catch
     (fun () ->
        Eliommod_persess.find_persistent_cookie_only
         ?state_name ~cookie_scope ~secure ~sp () >>= fun c ->
        let grp = c.Eliom_common.pc_session_group in
        Eliommod_sessiongroups.Pers.remove
-         (Eliom_request_info.get_sitedata ~sp) c.Eliom_common.pc_value !grp >>= fun () ->
+         sitedata c.Eliom_common.pc_value !grp >>= fun () ->
        grp := None;
 
        close_persistent_state_if_empty ~scope:`Session 
-         ?state_name ?secure ~sp ()
+         ?state_name ?secure ()
 
     )
     (function
@@ -580,12 +609,12 @@ let unset_persistent_data_session_group
        | e -> fail e)
 
 
-let get_persistent_data_session_group ?state_name ?secure ~sp () =
+let get_persistent_data_session_group ?state_name ?secure () =
   let cookie_scope = `Session in
   catch
     (fun () ->
        Eliommod_persess.find_persistent_cookie_only
-         ?state_name ~cookie_scope ~secure ~sp () >>= fun c ->
+         ?state_name ~cookie_scope ~secure () >>= fun c ->
        Lwt.return (match !(c.Eliom_common.pc_session_group) with
                      | None -> No_data
                      | Some v ->
@@ -605,9 +634,9 @@ let get_persistent_data_session_group ?state_name ?secure ~sp () =
 
 (* max *)
 let set_default_max_service_sessions_per_group
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_service_sessions_per_group" sp 
+    Eliom_request_info.find_sitedata "set_default_max_service_sessions_per_group" 
   in
   let b = snd sitedata.Eliom_common.max_service_sessions_per_group in 
   if override_configfile || not b
@@ -615,9 +644,9 @@ let set_default_max_service_sessions_per_group
     sitedata.Eliom_common.max_service_sessions_per_group <- (n, b)
 
 let set_default_max_volatile_data_sessions_per_group
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_volatile_data_sessions_per_group" sp 
+    Eliom_request_info.find_sitedata "set_default_max_volatile_data_sessions_per_group"
   in
   let b = snd sitedata.Eliom_common.max_volatile_data_sessions_per_group in
   if override_configfile || not b
@@ -625,9 +654,9 @@ let set_default_max_volatile_data_sessions_per_group
     sitedata.Eliom_common.max_volatile_data_sessions_per_group <- (n, b)
 
 let set_default_max_persistent_data_sessions_per_group
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_persistent_data_sessions_per_group" sp 
+    Eliom_request_info.find_sitedata "set_default_max_persistent_data_sessions_per_group"
   in
   let b = snd sitedata.Eliom_common.max_persistent_data_sessions_per_group in
   if override_configfile || not b
@@ -635,9 +664,9 @@ let set_default_max_persistent_data_sessions_per_group
     sitedata.Eliom_common.max_persistent_data_sessions_per_group <- (n, b)
 
 let set_default_max_service_sessions_per_subnet
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_service_sessions_per_subnet" sp 
+    Eliom_request_info.find_sitedata "set_default_max_service_sessions_per_subnet" 
   in
   let b = snd sitedata.Eliom_common.max_service_sessions_per_subnet in
   if override_configfile || not b
@@ -645,29 +674,29 @@ let set_default_max_service_sessions_per_subnet
     sitedata.Eliom_common.max_service_sessions_per_subnet <- (n, b)
 
 let set_default_max_volatile_data_sessions_per_subnet
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_volatile_data_sessions_per_subnet" sp 
+    Eliom_request_info.find_sitedata "set_default_max_volatile_data_sessions_per_subnet"
   in
   let b = snd sitedata.Eliom_common.max_volatile_data_sessions_per_subnet in
   if override_configfile || not b
   then 
     sitedata.Eliom_common.max_volatile_data_sessions_per_subnet <- (n, b)
 
-let set_default_max_volatile_sessions_per_group ?sp ?override_configfile n =
-  set_default_max_service_sessions_per_group ?sp ?override_configfile n;
-  set_default_max_volatile_data_sessions_per_group ?sp ?override_configfile n
+let set_default_max_volatile_sessions_per_group ?override_configfile n =
+  set_default_max_service_sessions_per_group ?override_configfile n;
+  set_default_max_volatile_data_sessions_per_group ?override_configfile n
 
-let set_default_max_volatile_sessions_per_subnet ?sp ?override_configfile n =
-  set_default_max_service_sessions_per_subnet ?sp ?override_configfile n;
-  set_default_max_volatile_data_sessions_per_subnet ?sp ?override_configfile n
+let set_default_max_volatile_sessions_per_subnet ?override_configfile n =
+  set_default_max_service_sessions_per_subnet ?override_configfile n;
+  set_default_max_volatile_data_sessions_per_subnet ?override_configfile n
 
 
 
 let set_default_max_service_tab_sessions_per_group
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_service_tab_sessions_per_group" sp 
+    Eliom_request_info.find_sitedata "set_default_max_service_tab_sessions_per_group"
   in
   let b = snd sitedata.Eliom_common.max_service_tab_sessions_per_group in 
   if override_configfile || not b
@@ -675,9 +704,9 @@ let set_default_max_service_tab_sessions_per_group
     sitedata.Eliom_common.max_service_tab_sessions_per_group <- (n, b)
 
 let set_default_max_volatile_data_tab_sessions_per_group
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_volatile_data_tab_sessions_per_group" sp 
+    Eliom_request_info.find_sitedata "set_default_max_volatile_data_tab_sessions_per_group"
   in
   let b = snd sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group in
   if override_configfile || not b
@@ -685,24 +714,24 @@ let set_default_max_volatile_data_tab_sessions_per_group
     sitedata.Eliom_common.max_volatile_data_tab_sessions_per_group <- (n, b)
 
 let set_default_max_persistent_data_tab_sessions_per_group
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_persistent_data_tab_sessions_per_group" sp 
+    Eliom_request_info.find_sitedata "set_default_max_persistent_data_tab_sessions_per_group"
   in
   let b = snd sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group in
   if override_configfile || not b
   then 
     sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group <- (n, b)
 
-let set_default_max_volatile_tab_sessions_per_group ?sp ?override_configfile n =
-  set_default_max_service_tab_sessions_per_group ?sp ?override_configfile n;
-  set_default_max_volatile_data_tab_sessions_per_group ?sp ?override_configfile n
+let set_default_max_volatile_tab_sessions_per_group ?override_configfile n =
+  set_default_max_service_tab_sessions_per_group ?override_configfile n;
+  set_default_max_volatile_data_tab_sessions_per_group ?override_configfile n
 
 
 let set_default_max_anonymous_services_per_session
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_anonymous_services_per_session" sp 
+    Eliom_request_info.find_sitedata "set_default_max_anonymous_services_per_session"
   in
   let b = snd sitedata.Eliom_common.max_anonymous_services_per_session in
   if override_configfile || not b
@@ -710,9 +739,9 @@ let set_default_max_anonymous_services_per_session
     sitedata.Eliom_common.max_anonymous_services_per_session <- (n, b)
 
 let set_default_max_anonymous_services_per_subnet
-    ?sp ?(override_configfile = false) n =
+    ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_default_max_anonymous_services_per_subnet" sp 
+    Eliom_request_info.find_sitedata "set_default_max_anonymous_services_per_subnet"
   in
   let b = snd sitedata.Eliom_common.max_anonymous_services_per_subnet in
   if override_configfile || not b
@@ -720,18 +749,18 @@ let set_default_max_anonymous_services_per_subnet
     sitedata.Eliom_common.max_anonymous_services_per_subnet <- (n, b)
 
 
-let set_ipv4_subnet_mask ?sp ?(override_configfile = false) n =
+let set_ipv4_subnet_mask ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_ipv4_subnet_mask" sp 
+    Eliom_request_info.find_sitedata "set_ipv4_subnet_mask"
   in
   let b = snd sitedata.Eliom_common.ipv4mask in
   if override_configfile || not b
   then 
     sitedata.Eliom_common.ipv4mask <- (Some n, b)
 
-let set_ipv6_subnet_mask ?sp ?(override_configfile = false) n =
+let set_ipv6_subnet_mask ?(override_configfile = false) n =
   let sitedata = 
-    Eliom_request_info.find_sitedata "set_ipv6_subnet_mask" sp 
+    Eliom_request_info.find_sitedata "set_ipv6_subnet_mask"
   in
   let b = snd sitedata.Eliom_common.ipv6mask in
   if override_configfile || not b
@@ -742,11 +771,11 @@ let set_ipv6_subnet_mask ?sp ?(override_configfile = false) n =
 
 
 let set_max_service_sessions_for_group_or_subnet
-    ?state_name ?(scope = `Session) ?secure ~sp m =
+    ?state_name ?(scope = `Session) ?secure m =
   let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
   let c =
     Eliommod_sersess.find_or_create_service_cookie
-      ?state_name ~cookie_scope ~secure ~sp ()
+      ?state_name ~cookie_scope ~secure ()
   in
   match scope with
     | `Session_group ->
@@ -760,11 +789,11 @@ let set_max_service_sessions_for_group_or_subnet
       Eliommod_sessiongroups.Data.set_max c.Eliom_common.sc_session_group_node m
 
 let set_max_volatile_data_sessions_for_group_or_subnet
-    ?state_name ?(scope = `Session) ?secure ~sp m =
+    ?state_name ?(scope = `Session) ?secure m =
   let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
   let c =
     Eliommod_datasess.find_or_create_data_cookie
-      ?state_name ~cookie_scope ~secure ~sp ()
+      ?state_name ~cookie_scope ~secure ()
   in
   match scope with
     | `Session_group ->
@@ -778,11 +807,11 @@ let set_max_volatile_data_sessions_for_group_or_subnet
       Eliommod_sessiongroups.Data.set_max c.Eliom_common.dc_session_group_node m
 
 let set_max_volatile_sessions_for_group_or_subnet
-    ?state_name ?scope ?secure ~sp m =
+    ?state_name ?scope ?secure m =
   set_max_service_sessions_for_group_or_subnet
-    ?scope ?state_name ?secure ~sp m;
+    ?scope ?state_name ?secure m;
   set_max_volatile_data_sessions_for_group_or_subnet
-    ?scope ?state_name ?secure ~sp m
+    ?scope ?state_name ?secure m
 
 (*VVV No version for persistent sessions? Why? *)
 
@@ -793,9 +822,9 @@ let set_max_volatile_sessions_for_group_or_subnet
 
 (* expiration dates *)
 let set_service_cookie_exp_date
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp t =
+    ?state_name ?(cookie_scope = `Session) ?secure t =
   let c = 
-    Eliommod_sersess.find_or_create_service_cookie ?state_name ~cookie_scope ~secure ~sp () 
+    Eliommod_sersess.find_or_create_service_cookie ?state_name ~cookie_scope ~secure () 
   in
   let exp = c.Eliom_common.sc_cookie_exp in
   match t with
@@ -803,19 +832,19 @@ let set_service_cookie_exp_date
   | Some t -> exp := Eliom_common.CESome t
 
 (*
-let get_service_cookie_exp_date ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+let get_service_cookie_exp_date ?state_name ?(cookie_scope = `Session) ?secure () =
   try
-    let (_, _, _, _, exp) = find_service_cookie_only ?state_name ~cookie_scope ~secure ~sp () in
+    let (_, _, _, _, exp) = find_service_cookie_only ?state_name ~cookie_scope ~secure () in
   let exp = c.Eliom_common.sc_cookie_exp in
     !exp
   with Not_found | Eliom_common.Eliom_Session_expired -> Eliom_common.CEBrowser
 *)
 
 let set_volatile_data_cookie_exp_date
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp t =
+    ?state_name ?(cookie_scope = `Session) ?secure t =
   let c = 
     Eliommod_datasess.find_or_create_data_cookie
-      ?state_name ~cookie_scope ~secure ~sp () 
+      ?state_name ~cookie_scope ~secure () 
   in
   let exp = c.Eliom_common.dc_cookie_exp in
   match t with
@@ -825,8 +854,8 @@ let set_volatile_data_cookie_exp_date
 
 
 let set_persistent_data_cookie_exp_date
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp t =
-  Eliommod_persess.find_or_create_persistent_cookie ?state_name ~cookie_scope ~secure ~sp ()
+    ?state_name ?(cookie_scope = `Session) ?secure t =
+  Eliommod_persess.find_or_create_persistent_cookie ?state_name ~cookie_scope ~secure ()
   >>= fun c ->
   let exp = c.Eliom_common.pc_cookie_exp in
   return
@@ -835,11 +864,11 @@ let set_persistent_data_cookie_exp_date
       | Some t -> exp := Eliom_common.CESome t)
 
 let get_persistent_data_cookie_exp_date
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
-        ?state_name ~cookie_scope ~secure ~sp () >>= fun c ->
+        ?state_name ~cookie_scope ~secure () >>= fun c ->
       return !(c.Eliom_common.pc_cookie_exp))
     (function
        | Not_found | Eliom_common.Eliom_Session_expired -> 
@@ -851,15 +880,15 @@ let get_persistent_data_cookie_exp_date
 
 
 (* *)
-let get_global_table ?sp () =
-  let sitedata = Eliom_request_info.find_sitedata "get_global_table" sp in
+let get_global_table () =
+  let sitedata = Eliom_request_info.find_sitedata "get_global_table" in
   sitedata.Eliom_common.global_services
 
 
 (** If the session does not exist, we create it
    (new cookie, new session service table) *)
-let get_session_service_table 
-    ?state_name ?(scope = `Session) ?secure ~sp () =
+let get_session_service_table ~sp
+    ?state_name ?(scope = `Session) ?secure () =
   let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in 
   let c = 
     Eliommod_sersess.find_or_create_service_cookie
@@ -874,8 +903,8 @@ let get_session_service_table
   else c.Eliom_common.sc_table
 
 (** If the session does not exist, we raise Not_found *)
-let get_session_service_table_if_exists
-    ?state_name ?(scope = `Session) ?secure ~sp () =
+let get_session_service_table_if_exists ~sp
+    ?state_name ?(scope = `Session) ?secure () =
   try
     let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in 
     let c = 
@@ -913,29 +942,29 @@ let create_persistent_table
 
 
 let get_table_key_
-    ~table:(scope, (state_name : string option), secure, table) ~sp 
+    ~table:(scope, (state_name : string option), secure, table)
     (find_cookie : ?state_name:string ->
      ?cookie_scope:Eliom_common.cookie_scope ->
      secure:bool option ->
-     sp:Eliom_request_info.server_params ->
+     ?sp:Eliom_common.server_params ->
      unit -> Eliom_common.one_persistent_cookie_info Lwt.t) =
   (match scope with
     | `Session_group ->
-      (get_persistent_data_session_group ?state_name ~secure ~sp ()
+      (get_persistent_data_session_group ?state_name ~secure ()
        >>= function
          | Data a -> Lwt.return a
          | _ -> Lwt.return Eliom_common.default_group_name)
     | _ ->
       let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in 
-      find_cookie ?state_name ~cookie_scope ~secure:(Some secure) ~sp () 
+      find_cookie ?state_name ~cookie_scope ~secure:(Some secure) () 
       >>= fun c -> Lwt.return c.Eliom_common.pc_value)
   >>= fun key ->
   Lwt.return (table, key)
 
-let get_persistent_data ~table ~sp () =
+let get_persistent_data ~table () =
   catch
     (fun () ->
-      get_table_key_ ~table ~sp Eliommod_persess.find_persistent_cookie_only
+      get_table_key_ ~table Eliommod_persess.find_persistent_cookie_only
       >>= fun (table, key) ->
       Ocsipersist.find table key >>= fun (_, v) ->
       Lwt.return (Data v)
@@ -945,24 +974,23 @@ let get_persistent_data ~table ~sp () =
       | Not_found -> return No_data
       | e -> fail e)
 
-let f__ ?state_name ?cookie_scope ~secure ~sp () =
+let f__ ?state_name ?cookie_scope ~secure ?sp () =
   Eliommod_persess.find_or_create_persistent_cookie
-    ?state_name ?cookie_scope ~secure ~sp ()
+    ?state_name ?cookie_scope ~secure ?sp ()
 
-let set_persistent_data ~table ~sp value =
-  get_table_key_ ~table ~sp f__ >>= fun (table, key) ->
+let set_persistent_data ~table value =
+  get_table_key_ ~table f__ >>= fun (table, key) ->
   Ocsipersist.add table key (Int64.zero, value)
 
-let remove_persistent_data ~table ~sp () =
+let remove_persistent_data ~table () =
   catch
     (fun () ->
       let (scope, state_name, secure, _) = table in
-      get_table_key_ ~table ~sp Eliommod_persess.find_persistent_cookie_only
+      get_table_key_ ~table Eliommod_persess.find_persistent_cookie_only
       >>= fun (table, key) ->
       Ocsipersist.remove table key >>= fun () ->
 
-      close_persistent_state_if_empty
-        ~sp ~scope ?state_name ~secure ()
+      close_persistent_state_if_empty ~scope ?state_name ~secure ()
     )
     (function
       | Not_found | Eliom_common.Eliom_Session_expired -> return ()
@@ -982,8 +1010,8 @@ let create_volatile_table_during_session_ =
   Eliommod_datasess.create_volatile_table_during_session
 
 let create_volatile_table
-    ?state_name ?(scope = `Session) ?(secure = false) ?sp () =
-  match sp with
+    ?state_name ?(scope = `Session) ?(secure = false) () =
+  match Eliom_common.get_sp_option () with
   | None ->
       (match Eliom_common.global_register_allowed () with
       | Some get_current_sitedata -> 
@@ -992,61 +1020,63 @@ let create_volatile_table
             (Eliom_common.Eliom_function_forbidden_outside_site_loading
                "create_volatile_table"))
   | Some sp ->
+    let sp = Eliom_common.get_sp () in
+    let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
     create_volatile_table_during_session_
-      ~scope ~state_name ~secure (Eliom_request_info.get_sitedata ~sp)
+      ~scope ~state_name ~secure sitedata
 
-let get_table_key_ ~table:(scope, (state_name : string option), secure, table) ~sp 
+let get_table_key_ ~table:(scope, (state_name : string option), secure, table)
     (find_cookie : ?state_name:string ->
      ?cookie_scope:Eliom_common.cookie_scope ->
      secure:bool option ->
-     sp:Eliom_request_info.server_params ->
+     ?sp:Eliom_common.server_params ->
      unit -> Eliom_common.one_data_cookie_info) =
   let key = match scope with
     | `Session_group ->
-      (match get_volatile_data_session_group ?state_name ~secure ~sp () 
+      (match get_volatile_data_session_group ?state_name ~secure () 
        with Data a -> a
          | _ -> Eliom_common.default_group_name)
     | _ -> 
       let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in 
       let c =
-        find_cookie ?state_name ~cookie_scope ~secure:(Some secure) ~sp () in
+        find_cookie ?state_name ~cookie_scope ~secure:(Some secure) () in
       c.Eliom_common.dc_value
   in
   (table, key)
 
 
-let get_volatile_data ~table ~sp () =
+let get_volatile_data ~table () =
   try
     let (table, key) =
-      get_table_key_ ~table ~sp Eliommod_datasess.find_data_cookie_only
+      get_table_key_ ~table Eliommod_datasess.find_data_cookie_only
     in
     Data (Eliom_common.SessionCookies.find table key)
   with
   | Not_found -> No_data
   | Eliom_common.Eliom_Session_expired -> Data_session_expired
 
-let f__ ?state_name ?cookie_scope ~secure ~sp () =
+let f__ ?state_name ?cookie_scope ~secure ?sp () =
   Eliommod_datasess.find_or_create_data_cookie
-    ?state_name ?cookie_scope ~secure ~sp ()
+    ?state_name ?cookie_scope ~secure ?sp ()
 
-let set_volatile_data ~table ~sp value =
+let set_volatile_data ~table value =
   let (table, key) =
-    get_table_key_ ~table ~sp f__
+    get_table_key_ ~table f__
   in
   Eliom_common.SessionCookies.replace table key value
 
 
-let remove_volatile_data ~table ~sp () =
+let remove_volatile_data ~table () =
   try
     let (scope, state_name, secure, _) = table in
     let (table, key) =
-      get_table_key_ ~table ~sp Eliommod_datasess.find_data_cookie_only
+      get_table_key_ ~table Eliommod_datasess.find_data_cookie_only
     in
     Eliom_common.SessionCookies.remove table key;
 
     (* Now we want to close the session if it has not data inside
        and no group and no sub sessions *)
-    close_volatile_state_if_empty ~sp ~scope ?state_name ~secure ()
+    close_volatile_state_if_empty ~scope ?state_name ~secure ()
 
   with Not_found | Eliom_common.Eliom_Session_expired -> ()
 
@@ -1062,134 +1092,130 @@ module Eref = struct
       'a * ('a volatile_table, 'a persistent_table) Ocsigen_lib.leftright
 
   let eref
-      ?state_name ?scope ?secure ?persistent ?sp value =
+      ?state_name ?scope ?secure ?persistent value =
     match persistent with
       | None ->
         (value,
          Ocsigen_lib.Left 
-           (create_volatile_table ?state_name ?scope ?secure ?sp ()))
+           (create_volatile_table ?state_name ?scope ?secure ()))
       | Some name ->
         (value,
          Ocsigen_lib.Right 
            (create_persistent_table ?state_name ?scope ?secure name))
 
-  let get ~sp (value, table) =
+  let get (value, table) =
     match table with
       | Ocsigen_lib.Left t ->
-        (match get_volatile_data ~table:t ~sp () with
+        (match get_volatile_data ~table:t () with
           | Data d -> Lwt.return d
           | _ -> Lwt.return value)
       | Ocsigen_lib.Right t ->
-        (get_persistent_data ~table:t ~sp () >>= function
+        (get_persistent_data ~table:t () >>= function
           | Data d -> Lwt.return d
           | _ -> Lwt.return value)
 
-  let set ~sp (_, table) value =
+  let set (_, table) value =
     match table with
-      | Ocsigen_lib.Left t -> set_volatile_data ~table:t ~sp value;
+      | Ocsigen_lib.Left t -> set_volatile_data ~table:t value;
         Lwt.return ()
-      | Ocsigen_lib.Right t -> set_persistent_data ~table:t ~sp value
+      | Ocsigen_lib.Right t -> set_persistent_data ~table:t value
 
-  let unset ~sp (_, table) =
+  let unset (_, table) =
     match table with
-      | Ocsigen_lib.Left t -> remove_volatile_data ~table:t ~sp ();
+      | Ocsigen_lib.Left t -> remove_volatile_data ~table:t ();
         Lwt.return ()
-      | Ocsigen_lib.Right t -> remove_persistent_data ~table:t ~sp ()
+      | Ocsigen_lib.Right t -> remove_persistent_data ~table:t ()
 end
 
 (*****************************************************************************)
 (** Close a state *)
-let discard_persistent_data ?state_name ?(scope = `Session) ?secure ~sp () = 
+let discard_persistent_data ?state_name ?(scope = `Session) ?secure () = 
   match secure with
     | None ->
         Eliommod_persess.close_persistent_session ?state_name ~scope 
-          ~secure:(Some true) ~sp () >>=
+          ~secure:(Some true) () >>=
         Eliommod_persess.close_persistent_session ?state_name ~scope 
-          ~secure:(Some false) ~sp
+          ~secure:(Some false)
     | _ ->
         Eliommod_persess.close_persistent_session ?state_name ~scope 
-          ~secure ~sp ()
+          ~secure ()
 
-let discard_services ?state_name ?(scope = `Session) ?secure ~sp () = 
+let discard_services ?state_name ?(scope = `Session) ?secure () = 
   match secure with
     | None ->
         Eliommod_sersess.close_service_session 
-          ?state_name ~scope ~secure:(Some true) ~sp ();
+          ?state_name ~scope ~secure:(Some true) ();
         Eliommod_sersess.close_service_session 
-          ?state_name ~scope ~secure:(Some false) ~sp ()
+          ?state_name ~scope ~secure:(Some false) ()
     | _ ->
-        Eliommod_sersess.close_service_session 
-          ?state_name ~scope ~secure ~sp ()
+        Eliommod_sersess.close_service_session ?state_name ~scope ~secure ()
 
-let discard_volatile_data ?state_name ?(scope = `Session) ?secure ~sp () =
+let discard_volatile_data ?state_name ?(scope = `Session) ?secure () =
   match secure with
     | None ->
         Eliommod_datasess.close_data_session 
-          ?state_name ~scope ~secure:(Some true) ~sp ();
+          ?state_name ~scope ~secure:(Some true) ();
         Eliommod_datasess.close_data_session 
-          ?state_name ~scope ~secure:(Some false) ~sp ()
+          ?state_name ~scope ~secure:(Some false) ()
     | _ ->
-        Eliommod_datasess.close_data_session 
-          ?state_name ~scope ~secure ~sp ()
+        Eliommod_datasess.close_data_session ?state_name ~scope ~secure ()
 
-let discard_data ?persistent ?state_name ?scope ?secure ~sp () =
+let discard_data ?persistent ?state_name ?scope ?secure () =
   (match persistent with
     | None | Some false ->
-      discard_volatile_data ?state_name ?scope ?secure ~sp ()
+      discard_volatile_data ?state_name ?scope ?secure ()
     | _ -> ());
   (match persistent with
     | None | Some true ->
-      discard_persistent_data ?state_name ?scope ?secure ~sp ()
+      discard_persistent_data ?state_name ?scope ?secure ()
     | _ -> Lwt.return ())
 
-let discard ?state_name ?(scope = `Session) ?secure ~sp () =
-  discard_services ?state_name ~scope ?secure ~sp ();
-  discard_data ?state_name ~scope ?secure ~sp ()
+let discard ?state_name ?(scope = `Session) ?secure () =
+  discard_services ?state_name ~scope ?secure ();
+  discard_data ?state_name ~scope ?secure ()
 
-let close_session ?state_name ?secure ~sp () =
-  discard ?state_name ?secure ~sp ()
+let close_session ?state_name ?secure () =
+  discard ?state_name ?secure ()
 
-let close_group ?state_name ?secure ~sp () =
-  discard ?state_name ~scope:`Session_group ?secure ~sp ()
+let close_group ?state_name ?secure () =
+  discard ?state_name ~scope:`Session_group ?secure ()
 
-let discard_all_volatile_data
-    ?state_name ?(cookie_scope = `Session) ?sp () =
-  let sitedata = Eliom_request_info.find_sitedata "close_all_data_sessions" sp in
+let discard_all_volatile_data ?state_name ?(cookie_scope = `Session) () =
+  let sitedata = Eliom_request_info.find_sitedata "close_all_data_sessions" in
   Eliommod_sessadmin.close_all_data_sessions
     ?state_name ~cookie_scope sitedata
 (*VVV missing: scope group *)
 (*VVV missing ~secure? *)
 
-let discard_all_persistent_data
-    ?state_name ?(cookie_scope = `Session) ?sp () =
-  let sitedata = Eliom_request_info.find_sitedata "close_all_persistent_sessions" sp in
+let discard_all_persistent_data ?state_name ?(cookie_scope = `Session) () =
+  let sitedata = Eliom_request_info.find_sitedata "close_all_persistent_sessions" in
   Eliommod_sessadmin.close_all_persistent_sessions
     ?state_name ~cookie_scope sitedata
 (*VVV missing: scope group *)
 (*VVV missing ~secure? *)
 
-let discard_all_data ?persistent ?state_name ?cookie_scope ?sp () =
+let discard_all_data ?persistent ?state_name ?cookie_scope () =
   (match persistent with
     | None | Some false ->
-      discard_all_volatile_data ?state_name ?cookie_scope ?sp ()
+      discard_all_volatile_data ?state_name ?cookie_scope ()
     | _ -> Lwt.return ()) >>= fun () ->
   (match persistent with
     | None | Some true ->
-      discard_all_persistent_data ?state_name ?cookie_scope ?sp ()
+      discard_all_persistent_data ?state_name ?cookie_scope ()
     | _ -> Lwt.return ())
 (*VVV missing ~secure? *)
 
 let discard_all_services
-    ?state_name ?(cookie_scope = `Session) ?sp () =
-  let sitedata = Eliom_request_info.find_sitedata "close_all_service_sessions" sp in
+    ?state_name ?(cookie_scope = `Session) () =
+  let sitedata = Eliom_request_info.find_sitedata "close_all_service_sessions" in
   Eliommod_sessadmin.close_all_service_sessions
     ?state_name ~cookie_scope sitedata
 (*VVV missing: scope group *)
 (*VVV missing ~secure? *)
 
-let discard_all ?state_name ?cookie_scope ?sp () =
- discard_all_services ?state_name ?cookie_scope ?sp () >>=
- discard_all_data ?state_name ?cookie_scope ?sp
+let discard_all ?state_name ?cookie_scope () =
+ discard_all_services ?state_name ?cookie_scope () >>=
+ discard_all_data ?state_name ?cookie_scope
 (*VVV missing ~secure? *)
 
 
@@ -1364,29 +1390,29 @@ module Session_admin = struct
 
 
   (** Iterator on service sessions *)
-  let iter_service_sessions ?sp f =
+  let iter_service_sessions f =
     let sitedata =
-      Eliom_request_info.find_sitedata "Admin.iter_service_sessions" sp
+      Eliom_request_info.find_sitedata "Admin.iter_service_sessions"
     in
     Eliommod_sessexpl.iter_service_sessions sitedata f
 
   (** Iterator on data sessions *)
-  let iter_volatile_data_sessions ?sp f =
-    let sitedata = Eliom_request_info.find_sitedata "Admin.iter_volatile_data_sessions" sp in
+  let iter_volatile_data_sessions f =
+    let sitedata = Eliom_request_info.find_sitedata "Admin.iter_volatile_data_sessions" in
     Eliommod_sessexpl.iter_data_sessions sitedata f
 
   (** Iterator on persistent sessions *)
   let iter_persistent_data_sessions = Eliommod_sessexpl.iter_persistent_sessions
 
   (** Iterator on service sessions *)
-  let fold_service_sessions ?sp f beg =
-  let sitedata = Eliom_request_info.find_sitedata "Admin.fold_service_sessions" sp in
+  let fold_service_sessions f beg =
+  let sitedata = Eliom_request_info.find_sitedata "Admin.fold_service_sessions" in
   Eliommod_sessexpl.fold_service_sessions sitedata f beg
 
   (** Iterator on data sessions *)
-  let fold_volatile_data_sessions ?sp f beg =
+  let fold_volatile_data_sessions f beg =
     let sitedata =
-      Eliom_request_info.find_sitedata "Admin.fold_volatile_data_sessions" sp
+      Eliom_request_info.find_sitedata "Admin.fold_volatile_data_sessions"
     in
     Eliommod_sessexpl.fold_data_sessions sitedata f beg
 
@@ -1423,26 +1449,26 @@ let number_of_persistent_table_elements () =
 
 (*****************************************************************************)
 let get_service_cookie
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   try
     let c = Eliommod_sersess.find_service_cookie_only
-      ?state_name ~cookie_scope ~secure ~sp () in
+      ?state_name ~cookie_scope ~secure () in
     Some c.Eliom_common.sc_value
   with Not_found | Eliom_common.Eliom_Session_expired -> None
 
 let get_volatile_data_cookie
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   try
-    let c = Eliommod_datasess.find_data_cookie_only ?state_name ~cookie_scope ~secure ~sp () in
+    let c = Eliommod_datasess.find_data_cookie_only ?state_name ~cookie_scope ~secure () in
     Some c.Eliom_common.dc_value
   with Not_found | Eliom_common.Eliom_Session_expired -> None
 
 let get_persistent_data_cookie
-    ?state_name ?(cookie_scope = `Session) ?secure ~sp () =
+    ?state_name ?(cookie_scope = `Session) ?secure () =
   catch
     (fun () ->
       Eliommod_persess.find_persistent_cookie_only
-        ?state_name ~cookie_scope ~secure ~sp () >>= fun c ->
+        ?state_name ~cookie_scope ~secure () >>= fun c ->
       return (Some c.Eliom_common.pc_value)
     )
     (function
@@ -1453,15 +1479,15 @@ let get_persistent_data_cookie
 (** {2 User cookies} *)
 
 let change_pathopt_ sp = function
-  | None -> (Eliom_request_info.get_sitedata ~sp).Eliom_common.site_dir
+  | None -> (Eliom_request_info.get_sitedata_sp ~sp).Eliom_common.site_dir
     (* Not possible to set a cookie for another site (?) *)
-  | Some p -> (Eliom_request_info.get_sitedata ~sp).Eliom_common.site_dir@p
+  | Some p -> (Eliom_request_info.get_sitedata_sp ~sp).Eliom_common.site_dir@p
 
 let set_cookie
-    ~sp ?(cookie_scope = `Session) ?path ?exp ~name ~value 
+    ?(cookie_scope = `Session) ?path ?exp ~name ~value 
     ?(secure = false) () =
+  let sp = Eliom_common.get_sp () in
   let path = change_pathopt_ sp path in
-  let sp = Eliom_request_info.esp_of_sp sp in
   match cookie_scope with
     | `Session ->
       sp.Eliom_common.sp_user_cookies <- Ocsigen_cookies.add_cookie
@@ -1473,9 +1499,9 @@ let set_cookie
         sp.Eliom_common.sp_user_tab_cookies
 
 let unset_cookie
-    ~sp ?(cookie_scope = `Session) ?path ~name () =
+    ?(cookie_scope = `Session) ?path ~name () =
+  let sp = Eliom_common.get_sp () in
   let path = change_pathopt_ sp path in
-  let sp = Eliom_request_info.esp_of_sp sp in
   match cookie_scope with
     | `Session ->
       sp.Eliom_common.sp_user_cookies <- Ocsigen_cookies.add_cookie
@@ -1488,8 +1514,9 @@ let unset_cookie
 (* Client process info *)
 
 let make_server_params sitedata i suffix fullsessname =
-  let esp = Eliom_common.make_server_params_ sitedata i suffix fullsessname in
-  let get = esp.Eliom_common.sp_sitedata.Eliom_common.get_client_process_info in
-  let cpi = get esp in
-  esp.Eliom_common.sp_client_process_info <- cpi;
-  esp
+  let sp = Eliom_common.make_server_params_ sitedata i suffix fullsessname in
+  Eliom_common.set_sp sp >>= fun () ->
+  let get = sp.Eliom_common.sp_sitedata.Eliom_common.get_client_process_info in
+  let cpi = get () in
+  sp.Eliom_common.sp_client_process_info <- cpi;
+  Lwt.return sp

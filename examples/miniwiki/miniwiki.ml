@@ -35,7 +35,7 @@ let (>>) f g = g f
 let wiki_view_page = service [] (suffix (string "p")) ()
 let wiki_edit_page = service ["edit"] (string "p") ()
 let wiki_start = Redirection.register_service [] unit
-    (fun sp _ _ -> 
+    (fun _ _ -> 
        Lwt.return (Eliom_services.preapply wiki_view_page "WikiStart"))
 
 
@@ -163,14 +163,14 @@ let translate_list items =
   let list_items = loop items in
   ul (List.hd list_items) (List.tl list_items)
 
-let parse_lines sp lines =
+let parse_lines lines =
   let wikilink scheme page text =
     if scheme = "wiki" || scheme = "" then
       let t = if text = "" then page else text in
       if wiki_page_exists page then
-        a wiki_view_page sp [pcdata t] page
+        a wiki_view_page [pcdata t] page
       else
-        a ~a:[a_class ["missing_page"]] ~service:wiki_view_page ~sp [pcdata t]
+        a ~a:[a_class ["missing_page"]] ~service:wiki_view_page [pcdata t]
           page
     else (* External link *)
       let url = scheme^":"^page in
@@ -290,79 +290,79 @@ let parse_lines sp lines =
 
   return (loop [] lines)
 
-let wikiml_to_html sp page =
+let wikiml_to_html page =
   if wiki_page_exists page then
-    load_wiki_page page >>= parse_lines sp
+    load_wiki_page page >>= parse_lines
   else
     return []
 
 (* Use this as the basis for all pages.  Includes CSS etc. *)
-let html_stub sp body_html =
+let html_stub body_html =
   return
     (html
        (head (title (pcdata ""))
-          [css_link (make_uri ~service:(static_dir sp) ~sp ["style.css"]) ()])
+          [css_link (make_uri ~service:(static_dir ()) ["style.css"]) ()])
        (body body_html))
 
-let wiki_page_menu_html sp page content =
+let wiki_page_menu_html page content =
   [div ~a:[a_id "navbar"]
      [div ~a:[a_id "akmenu"]
         [p
            [span ~a:[a_class ["nwikilogo"]] [(pcdata "MiniWiki")];
             a ~service:wiki_view_page
-              ~a:[a_accesskey 'h'; a_class ["ak"]] ~sp
+              ~a:[a_accesskey 'h'; a_class ["ak"]]
               [pcdata "Home"] "WikiStart";
-            a ~service:wiki_edit_page ~a:[a_accesskey 'e'; a_class ["ak"]] ~sp
+            a ~service:wiki_edit_page ~a:[a_accesskey 'e'; a_class ["ak"]]
               [pcdata "Edit page"] page; br ()]]];
    div ~a:[a_id "content"]
      content]
 
-let wiki_page_contents_html sp page ?(content=[]) () =
-  wikiml_to_html sp page >>= fun p ->
-  return (wiki_page_menu_html sp page (content @ p))
+let wiki_page_contents_html page ?(content=[]) () =
+  wikiml_to_html page >>= fun p ->
+  return (wiki_page_menu_html page (content @ p))
 
-let view_page sp page =
-  wiki_page_contents_html sp page () >>= fun p ->
-  html_stub sp p
+let view_page page =
+  wiki_page_contents_html page () >>= fun p ->
+  html_stub p
 
 (* Save page as a result of /edit?p=Page *)
 let service_save_page_post =
   register_post_service
     ~fallback:wiki_view_page
     ~post_params:(string "value")
-    (fun sp page value ->
+    (fun page value ->
        (* Save wiki page from POST value: *)
        save_wiki_page page value >>= fun () ->
-       view_page sp page)
+       view_page page)
 
 (* /edit?p=Page *)
 let _ =
   register wiki_edit_page
-    (fun sp page () ->
+    (fun page () ->
       (if wiki_page_exists page then
         load_wiki_page page >>= fun s -> return (String.concat "\n" s)
       else
         return "")
       >>= fun wikitext ->
       let f =
-        post_form service_save_page_post sp
+        post_form service_save_page_post
           (fun chain ->
             [(p [string_input ~input_type:`Submit ~value:"Save" (); br ();
                  textarea ~name:chain ~rows:30 ~cols:80
                    ~value:wikitext ()])])
           page
       in
-      wiki_page_contents_html sp page ~content:[f] () >>= fun c ->
-      html_stub sp c)
+      wiki_page_contents_html page ~content:[f] () >>= fun c ->
+      html_stub c)
 
 (* /view?p=Page *)
 let _ =
   register wiki_view_page
-    (fun sp page () ->
+    (fun page () ->
        if not (wiki_page_exists page) then
          let f =
-           a wiki_edit_page sp [pcdata "Create new page"] page in
-         html_stub sp
-           (wiki_page_menu_html sp page [f])
+           a wiki_edit_page [pcdata "Create new page"] page in
+         html_stub
+           (wiki_page_menu_html page [f])
        else
-         view_page sp page)
+         view_page page)

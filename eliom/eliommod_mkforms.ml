@@ -31,7 +31,6 @@ let (make_a_with_onclick :
                [< Eliom_services.suff ], 'h, 'i,
                [< Eliom_services.registrable ], 'j)
         Eliom_services.service ->
-      sp:Eliom_request_info.server_params ->
       ?hostname:string ->
       ?port:int ->
       ?fragment:string ->
@@ -46,7 +45,6 @@ let (make_a_with_onclick :
     ?https
     ?a
     ~service
-    ~sp
     ?hostname
     ?port
     ?fragment
@@ -60,40 +58,37 @@ let (make_a_with_onclick :
     (Some ("caml_run_from_table ("^
               Eliom_client_types.a_closure_id_string^", \'"^
               (Eliom_client_types.jsmarshal
-                 ((Eliommod_cli.wrap ~sp absolute),
-                  (Eliommod_cli.wrap ~sp absolute_path),
-                  (Eliommod_cli.wrap ~sp https),
-                  (Eliommod_cli.wrap ~sp service),
-(*                  (Eliommod_cli.wrap_sp sp),*)
-                  (),
-                  (Eliommod_cli.wrap ~sp hostname),
-                  (Eliommod_cli.wrap ~sp port),
-                  (Eliommod_cli.wrap ~sp fragment),
-                  (Eliommod_cli.wrap ~sp keep_nl_params),
-                  (Eliommod_cli.wrap ~sp nl_params),
-                  (Eliommod_cli.wrap ~sp getparams))
+                 ((Eliommod_cli.wrap absolute),
+                  (Eliommod_cli.wrap absolute_path),
+                  (Eliommod_cli.wrap https),
+                  (Eliommod_cli.wrap service),
+                  (Eliommod_cli.wrap hostname),
+                  (Eliommod_cli.wrap port),
+                  (Eliommod_cli.wrap fragment),
+                  (Eliommod_cli.wrap keep_nl_params),
+                  (Eliommod_cli.wrap nl_params),
+                  (Eliommod_cli.wrap getparams))
                ^ "\')")
      ))
     content
 
 
-let make_add_tab_cookies_to_form id ~sp form_ref =
-  let reqnum = Eliom_request_info.get_request_id ~sp in
+let make_add_tab_cookies_to_form id form_ref =
+  let reqnum = Eliom_request_info.get_request_id () in
   "caml_run_from_table (" ^
     id^", \'" ^
     (Eliom_client_types.jsmarshal (reqnum, form_ref)) ^
     "\')"
 
 let make_get_form_with_onsubmit
-    make_get_form register_event _ id ~sp ?a ~action i1 i =
-  let onsubmit = Some (make_add_tab_cookies_to_form id ~sp (XML.next_ref ()))
-  in
+    make_get_form register_event _ id ?a ~action i1 i =
+  let onsubmit = Some (make_add_tab_cookies_to_form id (XML.next_ref ())) in
   make_get_form ?a ~action ?onsubmit i1 i
 
 
 let make_post_form_with_onsubmit
-    make_post_form register_event _ id ~sp ?a ~action i1 i =
-  let onsubmit = Some (make_add_tab_cookies_to_form id ~sp (XML.next_ref ()))
+    make_post_form register_event _ id ?a ~action i1 i =
+  let onsubmit = Some (make_add_tab_cookies_to_form id (XML.next_ref ()))
   in
   make_post_form ?a ~action ?onsubmit ?id:None ?inline:None i1 i
 

@@ -23,9 +23,21 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
+let (>>=) = Lwt.bind
+
 type eliom_extension_sig =
-  Eliom_request_info.server_params -> Ocsigen_extensions.answer Lwt.t
+  unit -> Ocsigen_extensions.answer Lwt.t
+
+let module_action : eliom_extension_sig ref =
+  ref (fun _ -> failwith "Eliommod_extension")
+
 
 let register_eliom_extension f =
-  Eliommod_extensions.register_eliom_extension
-    (fun sp -> f (Eliom_request_info.sp_of_esp sp))
+  module_action := f
+
+let get_eliom_extension () = !module_action
+
+
+let run_eliom_extension (fext : eliom_extension_sig) now info sitedata  =
+  Eliom_state.make_server_params sitedata info None None >>= fun _ ->
+  fext ()

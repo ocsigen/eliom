@@ -11,7 +11,7 @@ MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml svgtypes.ml sVG.ml xhtml5types.ml xHT
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
-	eliom_common.ml	eliom_process.ml \
+	eliom_common_cli.ml eliom_common.ml eliom_process.ml \
 	eliom_config.ml eliom_request_info.ml eliom_state.ml \
 	eliom_parameters.ml \
 	eliom_services.ml eliom_uri.ml \
@@ -108,7 +108,7 @@ eliom_client_types.ml: ../eliom_client_types.ml
 eliom_client_types.mli: ../eliom_client_types.mli
 	cp -f $< $@ 
 
-eliom_common.ml: ../eliom_common_cli.ml
+eliom_common_cli.ml: ../eliom_common_cli.ml
 	cp -f $< $@ 
 
 eliom_mkforms.ml: ../eliom_mkforms.ml
@@ -154,7 +154,7 @@ depend: $(MLS) $(MLIS)
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so
 	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml* \
-	    eliom_common.ml eliom_mkforms.ml* eliom_uri.ml* \
+	    eliom_common_cli.ml eliom_mkforms.ml* eliom_uri.ml* \
             eliom_predefmod.ml* xHTML.ml* xHTML5.ml* xhtml5types.ml* \
             xhtmltypes.ml* uri.ml* sVG.ml* svgtypes.ml* \
 	    ocsigen_lib_cli.ml \

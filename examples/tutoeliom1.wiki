@@ -48,7 +48,7 @@ let coucou =
   register_service
     ~path:["coucou"]
     ~get_params:unit
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
            (head (title (pcdata "")) [])
@@ -218,7 +218,7 @@ let coucou1 =
   Eliom_predefmod.Xhtml.register_service
     ~path:["coucou1"]
     ~get_params:Eliom_parameters.unit
-    (fun _ () () ->
+    (fun () () ->
       return
         << <html>
              <head><title></title></head>
@@ -316,7 +316,7 @@ let s =
   Eliom_duce.Xhtml.register_service
     ~path:[""]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         {{ <html>
              [<head> [<title> ""]
@@ -338,10 +338,10 @@ let coucoutext =
   Eliom_predefmod.HtmlText.register_service
     ~path:["coucoutext"]
     ~get_params:Eliom_parameters.unit
-    (fun sp () () ->
+    (fun () () ->
       return
         ("<html>n'importe quoi "^
-         (Eliom_predefmod.HtmlText.a coucou sp "clic" ())^
+         (Eliom_predefmod.HtmlText.a coucou "clic" ())^
          "</html>"))
 >>
             
@@ -374,7 +374,7 @@ let count =
   register_service
     ~path:["count"]
     ~get_params:unit
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
          (head (title (pcdata "counter")) [])
@@ -396,7 +396,7 @@ let hello =
   register_service
     ["dir";"hello"]  (* the url dir/hello *)
     unit
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
          (head (title (pcdata "Hello")) [])
@@ -420,7 +420,7 @@ The last example shows how to define the default page for
           
 <<code language="ocaml" |
 let default = register_service ["rep";""] unit
-  (fun _ () () ->
+  (fun () () ->
     return
      (html
       (head (title (pcdata "")) [])
@@ -498,7 +498,7 @@ Here is an example of a service with GET parameters:
 
           
 <<code language="ocaml" |
-let writeparams _ (i1, (i2, s1)) () =
+let writeparams (i1, (i2, s1)) () =
   return
    (html
     (head (title (pcdata "")) [])
@@ -548,7 +548,7 @@ let uasuffix =
   register_service
     ~path:["uasuffix"]
     ~get_params:(suffix (int "year" ** int "month"))
-    (fun sp (year, month) () ->
+    (fun (year, month) () ->
       return
        (html
         (head (title (pcdata "")) [])
@@ -557,9 +557,9 @@ let uasuffix =
                strong [pcdata ((string_of_int year)^"/"
                                ^(string_of_int month))];
                pcdata ", your user-agent is ";
-               strong [pcdata (Eliom_request_info.get_user_agent sp)];
+               strong [pcdata (Eliom_request_info.get_user_agent ())];
                pcdata ", your IP is ";
-               strong [pcdata (Eliom_request_info.get_remote_ip sp)]]])))
+               strong [pcdata (Eliom_request_info.get_remote_ip ())]]])))
 >>
           
 This service will answer to URLs like
@@ -590,7 +590,7 @@ let isuffix =
   register_service
     ~path:["isuffix"]
     ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
-    (fun sp ((suff, endsuff), i) () ->
+    (fun ((suff, endsuff), i) () ->
       return
        (html
         (head (title (pcdata "")) [])
@@ -621,7 +621,7 @@ let constfix =
   register_service
     ~path:["constfix"]
     ~get_params:(suffix (string "s1" ** (Eliom_parameters.suffix_const "toto" ** string "s2")))
-    (fun _ (s1, ((), s2))  () ->
+    (fun (s1, ((), s2))  () ->
       return
         (html
           (head (title (pcdata "")) [])
@@ -653,7 +653,7 @@ let mytype =
     ~path:["mytype"]
     ~get_params:
       (Eliom_parameters.user_type mysum_of_string string_of_mysum "valeur")
-    (fun _ x () ->
+    (fun x () ->
       let v = string_of_mysum x in
       return
         (html
@@ -678,7 +678,7 @@ If you want a service that answers to requests with any parameters,
 let raw_serv = register_service
     ~path:["any"]
     ~get_params:Eliom_parameters.any
-  (fun _ l () ->
+  (fun l () ->
     let ll =
       List.map
         (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> ~>>) l
@@ -713,12 +713,12 @@ You can catch parameters typing errors and write your own
 let catch = register_service
     ~path:["catch"]
     ~get_params:(int "i")
-    ~error_handler:(fun sp l ->
+    ~error_handler:(fun l ->
       return
         (html
          (head (title (pcdata "")) [])
          (body [p [pcdata ("i is not an integer.")]])))
-    (fun _ i () ->
+    (fun i () ->
       let v = string_of_int i in
       return
         (html
@@ -754,21 +754,21 @@ To create a link (<<span class="code"|<a>>>), use the
           
 <<code language="ocaml" |
 let links = register_service ["rep";"links"] unit
- (fun sp () () ->
+ (fun () () ->
    return
     (html
      (head (title (pcdata "Links")) [])
      (body
        [p
-        [Eliom_predefmod.Xhtml.a coucou sp [pcdata "coucou"] (); br ();
-         Eliom_predefmod.Xhtml.a hello sp [pcdata "hello"] (); br ();
-         Eliom_predefmod.Xhtml.a default sp
+        [Eliom_predefmod.Xhtml.a coucou [pcdata "coucou"] (); br ();
+         Eliom_predefmod.Xhtml.a hello [pcdata "hello"] (); br ();
+         Eliom_predefmod.Xhtml.a default
            [pcdata "default page of the dir"] (); br ();
-         Eliom_predefmod.Xhtml.a uasuffix sp
+         Eliom_predefmod.Xhtml.a uasuffix
            [pcdata "uasuffix"] (2007,06); br ();
-         Eliom_predefmod.Xhtml.a coucou_params sp
+         Eliom_predefmod.Xhtml.a coucou_params
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-         Eliom_predefmod.Xhtml.a raw_serv sp
+         Eliom_predefmod.Xhtml.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
          Eliom_predefmod.Xhtml.a
            (external_service
@@ -776,7 +776,6 @@ let links = register_service ["rep";"links"] unit
               ~path:["wiki";""]
               ~get_params:(suffix (all_suffix "suff"))
               ())
-           sp
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
          XHTML.M.a
@@ -804,9 +803,6 @@ If you open <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span 
           
 <<ocsigendoc version="dev" file="Eliom_predefmod.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_predefmod.Xhtml.a>>>> takes as first parameter
         the service you want to link to.
-        Note that to create a (relative) link we need to know the current URL.
-        That's why the function <<span class="code"|a>>
-        takes <<span class="code"|sp>> as second parameter.
       
           
 
@@ -844,11 +840,11 @@ If you open <<ocsigendoc version="dev" file="Eliom_predefmod.Xhtml.html"|<<span 
 let linkrec = Eliom_services.service ["linkrec"] unit ()
 
 let _ = Eliom_predefmod.Xhtml.register linkrec
-    (fun sp () () ->
+    (fun () () ->
       return
        (html
         (head (title (pcdata "")) [])
-        (body [p [a linkrec sp [pcdata "click"] ()]])))
+        (body [p [a linkrec [pcdata "click"] ()]])))
 
 
 >>
@@ -888,8 +884,8 @@ let create_form =
         Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
 
 let form = register_service ["form"] unit
-  (fun sp () () ->
-     let f = Eliom_predefmod.Xhtml.get_form coucou_params sp create_form in
+  (fun () () ->
+     let f = Eliom_predefmod.Xhtml.get_form coucou_params create_form in
      return
        (html
          (head (title (pcdata "")) [])
@@ -930,13 +926,13 @@ For untyped forms, you may use functions from XHTML.M (or
 let raw_form = register_service
     ~path:["anyform"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       return
         (html
            (head (title (pcdata "")) [])
            (body
               [h1 [pcdata "Any Form"];
-               Eliom_predefmod.Xhtml.get_form raw_serv sp
+               Eliom_predefmod.Xhtml.get_form raw_serv
                  (fun () ->
                    [p [pcdata "Form to raw_serv: ";
                        Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plop" ();
@@ -979,7 +975,7 @@ let no_post_param_service =
   register_service
     ~path:["post"]
     ~get_params:unit
-    (fun _ () () ->
+    (fun () () ->
       return
         (html
          (head (title (pcdata "")) [])
@@ -990,7 +986,7 @@ let my_service_with_post_params =
   register_post_service
     ~fallback:no_post_param_service
     ~post_params:(string "value")
-    (fun _ () value ->
+    (fun () value ->
       return
         (html
          (head (title (pcdata "")) [])
@@ -1008,7 +1004,7 @@ let get_no_post_param_service =
   register_service
     ~path:["post2"]
     ~get_params:(int "i")
-    (fun _ i () ->
+    (fun i () ->
       return
         (html
          (head (title (pcdata "")) [])
@@ -1018,7 +1014,7 @@ let get_no_post_param_service =
 let my_service_with_get_and_post = register_post_service
   ~fallback:get_no_post_param_service
   ~post_params:(string "value")
-  (fun _ i value ->
+  (fun i value ->
     return
       (html
          (head (title (pcdata "")) [])
@@ -1046,9 +1042,9 @@ let my_service_with_get_and_post = register_post_service
 
 <<code language="ocaml" |
 let form2 = register_service ["form2"] unit
-  (fun sp () () ->
+  (fun () () ->
      let f =
-       (Eliom_predefmod.Xhtml.post_form my_service_with_post_params sp
+       (Eliom_predefmod.Xhtml.post_form my_service_with_post_params
           (fun chaine ->
             [p [pcdata "Write a string: ";
                 string_input ~input_type:`Text ~name:chaine ()]]) ()) in
@@ -1058,9 +1054,9 @@ let form2 = register_service ["form2"] unit
          (body [f])))
 
 let form3 = register_service ["form3"] unit
-  (fun sp () () ->
+  (fun () () ->
      let f  =
-       (Eliom_predefmod.Xhtml.post_form my_service_with_get_and_post sp
+       (Eliom_predefmod.Xhtml.post_form my_service_with_get_and_post
           (fun chaine ->
             <:xmllist< <p> Write a string:
                     $string_input ~input_type:`Text ~name:chaine ()$ </p> ~>>)
@@ -1071,14 +1067,14 @@ let form3 = register_service ["form3"] unit
             <body>$f$</body></html> ~>>)
 
 let form4 = register_service ["form4"] unit
-  (fun sp () () ->
+  (fun () () ->
      let f  =
        (Eliom_predefmod.Xhtml.post_form
           (external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
              ~get_params:(int "i")
-             ~post_params:(string "chaine") ()) sp
+             ~post_params:(string "chaine") ())
           (fun chaine ->
             <:xmllist< <p> Write a string:
                      $string_input ~input_type:`Text ~name:chaine ()$ </p> ~>>)
@@ -1132,7 +1128,7 @@ As it doesn't cooperate, the following page will stop the
   register_service
     ~path:["looong"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Unix.sleep 5;
       return
         (html
@@ -1151,7 +1147,7 @@ let looong =
   register_service
     ~path:["looong"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Lwt_unix.sleep 5.0 ~>>= fun () ->
       return
         (html
@@ -1174,7 +1170,7 @@ let looong2 =
   register_service
     ~path:["looong2"]
     ~get_params:unit
-    (fun sp () () ->
+    (fun () () ->
       Lwt_preemptive.detach Unix.sleep 5 ~>>= fun () ->
       return
         (html

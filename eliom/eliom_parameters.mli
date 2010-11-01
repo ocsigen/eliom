@@ -388,14 +388,12 @@ val make_non_localized_parameters :
 *)
 
 val get_non_localized_get_parameters :
-  sp:Eliom_request_info.server_params ->
   ('a, [ `WithoutSuffix ], 'b) non_localized_params ->
   'a option
 (** [get_non_localized_get_parameters ~sp p] decodes and 
     returns non localized GET parameters specified by [p] if present. *)
 
 val get_non_localized_post_parameters :
-  sp:Eliom_request_info.server_params ->
   ('a, [ `WithoutSuffix ], 'b) non_localized_params ->
   'a option
 (** [get_non_localized_post_parameters ~sp p] decodes and 

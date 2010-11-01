@@ -58,10 +58,9 @@ sig
       buffered value lifespan and [name] for named edges. *)
 
   val wrap :
-      sp:Eliom_request_info.server_params
-    -> 'a t
+       'a t
     -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
-  (** [wrap ~sp e] wraps the event [e] so that it can be handed to the client.
+  (** [wrap e] wraps the event [e] so that it can be handed to the client.
     *)
 
 end
@@ -84,8 +83,7 @@ sig
       be manipulated as a standard event. *)
 
   val wrap :
-      sp:Eliom_request_info.server_params
-    -> 'a t
+       'a t
     -> (unit, 'a, [ `Nonattached of [ `Post ] Eliom_services.na_s ],
         [ `WithoutSuffix ], unit,
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
@@ -95,19 +93,18 @@ sig
       the [Eliom_client_event.Up.unwrap] function. *)
 
   val create :
-       ?sp:Eliom_request_info.server_params
-    -> ?scope:Eliom_common.scope
+       ?scope:Eliom_common.scope
     -> ?name:string
     -> ('a, [ `WithoutSuffix ],
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
          Eliom_parameters.params_type
     -> 'a t
-  (** [create ?sp param] creates an Up event. [?sp] has to be set to [Some _]
-      if the event is created dynamically.
+  (** [create param] creates an Up event.
       If [~name] is present, the coservice used to transmit the event will
       always have the same name, even if the server is restarted.
       [~scope] describes the visibility of the event. By default, it is
-      [`Global] is [~sp] is not specified, [`Client_process] otherwise.
+      [`Global] if it is called during initialisation,
+      [`Client_process] otherwise.
   *)
 
 end

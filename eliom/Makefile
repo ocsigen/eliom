@@ -10,9 +10,9 @@ FILES:= error_pages.ml \
 	eliommod_gc.ml \
 	eliommod_sessexpl.ml eliommod_sessadmin.ml \
 	eliommod_timeouts.ml eliom_state.ml \
-	eliommod_extensions.ml eliommod_services.ml eliommod_naservices.ml \
+	eliom_extensions.ml eliommod_services.ml eliommod_naservices.ml \
         eliom_client_types.ml eliommod_pagegen.ml \
-	eliommod.ml eliom_extensions.ml\
+	eliommod.ml \
         eliom_parameters_cli.ml eliom_parameters.ml \
 	eliom_process.ml \
 	eliom_services_cli.ml eliom_services.ml \

@@ -26,13 +26,11 @@ open Lwt
 (*****************************************************************************)
 (* Exception handler for the site                                            *)
 
-let def_handler sp e = fail e
+let def_handler e = fail e
 
 let handle_site_exn exn info sitedata =
-  sitedata.Eliom_common.exn_handler
-    (Eliom_state.make_server_params sitedata info None None) exn 
-  >>= fun r -> 
-  return r
+  Eliom_state.make_server_params sitedata info None None >>= fun _ -> 
+  sitedata.Eliom_common.exn_handler exn
 
 
 (*****************************************************************************)
@@ -257,7 +255,7 @@ let gen is_eliom_extension sitedata = function
                     user_tab_cookies) as info) =
     match is_eliom_extension with
       | Some ext -> 
-          Eliommod_extensions.run_eliom_extension ext now info sitedata
+          Eliom_extensions.run_eliom_extension ext now info sitedata
       | None ->
           let genfun =
             match si.Eliom_common.si_nonatt_info with
