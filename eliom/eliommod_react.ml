@@ -46,7 +46,7 @@ struct
        buffer_time=bt;
        react=e;
        name=name} =
-    let chan =
+    let (chan, write) =
       Eliom_comet.Dlisted_channels.create
         ?name
         ~max_size:bs
@@ -55,7 +55,7 @@ struct
     in
     let ee =
       React.E.map
-        (fun x -> Eliom_comet.Dlisted_channels.write chan x)
+        (fun x -> write x)
         (match t with
            | None -> e
            | Some t -> Lwt_event.limit (fun () -> Lwt_unix.sleep t) e

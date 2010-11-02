@@ -35,15 +35,6 @@ let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 
 
-(*TODO: move to Ocsigen_lib? *)
-let filter_map f l =
-  let rec aux ys = function
-    | [] -> List.rev ys
-    | x :: xs -> match f x with
-       | Some y -> aux (y :: ys) xs
-       | None -> aux ys xs
-  in aux [] l
-
 
 (* A module that provides primitive for server-side channel handling. The only
  * needed operations are : creating, writing, getting id, watching listener
@@ -52,11 +43,9 @@ module Channels :
 sig
 
   (* Type of typed channels *)
-  type 'a t = Ocsigen_comet.Channels.t
+  type +'a t = Ocsigen_comet.Channels.t
 
-  val write : 'a t -> 'a -> unit
-
-  val create : ?name:string -> unit -> 'a t
+  val create : ?name:string -> unit -> ('a t * ('a -> unit))
 
   val get_id : 'a t -> 'a Ecc.chan_id
 
@@ -67,11 +56,14 @@ end = struct
 
   let encode s = Marshal.to_string s []
 
-  type 'a t = Ocsigen_comet.Channels.t
-
-  let create ?name () = Ocsigen_comet.Channels.create ?name ()
+  type +'a t = Ocsigen_comet.Channels.t
 
   let write c x = Ocsigen_comet.Channels.write c (encode x, None)
+
+  let create ?name () =
+    let c =
+      Ocsigen_comet.Channels.create ?name ()
+    in (c, write c)
 
   let get_id c = Ecc.chan_id_of_string (Ocsigen_comet.Channels.get_id c)
 
@@ -98,14 +90,11 @@ sig
 
   type 'a t
 
-  val write : 'a t -> 'a -> unit
-
   val create :
        max_size:int
     -> ?timer:float
     -> ?name:string
-    -> unit
-    -> 'a t
+    -> unit -> ('a t * ('a -> unit))
 
   val get_id : 'a t -> 'a Eliom_common_comet.buffered_chan_id
   (** Returns the unique identifier associated to the channel. *)
@@ -119,11 +108,6 @@ end = struct
   module Dlist = Ocsigen_cache.Dlist
 
   type 'a t = Ocsigen_comet.Channels.t * 'a Dlist.t
-
-  let create ~max_size ?timer ?name () =
-    (Ocsigen_comet.Channels.create ?name (),
-     Dlist.create ?timer max_size
-    )
 
   let encode s = Marshal.to_string s []
   let raw_write l (chan, dlist) =
@@ -152,6 +136,13 @@ end = struct
     then () (*TODO: set an observer for listeners and flush as soon as client
                     reconnects*)
     else flush c
+
+  let create ~max_size ?timer ?name () =
+    let c =
+      (Ocsigen_comet.Channels.create ?name (),
+       Dlist.create ?timer max_size
+      )
+    in (c, write c)
 
   let get_id (c, _) =
     Ecc.buffered_chan_id_of_string (Ocsigen_comet.Channels.get_id c)

@@ -137,7 +137,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
 	eliom/extensions/eliom_s2s.cmi eliom/extensions/eliom_openid.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
        eliom/eliom_client_types.cmi \
-       eliom/eliom_event.cmi eliom/eliom_comet.cmi \
+       eliom/eliom_react.cmi eliom/eliom_comet.cmi \
        eliom/extensions/atom_feed.cmi eliom/extensions/eliom_atom.cmi \
        extensions/ocsigen_comet.cmi \
        extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
@@ -239,7 +239,7 @@ CLIENTCMITOINSTALL= \
         eliom/client/eliom_mkforms.cmi \
         eliom/client/eliom_process.cmi \
         eliom/client/xHTML.cmi \
-        eliom/client/eliom_client_event.cmi \
+        eliom/client/eliom_client_react.cmi \
         eliom/client/eliom_request.cmi \
         eliom/client/ocsigen_lib.cmi \
         eliom/client/xhtmltypes.cmi \

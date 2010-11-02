@@ -22,7 +22,7 @@
 (* Module for event wrapping and related functions *)
 
 
-include Eliommod_event
+include Eliommod_react
 
 module Up =
 struct

@@ -26,20 +26,17 @@ module Channels :
     non string type. *)
 sig
 
-  type 'a t
+  type +'a t
   (** The type of channels carrying values of type 'a. Values are marshalled
       before transmission, it is up to the client to properly unmarshall it. The
       [Eliom_client_comet] module provides primitives that allow just that. *)
 
-  val write : 'a t -> 'a -> unit
-  (** [write c x] sends the value [x] over the channel [c]. Every client
-      registered on the said channel will receive the value [x], except in case
-      of connexion interruption. *)
-
-  val create : ?name:string -> unit -> 'a t
-  (** [create ?name ()] returns a fresh channel. If the [name] argument is
-      provided then the channel identifier will be the given value. Note that in
-      this case if the name is already attributed to a channel, the exception
+  val create : ?name:string -> unit -> ('a t * ('a -> unit))
+  (** [create ?name ()] returns a fresh channel and a function to send a message
+      over it. Clients registering on the channel will receive values sent
+      throught the use of the function. If the [name] argument is provided then
+      the channel identifier will be the given value. Note that in this case if
+      the name is already attributed to a channel, the exception
       [Comet.Channels.Non_unique_channel_name] is raised. *)
 
   val get_id : 'a t -> 'a Eliom_common_comet.chan_id
@@ -65,22 +62,18 @@ sig
   (** The type of buffered channels. Such channels transport values of type
       ['a list]. [Eliom_client_comet] provides a module to use these. *)
 
-  val write : 'a t -> 'a -> unit
-  (** [write c x] either sends [x] on [c] or adds it in the buffer associated to
-      [c] if no clients have a connection opened on [c]. When a client reopens a
-      connection to such a channel, the buffer content is flushed. *)
-
   val create :
     max_size:int -> ?timer:float ->
     ?name:string ->
-    unit -> 'a t
-  (** [create ~max_size ?timer ?name ()] returns a fresh channel. The [name]
-    * argument is the same as in [Channels.create] and the same exception is
-    * raised in the same case. The [max_size] value indicates the number of
-    * values that should be kept in the buffer, older values will be deleted
-    * whenever a [write] is performed on a maxed out buffered channel. The
-    * [timer] argument allow for value lifespan control. Values pushed in the
-    * buffer won't be available for more than [timer] seconds. *)
+    unit -> ('a t * ('a -> unit))
+  (** [create ~max_size ?timer ?name ()] returns a fresh channel and a function
+      to send messages on it. The [name] argument is the same as in
+      [Channels.create] and the same exception is raised in the same case. The
+      [max_size] value indicates the number of values that should be kept in the
+      buffer, older values will be deleted whenever a [write] is performed on a
+      maxed out buffered channel. The [timer] argument allow for value lifespan
+      control. Values pushed in the buffer won't be available for more than
+      [timer] seconds. *)
 
   val get_id : 'a t -> 'a Eliom_common_comet.buffered_chan_id
   (** Returns the unique identifier associated to the channel. *)

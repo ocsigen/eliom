@@ -19,10 +19,10 @@ FILES:= error_pages.ml \
         eliommod_cli.ml eliom_config.ml eliommod_mkforms.ml \
         eliom_uri.ml eliom_mkforms.ml eliom_mkreg.ml \
 	eliom_common_comet.ml eliom_comet.ml  \
-	eliommod_event.ml \
+	eliommod_react.ml \
 	eliom_output_cli.ml eliom_output.ml \
         eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
-	eliom_event.ml \
+	eliom_react.ml \
 	extensions/eliom_s2s.ml extensions/eliom_openid.ml \
 	extensions/atom_feed.ml extensions/eliom_atom.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml

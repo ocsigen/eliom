@@ -336,16 +336,16 @@ struct
     );
 
     (function (*up_event*)
-     | <:ctyp< ($_$ Eliom_event.Up.t) >> ->
-         (<:expr<Eliom_event.Up.wrap>>,
-          <:expr<Eliom_client_event.Up.unwrap>>)
+     | <:ctyp< ($_$ Eliom_react.Up.t) >> ->
+         (<:expr<Eliom_react.Up.wrap>>,
+          <:expr<Eliom_client_react.Up.unwrap>>)
      | _ -> raise Next
     );
 
     (function (*down_event*)
-     | <:ctyp< ($_$ Eliom_event.Down.t) >> ->
-         (<:expr<Eliom_event.Down.wrap>>,
-          <:expr<Eliom_client_event.Down.unwrap>>)
+     | <:ctyp< ($_$ Eliom_react.Down.t) >> ->
+         (<:expr<Eliom_react.Down.wrap>>,
+          <:expr<Eliom_client_react.Down.unwrap>>)
      | _ -> raise Next
     );
 

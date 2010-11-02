@@ -3324,8 +3324,8 @@ redir ();"))::
 
                           "var change_page_event = \'" ;
                           (Eliom_client_types.jsmarshal
-                             (Eliommod_event.Down.wrap
-                                (Eliommod_event.Down.of_react change_page_event)
+                             (Eliommod_react.Down.wrap
+                                (Eliommod_react.Down.of_react change_page_event)
                              )
                           ) ; "\'; \n" ;
 
