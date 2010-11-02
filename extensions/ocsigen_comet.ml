@@ -237,7 +237,7 @@ sig
 
   val encode_downgoing :
        Channels.chan_id list
-    -> (Channels.t * string * OStream.outcome Lwt.u option) option
+    -> (Channels.t * string * OStream.outcome Lwt.u option) list option
     -> string OStream.t
     (* Encode outgoing messages : the first argument is the list of channels
      * that have already been collected.
@@ -294,17 +294,25 @@ end = struct
       )
       >|= decode_param_list
 
-  let encode_downgoing_non_opt (c, s, _) =
+  let encode1 (c, s, _) =
     Channels.get_id c ^ field_separator ^ url_encode s
+
+  let encode l = String.concat field_separator (List.map encode1 l)
 
   let encode_ended l =
     String.concat
       channel_separator
       (List.map (fun c -> c ^ field_separator ^ ended_message) l)
 
-  let stream_result_notification s outcome = match s with
-    | (c, _, Some x) -> (Lwt.wakeup x outcome ; Lwt.return ())
-    | (_, _, None) -> Lwt.return ()
+  let stream_result_notification s outcome =
+    Lwt_list.iter_p
+      (function
+         (*when write has been made with outcome notifier*)
+         | (c, _, Some x) -> (Lwt.wakeup x outcome ; Lwt.return ())
+         (*when it hasn't*)
+         | (_, _, None) -> Lwt.return ()
+      )
+      s
 
   let encode_downgoing e = function
     | None -> OStream.of_string (encode_ended e)
@@ -312,10 +320,11 @@ end = struct
         let stream =
           OStream.of_string
             (match e with
-               | [] -> encode_downgoing_non_opt s
+               | [] -> encode s
                | e ->   encode_ended e
                       ^ field_separator
-                      ^ encode_downgoing_non_opt s)
+                      ^ encode s
+            )
         in
         OStream.add_finalizer stream (stream_result_notification s) ;
         stream
@@ -440,11 +449,14 @@ end = struct
 
     | (_::_ as active), ended -> (* generic case *)
         let choosed =
-          Lwt.choose
+          let readings =
             (List.map
                (fun c -> Channels.read c >|= fun (v,x) -> (c, v, x))
                active
             )
+          in
+          (*wait for one thread to terminate and get all terminated threads  *)
+          Lwt.choose readings >>= fun _ -> Lwt.nchoose readings
         in
         List.iter (fun c -> Channels.send_listeners c 1) active ;
         Lwt.catch
