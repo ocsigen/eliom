@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliom_predefmod
+ * Module Eliom_output
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -751,7 +751,7 @@ end
 (*
 (* The sig include A end are a workaround not to have to install
    the clients .cmi *)
-module type XHTMLFORMSSIG = sig include Eliom_predefmod_cli.XHTMLFORMSSIG end
+module type XHTMLFORMSSIG = sig include Eliom_output_cli.XHTMLFORMSSIG end
 *)
 
 
@@ -798,7 +798,7 @@ end
 
 (** {2 Same for html 5} *)
 
-module type XHTML5FORMSSIG = Eliom_predefmod_cli.XHTML5FORMSSIG
+module type XHTML5FORMSSIG = Eliom_output_cli.XHTML5FORMSSIG
 
 module Xhtml5 : sig
 
@@ -1000,7 +1000,7 @@ module Action : Eliom_mkreg.ELIOMREGSIG
 
 (** Like actions, but the page is not reloaded. Just do something and do
    not generate any page. To be used carefully. Probably not usefull at all.
-   (Same as {!Eliom_predefmod.Action} with [`NoReload] option).
+   (Same as {!Eliom_output.Action} with [`NoReload] option).
  *)
 module Unit : Eliom_mkreg.ELIOMREGSIG with
   type page = unit

@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliom_predefmod
+ * Module Eliom_output
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -33,7 +33,7 @@ open Eliom_mkreg
 open Ocsigen_http_frame
 open Ocsigen_http_com
 
-include Eliom_predefmod_cli
+include Eliom_output_cli
 
 module type ELIOMSIG = sig
   include Eliom_mkreg.ELIOMREGSIG
@@ -2383,7 +2383,7 @@ module Action = MakeRegister(Actionreg_)
 
 (** Unit services are like services, do not generate any page, and do not
     reload the page. To be used carefully. Probably not usefull at all.
-    (Same as {!Eliom_predefmod.Action} with [`NoReload] option).
+    (Same as {!Eliom_output.Action} with [`NoReload] option).
  *)
 module Unitreg_ = struct
   open XHTML.M

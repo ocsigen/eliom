@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** This module contains the functions you need to get (or set)
-   information about the request or the session.
+(** This module contains the functions you need to manage server side state
+    (session, session group or client side process data).
  *)
 
 open Ocsigen_extensions
@@ -72,7 +72,82 @@ open Ocsigen_extensions
 
 
 
+(*****************************************************************************)
+(** {2 Closing sessions, removing state data and services} *)
 
+(** Delete server side state data for a session, a group of sessions or
+    a client process. Default scope: [`Session].
+
+    Use that function to close a session (using scope [`Session]).
+
+    Shortcut for {!Eliom_state.discard_services} followed by
+    {!Eliom_state.discard_data}.
+
+    By default will remove both secure and unsecure data and services, but
+    if [~secure] is present.
+
+    Warning: you may also want to remove some data from the polymorphic
+    request data table when closing a session 
+    (See {!Eliom_state.get_request_cache}).
+*)
+val discard :
+  ?state_name:string ->
+  ?scope:Eliom_common.user_scope ->
+  ?secure:bool ->
+  unit ->
+  unit Lwt.t
+
+(** close_session is a synonymous for [discard ~scope:`Session] *)
+val close_session :
+  ?state_name:string ->
+  ?secure:bool ->
+  unit ->
+  unit Lwt.t
+
+(** close_group is a synonymous for [discard ~scope:`Session_group] *)
+val close_group :
+  ?state_name:string ->
+  ?secure:bool ->
+  unit ->
+  unit Lwt.t
+
+(** Remove current state data.
+
+    If the optional parameter [?persistent] is not present, will
+    remove both volatile and persistent data. Otherwise only volatile
+    or persistent data.
+ *)
+val discard_data :
+  ?persistent:bool ->
+  ?state_name:string ->
+  ?scope:Eliom_common.user_scope ->
+  ?secure:bool ->
+  unit ->
+  unit Lwt.t
+
+(** Remove all services registered for the given scope (the default beeing
+    [`Session]). *)
+val discard_services :
+  ?state_name:string ->
+  ?scope:Eliom_common.user_scope ->
+  ?secure:bool ->
+  unit ->
+  unit
+
+
+
+(*****************************************************************************)
+(** {2 User cookies} *)
+
+val set_cookie :
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?path:string list ->
+  ?exp:float -> name:string -> value:string -> ?secure:bool -> unit -> unit
+
+val unset_cookie :
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?path:string list ->
+  name:string -> unit -> unit
 
 
 (*****************************************************************************)
@@ -111,195 +186,43 @@ val persistent_data_state_status :
   unit -> state_status Lwt.t
 
 
-(** {3 Global configuration of session timeouts} *)
 
-(** The following functions set the timeout for sessions, for the
-    different kinds of session.  The sessions will be closed after
-    this amount of time of inactivity from the user. [None] means no
-    timeout.
+(*****************************************************************************)
+(** {2 Getting information about the URL of the client side process}
 
-    The optional parameter [?recompute_expdates] is [false] by
-    default.  If you set it to [true], the expiration dates for all
-    sessions in the table will be recomputed with the new timeout.
-    That is, the difference between the new timeout and the old one
-    will be added to their expiration dates (by another Lwt thread).
-    Sessions whose timeout has been set individually with
-    {!Eliom_state.set_volatile_state_timeout} won't be affected.
+    Warning: it is different from the URL to which the request has been made.
+    To get information about the current request, see module {Eliom_request_info}.
 
-    If [~state_name] is not present, it is the default for all session names,
-    and in that case [recompute_expdates] is ignored. [~state_name:None]
-    means the default session name.
-
-    If [~override_configfile] is [true] (default ([false]),
-    then the function will set the timeout even if it has been
-    modified in the configuration file.
-    It means that by default, these functions have no effect
-    if there is a value in the configuration file.
-    This gives the ability to override the values choosen by the module
-    in the configuration file.
-    Use [~override_configfile:true] for example if your
-    Eliom module wants to change the values afterwards
-    (for example in the site configuration Web interface).
-
-    {e Warning: If you use one of these functions after the
-    initialisation phase, you must give the [~sp] parameter, otherwise
-    it will raise the exception
-    {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
-   If you are using static linking, you must delay the call to these functions
-   until the configuration file is read, using
-   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
-   this exception.
-   This remark also applies to most [get_*] functions.}
-*)
-
-(** Sets the timeout for volatile (= "in memory") sessions (both
-    service session and volatile data session) (server side).
-*)
-val set_global_volatile_state_timeout :
-  ?state_name:string option -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?recompute_expdates:bool -> 
-  ?override_configfile:bool ->
-  float option -> unit
-
-(** Sets the timeout for service states (server side).
-*)
-val set_global_service_state_timeout :
-  ?state_name:string option -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?recompute_expdates:bool -> 
-  ?override_configfile:bool ->
-  float option -> unit
-
-(** Sets the timeout for volatile (= "in memory") data states (server side).
-*)
-val set_global_volatile_data_state_timeout :
-  ?state_name:string option -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?recompute_expdates:bool -> 
-  ?override_configfile:bool ->
-  float option -> unit
-
-(** Sets the timeout for persistent states (server side).
-*)
-val set_global_persistent_data_state_timeout :
-  ?state_name:string option ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?recompute_expdates:bool ->
-  ?override_configfile:bool ->
-  float option -> unit
-
-
-
-
-
-
-(** Returns the timeout for service states (server side).
-*)
-val get_global_service_state_timeout :
-  ?state_name:string ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  unit -> float option
-
-(** Returns the timeout for "volatile data" states (server side).
-*)
-val get_global_volatile_data_state_timeout :
-  ?state_name:string ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  unit -> float option
-
-(** Returns the timeout for persistent states (server side).
-*)
-val get_global_persistent_data_state_timeout :
-  ?state_name:string ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  unit -> float option
-
-
-
-(** {3 Personalizing state timeouts} *)
-
-(** sets the timeout for service state (server side) for one user,
-   in seconds. [None] = no timeout *)
-val set_service_state_timeout :
-  ?state_name:string -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  float option -> unit
-
-(** remove the service state timeout for one user
-   (and turn back to the default). *)
-val unset_service_state_timeout :
-  ?state_name:string -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  unit -> unit
-
-(** returns the timeout for current service state.
-    [None] = no timeout
+   {3 General information}
  *)
-val get_service_state_timeout :
-  ?state_name:string -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  unit -> float option
 
+(** returns the full path of the URL where the process is running *)
+val get_original_full_path : unit -> Ocsigen_lib.url_path
 
-
-
-(** sets the timeout for volatile data state (server side) for one user,
-   in seconds. [None] = no timeout *)
-val set_volatile_data_state_timeout :
-  ?state_name:string -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  float option -> unit
-
-(** remove the "volatile data" state timeout for one user
-   (and turn back to the default). *)
-val unset_volatile_data_state_timeout :
-  ?state_name:string -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  unit -> unit
-
-(** returns the timeout for current volatile data state.
-    [None] = no timeout
+(** returns the hostname used for absolute links, computed
+    when launching the client side process for the first time.
+    If there is no client side process, same as {!Eliom_request_info.get_hostname}
+    It is either the [Host] header sent by the browser or the default hostname
+    set in the configuration file, depending on server configuration
+    ([<usedefaulthostname/>] option).
  *)
-val get_volatile_data_state_timeout :
-  ?state_name:string -> 
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  unit -> float option
+val get_hostname : unit -> string
+
+(** returns the port of the server, used when launching the client side process
+    (not the current request). It corresponds to the port in the URL of 
+    the browser.
+    If there is no client side process, same as
+    {!Eliom_request_info.get_server_port}.
+*)
+val get_server_port : unit -> int
+
+(** returns true if https is used in the URL of the browser, false if http.
+    If there is no client side process, same as {!Eliom_request_info.get_ssl}.
+*)
+val get_ssl : unit -> bool
 
 
 
-
-
-
-
-(** sets the timeout for persistent state (server side) for one user,
-   in seconds. [None] = no timeout *)
-val set_persistent_data_state_timeout : 
-  ?state_name:string ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  float option -> unit Lwt.t
-
-(** remove the persistent state timeout for one user
-   (and turn back to the default). *)
-val unset_persistent_data_state_timeout : 
-  ?state_name:string ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  unit -> unit Lwt.t
-
-(** returns the persistent state timeout for one user. [None] = no timeout *)
-val get_persistent_data_state_timeout : 
-  ?state_name:string ->
-  ?cookie_scope:Eliom_common.cookie_scope ->
-  ?secure:bool ->
-  unit -> float option Lwt.t
 
 
 (** {3 Session groups} *)
@@ -534,6 +457,8 @@ val set_max_volatile_sessions_for_group_or_subnet :
 (*VVV renommer! *)
 
 
+
+
 (** {3 Session cookies} *)
 
 (** The functions in this section ask the browser to set the cookie
@@ -579,82 +504,196 @@ val set_persistent_data_cookie_exp_date :
 
 
 
-(*****************************************************************************)
-(** {2 Closing sessions, removing state data and services} *)
+(** {3 Global configuration of session timeouts} *)
 
-(** Delete server side state data for a session, a group of sessions or
-    a client process. Default scope: [`Session].
+(** The following functions set the timeout for sessions, for the
+    different kinds of session.  The sessions will be closed after
+    this amount of time of inactivity from the user. [None] means no
+    timeout.
 
-    Use that function to close a session (using scope [`Session]).
+    The optional parameter [?recompute_expdates] is [false] by
+    default.  If you set it to [true], the expiration dates for all
+    sessions in the table will be recomputed with the new timeout.
+    That is, the difference between the new timeout and the old one
+    will be added to their expiration dates (by another Lwt thread).
+    Sessions whose timeout has been set individually with
+    {!Eliom_state.set_volatile_state_timeout} won't be affected.
 
-    Shortcut for {!Eliom_state.discard_services} followed by
-    {!Eliom_state.discard_data}.
+    If [~state_name] is not present, it is the default for all session names,
+    and in that case [recompute_expdates] is ignored. [~state_name:None]
+    means the default session name.
 
-    By default will remove both secure and unsecure data and services, but
-    if [~secure] is present.
+    If [~override_configfile] is [true] (default ([false]),
+    then the function will set the timeout even if it has been
+    modified in the configuration file.
+    It means that by default, these functions have no effect
+    if there is a value in the configuration file.
+    This gives the ability to override the values choosen by the module
+    in the configuration file.
+    Use [~override_configfile:true] for example if your
+    Eliom module wants to change the values afterwards
+    (for example in the site configuration Web interface).
 
-    Warning: you may also want to remove some data from the polymorphic
-    request data table when closing a session 
-    (See {!Eliom_state.get_request_cache}).
+    {e Warning: If you use one of these functions after the
+    initialisation phase, you must give the [~sp] parameter, otherwise
+    it will raise the exception
+    {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you are using static linking, you must delay the call to these functions
+   until the configuration file is read, using
+   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+   this exception.
+   This remark also applies to most [get_*] functions.}
 *)
-val discard :
+
+(** Sets the timeout for volatile (= "in memory") sessions (both
+    service session and volatile data session) (server side).
+*)
+val set_global_volatile_state_timeout :
+  ?state_name:string option -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?recompute_expdates:bool -> 
+  ?override_configfile:bool ->
+  float option -> unit
+
+(** Sets the timeout for service states (server side).
+*)
+val set_global_service_state_timeout :
+  ?state_name:string option -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?recompute_expdates:bool -> 
+  ?override_configfile:bool ->
+  float option -> unit
+
+(** Sets the timeout for volatile (= "in memory") data states (server side).
+*)
+val set_global_volatile_data_state_timeout :
+  ?state_name:string option -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?recompute_expdates:bool -> 
+  ?override_configfile:bool ->
+  float option -> unit
+
+(** Sets the timeout for persistent states (server side).
+*)
+val set_global_persistent_data_state_timeout :
+  ?state_name:string option ->
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?recompute_expdates:bool ->
+  ?override_configfile:bool ->
+  float option -> unit
+
+
+
+
+
+(** Returns the timeout for service states (server side).
+*)
+val get_global_service_state_timeout :
   ?state_name:string ->
-  ?scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  unit ->
-  unit Lwt.t
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  unit -> float option
 
-(** close_session is a synonymous for [discard ~scope:`Session] *)
-val close_session :
+(** Returns the timeout for "volatile data" states (server side).
+*)
+val get_global_volatile_data_state_timeout :
   ?state_name:string ->
-  ?secure:bool ->
-  unit ->
-  unit Lwt.t
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  unit -> float option
 
-(** close_group is a synonymous for [discard ~scope:`Session_group] *)
-val close_group :
+(** Returns the timeout for persistent states (server side).
+*)
+val get_global_persistent_data_state_timeout :
   ?state_name:string ->
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  unit -> float option
+
+
+
+(** {3 Personalizing state timeouts} *)
+
+(** sets the timeout for service state (server side) for one user,
+   in seconds. [None] = no timeout *)
+val set_service_state_timeout :
+  ?state_name:string -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
   ?secure:bool ->
-  unit ->
-  unit Lwt.t
+  float option -> unit
 
-(** Remove current state data.
+(** remove the service state timeout for one user
+   (and turn back to the default). *)
+val unset_service_state_timeout :
+  ?state_name:string -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?secure:bool ->
+  unit -> unit
 
-    If the optional parameter [?persistent] is not present, will
-    remove both volatile and persistent data. Otherwise only volatile
-    or persistent data.
+(** returns the timeout for current service state.
+    [None] = no timeout
  *)
-val discard_data :
-  ?persistent:bool ->
-  ?state_name:string ->
-  ?scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  unit ->
-  unit Lwt.t
-
-(** Remove all services registered for the given scope (the default beeing
-    [`Session]). *)
-val discard_services :
-  ?state_name:string ->
-  ?scope:Eliom_common.user_scope ->
-  ?secure:bool ->
-  unit ->
-  unit
-
-
-
-(*****************************************************************************)
-(** {2 User cookies} *)
-
-val set_cookie :
+val get_service_state_timeout :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?path:string list ->
-  ?exp:float -> name:string -> value:string -> ?secure:bool -> unit -> unit
+  ?secure:bool ->
+  unit -> float option
 
-val unset_cookie :
+
+
+
+(** sets the timeout for volatile data state (server side) for one user,
+   in seconds. [None] = no timeout *)
+val set_volatile_data_state_timeout :
+  ?state_name:string -> 
   ?cookie_scope:Eliom_common.cookie_scope ->
-  ?path:string list ->
-  name:string -> unit -> unit
+  ?secure:bool ->
+  float option -> unit
+
+(** remove the "volatile data" state timeout for one user
+   (and turn back to the default). *)
+val unset_volatile_data_state_timeout :
+  ?state_name:string -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?secure:bool ->
+  unit -> unit
+
+(** returns the timeout for current volatile data state.
+    [None] = no timeout
+ *)
+val get_volatile_data_state_timeout :
+  ?state_name:string -> 
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?secure:bool ->
+  unit -> float option
+
+
+
+
+
+
+
+(** sets the timeout for persistent state (server side) for one user,
+   in seconds. [None] = no timeout *)
+val set_persistent_data_state_timeout : 
+  ?state_name:string ->
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?secure:bool ->
+  float option -> unit Lwt.t
+
+(** remove the persistent state timeout for one user
+   (and turn back to the default). *)
+val unset_persistent_data_state_timeout : 
+  ?state_name:string ->
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?secure:bool ->
+  unit -> unit Lwt.t
+
+(** returns the persistent state timeout for one user. [None] = no timeout *)
+val get_persistent_data_state_timeout : 
+  ?state_name:string ->
+  ?cookie_scope:Eliom_common.cookie_scope ->
+  ?secure:bool ->
+  unit -> float option Lwt.t
+
+
 
 
 
@@ -972,42 +1011,6 @@ module Session_admin : sig
     (persistent_session -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
 end
-
-
-
-(*****************************************************************************)
-(** {2 Getting information about the URL of the client side process}
-
-    Warning: it is different from the URL to which the request has been made.
-    To get information about the current request, see module {Eliom_request_info}.
-
-   {3 General information}
- *)
-
-(** returns the full path of the URL where the process is running *)
-val get_original_full_path : unit -> Ocsigen_lib.url_path
-
-(** returns the hostname used for absolute links, computed
-    when launching the client side process for the first time.
-    If there is no client side process, same as {!Eliom_request_info.get_hostname}
-    It is either the [Host] header sent by the browser or the default hostname
-    set in the configuration file, depending on server configuration
-    ([<usedefaulthostname/>] option).
- *)
-val get_hostname : unit -> string
-
-(** returns the port of the server, used when launching the client side process
-    (not the current request). It corresponds to the port in the URL of 
-    the browser.
-    If there is no client side process, same as
-    {!Eliom_request_info.get_server_port}.
-*)
-val get_server_port : unit -> int
-
-(** returns true if https is used in the URL of the browser, false if http.
-    If there is no client side process, same as {!Eliom_request_info.get_ssl}.
-*)
-val get_ssl : unit -> bool
 
 
 
