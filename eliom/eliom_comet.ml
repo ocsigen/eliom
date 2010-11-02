@@ -85,7 +85,7 @@ end
  * succeeding.
  * *)
 
-module Dlisted_channels :
+module Buffered_channels :
 sig
 
   type 'a t

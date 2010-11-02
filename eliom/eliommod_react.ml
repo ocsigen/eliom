@@ -47,7 +47,7 @@ struct
        react=e;
        name=name} =
     let (chan, write) =
-      Eliom_comet.Dlisted_channels.create
+      Eliom_comet.Buffered_channels.create
         ?name
         ~max_size:bs
         ?timer:bt
@@ -63,6 +63,6 @@ struct
     in
     let `R r = React.E.retain e (fun () -> ()) in
     let `R _ = React.E.retain e (fun () -> r () ; ignore chan ; ignore ee) in
-    Eliom_comet.Dlisted_channels.wrap chan
+    Eliom_comet.Buffered_channels.wrap chan
 
 end

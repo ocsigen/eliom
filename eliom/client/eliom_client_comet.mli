@@ -72,7 +72,7 @@ sig
 
 end
 
-module Dlisted_channels :
+module Buffered_channels :
 (** [Dlisted_channels] is a module for buffered channels manipulation. Such a
     channel tends not to lose as many messages. All the functions have the same
     semantic, the only difference is in implementation, mainly on the server

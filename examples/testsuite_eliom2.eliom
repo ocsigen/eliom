@@ -548,7 +548,7 @@ let comet1 =
     ~get_params:unit
     (fun () () ->
        let (c2, write_c2) =
-         Eliom_comet.Dlisted_channels.create ~max_size:6 ~timer:16. ()
+         Eliom_comet.Buffered_channels.create ~max_size:6 ~timer:16. ()
        in
        let t2 = ref 0 in
        let rec tick_2 () =
@@ -567,7 +567,7 @@ let comet1 =
                   (Js.string ("public: "^ string_of_int i ^";  "))) ;
              Lwt.return ()
            );
-           Eliom_client_comet.Dlisted_channels.register \(c2)
+           Eliom_client_comet.Buffered_channels.register \(c2)
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode

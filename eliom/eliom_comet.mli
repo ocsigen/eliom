@@ -53,7 +53,7 @@ sig
 
 end
 
-module Dlisted_channels :
+module Buffered_channels :
 (** A module with primitives needed for buffered channels manipulation. A
     buffered channel will not loose data (except for user specified case). *)
 sig

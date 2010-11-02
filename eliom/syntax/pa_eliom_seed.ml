@@ -329,9 +329,9 @@ struct
     );
 
     (function (*buffchan*)
-     | <:ctyp< ($_$ Eliom_comet.Dlisted_channels.t) >> ->
-         (<:expr<Eliom_comet.Dlisted_channels.wrap>>,
-          <:expr<Eliom_client_comet.Dlisted_channels.unwrap>>)
+     | <:ctyp< ($_$ Eliom_comet.Buffered_channels.t) >> ->
+         (<:expr<Eliom_comet.Buffered_channels.wrap>>,
+          <:expr<Eliom_client_comet.Buffered_channels.unwrap>>)
      | _ -> raise Next
     );
 
