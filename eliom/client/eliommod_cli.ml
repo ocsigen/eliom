@@ -69,22 +69,24 @@ let rec relink_dom timeofday root =
       | None ->
 	()
     end ;
-(*VVV How to avoid the Unsafe.coerce? *)
-    let children = (Js.Unsafe.coerce root##childNodes : 
-                      Dom_html.element Dom.nodeList Js.t)
-    in
-    relink_dom_list timeofday children subs
-and relink_dom_list timeofday 
-    (dom_nodes : Dom_html.element Dom.nodeList Js.t) subs =
+    relink_dom_list timeofday (root##childNodes) subs
+and relink_dom_list timeofday dom_nodes subs =
+  let j = ref (-1) in
+  let k = ref (-1) in
   List.iter
-    (fun (n, sub) ->
-      relink_dom timeofday (dom_nodes##item (n)) sub
-    )
+    (fun (i, sub) ->
+       while !j < i do
+         incr k;
+         let node = dom_nodes##item (!k) in
+         if node##nodeType = Dom.ELEMENT then incr j;
+         if i = !j then
+           relink_dom timeofday (Js.Unsafe.coerce node) sub
+       done)
     subs
 
-
-
-
+let relink_dom_list =
+  (relink_dom_list :  _ ->  Dom.node Dom.nodeList Js.t -> _
+                   :> _ -> #Dom.node Dom.nodeList Js.t -> _)
 
 (* == unwraping server data *)
 

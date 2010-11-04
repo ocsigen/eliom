@@ -150,10 +150,7 @@ let load_eliom_data_
     | Ocsigen_lib.Left ref_tree ->
       Eliommod_cli.relink_dom timeofday node ref_tree;
     | Ocsigen_lib.Right ref_tree_list ->
-      Eliommod_cli.relink_dom_list 
-        timeofday
-        (Js.Unsafe.coerce node##childNodes : Dom_html.element Dom.nodeList Js.t)
-        ref_tree_list);
+      Eliommod_cli.relink_dom_list timeofday (node##childNodes) ref_tree_list);
   Eliommod_cli.fill_page_data_table page_data;
   Eliommod_client_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;

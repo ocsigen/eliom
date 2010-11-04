@@ -32,7 +32,7 @@ val unwrap_node : Dom_html.element Js.t Eliom_client_types.data_key -> Dom_html.
 
 (**/**)
 val relink_dom : int64 -> Dom_html.element Js.t -> XML.ref_tree -> unit
-val relink_dom_list : int64 -> Dom_html.element Dom.nodeList Js.t -> (int * XML.ref_tree) list -> unit
+val relink_dom_list : int64 -> #Dom.node Dom.nodeList Js.t -> (int * XML.ref_tree) list -> unit
 val fill_page_data_table : (int64 * int) * unit list -> unit
 
 
