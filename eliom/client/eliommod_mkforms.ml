@@ -29,7 +29,8 @@ let remove_tab_cookie_fields (node : #Dom.node Js.t) =
   let children = node##childNodes in
   let toremove = ref [] in
   for i = children##length - 1 downto 0 do
-      let child = children##item (i) in
+      let child =
+        Js.Optdef.get (children##item (i)) (fun () -> assert false) in
       if child##nodeType = Dom.ELEMENT
       then let child' : #Dom.element Js.t = Js.Unsafe.coerce child in
            let classes = Ocsigen_lib.split

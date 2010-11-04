@@ -77,7 +77,8 @@ and relink_dom_list timeofday dom_nodes subs =
     (fun (i, sub) ->
        while !j < i do
          incr k;
-         let node = dom_nodes##item (!k) in
+         let node =
+           Js.Optdef.get (dom_nodes##item (!k)) (fun () -> assert false) in
          if node##nodeType = Dom.ELEMENT then incr j;
          if i = !j then
            relink_dom timeofday (Js.Unsafe.coerce node) sub

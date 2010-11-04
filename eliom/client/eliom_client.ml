@@ -281,7 +281,8 @@ let get_subpage
       let nodes = fake_page##childNodes in
       let node_list = ref [] in
       for i = nodes##length - 1 downto 0 do
-        node_list := nodes##item (i) :: !node_list
+        node_list := Js.Optdef.get (nodes##item (i)) (fun () -> assert false)
+                     :: !node_list
       done;
   
       load_eliom_data_ ed fake_page >>= fun () ->
