@@ -62,7 +62,8 @@ sig
       engine.  If the engine wasn't running it is automatically started.
       Whenever a message [m] from the server reaches the client over the channel
       [c], the function [f] is called with [m] as argument. Calls to [f] are not
-      sequentialized.
+      sequentialized. When [c] has already been registered, calling
+      [register c f] replaces the function [f] associated to [c].
       *)
 
   val unregister : 'a Eliom_common_comet.chan_id -> unit
