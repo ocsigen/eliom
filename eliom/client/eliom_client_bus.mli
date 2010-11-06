@@ -20,10 +20,14 @@
  *)
 
 type 'a t
+(** The type of bus's with values of type ['a]. *)
 
 val write : 'a t -> 'a -> unit Lwt.t
+(** [write b x] sends the message [x] on the bus [b]. *)
 
 val set_handler : 'a t -> ('a -> unit Lwt.t) -> unit
+(** [set_handler b handler] sets the handler for bus [b]. Following messages on
+    the bus [b] will be treated with function [handler]. *)
 
 val unwrap :
     (  ('a Eliom_common_comet.buffered_chan_id)

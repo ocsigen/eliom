@@ -58,7 +58,7 @@ let create ?scope ?name handler =
       write   = push;
       handler = handler;
       service = distant_write;
-    }  
+    }
   in
 
   (*The handler*)

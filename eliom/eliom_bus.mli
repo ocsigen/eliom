@@ -30,16 +30,20 @@ val create :
      ?scope:Eliom_common.scope -> ?name:string
   -> ('a -> unit Lwt.t)
   -> 'a t
-(** [create ?name handler] makes a fresh bus. The [name] optional parameter can
-  * be used to make persistent (as in server restart persistent) bus's. Names
-  * must be unique, and can't even be shared with a channel. The function
-  * [handler] is associated to [b] on the server at creation. *)
+(** [create ?scope ?name handler] makes a fresh bus. The [name] optional
+    parameter can be used to make persistent (as in server restart persistent)
+    bus's. The function [handler] is associated to [b] on the server at
+    creation. The [scope] argument is passed to the underlying service creation
+    function. The [?name] argument allow one to make bus's persistent over
+    server restart. *)
 
 val write : 'a t -> 'a -> unit
 (** [write b x] sends the value [x] on the bus [b]. Every participant will
-  * execute the handler it set for [b] automaticcaly. *)
+    execute the handler it set for [b] automaticcaly. *)
 
 val set_handler : 'a t -> ('a -> unit Lwt.t) -> unit
+(** [set_handler bus handler] sets the [bus] handler. Subsequent messages on the
+    [bus] will trigger [handler].*)
 
 val wrap :
      'a t
