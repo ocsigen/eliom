@@ -645,7 +645,6 @@ let comet3 =
        let e_up_react = Eliom_react.Up.to_react e_up in
        let e_down_1 =
          Eliom_react.Down.of_react
-           ~throttling:5.
            (React.E.map
               (let i = ref 0 in fun _ -> incr i ; !i)
               e_up_react
@@ -672,57 +671,39 @@ let comet3 =
        (* We can send the page *)
        Lwt.return [
          h2 [pcdata "Simultaneous events"] ;
-         div (*TODO: simplify up_event unwrapping *)
+         div
            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ \(e_up) "" }} ]
            [pcdata "Send me two values from different events !"] ;
-         div [pcdata "Note that one of the two events has a greater rate limit \
-                      (using throttle control). Hence you might receive only \
-                      one if you click with high frequency."] ;
        ]
     )
 
 
 
 (*wiki*
- Here is the code for a small minimalist message board.
+ Here is the code for a minimalistic message board.
  *wiki*)
 
-(* First is the event on the server corresponding to a new message. *)
-let message_up = Eliom_react.Up.create (Eliom_parameters.caml "content" : (string, 'aa, 'aaa) params_type)
+let message_bus = Eliom_bus.create (fun (_:string) -> Lwt.return ())
 
-
-(* Then is the page hosting the board *)
 let comet_message_board =
   Eliom_appl.register_service
     ~path:["message_board"]
     ~get_params:unit
     (fun () () ->
-       let message_down =
-         Eliom_react.Down.of_react
-           ~buffer_size:15
-           ~buffer_time:10.
-           (React.E.map (fun x -> x)
-              (Eliom_react.Up.to_react message_up)
-           )
-       in
 
        Lwt.return (
          let container = ul [li [em [pcdata "This is the message board"]]] in
          let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
-         let go_online =
+         Eliom_services.onload
            {{
-             ignore (
-               React.E.map
-                 (fun msg ->
-                   Dom.appendChild \(container)
-                     (XHTML5.M.toelt (li [pcdata msg]))
-                 )
-                 \(message_down)
-             ) ;
-             Eliom_client_comet.Engine.start ()
-           }}
-         in
-         Eliom_services.onload go_online;
+             Eliom_client_bus.set_handler
+               \(message_bus)
+               (fun msg ->
+                 Dom.appendChild \(container)
+                   (XHTML5.M.toelt (li [pcdata msg]));
+                 Lwt.return ()
+               )
+           }} ;
 
          let go =
            div
@@ -741,23 +722,13 @@ let comet_message_board =
                     in
                     let v = Js.to_string field##value in
                     field##value <- Js.string "" ;
-                    \(message_up) v
+                    Eliom_client_bus.write \(message_bus) v
                   }}
              ]
              [pcdata "send"]
          in
 
          [ h2 [pcdata "Message board"];
-           div
-             ~a:[ (*zap* *)a_class ["clickable"];(* *zap*)
-                  a_onclick go_online
-                ]
-             [pcdata "Go online"];
-           div
-             ~a:[ (*zap* *)a_class ["clickable"];(* *zap*)
-                  a_onclick {{ Eliom_client_comet.Engine.stop () }}
-                ]
-             [pcdata "Go offline"];
            form ~a:[a_action (uri_of_string "")] (div [field; go]) [];
            container;
          ])

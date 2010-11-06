@@ -19,35 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* Module for event unwrapping *)
 let (>|=) = Lwt.(>|=)
 
+type 'a t =
+  {
+    channel : 'a Eliom_common_comet.buffered_chan_id ;
+    write : 'a -> unit Lwt.t;
+  }
 
+let write b x = b.write x
 
-module Down =
-struct
+let set_handler bus h =
+  Eliom_client_comet.Buffered_channels.register bus.channel h
 
-  let unwrap
-        (c : 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key)
-        : 'a React.E.t
-    =
-    let chan : 'a Eliom_common_comet.buffered_chan_id =
-      Eliom_client_comet.Buffered_channels.unwrap c
-    in
-    let (e, push) = React.E.create () in
-    Eliom_client_comet.Buffered_channels.register
-      chan
-      (fun s -> push s ; Lwt.return ()) ;
-    e
-
-end
-
-module Up =
-struct
-
-  let unwrap s =
-    let service = Eliommod_cli.unwrap s in
-    fun x -> Eliom_client.call_service ~service () x >|= fun _ -> ()
-
-end
-
+let unwrap w =
+  let (c, service) = Eliommod_cli.unwrap w in
+  {
+    channel = c;
+    write =
+      (fun x -> Eliom_client.call_service ~service () x
+                >|= (fun _ -> ()));
+  }

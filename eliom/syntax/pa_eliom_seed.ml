@@ -349,6 +349,14 @@ struct
      | _ -> raise Next
     );
 
+    (function (*bus*)
+     | <:ctyp< ($_$ Eliom_bus.t) >> ->
+         (<:expr<Eliom_bus.wrap>>,
+          <:expr<Eliom_client_bus.unwrap>>)
+     | _ -> raise Next
+    );
+    
+
     (* magic wrapper *)
     (let rec aux = function (*TODO: complete it*)
        | <:ctyp< float >> | <:ctyp< int >>

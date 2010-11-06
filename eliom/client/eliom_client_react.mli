@@ -38,16 +38,6 @@ module Up :
 sig
 
   val unwrap :
-    (* WAS (but didn't type) :
-    (unit,
-     'a,
-     [ `Nonattached of [ `Post ] Eliom_services.na_s ],
-     [ `WithoutSuffix ],
-     unit,
-     [`One of 'a] Eliom_parameters.param_name,
-     [ `Registrable ], Eliom_services.http)
-       Eliom_services.service
-     *)
     (unit,
      'a,
      [< Eliom_services.service_kind ],
@@ -57,6 +47,8 @@ sig
      [< Eliom_services.registrable ],
      'd)
         Eliom_services.service Eliom_client_types.data_key
-  -> ('a -> string Lwt.t)
+  -> ('a -> unit Lwt.t)
+  (** [unwrap e] returns a function that, when called, triggers the transmitted
+      event on the server. The thread returns when the write is done. *)
 
 end

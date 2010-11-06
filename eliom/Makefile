@@ -23,6 +23,7 @@ FILES:= error_pages.ml \
 	eliom_output_cli.ml eliom_output.ml \
         eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
 	eliom_react.ml \
+	eliom_bus.ml \
 	extensions/eliom_s2s.ml extensions/eliom_openid.ml \
 	extensions/atom_feed.ml extensions/eliom_atom.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
