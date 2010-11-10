@@ -144,14 +144,14 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
                 {{Eliom_client.exit_to
-                    ~service:\(Tutoeliom.coucou) (* just as [coucou] *)
+                    ~service:!$(Tutoeliom.coucou) (* just as [coucou] *)
                     () ()
                 }}
             ]
             [pcdata "Click here to go to another page."];
 
 (*wiki*
-To use server values inside client code one should use the syntax {{{ \(e) }}}
+To use server values inside client code one should use the syntax {{{ !$(e) }}}
 where {{{k}}} is the wrapper keyword and {{{e}}} the sent expression. Note that
 {{{e}}} is evaluated by the server and the resulting value is send to the
 client at loading time.
@@ -196,7 +196,7 @@ client at loading time.
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_url
-                  ~service:\(Tutoeliom.coucou)
+                  ~service:!$(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -210,7 +210,7 @@ client at loading time.
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
                 {{Eliom_client.change_page
-                    ~service:\(eliomclient1)
+                    ~service:!$(eliomclient1)
                     () ()
                 }}
             ]
@@ -228,7 +228,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick{{
-                Eliom_client.change_page ~service:\(Tutoeliom.coucou)
+                Eliom_client.change_page ~service:!$(Tutoeliom.coucou)
                   () ()
               }}
             ]
@@ -238,14 +238,14 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.exit_to ~service:\(eliomclient2) () ()
+                Eliom_client.exit_to ~service:!$(eliomclient2) () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_page ~service:\(eliomclient1)
+                Eliom_client.change_page ~service:!$(eliomclient1)
                   () ()
               }}
             ]
@@ -260,7 +260,7 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.get_subpage ~service:\(eliomclient1)
+                Eliom_client.get_subpage ~service:!$(eliomclient1)
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -278,7 +278,7 @@ client at loading time.
            div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                                a_onclick {{
                                  Dom.appendChild
-                                   \(container) (* node is the wrapper keyword for XHTML5.M nodes. *)
+                                   !$(container) (* node is the wrapper keyword for XHTML5.M nodes. *)
                                    (XHTML5.M.toelt (item ()))
                                }}
                   ]
@@ -294,7 +294,7 @@ client at loading time.
           (let my_value = 1.12345 in
            p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Dom_html.window##alert
-                     (Js.string (string_of_float \(my_value))) ;
+                     (Js.string (string_of_float !$(my_value))) ;
                    Lwt.return ()
                 }}
                 ]
@@ -309,8 +309,8 @@ client at loading time.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                let coucou = \(Tutoeliom.coucou) in
-                let eliomclient1 = \(eliomclient1) in
+                let coucou = !$(Tutoeliom.coucou) in
+                let eliomclient1 = !$(eliomclient1) in
                 (Dom.appendChild
                    (Dom_html.document##body)
                    (XHTML5.M.toelt
@@ -360,7 +360,7 @@ let eliomclient3 =
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Eliom_client.change_page
-                     ~service:\(eliomclient3')
+                     ~service:!$(eliomclient3')
                      () (299, "oo", ["a";"b";"c"])
                 }}
               ]
@@ -386,7 +386,7 @@ let eliomclient4 =
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~service:\(eliomclient4')
+                     ~service:!$(eliomclient4')
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
@@ -427,7 +427,7 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~service:\(gotowithoutclient)
+                  ~service:!$(gotowithoutclient)
                   () ()
               }}
             ]
@@ -445,7 +445,7 @@ let _ =
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 Eliom_client.change_page
-                  ~service:\(withoutclient)
+                  ~service:!$(withoutclient)
                   () ()
               }}
             ]
@@ -469,17 +469,17 @@ let on_load =
       in
       Eliom_services.onload
         {{ Lwt_js.sleep 1. >|= fun () ->
-           Dom.appendChild \(div)
+           Dom.appendChild !$(div)
              (XHTML5.M.toelt (p [pcdata "on_load executed after 1s."]))
          }};
       Eliom_services.onload
         {{ Lwt_js.sleep 3. >|= fun () ->
-           Dom.appendChild \(div)
+           Dom.appendChild !$(div)
              (XHTML5.M.toelt (p [pcdata "on_load executed after 3s."]))
          }};
       Eliom_services.onunload
         {{
-          Dom.appendChild \(div)
+          Dom.appendChild !$(div)
           (XHTML5.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
           Lwt_js.sleep 1.
         }};
@@ -498,8 +498,8 @@ let uri_test =
             ]
       in
       Eliom_services.onload
-        {{ Dom.appendChild \(div)
-             (XHTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:\(eliomclient1) ())]))
+        {{ Dom.appendChild !$(div)
+             (XHTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:!$(eliomclient1) ())]))
          }};
       Lwt.return [div]
     )
@@ -560,14 +560,14 @@ let comet1 =
 
        Eliom_services.onload
          {{
-           Eliom_client_comet.Channels.register \(c1)
+           Eliom_client_comet.Channels.register !$(c1)
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
                   (Js.string ("public: "^ string_of_int i ^";  "))) ;
              Lwt.return ()
            );
-           Eliom_client_comet.Buffered_channels.register \(c2)
+           Eliom_client_comet.Buffered_channels.register !$(c2)
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
@@ -612,7 +612,7 @@ let comet2 =
         {{
           React.E.map
             (fun s -> Dom_html.window##alert (Js.string s))
-            \(e_down)
+            !$(e_down)
         }};
 
       (* We can send the page *)
@@ -620,10 +620,10 @@ let comet2 =
          h2 [pcdata "Dual events"] ;
          div (* This div is for pushing "A" to the server side event *)
            (*TODO: simplify up_event unwrapping *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ \(e_up) "A" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ !$(e_up) "A" }} ]
            [pcdata "Push A"] ;
          div (* This one is for pushing "B" *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ \(e_up) "B" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ !$(e_up) "B" }} ]
            [pcdata "Push B"] ;
        ]
     )
@@ -662,8 +662,8 @@ let comet3 =
            (fun s -> Dom_html.window##alert (Js.string s))
            (React.E.merge
               (^) ""
-              [ React.E.map string_of_int \(e_down_1) ;
-                \(e_down_2) ;
+              [ React.E.map string_of_int !$(e_down_1) ;
+                !$(e_down_2) ;
               ]
            )
          }};
@@ -672,7 +672,7 @@ let comet3 =
        Lwt.return [
          h2 [pcdata "Simultaneous events"] ;
          div
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ \(e_up) "" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ !$(e_up) "" }} ]
            [pcdata "Send me two values from different events !"] ;
        ]
     )
@@ -697,9 +697,9 @@ let comet_message_board =
          Eliom_services.onload
            {{
              Eliom_client_bus.set_handler
-               \(message_bus)
+               !$(message_bus)
                (fun msg ->
-                 Dom.appendChild \(container)
+                 Dom.appendChild !$(container)
                    (XHTML5.M.toelt (li [pcdata msg]));
                  Lwt.return ()
                )
@@ -722,7 +722,7 @@ let comet_message_board =
                     in
                     let v = Js.to_string field##value in
                     field##value <- Js.string "" ;
-                    Eliom_client_bus.write \(message_bus) v
+                    Eliom_client_bus.write !$(message_bus) v
                   }}
              ]
              [pcdata "send"]
@@ -769,23 +769,23 @@ let event_service =
       let targetresult = XHTML5.M.p [] in
       Eliom_services.onload
         {{
-          let target1 = \(target1) in
-          let target2 = \(target2) in
-          let target3 = \(target3) in
-          let target4 = \(target4) in
-          let target5 = \(target5) in
-          let target6 = \(target6) in
-          let target7 = \(target7) in
-          let target8 = \(target8) in
-          let target9 = \(target9) in
-          let target10 = \(target10) in
-          let target11 = \(target11) in
-          let target12 = \(target12) in
-          let target13 = \(target13) in
-          let target14 = \(target14) in
-          let target15 = \(target15) in
+          let target1 = !$(target1) in
+          let target2 = !$(target2) in
+          let target3 = !$(target3) in
+          let target4 = !$(target4) in
+          let target5 = !$(target5) in
+          let target6 = !$(target6) in
+          let target7 = !$(target7) in
+          let target8 = !$(target8) in
+          let target9 = !$(target9) in
+          let target10 = !$(target10) in
+          let target11 = !$(target11) in
+          let target12 = !$(target12) in
+          let target13 = !$(target13) in
+          let target14 = !$(target14) in
+          let target15 = !$(target15) in
 
-          let targetresult = \(targetresult) in
+          let targetresult = !$(targetresult) in
     
           let handler =
             lwt_arr

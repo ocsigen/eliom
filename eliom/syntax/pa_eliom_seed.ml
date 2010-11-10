@@ -109,7 +109,7 @@ struct
     )
 
   (*Here we add \ (we switch from symbol to keyword) *)
-  | [< '(SYMBOL "\\",loc); next >] -> [< '(KEYWORD "\\", loc); filter next >]
+  | [< '(SYMBOL "!$",loc); next >] -> [< '(KEYWORD "\\", loc); filter next >]
 
   | [< 'other; next >] -> [< 'other; filter next >]
 
@@ -251,13 +251,10 @@ struct
     [[ KEYWORD "{{" ; s = dummy_set_level_w_antiquotations ;
          e = SELF ;
        KEYWORD "}}" ; s = dummy_set_level_base ->
-       let ee =
-         <:expr<
-            Client__code__this__is__a__reserved__value
-             ($int64:gen_num _loc$, $e$)
-         >>
-       in
-       ee
+       <:expr<
+          Client__code__this__is__a__reserved__value
+           ($int64:gen_num _loc$, $e$)
+       >>
 
      | KEYWORD "\\" ; KEYWORD "(" ; s = dummy_set_level_wrapped ;
          e = SELF ; (*TODO? tweak LEVEL*)
@@ -268,6 +265,16 @@ struct
             -> $e$
           )
        >>
+
+(*
+     | KEYWORD "\\" ; i = IDENT (*TODO? tweak LEVEL*) ->
+       <:expr<
+          (fun
+            (Server__expr__this__is__a__reserved__value ($lid:gen_name ()$))
+            -> $lid:i$
+          )
+       >>
+ *)
     ]];
 
   END
