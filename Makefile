@@ -103,7 +103,7 @@ DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
 	$(DOCPREF)extensions/ocsigen_comet.mli				\
 	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
 	$(DOCPREF)baselib/ocsigen_getcommandline.mli                    \
-	$(DOCPREF)xmlp4/syntax/simplexmlparser.mli			\
+	$(DOCPREF)xmlp4/syntax/pp/simplexmlparser.mli			\
 	$(DUCEDOC)
 
 METAS = files/META files/META.ocsigen_xhtml files/META.ocsigen files/META.eliom_examples files/META.eliom_examples.global
@@ -137,7 +137,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
 	eliom/extensions/eliom_s2s.cmi eliom/extensions/eliom_openid.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
        eliom/eliom_client_types.cmi \
-       eliom/eliom_react.cmi eliom/eliom_comet.cmi \
+       eliom/eliom_react.cmi eliom/eliom_comet.cmi eliom/eliom_bus.cmi \
        eliom/extensions/atom_feed.cmi eliom/extensions/eliom_atom.cmi \
        extensions/ocsigen_comet.cmi \
        extensions/accesscontrol.cmi extensions/extendconfiguration.cmi \
@@ -339,7 +339,7 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) -package lwt.ssl,netstring$(DUCEPACK) $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -intro files/indexdoc -d doc -html $(DOC)
+	$(CAMLDOC) -package lwt.ssl,netstring,calendar$(DUCEPACK) $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -intro files/indexdoc -d doc -html $(DOC)
 
 doc/index.html: doc
 

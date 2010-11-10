@@ -22,9 +22,10 @@
 type 'a t
 (** The type of bus's carrying values of type ['a]. Bus's are values that can be
     easily shared among clients. Each of these clients along with the server can
-    send a value on the bus. Values are handled by each of the participant using
-    a custom handler. Note that no effort is put to order message receptions on
-    the different participants. *)
+    send a value on the bus. Values are handled by each of the participants
+    using a custom handler.
+    Note that no effort is put to order message receptions 
+    on the different participants. *)
 
 val create :
      ?scope:Eliom_common.scope -> ?name:string

@@ -727,10 +727,6 @@ let set_result_observer, observe_result =
  *)
 let send
     ?reopen
-    (* reopen used only for request if we are taking an old connection
-       We'll retry with a new one create by ~reopen.
-       See Ocsigen_http_client.raw_request.
-    *)
     slot
     ~clientproto
     ?mode
@@ -846,10 +842,10 @@ let send
                                Lwt.fail e
                            | _ ->
                                Ocsigen_messages.warning
-                                 ("Ocsigen_http_com: reopenning after exception "^
+                                 ("Ocsigen_http_com: reopening after exception "^
                                     (Ocsigen_lib.string_of_exn e)^
                                     " (Is that right?) Please report this error.");
-                               reopen () >>= fun () ->
+                               ignore (reopen ());
                                Lwt.fail e
                 )
            )
@@ -862,7 +858,7 @@ let send
          end) >>= fun () ->
          Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers
                                   are not flushed by the reverse proxy *)
-             >>= fun () ->
+         >>= fun () ->
          Ocsigen_stream.finalize (fst res.res_stream) `Success
       )
       (fun e ->
