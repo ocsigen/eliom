@@ -1842,7 +1842,7 @@ let _ = Eliom_output.Xhtml5compact.register main
 
 
               pcdata "A page that is very slow, using preemptive threads: ";
-              a looong [code [pcdata "looong2"]] ();
+              a looong2 [code [pcdata "looong2"]] ();
               br ();
 
 

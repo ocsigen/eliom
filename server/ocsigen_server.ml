@@ -957,7 +957,8 @@ let rec wait_connection use_ssl port socket =
               return ())
          >>= fun () ->
          Ocsigen_messages.debug2 "** CLOSE";
-         catch (fun () -> Lwt_unix.close s)
+         catch
+           (fun () -> Lwt_unix.close s)
            (function Unix.Unix_error _ as e ->
              Ocsigen_messages.unexpected_exception
                e "Server.wait_connection (close)";
