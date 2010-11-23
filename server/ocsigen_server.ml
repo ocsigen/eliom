@@ -1186,16 +1186,17 @@ let start_server () = try
       (* A pipe to communicate with the server *)
       let commandpipe = get_command_pipe () in
       (try
-        ignore (Unix.stat commandpipe);
-      with Unix.Unix_error _ ->
-        (try
-          let umask = Unix.umask 0 in
-          Unix.mkfifo commandpipe 0o660;
-          Unix.chown commandpipe uid gid;
-          ignore (Unix.umask umask);
-        with e ->
-          Ocsigen_messages.errlog
-            ("Cannot create the command pipe: "^(string_of_exn e))));
+         ignore (Unix.stat commandpipe);
+       with Unix.Unix_error _ ->
+         (try
+            let umask = Unix.umask 0 in
+            Unix.mkfifo commandpipe 0o660;
+            Unix.chown commandpipe uid gid;
+            ignore (Unix.umask umask);
+            ignore (Ocsigen_messages.warning "Command pipe created");
+          with e ->
+            Ocsigen_messages.errlog
+              ("Cannot create the command pipe: "^(string_of_exn e))));
 
       (* I change the user for the process *)
       begin try
@@ -1256,15 +1257,6 @@ let start_server () = try
       then ignore (Unix.setsid ());
 
       Ocsigen_extensions.end_initialisation ();
-
-      (* Communication with the server through the pipe *)
-      (try
-        ignore (Unix.stat commandpipe)
-      with Unix.Unix_error _ ->
-          let umask = Unix.umask 0 in
-          Unix.mkfifo commandpipe 0o660;
-          ignore (Unix.umask umask);
-          ignore (Ocsigen_messages.warning "Command pipe created"));
 
       let pipe = Lwt_chan.in_channel_of_descr
           (Lwt_unix.of_unix_file_descr
@@ -1334,37 +1326,29 @@ let start_server () = try
   in
 
   let rec launch = function
-      [] -> ()
+    | [] -> ()
     | [h] ->
         let user_info, sslinfo, threadinfo = extract_info h in
         set_passwd_if_needed sslinfo;
-        let pid = Unix.fork () in
-        if pid = 0
-        then run user_info sslinfo threadinfo h
+        if (get_daemon ())
+        then
+          let pid = Unix.fork () in
+          if pid = 0
+          then run user_info sslinfo threadinfo h
+          else begin
+            ignore
+              (Ocsigen_messages.console
+                 (fun () -> "Process "^(string_of_int pid)^" detached"));
+            write_pid pid;
+          end
         else begin
-          ignore
-            (Ocsigen_messages.console
-               (fun () -> "Process "^(string_of_int pid)^" detached"));
-          write_pid pid;
+          write_pid (Unix.getpid ());
+          run user_info sslinfo threadinfo h
         end
     | _ -> () (* Multiple servers not supported any more *)
 
   in
-
-  if (not (get_daemon ())) &&
-    number_of_servers = 1
-  then begin
-    let cf = List.hd config_servers in
-    let (user_info, 
-         ((ssl, ports, sslports) as sslinfo), 
-         threadinfo) = 
-      extract_info cf 
-    in
-    set_passwd_if_needed sslinfo;
-    write_pid (Unix.getpid ());
-    run user_info sslinfo threadinfo cf
-  end
-  else launch config_servers
+  launch config_servers
 
 with e ->
   let msg, errno = errmsg e in
