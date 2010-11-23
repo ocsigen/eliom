@@ -60,5 +60,5 @@ val error_log_path : unit -> string
 
 (**/**)
 
-val open_files : unit -> unit
+val open_files : unit -> unit Lwt.t
 val bip : int -> unit

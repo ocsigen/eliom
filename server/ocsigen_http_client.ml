@@ -268,15 +268,17 @@ let keep_alive_server inet_addr port =
 
 let handle_connection_error fd exn = match exn with
   | Unix.Unix_error (Unix.ECONNREFUSED, _, _) ->
-      Lwt_unix.close fd; Lwt.fail
-        (Ocsigen_http_frame.Http_error.Http_exception
-           (502, Some "Connection refused by distant server", None))
+    Lwt_unix.close fd
+    >>= fun () -> Lwt.fail
+    (Ocsigen_http_frame.Http_error.Http_exception
+       (502, Some "Connection refused by distant server", None))
   | Unix.Unix_error (Unix.ECONNRESET, _, _) ->
       (* Caused by shutting down the file descriptor after a timeout *)
-      Lwt_unix.close fd; Lwt.fail
-        (Ocsigen_http_frame.Http_error.Http_exception
-           (504, Some "Distant server closed connection", None))
-  | e -> Lwt_unix.close fd; Lwt.fail e
+    Lwt_unix.close fd
+    >>= fun () ->  Lwt.fail
+    (Ocsigen_http_frame.Http_error.Http_exception
+       (504, Some "Distant server closed connection", None))
+  | e -> Lwt_unix.close fd >>= fun () ->  Lwt.fail e
 
 
 let raw_request
@@ -327,20 +329,17 @@ let raw_request
            | Ocsigen_http_com.Connection_closed ->
                Ocsigen_messages.debug2
                  "--Ocsigen_http_client: connection closed by server (closing)";
-               Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
-               Lwt.return ()
+               Lwt_ssl.close (Ocsigen_http_com.connection_fd conn)
            | Ocsigen_http_com.Keepalive_timeout ->
                Ocsigen_messages.debug2
                  "--Ocsigen_http_client: connection closed by keepalive timeout";
-               Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
-               Lwt.return ()
+               Lwt_ssl.close (Ocsigen_http_com.connection_fd conn)
            | e ->
                Ocsigen_messages.warning
                  ("--Ocsigen_http_client: exception caught while receiving frame: "^
                   Ocsigen_lib.string_of_exn e^
                   " - closing connection to the server.");
-               Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
-               Lwt.return ()
+               Lwt_ssl.close (Ocsigen_http_com.connection_fd conn)
          )))
   in
 
@@ -559,8 +558,7 @@ let raw_request
             "--Ocsigen_http_client: exception while trying to keep free connection: ";
           Ocsigen_messages.debug2 (Ocsigen_lib.string_of_exn e);
           !ref_thr_conn >>= fun conn ->
-          Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
-          Lwt.return ()
+          Lwt_ssl.close (Ocsigen_http_com.connection_fd conn)
       in
       if do_keep_alive then begin
         match key_new_waiter with
@@ -588,8 +586,7 @@ let raw_request
       end
       else begin
         !ref_thr_conn >>= fun conn ->
-        Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
-        Lwt.return ()
+        Lwt_ssl.close (Ocsigen_http_com.connection_fd conn)
       end
     in
 
@@ -803,7 +800,8 @@ let basic_raw_request
       (match http_frame.Ocsigen_http_frame.frame_content with
       | None   -> Lwt_ssl.close socket
       | Some c ->
-          Ocsigen_stream.add_finalizer c
-            (fun _ -> Lwt_ssl.close socket; Lwt.return ()));
-        Lwt.return http_frame)
-    (fun e -> Lwt_ssl.close socket; Lwt.fail e)
+        Ocsigen_stream.add_finalizer c (fun _ -> Lwt_ssl.close socket);
+        Lwt.return ())
+      >>= fun () ->
+      Lwt.return http_frame)
+    (fun e -> Lwt_ssl.close socket >>= fun () -> Lwt.fail e)

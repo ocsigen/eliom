@@ -239,7 +239,7 @@ let of_file filename =
         Lwt_chan.input_line ch >>= fun s ->
         (cont s aux))
       (function End_of_file -> empty None | e -> fail e)
-  in make ~finalize:(fun _ -> Lwt.return (Lwt_unix.close fd)) aux
+  in make ~finalize:(fun _ -> Lwt_unix.close fd) aux
 
 let of_string s =
   make (fun () -> cont s (fun () -> empty None))

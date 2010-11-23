@@ -19,6 +19,8 @@
 
 (** Writing messages in the logs *)
 
+let (>>=) = Lwt.bind
+
 let access_file = "access.log"
 let warning_file = "warnings.log"
 let error_file = "errors.log"
@@ -34,9 +36,9 @@ let loggers = ref []
 let open_files () =
   (* CHECK: we are closing asynchronously!  That should be ok, though. *)
   List.iter (fun l -> ignore (Lwt_log.close l : unit Lwt.t)) !loggers;
-  let acc = Lwt_log.file (full_path access_file) () in
-  let war = Lwt_log.file (full_path warning_file) () in
-  let err = Lwt_log.file (full_path error_file) () in
+  Lwt_log.file (full_path access_file) () >>= fun acc ->
+  Lwt_log.file (full_path warning_file) () >>= fun war ->
+  Lwt_log.file (full_path error_file) () >>= fun err ->
   loggers := [acc; war; err];
   Lwt_log.default :=
     Lwt_log.broadcast
@@ -55,7 +57,8 @@ let open_files () =
               | _ ->
                   Ocsigen_config.get_verbose ()
             in
-            if show then stderr else Lwt_log.null)]
+            if show then stderr else Lwt_log.null)];
+  Lwt.return ()
                 
 (****)
 

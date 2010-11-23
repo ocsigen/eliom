@@ -1,6 +1,5 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliomsessions.mli
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -19,58 +18,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** This module contains the functions you need to manage server side state
+(** This module contains the functions you need to manage 
+    the server side state of the application
     (session, session group or client side process data).
  *)
 
 open Ocsigen_extensions
-
-
-(** There are three kinds of sessions, all using different cookies:
-   - service sessions (used to register services in a table of session),
-   - volatile data sessions (used to save session data in tables in memory),
-   - persistent sessions (used to save session data on hard disk).
-
-   For all these sessions, you may set a timeout (global or individual for one
-   user) or set an expiration date for the cookie.
-   "Volatile" denotes both service and in memory data sessions.
-
-   Be very carefull if you use several sessions concurrently, as they may have
-   different duration (one may be closed while the other are not).
-   Duration of service sessions is sometimes shorter than
-   volatile data sessions, which is usually shorter than
-   persistent sessions.
-
-   If you want several sessions of the same type for one site,
-   you can choose a personalized session name by giving the optional
-   parameter [?state_name].
-
-   It is highly recommended to put all the sessions for one user in one
-   {e session group}. Thus, it will be possible to implement features
-   like "close all opened sessions" for one user, or limitation of
-   the number of sessions one user can open concurrently, or setting
-   data for one group of sessions.
-
-   The default duration of session may be set in Ocsigen's configuration file,
-   as options for the Eliom module. Each Eliom site can override these options
-   using functions of this module.
-
-   Setting sessions timeout in the configuration file. Example:
-    [
-      <extension findlib-package="ocsigen.ext.eliom">
-        <datatimeout value="3600"> (* in memory data sessions *)
-        <persistenttimeout value="infinity"> (* persistent session data *)
-        <servicetimeout value="3600"> (* session services *)
-        <volatiletimeout value="3600"> (* both session services and
-                                          in memory data sessions *)
-      </extension>
-    ]
-
-
-  *)
-
-
-
 
 (*****************************************************************************)
 (** {2 Closing sessions, removing state data and services} *)

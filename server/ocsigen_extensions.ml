@@ -1064,15 +1064,17 @@ let find_redirection regexp full_url dest
 exception Unknown_command
 
 let register_command_function, get_command_function =
-  let command_function = ref (fun ?prefix _ _ -> raise Unknown_command) in
+  let command_function = ref (fun ?prefix _ _ -> Lwt.fail Unknown_command) in
   ((fun ?prefix f -> 
       let prefix' = prefix in
       let old_command_function = !command_function in
       command_function := 
         (fun ?prefix s c -> 
-           try old_command_function ?prefix s c
-           with Unknown_command -> 
-             if prefix = prefix'
-             then f s c
-             else raise Unknown_command)),
+           Lwt.catch (fun () -> old_command_function ?prefix s c)
+             (function
+               | Unknown_command -> 
+                 if prefix = prefix'
+                 then f s c
+                 else Lwt.fail Unknown_command
+               | e -> Lwt.fail e))),
    (fun () -> !command_function))

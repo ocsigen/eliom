@@ -367,22 +367,19 @@ let recupere_cgi head re doc_root filename ri hostname =
       (catch
          (fun () ->
            (match ri.ri_http_frame.Ocsigen_http_frame.frame_content with
-           | None -> Lwt_unix.close post_in; return ()
+           | None -> Lwt_unix.close post_in
            | Some content_post ->
                Ocsigen_http_com.write_stream post_in_ch content_post >>= fun () ->
                Lwt_chan.flush post_in_ch >>= fun () ->
-               Lwt_unix.close post_in;
-               return ()
+               Lwt_unix.close post_in
            ))
 (*XXX Check possible errors! *)
          (function
            | Unix.Unix_error (Unix.EPIPE, _, _) ->
-               Lwt_unix.close post_in;
-               return ()
+               Lwt_unix.close post_in
            | e ->
                Ocsigen_messages.unexpected_exception e "Cgimod.recupere_cgi (1)";
-               Lwt_unix.close post_in;
-               return ()
+               Lwt_unix.close post_in
          ));
 
 
@@ -397,11 +394,10 @@ let recupere_cgi head re doc_root filename ri hostname =
       (catch
          get_errors
          (function
-           | End_of_file -> Lwt_unix.close err_out; return ()
+           | End_of_file -> Lwt_unix.close err_out
            | e ->
                Ocsigen_messages.unexpected_exception e "Cgimod.recupere_cgi (2)";
-               Lwt_unix.close err_out;
-               return ()));
+               Lwt_unix.close err_out));
     (* This threads terminates, as you can see by doing:
     in ignore (catch get_errors (fun _ -> print_endline "the end";
                                           Lwt_unix.close err_out; return ()));
@@ -438,8 +434,8 @@ let recupere_cgi head re doc_root filename ri hostname =
       (fun () ->
         Ocsigen_http_com.get_http_frame ~head receiver
           >>= fun http_frame ->
-        return (http_frame, fun _ -> Lwt_unix.close cgi_out; Lwt.return ()))
-      (fun e -> Lwt_unix.close cgi_out; fail e);
+        return (http_frame, fun _ -> Lwt_unix.close cgi_out))
+      (fun e -> Lwt_unix.close cgi_out >>= fun () -> fail e);
 
   with e -> fail e
 

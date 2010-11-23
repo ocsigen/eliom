@@ -350,7 +350,7 @@ sig
   val kill : unit React.E.t
     (* The event reflecting willingness to kill connections *)
 
-  val command_function : string -> string list -> unit
+  val command_function : string -> string list -> unit Lwt.t
     (* To be registered with Ocsigen_extension.register_command_function *)
 
 end = struct
@@ -383,7 +383,7 @@ end = struct
     then kill_all_connections ()
     else ()
 
-  let command_function _ = function
+  let command_function_ _ = function
     | ["deactivate"] -> deactivate ()
     | ["activate"]   -> activate ()
     | "set_timeout" :: f :: tl ->
@@ -398,6 +398,7 @@ end = struct
          with Failure _ -> raise OX.Unknown_command)
     | _ -> raise OX.Unknown_command
 
+  let command_function x y = command_function_ x y; Lwt.return ()
 
 end
 

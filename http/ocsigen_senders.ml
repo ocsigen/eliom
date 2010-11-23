@@ -298,12 +298,11 @@ module File_content =
                    ~finalize:
                    (fun _ ->
                       Ocsigen_messages.debug2 "closing file";
-                      Lwt_unix.close fd;
-                      return ())
+                      Lwt_unix.close fd)
                    stream,
                  Some (skip fd))
             }
-        with e -> Lwt_unix.close fd; raise e
+        with e -> Lwt_unix.close fd >>= fun () -> raise e
       with e -> Ocsigen_messages.debug2 (Printexc.to_string e);  fail e
 
   end

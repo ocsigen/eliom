@@ -957,14 +957,13 @@ let rec wait_connection use_ssl port socket =
               return ())
          >>= fun () ->
          Ocsigen_messages.debug2 "** CLOSE";
-         begin
-           try
-             Lwt_unix.close s
-           with Unix.Unix_error _ as e ->
+         catch (fun () -> Lwt_unix.close s)
+           (function Unix.Unix_error _ as e ->
              Ocsigen_messages.unexpected_exception
-               e "Server.wait_connection (close)"
-         end;
-         decr_connected ()
+               e "Server.wait_connection (close)";
+             Lwt.return ()
+             | e -> Lwt.fail e)
+         >>= decr_connected
        in
 
        Lwt_util.iter handle_one l >>= fun () ->
@@ -1096,16 +1095,19 @@ let shutdown_server s l =
 let _ =
   let f s = function
     | ["reopen_logs"] ->
-        Ocsigen_messages.open_files ();
-        Ocsigen_messages.warning "Log files reopened"
-    | ["reload"] -> reload ()
-    | ["reload"; file] -> reload ~file ()
-    | "shutdown"::l -> shutdown_server s l
+      Ocsigen_messages.open_files () >>= fun () ->
+      Ocsigen_messages.warning "Log files reopened";
+      Lwt.return ()
+    | ["reload"] -> reload (); Lwt.return ()
+    | ["reload"; file] -> reload ~file (); Lwt.return ()
+    | "shutdown"::l -> shutdown_server s l; Lwt.return ()
     | ["gc"] ->
         Gc.compact ();
-        Ocsigen_messages.warning "Heap compaction requested by user"
-    | ["clearcache"] -> Ocsigen_cache.clear_all_caches ()
-    | _ -> raise Ocsigen_extensions.Unknown_command
+        Ocsigen_messages.warning "Heap compaction requested by user";
+        Lwt.return ()
+    | ["clearcache"] -> Ocsigen_cache.clear_all_caches ();
+      Lwt.return ()
+    | _ -> Lwt.fail Ocsigen_extensions.Unknown_command
   in
   Ocsigen_extensions.register_command_function f
 
@@ -1147,7 +1149,7 @@ let start_server () = try
 
   let run (user, group) (_, ports, sslports) (minthreads, maxthreads) s =
 
-    Ocsigen_messages.open_files ();
+    Lwt_unix.run (Ocsigen_messages.open_files ());
 
     Lwt_unix.run
       (let wait_end_init, wait_end_init_awakener = wait () in
@@ -1271,19 +1273,26 @@ let start_server () = try
       let rec f () =
         Lwt_chan.input_line pipe >>= fun s ->
         Ocsigen_messages.warning ("Command received: "^s);
-        (try
-          let prefix, c =
-            match Ocsigen_lib.split ~multisep:true ' ' s with
-              | [] -> raise Ocsigen_extensions.Unknown_command
-              | a::l ->
-                  try
-                    let aa, ab = Ocsigen_lib.sep ':' a in
-                    (Some aa, (ab::l))
-                  with Not_found -> None, (a::l)
-          in
-          Ocsigen_extensions.get_command_function () ?prefix s c
-        with Unknown_command -> Ocsigen_messages.warning "Unknown command");
-        f ()
+        (Lwt.catch
+           (fun () ->
+             let prefix, c =
+               match Ocsigen_lib.split ~multisep:true ' ' s with
+                 | [] -> raise Ocsigen_extensions.Unknown_command
+                 | a::l ->
+                   try
+                     let aa, ab = Ocsigen_lib.sep ':' a in
+                     (Some aa, (ab::l))
+                   with Not_found -> None, (a::l)
+             in
+             Ocsigen_extensions.get_command_function () ?prefix s c)
+           (function
+             | Unknown_command -> Ocsigen_messages.warning "Unknown command";
+               Lwt.return ()
+             | e ->
+               Ocsigen_messages.errlog ("Uncaught Exception after command: "^
+                                           Ocsigen_lib.string_of_exn e);
+               Lwt.fail e))
+        >>= f
       in ignore (f ());
 
       Lwt.wakeup wait_end_init_awakener ();
