@@ -97,9 +97,9 @@ testsuite_eliom2.cmx: syntax_temp_files/testsuite_eliom2.ml
 #HERE IS THE SECTION CONCERNING ELIOM'S SYNTAX EXTENSIONS
 
 $(ELIOMCLIENTDIR)/%:
-	make -C $(ELIOMCLIENTDIR) all
+	$(MAKE) -C $(ELIOMCLIENTDIR) all
 $(PAELIOMCLIENTDIR)/%:
-	make -C $(PAELIOMCLIENTDIR) all
+	$(MAKE) -C $(PAELIOMCLIENTDIR) all
 
 syntax_temp_files/testsuite_eliom2_type_inference.ml: testsuite_eliom2.eliom $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	camlp4of \
