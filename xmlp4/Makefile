@@ -1,31 +1,31 @@
 include ../Makefile.config
 
 byte:
-	make -C xhtml byte
-	make -C syntax byte
-	make -C xml-pretty byte
+	$(MAKE) -C xhtml byte
+	$(MAKE) -C syntax byte
+	$(MAKE) -C xml-pretty byte
 
 opt: 
-	make -C xhtml opt
-	make -C syntax opt
-	make -C xml-pretty opt
+	$(MAKE) -C xhtml opt
+	$(MAKE) -C syntax opt
+	$(MAKE) -C xml-pretty opt
 
 clean: 
 	rm *cm* *.o -f *.a
-	make -C xhtml clean
-	make -C syntax clean
-	make -C xml-pretty clean
+	$(MAKE) -C xhtml clean
+	$(MAKE) -C syntax clean
+	$(MAKE) -C xml-pretty clean
 
 depend: 
-	make -C xhtml depend
-	make -C syntax depend
-	make -C xml-pretty depend
+	$(MAKE) -C xhtml depend
+	$(MAKE) -C syntax depend
+	$(MAKE) -C xml-pretty depend
 
 xmlp4pre.byte:
-	make -C xhtml byte
-	make -C syntax byte
-	make -C syntax predep
+	$(MAKE) -C xhtml byte
+	$(MAKE) -C syntax byte
+	$(MAKE) -C syntax predep
 xmlp4pre.opt: 
-	make -C xhtml byte
-	make -C syntax byte
-	make -C syntax predep
+	$(MAKE) -C xhtml byte
+	$(MAKE) -C syntax byte
+	$(MAKE) -C syntax predep

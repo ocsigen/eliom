@@ -208,8 +208,8 @@ clean:
 	$(MAKE) -C syntax clean
 
 depend:
-	make -C client depend
-	make -C syntax depend
+	$(MAKE) -C client depend
+	$(MAKE) -C syntax depend
 	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
 	sed -i.bak s%../extensions/ocsipersist.cmx%% .depend
 
