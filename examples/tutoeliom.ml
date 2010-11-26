@@ -3120,16 +3120,13 @@ let count2 =
     let cthr = Ocsipersist.make_persistent mystore "countpage" 0 in
     let mutex = Lwt_mutex.create () in
     (fun () ->
-      cthr >>=
-      (fun c ->
-        Lwt_mutex.lock mutex >>= fun () ->
-        Ocsipersist.get c >>=
-        (fun oldc ->
-          let newc = oldc + 1 in
-          Ocsipersist.set c newc >>=
-          (fun () ->
-            Lwt_mutex.unlock mutex;
-            return newc))))
+      cthr >>= fun c ->
+      Lwt_mutex.lock mutex >>= fun () ->
+      Ocsipersist.get c >>= fun oldc ->
+      let newc = oldc + 1 in
+      Ocsipersist.set c newc >>= fun () ->
+      Lwt_mutex.unlock mutex;
+      Lwt.return newc)
   in
   register_service
     ~path:["count2"]

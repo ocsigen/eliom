@@ -23,13 +23,20 @@
 
 (** Eliom references are some kind of references with limited scope.
     You define the reference with an initial value and a scope
-    (group of sessions, session, client process, or current request).
+    (gloabl, group of sessions, session, client process, or current request).
     When you change the value, it actually changes only for the scope
     you specified.
 
-    Eliom references are used for example to store session data,
-    or server side data for a client process, or to keep some information
-    about the current request.
+    Eliom references can be persistent or not (that is: can survive after
+    relaunching the server or not).
+
+    Eliom references are used for example:
+    - to store session data, or server side data for a client process, 
+    - or to keep some information about the current request,
+    - to implement persistent references.
+
+    Non persistent global Eliom references are equivalent to regular OCaml
+    references.
 *)
 
 (** The type of Eliom references. *)
@@ -41,7 +48,8 @@ type 'a eref
     after relaunching the server. You must give an unique name to the
     table in which it will be stored on the hard disk (using Ocsipersist).
     Be very careful to use unique names, and to change the name if
-    you change the type of the data.
+    you change the type of the data, otherwise the server may crash
+    (unsafe unmarshaling).
     This parameter has no effect for scope [`Request].
 
     Use the optional parameter [?secure] if you want the data to be available
@@ -55,7 +63,7 @@ type 'a eref
 *)
 val eref :
   ?state_name:string ->
-  ?scope:[ `Request | Eliom_common.user_scope ] ->
+  ?scope:[ `Request | Eliom_common.scope ] ->
   ?secure:bool ->
   ?persistent:string ->
   'a -> 'a eref

@@ -27,7 +27,7 @@ open Sqlite3
 open Printf
 
 (** Data are divided into stores.
-   Create one store for your project, where you will save all your data.
+    Create one store for your project, where you will save all your data.
  *)
 type store = string Lwt.t
 

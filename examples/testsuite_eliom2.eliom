@@ -534,7 +534,6 @@ occurrences of an event.
 let (c1, write_c1) =
   Eliom_comet.Channels.create ~name:"comet1_public_channel" ()
 
-
 (* randomly write on the channel *)
 let rec rand_tick () =
   Lwt_unix.sleep (float_of_int (5 + (Random.int 5))) >>= fun () ->
@@ -556,7 +555,8 @@ let comet1 =
          write_c2 !t2 ; incr t2 ; Lwt_unix.yield () >>= fun () ->
          write_c2 !t2 ; incr t2 ; tick_2 ()
        in
-       tick_2 ();
+(*VVV Does never stop!!! *)
+       ignore (tick_2 ());
 
        Eliom_services.onload
          {{
@@ -1672,6 +1672,41 @@ let actionoutside =
 
 
 
+(*****************************************************************************)
+(* persistent references *)
+
+let persref = service ["persref"] unit ()
+
+let _ = 
+  let next =
+    let pr =
+      Eliom_references.eref
+        ~scope:`Global ~persistent:"__eliom_example_persref" 0
+    in
+    let mutex = Lwt_mutex.create () in
+    fun () ->
+      Lwt_mutex.lock mutex >>= fun () ->
+      Eliom_references.get pr >>= fun v ->
+      let v = v+1 in
+      Eliom_references.set pr v >>= fun () ->
+      Lwt_mutex.unlock mutex;
+      Lwt.return v
+  in
+  Eliom_output.Xhtml5compact.register persref
+    (fun () () ->
+      next () >>= fun v ->
+      Lwt.return
+        (html
+           (head (title (pcdata "Persistent references")) [])
+           (body
+              [pcdata "This page has been viewed ";
+               pcdata (string_of_int v);
+               pcdata "times."]
+           )
+        )
+    )
+
+
 
 
 
@@ -1848,7 +1883,7 @@ let _ = Eliom_output.Xhtml5compact.register main
 
               pcdata "Catching errors: ";
               a catch [code [pcdata "catch"]] 22;
-              pcdata "(change the value in the URL)";
+              pcdata " (change the value in the URL)";
               br ();
 
               pcdata "Redirection: ";
@@ -1880,6 +1915,10 @@ let _ = Eliom_output.Xhtml5compact.register main
 
               pcdata "A page with a persistent counter: ";
               a count2 [code [pcdata "count2"]] ();
+              br ();
+
+              pcdata "A page with a persistent counter with persitent Eliom ref: ";
+              a persref [code [pcdata "persref"]] ();
               br ();
 
               a hier1 [pcdata "Hierarchical menu"] ();
