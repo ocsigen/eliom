@@ -48,93 +48,93 @@ let find_page_table
     =
   Eliom_state.make_server_params sitedata info urlsuffix fullsessname
   >>= fun sp ->
-  (catch
-     (fun () -> return (Eliom_common.Serv_Table.find k !pagetableref))
-     (function
-        | Not_found -> fail Eliom_common.Eliom_404
-        | e -> fail e)) >>= fun (Eliom_common.Ptc (nodeopt, l)) ->
+  catch
+    (fun () -> return (Eliom_common.Serv_Table.find k !pagetableref))
+    (function
+      | Not_found -> fail Eliom_common.Eliom_404
+      | e -> fail e) >>= fun (Eliom_common.Ptc (nodeopt, l)) ->
   let rec aux toremove = function
     | [] -> Lwt.return ((Eliom_common.Notfound
                            Eliom_common.Eliom_Wrong_parameter), [])
     | (((_anontyp, (_gene, (max_use, expdate, funct))) as a)::l) ->
-        match expdate with
+      match expdate with
         | Some (_, e) when !e < now ->
-            (* Service expired. Removing it. *)
-            Ocsigen_messages.debug2 "--Eliom: Service expired. I'm removing it";
-            aux toremove l >>= fun (r, toremove) -> 
-            Lwt.return (r, a::toremove)
-        | _ ->
-            catch
-              (fun () ->
-                Ocsigen_messages.debug2 "--Eliom: I'm trying a service";
-                funct nosuffixversion sp >>= fun p ->
-                (* warning: the list ll may change during funct
-                   if funct register something on the same URL!! *)
-                Ocsigen_messages.debug2
-                  "--Eliom: Page found and generated successfully";
+              (* Service expired. Removing it. *)
+          Ocsigen_messages.debug2 "--Eliom: Service expired. I'm removing it";
+          aux toremove l >>= fun (r, toremove) -> 
+          Lwt.return (r, a::toremove)
+            | _ ->
+              catch
+                (fun () ->
+                  Ocsigen_messages.debug2 "--Eliom: I'm trying a service";
+                  funct nosuffixversion sp >>= fun p ->
+                      (* warning: the list ll may change during funct
+                         if funct register something on the same URL!! *)
+                  Ocsigen_messages.debug2
+                    "--Eliom: Page found and generated successfully";
+                  
+                      (* If this is an anonymous coservice,
+                         we place it at the top of the dlist
+                         (limitation of number of coservices) *)
+                  (match nodeopt with
+                    | None -> ()
+                    | Some node -> Ocsigen_cache.Dlist.up node);
 
-                (* If this is an anonymous coservice,
-                   we place it at the top of the dlist
-                   (limitation of number of coservices) *)
-                (match nodeopt with
-                   | None -> ()
-                   | Some node -> Ocsigen_cache.Dlist.up node);
-
-                (* We update the expiration date *)
-                (match expdate with
-                   | Some (timeout, e) -> e := timeout +. now
-                   | None -> ());
-                let newtoremove =
-                  (match max_use with
-                     | Some r ->
-                         if !r = 1
-                         then a::toremove
-                         else (r := !r - 1; toremove)
-                     | _ -> toremove)
-                in
-                Lwt.return (Eliom_common.Found p,
-                            newtoremove))
-              (function
-                | Eliom_common.Eliom_Wrong_parameter ->
+                      (* We update the expiration date *)
+                  (match expdate with
+                    | Some (timeout, e) -> e := timeout +. now
+                    | None -> ());
+                  let newtoremove =
+                    (match max_use with
+                      | Some r ->
+                        if !r = 1
+                        then a::toremove
+                        else (r := !r - 1; toremove)
+                      | _ -> toremove)
+                  in
+                  Lwt.return (Eliom_common.Found p,
+                              newtoremove))
+                (function
+                  | Eliom_common.Eliom_Wrong_parameter ->
                     aux toremove l >>=
-                    (fun (r, toremove) -> Lwt.return (r, toremove))
-                | e -> Lwt.return ((Eliom_common.Notfound e), toremove))
+                      (fun (r, toremove) -> Lwt.return (r, toremove))
+                  | e -> Lwt.return ((Eliom_common.Notfound e), toremove))
   in
   aux [] l >>= fun (r, toremove) ->
 
   (match nodeopt, toremove with
-     | _, [] -> ()
-     | Some node, _ -> (* it is an anonymous coservice that has expired.
-                          We remove it form the dlist.
-                          This will do the removal from this table
-                          automatically.
-                          Note that in that case, toremove has length 1
-                          (like the initial list l).
-                       *)
-         Ocsigen_cache.Dlist.remove node;
-     | None, _ -> (* removing manually *)
-         try
-           let (Eliom_common.Ptc (_, list)), newptr = 
-             (Eliom_common.Serv_Table.find k !pagetableref,
-              Eliom_common.Serv_Table.remove k !pagetableref)
-           in
-           (* We do find once again because it may have changed! *)
-           
-           let newlist =
-             List.fold_left
-               (fun l a -> Ocsigen_lib.list_remove_first_if_any_q a l) 
-               (* physical equality! *)
-               list
-               toremove
-           in
-           (if newlist = []
-            then pagetableref := newptr
-            else pagetableref := 
-              Eliom_common.Serv_Table.add
-                k
-                (Eliom_common.Ptc (None, newlist))
-                newptr)
-         with Not_found -> ()
+    | _, [] -> ()
+    | Some node, _ -> (* it is an anonymous coservice that has expired.
+                         We remove it form the dlist.
+                         This will do the removal from this table
+                         automatically.
+                         Note that in that case, toremove has length 1
+                         (like the initial list l).
+                      *)
+      Ocsigen_cache.Dlist.remove node;
+    | None, _ -> (* removing manually *)
+      try
+        let (Eliom_common.Ptc (_, list)), newptr = 
+          (Eliom_common.Serv_Table.find k !pagetableref,
+           Eliom_common.Serv_Table.remove k !pagetableref)
+        in
+            (* We do find once again because it may have changed! *)
+        
+        let newlist =
+          List.fold_left
+            (fun l a -> Ocsigen_lib.list_remove_first_if_any_q a l) 
+                (* physical equality! *)
+            list
+            toremove
+        in
+        (if newlist = []
+         then pagetableref := newptr
+         else pagetableref := 
+            Eliom_common.Serv_Table.add
+            k
+            (Eliom_common.Ptc (None, newlist))
+            newptr)
+      with Not_found -> ()
   );
   match r with
     | Eliom_common.Found r -> Lwt.return r

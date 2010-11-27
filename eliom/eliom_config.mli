@@ -57,3 +57,6 @@ val get_config_info : unit -> Ocsigen_extensions.config_info
 (**/**)
 val get_config_info_sp : 
   Eliom_common.server_params -> Ocsigen_extensions.config_info
+
+val get_config_default_charset_sp :
+  Eliom_common.server_params -> string

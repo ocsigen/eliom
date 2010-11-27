@@ -583,8 +583,6 @@ let make_server_params_
 
 let sp_key = Lwt.new_key ()
 
-let set_sp sp = Lwt.set sp_key (Some sp)
-
 let get_sp_option () = Lwt.get sp_key
 
 let get_sp () =

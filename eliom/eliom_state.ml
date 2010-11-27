@@ -123,7 +123,9 @@ let set_global_service_state_timeout
     ?state_name ?(cookie_scope = `Session)
     ?(recompute_expdates = false)
     ?(override_configfile = false) timeout =
-  let sitedata = Eliom_request_info.find_sitedata "set_global_service_timeout" in
+  let sitedata =
+    Eliom_request_info.find_sitedata "set_global_service_timeout"
+  in
   match state_name with
     | Some state_name ->
         Eliommod_timeouts.set_global_service_timeout
@@ -1091,9 +1093,9 @@ let discard_persistent_data ?state_name ?(scope = `Session) ?secure () =
   match secure with
     | None ->
         Eliommod_persess.close_persistent_session ?state_name ~scope 
-          ~secure:(Some true) () >>=
+          ~secure:(Some true) () >>= fun () ->
         Eliommod_persess.close_persistent_session ?state_name ~scope 
-          ~secure:(Some false)
+          ~secure:(Some false) ()
     | _ ->
         Eliommod_persess.close_persistent_session ?state_name ~scope 
           ~secure ()
@@ -1473,8 +1475,10 @@ let unset_cookie
 
 let make_server_params sitedata i suffix fullsessname =
   let sp = Eliom_common.make_server_params_ sitedata i suffix fullsessname in
-  Eliom_common.set_sp sp >>= fun () ->
-  let get = sp.Eliom_common.sp_sitedata.Eliom_common.get_client_process_info in
-  let cpi = get () in
-  sp.Eliom_common.sp_client_process_info <- cpi;
-  Lwt.return sp
+  Lwt.with_value Eliom_common.sp_key (Some sp)
+    (fun () ->
+      let get =
+        sp.Eliom_common.sp_sitedata.Eliom_common.get_client_process_info in
+      let cpi = get () in
+      sp.Eliom_common.sp_client_process_info <- cpi;
+      Lwt.return sp)

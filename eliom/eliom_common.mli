@@ -547,7 +547,7 @@ val tab_cookie_action_info_key : (tables cookie_info *
                                     string Ocsigen_lib.String_Table.t) Polytables.key
 
 
-val set_sp : server_params -> unit Lwt.t
+val sp_key : server_params Lwt.key
 val get_sp_option : unit -> server_params option
 val get_sp : unit -> server_params
 val sp_of_option : server_params option -> server_params

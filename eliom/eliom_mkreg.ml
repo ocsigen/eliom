@@ -388,48 +388,50 @@ module MakeRegister = functor
                       | None -> None
                       | Some t -> Some (t, ref (t +. Unix.time ()))),
                     (fun nosuffixversion sp ->
-                      let ri = Eliom_request_info.get_ri_sp sp
-                      and ci = Eliom_config.get_config_info_sp sp
-                      and suff = Eliom_request_info.get_suffix_sp sp in
-                      (catch (fun () ->
-                        ri.ri_post_params ci >>= fun post_params ->
-                        ri.ri_files ci >>= fun files ->
-                        let g = reconstruct_params
-                          ~sp
-                          sgpt
-                          (force ri.ri_get_params)
-                          []
-                          nosuffixversion
-                          suff
-                        in
-                        let p = reconstruct_params
-                          ~sp
-                          sppt
-                          post_params
-                          files
-                          false
-                          None
-                        in
-                        if nosuffixversion && suffix_with_redirect &&
-                          files=[] && post_params = []
-                        then (* it is a suffix service in version 
-                                without suffix. We redirect. *)
-                          Lwt.fail
-                            (Eliom_common.Eliom_do_redirection
-                               (Eliom_uri.make_string_uri
-                                  ~absolute:true
-                                  ~service:
-                                  (service : 
-                                     ('a, 'b, [< Eliom_services.internal_service_kind ],
-                                      [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
-                                      'return) Eliom_services.service :> 
-                                     ('a, 'b, Eliom_services.service_kind,
-                                      [< Eliom_services.suff ], 'c, 'd, 
-                                      [< Eliom_services.registrable ], 'return)
-                                     Eliom_services.service)
-                                  g))
-                        else
-                          let redir =
+                      Lwt.with_value Eliom_common.sp_key (Some sp)
+                        (fun () ->
+                          let ri = Eliom_request_info.get_ri_sp sp
+                          and ci = Eliom_config.get_config_info_sp sp
+                          and suff = Eliom_request_info.get_suffix_sp sp in
+                          (catch (fun () ->
+                            ri.ri_post_params ci >>= fun post_params ->
+                            ri.ri_files ci >>= fun files ->
+                            let g = reconstruct_params
+                              ~sp
+                              sgpt
+                              (force ri.ri_get_params)
+                              []
+                              nosuffixversion
+                              suff
+                            in
+                            let p = reconstruct_params
+                              ~sp
+                              sppt
+                              post_params
+                              files
+                              false
+                              None
+                            in
+                            if nosuffixversion && suffix_with_redirect &&
+                              files=[] && post_params = []
+                            then (* it is a suffix service in version 
+                                    without suffix. We redirect. *)
+                              Lwt.fail
+                                (Eliom_common.Eliom_do_redirection
+                                   (Eliom_uri.make_string_uri
+                                      ~absolute:true
+                                      ~service:
+                                      (service : 
+                                         ('a, 'b, [< Eliom_services.internal_service_kind ],
+                                          [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                                          'return) Eliom_services.service :> 
+                                         ('a, 'b, Eliom_services.service_kind,
+                                          [< Eliom_services.suff ], 'c, 'd, 
+                                          [< Eliom_services.registrable ], 'return)
+                                         Eliom_services.service)
+                                      g))
+                            else
+                              let redir =
                             (* If it is an xmlHTTPrequest who
                                asked for an internal application
                                service but the current service 
@@ -452,33 +454,33 @@ module MakeRegister = functor
                               Other solution: send the page and ask the browser to put it in the cache 
                               during a few seconds. Then redirect. But can we trust the browser cache?
                             *)
-                            match sp.Eliom_common.sp_appl_name with
+                                match sp.Eliom_common.sp_appl_name with
                               (* the appl name as sent by browser *)
-                              | None -> false (* the browser did not ask
-                                                 application eliom data,
-                                                 we do not send a redirection 
-                                              *)
-                              | Some anr ->
+                                  | None -> false (* the browser did not ask
+                                                     application eliom data,
+                                                     we do not send a redirection 
+                                                  *)
+                                  | Some anr ->
                                 (* the browser asked application eliom data
                                    (content only) for application anr *)
-                                match Eliom_services.get_do_appl_xhr service
+                                    match Eliom_services.get_do_appl_xhr service
                                 (* the appl name of the service *)
-                                with
-                                  | Eliom_services.XSame_appl an
-                                      when (an = anr)
-                                        -> (* Same appl, it is ok *) false
-                                  | Eliom_services.XAlways -> 
+                                    with
+                                      | Eliom_services.XSame_appl an
+                                          when (an = anr)
+                                            -> (* Same appl, it is ok *) false
+                                      | Eliom_services.XAlways -> 
                                      (* It is an action *) false
-                                  | _ -> true
-                          in
-                          if redir
-                          then
-                            Lwt.fail
+                                      | _ -> true
+                              in
+                              if redir
+                              then
+                                Lwt.fail
                               (* we answer to the xhr
                                  by asking an HTTP redirection *)
-                              (Eliom_common.Eliom_do_half_xhr_redirection
-                                 ("/"^
-                                     Ocsigen_lib.concat_strings 
+                                  (Eliom_common.Eliom_do_half_xhr_redirection
+                                     ("/"^
+                                         Ocsigen_lib.concat_strings 
                                      ri.Ocsigen_extensions.ri_original_full_path_string
                                      "?"
                                      (Eliom_parameters.construct_params_string
@@ -489,21 +491,21 @@ module MakeRegister = functor
                              It is ok with this kind of redirections. *)
                           (* If an action occured before, 
                              it may have removed some get params form ri *)
-                          else
-                            (Pages.pre_service ?options () >>= fun () ->
-                             page_generator g p))
-                         (function
-                           | Eliom_common.Eliom_Typing_Error l ->
-                             error_handler l
-                           | e -> fail e)
-                        >>= fun content ->
-                       Pages.send
-                         ?options
-                         ?charset
-                         ?code
-                         ?content_type
-                         ?headers
-                         content))))
+                              else
+                                (Pages.pre_service ?options () >>= fun () ->
+                                 page_generator g p))
+                             (function
+                               | Eliom_common.Eliom_Typing_Error l ->
+                                 error_handler l
+                               | e -> fail e)
+                            >>= fun content ->
+                           Pages.send
+                             ?options
+                             ?charset
+                             ?code
+                             ?content_type
+                             ?headers
+                             content)))))
               in
               (match (key_kind, attserget, attserpost) with
                 | (Ocsigen_http_frame.Http_header.POST, _,
@@ -599,40 +601,42 @@ module MakeRegister = functor
                      | None -> None
                      | Some t -> Some (t, ref (t +. Unix.time ()))),
                    (fun sp ->
-                     let ri = Eliom_request_info.get_ri_sp sp
-                     and ci = Eliom_config.get_config_info_sp sp in
-                     (catch
-                        (fun () ->
-                          Eliom_request_info.get_post_params_sp sp >>= fun post_params ->
-                          ri.ri_files ci >>= fun files ->
-                          Pages.pre_service ?options () >>= fun () ->
-                          page_generator
-                            (reconstruct_params
-                               ~sp
-                               (get_get_params_type_ service)
-                               (force ri.ri_get_params)
-                               []
-                               false
-                               None)
-                            (reconstruct_params
-                               ~sp
-                               (get_post_params_type_ service)
-                               post_params
-                               files
-                               false
-                               None)))
-                       (function
-                         | Eliom_common.Eliom_Typing_Error l ->
-                           error_handler l
-                         | e -> fail e) >>= fun content ->
-                     Pages.send
-                       ?options
-                       ?charset
-                       ?code
-                       ?content_type
-                       ?headers
-                       content)
-                  )
+                     Lwt.with_value Eliom_common.sp_key (Some sp) 
+                       (fun () ->
+                         let ri = Eliom_request_info.get_ri_sp sp
+                         and ci = Eliom_config.get_config_info_sp sp in
+                         catch
+                           (fun () ->
+                             Eliom_request_info.get_post_params_sp sp >>= fun post_params ->
+                             ri.ri_files ci >>= fun files ->
+                             Pages.pre_service ?options () >>= fun () ->
+                             page_generator
+                               (reconstruct_params
+                                  ~sp
+                                  (get_get_params_type_ service)
+                                  (force ri.ri_get_params)
+                                  []
+                                  false
+                                  None)
+                               (reconstruct_params
+                                  ~sp
+                                  (get_post_params_type_ service)
+                                  post_params
+                                  files
+                                  false
+                                  None))
+                           (function
+                             | Eliom_common.Eliom_Typing_Error l ->
+                               error_handler l
+                             | e -> fail e) >>= fun content ->
+                         Pages.send
+                           ?options
+                           ?charset
+                           ?code
+                           ?content_type
+                           ?headers
+                           content)
+                   ))
               in
               match na_name with
                 | Eliom_common.SNa_get_csrf_safe (id, state_name, 

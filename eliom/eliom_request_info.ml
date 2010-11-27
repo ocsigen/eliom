@@ -193,6 +193,7 @@ let get_si sp = sp.Eliom_common.sp_si
 let get_user_cookies () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_user_cookies
+
 let get_user_tab_cookies () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_user_tab_cookies

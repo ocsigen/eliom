@@ -464,6 +464,7 @@ module Pers = struct
     Lwt.catch
       (fun () ->
         (* First we close all sessions in the group *)
+
         find sess_grp >>= fun cl ->
         Lwt_util.iter
           (close_persistent_session2

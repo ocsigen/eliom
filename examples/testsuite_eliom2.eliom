@@ -1701,7 +1701,7 @@ let _ =
            (body
               [pcdata "This page has been viewed ";
                pcdata (string_of_int v);
-               pcdata "times."]
+               pcdata " times."]
            )
         )
     )

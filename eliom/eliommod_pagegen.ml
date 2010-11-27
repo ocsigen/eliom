@@ -29,8 +29,9 @@ open Lwt
 let def_handler e = fail e
 
 let handle_site_exn exn info sitedata =
-  Eliom_state.make_server_params sitedata info None None >>= fun _ -> 
-  sitedata.Eliom_common.exn_handler exn
+  Eliom_state.make_server_params sitedata info None None >>= fun sp ->
+  Lwt.with_value Eliom_common.sp_key (Some sp)
+    (fun () -> sitedata.Eliom_common.exn_handler exn)
 
 
 (*****************************************************************************)
@@ -188,7 +189,6 @@ let execute
        secure_ci_tab),
       user_tab_cookies) as info)
     sitedata =
-
 
   catch
     (fun () -> generate_page now info sitedata)
