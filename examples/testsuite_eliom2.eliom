@@ -1461,7 +1461,7 @@ let () =
 
 
 
-
+(*
 (************************************************************)
 (************ Connection of users, version 6 ****************)
 (************************************************************)
@@ -1534,17 +1534,19 @@ let tlogin_box session_expired action =
 (* Handler for the "connect_example6" service (main page):   *)
 
 let tconnect_example6_handler () () =
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  in
   let group = Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ()
   in
   return
-    (match group with
-      | Eliom_state.Data name ->
+    (match group, status with
+      | Some name, _ ->
         [p [pcdata ("Hello "^name); br ()];
          tdisconnect_box "Close session"]
-      | Eliom_state.Data_session_expired ->
+      | None, Eliom_state.Expired_state ->
         [tlogin_box true tconnect_action;
          p [em [pcdata "The only user is 'toto'."]]]
-      | Eliom_state.No_data ->
+      | _ ->
         [tlogin_box false tconnect_action;
          p [em [pcdata "The only user is 'toto'."]]]
     )
@@ -1575,7 +1577,7 @@ let () =
   Eliom_appl.register ~service:tconnect_example6 tconnect_example6_handler;
   Eliom_output.Action.register ~service:tconnect_action tconnect_action_handler
 
-
+*)
 
 
 
@@ -2032,11 +2034,11 @@ let _ = Eliom_output.Xhtml5compact.register main
               a connect_example5 [code [pcdata "groups"]] ();
               br ();
 
-
+(*
               pcdata "The same with wrong user if not \"toto\": ";
               a tconnect_example6 [code [pcdata "tactions2"]] ();
               br ();
-
+*)
 
 
               pcdata "Coservices in the session table: ";

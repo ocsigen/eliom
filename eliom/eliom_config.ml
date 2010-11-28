@@ -49,4 +49,5 @@ let get_config () =
   match Eliom_common.global_register_allowed () with
   | Some _ -> !Eliommod.config
   | None -> 
-    raise (Eliom_common.Eliom_function_forbidden_outside_site_loading "Eliom_config.get_config")
+    raise (Eliom_common.Eliom_site_information_not_available
+             "Eliom_config.get_config")

@@ -21,42 +21,42 @@
 open Lwt
 open Ocsigen_extensions
 
-let get_original_full_path () =
+let get_csp_original_full_path () =
    match (Eliom_request_info.get_sp_client_process_info ()) with
      | None -> Eliom_request_info.get_original_full_path ()
      | Some cpi -> cpi.Eliom_common.cpi_original_full_path
 
-let get_hostname () =
+let get_csp_hostname () =
    match (Eliom_request_info.get_sp_client_process_info ()) with
      | None -> Eliom_request_info.get_hostname ()
      | Some cpi -> cpi.Eliom_common.cpi_hostname
 
-let get_server_port () =
+let get_csp_server_port () =
    match (Eliom_request_info.get_sp_client_process_info ()) with
      | None -> Eliom_request_info.get_server_port ()
      | Some cpi -> cpi.Eliom_common.cpi_server_port
 
-let get_ssl () =
+let get_csp_ssl () =
    match (Eliom_request_info.get_sp_client_process_info ()) with
      | None -> Eliom_request_info.get_ssl ()
      | Some cpi -> cpi.Eliom_common.cpi_ssl
 
-let get_original_full_path_sp sp =
+let get_csp_original_full_path_sp sp =
    match sp.Eliom_common.sp_client_process_info with
      | None -> Eliom_request_info.get_original_full_path_sp sp
      | Some cpi -> cpi.Eliom_common.cpi_original_full_path
 
-let get_hostname_sp sp =
+let get_csp_hostname_sp sp =
    match sp.Eliom_common.sp_client_process_info with
      | None -> Eliom_request_info.get_hostname_sp sp
      | Some cpi -> cpi.Eliom_common.cpi_hostname
 
-let get_server_port_sp sp =
+let get_csp_server_port_sp sp =
    match sp.Eliom_common.sp_client_process_info with
      | None -> Eliom_request_info.get_server_port_sp sp
      | Some cpi -> cpi.Eliom_common.cpi_server_port
 
-let get_ssl_sp sp =
+let get_csp_ssl_sp sp =
    match sp.Eliom_common.sp_client_process_info with
      | None -> Eliom_request_info.get_ssl_sp sp
      | Some cpi -> cpi.Eliom_common.cpi_ssl
@@ -432,7 +432,7 @@ let rec close_persistent_state_if_empty
 
 (* session groups *)
 
-type 'a session_data =
+type 'a state_data =
   | No_data
   | Data_session_expired
   | Data of 'a
@@ -450,8 +450,7 @@ let set_service_session_group ?set_max ?state_name ?secure session_group =
         Eliommod_sessiongroups.Data.set_max
           c.Eliom_common.sc_session_group_node m
 
-let unset_service_session_group ?set_max
-    ?state_name ?secure () =
+let unset_service_session_group ?set_max ?state_name ?secure () =
   let cookie_scope = `Session in
   try
     let sp = Eliom_common.get_sp () in
@@ -493,11 +492,11 @@ let get_service_session_group ?state_name ?secure () =
         ?state_name ~cookie_scope ~secure () 
     in
     match !(c.Eliom_common.sc_session_group) with
-      | _, _, Ocsigen_lib.Right _ -> No_data
-      | _, _, Ocsigen_lib.Left v -> Data v
+      | _, _, Ocsigen_lib.Right _ -> None
+      | _, _, Ocsigen_lib.Left v -> Some v
   with
-    | Not_found -> No_data
-    | Eliom_common.Eliom_Session_expired -> Data_session_expired
+    | Not_found
+    | Eliom_common.Eliom_Session_expired -> None
 
 
 
@@ -558,11 +557,11 @@ let get_volatile_data_session_group ?state_name ?secure () =
         ?state_name ~cookie_scope ~secure () 
     in
     match !(c.Eliom_common.dc_session_group) with
-      | _, _, Ocsigen_lib.Right _ -> No_data
-      | _, _, Ocsigen_lib.Left v -> Data v
+      | _, _, Ocsigen_lib.Right _ -> None
+      | _, _, Ocsigen_lib.Left v -> Some v
   with
-    | Not_found -> No_data
-    | Eliom_common.Eliom_Session_expired -> Data_session_expired
+    | Not_found
+    | Eliom_common.Eliom_Session_expired -> None
 
 let set_persistent_data_session_group ?set_max
     ?state_name ?secure n =
@@ -618,16 +617,16 @@ let get_persistent_data_session_group ?state_name ?secure () =
        Eliommod_persess.find_persistent_cookie_only
          ?state_name ~cookie_scope ~secure () >>= fun c ->
        Lwt.return (match !(c.Eliom_common.pc_session_group) with
-                     | None -> No_data
+                     | None -> None
                      | Some v ->
                        match Eliommod_sessiongroups.getperssessgrp v with
-                         | (_, _, Ocsigen_lib.Left s) -> Data s
-                         | _ -> No_data
+                         | (_, _, Ocsigen_lib.Left s) -> Some s
+                         | _ -> None
        )
     )
     (function
-       | Not_found -> Lwt.return No_data
-       | Eliom_common.Eliom_Session_expired -> Lwt.return Data_session_expired
+       | Not_found
+       | Eliom_common.Eliom_Session_expired -> Lwt.return None
        | e -> fail e)
 
 
@@ -772,7 +771,7 @@ let set_ipv6_subnet_mask ?(override_configfile = false) n =
 
 
 
-let set_max_service_sessions_for_group_or_subnet
+let set_max_service_states_for_group_or_subnet
     ?state_name ?(scope = `Session) ?secure m =
   let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
   let c =
@@ -790,7 +789,7 @@ let set_max_service_sessions_for_group_or_subnet
     | _ ->
       Eliommod_sessiongroups.Data.set_max c.Eliom_common.sc_session_group_node m
 
-let set_max_volatile_data_sessions_for_group_or_subnet
+let set_max_volatile_data_states_for_group_or_subnet
     ?state_name ?(scope = `Session) ?secure m =
   let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
   let c =
@@ -808,11 +807,11 @@ let set_max_volatile_data_sessions_for_group_or_subnet
     | _ ->
       Eliommod_sessiongroups.Data.set_max c.Eliom_common.dc_session_group_node m
 
-let set_max_volatile_sessions_for_group_or_subnet
+let set_max_volatile_states_for_group_or_subnet
     ?state_name ?scope ?secure m =
-  set_max_service_sessions_for_group_or_subnet
+  set_max_service_states_for_group_or_subnet
     ?scope ?state_name ?secure m;
-  set_max_volatile_data_sessions_for_group_or_subnet
+  set_max_volatile_data_states_for_group_or_subnet
     ?scope ?state_name ?secure m
 
 (*VVV No version for persistent sessions? Why? *)
@@ -954,7 +953,7 @@ let get_table_key_
     | `Session_group ->
       (get_persistent_data_session_group ?state_name ~secure ()
        >>= function
-         | Data a -> Lwt.return a
+         | Some a -> Lwt.return a
          | _ -> Lwt.return Eliom_common.default_group_name)
     | _ ->
       let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in 
@@ -1019,7 +1018,7 @@ let create_volatile_table
       | Some get_current_sitedata -> 
         Eliommod_datasess.create_volatile_table ~scope ~state_name ~secure
       | None -> raise
-            (Eliom_common.Eliom_function_forbidden_outside_site_loading
+            (Eliom_common.Eliom_site_information_not_available
                "create_volatile_table"))
   | Some sp ->
     let sp = Eliom_common.get_sp () in
@@ -1036,7 +1035,7 @@ let get_table_key_ ~table:(scope, (state_name : string option), secure, table)
   let key = match scope with
     | `Session_group ->
       (match get_volatile_data_session_group ?state_name ~secure () 
-       with Data a -> a
+       with Some a -> a
          | _ -> Eliom_common.default_group_name)
     | _ -> 
       let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in 
@@ -1444,8 +1443,7 @@ let change_pathopt_ sp = function
   | Some p -> (Eliom_request_info.get_sitedata_sp ~sp).Eliom_common.site_dir@p
 
 let set_cookie
-    ?(cookie_scope = `Session) ?path ?exp ~name ~value 
-    ?(secure = false) () =
+    ?(cookie_scope = `Session) ?path ?exp ?(secure = false) ~name ~value () =
   let sp = Eliom_common.get_sp () in
   let path = change_pathopt_ sp path in
   match cookie_scope with

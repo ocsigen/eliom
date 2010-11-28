@@ -554,7 +554,7 @@ let end_init () =
       Eliom_common.verify_all_registered
         (Eliom_common.get_current_sitedata ());
       Eliom_common.end_current_sitedata ()
-    with Eliom_common.Eliom_function_forbidden_outside_site_loading _ -> ()
+    with Eliom_common.Eliom_site_information_not_available _ -> ()
       (*VVV The "try with" looks like a hack:
         end_init is called even for user config files ... but in that case,
         current_sitedata is not set ...
@@ -612,12 +612,9 @@ let handle_init_exn = function
                 ll
              )^".")^
          "\nPlease correct your modules and make sure you have linked in all the modules...")
-  | Eliom_common.Eliom_function_forbidden_outside_site_loading f ->
+  | Eliom_common.Eliom_site_information_not_available f ->
       ("Eliom: Bad use of function \""^f^
-         "\" outside site loading. \
-         (for some functions, you must add the ~sp parameter \
-               to use them after initialization. \
-               Creation or registration of public service for example)")
+          "\". Must be used only during site intialisation phase (or, sometimes, also during request).")
   | Eliom_common.Eliom_page_erasing s ->
       ("Eliom: You cannot create a page or directory here. "^s^
        " already exists. Please correct your modules.")

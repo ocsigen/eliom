@@ -32,15 +32,6 @@ include Eliom_services_cli
 exception Wrong_session_table_for_CSRF_safe_coservice
 
 
-
-(** This function may be used for services that cannot be interrupted
-  (no cooperation point for threads). It is defined by
-  [let sync f sp g p = Lwt.return (f sp g p)]
- *)
-let sync f sp g p = Lwt.return (f sp g p)
-
-
-
 (**********)
 let new_state = Eliommod_cookies.make_new_session_id
 (* WAS:
@@ -116,7 +107,7 @@ let service_aux
           Eliom_common.add_unregistered sitedata path;
           u
       | None ->
-          raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
+          raise (Eliom_common.Eliom_site_information_not_available
                    "service"))
   | Some sp ->
       let path = 
@@ -295,7 +286,7 @@ let post_service ?(https = false) ~fallback
       | None ->
           if kind = `Service
           then
-            raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
+            raise (Eliom_common.Eliom_site_information_not_available
                      "post_service")
           else u)
   | _ -> u
@@ -492,7 +483,7 @@ let unregister ?(scope = `Global) ?state_name ?secure service =
               let sitedata = get_current_sitedata () in
               sitedata.Eliom_common.global_services
             | _ -> raise
-              (Eliom_common.Eliom_function_forbidden_outside_site_loading
+              (Eliom_common.Eliom_site_information_not_available
                  "unregister"))
         | Some sp -> get_global_table ()
     in

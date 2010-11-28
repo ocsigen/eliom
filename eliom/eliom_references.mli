@@ -23,7 +23,7 @@
 
 (** Eliom references are some kind of references with limited scope.
     You define the reference with an initial value and a scope
-    (gloabl, group of sessions, session, client process, or current request).
+    (global, group of sessions, session, client process, or current request).
     When you change the value, it actually changes only for the scope
     you specified.
 
@@ -37,6 +37,18 @@
 
     Non persistent global Eliom references are equivalent to regular OCaml
     references.
+
+    {e Warning: Eliom references of scope [`Global] or [`Request] may be created
+    and accessed at any time.
+    For other scopes, they must be created or accessed when the site
+    information is available to Eliom, that is, either during the initialization
+    phase of the server (while reading the configuration file) or during
+    a request. Otherwise, it will raise the exception
+    {!Eliom_common.Eliom_site_information_not_available}.
+    If you are using static linking, you must delay the call to this function
+    until the configuration file is read, using
+    {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+    this exception.}
 *)
 
 (** The type of Eliom references. *)
@@ -53,13 +65,12 @@ type 'a eref
     This parameter has no effect for scope [`Request].
 
     Use the optional parameter [?secure] if you want the data to be available
-    only using HTTPS (default: false).
+    only using HTTPS (default: false). It has no effect for scopes [`Global]
+    and [`Request].
 
     Use the optional parameter [?state_name] if you want to distinguish
     between several server side states for the same scope.
-
-    If you create the eref during a request, do not forget to give
-    to [~sp] parameter.
+    It has no effect for scopes [`Global] and [`Request].
 *)
 val eref :
   ?state_name:string ->
@@ -68,21 +79,21 @@ val eref :
   ?persistent:string ->
   'a -> 'a eref
 
-(** Get the value of an Eliom reference.
-    That function introduces a Lwt cooperation point on for persistent
-    references.
-*)
+(** Get the value of an Eliom reference. *)
 val get : 'a eref -> 'a Lwt.t
+(* That function introduces a Lwt cooperation point only for persistent
+   references. *)
 
-(** Change the value of an Eliom reference.
-    That function introduces a Lwt cooperation point on for persistent
-    references.
-*)
+(** Change the value of an Eliom reference. *)
 val set : 'a eref -> 'a -> unit Lwt.t
+(* That function introduces a Lwt cooperation point on for persistent
+   references. *)
+
 
 (** Turn back to the default value 
-    (by removing the entry in the server side table) 
-    That function introduces a Lwt cooperation point on for persistent
-    references.
+    (by removing the entry in the server side table in the case where
+    they are stored in a table).
 *)
 val unset : 'a eref -> unit Lwt.t
+(* That function introduces a Lwt cooperation point on for persistent
+   references. *)

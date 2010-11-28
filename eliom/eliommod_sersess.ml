@@ -27,11 +27,11 @@
 
 
 let compute_cookie_info secure secure_ci cookie_info =
-  let secure = match secure with
-    | None -> true
+  let secure_if_ssl = match secure with
+    | None -> true (* If HTTPS, than the default is secure *)
     | Some s -> s
   in
-  if secure 
+  if secure_if_ssl
   then match secure_ci with
     | None (* not ssl *) -> cookie_info
     | Some (c, _, _) -> c
@@ -109,7 +109,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
           ~secure
           ~sp
           ()
-        in 
+        in
         Eliommod_sessiongroups.Data.set_max
           v.Eliom_common.sc_session_group_node
           (fst sitedata.Eliom_common.max_service_tab_sessions_per_group);

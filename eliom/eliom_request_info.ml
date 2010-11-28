@@ -31,8 +31,7 @@ let find_sitedata fun_name =
         | Some get_current_sitedata -> get_current_sitedata ()
         | _ ->
           raise
-            (Eliom_common.Eliom_function_forbidden_outside_site_loading
-               fun_name)
+            (Eliom_common.Eliom_site_information_not_available fun_name)
 
 (*****************************************************************************)
 let get_user_agent () =

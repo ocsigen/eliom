@@ -22,18 +22,10 @@
 
 (** This module allows to define services. *)
 
-
 open Ocsigen_extensions
 open Eliom_parameters
 
 exception Wrong_session_table_for_CSRF_safe_coservice
-
-(** This function may be used for services that cannot be interrupted
-  (no cooperation point for threads). It is defined by
-  [let sync f sp g p = Lwt.return (f sp g p)]
- *)
-val sync : ('a -> 'b -> 'c -> 'd) -> 'a -> 'b -> 'c -> 'd Lwt.t
-
 
 
 (** {2 Types of services} *)
@@ -94,15 +86,17 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
 (** Type of services.
     - [ 'get] is the type of GET parameters
     - [ 'post] is the type of POST parameters
-    - [ 'kind] is a subtype of {!Eliom_services.service_kind} (attached or non-attached
-      service, internal or external, GET only or with POST parameters)
+    - [ 'kind] is a subtype of {!Eliom_services.service_kind}
+    (attached or non-attached
+    service, internal or external, GET only or with POST parameters)
     - [ 'tipo] is a phantom type stating the kind of parameters it uses
-        (suffix or not)
+    (suffix or not)
     - [ 'getnames] is the type of GET parameters names
     - [ 'postnames] is the type of POST parameters names
-    - [ 'registrable] is a phantom type, subtype of {!Eliom_services.registrable},
-      telling if it is possible to register a handler on this service.
-    - [ 'return ] is the return value of the service
+    - [ 'registrable] is a phantom type,
+    subtype of {!Eliom_services.registrable},
+    telling if it is possible to register a handler on this service.
+    - [ 'return ] is an information on what the service returns
  *)
 
 
@@ -115,24 +109,37 @@ val get_get_or_post :
 (***** Static dir and actions do not depend on the type of pages ******)
 
 (** {2 Registration of named modules}
-
-This functionality allows to register module initialization functions for Eliom modules
-which will be executed when the corresponding module is initialized in [ocsigen.conf].
+    
+    This functionality allows to register module initialization functions
+    for Eliom modules which will be executed when the corresponding module
+    is initialized in [ocsigen.conf].
 
 *)
 
 val register_eliom_module : string -> (unit -> unit) -> unit
 (**
-  This function is used to specify the initialization function for Eliom modules
-  linked dynamic or statically into the server.
-  [register_eliom_module name f] registers the initialization function [f] for
-  module [name].  The [f] function will be invoked when the module is
-  initialized in the configuration file using [<eliom name="name"> ... </eliom>], which
-  is equivalent to [<eliom module="name.cmo"> ... </eliom>] with the exception
-  that it does not load the module using [Dynlink].
+   This function is used to specify the initialization function 
+   for Eliom modules linked dynamic or statically into the server.
+   [register_eliom_module name f] registers the initialization function [f] for
+   module [name]. The [f] function will be invoked when the module is
+   initialized in the configuration file using
+   [<eliom name="name"> ... </eliom>], which
+   is equivalent to [<eliom module="name.cmo"> ... </eliom>] with the exception
+   that it does not load the module using [Dynlink].
   *)
 
-(** {2 Definitions of services} *)
+(** {2 Definitions of services}
+
+    {e Warning: These functions must be called when the site
+    information is available, that is, either
+    during a request or during the initialisation phase of the site.
+    Otherwise, it will raise the exception
+    {!Eliom_common.Eliom_site_information_not_available}.
+    If you are using static linking, you must delay the call to this function
+    until the configuration file is read, using
+    {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+    this exception.}
+*)
 
 (** {3 Main services} *)
 
@@ -147,19 +154,11 @@ val service :
       ([> `Internal of [> `Service ] ], [> `Get ]) a_s ],
    'tipo,'gn,
    unit, [> `Registrable ], 'return) service
-(** [service ~path:p ~get_params:pa ()] creates an {!Eliom_services.service} associated
-   to the path [p], taking the GET parameters [pa].
-
-   If [~https] is true, all links towards that service will use https.
-
-   {e Warning: If you use this function after the initialisation phase,
-   you must give the [~sp] parameter, otherwise it will raise the
-   exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
-   If you are using static linking, you must delay the call to this function
-   until the configuration file is read, using
-   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
-   this exception.
-   }
+(** [service ~path ~get_params ()] creates a
+    {!Eliom_services.service} associated
+    to the path [path], taking the GET parameters [get_params].
+    
+    If [~https] is true, all links towards that service will use https.
 *)
 
 
@@ -171,19 +170,19 @@ val external_service :
   unit ->
   ('get, unit, [> `Attached of ([> `External ], [> `Get ]) a_s ], 'tipo,
    'gn, unit, [> `Unregistrable ], 'return) service
-(** Creates an service for an external web site, that will use GET method.
-   Allows to creates links or forms towards other Web sites using
-   Eliom's syntax.
+(** Creates a service for an external web site, that will use GET method.
+    This allows to creates links or forms towards other Web sites using
+    Eliom's syntax.
 
-   The parameter labelled [~path] is the URL path, and each element of
-   the list will be URL-encoded.
+    The parameter labelled [~path] is the URL path, and each element of
+    the list will be URL-encoded.
 
-   The parameter labelled [~prefix] contains all what you want to put before
-   the path. It usually starts with "http://" plus
-   the name of the server. The whole URL is constructed from the prefix,
-   the path and parameters. The prefix is not encoded.
-   An empty prefix can be used to make a link to another site of the same
-   server.
+    The parameter labelled [~prefix] contains all what you want to put before
+    the path. It usually starts with "http://" plus
+    the name of the server. The whole URL is constructed from the prefix,
+    the path and parameters. The prefix is not encoded.
+    An empty prefix can be used to make a link to another site of the same
+    server.
  *)
 
 val external_post_service :
@@ -214,11 +213,11 @@ val post_service :
   ('get, 'post, [> `Attached of
                    ([> `Internal of 'kind ], [> `Post]) a_s ],
    'tipo, 'gn, 'pn, [> `Registrable ], 'return) service
-(** Creates an service that takes POST parameters.
+(** Creates a service that takes POST parameters.
     [fallback] is a service without POST parameters.
     You can't create an service with POST parameters
     if the same service does not exist without POST parameters.
-    Thus, the user can't bookmark a page that does not exist.
+    Thus, the user cannot put a bookmark on a page that does not exist.
  *)
 (* fallback must be registrable! (= not preapplied) *)
 
@@ -247,48 +246,48 @@ val coservice :
                 ([> `Internal of [> `Coservice] ], [> `Get]) a_s ],
    'tipo, 'gn, unit,
    [> `Registrable ], 'return) service
-(** Creates a coservice. A coservice is another version of an
-   already existing main service, where you can register another handler.
-   The two versions are automatically distinguished using an extra parameter
-   added automatically by Eliom.
-   It allows to have several links towards the same page,
-   that will behave differently, or to create services dedicated to one user.
-   See the tutorial for more informations.
-   Coservices can be named if the [?name] optional parameter
-   is present or anonymous (in that case, a coservice number will be
-   generated).
+(** Creates an attached coservice. A coservice is another version of an
+    already existing main service, where you can register another handler.
+    The two versions are automatically distinguished using an extra parameter
+    added automatically by Eliom.
+    It allows to have several links towards the same page,
+    that will behave differently, or to create services dedicated to one user.
+    Coservices can be named if the [?name] optional parameter
+    is present or anonymous (in that case, a coservice number will be
+    generated).
 
-   The [~timeout] parameter specifies a timeout (in seconds)
-   after which the coservice will disappear. This amount of time is
-   computed from the creation or the last call to the service.
-
-   The [~max_use] parameter specifies that the service can be used only
-   a fixed number of times.
-
-   If [~csrf_safe] is [true],
-   it will create a "CSRF-safe" service (the default is [false]). 
-   (In that case [~name] is ignored).
-   It means that the registration of the service will not actually
-   take place when [register] is called, but delayed and performed
-   each time a form is created. This allows to protect against CSRF attacks,
-   and should be use with a short timeout (and max_use).
-   (And you should probably use POST coservices in that case).
-   In that case, you can register the CSRF safe service either in the global
-   service table or in the session service table. But the actual registration,
-   that will occure when creating a link or a form, will always take
-   place in a session service table. This table is specified by the
-   [~csrf_state_name], [~csrf_scope] 
+    See the programmer's manual for more informations.
+    
+    The [~timeout] parameter specifies a timeout (in seconds)
+    after which the coservice will disappear. This amount of time is
+    computed from the creation or from the last call to the service.
+    Default: no timeout.
+    
+    The [~max_use] parameter specifies that the service can be used only
+    a fixed number of times. Default: no limitation.
+    
+    If [~csrf_safe] is [true],
+    it will create a "CSRF-safe" service (the default is [false]). 
+    (In that case [~name] is ignored).
+    It means that the registration of the service will not actually
+    take place when [register] is called, but delayed and performed
+    each time a form is created. This allows to protect against CSRF attacks,
+    and should be use with a short timeout (and max_use).
+    (And you should probably use POST coservices in that case).
+    In that case, you can register the CSRF safe service either in the global
+    service table or in the session service table. But the actual registration,
+    that will occure when creating a link or a form, will always take
+    place in a session service table. This table is specified by the
+    [~csrf_state_name], [~csrf_scope] 
     and [~csrf_secure_session] parameters
-   (that correspond to [~state_name], [~scope]
-    and [~secure] for the delayed 
-    registration); it is default session table if they are absent.
-    Parameters [?state_name], [?scope]
-    and [?secure] of [register_for_session]
+    (that correspond to [~state_name], [~scope] and [~secure] for the delayed 
+    registration); it is the default session table if they are absent.
+    Parameters [?state_name], [?scope] and [?secure] of [register]
     must have the same values as the one declared while creating the
     CSRF safe coservice, otherwise the registration will fail
     with {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}.
-   
- *)
+    
+*)
 
 val post_coservice :
   ?name: string ->
@@ -331,13 +330,14 @@ val coservice' :
   ('get, unit, [> `Nonattached of [> `Get] na_s ],
    [`WithoutSuffix], 'gn, unit, [> `Registrable ], 'return) service
 (** Creates a non-attached coservice, that is, services that do not
-   correspond to a precise path in the URL.
-   Links towards such services will not change the URL,
-   just add extra parameters.
-   Non-attached coservices can be named if the [?name] optional parameter
-   is present or anonymous (in that case, a coservice number will be
-   generated).
-   See the tutorial for more informations.
+    correspond to a path in the URL. They are identified only by a
+    parameter, whatever be the path.
+    Links towards such services will not change the URL,
+    just add extra parameters.
+    Non-attached coservices can be named if the [?name] optional parameter
+    is present or anonymous (in that case, a coservice number will be
+    generated).
+    See the programmer's manual for more informations.
  *)
 
 val post_coservice' :
@@ -367,6 +367,7 @@ val post_coservice' :
 
 (** {2 Predefined services} *)
 
+(** {3 Static files} *)
 val static_dir :
   unit ->
   (string list, unit, [> `Attached of
@@ -375,10 +376,11 @@ val static_dir :
    [ `One of string list ] param_name, unit, [> `Unregistrable ], 'return)
     service
 (** A predefined service
-   that correponds to the directory where static pages are.
-   This directory is chosen in the config file (ocsigen.conf).
-   This service takes the name of the static file as a parameter
-   (a string list, slash separated).
+    that correponds to the directory where static pages are
+    (if the staticmod extension is used).
+    This directory is chosen in the configuration file.
+    This service takes the name of the static file as a parameter
+    (a string list, slash separated).
  *)
 
 val https_static_dir :
@@ -416,6 +418,7 @@ val https_static_dir_with_params :
 
 
 
+(** {3 Void non-attached coservices} *)
 
 val void_coservice' :
   (unit, unit, [> `Nonattached of 'a na_s ],
@@ -455,7 +458,7 @@ val https_void_hidden_coservice' :
 (** The same, but forcing https. *)
 
 
-(** {2 Misc} *)
+(** {2 Miscellaneous} *)
 
 val preapply :
     service:('a, 'b, [> `Attached of ('d, 'dd) a_s ] as 'c,
@@ -465,8 +468,8 @@ val preapply :
         (unit, 'b, 'c,
          [ `WithoutSuffix ], unit, 'f, [> `Unregistrable ], 'return) service
 (** creates a new service by preapplying a service to GET parameters.
-   It is not possible to register a handler on an preapplied service.
-   Preapplied services may be used in links or as fallbacks for coservices
+    It is not possible to register a handler on an preapplied service.
+    Preapplied services may be used in links or as fallbacks for coservices
  *)
 
 val add_non_localized_get_parameters :
@@ -493,7 +496,6 @@ val unregister :
 
 
 (** {2 Eliom application services} *)
-
 (** This function will register a function that will be executed on
     client side once the [Eliom_appl] page is loaded.
     Use it with Eliom's syntax extension for client side code.
@@ -511,15 +513,17 @@ val onunload : XML.event -> unit
 
 
 (** Allows to use your own error pages
-   (404, or any exception during page generation).
+    (404, or any exception during page generation).
 
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
-   If you are using static linking, you must delay the call to this function
-   until the configuration file is read, using
-   {!Eliom_services.register_eliom_module}. Otherwise you will also get 
-   this exception.}
+    {e Warning: This functions must be called when the site
+    information is available, that is, either
+    during a request or during the initialisation phase of the site.
+    Otherwise, it will raise the exception
+    {!Eliom_common.Eliom_site_information_not_available}.
+    If you are using static linking, you must delay the call to this function
+    until the configuration file is read, using
+    {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+    this exception.}
  *)
 val set_exn_handler : (exn -> Ocsigen_http_frame.result Lwt.t) -> unit
 

@@ -27,7 +27,7 @@ exception Eliom_Typing_Error of (string * exn) list
 exception Eliom_duplicate_registration of string
 exception Eliom_there_are_unregistered_services of
   (string list * string list list * na_key_serv list)
-exception Eliom_function_forbidden_outside_site_loading of string
+exception Eliom_site_information_not_available of string
 exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
 
@@ -496,8 +496,7 @@ and sitedata =
 
    global_services: tables; (* global service table *)
    session_services: tables servicecookiestable;
-   (* cookie table for services
-      (tab and browser sessions) *)
+   (* cookie table for services (tab and browser sessions) *)
    session_data: datacookiestable; (* cookie table for in memory session data
                                       (tab and browser sessions) 
                                       contains the information about the cookie
@@ -608,7 +607,7 @@ let absolute_change_sitedata,
   in
   ((fun sitedata -> f2 := sitedata::!f2) (* absolute_change_sitedata *),
    (fun () ->  match !f2 with
-   | [] -> raise (Eliom_function_forbidden_outside_site_loading
+   | [] -> raise (Eliom_site_information_not_available
                     "get_current_sitedata")
    | sd::_ -> sd) (* get_current_sitedata *),
    (fun () -> popf2 ()) (* end_current_sitedata *))

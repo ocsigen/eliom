@@ -3488,6 +3488,8 @@ let login_box session_expired action =
 (* Handler for the "connect_example6" service (main page):   *)
 
 let connect_example6_handler () () =
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  in
   let group =
     Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ()
   in
@@ -3495,14 +3497,14 @@ let connect_example6_handler () () =
     (html
        (head (title (pcdata "")) [])
        (body
-          (match group with
-          | Eliom_state.Data name ->
+          (match group, status with
+          | Some name, _ ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box "Close session"]
-          | Eliom_state.Data_session_expired ->
+          | None, Eliom_state.Expired_state ->
               [login_box true connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
-          | Eliom_state.No_data ->
+          | _ ->
               [login_box false connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
           )))
@@ -4105,11 +4107,10 @@ let connect_example5_handler () () =
        (head (title (pcdata "")) [])
        (body
           (match sessdat with
-          | Eliom_state.Data name ->
+          | Some name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box "Close session"]
-          | Eliom_state.Data_session_expired
-          | Eliom_state.No_data -> [login_box ()]
+          | None -> [login_box ()]
           )))
 
 
@@ -4233,7 +4234,7 @@ let group_tables_example_handler () () =
        (head (title (pcdata "")) [])
        (body
           (match sessdat with
-          | Eliom_state.Data name ->
+          | Some name ->
               [p [pcdata ("Hello "^name); br ()];
                (let d = group_info name in
                 p [pcdata "Your group data is: ";
@@ -4246,8 +4247,7 @@ let group_tables_example_handler () () =
                p [pcdata "Check that the value disappears when all sessions from the group are closed."];
                p [pcdata "Check that the all sessions are closed when clicking on \"close group\" button."];
                disconnect_box ()]
-          | Eliom_state.Data_session_expired
-          | Eliom_state.No_data -> [login_box ()]
+          | None -> [login_box ()]
           )))
 
 
@@ -4359,7 +4359,7 @@ let group_tables_example_handler () () =
       | Eliom_state.Data d -> Lwt.return d
   in
   (match sessdat with
-    | Eliom_state.Data name ->
+    | Some name ->
       (group_info name >>= fun d ->
        Lwt.return 
          [p [pcdata ("Hello "^name); br ()];
@@ -4374,8 +4374,7 @@ let group_tables_example_handler () () =
           p [pcdata "Check that the all sessions are closed when clicking on \"close group\" button."];
           p [pcdata "Check that the value is preserved after relaunching the server."];
           disconnect_box ()])
-    | Eliom_state.Data_session_expired
-    | Eliom_state.No_data -> Lwt.return [login_box ()]) >>= fun l ->
+    | None -> Lwt.return [login_box ()]) >>= fun l ->
   Lwt.return
     (html
        (head (title (pcdata "")) [])

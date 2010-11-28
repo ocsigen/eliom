@@ -42,7 +42,7 @@ val get_config_default_charset : unit -> string
    {e Warning: You must call that function during the initialisation of
    your module (not during a Lwt thread or a service)
    otherwise it will raise the exception
-   {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   {!Eliom_common.Eliom_site_information_not_available}.
    If you want to build a statically linkable module, you must call this
    function inside the initialisation function given to
    {!Eliom_services.register_eliom_module}.}

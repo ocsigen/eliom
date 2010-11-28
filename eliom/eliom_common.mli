@@ -30,16 +30,16 @@ exception Eliom_Typing_Error of (string * exn) list
     (** The service (GET or POST) parameters do not match expected type *)
 
 
-exception Eliom_function_forbidden_outside_site_loading of string
-    (** That function cannot be used like that outside the
-       initialisation phase of modules (that is, while reading the
-       configuration file).
-       - For some functions, you must add the [~sp] parameter to use
-       them during a request.
-       - You cannot use the function before the configuration file is read
-       (for example when you are using static linking). In that case you must
-       delay the function call using {!Eliom_services.register_eliom_module}.
-     *)
+exception Eliom_site_information_not_available of string
+(** That function cannot be used when the site information is not available,
+    that is, outside a request or the initialisation phase of your Eliom module
+    (while reading the configuration file).
+    
+    In particular, you cannot use the function before the configuration file
+    is read for example when you are using {e static linking}.
+    In that case you must
+    delay the function call using {!Eliom_services.register_eliom_module}.
+*)
 
 (** Eliom is using regular (browser) cookies but can also use
     browser tab cookies (only if you are using a client side program)

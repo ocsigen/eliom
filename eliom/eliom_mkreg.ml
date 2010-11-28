@@ -753,7 +753,7 @@ module MakeRegister = functor
                   (Ocsigen_lib.Left sitedata.Eliom_common.global_services)
                   ~service ?error_handler page_gen
               | _ -> raise
-                (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                (Eliom_common.Eliom_site_information_not_available
                    "register"))
           | `Global, Some sp ->
             register_aux
