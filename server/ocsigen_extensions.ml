@@ -787,7 +787,7 @@ let string_of_host (h : virtual_hosts) =
 
 
 
-let serve_request
+let compute_result
     ?(previous_cookies = Ocsigen_cookies.Cookies.empty)
     ?(awake_next_request = false) ri =
 

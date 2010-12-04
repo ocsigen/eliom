@@ -275,21 +275,32 @@ let gen is_eliom_extension sitedata = function
                  sitedata >>= fun res ->
 
                let all_user_cookies = res.Ocsigen_http_frame.res_cookies in
-           
                Eliommod_cookies.compute_cookies_to_send
                  sitedata
                  all_cookie_info
                  all_user_cookies
-                 
                >>= fun all_new_cookies ->
+               let res =
+                 {res with
+                   Ocsigen_http_frame.res_cookies=all_new_cookies}
+               in
 
-               Lwt.return
-                 (Ocsigen_extensions.Ext_found
-                    (fun () ->
-                       Lwt.return
-                         {res with
-                            Ocsigen_http_frame.res_cookies= 
-                             all_new_cookies}))
+               try
+                 Polytables.get
+                   ~table:ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+                   ~key:Eliom_common.found_stop_key;
+                 (* if we find this information in request cache,
+                    the request has already been completed.
+                    (used after an action).
+                    Do not try the following extensions.
+                 *)
+                 Lwt.return
+                   (Ocsigen_extensions.Ext_found_stop
+                      (fun () -> Lwt.return res))
+               with Not_found ->
+                 Lwt.return
+                   (Ocsigen_extensions.Ext_found (fun () -> Lwt.return res))
+
             )
             (function
                | Eliom_common.Eliom_Typing_Error l ->

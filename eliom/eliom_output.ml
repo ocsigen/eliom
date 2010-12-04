@@ -2190,6 +2190,14 @@ module Actionreg_ = struct
   let do_appl_xhr = Eliom_services.XAlways
   (* The post action service will decide later *)
 
+  let send_directly =
+  (* send bypassing the following directives 
+     in the configuration file (they have already been taken into account) *)
+    fun ri res ->
+      Polytables.set
+        ri.ri_request_cache Eliom_common.found_stop_key ();
+      res
+
   let send
       ?(options = `Reload) ?charset ?(code = 204)
       ?content_type ?headers () =
@@ -2308,8 +2316,8 @@ module Actionreg_ = struct
                in
                Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
                >>= fun () ->
-               Ocsigen_extensions.serve_request 
-                 ~previous_cookies:all_new_cookies ri
+               send_directly ri (Ocsigen_extensions.compute_result
+                                   ~previous_cookies:all_new_cookies ri)
                  
 
                | (Eliom_common.RNa_post_ _, (_, _), _)
@@ -2338,8 +2346,8 @@ module Actionreg_ = struct
                  in
                  Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
                  >>= fun () ->
-                 Ocsigen_extensions.serve_request
-                   ~previous_cookies:all_new_cookies ri
+                 send_directly ri (Ocsigen_extensions.compute_result
+                                     ~previous_cookies:all_new_cookies ri)
 
                | _ ->
                  (* retry without POST params *)
@@ -2370,8 +2378,8 @@ module Actionreg_ = struct
                  in
                  Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
                  >>= fun () ->
-                 Ocsigen_extensions.serve_request
-                   ~previous_cookies:all_new_cookies ri)
+                 send_directly ri (Ocsigen_extensions.compute_result
+                                     ~previous_cookies:all_new_cookies ri))
       )
 
 end

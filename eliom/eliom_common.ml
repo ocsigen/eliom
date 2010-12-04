@@ -74,7 +74,7 @@ let eliom_service_session_expired :
     The string lists are the list of names of expired sessions
 *)
 
-
+let found_stop_key = Polytables.make_key ()
 
 (*****************************************************************************)
 

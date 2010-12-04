@@ -655,7 +655,7 @@ let service receiver sender_slot request meth url port sockaddr =
 
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind
-             (fun () -> Ocsigen_extensions.serve_request
+             (fun () -> Ocsigen_extensions.compute_result
                 ~awake_next_request:true ri)
              (fun res ->
                 finish_request ();

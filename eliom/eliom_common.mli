@@ -551,3 +551,5 @@ val sp_key : server_params Lwt.key
 val get_sp_option : unit -> server_params option
 val get_sp : unit -> server_params
 val sp_of_option : server_params option -> server_params
+
+val found_stop_key : unit Polytables.key

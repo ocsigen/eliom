@@ -388,6 +388,8 @@ let () = register
 
 (*******)
 (* doing requests *)
+(* Warning: compute_result may return an deflated result! *)
+(* Check! (see for example Eliom_output.Action) *)
 let extreq =
   register_service
     ~path:["extreq"]
@@ -411,7 +413,7 @@ let servreq =
     (fun () () ->
        let ri = Eliom_request_info.get_ri () in
        let ri = Ocsigen_extensions.ri_of_url "tuto/" ri in
-       Ocsigen_extensions.serve_request ri >>= fun result ->
+       Ocsigen_extensions.compute_result ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
        Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
        (* Here use an XML parser,
@@ -427,7 +429,7 @@ let servreqloop =
     ~get_params:unit
     (fun () () ->
        let ri = Eliom_request_info.get_ri () in
-       Ocsigen_extensions.serve_request ri >>= fun result ->
+       Ocsigen_extensions.compute_result ri >>= fun result ->
        let stream = fst result.Ocsigen_http_frame.res_stream in
        Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream) >>= fun s ->
        (* Here use an XML parser,
