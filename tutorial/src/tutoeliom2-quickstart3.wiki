@@ -1,0 +1,47 @@
+=Overview of Eliom features: Miscellaneous features=
+
+
+===Multi-user collaborative drawing application===
+
+===Saving favorite pictures===
+bla\\bla\\bla\\bla\\
+
+<<code language="ocaml"|
+>>
+
+<<div class="encadre"|====  ====
+>>
+
+===Connection with external accounts===
+<<div class="concepts"|openID>>
+bla\\bla\\bla\\bla\\
+
+<<code language="ocaml"|
+>>
+
+<<div class="encadre"|====  ====
+>>
+
+===listening music===
+<<div class="concepts"|Persistence of the client application>>
+bla\\bla\\bla\\bla\\
+
+<<code language="ocaml"|
+>>
+
+<<div class="encadre"|====  ====
+>>
+
+
+===???===
+<<div class="concepts"|Other features: Atom ...\\
+Client side service calls ...\\
+Client side forms ...\\
+**LWT** -> où ????????????,>>
+bla\\bla\\bla\\bla\\
+
+<<code language="ocaml"|
+>>
+
+<<div class="encadre"|====  ====
+>>

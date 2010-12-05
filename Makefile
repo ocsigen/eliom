@@ -2,8 +2,6 @@ include Makefile.config
 
 VERSION := $(shell head -n 1 VERSION)
 
-DOCPREF=./
-
 # sed commands used for generation of META files
 SED_COMMAND_FOR_META =
 SED_COMMAND_FOR_META += -e "s/_VERSION_/$(VERSION)/"
@@ -19,16 +17,12 @@ DUCECMI=eliom/eliom_duce.cmi eliom/xhtmltypes_duce.cmi eliom/eliom_duce_tools.cm
 # eliom/rss2.cmi eliom/ocsigenrss.cmi
 DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 # examples/ocamlduce/examplerss.cmo
-DUCEDOC=$(DOCPREF)eliom/eliom_duce.mli $(DOCPREF)eliom/xhtmltypes_duce.ml $(DOCPREF)eliom/eliom_duce_tools.ml
-CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 DUCEPACK=,ocamlduce
 else
 DUCECMA=
 DUCECMO=
 DUCECMI=
 DUCEEXAMPLES=
-DUCEDOC=
-CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 DUCEPACK=
 endif
 
@@ -56,55 +50,6 @@ ifeq "$(OCSIPERSISTDBM)" "YES"
 DBMCMATOINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma 
 else
 endif
-
-DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli	\
-	$(DOCPREF)eliom/eliom_output.mli				\
-	$(DOCPREF)eliom/eliom_common.mli				\
-	$(DOCPREF)eliom/eliom_parameters.mli				\
-	$(DOCPREF)eliom/eliom_services.mli				\
-	$(DOCPREF)eliom/eliom_uri.mli				\
-	$(DOCPREF)eliom/eliom_config.mli				\
-	$(DOCPREF)eliom/eliom_request_info.mli				\
-	$(DOCPREF)eliom/eliom_state.mli				\
-	$(DOCPREF)eliom/eliom_references.mli				\
-	$(DOCPREF)eliom/eliom_extensions.mli				\
-	$(DOCPREF)eliom/extensions/atom_feed.mli \
-	$(DOCPREF)eliom/extensions/eliom_atom.mli \
-	$(DOCPREF)eliom/extensions/eliom_openid.mli \
-	$(DOCPREF)eliom/extensions/eliom_s2s.mli \
-	$(DOCPREF)server/ocsigen_extensions.mli				\
-	$(DOCPREF)server/ocsigen_parseconfig.mli			\
-	$(DOCPREF)server/ocsigen_server.mli				\
-	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty_streams.mli		\
-	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact_streams.mli		\
-	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty.mli			\
-	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact.mli			\
-	$(DOCPREF)xmlp4/xhtml/xHTML.mli					\
-	$(DOCPREF)xmlp4/xhtml/xhtmltypes.mli				\
-	$(DOCPREF)xmlp4/xhtml/sVG.mli					\
-	$(DOCPREF)xmlp4/xhtml/svgtypes.mli				\
-	$(DOCPREF)xmlp4/xhtml/xhtml5types.mli				\
-	$(DOCPREF)xmlp4/xhtml/uri.mli					\
-	$(DOCPREF)xmlp4/xhtml/xHTML5.mli				\
-	$(DOCPREF)baselib/ocsigen_messages.mli				\
-	$(DOCPREF)http/ocsigen_headers.mli				\
-	$(DOCPREF)server/ocsigen_http_client.mli			\
-	$(DOCPREF)http/ocsigen_http_frame.mli				\
-	$(DOCPREF)http/ocsigen_http_com.mli				\
-	$(DOCPREF)http/ocsigen_charset_mime.mli				\
-	$(DOCPREF)http/ocsigen_senders.mli				\
-	$(DOCPREF)baselib/ocsigen_stream.mli				\
-	$(DOCPREF)eliom/eliom_tools_common.mli			 	\
-	$(DOCPREF)eliom/eliom_tools.mli					\
-	$(DOCPREF)baselib/polytables.mli				\
-	$(DOCPREF)baselib/ocsigen_cache.mli				\
-	$(DOCPREF)extensions/ocsipersist.mli				\
-	$(DOCPREF)extensions/authbasic.mli				\
-	$(DOCPREF)extensions/ocsigen_comet.mli				\
-	$(DOCPREF)extensions/ocsigen_LocalFiles.mli			\
-	$(DOCPREF)baselib/ocsigen_getcommandline.mli                    \
-	$(DOCPREF)xmlp4/syntax/pp/simplexmlparser.mli			\
-	$(DUCEDOC)
 
 METAS = files/META files/META.ocsigen_xhtml files/META.ocsigen files/META.eliom_examples files/META.eliom_examples.global
 
@@ -339,9 +284,8 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) -package lwt.ssl,netstring,calendar$(DUCEPACK) $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -intro files/indexdoc -d doc -html $(DOC)
-
-doc/index.html: doc
+	echo "Documentation generation temporarily unsupported. Please see the online documentation on http://ocsigen.org"
+#	$(MAKE) -C doc
 
 files/META: files/META.in VERSION
 	sed $(SED_COMMAND_FOR_META) < $< > $@
@@ -424,7 +368,7 @@ clean:
 
 distclean: clean
 	-find . -name "*depend" -delete
-	-find doc -type f -delete
+	make -C doc clean
 	-rm -f Makefile.config
 
 depend:
@@ -465,11 +409,8 @@ partialinstall:
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	chmod a+rx "$(TEMPROOT)$(MODULEINSTALLDIR)"
 
-docinstall: doc/index.html
-	mkdir -p $(TEMPROOT)$(DOCDIR)
-	$(INSTALL) -m 644 doc/* $(TEMPROOT)$(DOCDIR)
-	chmod a+rx $(TEMPROOT)$(DOCDIR)
-	chmod a+r $(TEMPROOT)$(DOCDIR)/*
+docinstall:
+	make -C doc install
 
 installnodoc: partialinstall
 	mkdir -p $(TEMPROOT)$(CONFIGDIR)

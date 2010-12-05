@@ -37,7 +37,6 @@ module Make :
   functor (A : sig type key type value end) ->
     sig
 
-      class cache : (A.key -> A.value Lwt.t) -> ?timer:float -> int ->
       (** [new cache finder ?timer size] creates a cache object where [finder]
           is the function responsible for retrieving non-cached data, [timer]
           (if any) is the life span of cached values (in seconds) (values in the
@@ -51,6 +50,7 @@ module Make :
           Using [timer] allow one to create a cache
           bounded both in space and time. It is to be noted that real lifespan
           of values is always slightly greater than [timer]. *)
+      class cache : (A.key -> A.value Lwt.t) -> ?timer:float -> int ->
       object
 
       (** Find the cached value associated to the key, or binds this
