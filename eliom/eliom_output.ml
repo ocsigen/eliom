@@ -2667,7 +2667,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?https
@@ -2688,7 +2688,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?https
@@ -2710,7 +2710,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?https
@@ -2730,7 +2730,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?https
@@ -2780,7 +2780,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?https
@@ -2801,7 +2801,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?https
@@ -2823,7 +2823,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?keep_get_na_params
@@ -2844,7 +2844,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?keep_get_na_params
@@ -2977,7 +2977,7 @@ module Caml = struct
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?https
@@ -2998,7 +2998,7 @@ module Caml = struct
                                       ?csrf_safe
                                       ?csrf_state_name
                                       ?csrf_scope
-                                      ?csrf_secure_session
+                                      ?csrf_secure
                                       ?max_use
                                       ?timeout
                                       ?https
@@ -3020,7 +3020,7 @@ module Caml = struct
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?https
@@ -3040,7 +3040,7 @@ module Caml = struct
                                       ?csrf_safe
                                       ?csrf_state_name
                                       ?csrf_scope
-                                      ?csrf_secure_session
+                                      ?csrf_secure
                                       ?max_use
                                       ?timeout
                                       ?https
@@ -3091,7 +3091,7 @@ module Caml = struct
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?https
@@ -3112,7 +3112,7 @@ module Caml = struct
                                       ?csrf_safe
                                       ?csrf_state_name
                                       ?csrf_scope
-                                      ?csrf_secure_session
+                                      ?csrf_secure
                                       ?max_use
                                       ?timeout
                                       ?https
@@ -3134,7 +3134,7 @@ module Caml = struct
       ?csrf_safe
       ?csrf_state_name
       ?csrf_scope
-      ?csrf_secure_session
+      ?csrf_secure
       ?max_use
       ?timeout
       ?keep_get_na_params
@@ -3155,7 +3155,7 @@ module Caml = struct
                                       ?csrf_safe
                                       ?csrf_state_name
                                       ?csrf_scope
-                                      ?csrf_secure_session
+                                      ?csrf_secure
                                       ?max_use
                                       ?timeout
                                       ?keep_get_na_params

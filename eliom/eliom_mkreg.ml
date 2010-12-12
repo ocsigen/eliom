@@ -197,7 +197,7 @@ module type ELIOMREGSIG =
       ?csrf_safe: bool ->
       ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
-      ?csrf_secure_session: bool ->
+      ?csrf_secure: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -231,7 +231,7 @@ module type ELIOMREGSIG =
       ?csrf_safe: bool ->
       ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
-      ?csrf_secure_session: bool ->
+      ?csrf_secure: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -284,7 +284,7 @@ module type ELIOMREGSIG =
       ?csrf_safe: bool ->
       ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
-      ?csrf_secure_session: bool ->
+      ?csrf_secure: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -317,7 +317,7 @@ module type ELIOMREGSIG =
       ?csrf_safe: bool ->
       ?csrf_state_name: string ->
       ?csrf_scope: Eliom_common.user_scope ->
-      ?csrf_secure_session: bool ->
+      ?csrf_secure: bool ->
       ?max_use:int ->
       ?timeout:float ->
       ?keep_get_na_params:bool ->
@@ -828,7 +828,7 @@ module MakeRegister = functor
           ?csrf_safe
           ?csrf_state_name
           ?csrf_scope
-          ?csrf_secure_session
+          ?csrf_secure
           ?max_use
           ?timeout
           ?https
@@ -841,7 +841,7 @@ module MakeRegister = functor
             ?csrf_safe
             ?csrf_state_name
             ?csrf_scope
-            ?csrf_secure_session
+            ?csrf_secure
             ?max_use ?timeout ?https
             ~fallback ~get_params () 
         in
@@ -870,7 +870,7 @@ module MakeRegister = functor
           ?csrf_safe
           ?csrf_state_name
           ?csrf_scope
-          ?csrf_secure_session
+          ?csrf_secure
           ?max_use
           ?timeout
           ?https
@@ -883,7 +883,7 @@ module MakeRegister = functor
             ?csrf_safe
             ?csrf_state_name
             ?csrf_scope
-            ?csrf_secure_session
+            ?csrf_secure
             ?max_use ?timeout ?https ~get_params () 
         in
         register
@@ -939,7 +939,7 @@ module MakeRegister = functor
           ?csrf_safe
           ?csrf_state_name
           ?csrf_scope
-          ?csrf_secure_session
+          ?csrf_secure
           ?max_use
           ?timeout
           ?https
@@ -952,7 +952,7 @@ module MakeRegister = functor
             ?csrf_safe
             ?csrf_state_name
             ?csrf_scope
-            ?csrf_secure_session
+            ?csrf_secure
             ?max_use ?timeout ?https
             ~fallback ~post_params () in
         register
@@ -980,7 +980,7 @@ module MakeRegister = functor
           ?csrf_safe
           ?csrf_state_name
           ?csrf_scope
-          ?csrf_secure_session
+          ?csrf_secure
           ?max_use
           ?timeout
           ?keep_get_na_params
@@ -994,7 +994,7 @@ module MakeRegister = functor
             ?csrf_safe
             ?csrf_state_name
             ?csrf_scope
-            ?csrf_secure_session
+            ?csrf_secure
             ?keep_get_na_params
             ?max_use
             ?timeout

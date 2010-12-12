@@ -230,7 +230,7 @@ val coservice :
   ?csrf_safe: bool ->
   ?csrf_state_name: string ->
   ?csrf_scope: Eliom_common.user_scope ->
-  ?csrf_secure_session: bool ->
+  ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -279,7 +279,7 @@ val coservice :
     that will occure when creating a link or a form, will always take
     place in a session service table. This table is specified by the
     [~csrf_state_name], [~csrf_scope] 
-    and [~csrf_secure_session] parameters
+    and [~csrf_secure] parameters
     (that correspond to [~state_name], [~scope] and [~secure] for the delayed 
     registration); it is the default session table if they are absent.
     Parameters [?state_name], [?scope] and [?secure] of [register]
@@ -294,7 +294,7 @@ val post_coservice :
   ?csrf_safe: bool ->
   ?csrf_state_name: string ->
   ?csrf_scope: Eliom_common.user_scope ->
-  ?csrf_secure_session: bool ->
+  ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -319,7 +319,7 @@ val coservice' :
   ?csrf_safe: bool ->
   ?csrf_state_name: string ->
   ?csrf_scope: Eliom_common.user_scope ->
-  ?csrf_secure_session: bool ->
+  ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -345,7 +345,7 @@ val post_coservice' :
   ?csrf_safe: bool ->
   ?csrf_state_name: string ->
   ?csrf_scope: Eliom_common.user_scope ->
-  ?csrf_secure_session: bool ->
+  ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->

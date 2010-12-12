@@ -148,7 +148,7 @@ let coservice
     ?(csrf_safe = false)
     ?csrf_state_name
     ?(csrf_scope = `Session)
-    ?csrf_secure_session
+    ?csrf_secure
     ?max_use
     ?timeout
     ?(https = false)
@@ -171,7 +171,7 @@ let coservice
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             csrf_state_name,
                                             csrf_scope,
-                                            csrf_secure_session)
+                                            csrf_secure)
           else
             (match name with
                | None -> Eliom_common.SAtt_anon (new_state ())
@@ -192,7 +192,7 @@ let coservice'
     ?(csrf_safe = false)
     ?csrf_state_name
     ?(csrf_scope = `Session)
-    ?csrf_secure_session
+    ?csrf_secure
     ?max_use
     ?timeout
     ?(https = false)
@@ -221,7 +221,7 @@ let coservice'
                  then Eliom_common.SNa_get_csrf_safe (uniqueid (),
                                                       csrf_state_name,
                                                       csrf_scope,
-                                                      csrf_secure_session)
+                                                      csrf_secure)
                  else
                    match name with
                      | None -> Eliom_common.SNa_get' (new_state ())
@@ -299,7 +299,7 @@ let post_coservice
     ?(csrf_safe = false)
     ?csrf_state_name
     ?(csrf_scope = `Session)
-    ?csrf_secure_session
+    ?csrf_secure
     ?max_use
     ?timeout
     ?(https = false)
@@ -324,7 +324,7 @@ let post_coservice
           then Eliom_common.SAtt_csrf_safe (uniqueid (),
                                             csrf_state_name,
                                             csrf_scope,
-                                            csrf_secure_session)
+                                            csrf_secure)
           else
             (match name with
                | None -> Eliom_common.SAtt_anon (new_state ())
@@ -346,7 +346,7 @@ let post_coservice'
     ?(csrf_safe = false)
     ?csrf_state_name
     ?(csrf_scope = `Session)
-    ?csrf_secure_session
+    ?csrf_secure
     ?max_use ?timeout
     ?(https = false)
     ?(keep_nl_params = `All)
@@ -368,7 +368,7 @@ let post_coservice'
            then Eliom_common.SNa_post_csrf_safe (uniqueid (),
                                                  csrf_state_name,
                                                  csrf_scope,
-                                                 csrf_secure_session)
+                                                 csrf_secure)
            else
              (match name with
                 | None ->

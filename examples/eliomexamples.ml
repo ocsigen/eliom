@@ -269,7 +269,7 @@ let csrfsafe_example_session =
   Eliom_services.post_coservice'
     ~csrf_safe:true
     ~csrf_state_name:"plop"
-    ~csrf_secure_session:true
+    ~csrf_secure:true
     ~timeout:10.
     ~post_params:Eliom_parameters.unit
     ()

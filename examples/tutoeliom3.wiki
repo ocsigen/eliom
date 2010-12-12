@@ -1621,7 +1621,7 @@ let csrfsafe_example_post =
   Eliom_services.post_coservice
     ~csrf_safe:true
     ~csrf_state_name:"csrf"
-    ~csrf_secure_session:true
+    ~csrf_secure:true
     ~timeout:10.
     ~max_use:1
     ~https:true
@@ -1656,13 +1656,13 @@ let _ =
      If you register in the global service table, 
      the CSRF safe service will be available for everybody.
      But the actual (delayed) registration will take place in a session table,
-     described by {{{?csrf_state_name}}} and {{{?csrf_secure_session}}}
+     described by {{{?csrf_state_name}}} and {{{?csrf_secure}}}
      (corresponding to {{{?state_name}}} and {{{?secure}}}).
 
      If you use {{{register ~scope:`Session}}}, 
      the coservice will be available only for one session.
      The actual registration will take place in the same session table,
-     described by {{{?csrf_state_name}}} and {{{?csrf_secure_session}}}.
+     described by {{{?csrf_state_name}}} and {{{?csrf_secure}}}.
      In that case, the parameters 
      {{?state_name}}} and {{{?secure}}} of {{{register}}}
      must be exactly the same.

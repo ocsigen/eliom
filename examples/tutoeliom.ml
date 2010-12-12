@@ -80,21 +80,20 @@ let coucou =
           
 As you can see,
       %<ocsigendoc version="dev" file="Lwt.html" fragment="VALreturn"|%<span class="code"|return>%>% is a function from %<ocsigendoc version="dev" file="Lwt.html"|%<span class="code"|Lwt>%>%.
-      Use it like this for now, and
-      [[manual/dev/1#p1threads|see later]] for more advanced use.
+Use it like this for now, and
+[[manual/dev/1#p1threads|see later]] for more advanced use.
           
 
           
-      Now you can compile your file (here %<span class="code"|tutorial.ml>%)
-        by typing :
+Now you can compile your file (here %<span class="code"|tutorial.ml>%)
+by typing :
           
 
-          %<div class="pre"|ocamlc -thread -I ~///path_to///ocsigen/ -I ~///path_to///lwt/ -c tutorial.ml>%
+%<div class="pre"|ocamlc -thread -I ~///path_to///ocsigen/ -I ~///path_to///lwt/ -c tutorial.ml>%
           
 If you use findlib, you can also use the following command line:
-          
 
-          %<div class="pre"|ocamlfind ocamlc -thread -package ocsigen -c tutorial.ml>%
+%<div class="pre"|ocamlfind ocamlc -thread -package ocsigen -c tutorial.ml>%
           
       Replace %<span class="code"|~///path_to///ocsigen/>%
        by the directory where Ocsigen libraries are installed (that contains
@@ -121,10 +120,9 @@ If you use findlib, you can also use the following command line:
 
           
 Note that if your module has a findlib %<span class="code"|META>% file,
-        it is also possible to do:
-          
+it is also possible to do:
 
-          %<div class="pre"|<host>
+%<div class="pre"|<host>
  <site path="examples">
   <eliom findlib-package="//package-name//" />
  </site>
@@ -132,28 +130,22 @@ Note that if your module has a findlib %<span class="code"|META>% file,
 >%
 
           
-Then run ocsigen. You should see your page at url
-           %<span class="code"|~http:~/~///your_server///examples/coucou>%.
-           See this example [[site:tuto/coucou| here]].
-      
-          
+Then run Ocsigen server. You should see your page at url
+%<span class="code"|~http:~/~///your_server///examples/coucou>%.
+See this example [[site:tuto/coucou| here]].
 
-          
 NB: See the default config file to see how to set the port on
-              which your server is running, the user who runs it, the path
-            of the log files, etc.
-      
-          
+which your server is running, the user who runs it, the path
+of the log files, etc.
 
-          
 Here is a sample
-   [[site:Makefile|Makefile]] for your modules.
+[[site:Makefile|Makefile]] for your modules.
           
 
-          ====Static typing of XHTML with XHTML.M
+====Static typing of XHTML with XHTML.M
           
           
-        Typing of xhtml with %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% and %<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|%<span class="code"|Eliom_output.Xhtml>%>%
+Typing of xhtml with %<ocsigendoc version="dev" file="XHTML.M.html"|%<span class="code"|XHTML.M>%>% and %<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|%<span class="code"|Eliom_output.Xhtml>%>%
         is very strict and compels you to respect
         xhtml 1.1 standard (with some limitations).
         For example if you write:
@@ -4453,7 +4445,7 @@ let csrfsafe_example_post =
   Eliom_services.post_coservice
     ~csrf_safe:true
     ~csrf_state_name:"csrf"
-    ~csrf_secure_session:true
+    ~csrf_secure:true
     ~timeout:10.
     ~max_use:1
     ~https:true
@@ -4488,13 +4480,13 @@ let _ =
      If you register in the global service table, 
      the CSRF safe service will be available for everybody.
      But the actual (delayed) registration will take place in a session table,
-     described by {{{?csrf_state_name}}} and {{{?csrf_secure_session}}}
+     described by {{{?csrf_state_name}}} and {{{?csrf_secure}}}
      (corresponding to {{{?state_name}}} and {{{?secure}}}).
 
      If you use {{{register ~scope:`Session}}}, 
      the coservice will be available only for one session.
      The actual registration will take place in the same session table,
-     described by {{{?csrf_state_name}}} and {{{?csrf_secure_session}}}.
+     described by {{{?csrf_state_name}}} and {{{?csrf_secure}}}.
      In that case, the parameters 
      {{?state_name}}} and {{{?secure}}} of {{{register}}}
      must be exactly the same.

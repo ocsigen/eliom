@@ -1597,7 +1597,7 @@ let tcsrfsafe_example_post =
     ~csrf_safe:true
     ~csrf_state_name:"csrf"
     ~csrf_scope:`Client_process
-    ~csrf_secure_session:true
+    ~csrf_secure:true
     ~timeout:10.
     ~max_use:1
     ~https:true

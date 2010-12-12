@@ -1128,7 +1128,7 @@ module Caml : sig
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
     ?csrf_scope:Eliom_common.user_scope ->
-    ?csrf_secure_session: bool ->
+    ?csrf_secure: bool ->
     ?max_use:int ->
     ?timeout:float ->
     ?https:bool ->
@@ -1161,7 +1161,7 @@ module Caml : sig
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
     ?csrf_scope:Eliom_common.user_scope ->
-    ?csrf_secure_session: bool ->
+    ?csrf_secure: bool ->
     ?max_use:int ->
     ?timeout:float ->
     ?https:bool ->
@@ -1213,7 +1213,7 @@ module Caml : sig
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
     ?csrf_scope:Eliom_common.user_scope ->
-    ?csrf_secure_session: bool ->
+    ?csrf_secure: bool ->
     ?max_use:int ->
     ?timeout:float ->
     ?https:bool ->
@@ -1245,7 +1245,7 @@ module Caml : sig
     ?csrf_safe: bool ->
     ?csrf_state_name: string ->
     ?csrf_scope:Eliom_common.user_scope ->
-    ?csrf_secure_session: bool ->
+    ?csrf_secure: bool ->
     ?max_use:int ->
     ?timeout:float ->
     ?keep_get_na_params:bool ->
