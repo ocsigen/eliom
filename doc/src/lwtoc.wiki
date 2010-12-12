@@ -1,0 +1,7 @@
+=Cooperative threads
+
+Ocsigen is not using the usual preemptive threads model to handle simultaneaous requests. Instead of this, it is based on a model of //cooperative threads//. Ocsigen's cooperative threads are implemented in monadic style by Jérôme Vouillon, which makes them really easy to use.
+
+If you want to write an extension for Ocsigen or a Web site with Eliom, you must use this thread model.
+
+See [[wiki(21):|Lwt's documentation]].

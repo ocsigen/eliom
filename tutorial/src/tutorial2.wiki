@@ -1,4 +1,4 @@
-=Overview of Eliom features: Implement Web interaction using Eliom=
+=Implementing Web interaction using Eliom=
 
 <<div class="wip"|**Work in progress**>>
 
@@ -21,7 +21,8 @@ add a music player.
 As an extension, we will see how to connect with external account using OpenID,
 and add an Atom stream to our WebSite.
 
-==<<span class="wip"|???>>==
+==Services==
+<<span class="wip"|titre>>
 ===The main page===
 Let's start again from scratch with the following site.
 <<code language="ocaml"|open XHTML5.M
@@ -143,7 +144,7 @@ Actually each "suffix service" has an equivalent without suffix
 
 
 ===Links===
-<<div class="concepts"|Links>>
+<<div class="concepts"|Links\\Database libraries>>
 
 We now want to add a link on each user page to go back to the main page.
 
@@ -234,7 +235,28 @@ steps:
 The function {{{register_service}}} is just a shortcut for these two functions.
 >>
 
+<<div class="encadre"|====Database libraries====
+We suppose we have a database module for finding user information.
+We will write the database part on the application later in this tutorial.
+You can use any OCaml database binding (for example
+[[http://developer.berlios.de/projects/pgocaml/|PGOcaml]] to program
+database queries). We will use our own database library called
+[[wiki(25):|Macaque]], which implements typed requests using //comprehensions//.
+(See * *)
 
+//Just remember that your query functions must be cooperative fot Lwt!//
+For example PGOcaml is now implemented in monadic way,
+which makes it 100% compatible with Lwt. And so is Macaque.
+
+If your database module is not Lwt-cooperative but if it is thread-safe
+(for preemptive threads), you can use the
+<<ocsigendoc version="dev" file="Lwt_preemptive.html" fragment="VALdetach"|<<span class="code"|Lwt_preemptive.detach>>>>
+function to make the blocking function be executed by a separate
+preemptive thread.
+>>
+
+
+==Sessions==
 ===Connection service===
 <<div class="concepts"|Services with hidden (POST) parameters\\Fallback service>>
 
@@ -251,7 +273,7 @@ I create a new service taking these parameters:
 >>
 
 <<div class="encadre"|====Hidden (POST) services====
-Services with POST parameters are created using the function
+Services using the POST HTTP method are created using the function
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpost_service"|<<span class="code"|Eliom_services.post_service>>>>.
 As you can see, there is a major difference with the function
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|<<span class="code"|Eliom_services.service>>>>:
@@ -648,6 +670,7 @@ Then add this form in the connection box:
       | None -> ...
 >>
 
+==Registration of users==
 ===Basic registration form===
 <<div class="concepts"|Attached coservice>>
 We will now add a registration form to the application.
@@ -827,6 +850,7 @@ This makes possible to register specialized versions of a service
 for one user, for example when she logs in.
 >>
 
+==A few enhancements==
 ===Displaying a "wrong password" message===
 <<div class="concepts"|>>
 
@@ -880,30 +904,9 @@ And modify the {{{connection_service}}} handler:
 
 
 
-===Database===
-
-<<div class="encadre"|====Database libraries====
-We suppose we have a database module for finding user information.
-We won't write the database part on the application in this tutorial
-<<span class="wip"|for now?>>. Use any OCaml database binding (for example
-[[http://developer.berlios.de/projects/pgocaml/|PGOcaml]] to program
-database queries) or have a look at [[wiki(25):|Macaque]] to do so.
-
-//Just remember that your query functions must be cooperative fot Lwt!//
-For example PGOcaml is now implemented in monadic way,
-which makes it 100% compatible with Lwt.
-
-If your database module is not Lwt-cooperative but if it is thread-safe
-(for preemptive threads), you can use the
-<<ocsigendoc version="dev" file="Lwt_preemptive.html" fragment="VALdetach"|<<span class="code"|Lwt_preemptive.detach>>>>
-function to make the blocking function be executed by a separate
-preemptive thread.
->>
-
-<<div class="wip"|Replace our database functions with Macaque?>>
 
 
-===A service that decides the kind of output it wants===
+===Sending 404 errors for non-existing users===
 <<div class="concepts"|Sending 404\\{{{Eliom_output.Any}}}>>
 
 Our service {{{user_service}}} answers with any parameter, even if

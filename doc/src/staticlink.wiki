@@ -1,0 +1,38 @@
+=Static linking=
+
+==Compiling Ocsigen without native dynlink support
+
+If Ocaml's native dynamic linking is not supported by your platform (or if you are using caml 3.10), it is possible to build a native code version of Ocsigen without dynlink support, by giving the option {{{--disable-natdynlink}}} to the {{{configure}}} script.
+
+
+==Creating and running a statically linked executable
+By default, Ocsigen is linking extensions dynamically (and also Eliom modules). From version 1.2, it is also possible to create a standalone program, in which all modules are statically linked. This allows to use native code even on platforms where Ocaml's native dynamic linking is not supported. It also makes possible to create self-contained Ocsigen applications that can be run without needing a full OCaml environment at runtime (with no Ocaml dependencies).
+
+
+To create a standalone server executable that includes all the extensions you need, use a command like:
+{{{
+ocamlfind ocamlopt  
+    -package ocsigen.server,ocsigen.ext.ocsipersist-sqlite  
+    -package ocsigen.ext.eliom,ocsigen.ext.staticmod  
+    othermodule.cmx server_main.cmx -o myserver -linkpkg -thread
+}}}
+
+Do not forget to link {{{server_main.cmx}}} to launch the server's main loop.
+
+If you do not want to read the commandline when the server starts, add {{{-predicates nocommandline}}} to this command line. Alternatively, you can provide a package containing the command-line you want to be parsed (with the same signature as {{{baselib/ocsigen_getcommandline.mli}}}), then make the appropriate changes in {{{files/META.in}}}.
+
+All statically linked extensions need to be initialized from the configuration file. To do that, replace the lines like:
+{{{
+<extension module="staticmod.cmxs" />
+}}}
+or
+{{{
+<extension findlib-package="ocsigen_ext.staticmod" />
+}}}
+by
+{{{
+<extension name="staticmod" />
+}}}
+This will not load a new module, but merely initializes one which must have been linked statically. Thus it is possible to give configuration options to extensions as usual.
+
+//Warning:// If you are using Eliom with static linking, the registration of your services must be delayed until the configuration file is read. See how to do that in Eliom's manual.

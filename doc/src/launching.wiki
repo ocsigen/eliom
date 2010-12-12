@@ -1,0 +1,33 @@
+=Launching the server=
+
+To run the server, use the command ocsigen. It has the following options:
+{{{
+       -c, --config
+              Alternate configuration file.
+
+       -d, --daemon
+              Daemon mode (detach the process). This is the default when there are more than 1 process.
+
+       -help, --help
+              Show summary of options.
+
+       -p, --pidfile
+              Specify a file where to write the PIDs of the servers.
+
+       -s, --silent
+              Silent mode (error messages go in errors.log only).
+
+       -v, --verbose
+              Verbose mode.
+
+       -V ,  --veryverbose
+              Very verbose mode (debug).
+
+       -version
+              Show version of program.
+}}}
+One initialization script should be provided by your distribution for launching the server automatically each time you launch the computer.
+
+
+
+

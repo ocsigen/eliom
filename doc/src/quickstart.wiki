@@ -1,0 +1,55 @@
+=Quickstart=
+==Installation
+
+The easier way to install Ocsigen is to use the installation tool from your distribution. Ocsigen is available for example in Debian, Gentoo, FreeBSD... If your distribution is not shipping any package we recommend to use Godi to install Ocsigen and all its dependencies (including OCaml). It is known to work on Linux, MacOS, FreeBSD, Solaris (but has not been tested on Windows).
+
+If you need to install it from source, [[install|download the package]], and read instructions in the README file.
+
+==Launch the server
+
+Distributions usually provide a default configuration file called {{{/etc/ocsigen/ocsigen.conf}}} (and possibly other configuration files in {{{/etc/ocsigen/conf.d}}}).
+
+If you are root on your system, and if no other server is running on port 80, just launch the server using the configuration script from your distribution, usually:
+{{{
+/etc/init.d/ocsigen start
+}}}
+or just type
+{{{
+ocsigen
+}}}
+A default Web site should be available at URL {{{http://localhost/}}}. If another Web server is running on port 80, just change the port number in the main configuration file.
+
+If you want to run Ocsigen as an unprivileged user, you need to adapt the configuration file to your rights. An example of configuration file for users with restricted rights is given here. Copy it in a file and adapt it to your needs. Use a port greater than 1024, for example 8080. Then run:
+{{{
+ocsigen -c //your_config_file//
+}}}
+and go to the URL {{{http://localhost:8080/}}} to see the default Web site.
+
+==Personalizing my configuration
+
+Have a look at the page [[config|Configuration]] to learn how to personalize the configuration file and adapt it to your needs.
+
+The documentation on extensions is available [[extensions/|here]]. The main extensions you need for basic use are:
+
+;Staticmod
+:for serving static pages, 
+;Accesscontrol
+:if you need to restrict the access to the sites, 
+;Eliom
+:if you want to use dynamic Web sites written in OCaml with Eliom, 
+;CGImod
+:if you want to use dynamic Web sites written as CGI scripts (for example one way to run PHP pages), 
+;Revproxy
+:if you want to redirect some requests to another Web server, like Tomcat or Apache (another way to run PHP pages). 
+
+==Writing my own dynamic sites with Eliom
+
+Eliom Web sites are OCaml compiled modules (.cmo or .cma, possibly .cmxs with native code version) that are loaded dynamically from the configuration file. The first section of the first part of Eliom's tutorial explains how to write an "Hello World" with Eliom.
+
+==If something goes wrong
+
+If something goes wrong, first have a look in the logs to see if there is an error message. The directory of logs is set in the configuration file (usually {{{/var/log/ocsigen}}}).
+
+If you can't find the solution in the documentation, [[https://sympa.mancoosi.univ-paris-diderot.fr/wws/info/ocsigen|register to our mailing list]] and ask your question here.
+
+If you find a bug, a mistake in the documentation (even a small one), or if you want to make a suggestion, [[site:trac|register to our bug tracking system]] and fill a ticket.

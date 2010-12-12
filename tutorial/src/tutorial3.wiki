@@ -1,4 +1,4 @@
-=Overview of Eliom features: Miscellaneous features=
+=Miscellaneous features=
 
 
 ===Multi-user collaborative drawing application===

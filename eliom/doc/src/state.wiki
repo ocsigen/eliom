@@ -1,0 +1,891 @@
+=Server side state of an Eliom application=
+
+==Base principles==
+The server-side state of an application refers to data stored on server
+side for one session, one group of sessions, or one client-side process. 
+See module Eliom_references for how to register and read such data.
+The server-side state may also contains services registered for a
+limited scope.
+
+This module contains the functions you need to manage 
+the server-side state (and also some client-side state):
+* closing sessions, knowing whether a state has expired,
+setting cookies manually (client-side state)
+* Managing session groups: putting a session in a group,
+limitating the number of sessions in a group etc ...
+* Setting timeouts on states and expiration dates
+* Administrating states (iteration on all states, etc.)
+* Some low-level or deprecated functions
+
+On a technical point of view, sessions and groups of sessions are
+implemented automatically by Eliom by asking the browser to send
+a session identifier in a cookie.
+Client-side processes also send an identifier in each request,
+using some kind of "client-side process-cookie".  
+
+It is possible to give a name to a scope if you want several states
+for the same application (advanced use only). Each state name uses
+its own cookies and you can discard data for one state name only.
+
+States can be secure or not. Secure means that the state data or service
+will be associated to a secure cookie, that is a cookie that is sent
+by the browser only if the protocol is HTTPS. Use secure states to store
+confidential data, that you do not want to send through HTTP.
+
+In the current implementation, because of some limitation in OCaml's
+serialization mechanism, there are three kinds of states:
+* volatile data states,
+* volatile service states,
+* persistent data states.
+
+Volatile states will not survice after relaunching the server.
+We hope to simplify this when OCaml's serialization mechanism evolves.
+In the meantime, be very careful where you store your data.
+
+==Eliom references==
+
+Eliom references are some kind of references with limited scope.
+You define the reference with an initial value and a scope
+(global, group of sessions, session, client process, or current request).
+When you change the value, it actually changes only for the scope
+you specified.
+
+Eliom references can be persistent or not (that is: can survive after
+relaunching the server or not).
+
+Eliom references are used for example:
+* to store session data, or server side data for a client process, 
+* or to keep some information about the current request,
+* to implement persistent references.
+
+Non persistent global Eliom references are equivalent to regular OCaml
+references.
+
+
+===@@id="p3persistenceofsessions"@@Persistence of sessions
+        
+        <<div class="onecol"|
+          
+Tables of sessions (for data or services) are kept in memory,
+        and thus will disappear if you close the server process.
+        To solve this problem, Ocsigen allows to reload the modules of
+        your configuration file without shutting down the server.
+        Another solution provided by Eliom is to save session data on hard drive.
+      
+          
+
+
+  ====Updating sites without shutting down the server
+          
+          
+To reload the modules of the configuration file without
+       stoping the server, use <<span class="code"|/etc/init.d/ocsigen reload>>
+       for most of the distributions, or do it manually using:
+          
+
+          
+<<div class="pre"|echo reload > /var/run/ocsigen_command >>
+
+
+          
+       Only modules loaded inside <<span class="code"|<site>>> or
+       <<span class="code"|<library>>> will be reloaded.
+       Module loaded using <<span class="code"|<extension>>> will not.
+      
+          
+
+          
+        Have a look at the logs to see if all went well during the reload.
+        If something went wrong, old services may still be reachable.
+      
+          
+
+          
+        Note that coservices created with the old modules or
+        URLs that have not been masked by new ones
+        will still reachable after the update.
+      
+          
+
+          
+        During the reload, some information of the configuration file
+        will not be re-read (for example port numbers, user and group, etc.).
+
+===Persistent data===
+          
+          
+        Eliom allows to use more persistent data, using the module
+        <<ocsigendoc version="dev" file="Ocsipersist.html"|<<span class="code"|Ocsipersist>>>>. (<<span class="code"|Ocsipersist>> is needed in
+        <<span class="code"|eliom.cma>>, thus you need to dynlink it in the
+        configuration file before <<span class="code"|Eliom>>).
+        There are currently two implementations of <<span class="code"|Ocsipersist>>:
+        <<span class="code"|ocsipersist-dbm.cma>> (uses the DBM database) and
+        <<span class="code"|ocsipersist-sqlite.cma>> (uses the SQLite database,
+        and depends on <<span class="code"|sqlite3.cma>>).
+      
+          
+
+          
+These modules allow to:
+      
+          
+
+          
+*Create persistent references
+          (still present after restarting the server),
+*Create persistent association tables,
+*Set persistent session data (using
+        <<span class="code"|set_persistent_data>>, see below).
+          
+Note that persistent data are serialized on hard drive using
+        OCaml's <<span class="code"|Marshal>> module:
+
+          <<div class="importantwarning"|
+            
+*It is not possible to serialize closures or services
+         (as we are using dynamic linking).
+* If you ever change the type of serialised data, don't
+ forget to delete the database file!
+ Or if you really want to keep it, and
+ you know what you are doing, you can use the sqlite client to manually
+ update the table or a program to create a new sqlite or dbm table
+ for the new type.
+   
+          >>
+          
+   Suppose for example that you use <<span class="code"|get/set_persistent_data>>
+   (see below) to store a (int, string)
+ tuple with the user's login credentials.  At this point you stop the
+ server, and change the code such that get/set_persistent_data now to store
+ a (int, string, string).  Now recompile and restart the server.  If by any
+ chance a client with an old cookie reconnects, you get a segfault on the
+ server, because of the type change in the data stored in the DB backend ...
+   
+It is possible to customize the location of the database on the 
+file system. For example, with sqlite:
+<<div class="pre"|
+    <extension findlib-package="ocsigen.ext.ocsipersist-sqlite">
+      <database file="_DATADIR_/ocsidb"/>
+    </extension>
+ >>
+And with DBM, you can customize the location of the database and the
+name of the {{{ocsidbm}}} process you want to use:
+<<div class="pre"|
+    <extension findlib-package="ocsigen.ext.ocsipersist-dbm">
+      <store dir="_DATADIR_"/>
+      <ocsidbm name="_EXTRALIBDIR_/ocsidbm"/>
+    </extension>
+ >>
+          
+
+
+===Persistent references===
+<<span class="code"|Ocsipersist>> allows to create persistent references.
+Here is an example of page with a persistent counter:
+
+<<div class="wip"|Rewrite using erefs>>
+
+<<code language="ocaml"|let mystore = Ocsipersist.open_store "eliomexamplestore2"
+
+let count2 =
+  let next =
+    let cthr = Ocsipersist.make_persistent mystore "countpage" 0 in
+    let mutex = Lwt_mutex.create () in
+    (fun () ->
+      cthr ~>>= fun c ->
+      Lwt_mutex.lock mutex ~>>= fun () ->
+      Ocsipersist.get c ~>>= fun oldc ->
+      let newc = oldc + 1 in
+      Ocsipersist.set c newc ~>>= fun () ->
+      Lwt_mutex.unlock mutex;
+      Lwt.return newc)
+  in
+  register_service
+    ~path:["count2"]
+    ~get_params:unit
+    (fun () () ->
+      next () ~>>=
+      (fun n ->
+        return
+         (html
+          (head (title (pcdata "counter")) [])
+          (body [p [pcdata (string_of_int n)]]))))
+
+>>
+
+          
+[[site:tuto/count2| See this example here]].
+      
+
+
+
+===Example: connection of users===
+
+<<div class="wip"|Rewrite using erefs>>
+<<code language="ocaml"|(************************************************************)
+(******************* Connection of users ********************)
+(************************************************************)
+(*zap* *)
+let state_name = "connect_example"
+(* *zap*)
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let connect_example =
+  Eliom_services.service
+    ~path:["action2"]
+    ~get_params:unit
+    ()
+
+let connect_action =
+  Eliom_services.post_coservice'
+    ~name:"connect"
+    ~post_params:(string "login")
+    ()
+
+(* new disconnect action and box:                           *)
+
+let disconnect_action =
+  Eliom_output.Action.register_post_coservice'
+    ~name:"disconnect"
+    ~post_params:Eliom_parameters.unit
+    (fun () () ->
+      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+
+let disconnect_box s =
+  Eliom_output.Xhtml.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+
+let bad_user_key = Polytables.make_key ()
+let get_bad_user table = 
+  try Polytables.get ~table ~key:bad_user_key with Not_found -> false
+
+(* -------------------------------------------------------- *)
+(* new login box:                                           *)
+
+let login_box session_expired action =
+  Eliom_output.Xhtml.post_form action
+    (fun loginname ->
+      let l =
+        [pcdata "login: ";
+         string_input ~input_type:`Text ~name:loginname ()]
+      in
+      [p (if get_bad_user (Eliom_request_info.get_request_cache ())
+      then (pcdata "Wrong user")::(br ())::l
+      else
+        if session_expired
+        then (pcdata "Session expired")::(br ())::l
+        else l)
+     ])
+    ()
+
+(* -------------------------------------------------------- *)
+(* Handler for the "connect_example" service (main page):   *)
+
+let connect_example_handler () () =
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  in
+  let group =
+    Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ()
+  in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          (match group, status with
+          | Some name, _ ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box "Close session"]
+          | None, Eliom_state.Expired_state ->
+              [login_box true connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          | _ ->
+              [login_box false connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          )))
+
+(* -------------------------------------------------------- *)
+(* New handler for connect_action (user logs in):           *)
+
+let connect_action_handler () login =
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () ~>>= fun () ->
+  if login = "toto" (* Check user and password :-) *)
+  then begin
+    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) login;
+    return ()
+  end
+  else begin
+    Polytables.set (Eliom_request_info.get_request_cache ()) bad_user_key true;
+    return ()
+  end
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_output.Xhtml.register ~service:connect_example connect_example_handler;
+  Eliom_output.Action.register ~service:connect_action connect_action_handler
+>>
+
+
+==Secure sessions **[New in 1.1.0]**
+
+For security reasons, Eliom does not use the same cookies in
+https and http. Secure sessions are using secure cookies
+(i.e. Ocsigen will ask the browsers to send the cookie only if
+the protocol is HTTPS). Thus it is not possible to access
+secure session if the user is using http. If the user is using
+https, Eliom will save data and services in secure session. But
+it is possible to access unsecure session data and to register
+unsecure session services using the optional parameter
+<<span class="code"|~secure:false>> when calling functions like
+<<span class="code"|Eliom_state.set_volatile_data>>,
+<<span class="code"|Eliom_state.get_persistent_data>>,
+<<span class="code"|Eliom_output.Xhtml.register>>, etc.
+
+
+
+
+==Persistent session data
+  
+  
+<<span class="code"|Eliom>> also implements persistent session tables.
+   You can use them instead of memory tables if you don't need
+   to register closures.
+  
+
+  
+The following example is a new version of our site
+   with users, with persistent connections.
+   (<<span class="code"|login_box>>, <<span class="code"|disconnect_box>>
+   and <<span class="code"|disconnect_action>>
+   are the same as
+  [[manual/dev/2#p2actions|before]]).
+  
+As it is not possible to serialize closures, there is no persistent
+session service table. Be very carefull if you use both persistent
+session data tables and service session tables,
+as your session may become inconsistent (use the session service
+table only for volatile services, like coservices with timeouts).
+
+
+
+
+==Scope of services==
+
+  
+When programming dynamic Web sites, you often want to personalise
+the behaviour and content for one user. To do this, you need to recognise
+the user and save and restore its data. Eliom implements several
+high level features to do that:
+  
+  
+
+  
+* Session data tables,
+* Session service tables, where you can save private versions of
+  main services or new coservices,
+
+* Coservices, that may be created dynamically with respect to
+  previous interaction with the user.
+
+  
+  
+
+  
+Eliom is using cookies to recognize users.
+ One cookie is automatically set for each user when needed and
+ destroyed when the session is closed.
+  
+  
+
+  
+Coservices, but also //actions//, are also means to control
+precisely the behaviour of the site and to implement easily very
+common situations that require a lot of programming work with
+other Web programming tools. We'll have a lot at some examples in that
+section.
+
+
+
+===@@id="p2sessionservices"@@Session services
+        
+        <<div class="onecol"|
+          
+      Eliom allows to replace a public service by a service valid only for
+      one user.
+      Use this to personalise main services for one user (or to create new
+      coservices available only to one user, [[manual/dev/2#p2calc|see later]]).
+      To create a "session service", register the service in
+      a "session service table" (valid only for one client)
+      instead of the public table. To do that, add the argument
+      {{{~scope:`Session}}} to the 
+      <<span class="Cem"|<<span class="code"|register>>>> function.
+      \\
+      
+          
+
+          
+      Users are recognized automatically using a cookie.
+      Use this for example if you want two versions of each page,
+      one public, one for connected users.
+                  \\
+      To close a session, use
+                <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|<<span class="code"|Eliom_state.close_session>>>>>>.
+      Both the session service table and the session data table for that user
+      will disappear when the session is closed.
+
+          
+The following example shows how to reimplement the previous one
+      (<<span class="code"|session_data_example>>),
+      without using <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_volatile_data"|<<span class="code"|Eliom_state.set_volatile_data>>>>.
+      Note that this version is less efficient than the other if your site
+      has lots of pages, because it requires to register all the new services
+      each time a user logs in. But in other cases, that feature is really
+      useful, for example with coservices (see
+      [[manual/dev/2#p2coservicesinsessiontable|later]]).
+      
+          
+
+          
+      We first define the main page, with a login form:
+      
+          
+
+          
+*wiki*)(*zap* *)
+let () = set_global_volatile_state_timeout (Some 600.)
+let () = set_global_persistent_data_state_timeout (Some 3600.)
+(* *zap*)
+>>
+
+          
+[[site:tuto/sessionservices| See the result]].
+          
+
+          
+Warning: As in the previous example,
+       to implement such connection and disconnection forms, you
+       get more flexibility by using //actions// instead of xhtml services
+       (see below for the same example with actions).
+      
+          
+
+          
+Services registered in session tables are called
+       //session// or //private// services.
+       Services registered in the public table
+       are called //public//.
+      
+          
+    
+        >>
+
+
+
+
+
+==More about sessions - session names
+  
+  
+By default, Eliom is using three cookies :
+  
+
+  
+*One for session services,
+*one for volatile session data,
+*one for persistent session data.
+  
+  
+
+  
+They correspond to three different sessions (opened only if needed).
+   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|<<span class="code"|Eliom_state.close_session>>>>>>
+   closes all three sessions, but you may want to desynchronize
+   the three sessions by using
+   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_persistent_session"|<<span class="code"|Eliom_state.close_persistent_session>>>>>> (persistent session),
+   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_service_session"|<<span class="code"|Eliom_state.close_service_session>>>>>> (session services), or
+   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_data_session"|<<span class="code"|Eliom_state.close_data_session>>>>>> (volatile data session).
+ There is also
+   <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_volatile_session"|<<span class="code"|Eliom_state.close_volatile_session>>>>>> for both volatile data session and session services.
+   The module <<ocsigendoc version="dev" file="Eliom_state.html"|<<span class="code"|Eliom_state>>>> also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
+  
+  
+
+  
+If you need more sessions (for example several different data sessions)
+ for the same site, you can give a name to your sessions by giving
+ the optional parameter <<span class="code"|?state_name>> to functions like
+ <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_data_session"|<<span class="code"|Eliom_state.close_data_session>>>>>>,
+ <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|<<span class="code"|register>>>>>>, or
+  <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_volatile_data"|<<span class="code"|Eliom_state.get_volatile_data>>>>.
+   Note that this tutorial has been implemented using this feature,
+   even if it has been hidden for the sake of simplicity.
+   That's how the different examples of sessions in this tutorial are
+   independant.
+  
+  
+
+
+
+
+
+
+
+==Session groups==
+
+  
+
+==@@id="p3sessiongroups"@@[New in 0.99.5] Session groups==
+
+%<div class="onecol"|
+
+====Grouping sessions
+  
+The idea is complementary to that of
+the "session name".  While the
+optional %<span class="code"|state_name>% parameter allows for a single session to have
+multiple buckets of data associated with it, a session_group parameter
+(also optional) allow multiple sessions to be referenced together.
+For most uses, the session group is the user name.
+It allows to implement features like "close all sessions" for one user
+(even those opened on other browsers), or to limit the number of sessions
+one user may open at the same time.
+
+  
+
+  
+Session groups have been suggested by Dario Teixeira and
+introduced in Eliom 0.99.5. Dario explains:
+//Consider the following scenario: a user logs in from home using
+  a "Remember me on this computer" feature, which sets a (almost)
+  no-expiration cookie on his browser and session timeouts of infinity
+  on the server.  The user goes on vacation, and while logging from
+  a cyber-café, she also sets the "Remember me" option.  Back home
+  she realises her mistake, and wishes to do a "global logout", ie,
+  closing all existing sessions associated with her user name.
+  //
+
+**It is highly recommended to use session groups!
+If you do not use them, the number of session is limitated by IP address,
+which can be a problem for example if the server is behind a reverse proxy.**
+
+<<div class="wip"|Rewrite using erefs>>
+
+<<code language="ocaml"|
+(************************************************************)
+(************ Connection of users, version 5 ****************)
+(************************************************************)
+
+(*zap* *)
+let state_name = "connect_example5"
+(* *zap*)
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions*)
+(* (for connection and disconnection)                       *)
+
+let connect_example5 =
+  Eliom_services.service
+    ~path:["groups"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let connect_action =
+  Eliom_services.post_coservice'
+    ~name:"connect5"
+    ~post_params:(Eliom_parameters.string "login")
+    ()
+
+(* As the handler is very simple, we register it now: *)
+let disconnect_action =
+  Eliom_output.Action.register_post_coservice'
+    ~name:"disconnect5"
+    ~post_params:Eliom_parameters.unit
+    (fun () () ->
+      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+
+
+(* -------------------------------------------------------- *)
+(* login ang logout boxes:                                  *)
+
+let disconnect_box s =
+  Eliom_output.Xhtml.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+let login_box () =
+  Eliom_output.Xhtml.post_form connect_action
+    (fun loginname ->
+      [p
+         (let l = [pcdata "login: ";
+                   Eliom_output.Xhtml.string_input
+                     ~input_type:`Text ~name:loginname ()]
+         in l)
+     ])
+    ()
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "connect_example5" service (main page):    *)
+
+let connect_example5_handler () () =
+  let sessdat = Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) () in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          (match sessdat with
+          | Some name ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box "Close session"]
+          | None -> [login_box ()]
+          )))
+
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler () login =
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () ~>>= fun () ->
+  Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) login;
+  return ()
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_output.Xhtml.register ~service:connect_example5 connect_example5_handler;
+  Eliom_output.Action.register ~service:connect_action connect_action_handler
+>>
+      Note that in this case, we do not need a session table any more,
+      because our session table was containing only the user name,
+      and the user name is now the session group.
+      (But if we need to save more data, we still need a session table).
+
+      As we will see later, there are three kinds of sessions
+      (services, volatile data and persistent data).
+      It is highly recommended to set a group for each of them!
+
+
+
+==Timeouts and session duration==
+
+
+===Timeout for sessions===
+          
+          
+The default timeout for sessions in one hour. Sessions will be
+       automatically closed after that amount of time of inactivity
+       from the user.
+       You can change that value for your whole site during initialisation
+       using:
+          
+
+          
+<<code language="ocaml"|
+Eliom_state.set_global_volatile_timeout (Some 7200.)
+
+>>
+
+          
+Here 7200 seconds. <<span class="code"|None>> means no timeout.
+          
+
+          
+       You can change that value for your whole site after initialisation
+       using:
+          
+
+          
+<<code language="ocaml"|
+Eliom_state.set_global_volatile_timeout (Some 7200.)
+
+>>
+
+          
+       You can change that value for one user only using:
+          
+
+          
+<<code language="ocaml"|
+Eliom_state.set_volatile_session_timeout (Some 7200.)
+
+>>
+
+          
+      Note that there is also a possibility to change the default value
+      for Eliom in the configuration file like this:
+          
+
+          
+<<code language="ocaml"|
+    <extension findlib-package="ocsigen.ext.eliom">
+      <volatiletimeout value="7200"/>
+    </extension>
+
+>>
+
+          
+<<span class="code"|value="infinity">> means no timeout.
+          
+
+          
+Warning: that default may be overriden by each site using
+        <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_global_volatile_timeout"|<<span class="code"|Eliom_state.set_global_volatile_timeout>>>> or
+        <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_default_volatile_timeout"|<<span class="code"|Eliom_state.set_default_volatile_timeout>>>>.
+        If you want your user to be able to set the default in the
+        configuration file for your site (between <<span class="code"|<site>>>
+        and <<span class="code"|</site>>>), you must parse the configuration
+        (<<ocsigendoc version="dev" file="Eliom_config.html" fragment="VALget_config"|<<span class="code"|Eliom_config.get_config ()>>>> function, see below).
+
+
+
+
+==Cookies
+          
+          
+      To set or unset your own cookies on the client, use the function
+<<code language="ocaml"|
+val set_cookie :
+  ?cookie_type:Eliom_common.cookie_type ->
+  ?path:string list ->
+  ?exp:float -> name:string -> value:string -> ?secure:bool -> unit -> unit
+>>
+ and
+<<code language="ocaml"|
+val unset_cookie :
+  ?cookie_type:Eliom_common.cookie_type ->
+  ?path:string list ->
+  name:string -> unit -> unit
+>>
+
+  
+  The <<span class="code"|?path>> argument is the path for which you want
+  to set/unset the cookie (relative to the main directory of your site,
+  defined
+  in the configuration file).
+  <<span class="code"|None>> means for all your site.
+  
+  The <<span class="code"|?exp>> parameter is a the expiration date
+  (Unix timestamp, in seconds since the epoch).
+  <<span class="code"|None>> means that the cookie will expire when the browser
+  will be closed.
+
+  If the <<span class="code"|?secure>> argument 
+  is set to true (default: false) and the protocol is https, 
+  the server will ask the browser to send the cookie only through
+  secure connections.
+
+The <<span class="code"|?cookie_type>> argument
+  is {{{Eliom_common.CBrowser}}} for regular browser cookies (default),
+  or {{{Eliom_common.CTab}}} for tab cookies
+  (available only if you have a client side Eliom program).
+
+
+  You can access the cookies sent by the browser using
+  <<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_cookies"|<<span class="code"|Eliom_request_info.get_cookies ()>>>>.
+     
+          
+
+          
+      Example:
+     
+<<code language="ocaml"|let cookiename = "mycookie"
+
+let cookies = service ["cookies"] unit ()
+
+let _ = Eliom_output.Xhtml.register cookies
+  (fun () () ->
+    Eliom_state.set_cookie
+      ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
+    Lwt.return
+      (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata (try
+                             "cookie value: "^
+                               (Ocsigen_lib.String_Table.find
+                                  cookiename (Eliom_request_info.get_cookies ()))
+                           with _ -> "<cookie not set>");
+                   br ();
+                   a cookies [pcdata "send other cookie"] ()]])))
+>>
+
+          
+[[site:tuto/cookies| Try it]].
+          
+    
+        >>
+
+
+
+
+
+
+
+===@@id="p2sessiondata"@@Session data
+        
+        <<div class="onecol"|
+          
+      Eliom provides a way to save session data on server side and
+      restore it at each request. This data is available during the whole
+      duration of the session.
+      To save session data, create a table using
+      <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALcreate_volatile_table"|<<span class="code"|Eliom_state.create_volatile_table>>>>
+      and save and get data from
+      this table using <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_volatile_data"|<<span class="code"|Eliom_state.set_volatile_data>>>> and
+      <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_volatile_data"|<<span class="code"|Eliom_state.get_volatile_data>>>>. The following example shows
+      a site with authentification. The name of the user is asked in the login
+      form and saved in a table to be displayed on the page instead of the login
+      form while the user is connected. Note that the session is opened
+      automatically when needed.
+      
+          
+
+          
+<<code language="ocaml"|>>
+
+          
+[[site:tuto/sessdata| See this example here]].
+      
+          
+
+          
+       To close a session, use the function
+                <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|<<span class="code"|Eliom_state.close_session>>>>>>.
+       Session data will disappear when the session is closed (explicitely
+       or by timeout).
+       Warning: if your session data contains opened file descriptors,
+       they won't be closed by OCaml's garbage collector. Close it yourself!
+       (for example using <<span class="code"|Gc.finalise>>).
+      
+          
+
+          
+We will see in the following of this tutorial how to improve
+      this example to solve the following problems:
+      
+          
+
+          
+*          The use of a main service for disconnection is not a good idea
+          for usability. You probably want to go to the same page
+          with the login form. We will do this with a coservice.
+        
+*          If you want the same login form on several pages, it is tedious
+          work to create a coservice with POST parameters for each page.
+          We will se how to solve this using actions and named non-attached
+          coservices.
+        
+*          Session data are kept in memory and will be lost if you switch off
+          the server, which is bad if you want long duration sessions.
+          You can solve this problem by using persistent tables.
+        
+                  
+          
+    
+        >>

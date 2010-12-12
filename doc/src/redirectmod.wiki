@@ -1,0 +1,24 @@
+=Redirectmod=
+
+Redirectmod is a module allowing to define HTTP redirections from Ocsigen's configuration file. It is in beta version. Submit your bugs and feature wishes (or any enhancement/mistake in the documentation) [[site:trac|here]].
+
+To use that extension, first load it from the configuration file:
+{{{
+<extension findlib-package="ocsigen_ext.redirectmod"/>
+}}}
+Then configure your hosts as in these examples:
+{{{
+<redirect suburl="(.*)" dest="http://my.newaddress.org/$1"/>
+<redirect suburl="dir/(.*)\.html" dest="http://my.newaddress.org/$1.php"/>
+<redirect fullurl="http://(.*).myserver.org/(.*)" dest="http://$1.mynewserver.org/$2"/>
+}}}
+The syntax of regular expression is PCRE's one. According to the RFC of the HTTP protocol, dest must be an absolute URL. By default, the redirection is permanent. For temporary redirection, use:
+{{{
+<redirect temporary="temporary" suburl="(.*)" dest="http://www.plopplopplop.com/$1"/>
+}}}
+Old syntax was (before Ocsigen 1.2):
+{{{
+<redirect regexp="(.*)" dest="http://my.newaddress.org/$1"/>
+<redirect regexp="dir/(.*)\.html" dest="http://my.newaddress.org/$1.php"/>
+<redirect regexp="http://(.*).myserver.org/(.*)" dest="http://$1.mynewserver.org/$2"/>
+}}}

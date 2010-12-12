@@ -1,98 +1,50 @@
-<<div class="leftcol"|<<leftcoldoc version="dev">>>>
-<<div class="colprincipale"|
-  <<div |
-    <<div class="onecol"|
 = Introduction=
 
 
-//This is the programmer's guide
-        for //Eliom// (development version).
-        Please report any error in this tutorial
-        and send us your comments and suggestions!//
+//This is the documentaion of the Ocsigen Framework
+(development version). It explains how to use the Web server //Ocsigen server//
+and how to program Web sites and client-server Web applications in
+//Objective Caml// using //Eliom//. It also contains the documentation for
+several tools and libraries you can use for non Ocsigen-releated projects.
+* the cooperative threading library Lwt
+* the database query library Macaque
+* the Js_of_ocaml compiler (from Ocaml bytecode to Jacascript)
+* the O'Closure library, a binding for the Google closure Javascript widget
+library to be used with Js_of_ocaml.
 
-<<|
-This manual is also available as a [[site:eliom-1.1.0.pdf|pdf file]].
->>            
 
+<<div class="wip"|
+This manual in under construction.
+Please report any error in this tutorial
+and send us your comments and suggestions!
+>>
+
+==Eliom==
             
 Eliom is an extension for the Web server //Ocsigen server//
 that allows to create client/server Web applications (or server-only dynamic Web sites) in Objective Caml.
 It uses very new concepts making programming very different
 from all other Web programming tools.
 
-==== High level primitives ====
+=== High level primitives ===
 It makes easy to write a complex Web site in very few lines of code by providing high level programming primitives for many aspects of Web programming: communication between the client and the server, implementation of complex Web interaction, sessions, etc.
 <<span class="wip"|continuations?>>
 
-==== Static typing ====
+=== Static typing ===
 Eliom also helps to improve the stability of your application by  making an extensive use of OCaml's static typing. For example the validity of pages is checked at compile time! Eliom also makes sure statically for example that your Web site does not contain broken links or that the parameters in a link or a form correspond to the service it leads to (and many other things).
 
-==== A client/server application in one piece of code! ====
+=== A client/server application in one piece of code! ===
 But one of the most significant features of Eliom 2 is that it allows to program both sides of a Web application as a single program! The client side parts are automatically extracted and compiled into Javascript to be executed in the browser. The communication between the server is straightforward (in both directions!), as you can use server side values in the client side code.
 
-==== Security ====
+=== Security ===
 Eliom helps you to make your Web application secure by taking in charge automatically lots of security issues (code injection, session fixation~ ...) and by providing features to implement very secure behaviours (avoiding for example "cross-site request forgery").\\
 
 \\
 
-The first three chapters of this manual are an overview of Eliom's features. Read them to understand the basics. Then refer to subsequent chapters to go into detail.
+The first part of this manual is an overview of Ocsigen's features.
+Read them to understand the basics.
+Then refer to subsequent chapters to go into detail.
 
 //Warning:// This programming guide assumes you know the
 //Objective Caml// language, and that you have a working installation of //Ocsigen server//, //Eliom//, //Lwt//, //Js_of_ocaml//, (and //O'Closure// for some examples). In particular, you need to have the interfaces (cmi) installed for all these packages. They are sometimes in separate packages ("{{{-dev}}}" packages in Debian/Ubuntu). We recommend to use the packages from your distribution if they are available. If not, try to install all OCaml related packages with [[http://godi.camlcity.org|Godi]]. If it does not work, please report the problem to the package maintainers. We recommend to use the source packages only if you want to test unreleased features from development versions.
             
-    
-    >>
-  >>
-  <<div |
-          ==Table of contents
-*[[manual/dev/quickstart1|Chapter 1. Overview of Eliom features: write a client/server Eliom application]]
-**[[manual/dev/quickstart1#basics|Basics]]
-***
-***
-**[[manual/dev/quickstart1#graffiti|A collaborative drawing application]]
-***
-***
-*[[manual/dev/quickstart2|Chapter 2. Overview of Eliom features: Implement Web interaction using Eliom]]
-**[[manual/dev/quickstart2#|]]
-***
-***
-**[[manual/dev/quickstart2#|]]
-***
-***
-**[[manual/dev/quickstart2#|]]
-***
-***
-*[[manual/dev/quickstart3|Chapter 3. Overview of Eliom features: Miscellaneous features]]
-**[[manual/dev/quickstart3#|]]
-***
-***
-**[[manual/dev/quickstart3#|]]
-***
-***
-**[[manual/dev/quickstart3#|]]
-***
-***
-*[[manual/dev/html|Chapter 4. Typing HTML]]
-*[[manual/dev/basics|Chapter 5. Services, links and forms]]
-**[[manual/dev/basics#services|Services]]
-**[[manual/dev/basics#parameters|Parameters]]
-**[[manual/dev/basics#suffixes|Suffixes]]
-**[[manual/dev/basics#links|Links]]
-**[[manual/dev/basics#forms|Forms]]
-*[[manual/dev/services|Chapter 6. Taxonomy of services]]
-**[[manual/dev/services#eliom_predefmod|Return type]]
-**[[manual/dev/services#actions|Actions]]
-**[[manual/dev/services#coservices|Coservices]]
-**[[manual/dev/services#taxonomy|Full taxonomy of services]]
-**[[manual/dev/services#continuations|Dynamic registration of services]]
-*[[manual/dev/sessions|Chapter 7. Sessions]]
-**[[manual/dev/sessions#sessiondata|Session tables]]
-**[[manual/dev/sessions#sessionservices|Session services]]
-**[[manual/dev/sessions#persistence|Persistence of sessions]]
-**[[manual/dev/sessions#visibility|Visibility of sessions]]
-*[[manual/dev/client-server|Chapter 8. Client/Server programming]]
-*[[manual/dev/config|Chapter 9. Configuration file]]
-
-//soon ...//        
-  >>
->>

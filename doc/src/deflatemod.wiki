@@ -1,0 +1,126 @@
+=Deflatemod=
+
+Deflatemod is in beta version. Submit your bugs and feature wishes [[http://ocsigen.org/trac|here]].
+
+== Usage ==
+
+=== What is deflatemod? 
+
+Deflatemod is a module for Ocsigen that allows you to
+deflate content, using HTTP/1.1 mechanism. It supports gzip as well as
+deflate.
+
+=== What do I need to use deflatemod? 
+
+You need the camlzip library by Xavier Leroy and a working Ocsigen
+installation. 
+
+=== How do I use deflatemod? 
+
+First, load the extension in the configuration file:
+
+{{{
+<extension findlib-package="ocsigen_ext.deflatemod" />
+}}}
+
+
+Alternatively, if you do not want to use findlib, you need to:
+
+* load camlzip
+
+{{{
+<extension module="/path/to/camlzip.cma" />
+}}}
+
+
+* then load deflatemod
+
+{{{
+<extension module="/path/to/deflatemod.cmo" />
+}}}
+
+
+=== How do I configure deflatemod? 
+
+Again, the options are in ocsigen.conf. You can set a few options globally, in the extension tag:
+
+* the compress level: from 0 (no compression) to 9. The higher, the
+  better compression rate you achieve. Conversely, the lower, the faster
+  it is. Default is 6.
+* the buffer size: default is 1024. You shouldn't need to change this
+  one, but you can still try a few other values (any feedback welcomed).
+
+For example: 
+
+{{{
+<extension module="/home/gabriel/ocsigen/extensions/deflatemod.cmo">
+<compress level="6" />
+<buffer size="1024" />
+</extension>
+}}}
+
+Next, you '''have to''' specify which pages you whish to deflate, in which host/site (otherwise, deflatemod won't compress anything). See next question to do that.
+
+=== I want to deflate only some files. Is it possible? 
+
+To some extent, yes. You can '''exclude''' some files and deflate every other, according to their mime-type or extension (''ie.'' the end of the '''url''' in fact, not really the file name on the disk).
+
+Here is an example:
+
+{{{
+<host> 
+<site>
+<!-- ... -->
+</site>
+
+<deflate compress="allbut">
+<!-- deflate everything but *.tar.gz files and image/* files -->
+    <extension>.tar.gz</extension>
+    <type>image/*</type>
+</deflate>
+</host>
+}}}
+
+As you can see, you must put the <deflate> tag at the very end of the <host> element. Indeed, Ocsigen deals with extensions sequentially, so if you put <site> or other elements '''after''' <deflatemod>, they won't be compressed.
+
+Conversely, you can choose to deflate '''only''' some files, based
+on their mime-types or extension:
+
+{{{
+<host> 
+<site>
+<!-- ... -->
+</site>
+
+<deflate compress="only">
+<!-- deflate only text/html files -->
+    <type>text/html</type>
+</deflate>
+</host>
+}}}
+
+
+Warning: you can use only one contenttype tag! So you must choose,
+either the "only" or the "allbut" way.
+
+Limitations: you cannot filter by directory or by filename extension (remember extension is the url's extension). If you really need it, please fill a bug report or send a patch.
+
+== Technical questions ==
+
+=== How can I choose the content-encoding (gzip or deflate)?
+
+You can't. Deflatemod follows the RFC and chooses automatically the
+right encoding, based upon Accept-encoding header sent by the client.
+
+=== Does deflatemod support transfert-encoding?
+
+No, it  doesn't. Content-encoding is definitely a better solution,
+providing end to end compression at the content-level.
+
+=== How does deflatemod deal with the content-length header?
+
+As it cannot compute the new content-length, deflatemod uses
+chunked-encoding. This is the recommended way to go.
+
+
+//Page written by Gabriel Kerneis//

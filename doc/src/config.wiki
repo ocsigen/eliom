@@ -1,0 +1,690 @@
+=Configuration file=
+
+The main configuration file is usually named {{{/etc/ocsigen/ocsigen.conf}}}. It contains the port(s) on which you want to run the server (usually 80), the protocol to use (HTTP or HTTPS), the location of log files, many settings for the server, the extensions to be loaded, the OCaml libraries you need for your Web sites, the configuration of each Web site, etc. One default configuration file should be provided by your distribution.
+
+
+
+If you compiled Ocsigen yourself, two default configuration files are generated:
+
+* one for "system-wide" use, saved as {{{/etc/ocsigen/ocsigen.conf.sample}}} (generated only if you did {{{make install}}}),
+* one for testing without system-wide installation, saved as {{{ocsigen.conf.local}}} in your compilation directory. You can use it without beeing root (do {{{./server/ocsigen -c ocsigen.conf.local}}}).
+
+        ===Basic layout of the configuration file
+        
+        
+The configuration file is an XML file. Its layout is the following:
+        
+
+        
+{{{
+<ocsigen>
+
+  <server>
+
+    <!-- General setting -->
+    <port>80</port>
+    <logdir>...</logdir>
+    <datadir>...</datadir>
+    <user>...</user>
+    <group>...</group>
+
+
+    <!-- Extensions to be loaded: -->
+    <extension module=.../>
+    <extension module=...>
+      <!-- Options for the extension -->
+      ...
+    </extension>
+
+    <!-- You can also use Findlib to load an extension and its dependencies: -->
+    <findlib path=.../>
+    <extension findlib-package=.../>
+
+    <!-- Libraries needed by Web sites: -->
+    <require module=.../> <!-- <require is equivalent to <extension> -->
+    <require findlib-package=.../>
+    <require module=...>
+      <!-- Options for the library -->
+      ...
+    </require>
+
+    <!-- Libraries needed by Web sites, when you want them to be reloaded
+         every times you reload the config files: -->
+    <library module=.../>
+    <library findlib-package=.../>
+    <library module=...>
+      <!-- Options for the library -->
+      ...
+    </library>
+
+    <!-- Inclusion of all external configuration files matching *.conf
+     from this directory (in alphabetical order): -->
+    <extconf dir=... />
+
+    <!-- Virtual hosts configuration: -->
+    <host defaulthostname=... hostfilter=...>
+
+      <!-- configuration for the site at the root -->
+      ...
+
+      <site path=...>
+        <!-- configuration for the first sub-site -->
+        <!-- Warning: it was <site dir=...> before 0.99.4 -->
+        ...
+      </site>
+
+      <site path=...>
+        <!-- configuration for another sub-site -->
+        ...
+      </site>
+    </host>
+
+    <host defaulthostname=... hostfilter=...>
+      <!-- configuration for the second virtual host -->
+      ...          
+    </host>
+
+    ...
+
+  </server>
+
+</ocsigen>
+}}}
+        
+Here is a simple example:
+        
+
+        
+{{{
+<ocsigen>
+  <server>
+    <port>127.0.0.1:80</port>
+    <logdir>/var/log/ocsigen</logdir>
+    <datadir>/var/lib/ocsigen</datadir>
+    <user>www-data</user>
+    <group>www-data</group>
+
+    <charset>utf-8</charset>
+
+    <findlib path="/usr/local/lib/ocsigen/METAS"/>
+
+    <extension findlib-package="ocsigen_ext.staticmod"/>
+
+    <extension findlib-package="ocsigen_ext.ocsipersist-sqlite"/>
+    <!-- sqlite3.cma will be loaded automatically using findlib -->
+
+    <extension findlib-package="ocsigen_ext.eliom"/>
+    <!-- Eliom's dependencies will be loaded automatically using findlib -->
+
+
+    <extconf dir="/etc/ocsigen/conf.d" />
+
+    <host charset="iso-8859-1" hostfilter="www.mywonderfulwebsite.org">
+
+      <static dir="/var/www/ocsigen" />
+
+      <site path="tuto"> 
+        <eliom module="/usr/local/lib/ocsigen/tutoeliom.cmo" />
+        <static dir="/var/www/ocsigen/tutorial" />
+      </site>
+
+    </host>
+
+  </server>
+  
+</ocsigen>
+}}}
+        
+Here is another example, for use as unprivileged user toto on port 8000:
+        
+
+<<div id="unprivileged"|
+{{{
+<ocsigen>
+  <server>
+    <port>8000</port>
+    <logdir>/home/toto/var/log/ocsigen</logdir>
+    <datadir>/home/toto/var/lib/ocsigen</datadir>
+    <user>toto</user>
+    <group>toto</group>
+    <commandpipe>/home/toto/var/run/ocsigen_command</commandpipe>
+
+    <charset>utf-8</charset>
+
+    <findlib path="/usr/local/lib/ocsigen/METAS"/>
+
+    <extension findlib-package="ocsigen_ext.staticmod"/>
+
+    <extension findlib-package="ocsigen_ext.ocsipersist-sqlite"/>
+    <!-- sqlite3.cma will be loaded automatically using findlib -->
+
+    <extension findlib-package="ocsigen_ext.eliom"/>
+    <!-- Eliom's dependencies will be loaded automatically using findlib -->
+
+
+    <extconf dir="/home/toto/etc/ocsigen/conf.d" />
+
+    <host charset="iso-8859-1">
+
+      <static dir="/home/toto/var/www/ocsigen" />
+
+      <site path="tuto"> 
+        <eliom module="/usr/local/lib/ocsigen/tutoeliom.cmo" />
+        <static dir="/home/toto/var/www/ocsigen/tutorial" />
+      </site>
+
+    </host>
+
+  </server>
+  
+</ocsigen>
+}}}
+>>
+
+
+        ===Details about settings
+        
+        ===={{{<port>}}} : port and protocol
+        
+        
+The port on which the server is listening. You can have several {{{<port>}}}lines if you want to listen on several ports.
+
+{{{<port>}}} has one optional attribute called {{{protocol}}}. Its value may be either  {{{HTTP}}} (default) or {{{HTTPS}}} if you want to use HTTPS on that port. The default port is 80 for HTTP, and 443 for HTTPS.
+
+You can make the server bind on a specific address:
+
+{{{
+    <port>127.0.0.1:80</port>
+}}}
+        
+To make the server listen on all IPv4 interfaces (and only them):
+
+{{{
+    <port>*:80</port>
+}}}
+        
+To make the server listen on all IPv6 interfaces (and only them):
+{{{
+    <port>[::]:80</port>
+}}}
+
+To make the server listen on all IPv4 and IPv6 interfaces:
+{{{
+   <port>80</port>
+}}}
+
+**Warning:** with versions < 1.3.1, the two previous variants were equivalent and would make the server listen on all IPv6 interfaces, and on IPv4 interfaces as well depending on the operating system (more specifically, the default value of IPV6_V6ONLY). This OS-dependent behaviour has been fixed in version 1.3.1.
+
+You can also make the server bind on a specific IPv6 address (it must be between brackets):
+
+{{{
+    <port>[2001:660:3001:4002::10]:80</port>
+}}}
+        
+If you want to use HTTPS, you need to specify a certificate to use, and a private key, as follows:
+
+{{{
+    <ssl>
+       <certificate>path_to/cert.pem</certificate>
+       <privatekey>path_to/privkey.pem</privatekey>
+    </ssl>
+}}}
+        
+Use the tools provided by openssl to create a 1024-bit private key to use when creating your CA.:
+
+{{{
+    openssl genrsa -des3 -out privkey.pem 1024
+}}}
+        
+To create a master certificate based on this key, to use when signing other certificates:
+
+{{{
+    openssl req -new -x509 -days 1001 -key privkey.pem -out cert.pem
+}}}
+        
+If you don't want to be asked for a password at start-up, you can uncrypt the private key (if you consider it is safe ...):
+
+{{{
+    openssl rsa -in privkey.pem -out privkey-unsec.pem
+}}}
+
+
+===={{{<logdir>}}} : log files directory
+        
+        
+The directory for log files. Usually {{{/var/log/ocsigen}}}. Ocsigen is using three log files: {{{access.log}}} where all requests are logged, {{{errors.log}}} for error messages, and {{{warnings.log}}} for warnings.
+
+Example :
+      
+
+        
+{{{
+<logdir>/var/log/ocsigen</logdir>
+}}}
+        ===={{{<datadir>}}} : directory for server data
+        
+        
+This directory is used to store data used by the server or extensions (for example persistent data). Usually {{{/var/lib/ocsigen}}}.
+
+Example :
+        
+
+        
+{{{
+<datadir>/var/lib/ocsigen</datadir>
+}}}
+        ===={{{<user>}}} and {{{<group>}}} : user who runs the server
+        
+        
+If the server is launched by root, it will change itself the user and group for the process, for security reasons. Create a group and a user for Ocsigen or use an existing user of your system (e.g. {{{www-data}}}).
+
+Example :
+        
+
+        
+{{{
+<user>ocsigen</user>
+<group>ocsigen</group>
+}}}
+        ===={{{<charset>}}} : default charset for pages
+        
+        
+Example: 
+        
+
+        
+{{{
+<charset>utf-8</charset>
+}}}
+
+====@@id='upload'{{{<uploaddir>}}} : directory where files are uploaded
+
+       
+If you want to allow the users to upload files on the server, add this option.
+
+Example:
+
+{{{
+<uploaddir>/var/upload</uploaddir>
+}}}
+
+
+By default, no directory is specified and uploading is forbidden. Note that the server will remove the files after the request has been served. If the service (the script) want to keep the file, it must create a new hard link on the file itself.
+
+You can specify the maximum size of uploaded files using {{{<maxuploadfilesize>}}}. For example :
+
+{{{
+<maxuploadfilesize>2MB</maxuploadfilesize>
+}}}
+        
+The value may be "infinity" or written using SI or binary units, e.g. 10 10B 10kB 10kiB 10MiB 10TB ... (or 10o 10ko ...) (default in bytes 
+                    when no unit is specified)
+
+//Warning:// the maximum size of files is also limited by {{{<maxrequestbodysize>}}}.
+
+Starting from Ocsigen 1.3, you can redefine the options {{{<uploaddir>}}} and {{{<maxuploadfilesize>}}} on each host or inside {{{<site>}}} tags. The syntax is the same
+as above. There are however some limitations; please read carefully the documentation of the module [[extensions/extendconfiguration#upload|Extendconfiguration]] before using this functionality.
+
+        
+===={{{<maxrequestbodysize>}}} : maximum size of the body of incoming requests
+
+Example:
+{{{
+<maxrequestbodysize>100MB</maxrequestbodysize>
+}}}
+        
+The value may be "infinity" or written using SI or binary units, e.g. 10 10B 10kB 10kiB 10MiB 10TB ... (or 10o 10ko ...) (default in bytes 
+                    when no unit is specified)
+        
+
+        ===={{{<mimefile>}}} : MIME type file
+        
+        
+The file associating file name extensions to their MIME type. Example:
+        
+
+        
+{{{
+<mimefile>/etc/ocsigen/mime.types</mimefile>
+}}}
+        ===={{{<debugmod/>}}} : Error messages in pages
+        
+        
+Use this option for debugging your Web sites. Full error messages will be written in Error 500 pages. Example:
+        
+
+        
+{{{
+<debugmod/>
+}}}
+        ===={{{<usedefaulthostname/>}}} : Do not trust Host HTTP header for absolute links
+        
+        
+//(From Ocsigen 1.2) //Use this option if you do not trust the Host HTTP header for building absolute links, CGI scripts and redirections. The default hostname set in the configuration file will be used instead. (Same as Apache's UseCanonicalName option). Example:
+        
+
+        
+{{{
+<usedefaulthostname/>
+}}}
+        ===={{{<maxconnected>}}} : Maximum number of simultaneous connections
+        
+        
+Example:
+        
+
+        
+{{{
+<maxconnected>500</maxconnected>
+}}}
+        ===={{{<timeout>}}} : Timeout for connections
+        
+        
+Written in seconds. If the client does not say anything during that amount of time, the connection will be closed. Example:
+        
+
+        
+{{{
+<timeout>20</timeout>
+}}}
+        ===={{{<keepalivetimeout>}}} : Timeout for Keep-Alive
+        
+        
+Amount of time (in seconds) the server will wait for subsequent requests on a persistent connection. Example:
+        
+       
+{{{
+<keepalivetimeout>10</keepalivetimeout>
+}}}
+
+        ===={{{<shutdowntimeout>}}} : Timeout for graceful shutdown //From version 1.3//
+        
+        
+Amount of time (in seconds) the server will wait for current requests to terminate before ending the process, when you use the "graceful shutdown" server command (see below).
+        
+{{{
+<shutdowntimeout>10</shutdowntimeout>
+}}}
+
+Other possible value: {{{notimeout}}} if you don't want to wait all connections even if it takes time.
+
+        ===={{{<netbuffersize>}}} : Size of the input buffer
+        
+        
+Size of the input buffer (sockets). It is also the maximum size of headers and post data. Example:
+        
+
+        
+{{{
+<netbuffersize>8192B</netbuffersize>
+}}}
+        ===={{{<filebuffersize>}}} : Size of the buffer for sending files
+        
+        
+Size of the buffer for reading files to send. Example:
+        
+
+        
+{{{
+<filebuffersize>8192B</filebuffersize>
+}}}
+        ===={{{<minthreads> <maxthreads>}}} : Size of the preemptive thread pool
+        
+        
+Even if Ocsigen is implemented with cooperative threads, web site programmers may want to detach some computation to other preemptive threads. To do that, Ocsigen has a pool of preemptive threads running, waiting for computation to do. This options allow to set the size of this pool. Example:
+        
+
+        
+{{{
+<minthreads>10</minthreads>
+<maxthreads>1000</maxthreads>
+}}}
+        ===={{{<maxdetachedcomputationsqueued>}}} : Size of the queue of waiting detached computations
+        
+        
+If the pool of preemptive threads is full, new detached computations will wait for one thread to become available. This is the size of the waiting queue. Only integer values allowed here. Example:
+        
+
+        
+{{{
+<maxdetachedcomputationsqueued>100</maxdetachedcomputationsqueued>
+}}}
+        ===={{{<maxretries>}}} : Maximum number of retries for the same request
+        
+        
+To prevent looping requests, for example after a rewrite of the request, the number of retries is limited to this number. Example:
+        
+
+        
+{{{
+<maxretries>10</maxretries>
+}}}
+        ===={{{<commandpipe>}}} : The pipe used to give orders to the server
+        
+        
+Ocsigen's Web server is waiting for orders on a pipe. Write the orders on the pipe. This option allows to set the name of the pipe. Example:
+        
+
+        
+{{{
+<commandpipe>/var/run/ocsigen_command</commandpipe>
+}}}
+
+Each extension can define its own orders.
+
+Predefined orders:
+* {{{reload}}}: will reload the configuration file. Extensions will not be reloaded but all other modules will be reloaded (for example Eliom web sites) //(see below for more information)//.
+* {{{gc}}}: will trigger a heap compaction
+* {{{shutdown}}}: will shutdown the server when all the current rerquests are fulfilled //(see below for more information)//
+* {{{reopen_logs}}}: will reopen the logs files (see logrotate configuration for an example of use)
+* {{{clearcache}}}: will empty all the caches defined by the module {{{Ocsigen_cache}}}
+        
+
+        ===={{{<extconf>}}} : Splitting the configuration file
+        
+        
+If your configuration is complex, it is recommended to split the configuration file into several files. The following command will include all external configuration files matching {{{*.conf}}} from this directory (in alphabetical order):
+        
+
+        
+{{{
+<extconf dir="..."/>
+}}}
+        ===Loading extensions and libraries
+        
+        ===={{{<extension>}}} : Loading extensions and libraries
+        
+        
+Ocsigen does not do anything without some extensions loaded. For example, you need the extension staticmod for serving static pages. Extensions are loaded dynamically when launching the server. Specify the extensions and libraries you want using the tag <extension>.
+        
+
+        
+Warning: The order in which extensions are loaded is usually not significant (from 0.99.4) (but if you have dependencies between the modules). Extensions will try to handle requests in the order in which the options are written inside {{{<host>}}}.
+        
+
+        
+If you want to run a Web site with Eliom, you probably need the extensions Staticmod and Eliom, the first one to generate static pages, the second one for dynamic pages.
+        
+
+        
+If you don't have any extension, no page will be generated.
+        
+
+        
+Extensions will not be reloaded if you ask the server to reread the configuration file. And they will be loaded only once, even if
+you have several times the same extension. For example if you are using {{{<extconf>}}} to configure several websites in several configuration files, you can put all the dependencies in each file.
+        
+
+        
+Some extensions take parameters between {{{<extension>}}} and {{{</extension>}}}
+        
+
+        
+Example of use:
+        
+
+        
+{{{
+<extension module="/opt/godi/lib/ocaml/site-lib/ocsigen/cgimod.cma"/>
+<extension module="/opt/godi/lib/ocaml/site-lib/ocsigen/staticmod.cma"/>
+}}}
+        
+(From version 1.0) Extensions can also be loaded using Findlib. If you specify a package which has dependencies, these dependencies will also be loaded, without parameters. Dependencies are always loaded only once, so you can safely load several extensions which have a shared dependency.
+        
+
+        
+If you don't want to clutter your installation with a lot of Ocsigen-specific packages, you can put them outside the default search path (for example, something below {{{/usr/local/lib/ocsigen}}}), and extend the search path in the configuration file. Here, "search path" has the same semantics as in Findlib. For example, you might have the following line in your configuration file if you compiled and installed Ocsigen on your own:
+        
+
+        
+{{{
+<findlib path="/usr/local/lib/ocsigen/METAS"/>
+}}}
+        
+Extensions shipped with Ocsigen are available as subpackages of {{{ocsigen_ext}}} (this package is in an extended search path). For example:
+        
+
+        
+{{{
+<extension findlib-package="ocsigen_ext.deflatemod">
+}}}
+        
+This will load deflatemod, and its dependency camlzip (if not already loaded).
+        
+
+        ===={{{<require>}}} : Loading libraries
+        
+        
+From version 1.0, {{{<require>}}} is a synonymous for {{{<extension>}}}.
+        
+
+        ===={{{<library>}}} : Loading libraries
+        
+        
+If you want to load other OCaml libraries for your extensions or Website, use {{{<extension>}}} if you do not want them to be reloaded each time the configuration file is reread, or {{{<library>}}} if you need them to be reloaded every time. Extensions like CGImod or Staticmod or Eliom can not be loaded with {{{<library>}}}. Use {{{<library>}}} only for the modules you want to be able to reload without shutting down the server.
+        
+
+        
+Libraries may take parameters between {{{<library>}}} and {{{</library>}}}.
+        
+
+        
+Example of use:
+        
+
+        
+{{{
+<library module="/opt/godi/lib/ocaml/site-lib/mysite/mylib.cma"/>
+}}}
+        
+As in {{{<extension>}}}, you can also use {{{findlib-package=}}} instead of {{{module=}}}. However, remember that dependencies will always be loaded only once (only the last file of the package itself may be reloaded several times).
+        
+
+        ===Virtual host and site configuration
+        
+        ===={{{<host>}}} : Virtual host setting
+        
+        
+It is possible to have several virtual hosts on the same server. For example if your server has two host names, you may want to serve different Web sites for each of them. Note that this feature is based on the {{{Host:}}} HTTP header, which is not mandatory in HTTP/1.0.
+
+
+The attribute {{{defaulthostname}}} is just an information about the hostname, that can be used for example by services to create absolute links. If you want to create virtual hosts for several domain names, use the {{{hostfilter}}} attribute to filter on the {{{Host}}} HTTP header. You may specify several hostnames, and the optional {{{hostfilter}}} field may contain '*' (wildcard). Example:
+
+        
+{{{
+<host defaulthostname="www.mysite.com" hostfilter="www.mysite.com *.org" charset="utf-8"> ... </host>
+}}}
+        
+The {{{charset}}} attribute is the default charset for your pages. All attributes are optional, but we recommend to set at least {{{defaulthostname}}}.
+        
+
+        
+If you do not want to send any charset, explicitely: {{{charset=""}}}. In that case, browsers usually use html meta-data (when present).
+        
+
+        
+//Warning:// Before version 1.2.0, {{{hostfilter}}} was called: {{{name}}} (or {{{aliases}}}).
+        
+
+        
+It is also possible to set the default ports for http and https using {{{defaulthttpport}}} and {{{defaulthttpsport}}}. These arguments may be used by extensions (like Eliom) if they need to create absolute links. Example:
+        
+
+        
+{{{
+<host defaulthostname="www.mywebsite.org" hostfilter="*.org" defaulthttpport="8080" defaulthttpsport="4433"> ... </host>
+}}}
+        
+Inside {{{<host>}}}, write the configuration for your main (root) site. These options depend on the extensions loaded. See the documentation about the extensions to know what to put here. It is also possible to define here several subsites, using {{{<site>}}} (see below).
+        
+
+        ===={{{<site>}}} : Configuring sub-sites
+        
+        
+In each virtual host, it is possible to define several sub-sites (in sub-paths) between {{{<site>}}} and {{{</site>}}}. {{{<site>}}} has an attribute {{{dir}}} to set the home directory for the site. You can also set the default charset for the site using the {{{charset}}} attribute. The options between {{{<site>}}} and {{{</site>}}} are exactly the same as those you can can put between {{{<host>}}} and {{{</host>}}}. They depend on the extensions you loaded. It is also possible to define sub-sites inside sub-sites.
+        
+
+        
+Example of use:
+        
+
+        
+{{{
+<site path="mysite"> ... </site>
+}}}
+
+
+
+        ===Reloading the configuration file
+        
+        
+To reload the modules of the configuration file without stoping the server, write the command {{{reload}}} in the server's command pipe (usually {{{/var/run/ocsigen_command}}}. For example: 
+        
+{{{
+echo reload > /var/run/ocsigen_command
+}}}
+ 
+Form version 1.3, it is possible to give the name of the configuration file as parameter:
+
+{{{
+echo reload /etc/ocsigen/ocsigen.conf.2 > /var/run/ocsigen_command
+}}}
+
+       
+Most distributions have a special command to do that automatically, usually:
+        
+
+{{{
+/etc/init.d/ocsigen reload
+}}}
+        
+The configuration file will be reloaded, and the changes will be taken into account if possible. For example it is not possible to change the port numbers without stoping the server. Extensions and libraries loaded using {{{<extension>}}} will not be reloaded.
+        
+
+===Graceful shutdown //(From version 1.3)//
+
+To end the server cleanly, use the {{{shutdown}}} command, for example:
+
+{{{
+echo shutdown > /var/run/ocsigen_command
+}}}
+
+No new connection will be accepted, but all current requests will be terminated (with a timeout). Then the server process will end.
+
+You can specify the timeout as parameter (in second):
+
+{{{
+echo shutdown 10 > /var/run/ocsigen_command
+}}}
+
+It means that the server process will end after at most 10 seconds, even if some connexions are still alive. If you do not want any timeout, do:
+
+{{{
+echo shutdown notimeout > /var/run/ocsigen_command
+}}}
+
+In that case, the server will wait for all the connections to terminate, even if it takes a lot of time.
+
+The default timeout value can be set in the configuration file (see {{{shutdowntimeout}}} option above).
+
+

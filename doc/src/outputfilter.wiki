@@ -1,0 +1,16 @@
+=Outputfilter=
+
+Outputfilter allows to filter the output and rewrite some part of it (for example headers) before sending it to the client. It is in beta version. Submit your bugs, feature wishes (or any enhancement/mistake in the documentation) [[site:trac|here]].
+
+For now it allows to rewrite HTTP headers using regular expressions.
+Configuration
+
+To use this extension, first load it from the configuration file:
+{{{
+<extension findlib-package="ocsigen_ext.outputfilter"/>
+}}}
+Then, when you want to rewrite one header (after having generated a page), do something like:
+{{{
+<outputfilter header="location" regexp="http://my.newaddress.org/(.*)" dest="http://my.publicaddress.org/$1"/>
+}}}
+Here we rewrite the content of the header location (this line is useful when you are using the reverse proxy).

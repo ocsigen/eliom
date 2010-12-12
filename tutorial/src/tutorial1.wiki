@@ -1,5 +1,4 @@
-<<|wikifile file="ocsigen.dev/examples/tutoeliom2-quickstart1.wiki">>
-=Overview of Eliom features: write a client/server Eliom application=
+=Writing a client/server Eliom application=
 
 <<div class="wip"|**Work in progress**>>
 

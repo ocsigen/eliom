@@ -1,0 +1,45 @@
+=Authbasic=
+
+This module  implements Basic HTTP Authentication as  described in RFC
+2617. It can  be used to add an authentication layer  to sites with no
+built-in authentication (e.g. static files).
+
+Beware, passwords  are transmitted in  cleartext with this  scheme, so
+the  medium should  be  secured  somehow (by  e.g.  SSL).
+
+This  module
+implements only the HTTP-related part of the protocol, and is meant to
+be extended with  various authentication plugins.
+
+A very  naive one is
+provided as an example. See  the developer's documentation if you want
+to make your own one.
+
+In order to use it, you must first add the following line to your ocsigen.conf:
+{{{
+<extension findlib-package="ocsigen_ext.authbasic"/>
+}}}
+This extension defines one action, {{{<authbasic>}}},
+and one authentication plugin, {{{<plain>}}}.
+
+==The {{{<authbasic>}}} action==
+To add an authentication layer to a site, add the following lines before the actions defining the restricted part of your site:
+{{{
+<authbasic realm="...">
+   ...
+</authbasic>
+}}}
+The realm attribute is some name identifying the protected resource. The client is expected to send the same authentication info to all pages protected with the same realm on the same hostname.
+
+When a request containing the right authentication token arrives, this action doesn't do anything (and therefore grants access). If the authentication info is missing, an HTTP 401 Unauthorized is immediately returned (no other extension is tried) to request the client to provide this authentication token. On most interactive browsers, this is done by popping up a dialog box asking the user for a login and a password.
+
+The {{{<authbasic>}}} element expects one child element,
+specifying which authentication plugin to use.
+
+==The {{{<plain>}}} plugin==
+To protect a resource with some fixed login and password given in the configuration file, you can use the {{{<plain>}}} plugin. Here is a self-contained example:
+{{{
+<authbasic realm="example">
+   <plain login="me" password="mypassword" />
+</authbasic>
+}}}

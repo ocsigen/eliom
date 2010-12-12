@@ -1,0 +1,30 @@
+=Userconf=
+Userconf allows users to have their own configuration files. It is in beta version, and requires some cooperation
+from other extensions to disallow unsafe options (for example, in version 1.2 it is not possible to have Eliom sites for users).
+
+== Configuration ==
+
+To use this extension, first load it from the configuration file:
+
+{{{
+<extension findlib-package="ocsigen_ext.userconf"/>
+}}}
+
+Then, if you want to allow users to have their own configuration files, put in your hosts something like the lines
+below. (Unless you understand Userconf well, you probably just want to use those lines as is.)
+{{{
+<redirect regexp="(https?://[^/]*)/~([^/]*)" dest="$1/~$2/" />
+<userconf regexp="~([^/]*)/(.*)" conf="$u($1)/.ocsigen" prefix="~$1" url="$2" localpath="$u($1)/public_html" />
+}}}
+
+The configuration file specified in {{{conf}}} will be parsed for each request matching the regular expression
+{{{regexp}}}. Here, as in staticmod, {{{$u(toto)}}} is the Unix home directory of user {{{toto}}}. Extensions inside
+the user configuration file will behave as though executed in a {{{<site>}}} tag of root {{{prefix}}}, while
+{{{url}}} is used to match the remainder of the url (the path {{{prefix/url}}} must be equal to {{{regexp}}}).
+Finally, the option {{{localpath}}} is used to specify the files the user is allowed to send: in userconf mode,
+all the paths used in [[extensions/staticmod|Staticmod]] must be relative, and are appended after the evaluation of
+{{{localpath}}}.
+
+
+The syntax of user configuration files is usually the same as the one of the part between {{{<host>}}} and {{{</host>}}} in the main configuration file. However, the extensions can choose to disallow some options that are unsafe in user mode,
+or forbid user mode entirely. See their individual documentation for details.

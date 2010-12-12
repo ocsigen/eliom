@@ -1,0 +1,96 @@
+=Accesscontrol=
+
+Accesscontrol is in beta version. Submit your bugs and feature wishes [[../trac/|here]].
+
+= The accesscontrol extension =
+
+If you want to restrict access for some sites, this extension is for you. This is still quite experimental, so don't hesitate to test it and report bugs!
+
+In order to use it, you must first add the following line to your {{{ocsigen.conf}}}:
+{{{
+<extension findlib-package="ocsigen_ext.accesscontrol"/>
+}}}
+
+Here, we call ''actions'' elements that can be put in a site configuration. Actions include {{{<eliom>}}}, {{{<static>}}}, etc.
+
+This extension defines several actions.
+
+== The {{{<if>}}} action ==
+
+It takes as children a condition followed by a {{{<then>}}} element and possibly an {{{<else>}}} element. When a request reaches an {{{<if>}}}, if the condition evaluates to true, then the whole {{{<if>}}} behaves as if it had been replaced by the contents of the {{{<then>}}} element, otherwise it behaves as if it had been replaced by the contents of the {{{<else>}}} element. A missing {{{<else>}}} is considered as an {{{<else>}}} with no children.
+
+=== Conditions ===
+
+Atomic conditions:
+
+ * {{{<ip value="..." />}}}: {{{value}}} can be an IPv4 or IPv6 address, with an optional {{{/n}}} suffix indicating a subnet mask; true if the IP address of the client matches {{{value}}}.
+ * {{{<port value="..." />}}}: {{{value}}} can be a number; true if the request was received on port {{{value}}}. (new in 1.2)
+ * {{{<ssl/>}}}: true if the request was received by HTTPS. (new in 1.2)
+ * {{{<header name="..." regexp="..." />}}}: true if the header of the request has a {{{name}}} field that matches {{{regexp}}}.
+ * {{{<method value="..." />}}}: true if the HTTP method ({{{GET}}}, {{{POST}}}, etc) of the request is {{{value}}}.
+ * {{{<protocol value="..." />}}}: {{{value}}} can be {{{HTTP/1.0}}} or {{{HTTP/1.1}}}; true if the protocol specified in the request is {{{value}}}.
+ * {{{<path regexp="..." />}}}: true if the part of the path concerning the site matches {{{regexp}}}.
+
+Combining conditions (all their children must be conditions):
+
+ * {{{<and>...</and>}}}: true if all enclosed conditions are true (true if empty).
+ * {{{<or>...</or>}}}: true if one of the enclosed conditions is true (false if empty).
+ * {{{<not>...</not>}}}: true if the enclosed condition is false (there must be exactly one enclosed condition).
+
+== Other actions ==
+
+ * {{{<notfound/>}}}: stops immediately (does not try other sites) with a 404 error.
+ * {{{<forbidden/>}}}: stops immediately (does not try other sites) with a 403 error.
+ * {{{<iffound>...</iffound>}}}: tries the enclosed actions if some action has already answered.
+ * {{{<ifnotfound code="...">...</ifnotfound>}}}: tries the enclosed actions if noone has answered so far. {{{code}}} is an optional regexp matching the current error code.
+ * {{{<nextsite/>}}}: stops parsing current site. If the page has been found, answer. If not, try next site. ''from Ocsigen 1.2''
+ * {{{<nexthost/>}}}: stops parsing current host. If the page has been found, answer. If not, try next host. ''from Ocsigen 1.2''
+ * {{{<stop/>}}}: stops parsing configuration file (answers now whether the page has been found or not). ''from Ocsigen 1.2''
+
+== Examples ==
+
+ * I want some actions to handle only requests from localhost, for users using the browser Konqueror:
+{{{
+<if>
+  <and>
+    <ip value="127.0.0.1" />
+    <header name="user-agent" regexp=".*Konqueror.*" />
+  </and>
+  <then>
+    <!-- put your actions here -->
+  </then>
+</if>
+}}}
+
+ * I want some actions to handle requests that respect at least one of the following conditions:
+  * they belong to the subnet 123.123.123.0/24,
+  * or they want to access a page beginning with the letter 'c',
+  * or they are not doing a {{{GET HTTP}}} request:
+{{{
+<if>
+  <or>
+    <ip value="123.123.123.0/24" />
+    <path regexp="/c.*" />
+    <not><method value="GET" /></not>
+  </or>
+  <then>
+    <!-- put your actions here -->
+  </then>
+</if>
+}}}
+
+ * I want to deny access to 192.168.0.0/24 except 192.168.0.42, and to 192.168.99.0/24:
+{{{
+<if>
+  <or>
+    <and>
+      <ip value="192.168.0.0/24" />
+      <not><ip value="192.168.0.42" /></not>
+    </and>
+    <ip value="192.168.99.0/24" />
+  </or>
+  <then>
+    <forbidden/>
+  </then>
+</if>
+}}}

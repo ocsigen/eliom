@@ -1,0 +1,25 @@
+=Miscellaneaous=
+
+==Native code version
+
+Ocsigen can be used either in bytecode or in native code (requires OCaml >= 3.11).
+To use the native code version, you may need to create a {{{.cmxs}}} file for each plugin
+you want to load at startup, if they are not included in your distribution. For example:
+
+{{{
+sudo ocamlopt -shared -o /usr/lib/ocaml/3.11.0/sqlite3/sqlite3.cmxs -I /usr/lib/ocaml/3.11.0/sqlite3 /usr/lib/ocaml/3.11.0/sqlite3/sqlite3.cmxa
+}}}
+
+The same configuration file can be used for both versions ({{{.cmo}}} and {{{.cma}}}
+extensions are converted to {{{.cmxs}}}).
+
+==Improving performance
+
+If you are using persistent data using Sqlite or or Dbm, for example if you are using Ocsipersist or Eliom persistent data, it is possible to improve performance by using a dedicated partition for the database (typically in directory {{{/var/lib/ocsigen}}}). Do not use NFS for that directory.
+
+This is due to the fact that these databases are calling the fsync system call at each request, which is very slow on journalized file systems.
+
+It is also not recommended (for performance) to use NFS for static pages (including user personal pages).
+
+
+

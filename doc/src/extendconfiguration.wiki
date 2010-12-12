@@ -1,0 +1,120 @@
+
+=Extendconfiguration=
+
+Extendconfiguration allows to configure some options of the server inside a {{{<host>}}} tag. (This extension is available starting from Ocsigen ≥ 1.2)
+
+==Loading the extension
+
+To use that extension, first load it from the configuration file:
+
+{{{
+<extension findlib-package="ocsigen_ext.extendconfiguration"/>
+}}}
+
+== Options
+=== Following symlinks
+
+For extensions that access files on the filesystem ([[extensions/staticmod|staticmod]],[[extensions/eliom|eliom]],...), you can decide whether symlinks should be followed or not, using the tag
+
+{{{
+<followsymlinks value="VAL" />
+}}}
+
+where {{{VAL}}} can be:
+    * {{{never}}} entirely disallows following symlinks.
+    * {{{always}}} always follows symlinks (more efficient). Note that this setting is not permitted in userconf files
+    * {{{ownermatch}}} symlinks are followed only if the owner of the symlink and of the target coincide. (Default value)
+
+Notice that staticmod partially overrides this setting when it not used in a userconf file. When used with the syntax {{{<static dir="dir" />}}}, the checks start only after the directory {{{dir}}}. In regexp mode, the checks only start after the value given by the {{{root}}} attribute. See the documentation of [[extensions/staticmod|staticmod]] for details.
+
+=== Hiding or forbidding local files
+
+Again for extensions that send local files, you can selectively disallow sending some files. The syntax is as such:
+
+<hidefile>
+  <extension ext="php" />
+  <extension ext="cgi" />
+  <file file=".htaccess" />
+  <regexp regexp=".*hidden_file.*" /> <!-- End the regexp with $ to match the full file name -->
+</hidefile>
+
+Using the tag {{{hidefile}}} results in 404 error codes. To have 403 errors, use {{{forbidfile}}} instead.
+
+=== Index of directories
+
+When the user requests access to a directory of the filesystem, Ocsigen can automatically try to find an index file. This is done through the following option
+
+{{{
+<defaultindex>
+  <index>index1</index>
+  <index>index2</index>
+</defaultindex>
+}}}
+
+Ocsigen serves the first file (according to the order given by the index tags) that exists.
+
+=== List the content of directories
+
+If you want to list the content of a directory that does not contain an index file, use the tag
+
+{{{
+<listdirs value="true" />
+}}}
+
+You can also deactivate this option with {{{value="false"}}} instead.
+
+=== Charset
+
+The charset of the text files that are sent by the server can be set using the tag
+
+{{{
+<charset default="utf-8">
+  <extension ext='txt' value="iso8859-15" />
+  <file file="bla.text" value="iso8859-15" />
+  <regexp regexp=".*text.*"  value="iso8859-15" />
+</charset>
+}}}
+
+This sets the default charset for text files to {{{utf8}}}, while files whose extension
+are {{{txt}}}, or that are named {{{bla.text}}}, or whose name contains {{{text}}} are sent as
+{{{iso8859-15}}}.
+
+Multiple extension tags can be specified. Both the default attribute and extension tags are optional. Extension tags are cumulative between the various sites.
+
+=== Content-type
+
+The content-type for the files sent by the server can be specified using the tag
+
+{{{
+<contenttype default="application/octet-stream">
+  <extension ext='txt' value="text/plain" />
+  <file file="bla.text" value="text/plain" />
+  <regexp regexp=".*text.*"  value="text/plain" />
+</contenttype>
+}}}
+
+The options are similar to the ones for the {{{charset}}} tag.
+
+
+===@@id='upload' File uploading
+
+//From Ocsigen ≥ 1.3//
+
+You can specify the directory in which the files stored in POST requests are uploaded, as well
+as the maximum size for these files. The two options are named {{{uploaddir}}} and {{{maxuploadfilesize}}}:
+{{{
+<uploaddir>/tmp</uploaddir>
+<maxuploadfilesize>1MB</maxuploadfilesize>
+}}}
+The arguments are the same as for the global corresponding options ; see the [[config#upload|configuration]] page for details. In order to disallow uploading for a specific
+host or site, use an empty path: {{{<uploaddir></uploaddir>}}}.
+
+//Warning//
+
+POST arguments (including sent files) are read once and for all, by the first extension that attempts to decode the POST parameters. This means that the POST-uploaded files are stored //according to the settings local to this first extension//. Changing the {{{uploaddir}}} and {{{maxuploadfilesize}}} options later will have no effect; plan accordingly when you write your {{{ocsigen.conf}}} file. Currently the only extension supplied
+with Ocsigen that reads POST data is Eliom.
+
+
+== Visibility
+
+The options above are visible until the end of the <site> tag they are part of.

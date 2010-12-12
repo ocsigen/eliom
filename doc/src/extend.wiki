@@ -1,0 +1,108 @@
+
+=Writing an extension for Ocsigen server=
+<<div class="wip"|Warning: This page is not up to date.>>
+
+This page describes how to extend Ocsigen's server. This can be used to create new ways to generate pages (like Apache modules), to filter and change the requests (for example, rewriting of URLS), to extend the syntax of the configuration file.
+
+Remember to program your extensions in cooperative way using Lwt! 
+
+These features have been introduced in Ocsigen 0.6.0. The extension mechanism will be improved in the future to fit better the needs of developers. As very extensions have been written for now, all this is somewhat experimental, and we look forward to feedback from developers about missing features or problems. 
+
+//Ocsigen is a collaborative project. Contributions are welcome. For example a proxy, a fastCGI module~ ...//
+
+===Filtering the requests or writing a module to generate pages 
+
+You can take as example the files {{{extensiontemplate.ml}}} or {{{staticmod.ml}}} from Ocsigen's distribution. 
+
+The type of request is {{{Extensions.request_info}}} (have a look at it in the interface of the module {{{Extensions}}}). 
+
+Each extensions loaded in the configuration file tries to handle the request and returns something of type {{{Extensions.answer}}}. If the page is not found by the extension ({{{Ext_not_found}}}), the following one will try to handle the request. If the page is found, the answer is {{{Ext_found r}}} where {{{r}}} has type {{{Extensions.result}}}. An extension can also modify the request before giving it to the next one (answer {{{Ext_continue_with of Extensions.request_info}}}). 
+
+[[download/ocsigen/extensions/extensiontemplate.ml|See an example]]. 
+
+To write such an extension, just write a cmo or cma, and use the function Extensions.register_extension to register you extension. This function takes four functions as parameters: 
+* a function that will be called for each virtual server, generating two functions: 
+**one that will be called to generate the pages (it has type {{{string option -> request_info -> answer Lwt.t}}}), where the {{{string option}}} is the encoding for characters possibly specified in the configuration file, 
+**one to parse the configuration file (see next section). 
+*a function that will be called at the beginning of the initialisation phase (if you need to initialize your extension, otherwise, put the identity). 
+*a function that will be called at the end of the initialisation phase of the server (if you need to do something here, otherwise the identity function). 
+*a function that will create an error message from the exceptions that may be raised during the initialisation phase, and raise again all other exceptions. That function has type {{{exn -> string}}}. Use the raise function if you don't need any. 
+
+Example (from {{{staticmod.ml}}}): 
+
+{{{
+let _ = register_extension
+    ((fun _ -> 
+      let page_tree = 
+        try 
+          find hostpattern
+        with Not_found ->
+          let n = new_pages_tree () in
+          add hostpattern n;
+          n
+      in
+      (gen page_tree, 
+       parse_config page_tree)),
+     start_init,
+     end_init,
+     raise)
+}}}
+
+While writing extensions, be very careful about site reloading. The initialisation phase will start again at each reloading, and the function you register will be called for each virtual at each reloading. 
+
+===Filtering the outputs 
+It is also possible to create extensions that will filter the output of the server (for example to compress it). It is very similar to the previous one. Basically, use {{{Extensions.register_output_filter}}} instead of {{{Extensions.register_extension}}}. Have a look at the file {{{deflatemod.ml}}} for an example.
+
+===Extending the configuration file 
+
+====Extending the configuration file for an extension 
+
+ The parsing of Ocsigen's configuration file is using a very basic xml parser (module {{{Simplexmlparser}}}). The function to be registered by the {{{Extensions.register_extension}}} function takes two parameters: the path of the web site and the xml subtree. 
+
+{{{
+let parse_config path = function
+    Simplexmlparser.Element ("tag", attr, content) -> ...
+      (* Do what you want here *)
+  | Simplexmlparser.Element _ -> 
+      raise (Extensions.Bad_config_tag_for_extension t)
+  | _ -> raise (Extensions.Error_in_config_file "(my extension)")
+}}}
+
+The module {{{Parseconfig}}} defines functions to parse strings or sizes (in bytes, GB etc). 
+
+====Giving parameters to an extension 
+
+//Warning: This is experimental. Please report your experience if you use it.//
+
+Extensions may take parameters in the configuration file. During the loading of the extension, the function {{{Extensions.get_config ()}}} returns the xml tree between {{{<extension>}}} and {{{</extension>}}} (or {{{<library>}}} and {{{</library>}}}). Write a parser for that tree. 
+
+====Example 
+[[download/ocsigen/extensions/extensiontemplate.ml|See an example]]. 
+
+===Catching the request before it is fully read 
+
+For some extensions of the Web server, it is necessary to catch the request before it has been fully read (especially before the body of the request has been read). For example it is the case if you want to write a (reverse) proxy. 
+
+//Warning: This is experimental. Please report your experience if you use it.//
+
+===Observing the headers to be sent by the server
+
+//Warning: This is experimental. Please report your experience if you use it.//
+
+If you want, for example, to log the headers of outgoing HTTP frames, use the function
+{{{Ocsigen_http_com.set_result_observer}}}.
+It takes as parameter a function of type
+{{{(Ocsigen_http_frame.Http_header.http_header -> string -> unit Lwt.t)}}}, the {{{string}}} being the set of headers already pretty-printed.
+
+===Adding new commands for the server
+
+If you want to add your own commands for the server command pipe, do something like:
+
+{{{
+let () = 
+  Ocsigen_extensions.register_command_function ~prefix:"yourextensionname"
+    (fun s c -> match c with
+       | ["mycommand"] -> ...
+       | _ -> raise Ocsigen_extensions.Unknown_command)
+}}}
+

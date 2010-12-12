@@ -1,0 +1,54 @@
+=Staticmod=
+Staticmod is a module allowing to serve static pages (files).
+==Configuration
+===Basics
+
+To use that extension, first load it from the configuration file:
+{{{
+<extension findlib-package="ocsigen_ext.staticmod"/>
+}}}
+Then configure your hosts as in this example:
+{{{
+<static dir="/path/to/the/local/directory" />
+}}}
+
+===Rewriting URLs
+
+You may also want to filter or rewrite URLs, as in this example, that allows user to have their home pages:
+{{{
+<static regexp="~([^/]*)(.*)" dest="/home/$1/public_html$2"/>
+}}}
+{{{regexp}}} is a regular expression using PERL syntax (PCRE).
+
+Actually, for user's pages, it is better to do:
+{{{
+<static regexp="~([^/]*)(.*)" dest="$u($1)/public_html$2"/>
+}}}
+{{{$u(toto)}}} will be replaced by the home directory for user toto.
+
+You can also specify the option root as in
+{{{
+<static regexp="~([^/]*)(.*)" dest="$u($1)/public_html$2" root="$u($1)/public_html"/>
+}}}
+This will wave all symlinks checks above the directory {{{u($1)/public_html}}}. This option is not permitted inside userconf files.
+
+===Catching HTTP errors
+
+Here is an example on how to set a default error page for all 40x errors:
+{{{
+<static code="40." regexp=".*" dest="/your/error/page.html"/>
+}}}
+{{{code}}} is a regular expression (here matching 400, 401 etc.). {{{regexp}}} is optional (matches the URL path).
+
+Note that if you want to catch errors from all sites, you need to put this configuration in a separate <site path="">at the end of your configuration file.
+
+===Staticmod and userconf
+
+(version 1.2.0 and greater)
+
+Staticmod is authorized inside userconf files, but all paths specified by dir or dest must be relative, and cannot contain "{{{/../}}}" or end by "{{{/..}}}". The relative paths are concatenated with the result of evaluating the attribute localpath of userconf.
+
+
+===Other options
+
+See also module extendconfiguration for some options, like the ability to follow symlinks or to display directories. In particular, the old syntax {{{readable="readable"}}} is no longer available in staticmod (but can be simulated by the option {{{listdirs}}} of extendconfiguration).

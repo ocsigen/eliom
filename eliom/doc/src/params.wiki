@@ -1,0 +1,1290 @@
+=Parameters, links and forms=
+
+==@@id="p1parameters"@@Parameters==
+  
+===Typed parameters
+    
+    
+The parameter labeled
+<<span class="code"|~get_params>>
+indicates the type of GET parameters for the page (that is, parameters
+present in the URL).
+<<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALunit"|<<span class="code"|unit>>>> means that the page does not take any GET parameter.
+
+    
+
+    
+Functions implementing services are called //service handlers//.
+They take three parameters. The first
+one has type
+<<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="TYPEserver_params"|<<span class="code"|Eliom_request_info.server_params>>>>
+and
+corresponds to server parameters (user-agent, ip, current-url, etc.
+--- see later in that section for examples of use),
+the second one is for GET parameters
+(that is, parameters in the URL) and the third one
+for POST parameters (parameters in the body of the HTTP request).
+
+Here is an example of a service with GET parameters:
+
+<<code language="ocaml"|let writeparams (i1, (i2, s1)) () =
+  return
+   (html
+    (head (title (pcdata "")) [])
+    (body [p [pcdata "You sent: ";
+              strong [pcdata (string_of_int i1)];
+              pcdata ", ";
+              strong [pcdata (string_of_int i2)];
+              pcdata " and ";
+              strong [pcdata s1]]]))
+>>
+
+<<code language="ocaml"|let coucou_params = register_service
+    ~path:["coucou"]
+    ~get_params:(int "i" ** (int "ii" ** string "s"))
+    writeparams
+>>
+
+    
+Note that the URLs of <<span class="code"|coucou>>
+and <<span class="code"|coucou_params>>
+differ only by parameters. Url
+[[site:tuto/coucou|<<span class="code"|~http:~/~///your_server///examples/coucou>>]]
+will run the first one,\\
+[[site:tuto/coucou?s=krokodile&ii=17&i=42|<<span class="code"|~http:~/~///your_server///examples/coucou?i=42&ii=17&s=krokodile>>]]
+will run the second one.\\
+If <<span class="code"|i>> is not an integer,
+the server will display an error-message
+(try to change the value in the URL).\\
+Here, <<span class="code"|int>>, <<span class="code"|string>> and <<span class="code"|**>>
+are functions defined in the <<ocsigendoc version="dev" file="Eliom_parameters.html"|<<span class="code"|Eliom_parameters>>>> module.
+\\
+//Warning://
+The infix function <<span class="code"|( ** )>> is to be used to
+construct //pairs// (not tuples).
+
+    
+
+    
+The following examples shows how to create a service with "suffix"
+   service
+   (taking the end of the URL as a parameter, as wikis do very often)
+  and how to get server information:
+    
+
+<<code language="ocaml"|let uasuffix =
+  register_service
+    ~path:["uasuffix"]
+    ~get_params:(suffix (int "year" ** int "month"))
+    (fun (year, month) () ->
+      return
+       (html
+        (head (title (pcdata "")) [])
+        (body
+           [p [pcdata "The suffix of the url is ";
+               strong [pcdata ((string_of_int year)^"/"
+                               ^(string_of_int month))];
+               pcdata ", your user-agent is ";
+               strong [pcdata (Eliom_request_info.get_user_agent ())];
+               pcdata ", your IP is ";
+               strong [pcdata (Eliom_request_info.get_remote_ip ())]]])))
+>>
+    
+This service will answer to URLs like
+    <<span class="code"|http://.../uasuffix/2000/11>>.
+    
+
+    
+See [[site:tuto/uasuffix/2007/7|<<span class="code"|uasuffix>>]]
+    
+
+    
+Suffix parameters have names, because we can create forms towards
+ these services. <<span class="code"|uasuffix/2000/11>> is equivalent to
+ <<span class="code"|uasuffix/?year=2000&month=11>>.
+    
+    
+
+    
+<<span class="code"|suffix_prod>> allows to take both a suffix and
+ other parameters.\\
+ <<span class="code"|all_suffix>> allows to take the end of the suffix as a
+ <<span class="code"|string list>>.
+    
+    
+
+<<code language="ocaml"|
+let isuffix =
+  register_service
+    ~path:["isuffix"]
+    ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
+    (fun ((suff, endsuff), i) () ->
+      return
+       (html
+        (head (title (pcdata "")) [])
+        (body
+           [p [pcdata "The suffix of the url is ";
+               strong [pcdata (string_of_int suff)];
+               pcdata " followed by ";
+               strong [pcdata (Ocsigen_lib.string_of_url_path ~encode:false endsuff)];
+               pcdata " and i is equal to ";
+               strong [pcdata (string_of_int i)]]])))
+>>
+  
+See [[site:tuto/isuffix/11/a/b/c?i=22|<<span class="code"|isuffix>>]].
+    
+
+
+    
+If you want parameters in the path but not always at the end,
+   use the <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALconst"|<<span class="code"|Eliom_parameters.const>>>>
+   parameter specification.
+   It will match for example URLs like <tt>/param1/const/param2</tt>.
+   Example:
+
+    
+
+<<code language="ocaml"|let constfix =
+  register_service
+    ~path:["constfix"]
+    ~get_params:(suffix (string "s1" ** (Eliom_parameters.suffix_const "toto" ** string "s2")))
+    (fun (s1, ((), s2))  () ->
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1
+                   [pcdata "Suffix with constants"];
+                 p [pcdata ("Parameters are "^s1^" and "^s2)]])))
+>>
+    
+[[site:tuto/constfix/aa/toto/bb|Page with constants in suffix]].
+    
+
+    
+The following example shows how to use your own types :
+    
+
+<<code language="ocaml"|type mysum = A | B
+let mysum_of_string = function
+  | "A" -> A
+  | "B" -> B
+  | _ -> raise (Failure "mysum_of_string")
+let string_of_mysum = function
+  | A -> "A"
+  | B -> "B"
+
+let mytype =
+  Eliom_output.Xhtml.register_service
+    ~path:["mytype"]
+    ~get_params:
+      (Eliom_parameters.user_type mysum_of_string string_of_mysum "valeur")
+    (fun x () ->
+      let v = string_of_mysum x in
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata (v^" is valid. Now try with another value.")]])))
+>>
+    
+See [[site:tuto/mytype?valeur=A|<<span class="code"|mytype>>]].
+    
+
+
+    ====@@id="p1any"@@Untyped parameters
+    
+    
+If you want a service that answers to requests with any parameters,
+use the <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|<<span class="code"|Eliom_parameters.any>>>> value. The service will get an
+association list of strings. Example:
+
+    
+<<code language="ocaml"|
+let raw_serv = register_service
+    ~path:["any"]
+    ~get_params:Eliom_parameters.any
+  (fun l () ->
+    let ll =
+      List.map
+        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> ~>>) l
+    in
+    return
+     << <html>
+          <head><title></title></head>
+          <body>
+          <p>
+            You sent:
+            $list:ll$
+          </p>
+          </body>
+        </html> ~>>)
+>>
+
+
+
+Try [[site:tuto/any?sun=yellow&sea=blue|<<span class="code"|raw_serv>>]].
+  
+
+
+
+<<div class="encadre"|
+====Catching errors====
+    
+    
+You can catch parameters typing errors and write your own
+error messages using the optional parameter
+<<span class="code"|error_handler>>. Example:
+    
+
+<<code language="ocaml"|
+let catch = register_service
+    ~path:["catch"]
+    ~get_params:(int "i")
+    ~error_handler:(fun l ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata ("i is not an integer.")]])))
+    (fun i () ->
+      let v = string_of_int i in
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata ("i is an integer: "^v)]])))
+>>
+
+    
+<<span class="code"|error_handler>> takes as parameters the usual
+ <<span class="code"|sp>>, and a list of pairs <<span class="code"|(n,ex)>>,
+ where <<span class="code"|n>> is the name of the wrong parameter, and
+ <<span class="code"|ex>> is the exception that has been raised while
+ parsing its value.
+    
+
+    
+See [[site:tuto/catch?i=22|<<span class="code"|catch>>]] (change the value
+   of the parameter).
+>>
+
+
+==@@id="p1links"@@Links
+
+To create a link (<<span class="code"|<a>>>), use the
+  <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml.a>>>> function (or <<span class="code"|Eliom_duce.Xhtml.a>>, etc),
+  as in these examples:
+      
+  
+
+  
+<<code language="ocaml"|let links = register_service ["rep";"links"] unit
+ (fun () () ->
+   return
+    (html
+     (head (title (pcdata "Links")) [])
+     (body
+       [p
+        [Eliom_output.Xhtml.a coucou [pcdata "coucou"] (); br ();
+         Eliom_output.Xhtml.a hello [pcdata "hello"] (); br ();
+         Eliom_output.Xhtml.a default
+           [pcdata "default page of the dir"] (); br ();
+         Eliom_output.Xhtml.a uasuffix
+           [pcdata "uasuffix"] (2007,06); br ();
+         Eliom_output.Xhtml.a coucou_params
+           [pcdata "coucou_params"] (42,(22,"ciao")); br ();
+         Eliom_output.Xhtml.a raw_serv
+           [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
+         Eliom_output.Xhtml.a
+           (external_service
+              ~prefix:"http://fr.wikipedia.org"
+              ~path:["wiki";""]
+              ~get_params:(suffix (all_suffix "suff"))
+              ())
+           [pcdata "OCaml on wikipedia"]
+           ["OCaml"]; br ();
+         XHTML.M.a
+           ~a:[a_href (uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
+           [pcdata "OCaml on wikipedia"]
+       ]])))
+>>
+
+  
+See [[site:tuto/rep/links|<<span class="code"|links>>]].
+  
+
+
+
+
+  
+If you open <<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|<<span class="code"|Eliom_output.Xhtml>>>> after <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>>,
+<<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml.a>>>>
+   will mask <<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALa"|<<span class="code"|XHTML.M.a>>>>.
+Thus you can avoid to write fully qualified values most of the time.
+      
+  
+
+  
+<<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml.a>>>> takes as first parameter
+the service you want to link to.
+      
+  
+
+  
+      The third parameter is the text of the link.
+      The last parameter is for
+      GET parameters you want to put in the link.
+      The type of this parameter and the name of GET parameters depend
+      on the service you link to.
+      
+  
+
+  
+      The links to Wikipedia shows how to define an external service (here it
+      uses a suffix URL).
+      For an external service without parameters, you can use the low level
+      function <<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALa"|<<span class="code"|XHTML.M.a>>>>, if you don't want to create an
+      external service explicitely.
+      Note that the path must be a list of strings.
+      Do not write <<span class="code"|["foo/bar"]>>,
+      but <<span class="code"|["foo";"bar"]>>, otherwise, the "/" will be encoded in
+      the URL.
+      
+  
+
+  
+If you want to create (mutually or not) recursive pages,
+create the service using <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|<<span class="code"|Eliom_services.service>>>> first,
+then register it in the table using (for example)
+<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|<<span class="code"|Eliom_output.Xhtml.register>>>>:
+      
+  
+
+<<code language="ocaml"|let linkrec = Eliom_services.service ["linkrec"] unit ()
+
+let _ = Eliom_output.Xhtml.register linkrec
+    (fun () () ->
+      return
+       (html
+        (head (title (pcdata "")) [])
+        (body [p [a linkrec [pcdata "click"] ()]])))
+>>
+  
+
+  
+[[site:tuto/linkrec| See <<span class="code"|linkrec>>]].
+  
+
+  
+ The server will fail on startup if there are any unregistered
+
+      services.
+  
+    
+>>
+
+
+==@@id="p1forms"@@Forms
+
+  ===Forms towards services
+  
+  
+The function <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALget_form"|<<span class="code"|Eliom_output.Xhtml.get_form>>>> allows to create a form
+      that uses the GET method (parameters in the URL).
+      It works like <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml.a>>>> but takes a //function// that creates the form from the parameters names as parameter.
+      
+  
+<<code language="ocaml"|let create_form =
+  (fun (number_name, (number2_name, string_name)) ->
+    [p [pcdata "Write an int: ";
+        Eliom_output.Xhtml.int_input ~input_type:`Text ~name:number_name ();
+        pcdata "Write another int: ";
+        Eliom_output.Xhtml.int_input ~input_type:`Text ~name:number2_name ();
+        pcdata "Write a string: ";
+        Eliom_output.Xhtml.string_input ~input_type:`Text ~name:string_name ();
+        Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
+
+let form = register_service ["form"] unit
+  (fun () () ->
+     let f = Eliom_output.Xhtml.get_form coucou_params create_form in
+     return
+       (html
+         (head (title (pcdata "")) [])
+         (body [f])))
+>>
+
+  
+[[site:tuto/form| See the function <<span class="code"|form>> in action]].
+  
+
+
+  
+Note that if you want to use typed parameters,
+       you cannot use functions like <<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALinput"|<<span class="code"|XHTML.M.input>>>> to
+       create your forms (if you want to use parameters defined with
+       <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|<<span class="code"|Eliom_parameters.any>>>>, [[manual/dev/1#p1any|see later]]). Indeed, parameter names are typed to force them
+       be used properly. In our example, <<span class="code"|number_name>> has type
+       <<span class="code"|int param_name>> and must be used with
+       <<span class="code"|int_input>> (or other widgets), whereas
+       <<span class="code"|string_name>> has type
+       <<span class="code"|string param_name>> and must be used with
+       <<span class="code"|string_input>> (or other widgets).
+       All functions for creating form widgets are detailed
+       <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html"|here>>.
+      
+  
+
+
+  
+For untyped forms, you may use functions from XHTML.M (or
+      OCamlDuce's syntax, or whatever syntax you are using) or
+      functions which name is prefixed by "<<span class="code"|raw_>>".
+      Here is a form linking to our (untyped) service
+      <<span class="code"|raw_serv>>.
+  
+
+<<code language="ocaml"|let raw_form = register_service
+    ~path:["anyform"]
+    ~get_params:unit
+    (fun () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body
+              [h1 [pcdata "Any Form"];
+               Eliom_output.Xhtml.get_form raw_serv
+                 (fun () ->
+                   [p [pcdata "Form to raw_serv: ";
+                       Eliom_output.Xhtml.raw_input ~input_type:`Text ~name:"plop" ();
+                       Eliom_output.Xhtml.raw_input ~input_type:`Text ~name:"plip" ();
+                       Eliom_output.Xhtml.raw_input ~input_type:`Text ~name:"plap" ();
+                       Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
+                ])))
+>>
+
+  
+Try this [[site:tuto/anyform| form]].
+  
+
+  ====POST parameters
+  
+  
+By default Web page parameters are transferred in the URL (GET parameters).
+A web page may also expect POST parameters
+(that is, parameters that are not in the URL but in the body of the HTTP
+request).
+Use this if you don't want the user to be able to bookmark
+the URL with parameters, for example if you want to post some
+data that will change the state of the server (payment,
+database changes, etc).
+When designing a Web site, think carefully about the choice between
+GET or POST method for each service!
+
+  
+
+  
+When you register a service with POST parameters, you must first register a service (fallback) without these parameters (for example that will
+answer if the page is reloaded without the hidden parameters, or
+if it is bookmarked).
+
+  
+
+  
+<<code language="ocaml"|let no_post_param_service =
+  register_service
+    ~path:["post"]
+    ~get_params:unit
+    (fun () () ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [h1 [pcdata
+                      "Version of the page without POST parameters"]])))
+
+let my_service_with_post_params =
+  register_post_service
+    ~fallback:no_post_param_service
+    ~post_params:(string "value")
+    (fun () value ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [h1 [pcdata value]])))
+>>
+
+
+
+  
+Services may take both GET and POST parameters:
+  
+
+<<code language="ocaml"|let get_no_post_param_service =
+  register_service
+    ~path:["post2"]
+    ~get_params:(int "i")
+    (fun i () ->
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata "No POST parameter, i:";
+                   em [pcdata (string_of_int i)]]])))
+
+let my_service_with_get_and_post = register_post_service
+  ~fallback:get_no_post_param_service
+  ~post_params:(string "value")
+  (fun i value ->
+    return
+      (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata "Value: ";
+                   em [pcdata value];
+                   pcdata ", i: ";
+                   em [pcdata (string_of_int i)]]])))
+>>
+
+  ====@@id="p1postforms"@@POST forms
+  
+  
+ To create a POST form, use the
+   <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALpost_form"|<<span class="code"|Eliom_output.Xhtml.post_form>>>> function.
+   It is similar to <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALget_form"|<<span class="code"|Eliom_output.Xhtml.get_form>>>>
+   with an additional parameter
+   for the GET parameters you want to put in the URL (if any).
+   Here, <<span class="code"|form2>> is a page containing a form
+   to the service <<span class="code"|post>> (using XHTML.M's functions)
+   and <<span class="code"|form3>> (defined using the syntax extension)
+   contains a form to <<span class="code"|post2>>, with a GET parameter.
+   <<span class="code"|form4>> is a form to an external page.
+       
+  
+
+<<code language="ocaml"|let form2 = register_service ["form2"] unit
+  (fun () () ->
+     let f =
+       (Eliom_output.Xhtml.post_form my_service_with_post_params
+          (fun chaine ->
+            [p [pcdata "Write a string: ";
+                string_input ~input_type:`Text ~name:chaine ()]]) ()) in
+     return
+       (html
+         (head (title (pcdata "form")) [])
+         (body [f])))
+
+let form3 = register_service ["form3"] unit
+  (fun () () ->
+     let f  =
+       (Eliom_output.Xhtml.post_form my_service_with_get_and_post
+          (fun chaine ->
+            <:xmllist< <p> Write a string:
+                    $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
+          222) in
+     return
+       << <html>
+            <head><title></title></head>
+            <body>$f$</body></html> >>)
+
+let form4 = register_service ["form4"] unit
+  (fun () () ->
+     let f  =
+       (Eliom_output.Xhtml.post_form
+          (external_post_service
+             ~prefix:"http://www.petizomverts.com"
+             ~path:["zebulon"]
+             ~get_params:(int "i")
+             ~post_params:(string "chaine") ())
+          (fun chaine ->
+            <:xmllist< <p> Write a string:
+                     $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
+          222) in
+     return
+       (html
+        (head (title (pcdata "form")) [])
+        (body [f])))
+>>
+
+See the urls:
+[[site:tuto/post|<<span class="code"|post>> without parameter]],
+[[site:tuto/post2?i=123|<<span class="code"|post2>> without POST parameter]],
+[[site:tuto/form2|<<span class="code"|form2>>]],
+[[site:tuto/form3|<<span class="code"|form3>>]],
+[[site:tuto/form4|<<span class="code"|form4>>]].
+
+
+
+==Non localized parameters**[New in 1.3.0]**==
+
+Non localized parameters are GET or POST parameters that are not
+        taken into account by Eliom for choosing the service.
+        They have a special prefix.
+        Use this if you want some information to be available or not, through
+        parameters, for all of your services.
+
+<<code language="ocaml"|let my_nl_params = 
+  Eliom_parameters.make_non_localized_parameters
+    ~prefix:"tutoeliom"
+    ~name:"mynlparams"
+    (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
+
+let nlparams = register_service
+    ~path:["nlparams"]
+    ~get_params:(int "i")
+    (fun i () ->
+       Lwt.return
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata "i = ";
+                      strong [pcdata (string_of_int i)]];
+                   (match Eliom_parameters.get_non_localized_get_parameters
+                      my_nl_params 
+                    with
+                      | None -> 
+                          p [pcdata "I do not have my non localized parameters"]
+                      | Some (a, s) -> 
+                          p [pcdata "I have my non localized parameters, ";
+                             pcdata ("with values a = "^string_of_int a^
+                                       " and s = "^s^".")]
+                   )]))
+
+    )
+>>
+
+          
+        To create a link or a form with non-localized parameters,
+        use the optional parameter <<span class="code"|nl_params>> of functions
+    <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALa"|<<span class="code"|a>>>>,
+    <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALget_form"|<<span class="code"|get_form>>>> or
+    <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALpost_form"|<<span class="code"|post_form>>>>. Example:
+  
+<<code language="ocaml"|let tonlparams = register_service
+    ~path:["nlparams"]
+    ~get_params:unit
+    (fun i () ->
+       Lwt.return
+         (html
+            (head (title (pcdata "")) [])
+            (body
+               [p [a ~service:nlparams [pcdata "without nl params"] 4];
+                p [a ~service:nlparams 
+                     ~nl_params:(Eliom_parameters.add_nl_parameter
+                                   Eliom_parameters.empty_nl_params_set
+                                   my_nl_params
+                                   (22, "oh")
+                                )
+                     [pcdata "with nl params"] 
+                     5];
+                get_form
+                  ~service:nlparams 
+                  ~nl_params:(Eliom_parameters.add_nl_parameter
+                                Eliom_parameters.empty_nl_params_set
+                                my_nl_params
+                                (22, "oh")
+                             )
+                  (fun iname ->
+                     [p [pcdata "form with hidden nl params";
+                         Eliom_output.Xhtml.int_input 
+                           ~input_type:`Text ~name:iname ();
+                         Eliom_output.Xhtml.string_input
+                           ~input_type:`Submit ~value:"Send" ()]]);
+                get_form
+                  ~service:nlparams 
+                  (fun iname ->
+                     let (aname, sname) = 
+                       Eliom_parameters.get_nl_params_names my_nl_params
+                     in
+                     [p [pcdata "form with nl params fiels";
+                         Eliom_output.Xhtml.int_input 
+                           ~input_type:`Text ~name:iname ();
+                         Eliom_output.Xhtml.int_input 
+                           ~input_type:`Text ~name:aname ();
+                         Eliom_output.Xhtml.string_input 
+                           ~input_type:`Text ~name:sname ();
+                         Eliom_output.Xhtml.string_input
+                           ~input_type:`Submit ~value:"Send" ()]]);
+               ]))
+    )
+>> 
+          
+    It is also possible to 
+    create a new service by adding the non localized parameters
+        to an existing service:
+      
+<<code language="ocaml"|let nlparams_with_nlp =
+  Eliom_services.add_non_localized_get_parameters my_nl_params nlparams
+>>
+          
+Then create your link as usual, for example:
+      <<span class="code"|a nlparams_with_nlp
+             [pcdata "Try it"] (22, (11, "aa"))>>.
+    [[site:tuto/nlparams?i=22&__nl_n_tutoeliom-mynlparams.s=aa&__nl_n_tutoeliom-mynlparams.a=11|Try it]].
+          
+    
+        >>
+
+
+
+==@@id="p3advancedformsandparameters"@@Advanced forms and parameters
+        
+
+        <<div class="onecol"|
+          
+This section shows more advanced use of page parameters and
+      corresponding forms.
+          
+
+  ====Parsing parameters using regular expressions
+          
+          
+        Eliom_parameters.regexp allows to parse page parameters using (Perl-compatible)
+        regular expressions. We use the module <<span class="code"|Netstring_pcre>>,
+        from //OCamlnet//. See the documentation about OCamlnet
+        for more information.
+        The following example shows a service that accepts only parameters
+        values enclosed between <<span class="code"|[>> and <<span class="code"|]>>:
+      
+          
+
+          
+<<code language="ocaml"|
+let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
+
+let regexp =
+  Eliom_output.Xhtml.register_service
+    ~path:["regexp"]
+    ~get_params:(regexp r "$1" "myparam")
+    (fun g () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata g]])))
+
+>>
+
+<<code language="ocaml"|let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
+
+let regexpserv =
+  Eliom_output.Xhtml.register_service
+    ~path:["regexp"]
+    ~get_params:(regexp myregexp "$1" (fun s -> s) "myparam")
+    (fun g () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata g]])))
+>>
+[[site:tuto/regexp?myparam=%5Btoto%5D| Try it]].
+          
+
+
+  ====Boolean checkboxes
+          
+          
+Page may take parameter of type <<span class="code"|bool>>.
+         A possible use of this type is in a form
+         with //boolean checkboxes//, as in the example below:
+      
+<<code language="ocaml"|(* Form with bool checkbox: *)
+let bool_params = register_service
+    ~path:["bool"]
+    ~get_params:(bool "case")
+  (fun case () ->
+    return
+    << <html>
+         <head><title></title></head>
+         <body>
+         <p>
+           $pcdata (if case then "checked" else "not checked")$
+         </p>
+         </body>
+       </html> >>)
+
+let create_form_bool casename =
+    <:xmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+
+let form_bool = register_service ["formbool"] unit
+  (fun () () ->
+     let f = get_form bool_params create_form_bool in
+     return
+     << <html>
+          <head><title></title></head>
+          <body> $f$ </body>
+        </html> >>)
+
+
+>>
+          
+[[site:tuto/formbool| Try it]].
+          
+
+
+          
+//Important warning://
+        As you can see, browsers do not send any value
+        for unchecked boxes! An unchecked box is equivalent to no parameter
+        at all! Thus it is not possible to distinguish between a service
+        taking a boolean and a service taking no parameter at all
+        (if they share the same URL).
+        In Eliom //services are tried in order of registration!//
+        The first matching service will answer.
+      
+          
+
+
+          
+Other types similar to bool:
+          
+
+          
+*<<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALopt"|<<span class="code"|Eliom_parameters.opt>>>> (page taking an optional parameter),
+*<<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALsum"|<<span class="code"|Eliom_parameters.sum>>>> (either a parameter or another).
+                  
+          
+
+          
+        See the interface
+        <<ocsigendoc version="dev" file="Eliom_parameters.html"|here>>.
+      
+          
+
+
+  ====Type <<span class="code"|set>>
+          
+          
+Page may take several parameters of the same name.
+      It is useful when you want to create a form with a variable number
+      of fields.
+      To do that with Eliom, use the type <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|<<span class="code"|Eliom_parameters.set>>>>.
+      For example <<span class="code"|set int "val">> means that the page will take
+      zero, one or several parameters of name <<span class="code"|"val">>,
+      all of type <<span class="code"|int>>.
+      The function you register will receive the parameters in a list.
+      Example:
+      
+<<code language="ocaml"|
+let set = register_service
+    ~path:["set"]
+    ~get_params:(set string "s")
+  (fun l () ->
+    let ll =
+      List.map
+        (fun s -> << <strong>$str:s$ </strong> >>) l
+    in
+    return
+    << <html>
+         <head><title></title></head>
+         <body>
+         <p>
+           You sent:
+           $list:ll$
+         </p>
+         </body>
+       </html> >>)
+>>
+          
+These parameters may come from several kinds of widgets in forms.
+   Here is an example of a form with several checkboxes, all sharing the same
+   name, but with different values:
+   
+<<code language="ocaml"|
+(* form to set *)
+let setform = register_service
+    ~path:["setform"]
+    ~get_params:unit
+    (fun () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Set Form"];
+                  get_form set
+                    (fun n ->
+                      [p [pcdata "Form to set: ";
+                          string_checkbox ~name:n ~value:"box1" ();
+                          string_checkbox
+                            ~name:n ~value:"box2" ~checked:true ();
+                          string_checkbox ~name:n ~value:"box3" ();
+                          string_checkbox ~name:n ~value:"box4" ();
+                          string_input ~input_type:`Submit ~value:"Click" ()]])
+                ])))
+>>
+          
+[[site:tuto/setform| Try it]].
+          
+
+
+          
+Once again, note that there is no difference between an empty
+      set or no parameter at all. If you register a service without parameters
+      and a service with a set of parameters on the same URL, the firstly
+      registered service that matches will answer.
+      
+          
+
+  ====Select
+          
+          
+Here is an example of a select box.
+          
+<<code language="ocaml"|let select_example_result = register_service
+    ~path:["select"]
+    ~get_params:(string "s")
+    (fun g () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata "You selected: ";
+                     strong [pcdata g]]])))
+
+let create_select_form =
+  (fun select_name ->
+    [p [pcdata "Select something: ";
+        Eliom_output.Xhtml.string_select ~name:select_name
+          (Eliom_output.Xhtml.Option ([] (* attributes *),
+                                        "Bob" (* value *),
+                                        None (* Content, if different from value *),
+                                        false (* not selected *))) (* first line *)
+          [Eliom_output.Xhtml.Option ([], "Marc", None, false);
+          (Eliom_output.Xhtml.Optgroup
+          ([],
+           "Girls",
+           ([], "Karin", None, false),
+           [([a_disabled `Disabled], "Juliette", None, false);
+            ([], "Alice", None, true);
+            ([], "Germaine", Some (pcdata "Bob's mother"), false)]))]
+          ;
+        Eliom_output.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]])
+
+let select_example = register_service ["select"] unit
+  (fun () () ->
+     let f =
+       Eliom_output.Xhtml.get_form
+         select_example_result create_select_form
+     in
+     return
+       (html
+         (head (title (pcdata "")) [])
+         (body [f])))
+>>
+          
+[[site:tuto/select| Try it]].
+          
+
+          
+To do "multiple" select boxes, use functions like
+   <<ocsigendoc version="dev" file="Eliom_output.XHTMLFORMSSIG.html" fragment="VALstring_multiple_select"|<<span class="code"|Eliom_output.Xhtml.string_multiple_select>>>>.
+   As you can see in the type, the service must be declared with parameters
+   of type <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|<<span class="code"|set>>>>.
+     
+          
+
+
+
+
+
+  ====Clickable images
+          
+          
+Here is an example of clickable image.
+      You receive the coordinates the user clicked on.
+      
+<<code language="ocaml"|let coord = register_service
+    ~path:["coord"]
+    ~get_params:(coordinates "coord")
+  (fun c () ->
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You clicked on coordinates:
+         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+       </p>
+       </body>
+     </html> >>)
+
+(* form to image *)
+let imageform = register_service
+    ~path:["imageform"]
+    ~get_params:unit
+    (fun () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Image Form"];
+                  get_form coord
+                    (fun n ->
+                      [p [image_input
+                            ~src:(make_uri ~service:(static_dir ()) ["ocsigen5.png"])
+                            ~name:n
+                            ()]])
+                ])))
+>>
+          
+[[site:tuto/imageform| Try it]].
+          
+
+          
+You may also send a value with the coordinates:
+          
+<<code language="ocaml"|let coord2 = register_service
+    ~path:["coord2"]
+    ~get_params:(int_coordinates "coord")
+  (fun (i, c) () ->
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You clicked on coordinates:
+         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+       </p>
+       </body>
+     </html> >>)
+
+(* form to image *)
+let imageform2 = register_service
+    ~path:["imageform2"]
+    ~get_params:unit
+    (fun () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Image Form"];
+                  get_form coord2
+                    (fun n ->
+                      [p [int_image_input
+                            ~src:(make_uri ~service:(static_dir ()) ["ocsigen5.png"])
+                            ~name:n
+                            ~value:3
+                            ()]])
+                ])))
+
+>>
+          
+[[site:tuto/imageform2| Try it]].
+          
+
+
+
+  ====Type <<span class="code"|list>>
+          
+          
+Another way (than <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|<<span class="code"|Eliom_parameters.set>>>>) to do variable length forms
+        is to use indexed lists (using <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALlist"|<<span class="code"|Eliom_parameters.list>>>>).
+        The use of that feature is a bit more complex than <<span class="code"|set>>.
+        Here is an example of service taking an indexed list as parameter:
+        
+<<code language="ocaml"|
+(* lists *)
+let coucou_list = register_service
+    ~path:["coucou"]
+    ~get_params:(list "a" (string "str"))
+  (fun l () ->
+    let ll =
+      List.map (fun s -> << <strong>$str:s$</strong> >>) l in
+      return
+        << <html>
+             <head><title></title></head>
+             <body>
+             <p>
+               You sent:
+               $list:ll$
+             </p>
+             </body>
+           </html> >>)
+>>
+          
+   Here is an example of link towards this service:
+   [[site:tuto/coucou?a.str%5B1%5D=titi&a.str%5B0%5D=toto|coucou?a.str[0]=toto&a.str[1]=titi]].
+      
+          
+
+          
+//Warning://
+   As for sets or bools,
+   if a request has no parameter, it will be considered as the empty list.
+   Services are tried in order of registration.
+   
+          
+
+
+          
+   As you see, the names of each list element is built from the name
+   of the list, the name of the list element, and an index.
+   To spare you creating yourself these names, Eliom provides you an iterator
+   to create them.
+   
+<<code language="ocaml"|(*zap* Note:
+   Actually almost all services will be overwritten by new versions,
+   but not those with user_type parameters for example
+   (because the type description contains functions)
+ *zap*)
+
+(* Form with list: *)
+let create_listform f =
+  (* Here, f.it is an iterator like List.map,
+     but it must be applied to a function taking 3 arguments
+     (unlike 1 in map), the first one being the name of the parameter,
+     and the second one the element of list.
+     The last parameter of f.it is the code that must be appended at the
+     end of the list created
+   *)
+  f.it (fun stringname v init ->
+    <:xmllist< <p>Write the value for $str:v$:
+      $string_input ~input_type:`Text ~name:stringname ()$ </p> >>@init)
+    ["one";"two";"three";"four"]
+    <:xmllist< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+
+let listform = register_service ["listform"] unit
+  (fun () () ->
+     let f = get_form coucou_list create_listform in
+     return
+      << <html>
+           <head><title></title></head>
+           <body> $f$ </body>
+         </html> >>)
+
+>>
+          
+[[site:tuto/listform| Try it]].
+          
+
+
+          
+//Important warning://
+      As we have seen in the section about boolean (or optional)
+      parameters, it is not possible to distinguish between a boolean
+      with value "false", and no parameter at all.
+      This causes problems if you create a list of boolean or optional
+      values, as it is not possible to know the length of the list.
+      In that case, Eliom always takes the shortest possible list.
+      
+          
+
+
+  ====Forms and suffixes
+
+          
+Service with "suffix" URLs have an equivalent version with
+      usual parameters, allowing to create forms towards such services.
+      Example:
+      
+<<code language="ocaml"|(* Form for service with suffix: *)
+let create_suffixform ((suff, endsuff),i) =
+    <:xmllist< <p>Write the suffix:
+      $int_input ~input_type:`Text ~name:suff ()$ <br/>
+      Write a string: $user_type_input
+      (Ocsigen_lib.string_of_url_path ~encode:false)
+         ~input_type:`Text ~name:endsuff ()
+         $ <br/>
+      Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+
+let suffixform = register_service ["suffixform"] unit
+  (fun () () ->
+     let f = get_form isuffix create_suffixform in
+     return
+      << <html>
+           <head><title></title></head>
+           <body> $f$ </body>
+         </html> >>)
+
+>>
+          
+[[site:tuto/suffixform| Try it]].
+          
+
+
+  ====Uploading files
+          
+
+          
+The <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALfile"|<<span class="code"|Eliom_parameters.file>>>> parameter type allows to send files in your
+       request. The service gets something of type
+       <<ocsigendoc version="dev" file="Ocsigen_extensions.html" fragment="TYPEfile_info"|<<span class="code"|Ocsigen_extensions.file_info>>>>. You can extract information
+       using this using these functions (from <<ocsigendoc version="dev" file="Eliom_request_info.html"|<<span class="code"|Eliom_request_info>>>>):
+      
+          
+
+          
+<<code language="ocaml"|
+val get_tmp_filename : Ocsigen_extensions.file_info -> string
+val get_filesize : Ocsigen_extensions.file_info -> int64
+val get_original_filename : Ocsigen_extensions.file_info -> string
+
+>>
+
+          
+<<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_tmp_filename"|<<span class="code"|Eliom_request_info.get_tmp_filename>>>> allows to know the actual name
+       of the uploaded file on the hard drive.
+        <<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_original_filename"|<<span class="code"|Eliom_request_info.get_original_filename>>>> gives the original filename.
+          
+
+          
+To make possible the upload of files, you must configure a
+      directory for uploaded files in Ocsigen's configuration file.
+      For example:
+      
+          
+
+          
+<<div class="pre"|
+  <uploaddir>/tmp</uploaddir>
+>>
+
+          
+Files are kept in this directory only during the request.
+       Then they are automatically cancelled.
+       Thus your services must copy them
+       somewhere else themselves if they want to keep them.
+       In the following example, we create a new hard link to the file
+       to keep it (the destination must be on the same partition of the disk).
+      
+          
+<<code language="ocaml"|let upload = service
+    ~path:["upload"]
+    ~get_params:unit
+    ()
+
+let upload2 = register_post_service
+   ~fallback:upload
+   ~post_params:(file "file")
+    (fun () file ->
+      let to_display =
+        let newname = "/tmp/thefile" in
+        (try
+          Unix.unlink newname;
+        with _ -> ());
+        Ocsigen_messages.console2 (Eliom_request_info.get_tmp_filename file);
+        Unix.link (Eliom_request_info.get_tmp_filename file) newname;
+        let fd_in = open_in newname in
+        try
+          let line = input_line fd_in in close_in fd_in; line (*end*)
+        with End_of_file -> close_in fd_in; "vide"
+      in
+      return
+        (html
+           (head (title (pcdata "Upload")) [])
+           (body [h1 [pcdata to_display]])))
+
+
+let uploadform = register upload
+    (fun () () ->
+      let f =
+        (post_form upload2
+           (fun file ->
+             [p [file_input ~name:file ();
+                 br ();
+                 string_input ~input_type:`Submit ~value:"Send" ()
+               ]]) ()) in
+      return
+        (html
+           (head (title (pcdata "form")) [])
+           (body [f])))
+
+
+>>
+          
+[[site:tuto/upload| Try it]]
+      (warning: uploading on ocsigen.org is forbidden).
+          
+
+
+    
+        >>
