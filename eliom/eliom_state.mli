@@ -18,47 +18,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** The server-side state of an application refers to data stored on server
-    side for one session, one group of sessions, or one client-side process. 
-    See module {!Eliom_references} for how to register and read such data.
-    The server-side state may also contains services registered for a
-    limited scope.
-
-    This module contains the functions you need to manage 
-    the server-side state (and also some client-side state):
-    - closing sessions, knowing whether a state has expired,
-    setting cookies manually (client-side state)
-    - Managing session groups: putting a session in a group,
-    limitating the number of sessions in a group etc ...
-    - Setting timeouts on states and expiration dates
-    - Administrating states (iteration on all states, etc.)
-    - Some low-level or deprecated functions
-
-    On a technical point of view, sessions and groups of sessions are
-    implemented automatically by Eliom by asking the browser to send
-    a session identifier in a cookie.
-    Client-side processes also send an identifier in each request,
-    using some kind of "client-side process-cookie".  
-
-    It is possible to give a name to a scope if you want several states
-    for the same application (advanced use only). Each state name uses
-    its own cookies and you can discard data for one state name only.
-
-    States can be secure or not. Secure means that the state data or service
-    will be associated to a secure cookie, that is a cookie that is sent
-    by the browser only if the protocol is HTTPS. Use secure states to store
-    confidential data, that you do not want to send through HTTP.
-
-    In the current implementation, because of some limitation in OCaml's
-    serialization mechanism, there are three kinds of states:
-    - volatile data states,
-    - volatile service states,
-    - persistent data states.
-    
-    Volatile states will not survice after relaunching the server.
-    We hope to simplify this when OCaml's serialization mechanism evolves.
-    In the meantime, be very careful where you store your data.
- *)
 
 
 

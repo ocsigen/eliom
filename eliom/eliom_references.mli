@@ -21,24 +21,7 @@
 (*****************************************************************************)
 (** {2 Server side state data: Eliom references} *)
 
-(** Eliom references are some kind of references with limited scope.
-    You define the reference with an initial value and a scope
-    (global, group of sessions, session, client process, or current request).
-    When you change the value, it actually changes only for the scope
-    you specified.
-
-    Eliom references can be persistent or not (that is: can survive after
-    relaunching the server or not).
-
-    Eliom references are used for example:
-    - to store session data, or server side data for a client process, 
-    - or to keep some information about the current request,
-    - to implement persistent references.
-
-    Non persistent global Eliom references are equivalent to regular OCaml
-    references.
-
-    {e Warning: Eliom references of scope [`Global] or [`Request] may be created
+(** {e Warning: Eliom references of scope [`Global] or [`Request] may be created
     and accessed at any time.
     For other scopes, they must be created or accessed when the site
     information is available to Eliom, that is, either during the initialization
