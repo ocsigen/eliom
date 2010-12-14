@@ -192,6 +192,7 @@ let random_id length =
    integer representations.  The formula is given in Jacques
    Garrigue's 1998 ML workshop paper.
 *)
+(*
 let tag_hash s =
   let wrap = 0x40000000 in
   let acc = ref 0 in
@@ -204,6 +205,21 @@ let tag_hash s =
         mul := (!mul * 223) mod wrap;
     done;
     !acc
+*)
+(* Update 14/12/2010 Jérôme Vouillon Vincent Balat
+   Previous function does not correspond to the one used by OCaml,
+   which is a problem when using Json values with js_of_ocaml.
+   We replace it by:
+*)
+let tag_hash s =
+    let accu = ref 0 in
+    for i = 0 to String.length s - 1 do
+      accu := 223 * !accu + Char.code s.[i]
+    done;
+    (* reduce to 31 bits *)
+    accu := !accu land (1 lsl 31 - 1);
+    (* make it signed for 64 bits architectures *)
+    if !accu > 0x3FFFFFFF then !accu - (1 lsl 31) else !accu
 
 
 let _ =
