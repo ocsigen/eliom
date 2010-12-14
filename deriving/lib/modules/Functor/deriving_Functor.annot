@@ -1,0 +1,100 @@
+"deriving_Functor.ml" 20 350 356 "deriving_Functor.ml" 20 350 359
+type(
+  ('a -> 'b) -> 'a M.m -> 'b M.m
+)
+ident(
+  def map "deriving_Functor.ml" 20 350 396 "deriving_Functor.ml" 21 397 400
+)
+"deriving_Functor.ml" 20 350 361 "deriving_Functor.ml" 20 350 362
+type(
+  'a -> 'b
+)
+ident(
+  def f "deriving_Functor.ml" 20 350 363 "deriving_Functor.ml" 20 350 396
+)
+"deriving_Functor.ml" 20 350 363 "deriving_Functor.ml" 20 350 364
+type(
+  'a M.m
+)
+ident(
+  def x "deriving_Functor.ml" 20 350 367 "deriving_Functor.ml" 20 350 396
+)
+"deriving_Functor.ml" 20 350 367 "deriving_Functor.ml" 20 350 368
+type(
+  'a M.m
+)
+ident(
+  int_ref x "deriving_Functor.ml" 20 350 363 "deriving_Functor.ml" 20 350 364
+)
+"deriving_Functor.ml" 20 350 369 "deriving_Functor.ml" 20 350 372
+type(
+  'a M.m -> ('a -> 'b M.m) -> 'b M.m
+)
+ident(
+  ext_ref M.>>=
+)
+"deriving_Functor.ml" 20 350 378 "deriving_Functor.ml" 20 350 379
+type(
+  'a
+)
+ident(
+  def x "deriving_Functor.ml" 20 350 383 "deriving_Functor.ml" 20 350 395
+)
+"deriving_Functor.ml" 20 350 383 "deriving_Functor.ml" 20 350 389
+type(
+  'b -> 'b M.m
+)
+ident(
+  ext_ref M.return
+)
+"deriving_Functor.ml" 20 350 391 "deriving_Functor.ml" 20 350 392
+type(
+  'a -> 'b
+)
+ident(
+  int_ref f "deriving_Functor.ml" 20 350 361 "deriving_Functor.ml" 20 350 362
+)
+"deriving_Functor.ml" 20 350 393 "deriving_Functor.ml" 20 350 394
+type(
+  'a
+)
+ident(
+  int_ref x "deriving_Functor.ml" 20 350 378 "deriving_Functor.ml" 20 350 379
+)
+"deriving_Functor.ml" 20 350 390 "deriving_Functor.ml" 20 350 395
+call(
+  stack
+)
+type(
+  'b
+)
+"deriving_Functor.ml" 20 350 383 "deriving_Functor.ml" 20 350 395
+call(
+  tail
+)
+type(
+  'b M.m
+)
+"deriving_Functor.ml" 20 350 373 "deriving_Functor.ml" 20 350 396
+type(
+  'a -> 'b M.m
+)
+"deriving_Functor.ml" 20 350 367 "deriving_Functor.ml" 20 350 396
+call(
+  tail
+)
+type(
+  'b M.m
+)
+"deriving_Functor.ml" 24 403 427 "deriving_Functor.ml" 24 403 468
+call(
+  stack
+)
+"deriving_Functor.ml" 25 469 491 "deriving_Functor.ml" 25 469 530
+call(
+  stack
+)
+"deriving_Functor.ml" 30 628 638 "deriving_Functor.ml" 30 628 649
+call(
+  stack
+)

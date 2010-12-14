@@ -1,0 +1,4584 @@
+"pa_deriving_Functor.ml" 11 204 208 "pa_deriving_Functor.ml" 11 204 217
+type(
+  string
+)
+ident(
+  def classname "pa_deriving_Functor.ml" 12 230 230 --
+)
+"pa_deriving_Functor.ml" 11 204 220 "pa_deriving_Functor.ml" 11 204 229
+type(
+  string
+)
+"pa_deriving_Functor.ml" 12 230 234 "pa_deriving_Functor.ml" 12 230 245
+type(
+  string
+)
+ident(
+  def runtimename "pa_deriving_Functor.ml" 14 268 268 --
+)
+"pa_deriving_Functor.ml" 12 230 248 "pa_deriving_Functor.ml" 12 230 266
+type(
+  string
+)
+"pa_deriving_Functor.ml" 14 268 272 "pa_deriving_Functor.ml" 14 268 279
+type(
+  (string list * string) list
+)
+ident(
+  def predefs "pa_deriving_Functor.ml" 20 353 353 --
+)
+"pa_deriving_Functor.ml" 15 284 287 "pa_deriving_Functor.ml" 15 284 293
+type(
+  string list
+)
+type(
+  string
+)
+type(
+  string list
+)
+"pa_deriving_Functor.ml" 15 284 296 "pa_deriving_Functor.ml" 15 284 302
+type(
+  string
+)
+"pa_deriving_Functor.ml" 15 284 286 "pa_deriving_Functor.ml" 15 284 302
+type(
+  string list * string
+)
+"pa_deriving_Functor.ml" 16 304 307 "pa_deriving_Functor.ml" 16 304 315
+type(
+  string list
+)
+type(
+  string
+)
+type(
+  string list
+)
+"pa_deriving_Functor.ml" 16 304 318 "pa_deriving_Functor.ml" 16 304 326
+type(
+  string
+)
+"pa_deriving_Functor.ml" 16 304 306 "pa_deriving_Functor.ml" 16 304 326
+type(
+  string list * string
+)
+"pa_deriving_Functor.ml" 17 328 331 "pa_deriving_Functor.ml" 17 328 336
+type(
+  string
+)
+"pa_deriving_Functor.ml" 17 328 337 "pa_deriving_Functor.ml" 17 328 340
+type(
+  string
+)
+type(
+  string list
+)
+"pa_deriving_Functor.ml" 17 328 331 "pa_deriving_Functor.ml" 17 328 340
+type(
+  string list
+)
+type(
+  string list
+)
+"pa_deriving_Functor.ml" 17 328 343 "pa_deriving_Functor.ml" 17 328 348
+type(
+  string
+)
+"pa_deriving_Functor.ml" 17 328 330 "pa_deriving_Functor.ml" 17 328 348
+type(
+  string list * string
+)
+"pa_deriving_Functor.ml" 17 328 330 "pa_deriving_Functor.ml" 18 350 351
+type(
+  (string list * string) list
+)
+"pa_deriving_Functor.ml" 16 304 306 "pa_deriving_Functor.ml" 18 350 351
+type(
+  (string list * string) list
+)
+"pa_deriving_Functor.ml" 15 284 286 "pa_deriving_Functor.ml" 18 350 351
+type(
+  (string list * string) list
+)
+type(
+  (string list * string) list
+)
+"pa_deriving_Functor.ml" 26 498 508 "pa_deriving_Functor.ml" 26 498 525
+call(
+  stack
+)
+"pa_deriving_Functor.ml" 28 527 533 "pa_deriving_Functor.ml" 28 527 542
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  def param_map "pa_deriving_Functor.ml" 34 689 691 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 29 564 568 "pa_deriving_Functor.ml" 29 564 583
+type(
+  (Pa_deriving_common.Type.param ->
+   string Pa_deriving_common.Type.NameMap.t ->
+   string Pa_deriving_common.Type.NameMap.t) ->
+  Pa_deriving_common.Type.param list ->
+  string Pa_deriving_common.Type.NameMap.t ->
+  string Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.fold_right
+)
+"pa_deriving_Functor.ml" 30 584 596 "pa_deriving_Functor.ml" 30 584 600
+type(
+  Pa_deriving_common.Type.NameMap.key
+)
+ident(
+  def name "pa_deriving_Functor.ml" 30 584 604 "pa_deriving_Functor.ml" 30 584 645
+)
+"pa_deriving_Functor.ml" 30 584 601 "pa_deriving_Functor.ml" 30 584 602
+type(
+  [ `Minus | `Plus ] option
+)
+"pa_deriving_Functor.ml" 30 584 596 "pa_deriving_Functor.ml" 30 584 602
+type(
+  Pa_deriving_common.Type.param
+)
+"pa_deriving_Functor.ml" 30 584 604 "pa_deriving_Functor.ml" 30 584 607
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  def map "pa_deriving_Functor.ml" 30 584 611 "pa_deriving_Functor.ml" 30 584 645
+)
+"pa_deriving_Functor.ml" 30 584 611 "pa_deriving_Functor.ml" 30 584 622
+type(
+  Pa_deriving_common.Type.NameMap.key ->
+  string ->
+  string Pa_deriving_common.Type.NameMap.t ->
+  string Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  ext_ref Pa_deriving_common.Type.NameMap.add
+)
+"pa_deriving_Functor.ml" 30 584 623 "pa_deriving_Functor.ml" 30 584 627
+type(
+  Pa_deriving_common.Type.NameMap.key
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 30 584 596 "pa_deriving_Functor.ml" 30 584 600
+)
+"pa_deriving_Functor.ml" 30 584 629 "pa_deriving_Functor.ml" 30 584 633
+type(
+  string
+)
+"pa_deriving_Functor.ml" 30 584 634 "pa_deriving_Functor.ml" 30 584 635
+type(
+  string -> Pa_deriving_common.Type.NameMap.key -> string
+)
+ident(
+  ext_ref Pervasives.^
+)
+"pa_deriving_Functor.ml" 30 584 636 "pa_deriving_Functor.ml" 30 584 640
+type(
+  Pa_deriving_common.Type.NameMap.key
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 30 584 596 "pa_deriving_Functor.ml" 30 584 600
+)
+"pa_deriving_Functor.ml" 30 584 629 "pa_deriving_Functor.ml" 30 584 640
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 30 584 642 "pa_deriving_Functor.ml" 30 584 645
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  int_ref map "pa_deriving_Functor.ml" 30 584 604 "pa_deriving_Functor.ml" 30 584 607
+)
+"pa_deriving_Functor.ml" 30 584 611 "pa_deriving_Functor.ml" 30 584 645
+call(
+  tail
+)
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+"pa_deriving_Functor.ml" 30 584 604 "pa_deriving_Functor.ml" 30 584 645
+type(
+  string Pa_deriving_common.Type.NameMap.t ->
+  string Pa_deriving_common.Type.NameMap.t
+)
+"pa_deriving_Functor.ml" 30 584 595 "pa_deriving_Functor.ml" 30 584 645
+type(
+  Pa_deriving_common.Type.param ->
+  string Pa_deriving_common.Type.NameMap.t ->
+  string Pa_deriving_common.Type.NameMap.t
+)
+"pa_deriving_Functor.ml" 31 647 653 "pa_deriving_Functor.ml" 31 647 660
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  ext_ref C.context
+)
+"pa_deriving_Functor.ml" 31 647 653 "pa_deriving_Functor.ml" 31 647 667
+type(
+  Pa_deriving_common.Type.param list
+)
+"pa_deriving_Functor.ml" 32 668 674 "pa_deriving_Functor.ml" 32 668 687
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  ext_ref Pa_deriving_common.Type.NameMap.empty
+)
+"pa_deriving_Functor.ml" 29 564 568 "pa_deriving_Functor.ml" 32 668 687
+call(
+  stack
+)
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+"pa_deriving_Functor.ml" 34 689 695 "pa_deriving_Functor.ml" 34 689 699
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  def tdec "pa_deriving_Functor.ml" 42 954 956 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 34 689 701 "pa_deriving_Functor.ml" 34 689 707
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp list
+)
+ident(
+  def sigdec "pa_deriving_Functor.ml" 42 954 956 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 34 689 695 "pa_deriving_Functor.ml" 34 689 707
+type(
+  (Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp) *
+  (Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp list)
+)
+"pa_deriving_Functor.ml" 35 710 718 "pa_deriving_Functor.ml" 35 710 721
+type(
+  'a ->
+  string * Pa_deriving_common.Type.param list *
+  [> `Expr of
+       [> `Constr of
+            'a list * [> `Param of Pa_deriving_common.Type.param ] list ] ] *
+  'b list * bool
+)
+"pa_deriving_Functor.ml" 35 710 722 "pa_deriving_Functor.ml" 35 710 726
+type(
+  'a
+)
+ident(
+  def name "pa_deriving_Functor.ml" 36 729 736 "pa_deriving_Functor.ml" 37 757 844
+)
+"pa_deriving_Functor.ml" 36 729 736 "pa_deriving_Functor.ml" 36 729 739
+type(
+  string
+)
+"pa_deriving_Functor.ml" 36 729 741 "pa_deriving_Functor.ml" 36 729 748
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  ext_ref C.context
+)
+"pa_deriving_Functor.ml" 36 729 741 "pa_deriving_Functor.ml" 36 729 755
+type(
+  Pa_deriving_common.Type.param list
+)
+"pa_deriving_Functor.ml" 37 757 781 "pa_deriving_Functor.ml" 37 757 785
+type(
+  'a list
+)
+type(
+  'a
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 35 710 722 "pa_deriving_Functor.ml" 35 710 726
+)
+type(
+  'a list
+)
+"pa_deriving_Functor.ml" 37 757 788 "pa_deriving_Functor.ml" 37 757 796
+type(
+  (Pa_deriving_common.Type.param ->
+   ([> `Param of Pa_deriving_common.Type.param ] as 'c)) ->
+  Pa_deriving_common.Type.param list -> 'c list
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.map
+)
+"pa_deriving_Functor.ml" 37 757 802 "pa_deriving_Functor.ml" 37 757 803
+type(
+  Pa_deriving_common.Type.param
+)
+ident(
+  def p "pa_deriving_Functor.ml" 37 757 807 "pa_deriving_Functor.ml" 37 757 815
+)
+"pa_deriving_Functor.ml" 37 757 814 "pa_deriving_Functor.ml" 37 757 815
+type(
+  Pa_deriving_common.Type.param
+)
+ident(
+  int_ref p "pa_deriving_Functor.ml" 37 757 802 "pa_deriving_Functor.ml" 37 757 803
+)
+"pa_deriving_Functor.ml" 37 757 807 "pa_deriving_Functor.ml" 37 757 815
+type(
+  'c
+)
+"pa_deriving_Functor.ml" 37 757 802 "pa_deriving_Functor.ml" 37 757 815
+type(
+  Pa_deriving_common.Type.param -> 'c
+)
+"pa_deriving_Functor.ml" 37 757 817 "pa_deriving_Functor.ml" 37 757 824
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  ext_ref C.context
+)
+"pa_deriving_Functor.ml" 37 757 817 "pa_deriving_Functor.ml" 37 757 831
+type(
+  Pa_deriving_common.Type.param list
+)
+"pa_deriving_Functor.ml" 37 757 788 "pa_deriving_Functor.ml" 37 757 831
+call(
+  stack
+)
+type(
+  'c list
+)
+"pa_deriving_Functor.ml" 37 757 771 "pa_deriving_Functor.ml" 37 757 832
+type(
+  [> `Constr of 'a list * 'c list ] as 'd
+)
+type(
+  'a list * 'c list
+)
+"pa_deriving_Functor.ml" 37 757 764 "pa_deriving_Functor.ml" 37 757 833
+type(
+  [> `Expr of 'd ] as 'e
+)
+"pa_deriving_Functor.ml" 37 757 835 "pa_deriving_Functor.ml" 37 757 837
+type(
+  'b list
+)
+"pa_deriving_Functor.ml" 37 757 839 "pa_deriving_Functor.ml" 37 757 844
+type(
+  bool
+)
+"pa_deriving_Functor.ml" 36 729 736 "pa_deriving_Functor.ml" 37 757 844
+type(
+  string * Pa_deriving_common.Type.param list * 'e * 'b list * bool
+)
+"pa_deriving_Functor.ml" 35 710 722 "pa_deriving_Functor.ml" 37 757 845
+type(
+  'a -> string * Pa_deriving_common.Type.param list * 'e * 'b list * bool
+)
+"pa_deriving_Functor.ml" 39 853 864 "pa_deriving_Functor.ml" 39 853 868
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def name "pa_deriving_Functor.ml" 39 853 872 "pa_deriving_Functor.ml" 39 853 899
+)
+"pa_deriving_Functor.ml" 39 853 872 "pa_deriving_Functor.ml" 39 853 888
+type(
+  Pa_deriving_common.Type.decl -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  ext_ref Untranslate.decl
+)
+"pa_deriving_Functor.ml" 39 853 890 "pa_deriving_Functor.ml" 39 853 893
+type(
+  Pa_deriving_common.Type.name -> Pa_deriving_common.Type.decl
+)
+ident(
+  int_ref dec "pa_deriving_Functor.ml" 35 710 718 "pa_deriving_Functor.ml" 35 710 721
+)
+"pa_deriving_Functor.ml" 39 853 894 "pa_deriving_Functor.ml" 39 853 898
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 39 853 864 "pa_deriving_Functor.ml" 39 853 868
+)
+"pa_deriving_Functor.ml" 39 853 890 "pa_deriving_Functor.ml" 39 853 898
+call(
+  stack
+)
+type(
+  Pa_deriving_common.Type.decl
+)
+"pa_deriving_Functor.ml" 39 853 872 "pa_deriving_Functor.ml" 39 853 899
+call(
+  tail
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 39 853 864 "pa_deriving_Functor.ml" 39 853 899
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 40 902 913 "pa_deriving_Functor.ml" 40 902 917
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def name "pa_deriving_Functor.ml" 40 902 921 "pa_deriving_Functor.ml" 40 902 951
+)
+"pa_deriving_Functor.ml" 40 902 921 "pa_deriving_Functor.ml" 40 902 940
+type(
+  Pa_deriving_common.Type.decl -> Camlp4.PreCast.Ast.ctyp list
+)
+ident(
+  ext_ref Untranslate.sigdecl
+)
+"pa_deriving_Functor.ml" 40 902 942 "pa_deriving_Functor.ml" 40 902 945
+type(
+  Pa_deriving_common.Type.name -> Pa_deriving_common.Type.decl
+)
+ident(
+  int_ref dec "pa_deriving_Functor.ml" 35 710 718 "pa_deriving_Functor.ml" 35 710 721
+)
+"pa_deriving_Functor.ml" 40 902 946 "pa_deriving_Functor.ml" 40 902 950
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 40 902 913 "pa_deriving_Functor.ml" 40 902 917
+)
+"pa_deriving_Functor.ml" 40 902 942 "pa_deriving_Functor.ml" 40 902 950
+call(
+  stack
+)
+type(
+  Pa_deriving_common.Type.decl
+)
+"pa_deriving_Functor.ml" 40 902 921 "pa_deriving_Functor.ml" 40 902 951
+call(
+  tail
+)
+type(
+  Camlp4.PreCast.Ast.ctyp list
+)
+"pa_deriving_Functor.ml" 40 902 913 "pa_deriving_Functor.ml" 40 902 951
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp list
+)
+"pa_deriving_Functor.ml" 39 853 859 "pa_deriving_Functor.ml" 40 902 952
+type(
+  (Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp) *
+  (Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp list)
+)
+"pa_deriving_Functor.ml" 35 710 714 "pa_deriving_Functor.ml" 40 902 952
+type(
+  (Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp) *
+  (Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp list)
+)
+"pa_deriving_Functor.ml" 42 954 960 "pa_deriving_Functor.ml" 42 954 967
+type(
+  Pa_deriving_common.Type.name ->
+  Camlp4.PreCast.Ast.expr -> Camlp4.PreCast.Ast.module_expr
+)
+ident(
+  def wrapper "pa_deriving_Functor.ml" 75 2097 2099 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 42 954 968 "pa_deriving_Functor.ml" 42 954 972
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def name "pa_deriving_Functor.ml" 42 954 973 "pa_deriving_Functor.ml" 52 1289 1301
+)
+"pa_deriving_Functor.ml" 42 954 973 "pa_deriving_Functor.ml" 42 954 977
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  def expr "pa_deriving_Functor.ml" 43 980 984 "pa_deriving_Functor.ml" 52 1289 1301
+)
+"pa_deriving_Functor.ml" 43 980 988 "pa_deriving_Functor.ml" 43 980 993
+type(
+  Camlp4.PreCast.Ast.patt list
+)
+"pa_deriving_Functor.ml" 44 1011 1017 "pa_deriving_Functor.ml" 44 1011 1025
+type(
+  (Pa_deriving_common.Type.param -> Camlp4.PreCast.Ast.patt) ->
+  Pa_deriving_common.Type.param list -> Camlp4.PreCast.Ast.patt list
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.map
+)
+"pa_deriving_Functor.ml" 45 1026 1040 "pa_deriving_Functor.ml" 45 1026 1044
+type(
+  Pa_deriving_common.Type.NameMap.key
+)
+ident(
+  def name "pa_deriving_Functor.ml" 45 1026 1058 "pa_deriving_Functor.ml" 45 1026 1058
+)
+"pa_deriving_Functor.ml" 45 1026 1045 "pa_deriving_Functor.ml" 45 1026 1046
+type(
+  [ `Minus | `Plus ] option
+)
+"pa_deriving_Functor.ml" 45 1026 1040 "pa_deriving_Functor.ml" 45 1026 1046
+type(
+  Pa_deriving_common.Type.param
+)
+"pa_deriving_Functor.ml" 45 1026 1058 "pa_deriving_Functor.ml" 45 1026 1058
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 45 1026 1058 "pa_deriving_Functor.ml" 45 1026 1070
+type(
+  Pa_deriving_common.Type.NameMap.key ->
+  string Pa_deriving_common.Type.NameMap.t -> string
+)
+ident(
+  ext_ref Pa_deriving_common.Type.NameMap.find
+)
+"pa_deriving_Functor.ml" 45 1026 1071 "pa_deriving_Functor.ml" 45 1026 1075
+type(
+  Pa_deriving_common.Type.NameMap.key
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 45 1026 1040 "pa_deriving_Functor.ml" 45 1026 1044
+)
+"pa_deriving_Functor.ml" 45 1026 1076 "pa_deriving_Functor.ml" 45 1026 1085
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  int_ref param_map "pa_deriving_Functor.ml" 28 527 533 "pa_deriving_Functor.ml" 28 527 542
+)
+"pa_deriving_Functor.ml" 45 1026 1058 "pa_deriving_Functor.ml" 45 1026 1085
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 45 1026 1039 "pa_deriving_Functor.ml" 45 1026 1095
+type(
+  Pa_deriving_common.Type.param -> Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 46 1097 1105 "pa_deriving_Functor.ml" 46 1097 1112
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  ext_ref C.context
+)
+"pa_deriving_Functor.ml" 46 1097 1105 "pa_deriving_Functor.ml" 46 1097 1119
+type(
+  Pa_deriving_common.Type.param list
+)
+"pa_deriving_Functor.ml" 44 1011 1017 "pa_deriving_Functor.ml" 46 1097 1119
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.patt list
+)
+type(
+  Camlp4.PreCast.Ast.patt list
+)
+"pa_deriving_Functor.ml" 47 1123 1131 "pa_deriving_Functor.ml" 47 1123 1134
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 48 1137 1143 "pa_deriving_Functor.ml" 48 1137 1158
+type(
+  (Camlp4.PreCast.Ast.patt ->
+   Camlp4.PreCast.Ast.expr -> Camlp4.PreCast.Ast.expr) ->
+  Camlp4.PreCast.Ast.patt list ->
+  Camlp4.PreCast.Ast.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.fold_right
+)
+"pa_deriving_Functor.ml" 48 1137 1164 "pa_deriving_Functor.ml" 48 1137 1165
+type(
+  Camlp4.PreCast.Ast.patt
+)
+ident(
+  def p "pa_deriving_Functor.ml" 48 1137 1166 "pa_deriving_Functor.ml" 48 1137 1196
+)
+"pa_deriving_Functor.ml" 48 1137 1166 "pa_deriving_Functor.ml" 48 1137 1167
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  def e "pa_deriving_Functor.ml" 48 1137 1178 "pa_deriving_Functor.ml" 48 1137 1178
+)
+"pa_deriving_Functor.ml" 48 1137 1178 "pa_deriving_Functor.ml" 48 1137 1178
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 48 1137 1183 "pa_deriving_Functor.ml" 48 1137 1184
+type(
+  Camlp4.PreCast.Ast.patt
+)
+ident(
+  int_ref p "pa_deriving_Functor.ml" 48 1137 1164 "pa_deriving_Functor.ml" 48 1137 1165
+)
+"pa_deriving_Functor.ml" 48 1137 1190 "pa_deriving_Functor.ml" 48 1137 1191
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref e "pa_deriving_Functor.ml" 48 1137 1166 "pa_deriving_Functor.ml" 48 1137 1167
+)
+"pa_deriving_Functor.ml" 48 1137 1166 "pa_deriving_Functor.ml" 48 1137 1196
+type(
+  Camlp4.PreCast.Ast.expr -> Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 48 1137 1164 "pa_deriving_Functor.ml" 48 1137 1196
+type(
+  Camlp4.PreCast.Ast.patt ->
+  Camlp4.PreCast.Ast.expr -> Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 48 1137 1198 "pa_deriving_Functor.ml" 48 1137 1203
+type(
+  Camlp4.PreCast.Ast.patt list
+)
+ident(
+  int_ref patts "pa_deriving_Functor.ml" 43 980 988 "pa_deriving_Functor.ml" 43 980 993
+)
+"pa_deriving_Functor.ml" 48 1137 1204 "pa_deriving_Functor.ml" 48 1137 1208
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref expr "pa_deriving_Functor.ml" 42 954 973 "pa_deriving_Functor.ml" 42 954 977
+)
+"pa_deriving_Functor.ml" 48 1137 1143 "pa_deriving_Functor.ml" 48 1137 1208
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 49 1212 1232 "pa_deriving_Functor.ml" 49 1212 1232
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.binding
+)
+type(
+  Camlp4.PreCast.Ast.meta_bool
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.str_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.str_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.str_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.module_expr
+)
+"pa_deriving_Functor.ml" 50 1240 1253 "pa_deriving_Functor.ml" 50 1240 1257
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  int_ref tdec "pa_deriving_Functor.ml" 34 689 695 "pa_deriving_Functor.ml" 34 689 699
+)
+"pa_deriving_Functor.ml" 50 1240 1258 "pa_deriving_Functor.ml" 50 1240 1262
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 42 954 968 "pa_deriving_Functor.ml" 42 954 972
+)
+"pa_deriving_Functor.ml" 50 1240 1253 "pa_deriving_Functor.ml" 50 1240 1262
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 51 1265 1283 "pa_deriving_Functor.ml" 51 1265 1286
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref rhs "pa_deriving_Functor.ml" 47 1123 1131 "pa_deriving_Functor.ml" 47 1123 1134
+)
+"pa_deriving_Functor.ml" 47 1123 1127 "pa_deriving_Functor.ml" 52 1289 1301
+type(
+  Camlp4.PreCast.Ast.module_expr
+)
+"pa_deriving_Functor.ml" 43 980 984 "pa_deriving_Functor.ml" 52 1289 1301
+type(
+  Camlp4.PreCast.Ast.module_expr
+)
+"pa_deriving_Functor.ml" 42 954 973 "pa_deriving_Functor.ml" 52 1289 1301
+type(
+  Camlp4.PreCast.Ast.expr -> Camlp4.PreCast.Ast.module_expr
+)
+"pa_deriving_Functor.ml" 42 954 968 "pa_deriving_Functor.ml" 52 1289 1301
+type(
+  Pa_deriving_common.Type.name ->
+  Camlp4.PreCast.Ast.expr -> Camlp4.PreCast.Ast.module_expr
+)
+"pa_deriving_Functor.ml" 75 2097 2107 "pa_deriving_Functor.ml" 75 2097 2115
+type(
+  Pa_deriving_common.Type.tagspec -> Camlp4.PreCast.Ast.match_case
+)
+ident(
+  def polycase "pa_deriving_Functor.ml" 75 2097 2099 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 76 2127 2138 "pa_deriving_Functor.ml" 76 2127 2142
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def name "pa_deriving_Functor.ml" 76 2127 2166 "pa_deriving_Functor.ml" 76 2127 2166
+)
+"pa_deriving_Functor.ml" 76 2127 2144 "pa_deriving_Functor.ml" 76 2127 2148
+type(
+  Pa_deriving_common.Type.expr option
+)
+"pa_deriving_Functor.ml" 76 2127 2133 "pa_deriving_Functor.ml" 76 2127 2149
+type(
+  Pa_deriving_common.Type.tagspec
+)
+"pa_deriving_Functor.ml" 76 2127 2166 "pa_deriving_Functor.ml" 76 2127 2166
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+"pa_deriving_Functor.ml" 76 2127 2166 "pa_deriving_Functor.ml" 76 2127 2170
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 76 2127 2138 "pa_deriving_Functor.ml" 76 2127 2142
+)
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 76 2127 2138 "pa_deriving_Functor.ml" 76 2127 2142
+)
+"pa_deriving_Functor.ml" 77 2189 2200 "pa_deriving_Functor.ml" 77 2189 2204
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def name "pa_deriving_Functor.ml" 77 2189 2230 "pa_deriving_Functor.ml" 77 2189 2230
+)
+"pa_deriving_Functor.ml" 77 2189 2211 "pa_deriving_Functor.ml" 77 2189 2212
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def e "pa_deriving_Functor.ml" 77 2189 2230 "pa_deriving_Functor.ml" 77 2189 2230
+)
+"pa_deriving_Functor.ml" 77 2189 2206 "pa_deriving_Functor.ml" 77 2189 2212
+type(
+  Pa_deriving_common.Type.expr option
+)
+"pa_deriving_Functor.ml" 77 2189 2195 "pa_deriving_Functor.ml" 77 2189 2213
+type(
+  Pa_deriving_common.Type.tagspec
+)
+"pa_deriving_Functor.ml" 77 2189 2230 "pa_deriving_Functor.ml" 77 2189 2230
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+"pa_deriving_Functor.ml" 77 2189 2230 "pa_deriving_Functor.ml" 77 2189 2234
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 77 2189 2200 "pa_deriving_Functor.ml" 77 2189 2204
+)
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 77 2189 2200 "pa_deriving_Functor.ml" 77 2189 2204
+)
+"pa_deriving_Functor.ml" 77 2189 2253 "pa_deriving_Functor.ml" 77 2189 2257
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref expr "pa_deriving_Functor.ml" 82 2410 2416 "pa_deriving_Functor.ml" 82 2410 2420
+)
+"pa_deriving_Functor.ml" 77 2189 2258 "pa_deriving_Functor.ml" 77 2189 2259
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref e "pa_deriving_Functor.ml" 77 2189 2211 "pa_deriving_Functor.ml" 77 2189 2212
+)
+"pa_deriving_Functor.ml" 77 2189 2253 "pa_deriving_Functor.ml" 77 2189 2259
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 78 2268 2282 "pa_deriving_Functor.ml" 78 2268 2283
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def t "pa_deriving_Functor.ml" 79 2287 2295 "pa_deriving_Functor.ml" 80 2344 2408
+)
+"pa_deriving_Functor.ml" 78 2268 2274 "pa_deriving_Functor.ml" 78 2268 2283
+type(
+  Pa_deriving_common.Type.tagspec
+)
+"pa_deriving_Functor.ml" 79 2287 2299 "pa_deriving_Functor.ml" 79 2287 2303
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 79 2287 2305 "pa_deriving_Functor.ml" 79 2287 2310
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 79 2287 2312 "pa_deriving_Functor.ml" 79 2287 2315
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 79 2287 2299 "pa_deriving_Functor.ml" 79 2287 2315
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 79 2287 2318 "pa_deriving_Functor.ml" 79 2287 2330
+type(
+  Pa_deriving_common.Base.context ->
+  ?param:string ->
+  Pa_deriving_common.Type.expr ->
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 79 2287 2331 "pa_deriving_Functor.ml" 79 2287 2338
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  ext_ref C.context
+)
+"pa_deriving_Functor.ml" 79 2287 2339 "pa_deriving_Functor.ml" 79 2287 2340
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref t "pa_deriving_Functor.ml" 78 2268 2282 "pa_deriving_Functor.ml" 78 2268 2283
+)
+"pa_deriving_Functor.ml" 79 2287 2318 "pa_deriving_Functor.ml" 79 2287 2340
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 80 2344 2367 "pa_deriving_Functor.ml" 80 2344 2367
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+"pa_deriving_Functor.ml" 80 2344 2368 "pa_deriving_Functor.ml" 80 2344 2372
+type(
+  Camlp4.PreCast.Ast.patt
+)
+ident(
+  int_ref patt "pa_deriving_Functor.ml" 79 2287 2299 "pa_deriving_Functor.ml" 79 2287 2303
+)
+"pa_deriving_Functor.ml" 80 2344 2380 "pa_deriving_Functor.ml" 80 2344 2385
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref guard "pa_deriving_Functor.ml" 79 2287 2305 "pa_deriving_Functor.ml" 79 2287 2310
+)
+"pa_deriving_Functor.ml" 80 2344 2391 "pa_deriving_Functor.ml" 80 2344 2395
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref expr "pa_deriving_Functor.ml" 82 2410 2416 "pa_deriving_Functor.ml" 82 2410 2420
+)
+"pa_deriving_Functor.ml" 80 2344 2396 "pa_deriving_Functor.ml" 80 2344 2397
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref t "pa_deriving_Functor.ml" 78 2268 2282 "pa_deriving_Functor.ml" 78 2268 2283
+)
+"pa_deriving_Functor.ml" 80 2344 2391 "pa_deriving_Functor.ml" 80 2344 2397
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 80 2344 2400 "pa_deriving_Functor.ml" 80 2344 2403
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref exp "pa_deriving_Functor.ml" 79 2287 2312 "pa_deriving_Functor.ml" 79 2287 2315
+)
+"pa_deriving_Functor.ml" 79 2287 2295 "pa_deriving_Functor.ml" 80 2344 2408
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+"pa_deriving_Functor.ml" 75 2097 2118 "pa_deriving_Functor.ml" 80 2344 2408
+type(
+  Pa_deriving_common.Type.tagspec -> Camlp4.PreCast.Ast.match_case
+)
+"pa_deriving_Functor.ml" 82 2410 2416 "pa_deriving_Functor.ml" 82 2410 2420
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  def expr "pa_deriving_Functor.ml" 75 2097 2099 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 83 2456 2462 "pa_deriving_Functor.ml" 83 2456 2463
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def t "pa_deriving_Functor.ml" 83 2456 2469 "pa_deriving_Functor.ml" 83 2456 2491
+)
+"pa_deriving_Functor.ml" 83 2456 2469 "pa_deriving_Functor.ml" 83 2456 2472
+type(
+  bool -> bool
+)
+ident(
+  ext_ref Pervasives.not
+)
+"pa_deriving_Functor.ml" 83 2456 2474 "pa_deriving_Functor.ml" 83 2456 2488
+type(
+  Pa_deriving_common.Type.expr -> bool
+)
+ident(
+  ext_ref Pa_deriving_common.Base.contains_tvars
+)
+"pa_deriving_Functor.ml" 83 2456 2489 "pa_deriving_Functor.ml" 83 2456 2490
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref t "pa_deriving_Functor.ml" 83 2456 2462 "pa_deriving_Functor.ml" 83 2456 2463
+)
+"pa_deriving_Functor.ml" 83 2456 2474 "pa_deriving_Functor.ml" 83 2456 2490
+call(
+  stack
+)
+type(
+  bool
+)
+"pa_deriving_Functor.ml" 83 2456 2469 "pa_deriving_Functor.ml" 83 2456 2491
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  bool
+)
+"pa_deriving_Functor.ml" 83 2456 2502 "pa_deriving_Functor.ml" 83 2456 2502
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 84 2517 2531 "pa_deriving_Functor.ml" 84 2517 2532
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def p "pa_deriving_Functor.ml" 84 2517 2546 "pa_deriving_Functor.ml" 84 2517 2546
+)
+"pa_deriving_Functor.ml" 84 2517 2533 "pa_deriving_Functor.ml" 84 2517 2534
+type(
+  [ `Minus | `Plus ] option
+)
+"pa_deriving_Functor.ml" 84 2517 2523 "pa_deriving_Functor.ml" 84 2517 2535
+type(
+  Pa_deriving_common.Type.expr
+)
+type(
+  Pa_deriving_common.Type.param
+)
+"pa_deriving_Functor.ml" 84 2517 2546 "pa_deriving_Functor.ml" 84 2517 2546
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 84 2517 2546 "pa_deriving_Functor.ml" 84 2517 2558
+type(
+  Pa_deriving_common.Type.NameMap.key ->
+  string Pa_deriving_common.Type.NameMap.t -> string
+)
+ident(
+  ext_ref Pa_deriving_common.Type.NameMap.find
+)
+"pa_deriving_Functor.ml" 84 2517 2559 "pa_deriving_Functor.ml" 84 2517 2560
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref p "pa_deriving_Functor.ml" 84 2517 2531 "pa_deriving_Functor.ml" 84 2517 2532
+)
+"pa_deriving_Functor.ml" 84 2517 2561 "pa_deriving_Functor.ml" 84 2517 2570
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  int_ref param_map "pa_deriving_Functor.ml" 28 527 533 "pa_deriving_Functor.ml" 28 527 542
+)
+"pa_deriving_Functor.ml" 84 2517 2546 "pa_deriving_Functor.ml" 84 2517 2570
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 85 2581 2598 "pa_deriving_Functor.ml" 85 2581 2599
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def f "pa_deriving_Functor.ml" 85 2581 2608 "pa_deriving_Functor.ml" 85 2581 2630
+)
+"pa_deriving_Functor.ml" 85 2581 2600 "pa_deriving_Functor.ml" 85 2581 2601
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def t "pa_deriving_Functor.ml" 85 2581 2608 "pa_deriving_Functor.ml" 85 2581 2630
+)
+"pa_deriving_Functor.ml" 85 2581 2587 "pa_deriving_Functor.ml" 85 2581 2602
+type(
+  Pa_deriving_common.Type.expr
+)
+type(
+  Pa_deriving_common.Type.expr * Pa_deriving_common.Type.expr
+)
+"pa_deriving_Functor.ml" 85 2581 2608 "pa_deriving_Functor.ml" 85 2581 2611
+type(
+  bool -> bool
+)
+ident(
+  ext_ref Pervasives.not
+)
+"pa_deriving_Functor.ml" 85 2581 2613 "pa_deriving_Functor.ml" 85 2581 2627
+type(
+  Pa_deriving_common.Type.expr -> bool
+)
+ident(
+  ext_ref Pa_deriving_common.Base.contains_tvars
+)
+"pa_deriving_Functor.ml" 85 2581 2628 "pa_deriving_Functor.ml" 85 2581 2629
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref t "pa_deriving_Functor.ml" 85 2581 2600 "pa_deriving_Functor.ml" 85 2581 2601
+)
+"pa_deriving_Functor.ml" 85 2581 2613 "pa_deriving_Functor.ml" 85 2581 2629
+call(
+  stack
+)
+type(
+  bool
+)
+"pa_deriving_Functor.ml" 85 2581 2608 "pa_deriving_Functor.ml" 85 2581 2630
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  bool
+)
+"pa_deriving_Functor.ml" 86 2634 2649 "pa_deriving_Functor.ml" 86 2634 2649
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 86 2634 2664 "pa_deriving_Functor.ml" 86 2634 2668
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref expr "pa_deriving_Functor.ml" 82 2410 2416 "pa_deriving_Functor.ml" 82 2410 2420
+)
+"pa_deriving_Functor.ml" 86 2634 2669 "pa_deriving_Functor.ml" 86 2634 2670
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref f "pa_deriving_Functor.ml" 85 2581 2598 "pa_deriving_Functor.ml" 85 2581 2599
+)
+"pa_deriving_Functor.ml" 86 2634 2664 "pa_deriving_Functor.ml" 86 2634 2670
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 87 2679 2694 "pa_deriving_Functor.ml" 87 2679 2699
+type(
+  Pa_deriving_common.Type.qname
+)
+ident(
+  def qname "pa_deriving_Functor.ml" 88 2708 2709 "pa_deriving_Functor.ml" 95 2947 2959
+)
+"pa_deriving_Functor.ml" 87 2679 2701 "pa_deriving_Functor.ml" 87 2679 2703
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  def ts "pa_deriving_Functor.ml" 88 2708 2709 "pa_deriving_Functor.ml" 95 2947 2959
+)
+"pa_deriving_Functor.ml" 87 2679 2685 "pa_deriving_Functor.ml" 87 2679 2704
+type(
+  Pa_deriving_common.Type.expr
+)
+type(
+  Pa_deriving_common.Type.qname * Pa_deriving_common.Type.expr list
+)
+"pa_deriving_Functor.ml" 88 2708 2713 "pa_deriving_Functor.ml" 88 2708 2718
+type(
+  Pa_deriving_common.Type.qname
+)
+"pa_deriving_Functor.ml" 90 2728 2734 "pa_deriving_Functor.ml" 90 2728 2745
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref runtimename "pa_deriving_Functor.ml" 12 230 234 "pa_deriving_Functor.ml" 12 230 245
+)
+"pa_deriving_Functor.ml" 90 2728 2748 "pa_deriving_Functor.ml" 90 2728 2758
+type(
+  Pa_deriving_common.Type.qname ->
+  (Pa_deriving_common.Type.qname * Pa_deriving_common.Type.name) list ->
+  Pa_deriving_common.Type.name
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.assoc
+)
+"pa_deriving_Functor.ml" 90 2728 2759 "pa_deriving_Functor.ml" 90 2728 2764
+type(
+  Pa_deriving_common.Type.qname
+)
+ident(
+  int_ref qname "pa_deriving_Functor.ml" 87 2679 2694 "pa_deriving_Functor.ml" 87 2679 2699
+)
+"pa_deriving_Functor.ml" 90 2728 2765 "pa_deriving_Functor.ml" 90 2728 2772
+type(
+  (Pa_deriving_common.Type.qname * Pa_deriving_common.Type.name) list
+)
+ident(
+  int_ref predefs "pa_deriving_Functor.ml" 14 268 272 "pa_deriving_Functor.ml" 14 268 279
+)
+"pa_deriving_Functor.ml" 90 2728 2748 "pa_deriving_Functor.ml" 90 2728 2772
+call(
+  stack
+)
+type(
+  Pa_deriving_common.Type.name
+)
+type(
+  Pa_deriving_common.Type.name list
+)
+"pa_deriving_Functor.ml" 90 2728 2734 "pa_deriving_Functor.ml" 90 2728 2772
+type(
+  Pa_deriving_common.Type.name list
+)
+type(
+  Pa_deriving_common.Type.qname
+)
+"pa_deriving_Functor.ml" 91 2774 2782 "pa_deriving_Functor.ml" 91 2774 2791
+type(
+  exn
+)
+"pa_deriving_Functor.ml" 91 2774 2795 "pa_deriving_Functor.ml" 91 2774 2800
+type(
+  Pa_deriving_common.Type.qname
+)
+ident(
+  int_ref qname "pa_deriving_Functor.ml" 87 2679 2694 "pa_deriving_Functor.ml" 87 2679 2699
+)
+"pa_deriving_Functor.ml" 89 2721 2724 "pa_deriving_Functor.ml" 91 2774 2800
+type(
+  Pa_deriving_common.Type.qname
+)
+"pa_deriving_Functor.ml" 92 2804 2812 "pa_deriving_Functor.ml" 92 2804 2826
+type(
+  (Camlp4.PreCast.Ast.expr ->
+   Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr) ->
+  Camlp4.PreCast.Ast.expr ->
+  Pa_deriving_common.Type.expr list -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.fold_left
+)
+"pa_deriving_Functor.ml" 93 2827 2842 "pa_deriving_Functor.ml" 93 2827 2844
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  def fn "pa_deriving_Functor.ml" 93 2827 2845 "pa_deriving_Functor.ml" 93 2827 2878
+)
+"pa_deriving_Functor.ml" 93 2827 2845 "pa_deriving_Functor.ml" 93 2827 2848
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def arg "pa_deriving_Functor.ml" 93 2827 2859 "pa_deriving_Functor.ml" 93 2827 2859
+)
+"pa_deriving_Functor.ml" 93 2827 2859 "pa_deriving_Functor.ml" 93 2827 2859
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 93 2827 2860 "pa_deriving_Functor.ml" 93 2827 2862
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref fn "pa_deriving_Functor.ml" 93 2827 2842 "pa_deriving_Functor.ml" 93 2827 2844
+)
+"pa_deriving_Functor.ml" 93 2827 2865 "pa_deriving_Functor.ml" 93 2827 2869
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref expr "pa_deriving_Functor.ml" 82 2410 2416 "pa_deriving_Functor.ml" 82 2410 2420
+)
+"pa_deriving_Functor.ml" 93 2827 2870 "pa_deriving_Functor.ml" 93 2827 2873
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref arg "pa_deriving_Functor.ml" 93 2827 2845 "pa_deriving_Functor.ml" 93 2827 2848
+)
+"pa_deriving_Functor.ml" 93 2827 2865 "pa_deriving_Functor.ml" 93 2827 2873
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 93 2827 2845 "pa_deriving_Functor.ml" 93 2827 2878
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 93 2827 2842 "pa_deriving_Functor.ml" 93 2827 2878
+type(
+  Camlp4.PreCast.Ast.expr ->
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 94 2880 2897 "pa_deriving_Functor.ml" 94 2880 2897
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 94 2880 2899 "pa_deriving_Functor.ml" 94 2880 2917
+type(
+  qname:Pa_deriving_common.Type.qname ->
+  classname:string -> Camlp4.PreCast.Ast.ident
+)
+"pa_deriving_Functor.ml" 94 2880 2918 "pa_deriving_Functor.ml" 94 2880 2924
+type(
+  Pa_deriving_common.Type.qname
+)
+ident(
+  int_ref qname "pa_deriving_Functor.ml" 88 2708 2713 "pa_deriving_Functor.ml" 88 2708 2718
+)
+"pa_deriving_Functor.ml" 94 2880 2925 "pa_deriving_Functor.ml" 94 2880 2935
+type(
+  string
+)
+ident(
+  int_ref classname "pa_deriving_Functor.ml" 11 204 208 "pa_deriving_Functor.ml" 11 204 217
+)
+"pa_deriving_Functor.ml" 94 2880 2899 "pa_deriving_Functor.ml" 94 2880 2935
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+"pa_deriving_Functor.ml" 95 2947 2957 "pa_deriving_Functor.ml" 95 2947 2959
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  int_ref ts "pa_deriving_Functor.ml" 87 2679 2701 "pa_deriving_Functor.ml" 87 2679 2703
+)
+"pa_deriving_Functor.ml" 92 2804 2812 "pa_deriving_Functor.ml" 95 2947 2959
+call(
+  tail
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 88 2708 2709 "pa_deriving_Functor.ml" 95 2947 2959
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 96 2960 2973 "pa_deriving_Functor.ml" 96 2960 2975
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  def ts "pa_deriving_Functor.ml" 96 2960 2979 "pa_deriving_Functor.ml" 96 2960 2985
+)
+"pa_deriving_Functor.ml" 96 2960 2966 "pa_deriving_Functor.ml" 96 2960 2975
+type(
+  Pa_deriving_common.Type.expr
+)
+"pa_deriving_Functor.ml" 96 2960 2979 "pa_deriving_Functor.ml" 96 2960 2982
+type(
+  Pa_deriving_common.Type.expr list -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref tup "pa_deriving_Functor.ml" 99 3060 3066 "pa_deriving_Functor.ml" 99 3060 3069
+)
+"pa_deriving_Functor.ml" 96 2960 2983 "pa_deriving_Functor.ml" 96 2960 2985
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  int_ref ts "pa_deriving_Functor.ml" 96 2960 2973 "pa_deriving_Functor.ml" 96 2960 2975
+)
+"pa_deriving_Functor.ml" 96 2960 2979 "pa_deriving_Functor.ml" 96 2960 2985
+call(
+  tail
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 97 2986 2992 "pa_deriving_Functor.ml" 97 2986 2993
+type(
+  Pa_deriving_common.Type.expr
+)
+"pa_deriving_Functor.ml" 97 2986 2997 "pa_deriving_Functor.ml" 97 2986 3002
+type(
+  exn -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  ext_ref Pervasives.raise
+)
+"pa_deriving_Functor.ml" 97 2986 3016 "pa_deriving_Functor.ml" 97 2986 3057
+type(
+  string
+)
+"pa_deriving_Functor.ml" 97 2986 3004 "pa_deriving_Functor.ml" 97 2986 3057
+type(
+  exn
+)
+"pa_deriving_Functor.ml" 97 2986 2997 "pa_deriving_Functor.ml" 97 2986 3058
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 82 2410 2447 "pa_deriving_Functor.ml" 97 2986 3058
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 99 3060 3066 "pa_deriving_Functor.ml" 99 3060 3069
+type(
+  Pa_deriving_common.Type.expr list -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  def tup "pa_deriving_Functor.ml" 75 2097 2099 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 100 3081 3088 "pa_deriving_Functor.ml" 100 3081 3089
+type(
+  Pa_deriving_common.Type.expr list
+)
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def t "pa_deriving_Functor.ml" 100 3081 3094 "pa_deriving_Functor.ml" 100 3081 3100
+)
+"pa_deriving_Functor.ml" 100 3081 3087 "pa_deriving_Functor.ml" 100 3081 3090
+type(
+  Pa_deriving_common.Type.expr list
+)
+"pa_deriving_Functor.ml" 100 3081 3094 "pa_deriving_Functor.ml" 100 3081 3098
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref expr "pa_deriving_Functor.ml" 82 2410 2416 "pa_deriving_Functor.ml" 82 2410 2420
+)
+"pa_deriving_Functor.ml" 100 3081 3099 "pa_deriving_Functor.ml" 100 3081 3100
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref t "pa_deriving_Functor.ml" 100 3081 3088 "pa_deriving_Functor.ml" 100 3081 3089
+)
+"pa_deriving_Functor.ml" 100 3081 3094 "pa_deriving_Functor.ml" 100 3081 3100
+call(
+  tail
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 101 3101 3107 "pa_deriving_Functor.ml" 101 3101 3109
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  def ts "pa_deriving_Functor.ml" 102 3113 3121 "pa_deriving_Functor.ml" 112 3550 3589
+)
+"pa_deriving_Functor.ml" 102 3113 3125 "pa_deriving_Functor.ml" 102 3113 3129
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 102 3113 3131 "pa_deriving_Functor.ml" 102 3113 3135
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 102 3113 3125 "pa_deriving_Functor.ml" 102 3113 3135
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 103 3138 3149 "pa_deriving_Functor.ml" 103 3138 3165
+type(
+  (Pa_deriving_common.Type.expr ->
+   int ->
+   Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr ->
+   Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr) ->
+  Pa_deriving_common.Type.expr list ->
+  int list ->
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr ->
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.fold_right2
+)
+"pa_deriving_Functor.ml" 104 3166 3184 "pa_deriving_Functor.ml" 104 3166 3185
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def t "pa_deriving_Functor.ml" 104 3166 3186 "pa_deriving_Functor.ml" 107 3306 3372
+)
+"pa_deriving_Functor.ml" 104 3166 3186 "pa_deriving_Functor.ml" 104 3166 3187
+type(
+  int
+)
+ident(
+  def n "pa_deriving_Functor.ml" 104 3166 3188 "pa_deriving_Functor.ml" 107 3306 3372
+)
+"pa_deriving_Functor.ml" 104 3166 3189 "pa_deriving_Functor.ml" 104 3166 3190
+type(
+  Camlp4.PreCast.Ast.patt
+)
+ident(
+  def p "pa_deriving_Functor.ml" 105 3197 3213 "pa_deriving_Functor.ml" 107 3306 3372
+)
+"pa_deriving_Functor.ml" 104 3166 3191 "pa_deriving_Functor.ml" 104 3166 3192
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  def e "pa_deriving_Functor.ml" 105 3197 3213 "pa_deriving_Functor.ml" 107 3306 3372
+)
+"pa_deriving_Functor.ml" 104 3166 3189 "pa_deriving_Functor.ml" 104 3166 3192
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 105 3197 3217 "pa_deriving_Functor.ml" 105 3197 3218
+type(
+  string
+)
+"pa_deriving_Functor.ml" 105 3197 3221 "pa_deriving_Functor.ml" 105 3197 3235
+type(
+  (int -> string, unit, string) format -> int -> string
+)
+ident(
+  ext_ref Printf.sprintf
+)
+"pa_deriving_Functor.ml" 105 3197 3236 "pa_deriving_Functor.ml" 105 3197 3241
+type(
+  (int -> string, unit, string) format
+)
+"pa_deriving_Functor.ml" 105 3197 3242 "pa_deriving_Functor.ml" 105 3197 3243
+type(
+  int
+)
+ident(
+  int_ref n "pa_deriving_Functor.ml" 104 3166 3186 "pa_deriving_Functor.ml" 104 3166 3187
+)
+"pa_deriving_Functor.ml" 105 3197 3221 "pa_deriving_Functor.ml" 105 3197 3243
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 106 3247 3276 "pa_deriving_Functor.ml" 106 3247 3280
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+"pa_deriving_Functor.ml" 106 3247 3289 "pa_deriving_Functor.ml" 106 3247 3289
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 106 3247 3289 "pa_deriving_Functor.ml" 106 3247 3290
+type(
+  string
+)
+ident(
+  int_ref v "pa_deriving_Functor.ml" 105 3197 3217 "pa_deriving_Functor.ml" 105 3197 3218
+)
+"pa_deriving_Functor.ml" 106 3247 3302 "pa_deriving_Functor.ml" 106 3247 3303
+type(
+  Camlp4.PreCast.Ast.patt
+)
+ident(
+  int_ref p "pa_deriving_Functor.ml" 104 3166 3189 "pa_deriving_Functor.ml" 104 3166 3190
+)
+"pa_deriving_Functor.ml" 106 3247 3265 "pa_deriving_Functor.ml" 106 3247 3304
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 107 3306 3335 "pa_deriving_Functor.ml" 107 3306 3339
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+"pa_deriving_Functor.ml" 107 3306 3348 "pa_deriving_Functor.ml" 107 3306 3348
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 107 3306 3348 "pa_deriving_Functor.ml" 107 3306 3349
+type(
+  string
+)
+ident(
+  int_ref v "pa_deriving_Functor.ml" 105 3197 3217 "pa_deriving_Functor.ml" 105 3197 3218
+)
+"pa_deriving_Functor.ml" 107 3306 3349 "pa_deriving_Functor.ml" 107 3306 3353
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref expr "pa_deriving_Functor.ml" 82 2410 2416 "pa_deriving_Functor.ml" 82 2410 2420
+)
+"pa_deriving_Functor.ml" 107 3306 3354 "pa_deriving_Functor.ml" 107 3306 3355
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref t "pa_deriving_Functor.ml" 104 3166 3184 "pa_deriving_Functor.ml" 104 3166 3185
+)
+"pa_deriving_Functor.ml" 107 3306 3349 "pa_deriving_Functor.ml" 107 3306 3355
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 107 3306 3370 "pa_deriving_Functor.ml" 107 3306 3371
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref e "pa_deriving_Functor.ml" 104 3166 3191 "pa_deriving_Functor.ml" 104 3166 3192
+)
+"pa_deriving_Functor.ml" 107 3306 3324 "pa_deriving_Functor.ml" 107 3306 3372
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 106 3247 3265 "pa_deriving_Functor.ml" 107 3306 3372
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 105 3197 3213 "pa_deriving_Functor.ml" 107 3306 3372
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 104 3166 3188 "pa_deriving_Functor.ml" 107 3306 3372
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr ->
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 104 3166 3186 "pa_deriving_Functor.ml" 107 3306 3372
+type(
+  int ->
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr ->
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 104 3166 3184 "pa_deriving_Functor.ml" 107 3306 3372
+type(
+  Pa_deriving_common.Type.expr ->
+  int ->
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr ->
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 108 3374 3387 "pa_deriving_Functor.ml" 108 3374 3389
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  int_ref ts "pa_deriving_Functor.ml" 101 3101 3107 "pa_deriving_Functor.ml" 101 3101 3109
+)
+"pa_deriving_Functor.ml" 109 3390 3404 "pa_deriving_Functor.ml" 109 3390 3414
+type(
+  int -> int -> int list
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.range
+)
+"pa_deriving_Functor.ml" 109 3390 3415 "pa_deriving_Functor.ml" 109 3390 3416
+type(
+  int
+)
+"pa_deriving_Functor.ml" 109 3390 3418 "pa_deriving_Functor.ml" 109 3390 3429
+type(
+  Pa_deriving_common.Type.expr list -> int
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.length
+)
+"pa_deriving_Functor.ml" 109 3390 3430 "pa_deriving_Functor.ml" 109 3390 3432
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  int_ref ts "pa_deriving_Functor.ml" 101 3101 3107 "pa_deriving_Functor.ml" 101 3101 3109
+)
+"pa_deriving_Functor.ml" 109 3390 3418 "pa_deriving_Functor.ml" 109 3390 3432
+call(
+  stack
+)
+type(
+  int
+)
+"pa_deriving_Functor.ml" 109 3390 3404 "pa_deriving_Functor.ml" 109 3390 3433
+call(
+  stack
+)
+type(
+  int list
+)
+"pa_deriving_Functor.ml" 110 3435 3456 "pa_deriving_Functor.ml" 110 3435 3456
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 110 3435 3468 "pa_deriving_Functor.ml" 110 3435 3468
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 110 3435 3451 "pa_deriving_Functor.ml" 110 3435 3471
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 103 3138 3149 "pa_deriving_Functor.ml" 110 3435 3472
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 111 3477 3489 "pa_deriving_Functor.ml" 111 3477 3492
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 111 3477 3494 "pa_deriving_Functor.ml" 111 3477 3497
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 111 3477 3489 "pa_deriving_Functor.ml" 111 3477 3497
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 111 3477 3511 "pa_deriving_Functor.ml" 111 3477 3515
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+"pa_deriving_Functor.ml" 111 3477 3517 "pa_deriving_Functor.ml" 111 3477 3521
+type(
+  Camlp4.PreCast.Ast.patt
+)
+ident(
+  int_ref args "pa_deriving_Functor.ml" 102 3113 3125 "pa_deriving_Functor.ml" 102 3113 3129
+)
+"pa_deriving_Functor.ml" 111 3477 3500 "pa_deriving_Functor.ml" 111 3477 3522
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 111 3477 3535 "pa_deriving_Functor.ml" 111 3477 3539
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+"pa_deriving_Functor.ml" 111 3477 3541 "pa_deriving_Functor.ml" 111 3477 3545
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref exps "pa_deriving_Functor.ml" 102 3113 3131 "pa_deriving_Functor.ml" 102 3113 3135
+)
+"pa_deriving_Functor.ml" 111 3477 3524 "pa_deriving_Functor.ml" 111 3477 3546
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 111 3477 3500 "pa_deriving_Functor.ml" 111 3477 3546
+type(
+  Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 112 3550 3567 "pa_deriving_Functor.ml" 112 3550 3567
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 112 3550 3572 "pa_deriving_Functor.ml" 112 3550 3575
+type(
+  Camlp4.PreCast.Ast.patt
+)
+ident(
+  int_ref pat "pa_deriving_Functor.ml" 111 3477 3489 "pa_deriving_Functor.ml" 111 3477 3492
+)
+"pa_deriving_Functor.ml" 112 3550 3581 "pa_deriving_Functor.ml" 112 3550 3584
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref exp "pa_deriving_Functor.ml" 111 3477 3494 "pa_deriving_Functor.ml" 111 3477 3497
+)
+"pa_deriving_Functor.ml" 111 3477 3485 "pa_deriving_Functor.ml" 112 3550 3589
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 102 3113 3121 "pa_deriving_Functor.ml" 112 3550 3589
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 99 3060 3072 "pa_deriving_Functor.ml" 112 3550 3589
+type(
+  Pa_deriving_common.Type.expr list -> Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 114 3591 3597 "pa_deriving_Functor.ml" 114 3591 3601
+type(
+  string * Pa_deriving_common.Type.expr list -> Camlp4.PreCast.Ast.match_case
+)
+ident(
+  def case "pa_deriving_Functor.ml" 75 2097 2099 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 115 3613 3620 "pa_deriving_Functor.ml" 115 3613 3624
+type(
+  string
+)
+ident(
+  def name "pa_deriving_Functor.ml" 115 3613 3646 "pa_deriving_Functor.ml" 115 3613 3646
+)
+"pa_deriving_Functor.ml" 115 3613 3626 "pa_deriving_Functor.ml" 115 3613 3628
+type(
+  Pa_deriving_common.Type.expr list
+)
+"pa_deriving_Functor.ml" 115 3613 3620 "pa_deriving_Functor.ml" 115 3613 3628
+type(
+  string * Pa_deriving_common.Type.expr list
+)
+"pa_deriving_Functor.ml" 115 3613 3646 "pa_deriving_Functor.ml" 115 3613 3646
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+"pa_deriving_Functor.ml" 115 3613 3646 "pa_deriving_Functor.ml" 115 3613 3650
+type(
+  string
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 115 3613 3620 "pa_deriving_Functor.ml" 115 3613 3624
+)
+type(
+  string
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 115 3613 3620 "pa_deriving_Functor.ml" 115 3613 3624
+)
+"pa_deriving_Functor.ml" 116 3675 3682 "pa_deriving_Functor.ml" 116 3675 3686
+type(
+  string
+)
+ident(
+  def name "pa_deriving_Functor.ml" 117 3697 3705 "pa_deriving_Functor.ml" 119 3779 3877
+)
+"pa_deriving_Functor.ml" 116 3675 3688 "pa_deriving_Functor.ml" 116 3675 3692
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  def args "pa_deriving_Functor.ml" 117 3697 3705 "pa_deriving_Functor.ml" 119 3779 3877
+)
+"pa_deriving_Functor.ml" 116 3675 3682 "pa_deriving_Functor.ml" 116 3675 3692
+type(
+  string * Pa_deriving_common.Type.expr list
+)
+"pa_deriving_Functor.ml" 117 3697 3709 "pa_deriving_Functor.ml" 117 3697 3710
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 117 3697 3713 "pa_deriving_Functor.ml" 117 3697 3716
+type(
+  Pa_deriving_common.Type.expr list -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref tup "pa_deriving_Functor.ml" 99 3060 3066 "pa_deriving_Functor.ml" 99 3060 3069
+)
+"pa_deriving_Functor.ml" 117 3697 3717 "pa_deriving_Functor.ml" 117 3697 3721
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  int_ref args "pa_deriving_Functor.ml" 116 3675 3688 "pa_deriving_Functor.ml" 116 3675 3692
+)
+"pa_deriving_Functor.ml" 117 3697 3713 "pa_deriving_Functor.ml" 117 3697 3721
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 118 3722 3734 "pa_deriving_Functor.ml" 118 3722 3735
+type(
+  string list
+)
+"pa_deriving_Functor.ml" 118 3722 3737 "pa_deriving_Functor.ml" 118 3722 3742
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 118 3722 3744 "pa_deriving_Functor.ml" 118 3722 3748
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 118 3722 3734 "pa_deriving_Functor.ml" 118 3722 3748
+type(
+  string list * Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 118 3722 3751 "pa_deriving_Functor.ml" 118 3722 3756
+type(
+  ?param:string ->
+  int -> string list * Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 118 3722 3758 "pa_deriving_Functor.ml" 118 3722 3769
+type(
+  Pa_deriving_common.Type.expr list -> int
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.length
+)
+"pa_deriving_Functor.ml" 118 3722 3770 "pa_deriving_Functor.ml" 118 3722 3774
+type(
+  Pa_deriving_common.Type.expr list
+)
+ident(
+  int_ref args "pa_deriving_Functor.ml" 116 3675 3688 "pa_deriving_Functor.ml" 116 3675 3692
+)
+"pa_deriving_Functor.ml" 118 3722 3758 "pa_deriving_Functor.ml" 118 3722 3774
+call(
+  stack
+)
+type(
+  int
+)
+"pa_deriving_Functor.ml" 118 3722 3751 "pa_deriving_Functor.ml" 118 3722 3775
+call(
+  stack
+)
+type(
+  string list * Camlp4.PreCast.Ast.patt * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 119 3779 3802 "pa_deriving_Functor.ml" 119 3779 3802
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.binding
+)
+type(
+  Camlp4.PreCast.Ast.meta_bool
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+"pa_deriving_Functor.ml" 119 3779 3802 "pa_deriving_Functor.ml" 119 3779 3806
+type(
+  string
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 116 3675 3682 "pa_deriving_Functor.ml" 116 3675 3686
+)
+type(
+  string
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 116 3675 3682 "pa_deriving_Functor.ml" 116 3675 3686
+)
+"pa_deriving_Functor.ml" 119 3779 3814 "pa_deriving_Functor.ml" 119 3779 3819
+type(
+  Camlp4.PreCast.Ast.patt
+)
+ident(
+  int_ref tpatt "pa_deriving_Functor.ml" 118 3722 3737 "pa_deriving_Functor.ml" 118 3722 3742
+)
+"pa_deriving_Functor.ml" 119 3779 3829 "pa_deriving_Functor.ml" 119 3779 3834
+type(
+  Camlp4.PreCast.Ast.patt
+)
+ident(
+  int_ref tpatt "pa_deriving_Functor.ml" 118 3722 3737 "pa_deriving_Functor.ml" 118 3722 3742
+)
+"pa_deriving_Functor.ml" 119 3779 3840 "pa_deriving_Functor.ml" 119 3779 3841
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref f "pa_deriving_Functor.ml" 117 3697 3709 "pa_deriving_Functor.ml" 117 3697 3710
+)
+"pa_deriving_Functor.ml" 119 3779 3844 "pa_deriving_Functor.ml" 119 3779 3848
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref texp "pa_deriving_Functor.ml" 118 3722 3744 "pa_deriving_Functor.ml" 118 3722 3748
+)
+"pa_deriving_Functor.ml" 119 3779 3867 "pa_deriving_Functor.ml" 119 3779 3871
+type(
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref texp "pa_deriving_Functor.ml" 118 3722 3744 "pa_deriving_Functor.ml" 118 3722 3748
+)
+"pa_deriving_Functor.ml" 117 3697 3705 "pa_deriving_Functor.ml" 119 3779 3877
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+"pa_deriving_Functor.ml" 114 3591 3604 "pa_deriving_Functor.ml" 119 3779 3877
+type(
+  string * Pa_deriving_common.Type.expr list -> Camlp4.PreCast.Ast.match_case
+)
+"pa_deriving_Functor.ml" 121 3879 3885 "pa_deriving_Functor.ml" 121 3879 3890
+type(
+  string * ('f * Pa_deriving_common.Type.expr) * 'g ->
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  def field "pa_deriving_Functor.ml" 75 2097 2099 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 121 3879 3892 "pa_deriving_Functor.ml" 121 3879 3896
+type(
+  string
+)
+ident(
+  def name "pa_deriving_Functor.ml" 121 3879 3908 "pa_deriving_Functor.ml" 122 3921 3955
+)
+"pa_deriving_Functor.ml" 121 3879 3899 "pa_deriving_Functor.ml" 121 3879 3900
+type(
+  'f
+)
+"pa_deriving_Functor.ml" 121 3879 3901 "pa_deriving_Functor.ml" 121 3879 3902
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def t "pa_deriving_Functor.ml" 121 3879 3908 "pa_deriving_Functor.ml" 122 3921 3955
+)
+"pa_deriving_Functor.ml" 121 3879 3899 "pa_deriving_Functor.ml" 121 3879 3902
+type(
+  'f * Pa_deriving_common.Type.expr
+)
+"pa_deriving_Functor.ml" 121 3879 3905 "pa_deriving_Functor.ml" 121 3879 3906
+type(
+  'g
+)
+"pa_deriving_Functor.ml" 121 3879 3892 "pa_deriving_Functor.ml" 121 3879 3906
+type(
+  string * ('f * Pa_deriving_common.Type.expr) * 'g
+)
+"pa_deriving_Functor.ml" 122 3921 3932 "pa_deriving_Functor.ml" 122 3921 3932
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ident
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 122 3921 3932 "pa_deriving_Functor.ml" 122 3921 3936
+type(
+  string
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 121 3879 3892 "pa_deriving_Functor.ml" 121 3879 3896
+)
+"pa_deriving_Functor.ml" 122 3921 3933 "pa_deriving_Functor.ml" 122 3921 3937
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref expr "pa_deriving_Functor.ml" 82 2410 2416 "pa_deriving_Functor.ml" 82 2410 2420
+)
+"pa_deriving_Functor.ml" 122 3921 3938 "pa_deriving_Functor.ml" 122 3921 3939
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref t "pa_deriving_Functor.ml" 121 3879 3901 "pa_deriving_Functor.ml" 121 3879 3902
+)
+"pa_deriving_Functor.ml" 122 3921 3933 "pa_deriving_Functor.ml" 122 3921 3939
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 121 3879 3891 "pa_deriving_Functor.ml" 122 3921 3955
+type(
+  string * ('f * Pa_deriving_common.Type.expr) * 'g ->
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 124 3957 3963 "pa_deriving_Functor.ml" 124 3957 3966
+type(
+  [< `Expr of Pa_deriving_common.Type.expr
+   | `Fresh of 'h * Pa_deriving_common.Type.repr * [> `Private ]
+   | `Nothing
+   | `Variant of 'i * Pa_deriving_common.Type.tagspec list ] ->
+  Camlp4.PreCast.Ast.expr
+)
+ident(
+  def rhs "pa_deriving_Functor.ml" 137 4582 4584 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 125 3978 3991 "pa_deriving_Functor.ml" 125 3978 3992
+type(
+  'h
+)
+"pa_deriving_Functor.ml" 125 3978 3994 "pa_deriving_Functor.ml" 125 3978 3995
+type(
+  Pa_deriving_common.Type.repr
+)
+"pa_deriving_Functor.ml" 125 3978 3997 "pa_deriving_Functor.ml" 125 3978 4005
+type(
+  [> `Private ] as 'j
+)
+"pa_deriving_Functor.ml" 125 3978 3983 "pa_deriving_Functor.ml" 125 3978 4006
+type(
+  [< `Expr of Pa_deriving_common.Type.expr
+   | `Fresh of 'h * Pa_deriving_common.Type.repr * 'j
+   | `Nothing
+   | `Variant of 'i * Pa_deriving_common.Type.tagspec list ]
+  as 'k
+)
+type(
+  'h * Pa_deriving_common.Type.repr * 'j
+)
+"pa_deriving_Functor.ml" 125 3978 4010 "pa_deriving_Functor.ml" 125 3978 4015
+type(
+  exn -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  ext_ref Pervasives.raise
+)
+"pa_deriving_Functor.ml" 125 3978 4029 "pa_deriving_Functor.ml" 125 3978 4074
+type(
+  string
+)
+"pa_deriving_Functor.ml" 125 3978 4017 "pa_deriving_Functor.ml" 125 3978 4074
+type(
+  exn
+)
+"pa_deriving_Functor.ml" 125 3978 4010 "pa_deriving_Functor.ml" 125 3978 4075
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 126 4076 4089 "pa_deriving_Functor.ml" 126 4076 4090
+type(
+  'h
+)
+"pa_deriving_Functor.ml" 126 4076 4096 "pa_deriving_Functor.ml" 126 4076 4104
+type(
+  Pa_deriving_common.Type.summand list
+)
+ident(
+  def summands "pa_deriving_Functor.ml" 127 4113 4127 "pa_deriving_Functor.ml" 127 4113 4127
+)
+"pa_deriving_Functor.ml" 126 4076 4092 "pa_deriving_Functor.ml" 126 4076 4104
+type(
+  Pa_deriving_common.Type.repr
+)
+"pa_deriving_Functor.ml" 126 4076 4106 "pa_deriving_Functor.ml" 126 4076 4107
+type(
+  'j
+)
+"pa_deriving_Functor.ml" 126 4076 4081 "pa_deriving_Functor.ml" 126 4076 4108
+type(
+  'k
+)
+type(
+  'h * Pa_deriving_common.Type.repr * 'j
+)
+"pa_deriving_Functor.ml" 127 4113 4127 "pa_deriving_Functor.ml" 127 4113 4127
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 127 4113 4139 "pa_deriving_Functor.ml" 127 4113 4147
+type(
+  (Pa_deriving_common.Type.summand -> Camlp4.PreCast.Ast.match_case) ->
+  Pa_deriving_common.Type.summand list -> Camlp4.PreCast.Ast.match_case list
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.map
+)
+"pa_deriving_Functor.ml" 127 4113 4148 "pa_deriving_Functor.ml" 127 4113 4152
+type(
+  Pa_deriving_common.Type.summand -> Camlp4.PreCast.Ast.match_case
+)
+ident(
+  int_ref case "pa_deriving_Functor.ml" 114 3591 3597 "pa_deriving_Functor.ml" 114 3591 3601
+)
+"pa_deriving_Functor.ml" 127 4113 4153 "pa_deriving_Functor.ml" 127 4113 4161
+type(
+  Pa_deriving_common.Type.summand list
+)
+ident(
+  int_ref summands "pa_deriving_Functor.ml" 126 4076 4096 "pa_deriving_Functor.ml" 126 4076 4104
+)
+"pa_deriving_Functor.ml" 127 4113 4139 "pa_deriving_Functor.ml" 127 4113 4161
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.match_case list
+)
+"pa_deriving_Functor.ml" 127 4113 4139 "pa_deriving_Functor.ml" 127 4113 4167
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.match_case list -> Camlp4.PreCast.Ast.match_case
+)
+ident(
+  ext_ref Camlp4.PreCast.Ast.mcOr_of_list
+)
+"pa_deriving_Functor.ml" 128 4171 4184 "pa_deriving_Functor.ml" 128 4171 4185
+type(
+  'h
+)
+"pa_deriving_Functor.ml" 128 4171 4194 "pa_deriving_Functor.ml" 128 4171 4200
+type(
+  Pa_deriving_common.Type.field list
+)
+ident(
+  def fields "pa_deriving_Functor.ml" 129 4208 4222 "pa_deriving_Functor.ml" 129 4208 4222
+)
+"pa_deriving_Functor.ml" 128 4171 4187 "pa_deriving_Functor.ml" 128 4171 4200
+type(
+  Pa_deriving_common.Type.repr
+)
+"pa_deriving_Functor.ml" 128 4171 4202 "pa_deriving_Functor.ml" 128 4171 4203
+type(
+  'j
+)
+"pa_deriving_Functor.ml" 128 4171 4176 "pa_deriving_Functor.ml" 128 4171 4204
+type(
+  'k
+)
+type(
+  'h * Pa_deriving_common.Type.repr * 'j
+)
+"pa_deriving_Functor.ml" 129 4208 4222 "pa_deriving_Functor.ml" 129 4208 4222
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 129 4208 4227 "pa_deriving_Functor.ml" 129 4208 4241
+type(
+  ?prefix:string ->
+  Pa_deriving_common.Type.field list -> Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 129 4208 4242 "pa_deriving_Functor.ml" 129 4208 4248
+type(
+  Pa_deriving_common.Type.field list
+)
+ident(
+  int_ref fields "pa_deriving_Functor.ml" 128 4171 4194 "pa_deriving_Functor.ml" 128 4171 4200
+)
+"pa_deriving_Functor.ml" 129 4208 4227 "pa_deriving_Functor.ml" 129 4208 4248
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+"pa_deriving_Functor.ml" 130 4254 4273 "pa_deriving_Functor.ml" 130 4254 4284
+type(
+  (Pa_deriving_common.Type.name * Camlp4.PreCast.Ast.expr) list ->
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 130 4254 4286 "pa_deriving_Functor.ml" 130 4254 4294
+type(
+  (Pa_deriving_common.Type.field ->
+   Pa_deriving_common.Type.name * Camlp4.PreCast.Ast.expr) ->
+  Pa_deriving_common.Type.field list ->
+  (Pa_deriving_common.Type.name * Camlp4.PreCast.Ast.expr) list
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.map
+)
+"pa_deriving_Functor.ml" 130 4254 4302 "pa_deriving_Functor.ml" 130 4254 4303
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def l "pa_deriving_Functor.ml" 130 4254 4319 "pa_deriving_Functor.ml" 130 4254 4328
+)
+"pa_deriving_Functor.ml" 130 4254 4304 "pa_deriving_Functor.ml" 130 4254 4305
+type(
+  Pa_deriving_common.Type.poly_expr
+)
+"pa_deriving_Functor.ml" 130 4254 4306 "pa_deriving_Functor.ml" 130 4254 4307
+type(
+  [ `Immutable | `Mutable ]
+)
+"pa_deriving_Functor.ml" 130 4254 4302 "pa_deriving_Functor.ml" 130 4254 4307
+type(
+  Pa_deriving_common.Type.field
+)
+"pa_deriving_Functor.ml" 130 4254 4301 "pa_deriving_Functor.ml" 130 4254 4313
+type(
+  Pa_deriving_common.Type.field
+)
+ident(
+  def f "pa_deriving_Functor.ml" 130 4254 4319 "pa_deriving_Functor.ml" 130 4254 4328
+)
+"pa_deriving_Functor.ml" 130 4254 4319 "pa_deriving_Functor.ml" 130 4254 4320
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref l "pa_deriving_Functor.ml" 130 4254 4302 "pa_deriving_Functor.ml" 130 4254 4303
+)
+"pa_deriving_Functor.ml" 130 4254 4321 "pa_deriving_Functor.ml" 130 4254 4326
+type(
+  Pa_deriving_common.Type.name * Pa_deriving_common.Type.poly_expr *
+  [ `Immutable | `Mutable ] -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref field "pa_deriving_Functor.ml" 121 3879 3885 "pa_deriving_Functor.ml" 121 3879 3890
+)
+"pa_deriving_Functor.ml" 130 4254 4327 "pa_deriving_Functor.ml" 130 4254 4328
+type(
+  Pa_deriving_common.Type.name * Pa_deriving_common.Type.poly_expr *
+  [ `Immutable | `Mutable ]
+)
+ident(
+  int_ref f "pa_deriving_Functor.ml" 130 4254 4301 "pa_deriving_Functor.ml" 130 4254 4313
+)
+"pa_deriving_Functor.ml" 130 4254 4321 "pa_deriving_Functor.ml" 130 4254 4328
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 130 4254 4319 "pa_deriving_Functor.ml" 130 4254 4328
+type(
+  Pa_deriving_common.Type.name * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 130 4254 4300 "pa_deriving_Functor.ml" 130 4254 4329
+type(
+  Pa_deriving_common.Type.field ->
+  Pa_deriving_common.Type.name * Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 130 4254 4331 "pa_deriving_Functor.ml" 130 4254 4337
+type(
+  Pa_deriving_common.Type.field list
+)
+ident(
+  int_ref fields "pa_deriving_Functor.ml" 128 4171 4194 "pa_deriving_Functor.ml" 128 4171 4200
+)
+"pa_deriving_Functor.ml" 130 4254 4286 "pa_deriving_Functor.ml" 130 4254 4337
+call(
+  stack
+)
+type(
+  (Pa_deriving_common.Type.name * Camlp4.PreCast.Ast.expr) list
+)
+"pa_deriving_Functor.ml" 130 4254 4273 "pa_deriving_Functor.ml" 130 4254 4338
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 131 4344 4355 "pa_deriving_Functor.ml" 131 4344 4356
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  def e "pa_deriving_Functor.ml" 131 4344 4377 "pa_deriving_Functor.ml" 131 4344 4383
+)
+"pa_deriving_Functor.ml" 131 4344 4349 "pa_deriving_Functor.ml" 131 4344 4356
+type(
+  'k
+)
+"pa_deriving_Functor.ml" 131 4344 4377 "pa_deriving_Functor.ml" 131 4344 4381
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref expr "pa_deriving_Functor.ml" 82 2410 2416 "pa_deriving_Functor.ml" 82 2410 2420
+)
+"pa_deriving_Functor.ml" 131 4344 4382 "pa_deriving_Functor.ml" 131 4344 4383
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref e "pa_deriving_Functor.ml" 131 4344 4355 "pa_deriving_Functor.ml" 131 4344 4356
+)
+"pa_deriving_Functor.ml" 131 4344 4377 "pa_deriving_Functor.ml" 131 4344 4383
+call(
+  tail
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 132 4384 4399 "pa_deriving_Functor.ml" 132 4384 4400
+type(
+  'i
+)
+"pa_deriving_Functor.ml" 132 4384 4402 "pa_deriving_Functor.ml" 132 4384 4406
+type(
+  Pa_deriving_common.Type.tagspec list
+)
+ident(
+  def tags "pa_deriving_Functor.ml" 133 4411 4425 "pa_deriving_Functor.ml" 133 4411 4425
+)
+"pa_deriving_Functor.ml" 132 4384 4389 "pa_deriving_Functor.ml" 132 4384 4407
+type(
+  'k
+)
+type(
+  'i * Pa_deriving_common.Type.tagspec list
+)
+"pa_deriving_Functor.ml" 133 4411 4425 "pa_deriving_Functor.ml" 133 4411 4425
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.patt
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 133 4411 4436 "pa_deriving_Functor.ml" 133 4411 4444
+type(
+  (Pa_deriving_common.Type.tagspec -> Camlp4.PreCast.Ast.match_case) ->
+  Pa_deriving_common.Type.tagspec list -> Camlp4.PreCast.Ast.match_case list
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.map
+)
+"pa_deriving_Functor.ml" 133 4411 4445 "pa_deriving_Functor.ml" 133 4411 4453
+type(
+  Pa_deriving_common.Type.tagspec -> Camlp4.PreCast.Ast.match_case
+)
+ident(
+  int_ref polycase "pa_deriving_Functor.ml" 75 2097 2107 "pa_deriving_Functor.ml" 75 2097 2115
+)
+"pa_deriving_Functor.ml" 133 4411 4454 "pa_deriving_Functor.ml" 133 4411 4458
+type(
+  Pa_deriving_common.Type.tagspec list
+)
+ident(
+  int_ref tags "pa_deriving_Functor.ml" 132 4384 4402 "pa_deriving_Functor.ml" 132 4384 4406
+)
+"pa_deriving_Functor.ml" 133 4411 4436 "pa_deriving_Functor.ml" 133 4411 4458
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.match_case list
+)
+"pa_deriving_Functor.ml" 133 4411 4436 "pa_deriving_Functor.ml" 133 4411 4464
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.match_case
+)
+type(
+  Camlp4.PreCast.Ast.match_case list -> Camlp4.PreCast.Ast.match_case
+)
+ident(
+  ext_ref Camlp4.PreCast.Ast.mcOr_of_list
+)
+"pa_deriving_Functor.ml" 134 4488 4494 "pa_deriving_Functor.ml" 134 4488 4502
+type(
+  'k
+)
+"pa_deriving_Functor.ml" 134 4488 4506 "pa_deriving_Functor.ml" 134 4488 4511
+type(
+  exn -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  ext_ref Pervasives.raise
+)
+"pa_deriving_Functor.ml" 134 4488 4525 "pa_deriving_Functor.ml" 134 4488 4578
+type(
+  string
+)
+"pa_deriving_Functor.ml" 134 4488 4513 "pa_deriving_Functor.ml" 134 4488 4578
+type(
+  exn
+)
+"pa_deriving_Functor.ml" 134 4488 4506 "pa_deriving_Functor.ml" 134 4488 4579
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 124 3957 3969 "pa_deriving_Functor.ml" 134 4488 4579
+type(
+  'k -> Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 137 4582 4588 "pa_deriving_Functor.ml" 137 4582 4595
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  def maptype "pa_deriving_Functor.ml" 146 5015 5018 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 137 4582 4596 "pa_deriving_Functor.ml" 137 4582 4600
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def name "pa_deriving_Functor.ml" 138 4603 4607 "pa_deriving_Functor.ml" 144 4955 5013
+)
+"pa_deriving_Functor.ml" 138 4603 4611 "pa_deriving_Functor.ml" 138 4603 4618
+type(
+  [> `Constr of
+       Pa_deriving_common.Type.name list *
+       [> `Param of Pa_deriving_common.Type.param ] list ]
+)
+"pa_deriving_Functor.ml" 138 4603 4631 "pa_deriving_Functor.ml" 138 4603 4635
+type(
+  Pa_deriving_common.Type.name list
+)
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 137 4582 4596 "pa_deriving_Functor.ml" 137 4582 4600
+)
+type(
+  Pa_deriving_common.Type.name list
+)
+"pa_deriving_Functor.ml" 138 4603 4638 "pa_deriving_Functor.ml" 138 4603 4646
+type(
+  (Pa_deriving_common.Type.param ->
+   ([> `Param of Pa_deriving_common.Type.param ] as 'l)) ->
+  Pa_deriving_common.Type.param list -> 'l list
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.map
+)
+"pa_deriving_Functor.ml" 138 4603 4652 "pa_deriving_Functor.ml" 138 4603 4653
+type(
+  Pa_deriving_common.Type.param
+)
+ident(
+  def p "pa_deriving_Functor.ml" 138 4603 4657 "pa_deriving_Functor.ml" 138 4603 4665
+)
+"pa_deriving_Functor.ml" 138 4603 4664 "pa_deriving_Functor.ml" 138 4603 4665
+type(
+  Pa_deriving_common.Type.param
+)
+ident(
+  int_ref p "pa_deriving_Functor.ml" 138 4603 4652 "pa_deriving_Functor.ml" 138 4603 4653
+)
+"pa_deriving_Functor.ml" 138 4603 4657 "pa_deriving_Functor.ml" 138 4603 4665
+type(
+  'l
+)
+"pa_deriving_Functor.ml" 138 4603 4652 "pa_deriving_Functor.ml" 138 4603 4665
+type(
+  Pa_deriving_common.Type.param -> 'l
+)
+"pa_deriving_Functor.ml" 138 4603 4667 "pa_deriving_Functor.ml" 138 4603 4674
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  ext_ref C.context
+)
+"pa_deriving_Functor.ml" 138 4603 4667 "pa_deriving_Functor.ml" 138 4603 4681
+type(
+  Pa_deriving_common.Type.param list
+)
+"pa_deriving_Functor.ml" 138 4603 4638 "pa_deriving_Functor.ml" 138 4603 4681
+call(
+  stack
+)
+type(
+  'l list
+)
+"pa_deriving_Functor.ml" 138 4603 4621 "pa_deriving_Functor.ml" 138 4603 4682
+type(
+  [> `Constr of Pa_deriving_common.Type.name list * 'l list ] as 'm
+)
+type(
+  Pa_deriving_common.Type.name list * 'l list
+)
+"pa_deriving_Functor.ml" 139 4686 4694 "pa_deriving_Functor.ml" 139 4686 4702
+type(
+  Pa_deriving_common.Type.expr
+)
+"pa_deriving_Functor.ml" 139 4686 4705 "pa_deriving_Functor.ml" 139 4686 4715
+type(
+  Pa_deriving_common.Type.name Pa_deriving_common.Type.NameMap.t ->
+  Pa_deriving_common.Type.expr -> Pa_deriving_common.Type.expr
+)
+"pa_deriving_Functor.ml" 139 4686 4716 "pa_deriving_Functor.ml" 139 4686 4725
+type(
+  Pa_deriving_common.Type.name Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  int_ref param_map "pa_deriving_Functor.ml" 28 527 533 "pa_deriving_Functor.ml" 28 527 542
+)
+"pa_deriving_Functor.ml" 139 4686 4726 "pa_deriving_Functor.ml" 139 4686 4733
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref ctor_in "pa_deriving_Functor.ml" 138 4603 4611 "pa_deriving_Functor.ml" 138 4603 4618
+)
+"pa_deriving_Functor.ml" 139 4686 4705 "pa_deriving_Functor.ml" 139 4686 4733
+call(
+  stack
+)
+type(
+  Pa_deriving_common.Type.expr
+)
+"pa_deriving_Functor.ml" 140 4755 4761 "pa_deriving_Functor.ml" 140 4755 4776
+type(
+  (Pa_deriving_common.Type.param ->
+   Camlp4.PreCast.Ast.ctyp -> Camlp4.PreCast.Ast.ctyp) ->
+  Pa_deriving_common.Type.param list ->
+  Camlp4.PreCast.Ast.ctyp -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  ext_ref Pa_deriving_common.Utils.List.fold_right
+)
+"pa_deriving_Functor.ml" 141 4827 4841 "pa_deriving_Functor.ml" 141 4827 4842
+type(
+  Pa_deriving_common.Type.NameMap.key
+)
+ident(
+  def p "pa_deriving_Functor.ml" 141 4827 4846 "pa_deriving_Functor.ml" 142 4853 4930
+)
+"pa_deriving_Functor.ml" 141 4827 4843 "pa_deriving_Functor.ml" 141 4827 4844
+type(
+  [ `Minus | `Plus ] option
+)
+"pa_deriving_Functor.ml" 141 4827 4841 "pa_deriving_Functor.ml" 141 4827 4844
+type(
+  Pa_deriving_common.Type.param
+)
+"pa_deriving_Functor.ml" 141 4827 4846 "pa_deriving_Functor.ml" 141 4827 4849
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  def out "pa_deriving_Functor.ml" 142 4853 4872 "pa_deriving_Functor.ml" 142 4853 4872
+)
+"pa_deriving_Functor.ml" 142 4853 4872 "pa_deriving_Functor.ml" 142 4853 4872
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 142 4853 4872 "pa_deriving_Functor.ml" 142 4853 4873
+type(
+  Pa_deriving_common.Type.NameMap.key
+)
+ident(
+  int_ref p "pa_deriving_Functor.ml" 141 4827 4841 "pa_deriving_Functor.ml" 141 4827 4842
+)
+"pa_deriving_Functor.ml" 142 4853 4872 "pa_deriving_Functor.ml" 142 4853 4884
+type(
+  Pa_deriving_common.Type.NameMap.key ->
+  string Pa_deriving_common.Type.NameMap.t -> string
+)
+ident(
+  ext_ref Pa_deriving_common.Type.NameMap.find
+)
+"pa_deriving_Functor.ml" 142 4853 4885 "pa_deriving_Functor.ml" 142 4853 4886
+type(
+  Pa_deriving_common.Type.NameMap.key
+)
+ident(
+  int_ref p "pa_deriving_Functor.ml" 141 4827 4841 "pa_deriving_Functor.ml" 141 4827 4842
+)
+"pa_deriving_Functor.ml" 142 4853 4887 "pa_deriving_Functor.ml" 142 4853 4896
+type(
+  string Pa_deriving_common.Type.NameMap.t
+)
+ident(
+  int_ref param_map "pa_deriving_Functor.ml" 28 527 533 "pa_deriving_Functor.ml" 28 527 542
+)
+"pa_deriving_Functor.ml" 142 4853 4872 "pa_deriving_Functor.ml" 142 4853 4896
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 142 4853 4922 "pa_deriving_Functor.ml" 142 4853 4925
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  int_ref out "pa_deriving_Functor.ml" 141 4827 4846 "pa_deriving_Functor.ml" 141 4827 4849
+)
+"pa_deriving_Functor.ml" 141 4827 4846 "pa_deriving_Functor.ml" 142 4853 4930
+type(
+  Camlp4.PreCast.Ast.ctyp -> Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 141 4827 4840 "pa_deriving_Functor.ml" 142 4853 4930
+type(
+  Pa_deriving_common.Type.param ->
+  Camlp4.PreCast.Ast.ctyp -> Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 143 4932 4940 "pa_deriving_Functor.ml" 143 4932 4947
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  ext_ref C.context
+)
+"pa_deriving_Functor.ml" 143 4932 4940 "pa_deriving_Functor.ml" 143 4932 4954
+type(
+  Pa_deriving_common.Type.param list
+)
+"pa_deriving_Functor.ml" 144 4955 4964 "pa_deriving_Functor.ml" 144 4955 4980
+type(
+  Pa_deriving_common.Type.expr -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  ext_ref Untranslate.expr
+)
+"pa_deriving_Functor.ml" 144 4955 4993 "pa_deriving_Functor.ml" 144 4955 5000
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref ctor_in "pa_deriving_Functor.ml" 138 4603 4611 "pa_deriving_Functor.ml" 138 4603 4618
+)
+"pa_deriving_Functor.ml" 144 4955 5002 "pa_deriving_Functor.ml" 144 4955 5010
+type(
+  Pa_deriving_common.Type.expr
+)
+ident(
+  int_ref ctor_out "pa_deriving_Functor.ml" 139 4686 4694 "pa_deriving_Functor.ml" 139 4686 4702
+)
+"pa_deriving_Functor.ml" 144 4955 4982 "pa_deriving_Functor.ml" 144 4955 5011
+type(
+  Pa_deriving_common.Type.expr
+)
+type(
+  Pa_deriving_common.Type.expr * Pa_deriving_common.Type.expr
+)
+"pa_deriving_Functor.ml" 144 4955 4964 "pa_deriving_Functor.ml" 144 4955 5012
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 140 4755 4761 "pa_deriving_Functor.ml" 144 4955 5013
+call(
+  tail
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 139 4686 4690 "pa_deriving_Functor.ml" 144 4955 5013
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 138 4603 4607 "pa_deriving_Functor.ml" 144 4955 5013
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 137 4582 4596 "pa_deriving_Functor.ml" 144 4955 5013
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 146 5015 5022 "pa_deriving_Functor.ml" 146 5015 5031
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.sig_item list
+)
+ident(
+  def signature "pa_deriving_Functor.ml" 150 5156 5158 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 146 5015 5032 "pa_deriving_Functor.ml" 146 5015 5036
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def name "pa_deriving_Functor.ml" 146 5015 5037 "pa_deriving_Functor.ml" 148 5106 5154
+)
+"pa_deriving_Functor.ml" 147 5059 5077 "pa_deriving_Functor.ml" 147 5059 5077
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 147 5059 5084 "pa_deriving_Functor.ml" 147 5059 5090
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp list
+)
+ident(
+  int_ref sigdec "pa_deriving_Functor.ml" 34 689 701 "pa_deriving_Functor.ml" 34 689 707
+)
+"pa_deriving_Functor.ml" 147 5059 5091 "pa_deriving_Functor.ml" 147 5059 5095
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 146 5015 5032 "pa_deriving_Functor.ml" 146 5015 5036
+)
+"pa_deriving_Functor.ml" 147 5059 5084 "pa_deriving_Functor.ml" 147 5059 5095
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.ctyp list
+)
+"pa_deriving_Functor.ml" 147 5059 5084 "pa_deriving_Functor.ml" 147 5059 5101
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+type(
+  Camlp4.PreCast.Ast.ctyp list -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  ext_ref Camlp4.PreCast.Ast.tyAnd_of_list
+)
+"pa_deriving_Functor.ml" 148 5106 5124 "pa_deriving_Functor.ml" 148 5106 5124
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 148 5106 5135 "pa_deriving_Functor.ml" 148 5106 5142
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  int_ref maptype "pa_deriving_Functor.ml" 137 4582 4588 "pa_deriving_Functor.ml" 137 4582 4595
+)
+"pa_deriving_Functor.ml" 148 5106 5143 "pa_deriving_Functor.ml" 148 5106 5147
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 146 5015 5032 "pa_deriving_Functor.ml" 146 5015 5036
+)
+"pa_deriving_Functor.ml" 148 5106 5135 "pa_deriving_Functor.ml" 148 5106 5147
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 148 5106 5115 "pa_deriving_Functor.ml" 148 5106 5152
+type(
+  Camlp4.PreCast.Ast.sig_item list
+)
+"pa_deriving_Functor.ml" 147 5059 5068 "pa_deriving_Functor.ml" 148 5106 5152
+type(
+  Camlp4.PreCast.Ast.sig_item list
+)
+type(
+  Camlp4.PreCast.Ast.sig_item list
+)
+type(
+  Camlp4.PreCast.Ast.sig_item list
+)
+"pa_deriving_Functor.ml" 146 5015 5032 "pa_deriving_Functor.ml" 148 5106 5154
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.sig_item list
+)
+"pa_deriving_Functor.ml" 150 5156 5162 "pa_deriving_Functor.ml" 150 5156 5166
+type(
+  Pa_deriving_common.Type.name * 'n *
+  [< `Expr of Pa_deriving_common.Type.expr
+   | `Fresh of 'o * Pa_deriving_common.Type.repr * [> `Private ]
+   | `Nothing
+   | `Variant of 'p * Pa_deriving_common.Type.tagspec list ] *
+  'q * 'r -> Camlp4.PreCast.Ast.module_binding
+)
+ident(
+  def decl "pa_deriving_Functor.ml" 160 5563 5565 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 150 5156 5168 "pa_deriving_Functor.ml" 150 5156 5172
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def name "pa_deriving_Functor.ml" 150 5156 5186 "pa_deriving_Functor.ml" 158 5527 5561
+)
+"pa_deriving_Functor.ml" 150 5156 5174 "pa_deriving_Functor.ml" 150 5156 5175
+type(
+  'n
+)
+"pa_deriving_Functor.ml" 150 5156 5177 "pa_deriving_Functor.ml" 150 5156 5178
+type(
+  [< `Expr of Pa_deriving_common.Type.expr
+   | `Fresh of 'o * Pa_deriving_common.Type.repr * [> `Private ]
+   | `Nothing
+   | `Variant of 'p * Pa_deriving_common.Type.tagspec list ]
+  as 's
+)
+ident(
+  def r "pa_deriving_Functor.ml" 150 5156 5186 "pa_deriving_Functor.ml" 158 5527 5561
+)
+"pa_deriving_Functor.ml" 150 5156 5180 "pa_deriving_Functor.ml" 150 5156 5181
+type(
+  'q
+)
+"pa_deriving_Functor.ml" 150 5156 5183 "pa_deriving_Functor.ml" 150 5156 5184
+type(
+  'r
+)
+"pa_deriving_Functor.ml" 150 5156 5168 "pa_deriving_Functor.ml" 150 5156 5184
+type(
+  Pa_deriving_common.Type.name * 'n * 's * 'q * 'r
+)
+"pa_deriving_Functor.ml" 151 5224 5231 "pa_deriving_Functor.ml" 151 5224 5235
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 150 5156 5168 "pa_deriving_Functor.ml" 150 5156 5172
+)
+"pa_deriving_Functor.ml" 151 5224 5236 "pa_deriving_Functor.ml" 151 5224 5237
+type(
+  Pa_deriving_common.Type.name -> Pa_deriving_common.Type.name -> bool
+)
+ident(
+  ext_ref Pervasives.=
+)
+"pa_deriving_Functor.ml" 151 5224 5238 "pa_deriving_Functor.ml" 151 5224 5241
+type(
+  Pa_deriving_common.Type.name
+)
+"pa_deriving_Functor.ml" 151 5224 5231 "pa_deriving_Functor.ml" 151 5224 5241
+type(
+  bool
+)
+"pa_deriving_Functor.ml" 152 5247 5253 "pa_deriving_Functor.ml" 152 5247 5258
+type(
+  exn -> Camlp4.PreCast.Ast.module_binding
+)
+ident(
+  ext_ref Pervasives.raise
+)
+"pa_deriving_Functor.ml" 152 5247 5273 "pa_deriving_Functor.ml" 152 5247 5334
+type(
+  string
+)
+"pa_deriving_Functor.ml" 153 5335 5361 "pa_deriving_Functor.ml" 153 5335 5362
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.^
+)
+"pa_deriving_Functor.ml" 153 5335 5362 "pa_deriving_Functor.ml" 153 5335 5414
+type(
+  string
+)
+"pa_deriving_Functor.ml" 152 5247 5273 "pa_deriving_Functor.ml" 153 5335 5414
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 152 5247 5260 "pa_deriving_Functor.ml" 153 5335 5415
+type(
+  exn
+)
+"pa_deriving_Functor.ml" 152 5247 5253 "pa_deriving_Functor.ml" 153 5335 5416
+type(
+  Camlp4.PreCast.Ast.module_binding
+)
+"pa_deriving_Functor.ml" 155 5426 5449 "pa_deriving_Functor.ml" 155 5426 5449
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.module_type
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.module_binding
+)
+"pa_deriving_Functor.ml" 155 5426 5449 "pa_deriving_Functor.ml" 155 5426 5458
+type(
+  string
+)
+ident(
+  int_ref classname "pa_deriving_Functor.ml" 11 204 208 "pa_deriving_Functor.ml" 11 204 217
+)
+"pa_deriving_Functor.ml" 155 5426 5459 "pa_deriving_Functor.ml" 155 5426 5460
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.^
+)
+"pa_deriving_Functor.ml" 155 5426 5461 "pa_deriving_Functor.ml" 155 5426 5464
+type(
+  string
+)
+"pa_deriving_Functor.ml" 155 5426 5465 "pa_deriving_Functor.ml" 155 5426 5466
+type(
+  string -> Pa_deriving_common.Type.name -> string
+)
+ident(
+  ext_ref Pervasives.^
+)
+"pa_deriving_Functor.ml" 155 5426 5467 "pa_deriving_Functor.ml" 155 5426 5471
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 150 5156 5168 "pa_deriving_Functor.ml" 150 5156 5172
+)
+"pa_deriving_Functor.ml" 155 5426 5461 "pa_deriving_Functor.ml" 155 5426 5471
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 155 5426 5449 "pa_deriving_Functor.ml" 155 5426 5471
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 157 5488 5502 "pa_deriving_Functor.ml" 157 5488 5511
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.sig_item list
+)
+ident(
+  int_ref signature "pa_deriving_Functor.ml" 146 5015 5022 "pa_deriving_Functor.ml" 146 5015 5031
+)
+"pa_deriving_Functor.ml" 157 5488 5512 "pa_deriving_Functor.ml" 157 5488 5516
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 150 5156 5168 "pa_deriving_Functor.ml" 150 5156 5172
+)
+"pa_deriving_Functor.ml" 157 5488 5502 "pa_deriving_Functor.ml" 157 5488 5516
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.sig_item list
+)
+"pa_deriving_Functor.ml" 157 5488 5502 "pa_deriving_Functor.ml" 157 5488 5526
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.sig_item list -> Camlp4.PreCast.Ast.sig_item
+)
+ident(
+  ext_ref Camlp4.PreCast.Ast.sgSem_of_list
+)
+"pa_deriving_Functor.ml" 158 5527 5536 "pa_deriving_Functor.ml" 158 5527 5543
+type(
+  Pa_deriving_common.Type.name ->
+  Camlp4.PreCast.Ast.expr -> Camlp4.PreCast.Ast.module_expr
+)
+ident(
+  int_ref wrapper "pa_deriving_Functor.ml" 42 954 960 "pa_deriving_Functor.ml" 42 954 967
+)
+"pa_deriving_Functor.ml" 158 5527 5544 "pa_deriving_Functor.ml" 158 5527 5548
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref name "pa_deriving_Functor.ml" 150 5156 5168 "pa_deriving_Functor.ml" 150 5156 5172
+)
+"pa_deriving_Functor.ml" 158 5527 5550 "pa_deriving_Functor.ml" 158 5527 5553
+type(
+  's -> Camlp4.PreCast.Ast.expr
+)
+ident(
+  int_ref rhs "pa_deriving_Functor.ml" 124 3957 3963 "pa_deriving_Functor.ml" 124 3957 3966
+)
+"pa_deriving_Functor.ml" 158 5527 5554 "pa_deriving_Functor.ml" 158 5527 5555
+type(
+  's
+)
+ident(
+  int_ref r "pa_deriving_Functor.ml" 150 5156 5177 "pa_deriving_Functor.ml" 150 5156 5178
+)
+"pa_deriving_Functor.ml" 158 5527 5550 "pa_deriving_Functor.ml" 158 5527 5555
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.expr
+)
+"pa_deriving_Functor.ml" 158 5527 5536 "pa_deriving_Functor.ml" 158 5527 5556
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.module_expr
+)
+"pa_deriving_Functor.ml" 151 5224 5228 "pa_deriving_Functor.ml" 158 5527 5561
+type(
+  Camlp4.PreCast.Ast.module_binding
+)
+type(
+  Camlp4.PreCast.Ast.module_binding
+)
+"pa_deriving_Functor.ml" 150 5156 5167 "pa_deriving_Functor.ml" 158 5527 5561
+type(
+  Pa_deriving_common.Type.name * 'n * 's * 'q * 'r ->
+  Camlp4.PreCast.Ast.module_binding
+)
+"pa_deriving_Functor.ml" 160 5563 5569 "pa_deriving_Functor.ml" 160 5563 5576
+type(
+  Pa_deriving_common.Type.name * 't * 'u * 'v * bool ->
+  Camlp4.PreCast.Ast.sig_item
+)
+ident(
+  def gen_sig "pa_deriving_Functor.ml" 169 5932 6006 "pa_deriving_Functor.ml" 171 6008 6011
+)
+"pa_deriving_Functor.ml" 160 5563 5578 "pa_deriving_Functor.ml" 160 5563 5583
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  def tname "pa_deriving_Functor.ml" 161 5612 5616 "pa_deriving_Functor.ml" 169 5932 6006
+)
+"pa_deriving_Functor.ml" 160 5563 5585 "pa_deriving_Functor.ml" 160 5563 5591
+type(
+  't
+)
+ident(
+  def params "pa_deriving_Functor.ml" 161 5612 5616 "pa_deriving_Functor.ml" 169 5932 6006
+)
+"pa_deriving_Functor.ml" 160 5563 5593 "pa_deriving_Functor.ml" 160 5563 5594
+type(
+  'u
+)
+"pa_deriving_Functor.ml" 160 5563 5596 "pa_deriving_Functor.ml" 160 5563 5597
+type(
+  'v
+)
+"pa_deriving_Functor.ml" 160 5563 5599 "pa_deriving_Functor.ml" 160 5563 5608
+type(
+  bool
+)
+ident(
+  def generated "pa_deriving_Functor.ml" 161 5612 5616 "pa_deriving_Functor.ml" 169 5932 6006
+)
+"pa_deriving_Functor.ml" 160 5563 5578 "pa_deriving_Functor.ml" 160 5563 5608
+type(
+  Pa_deriving_common.Type.name * 't * 'u * 'v * bool
+)
+"pa_deriving_Functor.ml" 161 5612 5619 "pa_deriving_Functor.ml" 161 5612 5624
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref tname "pa_deriving_Functor.ml" 160 5563 5578 "pa_deriving_Functor.ml" 160 5563 5583
+)
+"pa_deriving_Functor.ml" 161 5612 5625 "pa_deriving_Functor.ml" 161 5612 5626
+type(
+  Pa_deriving_common.Type.name -> Pa_deriving_common.Type.name -> bool
+)
+ident(
+  ext_ref Pervasives.=
+)
+"pa_deriving_Functor.ml" 161 5612 5627 "pa_deriving_Functor.ml" 161 5612 5630
+type(
+  Pa_deriving_common.Type.name
+)
+"pa_deriving_Functor.ml" 161 5612 5619 "pa_deriving_Functor.ml" 161 5612 5630
+type(
+  bool
+)
+"pa_deriving_Functor.ml" 162 5636 5642 "pa_deriving_Functor.ml" 162 5636 5647
+type(
+  exn -> Camlp4.PreCast.Ast.sig_item
+)
+ident(
+  ext_ref Pervasives.raise
+)
+"pa_deriving_Functor.ml" 162 5636 5662 "pa_deriving_Functor.ml" 162 5636 5723
+type(
+  string
+)
+"pa_deriving_Functor.ml" 163 5724 5750 "pa_deriving_Functor.ml" 163 5724 5751
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.^
+)
+"pa_deriving_Functor.ml" 163 5724 5751 "pa_deriving_Functor.ml" 163 5724 5803
+type(
+  string
+)
+"pa_deriving_Functor.ml" 162 5636 5662 "pa_deriving_Functor.ml" 163 5724 5803
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 162 5636 5649 "pa_deriving_Functor.ml" 163 5724 5804
+type(
+  exn
+)
+"pa_deriving_Functor.ml" 162 5636 5642 "pa_deriving_Functor.ml" 163 5724 5805
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 165 5815 5824 "pa_deriving_Functor.ml" 165 5815 5833
+type(
+  bool
+)
+ident(
+  int_ref generated "pa_deriving_Functor.ml" 160 5563 5599 "pa_deriving_Functor.ml" 160 5563 5608
+)
+"pa_deriving_Functor.ml" 166 5839 5858 "pa_deriving_Functor.ml" 166 5839 5858
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 168 5873 5892 "pa_deriving_Functor.ml" 168 5873 5892
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  string
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.module_type
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  ext_ref C._loc
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 168 5873 5892 "pa_deriving_Functor.ml" 168 5873 5901
+type(
+  string
+)
+ident(
+  int_ref classname "pa_deriving_Functor.ml" 11 204 208 "pa_deriving_Functor.ml" 11 204 217
+)
+"pa_deriving_Functor.ml" 168 5873 5902 "pa_deriving_Functor.ml" 168 5873 5903
+type(
+  string -> string -> string
+)
+ident(
+  ext_ref Pervasives.^
+)
+"pa_deriving_Functor.ml" 168 5873 5904 "pa_deriving_Functor.ml" 168 5873 5907
+type(
+  string
+)
+"pa_deriving_Functor.ml" 168 5873 5908 "pa_deriving_Functor.ml" 168 5873 5909
+type(
+  string -> Pa_deriving_common.Type.name -> string
+)
+ident(
+  ext_ref Pervasives.^
+)
+"pa_deriving_Functor.ml" 168 5873 5910 "pa_deriving_Functor.ml" 168 5873 5915
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref tname "pa_deriving_Functor.ml" 160 5563 5578 "pa_deriving_Functor.ml" 160 5563 5583
+)
+"pa_deriving_Functor.ml" 168 5873 5904 "pa_deriving_Functor.ml" 168 5873 5915
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 168 5873 5892 "pa_deriving_Functor.ml" 168 5873 5915
+call(
+  stack
+)
+type(
+  string
+)
+"pa_deriving_Functor.ml" 169 5932 5961 "pa_deriving_Functor.ml" 169 5932 5965
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  int_ref tdec "pa_deriving_Functor.ml" 34 689 695 "pa_deriving_Functor.ml" 34 689 699
+)
+"pa_deriving_Functor.ml" 169 5932 5966 "pa_deriving_Functor.ml" 169 5932 5971
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref tname "pa_deriving_Functor.ml" 160 5563 5578 "pa_deriving_Functor.ml" 160 5563 5583
+)
+"pa_deriving_Functor.ml" 169 5932 5961 "pa_deriving_Functor.ml" 169 5932 5971
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 169 5932 5984 "pa_deriving_Functor.ml" 169 5932 5991
+type(
+  Pa_deriving_common.Type.name -> Camlp4.PreCast.Ast.ctyp
+)
+ident(
+  int_ref maptype "pa_deriving_Functor.ml" 137 4582 4588 "pa_deriving_Functor.ml" 137 4582 4595
+)
+"pa_deriving_Functor.ml" 169 5932 5992 "pa_deriving_Functor.ml" 169 5932 5997
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref tname "pa_deriving_Functor.ml" 160 5563 5578 "pa_deriving_Functor.ml" 160 5563 5583
+)
+"pa_deriving_Functor.ml" 169 5932 5984 "pa_deriving_Functor.ml" 169 5932 5997
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.ctyp
+)
+"pa_deriving_Functor.ml" 165 5815 5821 "pa_deriving_Functor.ml" 169 5932 6006
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 161 5612 5616 "pa_deriving_Functor.ml" 169 5932 6006
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 160 5563 5577 "pa_deriving_Functor.ml" 169 5932 6006
+type(
+  Pa_deriving_common.Type.name * 't * 'u * 'v * bool ->
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 173 6013 6021 "pa_deriving_Functor.ml" 173 6013 6034
+type(
+  Pa_deriving_common.Type.name ->
+  Pa_deriving_common.Base.deriver * Pa_deriving_common.Base.sigderiver ->
+  unit list
+)
+ident(
+  ext_ref Pa_deriving_common.Base.register
+)
+"pa_deriving_Functor.ml" 173 6013 6035 "pa_deriving_Functor.ml" 173 6013 6044
+type(
+  Pa_deriving_common.Type.name
+)
+ident(
+  int_ref classname "pa_deriving_Functor.ml" 11 204 208 "pa_deriving_Functor.ml" 11 204 217
+)
+"pa_deriving_Functor.ml" 174 6045 6054 "pa_deriving_Functor.ml" 174 6045 6058
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  def _loc "pa_deriving_Functor.ml" 175 6079 6084 "pa_deriving_Functor.ml" 176 6162 6223
+)
+"pa_deriving_Functor.ml" 174 6045 6060 "pa_deriving_Functor.ml" 174 6045 6067
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  def context "pa_deriving_Functor.ml" 175 6079 6084 "pa_deriving_Functor.ml" 176 6162 6223
+)
+"pa_deriving_Functor.ml" 174 6045 6069 "pa_deriving_Functor.ml" 174 6045 6074
+type(
+  Pa_deriving_common.Type.decl list
+)
+ident(
+  def decls "pa_deriving_Functor.ml" 175 6079 6084 "pa_deriving_Functor.ml" 176 6162 6223
+)
+"pa_deriving_Functor.ml" 174 6045 6054 "pa_deriving_Functor.ml" 174 6045 6074
+type(
+  Camlp4.PreCast.Ast.loc * Pa_deriving_common.Base.context *
+  Pa_deriving_common.Type.decl list
+)
+"pa_deriving_Functor.ml" 175 6079 6120 "pa_deriving_Functor.ml" 175 6079 6124
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  def _loc "pa_deriving_Functor.ml" 175 6079 6153 "pa_deriving_Functor.ml" 175 6079 6157
+)
+"pa_deriving_Functor.ml" 175 6079 6127 "pa_deriving_Functor.ml" 175 6079 6131
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  int_ref _loc "pa_deriving_Functor.ml" 174 6045 6054 "pa_deriving_Functor.ml" 174 6045 6058
+)
+"pa_deriving_Functor.ml" 175 6079 6136 "pa_deriving_Functor.ml" 175 6079 6143
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  def context "pa_deriving_Functor.ml" 175 6079 6153 "pa_deriving_Functor.ml" 175 6079 6157
+)
+"pa_deriving_Functor.ml" 175 6079 6146 "pa_deriving_Functor.ml" 175 6079 6153
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  int_ref context "pa_deriving_Functor.ml" 174 6045 6060 "pa_deriving_Functor.ml" 174 6045 6067
+)
+"pa_deriving_Functor.ml" 175 6079 6099 "pa_deriving_Functor.ml" 175 6079 6158
+call(
+  stack
+)
+"pa_deriving_Functor.ml" 176 6162 6180 "pa_deriving_Functor.ml" 176 6162 6180
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  int_ref _loc "pa_deriving_Functor.ml" 174 6045 6054 "pa_deriving_Functor.ml" 174 6045 6058
+)
+type(
+  Camlp4.PreCast.Ast.str_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  int_ref _loc "pa_deriving_Functor.ml" 174 6045 6054 "pa_deriving_Functor.ml" 174 6045 6058
+)
+type(
+  Camlp4.PreCast.Ast.str_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  int_ref _loc "pa_deriving_Functor.ml" 174 6045 6054 "pa_deriving_Functor.ml" 174 6045 6058
+)
+type(
+  Camlp4.PreCast.Ast.str_item
+)
+"pa_deriving_Functor.ml" 176 6162 6193 "pa_deriving_Functor.ml" 176 6162 6201
+type(
+  (Pa_deriving_common.Type.decl -> Camlp4.PreCast.Ast.module_binding) ->
+  Pa_deriving_common.Type.decl list -> Camlp4.PreCast.Ast.module_binding list
+)
+ident(
+  ext_ref List.map
+)
+"pa_deriving_Functor.ml" 176 6162 6202 "pa_deriving_Functor.ml" 176 6162 6208
+type(
+  Pa_deriving_common.Type.decl -> Camlp4.PreCast.Ast.module_binding
+)
+ident(
+  ext_ref F.decl
+)
+"pa_deriving_Functor.ml" 176 6162 6209 "pa_deriving_Functor.ml" 176 6162 6214
+type(
+  Pa_deriving_common.Type.decl list
+)
+ident(
+  int_ref decls "pa_deriving_Functor.ml" 174 6045 6069 "pa_deriving_Functor.ml" 174 6045 6074
+)
+"pa_deriving_Functor.ml" 176 6162 6193 "pa_deriving_Functor.ml" 176 6162 6214
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.module_binding list
+)
+"pa_deriving_Functor.ml" 176 6162 6193 "pa_deriving_Functor.ml" 176 6162 6220
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.module_binding
+)
+type(
+  Camlp4.PreCast.Ast.module_binding list -> Camlp4.PreCast.Ast.module_binding
+)
+ident(
+  ext_ref Camlp4.PreCast.Ast.mbAnd_of_list
+)
+"pa_deriving_Functor.ml" 175 6079 6084 "pa_deriving_Functor.ml" 176 6162 6223
+type(
+  Camlp4.PreCast.Ast.str_item
+)
+"pa_deriving_Functor.ml" 174 6045 6053 "pa_deriving_Functor.ml" 176 6162 6223
+type(
+  Pa_deriving_common.Base.deriver
+)
+"pa_deriving_Functor.ml" 177 6226 6234 "pa_deriving_Functor.ml" 177 6226 6238
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  def _loc "pa_deriving_Functor.ml" 178 6259 6264 "pa_deriving_Functor.ml" 179 6342 6394
+)
+"pa_deriving_Functor.ml" 177 6226 6240 "pa_deriving_Functor.ml" 177 6226 6247
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  def context "pa_deriving_Functor.ml" 178 6259 6264 "pa_deriving_Functor.ml" 179 6342 6394
+)
+"pa_deriving_Functor.ml" 177 6226 6249 "pa_deriving_Functor.ml" 177 6226 6254
+type(
+  Pa_deriving_common.Type.decl list
+)
+ident(
+  def decls "pa_deriving_Functor.ml" 178 6259 6264 "pa_deriving_Functor.ml" 179 6342 6394
+)
+"pa_deriving_Functor.ml" 177 6226 6234 "pa_deriving_Functor.ml" 177 6226 6254
+type(
+  Camlp4.PreCast.Ast.loc * Pa_deriving_common.Base.context *
+  Pa_deriving_common.Type.decl list
+)
+"pa_deriving_Functor.ml" 178 6259 6300 "pa_deriving_Functor.ml" 178 6259 6304
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  def _loc "pa_deriving_Functor.ml" 178 6259 6333 "pa_deriving_Functor.ml" 178 6259 6337
+)
+"pa_deriving_Functor.ml" 178 6259 6307 "pa_deriving_Functor.ml" 178 6259 6311
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  int_ref _loc "pa_deriving_Functor.ml" 177 6226 6234 "pa_deriving_Functor.ml" 177 6226 6238
+)
+"pa_deriving_Functor.ml" 178 6259 6316 "pa_deriving_Functor.ml" 178 6259 6323
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  def context "pa_deriving_Functor.ml" 178 6259 6333 "pa_deriving_Functor.ml" 178 6259 6337
+)
+"pa_deriving_Functor.ml" 178 6259 6326 "pa_deriving_Functor.ml" 178 6259 6333
+type(
+  Pa_deriving_common.Base.context
+)
+ident(
+  int_ref context "pa_deriving_Functor.ml" 177 6226 6240 "pa_deriving_Functor.ml" 177 6226 6247
+)
+"pa_deriving_Functor.ml" 178 6259 6279 "pa_deriving_Functor.ml" 178 6259 6338
+call(
+  stack
+)
+"pa_deriving_Functor.ml" 179 6342 6360 "pa_deriving_Functor.ml" 179 6342 6360
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  int_ref _loc "pa_deriving_Functor.ml" 177 6226 6234 "pa_deriving_Functor.ml" 177 6226 6238
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.loc
+)
+ident(
+  int_ref _loc "pa_deriving_Functor.ml" 177 6226 6234 "pa_deriving_Functor.ml" 177 6226 6238
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 179 6342 6362 "pa_deriving_Functor.ml" 179 6342 6370
+type(
+  (Pa_deriving_common.Type.decl -> Camlp4.PreCast.Ast.sig_item) ->
+  Pa_deriving_common.Type.decl list -> Camlp4.PreCast.Ast.sig_item list
+)
+ident(
+  ext_ref List.map
+)
+"pa_deriving_Functor.ml" 179 6342 6371 "pa_deriving_Functor.ml" 179 6342 6380
+type(
+  Pa_deriving_common.Type.decl -> Camlp4.PreCast.Ast.sig_item
+)
+ident(
+  ext_ref F.gen_sig
+)
+"pa_deriving_Functor.ml" 179 6342 6381 "pa_deriving_Functor.ml" 179 6342 6386
+type(
+  Pa_deriving_common.Type.decl list
+)
+ident(
+  int_ref decls "pa_deriving_Functor.ml" 177 6226 6249 "pa_deriving_Functor.ml" 177 6226 6254
+)
+"pa_deriving_Functor.ml" 179 6342 6362 "pa_deriving_Functor.ml" 179 6342 6386
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.sig_item list
+)
+"pa_deriving_Functor.ml" 179 6342 6362 "pa_deriving_Functor.ml" 179 6342 6392
+call(
+  stack
+)
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+type(
+  Camlp4.PreCast.Ast.sig_item list -> Camlp4.PreCast.Ast.sig_item
+)
+ident(
+  ext_ref Camlp4.PreCast.Ast.sgSem_of_list
+)
+"pa_deriving_Functor.ml" 178 6259 6264 "pa_deriving_Functor.ml" 179 6342 6394
+type(
+  Camlp4.PreCast.Ast.sig_item
+)
+"pa_deriving_Functor.ml" 177 6226 6233 "pa_deriving_Functor.ml" 179 6342 6394
+type(
+  Pa_deriving_common.Base.sigderiver
+)
+"pa_deriving_Functor.ml" 174 6045 6048 "pa_deriving_Functor.ml" 179 6342 6395
+type(
+  Pa_deriving_common.Base.deriver * Pa_deriving_common.Base.sigderiver
+)
+"pa_deriving_Functor.ml" 173 6013 6021 "pa_deriving_Functor.ml" 179 6342 6396
+call(
+  stack
+)
+type(
+  unit list
+)

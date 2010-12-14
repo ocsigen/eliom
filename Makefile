@@ -209,9 +209,9 @@ STD_METAS_DIR=$(MODULEINSTALLDIR)
 
 all: $(BYTE) $(OPT) $(OCSIGENNAME).conf.local $(METAS)
 
-byte: xmlp4pre.byte $(TARGETSBYTE)
+byte: xmlp4pre.byte deriving.byte $(TARGETSBYTE)
 
-opt: xmlp4pre.opt $(TARGETSBYTE:.byte=.opt)
+opt: xmlp4pre.opt deriving.opt $(TARGETSBYTE:.byte=.opt)
 
 .PHONY: $(REPS) clean distclean
 
@@ -237,6 +237,12 @@ xmlp4pre.byte:
 
 xmlp4pre.opt:
 	$(MAKE) -C xmlp4 xmlp4pre.opt
+
+deriving.byte:
+	cd deriving && $(MAKE) byte
+
+deriving.opt:
+	cd deriving && $(MAKE) opt
 
 xmlp4.opt:
 #	touch xmlp4/.depend
@@ -408,6 +414,7 @@ partialinstall:
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/METAS
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	chmod a+rx "$(TEMPROOT)$(MODULEINSTALLDIR)"
+	cd deriving && $(MAKE) install
 
 docinstall:
 	make -C doc install
@@ -504,6 +511,7 @@ uninstall:
 	-$(MAKE) -C server uninstall
 	-rm -Rf "$(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client"
 	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"
+	-cd deriving && ${MAKE} uninstall
 
 fulluninstall: uninstall
 # dangerous

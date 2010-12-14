@@ -1,0 +1,25 @@
+### WARNING ###
+ This is a version of deriving by Jeremy Yallop
+ modified by Grégoire Henry for Ocsigen!
+### WARNING ###
+
+Typing `make' in this directory should build both the preprocessor
+ (lib/pa_deriving.cma and lib/pa_deriving_type_conv.cmo) and the libraries
+ (lib/modules/deriving.cma, lib/modules/deriving.cmxa).
+
+You can run the tests by changing to the test directory and building
+and running the `tests' executable
+
+   $ cd tests
+   $ make
+   ...
+   $ ./tests
+   Tests succeeded!
+
+There's very limited documentation at present, but you should be able
+to get started by looking at the test files.
+
+Any comments are very welcome.
+
+Jeremy Yallop
+jeremy.yallop@ed.ac.uk

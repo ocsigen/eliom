@@ -1,0 +1,6 @@
+package "utils" (
+  package "monad" (
+    require(byte) = "deriving_monad.cmo"
+    require(native) = "deriving_monad.cmx"
+  )
+)

@@ -1,0 +1,46 @@
+------------------------------------------------------------------------------
+0.2-ocsigen
+
+  * Local version released only with ocsigen.
+
+  * Prefix all module's name with 'Deriving_'.
+
+  * Generate a META file to be used with ocamlfind.
+
+  * Add a "type-conv" compatible mode.
+
+  * Add a Json deriver, that serialise to and from a 'js_of_ocaml'
+    value represention.
+
+  * Use lazy first-class modules instead of recursives one in the
+    generated code, and use functions of first-class modules instead
+    of functors. It seems to handles more recursive type definition,
+    and to allows a future extension that handles non-regular data
+    types.
+
+  * Handle polymorphic type in record's fields as an empty type.
+
+  * regression: the Functor deriver doesn't compile yet.
+
+------------------------------------------------------------------------------
+0.1.1
+
+Changes from 0.1:
+
+  * Renamed serialisation classes:
+
+    Pickle -> Dump
+    Shelve -> Pickle
+
+  * Made Dump and Pickle interface compatible with each other and more
+    compatible with Marshal.
+
+  * Bugfix in the tag hash function on 64-bit platforms.
+
+  * Fixed a bug with a functor application quotation that used revised
+    syntax.
+
+------------------------------------------------------------------------------
+0.1
+
+Initial release

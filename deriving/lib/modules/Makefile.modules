@@ -1,0 +1,94 @@
+# -*- Mode: Makefile -*-
+
+DERIVING_DIR=../../..
+include ${DERIVING_DIR}/Makefile.config
+
+export OCAMLMAKEFILE
+
+export USE_CAMLP4 = yes
+export INCDIRS    += \
+  ../../syntax ../utils ${foreach module,${MODULE_DEPENDS},../${module}}
+export OCAMLFLAGS += -w ae
+DERIVING := \
+  ${CAMLP4O} -I ../../ syntax/pa_deriving_common.cmo pa_deriving.cmo \
+    ${foreach module,${MODULE_DEPENDS}, -I ../${module} pa_deriving_${module}.cmo} \
+    pa_deriving_${NAME}.cmo
+ifneq (${CAMLP4O_IS_BYTE},yes)
+DERIVING := ${DERIVING:cmo=cmxs}
+endif
+export DERIVING
+
+SYNTAX_RESULT = pa_deriving_${NAME}
+ifndef SYNTAX_SOURCES
+  SYNTAX_SOURCES = pa_deriving_${NAME}.ml
+endif
+
+RUNTIME_RESULT = deriving_${NAME}
+ifndef RUNTIME_SOURCES
+  RUNTIME_SOURCES = deriving_${NAME}.ml deriving_${NAME}.mli
+endif
+
+.PHONY: all byte opt
+all: byte-code-syntax native-code-syntax byte-code-runtime native-code-runtime
+byte: byte-code-syntax byte-code-runtime
+opt: native-code-syntax native-code-runtime
+
+echo-syntax-obj:
+	@echo ${filter %.cmo,${SYNTAX_SOURCES:ml=cmo}}
+
+echo-runtime-obj:
+	@echo ${filter %.cmo,${RUNTIME_SOURCES:ml=cmo}}
+
+.PHONY: byte-code-syntax byte-code-runtime
+byte-code-syntax:
+	@${MAKE} --no-print-directory -f $(OCAMLMAKEFILE) \
+	  OCAMLC="${OCAMLC}" OCAMLDEP="${OCAMLDEP}" \
+	  SOURCES="${SYNTAX_SOURCES}" RESULT=${SYNTAX_RESULT} byte-code-library
+byte-code-runtime:
+	@${MAKE} --no-print-directory -f $(OCAMLMAKEFILE) \
+	OCAMLC="${OCAMLC}" OCAMLDEP="${OCAMLDEP}" \
+	  SOURCES="${RUNTIME_SOURCES}" RESULT=${RUNTIME_RESULT} byte-code-library
+
+.PHONY: native-code-syntax native-code-syntax.raw native-code-runtime
+native-code-syntax: native-code-syntax.raw ${SYNTAX_RESULT}.cmxs ${SYNTAX_RESULT}.cmxas
+native-code-syntax.raw:
+	@${MAKE} --no-print-directory -f $(OCAMLMAKEFILE) \
+	  OCAMLOPT="${OCAMLOPT}" OCAMLDEP="${OCAMLDEP}" \
+	  SOURCES="${SYNTAX_SOURCES}" RESULT=${SYNTAX_RESULT} native-code-library
+
+${SYNTAX_RESULT}.cmxs: ${SYNTAX_RESULT}.cmx
+	${OCAMLOPT} -shared -o ${SYNTAX_RESULT}.cmxs ${SYNTAX_RESULT}.cmx
+${SYNTAX_RESULT}.cmxas: ${SYNTAX_RESULT}.cmxa
+	${OCAMLOPT} -shared -o ${SYNTAX_RESULT}.cmxas ${SYNTAX_RESULT}.cmxa
+
+native-code-runtime:
+	@${MAKE} --no-print-directory -f $(OCAMLMAKEFILE) \
+	  OCAMLOPT="${OCAMLOPT}" OCAMLDEP="${OCAMLDEP}" \
+	  SOURCES="${RUNTIME_SOURCES}" RESULT=${RUNTIME_RESULT} native-code-library
+
+clean:
+	@${MAKE} --no-print-directory -f $(OCAMLMAKEFILE) \
+	  SOURCES="${SYNTAX_SOURCES}" RESULT=${SYNTAX_RESULT} clean
+	@${MAKE} --no-print-directory -f $(OCAMLMAKEFILE)\
+	  SOURCES="${RUNTIME_SOURCES}" RESULT=${RUNTIME_RESULT} clean
+	rm -f ${SYNTAX_RESULT}.cmxas ${SYNTAX_RESULT}.cmxs
+
+REQUIRES = \
+	${PACK_DEPENDS} \
+	deriving.base \
+	${foreach dep,${UTIL_DEPENDS},deriving.utils.${dep}} \
+	${foreach dep,${MODULE_DEPENDS},deriving.${dep}}
+
+.phony: META
+META:
+	echo >> ../../META
+	echo "package \"${NAME}\"  (" >> ../../META
+	echo "  requires = \"${REQUIRES}\""  >> ../../META
+	echo "  archive(byte) = \"deriving_${NAME}.cma\"" >> ../../META
+	echo "  archive(native) = \"deriving_${NAME}.cmxa\"" >> ../../META
+	echo "  archive(syntax, preprocessor) = \"pa_deriving_${NAME}.cma\"" >> ../../META
+	echo "  archive(syntax, toploop) = \"pa_deriving_${NAME}.cma\"" >> ../../META
+	echo ")" >> ../../META
+
+%.dump: %.ml
+	${DERIVING} -printer "o" $^
