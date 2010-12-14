@@ -37,7 +37,7 @@
 (** The type of Eliom references. *)
 type 'a eref
 
-(** Create an Eliom reference for the given scope (default: [`Session]).
+(** Create an Eliom reference for the given scope (default: [`Global]).
 
     Use the optional parameter [?persistent] if you want the data to survive
     after relaunching the server. You must give an unique name to the

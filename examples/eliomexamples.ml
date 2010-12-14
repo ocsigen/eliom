@@ -21,14 +21,43 @@
 
 (* Other examples for Eliom, and various tests *)
 
+open Lwt
+open Eliom_parameters
+
+
+let myeref = Eliom_references.eref ~persistent:"perscount" 0
+
+let count3 =
+  let next =
+    let mutex = Lwt_mutex.create () in
+    (fun () ->
+      Lwt_mutex.lock mutex >>= fun () ->
+      Eliom_references.get myeref >>= fun oldc ->
+      let newc = oldc + 1 in
+      Eliom_references.set myeref newc >>= fun () ->
+      Lwt_mutex.unlock mutex;
+      Lwt.return newc)
+  in
+  Eliom_output.Xhtml5.register_service
+    ~path:["count3"]
+    ~get_params:unit
+    (fun () () ->
+      next () >>=
+      (fun n ->
+        Lwt.return
+         (XHTML5.M.html
+          (XHTML5.M.head (XHTML5.M.title (XHTML5.M.pcdata "counter")) [])
+          (XHTML5.M.body [XHTML5.M.p [XHTML5.M.pcdata (string_of_int n)]]))))
+
+
+(*****************************************************************************)
+
 open Tutoeliom
 open XHTML.M
 open Eliom_output.Xhtmlcompact
 open Eliom_output
 open Eliom_services
-open Eliom_parameters
 open Eliom_state
-open Lwt
 
 (* Lists of lists *)
 

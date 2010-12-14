@@ -36,7 +36,7 @@ type 'a eref_kind =
 
 type 'a eref = 'a * 'a eref_kind
 
-let eref ?state_name ?(scope = `Session) ?secure ?persistent value =
+let eref ?state_name ?(scope = `Global) ?secure ?persistent value =
   if scope = `Request
   then (value, Req (Polytables.make_key ()))
   else if scope = `Global
