@@ -1,5 +1,63 @@
 =Compiling and configuring Eliom modules=
 
+
+==Ocsipersist
+
+<<div class="wip"|Ocsipersist (2 implémentations)
+Eliom allows to use more persistent data, using the module
+<<ocsigendoc version="dev" file="Ocsipersist.html"|<<span class="code"|Ocsipersist>>>>. (<<span class="code"|Ocsipersist>> is needed in
+<<span class="code"|eliom.cma>>, thus you need to dynlink it in the
+configuration file before <<span class="code"|Eliom>>).
+There are currently two implementations of <<span class="code"|Ocsipersist>>:
+<<span class="code"|ocsipersist-dbm.cma>> (uses the DBM database) and
+<<span class="code"|ocsipersist-sqlite.cma>> (uses the SQLite database,
+and depends on <<span class="code"|sqlite3.cma>>).
+>>
+
+It is possible to customize the location of the database on the 
+file system. For example, with sqlite:
+<<div class="pre"|
+    <extension findlib-package="ocsigen.ext.ocsipersist-sqlite">
+      <database file="_DATADIR_/ocsidb"/>
+    </extension>
+ >>
+And with DBM, you can customize the location of the database and the
+name of the {{{ocsidbm}}} process you want to use:
+<<div class="pre"|
+    <extension findlib-package="ocsigen.ext.ocsipersist-dbm">
+      <store dir="_DATADIR_"/>
+      <ocsidbm name="_EXTRALIBDIR_/ocsidbm"/>
+    </extension>
+ >>
+
+
+
+
+=={{{reload}}}
+
+===Updating sites without shutting down the server
+
+To reload the modules of the configuration file without
+stoping the server, use <<span class="code"|/etc/init.d/ocsigen reload>>
+for most of the distributions, or do it manually using:
+
+<<div class="pre"|echo reload > /var/run/ocsigen_command >>
+
+Only modules loaded inside <<span class="code"|<site>>> or
+<<span class="code"|<library>>> will be reloaded.
+Module loaded using <<span class="code"|<extension>>> will not.
+
+Have a look at the logs to see if all went well during the reload.
+If something went wrong, old services may still be reachable.
+
+Coservices created with the old modules or
+URLs that have not been masked by new ones
+will still reachable after the update.
+
+During the reload, some information of the configuration file
+will not be re-read (for example port numbers, user and group, etc.).
+
+
 ==@@id="p3misc"@@Eliom modules==
 
 ===Compiling Eliom modules===
