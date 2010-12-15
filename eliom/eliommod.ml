@@ -551,8 +551,7 @@ let end_init () =
     ()
   else
     try
-      Eliom_common.verify_all_registered
-        (Eliom_common.get_current_sitedata ());
+      Eliom_common.verify_all_registered (Eliom_common.get_current_sitedata ());
       Eliom_common.end_current_sitedata ()
     with Eliom_common.Eliom_site_information_not_available _ -> ()
       (*VVV The "try with" looks like a hack:
@@ -562,6 +561,7 @@ let end_init () =
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
+  | Eliom_common.Eliom_error_while_loading_site s -> s
   | Eliom_common.Eliom_duplicate_registration s ->
       ("Eliom: Duplicate registration of service \""^s^
        "\". Please correct the module.")
@@ -640,21 +640,20 @@ let load_eliom_module sitedata cmo_or_name content =
     match cmo_or_name with
       | Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo
       | Name name -> Ocsigen_loader.init_module preload postload true name
-  with Ocsigen_loader.Dynlink_error (n, e) ->
-    raise (Eliom_common.Eliom_error_while_loading_site
-             (Printf.sprintf "Eliom: while loading %s: %s"
-                n
-                (try handle_init_exn e 
-                 with e -> Ocsigen_lib.string_of_exn e)))
-
+  with
+    | Ocsigen_loader.Dynlink_error (n, e) ->
+      raise (Eliom_common.Eliom_error_while_loading_site
+               (Printf.sprintf "Eliom: while loading %s: %s"
+                  n
+                  (try handle_init_exn e
+                   with e -> Ocsigen_lib.string_of_exn e)))
 
 
 (*****************************************************************************)
 (* If page has already been generated becauise there are several <eliom>
    tags in the same site:
 *)
-let gen_nothing () _ = 
-  Lwt.return Ocsigen_extensions.Ext_do_nothing
+let gen_nothing () _ = Lwt.return Ocsigen_extensions.Ext_do_nothing
 
 
 
@@ -702,21 +701,21 @@ let parse_config hostpattern conf_info site_dir =
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in fun _ parse_site -> function
     | Element ("eliommodule", atts, content) ->
-        Eliom_extensions.register_eliom_extension 
-          default_module_action;
-        (match parse_module_attrs None atts with
-          | Some file_or_name ->
-              exception_during_eliommodule_loading := true;
-              load_eliom_module sitedata file_or_name content;
-              exception_during_eliommodule_loading := false
-          | _ -> ());
-        if Eliom_extensions.get_eliom_extension ()
-          != default_module_action
-        then
-          Eliommod_pagegen.gen
-            (Some (Eliom_extensions.get_eliom_extension ()))
-            sitedata
-        else gen_nothing ()
+      Eliom_extensions.register_eliom_extension 
+        default_module_action;
+      (match parse_module_attrs None atts with
+        | Some file_or_name ->
+          exception_during_eliommodule_loading := true;
+          load_eliom_module sitedata file_or_name content;
+          exception_during_eliommodule_loading := false
+        | _ -> ());
+      if Eliom_extensions.get_eliom_extension ()
+        != default_module_action
+      then
+        Eliommod_pagegen.gen
+          (Some (Eliom_extensions.get_eliom_extension ()))
+          sitedata
+      else gen_nothing ()
     | Element ("eliom", atts, content) ->
 (*--- if we put the line "new_sitedata" here, then there is
   one service table for each <eliom> tag ...
@@ -788,8 +787,10 @@ let parse_config hostpattern conf_info site_dir =
             content
         in
         (match parse_module_attrs None atts with
-          | Some file_or_name -> 
-              load_eliom_module sitedata file_or_name content
+          | Some file_or_name ->
+            exception_during_eliommodule_loading := true;
+            load_eliom_module sitedata file_or_name content;
+            exception_during_eliommodule_loading := false
           | _ -> ());
         (* We must generate the page only if it is the first <eliom> tag 
            for that site: *)
