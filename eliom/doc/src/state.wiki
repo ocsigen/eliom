@@ -546,7 +546,7 @@ and the user name is now the session group.
 
 <<div class="wip"|Reread and verify>>
 <<div class="wip"|Add timeouts for groups and processes>>
-<<div class="wip"|Also Write a section on timeoutin the chapter config file>>
+<<div class="wip"|See also timeout section in the chapter config file. may move some stuffs? verify nothing is explained twice!>>
 
 The default timeout for sessions in one hour. Sessions will be
 automatically closed after that amount of time of inactivity from the user.

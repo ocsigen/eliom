@@ -1,75 +1,21 @@
 =Compiling and configuring Eliom modules=
 
+This chapter explains how to compile Eliom module,
+how to set Eliom's options in the configuration file,
+and how to define options for your Eliom modules.
+See chapter * * for more information abour Ocsigen server's configuration.
 
-==Ocsipersist
+==@@id="p3misc"@@Using Eliom modules with Ocsigen server==
 
-<<div class="wip"|Ocsipersist (2 implémentations)
-Eliom allows to use more persistent data, using the module
-<<ocsigendoc version="dev" file="Ocsipersist.html"|<<span class="code"|Ocsipersist>>>>. (<<span class="code"|Ocsipersist>> is needed in
-<<span class="code"|eliom.cma>>, thus you need to dynlink it in the
-configuration file before <<span class="code"|Eliom>>).
-There are currently two implementations of <<span class="code"|Ocsipersist>>:
-<<span class="code"|ocsipersist-dbm.cma>> (uses the DBM database) and
-<<span class="code"|ocsipersist-sqlite.cma>> (uses the SQLite database,
-and depends on <<span class="code"|sqlite3.cma>>).
->>
-
-It is possible to customize the location of the database on the 
-file system. For example, with sqlite:
-<<div class="pre"|
-    <extension findlib-package="ocsigen.ext.ocsipersist-sqlite">
-      <database file="_DATADIR_/ocsidb"/>
-    </extension>
- >>
-And with DBM, you can customize the location of the database and the
-name of the {{{ocsidbm}}} process you want to use:
-<<div class="pre"|
-    <extension findlib-package="ocsigen.ext.ocsipersist-dbm">
-      <store dir="_DATADIR_"/>
-      <ocsidbm name="_EXTRALIBDIR_/ocsidbm"/>
-    </extension>
- >>
-
-
-
-
-=={{{reload}}}
-
-===Updating sites without shutting down the server
-
-To reload the modules of the configuration file without
-stoping the server, use <<span class="code"|/etc/init.d/ocsigen reload>>
-for most of the distributions, or do it manually using:
-
-<<div class="pre"|echo reload > /var/run/ocsigen_command >>
-
-Only modules loaded inside <<span class="code"|<site>>> or
-<<span class="code"|<library>>> will be reloaded.
-Module loaded using <<span class="code"|<extension>>> will not.
-
-Have a look at the logs to see if all went well during the reload.
-If something went wrong, old services may still be reachable.
-
-Coservices created with the old modules or
-URLs that have not been masked by new ones
-will still reachable after the update.
-
-During the reload, some information of the configuration file
-will not be re-read (for example port numbers, user and group, etc.).
-
-
-==@@id="p3misc"@@Eliom modules==
-
-===Compiling Eliom modules===
+===Basics: compiling and running server side applications
+====Compiling Eliom modules
 
 If you're application is server-side only, it is easy to compile an
 Eliom module (here {{{example.ml}}}) with the following command:
 
 <<div class="pre"|ocamlfind ocamlc -thread -package ocsigen -c example.ml>>
 
-<<div class="wip"|Compiling client-server applications>>
-
-===Configuration file===
+====Configuration file
 
 To run an Ocsigen server with an Eliom module {{{example.cmo}}},
 add the following lines to Ocsigen's configuration file
@@ -89,7 +35,7 @@ you want to register your services at the root of the server path tree.
 The {{{<eliom>}}} tag defines an Eliom module to be loaded (dynamically while
 starting Ocsigen server) for this subsite.
 
-===Running Ocsigen server===
+====Running Ocsigen server
 
 Run Ocsigen server, by typing the command
 {{{
@@ -97,17 +43,30 @@ ocsigen
 }}}
 or, if your configuration file is not in the default 
 location:
-<<div class="pre"|
-ocsigen -c //<your configuration file>//
->>
+<<div class="pre"|ocsigen -c //<your configuration file>//>>
 
 You should see the page corresponding to service {{{"coucou"}}} in site
-{{{examples/}}} at url
+{{{examples/}}} at url\\
 <<span class="code"|~http:~/~///your_server///examples/coucou>>.\\
 
-===Several Eliom modules for one site===
+<<div class="encadre"|**Tip:** Add the option {{{<<debugmode/>}}} in
+the configuration file during the development process of your application.
+Thus, Ocsigen server will display the exceptions raised during
+the generation of a page in error pages. >>
 
-<<div class="wip"|BLA À REVOIR !>>
+<<div class="encadre"|**Tip:** To debug your programs, 
+add the option {{{-v}}} or {{{-V}}} of
+the {{{ocsigen}}} command to have verbose information on what succeeds
+during request. Also think to have look in the log files when something goes
+wrong!>>
+
+===Compiling client-server Eliom applications
+
+<<div class="wip"|TODO>>
+
+
+
+===Several Eliom modules for one site===
 
 If your site consists of several modules, you can load them
 consecutively from the configuration file using 
@@ -128,44 +87,105 @@ If your module has a findlib <<span class="code"|META>> file,
 it is also possible to do:
 
 <<div class="pre"|<host>
-  <site path="examples">
-    <eliom findlib-package="//package-name//" />
-  </site>
+  <site path="examples">
+    <eliom findlib-package="//package-name//" />
+  </site>
 </host>
 >>
 
 
-===Advanced use: create an extension for the server that access Eliom's data
+
+===Updating sites without shutting down the server
+
+Ocsigen server has a feature that allows to re-read the configuration
+without shutting down the server (see section * *).
+This can be used to reload Eliom modules without closing volatile sessions.
+To do that use <<span class="code"|/etc/init.d/ocsigen reload>>
+for most of the distributions, or do it manually using:
+
+<<div class="pre"|echo reload > /var/run/ocsigen_command >>
+
+Only modules loaded inside <<span class="code"|<host>>>,
+<<span class="code"|<site>>> or
+<<span class="code"|<library>>> will be reloaded.
+Module loaded using <<span class="code"|<extension>>> will not.
+
+Have a look at the logs to see if all went well during the reload.
+If something went wrong, old services may still be reachable.
+
+Warning:
+* Services created with the old modules or
+URLs that have not been masked by new ones
+will still reachable after the update!
+* During the reload, some information of the configuration file
+will not be re-read (for example port numbers, user and group, etc.).
+
+
+==Interacting with Ocsigen server from Eliom programs
+
+===Defining an exception handler for the whole site
+
+When an exception is raised during the generation of a page,
+or when the page has not been found or has wrong parameters,
+an HTTP error 500 or 404 is sent to the client. You may want to
+catch these exceptions to print your own error page.
+Do this using <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALset_exn_handler"|<<span class="code"|Eliom_services.set_exn_handler>>>>.
+Here is the handler used by the tutorial:
+    
+<<code language="ocaml"|let _ = Eliom_services.set_exn_handler
+   (fun e -> match e with
+    | Eliom_common.Eliom_404 ->
+        Eliom_output.Xhtml.send ~code:404
+          (html
+             (head (title (pcdata "")) [])
+             (body [h1 [pcdata "Eliom tutorial"];
+                    p [pcdata "Page not found"]]))
+    | e -> fail e)
+>>
+
+===Giving configuration options to your sites
     
     
-If you want an Ocsigen extension with access to Eliom's
-  data (for example if you want an extension that will
-  register some services), you can use the function
-  <<ocsigendoc version="dev" file="Eliom_extensions.html" fragment="VALregister_eliom_extension"|<<span class="code"|Eliom_extensions.register_eliom_extension>>>>
-  to register the function that will generate the
-  <<span class="code"|Ocsigen_extensions.answer>>.
+You can add your own options in the configuration
+file for your Web site. For example:
+
+<<code language="ocaml"|
+    <eliom module="//path_to///yourmodule.cmo">
+      <youroptions> ...
+    </eliom>
+>>
+
+ Use <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|<<span class="code"|Eliom_config.get_config ()>>>> during the initialization
+ of your module to get the data between
+ <<span class="code"|<eliom>>> and <<span class="code"|</eliom>>>.
+
+<<div class="wip"|
+ Warning: parsing these data is very basic for now.
+ That feature will be improved in the future.
+>>
 
 ===Static linking of Eliom modules
 
 From version 1.2, it is possible to link extensions and Eliom modules
-statically ([[site:ocsigenserver/staticlink|See here]]).
-Obviously, for Eliom modules, service registration and options setting must be delayed until the configuration file is read. To create a statically linkable Eliom module, use the function
+statically ([[site:ocsigenserver/staticlink|See section * *]]).
+But this is not straightforward.
+For Eliom modules, service registration and options setting must be delayed
+until the configuration file is read. To create a statically linkable Eliom
+module, use the function
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|<<span class="code"|Eliom_services.register_eliom_module>>>>. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call <<ocsigendoc version="dev" file="Eliom_config.html" fragment="VALget_config"|<<span class="code"|Eliom_config.get_config>>>> if the module has configuration options).
+
+<<div class="wip"|How to improve this and this easier to use?>>
 
 To initialize the module from the configuration file, use the syntax:
 
-<<div class="pre"|<eliommodule name="//name//"> ... </eliommodule>
->>
+<<div class="pre"|<eliommodule name="//name//"> ... </eliommodule> >>
 (or <<span class="code"|<eliom name="//name//"> ... </eliom> >>)
 
     
 which is equivalent to:
-<<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliommodule>
->>
+<<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliommodule> >>
 (or <<span class="code"|<eliom module="//name.cmxs//"> ... </eliom> >>)
-
-    
-with the exception that it does not load the module using <<span class="code"|Dynlink>>, but calls the initialization function.
+with the exception that it does not load the module using <<span class="code"|Dynlink>>, but calls the initialization function.\\
     
 
 You can use functions like 
@@ -179,73 +199,28 @@ you must call these function using the function
 (One solution is to use a lazy value to delay the creation of the table,
 and force that value during the registration function).
 
-  >>
+
+===Advanced use: create an extension for the server that access Eliom's data
+
+If you want an Ocsigen extension with access to Eliom's
+data (for example if you want an extension that will
+register some services), you can use the function
+<<ocsigendoc version="dev" file="Eliom_extensions.html" fragment="VALregister_eliom_extension"|<<span class="code"|Eliom_extensions.register_eliom_extension>>>>
+to register the function that will generate the
+<<span class="code"|Ocsigen_extensions.answer>>.
+
+<<div class="wip"|Add more details about this>>
 
 
-
-
-===Defining an exception handler for the whole site
-    
-    
-When an exception is raised during the generation of a page,
-or when the page has not been found or has wrong parameters,
-an HTTP error 500 or 404 is sent to the client. You may want to
-catch these exceptions to print your own error page.
-Do this using <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALset_exn_handler"|<<span class="code"|Eliom_services.set_exn_handler>>>>.
-Here is the handler used by this tutorial:
-
-    
-<<code language="ocaml"|let _ = Eliom_services.set_exn_handler
-   (fun e -> match e with
-    | Eliom_common.Eliom_404 ->
-        Eliom_output.Xhtml.send ~code:404
-          (html
-             (head (title (pcdata "")) [])
-             (body [h1 [pcdata "Eliom tutorial"];
-                    p [pcdata "Page not found"]]))
-(*    | Eliom_common.Eliom_Wrong_parameter ->
-        Eliom_output.Xhtml.send
-          (html
-             (head (title (pcdata "")) [])
-             (body [h1 [pcdata "Eliom tutorial"];
-                    p [pcdata "Wrong parameters"]])) *)
-    | e -> fail e)
->>
-
-===Giving configuration options to your sites
-    
-    
-You can add your own options in the configuration
-file for your Web site. For example:
-    
-
-    
-<<code language="ocaml"|
-    <eliom module="//path_to///yourmodule.cmo">
-      <youroptions> ...
-    </eliom>
-
->>
-
-    
- Use <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|<<span class="code"|Eliom_config.get_config ()>>>> during the initialization
- of your module to get the data between
- <<span class="code"|<eliom>>> and <<span class="code"|</eliom>>>.
- Warning: parsing these data is very basic for now.
- That feature will be improved in the future.
-
-    
-
-
-
-
-==@@id="p3config"@@Configuration options
+==@@id="p3config"@@Global configuration options
 
 Here are Eliom's options you can use in configuration files.
 
 ===Timeouts
 
-Timeouts for sessions can be set either inside tag
+<<div class="wip"|Revoir les timeouts pour client processes et groupes>>
+
+Timeouts for sessions (and other states) can be set either inside tag
 {{{<extension findlib-package="ocsigen.ext.eliom"/>}}}
 (default value for all sites),
 or inside a {{{<eliom/>}}} tag (default for one site).
@@ -274,18 +249,18 @@ exists only inside an {{{<eliom/>}}} tag
 * {{{<volatiletimeout value="30" [sessionname=""]/>}}}
   The default timeout for
   volatile (in memory) sessions.
-  value="infinity" means that the session will
+  {{{value="infinity"}}} means that the session will
   never finish.
   Note that each eliom module may set its own
   default, that will override this one.
 * {{{<persistenttimeout value="7200"/>}}}
   Idem for persistent session data
 * {{{<datatimeout value="30"  [sessionname=""]/>}}}
-     Like <timeout>, but for in memory data
+     Like {{{<timeout>}}}, but for in memory data
      sessions only
      (not service sessions).
 * {{{<servicetimeout value="30" [sessionname=""]/>}}} 
-  Like <timeout>, but for service sessions only
+  Like {{{<timeout>}}}, but for service sessions only
      (not in memory data  sessions).
 
 ===Garbage collector of sessions and services
@@ -298,12 +273,12 @@ For now, it cannot be set for each site independently
 * {{{<sessiongcfrequency value="30"/>}}} 
      Time between two garbage
      collections of sessions, in seconds (default
-     3600) "infinity" means no GC of session.
+     3600). The value {{{"infinity"}}} means no GC of session.
 * {{{<persistentsessiongcfrequency value="86400"/>}}} 
      Time between two
      garbage collections of persistent sessions,
-     in seconds (default 86400.) "infinity"
-     means no GC of session.
+     in seconds (default 86400.). The value {{{"infinity"}}} means
+      no GC of session.
 * {{{<servicesessiongcfrequency value="3600"/>}}} 
      Like {{{<sessiongcfrequency>}}},
      but for service sessions only

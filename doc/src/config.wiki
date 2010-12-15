@@ -1,15 +1,15 @@
 =Configuration file=
 
+
 The main configuration file is usually named {{{/etc/ocsigen/ocsigen.conf}}}. It contains the port(s) on which you want to run the server (usually 80), the protocol to use (HTTP or HTTPS), the location of log files, many settings for the server, the extensions to be loaded, the OCaml libraries you need for your Web sites, the configuration of each Web site, etc. One default configuration file should be provided by your distribution.
 
 
 
 If you compiled Ocsigen yourself, two default configuration files are generated:
-
 * one for "system-wide" use, saved as {{{/etc/ocsigen/ocsigen.conf.sample}}} (generated only if you did {{{make install}}}),
 * one for testing without system-wide installation, saved as {{{ocsigen.conf.local}}} in your compilation directory. You can use it without beeing root (do {{{./server/ocsigen -c ocsigen.conf.local}}}).
 
-        ===Basic layout of the configuration file
+===Basic layout of the configuration file
         
         
 The configuration file is an XML file. Its layout is the following:
@@ -347,12 +347,9 @@ The file associating file name extensions to their MIME type. Example:
 {{{
 <mimefile>/etc/ocsigen/mime.types</mimefile>
 }}}
-        ===={{{<debugmod/>}}} : Error messages in pages
-        
-        
-Use this option for debugging your Web sites. Full error messages will be written in Error 500 pages. Example:
-        
 
+===={{{<debugmod/>}}} : Error messages in pages
+Use this option for debugging your Web sites. Full error messages will be written in Error 500 pages. Example:
         
 {{{
 <debugmod/>
@@ -622,22 +619,14 @@ Inside {{{<host>}}}, write the configuration for your main (root) site. These op
         
         
 In each virtual host, it is possible to define several sub-sites (in sub-paths) between {{{<site>}}} and {{{</site>}}}. {{{<site>}}} has an attribute {{{dir}}} to set the home directory for the site. You can also set the default charset for the site using the {{{charset}}} attribute. The options between {{{<site>}}} and {{{</site>}}} are exactly the same as those you can can put between {{{<host>}}} and {{{</host>}}}. They depend on the extensions you loaded. It is also possible to define sub-sites inside sub-sites.
-        
 
-        
 Example of use:
-        
-
-        
 {{{
 <site path="mysite"> ... </site>
 }}}
 
+===Reloading the configuration file
 
-
-        ===Reloading the configuration file
-        
-        
 To reload the modules of the configuration file without stoping the server, write the command {{{reload}}} in the server's command pipe (usually {{{/var/run/ocsigen_command}}}. For example: 
         
 {{{
@@ -650,15 +639,13 @@ Form version 1.3, it is possible to give the name of the configuration file as p
 echo reload /etc/ocsigen/ocsigen.conf.2 > /var/run/ocsigen_command
 }}}
 
-       
-Most distributions have a special command to do that automatically, usually:
-        
-
+Most distributions have a special command to do that automatically
+(for the default configuration file), usually:
 {{{
 /etc/init.d/ocsigen reload
 }}}
         
-The configuration file will be reloaded, and the changes will be taken into account if possible. For example it is not possible to change the port numbers without stoping the server. Extensions and libraries loaded using {{{<extension>}}} will not be reloaded.
+The configuration file will be reloaded, and the changes will be taken into account if possible. For example it is not possible to change the port numbers without stoping the server for now. Extensions and libraries loaded using {{{<extension>}}} will not be reloaded.
         
 
 ===Graceful shutdown //(From version 1.3)//
