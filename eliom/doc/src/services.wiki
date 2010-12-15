@@ -1578,6 +1578,9 @@ There is also
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_hidden_coservice'"|<<span class="code"|Eliom_services.void_hidden_coservice'>>>>, and
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALhttps_void_hidden_coservice'"|<<span class="code"|Eliom_services.https_void_hidden_coservice'>>>>. "Hidden" means that they keep GET non attached parameters.
 
+See an example of use in chapter * * section * * (connection of users with
+session groups).
+
 
 ===@@id="p3infofallbacks"@@Get information on what succeeded before the service===
 

@@ -23,7 +23,226 @@
 
 open Lwt
 open Eliom_parameters
+open XHTML5.M
 
+(*****************************************************************************)
+
+(************************************************************)
+(****************** Connection of users *********************)
+(************************************************************)
+(*zap* *)
+let state_name = "connect_example_state"
+(* *zap*)
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let connect_example =
+  Eliom_services.service
+    ~path:["connect_example"]
+    ~get_params:unit
+    ()
+
+let connect_action =
+  Eliom_services.post_coservice'
+    ~name:"connection"
+    ~post_params:(string "login")
+    ()
+
+(* disconnect action and box:                               *)
+
+let disconnect_action =
+  Eliom_output.Action.register_post_coservice'
+    ~name:"disconnection"
+    ~post_params:Eliom_parameters.unit
+    (fun () () ->
+      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+
+let disconnect_box s =
+  Eliom_output.Xhtml5.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Xhtml5.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+(* The following eref is true if the connection has action failed: *)
+let bad_user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Request false
+
+(* The following eref is the name of the user, when connected *)
+let user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Session None
+
+(* -------------------------------------------------------- *)
+(* new login box:                                           *)
+
+let login_box session_expired bad_u action =
+  Eliom_output.Xhtml5.post_form action
+    (fun loginname ->
+      let l =
+        [pcdata "login: ";
+         Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:loginname ()]
+      in
+      [p (if bad_u
+        then (pcdata "Wrong user")::(br ())::l
+        else
+          if session_expired
+          then (pcdata "Session expired")::(br ())::l
+          else l)
+      ])
+    ()
+
+(* -------------------------------------------------------- *)
+(* Handler for the "connect_example" service (main page):   *)
+
+let connect_example_handler () () =
+  (* The following function tests whether the session has expired: *)
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  in
+  Eliom_references.get bad_user >>= fun bad_u ->
+  Eliom_references.get user >>= fun u ->
+  Lwt.return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          (match u, status with
+            | Some name, _ ->
+              [p [pcdata ("Hello "^name); br ()];
+               disconnect_box "Close session"]
+            | None, Eliom_state.Expired_state ->
+              [login_box true bad_u connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+            | _ ->
+              [login_box false bad_u connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          )))
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler () login =
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  if login = "toto" (* Check user and password :-) *)
+  then Eliom_references.set user (Some login)
+  else Eliom_references.set bad_user true
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_output.Xhtml5.register ~service:connect_example connect_example_handler;
+  Eliom_output.Action.register ~service:connect_action connect_action_handler
+
+
+(*****************************************************************************)
+
+(************************************************************)
+(********* Connection of users with session groups **********)
+(************************************************************)
+(*zap* *)
+let state_name = "session_group_example_state"
+(* *zap*)
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let connect_example =
+  Eliom_services.service
+    ~path:["sessgrp"]
+    ~get_params:unit
+    ()
+
+let connect_action =
+  Eliom_services.post_coservice'
+    ~name:"connection2"
+    ~post_params:(string "login")
+    ()
+
+(* disconnect action and box:                               *)
+
+let disconnect_action =
+  Eliom_output.Action.register_post_coservice'
+    ~name:"disconnection2"
+    ~post_params:Eliom_parameters.unit
+    (fun () () ->
+      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+
+let disconnect_box s =
+  Eliom_output.Xhtml5.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Xhtml5.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+(* The following eref is true if the connection has action failed: *)
+let bad_user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Request false
+
+(* -------------------------------------------------------- *)
+(* new login box:                                           *)
+
+let login_box session_expired bad_u action =
+  Eliom_output.Xhtml5.post_form action
+    (fun loginname ->
+      let l =
+        [pcdata "login: ";
+         Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:loginname ()]
+      in
+      [p (if bad_u
+        then (pcdata "Wrong user")::(br ())::l
+        else
+          if session_expired
+          then (pcdata "Session expired")::(br ())::l
+          else l)
+     ])
+    ()
+
+(* -------------------------------------------------------- *)
+(* Handler for the "connect_example" service (main page):   *)
+
+let connect_example_handler () () =
+  (* The following function tests whether the session has expired: *)
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  in
+  let group =
+    Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ()
+  in
+  Eliom_references.get bad_user >>= fun bad_u ->
+  Lwt.return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          (match group, status with
+          | Some name, _ ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box "Close session"]
+          | None, Eliom_state.Expired_state ->
+              [login_box true bad_u connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          | _ ->
+              [login_box false bad_u connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          )))
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler () login =
+  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  if login = "toto" (* Check user and password :-) *)
+  then begin
+    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) login;
+    Eliom_output.Redirection.send Eliom_services.void_hidden_coservice'
+  end
+  else  
+    Eliom_references.set bad_user true >>= fun () ->
+    Eliom_output.Action.send ()
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_output.Xhtml5.register ~service:connect_example connect_example_handler;
+  Eliom_output.Any.register ~service:connect_action connect_action_handler
+
+
+
+(*****************************************************************************)
 
 let myeref = Eliom_references.eref ~persistent:"perscount" 0
 
