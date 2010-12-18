@@ -240,9 +240,15 @@ xmlp4pre.opt:
 
 deriving.byte:
 	cd deriving && $(MAKE) byte
+	rm -rf deriving/tmp
+	mkdir -p deriving/tmp
+	OCAMLFIND_DESTDIR=`pwd`/deriving/tmp cd deriving && $(MAKE) install
 
 deriving.opt:
 	cd deriving && $(MAKE) opt
+	rm -rf deriving/tmp
+	mkdir -p deriving/tmp
+	OCAMLFIND_DESTDIR=`pwd`/deriving/tmp cd deriving && $(MAKE) install
 
 xmlp4.opt:
 #	touch xmlp4/.depend

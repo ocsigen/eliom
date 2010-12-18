@@ -2,6 +2,13 @@
 
 open Deriving_Json
 
+module String = struct
+
+  include String
+  module Json_t = Json_string
+
+end
+
 module Map = struct
 
   module type OrderedType = sig

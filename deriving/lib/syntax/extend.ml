@@ -21,7 +21,7 @@ struct
   EXTEND Gram
   expr: LEVEL "simple"
   [
-  [e1 = TRY val_longident ; "<" ; t = ctyp; ">" ->
+  [ TRY [ e1 = val_longident ; "<" ; t = ctyp; ">"  ->
      match e1 with
        | <:ident< $uid:classname$ . $lid:methodname$ >> ->
            if not (Base.is_registered classname) then
@@ -50,7 +50,7 @@ struct
            Base.fatal_error _loc
 	     ("deriving: this looks a bit like a method application,"
               ^ "but the syntax is not valid");
-  ]];
+  ]]];
   END
 
 end

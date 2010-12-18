@@ -1,5 +1,12 @@
 open Deriving_Json
 
+module String : sig
+  include module type of String
+  module Json_t : sig
+    val make: (module Json with type a = t)
+  end
+end
+
 module Map : sig
 
   module type OrderedType = sig

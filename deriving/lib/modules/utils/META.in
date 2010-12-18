@@ -3,4 +3,8 @@ package "utils" (
     require(byte) = "deriving_monad.cmo"
     require(native) = "deriving_monad.cmx"
   )
+  package "stdlib" (
+    require(byte) = "deriving_stdlib.cmo"
+    require(native) = "deriving_stdlib.cmx"
+  )
 )
