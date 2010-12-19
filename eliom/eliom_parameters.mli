@@ -354,8 +354,9 @@ type 'a caml
 (** marshaled OCaml values of type 'a *)
 
 val caml :
-    string ->
-      ('a, [ `WithoutSuffix ], [ `One of 'a caml ] param_name) params_type
+  string ->
+  'a Deriving_Json.t ->
+  ('a, [ `WithoutSuffix ], [ `One of 'a caml ] param_name) params_type
 (** [caml s] tells that the service is expecting some caml (client side)
     program to send some value of type 'a, marshaled.
     As usual [s] is the name of the parameter. *)
@@ -491,4 +492,4 @@ val list_of_nl_params_set : nl_params_set -> (string * string) list
 
 val string_of_nl_params_set : nl_params_set -> string
 
-(**/**)
+val wrap_param_type : ('a, 'b, 'c) params_type -> ('a, 'b, 'c) params_type

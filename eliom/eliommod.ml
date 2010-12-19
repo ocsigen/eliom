@@ -618,7 +618,6 @@ let handle_init_exn = function
   | Eliom_common.Eliom_page_erasing s ->
       ("Eliom: You cannot create a page or directory here. "^s^
        " already exists. Please correct your modules.")
-  | Eliom_common.Eliom_error_while_loading_site s -> s
   | e -> raise e
 
 (*****************************************************************************)

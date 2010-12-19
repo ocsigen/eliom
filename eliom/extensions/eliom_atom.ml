@@ -51,7 +51,7 @@ module Reg_ = struct
    type return
    let do_appl_xhr = Eliom_services.XNever
    let pre_service ?options () = Lwt.return ()
-   let send ?options:_ ?charset:_ ?code:_ ?content_type:_ ?headers
+   let send ?options ?charset ?code ?content_type ?headers
      feed = Lwt.return (result_of_content feed headers )
 end
 

@@ -1,5 +1,7 @@
 include ../Makefile.config
 
+export OCAMLPATH=../deriving/tmp
+
 FILES=$(wildcard *.ml)
 
 TUTOWIKI= tutoeliom1.wiki tutoeliom2.wiki tutoeliom3.wiki tutoeliom4.wiki
@@ -23,15 +25,16 @@ endif
 LWTDIR := $(shell ocamlfind query lwt)
 REACTDIR := $(shell ocamlfind query react)
 
+DERIVINGDIR := ../deriving/tmp/deriving
 ELIOMDIR := ../eliom
 ELIOMCLIENTDIR := $(ELIOMDIR)/client
 PAELIOMCLIENTDIR := $(ELIOMDIR)/syntax
 
 JSOFOCAMLDIR := $(shell ocamlfind query js_of_ocaml)
 
-LIB = $(LIBDIRS) -package lwt.unix,netstring,camlp4,lwt.react,calendar
+LIB = $(LIBDIRS) -package lwt.unix,netstring,camlp4,lwt.react,calendar,deriving
 
-CLIENTLIB = -package lwt.react,js_of_ocaml
+CLIENTLIB = -package lwt.react,js_of_ocaml,deriving
 
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
@@ -103,6 +106,8 @@ $(PAELIOMCLIENTDIR)/%:
 
 syntax_temp_files/testsuite_eliom2_type_inference.ml: testsuite_eliom2.eliom $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	camlp4of \
+	  $(DERIVINGDIR)/pa_deriving.cma \
+	  -I $(DERIVINGDIR) \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo \
 	  -pass type \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_type_filter.cmo \
@@ -115,6 +120,8 @@ syntax_temp_files/testsuite_eliom2_type_inference.mli: syntax_temp_files/testsui
 
 syntax_temp_files/testsuite_eliom2.ml: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	camlp4of \
+	  $(DERIVINGDIR)/pa_deriving.cma \
+	  -I $(DERIVINGDIR) \
 	  -I $(PAELIOMCLIENTDIR) pa_eliom_seed.cmo \
 	  -pass server \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_client_server.cmo \
@@ -125,6 +132,8 @@ syntax_temp_files/testsuite_eliom2.ml: testsuite_eliom2.eliom syntax_temp_files/
 
 syntax_temp_files/testsuite_eliom2_client.ml: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	camlp4of \
+	  $(DERIVINGDIR)/pa_deriving.cma \
+	  -I $(DERIVINGDIR) \
 	  -I $(PAELIOMCLIENTDIR) pa_eliom_seed.cmo \
 	  -pass client \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_client_client.cmo \

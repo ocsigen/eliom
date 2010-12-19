@@ -615,3 +615,7 @@ val do_appl_xhr :
 
 val get_onload : Eliom_common.server_params -> string list
 val get_onunload : Eliom_common.server_params -> string list
+
+val wrap :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service Eliom_client_types.data_key

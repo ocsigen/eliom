@@ -1,5 +1,7 @@
 include ../Makefile.config
 
+export OCAMLPATH=../deriving/tmp
+
 ifeq "$(NATIVECODE)" "YES"
   ifeq "$(NATDYNLINK)" "YES"
   NATIVECODE_RUNTIME_DETECT=Dynlink.is_native
@@ -23,7 +25,7 @@ CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB = -package lwt.unix,netstring,findlib,cryptokit -I +camlp4 $(LIBDIRS)
+LIB = -package lwt.unix,netstring,findlib,cryptokit,deriving -syntax camlp4o $(LIBDIRS)
 PP =
 
 OBJS = $(FILES:.ml=.cmo)

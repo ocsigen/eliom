@@ -42,7 +42,7 @@ let builtin_packages =
      "lwt"; "lwt.preemptive"; "lwt.ssl"; "lwt.extra";
      "netstring"; "netsys"; "pcre"; "dynlink"; "findlib"; "cryptokit";
      "ocsigen"; "ocsigen.server"; "ocsigen_xhtml";
-     "camlp4.lib"; "ocsigen.ext.polytables"]
+     "camlp4.lib"; "ocsigen.ext.polytables"; "deriving" ]
 
 (* Server config: *)
 let (uploaddir : string option ref) = ref None

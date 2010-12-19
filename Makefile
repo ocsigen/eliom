@@ -209,11 +209,11 @@ STD_METAS_DIR=$(MODULEINSTALLDIR)
 
 all: $(BYTE) $(OPT) $(OCSIGENNAME).conf.local $(METAS)
 
-byte: xmlp4pre.byte deriving.byte $(TARGETSBYTE)
+byte: xmlp4pre.byte $(TARGETSBYTE)
 
-opt: xmlp4pre.opt deriving.opt $(TARGETSBYTE:.byte=.opt)
+opt: xmlp4pre.opt $(TARGETSBYTE:.byte=.opt)
 
-.PHONY: $(REPS) clean distclean
+.PHONY: $(REPS) deriving clean distclean
 
 
 baselib: baselib.byte
@@ -238,17 +238,11 @@ xmlp4pre.byte:
 xmlp4pre.opt:
 	$(MAKE) -C xmlp4 xmlp4pre.opt
 
-deriving.byte:
-	cd deriving && $(MAKE) byte
+deriving:
+	cd deriving && $(MAKE) all
 	rm -rf deriving/tmp
 	mkdir -p deriving/tmp
-	OCAMLFIND_DESTDIR=`pwd`/deriving/tmp cd deriving && $(MAKE) install
-
-deriving.opt:
-	cd deriving && $(MAKE) opt
-	rm -rf deriving/tmp
-	mkdir -p deriving/tmp
-	OCAMLFIND_DESTDIR=`pwd`/deriving/tmp cd deriving && $(MAKE) install
+	cd deriving && OCAMLFIND_DESTDIR=`pwd`/tmp $(MAKE) install
 
 xmlp4.opt:
 #	touch xmlp4/.depend
@@ -354,7 +348,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/extensions%g \
 	| sed s%_ELIOMINSTALLDIR_%$(SRC)/eliom%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
-	| sed s%_METADIR_%$(SRC)/files%g \
+	| sed s%_METADIR_%$(SRC)/deriving/tmp\"/\>\<findlib\ path=\"$(SRC)/files%g \
 	| sed s%_CAMLZIPNAME_%$(CAMLZIPNAME)%g \
 	| sed s%files/miniwiki%examples/miniwiki/files%g \
 	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
@@ -383,7 +377,7 @@ distclean: clean
 	make -C doc clean
 	-rm -f Makefile.config
 
-depend:
+depend: deriving
 	$(MAKE) -C xmlp4 depend
 	$(MAKE) -C xmlp4 xmlp4pre.byte $(DEPOPT)
 #	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done

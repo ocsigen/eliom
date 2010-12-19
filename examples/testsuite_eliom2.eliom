@@ -342,9 +342,11 @@ client at loading time.
 It is now possible to send OCaml values to services.
 To do that, use the {{{Eliom_parameters.caml}}} function:
 *wiki*)
+type ec3 = (int * string * string list) deriving (Json)
+
 let eliomclient3' =
   Eliom_appl.register_post_coservice'
-    ~post_params:(caml "isb")
+    ~post_params:(caml "isb" Json.t<ec3>)
     (fun () (i, s, l) ->
       Lwt.return
         [p (pcdata (Printf.sprintf "i = %d, s = %s" i s)::
@@ -598,7 +600,7 @@ let comet2 =
     (fun () () ->
       (* First create a server-readable client-writable event AKA up event AKA
          client-to-server asynchronous edge *)
-      let e_up = Eliom_react.Up.create (Eliom_parameters.caml "letter" : (string, 'aa, 'aaa) params_type) in
+      let e_up = Eliom_react.Up.create (Eliom_parameters.caml "letter" Json.t<string>) in
       let e_up_react = Eliom_react.Up.to_react e_up in
       let e_down =
         Eliom_react.Down.of_react
@@ -641,7 +643,7 @@ let comet3 =
     (fun () () ->
        (* First create a server-readable client-writable event AKA up event AKA
           client-to-server asynchronous edge *)
-       let e_up = Eliom_react.Up.create (Eliom_parameters.caml "double" : (string, 'aa, 'aaa) params_type) in
+       let e_up = Eliom_react.Up.create (Eliom_parameters.caml "double" Json.t<string>) in
        let e_up_react = Eliom_react.Up.to_react e_up in
        let e_down_1 =
          Eliom_react.Down.of_react
@@ -683,7 +685,7 @@ let comet3 =
  Here is the code for a minimalistic message board.
  *wiki*)
 
-let message_bus = Eliom_bus.create (fun (_:string) -> Lwt.return ())
+let message_bus = Eliom_bus.create Json.t<string> (fun (_:string) -> Lwt.return ())
 
 let comet_message_board =
   Eliom_appl.register_service

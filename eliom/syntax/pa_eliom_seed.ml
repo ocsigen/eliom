@@ -298,14 +298,6 @@ struct
   exception Next
   let wrappers _loc = [
 
-(*
-    (function (*sp*)
-     | <:ctyp< Eliom_request_info.server_params >> ->
-         (<:expr<Eliommod_cli.wrap_sp>>, <:expr<Eliommod_cli.unwrap_sp>>)
-     | _ -> raise Next
-    );
-*)
-
     (let rec aux = function (*node*)
        | <:ctyp< Xhtml5types.$lid:_$ >> -> true
 
@@ -363,14 +355,20 @@ struct
      | _ -> raise Next
     );
 
+    (function (*service*)
+      | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >>
+      | <:ctyp< ($_$ Eliom_services.service) >> ->
+          (<:expr<Eliom_services.wrap>>,
+           <:expr<Eliommod_cli.unwrap>>)
+     | _ -> raise Next
+    );
+
 
     (* magic wrapper *)
     (let rec aux = function (*TODO: complete it*)
        | <:ctyp< float >> | <:ctyp< int >>
        | <:ctyp< string >> | <:ctyp< char >>
        | <:ctyp< bool >>
-       | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >>
-       | <:ctyp< ($_$ Eliom_services.service) >>
          -> true
        | <:ctyp< ($t$ list) >> -> aux t
        | _ -> false

@@ -39,3 +39,9 @@ let encode_form_value x = Url.urlencode ~with_plus:true (Marshal.to_string x [])
 
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
+
+(* We do not use the deriving (un)marshaling even if typ is available
+   because direct jsn (un)marshaling is very fast client side
+*)
+let to_json ?typ s = Js.to_string (Json.output ~encoding:`Byte s)
+let of_json ?typ v = Json.unsafe_input ~encoding:`Byte (Js.string v)

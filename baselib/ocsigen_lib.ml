@@ -519,3 +519,13 @@ server were to be restarted.
 
 
 let debug = prerr_endline
+
+let to_json ?typ v =
+  match typ with
+    | Some typ -> Deriving_Json.to_string typ v
+    | None -> assert false (* implemented only client side *)
+
+let of_json ?typ s =
+  match typ with
+    | Some typ -> Deriving_Json.from_string typ s
+    | None -> assert false (* implemented only client side *)

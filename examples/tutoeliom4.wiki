@@ -323,9 +323,11 @@ client at loading time.
 It is now possible to send OCaml values to services.
 To do that, use the {{{Eliom_parameters.caml}}} function:
 <<code language="ocaml" |
+type ec3 = (int * string * string list) deriving (Json)
+
 let eliomclient3' =
   Eliom_appl.register_post_coservice'
-    ~post_params:(caml "isb")
+    ~post_params:(caml "isb" Json.t<ec3>)
     (fun () (i, s, l) ->
       Lwt.return
         [p (pcdata (Printf.sprintf "i = %d, s = %s" i s)::

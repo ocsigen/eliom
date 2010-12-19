@@ -173,8 +173,8 @@ let reconstruct_params_
                  Obj.magic (a, {abscissa = r; ordinate=rr}), ll)
       | TNLParams _, _ -> 
           failwith "It is not possible to have non localized parameters in suffix"
-(*VVV unsafe unmarshal! *)
-      | TMarshal _, v::l -> Marshal.from_string v 0, l
+      | TJson (_, Some typ), v::l -> Deriving_Json.from_string typ v, l
+      | TJson (_, None), v::l -> assert false (* client side only *)
       | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   let aux2 typ params =
@@ -329,10 +329,11 @@ let reconstruct_params_
                    (match parse_suffix s urlsuffix with
                       | p, [] -> Res_ (p, params, files)
                       | _ -> raise Eliom_common.Eliom_Wrong_parameter))
-        | TMarshal name ->
+        | TJson (name, Some typ) ->
             let v,l = list_assoc_remove (pref^name^suff) params in
-(*VVV unsafe unmarshal! *)
-            Res_ ((Marshal.from_string v 0),l,files)
+            Res_ ((Ocsigen_lib.of_json ~typ v),l,files)
+        | TJson (name, None) -> assert false
+          (* Never unmarshal server side without type! *)
     in
     match Obj.magic (aux typ params files "" "") with
       | Res_ (v, l, files) ->
@@ -389,4 +390,25 @@ let get_non_localized_post_parameters p =
   let sp = Eliom_common.get_sp () in
   get_non_localized_parameters
     sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params snd ~sp p
+
+
+(*****************************************************************************)
+let rec wrap_param_type = function
+  | TNLParams (a, b, c, t) -> TNLParams (a, b, c, wrap_param_type t)
+  | TProd (t1, t2) -> TProd ((wrap_param_type t1),
+                             (wrap_param_type t2))
+  | TOption t -> TOption (wrap_param_type t)
+  | TList (list_name, t) -> TList (list_name, t)
+  | TSet t -> TSet (wrap_param_type t)
+  | TSum (t1, t2) -> TSum ((wrap_param_type t1),
+                           (wrap_param_type t2))
+  | TUserType (name, of_string, string_of) ->
+(*VVV *)
+    failwith "User service parameters type not supported client side."
+  | TCoordv (t, name) -> TCoordv ((wrap_param_type t), name)
+(* We remove the type information here: not possible to send a closure.
+   marshaling is just basic json marshaling on client side. *)
+  | TJson (name, _) -> TJson (name, None)
+  | t -> t
+
 

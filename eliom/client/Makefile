@@ -1,12 +1,15 @@
+export OCAMLPATH=../../deriving/tmp
+
 CMA:= eliom_client.cma
 STUBDIR:=$(shell ocamlfind printconf stdlib)/stublibs
 OCAMLFIND = ocamlfind
 OCAMLC:= $(OCAMLFIND) ocamlc -verbose
 OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
-PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml -syntax camlp4o
+PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml,deriving -syntax camlp4o
 LIBS:=
-MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml svgtypes.ml sVG.ml xhtml5types.ml xHTML5.ml \
+MLS:= json.ml xML.ml uri.ml xhtmltypes.ml xHTML.ml \
+        svgtypes.ml sVG.ml xhtml5types.ml xHTML5.ml \
 	reactive_dom.ml \
 	regexp.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
@@ -14,7 +17,7 @@ MLS:= xML.ml uri.ml xhtmltypes.ml xHTML.ml svgtypes.ml sVG.ml xhtml5types.ml xHT
 	eliom_common_cli.ml eliom_common.ml eliom_process.ml \
 	eliom_config.ml eliom_request_info.ml eliom_state.ml \
 	eliom_parameters.ml \
-	eliom_services.ml eliom_uri.ml \
+	eliom_services_cli.ml eliom_services.ml eliom_uri.ml \
 	eliom_request.ml \
 	xhtmltypes.ml polytables.ml \
 	eliommod_cli.ml eliom_client.ml eliommod_mkforms.ml \
@@ -100,7 +103,7 @@ ocsigen_cookies.mli: ../../http/ocsigen_cookies.mli
 eliom_parameters.ml: ../eliom_parameters_cli.ml
 	cp -f $< $@ 
 
-eliom_services.ml: ../eliom_services_cli.ml
+eliom_services_cli.ml: ../eliom_services_cli.ml
 	cp -f $< $@ 
 
 eliom_client_types.ml: ../eliom_client_types.ml
@@ -154,7 +157,7 @@ depend: $(MLS) $(MLIS)
 
 clean: 
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot *.so
-	-rm eliom_parameters.ml eliom_services.ml eliom_client_types.ml* \
+	-rm eliom_parameters.ml eliom_client_types.ml* \
 	    eliom_common_cli.ml eliom_mkforms.ml* eliom_uri.ml* \
             eliom_output.ml* xHTML.ml* xHTML5.ml* xhtml5types.ml* \
             xhtmltypes.ml* uri.ml* sVG.ml* svgtypes.ml* \

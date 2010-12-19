@@ -114,8 +114,7 @@ let make_absolute_url ~https ~host ~port uri =
     uri
 
 
-(*****************************************************************************)
-module String_Table = Map.Make(String)
+module String_Table = Deriving_Json_stdlib.Map.Make(Deriving_Json_stdlib.String)
 
 type file_info = {tmp_filename: string;
                   filesize: int64;
@@ -177,7 +176,7 @@ let basic_sep char s =
    removing spaces at the beginning and at the end *)
 let remove_spaces s beg endd =
   let rec find_not_space s i step =
-    if (i>endd) || (i < beg)
+    if (i > endd) || (beg > i)
     then i
     else
       if s.[i] = ' '

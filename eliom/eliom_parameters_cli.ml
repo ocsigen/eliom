@@ -40,9 +40,9 @@ type 'a setone = [ `Set of 'a | `One of 'a ]
 (*****************************************************************************)
 (* This is a generalized algebraic datatype *)
 (* Use only with constructors from eliom.ml *)
-type ('a, +'tipo, +'names) params_type =
     (* 'tipo is [`WithSuffix] or [`WithoutSuffix] *)
-  | TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
+type ('a, 'tipo, +'names) params_type =
+    TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
   | TOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
   | TList of string * (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
   | TSet of ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
@@ -66,7 +66,9 @@ type ('a, +'tipo, +'names) params_type =
   | TAny (* 'a = (string * string) list *)
   | TConst of string (* 'a = unit; 'names = unit *)
   | TNLParams of ('a, 'tipo, 'names) non_localized_params
-  | TMarshal of string (* 'a = '_b caml *)
+  | TJson of string * 'a Deriving_Json.t option (* 'a = '_b caml *)
+(* It is an option but always Some ... server side,
+   and always None client side.*)
 
 and ('a, 'tipo, +'names) non_localized_params = 
     string *
@@ -218,9 +220,9 @@ let suffix_prod ?(redirect_if_not_suffix = true)
 
 type 'a caml = string (* marshaled values of type 'a *)
 
-let caml (n : string)
+let caml (n : string) typ
     : ('a, [`WithoutSuffix], [ `One of 'a caml ] param_name) params_type =
-  TMarshal n
+  TJson (n, Some typ)
 
 (******************************************************************)
 let make_list_suffix i = "["^(string_of_int i)^"]"
@@ -274,7 +276,8 @@ let construct_params_list_raw
     | TESuffixs _ -> [Obj.magic params]
     | TAny | TESuffix _ -> (match Obj.magic params with [] -> [""] | p -> p)
     | TESuffixu (_, of_string, string_of) -> [string_of (Obj.magic params)]
-    | TMarshal _ -> [ Marshal.to_string params [] ]
+    | TJson (_, typ) -> (* server or client side *)
+      [ Ocsigen_lib.to_json ?typ (Obj.magic params) ]
     | _ -> raise (Ocsigen_lib.Ocsigen_Internal_Error
                     "Bad parameter type in suffix")
   in
@@ -345,8 +348,9 @@ let construct_params_list_raw
     | TESuffixu _ -> raise (Ocsigen_lib.Ocsigen_Internal_Error
                               "Bad use of suffix")
     | TSuffix (_, s) -> Some (make_suffix s (Obj.magic params)), nlp, l
-    | TMarshal name -> psuff, nlp, ((pref^name^suff), 
-                                    (Marshal.to_string params []))::l
+    | TJson (name, typ) -> (* server or client side *)
+      psuff, nlp, ((pref^name^suff),
+                   Ocsigen_lib.to_json ?typ (Obj.magic params))::l
   in
   aux typ None nlp params "" "" []
 
@@ -383,9 +387,9 @@ let rec get_to_and_from x = match x with
     Obj.magic (int_of_string, string_of_int)
   | TBool name -> (* XXX: is that it ? *)
     Obj.magic ((fun s -> if s = "on" || s = "true" then true else false))
-  | TMarshal _ ->
-    Obj.magic ((fun s -> Marshal.from_string s 0),
-    (fun d -> Marshal.to_string d []))
+  | TJson (_, typ) -> (* server or client side *)
+    Obj.magic ((fun s -> Ocsigen_lib.of_json ?typ s),
+               (fun d -> Ocsigen_lib.to_json ?typ d))
   | TUnit ->
     Obj.magic ((fun _ -> ()), (fun () -> ""))
   | TString _ ->
@@ -405,8 +409,9 @@ let guard construct name guard =
 (** Walk the parameter tree to search for a parameter, given its name *)
 let rec walk_parameter_tree name x = match x with
   | TUserType (name', _, _) | TInt name' | TInt32 name' | TInt64 name' | TFile name' 
-  | TFloat name' | TString name' | TBool name' | TCoord name'  | TMarshal name' 
+  | TFloat name' | TString name' | TBool name' | TCoord name'
   | TConst name' | TCoordv (_, name') | TESuffix name' | TESuffixs name'
+  | TJson (name', _)
   | TESuffixu (name', _, _) ->
     if name = name' then
       Some (get_to_and_from x)
@@ -461,7 +466,7 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
     | TUserType (name, _, _)
     | TCoord name
     | TCoordv (_, name)
-    | TMarshal name
+    | TJson (name, _)
       -> issuffix, Obj.magic (prefix^name^suffix)
     | TUnit
     | TAny
@@ -528,7 +533,7 @@ let rec add_pref_params pref = function
   | TESuffixs n -> TESuffixs n
   | TESuffixu a -> TESuffixu a
   | TSuffix s -> TSuffix s
-  | TMarshal name -> TMarshal (pref^name)
+  | TJson (name, typ) -> TJson (pref^name, typ)
 
 
 (*****************************************************************************)

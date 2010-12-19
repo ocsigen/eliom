@@ -539,3 +539,13 @@ let onunload s =
     with Not_found -> []
   in
   Polytables.set ~table:rc ~key:on_unload_key ~value:(s::s0)
+
+
+
+(*****************************************************************************)
+let wrap s =
+  Eliommod_cli.wrap
+    {s with
+      get_params_type = Eliom_parameters.wrap_param_type s.get_params_type;
+      post_params_type = Eliom_parameters.wrap_param_type s.post_params_type;
+    }

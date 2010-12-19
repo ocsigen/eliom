@@ -50,6 +50,8 @@ else
   LIBDIRS := $(LIBDIRS) -I +camlp4 -I +camlp4/Camlp4Parsers
 endif
 
+export OCAMLPATH=../deriving/tmp
+
 INSTALL = install
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) -package dynlink $(LIB)
 CAMLMKTOP = $(OCAMLFIND) $(CAMLMKTOPNAME) $(LIB)
@@ -57,7 +59,7 @@ CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNLINK)threads$(CAMLP4PACKAGES),findlib,cryptokit $(LIBDIRS)
+LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNLINK)threads$(CAMLP4PACKAGES),findlib,cryptokit,deriving $(LIBDIRS)
 # also modify builtin_package in baselib/ocsigen_config.ml.in if you modify the former line!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # and probably also in the list of dependencies of ocsigen.cma in the META.in file
 PP = 
@@ -78,7 +80,7 @@ CMOS = ../baselib/ocsigen_lib_cli.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
        ../baselib/ocsigen_config.cmo \
        ../baselib/ocsigen_commandline.cmo \
-	../baselib/ocsigen_messages.cmo \
+       ../baselib/ocsigen_messages.cmo \
        ../baselib/dynlink_wrapper.cmo ../baselib/ocsigen_loader.cmo \
        ../baselib/ocsigen_stream.cmo ../http/multipart.cmo \
        ../http/http_headers.cmo ../http/ocsigen_cookies.cmo \
@@ -91,7 +93,7 @@ CMOS = ../baselib/ocsigen_lib_cli.cmo \
        ../xmlp4/xhtml5pretty_streams.cmo ../xmlp4/xhtml5compact_streams.cmo\
        ../http/ocsigen_charset_mime.cmo ../http/ocsigen_senders.cmo \
        ../baselib/polytables.cmo
-# also modify builtin_package in ocsigen_config.ml if you modify the former line!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! also modify builtin_package in ocsigen_config.ml if you modify the former line!
 CMAO = ../xmlp4/xhtml.cma ../xmlp4/xhtmlpretty.cma $(NAME).cma
 
 STUBS_OBJS = stubs.o

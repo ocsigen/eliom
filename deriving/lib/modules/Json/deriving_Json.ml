@@ -23,8 +23,6 @@ let from_channel t ic =
 
 (** Deriver **)
 
-open Json
-
 module type Json_min = sig
   type a
   val write: Buffer.t -> a -> unit

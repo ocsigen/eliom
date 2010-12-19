@@ -29,6 +29,7 @@ type 'a t
 
 val create :
      ?scope:Eliom_common.scope -> ?name:string
+  -> 'a Deriving_Json.t
   -> ('a -> unit Lwt.t)
   -> 'a t
 (** [create ?scope ?name handler] makes a fresh bus. The [name] optional

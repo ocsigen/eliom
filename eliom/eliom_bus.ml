@@ -35,14 +35,14 @@ type 'a t = {
                     ) Eliom_services.service;
 }
 
-let create ?scope ?name handler =
+let create ?scope ?name typ handler =
   (*The stream*)
   let (stream, push) = Lwt_stream.create () in
   let push x = push (Some x) in
 
   (*The service*)
   let post_params =
-    (Eliom_parameters.caml "bus_write"
+    (Eliom_parameters.caml "bus_write" typ
        : ('a, 'aa, 'aaa) Eliom_parameters.params_type)
   in
   let distant_write = Eliom_services.post_coservice' ?name ~post_params () in

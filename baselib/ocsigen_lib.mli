@@ -125,7 +125,7 @@ sig
   val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b t -> 'a
 end
 
-module String_Table : Map.S with type key = string
+module String_Table : Deriving_Json_stdlib.Map.S with type key = string
 module Int_Table : Map.S with type key = int
 
 (** The files sent in the request *)
@@ -163,3 +163,5 @@ val make_cryptographic_safe_string : unit -> string
 
 val debug : string -> unit
 
+val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
+val of_json : ?typ:'a Deriving_Json.t -> string -> 'a

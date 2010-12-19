@@ -1,5 +1,6 @@
 include ../Makefile.config
 
+export OCAMLPATH=../deriving/tmp
 
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= error_pages.ml \
@@ -14,9 +15,9 @@ FILES:= error_pages.ml \
         eliom_client_types.ml eliommod_pagegen.ml \
 	eliommod.ml \
         eliom_parameters_cli.ml eliom_parameters.ml \
-	eliom_process.ml \
+	eliom_process.ml eliommod_cli.ml \
 	eliom_services_cli.ml eliom_services.ml \
-        eliommod_cli.ml eliom_config.ml eliommod_mkforms.ml \
+        eliom_config.ml eliommod_mkforms.ml \
         eliom_uri.ml eliom_mkforms.ml eliom_mkreg.ml \
 	eliom_common_comet.ml eliom_comet.ml  \
 	eliommod_react.ml \
@@ -65,7 +66,7 @@ DUCEFILES= xhtmltypes_duce.ml xhtmlpretty_duce.ml eliom_duce.ml eliom_duce_tools
   DUCEMODOPT=
   endif
 
-OCAMLFIND=$(OCAMLDUCEFIND)
+#OCAMLFIND=$(OCAMLDUCEFIND)
 else
 DUCEFILES=
 DUCEMODBYTE=
@@ -85,9 +86,12 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package lwt.unix,netstring,cryptokit,lwt.react,calendar $(LIBDIRS)
+LIBDUCE = -thread -package lwt.unix,netstring,cryptokit,lwt.react,calendar $(LIBDIRS)
+LIB = $(LIBDUCE) -package deriving -syntax camlp4o
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
+CAMLDUCEC = $(OCAMLDUCEFIND) $(CAMLCNAME2) $(DBG) $(LIBDUCE)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
+CAMLDUCEOPT = $(OCAMLDUCEFIND) $(CAMLOPTNAME) $(DBG) $(LIBDUCE)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
 PP = 
@@ -188,6 +192,33 @@ ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
 bugdbg:
 	$(MAKE) DEBUG="NO" eliom_duce.cmo
 
+xhtmltypes_duce.cmo: xhtmltypes_duce.ml
+	$(CAMLDUCEC) $(PP) -c $<
+xhtmlpretty_duce.cmo: xhtmlpretty_duce.ml
+	$(CAMLDUCEC) $(PP) -c $<
+eliom_duce.cmo: eliom_duce.ml
+	$(CAMLDUCEC) $(PP) -c $<
+eliom_duce_tools.cmo: eliom_duce_tools.ml
+	$(CAMLDUCEC) $(PP) -c $<
+
+xhtmltypes_duce.cmi: xhtmltypes_duce.mli
+	$(CAMLDUCEC) $(PP) -c $<
+xhtmlpretty_duce.cmi: xhtmlpretty_duce.mli
+	$(CAMLDUCEC) $(PP) -c $<
+eliom_duce.cmi: eliom_duce.mli
+	$(CAMLDUCEC) $(PP) -c $<
+eliom_duce_tools.cmi: eliom_duce_tools.mli
+	$(CAMLDUCEC) $(PP) -c $<
+
+xhtmltypes_duce.cmx: xhtmltypes_duce.ml
+	$(CAMLDUCEOPT) $(PP) -c $<
+xhtmlpretty_duce.cmx: xhtmlpretty_duce.ml
+	$(CAMLDUCEOPT) $(PP) -c $<
+eliom_duce.cmx: eliom_duce.ml
+	$(CAMLDUCEOPT) $(PP) -c $<
+eliom_duce_tools.cmx: eliom_duce_tools.ml
+	$(CAMLDUCEOPT) $(PP) -c $<
+
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
 
@@ -210,7 +241,7 @@ clean:
 depend:
 	$(MAKE) -C client depend
 	$(MAKE) -C syntax depend
-	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
+	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) > .depend
 	sed -i.bak s%../extensions/ocsipersist.cmx%% .depend
 
 FORCE:
@@ -218,3 +249,12 @@ FORCE:
 -include .depend
 
 
+eliom_duce.cmi: ../baselib/ocsigen_lib.cmi eliom_services.cmi \
+    eliom_parameters.cmi eliom_mkforms.cmi eliom_common.cmi
+eliom_duce.cmo: eliom_duce.cmi ../baselib/ocsigen_lib.cmi eliommod_mkforms.cmi \
+    eliom_state.cmi eliom_services.cmi eliom_parameters.cmi eliom_mkforms.cmi \
+    eliom_common.cmi eliom_client_types.cmi eliom_output_cli.cmi
+eliom_duce_tools.cmi: eliom_tools_common.cmi eliom_state.cmi \
+	eliom_services.cmi eliom_parameters.cmi
+eliom_duce_tools.cmo: eliom_duce_tools.cmi
+xhtmlpretty_duce.cmo: xhtmlpretty_duce.cmi
