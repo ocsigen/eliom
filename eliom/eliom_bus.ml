@@ -91,5 +91,6 @@ let wrap (bus: 'a t)
     ) Eliom_client_types.data_key
   =
   let chan = channel_of_stream ~max_size:5 bus.stream in (*TODO: make max_size customizable*)
-  Eliommod_cli.wrap (Eliom_comet.Buffered_channels.get_id chan, bus.service)
+  Eliommod_cli.wrap (Eliom_comet.Buffered_channels.get_id chan, 
+                     Eliom_services.pre_wrap bus.service)
   

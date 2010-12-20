@@ -40,7 +40,7 @@ struct
         Eliom_services.service
 
   let to_react = fst
-  let wrap (_, s) = Eliommod_cli.wrap s
+  let wrap (_, s) = Eliom_services.wrap s
 
   (* An event is created along with a service responsible for it's occurences.
    * function takes a param_type *)

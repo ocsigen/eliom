@@ -619,3 +619,7 @@ val get_onunload : Eliom_common.server_params -> string list
 val wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service Eliom_client_types.data_key
+
+val pre_wrap :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
