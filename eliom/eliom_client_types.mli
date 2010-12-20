@@ -39,3 +39,5 @@ val add_tab_cookies_to_post_form_id_string : string
 
 val eliom_appl_answer_content_type : string
 val encode_eliom_data : 'a -> string
+
+val string_escape : string -> string

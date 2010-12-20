@@ -106,10 +106,10 @@ eliom_parameters.ml: ../eliom_parameters_cli.ml
 eliom_services_cli.ml: ../eliom_services_cli.ml
 	cp -f $< $@ 
 
-eliom_client_types.ml: ../eliom_client_types.ml
+eliom_client_types.ml: ../eliom_client_types_cli.ml
 	cp -f $< $@ 
 
-eliom_client_types.mli: ../eliom_client_types.mli
+eliom_client_types.mli: ../eliom_client_types_cli.mli
 	cp -f $< $@ 
 
 eliom_common_cli.ml: ../eliom_common_cli.ml

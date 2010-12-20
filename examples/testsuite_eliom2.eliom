@@ -1105,21 +1105,17 @@ let tcoservices_example =
     ~get_params:Eliom_parameters.unit
     ()
 
-
 let tcoservices_example_post =
   Eliom_services.post_coservice
     ~fallback:tcoservices_example
     ~post_params:Eliom_parameters.unit
     ()
 
-
 let tcoservices_example_get =
   Eliom_services.coservice
     ~fallback:tcoservices_example
     ~get_params:Eliom_parameters.unit
     ()
-
-
 
 (* -------------------------------------------------------- *)
 (* The three of them display the same page,                 *)

@@ -543,9 +543,10 @@ let onunload s =
 
 
 (*****************************************************************************)
-let wrap s =
-  Eliommod_cli.wrap
-    {s with
-      get_params_type = Eliom_parameters.wrap_param_type s.get_params_type;
-      post_params_type = Eliom_parameters.wrap_param_type s.post_params_type;
-    }
+let pre_wrap s =
+  {s with
+    get_params_type = Eliom_parameters.wrap_param_type s.get_params_type;
+    post_params_type = Eliom_parameters.wrap_param_type s.post_params_type;
+  }
+
+let wrap s = Eliommod_cli.wrap (pre_wrap s)
