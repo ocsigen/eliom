@@ -38,7 +38,7 @@ LIBINSTALL_FILES = \
  lib/modules/pa_deriving_modules.cmxas lib/modules/pa_deriving_modules.a \
  lib/modules/deriving.cma \
  lib/modules/deriving.cmxa lib/modules/deriving.a \
- ${MODULE_UTIL_OBJS} \
+ ${MODULE_UTIL_OBJS} ${MODULE_UTIL_OBJS:cmo=mli} \
  $(foreach module,${MODULES}, lib/modules/${module}/pa_deriving_${module}.cma) \
  $(foreach module,${MODULES}, lib/modules/${module}/pa_deriving_${module}.cmxa) \
  $(foreach module,${MODULES}, lib/modules/${module}/pa_deriving_${module}.cmxas) \
@@ -49,7 +49,6 @@ LIBINSTALL_FILES = \
  $(foreach module,${MODULES}, lib/modules/${module}/deriving_${module}.cmxa) \
  $(foreach module,${MODULES}, lib/modules/${module}/deriving_${module}.a) \
  lib/META
- # ${MODULE_UTIL_OBJS:cmo=mli}
 
 .PHONY: install
 install:

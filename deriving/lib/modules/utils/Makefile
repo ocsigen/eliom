@@ -8,9 +8,8 @@ byte: byte-code-syntax byte-code-runtime
 opt: native-code-syntax native-code-runtime
 
 LIB_SOURCES = \
-        deriving_stdlib.ml \
+        deriving_stdlib.ml deriving_stdlib.mli \
 	deriving_monad.mli deriving_monad.ml
-#	deriving_stdlib.mli
 
 echo-syntax-obj:
 	@echo ${filter %.cmo,${SYNTAX_SOURCES:ml=cmo}}
