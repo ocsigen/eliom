@@ -32,16 +32,19 @@ let jsdebug a = Firebug.console##log (a)
 let alert a = Dom_html.window##alert (Js.string a)
 let jsalert a = Dom_html.window##alert (a)
 
-(* to marshal data and put it in a form *)
-let encode_form_value x = Url.urlencode ~with_plus:true (Marshal.to_string x [])
-    (* I encode the data because it seems that multipart does not
-       like \0 character ... *)
-
-let unmarshal_js_var s =
-  Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
-
 (* We do not use the deriving (un)marshaling even if typ is available
    because direct jsn (un)marshaling is very fast client side
 *)
 let to_json ?typ s = Js.to_string (Json.output ~encoding:`Byte s)
 let of_json ?typ v = Json.unsafe_input ~encoding:`Byte (Js.string v)
+
+(* to marshal data and put it in a form *)
+let encode_form_value x = to_json x
+(* Url.urlencode ~with_plus:true (Marshal.to_string x [])
+    (* I encode the data because it seems that multipart does not
+       like \0 character ... *)
+*)
+
+let unmarshal_js_var s =
+  Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
+

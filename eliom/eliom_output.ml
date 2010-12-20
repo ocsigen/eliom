@@ -2268,7 +2268,8 @@ module Actionreg_ = struct
             *)
             let rc = Eliom_request_info.get_request_cache_sp sp in
             Polytables.set
-              ~table:rc ~key:Eliom_common.tab_cookie_action_info_key
+              ~table:rc
+              ~key:Eliom_common.tab_cookie_action_info_key
               ~value:(sp.Eliom_common.sp_tab_cookie_info,
                       sp.Eliom_common.sp_user_tab_cookies,
                       si.Eliom_common.si_tab_cookies

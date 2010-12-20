@@ -851,8 +851,8 @@ let get_session_info req previous_extension_err =
           let (tc, pp) = 
             Ocsigen_lib.list_assoc_remove tab_cookies_param_name post_params
           in
-(*VVV unsafe unmarshal! *)
-          (Marshal.from_string (Ocsigen_lib.decode tc) 0, pp)
+          (Json.from_string<string Ocsigen_lib.String_Table.t> tc, pp)
+          (*Marshal.from_string (Ocsigen_lib.decode tc) 0, pp*)
         with Not_found -> Ocsigen_lib.String_Table.empty, post_params
       in
       (None, tab_cookies, post_params)

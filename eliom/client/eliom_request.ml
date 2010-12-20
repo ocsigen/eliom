@@ -99,13 +99,14 @@ let send ?cookies_info ?get_args ?post_args url =
     (* We add cookies in POST parameters *)
     let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
     (* all requests will be POST,
-       but with a special parameter to remain that it should be GET *)
+       but with a special parameter to remind that it should be GET *)
     let post_args = match post_args with
       | None -> (* GET *) [(Eliom_common.get_request_post_param_name, "1")]
       | Some p -> p
     in
     let post_args =
-      ((Eliom_common.tab_cookies_param_name, (Marshal.to_string cookies []))::
+      ((Eliom_common.tab_cookies_param_name, 
+        (Ocsigen_lib.encode_form_value cookies))::
           post_args)
     in
     XmlHttpRequest.send_string ?get_args ~post_args url >>= fun r ->

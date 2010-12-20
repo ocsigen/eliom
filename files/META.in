@@ -145,7 +145,7 @@ package "ext" (
 
   package "eliom" (
     exists_if = "eliom.cma,eliom.cmxa"
-    requires = "ocsigen.server,cryptokit,ocsigen.ext.comet,calendar,js_of_ocaml,deriving"
+    requires = "ocsigen.server,cryptokit,ocsigen.ext.comet,calendar,deriving"
     version = "[distributed with Ocsigen]"
     description = "Eliom: module for generating pages"
     archive(byte) = "eliom.cma"
