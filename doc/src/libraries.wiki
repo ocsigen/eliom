@@ -1,0 +1,33 @@
+=Libraries
+
+==Ocsigen_cache
+
+
+==Ocsipersist
+
+<<div class="wip"|Ocsipersist (2 implémentations)
+Eliom allows to use more persistent data, using the module
+<<ocsigendoc version="dev" file="Ocsipersist.html"|<<span class="code"|Ocsipersist>>>>. (<<span class="code"|Ocsipersist>> is needed in
+<<span class="code"|eliom.cma>>, thus you need to dynlink it in the
+configuration file before <<span class="code"|Eliom>>).
+There are currently two implementations of <<span class="code"|Ocsipersist>>:
+<<span class="code"|ocsipersist-dbm.cma>> (uses the DBM database) and
+<<span class="code"|ocsipersist-sqlite.cma>> (uses the SQLite database,
+and depends on <<span class="code"|sqlite3.cma>>).
+>>
+
+It is possible to customize the location of the database on the 
+file system. For example, with sqlite:
+<<div class="pre"|
+    <extension findlib-package="ocsigen.ext.ocsipersist-sqlite">
+      <database file="_DATADIR_/ocsidb"/>
+    </extension>
+ >>
+And with DBM, you can customize the location of the database and the
+name of the {{{ocsidbm}}} process you want to use:
+<<div class="pre"|
+    <extension findlib-package="ocsigen.ext.ocsipersist-dbm">
+      <store dir="_DATADIR_"/>
+      <ocsidbm name="_EXTRALIBDIR_/ocsidbm"/>
+    </extension>
+ >>
