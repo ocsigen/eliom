@@ -21,23 +21,23 @@ and send us your comments and suggestions!
 
 ==Eliom==
             
-Eliom is an extension for the Web server //Ocsigen server//
-that allows to create client/server Web applications (or server-only dynamic Web sites) in Objective Caml.
-It uses very new concepts making programming very different
+Eliom is an extension for the //Ocsigen server//, a web server
+that provides a platform for client/server Web applications (or more traditional, dynamic Web sites) in Objective Caml.
+Its unique design employs several new concepts that set it apart
 from all other Web programming tools.
 
 === High level primitives ===
-It makes easy to write a complex Web site in very few lines of code by providing high level programming primitives for many aspects of Web programming: communication between the client and the server, implementation of complex Web interaction, sessions, etc.
+Eliom allows one to build a complex Web application using just a few lines of code, by providing high level programming primitives for many aspects of Web programming: client-server communication, implementation of complex Web interaction, sessions, etc.
 <<span class="wip"|continuations?>>
 
 === Static typing ===
-Eliom also helps to improve the stability of your application by  making an extensive use of OCaml's static typing. For example the validity of pages is checked at compile time! Eliom also makes sure statically for example that your Web site does not contain broken links or that the parameters in a link or a form correspond to the service it leads to (and many other things).
+Eliom also improves the stability of your application by making an extensive use of OCaml's static typing. For example the validity of pages is checked at compile time!  Eliom also checks, for example, for broken hyperlinks links and that the parameters in a link or a form correspond to the service it leads to (among other things).
 
 === A client/server application in one piece of code! ===
-But one of the most significant features of Eliom 2 is that it allows to program both sides of a Web application as a single program! The client side parts are automatically extracted and compiled into Javascript to be executed in the browser. The communication between the server is straightforward (in both directions!), as you can use server side values in the client side code.
+One of the most significant features of Eliom is that can encompass both sides (client-side and server-side) of a Web application in a single program! The client side parts are automatically extracted and compiled into Javascript to be executed in the browser. The communication between the server is straightforward (in both directions), as you can use server side values in the client side code.
 
 === Security ===
-Eliom helps you to make your Web application secure by taking in charge automatically lots of security issues (code injection, session fixation~ ...) and by providing features to implement very secure behaviours (avoiding for example "cross-site request forgery").\\
+Eliom helps you to make your Web application secure by automatically taking into account lots of security issues (code injection, session fixation~ ...), and by providing features to implement very secure behaviours (avoiding for example "cross-site request forgery").\\
 
 \\
 
