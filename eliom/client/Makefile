@@ -1,4 +1,4 @@
-export OCAMLPATH=../../deriving/tmp
+export OCAMLPATH :=../../deriving/tmp:${OCAMLPATH}
 
 CMA:= eliom_client.cma
 STUBDIR:=$(shell ocamlfind printconf stdlib)/stublibs

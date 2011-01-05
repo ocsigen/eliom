@@ -1,6 +1,6 @@
 include ../Makefile.config
 
-export OCAMLPATH=../deriving/tmp
+export OCAMLPATH := ../deriving/tmp:${OCAMLPATH}
 
 ifeq "$(NATIVECODE)" "YES"
   ifeq "$(NATDYNLINK)" "YES"

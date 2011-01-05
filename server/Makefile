@@ -50,7 +50,7 @@ else
   LIBDIRS := $(LIBDIRS) -I +camlp4 -I +camlp4/Camlp4Parsers
 endif
 
-export OCAMLPATH=../deriving/tmp
+export OCAMLPATH := ../deriving/tmp:${OCAMLPATH}
 
 INSTALL = install
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) -package dynlink $(LIB)
