@@ -43,9 +43,9 @@ module type Json = sig
   val write: Buffer.t -> a -> unit
   val read: Deriving_Json_lexer.lexbuf -> a
   val to_string: a -> string
-  val to_channel: out_channel -> a -> unit
+  (* val to_channel: out_channel -> a -> unit *)
   val from_string: string -> a
-  val from_channel: in_channel -> a
+  (* val from_channel: in_channel -> a *)
   val match_variant: [`Cst of int | `NCst of int] -> bool
   val read_variant: Deriving_Json_lexer.lexbuf -> [`Cst of int | `NCst of int] -> a
 end
@@ -54,9 +54,9 @@ module Defaults(J : Json_min) : Json with type a = J.a = struct
   include J
   let t = { write; read }
   let to_string v = to_string t v
-  let to_channel oc v = to_channel t oc v
+  (* let to_channel oc v = to_channel t oc v *)
   let from_string s = from_string t s
-  let from_channel ic = from_channel t ic
+  (* let from_channel ic = from_channel t ic *)
   let match_variant hash = assert false
   let read_variant buf hash = assert false
 end
@@ -65,9 +65,9 @@ module Defaults'(J : Json_min') : Json with type a = J.a = struct
   include J
   let t = { write; read }
   let to_string v = to_string t v
-  let to_channel oc v = to_channel t oc v
+  (* let to_channel oc v = to_channel t oc v *)
   let from_string s = from_string t s
-  let from_channel ic = from_channel t ic
+  (* let from_channel ic = from_channel t ic *)
 end
 
 (** Predefs *)
