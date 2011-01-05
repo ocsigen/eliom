@@ -112,8 +112,7 @@ syntax_temp_files/testsuite_eliom2_type_inference.ml: testsuite_eliom2.eliom $(P
 	  -pass type \
 	  $(PAELIOMCLIENTDIR)/pa_eliom_type_filter.cmo \
 	  -I $(JSOFOCAMLDIR) pa_js.cmo \
-	  -o $@ -impl $< \
-	  -verbose
+	  -o $@ -impl $<
 
 syntax_temp_files/testsuite_eliom2_type_inference.mli: syntax_temp_files/testsuite_eliom2_type_inference.ml $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	$(CAMLC) -i $< >$@
@@ -127,8 +126,7 @@ syntax_temp_files/testsuite_eliom2.ml: testsuite_eliom2.eliom syntax_temp_files/
 	  $(PAELIOMCLIENTDIR)/pa_eliom_client_server.cmo \
 	  -typefile syntax_temp_files/testsuite_eliom2_type_inference.mli  \
 	  -I $(JSOFOCAMLDIR) pa_js.cmo \
-	  -impl $< -printer p -o $@ \
-          -verbose
+	  -impl $< -printer p -o $@
 
 syntax_temp_files/testsuite_eliom2_client.ml: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
 	camlp4of \
@@ -139,8 +137,7 @@ syntax_temp_files/testsuite_eliom2_client.ml: testsuite_eliom2.eliom syntax_temp
 	  $(PAELIOMCLIENTDIR)/pa_eliom_client_client.cmo \
 	  -typefile syntax_temp_files/testsuite_eliom2_type_inference.mli  \
 	  -I $(JSOFOCAMLDIR) pa_js.cmo \
-	  -impl $< -printer p -o $@ \
-          -verbose
+	  -impl $< -printer p -o $@
 
 syntax_temp_files/testsuite_eliom2: $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/eliom_client_main.cmo syntax_temp_files/testsuite_eliom2_client.ml
 	ocamlfind ocamlc -o $@ \
