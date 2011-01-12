@@ -367,6 +367,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	> $(OCSIGENNAME).conf.opt.local
 
 clean:
+	make -C deriving clean
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
 	-rm -f $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 	-rm -f $(METAS) $(OCSIGENNAME)-*.tar.gz
