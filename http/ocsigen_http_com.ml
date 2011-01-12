@@ -883,8 +883,29 @@ let send
                           to cache them.  Without Last-Modified, ETag is
                           taken into account by proxies/browsers *)
      | Some l  -> Some (gmtdate l))
-    <<
-    (Http_headers.date, date)
+  in
+  let mode =
+    match mode with
+    | None -> Http_header.Answer res.res_code
+    | Some m -> m
+  in
+  let headers =
+    match mode with
+      | H.Query _ -> headers
+    (* We do not put date in headers for queries.
+       cf bug #134 in trac
+       "the header "Date" is sometime used to compute the signature of the REST
+       request, and it's value may change between the time you compute the
+       signature and the time the request is actually performed."
+       RFC 2616 says:
+       "Clients SHOULD only send a Date header field in messages that include
+       an entity-body, as in the case of the PUT and POST requests, and even
+       then it is optional. A client without a clock MUST NOT send a Date
+       header field in a request." *)
+(*VVV What about Nofirstline? *)
+      | _ -> headers
+        <<
+        (Http_headers.date, date)
   in
   let mkcook path exp name c secure =
     Format.sprintf "%s=%s%s%s" name c
@@ -933,11 +954,6 @@ let send
          else
            res.res_content_type
     )
-  in
-  let mode =
-    match mode with
-    | None -> Http_header.Answer res.res_code
-    | Some m -> m
   in
   send_aux ~mode headers
 
