@@ -110,6 +110,7 @@ let gen dir = function
                             ("Revproxy : error in destination URL "^dest^" - "^
                                Printexc.to_string e))
        in
+       let uri = "/"^uri in
        Ocsigen_messages.debug
          (fun () ->
             "--Revproxy: YES! Redirection to "^
@@ -132,10 +133,7 @@ let gen dir = function
            else None 
          with
            | Some h -> h
-           | None -> 
-               if (not https && port=80) || (https && port=443)
-               then host
-               else host^":"^string_of_int port
+           | None -> host
        in
 
        let do_request =

@@ -287,15 +287,15 @@ let raw_request
 
 (* vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv *)
 
-  Ocsigen_messages.debug_noel2 "--Ocsigen_http_client: *************** new request to ";
-  Ocsigen_messages.debug2 uri;
-
   let head = http_method = Ocsigen_http_frame.Http_header.HEAD in
 
   let port = match port with
   | None -> if https then 443 else 80
   | Some p -> p
   in
+
+  Ocsigen_messages.debug_noel2 "--Ocsigen_http_client: *************** new request to host ";
+  Ocsigen_messages.debug (fun () -> host^", port "^string_of_int port^", for "^uri);
 
   let keep_alive_asked = keep_alive in
   let server_do_keepalive = keep_alive_server inet_addr port in
