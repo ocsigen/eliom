@@ -99,10 +99,11 @@ CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
 	server/ocsigen_server.cmi server/ocsigen_http_client.cmi	\
 	xmlp4/xhtmlpretty.cmi xmlp4/xhtmlpretty_streams.cmi		\
 	xmlp4/xhtmlcompact.cmi      	   				\
-	xmlp4/xhtml5types.cmi                          			\
+	xmlp4/xhtml5pretty.cmi xmlp4/xhtml5pretty_streams.cmi		\
+	xmlp4/xhtml5compact.cmi      	   				\
 	xmlp4/xHTML.cmi xmlp4/xHTML5.cmi				\
 	xmlp4/sVG.cmi xmlp4/svgtypes.cmi				\
-	xmlp4/xML.cmi xmlp4/xhtmltypes.cmi				\
+	xmlp4/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/xhtml5types.cmi        \
 	xmlp4/simplexmlparser.cmi http/ocsigen_charset_mime.cmi		\
 	http/ocsigen_senders.cmi http/framepp.cmi			\
 	http/ocsigen_http_com.cmi http/http_headers.cmi			\
