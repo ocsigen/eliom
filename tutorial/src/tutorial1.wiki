@@ -26,39 +26,39 @@ collaborative drawing application. You will learn how to:
 * Create services with //non-HTML output//
 
 The next chapter is devoted to server side programming.
-We will create a new Web site with several pages and user connection. In this chapter, yo will learn how to:
+We will create a new Web site with several pages and user connection. In this chapter, you will learn how to:
 * Create a //link// towards another service
 * Create //forms//
 * Register //session data// or //session services//
 * Create services performing //actions// (with no output)
-* Register dynamically new services (//continuation based// Web programming)
+* Dynamically register new services (//continuation based// Web programming)
 
 
-The third chapter in an overview of miscellaneous Eliom features. We will mix the application from the first chapter
-to the one of the second chapter to produce a multi-user
-collaborative drawing application with user connection.
-In this chapter, yo will learn how to:
-* Use the usual Web interaction (links, forms,~ …) together 
+The third chapter is an overview of miscellaneous Eliom features. We will mix the application from the first chapter
+with the one from the second chapter to produce a multi-user
+collaborative drawing application.
+In this chapter, you will learn how to:
+* Integrate a typical Web interaction (links, forms,~ …) t a 
 with a client side program.
-* Add //sounds or videos// in your application
-* Change page //without stopping the client side program//
+* Add //sounds or videos// to your application
+* Change pages //without stopping the client side program//
 * Connect with external accounts (//openID//) <<span class="wip"|???>>
 * Add an Atom stream
 
 
 
 If you are not interested in client-side programming you can safely skip
-most of the first chapter (read at least the first section, that explains
-the basics). Conversely, if you are not interested in usual Web interaction,
+most of the first chapter (although I recommend you read at least the first section, which explains
+the basics). Conversely, if you are not interested in standard Web interactions,
 with sessions links, and forms, you can skip the second chapter.
 
-But keep in mind that one of the key feature of Eliom is that it allows to mix
-very easily usual Web interaction (URLs, forms, links, bookmarks, back button)
-with very dynamic client side features. In particular, the client side
-program **does not stop** when the user click a link, send a form, or
-press the back button  and the user still can save bookmarks on pages!
+Keep in mind that one of the key feature of Eliom is that it allows one to mix
+commonplace Web interactions (URLs, forms, links, bookmarks, back button)
+with dynamic client side features. In particular, the client-side
+program **does not stop** when the user clicks a link, sends a form, or
+presses the back button--yet the user still can save bookmarks on pages!
 This opens up a wide field of new possibilities,
-and should allow the emergence of a new kind of Web applications.
+and should facilitate the emergence of new kinds of Web applications.
 
 
 
@@ -69,7 +69,7 @@ In this first section, we will build a collaborative drawing application. It is 
 
 ===My first page===
 <<div class="concepts"|Services\\Configuration file\\Static validation of HTML>>
-Our Web application consists in one single page for now.
+Our Web application consists of a single page for now.
 Let's start by creating a very basic page.
 We define the service that will implement this page by the following declaration: 
 <<code language="ocaml"|open Lwt
@@ -99,7 +99,7 @@ ocamlfind ocamlc -thread -package ocsigen -c graffiti.ml
 This will create a file called {{{graffiti.cmo}}}.
 
 Take the configuration file provided [[/manual/dev/graffiti/graffiti1.conf|here]],
-then run Ocsigen server with this configuration file:
+then launch Ocsigen server, with the following command:
 {{{
 ocsigen -c graffiti1.conf
 }}}
@@ -108,14 +108,14 @@ Your page is now available at URL
 
 
 <<div class="encadre"|====Services====
-Unlike many other Web programming techniques (CGI, PHP,~ ...),
+Unlike typical Web programming techniques (CGI, PHP,~ ...),
 with Eliom, you don't write one file for each URL, but
-a caml module (cmo or cma) for the whole Web site.
+a single Caml module (*.cmo or *.cma) for the whole Web site.
 
 The <<ocsigendoc version="dev" file="Eliom_services.html"|<<span class="code"|Eliom_services>>>> module allows to create new entry points to
 your Web site, called //services//. In general, services are
-attached to an URL and generate a Web page.
-Services are represented by OCaml values, on which
+attached to a URL and generate a Web page.
+Services are represented by OCaml values, through which
 you must register a function that will generate a page.
 
 The {{{~path}}} parameter corresponds to the URL where you want to attach
@@ -126,8 +126,8 @@ The value <<span class="code"|["foo"; "bar"]>> corresponds to the URL
   (that is: the default page of the directory <<span class="code"|dir>>).       
 >>
 <<div class="encadre"|====Configuration file====
-Have a look to the configuration file.
-It contains the configuration for Ocsigen server (port, log files,
+Consider the sample configuration file below.
+It contains various directives for Ocsigen server (port, log files,
 extensions to be loaded, etc.), and something like:
 
 <<div class="pre"|<host>
@@ -137,9 +137,9 @@ extensions to be loaded, etc.), and something like:
 
 >>
 
-It tells the server that pages to be sent are:
+These instructions tell the server that pages to be served are:
 * static files from the directory <<span class="code"|~///path_to///graffiti>>
-if they exist,
+if they exist, and
 * pages generated by the Eliom application {{{graffiti.cmo}}} otherwise.
 
 >>
@@ -188,7 +188,7 @@ is the type of content allowed inside
 You see that {{{`PCDATA}}} (i.e. raw text) is not in this polymorphic
 variant type.
 
-**Other example:** In XHTML5, some tags cannot be empty. For example
+**Another example:** In XHTML5, some tags cannot be empty. For example
 <<span class="code"|<table>>> must contain at least one row.
 To enforce this, the <<ocsigendoc version="dev" file="XHTML5.M.html" fragment="VALtable"|<<span class="code"|XHTML5.M.table>>>> function takes two parameters:
 the first one is the first row, the second one is a list
@@ -199,10 +199,10 @@ containing all the other rows.
 This forces the user to handle the empty list case specially and thus make
 the output conform to the recommendation from the W3C.
 
-//Strict typing of HTML may seem arduous at first sight,
-but in fact it is very easy to get used to it.
+//Strict typing of HTML may seem arduous initially,
+but in fact it is very easy to get used to.
 It actually saves a huge amount of
-debugging time as you will ever have to bother about the validity of
+debugging time as you will never have to bother about the validity of
 pages afterwards.//
 
 A more detailed introduction to <<span class="code"|XHTML5.M>> is available
@@ -250,14 +250,14 @@ It is now possible to use this module for registering our main service:
     (fun () () -> Lwt.return [h1 [pcdata "Graffiti"]])
 >>
 
-<<div class="encadre"|==== The {{{Eliom_output.Eliom_appl}}} functor ====
+<<div class="encadre"|==== About the {{{Eliom_output.Eliom_appl}}} functor ====
 The {{{Eliom_output.Eliom_appl}}} we used here takes as parameters
 the information about the application:
 * The application name
-* The parameters of the application (here the defaults)
+* The parameters of the application (here we use the defaults)
 
 Note that the function implementing the service now returns only the
-content of the page, and not the full page. The header is created
+body of the page, and not the full page. The header is created
 automatically from the information you gave to the functor
 (this is customizable).
 
@@ -301,7 +301,7 @@ ocsigen -c graffiti2.conf
 }}}
 Your page is now available at URL
 <<span class="code"|~http:~/~/localhost:8080/>>.
-It should open an alert box. If not check that the static file directory 
+It should open an alert box. If not, check that the static file directory 
 in the configuration file is correct.
 
 <<div class="encadre"|==== Client side code ====
@@ -311,15 +311,15 @@ Eliom's syntax extension implements four kinds of quotations:
 * {{{ {shared{ ... }} }}} for code that will be used both for the server and the client
 * {{{ {{ ... }} }}} for client side code in expressions (see later)
 
-The default Makefile we automatically split the code, compile the server
+In the default Makefile we automatically split the code, compile the server
 part as usual, and compile the client part using {{{js_of_ocaml}}},
 to create a Javascript file.
 >>
 
 <<div class="encadre"|==== Js_of_ocaml ====
-The client side parts of the program are compiled to Javascript by
-Js_of_ocaml. It is a compiler from Ocaml bytecode to Javascript.
-It is easy to bind javascript libraries to call Javascript functions
+The client-side parts of the program are compiled to Javascript by
+Js_of_ocaml, which recompiles OCaml bytecode, generating Javascript.
+It is easy to bind Javascript libraries to call Javascript functions
 from OCaml programs. In the example, we are using the {{{Dom_html}}}
 module, which is a binding to allow the manipulation of an HTML page. <<span class="wip"|See the interface of the {{{Dom_html}}} module **here**.>>
 
@@ -341,7 +341,7 @@ Find more information about Js_of_ocaml in
 ===Drawing on a canvas===
 <<div class="concepts"|Canvas>>
 To draw something on the page, we will use an HTML5 canvas.
-We define a client side function called {{{draw}}} to draw a line.
+We define a client-side function called {{{draw}}} to draw a line.
 Then when the service is called, we want to add dynamically a canvas
 to the page, and draw a line.
 
@@ -386,7 +386,7 @@ let main_service =
       Lwt.return [h1 [pcdata "Graffiti"]])
 >>
 
-As we want to draw the canvas only on that page and not on the other (future)
+Since we want to draw the canvas only on that page and not on the other (future)
 pages of the site, we use the function {{{Eliom_services.onload}}} to
 describe the code to be executed when this service in called.
 
@@ -430,9 +430,9 @@ Compile, run the program and draw!
 We use to references {{{x}}} and {{{y}}} to record the last mouse position.
 The function {{{set_coord}}} updates these references from mouse event data.
 The function {{{compute_line}}} computes the coordinates of a line from
-old coordinates to the event data sent as parameter.
+the initial (old) coordinates to the new coordinates--the event data sent as a parameter.
 
-The event handling must be read as follow:\\
+The event handling takes place as follows:\\
 For each mousedown event on the canvas, do {{{set_coord}}} then {{{line}}}
 (this will draw a dot), then behave as the first of the two following
 lines to terminate:
@@ -440,7 +440,7 @@ lines to terminate:
 * If there is a mouseup event on the document, call {{{line}}}.
 
 <<div class="encadre"|==== Handling events with arrows ====
-The module {{{Event_arrows}}} allows to define event listeners very easily
+The module {{{Event_arrows}}} allows us to define event listeners easily
 (using arrows). An arrow from {{{'a}}} to {{{'b}}}
 has type {{{('a, 'b) Event_arrows.t}}}. The operator {{{>>>}}} is used
 to bind the output of an arrow to the input of the following one.
@@ -478,9 +478,9 @@ to terminate. All the other arrows in the list are cancelled.
 
 ===Collaborative drawing application===
 <<div class="concepts"|Client server communication <<span class="new"|New in 1.90!>>>>
-We now want:
-* To send the coordinates to the server when the user draw a line
-* To dispatch the coordinates to all connected users
+We now want to do the following:
+* Send the coordinates to the server when the user draw a line, then
+* Dispatch the coordinates to all connected users.
 
 <<div class="wip"|To do this we use the experimental {{{Eliom_channels}}}
 module, that will evolve in the near future. More explanation when this
@@ -598,11 +598,11 @@ The full documentation is available [[wiki(33):|here]].
 ===Sending the initial image===
 <<div class="concepts"|Services sending other data types>>
 To finish, we want to save the current drawing on server side and send the 
-current image when a user arrives. To do that, we will use the
+current image when a new user arrives. To do that, we will use the
 [[http://www.cairographics.org/cairo-ocaml/|Cairo binding]] for OCaml.
 
-The {{{draw_server}}} function below in the equivalent of the {{{draw}}}
-function on server side (in an ideal world, we would have a common interface
+The {{{draw_server}}} function below is the equivalent of the {{{draw}}}
+function on the server side (in an ideal world, we would have a common interface
 for canvas so that we could share the code).
 The {{{image_string}}} function outputs the PNG image in a string.
 <<code language="ocaml"|
@@ -644,10 +644,10 @@ let imageservice =
 
 <<div class="encadre"|====Eliom_output====
 The module {{{Eliom_output}}} defines several modules with registration
-functions for several data types. We have already seen 
+functions for a variety of data types. We have already seen 
 {{{Eliom_output.Xhtml5}}} and {{{Eliom_output.Eliom_appl}}}.
 The module {{{Eliom_output.Text}}} sends any text output.
-The handler function must return a pair with the string and the content-type.
+The handler function must return a pair consisting of the string and the content-type.
 
 There are also several other output modules, for example:
 * {{{Eliom_output.Files}}} to send static files
@@ -685,7 +685,7 @@ The first version of the program is now complete.
 <<div class="wip"|//The full source code can be found **here**.//>>
 
 <<div class="exercices"|
-====Exercices====
+====Exercises====
 * Add an O'Closure button to make possible to download the
 current image and save it to the hard disk (reuse the service {{{imageservice}}}).
 * Add an O'Closure button with a color picker to select a color from the drawing.  (Modify mouse events and use the function {{{Dom_html.pixel_get}}}).

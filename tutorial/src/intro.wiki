@@ -1,7 +1,7 @@
 = Introduction=
 
 
-This is the documentaion of the Ocsigen Framework
+This is the documentation of the Ocsigen Framework
 (development version). It explains how to use the //Ocsigen// web server
 and how to program web sites and client-server web applications in
 //Objective Caml// using //Eliom//. It also contains the documentation for
@@ -21,23 +21,23 @@ and send us your comments and suggestions!
 
 ==Eliom==
             
-Eliom is an extension for the Web server //Ocsigen server//
-that allows to create client/server Web applications (or server-only dynamic Web sites) in Objective Caml.
-It uses very new concepts making programming very different
-from all other Web programming tools.
+Eliom is an extension for the //Ocsigen// web server
+that allows the creation of client/server web applications (or traditional dynamic websites) in Objective Caml.
+It implements many new concepts, and as a result, its approach to application development is very different 
+from all other web programming tools.
 
 === High level primitives ===
-It makes easy to write a complex Web site in very few lines of code by providing high level programming primitives for many aspects of Web programming: communication between the client and the server, implementation of complex Web interaction, sessions, etc.
+Eliom enables the creation of complex web sites in very few lines of code, by providing high level programming primitives for many aspects of web programming: communication between the client and the server, implementation of complex web interaction, sessions, etc.
 <<span class="wip"|continuations?>>
 
 === Static typing ===
-Eliom also helps to improve the stability of your application by  making an extensive use of OCaml's static typing. For example the validity of pages is checked at compile time! Eliom also makes sure statically for example that your Web site does not contain broken links or that the parameters in a link or a form correspond to the service it leads to (and many other things).
+Eliom also improves the stability of your application by  making extensive use of OCaml's static typing. For example, the validity of pages (e.g. well-formed XHTML) is checked at compile time!  Moreover, Eliom also statically checks, for example, that your web site does not contain broken links or that the parameters in a link or a form correspond to the service it leads to (and many other things).
 
 === A client/server application in one piece of code! ===
-But one of the most significant features of Eliom 2 is that it allows to program both sides of a Web application as a single program! The client side parts are automatically extracted and compiled into Javascript to be executed in the browser. The communication between the server is straightforward (in both directions!), as you can use server side values in the client side code.
+But one of the most significant features of Eliom 2 is that it allows to program both sides of a web application as a single program. The client side parts are automatically extracted and compiled into Javascript to be executed in the browser. The communication between the server is straightforward (in both directions!), as you can use server side values in the client side code.
 
 === Security ===
-Eliom helps you to make your Web application secure by taking in charge automatically lots of security issues (code injection, session fixation~ ...) and by providing features to implement very secure behaviours (avoiding for example "cross-site request forgery").\\
+Eliom helps you to make your web application secure by automatically addressing several common security issues (code injection, session fixation~ ...) and by providing features to implement very secure behaviours (avoiding for example "cross-site request forgery").\\
 
 \\
 

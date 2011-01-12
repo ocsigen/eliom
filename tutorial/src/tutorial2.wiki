@@ -1,25 +1,25 @@
-=Implementing Web interaction using Eliom=
+=Implementing Web Interaction Using Eliom=
 
 <<div class="wip"|**Work in progress**>>
 
-This chapter is a tutorial explaining how to write a small Web site
+This chapter is a tutorial explaining how to create a small Web site
 with several pages, users, sessions, etc. Then, to show that we can
-mix this kind of interaction with client side programs, we will add
-the features of this site to the program of the previous chapter.
+mix this kind of interaction with client-side programs, we will incorporate 
+the features of this site with the program from the previous chapter.
 
-We suppose you have read at least the first section of the previous
-chapter, explaining how to create a service and constuct valid HTML pages.
+We assume you have read at least the first section of the previous
+chapter, which explained how to create a service and constuct valid HTML pages.
 
-First, we will create a simple Web site with one main page and one
-page for each user (supposing we have several users already created).
-Then we will add a connection form.
+First, we will create a simple Web site with one main page and a
+page for each user (assuming we have several users already created).
+Then we will add a login/connection form.
 <<span class="wip"|We will also ... //(dynamic services)//>>
 
-Then we will mix this site with the application of the previous chapter,
+Next, we will mix this site with the application of the previous chapter, and
 add a music player.
 
-As an extension, we will see how to connect with external account using OpenID,
-and add an Atom stream to our WebSite.
+Finally, we will add an extension that validates user logins using OpenID,
+and add an Atom stream to our website.
 
 ==Services==
 <<span class="wip"|titre>>
@@ -35,23 +35,23 @@ let main_service =
         (html (head (title (pcdata "")) [])
                        (body [h1 [pcdata "Hello"]])))
 >>
-Note that we are using {{{Eliom_output.Xhtml5}}} as we do not
-need a client side program for now.
+Note that we are using {{{Eliom_output.Xhtml5}}}, as are not building 
+a client side program for now.
 
-Put this example in a file ({{{tuto.ml}}}), compile it:
+Put this example in a file ({{{tuto.ml}}}), compile it like so:
 {{{
 ocamlfind ocamlc -thread -package ocsigen -c tuto.ml
 }}}
 
-Then adapt your configuration file as explaining in previous chapter
+Finally, modify your configuration file as explained in the previous chapter
 to load the file {{{tuto.cmo}}}.
-Then run this site.
+Then launch Ocsigen to run the site.
 
 ===Adding a page for each user===
 <<div class="concepts"|Services with parameters\\
 Using parts of the path as parameters>>
 We will now create a page for each user.
-We create a new service, taking the user name as parameter:
+To do this, we will create a new service, taking the user name as parameter:
 <<code language="ocaml"|let user_service =
   Eliom_output.Xhtml5.register_service
     ~path:[""] ~get_params:(Eliom_parameters.string "name")
@@ -61,38 +61,38 @@ We create a new service, taking the user name as parameter:
                        (body [h1 [pcdata name]])))
 >>
 
-Add these lines in the same file, compile,
-run the server and try for example {{{http://localhost:8080/?name=toto}}}.
+Add these lines to the same file, compile,
+start the server and verify that everything is working by trying, for example: {{{http://localhost:8080/?name=toto}}}.
 
 <<div class="encadre"|====Paths====
-Note that we are using the same path as for the first service.
+Note that we are using the same path as the first service.
 Eliom will automatically call the right service according to the
 parameters given in the request.
 >>
 <<div class="encadre"|====Services with parameters====
-To define a service taking parameters in the URL (GET parameters),
+To define a service that accepts parameters in the URL (GET parameters),
 just add a description of the parameters you want in the {{{~get_params}}}
-argument of the {{{register_service}}} function. In the example, the service
-is expecting a parameter called {{{name}}} of type string.
+argument of the {{{register_service}}} function. In our example, the service
+is expecting a parameter called {{{name}}}, of type {{{string}}}.
 
 The handler function (function implementing the service) always takes
 two parameters:
-* The first one corresponds to GET parameters (here a string).
+* The first one corresponds to GET parameters (in our example, a string).
 * The second one corresponds to parameters that are sent in the body of the
-HTTP request (POST parameters). We will see soon how to make services wiht
+HTTP request (POST parameters). We will see soon how to make services with
 POST parameters.
 
 The module
 <<ocsigendoc version="dev" file="Eliom_parameters.html"|<<span class="code"|Eliom_parameters>>>>
-defines many parameter types. For example if you write :
+defines the possible parameter types. For example if you write :
 {{{
 ~get_params:(Eliom_parameters.int "i")
 }}}
 Eliom will try to find a parameter called {{{i}}}
 and to translate it into an {{{int}}}.
-In that case, the handler function take an {{{int}}} as second parameter.
+In that case, the handler function will accept an {{{int}}} as the second parameter.
 
-If you want several parameters, you can do for example:
+If you want to accept several parameters, you can do, for example:
 {{{
 ~get_params:(int "i" ** string "s")
 }}}
@@ -109,8 +109,8 @@ sum types, but also more complex types, like sets or lists of values.
 It is also possible to define your own parameter types.
 >>
 
-For our program, we would prefer to take one part of the path as parameter
-for the name of the user.
+For our program, we would prefer to take one part of the URL path as the parameter
+describing the name of the user.
 I change the definition of my service this way:
 <<code language="ocaml"|let user_service =
   Eliom_output.Xhtml5.register_service
@@ -124,20 +124,20 @@ The user pages are now available at URLs
 <<div class="encadre"|====Using parts of the path as page parameters====
 The module
 <<ocsigendoc version="dev" file="Eliom_parameters.html"|<<span class="code"|Eliom_parameters>>>>
-makes possible to use parts of the path as service (GET) parameters.
+makes it possible to use parts of the path as service (GET) parameters.
 
 In addition to
  <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALsuffix"|<<span class="code"|Eliom_parameters.suffix>>>>,
-there are also many other values to specify that you want for example
-the full suffix as a string, as a list of string, or if you want to mix
-suffix parameters with usual GET parameters. You can also take as parameters
+there are many other values allowing you to specify your expected parameters: for example, you may access
+the full suffix as a string, as a list of string, or you may want to mix
+suffix parameters with normal GET parameters. You can also accept, as parameters,
 parts of the path that are not a suffix of the path
 (using
  <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALconst"|<<span class="code"|Eliom_parameters.const>>>>).
 <<span class="wip"|See **here** for more information on suffixes>>.
 
 //Warning:// Even if it is not displayed in the URL, suffix parameters
-have a parameter name. This allows to make forms towards that kind of services.
+have a parameter name. This allows one to make forms that point to those kind of services.
 Actually each "suffix service" has an equivalent without suffix
 (which is by default automatically redirected towards the suffix version).
 >>
@@ -157,37 +157,37 @@ Change the handler of {{{user_service}}} into:
 >>
 
 <<div class="encadre"|==== Creating hyperlinks ====
-To create a link, one could use the function {{{XHTML5.M.a}}}.
-But this requires to know the text of the URL to put in the {{{href}}}
+To create a link, one could use the function {{{XHTML5.M.a}}},
+but this requires us to provide the text of the URL to put in the {{{href}}}
 attribute. A better way to create hyperlinks is to use
 <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml5.a>>>>
 (or {{{My_appl.a}}} if you have a client side program and {{{My_appl}}}
 is the module created by the functor <<ocsigendoc version="dev" file="Eliom_output.Eliom_appl.html"|<<span class="code"|Eliom_output.Eliom_appl>>>>
 as in previous chapter).
 
-Thus, you dan't have to know the precise URL of the service you want to go,
-and if the URL changes, all links will remain valid!
+Thus, you don't have to know the precise URL of the service you want to link to,
+and if the URL changes, all links will remain valid.
 Using this function has a wonderful consequence: //You will never have
 broken links!//
 
 The function 
 <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml5.a>>>>
-takes as parameter:
+accepts the following parameters:
 * the service
 * the content of the link
 * URL parameters to be given to the service
 
 ====Links towards services with parameters====
 In our example above, the last parameter is {{{()}}} because the service
-does not expect any parameter. If the service expect for example a pair
-{{{(int * string)}}}, you must give a matching value as last parameter.
+does not expect any parameter. If the service expects, for example, a pair
+{{{(int * string)}}}, you must provide a matching value as last parameter.
 OCaml checks at compile time that the type of the parameters in a link
-corresponds to those expected by the service! Also note that the names
-of parameters are taken automatically from the service, making impossible
-to put wrong names.
+corresponds to the type expected by the service! Also note that the
+parameter names are generated automatically from the service, making it impossible
+to erroneously create bad links.
 >>
 
-To show an example of link with parameters, we will display the list of
+To show an example of a link with parameters, we will display the list of
 user pages on the main page. Here is the new version of the full program:
 
 <<code language="ocaml"|open XHTML5.M
@@ -228,7 +228,7 @@ As my two services are mutually recursive (the first one contains links towards
 the second one and vice versa), we split the {{{register_service}}} in two
 steps:
 * First we create all the services using
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|<<span class="code"|Eliom_services.service>>>>
+<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|<<span class="code"|Eliom_services.service>>>>,
 * Then we register the handlers using the {{{register}}} function from
   the right module.
 
@@ -236,19 +236,19 @@ The function {{{register_service}}} is just a shortcut for these two functions.
 >>
 
 <<div class="encadre"|====Database libraries====
-We suppose we have a database module for finding user information.
-We will write the database part on the application later in this tutorial.
+Ultimately we'll want to use a more sophisticated database module for managing user information,
+which we will write later in this tutorial.
 You can use any OCaml database binding (for example
 [[http://developer.berlios.de/projects/pgocaml/|PGOcaml]] to program
 database queries). We will use our own database library called
 [[wiki(25):|Macaque]], which implements typed requests using //comprehensions//.
 (See * *)
 
-//Just remember that your query functions must be cooperative fot Lwt!//
+//Just remember that your query functions must be cooperative with Lwt!//
 For example PGOcaml is now implemented in monadic way,
-which makes it 100% compatible with Lwt. And so is Macaque.
+which makes it 100% compatible with Lwt. Macaque (the library we use later in this tutorial) is as well.
 
-If your database module is not Lwt-cooperative but if it is thread-safe
+If your database module is not Lwt-cooperative but is thread-safe
 (for preemptive threads), you can use the
 <<ocsigendoc version="dev" file="Lwt_preemptive.html" fragment="VALdetach"|<<span class="code"|Lwt_preemptive.detach>>>>
 function to make the blocking function be executed by a separate
@@ -262,9 +262,9 @@ preemptive thread.
 
 Now I want to add a connection form.
 First, I will create a service for checking the name and password.
-As I don't want the username and password to be shown in the
+Since I don't want the username and password to be shown in the
 URL, I will use //hidden parameters// (or POST parameters).
-I create a new service taking these parameters:
+Thus, I'll need to create a new service taking these parameters:
 <<code language="ocaml"|let connection_service =
   Eliom_services.post_service
     ~fallback:main_service
@@ -275,15 +275,15 @@ I create a new service taking these parameters:
 <<div class="encadre"|====Hidden (POST) services====
 Services using the POST HTTP method are created using the function
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpost_service"|<<span class="code"|Eliom_services.post_service>>>>.
-As you can see, there is a major difference with the function
+As you can see, there is a major difference from the function
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|<<span class="code"|Eliom_services.service>>>>:
 {{{post_service}}} does not take a path as parameter, but a (GET) service
-as //fallback//.
+as a //fallback//.
 
 This means that for each POST service, you must first create a GET
-service at the same path, that will answer if the user sets a bookmark
-on the page and turns back later without POST parameters.
-Thus you will not get 404 errors if POST parameters are missing.
+service at the same path that will answer if the user sets a bookmark
+on the page and returns later without POST parameters.
+In this way, you will not get 404 errors if POST parameters are missing.
 
 If the fallback has GET parameters, your service will have both GET
 and POST parameters. In that case, GET parameters will be in the URL
@@ -294,20 +294,20 @@ to mix GET and POST parameters in the same form.
 <<div class="encadre"|====POST or GET?====
 POST parameters are sent in the body of the HTTP request
 (whereas GET parameters are sent in the URL).
-It is important to understand that they have a very different semantics.
+It is important to understand that they have very different semantics.
 
 Remember:
 * Use GET parameters when you want your page to be bookmarkable
 * Use POST parameters when you do not want the page to be bookmarkable,
-  because, for example, it performs a side effect on the server
-  (connecting a user, add something in a database, perform a payment~ ...).
+  for example, because it performs a side effect on the server
+  (connecting a user, add something in a database, perform a payment, etc.)
 
 //Warning:// Even if POST parameters are not shown in the URL,
 they are sent in plain text. If you want to transmit private data,
 you must use HTTPS (see <<span class="wip"|???>>).
 >>
 
-Now you can register a handler on the new service:
+Now you can register a handler for the new service:
 
 <<code language="ocaml"|  Eliom_output.Xhtml5.register
     ~service:connection_service
@@ -329,7 +329,7 @@ where {{{check_pwd}}} is defined by:
 <<div class="concepts"|Forms>>
 For now, I will add the connection form only on the main page of the site.
 
-Let's create a function for generating this form:
+Let's create a function for generating the form:
 
 <<code language="ocaml"|let connection_box () =
   Eliom_output.Xhtml5.post_form ~service:connection_service
@@ -344,27 +344,27 @@ Let's create a function for generating this form:
          ]]) ()
 >>
 
-Add a call to this function in the handler of the main service
-(for example juste before user links).
+Now, add a call to this function in the handler of the main service
+(for example just before the user links).
 <<div class="encadre"|====Forms====
-Form creation is very similar with link creation, using the functions
+Form creation is very similar to link creation, using the functions
 <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALget_form"|<<span class="code"|Eliom_output.Xhtml5.get_form>>>> and
 <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALpost_form"|<<span class="code"|Eliom_output.Xhtml5.post_form>>>>.
 
-The first parameter is the service,
+The first parameter is the service, and
 the last parameter (only for {{{post_form}}})
-is for GET parameters you want to sent in the URL,
+is for GET parameters you want sent in the URL,
 if the fallback of your POST service takes GET parameters.
 
 The only difference is how we write form content:
 instead of simply giving the content as parameter to the {{{get_form}}}
-or {{{post_form}}} functions, you give a function, that will create the
+or {{{post_form}}} functions, you supply a function that creates the
 form from the names of the parameters the service is expecting.
-Thus, yo don't need to remember the parameter names you choosed
+Thus, you don't need to remember the parameter names you chose
 while creating the service, and you can change them easily without having
 to update every form in your application.
 
-In the example, as the service is expecting a pair {{{(string * string)}}}.
+In the example, note that the service is expecting a pair {{{(string * string)}}}.
 The function given to {{{post_form}}} takes two parameters corresponding
 to the names of each field.
 
@@ -380,8 +380,8 @@ as it is a name for a string.
 ===Opening a session===
 <<div class="concepts"|Session data, Eliom references <<span class="new"|New in 1.90!>>>>
 
-Now we want to remember that the user is connected.
-Do do that we will set a reference when the user successfully connects,
+Now we want to remember that the user is successfuly connected.
+To do that we will set a reference when the user successfully connects,
 and we will restrict the scope of this reference to the session
 (that is, to the browser).
 
@@ -411,7 +411,7 @@ Here is the new {{{connection_box}}} function:
                ]]) ())
 >>
 
-And replace the registration of the main service and the connection service by:
+...and replace the registration of the main service and the connection service by:
 <<code language="ocaml"|  Eliom_output.Xhtml5.register
     ~service:main_service
     (fun () () ->
@@ -441,8 +441,8 @@ And replace the registration of the main service and the connection service by:
 <<div class="encadre"|==== More on Lwt ====
 Function {{{Eliom_references.get}}} has type
 {{{'a Eliom_references.eref -> 'a Lwt.t}}}.
-The only way to use the result of such functions, that return values
-in the //Lwt monad//, is to use {{{Lwt.bind}}}.
+The only way to use the result of such functions (ones that return values
+in the //Lwt monad//), is to use {{{Lwt.bind}}}.
 <<code language="ocaml"|Lwt.bind : 'a Lwt.t -> ('a -> 'b Lwt.t) -> 'b Lwt.t>>
 It is convenient to define the infix operator {{{>>=}}} like this:
 <<code language="ocaml"|let (~>>=) = Lwt.bind>>
@@ -450,9 +450,9 @@ Then the code
 <<code language="ocaml"|f () ~>>= fun x -> >>
 has to be read as
 <<code language="ocaml"|let x = f () in>>
-but for functions returning a value in the Lwt monad.
+but only for functions returning a value in the Lwt monad.
 
-Note how the program indented. We strongly advise to use the same conventions.
+Note how the program is indented. We strongly advise to use the same conventions.
 
 There exists a syntax extension for Lwt, defining a new keyword
 {{{lwt}}} that you can use instead of {{{let}}} for Lwt functions:
@@ -470,11 +470,11 @@ An Eliom application is a cooperative program, as the server must be able
 to handle several requests at the same time.
 Ocsigen is using cooperative threading instead of the more widely used
 preemptive threading paradigm. It means that no scheduler will interrupt your
-functions where it wants. Switching from one thread to another is done
+functions whenever it wants. Switching from one thread to another is done
 only when there is a //cooperation point//.
 
-We will call //cooperative functions// all functions implemented in cooperative
-way, that is: if something takes time to complete (for example reading a value
+We will use the term //cooperative functions// to identify functions implemented in cooperative
+way, that is: if something takes (potentially a long) time to complete (for example reading a value
 from a database), they insert a cooperation point to let other threads run.
 Cooperative functions return a value in the Lwt monad.
 
@@ -488,42 +488,42 @@ few risks of deadlocks//!
 
 Using Lwt is very easy and does not cause troubles, provided you
 never use //blocking functions// (non cooperative functions).
-//Blocking functions will make the whole server get stuck!//
+//Blocking functions can cause the entre server to hang!//
 Remember:
-* Use functions from module
+* Use the functions from module
 {{{Lwt_unix}}} instead of module {{{Unix}}},
 * Use cooperative database libraries (like PG'Ocaml for Lwt),
-* If you want to use a non cooperative function, detach it in another
+* If you want to use a non-cooperative function, detach it in another
 preemptive thread using
 <<ocsigendoc version="dev" file="Lwt_preemptive.html" fragment="VALdetach"|<<span class="code"|Lwt_preemptive.detach>>>>,
-* If you want to to a very long computation, insert manually
-computations points using {{{Lwt.yield}}},
+* If you want to launch a long-running computation, manually insert 
+cooperation points using {{{Lwt_unix.yield}}},
 * {{{Lwt.bind}}} does not introduce any cooperation point.
 
 >>
 
 <<div class="encadre"|==== Eliom references ====
 
-Eliom references are some kind of references with scope limited to
-a session (by default), or to a client-side process
-({{{~scope:`Client_process}}}), or to a "group of sessions"
+Eliom references are a type of references with scope limited to either 
+a session (by default), a client-side process
+({{{~scope:`Client_process}}}), a "group of sessions"
 (see later) ({{{~scope:`Session_group}}}), or to the current
 request ({{{~scope:`Request}}}).
 
-Define an Eliom reference with the function {{{Eliom_references.eref}}}
-and precise the scope of this reference and the default value.
-The function {{{Eliom_references.get}}} retrieve the value of this reference
+An Eliom reference is defined with the function {{{Eliom_references.eref}}},
+specifying the scope of this reference and the default value.
+The function {{{Eliom_references.get}}} retrieves the value of this reference
 for the current session (or client proces or group of sessions).
 The default value is used for all sessions
-(or client proces or group of sessions) for which is has not been
+(or client proces or group of sessions) which have not been
 changed using {{{Eliom_references.set}}}.
 
 By default, Eliom references are kept in memory and will disappear if
-you shut down the server. But it is possible to create //persistence
-Eliom references// that will survive after relaunching the server.
+you shut down the server. It is possible, however, to create //persistent
+Eliom references// that will survive even a server restart.
 To do that, add the optional parameter {{{persistent}}} to the {{{eref}}}
 function, with a string value corresponding to the name of the table
-that will contain the values on hard disk.
+that will contain the values on disk.
 
 <<div class="wip"|For now you need to rename this table every time you
 change the type of your Eliom reference, otherwise the server will crash
@@ -541,7 +541,7 @@ which is different from the main page in connected mode.
 We would rather display the same page.
 One solution is to call the same handler after registering session data.
 
-But a cleaner solution is to use an //action//.
+A cleaner solution is to use an //action//.
 Replace the registration of the connection service by:
 <<code language="ocaml"|  Eliom_output.Action.register
     ~service:connection_service
@@ -563,16 +563,16 @@ The handler function returns {{{()}}}.
 
 <<div class="encadre"|==== Non-attached coservices ====
 With many Web programming frameworks, adding a connection form on each page
-of a site is complicated:
-* A first solution is to do the same as we did for the main service
-for all services (usually each page must check the presence of POST
+of a site is complicated, and is approached in one of two ways:
+* A first solution is similar to what we did for the main service,
+but for all services (meaning that each page usually checks the presence of POST
 parameters). This is clumsy.
 * Another solution would be to create a special page on a separate path
 to handle the registration, with some way to do a redirection to the page
 we came from after connection. (Of course we want to stay on the same page
 after sending the connection form!) This is ugly.
 
-With Eliom, doing this is straightforward:
+With Eliom, this is more straightforward:
 * For the connection service, we use a kind of service called
 //non-attached coservice//, which means that it is not attached to
 any path in particular. Calling this kind of service will not change
@@ -629,7 +629,7 @@ Example:
 (If you want to give parameters to the service you return, use
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpreapply"|<<span class="code"|Eliom_services.preapply>>>> --- see <<span class="wip"|???>>.)
 
-If you want to do a redirection towards the current page (that's our case),
+If you want to do a redirection towards the current page (as in our case),
 use the special service 
 <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_coservice'"|<<span class="code"|Eliom_services.void_coservice'>>>>, which is some kind
 of POST non-attached coservice without parameter at all.
@@ -639,7 +639,7 @@ of POST non-attached coservice without parameter at all.
 
 ===Disconnection===
 
-To create a disconnection form, we create another POST non-attached coservice,
+To create a logout/disconnection form, we create another non-attached coservice using POST.
 and register another action.
 We call the function
 <<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|<<span class="code"|Eliom_sessions.close_session>>>>
@@ -675,7 +675,7 @@ Then add this form in the connection box:
 <<div class="concepts"|Attached coservice>>
 We will now add a registration form to the application.
 We create a new regular service, attached to the path {{{/registration}}},
-that displays a registration form, and an action that will add the user in
+that displays a registration form, and an action that will add the user to
 the "database":
 <<code language="ocaml"|let new_user_form_service = Eliom_services.service ~path:["create account"] ~get_params:unit ()
 
@@ -735,10 +735,10 @@ A form to such a service will change the path and send parameters
 together with the coservce identifier (added automatically in an hidden
 field).
 
-In this precise case, I could have used a regular service,
+In this particular case, We could have used a regular service,
 as we do not really need the coservice identifier, but in many
 cases, you may want to distinguish between several services
-registered at the same path (with same parameters).
+registered at the same path (and with same parameters).
 That's what attached coservices are made for.
 >>
 
@@ -755,8 +755,8 @@ POST attached coservice called {{{account_confirmation_service}}}:
 >>
 and we make the account creation form point at this new service.
 
-We register on this service an HTML handler with the confirmation page.
-As side effect, this page will create the actual account creation service:
+We register an HTML handler on this service, with the confirmation page.
+As a side effect, this page will create the actual account creation service:
 <<code language="ocaml"|  Eliom_output.Xhtml5.register
     ~service:account_confirmation_service
     (fun () (name, pwd) ->
@@ -787,31 +787,31 @@ In this example, we are dynamically creating a new service
 (here a coservice that does an action).
 This is done by the same {{{register}}} function as usual.
 
-Dynamic creation of new services allows to create services
+Dynamic creation of new services allows one to create services
 that depend on previous interaction with the user.
 Here the {{{create_account_service}}} service depends on
-{{{name}}} and {{{pwd}}}, that were send before by a form.
+{{{name}}} and {{{pwd}}}, that were previously sent by a form.
 
 In this simple example, an alternative would have been to send
 {{{name}}} and {{{pwd}}} again to the same service as in the
 "basic registration form" example. But this solution is not possible
 when you have too much data.
 
-//Saving {{{name}}} and {{{pwd}}} as session data in a wrong solution!//
-If the user duplicates his browser window and fill the user creation
+//Saving {{{name}}} and {{{pwd}}} as session data is the wrong solution!//
+If the user duplicates his browser window and fills out the user creation
 form in both, then the confirmation link must create the right account!
 
-A working alternative would have been to generate yourself a random key,
-and save {{{name}}} and {{{pwd}}} in front of that key on a table you
-have created on server side. This is the way such kind of Web interaction
-is usually implemented. But Eliom's solution is much simpler!
+A working alternative would have been to generate a random key,
+and associate {{{name}}} and {{{pwd}}} with that key in a database table
+on the server. This is the way such kind of Web interaction
+is usually implemented. However, Eliom's solution is much simpler.
 
-The ability to register dynamically new services is strangely
-implemented in very few Web frameworks, although it simplifies a lot
-the programmation of that kind of Web interaction.
+The ability to register new services dynamically is
+implemented in few Web frameworks, even though it simplifies a lot
+the programmating involved with that type of Web interaction.
 This feature is a variant of what is called
 //continuation based Web programming//.
-Think about it when you want to //create a page that depend on previous
+Think about it when you want to //create a page that depends on previous
 interaction with the user//. Dynamic registration of services will automatically
 record the "history" of the interaction, and make possible to use the
 "back button" or to have several tabs on the same site.
@@ -821,7 +821,7 @@ Examples of uses:
 * programming a "several step form" (when a form points at another one,
 etc., like our registration form with confirmation).
 
-On the contrary, if you want to implement a //shopping basket//,
+On the other hand, if you want to implement a //shopping basket//,
 you want it to be shared between all tabs of your Web site.
 To do that, you will use session data.
 
@@ -832,8 +832,8 @@ put a timeout on your dynamic coservices. Just add the optional parameter
 >>
 
 <<div class="encadre"|====Session services====
-Eliom also make possible to restrict the scope of services to
-a session, a group of session, or even a client side process
+Eliom also makes it possible to restrict the scope of services to
+a session, a group of sessions, or even a client side process
 (if you have a client side program running).
 It works exactly like the scope of Eliom references.
 To do that, just add the optional parameter
@@ -856,7 +856,7 @@ for one user, for example when she logs in.
 
 In the current version, our Web site fails silently when the
 password is wrong.
-We now want to display an error message.
+Let's improve this behavior by displaying an error message.
 To do that, we need to pass information to the service occurring
 after the action.
 We record this information in
@@ -893,7 +893,7 @@ Modify the connection box this way:
     )
 >>
 
-And modify the {{{connection_service}}} handler:
+...and modify the {{{connection_service}}} handler:
 <<code language="ocaml"|  Eliom_output.Action.register
     ~service:connection_service
     (fun () (name, password) ->
@@ -909,10 +909,10 @@ And modify the {{{connection_service}}} handler:
 ===Sending 404 errors for non-existing users===
 <<div class="concepts"|Sending 404\\{{{Eliom_output.Any}}}>>
 
-Our service {{{user_service}}} answers with any parameter, even if
+Our service {{{user_service}}} responds to any request parameter, even if
 the user does not exist in the database.
 We want to check that the user is in the database before
-displaying the page, and send a 404 error if not.
+displaying the page, and send a 404 error if the user is not.
 To do that, we will replace the module
 <<ocsigendoc version="dev" file="Eliom_output.Eliom_appl.html"|<<span class="code"|Eliom_output.Xhtml5>>>> by
 <<ocsigendoc version="dev" file="Eliom_output.Eliom_appl.html"|<<span class="code"|Eliom_output.Any>>>>
@@ -941,15 +941,15 @@ to register the service {{{user_service}}}:
 
 <<div class="encadre"|===={{{Eliom_output.Any}}}====
 The module <<ocsigendoc version="dev" file="Eliom_output.Eliom_appl.html"|<<span class="code"|Eliom_output.Any>>>>
-can be used to create service that decide themselve the kind of output they want
+can be used to create services that are flexible to choose the kind of output they want
 to send.
 
 Use the {{{send}}} function from the module you want to send the output.
-That function also allows for example to specify the HTTP code (here 404)
+That function also allows, for example, to specify the HTTP response code (here, we choose to use 404)
 or to set HTTP headers.
 >>
 
-<<div class="wip"|In the future, we may add functions likes {{{set_http_code}}}
+<<div class="wip"|In the future, we may add functions like {{{set_http_code}}}
 or {{{set_http_header}}} to personalize the answer without using
 {{{Eliom_output.Any}}}.
 >>
