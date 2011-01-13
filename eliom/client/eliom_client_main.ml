@@ -33,11 +33,9 @@ let _ =
       (Eliom_client_react.Down.unwrap
          (Ocsigen_lib.unmarshal_js_var "change_page_event"))
     in
-    let retain_event = 
-      React.E.map Eliom_client.set_content change_page_event
-    in
+    let retain_event = React.E.map Eliom_client.set_content change_page_event in
     
-    (*The following piece of code is not necessary due to the lack of weak
+    (* The following piece of code is not necessary due to the lack of weak
      * pointers on client side.*)
     let `R r = React.E.retain change_page_event (fun () -> ()) in
     ignore 

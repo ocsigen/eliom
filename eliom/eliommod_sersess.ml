@@ -117,9 +117,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
       end
       else set_session_group
     in
-    let fullsessgrp = fullsessgrp ~cookie_scope
-      ~sp set_session_group
-    in
+    let fullsessgrp = fullsessgrp ~cookie_scope ~sp set_session_group in
 
     let rec aux () =
       let c = Eliommod_cookies.make_new_session_id () in

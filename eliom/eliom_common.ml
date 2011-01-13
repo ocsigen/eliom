@@ -851,7 +851,7 @@ let get_session_info req previous_extension_err =
           let (tc, pp) = 
             Ocsigen_lib.list_assoc_remove tab_cookies_param_name post_params
           in
-          (Json.from_string<string Ocsigen_lib.String_Table.t> tc, pp)
+          (Json.from_string<string Ocsigen_lib.String_Table.t> (Ocsigen_lib.decode tc), pp)
           (*Marshal.from_string (Ocsigen_lib.decode tc) 0, pp*)
         with Not_found -> Ocsigen_lib.String_Table.empty, post_params
       in
@@ -861,8 +861,9 @@ let get_session_info req previous_extension_err =
   let post_params, get_params, to_be_considered_as_get =
     try
       ([],
-       snd (Ocsigen_lib.list_assoc_remove 
-              get_request_post_param_name post_params),
+       Lazy.force ri.Ocsigen_extensions.ri_get_params
+       @snd (Ocsigen_lib.list_assoc_remove 
+                         get_request_post_param_name post_params),
        true)
     (* It was a POST request to be considered as GET *)
     with Not_found ->

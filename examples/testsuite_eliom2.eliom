@@ -538,7 +538,7 @@ let (c1, write_c1) =
 
 (* randomly write on the channel *)
 let rec rand_tick () =
-  Lwt_unix.sleep (float_of_int (5 + (Random.int 5))) >>= fun () ->
+  Lwt_unix.sleep (float_of_int (2 + (Random.int 2))) >>= fun () ->
   write_c1 (Random.int 99) ; rand_tick ()
 
 let _ = rand_tick ()
@@ -1708,6 +1708,34 @@ let _ =
 
 
 
+(*********)
+let ttimeout = service ["ttimeout"] unit ()
+
+let _ =
+  let page () () =
+    let timeoutcoserv =
+      Eliom_services.coservice
+        ~fallback:ttimeout ~get_params:unit ~timeout:5. ()
+    in
+    let _ =
+      Eliom_appl.register ~service:timeoutcoserv
+        ~scope:`Client_process
+        (fun _ _ ->
+          return
+            [p [pcdata "I am a coservice with timeout."; br ();
+                a timeoutcoserv [pcdata "Try again"] (); br ();
+                pcdata "I will disappear after 5 seconds of inactivity." ];
+            ])
+    in
+    return
+      [h2 [pcdata "Client process coservices with timeouts"];
+       p [pcdata "I just created a coservice with 5 seconds timeout."; br ();
+          a timeoutcoserv [pcdata "Try it"] (); ];
+      ]
+  in
+  Eliom_appl.register ttimeout page
+
+
 
 
 (*zap* *)
@@ -2013,6 +2041,9 @@ let _ = Eliom_output.Xhtml5compact.register main
               a tcoservices_example [code [pcdata "tcoservice"]] ();
               br ();
 
+              pcdata "Coservice with timeout: ";
+              a ttimeout [code [pcdata "timeout"]] ();
+              br ();
 
               pcdata "A session based on cookies, implemented with session data: ";
               a tsession_data_example [code [pcdata "tsessdata"]] ();
