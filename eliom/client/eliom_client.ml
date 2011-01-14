@@ -154,11 +154,16 @@ let load_eliom_data_
   Eliommod_client_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;
   on_unload_scripts := onunload;
-  Lwt_util.iter_serial Js.Unsafe.variable onload
-
+  List.iter Js.Unsafe.variable onload
+(* originaly onload was supposed to return unit Lwt.t, but it is not
+   type checked: there are execution error if the returned value is
+   not effectively an Lwt.t. By assuming it to return unit, the
+   effectively returned value is ignored and no runtime error can
+   occur this way.
+   This is the same problem for on_unload below. *)
 
 let set_inner_html (ed, content) =
-  Lwt_util.iter_serial Js.Unsafe.variable !on_unload_scripts >>= fun () ->
+  List.iter Js.Unsafe.variable !on_unload_scripts;
   on_unload_scripts := [];
   let container_node = Lazy.force container_node in
   container_node##innerHTML <- Js.string content;
