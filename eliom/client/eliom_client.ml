@@ -154,7 +154,8 @@ let load_eliom_data_
   Eliommod_client_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;
   on_unload_scripts := onunload;
-  List.iter Js.Unsafe.variable onload
+  List.iter Js.Unsafe.variable onload;
+  Lwt.return ()
 (* originaly onload was supposed to return unit Lwt.t, but it is not
    type checked: there are execution error if the returned value is
    not effectively an Lwt.t. By assuming it to return unit, the

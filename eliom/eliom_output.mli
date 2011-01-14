@@ -1046,7 +1046,7 @@ module String_redirection : Eliom_mkreg.ELIOMREGSIG with
 (** Allows to send files. The content is the name of the file to send. *)
 module Files : Eliom_mkreg.ELIOMREGSIG with
   type page = string
-  type return = Eliom_services.http
+  and type return = Eliom_services.http
 
 (** Allows to create services that choose dynamically what they want
    to send. The content is created using one {!Eliom_mkreg.ELIOMREGSIG1.send}
@@ -1055,7 +1055,7 @@ module Files : Eliom_mkreg.ELIOMREGSIG with
  *)
 module Any : Eliom_mkreg.ELIOMREGSIG with
   type page = Ocsigen_http_frame.result
-  type return = Eliom_services.http
+  and type return = Eliom_services.http
 
 (** Allows to send raw data using Ocsigen's streams.
     The content is a pair containing:
@@ -1072,7 +1072,7 @@ module Any : Eliom_mkreg.ELIOMREGSIG with
 module Streamlist : Eliom_mkreg.ELIOMREGSIG with
   type page = (((unit -> string Ocsigen_stream.t Lwt.t) list) *
                  string)
-  type return = Eliom_services.http
+  and type return = Eliom_services.http
 
 
 (** Allows to register services that send caml values.
