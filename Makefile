@@ -182,6 +182,7 @@ CLIENTCMITOINSTALL= \
         eliom/client/ocsigen_cookies.cmi \
         eliom/client/xhtml5types.cmi \
         eliom/client/eliom_client_comet.cmi \
+        eliom/client/eliom_client_bus.cmi \
         eliom/client/eliom_mkforms.cmi \
         eliom/client/eliom_process.cmi \
         eliom/client/xHTML.cmi \
