@@ -297,7 +297,7 @@ end = struct
   let encode1 (c, s, _) =
     Channels.get_id c ^ field_separator ^ url_encode s
 
-  let encode l = String.concat field_separator (List.map encode1 l)
+  let encode l = String.concat channel_separator (List.map encode1 l)
 
   let encode_ended l =
     String.concat
