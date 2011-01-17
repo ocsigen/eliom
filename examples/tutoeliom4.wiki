@@ -131,17 +131,15 @@ let _ =
             ~a:[
               a_onclick
                 {{Eliom_client.exit_to
-                    ~service:!$(Tutoeliom.coucou) (* just as [coucou] *)
+                    ~service: %Tutoeliom.coucou (* just as [coucou] *)
                     () ()
                 }}
             ]
             [pcdata "Click here to go to another page."];
 
 >>
-To use server values inside client code one should use the syntax {{{ !$(e) }}}
-where {{{k}}} is the wrapper keyword and {{{e}}} the sent expression. Note that
-{{{e}}} is evaluated by the server and the resulting value is send to the
-client at loading time.
+To use server values inside client code one should use the syntax {{{ %id }}}
+where and {{{id}}} an identifier for the value.
 <<code language="ocaml" |
 
 
@@ -177,7 +175,7 @@ client at loading time.
             ~a:[
               a_onclick {{
                 Eliom_client.change_url
-                  ~service:!$(Tutoeliom.coucou)
+                  ~service: %Tutoeliom.coucou
                   () ()
               }}
             ]
@@ -191,7 +189,7 @@ client at loading time.
             ~a:[
               a_onclick
                 {{Eliom_client.change_page
-                    ~service:!$(eliomclient1)
+                    ~service:%eliomclient1
                     () ()
                 }}
             ]
@@ -209,7 +207,7 @@ client at loading time.
           p
             ~a:[
               a_onclick{{
-                Eliom_client.change_page ~service:!$(Tutoeliom.coucou)
+                Eliom_client.change_page ~service:%Tutoeliom.coucou
                   () ()
               }}
             ]
@@ -219,14 +217,14 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.exit_to ~service:!$(eliomclient2) () ()
+                Eliom_client.exit_to ~service:%eliomclient2 () ()
               }}
             ]
             [pcdata "Click here to relaunch the program by reloading the page."];
           p
             ~a:[
               a_onclick {{
-                Eliom_client.change_page ~service:!$(eliomclient1)
+                Eliom_client.change_page ~service:%eliomclient1
                   () ()
               }}
             ]
@@ -241,7 +239,7 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                Eliom_client.get_subpage ~service:!$(eliomclient1)
+                Eliom_client.get_subpage ~service:%eliomclient1
                   () () >|= fun blocks ->
                 List.iter
                   (Dom.appendChild Dom_html.document##body)
@@ -259,7 +257,7 @@ client at loading time.
            div [p ~a:[
                                a_onclick {{
                                  Dom.appendChild
-                                   !$(container) (* node is the wrapper keyword for XHTML5.M nodes. *)
+                                   %container (* node is the wrapper keyword for XHTML5.M nodes. *)
                                    (XHTML5.M.toelt (item ()))
                                }}
                   ]
@@ -275,7 +273,7 @@ client at loading time.
           (let my_value = 1.12345 in
            p ~a:[a_onclick
                 {{ Dom_html.window##alert
-                     (Js.string (string_of_float !$(my_value))) ;
+                     (Js.string (string_of_float %my_value));
                    Lwt.return ()
                 }}
                 ]
@@ -290,8 +288,8 @@ client at loading time.
           p
             ~a:[
               a_onclick {{
-                let coucou = !$(Tutoeliom.coucou) in
-                let eliomclient1 = !$(eliomclient1) in
+                let coucou = %Tutoeliom.coucou in
+                let eliomclient1 = %eliomclient1 in
                 (Dom.appendChild
                    (Dom_html.document##body)
                    (XHTML5.M.toelt
@@ -343,7 +341,7 @@ let eliomclient3 =
       Lwt.return
         [p ~a:[a_onclick
                 {{ Eliom_client.change_page
-                     ~service:!$(eliomclient3')
+                     ~service:%eliomclient3'
                      () (299, "oo", ["a";"b";"c"])
                 }}
               ]
@@ -369,7 +367,7 @@ let eliomclient4 =
         [p ~a:[a_onclick
                  {{let body = Dom_html.document##body in
                    Eliom_client.call_caml_service
-                     ~service:!$(eliomclient4')
+                     ~service:%eliomclient4'
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
@@ -410,7 +408,7 @@ let _ =
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~service:!$(gotowithoutclient)
+                  ~service:%gotowithoutclient
                   () ()
               }}
             ]
@@ -428,7 +426,7 @@ let _ =
             ~a:[
               a_onclick {{
                 Eliom_client.change_page
-                  ~service:!$(withoutclient)
+                  ~service:%withoutclient
                   () ()
               }}
             ]
@@ -452,17 +450,17 @@ let on_load =
       in
       Eliom_services.onload
         {{ Lwt_js.sleep 1. >|= fun () ->
-           Dom.appendChild !$(div)
+           Dom.appendChild %div
              (XHTML5.M.toelt (p [pcdata "on_load executed after 1s."]))
          }};
       Eliom_services.onload
         {{ Lwt_js.sleep 3. >|= fun () ->
-           Dom.appendChild !$(div)
+           Dom.appendChild %div
              (XHTML5.M.toelt (p [pcdata "on_load executed after 3s."]))
          }};
       Eliom_services.onunload
         {{
-          Dom.appendChild !$(div)
+          Dom.appendChild %div
           (XHTML5.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
           Lwt_js.sleep 1.
         }};
@@ -481,8 +479,8 @@ let uri_test =
             ]
       in
       Eliom_services.onload
-        {{ Dom.appendChild !$(div)
-             (XHTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:!$(eliomclient1) ())]))
+        {{ Dom.appendChild %div
+             (XHTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())]))
          }};
       Lwt.return [div]
     )

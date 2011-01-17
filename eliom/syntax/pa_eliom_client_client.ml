@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2010
- * Raphaël Proust
+ * Copyright (C) 2010-2011
+ * Raphaël Proust, Grégoire Henry
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,116 +19,74 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* This prepocessor generates the code to be executed by the navigator. *)
 
-(*** Syntax Identity module ***)
-module Id : Camlp4.Sig.Id = struct
-
-  let name = "Eliom/Client-Server Symmetric Syntax (client part)"
-  let version = "alpha"
-
+module Id = struct
+  let name = "client part"
 end
 
+module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
-
-(*** OPTIONS ***)
-let type_file = ref "syntax_temp_files/server_type_inference.mli"
-let _ =
-  Camlp4.Options.add
-    "-typefile"
-    (Arg.Set_string type_file)
-    "type inferrence file"
-
-
-
-(*** FILTER: client ***)
-module Make_client_filter (Filters : Camlp4.Sig.AstFilters) = struct
-  module Reader = Pa_eliom_seed.Make_reader (Filters)
-  module Common = Pa_eliom_seed.Pre_make_filter (Filters)
-
-  include Common
-
-  let inferred_sig = lazy (Reader.load_file !type_file)
-  let find_val_type n =
-    match Reader.find_value_type n (Lazy.force inferred_sig) with
-      | Some t -> Reader.strip_option_ref t
-      | None -> failwith "Type not inferred"
-
+  open Helpers.Syntax
 
   (* Client side code emission. *)
-  let register_closure _loc num args expr =
+  let register_closure gen_num args orig_expr =
+    let _loc = Ast.loc_of_expr orig_expr in
     <:expr<
       Eliommod_cli.register_closure
-         (Int64.to_int $`int64:num$)
-         (fun $patt_nested_tuple_of_patt_list _loc args$ -> $expr$)
+         (Int64.to_int $`int64:gen_num$)
+         (fun $args$ -> $orig_expr$)
     >>
 
+  let arg_ids = ref []
+  let push_arg orig_expr gen_id =
+    let _loc = Ast.loc_of_expr orig_expr in
+    let typ = Helpers.find_escaped_ident_type gen_id in
+    if not (List.mem gen_id !arg_ids) then
+      arg_ids := gen_id :: !arg_ids;
+    let unwrapper = Helpers.find_unwrapper _loc typ in
+    <:expr< ($unwrapper$ $lid:gen_id$) >>
 
-  class eliom_cli_serv_cli_emiter_map =
-  object (self)
-    inherit eliom_cli_serv_map as super
+  let flush_args _loc =
+    let res = !arg_ids in
+    arg_ids := [];
+    match res with
+    | [] -> <:patt< () >>
+    | [id] -> <:patt< $lid:id$ >>
+    | _ ->
+	let res = List.rev_map (fun id -> <:patt< $lid:id$ >>) res in
+	<:patt< $tup:Ast.paCom_of_list res$ >>
 
-    val mutable arg_collection = ([] : Ast.patt list)
-    method push_arg _loc e n =
-      let typ = find_val_type n in
-      arg_collection <- <:patt< $id:n$ >> :: arg_collection;
-      let unwrapper = find_unwrapper _loc typ in
-      <:expr< ($unwrapper$ $id:n$) >>
-    method flush_args =
-      let res = arg_collection in
-      arg_collection <- [];
-      res
+  let clos_collection = ref []
 
-    val mutable clos_collection = []
-    method push_closure_registration _loc e i =
-      clos_collection <-
-        <:str_item< let _ = $ register_closure _loc i self#flush_args e $ >>
-        :: clos_collection
-    method flush_closure_registrations =
-      let res = clos_collection in
-      clos_collection <- [];
-      res
+  let push_closure_registration orig_expr gen_id =
+    let _loc = Ast.loc_of_expr orig_expr in
+    clos_collection :=
+      <:str_item< let _ = $ register_closure gen_id (flush_args _loc) orig_expr $ >>
+      :: !clos_collection
 
-(*
-    val mutable str_collection = []
-    method push_client_str_item s = 
-      str_collection <- s :: str_collection
-    method flush_str_items =
-      let res = str_collection in
-      str_collection <- [];
-      res
- *)
+  let flush_closure_registrations () =
+      let res = !clos_collection in
+      clos_collection := [];
+      List.rev res
 
-    method server_str_item _loc s = <:str_item< >>
-    method client_str_item _loc s = s
-    method client_expr _loc e i =
-      self#push_closure_registration _loc e i;
-      <:expr< "" >>
-    method server_escaped_expr _loc e n = self#push_arg _loc e n
+  (** Syntax extension *)
 
-  end
+  let _loc = Ast.Loc.ghost
 
-  let mapper = new eliom_cli_serv_cli_emiter_map
-  let filter s = mapper#str_item s
+  let shared_str_items items = Ast.stSem_of_list items
+  let client_str_items items = Ast.stSem_of_list items
 
-  let () =
-    (*Filters.*)register_str_item_filter
-      (fun si ->
-         let _loc = Ast.loc_of_str_item si in
-         let new_si =
-           <:str_item< 
-             $list: List.map filter (Ast.list_of_str_item si [])$
-           >>
-         in
-           <:str_item<
-             $new_si$
-             $list: mapper#flush_closure_registrations$ ;;
-         >> 
-      )
+  let server_str_items items =
+    Ast.stSem_of_list (flush_closure_registrations ())
+
+  let client_expr orig_expr gen_num =
+    push_closure_registration orig_expr gen_num;
+    <:expr< "" >>
+
+  let escaped orig_expr gen_id =
+    push_arg orig_expr gen_id
 
 end
 
-open Pa_eliom_seed
-let () = match Pa_eliom_seed.get_pass () with
-  | Client_pass ->
-      let module M = Camlp4.Register.AstFilter(Id)(Make_client_filter) in ()
-  | Server_pass | Type_pass | Raw_pass -> ()
+module M = Pa_eliom_seed.Register(Id)(Client_pass)

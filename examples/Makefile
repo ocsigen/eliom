@@ -91,11 +91,6 @@ testsuite_eliom2.js: $(ELIOMCLIENTDIR)/eliom_client.js syntax_temp_files/testsui
 ../files/tutorial/testsuite_eliom2.js: testsuite_eliom2.js
 	cp -f $< $@
 
-testsuite_eliom2.cmo: syntax_temp_files/testsuite_eliom2.ml
-	$(CAMLC) -c $< -o $@
-testsuite_eliom2.cmx: syntax_temp_files/testsuite_eliom2.ml
-	$(CAMLOPT) -c $< -o $@
-
 
 #HERE IS THE SECTION CONCERNING ELIOM'S SYNTAX EXTENSIONS
 
@@ -104,46 +99,42 @@ $(ELIOMCLIENTDIR)/%:
 $(PAELIOMCLIENTDIR)/%:
 	$(MAKE) -C $(PAELIOMCLIENTDIR) all
 
-syntax_temp_files/testsuite_eliom2_type_inference.ml: testsuite_eliom2.eliom $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
-	camlp4of \
-	  $(DERIVINGDIR)/pa_deriving.cma \
-	  -I $(DERIVINGDIR) \
-	  $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo \
-	  -pass type \
-	  $(PAELIOMCLIENTDIR)/pa_eliom_type_filter.cmo \
-	  -I $(JSOFOCAMLDIR) pa_js.cmo \
-	  -o $@ -impl $<
+CAMLP4_TYPE =	camlp4o \
+		-I $(PAELIOMCLIENTDIR) pa_eliom_seed.cmo pa_eliom_type_filter.cmo \
+		-I $(JSOFOCAMLDIR) pa_js.cmo \
+		-I $(DERIVINGDIR) $(DERIVINGDIR)/pa_deriving.cma \
+		-impl
 
-syntax_temp_files/testsuite_eliom2_type_inference.mli: syntax_temp_files/testsuite_eliom2_type_inference.ml $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
-	$(CAMLC) -i $< >$@
+CAMLP4_SERVER =	camlp4o \
+		-I $(PAELIOMCLIENTDIR) pa_eliom_seed.cmo pa_eliom_client_server.cmo \
+		-type syntax_temp_files/testsuite_eliom2_type_inference.mli \
+		-I $(JSOFOCAMLDIR) pa_js.cmo \
+		-I $(DERIVINGDIR) $(DERIVINGDIR)/pa_deriving.cma \
+		-impl
 
-syntax_temp_files/testsuite_eliom2.ml: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
-	camlp4of \
-	  $(DERIVINGDIR)/pa_deriving.cma \
-	  -I $(DERIVINGDIR) \
-	  -I $(PAELIOMCLIENTDIR) pa_eliom_seed.cmo \
-	  -pass server \
-	  $(PAELIOMCLIENTDIR)/pa_eliom_client_server.cmo \
-	  -typefile syntax_temp_files/testsuite_eliom2_type_inference.mli  \
-	  -I $(JSOFOCAMLDIR) pa_js.cmo \
-	  -impl $< -printer p -o $@
+CAMLP4_CLIENT =	camlp4o \
+		-I $(PAELIOMCLIENTDIR) pa_eliom_seed.cmo pa_eliom_client_client.cmo \
+		-type syntax_temp_files/testsuite_eliom2_type_inference.mli \
+		-I $(JSOFOCAMLDIR) pa_js.cmo \
+		-I $(DERIVINGDIR) $(DERIVINGDIR)/pa_deriving.cma \
+		-impl
 
-syntax_temp_files/testsuite_eliom2_client.ml: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo
-	camlp4of \
-	  $(DERIVINGDIR)/pa_deriving.cma \
-	  -I $(DERIVINGDIR) \
-	  -I $(PAELIOMCLIENTDIR) pa_eliom_seed.cmo \
-	  -pass client \
-	  $(PAELIOMCLIENTDIR)/pa_eliom_client_client.cmo \
-	  -typefile syntax_temp_files/testsuite_eliom2_type_inference.mli  \
-	  -I $(JSOFOCAMLDIR) pa_js.cmo \
-	  -impl $< -printer p -o $@
+syntax_temp_files/testsuite_eliom2_type_inference.mli: testsuite_eliom2.eliom $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo $(PAELIOMCLIENTDIR)/pa_eliom_type_filter.cmo
+	$(CAMLC) -pp "${CAMLP4_TYPE}" -i -impl $< >$@
 
-syntax_temp_files/testsuite_eliom2: $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/eliom_client_main.cmo syntax_temp_files/testsuite_eliom2_client.ml
+testsuite_eliom2.cmo: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo $(PAELIOMCLIENTDIR)/pa_eliom_client_server.cmo
+	$(CAMLC) -c -pp "${CAMLP4_SERVER}" -impl $< -o $@
+
+testsuite_eliom2.cmx: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo $(PAELIOMCLIENTDIR)/pa_eliom_client_server.cmo
+	$(CAMLOPT) -c -pp "${CAMLP4_SERVER}" -impl $< -o $@
+
+syntax_temp_files/testsuite_eliom2_client.cmo: testsuite_eliom2.eliom syntax_temp_files/testsuite_eliom2_type_inference.mli $(PAELIOMCLIENTDIR)/pa_eliom_seed.cmo $(PAELIOMCLIENTDIR)/pa_eliom_client_client.cmo
+	ocamlfind ocamlc -pp "${CAMLP4_CLIENT}" $(CLIENTLIB) -I $(ELIOMCLIENTDIR) -c -o $@ -impl $<
+
+syntax_temp_files/testsuite_eliom2: $(ELIOMCLIENTDIR)/eliom_client.cma $(ELIOMCLIENTDIR)/eliom_client_main.cmo syntax_temp_files/testsuite_eliom2_client.cmo
 	ocamlfind ocamlc -o $@ \
 	  -I $(ELIOMCLIENTDIR) \
 	  $(CLIENTLIB) -linkpkg \
-	  -verbose \
 	  $^
 
 #END OF SECTION ABOUT ELIOM'S SYNTAX EXTENSIONS

@@ -150,22 +150,36 @@ package "ext" (
     description = "Eliom: module for generating pages"
     archive(byte) = "eliom.cma"
     archive(native) = "eliom.cmxa"
+    package "syntax" (
+      requires = "camlp4,unix,js_of_ocaml.syntax"
+      version = "[distributed with Ocsigen]"
+      directory = "syntax"
+      package "type" (
+        description = "Syntax extension: spliting client and server code (type inference)"
+        requires = "ocsigen.ext.eliom.syntax"
+        archive(syntax,preprocessor) = "pa_eliom_seed.cmo pa_eliom_type_filter.cmo"
+      )
+      package "server" (
+        description = "Syntax extension: spliting client and server code (server side)"
+        requires = "ocsigen.ext.eliom.syntax"
+        archive(syntax,preprocessor) = "pa_eliom_seed.cmo pa_eliom_client_server.cmo"
+      )
+    )
   )
 
   package "eliom_client" (
-    requires = "js_of_ocaml,deriving"
+    requires = "js_of_ocaml,deriving,lwt.react"
     version = "[distributed with Ocsigen]"
     description = "Eliom client-side"
     archive(byte) = "eliom_client.cma eliom_client_main.cmo"
     directory = "client"
-  )
-
-  package "eliom_client_syntax" (
-    requires = "camlp4,unix"
-    version = "[distributed with Ocsigen]"
-    description = "Syntax extension: spliting client and server code"
-    archive(syntax,preprocessor) = "pa_eliom_seed.cmo pa_eliom_client_client.cmo pa_eliom_client_server.cmo"
-    directory = "syntax"
+    package "syntax" (
+      requires = "camlp4,unix,js_of_ocaml.syntax"
+      version = "[distributed with Ocsigen]"
+      description = "Syntax extension: spliting client and server code (client side)"
+      directory = "../syntax"
+      archive(syntax,preprocessor) = "pa_eliom_seed.cmo pa_eliom_client_client.cmo"
+    )
   )
 
   package "deflatemod" (

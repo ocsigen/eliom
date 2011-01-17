@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2010
- * Raphaël Proust
+ * Copyright (C) 2010-2011
+ * Raphaël Proust, Grégoire Henry
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,542 +19,581 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* Eliom's syntax extension implements five kinds of quotations:
 
-(* This syntax extension is made of several steps.
- * This file is the first to be loaded, it modifies the lexer, and the parser.
- * There are two functors that subsequent extensions (type_filter, client_client
- * and client_server) use.
- *
- * The global structure of this module should appear in the comments. *)
-
-module Id =
-struct
-  let name = "Eliom client-server syntax"
-  let version = "alpha"
-end
+    - a toplevel structure item "{client{ ... }}" for client side code ;
+    - a toplevel structure item "{server{ ... }}" (optional) for server side code ;
+    - a toplevel structure item "{shared{ ... }}" for code that will be used
+      both for the server and the client ;
+    - a expression "{{ ... }}" for client side code inside server side expressions ;
+    - a escaped expression "%ident" for referencing server value from
+      client side code expressions.
 
 
+   == Compilation of Eliom source generates:
 
-(*** OPTIONS ***)
-(* Options are:
- * -pass      The pass executed. May be either "type" for type inference,
- *            "client" for client code or "server" for server code. The matching
- *            subsequent filter have to be loaded.
- * -type_file A filename for the type inferrence intermediary file.
- *)
+     - a .cmo (or a .cmx) to be loaded by the ocsigen server ;
+     - a .js to be executed by the client.
 
-type pass = Type_pass | Server_pass | Client_pass | Raw_pass
-let pass = ref ""
-let pass_of_string = function
-  | "type" -> Type_pass
-  | "server" -> Server_pass
-  | "client" -> Client_pass
-  | "raw" -> Raw_pass (*this is not documented! It's for debugging. *)
-  | _ -> failwith ("Unknown pass \""^ !pass ^"\". Please use -pass argument.")
-let get_pass () = pass_of_string !pass
+     The {client{... }} sections are ignored on the server side.
+     The {server{... }} sections are ignored on the client side.
 
-let _ = Camlp4.Options.add "-pass" (Arg.Set_string pass)
-          "name of the pass the seed is executing (type, server or client)"
+     '{{ ... }}' are compiled on the client as a function
+     parameterized by the values of escaped expressions. On the
+     server-side, '{{ ... }}' are compiled as a distant call.  To keep
+     the link, each '{{ ... }}' is associated unique integer (see
+     gen_closure_num).
 
-let type_file = ref "syntax_temp_files/server_type_inferrence.mli"
-let _ = Camlp4.Options.add "-typefile" (Arg.Set_string type_file)
-          "type inferrence file"
+     In order to type-check escaped-value with the same type on both
+     sides, compilation of Eliom sources infers the static type of
+     escaped values on the server-side and adds static type constraint
+     on the client-side. Inferred types also permits to specialize
+     marshaling (on the server-side) and unmarshalling (on the
+     client-side) of escaped values.
 
+   == Compilation of Eliom is implemented in three step:
 
-open Camlp4.Sig (*for KEYWORD, LIDENT and SYMBOL *)
+     a) infers types of escaped values on the server-side code
+     b) generate the source file for the server-side
+     c) generate the source file for the client-side
 
+     Each compilation step is based an a specific preprocessor:
 
+     a) pa_eliom_type_inference
+     b) pa_eliom_client_server
+     c) pa_eliom_client_client
 
-(*** LEXER ***)
-(* In this section, we change the lexer by adding a few keywords. *)
+   This module define code shared by the three preprocessors.
 
-module Make_lexer_filter (Syntax : Camlp4.Sig.Camlp4Syntax) =
-struct
-  include Syntax
+*)
 
-  let merge_locs l ls = List.fold_left (*Syntax.*)Token.Loc.merge ls l
+(** Helpers for pa_eliom_client_server and pa_eliom_client_client. *)
 
-  let rec filter = parser
-  (*Here we add {{, {client{, {server{ and {shared{ *)
-  | [< '(KEYWORD "{", loc0); next >] ->
-    (match next with parser
-     | [< '(KEYWORD "{", loc1); nnext >] -> (* {{ *)
-       [< '(KEYWORD "{{", merge_locs [loc0] loc1); filter nnext >]
+module type Helpers  = sig
 
-     | [< '(LIDENT ("client"|"server"|"shared" as s), loc1); nnnext >] ->
-       (match nnnext with parser
-        | [< '(KEYWORD "{", loc2); nnnnext >] -> (* {smthg{ *)
-          [< '(KEYWORD ("{"^s^"{"), merge_locs [loc0; loc1] loc2);
-             filter nnnnext
-          >]
+  module Syntax : Camlp4.Sig.Camlp4Syntax
+  open Syntax
 
-        | [< 'other; nnnnext >] -> (* back *)
-          [< '(KEYWORD "{", loc0); '(LIDENT s, loc1); 'other;
-             filter nnnnext
-          >]
-       )
+  (** find infered type for escaped expr *)
+  val find_escaped_ident_type: string -> Ast.ctyp
 
-     | [< 'other; nnext >] -> (* back *)
-       [< '(KEYWORD "{", loc0); 'other; filter nnext >]
-    )
-
-  (*Here we add }}*)
-  | [< '(KEYWORD "}", loc0); next >] ->
-    (match next with parser
-     | [< '(KEYWORD "}", loc1); nnext >] ->
-       [< '(KEYWORD "}}", merge_locs [loc0] loc1); filter nnext >]
-
-     | [< 'other; nnext >] -> (* back *)
-       [< '(KEYWORD "}", loc0); 'other; filter nnext >]
-    )
-
-  (*Here we add \ (we switch from symbol to keyword) *)
-  | [< '(SYMBOL "!$",loc); next >] -> [< '(KEYWORD "\\", loc); filter next >]
-
-  | [< 'other; next >] -> [< 'other; filter next >]
-
-  let () =
-    Token.Filter.define_filter
-      (Gram.get_filter ())
-      (fun old_filter stream -> old_filter (filter stream))
+  (** find wrapper/unwrapper associated with a type *)
+  val find_wrapper: Loc.t -> Syntax.Ast.ctyp -> Ast.expr
+  val find_unwrapper: Loc.t -> Syntax.Ast.ctyp -> Ast.expr
 
 end
-let () =
-  let module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make_lexer_filter) in
-  ()
+
+(** Signature of specific code of a preprocessor. *)
+
+module type Pass = functor (Helpers: Helpers) -> sig
+
+  open Helpers.Syntax
+
+  (** How to handle "{shared{ ... }}" str_item. *)
+  val shared_str_items: Ast.str_item list -> Ast.str_item
+
+  (** How to handle "{server{ ... }}" str_item and toplevel str_item. *)
+  val server_str_items: Ast.str_item list -> Ast.str_item
+
+  (** How to handle "{client{ ... }}" str_item. *)
+  val client_str_items: Ast.str_item list -> Ast.str_item
+
+  (** How to handle "{{ ... }}" expr. *)
+  val client_expr: Ast.expr -> Int64.t -> Ast.expr
+
+  (** How to handle escaped "%ident" inside "{{ ... }}". *)
+  val escaped: Ast.expr -> string -> Ast.expr
+
+end
+
+module Register(Id : sig val name: string end)(Pass : Pass) = struct
+
+  module Make(Syntax : Camlp4.Sig.Camlp4Syntax) = struct
+
+    include Syntax
+
+    module Helpers = struct
+
+      module Syntax = Syntax
+
+      (** Pretty-print for error-message *)
+
+      let printer =
+	let module Printer = Camlp4.Printers.OCaml.Make(Syntax) in
+	new Printer.printer ()
+
+      (** MLI READER ***)
+
+      (* Here we define a set of functions for mli reading. This is used
+	 to peek at the type infered by the first pass.*)
+
+      let type_file = ref "syntax_temp_files/server_type_inference.mli"
+      let _ =
+	Camlp4.Options.add "-type" (Arg.Set_string type_file) "type inference file"
+
+      let escaped_ident_prefix = "__eliom__escaped_expr__reserved_name__"
+      let escaped_ident_prefix_len = String.length escaped_ident_prefix
+      let is_escaped_ident = function
+	  (* | <:sig_item< val $id$ : $t$ >> -> *)
+	| Ast.SgVal (_loc, id, t) ->
+	    String.length id > escaped_ident_prefix_len &&
+	    String.sub id 0 escaped_ident_prefix_len = escaped_ident_prefix
+	| si -> false
+      let extract_type = function
+	  (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
+	| Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
+	    let len = String.length id - escaped_ident_prefix_len in
+	    int_of_string (String.sub id escaped_ident_prefix_len len), t
+	| _ -> assert false
+
+      let load_file f =
+	let ic = open_in f in
+	try
+	  let s = Stream.of_channel ic in
+	  let (items, stopped) = Gram.parse interf (Loc.mk f) s in
+	  assert (stopped = None); (* No directive inside the generated ".mli". *)
+	  close_in ic;
+	  List.map extract_type (List.filter is_escaped_ident items)
+	with e -> close_in ic; raise e
+
+      let infered_sig = lazy (load_file !type_file)
+
+      let find_escaped_ident_type id =
+	try
+	  let len = String.length id - escaped_ident_prefix_len in
+	  let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
+	  List.assoc id (Lazy.force infered_sig)
+	with Not_found -> assert false
 
 
 
-(*** PARSER ***)
-(*Here we produce two seed files. Such files are not to be compiled, but
-  processed again. *)
+      (** Wrapping/Unwrapping **)
 
-module Make_parser (Syntax : Camlp4.Sig.Camlp4Syntax) =
-struct
-  include Syntax
+      (* TODO: extensible wrapper list *)
 
-  (* This type allow basic level checking (correct nesting of client and server
-     pieces of code). *)
-  type parsing_level =
-    | Base (* for Basic code *)
-    | Without_wrapped (* for client code with no support for server values *)
-    | With_wrapped (* for client code with support for server values *)
-    | Wrapped (* for server values in client code *)
+      module No_registered_wrapper = struct
+	type t = Ast.ctyp
+	exception E of t
+	let print fmt ty =
+	  Format.fprintf fmt "No registred wrapper for type:@,@[%a@]"
+	    printer#ctyp ty
+	let to_string ty =
+	  ignore(Format.flush_str_formatter ());
+	  print Format.str_formatter ty;
+	  Format.flush_str_formatter ()
+	let raise _loc ty = Loc.raise _loc (E ty)
+      end
+      module E1 = Camlp4.ErrorHandler.Register(No_registered_wrapper)
 
-  exception Wrong_nesting_of_client_syntax
+      (* translate_type: not yet used. *)
 
-  let current_level = ref Base
+      (* let rec translate_type _loc = function *)
 
-  (*This is how we generate identifiers*)
-  let gen_name =
-    let r = ref 0 in
-    (fun () ->
-       incr r;
-       "_eliom__client__server__this__is__a__reserved__name" ^ string_of_int !r
-    )
+	(* (\* basic types are NOT translated *\) *)
+	(* | ( <:ctyp< float >> *)
+	(* | <:ctyp< int >> *)
+	(* | <:ctyp< string >> *)
+	(* | <:ctyp< char >> *)
+	(* | <:ctyp< bool >> *)
+	(* | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >> *)
+	(* | <:ctyp< ($_$ Eliom_services.service) >> *)
+	   (* ) as t -> t *)
 
-  let gen_num_base _loc = Int64.of_int (Hashtbl.hash (Loc.file_name _loc))
-  let gen_num_count = ref Int64.zero
-  let gen_num _loc =
-    gen_num_count := Int64.succ !gen_num_count;
-    Int64.to_string (Int64.add (gen_num_base _loc) !gen_num_count)
+	(* (\*Eliom_wrap.t and Eliom_wrap.tt are translated recursively*\) *)
+	(* | <:ctyp< ($t1$, $t2$) Eliom_wrap.t >> -> *)
+            (* <:ctyp< ($translate_type _loc t2$, $translate_type _loc t1$) Eliom_unwrap.t >> *)
+	(* | <:ctyp< ($t$ Eliom_wrap.tt) >> -> *)
+            (* <:ctyp< ($t$ Eliom_unwrap.tt) >> *)
 
+	(* (\*Other types are checked for known translation schemes*\) *)
+	(* | <:ctyp< ($t$ Eliom_comet.Channels.t) >> -> *)
+            (* <:ctyp< ($t$ Eliom_client_comet.Channels.t) >> *)
+	(* | <:ctyp< ($t$ Eliom_comet.Buffered_Channels.t) >> -> *)
+            (* <:ctyp< ($t$ Eliom_client_comet.Buffered_Channels.t) >> *)
+	(* | <:ctyp< ($t$ Eliom_react.Down.t) >> -> *)
+            (* <:ctyp< ($t$ Eliom_client_react.Down.t) >> *)
+	(* | <:ctyp< ($t$ Eliom_react.Up.t) >> -> *)
+            (* <:ctyp< ($t$ Eliom_client_react.Up.t) >> *)
+	(* | <:ctyp< ($t$ Eliom_bus.t) >> -> *)
+            (* <:ctyp< ($t$ Eliom_client_bus.t) >> *)
 
+	(* (\*Anything else is missing some serious wraping...*\) *)
+	(* | _ -> assert false *)
 
-  (* Extending syntax *)
-  EXTEND Gram
-  GLOBAL: str_item expr;
-
-  (* dummies: for level check and level set *)
-  dummy_check_level_base:
-    [[ -> begin match !current_level with
-         | Base -> ()
-         | Wrapped | With_wrapped | Without_wrapped ->
-             raise Wrong_nesting_of_client_syntax
-       end
-    ]];
-  dummy_set_level_base: [[ -> current_level := Base ]];
-  dummy_set_level_w_antiquotations:
-    [[ -> begin match !current_level with
-         | Base | Wrapped -> current_level := With_wrapped
-         | With_wrapped | Without_wrapped ->
-             raise Wrong_nesting_of_client_syntax
-       end
-    ]];
-  dummy_set_level_wo_antiquotations:
-    [[ -> begin match !current_level with
-         | Base -> current_level := Without_wrapped
-         | Wrapped | With_wrapped | Without_wrapped ->
-             raise Wrong_nesting_of_client_syntax
-       end
-    ]];
-  dummy_set_level_wrapped:
-    [[ -> begin match !current_level with
-         | With_wrapped -> current_level := Wrapped
-         | Wrapped | Base | Without_wrapped ->
-             raise Wrong_nesting_of_client_syntax
-       end
-    ]];
-
-  (* To str_item we add {client{ SELF }}, {server{ SELF }} and
-     {shared{ SELF }} *)
-  str_item : BEFORE "top"
-    [[ KEYWORD "{shared{" ; s = dummy_set_level_wo_antiquotations ;
-         es = LIST0 SELF ;
-       KEYWORD "}}" ; s = dummy_set_level_base ->
-       begin match get_pass () with
-         | Type_pass | Server_pass -> Ast.stSem_of_list es
-         | Client_pass ->
-           <:str_item<
-             module Client__str__item__this__is__a__reserved__value =
-             struct
-               $Ast.stSem_of_list es$
-             end
-           >>
-         | Raw_pass ->
-           <:str_item<
-             $Ast.stSem_of_list es$ ;;
-             module Client__str__item__this__is__a__reserved__value =
-             struct
-               $Ast.stSem_of_list es$
-             end ;;
-           >>
-       end
-
-     | KEYWORD "{server{" ; s = dummy_check_level_base ;
-         es = LIST0 SELF ;
-       KEYWORD "}}" ; s = dummy_set_level_base ->
-       begin match get_pass () with
-         | Type_pass | Server_pass | Raw_pass -> Ast.stSem_of_list es
-         | Client_pass -> <:str_item< >>
-       end
-
-     | KEYWORD "{client{" ; s = dummy_set_level_wo_antiquotations ;
-         es = LIST0 SELF ;
-       KEYWORD "}}" ; ss = dummy_set_level_base ->
-       begin match get_pass () with
-         | Type_pass | Server_pass -> <:str_item< >>
-         | Client_pass | Raw_pass ->
-           <:str_item<
-             module Client__str__item__this__is__a__reserved__value =
-             struct
-               $Ast.stSem_of_list es$
-             end
-           >>
-       end
-    ]];
-
-  (* To expr we add {{ SELF }} and \(SELF)
-   * For both cases the SELF part is transformed so that filtering is easy.
-   *)
-  expr : BEFORE "simple"
-    [[ KEYWORD "{{" ; s = dummy_set_level_w_antiquotations ;
-         e = SELF ;
-       KEYWORD "}}" ; s = dummy_set_level_base ->
-       <:expr<
-          Client__code__this__is__a__reserved__value
-           ($int64:gen_num _loc$, $e$)
-       >>
-
-     | KEYWORD "\\" ; KEYWORD "(" ; s = dummy_set_level_wrapped ;
-         e = SELF ; (*TODO? tweak LEVEL*)
-       KEYWORD ")" ; s = dummy_set_level_w_antiquotations ->
-       <:expr<
-          (fun
-            (Server__expr__this__is__a__reserved__value ($lid:gen_name ()$))
-            -> $e$
-          )
-       >>
+      (* This exception should be raised by wrappers to indicate that
+	 they can't wrap the specified type and that the next parser
+	 should be tried.*)
+      exception Next
+      let wrappers _loc = [
 
 (*
-     | KEYWORD "\\" ; i = IDENT (*TODO? tweak LEVEL*) ->
-       <:expr<
-          (fun
-            (Server__expr__this__is__a__reserved__value ($lid:gen_name ()$))
-            -> $lid:i$
-          )
-       >>
+  (function (*sp*)
+  | <:ctyp< Eliom_request_info.server_params >> ->
+  (<:expr<Eliommod_cli.wrap_sp>>, <:expr<Eliommod_cli.unwrap_sp>>)
+  | _ -> raise Next
+  );
  *)
-    ]];
 
-  END
+	(* nodes *)
+	(let rec aux = function
+	  | <:ctyp< Xhtml5types.$lid:_$ >> -> true
 
-end
-let () =
-  let module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make_parser) in
-  ()
+	  | <:ctyp< [  $t$ ] >>
+	  | <:ctyp< [> $t$ ] >>
+	  | <:ctyp< [< $t$ ] >>
+	    (*| <:ctyp< [= $t$ ] >> is in the "doc" but doesn't compile*)
+	  | <:ctyp< _$t$ >> -> aux t
 
+	  | <:ctyp< [< $t1$ > $t2$ ] >> -> aux t1 && aux t2
 
+	  | _ -> false
+	in
+	function
+	  | <:ctyp< ($t$ XHTML5.M.elt) >> ->
+              if aux t
+              then (<:expr<Eliommod_cli.wrap_node>>,
+                     <:expr<Eliommod_cli.unwrap_node>>)
+              else raise Next
+	  | _ -> raise Next
+	);
 
-(*** COMMON ***)
-(*Here we define functions that filters may use.*)
+	(* basic values *)
+	(let rec aux = function (*TODO: complete it*)
+	  | <:ctyp< float >> | <:ctyp< int >>
+	  | <:ctyp< string >> | <:ctyp< char >>
+	  | <:ctyp< bool >> | <:ctyp< nativeint >>
+	  | <:ctyp< int32 >> | <:ctyp< int64 >>
+	  | <:ctyp< Int64.t >> | <:ctyp< Int32.t >>
+            -> true
+	  | <:ctyp< ($t$ option) >>
+	  | <:ctyp< ($t$ list) >> | <:ctyp< ($t$ array) >> -> aux t
+	  | <:ctyp< $tup:tys$ >> -> List.for_all aux (Ast.list_of_ctyp tys [])
+	  | _ -> false
+	in
+	fun t ->
+	  if aux t
+	  then (<:expr<Eliommod_cli.wrap>>, <:expr<Eliommod_cli.unwrap>>)
+	  else raise Next
+	);
 
-module Pre_make_filter (Filters : Camlp4.Sig.AstFilters) =
-struct
-(*TODO: extensible wrapper list *)
-(*TODO: use options *)
-  include Filters
+	(function (*channel*)
+	  | <:ctyp< ($_$ Eliom_comet.Channels.t) >> ->
+              (<:expr<Eliom_comet.Channels.wrap>>,
+		<:expr<Eliom_client_comet.Channels.unwrap>>)
+	  | _ -> raise Next
+	);
 
-  exception Next
-  let wrappers _loc = [
+	(function (*buffchan*)
+	  | <:ctyp< ($_$ Eliom_comet.Buffered_channels.t) >> ->
+              (<:expr<Eliom_comet.Buffered_channels.wrap>>,
+		<:expr<Eliom_client_comet.Buffered_channels.unwrap>>)
+	  | _ -> raise Next
+	);
 
-    (let rec aux = function (*node*)
-       | <:ctyp< Xhtml5types.$lid:_$ >> -> true
+	(function (*up_event*)
+	  | <:ctyp< ($_$ Eliom_react.Up.t) >> ->
+              (<:expr<Eliom_react.Up.wrap>>,
+		<:expr<Eliom_client_react.Up.unwrap>>)
+	  | _ -> raise Next
+	);
 
-       | <:ctyp< [  $t$ ] >>
-       | <:ctyp< [> $t$ ] >>
-       | <:ctyp< [< $t$ ] >>
-     (*| <:ctyp< [= $t$ ] >> is in the "doc" but doesn't compile*)
-       | <:ctyp< _$t$ >> -> aux t
+	(function (*down_event*)
+	  | <:ctyp< ($_$ Eliom_react.Down.t) >> ->
+              (<:expr<Eliom_react.Down.wrap>>,
+		<:expr<Eliom_client_react.Down.unwrap>>)
+	  | _ -> raise Next
+	);
 
-       | <:ctyp< [< $t1$ > $t2$ ] >> -> aux t1 && aux t2
+	(function (*bus*)
+	  | <:ctyp< ($_$ Eliom_bus.t) >> ->
+              (<:expr<Eliom_bus.wrap>>,
+		<:expr<Eliom_client_bus.unwrap>>)
+	  | _ -> raise Next
+	);
 
-       | _ -> false
-     in
-     function
-       | <:ctyp< ($t$ XHTML5.M.elt) >> ->
-           if aux t
-           then (<:expr<Eliommod_cli.wrap_node>>,
-                 <:expr<Eliommod_cli.unwrap_node>>)
-           else raise Next
-       | _ -> raise Next
-    );
+	(function (*service*)
+	  | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >>
+	  | <:ctyp< ($_$ Eliom_services.service) >> ->
+              (<:expr<Eliom_services.wrap>>,
+		<:expr<Eliommod_cli.unwrap>>)
+	  | _ -> raise Next;
+	);
 
-    (function (*channel*)
-     | <:ctyp< ($_$ Eliom_comet.Channels.t) >> ->
-         (<:expr<Eliom_comet.Channels.wrap>>,
-          <:expr<Eliom_client_comet.Channels.unwrap>>)
-     | _ -> raise Next
-    );
+	(* wrapped values: not yet used. *)
 
-    (function (*buffchan*)
-     | <:ctyp< ($_$ Eliom_comet.Buffered_channels.t) >> ->
-         (<:expr<Eliom_comet.Buffered_channels.wrap>>,
-          <:expr<Eliom_client_comet.Buffered_channels.unwrap>>)
-     | _ -> raise Next
-    );
+	(* (function *)
+	  (* | <:ctyp< ($_$, $_$) Eliom_wrap.t >> as t_server -> *)
+              (* let t_client = translate_type _loc t_server in *)
+              (* (<:expr<Eliommod_cli.wrap>>, *)
+		(* <:expr< *)
+		(* (Eliommod_cli.unwrap *)
+		   (* : $t_client$ Eliom_client_types.data_key -> $t_client$ *)
+		(* ) *)
+		  (* >>) *)
+	  (* | <:ctyp< ($_$ Eliom_wrap.tt) >> as t_server -> *)
+              (* let t_client = translate_type _loc t_server in *)
+              (* (<:expr<Eliommod_cli.wrap>>, *)
+		(* <:expr< *)
+		(* (Eliommod_cli.unwrap *)
+		   (* : $t_client$ Eliom_client_types.data_key -> $t_client$ *)
+		(* ) *)
+		  (* >>) *)
+	  (* | _ -> raise Next *)
+	(* ) *)
 
-    (function (*up_event*)
-     | <:ctyp< ($_$ Eliom_react.Up.t) >> ->
-         (<:expr<Eliom_react.Up.wrap>>,
-          <:expr<Eliom_client_react.Up.unwrap>>)
-     | _ -> raise Next
-    );
+      ]
 
-    (function (*down_event*)
-     | <:ctyp< ($_$ Eliom_react.Down.t) >> ->
-         (<:expr<Eliom_react.Down.wrap>>,
-          <:expr<Eliom_client_react.Down.unwrap>>)
-     | _ -> raise Next
-    );
+      (* associating wrapper-keywords *)
+      let find_wrapper_unwrapper _loc ty =
+	let rec aux = function
+	  | [] -> No_registered_wrapper.raise _loc ty
+	  | f::fs ->
+              try f ty
+              with Next -> aux fs
+	in
+	aux (wrappers _loc)
 
-    (function (*bus*)
-     | <:ctyp< ($_$ Eliom_bus.t) >> ->
-         (<:expr<Eliom_bus.wrap>>,
-          <:expr<Eliom_client_bus.unwrap>>)
-     | _ -> raise Next
-    );
+      let find_wrapper _loc n = fst (find_wrapper_unwrapper _loc n)
+      let find_unwrapper _loc n = snd (find_wrapper_unwrapper _loc n)
 
-    (function (*service*)
-      | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >>
-      | <:ctyp< ($_$ Eliom_services.service) >> ->
-          (<:expr<Eliom_services.wrap>>,
-           <:expr<Eliommod_cli.unwrap>>)
-     | _ -> raise Next
-    );
-
-
-    (* magic wrapper *)
-    (let rec aux = function (*TODO: complete it*)
-       | <:ctyp< float >> | <:ctyp< int >>
-       | <:ctyp< string >> | <:ctyp< char >>
-       | <:ctyp< bool >>
-         -> true
-       | <:ctyp< ($t$ list) >> -> aux t
-       | _ -> false
-     in
-     fun t ->
-       if aux t
-       then (<:expr<Eliommod_cli.wrap>>, <:expr<Eliommod_cli.unwrap>>)
-       else raise Next
-    );
-  ]
-
-  (* Exception raised when an unknown wrapper-keyword is used. *)
-  exception No_registered_wrapper_for of Ast.ctyp
-
-  (* associating wrapper-keywords *)
-  let find_wrapper_unwrapper _loc t =
-    let rec aux = function
-      | [] -> raise (No_registered_wrapper_for <:ctyp< $t$ >>)
-      | f::fs ->
-          try f t
-          with Next -> aux fs
-    in
-    aux (wrappers _loc)
-
-  let find_wrapper _loc n = fst (find_wrapper_unwrapper _loc n)
-  let find_unwrapper _loc n = snd (find_wrapper_unwrapper _loc n)
-
-  let patt_nested_tuple_of_patt_list _loc l =
-    let rec aux acc = function
-      | [] -> acc
-      | p::ps -> aux <:patt< $acc$,$p$ >> ps
-    in
-    match l with
-      | [] -> <:patt< () >>
-      | p::ps -> aux p ps (*TODO: use a fold*)
-
-  let expr_nested_tuple_of_expr_list _loc l =
-    let rec aux acc = function
-      | [] -> acc
-      | p::ps -> aux <:expr< $acc$,$p$ >> ps
-    in
-    match l with
-      | [] -> <:expr< () >>
-      | p::ps -> aux p ps (*TODO: use a fold*)
+    end (* End of Helpers *)
 
 
 
-  class virtual eliom_cli_serv_map =
-  object (self)
-    inherit (*Filters.*)Ast.map as super
+    (** Extend LEXER ***)
 
-    method virtual server_str_item :
-         (*Filters.*)Ast.Loc.t
-      -> (*Filters.*)Ast.str_item
-      -> (*Filters.*)Ast.str_item
-    method virtual client_str_item :
-         (*Filters.*)Ast.Loc.t
-      -> (*Filters.*)Ast.str_item
-      -> (*Filters.*)Ast.str_item
-    method virtual client_expr :
-         (*Filters.*)Ast.Loc.t
-      -> (*Filters.*)Ast.expr
-      -> Int64.t
-      -> (*Filters.*)Ast.expr
-    method virtual server_escaped_expr :
-         (*Filters.*)Ast.Loc.t
-      -> (*Filters.*)Ast.expr
-      -> (*Filters.*)Ast.ident
-      -> (*Filters.*)Ast.expr
+    (* Add keywords: "{{", "{shared{", "{server{", "{client{" et "}}" *)
 
-    method str_item s = match s with
-      | <:str_item@_loc<
-            module Client__str__item__this__is__a__reserved__value =
-            struct
-              $ss$
-            end
-        >> ->
-          self#client_str_item _loc ss
-      | Ast.StSem (_loc, s1, s2) ->
-          let ss1 = self#str_item s1 in
-          let ss2 = self#str_item s2 in
-          Ast.StSem (_loc, ss1, ss2)
-      | Ast.StMod (_loc, i, Ast.MeStr (_, m)) as s ->
-          if i = "Client__str__item__this__is__a__reserved__value"
-          then self#client_str_item _loc m
-          else let ss = super#str_item s in
-               self#server_str_item (Ast.loc_of_str_item ss) ss
-      | Ast.StMod _
-      | Ast.StNil _
-      | Ast.StCls _
-      | Ast.StClt _
-      | Ast.StDir _
-      | Ast.StExc _
-      | Ast.StExp _
-      | Ast.StExt _
-      | Ast.StInc _
-      | Ast.StRecMod _
-      | Ast.StMty _
-      | Ast.StOpn _
-      | Ast.StTyp _
-      | Ast.StVal _
-      | Ast.StAnt _ as s ->
-          let ss = super#str_item s in
-          self#server_str_item (Ast.loc_of_str_item ss) ss
+    let merge_locs l ls = List.fold_left Token.Loc.merge ls l
 
-    method expr e = match super#expr e with
-      | <:expr@_loc<
-            Client__code__this__is__a__reserved__value ($int64:i$, $e$)
-        >> ->
-          let ee = self#expr e in
-          self#client_expr _loc ee (Int64.of_string i)
-      | <:expr@_loc<
-            (fun (Server__expr__this__is__a__reserved__value ($id:n$))
-               -> $e$
+    open Camlp4.Sig (* for KEYWORD, LIDENT and SYMBOL *)
 
-            )
-        >> ->
-          self#server_escaped_expr _loc e n
-      | e -> e
+    let rec filter = parser
+      | [< '(KEYWORD "{", loc0); next >] ->
+	  (match next with parser
+	  | [< '(KEYWORD "{", loc1); nnext >] -> (* {{ *)
+	      [< '(KEYWORD "{{", merge_locs [loc0] loc1); filter nnext >]
+
+	  | [< '(LIDENT ("client"|"server"|"shared" as s), loc1); nnnext >] ->
+	      (match nnnext with parser
+              | [< '(KEYWORD "{", loc2); nnnnext >] -> (* {smthg{ *)
+		  [< '(KEYWORD ("{"^s^"{"), merge_locs [loc0; loc1] loc2);
+		     filter nnnnext
+		       >]
+
+              | [< 'other; nnnnext >] -> (* back *)
+		  [< '(KEYWORD "{", loc0); '(LIDENT s, loc1); 'other;
+		     filter nnnnext
+		       >]
+	      )
+
+	  | [< 'other; nnext >] -> (* back *)
+	      [< '(KEYWORD "{", loc0); 'other; filter nnext >]
+	  )
+
+      | [< '(KEYWORD "}", loc0); next >] ->
+	  (match next with parser
+	  | [< '(KEYWORD "}", loc1); nnext >] ->
+	      [< '(KEYWORD "}}", merge_locs [loc0] loc1); filter nnext >]
+
+	  | [< 'other; nnext >] -> (* back *)
+	      [< '(KEYWORD "}", loc0); 'other; filter nnext >]
+	  )
+
+      | [< 'other; next >] -> [< 'other; filter next >]
+
+    let () =
+      Token.Filter.define_filter
+	(Gram.get_filter ())
+	(fun old_filter stream -> old_filter (filter stream))
+
+
+
+    (** Extend Parser **)
+
+    module Pass = Pass(Helpers)
+
+    (* State of the parser: for checking syntax imbrication. *)
+    type parsing_level =
+      | Toplevel
+      | Server_item
+      | Client_item
+      | Shared_item
+      | Module_expr
+      | Client_expr
+      | Escaped_expr
+    let current_level = ref Toplevel
+
+    (* Identifiers for the closure representing "Client_expr". *)
+    let gen_closure_num_base _loc = Int64.of_int (Hashtbl.hash (Loc.file_name _loc))
+    let gen_closure_num_count = ref Int64.zero
+    let gen_closure_num _loc =
+      gen_closure_num_count := Int64.succ !gen_closure_num_count;
+      Int64.add (gen_closure_num_base _loc) !gen_closure_num_count
+
+    (* Globaly unique ident for escaped expression *)
+    (* It's used for type inference and as argument name for the
+       closure representing the surrounding "Client_expr". *)
+    (* Inside a "Client_expr", same ident share the global ident. *)
+    let escaped_idents = ref []
+    let reset_escaped_ident () = escaped_idents := []
+    let gen_escaped_ident =
+      let r = ref 0 in
+      (fun id ->
+	let id = (Ast.map_loc (fun _ -> Loc.ghost))#ident id in
+	try List.assoc id !escaped_idents
+	with Not_found ->
+	  incr r; let gen_id = Helpers.escaped_ident_prefix ^ string_of_int !r in
+	  escaped_idents := (id, gen_id) :: !escaped_idents;
+	  gen_id)
+
+    (* Syntax error exception *)
+    module Syntax_error = struct
+      type t = string
+      exception E of t
+      let print fmt msg =
+	Format.fprintf fmt "Syntax error: %s" msg
+      let to_string msg =
+	ignore(Format.flush_str_formatter ());
+	print Format.str_formatter msg;
+	Format.flush_str_formatter ()
+      let raise _loc msg =
+	Loc.raise _loc (E msg)
+    end
+    module E2 = Camlp4.ErrorHandler.Register(Syntax_error)
+
+    (* Extending syntax *)
+    EXTEND Gram
+    GLOBAL: str_item expr module_expr;
+
+    (* Dummy rules: for level management and checking. *)
+      dummy_set_level_shared:
+	[[ -> begin match !current_level with
+              | Toplevel -> current_level := Shared_item
+              | _ ->
+		  Syntax_error.raise _loc
+		    "The syntax {shared{ ... }} is only allowed at toplevel"
+	end
+	 ]];
+      dummy_set_level_server:
+	[[ ->  match !current_level with
+               | Toplevel -> current_level := Server_item
+	       | _ ->
+		   Syntax_error.raise _loc
+		     "The syntax {server{ ... }} is only allowed at toplevel"
+	 ]];
+      dummy_set_level_client:
+	[[ -> match !current_level with
+              | Toplevel -> current_level := Client_item
+              | _ ->
+		  Syntax_error.raise _loc
+		    "The syntax {client{ ... }} is only allowed at toplevel"
+	 ]];
+      dummy_set_level_client_expr:
+	[[ -> match !current_level with
+              | Server_item | Toplevel ->
+		  reset_escaped_ident ();
+		  let old = !current_level in
+		  current_level := Client_expr;
+		  old
+              | _ ->
+		  Syntax_error.raise _loc
+		    "The syntax {{ ... }} is only allowed inside server specific code"
+	 ]];
+      dummy_check_level_escaped_ident:
+	[[ -> match !current_level with
+              | Client_expr -> ()
+              | _ ->
+		  Syntax_error.raise _loc
+		    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
+	 ]];
+      dummy_set_level_escaped_expr:
+	[[ -> match !current_level with
+              | Server_item | Toplevel -> current_level := Client_expr
+              | _ ->
+		  Syntax_error.raise _loc
+		    "The syntax {{ ... }} is only allowed inside server specific code"
+	 ]];
+      dummy_set_level_module_expr:
+	[[ -> let old = !current_level in
+              current_level := Module_expr;
+              old ]];
+
+      module_expr: BEFORE "top"
+
+	[[ lvl = dummy_set_level_module_expr;
+	   me = module_expr LEVEL "top" -> current_level := lvl; me ]];
+
+
+      (* To str_item we add {client{ ... }}, {server{ ... }} and {shared{ ... }} *)
+      str_item: BEFORE "top"
+
+	[ "eliom"
+
+	 [ KEYWORD "{shared{" ; dummy_set_level_shared ;
+           es = LIST0 str_item ;
+	   KEYWORD "}}" ->
+
+	     current_level := Toplevel;
+	     Pass.shared_str_items es
+
+         | KEYWORD "{server{" ; dummy_set_level_server ;
+             es = LIST0 str_item ;
+	   KEYWORD "}}" ->
+
+	     current_level := Toplevel;
+	     Pass.server_str_items es
+
+	 | KEYWORD "{client{" ; dummy_set_level_client ;
+             es = LIST0 str_item ;
+	   KEYWORD "}}" ->
+
+	     current_level := Toplevel;
+	     Pass.client_str_items es
+
+	 | si = str_item LEVEL "top" ->
+
+	     if !current_level = Toplevel then
+	       Pass.server_str_items [si]
+	     else
+	       si
+
+	 ]];
+
+      (* To expr we add {{ ... }} and %IDENT *)
+
+      expr: BEFORE "simple"
+
+	[[ KEYWORD "{{" ; lvl = dummy_set_level_client_expr ;
+           e = SELF ;
+	   KEYWORD "}}" ->
+
+	     current_level := lvl;
+	     Pass.client_expr e (gen_closure_num _loc)
+
+      | SYMBOL "%" ; id = ident ; dummy_check_level_escaped_ident ->
+
+	  Pass.escaped <:expr< $id:id$ >> (gen_escaped_ident id)
+
+      | SYMBOL "%" ; KEYWORD "(" ; dummy_set_level_escaped_expr ;
+	  e = SELF ;
+	  KEYWORD ")" ->
+
+	    current_level := Client_expr;
+	    failwith "No %(expr) yet !"
+
+	 ]];
+      END
 
   end
-end
 
+  (** Register syntax extension *)
 
+  module Id : Camlp4.Sig.Id = struct
+    let name = "Eliom source file syntax ("^ Id.name ^")"
+    let version = "alpha"
+  end
 
-(*** MLI READER ***)
-(*Here we define a set of functions for mli reading.*)
-
-module Make_reader (Filters : Camlp4.Sig.AstFilters) =
-struct
-
-  (*TODO: get this module checked*)
-
-  open Filters
-  open Filters.Ast
-
-  let load_file f =
-    let ic = open_in f in
-    try
-      let s = Stream.of_channel ic in
-      let res =
-        Camlp4.Register.CurrentParser.parse_interf
-          (Obj.magic (*Ast.*)Loc.ghost)
-          s
-      in
-      close_in ic;
-      (Obj.magic (res : Camlp4.PreCast.Ast.sig_item) : Filters.Ast.sig_item)
-    with e -> close_in ic; raise e
-
-  let rec string_of_ident = function
-    | IdAcc (_,_,i) -> string_of_ident i
-    | IdLid (_,s) | IdUid (_,s) | IdAnt (_,s) -> s
-    | IdApp (_,i1,i2) ->
-        failwith ("What is IdApp? "^string_of_ident i1^" "^ string_of_ident i2)
-
-  let rec find_value_type n = function
-    (*
-    | <:sig_item< val $lid:s$ : $typ:t$ >>
-        -> if string_of_ident n = s then Some t else None
-    *)
-    | SgSem (_, s1, s2) -> begin match find_value_type n s1 with
-        | None -> find_value_type n s2
-        | Some _ as topt -> topt
-      end
-    | SgVal (_, s, t)
-        -> if string_of_ident n = s then Some t else None
-    | SgExt _
-    | SgNil _
-    | SgCls _
-    | SgClt _
-    | SgExc _
-    | SgMod _
-    | SgMty _
-    | SgTyp _
-    (* no doc *)
-    | SgAnt _ (* Antiquot? *)
-    | SgOpn _ (* Open? *)
-    | SgRecMod _ (* Rec Module? *)
-    | SgDir _ (* ??? *)
-    | SgInc _ (* Include? *)
-      -> None
-
-  let strip_option_ref = function (*TODO: actually check for option and ref *)
-  (*| TyApp (_, _ (*ref*), TyApp (_, _ (*option*), t)) -> t*)
-    | <:ctyp< ($t$ option ref) >> -> t
-    | _ -> failwith "Unexpected type"
+  module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make)
 
 end
-
