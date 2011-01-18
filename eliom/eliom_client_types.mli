@@ -18,9 +18,10 @@ val string_escape : string -> string
 
 
 (**/**)
+type poly
 type eliom_data_type =
     ((XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
-        ((int64 * int) * unit list) *
+        ((int64 * int) * poly list) *
         Ocsigen_cookies.cookieset *
         string list (* on load scripts *) *
         string list (* on change scripts *) *

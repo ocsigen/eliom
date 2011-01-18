@@ -29,7 +29,7 @@ external register_closure
 let register_closure id f = register_closure id (fun x -> f (unmarshal x))
 
 (* == Page application data *)
-let page_appl_data_table : ((int64 * int), unit) Hashtbl.t = 
+let page_appl_data_table : ((int64 * int), Eliom_client_types.poly) Hashtbl.t =
   Hashtbl.create 50
 
 (* Loading page Eliom application data *)

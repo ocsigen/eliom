@@ -44,7 +44,8 @@ let client_si s =
 
 
 
-let eliom_appl_page_data_key : ((int64 * int) * unit list) Polytables.key = 
+let eliom_appl_page_data_key :
+    ((int64 * int) * Eliom_client_types.poly list) Polytables.key =
   Polytables.make_key ()
 
 let get_eliom_appl_page_data_ sp = 

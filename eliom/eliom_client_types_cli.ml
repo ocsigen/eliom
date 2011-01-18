@@ -32,12 +32,15 @@ type sitedata = (* sent while starting the program *)
    site_dir_string: string;
   }
 
+(* Abstract type for the polymorphic contents in the table of page data. *)
+type poly
+
 (* The data that comes with each page: *)
 type eliom_data_type =
     ((* The ref tree, to relink the DOM *)
       (XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
         (* Table of page data *)
-        ((int64 * int) * unit list) *
+        ((int64 * int) * poly list) *
         (* Tab cookies to set or unset *)
         Ocsigen_cookies.cookieset *
         string list (* on load scripts *) *

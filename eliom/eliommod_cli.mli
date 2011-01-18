@@ -25,7 +25,7 @@
 val fresh_id : unit -> string
 
 val get_eliom_appl_page_data_ : 
-  Eliom_common.server_params -> (int64 * int) * unit list
+  Eliom_common.server_params -> (int64 * int) * Eliom_client_types.poly list
 
 
 val client_sitedata : 
