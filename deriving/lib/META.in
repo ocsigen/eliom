@@ -1,6 +1,6 @@
 name = "deriving"
-version = "0.2"
-description = "Deriving - ..."
+version = "0.2-ocsigen"
+description = "Deriving (patched for the Ocsigen project)"
 
 ### All modules
 

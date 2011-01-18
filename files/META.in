@@ -145,7 +145,7 @@ package "ext" (
 
   package "eliom" (
     exists_if = "eliom.cma,eliom.cmxa"
-    requires = "ocsigen.server,cryptokit,ocsigen.ext.comet,calendar,deriving"
+    requires = "ocsigen.server,cryptokit,ocsigen.ext.comet,calendar,ocsigen.deriving"
     version = "[distributed with Ocsigen]"
     description = "Eliom: module for generating pages"
     archive(byte) = "eliom.cma"
@@ -168,7 +168,7 @@ package "ext" (
   )
 
   package "eliom_client" (
-    requires = "js_of_ocaml,deriving,lwt.react"
+    requires = "js_of_ocaml,ocsigen.deriving,lwt.react"
     version = "[distributed with Ocsigen]"
     description = "Eliom client-side"
     archive(byte) = "eliom_client.cma eliom_client_main.cmo"

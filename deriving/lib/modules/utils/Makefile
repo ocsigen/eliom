@@ -37,8 +37,8 @@ clean:
 	@${MAKE} --no-print-directory -f ${OCAMLMAKEFILE} \
 		SOURCES="${LIB_SOURCES}" clean
 
-.phony: META
-META:
-	echo >> ../../META
-	cat META.in >> ../../META
-	echo >> ../../META
+.phony: META.gen
+META.gen:
+	echo >> ../../META.gen
+	cat META.in >> ../../META.gen
+	echo >> ../../META.gen

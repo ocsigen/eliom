@@ -296,6 +296,11 @@ doc:
 
 files/META: files/META.in VERSION
 	sed $(SED_COMMAND_FOR_META) < $< > $@
+	echo "package \"deriving\" (" >> $@
+	echo "  directory = \"deriving\"" >> $@
+	sed 's/^/  /' deriving/lib/META.gen \
+	| sed 's/_DERIVING_/ocsigen.deriving/g' >> $@
+	echo ")" >> $@
 
 files/META.ocsigen_xhtml: files/META.ocsigen_xhtml.in VERSION
 	sed $(SED_COMMAND_FOR_META) < $< > $@
@@ -375,6 +380,7 @@ clean:
 	-find . -name "*~" -delete
 
 distclean: clean
+	cd deriving && make clean
 	-find . -name "*depend" -delete
 	make -C doc clean
 	-rm -f Makefile.config
@@ -417,7 +423,7 @@ partialinstall:
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	chmod a+rx $(TEMPROOT)$(STD_METAS_DIR)
 	chmod a+rx "$(TEMPROOT)$(MODULEINSTALLDIR)"
-	cd deriving && $(MAKE) install
+	cd deriving && OCAMLFIND_DESTDIR=`${OCAMLFIND} query ${OCSIGENNAME}` $(MAKE) install
 
 docinstall:
 	make -C doc install
@@ -514,7 +520,6 @@ uninstall:
 	-$(MAKE) -C server uninstall
 	-rm -Rf "$(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client"
 	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"
-	-cd deriving && ${MAKE} uninstall
 
 fulluninstall: uninstall
 # dangerous

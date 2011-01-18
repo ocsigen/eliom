@@ -75,20 +75,20 @@ clean:
 
 REQUIRES = \
 	${PACK_DEPENDS} \
-	deriving.base \
-	${foreach dep,${UTIL_DEPENDS},deriving.utils.${dep}} \
-	${foreach dep,${MODULE_DEPENDS},deriving.${dep}}
+	_DERIVING_.base \
+	${foreach dep,${UTIL_DEPENDS},_DERIVING_.utils.${dep}} \
+	${foreach dep,${MODULE_DEPENDS},_DERIVING_.${dep}}
 
-.phony: META
-META:
-	echo >> ../../META
-	echo "package \"${NAME}\"  (" >> ../../META
-	echo "  requires = \"${REQUIRES}\""  >> ../../META
-	echo "  archive(byte) = \"deriving_${NAME}.cma\"" >> ../../META
-	echo "  archive(native) = \"deriving_${NAME}.cmxa\"" >> ../../META
-	echo "  archive(syntax, preprocessor) = \"pa_deriving_${NAME}.cma\"" >> ../../META
-	echo "  archive(syntax, toploop) = \"pa_deriving_${NAME}.cma\"" >> ../../META
-	echo ")" >> ../../META
+.phony: META.gen
+META.gen:
+	echo >> ../../META.gen
+	echo "package \"${NAME}\"  (" >> ../../META.gen
+	echo "  requires = \"${REQUIRES}\""  >> ../../META.gen
+	echo "  archive(byte) = \"deriving_${NAME}.cma\"" >> ../../META.gen
+	echo "  archive(native) = \"deriving_${NAME}.cmxa\"" >> ../../META.gen
+	echo "  archive(syntax, preprocessor) = \"pa_deriving_${NAME}.cma\"" >> ../../META.gen
+	echo "  archive(syntax, toploop) = \"pa_deriving_${NAME}.cma\"" >> ../../META.gen
+	echo ")" >> ../../META.gen
 
 %.dump: %.ml
 	${DERIVING} -printer "o" $^

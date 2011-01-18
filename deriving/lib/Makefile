@@ -97,14 +97,17 @@ endif
 
 ##
 
-META: META.in modules/Makefile.modules modules/utils/META.in ${foreach module,${MODULES}, modules/${module}/Makefile}
-	cp META.in META
-	@cd modules/utils && ${MAKE} --print-directory META
+META: META.gen
+	sed s/_DERIVING_/deriving/g META.gen > META
+
+META.gen: META.in modules/Makefile.modules modules/utils/META.in ${foreach module,${MODULES}, modules/${module}/Makefile}
+	cp META.in META.gen
+	@cd modules/utils && ${MAKE} --print-directory META.gen
 	${QUIET}${foreach module,${MODULES}, \
-	   cd modules/${module} && ${MAKE} --print-directory META && cd ../.. &&} true
+	   cd modules/${module} && ${MAKE} --print-directory META.gen && cd ../.. &&} true
 
 clean::
-	rm -f META
+	rm -f META META.gen
 
 -include ${OCAMLMAKEFILE}
 
