@@ -990,8 +990,7 @@ module Text : Eliom_mkreg.ELIOMREGSIG with
     or non-attached parameters or coservice parameters) is sent to the browser.
 
     If you want to give information to the handler that will be called
-    to reload the page, put it in the polymorphic table returned by 
-    {!Eliom_state.get_request_cache}.
+    to reload the page, put it in an Eliom reference with scope [`Request].
 
     If you give the optional parameter
     [~options:`NoReload] to the registration function, no page will be sent.
@@ -1049,7 +1048,7 @@ module Files : Eliom_mkreg.ELIOMREGSIG with
   and type return = Eliom_services.http
 
 (** Allows to create services that choose dynamically what they want
-   to send. The content is created using one {!Eliom_mkreg.ELIOMREGSIG1.send}
+   to send. The content is created using one {!Eliom_mkreg.ELIOMREGSIG.send}
    function, for ex [Xhtml.send] or [Files.send].
    .
  *)

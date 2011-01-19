@@ -5,7 +5,8 @@ include ../../Makefile.config
 #	xhtml5pretty.ml xhtml5compact.ml \
 #	xhtml5pretty_streams.ml xhtml5compact_streams.ml
 
-FILES = xhtml_format.ml xhtml_mkcompact.ml xhtml_mkpretty.ml xhtmlpretty.ml xhtmlcompact.ml \
+FILES = xhtml_format.ml xhtml_mkcompact.ml xhtml_mkpretty.ml \
+	xhtmlpretty.ml xhtmlcompact.ml \
 	xhtml5pretty.ml xhtml5compact.ml
 
 FILES_STREAM = xhtml_mkpretty_streams.ml xhtml_mkcompact_streams.ml \
@@ -24,10 +25,10 @@ OBJSOPT = $(FILES:.ml=.cmx)
 
 
 byte: ../xhtmlpretty.cma $(FILES_STREAM:.ml=.cmo)
-	cp $(CMIS)  $(FILES_STREAM:.ml=.cmo)  .. 
+	cp $(CMIS) $(FILES_STREAM:.ml=.cmo)  .. 
 
 opt: ../xhtmlpretty.cmxa $(FILES_STREAM:.ml=.cmx)
-	cp $(CMIS)  $(FILES_STREAM:.ml=.cmx) $(FILES_STREAM:.ml=.o) ..
+	cp $(CMIS) $(FILES_STREAM:.ml=.cmx) $(FILES_STREAM:.ml=.o) ..
 
 ../xhtmlpretty.cma: $(CMIS) $(OBJS)
 	$(CAMLC) -a -o $@ $(OBJS)

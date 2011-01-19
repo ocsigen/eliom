@@ -163,7 +163,7 @@ module type T =
     element. Any number of elements may be assigned the same class
     name or names.  *)
     val a_user_data : nmtoken -> text -> [> | `User_data] attrib
-      
+
     (** May be used to specify custom attribs.
     The example given by the W3C is as follows :
     {v <ol>

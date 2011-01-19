@@ -292,8 +292,7 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	echo "Documentation generation temporarily unsupported. Please see the online documentation on http://ocsigen.org"
-#	$(MAKE) -C doc
+	$(MAKE) -C doc
 
 files/META: files/META.in VERSION
 	sed $(SED_COMMAND_FOR_META) < $< > $@
@@ -416,6 +415,7 @@ partialinstall:
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/METAS
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/extensions
+	chmod a+rx $(TEMPROOT)$(STD_METAS_DIR)
 	chmod a+rx "$(TEMPROOT)$(MODULEINSTALLDIR)"
 	cd deriving && $(MAKE) install
 

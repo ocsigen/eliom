@@ -858,6 +858,8 @@ let get_session_info req previous_extension_err =
       (None, tab_cookies, post_params)
   in
 
+
+
   let post_params, get_params, to_be_considered_as_get =
     try
       ([],
@@ -1024,7 +1026,7 @@ let get_session_info req previous_extension_err =
   let data_cookies_tab = getcookies `Client_process datacookiename tab_cookies in
   let service_cookies_tab = getcookies `Client_process servicecookiename tab_cookies in
   let persistent_cookies_tab = getcookies `Client_process persistentcookiename tab_cookies in
-  
+
   let secure_cookie_info_tab =
     if ri.Ocsigen_extensions.ri_ssl
     then

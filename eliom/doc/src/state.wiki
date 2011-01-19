@@ -410,7 +410,7 @@ Consider the following scenario: a user logs in from home using
 a "Remember me on this computer" feature, which sets a (almost)
 no-expiration cookie on his browser and session timeouts of infinity
 on the server.  The user goes on vacation, and while logging from
-a cyber-café, she also sets the "Remember me" option.  Back home
+a cyber-cafÃ©, she also sets the "Remember me" option.  Back home
 she realises her mistake, and wishes to do a "global logout", ie,
 closing all existing sessions associated with her user name.\\
 

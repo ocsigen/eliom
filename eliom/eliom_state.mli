@@ -488,7 +488,8 @@ val set_persistent_data_cookie_exp_date :
     will be added to their expiration dates (asynchronously,
     by another Lwt thread, as this can take a long time).
     Sessions whose timeout has been set individually with
-    {!Eliom_state.set_volatile_state_timeout} won't be affected.
+    functions like
+    {!Eliom_state.set_volatile_data_state_timeout} won't be affected.
 
     If [~state_name] is not present, it is the default for all session names,
     and in that case [recompute_expdates] is ignored. [~state_name:None]

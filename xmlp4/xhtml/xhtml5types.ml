@@ -210,7 +210,7 @@ type mediadesc =
         {- [`Braille]:
         For braille tactile feedback devices.}
         {- [`Aural]:
-=        For speech synthesizers.}}
+        For speech synthesizers.}
         {- [`All]:
         For all devices.}}
 

@@ -14,7 +14,7 @@ module M :
     open Svgtypes
     open Unit
       
-    (** {1 Abstraction over XML's types *)
+    (** {1 Abstraction over XML's types} *)
     type 'a attrib
     
     type 'a attribs

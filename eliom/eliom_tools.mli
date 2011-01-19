@@ -70,7 +70,7 @@ module Xhtml : sig
    menu item with its sub-menu, and so on.
    By default, only the sub-menus for to the url corresponding to
    the argument [service] are displayed. If you want all the sub-menus to be
-   displayed, specify [?whole_tree=true]. If [service] is [None], the current
+   displayed, specify [~whole_tree=true]. If [service] is [None], the current
    page is used.
 *)
   val hierarchical_menu_depth_first :
