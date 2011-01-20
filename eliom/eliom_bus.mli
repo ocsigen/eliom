@@ -20,36 +20,36 @@
  *)
 
 type 'a t
-(** The type of bus's carrying values of type ['a]. Bus's are values that can be
-    easily shared among clients. Each of these clients along with the server can
-    send a value on the bus. Values are handled by each of the participants
-    using a custom handler.
-    Note that no effort is put to order message receptions 
-    on the different participants. *)
+(** The type of bus's carrying values of type ['a]. Bus's are values
+    that can be easily shared among clients. Each of these clients
+    along with the server can send a value on the bus. Values can be
+    received by each of the participants as a stream. Note that no
+    effort is put to order message receptions on the different
+    participants. *)
 
 val create :
-     ?scope:Eliom_common.scope -> ?name:string
+  ?scope:Eliom_common.scope -> ?name:string
   -> 'a Deriving_Json.t
-  -> ('a -> unit Lwt.t)
   -> 'a t
-(** [create ?scope ?name handler] makes a fresh bus. The [name] optional
-    parameter can be used to make persistent (as in server restart persistent)
-    bus's. The function [handler] is associated to [b] on the server at
-    creation. The [scope] argument is passed to the underlying service creation
-    function. The [?name] argument allow one to make bus's persistent over
-    server restart. *)
+(** [create ?scope ?name] makes a fresh bus. The [name] optional
+    parameter can be used to make persistent (as in server restart
+    persistent) bus's. The [scope] argument is passed to the
+    underlying service creation function. The [?name] argument allow
+    one to make bus's persistent over server restart. *)
+
+val stream : 'a t -> 'a Lwt_stream.t
+(** [stream b] returns the stream of datas sent to bus [b]. Notice you
+    sould not use that function multiple times on the same bus, it will
+    return the same stream. If you want to receive mutiple times the
+    same datas, you sould copy the stream with [Lwt_stream.clone] *)
 
 val write : 'a t -> 'a -> unit
-(** [write b x] sends the value [x] on the bus [b]. Every participant will
-    execute the handler it set for [b] automaticcaly. *)
-
-val set_handler : 'a t -> ('a -> unit Lwt.t) -> unit
-(** [set_handler bus handler] sets the [bus] handler. Subsequent messages on the
-    [bus] will trigger [handler].*)
+(** [write b x] sends the value [x] on the bus [b]. Every participant,
+    including the server, will receive [x]. *)
 
 val wrap :
      'a t
-  -> (  ('a Eliom_common_comet.buffered_chan_id)
+  -> (  ('a Eliom_common_comet.chan_id)
      * (unit,
         'a,
         [ `Nonattached of [ `Post ] Eliom_services.na_s ],

@@ -21,48 +21,31 @@
 
 (* Module for event wrapping and related functions *)
 
-
 module Down =
 struct
 
   type 'a t =
       {throttling: float option;
-       buffer_size: int;
-       buffer_time: float option;
        react: 'a React.E.t;
        name: string option}
 
   let of_react
-      ?throttling ?(buffer_size=1) ?buffer_time ?name (e : 'a React.E.t) =
+      ?throttling ?name (e : 'a React.E.t) =
     {throttling=throttling;
-     buffer_size=buffer_size;
-     buffer_time=buffer_time;
      react=e;
      name=name}
 
   let wrap
       {throttling=t;
-       buffer_size=bs;
-       buffer_time=bt;
        react=e;
        name=name} =
-    let (chan, write) =
-      Eliom_comet.Buffered_channels.create
-        ?name
-        ~max_size:bs
-        ?timer:bt
-        ()
-    in
     let ee =
-      React.E.map
-        (fun x -> write x)
-        (match t with
-           | None -> e
-           | Some t -> Lwt_event.limit (fun () -> Lwt_unix.sleep t) e
-        )
+      (match t with
+        | None -> e
+        | Some t -> Lwt_event.limit (fun () -> Lwt_unix.sleep t) e)
     in
-    let `R r = React.E.retain e (fun () -> ()) in
-    let `R _ = React.E.retain e (fun () -> r () ; ignore chan ; ignore ee) in
-    Eliom_comet.Buffered_channels.wrap chan
+    let stream = Lwt_event.to_stream ee in
+    let channel = Eliom_comet.Channels.create ?name stream in
+    Eliom_comet.Channels.wrap channel
 
 end

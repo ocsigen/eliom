@@ -20,9 +20,14 @@
  *)
 
 type 'a chan_id
-type 'a buffered_chan_id
 
 val string_of_chan_id : 'a chan_id -> string
 val chan_id_of_string : string -> 'a chan_id
-val string_of_buffered_chan_id : 'a buffered_chan_id -> string
-val buffered_chan_id_of_string : string -> 'a buffered_chan_id
+
+type comet_service =
+    (unit, string,
+     [ `Nonattached of [ `Get | `Post ] Eliom_services.na_s ],
+     [ `WithoutSuffix ], unit,
+     [ `One of string ] Eliom_parameters.param_name, [ `Registrable ],
+     Eliom_services.http )
+      Eliom_services.service

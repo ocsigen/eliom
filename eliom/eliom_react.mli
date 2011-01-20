@@ -45,23 +45,18 @@ sig
   (** The abstract type of down events. *)
 
   val of_react :
-       ?throttling:float
-    -> ?buffer_size:int
-    -> ?buffer_time:float
+      ?throttling:float
     -> ?name:string
     -> 'a React.E.t
     -> 'a t
-  (** [of_react ?throttling ?buffer_size ?buffer_time ?name e] create an
+  (** [of_react ?throttling ?name e] create an
       asynchronous edge originating from [e]. The parameters are: [throttling]
-      for the limit to event propagation rate, [buffer_size] to set an
-      upper-limit to the number of values in the edge buffer, [buffer_time] for
-      buffered value lifespan and [name] for named edges. *)
+      for the limit to event propagation rate, [name] for named edges. *)
 
   val wrap :
-       'a t
-    -> 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
-  (** [wrap e] wraps the event [e] so that it can be handed to the client.
-    *)
+      'a t
+    -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
+  (** [wrap e] wraps the event [e] so that it can be handed to the client. *)
 
 end
 

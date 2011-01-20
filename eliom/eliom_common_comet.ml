@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Raphaël Proust
+ * Pierre Chambart
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,9 +21,14 @@
  *)
 
 type 'a chan_id = string
-type 'a buffered_chan_id = string
 
 external string_of_chan_id : 'a chan_id -> string = "%identity"
 external chan_id_of_string : string -> 'a chan_id = "%identity"
-external string_of_buffered_chan_id : 'a buffered_chan_id -> string = "%identity"
-external buffered_chan_id_of_string : string -> 'a buffered_chan_id = "%identity"
+
+type comet_service =
+    (unit, string,
+     [ `Nonattached of [ `Get | `Post ] Eliom_services.na_s ],
+     [ `WithoutSuffix ], unit,
+     [ `One of string ] Eliom_parameters.param_name, [ `Registrable ],
+     Eliom_services.http )
+      Eliom_services.service

@@ -20,17 +20,9 @@
  *)
 
 type 'a t
-(** The type of bus's with values of type ['a]. *)
-
-val write : 'a t -> 'a -> unit Lwt.t
-(** [write b x] sends the message [x] on the bus [b]. *)
-
-val set_handler : 'a t -> ('a -> unit Lwt.t) -> unit
-(** [set_handler b handler] sets the handler for bus [b]. Following messages on
-    the bus [b] will be treated with function [handler]. *)
 
 val unwrap :
-    (  ('a Eliom_common_comet.buffered_chan_id)
+    (  ('a Eliom_common_comet.chan_id)
      * (unit,
         'a,
         [< Eliom_services.service_kind ],
@@ -41,4 +33,15 @@ val unwrap :
         'd) Eliom_services.service
     ) Eliom_client_types.data_key
   -> 'a t
+
+val stream : 'a t -> 'a Lwt_stream.t
+(** [stream b] returns the stream of datas sent to bus [b]. Notice you
+    sould not use that function multiple times on the same bus in the
+    same client process, it will return the same stream. If you want
+    to receive mutiple times the same datas, you sould copy the stream
+    with [Lwt_stream.clone] *)
+
+val write : 'a t -> 'a -> unit Lwt.t
+(** [write b v] send [v] to the bus [b]. Every participant of the bus
+    will receive [v], including the sender. *)
 

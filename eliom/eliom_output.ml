@@ -3331,6 +3331,11 @@ redir ();"))::
                              )
                           ) ; "\'; \n" ;
 
+			  "var comet_service = \'" ;
+                          (Eliom_client_types.jsmarshal
+			     (Eliom_comet.init ())
+                          ) ; "\'; \n" ;
+
                           "var change_page_event = \'" ;
                           (Eliom_client_types.jsmarshal
                              (Eliommod_react.Down.wrap
@@ -3384,7 +3389,8 @@ redir ();"))::
          Eliom_common.cpi_hostname = Eliom_request_info.get_hostname_sp sp;
          Eliom_common.cpi_server_port = Eliom_request_info.get_server_port_sp sp;
          Eliom_common.cpi_original_full_path =
-            Eliom_request_info.get_original_full_path_sp sp}
+            Eliom_request_info.get_original_full_path_sp sp;
+         Eliom_common.cpi_references = Polytables.create ()}
       in
       sp.Eliom_common.sp_client_process_info <- (Some cpi);
       sp.Eliom_common.sp_sitedata.Eliom_common.set_client_process_info cpi

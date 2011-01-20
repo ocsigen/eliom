@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Raphaël Proust
+ * Pierre Chambart
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,21 +23,19 @@
 let (>|=) = Lwt.(>|=)
 
 type 'a t =
-  {
-    channel : 'a Eliom_common_comet.buffered_chan_id ;
-    write : 'a -> unit Lwt.t;
-  }
-
-let write b x = b.write x
-
-let set_handler bus h =
-  Eliom_client_comet.Buffered_channels.register bus.channel h
+    {
+      channel : 'a Eliom_common_comet.chan_id;
+      write : 'a -> unit Lwt.t;
+    }
 
 let unwrap w =
-  let (c, service) = Eliommod_cli.unwrap w in
+  let (channel,service) = Eliommod_cli.unwrap w in
   {
-    channel = c;
-    write =
-      (fun x -> Eliom_client.call_service ~service () x
-                >|= (fun _ -> ()));
+    channel;
+    write = (fun x -> Eliom_client.call_service ~service () x >|= (fun _ -> ()));
   }
+
+let stream {channel} =
+  Eliom_client_comet.register channel
+
+let write {write} = write

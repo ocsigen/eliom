@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Raphaël Proust
+ * Pierre Chambart
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,24 +22,16 @@
 
 (* Module for event unwrapping *)
 let (>|=) = Lwt.(>|=)
-
-
+let (>>=) = Lwt.(>>=)
 
 module Down =
 struct
 
   let unwrap
-        (c : 'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key)
+        (c : 'a Eliom_common_comet.chan_id Eliom_client_types.data_key)
         : 'a React.E.t
     =
-    let chan : 'a Eliom_common_comet.buffered_chan_id =
-      Eliom_client_comet.Buffered_channels.unwrap c
-    in
-    let (e, push) = React.E.create () in
-    Eliom_client_comet.Buffered_channels.register
-      chan
-      (fun s -> push s ; Lwt.return ()) ;
-    e
+    Lwt_event.of_stream (Eliom_client_comet.unwrap c)
 
 end
 

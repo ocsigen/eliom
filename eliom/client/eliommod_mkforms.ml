@@ -62,7 +62,7 @@ let add_tab_cookies_to_form' l node =
   remove_tab_cookie_fields node;
   add_tab_cookie_fields l node;
   Lwt_js.sleep 0.05 >|=
-  Eliom_client_comet.Engine.restart
+  Eliom_client_comet.restart
 
 let add_tab_cookies_to_post_form' node =
   let action = node##action in

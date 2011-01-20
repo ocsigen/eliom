@@ -1,8 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module server.ml
  * Copyright (C) 2010
  * Raphaël Proust
+ * Pierre Chambart
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,71 +20,41 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-module Engine :
-(** The [Engine] is responsible for making asynchronous calls to the server,
-    associating results with registered channels and triggering associated
-    events. The interface is trimmed down to prevent low-level tampering and
-    because of some implementation choices. When the engine is running a comet
-    connection is opened to the server. *)
-sig
+(** This module contains functions to handle unsolicited server to
+    client communication on the client side *)
 
-  val start : unit -> unit
-  (** [start ()] makes the engine start. If it was already running, nothing
-      happens. If it wasn't, it first checks for channels of interest and then
-      opens a connection to the server if such channels exists. *)
+(** when the page is not active the client stops making comet requests
+    to the server, implying that the client can't be notified by the
+    server anymore. The activity status is changed when the page is
+    focused or unfocused. *)
 
-  val stop : unit -> unit
-  (** [stop ()] makes the engine stop. If it wasn't running, nothing happens.
-    * Registered channels are kept so that the server can be started again. *)
+val unwrap : 'a Eliom_common_comet.chan_id Eliom_client_types.data_key -> 'a Lwt_stream.t
+val register : 'a Eliom_common_comet.chan_id -> 'a Lwt_stream.t
 
-  val running : unit -> bool
-  (** [running ()] reflects the current state the engine is in. *)
+val is_active : unit -> bool
+(** [is_active ()] returns the current activity state *)
 
-  val restart : unit -> unit
-  (** [restart ()] makes the engine restart. If it was started, the current XHR
-      is canceled and a new one is created. *)
+val activate : unit -> unit
+(** if the client is inactive [activate ()] launch a new xhr
+    connection to start receiving server messages *)
 
-end
+val active_until_timeout : bool -> unit
+(** [active_until_timeout v] sets the activity changing behaviour. if
+    [v] is [true] the page is kept active even if not focused until the
+    client receive a timeout message from the server. It implies that
+    if the server keeps sending datas to the client, the comet
+    connection will never be closed *)
 
-module Channels :
-(** [Channels] is a module for basic channel manipulation. On basic channels,
-    messages may be lost. *)
-sig
+val always_active : bool -> unit
+(** [always_active true] tells the client to always stay active *)
 
-  val unwrap :
-     'a Eliom_common_comet.chan_id Eliom_client_types.data_key
-  -> 'a Eliom_common_comet.chan_id
-  (** [unwrap c] returns a channel identifier that can be used to register upon.
-    *)
+(**/**)
 
-  val register : 'a Eliom_common_comet.chan_id -> ('a -> unit Lwt.t) -> unit
-  (** [register c f] registers the channel [c], associating it to [f] on the
-      engine.  If the engine wasn't running it is automatically started.
-      Whenever a message [m] from the server reaches the client over the channel
-      [c], the function [f] is called with [m] as argument. Calls to [f] are not
-      sequentialized. When [c] has already been registered, calling
-      [register c f] replaces the function [f] associated to [c].
-      *)
+val restart : unit -> unit
+(** [restart ()] Restarts the loop waiting for server messages. It is
+    only usefull after that a formulary is sent. Indeed browsers stops
+    all xhr requests in that case. It is normaly not needed, but some
+    brosers (based on webkit) also destroy the xhr object in that
+    case, preventing client code from receiving the failure
+    notification. This shouldn't be used by average user. *)
 
-  val unregister : 'a Eliom_common_comet.chan_id -> unit
-  (** [unregister c] cancel registration on [c]. The function associated to [c]
-      won't be called anymore and further comet related XHR won't mention [c].
-    *)
-
-end
-
-module Buffered_channels :
-(** [Dlisted_channels] is a module for buffered channels manipulation. Such a
-    channel tends not to lose as many messages. All the functions have the same
-    semantic, the only difference is in implementation, mainly on the server
-    side (where some values are stored and retransmitted when needed). *)
-sig
-
-  val unwrap :
-     'a Eliom_common_comet.buffered_chan_id Eliom_client_types.data_key
-  -> 'a Eliom_common_comet.buffered_chan_id
-
-  val register : 'a Eliom_common_comet.buffered_chan_id -> ('a -> unit Lwt.t) -> unit
-  val unregister : 'a Eliom_common_comet.buffered_chan_id -> unit
-
-end

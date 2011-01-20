@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Raphaël Proust
+ * Pierre Chambart
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,16 +23,8 @@
 
 (* This file is for client-side comet-programming. *)
 
-module Ecc = Eliom_common_comet
-
-(* binders *)
-let (>>=) = Lwt.(>>=)
-let (>|=) = Lwt.(>|=)
-
-
-(* comet specific constants *)
-let content_type = "application/x-ocsigen-comet"
-
+let ( >>= ) = Lwt.( >>= )
+let ( >|= ) = Lwt.( >|= )
 
 (* Messages : encoding and decoding, comet protocol *)
 module Messages : sig
@@ -58,228 +51,224 @@ end = struct
   let field_delim_regexp = Regexp.make field_separator
 
   let decode_downcoming s =
-    let splited = Regexp.split chan_delim_regexp s in
-    let splited_twice =
-      Array.map
-        (fun s ->
-           match Regexp.split field_delim_regexp s with
-             | [|chan; msg|] -> (chan, url_decode msg)
-             | _ -> raise Incorrect_encoding
-        )
-        splited
-    in
-      Array.to_list splited_twice
+    match s with
+      | "" -> []
+      | s ->
+	let splited = Regexp.split chan_delim_regexp s in
+	let splited_twice =
+	  Array.map
+            (fun s ->
+              match Regexp.split field_delim_regexp s with
+		| [|chan; msg|] -> (chan, url_decode msg)
+		| _ -> raise Incorrect_encoding
+            )
+            splited
+	in
+	Array.to_list splited_twice
 
 end
 
+type activity =
+    {
+      mutable active : bool;
+      (** [!hd.hd_active] is true when the page is focused on the
+	  browser *)
+      mutable focused : bool;
+      mutable active_waiter : unit Lwt.t;
+      (** [!hd.hd_active_waiter] terminates when the page become
+	  focused *)
+      mutable active_wakener : unit Lwt.u;
+      mutable restart_waiter : string Lwt.t;
+      mutable restart_wakener : string Lwt.u;
+      mutable active_until_timeout : bool;
+      mutable always_active : bool;
+    }
 
-(* Engine : the main loop for comet channel management *)
-module Engine :
-sig
+type handler =
+    {
+      hd_service : Eliom_common_comet.comet_service;
+      hd_stream : (string * string) Lwt_stream.t;
+      (** the stream of all messages from the server *)
+      hd_new_channels : string list -> unit;
+      (** [hd.hd_new_channels chans] registers the channels [chans] to
+	  the handler. It launch a new request to the server
+	  immediately. *)
+      hd_activity : activity;
+    }
 
-  (* [register c f] registers to the channel [c], calling [f] on each server
-   * pushed value.
-   * If the engine isn't running at this point, it is started. *)
-  val register : string -> (string -> unit Lwt.t) -> unit
+let handler = ref None
 
-  (* [unregister c] cancels registration on channel [c] *)
-  val unregister : string -> unit
+let add_focus_listener f : unit =
+  let listener = Dom_html.handler (fun _ -> 
+    f (); Js.bool false) in
+  (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "focus",listener,Js.bool false)
 
-  (* [registered c] is [true] if [c] has already been registered, else it's
-   * [false] *)
-  val registered : string -> bool
+let add_blur_listener f : unit =
+  let listener = Dom_html.handler (fun _ -> 
+    f (); Js.bool false) in
+  (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "blur",listener,Js.bool false)
 
-  (* started is true when the engine is running and false otherwise *)
-  val running : unit -> bool
+let log f =
+  Printf.ksprintf (fun s -> Firebug.console##log(Js.string s)) f
 
-  val start : unit -> unit
+let set_activity activity v =
+  match v with
+    | true ->
+      activity.active <- true;
+      let t,u = Lwt.wait () in
+      activity.active_waiter <- t;
+      let wakener = activity.active_wakener in
+      activity.active_wakener <- u;
+      Lwt.wakeup wakener ()
+    | false ->
+      activity.active <- false
 
-  (* The engine is stoped on [stop] calls and several other events: server
-     serious error, no no registered channels. *)
-  val stop : unit -> unit
+(** register callbacks to 'blur' and 'focus' events of the root
+    window. That way, we can tell when the client is active or not and do
+    calls to the server only if it is active *)
+let handle_focus handler =
+  let focus_callback () =
+    handler.hd_activity.focused <- true;
+    set_activity handler.hd_activity true
+  in
+  let blur_callback () =
+    handler.hd_activity.focused <- false;
+    if not (handler.hd_activity.active_until_timeout
+	  || handler.hd_activity.always_active)
+    then handler.hd_activity.active <- false
+  in
+  add_focus_listener focus_callback;
+  add_blur_listener blur_callback
 
-  (* restart send a start signal to the engine (even if it's already running) *)
-  val restart : unit -> unit
+exception Restart
+exception Timeout
+exception Connection_lost
 
+let max_retries = 5
 
-end = struct
-
-  (* Primitive events for the reactive engine *)
-  let (start_e,   start  ) = React.E.create ()
-  let (stop_e,    stop   ) = React.E.create ()
-  let (restart_e, restart) = React.E.create ()
-
-  (* derivated events and signals *)
-  let running =
-    React.S.hold
-      false
-      (React.E.select
-         [ React.E.map (fun () -> true) start_e ;
-           React.E.map (fun () -> false) stop_e ; ]
-      )
-
-  let running_changes =
-    React.E.select
-      [
-        React.S.changes running;
-        React.E.map (fun () -> true) restart_e;
-      ]
-
-
-  (* Managing registration set (map actually) *)
-
-  module Cmap =
-    Map.Make (struct type t = string let compare = compare end)
-
-  let cmap = ref Cmap.empty
-
-  let registered c = Cmap.mem c !cmap
-  let register c f =
-    if registered c                       (* if already registered...         *)
-    then cmap := Cmap.add c f !cmap       (*...just change the closure...     *)
-    else (cmap := Cmap.add c f !cmap ;    (*...else don't forget to restart ! *)
-          restart ())
-  let unregister c = cmap := Cmap.remove c !cmap
-
-  let list_registered () = Cmap.fold (fun k _ l -> k :: l) !cmap []
-
-  let more_slp f = if f >= 64. then 128. else 2. *. f
-
-
-  let comet_url = match Url.Current.get () with
-    | Some (Url.Http u) ->
-        Url.Http
-          {u with
-               Url.hu_fragment = "";
-               Url.hu_arguments = [];
-          }
-    | Some (Url.Https u) ->
-        Url.Https
-          {u with
-               Url.hu_fragment = "";
-               Url.hu_arguments = [];
-          }
-    | Some (Url.File u) ->
-        Url.File
-          {u with
-               Url.fu_fragment = "";
-               Url.fu_arguments = [];
-          }
-    | None ->
-        failwith "invalid url"
-
-  (* action *)
-  let rec run slp wt = match list_registered () with
-      | [] -> Lwt.pause () >|= stop
-      | regs ->
-          let up_msg = Messages.encode_upgoing regs in
-          Lwt.catch (fun () ->
-
-          (* make asynchronous request *)
-            let async =
-              XmlHttpRequest.send
-                ~content_type
-                ~post_args:[("registration", up_msg)]
-                comet_url
-            in
-            Lwt.on_cancel wt (fun () -> Lwt.cancel async) ;
-            async >>= fun r ->
-            let code = r.XmlHttpRequest.code in
-            let msg = r.XmlHttpRequest.content in
-          (* check returned code *)
-            match code / 100 with
-          (* treat failure *)
-              | 0 | 3 | 4 -> (stop () ; Lwt.return ())
-          (* treat semi-failure *)
-              | 1 -> run slp wt
-              | 5 -> begin (* server error *)
-                   Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
-                   run (more_slp slp) wt
-                end
-          (* treat success *)
-              | 2 ->
-                  (if msg = "" (* no server message *)
-                   then run 1. wt
-                   else begin
-                     List.iter
-                       (fun (c,m) ->
-                          (*RRR: create the thread immediatly so that canceling
-                           * can't happen here !*)
-                          try
-                            if m = "ENDED_CHANNEL"
-                            then unregister c
-                            else let _ = (Cmap.find c !cmap) m in ()
-                          with Not_found -> ()
-                       )
-                       (Messages.decode_downcoming msg) ;
-                       run 1. wt
-                   end)
-              | _ -> (stop () ; Lwt.return ())
-
-          ) (function
-               | Messages.Incorrect_encoding ->
-                   (Lwt_js.sleep (1. +. Random.float slp) >>= fun () ->
-                    run (more_slp slp) wt)
-               | Lwt.Canceled -> Lwt.return ()
-               | e ->
-                   (stop () ;
-                    Dom_html.window##alert (Js.string (Printexc.to_string e)) ;
-                    Lwt.fail e)
-          )
-
-  (* Loops and notifications *)
-  let _ =
-    let run_wk = ref None in
-    Lwt_event.always_notify
+(** wait for data from the server, if also waits until the page is
+    focused to make the request *)
+let wait_data service activity =
+  let call_service () =
+    Eliom_client.call_service service () "" >>=
       (function
-         | true  ->
-             let (wt, wk) = Lwt.task () in
-             begin match !run_wk with
-   (*  start*) | None   -> run_wk := Some wk ; let _ = run 1. wt in ()
-   (*restart*) | Some u -> Lwt.wakeup_exn u Lwt.Canceled ;             (*stop *)
-                           run_wk := Some wk ; let _ = run 1. wt in () (*start*)
-             end
-         | false ->
-            begin match !run_wk with
-   (*  stop*) | Some u -> Lwt.wakeup_exn u Lwt.Canceled ; run_wk := None ;
-   (*ignore*) | None   -> ()
-            end
-      )
-      running_changes
+	| "TIMEOUT" -> Lwt.fail Timeout
+	| s -> Lwt.return s)
+  in
+  let rec aux retries =
+    log "call_service";
+    if activity.active
+    then
+      Lwt.catch
+	(fun () ->
+	  Lwt.choose [
+	    call_service ();
+	    activity.restart_waiter ]
+	  >>=
+	   (fun s ->
+	     Lwt.return (Some s)))
+	(function
+	  | Eliom_request.Failed_request 0 ->
+	    if retries > max_retries
+	    then
+	      (log "Eliom_client_comet: connection failure";
+	       set_activity activity false;
+	       aux 0)
+	    else
+	      (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
+	  | Restart ->
+	    aux 0
+	  | Timeout ->
+	    if not activity.focused
+	    then
+	      if not activity.always_active
+	      then set_activity activity false;
+	    aux 0
+	  | e -> log "Eliom_client_comet: exception"; Lwt.fail e)
+    else
+      activity.active_waiter >>= (fun () -> aux 0)
+  in
+  fun () -> aux 0
 
-  let running () = React.S.value running
+let service () : Eliom_common_comet.comet_service =
+  Eliommod_cli.unwrap (Ocsigen_lib.unmarshal_js_var "comet_service")
 
-end
+let init_activity () =
+  let active_waiter,active_wakener = Lwt.wait () in
+  let restart_waiter, restart_wakener = Lwt.wait () in
+  { 
+    active = false;
+    focused = true;
+    active_waiter; active_wakener;
+    restart_waiter; restart_wakener;
+    active_until_timeout = false;
+    always_active = false
+  }
 
+let init () =
+  let hd_activity = init_activity () in
+  let hd_service = service () in
+  (* the stream on wich are regularily received data from the server *)
+  let normal_stream = Lwt_stream.from (wait_data hd_service hd_activity) in
+  (* the stream on wich are received replies of request asking to register new channels *)
+  let exceptionnal_stream,push = Lwt_stream.create () in
+  let hd_stream = 
+    Lwt_stream.map_list Messages.decode_downcoming
+      ( Lwt_stream.choose [
+	normal_stream;
+	Lwt_stream.map_s (fun t -> t) exceptionnal_stream] ) in
+  (* the function to register new channels *)
+  let hd_new_channels chans =
+    let chans = Messages.encode_upgoing chans in
+    let t = Eliom_client.call_service hd_service () chans in
+    push (Some t);
+  in
+  let hd =
+    { hd_service; hd_stream; hd_new_channels; hd_activity }
+  in
+  let _ = Lwt_stream.iter (fun _ -> ()) hd_stream in (* consumes all messages of the stream to avoid memory leaks *)
+  handle_focus hd;
+  handler := Some hd;
+  hd
 
-module Channels =
-struct
+let get_hd () =
+  match !handler with
+    | None -> init ()
+    | Some hd -> hd
 
-  let unwrap (c : 'a Ecc.chan_id Eliom_client_types.data_key) : 'a Ecc.chan_id =
-    Eliommod_cli.unwrap c
+let add_channel handler channel =
+  handler.hd_new_channels [channel]
 
-  let decode s = Marshal.from_string s 0
-  let register c f =
-    Engine.register
-      (Ecc.string_of_chan_id c)
-      (fun x -> f (decode x))
-  let unregister c = Engine.unregister (Ecc.string_of_chan_id c)
+let activate () = set_activity (get_hd ()).hd_activity true
 
-end
+let restart () = 
+  let act = (get_hd ()).hd_activity in
+  let t,u = Lwt.wait () in
+  act.restart_waiter <- t;
+  let wakener = act.restart_wakener in
+  act.restart_wakener <- u;
+  Lwt.wakeup_exn wakener Restart
 
-module Buffered_channels =
-struct
+let register chan_id =
+  let chan_id = Eliom_common_comet.string_of_chan_id chan_id in
+  let hd = get_hd () in
+  let stream = Lwt_stream.filter_map
+    (function
+      | (id,data) when id = chan_id -> 
+	Some (Marshal.from_string data 0)
+      | _ -> 
+	None)
+    (Lwt_stream.clone hd.hd_stream)
+  in
+  add_channel hd chan_id;
+  activate ();
+  stream
 
-  let unwrap (c : 'a Ecc.buffered_chan_id Eliom_client_types.data_key)
-        : 'a Ecc.buffered_chan_id =
-    Eliommod_cli.unwrap c
+let unwrap chan_id =
+  let chan_id = Eliommod_cli.unwrap chan_id in
+  register chan_id
 
-  let decode s = Marshal.from_string s 0
-  let register c f =
-    Engine.register
-      (Ecc.string_of_buffered_chan_id c)
-      (fun l -> Lwt_list.iter_p f (decode l))
-  let unregister c = Engine.unregister (Ecc.string_of_buffered_chan_id c)
+let active_until_timeout v = (get_hd ()).hd_activity.active_until_timeout <- v
+let always_active v = (get_hd ()).hd_activity.always_active <- v
 
-end
-
+let is_active () = (get_hd ()).hd_activity.active

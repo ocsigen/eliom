@@ -529,15 +529,14 @@ are wrapped and sent to the client. A second example uses channels to transmit
 occurrences of an event.
  *wiki*)
 
-(* create a communication channel. Because it is public, we give an explicit
- * name for it. *)
-let (c1, write_c1) =
-  Eliom_comet.Channels.create ~name:"comet1_public_channel" ()
+(* create a communication stream. *)
+let (stream1, write_c1) = Lwt_stream.create ()
 
+let i = ref 0
 (* randomly write on the channel *)
 let rec rand_tick () =
   Lwt_unix.sleep (float_of_int (2 + (Random.int 2))) >>= fun () ->
-  write_c1 (Random.int 99) ; rand_tick ()
+  write_c1 (Some !i) ; incr i; rand_tick ()
 
 let _ = rand_tick ()
 
@@ -546,34 +545,36 @@ let comet1 =
     ~path:["comet1"]
     ~get_params:unit
     (fun () () ->
-       let (c2, write_c2) =
-         Eliom_comet.Buffered_channels.create ~max_size:6 ~timer:16. ()
-       in
+       let c1 = Eliom_comet.Channels.create ~name:"comet1_public_channel" (Lwt_stream.clone stream1) in
+       let (stream2, write_c2) = Lwt_stream.create () in
+       let c2 = Eliom_comet.Channels.create stream2 in
+
        let t2 = ref 0 in
        let rec tick_2 () =
          Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->
-         write_c2 !t2 ; incr t2 ; Lwt_unix.yield () >>= fun () ->
-         write_c2 !t2 ; incr t2 ; tick_2 ()
+         write_c2 (Some !t2) ; incr t2 ; Lwt_unix.yield () >>= fun () ->
+         write_c2 (Some !t2) ; incr t2 ; tick_2 ()
        in
 (*VVV Does never stop!!! *)
        ignore (tick_2 ());
 
        Eliom_services.onload
          {{
-           Eliom_client_comet.Channels.register %c1
+	   let _ = Lwt_stream.iter_s
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
                   (Js.string ("public: "^ string_of_int i ^";  "))) ;
              Lwt.return ()
-           );
-           Eliom_client_comet.Buffered_channels.register %c2
+           ) %c1 in
+	   let _ = Lwt_stream.iter_s
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
                   (Js.string ("private: "^ string_of_int i ^"; "))) ;
              Lwt.return ()
-           )
+           ) %c2 in
+	   ()
          }};
 
        Lwt.return
@@ -584,12 +585,10 @@ let comet1 =
          ]
     )
 
-
 (*wiki*
   This second example involves client-to-server and server to client event
   propagation. There is no manual handling of channel, only events are used.
  *wiki*)
-
 
 let comet2 =
   Eliom_appl.register_service
@@ -627,11 +626,9 @@ let comet2 =
        ]
     )
 
-
 (*wiki*
  This third example demonstrates the capacity for simultaneous server push.
  *wiki*)
-
 
 let comet3 =
   Eliom_appl.register_service
@@ -677,12 +674,14 @@ let comet3 =
     )
 
 
-
 (*wiki*
  Here is the code for a minimalistic message board.
  *wiki*)
 
-let message_bus = Eliom_bus.create Json.t<string> (fun (_:string) -> Lwt.return ())
+let message_bus = Eliom_bus.create Json.t<string>
+let _ =
+  Lwt_stream.iter (fun msg -> Printf.printf "msg: %s\n%!" msg)
+    (Eliom_bus.stream message_bus)
 
 let comet_message_board =
   Eliom_appl.register_service
@@ -695,13 +694,14 @@ let comet_message_board =
          let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
          Eliom_services.onload
            {{
-             Eliom_client_bus.set_handler
-               %message_bus
+             let _ = Lwt_stream.iter_s
                (fun msg ->
                  Dom.appendChild %container
                    (XHTML5.M.toelt (li [pcdata msg]));
                  Lwt.return ()
                )
+	       (Eliom_client_bus.stream %message_bus)
+	     in ()
            }} ;
 
          let go =

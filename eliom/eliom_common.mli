@@ -302,6 +302,8 @@ type client_process_info = (* information about the client process.
       cpi_hostname : string;
       cpi_server_port : int;
       cpi_original_full_path : Ocsigen_lib.url_path;
+      cpi_references : Polytables.t; (* holds informations about comet
+					service and change_page_event *)
     }
 
 type server_params = {

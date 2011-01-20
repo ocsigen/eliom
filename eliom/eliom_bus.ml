@@ -20,22 +20,21 @@
  *)
 
 type 'a t = {
-  (*   *) stream  : 'a Lwt_stream.t;
-  (*   *) write   : ('a -> unit);
-  mutable handler : ('a -> unit Lwt.t);
-  (*   *) service : (unit,
-                     'a,
-                     [ `Nonattached of [ `Post ] Eliom_services.na_s ],
-                     [ `WithoutSuffix ],
-                     unit,
-                     [ `One of 'a Eliom_parameters.caml ]
-                       Eliom_parameters.param_name,
-                     [ `Registrable ],
-                     Eliom_output.Action.return
-                    ) Eliom_services.service;
+  stream  : 'a Lwt_stream.t;
+  write   : ('a -> unit);
+  service : (unit,
+             'a,
+             [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+             [ `WithoutSuffix ],
+             unit,
+             [ `One of 'a Eliom_parameters.caml ]
+               Eliom_parameters.param_name,
+             [ `Registrable ],
+             Eliom_output.Action.return
+  ) Eliom_services.service;
 }
 
-let create ?scope ?name typ handler =
+let create ?scope ?name typ =
   (*The stream*)
   let (stream, push) = Lwt_stream.create () in
   let push x = push (Some x) in
@@ -56,29 +55,17 @@ let create ?scope ?name typ handler =
   let bus =
     { stream  = stream;
       write   = push;
-      handler = handler;
-      service = distant_write;
-    }
+      service = distant_write; }
   in
-
-  (*The handler*)
-  let _ = Lwt_stream.iter_p (fun x -> bus.handler x) bus.stream in
 
   bus
 
-
-let set_handler bus h = bus.handler <- h
-
+let stream bus = bus.stream
 
 let write bus x = bus.write x
 
-let channel_of_stream ~max_size ?timer stream =
-  let (c, push) = Eliom_comet.Buffered_channels.create ?timer ~max_size () in
-  let _ = Lwt_stream.iter push (Lwt_stream.clone stream) in
-  c
-
 let wrap (bus: 'a t)
-  : (  ('a Eliom_common_comet.buffered_chan_id)
+  : (  ('a Eliom_common_comet.chan_id)
      * (unit,
         'a,
         [ `Nonattached of [ `Post ] Eliom_services.na_s ],
@@ -90,7 +77,7 @@ let wrap (bus: 'a t)
        ) Eliom_services.service
     ) Eliom_client_types.data_key
   =
-  let chan = channel_of_stream ~max_size:5 bus.stream in (*TODO: make max_size customizable*)
-  Eliommod_cli.wrap (Eliom_comet.Buffered_channels.get_id chan, 
+  let chan = Eliom_comet.Channels.create (Lwt_stream.clone bus.stream) in
+  Eliommod_cli.wrap (Eliom_comet.Channels.get_id chan, 
                      Eliom_services.pre_wrap bus.service)
   
