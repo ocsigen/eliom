@@ -1,10 +1,10 @@
 package "utils" (
   package "monad" (
-    require(byte) = "deriving_monad.cmo"
-    require(native) = "deriving_monad.cmx"
+    archive(byte) = "deriving_monad.cmo"
+    archive(native) = "deriving_monad.cmx"
   )
   package "stdlib" (
-    require(byte) = "deriving_stdlib.cmo"
-    require(native) = "deriving_stdlib.cmx"
+    archive(byte) = "deriving_stdlib.cmo"
+    archive(native) = "deriving_stdlib.cmx"
   )
 )
