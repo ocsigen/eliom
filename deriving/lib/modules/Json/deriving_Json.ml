@@ -70,6 +70,16 @@ module Defaults'(J : Json_min') : Json with type a = J.a = struct
   (* let from_channel ic = from_channel t ic *)
 end
 
+let wrap (type t) t =
+  let module M =
+      struct
+	type a = t
+	let write = t.write
+	let read = t.read
+      end
+  in
+  (module Defaults(M) : Json with type a = t)
+
 (** Predefs *)
 
 module Json_undef (T : sig type a end) = struct

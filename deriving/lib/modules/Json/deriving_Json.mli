@@ -38,6 +38,8 @@ end
 module Defaults(J:Json_min) : Json with type a = J.a
 module Defaults'(J:Json_min') : Json with type a = J.a
 
+val wrap : 'a t -> (module Json with type a = 'a)
+
 module Json_char : sig
   val make : (module Json with type a = char)
 end
