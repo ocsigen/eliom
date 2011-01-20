@@ -3235,6 +3235,8 @@ module Eliom_appl_reg_
       ~scope:`Client_process
       ()
 
+  let comet_service_key = Polytables.make_key ()
+
   let get_tab_cook sp =
     Eliommod_cookies.compute_cookies_to_send
       sp.Eliom_common.sp_sitedata
@@ -3253,6 +3255,10 @@ module Eliom_appl_reg_
            the application or not before
            creating links and forms.
         *)
+    in
+    let cpi = match sp.Eliom_common.sp_client_process_info with
+	| None -> assert false (* always called after pre_service wich create cpi *)
+	| Some cpi -> cpi
     in
     let body, container_node = match params.ap_container with
       | None -> let b = XHTML5.M.body ?a:params.ap_body_attributes content in
@@ -3333,7 +3339,8 @@ redir ();"))::
 
 			  "var comet_service = \'" ;
                           (Eliom_client_types.jsmarshal
-			     (Eliom_comet.init ())
+			     (Polytables.get ~table:cpi.Eliom_common.cpi_references
+				~key:comet_service_key)
                           ) ; "\'; \n" ;
 
                           "var change_page_event = \'" ;
@@ -3393,7 +3400,11 @@ redir ();"))::
          Eliom_common.cpi_references = Polytables.create ()}
       in
       sp.Eliom_common.sp_client_process_info <- (Some cpi);
-      sp.Eliom_common.sp_sitedata.Eliom_common.set_client_process_info cpi
+      sp.Eliom_common.sp_sitedata.Eliom_common.set_client_process_info cpi;
+
+      let comet_service = Eliom_comet.init () in
+      Polytables.set ~table:cpi.Eliom_common.cpi_references ~key:comet_service_key
+	~value:comet_service
     end;
     Lwt.return ()
     
