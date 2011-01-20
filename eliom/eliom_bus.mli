@@ -51,11 +51,11 @@ val wrap :
      'a t
   -> (  ('a Eliom_common_comet.chan_id)
      * (unit,
-        'a,
+        'a list,
         [ `Nonattached of [ `Post ] Eliom_services.na_s ],
         [ `WithoutSuffix ],
         unit,
-        [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
+        [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
         [ `Registrable ],
         Eliom_output.Action.return
        ) Eliom_services.service

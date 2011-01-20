@@ -24,7 +24,7 @@ type 'a t
 val unwrap :
     (  ('a Eliom_common_comet.chan_id)
      * (unit,
-        'a,
+        'a list,
         [< Eliom_services.service_kind ],
         [< `WithSuffix | `WithoutSuffix ],
         'b,

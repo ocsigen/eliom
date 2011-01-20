@@ -21,21 +21,55 @@
  *)
 
 let (>|=) = Lwt.(>|=)
+let (>>=) = Lwt.(>>=)
 
 type 'a t =
     {
       channel : 'a Eliom_common_comet.chan_id;
-      write : 'a -> unit Lwt.t;
+      queue : 'a Queue.t;
+      mutable max_size : int;
+      write : 'a list -> unit Lwt.t;
+      waiter : unit -> unit Lwt.t;
+      mutable last_wait : unit Lwt.t;
     }
+
+let create service channel waiter =
+  let write x =
+    Eliom_client.call_service ~service () x
+    >|= (fun _ -> ())
+  in
+  {
+    channel;
+    queue = Queue.create ();
+    max_size = 20;
+    write;
+    waiter;
+    last_wait = Lwt.return ();
+  }
 
 let unwrap w =
   let (channel,service) = Eliommod_cli.unwrap w in
-  {
-    channel;
-    write = (fun x -> Eliom_client.call_service ~service () x >|= (fun _ -> ()));
-  }
+  let waiter () = Lwt_js.sleep 0.05 in
+  create service channel waiter
 
 let stream {channel} =
   Eliom_client_comet.register channel
 
-let write {write} = write
+let flush t =
+  let l = List.rev (Queue.fold (fun l v -> v::l) [] t.queue) in
+  Queue.clear t.queue;
+  t.write l
+
+let try_flush t =
+  Lwt.cancel t.last_wait;
+  if Queue.length t.queue >= t.max_size
+  then flush t
+  else
+    let th = Lwt.protected (t.waiter ()) in
+    t.last_wait <- th;
+    let _ = th >>= (fun () -> flush t) in
+    Lwt.return ()
+
+let write t v =
+  Queue.add v t.queue;
+  try_flush t

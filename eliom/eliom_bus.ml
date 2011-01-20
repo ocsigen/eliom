@@ -23,25 +23,35 @@ type 'a t = {
   stream  : 'a Lwt_stream.t;
   write   : ('a -> unit);
   service : (unit,
-             'a,
+             'a list,
              [ `Nonattached of [ `Post ] Eliom_services.na_s ],
              [ `WithoutSuffix ],
              unit,
-             [ `One of 'a Eliom_parameters.caml ]
+             [ `One of 'a list Eliom_parameters.caml ]
                Eliom_parameters.param_name,
              [ `Registrable ],
              Eliom_output.Action.return
   ) Eliom_services.service;
 }
 
+let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t = fun (type typ) typ ->
+  let (typ_list:typ list Deriving_Json.t) =
+    let module M = (val Deriving_Json.Json_list.make(Deriving_Json.wrap typ):
+	Deriving_Json.Json with type a = typ list) in
+    M.t
+  in
+  typ_list
+
 let create ?scope ?name typ =
   (*The stream*)
   let (stream, push) = Lwt_stream.create () in
   let push x = push (Some x) in
 
+  let typ_list = deriving_to_list typ in
+
   (*The service*)
   let post_params =
-    (Eliom_parameters.caml "bus_write" typ
+    (Eliom_parameters.caml "bus_write" typ_list
        : ('a, 'aa, 'aaa) Eliom_parameters.params_type)
   in
   let distant_write = Eliom_services.post_coservice' ?name ~post_params () in
@@ -49,7 +59,7 @@ let create ?scope ?name typ =
     ?scope
     ~options:`NoReload
     ~service:distant_write
-    (fun () x -> push x ; Lwt.return ());
+    (fun () x -> List.iter push x ; Lwt.return ());
 
   (*The bus*)
   let bus =
@@ -67,11 +77,11 @@ let write bus x = bus.write x
 let wrap (bus: 'a t)
   : (  ('a Eliom_common_comet.chan_id)
      * (unit,
-        'a,
+        'a list,
         [ `Nonattached of [ `Post ] Eliom_services.na_s ],
         [ `WithoutSuffix ],
         unit,
-        [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
+        [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
         [ `Registrable ],
         Eliom_output.Action.return
        ) Eliom_services.service
