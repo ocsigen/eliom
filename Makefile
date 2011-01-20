@@ -294,7 +294,11 @@ server.opt:
 doc:
 	$(MAKE) -C doc
 
-files/META: files/META.in VERSION
+deriving/lib/META.gen:
+	echo "Please run make depend"
+	exit 1
+
+files/META: files/META.in VERSION deriving/lib/META.gen
 	sed $(SED_COMMAND_FOR_META) < $< > $@
 	echo "package \"deriving\" (" >> $@
 	echo "  directory = \"deriving\"" >> $@
@@ -327,8 +331,14 @@ files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../baselib/parsecommandline.cmxs extensions
 	-ln -sf ../baselib/donotparsecommandline.cma extensions
 	-ln -sf ../baselib/donotparsecommandline.cmxs extensions
+	-ln -sf ../deriving/tmp/deriving extensions
 	echo directory = \"$(SRC)/extensions\" > $@
 	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< >> $@
+	echo "package \"deriving\" (" >> $@
+	echo "  directory = \"deriving\"" >> $@
+	sed 's/^/  /' deriving/lib/META.gen \
+	| sed 's/_DERIVING_/ocsigen.deriving/g' >> $@
+	echo ")" >> $@
 #	sed "s%\"xhtml\" (%\"xhtml\" (\n  directory = \"$(SRC)/xmlp4/xhtml/\"%g" >> $@
 
 files/META.eliom_examples: files/META.eliom_examples.in VERSION
