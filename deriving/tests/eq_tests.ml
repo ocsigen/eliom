@@ -247,3 +247,21 @@ let t =
     assert (not (Eq.eq<t> 0 14));
     assert (not (Eq.eq<t> (-1) 0));
   end
+
+
+let _ =
+  begin
+    assert (Eq.eq<[ `A ]> `A `A);
+    assert (Eq.eq<[ `A of [ `B ]]> (`A `B) (`A `B));
+  end
+
+
+let _ =
+  begin
+    let module Eq =
+      (val Deriving_Eq.Eq_list.make (Eq<(int * float)>)
+	   : Deriving_Eq.Eq with type a = (int * float) list) in
+    assert (Eq.eq [(1,1.);(2,2.)] [(1,1.);(2,2.)]);
+    assert (not (Eq.eq [(1,1.);(2,2.)] [(1,1.);(2,2.1)]));
+
+  end

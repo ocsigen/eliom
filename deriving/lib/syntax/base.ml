@@ -639,3 +639,23 @@ let derive_sig _loc (decls : Type.decl list) (context, deriver) : Ast.sig_item =
   let module Deriver = (val deriver : MakeDeriver)(DeriverHelpers) in
   (* TODO define generate_sig in each modules ? (needed for Functor) *)
   DeriverHelpers.generate_sigs DeriverHelpers.default_generate_sig decls
+
+let instantiate _loc ty deriver =
+  let module Loc = struct let _loc = _loc end in
+  let module U = Type.Untranslate(Loc) in
+  let binding = Ast.TyDcl (_loc, "inline", [], ty, []) in
+  let decls = display_errors _loc Type.Translate.decls binding in
+  if List.exists Type.contains_tvars_decl decls then
+    fatal_error _loc
+      ("deriving: type variables cannot be used in `method' instantiations");
+  let tdecls = List.map U.decl decls in
+  let m = derive_str _loc decls deriver in
+  let module Params = (val fst deriver : DeriverParams) in
+  <:expr<
+    let module M = struct
+      type $list:tdecls$
+      $m$
+      include $uid:Params.classname ^ "_inline"$
+    end in
+    M.make
+  >>

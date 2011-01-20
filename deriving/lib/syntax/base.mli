@@ -27,3 +27,5 @@ val is_registered: Type.name -> bool
 
 val derive_str: Loc.t -> Type.decl list -> deriver -> Ast.str_item
 val derive_sig: Loc.t -> Type.decl list -> deriver -> Ast.sig_item
+
+val instantiate: Loc.t -> Ast.ctyp -> deriver -> Ast.expr

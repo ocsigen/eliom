@@ -39,7 +39,7 @@ run: byte-code
 	@./tests
 
 %.dump: %.ml
-	${DERIVING} -printer "o" $^
+	${DERIVING} -printer "o" $^ > $@
 
 clean::
 	${MAKE} -C Json clean
