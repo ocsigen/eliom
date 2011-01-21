@@ -8,7 +8,7 @@ and how to program web sites and client-server web applications in
 several tools and libraries you can use for non Ocsigen-releated projects:
 * the cooperative threading library Lwt
 * the database query library Macaque
-* the Js_of_ocaml compiler (from Ocaml bytecode to Jacascript)
+* the Js_of_ocaml compiler (from Ocaml bytecode to Javascript)
 * the O'Closure library, a binding for the Google closure Javascript widget
 library to be used with Js_of_ocaml.
 

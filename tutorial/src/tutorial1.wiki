@@ -38,8 +38,7 @@ The third chapter is an overview of miscellaneous Eliom features. We will mix th
 with the one from the second chapter to produce a multi-user
 collaborative drawing application.
 In this chapter, you will learn how to:
-* Integrate a typical Web interaction (links, forms,~ …) t a 
-with a client side program.
+* Integrate a typical Web interaction (links, forms,~ …) with a client side program.
 * Add //sounds or videos// to your application
 * Change pages //without stopping the client side program//
 * Connect with external accounts (//openID//) <<span class="wip"|???>>
@@ -83,7 +82,7 @@ let main_service =
     (fun () () -> return (html (head (title (pcdata "")) [])
                                (body [h1 [pcdata "Graffiti"]])))>>
 
-The same, written with fully qualified values (without {{{open}}}):
+The same, written with fully qualified names (without {{{open}}}):
 <<code language="ocaml"|let main_service =
   Eliom_output.Xhtml5.register_service ~path:["graff"] ~get_params:Eliom_parameters.unit
     (fun () () ->
@@ -93,12 +92,12 @@ The same, written with fully qualified values (without {{{open}}}):
 >>
 
 Copy one of the two pieces of code above in a file {{{graffiti.ml}}}, then compile it by typing:
-{{{
-ocamlfind ocamlc -thread -package ocsigen -c graffiti.ml
-}}}
+
+{{{ocamlfind ocamlc -thread -package ocsigen -c graffiti.ml}}}
+
 This will create a file called {{{graffiti.cmo}}}.
 
-Take the configuration file provided [[/manual/dev/graffiti/graffiti1.conf|here]],
+<<pdfzap|Take the configuration file provided [[manual/dev/files/v1/graffiti1.conf|here]],>>
 then launch Ocsigen server, with the following command:
 {{{
 ocsigen -c graffiti1.conf
@@ -155,7 +154,7 @@ This tutorial is using the second solution, using the module
 for each HTML5 tag.
 
 //Note that it is also possible to use the usual HTML syntax.
-See [[/manual/dev/html|here]] for more information.//
+See [[wiki(15):xhtmlsyntax|here]] for more information.//
 
 Typing of HTML with <<ocsigendoc version="dev" file="XHTML5.M.html"|<<span class="code"|XHTML5.M>>>> and <<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|<<span class="code"|Eliom_output.Xhtml>>>>
 is very strict and compels you to respect HTML5 standard
@@ -206,7 +205,7 @@ debugging time as you will never have to bother about the validity of
 pages afterwards.//
 
 A more detailed introduction to <<span class="code"|XHTML5.M>> is available
-[[/manual/dev/html|here]] and
+[[wiki(15):xhtmlsyntax|here]] and
 <<ocsigendoc version="dev" file="XHTML5.M.html"|here>>.
 
 >>
@@ -276,8 +275,8 @@ to the program:
 
 As you can see, we are using a syntax extension to distinguish
 between server and client code in the same file.
-Put the [[/manual/dev/Makefile|default Makefile]]
-and the [[/manual/dev/graffiti/graffiti2.conf|new configuration file]]
+Put the [[/manual/dev/files/v3/Makefile|default Makefile]]
+and the [[/manual/dev/files/v3/graffiti2.conf|new configuration file]]
 in your directory. You may want to adapt the configuration file to set
 the paths, especially the directory for static files. (To make things easier
 for the tutorial, you can use your source directory but keep in mind

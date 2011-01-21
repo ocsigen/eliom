@@ -135,7 +135,7 @@ Here is an example for setting up trac:
 
 ===Limitations
 
-The [[http://hoohoo.ncsa.uiuc.edu/cgi/interface.html|CGI spec]] is very
+The [[http://www.w3.org/CGI/|CGI spec]] is very
 short and ambiguous. We tried to follow it as closely as we could, but
 this was not enough. Some environment variables are expected by most
 scripts but absent from the spec, and some variables present in the spec
