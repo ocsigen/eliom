@@ -20,7 +20,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
 (* This file is for client-side comet-programming. *)
 
 let ( >>= ) = Lwt.( >>= )
@@ -148,12 +147,14 @@ let max_retries = 5
 
 (** wait for data from the server, if also waits until the page is
     focused to make the request *)
-let wait_data service activity =
+let wait_data service activity count =
   let call_service () =
-    Eliom_client.call_service service () "" >>=
-      (function
-	| "TIMEOUT" -> Lwt.fail Timeout
-	| s -> Lwt.return s)
+    Eliom_client.call_service service () ("",!count) >>=
+      (fun s ->
+	incr count;
+	match s with
+	  | "TIMEOUT" -> Lwt.fail Timeout
+	  | s -> Lwt.return s)
   in
   let rec aux retries =
     log "call_service";
@@ -176,7 +177,7 @@ let wait_data service activity =
 	       aux 0)
 	    else
 	      (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
-	  | Restart ->
+	  | Restart -> log "Eliom_client_comet: restart";
 	    aux 0
 	  | Timeout ->
 	    if not activity.focused
@@ -206,10 +207,13 @@ let init_activity () =
   }
 
 let init () =
+  (* This reference holds the number of the next request to do. It is
+     incremented each time datas are received *)
+  let count = ref 0 in
   let hd_activity = init_activity () in
   let hd_service = service () in
   (* the stream on wich are regularily received data from the server *)
-  let normal_stream = Lwt_stream.from (wait_data hd_service hd_activity) in
+  let normal_stream = Lwt_stream.from (wait_data hd_service hd_activity count) in
   (* the stream on wich are received replies of request asking to register new channels *)
   let exceptionnal_stream,push = Lwt_stream.create () in
   let hd_stream = 
@@ -220,7 +224,11 @@ let init () =
   (* the function to register new channels *)
   let hd_new_channels chans =
     let chans = Messages.encode_upgoing chans in
-    let t = Eliom_client.call_service hd_service () chans in
+    let t =
+      (* the request number does not matter when we register new
+	 channels, it is not taken into account by the server. *)
+      Eliom_client.call_service hd_service () (chans,0)
+    in
     push (Some t);
   in
   let hd =
@@ -241,13 +249,14 @@ let add_channel handler channel =
 
 let activate () = set_activity (get_hd ()).hd_activity true
 
-let restart () = 
+let restart () =
   let act = (get_hd ()).hd_activity in
   let t,u = Lwt.wait () in
   act.restart_waiter <- t;
   let wakener = act.restart_wakener in
   act.restart_wakener <- u;
-  Lwt.wakeup_exn wakener Restart
+  Lwt.wakeup_exn wakener Restart;
+  activate ()
 
 let register chan_id =
   let chan_id = Eliom_common_comet.string_of_chan_id chan_id in

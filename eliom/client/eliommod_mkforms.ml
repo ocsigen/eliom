@@ -61,7 +61,13 @@ let add_tab_cookie_fields l node =
 let add_tab_cookies_to_form' l node =
   remove_tab_cookie_fields node;
   add_tab_cookie_fields l node;
-  Lwt_js.sleep 0.05 >|=
+  Lwt_js.sleep 0.7 >|=
+  (* VVV we need to sleep to wait for the form submition to finish. If
+     we do an xhr during the submition, chrome destroy the xhr object
+     and raise a javascript exception. The right way to circumvent
+     this is to check for availability of FormData, wich is handled by
+     recent chrome.
+     This wait is useless for other browsers *)
   Eliom_client_comet.restart
 
 let add_tab_cookies_to_post_form' node =

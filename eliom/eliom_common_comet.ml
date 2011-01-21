@@ -26,9 +26,10 @@ external string_of_chan_id : 'a chan_id -> string = "%identity"
 external chan_id_of_string : string -> 'a chan_id = "%identity"
 
 type comet_service =
-    (unit, string,
+    (unit, string * int,
      [ `Nonattached of [ `Get | `Post ] Eliom_services.na_s ],
      [ `WithoutSuffix ], unit,
-     [ `One of string ] Eliom_parameters.param_name, [ `Registrable ],
+          [ `One of string ] Eliom_parameters.param_name *
+       [ `One of int ] Eliom_parameters.param_name, [ `Registrable ],
      Eliom_services.http )
       Eliom_services.service

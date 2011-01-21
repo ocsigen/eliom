@@ -172,6 +172,10 @@ end = struct
 	mutable hd_update_streams_w : unit Lwt.u;
 	hd_service : comet_service;
 	hd_service_data_key : comet_service Eliom_client_types.data_key;
+	mutable hd_last : string * int;
+        (** the last message sent to the client, if he sends a request
+	    with the same number, this message is immediately sent
+	    back.*)
       }
 
   let handler_key : handler Polytables.key = Polytables.make_key ()
@@ -275,7 +279,7 @@ end = struct
 	    (* XXX ajouter possibilité d'https *)
 	    Eliom_services.post_coservice'
 	      ~name:"comet" (* VVV faut il mettre un nom ? *)
-	      ~post_params:(Eliom_parameters.string "registration")
+	      ~post_params:(Eliom_parameters.prod (Eliom_parameters.string "registration") (Eliom_parameters.int "number"))
 	      ()
 	  in
 	  let hd_service_data_key = Eliom_services.wrap hd_service in
@@ -288,24 +292,40 @@ end = struct
 	    hd_service_data_key;
 	    hd_update_streams;
 	    hd_update_streams_w;
+	    hd_last = "", -1;
 	  }
 	  in
-	  let f () input =
-	    new_connection handler;
-	    let new_channels = Messages.decode_upcomming input in
-	    List.iter (register_channel handler) new_channels;
-	    Lwt.catch
-	      ( fun () -> Lwt_unix.with_timeout timeout
-		(fun () ->
-		  wait_data handler >>= ( fun _ ->
-		    let messages = read_streams 100 handler.hd_active_streams in
-		    (* VVV here need to handle closed streams *)
-		    Lwt.return ( Messages.encode_downgoing [] messages, content_type ) ) ) )
-	      ( function
-		| New_connection -> Lwt.return ("",content_type)
-		(*VVV in this case, it would be beter to return code 204: no content *)
-		| Lwt_unix.Timeout -> Lwt.return ("TIMEOUT",content_type)
-		| e -> Lwt.fail e )
+	  let f () (input,number) =
+	    match input with
+	      | "" ->
+		OMsg.debug2 (Printf.sprintf "eliom: comet: received request %i" number);
+		(* if a new connection occurs for a service, we reply
+		   immediately to the previous with no data. *)
+		new_connection handler;
+		if snd handler.hd_last = number
+		then Lwt.return (fst handler.hd_last,content_type)
+		else
+		  Lwt.catch
+		    ( fun () -> Lwt_unix.with_timeout timeout
+		      (fun () ->
+			wait_data handler >>= ( fun _ ->
+			  let messages = read_streams 100 handler.hd_active_streams in
+			  (* VVV here need to handle closed streams *)
+			  let message = Messages.encode_downgoing [] messages in
+			  handler.hd_last <- (message,number);
+			  Lwt.return ( message, content_type ) ) ) )
+		    ( function
+		      | New_connection -> Lwt.return ("",content_type)
+		      (* happens if an other connection has been opened on that service *)
+		      (*VVV in this case, it would be beter to return code 204: no content *)
+		      | Lwt_unix.Timeout -> Lwt.return ("TIMEOUT",content_type)
+		      | e -> Lwt.fail e )
+	      | _ ->
+		(* connections registering new channels are replied
+		   immediately by an empty answer *)
+		let new_channels = Messages.decode_upcomming input in
+		List.iter (register_channel handler) new_channels;
+		Lwt.return ("",content_type)
 	  in
 	  Comet.register
 	    ~scope:`Client_process
@@ -328,7 +348,7 @@ end = struct
     else
       handler.hd_unregistered_streams <- (name,stream)::handler.hd_unregistered_streams;
     { ch_stream = stream;
-      ch_id = name }
+      ch_id = name; }
 
   let get_id { ch_id } = ch_id
 
