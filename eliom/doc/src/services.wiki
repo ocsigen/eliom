@@ -63,7 +63,7 @@ let count =
          (body [p [pcdata (string_of_int (next ()))]])))
 >>
 It implements a counter of the number of requests to this service.
-(See <<||latex section >>[[state#perscount|here]] for a version of this
+(See <<||latex section >>[[manual/dev/state#perscount|here]] for a version of this
 counter that persists after relaunching the server).
 
 
@@ -263,14 +263,13 @@ That service takes as string parameter the name of the file.
 \\
 
 For example
-<<code language="ocaml"|a (static_dir ()) [pcdata "download image"] "ocsigen.png"
+<<code language="ocaml"|a (static_dir ()) [pcdata "download image"] "ocsigen10.png"
 >>
-creates this link: [[site:ocsigen.png|download image]]
+creates this link: [[site:ocsigen10.png|download image]]
 
 It is also possible to send static pages using Eliom, using
 <<span class="code"|Eliom_output.Files>>
-([[manual/dev/3#p3eliomfiles|see later]]).
-  
+([[manual/dev/services#p3eliomfiles|see later]]).
 
 
 
@@ -609,7 +608,7 @@ Example:
   
  If you want to give parameters to such services, use
  <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpreapply"|<<span class="code"|Eliom_services.preapply>>>> (see also 
- [[manual/dev/3#p3preapplied|later in the tutorial]]).
+ [[manual/dev/services#p3preapplied|later in the tutorial]]).
  Example:
 
   
@@ -660,7 +659,7 @@ below, or in section * * connection-of-user.
 
 The return type of action handlers is
 <<span class="code"|unit Lwt.t>>.
-We will see [[manual/dev/3#p3infofallbacks|later]] how to transmit information
+We will see [[manual/dev/services#p3infofallbacks|later]] how to transmit information
 to the service that will take in charge the generation of the page.\\
  
 A very common use of actions, together with non-attached coservices,
@@ -857,7 +856,7 @@ respect to previous interaction with the user (and are registered
 with scope {{{`Session}}}). They allow to give a precise semantics to the
 "back" button of the browser (be sure that you will go back in the
 past) or bookmarks, or duplication of the browser's window.
-(See the [[manual/dev/2#p2calc|<<span class="code"|calc>>]] example below).
+(See the [[manual/dev/services#p3coservicesinsessiontable|<<span class="code"|calc>>]] example below).
 
 Use POST coservices if you want to particularize a link or form,
 but not the URL it points to. More precisely, POST coservices are mainly
@@ -956,10 +955,10 @@ In this example, coservices do not take any parameters
 parameters. Note that the fallback of a GET coservice cannot take
 parameters. But as coservices parameters have special
 names, it is possible to use a "pre-applied" service as fallback
-([[manual/dev/2#p3preapplied|see later]]).
+([[manual/dev/services#p3preapplied|see later]]).
 
 
-===@@id="p2coservicesinsessiontable"@@Dynamic coservices===
+===@@id="p3coservicesinsessiontable"@@Dynamic coservices===
 
 You can register (anonymous) coservices (usually with scope {{{`Session}}}) 
 to create dynamically new services dedicated to an user.
@@ -1242,7 +1241,7 @@ logs).
 *GET coservices (without POST parameters) can be registered
 only with a main service without GET/POST parameters as fallback.
 But it may be a
-[[manual/dev/3#p3preapplied|//preapplied//]]
+[[manual/dev/services#p3preapplied|//preapplied//]]
 service (see below).
 
 *Services with POST parameters (main service or coservice)
@@ -1340,57 +1339,6 @@ let _ =
 [[site:tuto/timeout| See this example here]].
   
   
-
-===Registering anonymous coservices with global scope while processing a request===
-
-<<div class="wip"|Is it really interesting? Put in testsuite?>>
-
-We recommend to put a timeout on such coservices, otherwise, they
-will be available until the end of the server process, and it will not be
-possible to re-create them when the server is relaunched.
- 
-  
-Remember that using <<span class="code"|register>>
-is possible only during a request or during the initialisation phase
-of the server (while the configuration file is read)!
-  
-
-  
-The following example is a translation of the previous one using
-the public table:
- 
-<<code language="ocaml"|let globalanonym = service ["globalanonym"] unit ()
-
-let _ =
-  let page () () =
-    let timeoutcoserv =
-      Eliom_output.Xhtml5.register_coservice
-        ~fallback:globalanonym ~get_params:unit ~timeout:5.
-        (fun _ _ ->
-           Lwt.return
-             (html
-               (head (title (pcdata "Coservices with timeouts")) [])
-               (body [p
-                 [pcdata "I am a public coservice with timeout."; br ();
-                  pcdata "I will disappear after 5 seconds of inactivity." ];
-                 ])))
-    in
-    Lwt.return
-      (html
-        (head (title (pcdata "Public coservices with timeouts")) [])
-        (body [p
-          [pcdata "I just created a public coservice with 5 seconds timeout."; br ();
-           a timeoutcoserv [pcdata "Try it"] (); ];
-          ]))
-  in
-  Eliom_output.Xhtml5.register globalanonym page
->>
-  
-[[site:tuto/globalanonym| See this example here]].
-  
-  
-
-
 
 
 ===Disposable coservices

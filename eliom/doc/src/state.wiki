@@ -121,8 +121,8 @@ OCaml's unsafe <<span class="code"|Marshal>> module:
  forget to change the persistent reference name, or the server will
  probably crash while deserializing!
 >>
-  
-===Example: persistent counter
+
+===@@id="perscount"@@ Example: persistent counter
 
 The following piece of code defines a persistent counter of visits:
 <<code language="ocaml"|open Lwt
