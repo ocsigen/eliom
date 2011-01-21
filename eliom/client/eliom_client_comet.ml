@@ -157,7 +157,6 @@ let wait_data service activity count =
 	  | s -> Lwt.return s)
   in
   let rec aux retries =
-    log "call_service";
     if activity.active
     then
       Lwt.catch

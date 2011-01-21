@@ -75,7 +75,7 @@ We define the service that will implement this page by the following declaration
 open XHTML5.M
 open Eliom_services
 open Eliom_parameters
-open Eliom_output.Xhtml
+open Eliom_output.Xhtml5
 
 let main_service =
   register_service ~path:["graff"] ~get_params:unit
@@ -333,8 +333,6 @@ Find more information about Js_of_ocaml in
 [[wiki(30):/lib/overview|Js_of_ocaml's manual]].
 >>
 
-<<div class="wip"|**Warning** The default Makefile is still experimental. It does not support {{{.mli}}} files and some error messages concern temporary files instead of the original ones. Any contribution appreciated.>>
-
 ==@@id="graffiti"@@ Collaborative drawing application ==
 
 ===Drawing on a canvas===
@@ -481,35 +479,53 @@ We now want to do the following:
 * Send the coordinates to the server when the user draw a line, then
 * Dispatch the coordinates to all connected users.
 
-<<div class="wip"|To do this we use the experimental {{{Eliom_channels}}}
+<<div class="wip"|To do this we use the experimental {{{Eliom_bus}}}
 module, that will evolve in the near future. More explanation when this
 module is updated.>>
 
-<<code language="ocaml"|let e_up = Eliom_channels.Up.create ~name:"graf" ~level:`Site
-  (Eliom_parameters.caml "line" : ((string * int * 
-                                      (int * int) * (int * int)), 'aa, 'aaa) Eliom_parameters.params_type)
-let e_up_real = Eliom_channels.Up.react_event_of_up_channel e_up
+We first declare a shared type containing the color and coordinates of
+drawn lines.
+<<code language="ocaml"|{shared{
+type messages = (string * int * (int * int) * (int * int)) deriving (Json)
+}}
 >>
+We annotate with {{{deriving (Json)}}} to allow safe deserialization
+of this type. This is defined in the Deriving syntax extension. This annotation
+can only be added on types containing exclusively basics type or other types
+annotated with deriving. For more information, see
+<<span class="wip"|Deriving documentation>>
 
-<<code language="ocaml"|    (fun g () ->
-       let e_down = Eliom_channels.Down.of_react ~buffer_size:100 e_up_real in
-       Eliom_services.onload
-         {{
-           let e_up = \(e_up) in
-           let e_down = \(e_down) in
-           ...
->>
+<<code language="ocaml"|let bus = Eliom_bus.create Json.t<messages> >>
+The value {{{Json.t<messages>}}} describes the
+contents of messages, it is used on server side for deserialization. 
 
 To send the coordinates to the server, we just replace the function {{{line}}}
 by:
-<<code language="ocaml"|          let line ev = 
-            let v = compute_line ev in
-            draw ctx v;
-            e_up v
+<<code language="ocaml"|           let (bus:messages Eliom_client_bus.t) = %bus in
+           let line ev =
+             let v = compute_line ev in
+             let _ = Eliom_client_bus.write bus v in
+             draw ctx v
+           in
 >>
 
-<<code language="ocaml"|           ignore (React.E.map (draw ctx) e_down);
+<<span class="wip"|As of now {{{bus}}} type needs to be explicitely annotated, this will be corrected soon.>>
+
+<<code language="ocaml"|           let _ = Lwt_stream.iter (draw ctx) (Eliom_client_bus.stream bus) in
 >>
+And finaly we have to draw the lines received.
+
+To compile, you will need to add the package
+{{{ocsigen.deriving.Json}}} in the makefile for both
+client and server side by replacing the lines 
+<<code language="Makefile"|SERVERLIB :=
+CLIENTLIB :=
+>>
+by
+<<code language="Makefile"|SERVERLIB := -package ocsigen.deriving.Json
+CLIENTLIB := -package ocsigen.deriving.Json
+>>
+
 Now you can try the program using two browser windows to see that the lines
 are drawn on both.
 
@@ -533,20 +549,20 @@ our page. We do this by modifying the {{{params}}} value given to the
 {{{Eliom_output.Eliom_appl}}} functor:
 <<code language="ocaml"|      let params =
         {Eliom_output.default_appl_params with
-           Eliom_output.ap_title = "Graffiti";
+           Eliom_output.ap_title = "graffiti";
            Eliom_output.ap_headers_before =
             [
               XHTML5.M.link ~rel:[ `Stylesheet ]
-                ~href:(XHTML5.M.uri_of_string"./static/css/graffiti.css")
+                ~href:(XHTML5.M.uri_of_string"./css/graffiti.css")
                 ();
               XHTML5.M.link ~rel:[ `Stylesheet ]
-                ~href:(XHTML5.M.uri_of_string"./static/css/common.css")
+                ~href:(XHTML5.M.uri_of_string"./css/common.css")
                 ();
               XHTML5.M.link ~rel:[ `Stylesheet ]
-                ~href:(XHTML5.M.uri_of_string"./static/css/hsvpalette.css")
+                ~href:(XHTML5.M.uri_of_string"./css/hsvpalette.css")
                 ();
               XHTML5.M.link ~rel:[ `Stylesheet ]
-                ~href:(XHTML5.M.uri_of_string"./slider.css")
+                ~href:(XHTML5.M.uri_of_string"./css/slider.css")
                 ();
               XHTML5.M.script
                 ~a:[XHTML5.M.a_src (XHTML5.M.uri_of_string "http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js")
@@ -584,6 +600,9 @@ Finally, replace last line of the function {{{compute_line}}} by;
             (color, size, (oldx, oldy), (!x, !y))
 >>
 
+To compile, we need to add {{{oclosure}}} to the list of packages used by the client, in the makefile.
+<<code language="Makefile"|CLIENTLIB := -package ocsigen.deriving.Json -package oclosure>>
+
 <<div class="encadre"|====O'Closure====
 O'Closure is a Js_of_ocaml binding for the Google Closure widget library
 (used for example in GMail, Google calendar or Google Maps).
@@ -605,6 +624,10 @@ function on the server side (in an ideal world, we would have a common interface
 for canvas so that we could share the code).
 The {{{image_string}}} function outputs the PNG image in a string.
 <<code language="ocaml"|
+let rgb_from_string color = (* color is in format "#rrggbb" *)
+  let get_color i = (float_of_string ("0x"^(String.sub color (1+2*i) 2))) /. 255. in
+  try get_color 0, get_color 1, get_color 2 with | _ -> 0.,0.,0.
+
 let draw_server, image_string = 
   let surface = Cairo.image_surface_create Cairo.FORMAT_ARGB32 ~width ~height in
   let ctx = Cairo.create surface in
@@ -630,6 +653,8 @@ let draw_server, image_string =
      Cairo_png.surface_write_to_stream surface (Buffer.add_string b);
      Buffer.contents b
    ))
+
+let _ = Lwt_stream.iter draw_server (Eliom_bus.stream bus)
 >>
 
 Now we define a service that will send the picture:
@@ -668,16 +693,14 @@ and the creation of the slider:
 <<code language="ocaml"|           (* The initial image: *)
            let img = Dom_html.createImg Dom_html.document in
            img##alt <- Js.string "canvas";
-           img##src <- Js.string (Eliom_output.Xhtml5.make_string_uri ~service:imageservice ());
-           let image_loaded, image_loaded_w = Lwt.wait () in
-           img##onload <- Dom_html.handler (fun ev -> Lwt.wakeup image_loaded_w (); Js._false);
-
-           ignore (image_loaded >|= fun () -> ctx##drawImage(img, 0., 0.));
+           img##src <- Js.string (Eliom_output.Xhtml5.make_string_uri ~service:%imageservice ());
+           img##onload <- Dom_html.handler (fun ev -> ctx##drawImage(img, 0., 0.); Js._false);
 >>
 
-<<div class="wip"|//Add cairo in the Makefile//>>
+To compile, add {{{cairo}}} to the server packages in the makefile.
+<<code language="Makefile"|CLIENTLIB := -package ocsigen.deriving.Json -package oclosure>>
 
-<<div class="wip"|//Simplify this (write this with Xhtml5 and higher level interface?) and explain {{{Lwt.wait}}} etc.//>>
+<<div class="wip"|//Simplify this (write this with Xhtml5 and higher level interface?) etc.//>>
 
 
 The first version of the program is now complete.
