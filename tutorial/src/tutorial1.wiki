@@ -698,13 +698,18 @@ and the creation of the slider:
 >>
 
 To compile, add {{{cairo}}} to the server packages in the makefile.
-<<code language="Makefile"|CLIENTLIB := -package ocsigen.deriving.Json -package oclosure>>
+<<code language="Makefile"|CLIENTLIB := -package ocsigen.deriving.Json -package cairo>>
+The module {{{graffiti.cma}}} depends on {{{cairo}}} to be able to load. To achieve this, we add  
+<<div class="pre"|
+    <extension findlib-package="cairo"/>
+>>
+in the configuration file.
 
 <<div class="wip"|//Simplify this (write this with Xhtml5 and higher level interface?) etc.//>>
 
 
 The first version of the program is now complete.
-<<div class="wip"|//The full source code can be found **here**.//>>
+<<div class="wip"|//The full source code can be found **here**. (Add the links to all versions in the repository)//>>
 
 <<div class="exercices"|
 ====Exercises====
