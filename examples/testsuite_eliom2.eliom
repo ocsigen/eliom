@@ -529,34 +529,32 @@ are wrapped and sent to the client. A second example uses channels to transmit
 occurrences of an event.
  *wiki*)
 
-(* create a communication stream. *)
-let (stream1, write_c1) = Lwt_stream.create ()
 
-let i = ref 0
-(* randomly write on the channel *)
-let rec rand_tick () =
-  Lwt_unix.sleep (float_of_int (2 + (Random.int 2))) >>= fun () ->
-  write_c1 (Some !i) ; incr i; rand_tick ()
+(* random wait *)
+let rand_tick =
+  let i = ref 0 in
+  fun () ->
+    Lwt_unix.sleep (float_of_int (2 + (Random.int 2))) >>= fun () ->
+    incr i; Lwt.return !i
+let stream1 = Lwt_stream.from rand_tick
 
-let _ = rand_tick ()
+let _ = Lwt_stream.iter (fun _ -> ()) stream1
 
 let comet1 =
   Eliom_appl.register_service
     ~path:["comet1"]
     ~get_params:unit
     (fun () () ->
-       let c1 = Eliom_comet.Channels.create ~name:"comet1_public_channel" (Lwt_stream.clone stream1) in
-       let (stream2, write_c2) = Lwt_stream.create () in
-       let c2 = Eliom_comet.Channels.create stream2 in
+       let c1 = Eliom_comet.Channels.create (Lwt_stream.clone stream1) in
 
-       let t2 = ref 0 in
-       let rec tick_2 () =
-         Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->
-         write_c2 (Some !t2) ; incr t2 ; Lwt_unix.yield () >>= fun () ->
-         write_c2 (Some !t2) ; incr t2 ; tick_2 ()
+       let tick2 =
+	 let i = ref 0 in
+	 fun () ->
+	   Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->
+	   incr i; Lwt.return !i
        in
-(*VVV Does never stop!!! *)
-       ignore (tick_2 ());
+       let stream2 = Lwt_stream.from tick2
+       let c2 = Eliom_comet.Channels.create stream2 in
 
        Eliom_services.onload
          {{
