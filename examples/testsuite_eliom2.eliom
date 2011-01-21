@@ -535,7 +535,7 @@ let rand_tick =
   let i = ref 0 in
   fun () ->
     Lwt_unix.sleep (float_of_int (2 + (Random.int 2))) >>= fun () ->
-    incr i; Lwt.return !i
+    incr i; Lwt.return (Some !i)
 let stream1 = Lwt_stream.from rand_tick
 
 let _ = Lwt_stream.iter (fun _ -> ()) stream1
@@ -551,9 +551,9 @@ let comet1 =
 	 let i = ref 0 in
 	 fun () ->
 	   Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->
-	   incr i; Lwt.return !i
+	   incr i; Lwt.return (Some !i)
        in
-       let stream2 = Lwt_stream.from tick2
+       let stream2 = Lwt_stream.from tick2 in
        let c2 = Eliom_comet.Channels.create stream2 in
 
        Eliom_services.onload
