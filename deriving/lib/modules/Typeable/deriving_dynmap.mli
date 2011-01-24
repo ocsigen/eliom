@@ -1,3 +1,8 @@
+(* Copyright Jeremy Yallop 2007.
+   This file is free software, distributed under the MIT license.
+   See the file COPYING for details.
+*)
+
 (* Finite map : dynamic |-> t *)
 
 open Deriving_Typeable

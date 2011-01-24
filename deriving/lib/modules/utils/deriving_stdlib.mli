@@ -1,3 +1,7 @@
+(* Copyright Grégoire Henry 2010.
+   This file is free software, distributed under the MIT license.
+   See the file COPYING for details.
+*)
 
 module Map : sig
   module Make(O: Map.OrderedType) : sig

@@ -1,3 +1,9 @@
+(* Copyright Jeremy Yallop 2007.
+   Copyright Grégoire Henry 2010.
+   This file is free software, distributed under the MIT license.
+   See the file COPYING for details.
+*)
+
 open Deriving_Show
 
 module Map : sig
