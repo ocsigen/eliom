@@ -605,9 +605,6 @@ let isuffix =
           
 See [[site:tuto/isuffix/11/a/b/c?i=22|%<span class="code"|isuffix>%]].
           
-
-
-          
 If you want parameters in the path but not always at the end,
          use the %<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALconst"|%<span class="code"|Eliom_parameters.const>%>%
          parameter specification.

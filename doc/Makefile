@@ -1,11 +1,11 @@
 include ../Makefile.config
-include Makefile.filelist
+include ../Makefile.filelist
 
 export OCAMLPATH := ../deriving/tmp:${OCAMLPATH}
 
 CAMLDOC = ocamlducefind ocamldoc $(LIB)
 
-LIB = -package netstring,lwt,ssl,netstring,ocamlduce,react,text,deriving,calendar $(LIBDIRS) -I ../xmlp4/xhtml
+LIB = -package netstring,lwt,ssl,netstring,ocamlduce,react,text,deriving,calendar,js_of_ocaml $(LIBDIRS) -I ../xmlp4/xhtml
 
 DOCPREF=../
 

@@ -68,6 +68,7 @@ PLUGINSCMITOINSTALL = \
        $(DOCPREF)eliom/eliom_parameters.cmi \
        $(DOCPREF)eliom/eliom_services.cmi \
        $(DOCPREF)eliom/eliom_output.cmi \
+       $(DOCPREF)eliom/eliom_output_cli.cmi \
        $(DOCPREF)eliom/eliom_uri.cmi \
        $(DOCPREF)eliom/extensions/eliom_s2s.cmi \
        $(DOCPREF)eliom/extensions/eliom_openid.cmi \
@@ -82,11 +83,14 @@ PLUGINSCMITOINSTALL = \
        $(DOCPREF)eliom/extensions/eliom_atom.cmi \
        $(DOCPREF)extensions/ocsigen_comet.cmi \
        $(DOCPREF)extensions/accesscontrol.cmi \
-       $(DOCPREF)extensions/extendconfiguration.cmi \
        $(DOCPREF)extensions/authbasic.cmi \
        $(DOCPREF)baselib/polytables.cmi \
        $(DOCPREF)eliom/eliommod_cli.cmi \
        $(DUCECMI)
+#       $(DOCPREF)extensions/extendconfiguration.cmi \
 
-DOC= $(CMITOINSTALL:.cmi=.mli) \
-     $((PLUGINSCMITOINSTALL:.cmi=.mli):simplexmlparser.cmi=syntax/pp/simplexmlparser.mli)
+FIXESDOC1=$(CMITOINSTALL:%simplexmlparser.cmi=%syntax/pp/simplexmlparser.cmi)
+FIXESDOC2=$(PLUGINSCMITOINSTALL:%xhtmltypes_duce.cmi=%xhtmltypes_duce.ml)
+
+DOC= $(FIXESDOC1:.cmi=.mli) \
+     $(FIXESDOC2:.cmi=.mli)
