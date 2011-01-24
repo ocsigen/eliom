@@ -2,7 +2,6 @@
  * http://www.ocsigen.org
  * ocsigen_http_frame.ml Copyright (C) 2005
  * Denis Berthod, Vincent Balat, Jérôme Vouillon
- * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

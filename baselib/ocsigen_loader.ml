@@ -2,7 +2,6 @@
  * http://www.ocsigen.org
  * File ocsigen_loader.ml
  * Copyright (C) 2008 Stéphane Glondu
- * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

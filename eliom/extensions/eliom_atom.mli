@@ -1,4 +1,4 @@
-(* 
+(* Ocsigen
  * Copyright (C) 2010 Archibald Pontier
  *
  * This source file is part of Ocsigen < http://ocsigen.org/ >

@@ -2,7 +2,6 @@
  * http://www.ocsigen.org
  * Module eliommod_pagegen.ml
  * Copyright (C) 2007 Vincent Balat
- * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

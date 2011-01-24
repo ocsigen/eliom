@@ -2,7 +2,6 @@
  * http://www.ocsigen.org
  * File dynlink_wrapper.ml
  * Copyright (C) 2008 Vincent Balat
- * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

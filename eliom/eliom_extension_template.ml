@@ -2,7 +2,6 @@
  * http://www.ocsigen.org
  * Module extensiontemplate.ml
  * Copyright (C) 2007 Vincent Balat
- * CNRS - Université Paris Diderot Paris 7
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

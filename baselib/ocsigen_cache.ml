@@ -1,6 +1,5 @@
 (* Ocsigen
  * Copyright (C) 2008-2009
- * Laboratoire PPS - Université Paris Diderot - CNRS
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

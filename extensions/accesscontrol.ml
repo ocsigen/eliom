@@ -2,7 +2,6 @@
  * http://www.ocsigen.org
  * Module accesscontrol.ml
  * Copyright (C) 2007 Vincent Balat, Stéphane Glondu
- * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

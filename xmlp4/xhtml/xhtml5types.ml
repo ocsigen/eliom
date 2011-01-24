@@ -5,8 +5,8 @@
    SC *)
 (*
    Copyright (C) 2010 by Simon Castellan
-   Copyright (C) 2010 by Cecile Herbelin, CNRS, Université Paris Diderot
-   Copyright (C) 2010 by Vincent Balat, CNRS, Université Paris Diderot
+   Copyright (C) 2010 by Cecile Herbelin
+   Copyright (C) 2010 by Vincent Balat
 
    xhtml5types.ml is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by

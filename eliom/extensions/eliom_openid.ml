@@ -1,4 +1,4 @@
-(* Eliom_openid
+(* Ocsigen
  * Copyright (C) 2010 Simon Castellan
  *
  * This program is free software; you can redistribute it and/or modify

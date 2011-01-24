@@ -1,8 +1,8 @@
 (* BEGIN INTERFACE *)
 (*
    Copyright (C) 2004 by Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
-   Copyright (C) 2007 by Vincent Balat, Gabriel Kerneis, CNRS, Université Paris Diderot
-   Copyright (C) 2010 by Cecile Herbelin, CNRS, Université Paris Diderot
+   Copyright (C) 2007 by Vincent Balat, Gabriel Kerneis
+   Copyright (C) 2010 by Cecile Herbelin
 
    xHTML5.ml is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by

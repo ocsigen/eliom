@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module ocsipersist.mli
- * Copyright (C) 2007 Vincent Balat - Gabriel Kerneis - CNRS - Université Paris Diderot
+ * Copyright (C) 2007 Vincent Balat - Gabriel Kerneis 
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

@@ -2,7 +2,6 @@
  * http://www.ocsigen.org
  * Module rewritemod.ml
  * Copyright (C) 2008 Boris Yakobowski
- * CNRS - Université Paris Diderot Paris 7
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
