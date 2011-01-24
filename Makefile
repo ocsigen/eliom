@@ -1,4 +1,5 @@
 include Makefile.config
+include Makefile.filelist
 
 VERSION := $(shell head -n 1 VERSION)
 
@@ -7,24 +8,6 @@ SED_COMMAND_FOR_META =
 SED_COMMAND_FOR_META += -e "s/_VERSION_/$(VERSION)/"
 SED_COMMAND_FOR_META += -e "s/_CAMLZIPNAME_/$(CAMLZIPNAME)/"
 SED_COMMAND_FOR_META += -e "s@_DIRECTORY_@$(MODULEINSTALLDIR)/$(OCSIGENNAME)@"
-
-ifeq "$(OCAMLDUCE)" "YES"
-DUCECMA=eliom/eliom_duce.cma
-DUCECMO=
-#eliom/eliom_duce.cma
-# eliom/ocsigenrss.cma
-DUCECMI=eliom/eliom_duce.cmi eliom/xhtmltypes_duce.cmi eliom/eliom_duce_tools.cmi
-# eliom/rss2.cmi eliom/ocsigenrss.cmi
-DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
-# examples/ocamlduce/examplerss.cmo
-DUCEPACK=,ocamlduce
-else
-DUCECMA=
-DUCECMO=
-DUCECMI=
-DUCEEXAMPLES=
-DUCEPACK=
-endif
 
 ifeq "$(LOGDIR)" ""
 LOGDIR = "error"
@@ -94,24 +77,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
 CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/xhtmlpretty.cma	\
 	xmlp4/xhtml.cma server/ocsigen.cma 
 CMOTOINSTALL = server/server_main.cmo
-CMITOINSTALL = baselib/ocsigen_getcommandline.cmi			\
-	server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi	\
-	server/ocsigen_server.cmi server/ocsigen_http_client.cmi	\
-	xmlp4/xhtmlpretty.cmi xmlp4/xhtmlpretty_streams.cmi		\
-	xmlp4/xhtmlcompact.cmi      	   				\
-	xmlp4/xhtml5pretty.cmi xmlp4/xhtml5pretty_streams.cmi		\
-	xmlp4/xhtml5compact.cmi      	   				\
-	xmlp4/xHTML.cmi xmlp4/xHTML5.cmi				\
-	xmlp4/sVG.cmi xmlp4/svgtypes.cmi				\
-	xmlp4/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/xhtml5types.cmi        \
-	xmlp4/simplexmlparser.cmi http/ocsigen_charset_mime.cmi		\
-	http/ocsigen_senders.cmi http/framepp.cmi			\
-	http/ocsigen_http_com.cmi http/http_headers.cmi			\
-	baselib/ocsigen_cache.cmi                                       \
-	baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi		\
-	http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi		\
-	baselib/ocsigen_stream.cmi baselib/ocsigen_messages.cmi		\
-	extensions/ocsigen_LocalFiles.cmi files/META
+DOCPREF=
 EXAMPLESCMOA = examples/tutoeliom.cma examples/monitoring.cmo	\
 	examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 
@@ -162,7 +128,8 @@ endif
 STATICSTUBS = server/lib$(OCSIGENNAME).a
 
 PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
-TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) 
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL) $(PLUGINSTOINSTALL) $(STATICSTUBS) files/META
+
 
 ELIOMSYNTAXTOINSTALL= \
 	eliom/syntax/pa_eliom_seed.cmo \

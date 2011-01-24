@@ -1,0 +1,92 @@
+ifeq "$(OCAMLDUCE)" "YES"
+DUCECMA=eliom/eliom_duce.cma
+DUCECMO=
+#eliom/eliom_duce.cma
+# eliom/ocsigenrss.cma
+DUCECMI=$(DOCPREF)eliom/eliom_duce.cmi \
+        $(DOCPREF)eliom/xhtmltypes_duce.cmi \
+        $(DOCPREF)eliom/eliom_duce_tools.cmi
+# eliom/rss2.cmi eliom/ocsigenrss.cmi
+DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
+# examples/ocamlduce/examplerss.cmo
+DUCEPACK=,ocamlduce
+else
+DUCECMA=
+DUCECMO=
+DUCECMI=
+DUCEEXAMPLES=
+DUCEPACK=
+endif
+
+CMITOINSTALL = \
+        $(DOCPREF)baselib/ocsigen_getcommandline.cmi \
+	$(DOCPREF)server/ocsigen_extensions.cmi \
+	$(DOCPREF)server/ocsigen_parseconfig.cmi \
+	$(DOCPREF)server/ocsigen_server.cmi \
+	$(DOCPREF)server/ocsigen_http_client.cmi \
+	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty.cmi \
+	$(DOCPREF)xmlp4/xml-pretty/xhtmlpretty_streams.cmi \
+	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact.cmi \
+	$(DOCPREF)xmlp4/xml-pretty/xhtmlcompact_streams.cmi \
+	$(DOCPREF)xmlp4/xml-pretty/xhtml5pretty.cmi \
+	$(DOCPREF)xmlp4/xml-pretty/xhtml5pretty_streams.cmi \
+	$(DOCPREF)xmlp4/xml-pretty/xhtml5compact.cmi \
+	$(DOCPREF)xmlp4/xml-pretty/xhtml5compact_streams.cmi \
+	$(DOCPREF)xmlp4/xhtml/xHTML.cmi \
+	$(DOCPREF)xmlp4/xhtml/xHTML5.cmi \
+	$(DOCPREF)xmlp4/xhtml/sVG.cmi \
+	$(DOCPREF)xmlp4/xhtml/svgtypes.cmi \
+	$(DOCPREF)xmlp4/xhtml/xML.cmi \
+	$(DOCPREF)xmlp4/xhtml/xhtmltypes.cmi \
+	$(DOCPREF)xmlp4/xhtml/xhtml5types.cmi \
+	$(DOCPREF)xmlp4/xhtml/uri.cmi \
+	$(DOCPREF)xmlp4/simplexmlparser.cmi \
+	$(DOCPREF)http/ocsigen_charset_mime.cmi \
+	$(DOCPREF)http/ocsigen_senders.cmi \
+	$(DOCPREF)http/framepp.cmi \
+	$(DOCPREF)http/ocsigen_http_com.cmi \
+	$(DOCPREF)http/http_headers.cmi \
+	$(DOCPREF)http/ocsigen_headers.cmi \
+	$(DOCPREF)baselib/ocsigen_cache.cmi \
+	$(DOCPREF)baselib/ocsigen_lib.cmi \
+	$(DOCPREF)baselib/ocsigen_config.cmi \
+	$(DOCPREF)http/ocsigen_http_frame.cmi \
+	$(DOCPREF)baselib/ocsigen_stream.cmi \
+	$(DOCPREF)baselib/ocsigen_messages.cmi \
+	$(DOCPREF)extensions/ocsigen_LocalFiles.cmi
+
+PLUGINSCMITOINSTALL = \
+       $(DOCPREF)extensions/ocsipersist.cmi \
+       $(DOCPREF)eliom/eliom_mkforms.cmi \
+       $(DOCPREF)eliom/eliom_mkreg.cmi \
+       $(DOCPREF)eliom/eliom_tools_common.cmi \
+       $(DOCPREF)eliom/eliom_tools.cmi \
+       $(DOCPREF)eliom/eliom_config.cmi \
+       $(DOCPREF)eliom/eliom_request_info.cmi \
+       $(DOCPREF)eliom/eliom_state.cmi \
+       $(DOCPREF)eliom/eliom_references.cmi \
+       $(DOCPREF)eliom/eliom_parameters.cmi \
+       $(DOCPREF)eliom/eliom_services.cmi \
+       $(DOCPREF)eliom/eliom_output.cmi \
+       $(DOCPREF)eliom/eliom_uri.cmi \
+       $(DOCPREF)eliom/extensions/eliom_s2s.cmi \
+       $(DOCPREF)eliom/extensions/eliom_openid.cmi \
+       $(DOCPREF)eliom/eliom_common.cmi \
+       $(DOCPREF)eliom/eliom_extensions.cmi \
+       $(DOCPREF)eliom/eliom_client_types.cmi \
+       $(DOCPREF)eliom/eliom_react.cmi \
+       $(DOCPREF)eliom/eliom_comet.cmi \
+       $(DOCPREF)eliom/eliom_bus.cmi \
+       $(DOCPREF)eliom/client/eliom_client.cmi \
+       $(DOCPREF)eliom/extensions/atom_feed.cmi \
+       $(DOCPREF)eliom/extensions/eliom_atom.cmi \
+       $(DOCPREF)extensions/ocsigen_comet.cmi \
+       $(DOCPREF)extensions/accesscontrol.cmi \
+       $(DOCPREF)extensions/extendconfiguration.cmi \
+       $(DOCPREF)extensions/authbasic.cmi \
+       $(DOCPREF)baselib/polytables.cmi \
+       $(DOCPREF)eliom/eliommod_cli.cmi \
+       $(DUCECMI)
+
+DOC= $(CMITOINSTALL:.cmi=.mli) \
+     $((PLUGINSCMITOINSTALL:.cmi=.mli):simplexmlparser.cmi=syntax/pp/simplexmlparser.mli)

@@ -613,8 +613,6 @@ If you want parameters in the path but not always at the end,
          parameter specification.
          It will match for example URLs like <tt>/param1/const/param2</tt>.
          Example:
-      
-          
 
   *wiki*)
 let constfix =

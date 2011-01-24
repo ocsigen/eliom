@@ -13,7 +13,7 @@ doc: odoc
 
 odoc:
 	mkdir -p api-html
-	$(CAMLDOC) -d api-html -html $(DOC)
+	$(CAMLDOC) -d api-html -intro indexdoc -html $(DOC)
 
 clean:
 	-rm -f *.cm[ioxa] *.o *.a *.cmx[sa] *~
