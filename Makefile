@@ -383,16 +383,16 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	> $(OCSIGENNAME).conf.opt.local
 
 clean:
-	make -C deriving clean
+	-make -C deriving clean
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
 	-rm -f $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 	-rm -f $(METAS) $(OCSIGENNAME)-*.tar.gz
 	-find . -name "*~" -delete
 
 distclean: clean
-	cd deriving && make clean
+	-cd deriving && make clean
 	-find . -name "*depend" -delete
-	make -C doc clean
+	-make -C doc clean
 	-rm -f Makefile.config
 
 depend: deriving
@@ -402,7 +402,7 @@ depend: deriving
 	@for i in $(REPS) ; do $(MAKE) -C $$i depend ; done
 
 
-.PHONY: partialinstall install doc docinstall installnodoc logrotate dist
+.PHONY: partialinstall install doc docinstall logrotate dist
 partialinstall:
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client
@@ -438,7 +438,7 @@ partialinstall:
 docinstall:
 	make -C doc install
 
-installnodoc: partialinstall
+install: partialinstall
 	mkdir -p $(TEMPROOT)$(CONFIGDIR)
 	mkdir -p $(TEMPROOT)$(CONFIGDIR)/conf.d
 	mkdir -p $(TEMPROOT)$(STATICPAGESDIR)
@@ -504,6 +504,8 @@ installnodoc: partialinstall
 	chmod 750 $(TEMPROOT)$(DATADIR)
 	$(INSTALL) -d -m 755 $(TEMPROOT)$(MANDIR)
 	$(INSTALL) -m 644 files/ocsigen.1 $(TEMPROOT)$(MANDIR)
+	@echo
+	@echo "## Run \"make docinstall\" to build and install the ocamldoc."
 
 logrotate:
 	[ -d /etc/logrotate.d ] && \
@@ -517,9 +519,6 @@ logrotate:
 
 dist:
 	DARCS_REPO=$(PWD) darcs dist -d $(OCSIGENNAME)-$(VERSION)
-
-install: docinstall installnodoc
-
 
 .PHONY: uninstall fulluninstall
 uninstall:
