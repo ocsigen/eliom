@@ -130,14 +130,14 @@ ${TEMP}/client/%.cmo: %.ml ${TEMP}/client
 	     -o $@ -c $<
 
 ${TEMP}/client/%.cmo: %.eliom ${TEMP}/%.type.mli ${TEMP}/client
-	${OCAMLFIND} ocamlc -verbose \
+	${OCAMLFIND} ocamlc \
 	    ${ECLIENTLIB} \
 	    -syntax camlp4o \
 	    -ppopt -type -ppopt ${<:%.eliom=${TEMP}/%.type.mli} -ppopt -impl \
 	    -o $@ -c -impl $<
 
 ${TEMP}/client/${PROJECTNAME}: ${CLIENTCMOS}
-	${OCAMLFIND} ocamlc -verbose $(ECLIENTLIB) -linkpkg $^ -o $@
+	${OCAMLFIND} ocamlc $(ECLIENTLIB) -linkpkg $^ -o $@
 
 $(STATICDIR)/$(PROJECTNAME).js: $(STATICDIR) \
 		$(ELIOMCLIENTDIR)/eliom_client.js \
