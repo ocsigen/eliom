@@ -56,34 +56,34 @@ CMITOINSTALL = \
 	$(DOCPREF)extensions/ocsigen_LocalFiles.cmi
 
 PLUGINSCMITOINSTALL = \
-       $(DOCPREF)extensions/ocsipersist.cmi \
-       $(DOCPREF)eliom/eliom_mkforms.cmi \
-       $(DOCPREF)eliom/eliom_mkreg.cmi \
-       $(DOCPREF)eliom/eliom_tools_common.cmi \
-       $(DOCPREF)eliom/eliom_tools.cmi \
+       $(DOCPREF)eliom/eliom_services.cmi \
+       $(DOCPREF)eliom/eliom_parameters.cmi \
+       $(DOCPREF)eliom/eliom_references.cmi \
+       $(DOCPREF)eliom/eliom_state.cmi \
+       $(DOCPREF)eliom/client/eliom_client.cmi \
+       $(DOCPREF)eliom/eliom_uri.cmi \
        $(DOCPREF)eliom/eliom_config.cmi \
        $(DOCPREF)eliom/eliom_request_info.cmi \
-       $(DOCPREF)eliom/eliom_state.cmi \
-       $(DOCPREF)eliom/eliom_references.cmi \
-       $(DOCPREF)eliom/eliom_parameters.cmi \
-       $(DOCPREF)eliom/eliom_services.cmi \
+       $(DOCPREF)eliom/eliom_common.cmi \
        $(DOCPREF)eliom/eliom_output.cmi \
+       $(DOCPREF)eliom/eliom_tools_common.cmi \
+       $(DOCPREF)eliom/eliom_tools.cmi \
+       $(DOCPREF)eliom/eliom_mkforms.cmi \
+       $(DOCPREF)eliom/eliom_mkreg.cmi \
        $(DOCPREF)eliom/eliom_output_cli.cmi \
-       $(DOCPREF)eliom/eliom_uri.cmi \
        $(DOCPREF)eliom/extensions/eliom_s2s.cmi \
        $(DOCPREF)eliom/extensions/eliom_openid.cmi \
-       $(DOCPREF)eliom/eliom_common.cmi \
        $(DOCPREF)eliom/eliom_extensions.cmi \
        $(DOCPREF)eliom/eliom_client_types.cmi \
        $(DOCPREF)eliom/eliom_react.cmi \
        $(DOCPREF)eliom/eliom_comet.cmi \
        $(DOCPREF)eliom/eliom_bus.cmi \
-       $(DOCPREF)eliom/client/eliom_client.cmi \
        $(DOCPREF)eliom/extensions/atom_feed.cmi \
        $(DOCPREF)eliom/extensions/eliom_atom.cmi \
        $(DOCPREF)extensions/ocsigen_comet.cmi \
        $(DOCPREF)extensions/accesscontrol.cmi \
        $(DOCPREF)extensions/authbasic.cmi \
+       $(DOCPREF)extensions/ocsipersist.cmi \
        $(DOCPREF)baselib/polytables.cmi \
        $(DOCPREF)eliom/eliommod_cli.cmi \
        $(DUCECMI)

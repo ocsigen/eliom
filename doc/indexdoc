@@ -1,5 +1,4 @@
-
-{2 Ocsigen - Reference manual}
+{2 Ocsigen server and Eliom - API reference}
 
 {3 Eliom}
 
@@ -16,13 +15,6 @@ Eliom_request_info
 Eliom_common
 }
 
-{4 Generating pages with OcamlDuce}
-{!modules: 
-Eliom_duce 
-Xhtmltypes_duce 
-Eliom_duce_tools 
-}
-
 {4 Generating pages typed with polymorphic variants}
 {!modules: 
 Eliom_output.Xhtml 
@@ -31,6 +23,14 @@ Xhtmltypes
 Eliom_tools
 Eliom_tools_common
 }
+
+{4 Generating pages with OcamlDuce}
+{!modules: 
+Eliom_duce 
+Xhtmltypes_duce 
+Eliom_duce_tools 
+}
+
 
 {4 Other kinds of pages}
 {!modules: 
@@ -41,7 +41,8 @@ Eliom_output
 {!modules: 
 Eliom_mkforms 
 Eliom_mkreg
-Xhtmlpretty
+Xhtml5pretty
+Xhtml5compact
 }
 
 
@@ -49,14 +50,14 @@ Xhtmlpretty
 
 {4 Persistent data, writing in the logs, configuration file extension, Xhtml pretty printing, polymorphic tables}
 {!modules: 
-Ocsipersist 
 Ocsigen_messages 
 Ocsigen_parseconfig 
-Simplexmlparser
-Xhtmlpretty
-Xhtmlcompact
+Xhtml5pretty
+Xhtml5compact
 Polytables
 Ocsigen_cache
+Ocsipersist 
+Simplexmlparser
 }
 
 {4 Extending Ocsigen}
@@ -71,3 +72,4 @@ Ocsigen_stream
 Ocsigen_comet
 Authbasic
 }
+
