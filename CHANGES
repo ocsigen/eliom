@@ -1,21 +1,24 @@
 ===== dev =====
 
-  * Eliom: new implementation of user cookies.
-  * New module Eliom client for client/server Eliom programs using js_of_ocaml.
+  * **SOON** Eliom client: sending forms to caml services from client side code.
+  * **SOON** Eliom: Stateful redirections. The request cache is restored after
+    redirection.
+
+===== 1.90 =====
+  * New module {{{Eliom_client}}}
+    for client/server Eliom programs using js_of_ocaml.
   * Eliom client: calling a service from client side code.
   * Eliom: Services taking Caml values as parameters.
   * Eliom: services sending Caml values.
-  * **SOON** Eliom client: sending forms to caml services from client side code.
   * Eliom: new implementation of forms and links to be compatible with
     client side programs.
   * Eliom: sp parameter has been removed (now using Lwt's thread storage)
   * Eliom: {{{Eliom_predefmod}}} renamed {{{Eliom_output}}}
   * Eliom: New module {{{Eliom_output.Customize}}} to create your
     own register functions from another registration module
-  * Eliom: session replaced by a more general concept of "server side state".
-    States have a scope: client process, session or group of session.
   * Eliom: Module {{{Eliom_sessions}}} replaced by {{{Eliom_state}}},
     {{{Eliom_request_info}}} and {{{Eliom_config}}}.
+  * Eliom: new implementation of user cookies.
   * Eliom: Client process cookies.
     Like usual browser cookies but for one client side process.
   * Eliom: Client process server side state data.
@@ -24,6 +27,8 @@
   * Eliom: Session group data.
     Like session data but for all sessions in a session group.
   * Eliom: Session group services.
+  * Eliom: session replaced by a more general concept of "server side state".
+    States have a scope: client process, session or group of sessions.
   * Eliom: session tables and request cache now deprecated,
     replaced by //Eliom references//
   * Eliom client: Possible to call another service without stopping the
@@ -40,12 +45,13 @@
     page. This allows to use directly nodes created on server side in client
     side code.
   * Eliom client: XHR redirections for Eliom applications.
-  * **SOON** Eliom: Stateful redirections. The request cache is restored after
-    redirection.
+  * Eliom: safe unmarshaling of caml values sent by client side programs
   * Xhtml: Xhtml5 support
   * Atom module and Pubsubhubbub
   * OpenID support
   * SVG module
+  * Documentation: New tutorial
+  * Documentation: New Eliom manual
   * //and many other things ...//
 
 ===== 1.3.4 =====
