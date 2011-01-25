@@ -4,22 +4,25 @@ description = "Deriving (patched for the Ocsigen project)"
 
 ### All modules
 
-requires(syntax) = "camlp4"
-archive(syntax, preprocessor, -type_conv) = "pa_deriving.cma"
-archive(syntax, toploop, -type_conv) = "pa_deriving.cma"
-archive(syntax, preprocessor, type_conv) = "pa_deriving_type_conv.cma"
-archive(syntax, toploop, type_conv) = "pa_deriving_type_conv.cma"
 archive(byte) = "deriving.cma"
 archive(native) = "deriving.cmxa"
 
+package "syntax" (
+  requires(syntax) = "camlp4"
+  archive(syntax, preprocessor, -type_conv) = "pa_deriving.cma"
+  archive(syntax, preprocessor, type_conv) = "pa_deriving_type_conv.cma"
+  archive(syntax, toploop, -type_conv) = "pa_deriving.cma"
+  archive(syntax, toploop, type_conv) = "pa_deriving_type_conv.cma"
+  package "base" (
+    requires(syntax) = "camlp4"
+    archive(syntax, preprocessor) = "pa_deriving_common.cmo"
+    archive(syntax, preprocessor, -type_conv) += "pa_deriving.cmo"
+    archive(syntax, preprocessor, type_conv) += "pa_deriving_type_conv.cmo"
+    archive(syntax, toploop) = "pa_deriving_common.cmo"
+    archive(syntax, toploop, -type_conv) += "pa_deriving.cmo"
+    archive(syntax, toploop, type_conv) += "pa_deriving_type_conv.cmo"
+  )
+)
+
 #### Per modules
 
-package "base" (
-  requires(syntax) = "camlp4"
-  archive(syntax, preprocessor) = "pa_deriving_common.cmo"
-  archive(syntax, toploop) = "pa_deriving_common.cmo"
-  archive(syntax, preprocessor, -type_conv) += "pa_deriving.cmo"
-  archive(syntax, toploop, -type_conv) += "pa_deriving.cmo"
-  archive(syntax, preprocessor, type_conv) += "pa_deriving_type_conv.cmo"
-  archive(syntax, toploop, type_conv) += "pa_deriving_type_conv.cmo"
-)

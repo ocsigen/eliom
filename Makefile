@@ -8,6 +8,7 @@ SED_COMMAND_FOR_META =
 SED_COMMAND_FOR_META += -e "s/_VERSION_/$(VERSION)/"
 SED_COMMAND_FOR_META += -e "s/_CAMLZIPNAME_/$(CAMLZIPNAME)/"
 SED_COMMAND_FOR_META += -e "s@_DIRECTORY_@$(MODULEINSTALLDIR)/$(OCSIGENNAME)@"
+SED_COMMAND_FOR_META += -e "s@_OCSINAME_@$(OCSIGENNAME)@"
 
 ifeq "$(LOGDIR)" ""
 LOGDIR = "error"
@@ -277,6 +278,7 @@ files/META.ocsigen_xhtml: files/META.ocsigen_xhtml.in VERSION
 	sed $(SED_COMMAND_FOR_META) < $< > $@
 
 files/META.ocsigen: files/META.in VERSION
+	-ln -sf ../server/ocsigen.cma extensions
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
 	-ln -sf ../eliom/client/eliom_client.cma extensions
@@ -299,6 +301,7 @@ files/META.ocsigen: files/META.in VERSION
 	-ln -sf ../baselib/donotparsecommandline.cma extensions
 	-ln -sf ../baselib/donotparsecommandline.cmxs extensions
 	-ln -sf ../deriving/tmp/deriving extensions
+	-ln -sf ../extensions files/ocsigen
 	echo directory = \"$(SRC)/extensions\" > $@
 	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< >> $@
 	echo "package \"deriving\" (" >> $@

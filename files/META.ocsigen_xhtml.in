@@ -1,7 +1,7 @@
 description = "XHTML pages typed with polymorphic variants"
 version = "_VERSION_"
 requires = "netstring"
-directory = "_DIRECTORY_"
+directory = "_OCSINAME_"
 archive(byte) = "xhtml.cma xhtmlpretty.cma"
 archive(native) = "xhtml.cmxa xhtmlpretty.cmxa"
 

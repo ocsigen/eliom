@@ -87,7 +87,7 @@ endif
 # LIB=$(LIBDIRS)
 
 LIBDUCE = -thread -package lwt.unix,netstring,cryptokit,lwt.react,calendar $(LIBDIRS)
-LIB = $(LIBDUCE) -package deriving -syntax camlp4o
+LIB = $(LIBDUCE) -package deriving,deriving.syntax -syntax camlp4o
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLDUCEC = $(OCAMLDUCEFIND) $(CAMLCNAME2) $(DBG) $(LIBDUCE)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)

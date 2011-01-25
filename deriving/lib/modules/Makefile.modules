@@ -75,9 +75,13 @@ clean:
 
 REQUIRES = \
 	${PACK_DEPENDS} \
-	_DERIVING_.base \
 	${foreach dep,${UTIL_DEPENDS},_DERIVING_.utils.${dep}} \
 	${foreach dep,${MODULE_DEPENDS},_DERIVING_.${dep}}
+
+REQUIRES_SYNTAX = \
+	${PACK_DEPENDS} \
+	_DERIVING_.syntax.base \
+	${foreach dep,${MODULE_DEPENDS},_DERIVING_.${dep}.syntax}
 
 .phony: META.gen
 META.gen:
@@ -86,8 +90,11 @@ META.gen:
 	echo "  requires = \"${REQUIRES}\""  >> ../../META.gen
 	echo "  archive(byte) = \"deriving_${NAME}.cma\"" >> ../../META.gen
 	echo "  archive(native) = \"deriving_${NAME}.cmxa\"" >> ../../META.gen
-	echo "  archive(syntax, preprocessor) = \"pa_deriving_${NAME}.cma\"" >> ../../META.gen
-	echo "  archive(syntax, toploop) = \"pa_deriving_${NAME}.cma\"" >> ../../META.gen
+	echo "  package \"syntax\"  (" >> ../../META.gen
+	echo "    requires = \"${REQUIRES_SYNTAX}\""  >> ../../META.gen
+	echo "    archive(syntax, preprocessor) = \"pa_deriving_${NAME}.cma\"" >> ../../META.gen
+	echo "    archive(syntax, toploop) = \"pa_deriving_${NAME}.cma\"" >> ../../META.gen
+	echo "  )" >> ../../META.gen
 	echo ")" >> ../../META.gen
 
 %.dump: %.ml

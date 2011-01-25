@@ -25,7 +25,7 @@ CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB = -package lwt.unix,netstring,findlib,cryptokit,deriving -syntax camlp4o $(LIBDIRS)
+LIB = -package lwt.unix,netstring,findlib,cryptokit,deriving $(LIBDIRS)
 PP =
 
 OBJS = $(FILES:.ml=.cmo)
