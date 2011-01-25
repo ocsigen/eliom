@@ -3,15 +3,20 @@
 ==Native code version
 
 Ocsigen can be used either in bytecode or in native code (requires OCaml >= 3.11).
-To use the native code version, you may need to create a {{{.cmxs}}} file for each plugin
-you want to load at startup, if they are not included in your distribution. For example:
+The same configuration file can be used for both versions, but in order to use the
+native code version, you need to create a {{{.cmxs}}} file for each site or extension
+you want to load at startup. For example:
 
 {{{
-sudo ocamlopt -shared -o /usr/lib/ocaml/3.11.0/sqlite3/sqlite3.cmxs -I /usr/lib/ocaml/3.11.0/sqlite3 /usr/lib/ocaml/3.11.0/sqlite3/sqlite3.cmxa
+ocamlopt -shared -linkall -o site.cmxs site.cmxa
 }}}
 
-The same configuration file can be used for both versions ({{{.cmo}}} and {{{.cma}}}
-extensions are converted to {{{.cmxs}}}).
+Note that, if your site or extension depends on external library, you also need a .cmxs for each library. If they are not included in your distribution, you may build them without recompiling the whole library. For example:
+
+{{{
+cd $(ocamlfind query sqlite3) && sudo ocamlopt -shared -linkall -o sqlite3.cmxs sqlite3.cmxa
+cd $(ocamlfind query lwt) && sudo ocamlopt -shared -linkall -o lwt-react.cmxs lwt-react.cmxa
+}}}
 
 ==Improving performance
 
