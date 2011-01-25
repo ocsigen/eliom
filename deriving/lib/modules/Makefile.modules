@@ -65,13 +65,14 @@ native-code-runtime:
 	@${MAKE} --no-print-directory -f $(OCAMLMAKEFILE) \
 	  OCAMLOPT="${OCAMLOPT}" OCAMLDEP="${OCAMLDEP}" \
 	  SOURCES="${RUNTIME_SOURCES}" RESULT=${RUNTIME_RESULT} native-code-library
+	${OCAMLOPT} -shared -o ${RUNTIME_RESULT}.cmxs ${RUNTIME_RESULT}.cmxa
 
 clean:
 	@${MAKE} --no-print-directory -f $(OCAMLMAKEFILE) \
 	  SOURCES="${SYNTAX_SOURCES}" RESULT=${SYNTAX_RESULT} clean
 	@${MAKE} --no-print-directory -f $(OCAMLMAKEFILE)\
 	  SOURCES="${RUNTIME_SOURCES}" RESULT=${RUNTIME_RESULT} clean
-	rm -f ${SYNTAX_RESULT}.cmxas ${SYNTAX_RESULT}.cmxs
+	rm -f ${SYNTAX_RESULT}.cmxas ${SYNTAX_RESULT}.cmxs ${RUNTIME_RESULT}.cmxs
 
 REQUIRES = \
 	${PACK_DEPENDS} \

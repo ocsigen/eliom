@@ -37,7 +37,7 @@ LIBINSTALL_FILES = \
  lib/modules/pa_deriving_modules.cma lib/modules/pa_deriving_modules.cmxa \
  lib/modules/pa_deriving_modules.cmxas lib/modules/pa_deriving_modules.a \
  lib/modules/deriving.cma \
- lib/modules/deriving.cmxa lib/modules/deriving.a \
+ lib/modules/deriving.cmxa lib/modules/deriving.cmxs lib/modules/deriving.a \
  ${MODULE_UTIL_OBJS} ${MODULE_UTIL_OBJS:cmo=mli} \
  $(foreach module,${MODULES}, lib/modules/${module}/pa_deriving_${module}.cma) \
  $(foreach module,${MODULES}, lib/modules/${module}/pa_deriving_${module}.cmxa) \
@@ -47,6 +47,7 @@ LIBINSTALL_FILES = \
  $(foreach module,${MODULES}, lib/modules/${module}/*.mli) \
  $(foreach module,${MODULES}, lib/modules/${module}/deriving_${module}.cma) \
  $(foreach module,${MODULES}, lib/modules/${module}/deriving_${module}.cmxa) \
+ $(foreach module,${MODULES}, lib/modules/${module}/deriving_${module}.cmxs) \
  $(foreach module,${MODULES}, lib/modules/${module}/deriving_${module}.a) \
  lib/META
 
@@ -60,7 +61,7 @@ install:
 install-byte:
 	$(QUIET)printf "\nInstalling byte-code library with ocamlfind\n"
 	$(OCAMLFIND) install deriving \
-	  $(filter-out %.o %.cmx %.a %.cmxa,$(LIBINSTALL_FILES))
+	  $(filter-out %.o %.cmx %.a %.cmxa %.cmxas %.cmxs,$(LIBINSTALL_FILES))
 	$(QUIET)printf "\nInstallation successful.\n"
 
 .PHONY: install-opt

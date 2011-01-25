@@ -76,7 +76,7 @@ echo-runtime-obj:
 
 .PHONY: byte-code-library native-code-library clean-library
 byte-code-library: pa_deriving_modules.cma deriving.cma
-native-code-library: pa_deriving_modules.cmxa pa_deriving_modules.cmxas deriving.cmxa
+native-code-library: pa_deriving_modules.cmxa pa_deriving_modules.cmxas deriving.cmxa deriving.cmxs
 
 pa_deriving_modules.cma: $(SYNTAX_OBJS)
 	${OCAMLC} -a -o $@ $^
@@ -89,9 +89,11 @@ pa_deriving_modules.cmxas: pa_deriving_modules.cmxa
 	${OCAMLOPT} -shared -o $@ $^
 deriving.cmxa: $(RUNTIME_OBJS:cmo=cmx)
 	${OCAMLOPT} -a -o $@ $^
+deriving.cmxs: deriving.cmxa
+	${OCAMLOPT} -shared -o $@ $^
 
 clean-library:
 	rm -f pa_deriving_modules.cma deriving.cma
-	rm -f pa_deriving_modules.cmxa pa_deriving_modules.cmxas deriving.cmxa
+	rm -f pa_deriving_modules.cmxa pa_deriving_modules.cmxas deriving.cmxa deriving.cmxs
 	rm -f pa_deriving_modules.a deriving.a
 
