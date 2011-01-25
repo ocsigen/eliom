@@ -229,15 +229,16 @@ let substream delim s =
 
 let of_file filename =
   let fd = Lwt_unix.of_unix_file_descr
-      (Unix.openfile filename [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
+    (Unix.openfile filename [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
   in
   let ch = Lwt_chan.in_channel_of_descr fd in
+  let buf = String.create 1024 in
   let rec aux () =
-    catch
-      (fun () ->
-        Lwt_chan.input_line ch >>= fun s ->
-        (cont s aux))
-      (function End_of_file -> empty None | e -> fail e)
+    Lwt_chan.input ch buf 0 1024 >>= fun n ->
+    if n = 0 then empty None else
+      (* Streams should be immutable, thus we always make a copy
+         of the buffer *)
+      cont (String.sub buf 0 n) aux
   in make ~finalize:(fun _ -> Lwt_unix.close fd) aux
 
 let of_string s =
