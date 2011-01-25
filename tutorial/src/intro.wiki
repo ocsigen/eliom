@@ -2,10 +2,10 @@
 
 
 This is the documentation of the Ocsigen Framework
-(development version). It explains how to use the //Ocsigen// web server
+(development version). It explains how to use the //Ocsigen server//
 and how to program web sites and client-server web applications in
 //Objective Caml// using //Eliom//. It also contains the documentation for
-several tools and libraries you can use for non Ocsigen-releated projects:
+several tools and libraries you can use for non Eliom-releated projects:
 * the cooperative threading library Lwt
 * the database query library Macaque
 * the Js_of_ocaml compiler (from Ocaml bytecode to Javascript)
@@ -19,9 +19,46 @@ Please report any error in this tutorial
 and send us your comments and suggestions!
 >>
 
+==Ocsigen server==
+
+//Ocsigen server// is a full featured Web server writtent in modular way.
+It implements most features of the HTTP protocol, and has a very powerful
+extension mechanism that make very easy to plug your own OCaml modules
+for generating pages. Many extensions are already written:
+;[[extensions/staticmod|Staticmod]]
+:    is an extension to serve static files. 
+;[[wiki(15):|Eliom]]
+:    is an extension to create dynamic Web site in OCaml using high level concepts. 
+;[[extensions/extendconfiguration|Extendconfiguration]]
+:    allows for more options in the configuration file. 
+;[[extensions/accesscontrol|Accesscontrol]]
+:    allows to restrict the access to the sites from the config file (to request coming from a subnet, containing some headers, etc.). 
+;[[extensions/authbasic|Authbasic]]
+:    allows to restrict the access to the sites from the config file using Basic HTTP Authentication. 
+;[[extensions/cgimod|CGImod]]
+:    is an extension to serve CGI scripts. It may also be used to serve PHP through CGI. 
+;[[extensions/deflatemod|Deflatemod]]
+:    is an extension used to compress data before sending to the client. 
+;[[extensions/redirectmod|Redirectmod]]
+:    is an extension to set redirections towards other Web sites from the configuration file. 
+;[[extensions/revproxy|Revproxy]]
+:    is a reverse proxy for Ocsigen. It allows to ask another server to handle the request. 
+;[[extensions/rewritemod|Rewritemod]]
+:    is a module to rewrite requests. 
+;[[extensions/outputfilter|Outputfilter]]
+:    allows to rewrite some parts of the output before sending it to the client. 
+;[[extensions/userconf|Userconf]]
+:    allows users to have their own configuration files. 
+;[[extensions/comet|Comet]]
+:    makes server to client communications possible.
+
+Ocsigen server has a sophisticated configuration file mechanism allowing
+complex configurations of sites.
+
+
 ==Eliom==
             
-Eliom is an extension for the //Ocsigen// web server
+Eliom is an extension for //Ocsigen server//
 that allows the creation of client/server web applications (or traditional dynamic websites) in Objective Caml.
 It implements many new concepts, and as a result, its approach to application development is very different 
 from all other web programming tools.
@@ -39,11 +76,31 @@ But one of the most significant features of Eliom 2 is that it allows to program
 === Security ===
 Eliom helps you to make your web application secure by automatically addressing several common security issues (code injection, session fixation~ ...) and by providing features to implement very secure behaviours (avoiding for example "cross-site request forgery").\\
 
-\\
 
-The first part of this manual is an overview of Ocsigen's features.
+==Lwt==
+//Lwt// is a cooperative thread library for Ocaml.
+
+==Js_of_ocaml==
+//Js_of_ocaml// is a compiler of OCaml bytecode to Javascript. It makes it possible to run Ocaml programs in a Web browser. Its key features are the following:
+* The whole language, and most of the standard library are supported.
+* The compiler is easy to install: it only depends on Findlib and Lwt.
+* The generated code is independant of Eliom and the Ocsigen server. You can use it with any Web server.
+* You can use a standard installation of OCaml to compile your programs. In particular, you do not have to recompile a library to use it with Js_of_ocaml. You just have to link your program with a specific library to interface with the browser APIs.
+
+==Macaque==
+//Macaque// is a library for safe and flexible database queries
+using comprehensions.
+
+==O'Closure==
+//O'Closure// is a binding for the Google Closure Javascript widget library.
+It makes possible to write dynamic user interfaces for web pages in OCaml
+using Js_of_ocaml.
+
+
+==Overview of the tutorial==
+This tutorial is an overview of Ocsigen's features.
 Read them to understand the basics,
-then refer to subsequent chapters for more detail.
+then refer to each project's manual for more detail.
 
 //Warning:// This programming guide assumes you know the
 //Objective Caml// language, and that you have a working installation of //Ocsigen server//, //Eliom//, //Lwt//, //Js_of_ocaml//, (and //O'Closure// for some examples). In particular, you need to have the interfaces (cmi) installed for all these packages. They are sometimes in separate packages ("{{{-dev}}}" packages in Debian/Ubuntu). We recommend to use the packages from your distribution if they are available. If not, try to install all OCaml related packages with [[http://godi.camlcity.org|Godi]]. If it does not work, please report the problem to the package maintainers. We recommend to use the source packages only if you want to test unreleased features from development versions.

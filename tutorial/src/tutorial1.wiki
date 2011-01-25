@@ -34,11 +34,13 @@ We will create a new Web site with several pages and user connection. In this ch
 * Dynamically register new services (//continuation based// Web programming)
 
 
-The third chapter is an overview of miscellaneous Eliom features. We will mix the application from the first chapter
+The third chapter is an overview of miscellaneous features.
+We will mix the application from the first chapter
 with the one from the second chapter to produce a multi-user
 collaborative drawing application.
 In this chapter, you will learn how to:
 * Integrate a typical Web interaction (links, forms,~ …) with a client side program.
+* Use //Macaque// for safe database interaction
 * Add //sounds or videos// to your application
 * Change pages //without stopping the client side program//
 * Connect with external accounts (//openID//) <<span class="wip"|???>>
@@ -91,13 +93,15 @@ The same, written with fully qualified names (without {{{open}}}):
                        (XHTML5.M.body [XHTML5.M.h1 [XHTML5.M.pcdata "Graffiti"]])))
 >>
 
-Copy one of the two pieces of code above in a file {{{graffiti.ml}}}, then compile it by typing:
+Copy one of the two pieces of code above in a file {{{graffiti.ml}}}, 
+(or download it form [[manual/dev/files/v1/graffiti.ml|here]])
+then compile it by typing:
 
 {{{ocamlfind ocamlc -thread -package ocsigen -c graffiti.ml}}}
 
 This will create a file called {{{graffiti.cmo}}}.
 
-<<pdfzap|Take the configuration file provided [[manual/dev/files/v1/graffiti1.conf|here]],>>
+Take the configuration file provided [[manual/dev/files/v1/graffiti1.conf|here]],
 then launch Ocsigen server, with the following command:
 {{{
 ocsigen -c graffiti1.conf
@@ -249,6 +253,8 @@ It is now possible to use this module for registering our main service:
     (fun () () -> Lwt.return [h1 [pcdata "Graffiti"]])
 >>
 
+Download the current version [[manual/dev/files/v2/graffiti.ml|here]]
+and the [[manual/dev/files/v2/graffiti1.conf|configuration file]].
 <<div class="encadre"|==== About the {{{Eliom_output.Eliom_appl}}} functor ====
 The {{{Eliom_output.Eliom_appl}}} we used here takes as parameters
 the information about the application:
@@ -283,9 +289,11 @@ for the tutorial, you can use your source directory but keep in mind
 that it is not necessary (and sometimes dangerous) to put {{{.ml}}}
 and {{{.cma}}}/{{{.cmo}}} in the static files directory!)
 
+
 The default {{{Makefile}}} recognizes files using Eliom's syntax extension by
 their extension {{{.eliom}}} (instead of {{{.ml}}}).
 Put the new version of our program in a file {{{graffiti.eliom}}}
+or download it from [[manual/dev/files/v3/graffiti.eliom|here]]
 and compile it by typing:
 {{{
 make
@@ -393,6 +401,10 @@ Note that we use the function {{{Js.string}}} from Js_of_ocaml's library
 to convert OCaml string into JS strings.
 >>
 
+Download the current version of the program
+[[manual/dev/files/v4/graffiti.eliom|here]].
+
+
 ===Single user drawing application===
 <<div class="concepts"|Mouse events with arrows <<span class="new"|New in 1.90!>>>>
 We now want to catch mouse events to draw lines with the mouse.
@@ -423,6 +435,9 @@ by the following piece of code:
 >>
 
 Compile, run the program and draw!
+
+Download the current version of the program
+[[manual/dev/files/v5/graffiti.eliom|here]].
 
 We use to references {{{x}}} and {{{y}}} to record the last mouse position.
 The function {{{set_coord}}} updates these references from mouse event data.
@@ -529,6 +544,11 @@ CLIENTLIB := -package ocsigen.deriving.Json
 Now you can try the program using two browser windows to see that the lines
 are drawn on both.
 
+Download the current version of the program
+[[manual/dev/files/v6/graffiti.eliom|here]], and the current Makefile
+[[manual/dev/files/v6/Makefile|here]].
+
+
 <<div class="encadre"|==== Antiquotations: Using server side values in client code ====
 <<div class="wip"|//soon//>>
 >>
@@ -602,6 +622,11 @@ Finally, replace last line of the function {{{compute_line}}} by;
 
 To compile, we need to add {{{oclosure}}} to the list of packages used by the client, in the makefile.
 <<code language="Makefile"|CLIENTLIB := -package ocsigen.deriving.Json -package oclosure>>
+
+Download the current version of the program
+[[manual/dev/files/v7/graffiti.eliom|here]], and the current Makefile
+[[manual/dev/files/v7/Makefile|here]].
+
 
 <<div class="encadre"|====O'Closure====
 O'Closure is a Js_of_ocaml binding for the Google Closure widget library
@@ -709,7 +734,10 @@ in the configuration file.
 
 
 The first version of the program is now complete.
-<<div class="wip"|//The full source code can be found **here**. (Add the links to all versions in the repository)//>>
+Download the full code of the program
+[[manual/dev/files/v8/graffiti.eliom|here]], 
+the Makefile [[manual/dev/files/v8/Makefile|here]],
+and the configuration file [[manual/dev/files/v8/graffiti2.conf|here]].
 
 <<div class="exercices"|
 ====Exercises====
