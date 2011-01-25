@@ -489,6 +489,8 @@ dist:
 
 .PHONY: uninstall fulluninstall
 uninstall:
+	-cd deriving \
+	&& OCAMLFIND_DESTDIR=`${OCAMLFIND} query ${OCSIGENNAME}` $(MAKE) uninstall
 	-rm -Rf $(TEMPROOT)$(DOCDIR)
 	-rm -Rf $(TEMPROOT)$(EXTRALIBDIR)
 	-rm -Rf $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client
