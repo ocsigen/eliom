@@ -1,37 +1,69 @@
 #! /bin/sh
 
-# $Id: configure 1080 2007-01-07 16:00:50Z gerd $
 # Adapted from the ocamlnet configure script.
 
 #######################################################################
 # Helpers:
 
-# Split $PATH into words:
-oldifs="$IFS"
-IFS="   :"
-spacepath=`echo $PATH`
-IFS="$oldifs"
-
-
-in_path () {
-    # Does $1 exist in $PATH?
-    for d in $spacepath; do
-        if test -x "$d/$1"; then
-            return 0
-        fi
-    done
+test_binary () {
+  # $1: the name of the binary
+  echo -n "Checking for $1 ... "
+  if which "$1" >/dev/null 2>/dev/null; then
+    echo "found"
+    return 0
+  else
+    echo "not found"
     return 1
+  fi
+}
+
+fail_binary () {
+  echo
+  echo "Required command '$1' not found!"
+  [ -z "$2" ] || echo "===> $2"
+  exit 1
+}
+
+check_binary () {
+  # $1: the name of the binary
+  # $2: an URL
+  if test_binary $1; then
+      return
+  else
+      fail_binary $1 $2
+  fi
 }
 
 
-get_path () {
-    for d in $spacepath; do
-        if test -x "$d/$1"; then
-            echo "$d/$1"
-            return
-        fi
-    done
+test_library () {
+  # $1: the name of the library (findlib)
+  echo -n "Checking for $1 ... "
+  if ocamlfind query $1 >/dev/null 2>/dev/null; then
+    echo "found"
+    return 0
+  else
+    echo "not found"
+    return 1
+  fi
 }
+
+fail_library () {
+  echo
+  echo "Required library $1 not found!"
+  [ -z "$2"] || echo "===> $2"
+  exit 1
+}
+
+check_library () {
+  # $1: the name of the library (findlib)
+  # $2: an URL
+  if test_library $1; then
+      return
+  else
+      fail_library $1 $2
+  fi
+}
+
 
 #######################################################################
 # Defaults
@@ -49,7 +81,6 @@ set_defaults () {
     enable_debug=0
     enable_annot=0
     enable_ocamlduce=1
-    enable_newocamlnet=1
     enable_sqlite=1
     enable_camlzip=1
     enable_dbm=1
@@ -88,42 +119,13 @@ ehelp_bytecode="Enable/disable bytecode version of Ocsigen"
 ehelp_nativecode="Enable/disable nativecode version of Ocsigen"
 ehelp_natdynlink="Enable/disable nativecode dynamic linking"
 ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce to be installed); default is detected"
-ehelp_newocamlnet="Use new/old versions of Ocamlnet (>= 2.0)"
 ehelp_sqlite="Compile ocsipersist with SQLite for persistent storage (default)"
 ehelp_dbm="Compile ocsipersist with DBM for persistent storage; default is detected"
 ehelp_camlzip="Compile deflatemod extension (requires camlzip); default is detected"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
-eoptions="debug annot bytecode nativecode natdynlink ocamlduce newocamlnet sqlite dbm camlzip"
+eoptions="debug annot bytecode nativecode natdynlink ocamlduce sqlite dbm camlzip"
 woptions=""
-
-
-
-# Packages to include anyway:
-requires="lwt netstring ssl sqlite3"
-
-
-
-check_library () {
-    # $1: the name of the library (findlib)
-#   # $2: a typical file in $incdirs
-#    if [ "$enable_findlib" -gt 0 ]; then
-	ocamlfind query "$1" >/dev/null 2>/dev/null
-	return
-#    else
-#	stdlib=`ocamlc -where`
-#	for dir in $incdirs; do
-#	    case "$dir" in
-#		+*)
-#		    dir=`echo "$dir" | sed -e "s|^\+|$stdlib/|"` ;;
-#	    esac
-#	    if [ -f "$dir/$2" ]; then
-#		return 0
-#	    fi 
-#	done
-	return 1   # not found
-#    fi
-}
 
 
 print_options () {
@@ -151,12 +153,12 @@ print_options () {
             "") bindir2="<prefix>/bin";;
             *) bindir2=$bindir;;
         esac
-        
+
         case "$examplesdir" in
             "") examplesdir2="<prefix>/lib/<name>/examples";;
             *) examplesdir2=$examplesdir;;
         esac
-        
+
         case "$libdir" in
             "") libdir2="<prefix>/<ocamlfind install directory>";;
             *) libdir2=$libdir;;
@@ -181,7 +183,7 @@ print_options () {
             "") mandir2="<prefix>/share/man/man1";;
             *) mandir2=$mandir;;
         esac
-        
+
         case "$docdir" in
             "") docdir2="<prefix>/share/doc";;
             *) docdir2=$docdir;;
@@ -396,7 +398,7 @@ while [ "$#" -gt 0 ]; do
                         ;;
 		--mandir)
 			mandir="$2"
-			shift 
+			shift
 			shift
 			;;
 		--docdir)
@@ -487,214 +489,87 @@ case "$docdir" in
 esac
 
 
+check_binary ocamlc "See: http://www.ocaml.org/"
 
+check_ocamlversion () {
 
-######################################################################
-# Check ocamlfind
+  echo -n "Checking for OCaml version... "
+  version=`ocamlc -version`
+  echo $version
+  n1=`echo $version | sed 's/^\([0-9][0-9]*\)\..*$/\1/'`
+  n2=`echo $version | sed 's/^[0-9][0-9]*\.\([0-9][0-9]*\)\..*$/\1/'`
+  # n3=`echo $version | sed 's/^[0-9][0-9]*\.[0-9][0-9]*\.\([0-9][0-9]*\)\..*$/\1/'`
+  if [ $n1 -eq 3 ] && [ $n2 -lt 12 ]; then
+      echo;
+      echo "OCaml >= 3.12 is required. Aborting.";
+      exit 1;
+  fi
 
-printf "%s" "Checking for findlib ... "
-if ocamlfind query stdlib >/dev/null 2>/dev/null; then
-    echo "found"
-else
-    echo "not found"
-    echo "Make sure that ocamlfind is in your PATH, or install findlib"
-    echo "(from www.ocaml-programming.de)"
-    exit 1
-fi
+}
 
+check_ocamlversion
 
-######################################################################
-# Check lwt
+check_binary ocamlfind "See: http://projects.camlcity.org/projects/findlib.html"
+check_binary js_of_ocaml "See: http://ocsigen.org/js_of_ocaml"
 
-printf "%s" "Checking for lwt ... "
-if ocamlfind query lwt >/dev/null 2>/dev/null; then
-    echo "found"
-else
-    echo "not found"
-    echo "Make sure that ocamlfind is in your PATH, or install lwt"
-    echo "(from www.ocsigen.org)"
-    exit 1
-fi
+check_library react "See: http://erratique.ch/software/react"
+check_library ssl "See: http://sourceforge.net/projects/savonet/files/ocaml-ssl"
 
-######################################################################
-# Check lwt.react
+check_library lwt "See: http://ocsigen.org/lwt"
+check_library lwt.unix  "Missing support for 'unix' in lwt."
+check_library lwt.react "Missing support for 'react' in lwt."
+check_library lwt.ssl   "Missing support for 'ssl' in lwt."
+check_library lwt.extra "Missing support for 'extra' in lwt."
 
-printf "%s" "Checking for lwt.react ... "
-if ocamlfind query lwt.react >/dev/null 2>/dev/null; then
-    echo "found"
-else
-    echo "not found"
-    echo "Make sure that ocamlfind is in your PATH, or install lwt.react"
-    echo "(from www.ocsigen.org)"
-    exit 1
-fi
+check_library netstring \
+    "See ocamlnet: http://projects.camlcity.org/projects/ocamlnet.html"
+if test_library netsys; then netsys="netsys,"; else netsys=; fi
 
+check_library pcre "See: http://ocaml.info/home/ocaml_sources.html"
+check_library cryptokit "See: http://pauillac.inria.fr/~xleroy/software.html#cryptokit"
+check_library text "See: http://forge.ocamlcore.org/frs/?group_id=100"
+check_library calendar "See: http://calendar.forge.ocamlcore.org/"
 
-######################################################################
-# Check SSL
+# Check Sqlite3
+case "$enable_sqlite" in
+ 1) if test_library sqlite3; then enable_sqlite=1; else enable_sqlite=0; fi;;
+ 2) check_library sqlite3 "See: http://ocaml.info/home/ocaml_sources.html";;
+esac
 
-printf "%s" "Checking for ssl ... "
-if ocamlfind query ssl >/dev/null 2>/dev/null; then
-    echo "found"
-else
-    echo "not found"
-    echo "Required library ssl not found!"
-    exit 1
-fi
-
-######################################################################
-# Check Obrowser
-
-#printf "%s" "Checking for obrowser ... "
-#if ocamlfind query obrowser >/dev/null 2>/dev/null; then
-#    echo "found"
-#else
-#    echo "not found"
-#    echo "Required dependency obrowser not found!"
-#    exit 1
-#fi
-
-######################################################################
-# Check js_of_ocaml
-
-printf "%s" "Checking for js_of_ocaml ... "
-if ocamlfind query js_of_ocaml >/dev/null 2>/dev/null; then
-    echo "found"
-else
-    echo "not found"
-    echo "Required dependency js_of_ocaml not found!"
-    exit 1
-fi
-
-######################################################################
-# Check Ocamlnet
-
-printf "%s" "Checking for netstring (from Ocamlnet) ... "
-if ocamlfind query netstring >/dev/null 2>/dev/null; then
-    echo "found"
-else
-    echo "not found"
-    echo "Required library netstring not found!"
-    exit 1
-fi
-
-
-######################################################################
-# Check SQLITE3
-
-if [ "$enable_sqlite" -gt 0 ]; then
-    printf "%s" "Checking for sqlite3 ... "
-    if ocamlfind query sqlite3 >/dev/null 2>/dev/null; then
-        echo "found"
-    else
-        echo "not found"
-        echo "Required library sqlite3 not found!"
-        exit 1
-    fi
-
-    ocamlsqlite3dir=`ocamlfind query sqlite3`
-fi
-
-
-######################################################################
-# Check Camlzip
-
-if [ "$enable_camlzip" -gt 0 ]; then
-    printf "%s" "Checking for camlzip ... "
-    if ocamlfind query camlzip >/dev/null 2>/dev/null; then
-        echo "found camlzip"
-        camlzipdir=`ocamlfind query camlzip`
-        camlzipname=camlzip
-    elif ocamlfind query zip >/dev/null 2>/dev/null; then
-        echo "found zip"
-        camlzipdir=`ocamlfind query zip`
-        camlzipname=zip
-    elif [ "$enable_camlzip" -gt 1 ]; then
-        echo "not found, but --enable-camlzip specified"
-        exit 1
-    else
-        echo "not found"
-        enable_camlzip=0
-    fi
-fi
-
-######################################################################
-# Check Cryptokit
-
-printf "%s" "Checking for Cryptokit ... "
-if ocamlfind query cryptokit >/dev/null 2>/dev/null; then
-    echo "found"
-else
-    echo "not found"
-    echo "Required library cryptokit not found!"
-    exit 1
-fi
-
-cryptokitdir=`ocamlfind query cryptokit`
-
-
-######################################################################
-# Check ocamlduce
-
-if [ "$enable_ocamlduce" -gt 0 ]; then
-    printf "%s" "Checking for ocamlduce ... "
-    if which ocamlduce >/dev/null 2>/dev/null; then
-        echo "found"
-    elif [ "$enable_ocamlduce" -gt 1 ]; then
-        echo "not found, but --enable-ocamlduce specified"
-        exit 1
-    else
-        echo "not found"
-        enable_ocamlduce=0
-    fi
-fi
-
-
-######################################################################
 # Check dbm
-
 if [ "$enable_dbm" -gt 0 ]; then
-    printf "%s" "Checking for dbm ... "
-    if ocamlc -o /dev/null dbm.cma >/dev/null 2>/dev/null; then
-        echo "found"
+    if test_library dbm; then
+	echo -n
     elif [ "$enable_dbm" -gt 1 ]; then
-        echo "not found, but --enable-dbm specified"
-        exit 1
+	fail_library dbm
     else
-        echo "not found"
         enable_dbm=0
     fi
 fi
 
+# Check Camlzip
+if [ "$enable_camlzip" -gt 0 ]; then
+    if test_library camlzip; then
+	zipname=camlzip
+    elif test_library zip; then
+	zipname=zip
+    elif [ "$enable_camlzip" -gt 1 ]; then
+	fail_library camlzip "https://forge.ocamlcore.org/projects/camlzip/"
+    else
+	enable_camlzip=0
+    fi
+fi
 
-######################################################################
-# Check whether OCaml version is > 3.10
-echo "Checking for OCaml version"
-version=`ocamlc -version|sed 's/^\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/'`
-ocamlversion=`n1=${version%%.*}; n2=${version##*.}; \
-              if [ $n1 -eq 3 ] && [ $n2 -le 9 ]; then \
-                echo "OLD"; \
-              else \
-                echo "NEW"; \
-              fi`
-
-case "$ocamlversion" in
-    "OLD") echo; echo "OCaml >= 3.10 is required. Aborting."; exit 1;;
-esac
-
-
-######################################################################
-# Check camlp4o
-#printf "%s" "Finding out which camlp4o to use ... "
-#if which camlp4o.byte >/dev/null 2>/dev/null; then
-#    echo "camlp4o.byte"
-#    camlp4o="camlp4o.byte"
-#else
-#    echo "camlp4o"
-#    camlp4o="camlp4o" 
-#fi
-
-######################################################################
+# Check ocamlduce
+if [ "$enable_ocamlduce" -gt 0 ]; then
+    if test_binary ocamlduce; then
+	echo -n
+    elif [ "$enable_ocamlduce" -gt 1 ]; then
+	fail_binary ocamlduce "http://ocamlduce.forge.ocamlcore.org/"
+    else
+        enable_ocamlduce=0
+    fi
+fi
 
 ######################################################################
 # Summary
@@ -723,7 +598,6 @@ else
 fi
 if [ $enable_nativecode -gt 0 ] ; then
 	enable_nativecode="YES"
-        echo "WARNING: Native code version with dynlink requires ocaml >= 3.11"
 else
 	enable_nativecode="NO"
 fi
@@ -736,11 +610,6 @@ if [ $enable_ocamlduce -gt 0 ] ; then
 	enable_ocamlduce="YES"
 else
 	enable_ocamlduce="NO"
-fi
-if [ $enable_newocamlnet -gt 0 ] ; then
-	enable_newocamlnet="YES"
-else
-	enable_newocamlnet="NO"
 fi
 if [ $enable_dbm -gt 0 ] ; then
 	enable_dbm="YES"
@@ -758,9 +627,6 @@ else
 	enable_camlzip="NO"
 fi
 
-
-
-
 ocamlinclude=`ocamlfind printconf stdlib`
 
 ######################################################################
@@ -768,7 +634,7 @@ ocamlinclude=`ocamlfind printconf stdlib`
 
 echo "Writing Makefile.config"
 cat <<_EOF_ > $my_pwd/Makefile.config
-# Which ocamlfind/camlp4/ ... version to use? 
+# Which ocamlfind/camlp4/ ... version to use?
 # ocamlfind will choose automatically the compiler.
 OCAMLFIND=ocamlfind
 CAMLP4=camlp4
@@ -799,7 +665,7 @@ NATIVECODE=$enable_nativecode
 # Do you want to use dynamic linking for native code? YES/NO
 NATDYNLINK=$enable_natdynlink
 
-# Do you want the ocamlduce extension? (YES/NO) 
+# Do you want the ocamlduce extension? (YES/NO)
 # (You need ocamlduce to be installed)
 OCAMLDUCE=$enable_ocamlduce
 # If you have OCamlduce installed, which ocamlducefind do you want?
@@ -861,20 +727,11 @@ ANNOT=$enable_annot
 # The name of the named pipe used to command the server
 COMMANDPIPE=$root$commandpipe
 
-# The directory where ocamlsqlite3 is installed
-OCAMLSQLITE3DIR=$ocamlsqlite3dir
-
-# The directory where camlzip is installed
-CAMLZIPDIR=$camlzipdir
-
-# The directory where cryptokit is installed
-CRYPTOKITINSTALLDIR=$cryptokitdir
+# Do you want deflatemod? (requires camlzip)
+CAMLZIP=$enable_camlzip
 
 # The name of camlzip package:
 CAMLZIPNAME=$camlzipname
-
-# Do you want deflatemod? (requires camlzip)
-CAMLZIP=$enable_camlzip
 
 # Do you want ocsipersist with sqlite?
 OCSIPERSISTSQLITE=$enable_sqlite
@@ -882,20 +739,14 @@ OCSIPERSISTSQLITE=$enable_sqlite
 # Do you want ocsipersist with dbm?
 OCSIPERSISTDBM=$enable_dbm
 
-
 # The source directory
 SRC=$full_pwd
 
-
-
-# If you are using ocamlnet 1, write NO here
-NEWOCAMLNET=$enable_newocamlnet
+# If you are using ocamlnet 1, leave empty.
+NETSYS=$netsys
 
 # Profiling (always put NO here - but if you want to debug ocsigen):
 PROFILING=NO
-
-# Ocaml version
-OCAMLVERSION=$ocamlversion
 
 # Do not modify this
 LIBDIRS= -I ../baselib -I ../http -I ../xmlp4 -I ../server -I ../extensions -I ../eliom -I ../eliom/extensions
@@ -910,18 +761,18 @@ _EOF_
 # Finish
 
 echo
-
-
 echo
 echo "Please check Makefile.config."
 echo
-echo "You can now compile Ocsigen by invoking"
+echo "You can now compile Ocsigen by invoking:"
+echo
 echo "   make depend"
 echo "   make"
+echo "   make doc"
 echo
 echo "Finally, if you want system-wide install, (become root if needed and) do"
+echo
 echo "   make install"
-echo "to install the package, or"
-echo "   make installnodoc"
-echo "to install the package without generating the documentation."
+echo "   make docinstall"
+echo
 

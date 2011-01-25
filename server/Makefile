@@ -19,36 +19,15 @@ else
 INSTALLOPT=
 endif
 
-
-ifeq "$(NEWOCAMLNET)" "YES"
-NETSYS=netsys,
-NETSYSCMA=netsys.cma
-NETSYSCMXA=netsys.cmxa
-else
-NETSYS=
-NETSYSCMA=
-NETSYSCMXA=
-endif
-
 ifeq "$(NATDYNLINK)" "YES"
 DYNLINK=dynlink,
 else
 DYNLINK=
 endif
 
-ifeq ($(OCAMLVERSION),OLD)
-#  CMAOCAMLP4= gramlib.cma
-#  CMXXACAMLP4= gramlib.cmxa
-  CMAOCAMLP4=
-  CMXXACAMLP4=
-#  LIB=$(LIB1)
-  CAMLP4PACKAGES=,camlp4.gramlib
-else
-  CAMLP4PACKAGES= 
-  CMAOCAMLP4= camlp4lib.cma Camlp4OCamlRevisedParser.cmo Camlp4OCamlParser.cmo
-  CMXXACAMLP4= camlp4lib.cmxa Camlp4OCamlRevisedParser.cmx Camlp4OCamlParser.cmx
-  LIBDIRS := $(LIBDIRS) -I +camlp4 -I +camlp4/Camlp4Parsers
-endif
+CMAOCAMLP4= camlp4lib.cma Camlp4OCamlRevisedParser.cmo Camlp4OCamlParser.cmo
+CMXXACAMLP4= camlp4lib.cmxa Camlp4OCamlRevisedParser.cmx Camlp4OCamlParser.cmx
+LIBDIRS := $(LIBDIRS) -I +camlp4 -I +camlp4/Camlp4Parsers
 
 export OCAMLPATH := ../deriving/tmp:${OCAMLPATH}
 
@@ -59,7 +38,7 @@ CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNLINK)threads$(CAMLP4PACKAGES),findlib,cryptokit,deriving $(LIBDIRS)
+LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNLINK)threads,findlib,cryptokit,deriving $(LIBDIRS)
 # also modify builtin_package in baselib/ocsigen_config.ml.in if you modify the former line!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # and probably also in the list of dependencies of ocsigen.cma in the META.in file
 PP = 
