@@ -3,6 +3,11 @@
 
 ===Multi-user collaborative drawing application===
 
+===Type safe database requests using Macaque===
+
+In this section, we will implement our database access function
+using the //Macaque// library, that allows~ ...
+
 ===Saving favorite pictures===
 bla\\bla\\bla\\bla\\
 

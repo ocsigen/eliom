@@ -316,7 +316,7 @@ let () = set_global_persistent_data_state_timeout (Some 3600.)
 >>
 
 
-===Secure states **[New in 1.1.0]**
+===Secure states
 
 For security reasons, Eliom does not use the same cookies in
 https and http. Secure sessions are using secure cookies
