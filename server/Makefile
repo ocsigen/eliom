@@ -33,12 +33,12 @@ export OCAMLPATH := ../deriving/tmp:${OCAMLPATH}
 
 INSTALL = install
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) -package dynlink $(LIB)
-CAMLMKTOP = $(OCAMLFIND) $(CAMLMKTOPNAME) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNLINK)threads,findlib,cryptokit,deriving $(LIBDIRS)
+PACKAGE = lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNLINK)threads,findlib,cryptokit,deriving
+LIB = -thread -package ${PACKAGE} $(LIBDIRS)
 # also modify builtin_package in baselib/ocsigen_config.ml.in if you modify the former line!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # and probably also in the list of dependencies of ocsigen.cma in the META.in file
 PP = 
@@ -89,7 +89,7 @@ OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
 OBJSEXEOPT = $(EXE:.ml=.cmx)
 
 
-byte: $(OBJS) $(OBJSEXE) $(NAME) $(NAME)top
+byte: $(OBJS) $(OBJSEXE) $(NAME)
 
 opt: $(OBJSOPT) $(OBJSEXEOPT) $(NAME).opt
 
@@ -111,9 +111,6 @@ $(NAME).cma: $(CMOS) $(OBJS) $(STUBS_OBJS)
 $(NAME).cmxa: $(CMXSA) $(OBJSOPT) $(STUBS_OBJS)
 	$(CAMLMKLIB) -o $(NAME) -oc $(NAME) -linkall $(CMXSA) $(OBJSOPT) $(STUBS_OBJS)
 
-$(NAME)top: $(CMAO) $(PARSECOMMANDLINECMO)
-	$(CAMLMKTOP) -o $(NAME)top -linkpkg -linkall $(PARSECOMMANDLINECMA) $(CMAOCAMLP4) $(CMAO)
-
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
 
@@ -122,6 +119,16 @@ $(NAME)top: $(CMAO) $(PARSECOMMANDLINECMO)
 
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
+
+top: .ocamlinit
+	OCAMLPATH=${SRC}/files/:${OCAMLPATH} ${RLWRAP} ocaml
+
+.ocamlinit: ../Makefile.config
+	echo "#use \"topfind\";;" > $@
+	echo "#camlp4o;;" >> $@
+	echo "#thread;;" >> $@
+	echo "#require \"ocsigen.server\";;" >> $@
+	echo "#require \"ocsigen.deriving.syntax\";;" >> $@
 
 #doc:
 #	$(CAMLDOC) -d doc -html eliom.mli ocsigen.mli ocsigen_extensions.mli

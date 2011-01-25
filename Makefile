@@ -259,6 +259,10 @@ server.byte:
 server.opt:
 	$(MAKE) -C server opt
 
+.PHONY: servertop
+servertop: files/META.ocsigen
+	cd server && ${MAKE} top
+
 doc:
 	$(MAKE) -C doc
 

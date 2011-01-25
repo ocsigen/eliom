@@ -571,6 +571,15 @@ if [ "$enable_ocamlduce" -gt 0 ]; then
     fi
 fi
 
+# Check rlwrap or ledit
+if test_binary rlwrap; then
+    rlwrap=rlwrap
+elif test_binary ledit; then
+    rlwrap=ledit
+else
+    rlwrap=
+fi
+
 ######################################################################
 # Summary
 
@@ -744,6 +753,9 @@ SRC=$full_pwd
 
 # If you are using ocamlnet 1, leave empty.
 NETSYS=$netsys
+
+#
+RLWRAP=$rlwrap
 
 # Profiling (always put NO here - but if you want to debug ocsigen):
 PROFILING=NO
