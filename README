@@ -60,7 +60,6 @@ Build instructions:
 ===================
 
  * run "sh configure [options]" to generate 'Makefile.config'
- - If you do not have ocamlduce installed, use: "--disable-ocamlduce".
  - For the full list of options, run "sh configure --help".
 
  * verify that 'Makefile.config' suits to your needs.
