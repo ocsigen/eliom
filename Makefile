@@ -331,7 +331,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/extensions%g \
 	| sed s%_ELIOMINSTALLDIR_%$(SRC)/eliom%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
-	| sed s%_METADIR_%$(SRC)/deriving/tmp\"/\>\<findlib\ path=\"$(SRC)/files%g \
+	| sed s%_METADIR_%`${OCAMLFIND} query stdlib`\"/\>\<findlib\ path=\"$(SRC)/deriving/tmp\"/\>\<findlib\ path=\"$(SRC)/files%g \
 	| sed s%_CAMLZIPNAME_%$(CAMLZIPNAME)%g \
 	| sed s%files/miniwiki%examples/miniwiki/files%g \
 	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
