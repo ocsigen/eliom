@@ -150,7 +150,6 @@ let wait_data service activity count =
   let call_service () =
     Eliom_client.call_service service () ("",!count) >>=
       (fun s ->
-	incr count;
 	match s with
 	  | "TIMEOUT" -> Lwt.fail Timeout
 	  | s -> Lwt.return s)
@@ -165,6 +164,7 @@ let wait_data service activity count =
 	    activity.restart_waiter ]
 	  >>=
 	   (fun s ->
+	     incr count;
 	     Lwt.return (Some s)))
 	(function
 	  | Eliom_request.Failed_request 0 ->
