@@ -740,7 +740,7 @@ COMMANDPIPE=$root$commandpipe
 CAMLZIP=$enable_camlzip
 
 # The name of camlzip package:
-CAMLZIPNAME=$camlzipname
+CAMLZIPNAME=$zipname
 
 # Do you want ocsipersist with sqlite?
 OCSIPERSISTSQLITE=$enable_sqlite
