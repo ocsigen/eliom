@@ -59,10 +59,11 @@ with dynamic client side features. In particular, the client-side
 program **does not stop** when the user clicks a link, sends a form, or
 presses the back button--yet the user still can save bookmarks on pages!
 This opens up a wide field of new possibilities,
-and should facilitate the emergence of new kinds of Web applications.
+and should facilitate the emergence of new kinds of Web applications.\\
 
 
-
+In this chapter, we will write the following collaborative drawing application:
+<<object class="graffiti" type="text/html" data="http://ocsigen.org/graffiti" >>
 
 ==@@id="basics"@@ Basics ==
 
