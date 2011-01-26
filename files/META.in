@@ -151,7 +151,7 @@ package "ext" (
     archive(byte) = "eliom.cma"
     archive(native) = "eliom.cmxa"
     package "syntax" (
-      requires = "camlp4,js_of_ocaml.syntax"
+      requires = "ocsigen.deriving.syntax,js_of_ocaml.syntax"
       version = "[distributed with Ocsigen]"
       directory = "syntax"
       package "type" (
@@ -174,7 +174,7 @@ package "ext" (
     archive(byte) = "eliom_client.cma eliom_client_main.cmo"
     directory = "client"
     package "syntax" (
-      requires = "camlp4,js_of_ocaml.syntax"
+      requires = "ocsigen.deriving.syntax,js_of_ocaml.syntax"
       version = "[distributed with Ocsigen]"
       description = "Syntax extension: spliting client and server code (client side)"
       directory = "../syntax"

@@ -11,8 +11,8 @@ CLIENTFILES := ${PROJECTNAME}.eliom
 # Put here all the requested packages (no prerequest).
 # e.g -package lwt
 
-SERVERLIB := -package ocsigen.deriving.Json -package cairo
-CLIENTLIB := -package ocsigen.deriving.Json -package oclosure
+SERVERLIB := -package cairo
+CLIENTLIB := -package oclosure
 
 # You may adjust those variables to your installation
 
