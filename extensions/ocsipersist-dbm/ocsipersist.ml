@@ -69,6 +69,8 @@ let (directory, ocsidbm) =
 (*****************************************************************************)
 (** Communication with the DB server *)
 
+external sys_exit : int -> 'a = "caml_sys_exit"
+
 let rec try_connect sname =
   catch
     (fun () ->
@@ -98,7 +100,7 @@ let rec try_connect sname =
         then begin
           child ()
         end
-        else exit 0
+        else sys_exit 0;
       end
       else
         Lwt_unix.waitpid [] pid >>=
