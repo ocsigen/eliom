@@ -19,8 +19,8 @@ odoc:
 
 DOCUPDIR=$(shell  dirname $(TEMPROOT)$(DOCDIR))
 install:
-	[ ! -d $(DOCUPDIR) ] && (mkdir -p $(DOCUPDIR); chmod a+rx $(DOCUPDIR))
-	mkdir $(TEMPROOT)$(DOCDIR)
+	[ -d $(DOCUPDIR) ] || (mkdir -p $(DOCUPDIR); chmod a+rx $(DOCUPDIR))
+	mkdir -p $(TEMPROOT)$(DOCDIR)
 	$(INSTALL) -m 644 api-html/* $(TEMPROOT)$(DOCDIR)
 	chmod a+rx $(TEMPROOT)$(DOCDIR)
 	chmod a+r $(TEMPROOT)$(DOCDIR)/*

@@ -479,7 +479,7 @@ install: partialinstall
 	$(INSTALL) -d -m 755 $(TEMPROOT)$(MANDIR)
 	$(INSTALL) -m 644 files/ocsigen.1 $(TEMPROOT)$(MANDIR)
 	@echo
-	@echo "## Run \"make docinstall\" to build and install the ocamldoc."
+	@echo "## Run \"make doc\" and \"make docinstall\" to build and install the ocamldoc."
 
 logrotate:
 	[ -d /etc/logrotate.d ] && \
