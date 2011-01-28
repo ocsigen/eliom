@@ -695,6 +695,11 @@ let get ?https ?port ?headers ~host ~uri () =
     ()
     ()
 
+let get_url ?headers url =
+  let (https, host, port, uri, _, _, _) = Ocsigen_lib.parse_url url in
+  let host = match host with None -> "localhost" | Some h -> h in
+  get ?https ?port ?headers ~host ~uri ()
+
 (*****************************************************************************)
 let post_string ?https ?port ?(headers = Http_headers.empty)
     ~host ~uri ~content ~content_type () =
@@ -713,6 +718,12 @@ let post_string ?https ?port ?(headers = Http_headers.empty)
     ()
     ()
 
+let post_string_url ?headers ~content ~content_type url =
+  let (https, host, port, uri, _, _, _) = Ocsigen_lib.parse_url url in
+  let host = match host with None -> "localhost" | Some h -> h in
+  post_string ?https ?port ?headers ~host ~uri ~content ~content_type ()
+
+
 (*****************************************************************************)
 let post_urlencoded ?https ?port ?headers ~host ~uri ~content () =
   post_string ?https ?port ?headers
@@ -721,6 +732,10 @@ let post_urlencoded ?https ?port ?headers ~host ~uri ~content () =
     ~content_type:("application","x-www-form-urlencoded")
     ()
 
+let post_urlencoded_url ?headers ~content url =
+  let (https, host, port, uri, _, _, _) = Ocsigen_lib.parse_url url in
+  let host = match host with None -> "localhost" | Some h -> h in
+  post_urlencoded ?https ?port ?headers ~host ~uri ~content ()
 
 (*****************************************************************************)
 let basic_raw_request

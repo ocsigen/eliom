@@ -32,6 +32,9 @@ val get :
    The default protocol is http ([https=false]).
  *)
 
+val get_url : ?headers: Http_headers.t -> string -> Ocsigen_http_frame.t Lwt.t
+(** Do a GET HTTP request. The string must be a full URL. *)
+
 val post_string :
   ?https: bool ->
   ?port:int ->
@@ -47,6 +50,14 @@ val post_string :
    The default protocol is http ([https=false]).
  *)
 
+val post_string_url :
+  ?headers: Http_headers.t ->
+  content:string ->
+  content_type:(string * string) ->
+  string ->
+  Ocsigen_http_frame.t Lwt.t
+(** Do a GET HTTP request. The string must be a full URL. *)
+
 val post_urlencoded :
   ?https: bool ->
   ?port:int ->
@@ -56,11 +67,19 @@ val post_urlencoded :
   content:(string * string) list ->
   unit ->
   Ocsigen_http_frame.t Lwt.t
-(** EXPERIMENTAL -- May evolve in the future. Do a POST HTTP request.
-   The default port is 80 for HTTP, 443 for HTTPS.
-   The default protocol is http ([https=false]).
+(** EXPERIMENTAL -- May evolve in the future.
+    Do a POST HTTP request with URL encoded parameters as content.
+    The default port is 80 for HTTP, 443 for HTTPS.
+    The default protocol is http ([https=false]).
  *)
 
+val post_urlencoded_url :
+  ?headers: Http_headers.t ->
+  content:(string * string) list ->
+  string ->
+  Ocsigen_http_frame.t Lwt.t
+(** Do a GET HTTP request with URL encoded parameters as content.
+    The string must be a full URL. *)
 
 
 val raw_request :
