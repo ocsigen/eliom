@@ -146,6 +146,7 @@ val service :
   ?https:bool ->
   path:Ocsigen_lib.url_path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
   get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
   unit ->
   ('get,unit,
@@ -158,6 +159,10 @@ val service :
     to the path [path], taking the GET parameters [get_params].
     
     If [~https] is true, all links towards that service will use https.
+
+    The default priority is 0. If you want the service to be tried before 
+    (resp after)
+    the other ones at the same path, put a higher (resp. lower) priority.
 *)
 
 
@@ -207,6 +212,7 @@ val post_service :
              [< suff] as 'tipo, 'gn, unit,
              [< `Registrable ], 'return) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?priority:int ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
   ('get, 'post, [> `Attached of
@@ -554,6 +560,7 @@ val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> float option
 val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool
+val get_priority_ : ('a, 'b) a_s -> int
 (* val reconstruct_absolute_url_path : Ocsigen_lib.url_path -> Ocsigen_lib.url_path -> Ocsigen_lib.url_path option -> string
 val reconstruct_relative_url_path : Ocsigen_lib.url_path -> Ocsigen_lib.url_path -> Ocsigen_lib.url_path option -> string
 *)

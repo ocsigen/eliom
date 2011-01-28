@@ -62,7 +62,7 @@ let rec gc_timeouted_services now t =
                thr >>= fun thr -> (* we wait for the previous one
                                      to be completed *)
                (match nodeopt, l with
-                  | Some node, (i, (_, (_, Some (_, e), _)))::_
+                  | Some node, (i, (_, _, (_, Some (_, e), _)))::_
                       (* it is an anonymous coservice.
                          The list should have length 1 here *)
                       when !e < now ->
@@ -83,7 +83,7 @@ let rec gc_timeouted_services now t =
                         then
                           match
                             List.fold_right
-                              (fun ((i, (_, (_, expdate, _))) as a) foll ->
+                              (fun ((i, (_, _, (_, expdate, _))) as a) foll ->
                                  match expdate with
                                    | Some (_, e) when !e < now -> foll
                                    | _ -> a::foll

@@ -1289,6 +1289,13 @@ defaulthttpport="8080" defaulthttpsport="4433">
 >>
 
 
+===Priority of services
+
+When creating a service (but not a coservice) you can add the optional
+{{{int}}} parameter {{{~priority}}} to set the priority of the service.
+The default priority is 0. Services with higher priority
+will be tried by Eliom before the ones with lower priority.
+Use this if several services can answer to the same request.
 
 ===Timeouts for coservices
 

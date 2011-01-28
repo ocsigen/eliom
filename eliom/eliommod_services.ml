@@ -55,7 +55,7 @@ let find_page_table
   let rec aux toremove = function
     | [] -> Lwt.return ((Eliom_common.Notfound
                            Eliom_common.Eliom_Wrong_parameter), [])
-    | (((_anontyp, (_gene, (max_use, expdate, funct))) as a)::l) ->
+    | (((_anontyp, (_gene, _prio, (max_use, expdate, funct))) as a)::l) ->
       match expdate with
         | Some (_, e) when !e < now ->
               (* Service expired. Removing it. *)
@@ -140,15 +140,15 @@ let find_page_table
     | Eliom_common.Notfound e -> fail e
 
 
-let rec insert_as_last_of_generation generation x = function
+let rec insert_as_last_of_generation generation priority x = function
   | [] -> [x]
-  | ((_, (g, _))::l) as ll when g < generation -> x::ll
-  | a::l -> a::(insert_as_last_of_generation generation x l)
+  | ((_, (g, p, _))::l) as ll when g < generation || (g = generation && p < priority) -> x::ll
+  | a::l -> a::(insert_as_last_of_generation generation priority x l)
 
 
 
 let add_page_table tables url_act tref
-    key (id, ((max_use, expdate, action) as va)) =
+    key (id, (priority, ((max_use, expdate, action) as va))) =
 
   let sp = Eliom_common.get_sp_option () in
   (match expdate with
@@ -158,7 +158,7 @@ let add_page_table tables url_act tref
 
   (* Duplicate registration forbidden in global table with same generation *)
   let generation = Ocsigen_extensions.get_numberofreloads () in
-  let v = (id, (generation, va)) in
+  let v = (id, (generation, priority, va)) in
   match key with
     | {Eliom_common.key_state = (Eliom_common.SAtt_anon _, _) ;
        Eliom_common.key_kind = Ocsigen_http_frame.Http_header.GET }
@@ -184,7 +184,7 @@ let add_page_table tables url_act tref
                ?sp
                (Ocsigen_lib.Left (tref, key))
            in
-           tref := 
+           tref :=
              Eliom_common.Serv_Table.add
                key (Eliom_common.Ptc (Some node, [v])) !tref)
     | {Eliom_common.key_state = (Eliom_common.SAtt_no, Eliom_common.SAtt_no) ;
@@ -197,7 +197,7 @@ let add_page_table tables url_act tref
            (* nodeopt should be None *)
            try
 (******** Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
-             let (oldgen, _), oldl = Ocsigen_lib.list_assoc_remove id l in
+             let (oldgen, _, _), oldl = Ocsigen_lib.list_assoc_remove id l in
              (* if there was an old version with the same id, we remove it *)
              if (sp = None) && (generation = oldgen)
              then
@@ -211,7 +211,7 @@ let add_page_table tables url_act tref
                    key 
                    (Eliom_common.Ptc (None,
                                       (insert_as_last_of_generation
-                                         generation v oldl)))
+                                         generation priority v oldl)))
                    newt
            with Not_found ->
              tref := 
@@ -219,7 +219,7 @@ let add_page_table tables url_act tref
                  key
                  (Eliom_common.Ptc (None, 
                                     (insert_as_last_of_generation
-                                       generation v l)))
+                                       generation priority v l)))
                  newt
          with Not_found -> 
            tref := 
@@ -239,7 +239,7 @@ let add_page_table tables url_act tref
               key 
               (Eliom_common.Ptc (None,
                                  (insert_as_last_of_generation
-                                    generation v oldl)))
+                                    generation priority v oldl)))
               newt
         with Not_found -> 
           tref := 

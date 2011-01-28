@@ -728,7 +728,8 @@ for unchecked boxes! An unchecked box is equivalent to no parameter
 at all! Thus it is not possible to distinguish between a service
 taking a boolean and a service taking no parameter at all
 (if they share the same URL).
-In Eliom //services are tried in order of registration!//
+In Eliom services with higher priority are tried first, and then
+they are tried in order of registration.
 The first matching service will answer.\\
 
 Other types similar to bool:
@@ -800,8 +801,9 @@ let setform = Eliom_output.Xhtml5.register_service
 
 Once again, note that there is no difference between an empty
 set or no parameter at all. If you register a service without parameters
-and a service with a set of parameters on the same URL, the firstly
-registered service that matches will answer.
+and a service with a set of parameters on the same URL, the service with
+higher priority, or the firstly registered service that matches,
+will answer.
       
   
 
@@ -972,7 +974,8 @@ Here is an example of link towards this service:
 //Warning://
 As for sets or bools,
 if a request has no parameter, it will be considered as the empty list.
-Services are tried in order of registration.
+Services with higher priority are tried first, otherwise
+they are tried in order of registration.
 
 As you see, the names of each list element is built from the name
 of the list, the name of the list element, and an index.

@@ -51,6 +51,7 @@ type (+'a, +'b) a_s =
      get_name: Eliom_common.att_key_serv;
      post_name: Eliom_common.att_key_serv;
      redirect_suffix: bool;
+     priority: int;
    }
 
 type +'a na_s =
@@ -131,6 +132,9 @@ let get_na_kind_ s = s.na_kind
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 let get_https s = s.https
+let get_priority_ s = s.priority
+
+let default_priority = 0
 
 let get_get_or_post s =
   match get_kind_ (s : ('a, 'b, [< `Attached of (attached_service_kind, [< getpost]) a_s
@@ -165,6 +169,7 @@ let static_dir_ ?(https = false) () =
        att_kind = `Internal `Service;
        get_or_post = `Get;
        redirect_suffix = true;
+       priority = default_priority;
       };
     https = https;
     keep_nl_params = `None;
@@ -196,6 +201,7 @@ let get_static_dir_ ?(https = false)
         att_kind = `Internal `Service;
         get_or_post = `Get;
         redirect_suffix = true;
+        priority = default_priority;
       };
      https = https;
      keep_nl_params = keep_nl_params;
@@ -334,8 +340,10 @@ let service_aux_aux
     ~getorpost
     ?(redirect_suffix = true)
     ?(keep_nl_params = `None)
+    ?(priority = default_priority)
     ~get_params
-    ~post_params =
+    ~post_params
+    () =
 (* ici faire une vérification "duplicate parameter" ? *)
   {
    pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
@@ -351,7 +359,8 @@ let service_aux_aux
       get_or_post = getorpost;
       get_name = Eliom_common.SAtt_no;
       post_name = Eliom_common.SAtt_no;
-      redirect_suffix = redirect_suffix
+      redirect_suffix;
+      priority;
     };
    https = https;
    keep_nl_params = keep_nl_params;
@@ -382,6 +391,7 @@ let external_service_
     ~redirect_suffix:false
     ~get_params
     ~post_params
+    ()
 
 let external_post_service
     ~prefix

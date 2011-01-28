@@ -79,6 +79,7 @@ let service_aux
     ~path
     ?redirect_suffix
     ?keep_nl_params
+    ?priority
     ~get_params =
   let sp = Eliom_common.get_sp_option () in
   match sp with
@@ -100,8 +101,10 @@ let service_aux
             ~getorpost:`Get
             ?redirect_suffix
             ?keep_nl_params
+            ?priority
             ~get_params
             ~post_params:unit
+            ()
           in
           Eliom_common.add_unregistered sitedata path;
           u
@@ -123,13 +126,16 @@ let service_aux
         ~getorpost:`Get
         ?redirect_suffix
         ?keep_nl_params
+        ?priority
         ~get_params
         ~post_params:unit
+        ()
 
 let service
     ?(https = false)
     ~path
     ?keep_nl_params
+    ?priority
     ~get_params
     () =
   let suffix = contains_suffix get_params in
@@ -140,6 +146,7 @@ let service
              | _ -> path@[Eliom_common.eliom_suffix_internal_name])
     ?keep_nl_params
     ?redirect_suffix:suffix
+    ?priority
     ~get_params
 
 let coservice
@@ -215,7 +222,7 @@ let coservice'
             add_pref_params Eliom_common.na_co_param_prefix get_params;
           post_params_type = unit;
           kind = `Nonattached
-            {na_name = 
+            {na_name =
                 (if csrf_safe
                  then Eliom_common.SNa_get_csrf_safe (uniqueid (),
                                                       csrf_state_name,
@@ -236,7 +243,7 @@ let coservice'
 (****************************************************************************)
 (* Create a service with post parameters in the server *)
 let post_service_aux ~https ~fallback 
-    ?(keep_nl_params = `None) ~post_params =
+    ?(keep_nl_params = `None) ?(priority = default_priority) ~post_params =
 (* Create a main service (not a coservice) internal, post only *)
 (* ici faire une vérification "duplicate parameter" ? *)
   let `Attached k1 = fallback.kind in
@@ -256,6 +263,7 @@ let post_service_aux ~https ~fallback
       get_name = k1.get_name;
       post_name = Eliom_common.SAtt_no;
       redirect_suffix = false;
+      priority;
     };
    https = https;
    keep_nl_params = keep_nl_params;
@@ -263,7 +271,7 @@ let post_service_aux ~https ~fallback
  }
 
 let post_service ?(https = false) ~fallback 
-    ?keep_nl_params ~post_params () =
+    ?keep_nl_params ?priority ~post_params () =
   (* (if post_params = TUnit
   then Ocsigen_messages.warning "Probably error in the module: \
       Creation of a POST service without POST parameters.");
@@ -275,7 +283,8 @@ let post_service ?(https = false) ~fallback
   let `Internal kind = k1.att_kind in
   let path = k1.subpath in
   let sp = Eliom_common.get_sp_option () in
-  let u = post_service_aux ~https ~fallback ?keep_nl_params ~post_params in
+  let u = post_service_aux
+    ~https ~fallback ?keep_nl_params ?priority ~post_params in
   match sp with
   | None ->
       (match Eliom_common.global_register_allowed () with

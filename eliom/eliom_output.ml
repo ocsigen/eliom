@@ -2635,6 +2635,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?state_name
       ?secure_session
       ?https
+      ?priority
       ~path
       ~get_params
       ?error_handler
@@ -2649,6 +2650,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?state_name
       ?secure_session
       ?https
+      ?priority
       ~path
       ~get_params
       ?error_handler:(make_eh error_handler)
@@ -2748,6 +2750,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?state_name
       ?secure_session
       ?https
+      ?priority
       ~fallback
       ~post_params
       ?error_handler
@@ -2762,6 +2765,7 @@ module Customize (R : Eliom_mkreg.ELIOMREGSIG)
       ?state_name
       ?secure_session
       ?https
+      ?priority
       ~fallback:(Eliom_services.untype_service_ fallback)
       ~post_params
       ?error_handler:(make_eh error_handler)

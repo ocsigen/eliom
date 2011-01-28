@@ -175,6 +175,7 @@ module type ELIOMREGSIG =
       ?state_name:string ->
       ?secure_session:bool ->
       ?https:bool ->
+      ?priority:int ->
       path:Ocsigen_lib.url_path ->
       get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
       ?error_handler:((string * exn) list -> page Lwt.t) ->
@@ -257,6 +258,7 @@ module type ELIOMREGSIG =
       ?state_name:string ->
       ?secure_session:bool ->
       ?https:bool ->
+      ?priority:int ->
       fallback:('get, unit,
                 [ `Attached of
                     ([ `Internal of

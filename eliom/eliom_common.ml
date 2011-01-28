@@ -402,6 +402,7 @@ and page_table_content =
            *) *
            (int * (* generation (= number of reloads of sites
                      after which that service has been created) *)
+              int * (* priority of the service *)
               (int ref option (* max_use *) *
                  (float * float ref) option
                  (* timeout and expiration date for the service *) *

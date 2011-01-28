@@ -764,6 +764,19 @@ let su3 =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "Try another suffix"]])))
 
+let su4 =
+  register_service
+    ~path:["fuffix";""]
+    ~get_params:(suffix (string "s" ** suffix_const "CONST" ** string "ss"))
+    ~priority:1
+    (fun (s, ((), ss)) () ->
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1
+                   [pcdata s];
+                 p [pcdata "I am a suffix service with a constant part, registered after the generic suffix service, but I have a priority, so that you can see me!"]])))
+
 let create_suffixform_su2 s =
     <:xmllist< <p>Write a string:
       $string_input ~input_type:`Text ~name:s ()$ <br/>
@@ -1813,6 +1826,7 @@ let mainpage = register_service ["tests"] unit
          a postcoex [pcdata "POST service with coservice fallback"] (); br ();
          a su [pcdata "Suffix and other service at same URL"] (); br ();
          a suffixform_su2 [pcdata "Suffix and other service at same URL: a form towards the suffix service"] (); br ();
+         a su4 [pcdata "Suffix service with constant part and priority"] ("aa", ((), "bb")); br ();
          a preappliedsuffix [pcdata "Preapplied suffix"] (); br ();
          a constform [pcdata "Form towards suffix service with constants"] (); br ();
          a getact [pcdata "action on GET attached coservice, etc"] 127; br ();

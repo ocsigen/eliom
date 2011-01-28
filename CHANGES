@@ -1,5 +1,7 @@
 ===== dev =====
 
+  * Eliom: now possible to set a //priority// on services 
+  registered on the same path, to choose in which order Eliom will try them.
   * **SOON** Eliom client: sending forms to caml services from client side code.
   * **SOON** Eliom: Stateful redirections. The request cache is restored after
     redirection.
