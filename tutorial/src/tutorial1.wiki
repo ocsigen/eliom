@@ -533,17 +533,6 @@ by:
 >>
 And finaly we have to draw the lines received.
 
-To compile, you will need to add the package
-{{{ocsigen.deriving.Json}}} in the makefile for both
-client and server side by replacing the lines 
-<<code language="Makefile"|SERVERLIB :=
-CLIENTLIB :=
->>
-by
-<<code language="Makefile"|SERVERLIB := -package ocsigen.deriving.Json
-CLIENTLIB := -package ocsigen.deriving.Json
->>
-
 Now you can try the program using two browser windows to see that the lines
 are drawn on both.
 
@@ -558,9 +547,6 @@ Download the current version of the program
 <<div class="encadre"|==== Communication channels ====
 <<div class="wip"|//soon//>>
 >>
-
-<<div class="wip"|The full code for that version can be donwloaded **here** //(soon)//>>
-
 
 <<div class="wip"|**Warning** The syntax of anti-quotations may change in the future>>
 
@@ -626,7 +612,7 @@ Finally, replace last line of the function {{{compute_line}}} by;
 >>
 
 To compile, we need to add {{{oclosure}}} to the list of packages used by the client, in the makefile.
-<<code language="Makefile"|CLIENTLIB := -package ocsigen.deriving.Json -package oclosure>>
+<<code language="Makefile"|CLIENTLIB := -package oclosure>>
 
 Download the current version of the program
 [[manual/dev/files/v7/graffiti.eliom|here]], and the current Makefile
