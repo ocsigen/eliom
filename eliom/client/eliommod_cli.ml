@@ -48,13 +48,13 @@ let fill_page_data_table ((reqnum, size), l) =
 
 
 (* == Relinking DOM nodes *)
-let nodes : ((int64 * int), Dom_html.element Js.t) Hashtbl.t =
+let nodes : (int, Dom_html.element Js.t) Hashtbl.t =
   Hashtbl.create 200
 
-let set_node_id node id =
+let set_node_id node (_,id) =
   Hashtbl.replace nodes id node
 
-let retrieve_node id =
+let retrieve_node (_,id) =
   Hashtbl.find nodes id
 
 
