@@ -107,7 +107,7 @@ let reconstruct_params_
       | TList (_, t), l | TSet t, l ->
           let b, l = Obj.magic (parse_suffix t l) in
           (match l with
-             | [] -> raise (Ocsigen_extensions.Ocsigen_Is_a_directory req)
+             | [] -> raise Eliom_common.Eliom_Wrong_parameter
              | [""] -> Obj.magic [b], []
              | _ -> 
                  let c, l = Obj.magic (parse_suffix typ l) in
@@ -117,8 +117,7 @@ let reconstruct_params_
           failwith "Lists or sets in suffixes must be last parameters"
       | TProd (t1, t2), l ->
           (match parse_suffix t1 l with
-             | _, [] -> 
-                 raise (Ocsigen_extensions.Ocsigen_Is_a_directory req)
+             | _, [] -> raise Eliom_common.Eliom_Wrong_parameter
              | r, l -> 
                  let rr, ll = parse_suffix t2 l in 
                  Obj.magic (r, rr), ll)
@@ -141,7 +140,7 @@ let reconstruct_params_
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TUnit, v::l ->
           (if v="" then Obj.magic (), l
-           else raise (Eliom_common.Eliom_Wrong_parameter))
+           else raise Eliom_common.Eliom_Wrong_parameter)
       | TBool name, v::l ->
           (try Obj.magic (bool_of_string v), l
            with e -> 
