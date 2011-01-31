@@ -132,6 +132,8 @@ val change_url :
   ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
+(** register a function to be called on page change *)
+val on_unload : (unit -> unit Lwt.t) -> unit
 
 (**/**)
 

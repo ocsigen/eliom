@@ -152,7 +152,7 @@ let load_eliom_data_
   Eliommod_cli.fill_page_data_table page_data;
   Eliommod_client_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;
-  on_unload_scripts := onunload;
+  on_unload_scripts := [fun () -> List.iter Js.Unsafe.variable onunload; Lwt.return ()];
   List.iter Js.Unsafe.variable onload;
   Lwt.return ()
 (* originaly onload was supposed to return unit Lwt.t, but it is not
@@ -163,11 +163,14 @@ let load_eliom_data_
    This is the same problem for on_unload below. *)
 
 let set_inner_html (ed, content) =
-  List.iter Js.Unsafe.variable !on_unload_scripts;
+  Lwt_list.iter_p (fun f -> f ()) !on_unload_scripts;
   on_unload_scripts := [];
   let container_node = Lazy.force container_node in
   container_node##innerHTML <- Js.string content;
   load_eliom_data_ ed container_node
+
+let on_unload f =
+  on_unload_scripts := f::(!on_unload_scripts)
 
 let set_content = function
   | Eliom_client_types.EAContent c -> set_inner_html c
