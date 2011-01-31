@@ -957,3 +957,70 @@ or {{{set_http_header}}} to personalize the answer without using
 
 The full code of our program can be downloaded
 [[/manual/dev/files/ch2-final/tuto.ml|here]].
+
+
+===Using customized output module to simplify getting user data===
+<<div class="concepts"|{{{Eliom_output.Customize}}}>>
+
+When you want to assume that you have informations available in
+sessions, for instance when a site is mainly available to connected
+users, it becomes tedious to check everywhere that a reference is not
+None. We can build a version of a registration module to simplify that
+using <<ocsigendoc version="dev" file="Eliom_output.Customize"|<<span
+class="code"|Eliom_output.Customize>>>>.
+
+We first need a translation module which checks for session
+informations and fall back to a default page if they are not
+available.
+
+<<code language="ocaml"|module Connected_translate =
+struct
+  type page = string -> Eliom_output.Xhtml5.page Lwt.t
+  let translate page =
+    Eliom_references.get username ~>>=
+      function
+	| None ->
+	  let connection_box =
+	    Eliom_output.Xhtml5.post_form ~service:connection_service
+              (fun (name1, name2) ->
+		[p [pcdata "login: ";
+                    Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:name1 ();
+                    br ();
+                    pcdata "password: ";
+                    Eliom_output.Xhtml5.string_input ~input_type:`Password ~name:name2 ();
+                    br ();
+                    Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Connect" ()
+		   ]]) ()
+	  in
+	  Lwt.return
+            (html (head (title (pcdata "")) [])
+	       (body [h1 [pcdata "Hello"];
+		      connection_box;]))
+	| Some username -> page username
+end
+>>
+The {{{translate}}} function takes a function {{{page}}} and apply it with the
+current username if available and falls back to a default login page if not.
+
+We can now make our own registration module.
+<<code language="ocaml"|module Connected = Eliom_output.Customize ( Eliom_output.Xhtml5 ) ( Connected_translate )
+
+let _ = Connected.register_service 
+  ~path:[""] ~get_params:unit
+  (fun () () ->
+    Lwt.return (fun username ->
+      Lwt.return (html (head mytitle [])
+		(body [h1 [pcdata ("Welcome " ^ username) ]; ]))))
+>>
+
+The type of {{{Connected.register_service}}} forces us to have the heavy notation:
+{{{Lwt.return (fun username -> Lwt.return...)}}}. We can make it lighter using
+
+<<code language="ocaml"|let ( !% ) f = fun a b -> return (fun c -> f a b c)
+
+let _ = Connected.register_service 
+  ~path:[""] ~get_params:unit
+  !% (fun () () username ->
+    return (html (head mytitle [])
+	      (body [h1 [pcdata ("Welcome " ^ username) ]; ])))
+>>
