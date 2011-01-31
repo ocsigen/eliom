@@ -374,6 +374,7 @@ module MakeRegister = functor
               let sppt = get_post_params_type_ service in
               let f table ((attserget, attserpost) as attsernames) = 
                 Eliommod_services.add_service
+                  priority
                   table
                   (get_sub_path_ attser)
                   {Eliom_common.key_state = attsernames;
@@ -383,7 +384,6 @@ module MakeRegister = functor
                     then (anonymise_params_type sgpt,
                           anonymise_params_type sppt)
                     else (0, 0)),
-                   (priority,
                     ((match get_max_use_ service with
                       | None -> None
                       | Some i -> Some (ref i)),
@@ -508,7 +508,7 @@ module MakeRegister = functor
                               ?code
                               ?content_type
                               ?headers
-                              content))))))
+                              content)))))
               in
               (match (key_kind, attserget, attserpost) with
                 | (Ocsigen_http_frame.Http_header.POST, _,

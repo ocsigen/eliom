@@ -343,14 +343,11 @@ and page_table_content =
               is different (after reloading the site)
               so that it replaces the former one
            *) *
-           (int * (* generation (= number of reloads of sites
-                     after which that service has been created) *)
-              int * (* priority of the service *)
-              (int ref option (* max_use *) *
-                 (float * float ref) option
+            (int ref option (* max_use *) *
+               (float * float ref) option
                  (* timeout and expiration date for the service *) *
-                 (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
-              ))) list
+            (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
+            )) list
 
 and naservice_table_content =
     (int (* generation (= number of reloads of sites
@@ -370,7 +367,9 @@ and naservice_table =
 and dircontent = Vide | Table of direlt ref Ocsigen_lib.String_Table.t
 and direlt = Dir of dircontent ref | File of page_table ref
 and tables =
-    {table_services : dircontent ref;
+    {mutable table_services : (int (* generation *) * 
+                         int (* priority *) * 
+                         dircontent ref) list;
      table_naservices : naservice_table ref;
     (* Information for the GC: *)
      mutable table_contains_services_with_timeout : bool;

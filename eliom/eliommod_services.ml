@@ -55,7 +55,7 @@ let find_page_table
   let rec aux toremove = function
     | [] -> Lwt.return ((Eliom_common.Notfound
                            Eliom_common.Eliom_Wrong_parameter), [])
-    | (((_anontyp, (_gene, _prio, (max_use, expdate, funct))) as a)::l) ->
+    | (((_anontyp, (max_use, expdate, funct)) as a)::l) ->
       match expdate with
         | Some (_, e) when !e < now ->
               (* Service expired. Removing it. *)
@@ -140,25 +140,17 @@ let find_page_table
     | Eliom_common.Notfound e -> fail e
 
 
-let rec insert_as_last_of_generation generation priority x = function
-  | [] -> [x]
-  | ((_, (g, p, _))::l) as ll when g < generation || (g = generation && p < priority) -> x::ll
-  | a::l -> a::(insert_as_last_of_generation generation priority x l)
-
-
-
 let add_page_table tables url_act tref
-    key (id, (priority, ((max_use, expdate, action) as va))) =
+    key (id, ((max_use, expdate, action) as va)) =
 
   let sp = Eliom_common.get_sp_option () in
   (match expdate with
-     | Some _ -> 
+     | Some _ ->
          tables.Eliom_common.table_contains_services_with_timeout <- true
      | _ -> ());
 
   (* Duplicate registration forbidden in global table with same generation *)
-  let generation = Ocsigen_extensions.get_numberofreloads () in
-  let v = (id, (generation, priority, va)) in
+  let v = (id, va) in
   match key with
     | {Eliom_common.key_state = (Eliom_common.SAtt_anon _, _) ;
        Eliom_common.key_kind = Ocsigen_http_frame.Http_header.GET }
@@ -197,9 +189,9 @@ let add_page_table tables url_act tref
            (* nodeopt should be None *)
            try
 (******** Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
-             let (oldgen, _, _), oldl = Ocsigen_lib.list_assoc_remove id l in
-             (* if there was an old version with the same id, we remove it *)
-             if (sp = None) && (generation = oldgen)
+             let _, oldl = Ocsigen_lib.list_assoc_remove id l in
+             (* if there was an old version with the same id, we remove it? *)
+             if sp = None
              then
                (* but if there was already one with same generation, we fail
                   (if during intialisation) *)
@@ -210,16 +202,16 @@ let add_page_table tables url_act tref
                  Eliom_common.Serv_Table.add
                    key 
                    (Eliom_common.Ptc (None,
-                                      (insert_as_last_of_generation
-                                         generation priority v oldl)))
+                                      (* We insert as last element 
+                                         so that services are tried in
+                                         registration order*)
+                                      (oldl@[v])))
                    newt
            with Not_found ->
              tref := 
                Eliom_common.Serv_Table.add
                  key
-                 (Eliom_common.Ptc (None, 
-                                    (insert_as_last_of_generation
-                                       generation priority v l)))
+                 (Eliom_common.Ptc (None, (l@[v])))
                  newt
          with Not_found -> 
            tref := 
@@ -237,9 +229,7 @@ let add_page_table tables url_act tref
           tref := 
             Eliom_common.Serv_Table.add
               key 
-              (Eliom_common.Ptc (None,
-                                 (insert_as_last_of_generation
-                                    generation priority v oldl)))
+              (Eliom_common.Ptc (None, (oldl@[v])))
               newt
         with Not_found -> 
           tref := 
@@ -253,7 +243,6 @@ let remove_page_table _ _ tref key id =
   (* Actually this does not remove empty directories.
      But this will be done by the next service GC *)
 
-  try
     let Eliom_common.Ptc (nodeopt, l) = Eliom_common.Serv_Table.find key !tref
     in
     match nodeopt with
@@ -274,7 +263,6 @@ let remove_page_table _ _ tref key id =
                     key
                     (Eliom_common.Ptc (None, newl))
                     newt
-  with Not_found -> ()
 
 let add_dircontent dc (key, elt) =
   match dc with
@@ -296,6 +284,7 @@ let find_dircontent dc k =
 let add_or_remove_service
     f
     tables
+    table
     url_act
     page_table_key
     va =
@@ -347,14 +336,38 @@ let add_or_remove_service
   in
 
   let page_table_ref =
-    search_page_table_ref tables.Eliom_common.table_services url_act 
+    search_page_table_ref table url_act 
   in
   f tables url_act page_table_ref page_table_key va
 
-let add_service = add_or_remove_service add_page_table
+let add_service priority tables url_act page_table_key va =
+  let generation = Ocsigen_extensions.get_numberofreloads () in
+  let rec find_table = function
+    | [] -> let t = ref (Eliom_common.empty_dircontent ()) in
+            t, [(generation, priority, t)]
+    | ((g, p, t)::_) as l when g = generation && p = priority -> t, l
+    | ((g, p, _)::_) as l when g < generation || p < priority ->
+      let t = ref (Eliom_common.empty_dircontent ()) in
+      t, (generation, priority, t)::l
+    | ((g, p, _) as a)::l when g = generation && p > priority ->
+      let t, ll = find_table l in
+      t, a::ll
+    | _ -> assert false
+  in
+  let table, new_table_services = 
+    find_table tables.Eliom_common.table_services in
+  tables.Eliom_common.table_services <- new_table_services;
+  add_or_remove_service add_page_table tables table url_act page_table_key va
 
-let remove_service table path k unique_id = 
-  add_or_remove_service remove_page_table table path k unique_id
+let remove_service tables path k unique_id =
+  let rec aux = function
+    | [] -> ()
+    | (_, _, table)::l ->
+      try
+        add_or_remove_service remove_page_table tables table path k unique_id
+      with Not_found -> aux l
+  in
+  aux tables.Eliom_common.table_services
 
 
 exception Exn1
@@ -444,9 +457,27 @@ let find_service
              because of optional suffixes *)
       | a::l -> aux (Some a) l
   in
+  let search_by_priority_generation tables path =
+      (* New in 1.91: There is now one table for each pair
+         (generation, priority) *)
+    List.fold_left
+      (fun prev (_prio, _gen, table) ->
+        Lwt.catch
+          (fun () -> prev)
+          (function
+            | Exn1
+            | Eliom_common.Eliom_404
+            | Eliom_common.Eliom_Wrong_parameter ->
+              search_page_table !table path
+            | e -> fail e))
+      (fail Exn1)
+      tables
+  in
   Lwt.catch
-    (fun () -> search_page_table !(tables.Eliom_common.table_services)
-       (Ocsigen_lib.change_empty_list ri.request_info.ri_sub_path))
+    (fun () -> 
+      search_by_priority_generation
+        tables.Eliom_common.table_services
+        (Ocsigen_lib.change_empty_list ri.request_info.ri_sub_path))
     (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
 
 

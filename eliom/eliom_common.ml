@@ -400,14 +400,11 @@ and page_table_content =
               is different (after reloading the site)
               so that it replaces the former one
            *) *
-           (int * (* generation (= number of reloads of sites
-                     after which that service has been created) *)
-              int * (* priority of the service *)
-              (int ref option (* max_use *) *
-                 (float * float ref) option
+            (int ref option (* max_use *) *
+               (float * float ref) option
                  (* timeout and expiration date for the service *) *
-                 (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
-              ))) list
+            (bool -> server_params -> Ocsigen_http_frame.result Lwt.t)
+            )) list
 
 and naservice_table_content =
     (int (* generation (= number of reloads of sites
@@ -433,7 +430,9 @@ and direlt =
   | File of page_table ref
 
 and tables =
-    {table_services : dircontent ref;
+    {mutable table_services : (int (* generation *) * 
+                                 int (* priority *) * 
+                                 dircontent ref) list;
      table_naservices : naservice_table ref;
      (* ref, and not mutable field because it simpler to use
         recursively with Dir of dircontent ref *)
@@ -666,7 +665,9 @@ let empty_dircontent () = Vide
 let empty_naservice_table () = AVide
 
 let service_tables_are_empty t =
-  (!(t.table_services) = Vide && !(t.table_naservices) = AVide)
+  !(t.table_naservices) = AVide
+  && ((* !(t.table_services) = [] <---- probably enough? *)
+      List.for_all (fun (_, _, r) -> !r = Vide) t.table_services)
 
 let remove_naservice_table at k =
   match at with
@@ -701,7 +702,7 @@ let add_dlist_ dlist v =
     | None -> assert false
 
 let empty_tables max forsession =
-  let t1 = ref (empty_dircontent ()) in
+  let t1 = [] in
   let t2 = ref (empty_naservice_table ()) in
   {table_services = t1;
    table_naservices = t2;

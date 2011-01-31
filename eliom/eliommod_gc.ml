@@ -35,12 +35,12 @@ let get_persistentsessiongcfrequency () = !persistentsessiongcfrequency
 
 
 (* garbage collection of timeouted sessions *)
-let rec gc_timeouted_services now t =
-  let rec aux filename direltr thr =
+let rec gc_timeouted_services now tables =
+  let rec aux t filename direltr thr =
     thr >>= fun () -> (* we wait for the previous one to be completed *)
     match !direltr with
       | Eliom_common.Dir r -> 
-          (gc_timeouted_services now r >>= fun () -> 
+          (empty_one r >>= fun () -> 
            (match !r with
               | Eliom_common.Vide ->
                   (match !t with
@@ -62,7 +62,7 @@ let rec gc_timeouted_services now t =
                thr >>= fun thr -> (* we wait for the previous one
                                      to be completed *)
                (match nodeopt, l with
-                  | Some node, (i, (_, _, (_, Some (_, e), _)))::_
+                  | Some node, (i, (_, Some (_, e), _))::_
                       (* it is an anonymous coservice.
                          The list should have length 1 here *)
                       when !e < now ->
@@ -83,7 +83,7 @@ let rec gc_timeouted_services now t =
                         then
                           match
                             List.fold_right
-                              (fun ((i, (_, _, (_, expdate, _))) as a) foll ->
+                              (fun ((i, (_, expdate, _)) as a) foll ->
                                  match expdate with
                                    | Some (_, e) when !e < now -> foll
                                    | _ -> a::foll
@@ -115,21 +115,30 @@ let rec gc_timeouted_services now t =
                    else t := Eliom_common.Table newr
             );
           Lwt.return ()
-  in
-  match !t with
-  | Eliom_common.Vide -> Lwt.return ()
-  | Eliom_common.Table r ->
-      if Ocsigen_lib.String_Table.is_empty r
-      then begin t := Eliom_common.Vide; Lwt.return () end
-      else begin
-        Ocsigen_lib.String_Table.fold aux r (Lwt.return ()) >>= fun () ->
-        match !t with (* !t has probably changed *)
-          | Eliom_common.Vide -> Lwt.return ()
-          | Eliom_common.Table r ->
+  and empty_one t =
+    match !t with
+      | Eliom_common.Vide -> Lwt.return ()
+      | Eliom_common.Table r ->
+        if Ocsigen_lib.String_Table.is_empty r
+        then begin t := Eliom_common.Vide; Lwt.return () end
+        else begin
+          Ocsigen_lib.String_Table.fold (aux t) r (Lwt.return ()) >>= fun () ->
+          match !t with (* !t has probably changed *)
+            | Eliom_common.Vide -> Lwt.return ()
+            | Eliom_common.Table r ->
               if Ocsigen_lib.String_Table.is_empty r
               then t := Eliom_common.Vide;
               Lwt.return () 
-      end
+        end
+  in
+  Lwt_util.iter_serial 
+    (fun (_gen, _prio, t) -> empty_one t) tables.Eliom_common.table_services
+  >>= fun () ->
+  tables.Eliom_common.table_services <- 
+    List.filter
+    (fun r -> !(Ocsigen_lib.thd3 r) <> Eliom_common.Vide)
+    tables.Eliom_common.table_services;
+  Lwt.return ()
 
 
 let gc_timeouted_naservices now tr =
@@ -173,7 +182,7 @@ let service_session_gc sitedata =
 
         (* public continuation tables: *)
         (if tables.Eliom_common.table_contains_services_with_timeout
-         then gc_timeouted_services now tables.Eliom_common.table_services
+         then gc_timeouted_services now tables
          else return ()) >>= fun () -> 
         (if tables.Eliom_common.table_contains_naservices_with_timeout
          then gc_timeouted_naservices now tables.Eliom_common.table_naservices
@@ -194,8 +203,7 @@ let service_session_gc sitedata =
                     Lwt.return ()
                 | _ ->
                     (if tables.Eliom_common.table_contains_services_with_timeout
-                     then gc_timeouted_services now
-                       tables.Eliom_common.table_services
+                     then gc_timeouted_services now tables
                      else return ()) >>= fun () -> 
                     (if tables.Eliom_common.table_contains_naservices_with_timeout
                      then gc_timeouted_naservices now
