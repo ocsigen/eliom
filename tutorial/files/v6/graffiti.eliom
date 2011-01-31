@@ -40,9 +40,10 @@ let main_service =
 
            Dom.appendChild Dom_html.document##body canvas;
 
-           let x0, y0 = Dom_html.elementClientPosition canvas in
            let x = ref 0 and y = ref 0 in
-           let set_coord ev = x := ev##clientX - x0; y := ev##clientY - y0 in
+           let set_coord ev =
+             let x0, y0 = Dom_html.elementClientPosition canvas in
+             x := ev##clientX - x0; y := ev##clientY - y0 in
            let compute_line ev = 
              let oldx = !x and oldy = !y in
              set_coord ev;
