@@ -214,11 +214,13 @@ let init () =
   let normal_stream = Lwt_stream.from (wait_data hd_service hd_activity count) in
   (* the stream on wich are received replies of request asking to register new channels *)
   let exceptionnal_stream,push = Lwt_stream.create () in
-  let hd_stream = 
+  let stream =
     Lwt_stream.map_list Messages.decode_downcoming
       ( Lwt_stream.choose [
 	normal_stream;
 	Lwt_stream.map_s (fun t -> t) exceptionnal_stream] ) in
+  (* protect the stream from cancels *)
+  let hd_stream = Lwt_stream.from (fun () -> Lwt.protected (Lwt_stream.get stream)) in
   (* the function to register new channels *)
   let hd_new_channels chans =
     let chans = Messages.encode_upgoing chans in
