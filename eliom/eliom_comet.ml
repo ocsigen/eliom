@@ -245,6 +245,13 @@ end = struct
 	| Not_found ->
 	  handler.hd_registered_chan_id <- chan_id::handler.hd_registered_chan_id
 
+  let close_channel handler chan_id =
+    OMsg.debug2 (Printf.sprintf "eliom: comet: close channel %s" chan_id);
+    handler.hd_active_streams <- List.remove_assoc chan_id handler.hd_active_streams;
+    handler.hd_unregistered_streams <- List.remove_assoc chan_id handler.hd_unregistered_streams;
+    handler.hd_registered_chan_id <- List.filter ((<>) chan_id) handler.hd_registered_chan_id;
+    signal_update handler
+
   let new_id = Ocsigen_lib.make_cryptographic_safe_string
   let content_type = "text/plain"
 
@@ -298,7 +305,6 @@ end = struct
 		    (fun () ->
 		      wait_data handler >>= ( fun _ ->
 			let messages = read_streams 100 handler.hd_active_streams in
-			  (* VVV here need to handle closed streams *)
 			  let message = Messages.encode_downgoing [] messages in
 			  handler.hd_last <- (message,number);
 			  Lwt.return ( message, content_type ) ) ) )
@@ -311,7 +317,7 @@ end = struct
 	    | Ecc.Commands commands ->
 	      List.iter (function
 		| Ecc.Register channel -> register_channel handler channel
-		| Ecc.Close channel -> ()) commands;
+		| Ecc.Close channel -> close_channel handler channel) commands;
 		(* command connections are replied immediately by an
 		   empty answer *)
 	      Lwt.return ("",content_type)
