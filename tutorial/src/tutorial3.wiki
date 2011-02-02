@@ -291,11 +291,76 @@ CLIENTLIB := -package ocsigen.deriving.syntax -package oclosure -package js_of_o
 It is also needed to add {{{-syntax camlp4o \}}} to commands that doesn't have it.
 
 Download the current versions of the files:
-[[manual/dev/files/multigraffiti_v1/graffiti.eliom|graffiti.eliom]]
-[[manual/dev/files/multigraffiti_v1/common.ml|common.ml]]
-[[manual/dev/files/multigraffiti_v1/client.ml|client.ml]]
-[[manual/dev/files/multigraffiti_v1/server.ml|server.ml]]
-[[manual/dev/files/multigraffiti_v1/Makefile|Makefile]]
+<<a_file src="multigraffiti_v1/Makefile" project="tutorial"| Makefile >>
+<<a_file src="multigraffiti_v1/graffiti.eliom" project="tutorial"| graffiti.eliom >>
+<<a_file src="multigraffiti_v1/common.ml" project="tutorial"| common.ml >>
+<<a_file src="multigraffiti_v1/client.ml" project="tutorial"| client.ml >>
+<<a_file src="multigraffiti_v1/server.ml" project="tutorial"| server.ml >>
+
+=== Cleaning previous pages ===
+<<div class="concepts"| Cancel threads and arrows\\ close buses>>
+
+A problem with the current version is that the client keeps receiving
+data from pages it leaved.
+
+Add this to {{{client.ml}}}
+<<code language="ocaml"|(* type containing all informations we need to stop interraction
+   inside the page *)
+type drawing_canceller =
+    { drawing_thread : unit Lwt.t;
+      (* the thread reading messages from the bus *)
+      drawing_arrow : Event_arrows.canceller;
+      (* the arrow handling mouse events *)
+    }
+
+let stop_drawing { drawing_thread; drawing_arrow } =
+  Lwt.cancel drawing_thread;
+  (* cancelling this thread also close the bus *)
+  Event_arrows.cancel drawing_arrow
+>>
+
+{{{Lwt.cancel t}}} stops the thread t. In this case it also closes the
+  bus on wich t is listeninig. for more informations see
+  [[wiki(21):|Lwt programming guide.]] and <<a_api | module Eliom_client_bus >>.
+
+Also replace 
+<<code language="ocaml"|  let _ = Lwt_stream.iter (draw ctx) (Eliom_client_bus.stream bus) in
+  ignore (run (mousedowns canvas
+		 (arr (fun ev -> set_coord ev; line ev)
+			      >>> first [mousemoves Dom_html.document (arr line);
+					 mouseup Dom_html.document >>> (arr line)])) ())
+>>
+by
+<<code language="ocaml"|  let t = Lwt_stream.iter (draw ctx) (Eliom_client_bus.stream bus) in
+  let drawing_arrow =
+    run (mousedowns canvas
+           (arr (fun ev -> set_coord ev; line ev)
+			   >>> first [mousemoves Dom_html.document (arr line);
+				      mouseup Dom_html.document >>> (arr line)])) () in
+  { drawing_thread = t;
+    drawing_arrow = drawing_arrow }
+>>
+
+In {{{graffiti.eliom}}} replace
+<<code language="ocaml"|  Eliom_services.onload
+    {{
+      launch_client_canvas %bus %imageservice %canvas_box
+    }}
+>>
+by
+<<code language="ocaml"|  Eliom_services.onload
+    {{
+      let canceller = launch_client_canvas %bus %imageservice %canvas_box in
+      Eliom_client.on_unload (fun () -> stop_drawing canceller; Lwt.return ())
+    }}
+>>
+
+The function registered by {{{Eliom_client.on_unload}}} will be called
+when the page change inside the application.
+
+Download the current versions of the files:
+<<a_file src="multigraffiti_v2/graffiti.eliom" project="tutorial"| graffiti.eliom >>
+<<a_file src="multigraffiti_v2/client.ml" project="tutorial"| client.ml >>
 
 ===Type safe database requests using Macaque===
 
