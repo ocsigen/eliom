@@ -24,6 +24,7 @@ module OFrame  = Ocsigen_http_frame
 module OStream = Ocsigen_stream
 module OLib    = Ocsigen_lib
 module OMsg    = Ocsigen_messages
+module Ecc     = Eliom_common_comet
 
 (* infix monad binders *)
 let ( >>= ) = Lwt.( >>= )
@@ -34,20 +35,12 @@ type chan_id = string
 module Messages :
   (* All about messages from between clients and server *)
   (*
-   * The client sends a POST request with a "registration" parameter containing
-   * a list of channel ids. Separator for the list are semi-colon : ';'.
-   *
    * The server sends result to the client in the form of a list of :
    * channel_id ^ ":" ^ value ^ { ";" ^ channel_id ^ " " ^ value }*
    * where channel_id is the id of a channel that the client registered upon and
    * value is the string that was written upon the associated channel.
    * *)
 sig
-
-  val decode_upcomming :
-    string -> chan_id list
-    (* decode incomming message : the result is the list of the new channels to listen
-       to. *)
 
   val encode_downgoing :
     chan_id list
@@ -66,9 +59,6 @@ end = struct
   let field_separator = ":"
   let ended_message = "ENDED_CHANNEL"
   let channel_separator_regexp = Netstring_pcre.regexp channel_separator
-
-  let decode_upcomming s =
-    Netstring_pcre.split channel_separator_regexp s
 
   let url_encode x = OLib.encode ~plus:false x
 
@@ -146,7 +136,7 @@ sig
   val create : ?name:chan_id -> string Lwt_stream.t -> t
   val get_id : t -> string
 
-  type comet_service = Eliom_common_comet.comet_service
+  type comet_service = Ecc.comet_service
 
   val get_service : unit -> comet_service
   val get_service_data_key : unit -> comet_service Eliom_client_types.data_key
@@ -155,7 +145,7 @@ end = struct
 
   type chan_id = string
 
-  type comet_service = Eliom_common_comet.comet_service
+  type comet_service = Ecc.comet_service
 
   type handler =
       {
@@ -278,7 +268,7 @@ end = struct
 	    (* XXX ajouter possibilité d'https *)
 	    Eliom_services.post_coservice'
 	      ~name:"comet" (* VVV faut il mettre un nom ? *)
-	      ~post_params:(Eliom_parameters.prod (Eliom_parameters.string "registration") (Eliom_parameters.int "number"))
+	      ~post_params:Ecc.comet_request_param
 	      ()
 	  in
 	  let hd_service_data_key = Eliom_services.wrap hd_service in
@@ -294,21 +284,20 @@ end = struct
 	    hd_last = "", -1;
 	  }
 	  in
-	  let f () (input,number) =
-	    match input with
-	      | "" ->
-		OMsg.debug2 (Printf.sprintf "eliom: comet: received request %i" number);
-		(* if a new connection occurs for a service, we reply
-		   immediately to the previous with no data. *)
-		new_connection handler;
-		if snd handler.hd_last = number
-		then Lwt.return (fst handler.hd_last,content_type)
-		else
-		  Lwt.catch
-		    ( fun () -> Lwt_unix.with_timeout timeout
-		      (fun () ->
-			wait_data handler >>= ( fun _ ->
-			  let messages = read_streams 100 handler.hd_active_streams in
+	  let f () = function
+	    | Ecc.Request_data number ->
+	      OMsg.debug2 (Printf.sprintf "eliom: comet: received request %i" number);
+	      (* if a new connection occurs for a service, we reply
+		 immediately to the previous with no data. *)
+	      new_connection handler;
+	      if snd handler.hd_last = number
+	      then Lwt.return (fst handler.hd_last,content_type)
+	      else
+		Lwt.catch
+		  ( fun () -> Lwt_unix.with_timeout timeout
+		    (fun () ->
+		      wait_data handler >>= ( fun _ ->
+			let messages = read_streams 100 handler.hd_active_streams in
 			  (* VVV here need to handle closed streams *)
 			  let message = Messages.encode_downgoing [] messages in
 			  handler.hd_last <- (message,number);
@@ -319,12 +308,13 @@ end = struct
 		      (*VVV in this case, it would be beter to return code 204: no content *)
 		      | Lwt_unix.Timeout -> Lwt.return ("TIMEOUT",content_type)
 		      | e -> Lwt.fail e )
-	      | _ ->
-		(* connections registering new channels are replied
-		   immediately by an empty answer *)
-		let new_channels = Messages.decode_upcomming input in
-		List.iter (register_channel handler) new_channels;
-		Lwt.return ("",content_type)
+	    | Ecc.Commands commands ->
+	      List.iter (function
+		| Ecc.Register channel -> register_channel handler channel
+		| Ecc.Close channel -> ()) commands;
+		(* command connections are replied immediately by an
+		   empty answer *)
+	      Lwt.return ("",content_type)
 	  in
 	  Comet.register
 	    ~scope:`Client_process
@@ -366,8 +356,8 @@ sig
   type +'a t
 
   val create : ?name:string -> 'a Lwt_stream.t -> 'a t
-  val wrap : 'a t -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
-  val get_id : 'a t -> 'a Eliom_common_comet.chan_id
+  val wrap : 'a t -> 'a Ecc.chan_id Eliom_client_types.data_key
+  val get_id : 'a t -> 'a Ecc.chan_id
 
 end = struct
 
@@ -380,7 +370,7 @@ end = struct
 	(Lwt_stream.map (fun x -> Marshal.to_string x []) stream) }
 
   let get_id t =
-    Eliom_common_comet.chan_id_of_string (Raw_channels.get_id t.channel)
+    Ecc.chan_id_of_string (Raw_channels.get_id t.channel)
 
   let wrap c = Eliommod_cli.wrap (get_id c)
 

@@ -6,7 +6,7 @@ OCAMLFIND = ocamlfind
 OCAMLC:= $(OCAMLFIND) ocamlc
 OCAMLDEP:= $(OCAMLFIND) ocamldep
 OCAMLMKLIB:= ocamlmklib
-PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml,js_of_ocaml.syntax,deriving -syntax camlp4o
+PACKAGES:= -package netstring,str,lwt.react,js_of_ocaml,js_of_ocaml.syntax,deriving,deriving.syntax -syntax camlp4o
 LIBS:=
 MLS:= json.ml xML.ml uri.ml xhtmltypes.ml xHTML.ml \
         svgtypes.ml sVG.ml xhtml5types.ml xHTML5.ml \

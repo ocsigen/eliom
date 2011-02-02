@@ -44,3 +44,8 @@ val write : 'a t -> 'a -> unit Lwt.t
 (** [write b v] send [v] to the bus [b]. Every participant of the bus
     will receive [v], including the sender. *)
 
+val close : 'a t -> unit
+(** after [close b], [stream b] stops receiving new messages from the
+    bus, but it is still possible to write to the bus. It is also
+    possible to close the bus by canceling a thread reading on the
+    stream. *)

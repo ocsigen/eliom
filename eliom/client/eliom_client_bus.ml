@@ -72,3 +72,5 @@ let try_flush t =
 let write t v =
   Queue.add v t.queue;
   try_flush t
+
+let close b = Eliom_client_comet.close b.channel

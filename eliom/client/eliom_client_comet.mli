@@ -25,10 +25,12 @@
 (** when the page is not active the client stops making comet requests
     to the server, implying that the client can't be notified by the
     server anymore. The activity status is changed when the page is
-    focused or unfocused. *)
+    focused or unfocused.
 
-val unwrap : 'a Eliom_common_comet.chan_id Eliom_client_types.data_key -> 'a Lwt_stream.t
-val register : 'a Eliom_common_comet.chan_id -> 'a Lwt_stream.t
+    To stop receiving inputs from a channel, use Lwt.cancel on a
+    thread waiting for datas. For instance, if you iterate with
+    [ let t = Lwt_stream.iter f %channel ] calling [Lwt.cancel t]
+    will close the channel. *)
 
 val is_active : unit -> bool
 (** [is_active ()] returns the current activity state *)
@@ -49,6 +51,9 @@ val always_active : bool -> unit
 
 (**/**)
 
+val unwrap : 'a Eliom_common_comet.chan_id Eliom_client_types.data_key -> 'a Lwt_stream.t
+val register : 'a Eliom_common_comet.chan_id -> 'a Lwt_stream.t
+
 val restart : unit -> unit
 (** [restart ()] Restarts the loop waiting for server messages. It is
     only usefull after that a formulary is sent. Indeed browsers stops
@@ -57,3 +62,7 @@ val restart : unit -> unit
     case, preventing client code from receiving the failure
     notification. This shouldn't be used by average user. *)
 
+val close : 'a Eliom_common_comet.chan_id -> unit
+(** [close c] closes the channel c. This function should be only use
+    internaly. The normal way to close a channel is to cancel a thread
+    waiting on inputs. *)

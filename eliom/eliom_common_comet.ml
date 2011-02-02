@@ -24,11 +24,23 @@ type 'a chan_id = string
 external string_of_chan_id : 'a chan_id -> string = "%identity"
 external chan_id_of_string : string -> 'a chan_id = "%identity"
 
+type command =
+  | Register of string
+  | Close of string
+deriving (Json)
+
+type comet_request =
+  | Request_data of int
+  | Commands of command list
+deriving (Json)
+
+let comet_request_param =
+  Eliom_parameters.caml "comet_request" Json.t<comet_request>
+
 type comet_service =
-    (unit, string * int,
+    (unit, comet_request,
      [ `Nonattached of [ `Get | `Post ] Eliom_services.na_s ],
      [ `WithoutSuffix ], unit,
-          [ `One of string ] Eliom_parameters.param_name *
-       [ `One of int ] Eliom_parameters.param_name, [ `Registrable ],
+     [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
      Eliom_services.http )
       Eliom_services.service

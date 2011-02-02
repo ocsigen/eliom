@@ -29,7 +29,6 @@ module Messages : sig
 
   exception  Incorrect_encoding
 
-  val encode_upgoing : string list -> string
   val decode_downcoming : string -> (string * string) list
 
 end = struct
@@ -40,9 +39,6 @@ end = struct
   let channel_separator = "\n"
   let field_separator = ":"
   let url_decode x = Ocsigen_lib.urldecode_string x
-
-  (* encoding *)
-  let encode_upgoing = String.concat channel_separator
 
   (* decoding *)
   let chan_delim_regexp  = Regexp.make channel_separator
@@ -87,9 +83,9 @@ type handler =
       hd_service : Eliom_common_comet.comet_service;
       hd_stream : (string * string) Lwt_stream.t;
       (** the stream of all messages from the server *)
-      hd_new_channels : string list -> unit;
-      (** [hd.hd_new_channels chans] registers the channels [chans] to
-	  the handler. It launch a new request to the server
+      hd_commands : Eliom_common_comet.command list -> unit;
+      (** [hd.hd_commands commands] sends the commands to the
+	  server. It launch a new request to the server
 	  immediately. *)
       hd_activity : activity;
     }
@@ -148,7 +144,7 @@ let max_retries = 5
     focused to make the request *)
 let wait_data service activity count =
   let call_service () =
-    Eliom_client.call_service service () ("",!count) >>=
+    Eliom_client.call_service service () (Eliom_common_comet.Request_data !count) >>=
       (fun s ->
 	match s with
 	  | "TIMEOUT" -> Lwt.fail Timeout
@@ -219,18 +215,16 @@ let init () =
       ( Lwt_stream.choose [
 	normal_stream;
 	Lwt_stream.map_s (fun t -> t) exceptionnal_stream] ) in
-  (* the function to register new channels *)
-  let hd_new_channels chans =
-    let chans = Messages.encode_upgoing chans in
+  (* the function to register and close channels *)
+  let hd_commands commands =
     let t =
-      (* the request number does not matter when we register new
-	 channels, it is not taken into account by the server. *)
-      Eliom_client.call_service hd_service () (chans,0)
+      Eliom_client.call_service hd_service () 
+	(Eliom_common_comet.Commands commands)
     in
     push (Some t);
   in
   let hd =
-    { hd_service; hd_stream; hd_new_channels; hd_activity }
+    { hd_service; hd_stream; hd_commands; hd_activity }
   in
   let _ = Lwt_stream.iter (fun _ -> ()) hd_stream in (* consumes all messages of the stream to avoid memory leaks *)
   handle_focus hd;
@@ -241,9 +235,6 @@ let get_hd () =
   match !handler with
     | None -> init ()
     | Some hd -> hd
-
-let add_channel handler channel =
-  handler.hd_new_channels [channel]
 
 let activate () = set_activity (get_hd ()).hd_activity true
 
@@ -256,6 +247,13 @@ let restart () =
   Lwt.wakeup_exn wakener Restart;
   activate ()
 
+let close' hd chan_id =
+  hd.hd_commands [Eliom_common_comet.Close chan_id]
+
+let close chan_id =
+  let hd = get_hd () in
+  close' hd (Eliom_common_comet.string_of_chan_id chan_id)
+
 let register chan_id =
   let chan_id = Eliom_common_comet.string_of_chan_id chan_id in
   let hd = get_hd () in
@@ -267,9 +265,14 @@ let register chan_id =
 	None)
     (Lwt_stream.clone hd.hd_stream)
   in
+  let protect_and_close t =
+    let t' = Lwt.protected t in
+    Lwt.on_cancel t' (fun () -> close' hd chan_id);
+    t'
+  in
   (* protect the stream from cancels *)
-  let stream = Lwt_stream.from (fun () -> Lwt.protected (Lwt_stream.get stream)) in
-  add_channel hd chan_id;
+  let stream = Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream)) in
+  hd.hd_commands [Eliom_common_comet.Register chan_id];
   activate ();
   stream
 
