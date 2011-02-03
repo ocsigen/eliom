@@ -20,6 +20,7 @@
 Cache.
 
 @author Vincent Balat
+@author Raphaël Proust (adding timers)
 *)
 
 
@@ -66,16 +67,26 @@ sig
       returns the list of removed values, if any. *)
   val set_maxsize : 'a t -> int -> 'a list
 
-  (** set a function to be called automatically on a piece of data
+  (** record a function to be called automatically on a piece of data
       just before it disappears from the list
       (either by explicit removal or because the maximum size is exceeded) *)
+  val add_finaliser_before : ('a node -> unit) -> 'a t -> unit
+
+  (** replace all finalizers by a new one. Be very careful while using this. *)
   val set_finaliser_before : ('a node -> unit) -> 'a t -> unit
+
+  (** returns the finalizers. *)
   val get_finaliser_before : 'a t -> ('a node -> unit)
 
-  (** set a function to be called automatically on a piece of data
+  (** record a function to be called automatically on a piece of data
       just after it disappears from the list
       (either by explicit removal or because the maximum size is exceeded) *)
+  val add_finaliser_after : ('a node -> unit) -> 'a t -> unit
+
+  (** replace all finalizers by a new one. Be very careful while using this. *)
   val set_finaliser_after : ('a node -> unit) -> 'a t -> unit
+
+  (** returns the finalizers. *)
   val get_finaliser_after : 'a t -> ('a node -> unit)
 end = struct
 
@@ -330,9 +341,17 @@ end = struct
 
   let get_finaliser_before l = l.finaliser_before
 
+  let add_finaliser_before f l = 
+    let oldf = l.finaliser_before in
+    l.finaliser_before <- (fun n -> oldf n; f n)
+
   let set_finaliser_after f l = l.finaliser_after <- f
 
   let get_finaliser_after l = l.finaliser_after
+
+  let add_finaliser_after f l =
+    let oldf = l.finaliser_after in
+    l.finaliser_after <- (fun n -> oldf n; f n)
 
 end
 
@@ -383,13 +402,17 @@ struct
                     }
     and f_clear = (fun () -> clear cache)
     in
+    Dlist.set_finaliser_after
+      (fun n -> H.remove cache.table (Dlist.value n))
+      cache.pointers;
     Weak.add clear_all f_clear;
     cache
 
   (* not exported *)
   let poke cache node =
     assert (match Dlist.list_of node with
-              | None -> false | Some l -> cache.pointers == l);
+              | None -> false
+              | Some l -> cache.pointers == l);
     Dlist.up node
 
   let find_in_cache cache k =
@@ -400,7 +423,6 @@ struct
   let remove cache k =
     try
       let (_v, node) = H.find cache.table k in
-      H.remove cache.table k;
       assert (match Dlist.list_of node with
                 | None -> false | Some l -> cache.pointers == l);
       Dlist.remove node
@@ -409,10 +431,7 @@ struct
   (* Add in a cache, under the hypothesis that the value is
      not already in the cache *)
   let add_no_remove cache k v =
-    (match Dlist.add k cache.pointers with
-      | None -> ()
-      | Some v -> H.remove cache.table v
-    );
+    ignore (Dlist.add k cache.pointers);
     match Dlist.newest cache.pointers with
       | None -> assert false
       | Some n -> H.add cache.table k (v, n)
