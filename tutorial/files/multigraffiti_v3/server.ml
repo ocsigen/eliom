@@ -83,8 +83,77 @@ let choose_drawing_form () =
           Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Go" ()
          ]])
 
-let () = Eliom_output.Xhtml5.register ~service:main_service
-  ( fun () () ->
-    let v = [h1 [pcdata "Welcome to Multigraffiti"];
-	     choose_drawing_form ()] in
-    Lwt.return (html (head (title (pcdata "multigraffiti")) []) (body v)))
+let connection_service =
+  Eliom_services.post_coservice'
+    ~post_params:(let open Eliom_parameters in (string "name" ** string "password"))
+    ()
+let disconnection_service = Eliom_services.post_coservice' ~post_params:Eliom_parameters.unit ()
+let create_account_service = 
+  Eliom_services.post_coservice ~fallback:main_service ~post_params:(let open Eliom_parameters in (string "name" ** string "password")) ()
+
+let username = Eliom_references.eref ~scope:`Session None
+let users = ref ["titi","tata";"test","test"]
+let check_pwd name pwd = try List.assoc name !users = pwd with Not_found -> false
+
+let () = Eliom_output.Action.register
+  ~service:create_account_service
+  (fun () (name, pwd) ->
+    users := (name, pwd)::!users;
+    Lwt.return ())
+
+let () = Eliom_output.Action.register
+  ~service:connection_service
+  (fun () (name, password) ->
+    if check_pwd name password
+    then Eliom_references.set username (Some name)
+    else Lwt.return ())
+
+let () =
+  Eliom_output.Action.register
+    ~service:disconnection_service
+    (fun () () -> Eliom_state.close_session ())
+
+let disconnect_box () =
+  Eliom_output.Xhtml5.post_form disconnection_service
+    (fun _ -> [p [Eliom_output.Xhtml5.string_input
+                  ~input_type:`Submit ~value:"Log out" ()]]) ()
+
+let login_name_form service button_text =
+  Eliom_output.Xhtml5.post_form ~service
+    (fun (name1, name2) ->
+      [p [pcdata "login: ";
+          Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:name1 ();
+          br ();
+          pcdata "password: ";
+          Eliom_output.Xhtml5.string_input ~input_type:`Password ~name:name2 ();
+          br ();
+          Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:button_text ()
+         ]]) ()
+
+let default_content () =
+  Lwt.return [h1 [pcdata "Welcome to Multigraffiti"];
+	      h2 [pcdata "log in"];
+	      login_name_form connection_service "Connect";
+	      h2 [pcdata "create account"];
+	      login_name_form create_account_service "Create account";]
+
+module Connected_translate =
+struct
+  type page = string -> My_appl.page Lwt.t
+  let translate page =
+    Eliom_references.get username >>=
+      function
+	| None -> default_content ()
+	| Some username -> page username >|= ( fun v -> (disconnect_box ())::v )
+end
+
+module Connected =
+  Eliom_output.Customize ( My_appl ) ( Connected_translate )
+
+let ( !% ) f = fun a b -> return (fun c -> f a b c)
+
+let () = Connected.register ~service:main_service 
+  !% (fun () () username ->
+    Lwt.return [h1 [pcdata ("Welcome to Multigraffiti " ^ username)];
+		choose_drawing_form ()])
+

@@ -1,5 +1,6 @@
 =Miscellaneous features=
 
+<<div class="wip"|**Work in progress**>>
 
 ==Multi-user collaborative drawing application==
 
@@ -108,6 +109,7 @@ generated: {{{canvas_box}}}.
 It contains almost all the server part of the code.
 <<code language="ocaml"|open XHTML5.M
 open Common
+open Lwt
 
 module My_appl =
   Eliom_output.Eliom_appl (
@@ -183,7 +185,9 @@ formulary to choose to wich drawing you want to go. The application is
 launched by the {{{multigraffiti_service}}} service. It is registered
 in {{{graffiti.eliom}}}.
 
-<<code language="ocaml"|let multigraffiti_service = Eliom_services.service ~path:["multigraffiti"]
+<<code language="ocaml"|let main_service = Eliom_services.service ~path:[""]
+  ~get_params:(Eliom_parameters.unit) ()
+let multigraffiti_service = Eliom_services.coservice ~fallback:main_service
   ~get_params:(Eliom_parameters.string "name") ()
 
 let choose_drawing_form () =
@@ -195,8 +199,7 @@ let choose_drawing_form () =
           Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Go" ()
          ]])
 
-let _ = Eliom_output.Xhtml5.register_service
-  ~path:[""] ~get_params:Eliom_parameters.unit
+let () = Eliom_output.Xhtml5.register ~service:main_service
   ( fun () () ->
     let v = [h1 [pcdata "Welcome to Multigraffiti"];
 	     choose_drawing_form ()] in
@@ -361,6 +364,109 @@ when the page change inside the application.
 Download the current versions of the files:
 <<a_file src="multigraffiti_v2/graffiti.eliom" project="tutorial"| graffiti.eliom >>
 <<a_file src="multigraffiti_v2/client.ml" project="tutorial"| client.ml >>
+
+===Mixing Eliom client and Eliom server===
+
+We now want to restrict the site to connected users.
+
+From the previous chapter, we copy the code handling users to {{{server.ml}}}:
+
+<<code language="ocaml"|let connection_service =
+  Eliom_services.post_coservice' ~post_params:
+    (let open Eliom_parameters in (string "name" ** string "password")) ()
+let disconnection_service = Eliom_services.post_coservice' ~post_params:Eliom_parameters.unit ()
+let create_account_service = 
+  Eliom_services.post_coservice ~fallback:main_service ~post_params:
+  (let open Eliom_parameters in (string "name" ** string "password")) ()
+
+let username = Eliom_references.eref ~scope:`Session None
+let users = ref ["titi","tata";"test","test"]
+let check_pwd name pwd = try List.assoc name !users = pwd with Not_found -> false
+
+let () = Eliom_output.Action.register
+  ~service:create_account_service
+  (fun () (name, pwd) ->
+    users := (name, pwd)::!users;
+    Lwt.return ())
+
+let () = Eliom_output.Action.register
+  ~service:connection_service
+  (fun () (name, password) ->
+    if check_pwd name password
+    then Eliom_references.set username (Some name)
+    else Lwt.return ())
+
+let () =
+  Eliom_output.Action.register
+    ~service:disconnection_service
+    (fun () () -> Eliom_state.close_session ())
+
+let disconnect_box () =
+  Eliom_output.Xhtml5.post_form disconnection_service
+    (fun _ -> [p [Eliom_output.Xhtml5.string_input
+                  ~input_type:`Submit ~value:"Log out" ()]]) ()
+
+let login_name_form service button_text =
+  Eliom_output.Xhtml5.post_form ~service
+    (fun (name1, name2) ->
+      [p [pcdata "login: ";
+          Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:name1 ();
+          br ();
+          pcdata "password: ";
+          Eliom_output.Xhtml5.string_input ~input_type:`Password ~name:name2 ();
+          br ();
+          Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:button_text ()
+         ]]) ()
+>>
+
+<<div class="wip"| disconnection does not work yet: it also closes the application >>
+
+We make a customized registration module such that disconnected users
+(those for which the username reference is not set), are automaticaly
+show a connection. That way the other pages can assume that the
+username is always available.
+
+<<code language="ocaml"|let default_content () =
+  Lwt.return [h1 [pcdata "Welcome to Multigraffiti"];
+	      h2 [pcdata "log in"];
+	      login_name_form connection_service "Connect";
+	      h2 [pcdata "create account"];
+	      login_name_form create_account_service "Create account";]
+
+module Connected_translate =
+struct
+  type page = string -> My_appl.page Lwt.t
+  let translate page =
+    Eliom_references.get username >>=
+      function
+	| None -> default_content ()
+	| Some username -> page username >|= ( fun v -> (disconnect_box ())::v )
+end
+
+module Connected =
+  Eliom_output.Customize ( My_appl ) ( Connected_translate )
+
+let ( !% ) f = fun a b -> return (fun c -> f a b c)
+
+let () = Connected.register ~service:main_service 
+  !% (fun () () username ->
+    Lwt.return [h1 [pcdata ("Welcome to Multigraffiti " ^ username)];
+		choose_drawing_form ()])
+>>
+
+to use that, in {{{graffiti.eliom}}} we just replace
+
+<<code language="ocaml"|let () = My_appl.register ~service:multigraffiti_service
+  ( fun name () ->
+>>
+by
+<<code language="ocaml"|let () = Connected.register ~service:multigraffiti_service
+  !% ( fun name () username ->
+>>
+
+Download the current versions of the files:
+<<a_file src="multigraffiti_v3/graffiti.eliom" project="tutorial"| graffiti.eliom >>
+<<a_file src="multigraffiti_v3/server.ml" project="tutorial"| server.ml >>
 
 ===Type safe database requests using Macaque===
 
