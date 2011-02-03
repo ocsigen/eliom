@@ -330,16 +330,16 @@ Also replace
 <<code language="ocaml"|  let _ = Lwt_stream.iter (draw ctx) (Eliom_client_bus.stream bus) in
   ignore (run (mousedowns canvas
 		 (arr (fun ev -> set_coord ev; line ev)
-			      >>> first [mousemoves Dom_html.document (arr line);
-					 mouseup Dom_html.document >>> (arr line)])) ())
+			      >~>> first [mousemoves Dom_html.document (arr line);
+					 mouseup Dom_html.document >~>> (arr line)])) ())
 >>
 by
 <<code language="ocaml"|  let t = Lwt_stream.iter (draw ctx) (Eliom_client_bus.stream bus) in
   let drawing_arrow =
     run (mousedowns canvas
            (arr (fun ev -> set_coord ev; line ev)
-			   >>> first [mousemoves Dom_html.document (arr line);
-				      mouseup Dom_html.document >>> (arr line)])) () in
+			   >~>> first [mousemoves Dom_html.document (arr line);
+				      mouseup Dom_html.document >~>> (arr line)])) () in
   { drawing_thread = t;
     drawing_arrow = drawing_arrow }
 >>
@@ -437,7 +437,7 @@ module Connected_translate =
 struct
   type page = string -> My_appl.page Lwt.t
   let translate page =
-    Eliom_references.get username >>=
+    Eliom_references.get username ~>>=
       function
 	| None -> default_content ()
 	| Some username -> page username >|= ( fun v -> (disconnect_box ())::v )
