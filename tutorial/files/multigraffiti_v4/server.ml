@@ -92,21 +92,62 @@ let create_account_service =
   Eliom_services.post_coservice ~fallback:main_service ~post_params:(let open Eliom_parameters in (string "name" ** string "password")) ()
 
 let username = Eliom_references.eref ~scope:`Session None
-let users = ref ["titi","tata";"test","test"]
-let check_pwd name pwd = try List.assoc name !users = pwd with Not_found -> false
+
+module Lwt_thread = struct
+  include Lwt
+  include Lwt_chan
+end
+module Lwt_PGOCaml = PGOCaml_generic.Make(Lwt_thread);;
+module Lwt_Query = Query.Make_with_Db(Lwt_thread)(Lwt_PGOCaml);;
+
+let get_db : unit -> unit Lwt_PGOCaml.t Lwt.t =
+  let db_handler = ref None in
+  fun () ->
+    match !db_handler with
+      | Some h -> Lwt.return h
+      | None -> Lwt_PGOCaml.connect ~database:"testbase" ()
+
+let table = <:table< users (
+  login text NOT NULL,
+  password text NOT NULL
+) >>
+
+let find name =
+  (get_db () >>= fun dbh ->
+   Lwt_Query.view dbh
+   <:view< {password = row.password} |
+            row in $table$;
+            row.login = $string:name$; >>)
+
+let insert name pwd =
+  get_db () >>= fun dbh ->
+  Lwt_Query.query dbh
+  <:insert< $table$ := { login = $string:name$; password = $string:pwd$; } >>
+
+let check_pwd name pwd =
+  (get_db () >>= fun dbh ->
+   Lwt_Query.view dbh
+   <:view< {password = row.password} |
+            row in $table$;
+            row.login = $string:name$;
+	    row.password = $string:pwd$ >>)
+  >|= ( function [] -> false | _ -> true )
 
 let () = Eliom_output.Action.register
   ~service:create_account_service
   (fun () (name, pwd) ->
-    users := (name, pwd)::!users;
-    Lwt.return ())
+    find name >>=
+      (function
+	| [] -> insert name pwd
+	| _ -> Lwt.return ()) )
 
 let () = Eliom_output.Action.register
   ~service:connection_service
   (fun () (name, password) ->
-    if check_pwd name password
-    then Eliom_references.set username (Some name)
-    else Lwt.return ())
+    check_pwd name password >>=
+      ( function
+	| true -> Eliom_references.set username (Some name)
+	| false -> Lwt.return () ) )
 
 let () =
   Eliom_output.Action.register

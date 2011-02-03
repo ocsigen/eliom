@@ -78,12 +78,12 @@ let choose_drawing_form () =
   My_appl.get_form ~service:multigraffiti_service
     (fun (name) ->
       [p [pcdata "drawing name: ";
-          Eliom_output.Xhtml5.string_input ~input_type:`Text ~name ();
+          My_appl.string_input ~input_type:`Text ~name ();
           br ();
-          Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Go" ()
+          My_appl.string_input ~input_type:`Submit ~value:"Go" ()
          ]])
 
-let () = Eliom_output.Xhtml5.register ~service:main_service
+let () = My_appl.register ~service:main_service
   ( fun () () ->
     let v = [h1 [pcdata "Welcome to Multigraffiti"];
 	     choose_drawing_form ()] in
