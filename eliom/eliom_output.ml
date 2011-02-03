@@ -3232,11 +3232,7 @@ module Eliom_appl_reg_
 
   let eliom_appl_state_name = "__eliom_appl_name"
 
-  let change_page_event_table : ('a -> unit) Eliom_state.volatile_table =
-    Eliom_state.create_volatile_table
-      ~state_name:eliom_appl_state_name
-      ~scope:`Client_process
-      ()
+  let change_current_page_key : ('a -> unit) Polytables.key = Polytables.make_key ()
 
   let comet_service_key = Polytables.make_key ()
 
@@ -3247,7 +3243,7 @@ module Eliom_appl_reg_
       sp.Eliom_common.sp_user_tab_cookies
                         
   let create_page
-      ~options ~sp params cookies_to_send
+      ~options ~sp cpi params cookies_to_send
       change_page_event content = 
     let do_not_launch = options.do_not_launch
         (* || 
@@ -3258,10 +3254,6 @@ module Eliom_appl_reg_
            the application or not before
            creating links and forms.
         *)
-    in
-    let cpi = match sp.Eliom_common.sp_client_process_info with
-	| None -> assert false (* always called after pre_service wich create cpi *)
-	| Some cpi -> cpi
     in
     let body, container_node = match params.ap_container with
       | None -> let b = XHTML5.M.body ?a:params.ap_body_attributes content in
@@ -3435,6 +3427,10 @@ redir ();"))::
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
     let sp = Eliom_common.get_sp () in
+    let cpi = match sp.Eliom_common.sp_client_process_info with
+	| None -> assert false (* should always be called after pre_service wich create cpi *)
+	| Some cpi -> cpi
+    in
     let content_only = sp.Eliom_common.sp_content_only in
     (if content_only &&
         (((Eliom_parameters.get_non_localized_get_parameters
@@ -3446,16 +3442,12 @@ redir ();"))::
                    But the browser is not doing an xhr.
                    We send 204 No Content 
                    and use the change_page_event to update the content. *)
-       match (Eliom_state.get_volatile_data ~table:change_page_event_table ())
-       with
-         | Eliom_state.Data change_current_page ->
-           get_eliom_page_content ~options sp content >>= fun data ->
-           change_current_page data;
-           Lwt.return (Ocsigen_http_frame.empty_result ())
-         | Eliom_state.Data_session_expired
-         | Eliom_state.No_data ->
-(*VVV What to do here? *)
-           Lwt.fail Eliom_process.Server_side_process_closed
+       let change_current_page = Polytables.get
+	 ~table:cpi.Eliom_common.cpi_references ~key:change_current_page_key
+       in
+       get_eliom_page_content ~options sp content >>= fun data ->
+       change_current_page data;
+       Lwt.return (Ocsigen_http_frame.empty_result ())
      end
      else if content_only
 (*VVV do not send container! *)
@@ -3467,8 +3459,9 @@ redir ();"))::
             current page content *)
          React.E.create ()
        in
-       Eliom_state.set_volatile_data
-         ~table:change_page_event_table change_current_page;
+       Polytables.set ~table:cpi.Eliom_common.cpi_references
+	 ~key:change_current_page_key
+	 ~value:change_current_page;
        Eliom_state.set_cookie
          ~cookie_scope:`Client_process
          ~name:Eliom_common.appl_name_cookie_name
@@ -3477,7 +3470,7 @@ redir ();"))::
 (*VVV for now not possible to give other params for one page *)
        let page =
          create_page
-           ~options ~sp Appl_params.params tab_cookies_to_send
+           ~options ~sp cpi Appl_params.params tab_cookies_to_send
            change_page_event content 
        in
        let options = Appl_params.params.ap_doctype in
