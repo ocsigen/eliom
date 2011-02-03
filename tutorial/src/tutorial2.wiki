@@ -642,7 +642,7 @@ of POST non-attached coservice without parameter at all.
 To create a logout/disconnection form, we create another non-attached coservice using POST.
 and register another action.
 We call the function
-<<ocsigendoc version="dev" file="Eliom_sessions.html" fragment="VALclose_session"|<<span class="code"|Eliom_sessions.close_session>>>>
+<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_session"|<<span class="code"|Eliom_state.close_session>>>>
 to remove all session data.
 
 <<code language="ocaml"|let disconnection_service = Eliom_services.post_coservice' ~post_params:unit ()
@@ -655,9 +655,7 @@ let disconnect_box () =
 let _ =
   Eliom_output.Action.register
     ~service:disconnection_service
-    (fun () () ->
-      Eliom_sessions.close_session () ~>>= fun () ->
-      Lwt.return ());
+    (fun () () -> Eliom_state.close_session ())
 >>
 
 Then add this form in the connection box:
