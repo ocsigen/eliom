@@ -2296,7 +2296,7 @@ module Actionreg_ = struct
                    ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
                    Eliom_common.eliom_params_after_action
                    (si.Eliom_common.si_all_get_params,
-                    si.Eliom_common.si_all_post_params, (* is [] *)
+                    si.Eliom_common.si_all_post_params, (* is Some [] *)
                     si.Eliom_common.si_nl_get_params,
                     si.Eliom_common.si_nl_post_params,
                     si.Eliom_common.si_all_get_but_nl)
@@ -2340,8 +2340,8 @@ module Actionreg_ = struct
                      ri_cookies= lazy ric;
                      ri_get_params = 
                        lazy si.Eliom_common.si_other_get_params;
-                     ri_post_params = (fun _ -> Lwt.return []);
-                     ri_files = (fun _ -> Lwt.return []);
+                     ri_post_params = Some (fun _ -> Lwt.return []);
+                     ri_files = Some (fun _ -> Lwt.return []);
                    }
                  in
                  Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
@@ -2372,8 +2372,8 @@ module Actionreg_ = struct
                      ri_cookies= lazy ric;
                      ri_get_params = 
                        lazy si.Eliom_common.si_other_get_params;
-                     ri_post_params = (fun _ -> Lwt.return []);
-                     ri_files = (fun _ -> Lwt.return []);
+                     ri_post_params = Some (fun _ -> Lwt.return []);
+                     ri_files = Some (fun _ -> Lwt.return []);
                    }
                  in
                  Eliommod_pagegen.update_cookie_table sitedata all_cookie_info

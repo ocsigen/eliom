@@ -137,7 +137,7 @@ type ifrange = IR_No | IR_Ifunmodsince of float | IR_ifmatch of string
 type request_info =
     {ri_url_string: string; (** full URL *)
      ri_method: Ocsigen_http_frame.Http_header.http_method; (** GET, POST, HEAD... *)
-     ri_protocol: Ocsigen_http_frame.Http_header.proto; (** HTTP protocol used by client (1.0 or 1.1) *)
+     ri_protocol: Ocsigen_http_frame.Http_header.proto; (** HTTP protocol used by client *)
      ri_ssl: bool; (** true if HTTPS, false if HTTP *)
      ri_full_path_string: string; (** full path of the URL *)
      ri_full_path: string list;   (** full path of the URL *)
@@ -150,13 +150,11 @@ type request_info =
      ri_port_from_host_field: int option; (** Port in the host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters *)
      ri_initial_get_params: (string * string) list Lazy.t;  (** Association list of get parameters, as sent by the browser (must not be modified by extensions) *)
-     ri_post_params: config_info -> (string * string) list Lwt.t; (** Association list of post parameters *)
-     ri_files: config_info -> (string * file_info) list Lwt.t; (** Files sent in the request *)
+     ri_post_params: (config_info -> (string * string) list Lwt.t) option; (** Association list of post parameters, if urlencoded form parameters or multipart data. None if other content type or no content. *)
+     ri_files: (config_info -> (string * file_info) list Lwt.t) option; (** Files sent in the request (multipart data). None if other content type or no content. *)
      ri_remote_inet_addr: Unix.inet_addr; (** IP of the client *)
      ri_remote_ip: string;            (** IP of the client *)
-     ri_remote_ip_parsed: Ocsigen_lib.ip_address Lazy.t;    
-     (** IP of the client, using int32 or int64 (parsed from ri_remote_ip).
-         To be used for masks. *)
+     ri_remote_ip_parsed: ip_address Lazy.t;    (** IP of the client, parsed *)
      ri_remote_port: int;      (** Port used by the client *)
      ri_server_port: int;      (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
@@ -175,7 +173,6 @@ type request_info =
      ri_accept_charset: (string option * float option) list Lazy.t; (** Accept-Charset HTTP header. [None] for the first value means "*". The float is the "quality" value, if any. *)
      ri_accept_encoding: (string option * float option) list Lazy.t; (** Accept-Encoding HTTP header. [None] for the first value means "*". The float is the "quality" value, if any. *)
      ri_accept_language: (string * float option) list Lazy.t; (** Accept-Language HTTP header. The float is the "quality" value, if any. *)
-
 
      ri_http_frame: Ocsigen_http_frame.t; (** The full http_frame *)
      mutable ri_request_cache: Polytables.t;

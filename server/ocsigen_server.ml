@@ -129,28 +129,26 @@ let r_content_type = Netstring_pcre.regexp "([^ ]*)"
 
 let http_url_syntax = Hashtbl.find Neturl.common_url_syntax "http"
 
-let rec find_post_params http_frame ct filenames uploaddir =
+let rec find_post_params http_frame ct filenames =
   match http_frame.Ocsigen_http_frame.frame_content with
-    | None -> return ([], [])
+    | None -> None
     | Some body_gen ->
-        try
-          let ((ct, cst), ctparams) = match ct with
+      let ((ct, cst), ctparams) = match ct with
 (* RFC 2616, sect. 7.2.1 *)
 (* If the media type remains unknown, the recipient SHOULD
    treat it as type "application/octet-stream". *)
-            | None -> (("application", "octet-stream"), [])
-            | Some (c, p) -> (c, p)
-          in
-          match String.lowercase ct, String.lowercase cst with
-            | "application", "x-www-form-urlencoded" ->
-                find_post_params_form_urlencoded body_gen
-            | "multipart", "form-data" ->
-                find_post_params_multipart_form_data body_gen ctparams filenames
-                  uploaddir
-            | _ -> fail Ocsigen_unsupported_media
-        with e -> Lwt.fail e
+        | None -> (("application", "octet-stream"), [])
+        | Some (c, p) -> (c, p)
+      in
+      match String.lowercase ct, String.lowercase cst with
+        | "application", "x-www-form-urlencoded" ->
+          Some (find_post_params_form_urlencoded body_gen)
+        | "multipart", "form-data" ->
+          Some (find_post_params_multipart_form_data
+                  body_gen ctparams filenames)
+        | _ -> None
 
-and find_post_params_form_urlencoded body_gen =
+and find_post_params_form_urlencoded body_gen _ =
   catch
     (fun () ->
        let body = Ocsigen_stream.get body_gen in
@@ -318,20 +316,29 @@ let get_request_infos
 
        let accept_language = lazy (get_accept_language http_frame) in
 
+       let post_params0 =
+         if meth = Http_header.GET || meth = Http_header.HEAD
+         then None
+         else match find_post_params http_frame ct filenames with
+           | None -> None
+           | Some f -> 
+             let r = ref None in
+             Some (fun ci -> 
+               match !r with
+                 | None -> let res = f ci in
+                           r := Some res;
+                           res
+                 | Some r -> r)
+       in
        let post_params =
-         let r = ref None in
-           (fun ci ->
-              match !r with
-                | None ->
-                    (if meth = Http_header.GET || meth = Http_header.HEAD then
-                       return ([],[])
-                     else
-                       find_post_params http_frame ct filenames ci
-                    ) >>= fun res ->
-                    r := Some res;
-                    return res
-                | Some r -> return r
-           )
+         match post_params0 with
+           | None -> None
+           | Some f -> Some (fun ci -> f ci >>= fun (a, _) -> Lwt.return a)
+       in
+       let files =
+         match post_params0 with
+           | None -> None
+           | Some f -> Some (fun ci -> f ci >>= fun (_, b) -> Lwt.return b)
        in
 
        let ipstring = Unix.string_of_inet_addr client_inet_addr in
@@ -353,8 +360,8 @@ let get_request_infos
           ri_port_from_host_field = headerport;
           ri_get_params = get_params;
           ri_initial_get_params = get_params;
-          ri_post_params =(fun ci -> post_params ci >>= fun (a, b) -> return a);
-          ri_files = (fun ci -> post_params ci >>= fun (a, b) -> return b);
+          ri_post_params = post_params;
+          ri_files = files;
           ri_remote_inet_addr = client_inet_addr;
           ri_remote_ip = ipstring;
           ri_remote_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip ipstring));

@@ -23,6 +23,7 @@ open Ocsigen_lib
 
 include Eliom_parameters_cli
 
+let (>>=) = Lwt.bind
 
 type anon_params_type = int
 
@@ -332,6 +333,7 @@ let reconstruct_params_
             Res_ ((Ocsigen_lib.of_json ~typ v),l,files)
         | TJson (name, None) -> assert false
           (* Never unmarshal server side without type! *)
+        | TRaw_post_data -> raise Eliom_common.Eliom_Wrong_parameter
     in
     match Obj.magic (aux typ params files "" "") with
       | Res_ (v, l, files) ->
@@ -347,8 +349,31 @@ let reconstruct_params_
     | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
 
-let reconstruct_params ~sp = reconstruct_params_ sp.Eliom_common.sp_request
-
+let reconstruct_params ~sp typ params files nosuffixversion urlsuffix =
+  match typ, params, files with
+    | TRaw_post_data, None, None ->
+      let ri = Eliom_request_info.get_ri_sp sp in
+      Lwt.return
+        (Obj.magic
+           (ri.Ocsigen_extensions.ri_content_type,
+            ri.Ocsigen_extensions.ri_http_frame.Ocsigen_http_frame.frame_content))
+    | _, None, None ->
+      (try
+         Lwt.return
+           (reconstruct_params_
+              sp.Eliom_common.sp_request 
+              typ [] [] nosuffixversion urlsuffix)
+       with e -> Lwt.fail e)
+    | _, Some params, Some files ->
+      params >>= fun params ->
+      files >>= fun files ->
+      (try
+         Lwt.return
+           (reconstruct_params_
+              sp.Eliom_common.sp_request 
+              typ params files nosuffixversion urlsuffix)
+       with e -> Lwt.fail e)
+    | _ -> Lwt.fail Eliom_common.Eliom_Wrong_parameter
 
 (*****************************************************************************)
 (* Non localized parameters *)
@@ -369,7 +394,8 @@ let get_non_localized_parameters params getorpost ~sp
        try
          Some 
            (let params = Ocsigen_lib.String_Table.find name params in
-            reconstruct_params ~sp paramtype params [] false None)
+            reconstruct_params_
+              sp.Eliom_common.sp_request paramtype params [] false None)
        with Eliom_common.Eliom_Wrong_parameter | Not_found -> None
      in
      (* add in cache: *)
@@ -408,5 +434,3 @@ let rec wrap_param_type = function
    marshaling is just basic json marshaling on client side. *)
   | TJson (name, _) -> TJson (name, None)
   | t -> t
-
-

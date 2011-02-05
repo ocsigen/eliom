@@ -118,7 +118,7 @@ let gen dir = function
 
        Ocsigen_lib.get_inet_addr host >>= fun inet_addr ->
 
-       (* It is now safe to start next request.
+       (* It is now safe to start processing next request.
           We are sure that the request won't be taken in disorder.
           => We return.
        *)

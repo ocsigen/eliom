@@ -20,8 +20,12 @@
 
 open Ocsigen_lib
 
+
 (** Type of names in a form *)
 type 'a param_name = string
+
+(** empty type used when it is not possible to use the parameter in a form *)
+type no_param_name
 
 type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
 
@@ -68,6 +72,7 @@ type ('a, 'tipo, +'names) params_type =
   | TJson of string * 'a Deriving_Json.t option (* 'a = '_b caml *)
 (* It is an option but always Some ... server side,
    and always None client side.*)
+  | TRaw_post_data
 
 and ('a, 'tipo, +'names) non_localized_params = 
     string *
@@ -223,6 +228,8 @@ let caml (n : string) typ
     : ('a, [`WithoutSuffix], [ `One of 'a caml ] param_name) params_type =
   TJson (n, Some typ)
 
+let raw_post_data = TRaw_post_data
+
 (******************************************************************)
 let make_list_suffix i = "["^(string_of_int i)^"]"
 
@@ -327,8 +334,7 @@ let construct_params_list_raw
         psuff, nlp,
         ((pref^name^suff), (string_of_float (Obj.magic params)))::l
     | TFile name ->
-        raise (Failure
-                 "Constructing an URL with file parameters not implemented")
+        failwith "Constructing an URL with file parameters not possible"
     | TUserType (name, of_string, string_of) ->
         psuff, nlp,
         ((pref^name^suff), (string_of (Obj.magic params)))::l
@@ -350,6 +356,8 @@ let construct_params_list_raw
     | TJson (name, typ) -> (* server or client side *)
       psuff, nlp, ((pref^name^suff),
                    Ocsigen_lib.to_json ?typ (Obj.magic params))::l
+    | TRaw_post_data ->
+      failwith "Constructing an URL with raw POST data not possible"
   in
   aux typ None nlp params "" "" []
 
@@ -396,7 +404,8 @@ let rec get_to_and_from x = match x with
   | TNLParams _ | TSuffix _ | TProd (_, _)
   | TList (_, _) | TSet _ | TSum (_, _) 
   | TAny | TESuffix _ | TESuffixs _ | TFile _ 
-  | TCoord _ | TCoordv _ | TConst _->
+  | TCoord _ | TCoordv _ | TConst _
+  | TRaw_post_data ->
     failwith "get_to_and_from: not implemented"
 
 
@@ -426,6 +435,9 @@ let rec walk_parameter_tree name x = match x with
     (match walk_parameter_tree name a with
       | Some a -> Some a
       | None -> walk_parameter_tree name b)
+  | TRaw_post_data -> 
+    failwith "walk_parameter_tree with raw post data"
+
 
 
 
@@ -498,6 +510,7 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : bool * 'n =
                        l
                        (length, init)))})
           (* TSuffix cannot be inside TList *)
+    | TRaw_post_data -> failwith "Not possible with raw post data"
   in aux false "" "" params
 
 let string_of_param_name = id
@@ -533,6 +546,7 @@ let rec add_pref_params pref = function
   | TESuffixu a -> TESuffixu a
   | TSuffix s -> TSuffix s
   | TJson (name, typ) -> TJson (pref^name, typ)
+  | TRaw_post_data -> failwith "Not possible with raw post data"
 
 
 (*****************************************************************************)

@@ -314,26 +314,29 @@ let gen is_eliom_extension sitedata = function
                                 Ocsigen_http_frame.res_code= 400;
                              }))
                | Eliom_common.Eliom_Wrong_parameter ->
-                   req.request_info.ri_post_params ri.request_config
-                   >>= fun ripp ->
-                   Ocsigen_senders.Xhtml_content.result_of_content
-                     (Error_pages.page_bad_param 
-                        (try 
-                           ignore (Polytables.get
-                             ~table:ri.request_info.Ocsigen_extensions.ri_request_cache
-                             ~key:Eliom_common.eliom_params_after_action);
-                           true 
-                         with Not_found -> false)
-                        (Lazy.force ri.request_info.ri_get_params)
-                        (List.map fst ripp))
-                   >>= fun r ->
-                   Lwt.return
-                     (Ocsigen_extensions.Ext_found
-                        (fun () ->
-                           Lwt.return
-                             {r with
-                                Ocsigen_http_frame.res_code= 500;
-                             }))
+                 let ripp = match req.request_info.ri_post_params with
+                   | None -> Lwt.return []
+                   | Some f -> f ri.request_config
+                 in
+                 ripp >>= fun ripp ->
+                 Ocsigen_senders.Xhtml_content.result_of_content
+                   (Error_pages.page_bad_param 
+                      (try 
+                         ignore (Polytables.get
+                                   ~table:ri.request_info.Ocsigen_extensions.ri_request_cache
+                                   ~key:Eliom_common.eliom_params_after_action);
+                         true 
+                       with Not_found -> false)
+                      (Lazy.force ri.request_info.ri_get_params)
+                      (List.map fst ripp))
+                 >>= fun r ->
+                 Lwt.return
+                   (Ocsigen_extensions.Ext_found
+                      (fun () ->
+                        Lwt.return
+                          {r with
+                            Ocsigen_http_frame.res_code= 500;
+                          }))
                | Eliom_common.Eliom_404 ->
                  Lwt.return
                    (Ocsigen_extensions.Ext_next previous_extension_err)

@@ -135,7 +135,7 @@ let nl_is_persistent n = n.[0] = 'p'
 type sess_info =
     {si_other_get_params: (string * string) list;
      si_all_get_params: (string * string) list;
-     si_all_post_params: (string * string) list;
+     si_all_post_params: (string * string) list option;
 
      si_service_session_cookies: string Fullsessionname_Table.t;
      (* the session service cookies sent by the request *)

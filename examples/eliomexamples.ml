@@ -26,6 +26,51 @@ open Eliom_parameters
 open XHTML5.M
 
 (*****************************************************************************)
+(* Test for raw_post_data *)
+
+let raw_post_example =
+  Eliom_output.Xhtml5.register_service
+    ~path:["rawpost"]
+    ~get_params:unit
+    (fun () () ->
+      Lwt.return
+        (html
+           (head (title (pcdata "raw post data")) [])
+           (body [p [pcdata "It is possible to send POST data to this URL, using any content-type other than form data or multipart. Try it with telnet. Cut and paste in a terminal:"];
+                  pre [pcdata "telnet localhost 8080
+POST /tuto/rawpost HTTP/1.0
+Content-type: plop/plop
+Content-length: 124"];
+                 ]))
+    )
+
+let raw_post_service =
+  Eliom_output.Xhtml5.register_post_service
+    ~fallback:raw_post_example
+    ~post_params:raw_post_data
+    (fun () (ct, stream) ->
+      let ct = match ct with
+        | None -> "<none>"
+        | Some ((content_type1, content_type2), _) ->
+          content_type1^"/"^content_type2
+      in
+      (match stream with
+        | None -> Lwt.return ""
+        | Some stream ->
+          Ocsigen_stream.string_of_stream 1000 (Ocsigen_stream.get stream))
+      >>= fun s ->
+      Lwt.return
+        (html
+           (head (title (pcdata "raw post data")) [])
+           (body [p [pcdata "I received POST data, with content-type = ";
+                     pcdata ct;
+                     pcdata ", and (the first 1000 bytes of) the content are:"];
+                  p [pcdata s]])
+        )
+    )
+
+
+(*****************************************************************************)
 
 (************************************************************)
 (****************** Connection of users *********************)
@@ -1889,6 +1934,7 @@ let mainpage = register_service ["tests"] unit
          a csrfsafe_postget_example [pcdata "POST CSRF safe service on GET CSRF safe service"] (); br ();
          a csrfsafe_session_example [pcdata "POST non attached CSRF safe service in session table"] (); br ();
          a unregister_example [pcdata "Unregistering services"] (); br ();
+         a raw_post_example [pcdata "Raw POST data"] (); br ();
 
 
        ]])))

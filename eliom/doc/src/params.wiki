@@ -1126,3 +1126,15 @@ let uploadform = register upload
           
 [[site:tuto/upload| Try it]]
       (warning: uploading on ocsigen.org is forbidden).
+
+
+===Raw POST data (advanced use)
+
+By specifying {{{~~post_params:Eliom_parameters.raw_post_params}}},
+it is possible to create a service that takes as parameter any POST
+data, as a stream. The only restriction is that it does not work if
+the content-type corresponds to URL encoded form data or multipart data
+(because in these cases, there are POST parameters, which are decoded by Eliom
+to find the service).
+
+See the API reference for more information.

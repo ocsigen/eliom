@@ -62,6 +62,9 @@ type ('typ, +'suff, +'name) params_type
    - [ 'name] is the type of the parameter name (usually using {!Eliom_parameters.param_name})
  *)
 
+type no_param_name
+(** empty type used when it is not possible to use the parameter in a form *)
+
 type 'a param_name
 (** Type for names of page parameters (given to the functions
    to construct forms, for example in {!Eliom_output.XHTMLFORMSSIG.get_form}).
@@ -360,6 +363,18 @@ val caml :
     program to send some value of type 'a, marshaled.
     As usual [s] is the name of the parameter. *)
 
+val raw_post_data :
+  (((string * string) * (string * string) list) option *
+      string Ocsigen_stream.t option,
+   [ `WithoutSuffix ], no_param_name) params_type
+(** When the content type is neither URLencoded form data or multipart data,
+    it is possible to get it as a stream of strings.
+    The first element of the pair is the content-type.
+    This kind of parameter cannot be combined with other ones,
+    and it is not possible to create a form towards a service taking
+    this kind of parameter.
+*)
+
 val guard : (string -> ('a, 'b, [ `One of string] param_name) params_type) -> string
   -> ('a -> bool) -> ('a, 'b, [ `One of string] param_name) params_type
 (** [guard construct name pred] returns the same parameter
@@ -460,10 +475,10 @@ val construct_params_list :
 val reconstruct_params :
   sp:Eliom_common.server_params ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-  (string * string) list ->
-  (string * Ocsigen_lib.file_info) list -> 
+  (string * string) list Lwt.t option ->
+  (string * Ocsigen_lib.file_info) list Lwt.t option -> 
   bool ->
-  Ocsigen_lib.url_path option -> 'a
+  Ocsigen_lib.url_path option -> 'a Lwt.t
 
 type anon_params_type = int
 

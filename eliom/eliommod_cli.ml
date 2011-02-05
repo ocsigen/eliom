@@ -70,7 +70,6 @@ let wrap (v : 'a) : 'a Eliom_client_types.data_key =
 
 
 let wrap_node n = 
-  let sp = Eliom_common.get_sp () in
   Eliom_client_types.to_data_key_ (0L, XML.ref_node (XHTML5.M.toelt n))
 
 

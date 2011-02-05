@@ -169,7 +169,7 @@ val default_group_name : string
 type sess_info = {
   si_other_get_params : (string * string) list;
   si_all_get_params : (string * string) list;
-  si_all_post_params : (string * string) list;
+  si_all_post_params : (string * string) list option;
 
   si_service_session_cookies : string Fullsessionname_Table.t;
   si_data_session_cookies : string Fullsessionname_Table.t;
@@ -517,7 +517,7 @@ val global_register_allowed : unit -> (unit -> sitedata) option
 
 
 val eliom_params_after_action : 
-  ((string * string) list * (string * string) list *
+  ((string * string) list * (string * string) list option *
      (string * string) list Ocsigen_lib.String_Table.t *
      (string * string) list Ocsigen_lib.String_Table.t *
      (string * string) list)

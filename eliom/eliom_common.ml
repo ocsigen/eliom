@@ -838,7 +838,12 @@ let get_session_info req previous_extension_err =
   and ri = req.Ocsigen_extensions.request_info
   and ci = req.Ocsigen_extensions.request_config in
   let rc = ri.Ocsigen_extensions.ri_request_cache in
-  ri.Ocsigen_extensions.ri_post_params ci >>= fun post_params ->
+  let no_post_param, p =
+    match ri.Ocsigen_extensions.ri_post_params with
+      | None -> true, Lwt.return []
+      | Some f -> false, f ci
+  in
+  p >>= fun post_params ->
 
   let (previous_tab_cookies_info, tab_cookies, post_params) =
     try
@@ -859,7 +864,6 @@ let get_session_info req previous_extension_err =
       in
       (None, tab_cookies, post_params)
   in
-
 
 
   let post_params, get_params, to_be_considered_as_get =
@@ -892,7 +896,8 @@ let get_session_info req previous_extension_err =
     let nl_post_params, post_params = split_nl_prefix_param post_params0 in
     let all_get_but_nl = get_params in
     get_params, post_params,
-    (get_params0, post_params0, nl_get_params, nl_post_params, all_get_but_nl)
+    (get_params0, (if no_post_param then None else Some post_params0), 
+     nl_get_params, nl_post_params, all_get_but_nl)
   in
 
   let browser_cookies = Lazy.force ri.Ocsigen_extensions.ri_cookies in
@@ -1054,7 +1059,10 @@ let get_session_info req previous_extension_err =
           Initial parameters are kept in si.
        *)
        Ocsigen_extensions.ri_get_params = lazy get_params;
-       Ocsigen_extensions.ri_post_params = fun _ -> return post_params},
+       Ocsigen_extensions.ri_post_params = 
+        if no_post_param 
+        then None
+        else Some (fun _ -> Lwt.return post_params)},
     {si_service_session_cookies= service_cookies;
      si_data_session_cookies= data_cookies;
      si_persistent_session_cookies= persistent_cookies;

@@ -58,11 +58,16 @@ let get_get_params_string () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_request.request_info.ri_get_params_string
 let get_post_params_sp sp =
-  sp.Eliom_common.sp_request.request_info.ri_post_params
-    sp.Eliom_common.sp_request.request_config
+  match sp.Eliom_common.sp_request.request_info.ri_post_params with
+    | None -> None
+    | Some f -> Some (f sp.Eliom_common.sp_request.request_config)
 let get_post_params () =
   let sp = Eliom_common.get_sp () in
   get_post_params_sp sp
+let get_files_sp sp =
+  match sp.Eliom_common.sp_request.request_info.ri_files with
+    | None -> None
+    | Some f -> Some (f sp.Eliom_common.sp_request.request_config)
 let get_all_post_params () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_si.Eliom_common.si_all_post_params

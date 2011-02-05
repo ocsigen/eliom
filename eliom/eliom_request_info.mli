@@ -213,12 +213,13 @@ val get_nl_post_params :
   unit -> (string * string) list Ocsigen_lib.String_Table.t
 
 (** returns the parameters in the body of the HTTP request (POST parameters)
-   that concern the running service *)
-val get_post_params : unit -> (string * string) list Lwt.t
+    that concern the running service. None means that POST data where
+    neither urlencoded form data or multipart data. *)
+val get_post_params : unit -> (string * string) list Lwt.t option
 
 (** returns all parameters in the body of the HTTP request (POST parameters)
    (even those that are for another service) *)
-val get_all_post_params : unit -> (string * string) list
+val get_all_post_params : unit -> (string * string) list option
 
 
 
@@ -312,7 +313,8 @@ val get_original_full_path_string_sp : Eliom_common.server_params -> string
 val get_server_port_sp : Eliom_common.server_params -> int
 val get_ssl_sp : Eliom_common.server_params -> bool
 val get_ri_sp : Eliom_common.server_params -> Ocsigen_extensions.request_info
-val get_post_params_sp : Eliom_common.server_params -> (string * string) list Lwt.t
+val get_post_params_sp : Eliom_common.server_params -> (string * string) list Lwt.t option
+val get_files_sp : Eliom_common.server_params -> (string * Ocsigen_lib.file_info) list Lwt.t option
 val get_suffix_sp : Eliom_common.server_params -> Ocsigen_lib.url_path option
 val get_request_cache_sp : Eliom_common.server_params -> Polytables.t
 val get_request_id_sp : Eliom_common.server_params -> int64

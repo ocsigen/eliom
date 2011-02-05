@@ -394,47 +394,56 @@ module MakeRegister = functor
                        Lwt.with_value Eliom_common.sp_key (Some sp)
                          (fun () ->
                            let ri = Eliom_request_info.get_ri_sp sp
-                           and ci = Eliom_config.get_config_info_sp sp
                            and suff = Eliom_request_info.get_suffix_sp sp in
                            (catch (fun () ->
-                             ri.ri_post_params ci >>= fun post_params ->
-                             ri.ri_files ci >>= fun files ->
-                             let g = reconstruct_params
+                             reconstruct_params
                                ~sp
                                sgpt
-                               (force ri.ri_get_params)
-                               []
+                               (Some (Lwt.return (force ri.ri_get_params)))
+                               (Some (Lwt.return []))
                                nosuffixversion
                                suff
+                             >>= fun g ->
+                             let post_params = 
+                               Eliom_request_info.get_post_params_sp sp
                              in
-                             let p = reconstruct_params
+                             let files =
+                               Eliom_request_info.get_files_sp sp
+                             in
+                             reconstruct_params
                                ~sp
                                sppt
                                post_params
                                files
                                false
                                None
-                             in
-                             if nosuffixversion && suffix_with_redirect &&
-                               files=[] && post_params = []
-                             then (* it is a suffix service in version 
-                                     without suffix. We redirect. *)
-                               Lwt.fail
-                                 (Eliom_common.Eliom_do_redirection
-                                    (Eliom_uri.make_string_uri
-                                       ~absolute:true
-                                       ~service:
-                                       (service : 
-                                          ('a, 'b, [< Eliom_services.internal_service_kind ],
-                                           [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
-                                           'return) Eliom_services.service :> 
-                                          ('a, 'b, Eliom_services.service_kind,
-                                           [< Eliom_services.suff ], 'c, 'd, 
-                                           [< Eliom_services.registrable ], 'return)
-                                          Eliom_services.service)
-                                       g))
-                             else
-                               let redir =
+                             >>= fun p ->
+                             (match files, post_params with
+                               | Some files, Some post_params ->
+                                 (files >>= fun files ->
+                                  post_params >>= fun post_params ->
+                                  if nosuffixversion && suffix_with_redirect &&
+                                    files = [] && post_params =  []
+                                  then (* it is a suffix service in version 
+                                          without suffix. We redirect. *)
+                                    Lwt.fail
+                                      (Eliom_common.Eliom_do_redirection
+                                         (Eliom_uri.make_string_uri
+                                            ~absolute:true
+                                            ~service:
+                                            (service : 
+                                               ('a, 'b, [< Eliom_services.internal_service_kind ],
+                                                [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                                                'return) Eliom_services.service :> 
+                                               ('a, 'b, Eliom_services.service_kind,
+                                                [< Eliom_services.suff ], 'c, 'd, 
+                                                [< Eliom_services.registrable ], 'return)
+                                               Eliom_services.service)
+                                            g))
+                                  else Lwt.return ())
+                               | _ -> Lwt.return ())
+                             >>= fun () ->
+                             let redir =
                             (* If it is an xmlHTTPrequest who
                                asked for an internal application
                                service but the current service 
@@ -606,28 +615,31 @@ module MakeRegister = functor
                    (fun sp ->
                      Lwt.with_value Eliom_common.sp_key (Some sp) 
                        (fun () ->
-                         let ri = Eliom_request_info.get_ri_sp sp
-                         and ci = Eliom_config.get_config_info_sp sp in
+                         let ri = Eliom_request_info.get_ri_sp sp in
                          catch
                            (fun () ->
-                             Eliom_request_info.get_post_params_sp sp >>= fun post_params ->
-                             ri.ri_files ci >>= fun files ->
+                             reconstruct_params
+                               ~sp
+                               (get_get_params_type_ service)
+                               (Some (Lwt.return (force ri.ri_get_params)))
+                               (Some (Lwt.return []))
+                               false
+                               None
+                             >>= fun g ->
+                             let post_params = 
+                               Eliom_request_info.get_post_params_sp sp
+                             in
+                             let files = Eliom_request_info.get_files_sp sp in
+                             reconstruct_params
+                               ~sp
+                               (get_post_params_type_ service)
+                               post_params
+                               files
+                               false
+                               None
+                             >>= fun p ->
                              Pages.pre_service ?options () >>= fun () ->
-                             page_generator
-                               (reconstruct_params
-                                  ~sp
-                                  (get_get_params_type_ service)
-                                  (force ri.ri_get_params)
-                                  []
-                                  false
-                                  None)
-                               (reconstruct_params
-                                  ~sp
-                                  (get_post_params_type_ service)
-                                  post_params
-                                  files
-                                  false
-                                  None))
+                             page_generator g p)
                            (function
                              | Eliom_common.Eliom_Typing_Error l ->
                                error_handler l
