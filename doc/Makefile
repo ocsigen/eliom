@@ -3,10 +3,16 @@ include ../Makefile.filelist
 
 export OCAMLPATH := ../deriving/tmp:${OCAMLPATH}
 
+ifeq "${OCAMLDUCE}" "YES"
 CAMLDOC = ocamlducefind ocamldoc $(LIB)
+else
+CAMLDOC = ocamlfind ocamldoc $(LIB)
+endif
+
 INSTALL = install
 
-LIB = -package netstring,lwt,ssl,netstring,ocamlduce,react,text,deriving,calendar,js_of_ocaml $(LIBDIRS) -I ../xmlp4/xhtml
+
+LIB = -package netstring,lwt,ssl,netstring${DUCEPACK},react,text,deriving,calendar,js_of_ocaml $(LIBDIRS) -I ../xmlp4/xhtml
 
 DOCPREF=../
 
