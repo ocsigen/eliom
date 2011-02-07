@@ -7,20 +7,9 @@
 }}
 open Server
 
-let graffiti_info = Hashtbl.create 0
-
 let include_canvas (name:string) (canvas_box:[ Xhtml5types.div ] XHTML5.M.elt) =
 
-  (* create a new bus and image_string function only if it did not exists *)
-  let bus,image_string =
-    try
-      Hashtbl.find graffiti_info name
-    with
-      | Not_found ->
-	let bus,imageservice = launch_server_canvas () in
-	Hashtbl.add graffiti_info name (bus,imageservice);
-	(bus,imageservice)
-  in
+  let bus,image_string = get_bus_image name in
 
   let imageservice =
     Eliom_output.Text.register_coservice'

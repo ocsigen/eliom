@@ -178,6 +178,18 @@ The main difference is that the bus and the {{{image_string}}} are now local.
   in
   let _ = Lwt_stream.iter draw_server (Eliom_bus.stream bus) in
   bus,image_string
+
+let graffiti_info = Hashtbl.create 0
+
+let get_bus_image (name:string) =
+  (* create a new bus and image_string function only if it did not exists *)
+  try
+    Hashtbl.find graffiti_info name
+  with
+    | Not_found ->
+      let bus,image_string = launch_server_canvas () in
+      Hashtbl.add graffiti_info name (bus,image_string);
+      (bus,image_string)
 >>
 
 The main page now does launch the application. It only contains a
@@ -201,9 +213,8 @@ let choose_drawing_form () =
 
 let () = My_appl.register ~service:main_service
   ( fun () () ->
-    let v = [h1 [pcdata "Welcome to Multigraffiti"];
-	     choose_drawing_form ()] in
-    Lwt.return (html (head (title (pcdata "multigraffiti")) []) (body v)))
+    Lwt.return [h1 [pcdata "Welcome to Multigraffiti"];
+		choose_drawing_form ()])
 >>
 
 ===={{{graffiti.eliom}}}====
