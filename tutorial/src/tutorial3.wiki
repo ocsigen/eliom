@@ -305,11 +305,11 @@ CLIENTLIB := -package ocsigen.deriving.syntax -package oclosure -package js_of_o
 It is also needed to add {{{-syntax camlp4o \}}} to commands that doesn't have it.
 
 Download the current versions of the files:
-<<a_file src="multigraffiti_v1/Makefile" project="tutorial"| Makefile >>
-<<a_file src="multigraffiti_v1/graffiti.eliom" project="tutorial"| graffiti.eliom >>
-<<a_file src="multigraffiti_v1/common.ml" project="tutorial"| common.ml >>
-<<a_file src="multigraffiti_v1/client.ml" project="tutorial"| client.ml >>
-<<a_file src="multigraffiti_v1/server.ml" project="tutorial"| server.ml >>
+<<a_file src="multigraffiti_v1/Makefile" project="tutorial"| Makefile >> 
+<<a_file src="multigraffiti_v1/graffiti.eliom" project="tutorial"| graffiti.eliom >> 
+<<a_file src="multigraffiti_v1/common.ml" project="tutorial"| common.ml >> 
+<<a_file src="multigraffiti_v1/client.ml" project="tutorial"| client.ml >> 
+<<a_file src="multigraffiti_v1/server.ml" project="tutorial"| server.ml >> 
 
 === Cleaning previous pages ===
 <<div class="concepts"| Cancel threads and arrows\\ close buses>>
@@ -373,7 +373,7 @@ The function registered by {{{Eliom_client.on_unload}}} will be called
 when the page change inside the application.
 
 Download the current versions of the files:
-<<a_file src="multigraffiti_v2/graffiti.eliom" project="tutorial"| graffiti.eliom >>
+<<a_file src="multigraffiti_v2/graffiti.eliom" project="tutorial"| graffiti.eliom >> 
 <<a_file src="multigraffiti_v2/client.ml" project="tutorial"| client.ml >>
 
 ===Mixing Eliom client and Eliom server===
@@ -476,7 +476,7 @@ by
 >>
 
 Download the current versions of the files:
-<<a_file src="multigraffiti_v3/graffiti.eliom" project="tutorial"| graffiti.eliom >>
+<<a_file src="multigraffiti_v3/graffiti.eliom" project="tutorial"| graffiti.eliom >> 
 <<a_file src="multigraffiti_v3/server.ml" project="tutorial"| server.ml >>
 
 ===Type safe database requests using Macaque===
@@ -484,7 +484,7 @@ Download the current versions of the files:
 In this section, we will implement our database access function using
 the Macaque library, that allows easy manipulation of Postgresql
 database fully compatible with Lwt. ( For more information see
-[[wiki(25): | Macaque manual]] )
+[[wiki(25):| Macaque manual]] )
 
 We will store the login and the password of users in a Postgresql
 database. For more information on how to set up and run it, see
@@ -604,9 +604,9 @@ We need to add {{{-package macaque.syntax}}} in the makefile and
 {{{<extension findlib-package="macaque"/>}}} in graffiti.conf
 
 Download the current versions of the files:
-<<a_file src="multigraffiti_macaque/server.ml" project="tutorial"| server.ml >>
-<<a_file src="multigraffiti_macaque/graffiti.conf" project="tutorial"| graffiti.conf >>
-<<a_file src="multigraffiti_macaque/Makefile" project="tutorial"| Makefile >>
+<<a_file src="multigraffiti_macaque/server.ml" project="tutorial"| server.ml >> 
+<<a_file src="multigraffiti_macaque/graffiti.conf" project="tutorial"| graffiti.conf >> 
+<<a_file src="multigraffiti_macaque/Makefile" project="tutorial"| Makefile >> 
 <<a_file src="multigraffiti_macaque/create_table.sql" project="tutorial"| create_table.sql >>
 
 ===Saving favorite pictures===
@@ -636,9 +636,9 @@ let make_filename name number =
   image_dir name >|= ( fun dir -> (dir ^ "/" ^ (string_of_int number) ^ ".png") )
 
 let save image name number =
-  make_filename name number >>=
+  make_filename name number ~>>=
     ( fun file_name ->
-      Lwt_io.open_file ~mode:Lwt_io.output file_name >>=
+      Lwt_io.open_file ~mode:Lwt_io.output file_name ~>>=
 	( fun out_chan -> Lwt_io.write out_chan image ) )
 >>
 
@@ -659,9 +659,9 @@ The first integer is the name under wich will be saved the image, the first time
   Lwt.catch
     (fun () -> Ocsipersist.find image_info_table username)
     (function Not_found -> Lwt.return (0,now,[]) | e -> Lwt.fail e )
-  >>= ( fun (number,_,list) ->
+  ~>>= ( fun (number,_,list) ->
     (Ocsipersist.add image_info_table username (number+1,now,(number,now)::list))
-    >>= ( fun () ->
+    ~>>= ( fun () ->
       let (_,image_string) = Hashtbl.find graffiti_info username in
       save (image_string ()) username number ))
 
@@ -734,8 +734,8 @@ directory containing static contents and edit {{{let static_dir =
 "/tmp/static/"}}} to addapt to your configuration.
 
 Download the current versions of the files:
-<<a_file src="multigraffiti_atom/server.ml" project="tutorial"| server.ml >>
-<<a_file src="multigraffiti_macaque/graffiti.eliom" project="tutorial"| graffiti.eliom >>
+<<a_file src="multigraffiti_atom/server.ml" project="tutorial"| server.ml >> 
+<<a_file src="multigraffiti_atom/graffiti.eliom" project="tutorial"| graffiti.eliom >>
 
 <<div class="encadre"|====  ====
 >>
