@@ -481,8 +481,10 @@ Download the current versions of the files:
 
 ===Type safe database requests using Macaque===
 
-In this section, we will implement our database access function
-using the //Macaque// library, that allows~ ...
+In this section, we will implement our database access function using
+the Macaque library, that allows easy manipulation of Postgresql
+database fully compatible with Lwt. ( For more information see
+[[wiki(25): | Macaque manual]] )
 
 We will store the login and the password of users in a Postgresql
 database. For more information on how to set up and run it, see
@@ -503,7 +505,7 @@ We save it under {{{create_table.sql}}} and run
 
 <<code language="shell"| $ psql -d testbase -f create_table.sql >>
 
-replace
+We will replace our basic user handling code:
 
 <<code language="ocaml"|let username = Eliom_references.eref ~scope:`Session None
 let users = ref ["titi","tata";"test","test"]
@@ -523,23 +525,35 @@ let () = Eliom_output.Action.register
     else Lwt.return ())
 >>
 
-by
+Macaque can use any thread library if it provides a monadic
+interface. The default one provides simple blocking access to the
+database. It isn't good for us because an access to the base by one
+user will prevent the server from handling anything else until the
+request is finished. We need a version of Macaque specialised for
+Lwt. It is obtained by
 
 <<code language="ocaml"|module Lwt_thread = struct
   include Lwt
   include Lwt_chan
 end
-module Lwt_PGOCaml = PGOCaml_generic.Make(Lwt_thread);;
-module Lwt_Query = Query.Make_with_Db(Lwt_thread)(Lwt_PGOCaml);;
+module Lwt_PGOCaml = PGOCaml_generic.Make(Lwt_thread)
+module Lwt_Query = Query.Make_with_Db(Lwt_thread)(Lwt_PGOCaml)
+>>
 
-let get_db : unit -> unit Lwt_PGOCaml.t Lwt.t =
+We can now open the database with our newly created {{{Lwt_PGOCaml.connect}}}.
+
+<<code language="ocaml"|let get_db : unit -> unit Lwt_PGOCaml.t Lwt.t =
   let db_handler = ref None in
   fun () ->
     match !db_handler with
       | Some h -> Lwt.return h
       | None -> Lwt_PGOCaml.connect ~database:"testbase" ()
+>>
 
-let table = <:table< users (
+Then we declare the table on wich we will work and the different
+request we do on it.
+
+<<code language="ocaml"|let table = <:table< users (
   login text NOT NULL,
   password text NOT NULL
 ) ~>>
@@ -564,8 +578,12 @@ let check_pwd name pwd =
             row.login = $string:name$;
 	    row.password = $string:pwd$ ~>>)
   >|= ( function [] -> false | _ -> true )
+>>
 
-let () = Eliom_output.Action.register
+Finaly, we change a bit the handler of {{{create_account_service}}} to
+check for the presence of an account before creating it.
+
+<<code language="ocaml"|let () = Eliom_output.Action.register
   ~service:create_account_service
   (fun () (name, pwd) ->
     find name ~>>=
@@ -585,11 +603,139 @@ let () = Eliom_output.Action.register
 We need to add {{{-package macaque.syntax}}} in the makefile and
 {{{<extension findlib-package="macaque"/>}}} in graffiti.conf
 
-===Saving favorite pictures===
-bla\\bla\\bla\\bla\\
+Download the current versions of the files:
+<<a_file src="multigraffiti_macaque/server.ml" project="tutorial"| server.ml >>
+<<a_file src="multigraffiti_macaque/graffiti.conf" project="tutorial"| graffiti.conf >>
+<<a_file src="multigraffiti_macaque/Makefile" project="tutorial"| Makefile >>
+<<a_file src="multigraffiti_macaque/create_table.sql" project="tutorial"| create_table.sql >>
 
-<<code language="ocaml"|
+===Saving favorite pictures===
+<<div class="concepts"|Persitent tables with Ocsipersist\\
+Atom feed>>
+
+We will now add a button to the application to save the current
+image. The images will be saved to the filesystem using the module
+<<a_api project="lwt" | module Lwt_io>>. We will then make an Atom feed
+with the saved images using <<a_api project="eliom" | module Atom_feed >>
+
+We save the images in the directory containing the static contents
+under the directory {{{graffiti_saved/username}}}. The {{{username}}}
+directory is created if needed. If it already exists {{{mkdir}}} fail
+and we do nothing.
+
+<<code language="ocaml"|let static_dir = "/tmp/static/"
+
+let image_dir name =
+  let dir = static_dir ^ "/graffiti_saved/" ^ (Ocsigen_lib.encode name) in
+  Lwt.catch
+    (fun () -> Lwt_unix.mkdir dir 0o777)
+    (fun exn -> Lwt.return ())
+  >|= (fun () -> dir)
+
+let make_filename name number =
+  image_dir name >|= ( fun dir -> (dir ^ "/" ^ (string_of_int number) ^ ".png") )
+
+let save image name number =
+  make_filename name number >>=
+    ( fun file_name ->
+      Lwt_io.open_file ~mode:Lwt_io.output file_name >>=
+	( fun out_chan -> Lwt_io.write out_chan image ) )
 >>
+
+We number images and associate to each image the time of creation. It
+is stocked in an <<a_api project="eliom" | module Ocsipersist >>
+table. These are string indexed tables, that can contain arbitrary
+ocaml value.
+
+This open the table and create it if it doesn't exists.
+<<code language="ocaml"|let image_info_table = Ocsipersist.open_table "image_info_table">>
+
+For each user, we stock a value of type
+{{{ int * CalendarLib.Calendar.t * ( (int * CalendarLib.Calendar.t) list ) }}}.
+The first integer is the name under wich will be saved the image, the first time is the last update for that user and the list is the name and time of old images. We need those time to timestamp the entries of the feed.
+
+<<code language="ocaml"|let save_image username =
+  let now = CalendarLib.Calendar.now () in
+  Lwt.catch
+    (fun () -> Ocsipersist.find image_info_table username)
+    (function Not_found -> Lwt.return (0,now,[]) | e -> Lwt.fail e )
+  >>= ( fun (number,_,list) ->
+    (Ocsipersist.add image_info_table username (number+1,now,(number,now)::list))
+    >>= ( fun () ->
+      let (_,image_string) = Hashtbl.find graffiti_info username in
+      save (image_string ()) username number ))
+
+let save_image_box name =
+  let save_image_service =
+    Eliom_output.Action.register_post_coservice'
+      ~post_params:Eliom_parameters.unit
+      (fun () () -> save_image name)
+  in
+  My_appl.post_form save_image_service
+    (fun _ ->
+      [p [My_appl.string_input
+             ~input_type:`Submit ~value:"save" ()]]) ()
+>>
+
+We find the url of the images with << a_api project="eliom" | val
+Eliom_services.static_dir >>. It is a service taking file path as
+parameter, serving the content of the static directory. We use <<
+a_api project="eliom" | val Eliom_uri.make_string_uri >> to get the
+url as a string.
+
+<<code language="ocaml"|let feed_service = Eliom_services.service ~path:["feed"]
+  ~get_params:(Eliom_parameters.string "name") ()
+
+let local_filename name number =
+  ["graffiti_saved"; Ocsigen_lib.encode name ; (string_of_int number) ^ ".png"]
+
+let rec entries name list = function
+  | 0 -> []
+  | len ->
+    match list with
+      | [] -> []
+      | (n,saved)::q ->
+	let title = Atom_feed.plain ("graffiti " ^ name ^ " " ^ (string_of_int n)) in
+	let uri = 
+	  Eliom_uri.make_string_uri ~absolute:true ~service:(Eliom_services.static_dir ())
+	    (local_filename name n)
+	in
+	let entry =
+	  Atom_feed.entry ~title ~id:uri ~updated:saved
+            [Atom_feed.xhtmlC [ XHTML.M.img ~src:uri ~alt:"image" ()]] in
+	entry::(entries name q (len - 1))
+
+let feed name () =
+  let id = Eliom_uri.make_string_uri ~absolute:true ~service:feed_service name in
+  let title = Atom_feed.plain ("nice drawings of " ^ name) in
+  Lwt.catch
+    (fun () -> Ocsipersist.find image_info_table name >|=
+	(fun (number,updated,list) -> Atom_feed.feed ~id ~updated ~title (entries name list 10)))
+    ( function Not_found ->
+      let now = CalendarLib.Calendar.now () in
+      Lwt.return (Atom_feed.feed ~id ~updated:now ~title [])
+      | e -> Lwt.fail e )
+
+let () = Eliom_atom.Reg.register ~service:feed_service feed
+>>
+
+
+In {{{graffiti.eliom}}}, we add a link to the feed and a save button
+that appear only if the user own the page.
+
+<<code language="ocaml"|      My_appl.a feed_service [pcdata "atom feed"] name;
+      div ( if name = username
+	then [save_image_box name]
+	else [pcdata "no saving"] );
+>>
+
+Before running, add the {{{graffiti_saved}}} directory in your
+directory containing static contents and edit {{{let static_dir =
+"/tmp/static/"}}} to addapt to your configuration.
+
+Download the current versions of the files:
+<<a_file src="multigraffiti_atom/server.ml" project="tutorial"| server.ml >>
+<<a_file src="multigraffiti_macaque/graffiti.eliom" project="tutorial"| graffiti.eliom >>
 
 <<div class="encadre"|====  ====
 >>
@@ -606,7 +752,6 @@ bla\\bla\\bla\\bla\\
 
 ===listening music===
 <<div class="concepts"|Persistence of the client application>>
-bla\\bla\\bla\\bla\\
 
 <<code language="ocaml"|
 >>
@@ -616,8 +761,7 @@ bla\\bla\\bla\\bla\\
 
 
 ===???===
-<<div class="concepts"|Other features: Atom ...\\
-Client side service calls ...\\
+<<div class="concepts"|Other features: Client side service calls ...\\
 Client side forms ...\\
 **LWT** -> où ????????????,>>
 bla\\bla\\bla\\bla\\
