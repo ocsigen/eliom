@@ -27,9 +27,9 @@ val get :
     uri:string ->
     unit ->
     Ocsigen_http_frame.t Lwt.t
-(** EXPERIMENTAL -- May evolve in the future. Do a GET HTTP request.
-   The default port is 80 for HTTP, 443 for HTTPS.
-   The default protocol is http ([https=false]).
+(** Do a GET HTTP request.
+    The default port is 80 for HTTP, 443 for HTTPS.
+    The default protocol is http ([https=false]).
  *)
 
 val get_url : ?headers: Http_headers.t -> string -> Ocsigen_http_frame.t Lwt.t
@@ -45,9 +45,9 @@ val post_string :
   content_type:(string * string) ->
   unit ->
   Ocsigen_http_frame.t Lwt.t
-(** EXPERIMENTAL -- May evolve in the future. Do a POST HTTP request.
-   The default port is 80 for HTTP, 443 for HTTPS.
-   The default protocol is http ([https=false]).
+(** Do a POST HTTP request.
+    The default port is 80 for HTTP, 443 for HTTPS.
+    The default protocol is http ([https=false]).
  *)
 
 val post_string_url :
@@ -67,8 +67,7 @@ val post_urlencoded :
   content:(string * string) list ->
   unit ->
   Ocsigen_http_frame.t Lwt.t
-(** EXPERIMENTAL -- May evolve in the future.
-    Do a POST HTTP request with URL encoded parameters as content.
+(** Do a POST HTTP request with URL encoded parameters as content.
     The default port is 80 for HTTP, 443 for HTTPS.
     The default protocol is http ([https=false]).
  *)
@@ -132,9 +131,9 @@ val raw_request :
    The optional parameter [?head] asks to do a [HEAD] HTTP request.
    It is [false] by default.
 
-    When called without the last parameter, the function will pipeline
-    the request (if needed), then return the function to get the page.
-    This allows to keep pipeline order when writing an extension.
+   When called without the last parameter, the function will pipeline
+   the request (if needed), then return the function to get the page.
+   This allows to keep pipeline order when writing an extension.
  *)
 (*VVV Dangerous!! *)
 

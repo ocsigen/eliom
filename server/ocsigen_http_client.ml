@@ -18,11 +18,10 @@
  *)
 
 (*
-   It is a beta version.
+   It is a first version. Many improvements are possible.
 
    TODO
-   - get using pipeline
-   - post
+   - get using pipeline (~client parameter)
    - better heuristic for trusting server keepalive?
    I think it could be less strict, as we redo requests?
    It should probably be different for a proxy or a reverse proxy ...
@@ -33,6 +32,8 @@
    - Find a way to pipeline POST requests? at least PUT?
    - Does it work well if the server is using HTTP/1.0?
    (probably not because of chunks)
+   - limit the number of concurrent requests to avoid too many opened
+   file descriptors
 
    Notes:
    - Pipeline:
@@ -51,7 +52,7 @@
    Firefox or Konqueror ... The previous request is always received before
    sending the next one. Why?
 
-   - Is it ok to reuse the same sonnection for several clients?
+   - Is it ok to reuse the same connection for several clients?
    May be restrict to several connections from the same client?
    What if the client is a proxy?
    - What to do with headers like user-agent, server, etc?
@@ -64,6 +65,9 @@
 
    If the server says Connection:close once, we do not trust it any more
    for an amount of time ...
+
+   Note (2011/02/09): I don't remember why there is a "head" field in the key
+   of connection_table and free_connection_table ...
 
 *)
 
@@ -88,13 +92,29 @@ let request_sender =
 module T = Hashtbl.Make(
   struct
     type t = int * (Unix.inet_addr * int * bool)
-        (* IP, port, doing HEAD request *)
+    (* client ID, (IP, port, doing HEAD request) *)
     let equal = (=)
     let hash = Hashtbl.hash
   end)
 
 let connection_table = T.create 100
-(* Only one for each client *)
+(*
+  (comment added 2001/02/09)
+
+  The connection table associates to each incoming connection
+  (called "client") the thread and information about the output requests,
+  in order to try to pipeline them on the same output connection.
+  
+  If the client parameter is not present, we do the
+  requests independantly.
+  We try to find a free connection to the right server
+  or we create one if there is none.
+  In that case, the distant server may have the request in wrong order.
+  
+  If there is a body in the request we want to do,
+  we do not try to pipeline, even if it comes from the same client.
+  We use a free (or new) connection.
+*)
 
 module FT = struct
   module T =
@@ -106,6 +126,7 @@ module FT = struct
       end)
 
   let free_connection_table = T.create 100
+  (* contains unused opened output connections *)
 
   let add k v =
     let add_last v =
