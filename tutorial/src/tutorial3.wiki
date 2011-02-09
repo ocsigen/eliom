@@ -751,14 +751,60 @@ bla\\bla\\bla\\bla\\
 >>
 
 ===listening music===
-<<div class="concepts"|Persistence of the client application>>
+<<div class="concepts"|Persistence of the client application\\
+Application container>>
 
-<<code language="ocaml"|
+We will add an audio player to the page that will stay when page
+change. To do that we need to place the audio element into a part of
+the page that doesn't change. This is the intent of application
+containers.
+
+We first create the node in wich we will add the player.
+<<code language="ocaml"|let audio_box = div []>>
+
+Then we modify the application container such that this node is always
+present at the bottom. To do that we change the default container in
+the application parameters to:
+<<code language="ocaml"|	  Eliom_output.ap_container =
+            Some (None, fun contents -> [contents; div [audio_box] ]);>>
+
+Now in {{{graffiti.eliom}}} we will insert a player in that box when a
+page is loaded and there is not already a player launched.
+
+<<code language="ocaml"|{client{
+  let music = ref false
+}}
+
+let launch_music () =
+  (Eliom_services.onload
+     {{
+       if not !music then
+	 begin
+	   let box = %audio_box in
+	   Dom.appendChild box
+             ( XHTML5.M.toelt
+	       (audio
+		  ~srcs:(XHTML5.M.uri_of_string "music.ogg",[])
+		  ~a:[a_autoplay (`Autoplay);a_controls (`Controls)] []));
+	   music := true
+	 end
+     }})
+>>
+
+Finally we call {{{launch_music}}} in the page handler.
+<<code language="ocaml"|    include_canvas name canvas_box;
+    launch_music ();
+    Lwt.return ([
 >>
 
 <<div class="encadre"|====  ====
 >>
 
+To run this example, you will need to add an ogg file in the static directory. If you can't find one, there are some [[http://www.gnu.org/music/free-software-song.html|here]]
+
+Download the current versions of the files:
+<<a_file src="multigraffiti_audio/server.ml" project="tutorial"| server.ml >> 
+<<a_file src="multigraffiti_audio/graffiti.eliom" project="tutorial"| graffiti.eliom >>
 
 ===???===
 <<div class="concepts"|Other features: Client side service calls ...\\
