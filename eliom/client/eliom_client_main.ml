@@ -30,7 +30,7 @@ let _ =
     let change_page_event
         : Eliom_client_types.eliom_appl_answer React.E.t = 
       (Eliom_client_react.Down.unwrap
-         (Ocsigen_lib.unmarshal_js_var "change_page_event"))
+         ~wake:false (Ocsigen_lib.unmarshal_js_var "change_page_event"))
     in
     let retain_event = React.E.map Eliom_client.set_content change_page_event in
     
