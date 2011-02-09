@@ -62,6 +62,103 @@ end = struct
 
 end
 
+module Configuration =
+struct
+  type configuration_data =
+      { active_until_timeout : bool;
+	always_active : bool;
+	time_between_request : float; }
+
+  let default_configuration =
+    { active_until_timeout = false;
+      always_active = false;
+      time_between_request = 0.; }
+
+  type t = int
+
+  type configurations = (int,configuration_data) Hashtbl.t
+
+  let configuration_table = Hashtbl.create 1
+
+  let global_configuration = ref default_configuration
+
+  let config_min c1 c2 =
+    { active_until_timeout = c1.active_until_timeout || c2.active_until_timeout;
+      always_active = c1.always_active || c2.always_active;
+      time_between_request = min c1.time_between_request c2.time_between_request }
+
+  exception C of configuration_data
+
+  let first_conf c =
+    try
+      ignore (Hashtbl.fold (fun _ v -> raise (C v)) c ());
+      assert false
+    with
+      | C v -> v
+
+  let get_configuration () =
+    if Hashtbl.length configuration_table = 0
+    then default_configuration
+    else Hashtbl.fold (fun _ -> config_min) configuration_table (first_conf configuration_table)
+
+  let update_configuration_waiter,update_configuration_waker = 
+    let t,u = Lwt.wait () in
+    ref t, ref u
+
+  let update_configuration () =
+    global_configuration := get_configuration ();
+    let t,u = Lwt.wait () in
+    update_configuration_waiter := t;
+    let wakener = !update_configuration_waker in
+    update_configuration_waker := u;
+    Lwt.wakeup wakener ()
+
+  let get () = !global_configuration
+
+  let drop_configuration c =
+    Hashtbl.remove configuration_table c;
+    update_configuration ()
+
+  let new_configuration : unit -> t =
+    let r = ref 0 in
+    ( fun () ->
+      incr r;
+      Hashtbl.add configuration_table !r default_configuration;
+      update_configuration ();
+      !r )
+
+  let set_fun c f =
+    try
+      Hashtbl.replace configuration_table c ( f (Hashtbl.find configuration_table c));
+      update_configuration ();
+    with
+      | Not_found -> ()
+
+  let set_always_active conf v =
+    set_fun conf (fun c -> { c with always_active = v })
+
+  let set_active_until_timeout conf v =
+    set_fun conf (fun c -> { c with active_until_timeout = v })
+
+  let set_time_between_request conf v =
+    set_fun conf (fun c -> { c with time_between_request = v })
+
+  let sleep_before_next_request () =
+    let time = Sys.time () in
+    let rec aux t =
+      lwt () = Lwt.pick [Lwt_js.sleep t;
+			 !update_configuration_waiter;] in
+      let remaining_time = ( Sys.time () ) -. ( (get ()).time_between_request +. time ) in
+      if remaining_time >= 0.
+      then Lwt.return ()
+      else aux remaining_time
+    in
+    if (get ()).time_between_request <= 0.
+    then Lwt.return ()
+    else aux ((get ()).time_between_request)
+
+end
+
 type activity =
     {
       mutable active : bool;
@@ -74,8 +171,6 @@ type activity =
       mutable active_wakener : unit Lwt.u;
       mutable restart_waiter : string Lwt.t;
       mutable restart_wakener : string Lwt.u;
-      mutable active_until_timeout : bool;
-      mutable always_active : bool;
     }
 
 type handler =
@@ -127,8 +222,8 @@ let handle_focus handler =
   in
   let blur_callback () =
     handler.hd_activity.focused <- false;
-    if not (handler.hd_activity.active_until_timeout
-	  || handler.hd_activity.always_active)
+    if not ((Configuration.get ()).Configuration.active_until_timeout
+	  || (Configuration.get ()).Configuration.always_active)
     then handler.hd_activity.active <- false
   in
   add_focus_listener focus_callback;
@@ -144,31 +239,28 @@ let max_retries = 5
     focused to make the request *)
 let wait_data service activity count =
   let call_service () =
-    Eliom_client.call_service service () (Eliom_common_comet.Request_data !count) >>=
-      (fun s ->
-	match s with
-	  | "TIMEOUT" -> Lwt.fail Timeout
-	  | s -> Lwt.return s)
+    lwt () = Configuration.sleep_before_next_request () in
+    lwt s = Eliom_client.call_service service () (Eliom_common_comet.Request_data !count) in
+    match s with
+      | "TIMEOUT" -> Lwt.fail Timeout
+      | s -> Lwt.return s
   in
   let rec aux retries =
     if activity.active
     then
-      Lwt.catch
-	(fun () ->
-	  Lwt.choose [
-	    call_service ();
-	    activity.restart_waiter ]
-	  >>=
-	   (fun s ->
-	     incr count;
-	     Lwt.return (Some s)))
-	(function
+      begin
+	try_lwt
+	  lwt s = Lwt.choose [call_service ();
+			      activity.restart_waiter ] in
+          incr count;
+          Lwt.return (Some s)
+        with
 	  | Eliom_request.Failed_request 0 ->
 	    if retries > max_retries
 	    then
 	      (log "Eliom_client_comet: connection failure";
 	       set_activity activity false;
-	       aux 0)
+	     aux 0)
 	    else
 	      (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
 	  | Restart -> log "Eliom_client_comet: restart";
@@ -176,12 +268,14 @@ let wait_data service activity count =
 	  | Timeout ->
 	    if not activity.focused
 	    then
-	      if not activity.always_active
+	      if not (Configuration.get ()).Configuration.always_active
 	      then set_activity activity false;
 	    aux 0
-	  | e -> log "Eliom_client_comet: exception"; Lwt.fail e)
-    else
-      activity.active_waiter >>= (fun () -> aux 0)
+	  | e -> log "Eliom_client_comet: exception"; Lwt.fail e
+      end
+     else
+       lwt () = activity.active_waiter in
+       aux 0
   in
   fun () -> aux 0
 
@@ -196,8 +290,6 @@ let init_activity () =
     focused = true;
     active_waiter; active_wakener;
     restart_waiter; restart_wakener;
-    active_until_timeout = false;
-    always_active = false
   }
 
 let init () =
@@ -254,7 +346,7 @@ let close chan_id =
   let hd = get_hd () in
   close' hd (Eliom_common_comet.string_of_chan_id chan_id)
 
-let register chan_id =
+let register ?(wake=true) chan_id =
   let chan_id = Eliom_common_comet.string_of_chan_id chan_id in
   let hd = get_hd () in
   let stream = Lwt_stream.filter_map
@@ -273,14 +365,12 @@ let register chan_id =
   (* protect the stream from cancels *)
   let stream = Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream)) in
   hd.hd_commands [Eliom_common_comet.Register chan_id];
-  activate ();
+  if wake then activate ();
   stream
 
-let unwrap chan_id =
+let unwrap ?wake chan_id =
   let chan_id = Eliommod_cli.unwrap chan_id in
-  register chan_id
-
-let active_until_timeout v = (get_hd ()).hd_activity.active_until_timeout <- v
-let always_active v = (get_hd ()).hd_activity.always_active <- v
+  register ?wake chan_id
 
 let is_active () = (get_hd ()).hd_activity.active
+

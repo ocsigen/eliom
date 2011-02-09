@@ -39,20 +39,50 @@ val activate : unit -> unit
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
 
-val active_until_timeout : bool -> unit
-(** [active_until_timeout v] sets the activity changing behaviour. if
-    [v] is [true] the page is kept active even if not focused until the
-    client receive a timeout message from the server. It implies that
-    if the server keeps sending datas to the client, the comet
-    connection will never be closed *)
+module Configuration :
+sig
+  (** This modules is used to change the reactivity of channels.
+      Multiples configurations ( of type [t] ) can be created. The
+      resulting behaviour is the minimal ( in the meaning of maximal
+      reactivity ) between all configurations *)
+  
+  type t
 
-val always_active : bool -> unit
-(** [always_active true] tells the client to always stay active *)
+  val new_configuration : unit -> t
+  (** Creates a new configuration with default value. It modifies the
+      current behaviour immediately *)
+
+  val drop_configuration : t -> unit
+  (** [drop_configuration t] restores the behaviour to the minimum of
+      configuration without [t]. If there is no other configuration
+      than [t], it is restored to the defaults. *)
+
+  val set_always_active : t -> bool -> unit
+  (** [set_always_active c true] tells the client to always stay active.
+      Default value is false. *)
+
+  val set_active_until_timeout : t -> bool -> unit
+  (** [set_active_until_timeout c v] sets the activity changing
+      behaviour. if [v] is [true] the page is kept active even if not
+      focused until the client receive a timeout message from the
+      server. It implies that if the server keeps sending datas to the
+      client, the comet connection will never be closed.
+      Default value is false. *)
+
+  val set_time_between_request : t -> float -> unit
+  (** after [set_time_between_request t v], the main loop will wait for
+      [v] seconds between two requests. It is taken into account
+      immediately.
+      Default value is 0.*)
+
+end
 
 (**/**)
 
-val unwrap : 'a Eliom_common_comet.chan_id Eliom_client_types.data_key -> 'a Lwt_stream.t
-val register : 'a Eliom_common_comet.chan_id -> 'a Lwt_stream.t
+val unwrap : ?wake:bool -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key -> 'a Lwt_stream.t
+val register : ?wake:bool -> 'a Eliom_common_comet.chan_id -> 'a Lwt_stream.t
+(** if wake is false, the registration of the channel won't
+    activate the handling loop ( no request will be sent ). Default is true *)
 
 val restart : unit -> unit
 (** [restart ()] Restarts the loop waiting for server messages. It is
