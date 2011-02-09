@@ -1411,8 +1411,31 @@ let tlogin_box session_expired action =
 (* Handler for "persist_session_example" service (main page):  *)
 
 let tpersist_session_example_handler () () =
+    let timeoutcoserv =
+      Eliom_services.coservice
+        ~fallback:tpersist_session_example ~get_params:unit ~timeout:5. ()
+    in
+    let _ =
+      Eliom_output.Xhtml5.register ~service:timeoutcoserv
+        ~scope:`Client_process
+        (fun _ _ ->
+          return
+             (html
+               (head (title (pcdata "Cooooooooservices with timeouts")) [])
+               (body [p
+                 [pcdata "I am a coservice with timeout."; br ();
+                  pcdata "Try to reload the page!"; br ();
+                  pcdata "I will disappear after 5 seconds of inactivity.";
+                  pcdata "Pour l'instant c'est un Eliom_output.Xhtml5 au lieu de Eliom_appl parce qu'il y a un bug à corriger dans ce cas. Remettre Eliom_appl ici et ajouter un test pour ce bug." ];
+                 ])))
+(*            [p [pcdata "I am a coservice with timeout."; br ();
+                a timeoutcoserv [pcdata "Try again"] (); br ();
+                pcdata "I will disappear after 5 seconds of inactivity." ];
+            ])
+*)
+    in
   Eliom_state.get_persistent_data ~table:tmy_persistent_table () >>= fun sessdat ->
-  return
+  Lwt.return
     (match sessdat with
       | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
@@ -1713,14 +1736,23 @@ let _ =
         ~fallback:ttimeout ~get_params:unit ~timeout:5. ()
     in
     let _ =
-      Eliom_appl.register ~service:timeoutcoserv
+      Eliom_output.Xhtml5.register ~service:timeoutcoserv
         ~scope:`Client_process
         (fun _ _ ->
           return
-            [p [pcdata "I am a coservice with timeout."; br ();
+             (html
+               (head (title (pcdata "Cooooooooservices with timeouts")) [])
+               (body [p
+                 [pcdata "I am a coservice with timeout."; br ();
+                  pcdata "Try to reload the page!"; br ();
+                  pcdata "I will disappear after 5 seconds of inactivity.";
+                  pcdata "Pour l'instant c'est un Eliom_output.Xhtml5 au lieu de Eliom_appl parce qu'il y a un bug à corriger dans ce cas. Remettre Eliom_appl ici et ajouter un test pour ce bug." ];
+                 ])))
+(*            [p [pcdata "I am a coservice with timeout."; br ();
                 a timeoutcoserv [pcdata "Try again"] (); br ();
                 pcdata "I will disappear after 5 seconds of inactivity." ];
             ])
+*)
     in
     return
       [h2 [pcdata "Client process coservices with timeouts"];
@@ -1729,6 +1761,79 @@ let _ =
       ]
   in
   Eliom_appl.register ttimeout page
+
+
+
+(*****************************************************************************)
+(* Session + Eliom_appl *)
+let state_name = "session_appl"
+
+let connect_example789 =
+  Eliom_services.service ~path:["session_appl"] ~get_params:unit ()
+
+let connect_action789 =
+  Eliom_services.post_coservice'
+    ~name:"connection789"
+    ~post_params:(string "login")
+    ()
+
+let disconnect_action789 =
+  Eliom_output.Action.register_post_coservice'
+    ~name:"disconnection789"
+    ~post_params:Eliom_parameters.unit
+    (fun () () -> Eliom_state.close_session (*~state_name*) ())
+
+let disconnect_box s =
+  Eliom_appl.post_form disconnect_action789
+    (fun _ -> [p [Eliom_appl.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+let bad_user = Eliom_references.eref (*~state_name*) ~scope:`Request false
+
+let user = Eliom_references.eref (*~state_name*) ~scope:`Session None
+
+let login_box session_expired bad_u action =
+  Eliom_appl.post_form action
+    (fun loginname ->
+      let l =
+        [pcdata "login: ";
+         Eliom_appl.string_input ~input_type:`Text ~name:loginname ()]
+      in
+      [p (if bad_u
+        then (pcdata "Wrong user")::(br ())::l
+        else
+          if session_expired
+          then (pcdata "Session expired")::(br ())::l
+          else l)
+      ])
+    ()
+
+let connect_example_handler () () =
+  let status = Eliom_state.volatile_data_state_status (*~state_name*) () in
+  Eliom_references.get bad_user >>= fun bad_u ->
+  Eliom_references.get user >>= fun u ->
+  Lwt.return
+    (match u, status with
+      | Some name, _ ->
+        [p [pcdata ("Hello "^name); br ()];
+         disconnect_box "Close session"]
+      | None, Eliom_state.Expired_state ->
+        [login_box true bad_u connect_action789;
+         p [em [pcdata "The only user is 'toto'."]]]
+      | _ ->
+        [login_box false bad_u connect_action789;
+         p [em [pcdata "The only user is 'toto'."]]]
+    )
+
+let connect_action_handler () login =
+  Eliom_state.close_session (*~state_name*) () >>= fun () ->
+  if login = "toto"
+  then Eliom_references.set user (Some login)
+  else Eliom_references.set bad_user true
+
+let () =
+  Eliom_appl.register ~service:connect_example789 connect_example_handler;
+  Eliom_output.Action.register ~service:connect_action789 connect_action_handler
 
 
 
@@ -2056,6 +2161,10 @@ let _ = Eliom_output.Xhtml5compact.register main
 
               pcdata "A session based on cookies, implemented with actions, with session groups: ";
               a connect_example5 [code [pcdata "groups"]] ();
+              br ();
+
+              pcdata "Session and client process: ";
+              a connect_example789 [code [pcdata "session_appl"]] ();
               br ();
 
 (*

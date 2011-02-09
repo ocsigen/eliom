@@ -64,7 +64,7 @@ let raw_post_service =
            (head (title (pcdata "raw post data")) [])
            (body [p [pcdata "I received POST data, with content-type = ";
                      pcdata ct;
-                     pcdata ", and (the first 1000 bytes of) the content are:"];
+                     pcdata ", and the first 1000 bytes of the content are:"];
                   p [pcdata s]])
         )
     )
