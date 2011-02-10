@@ -1,9 +1,11 @@
 include ../../Makefile.config
 
+export OCAMLPATH := ../../deriving/tmp:${OCAMLPATH}
+
 PP = -pp camlp4of
 LIBS = -I +camlp4 -I +camlp4/Camlp4Printers -I +camlp4/Camlp4Parsers -I +camlp4/Camlp4Filters
 
-OCAMLDEP = $(OCAMLFIND) ocamldep $(LIBS) $(PP)
+OCAMLDEP = $(OCAMLFIND) ocamldep $(LIBS) $(PP) -package deriving.syntax
 OCAMLC = $(OCAMLFIND) $(CAMLCNAME) $(LIBS) $(PP)
 
 FILES:= pa_eliom_seed.ml \

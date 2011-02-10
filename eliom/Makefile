@@ -93,7 +93,7 @@ CAMLDUCEC = $(OCAMLDUCEFIND) $(CAMLCNAME2) $(DBG) $(LIBDUCE)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDUCEOPT = $(OCAMLDUCEFIND) $(CAMLOPTNAME) $(DBG) $(LIBDUCE)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
-CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
+CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS) -package deriving.syntax -syntax camlp4o
 PP = 
 PP2 = 
 # -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"
