@@ -47,7 +47,7 @@ let create_form =
 
 let form = register_service ["form"] unit
   (fun () () ->
-     let f = get_form Tutoeliom.coucou_params create_form in
+     let f = get_form Eliom_testsuite1.coucou_params create_form in
      return
         {{ <html xmlns="http://www.w3.org/1999/xhtml">
              [<head> [<title> ""]

@@ -316,7 +316,7 @@ let count3 =
 
 (*****************************************************************************)
 
-open Tutoeliom
+open Eliom_testsuite1
 open XHTML.M
 open Eliom_output.Xhtmlcompact
 open Eliom_output
@@ -640,17 +640,17 @@ let void_with_nlp =
   Eliom_services.add_non_localized_get_parameters
     my_nl_params Eliom_services.void_hidden_coservice'
 
-let nlparams = service
+let nlparams2 = service
     ~path:["voidnl"]
     ~get_params:(suffix_prod (int "year" ** int "month") (int "w" ))
     ()
 
-let nlparams_with_nlp =
+let nlparams2_with_nlp =
   Eliom_services.add_non_localized_get_parameters
-    my_nl_params nlparams
+    my_nl_params nlparams2
 
 let () = register
-  nlparams
+  nlparams2
   (fun ((aa, bb), w) () ->
      Lwt.return
        (html
@@ -658,7 +658,7 @@ let () = register
           (body [p [
                    a void_with_nlp
                      [pcdata "void coservice with non loc param"] ((), (11, "aa"));
-                   a nlparams_with_nlp
+                   a nlparams2_with_nlp
                      [pcdata "myself with non loc param"] (((4, 5), 777), (12, "ab"))];
                  p [pcdata "I have my suffix, ";
                     pcdata ("with values year = "^string_of_int aa^
@@ -768,7 +768,7 @@ let create_form (n1, (_, n2)) =
 
 let constform = register_service ["constform"] unit
   (fun () () ->
-     let f = get_form Tutoeliom.constfix create_form in
+     let f = get_form Eliom_testsuite1.constfix create_form in
      return
         (html
           (head (title (pcdata "")) [])
@@ -1120,9 +1120,9 @@ let _ =
 (* Many cookies *)
 let cookiename = "c"
 
-let cookies = service ["c";""] (suffix (all_suffix_string "s")) ()
+let cookies2 = service ["c";""] (suffix (all_suffix_string "s")) ()
 
-let _ = Eliom_output.Xhtml.register cookies
+let _ = Eliom_output.Xhtml.register cookies2
     (fun s () ->
       let now = Unix.time () in
       Eliom_state.set_cookie
@@ -1170,8 +1170,8 @@ let _ = Eliom_output.Xhtml.register cookies
                             (br ())::l
                         )
                         (Eliom_request_info.get_cookies ())
-                        [a cookies [pcdata "send other cookies"] ""; br ();
-                         a cookies [pcdata "send other cookies and see the url /c/plop"] "plop"]
+                        [a cookies2 [pcdata "send other cookies"] ""; br ();
+                         a cookies2 [pcdata "send other cookies and see the url /c/plop"] "plop"]
                      )]))
     )
 
@@ -1849,92 +1849,3 @@ let sfail =
     (fun () () -> Lwt.fail (Failure "Service raising an exception"))
 
 
-(******************************************************************)
-let mainpage = register_service ["tests"] unit
- (fun () () ->
-   return
-    (html
-     (head (title (pcdata "Test"))
-        [css_link (make_uri ~service:(static_dir ()) ["style.css"]) ()])
-     (body
-       [h1 [img ~alt:"Ocsigen" ~src:(make_uri ~service:(static_dir ()) ["ocsigen5.png"]) ()];
-        h3 [pcdata "Eliom tests"];
-        p
-        [
-         a coucou [pcdata "coucou"] (); br ();
-         a sumform [pcdata "alternative parameters"] (); br ();
-         a sumform2 [pcdata "alternative parameters with POST"] (); br ();
-         a optform [pcdata "Optional parameters"] (); br ();
-         a sfail [pcdata "Service raising an exception"] (); br ();
-         a sraise [pcdata "Wrong use of exceptions during service"] (); br ();
-         a getcoex [pcdata "GET coservice with preapplied fallback, etc"] (); br ();
-         a postcoex [pcdata "POST service with coservice fallback"] (); br ();
-         a su [pcdata "Suffix and other service at same URL"] (); br ();
-         a suffixform_su2 [pcdata "Suffix and other service at same URL: a form towards the suffix service"] (); br ();
-         a su4 [pcdata "Suffix service with constant part and priority"] ("aa", ((), "bb")); br ();
-         a preappliedsuffix [pcdata "Preapplied suffix"] (); br ();
-         a constform [pcdata "Form towards suffix service with constants"] (); br ();
-         a getact [pcdata "action on GET attached coservice, etc"] 127; br ();
-         a cookies [pcdata "Many cookies"] "le suffixe de l'URL"; br ();
-         a headers [pcdata "Customizing HTTP headers"] (); br ();
-         a sendfileex [pcdata "Send file"] (); br ();
-         a sendfile2 [pcdata "Send file 2"] "style.css"; br ();
-         a sendfileexception [pcdata "Do not send file"] (); br ();
-         a sendfileregexp [pcdata "Send file with regexp"] (); br ();
-         a suffixform2 [pcdata "Suffix 2"] (); br ();
-         a suffixform3 [pcdata "Suffix 3"] (); br ();
-         a suffixform4 [pcdata "Suffix 4"] (); br ();
-         a nosuffix [pcdata "Page without suffix on the same URL of a page with suffix"] (); br ();
-         a anypostform [pcdata "POST form to any parameters"] (); br ();
-         a any2 [pcdata "int + any parameters"]
-           (3, [("Ciao","bel"); ("ragazzo","!")]); br ();
-         a any3 [pcdata "any parameters broken (s after any)"]
-           (4, ([("Thierry","Richard");("Sébastien","Stéphane")], "s")); br ();
-(* broken        a any4 [pcdata "Any in suffix"] [("bo","ba");("bi","bu")]; br (); *)
-         a any5 [pcdata "Suffix + any parameters"]
-           ("ee", [("bo","ba");("bi","bu")]); br ();
-         a uploadgetform [pcdata "Upload with GET"] (); br ();
-         a sufli [pcdata "List in suffix"] [("bo", 4);("ba", 3);("bi", 2);("bu", 1)]; br ();
-         a sufliform [pcdata "Form to list in suffix"] (); br ();
-         a sufliopt [pcdata "List of optional values in suffix"] [None; Some "j"]; br ();
-         a sufliopt2 [pcdata "List of optional pairs in suffix"] [None; Some ("j", "ee")]; br ();
-         a sufset [pcdata "Set in suffix"] ["bo";"ba";"bi";"bu"]; br ();
-(*         a sufli2 [pcdata "List not in the end of in suffix"] ([1; 2; 3], 4); br (); *)
-         a boollistform [pcdata "Bool list"] (); br ();
-         a lilists [pcdata "List of lists in parameters"] (); br ();
-         a preappmenu [pcdata "Menu with pre-applied services"] (); br ();
-         a exn_act_main [pcdata "Actions that raises an exception"] (); br ();
-         a close_from_outside [pcdata "Closing sessions from outside"] (); br ();
-         a set_timeout_form [pcdata "Setting timeouts from outside sessions"] (); br ();
-         a
-           ~fragment:"a--   ---++&é/@"
-           ~service:url_encoding
-           [pcdata "Urls with strange characters inside"]
-           (["l/l%l      &l=l+l)l@";"m\\m\"m";"n?èn~n"],
-            [("po?po&po~po/po+po", "lo?\"l     o#lo'lo lo=lo&l      o/lo+lo");
-            ("bo=mo@co:ro", "zo^zo%zo$zo:zo?aaa")]); br ();
-         a ~service:(static_dir_with_params ~get_params:Eliom_parameters.any ())
-           [pcdata "Static file with GET parameters"]
-           (["ocsigen5.png"], [("aa", "lmk"); ("bb", "4")]); br ();
-
-         a extreq [pcdata "External request"] (); br ();
-         a servreq [pcdata "Server request"] (); br ();
-         a servreqloop [pcdata "Looping server request"] (); br ();
-
-         a nlparams [pcdata "nl params and suffix, on void coservice"] ((3, 5), 222); br ();
-         a optsuf [pcdata "optional suffix"] None; br ();
-         a optsuf [pcdata "optional suffix"] (Some ("<a to/to=3?4=2>", None)); br ();
-         a optsuf [pcdata "optional suffix"] (Some ("toto", Some 2)); br ();
-         a optsuf2 [pcdata "optional suffix 2"] (Some "un", Some 2); br ();
-         a optsuf2 [pcdata "optional suffix 2"] (None, Some 2); br ();
-         a optsuf2 [pcdata "optional suffix 2"] (Some "un", None); br ();
-         a optsuf2 [pcdata "optional suffix 2"] (None, None); br ();
-
-         a csrfsafe_get_example [pcdata "GET CSRF safe service"] (); br ();
-         a csrfsafe_postget_example [pcdata "POST CSRF safe service on GET CSRF safe service"] (); br ();
-         a csrfsafe_session_example [pcdata "POST non attached CSRF safe service in session table"] (); br ();
-         a unregister_example [pcdata "Unregistering services"] (); br ();
-         a raw_post_example [pcdata "Raw POST data"] (); br ();
-
-
-       ]])))

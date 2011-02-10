@@ -35,11 +35,11 @@ DBMCMATOINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma
 else
 endif
 
-METAS = files/META files/META.ocsigen_xhtml files/META.ocsigen files/META.eliom_examples files/META.eliom_examples.global
+METAS = files/META files/META.ocsigen_xhtml files/META.ocsigen files/META.eliom_tests files/META.eliom_tests.global
 
 
 INSTALL = install
-TARGETSBYTE = baselib.byte xmlp4.byte http.byte server.byte extensions.byte eliom.byte examples.byte
+TARGETSBYTE = baselib.byte xmlp4.byte http.byte server.byte extensions.byte eliom.byte eliom/tests.byte
 
 # plugins are cma (and cmxs) that can be loaded dynamically by the server
 PLUGINSCMATOINSTALL = $(SQLITECMATOINSTALL) $(DBMCMATOINSTALL) \
@@ -79,26 +79,26 @@ CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/xhtmlpretty.cma	\
 	xmlp4/xhtml.cma server/ocsigen.cma 
 CMOTOINSTALL = server/server_main.cmo
 DOCPREF=
-EXAMPLESCMOA = examples/tutoeliom.cma examples/monitoring.cmo	\
-	examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
+ELIOMTESTSCMOA = eliom/tests/eliom_testsuite.cma eliom/tests/monitoring.cmo	\
+	eliom/tests/miniwiki/miniwiki.cmo $(DUCEELIOMTESTS)
 
-EXAMPLESCMI = examples/tutoeliom.cmi
+ELIOMTESTSCMI = eliom/tests/eliom_testsuite1.cmi eliom/tests/eliom_testsuite2.cmi eliom/tests/eliom_testsuite3.cmi eliom/tests/eliom_testsuite.cmi
 
 ifeq "$(BYTECODE)" "YES"
 TOINSTALLBYTE=$(CMATOINSTALL) $(CMOTOINSTALL)
 PLUGINSTOINSTALLBYTE=$(PLUGINSCMATOINSTALL) $(PLUGINSCMOTOINSTALL)
-EXAMPLESBYTE=$(EXAMPLESCMOA)
+ELIOMTESTSBYTE=$(ELIOMTESTSCMOA)
 BYTE=byte
 else
 TOINSTALLBYTE=
 PLUGINSTOINSTALLBYTE=
-EXAMPLESBYTE=
+ELIOMTESTSBYTE=
 BYTE=
 endif
 
 ifeq "$(NATDYNLINK)" "YES"
 CMXS=$(PLUGINSCMOTOINSTALL:.cmo=.cmxs) $(PLUGINSCMATOINSTALL:.cma=.cmxs)
-EXAMPLECMXS=$($(EXAMPLESCMOA:.cmo=.cmxs):.cma=.cmxs)
+EXAMPLECMXS=$($(ELIOMTESTSCMOA:.cmo=.cmxs):.cma=.cmxs)
 else
 CMXS=
 EXAMPLECMXS=
@@ -116,13 +116,13 @@ TOINSTALLX=$(CMATOINSTALL:.cma=.cmxa) \
 	   $(PLUGINSCMOTOINSTALL:.cmo=.o) \
 	   $(PLUGINSCMATOINSTALL:.cma=.cmxa) \
 	   $(PLUGINSCMATOINSTALL:.cma=.a)
-EXAMPLESOPT=$(EXAMPLECMXS)
+ELIOMTESTSOPT=$(EXAMPLECMXS)
 OPT=opt
 DEPOPT=xmlp4pre.opt
 else
 TOINSTALLX=
 PLUGINSTOINSTALLX=
-EXAMPLESOPT=
+ELIOMTESTSOPT=
 OPT=
 endif
 
@@ -172,7 +172,7 @@ CLIENTCMITOINSTALL= \
         eliom/client/xHTML5.cmi \
 	eliom/client/eliommod_cli.cmi
 
-EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
+ELIOMTESTS=$(ELIOMTESTSBYTE) $(ELIOMTESTSOPT) $(ELIOMTESTSCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
 STD_METAS_DIR=$(MODULEINSTALLDIR)
@@ -243,13 +243,13 @@ eliom.byte:
 eliom.opt:
 	$(MAKE) -C eliom opt
 
-examples: examples.byte
+eliom/tests: eliom/tests.byte
 
-examples.byte:
-	$(MAKE) -C examples byte
+eliom/tests.byte:
+	$(MAKE) -C eliom/tests byte
 
-examples.opt:
-	$(MAKE) -C examples opt
+eliom/tests.opt:
+	$(MAKE) -C eliom/tests opt
 
 server: server.byte
 
@@ -315,11 +315,11 @@ files/META.ocsigen: files/META.in VERSION
 	echo ")" >> $@
 #	sed "s%\"xhtml\" (%\"xhtml\" (\n  directory = \"$(SRC)/xmlp4/xhtml/\"%g" >> $@
 
-files/META.eliom_examples: files/META.eliom_examples.in VERSION
-	sed $(SED_COMMAND_FOR_META) -e "s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g" < $< > $@
+files/META.eliom_tests: files/META.eliom_tests.in VERSION
+	sed $(SED_COMMAND_FOR_META) -e "s%_ELIOMTESTSINSTALLDIR_%$(SRC)/eliom/tests%g" < $< > $@
 
-files/META.eliom_examples.global: files/META.eliom_examples.in VERSION
-	sed $(SED_COMMAND_FOR_META) -e "s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g"< $< > $@
+files/META.eliom_tests.global: files/META.eliom_tests.in VERSION
+	sed $(SED_COMMAND_FOR_META) -e "s%_ELIOMTESTSINSTALLDIR_%$(ELIOMTESTSINSTALLDIR)%g"< $< > $@
 
 $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	cat files/ocsigen.conf.in \
@@ -337,11 +337,11 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	| sed s%_MIMEFILE_%$(SRC)/files/mime.types%g \
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/extensions%g \
 	| sed s%_ELIOMINSTALLDIR_%$(SRC)/eliom%g \
-	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
+	| sed s%_ELIOMTESTSINSTALLDIR_%$(SRC)/eliom/tests%g \
 	| sed s%_METADIR_%`${OCAMLFIND} query stdlib`\"/\>\<findlib\ path=\"$(SRC)/deriving/tmp\"/\>\<findlib\ path=\"$(SRC)/files%g \
 	| sed s%_CAMLZIPNAME_%$(CAMLZIPNAME)%g \
-	| sed s%files/miniwiki%examples/miniwiki/files%g \
-	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
+	| sed s%files/miniwiki%eliom/tests/miniwiki/files%g \
+	| sed s%var/lib/miniwiki%eliom/tests/miniwiki/wikidata%g \
 	| sed s%\<\!--\ \<commandpipe%\<commandpipe%g \
 	| sed s%\</commandpipe\>%\</commandpipe\>\ \<\!--%g \
 	| sed s%\<\!--\ \<mimefile%\<mimefile%g \
@@ -381,7 +381,7 @@ partialinstall:
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/syntax
-	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
+	mkdir -p $(TEMPROOT)$(ELIOMTESTSINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/METAS
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	mkdir -p $(TEMPROOT)$(STD_METAS_DIR)
@@ -390,18 +390,18 @@ partialinstall:
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(CLIENTCMITOINSTALL) $(CLIENTCMOTOINSTALL) $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/client
 	$(INSTALL) -m 644 $(ELIOMSYNTAXTOINSTALL) $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/syntax
-	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
+	$(INSTALL) -m 644 $(ELIOMTESTS) $(TEMPROOT)$(ELIOMTESTSINSTALLDIR)
 #	$(INSTALL) -m 644 $(PLUGINSTOINSTALL) $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	[ ! -f extensions/ocsipersist-dbm/ocsidbm.opt ] || \
 	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)/extensions
 #	$(INSTALL) -m 644 META.ocsigen_ext.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
-	$(INSTALL) -m 644 files/META.eliom_examples.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
+	$(INSTALL) -m 644 files/META.eliom_tests.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_tests
 	$(INSTALL) -m 644 files/META.ocsigen_xhtml $(TEMPROOT)$(STD_METAS_DIR)
 	chmod a+rx $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)
 	chmod a+r $(TEMPROOT)$(MODULEINSTALLDIR)/$(OCSIGENNAME)/*
 	chmod a+rx $(TEMPROOT)$(MODULEINSTALLDIR)
-	chmod a+rx $(TEMPROOT)$(EXAMPLESINSTALLDIR)
+	chmod a+rx $(TEMPROOT)$(ELIOMTESTSINSTALLDIR)
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/METAS
 	chmod a+rx $(TEMPROOT)$(EXTRALIBDIR)/extensions
@@ -441,7 +441,7 @@ install: partialinstall
 	| sed s%_MIMEFILE_%$(CONFIGDIR)/mime.types%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_ELIOMINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
-	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
+	| sed s%_ELIOMTESTSINSTALLDIR_%$(ELIOMTESTSINSTALLDIR)%g \
 	| sed s%_METADIR_%$(EXTRALIBDIR)/METAS%g \
 	| sed s%_CAMLZIPNAME_%$(CAMLZIPNAME)%g \
 	> $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
@@ -470,8 +470,8 @@ install: partialinstall
 	$(INSTALL) -m 644 files/tutorial/bulles-bleues.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/tutorial/ocsigen5.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)$(STATICPAGESDIR)/ocsigenstuff
-	$(INSTALL) -m 644 examples/miniwiki/files/style.css $(TEMPROOT)$(STATICPAGESDIR)/miniwiki
-	$(INSTALL) -m 644 examples/miniwiki/wikidata/* $(TEMPROOT)$(DATADIR)/miniwiki
+	$(INSTALL) -m 644 eliom/tests/miniwiki/files/style.css $(TEMPROOT)$(STATICPAGESDIR)/miniwiki
+	$(INSTALL) -m 644 eliom/tests/miniwiki/wikidata/* $(TEMPROOT)$(DATADIR)/miniwiki
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)$(LOGDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)$(STATICPAGESDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)$(DATADIR)

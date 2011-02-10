@@ -53,7 +53,7 @@
       <!-- An example: a wiki written by Janne Hellsten: -->
       <site path="miniwiki" charset="utf-8">
         <static dir="_STATICPAGESDIR_/miniwiki" />
-        <eliom findlib-package="eliom_examples.miniwiki">
+        <eliom findlib-package="eliom_tests.miniwiki">
           <!-- Where to store Wiki pages -->
           <wikidata dir="_DATADIR_/miniwiki"/>
         </eliom>
@@ -61,9 +61,9 @@
 
 
       <!-- Eliom Tutorial -->
-      <static dir="_STATICPAGESDIR_/tutorial" />
+      <static dir="_STATICPAGESDIR_/tests" />
 
-      <eliom findlib-package="eliom_examples.tutoeliom" />
+      <eliom findlib-package="eliom_tests.testsuite" />
 
 
     </host>

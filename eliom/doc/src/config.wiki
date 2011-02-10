@@ -84,7 +84,7 @@ tag for each <<span class="code"|<site>>>
 ===Using findlib with Eliom modules===
 
 If your module has a findlib <<span class="code"|META>> file,
-it is also possible to do:
+it is also possible (and recommended!) to do:
 
 <<div class="pre"|<host>
   <site path="examples">

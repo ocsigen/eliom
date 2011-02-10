@@ -86,7 +86,7 @@ set_defaults () {
     enable_dbm=1
     prefix="/usr/local"
     bindir=""
-    examplesdir=""
+    eliomtestsdir=""
     libdir=""
     stubdir=""
     logdir=""
@@ -154,9 +154,9 @@ print_options () {
             *) bindir2=$bindir;;
         esac
 
-        case "$examplesdir" in
-            "") examplesdir2="<prefix>/lib/<name>/examples";;
-            *) examplesdir2=$examplesdir;;
+        case "$eliomtestsdir" in
+            "") eliomtestsdir2="<prefix>/lib/<name>/eliomtests";;
+            *) eliomtestsdir2=$eliomtestsdir;;
         esac
 
         case "$libdir" in
@@ -199,7 +199,7 @@ print_options () {
 	echo "    --stubdir $stubdir2"
 	echo "    --logdir $logdir2"
         echo "    --extralibdir $extralibdir"
-	echo "    --examplesdir $examplesdir2"
+	echo "    --eliomtestsdir $eliomtestsdir2"
 	echo "    --mandir $mandir2"
 	echo "    --docdir $docdir2"
 	echo "    --sysconfdir $sysconfdir"
@@ -260,8 +260,8 @@ _EOF_
 --extralibdir dir
         Install Ocsigen's extensions' extra libraries (e.g. ocsidbm) into this directory
 
---examplesdir dir
-        Install Ocsigen's examples sites into this directory
+--eliomtestsdir dir
+        Install Eliom's tests into this directory
 
 --mandir dir
 	Install man pages in this directory
@@ -391,8 +391,8 @@ while [ "$#" -gt 0 ]; do
                         shift
                         shift
                         ;;
-                --examplesdir)
-                        examplesdir="$2"
+                --eliomtestsdir)
+                        eliomtestsdir="$2"
                         shift
                         shift
                         ;;
@@ -460,8 +460,8 @@ case "$bindir" in
   "") bindir="$prefix/bin";;
 esac
 
-case "$examplesdir" in
-  "") examplesdir="$prefix/lib/\$(OCSIGENNAME)/examples";;
+case "$eliomtestsdir" in
+  "") eliomtestsdir="$prefix/lib/\$(OCSIGENNAME)/eliomtests";;
 esac
 
 case "$libdir" in
@@ -695,8 +695,8 @@ STUBDIR = $root$stubdir
 # Where to install the directory for ocsigen extensions' libraries (e.g. ocsidbm):
 EXTRALIBDIR = $root$extralibdir/\$(OCSIGENNAME)
 
-# Where to install examples:
-EXAMPLESINSTALLDIR = $root$examplesdir
+# Where to install eliomtests:
+ELIOMTESTSINSTALLDIR = $root$eliomtestsdir
 
 # User who will run Ocsigen server (not root) (eg, for debian, www-data)
 # (This user must exist on your system)
