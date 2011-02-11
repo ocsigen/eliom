@@ -46,9 +46,9 @@ PP = -syntax camlp4o -ppopt "../../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(CMXS)
 
-byte: eliom_testsuite.cma $(OBJS) $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../../files/tutorial/eliom_testsuite3.js
+byte: eliom_testsuite.cma $(OBJS) $(DUCEMODBYTE) miniwiki.byte $(TUTOWIKI) ../../files/tests/eliom_testsuite3.js
 
-opt: $(OBJSOPT) eliom_testsuite.cmxs $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../../files/tutorial/eliom_testsuite3.js
+opt: $(OBJSOPT) eliom_testsuite.cmxs $(DUCEMODOPT) miniwiki.opt $(TUTOWIKI) ../../files/tests/eliom_testsuite3.js
 
 exampleduce.cmo: ocamlduce/exampleduce.cmo
 	cp ocamlduce/exampleduce.cmo .
@@ -88,7 +88,7 @@ miniwiki.opt:
 eliom_testsuite3.js: $(ELIOMCLIENTDIR)/eliom_client.js syntax_temp_files/eliom_testsuite3
 	js_of_ocaml -pretty $^ -o $@
 
-../../files/tutorial/eliom_testsuite3.js: eliom_testsuite3.js
+../../files/tests/eliom_testsuite3.js: eliom_testsuite3.js
 	cp -f $< $@
 
 
@@ -169,7 +169,7 @@ eliom_testsuite.cmxs: eliom_testsuite1.cmx eliom_testsuite2.cmx eliom_testsuite3
 
 clean:
 	$(MAKE) -C miniwiki clean
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot eliom_testsuite3.js eliom_testsuite3_client* eliom_testsuite3.ml ../../files/tutorial/eliom_testsuite3_client.js eliom_testsuite3 syntax_temp_files/*
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot eliom_testsuite3.js eliom_testsuite3_client* eliom_testsuite3.ml ../../files/tests/eliom_testsuite3_client.js eliom_testsuite3 syntax_temp_files/*
 
 depend:
 	$(MAKE) -C miniwiki depend
