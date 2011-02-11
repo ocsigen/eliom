@@ -382,6 +382,12 @@ let _ = Eliom_output.Xhtml5compact.register main
             br ();
           ];
 
+            h4 [pcdata "Forms"];
+            p [
+              a suffixformc [pcdata "Form towards internal suffix service"] ();
+            br ();
+            ];
+
             h4 [pcdata "Tab sessions"];
             p [
               pcdata "Coservices: ";

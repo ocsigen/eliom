@@ -64,7 +64,7 @@ open Eliom_services
 module Eliom_appl =
   Eliom_output.Eliom_appl (
     struct
-      let application_name = "testsuite_eliom2"
+      let application_name = "eliom_testsuite3"
       let params =
         {Eliom_output.default_appl_params with
            Eliom_output.ap_title = "Eliom application example";
@@ -1835,4 +1835,36 @@ let () =
   Eliom_appl.register ~service:connect_example789 connect_example_handler;
   Eliom_output.Action.register ~service:connect_action789 connect_action_handler
 
+(*****************************************************************************)
+(* Form towards internal suffix service *)
+let isuffixc =
+  Eliom_appl.register_service
+    ~path:["isuffixc"]
+    ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
+    (fun ((suff, endsuff), i) () ->
+      Lwt.return
+        [p [pcdata "The suffix of the url is ";
+            strong [pcdata (string_of_int suff)];
+            pcdata " followed by ";
+            strong [pcdata (Ocsigen_lib.string_of_url_path ~encode:false endsuff)];
+            pcdata " and i is equal to ";
+            strong [pcdata (string_of_int i)]]])
 
+let create_suffixformc ((suff, endsuff),i) =
+    [p [pcdata "Write the suffix:";
+        int_input ~input_type:`Text ~name:suff ();
+        br ();
+        pcdata "Write a string: ";
+        user_type_input
+          (Ocsigen_lib.string_of_url_path ~encode:false)
+          ~input_type:`Text ~name:endsuff ();
+        br ();
+        pcdata "Write an int: ";
+        int_input ~input_type:`Text ~name:i ();
+        br ();
+        string_input ~input_type:`Submit ~value:"Click" ()
+       ]
+    ]
+
+let suffixformc = Eliom_appl.register_service ["suffixformc"] unit
+  (fun () () -> Lwt.return [Eliom_appl.get_form isuffixc create_suffixformc])

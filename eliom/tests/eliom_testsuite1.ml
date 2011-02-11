@@ -1968,7 +1968,7 @@ let _ =
 
           
 %<code language="ocaml"|
-let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
+let r = Netstring_pcre.regexp "\\\\[(.*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@)\\\\]"
 
 let regexp =
   Eliom_output.Xhtml.register_service
