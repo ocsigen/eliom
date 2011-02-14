@@ -414,7 +414,8 @@ module MakeRegister = functor
                                  (files >>= fun files ->
                                   post_params >>= fun post_params ->
                                   if nosuffixversion && suffix_with_redirect &&
-                                    files = [] && post_params = []
+                                    files = [] && post_params = [] &&
+                                    sp.Eliom_common.sp_client_appl_name = None
                                   then (* it is a suffix service in version 
                                           without suffix. We redirect. *)
                                     Lwt.fail
