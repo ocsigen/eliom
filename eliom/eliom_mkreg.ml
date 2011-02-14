@@ -48,15 +48,6 @@ module type REGCREATE =
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
-    (** This function is executed just before the service
-        when we know exactly which service will answer
-        (and after decoding parameters).
-        Usually it does nothing.
-    *)
-    val pre_service :
-      ?options:options ->
-      unit -> unit Lwt.t
-
     (** The following field is usually [Eliom_services.XNever]. 
         This value is recorded inside each service just after registration.
         (Use in [Eliom_output.Eliom_appl])
@@ -503,9 +494,7 @@ module MakeRegister = functor
                              It is ok with this kind of redirections. *)
                           (* If an action occured before, 
                              it may have removed some get params form ri *)
-                               else
-                                 (Pages.pre_service ?options () >>= fun () ->
-                                  page_generator g p))
+                               else page_generator g p)
                               (function
                                 | Eliom_common.Eliom_Typing_Error l ->
                                   error_handler l
@@ -638,7 +627,6 @@ module MakeRegister = functor
                                false
                                None
                              >>= fun p ->
-                             Pages.pre_service ?options () >>= fun () ->
                              page_generator g p)
                            (function
                              | Eliom_common.Eliom_Typing_Error l ->

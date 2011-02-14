@@ -51,15 +51,6 @@ module type REGCREATE =
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
-    (** This function is executed just before the service
-        when we know exactly which service will answer
-        (and after decoding parameters).
-        Usually it does nothing.
-    *)
-    val pre_service :
-      ?options:options ->
-      unit -> unit Lwt.t
-
     (** The following field is usually [Eliom_services.XNever]. 
         This value is recorded inside each service just after registration.
         (Use in [Eliom_output.Eliom_appl])

@@ -1686,8 +1686,6 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   end
 
-  let pre_service ?options () = Lwt.return ()
-
   let do_appl_xhr = Eliom_services.XNever
 
   let send ?(options = `XHTML_01_01) ?charset ?code
@@ -1782,8 +1780,6 @@ module SubXhtml(Format : sig
 
       type return = Eliom_services.http
 
-      let pre_service ?options () = Lwt.return ()
-
       let do_appl_xhr = Eliom_services.XNever
 
       let send ?options ?charset ?code 
@@ -1851,8 +1847,6 @@ module Textreg_ = struct
 
   type return = Eliom_services.http
 
-  let pre_service ?options () = Lwt.return ()
-
   let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code 
@@ -1892,8 +1886,6 @@ module CssTextreg_ = struct
   type options = unit
 
   type return = Eliom_services.http
-
-  let pre_service ?options () = Lwt.return ()
 
   let do_appl_xhr = Eliom_services.XNever
 
@@ -1937,8 +1929,6 @@ module HtmlTextreg_ = struct
   type options = unit
 
   type return = Eliom_services.http
-
-  let pre_service ?options () = Lwt.return ()
 
   let do_appl_xhr = Eliom_services.XNever
 
@@ -2188,8 +2178,6 @@ module Actionreg_ = struct
 
   type return = Eliom_services.http
 
-  let pre_service ?options () = Lwt.return ()
-
   let do_appl_xhr = Eliom_services.XAlways
   (* The post action service will decide later *)
 
@@ -2407,8 +2395,6 @@ module Unitreg_ = struct
 
   type return = Eliom_services.http
 
-  let pre_service ?options () = Lwt.return ()
-
   let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?(code = 204)
@@ -2450,8 +2436,6 @@ module Anyreg_ = struct
 
   type return = Eliom_services.http
 
-  let pre_service ?options () = Lwt.return ()
-
   let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code
@@ -2492,8 +2476,6 @@ module Filesreg_ = struct
   type options = unit
 
   type return = Eliom_services.http
-
-  let pre_service ?options () = Lwt.return ()
 
   let do_appl_xhr = Eliom_services.XNever
 
@@ -2550,8 +2532,6 @@ module Streamlistreg_ = struct
   type options = unit
 
   type return = Eliom_services.http
-
-  let pre_service ?options () = Lwt.return ()
 
   let do_appl_xhr = Eliom_services.XNever
 
@@ -2875,8 +2855,6 @@ module Camlreg_ = struct
 
   type return = Eliom_services.http
 
-  let pre_service ?options () = Lwt.return ()
-
   let do_appl_xhr = Eliom_services.XNever
 
   let send ?options ?charset ?code 
@@ -2904,8 +2882,6 @@ module Caml = struct
     fun g p -> 
       f g p >>= fun r -> 
       Lwt.return (Eliom_client_types.encode_eliom_data r)
-
-  let pre_service ?options () = Lwt.return ()
 
   let do_appl_xhr = Eliom_services.XNever
 
@@ -3370,8 +3346,6 @@ redir ();"))::
          ))
       body
 
-  let pre_service ?options () = Lwt.return ()
-    
   let do_appl_xhr = Eliom_services.XSame_appl Appl_params.application_name
 
 
@@ -3518,8 +3492,6 @@ module String_redirreg_ = struct
 
   type return = Eliom_services.http
 
-  let pre_service ?options () = Lwt.return ()
-
   let do_appl_xhr = Eliom_services.XAlways
   (* actually, the service will decide itself *)
 
@@ -3597,8 +3569,6 @@ module Redirreg_ = struct
   type options = [ `Temporary | `Permanent ]
 
   type return = Eliom_services.http
-
-  let pre_service ?options () = Lwt.return ()
 
   let do_appl_xhr = Eliom_services.XAlways
   (* actually, the service will decide itself *)
@@ -3715,8 +3685,6 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
   type options = XHTML5.M.doctypes
 
   type return = Eliom_services.http
-
-  let pre_service ?options () = Lwt.return ()
 
   let do_appl_xhr = Eliom_services.XNever
 
