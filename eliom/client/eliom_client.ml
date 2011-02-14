@@ -163,7 +163,7 @@ let load_eliom_data_
    This is the same problem for on_unload below. *)
 
 let set_inner_html (ed, content) =
-  Lwt_list.iter_p (fun f -> f ()) !on_unload_scripts;
+  ignore (Lwt_list.iter_p (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
   let container_node = Lazy.force container_node in
   container_node##innerHTML <- Js.string content;
