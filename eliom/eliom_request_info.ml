@@ -204,12 +204,16 @@ let get_user_tab_cookies () =
 
 
 (****)
-let get_sp_appl_name () =
+let get_sp_client_appl_name () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_appl_name
+  sp.Eliom_common.sp_client_appl_name
+let get_sp_client_process_info_sp sp =
+  if Lazy.lazy_is_val sp.Eliom_common.sp_client_process_info
+  then Some (Lazy.force sp.Eliom_common.sp_client_process_info)
+  else None
 let get_sp_client_process_info () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_client_process_info
+  get_sp_client_process_info_sp sp
 
 (* *)
 

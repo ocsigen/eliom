@@ -219,13 +219,12 @@ let https_static_dir_with_params ?keep_nl_params ~get_params () =
 let get_do_appl_xhr s = s.do_appl_xhr
 let set_do_appl_xhr s n = s.do_appl_xhr <- n
 
-let do_appl_xhr s =
-  let n = Eliom_request_info.get_sp_appl_name () in
-  (n <> None) && 
+let do_appl_xhr dest_appl_name s =
+  (dest_appl_name <> None) && 
     (match s.do_appl_xhr with
       | XAlways -> true
       | XNever -> false
-      | XSame_appl an -> Some an = n)
+      | XSame_appl an -> Some an = dest_appl_name)
 
 (****************************************************************************)
 

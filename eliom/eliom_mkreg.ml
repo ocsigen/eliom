@@ -423,7 +423,7 @@ module MakeRegister = functor
                                  (files >>= fun files ->
                                   post_params >>= fun post_params ->
                                   if nosuffixversion && suffix_with_redirect &&
-                                    files = [] && post_params =  []
+                                    files = [] && post_params = []
                                   then (* it is a suffix service in version 
                                           without suffix. We redirect. *)
                                     Lwt.fail
@@ -466,11 +466,11 @@ module MakeRegister = functor
                               Other solution: send the page and ask the browser to put it in the cache 
                               during a few seconds. Then redirect. But can we trust the browser cache?
                             *)
-                                 match sp.Eliom_common.sp_appl_name with
+                                 match sp.Eliom_common.sp_client_appl_name with
                               (* the appl name as sent by browser *)
                                    | None -> false (* the browser did not ask
-                                                     application eliom data,
-                                                     we do not send a redirection 
+                                                      application eliom data,
+                                                      we do not send a redirection 
                                                   *)
                                    | Some anr ->
                                 (* the browser asked application eliom data
@@ -481,7 +481,7 @@ module MakeRegister = functor
                                        | Eliom_services.XSame_appl an
                                            when (an = anr)
                                              -> (* Same appl, it is ok *) false
-                                       | Eliom_services.XAlways -> 
+                                       | Eliom_services.XAlways ->
                                      (* It is an action *) false
                                        | _ -> true
                                in

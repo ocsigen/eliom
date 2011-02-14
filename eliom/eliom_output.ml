@@ -256,6 +256,8 @@ module Xhtmlforms_ = struct
   let add_tab_cookies_to_post_form_id_string =
     add_tab_cookies_to_get_form_id_string
 
+  let appl_name = None
+
 end
 
 
@@ -2151,6 +2153,8 @@ module HtmlTextforms_ = struct
   let add_tab_cookies_to_post_form_id_string =
     add_tab_cookies_to_get_form_id_string
 
+  let appl_name = None
+
 end
 
 
@@ -3214,6 +3218,7 @@ let default_appl_params =
     ap_headers_after = [];
   }
 
+let comet_service_key = Polytables.make_key ()
 
 module Eliom_appl_reg_
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
@@ -3232,9 +3237,8 @@ module Eliom_appl_reg_
 
   let eliom_appl_state_name = "__eliom_appl_name"
 
-  let change_current_page_key : ('a -> unit) Polytables.key = Polytables.make_key ()
-
-  let comet_service_key = Polytables.make_key ()
+  let change_current_page_key : ('a -> unit) Polytables.key =
+    Polytables.make_key ()
 
   let get_tab_cook sp =
     Eliommod_cookies.compute_cookies_to_send
@@ -3251,8 +3255,7 @@ module Eliom_appl_reg_
         (* If there are cookies, we launch the application *)
            Actually, no, we trust options ...
            Because we must decide whether to launch
-           the application or not before
-           creating links and forms.
+           the application or not before creating links and forms.
         *)
     in
     let body, container_node = match params.ap_container with
@@ -3334,7 +3337,8 @@ redir ();"))::
 
 			  "var comet_service = \'" ;
                           (Eliom_client_types.jsmarshal
-			     (Polytables.get ~table:cpi.Eliom_common.cpi_references
+			     (Polytables.get
+                                ~table:cpi.Eliom_common.cpi_references
 				~key:comet_service_key)
                           ) ; "\'; \n" ;
 
@@ -3366,42 +3370,7 @@ redir ();"))::
          ))
       body
 
-  let pre_service ?(options = default_appl_service_options) () =
-    (* If we launch a new application, we must set the application name
-       and record the client process info.
-       Otherwise, we get it from cookie. *)
-    let sp = Eliom_common.get_sp () in
-    (match sp.Eliom_common.sp_appl_name (* sent by the browser *) with
-      | Some appl_name_cookie ->
-        if appl_name_cookie <> Appl_params.application_name
-        then begin
-          sp.Eliom_common.sp_appl_name <- Some Appl_params.application_name;
-          sp.Eliom_common.sp_content_only <- false;
-        end
-      | None -> (* The application was not launched on client side *)
-        if not options.do_not_launch
-        (* if do_not_launch is true,
-           we do not launch the client side program. *)
-        then sp.Eliom_common.sp_appl_name <- Some Appl_params.application_name;
-    );
-    if sp.Eliom_common.sp_client_process_info = None
-    then begin
-      let cpi = 
-        {Eliom_common.cpi_ssl = Eliom_request_info.get_ssl_sp sp;
-         Eliom_common.cpi_hostname = Eliom_request_info.get_hostname_sp sp;
-         Eliom_common.cpi_server_port = Eliom_request_info.get_server_port_sp sp;
-         Eliom_common.cpi_original_full_path =
-            Eliom_request_info.get_original_full_path_sp sp;
-         Eliom_common.cpi_references = Polytables.create ()}
-      in
-      sp.Eliom_common.sp_client_process_info <- (Some cpi);
-      sp.Eliom_common.sp_sitedata.Eliom_common.set_client_process_info cpi;
-
-      let comet_service = Eliom_comet.init () in
-      Polytables.set ~table:cpi.Eliom_common.cpi_references ~key:comet_service_key
-	~value:comet_service
-    end;
-    Lwt.return ()
+  let pre_service ?options () = Lwt.return ()
     
   let do_appl_xhr = Eliom_services.XSame_appl Appl_params.application_name
 
@@ -3427,11 +3396,14 @@ redir ();"))::
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
     let sp = Eliom_common.get_sp () in
-    let cpi = match sp.Eliom_common.sp_client_process_info with
-	| None -> assert false (* should always be called after pre_service wich create cpi *)
-	| Some cpi -> cpi
+    let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in
+    let content_only =
+      (* If the name of the application sent by the browser
+         corresponds to the name of the application of the service,
+         we send only the content of the page.
+      *)
+      sp.Eliom_common.sp_client_appl_name = Some Appl_params.application_name
     in
-    let content_only = sp.Eliom_common.sp_content_only in
     (if content_only &&
         (((Eliom_parameters.get_non_localized_get_parameters
              Eliom_mkforms.nl_internal_appl_form) = Some true) ||
@@ -3454,6 +3426,12 @@ redir ();"))::
      then 
         get_eliom_page_content ~options sp content >>= Caml.send
      else begin
+       (* We launch the client side process *)
+       let comet_service = Eliom_comet.init () in
+       Polytables.set
+         ~table:cpi.Eliom_common.cpi_references
+         ~key:comet_service_key
+	 ~value:comet_service;
        let change_page_event, change_current_page =
          (* This event allows the server to ask the client to change 
             current page content *)
@@ -3500,7 +3478,12 @@ redir ();"))::
 end
 
 module Eliom_appl (Appl_params : APPL_PARAMS) = struct
-  include Xhtml5forms
+
+  include MakeXhtml5forms(MakeForms(struct
+    include Xhtml5forms_
+    let appl_name = Some Appl_params.application_name
+  end))
+
   include MakeRegister(Eliom_appl_reg_
                          (Ocsigen_senders.Xhtml5compact_content)
                          (Appl_params))
@@ -3563,7 +3546,7 @@ module String_redirreg_ = struct
        If the application to which belongs the destination service is the same,
        then it is ok, otherwise, there will be another redirection ...
     *)
-    match Eliom_request_info.get_sp_appl_name () with
+    match Eliom_request_info.get_sp_client_appl_name () with
         (* the appl name as sent by browser *)
       | None -> (* the browser did not ask application eliom data,
                    we send a regular redirection *)
@@ -3645,7 +3628,7 @@ module Redirreg_ = struct
        the destination service is the same (thus it will send back tab cookies)
        - a half xhr redirection otherwise
     *)
-    match Eliom_request_info.get_sp_appl_name () with
+    match Eliom_request_info.get_sp_client_appl_name () with
         (* the appl name as sent by browser *)
       | None -> (* the browser did not ask application eliom data,
                    we send a regular redirection *)

@@ -153,6 +153,8 @@ module type FORMCREATE =
     val add_tab_cookies_to_get_form_id_string : string
     val add_tab_cookies_to_post_form_id_string : string
 
+    val appl_name : string option (* The application name, if any
+                                     (for Eliom_appl only, None otherwise) *)
 
   end
 

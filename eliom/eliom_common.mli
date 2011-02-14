@@ -315,19 +315,20 @@ type server_params = {
   mutable sp_user_cookies: Ocsigen_cookies.cookieset;
   (* cookies (un)set by the user during service *)
   mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
-  mutable sp_content_only: bool; (* The client side program asked
-                                    to send only the content of the page,
-                                    with eliom data. *)
-  mutable sp_appl_name: string option; (* The application name,
-                                          as sent by the browser,
-                                          or by the service. *)
+  mutable sp_client_appl_name: string option; (* The application name,
+                                                 as sent by the browser *)
   sp_suffix : Ocsigen_lib.url_path option;
   sp_fullsessname : fullsessionname option;
-  mutable sp_client_process_info: client_process_info option
+  mutable sp_client_process_info: client_process_info Lazy.t
         (* Contains the base URL information from which the client process
            has been launched (if any). All relative links and forms will be
            created with respect to this information (if present - from current
-           URL otherwise). *);
+           URL otherwise).
+           It is taken form a client process state if the application has been
+           launched before (and not timeouted on server side).
+           Otherwise, it is created and registered in a server side state
+           the first time we need it.
+        *);
 }
 and page_table = page_table_content Serv_Table.t
 

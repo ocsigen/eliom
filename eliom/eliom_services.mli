@@ -616,6 +616,7 @@ val set_do_appl_xhr :
 val get_do_appl_xhr : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> do_appl_xhr
 
 val do_appl_xhr :
+  string option ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
 
 

@@ -798,7 +798,13 @@ end
 
 (** {2 Same for html 5} *)
 
+(* include module type of Eliom_output_cli 
+   does not work with camlp4 ... I replace by:
+*)
 module type XHTML5FORMSSIG = Eliom_output_cli.XHTML5FORMSSIG
+
+
+
 
 module Xhtml5 : sig
 

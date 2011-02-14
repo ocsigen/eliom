@@ -21,42 +21,42 @@ open Lwt
 open Ocsigen_extensions
 
 let get_csp_original_full_path () =
-   match (Eliom_request_info.get_sp_client_process_info ()) with
+   match Eliom_request_info.get_sp_client_process_info () with
      | None -> Eliom_request_info.get_original_full_path ()
      | Some cpi -> cpi.Eliom_common.cpi_original_full_path
 
 let get_csp_hostname () =
-   match (Eliom_request_info.get_sp_client_process_info ()) with
+   match Eliom_request_info.get_sp_client_process_info () with
      | None -> Eliom_request_info.get_hostname ()
      | Some cpi -> cpi.Eliom_common.cpi_hostname
 
 let get_csp_server_port () =
-   match (Eliom_request_info.get_sp_client_process_info ()) with
+   match Eliom_request_info.get_sp_client_process_info () with
      | None -> Eliom_request_info.get_server_port ()
      | Some cpi -> cpi.Eliom_common.cpi_server_port
 
 let get_csp_ssl () =
-   match (Eliom_request_info.get_sp_client_process_info ()) with
+   match Eliom_request_info.get_sp_client_process_info () with
      | None -> Eliom_request_info.get_ssl ()
      | Some cpi -> cpi.Eliom_common.cpi_ssl
 
 let get_csp_original_full_path_sp sp =
-   match sp.Eliom_common.sp_client_process_info with
+   match Eliom_request_info.get_sp_client_process_info_sp sp with
      | None -> Eliom_request_info.get_original_full_path_sp sp
      | Some cpi -> cpi.Eliom_common.cpi_original_full_path
 
 let get_csp_hostname_sp sp =
-   match sp.Eliom_common.sp_client_process_info with
+   match Eliom_request_info.get_sp_client_process_info_sp sp with
      | None -> Eliom_request_info.get_hostname_sp sp
      | Some cpi -> cpi.Eliom_common.cpi_hostname
 
 let get_csp_server_port_sp sp =
-   match sp.Eliom_common.sp_client_process_info with
+   match Eliom_request_info.get_sp_client_process_info_sp sp with
      | None -> Eliom_request_info.get_server_port_sp sp
      | Some cpi -> cpi.Eliom_common.cpi_server_port
 
 let get_csp_ssl_sp sp =
-   match sp.Eliom_common.sp_client_process_info with
+   match Eliom_request_info.get_sp_client_process_info_sp sp with
      | None -> Eliom_request_info.get_ssl_sp sp
      | Some cpi -> cpi.Eliom_common.cpi_ssl
 
@@ -1475,7 +1475,22 @@ let make_server_params sitedata i suffix fullsessname =
   Lwt.with_value Eliom_common.sp_key (Some sp)
     (fun () ->
       let get =
-        sp.Eliom_common.sp_sitedata.Eliom_common.get_client_process_info in
-      let cpi = get () in
+        sp.Eliom_common.sp_sitedata.Eliom_common.get_client_process_info
+      in
+      let cpi = lazy (match get () with
+        | Some cpi -> cpi
+        | None ->
+          let cpi = 
+            {Eliom_common.cpi_ssl = Eliom_request_info.get_ssl_sp sp;
+             Eliom_common.cpi_hostname = Eliom_request_info.get_hostname_sp sp;
+             Eliom_common.cpi_server_port =
+                Eliom_request_info.get_server_port_sp sp;
+             Eliom_common.cpi_original_full_path =
+                Eliom_request_info.get_original_full_path_sp sp;
+             Eliom_common.cpi_references = Polytables.create ()}
+          in
+          sp.Eliom_common.sp_sitedata.Eliom_common.set_client_process_info cpi;
+          cpi)
+      in
       sp.Eliom_common.sp_client_process_info <- cpi;
       Lwt.return sp)

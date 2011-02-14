@@ -257,14 +257,11 @@ end = struct
 
   let timeout = 20.
   
-  (** Returns the handler for the current application. It is created if it does not exists. *)
+  (** Returns the handler for the current application.
+      It is created if it does not exists. *)
   let get_handler () =
     let sp = Eliom_common.get_sp () in
-    let cpi =
-      match sp.Eliom_common.sp_client_process_info with
-	| None -> raise (Eliom_common.Eliom_site_information_not_available "need to be called inside an application")
-	| Some cpi -> cpi
-    in
+    let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in
     let table = cpi.Eliom_common.cpi_references in
     try
       Polytables.get ~table ~key:handler_key

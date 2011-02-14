@@ -240,6 +240,7 @@ module Xhtml5forms_ = struct
   let add_tab_cookies_to_post_form_id_string =
     Eliom_client_types.add_tab_cookies_to_post_form_id_string
 
+  let appl_name = None
 
 end
 
@@ -253,16 +254,10 @@ module Xhtml5forms' = MakeForms(Xhtml5forms_)
 module type XHTML5FORMSSIG = sig
 (* Pasted from mli *)
 
-
-
-
   open XHTML5.M
   open Xhtml5types
 
 (** {2 Links and forms} *)
-
-
-
 
     val make_string_uri :
       ?absolute:bool ->
@@ -959,7 +954,70 @@ module type XHTML5FORMSSIG = sig
 end
 
 
-module Xhtml5forms : XHTML5FORMSSIG = struct
+type full_input_type =
+  [ `Button
+  | `Checkbox
+  | `File
+  | `Hidden
+  | `Image
+  | `Password
+  | `Radio
+  | `Reset
+  | `Submit
+  | `Text ]
+
+type button_type =
+  [ `Button
+  | `Reset
+  | `Submit
+  ]
+
+module MakeXhtml5forms =
+  functor (Xhtml5forms' : ELIOMFORMSIG
+           with type form_content_elt = Xhtml5types.form_content XHTML5.M.elt
+           and type form_content_elt_list = Xhtml5types.form_content XHTML5.M.elt list
+           and type uri = Xhtml5types.uri
+           and type 'a a_content_elt = 'a XHTML5.M.elt
+           and type 'a a_content_elt_list = 'a XHTML5.M.elt list
+
+           and type div_content_elt = Xhtml5types.div_content XHTML5.M.elt
+           and type div_content_elt_list = Xhtml5types.div_content XHTML5.M.elt list
+
+           and type 'a a_elt = 'a Xhtml5types.a XHTML5.M.elt
+           and type 'a a_elt_list = 'a Xhtml5types.a XHTML5.M.elt list
+           and type form_elt = Xhtml5types.form XHTML5.M.elt
+
+           and type textarea_elt = Xhtml5types.textarea XHTML5.M.elt
+           and type input_elt = Xhtml5types.input XHTML5.M.elt
+
+           and type link_elt = Xhtml5types.link XHTML5.M.elt
+           and type script_elt = Xhtml5types.script XHTML5.M.elt
+
+           and type pcdata_elt = Xhtml5types.pcdata XHTML5.M.elt
+
+           and type select_elt = Xhtml5types.select XHTML5.M.elt
+           and type select_content_elt = Xhtml5types.select_content XHTML5.M.elt
+           and type select_content_elt_list = Xhtml5types.select_content XHTML5.M.elt list
+           and type option_elt = Xhtml5types.selectoption XHTML5.M.elt
+           and type option_elt_list = Xhtml5types.selectoption XHTML5.M.elt list
+
+           and type button_elt = Xhtml5types.button XHTML5.M.elt
+           and type button_content_elt = Xhtml5types.button_content XHTML5.M.elt
+           and type button_content_elt_list = Xhtml5types.button_content XHTML5.M.elt list
+
+           and type a_attrib_t = Xhtml5types.a_attrib XHTML5.M.attrib list
+           and type form_attrib_t = Xhtml5types.form_attrib XHTML5.M.attrib list
+           and type input_attrib_t = Xhtml5types.input_attrib XHTML5.M.attrib list
+           and type textarea_attrib_t = Xhtml5types.textarea_attrib XHTML5.M.attrib list
+           and type select_attrib_t = Xhtml5types.select_attrib XHTML5.M.attrib list
+           and type link_attrib_t = Xhtml5types.link_attrib XHTML5.M.attrib list
+           and type script_attrib_t = Xhtml5types.script_attrib XHTML5.M.attrib list
+           and type optgroup_attrib_t = [ Xhtml5types.common | `Disabled ] XHTML5.M.attrib list
+           and type option_attrib_t = Xhtml5types.option_attrib XHTML5.M.attrib list
+           and type button_attrib_t = Xhtml5types.button_attrib XHTML5.M.attrib list
+           and type input_type_t = full_input_type
+           and type button_type_t = button_type
+  ) -> (struct
 
   open XHTML5.M
   open Xhtml5types
@@ -1549,10 +1607,10 @@ module Xhtml5forms : XHTML5FORMSSIG = struct
              'a select_opt list -> [> select ] elt)
 
   type button_type =
-      [ `Button
+    [ `Button
     | `Reset
     | `Submit
-      ]
+    ]
 
   let string_button = (string_button :
        ?a:button_attrib attrib list ->
@@ -1621,4 +1679,7 @@ module Xhtml5forms : XHTML5FORMSSIG = struct
        ?a:button_attrib attrib list ->
          button_type:[< button_type ] ->
            button_content elt list -> [> button ] elt)
-end
+end : XHTML5FORMSSIG)
+
+module Xhtml5forms = MakeXhtml5forms(Xhtml5forms')
+

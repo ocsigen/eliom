@@ -368,22 +368,23 @@ type server_params =
      mutable sp_user_cookies: Ocsigen_cookies.cookieset;
      (* cookies (un)set by the user during service *)
      mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
-     mutable sp_content_only: bool; (* The client side program asked
-                                       to send only the content of the page,
-                                       with eliom data. *)
-     mutable sp_appl_name: string option; (* The application name,
-                                             as sent by the browser,
-                                             or by the service. *)
+     mutable sp_client_appl_name: string option; (* The application name,
+                                                    as sent by the browser *)
      sp_suffix: Ocsigen_lib.url_path option (* suffix *);
      sp_fullsessname: fullsessionname option (* the name of the session
                                                 to which belong the service
                                                 that answered
                                                 (if it is a session service) *);
-     mutable sp_client_process_info: client_process_info option
+     mutable sp_client_process_info: client_process_info Lazy.t
      (* Contains the base URL information from which the client process
         has been launched (if any). All relative links and forms will be
         created with respect to this information (if present - from current
-        URL otherwise). *);
+        URL otherwise).
+        It is taken form a client process state if the application has been
+        launched before (and not timeouted on server side).
+        Otherwise, it is created and registered in a server side state
+        the first time we need it.
+     *);
     }
 
 and page_table = page_table_content Serv_Table.t
@@ -558,12 +559,12 @@ let make_server_params_
     sitedata (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
     suffix fullsessname
     : server_params =
-  let appl_name, content_only =
+  let appl_name =
     try
-      (Some (Ocsigen_lib.String_Table.find
-               appl_name_cookie_name si.si_tab_cookies), true)
+      Some
+        (Ocsigen_lib.String_Table.find appl_name_cookie_name si.si_tab_cookies)
     (* It is an XHR from the client application, or an internal form *)
-    with Not_found -> (None, false)
+    with Not_found -> None
   in
   {sp_request=ri;
    sp_si=si;
@@ -572,12 +573,12 @@ let make_server_params_
    sp_tab_cookie_info=all_tab_cookie_info;
    sp_user_cookies= Ocsigen_cookies.empty_cookieset;
    sp_user_tab_cookies= user_tab_cookies;
-   sp_content_only= content_only;
-   sp_appl_name= appl_name;
+   sp_client_appl_name= appl_name;
    sp_suffix=suffix;
    sp_fullsessname= fullsessname;
-   sp_client_process_info = None; (* Will be set later
-                                     from server side state data *)
+   sp_client_process_info = 
+      lazy (failwith "sp_client_process_info called before initialization");
+  (* Will be set later from server side state data *)
   }
 
 let sp_key = Lwt.new_key ()

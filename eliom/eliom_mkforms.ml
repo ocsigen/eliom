@@ -32,6 +32,7 @@ let nl_internal_appl_form =
 
 module type FORMCREATE =
   sig
+
     type form_content_elt
     type form_content_elt_list
     type form_elt
@@ -153,6 +154,9 @@ module type FORMCREATE =
     val add_tab_cookies_to_post_form : form_elt -> unit -> unit Lwt.t
     val add_tab_cookies_to_get_form_id_string : string
     val add_tab_cookies_to_post_form_id_string : string
+
+    val appl_name : string option (* The application name, if any
+                                     (for Eliom_appl only, None otherwise) *)
 
   end
 
@@ -969,7 +973,7 @@ module MakeForms = functor
           ?(no_appl = false)
           content
           getparams =
-        if not no_appl && (Eliom_services.do_appl_xhr service)
+        if not no_appl && (Eliom_services.do_appl_xhr Pages.appl_name service)
         then
           Eliommod_mkforms.make_a_with_onclick
             (fun ?a ?onclick c -> Pages.make_a ?a ?onclick c)
@@ -1016,7 +1020,7 @@ module MakeForms = functor
           f =
 
         let internal_appl_form =
-          not no_appl && (Eliom_services.do_appl_xhr service)
+          not no_appl && (Eliom_services.do_appl_xhr Pages.appl_name service)
         in
         let nl_params = 
           if internal_appl_form
@@ -1122,7 +1126,7 @@ module MakeForms = functor
           getparams =
 
         let internal_appl_form =
-          not no_appl && (Eliom_services.do_appl_xhr service)
+          not no_appl && (Eliom_services.do_appl_xhr Pages.appl_name service)
         in
         let nl_params = 
           if internal_appl_form

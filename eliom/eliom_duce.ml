@@ -335,6 +335,7 @@ module Xhtmlforms_ = struct
   let add_tab_cookies_to_post_form_id_string =
     add_tab_cookies_to_get_form_id_string
 
+  let appl_name = None
 
 end
 

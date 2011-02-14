@@ -31,5 +31,5 @@ let appl_name =
              !(Eliommod_client_cookies.cookie_table)))
      in v)
 
-let get_application_name ~sp =
+let get_application_name () =
   Ocsigen_lib.debug (Lazy.force appl_name); Some (Lazy.force appl_name)
