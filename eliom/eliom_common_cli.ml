@@ -125,6 +125,8 @@ let full_xhr_redir_header = "x-eliom-location-full"
 let half_xhr_redir_header = "x-eliom-location-half"
 
 let default_group_name = "__eliom$%@default_group"
+let internal_form_name = "_internal_form"
+let internal_form_bool_name = "b"
 
 let nl_is_persistent n = n.[0] = 'p'
 

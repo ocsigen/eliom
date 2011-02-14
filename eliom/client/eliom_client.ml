@@ -84,6 +84,10 @@ let exit_to
     A script must do the redirection if there is something in the fragment.
     Usually this function is only for internal use.
 *)
+let change_url_string uri =
+  current_fragment := url_fragment_prefix_with_sharp^uri;
+  Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
+
 let change_url
 (*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
     ?absolute ?absolute_path ?https
@@ -106,8 +110,7 @@ let change_url
        | Ocsigen_lib.Left uri -> uri
        | Ocsigen_lib.Right (uri, p) -> uri)
   in
-  current_fragment := url_fragment_prefix_with_sharp^uri;
-  Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
+  change_url_string uri
 
 
 (* lazy because we want the page to be loaded *)
@@ -176,6 +179,9 @@ let set_content = function
   | Eliom_client_types.EAContent c -> set_inner_html c
 (* For now only one case *)
 
+let set_content_and_url (c, u) =
+  change_url_string u;
+  set_content c
 
 
 let change_page

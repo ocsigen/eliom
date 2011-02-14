@@ -247,6 +247,28 @@ let get_sitedata () =
 let get_sitedata_sp ~sp = sp.Eliom_common.sp_sitedata
 
 
+let rebuild_get_uri_without_tab_cookies_ =
+  let internal_form_name =
+    Eliom_common.npnl_param_prefix^
+      Eliom_common.eliom_internal_nlp_prefix^"-"^
+      Eliom_common.internal_form_name^"."^
+      Eliom_common.internal_form_bool_name
+  in
+  let internal_form_name2 =
+    Eliom_common.npnl_param_prefix^
+      Eliom_common.eliom_internal_nlp_prefix^"-"^
+      Eliom_common.internal_form_name^"."^
+      Eliom_common.internal_form_bool_name
+  in
+  fun () ->
+    let uri = get_original_full_path_string () in
+    let get_params = get_all_current_get_params () in
+    let get_params = List.remove_assoc internal_form_name get_params in
+    let get_params = List.remove_assoc internal_form_name2 get_params in
+    Ocsigen_lib.add_to_string uri "?"
+      (Ocsigen_lib.mk_url_encoded_parameters get_params)
+
+
 (***)
 
 (*VVV ici ? pour des raisons de typage... *)

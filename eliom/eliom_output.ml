@@ -3392,7 +3392,9 @@ redir ();"))::
 	 ~table:cpi.Eliom_common.cpi_references ~key:change_current_page_key
        in
        get_eliom_page_content ~options sp content >>= fun data ->
-       change_current_page data;
+       change_current_page 
+         (data, 
+          Eliom_request_info.rebuild_get_uri_without_tab_cookies_ ());
        Lwt.return (Ocsigen_http_frame.empty_result ())
      end
      else if content_only
@@ -3411,7 +3413,8 @@ redir ();"))::
             current page content *)
          React.E.create ()
        in
-       Polytables.set ~table:cpi.Eliom_common.cpi_references
+       Polytables.set
+         ~table:cpi.Eliom_common.cpi_references
 	 ~key:change_current_page_key
 	 ~value:change_current_page;
        Eliom_state.set_cookie

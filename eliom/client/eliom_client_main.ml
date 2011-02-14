@@ -28,11 +28,13 @@ let _ =
 
     (* ===change page event *)
     let change_page_event
-        : Eliom_client_types.eliom_appl_answer React.E.t = 
+        : (Eliom_client_types.eliom_appl_answer * string) React.E.t = 
       (Eliom_client_react.Down.unwrap
          ~wake:false (Ocsigen_lib.unmarshal_js_var "change_page_event"))
     in
-    let retain_event = React.E.map Eliom_client.set_content change_page_event in
+    let retain_event = 
+      React.E.map Eliom_client.set_content_and_url change_page_event
+    in
     
     (* The following piece of code is not necessary due to the lack of weak
      * pointers on client side.*)

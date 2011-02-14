@@ -156,6 +156,8 @@ val make_a_with_onclick :
   'c -> 'get -> 'd
 
 val set_content : Eliom_client_types.eliom_appl_answer -> unit Lwt.t
+val set_content_and_url : 
+  (Eliom_client_types.eliom_appl_answer * string) -> unit Lwt.t
 
 val load_eliom_data_ :
   Eliom_client_types.eliom_data_type ->

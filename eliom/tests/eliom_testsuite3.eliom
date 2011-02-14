@@ -82,6 +82,10 @@ module Eliom_appl =
     end)
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
 
+{server{ (* note that {server{ ... }} is optionnal. *)
+open Eliom_appl
+}}
+
 let eliomclient1 =
   Eliom_appl.register_service
     ~path:["plop"; "eliomclient1"]
@@ -1130,7 +1134,8 @@ let _ =
                         ~value:"incr i (get)" ()]])
     in
     return
-      [p [pcdata "i is equal to ";
+      [p [pcdata "The random number in the container must not change!"; br ();
+          pcdata "i is equal to ";
           pcdata (string_of_int !c); br ();
           a tcoservices_example [pcdata "internal application link to myself"] (); br ();
           a tcoservices_example_get [pcdata "incr i"] ()];

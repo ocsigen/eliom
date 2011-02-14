@@ -144,6 +144,10 @@ val co_param_prefix : string
 val na_co_param_prefix : string
 val nl_param_prefix : string
 val eliom_internal_nlp_prefix : string
+val pnl_param_prefix : string
+val npnl_param_prefix : string
+val internal_form_name : string
+val internal_form_bool_name : string
 
 val datacookiename : string
 val servicecookiename : string

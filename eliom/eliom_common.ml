@@ -893,12 +893,12 @@ let get_session_info req previous_extension_err =
          ~table:ri.Ocsigen_extensions.ri_request_cache
          ~key:eliom_params_after_action)
     with Not_found -> 
-    let nl_get_params, get_params = split_nl_prefix_param get_params0 in
-    let nl_post_params, post_params = split_nl_prefix_param post_params0 in
-    let all_get_but_nl = get_params in
-    get_params, post_params,
-    (get_params0, (if no_post_param then None else Some post_params0), 
-     nl_get_params, nl_post_params, all_get_but_nl)
+      let nl_get_params, get_params = split_nl_prefix_param get_params0 in
+      let nl_post_params, post_params = split_nl_prefix_param post_params0 in
+      let all_get_but_nl = get_params in
+      get_params, post_params,
+      (get_params0, (if no_post_param then None else Some post_params0), 
+       nl_get_params, nl_post_params, all_get_but_nl)
   in
 
   let browser_cookies = Lazy.force ri.Ocsigen_extensions.ri_cookies in

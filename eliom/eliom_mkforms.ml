@@ -27,8 +27,8 @@ open Eliom_uri
 let nl_internal_appl_form =
   Eliom_parameters.make_non_localized_parameters
     ~prefix:Eliom_common.eliom_internal_nlp_prefix
-    ~name:"_internal_form"
-    (Eliom_parameters.bool "b")
+    ~name:Eliom_common.internal_form_name
+    (Eliom_parameters.bool Eliom_common.internal_form_bool_name)
 
 module type FORMCREATE =
   sig
