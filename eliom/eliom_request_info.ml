@@ -251,29 +251,6 @@ let get_sitedata () =
 let get_sitedata_sp ~sp = sp.Eliom_common.sp_sitedata
 
 
-let suffix_redir_uri_key = Polytables.make_key ()
-
-let rebuild_uri_without_iternal_form_info_ =
-  let internal_form_name =
-    Eliom_common.npnl_param_prefix^
-      Eliom_common.eliom_internal_nlp_prefix^"-"^
-      Eliom_common.internal_form_name^"."^
-      Eliom_common.internal_form_bool_name
-  in
-  fun () ->
-    let sp = Eliom_common.get_sp () in
-    let rc = get_request_cache_sp sp in
-    try Polytables.get ~table:rc ~key:suffix_redir_uri_key
-    (* If it is a suffix service with redirection, the uri has already been 
-       computed in rc *)
-    with Not_found ->
-      let uri = get_original_full_path_string_sp sp in
-      let get_params = get_all_current_get_params_sp sp in
-      let get_params = List.remove_assoc internal_form_name get_params in
-      Ocsigen_lib.add_to_string uri "?"
-        (Ocsigen_lib.mk_url_encoded_parameters get_params)
-
-
 (***)
 
 (*VVV ici ? pour des raisons de typage... *)

@@ -128,6 +128,12 @@ let default_group_name = "__eliom$%@default_group"
 let internal_form_name = "_internal_form"
 let internal_form_bool_name = "b"
 
+let internal_form_full_name =
+  npnl_param_prefix^
+    eliom_internal_nlp_prefix^"-"^
+    internal_form_name^"."^
+    internal_form_bool_name
+
 let nl_is_persistent n = n.[0] = 'p'
 
 (*****************************************************************************)
@@ -180,5 +186,7 @@ type sess_info =
 
      si_all_get_but_na_nl: (string * string) list Lazy.t;
      si_all_get_but_nl: (string * string) list;
+
+     si_internal_form: bool;
    }
 

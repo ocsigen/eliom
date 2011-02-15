@@ -3370,6 +3370,7 @@ redir ();"))::
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
     let sp = Eliom_common.get_sp () in
+    let si = Eliom_request_info.get_si sp in
     let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in
     let content_only =
       (* If the name of the application sent by the browser
@@ -3378,11 +3379,7 @@ redir ();"))::
       *)
       sp.Eliom_common.sp_client_appl_name = Some Appl_params.application_name
     in
-    (if content_only &&
-        (((Eliom_parameters.get_non_localized_get_parameters
-             Eliom_mkforms.nl_internal_appl_form) = Some true) ||
-            ((Eliom_parameters.get_non_localized_post_parameters
-                Eliom_mkforms.nl_internal_appl_form) = Some true))
+    (if content_only && si.Eliom_common.si_internal_form
      then begin (* It was an internal form.
                    We want to change only the content.
                    But the browser is not doing an xhr.
@@ -3392,9 +3389,17 @@ redir ();"))::
 	 ~table:cpi.Eliom_common.cpi_references ~key:change_current_page_key
        in
        get_eliom_page_content ~options sp content >>= fun data ->
-       change_current_page 
-         (data, 
-          Eliom_request_info.rebuild_uri_without_iternal_form_info_ ());
+       let rc = Eliom_request_info.get_request_cache_sp sp in
+       let url_to_display =
+         try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
+       (* If it is a suffix service with redirection, the uri has already been 
+          computed in rc *)
+         with Not_found -> Eliom_request_info.get_full_url_sp sp
+       (* Otherwise, the full url has already been recomputed
+          without internal form info and taking "to_be_considered_as_get" 
+          into account*)
+       in
+       change_current_page (data, url_to_display);
        Lwt.return (Ocsigen_http_frame.empty_result ())
      end
      else if content_only

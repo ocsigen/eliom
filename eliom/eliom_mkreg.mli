@@ -338,3 +338,7 @@ module MakeRegister : functor (Pages: REGCREATE) ->
                 type page = Pages.page
               and type options = Pages.options
               and type return = Pages.return
+
+
+(**/**)
+val suffix_redir_uri_key : string Polytables.key

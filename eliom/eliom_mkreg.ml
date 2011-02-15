@@ -26,6 +26,7 @@ open Eliom_services
 open Eliom_parameters
 open Lazy
 
+let suffix_redir_uri_key = Polytables.make_key ()
 
 (****************************************************************************)
 
@@ -459,7 +460,7 @@ module MakeRegister = functor
                                           g
                                       in
                                       let rc = Eliom_request_info.get_request_cache_sp sp in
-                                      Polytables.set ~table:rc ~key:Eliom_request_info.suffix_redir_uri_key ~value:redir_uri;
+                                      Polytables.set ~table:rc ~key:suffix_redir_uri_key ~value:redir_uri;
                                       Lwt.return ()
                                     end
                                   else Lwt.return ())
@@ -523,7 +524,7 @@ module MakeRegister = functor
                                      )))
                           (* We do not put hostname and port.
                              It is ok with this kind of redirections. *)
-                          (* If an action occured before, 
+                          (* If an action occured before,
                              it may have removed some get params form ri *)
                                else page_generator g p)
                               (function

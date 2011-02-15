@@ -298,6 +298,7 @@ val set_site_handler : Eliom_common.sitedata ->
 val get_request_sp : Eliom_common.server_params -> request
 val get_site_dir_sp : Eliom_common.server_params -> Ocsigen_lib.url_path
 val get_hostname_sp : Eliom_common.server_params -> string
+val get_full_url_sp : Eliom_common.server_params -> string
 
 val get_other_get_params_sp : Eliom_common.server_params -> (string * string) list
 val get_nl_get_params_sp : 
@@ -317,7 +318,4 @@ val get_files_sp : Eliom_common.server_params -> (string * Ocsigen_lib.file_info
 val get_suffix_sp : Eliom_common.server_params -> Ocsigen_lib.url_path option
 val get_request_cache_sp : Eliom_common.server_params -> Polytables.t
 val get_request_id_sp : Eliom_common.server_params -> int64
-
-val rebuild_uri_without_iternal_form_info_ : unit -> string
-val suffix_redir_uri_key : string Polytables.key
 

@@ -204,6 +204,8 @@ type sess_info = {
 
   si_all_get_but_na_nl: (string * string) list Lazy.t;
   si_all_get_but_nl: (string * string) list;
+
+  si_internal_form: bool;
 }
 
 module SessionCookies : Hashtbl.S with type key = string

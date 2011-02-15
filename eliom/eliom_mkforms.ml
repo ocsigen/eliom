@@ -29,6 +29,8 @@ let nl_internal_appl_form =
     ~prefix:Eliom_common.eliom_internal_nlp_prefix
     ~name:Eliom_common.internal_form_name
     (Eliom_parameters.bool Eliom_common.internal_form_bool_name)
+(* Actually we do not really use it as a nl parameter, 
+   because it is removed from get parameters very soon *)
 
 module type FORMCREATE =
   sig
