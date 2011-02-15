@@ -3394,7 +3394,7 @@ redir ();"))::
        get_eliom_page_content ~options sp content >>= fun data ->
        change_current_page 
          (data, 
-          Eliom_request_info.rebuild_get_uri_without_tab_cookies_ ());
+          Eliom_request_info.rebuild_uri_without_iternal_form_info_ ());
        Lwt.return (Ocsigen_http_frame.empty_result ())
      end
      else if content_only

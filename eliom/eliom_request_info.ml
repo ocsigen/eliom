@@ -36,9 +36,11 @@ let find_sitedata fun_name =
 let get_user_agent () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_request.request_info.ri_user_agent
+let get_full_url_sp sp =
+  sp.Eliom_common.sp_request.request_info.ri_url_string
 let get_full_url () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_request.request_info.ri_url_string
+  get_full_url_sp sp
 let get_remote_ip () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_request.request_info.ri_remote_ip
@@ -48,9 +50,11 @@ let get_remote_inet_addr () =
 let get_get_params () =
   let sp = Eliom_common.get_sp () in
   Lazy.force sp.Eliom_common.sp_request.request_info.ri_get_params
+let get_all_current_get_params_sp sp =
+  sp.Eliom_common.sp_si.Eliom_common.si_all_get_params
 let get_all_current_get_params () =
   let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_si.Eliom_common.si_all_get_params
+  get_all_current_get_params_sp sp
 let get_initial_get_params () =
   let sp = Eliom_common.get_sp () in
   Lazy.force sp.Eliom_common.sp_request.request_info.ri_initial_get_params
@@ -247,26 +251,27 @@ let get_sitedata () =
 let get_sitedata_sp ~sp = sp.Eliom_common.sp_sitedata
 
 
-let rebuild_get_uri_without_tab_cookies_ =
+let suffix_redir_uri_key = Polytables.make_key ()
+
+let rebuild_uri_without_iternal_form_info_ =
   let internal_form_name =
     Eliom_common.npnl_param_prefix^
       Eliom_common.eliom_internal_nlp_prefix^"-"^
       Eliom_common.internal_form_name^"."^
       Eliom_common.internal_form_bool_name
   in
-  let internal_form_name2 =
-    Eliom_common.npnl_param_prefix^
-      Eliom_common.eliom_internal_nlp_prefix^"-"^
-      Eliom_common.internal_form_name^"."^
-      Eliom_common.internal_form_bool_name
-  in
   fun () ->
-    let uri = get_original_full_path_string () in
-    let get_params = get_all_current_get_params () in
-    let get_params = List.remove_assoc internal_form_name get_params in
-    let get_params = List.remove_assoc internal_form_name2 get_params in
-    Ocsigen_lib.add_to_string uri "?"
-      (Ocsigen_lib.mk_url_encoded_parameters get_params)
+    let sp = Eliom_common.get_sp () in
+    let rc = get_request_cache_sp sp in
+    try Polytables.get ~table:rc ~key:suffix_redir_uri_key
+    (* If it is a suffix service with redirection, the uri has already been 
+       computed in rc *)
+    with Not_found ->
+      let uri = get_original_full_path_string_sp sp in
+      let get_params = get_all_current_get_params_sp sp in
+      let get_params = List.remove_assoc internal_form_name get_params in
+      Ocsigen_lib.add_to_string uri "?"
+        (Ocsigen_lib.mk_url_encoded_parameters get_params)
 
 
 (***)

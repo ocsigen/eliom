@@ -414,24 +414,54 @@ module MakeRegister = functor
                                  (files >>= fun files ->
                                   post_params >>= fun post_params ->
                                   if nosuffixversion && suffix_with_redirect &&
-                                    files = [] && post_params = [] &&
-                                    sp.Eliom_common.sp_client_appl_name = None
-                                  then (* it is a suffix service in version 
-                                          without suffix. We redirect. *)
-                                    Lwt.fail
-                                      (Eliom_common.Eliom_do_redirection
-                                         (Eliom_uri.make_string_uri
-                                            ~absolute:true
-                                            ~service:
-                                            (service : 
-                                               ('a, 'b, [< Eliom_services.internal_service_kind ],
-                                                [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
-                                                'return) Eliom_services.service :> 
-                                               ('a, 'b, Eliom_services.service_kind,
-                                                [< Eliom_services.suff ], 'c, 'd, 
-                                                [< Eliom_services.registrable ], 'return)
-                                               Eliom_services.service)
-                                            g))
+                                    files = [] && post_params = []
+                                  then
+                                    (* it is a suffix service in version 
+                                       without suffix. We redirect. *)
+                                    if sp.Eliom_common.sp_client_appl_name = None
+                                    then
+                                      let redir_uri =
+                                        Eliom_uri.make_string_uri
+                                          ~absolute:true
+                                          ~service:
+                                          (service : 
+                                             ('a, 'b, [< Eliom_services.internal_service_kind ],
+                                              [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                                              'return) Eliom_services.service :> 
+                                             ('a, 'b, Eliom_services.service_kind,
+                                              [< Eliom_services.suff ], 'c, 'd, 
+                                              [< Eliom_services.registrable ], 'return)
+                                             Eliom_services.service)
+                                          g
+                                      in
+                                      Lwt.fail
+                                        (Eliom_common.Eliom_do_redirection redir_uri)
+                                    else begin
+                                      (* It is an internal application form.
+                                         We don't redirect but we set this
+                                         special information for url to be displayed
+                                         by the browser 
+                                         (see Eliom_request_info.rebuild_uri_without_iternal_form_info_) 
+                                      *)
+                                      let redir_uri =
+                                        Eliom_uri.make_string_uri
+                                          ~absolute:false
+                                          ~absolute_path:true
+                                          ~service:
+                                          (service : 
+                                             ('a, 'b, [< Eliom_services.internal_service_kind ],
+                                              [< Eliom_services.suff ], 'c, 'd, [ `Registrable ],
+                                              'return) Eliom_services.service :> 
+                                             ('a, 'b, Eliom_services.service_kind,
+                                              [< Eliom_services.suff ], 'c, 'd, 
+                                              [< Eliom_services.registrable ], 'return)
+                                             Eliom_services.service)
+                                          g
+                                      in
+                                      let rc = Eliom_request_info.get_request_cache_sp sp in
+                                      Polytables.set ~table:rc ~key:Eliom_request_info.suffix_redir_uri_key ~value:redir_uri;
+                                      Lwt.return ()
+                                    end
                                   else Lwt.return ())
                                | _ -> Lwt.return ())
                              >>= fun () ->
