@@ -242,6 +242,21 @@ val get_request : unit -> request
 val get_state_name : unit -> Eliom_common.fullsessionname option
 
 
+(** returns the values of the Eliom's cookies for persistent sessions
+   sent by the browser. *)
+val get_persistent_cookies :
+  unit -> string Eliom_common.Fullsessionname_Table.t
+
+(** returns the values of Eliom's cookies for non persistent sessions
+   sent by the browser. *)
+val get_data_cookies :
+  unit -> string Eliom_common.Fullsessionname_Table.t
+
+
+(** Returns the http error code of the request before Eliom was called *)
+val get_previous_extension_error_code :unit -> int
+
+
 (**/**)
 (*****************************************************************************)
 
@@ -265,26 +280,8 @@ val get_persistent_cookie_exp_date : ?state_name:string ->
 
 *)
 
-(** returns the values of the Eliom's cookies for persistent sessions
-   sent by the browser. *)
-val get_persistent_cookies :
-  unit -> string Eliom_common.Fullsessionname_Table.t
-
-(** returns the values of Eliom's cookies for non persistent sessions
-   sent by the browser. *)
-val get_data_cookies :
-  unit -> string Eliom_common.Fullsessionname_Table.t
-
 val find_sitedata : string -> Eliom_common.sitedata
 
-
-(** Returns the http error code of the request before Eliom was called *)
-val get_previous_extension_error_code :unit -> int
-
-
-
-
-(**/**)
 val get_si : Eliom_common.server_params -> Eliom_common.sess_info
 
 val get_user_cookies : unit -> Ocsigen_cookies.cookieset
