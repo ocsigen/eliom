@@ -46,6 +46,8 @@ Combining conditions (all their children must be conditions):
  * {{{<nextsite/>}}}: stops parsing current site. If the page has been found, answer. If not, try next site. ''from Ocsigen 1.2''
  * {{{<nexthost/>}}}: stops parsing current host. If the page has been found, answer. If not, try next host. ''from Ocsigen 1.2''
  * {{{<stop/>}}}: stops parsing configuration file (answers now whether the page has been found or not). ''from Ocsigen 1.2''
+ * {{{<allow-forward-for/>}}}: if there is an X-Forwarded-For header in the request, the informations of the request are changed to match the announced ip.
+ * {{{<allow-forward-proto/>}}}: if the X-Forwarded-Proto header is set to https (http), the connection is considered as secured (unsecure) even if the connection is not in ssl (is in ssl).
 
 == Examples ==
 

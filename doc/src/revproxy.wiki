@@ -33,6 +33,18 @@ You probably also need to rewrite locations in the output (if the server is doin
 <outputfilter header="location" regexp="http://my.newaddress.org/(.*)" dest="http://my.publicaddress.org/$1"/>
 }}}
 
+Note that if you are using ocsigen behind a reverse proxy handling X-Forward-For and X-Forward-Proto headers ( like the revproxy module ), you should allow ocsigen to use those informations, using accesscontrol extension
+
+{{{
+<if>
+	<ip value="ip of the proxy"/>
+	<then>
+	 	<allow-forward-for/>
+    		<allow-forward-proto/>
+	</then>
+</if>
+}}}
+
 ===Technical details
 
     * The reverse proxy does no caching for now.
