@@ -137,9 +137,26 @@ let gen dir = function
 
        let do_request =
          let ri = ri.request_info in
+	 let address = Unix.string_of_inet_addr (fst (get_server_address ri)) in
+	 let forward = 
+	   String.concat ", " (ri.ri_remote_ip :: (ri.ri_forward_ip @ [address]))
+	 in
+	 let proto =
+	   if ri.ri_ssl
+	   then "https"
+	   else "http"
+	 in
+	 let headers =
+	   Http_headers.replace
+	     Http_headers.x_forwarded_proto
+	     proto
+	     (Http_headers.replace
+		Http_headers.x_forwarded_for
+		forward
+		(ri.ri_http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.headers)) in
          if dir.pipeline then
            Ocsigen_http_client.raw_request
-             ~headers:ri.ri_http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.headers
+             ~headers
              ~https
              ~port
              ~client:ri.ri_client
@@ -153,7 +170,7 @@ let gen dir = function
            else
              fun () ->
                Ocsigen_http_client.basic_raw_request
-                 ~headers:ri.ri_http_frame.Ocsigen_http_frame.frame_header.Ocsigen_http_frame.Http_header.headers
+                 ~headers
                  ~https
                  ~port
                  ~content:ri.ri_http_frame.Ocsigen_http_frame.frame_content

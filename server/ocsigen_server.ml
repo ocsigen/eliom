@@ -366,6 +366,7 @@ let get_request_infos
           ri_remote_ip = ipstring;
           ri_remote_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip ipstring));
           ri_remote_port = port_of_sockaddr sockaddr;
+	  ri_forward_ip = [];
           ri_server_port = port;
           ri_user_agent = useragent;
           ri_cookies_string = cookies_string;

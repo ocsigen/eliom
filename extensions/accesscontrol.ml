@@ -182,6 +182,8 @@ let rec parse_condition = function
 (*****************************************************************************)
 (* Parsing filters *)
 
+let comma_space_regexp = Netstring_pcre.regexp "\ *,\ *"
+
 let parse_config parse_fun = function
 
   | Element ("if", [], sub) ->
@@ -286,6 +288,82 @@ let parse_config parse_fun = function
              else
                Lwt.return (Ocsigen_extensions.Ext_next err))
   | Element ("ifnotfound" as s, _, _) -> badconfig "Bad syntax for tag %s" s
+
+  | Element ("allow-forward-for", param, _) ->
+    (function
+      | Ocsigen_extensions.Req_found (request, {res_code = code} )
+      | Ocsigen_extensions.Req_not_found (code, request) ->
+	Ocsigen_messages.debug2 "--Access control: allowed proxy";
+	let request =
+	  try
+	    let header = Http_headers.find Http_headers.x_forwarded_for
+	      request.request_info.ri_http_frame.frame_header.Http_header.headers in
+	    match Netstring_pcre.split comma_space_regexp header with
+	      | []
+	      | [_] ->
+		Ocsigen_messages.debug2 ("--Access control: malformed X-Forwarded-For field: "^header);
+		request
+	      | original_ip::proxies ->
+		let last_proxy = Ocsigen_lib.list_last proxies in
+		let proxy_ip = fst (Ocsigen_lib.parse_ip last_proxy) in
+		let equal_ip = proxy_ip = Lazy.force request.request_info.ri_remote_ip_parsed in
+		let need_equal_ip =
+		  match param with
+		    | [] -> false
+		    | ["check-equal-ip",b] ->
+		      ( try bool_of_string b
+			with Invalid_argument _ ->
+			  badconfig "Bad syntax for argument of tag allow-forward-for" )
+		    | _ -> badconfig "Bad syntax for argument of tag allow-forward-for"
+		in
+		if equal_ip or (not need_equal_ip)
+		then
+		  { request with request_info =
+		      { request.request_info with
+			ri_remote_ip = original_ip;
+			ri_remote_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip original_ip));
+			ri_forward_ip = proxies; } }
+		else (* the announced ip of the proxy is not its real ip *)
+		  ( Ocsigen_messages.warning (Printf.sprintf "--Access control: X-Forwarded-For: host ip ( %s ) does not match the header ( %s )" request.request_info.ri_remote_ip header );
+		    request )
+	  with
+	    | Not_found -> request
+	in
+        Lwt.return
+	  (Ocsigen_extensions.Ext_continue_with
+	     ( request,
+	       Ocsigen_cookies.Cookies.empty,
+	       code )))
+
+  | Element ("allow-forward-proto", _, _) ->
+    (function
+      | Ocsigen_extensions.Req_found (request, {res_code = code} )
+      | Ocsigen_extensions.Req_not_found (code, request) ->
+	Ocsigen_messages.debug2 "--Access control: allowed proxy for ssl";
+	let request =
+	  try
+	    let header = Http_headers.find Http_headers.x_forwarded_proto
+	      request.request_info.ri_http_frame.frame_header.Http_header.headers in
+	    match String.lowercase header with
+	      | "http" ->
+		{ request with request_info =
+		    { request.request_info with
+		      ri_ssl = false; } }
+	      | "https" ->
+		{ request with request_info =
+		    { request.request_info with
+		      ri_ssl = true; } }
+	      | _ ->
+		Ocsigen_messages.debug2 ("--Access control: malformed X-Forwarded-Proto field: "^header);
+		request
+	  with
+	    | Not_found -> request
+	in
+        Lwt.return
+	  (Ocsigen_extensions.Ext_continue_with
+	     ( request,
+	       Ocsigen_cookies.Cookies.empty,
+	       code )))
 
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> badconfig "(accesscontrol extension) Bad data"

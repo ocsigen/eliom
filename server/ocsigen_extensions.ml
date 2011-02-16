@@ -208,6 +208,7 @@ type request_info =
      ri_remote_ip: string;            (** IP of the client *)
      ri_remote_ip_parsed: ip_address Lazy.t;    (** IP of the client, parsed *)
      ri_remote_port: int;      (** Port used by the client *)
+     ri_forward_ip: string list; (** IPs of gateways the request went throught *)
      ri_server_port: int;      (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
      ri_cookies_string: string option Lazy.t; (** Cookies sent by the browser *)
@@ -952,7 +953,11 @@ let get_number_of_connected,
 
 
 
-
+let get_server_address ri =
+  let socket = Ocsigen_http_com.connection_fd (client_connection ri.ri_client) in
+  match Lwt_ssl.getsockname socket with
+    | Unix.ADDR_UNIX _ -> failwith "unix domain socket have no ip"
+    | Unix.ADDR_INET (addr,port) -> addr,port
 
 
 (*****************************************************************************)

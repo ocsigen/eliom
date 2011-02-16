@@ -417,7 +417,10 @@ type yesnomaybe = Yes | No | Maybe
 
 module StringSet = Set.Make(String)
 
-
+let rec list_last = function
+  | [] -> failwith "Ocsigen_lib.list_last"
+  | [v] -> v
+  | t::q -> list_last q
 
 (* circular lists *)
 module Clist = 

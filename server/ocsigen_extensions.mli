@@ -156,6 +156,7 @@ type request_info =
      ri_remote_ip: string;            (** IP of the client *)
      ri_remote_ip_parsed: ip_address Lazy.t;    (** IP of the client, parsed *)
      ri_remote_port: int;      (** Port used by the client *)
+     ri_forward_ip: string list; (** IPs of gateways the request went throught *)
      ri_server_port: int;      (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
      ri_cookies_string: string option Lazy.t; (** Cookies sent by the browser *)
@@ -504,6 +505,8 @@ val get_init_exn_handler : unit -> exn -> string
 val set_config : Simplexmlparser.xml list -> unit
 
 val client_of_connection : Ocsigen_http_com.connection -> client
+
+val get_server_address : request_info -> Unix.inet_addr * int
 
 val sockets : Lwt_unix.file_descr list ref
 val sslsockets : Lwt_unix.file_descr list ref

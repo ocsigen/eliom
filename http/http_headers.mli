@@ -59,6 +59,8 @@ val transfer_encoding : name
 val user_agent : name
 val referer : name
 val range : name
+val x_forwarded_for : name
+val x_forwarded_proto : name
 
 (****)
 

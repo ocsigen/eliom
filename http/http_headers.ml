@@ -52,6 +52,8 @@ let transfer_encoding = name "Transfer-Encoding"
 let user_agent = name "User-Agent"
 let referer = name "Referer"
 let range = name "Range"
+let x_forwarded_for = name "X-Forwarded-For"
+let x_forwarded_proto = name "X-Forwarded-Proto"
 
 module NameHtbl =
   Hashtbl.Make
