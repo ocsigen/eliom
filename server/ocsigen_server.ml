@@ -646,15 +646,28 @@ let service receiver sender_slot request meth url port sockaddr =
            (* *** Now we generate the page and send it *)
            (* Log *)
            accesslog
-             (Format.sprintf
-                "connection for %s from %s (%s): %s"
-                (match ri.ri_host with
-                   | None   -> "<host not specified in the request>"
-                   | Some h -> h)
-                ri.ri_remote_ip
-                ri.ri_user_agent
-                ri.ri_url_string);
-
+	     (try
+		let x_forwarded_for = Http_headers.find Http_headers.x_forwarded_for
+		  ri.ri_http_frame.frame_header.Http_header.headers in
+		Format.sprintf
+                  "connection for %s from %s (%s) with X-Forwarded-For: %s: %s"
+                  (match ri.ri_host with
+                    | None   -> "<host not specified in the request>"
+                    | Some h -> h)
+                  ri.ri_remote_ip
+                  ri.ri_user_agent
+		  x_forwarded_for
+                  ri.ri_url_string
+	      with
+		| Not_found ->
+		  Format.sprintf
+                    "connection for %s from %s (%s): %s"
+                    (match ri.ri_host with
+                      | None   -> "<host not specified in the request>"
+                      | Some h -> h)
+                    ri.ri_remote_ip
+                    ri.ri_user_agent
+                    ri.ri_url_string);
            let send_aux = 
              send sender_slot ~clientproto ~head
                ~sender:Ocsigen_http_com.default_sender
