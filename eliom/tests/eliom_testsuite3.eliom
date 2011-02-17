@@ -1934,10 +1934,14 @@ let applvoid_example =
     ~get_params:unit
     (fun () () ->
       Lwt.return
-        [Eliom_appl.post_form ~service:applvoid_redir
+        [
+          p [pcdata "Random value in the content: ";
+             pcdata (string_of_int (Random.int 1000))];
+          Eliom_appl.post_form ~service:applvoid_redir
             (fun () ->
-              [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click to send POST form" ()]
+              [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click to send POST form to myself." ()]
             )
-            ()
+            ();
+         p [pcdata "This must not stop the application (same random number in the container but not in the content)."];
         ]
     )

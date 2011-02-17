@@ -270,7 +270,7 @@ let void_coservice' =
       };
     https = false;
     keep_nl_params = `All;
-    do_appl_xhr = XNever;
+    do_appl_xhr = XAlways;
   }
 
 let https_void_coservice' =
@@ -286,7 +286,7 @@ let https_void_coservice' =
       };
     https = true;
     keep_nl_params = `All;
-    do_appl_xhr = XNever;
+    do_appl_xhr = XAlways;
   }
 
 let void_hidden_coservice' = {void_coservice' with 
