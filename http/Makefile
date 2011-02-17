@@ -11,7 +11,7 @@ LIB= -package netstring,ssl,lwt $(LIBDIRS) -I +camlp4
 PP =
 # -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
 ALL_CMO = multipart.cmo http_headers.cmo ocsigen_cookies.cmo		\
-           ocsigen_http_frame.cmo http_parser.cmo http_lexer.cmo	\
+           ocsigen_http_frame.cmo http_lexer.cmo	\
            framepp.cmo ocsigen_http_com.cmo ocsigen_charset_mime.cmo	\
            ocsigen_senders.cmo ocsigen_headers.cmo ocsigen_range.cmo
 	 #test_pp.cmo
@@ -33,7 +33,7 @@ doc:
 
 clean:
 	-rm -f $(NAME) $(OPTNAME) *.cm[oiax] *.cmxa *.cmxs *.o *.annot \
-	http_parser.ml http_parser.mli http_lexer.ml documentation/*	
+	http_lexer.ml documentation/*	
 
 viclean: clean
 	-rm *~
@@ -41,15 +41,10 @@ viclean: clean
 depend:
 	$(CAMLDEP) $(PP) $(LIBDIRS) *.ml *.mli *.mll *.mly > .depend
 
-http_parser.cmo:http_parser.ml http_parser.mli http_parser.cmi
-http_parser.cmx:http_parser.ml http_parser.mli http_parser.cmi
-
 http_lexer.cmo:http_lexer.ml http_lexer.cmi
 http_lexer.cmx:http_lexer.ml http_lexer.cmi
 
 http_lexer.ml: http_lexer.mll
-
-http_parser.ml: http_parser.mly
 
 
 # generic rules :

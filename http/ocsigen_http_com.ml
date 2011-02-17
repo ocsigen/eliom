@@ -352,9 +352,15 @@ let parse_http_header mode s =
   try
     Lwt.return
       (if mode = Nofirstline then
-         Http_parser.nofirstline Http_lexer.token lexbuf
+	  Http_lexer.nofirstline
+	    { Ocsigen_http_frame.Http_header.mode =
+		Ocsigen_http_frame.Http_header.Nofirstline;
+	      proto =
+		Ocsigen_http_frame.Http_header.HTTP11;
+	      headers = Http_headers.empty }
+	    lexbuf
        else
-         Http_parser.header Http_lexer.token lexbuf)
+         Http_lexer.header lexbuf)
   with Parsing.Parse_error ->
     Lwt.fail (Ocsigen_http_frame.Http_error.Http_exception
                 (400, Some "parse error", None))
