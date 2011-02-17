@@ -61,7 +61,7 @@ let add_tab_cookies_to_form' l node =
   remove_tab_cookie_fields node;
   add_tab_cookie_fields l node;
   Lwt_js.sleep 0.7 >|=
-  (* VVV we need to sleep to wait for the form submition to finish. If
+  (* PC we need to sleep to wait for the form submition to finish. If
      we do an xhr during the submition, chrome destroy the xhr object
      and raise a javascript exception. The right way to circumvent
      this is to check for availability of FormData, wich is handled by

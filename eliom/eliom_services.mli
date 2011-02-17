@@ -630,3 +630,22 @@ val wrap :
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
+
+type eliom_appl_answer =
+  | EAContent of ((Eliom_client_types.eliom_data_type * string) * string (* url to display *))
+  | EAHalfRedir of string
+  | EAFullRedir of 
+      (unit, unit, get_service_kind,
+       [ `WithoutSuffix ], 
+       unit, unit, registrable, http) service
+        (* We send a service in case of full XHR, so that we can
+           add tab cookies easily.
+           An alternative would be to send the URL,
+           and then parse it on client side, 
+           to compute cookies from the URL information
+           (but it is more complicated to implement because current function
+           to generate tab cookies takes a service).
+        *)
+
+val eliom_appl_answer_content_type : string
+

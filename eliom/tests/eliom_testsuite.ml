@@ -372,6 +372,9 @@ let _ = Eliom_output.Xhtml5compact.register main
             br ();
               a on_load [pcdata "A service using on_unload and on_load"] ();
             br ();
+            ];
+            h4 [pcdata "Comet"];
+            p [
               a comet1 [pcdata "A really simple comet example"] ();
             br ();
               a comet2 [pcdata "A comet example with server to client and client to server asynchronous events"] ();
@@ -382,9 +385,13 @@ let _ = Eliom_output.Xhtml5compact.register main
             br ();
           ];
 
-            h4 [pcdata "Forms"];
+            h4 [pcdata "More tests"];
             p [
               a suffixformc [pcdata "Form towards internal suffix service"] ();
+            br ();
+              a appl_redir [pcdata "Eliom applications and redirections"] ();
+            br ();
+              a applvoid_example [pcdata "POST form towards action with void service redirection"] ();
             br ();
             ];
 

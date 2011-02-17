@@ -152,7 +152,12 @@ let _ =
                     () ()
                 }}
             ]
-            [pcdata "Click here to go to another page."];
+            [pcdata "Link to a service outside the Eliom application"];
+
+          Eliom_appl.get_form ~service:Eliom_testsuite1.coucou
+            (fun () ->
+              [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Form to a service outside the Eliom application" ()]
+            );
 
 (*wiki*
 To use server values inside client code one should use the syntax {{{ %id }}}
@@ -324,8 +329,12 @@ where and {{{id}}} an identifier for the value.
                           Eliom_output.Xhtml5.a
                             (*zap* *)~a:[a_class ["clickable"]](* *zap*)
                             ~service:eliomclient1
-                            [pcdata "another, inside the application."]
-                            ()
+                            [pcdata "another, inside the application. "]
+                            ();
+                          span
+                            ~a:[a_class ["clickable"];
+                                a_onclick (fun () -> Dom_html.window##alert(Js.string "clicked!"))]
+                            [pcdata "Here a client-side span with onclick"]
                          ]
                       ))
                 );
@@ -1873,3 +1882,62 @@ let create_suffixformc ((suff, endsuff),i) =
 
 let suffixformc = Eliom_appl.register_service ["suffixformc"] unit
   (fun () () -> Lwt.return [Eliom_appl.get_form isuffixc create_suffixformc])
+
+
+(*****************************************************************************)
+(* Redirections and Eliom applications: *)
+let appl_redir1 =
+  Eliom_output.Redirection.register_service
+    ~path:["internalredir"]
+    ~get_params:Eliom_parameters.unit
+    (fun () () -> Lwt.return eliomclient2)
+
+let appl_redir2 =
+  Eliom_output.Redirection.register_service
+    ~path:["externalredir"]
+    ~get_params:Eliom_parameters.unit
+    (fun () () -> Lwt.return Eliom_testsuite1.coucou)
+
+let appl_redir =
+  Eliom_appl.register_service
+    ~path:["applredir"]
+    ~get_params:unit
+    (fun () () ->
+      Lwt.return
+        [p [
+          a ~service:appl_redir1 [ pcdata "Link to a redirection inside the Eliom application"] ();
+          br ();
+          a ~service:appl_redir2 [ pcdata "Link to a redirection outside the Eliom application"] ();
+         ];
+         Eliom_appl.get_form ~service:appl_redir1
+            (fun () ->
+              [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Form to a redirection inside the Eliom application" ()]
+            );
+         Eliom_appl.get_form ~service:appl_redir2
+            (fun () ->
+              [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Form to a redirection outside the Eliom application" ()]
+            )
+        ])
+
+
+(*****************************************************************************)
+(* Void coservices with Eliom applications: *)
+let applvoid_redir =
+  Eliom_output.Redirection.register_post_coservice'
+    ~name:"applvoidcoserv"
+    ~post_params:Eliom_parameters.unit
+    (fun () () -> Lwt.return Eliom_services.void_hidden_coservice')
+
+let applvoid_example =
+  Eliom_appl.register_service
+    ~path:["applvoid"]
+    ~get_params:unit
+    (fun () () ->
+      Lwt.return
+        [Eliom_appl.post_form ~service:applvoid_redir
+            (fun () ->
+              [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click to send POST form" ()]
+            )
+            ()
+        ]
+    )

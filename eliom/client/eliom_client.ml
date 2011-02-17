@@ -175,26 +175,45 @@ let set_inner_html (ed, content) =
 let on_unload f =
   on_unload_scripts := f::(!on_unload_scripts)
 
-let set_content = function
-  | Eliom_client_types.EAContent c -> set_inner_html c
-(* For now only one case *)
-
-let set_content_and_url (c, u) =
-  change_url_string u;
-  set_content c
-
-
-let change_page
-    ?absolute ?absolute_path ?https
-    ~(service : ('get, 'post, 
-                 [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
-                 | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
-                 [< Eliom_services.suff ], 'h, 'i,
-                 [< Eliom_services.registrable ], 'j)
-        Eliom_services.service)
-    ?hostname ?port ?fragment ?keep_nl_params
-    ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
-    (g : 'get) (p : 'post) =
+let rec change_page_set_content :
+    'get 'post 'd 'e 'm 'n 'o 'p 'q 'return.
+    ((int ->
+        ?absolute:bool ->
+        ?absolute_path:bool ->
+        ?https:bool ->
+        service:('get, 'post,
+                 ([< `Attached of
+                     (Eliom_services.attached_service_kind,
+                      ([< Eliom_services.getpost ] as 'q))
+                       Eliom_services.a_s
+                  | `Nonattached of ([< Eliom_services.getpost ] as 'p) Eliom_services.na_s ] as 'm),
+                 ([< `WithSuffix | `WithoutSuffix ] as 'n), 'd, 'e, 
+                 ([< Eliom_services.registrable ] as 'o),
+                 'return)
+          Eliom_services.service ->
+        ?hostname:string ->
+        ?port:int ->
+        ?fragment:string ->
+        ?keep_nl_params:[ `All | `None | `Persistent ] ->
+        ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+        ?keep_get_na_params:bool -> 'get -> 'post -> unit Lwt.t) *
+        (int -> Eliom_services.eliom_appl_answer -> unit Lwt.t))
+  = (
+  (* change_page *)
+  (fun
+    i
+    ?absolute
+    ?absolute_path
+    ?https
+    ~service
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?(nl_params=Eliom_parameters.empty_nl_params_set)
+    ?keep_get_na_params
+    g
+    p ->
   if not (Eliom_services.do_appl_xhr 
             (Eliom_process.get_application_name ()) service)
   then
@@ -213,26 +232,66 @@ let change_page
           ?keep_get_na_params
           g p
      with
-       | Ocsigen_lib.Left uri -> 
+       | Ocsigen_lib.Left uri ->
          Eliom_request.http_get ~cookies_info:(https, service, g) uri []
-       | Ocsigen_lib.Right (uri, p) -> 
+       | Ocsigen_lib.Right (uri, p) ->
          Eliom_request.http_post ~cookies_info:(https, service, g) uri p)
-    >>= fun r -> set_content (Eliom_request.get_eliom_appl_result r)
-    >>= fun () ->
-    (*VVV The URL is created twice ... 
-      Once with tab cookies nlp (for the request), 
-      and once without it (we do not want it to appear in the URL).
-      How to avoid this?
-    *)
-    change_url
-      ?absolute ?absolute_path ?https
+    >>= fun r -> (snd change_page_set_content) i
+    (Eliom_request.get_eliom_appl_result r)
+  end),
+     
+(* set_content *) (fun i -> function
+  | Eliom_services.EAContent (c, u) ->
+    change_url_string u;
+    set_inner_html c
+  | Eliom_services.EAHalfRedir u ->
+    Eliom_request.redirect_get u;
+    Lwt.fail Eliom_request.Program_terminated
+  | Eliom_services.EAFullRedir service ->
+    if i < Eliom_request.max_redirection_level
+    then (fst change_page_set_content) (i+1)
+      ?absolute:None
+      ?absolute_path:None
+      ?https:None
       ~service
-      ?hostname ?port ?fragment ?keep_nl_params ~nl_params ?keep_get_na_params
-      g p;
-  (*VVV change the URL only if it is different? *)
-    Lwt.return ()
-  end
+      ?hostname:None
+      ?port:None
+      ?fragment:None
+      ?keep_nl_params:None
+      ?nl_params:None
+      ?keep_get_na_params:None
+      () ()
+    else Lwt.fail Eliom_request.Looping_redirection)
+)
 
+
+let set_content = (snd change_page_set_content) 0
+let change_page
+    ?absolute
+    ?absolute_path
+    ?https
+    ~service
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    ?keep_get_na_params
+    g
+    p = 
+  (fst change_page_set_content) 0
+    ?absolute
+    ?absolute_path
+    ?https
+    ~service
+    ?hostname
+    ?port
+    ?fragment
+    ?keep_nl_params
+    ?nl_params
+    ?keep_get_na_params
+    g
+    p
 
 
 
@@ -272,11 +331,34 @@ let fake_page = Dom_html.createBody Dom_html.document
   XHTML5.M.toelt (XHTML5.M.body [])
 *)
 
-let get_subpage
+let rec get_subpage_ :
+    'get 'post 'd 'e 'm 'n 'o 'p 'q 'return.
+    int ->
+    ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('get, 'post,
+           ([< `Attached of
+               (Eliom_services.attached_service_kind,
+                ([< Eliom_services.getpost ] as 'q))
+                 Eliom_services.a_s
+            | `Nonattached of ([< Eliom_services.getpost ] as 'p) Eliom_services.na_s ] as 'm),
+           ([< `WithSuffix | `WithoutSuffix ] as 'n), 'd, 'e, 
+           ([< Eliom_services.registrable ] as 'o),
+           'return)
+    Eliom_services.service ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?keep_get_na_params:bool -> 'get -> 'post -> 
+  [< `PCDATA | Xhtmltypes.flow ] XHTML5.M.elt list Lwt.t
+    = fun i
     ?absolute ?absolute_path ?https ~service
     ?hostname ?port ?fragment ?keep_nl_params
     ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params
-    g p =
+    g p ->
 (*VVV Should we fail if the service does not belong to the same application? *)
   (match create_request_
      ?absolute ?absolute_path ?https ~service
@@ -289,20 +371,39 @@ let get_subpage
      | Ocsigen_lib.Right (uri, p) ->
        Eliom_request.http_post ~cookies_info:(https, service, g) uri p)
   >>= fun r -> match Eliom_request.get_eliom_appl_result r with
-    | Eliom_client_types.EAContent (ed, content) ->
-    (* Hack to make the result considered as XHTML: *)
+    | Eliom_services.EAContent ((ed, content), _) -> begin
+      (* Hack to make the result considered as XHTML: *)
       fake_page##innerHTML <- Js.string content;
       let nodes = fake_page##childNodes in
       let node_list = ref [] in
       for i = nodes##length - 1 downto 0 do
         node_list := Js.Optdef.get (nodes##item (i)) (fun () -> assert false)
-                     :: !node_list
+        :: !node_list
       done;
-  
+      
       load_eliom_data_ ed fake_page >>= fun () ->
       fake_page##innerHTML <- Js.string "";
       Lwt.return (XHTML5.M.totl !node_list)
+    end
+    | Eliom_services.EAHalfRedir u ->
+      (* strange ... *)
+      Eliom_request.redirect_get u;
+      Lwt.fail Eliom_request.Program_terminated
+    | Eliom_services.EAFullRedir service ->
+      if i < Eliom_request.max_redirection_level
+      then get_subpage_ (i+1) ~service () ()
+      else Lwt.fail Eliom_request.Looping_redirection
 
+let get_subpage
+    ?absolute ?absolute_path ?https ~service
+    ?hostname ?port ?fragment ?keep_nl_params
+    ?nl_params ?keep_get_na_params
+    g p =
+  get_subpage_ 0
+    ?absolute ?absolute_path ?https ~service
+    ?hostname ?port ?fragment ?keep_nl_params
+    ?nl_params ?keep_get_na_params
+    g p
 
 
 

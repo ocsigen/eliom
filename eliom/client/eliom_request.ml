@@ -24,6 +24,8 @@ exception Failed_request of int
 exception Program_terminated
 exception External_service
 
+let max_redirection_level = 12
+
 let short_url_re =
   jsnew Js.regExp (Js.bytestring "^([^\\?]*)(\\?(.*))?$")
 
@@ -113,7 +115,7 @@ let send ?cookies_info ?get_args ?post_args url =
     then
       match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
         | Some uri ->
-          if i < 12 
+          if i < max_redirection_level
           then aux (i+1) uri
           else Lwt.fail Looping_redirection
         | None ->
@@ -165,7 +167,7 @@ let make_cookies_info = function
       Some (https, path)
     with External_service -> None
 
-let get_eliom_appl_result a : Eliom_client_types.eliom_appl_answer =
+let get_eliom_appl_result a : Eliom_services.eliom_appl_answer =
   Marshal.from_string (Url.urldecode a) 0
 
 let http_get ?cookies_info url get_args : string Lwt.t =

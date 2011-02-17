@@ -2862,7 +2862,7 @@ module Camlreg_ = struct
     Text.send ?options ?charset ?code 
       ?content_type ?headers
       (content,
-       Eliom_client_types.eliom_appl_answer_content_type)
+       Eliom_services.eliom_appl_answer_content_type)
 
 end
 
@@ -3196,6 +3196,9 @@ let default_appl_params =
 
 let comet_service_key = Polytables.make_key ()
 
+let change_current_page_key : ('a -> unit) Polytables.key =
+  Polytables.make_key ()
+
 module Eliom_appl_reg_
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
    with type t = [ `Html ] XHTML5.M.elt
@@ -3212,9 +3215,6 @@ module Eliom_appl_reg_
   type return = Eliom_services.appl_service
 
   let eliom_appl_state_name = "__eliom_appl_name"
-
-  let change_current_page_key : ('a -> unit) Polytables.key =
-    Polytables.make_key ()
 
   let get_tab_cook sp =
     Eliommod_cookies.compute_cookies_to_send
@@ -3263,14 +3263,18 @@ module Eliom_appl_reg_
 function redir () {
   var str_url = window.location.toString() ;
   try{
-    var match = str_url.match(\"(.*)/[^#/?]*(\\\\?.*)?#!((https?://)?(.*))$\");
+    var match = str_url.match(\"((https?://[^/]*).*)/[^#/?]*(\\\\?.*)?#!((https?://[^/]*/)?(/)?(.*))$\");
           //but what if there's a # the search ?
     if(match) {
-      if(match[4]) { //absolute
-        window.location = match[3];
+      if(match[5]) { // full absolute
+        window.location = match[4];
       }
-      else { //relative
-        window.location = match[1] + \"/\" + match[3] ;
+      else
+      if(match[6]) { // absolute path
+        window.location = match[2] + match[4];
+      }
+      else { // relative
+        window.location = match[1] + \"/\" + match[4] ;
       }
     }
   } catch(e) {} ;
@@ -3352,19 +3356,17 @@ redir ();"))::
   let get_eliom_page_content ~options sp content =
     get_tab_cook sp >>= fun tab_cookies_to_send ->
 (*VVV Here we do not send a stream *)
-    Lwt.return 
-      (Eliom_client_types.EAContent
-         ((Ocsigen_lib.Right
-             (XML.make_ref_tree_list (XHTML5.M.toeltl content)),
-           (Eliommod_cli.get_eliom_appl_page_data_ sp),
-           tab_cookies_to_send,
-           Eliom_services.get_onload sp,
-           Eliom_services.get_onunload sp,
-           Eliommod_cli.client_si sp.Eliom_common.sp_si
-          ),
-(*VVV Use another serialization format than XML for the page? *)
-          Xhtml5compact.xhtml_list_print content)
-      )
+    Lwt.return
+      ((Ocsigen_lib.Right
+          (XML.make_ref_tree_list (XHTML5.M.toeltl content)),
+        (Eliommod_cli.get_eliom_appl_page_data_ sp),
+        tab_cookies_to_send,
+        Eliom_services.get_onload sp,
+        Eliom_services.get_onunload sp,
+        Eliommod_cli.client_si sp.Eliom_common.sp_si
+       ),
+     (*VVV Use another serialization format than XML for the page? *)
+       Xhtml5compact.xhtml_list_print content)
 
 
   let send ?(options = default_appl_service_options) ?charset ?code
@@ -3379,18 +3381,11 @@ redir ();"))::
       *)
       sp.Eliom_common.sp_client_appl_name = Some Appl_params.application_name
     in
-    (if content_only && si.Eliom_common.si_internal_form
-     then begin (* It was an internal form.
-                   We want to change only the content.
-                   But the browser is not doing an xhr.
-                   We send 204 No Content 
-                   and use the change_page_event to update the content. *)
-       let change_current_page = Polytables.get
-	 ~table:cpi.Eliom_common.cpi_references ~key:change_current_page_key
-       in
-       get_eliom_page_content ~options sp content >>= fun data ->
+    (if content_only
+     then begin
        let rc = Eliom_request_info.get_request_cache_sp sp in
        let url_to_display =
+         "/"^
          try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
        (* If it is a suffix service with redirection, the uri has already been 
           computed in rc *)
@@ -3399,13 +3394,21 @@ redir ();"))::
           without internal form info and taking "to_be_considered_as_get" 
           into account*)
        in
-       change_current_page (data, url_to_display);
-       Lwt.return (Ocsigen_http_frame.empty_result ())
+       get_eliom_page_content ~options sp content >>= fun data ->
+       if si.Eliom_common.si_internal_form
+       then begin (* It was an internal form.
+                     We want to change only the content.
+                     But the browser is not doing an xhr.
+                     We send 204 No Content 
+                     and use the change_page_event to update the content. *)
+         let change_current_page = Polytables.get
+	   ~table:cpi.Eliom_common.cpi_references ~key:change_current_page_key
+         in
+         change_current_page (Eliom_services.EAContent (data, url_to_display));
+         Lwt.return (Ocsigen_http_frame.empty_result ())
+       end
+       else Caml.send (EAContent (data, url_to_display))
      end
-     else if content_only
-(*VVV do not send container! *)
-     then 
-        get_eliom_page_content ~options sp content >>= Caml.send
      else begin
        (* We launch the client side process *)
        let comet_service = Eliom_comet.init () in
@@ -3458,6 +3461,7 @@ redir ();"))::
     )
 
 end
+
 
 module Eliom_appl (Appl_params : APPL_PARAMS) = struct
 
@@ -3584,7 +3588,6 @@ module Redirreg_ = struct
   let send ?(options = `Permanent) ?charset ?code
       ?content_type ?headers service =
     let uri = Xhtml.make_string_uri ~absolute:true ~service () in
-
     let empty_result = Ocsigen_http_frame.empty_result () in
     let cookies = Eliom_request_info.get_user_cookies () in
     let content_type = match content_type with
@@ -3607,7 +3610,7 @@ module Redirreg_ = struct
        - a half xhr redirection otherwise
     *)
     match Eliom_request_info.get_sp_client_appl_name () with
-        (* the appl name as sent by browser *)
+      (* the appl name as sent by browser *)
       | None -> (* the browser did not ask application eliom data,
                    we send a regular redirection *)
         let code = match code with
@@ -3626,47 +3629,76 @@ module Redirreg_ = struct
             res_headers= headers; }
 
       | Some anr ->
-          (* the browser asked application eliom data
-             (content only) for the application called anr *)
-        match Eliom_services.get_do_appl_xhr service with
+        (* the browser asked application eliom data
+           for the application called anr *)
+        let sp = Eliom_common.get_sp () in
+        let si = Eliom_request_info.get_si sp in
+        if si.Eliom_common.si_internal_form
+        then begin
+        (* If it comes from a form, we use the change_page_event *)
+          let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in
+          let change_current_page = Polytables.get
+	    ~table:cpi.Eliom_common.cpi_references ~key:change_current_page_key
+          in
+          (match Eliom_services.get_do_appl_xhr service with
             (* the appl name of the destination service *)
-          | Eliom_services.XSame_appl an when (an = anr) ->
+            | Eliom_services.XSame_appl an when (an = anr) ->
             (* Same appl, we do a full xhr redirection
                (not an http redirection, because we want to
                send back tab cookies) *)
-            Lwt.return
-              {empty_result with
-                res_cookies= cookies;
-                res_content_type= content_type;
-                res_headers= 
-                  Http_headers.add
-                    (Http_headers.name Eliom_common.full_xhr_redir_header)
-                    uri headers
-              }
-              
-          | Eliom_services.XAlways ->
-            (* It is probably an action, full xhr again *)
-            Lwt.return
-              {empty_result with
-                res_cookies= cookies;
-                res_content_type= content_type;
-                res_headers= 
-                  Http_headers.add
-                    (Http_headers.name Eliom_common.full_xhr_redir_header)
-                    uri headers
-              }
+              change_current_page (Eliom_services.EAFullRedir 
+                                     (Eliom_services.pre_wrap service))
 
-          | _ -> (* No application, or another application.
-                    We ask the browser to do an HTTP redirection. *)
-            Lwt.return
-              {empty_result with
-                res_cookies= cookies;
-                res_content_type= content_type;
-                res_headers= 
-                  Http_headers.add
-                    (Http_headers.name Eliom_common.half_xhr_redir_header)
-                    uri headers
-              }
+            | Eliom_services.XAlways ->
+            (* It is probably an action, or a void coservice. Full xhr again *)
+              change_current_page (Eliom_services.EAFullRedir
+                                     (Eliom_services.pre_wrap service))
+            | _ -> (* No application, or another application.
+                      We ask the browser to do an HTTP redirection. *)
+              change_current_page (Eliom_services.EAHalfRedir uri));
+          Lwt.return (Ocsigen_http_frame.empty_result ())
+        end
+        else
+        (* If it comes from an xhr, we use answer with a special header field *)
+          match Eliom_services.get_do_appl_xhr service with
+          (* the appl name of the destination service *)
+            | Eliom_services.XSame_appl an when (an = anr) ->
+            (* Same appl, we do a full xhr redirection
+               (not an http redirection, because we want to
+               send back tab cookies) *)
+              Lwt.return
+                {empty_result with
+                  res_cookies= cookies;
+                  res_content_type= content_type;
+                  res_headers= 
+                    Http_headers.add
+                      (Http_headers.name Eliom_common.full_xhr_redir_header)
+                      uri headers
+                }
+                
+            | Eliom_services.XAlways ->
+            (* It is probably an action, or a void coservice. Full xhr again *)
+              Lwt.return
+                {empty_result with
+                  res_cookies= cookies;
+                  res_content_type= content_type;
+                  res_headers= 
+                    Http_headers.add
+                      (Http_headers.name Eliom_common.full_xhr_redir_header)
+                      uri headers
+                }
+                
+            | _ -> (* No application, or another application.
+                      We ask the browser to do an HTTP redirection. *)
+              Lwt.return
+                {empty_result with
+                  res_cookies= cookies;
+                  res_content_type= content_type;
+                  res_headers= 
+                    Http_headers.add
+                      (Http_headers.name Eliom_common.half_xhr_redir_header)
+                      uri headers
+                }
 
 
 end

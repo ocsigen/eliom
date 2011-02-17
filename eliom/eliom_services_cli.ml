@@ -219,12 +219,12 @@ let https_static_dir_with_params ?keep_nl_params ~get_params () =
 let get_do_appl_xhr s = s.do_appl_xhr
 let set_do_appl_xhr s n = s.do_appl_xhr <- n
 
-let do_appl_xhr dest_appl_name s =
-  (dest_appl_name <> None) && 
+let do_appl_xhr current_page_appl_name s =
+  (current_page_appl_name <> None) && 
     (match s.do_appl_xhr with
       | XAlways -> true
       | XNever -> false
-      | XSame_appl an -> Some an = dest_appl_name)
+      | XSame_appl an -> Some an = current_page_appl_name)
 
 (****************************************************************************)
 
@@ -428,3 +428,21 @@ let external_service
 let untype_service_ s = 
   (s : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
    :> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'http) service)
+
+
+(* VVV
+   Find a better place for this.
+   Was in Eliom_client_types but circular dependency with Eliom_services
+*)
+type eliom_appl_answer =
+  | EAContent of ((Eliom_client_types.eliom_data_type * string) * string (* url to display *))
+  | EAHalfRedir of string
+  | EAFullRedir of 
+      (unit, unit, get_service_kind,
+       [ `WithoutSuffix ], 
+       unit, unit, registrable, http) service
+        (* We send a service in case of full XHR, so that we can
+           add cookies easily. *)
+
+let eliom_appl_answer_content_type = "application/x-eliom"
+
