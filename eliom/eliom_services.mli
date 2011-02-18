@@ -210,14 +210,14 @@ val post_service :
                 ([`Internal of
                     ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
              [< suff] as 'tipo, 'gn, unit,
-             [< `Registrable ], 'return) service ->
+             [< `Registrable ], 'return1) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?priority:int ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
   ('get, 'post, [> `Attached of
                    ([> `Internal of 'kind ], [> `Post]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], 'return) service
+   'tipo, 'gn, 'pn, [> `Registrable ], 'return2) service
 (** Creates a service that takes POST parameters.
     [fallback] is a service without POST parameters.
     You can't create an service with POST parameters
@@ -242,7 +242,7 @@ val coservice :
   fallback:
     (unit, unit, [ `Attached of ([ `Internal of [ `Service ] ], [`Get]) a_s ],
      [ `WithoutSuffix ] as 'tipo,
-     unit, unit, [< registrable ], 'return) service ->
+     unit, unit, [< registrable ], 'return1) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:
     ('get,[`WithoutSuffix],'gn) params_type ->
@@ -250,7 +250,7 @@ val coservice :
   ('get,unit,[> `Attached of
                 ([> `Internal of [> `Coservice] ], [> `Get]) a_s ],
    'tipo, 'gn, unit,
-   [> `Registrable ], 'return) service
+   [> `Registrable ], 'return2) service
 (** Creates an attached coservice. A coservice is another version of an
     already existing main service, where you can register another handler.
     The two versions are automatically distinguished using an extra parameter
@@ -307,14 +307,14 @@ val post_coservice :
                              ([`Internal of [<`Service | `Coservice] ],
                               [`Get]) a_s ],
              [< suff ] as 'tipo,
-             'gn, unit, [< `Registrable ], 'return) service ->
+             'gn, unit, [< `Registrable ], 'return1) service ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
   ('get, 'post,
    [> `Attached of
       ([> `Internal of [> `Coservice] ], [> `Post]) a_s ],
-   'tipo, 'gn, 'pn, [> `Registrable ], 'return) service
+   'tipo, 'gn, 'pn, [> `Registrable ], 'return2) service
 (** Creates a coservice with POST parameters *)
 
 (** {3 Non attached coservices} *)
