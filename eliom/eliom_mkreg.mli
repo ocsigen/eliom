@@ -255,7 +255,7 @@ module type ELIOMREGSIG =
                     ([ `Internal of
                          ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
                 [< suff ] as 'tipo, 'gn,
-                unit, [< `Registrable ], return)
+                unit, [< `Registrable ], 'return2) (* 'return2 <> return *)
         service ->
       post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
       ?error_handler:((string * exn) list -> page Lwt.t) ->

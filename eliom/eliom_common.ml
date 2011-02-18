@@ -892,7 +892,7 @@ let get_session_info req previous_extension_err =
   let get_params, post_params, 
     (all_get_params, all_post_params,
      nl_get_params, nl_post_params, 
-     all_get_but_nl) = 
+     all_get_but_nl, internal_form) = 
     try
       (get_params, 
        post_params,
@@ -905,7 +905,7 @@ let get_session_info req previous_extension_err =
       let all_get_but_nl = get_params in
       get_params, post_params,
       (get_params0, (if no_post_param then None else Some post_params0), 
-       nl_get_params, nl_post_params, all_get_but_nl)
+       nl_get_params, nl_post_params, all_get_but_nl, internal_form)
   in
 
   let browser_cookies = Lazy.force ri.Ocsigen_extensions.ri_cookies in

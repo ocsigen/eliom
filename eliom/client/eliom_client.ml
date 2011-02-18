@@ -334,7 +334,7 @@ let fake_page = Dom_html.createBody Dom_html.document
 let rec get_subpage_ :
     'get 'post 'd 'e 'm 'n 'o 'p 'q 'return.
     int ->
-    ?absolute:bool ->
+  ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
   service:('get, 'post,

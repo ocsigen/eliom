@@ -2291,7 +2291,8 @@ module Actionreg_ = struct
                     si.Eliom_common.si_all_post_params, (* is Some [] *)
                     si.Eliom_common.si_nl_get_params,
                     si.Eliom_common.si_nl_post_params,
-                    si.Eliom_common.si_all_get_but_nl)
+                    si.Eliom_common.si_all_get_but_nl,
+                    si.Eliom_common.si_internal_form)
 (*VVV Also put all_cookie_info in this,
   to avoid update_cookie_table and get_cookie_info (?)
 *)
@@ -2324,7 +2325,8 @@ module Actionreg_ = struct
                     si.Eliom_common.si_all_post_params,
                     si.Eliom_common.si_nl_get_params,
                     si.Eliom_common.si_nl_post_params,
-                    si.Eliom_common.si_all_get_but_nl)
+                    si.Eliom_common.si_all_get_but_nl,
+                    si.Eliom_common.si_internal_form)
                  ;
                  let ri =
                    {ri.request_info with
@@ -2356,7 +2358,8 @@ module Actionreg_ = struct
                     si.Eliom_common.si_all_post_params,
                     si.Eliom_common.si_nl_get_params,
                     si.Eliom_common.si_nl_post_params,
-                    si.Eliom_common.si_all_get_but_nl)
+                    si.Eliom_common.si_all_get_but_nl,
+                    si.Eliom_common.si_internal_form)
                  ;
                  let ri = 
                    {ri.request_info with

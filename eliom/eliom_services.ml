@@ -272,12 +272,8 @@ let post_service_aux ~https ~fallback
 
 let post_service ?(https = false) ~fallback 
     ?keep_nl_params ?priority ~post_params () =
-  (* (if post_params = TUnit
-  then Ocsigen_messages.warning "Probably error in the module: \
-      Creation of a POST service without POST parameters.");
-      12/07/07
-      I remove this warning: POST service without POST parameters means
-      that the service will answer to a POST request only.
+  (* POST service without POST parameters means
+     that the service will answer to a POST request only.
     *)
   let `Attached k1 = fallback.kind in
   let `Internal kind = k1.att_kind in
@@ -298,7 +294,6 @@ let post_service ?(https = false) ~fallback
                      "post_service")
           else u)
   | _ -> u
-(* Warning: strange if post_params = unit... *)
 (* if the fallback is a coservice, do we get a coservice or a service? *)
 
 

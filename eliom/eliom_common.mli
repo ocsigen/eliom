@@ -527,7 +527,7 @@ val eliom_params_after_action :
   ((string * string) list * (string * string) list option *
      (string * string) list Ocsigen_lib.String_Table.t *
      (string * string) list Ocsigen_lib.String_Table.t *
-     (string * string) list)
+     (string * string) list * bool)
   Polytables.key
  
 val att_key_serv_of_req : att_key_req -> att_key_serv
