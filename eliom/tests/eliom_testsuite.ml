@@ -386,11 +386,9 @@ let _ = Eliom_output.Xhtml5compact.register Eliom_testsuite3.main
 
             h4 [pcdata "More tests"];
             p [
-              a suffixformc [pcdata "Form towards internal suffix service"] ();
+              a formc [pcdata "Forms"] ();
             br ();
               a appl_redir [pcdata "Eliom applications and redirections"] ();
-            br ();
-              a applvoid_example [pcdata "POST form towards action with void service redirection"] ();
             br ();
             ];
 

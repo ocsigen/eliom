@@ -4,6 +4,9 @@
   let (>|=) = Lwt.(>|=)
 }}
 
+(* Main page for the test suite *)
+let main = Eliom_services.service [] Eliom_parameters.unit ()
+
 (* *zap*)
 (*zap*
    This is the Eliom documentation.
@@ -76,7 +79,8 @@ module Eliom_appl =
                   fun div ->
                     [h1 [pcdata "Eliom application"];
                      p [pcdata "Random value in the container: ";
-                        pcdata (string_of_int (Random.int 1000))];
+                        pcdata (string_of_int (Random.int 1000)); br ();
+                        a ~service:main [pcdata "Back to the main page of the test suite."] ();];
                      div ])
         }
     end)
@@ -153,11 +157,6 @@ let _ =
                 }}
             ]
             [pcdata "Link to a service outside the Eliom application"];
-
-          Eliom_appl.get_form ~service:Eliom_testsuite1.coucou
-            (fun () ->
-              [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Form to a service outside the Eliom application" ()]
-            );
 
 (*wiki*
 To use server values inside client code one should use the syntax {{{ %id }}}
@@ -1260,13 +1259,11 @@ let tconnect_example3 =
     ~get_params:Eliom_parameters.unit
     ()
 
-
 let tconnect_action =
   Eliom_services.post_coservice'
     ~name:"tconnect3"
     ~post_params:(Eliom_parameters.string "login")
     ()
-
 
 (* As the handler is very simple, we register it now: *)
 let tdisconnect_action =
@@ -1274,10 +1271,7 @@ let tdisconnect_action =
     ~name:"tdisconnect3"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.discard
- (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ())
-
-
+      Eliom_state.discard (*zap* *) ~state_name (* *zap*) ~scope:`Client_process ())
 
 (* -------------------------------------------------------- *)
 (* login ang logout boxes:                                  *)
@@ -1286,7 +1280,6 @@ let tdisconnect_box s =
   Eliom_appl.post_form tdisconnect_action
     (fun _ -> [p [Eliom_appl.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
-
 
 let tlogin_box () =
   Eliom_appl.post_form tconnect_action
@@ -1298,8 +1291,6 @@ let tlogin_box () =
          in l)
      ])
     ()
-
-
 
 (* -------------------------------------------------------- *)
 (* Handler for the "connect_example3" service (main page):    *)
@@ -1865,7 +1856,8 @@ let isuffixc =
             strong [pcdata (string_of_int i)]]])
 
 let create_suffixformc ((suff, endsuff),i) =
-    [p [pcdata "Write the suffix:";
+    [h3 [pcdata "Form to an (internal appl) suffix service"];
+     p [pcdata "Write the suffix:";
         int_input ~input_type:`Text ~name:suff ();
         br ();
         pcdata "Write a string: ";
@@ -1879,9 +1871,6 @@ let create_suffixformc ((suff, endsuff),i) =
         string_input ~input_type:`Submit ~value:"Click" ()
        ]
     ]
-
-let suffixformc = Eliom_appl.register_service ["suffixformc"] unit
-  (fun () () -> Lwt.return [Eliom_appl.get_form isuffixc create_suffixformc])
 
 
 (*****************************************************************************)
@@ -1928,20 +1917,55 @@ let applvoid_redir =
     ~post_params:Eliom_parameters.unit
     (fun () () -> Lwt.return Eliom_services.void_hidden_coservice')
 
-let applvoid_example =
-  Eliom_appl.register_service
-    ~path:["applvoid"]
-    ~get_params:unit
-    (fun () () ->
-      Lwt.return
-        [
-          p [pcdata "Random value in the content: ";
-             pcdata (string_of_int (Random.int 1000))];
-          Eliom_appl.post_form ~service:applvoid_redir
-            (fun () ->
-              [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click to send POST form to myself." ()]
-            )
-            ();
-         p [pcdata "This must not stop the application (same random number in the container but not in the content)."];
-        ]
-    )
+
+(*****************************************************************************)
+(* Form examples: *)
+let postformc =
+  Eliom_appl.register_post_service
+    ~fallback:Eliom_testsuite1.coucou
+    ~post_params:(Eliom_parameters.string "zzz")
+    (fun () s -> Lwt.return [p [pcdata "Yo man. ";
+                                pcdata s]])
+
+let formc = Eliom_appl.register_service ["formc"] unit
+  (fun () () -> 
+    Lwt.return
+      [
+        Eliom_appl.get_form ~service:Eliom_testsuite1.coucou
+          (fun () ->
+            [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"GET form to a service outside the Eliom application" ()]
+          );
+        
+        Eliom_appl.post_form ~service:Eliom_testsuite1.my_service_with_post_params
+          (fun s ->
+            [Eliom_output.Xhtml5.string_input ~input_type:`Hidden ~name:s ~value:"plop" ();
+             Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"POST form to a service outside the Eliom application" ()]
+          )
+          ();
+        
+        Eliom_appl.get_form ~service:eliomclient1
+          (fun () ->
+            [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"GET form to a service inside the Eliom application" ()]
+          );
+        
+        Eliom_appl.post_form ~service:postformc
+          (fun s ->
+            [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~name:s ~value:"POST form to a service inside the Eliom application" ()]
+          )
+          ();
+        
+        
+        Eliom_appl.get_form isuffixc create_suffixformc;
+
+        h3 [pcdata "POST form towards action with void service redirection"];
+        p [pcdata "Random value in the content: ";
+           pcdata (string_of_int (Random.int 1000))];
+        Eliom_appl.post_form ~service:applvoid_redir
+          (fun () ->
+            [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click to send POST form to myself." ()]
+          )
+          ();
+        p [pcdata "This must not stop the application (same random number in the container but not in the content)."];
+
+      ])
+

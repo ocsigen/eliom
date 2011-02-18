@@ -1670,10 +1670,19 @@ let boollistform = register_service ["boolform"] unit
 
 (********)
 
+let coucoucou =
+  register_service
+    ~path:["coucoucou"]
+    ~get_params:unit
+    (fun () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Hallo!"]])))
 
 (* any with POST *)
 let any = register_post_service
-    ~fallback:coucou
+    ~fallback:coucoucou
     ~post_params:any
   (fun () l ->
     let ll =
