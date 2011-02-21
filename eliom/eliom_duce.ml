@@ -104,7 +104,7 @@ module Xhtmlreg_ = struct
 
   let pre_service ?options () = Lwt.return ()
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers content =
@@ -461,7 +461,7 @@ module SubXhtml =
 
       let pre_service ?options () = Lwt.return ()
 
-      let do_appl_xhr = Eliom_services.XNever
+      let send_appl_content = Eliom_services.XNever
 
       let send ?options ?charset ?code
           ?content_type ?headers content =

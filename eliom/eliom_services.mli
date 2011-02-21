@@ -603,21 +603,31 @@ val set_delayed_post_registration_function :
   (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string) -> 
   unit
 
-type do_appl_xhr =
+type send_appl_content =
   | XNever
-  | XAlways (** always if it was an xhr asking for content only.
-                Used by actions. *)
-  | XSame_appl of string (** The string is the application name *)
+  | XAlways
+  | XSame_appl of string
+(** Whether the service is capable to send application content or not.
+    (application content has type Eliom_services.eliom_appl_answer:
+    content of the application container, or xhr redirection ...).
+    A link towards a service with send_appl_content = XNever will
+    always answer a regular http frame (this will stop the application if
+    used in a regular link or form, but not with XHR).
+    XAlways means "for all applications" (like redirections/actions).
+    XSame_appl means "only for this application".
+    If there is a client side application, and the service has
+    XAlways or XSame_appl when it is the same application,
+    then the link (or form or change_page) will expect application content.
+*)
 
-val set_do_appl_xhr :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> do_appl_xhr -> unit
+val set_send_appl_content :
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> send_appl_content -> unit
 
 (** Returns the name of the application to which belongs the service, if any. *)
-val get_do_appl_xhr : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> do_appl_xhr
+val get_send_appl_content : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> send_appl_content
 
-val do_appl_xhr :
-  string option ->
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
+val send_appl_content :
+  string option -> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
 
 
 val get_onload : Eliom_common.server_params -> string list

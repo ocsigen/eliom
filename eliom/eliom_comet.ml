@@ -94,7 +94,7 @@ module Cometreg_ = struct
 
   let pre_service ?options () = Lwt.return ()
 
-  let do_appl_xhr = Eliom_services.XAlways
+  let send_appl_content = Eliom_services.XNever
 
   let code_of_code_option = function
     | None -> 200

@@ -53,7 +53,7 @@ module type REGCREATE =
         This value is recorded inside each service just after registration.
         (Use in [Eliom_output.Eliom_appl])
     *)
-    val do_appl_xhr : Eliom_services.do_appl_xhr
+    val send_appl_content : Eliom_services.send_appl_content
 
   end
 
@@ -353,7 +353,7 @@ module MakeRegister = functor
           ~service
           ?(error_handler = fun l -> raise (Eliom_common.Eliom_Typing_Error l))
           page_generator =
-        Eliom_services.set_do_appl_xhr service (Pages.do_appl_xhr);
+        Eliom_services.set_send_appl_content service (Pages.send_appl_content);
         begin
           match get_kind_ service with
             | `Attached attser ->
@@ -498,7 +498,7 @@ module MakeRegister = functor
                                    | Some anr ->
                                 (* the browser asked application eliom data
                                    (content only) for application anr *)
-                                     match Eliom_services.get_do_appl_xhr service
+                                     match Eliom_services.get_send_appl_content service
                                 (* the appl name of the service *)
                                      with
                                        | Eliom_services.XSame_appl an

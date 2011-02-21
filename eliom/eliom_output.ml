@@ -1686,7 +1686,7 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   end
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?(options = `XHTML_01_01) ?charset ?code
       ?content_type ?headers content =
@@ -1780,7 +1780,7 @@ module SubXhtml(Format : sig
 
       type return = Eliom_services.http
 
-      let do_appl_xhr = Eliom_services.XNever
+      let send_appl_content = Eliom_services.XNever
 
       let send ?options ?charset ?code 
           ?content_type ?headers content =
@@ -1847,7 +1847,7 @@ module Textreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code 
       ?content_type ?headers content =
@@ -1887,7 +1887,7 @@ module CssTextreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers content =
@@ -1930,7 +1930,7 @@ module HtmlTextreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code 
       ?content_type ?headers content =
@@ -2178,7 +2178,7 @@ module Actionreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XAlways
+  let send_appl_content = Eliom_services.XAlways
   (* The post action service will decide later *)
 
   let send_directly =
@@ -2398,7 +2398,7 @@ module Unitreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?(code = 204)
       ?content_type ?headers content =
@@ -2439,7 +2439,7 @@ module Anyreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers res =
@@ -2480,7 +2480,7 @@ module Filesreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers filename =
@@ -2536,7 +2536,7 @@ module Streamlistreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers content =
@@ -2858,7 +2858,7 @@ module Camlreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code 
       ?content_type ?headers content =
@@ -2886,7 +2886,7 @@ module Caml = struct
       f g p >>= fun r -> 
       Lwt.return (Eliom_client_types.encode_eliom_data r)
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code 
       ?content_type ?headers content =
@@ -3354,7 +3354,7 @@ redir ();"))::
          ))
       body
 
-  let do_appl_xhr = Eliom_services.XSame_appl Appl_params.application_name
+  let send_appl_content = Eliom_services.XSame_appl Appl_params.application_name
 
 
   let get_eliom_page_content ~options sp content =
@@ -3508,7 +3508,7 @@ module String_redirreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XAlways
+  let send_appl_content = Eliom_services.XAlways
   (* actually, the service will decide itself *)
 
   let send ?(options = `Permanent) ?charset ?code
@@ -3586,12 +3586,12 @@ module Redirreg_ = struct
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XAlways
+  let send_appl_content = Eliom_services.XAlways
   (* actually, the service will decide itself *)
 
   let send ?(options = `Permanent) ?charset ?code
       ?content_type ?headers service =
-    let uri = Xhtml.make_string_uri ~absolute:true ~service () in
+    let uri = lazy (Xhtml.make_string_uri ~absolute:true ~service ()) in
     let empty_result = Ocsigen_http_frame.empty_result () in
     let cookies = Eliom_request_info.get_user_cookies () in
     let content_type = match content_type with
@@ -3628,7 +3628,7 @@ module Redirreg_ = struct
           {empty_result with
             res_cookies= cookies;
             res_code= code;
-            res_location = Some uri;
+            res_location = Some (Lazy.force uri);
             res_content_type= content_type;
             res_headers= headers; }
 
@@ -3644,7 +3644,7 @@ module Redirreg_ = struct
           let change_current_page = Polytables.get
 	    ~table:cpi.Eliom_common.cpi_references ~key:change_current_page_key
           in
-          (match Eliom_services.get_do_appl_xhr service with
+          (match Eliom_services.get_send_appl_content service with
             (* the appl name of the destination service *)
             | Eliom_services.XSame_appl an when (an = anr) ->
             (* Same appl, we do a full xhr redirection
@@ -3659,12 +3659,13 @@ module Redirreg_ = struct
                                      (Eliom_services.pre_wrap service))
             | _ -> (* No application, or another application.
                       We ask the browser to do an HTTP redirection. *)
-              change_current_page (Eliom_services.EAHalfRedir uri));
+              change_current_page
+                (Eliom_services.EAHalfRedir (Lazy.force uri)));
           Lwt.return (Ocsigen_http_frame.empty_result ())
         end
         else
         (* If it comes from an xhr, we use answer with a special header field *)
-          match Eliom_services.get_do_appl_xhr service with
+          match Eliom_services.get_send_appl_content service with
           (* the appl name of the destination service *)
             | Eliom_services.XSame_appl an when (an = anr) ->
             (* Same appl, we do a full xhr redirection
@@ -3677,7 +3678,7 @@ module Redirreg_ = struct
                   res_headers= 
                     Http_headers.add
                       (Http_headers.name Eliom_common.full_xhr_redir_header)
-                      uri headers
+                      (Lazy.force uri) headers
                 }
                 
             | Eliom_services.XAlways ->
@@ -3689,7 +3690,7 @@ module Redirreg_ = struct
                   res_headers= 
                     Http_headers.add
                       (Http_headers.name Eliom_common.full_xhr_redir_header)
-                      uri headers
+                      (Lazy.force uri) headers
                 }
                 
             | _ -> (* No application, or another application.
@@ -3701,7 +3702,7 @@ module Redirreg_ = struct
                   res_headers= 
                     Http_headers.add
                       (Http_headers.name Eliom_common.half_xhr_redir_header)
-                      uri headers
+                      (Lazy.force uri) headers
                 }
 
 
@@ -3730,7 +3731,7 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   type return = Eliom_services.http
 
-  let do_appl_xhr = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XNever
 
   module Xhtml_content = struct
 

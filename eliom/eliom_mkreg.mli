@@ -51,11 +51,12 @@ module type REGCREATE =
       page -> 
       Ocsigen_http_frame.result Lwt.t
 
-    (** The following field is usually [Eliom_services.XNever]. 
+    val send_appl_content : Eliom_services.send_appl_content
+    (** Whether the service is capable to send application content 
+        when required.
+        This field is usually [Eliom_services.XNever]. 
         This value is recorded inside each service just after registration.
-        (Use in [Eliom_output.Eliom_appl])
     *)
-    val do_appl_xhr : Eliom_services.do_appl_xhr
 
   end
 

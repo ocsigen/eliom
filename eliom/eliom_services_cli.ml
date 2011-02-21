@@ -92,10 +92,23 @@ type http (** default return type for services *)
 type appl_service (** return type for service that are entry points for an
                       application *)
 
-type do_appl_xhr =
+type send_appl_content =
   | XNever
   | XAlways
   | XSame_appl of string
+(* the string is the name of the application to which the service belongs *)
+(** Whether the service is capable to send application content or not.
+    (application content has type Eliom_services.eliom_appl_answer:
+    content of the application container, or xhr redirection ...).
+    A link towards a service with send_appl_content = XNever will
+    always answer a regular http frame (this will stop the application if
+    used in a regular link or form, but not with XHR).
+    XAlways means "for all applications" (like redirections/actions).
+    XSame_appl means "only for this application".
+    If there is a client side application, and the service has
+    XAlways or XSame_appl when it is the same application,
+    then the link (or form or change_page) will expect application content.
+*)
 
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) service =
 (* 'return is the value returned by the service *)
@@ -112,9 +125,8 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
      kind: 'kind; (* < service_kind *)
      https: bool; (* force https *)
      keep_nl_params: [ `All | `Persistent | `None ];
-     mutable do_appl_xhr : do_appl_xhr;
+     mutable do_appl_xhr : do_appl_xhr 
    (* the string is the name of the application to which the service belongs *)
-     service_mark : (unit,unit,unit,unit,unit,unit,unit,unit) service Eliom_common.wrapper;
    }
 
 let pre_wrap s =
@@ -184,7 +196,6 @@ let static_dir_ ?(https = false) () =
     https = https;
     keep_nl_params = `None;
     do_appl_xhr = XNever;
-    service_mark = service_mark ();
   }
 
 let static_dir () = static_dir_ ()
@@ -217,7 +228,6 @@ let get_static_dir_ ?(https = false)
      https = https;
      keep_nl_params = keep_nl_params;
      do_appl_xhr = XNever;
-     service_mark = service_mark ();
    }
 
 let static_dir_with_params ?keep_nl_params ~get_params () = 
@@ -228,12 +238,12 @@ let https_static_dir_with_params ?keep_nl_params ~get_params () =
 
 
 (****************************************************************************)
-let get_do_appl_xhr s = s.do_appl_xhr
-let set_do_appl_xhr s n = s.do_appl_xhr <- n
+let get_send_appl_content s = s.send_appl_content
+let set_send_appl_content s n = s.send_appl_content <- n
 
-let do_appl_xhr current_page_appl_name s =
+let send_appl_content current_page_appl_name s =
   (current_page_appl_name <> None) && 
-    (match s.do_appl_xhr with
+    (match s.send_appl_content with
       | XAlways -> true
       | XNever -> false
       | XSame_appl an -> Some an = current_page_appl_name)
@@ -283,7 +293,6 @@ let void_coservice' =
     https = false;
     keep_nl_params = `All;
     do_appl_xhr = XAlways;
-    service_mark = service_mark ();
   }
 
 let https_void_coservice' =
@@ -300,7 +309,6 @@ let https_void_coservice' =
     https = true;
     keep_nl_params = `All;
     do_appl_xhr = XAlways;
-    service_mark = service_mark ();
   }
 
 let void_hidden_coservice' = {void_coservice' with 
@@ -378,7 +386,6 @@ let service_aux_aux
    https = https;
    keep_nl_params = keep_nl_params;
    do_appl_xhr = XNever;
-   service_mark = service_mark ();
  }
 
 
