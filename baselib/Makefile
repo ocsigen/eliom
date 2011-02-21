@@ -19,7 +19,8 @@ FILES= ocsigen_cache.ml ocsigen_lib_cli.ml ocsigen_lib.ml \
        ocsigen_messages.ml ocsigen_config.ml ocsigen_stream.ml \
        ocsigen_commandline.ml ocsigen_loader.ml \
        dynlink_wrapper.ml \
-       polytables.ml
+       polytables.ml \
+       obj_table.ml ocsigen_wrap.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
