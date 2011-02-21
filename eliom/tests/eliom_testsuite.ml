@@ -392,6 +392,8 @@ let _ = Eliom_output.Xhtml5compact.register Eliom_testsuite3.main
             br ();
               a appl_redir [pcdata "Eliom applications and redirections"] ();
             br ();
+              a nonapplprocessservice [pcdata "Client process service not registered with Eliom_appl"] ();
+            br ();
             ];
 
             h4 [pcdata "Tab sessions"];

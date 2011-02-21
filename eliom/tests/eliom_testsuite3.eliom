@@ -1811,23 +1811,14 @@ let _ =
         ~fallback:ttimeout ~get_params:unit ~timeout:5. ()
     in
     let _ =
-      Eliom_output.Xhtml5.register ~service:timeoutcoserv
+      Eliom_appl.register ~service:timeoutcoserv
         ~scope:`Client_process
         (fun _ _ ->
-          return
-             (html
-               (head (title (pcdata "Cooooooooservices with timeouts")) [])
-               (body [p
-                 [pcdata "I am a coservice with timeout."; br ();
-                  pcdata "Try to reload the page!"; br ();
-                  pcdata "I will disappear after 5 seconds of inactivity.";
-                  pcdata "Pour l'instant c'est un Eliom_output.Xhtml5 au lieu de Eliom_appl parce qu'il y a un bug à corriger dans ce cas. Remettre Eliom_appl ici et ajouter un test pour ce bug." ];
-                 ])))
-(*            [p [pcdata "I am a coservice with timeout."; br ();
+          Lwt.return
+            [p [pcdata "I am a coservice with timeout."; br ();
                 a timeoutcoserv [pcdata "Try again"] (); br ();
                 pcdata "I will disappear after 5 seconds of inactivity." ];
             ])
-*)
     in
     return
       [h2 [pcdata "Client process coservices with timeouts"];
@@ -1836,6 +1827,53 @@ let _ =
       ]
   in
   Eliom_appl.register ttimeout page
+
+
+
+(*****************************************************************************)
+let nonapplprocessservice = service ["nonapplprocessservice"] unit ()
+
+let _ =
+  let page () () =
+    let serv =
+      Eliom_output.Caml.register_post_coservice'
+        ~scope:`Client_process
+        ~post_params:unit
+        (fun () () -> Lwt.return [1; 2; 3])
+    in
+    let serv2 =
+      Eliom_output.Xhtml5.register_coservice'
+        ~scope:`Client_process
+        ~get_params:unit
+        (fun () () -> Lwt.return (html
+                                    (head (title (pcdata "mmmh")) [])
+                                    (body [p [pcdata "It works"]])))
+    in
+    Lwt.return
+      [h2 [pcdata "Client process service not registered with Eliom_appl"];
+       p [pcdata "I just created two coservices with scope `Client_process but not registered with Eliom_appl."; br ();
+          span ~a:[a_class ["clickable"];
+                   a_onclick
+                     {{let body = Dom_html.document##body in
+                       Eliom_client.call_caml_service ~service:%serv () () >|=
+                       List.iter
+                         (fun i -> Dom.appendChild body
+                           (Dom_html.document##createTextNode
+                              (Js.string (string_of_int i))))
+                      }}
+                  ]
+            [pcdata "Click to call it and receive Ocaml data (service registered with Eliom_output.Caml)."];
+          br ();
+          pcdata "It works, because we send tab cookies with Eliom_client.call_service or Eliom_client.call_caml_service.";
+          br ();
+          Eliom_appl.a ~service:serv2 [pcdata "Here a link to an client process service outside the application."] ();
+          pcdata " For now it does not work, because we do not send tab cookies for non Eliom_appl services ... How to solve this?";
+          br ();
+          pcdata "Add a test of link to another application."
+         ]
+      ]
+  in
+  Eliom_appl.register nonapplprocessservice page
 
 
 
