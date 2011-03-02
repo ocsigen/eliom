@@ -1182,4 +1182,13 @@ let remove_from_all_persistent_tables key =
 
 
 
+(**** Wrapper type shared by client/server side ***)
 
+type 'a wrapper = 'a Ocsigen_wrap.wrapper
+
+let make_wrapper f = Ocsigen_wrap.create_wrapper f
+let empty_wrapper () = Ocsigen_wrap.empty_wrapper
+
+type toucher = (unit XHTML5.M.elt) Ocsigen_wrap.toucher
+
+let make_toucher (f : 'a XHTML5.M.elt -> unit) = Ocsigen_wrap.create_toucher (Obj.magic f : unit XHTML5.M.elt -> unit)

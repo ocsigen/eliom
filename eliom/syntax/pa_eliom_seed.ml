@@ -310,11 +310,20 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  | _ -> raise Next
 	);
 
+(*
 	(function (*service*)
 	  | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >>
 	  | <:ctyp< ($_$ Eliom_services.service) >> ->
               (<:expr<Eliom_services.wrap>>,
 		<:expr<Eliommod_cli.unwrap>>)
+	  | _ -> raise Next;
+	);
+*)
+
+	(function (*rest*)
+	  | _ ->
+              (<:expr< (fun x -> x) >>,
+		<:expr< (fun x -> x) >>)
 	  | _ -> raise Next;
 	);
 

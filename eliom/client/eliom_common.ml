@@ -23,3 +23,8 @@ type server_params = unit
 
 let get_sp () = ()
 let get_sp_option () = Some ()
+
+type 'a wrapper = unit
+
+let make_wrapper f :'a wrapper = ()
+let empty_wrapper () :'a wrapper = ()

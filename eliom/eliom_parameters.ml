@@ -415,22 +415,3 @@ let get_non_localized_post_parameters p =
   get_non_localized_parameters
     sp.Eliom_common.sp_si.Eliom_common.si_nl_post_params snd ~sp p
 
-
-(*****************************************************************************)
-let rec wrap_param_type = function
-  | TNLParams (a, b, c, t) -> TNLParams (a, b, c, wrap_param_type t)
-  | TProd (t1, t2) -> TProd ((wrap_param_type t1),
-                             (wrap_param_type t2))
-  | TOption t -> TOption (wrap_param_type t)
-  | TList (list_name, t) -> TList (list_name, t)
-  | TSet t -> TSet (wrap_param_type t)
-  | TSum (t1, t2) -> TSum ((wrap_param_type t1),
-                           (wrap_param_type t2))
-  | TUserType (name, of_string, string_of) ->
-(*VVV *)
-    failwith "User service parameters type not supported client side."
-  | TCoordv (t, name) -> TCoordv ((wrap_param_type t), name)
-(* We remove the type information here: not possible to send a closure.
-   marshaling is just basic json marshaling on client side. *)
-  | TJson (name, _) -> TJson (name, None)
-  | t -> t

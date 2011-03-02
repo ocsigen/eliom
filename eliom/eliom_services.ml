@@ -237,6 +237,7 @@ let coservice'
           https = https;
           keep_nl_params = keep_nl_params;
           do_appl_xhr = XNever;
+	  service_mark = service_mark ();
         }
 
 
@@ -268,6 +269,7 @@ let post_service_aux ~https ~fallback
    https = https;
    keep_nl_params = keep_nl_params;
    do_appl_xhr = XNever;
+   service_mark = service_mark ();
  }
 
 let post_service ?(https = false) ~fallback 
@@ -382,6 +384,7 @@ let post_coservice'
     https = https;
     keep_nl_params = keep_nl_params;
     do_appl_xhr = XNever;
+    service_mark = service_mark ();
   }
 
 

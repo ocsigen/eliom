@@ -562,3 +562,14 @@ val get_sp : unit -> server_params
 val sp_of_option : server_params option -> server_params
 
 val found_stop_key : unit Polytables.key
+
+(**** Wrapper type shared by client/server side ***)
+
+type 'a wrapper = 'a Ocsigen_wrap.wrapper
+
+val make_wrapper : ('a -> 'b) -> 'a wrapper 
+val empty_wrapper : unit -> 'a wrapper
+
+type toucher = (unit XHTML5.M.elt) Ocsigen_wrap.toucher
+
+val make_toucher : ('a XHTML5.M.elt -> unit) -> toucher 
