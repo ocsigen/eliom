@@ -322,9 +322,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
 	(function (*rest*)
 	  | _ ->
-              (<:expr< (fun x -> x) >>,
-		<:expr< (fun x -> x) >>)
-	  | _ -> raise Next;
+            (<:expr< (fun x -> x) >>,
+	     <:expr< (fun x -> x) >>)
 	);
 
 	(* wrapped values: not yet used. *)

@@ -371,6 +371,8 @@ let _ = Eliom_output.Xhtml5compact.register Eliom_testsuite3.main
             br ();
               a on_load [pcdata "A service using on_unload and on_load"] ();
             br ();
+              a wrapping1 [pcdata "wrapping test 1"] ();
+            br ();
             ];
             h4 [pcdata "Comet"];
             p [

@@ -516,7 +516,64 @@ let uri_test =
       Lwt.return [div]
     )
 
+{shared{
+module Wrapping_test =
+struct
+  type 'a t1 =
+      { v_int : int;
+	v_float : float;
+	v_string : string;
+        (* v_int64 : int64; *)
+	v_service : 'a }
+end
+}}
 
+let v1 =
+  { Wrapping_test.v_int = 42;
+    v_float = 42.42;
+    v_string = "fourty two";
+    (* v_int64 = 0x4200000000000000L; *)
+    v_service = eliomclient1 }
+    
+let rec rec_list = 1::2::3::rec_list
+
+{client{
+  let add_body v =
+    Dom.appendChild (Dom_html.document##body) v
+
+  let put f =
+    Printf.ksprintf (fun s ->
+      add_body
+        (XHTML5.M.toelt (p [pcdata s]))) f
+}}
+
+let wrapping1 =
+  Eliom_appl.register_service
+    ~path:["wrapping1"]
+    ~get_params:unit
+    (fun () () ->
+      let div = div [] in
+      Eliom_services.onload
+	{{ 
+	  let v = %v1 in
+	  put "42=%i 42.42=%f fourty two=%s" v.Wrapping_test.v_int v.Wrapping_test.v_float v.Wrapping_test.v_string;
+	  ( match %rec_list with
+	    | a::b::c::d::e::f::g::_ ->
+	      put "%i::%i::%i::%i::%i::%i::%i::..." a b c d e f g;
+	    | _ -> put "problem with recursive list"; );
+
+          add_body
+            (XHTML5.M.toelt
+	       (p ~a:[ a_onclick
+			 (fun _ ->
+			   ignore (Eliom_client.get_subpage ~service:v.Wrapping_test.v_service
+				     () () >|= (fun blocks ->
+				       List.iter
+					 (Dom.appendChild Dom_html.document##body)
+					 (XHTML5.M.toeltl blocks);)))] [pcdata "test serice"]));
+
+	}};
+      Lwt.return [div])
 
 (*wiki*
 ====Implicit registration of services to implement distant function calls
