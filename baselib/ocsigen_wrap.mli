@@ -16,14 +16,28 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-type 'a t
-(* ['a t] is the type of values to include into a value of type 'a for
+type +'a wrapper
+(* ['a wrapper] is the type of values to include into a value of type 'a for
    it to be wraped specificaly *)
 
-val create : ( 'a -> 'b ) -> 'a t
+val create_wrapper : ( 'a -> 'b ) -> 'a wrapper
 (* [create f] create a new tag that can be included into a value.  if
    [wrap] is called on a father of a value [v] containing a tag, the
    value [v] will be replaced by [f v] before marshaling *)
 
 val wrap : 'a -> string
 (* marshal a value, taking into account the tags *)
+
+val empty_wrapper: 'a wrapper
+
+type +'a toucher
+
+val create_toucher : ( 'a -> unit ) -> 'a toucher
+
+val touch : 'a -> unit
+
+(**/**)
+
+val debug_wrap : 'a -> Obj_table.data * Obj_table.data
+
+val make_table : Obj.t -> Obj_table.table

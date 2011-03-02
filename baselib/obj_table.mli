@@ -59,3 +59,23 @@ val replace : table -> Obj.t -> Obj.t -> unit
 
 val no_copy : table -> Obj.t -> unit
 (** mark a value as not copiable in the table. *)
+
+
+(**/**)
+
+type entry =
+    { v: Obj.t;
+      mutable no_copy: bool;
+      id : int; }
+
+type data =
+  | Long of int
+  | Double of entry * float
+  | Double_array of entry * float array
+  | Block of entry * data array
+  | Closure of entry * data array
+  | String of entry * string
+  | Object of entry
+  | Other of entry
+
+val debug : table -> data
