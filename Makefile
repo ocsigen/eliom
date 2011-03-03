@@ -466,9 +466,9 @@ install: partialinstall
 	  chmod a+r $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; }
 	chmod a+r $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
 	chmod a+r $(TEMPROOT)$(CONFIGDIR)/mime.types
-	$(INSTALL) -m 644 files/tutorial/style.css $(TEMPROOT)$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 files/tutorial/bulles-bleues.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 files/tutorial/ocsigen5.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tests/style.css $(TEMPROOT)$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tests/bulles-bleues.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tests/ocsigen5.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)$(STATICPAGESDIR)/ocsigenstuff
 	$(INSTALL) -m 644 eliom/tests/miniwiki/files/style.css $(TEMPROOT)$(STATICPAGESDIR)/miniwiki
 	$(INSTALL) -m 644 eliom/tests/miniwiki/wikidata/* $(TEMPROOT)$(DATADIR)/miniwiki
