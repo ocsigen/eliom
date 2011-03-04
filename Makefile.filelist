@@ -94,3 +94,7 @@ FIXESDOC2=$(PLUGINSCMITOINSTALL:%xhtmltypes_duce.cmi=%xhtmltypes_duce.ml)
 
 DOC= $(FIXESDOC1:.cmi=.mli) \
      $(FIXESDOC2:.cmi=.mli)
+
+DOCINCLUDESDIR=\
+	baselib http xmlp4 server extensions eliom eliom/extensions \
+	deriving/lib/modules/Json
