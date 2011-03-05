@@ -1079,7 +1079,7 @@ module MakeForms = functor
              let i1, i = Pages.remove_first inside in
              if internal_appl_form
              then
-               return (Eliommod_mkforms.make_get_form_with_onsubmit
+               return (Eliommod_mkforms.make_get_form_with_tab_cookies
                          Pages.make_get_form Pages.register_event_form
                          Pages.add_tab_cookies_to_get_form
                          Pages.add_tab_cookies_to_get_form_id_string
@@ -1177,7 +1177,7 @@ module MakeForms = functor
              in
              if internal_appl_form
              then
-               return (Eliommod_mkforms.make_post_form_with_onsubmit
+               return (Eliommod_mkforms.make_post_form_with_tab_cookies
                          Pages.make_post_form Pages.register_event_form
                          Pages.add_tab_cookies_to_post_form
                          Pages.add_tab_cookies_to_post_form_id_string

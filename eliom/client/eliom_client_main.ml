@@ -19,7 +19,7 @@
  *)
 
 (* The following line is for Eliommod_mkforms to be linked. *)
-let _a = Eliommod_mkforms.make_post_form_with_onsubmit
+let _a = Eliommod_mkforms.make_post_form_with_tab_cookies
 
 let _ =
   Dom_html.window##onload <- Dom_html.handler (fun _ ->

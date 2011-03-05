@@ -101,7 +101,7 @@ let add_tab_cookies_to_get_form node () =
   let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
   add_tab_cookies_to_get_form' node
 
-let make_get_form_with_onsubmit
+let make_get_form_with_tab_cookies
     make_get_form register_event add_tab_cookies_to_get_form _
     ?a ~action i1 i =
   let node =
@@ -109,7 +109,7 @@ let make_get_form_with_onsubmit
   register_event node "onsubmit" (add_tab_cookies_to_get_form node);
   node
 
-let make_post_form_with_onsubmit
+let make_post_form_with_tab_cookies
     make_post_form register_event add_tab_cookies_to_post_form _
     ?a ~action i1 i =
   let node = make_post_form ?a ~action ?onsubmit:None
