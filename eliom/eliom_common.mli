@@ -164,7 +164,7 @@ val nodisplay_class_name : string
 
 val appl_name_cookie_name : string
 val tab_cookies_param_name : string
-val get_request_post_param_name : string
+val to_be_considered_as_get_param_name : string
 val full_xhr_redir_header : string
 val half_xhr_redir_header : string
 

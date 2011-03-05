@@ -884,7 +884,7 @@ let get_session_info req previous_extension_err =
       ([],
        Lazy.force ri.Ocsigen_extensions.ri_get_params
        @snd (Ocsigen_lib.list_assoc_remove 
-                         get_request_post_param_name post_params),
+               to_be_considered_as_get_param_name post_params),
        true)
     (* It was a POST request to be considered as GET *)
     with Not_found ->

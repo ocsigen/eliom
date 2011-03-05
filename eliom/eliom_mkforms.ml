@@ -975,7 +975,8 @@ module MakeForms = functor
           ?(no_appl = false)
           content
           getparams =
-        if not no_appl && (Eliom_services.xhr_with_cookies Pages.appl_name service)
+        if not no_appl && 
+          (Eliom_services.xhr_with_cookies Pages.appl_name service)
         then
           Eliommod_mkforms.make_a_with_onclick
             (fun ?a ?onclick c -> Pages.make_a ?a ?onclick c)

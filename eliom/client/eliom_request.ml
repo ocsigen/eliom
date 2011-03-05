@@ -83,7 +83,7 @@ let redirect_post url params =
 
 
 (** Same as XmlHttpRequest.send_string, but:
-    - sends tab cookies
+    - sends tab cookies in an HTTP header
     - does half and full XHR redirections according to headers
 
     The optional parameter [~cookies_info] is a pair
@@ -99,18 +99,10 @@ let send ?cookies_info ?get_args ?post_args url =
     in
     (* We add cookies in POST parameters *)
     let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
-    (* all requests will be POST,
-       but with a special parameter to remind that it should be GET *)
-    let post_args = match post_args with
-      | None -> (* GET *) [(Eliom_common.get_request_post_param_name, "1")]
-      | Some p -> p
+    let headers = [(Eliom_common.tab_cookies_header_name, 
+                    (Ocsigen_lib.encode_header_value cookies))]
     in
-    let post_args =
-      ((Eliom_common.tab_cookies_param_name, 
-        (Ocsigen_lib.encode_form_value cookies))::
-          post_args)
-    in
-    XmlHttpRequest.send_string ?get_args ~post_args url >>= fun r ->
+    XmlHttpRequest.send_string ~headers ?get_args ?post_args url >>= fun r ->
     if r.XmlHttpRequest.code = 204
     then
       match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with

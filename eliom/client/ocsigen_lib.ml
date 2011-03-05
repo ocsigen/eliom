@@ -43,6 +43,9 @@ let encode_form_value x = to_json x
     (* I encode the data because it seems that multipart does not
        like \0 character ... *)
 *)
+let encode_header_value x =
+  (* We remove end of lines *)
+  remove_eols (to_json x)
 
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
