@@ -359,9 +359,9 @@ module type ELIOMFORMSIG =
 
     If a client side application is running, and unless
     [~no_appl:true] is specified, it will use [<a onclick=...>]
-    instead of [<a href=...>] in case of link inside a same Eliom application.
-    Thus, the client side application will not be stopped when the link
-    is clicked.
+    instead of [<a href=...>] to send process cookies.
+    Thus, if the destination service belongs to the same application,
+    the client side process will not be stopped when the link is clicked.
 
 *)
 

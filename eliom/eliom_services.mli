@@ -626,7 +626,13 @@ val set_send_appl_content :
 (** Returns the name of the application to which belongs the service, if any. *)
 val get_send_appl_content : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> send_appl_content
 
-val send_appl_content :
+val need_process_cookies :
+  string option -> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
+
+val appl_content_capable :
+  string option -> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
+
+val xhr_with_cookies :
   string option -> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
 
 

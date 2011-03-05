@@ -214,7 +214,7 @@ let rec change_page_set_content :
     ?keep_get_na_params
     g
     p ->
-  if not (Eliom_services.send_appl_content 
+  if not (Eliom_services.appl_content_capable
             (Eliom_process.get_application_name ()) service)
   then
     Lwt.return (exit_to
