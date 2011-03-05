@@ -21,6 +21,14 @@
      It is very basic and must be completed for exhaustiveness. *)
 
 
+val find : string -> Ocsigen_http_frame.t -> string
+(** find one of the values bound to [name] in the HTTP headers of the frame.
+   Raise [Not_found] if it is not bound.
+ *)
+
+val find_all : string -> Ocsigen_http_frame.t -> string list
+(** find all the values bound to [name] in the HTTP headers of the frame. *)
+
 val get_keepalive : Ocsigen_http_frame.Http_header.http_header -> bool
 val parse_cookies : string  -> string Ocsigen_lib.String_Table.t
 val parse_mime_type : string -> string option * string option

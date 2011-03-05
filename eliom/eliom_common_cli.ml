@@ -134,6 +134,8 @@ let internal_form_full_name =
     internal_form_name^"."^
     internal_form_bool_name
 
+let tab_cookies_header_name = "x-eliom-process-cookies"
+
 let nl_is_persistent n = n.[0] = 'p'
 
 (*****************************************************************************)

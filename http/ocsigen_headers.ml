@@ -28,6 +28,15 @@ open Ocsigen_http_frame
 open Ocsigen_senders
 open Ocsigen_lib
 
+
+let find name frame =
+  Http_headers.find (Http_headers.name name)
+    frame.frame_header.Http_header.headers
+
+let find_all name frame =
+  Http_headers.find_all (Http_headers.name name)
+    frame.frame_header.Http_header.headers
+
 (*
 XXX Get rid of all "try ... with _ -> ..."
 *)

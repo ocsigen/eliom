@@ -856,12 +856,24 @@ let get_session_info req previous_extension_err =
     with Not_found ->
       let tab_cookies, post_params =
         try
+(* Tab cookies are found in HTTP headers,
+   but also sometimes in POST params (when we do not want to do an XHR
+   because we want to stop the client side process).
+   It should never be both.
+*)
           let (tc, pp) = 
             Ocsigen_lib.list_assoc_remove tab_cookies_param_name post_params
           in
           (Json.from_string<string Ocsigen_lib.String_Table.t> tc, pp)
           (*Marshal.from_string (Ocsigen_lib.decode tc) 0, pp*)
-        with Not_found -> Ocsigen_lib.String_Table.empty, post_params
+        with Not_found -> 
+          try (* looking for tab cookies in headers *)
+            let tc = Ocsigen_headers.find tab_cookies_header_name
+              ri.Ocsigen_extensions.ri_http_frame
+            in
+            (Json.from_string<string Ocsigen_lib.String_Table.t> tc, 
+             post_params)
+          with Not_found -> Ocsigen_lib.String_Table.empty, post_params
       in
       (None, tab_cookies, post_params)
   in
