@@ -125,6 +125,7 @@ let full_xhr_redir_header = "x-eliom-location-full"
 let half_xhr_redir_header = "x-eliom-location-half"
 
 let default_group_name = "__eliom$%@default_group"
+(*204FORMS* old implementation of forms with 204 and change_page_event
 let internal_form_name = "_internal_form"
 let internal_form_bool_name = "b"
 
@@ -133,6 +134,7 @@ let internal_form_full_name =
     eliom_internal_nlp_prefix^"-"^
     internal_form_name^"."^
     internal_form_bool_name
+*)
 
 let tab_cookies_header_name = "x-eliom-process-cookies"
 
@@ -189,7 +191,7 @@ type sess_info =
      si_all_get_but_na_nl: (string * string) list Lazy.t;
      si_all_get_but_nl: (string * string) list;
 
-     si_internal_form: bool;
+(*204FORMS*     si_internal_form: bool; *)
    }
 
 (************ unwrapping identifiers *********************)

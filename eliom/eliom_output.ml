@@ -2291,8 +2291,8 @@ module Actionreg_ = struct
                     si.Eliom_common.si_all_post_params, (* is Some [] *)
                     si.Eliom_common.si_nl_get_params,
                     si.Eliom_common.si_nl_post_params,
-                    si.Eliom_common.si_all_get_but_nl,
-                    si.Eliom_common.si_internal_form)
+                    si.Eliom_common.si_all_get_but_nl (*204FORMS*,
+                    si.Eliom_common.si_internal_form *))
 (*VVV Also put all_cookie_info in this,
   to avoid update_cookie_table and get_cookie_info (?)
 *)
@@ -2325,8 +2325,8 @@ module Actionreg_ = struct
                     si.Eliom_common.si_all_post_params,
                     si.Eliom_common.si_nl_get_params,
                     si.Eliom_common.si_nl_post_params,
-                    si.Eliom_common.si_all_get_but_nl,
-                    si.Eliom_common.si_internal_form)
+                    si.Eliom_common.si_all_get_but_nl (*204FORMS*,
+                    si.Eliom_common.si_internal_form *))
                  ;
                  let ri =
                    {ri.request_info with
@@ -2358,8 +2358,8 @@ module Actionreg_ = struct
                     si.Eliom_common.si_all_post_params,
                     si.Eliom_common.si_nl_get_params,
                     si.Eliom_common.si_nl_post_params,
-                    si.Eliom_common.si_all_get_but_nl,
-                    si.Eliom_common.si_internal_form)
+                    si.Eliom_common.si_all_get_but_nl (*204FORMS*,
+                    si.Eliom_common.si_internal_form *))
                  ;
                  let ri = 
                    {ri.request_info with
@@ -3199,8 +3199,10 @@ let default_appl_params =
 
 let comet_service_key = Polytables.make_key ()
 
+(*CPE* change_page_event
 let change_current_page_key : ('a -> unit) Polytables.key =
   Polytables.make_key ()
+*)
 
 module Eliom_appl_reg_
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
@@ -3227,7 +3229,7 @@ module Eliom_appl_reg_
                         
   let create_page
       ~options ~sp cpi params cookies_to_send
-      change_page_event content = 
+      (*CPE* change_page_event *) content = 
     let do_not_launch = options.do_not_launch
         (* || 
            (Ocsigen_cookies.length tab_cookies_to_send > 1)
@@ -3326,12 +3328,14 @@ redir ();"))::
 				~key:comet_service_key)
                           ) ; "\'; \n" ;
 
+(*CPE* change_page_event
                           "var change_page_event = \'" ;
                           (Eliom_client_types.jsmarshal
                              (Eliommod_react.Down.wrap
                                 (Eliommod_react.Down.of_react change_page_event)
                              )
                           ) ; "\'; \n" ;
+*)
 
                           "var sitedata = \'" ;
                           (Eliom_client_types.jsmarshal
@@ -3376,7 +3380,7 @@ redir ();"))::
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
     let sp = Eliom_common.get_sp () in
-    let si = Eliom_request_info.get_si sp in
+(*    let si = Eliom_request_info.get_si sp in *)
     let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in
     let content_only =
       (* If the name of the application sent by the browser
@@ -3399,6 +3403,8 @@ redir ();"))::
           into account*)
        in
        get_eliom_page_content ~options sp content >>= fun data ->
+(*204FORMS* old implementation of forms with 204 and change_page_event
+
        if si.Eliom_common.si_internal_form
        then begin (* It was an internal form.
                      We want to change only the content.
@@ -3411,7 +3417,8 @@ redir ();"))::
          change_current_page (Eliom_services.EAContent (data, url_to_display));
          Lwt.return (Ocsigen_http_frame.empty_result ())
        end
-       else Caml.send (EAContent (data, url_to_display))
+       else *)
+       Caml.send (EAContent (data, url_to_display))
      end
      else begin
        (* We launch the client side process *)
@@ -3420,6 +3427,7 @@ redir ();"))::
          ~table:cpi.Eliom_common.cpi_references
          ~key:comet_service_key
 	 ~value:comet_service;
+(*CPE* change_page_event
        let change_page_event, change_current_page =
          (* This event allows the server to ask the client to change 
             current page content *)
@@ -3429,6 +3437,7 @@ redir ();"))::
          ~table:cpi.Eliom_common.cpi_references
 	 ~key:change_current_page_key
 	 ~value:change_current_page;
+*)
        Eliom_state.set_cookie
          ~cookie_scope:`Client_process
          ~name:Eliom_common.appl_name_cookie_name
@@ -3438,7 +3447,7 @@ redir ();"))::
        let page =
          create_page
            ~options ~sp cpi Appl_params.params tab_cookies_to_send
-           change_page_event content 
+           (*CPE* change_page_event *) content 
        in
        let options = Appl_params.params.ap_doctype in
        Xhtml_content.result_of_content ~options page
@@ -3635,6 +3644,7 @@ module Redirreg_ = struct
       | Some anr ->
         (* the browser asked application eliom data
            for the application called anr *)
+(*204FORMS* old implementation of forms with 204 and change_page_event
         let sp = Eliom_common.get_sp () in
         let si = Eliom_request_info.get_si sp in
         if si.Eliom_common.si_internal_form
@@ -3664,6 +3674,7 @@ module Redirreg_ = struct
           Lwt.return (Ocsigen_http_frame.empty_result ())
         end
         else
+*)
         (* If it comes from an xhr, we use answer with a special header field *)
           match Eliom_services.get_send_appl_content service with
           (* the appl name of the destination service *)

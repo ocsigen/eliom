@@ -891,12 +891,15 @@ let get_session_info req previous_extension_err =
       (post_params, Lazy.force ri.Ocsigen_extensions.ri_get_params, false)
   in
 
+(*204FORMS* old implementation of forms with 204 and change_page_event
+
   let get_params, internal_form =
     try
       (snd (Ocsigen_lib.list_assoc_remove internal_form_full_name get_params),
        true)
     with Not_found -> (get_params, false)
   in
+*)
 
   let get_params0 = get_params in
   let post_params0 = post_params in
@@ -904,7 +907,7 @@ let get_session_info req previous_extension_err =
   let get_params, post_params, 
     (all_get_params, all_post_params,
      nl_get_params, nl_post_params, 
-     all_get_but_nl, internal_form) = 
+     all_get_but_nl (*204FORMS*, internal_form *)) = 
     try
       (get_params, 
        post_params,
@@ -917,7 +920,7 @@ let get_session_info req previous_extension_err =
       let all_get_but_nl = get_params in
       get_params, post_params,
       (get_params0, (if no_post_param then None else Some post_params0), 
-       nl_get_params, nl_post_params, all_get_but_nl, internal_form)
+       nl_get_params, nl_post_params, all_get_but_nl (*204FORMS*, internal_form *))
   in
 
   let browser_cookies = Lazy.force ri.Ocsigen_extensions.ri_cookies in
@@ -1065,14 +1068,16 @@ let get_session_info req previous_extension_err =
   in
   
   let get_params_string, url_string =
+(*204FORMS* old implementation of forms with 204 and change_page_event
     if internal_form
     then
       let gps = Ocsigen_lib.mk_url_encoded_parameters all_get_params in
       let uri = ri.Ocsigen_extensions.ri_full_path_string in
       ((if gps = "" then None else Some gps), 
        Ocsigen_lib.add_to_string uri "?" gps)
-    else (ri.Ocsigen_extensions.ri_get_params_string,
-          ri.Ocsigen_extensions.ri_url_string)
+    else *)
+    (ri.Ocsigen_extensions.ri_get_params_string,
+     ri.Ocsigen_extensions.ri_url_string)
   in
 
   let ri', sess =
@@ -1127,7 +1132,7 @@ let get_session_info req previous_extension_err =
           (List.remove_assoc naservice_name
              (List.remove_assoc naservice_num
                 (remove_prefixed_param na_co_param_prefix get_params0)));
-     si_internal_form= internal_form;
+(*204FORMS*     si_internal_form= internal_form; *)
     }
   in
   Lwt.return

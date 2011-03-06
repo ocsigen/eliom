@@ -38,14 +38,14 @@ val make_a_with_onclick :
 
 
 
-val make_get_form_with_tab_cookies :
+val make_get_form_with_post_tab_cookies :
   (?a:'a -> action:'b -> ?onsubmit:XML.event -> 'c -> 'd -> 'form) ->
   ('form -> string -> (unit -> unit Lwt.t) -> 'g) ->
   ('form -> unit -> unit Lwt.t) ->
   string ->
   ?a:'a -> action:'b -> 'c -> 'd -> 'form
 
-val make_post_form_with_tab_cookies :
+val make_post_form_with_post_tab_cookies :
   (?a:'a -> action:'b -> ?onsubmit:XML.event ->
    ?id:string ->
    ?inline:bool ->

@@ -79,13 +79,13 @@ let make_add_tab_cookies_to_form id form_ref =
     (Eliom_client_types.jsmarshal (reqnum, form_ref)) ^
     "\')"
 
-let make_get_form_with_tab_cookies
+let make_get_form_with_post_tab_cookies
     make_get_form register_event _ id ?a ~action i1 i =
   let onsubmit = Some (make_add_tab_cookies_to_form id (XML.next_ref ())) in
   make_get_form ?a ~action ?onsubmit i1 i
 
 
-let make_post_form_with_tab_cookies
+let make_post_form_with_post_tab_cookies
     make_post_form register_event _ id ?a ~action i1 i =
   let onsubmit = Some (make_add_tab_cookies_to_form id (XML.next_ref ()))
   in

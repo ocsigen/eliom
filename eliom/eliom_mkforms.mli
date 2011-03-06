@@ -934,7 +934,11 @@ and type button_type_t = Pages.button_type_t
 
 
 (**/**)
+(*204FORMS* old implementation of forms with 204 and change_page_event
+
 val nl_internal_appl_form :
   (bool, [ `WithoutSuffix ],
    [ `One of bool ] Eliom_parameters.param_name)
            Eliom_parameters.non_localized_params
+
+*)

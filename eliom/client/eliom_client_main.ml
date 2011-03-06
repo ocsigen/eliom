@@ -26,6 +26,8 @@ let _ =
     let eliom_data = Eliom_client_unwrap.unwrap (Ocsigen_lib.unmarshal_js_var "eliom_data") in
     ignore (Eliom_client.load_eliom_data_ eliom_data Dom_html.document##body);
 
+(*CPE* change_page_event
+
     (* ===change page event *)
     let change_page_event
         : Eliom_services.eliom_appl_answer React.E.t = 
@@ -41,5 +43,6 @@ let _ =
     let `R r = React.E.retain change_page_event (fun () -> ()) in
     ignore 
       (React.E.retain change_page_event (fun () -> r (); ignore retain_event));
+*)
 
     Js._false)
