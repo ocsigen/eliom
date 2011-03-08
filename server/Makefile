@@ -76,7 +76,7 @@ CMOS = ../baselib/ocsigen_lib_cli.cmo \
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! also modify builtin_package in ocsigen_config.ml if you modify the former line!
 CMAO = ../xmlp4/xhtml.cma ../xmlp4/xhtmlpretty.cma $(NAME).cma
 
-STUBS_OBJS = stubs.o
+STUBS_OBJS = stubs.o ../baselib/obj_table_stubs.o
 
 OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 OBJSEXE = $(EXE:.ml=.cmo)

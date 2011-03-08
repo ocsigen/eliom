@@ -41,3 +41,5 @@ val touch : 'a -> unit
 val debug_wrap : 'a -> Obj_table.data * Obj_table.data
 
 val make_table : Obj.t -> Obj_table.table
+
+val replace_one : Obj_table.table -> Obj_table.table

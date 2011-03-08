@@ -33,13 +33,13 @@ OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(FILES:.ml=.cmx)
 CMI = ocsigen_getcommandline.cmi $(FILES:.ml=.cmi)
 
-byte: $(OBJS) $(CMI) parsecommandline.cma donotparsecommandline.cma
+byte: $(OBJS) $(CMI) parsecommandline.cma donotparsecommandline.cma wrapping.cma
 #	cp -f $(OBJS) $(CMI) ../lib
 
 
 # please do not forget CMXS!
 CMXA= polytables.cmxa parsecommandline.cmxa \
-	donotparsecommandline.cmxa
+	donotparsecommandline.cmxa wrapping.cmxa
 CMXS=$(CMXA:.cmxa=.cmxs)
 DEPOPTBASE=$(OBJSOPT) $(CMI) $(CMXA)
 ifeq "$(NATDYNLINK)" "YES"
@@ -49,6 +49,15 @@ else
 endif
 opt: $(DEPOPT)
 #	cp -f $(OBJSOPT) $(OBJSOPT:.cmx=.o) $(CMI) ../lib
+
+obj_table_stubs.o: obj_table_stubs.c
+	$(CAMLC) $(CAMLINCLUDE) -c $<
+
+wrapping.cma: obj_table_stubs.o obj_table.cmo ocsigen_wrap.cmo
+	$(CAMLMKLIB) -o wrapping -oc wrapping -linkall $^
+
+wrapping.cmxa: obj_table_stubs.o obj_table.cmx ocsigen_wrap.cmx
+	$(CAMLMKLIB) -o wrapping -oc wrapping -linkall $^
 
 parsecommandline.cma: commandline/ocsigen_getcommandline.cmo
 	$(CAMLC) -a -o $@  $<

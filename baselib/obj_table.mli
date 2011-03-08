@@ -74,8 +74,21 @@ type data =
   | Double_array of entry * float array
   | Block of entry * data array
   | Closure of entry * data array
+  | Infix of entry * data array
   | String of entry * string
   | Object of entry
+  | Out_of_heap of Obj.t
+  | No_scan of Obj.t
   | Other of entry
 
 val debug : table -> data
+
+val size : table -> int
+
+val elts : table -> entry list
+
+val obj_error : Obj.t option ref
+
+val restore : table -> unit
+
+val iter : table -> (Obj.t -> entry -> unit) -> unit

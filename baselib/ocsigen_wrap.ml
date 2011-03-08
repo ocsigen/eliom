@@ -126,7 +126,7 @@ let touch v =
 	match toucher'.f with
 	  | None -> toucher'.mark <- Mark.do_nothing
 	  | Some f ->
-	    List.iter (fun (_,x) -> ignore (f x)) (Obj_table.find_ancessors t toucher)
+	    List.iter (fun (_,x) -> ignore (f x); Gc.minor ();) (Obj_table.find_ancessors t toucher)
       in
       List.iter aux (Obj_table.find_ancessors t (Obj.repr Mark.touch))
     end
