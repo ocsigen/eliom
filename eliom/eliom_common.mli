@@ -573,3 +573,10 @@ val empty_wrapper : unit -> 'a wrapper
 type toucher = (unit XHTML5.M.elt) Ocsigen_wrap.toucher
 
 val make_toucher : ('a XHTML5.M.elt -> unit) -> toucher 
+
+type unwrapper
+type unwrap_id
+val make_unwrapper : unwrap_id -> unwrapper 
+val empty_unwrapper : unwrapper
+
+val react_up_unwrap_id : unwrap_id

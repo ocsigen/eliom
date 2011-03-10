@@ -20,6 +20,7 @@ module Mark : sig
   type t
   val wrap : t
   val touch : t
+  val unwrap : t
   val do_nothing : t
 end
 =
@@ -27,8 +28,11 @@ struct
   type t = string
   let wrap = "wrap_mark"
   let touch = "touch_mark"
+  let unwrap = "unwrap_mark"
   let do_nothing = "no wrap"
 end
+
+type mark = Mark.t
 
 type 'a wrapper =
     { f : ( Obj.t -> Obj.t ) option;
@@ -39,7 +43,7 @@ type 'a toucher = 'a wrapper
 let mark_no_copy t mark =
   Obj_table.no_copy t mark;
   let wrappers =
-    List.map (fun (_,v) -> (Obj.obj v:'a wrapper)) (Obj_table.find_ancessors t mark) in
+    List.map (fun (_,v) -> (Obj.obj v:'a wrapper)) (Obj_table.find_parents t mark) in
   List.iter (fun wrapper ->
     Obj_table.no_copy t (Obj.repr wrapper);
     match wrapper.f with
@@ -53,15 +57,27 @@ let make_table v =
   let t = Obj_table.make v in
   mark_no_copy t (Obj.repr Mark.wrap);
   mark_no_copy t (Obj.repr Mark.touch);
+  Obj_table.no_copy t (Obj.repr Mark.unwrap);
   t
 
-let replace_one t =
+(* XXX : there can be sharing problems:
+   let a = ref 0
+   let f x = a
+   let b = (a,(ref 1,{mark,f}))
+   
+   When we wrap the value b, we expect the new value to be let a = ref 0 in (a,a),
+   but the sharing is lost: the value is in fact (ref 0,ref 0): a is copied before being wrapped.
+
+   It could be corrected if we kept the reference to the old value: it
+   would be possible to restore the sharing at the end. *)
+
+let replace_one mark t =
   let t = Obj_table.copy t in
-  match Obj_table.find_ancessors t (Obj.repr Mark.wrap) with
+  match Obj_table.find_parents t mark with
     | [] -> assert false
     (* since [Obj_table.mem t Mark.wrap] is true this list can't be empty *)
     | (_,wrapper)::_ ->
-      match Obj_table.find_ancessors t wrapper with
+      match Obj_table.find_parents t wrapper with
 	| [] -> failwith "Can't wrap directly a wrapper, it must be part of a bigger value"
 	(* a wrapper can't be the root: it must have ancessors.
 	   XXX Should I forbid it outside a block value: It can be
@@ -77,20 +93,21 @@ let replace_one t =
               Obj_table.replace t father v );
 	  t
 
-let rec replace_marked t =
+(** wrapper **)
+
+let rec replace_wrap_marked t =
   if not (Obj_table.mem t (Obj.repr Mark.wrap))
   then Obj_table.root t
   else
     begin
-      let t = replace_one t in
-      replace_marked (make_table (Obj_table.root t))
+      let t = replace_one (Obj.repr Mark.wrap) t in
+      replace_wrap_marked (make_table (Obj_table.root t))
     end
 
 let wrap v =
   let v = Obj.repr v in
   let t = make_table v in
-  let v = replace_marked t in
-  Marshal.to_string v []
+  (Mark.unwrap,Obj.obj (replace_wrap_marked t))
 
 let create_wrapper (f:'a -> 'b) : 'a wrapper =
   { f = Some (fun x -> Obj.repr (f (Obj.obj x)));
@@ -104,7 +121,7 @@ let debug_wrap v =
   let v = Obj.repr v in
   let t = make_table v in
   let d1 = Obj_table.debug t in
-  let v = replace_marked t in
+  let v = replace_wrap_marked t in
   let t = make_table v in
   let d2 = Obj_table.debug t in
   d1,d2
@@ -126,7 +143,27 @@ let touch v =
 	match toucher'.f with
 	  | None -> toucher'.mark <- Mark.do_nothing
 	  | Some f ->
-	    List.iter (fun (_,x) -> ignore (f x); Gc.minor ();) (Obj_table.find_ancessors t toucher)
+	    List.iter (fun (_,x) -> ignore (f x); Gc.minor ();) (Obj_table.find_parents t toucher)
       in
-      List.iter aux (Obj_table.find_ancessors t (Obj.repr Mark.touch))
+      List.iter aux (Obj_table.find_parents t (Obj.repr Mark.touch))
     end
+
+(** unwrap **)
+
+type unwrap_id = int
+
+type unwrapper =
+    { id : unwrap_id;
+      mutable umark : Mark.t; }
+
+let id_of_int x = x
+
+let create_unwrapper id : unwrapper =
+  { id = id;
+    umark = Mark.unwrap; }
+
+let empty_unwrapper =
+  { id = -1;
+    umark = Mark.do_nothing; }
+
+let unwrapper_mark = Mark.unwrap

@@ -37,6 +37,7 @@ let addr x = Printf.sprintf "%x" (Obj.magic x:int)
 let is_good_block v =
   let tag = Obj.tag v in
   ( tag < Obj.int_tag ) && ( tag <> Obj.no_scan_tag )
+(* should be Obj.tag v < Obj.no_scan_tag ? *)
 
 module AddrType =
 struct
@@ -136,7 +137,7 @@ type table =
 
 let restore_table_ table =
   let new_t = T.create (T.length table) in
-  let add _ v = T.add new_t v.v v in
+  let add key v = T.add new_t key v in
   T.iter add table;
   new_t
 
@@ -301,7 +302,7 @@ let find_ t v = T.find t.table v
 
 let find t v = protect find_ t v
 
-let find_ancessors_ t v =
+let find_parents_ t v =
   let acc = ref [] in
   T.iter (fun _ elt -> 
     List.iter
@@ -309,7 +310,7 @@ let find_ancessors_ t v =
       (sons elt.v)) t.table;
   !acc
 
-let find_ancessors t v = protect find_ancessors_ t v
+let find_parents t v = protect find_parents_ t v
 
 let root t = t.root
 
@@ -318,13 +319,15 @@ let replace_ t (old_v,new_v) =
   then t.root <- new_v;
   add_ t new_v;
   List.iter (fun (i,father) -> Obj.set_field father i new_v)
-    (find_ancessors_ t old_v)
+    (find_parents_ t old_v)
 
 let replace t a b = protect replace_ t (a,b)
 
 let no_copy t v =
   try
-    (T.find t.table v).no_copy <- true
+    if Obj.tag v < Obj.int_tag
+    then (T.find t.table v).no_copy <- true
+    else failwith (Printf.sprintf "mark as no copy a value which is not in the heap %i" (Obj.magic v))
   with
     | Not_found -> ()
 

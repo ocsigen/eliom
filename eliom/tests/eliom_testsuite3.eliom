@@ -537,6 +537,12 @@ let v1 =
     
 let rec rec_list = 1::2::3::rec_list
 
+let react_up = Eliom_react.Up.create (Eliom_parameters.caml "react param" Json.t<int>)
+let e = Eliom_react.Up.to_react react_up
+let e' = React.E.map (fun i -> Printf.printf "event: %i\n%!" i) e
+
+let rec rec_list_react = (react_up,42)::rec_list_react
+
 {client{
   let add_body v =
     Dom.appendChild (Dom_html.document##body) v
@@ -571,6 +577,13 @@ let wrapping1 =
 				       List.iter
 					 (Dom.appendChild Dom_html.document##body)
 					 (XHTML5.M.toeltl blocks);)))] [pcdata "test serice"]));
+
+	  let f_react = fst (List.hd %rec_list_react) in
+
+          add_body
+            (XHTML5.M.toelt
+	       (p ~a:[ a_onclick (fun _ -> f_react 42)] [pcdata "test react service: event 42 should apear on stdout (of the server) when this is clicked "]));
+
 
 	}};
       Lwt.return [div])

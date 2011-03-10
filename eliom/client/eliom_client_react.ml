@@ -41,5 +41,10 @@ struct
     let service = Eliommod_cli.unwrap s in
     fun x -> Eliom_client.call_service ~service () x >|= fun _ -> ()
 
+  let internal_unwrap ( service, unwrapper ) =
+    fun x -> Eliom_client.call_service ~service () x >|= fun _ -> ()
+
+  let () = Eliom_client_unwrap.register_unwrapper Eliom_common.react_up_unwrap_id internal_unwrap
+
 end
 

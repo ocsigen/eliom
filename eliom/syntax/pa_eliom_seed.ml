@@ -256,6 +256,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  | _ -> raise Next
 	);
 
+(*
 	(* basic values *)
 	(let rec aux = function (*TODO: complete it*)
 	  | <:ctyp< float >> | <:ctyp< int >>
@@ -274,6 +275,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  then (<:expr<Eliommod_cli.wrap>>, <:expr<Eliommod_cli.unwrap>>)
 	  else raise Next
 	);
+*)
 
 	(function (*channel*)
 	  | <:ctyp< ($_$ Eliom_comet.Channels.t) >> ->
@@ -289,12 +291,14 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  | _ -> raise Next
 	);
 
+(*
 	(function (*up_event*)
 	  | <:ctyp< ($_$ Eliom_react.Up.t) >> ->
               (<:expr<Eliom_react.Up.wrap>>,
 		<:expr<Eliom_client_react.Up.unwrap>>)
 	  | _ -> raise Next
 	);
+*)
 
 	(function (*down_event*)
 	  | <:ctyp< ($_$ Eliom_react.Down.t) >> ->
@@ -322,8 +326,9 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
 	(function (*rest*)
 	  | _ ->
-            (<:expr< (fun x -> x) >>,
-	     <:expr< (fun x -> x) >>)
+	    (<:expr<Eliommod_cli.wrap>>, <:expr<Eliommod_cli.unwrap>>)
+(*            (<:expr< (fun x -> x) >>,
+	      <:expr< (fun x -> x) >>)*)
 	);
 
 	(* wrapped values: not yet used. *)

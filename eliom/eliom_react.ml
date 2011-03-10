@@ -27,19 +27,25 @@ module Up =
 struct
 
   type 'a t =
-      'a React.event *
-      (unit,
-       'a,
-       [ `Nonattached of [ `Post ] Eliom_services.na_s ],
-       [ `WithoutSuffix ],
-       unit,
-       [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
-       [ `Registrable ],
-       Eliom_output.Action.return)
-        Eliom_services.service
+      { event : 'a React.event;
+	service : 
+	  (unit,
+	   'a,
+	   [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+	   [ `WithoutSuffix ],
+	   unit,
+	   [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
+	   [ `Registrable ],
+	   Eliom_output.Action.return)
+            Eliom_services.service;
+	wrapper : 'a t Eliom_common.wrapper }
 
-  let to_react = fst
-  let wrap (_, s) = Eliom_services.wrap s
+  let to_react t = t.event
+  let wrap t = Eliom_services.wrap t.service
+
+  let internal_wrap t = (t.service, Eliom_common.make_unwrapper Eliom_common.react_up_unwrap_id)
+
+  let up_event_wrapper () = Eliom_common.make_wrapper internal_wrap
 
   (* An event is created along with a service responsible for it's occurences.
    * function takes a param_type *)
@@ -57,6 +63,8 @@ struct
       ~options:`NoReload
       ~service:e_writer
       (fun () value -> push value ; Lwt.return ());
-    (e, e_writer)
+    { event = e;
+      service = e_writer;
+      wrapper = up_event_wrapper () }
 
 end

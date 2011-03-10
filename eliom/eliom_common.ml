@@ -1192,3 +1192,10 @@ let empty_wrapper () = Ocsigen_wrap.empty_wrapper
 type toucher = (unit XHTML5.M.elt) Ocsigen_wrap.toucher
 
 let make_toucher (f : 'a XHTML5.M.elt -> unit) = Ocsigen_wrap.create_toucher (Obj.magic f : unit XHTML5.M.elt -> unit)
+
+type unwrap_id = Ocsigen_wrap.unwrap_id
+type unwrapper = Ocsigen_wrap.unwrapper
+
+let make_unwrapper = Ocsigen_wrap.create_unwrapper
+let empty_unwrapper = Ocsigen_wrap.empty_unwrapper
+let react_up_unwrap_id : unwrap_id = Ocsigen_wrap.id_of_int react_up_unwrap_id_int

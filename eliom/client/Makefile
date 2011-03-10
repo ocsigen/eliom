@@ -12,6 +12,7 @@ MLS:= json.ml xML.ml uri.ml xhtmltypes.ml xHTML.ml \
         svgtypes.ml sVG.ml xhtml5types.ml xHTML5.ml \
 	reactive_dom.ml \
 	regexp.ml \
+	eliom_client_unwrap.ml \
 	ocsigen_lib_cli.ml ocsigen_lib.ml \
 	ocsigen_cookies.ml eliommod_client_cookies.ml eliom_client_types.ml \
 	eliom_common_cli.ml eliom_common.ml eliom_process.ml \

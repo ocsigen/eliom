@@ -20,15 +20,17 @@ type +'a wrapper
 (* ['a wrapper] is the type of values to include into a value of type 'a for
    it to be wraped specificaly *)
 
+type mark
+
 val create_wrapper : ( 'a -> 'b ) -> 'a wrapper
 (* [create f] create a new tag that can be included into a value.  if
    [wrap] is called on a father of a value [v] containing a tag, the
    value [v] will be replaced by [f v] before marshaling *)
 
-val wrap : 'a -> string
+val wrap : 'a -> mark * Obj.t
 (* marshal a value, taking into account the tags *)
 
-val empty_wrapper: 'a wrapper
+val empty_wrapper : 'a wrapper
 
 type +'a toucher
 
@@ -36,10 +38,17 @@ val create_toucher : ( 'a -> unit ) -> 'a toucher
 
 val touch : 'a -> unit
 
+(** unwrap **)
+
+type unwrap_id
+type unwrapper
+
+val create_unwrapper : unwrap_id -> unwrapper
+val empty_unwrapper : unwrapper
+val id_of_int : int -> unwrap_id
+
 (**/**)
 
 val debug_wrap : 'a -> Obj_table.data * Obj_table.data
 
 val make_table : Obj.t -> Obj_table.table
-
-val replace_one : Obj_table.table -> Obj_table.table

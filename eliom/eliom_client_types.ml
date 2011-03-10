@@ -70,4 +70,4 @@ let string_escape s =
   done;
   Buffer.contents b
 
-let jsmarshal v = string_escape (Ocsigen_wrap.wrap v)
+let jsmarshal v = string_escape (Marshal.to_string v [])

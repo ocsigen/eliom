@@ -43,8 +43,8 @@ val copy : table -> table
 val root : table -> Obj.t
 (** returns the root of the table *)
 
-val find_ancessors : table -> Obj.t -> ( int * Obj.t ) list
-(** [find_ancessors t v] list all values with reference to [v] in the
+val find_parents : table -> Obj.t -> ( int * Obj.t ) list
+(** [find_parents t v] list all values with reference to [v] in the
     table [t]. It is presented as a list of couples [(field,value)] *)
 
 val mem : table -> Obj.t -> bool

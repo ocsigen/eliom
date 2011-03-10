@@ -23,7 +23,7 @@ let _a = Eliommod_mkforms.make_post_form_with_onsubmit
 
 let _ =
   Dom_html.window##onload <- Dom_html.handler (fun _ ->
-    let eliom_data = Ocsigen_lib.unmarshal_js_var "eliom_data" in
+    let eliom_data = Eliom_client_unwrap.unwrap (Ocsigen_lib.unmarshal_js_var "eliom_data") in
     ignore (Eliom_client.load_eliom_data_ eliom_data Dom_html.document##body);
 
     (* ===change page event *)
