@@ -156,7 +156,7 @@ let _ =
                     () ()
                 }}
             ]
-            [pcdata "Link to a service outside the Eliom application"];
+            [pcdata "Link to a service outside the Eliom application, with exit_to"];
 
 (*wiki*
 To use server values inside client code one should use the syntax {{{ %id }}}
@@ -206,7 +206,7 @@ where and {{{id}}} an identifier for the value.
                   () ()
               }}
             ]
-            [pcdata "Click here to change the URL."];
+            [pcdata "Click here to change the URL with change_url."];
 
 (*wiki*
   The following examples shows how to change the current page,
@@ -220,17 +220,8 @@ where and {{{id}}} an identifier for the value.
                     () ()
                 }}
             ]
-            [pcdata "Click here to change the page without stopping the program."];
+            [pcdata "Click here to change the page without stopping the program (with change_page)."];
 
-(*wiki* Actually the usual {{{a}}} function to create link will
-  use {{{change_page}}} if you do a link inside the same application.
-  The latter example is equivalent to the following. *wiki*)
-          p [a (*zap* *) ~a:[a_class ["clickable"]](* *zap*)
-               ~service:eliomclient1
-               [pcdata "Click here to change the page without stopping the program (with ";
-                code [pcdata "a"];
-                pcdata ")."]
-               ()];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick{{
@@ -247,7 +238,7 @@ where and {{{id}}} an identifier for the value.
                 Eliom_client.exit_to ~service:%eliomclient2 () ()
               }}
             ]
-            [pcdata "Click here to relaunch the program by reloading the page."];
+            [pcdata "Click here to relaunch the program by reloading the page (with exit_to)."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
@@ -328,7 +319,7 @@ where and {{{id}}} an identifier for the value.
                           Eliom_output.Xhtml5.a
                             (*zap* *)~a:[a_class ["clickable"]](* *zap*)
                             ~service:eliomclient1
-                            [pcdata "another, inside the application, but wrongly created with Eliom_output.Xhtml5 (what module to use client side? how to avoid using Eliom_output.Xhtml5?). "]
+                            [pcdata "another, inside the application, "]
                             ();
                           pcdata " and ";
                           span
@@ -1954,33 +1945,28 @@ let () =
 let isuffixc =
   My_appl.register_service
     ~path:["isuffixc"]
-    ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
+    ~get_params:(suffix_prod (int "suff" ** all_suffix_string "endsuff") (int "i"))
     (fun ((suff, endsuff), i) () ->
       Lwt.return
         [p [pcdata "The suffix of the url is ";
             strong [pcdata (string_of_int suff)];
             pcdata " followed by ";
-            strong [pcdata (Ocsigen_lib.string_of_url_path ~encode:false endsuff)];
+            strong [pcdata endsuff];
             pcdata " and i is equal to ";
             strong [pcdata (string_of_int i)]]])
 
+{shared{
 let create_suffixformc ((suff, endsuff),i) =
-    [h3 [pcdata "Form to an (internal appl) suffix service"];
-     p [pcdata "Write an int for the suffix:";
-        int_input ~input_type:`Text ~name:suff ();
-        br ();
-        pcdata "Write a string: ";
-        user_type_input
-          (Ocsigen_lib.string_of_url_path ~encode:false)
-          ~input_type:`Text ~name:endsuff ();
-        br ();
-        pcdata "Write an int: ";
-        int_input ~input_type:`Text ~name:i ();
-        br ();
-        string_input ~input_type:`Submit ~value:"Click" ()
-       ]
+    [pcdata "Form to an (internal appl) suffix service.";
+     pcdata "Write an int for the suffix:";
+     Eliom_output.Xhtml5.int_input ~input_type:`Text ~name:suff ();
+     pcdata "Write a string: ";
+     Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:endsuff ();
+     pcdata "Write an int: ";
+     Eliom_output.Xhtml5.int_input ~input_type:`Text ~name:i ();
+     Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click" ()
     ]
-
+}}
 
 (*****************************************************************************)
 (* Redirections and Eliom applications: *)
@@ -2038,8 +2024,74 @@ let postformc =
 
 let formc = My_appl.register_service ["formc"] unit
   (fun () () -> 
+    let div = div [h3 [pcdata "Forms and links created on client side:"]] in
+    Eliom_services.onload
+      {{ 
+
+        let l =
+          [
+            h4 [pcdata "to outside the application:"];
+
+            p [Eliom_output.Xhtml5.a ~service:%Eliom_testsuite1.coucou
+                 [pcdata "Link to a service outside the application."]
+                 ()];
+           
+           Eliom_output.Xhtml5.get_form ~service:%Eliom_testsuite1.coucou
+             (fun () ->
+               [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"GET form to a service outside the Eliom application" ()]
+             );
+           
+           Eliom_output.Xhtml5.post_form ~service:%Eliom_testsuite1.my_service_with_post_params
+             (fun s ->
+               [Eliom_output.Xhtml5.string_input ~input_type:`Hidden ~name:s ~value:"plop" ();
+                Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"POST form to a service outside the Eliom application" ()]
+             )
+             ();
+           
+           h4 [pcdata "inside the application — must not stop the process! (same random number in the container)."];
+
+           p [Eliom_output.Xhtml5.a ~service:%eliomclient1
+                 [pcdata "Link to a service inside the application."]
+                 ()];
+           
+           Eliom_output.Xhtml5.get_form ~service:%eliomclient1
+             (fun () ->
+               [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"GET form to a service inside the Eliom application" ()]
+             );
+           
+           Eliom_output.Xhtml5.post_form ~service:%postformc
+             (fun s ->
+               [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~name:s ~value:"POST form to a service inside the Eliom application" ()]
+             )
+             ();
+
+           Eliom_output.Xhtml5.get_form %isuffixc create_suffixformc;
+
+           Eliom_output.Xhtml5.post_form ~service:%applvoid_redir
+             (fun () ->
+               [pcdata "POST form towards action with void service redirection. This must not stop the application (same random number in the container but not in the here: ";
+                pcdata (string_of_int (Random.int 1000));
+                pcdata ") ";
+                Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click to send POST form to myself." ()]
+             )
+             ();
+
+          ]
+        in
+        List.iter (fun e -> Dom.appendChild %div (XHTML5.M.toelt e)) l
+       }};
+
     Lwt.return
       [
+
+        h3 [pcdata "Forms and links created on server side:"];
+
+        h4 [pcdata "to outside the application:"];
+
+        p [My_appl.a ~service:Eliom_testsuite1.coucou
+              [pcdata "Link to a service outside the application."]
+              ()];
+
         My_appl.get_form ~service:Eliom_testsuite1.coucou
           (fun () ->
             [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"GET form to a service outside the Eliom application" ()]
@@ -2052,6 +2104,12 @@ let formc = My_appl.register_service ["formc"] unit
           )
           ();
         
+        h4 [pcdata "inside the application — must not stop the process! (same random number in the container)."];
+
+        p [My_appl.a ~service:eliomclient1
+              [pcdata "Link to a service inside the application."]
+              ()];
+
         My_appl.get_form ~service:eliomclient1
           (fun () ->
             [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"GET form to a service inside the Eliom application" ()]
@@ -2063,18 +2121,19 @@ let formc = My_appl.register_service ["formc"] unit
           )
           ();
         
-        
         My_appl.get_form isuffixc create_suffixformc;
 
-        h3 [pcdata "POST form towards action with void service redirection"];
-        p [pcdata "Random value in the content: ";
-           pcdata (string_of_int (Random.int 1000))];
         My_appl.post_form ~service:applvoid_redir
           (fun () ->
-            [Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click to send POST form to myself." ()]
+            [pcdata "POST form towards action with void service redirection. This must not stop the application (same random number in the container but not in the here: ";
+             pcdata (string_of_int (Random.int 1000));
+             pcdata ") ";
+             Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click to send POST form to myself." ()]
           )
           ();
-        p [pcdata "This must not stop the application (same random number in the container but not in the content)."];
+        
+        div;
+
 
       ])
 

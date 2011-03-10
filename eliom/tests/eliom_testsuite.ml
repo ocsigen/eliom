@@ -357,45 +357,43 @@ let _ = Eliom_output.Xhtml5compact.register Eliom_testsuite3.main
             p [
               a eliomclient1 [pcdata "Simple example of client side code"] ();
               br ();
+              a formc [pcdata "Links and forms"] ();
+              br ();
 
               a uri_test [pcdata "Simple test of URL generation"] ();
               br ();
 
-              a eliomclient2 [pcdata "Using Eliom services in client side code"] ();
-            br ();
+              a eliomclient2 [pcdata "Nodes with various onclick features"] ();
+              br ();
               a eliomclient3 [pcdata "Caml values in service parameters"] ();
-            br ();
+              br ();
               a eliomclient4 [pcdata "A service sending a Caml value"] ();
-            br ();
+              br ();
               a gotowithoutclient [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
-            br ();
+              br ();
               a on_load [pcdata "A service using on_unload and on_load"] ();
-            br ();
-              a wrapping1 [pcdata "wrapping test 1"] ();
             br ();
             ];
             h4 [pcdata "Comet"];
             p [
               a comet1 [pcdata "A really simple comet example"] ();
-            br ();
+              br ();
               a comet2 [pcdata "A comet example with server to client and client to server asynchronous events"] ();
-            br ();
+              br ();
               a comet3 [pcdata "Server simultaneous events, transmitted together"] ();
-            br ();
+              br ();
               a comet_message_board [pcdata "Minimalistic message board"] ();
-            br ();
-          ];
-
+              br ();
+            ];
+            
             h4 [pcdata "More tests"];
             p [
-              a formc [pcdata "Forms"] ();
-            br ();
               a appl_redir [pcdata "Eliom applications and redirections"] ();
-            br ();
+              br ();
               a nonapplprocessservice [pcdata "Client process service not registered with Eliom_appl"] ();
-            br ();
+              br ();
             ];
-
+            
             h4 [pcdata "Tab sessions"];
             p [
               pcdata "Coservices: ";
