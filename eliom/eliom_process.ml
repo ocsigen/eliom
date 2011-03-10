@@ -18,3 +18,11 @@
  *)
 
 exception Server_side_process_closed
+
+
+(** returns None on server side *)
+let get_application_name () = None
+
+
+(** false on server side *)
+let client_side = false

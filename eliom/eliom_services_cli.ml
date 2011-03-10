@@ -248,10 +248,16 @@ let get_send_appl_content s = s.send_appl_content
 let set_send_appl_content s n = s.send_appl_content <- n
 
 let need_process_cookies current_page_appl_name s =
-  current_page_appl_name <> None && not (is_external s)
+  (Eliom_process.client_side || current_page_appl_name <> None)
+  && not (is_external s)
 (* If there is a client side process, we do an XHR with tab cookies *)
 
 let appl_content_capable current_page_appl_name s =
+  let current_page_appl_name =
+    if Eliom_process.client_side
+    then Eliom_process.get_application_name ()
+    else current_page_appl_name
+  in
   match s.send_appl_content with
     | XAlways -> true
     | XNever -> false
