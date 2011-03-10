@@ -224,8 +224,11 @@ module Xhtml5forms_ = struct
   let make_js_script ?(a=[]) ~uri () =
     script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
-  let register_event_a node = XML.register_event (XHTML5.M.toelt node)
-  let register_event_form node = XML.register_event (XHTML5.M.toelt node)
+  let register_event_a ?keep_default node =
+    XML.register_event ?keep_default (XHTML5.M.toelt node)
+
+  let register_event_form ?keep_default node =
+    XML.register_event ?keep_default (XHTML5.M.toelt node)
 
 (*POSTtabcookies* forms with tab cookies in POST params:
 
@@ -245,7 +248,8 @@ module Xhtml5forms_ = struct
 
   let make_a_with_onclick ?a ?cookies_info s =
     Eliommod_mkforms.make_a_with_onclick 
-      (fun ?a ?onclick x -> make_a ?a ?onclick x) register_event_a
+      (fun ?a ?onclick ?href x -> make_a ?a ?onclick ?href x)
+      register_event_a
       ?a ?cookies_info s
 
   let make_get_form_with_onsubmit =

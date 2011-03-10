@@ -25,12 +25,12 @@ let make_a_with_onclick
     register_event
     ?a
     ?cookies_info
-    uri
+    href
     content
     =
-  let node = make_a ?a ?onclick:None content in
-  register_event node "onclick"
-    (fun () -> Eliom_client.change_page_uri ?cookies_info uri)
+  let node = make_a ?a ?onclick:None ?href:(Some href) content in
+  register_event ?keep_default:(Some false) node "onclick"
+    (fun () -> Eliom_client.change_page_uri ?cookies_info href)
     ();
   node
 
@@ -43,10 +43,8 @@ let make_get_form_with_onsubmit
     field
     fields
     =
-  let node = make_get_form ?a ~action:"PLIPLPUIPOLPLPLPPLPUP"
-    ?onsubmit:None field fields
-  in
-  register_event node "onsubmit"
+  let node = make_get_form ?a ~action:uri ?onsubmit:None field fields in
+  register_event ?keep_default:(Some false) node "onsubmit"
     (fun () -> Eliom_client.change_page_get_form ?cookies_info
       (Js.Unsafe.coerce (XHTML5.M.toelt node)) uri)
     ();
@@ -61,10 +59,8 @@ let make_post_form_with_onsubmit
     field
     fields
     =
-  let node = make_post_form ?a ~action:"PLIPLPUIPOLPLPLPPLPUP"
-    ?onsubmit:None field fields 
-  in
-  register_event node "onsubmit"
+  let node = make_post_form ?a ~action:uri ?onsubmit:None field fields in
+  register_event ?keep_default:(Some false) node "onsubmit"
     (fun () -> Eliom_client.change_page_post_form ?cookies_info
       (Js.Unsafe.coerce (XHTML5.M.toelt node)) uri)
     ();

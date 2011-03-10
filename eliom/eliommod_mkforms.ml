@@ -20,8 +20,8 @@
 (* This module is different on client and server side *)
 
 let (make_a_with_onclick :
-       (?a:'a -> ?onclick:XML.event -> 'c -> 'd) ->
-     ('d -> string -> ('e -> unit Lwt.t) -> unit -> 'f) ->
+       (?a:'a -> ?onclick:XML.event -> ?href:string -> 'c -> 'd) ->
+     (?keep_default:bool -> 'd -> string -> ('e -> unit Lwt.t) -> unit -> 'f) ->
      ?a:'a ->
      ?cookies_info:'ci ->
      string ->
@@ -31,17 +31,18 @@ let (make_a_with_onclick :
     register_event
     ?a
     ?cookies_info
-    uri
+    href
     content
   ->
   make_a
     ?a
+    ~href
     ?onclick:
     (Some ("caml_run_from_table ("^
               Eliom_client_types.a_closure_id_string^", \'"^
               (Eliom_client_types.jsmarshal
                  ((Eliommod_cli.wrap cookies_info),
-                  (Eliommod_cli.wrap uri)))
+                  (Eliommod_cli.wrap href)))
            ^ "\')")
     )
     content
@@ -57,7 +58,7 @@ let make_get_form_with_onsubmit
     =
   make_get_form
     ?a
-    ~action:"PLOPLPOPLPOPPLPOPOPOPOPOPOPOPOPOPO"
+    ~action:uri
 (* As we cannot wrap the node while defining it,
    we use "this". But "this" is not the form any more while executing
    the function from the table ...
@@ -88,7 +89,7 @@ let make_post_form_with_onsubmit
     =
   make_post_form
     ?a
-    ~action:"PLOPLPOPLPOPPLPOPOPOPOPOPOPOPOPOPO"
+    ~action:uri
     ?onsubmit:(Some (Eliom_client_types.eliom_temporary_form_node_name^
                      " = this; return caml_run_from_table ("^
                        Eliom_client_types.post_closure_id_string^", \'"^
