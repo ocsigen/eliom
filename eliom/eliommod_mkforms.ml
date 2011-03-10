@@ -38,12 +38,12 @@ let (make_a_with_onclick :
     ?a
     ~href
     ?onclick:
-    (Some ("caml_run_from_table ("^
+    (Some ("return caml_run_from_table ("^
               Eliom_client_types.a_closure_id_string^", \'"^
               (Eliom_client_types.jsmarshal
                  ((Eliommod_cli.wrap cookies_info),
                   (Eliommod_cli.wrap href)))
-           ^ "\')")
+           ^ "\');")
     )
     content
 
@@ -96,7 +96,7 @@ let make_post_form_with_onsubmit
                        (Eliom_client_types.jsmarshal
                           ((Eliommod_cli.wrap cookies_info),
                            (Eliommod_cli.wrap uri)))
-                     ^ "\')"))
+                     ^ "\');"))
     field
     fields
   

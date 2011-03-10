@@ -479,7 +479,7 @@ let _ =
       let uri = Eliommod_cli.unwrap uri in
       let cookies_info = Eliommod_cli.unwrap cookies_info in
       ignore (change_page_uri ?cookies_info uri);
-      false);
+      Js._false);
   Eliommod_cli.register_closure
     Eliom_client_types.get_closure_id
     (fun (cookies_info, uri) ->

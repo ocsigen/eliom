@@ -3,6 +3,8 @@
   * Revproxy, Accesscontrol: Handling X-Forwarded-For and X-Forwarded-Proto headers
   * Eliom: now possible to set a //priority// on services 
   registered on the same path, to choose in which order Eliom will try them.
+  * Eliom: new implementation of internal application forms with formData
+  when available
   * **SOON** Eliom client: sending forms to caml services from client side code.
   * **SOON** Eliom: Stateful redirections. The request cache is restored after
     redirection.
