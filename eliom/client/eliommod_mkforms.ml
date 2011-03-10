@@ -20,7 +20,59 @@
 let (>>=) = Lwt.bind
 let (>|=) = Lwt.(>|=)
 
-let make_a_with_onclick = Eliom_client.make_a_with_onclick
+let make_a_with_onclick
+    make_a
+    register_event
+    ?a
+    ?cookies_info
+    uri
+    content
+    =
+  let node = make_a ?a ?onclick:None content in
+  register_event node "onclick"
+    (fun () -> Eliom_client.change_page_uri ?cookies_info uri)
+    ();
+  node
+
+let make_get_form_with_onsubmit
+    make_get_form
+    register_event
+    ?a
+    ?cookies_info
+    uri
+    field
+    fields
+    =
+  let node = make_get_form ?a ~action:"PLIPLPUIPOLPLPLPPLPUP"
+    ?onsubmit:None field fields
+  in
+  register_event node "onsubmit"
+    (fun () -> Eliom_client.change_page_get_form ?cookies_info
+      (Js.Unsafe.coerce (XHTML5.M.toelt node)) uri)
+    ();
+  node
+
+let make_post_form_with_onsubmit
+    make_post_form
+    register_event
+    ?a
+    ?cookies_info
+    uri
+    field
+    fields
+    =
+  let node = make_post_form ?a ~action:"PLIPLPUIPOLPLPLPPLPUP"
+    ?onsubmit:None field fields 
+  in
+  register_event node "onsubmit"
+    (fun () -> Eliom_client.change_page_post_form ?cookies_info
+      (Js.Unsafe.coerce (XHTML5.M.toelt node)) uri)
+    ();
+  node
+
+
+
+(*POSTtabcookies* forms with tab cookies in POST params:
 
 let tab_cookie_class = "__eliom_tab_cookies"
 
@@ -136,3 +188,4 @@ let _ =
       ignore (add_tab_cookies_to_post_form (XHTML5.M.tot node) ());
       Js._true)
 
+*)

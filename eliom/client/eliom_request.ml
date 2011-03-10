@@ -22,7 +22,6 @@ let (>>=) = Lwt.bind
 exception Looping_redirection
 exception Failed_request of int
 exception Program_terminated
-exception External_service
 
 let max_redirection_level = 12
 
@@ -82,6 +81,36 @@ let redirect_post url params =
   f##submit ()
 
 
+let rec send_wraper f ?cookies_info ?get_args ?post_args url =
+  let rec aux i f ?cookies_info ?get_args ?post_args url =
+    let (https, path) = match cookies_info with
+      | Some c -> c
+      | None -> get_cookie_info_for_uri url
+    in
+    (* We add cookies in POST parameters *)
+    let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
+    let headers = [(Eliom_common.tab_cookies_header_name, 
+                    (Ocsigen_lib.encode_header_value cookies))]
+    in
+    f ?headers:(Some headers) ?content_type:None ?post_args ?get_args url
+    >>= fun r ->
+    if r.XmlHttpRequest.code = 204
+    then
+      match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
+        | Some uri ->
+          if i < max_redirection_level
+          then aux (i+1) XmlHttpRequest.send_string uri
+          else Lwt.fail Looping_redirection
+        | None ->
+          match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
+            | Some uri -> redirect_get uri; Lwt.fail Program_terminated
+            | None -> Lwt.fail (Failed_request r.XmlHttpRequest.code)
+    else
+      if r.XmlHttpRequest.code = 200
+      then Lwt.return r.XmlHttpRequest.content
+      else Lwt.fail (Failed_request r.XmlHttpRequest.code)
+  in aux 0 f ?cookies_info ?get_args ?post_args url
+
 (** Same as XmlHttpRequest.send_string, but:
     - sends tab cookies in an HTTP header
     - does half and full XHR redirections according to headers
@@ -92,82 +121,36 @@ let redirect_post url params =
     If not present, the path and protocol and taken from the URL.
 *)
 let send ?cookies_info ?get_args ?post_args url =
-  let rec aux i ?cookies_info ?get_args ?post_args url =
-    let (https, path) = match cookies_info with
-      | Some c -> c
-      | None -> get_cookie_info_for_uri url
-    in
-    (* We add cookies in POST parameters *)
-    let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
-    let headers = [(Eliom_common.tab_cookies_header_name, 
-                    (Ocsigen_lib.encode_header_value cookies))]
-    in
-    XmlHttpRequest.send_string ~headers ?get_args ?post_args url >>= fun r ->
-    if r.XmlHttpRequest.code = 204
-    then
-      match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
-        | Some uri ->
-          if i < max_redirection_level
-          then aux (i+1) uri
-          else Lwt.fail Looping_redirection
-        | None ->
-          match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
-            | Some uri -> redirect_get uri; Lwt.fail Program_terminated
-            | None -> Lwt.fail (Failed_request r.XmlHttpRequest.code)
-    else
-      if r.XmlHttpRequest.code = 200
-      then Lwt.return r.XmlHttpRequest.content
-      else Lwt.fail (Failed_request r.XmlHttpRequest.code)
-  in aux 0 ?cookies_info ?get_args ?post_args url
+  send_wraper XmlHttpRequest.send_string ?cookies_info ?get_args ?post_args url
 
+(** Send a GET form with tab cookies and half/full XHR.
+    If [~post_params] is present, the HTTP method will be POST,
+    with form data in the URL.
+    If [~get_params] is present, it will be appended to the form fields.
+*)
+let send_get_form ?cookies_info ?get_args ?post_args form url =
+  send_wraper
+    (fun ?headers ?content_type ?post_args ?get_args url ->
+      XmlHttpRequest.send_get_form_string
+        ?headers ?get_args ?post_args form url)
+    ?cookies_info ?get_args ?post_args url
 
-let get_path (* simplified version of make_uri_components.
-                Returns only the absolute path without protocol/server/port *)
-    ~service
-    getparams =
+(** Send a POST form with tab cookies and half/full XHR. *)
+let send_post_form ?cookies_info ?get_args ?post_args form url =
+  send_wraper
+    (fun ?headers ?content_type ?post_args ?get_args url ->
+      XmlHttpRequest.send_post_form_string
+        ?headers ?get_args ?post_args form url)
+    ?cookies_info ?get_args ?post_args url
 
-  match Eliom_services.get_kind_ service with
-    | `Attached attser ->
-      let uri =
-        if (Eliom_services.get_att_kind_ attser) = `External
-        then raise External_service
-        else Eliom_services.get_full_path_ attser
-      in
-      let suff, _ =
-        Eliom_parameters.construct_params_list
-          Ocsigen_lib.String_Table.empty
-          (Eliom_services.get_get_params_type_ service) getparams 
-      in
-      (match suff with
-        | None -> uri
-        | Some suff -> uri@suff)
-    | `Nonattached naser -> Eliom_state.full_path_
-
-
-
-let make_cookies_info = function
-  | None -> None
-  | Some (https, service, g) ->
-    try
-      let path = get_path ~service g in
-      let ssl = Eliom_state.ssl_ in
-      let https = 
-        (https = Some true) || 
-          (Eliom_services.get_https service) ||
-          (https = None && ssl)
-      in
-      Some (https, path)
-    with External_service -> None
 
 let get_eliom_appl_result a : Eliom_services.eliom_appl_answer =
   Marshal.from_string (Url.urldecode a) 0
 
 let http_get ?cookies_info url get_args : string Lwt.t =
-  let cookies_info = make_cookies_info cookies_info in
   send ?cookies_info ~get_args url
 
 let http_post ?cookies_info url post_args : string Lwt.t =
-  let cookies_info = make_cookies_info cookies_info in
   send ?cookies_info ~post_args url
 
 

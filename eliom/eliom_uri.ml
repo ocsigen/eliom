@@ -605,4 +605,45 @@ let make_post_uri_components
 
 
 
+(**** Tab cookies: *)
 
+(*VVV
+
+  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+  We do not take into account the suffix for computing process cookies
+  of GET forms (beacause the suffix is taken from the form).
+  This corresponds to what the browser is doing with session cookies.
+  For links and POST forms, the url already contains the suffix.
+  It is taken into account for computing process cookies.
+  Again, it is what the browser is doing for session cookies.
+  
+  This is not completely satisfactory,
+  but should always do what we want,
+  but for very non-standard uses of cookies ...
+
+*)
+let make_cookies_info (https, service) =
+  (* https is what the user asked while creating the link/form *)
+  let get_path_ (* simplified version of make_uri_components.
+                   Returns only the absolute path without protocol/server/port
+                   AND WITHOUT SUFFIX *)
+      ~service
+      =
+    match Eliom_services.get_kind_ service with
+      | `Attached attser ->
+        if (Eliom_services.get_att_kind_ attser) = `External
+        then None
+        else Some (Eliom_services.get_full_path_ attser)
+      | `Nonattached naser -> 
+        Some (Eliom_state.get_csp_original_full_path ())
+  in
+  match get_path_ ~service with
+    | None -> None
+    | Some path ->
+      let ssl = Eliom_state.get_csp_ssl () in
+      let https = 
+        (https = Some true) || 
+          (Eliom_services.get_https service) ||
+          (https = None && ssl)
+      in
+      Some (https, path)

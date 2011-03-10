@@ -145,13 +145,29 @@ module type FORMCREATE =
 
     val make_js_script : ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 
+(*
     val register_event_a : 'elt a_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
     val register_event_form : form_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
+*)
 
+(*POSTtabcookies* forms with tab cookies in POST params:
     val add_tab_cookies_to_get_form : form_elt -> unit -> unit Lwt.t
     val add_tab_cookies_to_post_form : form_elt -> unit -> unit Lwt.t
     val add_tab_cookies_to_get_form_id_string : string
     val add_tab_cookies_to_post_form_id_string : string
+*)
+
+    val make_a_with_onclick :
+      ?a:a_attrib_t -> ?cookies_info:bool * string list -> string ->
+      'a a_content_elt_list -> 'a a_elt
+
+    val make_get_form_with_onsubmit :
+      ?a:form_attrib_t -> ?cookies_info:bool * string list -> string ->
+      form_content_elt -> form_content_elt_list -> form_elt
+      
+    val make_post_form_with_onsubmit :
+      ?a:form_attrib_t -> ?cookies_info:bool * string list -> string ->
+      form_content_elt -> form_content_elt_list -> form_elt
 
     val appl_name : string option (* The application name, if any
                                      (for Eliom_appl only, None otherwise) *)

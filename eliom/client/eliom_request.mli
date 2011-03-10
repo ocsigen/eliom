@@ -20,7 +20,6 @@
 exception Looping_redirection
 exception Failed_request of int
 exception Program_terminated
-exception External_service
 
 val redirect_get : string -> unit
 val redirect_post : string -> (string * string) list -> unit
@@ -30,23 +29,27 @@ val send :
   ?get_args:(string * string) list ->
   ?post_args:(string * string) list -> string -> string Lwt.t
 
+val send_get_form :
+  ?cookies_info:bool * string list ->
+  ?get_args:(string * string) list ->
+  ?post_args:(string * string) list -> 
+  Dom_html.formElement Js.t ->
+  string -> string Lwt.t
+
+val send_post_form :
+  ?cookies_info:bool * string list ->
+  ?get_args:(string * string) list ->
+  ?post_args:(string * string) list ->
+  Dom_html.formElement Js.t ->
+  string -> string Lwt.t
+
 val http_get :
-  ?cookies_info:bool option *
-  ('a, 'b,
-   [< `Attached of ([> `External ], 'c) Eliom_services.a_s
-   | `Nonattached of 'd ],
-   [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
-                Eliom_services.service * 'a ->
+  ?cookies_info:bool * string list ->
   string ->
   (string * string) list -> string Lwt.t
 
 val http_post :
-  ?cookies_info:bool option *
-                ('a, 'b,
-                 [< `Attached of ([> `External ], 'c) Eliom_services.a_s
-                  | `Nonattached of 'd ],
-                 [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
-                Eliom_services.service * 'a ->
+  ?cookies_info:bool * string list ->
   string ->
   (string * string) list -> string Lwt.t
 

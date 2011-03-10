@@ -137,23 +137,17 @@ val on_unload : (unit -> unit Lwt.t) -> unit
 
 (**/**)
 
-val make_a_with_onclick :
-  (?a:'a -> ?onclick:XML.event -> 'c -> 'd) ->
-  ('d -> string -> (unit -> unit Lwt.t) -> unit -> 'f) ->
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  ?a:'a ->
-  service:('get, unit, [< Eliom_services.get_service_kind ],
-           [< Eliom_services.suff ], 'gn, 'pn,
-           [< Eliom_services.registrable ], 'return)
-    Eliom_services.service ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
-  'c -> 'get -> 'd
+val change_page_uri :
+  ?cookies_info:bool * string list ->
+  ?get_params:(string * string) list -> string -> unit Lwt.t
+
+val change_page_get_form :
+  ?cookies_info:bool * string list ->
+  Dom_html.formElement Js.t -> string -> unit Lwt.t
+
+val change_page_post_form :
+  ?cookies_info:bool * string list ->
+  Dom_html.formElement Js.t -> string -> unit Lwt.t
 
 val set_content : Eliom_services.eliom_appl_answer -> unit Lwt.t
 

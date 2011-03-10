@@ -27,7 +27,7 @@ val int_attrib : aname -> int -> attrib
 val string_attrib : aname -> string -> attrib
 val space_sep_attrib : aname -> string list -> attrib
 val comma_sep_attrib : aname -> string list -> attrib
-val event_attrib : aname -> string -> attrib
+val event_attrib : aname -> event -> attrib
 
 val attrib_name : attrib -> aname
 val attrib_value_to_string : (string -> string) -> attrib -> string

@@ -318,11 +318,15 @@ module Xhtmlforms_ = struct
     {{ <script ({type="text/javascript"
                  src=(str uri) } ++ a)> [] }}
 
+(*
   let register_event_a elt ev callback =
     failwith "register_event_a not implemented for ocamlduce"
 
   let register_event_form elt ev callback =
     failwith "register_event_form not implemented for ocamlduce"
+*)
+
+(*POSTtabcookies* forms with tab cookies in POST params:
 
   let add_tab_cookies_to_get_form _ () = 
     failwith "add_tab_cookies_to_get_form not implemented for ocamlduce"
@@ -334,6 +338,15 @@ module Xhtmlforms_ = struct
    
   let add_tab_cookies_to_post_form_id_string =
     add_tab_cookies_to_get_form_id_string
+*)
+  let make_a_with_onclick ?a ?cookies_info s =
+    failwith "make_a_with_onclick not implemented for eliom_duce"
+
+  let make_get_form_with_onsubmit ?a ?cookies_info x y =
+    failwith "make_get_form_with_onsubmit implemented for eliom_duce"
+
+  let make_post_form_with_onsubmit ?a ?cookies_info x y =
+    failwith "make_post_form_with_onsubmit not implemented for eliom_duce"
 
   let appl_name = None
 

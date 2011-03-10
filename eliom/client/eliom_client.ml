@@ -233,11 +233,13 @@ let rec change_page_set_content :
           g p
      with
        | Ocsigen_lib.Left uri ->
-         Eliom_request.http_get ~cookies_info:(https, service, g) uri []
+         Eliom_request.http_get
+           ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
        | Ocsigen_lib.Right (uri, p) ->
-         Eliom_request.http_post ~cookies_info:(https, service, g) uri p)
-    >>= fun r -> (snd change_page_set_content) i
-    (Eliom_request.get_eliom_appl_result r)
+         Eliom_request.http_post
+           ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p)
+    >>= fun r ->
+    (snd change_page_set_content) i (Eliom_request.get_eliom_appl_result r)
   end),
      
 (* set_content *) (fun i -> function
@@ -266,6 +268,7 @@ let rec change_page_set_content :
 
 
 let set_content = (snd change_page_set_content) 0
+
 let change_page
     ?absolute
     ?absolute_path
@@ -294,6 +297,19 @@ let change_page
     p
 
 
+let change_page_uri ?cookies_info ?(get_params = []) uri =
+  Eliom_request.http_get ?cookies_info uri get_params >>= fun r ->
+  set_content (Eliom_request.get_eliom_appl_result r)
+ 
+let change_page_get_form ?cookies_info form uri =
+  let form = Js.Unsafe.coerce form in
+  Eliom_request.send_get_form ?cookies_info form uri >>= fun r ->
+  set_content (Eliom_request.get_eliom_appl_result r)
+
+let change_page_post_form ?cookies_info form uri =
+  let form = Js.Unsafe.coerce form in
+  Eliom_request.send_post_form ?cookies_info form uri >>= fun r ->
+  set_content (Eliom_request.get_eliom_appl_result r)
 
 
 let call_service
@@ -308,9 +324,11 @@ let call_service
      g p
    with
      | Ocsigen_lib.Left uri ->
-       Eliom_request.http_get ~cookies_info:(https, service, g) uri []
+       Eliom_request.http_get
+         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
      | Ocsigen_lib.Right (uri, p) ->
-       Eliom_request.http_post ~cookies_info:(https, service, g) uri p)
+       Eliom_request.http_post
+         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p)
 
 
 let call_caml_service
@@ -367,9 +385,11 @@ let rec get_subpage_ :
      g p
    with
      | Ocsigen_lib.Left uri ->
-       Eliom_request.http_get ~cookies_info:(https, service, g) uri []
+       Eliom_request.http_get
+         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
      | Ocsigen_lib.Right (uri, p) ->
-       Eliom_request.http_post ~cookies_info:(https, service, g) uri p)
+       Eliom_request.http_post
+         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p)
   >>= fun r -> match Eliom_request.get_eliom_appl_result r with
     | Eliom_services.EAContent ((ed, content), _) -> begin
       (* Hack to make the result considered as XHTML: *)
@@ -449,61 +469,30 @@ let auto_change_page fragment =
 
 let _ = React.E.map auto_change_page (React.S.changes fragment)
 
-(* ==A closure that is registered by default to simulate <a> *)
+(* A closure that is registered by default to simulate <a>.
+   For use with server side generated links.
+ *)
 let _ =
   Eliommod_cli.register_closure
     Eliom_client_types.a_closure_id
-    (fun
-       (absolute, absolute_path, https, service, hostname, port,
-        fragment, keep_nl_params, nl_params, getparams)
-       ->
-         let absolute = Eliommod_cli.unwrap absolute in
-         let https = Eliommod_cli.unwrap https in
-         let service = Eliommod_cli.unwrap service in
-         let hostname = Eliommod_cli.unwrap hostname in
-         let port = Eliommod_cli.unwrap port in
-         let fragment = Eliommod_cli.unwrap fragment in
-         let keep_nl_params = Eliommod_cli.unwrap keep_nl_params in
-         let nl_params = Eliommod_cli.unwrap nl_params in
-         let getparams = Eliommod_cli.unwrap getparams in
-         let absolute_path = Eliommod_cli.unwrap absolute_path in
-         ignore
-           (change_page
-              ?absolute ?absolute_path ?https
-              ~service ?hostname ?port ?fragment ?keep_nl_params ?nl_params
-              getparams ()))
-
-
-
-let make_a_with_onclick
-    make_a
-    register_event
-    ?absolute
-    ?absolute_path
-    ?https
-    ?a
-    ~service
-    ?hostname
-    ?port
-    ?fragment
-    ?keep_nl_params
-    ?nl_params
-    content
-    getparams =
-  let node = make_a ?a ?onclick:None content in
-  register_event node "onclick"
-    (fun () -> change_page
-       ?absolute
-       ?absolute_path
-       ?https
-       ~service
-       ?hostname
-       ?port
-       ?fragment
-       ?keep_nl_params
-       ?nl_params
-       getparams ())
-    ();
-  node
-
-
+    (fun (cookies_info, uri) ->
+      let uri = Eliommod_cli.unwrap uri in
+      let cookies_info = Eliommod_cli.unwrap cookies_info in
+      ignore (change_page_uri ?cookies_info uri);
+      false);
+  Eliommod_cli.register_closure
+    Eliom_client_types.get_closure_id
+    (fun (cookies_info, uri) ->
+      let uri = Eliommod_cli.unwrap uri in
+      let node = Js.Unsafe.variable Eliom_client_types.eliom_temporary_form_node_name in
+      let cookies_info = Eliommod_cli.unwrap cookies_info in
+      ignore (change_page_get_form ?cookies_info node uri);
+      Js._false);
+  Eliommod_cli.register_closure
+    Eliom_client_types.post_closure_id
+    (fun (cookies_info, uri) ->
+      let uri = Eliommod_cli.unwrap uri in
+      let node = Js.Unsafe.variable Eliom_client_types.eliom_temporary_form_node_name in
+      let cookies_info = Eliommod_cli.unwrap cookies_info in
+      ignore (change_page_post_form ?cookies_info node uri);
+      Js._false)

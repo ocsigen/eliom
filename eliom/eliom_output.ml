@@ -242,8 +242,11 @@ module Xhtmlforms_ = struct
   let make_js_script ?(a=[]) ~uri () =
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
+(*
   let register_event_a node = XML.register_event (XHTML.M.toelt node)
   let register_event_form node = XML.register_event (XHTML.M.toelt node)
+*)
+(*POSTtabcookies* forms with tab cookies in POST params:
 
   let add_tab_cookies_to_get_form _ () = 
     failwith "add_tab_cookies_to_get_form not implemented for xhtml1"
@@ -255,6 +258,17 @@ module Xhtmlforms_ = struct
    
   let add_tab_cookies_to_post_form_id_string =
     add_tab_cookies_to_get_form_id_string
+*)
+
+  let make_a_with_onclick ?a ?cookies_info s =
+    failwith "make_a_with_onclick not implemented for xhtml1"
+
+  let make_get_form_with_onsubmit ?a ?cookies_info x y =
+    failwith "make_get_form_with_onsubmit implemented for xhtml1"
+
+  let make_post_form_with_onsubmit ?a ?cookies_info x y =
+    failwith "make_post_form_with_onsubmit not implemented for xhtml1"
+
 
   let appl_name = None
 
@@ -2126,11 +2140,15 @@ module HtmlTextforms_ = struct
   let make_js_script ?(a="") ~uri () =
     "<script src=\""^uri^" contenttype=\"text/javascript\" "^a^"></script>"
 
+(*
   let register_event_a elt ev callback v =
     failwith "register_event_a not implemented for text"
 
   let register_event_form elt ev callback v =
     failwith "register_event_form not implemented for text"
+*)
+
+(*POSTtabcookies* forms with tab cookies in POST params:
 
   let add_tab_cookies_to_get_form _ () = 
     failwith "add_tab_cookies_to_get_form not implemented for text"
@@ -2142,6 +2160,15 @@ module HtmlTextforms_ = struct
    
   let add_tab_cookies_to_post_form_id_string =
     add_tab_cookies_to_get_form_id_string
+*)
+  let make_a_with_onclick ?a ?cookies_info s =
+    failwith "make_a_with_onclick not implemented for text"
+
+  let make_get_form_with_onsubmit ?a ?cookies_info x y =
+    failwith "make_get_form_with_onsubmit implemented for text"
+
+  let make_post_form_with_onsubmit ?a ?cookies_info x y =
+    failwith "make_post_form_with_onsubmit not implemented for text"
 
   let appl_name = None
 

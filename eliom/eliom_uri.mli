@@ -156,3 +156,12 @@ val make_proto_prefix :
   sp:Eliom_common.server_params option ->
   bool -> string
 
+val make_cookies_info :
+  bool option *
+  ('a, 'b,
+   [< `Attached of ([> `External ], 'c) Eliom_services.a_s
+   | `Nonattached of 'd ],
+   [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
+           Eliom_services.service ->
+  (bool * Ocsigen_lib.url_path) option
+

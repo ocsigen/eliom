@@ -98,8 +98,8 @@ let eliomclient1 =
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                         (* with {{ expr }}, the expression is executed by the client. *)
-                        a_onclick {{Dom_html.window##alert(Js.string "clicked!") ; Lwt.return ()}}]
-           [pcdata "I am a clickable paragraph"];
+          a_onclick {{Dom_html.window##alert(Js.string "clicked!") ; Lwt.return ()}}]
+            [pcdata "I am a clickable paragraph"];
 
         ])
 (*wiki*
@@ -1966,7 +1966,7 @@ let isuffixc =
 
 let create_suffixformc ((suff, endsuff),i) =
     [h3 [pcdata "Form to an (internal appl) suffix service"];
-     p [pcdata "Write the suffix:";
+     p [pcdata "Write an int for the suffix:";
         int_input ~input_type:`Text ~name:suff ();
         br ();
         pcdata "Write a string: ";

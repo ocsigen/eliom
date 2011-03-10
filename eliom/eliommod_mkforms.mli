@@ -19,24 +19,22 @@
 
 
 val make_a_with_onclick :
-  (?a:'a -> ?onclick:XML.event -> 'c -> 'd) ->
-  ('d -> string -> (unit -> unit Lwt.t) -> unit -> 'f) ->
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  ?a:'a ->
-  service:('get, unit, [< Eliom_services.get_service_kind ],
-           [< Eliom_services.suff ], 'gn, 'pn,
-           [< Eliom_services.registrable ], 'return)
-    Eliom_services.service ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
-  'c -> 'get -> 'd
+  (?a:'a -> ?onclick:XML.event -> 'b -> 'c) ->
+  ('c -> string -> (unit -> unit Lwt.t) -> unit -> 'e) ->
+  ?a:'a -> ?cookies_info:bool * string list -> string -> 'b -> 'c
+
+val make_get_form_with_onsubmit :
+  (?a:'b -> action:string -> ?onsubmit:XML.event -> 'c -> 'd -> [`Form] XHTML5.M.elt) ->
+  ([`Form] XHTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> unit) ->
+  ?a:'b -> ?cookies_info:bool * string list -> string -> 'c -> 'd -> [`Form] XHTML5.M.elt
+
+val make_post_form_with_onsubmit :
+  (?a:'b -> action:string -> ?onsubmit:XML.event -> 'c -> 'd -> [`Form] XHTML5.M.elt) ->
+  ([`Form] XHTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> unit) ->
+  ?a:'b -> ?cookies_info:bool * string list -> string -> 'c -> 'd -> [`Form] XHTML5.M.elt
 
 
+(*POSTtabcookies* forms with tab cookies in POST params:
 
 val make_get_form_with_post_tab_cookies :
   (?a:'a -> action:'b -> ?onsubmit:XML.event -> 'c -> 'd -> 'form) ->
@@ -57,3 +55,4 @@ val make_post_form_with_post_tab_cookies :
 
 val add_tab_cookies_to_get_form : 'form XHTML5.M.elt -> unit -> unit Lwt.t
 val add_tab_cookies_to_post_form : 'form XHTML5.M.elt -> unit -> unit Lwt.t
+*)

@@ -151,13 +151,29 @@ module type FORMCREATE =
 
     val make_js_script : ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 
+(*
     val register_event_a : 'elt a_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
     val register_event_form : form_elt -> string -> ('a -> unit Lwt.t) -> 'a -> unit
+*)
 
+(*POSTtabcookies* forms with tab cookies in POST params:
     val add_tab_cookies_to_get_form : form_elt -> unit -> unit Lwt.t
     val add_tab_cookies_to_post_form : form_elt -> unit -> unit Lwt.t
     val add_tab_cookies_to_get_form_id_string : string
     val add_tab_cookies_to_post_form_id_string : string
+*)
+
+    val make_a_with_onclick :
+      ?a:a_attrib_t -> ?cookies_info:bool * string list -> string ->
+      'a a_content_elt_list -> 'a a_elt
+
+    val make_get_form_with_onsubmit :
+      ?a:form_attrib_t -> ?cookies_info:bool * string list -> string ->
+      form_content_elt -> form_content_elt_list -> form_elt
+      
+    val make_post_form_with_onsubmit :
+      ?a:form_attrib_t -> ?cookies_info:bool * string list -> string ->
+      form_content_elt -> form_content_elt_list -> form_elt
 
     val appl_name : string option (* The application name, if any
                                      (for Eliom_appl only, None otherwise) *)
@@ -977,25 +993,6 @@ module MakeForms = functor
           ?(no_appl = false)
           content
           getparams =
-        if not no_appl && 
-          (Eliom_services.xhr_with_cookies Pages.appl_name service)
-        then
-          Eliommod_mkforms.make_a_with_onclick
-            (fun ?a ?onclick c -> Pages.make_a ?a ?onclick c)
-            Pages.register_event_a
-            ?absolute
-            ?absolute_path
-            ?https
-            ?a
-            ~service
-            ?hostname
-            ?port
-            ?fragment
-            ?keep_nl_params
-            ?nl_params
-            content
-            getparams
-        else
         let href = 
           make_string_uri
             ?absolute
@@ -1004,6 +1001,16 @@ module MakeForms = functor
             ?nl_params
             ?https ~service ?hostname ?port ?fragment getparams
         in
+        if not no_appl && 
+          (Eliom_services.xhr_with_cookies Pages.appl_name service)
+        then
+          let cookies_info = Eliom_uri.make_cookies_info (https, service) in
+          Pages.make_a_with_onclick
+            ?a
+            ?cookies_info
+            href
+            content
+        else
         Pages.make_a ?a ~href content
 
 
@@ -1086,11 +1093,21 @@ module MakeForms = functor
              let i1, i = Pages.remove_first inside in
              if internal_appl_form
              then
+               let cookies_info = Eliom_uri.make_cookies_info (https, service)
+               in
+               return (Pages.make_get_form_with_onsubmit
+                         ?a
+                         ?cookies_info
+                         uri
+                         i1
+                         i)
+(*POSTtabcookies* forms with tab cookies in POST params:
                return (Eliommod_mkforms.make_get_form_with_post_tab_cookies
                          Pages.make_get_form Pages.register_event_form
                          Pages.add_tab_cookies_to_get_form
                          Pages.add_tab_cookies_to_get_form_id_string
                          ?a ~action:uri i1 i)
+*)
              else 
                return (Pages.make_get_form ?a ~action:uri i1 i))
 
@@ -1186,12 +1203,22 @@ module MakeForms = functor
              in
              if internal_appl_form
              then
+               let cookies_info = Eliom_uri.make_cookies_info (https, service)
+               in
+               return (Pages.make_post_form_with_onsubmit
+                         ?a
+                         ?cookies_info
+                         uri
+                         i1
+                         i)
+(*POSTtabcookies* forms with tab cookies in POST params:
                return (Eliommod_mkforms.make_post_form_with_post_tab_cookies
                          Pages.make_post_form Pages.register_event_form
                          Pages.add_tab_cookies_to_post_form
                          Pages.add_tab_cookies_to_post_form_id_string
                          ?a ~action:uri i1 i)
-             else 
+*)
+             else
                return (Pages.make_post_form ?a ~action:uri i1 i))
 
 
