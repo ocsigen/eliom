@@ -366,16 +366,22 @@ end = struct
 
   type +'a t = {
     channel : Raw_channels.t;
+    channel_mark : 'a t Eliom_common.wrapper;
   }
-
-  let create ?name stream =
-    { channel = Raw_channels.create ?name
-	(Lwt_stream.map (fun x -> Marshal.to_string x []) stream) }
 
   let get_id t =
     Ecc.chan_id_of_string (Raw_channels.get_id t.channel)
 
   let wrap c = Eliommod_cli.wrap (get_id c)
+
+  let internal_wrap c = (get_id c,Eliom_common.make_unwrapper Eliom_common.comet_channel_unwrap_id)
+
+  let channel_mark () = Eliom_common.make_wrapper internal_wrap
+
+  let create ?name stream =
+    { channel = Raw_channels.create ?name
+	(Lwt_stream.map (fun x -> Marshal.to_string x []) stream);
+      channel_mark = channel_mark () }
 
 end
 

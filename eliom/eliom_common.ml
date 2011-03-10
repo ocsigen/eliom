@@ -1199,3 +1199,4 @@ type unwrapper = Ocsigen_wrap.unwrapper
 let make_unwrapper = Ocsigen_wrap.create_unwrapper
 let empty_unwrapper = Ocsigen_wrap.empty_unwrapper
 let react_up_unwrap_id : unwrap_id = Ocsigen_wrap.id_of_int react_up_unwrap_id_int
+let comet_channel_unwrap_id : unwrap_id = Ocsigen_wrap.id_of_int comet_channel_unwrap_id_int

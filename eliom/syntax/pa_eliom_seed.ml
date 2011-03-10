@@ -277,12 +277,14 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	);
 *)
 
+(*
 	(function (*channel*)
 	  | <:ctyp< ($_$ Eliom_comet.Channels.t) >> ->
               (<:expr<Eliom_comet.Channels.wrap>>,
 		<:expr<Eliom_client_comet.unwrap>>)
 	  | _ -> raise Next
 	);
+*)
 
 	(function (*buffchan*)
 	  | <:ctyp< ($_$ Eliom_comet.Buffered_channels.t) >> ->

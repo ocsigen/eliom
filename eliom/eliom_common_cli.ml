@@ -192,4 +192,5 @@ type sess_info =
 
 (************ unwrapping identifiers *********************)
 
-let react_up_unwrap_id_int = 1
+let comet_channel_unwrap_id_int = 1
+let react_up_unwrap_id_int = 2

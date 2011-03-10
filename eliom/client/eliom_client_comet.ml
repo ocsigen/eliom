@@ -372,5 +372,11 @@ let unwrap ?wake chan_id =
   let chan_id = Eliommod_cli.unwrap chan_id in
   register ?wake chan_id
 
+let internal_unwrap ( chan_id, unwrapper ) =
+  register chan_id
+
+let () = Eliom_client_unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id internal_unwrap
+
+
 let is_active () = (get_hd ()).hd_activity.active
 
