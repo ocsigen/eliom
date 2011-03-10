@@ -546,7 +546,7 @@ let rec rec_list_react = (react_up,42)::rec_list_react
 }}
 
 let wrapping1 =
-  Eliom_appl.register_service
+  My_appl.register_service
     ~path:["wrapping1"]
     ~get_params:unit
     (fun () () ->

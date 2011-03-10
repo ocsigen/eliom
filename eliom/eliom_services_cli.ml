@@ -125,8 +125,10 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
      kind: 'kind; (* < service_kind *)
      https: bool; (* force https *)
      keep_nl_params: [ `All | `Persistent | `None ];
-     mutable do_appl_xhr : do_appl_xhr 
-   (* the string is the name of the application to which the service belongs *)
+     mutable send_appl_content : send_appl_content;
+     (* XNever when we create the service, then changed at registration :/ *)
+
+     service_mark : (unit,unit,unit,unit,unit,unit,unit,unit) service Eliom_common.wrapper;
    }
 
 let pre_wrap s =
@@ -201,7 +203,8 @@ let static_dir_ ?(https = false) () =
       };
     https = https;
     keep_nl_params = `None;
-    do_appl_xhr = XNever;
+    service_mark = service_mark ();
+    send_appl_content = XNever;
   }
 
 let static_dir () = static_dir_ ()
@@ -233,7 +236,8 @@ let get_static_dir_ ?(https = false)
       };
      https = https;
      keep_nl_params = keep_nl_params;
-     do_appl_xhr = XNever;
+     service_mark = service_mark ();
+     send_appl_content = XNever;
    }
 
 let static_dir_with_params ?keep_nl_params ~get_params () = 
@@ -311,7 +315,8 @@ let void_coservice' =
       };
     https = false;
     keep_nl_params = `All;
-    do_appl_xhr = XAlways;
+    service_mark = service_mark ();
+    send_appl_content = XAlways;
   }
 
 let https_void_coservice' =
@@ -327,7 +332,8 @@ let https_void_coservice' =
       };
     https = true;
     keep_nl_params = `All;
-    do_appl_xhr = XAlways;
+    service_mark = service_mark ();
+    send_appl_content = XAlways;
   }
 
 let void_hidden_coservice' = {void_coservice' with 
@@ -404,7 +410,8 @@ let service_aux_aux
     };
    https = https;
    keep_nl_params = keep_nl_params;
-   do_appl_xhr = XNever;
+   service_mark = service_mark ();
+   send_appl_content = XNever;
  }
 
 
