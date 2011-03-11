@@ -3313,14 +3313,6 @@ function redir () {
 };
 redir ();"))::
 
-	 let change_page_event_string =
-	   (Eliom_client_types.jsmarshal
-                             (Eliommod_react.Down.wrap
-                                (Eliommod_react.Down.of_react change_page_event)
-                             )
-                          )
-	 in
-
 	 let eliom_appl_page_data = (Ocsigen_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
 
              if not do_not_launch
@@ -3372,6 +3364,7 @@ redir ();"))::
                                 (Eliommod_react.Down.of_react change_page_event)
                              )
                           ) ; "\'; \n" ;
+*)
 
                           "var sitedata = \'" ;
                           (Eliom_client_types.jsmarshal
