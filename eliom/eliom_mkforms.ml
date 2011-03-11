@@ -164,19 +164,22 @@ module type FORMCREATE =
 *)
 
     val make_a_with_onclick :
-      ?a:a_attrib_t -> ?cookies_info:bool * string list -> string ->
+      ?a:a_attrib_t -> ?cookies_info:bool * string list ->
+      Eliom_services.send_appl_content ->
+      string ->
       'a a_content_elt_list -> 'a a_elt
 
     val make_get_form_with_onsubmit :
-      ?a:form_attrib_t -> ?cookies_info:bool * string list -> string ->
+      ?a:form_attrib_t -> ?cookies_info:bool * string list ->
+      Eliom_services.send_appl_content ->
+      string ->
       form_content_elt -> form_content_elt_list -> form_elt
       
     val make_post_form_with_onsubmit :
-      ?a:form_attrib_t -> ?cookies_info:bool * string list -> string ->
+      ?a:form_attrib_t -> ?cookies_info:bool * string list ->
+      Eliom_services.send_appl_content ->
+      string ->
       form_content_elt -> form_content_elt_list -> form_elt
-
-    val appl_name : string option (* The application name, if any
-                                     (for Eliom_appl only, None otherwise) *)
 
   end
 
@@ -1001,13 +1004,13 @@ module MakeForms = functor
             ?nl_params
             ?https ~service ?hostname ?port ?fragment getparams
         in
-        if not no_appl && 
-          (Eliom_services.xhr_with_cookies Pages.appl_name service)
+        if not no_appl && Eliom_services.xhr_with_cookies service
         then
           let cookies_info = Eliom_uri.make_cookies_info (https, service) in
           Pages.make_a_with_onclick
             ?a
             ?cookies_info
+            (Eliom_services.get_send_appl_content service)
             href
             content
         else
@@ -1032,8 +1035,7 @@ module MakeForms = functor
           f =
 
         let internal_appl_form =
-          not no_appl &&
-            (Eliom_services.xhr_with_cookies Pages.appl_name service)
+          not no_appl && Eliom_services.xhr_with_cookies service
         in
 
 (*204FORMS* old implementation of forms with 204 and change_page_event
@@ -1098,6 +1100,7 @@ module MakeForms = functor
                return (Pages.make_get_form_with_onsubmit
                          ?a
                          ?cookies_info
+                         (Eliom_services.get_send_appl_content service)
                          uri
                          i1
                          i)
@@ -1152,7 +1155,7 @@ module MakeForms = functor
           getparams =
 
         let internal_appl_form =
-          not no_appl && (Eliom_services.xhr_with_cookies Pages.appl_name service)
+          not no_appl && Eliom_services.xhr_with_cookies service
         in
 
 (*204FORMS* old implementation of forms with 204 and change_page_event
@@ -1208,6 +1211,7 @@ module MakeForms = functor
                return (Pages.make_post_form_with_onsubmit
                          ?a
                          ?cookies_info
+                         (Eliom_services.get_send_appl_content service)
                          uri
                          i1
                          i)

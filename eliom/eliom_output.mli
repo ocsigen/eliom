@@ -889,8 +889,6 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
     and type options = appl_service_options
     and type return = Eliom_services.appl_service
 
-  include XHTML5FORMSSIG
-
   (** Unique identifier for this application.
       It is the application name.
       Warning: do not mix up with the "application instance id",

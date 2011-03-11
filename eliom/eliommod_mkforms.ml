@@ -24,6 +24,7 @@ let (make_a_with_onclick :
      (?keep_default:bool -> 'd -> string -> ('e -> unit Lwt.t) -> unit -> 'f) ->
      ?a:'a ->
      ?cookies_info:'ci ->
+     Eliom_services.send_appl_content ->
      string ->
      'r) =
   fun
@@ -31,6 +32,7 @@ let (make_a_with_onclick :
     register_event
     ?a
     ?cookies_info
+    send_appl_content
     href
     content
   ->
@@ -52,8 +54,8 @@ let (make_a_with_onclick :
         content
     in
     Eliom_services.add_onload_form_creator
-      (Eliom_client_types.OFA
-         (Eliommod_cli.wrap_node node, href, cookies_info));
+      (send_appl_content, (Eliom_client_types.OFA
+                             (Eliommod_cli.wrap_node node, href, cookies_info)));
     node
 
 let make_get_form_with_onsubmit
@@ -61,6 +63,7 @@ let make_get_form_with_onsubmit
     register_event
     ?a
     ?cookies_info
+    send_appl_content
     uri
     field
     fields
@@ -92,8 +95,8 @@ let make_get_form_with_onsubmit
       fields
   in
   Eliom_services.add_onload_form_creator
-    (Eliom_client_types.OFForm_get
-       (Eliommod_cli.wrap_node node, uri, cookies_info));
+    (send_appl_content, (Eliom_client_types.OFForm_get
+                           (Eliommod_cli.wrap_node node, uri, cookies_info)));
   node
 
 
@@ -102,6 +105,7 @@ let make_post_form_with_onsubmit
     register_event
     ?a
     ?cookies_info
+    send_appl_content
     uri
     field
     fields
@@ -124,8 +128,8 @@ let make_post_form_with_onsubmit
       fields
   in
   Eliom_services.add_onload_form_creator
-    (Eliom_client_types.OFForm_post
-       (Eliommod_cli.wrap_node node, uri, cookies_info));
+    (send_appl_content, (Eliom_client_types.OFForm_post
+                           (Eliommod_cli.wrap_node node, uri, cookies_info)));
   node
 
 

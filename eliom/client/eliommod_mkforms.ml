@@ -25,6 +25,7 @@ let make_a_with_onclick
     register_event
     ?a
     ?cookies_info
+    _
     href
     content
     =
@@ -39,6 +40,7 @@ let make_get_form_with_onsubmit
     register_event
     ?a
     ?cookies_info
+    _
     uri
     field
     fields
@@ -55,6 +57,7 @@ let make_post_form_with_onsubmit
     register_event
     ?a
     ?cookies_info
+    _
     uri
     field
     fields

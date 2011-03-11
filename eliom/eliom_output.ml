@@ -270,8 +270,6 @@ module Xhtmlforms_ = struct
     failwith "make_post_form_with_onsubmit not implemented for xhtml1"
 
 
-  let appl_name = None
-
 end
 
 
@@ -2170,8 +2168,6 @@ module HtmlTextforms_ = struct
   let make_post_form_with_onsubmit ?a ?cookies_info x y =
     failwith "make_post_form_with_onsubmit not implemented for text"
 
-  let appl_name = None
-
 end
 
 
@@ -3313,7 +3309,9 @@ function redir () {
 };
 redir ();"))::
 
-	 let eliom_appl_page_data = (Ocsigen_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
+	 let eliom_appl_page_data = 
+           Ocsigen_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)
+         in
 
              if not do_not_launch
              then
@@ -3341,7 +3339,8 @@ redir ();"))::
                             *)
                                eliom_appl_page_data,
                                cookies_to_send,
-                               Eliom_services.get_onload_form_creators sp,
+                               Eliom_services.get_onload_form_creators
+                                 Appl_params.application_name sp,
                                Eliom_services.get_onload sp,
                                Eliom_services.get_onunload sp,
                                Eliommod_cli.client_si sp.Eliom_common.sp_si
@@ -3400,7 +3399,7 @@ redir ();"))::
           (XML.make_ref_tree_list (XHTML5.M.toeltl content)),
         eliom_appl_page_data,
         tab_cookies_to_send,
-        Eliom_services.get_onload_form_creators sp,
+        Eliom_services.get_onload_form_creators Appl_params.application_name sp,
         Eliom_services.get_onload sp,
         Eliom_services.get_onunload sp,
         Eliommod_cli.client_si sp.Eliom_common.sp_si
@@ -3509,11 +3508,6 @@ end
 
 
 module Eliom_appl (Appl_params : APPL_PARAMS) = struct
-
-  include MakeXhtml5forms(MakeForms(struct
-    include Xhtml5forms_
-    let appl_name = Some Appl_params.application_name
-  end))
 
   include MakeRegister(Eliom_appl_reg_
                          (Ocsigen_senders.Xhtml5compact_content)

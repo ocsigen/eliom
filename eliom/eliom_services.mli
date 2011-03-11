@@ -627,13 +627,13 @@ val set_send_appl_content :
 val get_send_appl_content : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> send_appl_content
 
 val need_process_cookies :
-  string option -> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
 
 val appl_content_capable :
-  string option -> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
 
 val xhr_with_cookies :
-  string option -> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
 
 
 val get_onload : Eliom_common.server_params -> string list
@@ -641,8 +641,12 @@ val get_onunload : Eliom_common.server_params -> string list
 
 
 val add_onload_form_creator :
-  Eliom_client_types.onload_form_creators_info -> unit
+  (* the string is the name of the application to which the service
+     (to which the form/link goes to) belongs *)
+  send_appl_content * Eliom_client_types.onload_form_creators_info -> unit
+
 val get_onload_form_creators :
+  string ->
   Eliom_common.server_params ->
   Eliom_client_types.onload_form_creators_info list
 

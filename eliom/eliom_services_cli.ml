@@ -159,7 +159,7 @@ let get_https s = s.https
 let get_priority_ s = s.priority
 
 let is_external s =
-(*VVV REMOVE THE magic AFTER SIMPLIFYING PHANTOMS IN SERVCIE TYPES *)
+(*VVV REMOVE THE magic AFTER SIMPLIFYING PHANTOMS IN SERVICE TYPES *)
   match (Obj.magic s.kind :> [> `Attached of 'a]) with
     | `Attached attser -> (attser.att_kind :> [> `External]) = `External
     | _ -> false
@@ -250,26 +250,6 @@ let https_static_dir_with_params ?keep_nl_params ~get_params () =
 (****************************************************************************)
 let get_send_appl_content s = s.send_appl_content
 let set_send_appl_content s n = s.send_appl_content <- n
-
-let need_process_cookies current_page_appl_name s =
-  (Eliom_process.client_side || current_page_appl_name <> None)
-  && not (is_external s)
-(* If there is a client side process, we do an XHR with tab cookies *)
-
-let appl_content_capable current_page_appl_name s =
-  let current_page_appl_name =
-    if Eliom_process.client_side
-    then Eliom_process.get_application_name ()
-    else current_page_appl_name
-  in
-  match s.send_appl_content with
-    | XAlways -> true
-    | XNever -> false
-    | XSame_appl an -> Some an = current_page_appl_name
-
-let xhr_with_cookies current_page_appl_name s =
-  need_process_cookies current_page_appl_name s
-  && appl_content_capable current_page_appl_name s
 
 (****************************************************************************)
 

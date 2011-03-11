@@ -244,8 +244,7 @@ let rec change_page_set_content :
     ?keep_get_na_params
     g
     p ->
-  if not (Eliom_services.appl_content_capable
-            (Eliom_process.get_application_name ()) service)
+  if not (Eliom_services.xhr_with_cookies service)
   then
     Lwt.return (exit_to
                   ?absolute ?absolute_path ?https

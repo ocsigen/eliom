@@ -158,19 +158,22 @@ module type FORMCREATE =
 *)
 
     val make_a_with_onclick :
-      ?a:a_attrib_t -> ?cookies_info:bool * string list -> string ->
+      ?a:a_attrib_t -> ?cookies_info:bool * string list ->
+      Eliom_services.send_appl_content ->
+      string ->
       'a a_content_elt_list -> 'a a_elt
 
     val make_get_form_with_onsubmit :
-      ?a:form_attrib_t -> ?cookies_info:bool * string list -> string ->
+      ?a:form_attrib_t -> ?cookies_info:bool * string list ->
+      Eliom_services.send_appl_content ->
+      string ->
       form_content_elt -> form_content_elt_list -> form_elt
       
     val make_post_form_with_onsubmit :
-      ?a:form_attrib_t -> ?cookies_info:bool * string list -> string ->
+      ?a:form_attrib_t -> ?cookies_info:bool * string list ->
+      Eliom_services.send_appl_content ->
+      string ->
       form_content_elt -> form_content_elt_list -> form_elt
-
-    val appl_name : string option (* The application name, if any
-                                     (for Eliom_appl only, None otherwise) *)
 
   end
 

@@ -261,8 +261,6 @@ module Xhtml5forms_ = struct
       (fun ?a ~action ?onsubmit x y -> make_post_form ?a ~action ?onsubmit x y)
       register_event_form
 
-  let appl_name = None
-
 end
 
 
