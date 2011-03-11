@@ -39,7 +39,7 @@ type eliom_data_type =
     ((* The ref tree, to relink the DOM *)
       (XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
         (* Table of page data *)
-        ((int64 * int) * poly list) *
+        (poly * ((int64 * int) * poly list)) *
         (* Tab cookies to set or unset *)
         Ocsigen_cookies.cookieset *
         string list (* on load scripts *) *

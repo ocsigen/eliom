@@ -280,7 +280,7 @@ let wait_data service activity count =
   fun () -> aux 0
 
 let service () : Eliom_common_comet.comet_service =
-  Eliommod_cli.unwrap (Ocsigen_lib.unmarshal_js_var "comet_service")
+  Eliom_client_unwrap.unwrap (Ocsigen_lib.unmarshal_js_var "comet_service")
 
 let init_activity () =
   let active_waiter,active_wakener = Lwt.wait () in
@@ -368,12 +368,11 @@ let register ?(wake=true) chan_id =
   if wake then activate ();
   stream
 
-let unwrap ?wake chan_id =
-  let chan_id = Eliommod_cli.unwrap chan_id in
+let unwrap ?wake key =
+  let ( chan_id, unwrapper ) = Eliommod_cli.unwrap key in
   register ?wake chan_id
 
-let internal_unwrap ( chan_id, unwrapper ) =
-  register chan_id
+let internal_unwrap ( chan_id, unwrapper ) = register chan_id
 
 let () = Eliom_client_unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id internal_unwrap
 

@@ -3313,6 +3313,16 @@ function redir () {
 };
 redir ();"))::
 
+	 let change_page_event_string =
+	   (Eliom_client_types.jsmarshal
+                             (Eliommod_react.Down.wrap
+                                (Eliommod_react.Down.of_react change_page_event)
+                             )
+                          )
+	 in
+
+	 let eliom_appl_page_data = (Ocsigen_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
+
              if not do_not_launch
              then
                XHTML5.M.script
@@ -3330,7 +3340,6 @@ redir ();"))::
 
                           "var eliom_data = \'" ;
                           (Eliom_client_types.jsmarshal
-                             (Ocsigen_wrap.wrap
 				((Ocsigen_lib.Left
                                  (XML.make_ref_tree (XHTML5.M.toelt body)),
                             (* Warning: due to right_to_left evaluation,
@@ -3338,22 +3347,23 @@ redir ();"))::
                                items. Do not create new node refs in
                                previous items!
                             *)
-                               (Eliommod_cli.get_eliom_appl_page_data_ sp),
+                               eliom_appl_page_data,
                                cookies_to_send,
                                Eliom_services.get_onload sp,
                                Eliom_services.get_onunload sp,
                                Eliommod_cli.client_si sp.Eliom_common.sp_si
                               ) :
                                  Eliom_client_types.eliom_data_type
-                             ))
+                             )
                           ) ; "\'; \n" ;
 
 			  "var comet_service = \'" ;
                           (Eliom_client_types.jsmarshal
-			     (Polytables.get
-                                ~table:cpi.Eliom_common.cpi_references
-				~key:comet_service_key)
-                          ) ; "\'; \n" ;
+			     (Ocsigen_wrap.wrap
+				(Polytables.get
+                                   ~table:cpi.Eliom_common.cpi_references
+				   ~key:comet_service_key)
+                             )) ; "\'; \n" ;
 
 (*CPE* change_page_event
                           "var change_page_event = \'" ;
@@ -3362,7 +3372,6 @@ redir ();"))::
                                 (Eliommod_react.Down.of_react change_page_event)
                              )
                           ) ; "\'; \n" ;
-*)
 
                           "var sitedata = \'" ;
                           (Eliom_client_types.jsmarshal
@@ -3390,11 +3399,12 @@ redir ();"))::
 
   let get_eliom_page_content ~options sp content =
     get_tab_cook sp >>= fun tab_cookies_to_send ->
+    let eliom_appl_page_data = (Ocsigen_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
 (*VVV Here we do not send a stream *)
     Lwt.return
       ((Ocsigen_lib.Right
           (XML.make_ref_tree_list (XHTML5.M.toeltl content)),
-        (Eliommod_cli.get_eliom_appl_page_data_ sp),
+        eliom_appl_page_data,
         tab_cookies_to_send,
         Eliom_services.get_onload sp,
         Eliom_services.get_onunload sp,

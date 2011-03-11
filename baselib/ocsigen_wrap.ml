@@ -32,8 +32,6 @@ struct
   let do_nothing = "no wrap"
 end
 
-type mark = Mark.t
-
 type 'a wrapper =
     { f : ( Obj.t -> Obj.t ) option;
       mutable mark : Mark.t; }
@@ -107,7 +105,7 @@ let rec replace_wrap_marked t =
 let wrap v =
   let v = Obj.repr v in
   let t = make_table v in
-  (Mark.unwrap,Obj.obj (replace_wrap_marked t))
+  (Obj.magic Mark.unwrap,Obj.obj (replace_wrap_marked t))
 
 let create_wrapper (f:'a -> 'b) : 'a wrapper =
   { f = Some (fun x -> Obj.repr (f (Obj.obj x)));
@@ -124,7 +122,7 @@ let debug_wrap v =
   let v = replace_wrap_marked t in
   let t = make_table v in
   let d2 = Obj_table.debug t in
-  d1,d2
+  d1,Obj.obj v,d2
 
 (** toucher **)
 

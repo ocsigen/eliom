@@ -144,7 +144,7 @@ let _ =
 *)
 
 let load_eliom_data_
-    ((tree, (((timeofday, _), _) as page_data), cookies, onload, onunload, si) :
+    ((tree, ((_,((timeofday, _), _)) as page_data), cookies, onload, onunload, si) :
         Eliom_client_types.eliom_data_type)
     node : unit Lwt.t =
   (match tree with
@@ -152,9 +152,9 @@ let load_eliom_data_
       Eliommod_cli.relink_dom timeofday node ref_tree;
     | Ocsigen_lib.Right ref_tree_list ->
       Eliommod_cli.relink_dom_list timeofday (node##childNodes) ref_tree_list);
-  Eliommod_cli.fill_page_data_table page_data;
   Eliommod_client_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;
+  Eliommod_cli.fill_page_data_table (Eliom_client_unwrap.unwrap page_data);
   on_unload_scripts := [fun () -> List.iter Js.Unsafe.variable onunload; Lwt.return ()];
   List.iter Js.Unsafe.variable onload;
   Lwt.return ()

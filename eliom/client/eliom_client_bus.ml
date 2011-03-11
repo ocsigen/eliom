@@ -47,9 +47,15 @@ let create service channel waiter =
   }
 
 let unwrap w =
-  let (channel,service) = Eliommod_cli.unwrap w in
+  let ((channel,service),unwrapper) = Eliommod_cli.unwrap w in
   let waiter () = Lwt_js.sleep 0.05 in
   create service channel waiter
+
+let internal_unwrap ((chan_id,service),unwrapper) =
+  let waiter () = Lwt_js.sleep 0.05 in
+  create service chan_id waiter
+
+let () = Eliom_client_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
 let stream {channel} =
   Eliom_client_comet.register channel

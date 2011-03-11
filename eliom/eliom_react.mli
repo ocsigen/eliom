@@ -54,7 +54,7 @@ sig
 
   val wrap :
       'a t
-    -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
+    -> ( 'a Eliom_common_comet.chan_id * Eliom_common.unwrapper ) Eliom_client_types.data_key
   (** [wrap e] wraps the event [e] so that it can be handed to the client. *)
 
 end

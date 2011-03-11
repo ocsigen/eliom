@@ -23,20 +23,3 @@ type server_params = unit
 
 let get_sp () = ()
 let get_sp_option () = Some ()
-
-
-
-
-type 'a wrapper = unit
-
-let make_wrapper f :'a wrapper = ()
-let empty_wrapper () :'a wrapper = ()
-
-type toucher = unit
-
-let make_toucher f : toucher = ()
-
-type unwrap_id = Eliom_client_unwrap.unwrap_id
-let react_up_unwrap_id : unwrap_id = Eliom_client_unwrap.id_of_int react_up_unwrap_id_int
-let comet_channel_unwrap_id : unwrap_id = Eliom_client_unwrap.id_of_int comet_channel_unwrap_id_int
-

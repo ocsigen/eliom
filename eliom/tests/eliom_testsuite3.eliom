@@ -568,13 +568,13 @@ let wrapping1 =
 				     () () >|= (fun blocks ->
 				       List.iter
 					 (Dom.appendChild Dom_html.document##body)
-					 (XHTML5.M.toeltl blocks);)))] [pcdata "test serice"]));
+					 (XHTML5.M.toeltl blocks);)))] [pcdata "test service"]));
 
 	  let f_react = fst (List.hd %rec_list_react) in
 
           add_body
             (XHTML5.M.toelt
-	       (p ~a:[ a_onclick (fun _ -> f_react 42)] [pcdata "test react service: event 42 should apear on stdout (of the server) when this is clicked "]));
+	       (p ~a:[ a_onclick (fun _ -> f_react 42)] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
 
 
 	}};

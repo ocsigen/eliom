@@ -198,3 +198,4 @@ type sess_info =
 
 let comet_channel_unwrap_id_int = 1
 let react_up_unwrap_id_int = 2
+let bus_unwrap_id_int = 3

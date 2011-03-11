@@ -37,7 +37,7 @@ sig
       [create (Lwt_stream.clone s)] each time.*)
 
   val get_id : 'a t -> 'a Eliom_common_comet.chan_id
-  val wrap : 'a t -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
+  val wrap : 'a t -> ( 'a Eliom_common_comet.chan_id * Eliom_common.unwrapper ) Eliom_client_types.data_key
 
 end
 
@@ -45,7 +45,7 @@ end
 
 val get_service : unit -> Eliom_common_comet.comet_service
 
-type comet_handler = Eliom_common_comet.comet_service Eliom_client_types.data_key
+type comet_handler = Eliom_common_comet.comet_service
 
-val init : unit -> Eliom_common_comet.comet_service Eliom_client_types.data_key
+val init : unit -> comet_handler
 

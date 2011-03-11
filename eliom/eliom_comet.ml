@@ -94,7 +94,7 @@ module Cometreg_ = struct
 
   let pre_service ?options () = Lwt.return ()
 
-  let send_appl_content = Eliom_services.XNever
+  let do_appl_xhr = Eliom_services.XAlways
 
   let code_of_code_option = function
     | None -> 200
@@ -275,7 +275,7 @@ end = struct
 	      ~post_params:Ecc.comet_request_param
 	      ()
 	  in
-	  let hd_service_data_key = Eliom_services.wrap hd_service in
+	  let hd_service_data_key = Eliommod_cli.wrap hd_service in
 	  let hd_update_streams,hd_update_streams_w = Lwt.task () in
 	  let handler = {
 	    hd_active_streams = [];
@@ -359,7 +359,7 @@ sig
   type +'a t
 
   val create : ?name:string -> 'a Lwt_stream.t -> 'a t
-  val wrap : 'a t -> 'a Ecc.chan_id Eliom_client_types.data_key
+  val wrap : 'a t -> ( 'a Ecc.chan_id * Eliom_common.unwrapper ) Eliom_client_types.data_key
   val get_id : 'a t -> 'a Ecc.chan_id
 
 end = struct
@@ -372,20 +372,26 @@ end = struct
   let get_id t =
     Ecc.chan_id_of_string (Raw_channels.get_id t.channel)
 
-  let wrap c = Eliommod_cli.wrap (get_id c)
+  let wrap c =
+    Eliommod_cli.wrap (get_id c,Eliom_common.empty_unwrapper)
 
-  let internal_wrap c = (get_id c,Eliom_common.make_unwrapper Eliom_common.comet_channel_unwrap_id)
+  let internal_wrap c =
+    (get_id c,Eliom_common.make_unwrapper Eliom_common.comet_channel_unwrap_id)
 
   let channel_mark () = Eliom_common.make_wrapper internal_wrap
 
+  let create_channel ?name stream =
+    (* TODO: addapt channels to dynamic wrapping: it would be able to send more types *)
+    Raw_channels.create ?name
+      (Lwt_stream.map (fun x -> Marshal.to_string x []) stream)
+
   let create ?name stream =
-    { channel = Raw_channels.create ?name
-	(Lwt_stream.map (fun x -> Marshal.to_string x []) stream);
+    { channel = create_channel ?name stream;
       channel_mark = channel_mark () }
 
 end
 
 let get_service = Raw_channels.get_service
 
-type comet_handler = Raw_channels.comet_service Eliom_client_types.data_key
-let init () = Raw_channels.get_service_data_key ()
+type comet_handler = Raw_channels.comet_service
+let init () = Raw_channels.get_service ()

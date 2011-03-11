@@ -31,7 +31,51 @@ type 'a t = {
              [ `Registrable ],
              Eliom_output.Action.return
   ) Eliom_services.service;
+  bus_mark : 'a t Eliom_common.wrapper;
 }
+
+let wrap (bus: 'a t)
+  : (  (('a Eliom_common_comet.chan_id)
+     * (unit,
+        'a list,
+        [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+        [ `WithoutSuffix ],
+        unit,
+        [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
+        [ `Registrable ],
+        Eliom_output.Action.return
+       ) Eliom_services.service ) *
+         Eliom_common.unwrapper
+    ) Eliom_client_types.data_key
+  =
+  Printf.printf "manual wrap bus\n%!";
+  let chan = Eliom_comet.Channels.create (Lwt_stream.clone bus.stream) in
+  Eliommod_cli.wrap ((Eliom_comet.Channels.get_id chan, 
+                      Eliom_services.pre_wrap bus.service),
+		     (*Eliom_common.empty_unwrapper)*)
+		     Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id)
+  
+let internal_wrap (bus: 'a t)
+    : (  ('a Eliom_common_comet.chan_id)
+	 * (unit,
+            'a list,
+            [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+            [ `WithoutSuffix ],
+            unit,
+            [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
+            [ `Registrable ],
+            Eliom_output.Action.return
+	 ) Eliom_services.service ) *
+    Eliom_common.unwrapper
+    =
+  let chan = Eliom_comet.Channels.create (Lwt_stream.clone bus.stream) in
+  let id = Eliom_comet.Channels.get_id chan in
+  Printf.printf "automatic wrap bus %s\n%!" (Eliom_common_comet.string_of_chan_id id);
+  ((Eliom_comet.Channels.get_id chan, bus.service),
+   (*Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id)*)
+   Eliom_common.empty_unwrapper)
+
+let bus_mark () = Eliom_common.make_wrapper internal_wrap
 
 let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t = fun (type typ) typ ->
   let (typ_list:typ list Deriving_Json.t) =
@@ -64,7 +108,8 @@ let create ?scope ?name typ =
   let bus =
     { stream  = stream;
       write   = push;
-      service = distant_write; }
+      service = distant_write;
+      bus_mark = bus_mark (); }
   in
 
   bus
@@ -72,21 +117,3 @@ let create ?scope ?name typ =
 let stream bus = bus.stream
 
 let write bus x = bus.write x
-
-let wrap (bus: 'a t)
-  : (  ('a Eliom_common_comet.chan_id)
-     * (unit,
-        'a list,
-        [ `Nonattached of [ `Post ] Eliom_services.na_s ],
-        [ `WithoutSuffix ],
-        unit,
-        [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
-        [ `Registrable ],
-        Eliom_output.Action.return
-       ) Eliom_services.service
-    ) Eliom_client_types.data_key
-  =
-  let chan = Eliom_comet.Channels.create (Lwt_stream.clone bus.stream) in
-  Eliommod_cli.wrap (Eliom_comet.Channels.get_id chan, 
-                     Eliom_services.pre_wrap bus.service)
-  

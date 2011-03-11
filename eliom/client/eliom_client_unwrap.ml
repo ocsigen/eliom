@@ -10,8 +10,6 @@ struct
   type t = string
 end
 
-type mark = Mark.t
-
 (* XXX must be the same as in Ocsigen_wrap *)
 type unwrap_id = int
 

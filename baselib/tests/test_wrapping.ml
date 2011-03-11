@@ -14,13 +14,13 @@ let a i = { a = i; a_wrap = a_wrap () }
 
 let va = a 3.14
 
-let d1,d2 = Ocsigen_wrap.debug_wrap va
+let _ = Ocsigen_wrap.debug_wrap va
 
 (*** deep wrap test ***)
 
 let va = [[[[[[1,[3.1,a 3.14]],a 35.1]]]]]
 
-let d1,d2 = Ocsigen_wrap.debug_wrap va
+let _ = Ocsigen_wrap.debug_wrap va
 
 (*** multiple wrap test ***)
 
@@ -37,9 +37,9 @@ let b s f = { b = s; b' = s; b_wrap = b_wrap (); ba = a f }
 
 let vb = b "test" 3.14
 
-let d1,d2 = Ocsigen_wrap.debug_wrap vb
+let _ = Ocsigen_wrap.debug_wrap vb
 
-let d1,d2 = Ocsigen_wrap.debug_wrap [2,[1.,[vb,4,ref 0],ref 42]]
+let _ = Ocsigen_wrap.debug_wrap [2,[1.,[vb,4,ref 0],ref 42]]
 
 (*** create wrap during wrap test ***)
 
@@ -50,7 +50,7 @@ let b' s f = { b = s; b' = s; b_wrap = b'_wrap (); ba = a f }
 
 let vb' = b' "test" 3.14
 
-let d1,d2 = Ocsigen_wrap.debug_wrap vb'
+let _ = Ocsigen_wrap.debug_wrap vb'
 
 (*** big value copy ***)
 
@@ -99,7 +99,7 @@ let _ = Weak.set d 0 (Some (ref 0))
 
 let d_wrap () = Ocsigen_wrap.create_wrapper (fun (a,d,w) -> Weak.get d 0,a)
 
-let d1,d2 = Ocsigen_wrap.debug_wrap (1,d,d_wrap ())
+let _ = Ocsigen_wrap.debug_wrap (1,d,d_wrap ())
 
 (*** simple wrap react test ***)
 
@@ -109,14 +109,14 @@ let r = React.E.map (fun i -> i+1) r'
 let c a r w = (a,r,w)
 let c_wrap () = Ocsigen_wrap.create_wrapper (fun (a,r,w) -> a)
 
-let d1,d2 = Ocsigen_wrap.debug_wrap (c 1 r (c_wrap ()))
+let _ = Ocsigen_wrap.debug_wrap (c 1 r (c_wrap ()))
 
 (*** Eliom_react like test ***)
 
 let r',push = React.E.create ()
 let r = React.E.map (fun i -> i+1) r'
 
-let d1,d2 = Ocsigen_wrap.debug_wrap (r)
+let _ = Ocsigen_wrap.debug_wrap (r)
 
 
 type toto =
@@ -142,9 +142,9 @@ let vt = t 42 vtoto
 
 let _ = Obj_table.debug (Obj_table.make (Obj.repr vt))
 
-let d1,d2 = Ocsigen_wrap.debug_wrap r
-let d1,d2 = Ocsigen_wrap.debug_wrap vtoto
-let d1,d2 = Ocsigen_wrap.debug_wrap vt
+let _ = Ocsigen_wrap.debug_wrap r
+let _ = Ocsigen_wrap.debug_wrap vtoto
+let _ = Ocsigen_wrap.debug_wrap vt
 
 (*** hidden float array test ***)
 
@@ -162,3 +162,4 @@ let a,b = Obj.field o 0, Obj.field o 1
 let c,d = Obj.field b 0, Obj.field b 1
 let _ = assert (Obj_table.mem t o)
 let _ = assert (Obj_table.mem t b)
+
