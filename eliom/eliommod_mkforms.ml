@@ -34,18 +34,27 @@ let (make_a_with_onclick :
     href
     content
   ->
-  make_a
-    ?a
-    ~href
-    ?onclick:
-    (Some ("return caml_run_from_table ("^
-              Eliom_client_types.a_closure_id_string^", \'"^
-              (Eliom_client_types.jsmarshal
-                 ((Eliommod_cli.wrap cookies_info),
-                  (Eliommod_cli.wrap href)))
-           ^ "\');")
-    )
-    content
+    let node =
+      make_a
+        ?a
+        ~href
+        ?onclick:None
+(*SGO* Server generated onclicks/onsubmits
+        ?onclick:
+        (Some ("return caml_run_from_table ("^
+                  Eliom_client_types.a_closure_id_string^", \'"^
+                  (Eliom_client_types.jsmarshal
+                     ((Eliommod_cli.wrap cookies_info),
+                      (Eliommod_cli.wrap href)))
+               ^ "\');")
+        )
+*)
+        content
+    in
+    Eliom_services.add_onload_form_creator
+      (Eliom_client_types.OFA
+         (Eliommod_cli.wrap_node node, href, cookies_info));
+    node
 
 let make_get_form_with_onsubmit
     make_get_form
@@ -56,9 +65,12 @@ let make_get_form_with_onsubmit
     field
     fields
     =
-  make_get_form
-    ?a
-    ~action:uri
+  let node =
+    make_get_form
+      ?a
+      ~action:uri
+      ?onsubmit:None
+(*SGO* Server generated onclicks/onsubmits
 (* As we cannot wrap the node while defining it,
    we use "this". But "this" is not the form any more while executing
    the function from the table ...
@@ -75,8 +87,15 @@ let make_get_form_with_onsubmit
                           ((Eliommod_cli.wrap cookies_info),
                            (Eliommod_cli.wrap uri)))
                      ^ "\');"))
-    field
-    fields
+*)
+      field
+      fields
+  in
+  Eliom_services.add_onload_form_creator
+    (Eliom_client_types.OFForm_get
+       (Eliommod_cli.wrap_node node, uri, cookies_info));
+  node
+
 
 let make_post_form_with_onsubmit
     make_post_form
@@ -87,9 +106,12 @@ let make_post_form_with_onsubmit
     field
     fields
     =
-  make_post_form
-    ?a
-    ~action:uri
+  let node =
+    make_post_form
+      ?a
+      ~action:uri
+      ?onsubmit:None
+(*SGO* Server generated onclicks/onsubmits
     ?onsubmit:(Some (Eliom_client_types.eliom_temporary_form_node_name^
                      " = this; return caml_run_from_table ("^
                        Eliom_client_types.post_closure_id_string^", \'"^
@@ -97,9 +119,15 @@ let make_post_form_with_onsubmit
                           ((Eliommod_cli.wrap cookies_info),
                            (Eliommod_cli.wrap uri)))
                      ^ "\');"))
-    field
-    fields
-  
+*)
+      field
+      fields
+  in
+  Eliom_services.add_onload_form_creator
+    (Eliom_client_types.OFForm_post
+       (Eliommod_cli.wrap_node node, uri, cookies_info));
+  node
+
 
 
 (*POSTtabcookies* forms with tab cookies in POST params:

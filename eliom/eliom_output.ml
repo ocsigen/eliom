@@ -3341,6 +3341,7 @@ redir ();"))::
                             *)
                                eliom_appl_page_data,
                                cookies_to_send,
+                               Eliom_services.get_onload_form_creators sp,
                                Eliom_services.get_onload sp,
                                Eliom_services.get_onunload sp,
                                Eliommod_cli.client_si sp.Eliom_common.sp_si
@@ -3399,6 +3400,7 @@ redir ();"))::
           (XML.make_ref_tree_list (XHTML5.M.toeltl content)),
         eliom_appl_page_data,
         tab_cookies_to_send,
+        Eliom_services.get_onload_form_creators sp,
         Eliom_services.get_onload sp,
         Eliom_services.get_onunload sp,
         Eliommod_cli.client_si sp.Eliom_common.sp_si

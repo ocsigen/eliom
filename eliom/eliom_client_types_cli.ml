@@ -34,6 +34,18 @@ type sitedata = (* sent while starting the program *)
 (* Abstract type for the polymorphic contents in the table of page data. *)
 type poly
 
+type 'a data_key = int64 * int
+
+let to_data_key_ v = v
+let of_data_key_ v = v
+
+type onload_form_creators_info =
+  | OFA of XML.elt data_key * string * (bool * Ocsigen_lib.url_path) option
+  | OFForm_get of
+      XML.elt data_key * string * (bool * Ocsigen_lib.url_path) option
+  | OFForm_post of
+      XML.elt data_key * string * (bool * Ocsigen_lib.url_path) option
+
 (* The data that comes with each page: *)
 type eliom_data_type =
     ((* The ref tree, to relink the DOM *)
@@ -42,6 +54,7 @@ type eliom_data_type =
         (poly * ((int64 * int) * poly list)) *
         (* Tab cookies to set or unset *)
         Ocsigen_cookies.cookieset *
+        onload_form_creators_info list (* info for creating xhr forms *) *
         string list (* on load scripts *) *
         string list (* on change scripts *) *
         Eliom_common.sess_info
@@ -51,12 +64,9 @@ type eliom_data_type =
     )
 
 
-type 'a data_key = int64 * int
-
-let to_data_key_ v = v
-let of_data_key_ v = v
 
 
+(*SGO* Server generated onclicks/onsubmits
 (* For client side program, we sometimes simulate links and forms
    with client side functions.
    Here are there identifiers: *)
@@ -66,6 +76,10 @@ let get_closure_id = 0x3
 let get_closure_id_string = Printf.sprintf "0x%02X" get_closure_id
 let post_closure_id = 0x4
 let post_closure_id_string = Printf.sprintf "0x%02X" post_closure_id
+
+
+let eliom_temporary_form_node_name = "eliom__temp_form_node_name"
+*)
 
 (*POSTtabcookies* forms with tab cookies in POST params:
 
@@ -78,4 +92,3 @@ let add_tab_cookies_to_post_form_id_string =
 
 *)
 
-let eliom_temporary_form_node_name = "eliom__temp_form_node_name"

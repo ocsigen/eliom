@@ -639,6 +639,14 @@ val xhr_with_cookies :
 val get_onload : Eliom_common.server_params -> string list
 val get_onunload : Eliom_common.server_params -> string list
 
+
+val add_onload_form_creator :
+  Eliom_client_types.onload_form_creators_info -> unit
+val get_onload_form_creators :
+  Eliom_common.server_params ->
+  Eliom_client_types.onload_form_creators_info list
+
+
 val wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service Eliom_client_types.data_key

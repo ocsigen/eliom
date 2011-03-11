@@ -19,9 +19,9 @@
 
 
 val make_a_with_onclick :
-  (?a:'a -> ?onclick:XML.event -> ?href:string -> 'b -> 'c) ->
-  (?keep_default:bool -> 'c -> string -> (unit -> unit Lwt.t) -> unit -> 'e) ->
-  ?a:'a -> ?cookies_info:bool * string list -> string -> 'b -> 'c
+  (?a:'a -> ?onclick:XML.event -> ?href:string -> 'b -> [`A of 'aa] XHTML5.M.elt) ->
+  (?keep_default:bool -> [`A of 'aa] XHTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> 'e) ->
+  ?a:'a -> ?cookies_info:bool * string list -> string -> 'b -> [`A of 'aa] XHTML5.M.elt
 
 val make_get_form_with_onsubmit :
   (?a:'b -> action:string -> ?onsubmit:XML.event -> 'c -> 'd -> [`Form] XHTML5.M.elt) ->
