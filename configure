@@ -515,6 +515,8 @@ check_binary js_of_ocaml "See: http://ocsigen.org/js_of_ocaml"
 check_library react "See: http://erratique.ch/software/react"
 check_library ssl "See: http://sourceforge.net/projects/savonet/files/ocaml-ssl"
 
+check_library type-conv "See: http://www.janestreet.com/ocaml/index.html"
+
 check_library lwt "See: http://ocsigen.org/lwt"
 check_library lwt.unix  "Missing support for 'unix' in lwt."
 check_library lwt.react "Missing support for 'react' in lwt."
