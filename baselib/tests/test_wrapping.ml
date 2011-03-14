@@ -163,3 +163,33 @@ let c,d = Obj.field b 0, Obj.field b 1
 let _ = assert (Obj_table.mem t o)
 let _ = assert (Obj_table.mem t b)
 
+(*** closure copy test ***)
+
+type t1 =
+    { t1a : float;
+      t1mark : t1 Ocsigen_wrap.wrapper; }
+
+type t2 =
+    { t2t1 : t1;
+      t2f : int ref -> unit;
+      t2mark : t2 Ocsigen_wrap.wrapper; }
+
+let r1 = ref 13
+let r2 = ref 42
+let r3 = ref 88
+
+let t1mark () = Ocsigen_wrap.create_wrapper (fun t -> incr r1; { t1a = 3.14; t1mark = Ocsigen_wrap.empty_wrapper } )
+let t2mark () = Ocsigen_wrap.create_wrapper (fun t -> t.t2f r2; { t with t2mark = Ocsigen_wrap.empty_wrapper } )
+
+let t1 = { t1a = 1.1; t1mark = t1mark () }
+let t2 = { t2t1 = t1; t2f = (fun r -> incr r; incr r3); t2mark = t2mark () }
+
+let _,t2',_ = Ocsigen_wrap.debug_wrap (Obj.repr t2)
+let _,t1',_ = Ocsigen_wrap.debug_wrap (Obj.repr t1)
+
+
+let _ =
+  assert (!r1 = 15);
+  assert (!r2 = 43);
+  assert (!r3 = 89)
+

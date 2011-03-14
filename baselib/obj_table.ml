@@ -137,7 +137,7 @@ type table =
 
 let restore_table_ table =
   let new_t = T.create (T.length table) in
-  let add key v = T.add new_t key v in
+  let add _ v = T.add new_t v.v v in
   T.iter add table;
   new_t
 
