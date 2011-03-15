@@ -51,3 +51,5 @@ sig
       event on the server. The thread returns when the write is done. *)
 
 end
+
+val force_link : unit

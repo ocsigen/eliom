@@ -18,9 +18,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* The following line is for Eliommod_mkforms to be linked. *)
+(* The following lines are for Eliommod_mkforms and Eliom_client_react to be linked. *)
 let _a = Eliommod_mkforms.make_a_with_onclick
-
+let _b = Eliom_client_react.force_link
 
 
 let _ =

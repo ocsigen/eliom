@@ -294,14 +294,14 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  | _ -> raise Next
 	);
 *)
-
+(*
 	(function (*down_event*)
 	  | <:ctyp< ($_$ Eliom_react.Down.t) >> ->
               (<:expr<Eliom_react.Down.wrap>>,
 		<:expr<Eliom_client_react.Down.unwrap>>)
 	  | _ -> raise Next
 	);
-
+*)
 (*
 	(function (*bus*)
 	  | <:ctyp< ($_$ Eliom_bus.t) >> ->

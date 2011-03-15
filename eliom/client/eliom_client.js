@@ -66,14 +66,3 @@ function caml_regexp_split (vr, vs) {
     return vres;
 }
 
-//Provides: caml_get_obj_table_uuid
-var caml_obj_table_uuid = 0
-function caml_get_obj_table_uuid (value) {
-    if (!(value.caml_obj_table_id__))
-    {
-	caml_obj_table_uuid = caml_obj_table_uuid + 1;
-	value.caml_obj_table_id__ = caml_obj_table_uuid;
-    };
-    return value.caml_obj_table_id__;
-}
-

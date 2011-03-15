@@ -32,6 +32,11 @@ struct
     =
     Lwt_event.of_stream (Eliom_client_comet.unwrap ?wake c)
 
+  let internal_unwrap ( channel, unwrapper ) =
+    Lwt_event.of_stream channel
+
+  let () = Eliom_client_unwrap.register_unwrapper Eliom_common.react_down_unwrap_id internal_unwrap
+
 end
 
 module Up =
@@ -48,3 +53,4 @@ struct
 
 end
 
+let force_link = ()
