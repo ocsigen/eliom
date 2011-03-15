@@ -302,14 +302,14 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  | _ -> raise Next
 	);
 
-
+(*
 	(function (*bus*)
 	  | <:ctyp< ($_$ Eliom_bus.t) >> ->
               (<:expr<Eliom_bus.wrap>>,
 		<:expr<Eliommod_cli.unwrap>>)
 	  | _ -> raise Next
 	);
-
+*)
 (*
 	(function (*service*)
 	  | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >>

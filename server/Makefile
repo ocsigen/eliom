@@ -56,7 +56,7 @@ PARSECOMMANDLINECMXA=$(PARSECOMMANDLINECMA:.cma=.cmxa)
 CMOS = ../baselib/ocsigen_lib_cli.cmo \
        ../baselib/ocsigen_cache.cmo \
        ../baselib/ocsigen_lib.cmo \
-       ../baselib/obj_table.cmo ../baselib/ocsigen_wrap.cmo \
+       ../baselib/ocsigen_wrap.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
        ../baselib/ocsigen_config.cmo \
        ../baselib/ocsigen_commandline.cmo \
@@ -76,7 +76,7 @@ CMOS = ../baselib/ocsigen_lib_cli.cmo \
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! also modify builtin_package in ocsigen_config.ml if you modify the former line!
 CMAO = ../xmlp4/xhtml.cma ../xmlp4/xhtmlpretty.cma $(NAME).cma
 
-STUBS_OBJS = stubs.o ../baselib/obj_table_stubs.o
+STUBS_OBJS = stubs.o
 
 OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 OBJSEXE = $(EXE:.ml=.cmo)

@@ -48,7 +48,6 @@ let wrap (bus: 'a t)
          Eliom_common.unwrapper
     ) Eliom_client_types.data_key
   =
-  Printf.printf "manual wrap bus\n%!";
   let chan = Eliom_comet.Channels.create (Lwt_stream.clone bus.stream) in
   Eliommod_cli.wrap ((Eliom_comet.Channels.get_id chan, 
                       Eliom_services.pre_wrap bus.service),
@@ -70,10 +69,8 @@ let internal_wrap (bus: 'a t)
     =
   let chan = Eliom_comet.Channels.create (Lwt_stream.clone bus.stream) in
   let id = Eliom_comet.Channels.get_id chan in
-  Printf.printf "automatic wrap bus %s\n%!" (Eliom_common_comet.string_of_chan_id id);
   ((Eliom_comet.Channels.get_id chan, bus.service),
-   (*Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id)*)
-   Eliom_common.empty_unwrapper)
+   Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id)
 
 let bus_mark () = Eliom_common.make_wrapper internal_wrap
 

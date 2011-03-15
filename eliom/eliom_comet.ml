@@ -306,7 +306,7 @@ end = struct
 		    ( function
 		      | New_connection -> Lwt.return ("",content_type)
 		      (* happens if an other connection has been opened on that service *)
-		      (*VVV in this case, it would be beter to return code 204: no content *)
+		      (* CCC in this case, it would be beter to return code 204: no content *)
 		      | Lwt_unix.Timeout -> Lwt.return ("TIMEOUT",content_type)
 		      | e -> Lwt.fail e )
 	    | Ecc.Commands commands ->

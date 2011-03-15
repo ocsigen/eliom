@@ -16,152 +16,154 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-module Mark : sig
-  type t
-  val wrap : t
-  val touch : t
-  val unwrap : t
-  val do_nothing : t
+module AddrType =
+struct
+  type t = Obj.t
+  let hash v =
+    let v = Obj.repr v in
+    if Obj.is_block v
+    then (Obj.obj v:int)
+    else failwith ("not a block "^(string_of_int (Obj.obj v))) 
+  let equal = (==)
 end
-=
+
+module T = Hashtbl.Make(AddrType)
+
+let with_no_heap_move f v =
+  let gc_control = Gc.get () in
+  (* disable heap compaction *)
+  Gc.set { gc_control with Gc.max_overhead = max_int };
+  (* promote all remaining parts of v to the major heap *)
+  Gc.minor ();
+  (* from now on, memory addresses of parts of v won't change *)
+  let res =
+    try `Data (f v)
+    with e -> `Exn e
+  in
+  (* reset gc settings *)
+  Gc.set gc_control;
+  match res with
+    | `Data v -> v
+    | `Exn e -> raise e
+
+module Mark : 
+sig
+  type t
+  val wrap_mark : t
+  val do_nothing_mark: t
+  val unwrap_mark : t
+end =
 struct
   type t = string
-  let wrap = "wrap_mark"
-  let touch = "touch_mark"
-  let unwrap = "unwrap_mark"
-  let do_nothing = "no wrap"
+  let wrap_mark = "wrap_mark"
+  let do_nothing_mark = "do_nothing_mark"
+  let unwrap_mark = "unwrap_mark"
 end
 
-type 'a wrapper =
-    { f : ( Obj.t -> Obj.t ) option;
-      mutable mark : Mark.t; }
+type marked_value =
+    { mark : Mark.t;
+      f : ( Obj.t -> Obj.t ) option; }
 
-type 'a toucher = 'a wrapper
+let make_mark f mark =
+  { mark; f }
 
-let mark_no_copy t mark =
-  Obj_table.no_copy t mark;
-  let wrappers =
-    List.map (fun (_,v) -> (Obj.obj v:'a wrapper)) (Obj_table.find_parents t mark) in
-  List.iter (fun wrapper ->
-    Obj_table.no_copy t (Obj.repr wrapper);
-    match wrapper.f with
-      | None -> ()
-      | Some f ->
-	Obj_table.no_copy t (Obj.repr wrapper.f);
-	Obj_table.no_copy t (Obj.repr f))
-    wrappers
+let is_marked (mark:Mark.t) o =
 
-let make_table v =
-  let t = Obj_table.make v in
-  mark_no_copy t (Obj.repr Mark.wrap);
-  mark_no_copy t (Obj.repr Mark.touch);
-  Obj_table.no_copy t (Obj.repr Mark.unwrap);
-  t
+  let is_mark o =
+    if (Obj.tag o = 0 && Obj.size o = 2 && Obj.field o 0 == (Obj.repr mark))
+    then (let f = (Obj.field o 1) in
+	  assert (Obj.tag f = 0); (* The case None should not happen here *)
+	  assert (Obj.size f = 1);
+	  assert (let tag = Obj.tag (Obj.field f 0) in tag = Obj.infix_tag || tag = Obj.closure_tag);
+	  true)
+    else false
+  in
 
-(* XXX : there can be sharing problems:
-   let a = ref 0
-   let f x = a
-   let b = (a,(ref 1,{mark,f}))
-   
-   When we wrap the value b, we expect the new value to be let a = ref 0 in (a,a),
-   but the sharing is lost: the value is in fact (ref 0,ref 0): a is copied before being wrapped.
-
-   It could be corrected if we kept the reference to the old value: it
-   would be possible to restore the sharing at the end. *)
-
-let replace_one mark t =
-  let t = Obj_table.copy t in
-  match Obj_table.find_parents t mark with
-    | [] -> assert false
-    (* since [Obj_table.mem t Mark.wrap] is true this list can't be empty *)
-    | (_,wrapper)::_ ->
-      match Obj_table.find_parents t wrapper with
-	| [] -> failwith "Can't wrap directly a wrapper, it must be part of a bigger value"
-	(* a wrapper can't be the root: it must have ancessors.
-	   XXX Should I forbid it outside a block value: It can be
-	   dangerous if it is unexpectedly present in the closure
-	   of a function. I could also add a specific function to
-	   allow it to be in a function ex: create_for_closure*)
-	| (_,father)::_ ->
-	  let wrapper = (Obj.obj wrapper:'a wrapper) in
-	  ( match wrapper.f with
-	    | None -> wrapper.mark <- Mark.do_nothing
-	    | Some f ->
-	      let v = f father in
-              Obj_table.replace t father v );
-	  t
-
-(** wrapper **)
-
-let rec replace_wrap_marked t =
-  if not (Obj_table.mem t (Obj.repr Mark.wrap))
-  then Obj_table.root t
-  else
+  if (Obj.tag o = 0 && Obj.size o >= 2)
+  (* WARNING: we only allow block values with tag = 0 to be wrapped.
+     It is easier: we do not have to do another test to know if the
+     value is a function *)
+  then
     begin
-      let t = replace_one (Obj.repr Mark.wrap) t in
-      replace_wrap_marked (make_table (Obj_table.root t))
+      let potential_mark = (Obj.field o (Obj.size o - 1)) in
+      if is_mark potential_mark
+      then Some (Obj.obj potential_mark:marked_value)
+      else None
     end
+  else None
 
-let wrap v =
-  let v = Obj.repr v in
-  let t = make_table v in
-  (Obj.magic Mark.unwrap,Obj.obj (replace_wrap_marked t))
+let rec search_and_replace_ t v =
+  try
+    if Obj.tag v < Obj.no_scan_tag
+    then T.find t v
+    else v
+  with
+    | Not_found ->
+      match is_marked Mark.wrap_mark v with
+	| Some { f = Some f } ->
+	  let new_v = f v in
+	  let res = search_and_replace_ t new_v in
+	  T.replace t v res;
+	  res
+	| Some { f = None } -> assert false
+	| None ->
+	  let tag = Obj.tag v in
+	  if tag = Obj.closure_tag || tag = Obj.infix_tag || tag = Obj.lazy_tag || tag = Obj.object_tag
+	  then
+	    ( if tag = Obj.lazy_tag then failwith "lazy values must be forced before wrapping";
+	      if tag = Obj.object_tag then failwith "cannot wrap object values";
+	      if tag = Obj.closure_tag then failwith "cannot wrap functionnal values";
+	      failwith "cannot wrap functionnal values: infix tag" )
+	  else
+	    begin
+	      let size = Obj.size v in
+	      let new_v = Obj.new_block tag size in
+	      T.add t v new_v;
+	      (* It is ok to do this because tag < no_scan_tag and it is
+		 not a closure ( either infix, normal or lazy ) *)
+	      for i = 0 to size - 1 do
+		Obj.set_field new_v i (search_and_replace_ t (Obj.field v i));
+	      done;
+	      new_v
+	    end
 
-let create_wrapper (f:'a -> 'b) : 'a wrapper =
-  { f = Some (fun x -> Obj.repr (f (Obj.obj x)));
-    mark = Mark.wrap; }
+let search_and_replace v =
+  let t = T.create 1 in
+  with_no_heap_move (search_and_replace_ t) v
 
-let empty_wrapper =
-  { f = None;
-    mark = Mark.do_nothing; }
+type +'a wrapper = marked_value
 
-let debug_wrap v =
-  let v = Obj.repr v in
-  let t = make_table v in
-  let d1 = Obj_table.debug t in
-  let v = replace_wrap_marked t in
-  let t = make_table v in
-  let d2 = Obj_table.debug t in
-  d1,Obj.obj v,d2
+let create_wrapper (f: 'a -> 'b) : 'a wrapper =
+  make_mark (Some (fun x -> Obj.repr (f (Obj.obj x)))) Mark.wrap_mark
 
-(** toucher **)
-
-let create_toucher (f:'a -> unit) : 'a toucher =
-  { f = Some (fun x -> Obj.repr (f (Obj.obj x)));
-    mark = Mark.touch; }
-
-let touch v =
-  let t = Obj_table.make (Obj.repr v) in
-  if not (Obj_table.mem t (Obj.repr Mark.touch))
-  then ()
-  else
-    begin
-      let aux (_,toucher) =
-	let toucher' = (Obj.obj toucher:'a toucher) in
-	match toucher'.f with
-	  | None -> toucher'.mark <- Mark.do_nothing
-	  | Some f ->
-	    List.iter (fun (_,x) -> ignore (f x); Gc.minor ();) (Obj_table.find_parents t toucher)
-      in
-      List.iter aux (Obj_table.find_parents t (Obj.repr Mark.touch))
-    end
-
-(** unwrap **)
+let empty_wrapper : 'a wrapper =
+  make_mark None Mark.do_nothing_mark
 
 type unwrap_id = int
 
-type unwrapper =
-    { id : unwrap_id;
-      mutable umark : Mark.t; }
-
 let id_of_int x = x
 
-let create_unwrapper id : unwrapper =
+type unwrapper =
+    (* WARNING Must be the same as Eliom_client_unwrap.unwrapper *)
+    { id : unwrap_id;
+      umark : Mark.t; }
+
+let create_unwrapper id =
   { id = id;
-    umark = Mark.unwrap; }
+    umark = Mark.unwrap_mark }
 
 let empty_unwrapper =
   { id = -1;
-    umark = Mark.do_nothing; }
+    umark = Mark.do_nothing_mark }
 
-let unwrapper_mark = Mark.unwrap
+let wrap v =
+  Obj.magic Mark.unwrap_mark, Obj.obj (search_and_replace (Obj.repr v))
+
+
+(* *)
+
+type +'a toucher
+
+let create_toucher _ = assert false
+
+let touch _ = assert false
