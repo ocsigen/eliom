@@ -232,7 +232,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
   | _ -> raise Next
   );
  *)
-
+(*
 	(* nodes *)
 	(let rec aux = function
 	  | <:ctyp< Xhtml5types.$lid:_$ >> -> true
@@ -250,12 +250,12 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	function
 	  | <:ctyp< ($t$ XHTML5.M.elt) >> ->
               if aux t
-              then (<:expr<Eliommod_cli.wrap_node>>,
+              then (<:expr<Eliommod_cli.wrap>>,
                      <:expr<Eliommod_cli.unwrap_node>>)
               else raise Next
 	  | _ -> raise Next
 	);
-
+*)
 (*
 	(* basic values *)
 	(let rec aux = function (*TODO: complete it*)

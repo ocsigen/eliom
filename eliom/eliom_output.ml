@@ -3272,9 +3272,10 @@ module Eliom_appl_reg_
            (container d),
          (XHTML5.M.toelt d))
     in
-    ignore (XML.ref_node container_node); (* The ref must be created 
-                                             for container before
-                                             calling make_ref_tree! *)
+    ignore (Eliom_xml.make_node_id container_node); (* The ref must be created 
+						       for container before
+						       calling make_ref_tree! *)
+
     XHTML5.M.html
       (XHTML5.M.head (XHTML5.M.title (XHTML5.M.pcdata params.ap_title)) 
          (
@@ -3309,9 +3310,14 @@ function redir () {
 };
 redir ();"))::
 
+	 let onload_form_creators =
+	   Eliommod_cli.wrap (Eliom_services.get_onload_form_creators
+                                Appl_params.application_name sp) in
 	 let eliom_appl_page_data = 
            Ocsigen_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)
          in
+	 Eliom_xml.mark_sent (XHTML5.M.toelt body);
+	 let contents_to_send = Eliom_xml.contents_to_send () in
 
              if not do_not_launch
              then
@@ -3325,22 +3331,24 @@ redir ();"))::
                           (let reqnum = Eliom_request_info.get_request_id_sp sp in
                            (Eliom_client_types.jsmarshal
                               (Eliom_client_types.to_data_key_
-                                 (reqnum, XML.ref_node container_node))
+                                 (*(reqnum, XML.ref_node container_node))*)
+                                 (reqnum, Eliom_xml.make_node_id container_node))
                            )) ; "\'; \n";
 
                           "var eliom_data = \'" ;
                           (Eliom_client_types.jsmarshal
 				((Ocsigen_lib.Left
-                                 (XML.make_ref_tree (XHTML5.M.toelt body)),
+                                 (*(XML.make_ref_tree (XHTML5.M.toelt body)),*)
+                                 (Eliom_xml.make_ref_tree (XHTML5.M.toelt body)),
                             (* Warning: due to right_to_left evaluation,
                                make_ref_tree is called before the previous
                                items. Do not create new node refs in
                                previous items!
                             *)
+                               contents_to_send,
                                eliom_appl_page_data,
                                cookies_to_send,
-                               Eliom_services.get_onload_form_creators
-                                 Appl_params.application_name sp,
+                               onload_form_creators,
                                Eliom_services.get_onload sp,
                                Eliom_services.get_onunload sp,
                                Eliommod_cli.client_si sp.Eliom_common.sp_si
@@ -3392,14 +3400,20 @@ redir ();"))::
 
   let get_eliom_page_content ~options sp content =
     get_tab_cook sp >>= fun tab_cookies_to_send ->
+    let onload_form_creators =
+      Eliommod_cli.wrap (Eliom_services.get_onload_form_creators Appl_params.application_name sp) in
     let eliom_appl_page_data = (Ocsigen_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
+    List.iter (fun x -> Eliom_xml.mark_sent (XHTML5.M.toelt x)) content;
+    let contents_to_send = Eliom_xml.contents_to_send () in
+
 (*VVV Here we do not send a stream *)
     Lwt.return
       ((Ocsigen_lib.Right
           (XML.make_ref_tree_list (XHTML5.M.toeltl content)),
+	contents_to_send,
         eliom_appl_page_data,
         tab_cookies_to_send,
-        Eliom_services.get_onload_form_creators Appl_params.application_name sp,
+        onload_form_creators,
         Eliom_services.get_onload sp,
         Eliom_services.get_onunload sp,
         Eliommod_cli.client_si sp.Eliom_common.sp_si

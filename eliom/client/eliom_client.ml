@@ -153,17 +153,17 @@ let change_page_post_form_ =
 
 let bind_form_or_link = function
   | Eliom_client_types.OFA (node, href, cookies_info) ->
-    let node = Js.Unsafe.coerce (Eliommod_cli.unwrap_node node) in
+    let node = Js.Unsafe.coerce (node) in
     XML.register_event ?keep_default:(Some false) node "onclick"
       (fun () -> !change_page_uri_ ?cookies_info href)
       ()
   | Eliom_client_types.OFForm_get (node, uri, cookies_info) ->
-    let node = Js.Unsafe.coerce (Eliommod_cli.unwrap_node node) in
+    let node = Js.Unsafe.coerce (node) in
     XML.register_event ?keep_default:(Some false) node "onsubmit"
       (fun () -> !change_page_get_form_ ?cookies_info node uri)
       ();
   | Eliom_client_types.OFForm_post (node, uri, cookies_info) ->
-    let node = Js.Unsafe.coerce (Eliommod_cli.unwrap_node node) in
+    let node = Js.Unsafe.coerce (node) in
     XML.register_event ?keep_default:(Some false) node "onsubmit"
       (fun () -> !change_page_post_form_ ?cookies_info node uri)
       ()
@@ -171,7 +171,7 @@ let bind_form_or_link = function
 
 
 let load_eliom_data_
-    ((tree, ((_,((timeofday, _), _)) as page_data), cookies, 
+    ((tree, sent_nodes, ((_,((timeofday, _), _)) as page_data), cookies, 
       onload_form_creators_info, onload, onunload, si) :
         Eliom_client_types.eliom_data_type)
     node : unit Lwt.t =
@@ -180,12 +180,13 @@ let load_eliom_data_
       Eliommod_cli.relink_dom timeofday node ref_tree;
     | Ocsigen_lib.Right ref_tree_list ->
       Eliommod_cli.relink_dom_list timeofday (node##childNodes) ref_tree_list);
+  ignore (List.map (Eliommod_cli.rebuild_xml timeofday) sent_nodes);
   Eliommod_client_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;
   Eliommod_cli.fill_page_data_table (Eliom_client_unwrap.unwrap page_data);
   on_unload_scripts := [fun () -> List.iter Js.Unsafe.variable onunload; Lwt.return ()];
   (* Now we bind the XHR forms and links sent by the server: *)
-  List.iter bind_form_or_link onload_form_creators_info;
+  List.iter bind_form_or_link (Eliommod_cli.unwrap onload_form_creators_info);
   List.iter Js.Unsafe.variable onload;
   Lwt.return ()
 (* originaly onload was supposed to return unit Lwt.t, but it is not

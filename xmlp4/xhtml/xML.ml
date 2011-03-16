@@ -67,26 +67,34 @@ type elt_content =
 and elt = {
   mutable ref : int ;
   elt : elt_content ;
+  elt_mark : Obj.t;
 }
+
+let make_mark = ref (fun () -> Obj.repr (ref 0))
+
+let make_node elt =
+  { ref = 0; elt = elt; elt_mark = !make_mark () }
 
 let amap1 f n = {
   ref = 0;
   elt =
-    match n.elt with
+    (match n.elt with
       | Empty | Comment _ | PCDATA _ | Entity _ as elt -> elt
       | Leaf (name, attribs) -> Leaf (name, f name attribs)
       | Node (name, attribs, elts) -> Node (name, f name attribs, elts)
-      | _ -> failwith "not implemented for Ocsigen syntax extension"
+      | _ -> failwith "not implemented for Ocsigen syntax extension");
+  elt_mark = !make_mark ();
 }
 
 let rec amap f n = {
   ref = 0;
   elt =
-    match n.elt with
+    (match n.elt with
       | Empty | Comment _ | PCDATA _ | Entity _ as elt -> elt
       | Leaf (name, attribs) -> Leaf (name, f name attribs)
       | Node (name, attribs, elts) -> Node (name, f name attribs, List.map (amap f) elts)
-      | _ -> failwith "not implemented for Ocsigen syntax extension"
+      | _ -> failwith "not implemented for Ocsigen syntax extension");
+  elt_mark = !make_mark ();
 }
 
   (* Cecile *)
@@ -200,13 +208,13 @@ let all_entities elt =
     (fun ename attribs -> []) (fun ename attribs elts -> List.flatten elts)
     elt
 
-let empty () = { elt = Empty ; ref = 0 }
+let empty () = { elt = Empty ; ref = 0; elt_mark = !make_mark (); }
 
-let comment c = { elt = Comment c ; ref = 0 }
+let comment c = { elt = Comment c ; ref = 0; elt_mark = !make_mark (); }
 
-let pcdata d = { elt = PCDATA d ; ref = 0 }
-let encodedpcdata d = { elt = EncodedPCDATA d ; ref = 0 }
-let entity e = { elt = Entity e ; ref = 0 }
+let pcdata d = { elt = PCDATA d ; ref = 0; elt_mark = !make_mark (); }
+let encodedpcdata d = { elt = EncodedPCDATA d ; ref = 0; elt_mark = !make_mark (); }
+let entity e = { elt = Entity e ; ref = 0; elt_mark = !make_mark (); }
 
 let cdata s = (* GK *)
   (* For security reasons, we do not allow "]]>" inside CDATA
@@ -245,14 +253,16 @@ let leaf ?a name =
       (match a with
 	 | Some a -> Leaf (name, a)
 	 | None -> Leaf (name, [])) ;
-    ref = 0 }
+    ref = 0;
+    elt_mark = !make_mark (); }
 
 let node ?a name children =
   { elt =
       (match a with
 	 | Some a -> Node (name, a, children)
 	 | None -> Node (name, [], children)) ;
-    ref = 0 }
+    ref = 0;
+    elt_mark = !make_mark (); }
 
 let rec flatmap f = function
   | [] -> []

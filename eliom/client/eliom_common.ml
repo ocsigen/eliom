@@ -38,3 +38,4 @@ let react_up_unwrap_id : unwrap_id = Eliom_client_unwrap.id_of_int react_up_unwr
 let react_down_unwrap_id : unwrap_id = Eliom_client_unwrap.id_of_int react_down_unwrap_id_int
 let comet_channel_unwrap_id : unwrap_id = Eliom_client_unwrap.id_of_int comet_channel_unwrap_id_int
 let bus_unwrap_id : unwrap_id = Eliom_client_unwrap.id_of_int bus_unwrap_id_int
+let node_unwrap_id : unwrap_id = Eliom_client_unwrap.id_of_int node_unwrap_id_int

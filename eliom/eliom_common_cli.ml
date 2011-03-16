@@ -200,3 +200,4 @@ let comet_channel_unwrap_id_int = 1
 let react_up_unwrap_id_int = 2
 let react_down_unwrap_id_int = 3
 let bus_unwrap_id_int = 4
+let node_unwrap_id_int = 5

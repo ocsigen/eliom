@@ -20,7 +20,11 @@ type aname = string
 type separator = Space | Comma
 type event = string
 
-type attrib
+type attrib =
+  | AFloat of aname * float (* Cecile *)
+  | AInt of aname * int
+  | AStr of aname * string
+  | AStrL of separator * aname * string list
 type attribs
 val float_attrib : aname -> float -> attrib
 val int_attrib : aname -> int -> attrib
@@ -48,7 +52,12 @@ and elt = {
   (* the element is boxed with some meta-information *)
   mutable ref : int ;
   elt : elt_content ;
+  elt_mark : Obj.t;
 }
+
+val make_mark : (unit -> Obj.t) ref
+
+val make_node : elt_content -> elt
 
 val empty : unit -> elt
 

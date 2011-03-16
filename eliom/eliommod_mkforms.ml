@@ -55,7 +55,7 @@ let (make_a_with_onclick :
     in
     Eliom_services.add_onload_form_creator
       (send_appl_content, (Eliom_client_types.OFA
-                             (Eliommod_cli.wrap_node node, href, cookies_info)));
+                             (XHTML5.M.toelt node, href, cookies_info)));
     node
 
 let make_get_form_with_onsubmit
@@ -96,7 +96,7 @@ let make_get_form_with_onsubmit
   in
   Eliom_services.add_onload_form_creator
     (send_appl_content, (Eliom_client_types.OFForm_get
-                           (Eliommod_cli.wrap_node node, uri, cookies_info)));
+                           (XHTML5.M.toelt node, uri, cookies_info)));
   node
 
 
@@ -129,7 +129,7 @@ let make_post_form_with_onsubmit
   in
   Eliom_services.add_onload_form_creator
     (send_appl_content, (Eliom_client_types.OFForm_post
-                           (Eliommod_cli.wrap_node node, uri, cookies_info)));
+                           (XHTML5.M.toelt node, uri, cookies_info)));
   node
 
 

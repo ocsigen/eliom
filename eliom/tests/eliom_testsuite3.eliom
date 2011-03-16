@@ -545,12 +545,16 @@ let rec rec_list_react = (react_up,42)::rec_list_react
         (XHTML5.M.toelt (p [pcdata s]))) f
 }}
 
+let global_div = div [pcdata "global div"]
+let other_global_div = div [pcdata "other global div"]
+
 let wrapping1 =
   My_appl.register_service
     ~path:["wrapping1"]
     ~get_params:unit
     (fun () () ->
-      let div = div [] in
+      let div = div [pcdata "some page contents"] in
+
       Eliom_services.onload
 	{{ 
 	  let v = %v1 in
@@ -576,9 +580,11 @@ let wrapping1 =
             (XHTML5.M.toelt
 	       (p ~a:[ a_onclick (fun _ -> f_react 42)] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
 
+	  Dom.appendChild %global_div %other_global_div;
+	  Dom.appendChild %other_global_div %div;
 
 	}};
-      Lwt.return [div])
+      Lwt.return [global_div;div])
 
 (*wiki*
 ====Implicit registration of services to implement distant function calls

@@ -57,7 +57,34 @@ let set_node_id node (_,id) =
 let retrieve_node (_,id) =
   Hashtbl.find nodes id
 
+let rebuild_attrib a =
+  let open Eliom_client_types in
+      match a with
+	| AFloat (name, float) -> XML.float_attrib name float
+	| AInt (name, int) -> XML.int_attrib name int
+	| AStr (name, string) -> XML.string_attrib name string
+	| AStrL (Space, name, string_list) -> XML.space_sep_attrib name string_list
+	| AStrL (Comma, name, string_list) -> XML.comma_sep_attrib name string_list
 
+let rec rebuild_xml timeofday (root,id) =
+  let open Eliom_client_types in
+      let node =
+	match root with
+	  | Ref i -> ( retrieve_node (timeofday,i) :> Dom.node Js.t )
+	  | Empty -> XML.empty ()
+	  | Comment s -> XML.comment s
+	  | EncodedPCDATA s -> XML.encodedpcdata s
+	  | PCDATA s -> XML.pcdata s
+	  | Entity s -> XML.entity s
+	  | Leaf (s,a) -> XML.leaf ~a:(List.map rebuild_attrib a) s
+	  | Node (s,a,subs) ->
+	    XML.node ~a:(List.map rebuild_attrib a) s (List.map (rebuild_xml timeofday) subs)
+      in
+      let node : Dom_html.element Js.t = Js.Unsafe.coerce (node:Dom.node Js.t) in
+      (match id with
+	| None -> ()
+	| Some id -> set_node_id node (timeofday, id));
+      node
 
 (* Relinking DOM nodes *)
 let rec relink_dom timeofday root = 
@@ -99,4 +126,6 @@ let unwrap (key : 'a Eliom_client_types.data_key) : 'a =
 let unwrap_node k =
   retrieve_node (Eliom_client_types.of_data_key_ k)
 
+let internal_node_unwrap (k,unwrapper) = retrieve_node (0L,k)
 
+let () = Eliom_client_unwrap.register_unwrapper Eliom_common.node_unwrap_id internal_node_unwrap

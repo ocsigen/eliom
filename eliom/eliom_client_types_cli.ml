@@ -40,21 +40,43 @@ let to_data_key_ v = v
 let of_data_key_ v = v
 
 type onload_form_creators_info =
-  | OFA of XML.elt data_key * string * (bool * Ocsigen_lib.url_path) option
+  | OFA of XML.elt * string * (bool * Ocsigen_lib.url_path) option
   | OFForm_get of
-      XML.elt data_key * string * (bool * Ocsigen_lib.url_path) option
+      XML.elt * string * (bool * Ocsigen_lib.url_path) option
   | OFForm_post of
-      XML.elt data_key * string * (bool * Ocsigen_lib.url_path) option
+      XML.elt * string * (bool * Ocsigen_lib.url_path) option
+
+type separator = Space | Comma
+
+type attrib =
+  | AFloat of string * float
+  | AInt of string * int
+  | AStr of string * string
+  | AStrL of separator * string * string list
+
+type elt_content =
+  | Empty
+  | Comment of string
+  | EncodedPCDATA of string
+  | PCDATA of string
+  | Entity of string
+  | Leaf of string * attrib list
+  | Node of string * attrib list * elt list
+  | Ref of int
+
+and elt = ( elt_content * int option )
 
 (* The data that comes with each page: *)
 type eliom_data_type =
     ((* The ref tree, to relink the DOM *)
       (XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
+	(* node sent that are not in the original page *)
+	elt list *
         (* Table of page data *)
         (poly * ((int64 * int) * poly list)) *
         (* Tab cookies to set or unset *)
         Ocsigen_cookies.cookieset *
-        onload_form_creators_info list (* info for creating xhr forms *) *
+        onload_form_creators_info list data_key (* info for creating xhr forms *) *
         string list (* on load scripts *) *
         string list (* on change scripts *) *
         Eliom_common.sess_info
