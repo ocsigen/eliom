@@ -170,17 +170,17 @@ struct
     let loc = s.loc in
     match pop s with
       [ (`PCData s, _) ->
-          <:expr< (($uid:S.module_id$.M.tot (XML.make_node (XML.EncodedPCDATA $str:String.escaped s$)))
+          <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $str:String.escaped s$}))
                      : $uid:S.module_id$.M.elt [> $uid:S.module_types_id$.pcdata ]) >>
       | (`CamlString s, _) ->
-          <:expr< (($uid:S.module_id$.M.tot (XML.make_node ( XML.EncodedPCDATA $get_expr s loc$)))
+          <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.EncodedPCDATA $get_expr s loc$}))
                      : $uid:S.module_id$.M.elt [> $uid:S.module_types_id$.pcdata ]) >>
       | (`CamlList s, _) -> raise (CamlListExc s)
       | (`CamlExpr s, _) -> get_expr s loc
       | (`Whitespace s, _) ->
-          <:expr< $uid:S.module_id$.M.tot (XML.make_node (XML.PCDATA $str:String.escaped s$)) >>
+          <:expr< $uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.PCDATA $str:String.escaped s$}) >>
       | (`Comment s, _) ->
-          <:expr< $uid:S.module_id$.M.tot (XML.make_node (XML.Comment $str:String.escaped s$)) >>
+          <:expr< $uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.Comment $str:String.escaped s$}) >>
       | (`Tag (tag, attlist, closed), s) ->
           let constr = "Node" in
           let typename = match tag with
@@ -195,8 +195,8 @@ struct
           in
           match closed with
           [ True ->
-              <:expr< (($uid:S.module_id$.M.tot (XML.make_node (XML.$uid:constr$ $str:tag$
-                                       $read_attlist s attlist$ [])))
+              <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
+                                       $read_attlist s attlist$ []}))
                          : $uid:S.module_id$.M.elt $make_type$) >>
           | False ->
             let tag' = String.lowercase tag in
@@ -204,9 +204,9 @@ struct
                 ($read_elems ~tag s$ :>
                    list ($uid:S.module_id$.M.elt [< $uid:S.module_types_id$.$lid:tag'^"_content"$]))>>
               in
-              <:expr< (($uid:S.module_id$.M.tot (XML.make_node (XML.$uid:constr$ $str:tag$
+              <:expr< (($uid:S.module_id$.M.tot ({ XML.ref = 0 ; XML.elt = XML.$uid:constr$ $str:tag$
                                        $read_attlist s attlist$
-                                       ($uid:S.module_id$.M.toeltl $foo$)) ))
+                                       ($uid:S.module_id$.M.toeltl $foo$)} ))
                          : $uid:S.module_id$.M.elt $make_type$)
               >>
           ]

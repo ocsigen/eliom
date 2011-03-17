@@ -188,21 +188,6 @@ let remove_spaces s beg endd =
   then String.sub s first (1+ last - first)
   else ""
 
-(* returns a copy of a string without \r and \n *)
-let remove_eols s =
-  let l = String.length s in
-  let buf = Buffer.create l in
-  let rec aux n =
-    if n < l
-    then begin
-      let c = s.[n] in
-      if c <> '\r' && c <> '\n' then Buffer.add_char buf c;
-      aux (n+1)
-    end
-  in
-  aux 0;
-  Buffer.contents buf
-  
 
 (** Cut a string to the next separator, removing spaces.
    Raises Not_found if the separator connot be found.

@@ -24,4 +24,3 @@
 ====[[staticlink|Static linking of the Ocsigen server]]
 ===[[extend|Writing an extension]]
 ===[[libraries|Libraries]]
-===[[wrapping|specific wrapping]]

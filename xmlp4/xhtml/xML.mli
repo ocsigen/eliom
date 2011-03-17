@@ -20,18 +20,14 @@ type aname = string
 type separator = Space | Comma
 type event = string
 
-type attrib =
-  | AFloat of aname * float (* Cecile *)
-  | AInt of aname * int
-  | AStr of aname * string
-  | AStrL of separator * aname * string list
+type attrib
 type attribs
 val float_attrib : aname -> float -> attrib
 val int_attrib : aname -> int -> attrib
 val string_attrib : aname -> string -> attrib
 val space_sep_attrib : aname -> string list -> attrib
 val comma_sep_attrib : aname -> string list -> attrib
-val event_attrib : aname -> event -> attrib
+val event_attrib : aname -> string -> attrib
 
 val attrib_name : attrib -> aname
 val attrib_value_to_string : (string -> string) -> attrib -> string
@@ -52,12 +48,7 @@ and elt = {
   (* the element is boxed with some meta-information *)
   mutable ref : int ;
   elt : elt_content ;
-  elt_mark : Obj.t;
 }
-
-val make_mark : (unit -> Obj.t) ref
-
-val make_node : elt_content -> elt
 
 val empty : unit -> elt
 
@@ -168,7 +159,6 @@ val next_ref : unit -> int (** use with care! *)
 val make_ref_tree : elt -> ref_tree
 val make_ref_tree_list : elt list -> (int * ref_tree) list
 
-val register_event :
-  ?keep_default:bool -> elt -> string -> ('a -> 'b) -> 'a -> unit
+val register_event : elt -> string -> ('a -> 'b) -> 'a -> unit
 
 val class_name : string

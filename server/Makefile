@@ -65,7 +65,7 @@ CMOS = ../baselib/ocsigen_lib_cli.cmo \
        ../http/http_headers.cmo ../http/ocsigen_cookies.cmo \
        ../http/ocsigen_http_frame.cmo ../http/ocsigen_headers.cmo \
        ../http/ocsigen_range.cmo \
-       ../http/http_lexer.cmo \
+       ../http/http_lexer.cmo ../http/http_parser.cmo \
        ../http/framepp.cmo ../http/ocsigen_http_com.cmo \
        ../xmlp4/xhtml_mkcompact_streams.cmo ../xmlp4/xhtmlcompact_streams.cmo \
        ../xmlp4/xhtml_mkpretty_streams.cmo ../xmlp4/xhtmlpretty_streams.cmo \

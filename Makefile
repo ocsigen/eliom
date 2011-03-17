@@ -31,7 +31,7 @@ else
 endif
 
 ifeq "$(OCSIPERSISTDBM)" "YES"
-DBMCMATOINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma 
+DBMCMATOINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma
 else
 endif
 

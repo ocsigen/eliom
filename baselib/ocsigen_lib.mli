@@ -41,7 +41,6 @@ val add_to_string : string -> string -> string -> string
 val concat_strings : string -> string -> string -> string
 val basic_sep : char -> string -> string * string
 val remove_spaces : string -> int -> int -> string
-val remove_eols : string -> string
 
 (** Cut a string to the next separator, removing spaces.
    Raises Not_found if the separator connot be found.
