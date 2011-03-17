@@ -580,11 +580,14 @@ let wrapping1 =
             (XHTML5.M.toelt
 	       (p ~a:[ a_onclick (fun _ -> f_react 42)] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
 
-	  Dom.appendChild %global_div %other_global_div;
-	  Dom.appendChild %other_global_div %div;
-
 	}};
-      Lwt.return [global_div;div])
+      Lwt.return [global_div;div;p ~a:[ 
+	a_onclick 
+	  ({{
+	    Dom.appendChild %global_div %other_global_div;
+	    Dom.appendChild %other_global_div %div;
+	  }})
+	] [pcdata "click here"]])
 
 (*wiki*
 ====Implicit registration of services to implement distant function calls

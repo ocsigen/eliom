@@ -3409,7 +3409,7 @@ redir ();"))::
 (*VVV Here we do not send a stream *)
     Lwt.return
       ((Ocsigen_lib.Right
-          (XML.make_ref_tree_list (XHTML5.M.toeltl content)),
+          (Eliom_xml.make_ref_tree_list (XHTML5.M.toeltl content)),
 	contents_to_send,
         eliom_appl_page_data,
         tab_cookies_to_send,
