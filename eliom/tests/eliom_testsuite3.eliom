@@ -536,58 +536,66 @@ let e' = React.E.map (fun i -> Printf.printf "event: %i\n%!" i) e
 let rec rec_list_react = (react_up,42)::rec_list_react
 
 {client{
-  let add_body v =
-    Dom.appendChild (Dom_html.document##body) v
-
-  let put f =
+  let put n f =
     Printf.ksprintf (fun s ->
-      add_body
+      Dom.appendChild n
         (XHTML5.M.toelt (p [pcdata s]))) f
 }}
 
 let global_div = div [pcdata "global div"]
 let other_global_div = div [pcdata "other global div"]
 
-let wrapping1 =
-  My_appl.register_service
+let wrapping1 = Eliom_services.service
     ~path:["wrapping1"]
     ~get_params:unit
+    ()
+
+let () =
+  My_appl.register wrapping1
     (fun () () ->
       let div = div [pcdata "some page contents"] in
 
       Eliom_services.onload
-	{{ 
+	{{
 	  let v = %v1 in
-	  put "42=%i 42.42=%f fourty two=%s" v.Wrapping_test.v_int v.Wrapping_test.v_float v.Wrapping_test.v_string;
+	  put %div "42=%i 42.42=%f fourty two=%s" v.Wrapping_test.v_int v.Wrapping_test.v_float v.Wrapping_test.v_string;
 	  ( match %rec_list with
 	    | a::b::c::d::e::f::g::_ ->
-	      put "%i::%i::%i::%i::%i::%i::%i::..." a b c d e f g;
-	    | _ -> put "problem with recursive list"; );
+	      put %div "%i::%i::%i::%i::%i::%i::%i::..." a b c d e f g;
+	    | _ -> put %div "problem with recursive list"; );
 
-          add_body
+          Dom.appendChild %div
             (XHTML5.M.toelt
 	       (p ~a:[ a_onclick
 			 (fun _ ->
 			   ignore (Eliom_client.get_subpage ~service:v.Wrapping_test.v_service
 				     () () >|= (fun blocks ->
 				       List.iter
-					 (Dom.appendChild Dom_html.document##body)
+					 (Dom.appendChild %div)
 					 (XHTML5.M.toeltl blocks);)))] [pcdata "test service"]));
 
 	  let f_react = fst (List.hd %rec_list_react) in
 
-          add_body
+          Dom.appendChild %div
             (XHTML5.M.toelt
 	       (p ~a:[ a_onclick (fun _ -> f_react 42)] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
 
 	}};
-      Lwt.return [global_div;div;p ~a:[ 
-	a_onclick 
-	  ({{
-	    Dom.appendChild %global_div %other_global_div;
-	    Dom.appendChild %other_global_div %div;
-	  }})
-	] [pcdata "click here"]])
+      Lwt.return [
+	global_div; br ();
+	div; br ();
+	p ~a:[ 
+	  a_onclick 
+	    ({{
+	      Dom.appendChild %global_div %other_global_div;
+	      Dom.appendChild %other_global_div %div;
+	    }})
+	] [pcdata "click here"]; br ();
+	p [Eliom_output.Xhtml5.a ~service:eliomclient1
+              [pcdata "Link to a service inside the application."]
+              ()];
+	Eliom_output.Xhtml5.a wrapping1 [pcdata "internal application link to myself"] (); br ();
+      ])
 
 (*wiki*
 ====Implicit registration of services to implement distant function calls
