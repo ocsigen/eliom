@@ -550,6 +550,12 @@ let wrapping1 = Eliom_services.service
     ~get_params:unit
     ()
 
+let gc_service = 
+  Eliom_output.Redirection.register_service
+    ~path:["gc_wrapping1"]
+    ~get_params:Eliom_parameters.unit
+    (fun () () -> Gc.full_major (); Lwt.return wrapping1)
+
 let () =
   My_appl.register wrapping1
     (fun () () ->
@@ -595,6 +601,8 @@ let () =
               [pcdata "Link to a service inside the application."]
               ()];
 	Eliom_output.Xhtml5.a wrapping1 [pcdata "internal application link to myself"] (); br ();
+	Eliom_output.Xhtml5.a gc_service [pcdata "do a full major gc on the server"] (); br ();
+	pcdata (Printf.sprintf "client_process_node_table_size: %i" (Eliom_xml.client_process_node_table_size ()));
       ])
 
 (*wiki*
