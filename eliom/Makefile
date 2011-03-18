@@ -4,6 +4,7 @@ export OCAMLPATH := ../deriving/tmp:${OCAMLPATH}
 
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= error_pages.ml \
+	eliom_wrap.ml \
 	eliom_common_cli.ml eliom_common.ml \
 	eliom_request_info.ml \
 	eliommod_sessiongroups.ml eliommod_cookies.ml \

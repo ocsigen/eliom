@@ -3314,7 +3314,7 @@ redir ();"))::
 	   Eliommod_cli.wrap (Eliom_services.get_onload_form_creators
                                 Appl_params.application_name sp) in
 	 let eliom_appl_page_data = 
-           Ocsigen_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)
+           Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)
          in
 	 Eliom_xml.mark_sent (XHTML5.M.toelt body);
 	 let contents_to_send = Eliom_xml.contents_to_send () in
@@ -3359,7 +3359,7 @@ redir ();"))::
 
 			  "var comet_service = \'" ;
                           (Eliom_client_types.jsmarshal
-			     (Ocsigen_wrap.wrap
+			     (Eliom_wrap.wrap
 				(Polytables.get
                                    ~table:cpi.Eliom_common.cpi_references
 				   ~key:comet_service_key)
@@ -3402,7 +3402,7 @@ redir ();"))::
     get_tab_cook sp >>= fun tab_cookies_to_send ->
     let onload_form_creators =
       Eliommod_cli.wrap (Eliom_services.get_onload_form_creators Appl_params.application_name sp) in
-    let eliom_appl_page_data = (Ocsigen_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
+    let eliom_appl_page_data = (Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
     List.iter (fun x -> Eliom_xml.mark_sent (XHTML5.M.toelt x)) content;
     let contents_to_send = Eliom_xml.contents_to_send () in
 

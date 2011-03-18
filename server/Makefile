@@ -56,7 +56,6 @@ PARSECOMMANDLINECMXA=$(PARSECOMMANDLINECMA:.cma=.cmxa)
 CMOS = ../baselib/ocsigen_lib_cli.cmo \
        ../baselib/ocsigen_cache.cmo \
        ../baselib/ocsigen_lib.cmo \
-       ../baselib/ocsigen_wrap.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
        ../baselib/ocsigen_config.cmo \
        ../baselib/ocsigen_commandline.cmo \

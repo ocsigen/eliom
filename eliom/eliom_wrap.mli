@@ -29,12 +29,7 @@ val wrap : 'a -> 'b * 'a
 (** marshal a value, taking into account the tags *)
 
 val empty_wrapper : 'a wrapper
-
-type +'a toucher
-
-val create_toucher : ( 'a -> unit ) -> 'a toucher
-
-val touch : 'a -> unit
+(** a wrapper that do not change the value *)
 
 (** unwrap **)
 

@@ -215,14 +215,15 @@ let rec map_node t n =
 let contents_to_send () =
   let t = get_table () in
   let roots = find_unsent_roots_ t in
+  let contents = List.map (map_node t) roots in
   List.iter (mark_sent_ t) roots;
-  List.map (map_node t) roots
+  contents
 
 let rec make_ref_tree_list_ t l =
   let rec map i = function
     | e :: es ->
         begin match make_ref_tree_ t e with
-          | XML.Ref_tree (None, []) -> map i es (* XXX il y a un bug dans la version du module XML *)
+          | XML.Ref_tree (None, []) -> map i es
           | v -> (i, v) :: map (succ i) es
         end
     | [] -> []

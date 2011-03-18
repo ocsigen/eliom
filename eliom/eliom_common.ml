@@ -1200,22 +1200,18 @@ let remove_from_all_persistent_tables key =
 
 (**** Wrapper type shared by client/server side ***)
 
-type 'a wrapper = 'a Ocsigen_wrap.wrapper
+type 'a wrapper = 'a Eliom_wrap.wrapper
 
-let make_wrapper f = Ocsigen_wrap.create_wrapper f
-let empty_wrapper () = Ocsigen_wrap.empty_wrapper
+let make_wrapper f = Eliom_wrap.create_wrapper f
+let empty_wrapper () = Eliom_wrap.empty_wrapper
 
-type toucher = (unit XHTML5.M.elt) Ocsigen_wrap.toucher
+type unwrap_id = Eliom_wrap.unwrap_id
+type unwrapper = Eliom_wrap.unwrapper
 
-let make_toucher (f : 'a XHTML5.M.elt -> unit) = Ocsigen_wrap.create_toucher (Obj.magic f : unit XHTML5.M.elt -> unit)
-
-type unwrap_id = Ocsigen_wrap.unwrap_id
-type unwrapper = Ocsigen_wrap.unwrapper
-
-let make_unwrapper = Ocsigen_wrap.create_unwrapper
-let empty_unwrapper = Ocsigen_wrap.empty_unwrapper
-let react_up_unwrap_id : unwrap_id = Ocsigen_wrap.id_of_int react_up_unwrap_id_int
-let react_down_unwrap_id : unwrap_id = Ocsigen_wrap.id_of_int react_down_unwrap_id_int
-let comet_channel_unwrap_id : unwrap_id = Ocsigen_wrap.id_of_int comet_channel_unwrap_id_int
-let bus_unwrap_id : unwrap_id = Ocsigen_wrap.id_of_int bus_unwrap_id_int
-let node_unwrap_id : unwrap_id = Ocsigen_wrap.id_of_int node_unwrap_id_int
+let make_unwrapper = Eliom_wrap.create_unwrapper
+let empty_unwrapper = Eliom_wrap.empty_unwrapper
+let react_up_unwrap_id : unwrap_id = Eliom_wrap.id_of_int react_up_unwrap_id_int
+let react_down_unwrap_id : unwrap_id = Eliom_wrap.id_of_int react_down_unwrap_id_int
+let comet_channel_unwrap_id : unwrap_id = Eliom_wrap.id_of_int comet_channel_unwrap_id_int
+let bus_unwrap_id : unwrap_id = Eliom_wrap.id_of_int bus_unwrap_id_int
+let node_unwrap_id : unwrap_id = Eliom_wrap.id_of_int node_unwrap_id_int

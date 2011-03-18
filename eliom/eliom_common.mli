@@ -566,17 +566,13 @@ val found_stop_key : unit Polytables.key
 
 (**** Wrapper type shared by client/server side ***)
 
-type 'a wrapper = 'a Ocsigen_wrap.wrapper
+type 'a wrapper = 'a Eliom_wrap.wrapper
 
 val make_wrapper : ('a -> 'b) -> 'a wrapper 
 val empty_wrapper : unit -> 'a wrapper
 
-type toucher = (unit XHTML5.M.elt) Ocsigen_wrap.toucher
-
-val make_toucher : ('a XHTML5.M.elt -> unit) -> toucher 
-
-type unwrapper
-type unwrap_id
+type unwrapper = Eliom_wrap.unwrapper
+type unwrap_id = Eliom_wrap.unwrap_id
 val make_unwrapper : unwrap_id -> unwrapper 
 val empty_unwrapper : unwrapper
 

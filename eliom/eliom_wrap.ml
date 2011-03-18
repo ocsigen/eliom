@@ -159,11 +159,3 @@ let empty_unwrapper =
 let wrap v =
   Obj.magic Mark.unwrap_mark, Obj.obj (search_and_replace (Obj.repr v))
 
-
-(* *)
-
-type +'a toucher
-
-let create_toucher _ = assert false
-
-let touch _ = assert false

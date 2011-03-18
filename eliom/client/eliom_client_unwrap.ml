@@ -51,7 +51,9 @@ let unwrap_table : (int,Obj.t -> Obj.t) Hashtbl.t = Hashtbl.create 0
 (* table containing all the unwrapping functions referenced by their id *)
 
 let register_unwrapper id f =
-  Hashtbl.replace unwrap_table id (fun x -> Obj.repr (f (Obj.obj x)))
+  if Hashtbl.mem unwrap_table id
+  then failwith (Printf.sprintf "the unwrapper id %i is already registered" id);
+  Hashtbl.add unwrap_table id (fun x -> Obj.repr (f (Obj.obj x)))
 
 let apply_unwrapper unwrapper v =
   let f =
