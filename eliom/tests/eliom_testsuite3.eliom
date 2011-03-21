@@ -2211,3 +2211,82 @@ let formc = My_appl.register_service ["formc"] unit
 
       ])
 
+(*****************************************************************************)
+(* XHR form with files: *)
+
+let page_content () ((((((case,radio),select),multi),text),pass),file) =
+  Lwt_io.with_file ~mode:Lwt_io.input file.Ocsigen_lib.tmp_filename Lwt_io.read
+  >|=
+  (fun contents ->
+    [
+      p [pcdata (if case then "checked" else "not checked")];
+      p [pcdata
+            (match radio with
+              | None -> "no choice"
+              | Some radio -> Printf.sprintf "radio = %i" radio)];
+      p [pcdata (Printf.sprintf "select: %s" select)];
+      p [pcdata (Printf.sprintf "selects: %s" (String.concat ", " multi))];
+      p [pcdata (Printf.sprintf "text: %s" text)];
+      p [pcdata (Printf.sprintf "pass: %s" pass)];
+      p [pcdata (Printf.sprintf "file: name %s length %Li hash: %s"
+		   file.Ocsigen_lib.tmp_filename
+		   file.Ocsigen_lib.filesize
+		   (Digest.to_hex (Digest.string contents)))];
+    ])
+
+let block_form_fallback = Eliom_output.Blocks5.register_service
+  ~path:["resultblocks"]
+  ~get_params:unit
+  (fun () () -> return [pcdata "nothing"])
+
+let block_form_result = Eliom_output.Blocks5.register_post_service
+  ~post_params:((((((bool "case" ** (radio int "radio"))
+		    ** string "select")
+		   ** set string "multi")
+		  ** string "text")
+		 ** string "password")
+		** file "file")
+  ~fallback:block_form_fallback
+  page_content
+
+let make_xhr_form ((((((casename,radio),select),multi),text),pass),file) =
+  [p [pcdata "check ?";
+      bool_checkbox ~name:casename ()];
+   p [pcdata "choose ?";
+      int_radio ~name:radio ~value:1 ();
+      int_radio ~name:radio ~value:42 ()];
+   p [pcdata "select:";
+       string_select ~name:select (Option ([],"toto",None,false))
+         [Option ([],"tutu",Some (pcdata "tutu ?"),true);
+          Optgroup ([],"machin",([],"chose",None,true),
+		    [([],"chose2",None,false);
+		     ([],"chose3",None,false)]);
+	 ];
+     ];
+   p [pcdata "multi:";
+       string_multiple_select ~name:multi (Option ([],"toto",None,false))
+         [Option ([],"tutu",Some (pcdata "tutu ?"),true);
+          Optgroup ([],"machin",([],"chose",None,true),
+		    [([],"chose2",None,false);
+		     ([],"chose3",None,false)]);
+	 ];
+     ];
+   p [string_input ~name:text ~input_type:`Text ~value:"text" ()];
+   p [string_input ~name:pass ~input_type:`Password ~value:"pass" ()];
+   p [file_input ~name:file ()]]
+
+let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
+  (fun () () ->
+    let form = post_form block_form_result make_xhr_form () in
+    let subpage = div [] in
+    let launch = p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+      a_onclick {{
+	let uri = Eliom_uri.make_string_uri ~service:%block_form_result () in
+	XmlHttpRequest.send_post_form_string %form uri >|=
+	    (fun contents -> ( %subpage )##innerHTML <- (Js.string contents.XmlHttpRequest.content))
+      }}]
+      [pcdata "send form with an xhr"]
+    in
+    Lwt.return [
+      pcdata "this test need upload: add <uploaddir>/tmp/upload</uploaddir> to the configuration file";
+      form; launch; subpage])
