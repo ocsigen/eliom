@@ -775,7 +775,7 @@ let comet3 =
  Here is the code for a minimalistic message board.
  *wiki*)
 
-let message_bus = Eliom_bus.create Json.t<string>
+let message_bus = Eliom_bus.create ~size:10 Json.t<string>
 let _ =
   Lwt_stream.iter (fun msg -> Printf.printf "msg: %s\n%!" msg)
     (Eliom_bus.stream message_bus)
@@ -791,13 +791,20 @@ let comet_message_board =
          let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
          Eliom_services.onload
            {{
-             let _ = Lwt_stream.iter_s
-               (fun msg ->
-                 Dom.appendChild %container
-                   (XHTML5.M.toelt (li [pcdata msg]));
-                 Lwt.return ()
-               )
-	       (Eliom_client_bus.stream %message_bus)
+             let _ = 
+	       Lwt.catch (fun () ->
+		 Lwt_stream.iter_s
+		   (fun msg ->
+                     Dom.appendChild %container
+                       (XHTML5.M.toelt (li [pcdata msg]));
+                     Lwt.return ())
+		   (Eliom_client_bus.stream %message_bus))
+		 (function
+		   | Eliom_client_comet.Channel_full ->
+		     Dom.appendChild %container
+                       (XHTML5.M.toelt (li [pcdata "channel full, no more messages"]));
+		     Lwt.return ()
+		   | e -> Lwt.fail e);
 	     in ()
            }} ;
 

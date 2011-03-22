@@ -33,6 +33,10 @@ type comet_request =
   | Commands of command list
 deriving (Json)
 
+type 'a channel_data =
+  | Data of 'a
+  | Full
+
 val comet_request_param :
   (comet_request, [ `WithoutSuffix ],
    [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name)

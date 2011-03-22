@@ -34,6 +34,10 @@ type comet_request =
   | Commands of command list
 deriving (Json)
 
+type 'a channel_data =
+  | Data of 'a
+  | Full
+
 let comet_request_param =
   Eliom_parameters.caml "comet_request" Json.t<comet_request>
 

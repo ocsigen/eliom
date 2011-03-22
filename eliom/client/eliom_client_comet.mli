@@ -32,6 +32,11 @@
     [ let t = Lwt_stream.iter f %channel ] calling [Lwt.cancel t]
     will close the channel. *)
 
+exception Channel_full
+(** [Channel_full] is raised when trying to read on a channel marked
+    full by the server. It is not possible to read anything else from a
+    full channel. *)
+
 val is_active : unit -> bool
 (** [is_active ()] returns the current activity state *)
 

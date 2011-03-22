@@ -24,6 +24,8 @@
 let ( >>= ) = Lwt.( >>= )
 let ( >|= ) = Lwt.( >|= )
 
+exception Channel_full
+
 (* Messages : encoding and decoding, comet protocol *)
 module Messages : sig
 
@@ -159,6 +161,8 @@ struct
 
 end
 
+module StringSet = Set.Make(String)
+
 type activity =
     {
       mutable active : bool;
@@ -171,6 +175,7 @@ type activity =
       mutable active_wakener : unit Lwt.u;
       mutable restart_waiter : string Lwt.t;
       mutable restart_wakener : string Lwt.u;
+      mutable active_channels : StringSet.t;
     }
 
 type handler =
@@ -201,16 +206,19 @@ let log f =
   Printf.ksprintf (fun s -> Firebug.console##log(Js.string s)) f
 
 let set_activity activity v =
-  match v with
-    | true ->
-      activity.active <- true;
-      let t,u = Lwt.wait () in
-      activity.active_waiter <- t;
-      let wakener = activity.active_wakener in
-      activity.active_wakener <- u;
-      Lwt.wakeup wakener ()
-    | false ->
-      activity.active <- false
+  if StringSet.is_empty activity.active_channels
+  then activity.active <- false
+  else
+    match v with
+      | true ->
+	activity.active <- true;
+	let t,u = Lwt.wait () in
+	activity.active_waiter <- t;
+	let wakener = activity.active_wakener in
+	activity.active_wakener <- u;
+	Lwt.wakeup wakener ()
+      | false ->
+	activity.active <- false
 
 (** register callbacks to 'blur' and 'focus' events of the root
     window. That way, we can tell when the client is active or not and do
@@ -290,6 +298,7 @@ let init_activity () =
     focused = true;
     active_waiter; active_wakener;
     restart_waiter; restart_wakener;
+    active_channels = StringSet.empty;
   }
 
 let init () =
@@ -339,7 +348,13 @@ let restart () =
   Lwt.wakeup_exn wakener Restart;
   activate ()
 
+let stop_waiting hd chan_id =
+  hd.hd_activity.active_channels <- StringSet.remove chan_id hd.hd_activity.active_channels;
+  if StringSet.is_empty hd.hd_activity.active_channels
+  then set_activity hd.hd_activity false
+
 let close' hd chan_id =
+  stop_waiting hd chan_id;
   hd.hd_commands [Eliom_common_comet.Close chan_id]
 
 let close chan_id =
@@ -349,12 +364,15 @@ let close chan_id =
 let register ?(wake=true) chan_id =
   let chan_id = Eliom_common_comet.string_of_chan_id chan_id in
   let hd = get_hd () in
-  let stream = Lwt_stream.filter_map
+  let stream = Lwt_stream.filter_map_s
     (function
-      | (id,data) when id = chan_id -> 
-	Some (Marshal.from_string data 0)
-      | _ -> 
-	None)
+      | (id,data) when id = chan_id ->
+	( match (Marshal.from_string data 0:'a Eliom_common_comet.channel_data) with
+	  | Eliom_common_comet.Full ->
+	    stop_waiting hd chan_id;
+	    Lwt.fail Channel_full
+	  | Eliom_common_comet.Data x -> Lwt.return (Some x) )
+      | _ -> Lwt.return None)
     (Lwt_stream.clone hd.hd_stream)
   in
   let protect_and_close t =
@@ -365,6 +383,7 @@ let register ?(wake=true) chan_id =
   (* protect the stream from cancels *)
   let stream = Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream)) in
   hd.hd_commands [Eliom_common_comet.Register chan_id];
+  hd.hd_activity.active_channels <- StringSet.add chan_id hd.hd_activity.active_channels;
   if wake then activate ();
   stream
 
