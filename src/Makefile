@@ -118,6 +118,8 @@ byte: metas conf
 
 opt: metas conf
 	${MAKE} -C server opt
+	${MAKE} -C client all
+	${MAKE} -C syntax all
 
 clean:
 	${MAKE} -C server clean
