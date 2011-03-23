@@ -28,7 +28,7 @@ package "testsuite" (
 
 package "duce" (
   directory = "ocamlduce"
-  exists_if = "exampleduce.cma"
+  exists_if = "exampleduce.cma exampleduce.cmxs"
   requires = "eliom.server.duce"
   version = "[distributed with Eliom]"
   description = "Example with OCamlDuce"

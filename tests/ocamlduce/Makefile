@@ -18,7 +18,7 @@ all: byte
 endif
 
 byte: exampleduce.cma
-opt: exampleduce.cmxa
+opt: exampleduce.cmxs
 
 #### Library
 
