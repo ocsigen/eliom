@@ -90,10 +90,10 @@ byte:: ocamlduce.byte
 opt:: ocamlduce.opt
 endif
 
-ocamlduce.byte:
+ocamlduce.byte: eliom_testsuite1.cmo
 	$(MAKE) -C ocamlduce byte
 
-ocamlduce.opt:
+ocamlduce.opt: eliom_testsuite1.cmx
 	$(MAKE) -C ocamlduce opt
 
 ####### Aux site: miniwiki #######
@@ -139,12 +139,20 @@ distclean: clean.local
 ## Dependencies
 
 depend:
+ifeq "${OCAMLDUCE}" "YES"
 	${MAKE} -C ocamlduce depend
+endif
 	${MAKE} -C miniwiki depend
 	$(OCAMLDEP) -syntax camlp4o -package eliom.server -package eliom.syntax ${SERVER_LIBS} ${SERVER_FILES} > .depend
 	$(OCAMLDEP) -syntax camlp4o -package eliom.client -package eliom.syntax ${CLIENT_LIBS} ${CLIENT_FILES} >> .depend
 
-eliom_testsuite3.cmo: eliom_testsuite1.cmi
+
+syntax_temp_files/eliom_testsuite3.type.mli: eliom_testsuite1.cmo
+syntax_temp_files/eliom_testsuite3.cmo: eliom_testsuite1.cmo
+eliom_testsuite3.cmo: eliom_testsuite1.cmo
+eliom_testsuite.cmo: eliom_testsuite3.cmo
+eliom_testsuite3.cmx: eliom_testsuite1.cmx
+eliom_testsuite.cmx: eliom_testsuite3.cmx
 
 FORCE:
 -include .depend

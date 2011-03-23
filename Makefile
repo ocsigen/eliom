@@ -20,16 +20,16 @@ doc:
 
 .PHONY: run.local run.opt.local top
 
-run.local: byte tests.byte fifo
+run.local: tests.byte fifo
 	ocsigenserver -c local/etc/${PROJECTNAME}.conf
 
-tests.byte:
+tests.byte: byte
 	${MAKE} -C tests byte
 
-run.opt.local: opt tests.opt fifo
+run.opt.local: tests.opt fifo
 	ocsigenserver.opt -c local/etc/${PROJECTNAME}.conf
 
-tests.opt:
+tests.opt: opt
 	${MAKE} -C tests opt
 
 fifo:
