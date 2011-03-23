@@ -22,16 +22,16 @@ package "client" (
   description = "Eliom client-side"
   version = "[distributed with Eliom]"
   directory = "client"
-  requires = "ocsigenserver.cookies,ocsigenserver.polytables,js_of_ocaml,js_of_ocaml.syntax,js_of_ocaml.deriving.syntax,js_of_ocaml.deriving,lwt.syntax,lwt.react,xmlp4.functor"
+  requires = "ocsigenserver.cookies,ocsigenserver.polytables,js_of_ocaml,js_of_ocaml.deriving,lwt.react,xmlp4.functor"
   archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
 )
 
 package "syntax" (
   description = "Syntax extension: spliting client and server code (base)"
   version = "[distributed with Eliom]"
-  requires = "js_of_ocaml.syntax,js_of_ocaml.deriving.syntax"
-  directory = "syntax"
+  requires = "js_of_ocaml.syntax,js_of_ocaml.deriving.syntax,xmlp4.syntax,lwt.syntax"
   archive(syntax,preprocessor) = "pa_eliom_seed.cmo"
+  directory = "syntax"
   package "type" (
     description = "Syntax extension: spliting client and server code (type inference)"
     version = "[distributed with Eliom]"

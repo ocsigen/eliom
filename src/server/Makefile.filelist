@@ -45,11 +45,9 @@ ifeq "$(OCAMLDUCE)" "YES"
 IMPL += eliom_duce.cma
 endif
 
-ifeq "$(NATIVECODE)" "YES"
-
-NATIMPL := eliom.cmxa
+NATIMPL := eliom.cmxa eliom.a
 ifeq "$(OCAMLDUCE)" "YES"
-NATIMPL += eliom_duce.cmxa
+NATIMPL += eliom_duce.cmxa eliom_duce.a
 endif
 
 ifeq "$(NATDYNLINK)" "YES"
@@ -58,8 +56,6 @@ ifeq "$(OCAMLDUCE)" "YES"
 NATIMPL += eliom_duce.cmxs
 endif
 endif
-
-endif # "$(NATIVECODE)" "YES"
 
 NOMLI := eliom_error_pages.mli \
 	 xhtmltypes_duce.mli   \

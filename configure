@@ -305,13 +305,13 @@ check_library lwt.react "Missing support for 'react' in lwt."
 check_library calendar "See: http://calendar.forge.ocamlcore.org/"
 
 # Check ocamlduce
-if [ "$enable_ocamlduce" -gt 0 ]; then
+if [ "$with_ocamlduce" -gt 0 ]; then
     if test_binary ocamlduce; then
 	echo -n
-    elif [ "$enable_ocamlduce" -gt 1 ]; then
+    elif [ "$with_ocamlduce" -gt 1 ]; then
 	fail_binary ocamlduce "http://ocamlduce.forge.ocamlcore.org/"
     else
-        enable_ocamlduce=0
+        with_ocamlduce=0
     fi
 fi
 
@@ -340,13 +340,11 @@ if [ $enable_natdynlink -gt 0 ] ; then
 else
 	enable_natdynlink="NO"
 fi
-if [ $enable_ocamlduce -gt 0 ] ; then
-	enable_ocamlduce="YES"
+if [ $with_ocamlduce -gt 0 ] ; then
+	with_ocamlduce="YES"
 else
-	enable_ocamlduce="NO"
+	with_ocamlduce="NO"
 fi
-
-ocamlinclude=`ocamlfind printconf stdlib`
 
 ######################################################################
 # Write Makefile.conf
@@ -374,7 +372,7 @@ OCAMLDUCEFIND := ocamlducefind
 
 # Do you want the ocamlduce extension? YES/NO
 # (You need ocamlduce to be installed)
-OCAMLDUCE:=$enable_ocamlduce
+OCAMLDUCE:=$with_ocamlduce
 
 # Do you want to use dynamic linking for native code? YES/NO
 NATDYNLINK:=$enable_natdynlink

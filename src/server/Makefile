@@ -1,7 +1,7 @@
 include ../../Makefile.config
 
 PACKAGE  := ocsigenserver               \
-	    ocsigenserver.ext           \
+	    ocsigenserver_ext           \
             js_of_ocaml.deriving.syntax \
 	    react                       \
 	    calendar                    \
@@ -96,10 +96,12 @@ DUCE_FILES := xhtmltypes_duce.ml  \
 	      eliom_duce.ml       \
 	      eliom_duce_tools.ml \
 
+ifeq "${OCAMLDUCE}" "YES"
 byte:: eliom_duce.cma
 opt:: eliom_duce.cmxa
 ifeq "${NATDYNLINK}" "YES"
 opt:: eliom_duce.cmxs
+endif
 endif
 
 eliom_duce.cma: ${DUCE_FILES:.ml=.cmo}
@@ -130,17 +132,18 @@ ${DUCE_FILES:.ml=.cmx}: %.cmx: %.ml
 
 include Makefile.filelist
 
-install:
-	${INSTALL} -m 755 -d ${SERVERDIR}
-	${INSTALL} -m 644 ${INTF} ${IMPL} ${NATIMPL} ${DOC} ${SERVERDIR}
+install: INSTALL_IMPL:=${IMPL} ${NATIMPL}
+install: raw_install
 
-install.byte:
-	${INSTALL} -m 755 -d ${SERVERDIR}
-	${INSTALL} -m 644 ${INTF} ${IMPL} ${DOC} ${SERVERDIR}
+install.byte: INSTALL_IMPL:=${IMPL}
+install.byte: raw_install
 
-install.opt:
+install.opt: INSTALL_IMPL:=${NATIMPL}
+install.opt: raw_install
+
+raw_install:
 	${INSTALL} -m 755 -d ${SERVERDIR}
-	${INSTALL} -m 644 ${INTF} ${NATIMPL} ${DOC} ${SERVERDIR}
+	${INSTALL} -m 644 ${INTF} ${INSTALL_IMPL} ${DOC} ${SERVERDIR}
 
 uninstall:
 	-rm -fr ${SERVERDIR}

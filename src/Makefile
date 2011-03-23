@@ -191,7 +191,7 @@ CONF_SED += -e s%\<group\>_OCSIGENGROUP_\</group\>%%g
 CONF_SED += -e s%_COMMANDPIPE_%$(SRC)/local/var/run/${PROJECTNAME}_command%g
 CONF_SED += -e s%_MIMEFILE_%$(SRC)/src/files/mime.types%g
 CONF_SED += -e s%_METADIR_%${LIBDIR}\"/\>\<findlib\ path=\"$(SRC)/src/files/\"/\>\<findlib\ path=\"$(shell ${OCAMLFIND} query stdlib)%g
-CONF_SED += -e s%_EXTLIBDIR_%$(shell ${OCAMLFIND} query ocsigenserver.ext)%g
+CONF_SED += -e s%_EXTLIBDIR_%$(shell ${OCAMLFIND} query ocsigenserver_ext)%g
 CONF_SED += -e s%_PROJECTNAME_%$(PROJECTNAME)%g
 CONF_SED += -e s%_CONFIGDIR_%$(SRC)/local/etc%g
 CONF_SED += -e s%_STATICPAGESDIR_%$(SRC)/local/var/www%g
