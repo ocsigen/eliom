@@ -74,34 +74,16 @@ check_library () {
 # defaults:
 
 set_defaults () {
-    name="ocsigen"
-    enable_bytecode=1
-    enable_nativecode=1
+    name="eliom"
     enable_natdynlink=1
     enable_debug=0
     enable_annot=0
-    enable_ocamlduce=1
-    enable_sqlite=1
-    enable_camlzip=1
-    enable_dbm=1
-    prefix="/usr/local"
-    bindir=""
-    eliomtestsdir=""
-    libdir=""
-    stubdir=""
-    logdir=""
-    extralibdir=""
-    mandir=""
-    docdir=""
-    sysconfdir="/etc"
-    staticpagesdir="/var/www"
-    uploaddir="/tmp"
-    datadir="/var/lib"
-    commandpipe="/var/run/ocsigen_command"
-    temproot=""
+    with_ocamlduce=1
     root=""
-    ocsigen_user="www-data"
-    ocsigen_group="www-data"
+    temproot=""
+    prefix="/usr/local"
+    libdir=""
+    docdir=""
 }
 
 set_defaults
@@ -115,18 +97,12 @@ full_pwd=`pwd`
 #
 ehelp_debug="Enable/disable debug output"
 ehelp_annot="Enable/disable .annot files"
-ehelp_bytecode="Enable/disable bytecode version of Ocsigen"
-ehelp_nativecode="Enable/disable nativecode version of Ocsigen"
 ehelp_natdynlink="Enable/disable nativecode dynamic linking"
-ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce to be installed); default is detected"
-ehelp_sqlite="Compile ocsipersist with SQLite for persistent storage (default)"
-ehelp_dbm="Compile ocsipersist with DBM for persistent storage; default is detected"
-ehelp_camlzip="Compile deflatemod extension (requires camlzip); default is detected"
+whelp_ocamlduce="Compile Ocamlduce support for typing pages"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
-eoptions="debug annot bytecode nativecode natdynlink ocamlduce sqlite dbm camlzip"
-woptions=""
-
+eoptions="debug annot natdynlink"
+woptions="ocamlduce"
 
 print_options () {
 	for opt in $eoptions; do
@@ -149,149 +125,43 @@ print_options () {
 			echo "    --without-$uopt"
 		fi
 	done
-        case "$bindir" in
-            "") bindir2="<prefix>/bin";;
-            *) bindir2=$bindir;;
-        esac
-
-        case "$eliomtestsdir" in
-            "") eliomtestsdir2="<prefix>/lib/<name>/eliomtests";;
-            *) eliomtestsdir2=$eliomtestsdir;;
-        esac
-
         case "$libdir" in
-            "") libdir2="<prefix>/<ocamlfind install directory>";;
+            "") libdir2="<prefix>/lib/\$(PROJECTNAME)";;
             *) libdir2=$libdir;;
         esac
 
-        case "$stubdir" in
-            "") stubdir2="<first line of OCaml's ld.conf>";;
-            *) stubdir2=$stubdir;;
-        esac
-
-        case "$logdir" in
-            "") logdir2="<prefix>/var/log/<name>";;
-            *) logdir2=$logdir;;
-        esac
-
-        case "$extralibdir" in
-            "") extralibdir2="<prefix>/lib";;
-            *) extralibdir2=$extralibdir;;
-        esac
-
-        case "$mandir" in
-            "") mandir2="<prefix>/share/man/man1";;
-            *) mandir2=$mandir;;
-        esac
-
         case "$docdir" in
-            "") docdir2="<prefix>/share/doc";;
+            "") docdir2="<prefix>/share/doc/\$(PROJECTNAME)";;
             *) docdir2=$docdir;;
         esac
 
+	echo "    --name $name"
 	echo "    --root $root"
 	echo "    --temproot $temproot"
 	echo "    --prefix $prefix"
-	echo "    --ocsigen-user $ocsigen_user"
-	echo "    --ocsigen-group $ocsigen_group"
-	echo "    --bindir $bindir2"
 	echo "    --libdir $libdir2"
-	echo "    --stubdir $stubdir2"
-	echo "    --logdir $logdir2"
-        echo "    --extralibdir $extralibdir"
-	echo "    --eliomtestsdir $eliomtestsdir2"
-	echo "    --mandir $mandir2"
 	echo "    --docdir $docdir2"
-	echo "    --sysconfdir $sysconfdir"
-	echo "    --staticpagesdir $staticpagesdir"
-	echo "    --uploaddir $uploaddir"
-	echo "    --datadir $datadir"
-	echo "    --name $name"
-	echo "    --commandpipe $commandpipe"
 }
-
 
 usage () {
 	set_defaults
 	cat <<_EOF_ >&2
 usage: ./configure [ options ]
 
-_EOF_
-	for opt in $eoptions; do
-		e="help=\$ehelp_$opt"
-		eval "$e"
-		uopt=`echo $opt | sed -e 's/_/-/g'`
-		echo "--enable-$uopt:" >&2
-		echo "--disable-$uopt:" >&2
-		echo "        $help" >&2
-		echo "" >&2
-	done
-	for opt in $woptions; do
-		e="help=\$whelp_$opt"
-		eval "$e"
-		uopt=`echo $opt | sed -e 's/_/-/g'`
-		echo "--with-$uopt:" >&2
-		echo "--without-$uopt:" >&2
-		echo "        $help" >&2
-		echo "" >&2
-	done
-	cat <<_EOF_ >&2
---root dir
-	Root directory to install the package (usually /) (Everything will be in this directory)
+  --enable-debug,	--disable-debug		Enable/disable debug output
+  --enable-annot,	--disable-annot		Enable/disable .annot files generation
+  --enable-natdynlink,	--disable-natdynlink	Enable/disable nativecode dynamic linking
 
---temproot dir
-	Temporary root directory to install the package (usually always "" but for package makers)
+  --with-ocamlduce,	--without-ocamlduce	Compile ocamlduce based libraries.
 
---prefix dir
-	Subdirectory where to install binaries and libs (usually /usr or /usr/local)
+  --name=NAME		The name of the library and ocamlfind package.
 
---bindir dir
-        Install binaries into this directory
+  --root=DIR		Root directory to install the package, every other options are relatives to this path. (usually /)
+  --temproot=DIR	Temporary root directory to install the package (usually always "" but for package makers)
+  --prefix=DIR		Subdirectory where to install binaries and libs (usually /usr or /usr/local)
 
---libdir dir
-        Install Ocsigen's extensions into this directory
-
---stubdir dir
-        Install Ocsigen's shared stub library into this directory
-
---logdir dir
-        Use this directory for Ocsigen's logs
-
---extralibdir dir
-        Install Ocsigen's extensions' extra libraries (e.g. ocsidbm) into this directory
-
---eliomtestsdir dir
-        Install Eliom's tests into this directory
-
---mandir dir
-	Install man pages in this directory
-
---docdir dir
-	Install documentation in this directory
-
---sysconfdir dir
-	Create configuration directory in this directory
-
---staticpagesdir dir
-	Install default static pages directory in this directory
-
---uploaddir dir
-	By default, files will be uploaded in this directory
-
---datadir dir
-	The directory for data written by the server will be in this directory
-
---name name
-	The name of the server (and directories)
-
---ocsigen-user name
-	The name of the ocsigen user
-
---ocsigen-group name
-	The name of the ocsigen group
-
---commandpipe name
-        The name of the named pipe used to command the server
+  --libdir=DIR		Common directory for Ocsigen server's libraries
+  --docdir=DIR		Install documentation in this directory
 
 Defaults are:
 
@@ -323,7 +193,7 @@ check_wopt () {
 }
 
 
-echo "Welcome to Ocsigen version $version" >&2
+echo "Welcome to Eliom version $version" >&2
 
 while [ "$#" -gt 0 ]; do
 	case "$1" in
@@ -366,89 +236,20 @@ while [ "$#" -gt 0 ]; do
 			shift
 			shift
 			;;
-                --bindir)
-                        bindir="$2"
-                        shift
-                        shift
-                        ;;
-                --libdir)
-                        libdir="$2"
-                        shift
-                        shift
-                        ;;
-                --stubdir)
-                        stubdir="$2"
-                        shift
-                        shift
-                        ;;
-                --logdir)
-                        logdir="$2"
-                        shift
-                        shift
-                        ;;
-                --extralibdir)
-                        extralibdir="$2"
-                        shift
-                        shift
-                        ;;
-                --eliomtestsdir)
-                        eliomtestsdir="$2"
-                        shift
-                        shift
-                        ;;
-		--mandir)
-			mandir="$2"
-			shift
-			shift
-			;;
-		--docdir)
-			docdir="$2"
-			shift
-			shift
-			;;
-		--staticpagesdir)
-			staticpagesdir="$2"
-			shift
-			shift
-			;;
-		--sysconfdir)
-			sysconfdir="$2"
-			shift
-			shift
-			;;
-		--uploaddir)
-			uploaddir="$2"
-			shift
-			shift
-			;;
-		--datadir)
-			datadir="$2"
-			shift
-			shift
-			;;
 		--name)
 			name="$2"
 			shift
 			shift
 			;;
-		--ocsigen-user)
-			ocsigen_user="$2"
+                --libdir)
+                        libdir="$2"
+                        shift
+                        shift
+                        ;;
+		--docdir)
+			docdir="$2"
 			shift
 			shift
-			;;
-		--ocsigen-group)
-			ocsigen_group="$2"
-			shift
-			shift
-			;;
-		--commandpipe)
-			commandpipe="$2"
-			shift
-			shift
-			;;
-		--version)
-			echo "$version"
-			exit 0
 			;;
 		*)
                         echo "Unknown option: $1" >&2
@@ -456,36 +257,13 @@ while [ "$#" -gt 0 ]; do
 	esac
 done
 
-case "$bindir" in
-  "") bindir="$prefix/bin";;
-esac
-
-case "$eliomtestsdir" in
-  "") eliomtestsdir="$prefix/lib/\$(OCSIGENNAME)/eliomtests";;
-esac
-
 case "$libdir" in
-  "") libdir="\$(shell \$(OCAMLFIND) printconf destdir)";;
-esac
-
-case "$stubdir" in
-  "") stubdir="\$(shell head -n1 \$(shell \$(OCAMLFIND) printconf ldconf))";;
-esac
-
-case "$logdir" in
-  "") logdir="/var/log/\$(OCSIGENNAME)";;
-esac
-
-case "$extralibdir" in
-  "") extralibdir="$prefix/lib";;
-esac
-
-case "$mandir" in
-  "") mandir="$prefix/share/man/man1";;
+  "") libdir="$prefix/lib/ocsigenserver";;
+  *) libdir=$root$libdir
 esac
 
 case "$docdir" in
-  "") docdir="$prefix/share/doc";;
+  "") docdir="$prefix/share/doc/\$(PROJECTNAME)";;
 esac
 
 
@@ -510,57 +288,21 @@ check_ocamlversion () {
 check_ocamlversion
 
 check_binary ocamlfind "See: http://projects.camlcity.org/projects/findlib.html"
+
+check_library deriving-ocsigen "See: ???"
+
 check_binary js_of_ocaml "See: http://ocsigen.org/js_of_ocaml"
+check_library js_of_ocaml.deriving "Missing support for deriving-ocsigen in js_of_ocaml"
 
 check_library react "See: http://erratique.ch/software/react"
-check_library ssl "See: http://sourceforge.net/projects/savonet/files/ocaml-ssl"
 
 check_library type-conv "See: http://www.janestreet.com/ocaml/index.html"
 
 check_library lwt "See: http://ocsigen.org/lwt"
 check_library lwt.unix  "Missing support for 'unix' in lwt."
 check_library lwt.react "Missing support for 'react' in lwt."
-check_library lwt.ssl   "Missing support for 'ssl' in lwt."
-check_library lwt.extra "Missing support for 'extra' in lwt."
 
-check_library netstring \
-    "See ocamlnet: http://projects.camlcity.org/projects/ocamlnet.html"
-if test_library netsys; then netsys="netsys,"; else netsys=; fi
-
-check_library pcre "See: http://ocaml.info/home/ocaml_sources.html"
-check_library cryptokit "See: http://pauillac.inria.fr/~xleroy/software.html#cryptokit"
-check_library text "See: http://forge.ocamlcore.org/frs/?group_id=100"
 check_library calendar "See: http://calendar.forge.ocamlcore.org/"
-
-# Check Sqlite3
-case "$enable_sqlite" in
- 1) if test_library sqlite3; then enable_sqlite=1; else enable_sqlite=0; fi;;
- 2) check_library sqlite3 "See: http://ocaml.info/home/ocaml_sources.html";;
-esac
-
-# Check dbm
-if [ "$enable_dbm" -gt 0 ]; then
-    if test_library dbm; then
-	echo -n
-    elif [ "$enable_dbm" -gt 1 ]; then
-	fail_library dbm
-    else
-        enable_dbm=0
-    fi
-fi
-
-# Check Camlzip
-if [ "$enable_camlzip" -gt 0 ]; then
-    if test_library camlzip; then
-	zipname=camlzip
-    elif test_library zip; then
-	zipname=zip
-    elif [ "$enable_camlzip" -gt 1 ]; then
-	fail_library camlzip "https://forge.ocamlcore.org/projects/camlzip/"
-    else
-	enable_camlzip=0
-    fi
-fi
 
 # Check ocamlduce
 if [ "$enable_ocamlduce" -gt 0 ]; then
@@ -571,15 +313,6 @@ if [ "$enable_ocamlduce" -gt 0 ]; then
     else
         enable_ocamlduce=0
     fi
-fi
-
-# Check rlwrap or ledit
-if test_binary rlwrap; then
-    rlwrap=rlwrap
-elif test_binary ledit; then
-    rlwrap=ledit
-else
-    rlwrap=
 fi
 
 ######################################################################
@@ -602,16 +335,6 @@ if [ $enable_annot -gt 0 ] ; then
 else
 	enable_annot="NO"
 fi
-if [ $enable_bytecode -gt 0 ] ; then
-	enable_bytecode="YES"
-else
-	enable_bytecode="NO"
-fi
-if [ $enable_nativecode -gt 0 ] ; then
-	enable_nativecode="YES"
-else
-	enable_nativecode="NO"
-fi
 if [ $enable_natdynlink -gt 0 ] ; then
 	enable_natdynlink="YES"
 else
@@ -622,21 +345,6 @@ if [ $enable_ocamlduce -gt 0 ] ; then
 else
 	enable_ocamlduce="NO"
 fi
-if [ $enable_dbm -gt 0 ] ; then
-	enable_dbm="YES"
-else
-	enable_dbm="NO"
-fi
-if [ $enable_sqlite -gt 0 ] ; then
-	enable_sqlite="YES"
-else
-	enable_sqlite="NO"
-fi
-if [ $enable_camlzip -gt 0 ] ; then
-	enable_camlzip="YES"
-else
-	enable_camlzip="NO"
-fi
 
 ocamlinclude=`ocamlfind printconf stdlib`
 
@@ -645,127 +353,56 @@ ocamlinclude=`ocamlfind printconf stdlib`
 
 echo "Writing Makefile.config"
 cat <<_EOF_ > $my_pwd/Makefile.config
-# Which ocamlfind/camlp4/ ... version to use?
-# ocamlfind will choose automatically the compiler.
-OCAMLFIND=ocamlfind
-CAMLP4=camlp4
-CAMLLEX=ocamllex
-CAMLYACC=ocamlyacc
-CAMLCNAME=ocamlc
-CAMLOPTNAME=ocamlopt
-CAMLMKTOPNAME=ocamlmktop
-CAMLMKLIB=ocamlmklib
-CAMLCPNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
-CHOWN=chown
-CC=gcc
 
-CAMLINCLUDE=-I $ocamlinclude
+# The name of the library, ocamlfind package, etc.
+PROJECTNAME := $name
 
-## The root directory for the package install (usually /)
-#ROOT = $root
+#### External binaries ####
+
+OCAMLFIND   := ocamlfind
+OCAMLMKLIB  := ocamlmklib
+JS_OF_OCAML := js_of_ocaml
+CC          := gcc
+INSTALL     := install
+
+# optionnal
+OCAMLDUCEFIND := ocamlducefind
+
+
+
+### Options ###
+
+# Do you want the ocamlduce extension? YES/NO
+# (You need ocamlduce to be installed)
+OCAMLDUCE:=$enable_ocamlduce
+
+# Do you want to use dynamic linking for native code? YES/NO
+NATDYNLINK:=$enable_natdynlink
+
+# Do you want debugging information (-g) ? YES/NO
+DEBUG:=$enable_debug
+
+# Do you want annot files (-dtypes) ? YES/NO
+ANNOT:=$enable_annot
+
+# Profiling (always put NO here - but if you want to debug eliom):
+PROFILING:=NO
+
+
+
+### Paths ###
 
 # Temporary root directory to install the package (usually always "" but for package makers)
 TEMPROOT = $temproot
 
-# Do you want the bytecode version ? YES/NO
-BYTECODE=$enable_bytecode
+# Where to install Eliom libraries:
+LIBDIR := $root$libdir
 
-# Do you want the native code version (ocsigen.opt) ? YES/NO
-NATIVECODE=$enable_nativecode
+# Where to put Eliom documentation:
+DOCDIR := $root$docdir
 
-# Do you want to use dynamic linking for native code? YES/NO
-NATDYNLINK=$enable_natdynlink
-
-# Do you want the ocamlduce extension? (YES/NO)
-# (You need ocamlduce to be installed)
-OCAMLDUCE=$enable_ocamlduce
-# If you have OCamlduce installed, which ocamlducefind do you want?
-OCAMLDUCEFIND=ocamlducefind
-
-# The directory for ocsigen server (binary):
-BINDIR = $root$bindir
-
-# The directory for ocsigen manpage:
-MANDIR = $root$mandir
-
-# Where to install the directory for ocsigen extensions:
-MODULEINSTALLDIR = $root$libdir
-
-# Where to install stub libraries
-STUBDIR = $root$stubdir
-
-# Where to install the directory for ocsigen extensions' libraries (e.g. ocsidbm):
-EXTRALIBDIR = $root$extralibdir/\$(OCSIGENNAME)
-
-# Where to install eliomtests:
-ELIOMTESTSINSTALLDIR = $root$eliomtestsdir
-
-# User who will run Ocsigen server (not root) (eg, for debian, www-data)
-# (This user must exist on your system)
-OCSIGENUSER=$ocsigen_user
-
-# group who will run Ocsigen server (not root) (eg, for debian, www-data)
-# (This group must exist)
-OCSIGENGROUP=$ocsigen_group
-
-# The name of the server (and the directory for the extensions)
-OCSIGENNAME=$name
-
-# ocsigen's logs:
-LOGDIR = $root$logdir
-
-# Config files:
-CONFIGDIR = $root$sysconfdir/\$(OCSIGENNAME)
-
-# Where to put static pages:
-STATICPAGESDIR =$root$staticpagesdir/\$(OCSIGENNAME)
-
-# Where to put dynamic data:
-DATADIR = $root$datadir/\$(OCSIGENNAME)
-
-# Default directory for file upload:
-UPLOADDIR = $root$uploaddir
-
-# Where to put Ocsigen documentation:
-DOCDIR = $root$docdir/\$(OCSIGENNAME)
-
-# Do you want debugging information? (-g)
-DEBUG=$enable_debug
-
-# Do you want annot files? (-dtypes)
-ANNOT=$enable_annot
-
-# The name of the named pipe used to command the server
-COMMANDPIPE=$root$commandpipe
-
-# Do you want deflatemod? (requires camlzip)
-CAMLZIP=$enable_camlzip
-
-# The name of camlzip package:
-CAMLZIPNAME=$zipname
-
-# Do you want ocsipersist with sqlite?
-OCSIPERSISTSQLITE=$enable_sqlite
-
-# Do you want ocsipersist with dbm?
-OCSIPERSISTDBM=$enable_dbm
-
-# The source directory
-SRC=$full_pwd
-
-# If you are using ocamlnet 1, leave empty.
-NETSYS=$netsys
-
-#
-RLWRAP=$rlwrap
-
-# Profiling (always put NO here - but if you want to debug ocsigen):
-PROFILING=NO
-
-# Do not modify this
-LIBDIRS= -I ../baselib -I ../http -I ../xmlp4 -I ../server -I ../extensions -I ../eliom -I ../eliom/extensions
-LIBDIRS2= -I ../../baselib -I ../../http -I ../../xmlp4 -I ../../server -I ../../extensions -I ../../eliom -I ../../eliom/extensions
-LIBDIRS3= -I baselib -I http -I xmlp4 -I server -I extensions -I eliom -I eliom/extensions
+# The source directory (needed for local testing)
+SRC := $full_pwd
 
 include \$(SRC)/Makefile.options
 
@@ -778,15 +415,19 @@ echo
 echo
 echo "Please check Makefile.config."
 echo
-echo "You can now compile Ocsigen by invoking:"
+echo "You can now compile Eliom by invoking:"
 echo
-echo "   make depend"
 echo "   make"
 echo "   make doc"
+echo
+echo "You may want to test the extension before installation:"
+echo
+echo "   make run.local"
+echo "   make run.opt.local"
 echo
 echo "Finally, if you want system-wide install, (become root if needed and) do"
 echo
 echo "   make install"
-echo "   make docinstall"
+echo "   make install.doc"
 echo
 

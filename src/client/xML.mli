@@ -39,8 +39,8 @@ val cdata_script : string -> elt
 val cdata_style : string -> elt
 val node : ?a:('a * 'b) list -> string -> #Dom.node Js.t list -> elt
 val leaf : ?a:('a * 'b) list -> string -> elt
-val lwt_register_event : ?keep_default:bool -> elt -> 'a -> ('b -> 'c Lwt.t) -> 'b -> unit
-val register_event : ?keep_default:bool -> elt -> 'a -> ('b -> 'c) -> 'b -> unit
+val lwt_register_event : elt -> 'a -> ('b -> 'c Lwt.t) -> 'b -> unit
+val register_event : elt -> 'a -> ('b -> 'c) -> 'b -> unit
 type ref_tree = Ref_tree of int option * (int * ref_tree) list
 val ref_node : elt -> int
 val class_name : string

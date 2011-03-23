@@ -31,7 +31,7 @@ limitating the number of sessions in a group etc ...
 
 *)
 
-
+open Eliom_pervasives
 
 open Ocsigen_extensions
 
@@ -850,7 +850,7 @@ end
     If there is no client side process, same as
     {!Eliom_request_info.get_original_full_path}.
 *)
-val get_csp_original_full_path : unit -> Ocsigen_lib.url_path
+val get_csp_original_full_path : unit -> Url.path
 
 (** returns the hostname used for absolute links, computed
     when launching the client side process for the first time.
@@ -1120,7 +1120,7 @@ val get_session_service_table_if_exists :
 val make_server_params :
   Eliom_common.sitedata ->
   Eliom_common.info ->
-  Ocsigen_lib.url_path option -> 
+  Url.path option -> 
   Eliom_common.fullsessionname option ->
   Eliom_common.server_params Lwt.t
 
@@ -1132,7 +1132,7 @@ val create_volatile_table_during_session_ :
   Eliom_common.sitedata -> 
   'a volatile_table
 
-val get_csp_original_full_path_sp : Eliom_common.server_params -> Ocsigen_lib.url_path
+val get_csp_original_full_path_sp : Eliom_common.server_params -> Url.path
 val get_csp_hostname_sp : Eliom_common.server_params -> string
 val get_csp_server_port_sp : Eliom_common.server_params -> int
 val get_csp_ssl_sp : Eliom_common.server_params -> bool

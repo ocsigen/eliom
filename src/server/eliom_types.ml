@@ -18,13 +18,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Eliom_client_types_cli
+open Eliom_pervasives
+
+include Eliom_types_base
 
 (* server to client encoding of eliom data *)
 (* the string is urlencoded because otherwise js does strange things
    with strings ... *)
 let encode_eliom_data r =
-  Ocsigen_lib.encode ~plus:false (Marshal.to_string r [])
+  Url.encode ~plus:false (Marshal.to_string r [])
 
 (*
 let string_map f s =

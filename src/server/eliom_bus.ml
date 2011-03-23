@@ -56,8 +56,10 @@ let bus_mark () = Eliom_common.make_wrapper internal_wrap
 
 let deriving_to_list : 'a Deriving_Json.t -> 'a list Deriving_Json.t = fun (type typ) typ ->
   let (typ_list:typ list Deriving_Json.t) =
-    let module M = (val Deriving_Json.Json_list.make(Deriving_Json.wrap typ):
-	Deriving_Json.Json with type a = typ list) in
+    let module M = Deriving_Json.Json_list(Deriving_Json.Defaults''(struct
+      type a = typ
+      let t = typ
+    end)) in
     M.t
   in
   typ_list
@@ -95,3 +97,21 @@ let create ?scope ?name ?size typ =
 let stream bus = bus.stream
 
 let write bus x = bus.write x
+
+let wrap (bus: 'a t)
+  : (  ('a Eliom_common_comet.chan_id)
+     * (unit,
+        'a list,
+        [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+        [ `WithoutSuffix ],
+        unit,
+        [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
+        [ `Registrable ],
+        Eliom_output.Action.return
+       ) Eliom_services.service
+    ) Eliom_client_types.data_key
+  =
+  let chan = Eliom_comet.Channels.create (Lwt_stream.clone bus.stream) in
+  Eliommod_cli.wrap (Eliom_comet.Channels.get_id chan, 
+                     Eliom_services.pre_wrap bus.service)
+  

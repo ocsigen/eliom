@@ -25,8 +25,8 @@ let fresh_id =
 
 let client_sitedata sp =
   let s = Eliom_request_info.get_sitedata_sp sp in
-  {Eliom_client_types.site_dir = s.Eliom_common.site_dir;
-   Eliom_client_types.site_dir_string = s.Eliom_common.site_dir_string;
+  {Eliom_types.site_dir = s.Eliom_common.site_dir;
+   Eliom_types.site_dir_string = s.Eliom_common.site_dir_string;
   }
 
 
@@ -44,7 +44,7 @@ let client_si s =
 
 
 let eliom_appl_page_data_key :
-    ((int64 * int) * Eliom_client_types.poly list) Polytables.key =
+    ((int64 * int) * Eliom_types.poly list) Polytables.key =
   Polytables.make_key ()
 
 let get_eliom_appl_page_data_ sp = 
@@ -56,7 +56,7 @@ let get_eliom_appl_page_data_ sp =
     Polytables.set ~table:rc ~key:eliom_appl_page_data_key ~value:d;
     d
 
-let wrap (v : 'a) : 'a Eliom_client_types.data_key =
+let wrap (v : 'a) : 'a Eliom_types.data_key =
   let sp = Eliom_common.get_sp () in
   let rc = Eliom_request_info.get_request_cache_sp sp in
   let ((reqnum, num) as n, data) =
@@ -65,12 +65,12 @@ let wrap (v : 'a) : 'a Eliom_client_types.data_key =
   in
   Polytables.set ~table:rc ~key:eliom_appl_page_data_key
     ~value:((reqnum, num+1), Obj.magic v::data);
-  Eliom_client_types.to_data_key_ n
+  Eliom_types.to_data_key_ n
 
 
 
 let wrap_node n = 
-  Eliom_client_types.to_data_key_ (0L, XML.ref_node (XHTML5.M.toelt n))
+  Eliom_types.to_data_key_ (0L, XML.ref_node (XHTML5.M.toelt n))
 
 
 (* let wrap_sp ~sp = wrap ~sp (client_sp sp) *)

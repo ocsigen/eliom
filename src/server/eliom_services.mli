@@ -140,11 +140,13 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     this exception.}
 *)
 
+open Eliom_pervasives
+
 (** {3 Main services} *)
 
 val service :
   ?https:bool ->
-  path:Ocsigen_lib.url_path ->
+  path:Url.path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?priority:int ->
   get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
@@ -168,7 +170,7 @@ val service :
 
 val external_service :
   prefix: string ->
-  path:Ocsigen_lib.url_path ->
+  path:Url.path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   unit ->
@@ -191,7 +193,7 @@ val external_service :
 
 val external_post_service :
   prefix: string ->
-  path:Ocsigen_lib.url_path ->
+  path:Url.path ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
   post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
@@ -542,15 +544,15 @@ val get_kind_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> 'c
 val get_or_post_ : ('a, [< `Get | `Post ]) a_s ->
   Ocsigen_http_frame.Http_header.http_method
 val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
-  (string * string) list Ocsigen_lib.String_Table.t *
+  (string * string) list String.Table.t *
   (string * string) list
 val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   ('a, 'd, 'e) Eliom_parameters.params_type
 val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   ('b, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type
 val get_att_kind_ : ('a, 'b) a_s -> 'a
-val get_sub_path_ : ('a, 'b) a_s -> Ocsigen_lib.url_path
-val get_full_path_ : ('a, 'b) a_s -> Ocsigen_lib.url_path
+val get_sub_path_ : ('a, 'b) a_s -> Url.path
+val get_full_path_ : ('a, 'b) a_s -> Url.path
 val get_prefix_ : ('a, 'b) a_s -> string
 val get_get_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
 val get_post_name_ : ('a, 'b) a_s -> Eliom_common.att_key_serv
@@ -561,8 +563,8 @@ val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> float option
 val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> bool
 val get_priority_ : ('a, 'b) a_s -> int
-(* val reconstruct_absolute_url_path : Ocsigen_lib.url_path -> Ocsigen_lib.url_path -> Ocsigen_lib.url_path option -> string
-val reconstruct_relative_url_path : Ocsigen_lib.url_path -> Ocsigen_lib.url_path -> Ocsigen_lib.url_path option -> string
+(* val reconstruct_absolute_Url.path : Url.path -> Url.path -> Url.path option -> string
+val reconstruct_relative_Url.path : Url.path -> Url.path -> Url.path option -> string
 *)
 
 val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> 
@@ -653,14 +655,14 @@ val get_onload_form_creators :
 
 val wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service Eliom_client_types.data_key
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service Eliom_types.data_key
 
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
 
 type eliom_appl_answer =
-  | EAContent of ((Eliom_client_types.eliom_data_type * string) * string (* url to display *))
+  | EAContent of ((Eliom_types.eliom_data_type * string) * string (* url to display *))
   | EAHalfRedir of string
   | EAFullRedir of 
       (unit, unit, get_service_kind,

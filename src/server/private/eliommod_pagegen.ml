@@ -304,7 +304,7 @@ let gen is_eliom_extension sitedata = function
             (function
                | Eliom_common.Eliom_Typing_Error l ->
                    Ocsigen_senders.Xhtml_content.result_of_content
-                     (Error_pages.page_error_param_type l)
+                     (Eliom_error_pages.page_error_param_type l)
                    >>= fun r ->
                    Lwt.return
                      (Ocsigen_extensions.Ext_found
@@ -320,7 +320,7 @@ let gen is_eliom_extension sitedata = function
                  in
                  ripp >>= fun ripp ->
                  Ocsigen_senders.Xhtml_content.result_of_content
-                   (Error_pages.page_bad_param 
+                   (Eliom_error_pages.page_bad_param 
                       (try 
                          ignore (Polytables.get
                                    ~table:ri.request_info.Ocsigen_extensions.ri_request_cache

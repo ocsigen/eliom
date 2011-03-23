@@ -4,7 +4,6 @@ export OCAMLPATH := ../deriving/tmp:${OCAMLPATH}
 
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= error_pages.ml \
-	eliom_wrap.ml \
 	eliom_common_cli.ml eliom_common.ml \
 	eliom_request_info.ml \
 	eliommod_sessiongroups.ml eliommod_cookies.ml \
@@ -22,7 +21,6 @@ FILES:= error_pages.ml \
         eliom_uri.ml eliom_mkforms.ml eliom_mkreg.ml \
 	eliom_common_comet.ml eliom_comet.ml  \
 	eliommod_react.ml \
-	eliom_xml.ml \
 	eliom_output_cli.ml eliom_output.ml \
         eliom_tools_common.ml eliom_tools.ml eliom_extension_template.ml \
 	eliom_react.ml \
@@ -106,157 +104,103 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) eliom.cma $(DUCEMODBYTE) syntax client
+include ../Makefile.config
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) eliom.cmxa $(CMXS3) syntax client
+all: metas conf
+	${MAKE} -C server all
+	${MAKE} -C client all
+	${MAKE} -C syntax all
 
+byte: metas conf
+	${MAKE} -C server byte
+	${MAKE} -C client all
+	${MAKE} -C syntax all
 
-.SUFFIXES:
-.SUFFIXES: .ml .mli .cmo .cmi .cmx
+opt: metas conf
+	${MAKE} -C server opt
 
-.PHONY: doc depend client syntax
+clean:
+	${MAKE} -C server clean
+	${MAKE} -C client clean
+	${MAKE} -C syntax clean
+	-rm -f files/META  files/META.${PROJECTNAME}
 
-client:
-	$(MAKE) -C client all
+distclean:
+	${MAKE} -C server distclean
+	${MAKE} -C client distclean
+	${MAKE} -C syntax distclean
+	-rm -f *~ \#* .\#*
 
-syntax:
-	$(MAKE) -C syntax all
+depend: server.depend client.depend syntax.depend
+server.depend:
+	${MAKE} -C server depend
+client.depend:
+	${MAKE} -C client depend
+syntax.depend:
+	${MAKE} -C syntax depend
 
-eliom_state.cmx: eliom_state.ml
-#	-rm ../extensions/ocsipersist.cmx
-	$(CAMLOPT) $(PP) -c $<
-#	-touch ../extensions/ocsipersist.cmx
-# we remove ocsipersist.cmx, 
-# otherwise eliomsessiondata.cmx will will compiled against
-# that precise version of ocsipersist.cmx
+VERSION := $(shell head -n 1 ../VERSION)
 
-eliommod.cmx: eliommod.ml
-#	-rm ../extensions/ocsipersist.cmx
-	$(CAMLOPT) $(PP) -c $<
-#	-touch ../extensions/ocsipersist.cmx
-# idem
+install: install.META
+	${MAKE} -C server install
+	${MAKE} -C client install
+	${MAKE} -C syntax install
 
-eliom.cma: $(FILES:.ml=.cmo)
-	$(CAMLC) -a -o eliom.cma $^
-	cd ../extensions ; ln -f -s ../eliom/eliom.cma
+install.META:
+	${OCAMLFIND} install ${PROJECTNAME} \
+	   -destdir $(TEMPROOT)${LIBDIR} \
+	   -patch-version ${VERSION} \
+	   files/META
 
-eliom.cmxa: $(FILES:.ml=.cmx)
-	$(CAMLOPT) -a -o eliom.cmxa -linkall $^
-	cd ../extensions ; ln -f -s ../eliom/eliom.cmxa
+install.byte: install.META
+	${MAKE} -C server install.byte
+	${MAKE} -C client install
+	${MAKE} -C syntax install
 
-eliom.cmxs: $(FILES:.ml=.cmx)
-	$(CAMLOPT) -shared -linkall -o eliom.cmxs $^
-	cd ../extensions ; ln -f -s ../eliom/eliom.cmxs
+install.opt: install.META
+	${MAKE} -C server install.opt
+	${MAKE} -C client install
+	${MAKE} -C syntax install
 
-ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
-	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \
-	ocsigenboxes.cmo
+uninstall:
+	${MAKE} -C server uninstall
+	${MAKE} -C client uninstall
+	${MAKE} -C syntax uninstall
+	${OCAMLFIND} remove ${PROJECTNAME} \
+	   -destdir $(TEMPROOT)${LIBDIR}
 
-ocsigenmod.cmxs: ocsigenmod.cmx ocsigen.cmx ocsigenboxes.cmx
-	$(CAMLOPT) -shared -linkall -o ocsigenmod.cmxs ocsigenmod.cmx \
-	ocsigen.cmx ocsigenboxes.cmx
+reinstall: uninstall install
+reinstall.byte: uninstall install.byte
+reinstall.opt: uninstall install.opt
 
-ocsigenmod.cmxa: ocsigenmod.cmx ocsigen.cmx ocsigenboxes.cmx
-	$(CAMLOPT) -a -linkall -o ocsigenmod.cmxa ocsigenmod.cmx \
-	ocsigen.cmx ocsigenboxes.cmx
+metas: files/META files/META.${PROJECTNAME}
 
-ocsigenduce.cma: xhtmltypes_duce.cmo xhtmlpretty_duce.cmo ocsigenduce.cmo
-	$(CAMLC) -a -o ocsigenduce.cma xhtmltypes_duce.cmo xhtmlpretty_duce.cmo ocsigenduce.cmo 
+files/META: files/META.in ../Makefile.config  ../Makefile.options Makefile
+	cat $< | sed s/%%NAME%%/$(PROJECTNAME)/g > $@
 
-ocsigenduce.cmxs: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx ocsigenduce.cmx
-	$(CAMLOPT) -shared -linkall -o ocsigenduce.cmxs xhtmltypes_duce.cmx xhtmlpretty_duce.cmx ocsigenduce.cmx 
+files/META.${PROJECTNAME}: files/META.in ../Makefile.config  ../Makefile.options Makefile
+	echo "directory = \"..\"" > $@
+	cat $< | sed s/%%NAME%%/$(PROJECTNAME)/g >> $@
 
-ocsigenduce.cmxa: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx ocsigenduce.cmx
-	$(CAMLOPT) -a -linkall -o ocsigenduce.cmxa xhtmltypes_duce.cmx xhtmlpretty_duce.cmx ocsigenduce.cmx 
+conf: ../local/etc/$(PROJECTNAME).conf
 
-eliom_duce.cma: xhtmltypes_duce.cmo xhtmlpretty_duce.cmo eliom_duce.cmo
-	$(CAMLC) -a -o eliom_duce.cma xhtmltypes_duce.cmo xhtmlpretty_duce.cmo eliom_duce.cmo eliom_duce_tools.cmo
-	cd ../extensions ; ln -f -s ../eliom/eliom_duce.cma
+CONF_SED := -e s%_LOGDIR_%$(SRC)/local/var/log%g
+CONF_SED += -e s%_DATADIR_%$(SRC)/local/var/lib%g
+CONF_SED += -e s%\<user\>_OCSIGENUSER_\</user\>%%g
+CONF_SED += -e s%\<group\>_OCSIGENGROUP_\</group\>%%g
+CONF_SED += -e s%_COMMANDPIPE_%$(SRC)/local/var/run/${PROJECTNAME}_command%g
+CONF_SED += -e s%_MIMEFILE_%$(SRC)/src/files/mime.types%g
+CONF_SED += -e s%_METADIR_%${LIBDIR}\"/\>\<findlib\ path=\"$(SRC)/src/files/\"/\>\<findlib\ path=\"$(shell ${OCAMLFIND} query stdlib)%g
+CONF_SED += -e s%_EXTLIBDIR_%$(shell ${OCAMLFIND} query ocsigenserver.ext)%g
+CONF_SED += -e s%_PROJECTNAME_%$(PROJECTNAME)%g
+CONF_SED += -e s%_CONFIGDIR_%$(SRC)/local/etc%g
+CONF_SED += -e s%_STATICPAGESDIR_%$(SRC)/local/var/www%g
+CONF_SED += -e s%store\ dir=\"$(SRC)/var/lib\"%store\ dir=\"$(SRC)/local/var/lib/ocsipersist\"%g
 
-eliom_duce.cmxs: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx
-	$(CAMLOPT) -shared -linkall -o eliom_duce.cmxs xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx eliom_duce_tools.cmx
-	cd ../extensions ; ln -f -s ../eliom/eliom_duce.cmxs
+ifeq "${OCAMLDUCE}" "YES"
+CONF_SED += -e s%\<\!--\ DUCE%%
+CONF_SED += -e s%DUCE\ --\>%%
+endif
 
-eliom_duce.cmxa: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx
-	$(CAMLOPT) -a -linkall -o eliom_duce.cmxa xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx eliom_duce_tools.cmx
-	cd ../extensions ; ln -f -s ../eliom/eliom_duce.cmxa
-
-ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
-	$(CAMLC) -a -o ocsigenrss.cma $^
-
-ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
-	$(CAMLOPT) -shared -linkall -o ocsigenrss.cmxs $^
-
-ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
-	$(CAMLOPT) -a -shared -linkall -o ocsigenrss.cmxa $^
-
-# There is a bug with ocamlduce when -g is supplied
-bugdbg:
-	$(MAKE) DEBUG="NO" eliom_duce.cmo
-
-xhtmltypes_duce.cmo: xhtmltypes_duce.ml
-	$(CAMLDUCEC) $(PP) -c $<
-xhtmlpretty_duce.cmo: xhtmlpretty_duce.ml
-	$(CAMLDUCEC) $(PP) -c $<
-eliom_duce.cmo: eliom_duce.ml
-	$(CAMLDUCEC) $(PP) -c $<
-eliom_duce_tools.cmo: eliom_duce_tools.ml
-	$(CAMLDUCEC) $(PP) -c $<
-
-xhtmltypes_duce.cmi: xhtmltypes_duce.mli
-	$(CAMLDUCEC) $(PP) -c $<
-xhtmlpretty_duce.cmi: xhtmlpretty_duce.mli
-	$(CAMLDUCEC) $(PP) -c $<
-eliom_duce.cmi: eliom_duce.mli
-	$(CAMLDUCEC) $(PP) -c $<
-eliom_duce_tools.cmi: eliom_duce_tools.mli
-	$(CAMLDUCEC) $(PP) -c $<
-
-xhtmltypes_duce.cmx: xhtmltypes_duce.ml
-	$(CAMLDUCEOPT) $(PP) -c $<
-xhtmlpretty_duce.cmx: xhtmlpretty_duce.ml
-	$(CAMLDUCEOPT) $(PP) -c $<
-eliom_duce.cmx: eliom_duce.ml
-	$(CAMLDUCEOPT) $(PP) -c $<
-eliom_duce_tools.cmx: eliom_duce_tools.ml
-	$(CAMLDUCEOPT) $(PP) -c $<
-
-.ml.cmo:
-	$(CAMLC) $(PP) -c $<
-
-.mli.cmi:
-	$(CAMLC) -c $<
-
-.ml.cmx:
-	$(CAMLOPT) $(PP) -c $<
-
-
-#doc:
-#	$(CAMLDOC) -d doc -html eliom.mli ocsigen.mli ocsigen_extensions.mli
-
-.PHONY: clean
-clean: 
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot extensions/*.cm[iox] extensions/*.o extensions/*.cmxs
-	$(MAKE) -C client clean
-	$(MAKE) -C syntax clean
-
-depend:
-	$(MAKE) -C client depend
-	$(MAKE) -C syntax depend
-	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) > .depend
-	sed -i.bak s%../extensions/ocsipersist.cmx%% .depend
-
-FORCE:
-
--include .depend
-
-
-eliom_duce.cmi: ../baselib/ocsigen_lib.cmi eliom_services.cmi \
-    eliom_parameters.cmi eliom_mkforms.cmi eliom_common.cmi
-eliom_duce.cmo: eliom_duce.cmi ../baselib/ocsigen_lib.cmi eliommod_mkforms.cmi \
-    eliom_state.cmi eliom_services.cmi eliom_parameters.cmi eliom_mkforms.cmi \
-    eliom_common.cmi eliom_client_types.cmi eliom_output_cli.cmi
-eliom_duce_tools.cmi: eliom_tools_common.cmi eliom_state.cmi \
-	eliom_services.cmi eliom_parameters.cmi
-eliom_duce_tools.cmo: eliom_duce_tools.cmi
-xhtmlpretty_duce.cmo: xhtmlpretty_duce.cmi
+../local/etc/$(PROJECTNAME).conf: files/${PROJECTNAME}.conf.in ../Makefile.config Makefile
+	cat $< | sed ${CONF_SED}  > $@

@@ -28,7 +28,7 @@
 
 let (>>>) x f = f x
 
-include Eliom_client_types
+include Eliom_types
 
 let get_sess_info = ref (fun () ->
   failwith "Eliom_request_info.get_sess_info called before initialization")

@@ -17,6 +17,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
+
+open Eliom_pervasives
+
 open XHTML.M
 open Eliom_output.Xhtml
 open Eliom_output
@@ -175,7 +178,7 @@ let parse_lines lines =
     else (* External link *)
       let url = scheme^":"^page in
       let t = if text = "" then url else text in
-      XHTML.M.a ~a:[a_href (uri_of_string url)] [pcdata t]
+      XHTML.M.a ~a:[a_href (Uri.uri_of_string url)] [pcdata t]
   in
 
   let rec pcre_first_match str pos =

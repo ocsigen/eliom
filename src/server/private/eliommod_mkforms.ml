@@ -36,27 +36,18 @@ let (make_a_with_onclick :
     href
     content
   ->
-    let node =
-      make_a
-        ?a
-        ~href
-        ?onclick:None
-(*SGO* Server generated onclicks/onsubmits
-        ?onclick:
-        (Some ("return caml_run_from_table ("^
-                  Eliom_client_types.a_closure_id_string^", \'"^
-                  (Eliom_client_types.jsmarshal
-                     ((Eliommod_cli.wrap cookies_info),
-                      (Eliommod_cli.wrap href)))
-               ^ "\');")
-        )
-*)
-        content
-    in
-    Eliom_services.add_onload_form_creator
-      (send_appl_content, (Eliom_client_types.OFA
-                             (XHTML5.M.toelt node, href, cookies_info)));
-    node
+  make_a
+    ?a
+    ~href
+    ?onclick:
+    (Some ("return caml_run_from_table ("^
+              Eliom_client_types.a_closure_id_string^", \'"^
+              (Eliom_client_types.jsmarshal
+                 ((Eliommod_cli.wrap cookies_info),
+                  (Eliommod_cli.wrap href)))
+           ^ "\');")
+    )
+    content
 
 let make_get_form_with_onsubmit
     make_get_form
@@ -140,7 +131,7 @@ let make_add_tab_cookies_to_form id form_ref =
   let reqnum = Eliom_request_info.get_request_id () in
   "caml_run_from_table (" ^
     id^", \'" ^
-    (Eliom_client_types.jsmarshal (reqnum, form_ref)) ^
+    (Eliom_types.jsmarshal (reqnum, form_ref)) ^
     "\')"
 
 let make_get_form_with_post_tab_cookies

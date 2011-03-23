@@ -1,6 +1,5 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliom_client_types.ml
  * Copyright (C) 2010 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let (>>=) = Lwt.bind
+open Eliom_pervasives
 
 (* Some types are different on client side: *)
 
@@ -27,7 +26,7 @@ type server_params = unit
 let sp = ()
 
 type sitedata = (* sent while starting the program *)
-  {site_dir: Ocsigen_lib.url_path;
+  {site_dir: Url.path;
    site_dir_string: string;
   }
 
@@ -70,8 +69,6 @@ and elt = ( elt_content * int option )
 type eliom_data_type =
     ((* The ref tree, to relink the DOM *)
       (XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
-	(* node sent that are not in the original page *)
-	elt list *
         (* Table of page data *)
         (poly * ((int64 * int) * poly list)) *
         (* Tab cookies to set or unset *)
@@ -86,9 +83,12 @@ type eliom_data_type =
     )
 
 
+type 'a data_key = int64 * int
+
+let to_data_key_ v = v
+let of_data_key_ v = v
 
 
-(*SGO* Server generated onclicks/onsubmits
 (* For client side program, we sometimes simulate links and forms
    with client side functions.
    Here are there identifiers: *)

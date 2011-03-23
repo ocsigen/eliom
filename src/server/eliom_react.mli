@@ -54,7 +54,7 @@ sig
 
   val wrap :
       'a t
-    -> ( 'a Eliom_common_comet.chan_id * Eliom_common.unwrapper ) Eliom_client_types.data_key
+    -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
   (** [wrap e] wraps the event [e] so that it can be handed to the client. *)
 
 end
@@ -82,7 +82,7 @@ sig
         [ `WithoutSuffix ], unit,
         [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
         [ `Registrable ], Eliom_output.Action.return)
-         Eliom_services.service Eliom_client_types.data_key
+         Eliom_services.service Eliom_types.data_key
   (** [wrap e] wraps [e] into a wrapped service. This result is to be handled by
       the [Eliom_client_event.Up.unwrap] function. *)
 

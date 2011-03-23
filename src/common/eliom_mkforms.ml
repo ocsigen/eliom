@@ -18,11 +18,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+
 open Lwt
-open Ocsigen_lib
 open Eliom_parameters
 open Eliom_services
 open Eliom_uri
+open Ocsigen_extensions
 
 (*204FORMS* old implementation of forms with 204 and change_page_event
 let nl_internal_appl_form =
@@ -533,7 +535,7 @@ module type ELIOMFORMSIG =
 
     val file_input :
         ?a:input_attrib_t ->
-          name:[< Ocsigen_lib.file_info setoneradio ] param_name ->
+          name:[< file_info setoneradio ] param_name ->
             unit -> input_elt
 (** Creates an [<input>] tag for sending a file *)
 
@@ -1074,7 +1076,7 @@ module MakeForms = functor
         let uri = 
           match fragment with
             | None -> uri
-            | Some f -> String.concat "#" [uri; Ocsigen_lib.encode f]
+            | Some f -> String.concat "#" [uri; Url.encode f]
         in
 
         bind (f paramnames)

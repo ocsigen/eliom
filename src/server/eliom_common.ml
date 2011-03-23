@@ -17,7 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Eliom_common_cli
+open Eliom_pervasives
+
+open Ocsigen_cookies
+
+include Eliom_common_base
 
 exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
 exception Eliom_Session_expired
@@ -106,7 +110,7 @@ module SessionCookies =
 (* session groups *)
 type 'a sessgrp =
     (string * cookie_scope
-     * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+     * (string, Ip_address.t) leftright)
     (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
@@ -118,11 +122,11 @@ let make_persistent_full_group_name ~cookie_scope site_dir_string = function
   | None -> None
   | Some g ->
     Some (Marshal.to_string
-            (site_dir_string, cookie_scope, Ocsigen_lib.Left g) [])
+            (site_dir_string, cookie_scope, Left g) [])
 
 let getperssessgrp a = Marshal.from_string a 0
 
-let string_of_perssessgrp = Ocsigen_lib.id
+let string_of_perssessgrp = id
 
 (* cookies information during page generation: *)
 
@@ -284,32 +288,32 @@ module Net_addr_Hashtbl =
   (* keys are IP address modulo "network equivalence" *)
   (struct
      include Hashtbl.Make(struct
-                            type t = Ocsigen_lib.ip_address
+                            type t = Ip_address.t
                             let equal = (=)
                             let hash = Hashtbl.hash
                           end)
 
      let add m4 m6 t k v = 
-       add t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
+       add t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
          
      let remove m4 m6 t k = 
-       remove t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+       remove t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
      let find m4 m6 t k = 
-       find t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+       find t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
      let find_all m4 m6 t k = 
-       find_all t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+       find_all t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6))
          
      let replace m4 m6 t k v = 
-       replace t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
+       replace t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6)) v
          
      let mem m4 m6 t k = 
-       mem t (Ocsigen_lib.network_of_ip k (get_mask4 m4) (get_mask6 m6))
+       mem t (Ip_address.network_of_ip k (get_mask4 m4) (get_mask6 m6))
 
    end : sig
 
-     type key = Ocsigen_lib.ip_address
+     type key = Ip_address.t
      type 'a t
      val create : int -> 'a t
      val clear : 'a t -> unit
@@ -355,7 +359,7 @@ type client_process_info = (* information about the client process.
       cpi_ssl : bool;
       cpi_hostname : string;
       cpi_server_port : int;
-      cpi_original_full_path : Ocsigen_lib.url_path;
+      cpi_original_full_path : Url.path;
       cpi_references : Polytables.t;
     }
 
@@ -370,7 +374,7 @@ type server_params =
      mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
      mutable sp_client_appl_name: string option; (* The application name,
                                                     as sent by the browser *)
-     sp_suffix: Ocsigen_lib.url_path option (* suffix *);
+     sp_suffix: Url.path option (* suffix *);
      sp_fullsessname: fullsessionname option (* the name of the session
                                                 to which belong the service
                                                 that answered
@@ -391,7 +395,7 @@ and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
     Ptc of
-      (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+      (page_table ref * page_table_key, na_key_serv) leftright
         Ocsigen_cache.Dlist.node option
         (* for limitation of number of dynamic anonymous coservices *) *
         
@@ -413,7 +417,7 @@ and naservice_table_content =
        int ref option (* max_use *) *
        (float * float ref) option (* timeout and expiration date *) *
        (server_params -> Ocsigen_http_frame.result Lwt.t) *
-       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+       (page_table ref * page_table_key, na_key_serv) leftright
        Ocsigen_cache.Dlist.node option
        (* for limitation of number of dynamic coservices *)
     )
@@ -424,7 +428,7 @@ and naservice_table =
 
 and dircontent =
   | Vide
-  | Table of direlt ref Ocsigen_lib.String_Table.t
+  | Table of direlt ref String.Table.t
 
 and direlt =
   | Dir of dircontent ref
@@ -443,9 +447,9 @@ and tables =
      mutable table_contains_naservices_with_timeout : bool;
      (* true if naservice_table contains services with timeout *)
      mutable csrf_get_or_na_registration_functions :
-       (sp:server_params -> string) Ocsigen_lib.Int_Table.t;
+       (sp:server_params -> string) Int.Table.t;
      mutable csrf_post_registration_functions :
-       (sp:server_params -> att_key_serv -> string) Ocsigen_lib.Int_Table.t;
+       (sp:server_params -> att_key_serv -> string) Int.Table.t;
       (* These two table are used for CSRF safe services:
          We associate to each service unique id the function that will
          register a new anonymous coservice each time we create a link or form.
@@ -457,8 +461,8 @@ and tables =
      *)
      service_dlist_add :
        ?sp:server_params -> 
-       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright ->
-       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+       (page_table ref * page_table_key, na_key_serv) leftright ->
+       (page_table ref * page_table_key, na_key_serv) leftright
          Ocsigen_cache.Dlist.node
        (* Add in a dlist
           for limiting the number of dynamic anonymous coservices in each table 
@@ -472,7 +476,7 @@ and tables =
     }
 
 and sitedata =
-  {site_dir: Ocsigen_lib.url_path;
+  {site_dir: Url.path;
    site_dir_string: string;
    config_info: Ocsigen_extensions.config_info;
 
@@ -508,7 +512,7 @@ and sitedata =
    mutable remove_session_data: string -> unit;
    mutable not_bound_in_data_tables: string -> bool;
    mutable exn_handler: exn -> Ocsigen_http_frame.result Lwt.t;
-   mutable unregistered_services: Ocsigen_lib.url_path list;
+   mutable unregistered_services: Url.path list;
    mutable unregistered_na_services: na_key_serv list;
    mutable max_volatile_data_sessions_per_group : int * bool;
    mutable max_volatile_data_sessions_per_subnet : int * bool;
@@ -528,7 +532,7 @@ and sitedata =
  }
 
 and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
-    Ocsigen_lib.leftright Ocsigen_cache.Dlist.t Net_addr_Hashtbl.t
+    leftright Ocsigen_cache.Dlist.t Net_addr_Hashtbl.t
 
 
 
@@ -562,7 +566,7 @@ let make_server_params_
   let appl_name =
     try
       Some
-        (Ocsigen_lib.String_Table.find appl_name_cookie_name si.si_tab_cookies)
+        (CookiesTable.find appl_name_cookie_name si.si_tab_cookies)
     (* It is an XHR from the client application, or an internal form *)
     with Not_found -> None
   in
@@ -627,11 +631,11 @@ let add_unregistered_na sitedata a =
 
 let remove_unregistered sitedata a =
   sitedata.unregistered_services <-
-    Ocsigen_lib.list_remove_first_if_any a sitedata.unregistered_services
+    List.remove_first_if_any a sitedata.unregistered_services
 
 let remove_unregistered_na sitedata a =
   sitedata.unregistered_na_services <-
-    Ocsigen_lib.list_remove_first_if_any a sitedata.unregistered_na_services
+    List.remove_first_if_any a sitedata.unregistered_na_services
 
 let verify_all_registered sitedata =
   match sitedata.unregistered_services, sitedata.unregistered_na_services with
@@ -679,9 +683,9 @@ let dlist_finaliser na_table_ref node =
   (* If the node disappears from the dlist,
      we remove the service from the service table *)
   match Ocsigen_cache.Dlist.value node with
-    | Ocsigen_lib.Left (page_table_ref, page_table_key) ->
+    | Left (page_table_ref, page_table_key) ->
         page_table_ref := Serv_Table.remove page_table_key !page_table_ref
-    | Ocsigen_lib.Right na_key_serv ->
+    | Right na_key_serv ->
         na_table_ref := remove_naservice_table !na_table_ref na_key_serv
 
 let dlist_finaliser_ip sitedata ip na_table_ref node =
@@ -709,8 +713,8 @@ let empty_tables max forsession =
    table_naservices = t2;
    table_contains_services_with_timeout = false;
    table_contains_naservices_with_timeout = false;
-   csrf_get_or_na_registration_functions = Ocsigen_lib.Int_Table.empty;
-   csrf_post_registration_functions = Ocsigen_lib.Int_Table.empty;
+   csrf_get_or_na_registration_functions = Int.Table.empty;
+   csrf_post_registration_functions = Int.Table.empty;
    service_dlist_add =
       if forsession
       then
@@ -722,7 +726,7 @@ let empty_tables max forsession =
           let ip, max, sitedata =
             match sp with
               | None ->
-                  Ocsigen_lib.inet6_addr_loopback, max,
+                  Ip_address.inet6_addr_loopback, max,
                   (match global_register_allowed () with
                      | None -> 
                          failwith "global tables created outside initialisation"
@@ -777,7 +781,7 @@ let split_nl_prefix_param =
     let rec aux other map = function
       | [] -> (map, other)
       | ((n, v) as a)::l -> 
-          if Ocsigen_lib.string_first_diff 
+          if String.first_diff 
             n nl_param_prefix 0 prefixlengthminusone = prefixlength
           then 
             try
@@ -786,24 +790,24 @@ let split_nl_prefix_param =
                 String.sub n prefixlength (last - prefixlength) 
               in
               let previous = 
-                try Ocsigen_lib.String_Table.find nl_param_name map
+                try String.Table.find nl_param_name map
                 with Not_found -> []
               in
               aux
                 other
-                (Ocsigen_lib.String_Table.add nl_param_name (a::previous) map)
+                (String.Table.add nl_param_name (a::previous) map)
                 l
             with Invalid_argument _ | Not_found -> aux (a::other) map l
           else aux (a::other) map l
     in
-    aux [] Ocsigen_lib.String_Table.empty l
+    aux [] String.Table.empty l
 
 let getcookies cookie_scope cookiename cookies =
   let length = String.length cookiename in
   let last = length - 1 in
-  Ocsigen_lib.String_Table.fold
+  CookiesTable.fold
     (fun name value beg ->
-      if Ocsigen_lib.string_first_diff cookiename name 0 last = length
+      if String.first_diff cookiename name 0 last = length
       then
         Fullsessionname_Table.add
           (cookie_scope, (String.sub name length ((String.length name) - length)))
@@ -856,24 +860,12 @@ let get_session_info req previous_extension_err =
     with Not_found ->
       let tab_cookies, post_params =
         try
-(* Tab cookies are found in HTTP headers,
-   but also sometimes in POST params (when we do not want to do an XHR
-   because we want to stop the client side process).
-   It should never be both.
-*)
           let (tc, pp) = 
             Ocsigen_lib.list_assoc_remove tab_cookies_param_name post_params
           in
           (Json.from_string<string Ocsigen_lib.String_Table.t> tc, pp)
           (*Marshal.from_string (Ocsigen_lib.decode tc) 0, pp*)
-        with Not_found -> 
-          try (* looking for tab cookies in headers *)
-            let tc = Ocsigen_headers.find tab_cookies_header_name
-              ri.Ocsigen_extensions.ri_http_frame
-            in
-            (Json.from_string<string Ocsigen_lib.String_Table.t> tc, 
-             post_params)
-          with Not_found -> Ocsigen_lib.String_Table.empty, post_params
+        with Not_found -> Ocsigen_lib.String_Table.empty, post_params
       in
       (None, tab_cookies, post_params)
   in
@@ -883,7 +875,7 @@ let get_session_info req previous_extension_err =
     try
       ([],
        Lazy.force ri.Ocsigen_extensions.ri_get_params
-       @snd (Ocsigen_lib.list_assoc_remove 
+       @snd (List.assoc_remove 
                to_be_considered_as_get_param_name post_params),
        true)
     (* It was a POST request to be considered as GET *)
@@ -895,7 +887,7 @@ let get_session_info req previous_extension_err =
 
   let get_params, internal_form =
     try
-      (snd (Ocsigen_lib.list_assoc_remove internal_form_full_name get_params),
+      (snd (List.assoc_remove internal_form_full_name get_params),
        true)
     with Not_found -> (get_params, false)
   in
@@ -949,12 +941,12 @@ let get_session_info req previous_extension_err =
     let post_naservice_name, na_post_params =
       try
         let n, pp =
-          Ocsigen_lib.list_assoc_remove naservice_num post_params
+          List.assoc_remove naservice_num post_params
         in (RNa_post' n, pp)
       with Not_found ->
         try
           let n, pp =
-            Ocsigen_lib.list_assoc_remove naservice_name post_params
+            List.assoc_remove naservice_name post_params
           in (RNa_post_ n, pp)
         with Not_found -> (RNa_no, [])
     in
@@ -980,14 +972,14 @@ let get_session_info req previous_extension_err =
             (na_get_params, other_get_params) =
             try
               let n, gp =
-                Ocsigen_lib.list_assoc_remove naservice_num get_params
+                List.assoc_remove naservice_num get_params
               in (RNa_get' n,
                   [(naservice_num, n)],
                   (split_prefix_param na_co_param_prefix gp))
             with Not_found ->
               try
                 let n, gp =
-                  Ocsigen_lib.list_assoc_remove naservice_name get_params
+                  List.assoc_remove naservice_name get_params
                 in (RNa_get_ n,
                     [(naservice_name, n)],
                     (split_prefix_param na_co_param_prefix gp))
@@ -1009,14 +1001,14 @@ let get_session_info req previous_extension_err =
                 let post_state, post_params =
                   try
                     let s, pp =
-                      Ocsigen_lib.list_assoc_remove
+                      List.assoc_remove
                         post_numstate_param_name post_params
                     in (RAtt_anon s, pp)
                   with
                       Not_found -> 
                         try
                           let s, pp =
-                            Ocsigen_lib.list_assoc_remove
+                            List.assoc_remove
                               post_state_param_name post_params
                           in (RAtt_named s, pp)
                         with
@@ -1025,14 +1017,14 @@ let get_session_info req previous_extension_err =
                 let get_state, (get_params, other_get_params) =
                   try
                     let s, gp =
-                      Ocsigen_lib.list_assoc_remove
+                      List.assoc_remove
                         get_numstate_param_name get_params
                     in ((RAtt_anon s),
                         (split_prefix_param co_param_prefix gp))
                   with Not_found ->
                     try
                       let s, gp =
-                        Ocsigen_lib.list_assoc_remove
+                        List.assoc_remove
                           get_state_param_name get_params
                       in ((RAtt_named s),
                           (split_prefix_param co_param_prefix gp))
@@ -1046,11 +1038,11 @@ let get_session_info req previous_extension_err =
   in
   let persistent_nl_get_params =
     lazy
-      (Ocsigen_lib.String_Table.fold
+      (String.Table.fold
          (fun k a t -> if nl_is_persistent k
-          then Ocsigen_lib.String_Table.add k a t
+          then String.Table.add k a t
           else t)
-         nl_get_params Ocsigen_lib.String_Table.empty)
+         nl_get_params String.Table.empty)
   in
 
   let data_cookies_tab = getcookies `Client_process datacookiename tab_cookies in
@@ -1071,10 +1063,10 @@ let get_session_info req previous_extension_err =
 (*204FORMS* old implementation of forms with 204 and change_page_event
     if internal_form
     then
-      let gps = Ocsigen_lib.mk_url_encoded_parameters all_get_params in
+      let gps = Url.make_encoded_parameters all_get_params in
       let uri = ri.Ocsigen_extensions.ri_full_path_string in
-      ((if gps = "" then None else Some gps), 
-       Ocsigen_lib.add_to_string uri "?" gps)
+      ((if gps = "" then None else Some gps),
+       String.may_append uri ~sep:"?" gps)
     else *)
     (ri.Ocsigen_extensions.ri_get_params_string,
      ri.Ocsigen_extensions.ri_url_string)

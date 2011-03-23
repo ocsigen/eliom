@@ -1,222 +1,53 @@
-description = "Libraries for Ocsigen"
-version = "_VERSION_"
-requires = "netstring,netsys,ssl,pcre,unix,dynlink,threads,lwt"
-
-package "xhtml" (
-  requires = "ocsigen_xhtml"
-  version = "[distributed with Ocsigen]"
-  description = "XHTML pages typed with variants (compatibility package)"
-
-  package "syntax" (
-    description = "XHTML syntax extension (compatibility package)"
-    version = "[distributed with Ocsigen]"
-    requires = "ocsigen_xhtml.syntax,camlp4"
-  )
-)
-
-package "polytables" (
-  exists_if = "polytables.cmo,polytables.cmx"
-  version = "[distributed with Ocsigen]"
-  description = "Polymorphic tables"
-  archive(byte) = "polytables.cmo"
-  archive(native) = "polytables.cmx"
-  )
-
-package "commandline" (
-    version = "[distributed with Ocsigen]"
-    description = "Read the commandline during server initialization"
-    archive(byte) = "parsecommandline.cma"
-    archive(native) = "parsecommandline.cmxa"
-    archive(byte,nocommandline) = "donotparsecommandline.cma"
-    archive(native,nocommandline) = "donotparsecommandline.cmxa"
-)
+description = "Eliom: module for generating pages"
+version = "dev"
 
 package "server" (
-  requires = "lwt.extra,lwt.ssl,lwt.preemptive,ocsigen.commandline,ocsigen,ocsigen_xhtml,findlib,camlp4.lib,cryptokit,pcre,ocsigen.deriving"
-  version = "_VERSION_"
-  description = "Ocsigen server library"
-  archive(byte) = "ocsigen.cma"
-  archive(native) = "ocsigen.cmxa"
+  description = "Eliom: server-side"
+  version = "[distributed with Eliom]"
+  directory = "server"
+  requires = "ocsigenserver,ocsigenserver_ext,xmlp4,react,calendar,js_of_ocaml.deriving,lwt.react"
+  archive(byte) = "%%NAME%%.cma"
+  archive(native) = "%%NAME%%.cmxa"
+  package "duce" (
+    description = "Eliom: OCamlDuce support for server-side"
+    version = "[distributed with Eliom]"
+    requires = "%%NAME%%.server,ocamlduce"
+    archive(byte) = "%%NAME%%_duce.cma"
+    archive(native) = "%%NAME%%_duce.cmxa"
+    exists_if = "%%NAME%%_duce.cma,%%NAME%%_duce.cmxa"
+  )
 )
 
-
-package "ext" (
-  version = "[distributed with Ocsigen]"
-  description = "Extensions for Ocsigen"
-
-  package "redirectmod" (
-    exists_if = "redirectmod.cmo,redirectmod.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "HTTP redirections"
-    archive(byte) = "redirectmod.cmo"
-    archive(native) = "redirectmod.cmx"
-  )
-
-  package "outputfilter" (
-    exists_if = "outputfilter.cmo,outputfilter.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "Changing HTTP answers before sending"
-    archive(byte) = "outputfilter.cmo"
-    archive(native) = "outputfilter.cmx"
-  )
-
-  package "userconf" (
-    exists_if = "userconf.cmo,userconf.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "Allowing users to have their own configuration files"
-    archive(byte) = "userconf.cmo"
-    archive(native) = "userconf.cmx"
-  )
-
-  package "staticmod" (
-    exists_if = "staticmod.cmo,staticmod.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "Serving static files"
-    archive(byte) = "staticmod.cmo"
-    archive(native) = "staticmod.cmx"
-  )
-
-  package "revproxy" (
-    exists_if = "revproxy.cmo,revproxy.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "Reverse proxy"
-    archive(byte) = "revproxy.cmo"
-    archive(native) = "revproxy.cmx"
-  )
-
-  package "accesscontrol" (
-    exists_if = "accesscontrol.cmo,accesscontrol.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "Filtering HTTP requests"
-    archive(byte) = "accesscontrol.cmo"
-    archive(native) = "accesscontrol.cmx"
-  )
-
-  package "extendconfiguration" (
-    exists_if = "extendconfiguration.cmo,extendconfiguration.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "Updating server options"
-    archive(byte) = "extendconfiguration.cmo"
-    archive(native) = "extendconfiguration.cmx"
-  )
-
-  package "authbasic" (
-    exists_if = "authbasic.cmo,authbasic.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "Basic HTTP Authentication"
-    archive(byte) = "authbasic.cmo"
-    archive(native) = "authbasic.cmx"
-  )
-
-  package "cgimod" (
-    exists_if = "cgimod.cmo,cgimod.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "CGI support"
-    archive(byte) = "cgimod.cmo"
-    archive(native) = "cgimod.cmx"
-  )
-
-  package "ocsipersist-sqlite" (
-    exists_if = "ocsipersist-sqlite.cma,ocsipersist-sqlite.cmxa"
-    requires = "ocsigen.server,sqlite3"
-    version = "[distributed with Ocsigen]"
-    description = "Persistent data storage with SQLite3"
-    archive(byte) = "ocsipersist-sqlite.cma"
-    archive(native) = "ocsipersist-sqlite.cmxa"
-  )
-
-  package "ocsipersist-dbm" (
-    exists_if = "ocsipersist-dbm.cma,ocsipersist-dbm.cmxa"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "Persistent data storage with DBM"
-    archive(byte) = "ocsipersist-dbm.cma"
-    archive(native) = "ocsipersist-dbm.cmxa"
-  )
-
-  package "eliom" (
-    exists_if = "eliom.cma,eliom.cmxa"
-    requires = "ocsigen.server,cryptokit,ocsigen.ext.comet,calendar,ocsigen.deriving"
-    version = "[distributed with Ocsigen]"
-    description = "Eliom: module for generating pages"
-    archive(byte) = "eliom.cma"
-    archive(native) = "eliom.cmxa"
-    package "syntax" (
-      requires = "ocsigen.deriving.syntax,js_of_ocaml.syntax"
-      version = "[distributed with Ocsigen]"
-      directory = "syntax"
-      package "type" (
-        description = "Syntax extension: spliting client and server code (type inference)"
-        requires = "ocsigen.ext.eliom.syntax"
-        archive(syntax,preprocessor) = "pa_eliom_seed.cmo pa_eliom_type_filter.cmo"
-      )
-      package "server" (
-        description = "Syntax extension: spliting client and server code (server side)"
-        requires = "ocsigen.ext.eliom.syntax"
-        archive(syntax,preprocessor) = "pa_eliom_seed.cmo pa_eliom_client_server.cmo"
-      )
-    )
-  )
-
-  package "eliom_client" (
-    requires = "js_of_ocaml,ocsigen.deriving,lwt.react"
-    version = "[distributed with Ocsigen]"
-    description = "Eliom client-side"
-    archive(byte) = "eliom_client.cma eliom_client_main.cmo"
-    directory = "client"
-    package "syntax" (
-      requires = "ocsigen.deriving.syntax,js_of_ocaml.syntax"
-      version = "[distributed with Ocsigen]"
-      description = "Syntax extension: spliting client and server code (client side)"
-      directory = "../syntax"
-      archive(syntax,preprocessor) = "pa_eliom_seed.cmo pa_eliom_client_client.cmo"
-    )
-  )
-
-  package "deflatemod" (
-    exists_if = "deflatemod.cmo,deflatemod.cmx"
-    requires = "ocsigen.server,_CAMLZIPNAME_"
-    version = "[distributed with Ocsigen]"
-    description = "Compressing HTTP reply bodies"
-    archive(byte) = "deflatemod.cmo"
-    archive(native) = "deflatemod.cmx"
-  )
-
-  package "eliom_duce" (
-    exists_if = "eliom_duce.cma,eliom_duce.cmxa"
-    requires = "ocsigen.server,ocamlduce"
-    version = "[distributed with Ocsigen]"
-    description = "OCamlDuce support for Eliom"
-    archive(byte) = "eliom_duce.cma"
-    archive(native) = "eliom_duce.cmxa"
-  )
-
-  package "rewritemod" (
-    exists_if = "rewritemod.cmo,rewritemod.cmx"
-    requires = "ocsigen.server"
-    version = "[distributed with Ocsigen]"
-    description = "Rewriting URLs"
-    archive(byte) = "rewritemod.cmo"
-    archive(native) = "rewritemod.cmx"
-  )
-
-  package "comet" (
-    exists_if = "ocsigen_comet.cmo,ocsigen_comet.cmx"
-    requires = "ocsigen.server,lwt.react"
-    version = "[distributed with Ocsigen]"
-    description = "Comet server-to-client communication"
-    archive(byte) = "ocsigen_comet.cmo"
-    archive(native) = "ocsigen_comet.cmx"
-  )
-
+package "client" (
+  description = "Eliom client-side"
+  version = "[distributed with Eliom]"
+  directory = "client"
+  requires = "ocsigenserver.cookies,ocsigenserver.polytables,js_of_ocaml,js_of_ocaml.syntax,js_of_ocaml.deriving.syntax,js_of_ocaml.deriving,lwt.syntax,lwt.react,xmlp4.functor"
+  archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
 )
 
+package "syntax" (
+  description = "Syntax extension: spliting client and server code (base)"
+  version = "[distributed with Eliom]"
+  requires = "js_of_ocaml.syntax,js_of_ocaml.deriving.syntax"
+  directory = "syntax"
+  archive(syntax,preprocessor) = "pa_eliom_seed.cmo"
+  package "type" (
+    description = "Syntax extension: spliting client and server code (type inference)"
+    version = "[distributed with Eliom]"
+    requires = "%%NAME%%.syntax"
+    archive(syntax,preprocessor) = "pa_eliom_type_filter.cmo"
+  )
+  package "server" (
+    description = "Syntax extension: spliting client and server code (server side)"
+    version = "[distributed with Eliom]"
+    requires = "%%NAME%%.syntax"
+    archive(syntax,preprocessor) = "pa_eliom_client_server.cmo"
+  )
+  package "client" (
+    description = "Syntax extension: spliting client and server code (client side)"
+    version = "[distributed with Eliom]"
+    requires = "%%NAME%%.syntax"
+    archive(syntax,preprocessor) = "pa_eliom_client_client.cmo"
+  )
+)

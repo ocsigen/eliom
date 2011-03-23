@@ -19,8 +19,9 @@
 
 (* Manipulation of services - this code can be use on server or client side. *)
 
+open Eliom_pervasives
+
 open Lwt
-open Ocsigen_lib
 open Lazy
 
 (** Typed services *)
@@ -44,8 +45,8 @@ type registrable = [ `Registrable | `Unregistrable ]
 type (+'a, +'b) a_s =
     {prefix: string; (* name of the server and protocol,
                         for external links. Ex: http://ocsigen.org *)
-     subpath: Ocsigen_lib.url_path; (* name of the service without parameters *)
-     fullpath: Ocsigen_lib.url_path; (* full path of the service = site_dir@subpath *)
+     subpath: Url.path; (* name of the service without parameters *)
+     fullpath: Url.path; (* full path of the service = site_dir@subpath *)
      att_kind: 'a; (* < attached_service_kind *)
      get_or_post: 'b; (* < getpost *)
      get_name: Eliom_common.att_key_serv;
@@ -114,7 +115,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
 (* 'return is the value returned by the service *)
     {
      pre_applied_parameters: 
-       (string * string) list Ocsigen_lib.String_Table.t
+       (string * string) list String.Table.t
        (* non localized parameters *) *
        (string * string) list (* regular parameters *);
      get_params_type: ('get, 'tipo, 'getnames) Eliom_parameters.params_type;
@@ -183,7 +184,7 @@ let change_get_num service attser n =
 (** Satic directories **)
 let static_dir_ ?(https = false) () =
   {
-    pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
+    pre_applied_parameters = String.Table.empty, [];
     get_params_type = Eliom_parameters.suffix 
       (Eliom_parameters.all_suffix Eliom_common.eliom_suffix_name);
     post_params_type = Eliom_parameters.unit;
@@ -214,7 +215,7 @@ let https_static_dir () = static_dir_ ~https:true ()
 let get_static_dir_ ?(https = false)
     ?(keep_nl_params = `None) ~get_params () =
     {
-     pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
+     pre_applied_parameters = String.Table.empty, [];
      get_params_type = 
         Eliom_parameters.suffix_prod 
           (Eliom_parameters.all_suffix Eliom_common.eliom_suffix_name)
@@ -286,7 +287,7 @@ let void_coservice' =
   {
     max_use= None;
     timeout= None;
-    pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
+    pre_applied_parameters = String.Table.empty, [];
     get_params_type = Eliom_parameters.unit;
     post_params_type = Eliom_parameters.unit;
     kind = `Nonattached
@@ -303,7 +304,7 @@ let https_void_coservice' =
   {
     max_use= None;
     timeout= None;
-    pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
+    pre_applied_parameters = String.Table.empty, [];
     get_params_type = Eliom_parameters.unit;
     post_params_type = Eliom_parameters.unit;
     kind = `Nonattached
@@ -360,7 +361,7 @@ let register_delayed_post_coservice  ~sp s getname =
 let service_aux_aux
     ~https
     ~prefix
-    ~(path : Ocsigen_lib.url_path)
+    ~(path : Url.path)
     ~site_dir
     ~kind
     ~getorpost
@@ -372,7 +373,7 @@ let service_aux_aux
     () =
 (* ici faire une vérification "duplicate parameter" ? *)
   {
-   pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
+   pre_applied_parameters = String.Table.empty, [];
    get_params_type = get_params;
    post_params_type = post_params;
    max_use= None;
@@ -407,7 +408,7 @@ let external_service_
   service_aux_aux
     ~https:false (* not used for external links *)
     ~prefix
-    ~path:(remove_internal_slash
+    ~path:(Url.remove_internal_slash
             (match suffix with
                | None -> path
                | _ -> path@[Eliom_common.eliom_suffix_internal_name]))
@@ -463,7 +464,7 @@ let untype_service_ s =
    Was in Eliom_client_types but circular dependency with Eliom_services
 *)
 type eliom_appl_answer =
-  | EAContent of ((Eliom_client_types.eliom_data_type * string) * string (* url to display *))
+  | EAContent of ((Eliom_types.eliom_data_type * string) * string (* url to display *))
   | EAHalfRedir of string
   | EAFullRedir of 
       (unit, unit, get_service_kind,

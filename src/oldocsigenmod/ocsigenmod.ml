@@ -201,16 +201,16 @@ let absolute_change_hostdir, get_current_hostdir,
   begin_current_host_dir, end_current_hostdir =
   let current_dir : ((unit -> pages_tree) * url_path) ref =
     ref ((fun () ->
-      raise (Ocsigen_Internal_Error "No pages tree available")), [])
+      raise (Eliom_lib.Eliom_Internal_Error "No pages tree available")), [])
   in
   let f1' (pagetree, dir) = current_dir := ((fun () -> pagetree), dir) in
   let f2' () = let (cd1, cd2) = !current_dir in (cd1 (), cd2) in
   let f1 = ref f1' in
   let f2 = ref f2' in
   let exn1 _ =
-    raise (Ocsigen_Internal_Error "absolute_change_hostdir after init") in
+    raise (Eliom_lib.Eliom_Internal_Error "absolute_change_hostdir after init") in
   let exn2 () =
-    raise (Ocsigen_Internal_Error "get_current_hostdir after init") in
+    raise (Eliom_lib.Eliom_Internal_Error "get_current_hostdir after init") in
   ((fun hostdir -> !f1 hostdir),
    (fun () -> !f2 ()),
    (fun () -> f1 := f1'; f2 := f2'),

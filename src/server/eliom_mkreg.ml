@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
 
 open Lwt
 open Ocsigen_extensions
@@ -165,7 +166,7 @@ module type ELIOMREGSIG =
       ?secure_session:bool ->
       ?https:bool ->
       ?priority:int ->
-      path:Ocsigen_lib.url_path ->
+      path:Url.path ->
       get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
       ?error_handler:((string * exn) list -> page Lwt.t) ->
       ('get -> unit -> page Lwt.t) ->
@@ -515,9 +516,9 @@ module MakeRegister = functor
                                       by asking an HTTP redirection *)
                                    (Eliom_common.Eliom_do_half_xhr_redirection
                                       ("/"^
-                                          Ocsigen_lib.concat_strings 
+                                          String.may_concat
                                      ri.Ocsigen_extensions.ri_original_full_path_string
-                                     "?"
+                                     ~sep:"?"
                                      (Eliom_parameters.construct_params_string
                                         (Lazy.force
                                            ri.Ocsigen_extensions.ri_get_params)
@@ -546,8 +547,8 @@ module MakeRegister = functor
                                                 scope, secure_session)) ->
                   let tablereg, forsession =
                     match table with
-                      | Ocsigen_lib.Left globtbl -> globtbl, false
-                      | Ocsigen_lib.Right (sp, sn, ct, sec) ->
+                      | Left globtbl -> globtbl, false
+                      | Right (sp, sn, ct, sec) ->
                         if sn <> state_name || secure_session <> sec
                           || scope <> ct
                         then raise
@@ -582,8 +583,8 @@ module MakeRegister = functor
                    _) ->
                   let tablereg, forsession =
                     match table with
-                      | Ocsigen_lib.Left globtbl -> globtbl, false
-                      | Ocsigen_lib.Right (sp, sn, ct, sec) ->
+                      | Left globtbl -> globtbl, false
+                      | Right (sp, sn, ct, sec) ->
                         if sn <> state_name || secure_session <> sec
                           || ct <> scope
                         then raise
@@ -614,8 +615,8 @@ module MakeRegister = functor
                 | _ -> 
                   let tablereg =
                     match table with
-                      | Ocsigen_lib.Left globtbl -> globtbl
-                      | Ocsigen_lib.Right (sp, state_name, 
+                      | Left globtbl -> globtbl
+                      | Right (sp, state_name, 
                                            scope, secure_session) ->
                         !(Eliom_state.get_session_service_table
                             ?secure:secure_session ?state_name ~scope ~sp ())
@@ -679,8 +680,8 @@ module MakeRegister = functor
                   (* CSRF safe coservice: we'll do the registration later *)
                   let tablereg, forsession =
                     match table with
-                      | Ocsigen_lib.Left globtbl -> globtbl, false
-                      | Ocsigen_lib.Right (sp, sn, ct, sec) ->
+                      | Left globtbl -> globtbl, false
+                      | Right (sp, sn, ct, sec) ->
                         if sn <> state_name || secure_session <> sec
                           || ct <> scope
                         then raise
@@ -713,8 +714,8 @@ module MakeRegister = functor
                   (* CSRF safe coservice: we'll do the registration later *)
                   let tablereg, forsession =
                     match table with
-                      | Ocsigen_lib.Left globtbl -> globtbl, false
-                      | Ocsigen_lib.Right (sp, sn, ct, sec) ->
+                      | Left globtbl -> globtbl, false
+                      | Right (sp, sn, ct, sec) ->
                         if sn <> state_name || secure_session <> sec
                           || ct <> scope
                         then raise
@@ -745,8 +746,8 @@ module MakeRegister = functor
                 | _ -> 
                   let tablereg =
                     match table with
-                      | Ocsigen_lib.Left globtbl -> globtbl
-                      | Ocsigen_lib.Right (sp, state_name, 
+                      | Left globtbl -> globtbl
+                      | Right (sp, state_name, 
                                            scope, secure_session) ->
                         !(Eliom_state.get_session_service_table
                             ?secure:secure_session ?state_name ~scope ~sp ())
@@ -785,7 +786,7 @@ module MakeRegister = functor
                   ?code
                   ?content_type
                   ?headers
-                  (Ocsigen_lib.Left sitedata.Eliom_common.global_services)
+                  (Left sitedata.Eliom_common.global_services)
                   ~service ?error_handler page_gen
               | _ -> raise
                 (Eliom_common.Eliom_site_information_not_available
@@ -798,7 +799,7 @@ module MakeRegister = functor
               ?content_type
               ?headers
               ?error_handler
-              (Ocsigen_lib.Left (get_global_table ()))
+              (Left (get_global_table ()))
               ~service
               page_gen
           | _, None ->
@@ -812,7 +813,7 @@ module MakeRegister = functor
               ?content_type
               ?headers
               ?error_handler
-              (Ocsigen_lib.Right (sp, state_name, scope, secure_session))
+              (Right (sp, state_name, scope, secure_session))
               ~service page_gen
 
       (* WARNING: if we create a new service without registering it,

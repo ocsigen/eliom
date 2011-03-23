@@ -17,23 +17,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+open Ocsigen_cookies
 
-let sitedata : Eliom_client_types.sitedata = 
-  Ocsigen_lib.unmarshal_js_var "sitedata"
+let sitedata : Eliom_types.sitedata =
+  unmarshal_js_var "sitedata"
 
-let appl_name = 
-  lazy 
+let appl_name =
+  lazy
     (let (_, v, _) =
-       (Ocsigen_lib.String_Table.find
+       (CookiesTable.find
           Eliom_common.appl_name_cookie_name
-          (Ocsigen_cookies.Cookies.find
-             sitedata.Eliom_client_types.site_dir
-             !(Eliommod_client_cookies.cookie_table)))
+          (Cookies.find
+             sitedata.Eliom_types.site_dir
+             !(Eliommod_cookies.cookie_table)))
      in v)
 
 (** None on server side *)
 let get_application_name () =
   Ocsigen_lib.debug (Lazy.force appl_name); Some (Lazy.force appl_name)
-
-let client_side = true
-

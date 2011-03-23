@@ -21,8 +21,7 @@
 
 (* This file is for client-side comet-programming. *)
 
-let ( >>= ) = Lwt.( >>= )
-let ( >|= ) = Lwt.( >|= )
+open Eliom_pervasives
 
 exception Channel_full
 
@@ -40,7 +39,7 @@ end = struct
   (* constants *)
   let channel_separator = "\n"
   let field_separator = ":"
-  let url_decode x = Ocsigen_lib.urldecode_string x
+  let url_decode x = Url.decode x
 
   (* decoding *)
   let chan_delim_regexp  = Regexp.make channel_separator
@@ -180,10 +179,10 @@ type activity =
 
 type handler =
     {
-      hd_service : Eliom_common_comet.comet_service;
+      hd_service : Eliom_comet_base.comet_service;
       hd_stream : (string * string) Lwt_stream.t;
       (** the stream of all messages from the server *)
-      hd_commands : Eliom_common_comet.command list -> unit;
+      hd_commands : Eliom_comet_base.command list -> unit;
       (** [hd.hd_commands commands] sends the commands to the
 	  server. It launch a new request to the server
 	  immediately. *)
@@ -248,7 +247,7 @@ let max_retries = 5
 let wait_data service activity count =
   let call_service () =
     lwt () = Configuration.sleep_before_next_request () in
-    lwt s = Eliom_client.call_service service () (Eliom_common_comet.Request_data !count) in
+    lwt s = Eliom_client.call_service service () (Eliom_comet_base.Request_data !count) in
     match s with
       | "TIMEOUT" -> Lwt.fail Timeout
       | s -> Lwt.return s
@@ -266,12 +265,12 @@ let wait_data service activity count =
 	  | Eliom_request.Failed_request 0 ->
 	    if retries > max_retries
 	    then
-	      (log "Eliom_client_comet: connection failure";
+	      (log "Eliom_comet: connection failure";
 	       set_activity activity false;
 	     aux 0)
 	    else
 	      (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
-	  | Restart -> log "Eliom_client_comet: restart";
+	  | Restart -> log "Eliom_comet: restart";
 	    aux 0
 	  | Timeout ->
 	    if not activity.focused
@@ -279,7 +278,7 @@ let wait_data service activity count =
 	      if not (Configuration.get ()).Configuration.always_active
 	      then set_activity activity false;
 	    aux 0
-	  | e -> log "Eliom_client_comet: exception"; Lwt.fail e
+	  | e -> log "Eliom_comet: exception"; Lwt.fail e
       end
      else
        lwt () = activity.active_waiter in
@@ -288,7 +287,7 @@ let wait_data service activity count =
   fun () -> aux 0
 
 let service () : Eliom_common_comet.comet_service =
-  Eliom_client_unwrap.unwrap (Ocsigen_lib.unmarshal_js_var "comet_service")
+  Eliommod_cli.unwrap (Ocsigen_lib.unmarshal_js_var "comet_service")
 
 let init_activity () =
   let active_waiter,active_wakener = Lwt.wait () in
@@ -320,7 +319,7 @@ let init () =
   let hd_commands commands =
     let t =
       Eliom_client.call_service hd_service () 
-	(Eliom_common_comet.Commands commands)
+	(Eliom_comet_base.Commands commands)
     in
     push (Some t);
   in
@@ -354,15 +353,14 @@ let stop_waiting hd chan_id =
   then set_activity hd.hd_activity false
 
 let close' hd chan_id =
-  stop_waiting hd chan_id;
   hd.hd_commands [Eliom_common_comet.Close chan_id]
 
 let close chan_id =
   let hd = get_hd () in
-  close' hd (Eliom_common_comet.string_of_chan_id chan_id)
+  close' hd (Eliom_comet_base.string_of_chan_id chan_id)
 
 let register ?(wake=true) chan_id =
-  let chan_id = Eliom_common_comet.string_of_chan_id chan_id in
+  let chan_id = Eliom_comet_base.string_of_chan_id chan_id in
   let hd = get_hd () in
   let stream = Lwt_stream.filter_map_s
     (function
@@ -383,7 +381,6 @@ let register ?(wake=true) chan_id =
   (* protect the stream from cancels *)
   let stream = Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream)) in
   hd.hd_commands [Eliom_common_comet.Register chan_id];
-  hd.hd_activity.active_channels <- StringSet.add chan_id hd.hd_activity.active_channels;
   if wake then activate ();
   stream
 

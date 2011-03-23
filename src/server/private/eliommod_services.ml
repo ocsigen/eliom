@@ -25,6 +25,8 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
+open Eliom_pervasives
+
 open Lwt
 open Ocsigen_extensions
 
@@ -121,7 +123,7 @@ let find_page_table
         
         let newlist =
           List.fold_left
-            (fun l a -> Ocsigen_lib.list_remove_first_if_any_q a l) 
+            (fun l a -> List.remove_first_if_any_q a l) 
                 (* physical equality! *)
             list
             toremove
@@ -174,7 +176,7 @@ let add_page_table tables url_act tref
            let node =
              tables.Eliom_common.service_dlist_add
                ?sp
-               (Ocsigen_lib.Left (tref, key))
+               (Left (tref, key))
            in
            tref :=
              Eliom_common.Serv_Table.add
@@ -189,14 +191,14 @@ let add_page_table tables url_act tref
            (* nodeopt should be None *)
            try
 (******** Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
-             let _, oldl = Ocsigen_lib.list_assoc_remove id l in
+             let _, oldl = List.assoc_remove id l in
              (* if there was an old version with the same id, we remove it? *)
              if sp = None
              then
                (* but if there was already one with same generation, we fail
                   (if during intialisation) *)
                raise (Eliom_common.Eliom_duplicate_registration
-                        (Ocsigen_lib.string_of_url_path ~encode:false url_act))
+                        (Url.string_of_url_path ~encode:false url_act))
              else 
                tref := 
                  Eliom_common.Serv_Table.add
@@ -253,7 +255,7 @@ let remove_page_table _ _ tref key id =
           Ocsigen_cache.Dlist.remove node
       | None ->
           let newt = Eliom_common.Serv_Table.remove key !tref in
-          match Ocsigen_lib.list_remove_all_assoc id l with
+          match List.remove_all_assoc id l with
             | [] -> tref := newt
                 (* In that case, we must remove it, otherwise we get
                    "Wrong parameters" instead of "404 Not found" *)
@@ -268,15 +270,15 @@ let add_dircontent dc (key, elt) =
   match dc with
   | Eliom_common.Vide ->
       Eliom_common.Table
-        (Ocsigen_lib.String_Table.add
-           key elt Ocsigen_lib.String_Table.empty)
+        (String.Table.add
+           key elt String.Table.empty)
   | Eliom_common.Table t ->
-      Eliom_common.Table (Ocsigen_lib.String_Table.add key elt t)
+      Eliom_common.Table (String.Table.add key elt t)
 
 let find_dircontent dc k =
   match dc with
   | Eliom_common.Vide -> raise Not_found
-  | Eliom_common.Table t -> Ocsigen_lib.String_Table.find k t
+  | Eliom_common.Table t -> String.Table.find k t
 
 
 (*****************************************************************************)
@@ -477,7 +479,7 @@ let find_service
     (fun () -> 
       search_by_priority_generation
         tables.Eliom_common.table_services
-        (Ocsigen_lib.change_empty_list ri.request_info.ri_sub_path))
+        (Url.change_empty_list ri.request_info.ri_sub_path))
     (function Exn1 -> Lwt.fail Eliom_common.Eliom_404 | e -> Lwt.fail e)
 
 
@@ -545,7 +547,7 @@ let get_page
                  Ocsigen_messages.debug
                    (fun () -> String.concat ""
                      ["--Eliom: I'm looking for ";
-                      (Ocsigen_lib.string_of_url_path
+                      (Url.string_of_url_path
                          ~encode:true ri.request_info.ri_sub_path);
                       " in the "; table_name; ":"]);
                  find_aux Eliom_common.Eliom_404 table

@@ -24,7 +24,7 @@ let (>>=) = Lwt.(>>=)
 
 type 'a t =
     {
-      channel : 'a Eliom_common_comet.chan_id;
+      channel : 'a Eliom_comet_base.chan_id;
       queue : 'a Queue.t;
       mutable max_size : int;
       write : 'a list -> unit Lwt.t;
@@ -58,7 +58,7 @@ let internal_unwrap ((chan_id,service),unwrapper) =
 let () = Eliom_client_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
 let stream {channel} =
-  Eliom_client_comet.register channel
+  Eliom_comet.register channel
 
 let flush t =
   let l = List.rev (Queue.fold (fun l v -> v::l) [] t.queue) in
@@ -79,4 +79,4 @@ let write t v =
   Queue.add v t.queue;
   try_flush t
 
-let close b = Eliom_client_comet.close b.channel
+let close b = Eliom_comet.close b.channel

@@ -21,8 +21,11 @@
 
 (* Other examples for Eliom, and various tests *)
 
+open Eliom_pervasives
+
 open Lwt
 open Eliom_parameters
+open Ocsigen_cookies
 open XHTML5.M
 
 (*****************************************************************************)
@@ -1146,7 +1149,7 @@ let _ = Eliom_output.Xhtml.register cookies2
       Eliom_state.set_cookie
         ~path:["c";"plop"] ~name:(cookiename^"12")
         ~value:(string_of_int (Random.int 100)) ~secure:true ();
-      if Ocsigen_lib.String_Table.mem (cookiename^"1") (Eliom_request_info.get_cookies ())
+      if CookiesTable.mem (cookiename^"1") (Eliom_request_info.get_cookies ())
       then
         (Eliom_state.unset_cookie ~name:(cookiename^"1") ();
          Eliom_state.unset_cookie ~name:(cookiename^"2") ())
@@ -1164,7 +1167,7 @@ let _ = Eliom_output.Xhtml.register cookies2
         (html
            (head (title (pcdata "")) [])
            (body [p
-                     (Ocsigen_lib.String_Table.fold
+                     (CookiesTable.fold
                         (fun n v l ->
                           (pcdata (n^"="^v))::
                             (br ())::l
@@ -1194,7 +1197,7 @@ let sendfile2 =
     ~path:["files";""]
     ~get_params:(suffix (all_suffix "filename"))
     (fun s () ->
-      return ("/var/www/ocsigen/"^(Ocsigen_lib.string_of_url_path ~encode:false s)))
+      return ("/var/www/ocsigen/"^(Url.string_of_url_path ~encode:false s)))
 
 let sendfileexception =
   register_service
@@ -1223,7 +1226,7 @@ let _ =
            (body
               [p [pcdata "The suffix of the url is ";
                   strong [pcdata (suf1^", "^(string_of_int ii)^", "^
-                                  (Ocsigen_lib.string_of_url_path ~encode:false ee))]];
+                                  (Url.string_of_url_path ~encode:false ee))]];
               p [a suffix2 [pcdata "link to myself"] ("a", (2, []))]])))
 
 let suffix3 =
@@ -1248,7 +1251,7 @@ let create_suffixform2 (suf1, (ii, ee)) =
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
       Write a string: $user_type_input
-      (Ocsigen_lib.string_of_url_path ~encode:false)
+      (Url.string_of_url_path ~encode:false)
       ~input_type:`Text ~name:ee ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
@@ -1289,7 +1292,7 @@ let suffix5 =
            (head (title (pcdata "")) [])
            (body
               [p [pcdata "This is a page with suffix ";
-                  strong [pcdata (Ocsigen_lib.string_of_url_path
+                  strong [pcdata (Url.string_of_url_path
                                     ~encode:false s)]]])))
 
 let nosuffix =

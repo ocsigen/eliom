@@ -28,7 +28,7 @@ module Down :
 sig
 
   val unwrap :
-    ?wake:bool -> ('a Eliom_common_comet.chan_id * 'b) Eliom_client_types.data_key
+    ?wake:bool -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
     -> 'a React.E.t
 
 end
@@ -45,7 +45,7 @@ sig
      'c,
      [< Eliom_services.registrable ],
      'd)
-        Eliom_services.service Eliom_client_types.data_key
+        Eliom_services.service Eliom_types.data_key
   -> ('a -> unit Lwt.t)
   (** [unwrap e] returns a function that, when called, triggers the transmitted
       event on the server. The thread returns when the write is done. *)

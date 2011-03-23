@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* The following lines are for Eliommod_mkforms and Eliom_client_react to be linked. *)
+(* The following line is for Eliommod_mkforms to be linked. *)
 let _a = Eliommod_mkforms.make_a_with_onclick
 let _b = Eliom_client_react.force_link
 
@@ -32,18 +32,18 @@ let _ =
 
     (* ===change page event *)
     let change_page_event
-        : Eliom_services.eliom_appl_answer React.E.t = 
-      (Eliom_client_react.Down.unwrap
-         ~wake:false (Ocsigen_lib.unmarshal_js_var "change_page_event"))
+        : Eliom_services.eliom_appl_answer React.E.t =
+      (Eliom_react.Down.unwrap
+         ~wake:false (unmarshal_js_var "change_page_event"))
     in
-    let retain_event = 
+    let retain_event =
       React.E.map Eliom_client.set_content change_page_event
     in
-    
+
     (* The following piece of code is not necessary due to the lack of weak
      * pointers on client side.*)
     let `R r = React.E.retain change_page_event (fun () -> ()) in
-    ignore 
+    ignore
       (React.E.retain change_page_event (fun () -> r (); ignore retain_event));
 *)
 

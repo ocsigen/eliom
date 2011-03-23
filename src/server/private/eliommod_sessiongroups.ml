@@ -18,26 +18,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
-
-let (>>=) = Lwt.bind
-let (!!) = Lazy.force
+open Eliom_pervasives
 
 let make_full_named_group_name_ ~cookie_scope sitedata g =
-  (sitedata.Eliom_common.site_dir_string, cookie_scope, Ocsigen_lib.Left g)
+  (sitedata.Eliom_common.site_dir_string, cookie_scope, Left g)
 
 let make_full_group_name ~cookie_scope ri site_dir_string ipv4mask ipv6mask = 
   function
   (* The scope is the scope of group members (`Session by default). *)
   | None -> (site_dir_string,
              cookie_scope,
-             Ocsigen_lib.Right 
-               (Ocsigen_lib.network_of_ip
+             Right 
+               (Ip_address.network_of_ip
                   (!!(ri.Ocsigen_extensions.ri_remote_ip_parsed))
                   ipv4mask
                   ipv6mask
                ))
-  | Some g -> (site_dir_string, cookie_scope, Ocsigen_lib.Left g)
+  | Some g -> (site_dir_string, cookie_scope, Left g)
 
 let make_persistent_full_group_name =
   Eliom_common.make_persistent_full_group_name
@@ -150,16 +147,16 @@ struct
     with Not_found ->
       (* We create a group *)
       let size = match set_max, sess_grp with
-        | None, (_, `Session, Ocsigen_lib.Left _) ->
+        | None, (_, `Session, Left _) ->
           A.max_session_per_group sitedata
-        | None, (_, `Client_process, Ocsigen_lib.Left _) ->
+        | None, (_, `Client_process, Left _) ->
           A.max_tab_per_session sitedata
-        | None, (_, `Session, Ocsigen_lib.Right _) ->
+        | None, (_, `Session, Right _) ->
           A.max_session_per_ip sitedata
         | None, _ -> assert false
         | Some v, _ -> v
       in
-      let cookie_scope = Ocsigen_lib.snd3 sess_grp in
+      let cookie_scope = snd3 sess_grp in
       let cl = Ocsigen_cache.Dlist.create size in
       Ocsigen_cache.Dlist.set_finaliser_after
         (fun node ->
@@ -193,7 +190,7 @@ struct
           | _ -> None
       in
       let group_of_group_data =
-        Ocsigen_lib.apply_option
+        map_option
           (A.create_group_of_group_data sitedata) node_in_group_of_group
       in
       GroupTable.add grouptable sess_grp (group_of_group_data, cl);
@@ -289,14 +286,14 @@ module Data =
 *)
 (*VVV remove is not polymorphic enough -> remove1 remove2 *)
       match (sess_grp : GroupTable.key) with
-        | (_, `Client_process, Ocsigen_lib.Left sess_id) ->
+        | (_, `Client_process, Left sess_id) ->
           (try
              let (_, _, _, sgr, sgn) =
                Eliom_common.SessionCookies.find
                  sitedata.Eliom_common.session_data sess_id
              in
              (match !sgr with
-               | (_, `Session, Ocsigen_lib.Right _) (* no group *)
+               | (_, `Session, Right _) (* no group *)
                    when sitedata.Eliom_common.not_bound_in_data_tables
                      sess_id
                      ->
@@ -354,7 +351,7 @@ module Serv =
 *)
 (*VVV remove is not polymorphic enough -> remove1 remove2 *)
       match (sess_grp : GroupTable.key) with
-        | (_, `Client_process, Ocsigen_lib.Left sess_id) ->
+        | (_, `Client_process, Left sess_id) ->
           (try
 
              let (_, tables, _, _, sgr, sgn) =
@@ -478,7 +475,7 @@ module Pers = struct
           match sess_grp with
             | Some sg ->
               (match Eliom_common.getperssessgrp sg with
-                | (_, _, Ocsigen_lib.Left s) -> s
+                | (_, _, Left s) -> s
                 | _ -> Eliom_common.default_group_name)
             | None -> Eliom_common.default_group_name
         in
@@ -548,7 +545,7 @@ module Pers = struct
       Lwt.catch
         (fun () ->
           Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
-          let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
+          let newcl = List.remove_first_if_any sess_id cl in
           (match newcl with
             | [] -> 
               (* The last session has been removed from the group.
@@ -579,7 +576,7 @@ module Pers = struct
         Lwt.catch
           (fun () ->
             Ocsipersist.find !!grouptable sg >>= fun (max, cl) ->
-            let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
+            let newcl = List.remove_first_if_any sess_id cl in
             Ocsipersist.replace_if_exists !!grouptable sg (max, sess_id::newcl)
           )
           (function

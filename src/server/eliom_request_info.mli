@@ -22,8 +22,10 @@
     information about current request.
  *)
 
-open Ocsigen_extensions
+open Eliom_pervasives
 
+open Ocsigen_extensions
+open Ocsigen_cookies
 
 (*****************************************************************************)
 (** {2 Getting information about the request} *)
@@ -45,8 +47,8 @@ val get_remote_inet_addr : unit -> Unix.inet_addr
 (** returns the full path of the URL as a string. *)
 val get_current_full_path_string : unit -> string
 
-(** returns the full path of the URL using the type [Ocsigen_lib.url_path] *)
-val get_current_full_path : unit -> Ocsigen_lib.url_path
+(** returns the full path of the URL using the type [Url.path] *)
+val get_current_full_path : unit -> Url.path
 
 (** returns the full path of the URL as first sent by the browser
     (not changed by previous extensions like rewritemod) *)
@@ -54,7 +56,7 @@ val get_original_full_path_string : unit -> string
 
 (** returns the full path of the URL as first sent by the browser
     (not changed by previous extensions like rewritemod) *)
-val get_original_full_path : unit -> Ocsigen_lib.url_path
+val get_original_full_path : unit -> Url.path
 
 (** returns the sub path of the URL as a string.
     The sub-path is the full path without the path of the site (set in the
@@ -62,11 +64,11 @@ val get_original_full_path : unit -> Ocsigen_lib.url_path
  *)
 val get_current_sub_path_string : unit -> string
 
-(** returns the sub path of the URL using the type [Ocsigen_lib.url_path].
+(** returns the sub path of the URL using the type [Url.path].
     The sub-path is the full path without the path of the site (set in the
     configuration file).
  *)
-val get_current_sub_path : unit -> Ocsigen_lib.url_path
+val get_current_sub_path : unit -> Url.path
 
 (** returns the hostname that has been sent by the user agent.
     For HTTP/1.0, the Host field is not mandatory in the request.
@@ -92,11 +94,11 @@ val get_server_port : unit -> int
 val get_ssl : unit -> bool
 
 (** returns the suffix of the current URL *)
-val get_suffix : unit -> Ocsigen_lib.url_path option
+val get_suffix : unit -> Url.path option
 
 (** returns the cookies sent by the browser *)
 val get_cookies : ?cookie_scope:Eliom_common.cookie_scope ->
-  unit -> string Ocsigen_lib.String_Table.t
+  unit -> string CookiesTable.t
 
 (** returns an Unix timestamp associated to the request *)
 val get_timeofday : unit -> float
@@ -155,16 +157,16 @@ val get_previous_extension_error_code : unit -> int
  *)
 
 (** returns the filename used by Ocsigen for the uploaded file. *)
-val get_tmp_filename : Ocsigen_lib.file_info -> string
+val get_tmp_filename : file_info -> string
 
 (** returns the size of the file. *)
-val get_filesize : Ocsigen_lib.file_info -> int64
+val get_filesize : file_info -> int64
 
 (** returns the name the file had on the client when it has been sent. *)
-val get_original_filename : Ocsigen_lib.file_info -> string
+val get_original_filename : file_info -> string
 
 (** returns the root of the site. *)
-val get_site_dir : unit -> Ocsigen_lib.url_path
+val get_site_dir : unit -> Url.path
 
 
 
@@ -202,15 +204,15 @@ val get_other_get_params : unit -> (string * string) list
 
 (** returns non localized parameters in the URL. *)
 val get_nl_get_params : 
-  unit -> (string * string) list Ocsigen_lib.String_Table.t
+  unit -> (string * string) list String.Table.t
 
 (** returns persistent non localized parameters in the URL. *)
 val get_persistent_nl_get_params : 
-  unit -> (string * string) list Ocsigen_lib.String_Table.t
+  unit -> (string * string) list String.Table.t
 
 (** returns non localized POST parameters. *)
 val get_nl_post_params : 
-  unit -> (string * string) list Ocsigen_lib.String_Table.t
+  unit -> (string * string) list String.Table.t
 
 (** returns the parameters in the body of the HTTP request (POST parameters)
     that concern the running service. None means that POST data where
@@ -296,26 +298,26 @@ val set_site_handler : Eliom_common.sitedata ->
   (exn -> Ocsigen_http_frame.result Lwt.t) -> unit
 
 val get_request_sp : Eliom_common.server_params -> request
-val get_site_dir_sp : Eliom_common.server_params -> Ocsigen_lib.url_path
+val get_site_dir_sp : Eliom_common.server_params -> Url.path
 val get_hostname_sp : Eliom_common.server_params -> string
 val get_full_url_sp : Eliom_common.server_params -> string
 
 val get_other_get_params_sp : Eliom_common.server_params -> (string * string) list
 val get_nl_get_params_sp : 
-  Eliom_common.server_params -> (string * string) list Ocsigen_lib.String_Table.t
+  Eliom_common.server_params -> (string * string) list String.Table.t
 val get_persistent_nl_get_params_sp : 
-  Eliom_common.server_params -> (string * string) list Ocsigen_lib.String_Table.t
+  Eliom_common.server_params -> (string * string) list String.Table.t
 val get_nl_post_params_sp : 
-  Eliom_common.server_params -> (string * string) list Ocsigen_lib.String_Table.t
+  Eliom_common.server_params -> (string * string) list String.Table.t
 
-val get_original_full_path_sp : Eliom_common.server_params -> Ocsigen_lib.url_path
+val get_original_full_path_sp : Eliom_common.server_params -> Url.path
 val get_original_full_path_string_sp : Eliom_common.server_params -> string
 val get_server_port_sp : Eliom_common.server_params -> int
 val get_ssl_sp : Eliom_common.server_params -> bool
 val get_ri_sp : Eliom_common.server_params -> Ocsigen_extensions.request_info
 val get_post_params_sp : Eliom_common.server_params -> (string * string) list Lwt.t option
-val get_files_sp : Eliom_common.server_params -> (string * Ocsigen_lib.file_info) list Lwt.t option
-val get_suffix_sp : Eliom_common.server_params -> Ocsigen_lib.url_path option
+val get_files_sp : Eliom_common.server_params -> (string * file_info) list Lwt.t option
+val get_suffix_sp : Eliom_common.server_params -> Url.path option
 val get_request_cache_sp : Eliom_common.server_params -> Polytables.t
 val get_request_id_sp : Eliom_common.server_params -> int64
 

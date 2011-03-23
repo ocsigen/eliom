@@ -20,6 +20,8 @@
 
 (** Non-attached services                                                   *)
 
+open Eliom_pervasives
+
 open Lwt
 open Ocsigen_extensions
 
@@ -80,7 +82,7 @@ let add_naservice
   let node = match name with
     | Eliom_common.SNa_get' _ | Eliom_common.SNa_post' _ ->
         Some 
-          (tables.Eliom_common.service_dlist_add ?sp (Ocsigen_lib.Right name))
+          (tables.Eliom_common.service_dlist_add ?sp (Right name))
     | _ -> None
   in
 

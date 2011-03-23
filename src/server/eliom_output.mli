@@ -24,11 +24,14 @@
    untyped (text) pages, actions, redirections, files ...
  *)
 
+open Eliom_pervasives
+
 open Eliom_services
 open Eliom_parameters
 open Eliom_mkforms
 open Eliom_mkreg
 
+open Ocsigen_extensions
 
 (** The signature of such modules. *)
 module type ELIOMSIG = sig
@@ -368,7 +371,7 @@ module type XHTMLFORMSSIG = sig
 
   val file_input :
       ?a:input_attrib attrib list ->
-        name:[< Ocsigen_lib.file_info setoneradio ] param_name ->
+        name:[< file_info setoneradio ] param_name ->
           unit -> [> input ] elt
 (** Creates an [<input>] tag for sending a file *)
 
@@ -801,7 +804,7 @@ end
 (* include module type of Eliom_output_cli 
    does not work with camlp4 ... I replace by:
 *)
-module type XHTML5FORMSSIG = Eliom_output_cli.XHTML5FORMSSIG
+module type XHTML5FORMSSIG = Eliom_output_base.XHTML5FORMSSIG
 
 
 
@@ -929,10 +932,9 @@ end
 (** {3 Functor to create modules to register subpages for other subtypes of XHTML} *)
 
 module SubXhtml(Format : sig 
-      type doctypes
       type content
       type 'a elt
-      val xhtml_list_stream : ?version:doctypes -> ?width: int -> ?encode:(string->string) 
+      val xhtml_list_stream : ?width: int -> ?encode:(string->string) 
         -> ?html_compat : bool -> content elt list -> string Ocsigen_stream.t end) :
   sig
 
@@ -1113,7 +1115,7 @@ module Caml : sig
     ?state_name:string ->
     ?secure_session:bool ->
     ?https:bool ->
-    path:Ocsigen_lib.url_path ->
+    path:Url.path ->
     get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
     ?error_handler:((string * exn) list -> 'return Lwt.t) ->
     ('get -> unit -> 'return Lwt.t) ->

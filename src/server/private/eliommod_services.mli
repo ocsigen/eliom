@@ -18,10 +18,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+
 val add_service :
   int ->
   Eliom_common.tables ->
-  Ocsigen_lib.String_Table.key list ->
+  String.Table.key list ->
   Eliom_common.Serv_Table.key ->
   (Eliom_common.anon_params_type * Eliom_common.anon_params_type) *
     (int ref option * (float * float ref) option *
@@ -29,7 +31,7 @@ val add_service :
   unit
 val remove_service :
   Eliom_common.tables ->
-  Ocsigen_lib.String_Table.key list ->
+  String.Table.key list ->
   Eliom_common.Serv_Table.key ->
   Eliom_common.anon_params_type * Eliom_common.anon_params_type ->
   unit

@@ -207,7 +207,7 @@ let reconstruct_params
         (try (Res_ ((Obj.magic (of_string v)),l,files))
         with e -> Errors_ [(pref^name^suff),e])
     | TUnit -> Res_ ((Obj.magic ()), params, files)
-    | TSuffix -> raise (Ocsigen_Internal_Error "Bad use of suffix")
+    | TSuffix -> raise (Eliom_lib.Eliom_Internal_Error "Bad use of suffix")
   in
   let aux2 typ =
     match Obj.magic (aux typ params files "" "") with
@@ -261,7 +261,7 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
     | TUserType (name, of_string, string_of) ->
         pref^name^suff^"="^(string_of (Obj.magic params))
     | TUnit -> ""
-    | TSuffix -> raise (Ocsigen_Internal_Error "Bad use of suffix")
+    | TSuffix -> raise (Eliom_lib.Eliom_Internal_Error "Bad use of suffix")
   in
   match typ with
     TProd(TSuffix,t) ->

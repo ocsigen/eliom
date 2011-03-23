@@ -23,6 +23,8 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
+open Eliom_pervasives
+
 open Lwt
 
 (*****************************************************************************)
@@ -106,7 +108,7 @@ let set_timeout_ get set get_default update =
             let oldtopt =
               try
                 let (oldt, wasfromconf), newtl =
-                  Ocsigen_lib.list_assoc_remove fullsessname tl
+                  List.assoc_remove fullsessname tl
                 in
                 if override_configfile || not wasfromconf
                 then
@@ -136,7 +138,7 @@ let set_timeout_ get set get_default update =
                    (function e ->
                       Ocsigen_messages.warning
                         ("Eliom: Error while updating timeouts: "^
-                           Ocsigen_lib.string_of_exn e);
+                           Printexc.to_string e);
                       Lwt.return ())
                 )
                 (*VVV Check possible exceptions raised *)

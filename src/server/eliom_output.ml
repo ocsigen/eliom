@@ -18,11 +18,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+
 open Lwt
-open Ocsigen_lib
 open XHTML.M
 open Xhtmltypes
 open Ocsigen_extensions
+open Ocsigen_cookies
 open Eliom_state
 open Eliom_services
 open Eliom_parameters
@@ -32,7 +34,7 @@ open Eliom_mkreg
 open Ocsigen_http_frame
 open Ocsigen_http_com
 
-include Eliom_output_cli
+include Eliom_output_base
 
 module type ELIOMSIG = sig
   include Eliom_mkreg.ELIOMREGSIG
@@ -119,7 +121,7 @@ module Xhtmlforms_ = struct
 
   let buttonsubmit = `Submit
 
-  let uri_of_string = uri_of_string
+  let uri_of_string = Uri.uri_of_string
 
   let empty_seq = []
   let cons_form a l = a::l
@@ -608,7 +610,7 @@ module type XHTMLFORMSSIG = sig
 
   val file_input :
       ?a:input_attrib attrib list ->
-        name:[< Ocsigen_lib.file_info setoneradio ] param_name ->
+        name:[< file_info setoneradio ] param_name ->
           unit -> [> input ] elt
 (** Creates an [<input>] tag for sending a file *)
 
@@ -1752,10 +1754,9 @@ end
 (****************************************************************************)
 (****************************************************************************)
 module SubXhtml(Format : sig 
-      type doctypes
       type content
       type 'a elt
-      val xhtml_list_stream : ?version:doctypes -> ?width: int -> ?encode:(string->string) 
+      val xhtml_list_stream : ?width: int -> ?encode:(string->string) 
         -> ?html_compat : bool -> content elt list -> string Ocsigen_stream.t end) = 
   (struct
     let result_of_content_subxhtml get_etag c =
@@ -1835,14 +1836,12 @@ module SubXhtml(Format : sig
 
 module Blocks = SubXhtml(struct
   type content = Xhtmltypes.body_content
-  include Xhtml_format.XhtmlInfo
-  include Xhtmlpretty_streams
+  include Xhtmlcompact_streams.Compact(Ocsigen_stream.StringStream)
 end)
 
 module Blocks5 = SubXhtml(struct
   type content = Xhtml5types.body_content
-  include Xhtml_format.Xhtml5Info
-  include Xhtml5pretty_streams
+  include Xhtml5compact_streams.Compact(Ocsigen_stream.StringStream)
 end)
 
 
@@ -2510,14 +2509,14 @@ module Filesreg_ = struct
     let sp = Eliom_common.get_sp () in
     let request = Eliom_request_info.get_request_sp sp in
     let file =
-      try Ocsigen_LocalFiles.resolve request filename
+      try Ocsigen_local_files.resolve request filename
       with
-        | Ocsigen_LocalFiles.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
-        | Ocsigen_LocalFiles.Failed_404
-        | Ocsigen_LocalFiles.NotReadableDirectory ->
+        | Ocsigen_local_files.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
+        | Ocsigen_local_files.Failed_404
+        | Ocsigen_local_files.NotReadableDirectory ->
             raise Eliom_common.Eliom_404
     in
-    Ocsigen_LocalFiles.content ~request ~file >>= fun r ->
+    Ocsigen_local_files.content ~request ~file >>= fun r ->
     Lwt.return
       { r with
           res_cookies = Eliom_request_info.get_user_cookies ();
@@ -2902,19 +2901,19 @@ module Caml = struct
     | Some eh -> 
         Some (fun l -> 
                 eh l >>= fun r ->
-                Lwt.return (Eliom_client_types.encode_eliom_data r))
+                Lwt.return (Eliom_types.encode_eliom_data r))
 
   let make_service_handler f =
     fun g p -> 
       f g p >>= fun r -> 
-      Lwt.return (Eliom_client_types.encode_eliom_data r)
+      Lwt.return (Eliom_types.encode_eliom_data r)
 
   let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code 
       ?content_type ?headers content =
     M.send ?options ?charset ?code 
-      ?content_type ?headers (Eliom_client_types.encode_eliom_data content)
+      ?content_type ?headers (Eliom_types.encode_eliom_data content)
 
   let register
       ?scope
@@ -3329,15 +3328,15 @@ redir ();"))::
                         [
                           "var container_node = \'";
                           (let reqnum = Eliom_request_info.get_request_id_sp sp in
-                           (Eliom_client_types.jsmarshal
-                              (Eliom_client_types.to_data_key_
+                           (Eliom_types.jsmarshal
+                              (Eliom_types.to_data_key_
                                  (*(reqnum, XML.ref_node container_node))*)
                                  (reqnum, Eliom_xml.make_node_id container_node))
                            )) ; "\'; \n";
 
                           "var eliom_data = \'" ;
                           (Eliom_client_types.jsmarshal
-				((Ocsigen_lib.Left
+                             ((Ocsigen_lib.Left
                                  (*(XML.make_ref_tree (XHTML5.M.toelt body)),*)
                                  (Eliom_xml.make_ref_tree (XHTML5.M.toelt body)),
                             (* Warning: due to right_to_left evaluation,
@@ -3353,12 +3352,12 @@ redir ();"))::
                                Eliom_services.get_onunload sp,
                                Eliommod_cli.client_si sp.Eliom_common.sp_si
                               ) :
-                                 Eliom_client_types.eliom_data_type
+                                 Eliom_types.eliom_data_type
                              )
                           ) ; "\'; \n" ;
 
 			  "var comet_service = \'" ;
-                          (Eliom_client_types.jsmarshal
+                          (Eliom_types.jsmarshal
 			     (Eliom_wrap.wrap
 				(Polytables.get
                                    ~table:cpi.Eliom_common.cpi_references
@@ -3372,10 +3371,9 @@ redir ();"))::
                                 (Eliommod_react.Down.of_react change_page_event)
                              )
                           ) ; "\'; \n" ;
-*)
 
                           "var sitedata = \'" ;
-                          (Eliom_client_types.jsmarshal
+                          (Eliom_types.jsmarshal
                              (Eliommod_cli.client_sitedata sp)
                           ) ; "\'; \n"
 
@@ -3408,7 +3406,7 @@ redir ();"))::
 
 (*VVV Here we do not send a stream *)
     Lwt.return
-      ((Ocsigen_lib.Right
+      ((Right
           (Eliom_xml.make_ref_tree_list (XHTML5.M.toeltl content)),
 	contents_to_send,
         eliom_appl_page_data,
@@ -3562,7 +3560,7 @@ module String_redirreg_ = struct
 
   let send ?(options = `Permanent) ?charset ?code
       ?content_type ?headers content =
-    let uri = XHTML.M.string_of_uri content in
+    let uri = Uri.string_of_uri content in
     let empty_result = Ocsigen_http_frame.empty_result () in
     let cookies = Eliom_request_info.get_user_cookies () in
     let content_type = match content_type with

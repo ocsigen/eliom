@@ -17,6 +17,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
+
+open Eliom_pervasives
+
 module F = Ocsigen_http_frame
 module H = Ocsigen_http_frame.Http_header
 
@@ -66,7 +69,7 @@ let retry_after = Http_headers.name "Retry-After"
 open CalendarLib
 
 let log_error e = Ocsigen_messages.warning 
-      ("Eliom_atom: error while contacting hub: " ^ Ocsigen_lib.string_of_exn e)
+      ("Eliom_atom: error while contacting hub: " ^ Printexc.to_string e)
 
 let parse_503 header = let r_int = Str.regexp "^[0-9]+$" in
       let r_date = Str.regexp 

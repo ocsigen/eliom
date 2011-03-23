@@ -18,12 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
 
-open Ocsigen_lib
+include Eliom_parameters_base
 
-include Eliom_parameters_cli
-
-let (>>=) = Lwt.bind
+open Ocsigen_extensions
 
 type anon_params_type = int
 
@@ -79,10 +78,10 @@ let all_suffix_regexp reg dest ~(to_string : 'a -> string) (n : string) :
 type 'a res_reconstr_param =
   | Res_ of ('a *
                (string * string) list *
-               (string * Ocsigen_lib.file_info) list)
+               (string * file_info) list)
   | Errors_ of ((string * exn) list *
                   (string * string) list *
-                  (string * Ocsigen_lib.file_info) list)
+                  (string * file_info) list)
 
 let reconstruct_params_
     req
@@ -92,11 +91,11 @@ let reconstruct_params_
     match (typ, suff) with
       | TAny, l | TESuffix _, l -> Obj.magic l, []
           (*VVV encode=false? *)
-      | TESuffixs _, l -> Obj.magic (string_of_url_path ~encode:false l), []
+      | TESuffixs _, l -> Obj.magic (Url.string_of_url_path ~encode:false l), []
       | TESuffixu (_, of_string, to_string), l ->
           (try
              (*VVV encode=false? *)
-             Obj.magic (of_string (string_of_url_path ~encode:false l)), []
+             Obj.magic (of_string (Url.string_of_url_path ~encode:false l)), []
            with e -> 
              raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
       | TOption t, [] -> Obj.magic None, []
@@ -224,7 +223,7 @@ let reconstruct_params_
              with Not_found -> Res_ ((Obj.magic None), params, files))
         | TBool name ->
             (try
-               let v,l = (list_assoc_remove (pref^name^suff) params) in
+               let v,l = (List.assoc_remove (pref^name^suff) params) in
                Res_ ((Obj.magic true),l,files)
              with Not_found -> Res_ ((Obj.magic false), params, files))
         | TList (n,t) -> Obj.magic (aux_list t params files n pref suff)
@@ -253,43 +252,43 @@ let reconstruct_params_
                   | Res_ (v,l,files) -> Res_ ((Obj.magic (Inj2 v)),l,files)
                   | err -> err))
         | TString name ->
-            let v,l = list_assoc_remove (pref^name^suff) params in
+            let v,l = List.assoc_remove (pref^name^suff) params in
             Res_ ((Obj.magic v),l,files)
         | TInt name ->
-            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            let v,l = (List.assoc_remove (pref^name^suff) params) in
             (try (Res_ ((Obj.magic (int_of_string v)), l, files))
              with e -> Errors_ ([(pref^name^suff),e], l, files))
         | TInt32 name ->
-            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            let v,l = (List.assoc_remove (pref^name^suff) params) in
             (try (Res_ ((Obj.magic (Int32.of_string v)),l,files))
              with e -> Errors_ ([(pref^name^suff),e], l, files))
         | TInt64 name ->
-            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            let v,l = (List.assoc_remove (pref^name^suff) params) in
             (try (Res_ ((Obj.magic (Int64.of_string v)),l,files))
              with e -> Errors_ ([(pref^name^suff),e], l, files))
         | TFloat name ->
-            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            let v,l = (List.assoc_remove (pref^name^suff) params) in
             (try (Res_ ((Obj.magic (float_of_string v)),l,files))
              with e -> Errors_ ([(pref^name^suff),e], l, files))
         | TFile name ->
-            let v,f = list_assoc_remove (pref^name^suff) files in
+            let v,f = List.assoc_remove (pref^name^suff) files in
             Res_ ((Obj.magic v), params, f)
         | TCoord name ->
             let r1 =
-              let v, l = (list_assoc_remove (pref^name^suff^".x") params) in
+              let v, l = (List.assoc_remove (pref^name^suff^".x") params) in
               (try (Res_ ((int_of_string v), l, files))
                with e -> Errors_ ([(pref^name^suff^".x"), e], l, files))
             in
             (match r1 with
                | Res_ (x1, l1, f) ->
-                   let v, l = (list_assoc_remove (pref^name^suff^".y") l1) in
+                   let v, l = (List.assoc_remove (pref^name^suff^".y") l1) in
                    (try (Res_ (
                            (Obj.magic
                               {abscissa= x1;
                                ordinate= int_of_string v}), l, f))
                     with e -> Errors_ ([(pref^name^suff^".y"), e], l, f))
                | Errors_ (errs, l1, f) ->
-                   let v, l = (list_assoc_remove (pref^name^suff^".y") l1) in
+                   let v, l = (List.assoc_remove (pref^name^suff^".y") l1) in
                    (try
                       ignore (int_of_string v);
                       Errors_ (errs, l, f)
@@ -297,7 +296,7 @@ let reconstruct_params_
         | TCoordv (t, name) ->
             aux (TProd (t, TCoord name)) params files pref suff
         | TUserType (name, of_string, string_of) ->
-            let v,l = (list_assoc_remove (pref^name^suff) params) in
+            let v,l = (List.assoc_remove (pref^name^suff) params) in
             (try (Res_ ((Obj.magic (of_string v)),l,files))
              with e -> Errors_ ([(pref^name^suff),e], l, files))
         | TUnit -> Res_ ((Obj.magic ()), params, files)
@@ -305,15 +304,15 @@ let reconstruct_params_
         | TConst _ ->
             Res_ ((Obj.magic ()), params, files)
         | TESuffix n ->
-            let v,l = list_assoc_remove n params in
+            let v,l = List.assoc_remove n params in
             (* cannot have prefix or suffix *)
             Res_ ((Obj.magic (Neturl.split_path v)), l, files)
         | TESuffixs n ->
-            let v,l = list_assoc_remove n params in
+            let v,l = List.assoc_remove n params in
             (* cannot have prefix or suffix *)
             Res_ ((Obj.magic v), l, files)
         | TESuffixu (n, of_string, to_string) ->
-            let v,l = list_assoc_remove n params in
+            let v,l = List.assoc_remove n params in
             (* cannot have prefix or suffix *)
             (try Res_ ((Obj.magic (of_string v)), l, files)
              with e -> Errors_ ([(pref^n^suff), e], l, files))
@@ -329,8 +328,8 @@ let reconstruct_params_
                       | p, [] -> Res_ (p, params, files)
                       | _ -> raise Eliom_common.Eliom_Wrong_parameter))
         | TJson (name, Some typ) ->
-            let v,l = list_assoc_remove (pref^name^suff) params in
-            Res_ ((Ocsigen_lib.of_json ~typ v),l,files)
+            let v,l = List.assoc_remove (pref^name^suff) params in
+            Res_ ((of_json ~typ v),l,files)
         | TJson (name, None) -> assert false
           (* Never unmarshal server side without type! *)
         | TRaw_post_data -> raise Eliom_common.Eliom_Wrong_parameter
@@ -393,7 +392,7 @@ let get_non_localized_parameters params getorpost ~sp
      let p =
        try
          Some 
-           (let params = Ocsigen_lib.String_Table.find name params in
+           (let params = String.Table.find name params in
             reconstruct_params_
               sp.Eliom_common.sp_request paramtype params [] false None)
        with Eliom_common.Eliom_Wrong_parameter | Not_found -> None

@@ -21,7 +21,7 @@
 type 'a t
 
 val unwrap :
-    (  (('a Eliom_common_comet.chan_id)
+    (  ('a Eliom_common_comet.chan_id)
      * (unit,
         'a list,
         [< Eliom_services.service_kind ],
@@ -30,7 +30,7 @@ val unwrap :
         'c,
         [< Eliom_services.registrable ],
         'd) Eliom_services.service ) * 'b
-    ) Eliom_client_types.data_key
+    ) Eliom_types.data_key
   -> 'a t
 
 val stream : 'a t -> 'a Lwt_stream.t

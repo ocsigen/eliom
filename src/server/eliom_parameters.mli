@@ -50,6 +50,7 @@ to find during implementation.
 
  *)
 
+open Eliom_pervasives
 open Ocsigen_extensions
 
 (** {2 Types used by the module} *)
@@ -137,8 +138,8 @@ val bool :
    (to use for example with boolean checkboxes) *)
 
 val file :
-    string -> (Ocsigen_lib.file_info, [ `WithoutSuffix ],
-               [ `One of Ocsigen_lib.file_info ] param_name) params_type
+    string -> (file_info, [ `WithoutSuffix ],
+               [ `One of file_info ] param_name) params_type
 (** [file s] tells that the service takes a file as parameter, labeled [s]. *)
 
 val unit : (unit, [ `WithoutSuffix ], unit) params_type
@@ -453,21 +454,21 @@ val add_pref_params :
         ('a, 'b, 'c) params_type
 
 val construct_params :
-  (string * string) list Ocsigen_lib.String_Table.t ->
+  (string * string) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   'a -> string list option * string
 
 val construct_params_string : (string * string) list -> string
 
 val construct_params_list_raw :
-  (string * string) list Ocsigen_lib.String_Table.t ->
+  (string * string) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   'a -> string list option * 
-  (string * string) list Ocsigen_lib.String_Table.t *
+  (string * string) list String.Table.t *
      (string * string) list
 
 val construct_params_list :
-  (string * string) list Ocsigen_lib.String_Table.t ->
+  (string * string) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   'a -> 
   string list option * (string * string) list
@@ -476,9 +477,9 @@ val reconstruct_params :
   sp:Eliom_common.server_params ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   (string * string) list Lwt.t option ->
-  (string * Ocsigen_lib.file_info) list Lwt.t option -> 
+  (string * file_info) list Lwt.t option -> 
   bool ->
-  Ocsigen_lib.url_path option -> 'a Lwt.t
+  Url.path option -> 'a Lwt.t
 
 type anon_params_type = int
 
@@ -495,12 +496,12 @@ val nl_prod :
   ('a * 's, 'su, 'an * 'sn) params_type 
 
 val remove_from_nlp :
-  (string * string) list Ocsigen_lib.String_Table.t ->
+  (string * string) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-  (string * string) list Ocsigen_lib.String_Table.t
+  (string * string) list String.Table.t
 
 val table_of_nl_params_set : nl_params_set -> 
-  (string * string) list Ocsigen_lib.String_Table.t
+  (string * string) list String.Table.t
 
 val list_of_nl_params_set : nl_params_set -> (string * string) list
 

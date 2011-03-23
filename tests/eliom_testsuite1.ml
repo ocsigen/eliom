@@ -3,8 +3,11 @@
    Take the code in the manual, not here! (and remove duplicates here) *)
 (* TODO: include some missing parts in the manual *)
 
+open Eliom_pervasives
+
 open Lwt
 open XHTML.M
+open Ocsigen_cookies
 open Eliom_services
 open Eliom_parameters
 open Eliom_state
@@ -26,7 +29,7 @@ let coucou1 =
     ~get_params:Eliom_parameters.unit
     (fun () () ->
       return
-        << <html>
+        <:xml< <html>
              <head><title></title></head>
              <body><h1>Coucou</h1></body>
            </html> >>)
@@ -144,7 +147,7 @@ let isuffix =
            [p [pcdata "The suffix of the url is ";
                strong [pcdata (string_of_int suff)];
                pcdata " followed by ";
-               strong [pcdata (Ocsigen_lib.string_of_url_path ~encode:false endsuff)];
+               strong [pcdata (Url.string_of_url_path ~encode:false endsuff)];
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*wiki*
@@ -256,7 +259,7 @@ let links = register_service ["rep";"links"] unit
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
          XHTML.M.a
-           ~a:[a_href (uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
+           ~a:[a_href (Uri.uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
            [pcdata "OCaml on wikipedia"]
        ]])))
 (*zap*
@@ -1110,7 +1113,7 @@ let _ = Eliom_output.Xhtml.register cookies
          (head (title (pcdata "")) [])
          (body [p [pcdata (try
                              "cookie value: "^
-                               (Ocsigen_lib.String_Table.find
+                               (CookiesTable.find
                                   cookiename (Eliom_request_info.get_cookies ()))
                            with _ -> "<cookie not set>");
                    br ();
@@ -2252,10 +2255,10 @@ let listform = register_service ["listform"] unit
 *wiki*)
 (* Form for service with suffix: *)
 let create_suffixform ((suff, endsuff),i) =
-    <:xmllist< <p>Write the suffix:
+    <:xmllist< <p>Write the suffix (integer):
       $int_input ~input_type:`Text ~name:suff ()$ <br/>
       Write a string: $user_type_input
-      (Ocsigen_lib.string_of_url_path ~encode:false)
+      (Url.string_of_url_path ~encode:false)
          ~input_type:`Text ~name:endsuff ()
          $ <br/>
       Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>

@@ -17,9 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
 
-open Ocsigen_lib
-
+open Ocsigen_extensions
 
 (** Type of names in a form *)
 type 'a param_name = string
@@ -105,7 +105,7 @@ let string (n : string)
   TString n
 
 let file (n : string)
-    : (Ocsigen_lib.file_info , [`WithoutSuffix], [ `One of Ocsigen_lib.file_info ] param_name) params_type =
+    : (file_info , [`WithoutSuffix], [ `One of file_info ] param_name) params_type =
   TFile n
 
 let unit : (unit, [`WithoutSuffix], unit) params_type = TUnit
@@ -283,15 +283,15 @@ let construct_params_list_raw
     | TAny | TESuffix _ -> (match Obj.magic params with [] -> [""] | p -> p)
     | TESuffixu (_, of_string, string_of) -> [string_of (Obj.magic params)]
     | TJson (_, typ) -> (* server or client side *)
-      [ Ocsigen_lib.to_json ?typ (Obj.magic params) ]
-    | _ -> raise (Ocsigen_lib.Ocsigen_Internal_Error
+      [ to_json ?typ (Obj.magic params) ]
+    | _ -> raise (Eliom_Internal_Error
                     "Bad parameter type in suffix")
   in
   let rec aux typ psuff nlp params pref suff l =
     match typ with
     | TNLParams (name, _, _, t) -> 
         let psuff, nlp, nl = aux t psuff nlp params pref suff [] in
-        (psuff, Ocsigen_lib.String_Table.add name nl nlp, l)
+        (psuff, String.Table.add name nl nlp, l)
     | TProd (t1, t2) ->
         let psuff, nlp, l1 = 
           aux t1 psuff nlp (fst (Obj.magic params)) pref suff l 
@@ -350,12 +350,12 @@ let construct_params_list_raw
     | TConst _ -> psuff, nlp, l
     | TESuffix _
     | TESuffixs _
-    | TESuffixu _ -> raise (Ocsigen_lib.Ocsigen_Internal_Error
+    | TESuffixu _ -> raise (Eliom_Internal_Error
                               "Bad use of suffix")
     | TSuffix (_, s) -> Some (make_suffix s (Obj.magic params)), nlp, l
     | TJson (name, typ) -> (* server or client side *)
       psuff, nlp, ((pref^name^suff),
-                   Ocsigen_lib.to_json ?typ (Obj.magic params))::l
+                   to_json ?typ (Obj.magic params))::l
     | TRaw_post_data ->
       failwith "Constructing an URL with raw POST data not possible"
   in
@@ -395,8 +395,8 @@ let rec get_to_and_from x = match x with
   | TBool name -> (* XXX: is that it ? *)
     Obj.magic ((fun s -> if s = "on" || s = "true" then true else false))
   | TJson (_, typ) -> (* server or client side *)
-    Obj.magic ((fun s -> Ocsigen_lib.of_json ?typ s),
-               (fun d -> Ocsigen_lib.to_json ?typ d))
+    Obj.magic ((fun s -> of_json ?typ s),
+               (fun d -> to_json ?typ d))
   | TUnit ->
     Obj.magic ((fun _ -> ()), (fun () -> ""))
   | TString _ ->
@@ -443,12 +443,11 @@ let rec walk_parameter_tree name x = match x with
 
 
 (* contruct the string of parameters (& separated) for GET and POST *)
-let construct_params_string =
-  Ocsigen_lib.mk_url_encoded_parameters
+let construct_params_string = Url.make_encoded_parameters
 
 let construct_params_list nonlocparams typ p =
   let (suff, nonlocparams, pl) = construct_params_list_raw nonlocparams typ p in
-  let nlp = Ocsigen_lib.String_Table.fold (fun _ l s -> l@s) nonlocparams [] in
+  let nlp = String.Table.fold (fun _ l s -> l@s) nonlocparams [] in
   let pl = pl@nlp in (* pl at beginning *)
   (suff, pl)
 
@@ -562,25 +561,25 @@ let nl_prod
 (* removes from nlp set the nlp parameters that are present in param
    specification *)
 let rec remove_from_nlp nlp = function
-    | TNLParams (n, _, _, _) -> Ocsigen_lib.String_Table.remove n nlp
+    | TNLParams (n, _, _, _) -> String.Table.remove n nlp
     | TProd (t1, t2) -> 
         let nlp = remove_from_nlp nlp t1 in
         remove_from_nlp nlp t2
     | _ -> nlp
 
-type nl_params_set = (string * string) list Ocsigen_lib.String_Table.t
+type nl_params_set = (string * string) list String.Table.t
 
-let empty_nl_params_set = Ocsigen_lib.String_Table.empty
+let empty_nl_params_set = String.Table.empty
 
 let add_nl_parameter s t v = 
   (fun (_, a, _) -> a) (construct_params_list_raw s (TNLParams t) v)
 
-let table_of_nl_params_set = Ocsigen_lib.id
+let table_of_nl_params_set = id
 
 let list_of_nl_params_set nlp = snd (construct_params_list nlp unit ())
 
 let string_of_nl_params_set nlp =
-  Ocsigen_lib.mk_url_encoded_parameters (list_of_nl_params_set nlp)
+  Url.make_encoded_parameters (list_of_nl_params_set nlp)
 
 let get_nl_params_names t = snd (make_params_names (TNLParams t))
 

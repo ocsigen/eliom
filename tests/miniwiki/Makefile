@@ -1,52 +1,57 @@
-include ../../../Makefile.config
+include ../../Makefile.config
 
-FILES=$(wildcard *.ml)
+## Use local files
+## (tests do not require global installation of Eliom)
+export OCAMLPATH := ${SRC}/src/files:${OCAMLPATH}
 
-LIB = -package lwt.unix,pcre $(LIBDIRS2:../../%=../../../%)
-CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
-CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
-CAMLDEP = $(OCAMLFIND) ocamldep
+PACKAGE  := eliom.server,lwt.unix,pcre
+LIBS := -I .. ${addprefix -package ,${PACKAGE}}
 
-ifeq "$(NATDYNLINK)" "YES"
-CMXS=$(FILES:.ml=.cmxs)
-CMXSCMD=cp $(OBJSOPT) ..
+OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -thread
+OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG} -thread
+OCAMLDEP := $(OCAMLFIND) ocamldep
+
+ifeq "${NATDYNLINK}" "YES"
+all: byte opt
 else
-CMXS=
-CMXSCMD=
+all: byte
 endif
 
+### Library
 
-OBJS=$(FILES:.ml=.cmo)
-OBJSOPT=$(CMXS)
+FILES := miniwiki.ml
 
-byte: $(OBJS)
-	cp $(OBJS) ..
+byte:: miniwiki.cmo
+opt:: miniwiki.cmxs
 
-opt: $(OBJSOPT)
-	$(CMXSCMD)
+miniwiki.cma: ${FILES:.ml=.cmo}
+	${OCAMLC} -a -o $@ $^
+miniwiki.cmxa: ${FILES:.ml=.cmx}
+	${OCAMLOPT} -a -o $@ $^
 
+############
 
-.SUFFIXES:
-.SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
+%.cmi: %.mli
+	$(OCAMLC) ${LIBS} -c $<
+%.cmo: %.ml
+	$(OCAMLC) ${LIBS} -c $<
+%.cmx: %.ml
+	$(OCAMLOPT) ${LIBS} -c $<
+%.cmxs: %.cmxa
+	$(OCAMLOPT) -shared -linkall -o $@ $<
 
-.PHONY: doc
-
-.ml.cmo:
-	$(CAMLC) -c $<
-
-.mli.cmi:
-	$(CAMLC) -c $<
-
-.ml.cmx:
-	$(CAMLOPT) -c $<
-
-.cmx.cmxs:
-	$(CAMLOPT) -shared -linkall -o $@ $<
+## Clean up
 
 clean:
-	-rm -f *.cm[ioxa] *.cmxa *.cmxs *.o *~ $(NAME)
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
+
+distclean: clean
+	-rm -f *~ \#* .\#*
+
+## Dependencies
 
 depend:
-	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
+	$(OCAMLDEP) ${LIBS} *.ml *.mli > .depend
 
+FORCE:
 -include .depend

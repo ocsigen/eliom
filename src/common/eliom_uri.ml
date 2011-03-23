@@ -19,10 +19,12 @@
  *)
 
 
-open Lwt
-open Ocsigen_lib
+open Eliom_pervasives
+
 open Eliom_parameters
 open Eliom_services
+
+open Lwt
 
 
 (*****************************************************************************)
@@ -30,12 +32,12 @@ open Eliom_services
 let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
-  | [a] -> Ocsigen_lib.encode ~plus:false a
+  | [a] -> Url.encode ~plus:false a
   | a::b::l when b = Eliom_common.eliom_suffix_internal_name -> 
       string_of_url_path' (a::l)
   | a::l when a = Eliom_common.eliom_suffix_internal_name ->
       string_of_url_path' l
-  | a::l -> (Ocsigen_lib.encode ~plus:false a)^"/"^(string_of_url_path' l)
+  | a::l -> (Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
 
 let rec string_of_url_path_suff u = function
   | None -> string_of_url_path' u
@@ -106,10 +108,10 @@ let make_proto_prefix
   in
   let host = match hostname, sp with
     | None, Some sp -> Eliom_state.get_csp_hostname_sp sp
-    | None, None -> Eliom_config.get_default_hostname () 
+    | None, None -> Eliom_config.get_default_hostname ()
     | Some h, _ -> h
   in
-  let port = 
+  let port =
     match port, sp with
       | Some p, _ -> p
       | None, Some sp ->
@@ -123,7 +125,7 @@ let make_proto_prefix
         then Eliom_config.get_default_sslport ()
         else Eliom_config.get_default_port ()
   in
-  Ocsigen_lib.make_absolute_url https host port "/"
+  Url.make_absolute_url https host port "/"
 
 
 
@@ -173,14 +175,14 @@ let make_uri_components_ (* does not take into account getparams *)
     match keep_nl_params, sp with
       | `All, Some sp ->
           (* We replace current nl params by preapplied ones *)
-          Ocsigen_lib.String_Table.fold
-            (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+          String.Table.fold
+            (fun key v b -> String.Table.add key v b)
             preappnlp
             (Eliom_request_info.get_nl_get_params_sp sp)
       | `Persistent, Some sp ->
           (* We replace current nl params by preapplied ones *)
-          Ocsigen_lib.String_Table.fold
-            (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+          String.Table.fold
+            (fun key v b -> String.Table.add key v b)
             preappnlp
             (Eliom_request_info.get_persistent_nl_get_params_sp sp)
       | `All, None
@@ -189,8 +191,8 @@ let make_uri_components_ (* does not take into account getparams *)
   in
   let nlp =
     (* We replace current nl params by nl_params *)
-    Ocsigen_lib.String_Table.fold
-      (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+    String.Table.fold
+      (fun key v b -> String.Table.add key v b)
       nl_params
       nlp
   in
@@ -199,7 +201,7 @@ let make_uri_components_ (* does not take into account getparams *)
   let getparamstype = get_get_params_type_ service in
   let nlp = Eliom_parameters.remove_from_nlp nlp getparamstype in
   let hiddenparams = 
-    Ocsigen_lib.String_Table.fold
+    String.Table.fold
       (fun _ l beg -> l@beg)
       nlp preapplied_params
   in
@@ -327,7 +329,7 @@ let make_uri_components
   (* for getparams and non localized params: *)
   let suff, params =
     construct_params_list
-      String_Table.empty
+      String.Table.empty
       (get_get_params_type_ service) getparams 
       (* if nl params were already present, they will be replaced
          by new values *)
@@ -341,7 +343,7 @@ let make_uri_components
         then uri ^ suff
         else String.concat "/" [uri; suff]
   in
-  let fragment = Ocsigen_lib.apply_option Ocsigen_lib.encode fragment in
+  let fragment = map_option Url.encode fragment in
   (uri, (params@pregetparams), fragment)
 
 
@@ -349,7 +351,7 @@ let make_uri_components
 
 
 let make_string_uri_from_components (uri, params, fragment) =
-  let s = Ocsigen_lib.concat_strings uri "?" (construct_params_string params) in
+  let s = String.may_concat uri "?" (construct_params_string params) in
   match fragment with
     | None -> s
     | Some f -> String.concat "#" [s; f]
@@ -467,22 +469,22 @@ let make_post_uri_components_ (* do not take into account postparams *)
               match keep_nl_params with
                 | `All ->
                     (* We replace current nl params by preapplied ones *)
-                    Ocsigen_lib.String_Table.fold
-                      (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+                    String.Table.fold
+                      (fun key v b -> String.Table.add key v b)
                       preappnlp
                       (Eliom_request_info.get_nl_get_params ())
                 | `Persistent ->
                     (* We replace current nl params by preapplied ones *)
-                    Ocsigen_lib.String_Table.fold
-                      (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+                    String.Table.fold
+                      (fun key v b -> String.Table.add key v b)
                       preappnlp
                       (Eliom_request_info.get_persistent_nl_get_params_sp sp)
                 | `None -> preappnlp
             in
             let nlp =
               (* We replace current nl params by nl_params *)
-              Ocsigen_lib.String_Table.fold
-                (fun key v b -> Ocsigen_lib.String_Table.add key v b)
+              String.Table.fold
+                (fun key v b -> String.Table.add key v b)
                 nl_params
                 nlp
             in
@@ -595,7 +597,7 @@ let make_post_uri_components
   in
   let _, postparams =
     construct_params_list
-      Ocsigen_lib.String_Table.empty
+      String.Table.empty
       (get_post_params_type_ service) 
       postparams
   in

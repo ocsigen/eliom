@@ -15,10 +15,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
+
+open Eliom_pervasives
 open Eliom_s2s
 open Ocsigen_stream
 open Lwt
-open Ocsigen_lib
 open Simplexmlparser
 open Ocsigen_http_frame
 open Cryptokit
@@ -378,7 +379,7 @@ let format_demands ~required ~required_name ~optional ~optional_name =
 let sreg ?policy_url ~required ~optional () = 
   let li = format_demands ~required ~optional
     ~required_name: "required" ~optional_name: "optional"
-    @ (apply_option (fun x -> "policy_url", x) policy_url ^? [])
+    @ (map_option (fun x -> "policy_url", x) policy_url ^? [])
   in
   let sreg_url = "http://openid.net/extensions/sreg/1.1" in
   { 
@@ -435,13 +436,13 @@ let pape ?max_auth_age ?auth_policies () =
     headers = 
       (build_opt_list 
         ["ns.pape", Some url;
-         "pape.max_auth_age", apply_option string_of_int max_auth_age;
-         "pape.preferred_auth_policies", apply_option (String.concat ",") auth_policies]);
+         "pape.max_auth_age", map_option string_of_int max_auth_age;
+         "pape.preferred_auth_policies", map_option (String.concat ",") auth_policies]);
     parse = (fun args ->
       let args = find_in_ns ~default_namespace: "pape" url args in
       let auth_time = assoc_opt "auth_time" args in
-      let policies = apply_option (split ',') (assoc_opt "auth_policies" args) in
-      let nist_level = apply_option int_of_string (assoc_opt "nist_auth_level" args) in
+      let policies = map_option (String.split ',') (assoc_opt "auth_policies" args) in
+      let nist_level = map_option int_of_string (assoc_opt "nist_auth_level" args) in
       Lwt.return
         { auth_time = auth_time; policies = policies;
           nist_level = nist_level })
@@ -533,7 +534,7 @@ module Make (S : HiddenServiceInfo) = struct
        "realm", "http://"^Eliom_request_info.get_hostname ()] @ ext.headers
     in
     let params = push_ns "openid" (("ns", openid_url) :: ("mode", mode) :: params) in
-    Lwt.return (uri_of_string (format_url (fst discovery) params))
+    Lwt.return (Uri.uri_of_string (format_url (fst discovery) params))
 end
 
 (* GLUE *)

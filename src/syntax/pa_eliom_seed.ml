@@ -281,16 +281,23 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	(function (*channel*)
 	  | <:ctyp< ($_$ Eliom_comet.Channels.t) >> ->
               (<:expr<Eliom_comet.Channels.wrap>>,
-		<:expr<Eliom_client_comet.unwrap>>)
+		<:expr<Eliom_comet.unwrap>>)
 	  | _ -> raise Next
 	);
 *)
+
+	(function (*buffchan*)
+	  | <:ctyp< ($_$ Eliom_comet.Buffered_channels.t) >> ->
+              (<:expr<Eliom_comet.Buffered_channels.wrap>>,
+		<:expr<Eliom_client_comet.Buffered_channels.unwrap>>)
+	  | _ -> raise Next
+	);
 
 (*
 	(function (*up_event*)
 	  | <:ctyp< ($_$ Eliom_react.Up.t) >> ->
               (<:expr<Eliom_react.Up.wrap>>,
-		<:expr<Eliom_client_react.Up.unwrap>>)
+		<:expr<Eliom_react.Up.unwrap>>)
 	  | _ -> raise Next
 	);
 *)
@@ -298,7 +305,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	(function (*down_event*)
 	  | <:ctyp< ($_$ Eliom_react.Down.t) >> ->
               (<:expr<Eliom_react.Down.wrap>>,
-		<:expr<Eliom_client_react.Down.unwrap>>)
+		<:expr<Eliom_react.Down.unwrap>>)
 	  | _ -> raise Next
 	);
 *)
@@ -306,7 +313,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	(function (*bus*)
 	  | <:ctyp< ($_$ Eliom_bus.t) >> ->
               (<:expr<Eliom_bus.wrap>>,
-		<:expr<Eliommod_cli.unwrap>>)
+		<:expr<Eliom_client_bus.unwrap>>)
 	  | _ -> raise Next
 	);
 *)

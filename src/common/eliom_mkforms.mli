@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
 
 (** This module defines the functor to use to creates modules
    generating form widgets for your own types of pages.
@@ -29,6 +30,7 @@ open Lwt
 open Eliom_parameters
 open Eliom_services
 
+open Ocsigen_extensions
 
 module type FORMCREATE =
   sig
@@ -531,7 +533,7 @@ module type ELIOMFORMSIG =
 
     val file_input :
         ?a:input_attrib_t ->
-          name:[< Ocsigen_lib.file_info setoneradio ] param_name ->
+          name:[< file_info setoneradio ] param_name ->
             unit -> input_elt
 (** Creates an [<input>] tag for sending a file *)
 

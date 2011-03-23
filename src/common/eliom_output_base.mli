@@ -18,10 +18,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+
 open Eliom_services
 open Eliom_parameters
 open Eliom_mkforms
 
+open Ocsigen_extensions
 
 (** {3 Creating links and forms with XHTML5.M} *)
 
@@ -350,7 +353,7 @@ module type XHTML5FORMSSIG = sig
 
   val file_input :
       ?a:input_attrib attrib list ->
-        name:[< Ocsigen_lib.file_info setoneradio ] param_name ->
+        name:[< file_info setoneradio ] param_name ->
           unit -> [> input ] elt
 (** Creates an [<input>] tag for sending a file *)
 

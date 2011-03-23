@@ -26,9 +26,10 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
+open Eliom_pervasives
+
 open Lwt
 open Ocsigen_http_frame
-open Ocsigen_lib
 open Ocsigen_extensions
 open Lazy
 
@@ -81,7 +82,7 @@ let new_sitedata =
   (* To do that, we keep the site data in a table *)
   let module S = Hashtbl.Make(struct
                                 type t = 
-                                    Ocsigen_extensions.virtual_hosts * url_path
+                                    Ocsigen_extensions.virtual_hosts * Url.path
                                 let equal (vh1, u1 : t) (vh2, u2 : t) =
                                   Ocsigen_extensions.equal_virtual_hosts vh1 vh2
                                   && u1 = u2
@@ -113,7 +114,7 @@ let new_sitedata =
            perstimeout =  None, None, [];
            site_dir = site_dir;
 (*VVV encode=false??? *)
-           site_dir_string = Ocsigen_lib.string_of_url_path
+           site_dir_string = Url.string_of_url_path
               ~encode:false site_dir;
            config_info = config_info;
            global_services = 
@@ -188,7 +189,7 @@ let new_sitedata =
             Eliommod_sessiongroups.Data.remove_group fullbrowsersessgrp;
             (* Then we close all group tables: *)
             let key = match thd3 fullbrowsersessgrp with
-              | Ocsigen_lib.Left a -> a
+              | Left a -> a
               | _ -> Eliom_common.default_group_name
             in
             (* iterate on all session data tables: *)
@@ -415,8 +416,8 @@ let parse_eliom_option
 
   | (Element ("ipv4subnetmask", [("value", v)], [])) ->
       (try 
-         (match Ocsigen_lib.parse_ip v with
-            | Ocsigen_lib.IPv4 a, None -> set_ipv4mask a
+         (match Ip_address.parse_ip v with
+            | Ip_address.IPv4 a, None -> set_ipv4mask a
             | _ -> failwith "ipv6"
          )
        with Failure _ -> 
@@ -424,8 +425,8 @@ let parse_eliom_option
                   ("Eliom: Wrong attribute value for ipv4subnetmask tag")))
   | (Element ("ipv6subnetmask", [("value", v)], [])) ->
       (try 
-         (match Ocsigen_lib.parse_ip v with
-            | Ocsigen_lib.IPv6 (a, b), None -> set_ipv6mask (a, b)
+         (match Ip_address.parse_ip v with
+            | Ip_address.IPv6 (a, b), None -> set_ipv6mask (a, b)
             | _ -> failwith "ipv6"
          )
           with Failure _ -> 
@@ -566,13 +567,13 @@ let handle_init_exn = function
        "\". Please correct the module.")
   | Eliom_common.Eliom_there_are_unregistered_services (s, l1, l2) ->
       ("Eliom: in site /"^
-       (Ocsigen_lib.string_of_url_path ~encode:false s)^" - "^
+       (Url.string_of_url_path ~encode:false s)^" - "^
        (match l1 with
        | [] -> ""
        | [a] -> "One service or coservice has not been registered on URL /"
-           ^(Ocsigen_lib.string_of_url_path ~encode:false a)^". "
+           ^(Url.string_of_url_path ~encode:false a)^". "
        | a::ll ->
-           let string_of = Ocsigen_lib.string_of_url_path ~encode:false in
+           let string_of = Url.string_of_url_path ~encode:false in
            "Some services or coservices have not been registered \
              on URLs: "^
              (List.fold_left
@@ -644,7 +645,7 @@ let load_eliom_module sitedata cmo_or_name content =
                (Printf.sprintf "Eliom: while loading %s: %s"
                   n
                   (try handle_init_exn e
-                   with e -> Ocsigen_lib.string_of_exn e)))
+                   with e -> Printexc.to_string e)))
 
 
 (*****************************************************************************)
@@ -689,7 +690,7 @@ let parse_config hostpattern conf_info site_dir =
               with Ocsigen_loader.Findlib_error _ as e ->
                 raise (Error_in_config_file
                          (Printf.sprintf "Findlib error: %s"
-                            (Ocsigen_lib.string_of_exn e)))
+                            (Printexc.to_string e)))
               end
           | _ -> raise (Error_in_config_file
                           ("Duplicate attribute module in <eliom>"))
@@ -729,7 +730,7 @@ let parse_config hostpattern conf_info site_dir =
                          float option -> unit)
             cookie_type state_name_oo v =
           f
-            ?fullsessname:(Ocsigen_lib.apply_option 
+            ?fullsessname:(map_option
                              (Eliom_common.make_fullsessname2
                                 sitedata.Eliom_common.site_dir_string
                                 cookie_type)
@@ -771,7 +772,7 @@ let parse_config hostpattern conf_info site_dir =
                     sitedata.Eliom_common.ipv4mask (* unused *)
                     oldipv6mask
                     sitedata.Eliom_common.dlist_ip_table
-                    Ocsigen_lib.inet6_addr_loopback
+                    Ip_address.inet6_addr_loopback
                   in
                   ignore (Ocsigen_cache.Dlist.set_maxsize dlist v)
                 with Not_found -> () (* should not occure *)

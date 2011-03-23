@@ -1,12 +1,10 @@
 include ../../Makefile.config
 
-export OCAMLPATH := ../../deriving/tmp:${OCAMLPATH}
+PACKAGE  := camlp4.quotations.o,camlp4.extend
+LIBS := ${addprefix -package ,${PACKAGE}}
 
-PP = -pp camlp4of
-LIBS = -I +camlp4 -I +camlp4/Camlp4Printers -I +camlp4/Camlp4Parsers -I +camlp4/Camlp4Filters
-
-OCAMLDEP = $(OCAMLFIND) ocamldep $(LIBS) $(PP) -package deriving.syntax
-OCAMLC = $(OCAMLFIND) $(CAMLCNAME) $(LIBS) $(PP)
+OCAMLDEP := $(OCAMLFIND) ocamldep -syntax camlp4o
+OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -syntax camlp4o
 
 FILES:= pa_eliom_seed.ml \
 	pa_eliom_type_filter.ml \
@@ -15,13 +13,23 @@ FILES:= pa_eliom_seed.ml \
 
 all: $(FILES:.ml=.cmo)
 
+install:
+	${INSTALL} -m 755 -d ${SYNTAXDIR}
+	${INSTALL} -m 644 ${FILES:.ml=.cmi} ${FILES:.ml=.cmo} ${SYNTAXDIR}
+
+uninstall:
+	-rm -fr ${SYNTAXDIR}
+
 %.cmo: %.ml
-	$(OCAMLC) -c $<
+	$(OCAMLC) ${LIBS} -c $<
 
 clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
 
+distclean: clean
+	-rm -f *~ \#* .\#*
+
 depend:
-	$(OCAMLDEP) $(FILES) > .depend
+	$(OCAMLDEP) ${LIBS} $(FILES) > .depend
 
 -include .depend

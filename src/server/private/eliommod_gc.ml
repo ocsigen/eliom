@@ -20,6 +20,8 @@
 
 (** Garbage collection of services and session data *)
 
+open Eliom_pervasives
+
 open Lwt
 
 (*****************************************************************************)
@@ -47,9 +49,9 @@ let rec gc_timeouted_services now tables =
                      | Eliom_common.Vide -> ()
                      | Eliom_common.Table tr ->
                          let newr = 
-                           Ocsigen_lib.String_Table.remove filename tr
+                           String.Table.remove filename tr
                          in
-                         if Ocsigen_lib.String_Table.is_empty newr
+                         if String.Table.is_empty newr
                          then t := Eliom_common.Vide
                          else t := Eliom_common.Table newr
                   )
@@ -108,9 +110,9 @@ let rec gc_timeouted_services now tables =
                | Eliom_common.Vide -> ()
                | Eliom_common.Table tr ->
                    let newr = 
-                     Ocsigen_lib.String_Table.remove filename tr
+                     String.Table.remove filename tr
                    in
-                   if Ocsigen_lib.String_Table.is_empty newr
+                   if String.Table.is_empty newr
                    then t := Eliom_common.Vide
                    else t := Eliom_common.Table newr
             );
@@ -119,14 +121,14 @@ let rec gc_timeouted_services now tables =
     match !t with
       | Eliom_common.Vide -> Lwt.return ()
       | Eliom_common.Table r ->
-        if Ocsigen_lib.String_Table.is_empty r
+        if String.Table.is_empty r
         then begin t := Eliom_common.Vide; Lwt.return () end
         else begin
-          Ocsigen_lib.String_Table.fold (aux t) r (Lwt.return ()) >>= fun () ->
+          String.Table.fold (aux t) r (Lwt.return ()) >>= fun () ->
           match !t with (* !t has probably changed *)
             | Eliom_common.Vide -> Lwt.return ()
             | Eliom_common.Table r ->
-              if Ocsigen_lib.String_Table.is_empty r
+              if String.Table.is_empty r
               then t := Eliom_common.Vide;
               Lwt.return () 
         end
@@ -136,7 +138,7 @@ let rec gc_timeouted_services now tables =
   >>= fun () ->
   tables.Eliom_common.table_services <- 
     List.filter
-    (fun r -> !(Ocsigen_lib.thd3 r) <> Eliom_common.Vide)
+    (fun r -> !(thd3 r) <> Eliom_common.Vide)
     tables.Eliom_common.table_services;
   Lwt.return ()
 
@@ -246,12 +248,12 @@ let data_session_gc sitedata =
                    return ()
                | _ ->
                    match !session_group_ref with
-                     | (_, scope, Ocsigen_lib.Right _) (* no group *)
+                     | (_, scope, Right _) (* no group *)
                          when
                            (Eliommod_sessiongroups.Data.group_size
                               (sitedata.Eliom_common.site_dir_string,
                                `Client_process,
-                               Ocsigen_lib.Left k)
+                               Left k)
                             = 0) (* no tab sessions *)
                            &&
                              not_bound_in_data_tables k ->

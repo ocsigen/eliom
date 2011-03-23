@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-include Eliom_services_cli
+include Eliom_services_base
 
 let need_process_cookies s = not (is_external s)
 (* If there is a client side process, we do an XHR with tab cookies *)

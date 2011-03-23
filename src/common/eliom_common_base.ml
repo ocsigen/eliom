@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+
+open Ocsigen_cookies
 
 (******************************************************************)
 type cookie_scope = [ `Session | `Client_process ]
@@ -40,7 +43,6 @@ module Fullsessionname_Table = Map.Make(struct
   type t = fullsessionname
   let compare = compare
 end)
-
 
 (******************************************************************)
 (* Service kinds: *)
@@ -85,15 +87,15 @@ type na_key_req =
 
 let att_key_serv_of_req = function
   | RAtt_no -> SAtt_no
-  | RAtt_named s -> SAtt_named s 
-  | RAtt_anon s -> SAtt_anon s 
+  | RAtt_named s -> SAtt_named s
+  | RAtt_anon s -> SAtt_anon s
 
 let na_key_serv_of_req = function
   | RNa_no -> SNa_no
   | RNa_post' s -> SNa_post' s
-  | RNa_get' s -> SNa_get' s 
+  | RNa_get' s -> SNa_get' s
   | RNa_post_ s -> SNa_post_ s
-  | RNa_get_ s -> SNa_get_ s 
+  | RNa_get_ s -> SNa_get_ s
 
 (*****************************************************************************)
 let defaultpagename = "./"
@@ -176,7 +178,7 @@ type sess_info =
           string Fullsessionname_Table.t *
           string Fullsessionname_Table.t) option;
 
-     si_tab_cookies: string Ocsigen_lib.String_Table.t;
+     si_tab_cookies: string CookiesTable.t;
 
      si_nonatt_info: na_key_req;
      si_state_info: (att_key_req * att_key_req);
@@ -184,9 +186,9 @@ type sess_info =
      (* HTTP error code sent by previous extension (default: 404) *)
 
      si_na_get_params: (string * string) list Lazy.t;
-     si_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t;
-     si_nl_post_params: (string * string) list Ocsigen_lib.String_Table.t;
-     si_persistent_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t Lazy.t;
+     si_nl_get_params: (string * string) list String.Table.t;
+     si_nl_post_params: (string * string) list String.Table.t;
+     si_persistent_nl_get_params: (string * string) list String.Table.t Lazy.t;
 
      si_all_get_but_na_nl: (string * string) list Lazy.t;
      si_all_get_but_nl: (string * string) list;

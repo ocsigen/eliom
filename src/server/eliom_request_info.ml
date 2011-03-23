@@ -17,9 +17,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+
 open Lwt
 open Ocsigen_extensions
-
 
 (*****************************************************************************)
 let find_sitedata fun_name =
@@ -240,9 +241,9 @@ let get_ri () =
   let sp = Eliom_common.get_sp () in
   get_ri_sp sp
 
-let get_tmp_filename fi = fi.Ocsigen_lib.tmp_filename
-let get_filesize fi = fi.Ocsigen_lib.filesize
-let get_original_filename fi = fi.Ocsigen_lib.original_basename
+let get_tmp_filename fi = fi.tmp_filename
+let get_filesize fi = fi.filesize
+let get_original_filename fi = fi.original_basename
 
 let get_sitedata () =
   let sp = Eliom_common.get_sp () in

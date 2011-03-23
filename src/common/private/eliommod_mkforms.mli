@@ -17,6 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
 
 val make_a_with_onclick :
   (?a:'a -> ?onclick:XML.event -> ?href:string -> 'b -> [`A of 'aa] XHTML5.M.elt) ->

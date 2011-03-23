@@ -1,10 +1,10 @@
 description = "Eliom tests"
-version = "[distributed with Ocsigen]"
-directory = "_ELIOMTESTSINSTALLDIR_"
+directory = "../../tests/"
 
 package "miniwiki" (
+  directory = "miniwiki"
   exists_if = "miniwiki.cmo,miniwiki.cmxs"
-  version = "[distributed with Ocsigen]"
+  version = "[distributed with Eliom]"
   description = "A very basic wiki"
   archive(plugin,byte) = "miniwiki.cmo"
   archive(plugin,native) = "miniwiki.cmxs"
@@ -12,7 +12,7 @@ package "miniwiki" (
 
 package "monitoring" (
   exists_if = "monitoring.cmo,monitoring.cmxs"
-  version = "[distributed with Ocsigen]"
+  version = "[distributed with Eliom]"
   description = "A page displaying information about the server"
   archive(plugin,byte) = "monitoring.cmo"
   archive(plugin,native) = "monitoring.cmxs"
@@ -20,17 +20,18 @@ package "monitoring" (
 
 package "testsuite" (
   exists_if = "eliom_testsuite.cma,eliom_testsuite.cmxs"
-  version = "[distributed with Ocsigen]"
+  version = "[distributed with Eliom]"
   description = "Eliom test suite"
   archive(plugin,byte) = "eliom_testsuite.cma"
   archive(plugin,native) = "eliom_testsuite.cmxs"
 )
 
 package "duce" (
-  exists_if = "exampleduce.cmo,exampleduce.cmxs"
-  requires = "ocsigen.ext.eliom_duce"
-  version = "[distributed with Ocsigen]"
+  directory = "ocamlduce"
+  exists_if = "exampleduce.cma"
+  requires = "eliom.server.duce"
+  version = "[distributed with Eliom]"
   description = "Example with OCamlDuce"
-  archive(plugin,byte) = "exampleduce.cmo"
+  archive(plugin,byte) = "exampleduce.cma"
   archive(plugin,native) = "exampleduce.cmxs"
 )

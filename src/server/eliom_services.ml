@@ -17,16 +17,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Lwt
-open Ocsigen_lib
+open Eliom_pervasives
+
 open Eliom_state
 open Eliom_parameters
-open Lazy
 
+open Lwt
+open Lazy
 
 (* Manipulation of services - this code can be use only on server side. *)
 
-include Eliom_services_cli
+include Eliom_services_base
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
@@ -107,9 +108,9 @@ let service_aux
       | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
           let path = 
-            Ocsigen_lib.remove_internal_slash
-              (Ocsigen_lib.change_empty_list 
-                 (Ocsigen_lib.remove_slash_at_beginning path))
+            Url.remove_internal_slash
+              (Url.change_empty_list 
+                 (Url.remove_slash_at_beginning path))
           in
           let u = service_aux_aux
             ~https
@@ -132,9 +133,9 @@ let service_aux
                    "service"))
   | Some sp ->
       let path = 
-        Ocsigen_lib.remove_internal_slash
-          (Ocsigen_lib.change_empty_list 
-             (Ocsigen_lib.remove_slash_at_beginning path))
+        Url.remove_internal_slash
+          (Url.change_empty_list 
+             (Url.remove_slash_at_beginning path))
       in
       service_aux_aux
         ~https
@@ -236,7 +237,7 @@ let coservice'
 (*VVV allow timeout and max_use for named coservices? *)
           max_use= max_use;
           timeout= timeout;
-          pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
+          pre_applied_parameters = String.Table.empty, [];
           get_params_type = 
             add_pref_params Eliom_common.na_co_param_prefix get_params;
           post_params_type = unit;
@@ -383,7 +384,7 @@ let post_coservice'
 (*VVV allow timeout and max_use for named coservices? *)
     max_use= max_use;
     timeout= timeout;
-    pre_applied_parameters = Ocsigen_lib.String_Table.empty, [];
+    pre_applied_parameters = String.Table.empty, [];
     get_params_type = unit;
     post_params_type = post_params;
     kind = `Nonattached
@@ -428,12 +429,12 @@ let register_delayed_get_or_na_coservice ~sp (k, state_name, scope, secure) =
       let table = !(Eliom_state.get_session_service_table_if_exists ~sp
                       ?state_name ~scope ?secure ())
       in
-      Ocsigen_lib.Int_Table.find 
+      Int.Table.find 
         k table.Eliom_common.csrf_get_or_na_registration_functions
     with Not_found ->
       let table = Eliom_state.get_global_table () in
       try
-        Ocsigen_lib.Int_Table.find
+        Int.Table.find
           k table.Eliom_common.csrf_get_or_na_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice
   in
@@ -446,12 +447,12 @@ let register_delayed_post_coservice ~sp (k, state_name, scope, secure) getname =
       let table = !(Eliom_state.get_session_service_table_if_exists ~sp
                       ?state_name ~scope ?secure ())
       in
-      Ocsigen_lib.Int_Table.find 
+      Int.Table.find 
         k table.Eliom_common.csrf_post_registration_functions
     with Not_found ->
       let table = Eliom_state.get_global_table () in
       try
-        Ocsigen_lib.Int_Table.find
+        Int.Table.find
           k table.Eliom_common.csrf_post_registration_functions
       with Not_found -> raise Unregistered_CSRF_safe_coservice
   in
@@ -460,14 +461,14 @@ let register_delayed_post_coservice ~sp (k, state_name, scope, secure) getname =
 
 let set_delayed_get_or_na_registration_function tables k f =
   tables.Eliom_common.csrf_get_or_na_registration_functions <-
-    Ocsigen_lib.Int_Table.add
+    Int.Table.add
       k
       f
       tables.Eliom_common.csrf_get_or_na_registration_functions
 
 let set_delayed_post_registration_function tables k f =
   tables.Eliom_common.csrf_post_registration_functions <-
-    Ocsigen_lib.Int_Table.add
+    Int.Table.add
     k
     f
     tables.Eliom_common.csrf_post_registration_functions

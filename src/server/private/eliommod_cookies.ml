@@ -20,10 +20,13 @@
 
 (** Cookie management                                                       *)
 
+open Eliom_pervasives
+
 open Lwt
+open Ocsigen_cookies
 
 (*****************************************************************************)
-let make_new_session_id = Ocsigen_lib.make_cryptographic_safe_string
+let make_new_session_id = String.make_cryptographic_safe
 
 
 
@@ -261,7 +264,7 @@ let compute_session_cookies_to_send
     sitedata
     ((service_cookie_info,
       data_cookie_info,
-      pers_cookies_info), secure_ci) endlist =
+      pers_cookies_info), secure_ci) (endlist: Ocsigen_cookies.cookieset) =
   let getservvexp (cookietype, name) (old, newi) =
     return
       (let newinfo =
@@ -381,25 +384,25 @@ let compute_new_ri_cookies'
 
   Ocsigen_cookies.Cookies.fold
     (fun cpath t cookies ->
-      if Ocsigen_lib.list_is_prefix_skip_end_slash
-        (Ocsigen_lib.remove_slash_at_beginning cpath)
-        (Ocsigen_lib.remove_slash_at_beginning ripath)
+      if Url.is_prefix_skip_end_slash
+          (Url.remove_slash_at_beginning cpath)
+          (Url.remove_slash_at_beginning ripath)
       then
-        Ocsigen_lib.String_Table.fold
+        CookiesTable.fold
           (fun name v cookies ->
 (*VVV We always keep secure cookies, event if the protocol is not secure,
   because this function is for actions only. Is that right? *)
             match v with
               | Ocsigen_cookies.OSet (Some exp, value, secure)
                   when exp>now ->
-                Ocsigen_lib.String_Table.add name value cookies
+                CookiesTable.add name value cookies
               | Ocsigen_cookies.OSet (None, value, secure) ->
-                Ocsigen_lib.String_Table.add name value cookies
+                CookiesTable.add name value cookies
               | Ocsigen_cookies.OSet (Some exp, value, secure)
                   when exp<=now ->
-                Ocsigen_lib.String_Table.remove name cookies
+                CookiesTable.remove name cookies
               | Ocsigen_cookies.OUnset ->
-                Ocsigen_lib.String_Table.remove name cookies
+                CookiesTable.remove name cookies
               | _ -> cookies)
           t
           cookies
@@ -412,11 +415,12 @@ let compute_new_ri_cookies'
     from an old ri.ri_cookies and all_cookie_info
     as if it had been sent by the browser *)
 let compute_new_ri_cookies
-    now
-    ripath
-    ricookies
-    (ci, secure_ci)
-    cookies_set_by_page =
+    (now : float)
+    (ripath : string list)
+    (ricookies : string CookiesTable.t)
+    ((ci, secure_ci) : Eliom_common.tables Eliom_common.cookie_info)
+    (cookies_set_by_page : Ocsigen_cookies.cookieset)
+    : string CookiesTable.t Lwt.t =
 
   (* first we add cookies set by page: *)
   let ric =
@@ -435,9 +439,9 @@ let compute_new_ri_cookies
             match !v with
               | Eliom_common.SCData_session_expired
               | Eliom_common.SCNo_data -> 
-                Ocsigen_lib.String_Table.remove n beg
+                CookiesTable.remove n beg
               | Eliom_common.SC c ->
-                Ocsigen_lib.String_Table.add
+                CookiesTable.add
                   n c.Eliom_common.sc_value beg
         )
         !service_cookie_info
@@ -456,9 +460,9 @@ let compute_new_ri_cookies
               match !v with
                 | Eliom_common.SCData_session_expired
                 | Eliom_common.SCNo_data -> 
-                  Ocsigen_lib.String_Table.remove n beg
+                  CookiesTable.remove n beg
                 | Eliom_common.SC c ->
-                  Ocsigen_lib.String_Table.add
+                  CookiesTable.add
                     n c.Eliom_common.dc_value beg
             else beg
         )
@@ -479,9 +483,9 @@ let compute_new_ri_cookies
                match !v with
                  | Eliom_common.SCData_session_expired
                  | Eliom_common.SCNo_data ->
-                   Lwt.return (Ocsigen_lib.String_Table.remove n beg)
+                   Lwt.return (CookiesTable.remove n beg)
                  | Eliom_common.SC c ->
-                   Lwt.return (Ocsigen_lib.String_Table.add 
+                   Lwt.return (CookiesTable.add 
                                  n c.Eliom_common.pc_value beg))
             else return beg
         )

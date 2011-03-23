@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
 
 (** Call a server side service and change the current page.
     If the service belongs to the same application,
@@ -36,7 +37,7 @@ val change_page :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
 
 (** Call a server side service that return a Caml value. *)
@@ -53,7 +54,7 @@ val call_caml_service :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> 'return Lwt.t
 
 
@@ -71,7 +72,7 @@ val exit_to :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
 (** Call a service returning a list of html blocks. *)
@@ -88,7 +89,7 @@ val get_subpage :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> 
   [< `PCDATA | Xhtmltypes.flow ] XHTML5.M.elt list Lwt.t
 
@@ -107,7 +108,7 @@ val call_service :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
 
 (** (low level) Change the URL, without doing a request.
@@ -129,7 +130,7 @@ val change_url :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
 (** register a function to be called on page change *)
@@ -152,6 +153,6 @@ val change_page_post_form :
 val set_content : Eliom_services.eliom_appl_answer -> unit Lwt.t
 
 val load_eliom_data_ :
-  Eliom_client_types.eliom_data_type ->
+  Eliom_types.eliom_data_type ->
   Dom_html.element Js.t -> unit Lwt.t
 

@@ -46,3 +46,19 @@ val stream : 'a t -> 'a Lwt_stream.t
 val write : 'a t -> 'a -> unit
 (** [write b x] sends the value [x] on the bus [b]. Every participant,
     including the server, will receive [x]. *)
+
+val wrap :
+     'a t
+  -> (  ('a Eliom_common_comet.chan_id)
+     * (unit,
+        'a list,
+        [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+        [ `WithoutSuffix ],
+        unit,
+        [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
+        [ `Registrable ],
+        Eliom_output.Action.return
+       ) Eliom_services.service ) *
+         Eliom_common.unwrapper
+    ) Eliom_client_types.data_key
+(** [wrap b] wraps the bus [b] so that it can be transmitted to the client. *)

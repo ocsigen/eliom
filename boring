@@ -1,8 +1,12 @@
-\.omc$
+~$
 \.cmi$
 \.cmx$
 \.cmo$
 \.cma$
+\.cmxs$
+\.o$
+\.a$
+\.so$
 \.depend$
 ^lwt/depend$
 ^Makefile.config$
@@ -16,3 +20,10 @@
 ^modules/ocsidbm$
 ^server/ocsigen$
 ^ocsigen.conf(.local|.opt.local)$
+^doc/client/api-html
+^doc/server/api-html
+^local/etc/eliom.conf
+^local/var/lib/miniwiki/*
+^local/var/lib/ocsidb
+^local/var/log/
+^local/var/www/tests/eliom_testsuite.js$

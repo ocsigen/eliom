@@ -1,54 +1,46 @@
 <!-- -*- Mode: Xml -*- -->
 <!-- This file is intentionnaly very basic. See http://ocsigen.org/config for
      a more elaborate one, as well as for comments on the various options -->
+<!-- DO NOT MODIFY. This a generated file.
+     Additional configurations sit in conf.d/ -->
 <ocsigen>
-
 
   <server>
 
-    <port>80</port>
+    <port>8080</port>
 
     <logdir>_LOGDIR_</logdir>
     <datadir>_DATADIR_</datadir>
     <user>_OCSIGENUSER_</user>
     <group>_OCSIGENGROUP_</group>
-    <!-- <commandpipe>_COMMANDPIPE_</commandpipe> -->
-    <!-- <mimefile>_MIMEFILE_</mimefile> -->
+    <commandpipe>_COMMANDPIPE_</commandpipe>
+    <mimefile>_MIMEFILE_</mimefile>
 
     <charset>utf-8</charset>
 
-
     <findlib path="_METADIR_"/>
 
-    <extension findlib-package="ocsigen.ext.staticmod"/>
+    <extension findlib-package="ext.staticmod"/>
 
-    <extension findlib-package="ocsigen.ext.ocsipersist-sqlite">
+    <extension findlib-package="ext.ocsipersist-sqlite">
       <database file="_DATADIR_/ocsidb"/>
     </extension>
 
     <!-- You may want to use DBM instead of SQLite (if compiled). -->
-    <!--extension findlib-package="ocsigen.ext.ocsipersist-dbm">
+    <!--
+    <extension findlib-package="ext.ocsipersist-dbm">
       <store dir="_DATADIR_"/>
-      <ocsidbm name="_EXTRALIBDIR_/ocsidbm"/>
-    </extension-->
+      <ocsidbm name="_EXTLIBDIR_/ocsidbm"/>
+    </extension>
+    -->
 
-    <extension findlib-package="ocsigen.ext.eliom"/>
+    <extension findlib-package="_PROJECTNAME_.server"/>
 
     <!-- Inclusion of all external configuration files matching *.conf
          from the directory 'dir' (in alphabetical order): -->
     <extconf dir="_CONFIGDIR_/conf.d" />
 
-
-
-
     <host charset="utf-8" hostfilter="*">
-
-      <comet/>
-
-      <site path="ocsigenstuff" charset="utf-8">
-        <static dir="_STATICPAGESDIR_/ocsigenstuff" />
-      </site>
-
 
       <!-- An example: a wiki written by Janne Hellsten: -->
       <site path="miniwiki" charset="utf-8">
@@ -59,12 +51,16 @@
         </eliom>
       </site>
 
-
       <!-- Eliom Tutorial -->
       <static dir="_STATICPAGESDIR_/tests" />
 
       <eliom findlib-package="eliom_tests.testsuite" />
 
+      <!-- DUCE
+      <site path="ocamlduce" charset="utf-8">
+        <eliom findlib-package="eliom_tests.duce" />
+      </site>
+      DUCE -->
 
     </host>
 

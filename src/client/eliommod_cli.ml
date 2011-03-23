@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+
 exception Failed_service of int
 
 let unmarshal x = Marshal.from_string (Js.to_bytestring x) 0
@@ -28,7 +30,7 @@ external register_closure
 let register_closure id f = register_closure id (fun x -> f (unmarshal x))
 
 (* == Page application data *)
-let page_appl_data_table : ((int64 * int), Eliom_client_types.poly) Hashtbl.t =
+let page_appl_data_table : ((int64 * int), Eliom_types.poly) Hashtbl.t =
   Hashtbl.create 50
 
 (* Loading page Eliom application data *)
@@ -117,14 +119,14 @@ let relink_dom_list =
 
 (* == unwraping server data *)
 
-let unwrap (key : 'a Eliom_client_types.data_key) : 'a = 
+let unwrap (key : 'a Eliom_types.data_key) : 'a = 
   Obj.magic (Hashtbl.find page_appl_data_table 
-               (Eliom_client_types.of_data_key_ key))
+               (Eliom_types.of_data_key_ key))
 
 (* let unwrap_sp = unwrap *)
 
 let unwrap_node k =
-  retrieve_node (Eliom_client_types.of_data_key_ k)
+  retrieve_node (Eliom_types.of_data_key_ k)
 
 let internal_node_unwrap (k,unwrapper) = retrieve_node (0L,k)
 

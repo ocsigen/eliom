@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+
 open Lwt
 open Ocsigen_extensions
 
@@ -353,12 +355,12 @@ let rec close_service_state_if_empty
     match scope with
       | `Session ->
 (*VVV ???        (match !(c.Eliom_common.sc_session_group) with
-          | (_, _, Ocsigen_lib.Right _) (* no group *)
+          | (_, _, Right _) (* no group *)
               when *)
         if
           (Eliommod_sessiongroups.Data.group_size
              (sitedata.Eliom_common.site_dir_string, `Client_process,
-              Ocsigen_lib.Left c.Eliom_common.sc_value)
+              Left c.Eliom_common.sc_value)
            = 0) (* no tab sessions *)
           &&
             (Eliom_common.service_tables_are_empty !(c.Eliom_common.sc_table))
@@ -393,11 +395,11 @@ let rec close_volatile_state_if_empty
     match scope with
       | `Session ->
         (match !(c.Eliom_common.dc_session_group) with
-          | (_, _, Ocsigen_lib.Right _) (* no group *)
+          | (_, _, Right _) (* no group *)
               when
                 (Eliommod_sessiongroups.Data.group_size
                    (sitedata.Eliom_common.site_dir_string, `Client_process,
-                    Ocsigen_lib.Left c.Eliom_common.dc_value)
+                    Left c.Eliom_common.dc_value)
                  = 0) (* no tab sessions *)
                 &&
                   (sitedata.Eliom_common.not_bound_in_data_tables
@@ -491,8 +493,8 @@ let get_service_session_group ?state_name ?secure () =
         ?state_name ~cookie_scope ~secure () 
     in
     match !(c.Eliom_common.sc_session_group) with
-      | _, _, Ocsigen_lib.Right _ -> None
-      | _, _, Ocsigen_lib.Left v -> Some v
+      | _, _, Right _ -> None
+      | _, _, Left v -> Some v
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> None
@@ -556,8 +558,8 @@ let get_volatile_data_session_group ?state_name ?secure () =
         ?state_name ~cookie_scope ~secure () 
     in
     match !(c.Eliom_common.dc_session_group) with
-      | _, _, Ocsigen_lib.Right _ -> None
-      | _, _, Ocsigen_lib.Left v -> Some v
+      | _, _, Right _ -> None
+      | _, _, Left v -> Some v
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> None
@@ -619,7 +621,7 @@ let get_persistent_data_session_group ?state_name ?secure () =
                      | None -> None
                      | Some v ->
                        match Eliommod_sessiongroups.getperssessgrp v with
-                         | (_, _, Ocsigen_lib.Left s) -> Some s
+                         | (_, _, Left s) -> Some s
                          | _ -> None
        )
     )
@@ -1280,17 +1282,17 @@ module Session_admin = struct
 
   let get_service_state_name ~session:(_, ((_, s), _, _, _, _, _), _) =
     try
-      Some (snd (Ocsigen_lib.sep '|' s))
+      Some (snd (String.sep '|' s))
     with Not_found -> None
 
   let get_volatile_data_state_name ~session:(_, ((_, s), _, _, _, _), _) =
     try
-      Some (snd (Ocsigen_lib.sep '|' s))
+      Some (snd (String.sep '|' s))
     with Not_found -> None
 
   let get_persistent_data_state_name ~session:(_, ((_, s), _, _, _)) =
     try
-      Some (snd (Ocsigen_lib.sep '|' s))
+      Some (snd (String.sep '|' s))
     with Not_found -> None
 
   let get_service_session_cookie_scope ~session:(_, ((ct, _), _, _, _, _, _), _) =

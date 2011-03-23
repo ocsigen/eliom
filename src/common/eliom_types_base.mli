@@ -16,9 +16,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-type sitedata =
-  {site_dir: Ocsigen_lib.url_path;
-   site_dir_string: string;
+
+open Eliom_pervasives
+
+type sitedata = {
+    site_dir: Url.path;
+    site_dir_string: string;
   }
 
 type server_params
@@ -63,7 +66,6 @@ and elt = ( elt_content * int option )
 
 type eliom_data_type =
     ((XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
-	elt list *
         (poly * ((int64 * int) * poly list)) *
         Ocsigen_cookies.cookieset *
         onload_form_creators_info list data_key (* info for creating xhr forms *) *

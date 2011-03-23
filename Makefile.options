@@ -1,19 +1,22 @@
-DBG =
+
+BYTEDBG :=
+OPTDBG  :=
 
 ifeq "$(DEBUG)" "YES"
-DEBUG2 = -g
+BYTEDBG += -g
+OPTDBG  += -g
 endif
 
 ifeq "$(ANNOT)" "YES"
-ANNOT2 = -dtypes
+BYTEDBG += -dtypes
+OPTDBG  += -dtypes
 endif
-
-DBG = $(DEBUG2) $(ANNOT2)
-
-
 
 ifeq "$(PROFILING)" "YES"
-CAMLCNAME2= $(CAMLCPNAME)
-else
-CAMLCNAME2= $(CAMLCNAME)
+BYTEDBG :=p ${BYTEDBG}
+OPTDBG  += -p
 endif
+
+SERVERDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/server
+CLIENTDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/client
+SYNTAXDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/syntax

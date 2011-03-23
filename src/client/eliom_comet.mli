@@ -84,7 +84,7 @@ end
 
 (**/**)
 
-val unwrap : ?wake:bool -> ('a Eliom_common_comet.chan_id * 'b) Eliom_client_types.data_key -> 'a Lwt_stream.t
+val unwrap : ?wake:bool -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key -> 'a Lwt_stream.t
 val register : ?wake:bool -> 'a Eliom_common_comet.chan_id -> 'a Lwt_stream.t
 (** if wake is false, the registration of the channel won't
     activate the handling loop ( no request will be sent ). Default is true *)
@@ -97,7 +97,7 @@ val restart : unit -> unit
     case, preventing client code from receiving the failure
     notification. This shouldn't be used by average user. *)
 
-val close : 'a Eliom_common_comet.chan_id -> unit
+val close : 'a Eliom_comet_base.chan_id -> unit
 (** [close c] closes the channel c. This function should be only use
     internaly. The normal way to close a channel is to cancel a thread
     waiting on inputs. *)

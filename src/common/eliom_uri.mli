@@ -21,6 +21,8 @@
 (**/**)
 
 open Lwt
+
+open Eliom_common
 open Eliom_parameters
 open Eliom_services
 
@@ -38,16 +40,16 @@ val make_string_uri :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b, 
-           [< `Attached of (Eliom_services.attached_service_kind,
-                            [< Eliom_services.getpost]) a_s
-           | `Nonattached of [< Eliom_services.getpost ] na_s ],
-           [< Eliom_services.suff ], 'c, 'd, [< Eliom_services.registrable ],
-           'return) Eliom_services.service ->
+           [< `Attached of (attached_service_kind,
+                            [< getpost]) a_s
+           | `Nonattached of [< getpost ] na_s ],
+           [< suff ], 'c, 'd, [< registrable ],
+           'return) service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set -> 'a -> string
+  ?nl_params:nl_params_set -> 'a -> string
 
 val make_post_uri_components :
   ?absolute:bool ->
@@ -55,18 +57,18 @@ val make_post_uri_components :
   ?https:bool ->
   service:('a, 'b,
            [< `Attached of
-                ([> `External ], 'c) Eliom_services.a_s &
-                  ([> `External ], 'd) Eliom_services.a_s
+                ([> `External ], 'c) a_s &
+                  ([> `External ], 'd) a_s
            | `Nonattached of
-               'e Eliom_services.na_s &
-                 'f Eliom_services.na_s ],
+               'e na_s &
+                 'f na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'g, 'h, 'i, 'j)
-    Eliom_services.service ->
+    service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:'k ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:nl_params_set ->
   ?keep_get_na_params:bool ->
   'a ->
   'b ->
@@ -81,15 +83,15 @@ val make_uri_components_ :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [< `Attached of ([> `External ], 'c) Eliom_services.a_s
-           | `Nonattached of 'd Eliom_services.na_s ],
+           [< `Attached of ([> `External ], 'c) a_s
+           | `Nonattached of 'd na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
-    Eliom_services.service ->
+    service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:nl_params_set ->
   unit -> string * (string * string) list * string option
 
 val make_uri_components :
@@ -97,15 +99,15 @@ val make_uri_components :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [< `Attached of ([> `External ], 'c) Eliom_services.a_s
-           | `Nonattached of 'd Eliom_services.na_s ],
+           [< `Attached of ([> `External ], 'c) a_s
+           | `Nonattached of 'd na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
-    Eliom_services.service ->
+    service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:nl_params_set ->
   'a -> string * (string * string) list * string option
 
 val make_post_uri_components_ :
@@ -113,15 +115,15 @@ val make_post_uri_components_ :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-                    [< `Attached of ([> `External ], 'd) Eliom_services.a_s
-                     | `Nonattached of 'f Eliom_services.na_s ],
+                    [< `Attached of ([> `External ], 'd) a_s
+                     | `Nonattached of 'f na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'g, 'h, 'i, 'j)
-    Eliom_services.service ->
+    service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:'k ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:nl_params_set ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?keep_get_na_params:bool ->
   'a ->
@@ -135,15 +137,15 @@ val make_post_uri_components :
   ?absolute_path:bool ->
   ?https:bool ->
   service:('a, 'b,
-           [< `Attached of ([> `External ], 'd) Eliom_services.a_s
-           | `Nonattached of 'f Eliom_services.na_s ],
+           [< `Attached of ([> `External ], 'd) a_s
+           | `Nonattached of 'f na_s ],
            [< `WithSuffix | `WithoutSuffix ], 'g, 'h, 'i, 'j)
-    Eliom_services.service ->
+    service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:'k ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?nl_params:nl_params_set ->
   ?keep_get_na_params:bool ->
   'a ->
   'b ->
@@ -151,9 +153,11 @@ val make_post_uri_components :
     (string * string) list
 
 (**/**)
+val make_actual_path: string list -> string list
+
 val make_proto_prefix :
-  ?hostname:string -> ?port:int -> 
-  sp:Eliom_common.server_params option ->
+  ?hostname:string -> ?port:int ->
+  sp:server_params option ->
   bool -> string
 
 val make_cookies_info :

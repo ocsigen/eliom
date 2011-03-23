@@ -17,8 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let (>>=) = Lwt.bind
-let (>|=) = Lwt.(>|=)
+open Eliom_pervasives
 
 let make_a_with_onclick
     make_a
@@ -83,7 +82,7 @@ let remove_tab_cookie_fields (node : #Dom.node Js.t) =
         Js.Optdef.get (children##item (i)) (fun () -> assert false) in
       if child##nodeType = Dom.ELEMENT
       then let child' : #Dom.element Js.t = Js.Unsafe.coerce child in
-           let classes = Ocsigen_lib.split
+           let classes = String.split
              ~multisep:true ' ' (Js.to_string child'##className)
            in
            if List.mem tab_cookie_class classes
@@ -118,14 +117,14 @@ let add_tab_cookies_to_form' l node =
      this is to check for availability of FormData, wich is handled by
      recent chrome.
      This wait is useless for other browsers *)
-  Eliom_client_comet.restart
+  Eliom_comet.restart
 
 let add_tab_cookies_to_post_form' node =
   let action = node##action in
   let (https, path) = Eliom_request.get_cookie_info_for_uri_js action in
-  let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
+  let cookies = Eliommod_cookies.get_cookies_to_send https path in
   let l = [(Eliom_common.tab_cookies_param_name,
-            Ocsigen_lib.encode_form_value cookies)]
+            encode_form_value cookies)]
   in
   add_tab_cookies_to_form' l node
 
@@ -141,10 +140,10 @@ let add_tab_cookies_to_get_form' node =
   node##_method <- "post";
   let action = node##action in
   let (https, path) = Eliom_request.get_cookie_info_for_uri_js action in
-  let cookies = Eliommod_client_cookies.get_cookies_to_send https path in
+  let cookies = Eliommod_cookies.get_cookies_to_send https path in
   let l = [(Eliom_common.to_be_considered_as_get_param_name, "1");
            (Eliom_common.tab_cookies_param_name,
-            Ocsigen_lib.encode_form_value cookies)]
+            encode_form_value cookies)]
   in
   add_tab_cookies_to_form' l node
 
@@ -173,7 +172,7 @@ let make_post_form_with_post_tab_cookies
 
 let _ =
   Eliommod_cli.register_closure
-    Eliom_client_types.add_tab_cookies_to_get_form_id
+    Eliom_types.add_tab_cookies_to_get_form_id
     (fun node ->
       let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
       ignore (add_tab_cookies_to_get_form (XHTML5.M.tot node) ());
@@ -181,7 +180,7 @@ let _ =
 
 let _ =
   Eliommod_cli.register_closure
-    Eliom_client_types.add_tab_cookies_to_post_form_id
+    Eliom_types.add_tab_cookies_to_post_form_id
     (fun node ->
       let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
       ignore (add_tab_cookies_to_post_form (XHTML5.M.tot node) ());

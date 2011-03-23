@@ -24,6 +24,7 @@
    It is used for example in {!Eliom_output}.
  *)
 
+open Eliom_pervasives
 
 open Ocsigen_extensions
 open Eliom_state
@@ -168,7 +169,7 @@ module type ELIOMREGSIG =
       ?secure_session:bool ->
       ?https:bool ->
       ?priority:int ->
-      path:Ocsigen_lib.url_path ->
+      path:Url.path ->
       get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
       ?error_handler:((string * exn) list -> page Lwt.t) ->
       ('get -> unit -> page Lwt.t) ->

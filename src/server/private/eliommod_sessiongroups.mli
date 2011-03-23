@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+
 val make_full_named_group_name_ : 
   cookie_scope:Eliom_common.cookie_scope ->
   Eliom_common.sitedata ->
@@ -37,11 +39,11 @@ val make_persistent_full_group_name :
 val getsessgrp : 
   [< Eliom_common.scope ] Eliom_common.sessgrp -> 
   string * Eliom_common.cookie_scope *
-    (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright
+    (string, Ip_address.t) leftright
 
 val getperssessgrp : Eliom_common.perssessgrp ->
   (string * Eliom_common.cookie_scope * 
-     (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+     (string, Ip_address.t) leftright)
 
 module type MEMTAB =
   sig

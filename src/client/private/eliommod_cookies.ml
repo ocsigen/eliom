@@ -17,48 +17,49 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
+open Ocsigen_cookies
 
-let cookie_table = ref Ocsigen_cookies.Cookies.empty
+let cookie_table = ref Cookies.empty
 
 let now () = Js.to_float (Js.date##now ())
 
 let update_cookie_table cookieset =
   let now = now () in
-  Ocsigen_cookies.Cookies.iter
+  Cookies.iter
     (fun path table ->
-      Ocsigen_lib.String_Table.iter
-        (fun name -> function 
-          | Ocsigen_cookies.OSet (Some exp, _, _) when exp <= now ->
-            cookie_table := Ocsigen_cookies.remove_cookie path name !cookie_table
-          | Ocsigen_cookies.OUnset -> 
-            cookie_table := Ocsigen_cookies.remove_cookie path name !cookie_table
-          | Ocsigen_cookies.OSet (exp, value, secure) ->
-            cookie_table := 
-              Ocsigen_cookies.add_cookie
+      CookiesTable.iter
+        (fun name -> function
+          | OSet (Some exp, _, _) when exp <= now ->
+            cookie_table := remove_cookie path name !cookie_table
+          | OUnset ->
+            cookie_table := remove_cookie path name !cookie_table
+          | OSet (exp, value, secure) ->
+            cookie_table :=
+              add_cookie
               path name (exp, value, secure)
               !cookie_table)
         table
     )
     cookieset
 
-
 let get_cookies_to_send https path =
   let now = now () in
-  Ocsigen_cookies.Cookies.fold
+  Cookies.fold
     (fun cpath t cookies_to_send ->
-      if Ocsigen_lib.list_is_prefix_skip_end_slash
-          (Ocsigen_lib.remove_slash_at_beginning cpath)
-          (Ocsigen_lib.remove_slash_at_beginning path)
-      then Ocsigen_lib.String_Table.fold
+      if List.is_prefix_skip_end_slash
+          (Url.remove_slash_at_beginning cpath)
+          (Url.remove_slash_at_beginning path)
+      then CookiesTable.fold
         (fun name (exp, value, secure) cookies_to_send ->
           match exp with
             | Some exp when exp <= now ->
-              cookie_table := 
-                Ocsigen_cookies.remove_cookie cpath name !cookie_table;
+              cookie_table :=
+                remove_cookie cpath name !cookie_table;
               cookies_to_send
             | _ ->
               if (not secure) || https
-              then Ocsigen_lib.String_Table.add name value cookies_to_send
+              then CookiesTable.add name value cookies_to_send
               else cookies_to_send
         )
         t
@@ -66,4 +67,4 @@ let get_cookies_to_send https path =
       else cookies_to_send
     )
     !cookie_table
-    Ocsigen_lib.String_Table.empty
+    CookiesTable.empty

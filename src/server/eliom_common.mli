@@ -20,8 +20,10 @@
 
 (** Low level functions for Eliom, exceptions and types. *)
 
-open Ocsigen_extensions
+open Eliom_pervasives
 
+open Ocsigen_extensions
+open Ocsigen_cookies
 
 exception Eliom_404 (** Page not found *)
 exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
@@ -191,16 +193,16 @@ type sess_info = {
        string Fullsessionname_Table.t *
        string Fullsessionname_Table.t) option;
 
-  si_tab_cookies: string Ocsigen_lib.String_Table.t;
+  si_tab_cookies: string CookiesTable.t;
 
   si_nonatt_info : na_key_req;
   si_state_info: (att_key_req * att_key_req);
   si_previous_extension_error : int;
 
   si_na_get_params: (string * string) list Lazy.t;
-  si_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t;
-  si_nl_post_params: (string * string) list Ocsigen_lib.String_Table.t;
-  si_persistent_nl_get_params: (string * string) list Ocsigen_lib.String_Table.t Lazy.t;
+  si_nl_get_params: (string * string) list String.Table.t;
+  si_nl_post_params: (string * string) list String.Table.t;
+  si_persistent_nl_get_params: (string * string) list String.Table.t Lazy.t;
 
   si_all_get_but_na_nl: (string * string) list Lazy.t;
   si_all_get_but_nl: (string * string) list;
@@ -213,7 +215,7 @@ module SessionCookies : Hashtbl.S with type key = string
 (* session groups *)
 type 'a sessgrp =
     (string * cookie_scope
-     * (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+     * (string, Ip_address.t) leftright)
     (* The full session group is the triple
        (site_dir_string, scope, session group name).
        The scope is the scope of group members (`Session by default).
@@ -226,7 +228,7 @@ val make_persistent_full_group_name :
 
 val getperssessgrp : perssessgrp -> 
   (string * cookie_scope * 
-     (string, Ocsigen_lib.ip_address) Ocsigen_lib.leftright)
+     (string, Ip_address.t) leftright)
 
 val string_of_perssessgrp : perssessgrp -> string
 
@@ -307,7 +309,7 @@ type client_process_info = (* information about the client process.
       cpi_ssl : bool;
       cpi_hostname : string;
       cpi_server_port : int;
-      cpi_original_full_path : Ocsigen_lib.url_path;
+      cpi_original_full_path : Url.path;
       cpi_references : Polytables.t; (* holds informations about comet
 					service and change_page_event *)
     }
@@ -323,7 +325,7 @@ type server_params = {
   mutable sp_user_tab_cookies: Ocsigen_cookies.cookieset;
   mutable sp_client_appl_name: string option; (* The application name,
                                                  as sent by the browser *)
-  sp_suffix : Ocsigen_lib.url_path option;
+  sp_suffix : Url.path option;
   sp_fullsessname : fullsessionname option;
   mutable sp_client_process_info: client_process_info Lazy.t
         (* Contains the base URL information from which the client process
@@ -340,7 +342,7 @@ and page_table = page_table_content Serv_Table.t
 
 and page_table_content =
     Ptc of
-      (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+      (page_table ref * page_table_key, na_key_serv) leftright
         Ocsigen_cache.Dlist.node option
         (* for limitation of number of dynamic anonymous coservices *) *
         
@@ -362,7 +364,7 @@ and naservice_table_content =
        int ref option (* max_use *) *
        (float * float ref) option (* timeout and expiration date *) *
        (server_params -> Ocsigen_http_frame.result Lwt.t) *
-       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+       (page_table ref * page_table_key, na_key_serv) leftright
        Ocsigen_cache.Dlist.node option
        (* for limitation of number of dynamic coservices *)
     )
@@ -371,7 +373,7 @@ and naservice_table =
   | AVide
   | ATable of naservice_table_content NAserv_Table.t
 
-and dircontent = Vide | Table of direlt ref Ocsigen_lib.String_Table.t
+and dircontent = Vide | Table of direlt ref String.Table.t
 and direlt = Dir of dircontent ref | File of page_table ref
 and tables =
     {mutable table_services : (int (* generation *) * 
@@ -384,9 +386,9 @@ and tables =
      mutable table_contains_naservices_with_timeout : bool;
      (* true if naservice_table contains services with timeout *)
      mutable csrf_get_or_na_registration_functions :
-       (sp:server_params -> string) Ocsigen_lib.Int_Table.t;
+       (sp:server_params -> string) Int.Table.t;
      mutable csrf_post_registration_functions :
-       (sp:server_params -> att_key_serv -> string) Ocsigen_lib.Int_Table.t;
+       (sp:server_params -> att_key_serv -> string) Int.Table.t;
       (* These two table are used for CSRF safe services:
          We associate to each service unique id the function that will
          register a new anonymous coservice each time we create a link or form.
@@ -398,8 +400,8 @@ and tables =
       *)
      service_dlist_add :
        ?sp:server_params -> 
-       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright ->
-       (page_table ref * page_table_key, na_key_serv) Ocsigen_lib.leftright
+       (page_table ref * page_table_key, na_key_serv) leftright ->
+       (page_table ref * page_table_key, na_key_serv) leftright
          Ocsigen_cache.Dlist.node
        (* Add in a dlist
           for limiting the number of dynamic anonymous coservices in each table 
@@ -412,7 +414,7 @@ and tables =
        *)
     } 
 and sitedata = {
-  site_dir : Ocsigen_lib.url_path;
+  site_dir : Url.path;
   site_dir_string : string;
   config_info: Ocsigen_extensions.config_info;
 
@@ -443,7 +445,7 @@ and sitedata = {
   mutable remove_session_data : string -> unit;
   mutable not_bound_in_data_tables : string -> bool;
   mutable exn_handler : exn -> Ocsigen_http_frame.result Lwt.t;
-  mutable unregistered_services : Ocsigen_lib.url_path list;
+  mutable unregistered_services : Url.path list;
   mutable unregistered_na_services : na_key_serv list;
   mutable max_volatile_data_sessions_per_group : int * bool;
   mutable max_volatile_data_sessions_per_subnet : int * bool;
@@ -473,7 +475,7 @@ exception Eliom_retry_with of info
 val make_server_params_ :
   sitedata ->
   info ->
-  Ocsigen_lib.url_path option -> 
+  Url.path option -> 
   fullsessionname option -> server_params
 val empty_page_table : unit -> page_table
 val empty_dircontent : unit -> dircontent
@@ -512,9 +514,9 @@ val remove_from_all_persistent_tables : string -> unit Lwt.t
 val absolute_change_sitedata : sitedata -> unit
 val get_current_sitedata : unit -> sitedata
 val end_current_sitedata : unit -> unit
-val add_unregistered : sitedata -> Ocsigen_lib.url_path -> unit
+val add_unregistered : sitedata -> Url.path -> unit
 val add_unregistered_na : sitedata -> na_key_serv -> unit
-val remove_unregistered : sitedata -> Ocsigen_lib.url_path -> unit
+val remove_unregistered : sitedata -> Url.path -> unit
 val remove_unregistered_na : sitedata -> na_key_serv -> unit
 val verify_all_registered : sitedata -> unit
 val during_eliom_module_loading : unit -> bool
@@ -525,8 +527,8 @@ val global_register_allowed : unit -> (unit -> sitedata) option
 
 val eliom_params_after_action : 
   ((string * string) list * (string * string) list option *
-     (string * string) list Ocsigen_lib.String_Table.t *
-     (string * string) list Ocsigen_lib.String_Table.t *
+     (string * string) list String.Table.t *
+     (string * string) list String.Table.t *
      (string * string) list (*204FORMS* * bool *))
   Polytables.key
  
@@ -545,15 +547,15 @@ val create_dlist_ip_table : int -> dlist_ip_table
 val find_dlist_ip_table :
   int32 option * 'a ->
   (int64 * int64) option * 'a ->
-  dlist_ip_table -> Ocsigen_lib.ip_address ->
+  dlist_ip_table -> Ip_address.t ->
   (page_table ref * page_table_key, na_key_serv)
-    Ocsigen_lib.leftright Ocsigen_cache.Dlist.t
+    leftright Ocsigen_cache.Dlist.t
   
 val get_cookie_info : server_params -> [< cookie_scope ] -> tables cookie_info
 
 val tab_cookie_action_info_key : (tables cookie_info * 
                                     Ocsigen_cookies.cookieset *
-                                    string Ocsigen_lib.String_Table.t) Polytables.key
+                                    string CookiesTable.t) Polytables.key
 
 
 val sp_key : server_params Lwt.key

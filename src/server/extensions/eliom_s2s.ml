@@ -16,13 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 (* Server To Server communication *)
-open Ocsigen_lib
+
+open Eliom_pervasives
+
 open Lwt
 open Ocsigen_stream
 open Ocsigen_http_frame
 
-
-let filter_map f l = 
+let filter_map f l =
   List.fold_left (fun l t -> match f t with
     | Some t' -> t' :: l
     | None -> l) [] l
@@ -34,19 +35,19 @@ let rec find_map f = function
       | None -> find_map f q
 
 let strip ?(sep = '.') v s = try
-                  let start, rest = basic_sep sep s in
+                  let start, rest = String.basic_sep sep s in
                   if start = v then Some rest
                   else None
   with Not_found -> None
 
 let strip2 ?sep v (name, value) =
-    apply_option (fun y -> y, value) (strip ?sep v name)
+    map_option (fun y -> y, value) (strip ?sep v name)
 
 
 (* Parameters *)
 let format_url base params = base ^ "?" ^ Netencoding.Url.mk_url_encoded_parameters params
 let push_ns ?(sep = ".") ?namespace_param namespace params = 
-  List.map (fun (name, value) -> add_to_string namespace sep name, value) 
+  List.map (fun (name, value) -> String.may_append namespace ~sep name, value) 
     (match namespace_param with
       | Some a -> a :: params
       | None -> params)

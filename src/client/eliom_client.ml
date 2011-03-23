@@ -17,8 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let (>>=) = Lwt.bind
-let (!!) = Lazy.force
+open Eliom_pervasives
 
 let current_fragment = ref ""
 let url_fragment_prefix = "!"
@@ -42,7 +41,7 @@ let create_request_
             ~service
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params g
         in
-        Ocsigen_lib.Left uri
+        Left uri
     | `Post ->
         let path, g, fragment, p =
           Eliom_uri.make_post_uri_components
@@ -54,7 +53,7 @@ let create_request_
         let uri = 
           Eliom_uri.make_string_uri_from_components (path, g, fragment) 
         in
-        Ocsigen_lib.Right (uri, p)
+        Right (uri, p)
 
 
 
@@ -74,8 +73,8 @@ let exit_to
      ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
      g p
    with
-     | Ocsigen_lib.Left uri -> Eliom_request.redirect_get uri
-     | Ocsigen_lib.Right (uri, p) -> Eliom_request.redirect_post uri p)
+     | Left uri -> Eliom_request.redirect_get uri
+     | Right (uri, p) -> Eliom_request.redirect_post uri p)
 
 
 (** This will change the URL, without doing a request.
@@ -107,15 +106,15 @@ let change_url
        ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
        g p
      with
-       | Ocsigen_lib.Left uri -> uri
-       | Ocsigen_lib.Right (uri, p) -> uri)
+       | Left uri -> uri
+       | Right (uri, p) -> uri)
   in
   change_url_string uri
 
 
 (* lazy because we want the page to be loaded *)
 let container_node = 
-  lazy ((Eliommod_cli.unwrap_node (Ocsigen_lib.unmarshal_js_var "container_node"))
+  lazy ((Eliommod_cli.unwrap_node (unmarshal_js_var "container_node"))
            : Dom_html.element Js.t)
 
 let on_unload_scripts = ref []
@@ -173,14 +172,14 @@ let bind_form_or_link = function
 let load_eliom_data_
     ((tree, sent_nodes, ((_,((timeofday, _), _)) as page_data), cookies, 
       onload_form_creators_info, onload, onunload, si) :
-        Eliom_client_types.eliom_data_type)
+        Eliom_types.eliom_data_type)
     node : unit Lwt.t =
   (match tree with
-    | Ocsigen_lib.Left ref_tree ->
+    | Left ref_tree ->
       Eliommod_cli.relink_dom timeofday node ref_tree;
-    | Ocsigen_lib.Right ref_tree_list ->
+    | Right ref_tree_list ->
       Eliommod_cli.relink_dom_list timeofday (node##childNodes) ref_tree_list);
-  ignore (List.map (Eliommod_cli.rebuild_xml timeofday) sent_nodes);
+  Eliommod_cli.fill_page_data_table page_data;
   Eliommod_client_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;
   Eliommod_cli.fill_page_data_table (Eliom_client_unwrap.unwrap page_data);
@@ -226,7 +225,7 @@ let rec change_page_set_content :
         ?port:int ->
         ?fragment:string ->
         ?keep_nl_params:[ `All | `None | `Persistent ] ->
-        ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+        ?nl_params:(string * string) list String.Table.t ->
         ?keep_get_na_params:bool -> 'get -> 'post -> unit Lwt.t) *
         (int -> Eliom_services.eliom_appl_answer -> unit Lwt.t))
   = (
@@ -262,10 +261,10 @@ let rec change_page_set_content :
           ?keep_get_na_params
           g p
      with
-       | Ocsigen_lib.Left uri ->
+       | Left uri ->
          Eliom_request.http_get
            ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
-       | Ocsigen_lib.Right (uri, p) ->
+       | Right (uri, p) ->
          Eliom_request.http_post
            ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p)
     >>= fun r ->
@@ -358,10 +357,10 @@ let call_service
      ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
      g p
    with
-     | Ocsigen_lib.Left uri ->
+     | Left uri ->
        Eliom_request.http_get
          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
-     | Ocsigen_lib.Right (uri, p) ->
+     | Right (uri, p) ->
        Eliom_request.http_post
          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p)
 
@@ -376,7 +375,7 @@ let call_caml_service
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p
   >>= fun s ->
-  Lwt.return (Marshal.from_string (Ocsigen_lib.urldecode_string s) 0)
+  Lwt.return (Marshal.from_string (Url.decode s) 0)
 
 
 let fake_page = Dom_html.createBody Dom_html.document
@@ -404,7 +403,7 @@ let rec get_subpage_ :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list Ocsigen_lib.String_Table.t ->
+  ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'get -> 'post -> 
   [< `PCDATA | Xhtmltypes.flow ] XHTML5.M.elt list Lwt.t
     = fun i
@@ -419,10 +418,10 @@ let rec get_subpage_ :
      ?keep_get_na_params
      g p
    with
-     | Ocsigen_lib.Left uri ->
+     | Left uri ->
        Eliom_request.http_get
          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
-     | Ocsigen_lib.Right (uri, p) ->
+     | Right (uri, p) ->
        Eliom_request.http_post
          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p)
   >>= fun r -> match Eliom_request.get_eliom_appl_result r with
@@ -511,7 +510,7 @@ let _ = React.E.map auto_change_page (React.S.changes fragment)
  *)
 let _ =
   Eliommod_cli.register_closure
-    Eliom_client_types.a_closure_id
+    Eliom_types.a_closure_id
     (fun (cookies_info, uri) ->
       let uri = Eliommod_cli.unwrap uri in
       let cookies_info = Eliommod_cli.unwrap cookies_info in
