@@ -21,13 +21,13 @@ doc:
 .PHONY: run.local run.opt.local top
 
 run.local: byte tests.byte fifo
-	ocsigenserver -c local/etc/${PROJECTNAME}.conf -V
+	ocsigenserver -c local/etc/${PROJECTNAME}.conf
 
 tests.byte:
 	${MAKE} -C tests byte
 
 run.opt.local: opt tests.opt fifo
-	ocsigenserver.opt -c local/etc/${PROJECTNAME}.conf -V
+	ocsigenserver.opt -c local/etc/${PROJECTNAME}.conf
 
 tests.opt:
 	${MAKE} -C tests opt

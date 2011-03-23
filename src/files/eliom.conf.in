@@ -20,15 +20,15 @@
 
     <findlib path="_METADIR_"/>
 
-    <extension findlib-package="ext.staticmod"/>
+    <extension findlib-package="ocsigenserver_ext.staticmod"/>
 
-    <extension findlib-package="ext.ocsipersist-sqlite">
+    <extension findlib-package="ocsigenserver_ext.ocsipersist-sqlite">
       <database file="_DATADIR_/ocsidb"/>
     </extension>
 
     <!-- You may want to use DBM instead of SQLite (if compiled). -->
     <!--
-    <extension findlib-package="ext.ocsipersist-dbm">
+    <extension findlib-package="ocsigenserver_ext.ocsipersist-dbm">
       <store dir="_DATADIR_"/>
       <ocsidbm name="_EXTLIBDIR_/ocsidbm"/>
     </extension>
