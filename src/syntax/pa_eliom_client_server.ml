@@ -31,11 +31,11 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   (* Server side code emission *)
   let closure_call _loc num args =
     <:expr<
-         $str:"caml_run_from_table("
-          ^ Int64.to_string num
-          ^ ", \'" $
-       ^ Eliom_client_types.jsmarshal $args$
-       ^ "\')"
+      $str:"caml_run_from_table("
+    ^ Int64.to_string num
+    ^ ", \'" $
+    ^ Eliom_types.jsmarshal $args$
+    ^ "\')"
     >>
 
   let arg_ids = ref []

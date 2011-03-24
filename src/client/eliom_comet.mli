@@ -84,8 +84,8 @@ end
 
 (**/**)
 
-val unwrap : ?wake:bool -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key -> 'a Lwt_stream.t
-val register : ?wake:bool -> 'a Eliom_common_comet.chan_id -> 'a Lwt_stream.t
+val unwrap : ?wake:bool -> ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key -> 'a Lwt_stream.t
+val register : ?wake:bool -> 'a Eliom_comet_base.chan_id -> 'a Lwt_stream.t
 (** if wake is false, the registration of the channel won't
     activate the handling loop ( no request will be sent ). Default is true *)
 

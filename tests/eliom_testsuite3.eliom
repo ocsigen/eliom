@@ -791,13 +791,20 @@ let comet_message_board =
          let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
          Eliom_services.onload
            {{
-             let _ = Lwt_stream.iter_s
-               (fun msg ->
-                 Dom.appendChild %container
-                   (XHTML5.M.toelt (li [pcdata msg]));
-                 Lwt.return ()
-               )
-	       (Eliom_client_bus.stream %message_bus)
+             let _ = 
+	       Lwt.catch (fun () ->
+		 Lwt_stream.iter_s
+		   (fun msg ->
+                     Dom.appendChild %container
+                       (XHTML5.M.toelt (li [pcdata msg]));
+                     Lwt.return ())
+		   (Eliom_bus.stream %message_bus))
+		 (function
+		   | Eliom_comet.Channel_full ->
+		     Dom.appendChild %container
+                       (XHTML5.M.toelt (li [pcdata "channel full, no more messages"]));
+		     Lwt.return ()
+		   | e -> Lwt.fail e);
 	     in ()
            }} ;
 
@@ -1976,26 +1983,20 @@ let isuffixc =
         [p [pcdata "The suffix of the url is ";
             strong [pcdata (string_of_int suff)];
             pcdata " followed by ";
-            strong [pcdata (Ocsigen_lib.string_of_url_path ~encode:false endsuff)];
+            strong [pcdata endsuff];
             pcdata " and i is equal to ";
             strong [pcdata (string_of_int i)]]])
 
 {shared{
 let create_suffixformc ((suff, endsuff),i) =
-    [h3 [pcdata "Form to an (internal appl) suffix service"];
-     p [pcdata "Write an int for the suffix:";
-        int_input ~input_type:`Text ~name:suff ();
-        br ();
-        pcdata "Write a string: ";
-        user_type_input
-          (Ocsigen_lib.string_of_url_path ~encode:false)
-          ~input_type:`Text ~name:endsuff ();
-        br ();
-        pcdata "Write an int: ";
-        int_input ~input_type:`Text ~name:i ();
-        br ();
-        string_input ~input_type:`Submit ~value:"Click" ()
-       ]
+    [pcdata "Form to an (internal appl) suffix service.";
+     pcdata "Write an int for the suffix:";
+     Eliom_output.Xhtml5.int_input ~input_type:`Text ~name:suff ();
+     pcdata "Write a string: ";
+     Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:endsuff ();
+     pcdata "Write an int: ";
+     Eliom_output.Xhtml5.int_input ~input_type:`Text ~name:i ();
+     Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click" ()
     ]
 }}
 

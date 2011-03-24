@@ -36,18 +36,27 @@ let (make_a_with_onclick :
     href
     content
   ->
-  make_a
-    ?a
-    ~href
-    ?onclick:
-    (Some ("return caml_run_from_table ("^
-              Eliom_client_types.a_closure_id_string^", \'"^
-              (Eliom_client_types.jsmarshal
-                 ((Eliommod_cli.wrap cookies_info),
-                  (Eliommod_cli.wrap href)))
-           ^ "\');")
-    )
-    content
+    let node =
+      make_a
+        ?a
+        ~href
+        ?onclick:None
+(*SGO* Server generated onclicks/onsubmits
+        ?onclick:
+        (Some ("return caml_run_from_table ("^
+                  Eliom_client_types.a_closure_id_string^", \'"^
+                  (Eliom_client_types.jsmarshal
+                     ((Eliommod_cli.wrap cookies_info),
+                      (Eliommod_cli.wrap href)))
+               ^ "\');")
+        )
+*)
+        content
+    in
+    Eliom_services.add_onload_form_creator
+      (send_appl_content, (Eliom_types.OFA
+                             (XHTML5.M.toelt node, href, cookies_info)));
+    node
 
 let make_get_form_with_onsubmit
     make_get_form

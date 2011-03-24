@@ -97,21 +97,3 @@ let create ?scope ?name ?size typ =
 let stream bus = bus.stream
 
 let write bus x = bus.write x
-
-let wrap (bus: 'a t)
-  : (  ('a Eliom_common_comet.chan_id)
-     * (unit,
-        'a list,
-        [ `Nonattached of [ `Post ] Eliom_services.na_s ],
-        [ `WithoutSuffix ],
-        unit,
-        [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
-        [ `Registrable ],
-        Eliom_output.Action.return
-       ) Eliom_services.service
-    ) Eliom_client_types.data_key
-  =
-  let chan = Eliom_comet.Channels.create (Lwt_stream.clone bus.stream) in
-  Eliommod_cli.wrap (Eliom_comet.Channels.get_id chan, 
-                     Eliom_services.pre_wrap bus.service)
-  

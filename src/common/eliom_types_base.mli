@@ -65,7 +65,8 @@ type elt_content =
 and elt = ( elt_content * int option )
 
 type eliom_data_type =
-    ((XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
+    ((XML.ref_tree, (int * XML.ref_tree) list) leftright *
+	elt list *
         (poly * ((int64 * int) * poly list)) *
         Ocsigen_cookies.cookieset *
         onload_form_creators_info list data_key (* info for creating xhr forms *) *

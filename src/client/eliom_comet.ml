@@ -286,8 +286,8 @@ let wait_data service activity count =
   in
   fun () -> aux 0
 
-let service () : Eliom_common_comet.comet_service =
-  Eliommod_cli.unwrap (Ocsigen_lib.unmarshal_js_var "comet_service")
+let service () : Eliom_comet_base.comet_service =
+  Eliom_client_unwrap.unwrap (unmarshal_js_var "comet_service")
 
 let init_activity () =
   let active_waiter,active_wakener = Lwt.wait () in
@@ -353,7 +353,8 @@ let stop_waiting hd chan_id =
   then set_activity hd.hd_activity false
 
 let close' hd chan_id =
-  hd.hd_commands [Eliom_common_comet.Close chan_id]
+  stop_waiting hd chan_id;
+  hd.hd_commands [Eliom_comet_base.Close chan_id]
 
 let close chan_id =
   let hd = get_hd () in
@@ -380,7 +381,8 @@ let register ?(wake=true) chan_id =
   in
   (* protect the stream from cancels *)
   let stream = Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream)) in
-  hd.hd_commands [Eliom_common_comet.Register chan_id];
+  hd.hd_commands [Eliom_comet_base.Register chan_id];
+  hd.hd_activity.active_channels <- StringSet.add chan_id hd.hd_activity.active_channels;
   if wake then activate ();
   stream
 

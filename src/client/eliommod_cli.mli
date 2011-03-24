@@ -26,7 +26,7 @@ val set_node_id : Js.Node.t -> int -> unit*)
 
 val unwrap : 'a Eliom_types.data_key -> 'a
 
-val unwrap_node : Dom_html.element Js.t Eliom_client_types.data_key -> Dom_html.element Js.t
+val unwrap_node : Dom.node Js.t Eliom_types.data_key -> Dom_html.element Js.t
 
 
 (**/**)

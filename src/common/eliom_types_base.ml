@@ -68,7 +68,9 @@ and elt = ( elt_content * int option )
 (* The data that comes with each page: *)
 type eliom_data_type =
     ((* The ref tree, to relink the DOM *)
-      (XML.ref_tree, (int * XML.ref_tree) list) Ocsigen_lib.leftright *
+      (XML.ref_tree, (int * XML.ref_tree) list) leftright *
+	(* node sent that are not in the original page *)
+	elt list *
         (* Table of page data *)
         (poly * ((int64 * int) * poly list)) *
         (* Tab cookies to set or unset *)
@@ -83,12 +85,7 @@ type eliom_data_type =
     )
 
 
-type 'a data_key = int64 * int
-
-let to_data_key_ v = v
-let of_data_key_ v = v
-
-
+(*SGO* Server generated onclicks/onsubmits
 (* For client side program, we sometimes simulate links and forms
    with client side functions.
    Here are there identifiers: *)

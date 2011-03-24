@@ -179,8 +179,8 @@ let load_eliom_data_
       Eliommod_cli.relink_dom timeofday node ref_tree;
     | Right ref_tree_list ->
       Eliommod_cli.relink_dom_list timeofday (node##childNodes) ref_tree_list);
-  Eliommod_cli.fill_page_data_table page_data;
-  Eliommod_client_cookies.update_cookie_table cookies;
+  ignore (List.map (Eliommod_cli.rebuild_xml timeofday) sent_nodes);
+  Eliommod_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;
   Eliommod_cli.fill_page_data_table (Eliom_client_unwrap.unwrap page_data);
   on_unload_scripts := [fun () -> List.iter Js.Unsafe.variable onunload; Lwt.return ()];

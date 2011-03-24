@@ -27,7 +27,7 @@ module Down =
 struct
 
   let unwrap ?wake
-        (c : 'a Eliom_common_comet.chan_id Eliom_client_types.data_key)
+        (c : ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key)
         : 'a React.E.t
     =
     Lwt_event.of_stream (Eliom_comet.unwrap ?wake c)

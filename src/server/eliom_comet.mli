@@ -45,8 +45,8 @@ sig
 
   val create_unlimited : ?name:string -> 'a Lwt_stream.t -> 'a t
 
-  val get_id : 'a t -> 'a Eliom_common_comet.chan_id
-  val wrap : 'a t -> 'a Eliom_common_comet.chan_id Eliom_client_types.data_key
+  val get_id : 'a t -> 'a Eliom_comet_base.chan_id
+  val wrap : 'a t -> ( 'a Eliom_comet_base.chan_id * Eliom_common.unwrapper ) Eliom_types.data_key
 
 end
 
@@ -54,7 +54,7 @@ end
 
 val get_service : unit -> Eliom_comet_base.comet_service
 
-type comet_handler = Eliom_common_comet.comet_service Eliom_client_types.data_key
+type comet_handler = Eliom_comet_base.comet_service
 
-val init : unit -> Eliom_common_comet.comet_service Eliom_client_types.data_key
+val init : unit -> comet_handler
 

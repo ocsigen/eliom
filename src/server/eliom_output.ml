@@ -3335,8 +3335,8 @@ redir ();"))::
                            )) ; "\'; \n";
 
                           "var eliom_data = \'" ;
-                          (Eliom_client_types.jsmarshal
-                             ((Ocsigen_lib.Left
+                          (Eliom_types.jsmarshal
+                             ((Left
                                  (*(XML.make_ref_tree (XHTML5.M.toelt body)),*)
                                  (Eliom_xml.make_ref_tree (XHTML5.M.toelt body)),
                             (* Warning: due to right_to_left evaluation,
@@ -3371,6 +3371,7 @@ redir ();"))::
                                 (Eliommod_react.Down.of_react change_page_event)
                              )
                           ) ; "\'; \n" ;
+*)
 
                           "var sitedata = \'" ;
                           (Eliom_types.jsmarshal

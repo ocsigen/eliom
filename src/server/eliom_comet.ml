@@ -19,6 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* TODO: handle ended stream ( and on client side too ) *)
+
+open Eliom_pervasives
+
 (* Shortening names of modules *)
 module OFrame  = Ocsigen_http_frame
 module OStream = Ocsigen_stream
@@ -312,8 +316,8 @@ end = struct
 		      | e -> Lwt.fail e )
 	    | Ecb.Commands commands ->
 	      List.iter (function
-		| Ecc.Register channel -> register_channel handler channel
-		| Ecc.Close channel -> close_channel handler channel) commands;
+		| Ecb.Register channel -> register_channel handler channel
+		| Ecb.Close channel -> close_channel' handler channel) commands;
 		(* command connections are replied immediately by an
 		   empty answer *)
 	      Lwt.return ("",content_type)
@@ -363,8 +367,8 @@ sig
 
   val create : ?name:string -> ?size:int -> 'a Lwt_stream.t -> 'a t
   val create_unlimited : ?name:string -> 'a Lwt_stream.t -> 'a t
-  val wrap : 'a t -> 'a Ecc.chan_id Eliom_client_types.data_key
-  val get_id : 'a t -> 'a Ecc.chan_id
+  val wrap : 'a t -> ( 'a Ecb.chan_id * Eliom_common.unwrapper ) Eliom_types.data_key
+  val get_id : 'a t -> 'a Ecb.chan_id
 
 end = struct
 
@@ -426,5 +430,5 @@ end
 
 let get_service = Raw_channels.get_service
 
-type comet_handler = Raw_channels.comet_service Eliom_client_types.data_key
-let init () = Raw_channels.get_service_data_key ()
+type comet_handler = Raw_channels.comet_service
+let init () = Raw_channels.get_service ()

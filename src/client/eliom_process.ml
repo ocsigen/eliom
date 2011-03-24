@@ -35,4 +35,6 @@ let appl_name =
 
 (** None on server side *)
 let get_application_name () =
-  Ocsigen_lib.debug (Lazy.force appl_name); Some (Lazy.force appl_name)
+  debug (!!appl_name); Some (!!appl_name)
+
+let client_side = true

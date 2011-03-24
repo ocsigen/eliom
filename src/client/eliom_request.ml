@@ -93,12 +93,15 @@ let rec send_wraper f ?cookies_info ?get_args ?post_args url =
     let headers = [(Eliom_common.tab_cookies_header_name, 
                     (Ocsigen_lib.encode_header_value cookies))]
     in
+    (*** MERGE begin ***)
     let post_args =
-      ((Eliom_common.tab_cookies_param_name, 
-        (Ocsigen_lib.encode_form_value cookies))::
+      ((Eliom_common.tab_cookies_param_name,
+        (encode_form_value (CookiesTable.fold (fun k v l -> (k, v) ::l) cookies [])))::
           post_args)
     in
-    XmlHttpRequest.send_string ?get_args ~post_args url >>= fun r ->
+    f ?headers:(Some headers) ?content_type:None ?post_args ?get_args url
+    >>= fun r ->
+    (*** MERGE end ***)
     if r.XmlHttpRequest.code = 204
     then
       match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
@@ -120,22 +123,13 @@ let rec send_wraper f ?cookies_info ?get_args ?post_args url =
     - sends tab cookies in an HTTP header
     - does half and full XHR redirections according to headers
 
-  match Eliom_services.get_kind_ service with
-    | `Attached attser ->
-      let uri =
-        if (Eliom_services.get_att_kind_ attser) = `External
-        then raise External_service
-        else Eliom_services.get_full_path_ attser
-      in
-      let suff, _ =
-        Eliom_parameters.construct_params_list
-          Ocsigen_lib.String_Table.empty
-          (Eliom_services.get_get_params_type_ service) getparams 
-      in
-      (match suff with
-        | None -> uri
-        | Some suff -> uri@suff)
-    | `Nonattached naser -> Eliom_state.full_path_
+    The optional parameter [~cookies_info] is a pair
+    containing the information (secure, path)
+    that is taken into account for finding tab cookies to send.
+    If not present, the path and protocol and taken from the URL.
+*)
+let send ?cookies_info ?get_args ?post_args url =
+  send_wraper XmlHttpRequest.send_string ?cookies_info ?get_args ?post_args url
 
 (** Send a GET form with tab cookies and half/full XHR.
     If [~post_params] is present, the HTTP method will be POST,

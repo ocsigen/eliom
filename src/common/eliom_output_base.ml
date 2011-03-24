@@ -243,7 +243,23 @@ module Xhtml5forms_ = struct
     Eliom_types.add_tab_cookies_to_get_form_id_string
 
   let add_tab_cookies_to_post_form_id_string =
-    Eliom_client_types.add_tab_cookies_to_post_form_id_string
+    Eliom_types.add_tab_cookies_to_post_form_id_string
+*)
+
+  let make_a_with_onclick ?a ?cookies_info s =
+    Eliommod_mkforms.make_a_with_onclick 
+      (fun ?a ?onclick ?href x -> make_a ?a ?onclick ?href x)
+      register_event_a
+      ?a ?cookies_info s
+
+  let make_get_form_with_onsubmit =
+    Eliommod_mkforms.make_get_form_with_onsubmit
+      make_get_form register_event_form
+
+  let make_post_form_with_onsubmit =
+    Eliommod_mkforms.make_post_form_with_onsubmit
+      (fun ?a ~action ?onsubmit x y -> make_post_form ?a ~action ?onsubmit x y)
+      register_event_form
 
 end
 

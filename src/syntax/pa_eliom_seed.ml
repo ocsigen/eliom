@@ -286,13 +286,6 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	);
 *)
 
-	(function (*buffchan*)
-	  | <:ctyp< ($_$ Eliom_comet.Buffered_channels.t) >> ->
-              (<:expr<Eliom_comet.Buffered_channels.wrap>>,
-		<:expr<Eliom_client_comet.Buffered_channels.unwrap>>)
-	  | _ -> raise Next
-	);
-
 (*
 	(function (*up_event*)
 	  | <:ctyp< ($_$ Eliom_react.Up.t) >> ->
@@ -313,7 +306,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	(function (*bus*)
 	  | <:ctyp< ($_$ Eliom_bus.t) >> ->
               (<:expr<Eliom_bus.wrap>>,
-		<:expr<Eliom_client_bus.unwrap>>)
+		<:expr<Eliommod_cli.unwrap>>)
 	  | _ -> raise Next
 	);
 *)

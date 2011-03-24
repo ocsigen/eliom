@@ -18,14 +18,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* The following line is for Eliommod_mkforms to be linked. *)
+open Eliom_pervasives
+
+(* The following lines are for Eliommod_mkforms and Eliom_client_react to be linked. *)
 let _a = Eliommod_mkforms.make_a_with_onclick
 let _b = Eliom_client_react.force_link
 
 
 let _ =
   Dom_html.window##onload <- Dom_html.handler (fun _ ->
-    let eliom_data = Ocsigen_lib.unmarshal_js_var "eliom_data" in
+    let eliom_data = unmarshal_js_var "eliom_data" in
     ignore (Eliom_client.load_eliom_data_ eliom_data Dom_html.document##body);
 
 (*CPE* change_page_event

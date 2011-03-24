@@ -6,3 +6,4 @@
 ==[[misc|Miscellaneous]]
 ==[[config|Compiling and configuring Eliom modules]]
 ==[[examples|Examples]]
+==[[wrapping|specific wrapping]]

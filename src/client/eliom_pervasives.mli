@@ -124,8 +124,8 @@ module XML : sig
   val cdata_script : string -> elt
   val cdata_style : string -> elt
 
-  val lwt_register_event : elt -> ename -> ('a -> 'b) -> 'a -> unit
-  val register_event : elt -> ename -> ('a -> 'b) -> 'a -> unit
+  val lwt_register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b Lwt.t) -> 'a -> unit
+  val register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b) -> 'a -> unit
 
   type ref_tree = Ref_tree of int option * (int * ref_tree) list
   val ref_node : 'a -> int
