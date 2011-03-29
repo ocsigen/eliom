@@ -47,12 +47,12 @@ end
 module type XHTMLFORMSSIG = sig
 
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
+
+
+
 
 (** {2 Links and forms} *)
-
-
-
 
     val make_string_uri :
       ?absolute:bool ->
@@ -66,7 +66,7 @@ module type XHTMLFORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
+      'get ->
       string
 (** Creates the string corresponding to the relative URL of a service applied to
     its GET parameters.
@@ -608,7 +608,7 @@ module type XHTMLFORMSSIG = sig
 (** Creates a [<textarea>] tag for untyped form *)
 
   type 'a soption =
-      Xhtmltypes.option_attrib XHTML.M.attrib list
+      XHTML_types.option_attrib XHTML.M.attrib list
         * 'a (* Value to send *)
         * pcdata elt option (* Text to display (if different from the latter) *)
         * bool (* selected *)
@@ -748,8 +748,6 @@ module type XHTMLFORMSSIG = sig
 end
 
 
-
-
 (*
 (* The sig include A end are a workaround not to have to install
    the clients .cmi *)
@@ -763,9 +761,8 @@ module type XHTMLFORMSSIG = sig include Eliom_output_cli.XHTMLFORMSSIG end
       (** Eliom forms and service registration functions for XHTML *)
 module Xhtml : sig
 
-  include Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.xhtml XHTML.M.elt 
-                                  and type options = XHTML.M.doctypes
-                                  and type return = Eliom_services.http
+  include Eliom_mkreg.ELIOMREGSIG with type page = XHTML_types.xhtml XHTML.M.elt
+                                   and type return = Eliom_services.http
 
   include XHTMLFORMSSIG
 
@@ -773,64 +770,27 @@ end
 
 
 module Xhtmlforms : XHTMLFORMSSIG
-module Xhtmlreg : Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.xhtml XHTML.M.elt 
-                                  and type options = XHTML.M.doctypes
+module Xhtmlreg : Eliom_mkreg.ELIOMREGSIG with type page = XHTML_types.xhtml XHTML.M.elt
                                   and type return = Eliom_services.http
 
-module Xhtmlreg_ : 
-  functor(Xhtml_content : 
-            Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
-                                            and type options = XHTML.M.doctypes
-         ) -> Eliom_mkreg.REGCREATE with type page =  Xhtml_content.t
-                                    and type options = XHTML.M.doctypes
-                                    and type return = Eliom_services.http
-
-
-
-      (** Eliom forms and service registration functions for XHTML, with
-          compact markup (i.e., without pretty-printing). *)
-module Xhtmlcompact : sig
-
-  include Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.xhtml XHTML.M.elt
-                                  and type options = XHTML.M.doctypes
-                                  and type return = Eliom_services.http
-
-  include XHTMLFORMSSIG
-
-end
 
 (** {2 Same for html 5} *)
 
-(* include module type of Eliom_output_cli 
+(* include module type of Eliom_output_cli
    does not work with camlp4 ... I replace by:
 *)
-module type XHTML5FORMSSIG = Eliom_output_base.XHTML5FORMSSIG
 
+module type HTML5FORMSSIG = Eliom_output_base.HTML5FORMSSIG
 
+module Html5 : sig
 
-
-module Xhtml5 : sig
-
-  include Eliom_mkreg.ELIOMREGSIG 
-  with type page = Xhtml5types.xhtml XHTML5.M.elt 
-  and type options = XHTML5.M.doctypes
+  include Eliom_mkreg.ELIOMREGSIG
+  with type page = HTML5.M.doc
   and type return = Eliom_services.http
 
-  include XHTML5FORMSSIG
+  include HTML5FORMSSIG
 
 end
-
-module Xhtml5compact : sig
-
-  include Eliom_mkreg.ELIOMREGSIG 
-  with type page = Xhtml5types.xhtml XHTML5.M.elt
-  and type options = XHTML5.M.doctypes
-  and type return = Eliom_services.http
-
-  include XHTML5FORMSSIG
-
-end
-
 
 
 (** {3 Eliom client/server applications} *)
@@ -838,18 +798,17 @@ end
 (** Parameters for an Eliom application *)
 type appl_service_params =
     {
-      ap_doctype: XHTML5.M.doctypes;
       ap_title: string;
       ap_container : 'a.
-        ((([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option *
-           (Xhtml5types.body_content XHTML5.M.elt ->
-            Xhtml5types.body_content XHTML5.M.elt list))
+        ((([< HTML5_types.common ] as 'a) HTML5.M.attrib list) option *
+           (HTML5_types.body_content HTML5.M.elt ->
+            HTML5_types.body_content HTML5.M.elt list))
         option;
       ap_body_attributes : 
-        'a. (([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option;
-      ap_headers_before : Xhtml5types.head_content_fun XHTML5.M.elt list;
+        'a. (([< HTML5_types.common ] as 'a) HTML5.M.attrib list) option;
+      ap_headers_before : HTML5_types.head_content_fun HTML5.M.elt list;
       (** Headers to be added before loading the main program *)
-      ap_headers_after : Xhtml5types.head_content_fun XHTML5.M.elt list
+      ap_headers_after : HTML5_types.head_content_fun HTML5.M.elt list
       (** Headers to be added after loading the main program *)
     }
 
@@ -886,9 +845,10 @@ type appl_service_options =
 
 val default_appl_service_options : appl_service_options
 
+
 module Eliom_appl (Appl_params : APPL_PARAMS) : sig
   include Eliom_mkreg.ELIOMREGSIG 
-    with type page = Xhtml5types.body_content XHTML5.M.elt list
+    with type page = HTML5_types.body_content HTML5.M.elt list
     and type options = appl_service_options
     and type return = Eliom_services.appl_service
 
@@ -900,27 +860,21 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
   val application_name : string
 end
 
-
-module Xhtmlcompactreg : Eliom_mkreg.ELIOMREGSIG 
-  with type page = Xhtmltypes.xhtml XHTML.M.elt
-  and type options = XHTML.M.doctypes
-  and type return = Eliom_services.http
-
 (** {3 Module to register subpages of type [block]} *)
 (** For XHTML *)
 module Blocks : sig
 
-  include Eliom_mkreg.ELIOMREGSIG with type page = Xhtmltypes.body_content XHTML.M.elt list
+  include Eliom_mkreg.ELIOMREGSIG with type page = XHTML_types.body_content XHTML.M.elt list
                                   and type options = unit
                                   and type return = Eliom_services.http
   include XHTMLFORMSSIG
 
 end
 
-(** For XHTML5 *)
+(** For HTML5 *)
 module Blocks5 : sig
 
-  include Eliom_mkreg.ELIOMREGSIG with type page = Xhtml5types.body_content XHTML5.M.elt list
+  include Eliom_mkreg.ELIOMREGSIG with type page = HTML5_types.body_content HTML5.M.elt list
                                   and type options = unit
                                   and type return = Eliom_services.http
   include XHTMLFORMSSIG
@@ -928,20 +882,18 @@ module Blocks5 : sig
 end
   (** Use this module for example for XMLHttpRequests for block tags (e.g. <div>) *)
 
-
 (** {3 Functor to create modules to register subpages for other subtypes of XHTML} *)
 
-module SubXhtml(Format : sig 
-      type content
-      type 'a elt
-      val xhtml_list_stream : ?width: int -> ?encode:(string->string) 
-        -> ?html_compat : bool -> content elt list -> string Ocsigen_stream.t end) :
+module SubXhtml(XML : XML_sigs.Iterable)
+               (TypedXML : XML_sigs.TypedXML(XML).T)
+               (E : sig type content end) :
   sig
 
-    include Eliom_mkreg.ELIOMREGSIG with type page = Format.content Format.elt list
+    include Eliom_mkreg.ELIOMREGSIG with type page = E.content TypedXML.elt list
     include XHTMLFORMSSIG
 
   end
+
 
 
 
@@ -1042,7 +994,7 @@ module Redirection : Eliom_mkreg.ELIOMREGSIG with
    For example: [register ~options:`Temporary ...].
  *)
 module String_redirection : Eliom_mkreg.ELIOMREGSIG with
-  type page = Xhtmltypes.uri
+  type page = XHTML_types.uri
   and type options = [ `Temporary | `Permanent ]
   and type return = Eliom_services.http
 (*VVV Would be better to define the type uri elsewhere *)

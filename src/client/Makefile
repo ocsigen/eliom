@@ -33,6 +33,7 @@ ${COMMON_PFILES}:
 ### Library ###
 
 FILES := eliom_pervasives.ml \
+	 eliom_client_unwrap.ml \
 	 eliom_cookies.ml \
 	 eliom_common_base.ml eliom_common.ml \
          private/eliommod_cookies.ml \

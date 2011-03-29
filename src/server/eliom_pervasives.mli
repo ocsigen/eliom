@@ -71,7 +71,7 @@ module Ip_address : sig
     | IPv4 of int32
     | IPv6 of int64 * int64
 
-  val parse_ip : string -> t * (t option)
+  val parse : string -> t * (t option)
 
   val network_of_ip : t -> int32 -> int64 * int64 -> t
   val inet6_addr_loopback : t
@@ -92,3 +92,105 @@ end
 
 val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
 val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
+
+module XML : sig
+
+  type aname = string
+  type separator = Space | Comma
+  type event = string
+
+  type attrib
+  type acontent = private
+    | AFloat of aname * float
+    | AInt of aname * int
+    | AStr of aname * string
+    | AStrL of separator * aname * string list
+  val acontent : attrib -> acontent
+  val aname : attrib -> aname
+
+  val float_attrib : aname -> float -> attrib
+  val int_attrib : aname -> int -> attrib
+  val string_attrib : aname -> string -> attrib
+  val space_sep_attrib : aname -> string list -> attrib
+  val comma_sep_attrib : aname -> string list -> attrib
+  val event_attrib : aname -> event -> attrib
+
+  val attrib_name : attrib -> aname
+  val attrib_value_to_string : (string -> string) -> attrib -> string
+  val attrib_to_string : (string -> string) -> attrib -> string
+
+  type ename = string
+
+  type econtent =
+    | Empty
+    | Comment of string
+    | EncodedPCDATA of string
+    | PCDATA of string
+    | Entity of string
+    | Leaf of ename * attrib list
+    | Node of ename * attrib list * elt list
+  and elt = {
+      (* the element is boxed with some meta-information *)
+      mutable ref : int ;
+      elt : econtent ;
+      elt_mark : Obj.t;
+    }
+  val content : elt -> econtent
+
+  val make_mark : (unit -> Obj.t) ref
+
+  val make_node : econtent -> elt
+
+  val empty : unit -> elt
+
+  val comment : string -> elt
+  val pcdata : string -> elt
+  val encodedpcdata : string -> elt
+  val entity : string -> elt
+(** Neither [comment], [pcdata] nor [entity] check their argument for invalid
+    characters.  Unsafe characters will be escaped later by the output routines.  *)
+
+  val leaf : ?a:(attrib list) -> ename -> elt
+  val node : ?a:(attrib list) -> ename -> elt list -> elt
+(** NB: [Leaf ("foo", []) -> "<foo />"], but [Node ("foo", [], []) -> "<foo></foo>"] *)
+
+  val cdata : string -> elt
+  val cdata_script : string -> elt
+  val cdata_style : string -> elt
+
+  type ref_tree = Ref_tree of int option * (int * ref_tree) list
+
+  val ref_node : elt -> int
+  val next_ref : unit -> int (** use with care! *)
+  val make_ref_tree : elt -> ref_tree
+  val make_ref_tree_list : elt list -> (int * ref_tree) list
+
+  val lwt_register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b Lwt.t) -> 'a -> unit
+  val register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b) -> 'a -> unit
+
+  val class_name : string
+
+end
+
+module SVG : sig
+
+  module M : SVG_sigs.SVG(XML).T
+  module P : XML_sigs.TypedSimplePrinter(XML)(M).T
+
+end
+
+module HTML5 : sig
+
+  module M : HTML5_sigs.HTML5(XML)(SVG.M).T
+  module P : XML_sigs.TypedSimplePrinter(XML)(M).T
+
+end
+
+module XHTML : sig
+
+  module M : XHTML_sigs.XHTML(XML).T
+  module M_01_01 : XHTML_sigs.XHTML(XML).T
+  module M_01_00 : XHTML_sigs.XHTML(XML).T
+  module P : XML_sigs.TypedSimplePrinter(XML)(M).T
+
+end

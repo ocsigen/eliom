@@ -18,12 +18,13 @@
 
 (* TODO: factorize function with eliom_duce_tools? *)
 
+open Eliom_pervasives
 open Eliom_services
 open Eliom_tools_common
 open Uri
 
 module Xhtml = struct
-  open Xhtmltypes
+  open XHTML_types
   open XHTML.M
   open Eliom_output.Xhtml
   let a_ul classes id level =
@@ -139,16 +140,16 @@ module Xhtml = struct
                   if deplier || whole_tree then
                     (depth_first_fun hsl (level+1) pos2
                        : [ `Ul ] XHTML.M.elt list
-                     :> [< Xhtmltypes.li_content > `Ul ] XHTML.M.elt list)
+                     :> [< XHTML_types.li_content > `Ul ] XHTML.M.elt list)
                   else [])
           | (text, Site_tree (Not_clickable, hsl)) ->
             li ~a:attclass
-              ((text : Xhtmltypes.a_content XHTML.M.elt list
-                :> Xhtmltypes.li_content XHTML.M.elt list)@
+              ((text : XHTML_types.a_content XHTML.M.elt list
+                :> XHTML_types.li_content XHTML.M.elt list)@
                   if deplier || whole_tree then
                     (depth_first_fun hsl (level+1) pos2
                        : [ `Ul ] XHTML.M.elt list
-                     :> [< Xhtmltypes.li_content > `Ul ] XHTML.M.elt list)
+                     :> [< XHTML_types.li_content > `Ul ] XHTML.M.elt list)
                   else [])
 
       and one_menu first i = function
@@ -279,10 +280,10 @@ module Xhtml = struct
     with Not_found -> []
 end
 
-module Xhtml5 = struct
-  open Xhtml5types
-  open XHTML5.M
-  open Eliom_output.Xhtml5
+module Html5 = struct
+  open HTML5_types
+  open HTML5.M
+  open Eliom_output.Html5
     
   let a_ul classes id level =
     let classes = [a_class classes] in

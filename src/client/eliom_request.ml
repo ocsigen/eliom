@@ -90,18 +90,16 @@ let rec send_wraper f ?cookies_info ?get_args ?post_args url =
     in
     (* We add cookies in POST parameters *)
     let cookies = Eliommod_cookies.get_cookies_to_send https path in
-    let headers = [(Eliom_common.tab_cookies_header_name, 
-                    (Ocsigen_lib.encode_header_value cookies))]
+    let headers = [(Eliom_common.tab_cookies_header_name,
+                    (encode_header_value cookies))]
     in
-    (*** MERGE begin ***)
-    let post_args =
+    let post_args = map_option (fun post_args ->
       ((Eliom_common.tab_cookies_param_name,
-        (encode_form_value (CookiesTable.fold (fun k v l -> (k, v) ::l) cookies [])))::
-          post_args)
+        (encode_form_value cookies))::
+          post_args)) post_args
     in
     f ?headers:(Some headers) ?content_type:None ?post_args ?get_args url
     >>= fun r ->
-    (*** MERGE end ***)
     if r.XmlHttpRequest.code = 204
     then
       match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with

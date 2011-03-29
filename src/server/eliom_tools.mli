@@ -19,6 +19,7 @@
 
 (** Predefined boxes for Eliom *)
 
+open Eliom_pervasives
 open Eliom_services
 open Eliom_parameters
 open Eliom_state
@@ -29,13 +30,13 @@ module Xhtml : sig
 (** {2 Menus } *)
 
   val menu :
-    ?classe:Xhtmltypes.nmtoken list ->
+    ?classe:XHTML_types.nmtoken list ->
     ?id:string ->
     (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
-        Xhtmltypes.a_content XHTML.M.elt list)
+        XHTML_types.a_content XHTML.M.elt list)
     ->
     (('a, 'b) one_page *
-        Xhtmltypes.a_content XHTML.M.elt list)
+        XHTML_types.a_content XHTML.M.elt list)
       list ->
     ?service:('a, 'b) one_page ->
     unit ->
@@ -73,12 +74,12 @@ module Xhtml : sig
    page is used.
 *)
   val hierarchical_menu_depth_first :
-    ?classe:Xhtmltypes.nmtoken list ->
+    ?classe:XHTML_types.nmtoken list ->
     ?id:string ->
     ?whole_tree:bool ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     Xhtmltypes.a_content XHTML.M.elt list)
+     XHTML_types.a_content XHTML.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
     unit ->
@@ -99,11 +100,11 @@ module Xhtml : sig
    are displayed. If [service] is [None], the current url is used.
 *)
   val hierarchical_menu_breadth_first :
-    ?classe:Xhtmltypes.nmtoken list ->
+    ?classe:XHTML_types.nmtoken list ->
     ?id:string ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     Xhtmltypes.a_content XHTML.M.elt list)
+     XHTML_types.a_content XHTML.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
     unit ->
@@ -116,7 +117,7 @@ module Xhtml : sig
   val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     Xhtmltypes.a_content XHTML.M.elt list)
+     XHTML_types.a_content XHTML.M.elt list)
     hierarchical_site ->
     ?service:('a, 'b) one_page ->
     unit ->
@@ -126,22 +127,22 @@ end
 (** {2 XHTML5} *)
 
 (** Same functions as above, but with XHTML5 elements *)
-module Xhtml5 : sig
+module Html5 : sig
     
 (** {2 Menus } *)
 
   val menu :
-    ?classe:Xhtml5types.nmtoken list ->
+    ?classe:HTML5_types.nmtoken list ->
     ?id:string ->
     (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
-        Xhtml5types.flow5_without_interactive XHTML5.M.elt list)
+        HTML5_types.flow5_without_interactive HTML5.M.elt list)
     ->
     (('a, 'b) one_page *
-        Xhtml5types.flow5_without_interactive XHTML5.M.elt list)
+        HTML5_types.flow5_without_interactive HTML5.M.elt list)
       list ->
     ?service:('a, 'b) one_page ->
     unit ->
-    [> `Ul ] XHTML5.M.elt
+    [> `Ul ] HTML5.M.elt
 (** Creates a menu
 
     Example:
@@ -175,16 +176,16 @@ module Xhtml5 : sig
    page is used.
 *)
   val hierarchical_menu_depth_first :
-    ?classe:Xhtml5types.nmtoken list ->
+    ?classe:HTML5_types.nmtoken list ->
     ?id:string ->
     ?whole_tree:bool ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     Xhtml5types.a_content XHTML5.M.elt list)
+     HTML5_types.a_content HTML5.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
     unit ->
-    [> `Ul ] XHTML5.M.elt list
+    [> `Ul ] HTML5.M.elt list
 
 
 
@@ -201,15 +202,15 @@ module Xhtml5 : sig
    are displayed. If [service] is [None], the current url is used.
 *)
   val hierarchical_menu_breadth_first :
-    ?classe:Xhtml5types.nmtoken list ->
+    ?classe:HTML5_types.nmtoken list ->
     ?id:string ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     Xhtml5types.a_content XHTML5.M.elt list)
+     HTML5_types.a_content HTML5.M.elt list)
       hierarchical_site ->
     ?service:('a, 'b) one_page ->
     unit ->
-    [> `Ul ] XHTML5.M.elt list
+    [> `Ul ] HTML5.M.elt list
 
 
 (** Returns the tags [<link rel="subsection" ...>] and
@@ -218,9 +219,9 @@ module Xhtml5 : sig
   val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     Xhtml5types.a_content XHTML5.M.elt list)
+     HTML5_types.a_content HTML5.M.elt list)
     hierarchical_site ->
     ?service:('a, 'b) one_page ->
     unit ->
-    [> `Link ] XHTML5.M.elt list
+    [> `Link ] HTML5.M.elt list
 end

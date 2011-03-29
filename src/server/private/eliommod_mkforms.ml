@@ -19,6 +19,8 @@
 
 (* This module is different on client and server side *)
 
+open Eliom_pervasives
+
 let (make_a_with_onclick :
        (?a:'a -> ?onclick:XML.event -> ?href:string -> 'c -> 'd) ->
      (?keep_default:bool -> 'd -> string -> ('e -> unit Lwt.t) -> unit -> 'f) ->
@@ -55,7 +57,7 @@ let (make_a_with_onclick :
     in
     Eliom_services.add_onload_form_creator
       (send_appl_content, (Eliom_types.OFA
-                             (XHTML5.M.toelt node, href, cookies_info)));
+                             (HTML5.M.toelt node, href, cookies_info)));
     node
 
 let make_get_form_with_onsubmit
@@ -95,8 +97,8 @@ let make_get_form_with_onsubmit
       fields
   in
   Eliom_services.add_onload_form_creator
-    (send_appl_content, (Eliom_client_types.OFForm_get
-                           (XHTML5.M.toelt node, uri, cookies_info)));
+    (send_appl_content, (Eliom_types.OFForm_get
+                           (HTML5.M.toelt node, uri, cookies_info)));
   node
 
 
@@ -128,8 +130,8 @@ let make_post_form_with_onsubmit
       fields
   in
   Eliom_services.add_onload_form_creator
-    (send_appl_content, (Eliom_client_types.OFForm_post
-                           (XHTML5.M.toelt node, uri, cookies_info)));
+    (send_appl_content, (Eliom_types.OFForm_post
+                           (HTML5.M.toelt node, uri, cookies_info)));
   node
 
 

@@ -86,7 +86,7 @@ end
 
 module Cometreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
   open Ocsigen_http_frame
 
   type page = (string * string)
@@ -400,8 +400,8 @@ end = struct
 	  ( Lwt_stream.get s <?> stopper ) >>= function
 	    | Some x ->
 	      if !count >= size
-	      then (push (Some Ecc.Full); return ())
-	      else (incr count; push (Some ( Ecc.Data x )); loop ())
+	      then (push (Some Ecb.Full); return ())
+	      else (incr count; push (Some ( Ecb.Data x )); loop ())
 	    | None ->
               return ()
 	in
@@ -422,7 +422,7 @@ end = struct
       channel_mark = channel_mark () }
 
   let create_unlimited ?name stream =
-    let stream = Lwt_stream.map (fun x -> Ecc.Data x) stream in
+    let stream = Lwt_stream.map (fun x -> Ecb.Data x) stream in
     { channel = create_channel ?name stream;
       channel_mark = channel_mark () }
 

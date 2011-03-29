@@ -47,7 +47,7 @@ let make_get_form_with_onsubmit
   let node = make_get_form ?a ~action:uri ?onsubmit:None field fields in
   register_event ?keep_default:(Some false) node "onsubmit"
     (fun () -> Eliom_client.change_page_get_form ?cookies_info
-      (Js.Unsafe.coerce (XHTML5.M.toelt node)) uri)
+      (Js.Unsafe.coerce (HTML5.M.toelt node)) uri)
     ();
   node
 
@@ -64,7 +64,7 @@ let make_post_form_with_onsubmit
   let node = make_post_form ?a ~action:uri ?onsubmit:None field fields in
   register_event ?keep_default:(Some false) node "onsubmit"
     (fun () -> Eliom_client.change_page_post_form ?cookies_info
-      (Js.Unsafe.coerce (XHTML5.M.toelt node)) uri)
+      (Js.Unsafe.coerce (HTML5.M.toelt node)) uri)
     ();
   node
 
@@ -95,15 +95,15 @@ let add_tab_cookie_fields l node =
   then ()
   else
     let my_div = 
-      XHTML5.M.div ~a:[XHTML5.M.a_class [tab_cookie_class;
+      HTML5.M.div ~a:[HTML5.M.a_class [tab_cookie_class;
                                          Eliom_common.nodisplay_class_name]]
         (List.map (fun (n, v) ->
-          XHTML5.M.input ~a:[XHTML5.M.a_input_type `Hidden;
-                             XHTML5.M.a_name n;
-                             XHTML5.M.a_value v] ())
+          HTML5.M.input ~a:[HTML5.M.a_input_type `Hidden;
+                             HTML5.M.a_name n;
+                             HTML5.M.a_value v] ())
            l)
     in
-    ignore (node##appendChild (XHTML5.M.toelt my_div))
+    ignore (node##appendChild (HTML5.M.toelt my_div))
 
 
 
@@ -129,7 +129,7 @@ let add_tab_cookies_to_post_form' node =
   add_tab_cookies_to_form' l node
 
 let add_tab_cookies_to_post_form node () =
-  let node : #Dom.node Js.t = Js.Unsafe.coerce (XHTML5.M.toelt node) in
+  let node : #Dom.node Js.t = Js.Unsafe.coerce (HTML5.M.toelt node) in
   add_tab_cookies_to_post_form' node
 
 let add_tab_cookies_to_get_form' node =
@@ -148,7 +148,7 @@ let add_tab_cookies_to_get_form' node =
   add_tab_cookies_to_form' l node
 
 let add_tab_cookies_to_get_form node () =
-  let node = Js.Unsafe.coerce (XHTML5.M.toelt node) in
+  let node = Js.Unsafe.coerce (HTML5.M.toelt node) in
   add_tab_cookies_to_get_form' node
 
 let make_get_form_with_post_tab_cookies
@@ -175,7 +175,7 @@ let _ =
     Eliom_types.add_tab_cookies_to_get_form_id
     (fun node ->
       let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
-      ignore (add_tab_cookies_to_get_form (XHTML5.M.tot node) ());
+      ignore (add_tab_cookies_to_get_form (HTML5.M.tot node) ());
       Js._true)
 
 let _ =
@@ -183,7 +183,7 @@ let _ =
     Eliom_types.add_tab_cookies_to_post_form_id
     (fun node ->
       let node = (Eliommod_cli.unwrap_node node :> Dom.node Js.t) in
-      ignore (add_tab_cookies_to_post_form (XHTML5.M.tot node) ());
+      ignore (add_tab_cookies_to_post_form (HTML5.M.tot node) ());
       Js._true)
 
 *)

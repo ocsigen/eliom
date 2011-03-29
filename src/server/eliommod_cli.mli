@@ -17,6 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
 
 (**/**)
 
@@ -34,5 +35,5 @@ val client_si : Eliom_common.sess_info -> Eliom_common.sess_info
 
 val wrap : 'a -> 'a Eliom_types.data_key
 
-val wrap_node : 'a XHTML5.M.elt -> 'node Eliom_types.data_key
+val wrap_node : 'a HTML5.M.elt -> 'node Eliom_types.data_key
 

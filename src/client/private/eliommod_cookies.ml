@@ -59,7 +59,7 @@ let get_cookies_to_send https path =
               cookies_to_send
             | _ ->
               if (not secure) || https
-              then CookiesTable.add name value cookies_to_send
+              then (name,value)::cookies_to_send
               else cookies_to_send
         )
         t
@@ -67,4 +67,4 @@ let get_cookies_to_send https path =
       else cookies_to_send
     )
     !cookie_table
-    CookiesTable.empty
+    []

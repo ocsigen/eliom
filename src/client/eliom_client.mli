@@ -91,7 +91,7 @@ val get_subpage :
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> 
-  [< `PCDATA | Xhtmltypes.flow ] XHTML5.M.elt list Lwt.t
+  [< `PCDATA | XHTML_types.flow ] HTML5.M.elt list Lwt.t
 
 (** (low level) Call a server side service and return the content
     of the resulting HTTP frame as a string. *)

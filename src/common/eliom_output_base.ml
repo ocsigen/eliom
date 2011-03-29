@@ -32,13 +32,13 @@ open Ocsigen_extensions
 (*****************************************************************************)
 
 
-module Xhtml5forms_ = struct
-  open XHTML5.M
-  open Xhtml5types
+module Html5forms_ = struct
+  open HTML5.M
+  open HTML5_types
 
   type form_content_elt = form_content elt
   type form_content_elt_list = form_content elt list
-  type uri = Xhtml5types.uri
+  type uri = HTML5_types.uri
   type 'a a_content_elt = 'a elt
   type 'a a_content_elt_list = 'a elt list
 
@@ -67,16 +67,16 @@ module Xhtml5forms_ = struct
   type button_content_elt = button_content elt
   type button_content_elt_list = button_content elt list
 
-  type a_attrib_t = Xhtml5types.a_attrib XHTML5.M.attrib list
-  type form_attrib_t = Xhtml5types.form_attrib XHTML5.M.attrib list
-  type input_attrib_t = Xhtml5types.input_attrib XHTML5.M.attrib list
-  type textarea_attrib_t = Xhtml5types.textarea_attrib XHTML5.M.attrib list
-  type select_attrib_t = Xhtml5types.select_attrib XHTML5.M.attrib list
-  type link_attrib_t = Xhtml5types.link_attrib XHTML5.M.attrib list
-  type script_attrib_t = Xhtml5types.script_attrib XHTML5.M.attrib list
-  type optgroup_attrib_t = [ common | `Disabled ] XHTML5.M.attrib list
-  type option_attrib_t = Xhtml5types.option_attrib XHTML5.M.attrib list
-  type button_attrib_t = Xhtml5types.button_attrib XHTML5.M.attrib list
+  type a_attrib_t = HTML5_types.a_attrib HTML5.M.attrib list
+  type form_attrib_t = HTML5_types.form_attrib HTML5.M.attrib list
+  type input_attrib_t = HTML5_types.input_attrib HTML5.M.attrib list
+  type textarea_attrib_t = HTML5_types.textarea_attrib HTML5.M.attrib list
+  type select_attrib_t = HTML5_types.select_attrib HTML5.M.attrib list
+  type link_attrib_t = HTML5_types.link_attrib HTML5.M.attrib list
+  type script_attrib_t = HTML5_types.script_attrib HTML5.M.attrib list
+  type optgroup_attrib_t = [ common | `Disabled ] HTML5.M.attrib list
+  type option_attrib_t = HTML5_types.option_attrib HTML5.M.attrib list
+  type button_attrib_t = HTML5_types.button_attrib HTML5.M.attrib list
 
   type input_type_t =
     [ `Button
@@ -122,7 +122,7 @@ module Xhtml5forms_ = struct
       | None -> a
       | Some v -> (a_onclick v)::a
     in
-    XHTML5.M.a ~a l
+    HTML5.M.a ~a l
 
   let make_get_form ?(a=[]) ~action ?onsubmit elt1 elts : form_elt =
     let a = (match onsubmit with
@@ -130,11 +130,11 @@ module Xhtml5forms_ = struct
       | Some s -> (a_onsubmit s)::a)
     in
     let r = 
-      XHTML5.M.form ~a:((a_method `Get)::(a_action (uri_of_string action))::a)
+      HTML5.M.form ~a:((a_method `Get)::(a_action (uri_of_string action))::a)
         elt1 elts
     in
   (* if onsubmit is true, the node ref must exist: *)
-    if onsubmit <> None then ignore (XML.ref_node (XHTML5.M.toelt r));
+    if onsubmit <> None then ignore (XML.ref_node (HTML5.M.toelt r));
     r
 
   let make_post_form ?(a=[]) ~action ?onsubmit ?id ?(inline = false) elt1 elts
@@ -148,7 +148,7 @@ module Xhtml5forms_ = struct
     | Some i -> (a_id i)::a)
     in
     let r = 
-      form ~a:((XHTML5.M.a_enctype "multipart/form-data")::
+      form ~a:((HTML5.M.a_enctype "multipart/form-data")::
                 (* Always Multipart!!! How to test if there is a file?? *)
                   (a_action (uri_of_string action))::
                   (a_method `Post)::
@@ -156,7 +156,7 @@ module Xhtml5forms_ = struct
         elt1 elts
     in
   (* if onsubmit is true, the node ref must exist: *)
-    if onsubmit <> None then ignore (XML.ref_node (XHTML5.M.toelt r));
+    if onsubmit <> None then ignore (XML.ref_node (HTML5.M.toelt r));
     r
 
   let make_hidden_field content =
@@ -225,10 +225,10 @@ module Xhtml5forms_ = struct
     script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
   let register_event_a ?keep_default node =
-    XML.register_event ?keep_default (XHTML5.M.toelt node)
+    XML.register_event ?keep_default (HTML5.M.toelt node)
 
   let register_event_form ?keep_default node =
-    XML.register_event ?keep_default (XHTML5.M.toelt node)
+    XML.register_event ?keep_default (HTML5.M.toelt node)
 
 (*POSTtabcookies* forms with tab cookies in POST params:
 
@@ -268,13 +268,13 @@ end
 (*****************************************************************************)
 (*****************************************************************************)
 
-module Xhtml5forms' = MakeForms(Xhtml5forms_)
+module Html5forms' = MakeForms(Html5forms_)
 
-module type XHTML5FORMSSIG = sig
+module type HTML5FORMSSIG = sig
 (* Pasted from mli *)
 
-  open XHTML5.M
-  open Xhtml5types
+  open HTML5.M
+  open HTML5_types
 
 (** {2 Links and forms} *)
 
@@ -394,7 +394,7 @@ module type XHTML5FORMSSIG = sig
       ?no_appl:bool ->
       'a elt list -> 
       'get -> 
-    [> 'a a] XHTML5.M.elt
+    [> 'a a] HTML5.M.elt
 (** [a service cont ()] creates a link to [service].
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -833,14 +833,14 @@ module type XHTML5FORMSSIG = sig
 (** Creates a [<textarea>] tag for untyped form *)
 
   type 'a soption =
-      Xhtml5types.option_attrib XHTML5.M.attrib list
+      HTML5_types.option_attrib HTML5.M.attrib list
         * 'a (* Value to send *)
         * pcdata elt option (* Text to display (if different from the latter) *)
         * bool (* selected *)
 
   type 'a select_opt =
     | Optgroup of
-        [ common | `Disabled ] XHTML5.M.attrib list
+        [ common | `Disabled ] HTML5.M.attrib list
           * string (* label *)
           * 'a soption
           * 'a soption list
@@ -991,56 +991,56 @@ type button_type =
   | `Submit
   ]
 
-module MakeXhtml5forms =
-  functor (Xhtml5forms' : ELIOMFORMSIG
-           with type form_content_elt = Xhtml5types.form_content XHTML5.M.elt
-           and type form_content_elt_list = Xhtml5types.form_content XHTML5.M.elt list
-           and type uri = Xhtml5types.uri
-           and type 'a a_content_elt = 'a XHTML5.M.elt
-           and type 'a a_content_elt_list = 'a XHTML5.M.elt list
+module MakeHtml5forms =
+  functor (Html5forms' : ELIOMFORMSIG
+           with type form_content_elt = HTML5_types.form_content HTML5.M.elt
+           and type form_content_elt_list = HTML5_types.form_content HTML5.M.elt list
+           and type uri = HTML5_types.uri
+           and type 'a a_content_elt = 'a HTML5.M.elt
+           and type 'a a_content_elt_list = 'a HTML5.M.elt list
 
-           and type div_content_elt = Xhtml5types.div_content XHTML5.M.elt
-           and type div_content_elt_list = Xhtml5types.div_content XHTML5.M.elt list
+           and type div_content_elt = HTML5_types.div_content HTML5.M.elt
+           and type div_content_elt_list = HTML5_types.div_content HTML5.M.elt list
 
-           and type 'a a_elt = 'a Xhtml5types.a XHTML5.M.elt
-           and type 'a a_elt_list = 'a Xhtml5types.a XHTML5.M.elt list
-           and type form_elt = Xhtml5types.form XHTML5.M.elt
+           and type 'a a_elt = 'a HTML5_types.a HTML5.M.elt
+           and type 'a a_elt_list = 'a HTML5_types.a HTML5.M.elt list
+           and type form_elt = HTML5_types.form HTML5.M.elt
 
-           and type textarea_elt = Xhtml5types.textarea XHTML5.M.elt
-           and type input_elt = Xhtml5types.input XHTML5.M.elt
+           and type textarea_elt = HTML5_types.textarea HTML5.M.elt
+           and type input_elt = HTML5_types.input HTML5.M.elt
 
-           and type link_elt = Xhtml5types.link XHTML5.M.elt
-           and type script_elt = Xhtml5types.script XHTML5.M.elt
+           and type link_elt = HTML5_types.link HTML5.M.elt
+           and type script_elt = HTML5_types.script HTML5.M.elt
 
-           and type pcdata_elt = Xhtml5types.pcdata XHTML5.M.elt
+           and type pcdata_elt = HTML5_types.pcdata HTML5.M.elt
 
-           and type select_elt = Xhtml5types.select XHTML5.M.elt
-           and type select_content_elt = Xhtml5types.select_content XHTML5.M.elt
-           and type select_content_elt_list = Xhtml5types.select_content XHTML5.M.elt list
-           and type option_elt = Xhtml5types.selectoption XHTML5.M.elt
-           and type option_elt_list = Xhtml5types.selectoption XHTML5.M.elt list
+           and type select_elt = HTML5_types.select HTML5.M.elt
+           and type select_content_elt = HTML5_types.select_content HTML5.M.elt
+           and type select_content_elt_list = HTML5_types.select_content HTML5.M.elt list
+           and type option_elt = HTML5_types.selectoption HTML5.M.elt
+           and type option_elt_list = HTML5_types.selectoption HTML5.M.elt list
 
-           and type button_elt = Xhtml5types.button XHTML5.M.elt
-           and type button_content_elt = Xhtml5types.button_content XHTML5.M.elt
-           and type button_content_elt_list = Xhtml5types.button_content XHTML5.M.elt list
+           and type button_elt = HTML5_types.button HTML5.M.elt
+           and type button_content_elt = HTML5_types.button_content HTML5.M.elt
+           and type button_content_elt_list = HTML5_types.button_content HTML5.M.elt list
 
-           and type a_attrib_t = Xhtml5types.a_attrib XHTML5.M.attrib list
-           and type form_attrib_t = Xhtml5types.form_attrib XHTML5.M.attrib list
-           and type input_attrib_t = Xhtml5types.input_attrib XHTML5.M.attrib list
-           and type textarea_attrib_t = Xhtml5types.textarea_attrib XHTML5.M.attrib list
-           and type select_attrib_t = Xhtml5types.select_attrib XHTML5.M.attrib list
-           and type link_attrib_t = Xhtml5types.link_attrib XHTML5.M.attrib list
-           and type script_attrib_t = Xhtml5types.script_attrib XHTML5.M.attrib list
-           and type optgroup_attrib_t = [ Xhtml5types.common | `Disabled ] XHTML5.M.attrib list
-           and type option_attrib_t = Xhtml5types.option_attrib XHTML5.M.attrib list
-           and type button_attrib_t = Xhtml5types.button_attrib XHTML5.M.attrib list
+           and type a_attrib_t = HTML5_types.a_attrib HTML5.M.attrib list
+           and type form_attrib_t = HTML5_types.form_attrib HTML5.M.attrib list
+           and type input_attrib_t = HTML5_types.input_attrib HTML5.M.attrib list
+           and type textarea_attrib_t = HTML5_types.textarea_attrib HTML5.M.attrib list
+           and type select_attrib_t = HTML5_types.select_attrib HTML5.M.attrib list
+           and type link_attrib_t = HTML5_types.link_attrib HTML5.M.attrib list
+           and type script_attrib_t = HTML5_types.script_attrib HTML5.M.attrib list
+           and type optgroup_attrib_t = [ HTML5_types.common | `Disabled ] HTML5.M.attrib list
+           and type option_attrib_t = HTML5_types.option_attrib HTML5.M.attrib list
+           and type button_attrib_t = HTML5_types.button_attrib HTML5.M.attrib list
            and type input_type_t = full_input_type
            and type button_type_t = button_type
   ) -> (struct
 
-  open XHTML5.M
-  open Xhtml5types
-  include Xhtml5forms'
+  open HTML5.M
+  open HTML5_types
+  include Html5forms'
 
 (* As we want -> [> a ] elt and not -> [ a ] elt (etc.),
    we define a new module: *)
@@ -1059,7 +1059,7 @@ module MakeXhtml5forms =
            ?nl_params: Eliom_parameters.nl_params_set ->
            ?no_appl:bool ->
            'a elt list -> 'get ->
-           'a a XHTML5.M.elt :>
+           'a a HTML5.M.elt :>
              ?absolute:bool ->
            ?absolute_path:bool ->
            ?https:bool ->
@@ -1074,7 +1074,7 @@ module MakeXhtml5forms =
            ?nl_params: Eliom_parameters.nl_params_set ->
            ?no_appl:bool ->
            'a elt list -> 'get ->
-           [> 'a a] XHTML5.M.elt)
+           [> 'a a] HTML5.M.elt)
 
   let css_link = (css_link :
                     ?a:(link_attrib attrib list) ->
@@ -1698,7 +1698,7 @@ module MakeXhtml5forms =
        ?a:button_attrib attrib list ->
          button_type:[< button_type ] ->
            button_content elt list -> [> button ] elt)
-end : XHTML5FORMSSIG)
+end : HTML5FORMSSIG)
 
-module Xhtml5forms = MakeXhtml5forms(Xhtml5forms')
+module Html5forms = MakeHtml5forms(Html5forms')
 

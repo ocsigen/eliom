@@ -118,7 +118,7 @@ module Ip_address = struct
   | IPv6 (a, b) -> IPv6 (Int64.logand a mask61, Int64.logand b mask62)
 
   let inet6_addr_loopback =
-    fst (parse_ip (Unix.string_of_inet_addr Unix.inet6_addr_loopback))
+    fst (parse (Unix.string_of_inet_addr Unix.inet6_addr_loopback))
 
 end
 
@@ -144,3 +144,206 @@ let of_json ?typ s =
   match typ with
     | Some typ -> Deriving_Json.from_string typ s
     | None -> assert false (* implemented only client side *)
+
+module XML = struct
+
+  type separator = Space | Comma
+
+  let separator_to_string = function
+    | Space -> " "
+    | Comma -> ", "
+
+  type aname = string
+  type acontent =
+    | AFloat of aname * float (* Cecile *)
+    | AInt of aname * int
+    | AStr of aname * string
+    | AStrL of separator * aname * string list
+  type attrib = acontent
+  let aname = function
+    | (AFloat (name, _) | AInt (name, _) | AStr (name, _) | AStrL (_, name, _)) -> name
+  let acontent = id
+
+  let float_attrib name value = AFloat (name, value) (* Cecile *)
+  let int_attrib name value = AInt (name, value)
+  let string_attrib name value = AStr (name, value)
+  let space_sep_attrib name values = AStrL (Space, name, values)
+  let comma_sep_attrib name values = AStrL (Comma, name, values)
+  let event_attrib name value = AStr (name, value)
+
+  let attrib_value_to_string encode = function
+    | AFloat (_, f) -> Printf.sprintf "\"%e\"" f (* Cecile *)
+    | AInt (_, i) -> Printf.sprintf "\"%d\"" i
+    | AStr (_, s) -> Printf.sprintf "\"%s\"" (encode s)
+    | AStrL (sep, _, slist) ->
+	Printf.sprintf "\"%s\""
+          (encode (String.concat (separator_to_string sep) slist))
+
+  let attrib_name = function
+    | AFloat (n, _) (* Cecile *) | AInt (n, _) | AStr (n, _) | AStrL (_, n, _) -> n
+
+
+  let attrib_to_string encode a =
+    Printf.sprintf "%s=%s" (attrib_name a) (attrib_value_to_string encode a)
+
+  type event = string
+
+  type ename = string
+  type econtent =
+    | Empty
+    | Comment of string
+    | EncodedPCDATA of string
+    | PCDATA of string
+    | Entity of string
+    | Leaf of ename * attrib list
+    | Node of ename * attrib list * elt list
+  and elt = {
+      mutable ref : int ;
+      elt : econtent ;
+      elt_mark : Obj.t;
+    }
+
+  let content e = e.elt
+
+  let make_mark = ref (fun () -> Obj.repr (ref 0))
+
+  let make_node elt =
+    { ref = 0; elt = elt; elt_mark = !make_mark () }
+
+  let empty () = { elt = Empty ; ref = 0; elt_mark = !make_mark (); }
+
+  let comment c = { elt = Comment c ; ref = 0; elt_mark = !make_mark (); }
+
+  let pcdata d = { elt = PCDATA d ; ref = 0; elt_mark = !make_mark (); }
+  let encodedpcdata d = { elt = EncodedPCDATA d ; ref = 0; elt_mark = !make_mark (); }
+  let entity e = { elt = Entity e ; ref = 0; elt_mark = !make_mark (); }
+
+  let cdata s = (* GK *)
+    (* For security reasons, we do not allow "]]>" inside CDATA
+       (as this string is to be considered as the end of the cdata)
+     *)
+    let s' = "\n<![CDATA[\n"^
+      (Netstring_pcre.global_replace
+	 (Netstring_pcre.regexp_string "]]>") "" s)
+      ^"\n]]>\n" in
+    encodedpcdata s'
+
+  let cdata_script s = (* GK *)
+    (* For security reasons, we do not allow "]]>" inside CDATA
+       (as this string is to be considered as the end of the cdata)
+     *)
+    let s' = "\n//<![CDATA[\n"^
+      (Netstring_pcre.global_replace
+	 (Netstring_pcre.regexp_string "]]>") "" s)
+      ^"\n//]]>\n" in
+    encodedpcdata s'
+
+  let cdata_style s = (* GK *)
+    (* For security reasons, we do not allow "]]>" inside CDATA
+       (as this string is to be considered as the end of the cdata)
+     *)
+    let s' = "\n/* <![CDATA[ */\n"^
+      (Netstring_pcre.global_replace
+	 (Netstring_pcre.regexp_string "]]>") "" s)
+      ^"\n/* ]]> */\n" in
+    encodedpcdata s'
+
+
+
+  let leaf ?a name =
+    { elt =
+      (match a with
+      | Some a -> Leaf (name, a)
+      | None -> Leaf (name, [])) ;
+      ref = 0;
+      elt_mark = !make_mark (); }
+
+  let node ?a name children =
+    { elt =
+      (match a with
+      | Some a -> Node (name, a, children)
+      | None -> Node (name, [], children)) ;
+      ref = 0;
+      elt_mark = !make_mark (); }
+
+  let rec flatmap f = function
+    | [] -> []
+    | x :: rest -> f x @ flatmap f rest
+
+  let translate root_leaf root_node sub_leaf sub_node update_state state n =
+    let rec translate' state  n =
+      match n.elt with
+      | (Empty | Comment _ | PCDATA _ | Entity _) -> [n]
+      | Leaf (name, attribs) ->
+          sub_leaf state name attribs
+      | Node (name, attribs, elts) ->
+          sub_node state name attribs
+            (flatmap (translate' (update_state name attribs state)) elts)
+      | _ -> failwith "not implemented for Ocsigen syntax extension"
+    in
+    match n.elt with
+    | (Empty | Comment _ | PCDATA _ | Entity _) -> n
+    | Leaf (name, attribs) ->
+	root_leaf name attribs
+    | Node (name, attribs, elts) ->
+	root_node name attribs (flatmap (translate' state) elts)
+    | _ -> failwith "not implemented for Ocsigen syntax extension"
+
+
+  let fresh_ref, next_ref =
+    let v = ref 0 in
+    ((fun () -> incr v ; !v),
+     (fun () -> !v + 1))
+
+  let ref_node node =
+    if node.ref = 0 then
+      node.ref <- fresh_ref () ;
+    node.ref
+
+  type ref_tree = Ref_tree of int option * (int * ref_tree) list
+
+
+  let rec make_ref_tree_list l =
+    let rec map i = function
+      | e :: es ->
+	  begin match make_ref_tree e with
+	  | Ref_tree (None, []) -> map (succ i) es
+	  | v -> (i, v) :: map (succ i) es
+	  end
+      | [] -> []
+    in map 0 l
+  and make_ref_tree root =
+    let children =
+      match root.elt with
+        Node (n_, _, elts) ->
+          make_ref_tree_list elts
+      | Empty | EncodedPCDATA _ | PCDATA _ | Entity _
+      | Leaf (_, _) | Comment _  ->
+	  []
+    in
+    Ref_tree ((if root.ref = 0 then None else Some root.ref), children)
+
+      (** TODO REMOVE FROM server side *)
+  let lwt_register_event ?keep_default _ = assert false
+  let register_event ?keep_default _ = assert false
+
+  let class_name = "class" (* see xHTML.ml *)
+
+end
+
+module SVG = struct
+  module M = SVG_f.Make(XML)
+  module P = XML_print.MakeTypedSimple(XML)(M)
+end
+
+module HTML5 = struct
+  module M = HTML5_f.Make(XML)(SVG.M)
+  module P = XML_print.MakeTypedSimple(XML)(M)
+end
+
+module XHTML = struct
+  module M = XHTML_f.Make(XML)
+  module M_01_00 = XHTML_f.Make_01_00(XML)
+  module M_01_01 = XHTML_f.Make_01_01(XML)
+  module P = XML_print.MakeTypedSimple(XML)(M)
+end

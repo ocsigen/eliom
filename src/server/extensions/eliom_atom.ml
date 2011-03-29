@@ -25,11 +25,20 @@ module H = Ocsigen_http_frame.Http_header
 
 let get_etag c = Some (Digest.to_hex (Digest.string c))
 
+module Atom_info = struct
+  let content_type = "application/atom+xml"
+  let version = "Atom 1.0"
+  let standard = Uri.uri_of_string "http://www.w3.org/2005/Atom"
+  let doctype = ""
+  let emptytags = []
+end
+
+module Format = XML_print.MakeSimple(XML)(Atom_info)
+
 let result_of_content feed headers =
-   let b = Buffer.create 1024 in
-   let bufferize s = Buffer.add_string b s in
-   XML.output_compact bufferize (Atom_feed.xml_of_feed feed);
-   let c = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" ^ Buffer.contents b in
+   let r = ref "" in
+   Format.print_list ~output:(fun s -> r := s) [Atom_feed.xml_of_feed feed];
+   let c = !r in
    let md5 = get_etag c in
    let dr = F.default_result () in
    {dr with

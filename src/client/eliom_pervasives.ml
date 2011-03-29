@@ -192,6 +192,22 @@ module String = struct
       else n
     with Invalid_argument _ -> n
 
+  (* returns a copy of a string without \r and \n *)
+  let remove_eols s =
+    let l = String.length s in
+    let buf = Buffer.create l in
+    let rec aux n =
+      if n < l
+      then begin
+	let c = s.[n] in
+	if c <> '\r' && c <> '\n' then Buffer.add_char buf c;
+	aux (n+1)
+      end
+    in
+    aux 0;
+    Buffer.contents buf
+
+
   module Table = Map.Make(String)
   module Set = Set.Make(String)
   module Map = Map.Make(String)
@@ -297,7 +313,7 @@ module Ip_address = struct
 
   exception Invalid_ip_address of string
 
-  let parse_ip s =
+  let parse s =
     let s = String.lowercase s in
     let n = String.length s in
     let is6 = String.contains s ':' in
@@ -481,7 +497,7 @@ let encode_form_value x = to_json x
 *)
 let encode_header_value x =
   (* We remove end of lines *)
-  remove_eols (to_json x)
+  String.remove_eols (to_json x)
 
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
@@ -546,7 +562,7 @@ module XML = struct
   | 10 -> Document_type_node
   | 11 -> Document_fragment_node
   | 12 -> Notation_node
-  | _ -> assert false    
+  | _ -> assert false
  *)
 
   let empty () = assert false  (*FIX: what is this supposed to be?*)
@@ -560,10 +576,10 @@ module XML = struct
 
   let cdata s = (*FIX: what should we quote?*)
     encodedpcdata s
-      
+
   let cdata_script s =(*FIX: what should we quote?*)
       encodedpcdata s
-      
+
   let cdata_style s =(*FIX: what should we quote?*)
       encodedpcdata s
 
@@ -591,12 +607,11 @@ module XML = struct
     (Js.Unsafe.coerce elt)##onclick <-
       Dom_html.handler (fun _ -> f v; keep_default)
 
-
-  type ref_tree = Ref_tree of int option * (int * ref_tree) list
+  let class_name = "className" (* see xHTML.ml *)
 
   let ref_node n = 0 (* not needed on client side *)
 
-  let class_name = "className" (* see xHTML.ml *)
+  type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
 end
 
@@ -604,9 +619,8 @@ module SVG = struct
   module M = SVG_f.Make(XML)
 end
 
-module XHTML5 = struct
-  module M = XHTML5_f.Make(XML)(SVG.M)
-  module M_05_00 = XHTML5_f.Make_05_00(XML)(SVG.M)
+module HTML5 = struct
+  module M = HTML5_f.Make(XML)(SVG.M)
 end
 
 module XHTML = struct

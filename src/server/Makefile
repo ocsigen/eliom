@@ -5,6 +5,7 @@ PACKAGE  := ocsigenserver               \
             js_of_ocaml.deriving.syntax \
 	    react                       \
 	    calendar                    \
+	    xmlp4                       \
 
 LIBS     := -I private -I extensions ${addprefix -package ,${PACKAGE}}
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -thread
@@ -32,8 +33,10 @@ ${COMMON_PFILES}:
 	ln -s ../../common/$@ $@
 
 FILES := eliom_pervasives.ml \
+	 eliom_wrap.ml \
 	 eliom_cookies.ml \
 	 eliom_common_base.ml eliom_common.ml \
+	 eliom_xml.ml \
 	 eliom_request_info.ml \
 	 private/eliommod_sessiongroups.ml \
 	 private/eliommod_cookies.ml \

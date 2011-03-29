@@ -26,13 +26,13 @@ open Eliom_pervasives
 open Lwt
 open Eliom_parameters
 open Ocsigen_cookies
-open XHTML5.M
+open HTML5.M
 
 (*****************************************************************************)
 (* Test for raw_post_data *)
 
 let raw_post_example =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["rawpost"]
     ~get_params:unit
     (fun () () ->
@@ -48,7 +48,7 @@ Content-length: 124"];
     )
 
 let raw_post_service =
-  Eliom_output.Xhtml5.register_post_service
+  Eliom_output.Html5.register_post_service
     ~fallback:raw_post_example
     ~post_params:raw_post_data
     (fun () (ct, stream) ->
@@ -107,8 +107,8 @@ let disconnect_action =
       Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
 
 let disconnect_box s =
-  Eliom_output.Xhtml5.post_form disconnect_action
-    (fun _ -> [p [Eliom_output.Xhtml5.string_input
+  Eliom_output.Html5.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Html5.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
@@ -121,11 +121,11 @@ let user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Session
 (* new login box:                                           *)
 
 let login_box session_expired bad_u action =
-  Eliom_output.Xhtml5.post_form action
+  Eliom_output.Html5.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:loginname ()]
+         Eliom_output.Html5.string_input ~input_type:`Text ~name:loginname ()]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -175,7 +175,7 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Xhtml5.register ~service:connect_example connect_example_handler;
+  Eliom_output.Html5.register ~service:connect_example connect_example_handler;
   Eliom_output.Action.register ~service:connect_action connect_action_handler
 
 
@@ -213,8 +213,8 @@ let disconnect_action =
       Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
 
 let disconnect_box s =
-  Eliom_output.Xhtml5.post_form disconnect_action
-    (fun _ -> [p [Eliom_output.Xhtml5.string_input
+  Eliom_output.Html5.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Html5.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
@@ -224,11 +224,11 @@ let bad_user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Req
 (* new login box:                                           *)
 
 let login_box session_expired bad_u action =
-  Eliom_output.Xhtml5.post_form action
+  Eliom_output.Html5.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:loginname ()]
+         Eliom_output.Html5.string_input ~input_type:`Text ~name:loginname ()]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -285,7 +285,7 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Xhtml5.register ~service:connect_example connect_example_handler;
+  Eliom_output.Html5.register ~service:connect_example connect_example_handler;
   Eliom_output.Any.register ~service:connect_action connect_action_handler
 
 
@@ -305,23 +305,23 @@ let count3 =
       Lwt_mutex.unlock mutex;
       Lwt.return newc)
   in
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["count3"]
     ~get_params:unit
     (fun () () ->
       next () >>=
       (fun n ->
         Lwt.return
-         (XHTML5.M.html
-          (XHTML5.M.head (XHTML5.M.title (XHTML5.M.pcdata "counter")) [])
-          (XHTML5.M.body [XHTML5.M.p [XHTML5.M.pcdata (string_of_int n)]]))))
+         (HTML5.M.html
+          (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "counter")) [])
+          (HTML5.M.body [HTML5.M.p [HTML5.M.pcdata (string_of_int n)]]))))
 
 
 (*****************************************************************************)
 
 open Eliom_testsuite1
 open XHTML.M
-open Eliom_output.Xhtmlcompact
+open Eliom_output.Xhtml
 open Eliom_output
 open Eliom_services
 open Eliom_state
@@ -764,7 +764,7 @@ let headers =
 
 (* form towards a suffix service with constants *)
 let create_form (n1, (_, n2)) =
-    <:xmllist< <p>
+    <:xhtmllist< <p>
       $string_input ~input_type:`Text ~name:n1 ()$
       $string_input ~input_type:`Text ~name:n2 ()$
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
@@ -826,7 +826,7 @@ let su4 =
                  p [pcdata "I am a suffix service with a constant part, registered after the generic suffix service, but I have a priority, so that you can see me!"]])))
 
 let create_suffixform_su2 s =
-    <:xmllist< <p>Write a string:
+    <:xhtmllist< <p>Write a string:
       $string_input ~input_type:`Text ~name:s ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
@@ -877,7 +877,7 @@ let optform =
                    ~value:"Click" ()]])
       >>= fun form ->
       let form =
-        (form : Xhtmltypes.form XHTML.M.elt :> [> Xhtmltypes.form ] XHTML.M.elt)
+        (form : XHTML_types.form XHTML.M.elt :> [> XHTML_types.form ] XHTML.M.elt)
       in
       return
         (html
@@ -932,11 +932,11 @@ let url_encoding =
     (fun (suf, l) () ->
       let ll =
         List.map
-          (fun (a,s) -> << <strong>($str:a$, $str:s$) </strong> >>) l
+          (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$) </strong> >>) l
       in
       let sl =
         List.map
-          (fun s -> << <strong>$str:s$ </strong> >>) suf
+          (fun s -> <:xhtml< <strong>$str:s$ </strong> >>) suf
       in
       return
         (html
@@ -954,10 +954,10 @@ let preappl2 = preapply uasuffix (1999,01)
 
 let mymenu current =
   Eliom_tools.Xhtml.menu ~classe:["menuprincipal"]
-    (coucou, <:xmllist< coucou >>)
+    (coucou, <:xhtmllist< coucou >>)
     [
-     (preappl, <:xmllist< params >>);
-     (preappl2, <:xmllist< params and suffix >>);
+     (preappl, <:xhtmllist< params >>);
+     (preappl2, <:xhtmllist< params and suffix >>);
    ] ~service:current ()
 
 let preappmenu =
@@ -1247,7 +1247,7 @@ let suffix3 =
                                   a^", "^(string_of_int b))]]])))
 
 let create_suffixform2 (suf1, (ii, ee)) =
-    <:xmllist< <p>Write a string:
+    <:xhtmllist< <p>Write a string:
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
       Write a string: $user_type_input
@@ -1265,7 +1265,7 @@ let suffixform2 = register_service ["suffixform2"] unit
                  f ])))
 
 let create_suffixform3 ((suf1, (ii, ee)), (a, b)) =
-    <:xmllist< <p>Write a string:
+    <:xhtmllist< <p>Write a string:
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ee ()$ <br/>
@@ -1347,7 +1347,7 @@ let sendfile2 =
 *)
 
 let create_suffixform4 n =
-    <:xmllist< <p>Write the name of the file:
+    <:xhtmllist< <p>Write the name of the file:
       $string_input ~input_type:`Text ~name:n ()$
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
@@ -1368,10 +1368,10 @@ let any2 = register_service
   (fun (i,l) () ->
     let ll =
       List.map
-        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1390,10 +1390,10 @@ let any3 = register_service
   (fun (i,(l,s)) () ->
     let ll =
       List.map
-        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1415,10 +1415,10 @@ let any4 = register_service
   (fun l () ->
     let ll =
       List.map
-        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1435,10 +1435,10 @@ let any5 = register_service
   (fun (s, l) () ->
     let ll =
       List.map
-        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1458,10 +1458,10 @@ let _ = register sufli
   (fun l () ->
     let ll =
       List.map
-        (fun (s, i) -> << <strong> $str:(s^string_of_int i)$ </strong> >>) l
+        (fun (s, i) -> <:xhtml< <strong> $str:(s^string_of_int i)$ </strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1508,10 +1508,10 @@ let sufli2 = service
 let _ = register sufli2
   (fun (l, j) () ->
     let ll =
-      List.map (fun i -> << <strong> $str:(string_of_int i)$ </strong> >>) l
+      List.map (fun i -> <:xhtml< <strong> $str:(string_of_int i)$ </strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1538,10 +1538,10 @@ let _ = register sufliopt
     let ll =
       List.map
         (function None -> pcdata "<none>"
-           | Some s -> << <strong> $str:s$ </strong> >>) l
+           | Some s -> <:xhtml< <strong> $str:s$ </strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1568,10 +1568,10 @@ let _ = register sufliopt2
     let ll =
       List.map
         (function None -> pcdata "<none>"
-           | Some (s, ss) -> << <strong> ($str:s$, $str:ss$) </strong> >>) l
+           | Some (s, ss) -> <:xhtml< <strong> ($str:s$, $str:ss$) </strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1595,10 +1595,10 @@ let sufset = register_service
   (fun l () ->
     let ll =
       List.map
-        (fun s -> << <strong>$str:s$</strong> >>) l
+        (fun s -> <:xhtml< <strong>$str:s$</strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -1690,10 +1690,10 @@ let any = register_post_service
   (fun () l ->
     let ll =
       List.map
-        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>

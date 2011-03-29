@@ -60,37 +60,38 @@ let retrieve_node (_,id) =
   Hashtbl.find nodes id
 
 let rebuild_attrib a =
-  let open Eliom_client_types in
-      match a with
-	| AFloat (name, float) -> XML.float_attrib name float
-	| AInt (name, int) -> XML.int_attrib name int
-	| AStr (name, string) -> XML.string_attrib name string
-	| AStrL (Space, name, string_list) -> XML.space_sep_attrib name string_list
-	| AStrL (Comma, name, string_list) -> XML.comma_sep_attrib name string_list
+  let open Eliom_types in
+  match a with
+  | AFloat (name, float) -> XML.float_attrib name float
+  | AInt (name, int) -> XML.int_attrib name int
+  | AStr (name, string) -> XML.string_attrib name string
+  | AStrL (Space, name, string_list) -> XML.space_sep_attrib name string_list
+  | AStrL (Comma, name, string_list) -> XML.comma_sep_attrib name string_list
 
-let rec rebuild_xml timeofday (root,id) =
-  let open Eliom_client_types in
-      let node =
-	match root with
-	  | Ref i -> ( retrieve_node (timeofday,i) :> Dom.node Js.t )
-	  | Empty -> XML.empty ()
-	  | Comment s -> XML.comment s
-	  | EncodedPCDATA s -> XML.encodedpcdata s
-	  | PCDATA s -> XML.pcdata s
-	  | Entity s -> XML.entity s
-	  | Leaf (s,a) -> XML.leaf ~a:(List.map rebuild_attrib a) s
-	  | Node (s,a,subs) ->
-	    XML.node ~a:(List.map rebuild_attrib a) s (List.map (rebuild_xml timeofday) subs)
-      in
-      let node : Dom_html.element Js.t = Js.Unsafe.coerce (node:Dom.node Js.t) in
-      (match id with
-	| None -> ()
-	| Some id -> set_node_id node (timeofday, id));
-      node
+let rec rebuild_xml timeofday (root,id) : Dom_html.element Js.t =
+  let open Eliom_types in
+  let node =
+    match root with
+    | Ref i -> ( retrieve_node (timeofday,i) :> Dom.node Js.t )
+    | Empty -> XML.empty ()
+    | Comment s -> XML.comment s
+    | EncodedPCDATA s -> XML.encodedpcdata s
+    | PCDATA s -> XML.pcdata s
+    | Entity s -> XML.entity s
+    | Leaf (s,a) -> XML.leaf ~a:(List.map rebuild_attrib a) s
+    | Node (s,a,subs) ->
+	XML.node ~a:(List.map rebuild_attrib a) s
+	  (List.map (rebuild_xml timeofday :> Eliom_types.elt ->  Dom.node Js.t) subs)
+  in
+  let node = Js.Unsafe.coerce (node : Dom.node Js.t) in
+  (match id with
+  | None -> ()
+  | Some id ->
+      set_node_id node (timeofday, id));
+  node
 
 (* Relinking DOM nodes *)
-let rec relink_dom timeofday root = 
-  fun (XML.Ref_tree (id, subs)) ->
+let rec relink_dom timeofday root (XML.Ref_tree (id, subs)) =
     begin match id with
       | Some id ->
 	set_node_id root (timeofday, id)

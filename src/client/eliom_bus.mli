@@ -21,7 +21,7 @@
 type 'a t
 
 val unwrap :
-    (  ('a Eliom_comet_base.chan_id)
+    (  (('a Eliom_comet_base.chan_id)
      * (unit,
         'a list,
         [< Eliom_services.service_kind ],

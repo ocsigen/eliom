@@ -44,11 +44,11 @@ type poly
 
 type onload_form_creators_info =
   | OFA of
-      XML.elt * string * (bool * Ocsigen_lib.url_path) option
+      XML.elt * string * (bool * Url.path) option
   | OFForm_get of
-      XML.elt * string * (bool * Ocsigen_lib.url_path) option
+      XML.elt * string * (bool * Url.path) option
   | OFForm_post of
-      XML.elt * string * (bool * Ocsigen_lib.url_path) option
+      XML.elt * string * (bool * Url.path) option
 
 type separator = Space | Comma
 
@@ -69,6 +69,8 @@ type elt_content =
   | Ref of int
 
 and elt = ( elt_content * int option )
+
+(* type ref_tree = Ref_tree of int option * (int * ref_tree) list *)
 
 type eliom_data_type =
     ((XML.ref_tree, (int * XML.ref_tree) list) leftright *

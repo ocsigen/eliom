@@ -151,17 +151,17 @@ let change_page_post_form_ =
   ref (fun ?cookies_info a b -> failwith "not initialised")
 
 let bind_form_or_link = function
-  | Eliom_client_types.OFA (node, href, cookies_info) ->
+  | Eliom_types.OFA (node, href, cookies_info) ->
     let node = Js.Unsafe.coerce (node) in
     XML.register_event ?keep_default:(Some false) node "onclick"
       (fun () -> !change_page_uri_ ?cookies_info href)
       ()
-  | Eliom_client_types.OFForm_get (node, uri, cookies_info) ->
+  | Eliom_types.OFForm_get (node, uri, cookies_info) ->
     let node = Js.Unsafe.coerce (node) in
     XML.register_event ?keep_default:(Some false) node "onsubmit"
       (fun () -> !change_page_get_form_ ?cookies_info node uri)
       ();
-  | Eliom_client_types.OFForm_post (node, uri, cookies_info) ->
+  | Eliom_types.OFForm_post (node, uri, cookies_info) ->
     let node = Js.Unsafe.coerce (node) in
     XML.register_event ?keep_default:(Some false) node "onsubmit"
       (fun () -> !change_page_post_form_ ?cookies_info node uri)
@@ -405,7 +405,7 @@ let rec get_subpage_ :
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'get -> 'post -> 
-  [< `PCDATA | Xhtmltypes.flow ] XHTML5.M.elt list Lwt.t
+  [< `PCDATA | XHTML_types.flow ] HTML5.M.elt list Lwt.t
     = fun i
     ?absolute ?absolute_path ?https ~service
     ?hostname ?port ?fragment ?keep_nl_params
@@ -437,7 +437,7 @@ let rec get_subpage_ :
       
       load_eliom_data_ ed fake_page >>= fun () ->
       fake_page##innerHTML <- Js.string "";
-      Lwt.return (XHTML5.M.totl !node_list)
+      Lwt.return (HTML5.M.totl !node_list)
     end
     | Eliom_services.EAHalfRedir u ->
       (* strange ... *)

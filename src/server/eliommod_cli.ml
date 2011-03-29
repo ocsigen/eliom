@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Eliom_pervasives
 
 let fresh_id = 
   let c = ref 0 in
@@ -70,7 +71,7 @@ let wrap (v : 'a) : 'a Eliom_types.data_key =
 
 
 let wrap_node n = 
-  Eliom_types.to_data_key_ (0L, XML.ref_node (XHTML5.M.toelt n))
+  Eliom_types.to_data_key_ (0L, XML.ref_node (HTML5.M.toelt n))
 
 
 (* let wrap_sp ~sp = wrap ~sp (client_sp sp) *)

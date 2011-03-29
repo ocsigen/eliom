@@ -21,8 +21,6 @@
 open Eliom_pervasives
 
 open Lwt
-open XHTML.M
-open Xhtmltypes
 open Ocsigen_extensions
 open Ocsigen_cookies
 open Eliom_state
@@ -52,11 +50,11 @@ let code_of_code_option = function
 (*****************************************************************************)
 module Xhtmlforms_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type form_content_elt = form_content elt
   type form_content_elt_list = form_content elt list
-  type uri = Xhtmltypes.uri
+  type uri = XHTML_types.uri
 
   type 'a a_content_elt = a_content elt
   type 'a a_content_elt_list = a_content elt list
@@ -86,16 +84,16 @@ module Xhtmlforms_ = struct
   type button_content_elt = button_content elt
   type button_content_elt_list = button_content elt list
 
-  type a_attrib_t = Xhtmltypes.a_attrib XHTML.M.attrib list
-  type form_attrib_t = Xhtmltypes.form_attrib XHTML.M.attrib list
-  type input_attrib_t = Xhtmltypes.input_attrib XHTML.M.attrib list
-  type textarea_attrib_t = Xhtmltypes.textarea_attrib XHTML.M.attrib list
-  type select_attrib_t = Xhtmltypes.select_attrib XHTML.M.attrib list
-  type link_attrib_t = Xhtmltypes.link_attrib XHTML.M.attrib list
-  type script_attrib_t = Xhtmltypes.script_attrib XHTML.M.attrib list
+  type a_attrib_t = XHTML_types.a_attrib XHTML.M.attrib list
+  type form_attrib_t = XHTML_types.form_attrib XHTML.M.attrib list
+  type input_attrib_t = XHTML_types.input_attrib XHTML.M.attrib list
+  type textarea_attrib_t = XHTML_types.textarea_attrib XHTML.M.attrib list
+  type select_attrib_t = XHTML_types.select_attrib XHTML.M.attrib list
+  type link_attrib_t = XHTML_types.link_attrib XHTML.M.attrib list
+  type script_attrib_t = XHTML_types.script_attrib XHTML.M.attrib list
   type optgroup_attrib_t = [ common | `Disabled ] XHTML.M.attrib list
-  type option_attrib_t = Xhtmltypes.option_attrib XHTML.M.attrib list
-  type button_attrib_t = Xhtmltypes.button_attrib XHTML.M.attrib list
+  type option_attrib_t = XHTML_types.option_attrib XHTML.M.attrib list
+  type button_attrib_t = XHTML_types.button_attrib XHTML.M.attrib list
 
   type input_type_t =
       [ `Button
@@ -286,7 +284,7 @@ module type XHTMLFORMSSIG = sig
 
 
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
 (** {2 Links and forms} *)
 
@@ -847,7 +845,7 @@ module type XHTMLFORMSSIG = sig
 (** Creates a [<textarea>] tag for untyped form *)
 
   type 'a soption =
-      Xhtmltypes.option_attrib XHTML.M.attrib list
+      XHTML_types.option_attrib XHTML.M.attrib list
         * 'a (* Value to send *)
         * pcdata elt option (* Text to display (if different from the latter) *)
         * bool (* selected *)
@@ -991,7 +989,7 @@ end
 module Xhtmlforms : XHTMLFORMSSIG = struct
 
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
   include Xhtmlforms'
 
 (* As we want -> [> a ] elt and not -> [ a ] elt (etc.),
@@ -1653,18 +1651,14 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 end
 
 
+module Xhtmlreg_(Xhtml_content
+		   : Ocsigen_http_frame.HTTP_CONTENT
+		     with type t = [ `Html ] XHTML.M.elt) = struct
 
-
-module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-                         with type t = [ `Html ] XHTML.M.elt
-                   and type options = XHTML.M.doctypes
-                ) = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = xhtml elt
-
-  type options = XHTML.M.doctypes
 
   type return = Eliom_services.http
 
@@ -1700,11 +1694,13 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   end
 
+  type options = unit
+
   let send_appl_content = Eliom_services.XNever
 
-  let send ?(options = `XHTML_01_01) ?charset ?code
+  let send ?options ?charset ?code
       ?content_type ?headers content =
-    Xhtml_content.result_of_content ~options content >>= fun r ->
+    Xhtml_content.result_of_content content >>= fun r ->
     Lwt.return
       {r with
          res_cookies= Eliom_request_info.get_user_cookies ();
@@ -1726,41 +1722,33 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
 end
 
-module Xhtmlreg = MakeRegister(Xhtmlreg_(Ocsigen_senders.Xhtml_content))
-module Xhtmlcompactreg =
-  MakeRegister(Xhtmlreg_(Ocsigen_senders.Xhtmlcompact_content))
-
-module Xhtmlprettyreg =
-  MakeRegister(Xhtmlreg_(Ocsigen_senders.Xhtmlpretty_content))
-
+module Xhtmlreg = MakeRegister(Xhtmlreg_(Ocsigen_senders.Make_XML_Content(XML)(XHTML.M)))
 
 module Xhtml = struct
   include Xhtmlforms
   include Xhtmlreg
 end
 
-module Xhtmlpretty = struct
-  include Xhtmlforms
-  include Xhtmlprettyreg
-end
-
-module Xhtmlcompact' = Xhtmlcompact
-module Xhtmlcompact = struct
-  include Xhtmlforms
-  include Xhtmlcompactreg
-end
-
 
 (****************************************************************************)
 (****************************************************************************)
-module SubXhtml(Format : sig 
-      type content
-      type 'a elt
-      val xhtml_list_stream : ?width: int -> ?encode:(string->string) 
-        -> ?html_compat : bool -> content elt list -> string Ocsigen_stream.t end) = 
-  (struct
+module SubXhtml(XML : XML_sigs.Iterable)
+               (TypedXML : XML_sigs.TypedXML(XML).T)
+               (E : sig type content end)
+
+: sig
+
+    include ELIOMREGSIG with type page = E.content TypedXML.elt list
+                        and type options = unit
+                        and type return = Eliom_services.http
+    include XHTMLFORMSSIG
+
+  end = struct
+
+    module Format = XML_print.MakeTyped(XML)(TypedXML)(Ocsigen_stream.StringStream)
+
     let result_of_content_subxhtml get_etag c =
-      let x = Format.xhtml_list_stream c in
+      let x = Format.print_list c in
       let default_result = default_result () in
       Lwt.return
         {default_result with
@@ -1773,7 +1761,7 @@ module SubXhtml(Format : sig
     module Cont_content =
       (* Pasted from ocsigen_senders.ml and modified *)
       struct
-        type t = Format.content Format.elt list
+        type t = E.content TypedXML.elt list
 
         let get_etag_aux x = None
 
@@ -1785,9 +1773,9 @@ module SubXhtml(Format : sig
 
     module Contreg_ = struct
       open XHTML.M
-      open Xhtmltypes
+      open XHTML_types
 
-      type page = Format.content Format.elt list
+      type page = E.content TypedXML.elt list
 
       type options = unit
 
@@ -1795,7 +1783,7 @@ module SubXhtml(Format : sig
 
       let send_appl_content = Eliom_services.XNever
 
-      let send ?options ?charset ?code 
+      let send ?options ?charset ?code
           ?content_type ?headers content =
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
@@ -1811,11 +1799,11 @@ module SubXhtml(Format : sig
                                );
              res_headers= (match headers with
                              | None -> r.res_headers
-                             | Some headers -> 
+                             | Some headers ->
                                  Http_headers.with_defaults
                                    headers r.res_headers
                           );
-             
+
           }
 
     end
@@ -1825,23 +1813,14 @@ module SubXhtml(Format : sig
     include Xhtmlforms
     include Contreg
 
-  end : sig
+  end
 
-    include ELIOMREGSIG with type page = Format.content Format.elt list
-                        and type options = unit
-                        and type return = Eliom_services.http
-    include XHTMLFORMSSIG
-
-  end)
-
-module Blocks = SubXhtml(struct
-  type content = Xhtmltypes.body_content
-  include Xhtmlcompact_streams.Compact(Ocsigen_stream.StringStream)
+module Blocks = SubXhtml(XML)(XHTML.M)(struct
+  type content = XHTML_types.body_content
 end)
 
-module Blocks5 = SubXhtml(struct
-  type content = Xhtml5types.body_content
-  include Xhtml5compact_streams.Compact(Ocsigen_stream.StringStream)
+module Blocks5 = SubXhtml(XML)(HTML5.M)(struct
+  type content = HTML5_types.body_content
 end)
 
 
@@ -1850,7 +1829,7 @@ end)
 
 module Textreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = (string * string)
 
@@ -1890,7 +1869,7 @@ module Text = MakeRegister(Textreg_)
 
 module CssTextreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = string
 
@@ -1933,7 +1912,7 @@ module CssText = MakeRegister(CssTextreg_)
 
 module HtmlTextreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = string
 
@@ -1969,7 +1948,7 @@ end
 
 module HtmlTextforms_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type form_content_elt = string
   type form_content_elt_list = string
@@ -2192,7 +2171,7 @@ end
  *)
 module Actionreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = unit
 
@@ -2412,7 +2391,7 @@ module Action = MakeRegister(Actionreg_)
  *)
 module Unitreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = unit
 
@@ -2453,7 +2432,7 @@ module Unit = MakeRegister(Unitreg_)
  *)
 module Anyreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = Ocsigen_http_frame.result
 
@@ -2494,7 +2473,7 @@ module Any = MakeRegister(Anyreg_)
 (* Files is a module allowing to register services that send files *)
 module Filesreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = string
 
@@ -2549,7 +2528,7 @@ module Files = MakeRegister(Filesreg_)
 
 module Streamlistreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = (((unit -> (string Ocsigen_stream.t) Lwt.t) list) *
                  string)
@@ -2872,7 +2851,7 @@ end
 (****************************************************************************)
 module Camlreg_ = struct
   open XHTML.M
-  open Xhtmltypes
+  open XHTML_types
 
   type page = string
 
@@ -3179,21 +3158,20 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
-open XHTML5.M
+open HTML5.M
 
 type appl_service_params =
     {
-      ap_doctype: XHTML5.M.doctypes;
       ap_title: string;
       ap_container : 'a.
-        ((([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option *
-           (Xhtml5types.body_content elt ->
-            Xhtml5types.body_content elt list))
+        ((([< HTML5_types.common ] as 'a) HTML5.M.attrib list) option *
+           (HTML5_types.body_content elt ->
+            HTML5_types.body_content elt list))
         option;
       ap_body_attributes : 
-        'a. (([< Xhtml5types.common ] as 'a) XHTML5.M.attrib list) option;
-      ap_headers_before : Xhtml5types.head_content_fun elt list;
-      ap_headers_after : Xhtml5types.head_content_fun elt list
+        'a. (([< HTML5_types.common ] as 'a) HTML5.M.attrib list) option;
+      ap_headers_before : HTML5_types.head_content_fun elt list;
+      ap_headers_after : HTML5_types.head_content_fun elt list
     }
 
 type appl_service_options =
@@ -3211,8 +3189,7 @@ module type APPL_PARAMS = sig
 end
 
 let default_appl_params =
-  { ap_doctype = `XHTML_05_00;
-    ap_title = "Eliom application";
+  { ap_title = "Eliom application";
     ap_container = None;
     ap_body_attributes = None;
     ap_headers_before = [];
@@ -3227,13 +3204,11 @@ let change_current_page_key : ('a -> unit) Polytables.key =
 *)
 
 module Eliom_appl_reg_
-  (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-   with type t = [ `Html ] XHTML5.M.elt
-   and type options = XHTML5.M.doctypes
-  )
+  (Xhtml_content
+     : Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] HTML5.M.elt)
   (Appl_params : APPL_PARAMS) = struct
-  open XHTML5.M
-  open Xhtml5types
+  open HTML5.M
+  open HTML5_types
 
   type page = body_content elt list
 
@@ -3248,12 +3223,12 @@ module Eliom_appl_reg_
       sp.Eliom_common.sp_sitedata
       sp.Eliom_common.sp_tab_cookie_info
       sp.Eliom_common.sp_user_tab_cookies
-                        
+
   let create_page
       ~options ~sp cpi params cookies_to_send
-      (*CPE* change_page_event *) content = 
+      (*CPE* change_page_event *) content =
     let do_not_launch = options.do_not_launch
-        (* || 
+        (* ||
            (Ocsigen_cookies.length tab_cookies_to_send > 1)
         (* If there are cookies, we launch the application *)
            Actually, no, we trust options ...
@@ -3262,30 +3237,30 @@ module Eliom_appl_reg_
         *)
     in
     let body, container_node = match params.ap_container with
-      | None -> let b = XHTML5.M.body ?a:params.ap_body_attributes content in
-                (b, (XHTML5.M.toelt b))
+      | None -> let b = HTML5.M.body ?a:params.ap_body_attributes content in
+                (b, (HTML5.M.toelt b))
       | Some (a, container) ->
-        let d = XHTML5.M.div ?a content in
-        (XHTML5.M.body
+        let d = HTML5.M.div ?a content in
+        (HTML5.M.body
            ?a:params.ap_body_attributes 
            (container d),
-         (XHTML5.M.toelt d))
+         (HTML5.M.toelt d))
     in
     ignore (Eliom_xml.make_node_id container_node); (* The ref must be created 
 						       for container before
 						       calling make_ref_tree! *)
 
-    XHTML5.M.html
-      (XHTML5.M.head (XHTML5.M.title (XHTML5.M.pcdata params.ap_title)) 
+    HTML5.M.html
+      (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata params.ap_title)) 
          (
            params.ap_headers_before@
-           XHTML5.M.style
+           HTML5.M.style
              [
-               XHTML5.M.pcdata
+               HTML5.M.pcdata
                  "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"]::
 
              (* This will do a redirection if there is a #! in the URL *)
-             XHTML5.M.script
+             HTML5.M.script
              (cdata_script
                 ("// Redirect if the URL contains #! while loading the page
 function redir () {
@@ -3312,15 +3287,15 @@ redir ();"))::
 	 let onload_form_creators =
 	   Eliommod_cli.wrap (Eliom_services.get_onload_form_creators
                                 Appl_params.application_name sp) in
-	 let eliom_appl_page_data = 
+	 let eliom_appl_page_data =
            Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)
          in
-	 Eliom_xml.mark_sent (XHTML5.M.toelt body);
+	 Eliom_xml.mark_sent (HTML5.M.toelt body);
 	 let contents_to_send = Eliom_xml.contents_to_send () in
 
              if not do_not_launch
              then
-               XHTML5.M.script
+               HTML5.M.script
                  (cdata_script
                     (
                       String.concat
@@ -3337,8 +3312,8 @@ redir ();"))::
                           "var eliom_data = \'" ;
                           (Eliom_types.jsmarshal
                              ((Left
-                                 (*(XML.make_ref_tree (XHTML5.M.toelt body)),*)
-                                 (Eliom_xml.make_ref_tree (XHTML5.M.toelt body)),
+                                 (*(XML.make_ref_tree (HTML5.M.toelt body)),*)
+                                 (Eliom_xml.make_ref_tree (HTML5.M.toelt body)),
                             (* Warning: due to right_to_left evaluation,
                                make_ref_tree is called before the previous
                                items. Do not create new node refs in
@@ -3383,8 +3358,8 @@ redir ();"))::
                     )
                  ) ::
                (* Javascript program: *)
-               XHTML5.M.script
-                   ~a:[a_src (Xhtml.make_uri 
+               HTML5.M.script
+                   ~a:[a_src (Xhtml.make_uri
                                 ~service:(Eliom_services.static_dir ())
                                 [Appl_params.application_name ^ ".js"])]
                  (pcdata "")::
@@ -3402,13 +3377,13 @@ redir ();"))::
     let onload_form_creators =
       Eliommod_cli.wrap (Eliom_services.get_onload_form_creators Appl_params.application_name sp) in
     let eliom_appl_page_data = (Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
-    List.iter (fun x -> Eliom_xml.mark_sent (XHTML5.M.toelt x)) content;
+    List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) content;
     let contents_to_send = Eliom_xml.contents_to_send () in
 
 (*VVV Here we do not send a stream *)
     Lwt.return
       ((Right
-          (Eliom_xml.make_ref_tree_list (XHTML5.M.toeltl content)),
+          (Eliom_xml.make_ref_tree_list (HTML5.M.toeltl content)),
 	contents_to_send,
         eliom_appl_page_data,
         tab_cookies_to_send,
@@ -3418,7 +3393,9 @@ redir ();"))::
         Eliommod_cli.client_si sp.Eliom_common.sp_si
        ),
      (*VVV Use another serialization format than XML for the page? *)
-       Xhtml5compact.xhtml_list_print content)
+       let b = Buffer.create 512 in
+       HTML5.P.print_list ~output:(Buffer.add_string b) content;
+       Buffer.contents b)
 
 
   let send ?(options = default_appl_service_options) ?charset ?code
@@ -3493,8 +3470,7 @@ redir ();"))::
            ~options ~sp cpi Appl_params.params tab_cookies_to_send
            (*CPE* change_page_event *) content 
        in
-       let options = Appl_params.params.ap_doctype in
-       Xhtml_content.result_of_content ~options page
+       Xhtml_content.result_of_content page
        >>= fun r ->
         Lwt.return
           {r with
@@ -3523,7 +3499,7 @@ end
 module Eliom_appl (Appl_params : APPL_PARAMS) = struct
 
   include MakeRegister(Eliom_appl_reg_
-                         (Ocsigen_senders.Xhtml5compact_content)
+                         (Ocsigen_senders.Make_XML_Content(XML)(HTML5.M))
                          (Appl_params))
 
   (** Unique identifier for this application.
@@ -3550,7 +3526,7 @@ end
  *)
 module String_redirreg_ = struct
 
-  type page = XHTML5.M.uri
+  type page = HTML5.M.uri
 
   type options = [ `Temporary | `Permanent ]
 
@@ -3622,7 +3598,7 @@ module String_redirection = MakeRegister(String_redirreg_)
 
 
 module Redirreg_ = struct
-  open Xhtmltypes
+  open XHTML_types
 
   type page = 
       (unit, unit, Eliom_services.get_service_kind,
@@ -3768,16 +3744,16 @@ module Redirection = MakeRegister(Redirreg_)
 
 
 
-module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-                  with type t = [ `Html ] XHTML5.M.elt
-                  and type options = XHTML5.M.doctypes
-) = struct
-  open XHTML5.M
-  open Xhtml5types
+module Xhtml5reg_(Xhtml_content
+		    : Ocsigen_http_frame.HTTP_CONTENT
+                      with type t = [ `Html ] HTML5.M.elt) = struct
+
+  open HTML5.M
+  open HTML5_types
 
   type page = xhtml elt
 
-  type options = XHTML5.M.doctypes
+  type options = unit
 
   type return = Eliom_services.http
 
@@ -3789,13 +3765,13 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
     let add_css (a : 'a) : 'a =
       let css =
-        XHTML5.M.toelt
-          (XHTML5.M.style
-             [XHTML5.M.pcdata "\n.";
-             XHTML5.M.pcdata Eliom_common.inline_class_name;
-             XHTML5.M.pcdata " {display: inline}\n.";
-             XHTML5.M.pcdata Eliom_common.nodisplay_class_name;
-             XHTML5.M.pcdata " {display: none}\n"])
+        HTML5.M.toelt
+          (HTML5.M.style
+             [HTML5.M.pcdata "\n.";
+             HTML5.M.pcdata Eliom_common.inline_class_name;
+             HTML5.M.pcdata " {display: inline}\n.";
+             HTML5.M.pcdata Eliom_common.nodisplay_class_name;
+             HTML5.M.pcdata " {display: none}\n"])
       in
       let rec aux = function
         | { XML.elt = XML.Node ("head",al,el) } as e::l ->
@@ -3803,8 +3779,8 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
         | e::l -> e::(aux l)
         | [] -> []
       in
-      XHTML5.M.tot
-        (match XHTML5.M.toelt a with
+      HTML5.M.tot
+        (match HTML5.M.toelt a with
            | { XML.elt = XML.Node ("html",al,el) } as e ->
                { e with XML.elt = XML.Node ("html",al,aux el) }
            | e -> e)
@@ -3815,9 +3791,9 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   end
 
-  let send ?(options = `XHTML_05_00) ?charset ?code
+  let send ?(options = ()) ?charset ?code
       ?content_type ?headers content =
-    Xhtml_content.result_of_content ~options content >>= fun r ->
+    Xhtml_content.result_of_content content >>= fun r ->
     Lwt.return
       {r with
          res_cookies= Eliom_request_info.get_user_cookies ();
@@ -3839,24 +3815,9 @@ module Xhtml5reg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
 end
 
-module Xhtml5reg = MakeRegister(Xhtml5reg_(Ocsigen_senders.Xhtml5_content))
-module Xhtml5compactreg =
-  MakeRegister(Xhtml5reg_(Ocsigen_senders.Xhtml5compact_content))
+module Html5reg = MakeRegister(Xhtml5reg_(Ocsigen_senders.Make_XML_Content(XML)(HTML5.M)))
 
-module Xhtml5prettyreg =
-  MakeRegister(Xhtml5reg_(Ocsigen_senders.Xhtml5pretty_content))
-
-module Xhtml5 = struct
-  include Xhtml5forms
-  include Xhtml5reg
-end
-
-module Xhtml5compact = struct
-  include Xhtml5forms
-  include Xhtml5compactreg
-end
-
-module Xhtml5pretty = struct
-  include Xhtml5forms
-  include Xhtml5prettyreg
+module Html5 = struct
+  include Html5forms
+  include Html5reg
 end

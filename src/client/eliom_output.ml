@@ -1,4 +1,4 @@
 
 include Eliom_output_base
-module Xhtml5 = Xhtml5forms
+module Html5 = Html5forms
 

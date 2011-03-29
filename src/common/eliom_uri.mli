@@ -22,6 +22,7 @@
 
 open Lwt
 
+open Eliom_pervasives
 open Eliom_common
 open Eliom_parameters
 open Eliom_services
@@ -167,5 +168,5 @@ val make_cookies_info :
    | `Nonattached of 'd ],
    [< `WithSuffix | `WithoutSuffix ], 'e, 'f, 'g, 'h)
            Eliom_services.service ->
-  (bool * Ocsigen_lib.url_path) option
+  (bool * Url.path) option
 

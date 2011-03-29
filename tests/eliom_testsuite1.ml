@@ -29,7 +29,7 @@ let coucou1 =
     ~get_params:Eliom_parameters.unit
     (fun () () ->
       return
-        <:xml< <html>
+        <:xhtml< <html>
              <head><title></title></head>
              <body><h1>Coucou</h1></body>
            </html> >>)
@@ -199,10 +199,10 @@ let raw_serv = register_service
   (fun l () ->
     let ll =
       List.map
-        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l
+        (fun (a,s) -> <:xhtml< <strong>($str:a$, $str:s$)</strong> >>) l
     in
     return
-     << <html>
+     <:xhtml< <html>
           <head><title></title></head>
           <body>
           <p>
@@ -407,11 +407,11 @@ let form3 = register_service ["form3"] unit
      let f  =
        (Eliom_output.Xhtml.post_form my_service_with_get_and_post
           (fun chaine ->
-            <:xmllist< <p> Write a string:
+            <:xhtmllist< <p> Write a string:
                     $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
           222) in
      return
-       << <html>
+       <:xhtml< <html>
             <head><title></title></head>
             <body>$f$</body></html> >>)
 
@@ -425,7 +425,7 @@ let form4 = register_service ["form4"] unit
              ~get_params:(int "i")
              ~post_params:(string "chaine") ())
           (fun chaine ->
-            <:xmllist< <p> Write a string:
+            <:xhtmllist< <p> Write a string:
                      $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
           222) in
      return
@@ -2008,7 +2008,7 @@ let bool_params = register_service
     ~get_params:(bool "case")
   (fun case () ->
     return
-    << <html>
+    <:xhtml< <html>
          <head><title></title></head>
          <body>
          <p>
@@ -2018,14 +2018,14 @@ let bool_params = register_service
        </html> >>)
 
 let create_form_bool casename =
-    <:xmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
+    <:xhtmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let form_bool = register_service ["formbool"] unit
   (fun () () ->
      let f = get_form bool_params create_form_bool in
      return
-     << <html>
+     <:xhtml< <html>
           <head><title></title></head>
           <body> $f$ </body>
         </html> >>)
@@ -2042,10 +2042,10 @@ let set = register_service
   (fun l () ->
     let ll =
       List.map
-        (fun s -> << <strong>$str:s$ </strong> >>) l
+        (fun s -> <:xhtml< <strong>$str:s$ </strong> >>) l
     in
     return
-    << <html>
+    <:xhtml< <html>
          <head><title></title></head>
          <body>
          <p>
@@ -2130,7 +2130,7 @@ let coord = register_service
     ~get_params:(coordinates "coord")
   (fun c () ->
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -2165,7 +2165,7 @@ let coord2 = register_service
     ~get_params:(int_coordinates "coord")
   (fun (i, c) () ->
     return
-  << <html>
+  <:xhtml< <html>
        <head><title></title></head>
        <body>
        <p>
@@ -2204,9 +2204,9 @@ let coucou_list = register_service
     ~get_params:(list "a" (string "str"))
   (fun l () ->
     let ll =
-      List.map (fun s -> << <strong>$str:s$</strong> >>) l in
+      List.map (fun s -> <:xhtml< <strong>$str:s$</strong> >>) l in
       return
-        << <html>
+        <:xhtml< <html>
              <head><title></title></head>
              <body>
              <p>
@@ -2235,16 +2235,16 @@ let create_listform f =
      end of the list created
    *)
   f.it (fun stringname v init ->
-    <:xmllist< <p>Write the value for $str:v$:
+    <:xhtmllist< <p>Write the value for $str:v$:
       $string_input ~input_type:`Text ~name:stringname ()$ </p> >>@init)
     ["one";"two";"three";"four"]
-    <:xmllist< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+    <:xhtmllist< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let listform = register_service ["listform"] unit
   (fun () () ->
      let f = get_form coucou_list create_listform in
      return
-      << <html>
+      <:xhtml< <html>
            <head><title></title></head>
            <body> $f$ </body>
          </html> >>)
@@ -2255,7 +2255,7 @@ let listform = register_service ["listform"] unit
 *wiki*)
 (* Form for service with suffix: *)
 let create_suffixform ((suff, endsuff),i) =
-    <:xmllist< <p>Write the suffix (integer):
+    <:xhtmllist< <p>Write the suffix (integer):
       $int_input ~input_type:`Text ~name:suff ()$ <br/>
       Write a string: $user_type_input
       (Url.string_of_url_path ~encode:false)
@@ -2268,7 +2268,7 @@ let suffixform = register_service ["suffixform"] unit
   (fun () () ->
      let f = get_form isuffix create_suffixform in
      return
-      << <html>
+      <:xhtml< <html>
            <head><title></title></head>
            <body> $f$ </body>
          </html> >>)

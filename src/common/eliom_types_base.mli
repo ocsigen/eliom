@@ -38,11 +38,11 @@ val of_data_key_ : 'a data_key -> (int64 * int)
 type poly
 
 type onload_form_creators_info =
-  | OFA of XML.elt * string * (bool * Ocsigen_lib.url_path) option
+  | OFA of XML.elt * string * (bool * Url.path) option
   | OFForm_get of
-      XML.elt * string * (bool * Ocsigen_lib.url_path) option
+      XML.elt * string * (bool * Url.path) option
   | OFForm_post of
-      XML.elt * string * (bool * Ocsigen_lib.url_path) option
+      XML.elt * string * (bool * Url.path) option
 
 type separator = Space | Comma
 

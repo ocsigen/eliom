@@ -416,7 +416,7 @@ let parse_eliom_option
 
   | (Element ("ipv4subnetmask", [("value", v)], [])) ->
       (try 
-         (match Ip_address.parse_ip v with
+         (match Ip_address.parse v with
             | Ip_address.IPv4 a, None -> set_ipv4mask a
             | _ -> failwith "ipv6"
          )
@@ -425,7 +425,7 @@ let parse_eliom_option
                   ("Eliom: Wrong attribute value for ipv4subnetmask tag")))
   | (Element ("ipv6subnetmask", [("value", v)], [])) ->
       (try 
-         (match Ip_address.parse_ip v with
+         (match Ip_address.parse v with
             | Ip_address.IPv6 (a, b), None -> set_ipv6mask (a, b)
             | _ -> failwith "ipv6"
          )

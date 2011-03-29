@@ -1,27 +1,29 @@
 let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 
-open XHTML5.M
-open Eliom_output.Xhtml5compact
+open Eliom_pervasives
+
+open HTML5.M
+open Eliom_output.Html5
 open Eliom_testsuite1
 open Eliom_testsuite2
 open Eliom_testsuite3
 
 
 (* Main page for the test suite *)
-let _ = Eliom_output.Xhtml5compact.register Eliom_testsuite3.main
+let _ = Eliom_output.Html5.register Eliom_testsuite3.main
   (fun () () ->
     Lwt.return
      (html
        (head
           (title (pcdata "Examples from the manual"))
-          [Eliom_output.Xhtml5compact.css_link 
-              (Eliom_output.Xhtml5compact.make_uri
+          [Eliom_output.Html5.css_link 
+              (Eliom_output.Html5.make_uri
                  ~service:(Eliom_services.static_dir ()) ["style.css"]) ()])
        (body
           [
             h1 [img ~alt:"Ocsigen"
-                   ~src:(Eliom_output.Xhtml5.make_uri
+                   ~src:(Eliom_output.Html5.make_uri
                            ~service:(Eliom_services.static_dir ()) ["ocsigen5.png"]) ()];
 
             h3 [pcdata "Eliom examples"];

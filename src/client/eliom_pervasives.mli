@@ -71,7 +71,7 @@ end
 module Ip_address : sig
   (* type t = IPv4 of int32 | IPv6 of int64 * int64 *)
   (* exception Invalid_ip_address of string *)
-  (* val parse_ip : string -> t * t option *)
+  (* val parse : string -> t * t option *)
   (* val match_ip : t * t option -> t -> bool *)
   (* val network_of_ip : ip:t -> mask:t -> t *)
 end
@@ -91,6 +91,8 @@ val of_json : ?typ:'a -> string -> 'b
 
 val encode_form_value : 'a -> string
 val unmarshal_js_var : string -> 'a
+
+val encode_header_value : 'a -> string
 
 module Html : module type of Dom_html
 
@@ -117,6 +119,9 @@ module XML : sig
   val encodedpcdata : string -> elt
   val entity : string -> elt
 
+  val empty : unit -> elt
+  val comment : string -> elt
+
   val leaf : ?a:(attrib list) -> ename -> elt
   val node : ?a:(attrib list) -> ename -> elt list -> elt
 
@@ -127,49 +132,31 @@ module XML : sig
   val lwt_register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b Lwt.t) -> 'a -> unit
   val register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b) -> 'a -> unit
 
-  type ref_tree = Ref_tree of int option * (int * ref_tree) list
-  val ref_node : 'a -> int
-
   val class_name : string
+
+  val ref_node : elt -> int
+
+  type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
 end
 
 module SVG : sig
 
-  module M : SVG_defs.T with type raw_xml_elt = XML.elt
-                         and type raw_xml_attrib = XML.attrib
+  module M : SVG_sigs.SVG(XML).T
 
 end
 
-module XHTML5 : sig
+module HTML5 : sig
 
-  module M : XHTML5_defs.T with type raw_xml_elt       = XML.elt
-                            and type raw_xml_attrib    = XML.attrib
-                            and type raw_xml_event     = XML.event
-                            and type 'a raw_svg_elt    = 'a SVG.M.elt
-                            and type 'a raw_svg_attrib = 'a SVG.M.attrib
-
-  module M_05_00 : XHTML5_defs.T_05_00 with type raw_xml_elt       = XML.elt
-                                        and type raw_xml_attrib    = XML.attrib
-                                        and type raw_xml_event     = XML.event
-                                        and type 'a raw_svg_elt    = 'a SVG.M.elt
-                                        and type 'a raw_svg_attrib = 'a SVG.M.attrib
+  module M : HTML5_sigs.HTML5(XML)(SVG.M).T
 
 end
 
 module XHTML : sig
 
-  module M : XHTML_defs.T with type raw_xml_elt       = XML.elt
-                           and type raw_xml_attrib    = XML.attrib
-                           and type raw_xml_event     = XML.event
-
-  module M_01_01 : XHTML_defs.T with type raw_xml_elt       = XML.elt
-                                 and type raw_xml_attrib    = XML.attrib
-                                 and type raw_xml_event     = XML.event
-
-  module M_01_00 : XHTML_defs.T with type raw_xml_elt       = XML.elt
-                                 and type raw_xml_attrib    = XML.attrib
-                                 and type raw_xml_event     = XML.event
+  module M : XHTML_sigs.XHTML(XML).T
+  module M_01_01 : XHTML_sigs.XHTML(XML).T
+  module M_01_00 : XHTML_sigs.XHTML(XML).T
 
 end
 

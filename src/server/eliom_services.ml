@@ -575,7 +575,7 @@ let onunload s =
 (*VVV Find a better place than rc to put this? *)
 let on_load_forms_creators_key :
     (send_appl_content *
-       Eliom_client_types.onload_form_creators_info) list Polytables.key = 
+       Eliom_types.onload_form_creators_info) list Polytables.key = 
   Polytables.make_key ()
 
 let add_onload_form_creator s =

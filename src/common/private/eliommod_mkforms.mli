@@ -20,28 +20,28 @@
 open Eliom_pervasives
 
 val make_a_with_onclick :
-  (?a:'a -> ?onclick:XML.event -> ?href:string -> 'b -> [`A of 'aa] XHTML5.M.elt) ->
-  (?keep_default:bool -> [`A of 'aa] XHTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> 'e) ->
+  (?a:'a -> ?onclick:XML.event -> ?href:string -> 'b -> [`A of 'aa] HTML5.M.elt) ->
+  (?keep_default:bool -> [`A of 'aa] HTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> 'e) ->
   ?a:'a -> ?cookies_info:bool * string list ->
   Eliom_services.send_appl_content ->
   string ->
-  'b -> [`A of 'aa] XHTML5.M.elt
+  'b -> [`A of 'aa] HTML5.M.elt
 
 val make_get_form_with_onsubmit :
-  (?a:'b -> action:string -> ?onsubmit:XML.event -> 'c -> 'd -> [`Form] XHTML5.M.elt) ->
-  (?keep_default:bool -> [`Form] XHTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> unit) ->
+  (?a:'b -> action:string -> ?onsubmit:XML.event -> 'c -> 'd -> [`Form] HTML5.M.elt) ->
+  (?keep_default:bool -> [`Form] HTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> unit) ->
   ?a:'b -> ?cookies_info:bool * string list ->
   Eliom_services.send_appl_content ->
   string ->
-  'c -> 'd -> [`Form] XHTML5.M.elt
+  'c -> 'd -> [`Form] HTML5.M.elt
 
 val make_post_form_with_onsubmit :
-  (?a:'b -> action:string -> ?onsubmit:XML.event -> 'c -> 'd -> [`Form] XHTML5.M.elt) ->
-  (?keep_default:bool -> [`Form] XHTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> unit) ->
+  (?a:'b -> action:string -> ?onsubmit:XML.event -> 'c -> 'd -> [`Form] HTML5.M.elt) ->
+  (?keep_default:bool -> [`Form] HTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> unit) ->
   ?a:'b -> ?cookies_info:bool * string list ->
   Eliom_services.send_appl_content ->
   string ->
-  'c -> 'd -> [`Form] XHTML5.M.elt
+  'c -> 'd -> [`Form] HTML5.M.elt
 
 
 (*POSTtabcookies* forms with tab cookies in POST params:
@@ -63,6 +63,6 @@ val make_post_form_with_post_tab_cookies :
   string ->
   ?a:'a -> action:'b -> 'c -> 'd -> 'form
 
-val add_tab_cookies_to_get_form : 'form XHTML5.M.elt -> unit -> unit Lwt.t
-val add_tab_cookies_to_post_form : 'form XHTML5.M.elt -> unit -> unit Lwt.t
+val add_tab_cookies_to_get_form : 'form HTML5.M.elt -> unit -> unit Lwt.t
+val add_tab_cookies_to_post_form : 'form HTML5.M.elt -> unit -> unit Lwt.t
 *)

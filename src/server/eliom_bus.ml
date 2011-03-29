@@ -36,7 +36,7 @@ type 'a t = {
 }
 
 let internal_wrap (bus: 'a t)
-    : (  ('a Eliom_common_comet.chan_id)
+    : (  ('a Eliom_comet_base.chan_id)
 	 * (unit,
             'a list,
             [ `Nonattached of [ `Post ] Eliom_services.na_s ],

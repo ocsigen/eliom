@@ -366,11 +366,11 @@ let register ?(wake=true) chan_id =
   let stream = Lwt_stream.filter_map_s
     (function
       | (id,data) when id = chan_id ->
-	( match (Marshal.from_string data 0:'a Eliom_common_comet.channel_data) with
-	  | Eliom_common_comet.Full ->
+	( match (Marshal.from_string data 0:'a Eliom_comet_base.channel_data) with
+	  | Eliom_comet_base.Full ->
 	    stop_waiting hd chan_id;
 	    Lwt.fail Channel_full
-	  | Eliom_common_comet.Data x -> Lwt.return (Some x) )
+	  | Eliom_comet_base.Data x -> Lwt.return (Some x) )
       | _ -> Lwt.return None)
     (Lwt_stream.clone hd.hd_stream)
   in
