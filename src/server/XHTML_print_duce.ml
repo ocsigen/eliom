@@ -43,7 +43,7 @@ let blocktags = [ "fieldset"; "form"; "address"; "body"; "head";
 let semiblocktags = [ "pre"; "style"; "title" ]
 
 
-let pretty_print_xhtml (f: string -> unit) (v: Ocamlduce.Load.anyxml): unit =
+let print (f: string -> unit) (v: Ocamlduce.Load.anyxml): unit =
   let escape f s =
     let rec aux b i =
       if i = String.length s then f (String.sub s b (i-b))
@@ -70,4 +70,3 @@ let pretty_print_xhtml (f: string -> unit) (v: Ocamlduce.Load.anyxml): unit =
       ~text:(escape f)
       v
   end
-

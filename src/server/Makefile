@@ -94,10 +94,11 @@ eliom_pervasives.cmi: \
 
 ### OCamlduce ###
 
-DUCE_FILES := xhtmltypes_duce.ml  \
-	      xhtmlpretty_duce.ml \
+DUCE_FILES := XHTML_print_duce.ml \
 	      eliom_duce.ml       \
 	      eliom_duce_tools.ml \
+
+DUCE_INTF := XHTML_types_duce.mli
 
 ifeq "${OCAMLDUCE}" "YES"
 byte:: eliom_duce.cma
@@ -114,7 +115,7 @@ eliom_duce.cmxa: ${DUCE_FILES:.ml=.cmx}
 
 ##########
 
-${DUCE_FILES:.ml=.cmi}: %.cmi: %.mli
+${DUCE_INTF:.mli=.cmi} ${DUCE_FILES:.ml=.cmi}: %.cmi: %.mli
 	$(OCAMLDUCEC) ${LIBS} -c $<
 ${DUCE_FILES:.ml=.cmo}: %.cmo: %.ml
 	$(OCAMLDUCEC) ${LIBS} -c $<

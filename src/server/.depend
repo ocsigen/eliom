@@ -285,3 +285,16 @@ private/eliommod_timeouts.cmx: private/eliommod_sessadmin.cmx \
     eliom_pervasives.cmx eliom_common.cmx private/eliommod_timeouts.cmi
 private/eliommod_timeouts.cmi: eliom_common.cmi
 eliom_pervasives.cmi:
+XHTML_print_duce.cmo:
+XHTML_print_duce.cmx:
+eliom_duce.cmo: XHTML_types_duce.cmi XHTML_print_duce.cmo eliom_services.cmi \
+    eliom_request_info.cmi eliom_mkreg.cmi eliom_mkforms.cmi eliom_duce.cmi
+eliom_duce.cmx: XHTML_types_duce.cmi XHTML_print_duce.cmx eliom_services.cmx \
+    eliom_request_info.cmx eliom_mkreg.cmx eliom_mkforms.cmx eliom_duce.cmi
+eliom_duce_tools.cmo: eliom_tools_common.cmi eliom_services.cmi \
+    eliom_request_info.cmi eliom_duce.cmi eliom_duce_tools.cmi
+eliom_duce_tools.cmx: eliom_tools_common.cmx eliom_services.cmx \
+    eliom_request_info.cmx eliom_duce.cmx eliom_duce_tools.cmi
+eliom_duce.cmi: eliom_services.cmi eliom_mkreg.cmi eliom_mkforms.cmi
+eliom_duce_tools.cmi: eliom_tools_common.cmi eliom_state.cmi \
+    eliom_services.cmi eliom_parameters.cmi eliom_duce.cmi

@@ -20,7 +20,7 @@
 
 (** A module to generate pages using OCamlduce *)
 
-open Xhtmltypes_duce
+open XHTML_types_duce
 
 module type XhtmlFormsSig = Eliom_mkforms.ELIOMFORMSIG with
   type form_content_elt = form_content

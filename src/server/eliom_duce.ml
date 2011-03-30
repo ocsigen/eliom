@@ -24,7 +24,7 @@ open Ocsigen_http_com
 open Lwt
 open Ocsigen_senders
 open Ocsigen_stream
-open Xhtmltypes_duce
+open XHTML_types_duce
 open Ocsigen_extensions
 open Eliom_mkforms
 open Eliom_mkreg
@@ -54,7 +54,8 @@ module Ocamlduce_content =
 
     let print x =
       let b = Buffer.create 256 in
-      (* Ocamlduce.Print.print_xml *) Xhtmlpretty_duce.pretty_print_xhtml (Buffer.add_string b) x;
+      (* Ocamlduce.Print.print_xml (Buffer.add_string b) x *)
+      XHTML_print_duce.print (Buffer.add_string b) x;
       Buffer.contents b
 
     let get_etag c =
@@ -65,7 +66,10 @@ module Ocamlduce_content =
       "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n\n"
 
     let header_length =
-      String.length doctype + String.length Xhtmlpretty.ocsigenadv
+      String.length doctype + String.length Ocsigen_pervasives.advert
+
+    module S = Ocsigen_stream.StringStream
+    let (++) = S.concat
 
     let result_of_content c =
       let x = print (add_css c) in
@@ -79,16 +83,10 @@ module Ocamlduce_content =
          res_etag = md5;
          res_headers= Http_headers.dyn_headers;
          res_stream =
-             (Ocsigen_stream.make
-               (fun () ->
-                  Ocsigen_stream.cont
-                    doctype
-                    (fun () ->
-                       Ocsigen_stream.cont
-                         Xhtmlpretty.ocsigenadv
-                         (fun () -> Ocsigen_stream.cont x
-                            (fun () -> Ocsigen_stream.empty None)))),
-              None)
+             (S.make
+                    (S.put doctype
+		       ++ S.put Ocsigen_pervasives.advert
+                       ++ S.put x), None)
        }
 
   end
@@ -442,6 +440,9 @@ module SubXhtml =
           let x = print c in
           get_etag_aux x
 
+	module S = Ocsigen_stream.StringStream
+	let (++) = S.concat
+
         let result_of_content c =
           let x = print c in
           let md5 = get_etag_aux x in
@@ -452,11 +453,7 @@ module SubXhtml =
                res_content_type = Some "text/html";
                res_etag = md5;
                res_headers= Http_headers.dyn_headers;
-               res_stream =
-                (Ocsigen_stream.make
-                   (fun () -> Ocsigen_stream.cont x
-                      (fun () -> Ocsigen_stream.empty None)),
-                 None)
+               res_stream = (S.make (S.put x), None)
            }
 
       end
@@ -464,7 +461,7 @@ module SubXhtml =
 
     module Contreg_ = struct
       open XHTML.M
-      open Xhtmltypes
+      open XHTML_types
 
       type page = T.content
 
@@ -513,19 +510,19 @@ module Blocks = SubXhtml(struct
                            type content = {{ blocks }}
                            let print f (x : content) =
                              List.iter
-                               ((* Ocamlduce.Print.print_xml *) Xhtmlpretty_duce.pretty_print_xhtml f )
+                               (XHTML_print_duce.print f )
                                {: x :}
                           end)
 
 module Xml = SubXhtml(struct
                         type content = Ocamlduce.Load.anyxml
-                        let print f x = (* Ocamlduce.Print.print_xml *) Xhtmlpretty_duce.pretty_print_xhtml f x
+                        let print f x = XHTML_print_duce.print f x
                       end)
 
 module Xmllist = SubXhtml(struct
                             type content = Ocamlduce.Load.anyxml list
                             let print f (x : content) =
                               List.iter
-                                ((* Ocamlduce.Print.print_xml *) Xhtmlpretty_duce.pretty_print_xhtml f )
+                                (XHTML_print_duce.print f )
                                 x
                           end)

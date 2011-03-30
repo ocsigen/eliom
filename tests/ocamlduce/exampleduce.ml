@@ -22,7 +22,7 @@ open Eliom_parameters
 open Eliom_state
 open Eliom_duce.Xhtml
 open Lwt
-open Xhtmltypes_duce
+open XHTML_types_duce
 
 let s =
   register_service
