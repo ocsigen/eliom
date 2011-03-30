@@ -261,6 +261,8 @@ module Html5forms_ = struct
       (fun ?a ~action ?onsubmit x y -> make_post_form ?a ~action ?onsubmit x y)
       register_event_form
 
+  let client_capable = true
+
 end
 
 

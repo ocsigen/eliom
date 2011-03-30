@@ -269,6 +269,7 @@ module Xhtmlforms_ = struct
   let make_post_form_with_onsubmit ?a ?cookies_info x y =
     failwith "make_post_form_with_onsubmit not implemented for xhtml1"
 
+  let client_capable = false
 
 end
 
@@ -2145,6 +2146,8 @@ module HtmlTextforms_ = struct
 
   let make_post_form_with_onsubmit ?a ?cookies_info x y =
     failwith "make_post_form_with_onsubmit not implemented for text"
+
+  let client_capable = false
 
 end
 

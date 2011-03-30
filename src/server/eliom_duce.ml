@@ -348,7 +348,7 @@ module Xhtmlforms_ = struct
   let make_post_form_with_onsubmit ?a ?cookies_info x y =
     failwith "make_post_form_with_onsubmit not implemented for eliom_duce"
 
-  let appl_name = None
+  let client_capable = false
 
 end
 

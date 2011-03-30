@@ -183,6 +183,8 @@ module type FORMCREATE =
       string ->
       form_content_elt -> form_content_elt_list -> form_elt
 
+    val client_capable: bool
+
   end
 
 module type ELIOMFORMSIG =
@@ -1006,7 +1008,7 @@ module MakeForms = functor
             ?nl_params
             ?https ~service ?hostname ?port ?fragment getparams
         in
-        if not no_appl && Eliom_services.xhr_with_cookies service
+        if not no_appl && Pages.client_capable && Eliom_services.xhr_with_cookies service
         then
           let cookies_info = Eliom_uri.make_cookies_info (https, service) in
           Pages.make_a_with_onclick
@@ -1037,7 +1039,7 @@ module MakeForms = functor
           f =
 
         let internal_appl_form =
-          not no_appl && Eliom_services.xhr_with_cookies service
+          not no_appl && Pages.client_capable && Eliom_services.xhr_with_cookies service
         in
 
 (*204FORMS* old implementation of forms with 204 and change_page_event
@@ -1157,7 +1159,7 @@ module MakeForms = functor
           getparams =
 
         let internal_appl_form =
-          not no_appl && Eliom_services.xhr_with_cookies service
+          not no_appl && Pages.client_capable && Eliom_services.xhr_with_cookies service
         in
 
 (*204FORMS* old implementation of forms with 204 and change_page_event

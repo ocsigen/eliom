@@ -177,6 +177,8 @@ module type FORMCREATE =
       string ->
       form_content_elt -> form_content_elt_list -> form_elt
 
+    val client_capable: bool
+
   end
 
 module type ELIOMFORMSIG =
@@ -907,7 +909,6 @@ module type ELIOMFORMSIG =
       'a select_opt list ->
       select_elt
 (** Creates a [<select>] tag for user type values. *)
-
 
 
 end
