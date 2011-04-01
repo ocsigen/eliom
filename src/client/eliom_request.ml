@@ -143,6 +143,29 @@ let send_get_form ?cookies_info ?get_args ?post_args form url =
 
 (** Send a POST form with tab cookies and half/full XHR. *)
 let send_post_form ?cookies_info ?get_args ?post_args form url =
+  (* BEGIN FORMDATA HACK *)
+  let button = (Js.Unsafe.variable "window")##eliomLastButton in
+  (Js.Unsafe.variable "window")##eliomLastButton <- None;
+  let post_args =
+    match button with
+      | None -> post_args
+      | Some b ->
+	let name,value,b_form =
+          match Dom_html.tagged b with
+            | Dom_html.Button b -> b##name,b##value,b##form
+            | Dom_html.Input b -> b##name,b##value,b##form
+            | _ -> assert false
+	in
+	let name = Js.to_string name in
+	let value = Js.to_string value in
+	if name <> "" && b_form = Js.some form
+	then
+	  match post_args with
+	    | None -> Some [name,value]
+	    | Some l -> Some ((name,value)::l)
+	else post_args
+  in
+  (* END FORMDATA HACK *)
   send_wraper
     (fun ?headers ?content_type ?post_args ?get_args url ->
       XmlHttpRequest.send_post_form_string

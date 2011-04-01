@@ -599,13 +599,18 @@ module XML = struct
 
   let lwt_register_event ?(keep_default = true) elt name f v =
     let keep_default = Js.bool keep_default in
-    (Js.Unsafe.coerce elt)##onclick <-
-      Dom_html.handler (fun _ -> ignore (f v); keep_default)
+    ignore (
+      Dom_html.addEventListener (Js.Unsafe.coerce elt) Dom_html.Event.click
+	(Dom_html.handler (fun _ -> ignore (f v); keep_default)) Js._false
+	: Dom_html.event_listener_id )
+
 
   let register_event ?(keep_default = true) elt name f v =
     let keep_default = Js.bool keep_default in
-    (Js.Unsafe.coerce elt)##onclick <-
-      Dom_html.handler (fun _ -> f v; keep_default)
+    ignore (
+      Dom_html.addEventListener (Js.Unsafe.coerce elt) Dom_html.Event.click
+	(Dom_html.handler (fun _ -> f v; keep_default)) Js._false
+	: Dom_html.event_listener_id )
 
   let class_name = "className" (* see xHTML.ml *)
 

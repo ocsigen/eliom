@@ -21,8 +21,8 @@ open Eliom_pervasives
 
 (*external get_closure_arg : unit -> 'a = "caml_get_closure_arg"*)
 val register_closure : int -> ('a -> 'b) -> unit
-(*val nodes : (int, Js.Node.t) Hashtbl.t
-val set_node_id : Js.Node.t -> int -> unit*)
+val nodes : (int, Dom_html.element Js.t) Hashtbl.t
+(*val set_node_id : Js.Node.t -> int -> unit*)
 
 val unwrap : 'a Eliom_types.data_key -> 'a
 

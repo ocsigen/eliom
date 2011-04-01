@@ -167,7 +167,39 @@ let bind_form_or_link = function
       (fun () -> !change_page_post_form_ ?cookies_info node uri)
       ()
 
+(* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
+   When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
+   Notice: must check that it works effectively: it is bugged in FF4
 
+   This is implemented in:
+   * this file -> here and called in load_eliom_data
+   * Eliom_request: dans le send_post_form
+   * in js_of_ocaml, module Form: the code to emulate FormData *)
+
+let onclick_on_body_handler event =
+  (match Dom_html.tagged (Dom_html.eventTarget event) with
+    | Dom_html.Button button ->
+      (Js.Unsafe.variable "window")##eliomLastButton <- Some button;
+    | Dom_html.Input input when input##_type = Js.string "submit" ->
+      (Js.Unsafe.variable "window")##eliomLastButton <- Some input;
+    | _ -> (Js.Unsafe.variable "window")##eliomLastButton <- None);
+  Js._true
+
+let add_onclick_events =
+  let registered = ref false in
+  fun () ->
+    if !registered
+    then ()
+    else
+      begin
+	ignore (Dom_html.addEventListener ( Dom_html.window##document##body )
+		  Dom_html.Event.click ( Dom_html.handler onclick_on_body_handler )
+		  Js._true
+		  :Dom_html.event_listener_id);
+	registered := true;
+      end
+
+(* END FORMDATA HACK *)
 
 let load_eliom_data_
     ((tree, sent_nodes, ((_,((timeofday, _), _)) as page_data), cookies,
@@ -180,6 +212,9 @@ let load_eliom_data_
     | Right ref_tree_list ->
       Eliommod_cli.relink_dom_list timeofday (node##childNodes) ref_tree_list);
   ignore (List.map (Eliommod_cli.rebuild_xml timeofday) sent_nodes);
+  (* BEGIN FORMDATA HACK *)
+  add_onclick_events ();
+  (* END FORMDATA HACK *)
   Eliommod_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;
   Eliommod_cli.fill_page_data_table (Eliom_client_unwrap.unwrap page_data);
