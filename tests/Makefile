@@ -78,7 +78,7 @@ syntax_temp_files/eliom_testsuite: ${CLIENT_OBJS}
 	${OCAMLC} -o $@ ${CLIENT_LIBS} -package eliom.client -linkpkg $^
 
 eliom_testsuite.js: ../src/client/eliom_client.js syntax_temp_files/eliom_testsuite
-	${JS_OF_OCAML} -o $@ -pretty $^
+	${JS_OF_OCAML} -o $@ -pretty -noinline $^
 
 ${STATICDIR}/eliom_testsuite.js: eliom_testsuite.js
 	cp -f $< $@

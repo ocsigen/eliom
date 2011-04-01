@@ -37,7 +37,7 @@ let page_appl_data_table : ((int64 * int), Eliom_types.poly) Hashtbl.t =
 let fill_page_data_table ((reqnum, size), l) =
   ignore
     (List.fold_left
-       (fun b v -> 
+       (fun b v ->
           let n = b-1 in
           Hashtbl.replace page_appl_data_table (reqnum, n) v;
           n
@@ -120,8 +120,8 @@ let relink_dom_list =
 
 (* == unwraping server data *)
 
-let unwrap (key : 'a Eliom_types.data_key) : 'a = 
-  Obj.magic (Hashtbl.find page_appl_data_table 
+let unwrap (key : 'a Eliom_types.data_key) : 'a =
+  Obj.magic (Hashtbl.find page_appl_data_table
                (Eliom_types.of_data_key_ key))
 
 (* let unwrap_sp = unwrap *)

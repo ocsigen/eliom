@@ -25,7 +25,7 @@ let url_fragment_prefix_with_sharp = "#!"
 
 let create_request_
     ?absolute ?absolute_path ?https
-    ~(service : ('get, 'post, 
+    ~(service : ('get, 'post,
                  [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
                  | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
                  [< Eliom_services.suff ], 'h, 'i,
@@ -50,8 +50,8 @@ let create_request_
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params
             ?keep_get_na_params g p
         in
-        let uri = 
-          Eliom_uri.make_string_uri_from_components (path, g, fragment) 
+        let uri =
+          Eliom_uri.make_string_uri_from_components (path, g, fragment)
         in
         Right (uri, p)
 
@@ -59,7 +59,7 @@ let create_request_
 
 let exit_to
     ?absolute ?absolute_path ?https
-    ~(service : ('get, 'post, 
+    ~(service : ('get, 'post,
                  [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
                  | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
                  [< Eliom_services.suff ], 'h, 'i,
@@ -90,7 +90,7 @@ let change_url_string uri =
 let change_url
 (*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
     ?absolute ?absolute_path ?https
-    ~(service : ('get, 'post, 
+    ~(service : ('get, 'post,
                  [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
                  | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
                  [< Eliom_services.suff ], 'h, 'i,
@@ -113,7 +113,7 @@ let change_url
 
 
 (* lazy because we want the page to be loaded *)
-let container_node = 
+let container_node =
   lazy ((Eliommod_cli.unwrap_node (unmarshal_js_var "container_node"))
            : Dom_html.element Js.t)
 
@@ -170,7 +170,7 @@ let bind_form_or_link = function
 
 
 let load_eliom_data_
-    ((tree, sent_nodes, ((_,((timeofday, _), _)) as page_data), cookies, 
+    ((tree, sent_nodes, ((_,((timeofday, _), _)) as page_data), cookies,
       onload_form_creators_info, onload, onunload, si) :
         Eliom_types.eliom_data_type)
     node : unit Lwt.t =
@@ -217,7 +217,7 @@ let rec change_page_set_content :
                       ([< Eliom_services.getpost ] as 'q))
                        Eliom_services.a_s
                   | `Nonattached of ([< Eliom_services.getpost ] as 'p) Eliom_services.na_s ] as 'm),
-                 ([< `WithSuffix | `WithoutSuffix ] as 'n), 'd, 'e, 
+                 ([< `WithSuffix | `WithoutSuffix ] as 'n), 'd, 'e,
                  ([< Eliom_services.registrable ] as 'o),
                  'return)
           Eliom_services.service ->
@@ -270,7 +270,7 @@ let rec change_page_set_content :
     >>= fun r ->
     (snd change_page_set_content) i (Eliom_request.get_eliom_appl_result r)
   end),
-     
+
 (* set_content *) (fun i -> function
   | Eliom_services.EAContent (c, u) ->
     change_url_string u;
@@ -310,7 +310,7 @@ let change_page
     ?nl_params
     ?keep_get_na_params
     g
-    p = 
+    p =
   (fst change_page_set_content) 0
     ?absolute
     ?absolute_path
@@ -329,7 +329,7 @@ let change_page
 let change_page_uri ?cookies_info ?(get_params = []) uri =
   Eliom_request.http_get ?cookies_info uri get_params >>= fun r ->
   set_content (Eliom_request.get_eliom_appl_result r)
- 
+
 let change_page_get_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
   Eliom_request.send_get_form ?cookies_info form uri >>= fun r ->
@@ -395,7 +395,7 @@ let rec get_subpage_ :
                 ([< Eliom_services.getpost ] as 'q))
                  Eliom_services.a_s
             | `Nonattached of ([< Eliom_services.getpost ] as 'p) Eliom_services.na_s ] as 'm),
-           ([< `WithSuffix | `WithoutSuffix ] as 'n), 'd, 'e, 
+           ([< `WithSuffix | `WithoutSuffix ] as 'n), 'd, 'e,
            ([< Eliom_services.registrable ] as 'o),
            'return)
     Eliom_services.service ->
@@ -404,7 +404,7 @@ let rec get_subpage_ :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:(string * string) list String.Table.t ->
-  ?keep_get_na_params:bool -> 'get -> 'post -> 
+  ?keep_get_na_params:bool -> 'get -> 'post ->
   [< `PCDATA | XHTML_types.flow ] HTML5.M.elt list Lwt.t
     = fun i
     ?absolute ?absolute_path ?https ~service
@@ -434,7 +434,7 @@ let rec get_subpage_ :
         node_list := Js.Optdef.get (nodes##item (i)) (fun () -> assert false)
         :: !node_list
       done;
-      
+
       load_eliom_data_ ed fake_page >>= fun () ->
       fake_page##innerHTML <- Js.string "";
       Lwt.return (HTML5.M.totl !node_list)
@@ -485,16 +485,16 @@ let auto_change_page fragment =
   ignore
     (let l = String.length fragment in
      if (l = 0) || ((l > 1) && (fragment.[1] = '!'))
-     then 
+     then
        if fragment <> !current_fragment
        then
          (
-         current_fragment := fragment; 
+         current_fragment := fragment;
          let uri =
            match l with
              | 2 -> "./" (* fix for firefox *)
              | 0 | 1 -> Eliom_request_info.full_uri
-             | _ -> String.sub fragment 2 ((String.length fragment) - 2) 
+             | _ -> String.sub fragment 2 ((String.length fragment) - 2)
          in
          Eliom_request.http_get uri [] >>= fun r ->
          set_content (Eliom_request.get_eliom_appl_result r))

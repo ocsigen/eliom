@@ -32,7 +32,7 @@ val send :
 val send_get_form :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
-  ?post_args:(string * string) list -> 
+  ?post_args:(string * string) list ->
   Dom_html.formElement Js.t ->
   string -> string Lwt.t
 
