@@ -5,7 +5,7 @@ package "server" (
   description = "Eliom: server-side"
   version = "[distributed with Eliom]"
   directory = "server"
-  requires = "ocsigenserver,ocsigenserver_ext,tyxml,react,calendar,js_of_ocaml.deriving,lwt.react"
+  requires = "%%DEPS%%"
   archive(byte) = "%%NAME%%.cma"
   archive(native) = "%%NAME%%.cmxa"
   package "duce" (
@@ -22,7 +22,7 @@ package "client" (
   description = "Eliom client-side"
   version = "[distributed with Eliom]"
   directory = "client"
-  requires = "ocsigenserver.cookies,ocsigenserver.polytables,js_of_ocaml,js_of_ocaml.deriving,lwt.react,tyxml.functor"
+  requires = "%%CDEPS%%"
   archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
 )
 

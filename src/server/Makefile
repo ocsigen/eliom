@@ -1,13 +1,6 @@
 include ../../Makefile.config
 
-PACKAGE  := ocsigenserver               \
-	    ocsigenserver_ext           \
-            js_of_ocaml.deriving.syntax \
-	    react                       \
-	    calendar                    \
-	    tyxml                       \
-
-LIBS     := -I private -I extensions ${addprefix -package ,${PACKAGE}}
+LIBS     := -I private -I extensions ${addprefix -package ,${SERVER_PACKAGE}}
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -thread
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG} -thread
 OCAMLDEP := $(OCAMLFIND) ocamldep
@@ -115,11 +108,11 @@ eliom_duce.cmxa: ${DUCE_FILES:.ml=.cmx}
 ##########
 
 ${DUCE_INTF:.mli=.cmi} ${DUCE_FILES:.ml=.cmi}: %.cmi: %.mli
-	$(OCAMLDUCEC) ${LIBS} -package tyxml.duce -c $<
+	$(OCAMLDUCEC) ${LIBS} -c $<
 ${DUCE_FILES:.ml=.cmo}: %.cmo: %.ml
-	$(OCAMLDUCEC) ${LIBS} -package tyxml.duce -c $<
+	$(OCAMLDUCEC) ${LIBS} -c $<
 ${DUCE_FILES:.ml=.cmx}: %.cmx: %.ml
-	$(OCAMLDUCEOPT) ${LIBS} -package tyxml.duce -c $<
+	$(OCAMLDUCEOPT) ${LIBS} -c $<
 
 %.cmi: %.mli
 	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
@@ -171,8 +164,6 @@ depend: ${PREDEP}
 ifeq "${OCAMLDUCE}" "YES"
 	${OCAMLDUCEDEP} ${LIBS} ${DUCE_FILES} ${DUCE_FILES:.ml=.mli} >> .depend
 endif
-
-
 
 FORCE:
 -include .depend

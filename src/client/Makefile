@@ -1,14 +1,6 @@
 include ../../Makefile.config
 
-PACKAGE  := ocsigenserver.cookies       \
-            ocsigenserver.polytables    \
-	    js_of_ocaml.syntax          \
-	    js_of_ocaml.deriving.syntax \
-	    lwt.syntax                  \
-	    lwt.react                   \
-	    tyxml.functor               \
-
-LIBS     := -I private ${addprefix -package ,${PACKAGE}}
+LIBS     := -I private ${addprefix -package ,${CLIENT_PACKAGE}}
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}
 OCAMLDOC := $(OCAMLFIND) ocamldoc

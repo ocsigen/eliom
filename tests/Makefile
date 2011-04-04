@@ -70,7 +70,7 @@ ${ELIOM_FILES:.eliom=.cmx}: \
 
 ${addprefix syntax_temp_files/,${ELIOM_FILES:.eliom=.cmo}}: \
 syntax_temp_files/%.cmo: %.eliom syntax_temp_files/%.type.mli
-	$(OCAMLC) ${CLIENT_LIBS} -package eliom.client -package eliom.syntax.client -syntax camlp4o \
+	$(OCAMLC) -verbose ${CLIENT_LIBS} -package eliom.client -package eliom.syntax.client -syntax camlp4o \
 	  -ppopt -type -ppopt ${<:%.eliom=syntax_temp_files/%.type.mli} -ppopt -impl \
 	  -c -impl $< -o $@
 

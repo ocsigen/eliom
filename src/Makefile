@@ -71,12 +71,16 @@ reinstall.opt: uninstall install.opt
 
 metas: files/META files/META.${PROJECTNAME}
 
+SED_META := -e s/%%NAME%%/$(PROJECTNAME)/g \
+	    -e s/%%DEPS%%/$(shell ${OCAMLFIND} query -p-format -separator ',' ${SERVER_PACKAGE})/g \
+	    -e s/%%CDEPS%%/$(shell ${OCAMLFIND} query -p-format -separator ',' ${CLIENT_PACKAGE})/g \
+
 files/META: files/META.in ../Makefile.config  ../Makefile.options Makefile
-	cat $< | sed s/%%NAME%%/$(PROJECTNAME)/g > $@
+	sed ${SED_META} $< > $@
 
 files/META.${PROJECTNAME}: files/META.in ../Makefile.config  ../Makefile.options Makefile
 	echo "directory = \"..\"" > $@
-	cat $< | sed s/%%NAME%%/$(PROJECTNAME)/g >> $@
+	sed ${SED_META} $< >> $@
 
 conf: ../local/etc/$(PROJECTNAME).conf
 
