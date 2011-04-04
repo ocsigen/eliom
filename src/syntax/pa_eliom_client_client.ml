@@ -43,8 +43,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     let typ = Helpers.find_escaped_ident_type gen_id in
     if not (List.mem gen_id !arg_ids) then
       arg_ids := gen_id :: !arg_ids;
-    let unwrapper = Helpers.find_unwrapper _loc typ in
-    <:expr< ($unwrapper$ $lid:gen_id$) >>
+    <:expr< (Eliommod_cli.unwrap $lid:gen_id$ : $typ$) >>
 
   let flush_args _loc =
     let res = !arg_ids in

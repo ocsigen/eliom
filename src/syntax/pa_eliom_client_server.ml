@@ -43,9 +43,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let push_arg orig_expr gen_id =
     if not (List.mem gen_id !arg_ids) then begin
       let _loc = Ast.loc_of_expr orig_expr in
-      let typ = Helpers.find_escaped_ident_type gen_id in
-      let wrapper = Helpers.find_wrapper _loc typ in
-      arg_collection := <:expr< ($wrapper$ $orig_expr$) >> :: !arg_collection;
+      arg_collection := <:expr< (Eliommod_cli.wrap $orig_expr$) >> :: !arg_collection;
       arg_ids := gen_id :: !arg_ids
     end
 

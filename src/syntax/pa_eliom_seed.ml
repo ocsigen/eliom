@@ -76,10 +76,6 @@ module type Helpers  = sig
   (** find infered type for escaped expr *)
   val find_escaped_ident_type: string -> Ast.ctyp
 
-  (** find wrapper/unwrapper associated with a type *)
-  val find_wrapper: Loc.t -> Syntax.Ast.ctyp -> Ast.expr
-  val find_unwrapper: Loc.t -> Syntax.Ast.ctyp -> Ast.expr
-
 end
 
 (** Signature of specific code of a preprocessor. *)
@@ -130,6 +126,12 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       let _ =
 	Camlp4.Options.add "-type" (Arg.Set_string type_file) "type inference file"
 
+      let rec suppress_underscore ty =
+	let map ty = match ty with
+	| Ast.TyApp (_, Ast.TyAny _, ty) | Ast.TyApp (_, ty, Ast.TyAny _) -> ty
+	| ty -> ty in
+	(Ast.map_ctyp map)#ctyp ty
+
       let escaped_ident_prefix = "__eliom__escaped_expr__reserved_name__"
       let escaped_ident_prefix_len = String.length escaped_ident_prefix
       let is_escaped_ident = function
@@ -142,7 +144,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
 	| Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
 	    let len = String.length id - escaped_ident_prefix_len in
-	    int_of_string (String.sub id escaped_ident_prefix_len len), t
+	    int_of_string (String.sub id escaped_ident_prefix_len len),
+	    suppress_underscore t
 	| _ -> assert false
 
       let load_file f =
@@ -164,25 +167,6 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  List.assoc id (Lazy.force infered_sig)
 	with Not_found -> assert false
 
-
-
-      (** Wrapping/Unwrapping **)
-
-      (* TODO: extensible wrapper list *)
-
-      module No_registered_wrapper = struct
-	type t = Ast.ctyp
-	exception E of t
-	let print fmt ty =
-	  Format.fprintf fmt "No registred wrapper for type:@,@[%a@]"
-	    printer#ctyp ty
-	let to_string ty =
-	  ignore(Format.flush_str_formatter ());
-	  print Format.str_formatter ty;
-	  Format.flush_str_formatter ()
-	let raise _loc ty = Loc.raise _loc (E ty)
-      end
-      module E1 = Camlp4.ErrorHandler.Register(No_registered_wrapper)
 
       (* translate_type: not yet used. *)
 
@@ -218,151 +202,6 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
 	(* (\*Anything else is missing some serious wraping...*\) *)
 	(* | _ -> assert false *)
-
-      (* This exception should be raised by wrappers to indicate that
-	 they can't wrap the specified type and that the next parser
-	 should be tried.*)
-      exception Next
-      let wrappers _loc = [
-
-(*
-  (function (*sp*)
-  | <:ctyp< Eliom_request_info.server_params >> ->
-  (<:expr<Eliommod_cli.wrap_sp>>, <:expr<Eliommod_cli.unwrap_sp>>)
-  | _ -> raise Next
-  );
- *)
-(*
-	(* nodes *)
-	(let rec aux = function
-	  | <:ctyp< Xhtml5types.$lid:_$ >> -> true
-
-	  | <:ctyp< [  $t$ ] >>
-	  | <:ctyp< [> $t$ ] >>
-	  | <:ctyp< [< $t$ ] >>
-	    (*| <:ctyp< [= $t$ ] >> is in the "doc" but doesn't compile*)
-	  | <:ctyp< _$t$ >> -> aux t
-
-	  | <:ctyp< [< $t1$ > $t2$ ] >> -> aux t1 && aux t2
-
-	  | _ -> false
-	in
-	function
-	  | <:ctyp< ($t$ XHTML5.M.elt) >> ->
-              if aux t
-              then (<:expr<Eliommod_cli.wrap>>,
-                     <:expr<Eliommod_cli.unwrap_node>>)
-              else raise Next
-	  | _ -> raise Next
-	);
-*)
-(*
-	(* basic values *)
-	(let rec aux = function (*TODO: complete it*)
-	  | <:ctyp< float >> | <:ctyp< int >>
-	  | <:ctyp< string >> | <:ctyp< char >>
-	  | <:ctyp< bool >> | <:ctyp< nativeint >>
-	  | <:ctyp< int32 >> | <:ctyp< int64 >>
-	  | <:ctyp< Int64.t >> | <:ctyp< Int32.t >>
-            -> true
-	  | <:ctyp< ($t$ option) >>
-	  | <:ctyp< ($t$ list) >> | <:ctyp< ($t$ array) >> -> aux t
-	  | <:ctyp< $tup:tys$ >> -> List.for_all aux (Ast.list_of_ctyp tys [])
-	  | _ -> false
-	in
-	fun t ->
-	  if aux t
-	  then (<:expr<Eliommod_cli.wrap>>, <:expr<Eliommod_cli.unwrap>>)
-	  else raise Next
-	);
-*)
-
-(*
-	(function (*channel*)
-	  | <:ctyp< ($_$ Eliom_comet.Channels.t) >> ->
-              (<:expr<Eliom_comet.Channels.wrap>>,
-		<:expr<Eliom_comet.unwrap>>)
-	  | _ -> raise Next
-	);
-*)
-
-(*
-	(function (*up_event*)
-	  | <:ctyp< ($_$ Eliom_react.Up.t) >> ->
-              (<:expr<Eliom_react.Up.wrap>>,
-		<:expr<Eliom_react.Up.unwrap>>)
-	  | _ -> raise Next
-	);
-*)
-(*
-	(function (*down_event*)
-	  | <:ctyp< ($_$ Eliom_react.Down.t) >> ->
-              (<:expr<Eliom_react.Down.wrap>>,
-		<:expr<Eliom_react.Down.unwrap>>)
-	  | _ -> raise Next
-	);
-*)
-(*
-	(function (*bus*)
-	  | <:ctyp< ($_$ Eliom_bus.t) >> ->
-              (<:expr<Eliom_bus.wrap>>,
-		<:expr<Eliommod_cli.unwrap>>)
-	  | _ -> raise Next
-	);
-*)
-(*
-	(function (*service*)
-	  | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >>
-	  | <:ctyp< ($_$ Eliom_services.service) >> ->
-              (<:expr<Eliom_services.wrap>>,
-		<:expr<Eliommod_cli.unwrap>>)
-	  | _ -> raise Next;
-	);
-*)
-
-	(function (*rest*)
-	  | _ ->
-	    (<:expr<Eliommod_cli.wrap>>, <:expr<Eliommod_cli.unwrap>>)
-(*            (<:expr< (fun x -> x) >>,
-	      <:expr< (fun x -> x) >>)*)
-	);
-
-	(* wrapped values: not yet used. *)
-
-	(* (function *)
-	  (* | <:ctyp< ($_$, $_$) Eliom_wrap.t >> as t_server -> *)
-              (* let t_client = translate_type _loc t_server in *)
-              (* (<:expr<Eliommod_cli.wrap>>, *)
-		(* <:expr< *)
-		(* (Eliommod_cli.unwrap *)
-		   (* : $t_client$ Eliom_client_types.data_key -> $t_client$ *)
-		(* ) *)
-		  (* >>) *)
-	  (* | <:ctyp< ($_$ Eliom_wrap.tt) >> as t_server -> *)
-              (* let t_client = translate_type _loc t_server in *)
-              (* (<:expr<Eliommod_cli.wrap>>, *)
-		(* <:expr< *)
-		(* (Eliommod_cli.unwrap *)
-		   (* : $t_client$ Eliom_client_types.data_key -> $t_client$ *)
-		(* ) *)
-		  (* >>) *)
-	  (* | _ -> raise Next *)
-	(* ) *)
-
-      ]
-
-      (* associating wrapper-keywords *)
-      let find_wrapper_unwrapper _loc ty =
-	let rec aux = function
-	  | [] -> No_registered_wrapper.raise _loc ty
-	  | f::fs ->
-              try f ty
-              with Next -> aux fs
-	in
-	aux (wrappers _loc)
-
-      let find_wrapper _loc n = fst (find_wrapper_unwrapper _loc n)
-      let find_unwrapper _loc n = snd (find_wrapper_unwrapper _loc n)
 
     end (* End of Helpers *)
 
