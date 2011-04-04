@@ -6,7 +6,7 @@ PACKAGE  := ocsigenserver.cookies       \
 	    js_of_ocaml.deriving.syntax \
 	    lwt.syntax                  \
 	    lwt.react                   \
-	    xmlp4.functor               \
+	    tyxml.functor               \
 
 LIBS     := -I private ${addprefix -package ,${PACKAGE}}
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}

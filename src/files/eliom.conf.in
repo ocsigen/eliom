@@ -20,6 +20,10 @@
 
     <findlib path="_METADIR_"/>
 
+    <!-- Inclusion of all external configuration files matching *.conf
+         from the directory 'dir' (in alphabetical order): -->
+    <extconf dir="_CONFIGDIR_/conf.d" />
+
     <extension findlib-package="ocsigenserver_ext.staticmod"/>
 
     <extension findlib-package="ocsigenserver_ext.ocsipersist-sqlite">
@@ -35,10 +39,6 @@
     -->
 
     <extension findlib-package="_PROJECTNAME_.server"/>
-
-    <!-- Inclusion of all external configuration files matching *.conf
-         from the directory 'dir' (in alphabetical order): -->
-    <extconf dir="_CONFIGDIR_/conf.d" />
 
     <host charset="utf-8" hostfilter="*">
 

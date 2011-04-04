@@ -5,7 +5,7 @@ package "server" (
   description = "Eliom: server-side"
   version = "[distributed with Eliom]"
   directory = "server"
-  requires = "ocsigenserver,ocsigenserver_ext,xmlp4,react,calendar,js_of_ocaml.deriving,lwt.react"
+  requires = "ocsigenserver,ocsigenserver_ext,tyxml,react,calendar,js_of_ocaml.deriving,lwt.react"
   archive(byte) = "%%NAME%%.cma"
   archive(native) = "%%NAME%%.cmxa"
   package "duce" (
@@ -22,14 +22,14 @@ package "client" (
   description = "Eliom client-side"
   version = "[distributed with Eliom]"
   directory = "client"
-  requires = "ocsigenserver.cookies,ocsigenserver.polytables,js_of_ocaml,js_of_ocaml.deriving,lwt.react,xmlp4.functor"
+  requires = "ocsigenserver.cookies,ocsigenserver.polytables,js_of_ocaml,js_of_ocaml.deriving,lwt.react,tyxml.functor"
   archive(byte) = "%%NAME%%_client.cma eliom_client_main.cmo"
 )
 
 package "syntax" (
   description = "Syntax extension: spliting client and server code (base)"
   version = "[distributed with Eliom]"
-  requires = "js_of_ocaml.syntax,js_of_ocaml.deriving.syntax,xmlp4.syntax,lwt.syntax"
+  requires = "js_of_ocaml.syntax,js_of_ocaml.deriving.syntax,tyxml.syntax,lwt.syntax"
   archive(syntax,preprocessor) = "pa_eliom_seed.cmo"
   directory = "syntax"
   package "type" (

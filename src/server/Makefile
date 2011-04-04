@@ -5,7 +5,7 @@ PACKAGE  := ocsigenserver               \
             js_of_ocaml.deriving.syntax \
 	    react                       \
 	    calendar                    \
-	    xmlp4                       \
+	    tyxml                       \
 
 LIBS     := -I private -I extensions ${addprefix -package ,${PACKAGE}}
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -thread
@@ -94,11 +94,10 @@ eliom_pervasives.cmi: \
 
 ### OCamlduce ###
 
-DUCE_FILES := XHTML_print_duce.ml \
-	      eliom_duce.ml       \
+DUCE_FILES := eliom_duce.ml       \
 	      eliom_duce_tools.ml \
 
-DUCE_INTF := XHTML_types_duce.mli
+DUCE_INTF :=
 
 ifeq "${OCAMLDUCE}" "YES"
 byte:: eliom_duce.cma
@@ -116,11 +115,11 @@ eliom_duce.cmxa: ${DUCE_FILES:.ml=.cmx}
 ##########
 
 ${DUCE_INTF:.mli=.cmi} ${DUCE_FILES:.ml=.cmi}: %.cmi: %.mli
-	$(OCAMLDUCEC) ${LIBS} -c $<
+	$(OCAMLDUCEC) ${LIBS} -package tyxml.duce -c $<
 ${DUCE_FILES:.ml=.cmo}: %.cmo: %.ml
-	$(OCAMLDUCEC) ${LIBS} -c $<
+	$(OCAMLDUCEC) ${LIBS} -package tyxml.duce -c $<
 ${DUCE_FILES:.ml=.cmx}: %.cmx: %.ml
-	$(OCAMLDUCEOPT) ${LIBS} -c $<
+	$(OCAMLDUCEOPT) ${LIBS} -package tyxml.duce -c $<
 
 %.cmi: %.mli
 	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<

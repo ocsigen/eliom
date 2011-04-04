@@ -54,22 +54,14 @@ module Ocamlduce_content =
 
     let print x =
       let b = Buffer.create 256 in
-      (* Ocamlduce.Print.print_xml (Buffer.add_string b) x *)
-      XHTML_print_duce.print (Buffer.add_string b) x;
+      XHTML_duce.P.print ~advert:Ocsigen_pervasives.advert ~output:(Buffer.add_string b) x;
       Buffer.contents b
 
     let get_etag c =
       let x = print (add_css c) in
       get_etag_aux x
 
-    let doctype =
-      "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n\n"
-
-    let header_length =
-      String.length doctype + String.length Ocsigen_pervasives.advert
-
     module S = Ocsigen_stream.StringStream
-    let (++) = S.concat
 
     let result_of_content c =
       let x = print (add_css c) in
@@ -78,15 +70,12 @@ module Ocamlduce_content =
       Lwt.return
         {default_result with
          res_content_length =
-            Some (Int64.of_int (header_length + String.length x));
+            Some (Int64.of_int (String.length x));
          res_content_type = Some "text/html";
          res_etag = md5;
          res_headers= Http_headers.dyn_headers;
          res_stream =
-             (S.make
-                    (S.put doctype
-		       ++ S.put Ocsigen_pervasives.advert
-                       ++ S.put x), None)
+             (S.make (S.put x), None)
        }
 
   end
@@ -509,20 +498,18 @@ module SubXhtml =
 module Blocks = SubXhtml(struct
                            type content = {{ blocks }}
                            let print f (x : content) =
-                             List.iter
-                               (XHTML_print_duce.print f )
-                               {: x :}
+                             XHTML_duce.P.print_list ~output:f {: x :}
                           end)
 
 module Xml = SubXhtml(struct
                         type content = Ocamlduce.Load.anyxml
-                        let print f x = XHTML_print_duce.print f x
+                        let print f x = XML_print_duce.print ~output:f x
                       end)
 
 module Xmllist = SubXhtml(struct
                             type content = Ocamlduce.Load.anyxml list
                             let print f (x : content) =
                               List.iter
-                                (XHTML_print_duce.print f )
+                                (XML_print_duce.print ~output:f)
                                 x
                           end)
