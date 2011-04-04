@@ -39,7 +39,9 @@ endif
 
 CLIENT_PACKAGE  := ocsigenserver.cookies       \
 		   ocsigenserver.polytables    \
+	    	   js_of_ocaml                 \
 	    	   js_of_ocaml.syntax          \
+	    	   js_of_ocaml.deriving        \
 	    	   js_of_ocaml.deriving.syntax \
 	    	   lwt.syntax                  \
 	    	   lwt.react                   \
