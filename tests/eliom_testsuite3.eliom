@@ -878,7 +878,7 @@ let event_service =
       let targetresult = HTML5.M.p [] in
       Eliom_services.onload
         {{
-          let targetresult = (HTML5.M.to_p %targetresult) in
+          let targetresult = (HTML5.M.to_paragraph %targetresult) in
 
           let handler =
             lwt_arr
@@ -897,30 +897,30 @@ let event_service =
               )
           in
           let cancel c = arr (fun _ -> cancel c) in
-          let c = run (click (HTML5.M.to_p %target1) >>> handler) () in
-          let _ = run (click (HTML5.M.to_p %target2) >>> cancel c) () in
-          let _ = run (mousedown (HTML5.M.to_p %target3) >>> mouseup (HTML5.M.to_p %target2) >>> handler) () in
-          let c = run (clicks (HTML5.M.to_p %target4) handler_long) () in
-          let _ = run (click (HTML5.M.to_p %target5) >>> cancel c) () in
-          let _ = run (click (HTML5.M.to_p %target6) >>> handler >>> click (HTML5.M.to_p %target6) >>> handler) () in
-          let _ = run (clicks (HTML5.M.to_p %target7) (click (HTML5.M.to_p %target7) >>> handler)) () in
-          let _ = run (click (HTML5.M.to_p %target8) >>> clicks (HTML5.M.to_p %target8) handler) () in
-          let c = run (first [click (HTML5.M.to_p %target9) >>> handler;
-                              click (HTML5.M.to_p %target10) >>> handler]) ()
+          let c = run (click (HTML5.M.to_paragraph %target1) >>> handler) () in
+          let _ = run (click (HTML5.M.to_paragraph %target2) >>> cancel c) () in
+          let _ = run (mousedown (HTML5.M.to_paragraph %target3) >>> mouseup (HTML5.M.to_paragraph %target2) >>> handler) () in
+          let c = run (clicks (HTML5.M.to_paragraph %target4) handler_long) () in
+          let _ = run (click (HTML5.M.to_paragraph %target5) >>> cancel c) () in
+          let _ = run (click (HTML5.M.to_paragraph %target6) >>> handler >>> click (HTML5.M.to_paragraph %target6) >>> handler) () in
+          let _ = run (clicks (HTML5.M.to_paragraph %target7) (click (HTML5.M.to_paragraph %target7) >>> handler)) () in
+          let _ = run (click (HTML5.M.to_paragraph %target8) >>> clicks (HTML5.M.to_paragraph %target8) handler) () in
+          let c = run (first [click (HTML5.M.to_paragraph %target9) >>> handler;
+                              click (HTML5.M.to_paragraph %target10) >>> handler]) ()
           in
-          let _ = run (click (HTML5.M.to_p %target11) >>> cancel c) ()
+          let _ = run (click (HTML5.M.to_paragraph %target11) >>> cancel c) ()
           in
-          let c = run (mousedowns (HTML5.M.to_p %target12)
+          let c = run (mousedowns (HTML5.M.to_paragraph %target12)
                          (first [mouseup Dom_html.document;
                                  mousemoves Dom_html.document handler])) ()
           in
-          let _ = run (click (HTML5.M.to_p %target13) >>> cancel c) ()
+          let _ = run (click (HTML5.M.to_paragraph %target13) >>> cancel c) ()
           in
-          let c = run (mousedowns (HTML5.M.to_p %target14)
+          let c = run (mousedowns (HTML5.M.to_paragraph %target14)
                          (first [mouseup Dom_html.document;
                                  mousemoves Dom_html.document handler_long])) ()
           in
-          let _ = run (click (HTML5.M.to_p %target15) >>> cancel c) ()
+          let _ = run (click (HTML5.M.to_paragraph %target15) >>> cancel c) ()
           in
           ()
 

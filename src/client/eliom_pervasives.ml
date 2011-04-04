@@ -629,10 +629,51 @@ module HTML5 = struct
   struct
     include HTML5_f.Make(XML)(SVG.M)
     let coerce x = Js.Unsafe.coerce (toelt x)
-    let to_p :HTML5_types.p elt -> Dom_html.paragraphElement Js.t = coerce
+    let to_html : HTML5_types.html elt -> Dom_html.htmlElement Js.t = coerce
+    let to_head : HTML5_types.head elt -> Dom_html.headElement Js.t = coerce
+    let to_link : HTML5_types.link elt -> Dom_html.linkElement Js.t = coerce
+    let to_title : HTML5_types.title elt -> Dom_html.titleElement Js.t = coerce
+    let to_meta : HTML5_types.meta elt -> Dom_html.metaElement Js.t = coerce
+    let to_base : HTML5_types.base elt -> Dom_html.baseElement Js.t = coerce
+    let to_style : HTML5_types.style elt -> Dom_html.styleElement Js.t = coerce
+    let to_body : HTML5_types.body elt -> Dom_html.bodyElement Js.t = coerce
     let to_form : HTML5_types.form elt -> Dom_html.formElement Js.t = coerce
-    let to_div : HTML5_types.div elt -> Dom_html.divElement Js.t = coerce
+    let to_optGroup : HTML5_types.optgroup elt -> Dom_html.optGroupElement Js.t = coerce
+    let to_option : HTML5_types.selectoption elt -> Dom_html.optionElement Js.t = coerce
+    let to_select : HTML5_types.select elt -> Dom_html.selectElement Js.t = coerce
+    let to_input : HTML5_types.input elt -> Dom_html.inputElement Js.t = coerce
+    let to_textArea : HTML5_types.textarea elt -> Dom_html.textAreaElement Js.t = coerce
+    let to_button : HTML5_types.button elt -> Dom_html.buttonElement Js.t = coerce
+    let to_label : HTML5_types.label elt -> Dom_html.labelElement Js.t = coerce
+    let to_fieldSet : HTML5_types.fieldset elt -> Dom_html.fieldSetElement Js.t = coerce
+    let to_legend : HTML5_types.legend elt -> Dom_html.legendElement Js.t = coerce
+    let to_uList : HTML5_types.ul elt -> Dom_html.uListElement Js.t = coerce
+    let to_oList : HTML5_types.ol elt -> Dom_html.oListElement Js.t = coerce
+    let to_dList : [`Dl] elt -> Dom_html.dListElement Js.t = coerce
     let to_li : HTML5_types.li elt -> Dom_html.liElement Js.t = coerce
+    let to_div : HTML5_types.div elt -> Dom_html.divElement Js.t = coerce
+    let to_paragraph : HTML5_types.p elt -> Dom_html.paragraphElement Js.t = coerce
+    let to_heading : HTML5_types.heading elt -> Dom_html.headingElement Js.t = coerce
+    let to_quote : HTML5_types.blockquote elt -> Dom_html.quoteElement Js.t = coerce
+    let to_pre : HTML5_types.pre elt -> Dom_html.preElement Js.t = coerce
+    let to_br : HTML5_types.br elt -> Dom_html.brElement Js.t = coerce
+    let to_hr : HTML5_types.hr elt -> Dom_html.hrElement Js.t = coerce
+    let to_anchor : 'a HTML5_types.a elt -> Dom_html.anchorElement Js.t = coerce
+    let to_image : [`Img] elt -> Dom_html.imageElement Js.t = coerce
+    let to_object : 'a HTML5_types.object_ elt -> Dom_html.objectElement Js.t = coerce
+    let to_param : HTML5_types.param elt -> Dom_html.paramElement Js.t = coerce
+    let to_area : HTML5_types.area elt -> Dom_html.areaElement Js.t = coerce
+    let to_map : 'a HTML5_types.map elt -> Dom_html.mapElement Js.t = coerce
+    let to_script : HTML5_types.script elt -> Dom_html.scriptElement Js.t = coerce
+    let to_tableCell : [ HTML5_types.td | HTML5_types.td ] elt -> Dom_html.tableCellElement Js.t = coerce
+    let to_tableRow : HTML5_types.tr elt -> Dom_html.tableRowElement Js.t = coerce
+    let to_tableCol : HTML5_types.col elt -> Dom_html.tableColElement Js.t = coerce
+    let to_tableSection : [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt ->
+      Dom_html.tableSectionElement Js.t = coerce
+    let to_tableCaption : HTML5_types.caption elt -> Dom_html.tableCaptionElement Js.t = coerce
+    let to_table : HTML5_types.table elt -> Dom_html.tableElement Js.t = coerce
+    let to_canvas : 'a HTML5_types.canvas elt -> Dom_html.canvasElement Js.t = coerce
+    let to_iFrame : HTML5_types.iframe elt -> Dom_html.iFrameElement Js.t = coerce
   end
 end
 
