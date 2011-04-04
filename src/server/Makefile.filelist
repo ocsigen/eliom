@@ -32,9 +32,7 @@ INTF := eliom_pervasives.cmi        \
 
 ifeq "$(OCAMLDUCE)" "YES"
 
-INTF += xhtmltypes_duce.cmi  \
-	xhtmlpretty_duce.cmi \
-	eliom_duce.cmi       \
+INTF += eliom_duce.cmi       \
 	eliom_duce_tools.cmi \
 
 endif
@@ -58,7 +56,7 @@ endif
 endif
 
 NOMLI := eliom_error_pages.mli \
-	 xhtmltypes_duce.mli   \
 	 eliom_process.mli     \
+         eliom_process.mli
 
 DOC := ${filter-out ${NOMLI}, ${INTF:.cmi=.mli}}
