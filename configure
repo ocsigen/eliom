@@ -125,8 +125,9 @@ print_options () {
 			echo "    --without-$uopt"
 		fi
 	done
+
         case "$libdir" in
-            "") libdir2="<prefix>/lib/\$(PROJECTNAME)";;
+            "") libdir2="\$(shell \${OCAMLFIND} printconf destdir)";;
             *) libdir2=$libdir;;
         esac
 
@@ -258,7 +259,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$libdir" in
-  "") libdir="$prefix/lib/ocsigenserver";;
+  "") libdir="\$(shell \${OCAMLFIND} printconf destdir)";;
   *) libdir=$root$libdir
 esac
 
@@ -392,7 +393,7 @@ PROFILING:=NO
 TEMPROOT = $temproot
 
 # Where to install Eliom libraries:
-LIBDIR := $root$libdir
+LIBDIR := $libdir
 
 # Where to put Eliom documentation:
 DOCDIR := $root$docdir

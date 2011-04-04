@@ -25,7 +25,7 @@ export OCAMLPATH:=${LIBDIR}:${OCAMLPATH}
 
 
 SERVER_PACKAGE  := ocsigenserver               \
-		   ocsigenserver_ext           \
+		   ocsigenserver.ext           \
             	   js_of_ocaml.deriving        \
             	   js_of_ocaml.deriving.syntax \
 	    	   react                       \

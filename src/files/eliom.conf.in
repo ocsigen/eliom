@@ -24,17 +24,17 @@
          from the directory 'dir' (in alphabetical order): -->
     <extconf dir="_CONFIGDIR_/conf.d" />
 
-    <extension findlib-package="ocsigenserver_ext.staticmod"/>
+    <extension findlib-package="ocsigenserver.ext.staticmod"/>
 
-    <extension findlib-package="ocsigenserver_ext.ocsipersist-sqlite">
+    <extension findlib-package="ocsigenserver.ext.ocsipersist-sqlite">
       <database file="_DATADIR_/ocsidb"/>
     </extension>
 
     <!-- You may want to use DBM instead of SQLite (if compiled). -->
     <!--
-    <extension findlib-package="ocsigenserver_ext.ocsipersist-dbm">
+    <extension findlib-package="ocsigenserver.ext.ocsipersist-dbm">
       <store dir="_DATADIR_"/>
-      <ocsidbm name="_EXTLIBDIR_/ocsidbm"/>
+      <ocsidbm name="_OCSDIR_/extensions/ocsidbm"/>
     </extension>
     -->
 
