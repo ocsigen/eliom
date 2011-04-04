@@ -397,3 +397,8 @@ let () = Eliom_client_unwrap.register_unwrapper Eliom_common.comet_channel_unwra
 
 let is_active () = (get_hd ()).hd_activity.active
 
+module Channels =
+struct
+  type 'a t = 'a Lwt_stream.t
+end
+

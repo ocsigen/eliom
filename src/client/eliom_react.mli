@@ -27,6 +27,8 @@
 module Down :
 sig
 
+  type 'a t = 'a React.E.t
+
   val unwrap :
     ?wake:bool -> ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key
     -> 'a React.E.t
@@ -35,6 +37,8 @@ end
 
 module Up :
 sig
+
+  type 'a t = ('a -> unit Lwt.t)
 
   val unwrap :
     (unit,

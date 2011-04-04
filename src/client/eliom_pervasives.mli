@@ -147,9 +147,14 @@ module SVG : sig
 end
 
 module HTML5 : sig
-
-  module M : HTML5_sigs.HTML5(XML)(SVG.M).T
-
+  module M :
+  sig
+    include HTML5_sigs.HTML5(XML)(SVG.M).T
+    val to_p : HTML5_types.p elt -> Dom_html.paragraphElement Js.t
+    val to_form : HTML5_types.form elt -> Dom_html.formElement Js.t
+    val to_div : HTML5_types.div elt -> Dom_html.divElement Js.t
+    val to_li : HTML5_types.li elt -> Dom_html.liElement Js.t
+  end
 end
 
 module XHTML : sig

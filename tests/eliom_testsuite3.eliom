@@ -86,6 +86,10 @@ module My_appl =
     end)
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
 
+{client{
+  module My_appl = Eliom_output.Html5
+}}
+
 {server{ (* note that {server{ ... }} is optionnal. *)
 open My_appl
 }}
@@ -275,7 +279,7 @@ where and {{{id}}} an identifier for the value.
            div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                                a_onclick {{
                                  Dom.appendChild
-                                   %container (* node is the wrapper keyword for HTML5.M nodes. *)
+                                   (HTML5.M.toelt %container) (* node is the wrapper keyword for HTML5.M nodes. *)
                                    (HTML5.M.toelt (item ()))
                                }}
                   ]
@@ -344,7 +348,9 @@ where and {{{id}}} an identifier for the value.
 It is now possible to send OCaml values to services.
 To do that, use the {{{Eliom_parameters.caml}}} function:
 *wiki*)
-type ec3 = (int * string * string list) deriving (Json)
+{shared{
+  type ec3 = (int * string * string list) deriving (Json)
+}}
 
 let eliomclient3' =
   My_appl.register_post_coservice'
@@ -473,17 +479,17 @@ let on_load =
       in
       Eliom_services.onload
         {{ Lwt_js.sleep 1. >|= fun () ->
-           Dom.appendChild %div
+           Dom.appendChild (HTML5.M.toelt %div)
              (HTML5.M.toelt (p [pcdata "on_load executed after 1s."]))
          }};
       Eliom_services.onload
         {{ Lwt_js.sleep 3. >|= fun () ->
-           Dom.appendChild %div
+           Dom.appendChild (HTML5.M.toelt %div)
              (HTML5.M.toelt (p [pcdata "on_load executed after 3s."]))
          }};
       Eliom_services.onunload
         {{
-          Dom.appendChild %div
+          Dom.appendChild (HTML5.M.toelt %div)
           (HTML5.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
           Lwt_js.sleep 1.
         }};
@@ -502,7 +508,7 @@ let uri_test =
             ]
       in
       Eliom_services.onload
-        {{ Dom.appendChild %div
+        {{ Dom.appendChild (HTML5.M.toelt %div)
              (HTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())]))
          }};
       Lwt.return [div]
@@ -538,7 +544,7 @@ let rec rec_list_react = (react_up,42)::rec_list_react
 {client{
   let put n f =
     Printf.ksprintf (fun s ->
-      Dom.appendChild n
+      Dom.appendChild (HTML5.M.toelt n)
         (HTML5.M.toelt (p [pcdata s]))) f
 }}
 
@@ -570,21 +576,21 @@ let () =
 	      put %div "%i::%i::%i::%i::%i::%i::%i::..." a b c d e f g;
 	    | _ -> put %div "problem with recursive list"; );
 
-          Dom.appendChild %div
+          Dom.appendChild (HTML5.M.toelt %div)
             (HTML5.M.toelt
 	       (p ~a:[ a_onclick
 			 (fun _ ->
 			   ignore (Eliom_client.get_subpage ~service:v.Wrapping_test.v_service
 				     () () >|= (fun blocks ->
 				       List.iter
-					 (Dom.appendChild %div)
+					 (Dom.appendChild (HTML5.M.toelt %div))
 					 (HTML5.M.toeltl blocks);)))] [pcdata "test service"]));
 
 	  let f_react = fst (List.hd %rec_list_react) in
 
-          Dom.appendChild %div
+          Dom.appendChild (HTML5.M.toelt %div)
             (HTML5.M.toelt
-	       (p ~a:[ a_onclick (fun _ -> f_react 42)] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
+	       (p ~a:[ a_onclick (fun _ -> ignore (f_react 42))] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
 
 	}};
       Lwt.return [
@@ -593,8 +599,8 @@ let () =
 	p ~a:[ 
 	  a_onclick 
 	    ({{
-	      Dom.appendChild %global_div %other_global_div;
-	      Dom.appendChild %other_global_div %div;
+	      Dom.appendChild (HTML5.M.toelt %global_div ) (HTML5.M.toelt %other_global_div );
+	      Dom.appendChild (HTML5.M.toelt %other_global_div ) (HTML5.M.toelt  %div);
 	    }})
 	] [pcdata "click here"]; br ();
 	p [Eliom_output.Html5.a ~service:eliomclient1
@@ -795,13 +801,13 @@ let comet_message_board =
 	       Lwt.catch (fun () ->
 		 Lwt_stream.iter_s
 		   (fun msg ->
-                     Dom.appendChild %container
+                     Dom.appendChild (HTML5.M.toelt %container)
                        (HTML5.M.toelt (li [pcdata msg]));
                      Lwt.return ())
 		   (Eliom_bus.stream %message_bus))
 		 (function
 		   | Eliom_comet.Channel_full ->
-		     Dom.appendChild %container
+		     Dom.appendChild (HTML5.M.toelt %container)
                        (HTML5.M.toelt (li [pcdata "channel full, no more messages"]));
 		     Lwt.return ()
 		   | e -> Lwt.fail e);
@@ -872,24 +878,8 @@ let event_service =
       let targetresult = HTML5.M.p [] in
       Eliom_services.onload
         {{
-          let target1 = %target1 in
-          let target2 = %target2 in
-          let target3 = %target3 in
-          let target4 = %target4 in
-          let target5 = %target5 in
-          let target6 = %target6 in
-          let target7 = %target7 in
-          let target8 = %target8 in
-          let target9 = %target9 in
-          let target10 = %target10 in
-          let target11 = %target11 in
-          let target12 = %target12 in
-          let target13 = %target13 in
-          let target14 = %target14 in
-          let target15 = %target15 in
+          let targetresult = (HTML5.M.to_p %targetresult) in
 
-          let targetresult = %targetresult in
-    
           let handler =
             lwt_arr
               (fun ev ->
@@ -907,30 +897,30 @@ let event_service =
               )
           in
           let cancel c = arr (fun _ -> cancel c) in
-          let c = run (click target1 >>> handler) () in
-          let _ = run (click target2 >>> cancel c) () in
-          let _ = run (mousedown target3 >>> mouseup target2 >>> handler) () in
-          let c = run (clicks target4 handler_long) () in
-          let _ = run (click target5 >>> cancel c) () in
-          let _ = run (click target6 >>> handler >>> click target6 >>> handler) () in
-          let _ = run (clicks target7 (click target7 >>> handler)) () in
-          let _ = run (click target8 >>> clicks target8 handler) () in
-          let c = run (first [click target9 >>> handler;
-                              click target10 >>> handler]) ()
+          let c = run (click (HTML5.M.to_p %target1) >>> handler) () in
+          let _ = run (click (HTML5.M.to_p %target2) >>> cancel c) () in
+          let _ = run (mousedown (HTML5.M.to_p %target3) >>> mouseup (HTML5.M.to_p %target2) >>> handler) () in
+          let c = run (clicks (HTML5.M.to_p %target4) handler_long) () in
+          let _ = run (click (HTML5.M.to_p %target5) >>> cancel c) () in
+          let _ = run (click (HTML5.M.to_p %target6) >>> handler >>> click (HTML5.M.to_p %target6) >>> handler) () in
+          let _ = run (clicks (HTML5.M.to_p %target7) (click (HTML5.M.to_p %target7) >>> handler)) () in
+          let _ = run (click (HTML5.M.to_p %target8) >>> clicks (HTML5.M.to_p %target8) handler) () in
+          let c = run (first [click (HTML5.M.to_p %target9) >>> handler;
+                              click (HTML5.M.to_p %target10) >>> handler]) ()
           in
-          let _ = run (click target11 >>> cancel c) ()
+          let _ = run (click (HTML5.M.to_p %target11) >>> cancel c) ()
           in
-          let c = run (mousedowns target12 
+          let c = run (mousedowns (HTML5.M.to_p %target12)
                          (first [mouseup Dom_html.document;
                                  mousemoves Dom_html.document handler])) ()
           in
-          let _ = run (click target13 >>> cancel c) ()
+          let _ = run (click (HTML5.M.to_p %target13) >>> cancel c) ()
           in
-          let c = run (mousedowns target14
+          let c = run (mousedowns (HTML5.M.to_p %target14)
                          (first [mouseup Dom_html.document;
                                  mousemoves Dom_html.document handler_long])) ()
           in
-          let _ = run (click target15 >>> cancel c) ()
+          let _ = run (click (HTML5.M.to_p %target15) >>> cancel c) ()
           in
           ()
 
@@ -2075,6 +2065,10 @@ module Another_appl =
         }
     end)
 
+{client{
+  module Another_appl = Eliom_output.Html5
+}}
+
 let otherappl =
   Another_appl.register_service
     ~path:["other"; "appl"]
@@ -2149,7 +2143,7 @@ let formc = My_appl.register_service ["formc"] unit
 
           ]
         in
-        List.iter (fun e -> Dom.appendChild %div (HTML5.M.toelt e)) l
+        List.iter (fun e -> Dom.appendChild (HTML5.M.toelt %div) (HTML5.M.toelt e)) l
        }};
 
     Lwt.return
@@ -2289,8 +2283,8 @@ let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
     let launch = p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
       a_onclick {{
 	let uri = Eliom_uri.make_string_uri ~service:%block_form_result () in
-	XmlHttpRequest.send_post_form_string %form uri >|=
-	    (fun contents -> ( %subpage )##innerHTML <- (Js.string contents.XmlHttpRequest.content))
+	XmlHttpRequest.send_post_form_string (HTML5.M.to_form %form) uri >|=
+	    (fun contents -> ( HTML5.M.to_div %subpage )##innerHTML <- (Js.string contents.XmlHttpRequest.content))
       }}]
       [pcdata "send form with an xhr"]
     in

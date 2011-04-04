@@ -128,7 +128,10 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
       let rec suppress_underscore ty =
 	let map ty = match ty with
-	| Ast.TyApp (_, Ast.TyAny _, ty) | Ast.TyApp (_, ty, Ast.TyAny _) -> ty
+	| Ast.TyApp (_, Ast.TyAny _, ty)
+	| Ast.TyApp (_, ty, Ast.TyAny _) -> ty
+	| Ast.TyQuo (x, var) when var.[0] = '_' ->
+	  Ast.TyQuo (x, (String.sub var 1 (String.length var - 1))^"__eliom_inferred_type")
 	| ty -> ty in
 	(Ast.map_ctyp map)#ctyp ty
 

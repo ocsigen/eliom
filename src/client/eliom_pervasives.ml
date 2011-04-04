@@ -625,7 +625,15 @@ module SVG = struct
 end
 
 module HTML5 = struct
-  module M = HTML5_f.Make(XML)(SVG.M)
+  module M =
+  struct
+    include HTML5_f.Make(XML)(SVG.M)
+    let coerce x = Js.Unsafe.coerce (toelt x)
+    let to_p :HTML5_types.p elt -> Dom_html.paragraphElement Js.t = coerce
+    let to_form : HTML5_types.form elt -> Dom_html.formElement Js.t = coerce
+    let to_div : HTML5_types.div elt -> Dom_html.divElement Js.t = coerce
+    let to_li : HTML5_types.li elt -> Dom_html.liElement Js.t = coerce
+  end
 end
 
 module XHTML = struct

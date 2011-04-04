@@ -26,6 +26,8 @@ let (>>=) = Lwt.(>>=)
 module Down =
 struct
 
+  type 'a t = 'a React.E.t
+
   let unwrap ?wake
         (c : ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key)
         : 'a React.E.t
@@ -41,6 +43,8 @@ end
 
 module Up =
 struct
+
+  type 'a t = ('a -> unit Lwt.t)
 
   let unwrap s =
     let service = Eliommod_cli.unwrap s in

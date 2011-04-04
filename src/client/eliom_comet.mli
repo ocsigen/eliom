@@ -82,6 +82,11 @@ sig
 
 end
 
+module Channels :
+sig
+  type 'a t = 'a Lwt_stream.t
+end
+
 (**/**)
 
 val unwrap : ?wake:bool -> ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key -> 'a Lwt_stream.t
