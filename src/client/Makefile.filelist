@@ -21,7 +21,8 @@ INTF := eliom_pervasives.cmi        \
 	\
 	eliommod_cli.cmi            \
 
-IMPL := ${PROJECTNAME}_client.cma  \
+IMPL := ${PROJECTNAME}_client.cma      \
+        ${PROJECTNAME}_client_main.cmo \
 
 STUBS := dlleliom_client.so \
 	 libeliom_client.a  \
