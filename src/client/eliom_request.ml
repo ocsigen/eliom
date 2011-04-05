@@ -82,8 +82,8 @@ let redirect_post url params =
   f##submit ()
 
 
-let rec send_wraper f ?cookies_info ?get_args ?post_args url =
-  let rec aux i f ?cookies_info ?get_args ?post_args url =
+let rec send ?cookies_info ?get_args ?post_args ?form_arg url =
+  let rec aux i ?cookies_info ?get_args ?post_args ?form_arg url =
     let (https, path) = match cookies_info with
       | Some c -> c
       | None -> get_cookie_info_for_uri url
@@ -98,14 +98,14 @@ let rec send_wraper f ?cookies_info ?get_args ?post_args url =
         (encode_form_value cookies))::
           post_args)) post_args
     in
-    f ?headers:(Some headers) ?content_type:None ?post_args ?get_args url
+     XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None ?post_args ?get_args ?form_arg url
     >>= fun r ->
     if r.XmlHttpRequest.code = 204
     then
       match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
         | Some uri ->
           if i < max_redirection_level
-          then aux (i+1) XmlHttpRequest.send_string uri
+          then aux (i+1) uri
           else Lwt.fail Looping_redirection
         | None ->
           match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
@@ -115,9 +115,9 @@ let rec send_wraper f ?cookies_info ?get_args ?post_args url =
       if r.XmlHttpRequest.code = 200
       then Lwt.return r.XmlHttpRequest.content
       else Lwt.fail (Failed_request r.XmlHttpRequest.code)
-  in aux 0 f ?cookies_info ?get_args ?post_args url
+  in aux 0 ?cookies_info ?get_args ?post_args ?form_arg url
 
-(** Same as XmlHttpRequest.send_string, but:
+(** Same as XmlHttpRequest.perform_raw_url, but:
     - sends tab cookies in an HTTP header
     - does half and full XHR redirections according to headers
 
@@ -126,30 +126,14 @@ let rec send_wraper f ?cookies_info ?get_args ?post_args url =
     that is taken into account for finding tab cookies to send.
     If not present, the path and protocol and taken from the URL.
 *)
-let send ?cookies_info ?get_args ?post_args url =
-  send_wraper XmlHttpRequest.send_string ?cookies_info ?get_args ?post_args url
 
-(** Send a GET form with tab cookies and half/full XHR.
-    If [~post_params] is present, the HTTP method will be POST,
-    with form data in the URL.
-    If [~get_params] is present, it will be appended to the form fields.
-*)
-let send_get_form ?cookies_info ?get_args ?post_args form url =
-  send_wraper
-    (fun ?headers ?content_type ?post_args ?get_args url ->
-      XmlHttpRequest.send_get_form_string
-        ?headers ?get_args ?post_args form url)
-    ?cookies_info ?get_args ?post_args url
-
-(** Send a POST form with tab cookies and half/full XHR. *)
-let send_post_form ?cookies_info ?get_args ?post_args form url =
-  (* BEGIN FORMDATA HACK *)
+(* BEGIN FORMDATA HACK *)
+let add_button_arg args form =
   let button = (Js.Unsafe.variable "window")##eliomLastButton in
   (Js.Unsafe.variable "window")##eliomLastButton <- None;
-  let post_args =
-    match button with
-      | None -> post_args
-      | Some b ->
+  match button with
+    | None -> args
+    | Some b ->
 	let name,value,b_form =
           match Dom_html.tagged b with
             | Dom_html.Button b -> b##name,b##value,b##form
@@ -160,18 +144,32 @@ let send_post_form ?cookies_info ?get_args ?post_args form url =
 	let value = Js.to_string value in
 	if name <> "" && b_form = Js.some form
 	then
-	  match post_args with
+	  match args with
 	    | None -> Some [name,value]
 	    | Some l -> Some ((name,value)::l)
-	else post_args
-  in
-  (* END FORMDATA HACK *)
-  send_wraper
-    (fun ?headers ?content_type ?post_args ?get_args url ->
-      XmlHttpRequest.send_post_form_string
-        ?headers ?get_args ?post_args form url)
-    ?cookies_info ?get_args ?post_args url
+	else args
+(* END FORMDATA HACK *)
 
+
+(** Send a GET form with tab cookies and half/full XHR.
+    If [~post_params] is present, the HTTP method will be POST,
+    with form data in the URL.
+    If [~get_params] is present, it will be appended to the form fields.
+*)
+let send_get_form ?cookies_info ?(get_args=[]) ?post_args form url =
+  let get_args = get_args@(Form.get_form_contents form) in
+  (* BEGIN FORMDATA HACK *)
+  let get_args = add_button_arg (Some get_args) form in
+  (* END FORMDATA HACK *)
+  send ?cookies_info ?get_args ?post_args url
+
+(** Send a POST form with tab cookies and half/full XHR. *)
+let send_post_form ?cookies_info ?get_args ?post_args form url =
+  (* BEGIN FORMDATA HACK *)
+  let post_args = add_button_arg post_args form in
+  (* END FORMDATA HACK *)
+  let form_arg = Form.post_form_contents form in
+  send ?cookies_info ?get_args ?post_args ~form_arg url
 
 let get_eliom_appl_result a : Eliom_services.eliom_appl_answer =
   Marshal.from_string (Url.urldecode a) 0

@@ -27,7 +27,8 @@ val redirect_post : string -> (string * string) list -> unit
 val send :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
-  ?post_args:(string * string) list -> string -> string Lwt.t
+  ?post_args:(string * string) list ->
+  ?form_arg:Form.form_contents -> string -> string Lwt.t
 
 val send_get_form :
   ?cookies_info:bool * string list ->

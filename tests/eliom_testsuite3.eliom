@@ -2282,8 +2282,8 @@ let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
     let launch = p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
       a_onclick {{
 	let uri = Eliom_uri.make_string_uri ~service:%block_form_result () in
-	XmlHttpRequest.send_post_form_string (HTML5.M.to_form %form) uri >|=
-	    (fun contents -> ( HTML5.M.to_div %subpage )##innerHTML <- (Js.string contents.XmlHttpRequest.content))
+	Eliom_request.send_post_form (HTML5.M.to_form %form) uri >|=
+	    (fun contents -> ( HTML5.M.to_div %subpage )##innerHTML <- (Js.string contents))
       }}]
       [pcdata "send form with an xhr"]
     in
