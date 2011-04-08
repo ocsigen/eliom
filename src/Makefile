@@ -74,6 +74,8 @@ metas: files/META files/META.${PROJECTNAME}
 SED_META := -e s/%%NAME%%/$(PROJECTNAME)/g \
 	    -e s/%%DEPS%%/$(shell ${OCAMLFIND} query -p-format -separator ',' ${SERVER_PACKAGE})/g \
 	    -e s/%%CDEPS%%/$(shell ${OCAMLFIND} query -p-format -separator ',' ${CLIENT_PACKAGE})/g \
+	    -e s/%%SDEPS%%/$(shell ${OCAMLFIND} query -p-format -separator ',' ${SERVER_SYNTAX})/g \
+	    -e s/%%CSDEPS%%/$(shell ${OCAMLFIND} query -p-format -separator ',' ${CLIENT_SYNTAX})/g \
 
 files/META: files/META.in ../Makefile.config  ../Makefile.options Makefile
 	sed ${SED_META} $< > $@

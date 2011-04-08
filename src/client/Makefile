@@ -1,6 +1,6 @@
 include ../../Makefile.config
 
-LIBS     := -I private ${addprefix -package ,${CLIENT_PACKAGE}}
+LIBS     := -I private ${addprefix -package ,${CLIENT_PACKAGE} ${CLIENT_SYNTAX}}
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}
 OCAMLDOC := $(OCAMLFIND) ocamldoc

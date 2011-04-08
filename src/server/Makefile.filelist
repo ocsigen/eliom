@@ -15,6 +15,7 @@ INTF := eliom_pervasives.cmi        \
         eliom_comet.cmi             \
         eliom_react.cmi             \
         eliom_bus.cmi               \
+        eliom_xml.cmi               \
 	\
         eliom_tools_common.cmi      \
         eliom_tools.cmi             \

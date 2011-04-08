@@ -23,26 +23,27 @@ SYNTAXDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/syntax
 
 export OCAMLPATH:=${LIBDIR}:${OCAMLPATH}
 
+SERVER_PACKAGE := ocsigenserver               \
+		  ocsigenserver.ext           \
+            	  js_of_ocaml.deriving        \
+	    	  react                       \
+	   	  calendar                    \
+	    	  tyxml                       \
+		  lwt.react                   \
 
-SERVER_PACKAGE  := ocsigenserver               \
-		   ocsigenserver.ext           \
-            	   js_of_ocaml.deriving        \
-            	   js_of_ocaml.deriving.syntax \
-	    	   react                       \
-	   	   calendar                    \
-	    	   tyxml                       \
-		   lwt.react                   \
+SERVER_SYNTAX := js_of_ocaml.deriving.syntax \
 
 ifeq "${OCAMLDUCE}" "YES"
 SERVER_PACKAGE += tyxml.duce
 endif
 
-CLIENT_PACKAGE  := ocsigenserver.cookies       \
-		   ocsigenserver.polytables    \
-	    	   js_of_ocaml                 \
-	    	   js_of_ocaml.syntax          \
-	    	   js_of_ocaml.deriving        \
-	    	   js_of_ocaml.deriving.syntax \
-	    	   lwt.syntax                  \
-	    	   lwt.react                   \
-	    	   tyxml.functor               \
+CLIENT_PACKAGE := ocsigenserver.cookies       \
+		  ocsigenserver.polytables    \
+	    	  js_of_ocaml                 \
+	    	  js_of_ocaml.deriving        \
+	    	  lwt.react                   \
+	    	  tyxml.functor               \
+
+CLIENT_SYNTAX  := lwt.syntax                  \
+	          js_of_ocaml.syntax          \
+	          js_of_ocaml.deriving.syntax \
