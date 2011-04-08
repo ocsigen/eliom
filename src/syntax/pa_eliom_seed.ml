@@ -425,3 +425,33 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
   module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make)
 
 end
+
+
+module Make(Syntax : Camlp4.Sig.Camlp4Syntax) = struct
+
+  include Syntax
+
+  (* Extending syntax *)
+  EXTEND Gram
+  GLOBAL: implem interf;
+
+  implem: FIRST
+    [[ (sil, stopped) = implem LEVEL "top" ->
+      ( <:str_item< open Eliom_pervasives >>:: sil , stopped) ]
+  | "top" [] ];
+
+  interf: FIRST
+    [[ (sil, stopped) = interf LEVEL "top" ->
+      ( <:sig_item< open Eliom_pervasives >> :: sil , stopped) ]
+  | "top" [] ];
+
+  END
+end
+
+module Id : Camlp4.Sig.Id = struct
+  let name = "Eliom source file syntax (common)"
+  let version = "alpha"
+end
+
+module M = Camlp4.Register.OCamlSyntaxExtension(Id)(Make)
+
