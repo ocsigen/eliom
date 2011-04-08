@@ -1,15 +1,16 @@
-===== dev =====
+===== 1.91 (2011-04-08) =====
 
-  * Revproxy, Accesscontrol: Handling X-Forwarded-For and X-Forwarded-Proto headers
-  * Eliom: now possible to set a //priority// on services 
-  registered on the same path, to choose in which order Eliom will try them.
-  * Eliom: new implementation of internal application forms with formData
-  when available
-  * **SOON** Eliom client: sending forms to caml services from client side code.
-  * **SOON** Eliom: Stateful redirections. The request cache is restored after
-    redirection.
+  * Split the ocsigen package in three : tyxml, ocsigenserver and eliom
+  * Rename into eliom
+  * It's now possible to set a //priority// on services
+    registered on the same path, to choose in which order Eliom will try them.
+  * New implementation of internal application forms with formData
+    when available
+  * New build system for eliom application
+  * No type restriction in value sent from the server to the client
 
 ===== 1.90 =====
+
   * New module {{{Eliom_client}}}
     for client/server Eliom programs using js_of_ocaml.
   * Eliom client: calling a service from client side code.

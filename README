@@ -8,30 +8,19 @@ Requirements:
 Compilers:
 
  * ocaml and camlp4  (need version >= 3.12)
- * js_of_ocaml	     (need version >= 1.0.1)
+ * js_of_ocaml	     (need version >= 1.0.2, with deriving-ocsigen support)
  * a C compiler      (tested with gcc-4.4.5)
  * ocamlduce         [optionnal]
 
 Libraries:
 
  * findlib
+ * ocsigenserver     (need version >= 1.91)
  * react             (tested with 0.9.2)
+ * deriving-ocsigen  (need version >= 0.2-ocsigen)
+                       See: https://github.com/hnrgrgr/deriving
  * ocamlssl          (tested with 0.4.4)
- * lwt 	             (need version >= 2.2.1, with react and ssl support)
- * ocamlnet          (tested with 2.2.9 and 3.2)
- * pcre-ocaml        (tested with 6.0.1)
- * cryptokit         (tested with 1.3)
- * ocaml-text        (tested with 0.3)
  * calendar	     (tested with 2.01.1)
-
-Optional libraries:
-
- * ocamlsqlite3      (tested with 1.5.6)
- * camlzip           (tested with 1.0.4)
-
-You may also use the dbm database (for example gdbm) instead of
-sqlite.  In that case, you need dbm with headers (libgdbm-dev package
-for ex.)
 
 If OCaml 3.12 and the needed libraries (findlib/react/lwt...) are not
 installed on your computer, you may use GODI to install them
@@ -51,7 +40,7 @@ To run the native code version of ocsigen server, you may need to
 generate cmxs files for the libraries you need, if they are not
 included in your distribution, see:
 
-  http://ocsigen.org/ocsigenserver/miscserver
+  http://ocsigen.org/ocsigenserver/doc/1.91/manual/misc
 
 
 ------------------------------------------------------------------
@@ -64,14 +53,11 @@ Build instructions:
 
  * verify that 'Makefile.config' suits to your needs.
 
- * run "make depend && make" to compile
+ * run "make" to compile
  * run "make install" as root to install
 
- * [optional] run "make logrotate" as root to install logrotate
-              configuration files in /etc/logrotate.d
-
  * [optional] run "make doc" to build the ocamldoc
- * [optional] run "make docinstall" as root to install the ocamldoc
+ * [optional] run "make install.doc" as root to install the ocamldoc
 
  * run "make uninstall" to uninstall (almost) everything
 
@@ -80,21 +66,23 @@ Build instructions:
 Local testings:
 ===============
 
- * run "./server/ocsigen -c ocsigen.conf.local"
+ * run "make run.local" of "make run.opt.local"
    in the ocsigen source directory.
 
  * open http://localhost:8080/miniwiki in your browser
 
- * if it does not work, look at the logs (see 'var/log/' in the
+ * if it does not work, look at the logs (see 'local/var/log/' in the
    ocsgigen source directory) or run ocsigen with options -v or -V
    (verbose and debug mode).
 
  * sources for this example may be found in the directory
    'examples/miniwiki'. For a full tutorial, see:
 
-     http://ocsigen.org/manual/dev/intro
-     http://localhost:8080/
+      http://ocsigen.org/tutorial
 
+    For testsuite, see:
+
+      http://localhost:8080/
 
 ------------------------------------------------------------------
 
@@ -102,21 +90,21 @@ Authors:
 ========
 
 Vincent Balat
- (project leader, Web server, Ocsigenmod, Eliom, Eliom client, Staticmod, XHTML syntax extension, documentation, Ocsimore, extension mechanism, Ocsidbm, Ocsipersist with DBM, ...) 
+ (project leader, Web server, Ocsigenmod, Eliom, Eliom client, Staticmod, XHTML syntax extension, documentation, Ocsimore, extension mechanism, Ocsidbm, Ocsipersist with DBM, ...)
 Jérôme Vouillon
-(Lwt, Web server, js_of_ocaml, O'Closure, ...) 
+(Lwt, Web server, js_of_ocaml, O'Closure, ...)
 Boris Yakobowski
-(Ocsimore, module Extendconfiguration, Ocsigen server...) 
+(Ocsimore, module Extendconfiguration, Ocsigen server...)
 Benjamin Canou
-(O'Browser) 
+(O'Browser)
 Jérémie Dimino
-(Lwt) 
+(Lwt)
 Raphaël Proust
 (Ocsforge, Eliom client, Comet)
 Stéphane Glondu
-(Configuration file, Findlib integration, access control, HTTP authentication, Debian package, ...) 
+(Configuration file, Findlib integration, access control, HTTP authentication, Debian package, ...)
 Gabriel Kerneis
-(XHTML syntax extension for OCaml 3.10, Ocsipersist with SQLite, CGI module, forms in Eliom, deflatemod, ...) 
+(XHTML syntax extension for OCaml 3.10, Ocsipersist with SQLite, CGI module, forms in Eliom, deflatemod, ...)
 Denis Berthod
 (HTTP protocol, Web server)
 Grégoire Henry
@@ -124,30 +112,30 @@ Grégoire Henry
 Pierre Chambart
 (Comet)
 Jaap Boender
-(Ocsimore, NetBSD and Godi packages) 
+(Ocsimore, NetBSD and Godi packages)
 Gabriel Scherer
-(Macaque) 
+(Macaque)
 Gabriel Cardoso
-(O'Closure) 
+(O'Closure)
 Jean-Henri Granarolo
 (Ocsforge)
 Simon Castellan
-(HTML5, OpenID, SVG) 
+(HTML5, OpenID, SVG)
 Piero Furiesi
-(Ocsimore) 
+(Ocsimore)
 Thorsten Ohl
-(most of the functions generating XHTML (xML and xHTML modules)) 
+(most of the functions generating XHTML (xML and xHTML modules))
 Mauricio Fernandez
-(Xhtmlcompact, static linking of extensions and Eliom modules) 
+(Xhtmlcompact, static linking of extensions and Eliom modules)
 Nataliya Guts
-(Web server, HTTPS) 
+(Web server, HTTPS)
 Archibald Pontier
-(Atom, Pubsubhubbub) 
+(Atom, Pubsubhubbub)
 Jérôme Velleine
-(CGI module) 
+(CGI module)
 Charles Oran
-(O'Closure) 
+(O'Closure)
 Pierre Clairambault
-(Lwt_lib, Gentoo package, configure script, ...) 
+(Lwt_lib, Gentoo package, configure script, ...)
 Cécile Herbelin
  (HTML5, Benchmarks)
