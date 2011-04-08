@@ -1,54 +1,115 @@
-# Write here all the findlib packages you need, for example:
-PACKAGES= lwt.unix,ocsigen
 
-# Write here all your .ml files, in dependency order (default: all)
-FILES=$(wildcard *.ml)
+## Sample Makefile for eliom application.
 
-CAMLC = ocamlfind ocamlc -g $(LIB)
-CAMLOPT = ocamlfind ocamlopt $(LIB)
-CAMLDOC = ocamlfind ocamldoc $(LIB)
-CAMLDEP = ocamlfind ocamldep
-#OCSIGENREP = `ocamlfind query ocsigen`
-#OCSIGENREP = ../ocsigen/lib
-LIB = -package $(PACKAGES)
-# If you use the syntax extension:
-# PP = -pp "camlp4o $(OCSIGENREP)/xhtmlsyntax.cma"
-# otherwise:
-PP = 
+APP_NAME := test
 
-OBJS = $(FILES:.ml=.cmo)
+## Package required to build the server part of the application
 
-CMA = site.cma
+SERVER_PACKAGE :=
 
-all: $(CMA)
+## Package to be linked in the client part
 
-$(CMA): $(OBJS)
-	$(CAMLC) -a -o $(CMA) $(OBJS)
+CLIENT_PACKAGE :=
 
-.SUFFIXES:
-.SUFFIXES: .ml .mli .cmo .cmi .cmx
+## Source files for the server part
 
-.PHONY: doc
+SERVER_FILES := ${wildcard *.eliom}
 
-.ml.cmo:
-	$(CAMLC) $(PP) -c $<
+## Source files for the client part
 
-.mli.cmi:
-	$(CAMLC) -c $<
-.ml.cmx:
-	$(CAMLOPT) $(PP) -c $<
+CLIENT_FILES := ${wildcard *.eliom}
 
-doc:
-#	$(CAMLDOC) -d doc -html foo.mli
+## Needed binaries
+
+ELIOMC      := eliomc
+ELIOMOPT    := eliomopt
+ELIOMDEP    := eliomdep
+JS_OF_ELIOM := js_of_eliom
+
+all: byte opt
+byte:: ${APP_NAME}.cma ${APP_NAME}.js
+opt:: ${APP_NAME}.cmxs ${APP_NAME}.js
+
+#####################################
+
+SERVER_INC  := ${addprefix -package ,${SERVER_PACKAGE}}
+CLIENT_LIBS := ${addprefix -package ,${CLIENT_PACKAGE}}
+CLIENT_INC  := ${addprefix -package ,${CLIENT_PACKAGE}}
+
+SERVER_OBJS := $(patsubst %.eliom,${SERVER_BUILD_DIR}/%.cmo, \
+	          $(patsubst %.ml,${SERVER_BUILD_DIR}/%.cmo,${SERVER_FILES}))
+CLIENT_OBJS := $(patsubst %.eliom,${CLIENT_BUILD_DIR}/%.cmo, \
+	          $(patsubst %.ml,${CLIENT_BUILD_DIR}/%.cmo,${CLIENT_FILES}))
+
+## Where to put intermediate object files.
+## - {SERVER,CLIENT}_BUILD_DIR must be distinct
+## - CLIENT_BUILD_DIR mustn't be the local dir.
+
+SERVER_BUILD_DIR := _server
+CLIENT_BUILD_DIR := _client
+TYPE_DIR         := .
+
+#### Server side compilation #######
+
+${APP_NAME}.cma: ${SERVER_OBJS}
+	${ELIOMC} -a -o $@ $^
+${APP_NAME}.cmxa: ${SERVER_OBJS:.cmo=.cmx}
+	${ELIOMOPT} -a -o $@ $^
+
+${TYPE_DIR}/%.type_mli: %.eliom
+	${ELIOMC} -infer ${SERVER_INC} -type-dir ${TYPE_DIR} $<
+
+${SERVER_BUILD_DIR}/%.cmi: %.mli
+	${ELIOMC} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+
+${SERVER_BUILD_DIR}/%.cmo: %.eliom
+	${ELIOMC} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+${SERVER_BUILD_DIR}/%.cmo: %.ml
+	${ELIOMC} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+
+${SERVER_BUILD_DIR}/%.cmx: %.ml
+	${ELIOMOPT} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+${SERVER_BUILD_DIR}/%.cmx: %.eliom
+	${ELIOMOPT} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+
+%.cmxs: %.cmxa
+	$(ELIOMOPT) -shared -linkall -o $@ $<
+
+##### Client side compilation ####
+
+${APP_NAME}.js: ${CLIENT_OBJS}
+	${JS_OF_ELIOM} -o $@ ${CLIENT_LIBS} $^
+
+${CLIENT_BUILD_DIR}/%.cmi: %.mli
+	${JS_OF_ELIOM} -c -dir ${CLIENT_BUILD_DIR} ${CLIENT_INC} $<
+
+${CLIENT_BUILD_DIR}/%.cmo: %.eliom
+	${JS_OF_ELIOM} -c -dir ${CLIENT_BUILD_DIR} -type-dir ${TYPE_DIR} \
+	   ${CLIENT_INC} $<
+${CLIENT_BUILD_DIR}/%.cmo: %.ml
+	${JS_OF_ELIOM} -c -dir ${CLIENT_BUILD_DIR} ${CLIENT_INC} $<
+
+############
+
+## Clean up
 
 clean:
-	-rm -f *.cm[ioxa] *~ $(NAME)
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
+	-rm -f *.type_mli
+	-rm -f ${APP_NAME}.js
+	-rm -rf ${CLIENT_BUILD_DIR} ${SERVER_BUILD_DIR}
+
+distclean: clean.local
+	-rm -f *~ \#* .\#*
+
+## Dependencies
 
 depend:
-	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
+	$(ELIOMDEP) -server -dir ${SERVER_BUILD_DIR} -type-dir ${TYPE_DIR} \
+	   ${SERVER_INC} ${SERVER_FILES} > .depend
+	$(ELIOMDEP) -client -dir ${CLIENT_BUILD_DIR} -type-dir ${TYPE_DIR} \
+	   ${CLIENT_INC} ${CLIENT_FILES} >> .depend
 
-FORCE:
+## Warning: Dependencies towards *.eliom are not handled by eliomdep yet.
 
 include .depend
-
-
