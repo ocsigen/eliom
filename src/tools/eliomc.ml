@@ -49,9 +49,7 @@ let rec check_or_create_dir name =
 let prefix_output_dir name =
   match !build_dir with
     | "" -> name
-    | d ->
-      check_or_create_dir d;
-      d ^ "/" ^ name
+    | d -> d ^ "/" ^ name
 
 let chop_extension_if_any name =
   try Filename.chop_extension name with Invalid_argument _ -> name
@@ -67,6 +65,7 @@ let output_prefix name =
 	if !mode = `Compile || !mode = `InferOnly
 	then (output_name := None; n)
 	else prefix_output_dir name in
+  check_or_create_dir (Filename.dirname name);
   chop_extension_if_any name
 
 let set_mode m =
@@ -90,7 +89,9 @@ let get_product_name () = match !output_name with
       Printf.eprintf
 	"Please specify the name of the output file, using option -o\n%!";
       exit 1
-  | Some name -> name
+  | Some name ->
+      check_or_create_dir (Filename.dirname name);
+      name
 
 let build_library () =
   create_process !compiler ( ["-a" ; "-o"  ; get_product_name () ]
@@ -190,6 +191,7 @@ let build_server ?(name = "a.out") () = ()
 let build_client () =
   let name = chop_extension_if_any (get_product_name ()) in
   let exe = prefix_output_dir (Filename.basename name) in
+  check_or_create_dir (Filename.dirname exe);
   let js = name ^ ".js" in
   create_process !compiler ( ["-o"  ;  exe ]
 			     @ get_common_include ()
