@@ -74,7 +74,7 @@ module type Helpers  = sig
   open Syntax
 
   (** find infered type for escaped expr *)
-  val find_escaped_ident_type: string -> Ast.ctyp
+  val find_escaped_ident_type: string -> Ast.ctyp option
 
 end
 
@@ -122,9 +122,15 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
       (* Here we define a set of functions for mli reading. This is used
 	 to peek at the type infered by the first pass.*)
 
-      let type_file = ref "syntax_temp_files/server_type_inference.mli"
+      let type_file = ref ""
       let _ =
 	Camlp4.Options.add "-type" (Arg.Set_string type_file) "type inference file"
+
+      let get_type_file () = match !type_file with
+	| "" -> Filename.chop_extension !Camlp4_config.current_input_file
+                ^ ".type_mli"
+	| f -> f
+
 
       let rec suppress_underscore ty =
 	let map ty = match ty with
@@ -151,60 +157,31 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	    suppress_underscore t
 	| _ -> assert false
 
-      let load_file f =
-	let ic = open_in f in
+      let load_file f = 
 	try
-	  let s = Stream.of_channel ic in
-	  let (items, stopped) = Gram.parse interf (Loc.mk f) s in
-	  assert (stopped = None); (* No directive inside the generated ".mli". *)
-	  close_in ic;
-	  List.map extract_type (List.filter is_escaped_ident items)
-	with e -> close_in ic; raise e
+	  let ic = open_in f in
+	  try
+	    let s = Stream.of_channel ic in
+	    let (items, stopped) = Gram.parse interf (Loc.mk f) s in
+	    assert (stopped = None); (* No directive inside the generated ".mli". *)
+	    close_in ic;
+	    List.map extract_type (List.filter is_escaped_ident items)
+	  with e ->
+	    close_in ic; raise e
+	with e ->
+	  if !type_file <> "" then raise e else []
 
-      let infered_sig = lazy (load_file !type_file)
+      let infered_sig = lazy (load_file (get_type_file ()))
 
       let find_escaped_ident_type id =
 	try
 	  let len = String.length id - escaped_ident_prefix_len in
 	  let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
-	  List.assoc id (Lazy.force infered_sig)
-	with Not_found -> assert false
-
-
-      (* translate_type: not yet used. *)
-
-      (* let rec translate_type _loc = function *)
-
-	(* (\* basic types are NOT translated *\) *)
-	(* | ( <:ctyp< float >> *)
-	(* | <:ctyp< int >> *)
-	(* | <:ctyp< string >> *)
-	(* | <:ctyp< char >> *)
-	(* | <:ctyp< bool >> *)
-	(* | <:ctyp< ($_$,$_$,$_$,$_$,$_$,$_$,$_$,$_$) Eliom_services.service >> *)
-	(* | <:ctyp< ($_$ Eliom_services.service) >> *)
-	   (* ) as t -> t *)
-
-	(* (\*Eliom_wrap.t and Eliom_wrap.tt are translated recursively*\) *)
-	(* | <:ctyp< ($t1$, $t2$) Eliom_wrap.t >> -> *)
-            (* <:ctyp< ($translate_type _loc t2$, $translate_type _loc t1$) Eliom_unwrap.t >> *)
-	(* | <:ctyp< ($t$ Eliom_wrap.tt) >> -> *)
-            (* <:ctyp< ($t$ Eliom_unwrap.tt) >> *)
-
-	(* (\*Other types are checked for known translation schemes*\) *)
-	(* | <:ctyp< ($t$ Eliom_comet.Channels.t) >> -> *)
-            (* <:ctyp< ($t$ Eliom_client_comet.Channels.t) >> *)
-	(* | <:ctyp< ($t$ Eliom_comet.Buffered_Channels.t) >> -> *)
-            (* <:ctyp< ($t$ Eliom_client_comet.Buffered_Channels.t) >> *)
-	(* | <:ctyp< ($t$ Eliom_react.Down.t) >> -> *)
-            (* <:ctyp< ($t$ Eliom_client_react.Down.t) >> *)
-	(* | <:ctyp< ($t$ Eliom_react.Up.t) >> -> *)
-            (* <:ctyp< ($t$ Eliom_client_react.Up.t) >> *)
-	(* | <:ctyp< ($t$ Eliom_bus.t) >> -> *)
-            (* <:ctyp< ($t$ Eliom_client_bus.t) >> *)
-
-	(* (\*Anything else is missing some serious wraping...*\) *)
-	(* | _ -> assert false *)
+	  Some (List.assoc id (Lazy.force infered_sig))
+	with Not_found ->
+	  if !type_file <> "" then
+	    Printf.eprintf "Warning: Infered type not found (%s)." id;
+	  None
 
     end (* End of Helpers *)
 
@@ -433,6 +410,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	    failwith "No %(expr) yet !"
 
 	 ]];
+
       END
 
   end
