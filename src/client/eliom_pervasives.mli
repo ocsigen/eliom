@@ -132,8 +132,6 @@ module XML : sig
   val lwt_register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b Lwt.t) -> 'a -> unit
   val register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b) -> 'a -> unit
 
-  val class_name : string
-
   val ref_node : elt -> int
 
   type ref_tree = Ref_tree of int option * (int * ref_tree) list
@@ -201,8 +199,10 @@ end
 module XHTML : sig
 
   module M : XHTML_sigs.XHTML(XML).T
-  module M_01_01 : XHTML_sigs.XHTML(XML).T
   module M_01_00 : XHTML_sigs.XHTML(XML).T
+  module M_01_01 : XHTML_sigs.XHTML(XML).T
+  module M_01_00_compat : XHTML_sigs.XHTML(XML).T
+  module M_01_01_compat : XHTML_sigs.XHTML(XML).T
 
 end
 

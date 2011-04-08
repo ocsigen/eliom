@@ -514,7 +514,7 @@ module XML = struct
   let int_attrib name value = (name, Js.Unsafe.inject value)
   let float_attrib name value = (name, Js.Unsafe.inject value)
   let string_attrib name value = (name, Js.Unsafe.inject (Js.string value))
-  let space_sep_attrib name values = 
+  let space_sep_attrib name values =
     (name, Js.Unsafe.inject (Js.string
 			       (match values with
 			       | [] -> ""
@@ -612,8 +612,6 @@ module XML = struct
 	(Dom_html.handler (fun _ -> f v; keep_default)) Js._false
 	: Dom_html.event_listener_id )
 
-  let class_name = "className" (* see xHTML.ml *)
-
   let ref_node n = 0 (* not needed on client side *)
 
   type ref_tree = Ref_tree of int option * (int * ref_tree) list
@@ -674,13 +672,31 @@ module HTML5 = struct
     let to_table : HTML5_types.table elt -> Dom_html.tableElement Js.t = coerce
     let to_canvas : 'a HTML5_types.canvas elt -> Dom_html.canvasElement Js.t = coerce
     let to_iFrame : HTML5_types.iframe elt -> Dom_html.iFrameElement Js.t = coerce
+    let a_class x = to_attrib (XML.space_sep_attrib "className" x)
   end
 end
 
 module XHTML = struct
-  module M = XHTML_f.Make(XML)
-  module M_01_00 = XHTML_f.Make_01_00(XML)
-  module M_01_01 = XHTML_f.Make_01_01(XML)
+  module M = struct
+    include XHTML_f.Make(XML)
+    let a_class x = to_attrib (XML.space_sep_attrib "className" x)
+  end
+  module M_01_00 = struct
+    include XHTML_f.Make_01_00(XML)
+    let a_class x = to_attrib (XML.space_sep_attrib "className" x)
+  end
+  module M_01_01 = struct
+    include XHTML_f.Make_01_01(XML)
+    let a_class x = to_attrib (XML.space_sep_attrib "className" x)
+  end
+  module M_01_00_compat = struct
+    include XHTML_f.Make_01_00_compat(XML)
+    let a_class x = to_attrib (XML.space_sep_attrib "className" x)
+  end
+  module M_01_01_compat = struct
+    include XHTML_f.Make_01_01_compat(XML)
+    let a_class x = to_attrib (XML.space_sep_attrib "className" x)
+  end
 end
 
 module Reactive_dom = struct
