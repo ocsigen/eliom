@@ -75,14 +75,14 @@ let _ =
           let nbperstab = Eliom_state.number_of_persistent_tables () in
           Eliom_state.number_of_persistent_table_elements () >>=
           (fun nbperstabel ->
-            let dot = <:xmllist< . >> in
-            let list1 a l = <:xmllist<  with, respectively
+            let dot = <:xhtmllist< . >> in
+            let list1 a l = <:xhtmllist<  with, respectively
              $str:List.fold_left
              (fun deb i -> deb^", "^(string_of_int i))
              (string_of_int a) l $
            elements inside. >>
            in
-            let list2 (n,a) l = <:xmllist<  with, respectively
+            let list2 (n,a) l = <:xhtmllist<  with, respectively
              $str:List.fold_left
              (fun deb (s, i) -> deb^", "^s^" : "^(string_of_int i))
              (n^" : "^(string_of_int a)) l$

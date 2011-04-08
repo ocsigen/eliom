@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+(* open Eliom_pervasives *)
 
 open XHTML.M
 open Eliom_output.Xhtml
@@ -38,11 +38,10 @@ let (>>) f g = g f
 let wiki_view_page = service [] (suffix (string "p")) ()
 let wiki_edit_page = service ["edit"] (string "p") ()
 let wiki_start = Redirection.register_service [] unit
-    (fun _ _ -> 
+    (fun _ _ ->
        Lwt.return (Eliom_services.preapply wiki_view_page "WikiStart"))
 
-
-let finally handler f x =
+let finally_ handler f x =
   catch
     (fun () -> f x)
     (fun e -> handler() >>= fun () -> fail e)
@@ -66,13 +65,13 @@ let fold_read_lines f accum inchnl =
 
 let with_open_out fname f =
   Lwt_chan.open_out fname >>= fun oc ->
-  finally
+  finally_
     (fun () -> Lwt_chan.flush oc >>= (fun () -> Lwt_chan.close_out oc))
     f oc
 
 let with_open_in fname f =
   Lwt_chan.open_in fname >>= fun ic ->
-  finally
+  finally_
     (fun () -> Lwt_chan.close_in ic)
     f ic
 

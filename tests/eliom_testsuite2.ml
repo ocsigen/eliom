@@ -21,8 +21,6 @@
 
 (* Other examples for Eliom, and various tests *)
 
-open Eliom_pervasives
-
 open Lwt
 open Eliom_parameters
 open Ocsigen_cookies

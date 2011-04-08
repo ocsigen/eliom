@@ -3,10 +3,15 @@ include ../Makefile.config
 ## Use local files
 ## (tests do not require global installation of Eliom)
 export OCAMLPATH := ${SRC}/src/files:${OCAMLPATH}
+export PATH := ${SRC}/src/tools:${PATH}
 
-OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}
-OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}
-OCAMLDEP := $(OCAMLFIND) ocamldep
+ELIOMC   := eliomc${BYTEDBG}
+ELIOMOPT := eliomopt ${OPTDBG}
+ELIOMDEP := eliomdep
+JS_OF_ELIOM := js_of_eliom
+
+SERVER_BUILD_DIR := _server
+CLIENT_BUILD_DIR := _client
 
 ifeq "${NATDYNLINK}" "YES"
 all: byte opt
@@ -16,12 +21,12 @@ endif
 
 #### Main site : eliom_testsuite ####
 
-SERVER_PACKAGE  :=
+SERVER_PACKAGE :=
+CLIENT_PACKAGE :=
 
-CLIENT_PACKAGE  :=
-
-SERVER_LIBS := ${addprefix -package ,${SERVER_PACKAGE}}
+SERVER_INC  := ${addprefix -package ,${SERVER_PACKAGE}}
 CLIENT_LIBS := ${addprefix -package ,${CLIENT_PACKAGE}}
+CLIENT_INC  := ${addprefix -package ,${CLIENT_PACKAGE}}
 
 SERVER_FILES := eliom_testsuite1.ml    \
                 eliom_testsuite2.ml    \
@@ -30,12 +35,10 @@ SERVER_FILES := eliom_testsuite1.ml    \
 
 CLIENT_FILES := eliom_testsuite3.eliom \
 
-SERVER_ML_FILES := $(filter %.ml,${SERVER_FILES})
-ELIOM_FILES     := $(filter %.eliom,${SERVER_FILES})
-CLIENT_ML_FILES := $(filter %.ml,${CLIENT_FILES})
-
-SERVER_OBJS := $(patsubst %.eliom,%.cmo,${SERVER_FILES:.ml=.cmo})
-CLIENT_OBJS := $(patsubst %.eliom,syntax_temp_files/%.cmo,${CLIENT_FILES:.ml=.cmo})
+SERVER_OBJS := $(patsubst %.eliom,${SERVER_BUILD_DIR}/%.cmo, \
+	          $(patsubst %.ml,${SERVER_BUILD_DIR}/%.cmo,${SERVER_FILES}))
+CLIENT_OBJS := $(patsubst %.eliom,${CLIENT_BUILD_DIR}/%.cmo, \
+	          $(patsubst %.ml,${CLIENT_BUILD_DIR}/%.cmo,${CLIENT_FILES}))
 
 STATICDIR := ../local/var/www/tests
 
@@ -45,43 +48,41 @@ opt:: eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js
 #### Server side #######
 
 eliom_testsuite.cma: ${SERVER_OBJS}
-	${OCAMLC} -a -o $@ $^
+	${ELIOMC} -a -o $@ $^
 eliom_testsuite.cmxa: ${SERVER_OBJS:.cmo=.cmx}
-	${OCAMLOPT} -a -o $@ $^
+	${ELIOMOPT} -a -o $@ $^
 
-${addprefix syntax_temp_files/,${ELIOM_FILES:.eliom=.type.mli}}: \
-syntax_temp_files/%.type.mli: %.eliom
-	$(OCAMLC) -thread ${SERVER_LIBS} -package eliom.server -package eliom.syntax.type -syntax camlp4o -i -ppopt -impl -impl $< > $@ \
-	  || (rm -f $@; exit 1)
+%.type_mli: %.eliom
+	${ELIOMC} -infer ${SERVER_INC} -o $@ $<
 
-${ELIOM_FILES:.eliom=.cmo}: \
-%.cmo: %.eliom syntax_temp_files/%.type.mli
-	$(OCAMLC) -thread ${SERVER_LIBS} -package eliom.server -package eliom.syntax.server -syntax camlp4o \
-	  -ppopt -type -ppopt ${<:%.eliom=syntax_temp_files/%.type.mli} -ppopt -impl \
-	  -c -impl $< -o $@
+${SERVER_BUILD_DIR}/%.cmi: %.mli
+	${ELIOMC} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
 
-${ELIOM_FILES:.eliom=.cmx}: \
-%.cmx: %.eliom syntax_temp_files/%.type.mli
-	$(OCAMLOPT) -thread ${SERVER_LIBS} -package eliom.server -package eliom.syntax.server -syntax camlp4o \
-	  -ppopt -type -ppopt ${<:%.eliom=syntax_temp_files/%.type.mli} -ppopt -impl \
-	  -c -impl $< -o $@
+${SERVER_BUILD_DIR}/%.cmo: %.eliom
+	${ELIOMC} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+${SERVER_BUILD_DIR}/%.cmo: %.ml
+	${ELIOMC} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+
+${SERVER_BUILD_DIR}/%.cmx: %.ml
+	${ELIOMOPT} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+${SERVER_BUILD_DIR}/%.cmx: %.eliom
+	${ELIOMOPT} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+
+%.cmxs: %.cmxa
+	$(ELIOMOPT) -shared -linkall -o $@ $<
 
 ##### Client side ####
 
-${addprefix syntax_temp_files/,${ELIOM_FILES:.eliom=.cmo}}: \
-syntax_temp_files/%.cmo: %.eliom syntax_temp_files/%.type.mli
-	$(OCAMLC) -verbose ${CLIENT_LIBS} -package eliom.client -package eliom.syntax.client -syntax camlp4o \
-	  -ppopt -type -ppopt ${<:%.eliom=syntax_temp_files/%.type.mli} -ppopt -impl \
-	  -c -impl $< -o $@
+${STATICDIR}/eliom_testsuite.js:  ${CLIENT_OBJS}
+	${JS_OF_ELIOM} -o $@ -jsopt -pretty -jsopt -noinline ${CLIENT_LIBS} $^
 
-syntax_temp_files/eliom_testsuite: ${CLIENT_OBJS}
-	${OCAMLC} -o $@ ${CLIENT_LIBS} -package eliom.client -linkpkg $^
+${CLIENT_BUILD_DIR}/%.cmi: %.mli
+	${JS_OF_ELIOM} -c -dir ${CLIENT_BUILD_DIR} ${CLIENT_INC} $<
 
-eliom_testsuite.js: ../src/client/eliom_client.js syntax_temp_files/eliom_testsuite
-	${JS_OF_OCAML} -o $@ -pretty -noinline $^
-
-${STATICDIR}/eliom_testsuite.js: eliom_testsuite.js
-	cp -f $< $@
+${CLIENT_BUILD_DIR}/%.cmo: %.eliom
+	${JS_OF_ELIOM} -c -dir ${CLIENT_BUILD_DIR} ${CLIENT_INC} $<
+${CLIENT_BUILD_DIR}/%.cmo: %.ml
+	${JS_OF_ELIOM} -c -dir ${CLIENT_BUILD_DIR} ${CLIENT_INC} $<
 
 ####### Aux site: Ocamlduce #######
 
@@ -90,10 +91,10 @@ byte:: ocamlduce.byte
 opt:: ocamlduce.opt
 endif
 
-ocamlduce.byte: eliom_testsuite1.cmo
+ocamlduce.byte: ${SERVER_BUILD_DIR}/eliom_testsuite1.cmo
 	$(MAKE) -C ocamlduce byte
 
-ocamlduce.opt: eliom_testsuite1.cmx
+ocamlduce.opt: ${SERVER_BUILD_DIR}/eliom_testsuite1.cmx
 	$(MAKE) -C ocamlduce opt
 
 ####### Aux site: miniwiki #######
@@ -102,25 +103,12 @@ byte:: miniwiki.byte
 opt:: miniwiki.opt
 
 miniwiki.byte:
-	$(MAKE) -C miniwiki byte
+	$(MAKE) --no-print-directory -C miniwiki byte
 
 miniwiki.opt:
-	$(MAKE) -C miniwiki opt
+	$(MAKE) --no-print-directory -C miniwiki opt
 
 ############
-
-${SERVER_ML_FILES:.ml=.cmo}:%.cmo: %.ml
-	$(OCAMLC) -thread -syntax camlp4o -package eliom.server -package eliom.syntax ${SERVER_LIBS} -c $<
-${SERVER_ML_FILES:.ml=.cmx}: %.cmx: %.ml
-	$(OCAMLOPT) -thread -syntax camlp4o -package eliom.server -package eliom.syntax ${SERVER_LIBS} -c $<
-
-${CLIENT_ML_FILES:.ml=.cmo}: %.cmo: %.ml
-	$(OCAMLC) -thread -syntax camlp4o -package eliom.client -package eliom.syntax ${CLIENT_LIBS} -c $<
-${CLIENT_ML_FILES:.ml=.cmx}: %.cmx: %.ml
-	$(OCAMLOPT) -thread -syntax camlp4o -package eliom.client -package eliom.syntax ${CLIENT_LIBS} -c $<
-
-%.cmxs: %.cmxa
-	$(OCAMLOPT) -shared -linkall -o $@ $<
 
 ## Clean up
 
@@ -129,7 +117,9 @@ clean: clean.local
 	${MAKE} -C miniwiki clean
 clean.local:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
-	-rm -f eliom_testsuite.js syntax_temp_files/*
+	-rm -f *.type_mli
+	-rm -f ${STATICDIR}/eliom_testsuite.js
+	-rm -rf ${CLIENT_BUILD_DIR} ${SERVER_BUILD_DIR}
 
 distclean: clean.local
 	-rm -f *~ \#* .\#*
@@ -143,20 +133,17 @@ ifeq "${OCAMLDUCE}" "YES"
 	${MAKE} -C ocamlduce depend
 endif
 	${MAKE} -C miniwiki depend
-	$(OCAMLDEP) -syntax camlp4o -package eliom.server -package eliom.syntax ${SERVER_LIBS} ${SERVER_FILES} > .depend
-	$(OCAMLDEP) -syntax camlp4o -package eliom.client -package eliom.syntax ${CLIENT_LIBS} ${CLIENT_FILES} >> .depend
+	$(ELIOMDEP) -server -dir ${SERVER_BUILD_DIR} ${SERVER_INC} ${SERVER_FILES} > .depend
+	$(ELIOMDEP) -client -dir ${CLIENT_BUILD_DIR} ${CLIENT_INC} ${CLIENT_FILES} >> .depend
 
+include .depend
 
-syntax_temp_files/eliom_testsuite3.type.mli: eliom_testsuite1.cmo
-syntax_temp_files/eliom_testsuite3.cmo: eliom_testsuite1.cmo
-eliom_testsuite3.cmo: eliom_testsuite1.cmo
+## Dependencies towards *.eliom are not handled by eliomdep.
 eliom_testsuite.cmo: eliom_testsuite3.cmo
-eliom_testsuite3.cmx: eliom_testsuite1.cmx
 eliom_testsuite.cmx: eliom_testsuite3.cmx
 
-FORCE:
--include .depend
+## TODO
 
 # %.wiki: %.ml
-	# cat $< | sed '1,/(\*wiki\*/d' | sed '/%<||2>%/,$$ d' | /bin/sh ./tutomake.sh > $@
+# cat $< | sed '1,/(\*wiki\*/d' | sed '/%<||2>%/,$$ d' | /bin/sh ./tutomake.sh > $@
 

@@ -5,7 +5,7 @@ include ../../Makefile.config
 export OCAMLPATH := ${SRC}/src/files:${OCAMLPATH}
 
 PACKAGE  := eliom.server
-LIBS := -I .. ${addprefix -package ,${PACKAGE}}
+LIBS := -I ../_server ${addprefix -package ,${PACKAGE}}
 
 OCAMLDUCEC   := ${OCAMLDUCEFIND} ocamlc${BYTEDBG} -thread
 OCAMLDUCEOPT := ${OCAMLDUCEFIND} ocamlopt ${OPTDBG} -thread

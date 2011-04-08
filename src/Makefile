@@ -4,36 +4,43 @@ all: metas conf
 	${MAKE} -C server all
 	${MAKE} -C client all
 	${MAKE} -C syntax all
+	${MAKE} -C tools all
 
 byte: metas conf
 	${MAKE} -C server byte
 	${MAKE} -C client all
 	${MAKE} -C syntax all
+	${MAKE} -C tools all
 
 opt: metas conf
 	${MAKE} -C server opt
 	${MAKE} -C client all
 	${MAKE} -C syntax all
+	${MAKE} -C tools all
 
 clean:
 	${MAKE} -C server clean
 	${MAKE} -C client clean
 	${MAKE} -C syntax clean
+	${MAKE} -C tools clean
 	-rm -f files/META  files/META.${PROJECTNAME}
 
 distclean:
 	${MAKE} -C server distclean
 	${MAKE} -C client distclean
 	${MAKE} -C syntax distclean
+	${MAKE} -C tools distclean
 	-rm -f *~ \#* .\#*
 
-depend: server.depend client.depend syntax.depend
+depend: server.depend client.depend syntax.depend tools.depend
 server.depend:
 	${MAKE} -C server depend
 client.depend:
 	${MAKE} -C client depend
 syntax.depend:
 	${MAKE} -C syntax depend
+tools.depend:
+	${MAKE} -C tools depend
 
 VERSION := $(shell head -n 1 ../VERSION)
 
@@ -41,6 +48,7 @@ install: install.META
 	${MAKE} -C server install
 	${MAKE} -C client install
 	${MAKE} -C syntax install
+	${MAKE} -C tools install
 
 install.META:
 	${OCAMLFIND} install ${PROJECTNAME} \
@@ -52,16 +60,19 @@ install.byte: install.META
 	${MAKE} -C server install.byte
 	${MAKE} -C client install
 	${MAKE} -C syntax install
+	${MAKE} -C tools install
 
 install.opt: install.META
 	${MAKE} -C server install.opt
 	${MAKE} -C client install
 	${MAKE} -C syntax install
+	${MAKE} -C tools install
 
 uninstall:
 	${MAKE} -C server uninstall
 	${MAKE} -C client uninstall
 	${MAKE} -C syntax uninstall
+	${MAKE} -C tools uninstall
 	${OCAMLFIND} remove ${PROJECTNAME} \
 	   -destdir $(TEMPROOT)${LIBDIR}
 

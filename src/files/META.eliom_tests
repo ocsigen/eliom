@@ -3,10 +3,10 @@ directory = "../../tests/"
 
 package "miniwiki" (
   directory = "miniwiki"
-  exists_if = "miniwiki.cmo,miniwiki.cmxs"
+  exists_if = "miniwiki.cma,miniwiki.cmxs"
   version = "[distributed with Eliom]"
   description = "A very basic wiki"
-  archive(plugin,byte) = "miniwiki.cmo"
+  archive(plugin,byte) = "miniwiki.cma"
   archive(plugin,native) = "miniwiki.cmxs"
 )
 

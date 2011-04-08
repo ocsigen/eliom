@@ -82,6 +82,7 @@ set_defaults () {
     root=""
     temproot=""
     prefix="/usr/local"
+    bindir=""
     libdir=""
     docdir=""
 }
@@ -125,6 +126,10 @@ print_options () {
 			echo "    --without-$uopt"
 		fi
 	done
+        case "$bindir" in
+            "") bindir2="<prefix>/bin";;
+            *) bindir2=$bindir;;
+        esac
 
         case "$libdir" in
             "") libdir2="\$(shell \${OCAMLFIND} printconf destdir)";;
@@ -140,6 +145,7 @@ print_options () {
 	echo "    --root $root"
 	echo "    --temproot $temproot"
 	echo "    --prefix $prefix"
+	echo "    --bindir $bindir2"
 	echo "    --libdir $libdir2"
 	echo "    --docdir $docdir2"
 }
@@ -161,6 +167,7 @@ usage: ./configure [ options ]
   --temproot=DIR	Temporary root directory to install the package (usually always "" but for package makers)
   --prefix=DIR		Subdirectory where to install binaries and libs (usually /usr or /usr/local)
 
+  --bindir=DIR		Install binaries into this directory
   --libdir=DIR		Common directory for Ocsigen server's libraries
   --docdir=DIR		Install documentation in this directory
 
@@ -242,6 +249,11 @@ while [ "$#" -gt 0 ]; do
 			shift
 			shift
 			;;
+                --bindir)
+                        bindir="$2"
+                        shift
+                        shift
+                        ;;
                 --libdir)
                         libdir="$2"
                         shift
@@ -257,6 +269,10 @@ while [ "$#" -gt 0 ]; do
 			usage
 	esac
 done
+
+case "$bindir" in
+  "") bindir="$prefix/bin";;
+esac
 
 case "$libdir" in
   "") libdir="\$(shell \${OCAMLFIND} printconf destdir)";;
@@ -391,6 +407,9 @@ PROFILING:=NO
 
 # Temporary root directory to install the package (usually always "" but for package makers)
 TEMPROOT = $temproot
+
+# The directory for eliom compiler (binary):
+BINDIR := $root$bindir
 
 # Where to install Eliom libraries:
 LIBDIR := $libdir

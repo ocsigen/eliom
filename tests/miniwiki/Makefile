@@ -3,13 +3,13 @@ include ../../Makefile.config
 ## Use local files
 ## (tests do not require global installation of Eliom)
 export OCAMLPATH := ${SRC}/src/files:${OCAMLPATH}
+export PATH := ${SRC}/src/tools:${PATH}
 
-PACKAGE  := eliom.server,lwt.unix,pcre
-LIBS := -I .. ${addprefix -package ,${PACKAGE}}
+LIBS := -I ..
 
-OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -thread
-OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG} -thread
-OCAMLDEP := $(OCAMLFIND) ocamldep
+ELIOMC   := eliomc${BYTEDBG}
+ELIOMOPT := eliomopt ${OPTDBG}
+ELIOMDEP := eliomdep
 
 ifeq "${NATDYNLINK}" "YES"
 all: byte opt
@@ -21,24 +21,24 @@ endif
 
 FILES := miniwiki.ml
 
-byte:: miniwiki.cmo
+byte:: miniwiki.cma
 opt:: miniwiki.cmxs
 
 miniwiki.cma: ${FILES:.ml=.cmo}
-	${OCAMLC} -a -o $@ $^
+	${ELIOMC} -a -o $@ $^
 miniwiki.cmxa: ${FILES:.ml=.cmx}
-	${OCAMLOPT} -a -o $@ $^
+	${ELIOMOPT} -a -o $@ $^
 
 ############
 
 %.cmi: %.mli
-	$(OCAMLC) ${LIBS} -c $<
+	$(ELIOMC) ${LIBS} -c $<
 %.cmo: %.ml
-	$(OCAMLC) ${LIBS} -c $<
+	$(ELIOMC) ${LIBS} -c $<
 %.cmx: %.ml
-	$(OCAMLOPT) ${LIBS} -c $<
+	$(ELIOMOPT) ${LIBS} -c $<
 %.cmxs: %.cmxa
-	$(OCAMLOPT) -shared -linkall -o $@ $<
+	$(ELIOMOPT) -shared -linkall -o $@ $<
 
 ## Clean up
 
@@ -51,7 +51,7 @@ distclean: clean
 ## Dependencies
 
 depend:
-	$(OCAMLDEP) ${LIBS} *.ml *.mli > .depend
+	$(ELIOMDEP) -server ${LIBS} *.ml *.mli > .depend
 
 FORCE:
 -include .depend

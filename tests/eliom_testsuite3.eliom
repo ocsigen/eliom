@@ -1,6 +1,5 @@
 (*zap* *)
 {shared{
-  open Eliom_pervasives
   open Ocsigen_cookies
 }}
 

@@ -3,8 +3,6 @@
    Take the code in the manual, not here! (and remove duplicates here) *)
 (* TODO: include some missing parts in the manual *)
 
-open Eliom_pervasives
-
 open Lwt
 open XHTML.M
 open Ocsigen_cookies

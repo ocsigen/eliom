@@ -1,8 +1,6 @@
 let (>>=) = Lwt.(>>=)
 let (>|=) = Lwt.(>|=)
 
-open Eliom_pervasives
-
 open HTML5.M
 open Eliom_output.Html5
 open Eliom_testsuite1
