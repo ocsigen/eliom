@@ -26,68 +26,71 @@ ELIOMOPT    := eliomopt
 ELIOMDEP    := eliomdep
 JS_OF_ELIOM := js_of_eliom
 
+## Where to put intermediate object files.
+## - ELIOM_{SERVER,CLIENT}_DIR must be distinct
+## - ELIOM_CLIENT_DIR mustn't be the local dir.
+## - ELIOM_SERVER_DIR could be ".", but you need to
+##   remove it from the "clean" rules...
+
+export ELIOM_SERVER_DIR := _server
+export ELIOM_CLIENT_DIR := _client
+export ELIOM_TYPE_DIR   := .
+
+#####################################
+
 all: byte opt
 byte:: ${APP_NAME}.cma ${APP_NAME}.js
 opt:: ${APP_NAME}.cmxs ${APP_NAME}.js
 
-#####################################
+#### Server side compilation #######
 
 SERVER_INC  := ${addprefix -package ,${SERVER_PACKAGE}}
-CLIENT_LIBS := ${addprefix -package ,${CLIENT_PACKAGE}}
-CLIENT_INC  := ${addprefix -package ,${CLIENT_PACKAGE}}
 
-SERVER_OBJS := $(patsubst %.eliom,${SERVER_BUILD_DIR}/%.cmo, \
-	          $(patsubst %.ml,${SERVER_BUILD_DIR}/%.cmo,${SERVER_FILES}))
-CLIENT_OBJS := $(patsubst %.eliom,${CLIENT_BUILD_DIR}/%.cmo, \
-	          $(patsubst %.ml,${CLIENT_BUILD_DIR}/%.cmo,${CLIENT_FILES}))
-
-## Where to put intermediate object files.
-## - {SERVER,CLIENT}_BUILD_DIR must be distinct
-## - CLIENT_BUILD_DIR mustn't be the local dir.
-
-SERVER_BUILD_DIR := _server
-CLIENT_BUILD_DIR := _client
-TYPE_DIR         := .
-
-#### Server side compilation #######
+SERVER_OBJS := $(patsubst %.eliom,${ELIOM_SERVER_DIR}/%.cmo, ${SERVER_FILES})
+SERVER_OBJS := $(patsubst %.ml,${ELIOM_SERVER_DIR}/%.cmo, ${SERVER_OBJS})
 
 ${APP_NAME}.cma: ${SERVER_OBJS}
 	${ELIOMC} -a -o $@ $^
 ${APP_NAME}.cmxa: ${SERVER_OBJS:.cmo=.cmx}
 	${ELIOMOPT} -a -o $@ $^
 
-${TYPE_DIR}/%.type_mli: %.eliom
-	${ELIOMC} -infer ${SERVER_INC} -type-dir ${TYPE_DIR} $<
+${ELIOM_TYPE_DIR}/%.type_mli: %.eliom
+	${ELIOMC} -infer ${SERVER_INC} $<
 
-${SERVER_BUILD_DIR}/%.cmi: %.mli
-	${ELIOMC} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+${ELIOM_SERVER_DIR}/%.cmi: %.mli
+	${ELIOMC} -c ${SERVER_INC} $<
 
-${SERVER_BUILD_DIR}/%.cmo: %.eliom
-	${ELIOMC} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
-${SERVER_BUILD_DIR}/%.cmo: %.ml
-	${ELIOMC} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+${ELIOM_SERVER_DIR}/%.cmo: %.ml
+	${ELIOMC} -c ${SERVER_INC} $<
+${ELIOM_SERVER_DIR}/%.cmo: %.eliom
+	${ELIOMC} -c -noinfer ${SERVER_INC} $<
 
-${SERVER_BUILD_DIR}/%.cmx: %.ml
-	${ELIOMOPT} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
-${SERVER_BUILD_DIR}/%.cmx: %.eliom
-	${ELIOMOPT} -c -noinfer -dir ${SERVER_BUILD_DIR} ${SERVER_INC} $<
+${ELIOM_SERVER_DIR}/%.cmx: %.ml
+	${ELIOMOPT} -c ${SERVER_INC} $<
+${ELIOM_SERVER_DIR}/%.cmx: %.eliom
+	${ELIOMOPT} -c -noinfer ${SERVER_INC} $<
 
 %.cmxs: %.cmxa
 	$(ELIOMOPT) -shared -linkall -o $@ $<
 
 ##### Client side compilation ####
 
+CLIENT_LIBS := ${addprefix -package ,${CLIENT_PACKAGE}}
+CLIENT_INC  := ${addprefix -package ,${CLIENT_PACKAGE}}
+
+CLIENT_OBJS := $(patsubst %.eliom,${ELIOM_CLIENT_DIR}/%.cmo, ${CLIENT_FILES})
+CLIENT_OBJS := $(patsubst %.ml,${ELIOM_CLIENT_DIR}/%.cmo, ${CLIENT_OBJS})
+
 ${APP_NAME}.js: ${CLIENT_OBJS}
 	${JS_OF_ELIOM} -o $@ ${CLIENT_LIBS} $^
 
-${CLIENT_BUILD_DIR}/%.cmi: %.mli
-	${JS_OF_ELIOM} -c -dir ${CLIENT_BUILD_DIR} ${CLIENT_INC} $<
+${ELIOM_CLIENT_DIR}/%.cmi: %.mli
+	${JS_OF_ELIOM} -c ${CLIENT_INC} $<
 
-${CLIENT_BUILD_DIR}/%.cmo: %.eliom
-	${JS_OF_ELIOM} -c -dir ${CLIENT_BUILD_DIR} -type-dir ${TYPE_DIR} \
-	   ${CLIENT_INC} $<
-${CLIENT_BUILD_DIR}/%.cmo: %.ml
-	${JS_OF_ELIOM} -c -dir ${CLIENT_BUILD_DIR} ${CLIENT_INC} $<
+${ELIOM_CLIENT_DIR}/%.cmo: %.eliom
+	${JS_OF_ELIOM} -c ${CLIENT_INC} $<
+${ELIOM_CLIENT_DIR}/%.cmo: %.ml
+	${JS_OF_ELIOM} -c ${CLIENT_INC} $<
 
 ############
 
@@ -97,7 +100,7 @@ clean:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
 	-rm -f *.type_mli
 	-rm -f ${APP_NAME}.js
-	-rm -rf ${CLIENT_BUILD_DIR} ${SERVER_BUILD_DIR}
+	-rm -rf ${ELIOM_CLIENT_DIR} ${ELIOM_SERVER_DIR}
 
 distclean: clean.local
 	-rm -f *~ \#* .\#*
@@ -105,10 +108,8 @@ distclean: clean.local
 ## Dependencies
 
 depend:
-	$(ELIOMDEP) -server -dir ${SERVER_BUILD_DIR} -type-dir ${TYPE_DIR} \
-	   ${SERVER_INC} ${SERVER_FILES} > .depend
-	$(ELIOMDEP) -client -dir ${CLIENT_BUILD_DIR} -type-dir ${TYPE_DIR} \
-	   ${CLIENT_INC} ${CLIENT_FILES} >> .depend
+	$(ELIOMDEP) -server ${SERVER_INC} ${SERVER_FILES} > .depend
+	$(ELIOMDEP) -client ${CLIENT_INC} ${CLIENT_FILES} >> .depend
 
 ## Warning: Dependencies towards *.eliom are not handled by eliomdep yet.
 

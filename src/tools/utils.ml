@@ -44,11 +44,20 @@ let pp : string option ref = ref None
 let kind : [ `Server | `Client | `ServerOpt ] ref = ref `Server
 let type_file : string option ref = ref None
 
-let build_dir : string ref = ref ""
-let type_dir : string ref = ref ""
+let default_server_dir =
+  try Sys.getenv "ELIOM_SERVER_DIR"
+  with Not_found -> "_server"
 
-let default_server_dir = "_server"
-let default_client_dir = "_client"
+let default_client_dir =
+  try Sys.getenv "ELIOM_CLIENT_DIR"
+  with Not_found -> "_client"
+
+let default_type_dir =
+  try Sys.getenv "ELIOM_TYPE_DIR"
+  with Not_found -> ""
+
+let build_dir : string ref = ref ""
+let type_dir : string ref = ref default_type_dir
 
 (** Findlib *)
 
@@ -89,7 +98,7 @@ let get_common_include () =
   | `Client ->
       map_include (List.map Findlib.package_directory (get_client_package ())))
   @ match !build_dir with
-    | "" -> []
+    | "" | "." -> []
     | d -> ["-I"; d]
 
 let get_common_syntax () =
@@ -126,7 +135,7 @@ let type_file_suffix = ".type_mli"
 
 let prefix_type_dir name =
   match !type_dir with
-  | "" -> name
+  | "" | "." -> name
   | d -> d ^ "/" ^ name
 
 let get_type_file file =
