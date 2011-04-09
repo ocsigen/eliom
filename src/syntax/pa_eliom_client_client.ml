@@ -28,6 +28,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   open Helpers.Syntax
 
+  let notyp = ref false
+  let _ =
+    Camlp4.Options.add "-notype" (Arg.Set notyp) "(not documented)"
+
   (* Client side code emission. *)
   let register_closure gen_num args orig_expr =
     let _loc = Ast.loc_of_expr orig_expr in
@@ -40,12 +44,13 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let arg_ids = ref []
   let push_arg orig_expr gen_id =
     let _loc = Ast.loc_of_expr orig_expr in
-    let typ = Helpers.find_escaped_ident_type gen_id in
     if not (List.mem gen_id !arg_ids) then
       arg_ids := gen_id :: !arg_ids;
-    match typ with
-    | None -> <:expr< Eliommod_cli.unwrap $lid:gen_id$ >>
-    | Some typ -> <:expr< (Eliommod_cli.unwrap $lid:gen_id$ : $typ$) >>
+    if !notyp then
+      <:expr< Eliommod_cli.unwrap $lid:gen_id$ >>
+    else
+      let typ = Helpers.find_escaped_ident_type gen_id in
+      <:expr< (Eliommod_cli.unwrap $lid:gen_id$ : $typ$) >>
 
 
   let flush_args _loc =

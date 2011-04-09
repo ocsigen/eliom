@@ -74,7 +74,7 @@ module type Helpers  = sig
   open Syntax
 
   (** find infered type for escaped expr *)
-  val find_escaped_ident_type: string -> Ast.ctyp option
+  val find_escaped_ident_type: string -> Ast.ctyp
 
 end
 
@@ -158,18 +158,17 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	| _ -> assert false
 
       let load_file f = 
+	let ic = open_in f in
 	try
-	  let ic = open_in f in
-	  try
-	    let s = Stream.of_channel ic in
-	    let (items, stopped) = Gram.parse interf (Loc.mk f) s in
-	    assert (stopped = None); (* No directive inside the generated ".mli". *)
-	    close_in ic;
-	    List.map extract_type (List.filter is_escaped_ident items)
-	  with e ->
-	    close_in ic; raise e
+	  let s = Stream.of_channel ic in
+	  let (items, stopped) = Gram.parse interf (Loc.mk f) s in
+	  assert (stopped = None); (* No directive inside the generated ".mli". *)
+	  close_in ic;
+	  List.map extract_type (List.filter is_escaped_ident items)
 	with e ->
-	  if !type_file <> "" then raise e else []
+	  Printf.eprintf "Error: File type not found (%s)\n" (get_type_file ());
+	  close_in ic;
+	  exit 1
 
       let infered_sig = lazy (load_file (get_type_file ()))
 
@@ -177,11 +176,10 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	try
 	  let len = String.length id - escaped_ident_prefix_len in
 	  let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
-	  Some (List.assoc id (Lazy.force infered_sig))
+	  List.assoc id (Lazy.force infered_sig)
 	with Not_found ->
-	  if !type_file <> "" then
-	    Printf.eprintf "Warning: Infered type not found (%s)." id;
-	  None
+	  Printf.eprintf "Error: Infered type not found (%s).\nYou need to regenerate %s.\n" id (get_type_file ());
+	  exit 1
 
     end (* End of Helpers *)
 

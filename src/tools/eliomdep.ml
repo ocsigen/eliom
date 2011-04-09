@@ -74,7 +74,7 @@ let compile_server_eliom file =
     filter_type
 
 let compile_client_eliom file =
-  let ppopt = ["pa_eliom_client_client.cmo"; "-impl"] in
+  let ppopt = ["pa_eliom_client_client.cmo"; "-notype"; "-impl"] in
   create_filter !compiler ( get_pp ppopt
 			     @ !args
 			     @ ["-impl"; file] ) filter_dir;
