@@ -170,7 +170,7 @@ module type FORMCREATE =
       Eliom_services.send_appl_content ->
       string ->
       form_content_elt -> form_content_elt_list -> form_elt
-      
+
     val make_post_form_with_onsubmit :
       ?a:form_attrib_t -> ?cookies_info:bool * string list ->
       Eliom_services.send_appl_content ->
@@ -239,23 +239,23 @@ module type ELIOMFORMSIG =
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
+      'get ->
       string
 (** Creates the string corresponding to the relative URL of a service applied to
     its GET parameters.
 
     If [absolute] is set to [true], or if there is a protocol change,
     the URL will be absolute.
-    
+
     If [absolute_path] is set to [true], and [absolute] is [false],
     the URL will be absolute, but without [protocol://server:port].
-    
+
     Default hostname is determined from the [Host] http header of the request
     (or the attribute of <host> tag in
     configuration file if the option [<usedefaulthostname/>] is set).
     Default port is the current port (or another port of the server if
     you are switching from or to https).
-    But you can choose the hostname or port you want by setting 
+    But you can choose the hostname or port you want by setting
     the optional [?hostname] and [?port] parameters here.
 
  *)
@@ -269,10 +269,10 @@ module type ELIOMFORMSIG =
                [< registrable ], 'return) service ->
       ?hostname:string ->
       ?port:int ->
-      ?fragment:string -> 
+      ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
+      'get ->
       uri
 (** Creates the URL for a service.
     Like the [a] function, it may take extra parameters. *)
@@ -286,10 +286,10 @@ module type ELIOMFORMSIG =
                [< registrable ], 'return) service ->
       ?hostname:string ->
       ?port:int ->
-      ?fragment:string -> 
+      ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
+      'get ->
       string * (string * string) list * string option
 (** Creates the URL for a service.
     Returns the path (as a string, encoded),
@@ -306,11 +306,11 @@ module type ELIOMFORMSIG =
                [< registrable ], 'return) service ->
       ?hostname:string ->
       ?port:int ->
-      ?fragment:string -> 
+      ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?keep_get_na_params:bool ->
-      'get -> 
+      'get ->
       'post ->
       string * (string * string) list * string option * (string * string) list
 (** Like [make_uri_components], but also creates a table of post parameters. *)
@@ -342,8 +342,8 @@ module type ELIOMFORMSIG =
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      'a a_content_elt_list -> 
-      'get -> 
+      'a a_content_elt_list ->
+      'get ->
       'a a_elt
 (** [a service cont ()] creates a link to [service].
    The text of
@@ -362,14 +362,14 @@ module type ELIOMFORMSIG =
     to make easier the use with reverse proxies.
     But in case of protocol change (if you want to switch to https using
     [~https:true] for example, or if the service imposes https),
-    absolute links will be generated. 
+    absolute links will be generated.
     In that case,
     default hostname is determined from the [Host] http header of the request
     (or the attribute of <host> tag in
     configuration file if the option [<usedefaulthostname/>] is set).
     Default port is the current port (or another port of the server if
     you are switching from or to https).
-    But you can choose the hostname or port you want by setting 
+    But you can choose the hostname or port you want by setting
     the optional [?hostname] and [?port] parameters here.
     These options have no effect for relative links.
 
@@ -410,7 +410,7 @@ module type ELIOMFORMSIG =
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      ('gn -> form_content_elt_list) -> 
+      ('gn -> form_content_elt_list) ->
       form_elt
 (** [get_form service formgen] creates a GET form to [service].
    The content of
@@ -431,7 +431,7 @@ module type ELIOMFORMSIG =
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      ('gn -> form_content_elt_list Lwt.t) -> 
+      ('gn -> form_content_elt_list Lwt.t) ->
       form_elt Lwt.t
 (** The same but taking a cooperative function. *)
 
@@ -451,8 +451,8 @@ module type ELIOMFORMSIG =
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      ('pn -> form_content_elt_list) -> 
-      'get -> 
+      ('pn -> form_content_elt_list) ->
+      'get ->
       form_elt
 (** [post_form service formgen] creates a POST form to [service].
     The last parameter is for GET parameters (as in the function [a]).
@@ -478,8 +478,8 @@ module type ELIOMFORMSIG =
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      ('pn -> form_content_elt_list Lwt.t) -> 
-      'get -> 
+      ('pn -> form_content_elt_list Lwt.t) ->
+      'get ->
       form_elt Lwt.t
 (** The same but taking a cooperative function. *)
 

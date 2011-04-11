@@ -31,16 +31,16 @@ open Eliom_services
     The first parameter is the current URL,
     the second is the destination.
 *)
-val reconstruct_relative_url_path : 
+val reconstruct_relative_url_path :
   string list -> string list -> string list
 
- 
+
 
 val make_string_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
-  service:('a, 'b, 
+  service:('a, 'b,
            [< `Attached of (attached_service_kind,
                             [< getpost]) a_s
            | `Nonattached of [< getpost ] na_s ],
@@ -76,7 +76,7 @@ val make_post_uri_components :
   string * (string * string) list * string option *
     (string * string) list
 
-val make_string_uri_from_components : 
+val make_string_uri_from_components :
   string * (string * string) list * string option -> string
 
 val make_uri_components_ :

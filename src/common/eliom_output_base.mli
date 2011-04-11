@@ -48,23 +48,23 @@ module type HTML5FORMSSIG = sig
       ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
+      'get ->
       string
 (** Creates the string corresponding to the relative URL of a service applied to
     its GET parameters.
 
     If [absolute] is set to [true], or if there is a protocol change,
     the URL will be absolute.
-    
+
     If [absolute_path] is set to [true], and [absolute] is [false],
     the URL will be absolute, but without [protocol://server:port].
-    
+
     Default hostname is determined from the [Host] http header of the request
     (or the attribute of <host> tag in
     configuration file if the option [<usedefaulthostname/>] is set).
     Default port is the current port (or another port of the server if
     you are switching from or to https).
-    But you can choose the hostname or port you want by setting 
+    But you can choose the hostname or port you want by setting
     the optional [?hostname] and [?port] parameters here.
 
  *)
@@ -78,10 +78,10 @@ module type HTML5FORMSSIG = sig
                [< registrable ], 'return) service ->
       ?hostname:string ->
       ?port:int ->
-      ?fragment:string -> 
+      ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
+      'get ->
       uri
 (** Creates the URL for a service.
     Like the [a] function, it may take extra parameters. *)
@@ -95,10 +95,10 @@ module type HTML5FORMSSIG = sig
                [< registrable ], 'return) service ->
       ?hostname:string ->
       ?port:int ->
-      ?fragment:string -> 
+      ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
+      'get ->
       string * (string * string) list * string option
 (** Creates the URL for a service.
     Returns the path (as a string, encoded),
@@ -115,11 +115,11 @@ module type HTML5FORMSSIG = sig
                [< registrable ], 'return) service ->
       ?hostname:string ->
       ?port:int ->
-      ?fragment:string -> 
+      ?fragment:string ->
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?keep_get_na_params:bool ->
-      'get -> 
+      'get ->
       'post ->
       string * (string * string) list * string option * (string * string) list
 (** Like [make_uri_components], but also creates a table of post parameters. *)
@@ -150,8 +150,8 @@ module type HTML5FORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      'a elt list -> 
-      'get -> 
+      'a elt list ->
+      'get ->
     [> 'a a] HTML5.M.elt
 (** [a service cont ()] creates a link to [service].
    The text of
@@ -170,14 +170,14 @@ module type HTML5FORMSSIG = sig
     to make easier the use with reverse proxies.
     But in case of protocol change (if you want to switch to https using
     [~https:true] for example, or if the service imposes https),
-    absolute links will be generated. 
+    absolute links will be generated.
     In that case,
     default hostname is determined from the [Host] http header of the request
     (or the attribute of <host> tag in
     configuration file if the option [<usedefaulthostname/>] is set).
     Default port is the current port (or another port of the server if
     you are switching from or to https).
-    But you can choose the hostname or port you want by setting 
+    But you can choose the hostname or port you want by setting
     the optional [?hostname] and [?port] parameters here.
     These options have no effect for relative links.
 
@@ -218,7 +218,7 @@ module type HTML5FORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      ('gn -> form_content elt list) -> 
+      ('gn -> form_content elt list) ->
       [>form] elt
 (** [get_form service formgen] creates a GET form to [service].
    The content of
@@ -239,7 +239,7 @@ module type HTML5FORMSSIG = sig
       ?keep_nl_params:[ `All | `Persistent | `None ] ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      ('gn -> form_content elt list Lwt.t) -> 
+      ('gn -> form_content elt list Lwt.t) ->
       [>form] elt Lwt.t
 (** The same but taking a cooperative function. *)
 
@@ -259,8 +259,8 @@ module type HTML5FORMSSIG = sig
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      ('pn -> form_content elt list) -> 
-      'get -> 
+      ('pn -> form_content elt list) ->
+      'get ->
       [>form] elt
 (** [post_form service formgen] creates a POST form to [service].
     The last parameter is for GET parameters (as in the function [a]).
@@ -286,8 +286,8 @@ module type HTML5FORMSSIG = sig
       ?keep_get_na_params:bool ->
       ?nl_params: Eliom_parameters.nl_params_set ->
       ?no_appl:bool ->
-      ('pn -> form_content elt list Lwt.t) -> 
-      'get -> 
+      ('pn -> form_content elt list Lwt.t) ->
+      'get ->
       [>form] elt Lwt.t
 (** The same but taking a cooperative function. *)
 
@@ -337,7 +337,7 @@ module type HTML5FORMSSIG = sig
 (** Creates an [<input>] tag for a string *)
 
   val user_type_input :
-    ('a -> string) -> 
+    ('a -> string) ->
       ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
         ?name:[< 'a setoneradio ] param_name ->
           ?value:'a -> unit -> [> input ] elt
@@ -400,7 +400,7 @@ module type HTML5FORMSSIG = sig
    the coordinates the user clicked on and a value of type string *)
 
   val user_type_image_input :
-    ('a -> string) -> 
+    ('a -> string) ->
       ?a:input_attrib attrib list ->
         name:[< ('a * coordinates) oneradio ] param_name -> value:'a ->
           ?src:uri -> unit -> [> input ] elt
@@ -474,9 +474,9 @@ module type HTML5FORMSSIG = sig
 
 
     val user_type_checkbox :
-      ('a -> string) -> 
+      ('a -> string) ->
         ?a:input_attrib attrib list -> ?checked:bool ->
-          name:[ `Set of 'a ] param_name -> value:'a -> unit -> 
+          name:[ `Set of 'a ] param_name -> value:'a -> unit ->
             [> input ] elt
 (** Creates a checkbox [<input>] tag that will have a "user type" value.
    Thus you can do several checkboxes with the same name
@@ -517,7 +517,7 @@ module type HTML5FORMSSIG = sig
      name:[ `Radio of float ] param_name -> value:float -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with float content *)
 
-  val user_type_radio : 
+  val user_type_radio :
     ('a -> string) -> ?a:(input_attrib attrib list ) -> ?checked:bool ->
     name:[ `Radio of 'a ] param_name -> value:'a -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with user_type content *)
@@ -652,7 +652,7 @@ module type HTML5FORMSSIG = sig
 (** Creates a [<select>] tag for string values. *)
 
   val user_type_select :
-    ('a -> string) -> 
+    ('a -> string) ->
       ?a:select_attrib attrib list ->
         name:[< `One of 'a ] param_name ->
           'a select_opt ->
@@ -710,7 +710,7 @@ module type HTML5FORMSSIG = sig
 (** Creates a [<select>] tag for string values. *)
 
   val user_type_multiple_select :
-    ('a -> string) -> 
+    ('a -> string) ->
       ?a:select_attrib attrib list ->
         name:[< `Set of 'a ] param_name ->
           'a select_opt ->
@@ -758,14 +758,14 @@ module Html5forms_ : FORMCREATE
   and type uri = HTML5_types.uri
   and type 'a a_content_elt = 'a HTML5.M.elt
   and type 'a a_content_elt_list = 'a HTML5.M.elt list
-        
+
   and type div_content_elt = HTML5_types.div_content HTML5.M.elt
   and type div_content_elt_list = HTML5_types.div_content HTML5.M.elt list
-        
+
   and type 'a a_elt = 'a HTML5_types.a HTML5.M.elt
   and type 'a a_elt_list = 'a HTML5_types.a HTML5.M.elt list
   and type form_elt = HTML5_types.form HTML5.M.elt
-        
+
   and type textarea_elt = HTML5_types.textarea HTML5.M.elt
   and type input_elt = HTML5_types.input HTML5.M.elt
 

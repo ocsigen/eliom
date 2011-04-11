@@ -42,7 +42,7 @@ let full_path_ =
   match Url.Current.path with
     | ""::l -> l
     | l -> l
-  
+
 
 let get_csp_original_full_path () = full_path_
 let get_csp_original_full_path_sp = get_csp_original_full_path
