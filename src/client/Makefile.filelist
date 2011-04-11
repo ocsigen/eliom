@@ -1,6 +1,5 @@
 
 INTF := eliom_pervasives.cmi        \
-        eliom_cookies.cmi           \
         eliom_common.cmi            \
         eliom_types.cmi             \
         eliom_parameters.cmi        \
