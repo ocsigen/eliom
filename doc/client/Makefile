@@ -1,7 +1,7 @@
 include ../../Makefile.config
 include ../../src/client/Makefile.filelist
 
-PACKAGE :=  ${SERVERPACKAGE}
+PACKAGE :=  ${CLIENT_PACKAGE}
 OCAMLDOC := ${OCAMLFIND} ocamldoc
 
 LIBS    := -I ../../src/client/ $(addprefix -package ,${PACKAGE})

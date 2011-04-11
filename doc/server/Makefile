@@ -1,7 +1,7 @@
 include ../../Makefile.config
 include ../../src/server/Makefile.filelist
 
-PACKAGE :=  ${SERVERPACKAGE}
+PACKAGE :=  ${SERVER_PACKAGE}
 
 ifeq "${OCAMLDUCE}" "NO"
 OCAMLDOC := ${OCAMLFIND} ocamldoc

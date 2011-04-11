@@ -6,7 +6,7 @@ The {!Eliom_pervasives} module should be opened in every client side
 code, it extands some stdlib modules and provides functions to build
 XML and HTML trees.
 
-{!Eliom_output.HTML5} is used to build forms.
+{!Eliom_output.Html5} is used to build forms.
 
 {!Eliom_services} on client side only provides void_coservices and non
 localised service parameters.
@@ -15,9 +15,8 @@ localised service parameters.
 Eliom_pervasives
 Eliom_pervasives.XML
 Eliom_pervasives.HTML5
-Eliom_output.HTML5
+Eliom_output.Html5
 Eliom_services
-Eliom_parameters
 }
 
 {2 modules with interface different from server side}
