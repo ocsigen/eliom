@@ -129,6 +129,7 @@ module XML : sig
   val cdata_script : string -> elt
   val cdata_style : string -> elt
 
+  (* those functions are unsafe: for internal use only *)
   val lwt_register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b Lwt.t) -> 'a -> unit
   val register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b) -> 'a -> unit
 

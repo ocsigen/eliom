@@ -597,20 +597,22 @@ module XML = struct
 (*FIX: cannot set input/name with IE  *)
   let leaf ?a name = node ?a name []
 
+  (* TODO: those functions should be removed: too ugly, and it is not
+     alwais possible to register and event to an xml node, it is only
+     possible on html elements.
+
+     this function is highly unsafe: we rewrite the "name" method.
+     The only limitation is that it should start with "on".
+  *)
   let lwt_register_event ?(keep_default = true) elt name f v =
     let keep_default = Js.bool keep_default in
-    ignore (
-      Dom_html.addEventListener (Js.Unsafe.coerce elt) Dom_html.Event.click
-	(Dom_html.handler (fun _ -> ignore (f v); keep_default)) Js._false
-	: Dom_html.event_listener_id )
-
+    assert(String.sub name 0 2 = "on");
+    Js.Unsafe.set elt (Js.string name) (Dom_html.handler (fun _ -> ignore (f v); keep_default))
 
   let register_event ?(keep_default = true) elt name f v =
     let keep_default = Js.bool keep_default in
-    ignore (
-      Dom_html.addEventListener (Js.Unsafe.coerce elt) Dom_html.Event.click
-	(Dom_html.handler (fun _ -> f v; keep_default)) Js._false
-	: Dom_html.event_listener_id )
+    assert(String.sub name 0 2 = "on");
+    Js.Unsafe.set elt (Js.string name) (Dom_html.handler (fun _ -> f v; keep_default))
 
   let ref_node n = 0 (* not needed on client side *)
 
