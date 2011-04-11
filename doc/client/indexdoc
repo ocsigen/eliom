@@ -1,1 +1,35 @@
-{1 Intro eliom client}
+{1 Eliom client API}
+
+{2 modules with interface close to server side}
+
+The {!Eliom_pervasives} module should be opened in every client side
+code, it extands some stdlib modules and provides functions to build
+XML and HTML trees.
+
+{!Eliom_output.HTML5} is used to build forms.
+
+{!Eliom_services} on client side only provides void_coservices and non
+localised service parameters.
+
+{!modules:
+Eliom_pervasives
+Eliom_pervasives.XML
+Eliom_pervasives.HTML5
+Eliom_output.HTML5
+Eliom_services
+Eliom_parameters
+}
+
+{2 modules with interface different from server side}
+
+The {!Eliom_bus}, {!Eliom_comet} and {!Eliom_react} modules provides
+client/server communications facilities.
+
+{!Eliom_client} provides functions to call services and move to another url.
+
+{!modules:
+Eliom_client
+Eliom_bus
+Eliom_comet
+Eliom_react
+}

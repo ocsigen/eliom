@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(**/**)
+
 open Eliom_pervasives
 
 (*external get_closure_arg : unit -> 'a = "caml_get_closure_arg"*)
@@ -28,8 +30,6 @@ val unwrap : 'a Eliom_types.data_key -> 'a
 
 val unwrap_node : Dom.node Js.t Eliom_types.data_key -> Dom_html.element Js.t
 
-
-(**/**)
 val rebuild_xml : int64 -> Eliom_types.elt -> Dom_html.element Js.t
 val relink_dom : int64 -> Dom_html.element Js.t -> XML.ref_tree -> unit
 val relink_dom_list : int64 -> #Dom.node Dom.nodeList Js.t -> (int * XML.ref_tree) list -> unit

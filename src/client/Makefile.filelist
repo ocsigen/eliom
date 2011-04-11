@@ -28,11 +28,9 @@ STUBS := dlleliom_client.so \
 	 libeliom_client.a  \
 	 eliom_client.js    \
 
-NOMLI := eliom_cookies.mli      \
-         eliom_common.mli       \
+NOMLI := eliom_common.mli       \
 	 eliom_types.mli        \
 	 eliom_parameters.mli   \
-	 eliom_services.mli     \
 	 eliom_process.mli      \
 	 eliom_config.mli       \
 	 eliom_request_info.mli \

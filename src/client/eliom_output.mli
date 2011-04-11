@@ -12,6 +12,8 @@ sig
   include Base
 end
 
+(**/**)
+
 module Xhtml : Base
 module XhtmlForms : Base
 module Redirection : Base
