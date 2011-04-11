@@ -303,7 +303,7 @@ module Url = struct
 end
 
 (*****************************************************************************)
-
+(*
 module Ip_address = struct
 
 
@@ -455,7 +455,7 @@ module Ip_address = struct
   | _ -> invalid_arg "Ip_address.network_of_ip"
 
 end
-
+*)
 (*****************************************************************************)
 
 module Printexc = struct
@@ -501,8 +501,6 @@ let encode_header_value x =
 
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
-
-module Html = Dom_html
 
 module XML = struct
 
@@ -629,6 +627,9 @@ module HTML5 = struct
   struct
     include HTML5_f.Make(XML)(SVG.M)
     let coerce x = Js.Unsafe.coerce (toelt x)
+
+    let to_element : 'a elt -> Dom_html.element Js.t = coerce
+
     let to_html : HTML5_types.html elt -> Dom_html.htmlElement Js.t = coerce
     let to_head : HTML5_types.head elt -> Dom_html.headElement Js.t = coerce
     let to_link : HTML5_types.link elt -> Dom_html.linkElement Js.t = coerce
@@ -674,10 +675,12 @@ module HTML5 = struct
     let to_table : HTML5_types.table elt -> Dom_html.tableElement Js.t = coerce
     let to_canvas : 'a HTML5_types.canvas elt -> Dom_html.canvasElement Js.t = coerce
     let to_iFrame : HTML5_types.iframe elt -> Dom_html.iFrameElement Js.t = coerce
+
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
   end
 end
 
+(*
 module XHTML = struct
   module M = struct
     include XHTML_f.Make(XML)
@@ -700,7 +703,8 @@ module XHTML = struct
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
   end
 end
-
+*)
+(*
 module Reactive_dom = struct
 
   module Engine : sig
@@ -745,7 +749,7 @@ module Reactive_dom = struct
     e
 
 end
-
+*)
 module Regexp = struct
 
   type t

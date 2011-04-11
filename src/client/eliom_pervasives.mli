@@ -68,6 +68,7 @@ module Url : sig
   (* val split_path : string -> string list *)
 end
 
+(*
 module Ip_address : sig
   (* type t = IPv4 of int32 | IPv6 of int64 * int64 *)
   (* exception Invalid_ip_address of string *)
@@ -75,6 +76,7 @@ module Ip_address : sig
   (* val match_ip : t * t option -> t -> bool *)
   (* val network_of_ip : ip:t -> mask:t -> t *)
 end
+*)
 
 module Printexc : sig
   include module type of Printexc
@@ -93,8 +95,6 @@ val encode_form_value : 'a -> string
 val unmarshal_js_var : string -> 'a
 
 val encode_header_value : 'a -> string
-
-module Html : module type of Dom_html
 
 module XML : sig
 
@@ -149,6 +149,11 @@ module HTML5 : sig
   module M :
   sig
     include HTML5_sigs.HTML5(XML)(SVG.M).T
+
+    (** type safe casting functions from HTML5 types to Dom types *)
+
+    val to_element : 'a elt -> Dom_html.element Js.t
+
     val to_html : HTML5_types.html elt -> Dom_html.htmlElement Js.t
     val to_head : HTML5_types.head elt -> Dom_html.headElement Js.t
     val to_link : HTML5_types.link elt -> Dom_html.linkElement Js.t
@@ -197,6 +202,7 @@ module HTML5 : sig
   end
 end
 
+(*
 module XHTML : sig
 
   module M : XHTML_sigs.XHTML(XML).T
@@ -206,7 +212,8 @@ module XHTML : sig
   module M_01_01_compat : XHTML_sigs.XHTML(XML).T
 
 end
-
+*)
+(*
 module Reactive_dom : sig
 
   val signalify : (unit -> 'a) -> 'a React.S.t
@@ -222,6 +229,7 @@ module Reactive_dom : sig
 	  ('a Js.t -> 'b Js.t -> 'c) -> 'c React.event
 
 end
+*)
 
 module Regexp : sig
   type t
