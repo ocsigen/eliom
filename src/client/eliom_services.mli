@@ -17,8 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** This module allows to add non localised parameters to services and
-    use void services, the only ones available on client side. *)
+(** Functions to add non localised parameters to services and
+    client side declaration of void coservices. Void coservices are the only ones
+    defined on client side. *)
 
 open Eliom_parameters
 open Eliom_pervasives

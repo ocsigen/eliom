@@ -102,7 +102,7 @@ struct
     then default_configuration
     else Hashtbl.fold (fun _ -> config_min) configuration_table (first_conf configuration_table)
 
-  let update_configuration_waiter,update_configuration_waker = 
+  let update_configuration_waiter,update_configuration_waker =
     let t,u = Lwt.wait () in
     ref t, ref u
 
@@ -192,12 +192,12 @@ type handler =
 let handler = ref None
 
 let add_focus_listener f : unit =
-  let listener = Dom_html.handler (fun _ -> 
+  let listener = Dom_html.handler (fun _ ->
     f (); Js.bool false) in
   (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "focus",listener,Js.bool false)
 
 let add_blur_listener f : unit =
-  let listener = Dom_html.handler (fun _ -> 
+  let listener = Dom_html.handler (fun _ ->
     f (); Js.bool false) in
   (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "blur",listener,Js.bool false)
 
@@ -292,7 +292,7 @@ let service () : Eliom_comet_base.comet_service =
 let init_activity () =
   let active_waiter,active_wakener = Lwt.wait () in
   let restart_waiter, restart_wakener = Lwt.wait () in
-  { 
+  {
     active = false;
     focused = true;
     active_waiter; active_wakener;
@@ -318,7 +318,7 @@ let init () =
   (* the function to register and close channels *)
   let hd_commands commands =
     let t =
-      Eliom_client.call_service hd_service () 
+      Eliom_client.call_service hd_service ()
 	(Eliom_comet_base.Commands commands)
     in
     push (Some t);
@@ -386,9 +386,11 @@ let register ?(wake=true) chan_id =
   if wake then activate ();
   stream
 
+(*
 let unwrap ?wake key =
   let ( chan_id, unwrapper ) = Eliommod_cli.unwrap key in
   register ?wake chan_id
+*)
 
 let internal_unwrap ( chan_id, unwrapper ) = register chan_id
 

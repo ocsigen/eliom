@@ -22,11 +22,11 @@
 module Reg : Eliom_mkreg.ELIOMREGSIG
         with type page = Atom_feed.feed
 
-(** Needed when used with Pubsubhubbub *)        
+(** Needed when used with Pubsubhubbub *)
 type feed = { notify_updates : unit -> unit }
 
-(** Add the needed <link rel="hub" ...> for each hub in the feed, and 
+(** Add the needed <link rel="hub" ...> for each hub in the feed, and
  communicate with the hub *)
 val register_feed :
-  path:string list -> hubs:Atom_feed.uri list -> string -> 
-  (unit -> Atom_feed.feed Lwt.t) -> feed 
+  path:string list -> hubs:Atom_feed.uri list -> string ->
+  (unit -> Atom_feed.feed Lwt.t) -> feed

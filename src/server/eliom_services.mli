@@ -19,7 +19,7 @@
  *)
 
 
-(** This module allows to define services. *)
+(** Types, creation and manipulation of Eliom services. *)
 
 open Ocsigen_extensions
 open Eliom_parameters
@@ -99,16 +99,16 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
  *)
 
 
-val get_get_or_post : 
-  ('a, 'b, 
+val get_get_or_post :
+  ('a, 'b,
    [< `Attached of (attached_service_kind, [< getpost]) a_s
-   | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service -> 
+   | `Nonattached of [< getpost ] na_s ], 'd, 'e, 'f, 'g, 'h) service ->
   getpost
 
 (***** Static dir and actions do not depend on the type of pages ******)
 
 (** {2 Registration of named modules}
-    
+
     This functionality allows to register module initialization functions
     for Eliom modules which will be executed when the corresponding module
     is initialized in [ocsigen.conf].
@@ -117,7 +117,7 @@ val get_get_or_post :
 
 val register_eliom_module : string -> (unit -> unit) -> unit
 (**
-   This function is used to specify the initialization function 
+   This function is used to specify the initialization function
    for Eliom modules linked dynamic or statically into the server.
    [register_eliom_module name f] registers the initialization function [f] for
    module [name]. The [f] function will be invoked when the module is
@@ -136,7 +136,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     {!Eliom_common.Eliom_site_information_not_available}.
     If you are using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+    {!Eliom_services.register_eliom_module}. Otherwise you will also get
     this exception.}
 *)
 
@@ -159,10 +159,10 @@ val service :
 (** [service ~path ~get_params ()] creates a
     {!Eliom_services.service} associated
     to the path [path], taking the GET parameters [get_params].
-    
+
     If [~https] is true, all links towards that service will use https.
 
-    The default priority is 0. If you want the service to be tried before 
+    The default priority is 0. If you want the service to be tried before
     (resp after)
     the other ones at the same path, put a higher (resp. lower) priority.
 *)
@@ -208,7 +208,7 @@ val external_post_service :
 val post_service :
   ?https:bool ->
   fallback: ('get, unit,
-             [`Attached of 
+             [`Attached of
                 ([`Internal of
                     ([ `Service | `Coservice ] as 'kind) ], [`Get]) a_s ],
              [< suff] as 'tipo, 'gn, unit,
@@ -264,17 +264,17 @@ val coservice :
     generated).
 
     See the programmer's manual for more informations.
-    
+
     The [~timeout] parameter specifies a timeout (in seconds)
     after which the coservice will disappear. This amount of time is
     computed from the creation or from the last call to the service.
     Default: no timeout.
-    
+
     The [~max_use] parameter specifies that the service can be used only
     a fixed number of times. Default: no limitation.
-    
+
     If [~csrf_safe] is [true],
-    it will create a "CSRF-safe" service (the default is [false]). 
+    it will create a "CSRF-safe" service (the default is [false]).
     (In that case [~name] is ignored).
     It means that the registration of the service will not actually
     take place when [register] is called, but delayed and performed
@@ -285,15 +285,15 @@ val coservice :
     service table or in the session service table. But the actual registration,
     that will occure when creating a link or a form, will always take
     place in a session service table. This table is specified by the
-    [~csrf_state_name], [~csrf_scope] 
+    [~csrf_state_name], [~csrf_scope]
     and [~csrf_secure] parameters
-    (that correspond to [~state_name], [~scope] and [~secure] for the delayed 
+    (that correspond to [~state_name], [~scope] and [~secure] for the delayed
     registration); it is the default session table if they are absent.
     Parameters [?state_name], [?scope] and [?secure] of [register]
     must have the same values as the one declared while creating the
     CSRF safe coservice, otherwise the registration will fail
     with {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}.
-    
+
 *)
 
 val post_coservice :
@@ -529,7 +529,7 @@ val onunload : XML.event -> unit
     {!Eliom_common.Eliom_site_information_not_available}.
     If you are using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+    {!Eliom_services.register_eliom_module}. Otherwise you will also get
     this exception.}
  *)
 val set_exn_handler : (exn -> Ocsigen_http_frame.result Lwt.t) -> unit
@@ -567,7 +567,7 @@ val get_priority_ : ('a, 'b) a_s -> int
 val reconstruct_relative_Url.path : Url.path -> Url.path -> Url.path option -> string
 *)
 
-val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service -> 
+val keep_nl_params : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   [ `All | `Persistent | `None ]
 
 val change_get_num :
@@ -579,30 +579,30 @@ val change_get_num :
 
 val new_state : unit -> string
 
-val untype_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
+val untype_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service
 
 (*****************************************************************************)
 
 val register_delayed_get_or_na_coservice :
   sp:Eliom_common.server_params ->
-  (int * string option * Eliom_common.user_scope * bool option) -> 
+  (int * string option * Eliom_common.user_scope * bool option) ->
   string
 
 val register_delayed_post_coservice :
   sp:Eliom_common.server_params ->
-  (int * string option * Eliom_common.user_scope * bool option) -> 
+  (int * string option * Eliom_common.user_scope * bool option) ->
   Eliom_common.att_key_serv -> string
 
 val set_delayed_get_or_na_registration_function :
   Eliom_common.tables ->
-  int -> 
+  int ->
   (sp:Eliom_common.server_params -> string) -> unit
 
 val set_delayed_post_registration_function :
   Eliom_common.tables ->
-  int -> 
-  (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string) -> 
+  int ->
+  (sp:Eliom_common.server_params -> Eliom_common.att_key_serv -> string) ->
   unit
 
 type send_appl_content =
@@ -654,24 +654,24 @@ val get_onload_form_creators :
 
 
 val wrap :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service Eliom_types.data_key
 
 val pre_wrap :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service -> 
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
 
 type eliom_appl_answer =
   | EAContent of ((Eliom_types.eliom_data_type * string) * string (* url to display *))
   | EAHalfRedir of string
-  | EAFullRedir of 
+  | EAFullRedir of
       (unit, unit, get_service_kind,
-       [ `WithoutSuffix ], 
+       [ `WithoutSuffix ],
        unit, unit, registrable, http) service
         (* We send a service in case of full XHR, so that we can
            add tab cookies easily.
            An alternative would be to send the URL,
-           and then parse it on client side, 
+           and then parse it on client side,
            to compute cookies from the URL information
            (but it is more complicated to implement because current function
            to generate tab cookies takes a service).

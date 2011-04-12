@@ -21,14 +21,45 @@
 (* Module for event wrapping and related functions *)
 
 
-include Eliommod_react
+module Down =
+struct
+
+  type 'a t =
+      {throttling: float option;
+       react: 'a React.E.t;
+       name: string option;
+       react_down_mark: 'a t Eliom_common.wrapper;}
+
+  let internal_wrap
+      {throttling=t;
+       react=e;
+       name=name} =
+    let ee =
+      (match t with
+        | None -> e
+        | Some t -> Lwt_event.limit (fun () -> Lwt_unix.sleep t) e)
+    in
+    let stream = Lwt_event.to_stream ee in
+    let channel = Eliom_comet.Channels.create ?name stream in
+    (channel,Eliom_common.make_unwrapper Eliom_common.react_down_unwrap_id)
+
+  let react_down_mark () = Eliom_common.make_wrapper internal_wrap
+
+  let of_react
+      ?throttling ?name (e : 'a React.E.t) =
+    {throttling=throttling;
+     react=e;
+     name=name;
+     react_down_mark=react_down_mark ()}
+
+end
 
 module Up =
 struct
 
   type 'a t =
       { event : 'a React.event;
-	service : 
+	service :
 	  (unit,
 	   'a,
 	   [ `Nonattached of [ `Post ] Eliom_services.na_s ],
@@ -41,7 +72,6 @@ struct
 	wrapper : 'a t Eliom_common.wrapper }
 
   let to_react t = t.event
-  let wrap t = Eliom_services.wrap t.service
 
   let internal_wrap t = (t.service, Eliom_common.make_unwrapper Eliom_common.react_up_unwrap_id)
 

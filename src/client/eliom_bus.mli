@@ -18,20 +18,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-type 'a t
+(** Broadcasting facilities between clients and server *)
 
-val unwrap :
-    (  (('a Eliom_comet_base.chan_id)
-     * (unit,
-        'a list,
-        [< Eliom_services.service_kind ],
-        [< `WithSuffix | `WithoutSuffix ],
-        'b,
-        'c,
-        [< Eliom_services.registrable ],
-        'd) Eliom_services.service ) * 'b
-    ) Eliom_types.data_key
-  -> 'a t
+type 'a t
 
 val stream : 'a t -> 'a Lwt_stream.t
 (** [stream b] returns the stream of datas sent to bus [b]. Notice you
@@ -49,3 +38,18 @@ val close : 'a t -> unit
     bus, but it is still possible to write to the bus. It is also
     possible to close the bus by canceling a thread reading on the
     stream. *)
+
+(*
+val unwrap :
+    (  (('a Eliom_comet_base.chan_id)
+     * (unit,
+        'a list,
+        [< Eliom_services.service_kind ],
+        [< `WithSuffix | `WithoutSuffix ],
+        'b,
+        'c,
+        [< Eliom_services.registrable ],
+        'd) Eliom_services.service ) * 'b
+    ) Eliom_types.data_key
+  -> 'a t
+*)

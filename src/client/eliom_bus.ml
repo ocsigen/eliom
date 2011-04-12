@@ -46,10 +46,12 @@ let create service channel waiter =
     last_wait = Lwt.return ();
   }
 
+(*
 let unwrap w =
   let ((channel,service),unwrapper) = Eliommod_cli.unwrap w in
   let waiter () = Lwt_js.sleep 0.05 in
   create service channel waiter
+*)
 
 let internal_unwrap ((chan_id,service),unwrapper) =
   let waiter () = Lwt_js.sleep 0.05 in

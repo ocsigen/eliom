@@ -1,3 +1,23 @@
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Copyright (C) 2011 Grégoire Henry
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception;
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
+
+(** Pervasives module for Eliom extending stdlib, should always be opened. *)
 
 exception Eliom_Internal_Error of string
 
@@ -93,6 +113,7 @@ end
 val to_json : ?typ:'a Deriving_Json.t -> 'a -> string
 val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
 
+(** XML building and deconstructing. *)
 module XML : sig
 
   type aname = string
@@ -165,29 +186,31 @@ module XML : sig
   val make_ref_tree : elt -> ref_tree
   val make_ref_tree_list : elt list -> (int * ref_tree) list
 
+  val class_name : string
+
+  (**/**)
+  (* this is not implemented on server side: sould be removed *)
   val lwt_register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b Lwt.t) -> 'a -> unit
   val register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b) -> 'a -> unit
-
-  val class_name : string
 
 end
 
 module SVG : sig
-
+  (** Type safe SVG creation. *)
   module M : SVG_sigs.SVG(XML).T
   module P : XML_sigs.TypedSimplePrinter(XML)(M).T
 
 end
 
 module HTML5 : sig
-
+  (** Type safe HTML5 creation. *)
   module M : HTML5_sigs.HTML5(XML)(SVG.M).T
   module P : XML_sigs.TypedSimplePrinter(XML)(M).T
 
 end
 
 module XHTML : sig
-
+  (** Type safe XHTML creation. *)
   module M : XHTML_sigs.XHTML(XML).T
   module M_01_01 : XHTML_sigs.XHTML(XML).T
   module M_01_00 : XHTML_sigs.XHTML(XML).T

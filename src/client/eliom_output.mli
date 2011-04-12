@@ -6,6 +6,7 @@ sig
   type return = Eliom_services.http
 end
 
+(** Forms creation *)
 module Html5 :
 sig
   include HTML5FORMSSIG

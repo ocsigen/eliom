@@ -18,12 +18,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** [Eliom_event] is a module that allow one to use propagate events occurrences
-    from the server to the client and the other way around. It is to be noted
-    that occurrence propagation is done asynchronously.
+(** Propagate events
+    occurrences from the server to the client and the other way
+    around. It is to be noted that occurrence propagation is done
+    asynchronously.
 
     The use of this module is pretty much useless without it's client counter
-    part: [Eliom_client_event]. *)
+    part. *)
 
 (* These two dual files are to be modified together
    with compatibility issues in mind. *)
@@ -52,11 +53,6 @@ sig
       asynchronous edge originating from [e]. The parameters are: [throttling]
       for the limit to event propagation rate, [name] for named edges. *)
 
-  val wrap :
-      'a t
-    -> ( 'a Eliom_comet_base.chan_id * Eliom_common.unwrapper ) Eliom_types.data_key
-  (** [wrap e] wraps the event [e] so that it can be handed to the client. *)
-
 end
 
 module Up :
@@ -75,16 +71,6 @@ sig
   val to_react : 'a t -> 'a React.E.t
   (** [to_react e] injects the up events [e] into react events so that it can
       be manipulated as a standard event. *)
-
-  val wrap :
-       'a t
-    -> (unit, 'a, [ `Nonattached of [ `Post ] Eliom_services.na_s ],
-        [ `WithoutSuffix ], unit,
-        [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name,
-        [ `Registrable ], Eliom_output.Action.return)
-         Eliom_services.service Eliom_types.data_key
-  (** [wrap e] wraps [e] into a wrapped service. This result is to be handled by
-      the [Eliom_client_event.Up.unwrap] function. *)
 
   val create :
        ?scope:Eliom_common.scope

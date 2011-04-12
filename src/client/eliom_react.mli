@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2010
+ * Copyright (C) 2011
  * Raphaël Proust
+ * Pierre Chambart
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,20 +19,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
-(** This module is the client part of the shared event scheme used in Eliom. It
-    is to be used with [Eliom_event] as it defines an unwrapping function for
-    each possible wrap in the dual module. *)
-
+(** Client side type declarations for React event propagation. This
+    module must be linked for events to work properly. *)
 
 module Down :
 sig
 
   type 'a t = 'a React.E.t
 
+(*
   val unwrap :
-    ?wake:bool -> ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key
-    -> 'a React.E.t
+  ?wake:bool -> ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key
+  -> 'a React.E.t
+*)
 
 end
 
@@ -40,6 +40,7 @@ sig
 
   type 'a t = ('a -> unit Lwt.t)
 
+(*
   val unwrap :
     (unit,
      'a,
@@ -53,7 +54,10 @@ sig
   -> ('a -> unit Lwt.t)
   (** [unwrap e] returns a function that, when called, triggers the transmitted
       event on the server. The thread returns when the write is done. *)
+*)
 
 end
+
+(**/**)
 
 val force_link : unit

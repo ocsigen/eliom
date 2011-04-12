@@ -18,11 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** This modules contains predefined modules for generating forms and
-   registering handlers, for several types of pages:
-   XHTML pages typed with polymorphic variants,
-   untyped (text) pages, actions, redirections, files ...
- *)
+(** Predefined modules for generating forms and
+    registering handlers, for several types of pages:
+    Applications, HTML pages typed with polymorphic variants,
+    untyped (text) pages, actions, redirections, files ...
+*)
 
 open Eliom_pervasives
 

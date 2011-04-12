@@ -1,4 +1,6 @@
 
+(** Pervasives module for Eliom extending stdlib, should always be opened. *)
+
 exception Eliom_Internal_Error of string
 
 external id : 'a -> 'a = "%identity"
@@ -96,6 +98,7 @@ val unmarshal_js_var : string -> 'a
 
 val encode_header_value : 'a -> string
 
+(** XML building and deconstructing. *)
 module XML : sig
 
   type aname = string
@@ -141,16 +144,19 @@ end
 
 module SVG : sig
 
+  (** type safe SVG creation. *)
   module M : SVG_sigs.SVG(XML).T
 
 end
 
 module HTML5 : sig
+
+  (** type safe HTML5 creation. *)
   module M :
   sig
     include HTML5_sigs.HTML5(XML)(SVG.M).T
 
-    (** type safe casting functions from HTML5 types to Dom types *)
+    (** type safe casting functions from HTML5 types to Dom types. *)
 
     val to_element : 'a elt -> Dom_html.element Js.t
 

@@ -28,11 +28,13 @@ struct
 
   type 'a t = 'a React.E.t
 
+(*
   let unwrap ?wake
         (c : ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key)
         : 'a React.E.t
     =
     Lwt_event.of_stream (Eliom_comet.unwrap ?wake c)
+*)
 
   let internal_unwrap ( channel, unwrapper ) =
     Lwt_event.of_stream channel
@@ -46,9 +48,11 @@ struct
 
   type 'a t = ('a -> unit Lwt.t)
 
+(*
   let unwrap s =
     let service = Eliommod_cli.unwrap s in
     fun x -> Eliom_client.call_service ~service () x >|= fun _ -> ()
+*)
 
   let internal_unwrap ( service, unwrapper ) =
     fun x -> Eliom_client.call_service ~service () x >|= fun _ -> ()

@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** Call server side services and change the current page. *)
+
 open Eliom_pervasives
 
 (** Call a server side service and change the current page.
@@ -30,7 +32,7 @@ val change_page :
   ?https:bool ->
   service:('a, 'b,
            [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   ?hostname:string ->
@@ -47,7 +49,7 @@ val call_caml_service :
   ?https:bool ->
   service:('a, 'b,
            [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_services.registrable ], 'return Eliom_parameters.caml)
           Eliom_services.service ->
   ?hostname:string ->
@@ -65,7 +67,7 @@ val exit_to :
   ?https:bool ->
   service:('a, 'b,
            [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   ?hostname:string ->
@@ -82,7 +84,7 @@ val get_subpage :
   ?https:bool ->
   service:('a, 'b,
            [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   ?hostname:string ->
@@ -90,7 +92,7 @@ val get_subpage :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
   ?nl_params:(string * string) list String.Table.t ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> 
+  ?keep_get_na_params:bool -> 'a -> 'b ->
   [< `PCDATA | XHTML_types.flow ] HTML5.M.elt list Lwt.t
 
 (** (low level) Call a server side service and return the content
@@ -101,7 +103,7 @@ val call_service :
   ?https:bool ->
   service:('a, 'b,
            [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   ?hostname:string ->
@@ -123,7 +125,7 @@ val change_url :
   ?https:bool ->
   service:('a, 'b,
            [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
            [< Eliom_services.registrable ], 'return)
           Eliom_services.service ->
   ?hostname:string ->

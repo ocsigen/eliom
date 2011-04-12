@@ -90,12 +90,11 @@ eliom_pervasives.cmo: eliom_pervasives.cmi
 eliom_pervasives.cmx: eliom_pervasives.cmi
 eliom_process.cmo:
 eliom_process.cmx:
-eliom_react.cmo: private/eliommod_react.cmo eliom_services.cmi \
-    eliom_parameters.cmi eliom_output.cmi eliom_common.cmi eliom_react.cmi
-eliom_react.cmx: private/eliommod_react.cmx eliom_services.cmx \
-    eliom_parameters.cmx eliom_output.cmx eliom_common.cmx eliom_react.cmi
-eliom_react.cmi: eliom_types.cmi eliom_services.cmi eliom_parameters.cmi \
-    eliom_output.cmi eliom_common.cmi eliom_comet_base.cmi
+eliom_react.cmo: eliom_services.cmi eliom_parameters.cmi eliom_output.cmi \
+    eliom_common.cmi eliom_comet.cmi eliom_react.cmi
+eliom_react.cmx: eliom_services.cmx eliom_parameters.cmx eliom_output.cmx \
+    eliom_common.cmx eliom_comet.cmx eliom_react.cmi
+eliom_react.cmi: eliom_parameters.cmi eliom_common.cmi
 eliom_references.cmo: eliom_state.cmi eliom_request_info.cmi \
     eliom_references.cmi
 eliom_references.cmx: eliom_state.cmx eliom_request_info.cmx \
@@ -246,8 +245,6 @@ private/eliommod_persess.cmx: private/eliommod_sessiongroups.cmx \
     private/eliommod_cookies.cmx eliom_common.cmx \
     private/eliommod_persess.cmi
 private/eliommod_persess.cmi: eliom_common.cmi
-private/eliommod_react.cmo: eliom_common.cmi eliom_comet.cmi
-private/eliommod_react.cmx: eliom_common.cmx eliom_comet.cmx
 private/eliommod_sersess.cmo: private/eliommod_sessiongroups.cmi \
     private/eliommod_cookies.cmi eliom_request_info.cmi eliom_common.cmi \
     private/eliommod_sersess.cmi

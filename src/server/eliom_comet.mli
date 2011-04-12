@@ -19,8 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** Primitives to push data to the client, without explicit request. *)
 module Channels :
-(** A module with all the base primitive needed for server push. *)
+(** Basic primitives needed for server push. *)
 sig
 
   type 'a t
@@ -38,12 +39,21 @@ sig
       To avoid memory leak when the client do not read the sent datas,
       the channel has a limited [size]. When a channel is full, no data
       can be read from it anymore.
-      Not that to limit the data are read into the channel as soon as possible:
+      Note that to enforce this limit the data are read into the channel as soon as possible:
       If you want a channel that read data to the stream only when the
       client request it, use [create_unlimited] instead, but be carefull
       to memory leaks. *)
 
   val create_unlimited : ?name:string -> 'a Lwt_stream.t -> 'a t
+  (** [create_unlimited s] creates a channel wich does not read
+      immediately on the stream it is read only when the client
+      request it: use it if the data you send depends on the time of
+      the request ( for instance the number of unread mails ). Be
+      carefull the size of this stream is not limited: if the size of
+      the stream increase and your clients don't read it, you may have
+      memory leaks. *)
+
+  (**/**)
 
   val get_id : 'a t -> 'a Eliom_comet_base.chan_id
   val wrap : 'a t -> ( 'a Eliom_comet_base.chan_id * Eliom_common.unwrapper ) Eliom_types.data_key

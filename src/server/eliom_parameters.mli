@@ -18,10 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(**
-   This module defines the values used to declare the type of service
-   parameters.
- *)
+(** Values used to declare the type of service parameters. *)
 
 (** Here are some examples of how to specify the types and names of
    service parameters:
@@ -320,7 +317,7 @@ val all_suffix_user :
   ('a, [ `Endsuffix ], [` One of 'a ] param_name) params_type
     (** Takes all the suffix, as long as possible,
         with a type specified by the user. *)
-    
+
 val all_suffix_regexp :
   Netstring_pcre.regexp -> string -> to_string:(string -> string) -> string ->
       (string, [ `Endsuffix ], [` One of string ] param_name) params_type
@@ -406,13 +403,13 @@ val make_non_localized_parameters :
 val get_non_localized_get_parameters :
   ('a, [ `WithoutSuffix ], 'b) non_localized_params ->
   'a option
-(** [get_non_localized_get_parameters ~sp p] decodes and 
+(** [get_non_localized_get_parameters ~sp p] decodes and
     returns non localized GET parameters specified by [p] if present. *)
 
 val get_non_localized_post_parameters :
   ('a, [ `WithoutSuffix ], 'b) non_localized_params ->
   'a option
-(** [get_non_localized_post_parameters ~sp p] decodes and 
+(** [get_non_localized_post_parameters ~sp p] decodes and
     returns non localized POST parameters specified by [p] if present. *)
 
 (** Use this type to give non localized parameters to a link or a form *)
@@ -420,12 +417,12 @@ type nl_params_set
 
 val empty_nl_params_set : nl_params_set
 
-val add_nl_parameter : 
+val add_nl_parameter :
   nl_params_set ->
-  ('a, [< `WithSuffix | `WithoutSuffix ], _) non_localized_params -> 
+  ('a, [< `WithSuffix | `WithoutSuffix ], _) non_localized_params ->
   'a -> nl_params_set
 
-val get_nl_params_names : 
+val get_nl_params_names :
   (_, [< `WithSuffix | `WithoutSuffix ], 'a) non_localized_params -> 'a
 
 (** Given a parameter type, get the two functions
@@ -463,21 +460,21 @@ val construct_params_string : (string * string) list -> string
 val construct_params_list_raw :
   (string * string) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-  'a -> string list option * 
+  'a -> string list option *
   (string * string) list String.Table.t *
      (string * string) list
 
 val construct_params_list :
   (string * string) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
-  'a -> 
+  'a ->
   string list option * (string * string) list
 
 val reconstruct_params :
   sp:Eliom_common.server_params ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   (string * string) list Lwt.t option ->
-  (string * file_info) list Lwt.t option -> 
+  (string * file_info) list Lwt.t option ->
   bool ->
   Url.path option -> 'a Lwt.t
 
@@ -490,17 +487,17 @@ val make_params_names :
 
 val string_of_param_name : 'a param_name -> string
 
-val nl_prod : 
+val nl_prod :
   ('a, 'su, 'an) params_type ->
   ('s, [ `WithoutSuffix ], 'sn) non_localized_params ->
-  ('a * 's, 'su, 'an * 'sn) params_type 
+  ('a * 's, 'su, 'an * 'sn) params_type
 
 val remove_from_nlp :
   (string * string) list String.Table.t ->
   ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
   (string * string) list String.Table.t
 
-val table_of_nl_params_set : nl_params_set -> 
+val table_of_nl_params_set : nl_params_set ->
   (string * string) list String.Table.t
 
 val list_of_nl_params_set : nl_params_set -> (string * string) list

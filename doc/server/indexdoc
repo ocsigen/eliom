@@ -2,6 +2,8 @@
 
 {!modules:
 Eliom_pervasives
+Eliom_pervasives.XHTML.M
+Eliom_pervasives.HTML5.M
 }
 
 {2 Services creation and manipulation}

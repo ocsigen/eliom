@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** Broadcasting facilities between clients and server *)
+
 type 'a t
 (** The type of bus's carrying values of type ['a]. Bus's are values
     that can be easily shared among clients. Each of these clients

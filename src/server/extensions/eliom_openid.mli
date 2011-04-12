@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-(** Module to provide OpenID identification *)
+(** OpenID identification *)
 
 (** This module implements the Relying Party of the OpenID specification,
     in stateful mode. *)
@@ -26,10 +26,10 @@
     Basically, you need to ask the user its OpenID url, and
     the fields you want to require (or none, if you just want to
     authenticate an user), along with other information.
-    
+
     The library uses an "hidden service" that is needed when the provider
     redirects back to your site. This service is registered in the library, all you have
-    to do is to give a path for that service and a default handler 
+    to do is to give a path for that service and a default handler
     (if the user connects to that service without being in an authentication process.)
     Here is a short example of how to use the library
     {[
@@ -59,12 +59,12 @@ let form_handler = Eliom_output.String_redirection.register_new_post_coservice
     ~immediate: false
    url
    (fun result ->
-     let string = 
+     let string =
        match result with
          | Setup_needed -> "setup needed" | Canceled -> "canceled"
-         | Result result -> 
-           try List.assoc Email result.fields with Not_found -> "No e-mail :(" 
-     in 
+         | Result result ->
+           try List.assoc Email result.fields with Not_found -> "No e-mail :("
+     in
      Eliom_state.set_volatile_session_data ~table:messages string;
      Eliom_output.Redirection.send login_form))
 
@@ -73,11 +73,11 @@ let _ = Eliom_output.Xhtml.register
     ~service: login_form
     (fun _ _ ->
     (match Eliom_state.get_volatile_session_data ~table: messages () with
-     | Eliom_state.Data s -> 
+     | Eliom_state.Data s ->
        Eliom_state.discard () >>= fun () ->
        Lwt.return [p [pcdata ("Authentication result: "^ s)]]
      | _ -> Lwt.return []) >>= fun message ->
-    let form = 
+    let form =
     Eliom_output.Xhtml.post_form ~service:form_handler
       (fun url ->
         [p [pcdata "Your OpenID identifier: ";
@@ -88,11 +88,11 @@ let _ = Eliom_output.Xhtml.register
     Lwt.return
       (html
            (head (title (pcdata "A sample test")) [])
-           (body 
+           (body
               (message @ [form]))))
 ]}
 *)
-    
+
 (** {1 Documentation} *)
 
 (** {2 Miscallenous} *)
@@ -147,7 +147,7 @@ val sreg :
   required:field list ->
   optional:field list -> unit -> (field * string) list extension
 
-(** The AX extension 
+(** The AX extension
     @see <http://openid.net/specs/openid-attribute-exchange-1_0.html> AX*)
 val ax :
   required:field list ->
@@ -171,7 +171,7 @@ val ( *** ) : 'a extension -> 'b extension -> ('a * 'b) extension
 (** Product of two extension *)
 
 (** The result of an authentication. *)
-type 'a authentication_result = 
+type 'a authentication_result =
     Canceled (** The user canceled the login (or failed) *)
   | Setup_needed (** The provider has not enough information to complete an immediate
                      request. Only returned when using an immediate authentication. *)
@@ -223,10 +223,10 @@ module Make :
     It yields a [result]. *)
 
 (** The result yielded by the authentication process *)
-type result = { 
-  fields : (field * string) list; 
+type result = {
+  fields : (field * string) list;
   (** The fields you requested *)
-  pape : pape; 
+  pape : pape;
   (** The pape information *)
 }
 

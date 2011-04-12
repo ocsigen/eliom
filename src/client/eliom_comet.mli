@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** This module contains functions to handle unsolicited server to
-    client communication on the client side *)
+(** Handle unsolicited server to client communications. *)
 
 (** when the page is not active the client stops making comet requests
     to the server, implying that the client can't be notified by the
@@ -44,13 +43,13 @@ val activate : unit -> unit
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
 
+(** Change the reactivity of channels. Multiples configurations ( of
+    type [t] ) can be created. The resulting behaviour is the minimal
+    ( in the meaning of maximal reactivity ) between all
+    configurations *)
 module Configuration :
 sig
-  (** This modules is used to change the reactivity of channels.
-      Multiples configurations ( of type [t] ) can be created. The
-      resulting behaviour is the minimal ( in the meaning of maximal
-      reactivity ) between all configurations *)
-  
+
   type t
 
   val new_configuration : unit -> t
@@ -89,7 +88,7 @@ end
 
 (**/**)
 
-val unwrap : ?wake:bool -> ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key -> 'a Lwt_stream.t
+(*val unwrap : ?wake:bool -> ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key -> 'a Lwt_stream.t*)
 val register : ?wake:bool -> 'a Eliom_comet_base.chan_id -> 'a Lwt_stream.t
 (** if wake is false, the registration of the channel won't
     activate the handling loop ( no request will be sent ). Default is true *)

@@ -59,7 +59,6 @@ FILES := eliom_pervasives.ml \
 	 eliom_mkforms.ml \
 	 eliom_mkreg.ml \
 	 eliom_comet_base.ml eliom_comet.ml  \
-	 private/eliommod_react.ml \
 	 eliom_output_base.ml eliom_output.ml \
          eliom_tools_common.ml \
 	 eliom_tools.ml \
