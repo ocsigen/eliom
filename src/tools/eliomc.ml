@@ -54,11 +54,11 @@ let prefix_output_dir name =
 let chop_extension_if_any name =
   try Filename.chop_extension name with Invalid_argument _ -> name
 
-let output_prefix name =
+let output_prefix ?(ty = false) name =
   let name =
     match !output_name with
     | None ->
-	if !mode = `InferOnly
+	if !mode = `InferOnly || ty
 	then prefix_type_dir name
 	else prefix_output_dir name
     | Some n ->
@@ -147,7 +147,7 @@ let compile_obj file =
 
 let compile_server_type_eliom file =
   if do_infer () then
-    let obj = output_prefix file ^ type_file_suffix in
+    let obj = output_prefix ~ty:true file ^ type_file_suffix in
     let ppopt = ["pa_eliom_type_filter.cmo"; "-impl"] in
     let out = Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o644 in
     create_process ~out !compiler ( [ "-i" ; "-thread" ]

@@ -54,7 +54,7 @@ let default_client_dir =
 
 let default_type_dir =
   try Sys.getenv "ELIOM_TYPE_DIR"
-  with Not_found -> ""
+  with Not_found -> default_server_dir
 
 let build_dir : string ref = ref ""
 let type_dir : string ref = ref default_type_dir
