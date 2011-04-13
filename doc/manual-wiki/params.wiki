@@ -18,7 +18,7 @@ in module  <<a_api| module Eliom_parameters >>. For example
 
 Here is an example of a service with GET parameters:
 
-<<code language="ocaml"|open XHTML5.M
+<<code language="ocaml"|open HTML5.M
 open Eliom_parameters
 
 let writeparams (i1, (i2, s1)) () =
@@ -33,7 +33,7 @@ let writeparams (i1, (i2, s1)) () =
               strong [pcdata s1]]]))
 >>
 
-<<code language="ocaml"|let coucou_params = Eliom_output.Xhtml5.register_service
+<<code language="ocaml"|let coucou_params = Eliom_output.Html5.register_service
     ~path:["coucou"]
     ~get_params:(int "i" ** (int "ii" ** string "s"))
     writeparams
@@ -63,10 +63,10 @@ service
 and how to get server information:
     
 
-<<code language="ocaml"|open XHTML5.M
+<<code language="ocaml"|open HTML5.M
 open Eliom_parameters
 let uasuffix =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["uasuffix"]
     ~get_params:(suffix (int "year" ** int "month"))
     (fun (year, month) () ->
@@ -98,7 +98,7 @@ the end of the suffix as a <<span class="code"|string list>>.\\
 
 <<code language="ocaml"|
 let isuffix =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["isuffix"]
     ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
     (fun ((suff, endsuff), i) () ->
@@ -121,11 +121,11 @@ use the  <<a_api| val Eliom_parameters.const >>
 parameter specification.
 It will match for example URLs like {{{/param1/const/param2}}}.
 Example:
-<<code language="ocaml"|open XHTML5.M
+<<code language="ocaml"|open HTML5.M
 open Eliom_parameters
 
 let constfix =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["constfix"]
     ~get_params:(suffix (string "s1" ** (suffix_const "toto" ** string "s2")))
     (fun (s1, ((), s2))  () ->
@@ -153,7 +153,7 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["mytype"]
     ~get_params:
       (Eliom_parameters.user_type mysum_of_string string_of_mysum "valeur")
@@ -174,7 +174,7 @@ use the  <<a_api| val Eliom_parameters.any >> value. The service will get an
 association list of strings. Example:
 
 <<code language="ocaml"|
-let raw_serv = Eliom_output.Xhtml5.register_service
+let raw_serv = Eliom_output.Html5.register_service
     ~path:["any"]
     ~get_params:Eliom_parameters.any
   (fun l () ->
@@ -206,7 +206,7 @@ You can catch parameters typing errors and write your own
 error messages using the optional parameter
 <<span class="code"|error_handler>>. Example:
 
-<<code language="ocaml"|let catch = Eliom_output.Xhtml5.register_service
+<<code language="ocaml"|let catch = Eliom_output.Html5.register_service
     ~path:["catch"]
     ~get_params:(int "i")
     ~error_handler:(fun l ->
@@ -235,27 +235,27 @@ See [[site:tuto/catch?i=22|<<span class="code"|catch>>]] (change the value
 ==@@id="p1links"@@Links
 
 To create a link (<<span class="code"|<a~>>>), use the
- <<a_api| val Eliom_output.XHTML5FORMSSIG.a >> function (or <<span class="code"|Eliom_duce.Xhtml5.a>>, etc),
+ <<a_api| val Eliom_output.HTML5FORMSSIG.a >> function (or <<span class="code"|Eliom_duce.Html5.a>>, etc),
 as in these examples:
 
-<<code language="ocaml"|let links = Eliom_output.Xhtml5.register_service ["rep";"links"] unit
+<<code language="ocaml"|let links = Eliom_output.Html5.register_service ["rep";"links"] unit
  (fun () () ->
    Lwt.return
     (html
      (head (title (pcdata "Links")) [])
      (body
        [p
-        [Eliom_output.Xhtml5.a coucou [pcdata "coucou"] (); br ();
-         Eliom_output.Xhtml5.a hello [pcdata "hello"] (); br ();
-         Eliom_output.Xhtml5.a default
+        [Eliom_output.Html5.a coucou [pcdata "coucou"] (); br ();
+         Eliom_output.Html5.a hello [pcdata "hello"] (); br ();
+         Eliom_output.Html5.a default
            [pcdata "default page of the dir"] (); br ();
-         Eliom_output.Xhtml5.a uasuffix
+         Eliom_output.Html5.a uasuffix
            [pcdata "uasuffix"] (2007,06); br ();
-         Eliom_output.Xhtml5.a coucou_params
+         Eliom_output.Html5.a coucou_params
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-         Eliom_output.Xhtml5.a raw_serv
+         Eliom_output.Html5.a raw_serv
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
-         Eliom_output.Xhtml5.a
+         Eliom_output.Html5.a
            (Eliom_services.external_service
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
@@ -263,7 +263,7 @@ as in these examples:
               ())
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
-         XHTML5.M.a
+         HTML5.M.a
            ~a:[a_href (uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
            [pcdata "OCaml on wikipedia"]
        ]])))
@@ -276,15 +276,15 @@ See [[site:tuto/rep/links|<<span class="code"|links>>]].
 
 
   
-If you open  <<a_api| module Eliom_output.Xhtml5 >> after  <<a_api| module XHTML5.M >>,
- <<a_api| val Eliom_output.XHTML5FORMSSIG.a >>
-   will mask  <<a_api| val XHTML5.M.a >>.
+If you open  <<a_api| module Eliom_output.Html5 >> after  <<a_api | module Eliom_pervasives.HTML5.M >>,
+ <<a_api| val Eliom_output.HTML5FORMSSIG.a >>
+   will mask  <<a_api| val Eliom_pervasives.HTML5.M.a >>.
 Thus you can avoid to write fully qualified values most of the time.
       
   
 
   
- <<a_api| val Eliom_output.XHTML5FORMSSIG.a >> takes as first parameter
+ <<a_api| val Eliom_output.HTML5FORMSSIG.a >> takes as first parameter
 the service you want to link to.
 
   
@@ -302,7 +302,7 @@ on the service you link to.
 The links to Wikipedia shows how to define an external service (here it
 uses a suffix URL).
 For an external service without parameters, you can use the low level
-function  <<a_api| val XHTML5.M.a >>, if you don't want to create an
+function  <<a_api| val Eliom_pervasives.HTML5.M.a >>, if you don't want to create an
 external service explicitely.
 Note that the path must be a list of strings.
 Do not write <<span class="code"|["foo/bar"]>>,
@@ -319,7 +319,7 @@ then register it in the table using (for example)
 
 <<code language="ocaml"|let linkrec = Eliom_services.service ["linkrec"] unit ()
 
-let _ = Eliom_output.Xhtml5.register linkrec
+let _ = Eliom_output.Html5.register linkrec
     (fun () () ->
       Lwt.return
        (html
@@ -332,24 +332,24 @@ let _ = Eliom_output.Xhtml5.register linkrec
 
 ===Forms towards GET services
 
-The function  <<a_api| val Eliom_output.XHTML5FORMSSIG.get_form >> allows to create a form
+The function  <<a_api| val Eliom_output.HTML5FORMSSIG.get_form >> allows to create a form
 that uses the GET method (parameters in the URL).
-It works like  <<a_api| val Eliom_output.XHTML5FORMSSIG.a >> but takes a //function// that creates the form from the parameters names as parameter.
+It works like  <<a_api| val Eliom_output.HTML5FORMSSIG.a >> but takes a //function// that creates the form from the parameters names as parameter.
 
   
 <<code language="ocaml"|let create_form =
   (fun (number_name, (number2_name, string_name)) ->
     [p [pcdata "Write an int: ";
-        Eliom_output.Xhtml5.int_input ~input_type:`Text ~name:number_name ();
+        Eliom_output.Html5.int_input ~input_type:`Text ~name:number_name ();
         pcdata "Write another int: ";
-        Eliom_output.Xhtml5.int_input ~input_type:`Text ~name:number2_name ();
+        Eliom_output.Html5.int_input ~input_type:`Text ~name:number2_name ();
         pcdata "Write a string: ";
-        Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:string_name ();
-        Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click" ()]])
+        Eliom_output.Html5.string_input ~input_type:`Text ~name:string_name ();
+        Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Click" ()]])
 
-let form = Eliom_output.Xhtml5.register_service ["form"] unit
+let form = Eliom_output.Html5.register_service ["form"] unit
   (fun () () ->
-     let f = Eliom_output.Xhtml5.get_form coucou_params create_form in
+     let f = Eliom_output.Html5.get_form coucou_params create_form in
      Lwt.return
        (html
          (head (title (pcdata "")) [])
@@ -360,7 +360,7 @@ let form = Eliom_output.Xhtml5.register_service ["form"] unit
 [[site:tuto/form| See the function <<span class="code"|form>> in action]].\\
 
 If you want to use typed parameters,
-you cannot use functions like  <<a_api| val XHTML5.M.input >> to
+you cannot use functions like  <<a_api| val Eliom_pervasives.HTML5.M.input >> to
 create your forms (but you can use it if you want to use parameters defined with
  <<a_api| val Eliom_parameters.any >>). Indeed, parameter names are typed to force them
 be used properly. In our example, <<span class="code"|number_name>> has type
@@ -370,15 +370,15 @@ be used properly. In our example, <<span class="code"|number_name>> has type
 <<span class="code"|string param_name>> and must be used with
 <<span class="code"|string_input>> (or other widgets).
 All functions for creating form widgets are detailed
-in <<a_api | module Eliom_output.XHTML5FORMSSIG >>.
+in <<a_api | module Eliom_output.HTML5FORMSSIG >>.
 
-For untyped forms, you may use functions from {{{XHTML5.M}}} (or
+For untyped forms, you may use functions from {{{Eliom_pervasives.HTML5.M}}} (or
 OCamlDuce's syntax, or whatever syntax you are using) or
 functions which name is prefixed by "<<span class="code"|raw_>>".
 Here is a form linking to our (untyped) service
 <<span class="code"|raw_serv>>.
 
-<<code language="ocaml"|let raw_form = Eliom_output.Xhtml5.register_service
+<<code language="ocaml"|let raw_form = Eliom_output.Html5.register_service
     ~path:["anyform"]
     ~get_params:unit
     (fun () () ->
@@ -387,13 +387,13 @@ Here is a form linking to our (untyped) service
            (head (title (pcdata "")) [])
            (body
               [h1 [pcdata "Any Form"];
-               Eliom_output.Xhtml5.get_form raw_serv
+               Eliom_output.Html5.get_form raw_serv
                  (fun () ->
                    [p [pcdata "Form to raw_serv: ";
-                       Eliom_output.Xhtml5.raw_input ~input_type:`Text ~name:"plop" ();
-                       Eliom_output.Xhtml5.raw_input ~input_type:`Text ~name:"plip" ();
-                       Eliom_output.Xhtml5.raw_input ~input_type:`Text ~name:"plap" ();
-                       Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Click" ()]])
+                       Eliom_output.Html5.raw_input ~input_type:`Text ~name:"plop" ();
+                       Eliom_output.Html5.raw_input ~input_type:`Text ~name:"plip" ();
+                       Eliom_output.Html5.raw_input ~input_type:`Text ~name:"plap" ();
+                       Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 >>
 
@@ -412,7 +412,7 @@ request, if the POST method is used).
 to define a service that uses the POST method).
 
 <<code language="ocaml"|let no_post_param_service =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["post"]
     ~get_params:unit
     (fun () () ->
@@ -440,7 +440,7 @@ Services may take both GET and POST parameters:
   
 
 <<code language="ocaml"|let get_no_post_param_service =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["post2"]
     ~get_params:(int "i")
     (fun i () ->
@@ -467,22 +467,22 @@ let my_service_with_get_and_post = register_post_service
   
   
  To create a POST form, use the
-    <<a_api| val Eliom_output.XHTML5FORMSSIG.post_form >> function.
-   It is similar to  <<a_api| val Eliom_output.XHTML5FORMSSIG.get_form >>
+    <<a_api| val Eliom_output.HTML5FORMSSIG.post_form >> function.
+   It is similar to  <<a_api| val Eliom_output.HTML5FORMSSIG.get_form >>
    with an additional parameter
    for the GET parameters you want to put in the URL (if any).
    Here, <<span class="code"|form2>> is a page containing a form
-   to the service <<span class="code"|post>> (using XHTML5.M's functions)
+   to the service <<span class="code"|post>> (using Eliom_pervasives.HTML5.M's functions)
    and <<span class="code"|form3>> (defined using the syntax extension)
    contains a form to <<span class="code"|post2>>, with a GET parameter.
    <<span class="code"|form4>> is a form to an external page.
        
   
 
-<<code language="ocaml"|let form2 = Eliom_output.Xhtml5.register_service ["form2"] unit
+<<code language="ocaml"|let form2 = Eliom_output.Html5.register_service ["form2"] unit
   (fun () () ->
      let f =
-       (Eliom_output.Xhtml5.post_form my_service_with_post_params
+       (Eliom_output.Html5.post_form my_service_with_post_params
           (fun chaine ->
             [p [pcdata "Write a string: ";
                 string_input ~input_type:`Text ~name:chaine ()]]) ()) in
@@ -491,10 +491,10 @@ let my_service_with_get_and_post = register_post_service
          (head (title (pcdata "form")) [])
          (body [f])))
 
-let form3 = Eliom_output.Xhtml5.register_service ["form3"] unit
+let form3 = Eliom_output.Html5.register_service ["form3"] unit
   (fun () () ->
      let f  =
-       (Eliom_output.Xhtml5.post_form my_service_with_get_and_post
+       (Eliom_output.Html5.post_form my_service_with_get_and_post
           (fun chaine ->
             <:xmllist< <p> Write a string:
                     $string_input ~input_type:`Text ~name:chaine ()$ </p> ~>>)
@@ -504,10 +504,10 @@ let form3 = Eliom_output.Xhtml5.register_service ["form3"] unit
             <head><title></title></head>
             <body>$f$</body></html> ~>>)
 
-let form4 = Eliom_output.Xhtml5.register_service ["form4"] unit
+let form4 = Eliom_output.Html5.register_service ["form4"] unit
   (fun () () ->
      let f  =
-       (Eliom_output.Xhtml5.post_form
+       (Eliom_output.Html5.post_form
           (external_post_service
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
@@ -546,7 +546,7 @@ Non localized parameters are GET or POST parameters that are not
     ~name:"mynlparams"
     (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
 
-let nlparams = Eliom_output.Xhtml5.register_service
+let nlparams = Eliom_output.Html5.register_service
     ~path:["nlparams"]
     ~get_params:(int "i")
     (fun i () ->
@@ -572,11 +572,11 @@ let nlparams = Eliom_output.Xhtml5.register_service
           
         To create a link or a form with non-localized parameters,
         use the optional parameter <<span class="code"|nl_params>> of functions
-     <<a_api| val Eliom_output.XHTML5FORMSSIG.a >>,
-     <<a_api| val Eliom_output.XHTML5FORMSSIG.get_form >> or
-     <<a_api| val Eliom_output.XHTML5FORMSSIG.post_form >>. Example:
+     <<a_api| val Eliom_output.HTML5FORMSSIG.a >>,
+     <<a_api| val Eliom_output.HTML5FORMSSIG.get_form >> or
+     <<a_api| val Eliom_output.HTML5FORMSSIG.post_form >>. Example:
   
-<<code language="ocaml"|let tonlparams = Eliom_output.Xhtml5.register_service
+<<code language="ocaml"|let tonlparams = Eliom_output.Html5.register_service
     ~path:["nlparams"]
     ~get_params:unit
     (fun i () ->
@@ -602,9 +602,9 @@ let nlparams = Eliom_output.Xhtml5.register_service
                              )
                   (fun iname ->
                      [p [pcdata "form with hidden nl params";
-                         Eliom_output.Xhtml5.int_input 
+                         Eliom_output.Html5.int_input 
                            ~input_type:`Text ~name:iname ();
-                         Eliom_output.Xhtml5.string_input
+                         Eliom_output.Html5.string_input
                            ~input_type:`Submit ~value:"Send" ()]]);
                 get_form
                   ~service:nlparams 
@@ -613,13 +613,13 @@ let nlparams = Eliom_output.Xhtml5.register_service
                        Eliom_parameters.get_nl_params_names my_nl_params
                      in
                      [p [pcdata "form with nl params fiels";
-                         Eliom_output.Xhtml5.int_input 
+                         Eliom_output.Html5.int_input 
                            ~input_type:`Text ~name:iname ();
-                         Eliom_output.Xhtml5.int_input 
+                         Eliom_output.Html5.int_input 
                            ~input_type:`Text ~name:aname ();
-                         Eliom_output.Xhtml5.string_input 
+                         Eliom_output.Html5.string_input 
                            ~input_type:`Text ~name:sname ();
-                         Eliom_output.Xhtml5.string_input
+                         Eliom_output.Html5.string_input
                            ~input_type:`Submit ~value:"Send" ()]]);
                ]))
     )
@@ -658,7 +658,7 @@ values enclosed between <<span class="code"|[>> and <<span class="code"|]>>:
 let r = Netstring_pcre.regexp "\\\\[(.*)\\\\]"
 
 let regexp =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["regexp"]
     ~get_params:(regexp r "$1" "myparam")
     (fun g () ->
@@ -672,7 +672,7 @@ let regexp =
 <<code language="ocaml"|let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 
 let regexpserv =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["regexp"]
     ~get_params:(regexp myregexp "$1" (fun s -> s) "myparam")
     (fun g () ->
@@ -690,7 +690,7 @@ A possible use of this type is in a form
 with //boolean checkboxes//, as in the example below:
       
 <<code language="ocaml"|(* Form with bool checkbox: *)
-let bool_params = Eliom_output.Xhtml5.register_service
+let bool_params = Eliom_output.Html5.register_service
     ~path:["bool"]
     ~get_params:(bool "case")
   (fun case () ->
@@ -708,7 +708,7 @@ let create_form_bool casename =
     <:xmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> ~>>
 
-let form_bool = Eliom_output.Xhtml5.register_service ["formbool"] unit
+let form_bool = Eliom_output.Html5.register_service ["formbool"] unit
   (fun () () ->
      let f = get_form bool_params create_form_bool in
      Lwt.return
@@ -750,7 +750,7 @@ all of type <<span class="code"|int>>.
 The function you register will receive the parameters in a list.
 Example:
 
-<<code language="ocaml"|let set = Eliom_output.Xhtml5.register_service
+<<code language="ocaml"|let set = Eliom_output.Html5.register_service
     ~path:["set"]
     ~get_params:(set string "s")
   (fun l () ->
@@ -776,7 +776,7 @@ These parameters may come from several kinds of widgets in forms.
    
 <<code language="ocaml"|
 (* form to set *)
-let setform = Eliom_output.Xhtml5.register_service
+let setform = Eliom_output.Html5.register_service
     ~path:["setform"]
     ~get_params:unit
     (fun () () ->
@@ -811,7 +811,7 @@ will answer.
   
 Here is an example of a select box.
   
-<<code language="ocaml"|let select_example_result = Eliom_output.Xhtml5.register_service
+<<code language="ocaml"|let select_example_result = Eliom_output.Html5.register_service
     ~path:["select"]
     ~get_params:(string "s")
     (fun g () ->
@@ -824,13 +824,13 @@ Here is an example of a select box.
 let create_select_form =
   (fun select_name ->
     [p [pcdata "Select something: ";
-        Eliom_output.Xhtml5.string_select ~name:select_name
-          (Eliom_output.Xhtml5.Option ([] (* attributes *),
+        Eliom_output.Html5.string_select ~name:select_name
+          (Eliom_output.Html5.Option ([] (* attributes *),
                                         "Bob" (* value *),
                                         None (* Content, if different from value *),
                                         false (* not selected *))) (* first line *)
-          [Eliom_output.Xhtml5.Option ([], "Marc", None, false);
-          (Eliom_output.Xhtml5.Optgroup
+          [Eliom_output.Html5.Option ([], "Marc", None, false);
+          (Eliom_output.Html5.Optgroup
           ([],
            "Girls",
            ([], "Karin", None, false),
@@ -838,12 +838,12 @@ let create_select_form =
             ([], "Alice", None, true);
             ([], "Germaine", Some (pcdata "Bob's mother"), false)]))]
           ;
-        Eliom_output.Xhtml5.string_input ~input_type:`Submit ~value:"Send" ()]])
+        Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Send" ()]])
 
-let select_example = Eliom_output.Xhtml5.register_service ["select"] unit
+let select_example = Eliom_output.Html5.register_service ["select"] unit
   (fun () () ->
      let f =
-       Eliom_output.Xhtml5.get_form
+       Eliom_output.Html5.get_form
          select_example_result create_select_form
      in
      Lwt.return
@@ -855,7 +855,7 @@ let select_example = Eliom_output.Xhtml5.register_service ["select"] unit
 [[site:tuto/select| Try it]].\\
 
 To do "multiple" select boxes, use functions like
- <<a_api| val Eliom_output.XHTML5FORMSSIG.string_multiple_select >>.
+ <<a_api| val Eliom_output.HTML5FORMSSIG.string_multiple_select >>.
 As you can see in the type, the service must be declared with parameters
 of type  <<a_api| val Eliom_parameters.set >>.
 
@@ -865,7 +865,7 @@ of type  <<a_api| val Eliom_parameters.set >>.
 Here is an example of clickable image.
       You receive the coordinates the user clicked on.
       
-<<code language="ocaml"|let coord = Eliom_output.Xhtml5.register_service
+<<code language="ocaml"|let coord = Eliom_output.Html5.register_service
     ~path:["coord"]
     ~get_params:(coordinates "coord")
   (fun c () ->
@@ -881,7 +881,7 @@ Here is an example of clickable image.
      </html> ~>>)
 
 (* form to image *)
-let imageform = Eliom_output.Xhtml5.register_service
+let imageform = Eliom_output.Html5.register_service
     ~path:["imageform"]
     ~get_params:unit
     (fun () () ->
@@ -902,7 +902,7 @@ let imageform = Eliom_output.Xhtml5.register_service
 
 You may also send a value with the coordinates:
   
-<<code language="ocaml"|let coord2 = Eliom_output.Xhtml5.register_service
+<<code language="ocaml"|let coord2 = Eliom_output.Html5.register_service
     ~path:["coord2"]
     ~get_params:(int_coordinates "coord")
   (fun (i, c) () ->
@@ -918,7 +918,7 @@ You may also send a value with the coordinates:
      </html> ~>>)
 
 (* form to image *)
-let imageform2 = Eliom_output.Xhtml5.register_service
+let imageform2 = Eliom_output.Html5.register_service
     ~path:["imageform2"]
     ~get_params:unit
     (fun () () ->
@@ -949,7 +949,7 @@ Here is an example of service taking an indexed list as parameter:
 
 <<code language="ocaml"|
 (* lists *)
-let coucou_list = Eliom_output.Xhtml5.register_service
+let coucou_list = Eliom_output.Html5.register_service
     ~path:["coucou"]
     ~get_params:(list "a" (string "str"))
   (fun l () ->
@@ -996,7 +996,7 @@ let create_listform f =
     ["one";"two";"three";"four"]
     <:xmllist< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> ~>>
 
-let listform = Eliom_output.Xhtml5.register_service ["listform"] unit
+let listform = Eliom_output.Html5.register_service ["listform"] unit
   (fun () () ->
      let f = get_form coucou_list create_listform in
      Lwt.return
@@ -1034,7 +1034,7 @@ let create_suffixform ((suff, endsuff),i) =
       Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> ~>>
 
-let suffixform = Eliom_output.Xhtml5.register_service ["suffixform"] unit
+let suffixform = Eliom_output.Html5.register_service ["suffixform"] unit
   (fun () () ->
      let f = get_form isuffix create_suffixform in
      Lwt.return
@@ -1051,7 +1051,7 @@ let suffixform = Eliom_output.Xhtml5.register_service ["suffixform"] unit
 
 The  <<a_api| val Eliom_parameters.file >> parameter type allows to send files in your
 request. The service gets something of type
- <<a_api| type Ocsigen_extensions.file_info >>. You can extract information
+ <<a_api project="ocsigenserver"| type Ocsigen_extensions.file_info >>. You can extract information
 using this using these functions (from  <<a_api| module Eliom_request_info >>):
 
 <<code language="ocaml"|val get_tmp_filename : Ocsigen_extensions.file_info -> string
