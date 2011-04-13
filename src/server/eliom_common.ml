@@ -592,7 +592,7 @@ let get_sp_option () = Lwt.get sp_key
 let get_sp () =
   match Lwt.get sp_key with
     | Some sp -> sp
-    | None -> failwith "sp not initialized"
+    | None -> failwith "Server parameters not available here. See http://ocsigen.org/eliom/doc/dev/manual/sp for more information."
 
 let sp_of_option sp = 
   match sp with

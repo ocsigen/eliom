@@ -1,0 +1,16 @@
+= Implicit server parameters
+
+Starting from version 1.90, the server parameters are no more
+explicitely passed as parameters. They are stored in Lwt's new local
+thread storage mechanism.
+
+Server parameters are only available in two place:
+* during initialisation of a site ;
+* during a request processing.
+
+If your program failed with {{{"Server parameters not available
+here"}}}, here a list of common mistakes.
+
+=== Service creation inside Lwt thread
+
+<<div class="wip"| TODO use Lwt_main.run >>
