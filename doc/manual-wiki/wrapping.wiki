@@ -106,7 +106,7 @@ value of type <<a_api | type Eliom_wrap.unwrapper >>. An unwrapper does
 not contain functions, it only contains an identifier of type
 <<a_api | type Eliom_wrap.unwrap_id >>. On client side a function can
 be registered to transformed values marked with an id:
-<<a_api | val Eliom_client_unwrap.register_unwrapper >>.
+<<a_api subproject="client" | val Eliom_unwrap.register_unwrapper >>.
 
 <<code language="ocaml"|type marked_int = (int * marked_int Eliom_wrap.unwrapper)
 
@@ -135,7 +135,7 @@ The Eliom types that are marked are:
 * <<a_api | type Eliom_react.Up.t>> transformed to {{{ 'a -> unit }}}
 * <<a_api | type Eliom_react.Down.t>> transformed to {{{ 'a React.E.t }}}
 * <<a_api | type Eliom_bus.t>> transformed to <<a_api | type Eliom_bus.t>>
-* <<a_api | type XML.t>> transformed to <<a_api | type XML.t>> (but the client side representation)
+* <<a_api subproject="server"| type Eliom_pervasives.XML.elt>> transformed to <<a_api subproject="client"| type Eliom_pervasives.XML.elt>> (but the client side representation)
 
 === Additionnal notes for XML ===
 

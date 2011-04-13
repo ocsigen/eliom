@@ -2,11 +2,11 @@ Ocsigen provides several ways to generate and type xhtml pages.
 
 * You can use the XHTML.M module, by Thorsten Ohl, that provides a
   typing based on OCaml's polymorphic variants (See
-  [[wiki(66):TyXML]]).
+  <<a_manual project="tyxml" | TyXML >>).
 * It is also possible to use a syntax extension to write your pages
   with the usual xhtml syntax. This solution is also typed with
   polymorphic variants ans is compatible with the previous one (See
-  [[wiki(66):TyXML]]).
+  <<a_manual project="tyxml" | TyXML>>).
 * You can also use eliom with OcamlDuce. To take benefit of it, use
   OCamlDuce instead of OCaml.
 * You can also choose to generate untyped xhtml as text.
@@ -14,8 +14,8 @@ Ocsigen provides several ways to generate and type xhtml pages.
 ===Text XHTML
 
 The last possibility is to use untyped xhtml. Just build strings
-containing your pages. Have a look at <<a_manual chapter="basics"
-fragment="p1baseprinciples"|one example>>.
+containing your pages. Have a look at
+<<a_api | module Eliom_output.HtmlText >>.
 
 ===OCamlduce
 
