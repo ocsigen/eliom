@@ -44,6 +44,7 @@ miniwiki.cmxa: ${FILES:.ml=.cmx}
 
 clean:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
+	-rm -f _server/*
 
 distclean: clean
 	-rm -f *~ \#* .\#*

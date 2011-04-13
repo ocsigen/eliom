@@ -131,4 +131,4 @@ let unwrap_node k =
 
 let internal_node_unwrap (k,unwrapper) = retrieve_node (0L,k)
 
-let () = Eliom_client_unwrap.register_unwrapper Eliom_common.node_unwrap_id internal_node_unwrap
+let () = Eliom_unwrap.register_unwrapper Eliom_common.node_unwrap_id internal_node_unwrap

@@ -39,7 +39,7 @@ struct
   let internal_unwrap ( channel, unwrapper ) =
     Lwt_event.of_stream channel
 
-  let () = Eliom_client_unwrap.register_unwrapper Eliom_common.react_down_unwrap_id internal_unwrap
+  let () = Eliom_unwrap.register_unwrapper Eliom_common.react_down_unwrap_id internal_unwrap
 
 end
 
@@ -57,7 +57,7 @@ struct
   let internal_unwrap ( service, unwrapper ) =
     fun x -> Eliom_client.call_service ~service () x >|= fun _ -> ()
 
-  let () = Eliom_client_unwrap.register_unwrapper Eliom_common.react_up_unwrap_id internal_unwrap
+  let () = Eliom_unwrap.register_unwrapper Eliom_common.react_up_unwrap_id internal_unwrap
 
 end
 

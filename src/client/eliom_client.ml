@@ -217,7 +217,7 @@ let load_eliom_data_
   (* END FORMDATA HACK *)
   Eliommod_cookies.update_cookie_table cookies;
   Eliom_request_info.set_session_info si;
-  Eliommod_cli.fill_page_data_table (Eliom_client_unwrap.unwrap page_data);
+  Eliommod_cli.fill_page_data_table (Eliom_unwrap.unwrap page_data);
   on_unload_scripts := [fun () -> List.iter Js.Unsafe.variable onunload; Lwt.return ()];
   (* Now we bind the XHR forms and links sent by the server: *)
   List.iter bind_form_or_link (Eliommod_cli.unwrap onload_form_creators_info);

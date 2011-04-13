@@ -14,6 +14,7 @@ INTF := eliom_pervasives.cmi        \
         eliom_comet.cmi             \
         eliom_react.cmi             \
         eliom_bus.cmi               \
+        eliom_unwrap.cmi            \
 	\
         eliom_client.cmi            \
         eliom_request.cmi           \

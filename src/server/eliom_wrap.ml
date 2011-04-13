@@ -144,7 +144,7 @@ type unwrap_id = int
 let id_of_int x = x
 
 type unwrapper =
-    (* WARNING Must be the same as Eliom_client_unwrap.unwrapper *)
+    (* WARNING Must be the same as Eliom_unwrap.unwrapper *)
     { id : unwrap_id;
       umark : Mark.t; }
 

@@ -10,7 +10,7 @@ doc: odoc
 
 odoc:
 	mkdir -p api-html
-	$(OCAMLDOC) ${LIBS} -d api-html -intro indexdoc -html $(addprefix ../../src/client/,$(DOC) $(PLUGINS_DOC))
+	$(OCAMLDOC) ${LIBS} -d api-html -intro indexdoc -html $(addprefix ../../src/client/,$(DOC))
 
 install:
 	${INSTALL} -d -m 644 $(TEMPROOT)$(DOCDIR)/client

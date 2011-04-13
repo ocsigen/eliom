@@ -118,7 +118,7 @@ clean.local:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
 	-rm -f *.type_mli
 	-rm -f ${STATICDIR}/eliom_testsuite.js
-	-rm -rf _client _server
+	-rm -rf _client/* _server/*
 
 distclean: clean.local
 	-rm -f *~ \#* .\#*

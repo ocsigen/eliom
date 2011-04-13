@@ -24,7 +24,4 @@
 ^src/tools/eliomdep$
 ^src/tools/eliomopt$
 ^src/tools/js_of_eliom$
-^tests/_client$
-^tests/_server$
-^tests/miniwiki/_server$
 \.type_mli$

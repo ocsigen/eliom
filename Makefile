@@ -92,6 +92,7 @@ dist:
 
 .PHONY: depend
 depend:
-	${MAKE} -C src/syntax 
-	${MAKE} -C src depend
+	${MAKE} -C src/syntax
+	${MAKE} -C src/tools
+	${MAKE} -C src files/META.${PROJECTNAME} depend
 	${MAKE} -C tests depend
