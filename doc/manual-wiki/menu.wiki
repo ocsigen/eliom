@@ -6,4 +6,6 @@
 ==[[misc|Miscellaneous]]
 ==[[config|Compiling and configuring Eliom modules]]
 ==[[examples|Examples]]
-==[[wrapping|specific wrapping]]
+==[[xhtml|Writing XHTML]]
+==[[security|Security considerations]]
+==[[wrapping|Specific wrapping]]

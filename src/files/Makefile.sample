@@ -34,7 +34,7 @@ JS_OF_ELIOM := js_of_eliom
 
 export ELIOM_SERVER_DIR := _server
 export ELIOM_CLIENT_DIR := _client
-export ELIOM_TYPE_DIR   := .
+export ELIOM_TYPE_DIR   := ${ELIOM_SERVER_DIR}
 
 #####################################
 
@@ -113,4 +113,4 @@ depend:
 
 ## Warning: Dependencies towards *.eliom are not handled by eliomdep yet.
 
-include .depend
+-include .depend

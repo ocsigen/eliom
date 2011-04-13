@@ -12,9 +12,9 @@ The parameters labeled
 <<span class="code"|~get_params>> or <<span class="code"|~post_params>>
 of the services creation functions indicate the type of the parameters.
 The specification of parameters types is done using combinators defined
-in module <<ocsigendoc version="dev" file="Eliom_parameters.html" |<<span class="code"|Eliom_parameters>>>>. For example
-<<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALunit"|<<span class="code"|Eliom_parameters.unit>>>> means that the page does not take any parameter, and
-<<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALint"|<<span class="code"|Eliom_parameters.int "foo">>>> means that the page takes a parameter called {{{foo}}}, of type {{{int}}}.
+in module  <<a_api| module Eliom_parameters >>. For example
+ <<a_api| val Eliom_parameters.unit >> means that the page does not take any parameter, and
+ <<a_api| val Eliom_parameters.int >> means that the page takes a parameter called {{{foo}}}, of type {{{int}}}.
 
 Here is an example of a service with GET parameters:
 
@@ -117,7 +117,7 @@ let isuffix =
 See [[site:tuto/isuffix/11/a/b/c?i=22|<<span class="code"|isuffix>>]].
 
 If you want parameters in the path but not always at the end,
-use the <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALconst"|<<span class="code"|Eliom_parameters.const>>>>
+use the  <<a_api| val Eliom_parameters.const >>
 parameter specification.
 It will match for example URLs like {{{/param1/const/param2}}}.
 Example:
@@ -170,7 +170,7 @@ See [[site:tuto/mytype?valeur=A|<<span class="code"|mytype>>]].
 ===@@id="p1any"@@Untyped parameters
 
 If you want a service that answers to requests with any parameters,
-use the <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|<<span class="code"|Eliom_parameters.any>>>> value. The service will get an
+use the  <<a_api| val Eliom_parameters.any >> value. The service will get an
 association list of strings. Example:
 
 <<code language="ocaml"|
@@ -235,7 +235,7 @@ See [[site:tuto/catch?i=22|<<span class="code"|catch>>]] (change the value
 ==@@id="p1links"@@Links
 
 To create a link (<<span class="code"|<a~>>>), use the
-<<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml5.a>>>> function (or <<span class="code"|Eliom_duce.Xhtml5.a>>, etc),
+ <<a_api| val Eliom_output.XHTML5FORMSSIG.a >> function (or <<span class="code"|Eliom_duce.Xhtml5.a>>, etc),
 as in these examples:
 
 <<code language="ocaml"|let links = Eliom_output.Xhtml5.register_service ["rep";"links"] unit
@@ -276,15 +276,15 @@ See [[site:tuto/rep/links|<<span class="code"|links>>]].
 
 
   
-If you open <<ocsigendoc version="dev" file="Eliom_output.Xhtml5.html"|<<span class="code"|Eliom_output.Xhtml5>>>> after <<ocsigendoc version="dev" file="XHTML5.M.html"|<<span class="code"|XHTML5.M>>>>,
-<<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml5.a>>>>
-   will mask <<ocsigendoc version="dev" file="XHTML5.M.html" fragment="VALa"|<<span class="code"|XHTML5.M.a>>>>.
+If you open  <<a_api| module Eliom_output.Xhtml5 >> after  <<a_api| module XHTML5.M >>,
+ <<a_api| val Eliom_output.XHTML5FORMSSIG.a >>
+   will mask  <<a_api| val XHTML5.M.a >>.
 Thus you can avoid to write fully qualified values most of the time.
       
   
 
   
-<<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml5.a>>>> takes as first parameter
+ <<a_api| val Eliom_output.XHTML5FORMSSIG.a >> takes as first parameter
 the service you want to link to.
 
   
@@ -302,7 +302,7 @@ on the service you link to.
 The links to Wikipedia shows how to define an external service (here it
 uses a suffix URL).
 For an external service without parameters, you can use the low level
-function <<ocsigendoc version="dev" file="XHTML5.M.html" fragment="VALa"|<<span class="code"|XHTML5.M.a>>>>, if you don't want to create an
+function  <<a_api| val XHTML5.M.a >>, if you don't want to create an
 external service explicitely.
 Note that the path must be a list of strings.
 Do not write <<span class="code"|["foo/bar"]>>,
@@ -311,9 +311,9 @@ the URL.\\
 
 
 If you want to create (mutually or not) recursive pages,
-create the service using <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|<<span class="code"|Eliom_services.service>>>> first,
+create the service using  <<a_api| val Eliom_services.service >> first,
 then register it in the table using (for example)
-<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|<<span class="code"|Eliom_output.Xhtml5.register>>>>:
+ <<a_api| val Eliom_mkreg.ELIOMREGSIG.register >>:
 
   
 
@@ -332,9 +332,9 @@ let _ = Eliom_output.Xhtml5.register linkrec
 
 ===Forms towards GET services
 
-The function <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALget_form"|<<span class="code"|Eliom_output.Xhtml5.get_form>>>> allows to create a form
+The function  <<a_api| val Eliom_output.XHTML5FORMSSIG.get_form >> allows to create a form
 that uses the GET method (parameters in the URL).
-It works like <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALa"|<<span class="code"|Eliom_output.Xhtml5.a>>>> but takes a //function// that creates the form from the parameters names as parameter.
+It works like  <<a_api| val Eliom_output.XHTML5FORMSSIG.a >> but takes a //function// that creates the form from the parameters names as parameter.
 
   
 <<code language="ocaml"|let create_form =
@@ -360,9 +360,9 @@ let form = Eliom_output.Xhtml5.register_service ["form"] unit
 [[site:tuto/form| See the function <<span class="code"|form>> in action]].\\
 
 If you want to use typed parameters,
-you cannot use functions like <<ocsigendoc version="dev" file="XHTML5.M.html" fragment="VALinput"|<<span class="code"|XHTML5.M.input>>>> to
+you cannot use functions like  <<a_api| val XHTML5.M.input >> to
 create your forms (but you can use it if you want to use parameters defined with
-<<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALany"|<<span class="code"|Eliom_parameters.any>>>>). Indeed, parameter names are typed to force them
+ <<a_api| val Eliom_parameters.any >>). Indeed, parameter names are typed to force them
 be used properly. In our example, <<span class="code"|number_name>> has type
 <<span class="code"|int param_name>> and must be used with
 <<span class="code"|int_input>> (or other widgets), whereas
@@ -370,7 +370,7 @@ be used properly. In our example, <<span class="code"|number_name>> has type
 <<span class="code"|string param_name>> and must be used with
 <<span class="code"|string_input>> (or other widgets).
 All functions for creating form widgets are detailed
-<<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html"|here>>.
+in <<a_api | module Eliom_output.XHTML5FORMSSIG >>.
 
 For untyped forms, you may use functions from {{{XHTML5.M}}} (or
 OCamlDuce's syntax, or whatever syntax you are using) or
@@ -467,8 +467,8 @@ let my_service_with_get_and_post = register_post_service
   
   
  To create a POST form, use the
-   <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALpost_form"|<<span class="code"|Eliom_output.Xhtml5.post_form>>>> function.
-   It is similar to <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALget_form"|<<span class="code"|Eliom_output.Xhtml5.get_form>>>>
+    <<a_api| val Eliom_output.XHTML5FORMSSIG.post_form >> function.
+   It is similar to  <<a_api| val Eliom_output.XHTML5FORMSSIG.get_form >>
    with an additional parameter
    for the GET parameters you want to put in the URL (if any).
    Here, <<span class="code"|form2>> is a page containing a form
@@ -572,9 +572,9 @@ let nlparams = Eliom_output.Xhtml5.register_service
           
         To create a link or a form with non-localized parameters,
         use the optional parameter <<span class="code"|nl_params>> of functions
-    <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALa"|<<span class="code"|a>>>>,
-    <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALget_form"|<<span class="code"|get_form>>>> or
-    <<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALpost_form"|<<span class="code"|post_form>>>>. Example:
+     <<a_api| val Eliom_output.XHTML5FORMSSIG.a >>,
+     <<a_api| val Eliom_output.XHTML5FORMSSIG.get_form >> or
+     <<a_api| val Eliom_output.XHTML5FORMSSIG.post_form >>. Example:
   
 <<code language="ocaml"|let tonlparams = Eliom_output.Xhtml5.register_service
     ~path:["nlparams"]
@@ -733,18 +733,17 @@ they are tried in order of registration.
 The first matching service will answer.\\
 
 Other types similar to bool:
-*<<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALopt"|<<span class="code"|Eliom_parameters.opt>>>> (page taking an optional parameter),
-*<<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALsum"|<<span class="code"|Eliom_parameters.sum>>>> (either a parameter or another).
+* <<a_api| val Eliom_parameters.opt >> (page taking an optional parameter),
+* <<a_api| val Eliom_parameters.sum >> (either a parameter or another).
 
-See the interface
-<<ocsigendoc version="dev" file="Eliom_parameters.html"|here>>.
+See <<a_api | module Eliom_parameters>>.
 
 ===Type <<span class="code"|set>>
 
 Page may take several parameters of the same name.
 It is useful when you want to create a form with a variable number
 of fields.
-To do that with Eliom, use the type <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|<<span class="code"|Eliom_parameters.set>>>>.
+To do that with Eliom, use the type  <<a_api| val Eliom_parameters.set >>.
 For example <<span class="code"|set int "val">> means that the page will take
 zero, one or several parameters of name <<span class="code"|"val">>,
 all of type <<span class="code"|int>>.
@@ -856,9 +855,9 @@ let select_example = Eliom_output.Xhtml5.register_service ["select"] unit
 [[site:tuto/select| Try it]].\\
 
 To do "multiple" select boxes, use functions like
-<<ocsigendoc version="dev" file="Eliom_output.XHTML5FORMSSIG.html" fragment="VALstring_multiple_select"|<<span class="code"|Eliom_output.Xhtml5.string_multiple_select>>>>.
+ <<a_api| val Eliom_output.XHTML5FORMSSIG.string_multiple_select >>.
 As you can see in the type, the service must be declared with parameters
-of type <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|<<span class="code"|set>>>>.
+of type  <<a_api| val Eliom_parameters.set >>.
 
 ===Clickable images
   
@@ -943,8 +942,8 @@ let imageform2 = Eliom_output.Xhtml5.register_service
 
 ===Type <<span class="code"|list>>
 
-Another way (than <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALset"|<<span class="code"|Eliom_parameters.set>>>>) to do variable length forms
-is to use indexed lists (using <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALlist"|<<span class="code"|Eliom_parameters.list>>>>).
+Another way (than  <<a_api| val Eliom_parameters.set >>) to do variable length forms
+is to use indexed lists (using  <<a_api| val Eliom_parameters.list >>).
 The use of that feature is a bit more complex than <<span class="code"|set>>.
 Here is an example of service taking an indexed list as parameter:
 
@@ -1050,10 +1049,10 @@ let suffixform = Eliom_output.Xhtml5.register_service ["suffixform"] unit
 
 ===Uploading files
 
-The <<ocsigendoc version="dev" file="Eliom_parameters.html" fragment="VALfile"|<<span class="code"|Eliom_parameters.file>>>> parameter type allows to send files in your
+The  <<a_api| val Eliom_parameters.file >> parameter type allows to send files in your
 request. The service gets something of type
-<<ocsigendoc version="dev" file="Ocsigen_extensions.html" fragment="TYPEfile_info"|<<span class="code"|Ocsigen_extensions.file_info>>>>. You can extract information
-using this using these functions (from <<ocsigendoc version="dev" file="Eliom_request_info.html"|<<span class="code"|Eliom_request_info>>>>):
+ <<a_api| type Ocsigen_extensions.file_info >>. You can extract information
+using this using these functions (from  <<a_api| module Eliom_request_info >>):
 
 <<code language="ocaml"|val get_tmp_filename : Ocsigen_extensions.file_info -> string
 val get_filesize : Ocsigen_extensions.file_info -> int64
@@ -1062,9 +1061,9 @@ val get_original_filename : Ocsigen_extensions.file_info -> string
 >>
 
           
-<<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_tmp_filename"|<<span class="code"|Eliom_request_info.get_tmp_filename>>>> allows to know the actual name
+ <<a_api| val Eliom_request_info.get_tmp_filename >> allows to know the actual name
 of the uploaded file on the hard drive.
-<<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_original_filename"|<<span class="code"|Eliom_request_info.get_original_filename>>>> gives the original filename.
+ <<a_api| val Eliom_request_info.get_original_filename >> gives the original filename.
 
 To make possible the upload of files, you must configure a
 directory for uploaded files in Ocsigen's configuration file.

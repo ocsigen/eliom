@@ -1,19 +1,28 @@
 =Compiling and configuring Eliom modules=
 
-This chapter explains how to compile Eliom module,
-how to set Eliom's options in the configuration file,
-and how to define options for your Eliom modules.
-See chapter * * for more information abour Ocsigen server's configuration.
+This chapter explains how to compile Eliom module, how to set Eliom's
+options in the configuration file, and how to define options for your
+Eliom modules. See the Ocsigen server documentation for more information about the
+<<a_manual project="ocsigenserver" chapter="config" |server's configuration>>.
 
 ==@@id="p3misc"@@Using Eliom modules with Ocsigen server==
 
 ===Basics: compiling and running server side applications
+
 ====Compiling Eliom modules
 
-If you're application is server-side only, it is easy to compile an
+If your application is server-side only, it is easy to compile an
 Eliom module (here {{{example.ml}}}) with the following command:
 
-<<div class="pre"|ocamlfind ocamlc -thread -package ocsigen -c example.ml>>
+{{{
+ocamlfind ocamlc -thread -package eliom.server -c example.ml
+}}}
+
+or, in a shortest way:
+
+{{{
+eliomc -c example.ml
+}}}
 
 ====Configuration file
 
@@ -21,12 +30,13 @@ To run an Ocsigen server with an Eliom module {{{example.cmo}}},
 add the following lines to Ocsigen's configuration file
 (<<span class="code"|/etc/ocsigen/ocsigen.conf>> most of the times):
 
-<<div class="pre"|<host>
+{{{
+<host>
   <site path="examples">
     <eliom module="~///path_to///example.cmo" />
   </site>
 </host>
->>
+}}}
 
 The bloc surrounded by the {{{<site>}}} tag creates a sub-site on your
 host, in directory {{{examples}}}. The {{{<site>}}} tag is optional if
@@ -38,12 +48,17 @@ starting Ocsigen server) for this subsite.
 ====Running Ocsigen server
 
 Run Ocsigen server, by typing the command
+
 {{{
-ocsigen
+ocsigenserver
 }}}
-or, if your configuration file is not in the default 
+
+or, if your configuration file is not in the default
 location:
-<<div class="pre"|ocsigen -c //<your configuration file>//>>
+
+{{{
+ocsigenserver -c //<your configuration file>//
+}}}
 
 You should see the page corresponding to service {{{"coucou"}}} in site
 {{{examples/}}} at url\\
@@ -54,7 +69,7 @@ the configuration file during the development process of your application.
 Thus, Ocsigen server will display the exceptions raised during
 the generation of a page in error pages. >>
 
-<<div class="encadre"|**Tip:** To debug your programs, 
+<<div class="encadre"|**Tip:** To debug your programs,
 add the option {{{-v}}} or {{{-V}}} of
 the {{{ocsigen}}} command to have verbose information on what succeeds
 during request. Also think to have look in the log files when something goes
@@ -62,20 +77,86 @@ wrong!>>
 
 ===Compiling client-server Eliom applications
 
+The build process for client-server Eliom applications is rather
+tricky. To ease development of such application, the eliom's
+distribution contains some helpers scripts and Makefiles.
+
+====Using {{{eliomc}}} and {{{js_of_eliom}}}
+
+The easiest way to build a client-server Eliom application is to used
+the scripts {{{eliomc}}} and {{{js_of_eliom}}}. Those scripts are
+basic wrappers around {{{ocamlfind}}}, {{{ocamlc}}} and
+{{{js_of_ocaml}}}.
+
+You can compile your application with the following two commands:
+
+{{{
+eliomc -a -o appl.cma server_module.ml appl.eliom ...
+js_of_eliom -o appl.js client_module.ml appl.eliom ...
+}}}
+
+The first command compile the server-specific part of the
+application. The second one compile the client-specific part. Each
+command accept multiple {{{.ml}}} and {{{.eliom}}} files.
+
+Temporary files will be written in the {{{_server}}} and
+{{{_client}}} directory. Those directory may be changed with command
+line option of the environment variable {{{ELIOM_SERVER_DIR}}} and
+{{{ELIOM_CLIENT_DIR}}}.
+
+Those commands accepts the same set of arguments as {{{ocamlc}}}, plus
+the following specific options:
+
+* {{{-package}}} is the same to the {{{ocamlfind}}} option.
+* {{{-predicates <p>}}} is the same to the {{{ocamlfind}}} option.
+* {{{-dir <dir>}}} set default directory for temporary files.
+* {{{-jsopt <opt>}}} pass {{{opt}}} to the {{{js_of_ocaml}}} compiler **{{{js_of_eliom}}} only**
+
+If you want to use the native version of ocsigen server, you may
+replace {{{eliomc}}} by {{{eliomopt}}}.
+
+====Using a Makefile based on {{{eliomc}}} and {{{js_of_eliom}}}
+
+The eliom distribution also contains a sample Makefile based on
+{{{eliomc}}} and {{{js_of_eliom}}} with proper dependencies
+handling. You will find it the {{{eliom/src/files/}}} directory.
+
+Just adjust the variables found at the top of the Makefile, then run:
+
+{{{
+make depend
+make
+}}}
+
+The sample Makefile use an experimental wrapper around {{{ocamldep}}}
+to generate the dependencies, called {{{eliomdep}}}. Please note that
+{{{eliomdep}}} is still incomplete: it does not handle dependency
+towards {{{.eliom}}} file. It generate however correct dependy toward
+{{{.ml}}} files from an {{{.eliom}}} file.
+
+====Using {{{ocamlbuild}}}
+
 <<div class="wip"|TODO>>
 
+====Detailled build process
 
+<<div class="wip"|TODO, see the introductive comments in the source
+file {{{eliom/src/syntax/pa_eliom_seed.ml}}}>>
+
+===Configuring and running client-server Eliom applications
+
+<<div class="wip"|TODO>>
 
 ===Several Eliom modules for one site===
 
 If your site consists of several modules, you can load them
-consecutively from the configuration file using 
-<<span class="code"|<eliommodule>>> (same syntax as 
+consecutively from the configuration file using
+<<span class="code"|<eliommodule>>> (same syntax as
 <<span class="code"|<eliom>>>, the difference being that
 <<span class="code"|<eliommodule>>> does not generate any page).
 In that case, only the position of the
 <<span class="code"|<eliom>>>
-tag will be taken into account for generating the page using 
+tag will be taken into account for generating the page using
 Eliom.
 Note that there can be only one <<span class="code"|<eliom>>>
 tag for each <<span class="code"|<site>>>
@@ -86,7 +167,8 @@ tag for each <<span class="code"|<site>>>
 If your module has a findlib <<span class="code"|META>> file,
 it is also possible (and recommended!) to do:
 
-<<div class="pre"|<host>
+{{{
+<host>
   <site path="examples">
     <eliom findlib-package="//package-name//" />
   </site>
@@ -103,7 +185,8 @@ This can be used to reload Eliom modules without closing volatile sessions.
 To do that use <<span class="code"|/etc/init.d/ocsigen reload>>
 for most of the distributions, or do it manually using:
 
-<<div class="pre"|echo reload > /var/run/ocsigen_command >>
+{{{
+echo reload > /var/run/ocsigen_command >>
 
 Only modules loaded inside <<span class="code"|<host>>>,
 <<span class="code"|<site>>> or
@@ -114,24 +197,23 @@ Have a look at the logs to see if all went well during the reload.
 If something went wrong, old services may still be reachable.
 
 Warning:
-* Services created with the old modules or
-URLs that have not been masked by new ones
-will still reachable after the update!
-* During the reload, some information of the configuration file
-will not be re-read (for example port numbers, user and group, etc.).
+* Services created with the old modules or URLs that have not been
+  masked by new ones will still reachable after the update!
+* During the reload, some information of the configuration file will
+  not be re-read (for example port numbers, user and group, etc.).
 
 
 ==Interacting with Ocsigen server from Eliom programs
 
 ===Defining an exception handler for the whole site
 
-When an exception is raised during the generation of a page,
-or when the page has not been found or has wrong parameters,
-an HTTP error 500 or 404 is sent to the client. You may want to
-catch these exceptions to print your own error page.
-Do this using <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALset_exn_handler"|<<span class="code"|Eliom_services.set_exn_handler>>>>.
+When an exception is raised during the generation of a page, or when
+the page has not been found or has wrong parameters, an HTTP error 500
+or 404 is sent to the client. You may want to catch these exceptions
+to print your own error page.  Do this using
+<<a_api| val Eliom_services.set_exn_handler >>.
 Here is the handler used by the tutorial:
-    
+
 <<code language="ocaml"|let _ = Eliom_services.set_exn_handler
    (fun e -> match e with
     | Eliom_common.Eliom_404 ->
@@ -144,10 +226,9 @@ Here is the handler used by the tutorial:
 >>
 
 ===Giving configuration options to your sites
-    
-    
-You can add your own options in the configuration
-file for your Web site. For example:
+
+You can add your own options in the configuration file for your Web
+site. For example:
 
 <<code language="ocaml"|
     <eliom module="//path_to///yourmodule.cmo">
@@ -155,9 +236,9 @@ file for your Web site. For example:
     </eliom>
 >>
 
- Use <<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_config"|<<span class="code"|Eliom_config.get_config ()>>>> during the initialization
- of your module to get the data between
- <<span class="code"|<eliom>>> and <<span class="code"|</eliom>>>.
+Use <<a_api| val Eliom_state.get_config >> during the initialization
+of your module to get the data between <<span class="code"|<eliom>>>
+and <<span class="code"|</eliom>>>.
 
 <<div class="wip"|
  Warning: parsing these data is very basic for now.
@@ -167,50 +248,62 @@ file for your Web site. For example:
 ===Static linking of Eliom modules
 
 From version 1.2, it is possible to link extensions and Eliom modules
-statically ([[site:ocsigenserver/staticlink|See section * *]]).
-But this is not straightforward.
-For Eliom modules, service registration and options setting must be delayed
-until the configuration file is read. To create a statically linkable Eliom
+<<a_manual project="ocsigenserver" chapter="staticlink"|statically>>.
+But this is not straightforward.  For Eliom modules, service
+registration and options setting must be delayed until the
+configuration file is read. To create a statically linkable Eliom
 module, use the function
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|<<span class="code"|Eliom_services.register_eliom_module>>>>. It takes as parameters the name of the module and the initialization function, that will be called when the module is initialized in the configuration file. That function will register services (and possibly call <<ocsigendoc version="dev" file="Eliom_config.html" fragment="VALget_config"|<<span class="code"|Eliom_config.get_config>>>> if the module has configuration options).
+<<a_api| val Eliom_services.register_eliom_module >>.
+It takes as parameters the name of the module and the initialization
+function, that will be called when the module is initialized in the
+configuration file. That function will register services (and possibly
+call <<a_api| val Eliom_config.get_config >> if the module has
+configuration options).
 
 <<div class="wip"|How to improve this and this easier to use?>>
 
 To initialize the module from the configuration file, use the syntax:
 
-<<div class="pre"|<eliommodule name="//name//"> ... </eliommodule> >>
+{{{
+<eliommodule name="//name//"> ... </eliommodule>
+}}}
+
 (or <<span class="code"|<eliom name="//name//"> ... </eliom> >>)
-
-    
 which is equivalent to:
-<<div class="pre"|<eliommodule module="//name.cmxs//"> ... </eliommodule> >>
+
+{{{
+<eliommodule module="//name.cmxs//"> ... </eliommodule>
+}}}
+
 (or <<span class="code"|<eliom module="//name.cmxs//"> ... </eliom> >>)
-with the exception that it does not load the module using <<span class="code"|Dynlink>>, but calls the initialization function.\\
-    
 
-You can use functions like 
-<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALcreate_volatile_table"|<<span class="code"|Eliom_state.create_volatile_table>>>>
-that needs some information about the site (here, volatile tables are associated to a site), only during a request or during the initialisation phase of the server.
+with the exception that it does not load the module using <<span
+class="code"|Dynlink>>, but calls the initialization function.\\
 
-If you want to use that kind of function before the initialisation phase,
-for example if your module is linked statically with the server,
-you must call these function using the function
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALregister_eliom_module"|<<span class="code"|Eliom_services.register_eliom_module>>>>.
-(One solution is to use a lazy value to delay the creation of the table,
-and force that value during the registration function).
+You can use functions like
+<<a_api| val Eliom_state.create_volatile_table >>
+that needs some information about the site (here, volatile tables are
+associated to a site), only during a request or during the
+initialisation phase of the server.
+
+If you want to use that kind of function before the initialisation
+phase, for example if your module is linked statically with the
+server, you must call these function using the function
+<<a_api| val Eliom_services.register_eliom_module >>.
+(One solution is to use a lazy value to delay the creation of the
+table, and force that value during the registration function).
 
 
 ===Advanced use: create an extension for the server that access Eliom's data
 
-If you want an Ocsigen extension with access to Eliom's
-data (for example if you want an extension that will
-register some services), you can use the function
-<<ocsigendoc version="dev" file="Eliom_extensions.html" fragment="VALregister_eliom_extension"|<<span class="code"|Eliom_extensions.register_eliom_extension>>>>
+If you want an Ocsigen extension with access to Eliom's data (for
+example if you want an extension that will register some services),
+you can use the function
+<<a_api| val Eliom_extensions.register_eliom_extension >>
 to register the function that will generate the
-<<span class="code"|Ocsigen_extensions.answer>>.
+<<a_api project="ocsigenserver" | type Ocsigen_extensions.answer>>.
 
 <<div class="wip"|Add more details about this>>
-
 
 ==@@id="p3config"@@Global configuration options
 
@@ -221,30 +314,29 @@ Here are Eliom's options you can use in configuration files.
 <<div class="wip"|Revoir les timeouts pour client processes et groupes>>
 
 Timeouts for sessions (and other states) can be set either inside tag
-{{{<extension findlib-package="ocsigen.ext.eliom"/>}}}
-(default value for all sites),
-or inside a {{{<eliom/>}}} tag (default for one site).
+{{{<extension findlib-package="ocsigen.ext.eliom"/>}}} (default value
+for all sites), or inside a {{{<eliom/>}}} tag (default for one site).
 
-Timeouts can also be modified programmatically using functions
-like {{{Eliom_state.set_global_volatile_timeout}}}, but by default
-these functions will not override configuration files.
-(see module <<ocsigendoc version="dev" file="Eliom_state.html"|<<span class="code"|Eliom_state>>>> for other functions).
+Timeouts can also be modified programmatically using functions like
+{{{Eliom_state.set_global_volatile_timeout}}}, but by default these
+functions will not override configuration files.
+(see module <<a_api| module Eliom_state >> for other functions).
 Thus, a website can set its own defaults and the user can still
-override them from the configuration file.
-If you want to set a timeout programmatically even if it has been
-modified in a configuration file, use the optional parameter
+override them from the configuration file.  If you want to set a
+timeout programmatically even if it has been modified in a
+configuration file, use the optional parameter
 {{{~override_configfile:true}}}.
 
-Timeouts can be set either for all session names, for one precise 
-session name, or for the default session name.
-To do that programmatically, use the optional parameter
-{{{~state_name}}}.
-To do that in configuration file, use the optional attribute
-{{{sessionname}}} (where an empty string value means default session name).
-If this attribute is absent, the timeout will affect all sessions for which
-no other default has been set. The {{{sessionname}}} attribute
-exists only inside an {{{<eliom/>}}} tag 
-(and not inside {{{<extension findlib-package="ocsigen.ext.eliom"/>}}}).
+Timeouts can be set either for all session names, for one precise
+session name, or for the default session name.  To do that
+programmatically, use the optional parameter {{{~state_name}}}.  To do
+that in configuration file, use the optional attribute
+{{{sessionname}}} (where an empty string value means default session
+name).  If this attribute is absent, the timeout will affect all
+sessions for which no other default has been set. The
+{{{sessionname}}} attribute exists only inside an {{{<eliom/>}}} tag
+(and not inside {{{<extension
+findlib-package="ocsigen.ext.eliom"/>}}}).
 
 * {{{<volatiletimeout value="30" [sessionname=""]/>}}}
   The default timeout for
@@ -259,7 +351,7 @@ exists only inside an {{{<eliom/>}}} tag
      Like {{{<timeout>}}}, but for in memory data
      sessions only
      (not service sessions).
-* {{{<servicetimeout value="30" [sessionname=""]/>}}} 
+* {{{<servicetimeout value="30" [sessionname=""]/>}}}
   Like {{{<timeout>}}}, but for service sessions only
      (not in memory data  sessions).
 
@@ -303,7 +395,7 @@ session group. The typical use of this is when an user opens several
 sessions from several computers. All the sessions belong to the same
 group (the group name is usually the user name).
 The limit is usually small (5 sessions per group by default).
-This limit is implemented for all kinds of sessions (service session, 
+This limit is implemented for all kinds of sessions (service session,
 volatile and persistent data sessions). For persistent sessions, the
 implementation is not very efficient for very large limits.
 
@@ -313,20 +405,20 @@ If you can't use session groups, the number of sessions is limitated
 by sub network for volatile sessions (service sessions and data sessions).
 The limitation is larger (default 1 million). The limit must be large enough,
 for example if the server is behind a reverse proxy, all incoming requests
-will come from the same IP address. Limiting by sub network instead of by 
+will come from the same IP address. Limiting by sub network instead of by
 IP address prevents attacks even if the attacker has a whole sub network
 available. The default mask for sub networks is {{{/16}}} for IPv4
 and {{{/56}}} for IPv6.
 
 Some figures: If 1 session takes 1000 bytes (data + tables etc),
-1 million sessions take 1 GB. If somebody opens 1000 sessions per second, 
+1 million sessions take 1 GB. If somebody opens 1000 sessions per second,
 then it will take 1000 s (16 minutes) to reach 1000000.
 It means that regular users will have their sessions closed
 after 16 minutes of inactivity if they share their sub network with
 someone doing an attack (or if the server is behind a proxy).
 
 For persistent sessions, there is no limitation per sub network for now.
-1 billion sessions take 1 TB. If somebody opens 1000 sessions per second, 
+1 billion sessions take 1 TB. If somebody opens 1000 sessions per second,
 then it will take 1 million s (16000 minutes = 266 h = 11 days) 
 to reach 1TB.
 
@@ -346,10 +438,10 @@ of this kinds dynamically.
 The limits and the subnet mask can be set programmatically by each module
 (for example to adapt the values to the size of session data) or in the
 configuration file
-(for example to adapt the values to the size of memory or network 
+(for example to adapt the values to the size of memory or network
 configuration)
-(see module <<ocsigendoc version="dev" file="Eliom_state.html"|<<span class="code"|Eliom_state>>>>).
-By default, functions like 
+(see module  <<a_api| module Eliom_state >>).
+By default, functions like
 {{{Eliom_state.set_default_max_volatile_sessions_per_group}}}
 will not override a value set in the configuration file
 (but if you use {{{~override_configfile:true}}}).
@@ -363,15 +455,15 @@ The configuration file options can be set either inside the tag
 site (that is: a global limit value of 10 means 10 for each Eliom site).
 
 The syntax is:
-* {{{<maxvolatilesessionspergroup value="10"/>}}} 
-* {{{<maxservicesessionspergroup value="10"/>}}} 
-* {{{<maxdatasessionspergroup value="10"/>}}} 
-* {{{<maxpersistentsessionspergroup value="10"/>}}} 
-* {{{<maxvolatilesessionspersubnet value="500000"/>}}} 
-* {{{<maxservicesessionspersubnet value="500000"/>}}} 
-* {{{<maxdatasessionspersubnet value="500000"/>}}} 
-* {{{<maxanonymouscoservicespersession value="1000"/>}}} 
-* {{{<maxanonymouscoservicespersubnet value="500000"/>}}} 
-* {{{<ipv4subnetmask value="255.255.128.0"/>}}} 
-* {{{<ipv6subnetmask value="ff:ff:ff:ff:ff:ff::"/>}}} 
+* {{{<maxvolatilesessionspergroup value="10"/>}}}
+* {{{<maxservicesessionspergroup value="10"/>}}}
+* {{{<maxdatasessionspergroup value="10"/>}}}
+* {{{<maxpersistentsessionspergroup value="10"/>}}}
+* {{{<maxvolatilesessionspersubnet value="500000"/>}}}
+* {{{<maxservicesessionspersubnet value="500000"/>}}}
+* {{{<maxdatasessionspersubnet value="500000"/>}}}
+* {{{<maxanonymouscoservicespersession value="1000"/>}}}
+* {{{<maxanonymouscoservicespersubnet value="500000"/>}}}
+* {{{<ipv4subnetmask value="255.255.128.0"/>}}}
+* {{{<ipv6subnetmask value="ff:ff:ff:ff:ff:ff::"/>}}}
 

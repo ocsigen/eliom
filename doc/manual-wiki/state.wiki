@@ -375,9 +375,9 @@ cookies.\\
 If you need more sessions (for example several different data sessions)
 for the same site, you can give a name to your sessions by giving
 the optional parameter <<span class="code"|?state_name>> to functions like
-<<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALclose_data_session"|<<span class="code"|Eliom_state.close_data_session>>>>>>,
-<<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_mkreg.ELIOMREGSIG1.html" fragment="VALregister"|<<span class="code"|register>>>>>>, or
-<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALget_volatile_data"|<<span class="code"|Eliom_state.get_volatile_data>>>>.
+<<span class="Cem"| <<a_api| val Eliom_state.close_data_session >>>>,
+<<span class="Cem"| <<a_api| val Eliom_mkreg.ELIOMREGSIG.register >>>>, or
+ <<a_api| val Eliom_state.get_volatile_data >>.
 Note that the online tutorial has been implemented using this feature,
 even if it has been hidden for the sake of simplicity.
 That's how the different examples of sessions in the tutorial are
@@ -577,12 +577,12 @@ for Eliom in the configuration file like this:
 <<span class="code"|value="infinity">> means no timeout.
 
 Warning: that default may be overriden by each site using
-<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_global_volatile_timeout"|<<span class="code"|Eliom_state.set_global_volatile_timeout>>>> or
-<<ocsigendoc version="dev" file="Eliom_state.html" fragment="VALset_default_volatile_timeout"|<<span class="code"|Eliom_state.set_default_volatile_timeout>>>>.
+ <<a_api| val Eliom_state.set_global_volatile_timeout >> or
+ <<a_api| val Eliom_state.set_default_volatile_timeout >>.
 If you want your user to be able to set the default in the
 configuration file for your site (between <<span class="code"|<site>>>
 and <<span class="code"|</site>>>), you must parse the configuration
-(<<ocsigendoc version="dev" file="Eliom_config.html" fragment="VALget_config"|<<span class="code"|Eliom_config.get_config ()>>>> function, see below).
+( <<a_api| val Eliom_config.get_config >> function, see below).
 
 
 ===Cookies
@@ -633,7 +633,7 @@ or {{{`Client_process}}} for clien process cookies
 (available only if you have a client side Eliom program).
 
 You can access the cookies sent by the browser using
-<<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_cookies"|<<span class="code"|Eliom_request_info.get_cookies ()>>>>.
+ <<a_api| val Eliom_request_info.get_cookies >>.
 
 Example:
  

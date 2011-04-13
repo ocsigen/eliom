@@ -1,1 +1,3 @@
 =Programming client-server applications with Eliom
+
+<<div class="wip"| See the <<a_manul project="tutorial" |tutorial>>. >>

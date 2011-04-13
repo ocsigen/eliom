@@ -62,7 +62,8 @@ let count =
          (body [p [pcdata (string_of_int (next ()))]])))
 >>
 
-(See <<||latex section >>[[manual/dev/state#perscount|here]] for a version of this
+(See <<a_manual chapter="state" fragment="perscount" | here >>
+<<a_manual chapter="state" fragment="perscount" |here>> for a version of this
 counter that persists after relaunching the server).
 
 
@@ -113,7 +114,7 @@ This application must be able to handle several requests at the same
 time, in order to prevent a single request from making the whole server hang.
 To make this possible, Ocsigen uses //cooperative threads//
 (implemented in monadic style) which make them really easy
-to use (see <<ocsigendoc version="dev" file="Lwt.html"|<<span class="code"|Lwt>>>> module).
+to use (see <<a_api project="lwt" | module Lwt >> module).
 
 Below is an example of a page written in a non-cooperative way, that has the effect of stopping the entire
 server for 5 seconds. No one will be able to query the server during
@@ -134,7 +135,7 @@ let looong =
 
 
 To solve this problem, use a cooperative version of
-<<ocsigendoc version="dev" file="Lwt_unix.html" fragment="VALsleep"|<<span class="code"|sleep>>>>:
+<<a_api project="lwt" | val Lwt_unix.sleep >>:
 
 <<code language="ocaml"|open XHTML5.M
 let looong =
@@ -268,7 +269,7 @@ creates this link: [[site:ocsigen10.png|download image]]
 
 It is also possible to send static pages using Eliom, using
 <<span class="code"|Eliom_output.Files>>
-([[manual/dev/services#p3eliomfiles|see later]]).
+(<<a_manual chapter="services" fragment="p3eliomfiles" |see later>>).
 
 
 
@@ -318,8 +319,8 @@ Ocsigen provides several ways to generate and type xhtml pages.
 
 The types in OCaml closest to XML types are //polymorphic variants//.
 Ocsigen uses them to provide a module with very good XHTML typing.
-The full documentation is available <<ocsigendoc file='XHTML.M.html'|in
-the interface of the module>>.
+The full documentation is available <<a_api text="in
+the interface of the module" | module XHTML.M >>.
 <<div class="wip"|put it here (?!)>>
 
 ===XHTML syntax extension===
@@ -397,7 +398,7 @@ The syntax extension is not allowed in patterns for now.
 >>
 
 We recommend you use
-the functions from <<ocsigendoc version="dev" file="XHTML5.M.html"|<<span class="code"|XHTML5.M>>>>, as you will (almost)
+the functions from <<a_api | module XHTML5.M>>, as you will (almost)
 always get valid xhtml.
 Use the syntax extension for example to enclose already created pieces
 of HTML, and check your pages validity with the
@@ -434,8 +435,8 @@ To use it, make sure that you have Eliom compiled with OCamlDuce
  support. Then dynlink <<span class="code"|ocamlduce.cma>> and
   <<span class="code"|eliomduce.cma>> from the configuration file
 (after <<span class="code"|eliom.cma>>).
-Then use <<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|<<span class="code"|Eliom_duce.Xhtml>>>> instead of
-<<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|<<span class="code"|Eliom_output.Xhtml>>>> to register your pages.
+Then use <<a_api | module Eliom_duce.Xhtml>> instead of
+<<a_api | module Eliom_output.Xhtml>> to register your pages.
 
 Here is an example:
 <<code language="ocaml"|
@@ -487,35 +488,35 @@ The main predefined output modules are:
 |=Module|=description|=type|=options|
 >>
 
-;<<ocsigendoc version="dev" file="Eliom_output.Xhtml5.html"|<<span class="code"|Eliom_output.Xhtml5>>>> (and <<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|<<span class="code"|Eliom_output.Xhtml>>>>)
-: Allows to register functions that generate xhtml pages statically checked using polymorphic variant types. You may use constructor functions from <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>> or a syntax extension close to the standard xhtml syntax.
-;<<ocsigendoc version="dev" file="Eliom_output.Xhtml5compact.html"|<<span class="code"|Eliom_output.Xhtml5compact>>>> (and <<ocsigendoc version="dev" file="Eliom_output.Xhtmlcompact.html"|<<span class="code"|Eliom_output.Xhtmlcompact>>>>)
+;<<a_api| module Eliom_output.Xhtml5 >> (and <<a_api| module Eliom_output.Xhtml >>)
+: Allows to register functions that generate xhtml pages statically checked using polymorphic variant types. You may use constructor functions from <<a_api| module XHTML.M >> or a syntax extension close to the standard xhtml syntax.
+;<<a_api| module Eliom_output.Xhtml5compact >> (and <<a_api| module Eliom_output.Xhtmlcompact >>)
 : Same, but without pretty printing (does not add spaces or line breaks).
-;<<ocsigendoc version="dev" file="Eliom_output.Blocks5.html"|<<span class="code"|Eliom_output.Blocks5>>>> (and <<ocsigendoc version="dev" file="Eliom_output.Blocks.html"|<<span class="code"|Eliom_output.Blocks>>>>)
-: Allows to register functions that generate a portion of page using <<ocsigendoc version="dev" file="XHTML5.M.html"|<<span class="code"|XHTML5.M>>>> (resp <<ocsigendoc version="dev" file="XHTML.M.html"|<<span class="code"|XHTML.M>>>>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example).
-;<<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|<<span class="code"|Eliom_duce.Xhtml>>>>
+;<<a_api| module Eliom_output.Blocks5 >> (and <<a_api| module Eliom_output.Blocks >>)
+: Allows to register functions that generate a portion of page using <<a_api| module XHTML5.M >> (resp <<a_api| module XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example).
+;<<a_api| module Eliom_duce.Xhtml >>
 : Allows to register functions that generate XHTML 1.1 pages   statically checked using <<span class="code"|OCamlduce>>. Typing is   stricter, and you need a modified version of the OCaml compiler   (OCamlduce).
-;<<ocsigendoc version="dev" file="Eliom_output.HtmlText.html"|<<span class="code"|Eliom_output.HtmlText>>>>
+;<<a_api| module Eliom_output.HtmlText >>
 : Allows to register functions that   generate text html pages, without any typechecking of the content.   The content type sent by the server is "text/html".
-;<<ocsigendoc version="dev" file="Eliom_output.CssText.html"|<<span class="code"|Eliom_output.CssText>>>>
+;<<a_api| module Eliom_output.CssText >>
 : Allows to register functions that   generate CSS pages, without any typechecking of the content.   The content type sent by the server is "{{{text/css}}}".
-;<<ocsigendoc version="dev" file="Eliom_output.Text.html"|<<span class="code"|Eliom_output.Text>>>>
+;<<a_api| module Eliom_output.Text >>
 : Allows to register functions that   generate text pages, without any typechecking of the content.   The services return a pair of strings. The first one is the content   of the page, the second one is the content type.
-;<<ocsigendoc version="dev" file="Eliom_output.Action.html"|<<span class="code"|Eliom_output.Action>>>>
+;<<a_api| module Eliom_output.Action >>
 : Allows to register actions (functions that do not generate any page, see * *). The page corresponding to the URL (without the coservice parameter that triggered the action) is reloaded after the action by default if possible.
-;<<ocsigendoc version="dev" file="Eliom_output.Unit.html"|<<span class="code"|Eliom_output.Unit>>>>
-: is like <<ocsigendoc version="dev" file="Eliom_output.Action.html"|<<span class="code"|Eliom_output.Action>>>> but the URL is not reloaded after the action. (Same as {{{Eliom_output.Action}}} with {{{[`NoReload]}}} option).
-;<<ocsigendoc version="dev" file="Eliom_output.Redirection.html"|<<span class="code"|Eliom_output.Redirection>>>>
+;<<a_api| module Eliom_output.Unit >>
+: is like <<a_api| module Eliom_output.Action >> but the URL is not reloaded after the action. (Same as {{{Eliom_output.Action}}} with {{{[`NoReload]}}} option).
+;<<a_api| module Eliom_output.Redirection >>
 : Allows to register HTTP redirections. The handler returns the service (without parameter) of the page you want to redirect to. The browser will get a 301 or 307 code in answer and redo the request to the new URL. To specify whether you want temporary (307) or permanent (301) redirections, use the <<span class="code"|?options>> parameter of registration functions. For example: <<span class="code"|register ~options:`Permanent ...>> or <<span class="code"|register ~options:`Temporary ...>>.
-;<<ocsigendoc version="dev" file="Eliom_output.Redirection.html"|<<span class="code"|Eliom_output.String_redirection>>>>
+;<<a_api| module Eliom_output.String_redirection >>
 : Same but the ouput type is a string. Use with care! Warning: According to the RFC of the HTTP protocol, the URL must be absolute!
-;<<ocsigendoc version="dev" file="Eliom_output.Files.html"|<<span class="code"|Eliom_output.Files>>>>
+;<<a_api| module Eliom_output.Files >>
 : Allows to register services that send files.
-;<<ocsigendoc version="dev" file="Eliom_output.Any.html"|<<span class="code"|Eliom_output.Any>>>>
+;<<a_api| module Eliom_output.Any >>
 : Allows to register services that can choose what they send, for example an xhtml page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See later * * for an example of use.
-;<<ocsigendoc version="dev" file="Eliom_output.Eliom_appl.html"|<<span class="code"|Eliom_output.Eliom_appl>>>>
+;<<a_api| module Eliom_output.Eliom_appl >>
 : is a functor that generates a module allowing to create services belonging to a client-server Elioml application (see chapter * *)
-;<<ocsigendoc version="dev" file="Eliom_output.Caml.html"|<<span class="code"|Eliom_output.Caml>>>>
+;<<a_api| module Eliom_output.Caml >>
 : allows to register services sending marshalled OCaml values
 
 <<div class="wip"|Missing modules?>>
@@ -525,7 +526,7 @@ The main predefined output modules are:
   
   
 You may want to register a service that will send files.
-  To do that, use the <<ocsigendoc version="dev" file="Eliom_output.Files.html"|<<span class="code"|Eliom_output.Files>>>> module. Example:
+  To do that, use the <<a_api| module Eliom_output.Files >> module. Example:
   
   
 
@@ -556,7 +557,7 @@ handle static files.
 ===Sending portions of pages
   
   
- The <<ocsigendoc version="dev" file="Eliom_output.Blocks5.html"|<<span class="code"|Eliom_output.Blocks5>>>> and <<ocsigendoc version="dev" file="Eliom_output.Blocks.html"|<<span class="code"|Eliom_output.Blocks>>>> modules allow you to register services that send portions of pages, of any "block" type for XHTML5.M (resp. XHTML.M).
+ The <<a_api| module Eliom_output.Blocks5 >> and <<a_api| module Eliom_output.Blocks >> modules allow you to register services that send portions of pages, of any "block" type for XHTML5.M (resp. XHTML.M).
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
  Note that the service returns a list of blocks.
@@ -573,9 +574,9 @@ handle static files.
 >>
 
   
- The <<ocsigendoc version="dev" file="Eliom_output.SubXhtml.html"|<<span class="code"|Eliom_output.SubXhtml>>>> module allows to create other modules for
+ The <<a_api| module Eliom_output.SubXhtml >> module allows to create other modules for
  registering portions of pages of other types.
- For example, <<ocsigendoc version="dev" file="Eliom_output.Blocks5.html"|<<span class="code"|Eliom_output.Blocks5>>>>
+ For example, <<a_api| module Eliom_output.Blocks5 >>
  is defined by:
   
 
@@ -591,7 +592,7 @@ end)
 ===Redirections
   
   
- The <<ocsigendoc version="dev" file="Eliom_output.Redirection.html"|<<span class="code"|Eliom_output.Redirection>>>> module allows you to register HTTP redirections.\\
+ The <<a_api| module Eliom_output.Redirection >> module allows you to register HTTP redirections.\\
 If a request is made for such a service, the server asks the browser
 to retry with another URL.
 
@@ -606,8 +607,8 @@ Example:
 
   
  If you want to give parameters to such services, use
- <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpreapply"|<<span class="code"|Eliom_services.preapply>>>> (see also 
- [[manual/dev/services#p3preapplied|later in the tutorial]]).
+ <<a_api | val Eliom_services.preapply>> (see also 
+ <<a_manual chapter="services" fragment="p3preapplied" |later in the tutorial>>).
  Example:
 
   
@@ -645,11 +646,11 @@ For example, when you have the same form (or link) on several pages
 instead of making a version with post params of all these pages,
 you can use a single action, registered on a //non-attached coservice//
 (see below).
-<<|To register actions, just use the module <<ocsigendoc version="dev" file="Eliom_output.Action.html"|<<span class="code"|Eliom_output.Action>>>>
-instead of <<ocsigendoc version="dev" file="Eliom_output.Xhtml.html"|<<span class="code"|Eliom_output.Xhtml>>>> (or <<ocsigendoc version="dev" file="Eliom_duce.Xhtml.html"|<<span class="code"|Eliom_duce.Xhtml>>>>, etc.).
+<<|To register actions, just use the module <<a_api| module Eliom_output.Action >>
+instead of <<a_api| module Eliom_output.Xhtml >> (or <<a_api| module Eliom_duce.Xhtml >>, etc.).
 For example
- <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_output.Action.html" fragment="VALregister"|<<span class="code"|Eliom_output.Action.register>>>>>>,
- <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_output.Action.html" fragment="VALregister_service"|<<span class="code"|Eliom_output.Action.register_service>>>>>>.
+ <<span class="Cem"|<<a_api | val Eliom_output.Action.register>>>>,
+ <<span class="Cem"|<<a_api | val Eliom_output.Action.register_service>>>>.
 >>
 \\
 
@@ -658,7 +659,7 @@ below, or in section * * connection-of-user.
 
 The return type of action handlers is
 <<span class="code"|unit Lwt.t>>.
-We will see [[manual/dev/services#p3infofallbacks|later]] how to transmit information
+We will see <<a_manual chapter="services" fragment="p3infofallbacks" |later>> how to transmit information
 to the service that will take charge of the generation of the page.\\
  
 A common use of actions and non-attached coservices working together
@@ -681,7 +682,7 @@ is usually much more complicated.
 You may want to register a service that will send, for instance,
   sometimes
   an XHTML page, sometimes a file, sometimes something else.
-  To do that, use the <<ocsigendoc version="dev" file="Eliom_output.Any.html"|<<span class="code"|Eliom_output.Any>>>> module, together
+  To do that, use the <<a_api| module Eliom_output.Any >> module, together
   with the <<span class="code"|send>> function of the module you want
   to use. Example:
   
@@ -714,7 +715,7 @@ You may want to register a service that will send, for instance,
   
 
   
-You may also use <<ocsigendoc version="dev" file="Eliom_output.Any.html"|<<span class="code"|Eliom_output.Any>>>> to personalize the charset
+You may also use <<a_api| module Eliom_output.Any >> to personalize the charset
 (default charset is set in configuration file), the HTTP code,
 the content type or to add some HTTP headers.
 To do that use the optional parameters
@@ -855,7 +856,7 @@ respect to previous interaction with the user (and are registered
 with scope {{{`Session}}}). They allow us to establish a precise semantics for the
 "back" button of the browser (that is to say, make sure that you will go back to the
 past page) or bookmarks, or duplication of the browser's window.
-(See the [[manual/dev/services#p3coservicesinsessiontable|<<span class="code"|calc>>]] example below).
+(See the <<a_manual chapter="services" fragment="p3coservicesinsessiontable" |<<span class="code"|calc>>>> example below).
 
 Use POST coservices if you want to customize a link or form,
 but not the URL it points to. More precisely, POST coservices are mainly
@@ -868,9 +869,9 @@ a side-effect. For example a disconnection button that leads to the main
 page of the site, but with the side effect of disconnecting the user.
 
 To create a coservice, use
-<<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALcoservice"|<<span class="code"|Eliom_services.coservice>>>>>> and
-<<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpost_coservice"|<<span class="code"|Eliom_services.post_coservice>>>>>>.
-Like <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpost_service"|<<span class="code"|Eliom_services.post_service>>>>,
+<<span class="Cem"| <<a_api| val Eliom_services.coservice >>>> and
+<<span class="Cem"| <<a_api| val Eliom_services.post_coservice >>>>.
+Like  <<a_api| val Eliom_services.post_service >>,
 they take a public service as parameter
 (labeled <<span class="code"|fallback>>)
 to be used as fallback when the user comes back without the coservice
@@ -954,7 +955,7 @@ In this example, coservices do not take any parameters
 parameters. Note that the fallback of a GET coservice cannot take
 parameters. But as coservices parameters have special
 names, it is possible to use a "pre-applied" service as fallback
-([[manual/dev/services#p3preapplied|see later]]).
+(<<a_manual chapter="services" fragment="p3preapplied" |see later>>).
 
 
 ===@@id="p3coservicesinsessiontable"@@Dynamic coservices===
@@ -1096,8 +1097,8 @@ As for attached coservices, there are GET and POST versions,
 and each of them may be either named or anonymous.
 
 To create a non-attached coservice, use
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALcoservice'"|<<span class="code"|Eliom_services.coservice'>>>> or
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALpost_coservice'"|<<span class="code"|Eliom_services.post_coservice'>>>>
+ <<a_api| val Eliom_services.coservice' >> or
+ <<a_api| val Eliom_services.post_coservice' >>
 (note the "prime" at the end). <<span class="wip"|find better function names?>>
 POST non-attached coservices are really useful if you want a
 link or form to be present on every page but you don't want the
@@ -1240,7 +1241,7 @@ logs).
 *GET coservices (without POST parameters) can be registered
 only with a main service without GET/POST parameters as fallback.
 But it may be a
-[[manual/dev/services#p3preapplied|//preapplied//]]
+<<a_manual chapter="services" fragment="p3preapplied" |//preapplied//>>
 service (see below).
 
 *Services with POST parameters (main service or coservice)
@@ -1252,13 +1253,13 @@ a (Lwt) thread with the intention that it will register a service later, as
 registering a service needs access to config file
 information (for example the directory of the site).
 If you do this, the server will raise
-<<ocsigendoc version="dev" file="Eliom_common.html" fragment="EXCEPTIONEliom_function_forbidden_outside_site_loading"|<<span class="code"|Eliom_common.Eliom_function_forbidden_outside_site_loading >>>>
+<<a_api | exception Eliom_common.Eliom_function_forbidden_outside_site_loading >>
 most of the time,
 but you may also get unexpected results (if the thread is executed
 while another site is loaded).
 If you use threads in the initialization phase of your module
 (for example if you need information from a database),
-use <<ocsigendoc version="dev" file="Lwt_unix.html" fragment="VALrun"|<<span class="code"|Lwt_unix.run>>>> to wait the end of the thread.
+use  <<a_api project="lwt" | val Lwt_unix.run >> to wait the end of the thread.
 >><<|encadre>>
 
 
@@ -1508,7 +1509,7 @@ Services or coservices with GET parameters can be preapplied
 ===@@id="p3preapplied"@@Void coservices
   
   
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_coservice'"|<<span class="code"|Eliom_services.void_coservice'>>>>
+ <<a_api| val Eliom_services.void_coservice' >>
 is a special non-attached action, with special behaviour:
 it has no parameter at all, even non-attached parameters.
 Use it if you want to make a link to the current page
@@ -1527,10 +1528,10 @@ Eliom_duce.Xhtml.a
 >>
 
 There is also 
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALhttps_void_coservice'"|<<span class="code"|Eliom_services.https_void_coservice'>>>>
+ <<a_api| val Eliom_services.https_void_coservice' >>
 (same, but forces use of HTTPS),
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALvoid_hidden_coservice'"|<<span class="code"|Eliom_services.void_hidden_coservice'>>>>, and
-<<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALhttps_void_hidden_coservice'"|<<span class="code"|Eliom_services.https_void_hidden_coservice'>>>>. "Hidden" means that they keep GET non attached parameters.
+ <<a_api| val Eliom_services.void_hidden_coservice' >>, and
+ <<a_api| val Eliom_services.https_void_hidden_coservice' >>. "Hidden" means that they keep GET non attached parameters.
 
 See an example of use in chapter * * section * * (connection of users with
 session groups).
@@ -1539,12 +1540,12 @@ session groups).
 ===@@id="p3infofallbacks"@@Get information on what succeeded before the service===
 
 The function
-<<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_link_too_old"|<<span class="code"|Eliom_request_info.get_link_too_old>>>>
+ <<a_api| val Eliom_request_info.get_link_too_old >>
 returns <<span class="code"|true>> if the coservice called has not been found.
 In that case, the current service is the fallback.
 
 The function
-<<ocsigendoc version="dev" file="Eliom_request_info.html" fragment="VALget_expired_service_sessions"|<<span class="code"|Eliom_request_info.get_expired_service_sessions>>>>
+ <<a_api| val Eliom_request_info.get_expired_service_sessions >>
 returns the list of names of service sessions expired 
 for the current request.
 

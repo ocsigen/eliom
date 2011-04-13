@@ -7,7 +7,7 @@
 ===Images, CSS, Javascript
           
           
-      To include an image, simply use the function <<ocsigendoc version="dev" file="XHTML.M.html" fragment="VALimg"|<<span class="code"|XHTML.M.img>>>>:
+      To include an image, simply use the function  <<a_api| val XHTML.M.img >>:
       
           
 
@@ -18,7 +18,7 @@
 >>
 
           
-The function <<span class="Cem"|[[site:dev/Eliom_output.XHTMLFORMSSIG.html#VALmake_uri|<<span class="code"|Eliom_output.Xhtml.make_uri>>]]>>
+The function <<a_api | value Eliom_output.XHTMLFORMSSIG.make_uri>>
         creates the relative URL string from current URL
         (see above) to the URL of the image in the static directory
         configured in the configuration file.
@@ -43,7 +43,7 @@ To simplify the creation of <<span class="code"|<link>>> tags
           
           
       To make a menu on your web page, you can use the function
-          <<span class="Cem"|<<ocsigendoc version="dev" file="Eliom_tools.html" fragment="VALmenu"|<<span class="code"|Eliom_tools.menu>>>>>>.
+          <<a_api| val Eliom_tools.menu >>.
       First, define your menu like this:
       
           
@@ -61,7 +61,7 @@ To simplify the creation of <<span class="code"|<link>>> tags
           
 Here, <<span class="code"|home>>,  <<span class="code"|infos>>,
         and <<span class="code"|tutorial>> are your three pages (generated for example
-        by <<ocsigendoc version="dev" file="Eliom_services.html" fragment="VALservice"|<<span class="code"|Eliom_services.service>>>>).
+        by  <<a_api| val Eliom_services.service >>).
           
 
 
@@ -86,7 +86,7 @@ Personalise it in your CSS style-sheet.
           
 
           
-<<ocsigendoc version="dev" file="Eliom_tools.html" fragment="VALmenu"|<<span class="code"|Eliom_tools.menu>>>> takes a list of services without
+ <<a_api| val Eliom_tools.menu >> takes a list of services without
     GET parameters.
     If you want one of the link to contains GET parameters, pre-apply
     the service.

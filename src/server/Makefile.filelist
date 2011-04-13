@@ -57,7 +57,12 @@ endif
 endif
 
 NOMLI := eliom_error_pages.mli \
-	 eliom_process.mli     \
+	 eliom_client.mli      \
          eliom_process.mli
 
-DOC := ${filter-out ${NOMLI}, ${INTF:.cmi=.mli}}
+DOC := ${filter-out ${NOMLI}, ${INTF:.cmi=.mli}} \
+       eliom_output_base.mli \
+       eliom_types_base.mli \
+
+## Can't be parsed by ocamlducedoc because of deriving.
+#       eliom_comet_base.mli \
