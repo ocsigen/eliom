@@ -45,7 +45,7 @@ eliom_testsuite.cma: ${SERVER_OBJS}
 eliom_testsuite.cmxa: ${SERVER_OBJS:.cmo=.cmx}
 	${ELIOMOPT} -a -o $@ $^
 
-%.type_mli: %.eliom
+_server/%.type_mli: %.eliom
 	${ELIOMC} -infer ${SERVER_INC} -o $@ $<
 
 _server/%.cmi: %.mli
