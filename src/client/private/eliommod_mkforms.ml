@@ -155,7 +155,7 @@ let make_get_form_with_post_tab_cookies
     make_get_form register_event add_tab_cookies_to_get_form _
     ?a ~action i1 i =
   let node =
-    make_get_form ?a ~action ?onsubmit:(None : XML.event option) i1 i in
+    make_get_form ?a ~action ?onsubmit:(None : XML.M.event option) i1 i in
   register_event node "onsubmit" (add_tab_cookies_to_get_form node);
   node
 

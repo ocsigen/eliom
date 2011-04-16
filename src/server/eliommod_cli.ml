@@ -71,7 +71,7 @@ let wrap (v : 'a) : 'a Eliom_types.data_key =
 
 
 let wrap_node n = 
-  Eliom_types.to_data_key_ (0L, XML.ref_node (HTML5.M.toelt n))
+  Eliom_types.to_data_key_ (0L, XML.M.ref_node (HTML5.M.toelt n))
 
 
 (* let wrap_sp ~sp = wrap ~sp (client_sp sp) *)

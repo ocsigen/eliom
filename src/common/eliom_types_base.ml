@@ -39,11 +39,11 @@ let to_data_key_ v = v
 let of_data_key_ v = v
 
 type onload_form_creators_info =
-  | OFA of XML.elt * string * (bool * Url.path) option
+  | OFA of XML.M.elt * string * (bool * Url.path) option
   | OFForm_get of
-      XML.elt * string * (bool * Url.path) option
+      XML.M.elt * string * (bool * Url.path) option
   | OFForm_post of
-      XML.elt * string * (bool * Url.path) option
+      XML.M.elt * string * (bool * Url.path) option
 
 type separator = Space | Comma
 
@@ -68,7 +68,7 @@ and elt = ( elt_content * int option )
 (* The data that comes with each page: *)
 type eliom_data_type =
     ((* The ref tree, to relink the DOM *)
-      (XML.ref_tree, (int * XML.ref_tree) list) leftright *
+      (XML.M.ref_tree, (int * XML.M.ref_tree) list) leftright *
 	(* node sent that are not in the original page *)
 	elt list *
         (* Table of page data *)

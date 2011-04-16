@@ -33,7 +33,7 @@ module Atom_info = struct
   let emptytags = []
 end
 
-module Format = XML_print.MakeSimple(XML)(Atom_info)
+module Format = XML_print.MakeSimple(XML.M)(Atom_info)
 
 let result_of_content feed headers =
    let r = ref "" in

@@ -153,17 +153,17 @@ let change_page_post_form_ =
 let bind_form_or_link = function
   | Eliom_types.OFA (node, href, cookies_info) ->
     let node = Js.Unsafe.coerce (node) in
-    XML.register_event ?keep_default:(Some false) node "onclick"
+    XML.M.register_event ?keep_default:(Some false) node "onclick"
       (fun () -> !change_page_uri_ ?cookies_info href)
       ()
   | Eliom_types.OFForm_get (node, uri, cookies_info) ->
     let node = Js.Unsafe.coerce (node) in
-    XML.register_event ?keep_default:(Some false) node "onsubmit"
+    XML.M.register_event ?keep_default:(Some false) node "onsubmit"
       (fun () -> !change_page_get_form_ ?cookies_info node uri)
       ();
   | Eliom_types.OFForm_post (node, uri, cookies_info) ->
     let node = Js.Unsafe.coerce (node) in
-    XML.register_event ?keep_default:(Some false) node "onsubmit"
+    XML.M.register_event ?keep_default:(Some false) node "onsubmit"
       (fun () -> !change_page_post_form_ ?cookies_info node uri)
       ()
 

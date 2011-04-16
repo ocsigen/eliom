@@ -115,22 +115,22 @@ type feedOAttr = [ metaAttr
  * Constructors {{{
  *)
 
-val xml_of_feed : feed -> XML.elt
+val xml_of_feed : feed -> XML.M.elt
 
 (*
  * attr converters {{{
-val a_base : base -> XML.attrib
-val a_lang : lang -> XML.attrib
-val a_scheme : scheme -> XML.attrib
-val a_label : label -> XML.attrib
-val a_href : href -> XML.attrib
-val a_rel : rel -> XML.attrib
-val a_hreflang : hrefLang -> XML.attrib
-val a_medtype : mediaType -> XML.attrib
-val a_title : ltitle -> XML.attrib
-val a_length : length -> XML.attrib
-val a_term : term -> XML.attrib
-val a_type : string -> XML.attrib
+val a_base : base -> XML.M.attrib
+val a_lang : lang -> XML.M.attrib
+val a_scheme : scheme -> XML.M.attrib
+val a_label : label -> XML.M.attrib
+val a_href : href -> XML.M.attrib
+val a_rel : rel -> XML.M.attrib
+val a_hreflang : hrefLang -> XML.M.attrib
+val a_medtype : mediaType -> XML.M.attrib
+val a_title : ltitle -> XML.M.attrib
+val a_length : length -> XML.M.attrib
+val a_term : term -> XML.M.attrib
+val a_type : string -> XML.M.attrib
  * }}}
  *)
 
@@ -147,7 +147,7 @@ val xhtmlC : ?meta:[> metaAttr ] list
 
 (** Inline content from another kind *)
 val inlineOtherC : ?meta:[> metaAttr ] list
-   -> string * XML.elt list
+   -> string * XML.M.elt list
    -> [> `Content of content ]
 
 (** Every other content *)
@@ -242,7 +242,7 @@ val logo : uri -> [> `Logo of logo ]
 val category :
   ?meta:[> metaAttr ] list ->
   ?scheme:scheme -> ?label:label -> 
-  term -> XML.elt list -> category
+  term -> XML.M.elt list -> category
 
 (** We need a list of categories, this is only a converter from category list
  to `Categories *)

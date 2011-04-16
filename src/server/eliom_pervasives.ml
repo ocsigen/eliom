@@ -147,6 +147,8 @@ let of_json ?typ s =
 
 module XML = struct
 
+  module M = struct
+
   type separator = Space | Comma
 
   let separator_to_string = function
@@ -329,21 +331,23 @@ module XML = struct
 
   let class_name = "class" (* see xHTML.ml *)
 
+  end
+
 end
 
 module SVG = struct
-  module M = SVG_f.Make(XML)
-  module P = XML_print.MakeTypedSimple(XML)(M)
+  module M = SVG_f.Make(XML.M)
+  module P = XML_print.MakeTypedSimple(XML.M)(M)
 end
 
 module HTML5 = struct
-  module M = HTML5_f.Make(XML)(SVG.M)
-  module P = XML_print.MakeTypedSimple(XML)(M)
+  module M = HTML5_f.Make(XML.M)(SVG.M)
+  module P = XML_print.MakeTypedSimple(XML.M)(M)
 end
 
 module XHTML = struct
-  module M = XHTML_f.Make(XML)
-  module M_01_00 = XHTML_f.Make_01_00(XML)
-  module M_01_01 = XHTML_f.Make_01_01(XML)
-  module P = XML_print.MakeTypedSimple(XML)(M)
+  module M = XHTML_f.Make(XML.M)
+  module M_01_00 = XHTML_f.Make_01_00(XML.M)
+  module M_01_01 = XHTML_f.Make_01_01(XML.M)
+  module P = XML_print.MakeTypedSimple(XML.M)(M)
 end

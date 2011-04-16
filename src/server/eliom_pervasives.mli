@@ -116,6 +116,8 @@ val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
 (** XML building and deconstructing. *)
 module XML : sig
 
+  module M : sig
+
   type aname = string
   type separator = Space | Comma
   type event = string
@@ -193,27 +195,29 @@ module XML : sig
   val lwt_register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b Lwt.t) -> 'a -> unit
   val register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b) -> 'a -> unit
 
+  end
+
 end
 
 module SVG : sig
   (** Type safe SVG creation. *)
-  module M : SVG_sigs.SVG(XML).T
-  module P : XML_sigs.TypedSimplePrinter(XML)(M).T
+  module M : SVG_sigs.SVG(XML.M).T
+  module P : XML_sigs.TypedSimplePrinter(XML.M)(M).T
 
 end
 
 module HTML5 : sig
   (** Type safe HTML5 creation. *)
-  module M : HTML5_sigs.HTML5(XML)(SVG.M).T
-  module P : XML_sigs.TypedSimplePrinter(XML)(M).T
+  module M : HTML5_sigs.HTML5(XML.M)(SVG.M).T
+  module P : XML_sigs.TypedSimplePrinter(XML.M)(M).T
 
 end
 
 module XHTML : sig
   (** Type safe XHTML creation. *)
-  module M : XHTML_sigs.XHTML(XML).T
-  module M_01_01 : XHTML_sigs.XHTML(XML).T
-  module M_01_00 : XHTML_sigs.XHTML(XML).T
-  module P : XML_sigs.TypedSimplePrinter(XML)(M).T
+  module M : XHTML_sigs.XHTML(XML.M).T
+  module M_01_01 : XHTML_sigs.XHTML(XML.M).T
+  module M_01_00 : XHTML_sigs.XHTML(XML.M).T
+  module P : XML_sigs.TypedSimplePrinter(XML.M)(M).T
 
 end

@@ -134,7 +134,7 @@ module Html5forms_ = struct
         elt1 elts
     in
   (* if onsubmit is true, the node ref must exist: *)
-    if onsubmit <> None then ignore (XML.ref_node (HTML5.M.toelt r));
+    if onsubmit <> None then ignore (XML.M.ref_node (HTML5.M.toelt r));
     r
 
   let make_post_form ?(a=[]) ~action ?onsubmit ?id ?(inline = false) elt1 elts
@@ -156,7 +156,7 @@ module Html5forms_ = struct
         elt1 elts
     in
   (* if onsubmit is true, the node ref must exist: *)
-    if onsubmit <> None then ignore (XML.ref_node (HTML5.M.toelt r));
+    if onsubmit <> None then ignore (XML.M.ref_node (HTML5.M.toelt r));
     r
 
   let make_hidden_field content =
@@ -225,10 +225,10 @@ module Html5forms_ = struct
     script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
   let register_event_a ?keep_default node =
-    XML.register_event ?keep_default (HTML5.M.toelt node)
+    XML.M.register_event ?keep_default (HTML5.M.toelt node)
 
   let register_event_form ?keep_default node =
-    XML.register_event ?keep_default (HTML5.M.toelt node)
+    XML.M.register_event ?keep_default (HTML5.M.toelt node)
 
 (*POSTtabcookies* forms with tab cookies in POST params:
 

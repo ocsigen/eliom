@@ -20,7 +20,7 @@
 open Eliom_pervasives
 
 val make_a_with_onclick :
-  (?a:'a -> ?onclick:XML.event -> ?href:string -> 'b -> [`A of 'aa] HTML5.M.elt) ->
+  (?a:'a -> ?onclick:XML.M.event -> ?href:string -> 'b -> [`A of 'aa] HTML5.M.elt) ->
   (?keep_default:bool -> [`A of 'aa] HTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> 'e) ->
   ?a:'a -> ?cookies_info:bool * string list ->
   Eliom_services.send_appl_content ->
@@ -28,7 +28,7 @@ val make_a_with_onclick :
   'b -> [`A of 'aa] HTML5.M.elt
 
 val make_get_form_with_onsubmit :
-  (?a:'b -> action:string -> ?onsubmit:XML.event -> 'c -> 'd -> [`Form] HTML5.M.elt) ->
+  (?a:'b -> action:string -> ?onsubmit:XML.M.event -> 'c -> 'd -> [`Form] HTML5.M.elt) ->
   (?keep_default:bool -> [`Form] HTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> unit) ->
   ?a:'b -> ?cookies_info:bool * string list ->
   Eliom_services.send_appl_content ->
@@ -36,7 +36,7 @@ val make_get_form_with_onsubmit :
   'c -> 'd -> [`Form] HTML5.M.elt
 
 val make_post_form_with_onsubmit :
-  (?a:'b -> action:string -> ?onsubmit:XML.event -> 'c -> 'd -> [`Form] HTML5.M.elt) ->
+  (?a:'b -> action:string -> ?onsubmit:XML.M.event -> 'c -> 'd -> [`Form] HTML5.M.elt) ->
   (?keep_default:bool -> [`Form] HTML5.M.elt -> string -> (unit -> unit Lwt.t) -> unit -> unit) ->
   ?a:'b -> ?cookies_info:bool * string list ->
   Eliom_services.send_appl_content ->
@@ -47,14 +47,14 @@ val make_post_form_with_onsubmit :
 (*POSTtabcookies* forms with tab cookies in POST params:
 
 val make_get_form_with_post_tab_cookies :
-  (?a:'a -> action:'b -> ?onsubmit:XML.event -> 'c -> 'd -> 'form) ->
+  (?a:'a -> action:'b -> ?onsubmit:XML.M.event -> 'c -> 'd -> 'form) ->
   ('form -> string -> (unit -> unit Lwt.t) -> 'g) ->
   ('form -> unit -> unit Lwt.t) ->
   string ->
   ?a:'a -> action:'b -> 'c -> 'd -> 'form
 
 val make_post_form_with_post_tab_cookies :
-  (?a:'a -> action:'b -> ?onsubmit:XML.event ->
+  (?a:'a -> action:'b -> ?onsubmit:XML.M.event ->
    ?id:string ->
    ?inline:bool ->
    'c -> 'd -> 'form) ->

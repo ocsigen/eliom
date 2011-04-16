@@ -504,6 +504,8 @@ let unmarshal_js_var s =
 
 module XML = struct
 
+  module M = struct
+
   type aname = string
   type attrib = string * Js.Unsafe.any
   type attribs = attrib list
@@ -616,16 +618,18 @@ module XML = struct
 
   type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
+  end
+
 end
 
 module SVG = struct
-  module M = SVG_f.Make(XML)
+  module M = SVG_f.Make(XML.M)
 end
 
 module HTML5 = struct
   module M =
   struct
-    include HTML5_f.Make(XML)(SVG.M)
+    include HTML5_f.Make(XML.M)(SVG.M)
     let coerce x = Js.Unsafe.coerce (toelt x)
 
     let to_element : 'a elt -> Dom_html.element Js.t = coerce
@@ -676,30 +680,30 @@ module HTML5 = struct
     let to_canvas : 'a HTML5_types.canvas elt -> Dom_html.canvasElement Js.t = coerce
     let to_iFrame : HTML5_types.iframe elt -> Dom_html.iFrameElement Js.t = coerce
 
-    let a_class x = to_attrib (XML.space_sep_attrib "className" x)
+    let a_class x = to_attrib (XML.M.space_sep_attrib "className" x)
   end
 end
 
 (*
 module XHTML = struct
   module M = struct
-    include XHTML_f.Make(XML)
+    include XHTML_f.Make(XML.M)
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
   end
   module M_01_00 = struct
-    include XHTML_f.Make_01_00(XML)
+    include XHTML_f.Make_01_00(XML.M)
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
   end
   module M_01_01 = struct
-    include XHTML_f.Make_01_01(XML)
+    include XHTML_f.Make_01_01(XML.M)
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
   end
   module M_01_00_compat = struct
-    include XHTML_f.Make_01_00_compat(XML)
+    include XHTML_f.Make_01_00_compat(XML.M)
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
   end
   module M_01_01_compat = struct
-    include XHTML_f.Make_01_01_compat(XML)
+    include XHTML_f.Make_01_01_compat(XML.M)
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
   end
 end

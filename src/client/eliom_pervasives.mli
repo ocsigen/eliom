@@ -101,6 +101,8 @@ val encode_header_value : 'a -> string
 (** XML building and deconstructing. *)
 module XML : sig
 
+  module M : sig
+
   type aname = string
   type attrib = string * Js.Unsafe.any
   type attribs = attrib list
@@ -140,12 +142,14 @@ module XML : sig
 
   type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
+  end
+
 end
 
 module SVG : sig
 
   (** type safe SVG creation. *)
-  module M : SVG_sigs.SVG(XML).T
+  module M : SVG_sigs.SVG(XML.M).T
 
 end
 
@@ -154,7 +158,7 @@ module HTML5 : sig
   (** type safe HTML5 creation. *)
   module M :
   sig
-    include HTML5_sigs.HTML5(XML)(SVG.M).T
+    include HTML5_sigs.HTML5(XML.M)(SVG.M).T
 
     (** type safe casting functions from HTML5 types to Dom types. *)
 
@@ -211,11 +215,11 @@ end
 (*
 module XHTML : sig
 
-  module M : XHTML_sigs.XHTML(XML).T
-  module M_01_00 : XHTML_sigs.XHTML(XML).T
-  module M_01_01 : XHTML_sigs.XHTML(XML).T
-  module M_01_00_compat : XHTML_sigs.XHTML(XML).T
-  module M_01_01_compat : XHTML_sigs.XHTML(XML).T
+  module M : XHTML_sigs.XHTML(XML.M).T
+  module M_01_00 : XHTML_sigs.XHTML(XML.M).T
+  module M_01_01 : XHTML_sigs.XHTML(XML.M).T
+  module M_01_00_compat : XHTML_sigs.XHTML(XML.M).T
+  module M_01_01_compat : XHTML_sigs.XHTML(XML.M).T
 
 end
 *)

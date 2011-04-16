@@ -884,8 +884,8 @@ end
 
 (** {3 Functor to create modules to register subpages for other subtypes of XHTML} *)
 
-module SubXhtml(XML : XML_sigs.Iterable)
-               (TypedXML : XML_sigs.TypedXML(XML).T)
+module SubXhtml(XML: XML_sigs.Iterable)
+               (TypedXML: XML_sigs.TypedXML(XML).T)
                (E : sig type content end) :
   sig
 

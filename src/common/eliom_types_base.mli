@@ -38,11 +38,11 @@ val of_data_key_ : 'a data_key -> (int64 * int)
 type poly
 
 type onload_form_creators_info =
-  | OFA of XML.elt * string * (bool * Url.path) option
+  | OFA of XML.M.elt * string * (bool * Url.path) option
   | OFForm_get of
-      XML.elt * string * (bool * Url.path) option
+      XML.M.elt * string * (bool * Url.path) option
   | OFForm_post of
-      XML.elt * string * (bool * Url.path) option
+      XML.M.elt * string * (bool * Url.path) option
 
 type separator = Space | Comma
 
@@ -65,7 +65,7 @@ type elt_content =
 and elt = ( elt_content * int option )
 
 type eliom_data_type =
-    ((XML.ref_tree, (int * XML.ref_tree) list) leftright *
+    ((XML.M.ref_tree, (int * XML.M.ref_tree) list) leftright *
 	elt list *
         (poly * ((int64 * int) * poly list)) *
         Ocsigen_cookies.cookieset *
