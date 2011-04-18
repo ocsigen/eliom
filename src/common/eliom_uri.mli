@@ -158,7 +158,6 @@ val make_actual_path: string list -> string list
 
 val make_proto_prefix :
   ?hostname:string -> ?port:int ->
-  sp:server_params option ->
   bool -> string
 
 val make_cookies_info :

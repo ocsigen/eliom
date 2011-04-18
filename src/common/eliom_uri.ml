@@ -98,9 +98,9 @@ let make_actual_path path =
 let make_proto_prefix
     ?hostname
     ?port
-    ~sp
     https
     : string =
+  let sp = Eliom_common.get_sp_option () in
   let ssl =
     match sp with
       | Some sp -> Eliom_state.get_csp_ssl_sp sp
@@ -155,7 +155,7 @@ let make_uri_components_ (* does not take into account getparams *)
   in
   let absolute = 
     if absolute || https <> ssl 
-    then Some (make_proto_prefix ~sp ?hostname ?port https)
+    then Some (make_proto_prefix ?hostname ?port https)
     else if absolute_path
     then Some "/"
     else None 
@@ -528,7 +528,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
             in
             let absolute = 
               if absolute || https <> ssl 
-              then Some (make_proto_prefix ~sp:(Some sp) ?hostname ?port https)
+              then Some (make_proto_prefix ?hostname ?port https)
               else if absolute_path
               then Some "/"
               else None

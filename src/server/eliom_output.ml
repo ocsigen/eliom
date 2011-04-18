@@ -384,7 +384,6 @@ module type XHTMLFORMSSIG = sig
     val make_proto_prefix :
       ?hostname:string ->
       ?port:int ->
-      sp:Eliom_common.server_params option ->
       bool ->
       string
 (** Creates the string corresponding to the beginning of the URL,
