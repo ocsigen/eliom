@@ -78,6 +78,7 @@ set_defaults () {
     enable_natdynlink=1
     enable_debug=0
     enable_annot=0
+    with_preempt=0
     with_ocamlduce=1
     root=""
     temproot=""
@@ -103,7 +104,7 @@ whelp_ocamlduce="Compile Ocamlduce support for typing pages"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
 eoptions="debug annot natdynlink"
-woptions="ocamlduce"
+woptions="ocamlduce preempt"
 
 print_options () {
 	for opt in $eoptions; do
@@ -159,6 +160,7 @@ usage: ./configure [ options ]
   --enable-annot,	--disable-annot		Enable/disable .annot files generation
   --enable-natdynlink,	--disable-natdynlink	Enable/disable nativecode dynamic linking
 
+  --with-preempt,	--without-preempt	compile with preemptive threads support.
   --with-ocamlduce,	--without-ocamlduce	Compile ocamlduce based libraries.
 
   --name=NAME		The name of the library and ocamlfind package.
@@ -378,6 +380,11 @@ if [ $with_ocamlduce -gt 0 ] ; then
 else
 	with_ocamlduce="NO"
 fi
+if [ $with_preempt -gt 0 ] ; then
+	with_preempt="YES"
+else
+	with_preempt="NO"
+fi
 
 ######################################################################
 # Write Makefile.conf
@@ -406,6 +413,9 @@ OCAMLDUCEFIND := ocamlducefind
 # Do you want the ocamlduce extension? YES/NO
 # (You need ocamlduce to be installed)
 OCAMLDUCE:=$with_ocamlduce
+
+# Do you want preemptive threads ? YES/NO
+PREEMPTIVE:=$with_preempt
 
 # Do you want to use dynamic linking for native code? YES/NO
 NATDYNLINK:=$enable_natdynlink

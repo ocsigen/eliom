@@ -1,12 +1,12 @@
 include ../../Makefile.config
 
 LIBS     := -I private -I extensions ${addprefix -package ,${SERVER_PACKAGE} ${SERVER_SYNTAX}}
-OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -thread
-OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG} -thread
+OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} ${THREAD}
+OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}  ${THREAD}
 OCAMLDEP := $(OCAMLFIND) ocamldep
 
-OCAMLDUCEC   := ${OCAMLDUCEFIND} ocamlc${BYTEDBG} -thread
-OCAMLDUCEOPT := ${OCAMLDUCEFIND} ocamlopt ${OPTDBG} -thread
+OCAMLDUCEC   := ${OCAMLDUCEFIND} ocamlc${BYTEDBG}  ${THREAD}
+OCAMLDUCEOPT := ${OCAMLDUCEFIND} ocamlopt ${OPTDBG}  ${THREAD}
 OCAMLDUCEDEP := ${OCAMLDUCEFIND} ocamldep
 
 all: byte opt

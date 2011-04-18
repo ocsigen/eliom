@@ -1,6 +1,7 @@
 
 BYTEDBG :=
 OPTDBG  :=
+THREAD  :=
 
 ifeq "$(DEBUG)" "YES"
 BYTEDBG += -g
@@ -15,6 +16,10 @@ endif
 ifeq "$(PROFILING)" "YES"
 BYTEDBG :=p ${BYTEDBG}
 OPTDBG  += -p
+endif
+
+ifeq "$(PREEMPTIVE)" "YES"
+  THREAD += -thread
 endif
 
 SERVERDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/server
