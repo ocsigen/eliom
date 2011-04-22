@@ -19,8 +19,6 @@
 
 open Eliom_pervasives
 
-open Ocsigen_extensions
-
 (** Type of names in a form *)
 type 'a param_name = string
 

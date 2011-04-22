@@ -25,12 +25,9 @@ open Eliom_pervasives
    It is used for example in {!Eliom_output}.
  *)
 
-
 open Lwt
 open Eliom_parameters
 open Eliom_services
-
-open Ocsigen_extensions
 
 module type FORMCREATE =
   sig

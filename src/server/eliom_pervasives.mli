@@ -221,3 +221,6 @@ module XHTML : sig
   module P : XML_sigs.TypedSimplePrinter(XML.M)(M).T
 
 end
+
+type file_info = Ocsigen_extensions.file_info
+

@@ -24,7 +24,6 @@ open Lwt
 open Eliom_parameters
 open Eliom_services
 open Eliom_uri
-open Ocsigen_extensions
 
 (*204FORMS* old implementation of forms with 204 and change_page_event
 let nl_internal_appl_form =

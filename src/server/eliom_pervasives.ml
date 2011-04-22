@@ -351,3 +351,5 @@ module XHTML = struct
   module M_01_01 = XHTML_f.Make_01_01(XML.M)
   module P = XML_print.MakeTypedSimple(XML.M)(M)
 end
+
+type file_info = Ocsigen_extensions.file_info

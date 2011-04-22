@@ -24,8 +24,6 @@ open Eliom_services
 open Eliom_parameters
 open Eliom_mkforms
 
-open Ocsigen_extensions
-
 (** {3 Creating links and forms with XHTML5.M} *)
 
 module type HTML5FORMSSIG = sig

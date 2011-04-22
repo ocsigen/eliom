@@ -255,3 +255,5 @@ module Regexp : sig
   val replace_fun : t -> (int -> string array -> string) -> string -> string
   val split : t -> string -> string array
 end
+
+type file_info

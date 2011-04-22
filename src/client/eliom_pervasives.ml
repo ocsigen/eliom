@@ -817,3 +817,6 @@ module Regexp = struct
   external split : t -> string -> string array = "caml_regexp_split"
 
 end
+
+(** Empty type (not used on client side, see eliom_parameter_base.ml) *)
+type file_info
