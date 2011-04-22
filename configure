@@ -27,10 +27,10 @@ fail_binary () {
 check_binary () {
   # $1: the name of the binary
   # $2: an URL
-  if test_binary $1; then
+  if test_binary "$1"; then
       return
   else
-      fail_binary $1 $2
+      fail_binary "$1" "$2"
   fi
 }
 
@@ -50,17 +50,17 @@ test_library () {
 fail_library () {
   echo
   echo "Required library $1 not found!"
-  [ -z "$2"] || echo "===> $2"
+  [ -z "$2" ] || echo "===> $2"
   exit 1
 }
 
 check_library () {
   # $1: the name of the library (findlib)
   # $2: an URL
-  if test_library $1; then
+  if test_library "$1"; then
       return
   else
-      fail_library $1 $2
+      fail_library "$1" "$2"
   fi
 }
 
