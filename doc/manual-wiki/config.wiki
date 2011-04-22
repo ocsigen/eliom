@@ -173,7 +173,7 @@ it is also possible (and recommended!) to do:
     <eliom findlib-package="//package-name//" />
   </site>
 </host>
->>
+}}}
 
 
 
@@ -186,7 +186,8 @@ To do that use <<span class="code"|/etc/init.d/ocsigen reload>>
 for most of the distributions, or do it manually using:
 
 {{{
-echo reload > /var/run/ocsigen_command >>
+echo reload > /var/run/ocsigen_command
+}}}
 
 Only modules loaded inside <<span class="code"|<host>>>,
 <<span class="code"|<site>>> or
