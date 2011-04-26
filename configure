@@ -78,7 +78,7 @@ set_defaults () {
     enable_natdynlink=1
     enable_debug=0
     enable_annot=0
-    with_preempt=0
+    with_preempt=1
     with_ocamlduce=1
     root=""
     temproot=""
