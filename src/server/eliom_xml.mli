@@ -26,12 +26,12 @@ open Eliom_pervasives
 (** The functions in this module can only be called inside the
     function answering to a client application request *)
 
-val make_ref_tree_list : XML.M.elt list -> (int * XML.M.ref_tree) list
-val make_ref_tree : XML.M.elt -> XML.M.ref_tree
-(** Those functions returns the structures of an XML.M.tree containing
+val make_ref_tree_list : XML.elt list -> (int * XML.ref_tree) list
+val make_ref_tree : XML.elt -> XML.ref_tree
+(** Those functions returns the structures of an XML.tree containing
     only the nodes with an id *)
 
-val make_node_id : XML.M.elt -> int
+val make_node_id : XML.elt -> int
 (** [make_node_id node] generate an id for a node and returns it.  It
     also mark the node and its sons as 'node to send to the client' *)
 
@@ -39,15 +39,15 @@ val contents_to_send : unit -> Eliom_types.elt list
 (** [contents_to_send ()] returns the nodes that were marked by
     make_node_id and not already sent. Those nodes are marked as sent *)
 
-val mark_sent : XML.M.elt -> unit
+val mark_sent : XML.elt -> unit
 (** [mark_sent node] is used to tell that [node] has already been sent
     to the client by another mean without calling [contents_to_send]:
-    The part of a page that is sent as plain XML.M.( in text ) in the
+    The part of a page that is sent as plain XML.( in text ) in the
     answer of the request. *)
 
 (**/**)
 
 val client_process_node_table_size : unit -> int
 (** [client_process_node_table_size ()] returns the size of the table
-    used to store the id associated to each XML.M.node on the client
+    used to store the id associated to each XML.node on the client
     process. *)

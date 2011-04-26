@@ -116,8 +116,6 @@ val of_json : ?typ:'a Deriving_Json.t -> string -> 'a
 (** XML building and deconstructing. *)
 module XML : sig
 
-  module M : sig
-
   type aname = string
   type separator = Space | Comma
   type event = string
@@ -195,30 +193,49 @@ module XML : sig
   val lwt_register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b Lwt.t) -> 'a -> unit
   val register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b) -> 'a -> unit
 
-  end
-
 end
 
 module SVG : sig
+
   (** Type safe SVG creation. *)
-  module M : SVG_sigs.SVG(XML.M).T
-  module P : XML_sigs.TypedSimplePrinter(XML.M)(M).T
+  module M : SVG_sigs.T with module XML := XML
+  module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
+					  and type doc := M.doc
 
 end
 
 module HTML5 : sig
+
   (** Type safe HTML5 creation. *)
-  module M : HTML5_sigs.HTML5(XML.M)(SVG.M).T
-  module P : XML_sigs.TypedSimplePrinter(XML.M)(M).T
+  module M : HTML5_sigs.T with module XML := XML and module SVG := SVG.M
+  module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
+					  and type doc := M.doc
 
 end
 
 module XHTML : sig
+
   (** Type safe XHTML creation. *)
-  module M : XHTML_sigs.XHTML(XML.M).T
-  module M_01_01 : XHTML_sigs.XHTML(XML.M).T
-  module M_01_00 : XHTML_sigs.XHTML(XML.M).T
-  module P : XML_sigs.TypedSimplePrinter(XML.M)(M).T
+  module M : XHTML_sigs.T with module XML := XML
+  module P : XML_sigs.TypedSimplePrinter
+             with type 'a elt := 'a M.elt
+	      and type doc := M.doc
+
+  module M_01_00 : XHTML_sigs.T with module XML := XML
+  module P_01_00 : XML_sigs.TypedSimplePrinter
+                   with type 'a elt := 'a M_01_00.elt
+		    and type doc := M_01_00.doc
+  module P_01_00_compat : XML_sigs.TypedSimplePrinter
+                   with type 'a elt := 'a M_01_00.elt
+		    and type doc := M_01_00.doc
+
+  module M_01_01 : XHTML_sigs.T with module XML := XML
+  module P_01_01 : XML_sigs.TypedSimplePrinter
+                   with type 'a elt := 'a M_01_01.elt
+		    and type doc := M_01_01.doc
+  module P_01_01_compat : XML_sigs.TypedSimplePrinter
+                   with type 'a elt := 'a M_01_01.elt
+		    and type doc := M_01_01.doc
 
 end
 

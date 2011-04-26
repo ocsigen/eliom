@@ -22,7 +22,7 @@
 open Eliom_pervasives
 
 let (make_a_with_onclick :
-       (?a:'a -> ?onclick:XML.M.event -> ?href:string -> 'c -> 'd) ->
+       (?a:'a -> ?onclick:XML.event -> ?href:string -> 'c -> 'd) ->
      (?keep_default:bool -> 'd -> string -> ('e -> unit Lwt.t) -> unit -> 'f) ->
      ?a:'a ->
      ?cookies_info:'ci ->
@@ -147,13 +147,13 @@ let make_add_tab_cookies_to_form id form_ref =
 
 let make_get_form_with_post_tab_cookies
     make_get_form register_event _ id ?a ~action i1 i =
-  let onsubmit = Some (make_add_tab_cookies_to_form id (XML.M.next_ref ())) in
+  let onsubmit = Some (make_add_tab_cookies_to_form id (XML.next_ref ())) in
   make_get_form ?a ~action ?onsubmit i1 i
 
 
 let make_post_form_with_post_tab_cookies
     make_post_form register_event _ id ?a ~action i1 i =
-  let onsubmit = Some (make_add_tab_cookies_to_form id (XML.M.next_ref ())) in
+  let onsubmit = Some (make_add_tab_cookies_to_form id (XML.next_ref ())) in
   make_post_form ?a ~action ?onsubmit ?id:None ?inline:None i1 i
 
 

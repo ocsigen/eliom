@@ -31,8 +31,8 @@ val unwrap : 'a Eliom_types.data_key -> 'a
 val unwrap_node : Dom.node Js.t Eliom_types.data_key -> Dom_html.element Js.t
 
 val rebuild_xml : int64 -> Eliom_types.elt -> Dom_html.element Js.t
-val relink_dom : int64 -> Dom_html.element Js.t -> XML.M.ref_tree -> unit
-val relink_dom_list : int64 -> #Dom.node Dom.nodeList Js.t -> (int * XML.M.ref_tree) list -> unit
+val relink_dom : int64 -> Dom_html.element Js.t -> XML.ref_tree -> unit
+val relink_dom_list : int64 -> #Dom.node Dom.nodeList Js.t -> (int * XML.ref_tree) list -> unit
 val fill_page_data_table : (int64 * int) * Eliom_types.poly list -> unit
 
 

@@ -94,15 +94,15 @@ module type FORMCREATE =
     val select_content_of_option : option_elt -> select_content_elt
 
     val make_pcdata : string -> pcdata_elt
-    val make_a : ?a:a_attrib_t -> ?href:string -> ?onclick:XML.M.event ->
+    val make_a : ?a:a_attrib_t -> ?href:string -> ?onclick:XML.event ->
       'a a_content_elt_list -> 'a a_elt
     val make_get_form : ?a:form_attrib_t ->
       action:string ->
-      ?onsubmit:XML.M.event ->
+      ?onsubmit:XML.event ->
       form_content_elt -> form_content_elt_list -> form_elt
     val make_post_form : ?a:form_attrib_t ->
       action:string ->
-      ?onsubmit:XML.M.event ->
+      ?onsubmit:XML.event ->
       ?id:string -> ?inline:bool ->
       form_content_elt -> form_content_elt_list -> form_elt
     val make_hidden_field : input_elt option -> form_content_elt

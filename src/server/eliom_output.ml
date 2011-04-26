@@ -151,7 +151,7 @@ module Xhtmlforms_ = struct
         ~action:(uri_of_string action) elt1 elts
     in
   (* if onsubmit is true, the node ref must exist: *)
-    if onsubmit <> None then ignore (XML.M.ref_node (XHTML.M.toelt r));
+    if onsubmit <> None then ignore (XML.ref_node (XHTML.M.toelt r));
     r
 
 
@@ -173,7 +173,7 @@ module Xhtmlforms_ = struct
         ~action:(uri_of_string action) elt1 elts
     in
   (* if onsubmit is true, the node ref must exist: *)
-    if onsubmit <> None then ignore (XML.M.ref_node (XHTML.M.toelt r));
+    if onsubmit <> None then ignore (XML.ref_node (XHTML.M.toelt r));
     r
 
   let make_hidden_field content =
@@ -243,8 +243,8 @@ module Xhtmlforms_ = struct
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
 (*
-  let register_event_a node = XML.M.register_event (XHTML.M.toelt node)
-  let register_event_form node = XML.M.register_event (XHTML.M.toelt node)
+  let register_event_a node = XML.register_event (XHTML.M.toelt node)
+  let register_event_form node = XML.register_event (XHTML.M.toelt node)
 *)
 (*POSTtabcookies* forms with tab cookies in POST params:
 
@@ -1677,15 +1677,15 @@ module Xhtmlreg_(Xhtml_content
              XHTML.M.pcdata " {display: none}\n"])
       in
       let rec aux = function
-        | { XML.M.elt = XML.M.Node ("head",al,el) } as e::l ->
-            { e with XML.M.elt = XML.M.Node ("head",al,css::el) }::l
+        | { XML.elt = XML.Node ("head",al,el) } as e::l ->
+            { e with XML.elt = XML.Node ("head",al,css::el) }::l
         | e::l -> e::(aux l)
         | [] -> []
       in
       XHTML.M.tot
         (match XHTML.M.toelt a with
-           | { XML.M.elt = XML.M.Node ("html",al,el) } as e ->
-               { e with XML.M.elt = XML.M.Node ("html",al,aux el) }
+           | { XML.elt = XML.Node ("html",al,el) } as e ->
+               { e with XML.elt = XML.Node ("html",al,aux el) }
            | e -> e)
 
     let get_etag ?options c = get_etag (add_css c)
@@ -1722,7 +1722,7 @@ module Xhtmlreg_(Xhtml_content
 
 end
 
-module Xhtmlreg = MakeRegister(Xhtmlreg_(Ocsigen_senders.Make_XML_Content(XML.M)(XHTML.M)))
+module Xhtmlreg = MakeRegister(Xhtmlreg_(Ocsigen_senders.Make_XML_Content(XML)(XHTML.M)))
 
 module Xhtml = struct
   include Xhtmlforms
@@ -1733,7 +1733,7 @@ end
 (****************************************************************************)
 (****************************************************************************)
 module SubXhtml(XML: XML_sigs.Iterable)
-               (TypedXML: XML_sigs.TypedXML(XML).T)
+               (TypedXML: XML_sigs.TypedXML with module XML := XML)
                (E : sig type content end)
 
 : sig
@@ -1815,11 +1815,11 @@ module SubXhtml(XML: XML_sigs.Iterable)
 
   end
 
-module Blocks = SubXhtml(XML.M)(XHTML.M)(struct
+module Blocks = SubXhtml(XML)(XHTML.M)(struct
   type content = XHTML_types.body_content
 end)
 
-module Blocks5 = SubXhtml(XML.M)(HTML5.M)(struct
+module Blocks5 = SubXhtml(XML)(HTML5.M)(struct
   type content = HTML5_types.body_content
 end)
 
@@ -3307,14 +3307,14 @@ redir ();"))::
                           (let reqnum = Eliom_request_info.get_request_id_sp sp in
                            (Eliom_types.jsmarshal
                               (Eliom_types.to_data_key_
-                                 (*(reqnum, XML.M.ref_node container_node))*)
+                                 (*(reqnum, XML.ref_node container_node))*)
                                  (reqnum, Eliom_xml.make_node_id container_node))
                            )) ; "\'; \n";
 
                           "var eliom_data = \'" ;
                           (Eliom_types.jsmarshal
                              ((Left
-                                 (*(XML.M.make_ref_tree (HTML5.M.toelt body)),*)
+                                 (*(XML.make_ref_tree (HTML5.M.toelt body)),*)
                                  (Eliom_xml.make_ref_tree (HTML5.M.toelt body)),
                             (* Warning: due to right_to_left evaluation,
                                make_ref_tree is called before the previous
@@ -3501,7 +3501,7 @@ end
 module Eliom_appl (Appl_params : APPL_PARAMS) = struct
 
   include MakeRegister(Eliom_appl_reg_
-                         (Ocsigen_senders.Make_XML_Content(XML.M)(HTML5.M))
+                         (Ocsigen_senders.Make_XML_Content(XML)(HTML5.M))
                          (Appl_params))
 
   (** Unique identifier for this application.
@@ -3776,15 +3776,15 @@ module Xhtml5reg_(Xhtml_content
              HTML5.M.pcdata " {display: none}\n"])
       in
       let rec aux = function
-        | { XML.M.elt = XML.M.Node ("head",al,el) } as e::l ->
-            { e with XML.M.elt = XML.M.Node ("head",al,css::el) }::l
+        | { XML.elt = XML.Node ("head",al,el) } as e::l ->
+            { e with XML.elt = XML.Node ("head",al,css::el) }::l
         | e::l -> e::(aux l)
         | [] -> []
       in
       HTML5.M.tot
         (match HTML5.M.toelt a with
-           | { XML.M.elt = XML.M.Node ("html",al,el) } as e ->
-               { e with XML.M.elt = XML.M.Node ("html",al,aux el) }
+           | { XML.elt = XML.Node ("html",al,el) } as e ->
+               { e with XML.elt = XML.Node ("html",al,aux el) }
            | e -> e)
 
     let get_etag ?options c = get_etag (add_css c)
@@ -3817,7 +3817,7 @@ module Xhtml5reg_(Xhtml_content
 
 end
 
-module Html5reg = MakeRegister(Xhtml5reg_(Ocsigen_senders.Make_XML_Content(XML.M)(HTML5.M)))
+module Html5reg = MakeRegister(Xhtml5reg_(Ocsigen_senders.Make_XML_Content(XML)(HTML5.M)))
 
 module Html5 = struct
   include Html5forms

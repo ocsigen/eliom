@@ -1,5 +1,5 @@
 <!-- -*- Mode: Xml -*- -->
-<!-- This file is intentionnaly very basic. See http://ocsigen.org/config for
+<!-- This file is intentionnaly very basic. See http://ocsigen.org/ocsigenserver/manual/config
      a more elaborate one, as well as for comments on the various options -->
 <!-- DO NOT MODIFY. This a generated file.
      Additional configurations sit in conf.d/ -->

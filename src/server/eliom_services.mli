@@ -508,11 +508,11 @@ val unregister :
     Use it with Eliom's syntax extension for client side code.
     For example: [set_onload ~sp {{ ... }}]
 *)
-val onload : XML.M.event -> unit
+val onload : XML.event -> unit
 
 (** This function will register a function that will be executed on
     client side when leaving current [Eliom_appl] page. *)
-val onunload : XML.M.event -> unit
+val onunload : XML.event -> unit
 
 
 

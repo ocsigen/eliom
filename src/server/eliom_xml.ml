@@ -20,7 +20,7 @@
 open Eliom_pervasives
 
 type elt =
-    { node : XML.M.elt Weak.t; (* always size 1 *)
+    { node : XML.elt Weak.t; (* always size 1 *)
       mutable sent : bool;
       mutable id : int option; }
 
@@ -41,12 +41,12 @@ struct
   module H = Hashtbl.Make(Int)
 
   type 'a t = 'a H.t
-  let mem t n = H.mem t (XML.M.ref_node n)
-  let find t n = H.find t (XML.M.ref_node n)
+  let mem t n = H.mem t (XML.ref_node n)
+  let find t n = H.find t (XML.ref_node n)
   let find_key t k = H.find t k
   let create = H.create
-  let add t n v = H.add t (XML.M.ref_node n) v
-  let replace t n v = H.replace t (XML.M.ref_node n) v
+  let add t n v = H.add t (XML.ref_node n) v
+  let replace t n v = H.replace t (XML.ref_node n) v
   let remove_key t k = H.remove t k
   let iter_key t f = H.iter t f
   let fold_key t f = H.fold t f
@@ -86,14 +86,14 @@ let new_id () =
   !r
 
 let is_element node =
-  match node.XML.M.elt with
-    | XML.M.Empty
-    | XML.M.Comment _
-    | XML.M.EncodedPCDATA _
-    | XML.M.PCDATA _
-    | XML.M.Entity _ -> false
-    | XML.M.Leaf _
-    | XML.M.Node _ -> true
+  match node.XML.elt with
+    | XML.Empty
+    | XML.Comment _
+    | XML.EncodedPCDATA _
+    | XML.PCDATA _
+    | XML.Entity _ -> false
+    | XML.Leaf _
+    | XML.Node _ -> true
 
 let rec add_node_ t node =
   if not (T.mem t node)
@@ -108,14 +108,14 @@ let rec add_node_ t node =
 	    else None
 	(* the ref_tree won't be sparse if there is no None *)
 	};
-      match node.XML.M.elt with
-        | XML.M.Empty
-        | XML.M.Comment _
-        | XML.M.EncodedPCDATA _
-        | XML.M.PCDATA _
-        | XML.M.Entity _
-        | XML.M.Leaf _ -> ()
-        | XML.M.Node (_,_,l) -> List.iter (add_node_ t) l
+      match node.XML.elt with
+        | XML.Empty
+        | XML.Comment _
+        | XML.EncodedPCDATA _
+        | XML.PCDATA _
+        | XML.Entity _
+        | XML.Leaf _ -> ()
+        | XML.Node (_,_,l) -> List.iter (add_node_ t) l
     end
 
 let rec mark_sent_ t node =
@@ -126,14 +126,14 @@ let rec mark_sent_ t node =
   else
     begin
       elt.sent <- true;
-      match node.XML.M.elt with
-        | XML.M.Empty
-        | XML.M.Comment _
-        | XML.M.EncodedPCDATA _
-        | XML.M.PCDATA _
-        | XML.M.Entity _
-        | XML.M.Leaf _ -> ()
-        | XML.M.Node (_,_,l) -> List.iter (mark_sent_ t) l
+      match node.XML.elt with
+        | XML.Empty
+        | XML.Comment _
+        | XML.EncodedPCDATA _
+        | XML.PCDATA _
+        | XML.Entity _
+        | XML.Leaf _ -> ()
+        | XML.Node (_,_,l) -> List.iter (mark_sent_ t) l
     end
 
 let find_unsent_roots_ t =
@@ -147,14 +147,14 @@ let find_unsent_roots_ t =
 	  begin
             if not (T.mem root node)
             then T.add root node true;
-            match node.XML.M.elt with
-              | XML.M.Empty
-              | XML.M.Comment _
-              | XML.M.EncodedPCDATA _
-              | XML.M.PCDATA _
-              | XML.M.Entity _
-              | XML.M.Leaf _ -> ()
-              | XML.M.Node (_,_,l) -> List.iter (fun n -> T.replace root n false) l
+            match node.XML.elt with
+              | XML.Empty
+              | XML.Comment _
+              | XML.EncodedPCDATA _
+              | XML.PCDATA _
+              | XML.Entity _
+              | XML.Leaf _ -> ()
+              | XML.Node (_,_,l) -> List.iter (fun n -> T.replace root n false) l
 	  end
   in
   T.iter_key add t;
@@ -188,14 +188,14 @@ let make_node_id_ t node =
 let make_node_id node = make_node_id_ (get_table ()) node
 
 let map_separator = function
-  | XML.M.Space -> Eliom_types.Space
-  | XML.M.Comma -> Eliom_types.Comma
+  | XML.Space -> Eliom_types.Space
+  | XML.Comma -> Eliom_types.Comma
 
-let map_attrib a = match XML.M.acontent a with
-  | XML.M.AFloat (string, float) -> Eliom_types.AFloat (string, float)
-  | XML.M.AInt (string, int) -> Eliom_types.AInt (string, int)
-  | XML.M.AStr (string1, string2) -> Eliom_types.AStr (string1, string2)
-  | XML.M.AStrL (separator, string, string_list) ->
+let map_attrib a = match XML.acontent a with
+  | XML.AFloat (string, float) -> Eliom_types.AFloat (string, float)
+  | XML.AInt (string, int) -> Eliom_types.AInt (string, int)
+  | XML.AStr (string1, string2) -> Eliom_types.AStr (string1, string2)
+  | XML.AStrL (separator, string, string_list) ->
     Eliom_types.AStrL (map_separator separator, string, string_list)
 
 let rec map_node t n =
@@ -203,14 +203,14 @@ let rec map_node t n =
   then (Eliom_types.Ref (make_node_id_ t n), None)
     (* we don't need to attach id to reference node *)
   else
-    let node = match n.XML.M.elt with
-      | XML.M.Empty -> Eliom_types.Empty
-      | XML.M.Comment s -> Eliom_types.Comment s
-      | XML.M.EncodedPCDATA s -> Eliom_types.EncodedPCDATA s
-      | XML.M.PCDATA s -> Eliom_types.PCDATA s
-      | XML.M.Entity s -> Eliom_types.Entity s
-      | XML.M.Leaf (e,a) -> Eliom_types.Leaf (e,List.map map_attrib a)
-      | XML.M.Node (e,a,l) -> Eliom_types.Node (e,List.map map_attrib a,List.map (map_node t) l)
+    let node = match n.XML.elt with
+      | XML.Empty -> Eliom_types.Empty
+      | XML.Comment s -> Eliom_types.Comment s
+      | XML.EncodedPCDATA s -> Eliom_types.EncodedPCDATA s
+      | XML.PCDATA s -> Eliom_types.PCDATA s
+      | XML.Entity s -> Eliom_types.Entity s
+      | XML.Leaf (e,a) -> Eliom_types.Leaf (e,List.map map_attrib a)
+      | XML.Node (e,a,l) -> Eliom_types.Node (e,List.map map_attrib a,List.map (map_node t) l)
     in
     (node, (T.find t n).id)
 
@@ -225,18 +225,18 @@ let rec make_ref_tree_list_ t l =
   let rec map i = function
     | e :: es ->
         begin match make_ref_tree_ t e with
-          | XML.M.Ref_tree (None, []) -> map i es
+          | XML.Ref_tree (None, []) -> map i es
           | v -> (i, v) :: map (succ i) es
         end
     | [] -> []
   in map 0 l
 and make_ref_tree_ t root =
   let children =
-    match root.XML.M.elt with
-        XML.M.Node (n_, _, elts) -> make_ref_tree_list_ t elts
-      | XML.M.Empty | XML.M.EncodedPCDATA _
-      | XML.M.PCDATA _ | XML.M.Entity _
-      | XML.M.Leaf (_, _) | XML.M.Comment _  ->
+    match root.XML.elt with
+        XML.Node (n_, _, elts) -> make_ref_tree_list_ t elts
+      | XML.Empty | XML.EncodedPCDATA _
+      | XML.PCDATA _ | XML.Entity _
+      | XML.Leaf (_, _) | XML.Comment _  ->
           []
   in
   let id =
@@ -244,7 +244,7 @@ and make_ref_tree_ t root =
     then (T.find t root).id
     else None
   in
-  XML.M.Ref_tree (id, children)
+  XML.Ref_tree (id, children)
 
 let make_ref_tree_list nodes = make_ref_tree_list_ (get_table ()) nodes
 let make_ref_tree node = make_ref_tree_ (get_table ()) node
@@ -259,6 +259,6 @@ let internal_wrap node =
 
 let node_mark () = Obj.repr (Eliom_common.make_wrapper internal_wrap)
 
-let () = XML.M.make_mark := node_mark
+let () = XML.make_mark := node_mark
 
 let () = Ocsigen_messages.debug2 ("eliom_xml: wrapper loaded");
