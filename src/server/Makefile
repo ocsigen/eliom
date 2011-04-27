@@ -66,7 +66,10 @@ FILES := eliom_pervasives.ml \
 	 eliom_bus.ml \
 	 extensions/eliom_s2s.ml extensions/eliom_openid.ml \
 	 extensions/atom_feed.ml extensions/eliom_atom.ml
+
 	 # eliom_extension_template.ml \
+
+INTF_NOP4 := eliom_pervasives.mli
 
 byte:: eliom.cma
 opt:: eliom.cmxa
@@ -79,17 +82,13 @@ eliom.cma: ${FILES:.ml=.cmo}
 eliom.cmxa: ${FILES:.ml=.cmx}
 	${OCAMLOPT} -a -o $@ $^
 
-# .mli to be compiled without camlp4
-eliom_pervasives.cmi: \
-%.cmi: %.mli
-	$(OCAMLC) ${LIBS} -c $<
-
 ### OCamlduce ###
 
 DUCE_FILES := eliom_duce.ml       \
 	      eliom_duce_tools.ml \
 
-DUCE_INTF :=
+DUCE_INTF := eliom_duce.mli       \
+	     eliom_duce_tools.mli \
 
 ifeq "${OCAMLDUCE}" "YES"
 byte:: eliom_duce.cma
@@ -106,22 +105,26 @@ eliom_duce.cmxa: ${DUCE_FILES:.ml=.cmx}
 
 ##########
 
-${DUCE_INTF:.mli=.cmi} ${DUCE_FILES:.ml=.cmi}: %.cmi: %.mli
+%.cmo: %.ml
+	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
+%.cmx: %.ml
+	$(OCAMLOPT) -syntax camlp4o ${LIBS} -c $<
+%.cmi: %.mli
+	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
+${INTF_NOP4:.mli=.cmi}: \
+%.cmi: %.mli
+	$(OCAMLC) ${LIBS} -c $<
+
+
+%.cmxs: %.cmxa
+	$(OCAMLOPT) -shared -linkall -o $@ $<
+
+${DUCE_INTF:.mli=.cmi}: %.cmi: %.mli
 	$(OCAMLDUCEC) ${LIBS} -c $<
 ${DUCE_FILES:.ml=.cmo}: %.cmo: %.ml
 	$(OCAMLDUCEC) ${LIBS} -c $<
 ${DUCE_FILES:.ml=.cmx}: %.cmx: %.ml
 	$(OCAMLDUCEOPT) ${LIBS} -c $<
-
-%.cmi: %.mli
-	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
-%.cmo: %.ml
-	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
-%.cmx: %.ml
-	$(OCAMLOPT) -syntax camlp4o ${LIBS} -c $<
-
-%.cmxs: %.cmxa
-	$(OCAMLOPT) -shared -linkall -o $@ $<
 
 ## INSTALL ##
 
@@ -146,23 +149,47 @@ uninstall:
 ## Clean up
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
-	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
-	-cd extensions && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
+	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
+	-cd extensions && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
 	-rm -f ${PREDEP}
 distclean: clean
 	-rm -f *~ \#* .\#*
 
 ## Dependencies
 
-depend: ${PREDEP}
-	ls ${FILES} ${FILES:.ml=.mli} | \
-	  grep -v eliom_pervasives.mli | \
-	  xargs $(OCAMLDEP) -syntax camlp4o  ${LIBS} > .depend
-	${OCAMLDEP} ${LIBS} eliom_pervasives.mli >> .depend
+%.ml.deps: %.ml ${PREDEP}
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+%.mli.deps: %.mli ${PREDEP}
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+${INTF_NOP4:.mli=.mli.deps}: \
+%.mli.deps: %.mli ${PREDEP}
+	 ${OCAMLDEP} ${LIBS} $< > $@
+
+${DUCE_FILES:.ml=.ml.deps}: %.ml.deps: %.ml ${PREDEP}
 ifeq "${OCAMLDUCE}" "YES"
-	${OCAMLDUCEDEP} ${LIBS} ${DUCE_FILES} ${DUCE_FILES:.ml=.mli} >> .depend
+	 ${OCAMLDUCEDEP} ${LIBS} $< > $@
+else
+	echo > $@
 endif
+
+${DUCE_INTF:.mli=.mli.deps}: %.mli.deps: %.mli ${PREDEP}
+ifeq "${OCAMLDUCE}" "YES"
+	 ${OCAMLDUCEDEP} ${LIBS} $< > $@
+else
+	echo > $@
+endif
+
+.PHONY: predeps deps
+predeps: ${PREDEP}
+deps: ${patsubst %.ml,%.ml.deps,$(wildcard *.ml */*.ml)} \
+      ${patsubst %.mli,%.mli.deps,$(wildcard *.mli */*.mli)}
+
+.PHONY: depend
+depend:
+	@${MAKE} --no-print-directory predeps
+	@${MAKE} --no-print-directory deps
+	cat *.deps */*.deps > .depend
 
 FORCE:
 -include .depend

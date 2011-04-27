@@ -29,7 +29,6 @@ FILES := eliom_pervasives.ml \
 	 eliom_common_base.ml eliom_common.ml \
          private/eliommod_cookies.ml \
 	 eliom_types_base.ml eliom_types.ml \
-	 eliom_common_base.ml eliom_common.ml \
 	 eliom_process.ml \
 	 eliom_config.ml \
 	 eliom_request_info.ml \
@@ -44,30 +43,30 @@ FILES := eliom_pervasives.ml \
          private/eliommod_mkforms.ml \
 	 eliom_mkforms.ml \
 	 eliom_output_base.ml eliom_output.ml \
-	 eliom_output.ml \
 	 eliom_bus.ml \
 	 eliom_react.ml \
+
+INTF_NOP4 := eliom_pervasives.mli \
+	     eliom_output.mli     \
 
 eliom_client.cma: eliom_client_stubs.o ${FILES:.ml=.cmo}
 	${OCAMLMKLIB} -o ${@:.cma=} $^
 
 ##########
 
-%.cmi: %.mli
-	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
 %.cmo: %.ml
 	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
 %.cmx: %.ml
 	$(OCAMLOPT) -syntax camlp4o ${LIBS} -c $<
+%.cmi: %.mli
+	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
+${INTF_NOP4:.mli=.cmi}: \
+%.cmi: %.mli
+	$(OCAMLC) ${LIBS} -c $<
 %.cmxs: %.cmx
 	$(OCAMLOPT) -shared -linkall -o $@ $<
 %.o: %.c
 	$(OCAMLC) -c $<
-
-## .mli to be compiled without camlp4
-eliom_output.cmi eliom_pervasives.cmi: \
-%.cmi: %.mli
-	$(OCAMLC) ${LIBS} -c $<
 
 ## INSTALL ##
 
@@ -85,8 +84,8 @@ uninstall:
 ## Clean up
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
-	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
+	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
 	-rm -f ${PREDEP}
 
 distclean: clean
@@ -94,13 +93,24 @@ distclean: clean
 
 ## Dependencies
 
-depend: ${PREDEP}
-	ls *.ml *.mli private/*.ml private/*.mli | \
-	  grep -v eliom_output.mli | \
-	  grep -v eliom_pervasives.mli | \
-	  xargs $(OCAMLDEP) -syntax camlp4o ${LIBS} > .depend
-	${OCAMLDEP} ${LIBS} eliom_output.mli >> .depend
-	${OCAMLDEP} ${LIBS} eliom_pervasives.mli >> .depend
+%.ml.deps: %.ml ${PREDEP}
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+%.mli.deps: %.mli ${PREDEP}
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+${INTF_NOP4:.mli=.mli.deps}: \
+%.mli.deps: %.mli ${PREDEP}
+	 ${OCAMLDEP} ${LIBS} $< > $@
+
+.PHONY: predeps deps
+predeps: ${PREDEP}
+deps: ${patsubst %.ml,%.ml.deps,$(wildcard *.ml */*.ml)} \
+      ${patsubst %.mli,%.mli.deps,$(wildcard *.mli */*.mli)}
+
+.PHONY: depend
+depend:
+	@${MAKE} --no-print-directory predeps
+	@${MAKE} --no-print-directory deps
+	cat *.deps */*.deps > .depend
 
 FORCE:
 -include .depend

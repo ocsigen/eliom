@@ -1,34 +1,34 @@
 include ../Makefile.config
 
 all: metas conf
+	${MAKE} -C syntax all
 	${MAKE} -C server all
 	${MAKE} -C client all
-	${MAKE} -C syntax all
 	${MAKE} -C tools all
 
 byte: metas conf
+	${MAKE} -C syntax all
 	${MAKE} -C server byte
 	${MAKE} -C client all
-	${MAKE} -C syntax all
 	${MAKE} -C tools all
 
 opt: metas conf
+	${MAKE} -C syntax all
 	${MAKE} -C server opt
 	${MAKE} -C client all
-	${MAKE} -C syntax all
 	${MAKE} -C tools all
 
 clean:
+	${MAKE} -C syntax clean
 	${MAKE} -C server clean
 	${MAKE} -C client clean
-	${MAKE} -C syntax clean
 	${MAKE} -C tools clean
 	-rm -f files/META  files/META.${PROJECTNAME}
 
 distclean:
+	${MAKE} -C syntax distclean
 	${MAKE} -C server distclean
 	${MAKE} -C client distclean
-	${MAKE} -C syntax distclean
 	${MAKE} -C tools distclean
 	-rm -f *~ \#* .\#*
 
