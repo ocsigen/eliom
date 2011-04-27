@@ -35,6 +35,6 @@ let appl_name =
 
 (** None on server side *)
 let get_application_name () =
-  debug (!!appl_name); Some (!!appl_name)
+  debug "application name: %s" (!!appl_name); Some (!!appl_name)
 
 let client_side = true

@@ -37,6 +37,7 @@ SERVER_PACKAGE := ocsigenserver               \
 		  lwt.react                   \
 
 SERVER_SYNTAX := js_of_ocaml.deriving.syntax \
+	      	 lwt.syntax		     \
 
 ifeq "${OCAMLDUCE}" "YES"
 SERVER_PACKAGE += tyxml.duce

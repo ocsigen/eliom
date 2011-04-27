@@ -22,46 +22,9 @@
 (* This file is for client-side comet-programming. *)
 
 open Eliom_pervasives
+module Ecb = Eliom_comet_base
 
 exception Channel_full
-
-(* Messages : encoding and decoding, comet protocol *)
-module Messages : sig
-
-  exception  Incorrect_encoding
-
-  val decode_downcoming : string -> (string * string) list
-
-end = struct
-
-  exception  Incorrect_encoding
-
-  (* constants *)
-  let channel_separator = "\n"
-  let field_separator = ":"
-  let url_decode x = Url.decode x
-
-  (* decoding *)
-  let chan_delim_regexp  = Regexp.make channel_separator
-  let field_delim_regexp = Regexp.make field_separator
-
-  let decode_downcoming s =
-    match s with
-      | "" -> []
-      | s ->
-	let splited = Regexp.split chan_delim_regexp s in
-	let splited_twice =
-	  Array.map
-            (fun s ->
-              match Regexp.split field_delim_regexp s with
-		| [|chan; msg|] -> (chan, url_decode msg)
-		| _ -> raise Incorrect_encoding
-            )
-            splited
-	in
-	Array.to_list splited_twice
-
-end
 
 module Configuration =
 struct
@@ -172,17 +135,17 @@ type activity =
       (** [!hd.hd_active_waiter] terminates when the page become
 	  focused *)
       mutable active_wakener : unit Lwt.u;
-      mutable restart_waiter : string Lwt.t;
-      mutable restart_wakener : string Lwt.u;
+      mutable restart_waiter : (string * string Ecb.channel_data) list Lwt.t;
+      mutable restart_wakener : (string * string Ecb.channel_data) list Lwt.u;
       mutable active_channels : StringSet.t;
     }
 
 type handler =
     {
-      hd_service : Eliom_comet_base.comet_service;
-      hd_stream : (string * string) Lwt_stream.t;
+      hd_service : Ecb.comet_service;
+      hd_stream : (string * string Ecb.channel_data) Lwt_stream.t;
       (** the stream of all messages from the server *)
-      hd_commands : Eliom_comet_base.command list -> unit;
+      hd_commands : Ecb.command list -> unit;
       (** [hd.hd_commands commands] sends the commands to the
 	  server. It launch a new request to the server
 	  immediately. *)
@@ -200,9 +163,6 @@ let add_blur_listener f : unit =
   let listener = Dom_html.handler (fun _ ->
     f (); Js.bool false) in
   (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "blur",listener,Js.bool false)
-
-let log f =
-  Printf.ksprintf (fun s -> Firebug.console##log(Js.string s)) f
 
 let set_activity activity v =
   if StringSet.is_empty activity.active_channels
@@ -238,7 +198,7 @@ let handle_focus handler =
 
 exception Restart
 exception Timeout
-exception Connection_lost
+exception Process_closed
 
 let max_retries = 5
 
@@ -247,10 +207,12 @@ let max_retries = 5
 let wait_data service activity count =
   let call_service () =
     lwt () = Configuration.sleep_before_next_request () in
-    lwt s = Eliom_client.call_service service () (Eliom_comet_base.Request_data !count) in
-    match s with
-      | "TIMEOUT" -> Lwt.fail Timeout
-      | s -> Lwt.return s
+    lwt s = Eliom_client.call_service service () (Ecb.Request_data !count) in
+    match Ecb.Json_answer.from_string s with
+      | Ecb.Timeout -> Lwt.fail Timeout
+      | Ecb.Process_closed -> Lwt.fail Process_closed
+      | Ecb.Messages l ->
+	Lwt.return l
   in
   let rec aux retries =
     if activity.active
@@ -265,12 +227,12 @@ let wait_data service activity count =
 	  | Eliom_request.Failed_request 0 ->
 	    if retries > max_retries
 	    then
-	      (log "Eliom_comet: connection failure";
+	      (debug "Eliom_comet: connection failure";
 	       set_activity activity false;
 	     aux 0)
 	    else
 	      (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
-	  | Restart -> log "Eliom_comet: restart";
+	  | Restart -> debug "Eliom_comet: restart";
 	    aux 0
 	  | Timeout ->
 	    if not activity.focused
@@ -278,7 +240,7 @@ let wait_data service activity count =
 	      if not (Configuration.get ()).Configuration.always_active
 	      then set_activity activity false;
 	    aux 0
-	  | e -> log "Eliom_comet: exception"; Lwt.fail e
+	  | e -> debug "Eliom_comet: exception %s" (Printexc.to_string e); Lwt.fail e
       end
      else
        lwt () = activity.active_waiter in
@@ -306,22 +268,13 @@ let init () =
   let count = ref 0 in
   let hd_activity = init_activity () in
   let hd_service = service () in
-  (* the stream on wich are regularily received data from the server *)
-  let normal_stream = Lwt_stream.from (wait_data hd_service hd_activity count) in
-  (* the stream on wich are received replies of request asking to register new channels *)
-  let exceptionnal_stream,push = Lwt_stream.create () in
   let hd_stream =
-    Lwt_stream.map_list Messages.decode_downcoming
-      ( Lwt_stream.choose [
-	normal_stream;
-	Lwt_stream.map_s (fun t -> t) exceptionnal_stream] ) in
+    Lwt_stream.map_list (fun x -> x)
+      (Lwt_stream.from (wait_data hd_service hd_activity count)) in
   (* the function to register and close channels *)
   let hd_commands commands =
-    let t =
-      Eliom_client.call_service hd_service ()
-	(Eliom_comet_base.Commands commands)
-    in
-    push (Some t);
+    Lwt.ignore_result (Eliom_client.call_service hd_service ()
+			 (Eliom_comet_base.Commands commands))
   in
   let hd =
     { hd_service; hd_stream; hd_commands; hd_activity }
@@ -354,23 +307,24 @@ let stop_waiting hd chan_id =
 
 let close' hd chan_id =
   stop_waiting hd chan_id;
-  hd.hd_commands [Eliom_comet_base.Close chan_id]
+  hd.hd_commands [Ecb.Close chan_id]
 
 let close chan_id =
   let hd = get_hd () in
-  close' hd (Eliom_comet_base.string_of_chan_id chan_id)
+  close' hd (Ecb.string_of_chan_id chan_id)
 
-let register ?(wake=true) chan_id =
-  let chan_id = Eliom_comet_base.string_of_chan_id chan_id in
+let register ?(wake=true) (chan_id:'a Ecb.chan_id) =
+  let chan_id = Ecb.string_of_chan_id chan_id in
   let hd = get_hd () in
   let stream = Lwt_stream.filter_map_s
     (function
       | (id,data) when id = chan_id ->
-	( match (Marshal.from_string data 0:'a Eliom_comet_base.channel_data) with
-	  | Eliom_comet_base.Full ->
+	( match data with
+	  | Ecb.Full ->
 	    stop_waiting hd chan_id;
 	    Lwt.fail Channel_full
-	  | Eliom_comet_base.Data x -> Lwt.return (Some x) )
+	  | Ecb.Data x ->
+	    Lwt.return (Some (Marshal.from_string (Url.decode x) 0:'a)))
       | _ -> Lwt.return None)
     (Lwt_stream.clone hd.hd_stream)
   in

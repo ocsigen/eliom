@@ -35,61 +35,23 @@ let ( >|= ) = Lwt.( >|= ) (* AKA map, AKA lift *)
 
 type chan_id = string
 
-module Messages :
-  (* All about messages from between clients and server *)
-  (*
-   * The server sends result to the client in the form of a list of :
-   * channel_id ^ ":" ^ value ^ { ";" ^ channel_id ^ " " ^ value }*
-   * where channel_id is the id of a channel that the client registered upon and
-   * value is the string that was written upon the associated channel.
-   * *)
-sig
+let encode_downgoing s =
+  Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Messages s)
 
-  val encode_downgoing :
-    chan_id list
-    -> (chan_id * string) list
-    -> string
-    (* Encode outgoing messages : the first argument is the list of channels
-     * that have already been collected.
-     * The results is the stream to send to the client*)
+let timeout_msg =
+ Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Timeout
+let process_closed_msg =
+  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Process_closed
 
-  val encode_ended : chan_id list -> string
 
-end = struct
-
-  (* constants *)
-  let channel_separator = "\n"
-  let field_separator = ":"
-  let ended_message = "ENDED_CHANNEL"
-  let channel_separator_regexp = Netstring_pcre.regexp channel_separator
-
-  let url_encode x = Url.encode ~plus:false x
-
-  let encode1 (c, s) =
-    c ^ field_separator ^ url_encode s
-
-  let encode l = String.concat channel_separator (List.map encode1 l)
-
-  let encode_ended l =
-    String.concat
-      channel_separator
-      (List.map (fun c -> c ^ field_separator ^ ended_message) l)
-
-  let encode_downgoing ended_channels s =
-    match ended_channels with
-      | [] -> encode s
-      | e -> encode_ended e
-        ^ channel_separator
-        ^ encode s
-
-end
+let json_content_type = "application/json"
 
 module Cometreg_ = struct
   open XHTML.M
   open XHTML_types
   open Ocsigen_http_frame
 
-  type page = (string * string)
+  type page = string
 
   type options = unit
 
@@ -103,7 +65,7 @@ module Cometreg_ = struct
 
   let send ?options ?charset ?code 
       ?content_type ?headers content =
-    Ocsigen_senders.Text_content.result_of_content content >>= fun r ->
+    lwt r = Ocsigen_senders.Text_content.result_of_content (content,json_content_type) in
     Lwt.return
       {r with
         res_cookies= Eliom_request_info.get_user_cookies ();
@@ -126,7 +88,11 @@ end
 
 module Comet = Eliom_mkreg.MakeRegister(Cometreg_)
 
-
+let fallback_service =
+  Eliom_common.lazy_site_value_from_fun
+    (fun () -> Comet.register_service ~path:["__eliom_comet"]
+      ~get_params:Eliom_parameters.unit
+      (fun _ () -> Lwt.return process_closed_msg))
 
 module Raw_channels :
 (** String channels on wich is build the module Channels *)
@@ -134,7 +100,7 @@ sig
 
   type t
 
-  val create : ?name:chan_id -> string Lwt_stream.t -> t
+  val create : ?name:chan_id -> string Ecb.channel_data Lwt_stream.t -> t
   val get_id : t -> string
 
   type comet_service = Ecb.comet_service
@@ -153,9 +119,9 @@ end = struct
   type handler =
       {
 	(* id : int; pour tester que ce sont des service differents... *)
-	mutable hd_active_streams : ( chan_id * ( string Lwt_stream.t ) ) list;
+	mutable hd_active_streams : ( chan_id * ( string Ecb.channel_data Lwt_stream.t ) ) list;
 	(** streams that are currently sent to client *)
-	mutable hd_unregistered_streams : ( chan_id * ( string Lwt_stream.t ) ) list;
+	mutable hd_unregistered_streams : ( chan_id * ( string Ecb.channel_data Lwt_stream.t ) ) list;
 	(** streams that are created on the server side, but client did not register *)
 	mutable hd_registered_chan_id : chan_id list;
 	(** the fusion of all the streams from hd_active_streams *)
@@ -175,7 +141,7 @@ end = struct
   type t =
       {
 	ch_id : chan_id;
-        ch_stream : string Lwt_stream.t;
+        ch_stream : string Ecb.channel_data Lwt_stream.t;
       }
 
   exception New_connection
@@ -256,7 +222,6 @@ end = struct
     signal_update handler
 
   let new_id = String.make_cryptographic_safe
-  let content_type = "text/plain"
 
   let timeout = 20.
   
@@ -273,7 +238,8 @@ end = struct
 	begin
 	  let hd_service =
 	    (* XXX ajouter possibilité d'https *)
-	    Eliom_services.post_coservice'
+	    Eliom_services.post_coservice
+	      ~fallback:(Eliom_common.force_lazy_site_value fallback_service)
 	      ~name:"comet" (* VVV faut il mettre un nom ? *)
 	      ~post_params:Ecb.comet_request_param
 	      ()
@@ -298,21 +264,21 @@ end = struct
 		 immediately to the previous with no data. *)
 	      new_connection handler;
 	      if snd handler.hd_last = number
-	      then Lwt.return (fst handler.hd_last,content_type)
+	      then Lwt.return (fst handler.hd_last)
 	      else
 		Lwt.catch
 		  ( fun () -> Lwt_unix.with_timeout timeout
 		    (fun () ->
 		      wait_data handler >>= ( fun _ ->
 			let messages = read_streams 100 handler.hd_active_streams in
-			  let message = Messages.encode_downgoing [] messages in
+			  let message = encode_downgoing messages in
 			  handler.hd_last <- (message,number);
-			  Lwt.return ( message, content_type ) ) ) )
+			  Lwt.return message ) ) )
 		    ( function
-		      | New_connection -> Lwt.return ("",content_type)
+		      | New_connection -> Lwt.return (encode_downgoing [])
 		      (* happens if an other connection has been opened on that service *)
 		      (* CCC in this case, it would be beter to return code 204: no content *)
-		      | Lwt_unix.Timeout -> Lwt.return ("TIMEOUT",content_type)
+		      | Lwt_unix.Timeout -> Lwt.return timeout_msg
 		      | e -> Lwt.fail e )
 	    | Ecb.Commands commands ->
 	      List.iter (function
@@ -320,7 +286,7 @@ end = struct
 		| Ecb.Close channel -> close_channel' handler channel) commands;
 		(* command connections are replied immediately by an
 		   empty answer *)
-	      Lwt.return ("",content_type)
+	      Lwt.return (encode_downgoing [])
 	  in
 	  Comet.register
 	    ~scope:`Client_process
@@ -426,7 +392,10 @@ end = struct
   let create_channel ?name stream =
     (* TODO: addapt channels to dynamic wrapping: it would be able to send more types *)
     Raw_channels.create ?name
-      (Lwt_stream.map (fun x -> Marshal.to_string x []) stream)
+      (Lwt_stream.map
+	 (function
+	   | Ecb.Full -> Ecb.Full
+	   | Ecb.Data s -> Ecb.Data (Url.encode ~plus:false (Marshal.to_string s []))) stream)
 
   let create ?name ?(size=1000) stream =
     let stream = limit_stream ~size stream in

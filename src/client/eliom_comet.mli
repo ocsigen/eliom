@@ -36,6 +36,10 @@ exception Channel_full
     full by the server. It is not possible to read anything else from a
     full channel. *)
 
+exception Process_closed
+(** [Process_closed] is raised when reading on a channel and the
+    server side of the application closed the client process. *)
+
 val is_active : unit -> bool
 (** [is_active ()] returns the current activity state *)
 

@@ -85,9 +85,9 @@ module Printexc : sig
   val register_exn_printer : ((exn -> string) -> exn -> string) -> unit
 end
 
-val debug : string -> unit
+val debug : ('a, unit, string, unit) format4 -> 'a
 val jsdebug : 'a -> unit
-val alert : string -> unit
+val alert : ('a, unit, string, unit) format4 -> 'a
 val jsalert : Js.js_string Js.t -> unit
 
 val to_json : ?typ:'a -> 'b -> string

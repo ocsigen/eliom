@@ -478,9 +478,9 @@ end
 
 (*****************************************************************************)
 
-let debug a = Firebug.console##log (Js.string a)
+let debug f = Printf.ksprintf (fun s -> Firebug.console##log (Js.string s)) f
 let jsdebug a = Firebug.console##log (a)
-let alert a = Dom_html.window##alert (Js.string a)
+let alert f = Printf.ksprintf (fun s -> Dom_html.window##alert (Js.string s)) f
 let jsalert a = Dom_html.window##alert (a)
 
 (* We do not use the deriving (un)marshaling even if typ is available

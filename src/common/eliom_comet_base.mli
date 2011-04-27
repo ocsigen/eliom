@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Raphaël Proust
+ * Pierre Chambart
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,18 +34,25 @@ type comet_request =
   | Commands of command list
 deriving (Json)
 
-type 'a channel_data =
-  | Data of 'a
-  | Full
-
 val comet_request_param :
   (comet_request, [ `WithoutSuffix ],
    [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name)
  Eliom_parameters.params_type
 
+type 'a channel_data =
+  | Data of 'a
+  | Full
+deriving (Json)
+
+type answer =
+  | Messages of ( string * string channel_data ) list
+  | Timeout
+  | Process_closed
+deriving (Json)
+
 type comet_service =
     (unit, comet_request,
-     [ `Nonattached of [ `Get | `Post ] Eliom_services.na_s ],
+     Eliom_services.service_kind,
      [ `WithoutSuffix ], unit,
      [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
      Eliom_services.http )
