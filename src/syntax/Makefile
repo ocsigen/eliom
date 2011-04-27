@@ -6,10 +6,11 @@ LIBS := ${addprefix -package ,${PACKAGE}}
 OCAMLDEP := $(OCAMLFIND) ocamldep -syntax camlp4o
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} -syntax camlp4o
 
-FILES:= pa_eliom_seed.ml \
-	pa_eliom_type_filter.ml \
+FILES:= pa_eliom_seed.ml          \
+	pa_eliom_type_filter.ml   \
 	pa_eliom_client_client.ml \
-	pa_eliom_client_server.ml
+	pa_eliom_client_server.ml \
+	pa_include.ml             \
 
 all: $(FILES:.ml=.cmo)
 

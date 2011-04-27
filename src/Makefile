@@ -32,14 +32,14 @@ distclean:
 	${MAKE} -C tools distclean
 	-rm -f *~ \#* .\#*
 
-depend: server.depend client.depend syntax.depend tools.depend
-server.depend:
-	${MAKE} -C server depend
-client.depend:
-	${MAKE} -C client depend
+depend: syntax.depend server.depend client.depend tools.depend
 syntax.depend:
-	${MAKE} -C syntax depend
-tools.depend:
+	${MAKE} -C syntax depend pa_include.cmo
+server.depend: syntax.depend
+	${MAKE} -C server depend
+client.depend: syntax.depend
+	${MAKE} -C client depend
+tools.depend: syntax.depend
 	${MAKE} -C tools depend
 
 VERSION := $(shell head -n 1 ../VERSION)
