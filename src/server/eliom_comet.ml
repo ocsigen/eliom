@@ -393,23 +393,35 @@ end = struct
   (* TODO close on full *)
   let limit_stream ~size s =
     let open Lwt in
-	let count = ref 0 in
-	let str, push = Lwt_stream.create () in
-	let stopper,wake_stopper = wait () in
-	let rec loop () =
-	  ( Lwt_stream.get s <?> stopper ) >>= function
-	    | Some x ->
-	      if !count >= size
-	      then (push (Some Ecb.Full); return ())
-	      else (incr count; push (Some ( Ecb.Data x )); loop ())
-	    | None ->
+        let full = ref false in
+        let closed = ref false in
+        let count = ref 0 in
+        let str, push = Lwt_stream.create () in
+        let stopper,wake_stopper = wait () in
+        let rec loop () =
+          ( Lwt_stream.get s <?> stopper ) >>= function
+            | Some x ->
+              if !count >= size
+              then (full := true;
+                    ignore (Lwt_stream.get_available str);
+                  (* flush the channel *)
+                    return ())
+              else (incr count; push (Some ( Ecb.Data x )); loop ())
+            | None ->
               return ()
-	in
-	let decount e = decr count; e in
-	ignore (loop ():'a Lwt.t);
-	let res = Lwt_stream.map decount str in
-	Gc.finalise (fun _ -> wakeup_exn wake_stopper Halt) res;
-	res
+        in
+        ignore (loop ():'a Lwt.t);
+        let res = Lwt_stream.from (fun () ->
+          if !full
+          then
+            if !closed
+            then return None
+            else ( closed := true;
+                   return (Some Ecb.Full) )
+          else (decr count;
+                Lwt_stream.get str)) in
+        Gc.finalise (fun _ -> wakeup_exn wake_stopper Halt) res;
+        res
 
   let create_channel ?name stream =
     (* TODO: addapt channels to dynamic wrapping: it would be able to send more types *)
