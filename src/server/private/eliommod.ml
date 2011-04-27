@@ -112,6 +112,7 @@ let new_sitedata =
           {Eliom_common.servtimeout = None, None, [];
            datatimeout =  None, None, [];
            perstimeout =  None, None, [];
+	   lazy_site_value_table = Polytables.create ();
            site_dir = site_dir;
 (*VVV encode=false??? *)
            site_dir_string = Url.string_of_url_path

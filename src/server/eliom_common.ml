@@ -499,6 +499,9 @@ and sitedata =
      (float option * bool) option * 
      ((fullsessionname * (float option * bool)) list);
 
+   lazy_site_value_table : Polytables.t; (* table containing evaluated
+					    lazy site values *)
+
    global_services: tables; (* global service table *)
    session_services: tables servicecookiestable;
    (* cookie table for services (tab and browser sessions) *)
@@ -533,9 +536,6 @@ and sitedata =
 
 and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
     leftright Ocsigen_cache.Dlist.t Net_addr_Hashtbl.t
-
-
-
 
 (*****************************************************************************)
 
@@ -598,6 +598,34 @@ let sp_of_option sp =
   match sp with
     | None -> get_sp ()
     | Some sp -> sp
+
+(*****************************************************************************)
+(* Lazy site value: each site have a different value *)
+(* Evaluated values are never collected by the GC, the table always
+   keeps a reference on it. *)
+(* there is no test for cycles *)
+
+type 'a lazy_site_value =
+    { lazy_sv_fun : unit -> 'a;
+      lazy_sv_key : 'a Polytables.key }
+
+let force_lazy_site_value v =
+  let sp = get_sp () in
+  try Polytables.get
+	~table:sp.sp_sitedata.lazy_site_value_table
+	~key:v.lazy_sv_key
+  with
+    | Not_found ->
+      let value = v.lazy_sv_fun () in
+      Polytables.set
+	~table:sp.sp_sitedata.lazy_site_value_table
+	~key:v.lazy_sv_key
+	~value;
+      value
+
+let lazy_site_value_from_fun f =
+  { lazy_sv_key = Polytables.make_key ();
+    lazy_sv_fun = f }
 
 (*****************************************************************************)
 (* The current registration directory *)

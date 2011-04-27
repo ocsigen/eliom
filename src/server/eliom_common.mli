@@ -437,6 +437,9 @@ and sitedata = {
      (float option * bool) option *
      ((fullsessionname * (float option * bool)) list);
 
+  lazy_site_value_table : Polytables.t; (* table containing evaluated
+					   lazy site values *)
+
   global_services : tables;
   session_services : tables servicecookiestable;
   session_data : datacookiestable;
@@ -464,6 +467,13 @@ and sitedata = {
   mutable set_client_process_info : client_process_info -> unit;
 }
 
+type 'a lazy_site_value (** lazy site values, are lazy values with
+			   content available only in the context of a
+			   site: the closure one time for each site (
+			   requesting it ) *)
+
+val force_lazy_site_value : 'a lazy_site_value -> 'a
+val lazy_site_value_from_fun : ( unit -> 'a ) -> 'a lazy_site_value
 
 
 type info =
