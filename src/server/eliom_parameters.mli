@@ -65,7 +65,7 @@ type no_param_name
 
 type 'a param_name
 (** Type for names of page parameters (given to the functions
-   to construct forms, for example in {!Eliom_output.XHTMLFORMSSIG.get_form}).
+   to construct forms, for example in {!Eliom_output.Html5_forms.get_form}).
    The names of parameters are not just strings to enforce using
    forms widgets with the right parameter type.
    The parameter of that type is often a subtype of the polymorphic variant
@@ -77,7 +77,7 @@ type 'a param_name
 
 type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
 (** This type is used by some form widgets like
-   {!Eliom_output.XHTMLFORMSSIG.int_input} that may be used against services
+   {!Eliom_output.Html5_forms.int_input} that may be used against services
    expecting one parameter of that name,
    or services expecting an optional parameter of that name,
    or services expecting any number of parameters of that name.
@@ -85,14 +85,14 @@ type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
 
 type 'a oneradio = [ `One of 'a | `Radio of 'a ]
 (** This type is used by some form widgets like
-   {!Eliom_output.XHTMLFORMSSIG.int_image_input} that may be used against services
+   {!Eliom_output.Html5_forms.int_image_input} that may be used against services
    expecting one parameter of that name
    or services expecting an optional parameter of that name.
  *)
 
 type 'a setone = [ `Set of 'a | `One of 'a ]
 (** This type is used by some form widgets like
-   {!Eliom_output.XHTMLFORMSSIG.int_button} that may be used against services
+   {!Eliom_output.Html5_forms.int_button} that may be used against services
    expecting one parameter of that name,
    or services expecting any number of parameters of that name.
  *)

@@ -36,6 +36,8 @@ NOMLI := eliom_common.mli       \
 	 eliom_request_info.mli \
 	 eliom_state.mli        \
 
+NOP4 := eliom_pervasives.mli
+
 DOC := ${filter-out ${NOMLI}, ${INTF:.cmi=.mli}} \
        eliom_output_base.mli \
        eliom_types_base.mli \

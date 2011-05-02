@@ -31,16 +31,21 @@ eliom_cookies.cmo: eliom_pervasives.cmi eliom_cookies.cmi
 eliom_cookies.cmx: eliom_pervasives.cmx eliom_cookies.cmi
 eliom_cookies.cmi: eliom_pervasives.cmi
 eliom_duce.cmo: eliom_services.cmi eliom_request_info.cmi eliom_mkreg.cmi \
-    eliom_mkforms.cmi eliom_duce.cmi
+    eliom_mkforms.cmi eliom_duce_types.cmi eliom_duce.cmi
 eliom_duce.cmx: eliom_services.cmx eliom_request_info.cmx eliom_mkreg.cmx \
-    eliom_mkforms.cmx eliom_duce.cmi
-eliom_duce.cmi: eliom_services.cmi eliom_mkreg.cmi eliom_mkforms.cmi
+    eliom_mkforms.cmx eliom_duce_types.cmi eliom_duce.cmi
+eliom_duce.cmi: eliom_duce_sigs.cmi
+eliom_duce_sigs.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmi eliom_duce_types.cmi eliom_common.cmi
 eliom_duce_tools.cmo: eliom_tools_common.cmi eliom_services.cmi \
-    eliom_request_info.cmi eliom_duce.cmi eliom_duce_tools.cmi
+    eliom_request_info.cmi eliom_duce_types.cmi eliom_duce.cmi \
+    eliom_duce_tools.cmi
 eliom_duce_tools.cmx: eliom_tools_common.cmx eliom_services.cmx \
-    eliom_request_info.cmx eliom_duce.cmx eliom_duce_tools.cmi
+    eliom_request_info.cmx eliom_duce_types.cmi eliom_duce.cmx \
+    eliom_duce_tools.cmi
 eliom_duce_tools.cmi: eliom_tools_common.cmi eliom_state.cmi \
-    eliom_services.cmi eliom_parameters.cmi eliom_duce.cmi
+    eliom_services.cmi eliom_parameters.cmi eliom_duce_types.cmi
+eliom_duce_types.cmi:
 eliom_error_pages.cmo:
 eliom_error_pages.cmx:
 eliom_extension_template.cmo: eliom_extensions.cmi
@@ -77,16 +82,15 @@ eliom_output.cmx: private/eliommod_pagegen.cmx private/eliommod_cookies.cmx \
     eliom_mkreg.cmx eliom_mkforms.cmx eliom_config.cmx eliom_common.cmx \
     eliom_comet.cmx eliom_output.cmi
 eliom_output.cmi: eliom_services.cmi eliom_pervasives.cmi \
-    eliom_parameters.cmi eliom_output_base.cmi eliom_mkreg.cmi \
-    eliom_mkforms.cmi eliom_common.cmi
-eliom_output_base.cmo: private/eliommod_mkforms.cmi eliom_state.cmi \
-    eliom_services.cmi eliom_pervasives.cmi eliom_parameters.cmi \
-    eliom_mkforms.cmi eliom_common.cmi eliom_output_base.cmi
-eliom_output_base.cmx: private/eliommod_mkforms.cmx eliom_state.cmx \
-    eliom_services.cmx eliom_pervasives.cmx eliom_parameters.cmx \
-    eliom_mkforms.cmx eliom_common.cmx eliom_output_base.cmi
+    eliom_parameters.cmi eliom_common.cmi
+eliom_output_base.cmo: private/eliommod_mkforms.cmi eliom_services.cmi \
+    eliom_pervasives.cmi eliom_parameters.cmi eliom_mkforms.cmi \
+    eliom_common.cmi eliom_output_base.cmi
+eliom_output_base.cmx: private/eliommod_mkforms.cmx eliom_services.cmx \
+    eliom_pervasives.cmx eliom_parameters.cmx eliom_mkforms.cmx \
+    eliom_common.cmx eliom_output_base.cmi
 eliom_output_base.cmi: eliom_services.cmi eliom_pervasives.cmi \
-    eliom_parameters.cmi eliom_mkforms.cmi eliom_common.cmi
+    eliom_parameters.cmi eliom_common.cmi
 eliom_parameters.cmo: eliom_request_info.cmi eliom_pervasives.cmi \
     eliom_parameters_base.cmo eliom_common.cmi eliom_parameters.cmi
 eliom_parameters.cmx: eliom_request_info.cmx eliom_pervasives.cmx \
@@ -195,7 +199,8 @@ extensions/eliom_atom.cmo: eliom_services.cmi eliom_pervasives.cmi \
 extensions/eliom_atom.cmx: eliom_services.cmx eliom_pervasives.cmx \
     eliom_parameters.cmx eliom_mkreg.cmx extensions/atom_feed.cmx \
     extensions/eliom_atom.cmi
-extensions/eliom_atom.cmi: eliom_mkreg.cmi extensions/atom_feed.cmi
+extensions/eliom_atom.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmi eliom_common.cmi extensions/atom_feed.cmi
 extensions/eliom_openid.cmo: eliom_state.cmi eliom_services.cmi \
     extensions/eliom_s2s.cmi eliom_request_info.cmi eliom_pervasives.cmi \
     eliom_parameters.cmi eliom_output.cmi extensions/eliom_openid.cmi
@@ -297,3 +302,10 @@ private/eliommod_timeouts.cmo: private/eliommod_sessadmin.cmi \
 private/eliommod_timeouts.cmx: private/eliommod_sessadmin.cmx \
     eliom_pervasives.cmx eliom_common.cmx private/eliommod_timeouts.cmi
 private/eliommod_timeouts.cmi: eliom_common.cmi
+sigs/eliom_forms.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmi eliom_common.cmi
+sigs/eliom_forms_param.cmi: eliom_services.cmi
+sigs/eliom_reg.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmi eliom_common.cmi
+sigs/eliom_reg_param.cmi: eliom_services.cmi
+sigs/eliom_reg_simple.cmi:

@@ -1,5 +1,5 @@
 (* Ocsigen
- * http://www.ocsigen.org
+o * http://www.ocsigen.org
  * Module Eliom_predefmod
  * Copyright (C) 2007 Vincent Balat
  *
@@ -20,63 +20,17 @@
 
 open Eliom_pervasives
 
-open Eliom_mkforms
 open Eliom_services
 open Eliom_parameters
-open Eliom_state
 
-(*****************************************************************************)
-(*****************************************************************************)
-(*****************************************************************************)
+type basic_input_type =
+    [ `Hidden
+    | `Password
+    | `Submit
+    | `Text
+    ]
 
-
-module Html5forms_ = struct
-  open HTML5.M
-  open HTML5_types
-
-  type form_content_elt = form_content elt
-  type form_content_elt_list = form_content elt list
-  type uri = HTML5_types.uri
-  type 'a a_content_elt = 'a elt
-  type 'a a_content_elt_list = 'a elt list
-
-  type div_content_elt = div_content elt
-  type div_content_elt_list = div_content elt list
-
-  type 'a a_elt = 'a a elt
-  type 'a a_elt_list = 'a a elt list
-  type form_elt = form elt
-
-  type textarea_elt = textarea elt
-  type input_elt = input elt
-
-  type link_elt = link elt
-  type script_elt = script elt
-
-  type pcdata_elt = pcdata elt
-
-  type select_elt = select elt
-  type select_content_elt = select_content elt
-  type select_content_elt_list = select_content elt list
-  type option_elt = selectoption elt
-  type option_elt_list = selectoption elt list
-
-  type button_elt = button elt
-  type button_content_elt = button_content elt
-  type button_content_elt_list = button_content elt list
-
-  type a_attrib_t = HTML5_types.a_attrib HTML5.M.attrib list
-  type form_attrib_t = HTML5_types.form_attrib HTML5.M.attrib list
-  type input_attrib_t = HTML5_types.input_attrib HTML5.M.attrib list
-  type textarea_attrib_t = HTML5_types.textarea_attrib HTML5.M.attrib list
-  type select_attrib_t = HTML5_types.select_attrib HTML5.M.attrib list
-  type link_attrib_t = HTML5_types.link_attrib HTML5.M.attrib list
-  type script_attrib_t = HTML5_types.script_attrib HTML5.M.attrib list
-  type optgroup_attrib_t = [ common | `Disabled ] HTML5.M.attrib list
-  type option_attrib_t = HTML5_types.option_attrib HTML5.M.attrib list
-  type button_attrib_t = HTML5_types.button_attrib HTML5.M.attrib list
-
-  type input_type_t =
+type full_input_type =
     [ `Button
     | `Checkbox
     | `File
@@ -86,10 +40,152 @@ module Html5forms_ = struct
     | `Radio
     | `Reset
     | `Submit
-    | `Text ]
+    | `Text
+    ]
 
-  type button_type_t =
-      [ `Button | `Reset | `Submit ]
+type button_type =
+    [ `Button
+    | `Reset
+    | `Submit
+    ]
+
+(*****************************************************************************)
+(*****************************************************************************)
+
+module type HTML5_FORMS = "sigs/eliom_forms.mli"
+  subst type uri := HTML5_types.uri
+    and type pcdata_elt := HTML5_types.pcdata HTML5.M.elt
+
+    and type form_elt := [> HTML5_types.form ] HTML5.M.elt
+    and type form_content_elt := HTML5_types.form_content HTML5.M.elt
+    and type form_content_elt_list := HTML5_types.form_content HTML5.M.elt list
+    and type form_attrib_t := HTML5_types.form_attrib HTML5.M.attrib list
+
+    and type 'a a_elt := [> 'a HTML5_types.a ] HTML5.M.elt
+    and type 'a a_content_elt := 'a HTML5.M.elt
+    and type 'a a_content_elt_list := 'a HTML5.M.elt list
+    and type a_attrib_t := HTML5_types.a_attrib HTML5.M.attrib list
+
+    and type link_elt := [> HTML5_types.link ] HTML5.M.elt
+    and type link_attrib_t := HTML5_types.link_attrib HTML5.M.attrib list
+
+    and type script_elt := [> HTML5_types.script ] HTML5.M.elt
+    and type script_attrib_t := HTML5_types.script_attrib HTML5.M.attrib list
+
+    and type textarea_elt := [> HTML5_types.textarea ] HTML5.M.elt
+    and type textarea_attrib_t := HTML5_types.textarea_attrib HTML5.M.attrib list
+
+    and type input_elt := [> HTML5_types.input ] HTML5.M.elt
+    and type input_attrib_t := HTML5_types.input_attrib HTML5.M.attrib list
+
+    and type select_elt := [> HTML5_types.select ] HTML5.M.elt
+    and type select_attrib_t := HTML5_types.select_attrib HTML5.M.attrib list
+
+    and type button_elt := [> HTML5_types.button ] HTML5.M.elt
+    and type button_content_elt := HTML5_types.button_content HTML5.M.elt
+    and type button_content_elt_list := HTML5_types.button_content HTML5.M.elt list
+    and type button_attrib_t := HTML5_types.button_attrib HTML5.M.attrib list
+
+    and type optgroup_attrib_t := [ HTML5_types.common | `Disabled ] HTML5.M.attrib list
+    and type option_attrib_t := HTML5_types.option_attrib HTML5.M.attrib list
+
+    and type input_type_t := [< basic_input_type ]
+    and type raw_input_type_t := [< basic_input_type | `Reset | `Button ]
+    and type button_type_t := [< button_type ]
+
+module type HTML5_FORMS_CLOSED = "sigs/eliom_forms.mli"
+  subst type uri := HTML5_types.uri
+    and type pcdata_elt := HTML5_types.pcdata HTML5.M.elt
+
+    and type form_elt := HTML5_types.form HTML5.M.elt
+    and type form_content_elt := HTML5_types.form_content HTML5.M.elt
+    and type form_content_elt_list := HTML5_types.form_content HTML5.M.elt list
+    and type form_attrib_t := HTML5_types.form_attrib HTML5.M.attrib list
+
+    and type 'a a_elt := 'a HTML5_types.a HTML5.M.elt
+    and type 'a a_content_elt := 'a HTML5.M.elt
+    and type 'a a_content_elt_list := 'a HTML5.M.elt list
+    and type a_attrib_t := HTML5_types.a_attrib HTML5.M.attrib list
+
+    and type link_elt := HTML5_types.link HTML5.M.elt
+    and type link_attrib_t := HTML5_types.link_attrib HTML5.M.attrib list
+
+    and type script_elt := HTML5_types.script HTML5.M.elt
+    and type script_attrib_t := HTML5_types.script_attrib HTML5.M.attrib list
+
+    and type textarea_elt := HTML5_types.textarea HTML5.M.elt
+    and type textarea_attrib_t := HTML5_types.textarea_attrib HTML5.M.attrib list
+
+    and type input_elt := HTML5_types.input HTML5.M.elt
+    and type input_attrib_t := HTML5_types.input_attrib HTML5.M.attrib list
+
+    and type select_elt := HTML5_types.select HTML5.M.elt
+    and type select_attrib_t := HTML5_types.select_attrib HTML5.M.attrib list
+
+    and type button_elt := HTML5_types.button HTML5.M.elt
+    and type button_content_elt := HTML5_types.button_content HTML5.M.elt
+    and type button_content_elt_list := HTML5_types.button_content HTML5.M.elt list
+    and type button_attrib_t := HTML5_types.button_attrib HTML5.M.attrib list
+
+    and type optgroup_attrib_t := [ HTML5_types.common | `Disabled ] HTML5.M.attrib list
+    and type option_attrib_t := HTML5_types.option_attrib HTML5.M.attrib list
+
+    and type input_type_t := full_input_type
+    and type raw_input_type_t := full_input_type
+    and type button_type_t := button_type
+
+(*****************************************************************************)
+(*****************************************************************************)
+
+module Html5_forms_base = struct
+
+  open HTML5.M
+  open HTML5_types
+
+  type uri = HTML5_types.uri
+  type pcdata_elt = HTML5_types.pcdata HTML5.M.elt
+
+  type form_elt = HTML5_types.form HTML5.M.elt
+  type form_content_elt = HTML5_types.form_content HTML5.M.elt
+  type form_content_elt_list = HTML5_types.form_content HTML5.M.elt list
+  type form_attrib_t = HTML5_types.form_attrib HTML5.M.attrib list
+
+  type 'a a_elt = 'a HTML5_types.a HTML5.M.elt
+  type 'a a_elt_list = 'a HTML5_types.a HTML5.M.elt list
+  type 'a a_content_elt = 'a HTML5.M.elt
+  type 'a a_content_elt_list = 'a HTML5.M.elt list
+  type a_attrib_t = HTML5_types.a_attrib HTML5.M.attrib list
+
+  type link_elt = HTML5_types.link HTML5.M.elt
+  type link_attrib_t = HTML5_types.link_attrib HTML5.M.attrib list
+
+  type script_elt = HTML5_types.script HTML5.M.elt
+  type script_attrib_t = HTML5_types.script_attrib HTML5.M.attrib list
+
+  type textarea_elt = HTML5_types.textarea HTML5.M.elt
+  type textarea_attrib_t = HTML5_types.textarea_attrib HTML5.M.attrib list
+
+  type input_elt = HTML5_types.input HTML5.M.elt
+  type input_attrib_t = HTML5_types.input_attrib HTML5.M.attrib list
+
+  type select_elt = HTML5_types.select HTML5.M.elt
+  type select_content_elt = HTML5_types.select_content HTML5.M.elt
+  type select_content_elt_list = HTML5_types.select_content HTML5.M.elt list
+  type select_attrib_t = HTML5_types.select_attrib HTML5.M.attrib list
+
+  type button_elt = HTML5_types.button HTML5.M.elt
+  type button_content_elt = HTML5_types.button_content HTML5.M.elt
+  type button_content_elt_list = HTML5_types.button_content HTML5.M.elt list
+  type button_attrib_t = HTML5_types.button_attrib HTML5.M.attrib list
+
+  type option_elt = HTML5_types.selectoption HTML5.M.elt
+  type option_elt_list = HTML5_types.selectoption HTML5.M.elt list
+  type optgroup_attrib_t = [ HTML5_types.common | `Disabled ] HTML5.M.attrib list
+  type option_attrib_t = HTML5_types.option_attrib HTML5.M.attrib list
+
+  type input_type_t = full_input_type
+  type raw_input_type_t = full_input_type
+  type button_type_t = button_type
 
   let hidden = `Hidden
   let checkbox = `Checkbox
@@ -107,7 +203,7 @@ module Html5forms_ = struct
 
   let map_option = List.map
   let map_optgroup f a l = ((f a), List.map f l)
-  let select_content_of_option a = (a :> select_content elt)
+  let select_content_of_option a = (a :> select_content_elt)
 
   let make_pcdata s = pcdata s
 
@@ -127,7 +223,7 @@ module Html5forms_ = struct
       | None -> a
       | Some s -> (a_onsubmit s)::a)
     in
-    let r = 
+    let r =
       HTML5.M.form ~a:((a_method `Get)::(a_action (uri_of_string action))::a)
         elt1 elts
     in
@@ -145,7 +241,7 @@ module Html5forms_ = struct
     | None -> a
     | Some i -> (a_id i)::a)
     in
-    let r = 
+    let r =
       form ~a:((HTML5.M.a_enctype "multipart/form-data")::
                 (* Always Multipart!!! How to test if there is a file?? *)
                   (a_action (uri_of_string action))::
@@ -162,7 +258,7 @@ module Html5forms_ = struct
       | None -> []
       | Some c -> [c]
     in
-    (div ~a:[a_class ["eliom_nodisplay"]] c :> form_content elt)
+    (div ~a:[a_class ["eliom_nodisplay"]] c :> form_content_elt)
 
   let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
 
@@ -228,24 +324,8 @@ module Html5forms_ = struct
   let register_event_form ?keep_default node =
     XML.register_event ?keep_default (HTML5.M.toelt node)
 
-(*POSTtabcookies* forms with tab cookies in POST params:
-
-  let add_tab_cookies_to_get_form = 
-    Eliommod_mkforms.add_tab_cookies_to_get_form
-  (* implementation is different on server and client sides *)
-
-  let add_tab_cookies_to_post_form = 
-    Eliommod_mkforms.add_tab_cookies_to_post_form
-
-  let add_tab_cookies_to_get_form_id_string =
-    Eliom_types.add_tab_cookies_to_get_form_id_string
-
-  let add_tab_cookies_to_post_form_id_string =
-    Eliom_types.add_tab_cookies_to_post_form_id_string
-*)
-
   let make_a_with_onclick ?a ?cookies_info s =
-    Eliommod_mkforms.make_a_with_onclick 
+    Eliommod_mkforms.make_a_with_onclick
       (fun ?a ?onclick ?href x -> make_a ?a ?onclick ?href x)
       register_event_a
       ?a ?cookies_info s
@@ -263,1441 +343,659 @@ module Html5forms_ = struct
 
 end
 
-
-
 (*****************************************************************************)
 (*****************************************************************************)
 
-module Html5forms' = MakeForms(Html5forms_)
-
-module type HTML5FORMSSIG = sig
-(* Pasted from mli *)
-
-  open HTML5.M
-  open HTML5_types
-
-(** {2 Links and forms} *)
-
-    val make_string_uri :
-      ?absolute:bool ->
-      ?absolute_path:bool ->
-      ?https:bool ->
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, unit,
-               [< registrable ], 'return) service ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
-      string
-(** Creates the string corresponding to the relative URL of a service applied to
-    its GET parameters.
-
-    If [absolute] is set to [true], or if there is a protocol change,
-    the URL will be absolute.
-    
-    If [absolute_path] is set to [true], and [absolute] is [false],
-    the URL will be absolute, but without [protocol://server:port].
-    
-    Default hostname is determined from the [Host] http header of the request
-    (or the attribute of <host> tag in
-    configuration file if the option [<usedefaulthostname/>] is set).
-    Default port is the current port (or another port of the server if
-    you are switching from or to https).
-    But you can choose the hostname or port you want by setting 
-    the optional [?hostname] and [?port] parameters here.
-
- *)
-
-    val make_uri :
-      ?absolute:bool ->
-      ?absolute_path:bool ->
-      ?https:bool ->
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, unit,
-               [< registrable ], 'return) service ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string -> 
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
-      uri
-(** Creates the URL for a service.
-    Like the [a] function, it may take extra parameters. *)
-
-    val make_uri_components :
-      ?absolute:bool ->
-      ?absolute_path:bool ->
-      ?https:bool ->
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, unit,
-               [< registrable ], 'return) service ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string -> 
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      'get -> 
-      string * (string * string) list * string option
-(** Creates the URL for a service.
-    Returns the path (as a string, encoded),
-    the association list of get parameters (not encoded),
-    and the fragment (not encoded, if any).
-    Like the [a] function, it may take extra parameters. *)
-
-    val make_post_uri_components :
-      ?absolute:bool ->
-      ?absolute_path:bool ->
-      ?https:bool ->
-      service:('get, 'post, [< post_service_kind ],
-               [< suff ], 'gn, 'pn,
-               [< registrable ], 'return) service ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string -> 
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      ?keep_get_na_params:bool ->
-      'get -> 
-      'post ->
-      string * (string * string) list * string option * (string * string) list
-(** Like [make_uri_components], but also creates a table of post parameters. *)
-
-(**/**)
-    val make_proto_prefix :
-      ?hostname:string ->
-      ?port:int ->
-      bool ->
-      string
-(** Creates the string corresponding to the beginning of the URL,
-    containing the scheme (protocol), server and port number (if necessary).
- *)
-(**/**)
-
-    val a :
-      ?absolute:bool ->
-      ?absolute_path:bool ->
-      ?https:bool ->
-      ?a:a_attrib attrib list ->
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, 'pn,
-               [< registrable ], 'return) service ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      ?no_appl:bool ->
-      'a elt list -> 
-      'get -> 
-    [> 'a a] HTML5.M.elt
-(** [a service cont ()] creates a link to [service].
-   The text of
-   the link is [cont]. For example [cont] may be something like
-   [\[pcdata "click here"\]].
-
-   The last  parameter is for GET parameters.
-   For example [a service cont (42,"hello")]
-
-   The [~a] optional parameter is used for extra attributes.
-
-   The [~fragment] optional parameter is used for the "fragment" part
-   of the URL, that is, the part after character "#".
-
-    When possible, all links generated by Eliom are relative, for example
-    to make easier the use with reverse proxies.
-    But in case of protocol change (if you want to switch to https using
-    [~https:true] for example, or if the service imposes https),
-    absolute links will be generated. 
-    In that case,
-    default hostname is determined from the [Host] http header of the request
-    (or the attribute of <host> tag in
-    configuration file if the option [<usedefaulthostname/>] is set).
-    Default port is the current port (or another port of the server if
-    you are switching from or to https).
-    But you can choose the hostname or port you want by setting 
-    the optional [?hostname] and [?port] parameters here.
-    These options have no effect for relative links.
-
-    You can add non-localized parameters using the optional parameter
-    [nl_params]. See {!Eliom_parameters.nl_params_set}.
-
-    If [~keep_nl_params] is [`Persistent] (resp. [`All]),
-    persistent (resp all) non localized GET parameters
-    will be kept in the URL (default is the default for the service).
-
-    If a client side application is running, and unless
-    [~no_appl:true] is specified, it will use [<a onclick=...>]
-    instead of [<a href=...>] in case of link inside a same Eliom application.
-    Thus, the client side application will not be stopped when the link
-    is clicked.
-
-*)
-
-    val css_link : ?a:link_attrib attrib list -> uri:uri -> unit -> [>link] elt
-(** Creates a [<link>] tag for a Cascading StyleSheet (CSS). *)
-
-    val js_script :
-        ?a:script_attrib attrib list -> uri:uri -> unit -> [>script] elt
-(** Creates a [<script>] tag to add a javascript file *)
-
-
-    val get_form :
-      ?absolute:bool ->
-      ?absolute_path:bool ->
-      ?https:bool ->
-      ?a:form_attrib attrib list ->
-      service:('get, unit, [< get_service_kind ],
-               [<suff ], 'gn, 'pn,
-               [< registrable ], 'return) service ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      ?no_appl:bool ->
-      ('gn -> form_content elt list) -> 
-      [>form] elt
-(** [get_form service formgen] creates a GET form to [service].
-   The content of
-   the form is generated by the function [formgen], that takes the names
-   of the service parameters as parameters. *)
-
-    val lwt_get_form :
-      ?absolute:bool ->
-      ?absolute_path:bool ->
-      ?https:bool ->
-      ?a:form_attrib attrib list ->
-      service:('get, unit, [< get_service_kind ],
-               [<suff ], 'gn, 'pn,
-               [< registrable ], 'return) service ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      ?no_appl:bool ->
-      ('gn -> form_content elt list Lwt.t) -> 
-      [>form] elt Lwt.t
-(** The same but taking a cooperative function. *)
-
-
-    val post_form :
-      ?absolute:bool ->
-      ?absolute_path:bool ->
-      ?https:bool ->
-      ?a:form_attrib attrib list ->
-      service:('get, 'post, [< post_service_kind ],
-               [< suff ], 'gn, 'pn,
-               [< registrable ], 'return) service ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?keep_get_na_params:bool ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      ?no_appl:bool ->
-      ('pn -> form_content elt list) -> 
-      'get -> 
-      [>form] elt
-(** [post_form service formgen] creates a POST form to [service].
-    The last parameter is for GET parameters (as in the function [a]).
-
-    If [~keep_nl_params] is [`Persistent] (resp. [`All]),
-    persistent (resp all) non localized GET parameters
-    will be kept in the URL (default is the default for the service).
-
- *)
-
-    val lwt_post_form :
-      ?absolute:bool ->
-      ?absolute_path:bool ->
-      ?https:bool ->
-      ?a:form_attrib attrib list ->
-      service:('get, 'post, [< post_service_kind ],
-               [< suff ], 'gn, 'pn,
-               [< registrable ], 'return) service ->
-      ?hostname:string ->
-      ?port:int ->
-      ?fragment:string ->
-      ?keep_nl_params:[ `All | `Persistent | `None ] ->
-      ?keep_get_na_params:bool ->
-      ?nl_params: Eliom_parameters.nl_params_set ->
-      ?no_appl:bool ->
-      ('pn -> form_content elt list Lwt.t) -> 
-      'get -> 
-      [>form] elt Lwt.t
-(** The same but taking a cooperative function. *)
-
-
-
-
-
-
-
-
-(** {2 Form widgets} *)
-
-  type basic_input_type =
-      [
-    | `Hidden
-    | `Password
-    | `Submit
-    | `Text ]
-
-  val int_input :
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< int setoneradio ] param_name ->
-          ?value:int -> unit -> [> input ] elt
-(** Creates an [<input>] tag for an integer *)
-
-  val int32_input :
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< int32 setoneradio ] param_name ->
-          ?value:int32 -> unit -> [> input ] elt
-(** Creates an [<input>] tag for a 32 bits integer *)
-
-  val int64_input :
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< int64 setoneradio ] param_name ->
-          ?value:int64 -> unit -> [> input ] elt
-(** Creates an [<input>] tag for a 64 bits integer *)
-
-  val float_input :
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< float setoneradio ] param_name ->
-          ?value:float -> unit -> [> input ] elt
-(** Creates an [<input>] tag for a float *)
-
-  val string_input :
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< string setoneradio ] param_name ->
-          ?value:string -> unit -> [> input ] elt
-(** Creates an [<input>] tag for a string *)
-
-  val user_type_input :
-    ('a -> string) -> 
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< 'a setoneradio ] param_name ->
-          ?value:'a -> unit -> [> input ] elt
-(** Creates an [<input>] tag for a user type *)
-
-  val raw_input :
-      ?a:input_attrib attrib list ->
-        input_type:[< basic_input_type | `Reset | `Button ] ->
-        ?name:string -> ?value:string -> unit -> [> input ] elt
-(** Creates an untyped [<input>] tag. You may use the name you want
-   (for example to use with {!Eliom_parameters.any}).
- *)
-
-  val file_input :
-      ?a:input_attrib attrib list ->
-        name:[< file_info setoneradio ] param_name ->
-          unit -> [> input ] elt
-(** Creates an [<input>] tag for sending a file *)
-
-  val image_input :
-      ?a:input_attrib attrib list ->
-        name:[< coordinates oneradio ] param_name ->
-          ?src:uri -> unit -> [> input ] elt
-(** Creates an [<input type="image" name="...">] tag that sends the coordinates
-   the user clicked on *)
-
-  val int_image_input :
-      ?a:input_attrib attrib list ->
-        name:[< (int * coordinates) oneradio ] param_name -> value:int ->
-          ?src:uri -> unit -> [> input ] elt
-(** Creates an [<input type="image" name="..." value="...">] tag that sends
-   the coordinates the user clicked on and a value of type int *)
-
-  val int32_image_input :
-      ?a:input_attrib attrib list ->
-        name:[< (int32 * coordinates) oneradio ] param_name -> value:int32 ->
-          ?src:uri -> unit -> [> input ] elt
-(** Creates an [<input type="image" name="..." value="...">] tag that sends
-   the coordinates the user clicked on and a value of type int32 *)
-
-  val int64_image_input :
-      ?a:input_attrib attrib list ->
-        name:[< (int64 * coordinates) oneradio ] param_name -> value:int64 ->
-          ?src:uri -> unit -> [> input ] elt
-(** Creates an [<input type="image" name="..." value="...">] tag that sends
-   the coordinates the user clicked on and a value of type int64 *)
-
-  val float_image_input :
-      ?a:input_attrib attrib list ->
-        name:[< (float * coordinates) oneradio ] param_name -> value:float ->
-          ?src:uri -> unit -> [> input ] elt
-(** Creates an [<input type="image" name="..." value="...">] tag that sends
-    the coordinates the user clicked on and a value of type float *)
-
-  val string_image_input :
-      ?a:input_attrib attrib list ->
-        name:[< (string * coordinates) oneradio ] param_name -> value:string ->
-          ?src:uri -> unit -> [> input ] elt
-(** Creates an [<input type="image" name="..." value="...">] tag that sends
-   the coordinates the user clicked on and a value of type string *)
-
-  val user_type_image_input :
-    ('a -> string) -> 
-      ?a:input_attrib attrib list ->
-        name:[< ('a * coordinates) oneradio ] param_name -> value:'a ->
-          ?src:uri -> unit -> [> input ] elt
-(** Creates an [<input type="image" name="..." value="...">] tag that sends
-   the coordinates the user clicked on and a value of user defined type *)
-
-  val raw_image_input :
-      ?a:input_attrib attrib list ->
-        name:string -> value:string -> ?src:uri -> unit -> [> input ] elt
-(** Creates an [<input type="image" name="..." value="...">] tag that sends
-   the coordinates the user clicked on and an untyped value *)
-
-
-  val bool_checkbox :
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `One of bool ] param_name -> unit -> [> input ] elt
-(** Creates a checkbox [<input>] tag that will have a boolean value.
-   The service must declare a [bool] parameter.
- *)
-
-    val int_checkbox :
-        ?a:input_attrib attrib list -> ?checked:bool ->
-          name:[ `Set of int ] param_name -> value:int ->
-            unit -> [> input ] elt
-(** Creates a checkbox [<input>] tag that will have an int value.
-   Thus you can do several checkboxes with the same name
-   (and different values).
-   The service must declare a parameter of type [set].
- *)
-
-    val int32_checkbox :
-        ?a:input_attrib attrib list -> ?checked:bool ->
-          name:[ `Set of int32 ] param_name -> value:int32 ->
-            unit -> [> input ] elt
-(** Creates a checkbox [<input>] tag that will have an int32 value.
-   Thus you can do several checkboxes with the same name
-   (and different values).
-   The service must declare a parameter of type [set].
- *)
-
-    val int64_checkbox :
-        ?a:input_attrib attrib list -> ?checked:bool ->
-          name:[ `Set of int64 ] param_name -> value:int64 ->
-            unit -> [> input ] elt
-(** Creates a checkbox [<input>] tag that will have an int64 value.
-   Thus you can do several checkboxes with the same name
-   (and different values).
-   The service must declare a parameter of type [set].
- *)
-
-    val float_checkbox :
-        ?a:input_attrib attrib list -> ?checked:bool ->
-          name:[ `Set of float ] param_name -> value:float ->
-            unit -> [> input ] elt
-(** Creates a checkbox [<input>] tag that will have a float value.
-   Thus you can do several checkboxes with the same name
-   (and different values).
-   The service must declare a parameter of type [set].
- *)
-
-
-    val string_checkbox :
-        ?a:input_attrib attrib list -> ?checked:bool ->
-          name:[ `Set of string ] param_name -> value:string ->
-            unit -> [> input ] elt
-(** Creates a checkbox [<input>] tag that will have a string value.
-   Thus you can do several checkboxes with the same name
-   (and different values).
-   The service must declare a parameter of type [set].
- *)
-
-
-    val user_type_checkbox :
-      ('a -> string) -> 
-        ?a:input_attrib attrib list -> ?checked:bool ->
-          name:[ `Set of 'a ] param_name -> value:'a -> unit -> 
-            [> input ] elt
-(** Creates a checkbox [<input>] tag that will have a "user type" value.
-   Thus you can do several checkboxes with the same name
-   (and different values).
-   The service must declare a parameter of type [set].
- *)
-
-
-    val raw_checkbox :
-        ?a:input_attrib attrib list -> ?checked:bool ->
-          name:string -> value:string -> unit -> [> input ] elt
-(** Creates a checkbox [<input>] tag with untyped content.
-   Thus you can do several checkboxes with the same name
-   (and different values).
-   The service must declare a parameter of type [any].
- *)
-
-
-
-
-  val string_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    name:[ `Radio of string ] param_name -> value:string -> unit -> [> input ] elt
-(** Creates a radio [<input>] tag with string content *)
-
-  val int_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:[ `Radio of int ] param_name -> value:int -> unit -> [> input ] elt
-(** Creates a radio [<input>] tag with int content *)
-
-  val int32_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:[ `Radio of int32 ] param_name -> value:int32 -> unit -> [> input ] elt
-(** Creates a radio [<input>] tag with int32 content *)
-
-  val int64_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:[ `Radio of int64 ] param_name -> value:int64 -> unit -> [> input ] elt
-(** Creates a radio [<input>] tag with int64 content *)
-
-  val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:[ `Radio of float ] param_name -> value:float -> unit -> [> input ] elt
-(** Creates a radio [<input>] tag with float content *)
-
-  val user_type_radio : 
-    ('a -> string) -> ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    name:[ `Radio of 'a ] param_name -> value:'a -> unit -> [> input ] elt
-(** Creates a radio [<input>] tag with user_type content *)
-
-  val raw_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    name:string -> value:string -> unit -> [> input ] elt
-(** Creates a radio [<input>] tag with untyped string content (low level) *)
-
-
-  type button_type =
-      [ `Button | `Reset | `Submit ]
-
-  val string_button : ?a:button_attrib attrib list ->
-    name:[< string setone ] param_name -> value:string ->
-      button_content elt list -> [> button ] elt
-(** Creates a [<button>] tag with string content *)
-
-  val int_button : ?a:button_attrib attrib list ->
-    name:[< int setone ] param_name -> value:int ->
-      button_content elt list -> [> button ] elt
-(** Creates a [<button>] tag with int content *)
-
-  val int32_button : ?a:button_attrib attrib list ->
-    name:[< int32 setone ] param_name -> value:int32 ->
-      button_content elt list -> [> button ] elt
-(** Creates a [<button>] tag with int32 content *)
-
-  val int64_button : ?a:button_attrib attrib list ->
-    name:[< int64 setone ] param_name -> value:int64 ->
-      button_content elt list -> [> button ] elt
-(** Creates a [<button>] tag with int64 content *)
-
-  val float_button : ?a:button_attrib attrib list ->
-    name:[< float setone ] param_name -> value:float ->
-      button_content elt list -> [> button ] elt
-(** Creates a [<button>] tag with float content *)
-
-  val user_type_button : ('a -> string) -> ?a:button_attrib attrib list ->
-    name:[< 'a setone ] param_name -> value:'a ->
-      button_content elt list -> [> button ] elt
-(** Creates a [<button>] tag with user_type content *)
-
-  val raw_button : ?a:button_attrib attrib list ->
-    button_type:[< button_type ] ->
-      name:string -> value:string ->
-        button_content elt list -> [> button ] elt
-(** Creates a [<button>] tag with untyped string content *)
-
-  val button : ?a:button_attrib attrib list ->
-    button_type:[< button_type ] ->
-      button_content elt list -> [> button ] elt
-(** Creates a [<button>] tag with no value. No value is sent. *)
-
-
-
-  val textarea :
-      ?a:textarea_attrib attrib list ->
-        name:[< string setoneradio ] param_name ->
-          ?value:string ->
-            rows:int -> cols:int ->
-              unit -> [> textarea ] elt
-(** Creates a [<textarea>] tag *)
-
-  val raw_textarea :
-      ?a:textarea_attrib attrib list ->
-        name:string ->
-          ?value:string ->
-            rows:int -> cols:int ->
-              unit -> [> textarea ] elt
-(** Creates a [<textarea>] tag for untyped form *)
-
-  type 'a soption =
-      HTML5_types.option_attrib HTML5.M.attrib list
-        * 'a (* Value to send *)
-        * pcdata elt option (* Text to display (if different from the latter) *)
-        * bool (* selected *)
-
-  type 'a select_opt =
-    | Optgroup of
-        [ common | `Disabled ] HTML5.M.attrib list
-          * string (* label *)
-          * 'a soption
-          * 'a soption list
-    | Option of 'a soption
-
-  (** The type for [<select>] options and groups of options.
-     - The field of type 'a in [soption] is the value that will be sent
-     by the form.
-     - If the [pcdata elt option] is not present it is also the
-     value displayed.
-     - The string in [select_opt] is the label
-   *)
-
-  val int_select :
-      ?a:select_attrib attrib list ->
-        name:[< `One of int ] param_name ->
-          int select_opt ->
-            int select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for int values. *)
-
-  val int32_select :
-      ?a:select_attrib attrib list ->
-        name:[< `One of int32 ] param_name ->
-          int32 select_opt ->
-            int32 select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for int32 values. *)
-
-  val int64_select :
-      ?a:select_attrib attrib list ->
-        name:[< `One of int64 ] param_name ->
-          int64 select_opt ->
-            int64 select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for int64 values. *)
-
-  val float_select :
-      ?a:select_attrib attrib list ->
-        name:[< `One of float ] param_name ->
-          float select_opt ->
-            float select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for float values. *)
-
-  val string_select :
-      ?a:select_attrib attrib list ->
-        name:[< `One of string ] param_name ->
-          string select_opt ->
-            string select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for string values. *)
-
-  val user_type_select :
-    ('a -> string) -> 
-      ?a:select_attrib attrib list ->
-        name:[< `One of 'a ] param_name ->
-          'a select_opt ->
-            'a select_opt list ->
-                [> select ] elt
-(** Creates a [<select>] tag for user type values. *)
-
-  val raw_select :
-      ?a:select_attrib attrib list ->
-        name:string ->
-          string select_opt ->
-            string select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for any (untyped) value. *)
-
-
-  val int_multiple_select :
-      ?a:select_attrib attrib list ->
-        name:[< `Set of int ] param_name ->
-          int select_opt ->
-            int select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for int values. *)
-
-  val int32_multiple_select :
-      ?a:select_attrib attrib list ->
-        name:[< `Set of int32 ] param_name ->
-          int32 select_opt ->
-            int32 select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for int32 values. *)
-
-  val int64_multiple_select :
-      ?a:select_attrib attrib list ->
-        name:[< `Set of int64 ] param_name ->
-          int64 select_opt ->
-            int64 select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for int64 values. *)
-
-  val float_multiple_select :
-      ?a:select_attrib attrib list ->
-        name:[< `Set of float ] param_name ->
-          float select_opt ->
-            float select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for float values. *)
-
-  val string_multiple_select :
-      ?a:select_attrib attrib list ->
-        name:[< `Set of string ] param_name ->
-          string select_opt ->
-            string select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for string values. *)
-
-  val user_type_multiple_select :
-    ('a -> string) -> 
-      ?a:select_attrib attrib list ->
-        name:[< `Set of 'a ] param_name ->
-          'a select_opt ->
-            'a select_opt list ->
-                [> select ] elt
-(** Creates a [<select>] tag for user type values. *)
-
-  val raw_multiple_select :
-      ?a:select_attrib attrib list ->
-        name:string ->
-          string select_opt ->
-            string select_opt list ->
-              [> select ] elt
-(** Creates a [<select>] tag for any (untyped) value. *)
-
-
-end
-
-
-type full_input_type =
-  [ `Button
-  | `Checkbox
-  | `File
-  | `Hidden
-  | `Image
-  | `Password
-  | `Radio
-  | `Reset
-  | `Submit
-  | `Text ]
-
-type button_type =
-  [ `Button
-  | `Reset
-  | `Submit
-  ]
-
-module MakeHtml5forms =
-  functor (Html5forms' : ELIOMFORMSIG
-           with type form_content_elt = HTML5_types.form_content HTML5.M.elt
-           and type form_content_elt_list = HTML5_types.form_content HTML5.M.elt list
-           and type uri = HTML5_types.uri
-           and type 'a a_content_elt = 'a HTML5.M.elt
-           and type 'a a_content_elt_list = 'a HTML5.M.elt list
-
-           and type div_content_elt = HTML5_types.div_content HTML5.M.elt
-           and type div_content_elt_list = HTML5_types.div_content HTML5.M.elt list
-
-           and type 'a a_elt = 'a HTML5_types.a HTML5.M.elt
-           and type 'a a_elt_list = 'a HTML5_types.a HTML5.M.elt list
-           and type form_elt = HTML5_types.form HTML5.M.elt
-
-           and type textarea_elt = HTML5_types.textarea HTML5.M.elt
-           and type input_elt = HTML5_types.input HTML5.M.elt
-
-           and type link_elt = HTML5_types.link HTML5.M.elt
-           and type script_elt = HTML5_types.script HTML5.M.elt
-
-           and type pcdata_elt = HTML5_types.pcdata HTML5.M.elt
-
-           and type select_elt = HTML5_types.select HTML5.M.elt
-           and type select_content_elt = HTML5_types.select_content HTML5.M.elt
-           and type select_content_elt_list = HTML5_types.select_content HTML5.M.elt list
-           and type option_elt = HTML5_types.selectoption HTML5.M.elt
-           and type option_elt_list = HTML5_types.selectoption HTML5.M.elt list
-
-           and type button_elt = HTML5_types.button HTML5.M.elt
-           and type button_content_elt = HTML5_types.button_content HTML5.M.elt
-           and type button_content_elt_list = HTML5_types.button_content HTML5.M.elt list
-
-           and type a_attrib_t = HTML5_types.a_attrib HTML5.M.attrib list
-           and type form_attrib_t = HTML5_types.form_attrib HTML5.M.attrib list
-           and type input_attrib_t = HTML5_types.input_attrib HTML5.M.attrib list
-           and type textarea_attrib_t = HTML5_types.textarea_attrib HTML5.M.attrib list
-           and type select_attrib_t = HTML5_types.select_attrib HTML5.M.attrib list
-           and type link_attrib_t = HTML5_types.link_attrib HTML5.M.attrib list
-           and type script_attrib_t = HTML5_types.script_attrib HTML5.M.attrib list
-           and type optgroup_attrib_t = [ HTML5_types.common | `Disabled ] HTML5.M.attrib list
-           and type option_attrib_t = HTML5_types.option_attrib HTML5.M.attrib list
-           and type button_attrib_t = HTML5_types.button_attrib HTML5.M.attrib list
-           and type input_type_t = full_input_type
-           and type button_type_t = button_type
-  ) -> (struct
-
-  open HTML5.M
-  open HTML5_types
-  include Html5forms'
+module Html5_forms_closed : HTML5_FORMS_CLOSED =
+  Eliom_mkforms.MakeForms(Html5_forms_base)
 
 (* As we want -> [> a ] elt and not -> [ a ] elt (etc.),
-   we define a new module: *)
-  let a = (a :
-             ?absolute:bool ->
-           ?absolute_path:bool ->
-           ?https:bool ->
-           ?a:a_attrib attrib list ->
-           service:('get, unit, [< get_service_kind ],
-                    [< suff ], 'gn, 'pn,
-                    [< registrable ], 'return) service ->
-           ?hostname:string ->
-           ?port:int ->
-           ?fragment:string ->
-           ?keep_nl_params:[ `All | `Persistent | `None ] ->
-           ?nl_params: Eliom_parameters.nl_params_set ->
-           ?no_appl:bool ->
-           'a elt list -> 'get ->
-           'a a HTML5.M.elt :>
-             ?absolute:bool ->
-           ?absolute_path:bool ->
-           ?https:bool ->
-           ?a:a_attrib attrib list ->
-           service:('get, unit, [< get_service_kind ],
-                    [< suff ], 'gn, 'pn,
-                    [< registrable ], 'return) service ->
-           ?hostname:string ->
-           ?port:int ->
-           ?fragment:string ->
-           ?keep_nl_params:[ `All | `Persistent | `None ] ->
-           ?nl_params: Eliom_parameters.nl_params_set ->
-           ?no_appl:bool ->
-           'a elt list -> 'get ->
-           [> 'a a] HTML5.M.elt)
+   we define a opening functor... *)
 
-  let css_link = (css_link :
-                    ?a:(link_attrib attrib list) ->
-                      uri:uri -> unit -> link elt :>
-                    ?a:(link_attrib attrib list) ->
-                      uri:uri -> unit -> [> link ] elt)
+module Open_Html5_forms =
 
-  let js_script = (js_script :
-                     ?a:(script_attrib attrib list) ->
-                       uri:uri -> unit -> script elt :>
-                     ?a:(script_attrib attrib list) ->
-                       uri:uri -> unit -> [> script ] elt)
+  functor (Html5_forms_closed : HTML5_FORMS_CLOSED) -> (struct
 
-  let make_uri = (make_uri :
-                    ?absolute:bool ->
-                   ?absolute_path:bool ->
-                   ?https:bool ->
-                   service:('get, unit, [< get_service_kind ],
-                            [< suff ], 'gn, unit,
-                            [< registrable ], 'return) service ->
-                   ?hostname:string ->
-                   ?port:int ->
-                   ?fragment:string ->
-                   ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                   ?nl_params: Eliom_parameters.nl_params_set ->
-                   'get -> uri)
+    open HTML5.M
+    open HTML5_types
 
-  let get_form = (get_form :
-                    ?absolute:bool ->
-                   ?absolute_path:bool ->
-                   ?https:bool ->
-                   ?a:form_attrib attrib list ->
-                   service:('get, unit, [< get_service_kind ],
-                            [<suff ], 'gn, 'pn,
-                            [< registrable ], 'return) service ->
-                   ?hostname:string ->
-                   ?port:int ->
-                   ?fragment:string ->
-                   ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                   ?nl_params: Eliom_parameters.nl_params_set ->
-                   ?no_appl:bool ->
-             ('gn -> form_content elt list) -> form elt :>
-                   ?absolute:bool ->
-                   ?absolute_path:bool ->
-                   ?https:bool ->
-                   ?a:form_attrib attrib list ->
-                   service:('get, unit, [< get_service_kind ],
-                            [<suff ], 'gn, 'pn,
-                            [< registrable ], 'return) service ->
-                   ?hostname:string ->
-                   ?port:int ->
-                   ?fragment:string ->
-                   ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                   ?nl_params: Eliom_parameters.nl_params_set ->
-                   ?no_appl:bool ->
-                   ('gn -> form_content elt list) -> [> form ] elt)
+    include Html5_forms_closed
 
+    let a = (a :
+	       ?absolute:bool ->
+              ?absolute_path:bool ->
+              ?https:bool ->
+              ?a:a_attrib attrib list ->
+              service:('get, unit, [< get_service_kind ],
+                       [< suff ], 'gn, 'pn,
+                       [< registrable ], 'return) service ->
+              ?hostname:string ->
+              ?port:int ->
+              ?fragment:string ->
+              ?keep_nl_params:[ `All | `Persistent | `None ] ->
+              ?nl_params: Eliom_parameters.nl_params_set ->
+              ?no_appl:bool ->
+              'a HTML5.M.elt list -> 'get ->
+              'a a HTML5.M.elt :>
+		?absolute:bool ->
+              ?absolute_path:bool ->
+              ?https:bool ->
+              ?a:a_attrib attrib list ->
+              service:('get, unit, [< get_service_kind ],
+                       [< suff ], 'gn, 'pn,
+                       [< registrable ], 'return) service ->
+              ?hostname:string ->
+              ?port:int ->
+              ?fragment:string ->
+              ?keep_nl_params:[ `All | `Persistent | `None ] ->
+              ?nl_params: Eliom_parameters.nl_params_set ->
+              ?no_appl:bool ->
+              'a HTML5.M.elt list -> 'get ->
+              [> 'a a] HTML5.M.elt)
 
-  let lwt_get_form = (lwt_get_form :
-                        ?absolute:bool ->
-                       ?absolute_path:bool ->
-                       ?https:bool ->
-                       ?a:form_attrib attrib list ->
-                       service:('get, unit, [< get_service_kind ],
-                                [<suff ], 'gn, 'pn,
-                                [< registrable ], 'return) service ->
-                       ?hostname:string ->
-                       ?port:int ->
-                       ?fragment:string ->
-                       ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                       ?nl_params: Eliom_parameters.nl_params_set ->
-                       ?no_appl:bool ->
-                       ('gn -> form_content elt list Lwt.t) -> form elt Lwt.t :>
-                       ?absolute:bool ->
-                       ?absolute_path:bool ->
-                       ?https:bool ->
-                       ?a:form_attrib attrib list ->
-                       service:('get, unit, [< get_service_kind ],
-                                [<suff ], 'gn, 'pn,
-                                [< registrable ], 'return) service ->
-                       ?hostname:string ->
-                       ?port:int ->
-                       ?fragment:string ->
-                       ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                       ?nl_params: Eliom_parameters.nl_params_set ->
-                       ?no_appl:bool ->
-                       ('gn -> form_content elt list Lwt.t) -> 
-                       [> form ] elt Lwt.t)
+    let css_link = (css_link :
+                      ?a:(link_attrib attrib list) ->
+                     uri:uri -> unit -> link elt :>
+                     ?a:(link_attrib attrib list) ->
+                     uri:uri -> unit -> [> link ] elt)
 
+    let js_script = (js_script :
+                       ?a:(script_attrib attrib list) ->
+                      uri:uri -> unit -> script elt :>
+                      ?a:(script_attrib attrib list) ->
+                      uri:uri -> unit -> [> script ] elt)
 
-  let post_form = (post_form :
+    let make_uri = (make_uri :
+                      ?absolute:bool ->
+                     ?absolute_path:bool ->
+                     ?https:bool ->
+                     service:('get, unit, [< get_service_kind ],
+                              [< suff ], 'gn, unit,
+                              [< registrable ], 'return) service ->
+                     ?hostname:string ->
+                     ?port:int ->
+                     ?fragment:string ->
+                     ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                     ?nl_params: Eliom_parameters.nl_params_set ->
+                     'get -> HTML5_types.uri)
+
+    let get_form = (get_form :
+                      ?absolute:bool ->
+                     ?absolute_path:bool ->
+                     ?https:bool ->
+                     ?a:form_attrib attrib list ->
+                     service:('get, unit, [< get_service_kind ],
+                              [<suff ], 'gn, 'pn,
+                              [< registrable ], 'return) service ->
+                     ?hostname:string ->
+                     ?port:int ->
+                     ?fragment:string ->
+                     ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                     ?nl_params: Eliom_parameters.nl_params_set ->
+                     ?no_appl:bool ->
+		     ('gn -> form_content elt list) -> form elt :>
                      ?absolute:bool ->
-                    ?absolute_path:bool ->
-                    ?https:bool ->
-                    ?a:form_attrib attrib list ->
-                    service:('get, 'post, [< post_service_kind ],
-                             [< suff ], 'gn, 'pn,
-                             [< registrable ], 'return) service ->
-                    ?hostname:string ->
-                    ?port:int ->
-                    ?fragment:string ->
-                    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                    ?keep_get_na_params:bool ->
-                    ?nl_params: Eliom_parameters.nl_params_set ->
-                    ?no_appl:bool ->
-                    ('pn -> form_content elt list) -> 'get -> form elt :>
-                    ?absolute:bool ->
-                    ?absolute_path:bool ->
-                    ?https:bool ->
-                    ?a:form_attrib attrib list ->
-                    service:('get, 'post, [< post_service_kind ],
-                             [< suff ], 'gn, 'pn,
-                             [< registrable ], 'return) service ->
-                    ?hostname:string ->
-                    ?port:int ->
-                    ?fragment:string ->
-                    ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                    ?keep_get_na_params:bool ->
-                    ?nl_params: Eliom_parameters.nl_params_set ->
-                    ?no_appl:bool ->
-                    ('pn -> form_content elt list) -> 'get -> [> form ] elt)
-
-  let lwt_post_form = (lwt_post_form :
-                         ?absolute:bool ->
-                        ?absolute_path:bool ->
-                        ?https:bool ->
-                        ?a:form_attrib attrib list ->
-                        service:('get, 'post, [< post_service_kind ],
-                                 [< suff ], 'gn, 'pn,
-                                 [< registrable ], 'return) service ->
-                        ?hostname:string ->
-                        ?port:int ->
-                        ?fragment:string ->
-                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                        ?keep_get_na_params:bool ->
-                        ?nl_params: Eliom_parameters.nl_params_set ->
-                        ?no_appl:bool ->
-                        ('pn -> form_content elt list Lwt.t) -> 
-                        'get -> form elt Lwt.t :>
-                        ?absolute:bool ->
-                        ?absolute_path:bool ->
-                        ?https:bool ->
-                        ?a:form_attrib attrib list ->
-                        service:('get, 'post, [< post_service_kind ],
-                                 [< suff ], 'gn, 'pn,
-                                 [< registrable ], 'return) service ->
-                        ?hostname:string ->
-                        ?port:int ->
-                        ?fragment:string ->
-                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
-                        ?keep_get_na_params:bool ->
-                        ?nl_params: Eliom_parameters.nl_params_set ->
-                        ?no_appl:bool ->
-                        ('pn -> form_content elt list Lwt.t) -> 'get -> 
-                        [> form ] elt Lwt.t)
+                     ?absolute_path:bool ->
+                     ?https:bool ->
+                     ?a:form_attrib attrib list ->
+                     service:('get, unit, [< get_service_kind ],
+                              [<suff ], 'gn, 'pn,
+                              [< registrable ], 'return) service ->
+                     ?hostname:string ->
+                     ?port:int ->
+                     ?fragment:string ->
+                     ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                     ?nl_params: Eliom_parameters.nl_params_set ->
+                     ?no_appl:bool ->
+                     ('gn -> form_content elt list) -> [> form ] elt)
 
 
-  type basic_input_type =
-      [
-    | `Hidden
-    | `Password
-    | `Submit
-    | `Text ]
-
-  type full_input_type =
-    [ `Button
-    | `Checkbox
-    | `File
-    | `Hidden
-    | `Image
-    | `Password
-    | `Radio
-    | `Reset
-    | `Submit
-    | `Text ]
-
-  let int_input = (int_input :
-      ?a:input_attrib attrib list -> input_type:full_input_type ->
-        ?name:'a -> ?value:int -> unit -> input elt :>
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-        ?name:'a -> ?value:int -> unit -> [> input ] elt)
-
-  let int32_input = (int32_input :
-      ?a:input_attrib attrib list -> input_type:full_input_type ->
-        ?name:'a -> ?value:int32 -> unit -> input elt :>
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-        ?name:'a -> ?value:int32 -> unit -> [> input ] elt)
-
-  let int64_input = (int64_input :
-      ?a:input_attrib attrib list -> input_type:full_input_type ->
-        ?name:'a -> ?value:int64 -> unit -> input elt :>
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-        ?name:'a -> ?value:int64 -> unit -> [> input ] elt)
-
-  let float_input = (float_input :
-      ?a:input_attrib attrib list -> input_type:full_input_type ->
-        ?name:'a -> ?value:float -> unit -> input elt :>
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-        ?name:'a -> ?value:float -> unit -> [> input ] elt)
-
-  let string_input = (string_input :
-      ?a:input_attrib attrib list -> input_type:full_input_type ->
-        ?name:'a -> ?value:string -> unit -> input elt :>
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-        ?name:'a -> ?value:string -> unit -> [> input ] elt)
-
-  let user_type_input = (user_type_input :
-                           ('a -> string) ->
-      ?a:input_attrib attrib list -> input_type:full_input_type ->
-        ?name:'b -> ?value:'a -> unit -> input elt :>
-                          ('a -> string) ->
-      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
-        ?name:'b -> ?value:'a -> unit -> [> input ] elt)
-
-  let raw_input = (raw_input :
-      ?a:input_attrib attrib list -> input_type:full_input_type ->
-        ?name:string -> ?value:string -> unit -> input elt :>
-      ?a:input_attrib attrib list ->
-        input_type:[< basic_input_type | `Button | `Reset ] ->
-        ?name:string -> ?value:string -> unit -> [> input ] elt)
-
-  let file_input = (file_input :
-      ?a:input_attrib attrib list -> name:'a ->
-        unit -> input elt :>
-      ?a:input_attrib attrib list -> name:'a ->
-        unit -> [> input ] elt)
-
-  let image_input = (image_input :
-      ?a:input_attrib attrib list -> name:'a ->
-        ?src:uri -> unit -> input elt :>
-      ?a:input_attrib attrib list -> name:'a ->
-        ?src:uri -> unit -> [> input ] elt)
-
-  let int_image_input = (int_image_input :
-      ?a:input_attrib attrib list ->
-        name:'a -> value:int ->
-          ?src:uri -> unit -> input elt :>
-      ?a:input_attrib attrib list ->
-        name:'a -> value:int ->
-          ?src:uri -> unit -> [> input ] elt)
-
-  let int32_image_input = (int32_image_input :
-      ?a:input_attrib attrib list ->
-        name:'a -> value:int32 ->
-          ?src:uri -> unit -> input elt :>
-      ?a:input_attrib attrib list ->
-        name:'a -> value:int32 ->
-          ?src:uri -> unit -> [> input ] elt)
-
-  let int64_image_input = (int64_image_input :
-      ?a:input_attrib attrib list ->
-        name:'a -> value:int64 ->
-          ?src:uri -> unit -> input elt :>
-      ?a:input_attrib attrib list ->
-        name:'a -> value:int64 ->
-          ?src:uri -> unit -> [> input ] elt)
-
-  let float_image_input = (float_image_input :
-      ?a:input_attrib attrib list ->
-        name:'a -> value:float ->
-          ?src:uri -> unit -> input elt :>
-      ?a:input_attrib attrib list ->
-        name:'a -> value:float ->
-          ?src:uri -> unit -> [> input ] elt)
-
-  let string_image_input = (string_image_input :
-      ?a:input_attrib attrib list ->
-        name:'a -> value:string ->
-          ?src:uri -> unit -> input elt :>
-      ?a:input_attrib attrib list ->
-        name:'a -> value:string ->
-          ?src:uri -> unit -> [> input ] elt)
-
-  let user_type_image_input = (user_type_image_input :
-              ('a -> string) ->
-      ?a:input_attrib attrib list ->
-        name:'b -> value:'a ->
-          ?src:uri -> unit -> input elt :>
-              ('a -> string) ->
-      ?a:input_attrib attrib list ->
-        name:'b -> value:'a ->
-          ?src:uri -> unit -> [> input ] elt)
-
-  let raw_image_input = (raw_image_input :
-      ?a:input_attrib attrib list ->
-        name:string -> value:string -> ?src:uri -> unit -> input elt :>
-      ?a:input_attrib attrib list ->
-        name:string -> value:string -> ?src:uri -> unit -> [> input ] elt)
-
-  let bool_checkbox = (bool_checkbox :
-      ?a:(input_attrib attrib list ) -> ?checked:bool ->
-        name:'a -> unit -> input elt :>
-      ?a:(input_attrib attrib list ) -> ?checked:bool ->
-        name:'a -> unit -> [> input ] elt)
-
-  let int_checkbox = (int_checkbox :
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of int ] param_name -> value:int -> unit -> input elt :>
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of int ] param_name -> value:int -> unit -> [> input ] elt)
-
-  let int32_checkbox = (int32_checkbox :
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of int32 ] param_name -> value:int32 -> unit -> input elt :>
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of int32 ] param_name -> value:int32 -> unit -> [> input ] elt)
-
-  let int64_checkbox = (int64_checkbox :
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of int64 ] param_name -> value:int64 -> unit -> input elt :>
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of int64 ] param_name -> value:int64 -> unit -> [> input ] elt)
-
-  let float_checkbox = (float_checkbox :
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of float ] param_name -> value:float -> unit -> input elt :>
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of float ] param_name -> value:float -> unit -> [> input ] elt)
-
-  let string_checkbox = (string_checkbox :
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of string ] param_name -> value:string -> unit -> input elt :>
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of string ] param_name -> value:string -> unit -> [> input ] elt)
-
-  let user_type_checkbox = (user_type_checkbox :
-              ('a -> string) ->
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of 'a ] param_name -> value:'a -> unit -> input elt :>
-              ('a -> string) ->
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:[ `Set of 'a ] param_name -> value:'a -> unit -> [> input ] elt)
-
-  let raw_checkbox = (raw_checkbox :
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:string -> value:string -> unit -> input elt :>
-      ?a:input_attrib attrib list -> ?checked:bool ->
-        name:string -> value:string -> unit -> [> input ] elt)
+    let lwt_get_form = (lwt_get_form :
+                          ?absolute:bool ->
+			 ?absolute_path:bool ->
+			 ?https:bool ->
+			 ?a:form_attrib attrib list ->
+			 service:('get, unit, [< get_service_kind ],
+                                  [<suff ], 'gn, 'pn,
+                                  [< registrable ], 'return) service ->
+			 ?hostname:string ->
+			 ?port:int ->
+			 ?fragment:string ->
+			 ?keep_nl_params:[ `All | `Persistent | `None ] ->
+			 ?nl_params: Eliom_parameters.nl_params_set ->
+			 ?no_appl:bool ->
+			 ('gn -> form_content elt list Lwt.t) -> form elt Lwt.t :>
+			 ?absolute:bool ->
+			 ?absolute_path:bool ->
+			 ?https:bool ->
+			 ?a:form_attrib attrib list ->
+			 service:('get, unit, [< get_service_kind ],
+                                  [<suff ], 'gn, 'pn,
+                                  [< registrable ], 'return) service ->
+			 ?hostname:string ->
+			 ?port:int ->
+			 ?fragment:string ->
+			 ?keep_nl_params:[ `All | `Persistent | `None ] ->
+			 ?nl_params: Eliom_parameters.nl_params_set ->
+			 ?no_appl:bool ->
+			 ('gn -> form_content elt list Lwt.t) ->
+			 [> form ] elt Lwt.t)
 
 
-  let string_radio = (string_radio :
-    ?a:(input_attrib attrib list ) -> ?checked:bool ->
-      name:'a -> value:string -> unit -> input elt :>
-    ?a:(input_attrib attrib list ) -> ?checked:bool ->
-      name:'a -> value:string -> unit -> [> input ] elt)
+    let post_form = (post_form :
+                       ?absolute:bool ->
+                      ?absolute_path:bool ->
+                      ?https:bool ->
+                      ?a:form_attrib attrib list ->
+                      service:('get, 'post, [< post_service_kind ],
+                               [< suff ], 'gn, 'pn,
+                               [< registrable ], 'return) service ->
+                      ?hostname:string ->
+                      ?port:int ->
+                      ?fragment:string ->
+                      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                      ?keep_get_na_params:bool ->
+                      ?nl_params: Eliom_parameters.nl_params_set ->
+                      ?no_appl:bool ->
+                      ('pn -> form_content elt list) -> 'get -> form elt :>
+                      ?absolute:bool ->
+                      ?absolute_path:bool ->
+                      ?https:bool ->
+                      ?a:form_attrib attrib list ->
+                      service:('get, 'post, [< post_service_kind ],
+                               [< suff ], 'gn, 'pn,
+                               [< registrable ], 'return) service ->
+                      ?hostname:string ->
+                      ?port:int ->
+                      ?fragment:string ->
+                      ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                      ?keep_get_na_params:bool ->
+                      ?nl_params: Eliom_parameters.nl_params_set ->
+                      ?no_appl:bool ->
+                      ('pn -> form_content elt list) -> 'get -> [> form ] elt)
 
-  let int_radio = (int_radio :
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:'a -> value:int -> unit -> input elt :>
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:'a -> value:int -> unit -> [> input ] elt)
+    let lwt_post_form = (lwt_post_form :
+                           ?absolute:bool ->
+                          ?absolute_path:bool ->
+                          ?https:bool ->
+                          ?a:form_attrib attrib list ->
+                          service:('get, 'post, [< post_service_kind ],
+                                   [< suff ], 'gn, 'pn,
+                                   [< registrable ], 'return) service ->
+                          ?hostname:string ->
+                          ?port:int ->
+                          ?fragment:string ->
+                          ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                          ?keep_get_na_params:bool ->
+                          ?nl_params: Eliom_parameters.nl_params_set ->
+                          ?no_appl:bool ->
+                          ('pn -> form_content elt list Lwt.t) ->
+                          'get -> form elt Lwt.t :>
+                          ?absolute:bool ->
+                          ?absolute_path:bool ->
+                          ?https:bool ->
+                          ?a:form_attrib attrib list ->
+                          service:('get, 'post, [< post_service_kind ],
+                                   [< suff ], 'gn, 'pn,
+                                   [< registrable ], 'return) service ->
+                          ?hostname:string ->
+                          ?port:int ->
+                          ?fragment:string ->
+                          ?keep_nl_params:[ `All | `Persistent | `None ] ->
+                          ?keep_get_na_params:bool ->
+                          ?nl_params: Eliom_parameters.nl_params_set ->
+                          ?no_appl:bool ->
+                          ('pn -> form_content elt list Lwt.t) -> 'get ->
+                          [> form ] elt Lwt.t)
 
-  let int32_radio = (int32_radio :
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:'a -> value:int32 -> unit -> input elt :>
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:'a -> value:int32 -> unit -> [> input ] elt)
+    let int_input = (int_input :
+		       ?a:input_attrib attrib list -> input_type:full_input_type ->
+		      ?name:'a -> ?value:int -> unit -> input elt :>
+		      ?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+		      ?name:'a -> ?value:int -> unit -> [> input ] elt)
 
-  let int64_radio = (int64_radio :
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:'a -> value:int64 -> unit -> input elt :>
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:'a -> value:int64 -> unit -> [> input ] elt)
+    let int32_input = (int32_input :
+			 ?a:input_attrib attrib list -> input_type:full_input_type ->
+			?name:'a -> ?value:int32 -> unit -> input elt :>
+			?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+			?name:'a -> ?value:int32 -> unit -> [> input ] elt)
 
-  let float_radio = (float_radio :
+    let int64_input = (int64_input :
+			 ?a:input_attrib attrib list -> input_type:full_input_type ->
+			?name:'a -> ?value:int64 -> unit -> input elt :>
+			?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+			?name:'a -> ?value:int64 -> unit -> [> input ] elt)
+
+    let float_input = (float_input :
+			 ?a:input_attrib attrib list -> input_type:full_input_type ->
+			?name:'a -> ?value:float -> unit -> input elt :>
+			?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+			?name:'a -> ?value:float -> unit -> [> input ] elt)
+
+    let string_input = (string_input :
+			  ?a:input_attrib attrib list -> input_type:full_input_type ->
+			 ?name:'a -> ?value:string -> unit -> input elt :>
+			 ?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+			 ?name:'a -> ?value:string -> unit -> [> input ] elt)
+
+    let user_type_input = (user_type_input :
+                             ('a -> string) ->
+			    ?a:input_attrib attrib list -> input_type:full_input_type ->
+			    ?name:'b -> ?value:'a -> unit -> input elt :>
+                            ('a -> string) ->
+			    ?a:input_attrib attrib list -> input_type:[< full_input_type] ->
+			    ?name:'b -> ?value:'a -> unit -> [> input ] elt)
+
+    let raw_input = (raw_input :
+		       ?a:input_attrib attrib list -> input_type:full_input_type ->
+		      ?name:string -> ?value:string -> unit -> input elt :>
+		      ?a:input_attrib attrib list ->
+		      input_type:[< full_input_type ] ->
+		      ?name:string -> ?value:string -> unit -> [> input ] elt)
+
+    let file_input = (file_input :
+			?a:input_attrib attrib list -> name:'a ->
+		       unit -> input elt :>
+		       ?a:input_attrib attrib list -> name:'a ->
+		       unit -> [> input ] elt)
+
+    let image_input = (image_input :
+			 ?a:input_attrib attrib list -> name:'a ->
+			?src:uri -> unit -> input elt :>
+			?a:input_attrib attrib list -> name:'a ->
+			?src:uri -> unit -> [> input ] elt)
+
+    let int_image_input = (int_image_input :
+			     ?a:input_attrib attrib list ->
+			    name:'a -> value:int ->
+			    ?src:uri -> unit -> input elt :>
+			    ?a:input_attrib attrib list ->
+			    name:'a -> value:int ->
+			    ?src:uri -> unit -> [> input ] elt)
+
+    let int32_image_input = (int32_image_input :
+			       ?a:input_attrib attrib list ->
+			      name:'a -> value:int32 ->
+			      ?src:uri -> unit -> input elt :>
+			      ?a:input_attrib attrib list ->
+			      name:'a -> value:int32 ->
+			      ?src:uri -> unit -> [> input ] elt)
+
+    let int64_image_input = (int64_image_input :
+			       ?a:input_attrib attrib list ->
+			      name:'a -> value:int64 ->
+			      ?src:uri -> unit -> input elt :>
+			      ?a:input_attrib attrib list ->
+			      name:'a -> value:int64 ->
+			      ?src:uri -> unit -> [> input ] elt)
+
+    let float_image_input = (float_image_input :
+			       ?a:input_attrib attrib list ->
+			      name:'a -> value:float ->
+			      ?src:uri -> unit -> input elt :>
+			      ?a:input_attrib attrib list ->
+			      name:'a -> value:float ->
+			      ?src:uri -> unit -> [> input ] elt)
+
+    let string_image_input = (string_image_input :
+				?a:input_attrib attrib list ->
+			       name:'a -> value:string ->
+			       ?src:uri -> unit -> input elt :>
+			       ?a:input_attrib attrib list ->
+			       name:'a -> value:string ->
+			       ?src:uri -> unit -> [> input ] elt)
+
+    let user_type_image_input = (user_type_image_input :
+				   ('a -> string) ->
+				  ?a:input_attrib attrib list ->
+				  name:'b -> value:'a ->
+				  ?src:uri -> unit -> input elt :>
+				  ('a -> string) ->
+				  ?a:input_attrib attrib list ->
+				  name:'b -> value:'a ->
+				  ?src:uri -> unit -> [> input ] elt)
+
+    let raw_image_input = (raw_image_input :
+			     ?a:input_attrib attrib list ->
+			    name:string -> value:string -> ?src:uri -> unit -> input elt :>
+			    ?a:input_attrib attrib list ->
+			    name:string -> value:string -> ?src:uri -> unit -> [> input ] elt)
+
+    let bool_checkbox = (bool_checkbox :
+			   ?a:(input_attrib attrib list ) -> ?checked:bool ->
+			  name:'a -> unit -> input elt :>
+			  ?a:(input_attrib attrib list ) -> ?checked:bool ->
+			  name:'a -> unit -> [> input ] elt)
+
+    let int_checkbox = (int_checkbox :
+			  ?a:input_attrib attrib list -> ?checked:bool ->
+			 name:[ `Set of int ] param_name -> value:int -> unit -> input elt :>
+			 ?a:input_attrib attrib list -> ?checked:bool ->
+			 name:[ `Set of int ] param_name -> value:int -> unit -> [> input ] elt)
+
+    let int32_checkbox = (int32_checkbox :
+			    ?a:input_attrib attrib list -> ?checked:bool ->
+			   name:[ `Set of int32 ] param_name -> value:int32 -> unit -> input elt :>
+			   ?a:input_attrib attrib list -> ?checked:bool ->
+			   name:[ `Set of int32 ] param_name -> value:int32 -> unit -> [> input ] elt)
+
+    let int64_checkbox = (int64_checkbox :
+			    ?a:input_attrib attrib list -> ?checked:bool ->
+			   name:[ `Set of int64 ] param_name -> value:int64 -> unit -> input elt :>
+			   ?a:input_attrib attrib list -> ?checked:bool ->
+			   name:[ `Set of int64 ] param_name -> value:int64 -> unit -> [> input ] elt)
+
+    let float_checkbox = (float_checkbox :
+			    ?a:input_attrib attrib list -> ?checked:bool ->
+			   name:[ `Set of float ] param_name -> value:float -> unit -> input elt :>
+			   ?a:input_attrib attrib list -> ?checked:bool ->
+			   name:[ `Set of float ] param_name -> value:float -> unit -> [> input ] elt)
+
+    let string_checkbox = (string_checkbox :
+			     ?a:input_attrib attrib list -> ?checked:bool ->
+			    name:[ `Set of string ] param_name -> value:string -> unit -> input elt :>
+			    ?a:input_attrib attrib list -> ?checked:bool ->
+			    name:[ `Set of string ] param_name -> value:string -> unit -> [> input ] elt)
+
+    let user_type_checkbox = (user_type_checkbox :
+				('a -> string) ->
+			       ?a:input_attrib attrib list -> ?checked:bool ->
+			       name:[ `Set of 'a ] param_name -> value:'a -> unit -> input elt :>
+			       ('a -> string) ->
+			       ?a:input_attrib attrib list -> ?checked:bool ->
+			       name:[ `Set of 'a ] param_name -> value:'a -> unit -> [> input ] elt)
+
+    let raw_checkbox = (raw_checkbox :
+			  ?a:input_attrib attrib list -> ?checked:bool ->
+			 name:string -> value:string -> unit -> input elt :>
+			 ?a:input_attrib attrib list -> ?checked:bool ->
+			 name:string -> value:string -> unit -> [> input ] elt)
+
+
+    let string_radio = (string_radio :
+			  ?a:(input_attrib attrib list ) -> ?checked:bool ->
+			 name:'a -> value:string -> unit -> input elt :>
+			 ?a:(input_attrib attrib list ) -> ?checked:bool ->
+			 name:'a -> value:string -> unit -> [> input ] elt)
+
+    let int_radio = (int_radio :
                        ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:'a -> value:float -> unit -> input elt :>
+		      name:'a -> value:int -> unit -> input elt :>
+                      ?a:(input_attrib attrib list ) -> ?checked:bool ->
+		      name:'a -> value:int -> unit -> [> input ] elt)
+
+    let int32_radio = (int32_radio :
+			 ?a:(input_attrib attrib list ) -> ?checked:bool ->
+			name:'a -> value:int32 -> unit -> input elt :>
+			?a:(input_attrib attrib list ) -> ?checked:bool ->
+			name:'a -> value:int32 -> unit -> [> input ] elt)
+
+    let int64_radio = (int64_radio :
+			 ?a:(input_attrib attrib list ) -> ?checked:bool ->
+			name:'a -> value:int64 -> unit -> input elt :>
+			?a:(input_attrib attrib list ) -> ?checked:bool ->
+			name:'a -> value:int64 -> unit -> [> input ] elt)
+
+    let float_radio = (float_radio :
+			 ?a:(input_attrib attrib list ) -> ?checked:bool ->
+			name:'a -> value:float -> unit -> input elt :>
+			?a:(input_attrib attrib list ) -> ?checked:bool ->
+			name:'a -> value:float -> unit -> [> input ] elt)
+
+    let user_type_radio = (user_type_radio :
+			     ('a -> string) ->
+                            ?a:(input_attrib attrib list ) -> ?checked:bool ->
+			    name:'b -> value:'a -> unit -> input elt :>
+			    ('a -> string) ->
+
+                            ?a:(input_attrib attrib list ) -> ?checked:bool ->
+			    name:'b -> value:'a -> unit -> [> input ] elt)
+
+    let raw_radio = (raw_radio :
                        ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:'a -> value:float -> unit -> [> input ] elt)
+		      name:string -> value:string -> unit -> input elt :>
+                      ?a:(input_attrib attrib list ) -> ?checked:bool ->
+		      name:string -> value:string -> unit -> [> input ] elt)
 
-  let user_type_radio = (user_type_radio :
-              ('a -> string) ->
-                           ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    name:'b -> value:'a -> unit -> input elt :>
-              ('a -> string) ->
+    let textarea = (textarea :
+		      ?a:textarea_attrib attrib list ->
+		     name:'a -> ?value:string ->
+		     rows:int -> cols:int ->
+		     unit -> textarea elt :>
+		     ?a:textarea_attrib attrib list ->
+		     name:'a -> ?value:string ->
+		     rows:int -> cols:int ->
+		     unit -> [> textarea ] elt)
 
-                           ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    name:'b -> value:'a -> unit -> [> input ] elt)
+    let raw_textarea = (raw_textarea :
+			  ?a:textarea_attrib attrib list ->
+			 name:string -> ?value:string ->
+			 rows:int -> cols:int ->
+			 unit -> textarea elt :>
+			 ?a:textarea_attrib attrib list ->
+			 name:string -> ?value:string ->
+			 rows:int -> cols:int ->
+			 unit -> [> textarea ] elt)
 
-  let raw_radio = (raw_radio :
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    name:string -> value:string -> unit -> input elt :>
-                     ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    name:string -> value:string -> unit -> [> input ] elt)
+    let raw_select = (raw_select :
+			?a:select_attrib attrib list ->
+		       name:string ->
+		       string select_opt ->
+		       string select_opt list -> select elt :>
+		       ?a:select_attrib attrib list ->
+		       name:string ->
+		       string select_opt ->
+		       string select_opt list -> [> select ] elt)
 
-  let textarea = (textarea :
-        ?a:textarea_attrib attrib list ->
-          name:'a -> ?value:string ->
-            rows:int -> cols:int ->
-              unit -> textarea elt :>
-        ?a:textarea_attrib attrib list ->
-          name:'a -> ?value:string ->
-            rows:int -> cols:int ->
-              unit -> [> textarea ] elt)
+    let int_select = (int_select :
+			?a:select_attrib attrib list ->
+		       name:'a ->
+		       int select_opt ->
+		       int select_opt list -> select elt :>
+		       ?a:select_attrib attrib list ->
+		       name:'a ->
+		       int select_opt ->
+		       int select_opt list -> [> select ] elt)
 
-  let raw_textarea = (raw_textarea :
-        ?a:textarea_attrib attrib list ->
-          name:string -> ?value:string ->
-            rows:int -> cols:int ->
-              unit -> textarea elt :>
-        ?a:textarea_attrib attrib list ->
-          name:string -> ?value:string ->
-            rows:int -> cols:int ->
-              unit -> [> textarea ] elt)
+    let int32_select = (int32_select :
+			  ?a:select_attrib attrib list ->
+			 name:'a ->
+			 int32 select_opt ->
+			 int32 select_opt list -> select elt :>
+			 ?a:select_attrib attrib list ->
+			 name:'a ->
+			 int32 select_opt ->
+			 int32 select_opt list -> [> select ] elt)
 
-  let raw_select = (raw_select :
-        ?a:select_attrib attrib list ->
-          name:string ->
-            string select_opt ->
-              string select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:string ->
-           string select_opt ->
-             string select_opt list -> [> select ] elt)
+    let int64_select = (int64_select :
+			  ?a:select_attrib attrib list ->
+			 name:'a ->
+			 int64 select_opt ->
+			 int64 select_opt list -> select elt :>
+			 ?a:select_attrib attrib list ->
+			 name:'a ->
+			 int64 select_opt ->
+			 int64 select_opt list -> [> select ] elt)
 
-  let int_select = (int_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            int select_opt ->
-              int select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           int select_opt ->
-             int select_opt list -> [> select ] elt)
+    let float_select = (float_select :
+			  ?a:select_attrib attrib list ->
+			 name:'a ->
+			 float select_opt ->
+			 float select_opt list -> select elt :>
+			 ?a:select_attrib attrib list ->
+			 name:'a ->
+			 float select_opt ->
+			 float select_opt list -> [> select ] elt)
 
-  let int32_select = (int32_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            int32 select_opt ->
-              int32 select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           int32 select_opt ->
-             int32 select_opt list -> [> select ] elt)
+    let string_select = (string_select :
+			   ?a:select_attrib attrib list ->
+			  name:'a ->
+			  string select_opt ->
+			  string select_opt list -> select elt :>
+			  ?a:select_attrib attrib list ->
+			  name:'a ->
+			  string select_opt ->
+			  string select_opt list -> [> select ] elt)
 
-  let int64_select = (int64_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            int64 select_opt ->
-              int64 select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           int64 select_opt ->
-             int64 select_opt list -> [> select ] elt)
-
-  let float_select = (float_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            float select_opt ->
-              float select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           float select_opt ->
-             float select_opt list -> [> select ] elt)
-
-  let string_select = (string_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            string select_opt ->
-              string select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           string select_opt ->
-             string select_opt list -> [> select ] elt)
-
-  let user_type_select = (user_type_select :
-              ('a -> string) ->
-        ?a:select_attrib attrib list ->
-          name:'b ->
-            'a select_opt ->
-              'a select_opt list -> select elt :>
-              ('a -> string) ->
-       ?a:select_attrib attrib list ->
-         name:'b ->
-           'a select_opt ->
-             'a select_opt list -> [> select ] elt)
+    let user_type_select = (user_type_select :
+			      ('a -> string) ->
+			     ?a:select_attrib attrib list ->
+			     name:'b ->
+			     'a select_opt ->
+			     'a select_opt list -> select elt :>
+			     ('a -> string) ->
+			     ?a:select_attrib attrib list ->
+			     name:'b ->
+			     'a select_opt ->
+			     'a select_opt list -> [> select ] elt)
 
 
-  let raw_multiple_select = (raw_multiple_select :
-        ?a:select_attrib attrib list ->
-          name:string ->
-            string select_opt ->
-              string select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:string ->
-           string select_opt ->
-             string select_opt list -> [> select ] elt)
+    let raw_multiple_select = (raw_multiple_select :
+				 ?a:select_attrib attrib list ->
+				name:string ->
+				string select_opt ->
+				string select_opt list -> select elt :>
+				?a:select_attrib attrib list ->
+				name:string ->
+				string select_opt ->
+				string select_opt list -> [> select ] elt)
 
-  let int_multiple_select = (int_multiple_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            int select_opt ->
-              int select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           int select_opt ->
-             int select_opt list -> [> select ] elt)
+    let int_multiple_select = (int_multiple_select :
+				 ?a:select_attrib attrib list ->
+				name:'a ->
+				int select_opt ->
+				int select_opt list -> select elt :>
+				?a:select_attrib attrib list ->
+				name:'a ->
+				int select_opt ->
+				int select_opt list -> [> select ] elt)
 
-  let int32_multiple_select = (int32_multiple_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            int32 select_opt ->
-              int32 select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           int32 select_opt ->
-             int32 select_opt list -> [> select ] elt)
+    let int32_multiple_select = (int32_multiple_select :
+				   ?a:select_attrib attrib list ->
+				  name:'a ->
+				  int32 select_opt ->
+				  int32 select_opt list -> select elt :>
+				  ?a:select_attrib attrib list ->
+				  name:'a ->
+				  int32 select_opt ->
+				  int32 select_opt list -> [> select ] elt)
 
-  let int64_multiple_select = (int64_multiple_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            int64 select_opt ->
-              int64 select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           int64 select_opt ->
-             int64 select_opt list -> [> select ] elt)
+    let int64_multiple_select = (int64_multiple_select :
+				   ?a:select_attrib attrib list ->
+				  name:'a ->
+				  int64 select_opt ->
+				  int64 select_opt list -> select elt :>
+				  ?a:select_attrib attrib list ->
+				  name:'a ->
+				  int64 select_opt ->
+				  int64 select_opt list -> [> select ] elt)
 
-  let float_multiple_select = (float_multiple_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            float select_opt ->
-              float select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           float select_opt ->
-             float select_opt list -> [> select ] elt)
+    let float_multiple_select = (float_multiple_select :
+				   ?a:select_attrib attrib list ->
+				  name:'a ->
+				  float select_opt ->
+				  float select_opt list -> select elt :>
+				  ?a:select_attrib attrib list ->
+				  name:'a ->
+				  float select_opt ->
+				  float select_opt list -> [> select ] elt)
 
-  let string_multiple_select = (string_multiple_select :
-        ?a:select_attrib attrib list ->
-          name:'a ->
-            string select_opt ->
-              string select_opt list -> select elt :>
-       ?a:select_attrib attrib list ->
-         name:'a ->
-           string select_opt ->
-             string select_opt list -> [> select ] elt)
+    let string_multiple_select = (string_multiple_select :
+				    ?a:select_attrib attrib list ->
+				   name:'a ->
+				   string select_opt ->
+				   string select_opt list -> select elt :>
+				   ?a:select_attrib attrib list ->
+				   name:'a ->
+				   string select_opt ->
+				   string select_opt list -> [> select ] elt)
 
-  let user_type_multiple_select = (user_type_multiple_select :
-              ('a -> string) ->
-        ?a:select_attrib attrib list ->
-          name:'b ->
-            'a select_opt ->
-              'a select_opt list -> select elt :>
-              ('a -> string) ->
-       ?a:select_attrib attrib list ->
-         name:'b ->
-           'a select_opt ->
-             'a select_opt list -> [> select ] elt)
+    let user_type_multiple_select = (user_type_multiple_select :
+				       ('a -> string) ->
+				      ?a:select_attrib attrib list ->
+				      name:'b ->
+				      'a select_opt ->
+				      'a select_opt list -> select elt :>
+				      ('a -> string) ->
+				      ?a:select_attrib attrib list ->
+				      name:'b ->
+				      'a select_opt ->
+				      'a select_opt list -> [> select ] elt)
 
-  type button_type =
-    [ `Button
-    | `Reset
-    | `Submit
-    ]
+    type button_type =
+	[ `Button
+	| `Reset
+	| `Submit
+	]
 
-  let string_button = (string_button :
-       ?a:button_attrib attrib list ->
-           name:'a -> value:string ->
-             button_content elt list -> button elt :>
-       ?a:button_attrib attrib list ->
-           name:'a -> value:string ->
-             button_content elt list -> [> button ] elt)
+    let string_button = (string_button :
+			   ?a:button_attrib attrib list ->
+			  name:'a -> value:string ->
+			  button_content elt list -> button elt :>
+			  ?a:button_attrib attrib list ->
+			  name:'a -> value:string ->
+			  button_content elt list -> [> button ] elt)
 
-  let int_button = (int_button :
-       ?a:button_attrib attrib list ->
-           name:'a -> value:int ->
-             button_content elt list -> button elt :>
-       ?a:button_attrib attrib list ->
-           name:'a -> value:int ->
-             button_content elt list -> [> button ] elt)
+    let int_button = (int_button :
+			?a:button_attrib attrib list ->
+		       name:'a -> value:int ->
+		       button_content elt list -> button elt :>
+		       ?a:button_attrib attrib list ->
+		       name:'a -> value:int ->
+		       button_content elt list -> [> button ] elt)
 
-  let int32_button = (int32_button :
-       ?a:button_attrib attrib list ->
-           name:'a -> value:int32 ->
-             button_content elt list -> button elt :>
-       ?a:button_attrib attrib list ->
-           name:'a -> value:int32 ->
-             button_content elt list -> [> button ] elt)
+    let int32_button = (int32_button :
+			  ?a:button_attrib attrib list ->
+			 name:'a -> value:int32 ->
+			 button_content elt list -> button elt :>
+			 ?a:button_attrib attrib list ->
+			 name:'a -> value:int32 ->
+			 button_content elt list -> [> button ] elt)
 
-  let int64_button = (int64_button :
-       ?a:button_attrib attrib list ->
-           name:'a -> value:int64 ->
-             button_content elt list -> button elt :>
-       ?a:button_attrib attrib list ->
-           name:'a -> value:int64 ->
-             button_content elt list -> [> button ] elt)
+    let int64_button = (int64_button :
+			  ?a:button_attrib attrib list ->
+			 name:'a -> value:int64 ->
+			 button_content elt list -> button elt :>
+			 ?a:button_attrib attrib list ->
+			 name:'a -> value:int64 ->
+			 button_content elt list -> [> button ] elt)
 
-  let float_button = (float_button :
-       ?a:button_attrib attrib list ->
-           name:'a -> value:float ->
-             button_content elt list -> button elt :>
-       ?a:button_attrib attrib list ->
-           name:'a -> value:float ->
-             button_content elt list -> [> button ] elt)
+    let float_button = (float_button :
+			  ?a:button_attrib attrib list ->
+			 name:'a -> value:float ->
+			 button_content elt list -> button elt :>
+			 ?a:button_attrib attrib list ->
+			 name:'a -> value:float ->
+			 button_content elt list -> [> button ] elt)
 
-  let user_type_button = (user_type_button :
-              ('a -> string) ->
-       ?a:button_attrib attrib list ->
-           name:'b -> value:'a ->
-               button_content elt list -> button elt :>
-              ('a -> string) ->
-       ?a:button_attrib attrib list ->
-           name:'b -> value:'a ->
-               button_content elt list -> [> button ] elt)
+    let user_type_button = (user_type_button :
+			      ('a -> string) ->
+			     ?a:button_attrib attrib list ->
+			     name:'b -> value:'a ->
+			     button_content elt list -> button elt :>
+			     ('a -> string) ->
+			     ?a:button_attrib attrib list ->
+			     name:'b -> value:'a ->
+			     button_content elt list -> [> button ] elt)
 
-  let raw_button = (raw_button :
-       ?a:button_attrib attrib list ->
-         button_type:button_type ->
-           name:string -> value:string ->
-             button_content elt list -> button elt :>
-       ?a:button_attrib attrib list ->
-         button_type:[< button_type ] ->
-           name:string -> value:string ->
-             button_content elt list -> [> button ] elt)
+    let raw_button = (raw_button :
+			?a:button_attrib attrib list ->
+		       button_type:button_type ->
+		       name:string -> value:string ->
+		       button_content elt list -> button elt :>
+		       ?a:button_attrib attrib list ->
+		       button_type:[< button_type ] ->
+		       name:string -> value:string ->
+		       button_content elt list -> [> button ] elt)
 
-  let button = (button :
-       ?a:button_attrib attrib list ->
-         button_type:button_type ->
-           button_content elt list -> button elt :>
-       ?a:button_attrib attrib list ->
-         button_type:[< button_type ] ->
-           button_content elt list -> [> button ] elt)
-end : HTML5FORMSSIG)
+    let button = (button :
+		    ?a:button_attrib attrib list ->
+		   button_type:button_type ->
+		   button_content elt list -> button elt :>
+		   ?a:button_attrib attrib list ->
+		   button_type:[< button_type ] ->
+		   button_content elt list -> [> button ] elt)
 
-module Html5forms = MakeHtml5forms(Html5forms')
+end: HTML5_FORMS)
 
+module Html5_forms = Open_Html5_forms(Html5_forms_closed)

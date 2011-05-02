@@ -13,7 +13,7 @@ end
 
 module Html5 =
 struct
-  include Html5forms
+  include Html5_forms
   include Base
 end
 

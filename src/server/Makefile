@@ -1,6 +1,7 @@
 include ../../Makefile.config
 
-LIBS     := -I private -I extensions ${addprefix -package ,${SERVER_PACKAGE} ${SERVER_SYNTAX}}
+LIBS     := -I private -I extensions ${addprefix -package ,${SERVER_PACKAGE} ${SERVER_SYNTAX}} \
+	    -ppopt ../syntax/pa_include.cmo
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG} ${THREAD}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}  ${THREAD}
 OCAMLDEP := $(OCAMLFIND) ocamldep
@@ -17,13 +18,18 @@ COMMON_FILES  := $(notdir $(wildcard ../common/*.mli) $(wildcard ../common/*.ml)
 COMMON_PFILES := $(addprefix private/, \
 		     $(notdir $(wildcard ../common/private/*.mli) \
 	                      $(wildcard ../common/private/*.ml)))
+COMMON_SFILES := $(addprefix sigs/, \
+		     $(notdir $(wildcard ../common/sigs/*.mli) \
+	                      $(wildcard ../common/sigs/*.ml)))
 
-PREDEP := ${COMMON_FILES} ${COMMON_PFILES}
+PREDEP := ${COMMON_FILES} ${COMMON_PFILES} eliom_duce_sigs.mli
 
 ${COMMON_FILES}:
-	ln -s ../common/$@ $@
-${COMMON_PFILES}:
-	ln -s ../../common/$@ $@
+	ln -fs ../common/$@ $@
+${COMMON_PFILES} ${COMMON_SFILES}:
+	ln -fs ../../common/$@ $@
+eliom_duce_sigs.mli: eliom_duce_sigs.mlp
+	camlp4o ../syntax/pa_include.cmo -printer o -intf $< > $@
 
 FILES := eliom_pervasives.ml \
 	 eliom_wrap.ml \
@@ -87,7 +93,9 @@ eliom.cmxa: ${FILES:.ml=.cmx}
 DUCE_FILES := eliom_duce.ml       \
 	      eliom_duce_tools.ml \
 
-DUCE_INTF := eliom_duce.mli       \
+DUCE_INTF := eliom_duce_types.mli \
+	     eliom_duce_sigs.mli  \
+	     eliom_duce.mli       \
 	     eliom_duce_tools.mli \
 
 ifeq "${OCAMLDUCE}" "YES"
@@ -190,6 +198,12 @@ depend:
 	@${MAKE} --no-print-directory predeps
 	@${MAKE} --no-print-directory deps
 	cat *.deps */*.deps > .depend
+
+${FILES}: ${COMMON_SFILES}
+${FILES:.ml=.mli}: ${COMMON_SFILES}
+
+%.ml: $(wildcard sigs/*.mli)
+%.mli: $(wildcard sigs/*.mli)
 
 FORCE:
 -include .depend

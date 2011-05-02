@@ -1,6 +1,8 @@
 include ../../Makefile.config
 
-LIBS     := -I private ${addprefix -package ,${CLIENT_PACKAGE} ${CLIENT_SYNTAX}}
+LIBS     := -I private ${addprefix -package ,${CLIENT_PACKAGE} ${CLIENT_SYNTAX}} \
+	    -ppopt ../syntax/pa_include.cmo
+
 OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}
 OCAMLDOC := $(OCAMLFIND) ocamldoc
@@ -14,13 +16,16 @@ COMMON_FILES  := $(notdir $(wildcard ../common/*.mli) $(wildcard ../common/*.ml)
 COMMON_PFILES := $(addprefix private/, \
 		     $(notdir $(wildcard ../common/private/*.mli) \
 	                      $(wildcard ../common/private/*.ml)))
+COMMON_SFILES := $(addprefix sigs/, \
+		     $(notdir $(wildcard ../common/sigs/*.mli) \
+	                      $(wildcard ../common/sigs/*.ml)))
 
-PREDEP := ${COMMON_FILES} ${COMMON_PFILES}
+PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES}
 
 ${COMMON_FILES}:
-	ln -s ../common/$@ $@
-${COMMON_PFILES}:
-	ln -s ../../common/$@ $@
+	ln -sf ../common/$@ $@
+${COMMON_PFILES} ${COMMON_SFILES}:
+	ln -sf ../../common/$@ $@
 
 ### Library ###
 
@@ -47,7 +52,6 @@ FILES := eliom_pervasives.ml \
 	 eliom_react.ml \
 
 INTF_NOP4 := eliom_pervasives.mli \
-	     eliom_output.mli     \
 
 eliom_client.cma: eliom_client_stubs.o ${FILES:.ml=.cmo}
 	${OCAMLMKLIB} -o ${@:.cma=} $^
@@ -111,6 +115,12 @@ depend:
 	@${MAKE} --no-print-directory predeps
 	@${MAKE} --no-print-directory deps
 	cat *.deps */*.deps > .depend
+
+${FILES}: ${COMMON_SFILES}
+${FILES:.ml=.mli}: ${COMMON_SFILES}
+
+%.ml: $(wildcard sigs/*.mli)
+%.mli: $(wildcard sigs/*.mli)
 
 FORCE:
 -include .depend

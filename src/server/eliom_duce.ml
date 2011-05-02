@@ -81,12 +81,10 @@ module Ocamlduce_content =
   end
 
 
-module Xhtmlreg_ = struct
+module Xhtml_reg_base = struct
 
   type page = html
-
   type options = unit
-
   type return = Eliom_services.http
 
   let pre_service ?options () = Lwt.return ()
@@ -96,77 +94,71 @@ module Xhtmlreg_ = struct
   let send ?options ?charset ?code
       ?content_type ?headers content =
     Ocamlduce_content.result_of_content content >>= fun r ->
-    Lwt.return
-      {r with
-         res_cookies= (Eliom_request_info.get_user_cookies ());
-         res_code= code_of_code_option code;
-         res_charset= Some "utf-8" (* For Eliom_duce, we impose utf-8 *);
-         res_content_type= (match content_type with
+      Lwt.return
+	{r with
+           res_cookies= (Eliom_request_info.get_user_cookies ());
+           res_code= code_of_code_option code;
+           res_charset= Some "utf-8" (* For Eliom_duce, we impose utf-8 *);
+           res_content_type= (match content_type with
                               | None -> r.res_content_type
                               | _ -> content_type
-                           );
-         res_headers= (match headers with
+                             );
+           res_headers= (match headers with
                          | None -> r.res_headers
-                         | Some headers -> 
-                             Http_headers.with_defaults 
+                         | Some headers ->
+                             Http_headers.with_defaults
                                headers r.res_headers
-                      );
-      }
+			);
+	}
 
 end
 
-module Xhtmlforms_ = struct
+module Xhtml_forms_base = struct
 
-  type form_content_elt = form_content
-  type form_content_elt_list = {{ [ form_content* ] }}
-  type form_elt = form
-  type 'a a_content_elt = a_content
-  type 'a a_content_elt_list = {{ [ a_content* ] }}
-  type 'a a_elt = a
-  type 'a a_elt_list = {{ [ a* ] }}
-  type div_content_elt = div_content
-  type div_content_elt_list = flows
-  type uri = string
-  type link_elt = link
-  type script_elt = script
-  type textarea_elt = textarea
-  type input_elt = input
-  type pcdata_elt = {{ [ PCDATA ] }}
-  type select_elt = select
-  type select_content_elt = select_content
-  type select_content_elt_list = {{ [ select_content* ] }}
-  type button_elt = button
-  type button_content_elt = button_content
-  type button_content_elt_list = {{ [ button_content* ] }}
-  type option_elt = option
-  type option_elt_list = {{ [ option* ] }}
+  type uri = Eliom_duce_types.uri
+  type pcdata_elt = Eliom_duce_types.pcdata_elt
 
+  type form_elt = Eliom_duce_types.form_elt
+  type form_content_elt = Eliom_duce_types.form_content_elt
+  type form_content_elt_list = Eliom_duce_types.form_content_elt_list
+  type form_attrib_t = Eliom_duce_types.form_attrib_t
 
+  type 'a a_elt = 'a Eliom_duce_types.a_elt
+  type 'a a_elt_list = 'a Eliom_duce_types.a_elt_list
+  type 'a a_content_elt = 'a Eliom_duce_types.a_content_elt
+  type 'a a_content_elt_list = 'a Eliom_duce_types.a_content_elt_list
+  type a_attrib_t = Eliom_duce_types.a_attrib_t
 
+  type link_elt = Eliom_duce_types.link_elt
+  type link_attrib_t = Eliom_duce_types.link_attrib_t
 
-  type a_attrib_t = a_attrs
-  type form_attrib_t =
-    {{ attrs ++ { accept-charset=?String accept=?String
-                  onreset=?String onsubmit=?String enctype=?String } }}
+  type script_elt = Eliom_duce_types.script_elt
+  type script_attrib_t = Eliom_duce_types.script_attrib_t
 
-  type input_attrib_t = input_attrs
-  type textarea_attrib_t = {{ attrs ++ focus ++
-        { onchange=?String
-            onselect=?String
-            readonly=?"readonly"
-            disabled=?"disabled"
-            name=?String } }}
-  type select_attrib_t = select_attrs
-  type link_attrib_t = link_attrs
-  type script_attrib_t = {{ id ++ { defer=?"defer" src=?String charset=?String } }}
-(* {{ script_attrs -. type }} *)
+  type textarea_elt = Eliom_duce_types.textarea_elt
+  type textarea_attrib_t = Eliom_duce_types.textarea_attrib_t
 
-  type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
-  type option_attrib_t = option_attrs
-  type button_attrib_t = button_attrs
+  type input_elt = Eliom_duce_types.input_elt
+  type input_attrib_t = Eliom_duce_types.input_attrib_t
 
-  type input_type_t = input_type_values
-  type button_type_t = button_type_values
+  type select_elt = Eliom_duce_types.select_elt
+  type select_content_elt = Eliom_duce_types.select_content_elt
+  type select_content_elt_list = Eliom_duce_types.select_content_elt_list
+  type select_attrib_t = Eliom_duce_types.select_attrib_t
+
+  type button_elt = Eliom_duce_types.button_elt
+  type button_content_elt = Eliom_duce_types.button_content_elt
+  type button_content_elt_list = Eliom_duce_types.button_content_elt_list
+  type button_attrib_t = Eliom_duce_types.button_attrib_t
+
+  type option_elt = Eliom_duce_types.option_elt
+  type option_elt_list = Eliom_duce_types.option_elt_list
+  type optgroup_attrib_t = Eliom_duce_types.optgroup_attrib_t
+  type option_attrib_t = Eliom_duce_types.option_attrib_t
+
+  type input_type_t = Eliom_duce_types.input_type_t
+  type raw_input_type_t = Eliom_duce_types.raw_input_type_t
+  type button_type_t = Eliom_duce_types.button_type_t
 
   let hidden = {{ "hidden" }}
   let checkbox = {{ "checkbox" }}
@@ -191,18 +183,18 @@ module Xhtmlforms_ = struct
   let make_a ?(a={{ {} }}) ?href ?onclick l : 'a a_elt =
     let href_attr = match href with
       | None -> {{ {} }}
-      | Some v -> {{ { href=(str v) } }} 
+      | Some v -> {{ { href=(str v) } }}
     in
     let onclick_attr = match onclick with
       | None -> {{ {} }}
-      | Some v -> {{ { onclick=(str v) } }} 
+      | Some v -> {{ { onclick=(str v) } }}
     in
     {{ <a (href_attr ++ onclick_attr ++ a)> l }}
 
   let make_get_form ?(a={{ {} }}) ~(action : uri) ?onsubmit elt1 elts : form_elt =
     let onsubmit_attr = match onsubmit with
       | None -> {{ {} }}
-      | Some v -> {{ { onsubmit=(str v) } }} 
+      | Some v -> {{ { onsubmit=(str v) } }}
     in
     {{ <form (onsubmit_attr ++
                 {method="get"
@@ -219,7 +211,7 @@ module Xhtmlforms_ = struct
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
     let onsubmit_attr = match onsubmit with
       | None -> {{ {} }}
-      | Some v -> {{ { onsubmit=(str v) } }} 
+      | Some v -> {{ { onsubmit=(str v) } }}
     in
     {{ <form ({action=(str action)
                enctype="multipart/form-data"
@@ -315,14 +307,14 @@ module Xhtmlforms_ = struct
 
 (*POSTtabcookies* forms with tab cookies in POST params:
 
-  let add_tab_cookies_to_get_form _ () = 
+  let add_tab_cookies_to_get_form _ () =
     failwith "add_tab_cookies_to_get_form not implemented for ocamlduce"
 
-  let add_tab_cookies_to_post_form _ () = 
+  let add_tab_cookies_to_post_form _ () =
     failwith "add_tab_cookies_to_post_form not implemented for ocamlduce"
 
   let add_tab_cookies_to_get_form_id_string = "not implemented for text"
-   
+
   let add_tab_cookies_to_post_form_id_string =
     add_tab_cookies_to_get_form_id_string
 *)
@@ -339,123 +331,100 @@ module Xhtmlforms_ = struct
 
 end
 
-module Xhtmlreg = Eliom_mkreg.MakeRegister(Xhtmlreg_)
-module Xhtmlforms = Eliom_mkforms.MakeForms(Xhtmlforms_)
+module Xhtml_registration = Eliom_mkreg.MakeRegister(Xhtml_reg_base)
+
+module Xhtml_forms = Eliom_mkforms.MakeForms(Xhtml_forms_base)
+
 module Xhtml = struct
-  include Xhtmlreg
-  include Xhtmlforms
+  include Xhtml_registration
+  include Xhtml_forms
 end
-
 
 (****************************************************************************)
 (****************************************************************************)
 
+module TypedXML_content(TypedXML: XML_sigs_duce.TypedXML) = struct
 
-module type XhtmlFormsSig = Eliom_mkforms.ELIOMFORMSIG with
-  type form_content_elt = form_content
-  and type form_content_elt_list = {{ [ form_content* ] }}
-  and type form_elt = form
-  and type 'a a_content_elt = a_content
-  and type 'a a_content_elt_list = {{ [ a_content* ] }}
-  and type 'a a_elt = a
-  and type 'a a_elt_list = {{ [ a* ] }}
-  and type div_content_elt = div_content
-  and type div_content_elt_list = flows
-  and type uri = string
-  and type link_elt = link
-  and type script_elt = script
-  and type textarea_elt = textarea
-  and type input_elt = input
-  and type pcdata_elt = {{ [ PCDATA ] }}
-  and type select_elt = select
-  and type select_content_elt = select_content
-  and type select_content_elt_list = {{ [ select_content* ] }}
-  and type button_elt = button
-  and type button_content_elt = button_content
-  and type button_content_elt_list = {{ [ button_content* ] }}
-  and type option_elt = option
-  and type option_elt_list = {{ [ option* ] }}
+  module Print = XML_print_duce.MakeTyped(TypedXML)
 
-  and type a_attrib_t = a_attrs
-  and type form_attrib_t =
-      {{ attrs ++ { accept-charset=?String accept=?String
-                  onreset=?String onsubmit=?String enctype=?String } }}
-  and type input_attrib_t = input_attrs
-  and type textarea_attrib_t = {{ attrs ++ focus ++
-        { onchange=?String
-              onselect=?String
-            readonly=?"readonly"
-              disabled=?"disabled"
-            name=?String } }}
-  and type select_attrib_t = select_attrs
-  and type link_attrib_t = link_attrs
-  and type script_attrib_t =
-      {{ id ++ { defer=?"defer" src=?String charset=?String } }}
-  and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
-  and type option_attrib_t = option_attrs
-  and type button_attrib_t = button_attrs
+  type t = TypedXML.doc
 
-  and type input_type_t = input_type_values
-  and type button_type_t = button_type_values
+  let get_etag_aux x =
+    Some (Digest.to_hex (Digest.string x))
 
+  let print (x: TypedXML.doc) =
+    let b = Buffer.create 256 in
+    Print.print
+      ~advert:Ocsigen_pervasives.advert
+      ~output:(Buffer.add_string b) x;
+    Buffer.contents b
 
-module type XhtmlSig =
-sig
-  include Eliom_mkreg.ELIOMREGSIG with type options = unit and type return = Eliom_services.http
+  let get_etag c =
+    let x = print c in
+    get_etag_aux x
 
-  include XhtmlFormsSig
+  module S = Ocsigen_stream.StringStream
+
+  let result_of_content c =
+    let x = print c in
+    let md5 = get_etag_aux x in
+    let default_result = default_result () in
+    Lwt.return
+      {default_result with
+         res_content_length = Some (Int64.of_int (String.length x));
+         res_content_type = Some TypedXML.Info.content_type;
+         res_etag = md5;
+         res_headers= Http_headers.dyn_headers;
+         res_stream = (S.make (S.put x), None)
+      }
+
 end
 
-module SubXhtml =
-  functor(T : sig
-            type content
-            val print : (string -> unit ) -> content -> unit
-          end) ->
-  (struct
+module TypedXML_partial_content(TypedXML: XML_sigs_duce.TypedXML) = struct
 
-    module Cont_content =
-      struct
-        type t = T.content
+    module Print = XML_print_duce.MakeTyped(TypedXML)
 
-        let get_etag_aux x =
-          Some (Digest.to_hex (Digest.string x))
+    type t = TypedXML.elt list
 
-        let print x =
-          let b = Buffer.create 256 in
-          T.print (Buffer.add_string b) x;
-          Buffer.contents b
+    let get_etag_aux x =
+      Some (Digest.to_hex (Digest.string x))
 
-        let get_etag c =
-          let x = print c in
-          get_etag_aux x
+    let print (x: t) =
+      let b = Buffer.create 256 in
+      Print.print_list ~output:(Buffer.add_string b) x;
+      Buffer.contents b
 
-	module S = Ocsigen_stream.StringStream
-	let (++) = S.concat
+    let get_etag c =
+      let x = print c in
+      get_etag_aux x
 
-        let result_of_content c =
-          let x = print c in
-          let md5 = get_etag_aux x in
-          let default_result = default_result () in
-          Lwt.return
-            {default_result with
-               res_content_length = Some (Int64.of_int (String.length x));
-               res_content_type = Some "text/html";
-               res_etag = md5;
-               res_headers= Http_headers.dyn_headers;
-               res_stream = (S.make (S.put x), None)
-           }
+    module S = Ocsigen_stream.StringStream
 
-      end
+    let result_of_content c =
+      let x = print c in
+      let md5 = get_etag_aux x in
+      let default_result = default_result () in
+      Lwt.return
+	{default_result with
+           res_content_length = Some (Int64.of_int (String.length x));
+           res_content_type = Some TypedXML.Info.content_type;
+           res_etag = md5;
+           res_headers= Http_headers.dyn_headers;
+           res_stream = (S.make (S.put x), None)
+	}
 
+  end
 
-    module Contreg_ = struct
-      open XHTML.M
-      open XHTML_types
+module Make_Registration
+  (TypedXML_content: sig
+     type t
+     val result_of_content: t -> Ocsigen_http_frame.result Lwt.t
+   end) = struct
 
-      type page = T.content
+    module TypedXML_reg_base = struct
 
+      type page = TypedXML_content.t
       type options = unit
-
       type return = Eliom_services.http
 
       let pre_service ?options () = Lwt.return ()
@@ -464,12 +433,12 @@ module SubXhtml =
 
       let send ?options ?charset ?code
           ?content_type ?headers content =
-        Cont_content.result_of_content content >>= fun r ->
+        TypedXML_content.result_of_content content >>= fun r ->
         Lwt.return
           {r with
              res_cookies= (Eliom_request_info.get_user_cookies ());
              res_code= code_of_code_option code;
-             res_charset= Some "utf-8" 
+             res_charset= Some "utf-8"
               (* For Eliom_duce, we impose utf-8 *);
              res_content_type= (match content_type with
                                   | None -> r.res_content_type
@@ -477,7 +446,7 @@ module SubXhtml =
                                );
              res_headers= (match headers with
                              | None -> r.res_headers
-                             | Some headers -> 
+                             | Some headers ->
                                  Http_headers.with_defaults
                                    headers r.res_headers
                           );
@@ -485,31 +454,30 @@ module SubXhtml =
 
     end
 
-    module Contreg = Eliom_mkreg.MakeRegister(Contreg_)
+    include Eliom_mkreg.MakeRegister(TypedXML_reg_base)
 
-    include Xhtmlforms
-    include Contreg
+  end
 
+module Make_TypedXML_Registration(TypedXML: XML_sigs_duce.TypedXML) =
+  Make_Registration(TypedXML_content(TypedXML))
 
-   end : XhtmlSig with type page = T.content
-)
+module Make_Partial_TypedXML_Registration(TypedXML: XML_sigs_duce.TypedXML) =
+  Make_Registration(TypedXML_partial_content(TypedXML))
 
+module Blocks = struct
+  include Make_Partial_TypedXML_Registration(XHTML_duce.M)
+  include Xhtml_forms
+end
 
-module Blocks = SubXhtml(struct
-                           type content = {{ blocks }}
-                           let print f (x : content) =
-                             XHTML_duce.P.print_list ~output:f {: x :}
-                          end)
+(* module Xml = SubXhtml(struct *)
+                        (* type content = Ocamlduce.Load.anyxml *)
+                        (* let print f x = XML_print_duce.print ~output:f x *)
+                      (* end) *)
 
-module Xml = SubXhtml(struct
-                        type content = Ocamlduce.Load.anyxml
-                        let print f x = XML_print_duce.print ~output:f x
-                      end)
-
-module Xmllist = SubXhtml(struct
-                            type content = Ocamlduce.Load.anyxml list
-                            let print f (x : content) =
-                              List.iter
-                                (XML_print_duce.print ~output:f)
-                                x
-                          end)
+(* module Xmllist = SubXhtml(struct *)
+                            (* type content = Ocamlduce.Load.anyxml list *)
+                            (* let print f (x : content) = *)
+                              (* List.iter *)
+                                (* (XML_print_duce.print ~output:f) *)
+                                (* x *)
+                          (* end) *)

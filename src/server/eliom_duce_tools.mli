@@ -16,7 +16,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-
 (** Predefined boxes for Eliom *)
 
 open Eliom_services
@@ -30,10 +29,10 @@ val menu :
   ?classe:string list ->
   ?id:string ->
   (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
-     'elts Eliom_duce.Blocks.a_content_elt_list)
+     'elts Eliom_duce_types.a_content_elt_list)
   ->
   (('a, 'b) one_page *
-     'elts Eliom_duce.Blocks.a_content_elt_list)
+     'elts Eliom_duce_types.a_content_elt_list)
     list ->
   ?service:('a, 'b) one_page ->
   unit ->
@@ -75,12 +74,11 @@ val hierarchical_menu_depth_first :
   ?whole_tree:bool ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
-   'elts Eliom_duce.Blocks.a_content_elt_list)
+   'elts Eliom_duce_types.a_content_elt_list)
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
   unit ->
     {{ [XHTML_types_duce.ul*] }}
-
 
 
 (**
@@ -100,7 +98,7 @@ val hierarchical_menu_breadth_first :
   ?id:string ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
-   'elts Eliom_duce.Blocks.a_content_elt_list)
+   'elts Eliom_duce_types.a_content_elt_list)
       hierarchical_site ->
   ?service:('a, 'b) one_page ->
   unit ->
@@ -113,7 +111,7 @@ val hierarchical_menu_breadth_first :
 val structure_links :
   ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     'elts Eliom_duce.Blocks.a_content_elt_list)
+     'elts Eliom_duce_types.a_content_elt_list)
     hierarchical_site ->
   ?service:('a, 'b) one_page ->
   unit ->

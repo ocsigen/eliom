@@ -35,6 +35,8 @@ INTF := eliom_pervasives.cmi        \
 ifeq "$(OCAMLDUCE)" "YES"
 
 INTF += eliom_duce.cmi       \
+        eliom_duce_sigs.cmi  \
+        eliom_duce_types.cmi \
 	eliom_duce_tools.cmi \
 
 endif
@@ -59,7 +61,12 @@ endif
 
 NOMLI := eliom_error_pages.mli \
 	 eliom_client.mli      \
-         eliom_process.mli
+         eliom_process.mli     \
+
+NOP4  := eliom_pervasives.mli \
+         eliom_duce.mli       \
+         eliom_duce_tools.mli \
+         eliom_duce_types.mli \
 
 DOC := ${filter-out ${NOMLI}, ${INTF:.cmi=.mli}} \
        eliom_output_base.mli \

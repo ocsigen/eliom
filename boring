@@ -25,3 +25,7 @@
 ^src/tools/eliomopt$
 ^src/tools/js_of_eliom$
 \.type_mli$
+\.deps$
+^src/server/eliom_duce_sigs.mli$
+^tests/_client/
+^tests/_server/

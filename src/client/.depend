@@ -41,15 +41,16 @@ eliom_mkforms.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmo eliom_common.cmo
 eliom_output.cmo: eliom_services.cmi eliom_output_base.cmi eliom_output.cmi
 eliom_output.cmx: eliom_services.cmx eliom_output_base.cmx eliom_output.cmi
-eliom_output.cmi: eliom_services.cmi eliom_output_base.cmi
-eliom_output_base.cmo: private/eliommod_mkforms.cmi eliom_state.cmo \
-    eliom_services.cmi eliom_pervasives.cmi eliom_parameters.cmo \
-    eliom_mkforms.cmi eliom_common.cmo eliom_output_base.cmi
-eliom_output_base.cmx: private/eliommod_mkforms.cmx eliom_state.cmx \
-    eliom_services.cmx eliom_pervasives.cmx eliom_parameters.cmx \
-    eliom_mkforms.cmx eliom_common.cmx eliom_output_base.cmi
+eliom_output.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmo eliom_common.cmo
+eliom_output_base.cmo: private/eliommod_mkforms.cmi eliom_services.cmi \
+    eliom_pervasives.cmi eliom_parameters.cmo eliom_mkforms.cmi \
+    eliom_common.cmo eliom_output_base.cmi
+eliom_output_base.cmx: private/eliommod_mkforms.cmx eliom_services.cmx \
+    eliom_pervasives.cmx eliom_parameters.cmx eliom_mkforms.cmx \
+    eliom_common.cmx eliom_output_base.cmi
 eliom_output_base.cmi: eliom_services.cmi eliom_pervasives.cmi \
-    eliom_parameters.cmo eliom_mkforms.cmi eliom_common.cmo
+    eliom_parameters.cmo eliom_common.cmo
 eliom_parameters.cmo: eliom_parameters_base.cmo
 eliom_parameters.cmx: eliom_parameters_base.cmx
 eliom_parameters_base.cmo: eliom_pervasives.cmi eliom_common.cmo
@@ -119,5 +120,8 @@ private/eliommod_mkforms.cmo: eliom_pervasives.cmi eliom_client.cmi \
 private/eliommod_mkforms.cmx: eliom_pervasives.cmx eliom_client.cmx \
     private/eliommod_mkforms.cmi
 private/eliommod_mkforms.cmi: eliom_services.cmi eliom_pervasives.cmi
+sigs/eliom_forms.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmo eliom_common.cmo
+sigs/eliom_forms_param.cmi: eliom_services.cmi
 test/unwrap.cmo: eliom_unwrap.cmi
 test/unwrap.cmx: eliom_unwrap.cmx

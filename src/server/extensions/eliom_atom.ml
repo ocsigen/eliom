@@ -57,17 +57,17 @@ let result_of_content feed headers =
            (fun () -> Ocsigen_stream.empty None)), None)
    }
 
-module Reg_ = struct
-   type page = Atom_feed.feed   
-   type options
-   type return
+module Reg_base = struct
+   type page = Atom_feed.feed
+   type options = unit
+   type return = Eliom_services.http
    let send_appl_content = Eliom_services.XNever
    let pre_service ?options () = Lwt.return ()
    let send ?options ?charset ?code ?content_type ?headers
      feed = Lwt.return (result_of_content feed headers )
 end
 
-module Reg =  Eliom_mkreg.MakeRegister (Reg_)
+module Reg =  Eliom_mkreg.MakeRegister(Reg_base)
 
 let (>>=) = Lwt.bind
 
