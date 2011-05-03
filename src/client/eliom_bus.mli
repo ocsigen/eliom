@@ -39,17 +39,14 @@ val close : 'a t -> unit
     possible to close the bus by canceling a thread reading on the
     stream. *)
 
-(*
-val unwrap :
-    (  (('a Eliom_comet_base.chan_id)
-     * (unit,
-        'a list,
-        [< Eliom_services.service_kind ],
-        [< `WithSuffix | `WithoutSuffix ],
-        'b,
-        'c,
-        [< Eliom_services.registrable ],
-        'd) Eliom_services.service ) * 'b
-    ) Eliom_types.data_key
-  -> 'a t
-*)
+val set_queue_size : 'a t -> int -> unit
+(** To reduce traffic from the client busses try to send messages by
+    group. [set_queue_size bus size] set the maximum number of
+    messages that are accumulated before forcing a flush.
+    default is 20 *)
+
+val set_time_before_flush : 'a t -> float -> unit
+(** [set_time_before_flush bus time] set the maximum time to wait for
+    a new message to enqueue before flushing. Set this to a small
+    value to make your app more responsive, but remember that it will
+    consume more bandwidth. default is 0.05 second. *)

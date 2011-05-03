@@ -28,7 +28,7 @@ type 'a t =
       queue : 'a Queue.t;
       mutable max_size : int;
       write : 'a list -> unit Lwt.t;
-      waiter : unit -> unit Lwt.t;
+      mutable waiter : unit -> unit Lwt.t;
       mutable last_wait : unit Lwt.t;
     }
 
@@ -45,13 +45,6 @@ let create service channel waiter =
     waiter;
     last_wait = Lwt.return ();
   }
-
-(*
-let unwrap w =
-  let ((channel,service),unwrapper) = Eliommod_cli.unwrap w in
-  let waiter () = Lwt_js.sleep 0.05 in
-  create service channel waiter
-*)
 
 let internal_unwrap ((chan_id,service),unwrapper) =
   let waiter () = Lwt_js.sleep 0.05 in
@@ -82,3 +75,13 @@ let write t v =
   try_flush t
 
 let close b = Eliom_comet.close b.channel
+
+let set_queue_size b s =
+  b.max_size <- s
+
+let set_time_before_flush b t =
+  b.waiter <-
+    if t <= 0.
+    then Lwt.pause
+    else (fun () -> Lwt_js.sleep t)
+
