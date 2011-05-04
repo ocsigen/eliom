@@ -85,10 +85,16 @@ module type HTML5_FORMS = "sigs/eliom_forms.mli"
       | `Submit
       ]
 
-module type HTML5_REGISTRATION = "sigs/eliom_reg.mli"
+module type HTML5_REGISTRATION =
+sig
+  include "sigs/eliom_reg.mli"
   subst type page    := HTML5_types.html HTML5.M.elt
     and type options := unit
     and type return  := Eliom_services.http
+  type page = HTML5_types.html HTML5.M.elt
+  type options = unit
+  type return = Eliom_services.http
+end
 
 (** Eliom service registration and forms creation for HTML5 page *)
 module Html5 : sig
@@ -162,10 +168,16 @@ module type XHTML_FORMS = "sigs/eliom_forms.mli"
 	     | `Submit
 	     ]
 
-module type XHTML_REGISTRATION = "sigs/eliom_reg.mli"
+module type XHTML_REGISTRATION =
+sig
+  include "sigs/eliom_reg.mli"
   subst type page    := XHTML_types.xhtml XHTML.M.elt
     and type options := unit
     and type return  := Eliom_services.http
+  type page = XHTML_types.xhtml XHTML.M.elt
+  type options = unit
+  type return = Eliom_services.http
+end
 
 (** Eliom service registration and forms creation for XHTML page *)
 module Xhtml : sig
@@ -233,7 +245,7 @@ type appl_service_options =
 
 val default_appl_service_options : appl_service_options
 
-module Eliom_appl (Appl_params : APPL_PARAMS) : sig
+module type Eliom_appl = sig
 
   include "sigs/eliom_reg.mli"
     subst type page   := HTML5_types.body_content HTML5.M.elt list
@@ -246,14 +258,23 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
       that is unique for each instance of the application.
   *)
   val application_name : string
+
 end
+
+module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl
 
 (** {3 Module to register subpages of type [block]} *)
 
-module type BLOCKS5_REGISTRATION = "sigs/eliom_reg.mli"
+module type BLOCKS5_REGISTRATION =
+sig
+  include "sigs/eliom_reg.mli"
   subst type page    := HTML5_types.body_content HTML5.M.elt list
     and type options := unit
     and type return  := Eliom_services.http
+  type page = HTML5_types.body_content HTML5.M.elt list
+  type options = unit
+  type return = Eliom_services.http
+end
 
 (** Eliom service registration and forms creation for fragment of
     HTML5 page *)
@@ -261,10 +282,16 @@ module Blocks5 : BLOCKS5_REGISTRATION
 
 (** Use this module for example for XMLHttpRequests for block tags (e.g. <div>) *)
 
-module type BLOCKS_REGISTRATION = "sigs/eliom_reg.mli"
+module type BLOCKS_REGISTRATION =
+sig
+  include "sigs/eliom_reg.mli"
   subst type page    := XHTML_types.body_content XHTML.M.elt list
     and type options := unit
     and type return  := Eliom_services.http
+  type page = XHTML_types.body_content XHTML.M.elt list
+  type options = unit
+  type return = Eliom_services.http
+end
 
 (** Eliom service registration and forms creation for fragment of
     XHTML page *)
@@ -341,16 +368,26 @@ module HtmlText : sig
 end
 
 (** {3 Module to register untyped CSS pages} *)
-module CssText : "sigs/eliom_reg.mli"
+module CssText : sig
+  include "sigs/eliom_reg.mli"
   subst type page    := string
     and type options := unit
     and type return  := Eliom_services.http
+  type page = string
+  type options = unit
+  type return  = Eliom_services.http
+end
 
 (** {3 Module to register untyped text pages} *)
-module Text : "sigs/eliom_reg.mli"
+module Text : sig
+  include "sigs/eliom_reg.mli"
   subst type page    := string * string
     and type options := unit
     and type return  := Eliom_services.http
+  type page = string * string
+  type options = unit
+  type return  = Eliom_services.http
+end
 (** The first string is the content, the second is the content type,
     for example "text/html" *)
 
@@ -377,10 +414,15 @@ end
    not generate any page. To be used carefully. Probably not usefull at all.
    (Same as {!Eliom_output.Action} with [`NoReload] option).
  *)
-module Unit : "sigs/eliom_reg.mli"
+module Unit : sig
+  include "sigs/eliom_reg.mli"
   subst type page    := unit
     and type options := unit
     and type return  := Eliom_services.http
+  type page = unit
+  type options = unit
+  type return  = Eliom_services.http
+end
 
 (** Allows to create redirections towards another service.
    A 301 or 307 code is sent to the browser to ask it to redo the request to
@@ -409,26 +451,38 @@ module Redirection : "sigs/eliom_reg.mli"
    the [options] parameter of registration functions.
    For example: [register ~options:`Temporary ...].
  *)
-module String_redirection : "sigs/eliom_reg.mli"
+module String_redirection : sig
+  include "sigs/eliom_reg.mli"
   subst type page    := Url.uri
     and type options := [ `Temporary | `Permanent ]
     and type return  := Eliom_services.http
+  type page = Url.uri
+  type options = [ `Temporary | `Permanent ]
+  type return  = Eliom_services.http
+end
 
 (** Allows to send files. The content is the name of the file to send. *)
-module Files : "sigs/eliom_reg.mli"
+module Files : sig
+  include "sigs/eliom_reg.mli"
   subst type page    := string
     and type options := unit
     and type return  := Eliom_services.http
+  type page = string
+  type options = unit
+  type return  = Eliom_services.http
+end
 
 (** Allows to create services that choose dynamically what they want
     to send. The content is created using for example
     {!Eliom_output.Html5_forms.send} or {!Eliom_output.Text.send} functions.  *)
 module Any : sig
-  type page = Ocsigen_http_frame.result
   include "sigs/eliom_reg.mli"
   subst type page    := Ocsigen_http_frame.result
 	and type options := unit
 	and type return  := Eliom_services.http
+  type page = Ocsigen_http_frame.result
+  type options = unit
+  type return  = Eliom_services.http
 end
 
 (** Allows to send raw data using Ocsigen's streams.
@@ -443,11 +497,16 @@ end
     If something goes wrong, the current stream is closed,
     and the following are not opened.
 *)
-module Streamlist : "sigs/eliom_reg.mli"
+module Streamlist : sig
+  include "sigs/eliom_reg.mli"
   subst type page    :=
     (((unit -> string Ocsigen_stream.t Lwt.t) list) * string)
     and type options := unit
     and type return  := Eliom_services.http
+  type page = (((unit -> string Ocsigen_stream.t Lwt.t) list) * string)
+  type options = unit
+  type return  = Eliom_services.http
+end
 
 (** Allows to register services that send caml values.
     Note that this kind of services are most of the time

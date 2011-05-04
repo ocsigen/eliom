@@ -37,7 +37,7 @@ module type REG_PARAM = "sigs/eliom_reg_param.mli"
 module MakeRegister(Pages: REG_PARAM) : sig
 
   type page = Pages.page
-  type options = Pagesoptions
+  type options = Pages.options
   type return = Pages.return
   include "sigs/eliom_reg.mli" subst type page := Pages.page
                                  and type options := Pages.options

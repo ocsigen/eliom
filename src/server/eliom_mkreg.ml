@@ -36,7 +36,7 @@ module type REG_PARAM = "sigs/eliom_reg_param.mli"
 module MakeRegister(Pages : REG_PARAM) = struct
 
   type page = Pages.page
-  type options = Pagesoptions
+  type options = Pages.options
   type return = Pages.return
 
   let send = Pages.send

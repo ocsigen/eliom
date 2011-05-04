@@ -32,10 +32,16 @@ let code_of_code_option = function
 
 include Eliom_output_base
 
-module type HTML5_REGISTRATION = "sigs/eliom_reg.mli"
+module type HTML5_REGISTRATION =
+sig
+  include "sigs/eliom_reg.mli"
   subst type page    := HTML5_types.html HTML5.M.elt
     and type options := unit
     and type return  := Eliom_services.http
+  type page = HTML5_types.html HTML5.M.elt
+  type options = unit
+  type return = Eliom_services.http
+end
 
 module Html5_make_reg_base
   (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
@@ -230,10 +236,16 @@ module type XHTML_FORMS_CLOSED = "sigs/eliom_forms.mli"
     and type raw_input_type_t := [ full_input_type ]
     and type button_type_t := [ button_type ]
 
-module type XHTML_REGISTRATION = "sigs/eliom_reg.mli"
+module type XHTML_REGISTRATION =
+sig
+  include "sigs/eliom_reg.mli"
   subst type page    := XHTML_types.xhtml XHTML.M.elt
     and type options := unit
     and type return  := Eliom_services.http
+  type page = XHTML_types.xhtml XHTML.M.elt
+  type options = unit
+  type return = Eliom_services.http
+end
 
 (*****************************************************************************)
 (*****************************************************************************)
@@ -1218,10 +1230,16 @@ module Make_TypedXML_Registration
   (TypedXML: XML_sigs.TypedXML with module XML := XML)
   (E : sig type content end) = struct
 
-    module type REGISTRATION = "sigs/eliom_reg.mli"
-      subst type page    := E.content TypedXML.elt list
-	    and type options := unit
-	    and type return  := Eliom_services.http
+    module type REGISTRATION =
+    sig
+      include "sigs/eliom_reg.mli"
+	subst type page    := E.content TypedXML.elt list
+	and type options := unit
+	and type return  := Eliom_services.http
+      type page = E.content TypedXML.elt list
+      type options = unit
+      type return = Eliom_services.http
+    end
 
     module Format = XML_print.MakeTyped(XML)(TypedXML)(Ocsigen_stream.StringStream)
 
@@ -2997,7 +3015,23 @@ redir ();"))::
 
 end
 
-module Eliom_appl (Appl_params : APPL_PARAMS) = struct
+module type Eliom_appl = sig
+
+  include "sigs/eliom_reg.mli"
+    subst type page   := HTML5_types.body_content HTML5.M.elt list
+      and type options := appl_service_options
+      and type return  := Eliom_services.appl_service
+
+  (** Unique identifier for this application.
+      It is the application name.
+      Warning: do not mix up with the "application instance id",
+      that is unique for each instance of the application.
+  *)
+  val application_name : string
+
+end
+
+module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
 
   module Eliom_appl_reg_param =
     Eliom_appl_reg_make_param
