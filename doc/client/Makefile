@@ -6,7 +6,7 @@ OCAMLDOC := ${OCAMLFIND} ocamldoc
 
 LIBS    := -I ../../src/client/ $(addprefix -package ,${PACKAGE})
 
-TMP := $(shell mktemp -d)
+TMP := __tmp
 DOC := $(addprefix ${TMP}/,$(DOC) $(PLUGINS_DOC))
 
 doc: odoc
@@ -19,7 +19,10 @@ $(addprefix ${TMP}/,${NOP4}): \
 ${TMP}/%.mli: ../../src/client/%.mli
 	cp $< $@
 
-odoc: ${DOC}
+${TMP}:
+	mkdir -p $@
+
+odoc: ${TMP} ${DOC}
 	mkdir -p api-html
 	$(OCAMLDOC) ${LIBS} -d api-html -intro indexdoc -html ${DOC}
 

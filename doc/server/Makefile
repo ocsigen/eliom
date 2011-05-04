@@ -9,7 +9,7 @@ else
 OCAMLDOC := ${OCAMLDUCEFIND} ocamldoc -package ocamlduce
 endif
 
-TMP := $(shell mktemp -d)
+TMP := __tmp
 DOC := $(addprefix ${TMP}/,$(DOC) $(PLUGINS_DOC))
 
 doc: odoc
