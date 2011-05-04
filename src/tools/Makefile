@@ -36,7 +36,7 @@ eliomdep: utils.cmo eliomdep.cmo
 install:
 	${INSTALL} -m 755 ${COMPILER} ${BINDIR}
 uninstall:
-	rm -f $(addsuffix ${BINDIR}/,${COMPILER})
+	rm -f $(addprefix ${BINDIR}/,${COMPILER})
 
 ## Clean up
 
