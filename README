@@ -22,6 +22,9 @@ Libraries:
  * ocamlssl          (tested with 0.4.4)
  * calendar	     (tested with 2.01.1)
 
+ [optionnal]
+ * tyxml.duce        (when building with ocamlduce support)
+
 If OCaml 3.12 and the needed libraries (findlib/react/lwt...) are not
 installed on your computer, you may use GODI to install them
 automatically, see:

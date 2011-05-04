@@ -351,6 +351,10 @@ if [ "$with_ocamlduce" -gt 0 ]; then
     fi
 fi
 
+if [ "$with_ocamlduce" -gt 0 ]; then
+    check_library tyxml.duce "Missing support for 'ocamlduce' in tyxml."
+fi
+
 ######################################################################
 # Summary
 
