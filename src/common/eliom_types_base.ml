@@ -84,6 +84,8 @@ type eliom_data_type =
 *)
     )
 
+(* the data sent on channels *)
+type 'a eliom_comet_data_type = (poly * 'a) * (elt list)
 
 (*SGO* Server generated onclicks/onsubmits
 (* For client side program, we sometimes simulate links and forms

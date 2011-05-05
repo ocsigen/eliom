@@ -313,6 +313,13 @@ let close chan_id =
   let hd = get_hd () in
   close' hd (Ecb.string_of_chan_id chan_id)
 
+let unmarshal s : 'a =
+  let (value,sent_nodes) =
+    (Marshal.from_string (Url.decode s) 0:'a Eliom_types.eliom_comet_data_type)
+  in
+  ignore (List.map (Eliommod_cli.rebuild_xml 0L) sent_nodes);
+  Eliom_unwrap.unwrap value
+
 let register ?(wake=true) (chan_id:'a Ecb.chan_id) =
   let chan_id = Ecb.string_of_chan_id chan_id in
   let hd = get_hd () in
@@ -324,7 +331,7 @@ let register ?(wake=true) (chan_id:'a Ecb.chan_id) =
 	    stop_waiting hd chan_id;
 	    Lwt.fail Channel_full
 	  | Ecb.Data x ->
-	    Lwt.return (Some (Marshal.from_string (Url.decode x) 0:'a)))
+	    Lwt.return (Some (unmarshal x:'a)))
       | _ -> Lwt.return None)
     (Lwt_stream.clone hd.hd_stream)
   in

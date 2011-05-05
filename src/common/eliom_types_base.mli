@@ -75,6 +75,8 @@ type eliom_data_type =
         Eliom_common.sess_info
     )
 
+(* the data sent on channels *)
+type 'a eliom_comet_data_type = (poly * 'a) * (elt list)
 
 (*SGO* Server generated onclicks/onsubmits
 val a_closure_id : int

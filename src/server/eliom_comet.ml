@@ -389,13 +389,21 @@ end = struct
         Gc.finalise (fun _ -> wakeup_exn wake_stopper Halt) res;
         res
 
+  let marshal (v:'a) =
+    let wrapped = Eliom_wrap.wrap v in
+    let xml = Eliom_xml.contents_to_send () in
+    let value : 'a Eliom_types.eliom_comet_data_type
+	= wrapped, xml in
+    (Url.encode ~plus:false
+       (Marshal.to_string value []))
+
   let create_channel ?name stream =
     (* TODO: addapt channels to dynamic wrapping: it would be able to send more types *)
     Raw_channels.create ?name
       (Lwt_stream.map
 	 (function
 	   | Ecb.Full -> Ecb.Full
-	   | Ecb.Data s -> Ecb.Data (Url.encode ~plus:false (Marshal.to_string s []))) stream)
+	   | Ecb.Data s -> Ecb.Data (marshal s)) stream)
 
   let create ?name ?(size=1000) stream =
     let stream = limit_stream ~size stream in

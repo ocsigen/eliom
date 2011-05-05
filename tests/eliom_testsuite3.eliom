@@ -775,6 +775,49 @@ let comet3 =
        ]
     )
 
+let comet_wrapping =
+  My_appl.register_service
+    ~path:["comet_wrapping"]
+    ~get_params:unit
+    (fun () () ->
+      let service_stream,push_service = Lwt_stream.create () in
+      push_service (Some Eliom_testsuite1.coucou);
+      let c_service = Eliom_comet.Channels.create service_stream in
+      let xml_stream,push_xml = Lwt_stream.create () in
+      push_xml (Some (div [pcdata "basic xml wrapping"]));
+      push_xml (Some
+		  (div [Eliom_output.Html5.a ~service:Eliom_testsuite1.coucou
+                     [pcdata "xml external link wrapping"] ()]));
+      push_xml (Some
+		  (div [Eliom_output.Html5.a ~service:comet1
+			   [pcdata "xml internal link wrapping"] ();
+			pcdata "this link must not stop the process! (same random number in the container)."]));
+      let c_xml = Eliom_comet.Channels.create xml_stream in
+      let div_link = div [] in
+
+      Eliom_services.onload
+        {{
+	  Lwt_stream.iter
+          (fun service ->
+            Dom.appendChild (to_element %div_link)
+              (to_element
+		 ( Eliom_output.Html5.a ~service
+                     [pcdata "service wrapping"] ()))
+          ) %c_service;
+	  Lwt_stream.iter
+          (fun xml ->
+            Dom.appendChild (to_element %div_link)
+              (to_element xml)
+          ) %c_xml
+        }};
+      
+      Lwt.return
+        [
+          div [pcdata "there should be a working links below"];
+	  div_link
+        ]
+    )
+
 let time =
   let t = Unix.gettimeofday () in
   let e = Lwt_react.E.from (fun () -> Lwt_unix.sleep 0.1 >>= (fun () -> Lwt.return (Unix.gettimeofday ()))) in

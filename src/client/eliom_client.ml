@@ -169,11 +169,13 @@ let bind_form_or_link = function
 
 (* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
    When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
-   Notice: must check that it works effectively: it is bugged in FF4
+   Notice: this hack is used to circumvent a limitation in FF4 implementation of formdata:
+     if the user click on a button in a form, formdatas created in the onsubmit callback normaly contains the value of the button. ( it is the behaviour of chromium )
+     in FF4, it is not the case: we must do this hack to find wich button was clicked.
 
    This is implemented in:
    * this file -> here and called in load_eliom_data
-   * Eliom_request: dans le send_post_form
+   * Eliom_request: in send_post_form
    * in js_of_ocaml, module Form: the code to emulate FormData *)
 
 let onclick_on_body_handler event =
