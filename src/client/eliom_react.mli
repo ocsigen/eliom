@@ -27,12 +27,6 @@ sig
 
   type 'a t = 'a React.E.t
 
-(*
-  val unwrap :
-  ?wake:bool -> ('a Eliom_comet_base.chan_id * 'b) Eliom_types.data_key
-  -> 'a React.E.t
-*)
-
 end
 
 module Up :
@@ -40,21 +34,17 @@ sig
 
   type 'a t = ('a -> unit Lwt.t)
 
-(*
-  val unwrap :
-    (unit,
-     'a,
-     [< Eliom_services.service_kind ],
-     [< `WithSuffix | `WithoutSuffix ],
-     'b,
-     'c,
-     [< Eliom_services.registrable ],
-     'd)
-        Eliom_services.service Eliom_types.data_key
-  -> ('a -> unit Lwt.t)
-  (** [unwrap e] returns a function that, when called, triggers the transmitted
-      event on the server. The thread returns when the write is done. *)
-*)
+end
+
+module S :
+sig
+
+  module Down :
+  sig
+
+    type 'a t = 'a React.S.t
+
+  end
 
 end
 

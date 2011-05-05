@@ -1246,6 +1246,7 @@ let make_unwrapper = Eliom_wrap.create_unwrapper
 let empty_unwrapper = Eliom_wrap.empty_unwrapper
 let react_up_unwrap_id : unwrap_id = Eliom_wrap.id_of_int react_up_unwrap_id_int
 let react_down_unwrap_id : unwrap_id = Eliom_wrap.id_of_int react_down_unwrap_id_int
+let signal_down_unwrap_id : unwrap_id = Eliom_wrap.id_of_int signal_down_unwrap_id_int
 let comet_channel_unwrap_id : unwrap_id = Eliom_wrap.id_of_int comet_channel_unwrap_id_int
 let bus_unwrap_id : unwrap_id = Eliom_wrap.id_of_int bus_unwrap_id_int
 let node_unwrap_id : unwrap_id = Eliom_wrap.id_of_int node_unwrap_id_int

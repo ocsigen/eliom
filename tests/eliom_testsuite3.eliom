@@ -775,6 +775,28 @@ let comet3 =
        ]
     )
 
+let time =
+  let t = Unix.gettimeofday () in
+  let e = Lwt_react.E.from (fun () -> Lwt_unix.sleep 0.1 >>= (fun () -> Lwt.return (Unix.gettimeofday ()))) in
+  Eliom_react.S.Down.of_react (Lwt_react.S.hold t e)
+
+let comet_signal =
+  My_appl.register_service
+    ~path:["comet_signal"]
+    ~get_params:unit
+    (fun () () ->
+      let time_div = div [] in
+      Eliom_services.onload
+        {{
+          Lwt_react.S.keep
+	  (React.S.map (fun t -> (to_div %time_div)##innerHTML <-
+	    Js.string (string_of_float t)) %time)
+        }};
+       Lwt.return [
+         h2 [pcdata "Signal"] ;
+         time_div
+       ]
+    )
 
 (*wiki*
  Here is the code for a minimalistic message board.

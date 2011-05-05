@@ -88,3 +88,18 @@ sig
   *)
 
 end
+
+module S :
+sig
+  module Down :
+  sig
+    type 'a t
+    (** The abstract type of down signals. *)
+
+    val of_react :
+      ?throttling:float
+      -> ?name:string
+      -> 'a React.S.t
+      -> 'a t
+  end
+end

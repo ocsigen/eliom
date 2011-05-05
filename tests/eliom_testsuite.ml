@@ -386,6 +386,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a comet3 [pcdata "Server simultaneous events, transmitted together"] ();
               br ();
+              a comet_signal [pcdata "Signal"] ();
+              br ();
               a comet_message_board [pcdata "Minimalistic message board"] ();
               br ();
             ];
