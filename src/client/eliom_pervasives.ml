@@ -627,6 +627,7 @@ module HTML5 = struct
   struct
     include HTML5_f.Make(XML)(SVG.M)
     let coerce x = Js.Unsafe.coerce (toelt x)
+    let coerce_back x =  tot (Js.Unsafe.coerce x)
 
     let to_element : 'a elt -> Dom_html.element Js.t = coerce
 
@@ -675,6 +676,52 @@ module HTML5 = struct
     let to_table : HTML5_types.table elt -> Dom_html.tableElement Js.t = coerce
     let to_canvas : 'a HTML5_types.canvas elt -> Dom_html.canvasElement Js.t = coerce
     let to_iFrame : HTML5_types.iframe elt -> Dom_html.iFrameElement Js.t = coerce
+
+    let of_element : Dom_html.element Js.t -> 'a elt = coerce_back
+    let of_html : Dom_html.htmlElement Js.t -> HTML5_types.html elt = coerce_back
+    let of_head : Dom_html.headElement Js.t -> HTML5_types.head elt = coerce_back
+    let of_link : Dom_html.linkElement Js.t -> HTML5_types.link elt = coerce_back
+    let of_title : Dom_html.titleElement Js.t -> HTML5_types.title elt = coerce_back
+    let of_meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt = coerce_back
+    let of_base : Dom_html.baseElement Js.t -> HTML5_types.base elt = coerce_back
+    let of_style : Dom_html.styleElement Js.t -> HTML5_types.style elt = coerce_back
+    let of_body : Dom_html.bodyElement Js.t -> HTML5_types.body elt = coerce_back
+    let of_form : Dom_html.formElement Js.t -> HTML5_types.form elt = coerce_back
+    let of_optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt = coerce_back
+    let of_option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt = coerce_back
+    let of_select : Dom_html.selectElement Js.t -> HTML5_types.select elt = coerce_back
+    let of_input : Dom_html.inputElement Js.t -> HTML5_types.input elt = coerce_back
+    let of_textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt = coerce_back
+    let of_button : Dom_html.buttonElement Js.t -> HTML5_types.button elt = coerce_back
+    let of_label : Dom_html.labelElement Js.t -> HTML5_types.label elt = coerce_back
+    let of_fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt = coerce_back
+    let of_legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt = coerce_back
+    let of_uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt = coerce_back
+    let of_oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt = coerce_back
+    let of_dList : Dom_html.dListElement Js.t -> [`Dl] elt = coerce_back
+    let of_li : Dom_html.liElement Js.t -> HTML5_types.li elt = coerce_back
+    let of_div : Dom_html.divElement Js.t -> HTML5_types.div elt = coerce_back
+    let of_paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt = coerce_back
+    let of_heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt = coerce_back
+    let of_quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt = coerce_back
+    let of_pre : Dom_html.preElement Js.t -> HTML5_types.pre elt = coerce_back
+    let of_br : Dom_html.brElement Js.t -> HTML5_types.br elt = coerce_back
+    let of_hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt = coerce_back
+    let of_anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt = coerce_back
+    let of_image : Dom_html.imageElement Js.t -> [`Img] elt = coerce_back
+    let of_object : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt = coerce_back
+    let of_param : Dom_html.paramElement Js.t -> HTML5_types.param elt = coerce_back
+    let of_area : Dom_html.areaElement Js.t -> HTML5_types.area elt = coerce_back
+    let of_map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt = coerce_back
+    let of_script : Dom_html.scriptElement Js.t -> HTML5_types.script elt = coerce_back
+    let of_tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt = coerce_back
+    let of_tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt = coerce_back
+    let of_tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt = coerce_back
+    let of_tableSection :       Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt = coerce_back
+    let of_tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt = coerce_back
+    let of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt = coerce_back
+    let of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = coerce_back
+    let of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = coerce_back
 
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
 
