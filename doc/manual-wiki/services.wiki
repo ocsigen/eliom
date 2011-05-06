@@ -25,20 +25,20 @@ any parameters, attaches it to the path {{{/coucou}}} of the web site,
 and registers on it a function which generates a simple HTML page:
 
 <<code language="ocaml"|let coucou =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["coucou"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
       Lwt.return
-        (XHTML5.M.html
-          (XHTML5.M.head (XHTML5.M.title (XHTML5.M.pcdata "")) [])
-          (XHTML5.M.body [XHTML5.M.h1 [XHTML5.M.pcdata "Hallo!"]])))
+        (HTML5.M.html
+          (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "")) [])
+          (HTML5.M.body [HTML5.M.h1 [HTML5.M.pcdata "Hallo!"]])))
 >>
 
 The handler parameters are GET and POST parameters (see chapter * *)
 
 The creation of the service and registration of the handler can be split
-into two distinct operations using {{{Eliom_output.Xhtml5.service}}}
+into two distinct operations using {{{Eliom_output.Html5.service}}}
 and {{{Eliom_services.register}}} (see for example in section * * calc).
 
 Services registered with <<span class="code"|register_service>>
@@ -46,13 +46,13 @@ are the main entry points for the Web site.
 They are available for all users, and are called //main services//.
 
 Here is an example of service with side effects, that provides a counter for the number of visits to this service.
-<<code language="ocaml"|open XHTML5.M
+<<code language="ocaml"|open HTML5.M
 let count =
   let next =
     let c = ref 0 in
       (fun () -> c := !c + 1; !c)
   in
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["count"]
     ~get_params:unit
     (fun () () ->
@@ -93,8 +93,8 @@ In the latter, the "/" will be encoded in the URL.\\
 
 The following example shows how to define the default page for
 a directory.
-<<code language="ocaml"|open XHTML5.M
-let default = Eliom_output.Xhtml5.register_service ["rep";""] unit
+<<code language="ocaml"|open HTML5.M
+let default = Eliom_output.Html5.register_service ["rep";""] unit
   (fun () () ->
     Lwt.return
      (html
@@ -120,9 +120,9 @@ Below is an example of a page written in a non-cooperative way, that has the eff
 server for 5 seconds. No one will be able to query the server during
 this period:
 
-<<code class="donotrun" language="ocaml" |open XHTML5.M
+<<code class="donotrun" language="ocaml" |open HTML5.M
 let looong =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["looong"]
     ~get_params:unit
     (fun () () ->
@@ -137,9 +137,9 @@ let looong =
 To solve this problem, use a cooperative version of
 <<a_api project="lwt" | val Lwt_unix.sleep >>:
 
-<<code language="ocaml"|open XHTML5.M
+<<code language="ocaml"|open HTML5.M
 let looong =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["looong"]
     ~get_params:unit
     (fun () () ->
@@ -206,9 +206,9 @@ otherwise, no one will answer if you turn back later with the GET method.
 To ensure that the corresponding GET service exists, POST services
 are created using a function taking a GET service (called a //fallback//)
 as parameter, instead of the path. Example:
-<<code language="ocaml"|open XHTML5.M
+<<code language="ocaml"|open HTML5.M
 let get_service =
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["post"]
     ~get_params:Eliom_parameters.unit
     (fun () () ->
@@ -218,7 +218,7 @@ let get_service =
          (body [h1 [pcdata "Version of the page with GET method"]])))
 
 let post_service =
-  Eliom_output.Xhtml5.register_post_service
+  Eliom_output.Html5.register_post_service
     ~fallback:get_service
     ~post_params:Eliom_parameters.unit
     (fun () () ->
@@ -277,8 +277,8 @@ It is also possible to send static pages using Eliom, using
 ==Predefined output modules for services==
 
 All the services we have defined so far in this section are registered using
-{{{Eliom_output.Xhtml5.register_service}}} and the handler functions
-return a value of type {{{Xhtmltypes5.xhtml XHTML5.M.elt Lwt.t}}}.
+{{{Eliom_output.Html5.register_service}}} and the handler functions
+return a value of type {{{Xhtmltypes5.xhtml HTML5.M.elt Lwt.t}}}.
 If you want to create other types of outputs, you need to use other registration
 modules, taken from a large set of predefined modules (output raw text,
 redirections, files, portions of pages, etc.). It is also possible to create
@@ -286,11 +286,11 @@ your own output modules.
 
 Output modules may define options for the registration function.
 For example, the redirection ouput module allows to choose between permanent
-and temporary registration, and the module {{{Eliom_output.Xhtml5}}} 
+and temporary registration, and the module {{{Eliom_output.Html5}}} 
 allows to personnalize the document type to be included in the page.
 For example:
 
-<<code language="ocaml"|Eliom_output.Xhtml5.register_service
+<<code language="ocaml"|Eliom_output.Html5.register_service
   ~options:(`Doctype "my doctype")
   ~path:["coucou"]
   ~get_params:Eliom_parameters.unit
@@ -302,7 +302,7 @@ For example:
 
 Ocsigen provides several ways to generate and type xhtml pages.
 
-* The default technique to produce HTML5 pages using Eliom is the XHTML5.M
+* The default technique to produce HTML5 pages using Eliom is the HTML5.M
    module. It is the only one supported for client side Eliom programs for now.
    This module provides a typing based on OCaml's polymorphic variants,
    which ensures at compile time, that the pages you will generate will
@@ -315,12 +315,12 @@ Ocsigen provides several ways to generate and type xhtml pages.
   To take benefit of it, use OCamlDuce instead of OCaml.
 * You can also choose to generate untyped xhtml as text.
 
-===XHTML5.M and XHTML.M===
+===HTML5.M and XHTML.M===
 
 The types in OCaml closest to XML types are //polymorphic variants//.
 Ocsigen uses them to provide a module with very good XHTML typing.
 The full documentation is available <<a_api text="in
-the interface of the module" | module XHTML.M >>.
+the TyXML documentation" project="tyxml" | module XHTML.M >>.
 <<div class="wip"|put it here (?!)>>
 
 ===XHTML syntax extension===
@@ -333,7 +333,7 @@ This is convenient for example if
 you want to include (parts of) HTML pages that have been
 created by third party.
 This syntax extension uses the same polymorphic variants as
-XHTML5.M, thus this solution can be mixed with the previous one.
+HTML5.M, thus this solution can be mixed with the previous one.
 
 For example, the following code:
 {{{
@@ -342,7 +342,7 @@ For example, the following code:
      <body><h1>plop</h1></body>
    </html> >>
 }}}
-is a caml value of type {{{Xhtmltypes5.xhtml XHTML5.M.elt}}}.
+is a caml value of type {{{Xhtmltypes5.xhtml HTML5.M.elt}}}.
 
 To compile a module containing this syntax, you need the camlp4 preprocessor:
 {{{
@@ -397,11 +397,10 @@ The syntax extension is not allowed in patterns for now.
    </html> ~>>
 >>
 
-We recommend you use
-the functions from <<a_api | module XHTML5.M>>, as you will (almost)
-always get valid xhtml.
-Use the syntax extension for example to enclose already created pieces
-of HTML, and check your pages validity with the
+We recommend you use the functions from <<a_api project="tyxml"
+| module HTML5.M>>, as you will (almost) always get valid HTML 5. Use
+the syntax extension for example to enclose already created pieces of
+HTML, and check your pages validity with the
 [[http://validator.w3.org/| W3C validator]].
   
 
@@ -428,15 +427,14 @@ and more flexibility (easier to use other XML types, to parse
 incoming XML data, etc.).
 
 However, Ocamlduce is not compatible with Camlp4 syntax extensions
-and client server Eliom applications support only XHTML5.M (for now).
+and client server Eliom applications support only HTML5.M (for now).
 
 
 To use it, make sure that you have Eliom compiled with OCamlDuce
- support. Then dynlink <<span class="code"|ocamlduce.cma>> and
-  <<span class="code"|eliomduce.cma>> from the configuration file
-(after <<span class="code"|eliom.cma>>).
-Then use <<a_api | module Eliom_duce.Xhtml>> instead of
-<<a_api | module Eliom_output.Xhtml>> to register your pages.
+support. Then dynlink <<span class="code"|ocamlduce.cma>> and <<span
+class="code"|eliomduce.cma>> from the configuration file (after <<span
+class="code"|eliom.cma>>).  Then use <<a_api | module Eliom_duce.Xhtml >> 
+instead of <<a_api | module Eliom_output.Xhtml>> to register your pages.
 
 Here is an example:
 <<code language="ocaml"|
@@ -488,12 +486,10 @@ The main predefined output modules are:
 |=Module|=description|=type|=options|
 >>
 
-;<<a_api| module Eliom_output.Xhtml5 >> (and <<a_api| module Eliom_output.Xhtml >>)
-: Allows to register functions that generate xhtml pages statically checked using polymorphic variant types. You may use constructor functions from <<a_api| module XHTML.M >> or a syntax extension close to the standard xhtml syntax.
-;<<a_api| module Eliom_output.Xhtml5compact >> (and <<a_api| module Eliom_output.Xhtmlcompact >>)
-: Same, but without pretty printing (does not add spaces or line breaks).
+;<<a_api| module Eliom_output.Html5 >> (and <<a_api| module Eliom_output.Xhtml >>)
+: Allows to register functions that generate xhtml pages statically checked using polymorphic variant types. You may use constructor functions from <<a_api project="tyxml" | module XHTML.M >> or a syntax extension close to the standard xhtml syntax.
 ;<<a_api| module Eliom_output.Blocks5 >> (and <<a_api| module Eliom_output.Blocks >>)
-: Allows to register functions that generate a portion of page using <<a_api| module XHTML5.M >> (resp <<a_api| module XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example).
+: Allows to register functions that generate a portion of page using <<a_api project="tyxml" | module HTML5.M >> (resp <<a_api project="tyxml"| module XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example).
 ;<<a_api| module Eliom_duce.Xhtml >>
 : Allows to register functions that generate XHTML 1.1 pages   statically checked using <<span class="code"|OCamlduce>>. Typing is   stricter, and you need a modified version of the OCaml compiler   (OCamlduce).
 ;<<a_api| module Eliom_output.HtmlText >>
@@ -557,7 +553,7 @@ handle static files.
 ===Sending portions of pages
   
   
- The <<a_api| module Eliom_output.Blocks5 >> and <<a_api| module Eliom_output.Blocks >> modules allow you to register services that send portions of pages, of any "block" type for XHTML5.M (resp. XHTML.M).
+ The <<a_api| module Eliom_output.Blocks5 >> and <<a_api| module Eliom_output.Blocks >> modules allow you to register services that send portions of pages, of any "block" type for HTML5.M (resp. XHTML.M).
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
  Note that the service returns a list of blocks.
@@ -574,17 +570,13 @@ handle static files.
 >>
 
   
- The <<a_api| module Eliom_output.SubXhtml >> module allows to create other modules for
- registering portions of pages of other types.
- For example, <<a_api| module Eliom_output.Blocks5 >>
- is defined by:
-  
+ The <<a_api| module Eliom_output.Make_TypedXML_Registration >> module
+ allows to create other modules for registering portions of pages of
+ other types.  For example, <<a_api| module Eliom_output.Blocks5 >> is
+ defined by:
 
-  
-<<code language="ocaml"|module Blocks5 = SubXhtml(struct
-  type content = Xhtml5types.body_content
-  include Xhtml_format.Xhtml5Info
-  include Xhtml5pretty_streams
+<<code language="ocaml"|module Blocks5 = Make_TypedXML_Registration(XML)(HTML5.M)(struct
+  type content = HTML5_types.body_content
 end)
 >>
 
@@ -984,13 +976,13 @@ let state_name = "calc_example"
 (* one with a GET integer parameter:                        *)
 
 let calc =
-  Eliom_output.Xhtml5.service
+  Eliom_output.Html5.service
     ~path:["calc"]
     ~get_params:Eliom_parameters.unit
     ()
 
 let calc_i =
-  Eliom_output.Xhtml5.service
+  Eliom_output.Html5.service
     ~path:["calc"]
     ~get_params:(Eliom_parameters.int "i")
     ()
@@ -1121,11 +1113,11 @@ like this:
 Then wherever you want to add a button to do that action
 (on data <<span class="code"|id>>), create a form like:
   
-<<code language="ocaml"|Eliom_output.Xhtml5.post_form remove_action
+<<code language="ocaml"|Eliom_output.Html5.post_form remove_action
   (fun id_name ->
-     Eliom_output.Xhtml5.int_input
+     Eliom_output.Html5.int_input
        ~input_type:`Hidden ~name:id_name ~value:id ();
-     Eliom_output.Xhtml5.string_input
+     Eliom_output.Html5.string_input
        ~input_type:`Submit ~value:("remove "^string_of_int id) ())
 >>
 
@@ -1317,7 +1309,7 @@ registered with scope {{{`Session}}}.
 let _ =
   let page () () =
     let timeoutcoserv =
-      Eliom_output.Xhtml5.register_coservice
+      Eliom_output.Html5.register_coservice
         ~scope:`Session
         ~fallback:timeout
         ~get_params:unit
@@ -1340,7 +1332,7 @@ let _ =
            a timeoutcoserv [pcdata "Try it"] (); ];
           ]))
   in
-  Eliom_output.Xhtml5.register timeout page
+  Eliom_output.Html5.register timeout page
 >>
   
 [[site:tuto/timeout| See this example here]].

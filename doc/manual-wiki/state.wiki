@@ -126,7 +126,7 @@ OCaml's unsafe <<span class="code"|Marshal>> module:
 
 The following piece of code defines a persistent counter of visits:
 <<code language="ocaml"|open Lwt
-open XHTML5.M
+open HTML5.M
 open Eliom_parameters
 
 let myeref = Eliom_references.eref ~persistent:"perscount" 0
@@ -142,7 +142,7 @@ let count3 =
       Lwt_mutex.unlock mutex;
       Lwt.return newc)
   in
-  Eliom_output.Xhtml5.register_service
+  Eliom_output.Html5.register_service
     ~path:["perscount"]
     ~get_params:unit
     (fun () () ->
@@ -185,7 +185,7 @@ using session groups and redirections.
 (************************************************************)
 open Lwt
 open Eliom_parameters
-open XHTML5.M
+open HTML5.M
 
 (*zap* *)
 let state_name = "connect_example_state"
@@ -215,8 +215,8 @@ let disconnect_action =
       Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
 
 let disconnect_box s =
-  Eliom_output.Xhtml5.post_form disconnect_action
-    (fun _ -> [p [Eliom_output.Xhtml5.string_input
+  Eliom_output.Html5.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Html5.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* State: *)
@@ -230,11 +230,11 @@ let user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Session
 (* new login box:                                           *)
 
 let login_box session_expired bad_u action =
-  Eliom_output.Xhtml5.post_form action
+  Eliom_output.Html5.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:loginname ()]
+         Eliom_output.Html5.string_input ~input_type:`Text ~name:loginname ()]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -284,7 +284,7 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Xhtml5.register ~service:connect_example connect_example_handler;
+  Eliom_output.Html5.register ~service:connect_example connect_example_handler;
   Eliom_output.Action.register ~service:connect_action connect_action_handler
 >>
 
@@ -328,7 +328,7 @@ it is possible to access unsecure session data and to register
 unsecure session services using the optional parameter
 <<span class="code"|~secure:false>> when calling functions like
 <<span class="code"|Eliom_references.eref>>,
-<<span class="code"|Eliom_output.Xhtml5.register>>, etc.
+<<span class="code"|Eliom_output.Html5.register>>, etc.
 
 
 ===Discarding states (and closing sessions)
@@ -376,7 +376,7 @@ If you need more sessions (for example several different data sessions)
 for the same site, you can give a name to your sessions by giving
 the optional parameter <<span class="code"|?state_name>> to functions like
 <<span class="Cem"| <<a_api| val Eliom_state.close_data_session >>>>,
-<<span class="Cem"| <<a_api| val Eliom_mkreg.ELIOMREGSIG.register >>>>, or
+<<span class="Cem"| <<a_api| val Eliom_output.Html5.register >>>>, or
  <<a_api| val Eliom_state.get_volatile_data >>.
 Note that the online tutorial has been implemented using this feature,
 even if it has been hidden for the sake of simplicity.
@@ -460,8 +460,8 @@ let disconnect_action =
       Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
 
 let disconnect_box s =
-  Eliom_output.Xhtml5.post_form disconnect_action
-    (fun _ -> [p [Eliom_output.Xhtml5.string_input
+  Eliom_output.Html5.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Html5.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
@@ -471,11 +471,11 @@ let bad_user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Req
 (* new login box:                                           *)
 
 let login_box session_expired bad_u action =
-  Eliom_output.Xhtml5.post_form action
+  Eliom_output.Html5.post_form action
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Eliom_output.Xhtml5.string_input ~input_type:`Text ~name:loginname ()]
+         Eliom_output.Html5.string_input ~input_type:`Text ~name:loginname ()]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -532,7 +532,7 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Xhtml5.register ~service:connect_example connect_example_handler;
+  Eliom_output.Html5.register ~service:connect_example connect_example_handler;
   Eliom_output.Any.register ~service:connect_action connect_action_handler
 >>
 Note that in this case, we do not need a session eref any more,

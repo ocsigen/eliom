@@ -40,3 +40,4 @@ install:
 clean:
 	-rm -f api-html/*
 	-rm -f *~ \#* .\#*
+	-rm -rf ${TMP}

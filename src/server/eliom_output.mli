@@ -28,168 +28,45 @@ open Eliom_pervasives
 
 (** {2 Creating links and forms with HTML5.M} *)
 
-module type HTML5_FORMS = "sigs/eliom_forms.mli"
-  subst type uri := HTML5_types.uri
-    and type pcdata_elt := HTML5_types.pcdata HTML5.M.elt
-
-    and type form_elt := [> HTML5_types.form ] HTML5.M.elt
-    and type form_content_elt := HTML5_types.form_content HTML5.M.elt
-    and type form_content_elt_list := HTML5_types.form_content HTML5.M.elt list
-    and type form_attrib_t := HTML5_types.form_attrib HTML5.M.attrib list
-
-    and type 'a a_elt := [> 'a HTML5_types.a ] HTML5.M.elt
-    and type 'a a_content_elt := 'a HTML5.M.elt
-    and type 'a a_content_elt_list := 'a HTML5.M.elt list
-    and type a_attrib_t := HTML5_types.a_attrib HTML5.M.attrib list
-
-    and type link_elt := [> HTML5_types.link ] HTML5.M.elt
-    and type link_attrib_t := HTML5_types.link_attrib HTML5.M.attrib list
-
-    and type script_elt := [> HTML5_types.script ] HTML5.M.elt
-    and type script_attrib_t := HTML5_types.script_attrib HTML5.M.attrib list
-
-    and type textarea_elt := [> HTML5_types.textarea ] HTML5.M.elt
-    and type textarea_attrib_t := HTML5_types.textarea_attrib HTML5.M.attrib list
-
-    and type input_elt := [> HTML5_types.input ] HTML5.M.elt
-    and type input_attrib_t := HTML5_types.input_attrib HTML5.M.attrib list
-
-    and type select_elt := [> HTML5_types.select ] HTML5.M.elt
-    and type select_attrib_t := HTML5_types.select_attrib HTML5.M.attrib list
-
-    and type button_elt := [> HTML5_types.button ] HTML5.M.elt
-    and type button_content_elt := HTML5_types.button_content HTML5.M.elt
-    and type button_content_elt_list := HTML5_types.button_content HTML5.M.elt list
-    and type button_attrib_t := HTML5_types.button_attrib HTML5.M.attrib list
-
-    and type optgroup_attrib_t := [ HTML5_types.common | `Disabled ] HTML5.M.attrib list
-    and type option_attrib_t := HTML5_types.option_attrib HTML5.M.attrib list
-
-    and type input_type_t :=
-      [< `Hidden
-      | `Password
-      | `Submit
-      | `Text ]
-
-    and type raw_input_type_t :=
-      [< `Button
-      | `Hidden
-      | `Password
-      | `Reset
-      | `Submit
-      | `Text ]
-
-    and type button_type_t :=
-      [< `Button
-      | `Reset
-      | `Submit
-      ]
-
-module type HTML5_REGISTRATION =
-sig
-  include "sigs/eliom_reg.mli"
-  subst type page    := HTML5_types.html HTML5.M.elt
-    and type options := unit
-    and type return  := Eliom_services.http
-  type page = HTML5_types.html HTML5.M.elt
-  type options = unit
-  type return = Eliom_services.http
-end
-
 (** Eliom service registration and forms creation for HTML5 page *)
 module Html5 : sig
-  include HTML5_REGISTRATION
-  include HTML5_FORMS
+
+  (** {2 Service registration } *)
+
+  include "sigs/eliom_html5_reg.mli"
+
+  (** {2 Forms creation } *)
+
+  include "sigs/eliom_html5_forms.mli"
+
 end
 
 (** Eliom service registration for HTML5 page *)
-module Html5_registration : HTML5_REGISTRATION
+module Html5_registration : "sigs/eliom_html5_reg.mli"
 
 (** Eliom forms creation for HTML5 *)
-module Html5_forms : HTML5_FORMS
+module Html5_forms : "sigs/eliom_html5_forms.mli"
 
 (** {2 Creating links and forms with XHTML.M} *)
 
-module type XHTML_FORMS = "sigs/eliom_forms.mli"
-         subst type uri := XHTML_types.uri
-           and type pcdata_elt := XHTML_types.pcdata XHTML.M.elt
-
-           and type form_elt := [> XHTML_types.form ] XHTML.M.elt
-           and type form_content_elt := XHTML_types.form_content XHTML.M.elt
-           and type form_content_elt_list := XHTML_types.form_content XHTML.M.elt list
-           and type form_attrib_t := XHTML_types.form_attrib XHTML.M.attrib list
-
-           and type 'a a_elt := [> XHTML_types.a ] XHTML.M.elt
-           and type 'a a_content_elt := XHTML_types.a_content XHTML.M.elt
-           and type 'a a_content_elt_list := XHTML_types.a_content XHTML.M.elt list
-           and type a_attrib_t := XHTML_types.a_attrib XHTML.M.attrib list
-
-           and type link_elt := [> XHTML_types.link ] XHTML.M.elt
-           and type link_attrib_t := XHTML_types.link_attrib XHTML.M.attrib list
-
-           and type script_elt := [> XHTML_types.script ] XHTML.M.elt
-           and type script_attrib_t := XHTML_types.script_attrib XHTML.M.attrib list
-
-           and type textarea_elt := [> XHTML_types.textarea ] XHTML.M.elt
-           and type textarea_attrib_t := XHTML_types.textarea_attrib XHTML.M.attrib list
-
-           and type input_elt := [> XHTML_types.input ] XHTML.M.elt
-           and type input_attrib_t := XHTML_types.input_attrib XHTML.M.attrib list
-
-           and type select_elt := [> XHTML_types.select ] XHTML.M.elt
-           and type select_attrib_t := XHTML_types.select_attrib XHTML.M.attrib list
-
-           and type button_elt := [> XHTML_types.button ] XHTML.M.elt
-           and type button_content_elt := XHTML_types.button_content XHTML.M.elt
-           and type button_content_elt_list := XHTML_types.button_content XHTML.M.elt list
-           and type button_attrib_t := XHTML_types.button_attrib XHTML.M.attrib list
-
-           and type optgroup_attrib_t := [ XHTML_types.common | `Disabled ] XHTML.M.attrib list
-           and type option_attrib_t := XHTML_types.option_attrib XHTML.M.attrib list
-
-           and type input_type_t :=
-	     [< `Hidden
-	     | `Password
-	     | `Submit
-	     | `Text
-	     ]
-
-           and type raw_input_type_t :=
-	     [< `Hidden
-	     | `Password
-	     | `Submit
-	     | `Text
-	     | `Button
-	     | `Reset ]
-
-           and type button_type_t :=
-	     [< `Button
-	     | `Reset
-	     | `Submit
-	     ]
-
-module type XHTML_REGISTRATION =
-sig
-  include "sigs/eliom_reg.mli"
-  subst type page    := XHTML_types.xhtml XHTML.M.elt
-    and type options := unit
-    and type return  := Eliom_services.http
-  type page = XHTML_types.xhtml XHTML.M.elt
-  type options = unit
-  type return = Eliom_services.http
-end
-
 (** Eliom service registration and forms creation for XHTML page *)
 module Xhtml : sig
-  include XHTML_REGISTRATION
-  include XHTML_FORMS
+
+  (** {2 Service registration } *)
+
+  include "sigs/eliom_xhtml_reg.mli"
+
+  (** {2 Forms creation } *)
+
+  include "sigs/eliom_xhtml_forms.mli"
+
 end
 
 (** Eliom service registration for XHTML page *)
-module Xhtml_registration : XHTML_REGISTRATION
+module Xhtml_registration : "sigs/eliom_xhtml_reg.mli"
 
 (** Eliom forms creation for XHTML page *)
-module Xhtml_forms : XHTML_FORMS
+module Xhtml_forms : "sigs/eliom_xhtml_forms.mli"
 
 (** {3 Eliom client/server applications} *)
 
@@ -265,37 +142,21 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl
 
 (** {3 Module to register subpages of type [block]} *)
 
-module type BLOCKS5_REGISTRATION =
-sig
-  include "sigs/eliom_reg.mli"
+(** Eliom service registration and forms creation for fragment of
+    HTML5 page *)
+module Blocks5 : "sigs/eliom_reg.mli"
   subst type page    := HTML5_types.body_content HTML5.M.elt list
     and type options := unit
     and type return  := Eliom_services.http
-  type page = HTML5_types.body_content HTML5.M.elt list
-  type options = unit
-  type return = Eliom_services.http
-end
-
-(** Eliom service registration and forms creation for fragment of
-    HTML5 page *)
-module Blocks5 : BLOCKS5_REGISTRATION
 
 (** Use this module for example for XMLHttpRequests for block tags (e.g. <div>) *)
 
-module type BLOCKS_REGISTRATION =
-sig
-  include "sigs/eliom_reg.mli"
+(** Eliom service registration and forms creation for fragment of
+    XHTML page *)
+module Blocks : "sigs/eliom_reg.mli"
   subst type page    := XHTML_types.body_content XHTML.M.elt list
     and type options := unit
     and type return  := Eliom_services.http
-  type page = XHTML_types.body_content XHTML.M.elt list
-  type options = unit
-  type return = Eliom_services.http
-end
-
-(** Eliom service registration and forms creation for fragment of
-    XHTML page *)
-module Blocks : BLOCKS_REGISTRATION
 
 (** {3 Functor to create modules to register subpages for other XML
     types.} *)
@@ -303,25 +164,29 @@ module Blocks : BLOCKS_REGISTRATION
 module Make_TypedXML_Registration
   (XML: XML_sigs.Iterable)
   (TypedXML: XML_sigs.TypedXML with module XML := XML)
-  (E : sig type content end) : sig
+  (E : sig type content end) :
 
-    include "sigs/eliom_reg.mli"
+  "sigs/eliom_reg.mli"
       subst type page    := E.content TypedXML.elt list
 	and type options := unit
 	and type return  := Eliom_services.http
-
-  end
 
 (** {2 Untyped pages} *)
 
 (** {3 Module to create forms and register untyped HTML pages} *)
 
-module type HTMLTEXT_REGISTRATION = "sigs/eliom_reg.mli"
+module HtmlText : sig
+
+  (** {2 Service registration } *)
+
+  include "sigs/eliom_reg.mli"
   subst type page    := string
     and type options := unit
     and type return  := Eliom_services.http
 
-module type HTMLTEXT_FORMS = "sigs/eliom_forms.mli"
+  (** {2 Forms creation } *)
+
+  include "sigs/eliom_forms.mli"
   subst type uri := string
     and type pcdata_elt := string
 
@@ -362,32 +227,20 @@ module type HTMLTEXT_FORMS = "sigs/eliom_forms.mli"
     and type raw_input_type_t := string
     and type button_type_t := string
 
-module HtmlText : sig
-  include HTMLTEXT_REGISTRATION
-  include HTMLTEXT_FORMS
 end
 
 (** {3 Module to register untyped CSS pages} *)
-module CssText : sig
-  include "sigs/eliom_reg.mli"
+module CssText : "sigs/eliom_reg.mli"
   subst type page    := string
     and type options := unit
     and type return  := Eliom_services.http
-  type page = string
-  type options = unit
-  type return  = Eliom_services.http
-end
 
 (** {3 Module to register untyped text pages} *)
-module Text : sig
-  include "sigs/eliom_reg.mli"
+module Text : "sigs/eliom_reg.mli"
   subst type page    := string * string
     and type options := unit
     and type return  := Eliom_services.http
-  type page = string * string
-  type options = unit
-  type return  = Eliom_services.http
-end
+
 (** The first string is the content, the second is the content type,
     for example "text/html" *)
 
@@ -403,26 +256,19 @@ end
     If you give the optional parameter
     [~options:`NoReload] to the registration function, no page will be sent.
  *)
-module Action : sig
-  type return = Eliom_services.http
-  include "sigs/eliom_reg.mli" subst type page    := unit
-			         and type options := [ `Reload | `NoReload ]
-				 and type return  := Eliom_services.http
-end
+module Action : "sigs/eliom_reg.mli"
+ subst type page    := unit
+   and type options := [ `Reload | `NoReload ]
+   and type return  := Eliom_services.http
 
 (** Like actions, but the page is not reloaded. Just do something and do
    not generate any page. To be used carefully. Probably not usefull at all.
    (Same as {!Eliom_output.Action} with [`NoReload] option).
  *)
-module Unit : sig
-  include "sigs/eliom_reg.mli"
+module Unit : "sigs/eliom_reg.mli"
   subst type page    := unit
     and type options := unit
     and type return  := Eliom_services.http
-  type page = unit
-  type options = unit
-  type return  = Eliom_services.http
-end
 
 (** Allows to create redirections towards another service.
    A 301 or 307 code is sent to the browser to ask it to redo the request to
@@ -451,39 +297,24 @@ module Redirection : "sigs/eliom_reg.mli"
    the [options] parameter of registration functions.
    For example: [register ~options:`Temporary ...].
  *)
-module String_redirection : sig
-  include "sigs/eliom_reg.mli"
+module String_redirection : "sigs/eliom_reg.mli"
   subst type page    := Url.uri
     and type options := [ `Temporary | `Permanent ]
     and type return  := Eliom_services.http
-  type page = Url.uri
-  type options = [ `Temporary | `Permanent ]
-  type return  = Eliom_services.http
-end
 
 (** Allows to send files. The content is the name of the file to send. *)
-module Files : sig
-  include "sigs/eliom_reg.mli"
+module Files : "sigs/eliom_reg.mli"
   subst type page    := string
     and type options := unit
     and type return  := Eliom_services.http
-  type page = string
-  type options = unit
-  type return  = Eliom_services.http
-end
 
 (** Allows to create services that choose dynamically what they want
     to send. The content is created using for example
     {!Eliom_output.Html5_forms.send} or {!Eliom_output.Text.send} functions.  *)
-module Any : sig
-  include "sigs/eliom_reg.mli"
+module Any : "sigs/eliom_reg.mli"
   subst type page    := Ocsigen_http_frame.result
 	and type options := unit
 	and type return  := Eliom_services.http
-  type page = Ocsigen_http_frame.result
-  type options = unit
-  type return  = Eliom_services.http
-end
 
 (** Allows to send raw data using Ocsigen's streams.
     The content is a pair containing:
@@ -497,22 +328,16 @@ end
     If something goes wrong, the current stream is closed,
     and the following are not opened.
 *)
-module Streamlist : sig
-  include "sigs/eliom_reg.mli"
-  subst type page    :=
-    (((unit -> string Ocsigen_stream.t Lwt.t) list) * string)
+module Streamlist : "sigs/eliom_reg.mli"
+  subst type page    := (((unit -> string Ocsigen_stream.t Lwt.t) list) * string)
     and type options := unit
     and type return  := Eliom_services.http
-  type page = (((unit -> string Ocsigen_stream.t Lwt.t) list) * string)
-  type options = unit
-  type return  = Eliom_services.http
-end
 
 (** Allows to register services that send caml values.
     Note that this kind of services are most of the time
     POST coservices, and GET (co)services are probably useless here.
 *)
-module Caml : "sigs/eliom_reg.mli"
+module Caml : "sigs/eliom_reg_simpl.mli"
   subst type page    := 'return
     and type options := unit
     and type return  := 'return Eliom_parameters.caml

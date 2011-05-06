@@ -52,91 +52,6 @@ type button_type =
 (*****************************************************************************)
 (*****************************************************************************)
 
-module type HTML5_FORMS = "sigs/eliom_forms.mli"
-  subst type uri := HTML5_types.uri
-    and type pcdata_elt := HTML5_types.pcdata HTML5.M.elt
-
-    and type form_elt := [> HTML5_types.form ] HTML5.M.elt
-    and type form_content_elt := HTML5_types.form_content HTML5.M.elt
-    and type form_content_elt_list := HTML5_types.form_content HTML5.M.elt list
-    and type form_attrib_t := HTML5_types.form_attrib HTML5.M.attrib list
-
-    and type 'a a_elt := [> 'a HTML5_types.a ] HTML5.M.elt
-    and type 'a a_content_elt := 'a HTML5.M.elt
-    and type 'a a_content_elt_list := 'a HTML5.M.elt list
-    and type a_attrib_t := HTML5_types.a_attrib HTML5.M.attrib list
-
-    and type link_elt := [> HTML5_types.link ] HTML5.M.elt
-    and type link_attrib_t := HTML5_types.link_attrib HTML5.M.attrib list
-
-    and type script_elt := [> HTML5_types.script ] HTML5.M.elt
-    and type script_attrib_t := HTML5_types.script_attrib HTML5.M.attrib list
-
-    and type textarea_elt := [> HTML5_types.textarea ] HTML5.M.elt
-    and type textarea_attrib_t := HTML5_types.textarea_attrib HTML5.M.attrib list
-
-    and type input_elt := [> HTML5_types.input ] HTML5.M.elt
-    and type input_attrib_t := HTML5_types.input_attrib HTML5.M.attrib list
-
-    and type select_elt := [> HTML5_types.select ] HTML5.M.elt
-    and type select_attrib_t := HTML5_types.select_attrib HTML5.M.attrib list
-
-    and type button_elt := [> HTML5_types.button ] HTML5.M.elt
-    and type button_content_elt := HTML5_types.button_content HTML5.M.elt
-    and type button_content_elt_list := HTML5_types.button_content HTML5.M.elt list
-    and type button_attrib_t := HTML5_types.button_attrib HTML5.M.attrib list
-
-    and type optgroup_attrib_t := [ HTML5_types.common | `Disabled ] HTML5.M.attrib list
-    and type option_attrib_t := HTML5_types.option_attrib HTML5.M.attrib list
-
-    and type input_type_t := [< basic_input_type ]
-    and type raw_input_type_t := [< basic_input_type | `Reset | `Button ]
-    and type button_type_t := [< button_type ]
-
-module type HTML5_FORMS_CLOSED = "sigs/eliom_forms.mli"
-  subst type uri := HTML5_types.uri
-    and type pcdata_elt := HTML5_types.pcdata HTML5.M.elt
-
-    and type form_elt := HTML5_types.form HTML5.M.elt
-    and type form_content_elt := HTML5_types.form_content HTML5.M.elt
-    and type form_content_elt_list := HTML5_types.form_content HTML5.M.elt list
-    and type form_attrib_t := HTML5_types.form_attrib HTML5.M.attrib list
-
-    and type 'a a_elt := 'a HTML5_types.a HTML5.M.elt
-    and type 'a a_content_elt := 'a HTML5.M.elt
-    and type 'a a_content_elt_list := 'a HTML5.M.elt list
-    and type a_attrib_t := HTML5_types.a_attrib HTML5.M.attrib list
-
-    and type link_elt := HTML5_types.link HTML5.M.elt
-    and type link_attrib_t := HTML5_types.link_attrib HTML5.M.attrib list
-
-    and type script_elt := HTML5_types.script HTML5.M.elt
-    and type script_attrib_t := HTML5_types.script_attrib HTML5.M.attrib list
-
-    and type textarea_elt := HTML5_types.textarea HTML5.M.elt
-    and type textarea_attrib_t := HTML5_types.textarea_attrib HTML5.M.attrib list
-
-    and type input_elt := HTML5_types.input HTML5.M.elt
-    and type input_attrib_t := HTML5_types.input_attrib HTML5.M.attrib list
-
-    and type select_elt := HTML5_types.select HTML5.M.elt
-    and type select_attrib_t := HTML5_types.select_attrib HTML5.M.attrib list
-
-    and type button_elt := HTML5_types.button HTML5.M.elt
-    and type button_content_elt := HTML5_types.button_content HTML5.M.elt
-    and type button_content_elt_list := HTML5_types.button_content HTML5.M.elt list
-    and type button_attrib_t := HTML5_types.button_attrib HTML5.M.attrib list
-
-    and type optgroup_attrib_t := [ HTML5_types.common | `Disabled ] HTML5.M.attrib list
-    and type option_attrib_t := HTML5_types.option_attrib HTML5.M.attrib list
-
-    and type input_type_t := full_input_type
-    and type raw_input_type_t := full_input_type
-    and type button_type_t := button_type
-
-(*****************************************************************************)
-(*****************************************************************************)
-
 module Html5_forms_base = struct
 
   open HTML5.M
@@ -346,15 +261,14 @@ end
 (*****************************************************************************)
 (*****************************************************************************)
 
-module Html5_forms_closed : HTML5_FORMS_CLOSED =
-  Eliom_mkforms.MakeForms(Html5_forms_base)
+module Html5_forms_closed = Eliom_mkforms.MakeForms(Html5_forms_base)
 
 (* As we want -> [> a ] elt and not -> [ a ] elt (etc.),
    we define a opening functor... *)
 
 module Open_Html5_forms =
 
-  functor (Html5_forms_closed : HTML5_FORMS_CLOSED) -> (struct
+  functor (Html5_forms_closed : "sigs/eliom_html5_forms_closed.mli") -> (struct
 
     open HTML5.M
     open HTML5_types
@@ -996,6 +910,6 @@ module Open_Html5_forms =
 		   button_type:[< button_type ] ->
 		   button_content elt list -> [> button ] elt)
 
-end: HTML5_FORMS)
+end)
 
 module Html5_forms = Open_Html5_forms(Html5_forms_closed)

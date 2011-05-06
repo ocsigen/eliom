@@ -235,7 +235,7 @@ See [[site:tuto/catch?i=22|<<span class="code"|catch>>]] (change the value
 ==@@id="p1links"@@Links
 
 To create a link (<<span class="code"|<a~>>>), use the
- <<a_api| val Eliom_output.HTML5FORMSSIG.a >> function (or <<span class="code"|Eliom_duce.Html5.a>>, etc),
+ <<a_api| val Eliom_output.Html5.a >> function (or <<a_api| val Eliom_duce.Xhtml.a >>, etc),
 as in these examples:
 
 <<code language="ocaml"|let links = Eliom_output.Html5.register_service ["rep";"links"] unit
@@ -276,15 +276,14 @@ See [[site:tuto/rep/links|<<span class="code"|links>>]].
 
 
   
-If you open  <<a_api| module Eliom_output.Html5 >> after  <<a_api | module Eliom_pervasives.HTML5.M >>,
- <<a_api| val Eliom_output.HTML5FORMSSIG.a >>
-   will mask  <<a_api| val Eliom_pervasives.HTML5.M.a >>.
+If you open  <<a_api| module Eliom_output.Html5 >> after  <<a_api project="tyxml" | module HTML5.M >>, <<a_api| val Eliom_output.Html5.a >>
+   will mask  <<a_api project="tyxml" | val HTML5.M.a >>.
 Thus you can avoid to write fully qualified values most of the time.
       
   
 
   
- <<a_api| val Eliom_output.HTML5FORMSSIG.a >> takes as first parameter
+ <<a_api| val Eliom_output.Html5.a >> takes as first parameter
 the service you want to link to.
 
   
@@ -302,7 +301,7 @@ on the service you link to.
 The links to Wikipedia shows how to define an external service (here it
 uses a suffix URL).
 For an external service without parameters, you can use the low level
-function  <<a_api| val Eliom_pervasives.HTML5.M.a >>, if you don't want to create an
+function  <<a_api project="tyxml"| val HTML5.M.a >>, if you don't want to create an
 external service explicitely.
 Note that the path must be a list of strings.
 Do not write <<span class="code"|["foo/bar"]>>,
@@ -310,10 +309,9 @@ but <<span class="code"|["foo";"bar"]>>, otherwise, the "/" will be encoded in
 the URL.\\
 
 
-If you want to create (mutually or not) recursive pages,
-create the service using  <<a_api| val Eliom_services.service >> first,
-then register it in the table using (for example)
- <<a_api| val Eliom_mkreg.ELIOMREGSIG.register >>:
+If you want to create (mutually or not) recursive pages, create the
+service using <<a_api| val Eliom_services.service >> first, then
+register it in the table using (for example) <<a_api| val Eliom_output.Html5.register >>:
 
   
 
@@ -332,9 +330,9 @@ let _ = Eliom_output.Html5.register linkrec
 
 ===Forms towards GET services
 
-The function  <<a_api| val Eliom_output.HTML5FORMSSIG.get_form >> allows to create a form
+The function  <<a_api|  val Eliom_output.Html5.get_form >> allows to create a form
 that uses the GET method (parameters in the URL).
-It works like  <<a_api| val Eliom_output.HTML5FORMSSIG.a >> but takes a //function// that creates the form from the parameters names as parameter.
+It works like  <<a_api| val Eliom_output.Html5.a >> but takes a //function// that creates the form from the parameters names as parameter.
 
   
 <<code language="ocaml"|let create_form =
@@ -360,7 +358,7 @@ let form = Eliom_output.Html5.register_service ["form"] unit
 [[site:tuto/form| See the function <<span class="code"|form>> in action]].\\
 
 If you want to use typed parameters,
-you cannot use functions like  <<a_api| val Eliom_pervasives.HTML5.M.input >> to
+you cannot use functions like  <<a_api project="tyxml"| val HTML5.M.input >> to
 create your forms (but you can use it if you want to use parameters defined with
  <<a_api| val Eliom_parameters.any >>). Indeed, parameter names are typed to force them
 be used properly. In our example, <<span class="code"|number_name>> has type
@@ -370,12 +368,12 @@ be used properly. In our example, <<span class="code"|number_name>> has type
 <<span class="code"|string param_name>> and must be used with
 <<span class="code"|string_input>> (or other widgets).
 All functions for creating form widgets are detailed
-in <<a_api | module Eliom_output.HTML5FORMSSIG >>.
+in <<a_api | module Eliom_output.Html5 >>.
 
-For untyped forms, you may use functions from {{{Eliom_pervasives.HTML5.M}}} (or
-OCamlDuce's syntax, or whatever syntax you are using) or
-functions which name is prefixed by "<<span class="code"|raw_>>".
-Here is a form linking to our (untyped) service
+For untyped forms, you may use functions from <<a_api project="tyxml"
+| module HTML5.M >> (or OCamlDuce's syntax, or whatever syntax you are
+using) or functions which name is prefixed by "<<span
+class="code"|raw_>>".  Here is a form linking to our (untyped) service
 <<span class="code"|raw_serv>>.
 
 <<code language="ocaml"|let raw_form = Eliom_output.Html5.register_service
@@ -467,12 +465,12 @@ let my_service_with_get_and_post = register_post_service
   
   
  To create a POST form, use the
-    <<a_api| val Eliom_output.HTML5FORMSSIG.post_form >> function.
-   It is similar to  <<a_api| val Eliom_output.HTML5FORMSSIG.get_form >>
+    <<a_api| val Eliom_output.Html5.post_form >> function.
+   It is similar to  <<a_api| val Eliom_output.Html5.get_form >>
    with an additional parameter
    for the GET parameters you want to put in the URL (if any).
    Here, <<span class="code"|form2>> is a page containing a form
-   to the service <<span class="code"|post>> (using Eliom_pervasives.HTML5.M's functions)
+   to the service <<span class="code"|post>> (using HTML5.M's functions)
    and <<span class="code"|form3>> (defined using the syntax extension)
    contains a form to <<span class="code"|post2>>, with a GET parameter.
    <<span class="code"|form4>> is a form to an external page.
@@ -572,9 +570,9 @@ let nlparams = Eliom_output.Html5.register_service
           
         To create a link or a form with non-localized parameters,
         use the optional parameter <<span class="code"|nl_params>> of functions
-     <<a_api| val Eliom_output.HTML5FORMSSIG.a >>,
-     <<a_api| val Eliom_output.HTML5FORMSSIG.get_form >> or
-     <<a_api| val Eliom_output.HTML5FORMSSIG.post_form >>. Example:
+     <<a_api| val Eliom_output.Html5.a >>,
+     <<a_api| val Eliom_output.Html5.get_form >> or
+     <<a_api| val Eliom_output.Html5.post_form >>. Example:
   
 <<code language="ocaml"|let tonlparams = Eliom_output.Html5.register_service
     ~path:["nlparams"]
@@ -855,7 +853,7 @@ let select_example = Eliom_output.Html5.register_service ["select"] unit
 [[site:tuto/select| Try it]].\\
 
 To do "multiple" select boxes, use functions like
- <<a_api| val Eliom_output.HTML5FORMSSIG.string_multiple_select >>.
+ <<a_api| val Eliom_output.Html5.string_multiple_select >>.
 As you can see in the type, the service must be declared with parameters
 of type  <<a_api| val Eliom_parameters.set >>.
 

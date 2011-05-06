@@ -7,7 +7,7 @@
 ===Images, CSS, Javascript
           
           
-      To include an image, simply use the function  <<a_api| val XHTML.M.img >>:
+ To include an image, simply use the function  <<a_api project="tyxml"| val HTML5.M.img >>:
       
           
 
@@ -18,7 +18,7 @@
 >>
 
           
-The function <<a_api | value Eliom_output.XHTMLFORMSSIG.make_uri>>
+The function <<a_api | value Eliom_output.Html5.make_uri>>
         creates the relative URL string from current URL
         (see above) to the URL of the image in the static directory
         configured in the configuration file.

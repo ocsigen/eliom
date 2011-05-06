@@ -29,3 +29,5 @@
 ^src/server/eliom_duce_sigs.mli$
 ^tests/_client/
 ^tests/_server/
+^doc/client/__tmp
+^doc/server/__tmp

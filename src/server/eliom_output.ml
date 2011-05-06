@@ -32,17 +32,6 @@ let code_of_code_option = function
 
 include Eliom_output_base
 
-module type HTML5_REGISTRATION =
-sig
-  include "sigs/eliom_reg.mli"
-  subst type page    := HTML5_types.html HTML5.M.elt
-    and type options := unit
-    and type return  := Eliom_services.http
-  type page = HTML5_types.html HTML5.M.elt
-  type options = unit
-  type return = Eliom_services.http
-end
-
 module Html5_make_reg_base
   (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
                    with type t = HTML5_types.html HTML5.M.elt) = struct
@@ -153,99 +142,6 @@ type button_type =
     | `Reset
     | `Submit
     ]
-
-module type XHTML_FORMS = "sigs/eliom_forms.mli"
-  subst type uri := XHTML_types.uri
-    and type pcdata_elt := XHTML_types.pcdata XHTML.M.elt
-
-    and type form_elt := [> XHTML_types.form ] XHTML.M.elt
-    and type form_content_elt := XHTML_types.form_content XHTML.M.elt
-    and type form_content_elt_list := XHTML_types.form_content XHTML.M.elt list
-    and type form_attrib_t := XHTML_types.form_attrib XHTML.M.attrib list
-
-    and type 'a a_elt := [> XHTML_types.a ] XHTML.M.elt
-    and type 'a a_content_elt := XHTML_types.a_content XHTML.M.elt
-    and type 'a a_content_elt_list := XHTML_types.a_content XHTML.M.elt list
-    and type a_attrib_t := XHTML_types.a_attrib XHTML.M.attrib list
-
-    and type link_elt := [> XHTML_types.link ] XHTML.M.elt
-    and type link_attrib_t := XHTML_types.link_attrib XHTML.M.attrib list
-
-    and type script_elt := [> XHTML_types.script ] XHTML.M.elt
-    and type script_attrib_t := XHTML_types.script_attrib XHTML.M.attrib list
-
-    and type textarea_elt := [> XHTML_types.textarea ] XHTML.M.elt
-    and type textarea_attrib_t := XHTML_types.textarea_attrib XHTML.M.attrib list
-
-    and type input_elt := [> XHTML_types.input ] XHTML.M.elt
-    and type input_attrib_t := XHTML_types.input_attrib XHTML.M.attrib list
-
-    and type select_elt := [> XHTML_types.select ] XHTML.M.elt
-    and type select_attrib_t := XHTML_types.select_attrib XHTML.M.attrib list
-
-    and type button_elt := [> XHTML_types.button ] XHTML.M.elt
-    and type button_content_elt := XHTML_types.button_content XHTML.M.elt
-    and type button_content_elt_list := XHTML_types.button_content XHTML.M.elt list
-    and type button_attrib_t := XHTML_types.button_attrib XHTML.M.attrib list
-
-    and type optgroup_attrib_t := [ XHTML_types.common | `Disabled ] XHTML.M.attrib list
-    and type option_attrib_t := XHTML_types.option_attrib XHTML.M.attrib list
-
-    and type input_type_t := [< basic_input_type ]
-    and type raw_input_type_t := [< basic_input_type | `Button | `Reset ]
-    and type button_type_t := [< button_type ]
-
-module type XHTML_FORMS_CLOSED = "sigs/eliom_forms.mli"
-  subst type uri := XHTML_types.uri
-    and type pcdata_elt := XHTML_types.pcdata XHTML.M.elt
-
-    and type form_elt := XHTML_types.form XHTML.M.elt
-    and type form_content_elt := XHTML_types.form_content XHTML.M.elt
-    and type form_content_elt_list := XHTML_types.form_content XHTML.M.elt list
-    and type form_attrib_t := XHTML_types.form_attrib XHTML.M.attrib list
-
-    and type 'a a_elt := XHTML_types.a XHTML.M.elt
-    and type 'a a_content_elt := XHTML_types.a_content XHTML.M.elt
-    and type 'a a_content_elt_list := XHTML_types.a_content XHTML.M.elt list
-    and type a_attrib_t := XHTML_types.a_attrib XHTML.M.attrib list
-
-    and type link_elt := XHTML_types.link XHTML.M.elt
-    and type link_attrib_t := XHTML_types.link_attrib XHTML.M.attrib list
-
-    and type script_elt := XHTML_types.script XHTML.M.elt
-    and type script_attrib_t := XHTML_types.script_attrib XHTML.M.attrib list
-
-    and type textarea_elt := XHTML_types.textarea XHTML.M.elt
-    and type textarea_attrib_t := XHTML_types.textarea_attrib XHTML.M.attrib list
-
-    and type input_elt := XHTML_types.input XHTML.M.elt
-    and type input_attrib_t := XHTML_types.input_attrib XHTML.M.attrib list
-
-    and type select_elt := XHTML_types.select XHTML.M.elt
-    and type select_attrib_t := XHTML_types.select_attrib XHTML.M.attrib list
-
-    and type button_elt := XHTML_types.button XHTML.M.elt
-    and type button_content_elt := XHTML_types.button_content XHTML.M.elt
-    and type button_content_elt_list := XHTML_types.button_content XHTML.M.elt list
-    and type button_attrib_t := XHTML_types.button_attrib XHTML.M.attrib list
-
-    and type optgroup_attrib_t := [ XHTML_types.common | `Disabled ] XHTML.M.attrib list
-    and type option_attrib_t := XHTML_types.option_attrib XHTML.M.attrib list
-
-    and type input_type_t := [ full_input_type ]
-    and type raw_input_type_t := [ full_input_type ]
-    and type button_type_t := [ button_type ]
-
-module type XHTML_REGISTRATION =
-sig
-  include "sigs/eliom_reg.mli"
-  subst type page    := XHTML_types.xhtml XHTML.M.elt
-    and type options := unit
-    and type return  := Eliom_services.http
-  type page = XHTML_types.xhtml XHTML.M.elt
-  type options = unit
-  type return = Eliom_services.http
-end
 
 (*****************************************************************************)
 (*****************************************************************************)
@@ -466,13 +362,12 @@ end
 (*****************************************************************************)
 (*****************************************************************************)
 
-module Xhtml_forms : XHTML_FORMS = struct
+module Xhtml_forms = struct
 
   open XHTML.M
   open XHTML_types
 
-  module Xhtml_forms_closed : XHTML_FORMS_CLOSED =
-    Eliom_mkforms.MakeForms(Xhtml_forms_base)
+  module Xhtml_forms_closed = Eliom_mkforms.MakeForms(Xhtml_forms_base)
 
   (* As we want -> [> a ] elt and not -> [ a ] elt (etc.), as found in
      Xhtmlforms_closed, we introduce explicit coercion.  *)
@@ -1230,17 +1125,6 @@ module Make_TypedXML_Registration
   (TypedXML: XML_sigs.TypedXML with module XML := XML)
   (E : sig type content end) = struct
 
-    module type REGISTRATION =
-    sig
-      include "sigs/eliom_reg.mli"
-	subst type page    := E.content TypedXML.elt list
-	and type options := unit
-	and type return  := Eliom_services.http
-      type page = E.content TypedXML.elt list
-      type options = unit
-      type return = Eliom_services.http
-    end
-
     module Format = XML_print.MakeTyped(XML)(TypedXML)(Ocsigen_stream.StringStream)
 
     let result_of_content_subxhtml get_etag c =
@@ -1312,13 +1196,9 @@ module Blocks = Make_TypedXML_Registration(XML)(XHTML.M)(struct
   type content = XHTML_types.body_content
 end)
 
-module type BLOCKS_REGISTRATION = Blocks.REGISTRATION
-
 module Blocks5 = Make_TypedXML_Registration(XML)(HTML5.M)(struct
   type content = HTML5_types.body_content
 end)
-
-module type BLOCKS5_REGISTRATION = Blocks5.REGISTRATION
 
 (****************************************************************************)
 (****************************************************************************)
@@ -1402,57 +1282,6 @@ module CssText = Eliom_mkreg.MakeRegister(CssText_reg_base)
 
 (****************************************************************************)
 (****************************************************************************)
-
-module type HTMLTEXT_REGISTRATION = "sigs/eliom_reg.mli"
-  subst type page    := string
-    and type options := unit
-    and type return  := Eliom_services.http
-
-module type HTMLTEXT_FORMS = "sigs/eliom_forms.mli"
-  subst type uri := string
-    and type pcdata_elt := string
-
-    and type form_elt := string
-    and type form_content_elt := string
-    and type form_content_elt_list := string
-    and type form_attrib_t := string
-
-    and type 'a a_elt := string
-    and type 'a a_elt_list := string
-    and type 'a a_content_elt := string
-    and type 'a a_content_elt_list := string
-    and type a_attrib_t := string
-
-    and type link_elt := string
-    and type link_attrib_t := string
-
-    and type script_elt := string
-    and type script_attrib_t := string
-
-    and type textarea_elt := string
-    and type textarea_attrib_t := string
-
-    and type input_elt := string
-    and type input_attrib_t := string
-
-    and type select_elt := string
-    and type select_content_elt := string
-    and type select_content_elt_list := string
-    and type select_attrib_t := string
-
-    and type button_elt := string
-    and type button_content_elt := string
-    and type button_content_elt_list := string
-    and type button_attrib_t := string
-
-    and type option_elt := string
-    and type option_elt_list := string
-    and type optgroup_attrib_t := string
-    and type option_attrib_t := string
-
-    and type input_type_t := string
-    and type raw_input_type_t := string
-    and type button_type_t := string
 
 module HtmlText_reg_base = struct
 
@@ -1694,10 +1523,8 @@ module HtmlText_forms_base = struct
 
 end
 
-module HtmlText_registration : HTMLTEXT_REGISTRATION =
-  Eliom_mkreg.MakeRegister(HtmlText_reg_base)
-module HtmlText_forms : HTMLTEXT_FORMS =
-  Eliom_mkforms.MakeForms(HtmlText_forms_base)
+module HtmlText_registration = Eliom_mkreg.MakeRegister(HtmlText_reg_base)
+module HtmlText_forms = Eliom_mkforms.MakeForms(HtmlText_forms_base)
 
 module HtmlText = struct
   include HtmlText_registration
@@ -2099,6 +1926,10 @@ module Customize
 			      and type return  := B.return
 			      and type page    := B.page)
   (T : sig type page val translate : page -> B.page Lwt.t end) = struct
+
+    type page = T.page
+    type return = B.return
+    type options = B.options
 
   let make_eh = function
     | None -> None

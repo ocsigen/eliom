@@ -25,6 +25,7 @@ ${TMP}:
 odoc: ${TMP} ${DOC}
 	mkdir -p api-html
 	$(OCAMLDOC) ${LIBS} -d api-html -intro indexdoc -html ${DOC}
+	rm -r ${TMP}
 
 install:
 	${INSTALL} -d -m 644 $(TEMPROOT)$(DOCDIR)/client
@@ -33,3 +34,4 @@ install:
 clean:
 	-rm -f api-html/*
 	-rm -f *~ \#* .\#*
+	-rm -rf ${TMP}
