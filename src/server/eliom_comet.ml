@@ -398,7 +398,6 @@ end = struct
        (Marshal.to_string value []))
 
   let create_channel ?name stream =
-    (* TODO: addapt channels to dynamic wrapping: it would be able to send more types *)
     Raw_channels.create ?name
       (Lwt_stream.map
 	 (function

@@ -780,11 +780,12 @@ let comet_wrapping =
     ~path:["comet_wrapping"]
     ~get_params:unit
     (fun () () ->
+      let node = div [pcdata "node created on server side"] in
       let service_stream,push_service = Lwt_stream.create () in
       push_service (Some Eliom_testsuite1.coucou);
       let c_service = Eliom_comet.Channels.create service_stream in
       let xml_stream,push_xml = Lwt_stream.create () in
-      push_xml (Some (div [pcdata "basic xml wrapping"]));
+      push_xml (Some (div [pcdata "basic xml wrapping";node]));
       push_xml (Some
 		  (div [Eliom_output.Html5.a ~service:Eliom_testsuite1.coucou
                      [pcdata "xml external link wrapping"] ()]));
@@ -814,6 +815,7 @@ let comet_wrapping =
       Lwt.return
         [
           div [pcdata "there should be a working links below"];
+	  node;
 	  div_link
         ]
     )
