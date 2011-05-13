@@ -31,7 +31,7 @@ package "client" (
 package "syntax" (
   description = "Syntax extension: spliting client and server code (base)"
   version = "[distributed with Eliom]"
-  requires = "js_of_ocaml.syntax,js_of_ocaml.deriving.syntax,tyxml.syntax,lwt.syntax"
+  requires = "%%SDEPS%%,%%CSDEPS%%"
   archive(syntax,preprocessor) = "pa_eliom_seed.cmo"
   directory = "syntax"
   package "type" (
