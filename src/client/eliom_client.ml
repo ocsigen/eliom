@@ -204,7 +204,7 @@ let add_onclick_events =
 (* END FORMDATA HACK *)
 
 let load_eliom_data_
-    ((tree, sent_nodes, ((_,((timeofday, _), _)) as page_data), cookies,
+    ((tree, sent_nodes, added_headers, ((_,((timeofday, _), _)) as page_data), cookies,
       onload_form_creators_info, onload, onunload, si) :
         Eliom_types.eliom_data_type)
     node : unit Lwt.t =
@@ -214,6 +214,12 @@ let load_eliom_data_
     | Right ref_tree_list ->
       Eliommod_cli.relink_dom_list timeofday (node##childNodes) ref_tree_list);
   ignore (List.map (Eliommod_cli.rebuild_xml timeofday) sent_nodes);
+  (match added_headers with
+    | Left ref_tree_list ->
+      Eliommod_cli.relink_dom_list timeofday
+	(Dom_html.window##document##head##childNodes) ref_tree_list;
+      List.iter Eliommod_cli.mark_header ref_tree_list
+    | Right nodes -> Eliommod_cli.replace_headers nodes);
   (* BEGIN FORMDATA HACK *)
   add_onclick_events ();
   (* END FORMDATA HACK *)

@@ -71,6 +71,8 @@ type eliom_data_type =
       (XML.ref_tree, (int * XML.ref_tree) list) leftright *
 	(* node sent that are not in the original page *)
 	elt list *
+	(* added headers *)
+	((int * XML.ref_tree) list, int list) leftright *
         (* Table of page data *)
         (poly * ((int64 * int) * poly list)) *
         (* Tab cookies to set or unset *)

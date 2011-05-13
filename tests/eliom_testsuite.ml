@@ -377,6 +377,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a wrapping1 [pcdata "wrapping test 1"] ();
               br ();
+              a service_style1 [pcdata "test header modifications"] ();
+              br ();
             ];
             h4 [pcdata "Comet"];
             p [

@@ -2511,6 +2511,12 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
+module Html5_Header_set = Set.Make(
+  struct
+    type t = HTML5_types.head_content_fun HTML5.M.elt
+    let compare x1 x2 = compare (XML.ref_node (HTML5.M.toelt x1)) (XML.ref_node (HTML5.M.toelt x2))
+  end)
+
 type appl_service_params =
     {
       ap_title: string;
@@ -2548,6 +2554,7 @@ let default_appl_params =
   }
 
 let comet_service_key = Polytables.make_key ()
+let appl_css_ref = Eliom_references.eref ~scope:`Request Html5_Header_set.empty
 
 (*CPE* change_page_event
 let change_current_page_key : ('a -> unit) Polytables.key =
@@ -2575,7 +2582,7 @@ module Eliom_appl_reg_make_param
       sp.Eliom_common.sp_user_tab_cookies
 
   let create_page
-      ~options ~sp cpi params cookies_to_send
+      ~options ~sp added_headers_set cpi params cookies_to_send
       (*CPE* change_page_event *) content =
     let do_not_launch = options.do_not_launch
         (* ||
@@ -2600,10 +2607,17 @@ module Eliom_appl_reg_make_param
 						       for container before
 						       calling make_ref_tree! *)
 
+    let added_headers = Html5_Header_set.elements added_headers_set in
+
+    let head_before =
+      (* added headers must be the first headers to have the right ref_tree *)
+      added_headers@
+      params.ap_headers_before in
+
     HTML5.M.html
       (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata params.ap_title))
          (
-           params.ap_headers_before@
+	   head_before@
            HTML5.M.style
              [
                HTML5.M.pcdata
@@ -2641,7 +2655,15 @@ redir ();"))::
            Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)
          in
 	 Eliom_xml.mark_sent (HTML5.M.toelt body);
+	 List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) added_headers;
 	 let contents_to_send = Eliom_xml.contents_to_send () in
+	 (* makes the id for the added header:
+	    The first header is the title element, so those elements
+	    starts at position 1 and not 0 *)
+	 let added_headers = Left
+	   (List.map (fun (i,r) -> (i+1,r))
+	   (Eliom_xml.make_ref_tree_list 
+	      (List.map HTML5.M.toelt added_headers))) in
 
              if not do_not_launch
              then
@@ -2670,6 +2692,7 @@ redir ();"))::
                                previous items!
                             *)
                                contents_to_send,
+                               added_headers,
                                eliom_appl_page_data,
                                cookies_to_send,
                                onload_form_creators,
@@ -2722,12 +2745,15 @@ redir ();"))::
   let send_appl_content = Eliom_services.XSame_appl Appl_params.application_name
 
 
-  let get_eliom_page_content ~options sp content =
+  let get_eliom_page_content ~options sp added_headers_set content =
     get_tab_cook sp >>= fun tab_cookies_to_send ->
     let onload_form_creators =
       Eliommod_cli.wrap (Eliom_services.get_onload_form_creators Appl_params.application_name sp) in
     let eliom_appl_page_data = (Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
     List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) content;
+    let added_headers = Right
+      (List.map (fun x -> Eliom_xml.make_node_id (HTML5.M.toelt x))
+	 (Html5_Header_set.elements added_headers_set)) in
     let contents_to_send = Eliom_xml.contents_to_send () in
 
 (*VVV Here we do not send a stream *)
@@ -2735,6 +2761,7 @@ redir ();"))::
       ((Right
           (Eliom_xml.make_ref_tree_list (HTML5.M.toeltl content)),
 	contents_to_send,
+        added_headers,
         eliom_appl_page_data,
         tab_cookies_to_send,
         onload_form_creators,
@@ -2760,6 +2787,7 @@ redir ();"))::
       *)
       sp.Eliom_common.sp_client_appl_name = Some Appl_params.application_name
     in
+    lwt added_header = Eliom_references.get appl_css_ref in
     (if content_only
      then begin
        let rc = Eliom_request_info.get_request_cache_sp sp in
@@ -2773,7 +2801,7 @@ redir ();"))::
           without internal form info and taking "to_be_considered_as_get"
           into account*)
        in
-       get_eliom_page_content ~options sp content >>= fun data ->
+       get_eliom_page_content ~options sp added_header content >>= fun data ->
 (*204FORMS* old implementation of forms with 204 and change_page_event
 
        if si.Eliom_common.si_internal_form
@@ -2817,11 +2845,10 @@ redir ();"))::
 (*VVV for now not possible to give other params for one page *)
        let page =
          create_page
-           ~options ~sp cpi Appl_params.params tab_cookies_to_send
+           ~options ~sp added_header cpi Appl_params.params tab_cookies_to_send
            (*CPE* change_page_event *) content
        in
-       Xhtml_content.result_of_content page
-       >>= fun r ->
+       lwt r = Xhtml_content.result_of_content page in
         let open Ocsigen_http_frame in
         Lwt.return
           {r with
@@ -2860,6 +2887,8 @@ module type Eliom_appl = sig
   *)
   val application_name : string
 
+  val add_header : HTML5_types.head_content_fun HTML5.M.elt -> unit Lwt.t
+
 end
 
 module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
@@ -2879,6 +2908,10 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
       that is unique for each instance of the application.
   *)
   let application_name = Appl_params.application_name
+
+  let add_header h =
+    lwt set = Eliom_references.get appl_css_ref in
+    Eliom_references.set appl_css_ref (Html5_Header_set.add h set)
 
 end
 

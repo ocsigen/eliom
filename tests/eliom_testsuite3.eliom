@@ -910,6 +910,56 @@ let comet_message_board =
     )
 
 (*wiki*
+===Header manipulation with eliom client
+
+ *wiki*)
+
+let service_style1 =
+  Eliom_services.service
+    ~path:["css"; "style1"]
+    ~get_params:unit
+    ()
+let service_style2 =
+  Eliom_services.service
+    ~path:["css"; "style2"]
+    ~get_params:unit
+    ()
+let service_no_style =
+  Eliom_services.service
+    ~path:["css"; "no_style"]
+    ~get_params:unit
+    ()
+
+let page_css_test () =
+  Lwt.return
+    [Eliom_output.Html5.a ~service:service_style1
+	[pcdata "same page with style 1"] (); br ();
+     Eliom_output.Html5.a ~service:service_style2
+       [pcdata "same page with style 2"] (); br ();
+     Eliom_output.Html5.a ~service:service_no_style
+       [pcdata "same page with no style"] (); br ();
+     div ~a:[a_class ["some_class"];] [pcdata "div with style"]]
+
+let () =
+  My_appl.register ~service:service_style1
+    (fun () () ->
+      My_appl.add_header
+	(Eliom_output.Html5.css_link
+           (Eliom_output.Html5.make_uri
+              ~service:(Eliom_services.static_dir ()) ["test_style1.css"]) ());
+      page_css_test ());
+  My_appl.register ~service:service_style2
+    (fun () () ->
+      My_appl.add_header
+	(Eliom_output.Html5.css_link
+           (Eliom_output.Html5.make_uri
+              ~service:(Eliom_services.static_dir ()) ["test_style2.css"]) ());
+      page_css_test ());
+  My_appl.register ~service:service_no_style
+    (fun () () ->
+      page_css_test ());
+
+(*wiki*
 ===Events with arrows
 
  *wiki*)

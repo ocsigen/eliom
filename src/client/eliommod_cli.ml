@@ -56,7 +56,7 @@ let nodes : (int, Dom_html.element Js.t) Hashtbl.t =
 let set_node_id node (_,id) =
   Hashtbl.replace nodes id node
 
-let retrieve_node (_,id) =
+let retrieve_node id =
   Hashtbl.find nodes id
 
 let rebuild_attrib a =
@@ -72,7 +72,7 @@ let rec rebuild_xml timeofday (root,id) : Dom_html.element Js.t =
   let open Eliom_types in
   let node =
     match root with
-    | Ref i -> ( retrieve_node (timeofday,i) :> Dom.node Js.t )
+    | Ref i -> ( retrieve_node i :> Dom.node Js.t )
     | Empty -> XML.empty ()
     | Comment s -> XML.comment s
     | EncodedPCDATA s -> XML.encodedpcdata s
@@ -118,6 +118,26 @@ let relink_dom_list =
   (relink_dom_list :  _ ->  Dom.node Dom.nodeList Js.t -> _
                    :> _ -> #Dom.node Dom.nodeList Js.t -> _)
 
+let previous_headers = ref []
+
+let mark_header (_,XML.Ref_tree (id, _)) =
+  match id with
+    | Some id -> previous_headers := id::!previous_headers
+    | None -> ()
+
+let replace_headers nodes =
+  let kept_headers,
+    new_headers =
+    List.partition (fun x -> List.mem x !previous_headers) nodes in
+  let removed_headers = List.filter (fun x -> not (List.mem x kept_headers))
+    !previous_headers in
+  let head = Dom_html.window##document##head in
+  List.iter (fun id -> Dom.removeChild head (retrieve_node id))
+    removed_headers;
+  List.iter (fun id -> Dom.appendChild head (retrieve_node id))
+    new_headers;
+  previous_headers := nodes
+
 (* == unwraping server data *)
 
 let unwrap (key : 'a Eliom_types.data_key) : 'a =
@@ -127,8 +147,8 @@ let unwrap (key : 'a Eliom_types.data_key) : 'a =
 (* let unwrap_sp = unwrap *)
 
 let unwrap_node k =
-  retrieve_node (Eliom_types.of_data_key_ k)
+  retrieve_node (snd (Eliom_types.of_data_key_ k))
 
-let internal_node_unwrap (k,unwrapper) = retrieve_node (0L,k)
+let internal_node_unwrap (k,unwrapper) = retrieve_node k
 
 let () = Eliom_unwrap.register_unwrapper Eliom_common.node_unwrap_id internal_node_unwrap

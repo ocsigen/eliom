@@ -60,7 +60,8 @@ module String : sig
 
   module Table : Map.S with type key = string
                         and type 'a t = 'a Ocsigen_pervasives.String.Table.t
-
+  module Set : Set.S with type elt = string
+		     and type t = Ocsigen_pervasives.String.Set.t
 end
 
 module Url : sig

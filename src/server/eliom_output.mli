@@ -136,6 +136,8 @@ module type Eliom_appl = sig
   *)
   val application_name : string
 
+  val add_header : HTML5_types.head_content_fun HTML5.M.elt -> unit Lwt.t
+
 end
 
 module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl
