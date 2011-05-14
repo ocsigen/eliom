@@ -600,34 +600,6 @@ let sp_of_option sp =
     | Some sp -> sp
 
 (*****************************************************************************)
-(* Lazy site value: each site have a different value *)
-(* Evaluated values are never collected by the GC, the table always
-   keeps a reference on it. *)
-(* there is no test for cycles *)
-
-type 'a lazy_site_value =
-    { lazy_sv_fun : unit -> 'a;
-      lazy_sv_key : 'a Polytables.key }
-
-let force_lazy_site_value v =
-  let sp = get_sp () in
-  try Polytables.get
-	~table:sp.sp_sitedata.lazy_site_value_table
-	~key:v.lazy_sv_key
-  with
-    | Not_found ->
-      let value = v.lazy_sv_fun () in
-      Polytables.set
-	~table:sp.sp_sitedata.lazy_site_value_table
-	~key:v.lazy_sv_key
-	~value;
-      value
-
-let lazy_site_value_from_fun f =
-  { lazy_sv_key = Polytables.make_key ();
-    lazy_sv_fun = f }
-
-(*****************************************************************************)
 (* The current registration directory *)
 let absolute_change_sitedata,
   get_current_sitedata,
@@ -685,6 +657,44 @@ let global_register_allowed () =
     && (during_eliom_module_loading ())
   then Some get_current_sitedata
   else None
+
+(*****************************************************************************)
+(* Lazy site value: each site have a different value *)
+(* Evaluated values are never collected by the GC, the table always
+   keeps a reference on it. *)
+(* there is no test for cycles *)
+
+type 'a lazy_site_value =
+    { lazy_sv_fun : unit -> 'a;
+      lazy_sv_key : 'a Polytables.key }
+
+let force_lazy_site_value v =
+  let sitedata = 
+  match get_sp_option () with
+    | Some sp -> sp.sp_sitedata
+    | None ->
+      match global_register_allowed () with
+	| Some f -> f ()
+	| None ->
+          raise (Eliom_site_information_not_available
+		   "force_lazy_site_value")
+  in
+  try Polytables.get
+	~table:sitedata.lazy_site_value_table
+	~key:v.lazy_sv_key
+  with
+    | Not_found ->
+      let value = v.lazy_sv_fun () in
+      Polytables.set
+	~table:sitedata.lazy_site_value_table
+	~key:v.lazy_sv_key
+	~value;
+      value
+
+let lazy_site_value_from_fun f =
+  { lazy_sv_key = Polytables.make_key ();
+    lazy_sv_fun = f }
+
 
 (*****************************************************************************)
 (*****************************************************************************)
