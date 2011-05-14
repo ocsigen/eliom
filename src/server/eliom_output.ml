@@ -2887,8 +2887,6 @@ module type Eliom_appl = sig
   *)
   val application_name : string
 
-  val add_header : HTML5_types.head_content_fun HTML5.M.elt -> unit Lwt.t
-
 end
 
 module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
@@ -2909,11 +2907,11 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
   *)
   let application_name = Appl_params.application_name
 
-  let add_header h =
-    lwt set = Eliom_references.get appl_css_ref in
-    Eliom_references.set appl_css_ref (Html5_Header_set.add h set)
-
 end
+
+let add_header h =
+  lwt set = Eliom_references.get appl_css_ref in
+  Eliom_references.set appl_css_ref (Html5_Header_set.add h set)
 
 (*****************************************************************************)
 
