@@ -2511,12 +2511,6 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
-module Html5_Header_set = Set.Make(
-  struct
-    type t = HTML5_types.head_content_fun HTML5.M.elt
-    let compare x1 x2 = compare (XML.ref_node (HTML5.M.toelt x1)) (XML.ref_node (HTML5.M.toelt x2))
-  end)
-
 type appl_service_params =
     {
       ap_title: string;
@@ -2554,7 +2548,14 @@ let default_appl_params =
   }
 
 let comet_service_key = Polytables.make_key ()
-let appl_css_ref = Eliom_references.eref ~scope:`Request Html5_Header_set.empty
+
+module Html5_Header_set = Set.Make(
+  struct
+    type t = HTML5_types.head_content_fun HTML5.M.elt
+    let compare x1 x2 = compare (XML.ref_node (HTML5.M.toelt x1)) (XML.ref_node (HTML5.M.toelt x2))
+  end)
+
+let appl_html_header_ref = Eliom_references.eref ~scope:`Request Html5_Header_set.empty
 
 (*CPE* change_page_event
 let change_current_page_key : ('a -> unit) Polytables.key =
@@ -2787,7 +2788,7 @@ redir ();"))::
       *)
       sp.Eliom_common.sp_client_appl_name = Some Appl_params.application_name
     in
-    lwt added_header = Eliom_references.get appl_css_ref in
+    lwt added_header = Eliom_references.get appl_html_header_ref in
     (if content_only
      then begin
        let rc = Eliom_request_info.get_request_cache_sp sp in
@@ -2909,9 +2910,9 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
 
 end
 
-let add_header h =
-  lwt set = Eliom_references.get appl_css_ref in
-  Eliom_references.set appl_css_ref (Html5_Header_set.add h set)
+let add_html_header h =
+  lwt set = Eliom_references.get appl_html_header_ref in
+  Eliom_references.set appl_html_header_ref (Html5_Header_set.add h set)
 
 (*****************************************************************************)
 

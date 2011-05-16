@@ -943,14 +943,14 @@ let page_css_test () =
 let () =
   My_appl.register ~service:service_style1
     (fun () () ->
-      Eliom_output.add_header
+      Eliom_output.add_html_header
 	(Eliom_output.Html5.css_link
            (Eliom_output.Html5.make_uri
               ~service:(Eliom_services.static_dir ()) ["test_style1.css"]) ());
       page_css_test ());
   My_appl.register ~service:service_style2
     (fun () () ->
-      Eliom_output.add_header
+      Eliom_output.add_html_header
 	(Eliom_output.Html5.css_link
            (Eliom_output.Html5.make_uri
               ~service:(Eliom_services.static_dir ()) ["test_style2.css"]) ());

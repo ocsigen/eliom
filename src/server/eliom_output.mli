@@ -140,8 +140,8 @@ end
 
 module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl
 
-val add_header : HTML5_types.head_content_fun HTML5.M.elt -> unit Lwt.t
-(** [add_header header] add a header to be sent with the current page *)
+val add_html_header : HTML5_types.head_content_fun HTML5.M.elt -> unit Lwt.t
+(** [add_html_header header] add a header to be sent with the current page *)
 
 (** {3 Module to register subpages of type [block]} *)
 
