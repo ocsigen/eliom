@@ -300,8 +300,8 @@ module XML = struct
       node.ref <- fresh_ref () ;
     node.ref
 
+  (* Sparse tree: allow to associate id to XML node. *)
   type ref_tree = Ref_tree of int option * (int * ref_tree) list
-
 
   let rec make_ref_tree_list l =
     let rec map i = function

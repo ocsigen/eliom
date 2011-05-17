@@ -81,7 +81,7 @@ module Html5_make_reg_base
 
   let send ?(options = ()) ?charset ?code
       ?content_type ?headers content =
-    Html5_content.result_of_content content >>= fun r ->
+    lwt r = Html5_content.result_of_content content in
     let open Ocsigen_http_frame in
     Lwt.return
       {r with
@@ -1081,27 +1081,25 @@ module Xhtml_make_reg_base
 
   let send_appl_content = Eliom_services.XNever
 
-  let send ?options ?charset ?code
-      ?content_type ?headers content =
-    let open Ocsigen_http_frame in
-    Xhtml_content.result_of_content content >>= fun r ->
+  let send ?options ?charset ?code ?content_type ?headers content =
+    lwt r = Xhtml_content.result_of_content content in
     Lwt.return
       {r with
-         res_cookies= Eliom_request_info.get_user_cookies ();
-         res_code= code_of_code_option code;
-         res_charset= (match charset with
-                         | None -> Some (Eliom_config.get_config_default_charset ())
-                         | _ -> charset
-                      );
-         res_content_type= (match content_type with
-                              | None -> r.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> r.res_headers
-                         | Some headers ->
-                             Http_headers.with_defaults headers r.res_headers
-                      );
+         Ocsigen_http_frame.
+	 res_cookies = Eliom_request_info.get_user_cookies ();
+         res_code    = code_of_code_option code;
+         res_charset = (match charset with
+           | None -> Some (Eliom_config.get_config_default_charset ())
+           | _ -> charset);
+         res_content_type = (match content_type with
+           | None -> r.Ocsigen_http_frame.res_content_type
+           | _ -> content_type
+         );
+         res_headers = (match headers with
+           | None -> r.Ocsigen_http_frame.res_headers
+           | Some headers ->
+             Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
+         );
       }
 
 end
@@ -1162,28 +1160,26 @@ module Make_TypedXML_Registration
 
       let send_appl_content = Eliom_services.XNever
 
-      let send ?options ?charset ?code
-          ?content_type ?headers content =
-        Cont_content.result_of_content content >>= fun r ->
-        let open Ocsigen_http_frame in
+      let send ?options ?charset ?code ?content_type ?headers content =
+        lwt r = Cont_content.result_of_content content in
         Lwt.return
-          {r with
-	     res_cookies= Eliom_request_info.get_user_cookies ();
-             res_code= code_of_code_option code;
-             res_charset= (match charset with
-                           | None -> Some (Eliom_config.get_config_default_charset ())
-                           | _ -> charset);
-             res_content_type= (match content_type with
-				| None -> r.res_content_type
-				| _ -> content_type
-                               );
-             res_headers= (match headers with
-                           | None -> r.res_headers
-                           | Some headers ->
-                               Http_headers.with_defaults
-				 headers r.res_headers
-                          );
-
+          { r with
+	    Ocsigen_http_frame.
+	    res_cookies = Eliom_request_info.get_user_cookies ();
+            res_code    = code_of_code_option code;
+            res_charset = (match charset with
+              | None -> Some (Eliom_config.get_config_default_charset ())
+              | _ -> charset);
+            res_content_type = (match content_type with
+	      | None -> r.Ocsigen_http_frame.res_content_type
+	      | _ -> content_type
+            );
+            res_headers = (match headers with
+              | None -> r.Ocsigen_http_frame.res_headers
+              | Some headers ->
+                Http_headers.with_defaults
+		  headers r.Ocsigen_http_frame.res_headers
+            );
           }
 
     end
@@ -1213,26 +1209,25 @@ module Text_reg_base = struct
 
   let send_appl_content = Eliom_services.XNever
 
-  let send ?options ?charset ?code
-      ?content_type ?headers content =
-    Ocsigen_senders.Text_content.result_of_content content >>= fun r ->
-    let open Ocsigen_http_frame in
+  let send ?options ?charset ?code ?content_type ?headers content =
+    lwt r = Ocsigen_senders.Text_content.result_of_content content in
     Lwt.return
-      {r with
-         res_cookies= Eliom_request_info.get_user_cookies ();
-         res_code= code_of_code_option code;
-         res_charset= (match charset with
-                         | None ->  Some (Eliom_config.get_config_default_charset ())
-                         | _ -> charset);
-         res_content_type= (match content_type with
-                              | None -> r.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> r.res_headers
-                         | Some headers ->
-                             Http_headers.with_defaults headers r.res_headers
-                      );
+      { r with
+        Ocsigen_http_frame.
+	res_cookies = Eliom_request_info.get_user_cookies ();
+        res_code    = code_of_code_option code;
+        res_charset = (match charset with
+          | None ->  Some (Eliom_config.get_config_default_charset ())
+          | _ -> charset);
+        res_content_type = (match content_type with
+          | None -> r.Ocsigen_http_frame.res_content_type
+          | _ -> content_type
+        );
+        res_headers = (match headers with
+          | None -> r.Ocsigen_http_frame.res_headers
+          | Some headers ->
+            Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
+        );
       }
 
 end
@@ -1252,28 +1247,26 @@ module CssText_reg_base = struct
 
   let send_appl_content = Eliom_services.XNever
 
-  let send ?options ?charset ?code
-     ?content_type ?headers content =
-    Ocsigen_senders.Text_content.result_of_content (content, "text/css")
-    >>= fun r ->
-    let open Ocsigen_http_frame in
+  let send ?options ?charset ?code ?content_type ?headers content =
+    lwt r =
+      Ocsigen_senders.Text_content.result_of_content (content, "text/css") in
     Lwt.return
-      {r with
-         res_cookies= Eliom_request_info.get_user_cookies ();
-         res_code= code_of_code_option code;
-         res_charset= (match charset with
-                         | None -> Some (Eliom_config.get_config_default_charset ())
-                         | _ -> charset);
-         res_content_type= (match content_type with
-                              | None -> r.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> r.res_headers
-                         | Some headers ->
-                             Http_headers.with_defaults
-                               headers r.res_headers
-                      );
+      { r with
+        Ocsigen_http_frame.
+	res_cookies = Eliom_request_info.get_user_cookies ();
+        res_code    = code_of_code_option code;
+        res_charset = (match charset with
+          | None -> Some (Eliom_config.get_config_default_charset ())
+          | _ -> charset);
+        res_content_type = (match content_type with
+          | None -> r.Ocsigen_http_frame.res_content_type
+          | _ -> content_type
+        );
+        res_headers = (match headers with
+          | None -> r.Ocsigen_http_frame.res_headers
+          | Some headers ->
+            Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
+        );
       }
 
 end
@@ -1293,27 +1286,26 @@ module HtmlText_reg_base = struct
 
   let send_appl_content = Eliom_services.XNever
 
-  let send ?options ?charset ?code
-      ?content_type ?headers content =
-    Ocsigen_senders.Text_content.result_of_content (content, "text/html")
-    >>= fun r ->
-    let open Ocsigen_http_frame in
+  let send ?options ?charset ?code ?content_type ?headers content =
+    lwt r =
+      Ocsigen_senders.Text_content.result_of_content (content, "text/html") in
     Lwt.return
-      {r with
-         res_cookies= Eliom_request_info.get_user_cookies ();
-         res_code= code_of_code_option code;
-         res_charset= (match charset with
-                         | None -> Some (Eliom_config.get_config_default_charset ())
-                         | _ -> charset);
-         res_content_type= (match content_type with
-                              | None -> r.res_content_type
-                              | _ -> content_type
-                           );
-         res_headers= (match headers with
-                         | None -> r.res_headers
-                         | Some headers ->
-                             Http_headers.with_defaults headers r.res_headers
-                      );
+      { r with
+        Ocsigen_http_frame.
+	res_cookies = Eliom_request_info.get_user_cookies ();
+        res_code    = code_of_code_option code;
+        res_charset = (match charset with
+          | None -> Some (Eliom_config.get_config_default_charset ())
+          | _ -> charset);
+        res_content_type = (match content_type with
+          | None -> r.Ocsigen_http_frame.res_content_type
+          | _ -> content_type
+        );
+        res_headers = (match headers with
+          | None -> r.Ocsigen_http_frame.res_headers
+          | Some headers ->
+            Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
+        );
       }
 
 end
@@ -1597,156 +1589,142 @@ module Action_reg_base = struct
       let ri = Eliom_request_info.get_request_sp sp in
       let open Ocsigen_extensions in
       let open Ocsigen_http_frame in
-      (match (si.Eliom_common.si_nonatt_info,
-              si.Eliom_common.si_state_info,
-              ri.request_info.ri_method) with
-          | (Eliom_common.RNa_no,
-             (Eliom_common.RAtt_no, Eliom_common.RAtt_no),
-             Ocsigen_http_frame.Http_header.GET) ->
-            let empty_result = Ocsigen_http_frame.empty_result () in
-            Lwt.return empty_result
-          | _ ->
-            let all_cookie_info = sp.Eliom_common.sp_cookie_info
-            in
-            Eliommod_cookies.compute_new_ri_cookies
-              (Unix.time ())
-              ri.request_info.ri_sub_path
-              (Lazy.force ri.request_info.ri_cookies)
+      match (si.Eliom_common.si_nonatt_info,
+		       si.Eliom_common.si_state_info,
+		       ri.request_info.ri_method) with
+        | (Eliom_common.RNa_no,
+           (Eliom_common.RAtt_no, Eliom_common.RAtt_no),
+           Ocsigen_http_frame.Http_header.GET) ->
+          let empty_result = Ocsigen_http_frame.empty_result () in
+          Lwt.return empty_result
+        | _ ->
+          let all_cookie_info = sp.Eliom_common.sp_cookie_info in
+          lwt ric = Eliommod_cookies.compute_new_ri_cookies
+            (Unix.time ())
+            ri.request_info.ri_sub_path
+            (Lazy.force ri.request_info.ri_cookies)
+            all_cookie_info
+            user_cookies
+	  in
+	  lwt all_new_cookies =
+	    Eliommod_cookies.compute_cookies_to_send
+	      sitedata
               all_cookie_info
-              user_cookies
-            >>= fun ric ->
+              user_cookies in
 
-            Eliommod_cookies.compute_cookies_to_send
-              sitedata
-              all_cookie_info
-              user_cookies
-            >>= fun all_new_cookies ->
+	  (* Now tab cookies:
+             As tab cookies are sent only by Eliom_app services,
+             we just need to keep them in rc.
+             If the fallback service is not Eliom_app, they will
+             be lost.
+	  *)
+	  let rc = Eliom_request_info.get_request_cache_sp sp in
+	  Polytables.set
+            ~table:rc
+            ~key:Eliom_common.tab_cookie_action_info_key
+            ~value:(sp.Eliom_common.sp_tab_cookie_info,
+                    sp.Eliom_common.sp_user_tab_cookies,
+                    si.Eliom_common.si_tab_cookies
+            );
 
-            (* Now tab cookies:
-               As tab cookies are sent only by Eliom_app services,
-               we just need to keep them in rc.
-               If the fallback service is not Eliom_app, they will
-               be lost.
-            *)
-            let rc = Eliom_request_info.get_request_cache_sp sp in
-            Polytables.set
-              ~table:rc
-              ~key:Eliom_common.tab_cookie_action_info_key
-              ~value:(sp.Eliom_common.sp_tab_cookie_info,
-                      sp.Eliom_common.sp_user_tab_cookies,
-                      si.Eliom_common.si_tab_cookies
-              );
+	  (* Now removing some parameters to decide the following service: *)
+	  match (si.Eliom_common.si_nonatt_info,
+		 si.Eliom_common.si_state_info,
+		 ri.request_info.ri_method) with
+            | (Eliom_common.RNa_get_ _,
+               (_, Eliom_common.RAtt_no),
+               Ocsigen_http_frame.Http_header.GET)
+            | (Eliom_common.RNa_get' _,
+               (_, Eliom_common.RAtt_no),
+               Ocsigen_http_frame.Http_header.GET)
+            (* no post params, GET na coservice *)
+            | (Eliom_common.RNa_no,
+               (_, Eliom_common.RAtt_no),
+               Ocsigen_http_frame.Http_header.GET)
+              (* no post params, GET attached coservice *)
+              ->
+              Polytables.set
+		ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+		Eliom_common.eliom_params_after_action
+		(si.Eliom_common.si_all_get_params,
+		 si.Eliom_common.si_all_post_params, (* is Some [] *)
+		 si.Eliom_common.si_nl_get_params,
+		 si.Eliom_common.si_nl_post_params,
+		 si.Eliom_common.si_all_get_but_nl);
+		(*VVV Also put all_cookie_info in this,
+		  to avoid update_cookie_table and get_cookie_info (?)
+		*)
+		let ri =
+		  { ri.request_info with
+                    ri_cookies= lazy ric;
+                    ri_get_params =
+                      lazy si.Eliom_common.si_other_get_params;
+		  (* Here we modify ri,
+                     thus the request can be taken by other extensions,
+                     with its new parameters *)
+		  }
+		in
+		lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
+		send_directly ri (Ocsigen_extensions.compute_result
+                                    ~previous_cookies:all_new_cookies ri)
 
-            (* Now removing some parameters to decide the following service: *)
-            (match
-                (si.Eliom_common.si_nonatt_info,
-                 si.Eliom_common.si_state_info,
-                 ri.request_info.ri_method)
-             with
-               | (Eliom_common.RNa_get_ _,
-                  (_, Eliom_common.RAtt_no),
-                  Ocsigen_http_frame.Http_header.GET)
-               | (Eliom_common.RNa_get' _,
-                  (_, Eliom_common.RAtt_no),
-                  Ocsigen_http_frame.Http_header.GET)
-                  (* no post params, GET na coservice *)
-               | (Eliom_common.RNa_no,
-                  (_, Eliom_common.RAtt_no),
-                  Ocsigen_http_frame.Http_header.GET)
-                    (* no post params, GET attached coservice *)
-             ->
-                 Polytables.set
-                   ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-                   Eliom_common.eliom_params_after_action
-                   (si.Eliom_common.si_all_get_params,
-                    si.Eliom_common.si_all_post_params, (* is Some [] *)
-                    si.Eliom_common.si_nl_get_params,
-                    si.Eliom_common.si_nl_post_params,
-                    si.Eliom_common.si_all_get_but_nl (*204FORMS*,
-                    si.Eliom_common.si_internal_form *))
-(*VVV Also put all_cookie_info in this,
-  to avoid update_cookie_table and get_cookie_info (?)
-*)
-               ;
-               let ri =
-                 {ri.request_info with
-                   ri_cookies= lazy ric;
-                   ri_get_params =
-                     lazy si.Eliom_common.si_other_get_params;
-                 (* Here we modify ri,
-                    thus the request can be taken by other extensions,
-                    with its new parameters *)
-                 }
-               in
-               Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
-               >>= fun () ->
-               send_directly ri (Ocsigen_extensions.compute_result
-                                   ~previous_cookies:all_new_cookies ri)
+            | (Eliom_common.RNa_post_ _, (_, _), _)
+            | (Eliom_common.RNa_post' _, (_, _), _) ->
+              (* POST na coservice *)
+              (* retry without POST params *)
 
+              Polytables.set
+		ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+		Eliom_common.eliom_params_after_action
+		(si.Eliom_common.si_all_get_params,
+		 si.Eliom_common.si_all_post_params,
+		 si.Eliom_common.si_nl_get_params,
+		 si.Eliom_common.si_nl_post_params,
+		 si.Eliom_common.si_all_get_but_nl);
+              let ri =
+		{ ri.request_info with
+		  ri_method = Ocsigen_http_frame.Http_header.GET;
+		  ri_cookies= lazy ric;
+		  ri_get_params =
+                    lazy si.Eliom_common.si_other_get_params;
+		  ri_post_params = Some (fun _ -> Lwt.return []);
+		  ri_files = Some (fun _ -> Lwt.return []);
+		}
+              in
+              lwt () = Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
+              send_directly ri (Ocsigen_extensions.compute_result
+				  ~previous_cookies:all_new_cookies ri)
 
-               | (Eliom_common.RNa_post_ _, (_, _), _)
-               | (Eliom_common.RNa_post' _, (_, _), _) ->
-                      (* POST na coservice *)
-                      (* retry without POST params *)
-
-                 Polytables.set
-                   ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-                   Eliom_common.eliom_params_after_action
-                   (si.Eliom_common.si_all_get_params,
-                    si.Eliom_common.si_all_post_params,
-                    si.Eliom_common.si_nl_get_params,
-                    si.Eliom_common.si_nl_post_params,
-                    si.Eliom_common.si_all_get_but_nl (*204FORMS*,
-                    si.Eliom_common.si_internal_form *))
-                 ;
-                 let ri =
-                   {ri.request_info with
-                     ri_method = Ocsigen_http_frame.Http_header.GET;
-                     ri_cookies= lazy ric;
-                     ri_get_params =
-                       lazy si.Eliom_common.si_other_get_params;
-                     ri_post_params = Some (fun _ -> Lwt.return []);
-                     ri_files = Some (fun _ -> Lwt.return []);
-                   }
-                 in
-                 Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
-                 >>= fun () ->
-                 send_directly ri (Ocsigen_extensions.compute_result
-                                     ~previous_cookies:all_new_cookies ri)
-
-               | _ ->
-                 (* retry without POST params *)
-(*VVV
-  Warning: is it possible to have an Eliom service with POST method
-  but no POST parameter?
-  --> may loop...
-  (we impose GET to prevent that)
-*)
-                 Polytables.set
-                   ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
-                   Eliom_common.eliom_params_after_action
-                   (si.Eliom_common.si_all_get_params,
-                    si.Eliom_common.si_all_post_params,
-                    si.Eliom_common.si_nl_get_params,
-                    si.Eliom_common.si_nl_post_params,
-                    si.Eliom_common.si_all_get_but_nl (*204FORMS*,
-                    si.Eliom_common.si_internal_form *))
-                 ;
-                 let ri =
-                   {ri.request_info with
-                     ri_method = Ocsigen_http_frame.Http_header.GET;
-                     ri_cookies= lazy ric;
-                     ri_get_params =
-                       lazy si.Eliom_common.si_other_get_params;
-                     ri_post_params = Some (fun _ -> Lwt.return []);
-                     ri_files = Some (fun _ -> Lwt.return []);
-                   }
-                 in
-                 Eliommod_pagegen.update_cookie_table sitedata all_cookie_info
-                 >>= fun () ->
-                 send_directly ri (Ocsigen_extensions.compute_result
-                                     ~previous_cookies:all_new_cookies ri))
-      )
+            | _ ->
+              (* retry without POST params *)
+	      (*VVV
+		Warning: is it possible to have an Eliom service with POST method
+		but no POST parameter?
+		--> may loop...
+		(we impose GET to prevent that)
+	      *)
+              Polytables.set
+		ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_request_cache
+		Eliom_common.eliom_params_after_action
+		(si.Eliom_common.si_all_get_params,
+		 si.Eliom_common.si_all_post_params,
+		 si.Eliom_common.si_nl_get_params,
+		 si.Eliom_common.si_nl_post_params,
+		 si.Eliom_common.si_all_get_but_nl);
+              let ri =
+		{ ri.request_info with
+		  ri_method = Ocsigen_http_frame.Http_header.GET;
+		  ri_cookies= lazy ric;
+		  ri_get_params =
+                    lazy si.Eliom_common.si_other_get_params;
+		  ri_post_params = Some (fun _ -> Lwt.return []);
+		  ri_files = Some (fun _ -> Lwt.return []);
+		}
+              in
+              lwt () =
+		Eliommod_pagegen.update_cookie_table sitedata all_cookie_info in
+              send_directly ri (Ocsigen_extensions.compute_result
+				  ~previous_cookies:all_new_cookies ri)
 
 end
 
@@ -2557,13 +2535,41 @@ module Html5_Header_set = Set.Make(
 
 let appl_html_header_ref = Eliom_references.eref ~scope:`Request Html5_Header_set.empty
 
-(*CPE* change_page_event
-let change_current_page_key : ('a -> unit) Polytables.key =
-  Polytables.make_key ()
-*)
+let redirection_script =
+  (* This will do a redirection if there is a #! in the URL *)
+  let script =
+    "// Redirect if the URL contains #! while loading the page\n"
+    ^ "function redir () {\n"
+    ^ "  var str_url = window.location.toString() ;\n"
+    ^ "  try{\n"
+    ^ "    var match = str_url.match(\"((https?://[^/]*).*)/[^#/?]*(\\\\?.*)?#!((https?://[^/]*/)?(/)?(.*))$\");\n"
+    ^ "          //but what if there's a # the search ?\n"
+    ^ "    if(match) {\n"
+    ^ "      if(match[5]) { // full absolute\n"
+    ^ "        window.location = match[4];\n"
+    ^ "      }\n"
+    ^ "      else\n"
+    ^ "      if(match[6]) { // absolute path\n"
+    ^ "        window.location = match[2] + match[4];\n"
+    ^ "      }\n"
+    ^ "      else { // relative\n"
+    ^ "        window.location = match[1] + \"/\" + match[4] ;\n"
+    ^ "      }\n"
+    ^ "    }\n"
+    ^ "  } catch(e) {} ;\n"
+    ^ "};\n"
+    ^ "redir ();" in
+  HTML5.M.script (HTML5.M.cdata_script script)
+
+let eliom_css =
+  let css =
+    "\n"
+    ^ ".eliom_inline {display: inline}\n"
+    ^ ".eliom_nodisplay {display: none}\n" in
+  HTML5.M.style [HTML5.M.pcdata css]
 
 module Eliom_appl_reg_make_param
-  (Xhtml_content
+  (Html5_content
      : Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] HTML5.M.elt)
   (Appl_params : APPL_PARAMS) = struct
 
@@ -2574,180 +2580,110 @@ module Eliom_appl_reg_make_param
   type options = appl_service_options
   type return = Eliom_services.appl_service
 
-  let eliom_appl_state_name = "__eliom_appl_name"
-
   let get_tab_cook sp =
     Eliommod_cookies.compute_cookies_to_send
       sp.Eliom_common.sp_sitedata
       sp.Eliom_common.sp_tab_cookie_info
       sp.Eliom_common.sp_user_tab_cookies
 
-  let create_page
-      ~options ~sp added_headers_set cpi params cookies_to_send
-      (*CPE* change_page_event *) content =
-    let do_not_launch = options.do_not_launch
-        (* ||
-           (Ocsigen_cookies.length tab_cookies_to_send > 1)
-        (* If there are cookies, we launch the application *)
-           Actually, no, we trust options ...
-           Because we must decide whether to launch
-           the application or not before creating links and forms.
-        *)
+  let init_global_js_data ~sp cpi added_headers cookies_to_send container_node body =
+
+    let onload_form_creators =
+      Eliommod_cli.wrap (Eliom_services.get_onload_form_creators
+                           Appl_params.application_name sp) in
+    let eliom_appl_page_data =
+      Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)
     in
-    let body, container_node = match params.ap_container with
-      | None -> let b = HTML5.M.body ?a:params.ap_body_attributes content in
-                (b, (HTML5.M.toelt b))
-      | Some (a, container) ->
-        let d = HTML5.M.div ?a content in
-        (HTML5.M.body
-           ?a:params.ap_body_attributes
-           (container d),
-         (HTML5.M.toelt d))
-    in
-    ignore (Eliom_xml.make_node_id container_node); (* The ref must be created
-						       for container before
-						       calling make_ref_tree! *)
 
-    let added_headers = Html5_Header_set.elements added_headers_set in
-
-    let head_before =
-      (* added headers must be the first headers to have the right ref_tree *)
-      added_headers@
-      params.ap_headers_before in
-
-    HTML5.M.html
-      (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata params.ap_title))
-         (
-	   head_before@
-           HTML5.M.style
-             [
-               HTML5.M.pcdata
-                 "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"]::
-
-             (* This will do a redirection if there is a #! in the URL *)
-             HTML5.M.script
-             (cdata_script
-                ("// Redirect if the URL contains #! while loading the page
-function redir () {
-  var str_url = window.location.toString() ;
-  try{
-    var match = str_url.match(\"((https?://[^/]*).*)/[^#/?]*(\\\\?.*)?#!((https?://[^/]*/)?(/)?(.*))$\");
-          //but what if there's a # the search ?
-    if(match) {
-      if(match[5]) { // full absolute
-        window.location = match[4];
-      }
-      else
-      if(match[6]) { // absolute path
-        window.location = match[2] + match[4];
-      }
-      else { // relative
-        window.location = match[1] + \"/\" + match[4] ;
-      }
-    }
-  } catch(e) {} ;
-};
-redir ();"))::
-
-	 let onload_form_creators =
-	   Eliommod_cli.wrap (Eliom_services.get_onload_form_creators
-                                Appl_params.application_name sp) in
-	 let eliom_appl_page_data =
-           Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)
-         in
-	 Eliom_xml.mark_sent (HTML5.M.toelt body);
-	 List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) added_headers;
-	 let contents_to_send = Eliom_xml.contents_to_send () in
+    Eliom_xml.mark_sent (HTML5.M.toelt body);
+    List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) added_headers;
+    let contents_to_send = Eliom_xml.contents_to_send () in
 	 (* makes the id for the added header:
 	    The first header is the title element, so those elements
 	    starts at position 1 and not 0 *)
-	 let added_headers = Left
-	   (List.map (fun (i,r) -> (i+1,r))
-	   (Eliom_xml.make_ref_tree_list 
-	      (List.map HTML5.M.toelt added_headers))) in
+    let added_headers = Left
+      (List.map (fun (i,r) -> (i+1,r))
+	 (Eliom_xml.make_ref_tree_list
+	    (List.map HTML5.M.toelt added_headers))) in
 
-             if not do_not_launch
-             then
-               HTML5.M.script
-                 (cdata_script
-                    (
-                      String.concat
-                        ""
-                        [
-                          "var container_node = \'";
-                          (let reqnum = Eliom_request_info.get_request_id_sp sp in
-                           (Eliom_types.jsmarshal
-                              (Eliom_types.to_data_key_
-                                 (*(reqnum, XML.ref_node container_node))*)
-                                 (reqnum, Eliom_xml.make_node_id container_node))
-                           )) ; "\'; \n";
+    let eliom_data : Eliom_types.eliom_data_type =
+      Left
+	(Eliom_xml.make_ref_tree (HTML5.M.toelt body)),
+      contents_to_send,
+      added_headers,
+      eliom_appl_page_data,
+      cookies_to_send,
+      onload_form_creators,
+      Eliom_services.get_onload sp,
+      Eliom_services.get_onunload sp,
+      Eliommod_cli.client_si sp.Eliom_common.sp_si in
 
-                          "var eliom_data = \'" ;
-                          (Eliom_types.jsmarshal
-                             ((Left
-                                 (*(XML.make_ref_tree (HTML5.M.toelt body)),*)
-                                 (Eliom_xml.make_ref_tree (HTML5.M.toelt body)),
-                            (* Warning: due to right_to_left evaluation,
-                               make_ref_tree is called before the previous
-                               items. Do not create new node refs in
-                               previous items!
-                            *)
-                               contents_to_send,
-                               added_headers,
-                               eliom_appl_page_data,
-                               cookies_to_send,
-                               onload_form_creators,
-                               Eliom_services.get_onload sp,
-                               Eliom_services.get_onunload sp,
-                               Eliommod_cli.client_si sp.Eliom_common.sp_si
-                              ) :
-                                 Eliom_types.eliom_data_type
-                             )
-                          ) ; "\'; \n" ;
+    let reqnum = Eliom_request_info.get_request_id_sp sp in
+    let container_node =
+      Eliom_types.to_data_key_ (reqnum,
+				Eliom_xml.make_node_id container_node) in
 
-			  "var comet_service = \'" ;
-                          (Eliom_types.jsmarshal
-			     (Eliom_wrap.wrap
-				(Polytables.get
-                                   ~table:cpi.Eliom_common.cpi_references
-				   ~key:comet_service_key)
-                             )) ; "\'; \n" ;
+    let comet_service =
+      Eliom_wrap.wrap (Polytables.get
+			 ~table:cpi.Eliom_common.cpi_references
+			 ~key:comet_service_key) in
 
-(*CPE* change_page_event
-                          "var change_page_event = \'" ;
-                          (Eliom_client_types.jsmarshal
-                             (Eliommod_react.Down.wrap
-                                (Eliommod_react.Down.of_react change_page_event)
-                             )
-                          ) ; "\'; \n" ;
-*)
+    let sitedata = Eliommod_cli.client_sitedata sp in
 
-                          "var sitedata = \'" ;
-                          (Eliom_types.jsmarshal
-                             (Eliommod_cli.client_sitedata sp)
-                          ) ; "\'; \n"
+    let script =
+      Printf.sprintf
+	("var container_node = \'%s\'\n"
+	 ^^ "var eliom_data = \'%s\'\n"
+	 ^^ "var comet_service = \'%s\'\n"
+	 ^^ "var sitedata = \'%s\'\n")
+	(Eliom_types.jsmarshal container_node)
+	(Eliom_types.jsmarshal eliom_data)
+	(Eliom_types.jsmarshal comet_service)
+	(Eliom_types.jsmarshal sitedata)
+    in
 
-                        ]
+    HTML5.M.script (cdata_script script)
 
-                    )
-                 ) ::
-               (* Javascript program: *)
-               HTML5.M.script
-                   ~a:[a_src (Xhtml.make_uri
-                                ~service:(Eliom_services.static_dir ())
-                                [Appl_params.application_name ^ ".js"])]
-                 (pcdata "")::
-                 params.ap_headers_after
-             else params.ap_headers_before@params.ap_headers_after
+  let make_initial_headers ~sp cpi added_headers_set cookies_to_send container_node body =
+    let added_headers = Html5_Header_set.elements added_headers_set in
+    added_headers
+    @ [ eliom_css ;
+	redirection_script ;
+	init_global_js_data ~sp cpi added_headers cookies_to_send container_node body ;
+	(* Javascript program: *)
+	HTML5.M.script
+          ~a:[a_src (Xhtml.make_uri
+                       ~service:(Eliom_services.static_dir ())
+                       [Appl_params.application_name ^ ".js"])]
+          (pcdata "") ]
 
-         ))
+  let create_page ~options ~sp cpi added_headers_set params cookies_to_send content =
+
+    let body, container_node = match params.ap_container with
+      | None ->
+	  let b = HTML5.M.body ?a:params.ap_body_attributes content in
+          (b, (HTML5.M.toelt b))
+      | Some (a, container) ->
+          let d = HTML5.M.div ?a content in
+          (HTML5.M.body ?a:params.ap_body_attributes (container d),
+           (HTML5.M.toelt d)) in
+
+    HTML5.M.html
+      (HTML5.M.head
+	 (HTML5.M.title (HTML5.M.pcdata params.ap_title))
+	 ( params.ap_headers_before
+	   @ ( if not options.do_not_launch
+	       then make_initial_headers ~sp cpi added_headers_set cookies_to_send container_node body
+	       else [] )
+	   @ params.ap_headers_after ))
       body
 
   let send_appl_content = Eliom_services.XSame_appl Appl_params.application_name
 
 
   let get_eliom_page_content ~options sp added_headers_set content =
-    get_tab_cook sp >>= fun tab_cookies_to_send ->
+
+    lwt tab_cookies_to_send = get_tab_cook sp in
     let onload_form_creators =
       Eliommod_cli.wrap (Eliom_services.get_onload_form_creators Appl_params.application_name sp) in
     let eliom_appl_page_data = (Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
@@ -2757,7 +2693,6 @@ redir ();"))::
 	 (Html5_Header_set.elements added_headers_set)) in
     let contents_to_send = Eliom_xml.contents_to_send () in
 
-(*VVV Here we do not send a stream *)
     Lwt.return
       ((Right
           (Eliom_xml.make_ref_tree_list (HTML5.M.toeltl content)),
@@ -2770,7 +2705,6 @@ redir ();"))::
         Eliom_services.get_onunload sp,
         Eliommod_cli.client_si sp.Eliom_common.sp_si
        ),
-     (*VVV Use another serialization format than XML for the page? *)
        let b = Buffer.create 512 in
        HTML5.P.print_list ~output:(Buffer.add_string b) content;
        Buffer.contents b)
@@ -2779,7 +2713,6 @@ redir ();"))::
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
     let sp = Eliom_common.get_sp () in
-(*    let si = Eliom_request_info.get_si sp in *)
     let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in
     let content_only =
       (* If the name of the application sent by the browser
@@ -2802,42 +2735,16 @@ redir ();"))::
           without internal form info and taking "to_be_considered_as_get"
           into account*)
        in
-       get_eliom_page_content ~options sp added_header content >>= fun data ->
-(*204FORMS* old implementation of forms with 204 and change_page_event
-
-       if si.Eliom_common.si_internal_form
-       then begin (* It was an internal form.
-                     We want to change only the content.
-                     But the browser is not doing an xhr.
-                     We send 204 No Content
-                     and use the change_page_event to update the content. *)
-         let change_current_page = Polytables.get
-	   ~table:cpi.Eliom_common.cpi_references ~key:change_current_page_key
-         in
-         change_current_page (Eliom_services.EAContent (data, url_to_display));
-         Lwt.return (Ocsigen_http_frame.empty_result ())
-       end
-       else *)
+       lwt data = get_eliom_page_content ~options sp added_header content in
        Caml.send (EAContent (data, url_to_display))
      end
      else begin
-       (* We launch the client side process *)
+       (* We launcha the client side process *)
        let comet_service = Eliom_comet.init () in
        Polytables.set
          ~table:cpi.Eliom_common.cpi_references
          ~key:comet_service_key
 	 ~value:comet_service;
-(*CPE* change_page_event
-       let change_page_event, change_current_page =
-         (* This event allows the server to ask the client to change
-            current page content *)
-         React.E.create ()
-       in
-       Polytables.set
-         ~table:cpi.Eliom_common.cpi_references
-	 ~key:change_current_page_key
-	 ~value:change_current_page;
-*)
        Eliom_state.set_cookie
          ~cookie_scope:`Client_process
          ~name:Eliom_common.appl_name_cookie_name
@@ -2846,27 +2753,26 @@ redir ();"))::
 (*VVV for now not possible to give other params for one page *)
        let page =
          create_page
-           ~options ~sp added_header cpi Appl_params.params tab_cookies_to_send
-           (*CPE* change_page_event *) content
+           ~options ~sp cpi added_header Appl_params.params tab_cookies_to_send content
        in
-       lwt r = Xhtml_content.result_of_content page in
-        let open Ocsigen_http_frame in
+        lwt r = Html5_content.result_of_content page in
         Lwt.return
           {r with
-            res_cookies= Eliom_request_info.get_user_cookies ();
-            res_code= code_of_code_option code;
-            res_charset= (match charset with
+            Ocsigen_http_frame.
+	    res_cookies = Eliom_request_info.get_user_cookies ();
+            res_code    = code_of_code_option code;
+            res_charset = (match charset with
               | None -> Some (Eliom_config.get_config_default_charset ())
               | _ -> charset
             );
             res_content_type= (match content_type with
-              | None -> r.res_content_type
+              | None -> r.Ocsigen_http_frame.res_content_type
               | _ -> content_type
             );
             res_headers= (match headers with
-              | None -> r.res_headers
+              | None -> r.Ocsigen_http_frame.res_headers
               | Some headers ->
-                Http_headers.with_defaults headers r.res_headers
+                Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
             );
           }
      end
@@ -3054,37 +2960,6 @@ module Redir_reg_base = struct
       | Some anr ->
         (* the browser asked application eliom data
            for the application called anr *)
-(*204FORMS* old implementation of forms with 204 and change_page_event
-        let sp = Eliom_common.get_sp () in
-        let si = Eliom_request_info.get_si sp in
-        if si.Eliom_common.si_internal_form
-        then begin
-        (* If it comes from a form, we use the change_page_event *)
-          let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in
-          let change_current_page = Polytables.get
-	    ~table:cpi.Eliom_common.cpi_references ~key:change_current_page_key
-          in
-          (match Eliom_services.get_send_appl_content service with
-            (* the appl name of the destination service *)
-            | Eliom_services.XSame_appl an when (an = anr) ->
-            (* Same appl, we do a full xhr redirection
-               (not an http redirection, because we want to
-               send back tab cookies) *)
-              change_current_page (Eliom_services.EAFullRedir
-                                     (Eliom_services.pre_wrap service))
-
-            | Eliom_services.XAlways ->
-            (* It is probably an action, or a void coservice. Full xhr again *)
-              change_current_page (Eliom_services.EAFullRedir
-                                     (Eliom_services.pre_wrap service))
-            | _ -> (* No application, or another application.
-                      We ask the browser to do an HTTP redirection. *)
-              change_current_page
-                (Eliom_services.EAHalfRedir (Lazy.force uri)));
-          Lwt.return (Ocsigen_http_frame.empty_result ())
-        end
-        else
-*)
         (* If it comes from an xhr, we use answer with a special header field *)
           match Eliom_services.get_send_appl_content service with
           (* the appl name of the destination service *)
