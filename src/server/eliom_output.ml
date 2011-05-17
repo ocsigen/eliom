@@ -2598,25 +2598,27 @@ module Eliom_appl_reg_make_param
     Eliom_xml.mark_sent (HTML5.M.toelt body);
     List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) added_headers;
     let contents_to_send = Eliom_xml.contents_to_send () in
-	 (* makes the id for the added header:
-	    The first header is the title element, so those elements
-	    starts at position 1 and not 0 *)
-    let added_headers = Left
-      (List.map (fun (i,r) -> (i+1,r))
-	 (Eliom_xml.make_ref_tree_list
-	    (List.map HTML5.M.toelt added_headers))) in
 
-    let eliom_data : Eliom_types.eliom_data_type =
-      Left
-	(Eliom_xml.make_ref_tree (HTML5.M.toelt body)),
-      contents_to_send,
-      added_headers,
-      eliom_appl_page_data,
-      cookies_to_send,
-      onload_form_creators,
-      Eliom_services.get_onload sp,
-      Eliom_services.get_onunload sp,
-      Eliommod_cli.client_si sp.Eliom_common.sp_si in
+    (* makes the id for the added header:
+       The first header is the title element, so those elements
+       starts at position 1 and not 0 *)
+    let added_headers =
+      List.map (fun (i,r) -> (i+1,r))
+	(Eliom_xml.make_ref_tree_list
+	   (List.map HTML5.M.toelt added_headers)) in
+
+    let eliom_data =
+      { Eliom_types.
+	ejs_body      = Left (Eliom_xml.make_ref_tree (HTML5.M.toelt body));
+	ejs_headers   = Left added_headers;
+	ejs_node_list = contents_to_send;
+	ejs_page_data = eliom_appl_page_data;
+	ejs_cookies   = cookies_to_send;
+	ejs_xhr       = onload_form_creators;
+	ejs_onload    = Eliom_services.get_onload sp;
+	ejs_onunload  = Eliom_services.get_onunload sp;
+	ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si;
+      } in
 
     let reqnum = Eliom_request_info.get_request_id_sp sp in
     let container_node =
@@ -2688,23 +2690,24 @@ module Eliom_appl_reg_make_param
       Eliommod_cli.wrap (Eliom_services.get_onload_form_creators Appl_params.application_name sp) in
     let eliom_appl_page_data = (Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
     List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) content;
-    let added_headers = Right
-      (List.map (fun x -> Eliom_xml.make_node_id (HTML5.M.toelt x))
-	 (Html5_Header_set.elements added_headers_set)) in
+    let added_headers =
+      List.map (fun x -> Eliom_xml.make_node_id (HTML5.M.toelt x))
+	 (Html5_Header_set.elements added_headers_set) in
     let contents_to_send = Eliom_xml.contents_to_send () in
 
     Lwt.return
-      ((Right
-          (Eliom_xml.make_ref_tree_list (HTML5.M.toeltl content)),
-	contents_to_send,
-        added_headers,
-        eliom_appl_page_data,
-        tab_cookies_to_send,
-        onload_form_creators,
-        Eliom_services.get_onload sp,
-        Eliom_services.get_onunload sp,
-        Eliommod_cli.client_si sp.Eliom_common.sp_si
-       ),
+      ({ Eliom_types.
+	 ejs_body =
+	  Right (Eliom_xml.make_ref_tree_list (HTML5.M.toeltl content));
+	 ejs_node_list = contents_to_send;
+	 ejs_headers = Right added_headers;
+	 ejs_page_data = eliom_appl_page_data;
+	 ejs_cookies = tab_cookies_to_send;
+	 ejs_xhr = onload_form_creators;
+	 ejs_onload = Eliom_services.get_onload sp;
+	 ejs_onunload = Eliom_services.get_onunload sp;
+	 ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si;
+       },
        let b = Buffer.create 512 in
        HTML5.P.print_list ~output:(Buffer.add_string b) content;
        Buffer.contents b)

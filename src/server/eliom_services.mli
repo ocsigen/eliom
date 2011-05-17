@@ -661,7 +661,7 @@ val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
 
 type eliom_appl_answer =
-  | EAContent of ((Eliom_types.eliom_data_type * string) * string (* url to display *))
+  | EAContent of ((Eliom_types.eliom_js_data * string) * string (* url to display *))
   | EAHalfRedir of string
   | EAFullRedir of
       (unit, unit, get_service_kind,

@@ -66,25 +66,26 @@ type elt_content =
 and elt = ( elt_content * int option )
 
 (* The data that comes with each page: *)
-type eliom_data_type =
-    ((* The ref tree, to relink the DOM *)
-      (XML.ref_tree, (int * XML.ref_tree) list) leftright *
-	(* node sent that are not in the original page *)
-	elt list *
-	(* added headers *)
-	((int * XML.ref_tree) list, int list) leftright *
-        (* Table of page data *)
-        (poly * ((int64 * int) * poly list)) *
-        (* Tab cookies to set or unset *)
-        Ocsigen_cookies.cookieset *
-        onload_form_creators_info list data_key (* info for creating xhr forms *) *
-        string list (* on load scripts *) *
-        string list (* on change scripts *) *
-        Eliom_common.sess_info
-(*VVV si contains too much information ... 
-  We probably don't need to send cookies.
-*)
-    )
+type eliom_js_data =
+    { (* Sparse tree for HTML body and header, to relink the DOM.
+	 Left  -> first page;
+	 Right -> change page. *)
+      ejs_body: (XML.ref_tree, (int * XML.ref_tree) list) leftright;
+      ejs_headers: ((int * XML.ref_tree) list, int list) leftright;
+      (* Wrapped value for JS. (see Eliom_wrap) *)
+      ejs_page_data: poly * ((int64 * int) * poly list);
+      (* XML nodes not included in the page but referenced by JS. *)
+      ejs_node_list: elt list;
+      (* ... *)
+      ejs_cookies: Ocsigen_cookies.cookieset;
+      (* Info for creating xhr (list of link and forms) *)
+      ejs_xhr: onload_form_creators_info list data_key;
+      (* Raw javascript *)
+      ejs_onload: string list ;
+      ejs_onunload: string list;
+      (* ... *)
+      ejs_sess_info: Eliom_common.sess_info;
+    }
 
 (* the data sent on channels *)
 type 'a eliom_comet_data_type = (poly * 'a) * (elt list)

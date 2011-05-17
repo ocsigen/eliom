@@ -48,11 +48,11 @@ let eliom_appl_page_data_key :
     ((int64 * int) * Eliom_types.poly list) Polytables.key =
   Polytables.make_key ()
 
-let get_eliom_appl_page_data_ sp = 
+let get_eliom_appl_page_data_ sp =
   let rc = Eliom_request_info.get_request_cache_sp sp in
-  try 
+  try
     Polytables.get ~table:rc ~key:eliom_appl_page_data_key
-  with Not_found -> 
+  with Not_found ->
     let d = ((Eliom_request_info.get_request_id_sp sp, 0), []) in
     Polytables.set ~table:rc ~key:eliom_appl_page_data_key ~value:d;
     d
