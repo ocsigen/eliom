@@ -155,6 +155,6 @@ val change_page_post_form :
 val set_content : Eliom_services.eliom_appl_answer -> unit Lwt.t
 
 val load_eliom_data_ :
-  Eliom_types.eliom_data_type ->
+  Eliom_types.eliom_js_data ->
   Dom_html.element Js.t -> unit Lwt.t
 

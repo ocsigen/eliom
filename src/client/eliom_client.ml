@@ -203,18 +203,16 @@ let add_onclick_events =
 
 (* END FORMDATA HACK *)
 
-let load_eliom_data_
-    ((tree, sent_nodes, added_headers, ((_,((timeofday, _), _)) as page_data), cookies,
-      onload_form_creators_info, onload, onunload, si) :
-        Eliom_types.eliom_data_type)
-    node : unit Lwt.t =
-  (match tree with
+let load_eliom_data_ js_data node : unit Lwt.t =
+  let (_,((timeofday, _), _)) = js_data.Eliom_types.ejs_page_data in
+  (match js_data.Eliom_types.ejs_body with
     | Left ref_tree ->
       Eliommod_cli.relink_dom timeofday node ref_tree;
     | Right ref_tree_list ->
       Eliommod_cli.relink_dom_list timeofday (node##childNodes) ref_tree_list);
-  ignore (List.map (Eliommod_cli.rebuild_xml timeofday) sent_nodes);
-  (match added_headers with
+  ignore (List.map (Eliommod_cli.rebuild_xml timeofday)
+	    js_data.Eliom_types.ejs_node_list);
+  (match js_data.Eliom_types.ejs_headers with
     | Left ref_tree_list ->
       Eliommod_cli.relink_dom_list timeofday
 	(Dom_html.window##document##head##childNodes) ref_tree_list;
@@ -223,13 +221,13 @@ let load_eliom_data_
   (* BEGIN FORMDATA HACK *)
   add_onclick_events ();
   (* END FORMDATA HACK *)
-  Eliommod_cookies.update_cookie_table cookies;
-  Eliom_request_info.set_session_info si;
-  Eliommod_cli.fill_page_data_table (Eliom_unwrap.unwrap page_data);
-  on_unload_scripts := [fun () -> List.iter Js.Unsafe.variable onunload; Lwt.return ()];
+  Eliommod_cookies.update_cookie_table js_data.Eliom_types.ejs_cookies;
+  Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
+  Eliommod_cli.fill_page_data_table (Eliom_unwrap.unwrap js_data.Eliom_types.ejs_page_data);
+  on_unload_scripts := [fun () -> List.iter Js.Unsafe.variable js_data.Eliom_types.ejs_onunload; Lwt.return ()];
   (* Now we bind the XHR forms and links sent by the server: *)
-  List.iter bind_form_or_link (Eliommod_cli.unwrap onload_form_creators_info);
-  List.iter Js.Unsafe.variable onload;
+  List.iter bind_form_or_link (Eliommod_cli.unwrap js_data.Eliom_types.ejs_xhr);
+  List.iter Js.Unsafe.variable js_data.Eliom_types.ejs_onload;
   Lwt.return ()
 (* originaly onload was supposed to return unit Lwt.t, but it is not
    type checked: there are execution error if the returned value is
