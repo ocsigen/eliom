@@ -123,8 +123,8 @@ let eliom_internal_nlp_prefix = "__eliom"
 let tab_cookies_param_name = "__eliom_P_tab_cookies"
 let to_be_considered_as_get_param_name = "__eliom_P_was_GET"
 let appl_name_cookie_name = "__eliom_appl_name"
-let full_xhr_redir_header = "x-eliom-location-full"
-let half_xhr_redir_header = "x-eliom-location-half"
+let full_xhr_redir_header = "X-Eliom-Location-Full"
+let half_xhr_redir_header = "X-Eliom-Location-Half"
 
 let default_group_name = "__eliom$%@default_group"
 (*204FORMS* old implementation of forms with 204 and change_page_event
