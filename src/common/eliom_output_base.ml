@@ -52,7 +52,11 @@ type button_type =
 (*****************************************************************************)
 (*****************************************************************************)
 
-module Html5_forms_base = struct
+module type PARAMS = sig
+  val register_event : ?keep_default:bool -> XML.elt -> XML.ename -> ('a -> 'b) -> 'a -> unit
+end
+
+module Html5_forms_base(Params : PARAMS) = struct
 
   open HTML5.M
   open HTML5_types
@@ -142,8 +146,9 @@ module Html5_forms_base = struct
       HTML5.M.form ~a:((a_method `Get)::(a_action (uri_of_string action))::a)
         elt1 elts
     in
-  (* if onsubmit is true, the node ref must exist: *)
-    if onsubmit <> None then ignore (XML.ref_node (HTML5.M.toelt r));
+    (* FIXME GRGR *)
+    (* if onsubmit is true, the node ref must exist: (server side only) *)
+    (* if onsubmit <> None then Params.mark_as_referenced (HTML5.M.toelt r); *)
     r
 
   let make_post_form ?(a=[]) ~action ?onsubmit ?id ?(inline = false) elt1 elts
@@ -164,8 +169,9 @@ module Html5_forms_base = struct
                   (if inline then (a_class ["inline"])::aa else aa))
         elt1 elts
     in
-  (* if onsubmit is true, the node ref must exist: *)
-    if onsubmit <> None then ignore (XML.ref_node (HTML5.M.toelt r));
+    (* FIXME GRGR *)
+    (* if onsubmit is true, the node ref must exist: *)
+    (* if onsubmit <> None then Params.mark_as_referenced (HTML5.M.toelt r); *)
     r
 
   let make_hidden_field content =
@@ -234,10 +240,10 @@ module Html5_forms_base = struct
     script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
   let register_event_a ?keep_default node =
-    XML.register_event ?keep_default (HTML5.M.toelt node)
+    Params.register_event ?keep_default (HTML5.M.toelt node)
 
   let register_event_form ?keep_default node =
-    XML.register_event ?keep_default (HTML5.M.toelt node)
+    Params.register_event ?keep_default (HTML5.M.toelt node)
 
   let make_a_with_onclick ?a ?cookies_info s =
     Eliommod_mkforms.make_a_with_onclick
@@ -261,7 +267,7 @@ end
 (*****************************************************************************)
 (*****************************************************************************)
 
-module Html5_forms_closed = Eliom_mkforms.MakeForms(Html5_forms_base)
+module Html5_forms_closed(Params : PARAMS) = Eliom_mkforms.MakeForms(Html5_forms_base(Params))
 
 (* As we want -> [> a ] elt and not -> [ a ] elt (etc.),
    we define a opening functor... *)
@@ -912,4 +918,4 @@ module Open_Html5_forms =
 
 end)
 
-module Html5_forms = Open_Html5_forms(Html5_forms_closed)
+module Html5_forms(Params : PARAMS) = Open_Html5_forms(Html5_forms_closed(Params))

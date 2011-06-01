@@ -30,8 +30,8 @@ type 'a eref_kind =
   | Ref of 'a ref
   | Ocsiper of 'a Ocsipersist.t Lwt.t
   | Req of 'a Polytables.key
-  | Vol of 'a volatile_table
-  | Per of 'a persistent_table 
+  | Vol of 'a volatile_table Lazy.t
+  | Per of 'a persistent_table
 
 type 'a eref = 'a * 'a eref_kind
 
@@ -41,7 +41,7 @@ let eref ?state_name ?(scope = `Global) ?secure ?persistent value =
   else if scope = `Global
   then match persistent with
     | None -> (value, Ref (ref value))
-    | Some name -> 
+    | Some name ->
       (value, Ocsiper (Ocsipersist.make_persistent
                          ~store:pers_ref_store ~name ~default:value))
   else
@@ -55,7 +55,7 @@ let eref ?state_name ?(scope = `Global) ?secure ?persistent value =
     match persistent with
       | None ->
         (value,
-         Vol (create_volatile_table ?state_name ~scope ?secure ()))
+         Vol (lazy (create_volatile_table ?state_name ~scope ?secure ())))
       | Some name ->
         (value,
          Per (create_persistent_table ?state_name ~scope ?secure name))
@@ -66,9 +66,9 @@ let get (value, table) =
       let table = Eliom_request_info.get_request_cache () in
       Lwt.return (try Polytables.get ~table ~key with Not_found -> value)
     | Vol t ->
-      (match get_volatile_data ~table:t () with
-        | Data d -> Lwt.return d
-        | _ -> Lwt.return value)
+	(match get_volatile_data ~table:(Lazy.force t) () with
+         | Data d -> Lwt.return d
+         | _ -> Lwt.return value)
     | Per t ->
       (get_persistent_data ~table:t () >>= function
         | Data d -> Lwt.return d
@@ -82,7 +82,7 @@ let set (_, table) value =
       let table = Eliom_request_info.get_request_cache () in
       Polytables.set ~table ~key ~value;
       Lwt.return ()
-    | Vol t -> set_volatile_data ~table:t value;
+    | Vol t -> set_volatile_data ~table:(Lazy.force t) value;
       Lwt.return ()
     | Per t -> set_persistent_data ~table:t value
     | Ocsiper r -> r >>= fun r -> Ocsipersist.set r value
@@ -94,7 +94,7 @@ let unset (value, table) =
       let table = Eliom_request_info.get_request_cache () in
       Polytables.remove ~table ~key;
       Lwt.return ()
-    | Vol t -> remove_volatile_data ~table:t ();
+    | Vol t -> remove_volatile_data ~table:(Lazy.force t) ();
       Lwt.return ()
     | Per t -> remove_persistent_data ~table:t ()
     | Ocsiper r -> r >>= fun r -> Ocsipersist.set r value

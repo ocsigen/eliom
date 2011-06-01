@@ -79,7 +79,7 @@ module Type_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_expr orig_expr gen_id =
     let _loc = Ast.loc_of_expr orig_expr in
-    <:expr< begin $flush_typing_expr ()$; "" end >>
+    <:expr< begin $flush_typing_expr ()$; XML.event_of_string "" end >>
 
   let escaped orig_expr gen_id =
     add_typing_expr orig_expr gen_id;

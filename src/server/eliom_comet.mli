@@ -56,7 +56,6 @@ sig
   (**/**)
 
   val get_id : 'a t -> 'a Eliom_comet_base.chan_id
-  val wrap : 'a t -> ( 'a Eliom_comet_base.chan_id * Eliom_common.unwrapper ) Eliom_types.data_key
 
 end
 

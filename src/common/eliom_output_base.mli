@@ -20,4 +20,9 @@
 
 open Eliom_pervasives
 
-module Html5_forms : "sigs/eliom_html5_forms.mli"
+
+module type PARAMS = sig
+  val register_event : ?keep_default:bool -> XML.elt -> XML.ename -> ('a -> 'b) -> 'a -> unit
+end
+
+module Html5_forms : functor (Params : PARAMS) ->"sigs/eliom_html5_forms.mli"

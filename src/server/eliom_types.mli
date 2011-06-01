@@ -22,27 +22,21 @@
 
 open Eliom_pervasives
 
-type sitedata =
-  {site_dir: Url.path;
-   site_dir_string: string;
-  }
+type sitedata = {
+  site_dir: Url.path;
+  site_dir_string: string;
+}
 
 type server_params
-
 val sp : server_params
-
-type 'a data_key
-
-val to_data_key_ : (int64 * int) -> 'a data_key
-val of_data_key_ : 'a data_key -> (int64 * int)
 
 (* Marshal an OCaml value into a string. All characters are escaped *)
 val jsmarshal : 'a -> string
 val string_escape : string -> string
 
-
 (**/**)
-type poly
+
+(* val wrap_parameters : 'a -> client_expr_parameters *)
 
 type onload_form_creators_info =
   | OFA of XML.elt * string * (bool * Url.path) option
@@ -51,51 +45,28 @@ type onload_form_creators_info =
   | OFForm_post of
       XML.elt * string * (bool * Url.path) option
 
-type separator = Space | Comma
+type ref_tree =
+  | Ref_node of (Eliom_common.node_ref option * (string * XML.caml_event) list * ref_tree list)
+  | Ref_empty of int
 
-type attrib =
-  | AFloat of string * float
-  | AInt of string * int
-  | AStr of string * string
-  | AStrL of separator * string * string list
+type page_tree =
+  | First_page of ref_tree list * ref_tree  (* (headers, body) *)
+  | Change_page of int list * ref_tree list (* (headers, contents) *)
 
-type elt_content =
-  | Empty
-  | Comment of string
-  | EncodedPCDATA of string
-  | PCDATA of string
-  | Entity of string
-  | Leaf of string * attrib list
-  | Node of string * attrib list * elt list
-  | Ref of int
-
-and elt = ( elt_content * int option )
-
-(* type ref_tree = Ref_tree of int option * (int * ref_tree) list *)
-
-type eliom_js_data =
-    { (* Sparse tree for HTML body and header, to relink the DOM.
-	 Left  -> first page;
-	 Right -> change page. *)
-      ejs_body: (XML.ref_tree, (int * XML.ref_tree) list) leftright;
-      ejs_headers: ((int * XML.ref_tree) list, int list) leftright;
-      (* Wrapped value for JS. (see Eliom_wrap) *)
-      ejs_page_data: poly * ((int64 * int) * poly list);
-      (* XML nodes not included in the page but referenced by JS. *)
-      ejs_node_list: elt list;
-      (* ... *)
-      ejs_cookies: Ocsigen_cookies.cookieset;
-      (* Info for creating xhr (list of link and forms) *)
-      ejs_xhr: onload_form_creators_info list data_key;
-      (* Raw javascript *)
-      ejs_onload: string list ;
-      ejs_onunload: string list;
-      (* ... *)
-      ejs_sess_info: Eliom_common.sess_info;
-    }
+type eliom_js_page_data = {
+  (* Sparse tree for HTML body and header, to relink the DOM. *)
+  ejs_ref_tree: page_tree;
+  (* Cookies *)
+  ejs_tab_cookies: Ocsigen_cookies.cookieset;
+  (* Event handlers *)
+  ejs_onload: XML.event list;
+  ejs_onunload: XML.event list;
+  (* Session info *)
+  ejs_sess_info: Eliom_common.sess_info;
+}
 
 (* the data sent on channels *)
-type 'a eliom_comet_data_type = (poly * 'a) * (elt list)
+type 'a eliom_comet_data_type = (poly * 'a) * (XML.elt list)
 
 (*SGO* Server generated onclicks/onsubmits
 

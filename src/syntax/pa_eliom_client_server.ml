@@ -30,20 +30,16 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   (* Server side code emission *)
   let closure_call _loc num args =
-    <:expr<
-      $str:"caml_run_from_table("
-    ^ Int64.to_string num
-    ^ ", \'" $
-    ^ Eliom_types.jsmarshal $args$
-    ^ "\')"
-    >>
+    <:expr< XML.event_of_js $`int64:num$ (Eliom_pervasives.to_poly $args$) >>
 
   let arg_ids = ref []
   let arg_collection = ref []
   let push_arg orig_expr gen_id =
     if not (List.mem gen_id !arg_ids) then begin
       let _loc = Ast.loc_of_expr orig_expr in
-      arg_collection := <:expr< (Eliommod_cli.wrap $orig_expr$) >> :: !arg_collection;
+      let arg =
+	<:expr< $orig_expr$ >> in
+      arg_collection := arg :: !arg_collection;
       arg_ids := gen_id :: !arg_ids
     end
 

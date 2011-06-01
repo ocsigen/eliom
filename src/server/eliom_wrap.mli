@@ -25,7 +25,7 @@ val create_wrapper : ( 'a -> 'b ) -> 'a wrapper
     [wrap] is called on a father of a value [v] containing a tag, the
     value [v] will be replaced by [f v] before marshaling. *)
 
-val wrap : 'a -> 'b * 'a
+val wrap : 'a -> 'a Eliom_pervasives.wrapped_value
 (** marshal a value, taking into account the tags *)
 
 val empty_wrapper : 'a wrapper

@@ -41,37 +41,3 @@ let client_si s =
      Eliom_common.si_all_get_but_na_nl = 
       (let r = Lazy.force s.Eliom_common.si_all_get_but_na_nl in lazy r);
    }
-
-
-
-let eliom_appl_page_data_key :
-    ((int64 * int) * Eliom_types.poly list) Polytables.key =
-  Polytables.make_key ()
-
-let get_eliom_appl_page_data_ sp =
-  let rc = Eliom_request_info.get_request_cache_sp sp in
-  try
-    Polytables.get ~table:rc ~key:eliom_appl_page_data_key
-  with Not_found ->
-    let d = ((Eliom_request_info.get_request_id_sp sp, 0), []) in
-    Polytables.set ~table:rc ~key:eliom_appl_page_data_key ~value:d;
-    d
-
-let wrap (v : 'a) : 'a Eliom_types.data_key =
-  let sp = Eliom_common.get_sp () in
-  let rc = Eliom_request_info.get_request_cache_sp sp in
-  let ((reqnum, num) as n, data) =
-    try Polytables.get ~table:rc ~key:eliom_appl_page_data_key
-    with Not_found -> ((Eliom_request_info.get_request_id_sp sp, 0), [])
-  in
-  Polytables.set ~table:rc ~key:eliom_appl_page_data_key
-    ~value:((reqnum, num+1), Obj.magic v::data);
-  Eliom_types.to_data_key_ n
-
-
-
-let wrap_node n = 
-  Eliom_types.to_data_key_ (0L, XML.ref_node (HTML5.M.toelt n))
-
-
-(* let wrap_sp ~sp = wrap ~sp (client_sp sp) *)

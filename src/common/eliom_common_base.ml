@@ -204,3 +204,5 @@ let react_down_unwrap_id_int = 3
 let signal_down_unwrap_id_int = 4
 let bus_unwrap_id_int = 5
 let node_unwrap_id_int = 6
+
+type node_ref = string

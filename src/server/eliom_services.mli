@@ -636,9 +636,8 @@ val appl_content_capable :
 val xhr_with_cookies :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
 
-
-val get_onload : Eliom_common.server_params -> string list
-val get_onunload : Eliom_common.server_params -> string list
+val get_onload : Eliom_common.server_params -> XML.event list
+val get_onunload : Eliom_common.server_params -> XML.event list
 
 
 val add_onload_form_creator :
@@ -651,17 +650,12 @@ val get_onload_form_creators :
   Eliom_common.server_params ->
   Eliom_types.onload_form_creators_info list
 
-
-val wrap :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service Eliom_types.data_key
-
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
 
 type eliom_appl_answer =
-  | EAContent of ((Eliom_types.eliom_js_data * string) * string (* url to display *))
+  | EAContent of ((Eliom_types.eliom_js_page_data * string) * string (* url to display *))
   | EAHalfRedir of string
   | EAFullRedir of
       (unit, unit, get_service_kind,

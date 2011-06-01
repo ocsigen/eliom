@@ -303,16 +303,19 @@ type dlist_ip_table
 
 type anon_params_type = int
 
-type client_process_info = (* information about the client process.
-                              Mainly the URL when it has been launched *)
-    {
-      cpi_ssl : bool;
-      cpi_hostname : string;
-      cpi_server_port : int;
-      cpi_original_full_path : Url.path;
-      cpi_references : Polytables.t; (* holds informations about comet
-					service and change_page_event *)
-    }
+type client_process_info =  {
+  cpi_ssl : bool;
+  cpi_hostname : string;
+  cpi_server_port : int;
+  cpi_original_full_path : Url.path;
+}
+
+type node_ref = string
+
+type node_info = {
+  ni_id : node_ref;
+  mutable ni_sent : bool;
+}
 
 type server_params = {
   sp_request : Ocsigen_extensions.request;
@@ -327,16 +330,14 @@ type server_params = {
                                                  as sent by the browser *)
   sp_suffix : Url.path option;
   sp_fullsessname : fullsessionname option;
-  mutable sp_client_process_info: client_process_info Lazy.t
-        (* Contains the base URL information from which the client process
-           has been launched (if any). All relative links and forms will be
-           created with respect to this information (if present - from current
-           URL otherwise).
-           It is taken form a client process state if the application has been
-           launched before (and not timeouted on server side).
-           Otherwise, it is created and registered in a server side state
-           the first time we need it.
-        *);
+  mutable sp_client_process_info: client_process_info Lazy.t;
+  (* Contains the base URL information from which the client process
+     has been launched (if any). All relative links and forms will be
+     created with respect to this information (if present - from
+     current URL otherwise). It is taken form a client process state
+     if the application has been launched before (and not timeouted on
+     server side).  Otherwise, it is created and registered in a
+     server side state the first time we need it.  *)
 }
 and page_table = page_table_content Serv_Table.t
 
@@ -463,8 +464,8 @@ and sitedata = {
   dlist_ip_table : dlist_ip_table;
   mutable ipv4mask : int32 option * bool;
   mutable ipv6mask : (int64 * int64) option * bool;
-  mutable get_client_process_info : unit -> client_process_info option;
-  mutable set_client_process_info : client_process_info -> unit;
+   mutable get_client_process_info : unit -> client_process_info option;
+   mutable set_client_process_info : client_process_info -> unit;
 }
 
 type 'a lazy_site_value (** lazy site values, are lazy values with
@@ -482,10 +483,11 @@ type info =
 
 exception Eliom_retry_with of info
 
-val make_server_params_ :
+val make_server_params :
+  client_info:client_process_info Lazy.t ->
   sitedata ->
   info ->
-  Url.path option -> 
+  Url.path option ->
   fullsessionname option -> server_params
 val empty_page_table : unit -> page_table
 val empty_dircontent : unit -> dircontent

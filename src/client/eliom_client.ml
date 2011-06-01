@@ -114,8 +114,7 @@ let change_url
 
 (* lazy because we want the page to be loaded *)
 let container_node =
-  lazy ((Eliommod_cli.unwrap_node (unmarshal_js_var "container_node"))
-           : Dom_html.element Js.t)
+  lazy (HTML5.Dom.retrieve_node (unmarshal_js_var "container_id"))
 
 let on_unload_scripts = ref []
 let at_exit_scripts = ref []
@@ -143,29 +142,29 @@ let _ =
 *)
 
 
-let change_page_uri_ =
-  ref (fun ?cookies_info ?get_params a -> failwith "not initialised")
-let change_page_get_form_ =
-  ref (fun ?cookies_info a b -> failwith "not initialised")
-let change_page_post_form_ =
-  ref (fun ?cookies_info a b -> failwith "not initialised")
+(* let change_page_uri_ = *)
+  (* ref (fun ?cookies_info ?get_params a -> failwith "not initialised") *)
+(* let change_page_get_form_ = *)
+  (* ref (fun ?cookies_info a b -> failwith "not initialised") *)
+(* let change_page_post_form_ = *)
+  (* ref (fun ?cookies_info a b -> failwith "not initialised") *)
 
-let bind_form_or_link = function
-  | Eliom_types.OFA (node, href, cookies_info) ->
-    let node = Js.Unsafe.coerce (node) in
-    XML.register_event ?keep_default:(Some false) node "onclick"
-      (fun () -> !change_page_uri_ ?cookies_info href)
-      ()
-  | Eliom_types.OFForm_get (node, uri, cookies_info) ->
-    let node = Js.Unsafe.coerce (node) in
-    XML.register_event ?keep_default:(Some false) node "onsubmit"
-      (fun () -> !change_page_get_form_ ?cookies_info node uri)
-      ();
-  | Eliom_types.OFForm_post (node, uri, cookies_info) ->
-    let node = Js.Unsafe.coerce (node) in
-    XML.register_event ?keep_default:(Some false) node "onsubmit"
-      (fun () -> !change_page_post_form_ ?cookies_info node uri)
-      ()
+(* let bind_form_or_link = function *)
+  (* | Eliom_types.OFA (node, href, cookies_info) -> *)
+    (* let node = Js.Unsafe.coerce (node) in *)
+    (* XML.register_event ?keep_default:(Some false) node "onclick" *)
+      (* (fun () -> !change_page_uri_ ?cookies_info href) *)
+      (* () *)
+  (* | Eliom_types.OFForm_get (node, uri, cookies_info) -> *)
+    (* let node = Js.Unsafe.coerce (node) in *)
+    (* XML.register_event ?keep_default:(Some false) node "onsubmit" *)
+      (* (fun () -> !change_page_get_form_ ?cookies_info node uri) *)
+      (* (); *)
+  (* | Eliom_types.OFForm_post (node, uri, cookies_info) -> *)
+    (* let node = Js.Unsafe.coerce (node) in *)
+    (* XML.register_event ?keep_default:(Some false) node "onsubmit" *)
+      (* (fun () -> !change_page_post_form_ ?cookies_info node uri) *)
+      (* () *)
 
 (* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
    When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
@@ -178,70 +177,51 @@ let bind_form_or_link = function
    * Eliom_request: in send_post_form
    * in js_of_ocaml, module Form: the code to emulate FormData *)
 
-let onclick_on_body_handler event =
-  (match Dom_html.tagged (Dom_html.eventTarget event) with
-    | Dom_html.Button button ->
-      (Js.Unsafe.variable "window")##eliomLastButton <- Some button;
-    | Dom_html.Input input when input##_type = Js.string "submit" ->
-      (Js.Unsafe.variable "window")##eliomLastButton <- Some input;
-    | _ -> (Js.Unsafe.variable "window")##eliomLastButton <- None);
-  Js._true
+(* let onclick_on_body_handler event = *)
+  (* (match Dom_html.tagged (Dom_html.eventTarget event) with *)
+    (* | Dom_html.Button button -> *)
+      (* (Js.Unsafe.variable "window")##eliomLastButton <- Some button; *)
+    (* | Dom_html.Input input when input##_type = Js.string "submit" -> *)
+      (* (Js.Unsafe.variable "window")##eliomLastButton <- Some input; *)
+    (* | _ -> (Js.Unsafe.variable "window")##eliomLastButton <- None); *)
+  (* Js._true *)
 
-let add_onclick_events =
-  let registered = ref false in
-  fun () ->
-    if !registered
-    then ()
-    else
-      begin
-	ignore (Dom_html.addEventListener ( Dom_html.window##document##body )
-		  Dom_html.Event.click ( Dom_html.handler onclick_on_body_handler )
-		  Js._true
-		  :Dom_html.event_listener_id);
-	registered := true;
-      end
+(* let add_onclick_events = *)
+  (* let registered = ref false in *)
+  (* fun () -> *)
+    (* if !registered *)
+    (* then () *)
+    (* else *)
+      (* begin *)
+	(* ignore (Dom_html.addEventListener ( Dom_html.window##document##body ) *)
+		  (* Dom_html.Event.click ( Dom_html.handler onclick_on_body_handler ) *)
+		  (* Js._true *)
+		  (* :Dom_html.event_listener_id); *)
+	(* registered := true; *)
+      (* end *)
 
 (* END FORMDATA HACK *)
 
-let load_eliom_data_ js_data node : unit Lwt.t =
-  let (_,((timeofday, _), _)) = js_data.Eliom_types.ejs_page_data in
-  (match js_data.Eliom_types.ejs_body with
-    | Left ref_tree ->
-      Eliommod_cli.relink_dom timeofday node ref_tree;
-    | Right ref_tree_list ->
-      Eliommod_cli.relink_dom_list timeofday (node##childNodes) ref_tree_list);
-  ignore (List.map (Eliommod_cli.rebuild_xml timeofday)
-	    js_data.Eliom_types.ejs_node_list);
-  (match js_data.Eliom_types.ejs_headers with
-    | Left ref_tree_list ->
-      Eliommod_cli.relink_dom_list timeofday
-	(Dom_html.window##document##head##childNodes) ref_tree_list;
-      List.iter Eliommod_cli.mark_header ref_tree_list
-    | Right nodes -> Eliommod_cli.replace_headers nodes);
-  (* BEGIN FORMDATA HACK *)
-  add_onclick_events ();
-  (* END FORMDATA HACK *)
-  Eliommod_cookies.update_cookie_table js_data.Eliom_types.ejs_cookies;
-  Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
-  Eliommod_cli.fill_page_data_table (Eliom_unwrap.unwrap js_data.Eliom_types.ejs_page_data);
-  on_unload_scripts := [fun () -> List.iter Js.Unsafe.variable js_data.Eliom_types.ejs_onunload; Lwt.return ()];
+let load_eliom_data js_data contents : unit Lwt.t =
   (* Now we bind the XHR forms and links sent by the server: *)
-  List.iter bind_form_or_link (Eliommod_cli.unwrap js_data.Eliom_types.ejs_xhr);
-  List.iter Js.Unsafe.variable js_data.Eliom_types.ejs_onload;
-  Lwt.return ()
-(* originaly onload was supposed to return unit Lwt.t, but it is not
-   type checked: there are execution error if the returned value is
-   not effectively an Lwt.t. By assuming it to return unit, the
-   effectively returned value is ignored and no runtime error can
-   occur this way.
-   This is the same problem for on_unload below. *)
+  (* List.iter bind_form_or_link (Eliommod_cli.unwrap js_data.Eliom_types.ejs_xhr); *)
+  (* FIXME GRGR fix and uncomment previous line *)
+  Eliommod_cli.register_nodes js_data.Eliom_types.ejs_ref_tree contents;
+  Eliommod_cookies.update_cookie_table js_data.Eliom_types.ejs_tab_cookies;
+  Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
+  let on_load =
+    List.map XML.reify_event js_data.Eliom_types.ejs_onload in
+  let on_unload =
+    List.map XML.reify_event js_data.Eliom_types.ejs_onunload in
+  on_unload_scripts := [fun () -> Lwt_list.iter_s (fun f -> f()) on_unload];
+  Lwt_list.iter_p (fun f -> f()) on_load
 
 let set_inner_html (ed, content) =
   ignore (Lwt_list.iter_p (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
   let container_node = Lazy.force container_node in
   container_node##innerHTML <- Js.string content;
-  load_eliom_data_ ed container_node
+  load_eliom_data ed container_node
 
 let on_unload f =
   on_unload_scripts := f::(!on_unload_scripts)
@@ -381,10 +361,11 @@ let change_page_post_form ?cookies_info form uri =
   Eliom_request.send_post_form ?cookies_info form uri >>= fun r ->
   set_content (Eliom_request.get_eliom_appl_result r)
 
-let _ =
-  change_page_uri_ := change_page_uri;
-  change_page_get_form_ := change_page_get_form;
-  change_page_post_form_ := change_page_post_form
+(* FIXME GRGR *)
+(* let _ = *)
+  (* change_page_uri_ := change_page_uri; *)
+  (* change_page_get_form_ := change_page_get_form; *)
+  (* change_page_post_form_ := change_page_post_form *)
 
 
 let call_service
@@ -483,9 +464,10 @@ let rec get_subpage_ :
         :: !node_list
       done;
 
-      load_eliom_data_ ed fake_page >>= fun () ->
+      load_eliom_data ed fake_page >>= fun () ->
       fake_page##innerHTML <- Js.string "";
-      Lwt.return (HTML5.M.totl !node_list)
+      assert false (* GRGR FIXME *)
+      (* Lwt.return !node_list *)
     end
     | Eliom_services.EAHalfRedir u ->
       (* strange ... *)

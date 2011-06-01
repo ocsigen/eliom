@@ -353,15 +353,17 @@ end)
 
 type anon_params_type = int
 
-type client_process_info = (* information about the client process.
-                              Mainly the URL when it has been launched *)
-    {
-      cpi_ssl : bool;
-      cpi_hostname : string;
-      cpi_server_port : int;
-      cpi_original_full_path : Url.path;
-      cpi_references : Polytables.t;
-    }
+type client_process_info = {
+  cpi_ssl : bool;
+  cpi_hostname : string;
+  cpi_server_port : int;
+  cpi_original_full_path : Url.path;
+}
+
+type node_info = {
+  ni_id : node_ref;
+  mutable ni_sent : bool;
+}
 
 type server_params =
     {sp_request: Ocsigen_extensions.request;
@@ -379,16 +381,7 @@ type server_params =
                                                 to which belong the service
                                                 that answered
                                                 (if it is a session service) *);
-     mutable sp_client_process_info: client_process_info Lazy.t
-     (* Contains the base URL information from which the client process
-        has been launched (if any). All relative links and forms will be
-        created with respect to this information (if present - from current
-        URL otherwise).
-        It is taken form a client process state if the application has been
-        launched before (and not timeouted on server side).
-        Otherwise, it is created and registered in a server side state
-        the first time we need it.
-     *);
+     mutable sp_client_process_info: client_process_info Lazy.t;
     }
 
 and page_table = page_table_content Serv_Table.t
@@ -559,10 +552,12 @@ let get_cookie_info sp = function
 
 (*****************************************************************************)
 (** Create server parameters record *)
-let make_server_params_
-    sitedata (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
-    suffix fullsessname
-    : server_params =
+let make_server_params
+    ~client_info
+    sitedata
+    (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
+    suffix
+    fullsessname =
   let appl_name =
     try
       Some
@@ -570,19 +565,18 @@ let make_server_params_
     (* It is an XHR from the client application, or an internal form *)
     with Not_found -> None
   in
-  {sp_request=ri;
-   sp_si=si;
-   sp_sitedata=sitedata;
-   sp_cookie_info=all_cookie_info;
-   sp_tab_cookie_info=all_tab_cookie_info;
-   sp_user_cookies= Ocsigen_cookies.empty_cookieset;
-   sp_user_tab_cookies= user_tab_cookies;
-   sp_client_appl_name= appl_name;
-   sp_suffix=suffix;
-   sp_fullsessname= fullsessname;
-   sp_client_process_info = 
-      lazy (failwith "sp_client_process_info called before initialization");
-  (* Will be set later from server side state data *)
+  { sp_request = ri;
+    sp_si = si;
+    sp_sitedata = sitedata;
+    sp_cookie_info = all_cookie_info;
+    sp_tab_cookie_info = all_tab_cookie_info;
+    sp_user_cookies = Ocsigen_cookies.empty_cookieset;
+    sp_user_tab_cookies = user_tab_cookies;
+    sp_client_appl_name = appl_name;
+    sp_suffix = suffix;
+    sp_fullsessname = fullsessname;
+    sp_client_process_info = client_info;
+    (* sp_client_request_info = snd client_info; *)
   }
 
 let sp_key = Lwt.new_key ()

@@ -106,7 +106,7 @@ sig
   type comet_service = Ecb.comet_service
 
   val get_service : unit -> comet_service
-  val get_service_data_key : unit -> comet_service Eliom_types.data_key
+  val get_service_data_key : unit -> poly (* (* comet_service *) client_expr_parameters *)
 
   val close_channel : t -> unit
 
@@ -129,7 +129,7 @@ end = struct
 	(** thread that wakeup when there are new active streams. *)
 	mutable hd_update_streams_w : unit Lwt.u;
 	hd_service : comet_service;
-	hd_service_data_key : comet_service Eliom_types.data_key;
+	hd_service_data_key : poly (* (* comet_service *) client_expr_parameters *);
 	mutable hd_last : string * int;
         (** the last message sent to the client, if he sends a request
 	    with the same number, this message is immediately sent
@@ -228,9 +228,10 @@ end = struct
   (** Returns the handler for the current application.
       It is created if it does not exists. *)
   let get_handler () =
-    let sp = Eliom_common.get_sp () in
-    let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in
-    let table = cpi.Eliom_common.cpi_references in
+    (* let sp = Eliom_common.get_sp () in *)
+    (* let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in *)
+    (* let table = cpi.Eliom_common.cpi_references in *)
+    let table = assert false in (* GRGR FIXME *)
     try
       Polytables.get ~table ~key:handler_key
     with
@@ -244,7 +245,8 @@ end = struct
 	      ~post_params:Ecb.comet_request_param
 	      ()
 	  in
-	  let hd_service_data_key = Eliommod_cli.wrap hd_service in
+	  (* let hd_service_data_key = Eliom_types.wrap_parameters hd_service in *)
+	  let hd_service_data_key = assert false (* FIXME GRGR *) in
 	  let hd_update_streams,hd_update_streams_w = Lwt.task () in
 	  let handler = {
 	    hd_active_streams = [];
@@ -333,7 +335,6 @@ sig
 
   val create : ?name:string -> ?size:int -> 'a Lwt_stream.t -> 'a t
   val create_unlimited : ?name:string -> 'a Lwt_stream.t -> 'a t
-  val wrap : 'a t -> ( 'a Ecb.chan_id * Eliom_common.unwrapper ) Eliom_types.data_key
   val get_id : 'a t -> 'a Ecb.chan_id
 
 end = struct
@@ -345,9 +346,6 @@ end = struct
 
   let get_id t =
     Ecb.chan_id_of_string (Raw_channels.get_id t.channel)
-
-  let wrap c =
-    Eliommod_cli.wrap (get_id c,Eliom_common.empty_unwrapper)
 
   let internal_wrap c =
     (get_id c,Eliom_common.make_unwrapper Eliom_common.comet_channel_unwrap_id)
@@ -391,7 +389,7 @@ end = struct
 
   let marshal (v:'a) =
     let wrapped = Eliom_wrap.wrap v in
-    let xml = Eliom_xml.contents_to_send () in
+    let xml = [] (* FIXME Eliom_xml.contents_to_send () *) in
     let value : 'a Eliom_types.eliom_comet_data_type
 	= wrapped, xml in
     (Url.encode ~plus:false

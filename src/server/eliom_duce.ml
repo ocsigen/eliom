@@ -187,14 +187,14 @@ module Xhtml_forms_base = struct
     in
     let onclick_attr = match onclick with
       | None -> {{ {} }}
-      | Some v -> {{ { onclick=(str v) } }}
+      | Some v -> {{ { onclick=(str (Eliom_pervasives.XML.string_of_event v)) } }}
     in
     {{ <a (href_attr ++ onclick_attr ++ a)> l }}
 
   let make_get_form ?(a={{ {} }}) ~(action : uri) ?onsubmit elt1 elts : form_elt =
     let onsubmit_attr = match onsubmit with
       | None -> {{ {} }}
-      | Some v -> {{ { onsubmit=(str v) } }}
+      | Some v -> {{ { onsubmit=(str (Eliom_pervasives.XML.string_of_event v)) } }}
     in
     {{ <form (onsubmit_attr ++
                 {method="get"
@@ -211,7 +211,7 @@ module Xhtml_forms_base = struct
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
     let onsubmit_attr = match onsubmit with
       | None -> {{ {} }}
-      | Some v -> {{ { onsubmit=(str v) } }}
+      | Some v -> {{ { onsubmit=(str (Eliom_pervasives.XML.string_of_event v)) } }}
     in
     {{ <form ({action=(str action)
                enctype="multipart/form-data"

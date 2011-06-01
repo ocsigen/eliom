@@ -30,9 +30,7 @@ let code_of_code_option = function
 (******************************************************************************)
 (******************************************************************************)
 
-module Html5_forms = Eliom_output_base.Html5_forms(struct
-  let register_event ?keep_default _ _ _ _ = ()
-end)
+include Eliom_output_base
 
 module Html5_make_reg_base
   (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
@@ -53,32 +51,31 @@ module Html5_make_reg_base
 
     include Html5_content
 
-    (* GRGR Fixme *)
-    (* let add_css (a : 'a) : 'a = *)
-      (* let css = *)
-        (* HTML5.M.toelt *)
-          (* (HTML5.M.style *)
-             (* [HTML5.M.pcdata "\n."; *)
-             (* HTML5.M.pcdata Eliom_common.inline_class_name; *)
-             (* HTML5.M.pcdata " {display: inline}\n."; *)
-             (* HTML5.M.pcdata Eliom_common.nodisplay_class_name; *)
-             (* HTML5.M.pcdata " {display: none}\n"]) *)
-      (* in *)
-      (* let rec aux = function *)
-        (* | { XML.elt = XML.Node ("head",al,el) } as e::l -> *)
-            (* { e with XML.elt = XML.Node ("head",al,css::el) }::l *)
-        (* | e::l -> e::(aux l) *)
-        (* | [] -> [] *)
-      (* in *)
-      (* HTML5.M.tot *)
-        (* (match HTML5.M.toelt a with *)
-           (* | { XML.elt = XML.Node ("html",al,el) } as e -> *)
-               (* { e with XML.elt = XML.Node ("html",al,aux el) } *)
-           (* | e -> e) *)
+    let add_css (a : 'a) : 'a =
+      let css =
+        HTML5.M.toelt
+          (HTML5.M.style
+             [HTML5.M.pcdata "\n.";
+             HTML5.M.pcdata Eliom_common.inline_class_name;
+             HTML5.M.pcdata " {display: inline}\n.";
+             HTML5.M.pcdata Eliom_common.nodisplay_class_name;
+             HTML5.M.pcdata " {display: none}\n"])
+      in
+      let rec aux = function
+        | { XML.elt = XML.Node ("head",al,el) } as e::l ->
+            { e with XML.elt = XML.Node ("head",al,css::el) }::l
+        | e::l -> e::(aux l)
+        | [] -> []
+      in
+      HTML5.M.tot
+        (match HTML5.M.toelt a with
+           | { XML.elt = XML.Node ("html",al,el) } as e ->
+               { e with XML.elt = XML.Node ("html",al,aux el) }
+           | e -> e)
 
-    (* let get_etag ?options c = get_etag (add_css c) *)
-    (* let get_etag ?options c = get_etag (add_css c) *)
-    (* let result_of_content ?options c = result_of_content ?options (add_css c) *)
+    let get_etag ?options c = get_etag (add_css c)
+
+    let result_of_content ?options c = result_of_content ?options (add_css c)
 
   end
 
@@ -239,6 +236,8 @@ module Xhtml_forms_base = struct
       form ~a:((a_method `Get)::a)
         ~action:(uri_of_string action) elt1 elts
     in
+  (* if onsubmit is true, the node ref must exist: *)
+    if onsubmit <> None then ignore (XML.ref_node (XHTML.M.toelt r));
     r
 
 
@@ -259,6 +258,8 @@ module Xhtml_forms_base = struct
                   (if inline then (a_class ["inline"])::aa else aa))
         ~action:(uri_of_string action) elt1 elts
     in
+  (* if onsubmit is true, the node ref must exist: *)
+    if onsubmit <> None then ignore (XML.ref_node (XHTML.M.toelt r));
     r
 
   let make_hidden_field content =
@@ -1044,38 +1045,37 @@ module Xhtml_make_reg_base
 
   type return = Eliom_services.http
 
-  (* GRGR Fixme *)
-  (* module Xhtml_content = struct *)
+  module Xhtml_content = struct
 
-    (* include Xhtml_content *)
+    include Xhtml_content
 
-    (* let add_css (a : 'a) : 'a = *)
-      (* let css = *)
-        (* XHTML.M.toelt *)
-          (* (XHTML.M.style ~contenttype:"text/css" *)
-             (* [XHTML.M.pcdata "\n."; *)
-             (* XHTML.M.pcdata Eliom_common.inline_class_name; *)
-             (* XHTML.M.pcdata " {display: inline}\n."; *)
-             (* XHTML.M.pcdata Eliom_common.nodisplay_class_name; *)
-             (* XHTML.M.pcdata " {display: none}\n"]) *)
-      (* in *)
-      (* let rec aux = function *)
-        (* | { XML.elt = XML.Node ("head",al,el) } as e::l -> *)
-            (* { e with XML.elt = XML.Node ("head",al,css::el) }::l *)
-        (* | e::l -> e::(aux l) *)
-        (* | [] -> [] *)
-      (* in *)
-      (* XHTML.M.tot *)
-        (* (match XHTML.M.toelt a with *)
-           (* | { XML.elt = XML.Node ("html",al,el) } as e -> *)
-               (* { e with XML.elt = XML.Node ("html",al,aux el) } *)
-           (* | e -> e) *)
+    let add_css (a : 'a) : 'a =
+      let css =
+        XHTML.M.toelt
+          (XHTML.M.style ~contenttype:"text/css"
+             [XHTML.M.pcdata "\n.";
+             XHTML.M.pcdata Eliom_common.inline_class_name;
+             XHTML.M.pcdata " {display: inline}\n.";
+             XHTML.M.pcdata Eliom_common.nodisplay_class_name;
+             XHTML.M.pcdata " {display: none}\n"])
+      in
+      let rec aux = function
+        | { XML.elt = XML.Node ("head",al,el) } as e::l ->
+            { e with XML.elt = XML.Node ("head",al,css::el) }::l
+        | e::l -> e::(aux l)
+        | [] -> []
+      in
+      XHTML.M.tot
+        (match XHTML.M.toelt a with
+           | { XML.elt = XML.Node ("html",al,el) } as e ->
+               { e with XML.elt = XML.Node ("html",al,aux el) }
+           | e -> e)
 
-    (* let get_etag ?options c = get_etag (add_css c) *)
+    let get_etag ?options c = get_etag (add_css c)
 
-    (* let result_of_content ?options c = result_of_content ?options (add_css c) *)
+    let result_of_content ?options c = result_of_content ?options (add_css c)
 
-  (* end *)
+  end
 
   type options = unit
 
@@ -1390,14 +1390,14 @@ module HtmlText_forms_base = struct
     in
     let a = match onclick with
       | None -> a
-      | Some v -> " onclick=\""^XML.string_of_event v^"\" "^a
+      | Some v -> " onclick=\""^v^"\" "^a
     in
     "<a "^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 
   let make_get_form ?(a="") ~action ?onsubmit elt1 elts : form_elt =
     let a = match onsubmit with
       | None -> a
-      | Some v -> " onsubmit=\""^XML.string_of_event v^"\" "^a
+      | Some v -> " onsubmit=\""^v^"\" "^a
     in
     "<form method=\"get\" action=\""^(uri_of_string action)^"\""^a^">"^
     elt1^(*List.fold_left (^) "" elts *) elts^"</form>"
@@ -1406,7 +1406,7 @@ module HtmlText_forms_base = struct
       : form_elt =
     let a = match onsubmit with
       | None -> a
-      | Some v -> " onsubmit=\""^XML.string_of_event v^"\" "^a
+      | Some v -> " onsubmit=\""^v^"\" "^a
     in
     let aa = "enctype=\"multipart/form-data\" "
         (* Always Multipart!!! How to test if there is a file?? *)
@@ -2538,7 +2538,7 @@ let comet_service_key = Polytables.make_key ()
 module Html5_Header_set = Set.Make(
   struct
     type t = HTML5_types.head_content_fun HTML5.M.elt
-    let compare x1 x2 = XML.compare (HTML5.M.toelt x1) (HTML5.M.toelt x2)
+    let compare x1 x2 = compare (XML.ref_node (HTML5.M.toelt x1)) (XML.ref_node (HTML5.M.toelt x2))
   end)
 
 let appl_html_header_ref = Eliom_references.eref ~scope:`Request Html5_Header_set.empty
@@ -2594,51 +2594,72 @@ module Eliom_appl_reg_make_param
       sp.Eliom_common.sp_tab_cookie_info
       sp.Eliom_common.sp_user_tab_cookies
 
-  let init_global_js_data ~sp added_headers cookies_to_send container_id body =
+  let init_global_js_data ~sp cpi added_headers cookies_to_send container_node body =
 
-    (* FIXME GRGR *)
-    (* let onload_form_creators = *)
-      (* Eliom_types.register_request_data *)
-	(* (Eliom_services.get_onload_form_creators *)
-	   (* Appl_params.application_name sp) in *)
+    let onload_form_creators =
+      Eliommod_cli.wrap (Eliom_services.get_onload_form_creators
+                           Appl_params.application_name sp) in
+    let eliom_appl_page_data =
+      Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)
+    in
 
-    let header_ref_tree =
-      (* The first header is the title element, so those elements
-	 starts at position 1 and not 0 *)
-      Eliom_types.Ref_empty 1
-      :: Eliom_xml.make_ref_tree_list (List.map HTML5.M.toelt added_headers) in
-    let body_ref_tree = Eliom_xml.make_ref_tree (HTML5.M.toelt body) in
-    let ref_tree = Eliom_types.First_page (header_ref_tree, body_ref_tree) in
+    Eliom_xml.mark_sent (HTML5.M.toelt body);
+    List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) added_headers;
+    let contents_to_send = Eliom_xml.contents_to_send () in
 
-    (* Format.eprintf "%a@." Eliom_xml.print_ref_tree body_ref_tree; *)
+    (* makes the id for the added header:
+       The first header is the title element, so those elements
+       starts at position 1 and not 0 *)
+    let added_headers =
+      List.map (fun (i,r) -> (i+1,r))
+	(Eliom_xml.make_ref_tree_list
+	   (List.map HTML5.M.toelt added_headers)) in
 
-    let eliom_data = {
-      Eliom_types.
-      ejs_ref_tree    = ref_tree;
-      ejs_tab_cookies = cookies_to_send;
-      ejs_onload      = Eliom_services.get_onload sp;
-      ejs_onunload    = Eliom_services.get_onunload sp;
-      ejs_sess_info   = Eliommod_cli.client_si sp.Eliom_common.sp_si;
-    } in
+    let eliom_data =
+      { Eliom_types.
+	ejs_body      = Left (Eliom_xml.make_ref_tree (HTML5.M.toelt body));
+	ejs_headers   = Left added_headers;
+	ejs_node_list = contents_to_send;
+	ejs_page_data = eliom_appl_page_data;
+	ejs_cookies   = cookies_to_send;
+	ejs_xhr       = onload_form_creators;
+	ejs_onload    = Eliom_services.get_onload sp;
+	ejs_onunload  = Eliom_services.get_onunload sp;
+	ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si;
+      } in
+
+    let reqnum = Eliom_request_info.get_request_id_sp sp in
+    let container_node =
+      Eliom_types.to_data_key_ (reqnum,
+				Eliom_xml.make_node_id container_node) in
+
+    let comet_service =
+      Eliom_wrap.wrap (Polytables.get
+			 ~table:cpi.Eliom_common.cpi_references
+			 ~key:comet_service_key) in
+
+    let sitedata = Eliommod_cli.client_sitedata sp in
 
     let script =
       Printf.sprintf
-	("var container_id = \'%s\'\n"
-	 ^^ "var sitedata = \'%s\'\n"
-	 ^^ "var eliom_data = \'%s\'\n")
-	(Eliom_types.jsmarshal container_id)
-	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
-	(Eliom_types.jsmarshal (Eliom_wrap.wrap eliom_data))
+	("var container_node = \'%s\'\n"
+	 ^^ "var eliom_data = \'%s\'\n"
+	 ^^ "var comet_service = \'%s\'\n"
+	 ^^ "var sitedata = \'%s\'\n")
+	(Eliom_types.jsmarshal container_node)
+	(Eliom_types.jsmarshal eliom_data)
+	(Eliom_types.jsmarshal comet_service)
+	(Eliom_types.jsmarshal sitedata)
     in
 
     HTML5.M.script (cdata_script script)
 
-  let make_initial_headers ~sp added_headers_set cookies_to_send container_id body =
+  let make_initial_headers ~sp cpi added_headers_set cookies_to_send container_node body =
     let added_headers = Html5_Header_set.elements added_headers_set in
     added_headers
     @ [ eliom_css ;
 	redirection_script ;
-	init_global_js_data ~sp added_headers cookies_to_send container_id body ;
+	init_global_js_data ~sp cpi added_headers cookies_to_send container_node body ;
 	(* Javascript program: *)
 	HTML5.M.script
           ~a:[a_src (Xhtml.make_uri
@@ -2646,64 +2667,64 @@ module Eliom_appl_reg_make_param
                        [Appl_params.application_name ^ ".js"])]
           (pcdata "") ]
 
-  let create_page ~options ~sp added_headers_set params cookies_to_send content =
+  let create_page ~options ~sp cpi added_headers_set params cookies_to_send content =
 
-    let body, container_id = match params.ap_container with
+    let body, container_node = match params.ap_container with
       | None ->
-	  let b = Eliom_xml.unique (HTML5.M.body ?a:params.ap_body_attributes content) in
-          (b, XML.get_unique_id (HTML5.M.toelt b))
+	  let b = HTML5.M.body ?a:params.ap_body_attributes content in
+          (b, (HTML5.M.toelt b))
       | Some (a, container) ->
-          let d = Eliom_xml.unique (HTML5.M.div ?a content) in
+          let d = HTML5.M.div ?a content in
           (HTML5.M.body ?a:params.ap_body_attributes (container d),
-	   XML.get_unique_id (HTML5.M.toelt d)) in
+           (HTML5.M.toelt d)) in
 
     HTML5.M.html
       (HTML5.M.head
 	 (HTML5.M.title (HTML5.M.pcdata params.ap_title))
 	 ( params.ap_headers_before
 	   @ ( if not options.do_not_launch
-	       then make_initial_headers ~sp added_headers_set cookies_to_send container_id body
+	       then make_initial_headers ~sp cpi added_headers_set cookies_to_send container_node body
 	       else [] )
 	   @ params.ap_headers_after ))
       body
 
   let send_appl_content = Eliom_services.XSame_appl Appl_params.application_name
 
+
   let get_eliom_page_content ~options sp added_headers_set content =
 
     lwt tab_cookies_to_send = get_tab_cook sp in
-
-    (* GRGR FIXME *)
-    (* let onload_form_creators = *)
-      (* Eliommod_cli.wrap (Eliom_services.get_onload_form_creators Appl_params.application_name sp) in *)
-
-    (* GRGR Fixme *)
-    (* List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) content; *)
-    (* let added_headers = *)
-      (* List.map (fun x -> Eliom_xml.make_node_id (HTML5.M.toelt x)) *)
-	 (* (Html5_Header_set.elements added_headers_set) in *)
-    let added_headers = [] in
-    let ref_tree =
-      Eliom_types.Change_page (added_headers,
-			       Eliom_xml.make_ref_tree_list (HTML5.M.toeltl content)) in
+    let onload_form_creators =
+      Eliommod_cli.wrap (Eliom_services.get_onload_form_creators Appl_params.application_name sp) in
+    let eliom_appl_page_data = (Eliom_wrap.wrap (Eliommod_cli.get_eliom_appl_page_data_ sp)) in
+    List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) content;
+    let added_headers =
+      List.map (fun x -> Eliom_xml.make_node_id (HTML5.M.toelt x))
+	 (Html5_Header_set.elements added_headers_set) in
+    let contents_to_send = Eliom_xml.contents_to_send () in
 
     Lwt.return
       ({ Eliom_types.
-	 ejs_ref_tree    = ref_tree;
-	 ejs_tab_cookies = tab_cookies_to_send;
-	 ejs_onload      = Eliom_services.get_onload sp;
-	 ejs_onunload    = Eliom_services.get_onunload sp;
-	 ejs_sess_info   = Eliommod_cli.client_si sp.Eliom_common.sp_si;
+	 ejs_body =
+	  Right (Eliom_xml.make_ref_tree_list (HTML5.M.toeltl content));
+	 ejs_node_list = contents_to_send;
+	 ejs_headers = Right added_headers;
+	 ejs_page_data = eliom_appl_page_data;
+	 ejs_cookies = tab_cookies_to_send;
+	 ejs_xhr = onload_form_creators;
+	 ejs_onload = Eliom_services.get_onload sp;
+	 ejs_onunload = Eliom_services.get_onunload sp;
+	 ejs_sess_info = Eliommod_cli.client_si sp.Eliom_common.sp_si;
        },
        let b = Buffer.create 512 in
        HTML5.P.print_list ~output:(Buffer.add_string b) content;
        Buffer.contents b)
 
+
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
-
     let sp = Eliom_common.get_sp () in
-    ignore (Lazy.force sp.Eliom_common.sp_client_process_info);
+    let cpi = Lazy.force sp.Eliom_common.sp_client_process_info in
     let content_only =
       (* If the name of the application sent by the browser
          corresponds to the name of the application of the service,
@@ -2712,20 +2733,21 @@ module Eliom_appl_reg_make_param
       sp.Eliom_common.sp_client_appl_name = Some Appl_params.application_name
     in
     lwt added_header = Eliom_references.get appl_html_header_ref in
-    if content_only then begin
-      let rc = Eliom_request_info.get_request_cache_sp sp in
-      let url_to_display =
-        "/"
-        ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
-	  (* If it is a suffix service with redirection, the uri has already been
-             computed in rc *)
-          with Not_found -> Eliom_request_info.get_full_url_sp sp
+    (if content_only
+     then begin
+       let rc = Eliom_request_info.get_request_cache_sp sp in
+       let url_to_display =
+         "/"^
+         try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
+       (* If it is a suffix service with redirection, the uri has already been
+          computed in rc *)
+         with Not_found -> Eliom_request_info.get_full_url_sp sp
        (* Otherwise, the full url has already been recomputed
           without internal form info and taking "to_be_considered_as_get"
           into account*)
        in
        lwt data = get_eliom_page_content ~options sp added_header content in
-       Caml.send (EAContent (data, url_to_display))
+       Caml.M.send (Eliom_types.encode_eliom_data (EAContent (data, url_to_display)))
      end
      else begin
        (* We launcha the client side process *)

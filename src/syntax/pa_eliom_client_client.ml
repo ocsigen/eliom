@@ -36,9 +36,9 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let register_closure gen_num args orig_expr =
     let _loc = Ast.loc_of_expr orig_expr in
     <:expr<
-      Eliommod_cli.register_closure
-         (Int64.to_int $`int64:gen_num$)
-         (fun $args$ -> $orig_expr$)
+      Eliom_pervasives.XML.register_closure
+        $`int64:gen_num$
+        (fun $args$ -> fun () -> ($orig_expr$ : unit Lwt.t))
     >>
 
   let arg_ids = ref []
@@ -47,10 +47,10 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     if not (List.mem gen_id !arg_ids) then
       arg_ids := gen_id :: !arg_ids;
     if !notyp then
-      <:expr< Eliommod_cli.unwrap $lid:gen_id$ >>
+      <:expr< $lid:gen_id$ >>
     else
       let typ = Helpers.find_escaped_ident_type gen_id in
-      <:expr< (Eliommod_cli.unwrap $lid:gen_id$ : $typ$) >>
+      <:expr< ($lid:gen_id$ : $typ$) >>
 
 
   let flush_args _loc =

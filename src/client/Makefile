@@ -29,7 +29,7 @@ ${COMMON_PFILES} ${COMMON_SFILES}:
 
 ### Library ###
 
-FILES := eliom_pervasives.ml \
+FILES := eliom_pervasives_base.ml eliom_pervasives.ml \
 	 eliom_unwrap.ml \
 	 eliom_common_base.ml eliom_common.ml \
          private/eliommod_cookies.ml \
@@ -42,7 +42,7 @@ FILES := eliom_pervasives.ml \
 	 eliom_services_base.ml eliom_services.ml \
 	 eliom_uri.ml \
 	 eliom_request.ml \
-	 eliommod_cli.ml \
+	 private/eliommod_cli.ml \
 	 eliom_client.ml \
 	 eliom_comet_base.ml eliom_comet.ml \
          private/eliommod_mkforms.ml \

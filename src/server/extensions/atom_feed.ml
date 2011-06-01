@@ -290,6 +290,6 @@ let published d = `Pub (XML.node ~a:[] "published" [ XML.pcdata (date d) ])
  * }}}
  *)
 
-let insert_hub_links hubs feed = match feed.XML.elt with 
+let insert_hub_links hubs feed = match XML.content feed with 
    | XML.Node (b, a, c)  -> XML.node ~a b (List.map 
          (fun uri -> link ~elt:[`Rel ("hub")] uri) hubs @ c) | _ -> assert false

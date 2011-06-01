@@ -1473,26 +1473,20 @@ let unset_cookie
 (* Client process info *)
 
 let make_server_params sitedata i suffix fullsessname =
-  let sp = Eliom_common.make_server_params_ sitedata i suffix fullsessname in
-  Lwt.with_value Eliom_common.sp_key (Some sp)
-    (fun () ->
-      let get =
-        sp.Eliom_common.sp_sitedata.Eliom_common.get_client_process_info
-      in
-      let cpi = lazy (match get () with
-        | Some cpi -> cpi
-        | None ->
-          let cpi = 
-            {Eliom_common.cpi_ssl = Eliom_request_info.get_ssl_sp sp;
-             Eliom_common.cpi_hostname = Eliom_request_info.get_hostname_sp sp;
-             Eliom_common.cpi_server_port =
-                Eliom_request_info.get_server_port_sp sp;
-             Eliom_common.cpi_original_full_path =
-                Eliom_request_info.get_original_full_path_sp sp;
-             Eliom_common.cpi_references = Polytables.create ()}
-          in
-          sp.Eliom_common.sp_sitedata.Eliom_common.set_client_process_info cpi;
-          cpi)
-      in
-      sp.Eliom_common.sp_client_process_info <- cpi;
-      Lwt.return sp)
+  let cpi = lazy (
+    let sp = Eliom_common.get_sp () in (* GRGR Should be removed once unused... *)
+    match sitedata.Eliom_common.get_client_process_info () with
+      | Some cpi -> cpi
+      | None ->
+        let cpi =
+          { Eliom_common.
+	    cpi_ssl = Eliom_request_info.get_ssl_sp sp;
+            cpi_hostname = Eliom_request_info.get_hostname_sp sp;
+            cpi_server_port = Eliom_request_info.get_server_port_sp sp;
+            cpi_original_full_path = Eliom_request_info.get_original_full_path_sp sp;
+	  }
+        in
+        sitedata.Eliom_common.set_client_process_info cpi;
+        cpi) in
+  Lwt.return
+    (Eliom_common.make_server_params ~client_info:cpi sitedata i suffix fullsessname)

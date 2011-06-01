@@ -16,27 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-exception Eliom_Internal_Error of string
-
-external id : 'a -> 'a = "%identity"
-
-let (>>=) = Lwt.bind
-let (>|=) = Lwt.(>|=)
-let (!!) = Lazy.force
-
-let comp f g x = f (g x)
-let uncurry2 f (x, y) = f x y
-
-let map_option f = function
-  | None -> None
-  | Some v -> Some (f v)
-
-let fst3 (a, _, _) = a
-let snd3 (_, a, _) = a
-let thd3 (_, _, a) = a
-
-type yesnomaybe = Yes | No | Maybe
-type ('a, 'b) leftright = Left of 'a | Right of 'b
+include Eliom_pervasives_base
 
 (*****************************************************************************)
 
@@ -106,6 +86,14 @@ module List = struct
     | [], _ -> true
     | a::ll1, b::ll2 when a=b -> is_prefix_skip_end_slash ll1 ll2
     | _ -> false
+
+  let rec chop n xs =
+    if n <= 0
+    then xs
+    else
+      match xs with
+      | [] -> []
+      | x :: xs -> chop (n-1) xs
 
 end
 
@@ -502,119 +490,42 @@ let encode_header_value x =
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
+
 module XML = struct
 
-  type aname = string
-  type attrib = string * Js.Unsafe.any
-  type attribs = attrib list
-  type event = unit -> unit
+  module H = Hashtbl (* Hashtbl is hidden by RawXML *)
 
-  let int_attrib name value = (name, Js.Unsafe.inject value)
-  let float_attrib name value = (name, Js.Unsafe.inject value)
-  let string_attrib name value = (name, Js.Unsafe.inject (Js.string value))
-  let space_sep_attrib name values =
-    (name, Js.Unsafe.inject (Js.string
-			       (match values with
-			       | [] -> ""
-			       | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l)))
-  let comma_sep_attrib name values =
-    (name, Js.Unsafe.inject (Js.string
-			       (match values with
-			       | [] -> ""
-			       | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l)))
-(*FIX: wrong type*)
-  let event_attrib name value = (name, Js.Unsafe.inject (Dom_html.handler (fun _ -> ignore (value ()); Js._false)))
+  include RawXML
 
-  let attrib_name = fst
+  let closure_table  : (int64, poly -> poly) H.t = H.create 0
+  let register_closure id (f : 'a -> 'b) =
+    H.add closure_table id (Obj.magic f : poly -> poly)
+  let reify_event ev = match ev with
+    | Raw ev -> Js.Unsafe.variable ev
+    | Caml (id, args) ->
+      try
+	let cl = H.find closure_table id args in
+	(Obj.magic cl : unit -> unit Lwt.t)
+      with Not_found ->
+	assert false (* FIXME GRGR *)
 
-  type ename = string
+  let end_re = Regexp.regexp_string "]]>"
 
-  type elt = Dom.node Js.t
+  let cdata s =
+    let s' =
+      "\n<![CDATA[\n" ^ Regexp.global_replace end_re s "" ^ "\n]]>\n" in
+    encodedpcdata s'
 
-(*
-  type node_type =
-  | Element_node
-  | Attribute_node
-  | Text_node
-  | Cdata_section_node
-  | Entity_reference_node
-  | Entity_node
-  | Processing_instruction_node
-  | Comment_node
-  | Document_node
-  | Document_type_node
-  | Document_fragment_node
-  | Notation_node
+  let cdata_script s =
+    let s' =
+      "\n//<![CDATA[\n" ^ Regexp.global_replace end_re s "" ^ "\n//]]>\n" in
+    encodedpcdata s'
 
-  let node_type n =
-  match get_attribute n "nodeType" >>> as_int with
-  | 1 -> Element_node
-  | 2 -> Attribute_node
-  | 3 -> Text_node
-  | 4 -> Cdata_section_node
-  | 5 -> Entity_reference_node
-  | 6 -> Entity_node
-  | 7 -> Processing_instruction_node
-  | 8 -> Comment_node
-  | 9 -> Document_node
-  | 10 -> Document_type_node
-  | 11 -> Document_fragment_node
-  | 12 -> Notation_node
-  | _ -> assert false
- *)
+  let cdata_style s =
+    let s' =
+      "\n/* <![CDATA[ */\n" ^ Regexp.global_replace end_re s "" ^ "\n/* ]]> */\n" in
+    encodedpcdata s'
 
-  let empty () = assert false  (*FIX: what is this supposed to be?*)
-
-  let comment c = assert false (*FIX*)
-
-(*FIX: what should we quote?*)
-  let pcdata d = (Dom_html.document##createTextNode (Js.string d) :> elt)
-  let encodedpcdata d = (Dom_html.document##createTextNode (Js.string d) :> elt)
-  let entity e = assert false (*FIX: should implement*)
-
-  let cdata s = (*FIX: what should we quote?*)
-    encodedpcdata s
-
-  let cdata_script s =(*FIX: what should we quote?*)
-      encodedpcdata s
-
-  let cdata_style s =(*FIX: what should we quote?*)
-      encodedpcdata s
-
-
-(*FIX: cannot set input/name with IE  *)
-  let node ?a name children =
-    let n = Dom_html.document##createElement (Js.string name) in
-    begin match a with
-    | Some a -> List.iter (fun (p, v) -> Js.Unsafe.set n p v) a
-    | None -> ()
-    end;
-    List.iter (fun c -> Dom.appendChild n c) children;
-    (n :> elt)
-
-(*FIX: cannot set input/name with IE  *)
-  let leaf ?a name = node ?a name []
-
-  (* TODO: those functions should be removed: too ugly, and it is not
-     alwais possible to register and event to an xml node, it is only
-     possible on html elements.
-
-     this function is highly unsafe: we rewrite the "name" method.
-     The only limitation is that it should start with "on".
-  *)
-  let lwt_register_event ?(keep_default = true) elt name f v =
-    let keep_default = Js.bool keep_default in
-    assert(String.sub name 0 2 = "on");
-    Js.Unsafe.set elt (Js.string name) (Dom_html.handler (fun _ -> ignore (f v); keep_default))
-
-  let register_event ?(keep_default = true) elt name f v =
-    let keep_default = Js.bool keep_default in
-    assert(String.sub name 0 2 = "on");
-    Js.Unsafe.set elt (Js.string name) (Dom_html.handler (fun _ -> f v; keep_default))
-
-  let ref_node n = 0 (* not needed on client side *)
-
-  type ref_tree = Ref_tree of int option * (int * ref_tree) list
 
 end
 
@@ -623,109 +534,176 @@ module SVG = struct
 end
 
 module HTML5 = struct
-  module M =
-  struct
+
+  module M = struct
     include HTML5_f.Make(XML)(SVG.M)
-    let coerce x = Js.Unsafe.coerce (toelt x)
-    let coerce_back x =  tot (Js.Unsafe.coerce x)
-
-    let to_element : 'a elt -> Dom_html.element Js.t = coerce
-
-    let to_html : HTML5_types.html elt -> Dom_html.htmlElement Js.t = coerce
-    let to_head : HTML5_types.head elt -> Dom_html.headElement Js.t = coerce
-    let to_link : HTML5_types.link elt -> Dom_html.linkElement Js.t = coerce
-    let to_title : HTML5_types.title elt -> Dom_html.titleElement Js.t = coerce
-    let to_meta : HTML5_types.meta elt -> Dom_html.metaElement Js.t = coerce
-    let to_base : HTML5_types.base elt -> Dom_html.baseElement Js.t = coerce
-    let to_style : HTML5_types.style elt -> Dom_html.styleElement Js.t = coerce
-    let to_body : HTML5_types.body elt -> Dom_html.bodyElement Js.t = coerce
-    let to_form : HTML5_types.form elt -> Dom_html.formElement Js.t = coerce
-    let to_optGroup : HTML5_types.optgroup elt -> Dom_html.optGroupElement Js.t = coerce
-    let to_option : HTML5_types.selectoption elt -> Dom_html.optionElement Js.t = coerce
-    let to_select : HTML5_types.select elt -> Dom_html.selectElement Js.t = coerce
-    let to_input : HTML5_types.input elt -> Dom_html.inputElement Js.t = coerce
-    let to_textArea : HTML5_types.textarea elt -> Dom_html.textAreaElement Js.t = coerce
-    let to_button : HTML5_types.button elt -> Dom_html.buttonElement Js.t = coerce
-    let to_label : HTML5_types.label elt -> Dom_html.labelElement Js.t = coerce
-    let to_fieldSet : HTML5_types.fieldset elt -> Dom_html.fieldSetElement Js.t = coerce
-    let to_legend : HTML5_types.legend elt -> Dom_html.legendElement Js.t = coerce
-    let to_uList : HTML5_types.ul elt -> Dom_html.uListElement Js.t = coerce
-    let to_oList : HTML5_types.ol elt -> Dom_html.oListElement Js.t = coerce
-    let to_dList : [`Dl] elt -> Dom_html.dListElement Js.t = coerce
-    let to_li : HTML5_types.li elt -> Dom_html.liElement Js.t = coerce
-    let to_div : HTML5_types.div elt -> Dom_html.divElement Js.t = coerce
-    let to_paragraph : HTML5_types.p elt -> Dom_html.paragraphElement Js.t = coerce
-    let to_heading : HTML5_types.heading elt -> Dom_html.headingElement Js.t = coerce
-    let to_quote : HTML5_types.blockquote elt -> Dom_html.quoteElement Js.t = coerce
-    let to_pre : HTML5_types.pre elt -> Dom_html.preElement Js.t = coerce
-    let to_br : HTML5_types.br elt -> Dom_html.brElement Js.t = coerce
-    let to_hr : HTML5_types.hr elt -> Dom_html.hrElement Js.t = coerce
-    let to_anchor : 'a HTML5_types.a elt -> Dom_html.anchorElement Js.t = coerce
-    let to_image : [`Img] elt -> Dom_html.imageElement Js.t = coerce
-    let to_object : 'a HTML5_types.object_ elt -> Dom_html.objectElement Js.t = coerce
-    let to_param : HTML5_types.param elt -> Dom_html.paramElement Js.t = coerce
-    let to_area : HTML5_types.area elt -> Dom_html.areaElement Js.t = coerce
-    let to_map : 'a HTML5_types.map elt -> Dom_html.mapElement Js.t = coerce
-    let to_script : HTML5_types.script elt -> Dom_html.scriptElement Js.t = coerce
-    let to_tableCell : [ HTML5_types.td | HTML5_types.td ] elt -> Dom_html.tableCellElement Js.t = coerce
-    let to_tableRow : HTML5_types.tr elt -> Dom_html.tableRowElement Js.t = coerce
-    let to_tableCol : HTML5_types.col elt -> Dom_html.tableColElement Js.t = coerce
-    let to_tableSection : [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt ->
-      Dom_html.tableSectionElement Js.t = coerce
-    let to_tableCaption : HTML5_types.caption elt -> Dom_html.tableCaptionElement Js.t = coerce
-    let to_table : HTML5_types.table elt -> Dom_html.tableElement Js.t = coerce
-    let to_canvas : 'a HTML5_types.canvas elt -> Dom_html.canvasElement Js.t = coerce
-    let to_iFrame : HTML5_types.iframe elt -> Dom_html.iFrameElement Js.t = coerce
-
-    let of_element : Dom_html.element Js.t -> 'a elt = coerce_back
-    let of_html : Dom_html.htmlElement Js.t -> HTML5_types.html elt = coerce_back
-    let of_head : Dom_html.headElement Js.t -> HTML5_types.head elt = coerce_back
-    let of_link : Dom_html.linkElement Js.t -> HTML5_types.link elt = coerce_back
-    let of_title : Dom_html.titleElement Js.t -> HTML5_types.title elt = coerce_back
-    let of_meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt = coerce_back
-    let of_base : Dom_html.baseElement Js.t -> HTML5_types.base elt = coerce_back
-    let of_style : Dom_html.styleElement Js.t -> HTML5_types.style elt = coerce_back
-    let of_body : Dom_html.bodyElement Js.t -> HTML5_types.body elt = coerce_back
-    let of_form : Dom_html.formElement Js.t -> HTML5_types.form elt = coerce_back
-    let of_optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt = coerce_back
-    let of_option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt = coerce_back
-    let of_select : Dom_html.selectElement Js.t -> HTML5_types.select elt = coerce_back
-    let of_input : Dom_html.inputElement Js.t -> HTML5_types.input elt = coerce_back
-    let of_textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt = coerce_back
-    let of_button : Dom_html.buttonElement Js.t -> HTML5_types.button elt = coerce_back
-    let of_label : Dom_html.labelElement Js.t -> HTML5_types.label elt = coerce_back
-    let of_fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt = coerce_back
-    let of_legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt = coerce_back
-    let of_uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt = coerce_back
-    let of_oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt = coerce_back
-    let of_dList : Dom_html.dListElement Js.t -> [`Dl] elt = coerce_back
-    let of_li : Dom_html.liElement Js.t -> HTML5_types.li elt = coerce_back
-    let of_div : Dom_html.divElement Js.t -> HTML5_types.div elt = coerce_back
-    let of_paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt = coerce_back
-    let of_heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt = coerce_back
-    let of_quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt = coerce_back
-    let of_pre : Dom_html.preElement Js.t -> HTML5_types.pre elt = coerce_back
-    let of_br : Dom_html.brElement Js.t -> HTML5_types.br elt = coerce_back
-    let of_hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt = coerce_back
-    let of_anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt = coerce_back
-    let of_image : Dom_html.imageElement Js.t -> [`Img] elt = coerce_back
-    let of_object : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt = coerce_back
-    let of_param : Dom_html.paramElement Js.t -> HTML5_types.param elt = coerce_back
-    let of_area : Dom_html.areaElement Js.t -> HTML5_types.area elt = coerce_back
-    let of_map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt = coerce_back
-    let of_script : Dom_html.scriptElement Js.t -> HTML5_types.script elt = coerce_back
-    let of_tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt = coerce_back
-    let of_tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt = coerce_back
-    let of_tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt = coerce_back
-    let of_tableSection :       Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt = coerce_back
-    let of_tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt = coerce_back
-    let of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt = coerce_back
-    let of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = coerce_back
-    let of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = coerce_back
-
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
 
+    let rebuild_xml _ = assert false
+
+    let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
+    let of_html : Dom_html.htmlElement Js.t -> HTML5_types.html elt = rebuild_xml
+    let of_head : Dom_html.headElement Js.t -> HTML5_types.head elt = rebuild_xml
+    let of_link : Dom_html.linkElement Js.t -> HTML5_types.link elt = rebuild_xml
+    let of_title : Dom_html.titleElement Js.t -> HTML5_types.title elt = rebuild_xml
+    let of_meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt = rebuild_xml
+    let of_base : Dom_html.baseElement Js.t -> HTML5_types.base elt = rebuild_xml
+    let of_style : Dom_html.styleElement Js.t -> HTML5_types.style elt = rebuild_xml
+    let of_body : Dom_html.bodyElement Js.t -> HTML5_types.body elt = rebuild_xml
+    let of_form : Dom_html.formElement Js.t -> HTML5_types.form elt = rebuild_xml
+    let of_optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt = rebuild_xml
+    let of_option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt = rebuild_xml
+    let of_select : Dom_html.selectElement Js.t -> HTML5_types.select elt = rebuild_xml
+    let of_input : Dom_html.inputElement Js.t -> HTML5_types.input elt = rebuild_xml
+    let of_textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt = rebuild_xml
+    let of_button : Dom_html.buttonElement Js.t -> HTML5_types.button elt = rebuild_xml
+    let of_label : Dom_html.labelElement Js.t -> HTML5_types.label elt = rebuild_xml
+    let of_fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt = rebuild_xml
+    let of_legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt = rebuild_xml
+    let of_uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt = rebuild_xml
+    let of_oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt = rebuild_xml
+    let of_dList : Dom_html.dListElement Js.t -> [`Dl] elt = rebuild_xml
+    let of_li : Dom_html.liElement Js.t -> HTML5_types.li elt = rebuild_xml
+    let of_div : Dom_html.divElement Js.t -> HTML5_types.div elt = rebuild_xml
+    let of_paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt = rebuild_xml
+    let of_heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt = rebuild_xml
+    let of_quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt = rebuild_xml
+    let of_pre : Dom_html.preElement Js.t -> HTML5_types.pre elt = rebuild_xml
+    let of_br : Dom_html.brElement Js.t -> HTML5_types.br elt = rebuild_xml
+    let of_hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt = rebuild_xml
+    let of_anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt = rebuild_xml
+    let of_image : Dom_html.imageElement Js.t -> [`Img] elt = rebuild_xml
+    let of_object : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt = rebuild_xml
+    let of_param : Dom_html.paramElement Js.t -> HTML5_types.param elt = rebuild_xml
+    let of_area : Dom_html.areaElement Js.t -> HTML5_types.area elt = rebuild_xml
+    let of_map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt = rebuild_xml
+    let of_script : Dom_html.scriptElement Js.t -> HTML5_types.script elt = rebuild_xml
+    let of_tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt = rebuild_xml
+    let of_tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt = rebuild_xml
+    let of_tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt = rebuild_xml
+    let of_tableSection : Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt = rebuild_xml
+    let of_tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt = rebuild_xml
+    let of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt = rebuild_xml
+    let of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = rebuild_xml
+    let of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = rebuild_xml
+
   end
+
+  module Dom = struct
+
+    (* == Process nodes (a.k.a. unique nodes) *)
+    let process_nodes : (string, Dom_html.element Js.t) Hashtbl.t = Hashtbl.create 0
+    let retrieve_node = Hashtbl.find process_nodes
+    let register_node id node = Hashtbl.add process_nodes id node
+
+    let rebuild_attrib node a = match a with
+      | XML.AFloat (name, f) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
+      | XML.AInt (name, i) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
+      | XML.AStr (name, s) -> Js.Unsafe.set node (Js.string name) (Js.string s)
+      | XML.AStrL (XML.Space, name, sl) ->
+	Js.Unsafe.set node
+	  (Js.string name)
+	  (Js.Unsafe.inject (Js.string
+			       (match sl with
+				 | [] -> ""
+				 | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l)))
+      | XML.AStrL (XML.Comma, name, sl) ->
+	Js.Unsafe.set node
+	  (Js.string name)
+	  (Js.Unsafe.inject (Js.string
+			       (match sl with
+				 | [] -> ""
+				 | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l)))
+
+    let register_event_handler node name ev =
+      let f = XML.reify_event (XML.Caml ev) in
+      assert(String.sub name 0 2 = "on");
+      Js.Unsafe.set node (Js.string name)
+	(Dom_html.handler (fun _ -> ignore(f ()); Js._true))
+
+    let rebuild_rattrib node ra = match ra with
+      | XML.RA a -> rebuild_attrib node a
+      | XML.RACamlEvent (name, ev) ->
+	  register_event_handler node name ev
+
+    let rec rebuild_node elt =
+      match elt.XML.unique_id with
+	| None -> raw_rebuild_node elt.XML.elt
+	| Some id ->
+	    try (Hashtbl.find process_nodes id :> Dom.node Js.t)
+	    with Not_found ->
+	      let node = raw_rebuild_node elt.XML.elt in
+	      register_node id (Js.Unsafe.coerce node : Dom_html.element Js.t);
+	      node
+
+    and raw_rebuild_node = function
+      | XML.Empty -> assert false (* FIXME *)
+      | XML.Comment s -> assert false (* FIXME *)
+      | XML.EncodedPCDATA s
+      | XML.PCDATA s ->	(Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
+      | XML.Entity s -> assert false (* FIXME *)
+      | XML.Leaf (name,attribs) ->
+	  let node = Dom_html.document##createElement (Js.string name) in
+	  List.iter (rebuild_rattrib node) attribs;
+	  (node :> Dom.node Js.t)
+      | XML.Node (name,attribs,childrens) ->
+	  let node = Dom_html.document##createElement (Js.string name) in
+	  List.iter (rebuild_rattrib node) attribs;
+	  List.iter (fun c -> Dom.appendChild node (rebuild_node c)) childrens;
+	  (node :> Dom.node Js.t)
+
+    let rebuild_node elt = Js.Unsafe.coerce (rebuild_node (M.toelt elt))
+
+    let of_element : 'a M.elt -> Dom_html.element Js.t = rebuild_node
+
+    let of_html : HTML5_types.html M.elt -> Dom_html.htmlElement Js.t = rebuild_node
+    let of_head : HTML5_types.head M.elt -> Dom_html.headElement Js.t = rebuild_node
+    let of_link : HTML5_types.link M.elt -> Dom_html.linkElement Js.t = rebuild_node
+    let of_title : HTML5_types.title M.elt -> Dom_html.titleElement Js.t = rebuild_node
+    let of_meta : HTML5_types.meta M.elt -> Dom_html.metaElement Js.t = rebuild_node
+    let of_base : HTML5_types.base M.elt -> Dom_html.baseElement Js.t = rebuild_node
+    let of_style : HTML5_types.style M.elt -> Dom_html.styleElement Js.t = rebuild_node
+    let of_body : HTML5_types.body M.elt -> Dom_html.bodyElement Js.t = rebuild_node
+    let of_form : HTML5_types.form M.elt -> Dom_html.formElement Js.t = rebuild_node
+    let of_optGroup : HTML5_types.optgroup M.elt -> Dom_html.optGroupElement Js.t = rebuild_node
+    let of_option : HTML5_types.selectoption M.elt -> Dom_html.optionElement Js.t = rebuild_node
+    let of_select : HTML5_types.select M.elt -> Dom_html.selectElement Js.t = rebuild_node
+    let of_input : HTML5_types.input M.elt -> Dom_html.inputElement Js.t = rebuild_node
+    let of_textArea : HTML5_types.textarea M.elt -> Dom_html.textAreaElement Js.t = rebuild_node
+    let of_button : HTML5_types.button M.elt -> Dom_html.buttonElement Js.t = rebuild_node
+    let of_label : HTML5_types.label M.elt -> Dom_html.labelElement Js.t = rebuild_node
+    let of_fieldSet : HTML5_types.fieldset M.elt -> Dom_html.fieldSetElement Js.t = rebuild_node
+    let of_legend : HTML5_types.legend M.elt -> Dom_html.legendElement Js.t = rebuild_node
+    let of_uList : HTML5_types.ul M.elt -> Dom_html.uListElement Js.t = rebuild_node
+    let of_oList : HTML5_types.ol M.elt -> Dom_html.oListElement Js.t = rebuild_node
+    let of_dList : [`Dl] M.elt -> Dom_html.dListElement Js.t = rebuild_node
+    let of_li : HTML5_types.li M.elt -> Dom_html.liElement Js.t = rebuild_node
+    let of_div : HTML5_types.div M.elt -> Dom_html.divElement Js.t = rebuild_node
+    let of_paragraph : HTML5_types.p M.elt -> Dom_html.paragraphElement Js.t = rebuild_node
+    let of_heading : HTML5_types.heading M.elt -> Dom_html.headingElement Js.t = rebuild_node
+    let of_quote : HTML5_types.blockquote M.elt -> Dom_html.quoteElement Js.t = rebuild_node
+    let of_pre : HTML5_types.pre M.elt -> Dom_html.preElement Js.t = rebuild_node
+    let of_br : HTML5_types.br M.elt -> Dom_html.brElement Js.t = rebuild_node
+    let of_hr : HTML5_types.hr M.elt -> Dom_html.hrElement Js.t = rebuild_node
+    let of_anchor : 'a HTML5_types.a M.elt -> Dom_html.anchorElement Js.t = rebuild_node
+    let of_image : [`Img] M.elt -> Dom_html.imageElement Js.t = rebuild_node
+    let of_object : 'a HTML5_types.object_ M.elt -> Dom_html.objectElement Js.t = rebuild_node
+    let of_param : HTML5_types.param M.elt -> Dom_html.paramElement Js.t = rebuild_node
+    let of_area : HTML5_types.area M.elt -> Dom_html.areaElement Js.t = rebuild_node
+    let of_map : 'a HTML5_types.map M.elt -> Dom_html.mapElement Js.t = rebuild_node
+    let of_script : HTML5_types.script M.elt -> Dom_html.scriptElement Js.t = rebuild_node
+    let of_tableCell : [ HTML5_types.td | HTML5_types.td ] M.elt -> Dom_html.tableCellElement Js.t = rebuild_node
+    let of_tableRow : HTML5_types.tr M.elt -> Dom_html.tableRowElement Js.t = rebuild_node
+    let of_tableCol : HTML5_types.col M.elt -> Dom_html.tableColElement Js.t = rebuild_node
+    let of_tableSection : [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] M.elt ->
+      Dom_html.tableSectionElement Js.t = rebuild_node
+    let of_tableCaption : HTML5_types.caption M.elt -> Dom_html.tableCaptionElement Js.t = rebuild_node
+    let of_table : HTML5_types.table M.elt -> Dom_html.tableElement Js.t = rebuild_node
+    let of_canvas : 'a HTML5_types.canvas M.elt -> Dom_html.canvasElement Js.t = rebuild_node
+    let of_iFrame : HTML5_types.iframe M.elt -> Dom_html.iFrameElement Js.t = rebuild_node
+
+  end
+
 end
 
 (*

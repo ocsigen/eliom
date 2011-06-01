@@ -290,7 +290,7 @@ val get_user_cookies : unit -> Ocsigen_cookies.cookieset
 val get_user_tab_cookies : unit -> Ocsigen_cookies.cookieset
 
 val get_sp_client_appl_name : unit -> string option
-val get_sp_client_process_info_sp : 
+val get_sp_client_process_info_sp :
   Eliom_common.server_params -> Eliom_common.client_process_info option
 val get_sp_client_process_info : unit -> Eliom_common.client_process_info option
 

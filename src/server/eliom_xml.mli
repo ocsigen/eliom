@@ -17,37 +17,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** This module contains functions to track the XML nodes sent to a
-    the browser side of a client process. Each node is associated to
-    an id used to reference the node on client side. *)
+(** ... *)
 
 open Eliom_pervasives
 
-(** The functions in this module can only be called inside the
-    function answering to a client application request *)
-
-val make_ref_tree_list : XML.elt list -> (int * XML.ref_tree) list
-val make_ref_tree : XML.elt -> XML.ref_tree
-(** Those functions returns the structures of an XML.tree containing
-    only the nodes with an id *)
-
-val make_node_id : XML.elt -> int
-(** [make_node_id node] generate an id for a node and returns it.  It
-    also mark the node and its sons as 'node to send to the client' *)
-
-val contents_to_send : unit -> Eliom_types.elt list
-(** [contents_to_send ()] returns the nodes that were marked by
-    make_node_id and not already sent. Those nodes are marked as sent *)
-
-val mark_sent : XML.elt -> unit
-(** [mark_sent node] is used to tell that [node] has already been sent
-    to the client by another mean without calling [contents_to_send]:
-    The part of a page that is sent as plain XML.( in text ) in the
-    answer of the request. *)
+val unique : 'a HTML5.M.elt -> 'a HTML5.M.elt
 
 (**/**)
 
-val client_process_node_table_size : unit -> int
-(** [client_process_node_table_size ()] returns the size of the table
-    used to store the id associated to each XML.node on the client
-    process. *)
+val make_ref_tree : XML.elt -> Eliom_types.ref_tree
+val make_ref_tree_list : XML.elt list -> Eliom_types.ref_tree list
+
+val print_ref_tree : Format.formatter -> Eliom_types.ref_tree -> unit

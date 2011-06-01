@@ -532,7 +532,7 @@ let unregister ?(scope = `Global) ?state_name ?secure service =
 (** {2 on_load and on_unload for Eliom_appl services } *)
 
 (* We keep them in rc because we want them to apply to the next page that
-   will be displayed. That is, event after an action or a (stateful) 
+   will be displayed. That is, event after an action or a (stateful)
    redirection.
 *)
 
@@ -540,7 +540,7 @@ let on_load_key : XML.event list Polytables.key = Polytables.make_key ()
 
 let get_onload sp =
   let rc = Eliom_request_info.get_request_cache_sp sp in
-  try 
+  try
     List.rev (Polytables.get ~table:rc ~key:on_load_key)
   with Not_found -> []
 
@@ -557,14 +557,14 @@ let onload s =
   let s0 = try Polytables.get ~table:rc ~key:on_load_key
     with Not_found -> []
   in
-  Polytables.set ~table:rc ~key:on_load_key ~value:(s::s0)
+  Polytables.set ~table:rc ~key:on_load_key ~value:(s :: s0)
 
 let onunload s =
   let rc = Eliom_request_info.get_request_cache () in
   let s0 = try Polytables.get ~table:rc ~key:on_unload_key
     with Not_found -> []
   in
-  Polytables.set ~table:rc ~key:on_unload_key ~value:(s::s0)
+  Polytables.set ~table:rc ~key:on_unload_key ~value:(s :: s0)
 
 
 (* The following is almost like onload, but contains only the information
@@ -587,7 +587,7 @@ let add_onload_form_creator s =
 
 let get_onload_form_creators appl_name sp =
   let rc = Eliom_request_info.get_request_cache_sp sp in
-  try 
+  try
     List.fold_left
       (fun beg (send_appl_content, info) ->
         (* We ask the client to register an onclick/onsubmit
@@ -609,4 +609,4 @@ let pre_wrap s =
     post_params_type = Eliom_parameters.wrap_param_type s.post_params_type;
   }
 
-let wrap s = Eliommod_cli.wrap (pre_wrap s)
+(* let wrap s = Eliom_types.wrap_parameters (pre_wrap s) *)

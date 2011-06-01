@@ -24,29 +24,8 @@ open Eliom_pervasives
 let _a = Eliommod_mkforms.make_a_with_onclick
 let _b = Eliom_react.force_link
 
-
 let _ =
   Dom_html.window##onload <- Dom_html.handler (fun _ ->
-    let eliom_data = unmarshal_js_var "eliom_data" in
-    ignore (Eliom_client.load_eliom_data_ eliom_data Dom_html.document##body);
-
-(*CPE* change_page_event
-
-    (* ===change page event *)
-    let change_page_event
-        : Eliom_services.eliom_appl_answer React.E.t =
-      (Eliom_react.Down.unwrap
-         ~wake:false (unmarshal_js_var "change_page_event"))
-    in
-    let retain_event =
-      React.E.map Eliom_client.set_content change_page_event
-    in
-
-    (* The following piece of code is not necessary due to the lack of weak
-     * pointers on client side.*)
-    let `R r = React.E.retain change_page_event (fun () -> ()) in
-    ignore
-      (React.E.retain change_page_event (fun () -> r (); ignore retain_event));
-*)
-
+    let eliom_data = Eliom_unwrap.unwrap (unmarshal_js_var "eliom_data") in
+    ignore (Eliom_client.load_eliom_data eliom_data Dom_html.document##body);
     Js._false)

@@ -1,5 +1,12 @@
 
-include Eliom_output_base
+open Eliom_pervasives
+
+module Html5_forms = Eliom_output_base.Html5_forms(struct
+  let register_event ?(keep_default = true) elt name f v =
+    let keep_default = Js.bool keep_default in
+    assert(String.sub name 0 2 = "on");
+    Js.Unsafe.set elt (Js.string name) (Dom_html.handler (fun _ -> f v; keep_default))
+end)
 
 module type Base =
 sig

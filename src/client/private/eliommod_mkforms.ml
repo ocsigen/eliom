@@ -47,7 +47,8 @@ let make_get_form_with_onsubmit
   let node = make_get_form ?a ~action:uri ?onsubmit:None field fields in
   register_event ?keep_default:(Some false) node "onsubmit"
     (fun () -> Eliom_client.change_page_get_form ?cookies_info
-      (Js.Unsafe.coerce (HTML5.M.toelt node)) uri)
+      (assert false) (* (Js.Unsafe.coerce (HTML5.M.toelt node)) *)
+      uri)
     ();
   node
 
@@ -64,7 +65,10 @@ let make_post_form_with_onsubmit
   let node = make_post_form ?a ~action:uri ?onsubmit:None field fields in
   register_event ?keep_default:(Some false) node "onsubmit"
     (fun () -> Eliom_client.change_page_post_form ?cookies_info
-      (Js.Unsafe.coerce (HTML5.M.toelt node)) uri)
+      (Js.Unsafe.coerce
+	 (assert false)
+	 (* (HTML5.M.toelt node) *)
+      ) uri)
     ();
   node
 

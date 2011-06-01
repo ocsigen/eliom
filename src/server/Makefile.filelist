@@ -24,8 +24,6 @@ INTF := eliom_pervasives.cmi        \
         eliom_error_pages.cmi       \
         eliom_references.cmi        \
         eliom_extensions.cmi        \
-	\
-	eliommod_cli.cmi            \
         \
 	extensions/eliom_s2s.cmi    \
         extensions/eliom_openid.cmi \

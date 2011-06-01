@@ -101,7 +101,8 @@ let eliomclient1 =
       Lwt.return
         [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                         (* with {{ expr }}, the expression is executed by the client. *)
-          a_onclick {{Dom_html.window##alert(Js.string "clicked!") ; Lwt.return ()}}]
+          a_onclick {{ Dom_html.window##alert(Js.string "clicked!") ; Lwt.return () : type }}
+			]
             [pcdata "I am a clickable paragraph"];
 
         ])
@@ -607,7 +608,8 @@ let () =
               ()];
 	Eliom_output.Html5.a wrapping1 [pcdata "internal application link to myself"] (); br ();
 	Eliom_output.Html5.a gc_service [pcdata "do a full major gc on the server"] (); br ();
-	pcdata (Printf.sprintf "client_process_node_table_size: %i" (Eliom_xml.client_process_node_table_size ()));
+	(* GRGR FIXME *)
+	(* pcdata (Printf.sprintf "client_process_node_table_size: %i" (Eliom_xml.client_process_node_table_size ())); *)
       ])
 
 (*wiki*

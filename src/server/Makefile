@@ -31,11 +31,10 @@ ${COMMON_PFILES} ${COMMON_SFILES}:
 eliom_duce_sigs.mli: eliom_duce_sigs.mlp
 	camlp4o ../syntax/pa_include.cmo -printer o -intf $< > $@
 
-FILES := eliom_pervasives.ml \
+FILES := eliom_pervasives_base.ml eliom_pervasives.ml \
 	 eliom_wrap.ml \
 	 eliom_cookies.ml \
 	 eliom_common_base.ml eliom_common.ml \
-	 eliom_xml.ml \
 	 eliom_request_info.ml \
 	 private/eliommod_sessiongroups.ml \
 	 private/eliommod_cookies.ml \
@@ -48,6 +47,7 @@ FILES := eliom_pervasives.ml \
 	 private/eliommod_timeouts.ml \
 	 eliom_state.ml \
 	 eliom_references.ml \
+	 eliom_xml.ml \
 	 eliom_extensions.ml \
 	 private/eliommod_services.ml \
 	 private/eliommod_naservices.ml \
@@ -57,7 +57,7 @@ FILES := eliom_pervasives.ml \
 	 private/eliommod.ml \
          eliom_parameters_base.ml eliom_parameters.ml \
 	 eliom_process.ml \
-	 eliommod_cli.ml \
+	 private/eliommod_cli.ml \
 	 eliom_services_base.ml eliom_services.ml \
          eliom_config.ml \
 	 private/eliommod_mkforms.ml \

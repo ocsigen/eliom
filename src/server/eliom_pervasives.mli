@@ -36,6 +36,11 @@ val fst3 : 'a * 'b * 'c -> 'a
 val snd3 : 'a * 'b * 'c -> 'b
 val thd3 : 'a * 'b * 'c -> 'c
 
+type poly (* Warning: do not use [poly array]... *)
+val to_poly: 'a -> poly
+type 'a wrapped_value = poly * 'a
+type 'a client_expr = int64 * poly
+
 module List : sig
   include module type of List
   val assoc_remove : 'a -> ('a * 'b) list -> 'b * ('a * 'b) list
@@ -119,7 +124,15 @@ module XML : sig
 
   type aname = string
   type separator = Space | Comma
-  type event = string
+
+  type caml_event = (unit -> unit Lwt.t) client_expr
+  type event =
+    | Raw of string
+    | Caml of caml_event
+
+  val event_of_string : string -> event
+  val string_of_event : event -> string
+  val event_of_js : int64 -> poly -> event
 
   type attrib
   type acontent = private
@@ -130,6 +143,11 @@ module XML : sig
   val acontent : attrib -> acontent
   val aname : attrib -> aname
 
+  type racontent =
+    | RA of acontent
+    | RACamlEvent of aname * caml_event
+  val racontent : attrib -> racontent
+
   val float_attrib : aname -> float -> attrib
   val int_attrib : aname -> int -> attrib
   val string_attrib : aname -> string -> attrib
@@ -137,12 +155,8 @@ module XML : sig
   val comma_sep_attrib : aname -> string list -> attrib
   val event_attrib : aname -> event -> attrib
 
-  val attrib_name : attrib -> aname
-  val attrib_value_to_string : (string -> string) -> attrib -> string
-  val attrib_to_string : (string -> string) -> attrib -> string
-
+  type elt
   type ename = string
-
   type econtent =
     | Empty
     | Comment of string
@@ -151,17 +165,9 @@ module XML : sig
     | Entity of string
     | Leaf of ename * attrib list
     | Node of ename * attrib list * elt list
-  and elt = {
-      (* the element is boxed with some meta-information *)
-      mutable ref : int ;
-      elt : econtent ;
-      elt_mark : Obj.t;
-    }
   val content : elt -> econtent
 
-  val make_mark : (unit -> Obj.t) ref
-
-  val make_node : econtent -> elt
+  val make : econtent -> elt
 
   val empty : unit -> elt
 
@@ -169,30 +175,27 @@ module XML : sig
   val pcdata : string -> elt
   val encodedpcdata : string -> elt
   val entity : string -> elt
-(** Neither [comment], [pcdata] nor [entity] check their argument for invalid
-    characters.  Unsafe characters will be escaped later by the output routines.  *)
+    (** Neither [comment], [pcdata] nor [entity] check their argument
+	for invalid characters.  Unsafe characters will be escaped later
+	by the output routines. *)
 
   val leaf : ?a:(attrib list) -> ename -> elt
   val node : ?a:(attrib list) -> ename -> elt list -> elt
-(** NB: [Leaf ("foo", []) -> "<foo />"], but [Node ("foo", [], []) -> "<foo></foo>"] *)
+    (** NB: [Leaf ("foo", []) -> "<foo />"],
+	but [Node ("foo", [], []) -> "<foo></foo>"] *)
 
   val cdata : string -> elt
   val cdata_script : string -> elt
   val cdata_style : string -> elt
 
-  type ref_tree = Ref_tree of int option * (int * ref_tree) list
+  val make_unique : ?copy:elt -> elt -> elt
+  val is_unique : elt -> bool
+  val get_unique_id : elt -> string option
 
-  val ref_node : elt -> int
-  val next_ref : unit -> int (** use with care! *)
-  val make_ref_tree : elt -> ref_tree
-  val make_ref_tree_list : elt list -> (int * ref_tree) list
+  module Hashtbl : Hashtbl.S with type key = elt
 
-  val class_name : string
-
-  (**/**)
-  (* this is not implemented on server side: sould be removed *)
-  val lwt_register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b Lwt.t) -> 'a -> unit
-  val register_event : ?keep_default:bool -> elt -> ename -> ('a -> 'b) -> 'a -> unit
+  val hash: elt -> int
+  val compare: elt -> elt -> int
 
 end
 
