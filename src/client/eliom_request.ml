@@ -88,15 +88,11 @@ let rec send ?cookies_info ?get_args ?post_args ?form_arg url =
       | Some c -> c
       | None -> get_cookie_info_for_uri url
     in
-    (* We add cookies in POST parameters *)
     let cookies = Eliommod_cookies.get_cookies_to_send https path in
-    let headers = [(Eliom_common.tab_cookies_header_name,
-                    (encode_header_value cookies))]
-    in
-    let post_args = map_option (fun post_args ->
-      ((Eliom_common.tab_cookies_param_name,
-        (encode_form_value cookies))::
-          post_args)) post_args
+    let headers = [ ( Eliom_common.tab_cookies_header_name,
+                      encode_header_value cookies );
+		    ( Eliom_common.tab_cpi_header_name,
+		      encode_header_value Eliom_process.info ) ]
     in
      XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None ?post_args ?get_args ?form_arg url
     >>= fun r ->
