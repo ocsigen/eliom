@@ -184,13 +184,14 @@ val make_proto_prefix :
     Thus, if the destination service belongs to the same application,
     the client side process will not be stopped when the link is clicked.
 
-*)val a :
+*)
+val a :
   ?absolute:bool ->
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:a_attrib_t ->
   service:('get, unit, [< Eliom_services.get_service_kind ],
-           [< Eliom_services.suff ], 'd, 'e,
+           [< Eliom_services.suff ], 'd, unit,
            [< Eliom_services.registrable ], 'f)
     Eliom_services.service ->
   ?hostname:string ->

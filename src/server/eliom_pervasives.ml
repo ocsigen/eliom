@@ -166,18 +166,63 @@ module XML = struct
       | Some copy -> copy.unique_id
       | None -> Some (String.make_cryptographic_safe ()) in
     { elt with unique_id = id }
-  let is_unique elt = elt.unique_id <> None
-  let get_unique_id elt = elt.unique_id
+
+  (** Ref tree *)
+
+  let cons_attrib att acc = match racontent att with
+    | RACamlEvent (n,oc) -> (n, oc) :: acc
+    | _ -> acc
+
+  let rec make_ref_tree elt =
+    let id = get_unique_id elt in
+    let attribs, childrens = match content elt with
+      | Empty | EncodedPCDATA _ | PCDATA _
+      | Entity _ | Comment _  -> [], []
+      | Leaf (_, attribs) ->
+	List.fold_right cons_attrib attribs [],
+	[]
+      | Node (_, attribs, elts) ->
+	List.fold_right cons_attrib attribs [],
+	make_ref_tree_list elts
+    in
+    match id, attribs, childrens with
+      | None, [], [] -> Ref_empty 0
+      | _ -> Ref_node (id, attribs, childrens)
+
+  and make_ref_tree_list l =
+    let aggregate elt acc =
+      let elt = make_ref_tree elt in
+      if elt = Ref_empty 0 then
+	match acc with
+	  | [] -> []
+	  | Ref_empty i :: acc -> Ref_empty (succ i) :: acc
+	  | acc -> Ref_empty 1 :: acc
+      else elt :: acc in
+    List.fold_right aggregate l []
+
+  and make_attrib_list l =
+    let aggregate a acc = match racontent a with
+      | RACamlEvent (n, ev) ->
+	(n, ev) :: acc
+      | _ -> acc in
+    List.fold_right aggregate l []
+
 
 end
 
 module SVG = struct
-  module M = SVG_f.Make(XML)
+  module M = struct
+      include SVG_f.Make(XML)
+      let unique elt = tot (XML.make_unique (toelt elt))
+  end
   module P = XML_print.MakeTypedSimple(XML)(M)
 end
 
 module HTML5 = struct
-  module M = HTML5_f.Make(XML)(SVG.M)
+  module M = struct
+      include HTML5_f.Make(XML)(SVG.M)
+      let unique elt = tot (XML.make_unique (toelt elt))
+  end
   module P = XML_print.MakeTypedSimple(XML)(M)
 end
 

@@ -22,8 +22,10 @@ type ('a, 'b) leftright = Left of 'a | Right of 'b
 
 type poly
 val from_poly: poly -> 'a
-type 'a wrapped_value = poly * 'a
 type 'a client_expr = int64 * poly
+type 'a wrapped_value = poly * 'a
+
+exception False
 
 module List : sig
   include module type of List
@@ -111,10 +113,44 @@ module XML : sig
 
   type aname = string
   type attrib
-  type caml_event
-  type event
 
-  val reify_event : event -> unit -> unit Lwt.t
+  type caml_event =
+    | CE_closure of (unit -> unit Lwt.t) client_expr
+    | CE_a of (bool * string list) option
+    | CE_form_get of (bool * string list) option
+    | CE_form_post of (bool * string list) option
+
+  type event =
+    | Raw of string
+    | Caml of caml_event
+
+  type ename = string
+  type elt
+  type econtent = private
+    | Empty
+    | Comment of string
+    | EncodedPCDATA of string
+    | PCDATA of string
+    | Entity of string
+    | Leaf of ename * attrib list
+    | Node of ename * attrib list * elt list
+
+  (**/**)
+
+  val event_of_service_a : (bool * Url.path) option -> event
+
+  type separator = Space | Comma
+  type acontent = private
+    | AFloat of aname * float
+    | AInt of aname * int
+    | AStr of aname * string
+    | AStrL of separator * aname * string list
+  val acontent : attrib -> acontent
+
+  type racontent =
+    | RA of acontent
+    | RACamlEvent of (aname * caml_event)
+  val racontent : attrib -> racontent
 
   val aname : attrib -> aname
 
@@ -125,8 +161,8 @@ module XML : sig
   val comma_sep_attrib : aname -> string list -> attrib
   val event_attrib : aname -> event -> attrib
 
-  type ename = string
-  type elt
+  val content : elt -> econtent
+  val get_unique_id : elt -> string option
 
   val pcdata : string -> elt
   val encodedpcdata : string -> elt
@@ -142,9 +178,10 @@ module XML : sig
   val cdata_script : string -> elt
   val cdata_style : string -> elt
 
-  (**/**)
-
-  val register_closure : int64 -> ('a -> 'b) -> unit
+  type node_id = string
+  type ref_tree =
+    | Ref_node of (node_id option * (string * caml_event) list * ref_tree list)
+    | Ref_empty of int
 
 end
 
@@ -207,66 +244,6 @@ module HTML5 : sig
     val of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt
     val of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt
     val of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt
-
-  end
-
-  module Dom : sig
-
-    val retrieve_node : string -> Dom_html.element Js.t
-    val register_node : string -> Dom_html.element Js.t -> unit
-
-    val register_event_handler :
-      Dom_html.element Js.t -> string -> XML.caml_event -> unit
-
-    (** type safe casting functions from HTML5 types to Dom types. *)
-
-    val of_element : 'a M.elt -> Dom_html.element Js.t
-
-    val of_html : HTML5_types.html M.elt -> Dom_html.htmlElement Js.t
-    val of_head : HTML5_types.head M.elt -> Dom_html.headElement Js.t
-    val of_link : HTML5_types.link M.elt -> Dom_html.linkElement Js.t
-    val of_title : HTML5_types.title M.elt -> Dom_html.titleElement Js.t
-    val of_meta : HTML5_types.meta M.elt -> Dom_html.metaElement Js.t
-    val of_base : HTML5_types.base M.elt -> Dom_html.baseElement Js.t
-    val of_style : HTML5_types.style M.elt -> Dom_html.styleElement Js.t
-    val of_body : HTML5_types.body M.elt -> Dom_html.bodyElement Js.t
-    val of_form : HTML5_types.form M.elt -> Dom_html.formElement Js.t
-    val of_optGroup : HTML5_types.optgroup M.elt -> Dom_html.optGroupElement Js.t
-    val of_option : HTML5_types.selectoption M.elt -> Dom_html.optionElement Js.t
-    val of_select : HTML5_types.select M.elt -> Dom_html.selectElement Js.t
-    val of_input : HTML5_types.input M.elt -> Dom_html.inputElement Js.t
-    val of_textArea : HTML5_types.textarea M.elt -> Dom_html.textAreaElement Js.t
-    val of_button : HTML5_types.button M.elt -> Dom_html.buttonElement Js.t
-    val of_label : HTML5_types.label M.elt -> Dom_html.labelElement Js.t
-    val of_fieldSet : HTML5_types.fieldset M.elt -> Dom_html.fieldSetElement Js.t
-    val of_legend : HTML5_types.legend M.elt -> Dom_html.legendElement Js.t
-    val of_uList : HTML5_types.ul M.elt -> Dom_html.uListElement Js.t
-    val of_oList : HTML5_types.ol M.elt -> Dom_html.oListElement Js.t
-    val of_dList : [`Dl] M.elt -> Dom_html.dListElement Js.t
-    val of_li : HTML5_types.li M.elt -> Dom_html.liElement Js.t
-    val of_div : HTML5_types.div M.elt -> Dom_html.divElement Js.t
-    val of_paragraph : HTML5_types.p M.elt -> Dom_html.paragraphElement Js.t
-    val of_heading : HTML5_types.heading M.elt -> Dom_html.headingElement Js.t
-    val of_quote : HTML5_types.blockquote M.elt -> Dom_html.quoteElement Js.t
-    val of_pre : HTML5_types.pre M.elt -> Dom_html.preElement Js.t
-    val of_br : HTML5_types.br M.elt -> Dom_html.brElement Js.t
-    val of_hr : HTML5_types.hr M.elt -> Dom_html.hrElement Js.t
-    val of_anchor : 'a HTML5_types.a M.elt -> Dom_html.anchorElement Js.t
-    val of_image : [`Img] M.elt -> Dom_html.imageElement Js.t
-    val of_object : 'a HTML5_types.object_ M.elt -> Dom_html.objectElement Js.t
-    val of_param : HTML5_types.param M.elt -> Dom_html.paramElement Js.t
-    val of_area : HTML5_types.area M.elt -> Dom_html.areaElement Js.t
-    val of_map : 'a HTML5_types.map M.elt -> Dom_html.mapElement Js.t
-    val of_script : HTML5_types.script M.elt -> Dom_html.scriptElement Js.t
-    val of_tableCell : [ HTML5_types.td | HTML5_types.td ] M.elt -> Dom_html.tableCellElement Js.t
-    val of_tableRow : HTML5_types.tr M.elt -> Dom_html.tableRowElement Js.t
-    val of_tableCol : HTML5_types.col M.elt -> Dom_html.tableColElement Js.t
-    val of_tableSection : [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] M.elt ->
-      Dom_html.tableSectionElement Js.t
-    val of_tableCaption : HTML5_types.caption M.elt -> Dom_html.tableCaptionElement Js.t
-    val of_table : HTML5_types.table M.elt -> Dom_html.tableElement Js.t
-    val of_canvas : 'a HTML5_types.canvas M.elt -> Dom_html.canvasElement Js.t
-    val of_iFrame : HTML5_types.iframe M.elt -> Dom_html.iFrameElement Js.t
 
   end
 

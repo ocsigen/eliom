@@ -36,7 +36,7 @@ module RawXML = struct
     | Comma -> ", "
 
   type caml_event =
-    | CE_closure of (unit -> unit Lwt.t) client_expr
+    | CE_closure of (unit -> unit) client_expr
     | CE_a of (bool * string list) option
     | CE_form_get of (bool * string list) option
     | CE_form_post of (bool * string list) option

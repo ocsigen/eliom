@@ -18,6 +18,8 @@
 
 include Eliom_pervasives_base
 
+exception False
+
 (*****************************************************************************)
 
 module List = struct
@@ -490,24 +492,9 @@ let encode_header_value x =
 let unmarshal_js_var s =
   Marshal.from_string (Js.to_bytestring (Js.Unsafe.variable s)) 0
 
-
 module XML = struct
 
-  module H = Hashtbl (* Hashtbl is hidden by RawXML *)
-
   include RawXML
-
-  let closure_table  : (int64, poly -> poly) H.t = H.create 0
-  let register_closure id (f : 'a -> 'b) =
-    H.add closure_table id (Obj.magic f : poly -> poly)
-  let reify_event ev = match ev with
-    | Raw ev -> Js.Unsafe.variable ev
-    | Caml (id, args) ->
-      try
-	let cl = H.find closure_table id args in
-	(Obj.magic cl : unit -> unit Lwt.t)
-      with Not_found ->
-	assert false (* FIXME GRGR *)
 
   let end_re = Regexp.regexp_string "]]>"
 
@@ -586,121 +573,6 @@ module HTML5 = struct
     let of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt = rebuild_xml
     let of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = rebuild_xml
     let of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = rebuild_xml
-
-  end
-
-  module Dom = struct
-
-    (* == Process nodes (a.k.a. unique nodes) *)
-    let process_nodes : (string, Dom_html.element Js.t) Hashtbl.t = Hashtbl.create 0
-    let retrieve_node = Hashtbl.find process_nodes
-    let register_node id node = Hashtbl.add process_nodes id node
-
-    let rebuild_attrib node a = match a with
-      | XML.AFloat (name, f) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
-      | XML.AInt (name, i) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
-      | XML.AStr (name, s) -> Js.Unsafe.set node (Js.string name) (Js.string s)
-      | XML.AStrL (XML.Space, name, sl) ->
-	Js.Unsafe.set node
-	  (Js.string name)
-	  (Js.Unsafe.inject (Js.string
-			       (match sl with
-				 | [] -> ""
-				 | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l)))
-      | XML.AStrL (XML.Comma, name, sl) ->
-	Js.Unsafe.set node
-	  (Js.string name)
-	  (Js.Unsafe.inject (Js.string
-			       (match sl with
-				 | [] -> ""
-				 | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l)))
-
-    let register_event_handler node name ev =
-      let f = XML.reify_event (XML.Caml ev) in
-      assert(String.sub name 0 2 = "on");
-      Js.Unsafe.set node (Js.string name)
-	(Dom_html.handler (fun _ -> ignore(f ()); Js._true))
-
-    let rebuild_rattrib node ra = match ra with
-      | XML.RA a -> rebuild_attrib node a
-      | XML.RACamlEvent (name, ev) ->
-	  register_event_handler node name ev
-
-    let rec rebuild_node elt =
-      match elt.XML.unique_id with
-	| None -> raw_rebuild_node elt.XML.elt
-	| Some id ->
-	    try (Hashtbl.find process_nodes id :> Dom.node Js.t)
-	    with Not_found ->
-	      let node = raw_rebuild_node elt.XML.elt in
-	      register_node id (Js.Unsafe.coerce node : Dom_html.element Js.t);
-	      node
-
-    and raw_rebuild_node = function
-      | XML.Empty -> assert false (* FIXME *)
-      | XML.Comment s -> assert false (* FIXME *)
-      | XML.EncodedPCDATA s
-      | XML.PCDATA s ->	(Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
-      | XML.Entity s -> assert false (* FIXME *)
-      | XML.Leaf (name,attribs) ->
-	  let node = Dom_html.document##createElement (Js.string name) in
-	  List.iter (rebuild_rattrib node) attribs;
-	  (node :> Dom.node Js.t)
-      | XML.Node (name,attribs,childrens) ->
-	  let node = Dom_html.document##createElement (Js.string name) in
-	  List.iter (rebuild_rattrib node) attribs;
-	  List.iter (fun c -> Dom.appendChild node (rebuild_node c)) childrens;
-	  (node :> Dom.node Js.t)
-
-    let rebuild_node elt = Js.Unsafe.coerce (rebuild_node (M.toelt elt))
-
-    let of_element : 'a M.elt -> Dom_html.element Js.t = rebuild_node
-
-    let of_html : HTML5_types.html M.elt -> Dom_html.htmlElement Js.t = rebuild_node
-    let of_head : HTML5_types.head M.elt -> Dom_html.headElement Js.t = rebuild_node
-    let of_link : HTML5_types.link M.elt -> Dom_html.linkElement Js.t = rebuild_node
-    let of_title : HTML5_types.title M.elt -> Dom_html.titleElement Js.t = rebuild_node
-    let of_meta : HTML5_types.meta M.elt -> Dom_html.metaElement Js.t = rebuild_node
-    let of_base : HTML5_types.base M.elt -> Dom_html.baseElement Js.t = rebuild_node
-    let of_style : HTML5_types.style M.elt -> Dom_html.styleElement Js.t = rebuild_node
-    let of_body : HTML5_types.body M.elt -> Dom_html.bodyElement Js.t = rebuild_node
-    let of_form : HTML5_types.form M.elt -> Dom_html.formElement Js.t = rebuild_node
-    let of_optGroup : HTML5_types.optgroup M.elt -> Dom_html.optGroupElement Js.t = rebuild_node
-    let of_option : HTML5_types.selectoption M.elt -> Dom_html.optionElement Js.t = rebuild_node
-    let of_select : HTML5_types.select M.elt -> Dom_html.selectElement Js.t = rebuild_node
-    let of_input : HTML5_types.input M.elt -> Dom_html.inputElement Js.t = rebuild_node
-    let of_textArea : HTML5_types.textarea M.elt -> Dom_html.textAreaElement Js.t = rebuild_node
-    let of_button : HTML5_types.button M.elt -> Dom_html.buttonElement Js.t = rebuild_node
-    let of_label : HTML5_types.label M.elt -> Dom_html.labelElement Js.t = rebuild_node
-    let of_fieldSet : HTML5_types.fieldset M.elt -> Dom_html.fieldSetElement Js.t = rebuild_node
-    let of_legend : HTML5_types.legend M.elt -> Dom_html.legendElement Js.t = rebuild_node
-    let of_uList : HTML5_types.ul M.elt -> Dom_html.uListElement Js.t = rebuild_node
-    let of_oList : HTML5_types.ol M.elt -> Dom_html.oListElement Js.t = rebuild_node
-    let of_dList : [`Dl] M.elt -> Dom_html.dListElement Js.t = rebuild_node
-    let of_li : HTML5_types.li M.elt -> Dom_html.liElement Js.t = rebuild_node
-    let of_div : HTML5_types.div M.elt -> Dom_html.divElement Js.t = rebuild_node
-    let of_paragraph : HTML5_types.p M.elt -> Dom_html.paragraphElement Js.t = rebuild_node
-    let of_heading : HTML5_types.heading M.elt -> Dom_html.headingElement Js.t = rebuild_node
-    let of_quote : HTML5_types.blockquote M.elt -> Dom_html.quoteElement Js.t = rebuild_node
-    let of_pre : HTML5_types.pre M.elt -> Dom_html.preElement Js.t = rebuild_node
-    let of_br : HTML5_types.br M.elt -> Dom_html.brElement Js.t = rebuild_node
-    let of_hr : HTML5_types.hr M.elt -> Dom_html.hrElement Js.t = rebuild_node
-    let of_anchor : 'a HTML5_types.a M.elt -> Dom_html.anchorElement Js.t = rebuild_node
-    let of_image : [`Img] M.elt -> Dom_html.imageElement Js.t = rebuild_node
-    let of_object : 'a HTML5_types.object_ M.elt -> Dom_html.objectElement Js.t = rebuild_node
-    let of_param : HTML5_types.param M.elt -> Dom_html.paramElement Js.t = rebuild_node
-    let of_area : HTML5_types.area M.elt -> Dom_html.areaElement Js.t = rebuild_node
-    let of_map : 'a HTML5_types.map M.elt -> Dom_html.mapElement Js.t = rebuild_node
-    let of_script : HTML5_types.script M.elt -> Dom_html.scriptElement Js.t = rebuild_node
-    let of_tableCell : [ HTML5_types.td | HTML5_types.td ] M.elt -> Dom_html.tableCellElement Js.t = rebuild_node
-    let of_tableRow : HTML5_types.tr M.elt -> Dom_html.tableRowElement Js.t = rebuild_node
-    let of_tableCol : HTML5_types.col M.elt -> Dom_html.tableColElement Js.t = rebuild_node
-    let of_tableSection : [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] M.elt ->
-      Dom_html.tableSectionElement Js.t = rebuild_node
-    let of_tableCaption : HTML5_types.caption M.elt -> Dom_html.tableCaptionElement Js.t = rebuild_node
-    let of_table : HTML5_types.table M.elt -> Dom_html.tableElement Js.t = rebuild_node
-    let of_canvas : 'a HTML5_types.canvas M.elt -> Dom_html.canvasElement Js.t = rebuild_node
-    let of_iFrame : HTML5_types.iframe M.elt -> Dom_html.iFrameElement Js.t = rebuild_node
 
   end
 

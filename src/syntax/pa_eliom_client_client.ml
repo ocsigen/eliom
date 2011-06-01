@@ -36,9 +36,9 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let register_closure gen_num args orig_expr =
     let _loc = Ast.loc_of_expr orig_expr in
     <:expr<
-      Eliom_pervasives.XML.register_closure
+      Eliom_client.register_closure
         $`int64:gen_num$
-        (fun $args$ -> fun () -> ($orig_expr$ : unit Lwt.t))
+        (fun $args$ -> ($orig_expr$ : unit))
     >>
 
   let arg_ids = ref []

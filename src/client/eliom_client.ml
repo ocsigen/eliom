@@ -19,6 +19,203 @@
 
 open Eliom_pervasives
 
+(* == Closure *)
+
+let closure_table  : (int64, poly -> unit) Hashtbl.t = Hashtbl.create 0
+let register_closure id (f : 'a -> unit) =
+  Hashtbl.add closure_table id (Obj.magic f : poly -> unit)
+let find_closure = Hashtbl.find closure_table
+
+(* == Process nodes (a.k.a. nodes with a unique Dom instance on each client) *)
+
+let (register_node, find_node) =
+  let process_nodes : (string, Dom_html.element Js.t) Hashtbl.t = Hashtbl.create 0 in
+  let find id = Hashtbl.find process_nodes id in
+  let register id node =
+    Hashtbl.add process_nodes id node in
+  (register, find)
+
+(* == Event *)
+
+(* forward declaration... *)
+let change_page_uri_ = ref (fun ?cookies_info href -> assert false)
+
+let reify_caml_event ce = match ce with
+  | XML.CE_a cookies_info ->
+      (fun node ->
+	let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
+	!change_page_uri_ ?cookies_info (Js.to_string href); false)
+  | XML.CE_form_post url ->
+      (* FIXME GRGR *)
+      (fun _ -> Firebug.console##debug(Js.string ("click post: ")); false)
+  | XML.CE_form_get url ->
+      (* FIXME GRGR *)
+      (fun _ -> Firebug.console##debug(Js.string ("click get: ")); false)
+  | XML.CE_closure (id, args) ->
+      try
+	let f = find_closure id in
+	(fun _ -> try f args; true with False -> false)
+      with Not_found ->
+	(fun _ ->
+	  Firebug.console##error(Printf.sprintf "Closure not found (%Ld)" id);
+	  false)
+
+let reify_event ev = match ev with
+  | XML.Raw ev -> Js.Unsafe.variable ev
+  | XML.Caml ce -> reify_caml_event ce
+
+let register_event_handler node (name, ev) =
+  let f = reify_caml_event ev in
+  assert(String.sub name 0 2 = "on");
+  Js.Unsafe.set node (Js.string name)
+    (Dom_html.handler (fun _ -> Js.bool (f node)))
+
+(* == Register nodes id and event in the orginal Dom. *)
+
+let rec relink_dom node (id, attribs, childrens_ref_tree) =
+  List.iter
+    (register_event_handler (Js.Unsafe.coerce node : Dom_html.element Js.t))
+    attribs;
+  begin match id with
+  | None -> ()
+  | Some id ->
+      try
+	let pnode = find_node id in
+	let parent = Js.Opt.get (node##parentNode) (fun _ -> assert false) in
+	Dom.replaceChild parent pnode node
+      with Not_found ->
+	register_node id (Js.Unsafe.coerce node : Dom_html.element Js.t)
+  end;
+  let childrens =
+    List.filter
+      (fun node -> node##nodeType = Dom.ELEMENT)
+      (Dom.list_of_nodeList (node##childNodes)) in
+  relink_dom_list childrens childrens_ref_tree
+
+and relink_dom_list nodes ref_trees =
+  match nodes, ref_trees with
+  | node :: nodes, XML.Ref_node ref_tree :: ref_trees ->
+      relink_dom node ref_tree;
+      relink_dom_list nodes ref_trees
+  | nodes, XML.Ref_empty i :: ref_trees ->
+      relink_dom_list (List.chop i nodes) ref_trees
+  | _, [] -> ()
+  | [], _ -> assert false (* GRGR FIXME *)
+
+let register_nodes ref_tree node =
+  begin match ref_tree with
+  | Eliom_types.First_page (headers, body) ->
+    (* GRGR FIXME TODO headers ?? *)
+    relink_dom_list [(node :> Dom.node Js.t)] [body]
+  | Eliom_types.Change_page (h, body) ->
+    (* GRGR FIXME TODO headers ?? *)
+    relink_dom_list (Dom.list_of_nodeList node##childNodes) body
+  end
+
+(* == Convertion from OCaml XML.elt nodes to native JavaScript Dom nodes *)
+
+module Html5 = struct
+
+  let rebuild_attrib node a = match a with
+    | XML.AFloat (name, f) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
+    | XML.AInt (name, i) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
+    | XML.AStr (name, s) -> Js.Unsafe.set node (Js.string name) (Js.string s)
+    | XML.AStrL (XML.Space, name, sl) ->
+      Js.Unsafe.set node
+	(Js.string name)
+	(Js.Unsafe.inject (Js.string
+			     (match sl with
+			       | [] -> ""
+			       | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l)))
+    | XML.AStrL (XML.Comma, name, sl) ->
+      Js.Unsafe.set node
+	(Js.string name)
+	(Js.Unsafe.inject (Js.string
+			     (match sl with
+			       | [] -> ""
+			       | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l)))
+
+  let rebuild_rattrib node ra = match XML.racontent ra with
+    | XML.RA a -> rebuild_attrib node a
+    | XML.RACamlEvent ev -> register_event_handler node ev
+
+  let rec rebuild_node elt =
+    match XML.get_unique_id elt with
+      | None -> raw_rebuild_node (XML.content elt)
+      | Some id ->
+	try (find_node id :> Dom.node Js.t)
+	with Not_found ->
+	  let node = raw_rebuild_node (XML.content elt) in
+	  register_node id (Js.Unsafe.coerce node : Dom_html.element Js.t);
+	  node
+
+  and raw_rebuild_node = function
+    | XML.Empty -> assert false (* FIXME *)
+    | XML.Comment s -> assert false (* FIXME *)
+    | XML.EncodedPCDATA s
+    | XML.PCDATA s ->	(Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
+    | XML.Entity s -> assert false (* FIXME *)
+    | XML.Leaf (name,attribs) ->
+      let node = Dom_html.document##createElement (Js.string name) in
+      List.iter (rebuild_rattrib node) attribs;
+      (node :> Dom.node Js.t)
+    | XML.Node (name,attribs,childrens) ->
+      let node = Dom_html.document##createElement (Js.string name) in
+      List.iter (rebuild_rattrib node) attribs;
+      List.iter (fun c -> Dom.appendChild node (rebuild_node c)) childrens;
+      (node :> Dom.node Js.t)
+
+  let rebuild_node elt = Js.Unsafe.coerce (rebuild_node (HTML5.M.toelt elt))
+
+  let of_element = rebuild_node
+
+  let of_html = rebuild_node
+  let of_head = rebuild_node
+  let of_link = rebuild_node
+  let of_title = rebuild_node
+  let of_meta = rebuild_node
+  let of_base = rebuild_node
+  let of_style = rebuild_node
+  let of_body = rebuild_node
+  let of_form = rebuild_node
+  let of_optGroup = rebuild_node
+  let of_option = rebuild_node
+  let of_select = rebuild_node
+  let of_input = rebuild_node
+  let of_textArea = rebuild_node
+  let of_button = rebuild_node
+  let of_label = rebuild_node
+  let of_fieldSet = rebuild_node
+  let of_legend = rebuild_node
+  let of_uList = rebuild_node
+  let of_oList = rebuild_node
+  let of_dList = rebuild_node
+  let of_li = rebuild_node
+  let of_div = rebuild_node
+  let of_paragraph = rebuild_node
+  let of_heading = rebuild_node
+  let of_quote = rebuild_node
+  let of_pre = rebuild_node
+  let of_br = rebuild_node
+  let of_hr = rebuild_node
+  let of_anchor = rebuild_node
+  let of_image = rebuild_node
+  let of_object = rebuild_node
+  let of_param = rebuild_node
+  let of_area = rebuild_node
+  let of_map = rebuild_node
+  let of_script = rebuild_node
+  let of_tableCell = rebuild_node
+  let of_tableRow = rebuild_node
+  let of_tableCol = rebuild_node
+  let of_tableSection = rebuild_node
+  let of_tableCaption = rebuild_node
+  let of_table = rebuild_node
+  let of_canvas = rebuild_node
+  let of_iFrame = rebuild_node
+
+end
+
 let current_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
@@ -111,10 +308,10 @@ let change_url
   in
   change_url_string uri
 
-
-(* lazy because we want the page to be loaded *)
 let container_node =
-  lazy (HTML5.Dom.retrieve_node (unmarshal_js_var "container_id"))
+  let container_id = Js.to_string (Js.Unsafe.variable "container_id") in
+  (* lazy because the node have to be registred (see 'load_page_data') *)
+  lazy (find_node container_id)
 
 let on_unload_scripts = ref []
 let at_exit_scripts = ref []
@@ -140,31 +337,6 @@ let _ =
   Eliom site, that will be called by the process when exiting.
 *)
 *)
-
-
-(* let change_page_uri_ = *)
-  (* ref (fun ?cookies_info ?get_params a -> failwith "not initialised") *)
-(* let change_page_get_form_ = *)
-  (* ref (fun ?cookies_info a b -> failwith "not initialised") *)
-(* let change_page_post_form_ = *)
-  (* ref (fun ?cookies_info a b -> failwith "not initialised") *)
-
-(* let bind_form_or_link = function *)
-  (* | Eliom_types.OFA (node, href, cookies_info) -> *)
-    (* let node = Js.Unsafe.coerce (node) in *)
-    (* XML.register_event ?keep_default:(Some false) node "onclick" *)
-      (* (fun () -> !change_page_uri_ ?cookies_info href) *)
-      (* () *)
-  (* | Eliom_types.OFForm_get (node, uri, cookies_info) -> *)
-    (* let node = Js.Unsafe.coerce (node) in *)
-    (* XML.register_event ?keep_default:(Some false) node "onsubmit" *)
-      (* (fun () -> !change_page_get_form_ ?cookies_info node uri) *)
-      (* (); *)
-  (* | Eliom_types.OFForm_post (node, uri, cookies_info) -> *)
-    (* let node = Js.Unsafe.coerce (node) in *)
-    (* XML.register_event ?keep_default:(Some false) node "onsubmit" *)
-      (* (fun () -> !change_page_post_form_ ?cookies_info node uri) *)
-      (* () *)
 
 (* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
    When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
@@ -202,29 +374,28 @@ let _ =
 
 (* END FORMDATA HACK *)
 
-let load_eliom_data js_data contents : unit Lwt.t =
-  (* Now we bind the XHR forms and links sent by the server: *)
-  (* List.iter bind_form_or_link (Eliommod_cli.unwrap js_data.Eliom_types.ejs_xhr); *)
-  (* FIXME GRGR fix and uncomment previous line *)
-  Eliommod_cli.register_nodes js_data.Eliom_types.ejs_ref_tree contents;
+
+let load_eliom_data js_data contents =
+  register_nodes js_data.Eliom_types.ejs_ref_tree contents;
   Eliommod_cookies.update_cookie_table js_data.Eliom_types.ejs_tab_cookies;
   Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
   let on_load =
-    List.map XML.reify_event js_data.Eliom_types.ejs_onload in
+    List.map reify_event js_data.Eliom_types.ejs_onload in
   let on_unload =
-    List.map XML.reify_event js_data.Eliom_types.ejs_onunload in
-  on_unload_scripts := [fun () -> Lwt_list.iter_s (fun f -> f()) on_unload];
-  Lwt_list.iter_p (fun f -> f()) on_load
+    List.map reify_event js_data.Eliom_types.ejs_onunload in
+  on_unload_scripts := [fun () -> List.for_all (fun f -> f contents) on_unload];
+  ignore (List.for_all (fun f -> f contents) on_load)
 
 let set_inner_html (ed, content) =
-  ignore (Lwt_list.iter_p (fun f -> f ()) !on_unload_scripts);
+  ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
   let container_node = Lazy.force container_node in
   container_node##innerHTML <- Js.string content;
   load_eliom_data ed container_node
 
 let on_unload f =
-  on_unload_scripts := f::(!on_unload_scripts)
+  on_unload_scripts :=
+    (fun () -> try f(); true with False -> false) :: !on_unload_scripts
 
 let rec change_page_set_content :
     'get 'post 'd 'e 'm 'n 'o 'p 'q 'return.
@@ -248,7 +419,7 @@ let rec change_page_set_content :
         ?keep_nl_params:[ `All | `None | `Persistent ] ->
         ?nl_params:(string * string) list String.Table.t ->
         ?keep_get_na_params:bool -> 'get -> 'post -> unit Lwt.t) *
-        (int -> Eliom_services.eliom_appl_answer -> unit Lwt.t))
+        (int -> Eliom_output.eliom_appl_answer -> unit Lwt.t))
   = (
   (* change_page *)
   (fun
@@ -293,13 +464,14 @@ let rec change_page_set_content :
   end),
 
 (* set_content *) (fun i -> function
-  | Eliom_services.EAContent (c, u) ->
+  | Eliom_output.EAContent (c, u) ->
     change_url_string u;
-    set_inner_html c
-  | Eliom_services.EAHalfRedir u ->
+    set_inner_html c;
+    Lwt.return ()
+  | Eliom_output.EAHalfRedir u ->
     Eliom_request.redirect_get u;
     Lwt.fail Eliom_request.Program_terminated
-  | Eliom_services.EAFullRedir service ->
+  | Eliom_output.EAFullRedir service ->
     if i < Eliom_request.max_redirection_level
     then (fst change_page_set_content) (i+1)
       ?absolute:None
@@ -361,9 +533,10 @@ let change_page_post_form ?cookies_info form uri =
   Eliom_request.send_post_form ?cookies_info form uri >>= fun r ->
   set_content (Eliom_request.get_eliom_appl_result r)
 
-(* FIXME GRGR *)
-(* let _ = *)
-  (* change_page_uri_ := change_page_uri; *)
+let _ =
+  change_page_uri_ :=
+    (fun ?cookies_info href -> ignore(change_page_uri ?cookies_info href))
+  (* FIXME GRGR *)
   (* change_page_get_form_ := change_page_get_form; *)
   (* change_page_post_form_ := change_page_post_form *)
 
@@ -454,7 +627,7 @@ let rec get_subpage_ :
        Eliom_request.http_post
          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p)
   >>= fun r -> match Eliom_request.get_eliom_appl_result r with
-    | Eliom_services.EAContent ((ed, content), _) -> begin
+    | Eliom_output.EAContent ((ed, content), _) -> begin
       (* Hack to make the result considered as XHTML: *)
       fake_page##innerHTML <- Js.string content;
       let nodes = fake_page##childNodes in
@@ -464,16 +637,16 @@ let rec get_subpage_ :
         :: !node_list
       done;
 
-      load_eliom_data ed fake_page >>= fun () ->
+      load_eliom_data ed fake_page;
       fake_page##innerHTML <- Js.string "";
       assert false (* GRGR FIXME *)
       (* Lwt.return !node_list *)
     end
-    | Eliom_services.EAHalfRedir u ->
+    | Eliom_output.EAHalfRedir u ->
       (* strange ... *)
       Eliom_request.redirect_get u;
       Lwt.fail Eliom_request.Program_terminated
-    | Eliom_services.EAFullRedir service ->
+    | Eliom_output.EAFullRedir service ->
       if i < Eliom_request.max_redirection_level
       then get_subpage_ (i+1) ~service () ()
       else Lwt.fail Eliom_request.Looping_redirection

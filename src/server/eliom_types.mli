@@ -23,7 +23,7 @@
 open Eliom_pervasives
 
 type sitedata = {
-  site_dir: Url.path;
+  site_dir: string list;
   site_dir_string: string;
 }
 
@@ -36,22 +36,9 @@ val string_escape : string -> string
 
 (**/**)
 
-(* val wrap_parameters : 'a -> client_expr_parameters *)
-
-type onload_form_creators_info =
-  | OFA of XML.elt * string * (bool * Url.path) option
-  | OFForm_get of
-      XML.elt * string * (bool * Url.path) option
-  | OFForm_post of
-      XML.elt * string * (bool * Url.path) option
-
-type ref_tree =
-  | Ref_node of (Eliom_common.node_ref option * (string * XML.caml_event) list * ref_tree list)
-  | Ref_empty of int
-
 type page_tree =
-  | First_page of ref_tree list * ref_tree  (* (headers, body) *)
-  | Change_page of int list * ref_tree list (* (headers, contents) *)
+  | First_page of XML.ref_tree list * XML.ref_tree  (* (headers, body) *)
+  | Change_page of int list * XML.ref_tree list (* (headers, contents) *)
 
 type eliom_js_page_data = {
   (* Sparse tree for HTML body and header, to relink the DOM. *)
@@ -66,7 +53,7 @@ type eliom_js_page_data = {
 }
 
 (* the data sent on channels *)
-type 'a eliom_comet_data_type = (poly * 'a) * (XML.elt list)
+type 'a eliom_comet_data_type = 'a wrapped_value * (XML.elt list)
 
 (*SGO* Server generated onclicks/onsubmits
 

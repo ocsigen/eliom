@@ -136,7 +136,59 @@ val change_url :
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
 (** register a function to be called on page change *)
-val on_unload : (unit -> unit Lwt.t) -> unit
+val on_unload : (unit -> unit) -> unit
+
+module Html5 : sig
+
+  val of_element : 'a HTML5.M.elt -> Dom_html.element Js.t
+
+  val of_html : HTML5_types.html HTML5.M.elt -> Dom_html.htmlElement Js.t
+  val of_head : HTML5_types.head HTML5.M.elt -> Dom_html.headElement Js.t
+  val of_link : HTML5_types.link HTML5.M.elt -> Dom_html.linkElement Js.t
+  val of_title : HTML5_types.title HTML5.M.elt -> Dom_html.titleElement Js.t
+  val of_meta : HTML5_types.meta HTML5.M.elt -> Dom_html.metaElement Js.t
+  val of_base : HTML5_types.base HTML5.M.elt -> Dom_html.baseElement Js.t
+  val of_style : HTML5_types.style HTML5.M.elt -> Dom_html.styleElement Js.t
+  val of_body : HTML5_types.body HTML5.M.elt -> Dom_html.bodyElement Js.t
+  val of_form : HTML5_types.form HTML5.M.elt -> Dom_html.formElement Js.t
+  val of_optGroup : HTML5_types.optgroup HTML5.M.elt -> Dom_html.optGroupElement Js.t
+  val of_option : HTML5_types.selectoption HTML5.M.elt -> Dom_html.optionElement Js.t
+  val of_select : HTML5_types.select HTML5.M.elt -> Dom_html.selectElement Js.t
+  val of_input : HTML5_types.input HTML5.M.elt -> Dom_html.inputElement Js.t
+  val of_textArea : HTML5_types.textarea HTML5.M.elt -> Dom_html.textAreaElement Js.t
+  val of_button : HTML5_types.button HTML5.M.elt -> Dom_html.buttonElement Js.t
+  val of_label : HTML5_types.label HTML5.M.elt -> Dom_html.labelElement Js.t
+  val of_fieldSet : HTML5_types.fieldset HTML5.M.elt -> Dom_html.fieldSetElement Js.t
+  val of_legend : HTML5_types.legend HTML5.M.elt -> Dom_html.legendElement Js.t
+  val of_uList : HTML5_types.ul HTML5.M.elt -> Dom_html.uListElement Js.t
+  val of_oList : HTML5_types.ol HTML5.M.elt -> Dom_html.oListElement Js.t
+  val of_dList : [`Dl] HTML5.M.elt -> Dom_html.dListElement Js.t
+  val of_li : HTML5_types.li HTML5.M.elt -> Dom_html.liElement Js.t
+  val of_div : HTML5_types.div HTML5.M.elt -> Dom_html.divElement Js.t
+  val of_paragraph : HTML5_types.p HTML5.M.elt -> Dom_html.paragraphElement Js.t
+  val of_heading : HTML5_types.heading HTML5.M.elt -> Dom_html.headingElement Js.t
+  val of_quote : HTML5_types.blockquote HTML5.M.elt -> Dom_html.quoteElement Js.t
+  val of_pre : HTML5_types.pre HTML5.M.elt -> Dom_html.preElement Js.t
+  val of_br : HTML5_types.br HTML5.M.elt -> Dom_html.brElement Js.t
+  val of_hr : HTML5_types.hr HTML5.M.elt -> Dom_html.hrElement Js.t
+  val of_anchor : 'a HTML5_types.a HTML5.M.elt -> Dom_html.anchorElement Js.t
+  val of_image : [`Img] HTML5.M.elt -> Dom_html.imageElement Js.t
+  val of_object : 'a HTML5_types.object_ HTML5.M.elt -> Dom_html.objectElement Js.t
+  val of_param : HTML5_types.param HTML5.M.elt -> Dom_html.paramElement Js.t
+  val of_area : HTML5_types.area HTML5.M.elt -> Dom_html.areaElement Js.t
+  val of_map : 'a HTML5_types.map HTML5.M.elt -> Dom_html.mapElement Js.t
+  val of_script : HTML5_types.script HTML5.M.elt -> Dom_html.scriptElement Js.t
+  val of_tableCell : [ HTML5_types.td | HTML5_types.td ] HTML5.M.elt -> Dom_html.tableCellElement Js.t
+  val of_tableRow : HTML5_types.tr HTML5.M.elt -> Dom_html.tableRowElement Js.t
+  val of_tableCol : HTML5_types.col HTML5.M.elt -> Dom_html.tableColElement Js.t
+  val of_tableSection : [ HTML5_types.tfoot | HTML5_types.thead |
+			      HTML5_types.tbody ] HTML5.M.elt -> Dom_html.tableSectionElement Js.t
+  val of_tableCaption : HTML5_types.caption HTML5.M.elt -> Dom_html.tableCaptionElement Js.t
+  val of_table : HTML5_types.table HTML5.M.elt -> Dom_html.tableElement Js.t
+  val of_canvas : 'a HTML5_types.canvas HTML5.M.elt -> Dom_html.canvasElement Js.t
+  val of_iFrame : HTML5_types.iframe HTML5.M.elt -> Dom_html.iFrameElement Js.t
+
+end
 
 (**/**)
 
@@ -152,8 +204,9 @@ val change_page_post_form :
   ?cookies_info:bool * string list ->
   Dom_html.formElement Js.t -> string -> unit Lwt.t
 
-val set_content : Eliom_services.eliom_appl_answer -> unit Lwt.t
+val set_content : Eliom_output.eliom_appl_answer -> unit Lwt.t
 
 val load_eliom_data :
-  Eliom_types.eliom_js_page_data -> Dom_html.element Js.t -> unit Lwt.t
+  Eliom_types.eliom_js_page_data -> Dom_html.element Js.t -> unit
 
+val register_closure: int64 -> ('a -> unit) -> unit

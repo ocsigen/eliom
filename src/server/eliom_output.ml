@@ -27,12 +27,10 @@ let code_of_code_option = function
   | None -> 200
   | Some c -> c
 
-(******************************************************************************)
-(******************************************************************************)
+include Eliom_output_base
 
-module Html5_forms = Eliom_output_base.Html5_forms(struct
-  let register_event ?keep_default _ _ _ _ = ()
-end)
+(******************************************************************************)
+(******************************************************************************)
 
 module Html5_make_reg_base
   (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
@@ -219,22 +217,14 @@ module Xhtml_forms_base = struct
 
   let make_pcdata s = pcdata s
 
-  let make_a ?(a=[]) ?href ?onclick l : 'a a_elt =
+  let make_a ?(a=[]) ?href l : 'a a_elt =
     let a = match href with
       | None -> a
       | Some v -> (a_href (uri_of_string v))::a
     in
-    let a = match onclick with
-      | None -> a
-      | Some v -> (a_onclick v)::a
-    in
     XHTML.M.a ~a l
 
-  let make_get_form ?(a=[]) ~action ?onsubmit elt1 elts : form elt =
-    let a = (match onsubmit with
-      | None -> a
-      | Some s -> (a_onsubmit s)::a)
-    in
+  let make_get_form ?(a=[]) ~action elt1 elts : form elt =
     let r =
       form ~a:((a_method `Get)::a)
         ~action:(uri_of_string action) elt1 elts
@@ -242,12 +232,8 @@ module Xhtml_forms_base = struct
     r
 
 
-  let make_post_form ?(a=[]) ~action ?onsubmit ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a=[]) ~action ?id ?(inline = false) elt1 elts
       : form elt =
-    let a = (match onsubmit with
-      | None -> a
-      | Some s -> (a_onsubmit s)::a)
-    in
     let aa = (match id with
     | None -> a
     | Some i -> (a_id i)::a)
@@ -326,35 +312,6 @@ module Xhtml_forms_base = struct
 
   let make_js_script ?(a=[]) ~uri () =
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
-
-(*
-  let register_event_a node = XML.register_event (XHTML.M.toelt node)
-  let register_event_form node = XML.register_event (XHTML.M.toelt node)
-*)
-(*POSTtabcookies* forms with tab cookies in POST params:
-
-  let add_tab_cookies_to_get_form _ () =
-    failwith "add_tab_cookies_to_get_form not implemented for xhtml1"
-
-  let add_tab_cookies_to_post_form _ () =
-    failwith "add_tab_cookies_to_post_form not implemented for xhtml1"
-
-  let add_tab_cookies_to_get_form_id_string = "not implemented for xhtml1"
-
-  let add_tab_cookies_to_post_form_id_string =
-    add_tab_cookies_to_get_form_id_string
-*)
-
-  let make_a_with_onclick ?a ?cookies_info s =
-    failwith "make_a_with_onclick not implemented for xhtml1"
-
-  let make_get_form_with_onsubmit ?a ?cookies_info x y =
-    failwith "make_get_form_with_onsubmit implemented for xhtml1"
-
-  let make_post_form_with_onsubmit ?a ?cookies_info x y =
-    failwith "make_post_form_with_onsubmit not implemented for xhtml1"
-
-  let client_capable = false
 
 end
 
@@ -1383,31 +1340,19 @@ module HtmlText_forms_base = struct
 
   let make_pcdata = id
 
-  let make_a ?(a="") ?href ?onclick l : 'a a_elt =
+  let make_a ?(a="") ?href l : 'a a_elt =
     let a = match href with
       | None -> a
       | Some v -> " href=\""^v^"\" "^a
     in
-    let a = match onclick with
-      | None -> a
-      | Some v -> " onclick=\""^XML.string_of_event v^"\" "^a
-    in
     "<a "^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 
-  let make_get_form ?(a="") ~action ?onsubmit elt1 elts : form_elt =
-    let a = match onsubmit with
-      | None -> a
-      | Some v -> " onsubmit=\""^XML.string_of_event v^"\" "^a
-    in
+  let make_get_form ?(a="") ~action elt1 elts : form_elt =
     "<form method=\"get\" action=\""^(uri_of_string action)^"\""^a^">"^
     elt1^(*List.fold_left (^) "" elts *) elts^"</form>"
 
-  let make_post_form ?(a="") ~action ?onsubmit ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a="") ~action ?id ?(inline = false) elt1 elts
       : form_elt =
-    let a = match onsubmit with
-      | None -> a
-      | Some v -> " onsubmit=\""^XML.string_of_event v^"\" "^a
-    in
     let aa = "enctype=\"multipart/form-data\" "
         (* Always Multipart!!! How to test if there is a file?? *)
       ^(match id with
@@ -1480,38 +1425,6 @@ module HtmlText_forms_base = struct
 
   let make_js_script ?(a="") ~uri () =
     "<script src=\""^uri^" contenttype=\"text/javascript\" "^a^"></script>"
-
-(*
-  let register_event_a elt ev callback v =
-    failwith "register_event_a not implemented for text"
-
-  let register_event_form elt ev callback v =
-    failwith "register_event_form not implemented for text"
-*)
-
-(*POSTtabcookies* forms with tab cookies in POST params:
-
-  let add_tab_cookies_to_get_form _ () =
-    failwith "add_tab_cookies_to_get_form not implemented for text"
-
-  let add_tab_cookies_to_post_form _ () =
-    failwith "add_tab_cookies_to_post_form not implemented for text"
-
-  let add_tab_cookies_to_get_form_id_string = "not implemented for text"
-
-  let add_tab_cookies_to_post_form_id_string =
-    add_tab_cookies_to_get_form_id_string
-*)
-  let make_a_with_onclick ?a ?cookies_info s =
-    failwith "make_a_with_onclick not implemented for text"
-
-  let make_get_form_with_onsubmit ?a ?cookies_info x y =
-    failwith "make_get_form_with_onsubmit implemented for text"
-
-  let make_post_form_with_onsubmit ?a ?cookies_info x y =
-    failwith "make_post_form_with_onsubmit not implemented for text"
-
-  let client_capable = false
 
 end
 
@@ -2605,9 +2518,9 @@ module Eliom_appl_reg_make_param
     let header_ref_tree =
       (* The first header is the title element, so those elements
 	 starts at position 1 and not 0 *)
-      Eliom_types.Ref_empty 1
-      :: Eliom_xml.make_ref_tree_list (List.map HTML5.M.toelt added_headers) in
-    let body_ref_tree = Eliom_xml.make_ref_tree (HTML5.M.toelt body) in
+      (* XML.Ref_empty 1 :: *) (* FIXME GRGR*)
+      XML.make_ref_tree_list (List.map HTML5.M.toelt added_headers) in
+    let body_ref_tree = XML.make_ref_tree (HTML5.M.toelt body) in
     let ref_tree = Eliom_types.First_page (header_ref_tree, body_ref_tree) in
 
     (* Format.eprintf "%a@." Eliom_xml.print_ref_tree body_ref_tree; *)
@@ -2626,7 +2539,7 @@ module Eliom_appl_reg_make_param
 	("var container_id = \'%s\'\n"
 	 ^^ "var sitedata = \'%s\'\n"
 	 ^^ "var eliom_data = \'%s\'\n")
-	(Eliom_types.jsmarshal container_id)
+	container_id
 	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
 	(Eliom_types.jsmarshal (Eliom_wrap.wrap eliom_data))
     in
@@ -2648,14 +2561,16 @@ module Eliom_appl_reg_make_param
 
   let create_page ~options ~sp added_headers_set params cookies_to_send content =
 
+    let unopt = function Some o -> o | None -> assert false in
+
     let body, container_id = match params.ap_container with
       | None ->
-	  let b = Eliom_xml.unique (HTML5.M.body ?a:params.ap_body_attributes content) in
-          (b, XML.get_unique_id (HTML5.M.toelt b))
+	  let b = HTML5.M.unique (HTML5.M.body ?a:params.ap_body_attributes content) in
+          (b, unopt (XML.get_unique_id (HTML5.M.toelt b)))
       | Some (a, container) ->
-          let d = Eliom_xml.unique (HTML5.M.div ?a content) in
+          let d = HTML5.M.unique (HTML5.M.div ?a content) in
           (HTML5.M.body ?a:params.ap_body_attributes (container d),
-	   XML.get_unique_id (HTML5.M.toelt d)) in
+	   unopt (XML.get_unique_id (HTML5.M.toelt d))) in
 
     HTML5.M.html
       (HTML5.M.head
@@ -2673,19 +2588,14 @@ module Eliom_appl_reg_make_param
 
     lwt tab_cookies_to_send = get_tab_cook sp in
 
-    (* GRGR FIXME *)
-    (* let onload_form_creators = *)
-      (* Eliommod_cli.wrap (Eliom_services.get_onload_form_creators Appl_params.application_name sp) in *)
-
     (* GRGR Fixme *)
-    (* List.iter (fun x -> Eliom_xml.mark_sent (HTML5.M.toelt x)) content; *)
     (* let added_headers = *)
       (* List.map (fun x -> Eliom_xml.make_node_id (HTML5.M.toelt x)) *)
 	 (* (Html5_Header_set.elements added_headers_set) in *)
     let added_headers = [] in
     let ref_tree =
       Eliom_types.Change_page (added_headers,
-			       Eliom_xml.make_ref_tree_list (HTML5.M.toeltl content)) in
+			       XML.make_ref_tree_list (HTML5.M.toeltl content)) in
 
     Lwt.return
       ({ Eliom_types.

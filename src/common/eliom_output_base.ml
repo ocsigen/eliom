@@ -52,11 +52,7 @@ type button_type =
 (*****************************************************************************)
 (*****************************************************************************)
 
-module type PARAMS = sig
-  val register_event : ?keep_default:bool -> XML.elt -> XML.ename -> ('a -> 'b) -> 'a -> unit
-end
-
-module Html5_forms_base(Params : PARAMS) = struct
+module Html5_forms_base = struct
 
   open HTML5.M
   open HTML5_types
@@ -126,37 +122,22 @@ module Html5_forms_base(Params : PARAMS) = struct
 
   let make_pcdata s = pcdata s
 
-  let make_a ?(a=[]) ?href ?onclick (l : 'a a_content_elt_list) : 'a a_elt =
+  let make_a ?(a=[]) ?href (l : 'a a_content_elt_list) : 'a a_elt =
     let a = match href with
       | None -> a
       | Some v -> (a_href (uri_of_string v))::a
     in
-    let a = match onclick with
-      | None -> a
-      | Some v -> (a_onclick v)::a
-    in
     HTML5.M.a ~a l
 
-  let make_get_form ?(a=[]) ~action ?onsubmit elt1 elts : form_elt =
-    let a = (match onsubmit with
-      | None -> a
-      | Some s -> (a_onsubmit s)::a)
-    in
+  let make_get_form ?(a=[]) ~action elt1 elts : form_elt =
     let r =
       HTML5.M.form ~a:((a_method `Get)::(a_action (uri_of_string action))::a)
         elt1 elts
     in
-    (* FIXME GRGR *)
-    (* if onsubmit is true, the node ref must exist: (server side only) *)
-    (* if onsubmit <> None then Params.mark_as_referenced (HTML5.M.toelt r); *)
     r
 
-  let make_post_form ?(a=[]) ~action ?onsubmit ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a=[]) ~action ?id ?(inline = false) elt1 elts
       : form_elt =
-    let a = (match onsubmit with
-      | None -> a
-      | Some s -> (a_onsubmit s)::a)
-    in
     let aa = (match id with
     | None -> a
     | Some i -> (a_id i)::a)
@@ -169,9 +150,6 @@ module Html5_forms_base(Params : PARAMS) = struct
                   (if inline then (a_class ["inline"])::aa else aa))
         elt1 elts
     in
-    (* FIXME GRGR *)
-    (* if onsubmit is true, the node ref must exist: *)
-    (* if onsubmit <> None then Params.mark_as_referenced (HTML5.M.toelt r); *)
     r
 
   let make_hidden_field content =
@@ -239,35 +217,12 @@ module Html5_forms_base(Params : PARAMS) = struct
   let make_js_script ?(a=[]) ~uri () =
     script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
-  let register_event_a ?keep_default node =
-    Params.register_event ?keep_default (HTML5.M.toelt node)
-
-  let register_event_form ?keep_default node =
-    Params.register_event ?keep_default (HTML5.M.toelt node)
-
-  let make_a_with_onclick ?a ?cookies_info s =
-    Eliommod_mkforms.make_a_with_onclick
-      (fun ?a ?onclick ?href x -> make_a ?a ?onclick ?href x)
-      register_event_a
-      ?a ?cookies_info s
-
-  let make_get_form_with_onsubmit =
-    Eliommod_mkforms.make_get_form_with_onsubmit
-      make_get_form register_event_form
-
-  let make_post_form_with_onsubmit =
-    Eliommod_mkforms.make_post_form_with_onsubmit
-      (fun ?a ~action ?onsubmit x y -> make_post_form ?a ~action ?onsubmit x y)
-      register_event_form
-
-  let client_capable = true
-
 end
 
 (*****************************************************************************)
 (*****************************************************************************)
 
-module Html5_forms_closed(Params : PARAMS) = Eliom_mkforms.MakeForms(Html5_forms_base(Params))
+module Html5_forms_closed = Eliom_mkforms.MakeForms(Html5_forms_base)
 
 (* As we want -> [> a ] elt and not -> [ a ] elt (etc.),
    we define a opening functor... *)
@@ -918,4 +873,36 @@ module Open_Html5_forms =
 
 end)
 
-module Html5_forms(Params : PARAMS) = Open_Html5_forms(Html5_forms_closed(Params))
+module Html5_forms = struct
+
+  module Forms = Open_Html5_forms(Html5_forms_closed)
+
+  include Forms
+
+  let a ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
+        ?keep_nl_params ?nl_params
+	?(no_appl = false)
+	content getparams =
+    let a =
+      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      then a
+      else
+	let cookies_info =
+	  Eliom_uri.make_cookies_info (https, service) in
+	HTML5.M.a_onclick (XML.event_of_service_a cookies_info) :: a
+    in
+    Forms.a
+      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params ~no_appl
+      content getparams
+
+end
+
+type eliom_appl_answer =
+  | EAContent of ((Eliom_types.eliom_js_page_data * string) * string)
+  | EAHalfRedir of string
+  | EAFullRedir of
+      (unit, unit, Eliom_services.get_service_kind,
+       [ `WithoutSuffix ],
+       unit, unit, Eliom_services.registrable, Eliom_services.http)
+	Eliom_services.service

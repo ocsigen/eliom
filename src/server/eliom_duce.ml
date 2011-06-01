@@ -180,44 +180,30 @@ module Xhtml_forms_base = struct
 
   let make_pcdata s = str s
 
-  let make_a ?(a={{ {} }}) ?href ?onclick l : 'a a_elt =
+  let make_a ?(a={{ {} }}) ?href l : 'a a_elt =
     let href_attr = match href with
       | None -> {{ {} }}
       | Some v -> {{ { href=(str v) } }}
     in
-    let onclick_attr = match onclick with
-      | None -> {{ {} }}
-      | Some v -> {{ { onclick=(str (Eliom_pervasives.XML.string_of_event v)) } }}
-    in
-    {{ <a (href_attr ++ onclick_attr ++ a)> l }}
+    {{ <a (href_attr ++ a)> l }}
 
-  let make_get_form ?(a={{ {} }}) ~(action : uri) ?onsubmit elt1 elts : form_elt =
-    let onsubmit_attr = match onsubmit with
-      | None -> {{ {} }}
-      | Some v -> {{ { onsubmit=(str (Eliom_pervasives.XML.string_of_event v)) } }}
-    in
-    {{ <form (onsubmit_attr ++
-                {method="get"
+  let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt =
+    {{ <form ({method="get"
                    action=(str action)}
               ++ a )>
        [ elt1 !elts ] }}
 
-  let make_post_form ?(a={{ {} }}) ~(action : uri) ?onsubmit ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a={{ {} }}) ~(action : uri) ?id ?(inline = false) elt1 elts
       : form_elt =
     let id_attr = (match id with
     | None -> {{ {} }}
     | Some (i : string) -> {{ { id=(str i) } }})
     in
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
-    let onsubmit_attr = match onsubmit with
-      | None -> {{ {} }}
-      | Some v -> {{ { onsubmit=(str (Eliom_pervasives.XML.string_of_event v)) } }}
-    in
     {{ <form ({action=(str action)
                enctype="multipart/form-data"
                method="post"}
               ++ inline_attr
-              ++ onsubmit_attr
               ++ id_attr
               ++ a)>
        [ elt1
@@ -296,38 +282,6 @@ module Xhtml_forms_base = struct
   let make_js_script ?(a={{ {} }}) ~uri () =
     {{ <script ({type="text/javascript"
                  src=(str uri) } ++ a)> [] }}
-
-(*
-  let register_event_a elt ev callback =
-    failwith "register_event_a not implemented for ocamlduce"
-
-  let register_event_form elt ev callback =
-    failwith "register_event_form not implemented for ocamlduce"
-*)
-
-(*POSTtabcookies* forms with tab cookies in POST params:
-
-  let add_tab_cookies_to_get_form _ () =
-    failwith "add_tab_cookies_to_get_form not implemented for ocamlduce"
-
-  let add_tab_cookies_to_post_form _ () =
-    failwith "add_tab_cookies_to_post_form not implemented for ocamlduce"
-
-  let add_tab_cookies_to_get_form_id_string = "not implemented for text"
-
-  let add_tab_cookies_to_post_form_id_string =
-    add_tab_cookies_to_get_form_id_string
-*)
-  let make_a_with_onclick ?a ?cookies_info s =
-    failwith "make_a_with_onclick not implemented for eliom_duce"
-
-  let make_get_form_with_onsubmit ?a ?cookies_info x y =
-    failwith "make_get_form_with_onsubmit implemented for eliom_duce"
-
-  let make_post_form_with_onsubmit ?a ?cookies_info x y =
-    failwith "make_post_form_with_onsubmit not implemented for eliom_duce"
-
-  let client_capable = false
 
 end
 

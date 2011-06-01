@@ -54,7 +54,7 @@ val http_post :
   string ->
   (string * string) list -> string Lwt.t
 
-val get_eliom_appl_result : string -> Eliom_services.eliom_appl_answer
+val get_eliom_appl_result : string -> Eliom_output.eliom_appl_answer
 
 val get_cookie_info_for_uri_js : Js.js_string Js.t -> bool * string list
 

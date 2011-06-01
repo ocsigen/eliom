@@ -22,6 +22,8 @@
 (** Types, creation and manipulation of Eliom services. *)
 
 open Ocsigen_extensions
+
+open Eliom_pervasives
 open Eliom_parameters
 
 exception Wrong_session_table_for_CSRF_safe_coservice
@@ -139,8 +141,6 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     {!Eliom_services.register_eliom_module}. Otherwise you will also get
     this exception.}
 *)
-
-open Eliom_pervasives
 
 (** {3 Main services} *)
 
@@ -639,36 +639,20 @@ val xhr_with_cookies :
 val get_onload : Eliom_common.server_params -> XML.event list
 val get_onunload : Eliom_common.server_params -> XML.event list
 
+(* FIXME GRGR*)
 
-val add_onload_form_creator :
+(* val add_onload_form_creator : *)
   (* the string is the name of the application to which the service
      (to which the form/link goes to) belongs *)
-  send_appl_content * Eliom_types.onload_form_creators_info -> unit
+  (* send_appl_content * Eliom_types.onload_form_creators_info -> unit *)
 
-val get_onload_form_creators :
-  string ->
-  Eliom_common.server_params ->
-  Eliom_types.onload_form_creators_info list
+(* val get_onload_form_creators : *)
+  (* string -> *)
+  (* Eliom_common.server_params -> *)
+  (* Eliom_types.onload_form_creators_info list *)
 
 val pre_wrap :
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
 
-type eliom_appl_answer =
-  | EAContent of ((Eliom_types.eliom_js_page_data * string) * string (* url to display *))
-  | EAHalfRedir of string
-  | EAFullRedir of
-      (unit, unit, get_service_kind,
-       [ `WithoutSuffix ],
-       unit, unit, registrable, http) service
-        (* We send a service in case of full XHR, so that we can
-           add tab cookies easily.
-           An alternative would be to send the URL,
-           and then parse it on client side,
-           to compute cookies from the URL information
-           (but it is more complicated to implement because current function
-           to generate tab cookies takes a service).
-        *)
-
 val eliom_appl_answer_content_type : string
-

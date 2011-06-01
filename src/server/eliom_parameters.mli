@@ -47,8 +47,9 @@ to find during implementation.
 
  *)
 
-open Eliom_pervasives
 open Ocsigen_extensions
+
+open Eliom_pervasives
 
 (** {2 Types used by the module} *)
 

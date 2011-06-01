@@ -47,7 +47,6 @@ FILES := eliom_pervasives_base.ml eliom_pervasives.ml \
 	 private/eliommod_timeouts.ml \
 	 eliom_state.ml \
 	 eliom_references.ml \
-	 eliom_xml.ml \
 	 eliom_extensions.ml \
 	 private/eliommod_services.ml \
 	 private/eliommod_naservices.ml \
@@ -60,7 +59,6 @@ FILES := eliom_pervasives_base.ml eliom_pervasives.ml \
 	 private/eliommod_cli.ml \
 	 eliom_services_base.ml eliom_services.ml \
          eliom_config.ml \
-	 private/eliommod_mkforms.ml \
          eliom_uri.ml \
 	 eliom_mkforms.ml \
 	 eliom_mkreg.ml \

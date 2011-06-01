@@ -459,19 +459,4 @@ let untype_service_ s =
    :> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'http) service)
 
 
-(* VVV
-   Find a better place for this.
-   Was in Eliom_client_types but circular dependency with Eliom_services
-*)
-type eliom_appl_answer =
-  | EAContent of ((Eliom_types.eliom_js_page_data * string) * string (* url to display *))
-  | EAHalfRedir of string
-  | EAFullRedir of 
-      (unit, unit, get_service_kind,
-       [ `WithoutSuffix ], 
-       unit, unit, registrable, http) service
-        (* We send a service in case of full XHR, so that we can
-           add cookies easily. *)
-
 let eliom_appl_answer_content_type = "application/x-eliom"
-

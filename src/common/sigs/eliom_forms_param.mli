@@ -65,16 +65,12 @@ val map_optgroup :
 val select_content_of_option : option_elt -> select_content_elt
 
 val make_pcdata : string -> pcdata_elt
-val make_a : ?a:a_attrib_t -> ?href:string -> ?onclick:XML.event ->
-  'a a_content_elt_list -> 'a a_elt
-val make_get_form : ?a:form_attrib_t ->
-  action:string ->
-  ?onsubmit:XML.event ->
+val make_a : ?a:a_attrib_t -> ?href:string -> 'a a_content_elt_list -> 'a a_elt
+val make_get_form :
+  ?a:form_attrib_t -> action:string ->
   form_content_elt -> form_content_elt_list -> form_elt
 val make_post_form : ?a:form_attrib_t ->
-  action:string ->
-  ?onsubmit:XML.event ->
-  ?id:string -> ?inline:bool ->
+  action:string -> ?id:string -> ?inline:bool ->
   form_content_elt -> form_content_elt_list -> form_elt
 val make_hidden_field : input_elt option -> form_content_elt
 val remove_first :
@@ -110,27 +106,6 @@ val make_optgroup :
   select_content_elt
 val uri_of_string : string -> uri
 
-
 val make_css_link : ?a:link_attrib_t -> uri:uri -> unit -> link_elt
 
 val make_js_script : ?a:script_attrib_t -> uri:uri -> unit -> script_elt
-
-val make_a_with_onclick :
-  ?a:a_attrib_t -> ?cookies_info:bool * string list ->
-  Eliom_services.send_appl_content ->
-  string ->
-  'a a_content_elt_list -> 'a a_elt
-
-val make_get_form_with_onsubmit :
-  ?a:form_attrib_t -> ?cookies_info:bool * string list ->
-  Eliom_services.send_appl_content ->
-  string ->
-  form_content_elt -> form_content_elt_list -> form_elt
-
-val make_post_form_with_onsubmit :
-  ?a:form_attrib_t -> ?cookies_info:bool * string list ->
-  Eliom_services.send_appl_content ->
-  string ->
-  form_content_elt -> form_content_elt_list -> form_elt
-
-val client_capable: bool

@@ -31,7 +31,6 @@ include Eliom_services_base
 
 exception Wrong_session_table_for_CSRF_safe_coservice
 
-
 (*********)
 let need_process_cookies s = not (is_external s)
 (* If there is a client side process, we do an XHR with tab cookies *)
@@ -566,6 +565,7 @@ let onunload s =
   in
   Polytables.set ~table:rc ~key:on_unload_key ~value:(s :: s0)
 
+(* FIXME GRGR *)
 
 (* The following is almost like onload, but contains only the information
    to create onclick/onsubmit attributes for eliom application links
@@ -573,33 +573,33 @@ let onunload s =
    For internal use.
 *)
 (*VVV Find a better place than rc to put this? *)
-let on_load_forms_creators_key :
-    (send_appl_content *
-       Eliom_types.onload_form_creators_info) list Polytables.key = 
-  Polytables.make_key ()
+(* let on_load_forms_creators_key : *)
+    (* (send_appl_content * *)
+       (* Eliom_types.onload_form_creators_info) list Polytables.key =  *)
+  (* Polytables.make_key () *)
 
-let add_onload_form_creator s =
-  let rc = Eliom_request_info.get_request_cache () in
-  let s0 = try Polytables.get ~table:rc ~key:on_load_forms_creators_key
-    with Not_found -> []
-  in
-  Polytables.set ~table:rc ~key:on_load_forms_creators_key ~value:(s::s0)
+(* let add_onload_form_creator s = *)
+  (* let rc = Eliom_request_info.get_request_cache () in *)
+  (* let s0 = try Polytables.get ~table:rc ~key:on_load_forms_creators_key *)
+    (* with Not_found -> [] *)
+  (* in *)
+  (* Polytables.set ~table:rc ~key:on_load_forms_creators_key ~value:(s::s0) *)
 
-let get_onload_form_creators appl_name sp =
-  let rc = Eliom_request_info.get_request_cache_sp sp in
-  try
-    List.fold_left
-      (fun beg (send_appl_content, info) ->
-        (* We ask the client to register an onclick/onsubmit
-           only the service belongs to the same application *)
-        match send_appl_content with
-          | XAlways (* for ex a link towards an action *) -> info::beg
-          | XSame_appl service_appl_name when appl_name = service_appl_name ->
-            info::beg
-          | _ -> beg)
-      []
-      (Polytables.get ~table:rc ~key:on_load_forms_creators_key)
-  with Not_found -> []
+(* let get_onload_form_creators appl_name sp = *)
+  (* let rc = Eliom_request_info.get_request_cache_sp sp in *)
+  (* try *)
+    (* List.fold_left *)
+      (* (fun beg (send_appl_content, info) -> *)
+        (* (\* We ask the client to register an onclick/onsubmit *)
+           (* only the service belongs to the same application *\) *)
+        (* match send_appl_content with *)
+          (* | XAlways (\* for ex a link towards an action *\) -> info::beg *)
+          (* | XSame_appl service_appl_name when appl_name = service_appl_name -> *)
+            (* info::beg *)
+          (* | _ -> beg) *)
+      (* [] *)
+      (* (Polytables.get ~table:rc ~key:on_load_forms_creators_key) *)
+  (* with Not_found -> [] *)
 
 
 (*****************************************************************************)

@@ -20,10 +20,10 @@
 
 (** Low level functions for Eliom, exceptions and types. *)
 
-open Eliom_pervasives
-
 open Ocsigen_extensions
 open Ocsigen_cookies
+
+open Eliom_pervasives
 
 exception Eliom_404 (** Page not found *)
 exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
@@ -36,7 +36,7 @@ exception Eliom_site_information_not_available of string
 (** That function cannot be used when the site information is not available,
     that is, outside a request or the initialisation phase of your Eliom module
     (while reading the configuration file).
-    
+
     In particular, you cannot use the function before the configuration file
     is read for example when you are using {e static linking}.
     In that case you must

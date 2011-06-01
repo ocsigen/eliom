@@ -40,14 +40,13 @@ FILES := eliom_pervasives_base.ml eliom_pervasives.ml \
 	 eliom_state.ml \
 	 eliom_parameters_base.ml eliom_parameters.ml \
 	 eliom_services_base.ml eliom_services.ml \
+	 eliom_output_base.ml eliom_output.ml \
 	 eliom_uri.ml \
 	 eliom_request.ml \
-	 private/eliommod_cli.ml \
 	 eliom_client.ml \
 	 eliom_comet_base.ml eliom_comet.ml \
          private/eliommod_mkforms.ml \
 	 eliom_mkforms.ml \
-	 eliom_output_base.ml eliom_output.ml \
 	 eliom_bus.ml \
 	 eliom_react.ml \
 

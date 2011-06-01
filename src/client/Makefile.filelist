@@ -18,8 +18,6 @@ INTF := eliom_pervasives.cmi        \
 	\
         eliom_client.cmi            \
         eliom_request.cmi           \
-	\
-	eliommod_cli.cmi            \
 
 IMPL := ${PROJECTNAME}_client.cma      \
         ${PROJECTNAME}_client_main.cmo \

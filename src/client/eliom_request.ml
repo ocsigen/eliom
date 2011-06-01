@@ -171,7 +171,7 @@ let send_post_form ?cookies_info ?get_args ?post_args form url =
   let form_arg = Form.post_form_contents form in
   send ?cookies_info ?get_args ?post_args ~form_arg url
 
-let get_eliom_appl_result a : Eliom_services.eliom_appl_answer =
+let get_eliom_appl_result a : Eliom_output.eliom_appl_answer =
   Marshal.from_string (Url.urldecode a) 0
 
 let http_get ?cookies_info url get_args : string Lwt.t =

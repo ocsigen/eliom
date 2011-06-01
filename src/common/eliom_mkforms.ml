@@ -50,82 +50,25 @@ module MakeForms(Pages : FORMS_PARAM) = struct
                            ?hostname ?port ?keep_nl_params ?nl_params gp)
 
 
-  let a
-      ?absolute
-      ?absolute_path
-      ?https
-      ?a
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?keep_nl_params
-      ?nl_params
-      ?(no_appl = false)
-      content
-      getparams =
+  let a ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params ?no_appl content getparams =
     let href =
       make_string_uri
-        ?absolute
-        ?absolute_path
-        ?keep_nl_params
-        ?nl_params
-        ?https ~service ?hostname ?port ?fragment getparams
+	?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+	?keep_nl_params ?nl_params getparams
     in
-    if not no_appl && Pages.client_capable && Eliom_services.xhr_with_cookies service
-    then
-      let cookies_info = Eliom_uri.make_cookies_info (https, service) in
-      Pages.make_a_with_onclick
-        ?a
-        ?cookies_info
-        (Eliom_services.get_send_appl_content service)
-        href
-        content
-    else
-      Pages.make_a ?a ~href content
-
-
+    Pages.make_a ?a ~href content
 
   let get_form_
-      bind
-      return
-      ?absolute
-      ?absolute_path
-      ?https
-      ?a
-      ~service
-      ?hostname
-      ?port
-      ?fragment
-      ?(nl_params = Eliom_parameters.empty_nl_params_set)
-      ?keep_nl_params
-      ?(no_appl = false)
-      f =
-
-    let internal_appl_form =
-      not no_appl && Pages.client_capable && Eliom_services.xhr_with_cookies service
-    in
-
-    (*204FORMS* old implementation of forms with 204 and change_page_event
-      let nl_params =
-      if internal_appl_form
-      then Some (Eliom_parameters.add_nl_parameter
-      nl_params nl_internal_appl_form true)
-      else Some nl_params
-      in
-    *)
+        bind return
+	?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+	?(nl_params = Eliom_parameters.empty_nl_params_set) ?keep_nl_params
+	f =
 
     let (uri, hiddenparams, fragment) =
       make_uri_components_
-        ?absolute
-        ?absolute_path
-        ?https
-        ~service
-        ?hostname
-        ?port
-        ?fragment
-        ~nl_params
-        ?keep_nl_params
+        ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+        ~nl_params ?keep_nl_params
         ()
     in
 
@@ -133,10 +76,10 @@ module MakeForms(Pages : FORMS_PARAM) = struct
     let issuffix, paramnames = make_params_names getparamstype in
 
     let uri =
-      if issuffix
-      then if uri.[String.length uri - 1] = '/'
-      then uri^Eliom_common.eliom_nosuffix_page
-      else String.concat "/" [uri; Eliom_common.eliom_nosuffix_page]
+      if issuffix then
+	if uri.[String.length uri - 1] = '/'
+	then uri^Eliom_common.eliom_nosuffix_page
+	else String.concat "/" [uri; Eliom_common.eliom_nosuffix_page]
       else uri
     in
     let uri =
@@ -161,94 +104,52 @@ module MakeForms(Pages : FORMS_PARAM) = struct
              hiddenparams
          in
          let i1, i = Pages.remove_first inside in
-         if internal_appl_form
-         then
-           let cookies_info = Eliom_uri.make_cookies_info (https, service)
-           in
-           return (Pages.make_get_form_with_onsubmit
-                     ?a
-                     ?cookies_info
-                     (Eliom_services.get_send_appl_content service)
-                     uri
-                     i1
-                     i)
-	     (*POSTtabcookies* forms with tab cookies in POST params:
-               return (Eliommod_mkforms.make_get_form_with_post_tab_cookies
-               Pages.make_get_form Pages.register_event_form
-               Pages.add_tab_cookies_to_get_form
-               Pages.add_tab_cookies_to_get_form_id_string
-               ?a ~action:uri i1 i)
-	     *)
-         else
-           return (Pages.make_get_form ?a ~action:uri i1 i))
-
-
+         (* if internal_appl_form *)
+         (* then *)
+           (* let cookies_info = Eliom_uri.make_cookies_info (https, service) *)
+           (* in *)
+           (* return (Pages.make_get_form_with_onsubmit *)
+                     (* ?a *)
+                     (* ?cookies_info *)
+                     (* (Eliom_services.get_send_appl_content service) *)
+                     (* uri *)
+                     (* i1 *)
+                     (* i) *)
+         (* else *)
+         return (Pages.make_get_form ?a ~action:uri i1 i))
 
   let get_form
-      ?absolute ?absolute_path
-      ?https ?a ~service ?hostname ?port ?fragment
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?no_appl f =
-    get_form_ (fun x f -> f x) (fun x -> x)
+    get_form_
+      (fun x f -> f x) (fun x -> x)
       ?absolute ?absolute_path
       ?https ?a ~service ?keep_nl_params
-      ?nl_params ?hostname ?port ?fragment ?no_appl f
+      ?nl_params ?hostname ?port ?fragment f
 
   let lwt_get_form
-      ?absolute ?absolute_path
-      ?https ?a ~service ?hostname ?port ?fragment
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?no_appl f =
     get_form_
       Lwt.bind Lwt.return
-      ?absolute ?absolute_path
-      ?https ?a ~service ?hostname ?port ?fragment
-      ?nl_params ?keep_nl_params ?no_appl f
-
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?nl_params ?keep_nl_params f
 
   let post_form_
-      bind
-      return
-      ?absolute
-      ?absolute_path
-      ?https
-      ?a
-      ~service
-      ?hostname
-      ?port
-      ?fragment
+      bind return
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
       ?(nl_params = Eliom_parameters.empty_nl_params_set)
       ?(keep_nl_params : [ `All | `Persistent | `None ] option)
       ?keep_get_na_params
-      ?(no_appl = false)
-      f
-      getparams =
+      f getparams =
 
-    let internal_appl_form =
-      not no_appl && Pages.client_capable && Eliom_services.xhr_with_cookies service
-    in
-
-    (*204FORMS* old implementation of forms with 204 and change_page_event
-      let nl_params =
-      if internal_appl_form
-      then Some (Eliom_parameters.add_nl_parameter
-      nl_params nl_internal_appl_form true)
-      else Some nl_params
-      in
-    *)
     let getparamstype = get_post_params_type_ service in
     let _, paramnames = make_params_names getparamstype in
 
     let (uri, getparams, fragment, hiddenparams) =
       make_post_uri_components_
-        ?absolute
-        ?absolute_path
-        ?https
-        ~service
-        ?hostname
-        ?port
-        ?fragment
-        ?keep_nl_params
-        ~nl_params
-        ?keep_get_na_params
+        ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+        ?keep_nl_params ~nl_params ?keep_get_na_params
         getparams
         ()
     in
@@ -272,57 +173,43 @@ module MakeForms(Pages : FORMS_PARAM) = struct
          let uri =
            make_string_uri_from_components (uri, getparams, fragment)
          in
-         if internal_appl_form
-         then
-           let cookies_info = Eliom_uri.make_cookies_info (https, service)
-           in
-           return (Pages.make_post_form_with_onsubmit
-                     ?a
-                     ?cookies_info
-                     (Eliom_services.get_send_appl_content service)
-                     uri
-                     i1
-                     i)
-	     (*POSTtabcookies* forms with tab cookies in POST params:
-               return (Eliommod_mkforms.make_post_form_with_post_tab_cookies
-               Pages.make_post_form Pages.register_event_form
-               Pages.add_tab_cookies_to_post_form
-               Pages.add_tab_cookies_to_post_form_id_string
-               ?a ~action:uri i1 i)
-	     *)
-         else
-           return (Pages.make_post_form ?a ~action:uri i1 i))
-
+         (* if internal_appl_form *)
+         (* then *)
+           (* let cookies_info = Eliom_uri.make_cookies_info (https, service) *)
+           (* in *)
+           (* return (Pages.make_post_form_with_onsubmit *)
+                     (* ?a *)
+                     (* ?cookies_info *)
+                     (* (Eliom_services.get_send_appl_content service) *)
+                     (* uri *)
+                     (* i1 *)
+                     (* i) *)
+         (* else *)
+         return (Pages.make_post_form ?a ~action:uri i1 i))
 
   let post_form
-      ?absolute ?absolute_path
-      ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?keep_get_na_params
-      ?nl_params ?no_appl f getparams =
-    post_form_ (fun x f -> f x) (fun x -> x)
-      ?absolute ?absolute_path
-      ?https ?a ~service ?hostname ?port
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?keep_get_na_params ?nl_params ?no_appl f getparams =
+    post_form_
+      (fun x f -> f x) (fun x -> x)
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
       ?fragment ?keep_get_na_params
-      ?keep_nl_params ?nl_params ?no_appl f getparams
+      ?keep_nl_params ?nl_params
+      f getparams
 
   let lwt_post_form
-      ?absolute ?absolute_path
-      ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_nl_params ?keep_get_na_params
-      ?nl_params ?no_appl f getparams =
+      ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?keep_get_na_params
+      ?nl_params
+      ?no_appl f getparams =
     post_form_ Lwt.bind Lwt.return
       ?absolute ?absolute_path
       ?https ?a ~service ?hostname ?port
-      ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params ?no_appl
+      ?fragment ?keep_get_na_params ?keep_nl_params ?nl_params
       f getparams
-
-
-
-
 
   let js_script = Pages.make_js_script
   let css_link = Pages.make_css_link
-
 
   let gen_input ?a ~(input_type: Pages.input_type_t)
       ?value ?src

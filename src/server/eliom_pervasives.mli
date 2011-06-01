@@ -38,8 +38,8 @@ val thd3 : 'a * 'b * 'c -> 'c
 
 type poly (* Warning: do not use [poly array]... *)
 val to_poly: 'a -> poly
-type 'a wrapped_value = poly * 'a
 type 'a client_expr = int64 * poly
+type 'a wrapped_value = poly * 'a
 
 module List : sig
   include module type of List
@@ -125,15 +125,6 @@ module XML : sig
   type aname = string
   type separator = Space | Comma
 
-  type caml_event = (unit -> unit Lwt.t) client_expr
-  type event =
-    | Raw of string
-    | Caml of caml_event
-
-  val event_of_string : string -> event
-  val string_of_event : event -> string
-  val event_of_js : int64 -> poly -> event
-
   type attrib
   type acontent = private
     | AFloat of aname * float
@@ -143,9 +134,17 @@ module XML : sig
   val acontent : attrib -> acontent
   val aname : attrib -> aname
 
+  type caml_event
+  type event
+
+  val event_of_string : string -> event
+  val string_of_event : event -> string
+  val event_of_js : int64 -> poly -> event
+  val event_of_service_a : (bool * Url.path) option -> event
+
   type racontent =
     | RA of acontent
-    | RACamlEvent of aname * caml_event
+    | RACamlEvent of (aname * caml_event)
   val racontent : attrib -> racontent
 
   val float_attrib : aname -> float -> attrib
@@ -157,7 +156,7 @@ module XML : sig
 
   type elt
   type ename = string
-  type econtent =
+  type econtent = private
     | Empty
     | Comment of string
     | EncodedPCDATA of string
@@ -197,12 +196,20 @@ module XML : sig
   val hash: elt -> int
   val compare: elt -> elt -> int
 
+  type ref_tree
+  val make_ref_tree : elt -> ref_tree
+  val make_ref_tree_list : elt list -> ref_tree list
+
 end
 
 module SVG : sig
 
   (** Type safe SVG creation. *)
-  module M : SVG_sigs.T with module XML := XML
+  module M : sig
+    include SVG_sigs.T with module XML := XML
+    val unique: 'a elt -> 'a elt
+  end
+
   module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
 					  and type doc := M.doc
 
@@ -211,7 +218,10 @@ end
 module HTML5 : sig
 
   (** Type safe HTML5 creation. *)
-  module M : HTML5_sigs.T with module XML := XML and module SVG := SVG.M
+  module M : sig
+    include HTML5_sigs.T with module XML := XML and module SVG := SVG.M
+    val unique: 'a elt -> 'a elt
+  end
   module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
 					  and type doc := M.doc
 
@@ -244,4 +254,3 @@ module XHTML : sig
 end
 
 type file_info = Ocsigen_extensions.file_info
-
