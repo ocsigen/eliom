@@ -172,6 +172,13 @@ val half_xhr_redir_header : string
 
 val default_group_name : string
 
+type client_process_info =  {
+  cpi_ssl : bool;
+  cpi_hostname : string;
+  cpi_server_port : int;
+  cpi_original_full_path : Url.path;
+}
+
 type sess_info = {
   si_other_get_params : (string * string) list;
   si_all_get_params : (string * string) list;
@@ -206,6 +213,8 @@ type sess_info = {
 
   si_all_get_but_na_nl: (string * string) list Lazy.t;
   si_all_get_but_nl: (string * string) list;
+
+  si_client_process_info: client_process_info option;
 
 (*204FORMS*  si_internal_form: bool; *)
 }
@@ -303,13 +312,6 @@ type dlist_ip_table
 
 type anon_params_type = int
 
-type client_process_info =  {
-  cpi_ssl : bool;
-  cpi_hostname : string;
-  cpi_server_port : int;
-  cpi_original_full_path : Url.path;
-}
-
 type node_ref = string
 
 type node_info = {
@@ -330,7 +332,7 @@ type server_params = {
                                                  as sent by the browser *)
   sp_suffix : Url.path option;
   sp_fullsessname : fullsessionname option;
-  mutable sp_client_process_info: client_process_info Lazy.t;
+  sp_client_process_info: client_process_info;
   (* Contains the base URL information from which the client process
      has been launched (if any). All relative links and forms will be
      created with respect to this information (if present - from
@@ -464,8 +466,6 @@ and sitedata = {
   dlist_ip_table : dlist_ip_table;
   mutable ipv4mask : int32 option * bool;
   mutable ipv6mask : (int64 * int64) option * bool;
-   mutable get_client_process_info : unit -> client_process_info option;
-   mutable set_client_process_info : client_process_info -> unit;
 }
 
 type 'a lazy_site_value (** lazy site values, are lazy values with
@@ -484,7 +484,6 @@ type info =
 exception Eliom_retry_with of info
 
 val make_server_params :
-  client_info:client_process_info Lazy.t ->
   sitedata ->
   info ->
   Url.path option ->

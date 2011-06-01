@@ -28,7 +28,7 @@ open Lwt
 let def_handler e = fail e
 
 let handle_site_exn exn info sitedata =
-  Eliom_state.make_server_params sitedata info None None >>= fun sp ->
+  let sp = Eliom_common.make_server_params sitedata info None None in
   Lwt.with_value Eliom_common.sp_key (Some sp)
     (fun () -> sitedata.Eliom_common.exn_handler exn)
 

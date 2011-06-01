@@ -272,11 +272,8 @@ let make_naservice
   >>= fun ((_, max_use, expdate, naservice, node), 
            tablewhereithasbeenfound,
            fullsessname) ->
-  Eliom_state.make_server_params
-    sitedata
-    info
-    None
-    fullsessname >>= fun sp ->
+  let sp =
+    Eliom_common.make_server_params sitedata info None fullsessname in
   naservice sp >>= fun r ->
   Ocsigen_messages.debug2
     "--Eliom: Non attached page found and generated successfully";

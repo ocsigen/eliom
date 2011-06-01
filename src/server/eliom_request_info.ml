@@ -213,9 +213,7 @@ let get_sp_client_appl_name () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_client_appl_name
 let get_sp_client_process_info_sp sp =
-  if Lazy.lazy_is_val sp.Eliom_common.sp_client_process_info
-  then Some (Lazy.force sp.Eliom_common.sp_client_process_info)
-  else None
+  sp.Eliom_common.sp_client_process_info
 let get_sp_client_process_info () =
   let sp = Eliom_common.get_sp () in
   get_sp_client_process_info_sp sp

@@ -353,13 +353,6 @@ end)
 
 type anon_params_type = int
 
-type client_process_info = {
-  cpi_ssl : bool;
-  cpi_hostname : string;
-  cpi_server_port : int;
-  cpi_original_full_path : Url.path;
-}
-
 type node_info = {
   ni_id : node_ref;
   mutable ni_sent : bool;
@@ -381,7 +374,7 @@ type server_params =
                                                 to which belong the service
                                                 that answered
                                                 (if it is a session service) *);
-     mutable sp_client_process_info: client_process_info Lazy.t;
+     sp_client_process_info: client_process_info;
     }
 
 and page_table = page_table_content Serv_Table.t
@@ -523,8 +516,6 @@ and sitedata =
    dlist_ip_table : dlist_ip_table;
    mutable ipv4mask : int32 option * bool;
    mutable ipv6mask : (int64 * int64) option * bool;
-   mutable get_client_process_info : unit -> client_process_info option;
-   mutable set_client_process_info : client_process_info -> unit;
  }
 
 and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
@@ -553,7 +544,6 @@ let get_cookie_info sp = function
 (*****************************************************************************)
 (** Create server parameters record *)
 let make_server_params
-    ~client_info
     sitedata
     (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
     suffix
@@ -565,6 +555,17 @@ let make_server_params
     (* It is an XHR from the client application, or an internal form *)
     with Not_found -> None
   in
+  let cpi =
+    match si.si_client_process_info with
+    | Some cpi -> cpi
+    | None ->
+	let request_info = ri.Ocsigen_extensions.request_info in
+	{ cpi_ssl = request_info.Ocsigen_extensions.ri_ssl;
+	  cpi_hostname = Ocsigen_extensions.get_hostname ri;
+	  cpi_server_port = request_info.Ocsigen_extensions.ri_server_port;
+	  cpi_original_full_path =
+	    request_info.Ocsigen_extensions.ri_original_full_path;
+	} in
   { sp_request = ri;
     sp_si = si;
     sp_sitedata = sitedata;
@@ -575,8 +576,7 @@ let make_server_params
     sp_client_appl_name = appl_name;
     sp_suffix = suffix;
     sp_fullsessname = fullsessname;
-    sp_client_process_info = client_info;
-    (* sp_client_request_info = snd client_info; *)
+    sp_client_process_info = cpi;
   }
 
 let sp_key = Lwt.new_key ()
@@ -870,6 +870,13 @@ let eliom_params_after_action = Polytables.make_key ()
 (* After an ction, we get tab_cookies info from rc: *)
 let tab_cookie_action_info_key = Polytables.make_key ()
 
+type cpi = client_process_info =  {
+  cpi_ssl : bool;
+  cpi_hostname : string;
+  cpi_server_port : int;
+  cpi_original_full_path : string list;
+} deriving (Json)
+
 let get_session_info req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen_extensions.request_info
@@ -916,6 +923,16 @@ let get_session_info req previous_extension_err =
       (None, tab_cookies, post_params)
   in
 
+
+  let cpi =
+    try (* looking for client process info in headers *)
+      let cpi =
+	Ocsigen_headers.find
+	  tab_cpi_header_name
+	  ri.Ocsigen_extensions.ri_http_frame in
+      Some (Json.from_string<cpi> cpi)
+    with Not_found -> None
+  in
 
   let post_params, get_params, to_be_considered_as_get =
     try
@@ -1170,6 +1187,7 @@ let get_session_info req previous_extension_err =
           (List.remove_assoc naservice_name
              (List.remove_assoc naservice_num
                 (remove_prefixed_param na_co_param_prefix get_params0)));
+     si_client_process_info= cpi;
 (*204FORMS*     si_internal_form= internal_form; *)
     }
   in

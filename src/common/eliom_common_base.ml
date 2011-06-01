@@ -138,13 +138,19 @@ let internal_form_full_name =
     internal_form_bool_name
 *)
 
-let tab_cookies_header_name = "x-eliom-process-cookies"
+let tab_cookies_header_name = "X-Eliom-Process-Cookies"
+let tab_cpi_header_name = "X-Eliom-Process-Info"
 
 let nl_is_persistent n = n.[0] = 'p'
 
 (*****************************************************************************)
 
-
+type client_process_info =  {
+  cpi_ssl : bool;
+  cpi_hostname : string;
+  cpi_server_port : int;
+  cpi_original_full_path : Url.path;
+}
 
 type sess_info =
     {si_other_get_params: (string * string) list;
@@ -193,6 +199,8 @@ type sess_info =
      si_all_get_but_na_nl: (string * string) list Lazy.t;
      si_all_get_but_nl: (string * string) list;
 
+     si_client_process_info : client_process_info option;
+
 (*204FORMS*     si_internal_form: bool; *)
    }
 
@@ -206,3 +214,6 @@ let bus_unwrap_id_int = 5
 let node_unwrap_id_int = 6
 
 type node_ref = string
+
+
+(****** *)

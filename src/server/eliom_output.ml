@@ -2538,10 +2538,12 @@ module Eliom_appl_reg_make_param
       Printf.sprintf
 	("var container_id = \'%s\'\n"
 	 ^^ "var sitedata = \'%s\'\n"
-	 ^^ "var eliom_data = \'%s\'\n")
+	 ^^ "var eliom_data = \'%s\'\n"
+	 ^^ "var client_process_info = \'%s\'\n")
 	container_id
 	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
 	(Eliom_types.jsmarshal (Eliom_wrap.wrap eliom_data))
+	(Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
 
     HTML5.M.script (cdata_script script)
@@ -2613,7 +2615,6 @@ module Eliom_appl_reg_make_param
       ?content_type ?headers content =
 
     let sp = Eliom_common.get_sp () in
-    ignore (Lazy.force sp.Eliom_common.sp_client_process_info);
     let content_only =
       (* If the name of the application sent by the browser
          corresponds to the name of the application of the service,

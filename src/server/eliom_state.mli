@@ -1114,17 +1114,6 @@ val get_session_service_table_if_exists :
   unit ->
   Eliom_common.tables ref
 
-
-
-
-val make_server_params :
-  Eliom_common.sitedata ->
-  Eliom_common.info ->
-  Url.path option -> 
-  Eliom_common.fullsessionname option ->
-  Eliom_common.server_params Lwt.t
-
-
 val create_volatile_table_during_session_ :
   scope:Eliom_common.user_scope ->
   state_name:string option ->

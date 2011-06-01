@@ -23,6 +23,9 @@ open Ocsigen_cookies
 let sitedata : Eliom_types.sitedata =
   unmarshal_js_var "sitedata"
 
+let info : Eliom_common.client_process_info =
+  unmarshal_js_var "client_process_info"
+
 let appl_name =
   lazy
     (let (_, v, _) =

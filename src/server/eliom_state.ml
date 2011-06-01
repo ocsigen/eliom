@@ -23,44 +23,36 @@ open Lwt
 open Ocsigen_extensions
 
 let get_csp_original_full_path () =
-   match Eliom_request_info.get_sp_client_process_info () with
-     | None -> Eliom_request_info.get_original_full_path ()
-     | Some cpi -> cpi.Eliom_common.cpi_original_full_path
+  let cpi = Eliom_request_info.get_sp_client_process_info () in
+  cpi.Eliom_common.cpi_original_full_path
 
 let get_csp_hostname () =
-   match Eliom_request_info.get_sp_client_process_info () with
-     | None -> Eliom_request_info.get_hostname ()
-     | Some cpi -> cpi.Eliom_common.cpi_hostname
+  let cpi = Eliom_request_info.get_sp_client_process_info () in
+  cpi.Eliom_common.cpi_hostname
 
 let get_csp_server_port () =
-   match Eliom_request_info.get_sp_client_process_info () with
-     | None -> Eliom_request_info.get_server_port ()
-     | Some cpi -> cpi.Eliom_common.cpi_server_port
+  let cpi = Eliom_request_info.get_sp_client_process_info () in
+  cpi.Eliom_common.cpi_server_port
 
 let get_csp_ssl () =
-   match Eliom_request_info.get_sp_client_process_info () with
-     | None -> Eliom_request_info.get_ssl ()
-     | Some cpi -> cpi.Eliom_common.cpi_ssl
+  let cpi = Eliom_request_info.get_sp_client_process_info () in
+  cpi.Eliom_common.cpi_ssl
 
 let get_csp_original_full_path_sp sp =
-   match Eliom_request_info.get_sp_client_process_info_sp sp with
-     | None -> Eliom_request_info.get_original_full_path_sp sp
-     | Some cpi -> cpi.Eliom_common.cpi_original_full_path
+  let cpi = Eliom_request_info.get_sp_client_process_info_sp sp in
+  cpi.Eliom_common.cpi_original_full_path
 
 let get_csp_hostname_sp sp =
-   match Eliom_request_info.get_sp_client_process_info_sp sp with
-     | None -> Eliom_request_info.get_hostname_sp sp
-     | Some cpi -> cpi.Eliom_common.cpi_hostname
+  let cpi = Eliom_request_info.get_sp_client_process_info_sp sp in
+  cpi.Eliom_common.cpi_hostname
 
 let get_csp_server_port_sp sp =
-   match Eliom_request_info.get_sp_client_process_info_sp sp with
-     | None -> Eliom_request_info.get_server_port_sp sp
-     | Some cpi -> cpi.Eliom_common.cpi_server_port
+  let cpi = Eliom_request_info.get_sp_client_process_info_sp sp in
+  cpi.Eliom_common.cpi_server_port
 
 let get_csp_ssl_sp sp =
-   match Eliom_request_info.get_sp_client_process_info_sp sp with
-     | None -> Eliom_request_info.get_ssl_sp sp
-     | Some cpi -> cpi.Eliom_common.cpi_ssl
+  let cpi = Eliom_request_info.get_sp_client_process_info_sp sp in
+  cpi.Eliom_common.cpi_ssl
 
 
 (* Expired session? *)
@@ -1468,25 +1460,3 @@ let unset_cookie
     | `Client_process ->
       sp.Eliom_common.sp_user_tab_cookies <- Ocsigen_cookies.add_cookie
         path name Ocsigen_cookies.OUnset sp.Eliom_common.sp_user_tab_cookies
-
-(*****************************************************************************)
-(* Client process info *)
-
-let make_server_params sitedata i suffix fullsessname =
-  let cpi = lazy (
-    let sp = Eliom_common.get_sp () in (* GRGR Should be removed once unused... *)
-    match sitedata.Eliom_common.get_client_process_info () with
-      | Some cpi -> cpi
-      | None ->
-        let cpi =
-          { Eliom_common.
-	    cpi_ssl = Eliom_request_info.get_ssl_sp sp;
-            cpi_hostname = Eliom_request_info.get_hostname_sp sp;
-            cpi_server_port = Eliom_request_info.get_server_port_sp sp;
-            cpi_original_full_path = Eliom_request_info.get_original_full_path_sp sp;
-	  }
-        in
-        sitedata.Eliom_common.set_client_process_info cpi;
-        cpi) in
-  Lwt.return
-    (Eliom_common.make_server_params ~client_info:cpi sitedata i suffix fullsessname)

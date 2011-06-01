@@ -24,6 +24,8 @@ exception Looping_redirection
 exception Failed_request of int
 exception Program_terminated
 
+(* == ... *)
+
 let max_redirection_level = 12
 
 let short_url_re =
@@ -80,7 +82,6 @@ let redirect_post url params =
        Dom.appendChild f i)
     params;
   f##submit ()
-
 
 let rec send ?cookies_info ?get_args ?post_args ?form_arg url =
   let rec aux i ?cookies_info ?get_args ?post_args ?form_arg url =
