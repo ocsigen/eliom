@@ -36,10 +36,9 @@ module RawXML = struct
     | Comma -> ", "
 
   type caml_event =
-    | CE_closure of (unit -> unit) client_expr
-    | CE_a of (bool * string list) option
-    | CE_form_get of (bool * string list) option
-    | CE_form_post of (bool * string list) option
+    | CE_registered_closure of (unit -> unit) client_expr
+    | CE_client_closure of (unit -> unit)
+    | CE_call_service of [ `A | `Form_get | `Form_post] * (bool * string list) option
 
   type event =
     | Raw of string
@@ -49,10 +48,10 @@ module RawXML = struct
   let string_of_event = function
     | Raw s -> s
     | Caml _ -> "/* Invalid Caml value */"
-  let event_of_js id args = Caml (CE_closure (id, args))
+  let event_of_js id args = Caml (CE_registered_closure (id, args))
 
-  let event_of_service_a cookies =
-    Caml (CE_a cookies)
+  let event_of_service kind cookies =
+    Caml (CE_call_service (kind, cookies))
 
   type aname = string
   type acontent =

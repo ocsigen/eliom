@@ -496,6 +496,8 @@ module XML = struct
 
   include RawXML
 
+  let event_of_function ev = Caml (CE_client_closure ev)
+
   let end_re = Regexp.regexp_string "]]>"
 
   let cdata s =
@@ -523,10 +525,12 @@ end
 module HTML5 = struct
 
   module M = struct
+
     include HTML5_f.Make(XML)(SVG.M)
+
     let a_class x = to_attrib (XML.space_sep_attrib "className" x)
 
-    let rebuild_xml _ = assert false
+    let rebuild_xml _ = assert false (* FIXME GRGR *)
 
     let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
     let of_html : Dom_html.htmlElement Js.t -> HTML5_types.html elt = rebuild_xml
@@ -573,6 +577,78 @@ module HTML5 = struct
     let of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt = rebuild_xml
     let of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = rebuild_xml
     let of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = rebuild_xml
+
+    (* GRGR: Uncomment when ocaml 3.12.1 is released ! See ocaml bug #1441. *)
+
+    (* let a_onabort ev = a_onabort (XML.event_of_function ev) *)
+    (* let a_onafterprint ev = a_onafterprint (XML.event_of_function ev) *)
+    (* let a_onbeforeprint ev = a_onbeforeprint (XML.event_of_function ev) *)
+    (* let a_onbeforeunload ev = a_onbeforeunload (XML.event_of_function ev) *)
+    (* let a_onblur ev = a_onblur (XML.event_of_function ev) *)
+    (* let a_oncanplay ev = a_oncanplay (XML.event_of_function ev) *)
+    (* let a_oncanplaythrough ev = a_oncanplaythrough (XML.event_of_function ev) *)
+    (* let a_onchange ev = a_onchange (XML.event_of_function ev) *)
+    (* let a_onclick ev = a_onclick (XML.event_of_function ev) *)
+    (* let a_oncontextmenu ev = a_oncontextmenu (XML.event_of_function ev) *)
+    (* let a_ondblclick ev = a_ondblclick (XML.event_of_function ev) *)
+    (* let a_ondrag ev = a_ondrag (XML.event_of_function ev) *)
+    (* let a_ondragend ev = a_ondragend (XML.event_of_function ev) *)
+    (* let a_ondragenter ev = a_ondragenter (XML.event_of_function ev) *)
+    (* let a_ondragleave ev = a_ondragleave (XML.event_of_function ev) *)
+    (* let a_ondragover ev = a_ondragover (XML.event_of_function ev) *)
+    (* let a_ondragstart ev = a_ondragstart (XML.event_of_function ev) *)
+    (* let a_ondrop ev = a_ondrop (XML.event_of_function ev) *)
+    (* let a_ondurationchange ev = a_ondurationchange (XML.event_of_function ev) *)
+    (* let a_onemptied ev = a_onemptied (XML.event_of_function ev) *)
+    (* let a_onended ev = a_onended (XML.event_of_function ev) *)
+    (* let a_onerror ev = a_onerror (XML.event_of_function ev) *)
+    (* let a_onfocus ev = a_onfocus (XML.event_of_function ev) *)
+    (* let a_onformchange ev = a_onformchange (XML.event_of_function ev) *)
+    (* let a_onforminput ev = a_onforminput (XML.event_of_function ev) *)
+    (* let a_onhashchange ev = a_onhashchange (XML.event_of_function ev) *)
+    (* let a_oninput ev = a_oninput (XML.event_of_function ev) *)
+    (* let a_oninvalid ev = a_oninvalid (XML.event_of_function ev) *)
+    (* let a_onmousedown ev = a_onmousedown (XML.event_of_function ev) *)
+    (* let a_onmouseup ev = a_onmouseup (XML.event_of_function ev) *)
+    (* let a_onmouseover ev = a_onmouseover (XML.event_of_function ev) *)
+    (* let a_onmousemove ev = a_onmousemove (XML.event_of_function ev) *)
+    (* let a_onmouseout ev = a_onmouseout (XML.event_of_function ev) *)
+    (* let a_onmousewheel ev = a_onmousewheel (XML.event_of_function ev) *)
+    (* let a_onoffline ev = a_onoffline (XML.event_of_function ev) *)
+    (* let a_ononline ev = a_ononline (XML.event_of_function ev) *)
+    (* let a_onpause ev = a_onpause (XML.event_of_function ev) *)
+    (* let a_onplay ev = a_onplay (XML.event_of_function ev) *)
+    (* let a_onplaying ev = a_onplaying (XML.event_of_function ev) *)
+    (* let a_onpagehide ev = a_onpagehide (XML.event_of_function ev) *)
+    (* let a_onpageshow ev = a_onpageshow (XML.event_of_function ev) *)
+    (* let a_onpopstate ev = a_onpopstate (XML.event_of_function ev) *)
+    (* let a_onprogress ev = a_onprogress (XML.event_of_function ev) *)
+    (* let a_onratechange ev = a_onratechange (XML.event_of_function ev) *)
+    (* let a_onreadystatechange ev = a_onreadystatechange (XML.event_of_function ev) *)
+    (* let a_onredo ev = a_onredo (XML.event_of_function ev) *)
+    (* let a_onresize ev = a_onresize (XML.event_of_function ev) *)
+    (* let a_onscroll ev = a_onscroll (XML.event_of_function ev) *)
+    (* let a_onseeked ev = a_onseeked (XML.event_of_function ev) *)
+    (* let a_onseeking ev = a_onseeking (XML.event_of_function ev) *)
+    (* let a_onselect ev = a_onselect (XML.event_of_function ev) *)
+    (* let a_onshow ev = a_onshow (XML.event_of_function ev) *)
+    (* let a_onstalled ev = a_onstalled (XML.event_of_function ev) *)
+    (* let a_onstorage ev = a_onstorage (XML.event_of_function ev) *)
+    (* let a_onsubmit ev = a_onsubmit (XML.event_of_function ev) *)
+    (* let a_onsuspend ev = a_onsuspend (XML.event_of_function ev) *)
+    (* let a_ontimeupdate ev = a_ontimeupdate (XML.event_of_function ev) *)
+    (* let a_onundo ev = a_onundo (XML.event_of_function ev) *)
+    (* let a_onunload ev = a_onunload (XML.event_of_function ev) *)
+    (* let a_onvolumechange ev = a_onvolumechange (XML.event_of_function ev) *)
+    (* let a_onwaiting ev = a_onwaiting (XML.event_of_function ev) *)
+    (* let a_onkeypress ev = a_onkeypress (XML.event_of_function ev) *)
+    (* let a_onkeydown ev = a_onkeydown (XML.event_of_function ev) *)
+    (* let a_onkeyup ev = a_onkeyup (XML.event_of_function ev) *)
+    (* let a_onload ev = a_onload (XML.event_of_function ev) *)
+    (* let a_onloadeddata ev = a_onloadeddata (XML.event_of_function ev) *)
+    (* let a_onloadedmetadata ev = a_onloadedmetadata (XML.event_of_function ev) *)
+    (* let a_onloadstart ev = a_onloadstart (XML.event_of_function ev) *)
+    (* let a_onmessage ev = a_onmessage (XML.event_of_function ev) *)
 
   end
 

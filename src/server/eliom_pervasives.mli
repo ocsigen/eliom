@@ -140,7 +140,7 @@ module XML : sig
   val event_of_string : string -> event
   val string_of_event : event -> string
   val event_of_js : int64 -> poly -> event
-  val event_of_service_a : (bool * Url.path) option -> event
+  val event_of_service :  [ `A | `Form_get | `Form_post] -> (bool * Url.path) option -> event
 
   type racontent =
     | RA of acontent

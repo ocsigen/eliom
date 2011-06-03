@@ -115,10 +115,9 @@ module XML : sig
   type attrib
 
   type caml_event =
-    | CE_closure of (unit -> unit Lwt.t) client_expr
-    | CE_a of (bool * string list) option
-    | CE_form_get of (bool * string list) option
-    | CE_form_post of (bool * string list) option
+    | CE_registered_closure of (unit -> unit) client_expr
+    | CE_client_closure of (unit -> unit)
+    | CE_call_service of [ `A | `Form_get | `Form_post] * (bool * string list) option
 
   type event =
     | Raw of string
@@ -137,7 +136,8 @@ module XML : sig
 
   (**/**)
 
-  val event_of_service_a : (bool * Url.path) option -> event
+  val event_of_service : [ `A | `Form_get | `Form_post] -> (bool * Url.path) option -> event
+  val event_of_function : (unit -> unit) -> event
 
   type separator = Space | Comma
   type acontent = private
@@ -244,6 +244,78 @@ module HTML5 : sig
     val of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt
     val of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt
     val of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt
+
+    (* GRGR: Uncomment when ocaml 3.12.1 is released ! See ocaml bug #1441. *)
+
+    (* val a_onabort : (unit -> unit) -> [> | `OnAbort] attrib *)
+    (* val a_onafterprint : (unit -> unit) -> [> | `OnAfterPrint] attrib *)
+    (* val a_onbeforeprint : (unit -> unit) -> [> | `OnBeforePrint] attrib *)
+    (* val a_onbeforeunload : (unit -> unit) -> [> | `OnBeforeUnload] attrib *)
+    (* val a_onblur : (unit -> unit) -> [> | `OnBlur] attrib *)
+    (* val a_oncanplay : (unit -> unit) -> [> | `OnCanPlay] attrib *)
+    (* val a_oncanplaythrough : (unit -> unit) -> [> | `OnCanPlayThrough] attrib *)
+    (* val a_onchange : (unit -> unit) -> [> | `OnChange] attrib *)
+    (* val a_onclick : (unit -> unit) -> [> | `OnClick] attrib *)
+    (* val a_oncontextmenu : (unit -> unit) -> [> | `OnContextMenu] attrib *)
+    (* val a_ondblclick : (unit -> unit) -> [> | `OnDblClick] attrib *)
+    (* val a_ondrag : (unit -> unit) -> [> | `OnDrag] attrib *)
+    (* val a_ondragend : (unit -> unit) -> [> | `OnDragEnd] attrib *)
+    (* val a_ondragenter : (unit -> unit) -> [> | `OnDragEnter] attrib *)
+    (* val a_ondragleave : (unit -> unit) -> [> | `OnDragLeave] attrib *)
+    (* val a_ondragover : (unit -> unit) -> [> | `OnDragOver] attrib *)
+    (* val a_ondragstart : (unit -> unit) -> [> | `OnDragStart] attrib *)
+    (* val a_ondrop : (unit -> unit) -> [> | `OnDrop] attrib *)
+    (* val a_ondurationchange : (unit -> unit) -> [> | `OnDurationChange] attrib *)
+    (* val a_onemptied : (unit -> unit) -> [> | `OnEmptied] attrib *)
+    (* val a_onended : (unit -> unit) -> [> | `OnEnded] attrib *)
+    (* val a_onerror : (unit -> unit) -> [> | `OnError] attrib *)
+    (* val a_onfocus : (unit -> unit) -> [> | `OnFocus] attrib *)
+    (* val a_onformchange : (unit -> unit) -> [> | `OnFormChange] attrib *)
+    (* val a_onforminput : (unit -> unit) -> [> | `OnFormInput] attrib *)
+    (* val a_onhashchange : (unit -> unit) -> [> | `OnHashChange] attrib *)
+    (* val a_oninput : (unit -> unit) -> [> | `OnInput] attrib *)
+    (* val a_oninvalid : (unit -> unit) -> [> | `OnInvalid] attrib *)
+    (* val a_onmousedown : (unit -> unit) -> [> | `OnMouseDown] attrib *)
+    (* val a_onmouseup : (unit -> unit) -> [> | `OnMouseUp] attrib *)
+    (* val a_onmouseover : (unit -> unit) -> [> | `OnMouseOver] attrib *)
+    (* val a_onmousemove : (unit -> unit) -> [> | `OnMouseMove] attrib *)
+    (* val a_onmouseout : (unit -> unit) -> [> | `OnMouseOut] attrib *)
+    (* val a_onmousewheel : (unit -> unit) -> [> | `OnMouseWheel] attrib *)
+    (* val a_onoffline : (unit -> unit) -> [> | `OnOffLine] attrib *)
+    (* val a_ononline : (unit -> unit) -> [> | `OnOnLine] attrib *)
+    (* val a_onpause : (unit -> unit) -> [> | `OnPause] attrib *)
+    (* val a_onplay : (unit -> unit) -> [> | `OnPlay] attrib *)
+    (* val a_onplaying : (unit -> unit) -> [> | `OnPlaying] attrib *)
+    (* val a_onpagehide : (unit -> unit) -> [> | `OnPageHide] attrib *)
+    (* val a_onpageshow : (unit -> unit) -> [> | `OnPageShow] attrib *)
+    (* val a_onpopstate : (unit -> unit) -> [> | `OnPopState] attrib *)
+    (* val a_onprogress : (unit -> unit) -> [> | `OnProgress] attrib *)
+    (* val a_onratechange : (unit -> unit) -> [> | `OnRateChange] attrib *)
+    (* val a_onreadystatechange : (unit -> unit) -> [> | `OnReadyStateChange] attrib *)
+    (* val a_onredo : (unit -> unit) -> [> | `OnRedo] attrib *)
+    (* val a_onresize : (unit -> unit) -> [> | `OnResize] attrib *)
+    (* val a_onscroll : (unit -> unit) -> [> | `OnScroll] attrib *)
+    (* val a_onseeked : (unit -> unit) -> [> | `OnSeeked] attrib *)
+    (* val a_onseeking : (unit -> unit) -> [> | `OnSeeking] attrib *)
+    (* val a_onselect : (unit -> unit) -> [> | `OnSelect] attrib *)
+    (* val a_onshow : (unit -> unit) -> [> | `OnShow] attrib *)
+    (* val a_onstalled : (unit -> unit) -> [> | `OnStalled] attrib *)
+    (* val a_onstorage : (unit -> unit) -> [> | `OnStorage] attrib *)
+    (* val a_onsubmit : (unit -> unit) -> [> | `OnSubmit] attrib *)
+    (* val a_onsuspend : (unit -> unit) -> [> | `OnSuspend] attrib *)
+    (* val a_ontimeupdate : (unit -> unit) -> [> | `OnTimeUpdate] attrib *)
+    (* val a_onundo : (unit -> unit) -> [> | `OnUndo] attrib *)
+    (* val a_onunload : (unit -> unit) -> [> | `OnUnload] attrib *)
+    (* val a_onvolumechange : (unit -> unit) -> [> | `OnVolumeChange] attrib *)
+    (* val a_onwaiting : (unit -> unit) -> [> | `OnWaiting] attrib *)
+    (* val a_onkeypress : (unit -> unit) -> [> | `OnKeyPress] attrib *)
+    (* val a_onkeydown : (unit -> unit) -> [> | `OnKeyDown] attrib *)
+    (* val a_onkeyup : (unit -> unit) -> [> | `OnKeyUp] attrib *)
+    (* val a_onload : (unit -> unit) -> [> | `OnLoad] attrib *)
+    (* val a_onloadeddata : (unit -> unit) -> [> | `OnLoadedData] attrib *)
+    (* val a_onloadedmetadata : (unit -> unit) -> [> | `OnLoadedMetaData] attrib *)
+    (* val a_onloadstart : (unit -> unit) -> [> | `OnLoadStart] attrib *)
+    (* val a_onmessage : (unit -> unit) -> [> | `OnMessage] attrib *)
 
   end
 

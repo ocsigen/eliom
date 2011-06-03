@@ -38,19 +38,27 @@ let (register_node, find_node) =
 
 (* forward declaration... *)
 let change_page_uri_ = ref (fun ?cookies_info href -> assert false)
+let change_page_get_form_ = ref (fun ?cookies_info form href -> assert false)
+let change_page_post_form_ = ref (fun ?cookies_info form href -> assert false)
 
 let reify_caml_event ce = match ce with
-  | XML.CE_a cookies_info ->
+  | XML.CE_call_service (`A, cookies_info) ->
       (fun node ->
 	let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
 	!change_page_uri_ ?cookies_info (Js.to_string href); false)
-  | XML.CE_form_post url ->
-      (* FIXME GRGR *)
-      (fun _ -> Firebug.console##debug(Js.string ("click post: ")); false)
-  | XML.CE_form_get url ->
-      (* FIXME GRGR *)
-      (fun _ -> Firebug.console##debug(Js.string ("click get: ")); false)
-  | XML.CE_closure (id, args) ->
+  | XML.CE_call_service (`Form_get, cookies_info) ->
+      (fun node ->
+	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
+	let action = Js.to_string form##action in
+	!change_page_get_form_ ?cookies_info form action; false)
+  | XML.CE_call_service (`Form_post, cookies_info) ->
+      (fun node ->
+	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
+	let action = Js.to_string form##action in
+	!change_page_post_form_ ?cookies_info form action; false)
+  | XML.CE_client_closure f ->
+    (fun _ -> try f (); true with False -> false)
+  | XML.CE_registered_closure (id, args) ->
       try
 	let f = find_closure id in
 	(fun _ -> try f args; true with False -> false)
@@ -99,7 +107,8 @@ and relink_dom_list nodes ref_trees =
   | nodes, XML.Ref_empty i :: ref_trees ->
       relink_dom_list (List.chop i nodes) ref_trees
   | _, [] -> ()
-  | [], _ -> assert false (* GRGR FIXME *)
+  | [], _ ->
+    Firebug.console##error(Js.string "Incorrect sparse tree.")
 
 let relink ref_tree =
   relink_dom_list
@@ -387,6 +396,13 @@ let on_unload f =
 let set_content (aa, page_data) =
   ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
+
+  (* GRGR TODO test ! *)
+  (* Hack to make the result considered as DOM : *)
+  (* fake_page##innerHTML <- Js.string content; *)
+  (* let nodes = Dom.list_of_nodeList (fake_page##childNodes) in *)
+  (* fake_page##innerHTML <- Js.string ""; *)
+
   (* FIXME GRGR html_attribs *)
   change_url_string aa.Eliom_types.aa_url;
   Dom.replaceChild
@@ -435,7 +451,6 @@ with e ->
   Firebug.console##debug(Js.string (Printexc.to_string e));
   Lwt.return ()
 
-
 let change_page_get_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
   lwt r = Eliom_request.send_get_form ?cookies_info form uri in
@@ -448,11 +463,11 @@ let change_page_post_form ?cookies_info form uri =
 
 let _ =
   change_page_uri_ :=
-    (fun ?cookies_info href -> ignore(change_page_uri ?cookies_info href))
-  (* FIXME GRGR *)
-  (* change_page_get_form_ := change_page_get_form; *)
-  (* change_page_post_form_ := change_page_post_form *)
-
+    (fun ?cookies_info href -> ignore(change_page_uri ?cookies_info href));
+  change_page_get_form_ :=
+    (fun ?cookies_info form href -> ignore(change_page_get_form ?cookies_info form href));
+  change_page_post_form_ :=
+    (fun ?cookies_info form href -> ignore(change_page_post_form ?cookies_info form href))
 
 let call_service
     ?absolute ?absolute_path ?https
@@ -495,89 +510,27 @@ let call_caml_service
 
 
 let fake_page = Dom_html.createBody Dom_html.document
-(*FIX: is that correct?
-  XHTML5.M.toelt (XHTML5.M.body [])
-*)
 
-(* let rec get_subpage_ : *)
-    (* 'get 'post 'd 'e 'm 'n 'o 'p 'q 'return. *)
-    (* int -> *)
-  (* ?absolute:bool -> *)
-  (* ?absolute_path:bool -> *)
-  (* ?https:bool -> *)
-  (* service:('get, 'post, *)
-           (* ([< `Attached of *)
-               (* (Eliom_services.attached_service_kind, *)
-                (* ([< Eliom_services.getpost ] as 'q)) *)
-                 (* Eliom_services.a_s *)
-            (* (\* | `Nonattached of ([< Eliom_services.getpost ] as 'p) Eliom_services.na_s ] as 'm), *\) *)
-           (* ([< `WithSuffix | `WithoutSuffix ] as 'n), 'd, 'e, *)
-           (* ([< Eliom_services.registrable ] as 'o), *)
-           (* 'return) *)
-    (* Eliom_services.service -> *)
-  (* ?hostname:string -> *)
-  (* ?port:int -> *)
-  (* ?fragment:string -> *)
-  (* ?keep_nl_params:[ `All | `None | `Persistent ] -> *)
-  (* ?nl_params:(string * string) list String.Table.t -> *)
-  (* ?keep_get_na_params:bool -> 'get -> 'post -> *)
-  (* [< `PCDATA | XHTML_types.flow ] HTML5.M.elt list Lwt.t *)
-    (* = fun i *)
-    (* ?absolute ?absolute_path ?https ~service *)
-    (* ?hostname ?port ?fragment ?keep_nl_params *)
-    (* ?(nl_params=Eliom_parameters.empty_nl_params_set) ?keep_get_na_params *)
-    (* g p -> *)
-(* (\*VVV Should we fail if the service does not belong to the same application? *\) *)
-  (* (match create_request_ *)
-     (* ?absolute ?absolute_path ?https ~service *)
-     (* ?hostname ?port ?fragment ?keep_nl_params *)
-     (* ?keep_get_na_params *)
-     (* g p *)
-   (* with *)
-     (* | Left uri -> *)
-       (* Eliom_request.http_get *)
-         (* ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri [] *)
-     (* | Right (uri, p) -> *)
-       (* Eliom_request.http_post *)
-         (* ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p) *)
-  (* >>= fun r -> match Eliom_request.get_eliom_appl_result r with *)
-    (* | Eliom_output.EAContent ((ed, content), _) -> begin *)
-      (* (\* Hack to make the result considered as XHTML: *\) *)
-      (* fake_page##innerHTML <- Js.string content; *)
-      (* let nodes = fake_page##childNodes in *)
-      (* let node_list = ref [] in *)
-      (* for i = nodes##length - 1 downto 0 do *)
-        (* node_list := Js.Optdef.get (nodes##item (i)) (fun () -> assert false) *)
-        (* :: !node_list *)
-      (* done; *)
-
-      (* (\* FIXME GRGR *\) *)
-      (* load_eliom_data ed; *)
-      (* fake_page##innerHTML <- Js.string ""; *)
-      (* assert false (\* GRGR FIXME *\) *)
-      (* (\* Lwt.return !node_list *\) *)
-    (* end *)
-    (* | Eliom_output.EAHalfRedir u -> *)
-      (* (\* strange ... *\) *)
-      (* Eliom_request.redirect_get u; *)
-      (* Lwt.fail Eliom_request.Program_terminated *)
-    (* | Eliom_output.EAFullRedir service -> *)
-      (* if i < Eliom_request.max_redirection_level *)
-      (* then get_subpage_ (i+1) ~service () () *)
-      (* else Lwt.fail Eliom_request.Looping_redirection *)
-
-(* let get_subpage *)
-    (* ?absolute ?absolute_path ?https ~service *)
-    (* ?hostname ?port ?fragment ?keep_nl_params *)
-    (* ?nl_params ?keep_get_na_params *)
-    (* g p = *)
-  (* get_subpage_ 0 *)
-    (* ?absolute ?absolute_path ?https ~service *)
-    (* ?hostname ?port ?fragment ?keep_nl_params *)
-    (* ?nl_params ?keep_get_na_params *)
-    (* g p *)
-
-
+let get_subpage
+  ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+  ?keep_nl_params ?nl_params ?keep_get_na_params
+  get_params post_params =
+  (*VVV Should we fail if the service does not belong to the same application? *)
+  (* GRGR FIXME et s'il n'appartient pas à une application ?? *)
+  lwt content = match create_request_
+     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+     ?keep_nl_params ?nl_params ?keep_get_na_params
+     get_params post_params
+   with
+     | Left uri ->
+       Eliom_request.http_get
+         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
+     | Right (uri, p) ->
+       Eliom_request.http_post
+         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p
+  in
+  (* GRGR FIXME *)
+  assert false
 
 
 (*****************************************************************************)

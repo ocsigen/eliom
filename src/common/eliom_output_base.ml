@@ -889,11 +889,78 @@ module Html5_forms = struct
       else
 	let cookies_info =
 	  Eliom_uri.make_cookies_info (https, service) in
-	HTML5.M.a_onclick (XML.event_of_service_a cookies_info) :: a
+	HTML5.M.a_onclick (XML.event_of_service `A cookies_info) :: a
     in
     Forms.a
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ~no_appl
       content getparams
+
+  let get_form
+      ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params
+      ?(no_appl = false) contents =
+    let a =
+      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      then a
+      else
+	let cookies_info =
+	  Eliom_uri.make_cookies_info (https, service) in
+	HTML5.M.a_onsubmit (XML.event_of_service `Form_get cookies_info) :: a
+    in
+    Forms.get_form
+      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params contents
+
+  let lwt_get_form
+      ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params
+      ?(no_appl = false) contents =
+    let a =
+      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      then a
+      else
+	let cookies_info =
+	  Eliom_uri.make_cookies_info (https, service) in
+	HTML5.M.a_onsubmit (XML.event_of_service `Form_get cookies_info) :: a
+    in
+    Forms.lwt_get_form
+      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
+      ?nl_params ?keep_nl_params
+      contents
+
+  let post_form
+      ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?keep_get_na_params ?nl_params
+      ?(no_appl = false) contents getparams =
+    let a =
+      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      then a
+      else
+	let cookies_info =
+	  Eliom_uri.make_cookies_info (https, service) in
+	HTML5.M.a_onsubmit (XML.event_of_service `Form_post cookies_info) :: a
+    in
+    Forms.post_form
+      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?keep_get_na_params ?nl_params
+      contents getparams
+
+  let lwt_post_form
+      ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?keep_get_na_params ?nl_params
+      ?(no_appl = false) contents getparams =
+    let a =
+      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      then a
+      else
+	let cookies_info =
+	  Eliom_uri.make_cookies_info (https, service) in
+	HTML5.M.a_onsubmit (XML.event_of_service `Form_post cookies_info) :: a
+    in
+    Forms.lwt_post_form
+      ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?keep_get_na_params ?nl_params
+      contents getparams
 
 end

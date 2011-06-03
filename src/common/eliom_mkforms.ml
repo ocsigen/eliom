@@ -104,18 +104,6 @@ module MakeForms(Pages : FORMS_PARAM) = struct
              hiddenparams
          in
          let i1, i = Pages.remove_first inside in
-         (* if internal_appl_form *)
-         (* then *)
-           (* let cookies_info = Eliom_uri.make_cookies_info (https, service) *)
-           (* in *)
-           (* return (Pages.make_get_form_with_onsubmit *)
-                     (* ?a *)
-                     (* ?cookies_info *)
-                     (* (Eliom_services.get_send_appl_content service) *)
-                     (* uri *)
-                     (* i1 *)
-                     (* i) *)
-         (* else *)
          return (Pages.make_get_form ?a ~action:uri i1 i))
 
   let get_form
@@ -173,18 +161,6 @@ module MakeForms(Pages : FORMS_PARAM) = struct
          let uri =
            make_string_uri_from_components (uri, getparams, fragment)
          in
-         (* if internal_appl_form *)
-         (* then *)
-           (* let cookies_info = Eliom_uri.make_cookies_info (https, service) *)
-           (* in *)
-           (* return (Pages.make_post_form_with_onsubmit *)
-                     (* ?a *)
-                     (* ?cookies_info *)
-                     (* (Eliom_services.get_send_appl_content service) *)
-                     (* uri *)
-                     (* i1 *)
-                     (* i) *)
-         (* else *)
          return (Pages.make_post_form ?a ~action:uri i1 i))
 
   let post_form
