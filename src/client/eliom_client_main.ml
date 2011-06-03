@@ -24,8 +24,11 @@ open Eliom_pervasives
 let _a = Eliommod_mkforms.make_a_with_onclick
 let _b = Eliom_react.force_link
 
+let onload _ =
+  let ref_tree, js_data = Eliom_unwrap.unwrap (unmarshal_js_var "eliom_data") in
+  Eliom_client.relink ref_tree;
+  Eliom_client.load_eliom_data js_data;
+  Js._false
+
 let _ =
-  Dom_html.window##onload <- Dom_html.handler (fun _ ->
-    let eliom_data = Eliom_unwrap.unwrap (unmarshal_js_var "eliom_data") in
-    ignore (Eliom_client.load_eliom_data eliom_data Dom_html.document##body);
-    Js._false)
+  Dom_html.window##onload <- Dom_html.handler onload

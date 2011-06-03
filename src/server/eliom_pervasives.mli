@@ -207,7 +207,7 @@ module SVG : sig
   (** Type safe SVG creation. *)
   module M : sig
     include SVG_sigs.T with module XML := XML
-    val unique: 'a elt -> 'a elt
+    val unique: ?copy:'a elt -> 'a elt -> 'a elt
   end
 
   module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
@@ -220,7 +220,7 @@ module HTML5 : sig
   (** Type safe HTML5 creation. *)
   module M : sig
     include HTML5_sigs.T with module XML := XML and module SVG := SVG.M
-    val unique: 'a elt -> 'a elt
+    val unique: ?copy:'a elt -> 'a elt -> 'a elt
   end
   module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
 					  and type doc := M.doc

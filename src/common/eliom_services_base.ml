@@ -454,9 +454,8 @@ let external_service
 
 
 
-let untype_service_ s = 
+let untype_service_ s =
   (s : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service
    :> ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'http) service)
-
 
 let eliom_appl_answer_content_type = "application/x-eliom"

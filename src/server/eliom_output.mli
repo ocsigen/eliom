@@ -70,30 +70,6 @@ module Xhtml_forms : "sigs/eliom_xhtml_forms.mli"
 
 (** {3 Eliom client/server applications} *)
 
-(** Parameters for an Eliom application *)
-type appl_service_params = {
-
-  ap_title: string;
-
-  ap_container : 'a.
-    ((([< HTML5_types.common ] as 'a) HTML5.M.attrib list) option *
-       (HTML5_types.body_content HTML5.M.elt ->
-          HTML5_types.body_content HTML5.M.elt list))
-    option;
-
-  ap_body_attributes :
-    'a. (([< HTML5_types.common ] as 'a) HTML5.M.attrib list) option;
-
-  (** Headers to be added before loading the main program *)
-  ap_headers_before : HTML5_types.head_content_fun HTML5.M.elt list;
-
-  (** Headers to be added after loading the main program *)
-  ap_headers_after : HTML5_types.head_content_fun HTML5.M.elt list
-
-}
-
-val default_appl_params : appl_service_params
-
 module type APPL_PARAMS = sig
 
   (** Name of the application.
@@ -102,7 +78,6 @@ module type APPL_PARAMS = sig
       Two distincts applications must have distincts names.
   *)
   val application_name : string
-  val params : appl_service_params
 
 end
 
@@ -125,7 +100,7 @@ val default_appl_service_options : appl_service_options
 module type Eliom_appl = sig
 
   include "sigs/eliom_reg.mli"
-    subst type page   := HTML5_types.body_content HTML5.M.elt list
+    subst type page    := HTML5_types.html HTML5.M.elt
       and type options := appl_service_options
       and type return  := Eliom_services.appl_service
 
@@ -135,6 +110,8 @@ module type Eliom_appl = sig
       that is unique for each instance of the application.
   *)
   val application_name : string
+
+  val application_script : [> `Script ] HTML5.M.elt Lazy.t
 
 end
 

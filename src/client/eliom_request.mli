@@ -28,33 +28,39 @@ val send :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
   ?post_args:(string * string) list ->
-  ?form_arg:Form.form_contents -> string -> string Lwt.t
+  ?form_arg:Form.form_contents -> string ->
+  string Lwt.t
 
 val send_get_form :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
   ?post_args:(string * string) list ->
   Dom_html.formElement Js.t ->
-  string -> string Lwt.t
+  string ->
+  string Lwt.t
 
 val send_post_form :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
   ?post_args:(string * string) list ->
   Dom_html.formElement Js.t ->
-  string -> string Lwt.t
+  string ->
+  string Lwt.t
 
 val http_get :
   ?cookies_info:bool * string list ->
   string ->
-  (string * string) list -> string Lwt.t
+  (string * string) list ->
+  string Lwt.t
 
 val http_post :
   ?cookies_info:bool * string list ->
   string ->
-  (string * string) list -> string Lwt.t
+  (string * string) list ->
+  string Lwt.t
 
-val get_eliom_appl_result : string -> Eliom_output.eliom_appl_answer
+val get_eliom_appl_result :
+  string -> Eliom_types.eliom_appl_answer * Eliom_types.eliom_js_page_data
 
 val get_cookie_info_for_uri_js : Js.js_string Js.t -> bool * string list
 

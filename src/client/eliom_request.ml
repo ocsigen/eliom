@@ -168,13 +168,13 @@ let send_post_form ?cookies_info ?get_args ?post_args form url =
   let form_arg = Form.post_form_contents form in
   send ?cookies_info ?get_args ?post_args ~form_arg url
 
-let get_eliom_appl_result a : Eliom_output.eliom_appl_answer =
-  Marshal.from_string (Url.urldecode a) 0
-
-let http_get ?cookies_info url get_args : string Lwt.t =
+let http_get ?cookies_info url get_args =
   send ?cookies_info ~get_args url
 
-let http_post ?cookies_info url post_args : string Lwt.t =
+let http_post ?cookies_info url post_args =
   send ?cookies_info ~post_args url
 
+let get_eliom_appl_result a :
+    Eliom_types.eliom_appl_answer * Eliom_types.eliom_js_page_data =
+  Marshal.from_string (Url.urldecode a) 0
 

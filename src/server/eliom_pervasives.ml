@@ -213,7 +213,8 @@ end
 module SVG = struct
   module M = struct
       include SVG_f.Make(XML)
-      let unique elt = tot (XML.make_unique (toelt elt))
+      let unique ?copy elt =
+	tot (XML.make_unique ?copy:(map_option toelt copy) (toelt elt))
   end
   module P = XML_print.MakeTypedSimple(XML)(M)
 end
@@ -221,7 +222,8 @@ end
 module HTML5 = struct
   module M = struct
       include HTML5_f.Make(XML)(SVG.M)
-      let unique elt = tot (XML.make_unique (toelt elt))
+      let unique ?copy elt =
+	tot (XML.make_unique ?copy:(map_option toelt copy) (toelt elt))
   end
   module P = XML_print.MakeTypedSimple(XML)(M)
 end

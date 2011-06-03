@@ -30,13 +30,7 @@ val sp : server_params
 
 (**/**)
 
-type page_tree =
-  | First_page of XML.ref_tree list * XML.ref_tree  (* (headers, body) *)
-  | Change_page of int list * XML.ref_tree list (* (headers, contents) *)
-
 type eliom_js_page_data = {
-  (* Sparse tree for HTML body and header, to relink the DOM. *)
-  ejs_ref_tree: page_tree;
   (* Cookies *)
   ejs_tab_cookies: Ocsigen_cookies.cookieset;
   (* Event handlers *)
@@ -44,6 +38,13 @@ type eliom_js_page_data = {
   ejs_onunload: XML.event list;
   (* Session info *)
   ejs_sess_info: Eliom_common.sess_info;
+}
+
+type eliom_appl_answer = {
+  aa_url : string;
+  aa_html_attribs : HTML5_types.html_attrib HTML5.M.attrib list;
+  aa_head : HTML5_types.head HTML5.M.elt;
+  aa_body : HTML5_types.body HTML5.M.elt;
 }
 
 (* the data sent on channels *)
