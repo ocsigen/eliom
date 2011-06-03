@@ -150,10 +150,12 @@ module Html5 = struct
 	  node
 
   and raw_rebuild_node = function
-    | XML.Empty -> assert false (* FIXME *)
-    | XML.Comment s -> assert false (* FIXME *)
+    | XML.Empty
+    | XML.Comment _ ->
+	(* FIXME *)
+	(Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
     | XML.EncodedPCDATA s
-    | XML.PCDATA s ->	(Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
+    | XML.PCDATA s -> (Dom_html.document##createTextNode (Js.string s) :> Dom.node Js.t)
     | XML.Entity s -> assert false (* FIXME *)
     | XML.Leaf (name,attribs) ->
       let node = Dom_html.document##createElement (Js.string name) in
