@@ -29,8 +29,15 @@ let find_closure = Hashtbl.find closure_table
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client) *)
 
 let (register_node, find_node) =
-  let process_nodes : (string, Dom_html.element Js.t) Hashtbl.t = Hashtbl.create 0 in
-  let find id = Hashtbl.find process_nodes id in
+  let process_nodes : (string, Dom.node Js.t) Hashtbl.t = Hashtbl.create 0 in
+  let find id =
+    let node = Hashtbl.find process_nodes id in
+    if String.lowercase (Js.to_string node##nodeName) = "script" then
+      (* We don't wan't to reexecute "unique" script... *)
+      (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
+    else
+      node
+  in
   let register id node = Hashtbl.add process_nodes id node in
   (register, find)
 
@@ -41,41 +48,40 @@ let change_page_uri_ = ref (fun ?cookies_info href -> assert false)
 let change_page_get_form_ = ref (fun ?cookies_info form href -> assert false)
 let change_page_post_form_ = ref (fun ?cookies_info form href -> assert false)
 
-let reify_caml_event ce = match ce with
+let reify_caml_event node ce = match ce with
   | XML.CE_call_service (`A, cookies_info) ->
-      (fun node ->
+      (fun () ->
 	let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
 	!change_page_uri_ ?cookies_info (Js.to_string href); false)
   | XML.CE_call_service (`Form_get, cookies_info) ->
-      (fun node ->
+      (fun () ->
 	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
 	let action = Js.to_string form##action in
 	!change_page_get_form_ ?cookies_info form action; false)
   | XML.CE_call_service (`Form_post, cookies_info) ->
-      (fun node ->
+      (fun () ->
 	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
 	let action = Js.to_string form##action in
 	!change_page_post_form_ ?cookies_info form action; false)
   | XML.CE_client_closure f ->
-    (fun _ -> try f (); true with False -> false)
+    (fun () -> try f (); true with False -> false)
   | XML.CE_registered_closure (id, args) ->
       try
 	let f = find_closure id in
-	(fun _ -> try f args; true with False -> false)
+	(fun () -> try f args; true with False -> false)
       with Not_found ->
-	(fun _ ->
-	  Firebug.console##error(Printf.sprintf "Closure not found (%Ld)" id);
-	  false)
+	Firebug.console##error(Printf.sprintf "Closure not found (%Ld)" id);
+	(fun () -> false)
 
-let reify_event ev = match ev with
+let reify_event node ev = match ev with
   | XML.Raw ev -> Js.Unsafe.variable ev
-  | XML.Caml ce -> reify_caml_event ce
+  | XML.Caml ce -> reify_caml_event node ce
 
 let register_event_handler node (name, ev) =
-  let f = reify_caml_event ev in
+  let f = reify_caml_event node ev in
   assert(String.sub name 0 2 = "on");
   Js.Unsafe.set node (Js.string name)
-    (Dom_html.handler (fun _ -> Js.bool (f node)))
+    (Dom_html.handler (fun _ -> Js.bool (f ())))
 
 (* == Register nodes id and event in the orginal Dom. *)
 
@@ -91,7 +97,7 @@ let rec relink_dom node (id, attribs, childrens_ref_tree) =
 	let parent = Js.Opt.get (node##parentNode) (fun _ -> assert false) in
 	Dom.replaceChild parent pnode node
       with Not_found ->
-	register_node id (Js.Unsafe.coerce node : Dom_html.element Js.t)
+	register_node id node
   end;
   let childrens =
     List.filter
@@ -109,11 +115,6 @@ and relink_dom_list nodes ref_trees =
   | _, [] -> ()
   | [], _ ->
     Firebug.console##error(Js.string "Incorrect sparse tree.")
-
-let relink ref_tree =
-  relink_dom_list
-    [(Dom_html.document##documentElement :> Dom.node Js.t)]
-    [ref_tree]
 
 (* == Convertion from OCaml XML.elt nodes to native JavaScript Dom nodes *)
 
@@ -146,16 +147,10 @@ module Html5 = struct
     match XML.get_unique_id elt with
       | None -> raw_rebuild_node (XML.content elt)
       | Some id ->
-	  try
-	    let node = (find_node id :> Dom.node Js.t) in
-	    if String.lowercase (Js.to_string node##nodeName) = "script" then
-	      (* We don't wan't to reexecute "unique" script... *)
-	      (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
-	    else
-	      node
-	with Not_found ->
+	  try (find_node id :> Dom.node Js.t)
+	  with Not_found ->
 	  let node = raw_rebuild_node (XML.content elt) in
-	  register_node id (Js.Unsafe.coerce node : Dom_html.element Js.t);
+	  register_node id node;
 	  node
 
   and raw_rebuild_node = function
@@ -379,41 +374,62 @@ let _ =
 
 (* END FORMDATA HACK *)
 
-let load_eliom_data js_data =
+let load_eliom_data page =
+  let js_data = Eliom_unwrap.unwrap (unmarshal_js_var "eliom_data") in
+  relink_dom_list
+    [(page :> Dom.node Js.t)]
+    [js_data.Eliom_types.ejs_ref_tree];
   Eliommod_cookies.update_cookie_table js_data.Eliom_types.ejs_tab_cookies;
   Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
+  change_url_string js_data.Eliom_types.ejs_url;
   let on_load =
-    List.map reify_event js_data.Eliom_types.ejs_onload in
+    List.map
+      (reify_event Dom_html.document##documentElement)
+      js_data.Eliom_types.ejs_onload in
   let on_unload =
-    List.map reify_event js_data.Eliom_types.ejs_onunload in
-  on_unload_scripts := [fun () -> List.for_all (fun f -> f Dom_html.document) on_unload];
-  ignore (List.for_all (fun f -> f Dom_html.document) on_load)
+    List.map
+      (reify_event Dom_html.document##documentElement)
+      js_data.Eliom_types.ejs_onunload in
+  on_unload_scripts := [fun () -> List.for_all (fun f -> f ()) on_unload];
+  on_load
 
 let on_unload f =
   on_unload_scripts :=
     (fun () -> try f(); true with False -> false) :: !on_unload_scripts
 
-let set_content (aa, page_data) =
+let fake_page = Dom_html.createHtml Dom_html.document
+
+let get_head_body page =
+  match Dom.list_of_nodeList fake_page##childNodes with
+  | [_; head; body] ->
+     (* First node is ocsigen advertisement *)
+     (Js.Unsafe.coerce head : Dom_html.headElement Js.t),
+     (Js.Unsafe.coerce body : Dom_html.bodyElement Js.t)
+  | _ -> assert false
+
+let get_data_script page =
+  let head, _ = get_head_body page in
+  match Dom.list_of_nodeList head##childNodes with
+    | _ :: data_script :: _ ->
+      (Js.Unsafe.coerce data_script : Dom_html.scriptElement Js.t)
+    | _ -> assert false
+
+let set_content content =
   ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
-
-  (* GRGR TODO test ! *)
   (* Hack to make the result considered as DOM : *)
-  (* fake_page##innerHTML <- Js.string content; *)
-  (* let nodes = Dom.list_of_nodeList (fake_page##childNodes) in *)
-  (* fake_page##innerHTML <- Js.string ""; *)
-
-  (* FIXME GRGR html_attribs *)
-  change_url_string aa.Eliom_types.aa_url;
+  fake_page##innerHTML <- Js.string content;
+  let data_script = get_data_script fake_page in
+  Dom.appendChild (Dom_html.document##head) data_script##cloneNode(Js._true);
+  let on_load = load_eliom_data fake_page in
+  let head, body = get_head_body fake_page in
   Dom.replaceChild
     (Dom_html.document##documentElement)
-    (Html5.rebuild_node aa.Eliom_types.aa_head)
-    (Dom_html.document##head);
+    head (Dom_html.document##head);
   Dom.replaceChild
     (Dom_html.document##documentElement)
-    (Html5.rebuild_node aa.Eliom_types.aa_body)
-    (Dom_html.document##body);
-  load_eliom_data page_data;
+    body (Dom_html.document##body);
+  ignore (List.for_all (fun f -> f ()) on_load);
   Lwt.return ()
 
 let change_page
@@ -441,12 +457,12 @@ let change_page
        | Right (uri, p) ->
          Eliom_request.http_post
            ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p in
-    set_content (Eliom_request.get_eliom_appl_result r)
+    set_content r
 
 let change_page_uri ?cookies_info ?(get_params = []) uri =
   try_lwt
   lwt r = Eliom_request.http_get ?cookies_info uri get_params in
-  set_content (Eliom_request.get_eliom_appl_result r)
+  set_content r
 with e ->
   Firebug.console##debug(Js.string (Printexc.to_string e));
   Lwt.return ()
@@ -454,12 +470,12 @@ with e ->
 let change_page_get_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
   lwt r = Eliom_request.send_get_form ?cookies_info form uri in
-  set_content (Eliom_request.get_eliom_appl_result r)
+  set_content r
 
 let change_page_post_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
   lwt r = Eliom_request.send_post_form ?cookies_info form uri in
-  set_content (Eliom_request.get_eliom_appl_result r)
+  set_content r
 
 let _ =
   change_page_uri_ :=
@@ -508,8 +524,6 @@ let call_caml_service
   in
   Lwt.return (unmarshal s)
 
-
-let fake_page = Dom_html.createBody Dom_html.document
 
 let get_subpage
   ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -568,7 +582,7 @@ let auto_change_page fragment =
              | _ -> String.sub fragment 2 ((String.length fragment) - 2)
          in
          lwt r = Eliom_request.http_get uri [] in
-	 set_content (Eliom_request.get_eliom_appl_result r)
+	 set_content r
 	 )
        else Lwt.return ()
      else Lwt.return ())

@@ -204,11 +204,9 @@ val change_page_post_form :
   ?cookies_info:bool * string list ->
   Dom_html.formElement Js.t -> string -> unit Lwt.t
 
-val set_content :
-  Eliom_types.eliom_appl_answer * Eliom_types.eliom_js_page_data -> unit Lwt.t
+val set_content : string -> unit Lwt.t
 
-val relink : XML.ref_tree -> unit
-val load_eliom_data : Eliom_types.eliom_js_page_data -> unit
+val load_eliom_data : Dom_html.htmlElement Js.t -> (unit -> bool) list
 
 val register_closure: int64 -> ('a -> unit) -> unit
 

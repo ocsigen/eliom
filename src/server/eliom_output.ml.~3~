@@ -47,6 +47,39 @@ module Html5_make_reg_base
 
   let send_appl_content = Eliom_services.XNever
 
+  module Html5_content = struct
+
+    include Html5_content
+
+    (* GRGR Fixme *)
+    (* let add_css (a : 'a) : 'a = *)
+      (* let css = *)
+        (* HTML5.M.toelt *)
+          (* (HTML5.M.style *)
+             (* [HTML5.M.pcdata "\n."; *)
+             (* HTML5.M.pcdata Eliom_common.inline_class_name; *)
+             (* HTML5.M.pcdata " {display: inline}\n."; *)
+             (* HTML5.M.pcdata Eliom_common.nodisplay_class_name; *)
+             (* HTML5.M.pcdata " {display: none}\n"]) *)
+      (* in *)
+      (* let rec aux = function *)
+        (* | { XML.elt = XML.Node ("head",al,el) } as e::l -> *)
+            (* { e with XML.elt = XML.Node ("head",al,css::el) }::l *)
+        (* | e::l -> e::(aux l) *)
+        (* | [] -> [] *)
+      (* in *)
+      (* HTML5.M.tot *)
+        (* (match HTML5.M.toelt a with *)
+           (* | { XML.elt = XML.Node ("html",al,el) } as e -> *)
+               (* { e with XML.elt = XML.Node ("html",al,aux el) } *)
+           (* | e -> e) *)
+
+    (* let get_etag ?options c = get_etag (add_css c) *)
+    (* let get_etag ?options c = get_etag (add_css c) *)
+    (* let result_of_content ?options c = result_of_content ?options (add_css c) *)
+
+  end
+
   let send ?(options = ()) ?charset ?code
       ?content_type ?headers content =
     lwt r = Html5_content.result_of_content content in
@@ -965,7 +998,42 @@ module Xhtml_make_reg_base
   open XHTML_types
 
   type page = xhtml elt
+
   type return = Eliom_services.http
+
+  (* GRGR Fixme *)
+  (* module Xhtml_content = struct *)
+
+    (* include Xhtml_content *)
+
+    (* let add_css (a : 'a) : 'a = *)
+      (* let css = *)
+        (* XHTML.M.toelt *)
+          (* (XHTML.M.style ~contenttype:"text/css" *)
+             (* [XHTML.M.pcdata "\n."; *)
+             (* XHTML.M.pcdata Eliom_common.inline_class_name; *)
+             (* XHTML.M.pcdata " {display: inline}\n."; *)
+             (* XHTML.M.pcdata Eliom_common.nodisplay_class_name; *)
+             (* XHTML.M.pcdata " {display: none}\n"]) *)
+      (* in *)
+      (* let rec aux = function *)
+        (* | { XML.elt = XML.Node ("head",al,el) } as e::l -> *)
+            (* { e with XML.elt = XML.Node ("head",al,css::el) }::l *)
+        (* | e::l -> e::(aux l) *)
+        (* | [] -> [] *)
+      (* in *)
+      (* XHTML.M.tot *)
+        (* (match XHTML.M.toelt a with *)
+           (* | { XML.elt = XML.Node ("html",al,el) } as e -> *)
+               (* { e with XML.elt = XML.Node ("html",al,aux el) } *)
+           (* | e -> e) *)
+
+    (* let get_etag ?options c = get_etag (add_css c) *)
+
+    (* let result_of_content ?options c = result_of_content ?options (add_css c) *)
+
+  (* end *)
+
   type options = unit
 
   let send_appl_content = Eliom_services.XNever
@@ -2389,7 +2457,7 @@ let redirection_script =
     ^ "  } catch(e) {} ;\n"
     ^ "};\n"
     ^ "redir ();" in
-  HTML5.M.unique (HTML5.M.script (HTML5.M.cdata_script script))
+  HTML5.M.script (HTML5.M.cdata_script script)
 
 let eliom_appl_script =
   HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
@@ -2409,7 +2477,7 @@ let is_eliom_appl_script elt =
   XML.get_unique_id (HTML5.M.toelt eliom_appl_script)
 
 let eliom_fake_data_script =
-  HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
+  HTML5.M.script (HTML5.M.pcdata "")
 
 module Eliom_appl_reg_make_param
   (Html5_content
@@ -2425,8 +2493,6 @@ module Eliom_appl_reg_make_param
 
   let application_script = lazy (make_eliom_appl_script Appl_params.application_name)
 
-  let request_id = ref 0
-
   let make_eliom_data_script ~sp page =
 
     lwt tab_cookies =
@@ -2436,42 +2502,26 @@ module Eliom_appl_reg_make_param
 	sp.Eliom_common.sp_user_tab_cookies
     in
 
-    let rc = Eliom_request_info.get_request_cache_sp sp in
-    let url_to_display =
-      "/"
-      ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
-	(* If it is a suffix service with redirection, the uri has already been
-           computed in rc *)
-	with Not_found -> Eliom_request_info.get_full_url_sp sp
-      (* Otherwise, the full url has already been recomputed
-         without internal form info and taking "to_be_considered_as_get"
-         into account *)
-    in
-
     let eliom_data =
+      XML.make_ref_tree (HTML5.M.toelt page),
       { Eliom_types.
-	ejs_ref_tree    = XML.make_ref_tree (HTML5.M.toelt page);
 	ejs_tab_cookies = tab_cookies;
 	ejs_onload      = Eliom_services.get_onload sp;
 	ejs_onunload    = Eliom_services.get_onunload sp;
 	ejs_sess_info   = Eliommod_cli.client_si sp.Eliom_common.sp_si;
-	ejs_url         = url_to_display;
       } in
 
-    incr request_id;
     let script =
       Printf.sprintf
 	("var sitedata = \'%s\';\n"
 	 ^^ "var eliom_data = \'%s\';\n"
-	 ^^ "var request_id = %d;\n"
 	 ^^ "var client_process_info = \'%s\';\n")
 	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
 	(Eliom_types.jsmarshal (Eliom_wrap.wrap eliom_data))
-	!request_id
 	(Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
 
-    Lwt.return (HTML5.M.unique ~copy:eliom_fake_data_script (HTML5.M.script (cdata_script script)))
+    Lwt.return (HTML5.M.script (cdata_script script))
 
   let split_page page :
       ( HTML5_types.html_attrib HTML5.M.attrib list

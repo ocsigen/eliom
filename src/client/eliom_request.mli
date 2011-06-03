@@ -59,9 +59,6 @@ val http_post :
   (string * string) list ->
   string Lwt.t
 
-val get_eliom_appl_result :
-  string -> Eliom_types.eliom_appl_answer * Eliom_types.eliom_js_page_data
-
 val get_cookie_info_for_uri_js : Js.js_string Js.t -> bool * string list
 
 val max_redirection_level : int

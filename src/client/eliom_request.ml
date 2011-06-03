@@ -173,8 +173,3 @@ let http_get ?cookies_info url get_args =
 
 let http_post ?cookies_info url post_args =
   send ?cookies_info ~post_args url
-
-let get_eliom_appl_result a :
-    Eliom_types.eliom_appl_answer * Eliom_types.eliom_js_page_data =
-  Marshal.from_string (Url.urldecode a) 0
-

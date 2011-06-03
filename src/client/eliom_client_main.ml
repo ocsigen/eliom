@@ -25,9 +25,9 @@ let _a = Eliommod_mkforms.make_a_with_onclick
 let _b = Eliom_react.force_link
 
 let onload _ =
-  let ref_tree, js_data = Eliom_unwrap.unwrap (unmarshal_js_var "eliom_data") in
-  Eliom_client.relink ref_tree;
-  Eliom_client.load_eliom_data js_data;
+  let on_load =
+    Eliom_client.load_eliom_data (Dom_html.document##documentElement) in
+  ignore (List.for_all (fun f -> f ()) on_load);
   Js._false
 
 let _ =

@@ -37,6 +37,8 @@ val string_escape : string -> string
 (**/**)
 
 type eliom_js_page_data = {
+  (* Sparse tree with node identifiers and event handlers *)
+  ejs_ref_tree: XML.ref_tree;
   (* Cookies *)
   ejs_tab_cookies: Ocsigen_cookies.cookieset;
   (* Event handlers *)
@@ -44,13 +46,7 @@ type eliom_js_page_data = {
   ejs_onunload: XML.event list;
   (* Session info *)
   ejs_sess_info: Eliom_common.sess_info;
-}
-
-type eliom_appl_answer = {
-  aa_url : string;
-  aa_html_attribs : HTML5_types.html_attrib HTML5.M.attrib list;
-  aa_head : HTML5_types.head HTML5.M.elt;
-  aa_body : HTML5_types.body HTML5.M.elt;
+  ejs_url: string;
 }
 
 (* the data sent on channels *)
