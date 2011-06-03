@@ -267,9 +267,8 @@ let exit_to
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p =
   (match create_request_
-     ?absolute ?absolute_path ?https
-     ~service
-     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
+     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+     ?keep_nl_params ?nl_params ?keep_get_na_params
      g p
    with
      | Left uri -> Eliom_request.redirect_get uri
@@ -385,103 +384,6 @@ let on_unload f =
   on_unload_scripts :=
     (fun () -> try f(); true with False -> false) :: !on_unload_scripts
 
-(* FIXME GRGR *)
-
-(* let rec change_page_set_content : *)
-    (* 'get 'post 'd 'e 'm 'n 'o 'p 'q 'return. *)
-    (* ((int -> *)
-        (* ?absolute:bool -> *)
-        (* ?absolute_path:bool -> *)
-        (* ?https:bool -> *)
-        (* service:('get, 'post, *)
-                 (* ([< `Attached of *)
-                     (* (Eliom_services.attached_service_kind, *)
-                      (* ([< Eliom_services.getpost ] as 'q)) *)
-                       (* Eliom_services.a_s *)
-                  (* (\* | `Nonattached of ([< Eliom_services.getpost ] as 'p) Eliom_services.na_s ] as 'm), *\) *)
-                 (* ([< `WithSuffix | `WithoutSuffix ] as 'n), 'd, 'e, *)
-                 (* ([< Eliom_services.registrable ] as 'o), *)
-                 (* 'return) *)
-          (* Eliom_services.service -> *)
-        (* ?hostname:string -> *)
-        (* ?port:int -> *)
-        (* ?fragment:string -> *)
-        (* ?keep_nl_params:[ `All | `None | `Persistent ] -> *)
-        (* ?nl_params:(string * string) list String.Table.t -> *)
-        (* ?keep_get_na_params:bool -> 'get -> 'post -> unit Lwt.t) * *)
-       (* (int -> Dom.element Dom.document Js.t -> unit Lwt.t)) *)
-  (* = ( *)
-  (* (\* change_page *\) *)
-  (* (fun *)
-    (* i *)
-    (* ?absolute *)
-    (* ?absolute_path *)
-    (* ?https *)
-    (* ~service *)
-    (* ?hostname *)
-    (* ?port *)
-    (* ?fragment *)
-    (* ?keep_nl_params *)
-    (* ?(nl_params=Eliom_parameters.empty_nl_params_set) *)
-    (* ?keep_get_na_params *)
-    (* g *)
-    (* p -> *)
-  (* if not (Eliom_services.xhr_with_cookies service) *)
-  (* then *)
-    (* Lwt.return (exit_to *)
-                  (* ?absolute ?absolute_path ?https *)
-                  (* ~service *)
-                  (* ?hostname ?port ?fragment ?keep_nl_params *)
-                  (* ~nl_params ?keep_get_na_params *)
-                  (* g p) *)
-  (* else begin *)
-    (* (match *)
-        (* create_request_ *)
-          (* ?absolute ?absolute_path ?https *)
-          (* ~service *)
-          (* ?hostname ?port ?fragment ?keep_nl_params *)
-          (* ?keep_get_na_params *)
-          (* g p *)
-     (* with *)
-       (* | Left uri -> *)
-         (* Eliom_request.http_get *)
-           (* ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri [] *)
-       (* | Right (uri, p) -> *)
-         (* Eliom_request.http_post *)
-           (* ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p) *)
-    (* >>= fun r -> *)
-    (* (snd change_page_set_content) i (Eliom_request.get_eliom_appl_result r) *)
-  (* end), *)
-
-  (* (\* set_content *\) (fun i ->  *)
-(* function *)
-  (* | Eliom_output.EAContent (c, u) -> *)
-    (* change_url_string u; *)
-    (* set_inner_html c; *)
-    (* Lwt.return () *)
-  (* | Eliom_output.EAHalfRedir u -> *)
-    (* Eliom_request.redirect_get u; *)
-    (* Lwt.fail Eliom_request.Program_terminated *)
-  (* | Eliom_output.EAFullRedir service -> *)
-    (* if i < Eliom_request.max_redirection_level *)
-    (* then (fst change_page_set_content) (i+1) *)
-      (* ?absolute:None *)
-      (* ?absolute_path:None *)
-      (* ?https:None *)
-      (* ~service *)
-      (* ?hostname:None *)
-      (* ?port:None *)
-      (* ?fragment:None *)
-      (* ?keep_nl_params:None *)
-      (* ?nl_params:None *)
-      (* ?keep_get_na_params:None *)
-      (* () () *)
-    (* else Lwt.fail Eliom_request.Looping_redirection) *)
-(* ) *)
-
-
-(* let set_content = (snd change_page_set_content) 0 *)
-
 let set_content (aa, page_data) =
   ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
@@ -499,33 +401,31 @@ let set_content (aa, page_data) =
   Lwt.return ()
 
 let change_page
-    ?absolute
-    ?absolute_path
-    ?https
-    ~service
-    ?hostname
-    ?port
-    ?fragment
-    ?keep_nl_params
-    ?nl_params
-    ?keep_get_na_params
-    g
-    p =
+    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params ?keep_get_na_params
+    get_params post_params =
 
-  assert false (* FIXME GRGR *)
-  (* (fst change_page_set_content) 0 *)
-    (* ?absolute *)
-    (* ?absolute_path *)
-    (* ?https *)
-    (* ~service *)
-    (* ?hostname *)
-    (* ?port *)
-    (* ?fragment *)
-    (* ?keep_nl_params *)
-    (* ?nl_params *)
-    (* ?keep_get_na_params *)
-    (* g *)
-    (* p *)
+  if not (Eliom_services.xhr_with_cookies service)
+  then
+    Lwt.return
+      (exit_to
+         ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+	 ?keep_nl_params ?nl_params ?keep_get_na_params
+         get_params post_params)
+  else
+    lwt r = match
+        create_request_
+          ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+	  ?keep_nl_params ?nl_params ?keep_get_na_params
+          get_params post_params
+     with
+       | Left uri ->
+         Eliom_request.http_get
+           ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
+       | Right (uri, p) ->
+         Eliom_request.http_post
+           ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p in
+    set_content (Eliom_request.get_eliom_appl_result r)
 
 let change_page_uri ?cookies_info ?(get_params = []) uri =
   try_lwt

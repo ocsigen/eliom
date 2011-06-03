@@ -21,12 +21,3 @@
 open Eliom_pervasives
 
 module Html5_forms : "sigs/eliom_html5_forms.mli"
-
-type eliom_appl_answer =
-  | EAContent of ((Eliom_types.eliom_js_page_data * string) * string)
-  | EAHalfRedir of string
-  | EAFullRedir of
-      (unit, unit, Eliom_services.get_service_kind,
-       [ `WithoutSuffix ],
-       unit, unit, Eliom_services.registrable, Eliom_services.http)
-	Eliom_services.service
