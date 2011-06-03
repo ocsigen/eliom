@@ -2677,10 +2677,6 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
 
 end
 
-let add_html_header h =
-  lwt set = Eliom_references.get appl_html_header_ref in
-  Eliom_references.set appl_html_header_ref (Html5_Header_set.add h set)
-
 (*****************************************************************************)
 
 (** Redirection services are like services, but send a redirection instead

@@ -67,23 +67,29 @@ module My_appl =
   Eliom_output.Eliom_appl (
     struct
       let application_name = "eliom_testsuite"
-      let params =
-        {Eliom_output.default_appl_params with
-           Eliom_output.ap_title = "Eliom application example";
-           Eliom_output.ap_headers_before =
-            [HTML5.M.style
-               [HTML5.M.pcdata "a,.clickable {color: #111188; cursor: pointer;}"]];
-           Eliom_output.ap_container =
-            Some (None,
-                  fun div ->
-                    [h1 [pcdata "Eliom application"];
-                     p [pcdata "Random value in the container: ";
-                        pcdata (string_of_int (Random.int 1000)); br ();
-                        a ~service:main [pcdata "Back to the main page of the test suite."] ();];
-                     div ])
-        }
     end)
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
+
+(* FIXME GRGR ... avoid fake_header and "unique" in the first example ! *)
+let fake_header = unique (p [])
+let header () =
+  let p = p [pcdata "Random value in the container: ";
+	     pcdata (string_of_int (Random.int 1000)); br ();
+	     a ~service:main [pcdata "Back to the main page of the test suite."] ();] in
+  unique ~copy:fake_header p
+
+let make_page ?(css = []) content =
+  html
+    (head
+       (title (pcdata "Eliom application example"))
+       ([ style
+           [pcdata "a,.clickable {color: #111188; cursor: pointer;}"];
+         Lazy.force My_appl.application_script;
+	] @ css))
+    (body
+       [h1 [pcdata "Eliom application"];
+	header ();
+        div content ] )
 
 {client{
   module My_appl = Eliom_output.Html5
@@ -99,13 +105,14 @@ let eliomclient1 =
     ~get_params:unit
     (fun () () ->
       Lwt.return
-        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-                        (* with {{ expr }}, the expression is executed by the client. *)
-          a_onclick {{ Dom_html.window##alert(Js.string "clicked!") ; Lwt.return () : type }}
-			]
-            [pcdata "I am a clickable paragraph"];
+        (make_page
+	   [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+          (* with {{ expr }}, the expression is executed by the client. *)
+             a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}
+	    ]
+               [pcdata "I am a clickable paragraph"];
 
-        ])
+           ]))
 (*wiki*
 All services belonging to the application will be entry points to the
 application. It means that if you call such a service, the client side
@@ -146,7 +153,8 @@ let _ =
     eliomclient2
     (fun () () ->
       Lwt.return
-        [
+        (make_page
+	   ([
 (*wiki*
   The following example shows how to go to another service,
   exactly like pressing a link (here a service that do not belong to
@@ -219,9 +227,9 @@ where and {{{id}}} an identifier for the value.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
-                {{Eliom_client.change_page
-                    ~service:%eliomclient1
-                    () ()
+                {{ignore(Eliom_client.change_page
+			   ~service:%eliomclient1
+			   () ())
                 }}
             ]
             [pcdata "Click here to change the page without stopping the program (with change_page)."];
@@ -229,8 +237,8 @@ where and {{{id}}} an identifier for the value.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick{{
-                Eliom_client.change_page ~service:%Eliom_testsuite1.coucou
-                  () ()
+                ignore (Eliom_client.change_page ~service:%Eliom_testsuite1.coucou
+			  () ())
               }}
             ]
             [pcdata "Click here to go to a page outside the application, using ";
@@ -246,8 +254,8 @@ where and {{{id}}} an identifier for the value.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_page ~service:%eliomclient1
-                  () ()
+                ignore(Eliom_client.change_page ~service:%eliomclient1
+			 () ())
               }}
             ]
             [pcdata "A generic client-side function for calling ";
@@ -261,11 +269,11 @@ where and {{{id}}} an identifier for the value.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.get_subpage ~service:%eliomclient1
-                  () () >|= fun blocks ->
-                List.iter
-                  (Dom.appendChild Dom_html.document##body)
-                  (HTML5.M.toeltl blocks)
+                ignore (Eliom_client.get_subpage ~service:%eliomclient1
+			  () () >|= fun blocks ->
+			    List.iter
+			      (Dom.appendChild Dom_html.document##body)
+			      blocks)
               }}
             ]
             [pcdata "Click here to get a subpage from server."];
@@ -275,12 +283,12 @@ where and {{{id}}} an identifier for the value.
 ====Refering to parts of the page in client side code
 *wiki*)
 
-          (let container = ul [ item () ; item () ; item ()] in
+          (let container = unique (ul [ item () ; item () ; item ()]) in
            div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                                a_onclick {{
                                  Dom.appendChild
-                                   (HTML5.M.toelt %container) (* node is the wrapper keyword for HTML5.M nodes. *)
-                                   (HTML5.M.toelt (item ()))
+                                   (Eliom_client.Html5.of_uList %container) (* node is the wrapper keyword for HTML5.M nodes. *)
+                                   (Eliom_client.Html5.of_li (item ()))
                                }}
                   ]
                   [pcdata "Click here to add an item below with the current version of OCaml."];
@@ -295,8 +303,7 @@ where and {{{id}}} an identifier for the value.
           (let my_value = 1.12345 in
            p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                 {{ Dom_html.window##alert
-                     (Js.string (string_of_float %my_value));
-                   Lwt.return ()
+                     (Js.string (string_of_float %my_value))
                 }}
                 ]
              [pcdata "Click here to see a server side value sent with the page."]);
@@ -314,7 +321,7 @@ where and {{{id}}} an identifier for the value.
                 let eliomclient1 = %eliomclient1 in
                 (Dom.appendChild
                    (Dom_html.document##body)
-                   (HTML5.M.toelt
+                   (Eliom_client.Html5.of_paragraph
                       (p [Eliom_output.Html5.a
                             ~service:coucou
                             [pcdata "An external link generated client side"]
@@ -328,19 +335,18 @@ where and {{{id}}} an identifier for the value.
                           pcdata " and ";
                           span
                             ~a:[a_class ["clickable"];
-                                a_onclick (fun () -> Dom_html.window##alert(Js.string "clicked!"))]
+                                a_onclick (XML.event_of_function (fun () -> Dom_html.window##alert(Js.string "clicked!")))]
                             [pcdata "Here a client-side span with onclick"]
                          ]
                       ))
-                );
-                Lwt.return ()
+                )
               }}
             ]
             [pcdata "Click here to add client side generated links."];
 
 
 
-        ])
+        ])))
 
 
 (*wiki*
@@ -357,9 +363,10 @@ let eliomclient3' =
     ~post_params:(caml "isb" Json.t<ec3>)
     (fun () (i, s, l) ->
       Lwt.return
-        [p (pcdata (Printf.sprintf "i = %d, s = %s" i s)::
-              List.map (fun a -> pcdata a) l
-           )])
+        (make_page
+	   [p (pcdata (Printf.sprintf "i = %d, s = %s" i s)::
+		 List.map (fun a -> pcdata a) l
+           )]))
 
 
 let eliomclient3 =
@@ -368,14 +375,15 @@ let eliomclient3 =
     ~get_params:unit
     (fun () () ->
       Lwt.return
-        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
-                {{ Eliom_client.change_page
-                     ~service:%eliomclient3'
-                     () (299, "oo", ["a";"b";"c"])
-                }}
-              ]
-           [pcdata "Click to send Ocaml data"]
-        ])
+        (make_page
+	   [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
+             {{ ignore (Eliom_client.change_page
+			  ~service:%eliomclient3'
+			  () (299, "oo", ["a";"b";"c"]))
+              }}
+            ]
+               [pcdata "Click to send Ocaml data"]
+           ]))
 
 (*wiki*
 ====Sending OCaml values using services
@@ -393,19 +401,20 @@ let eliomclient4 =
     ~get_params:unit
     (fun () () ->
       Lwt.return
-        [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
+        (make_page
+	   [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
                  {{let body = Dom_html.document##body in
-                   Eliom_client.call_caml_service
+                   ignore (Eliom_client.call_caml_service
                      ~service:%eliomclient4'
                      () () >|=
                    List.iter
                      (fun i -> Dom.appendChild body
                                  (Dom_html.document##createTextNode
-                                    (Js.string (string_of_int i))))
+                                    (Js.string (string_of_int i)))))
                  }}
               ]
            [pcdata "Click to receive Ocaml data"]
-        ])
+        ]))
 
 (*wiki*
 ====Other tests:
@@ -432,38 +441,40 @@ let _ =
     ~service:withoutclient
     (fun () () ->
        Lwt.return
+	 (make_page
          [p [pcdata "If the application was not launched before coming here (or if you reload), this page will not launch it. But if it was launched before, it is still running."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_page
-                  ~service:%gotowithoutclient
-                  () ()
+                ignore (Eliom_client.change_page
+			  ~service:%gotowithoutclient
+			  () ())
               }}
             ]
             [pcdata "Click here to go to a page that launches the application every time (this link does not work if the appl is not launched)."];
           p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~service:gotowithoutclient
                [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
-         ]);
+         ]));
   My_appl.register
     ~service:gotowithoutclient
     (fun () () ->
        Lwt.return
-         [p [pcdata "The application is launched."];
+         (make_page
+	    [p [pcdata "The application is launched."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                Eliom_client.change_page
-                  ~service:%withoutclient
-                  () ()
+                ignore (Eliom_client.change_page
+			  ~service:%withoutclient
+			  () ())
               }}
             ]
             [pcdata "Click here to see the page that does not launch the application."];
           p [a (*zap* *)~a:[a_class ["clickable"]](* *zap*) ~service:withoutclient
                [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
-         ])
+         ]))
 
 
 
@@ -475,25 +486,28 @@ let on_load =
     ~get_params:unit
     (fun () () ->
       let div =
-        div [p [a ~service:eliomclient1 [pcdata "go to another page"] ()] ]
+	  unique (div [p [a ~service:eliomclient1 [pcdata "go to another page"] ()] ])
       in
       Eliom_services.onload
-        {{ Lwt_js.sleep 1. >|= fun () ->
-           Dom.appendChild (HTML5.M.toelt %div)
-             (HTML5.M.toelt (p [pcdata "on_load executed after 1s."]))
+        {{ ignore
+	     (Lwt_js.sleep 1. >|= fun () ->
+               Dom.appendChild (Eliom_client.Html5.of_div %div)
+		 (Eliom_client.Html5.of_paragraph (p [pcdata "on_load executed after 1s."])))
          }};
       Eliom_services.onload
-        {{ Lwt_js.sleep 3. >|= fun () ->
-           Dom.appendChild (HTML5.M.toelt %div)
-             (HTML5.M.toelt (p [pcdata "on_load executed after 3s."]))
+        {{ ignore
+	     (Lwt_js.sleep 3. >|= fun () ->
+               Dom.appendChild  (Eliom_client.Html5.of_div %div)
+		 (Eliom_client.Html5.of_paragraph (p [pcdata "on_load executed after 3s."])))
          }};
       Eliom_services.onunload
         {{
-          Dom.appendChild (HTML5.M.toelt %div)
-          (HTML5.M.toelt (p [pcdata "on_unload executed. Waiting 1s."]));
-          Lwt_js.sleep 1.
+	  Dom.appendChild (Eliom_client.Html5.of_div %div)
+             (Eliom_client.Html5.of_paragraph (p [pcdata "on_unload executed. Waiting 1s."]));
+	  (* FIXME GRGR *)
+          ignore(Lwt_js.sleep 1.)
         }};
-      Lwt.return [div]
+      Lwt.return (make_page [div])
     )
 
 let uri_test =
@@ -502,16 +516,18 @@ let uri_test =
     ~get_params:unit
     (fun () () ->
       let div =
-        div [
-          p [pcdata "The following URLs are computed either on server or client side. They should be equal."];
-          p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ())];
-            ]
+        unique
+	  (div [
+            p [pcdata "The following URLs are computed either on server or client side. They should be equal."];
+            p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ())];
+          ])
       in
       Eliom_services.onload
-        {{ Dom.appendChild (HTML5.M.toelt %div)
-             (HTML5.M.toelt (p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())]))
+        {{ Dom.appendChild (Eliom_client.Html5.of_div %div)
+             (Eliom_client.Html5.of_paragraph
+		(p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())]))
          }};
-      Lwt.return [div]
+      Lwt.return (make_page [div])
     )
 
 {shared{
@@ -544,12 +560,12 @@ let rec rec_list_react = (react_up,42)::rec_list_react
 {client{
   let put n f =
     Printf.ksprintf (fun s ->
-      Dom.appendChild (HTML5.M.toelt n)
-        (HTML5.M.toelt (p [pcdata s]))) f
+      Dom.appendChild (Eliom_client.Html5.of_element n)
+        (Eliom_client.Html5.of_paragraph (p [pcdata s]))) f
 }}
 
-let global_div = div [pcdata "global div"]
-let other_global_div = div [pcdata "other global div"]
+let global_div = unique (div [pcdata "global div"])
+let other_global_div = unique (div [pcdata "other global div"])
 
 let wrapping1 = Eliom_services.service
     ~path:["wrapping1"]
@@ -565,7 +581,7 @@ let gc_service =
 let () =
   My_appl.register wrapping1
     (fun () () ->
-      let div = div [pcdata "some page contents"] in
+      let div = unique (div [pcdata "some page contents"]) in
 
       Eliom_services.onload
 	{{
@@ -576,31 +592,36 @@ let () =
 	      put %div "%i::%i::%i::%i::%i::%i::%i::..." a b c d e f g;
 	    | _ -> put %div "problem with recursive list"; );
 
-          Dom.appendChild (HTML5.M.toelt %div)
-            (HTML5.M.toelt
+          Dom.appendChild (Eliom_client.Html5.of_div %div)
+            (Eliom_client.Html5.of_paragraph
 	       (p ~a:[ a_onclick
+			 (XML.event_of_function
 			 (fun _ ->
 			   ignore (Eliom_client.get_subpage ~service:v.Wrapping_test.v_service
 				     () () >|= (fun blocks ->
 				       List.iter
-					 (Dom.appendChild (HTML5.M.toelt %div))
-					 (HTML5.M.toeltl blocks);)))] [pcdata "test service"]));
+					 (Dom.appendChild (Eliom_client.Html5.of_div %div))
+					 blocks;))))]
+		  [pcdata "test service"]));
 
 	  let f_react = fst (List.hd %rec_list_react) in
 
-          Dom.appendChild (HTML5.M.toelt %div)
-            (HTML5.M.toelt
-	       (p ~a:[ a_onclick (fun _ -> ignore (f_react 42))] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
+          Dom.appendChild (Eliom_client.Html5.of_div %div)
+            (Eliom_client.Html5.of_paragraph
+	       (p ~a:[ a_onclick (XML.event_of_function (fun _ -> ignore (f_react 42)))] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
 
 	}};
-      Lwt.return [
+      Lwt.return
+	(make_page [
 	global_div; br ();
 	div; br ();
 	p ~a:[ 
 	  a_onclick 
 	    ({{
-	      Dom.appendChild (HTML5.M.toelt %global_div ) (HTML5.M.toelt %other_global_div );
-	      Dom.appendChild (HTML5.M.toelt %other_global_div ) (HTML5.M.toelt  %div);
+	      Dom.appendChild (Eliom_client.Html5.of_div %global_div)
+	        (Eliom_client.Html5.of_div %other_global_div);
+	      Dom.appendChild (Eliom_client.Html5.of_div %other_global_div)
+		(Eliom_client.Html5.of_div %div);
 	    }})
 	] [pcdata "click here"]; br ();
 	p [Eliom_output.Html5.a ~service:eliomclient1
@@ -610,7 +631,7 @@ let () =
 	Eliom_output.Html5.a gc_service [pcdata "do a full major gc on the server"] (); br ();
 	(* GRGR FIXME *)
 	(* pcdata (Printf.sprintf "client_process_node_table_size: %i" (Eliom_xml.client_process_node_table_size ())); *)
-      ])
+      ]))
 
 (*wiki*
 ====Implicit registration of services to implement distant function calls
@@ -682,11 +703,11 @@ let comet1 =
          }};
 
        Lwt.return
-         [
+         (make_page [
            div
              [pcdata "To fully understand the meaning of the public channel, \
                       use a couple browsers on this page."] ;
-         ]
+         ])
     )
 
 
@@ -743,21 +764,21 @@ let comet2 =
       let `R _ = React.E.retain e_up_react (fun () -> ignore e_down) in
       Eliom_services.onload
         {{
-          React.E.map
+          ignore (React.E.map
             (fun s -> Dom_html.window##alert (Js.string s))
-            %e_down
+            %e_down)
         }};
 
       (* We can send the page *)
-      Lwt.return [
+      Lwt.return (make_page [
          h2 [pcdata "Dual events"] ;
          div (* This div is for pushing "A" to the server side event *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ %e_up "A" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ ignore ( %e_up "A") }} ]
            [pcdata "Push A"] ;
          div (* This one is for pushing "B" *)
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ %e_up "B" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ ignore ( %e_up "B") }} ]
            [pcdata "Push B"] ;
-       ]
+       ])
     )
 
 (*wiki*
@@ -788,23 +809,23 @@ let comet3 =
        in
        Eliom_services.onload
          {{
-           React.E.map
+           ignore (React.E.map
            (fun s -> Dom_html.window##alert (Js.string s))
            (React.E.merge
               (^) ""
               [ React.E.map string_of_int %e_down_1 ;
                 %e_down_2 ;
               ]
-           )
+           ))
          }};
 
        (* We can send the page *)
-       Lwt.return [
+       Lwt.return (make_page [
          h2 [pcdata "Simultaneous events"] ;
          div
-           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ %e_up "" }} ]
+           ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick {{ ignore ( %e_up "") }} ]
            [pcdata "Send me two values from different events !"] ;
-       ]
+       ])
     )
 
 let comet_wrapping =
@@ -830,26 +851,26 @@ let comet_wrapping =
 
       Eliom_services.onload
         {{
-	  Lwt_stream.iter
+	  ignore (Lwt_stream.iter
           (fun service ->
-            Dom.appendChild (to_element %div_link)
-              (to_element
+            Dom.appendChild (Eliom_client.Html5.of_element %div_link)
+              (Eliom_client.Html5.of_element
 		 ( Eliom_output.Html5.a ~service
                      [pcdata "service wrapping"] ()))
-          ) %c_service;
-	  Lwt_stream.iter
-          (fun xml ->
-            Dom.appendChild (to_element %div_link)
-              (to_element xml)
-          ) %c_xml
+          ) %c_service);
+	  ignore (Lwt_stream.iter
+		    (fun xml ->
+		      Dom.appendChild (Eliom_client.Html5.of_element %div_link)
+			(Eliom_client.Html5.of_element xml)
+		    ) %c_xml)
         }};
       
       Lwt.return
-        [
+        (make_page [
           div [pcdata "there should be a working links below"];
 	  node;
 	  div_link
-        ]
+        ])
     )
 
 let time =
@@ -866,13 +887,13 @@ let comet_signal =
       Eliom_services.onload
         {{
           Lwt_react.S.keep
-	  (React.S.map (fun t -> (to_div %time_div)##innerHTML <-
+	  (React.S.map (fun t -> (Eliom_client.Html5.of_div %time_div)##innerHTML <-
 	    Js.string (string_of_float t)) %time)
         }};
-       Lwt.return [
+       Lwt.return (make_page [
          h2 [pcdata "Signal"] ;
          time_div
-       ]
+       ])
     )
 
 (*wiki*
@@ -899,14 +920,14 @@ let comet_message_board =
 	       Lwt.catch (fun () ->
 		 Lwt_stream.iter_s
 		   (fun msg ->
-                     Dom.appendChild (HTML5.M.toelt %container)
-                       (HTML5.M.toelt (li [pcdata msg]));
+                     Dom.appendChild (Eliom_client.Html5.of_element %container)
+                       (Eliom_client.Html5.of_li (li [pcdata msg]));
                      Lwt.return ())
 		   (Eliom_bus.stream %message_bus))
 		 (function
 		   | Eliom_comet.Channel_full ->
-		     Dom.appendChild (HTML5.M.toelt %container)
-                       (HTML5.M.toelt (li [pcdata "channel full, no more messages"]));
+		     Dom.appendChild (Eliom_client.Html5.of_element %container)
+                       (Eliom_client.Html5.of_li (li [pcdata "channel full, no more messages"]));
 		     Lwt.return ()
 		   | e -> Lwt.fail e);
 	     in ()
@@ -929,16 +950,16 @@ let comet_message_board =
                     in
                     let v = Js.to_string field##value in
                     field##value <- Js.string "" ;
-                    Eliom_bus.write %message_bus v
+                    ignore (Eliom_bus.write %message_bus v)
                   }}
              ]
              [pcdata "send"]
          in
 
-         [ h2 [pcdata "Message board"];
+         (make_page [ h2 [pcdata "Message board"];
            form ~a:[a_action (uri_of_string "")] (div [field; go]) [];
            container;
-         ])
+         ]))
     )
 
 (*wiki*
@@ -963,33 +984,29 @@ let service_no_style =
     ()
 
 let page_css_test () =
-  Lwt.return
-    [Eliom_output.Html5.a ~service:service_style1
-	[pcdata "same page with style 1"] (); br ();
-     Eliom_output.Html5.a ~service:service_style2
-       [pcdata "same page with style 2"] (); br ();
-     Eliom_output.Html5.a ~service:service_no_style
-       [pcdata "same page with no style"] (); br ();
-     div ~a:[a_class ["some_class"];] [pcdata "div with style"]]
+  [Eliom_output.Html5.a ~service:service_style1
+      [pcdata "same page with style 1"] (); br ();
+   Eliom_output.Html5.a ~service:service_style2
+     [pcdata "same page with style 2"] (); br ();
+   Eliom_output.Html5.a ~service:service_no_style
+     [pcdata "same page with no style"] (); br ();
+   div ~a:[a_class ["some_class"];] [pcdata "div with style"]]
+
+let make_css_link file =
+  Eliom_output.Html5.css_link
+    (Eliom_output.Html5.make_uri
+       ~service:(Eliom_services.static_dir ()) [file]) ()
 
 let () =
   My_appl.register ~service:service_style1
     (fun () () ->
-      Eliom_output.add_html_header
-	(Eliom_output.Html5.css_link
-           (Eliom_output.Html5.make_uri
-              ~service:(Eliom_services.static_dir ()) ["test_style1.css"]) ());
-      page_css_test ());
+      Lwt.return (make_page ~css:[make_css_link "test_style1.css"] (page_css_test ())));
   My_appl.register ~service:service_style2
     (fun () () ->
-      Eliom_output.add_html_header
-	(Eliom_output.Html5.css_link
-           (Eliom_output.Html5.make_uri
-              ~service:(Eliom_services.static_dir ()) ["test_style2.css"]) ());
-      page_css_test ());
+       Lwt.return (make_page ~css:[make_css_link "test_style2.css"] (page_css_test ())));
   My_appl.register ~service:service_no_style
     (fun () () ->
-      page_css_test ());
+       Lwt.return (make_page (page_css_test ())))
 
 (*wiki*
 ===Events with arrows
@@ -1026,13 +1043,13 @@ let event_service =
       let targetresult = HTML5.M.p [] in
       Eliom_services.onload
         {{
-          let targetresult = (HTML5.M.to_paragraph %targetresult) in
+          let targetresult = (Eliom_client.Html5.of_paragraph %targetresult) in
 
           let handler =
             lwt_arr
               (fun ev ->
                 ignore (targetresult##appendChild
-                          (HTML5.M.toelt (HTML5.M.pcdata " plip")));
+                          ((Eliom_client.Html5.of_element (HTML5.M.pcdata " plip") :> Dom.node Js.t)));
                 Lwt.return ())
           in
           let handler_long =
@@ -1040,45 +1057,45 @@ let event_service =
               (fun ev ->
                 Lwt_js.sleep 0.7 >>= fun () ->
                 ignore (targetresult##appendChild
-                          (HTML5.M.toelt (HTML5.M.pcdata " plop")));
+                          ((Eliom_client.Html5.of_element (HTML5.M.pcdata " plop") :> Dom.node Js.t)));
                 Lwt.return ()
               )
           in
           let cancel c = arr (fun _ -> cancel c) in
-          let c = run (click (HTML5.M.to_paragraph %target1) >>> handler) () in
-          let _ = run (click (HTML5.M.to_paragraph %target2) >>> cancel c) () in
-          let _ = run (mousedown (HTML5.M.to_paragraph %target3) >>> mouseup (HTML5.M.to_paragraph %target2) >>> handler) () in
-          let c = run (clicks (HTML5.M.to_paragraph %target4) handler_long) () in
-          let _ = run (click (HTML5.M.to_paragraph %target5) >>> cancel c) () in
-          let _ = run (click (HTML5.M.to_paragraph %target6) >>> handler >>> click (HTML5.M.to_paragraph %target6) >>> handler) () in
-          let _ = run (clicks (HTML5.M.to_paragraph %target7) (click (HTML5.M.to_paragraph %target7) >>> handler)) () in
-          let _ = run (click (HTML5.M.to_paragraph %target8) >>> clicks (HTML5.M.to_paragraph %target8) handler) () in
-          let c = run (first [click (HTML5.M.to_paragraph %target9) >>> handler;
-                              click (HTML5.M.to_paragraph %target10) >>> handler]) ()
+          let c = run (click (Eliom_client.Html5.of_paragraph %target1) >>> handler) () in
+          let _ = run (click (Eliom_client.Html5.of_paragraph %target2) >>> cancel c) () in
+          let _ = run (mousedown (Eliom_client.Html5.of_paragraph %target3) >>> mouseup (Eliom_client.Html5.of_paragraph %target2) >>> handler) () in
+          let c = run (clicks (Eliom_client.Html5.of_paragraph %target4) handler_long) () in
+          let _ = run (click (Eliom_client.Html5.of_paragraph %target5) >>> cancel c) () in
+          let _ = run (click (Eliom_client.Html5.of_paragraph %target6) >>> handler >>> click (Eliom_client.Html5.of_paragraph %target6) >>> handler) () in
+          let _ = run (clicks (Eliom_client.Html5.of_paragraph %target7) (click (Eliom_client.Html5.of_paragraph %target7) >>> handler)) () in
+          let _ = run (click (Eliom_client.Html5.of_paragraph %target8) >>> clicks (Eliom_client.Html5.of_paragraph %target8) handler) () in
+          let c = run (first [click (Eliom_client.Html5.of_paragraph %target9) >>> handler;
+                              click (Eliom_client.Html5.of_paragraph %target10) >>> handler]) ()
           in
-          let _ = run (click (HTML5.M.to_paragraph %target11) >>> cancel c) ()
+          let _ = run (click (Eliom_client.Html5.of_paragraph %target11) >>> cancel c) ()
           in
-          let c = run (mousedowns (HTML5.M.to_paragraph %target12)
+          let c = run (mousedowns (Eliom_client.Html5.of_paragraph %target12)
                          (first [mouseup Dom_html.document;
                                  mousemoves Dom_html.document handler])) ()
           in
-          let _ = run (click (HTML5.M.to_paragraph %target13) >>> cancel c) ()
+          let _ = run (click (Eliom_client.Html5.of_paragraph %target13) >>> cancel c) ()
           in
-          let c = run (mousedowns (HTML5.M.to_paragraph %target14)
+          let c = run (mousedowns (Eliom_client.Html5.of_paragraph %target14)
                          (first [mouseup Dom_html.document;
                                  mousemoves Dom_html.document handler_long])) ()
           in
-          let _ = run (click (HTML5.M.to_paragraph %target15) >>> cancel c) ()
+          let _ = run (click (Eliom_client.Html5.of_paragraph %target15) >>> cancel c) ()
           in
           ()
 
         }};
 
-       Lwt.return [target1; target2; target3; target4; target5; target6;
-                   target7; target8; target9; target10; target11;
-                   target12; target13; target14; target15;
-                   targetresult]
-    )
+       Lwt.return
+	 (make_page [target1; target2; target3; target4; target5; target6;
+                     target7; target8; target9; target10; target11;
+                     target12; target13; target14; target15;
+                     targetresult]) )
 
 
 
@@ -1142,7 +1159,7 @@ let tsession_data_example_handler _ _  =
     Eliom_state.get_volatile_data ~table:my_table () 
   in
   return
-    [
+    (make_page [
       match sessdat with
         | Eliom_state.Data name ->
           p [pcdata ("Hello "^name);
@@ -1158,7 +1175,7 @@ let tsession_data_example_handler _ _  =
               [p [pcdata "login: ";
                   Eliom_output.Html5.string_input
                     ~input_type:`Text ~name:login ()]]) ()
-    ]
+    ])
 
 
 (* -------------------------------------------------------- *)
@@ -1171,10 +1188,10 @@ let tsession_data_example_with_post_params_handler _ login =
   Eliom_state.set_volatile_data
     ~table:my_table login;
   return
-    [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
+    (make_page [p [pcdata ("Welcome " ^ login ^ ". You are now connected.");
         br ();
         Eliom_output.Html5.a tsession_data_example [pcdata "Try again"] ()
-       ]]
+       ]])
 
 
 
@@ -1188,12 +1205,12 @@ let tsession_data_example_close_handler () () =
   Eliom_state.discard
  (*zap* *) ~state_name (* *zap*) ~scope:`Client_process () >>= fun () ->
   return
-    [
+    (make_page [
       (match sessdat with
         | Eliom_state.Data_session_expired -> p [pcdata "Your session has expired."]
         | Eliom_state.No_data -> p [pcdata "You were not connected."]
         | Eliom_state.Data _ -> p [pcdata "You have been disconnected."]);
-      p [Eliom_output.Html5.a tsession_data_example [pcdata "Retry"] () ]]
+      p [Eliom_output.Html5.a tsession_data_example [pcdata "Retry"] () ]])
 
 
 
@@ -1256,7 +1273,7 @@ let tsession_services_example_handler () () =
         [p [pcdata "login: ";
             string_input ~input_type:`Text ~name:login ()]]) ()
   in
-  return [f]
+  return (make_page [f])
 
 
 
@@ -1266,10 +1283,12 @@ let tsession_services_example_handler () () =
 let tsession_services_example_close_handler () () =
   Eliom_state.discard
  (*zap* *) ~state_name (* *zap*) ~scope:`Client_process () >>= fun () ->
-  Lwt.return [p [pcdata "You have been disconnected. ";
-                 a tsession_services_example
-                   [pcdata "Retry"] ()
-                ]]
+  Lwt.return
+    (make_page
+       [p [pcdata "You have been disconnected. ";
+           a tsession_services_example
+             [pcdata "Retry"] ()
+          ]])
 
 
 (* ------------------------------------------------------------- *)
@@ -1281,12 +1300,13 @@ let tlaunch_session () login =
   (* New handler for the main page: *)
   let new_main_page () () =
     return
-      [p [pcdata "Welcome ";
-          pcdata login;
-          pcdata "!"; br ();
-          a eliomclient1 [pcdata "coucou"] (); br ();
-          a tsession_services_example_close
-            [pcdata "close session"] ()]]
+      (make_page
+	 [p [pcdata "Welcome ";
+             pcdata login;
+             pcdata "!"; br ();
+             a eliomclient1 [pcdata "coucou"] (); br ();
+             a tsession_services_example_close
+               [pcdata "close session"] ()]])
   in
 
   (* If a session was opened, we close it first! *)
@@ -1307,9 +1327,9 @@ let tlaunch_session () login =
     ~service:eliomclient1
     (fun () () ->
       return
-        [p [pcdata "Coucou ";
+        (make_page [p [pcdata "Coucou ";
             pcdata login;
-            pcdata "!"]]);
+            pcdata "!"]]));
 
   new_main_page () ()
 
@@ -1374,13 +1394,13 @@ let _ =
                         ~value:"incr i (get)" ()]])
     in
     return
-      [p [pcdata "The random number in the container must not change!"; br ();
+      (make_page [p [pcdata "The random number in the container must not change!"; br ();
           pcdata "i is equal to ";
           pcdata (string_of_int !c); br ();
           a tcoservices_example [pcdata "internal application link to myself"] (); br ();
           a tcoservices_example_get [pcdata "incr i"] ()];
        l3;
-       l4]
+       l4])
   in
   My_appl.register tcoservices_example page;
   let f () () = c := !c + 1; page () () in
@@ -1429,7 +1449,7 @@ let tcalc_handler () () =
         Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Send" ()]]
   in
   let f = Eliom_output.Html5.get_form tcalc_i create_form in
-  return [f]
+  return (make_page [f])
 
 
 
@@ -1457,10 +1477,10 @@ let tcalc_i_handler i () =
       (fun j () ->
         let js = string_of_int j in
         let ijs = string_of_int (i+j) in
-        return [p [pcdata (is^" + "^js^" = "^ijs)]])
+        return (make_page [p [pcdata (is^" + "^js^" = "^ijs)]]))
   in
   let f = get_form tcalc_result (create_form is) in
-  return [f]
+  return (make_page [f])
 
 
 
@@ -1531,13 +1551,13 @@ let tconnect_example3_handler () () =
   let sessdat = Eliom_state.get_volatile_data
     ~table:my_table () in
   return
-    (match sessdat with
+    (make_page (match sessdat with
       | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
          tdisconnect_box "Close session"]
       | Eliom_state.Data_session_expired
       | Eliom_state.No_data -> [tlogin_box ()]
-    )
+    ))
 
 
 
@@ -1673,7 +1693,7 @@ let tpersist_session_example_handler () () =
     in
   Eliom_state.get_persistent_data ~table:tmy_persistent_table () >>= fun sessdat ->
   Lwt.return
-    (match sessdat with
+    (make_page (match sessdat with
       | Eliom_state.Data name ->
         [p [pcdata ("Hello "^name); br ()];
          tdisconnect_box "Close session"]
@@ -1683,7 +1703,7 @@ let tpersist_session_example_handler () () =
       | Eliom_state.No_data ->
         [tlogin_box false tpersist_session_connect_action;
          p [em [pcdata "The only user is 'toto'."]]]
-    )
+    ))
 
 
 
@@ -1866,14 +1886,15 @@ let _ =
                          ~input_type:`Submit
                          ~value:"Click" ()]]) ()
     in
-    Lwt.return 
-      [p [pcdata "A new coservice will be created each time this form is displayed"];
-       l3]
+    Lwt.return
+      (make_page
+	 [p [pcdata "A new coservice will be created each time this form is displayed"];
+	  l3])
   in
   My_appl.register tcsrfsafe_example page;
   My_appl.register tcsrfsafe_example_post
     (fun () () ->
-      Lwt.return [p [pcdata "This is a CSRF safe service"]])
+      Lwt.return (make_page [p [pcdata "This is a CSRF safe service"]]))
 
 
 
@@ -1890,7 +1911,7 @@ let _ = My_appl.register tcookies
       ~cookie_scope:`Client_process
       ~name:cookiename ~value:(string_of_int (Random.int 100)) ();
     Lwt.return
-      [p [pcdata (try
+      (make_page [p [pcdata (try
                     "cookie value: "^
                       (CookiesTable.find
                          cookiename
@@ -1898,7 +1919,7 @@ let _ = My_appl.register tcookies
                             ~cookie_scope:`Client_process ()))
         with _ -> "<cookie not set>");
           br ();
-          a tcookies [pcdata "send other cookie"] ()]])
+          a tcookies [pcdata "send other cookie"] ()]]))
 
 
 
@@ -1921,9 +1942,10 @@ let actionoutside =
     ~get_params:unit
     (fun () () ->
       Lwt.return
-        [p [a ~service:coucouaction
-               [ pcdata "Click to do an action outside the application"] () ];
-        ])
+        (make_page
+	   [p [a ~service:coucouaction
+		  [ pcdata "Click to do an action outside the application"] () ];
+           ]))
 
 
 
@@ -1977,16 +1999,17 @@ let _ =
         ~scope:`Client_process
         (fun _ _ ->
           Lwt.return
-            [p [pcdata "I am a coservice with timeout."; br ();
+            (make_page [p [pcdata "I am a coservice with timeout."; br ();
                 a timeoutcoserv [pcdata "Try again"] (); br ();
                 pcdata "I will disappear after 5 seconds of inactivity." ];
-            ])
+            ]))
     in
     return
-      [h2 [pcdata "Client process coservices with timeouts"];
-       p [pcdata "I just created a coservice with 5 seconds timeout."; br ();
-          a timeoutcoserv [pcdata "Try it"] (); ];
-      ]
+      (make_page
+	 [h2 [pcdata "Client process coservices with timeouts"];
+	  p [pcdata "I just created a coservice with 5 seconds timeout."; br ();
+             a timeoutcoserv [pcdata "Try it"] (); ];
+	 ])
   in
   My_appl.register ttimeout page
 
@@ -2012,16 +2035,17 @@ let _ =
                                     (body [p [pcdata "It works"]])))
     in
     Lwt.return
+      (make_page
       [h2 [pcdata "Client process service not registered with My_appl"];
        p [pcdata "I just created two coservices with scope `Client_process but not registered with My_appl."; br ();
           span ~a:[a_class ["clickable"];
                    a_onclick
                      {{let body = Dom_html.document##body in
-                       Eliom_client.call_caml_service ~service:%serv () () >|=
+                       ignore (Eliom_client.call_caml_service ~service:%serv () () >|=
                        List.iter
                          (fun i -> Dom.appendChild body
                            (Dom_html.document##createTextNode
-                              (Js.string (string_of_int i))))
+                              (Js.string (string_of_int i)))))
                       }}
                   ]
             [pcdata "Click to call it and receive Ocaml data (service registered with Eliom_output.Caml)."];
@@ -2033,7 +2057,7 @@ let _ =
           br ();
           pcdata "Add a test of link to another application."
          ]
-      ]
+      ])
   in
   My_appl.register nonapplprocessservice page
 
@@ -2088,17 +2112,18 @@ let connect_example_handler () () =
   Eliom_references.get bad_user >>= fun bad_u ->
   Eliom_references.get user >>= fun u ->
   Lwt.return
-    (match u, status with
-      | Some name, _ ->
-        [p [pcdata ("Hello "^name); br ()];
-         disconnect_box "Close session"]
-      | None, Eliom_state.Expired_state ->
-        [login_box true bad_u connect_action789;
-         p [em [pcdata "The only user is 'toto'."]]]
-      | _ ->
-        [login_box false bad_u connect_action789;
-         p [em [pcdata "The only user is 'toto'."]]]
-    )
+    (make_page
+       (match u, status with
+	 | Some name, _ ->
+           [p [pcdata ("Hello "^name); br ()];
+            disconnect_box "Close session"]
+	 | None, Eliom_state.Expired_state ->
+           [login_box true bad_u connect_action789;
+            p [em [pcdata "The only user is 'toto'."]]]
+	 | _ ->
+           [login_box false bad_u connect_action789;
+            p [em [pcdata "The only user is 'toto'."]]]
+       ))
 
 let connect_action_handler () login =
   Eliom_state.close_session (*~state_name*) () >>= fun () ->
@@ -2118,12 +2143,13 @@ let isuffixc =
     ~get_params:(suffix_prod (int "suff" ** all_suffix_string "endsuff") (int "i"))
     (fun ((suff, endsuff), i) () ->
       Lwt.return
-        [p [pcdata "The suffix of the url is ";
-            strong [pcdata (string_of_int suff)];
-            pcdata " followed by ";
-            strong [pcdata endsuff];
-            pcdata " and i is equal to ";
-            strong [pcdata (string_of_int i)]]])
+        (make_page
+	   [p [pcdata "The suffix of the url is ";
+               strong [pcdata (string_of_int suff)];
+               pcdata " followed by ";
+               strong [pcdata endsuff];
+               pcdata " and i is equal to ";
+               strong [pcdata (string_of_int i)]]]))
 
 {shared{
 let create_suffixformc ((suff, endsuff),i) =
@@ -2158,7 +2184,7 @@ let appl_redir =
     ~get_params:unit
     (fun () () ->
       Lwt.return
-        [p [
+       (make_page  [p [
           a ~service:appl_redir1 [ pcdata "Link to a redirection inside the Eliom application"] ();
           br ();
           a ~service:appl_redir2 [ pcdata "Link to a redirection outside the Eliom application"] ();
@@ -2171,7 +2197,7 @@ let appl_redir =
             (fun () ->
               [Eliom_output.Html5.string_input ~input_type:`Submit ~value:"Form to a redirection outside the Eliom application" ()]
             )
-        ])
+        ]))
 
 
 (*****************************************************************************)
@@ -2189,29 +2215,27 @@ let postformc =
   My_appl.register_post_service
     ~fallback:Eliom_testsuite1.coucou
     ~post_params:(Eliom_parameters.string "zzz")
-    (fun () s -> Lwt.return [p [pcdata "Yo man. ";
-                                pcdata s]])
+    (fun () s -> Lwt.return (make_page [p [pcdata "Yo man. ";
+					   pcdata s]]))
 
 module Another_appl =
   Eliom_output.Eliom_appl (
     struct
       let application_name = "eliom_testsuite3bis"
-      let params =
-        {Eliom_output.default_appl_params with
-           Eliom_output.ap_title = "Eliom application example bis";
-           Eliom_output.ap_headers_before =
-            [HTML5.M.style
-               [HTML5.M.pcdata "a,.clickable {color: #111188; cursor: pointer;}"]];
-           Eliom_output.ap_container =
-            Some (None,
-                  fun div ->
-                    [h1 [pcdata "Eliom application bis"];
-                     p [pcdata "Random value in the container: ";
-                        pcdata (string_of_int (Random.int 1000)); br ();
-                        a ~service:main [pcdata "Back to the main page of the test suite."] ();];
-                     div ])
-        }
     end)
+
+let make_page_bis ?(css = []) content =
+  html
+    (head
+       (title (pcdata "Eliom application example (bis)"))
+       ([ style
+           [pcdata "a,.clickable {color: #111188; cursor: pointer;}"];
+         Lazy.force My_appl.application_script;
+	] @ css))
+    (body
+       [h1 [pcdata "Eliom application"];
+	header ();
+        div content ] )
 
 {client{
   module Another_appl = Eliom_output.Html5
@@ -2221,12 +2245,12 @@ let otherappl =
   Another_appl.register_service
     ~path:["other"; "appl"]
     ~get_params:unit
-    (fun () () -> Lwt.return [p [pcdata "I am another application"] ])
+    (fun () () -> Lwt.return (make_page_bis [p [pcdata "I am another application"] ]))
 
 
 let formc = My_appl.register_service ["formc"] unit
   (fun () () -> 
-    let div = div [h3 [pcdata "Forms and links created on client side:"]] in
+    let div = unique (div [h3 [pcdata "Forms and links created on client side:"]]) in
     Eliom_services.onload
       {{ 
 
@@ -2291,11 +2315,14 @@ let formc = My_appl.register_service ["formc"] unit
 
           ]
         in
-        List.iter (fun e -> Dom.appendChild (HTML5.M.toelt %div) (HTML5.M.toelt e)) l
+        List.iter
+	  (fun e -> Dom.appendChild
+	    (Eliom_client.Html5.of_div %div)
+	    (Eliom_client.Html5.of_element e)) l
        }};
 
     Lwt.return
-      [
+      (make_page [
 
         h3 [pcdata "Forms and links created on server side:"];
 
@@ -2358,7 +2385,7 @@ let formc = My_appl.register_service ["formc"] unit
         
         div;
 
-      ])
+      ]))
 
 (*****************************************************************************)
 (* XHR form with files: *)
@@ -2431,11 +2458,13 @@ let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
     let launch = p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
       a_onclick {{
 	let uri = Eliom_uri.make_string_uri ~service:%block_form_result () in
-	Eliom_request.send_post_form (HTML5.M.to_form %form) uri >|=
-	    (fun contents -> ( HTML5.M.to_div %subpage )##innerHTML <- (Js.string contents))
+	ignore (Eliom_request.send_post_form (Eliom_client.Html5.of_form %form) uri >|=
+	    (fun contents -> ( Eliom_client.Html5.of_div %subpage )##innerHTML <- (Js.string contents)))
       }}]
       [pcdata "send form with an xhr"]
     in
-    Lwt.return [
-      pcdata "this test need upload: add <uploaddir>/tmp/upload</uploaddir> to the configuration file";
-      form; launch; subpage])
+    Lwt.return
+      (make_page
+	 [
+	   pcdata "this test need upload: add <uploaddir>/tmp/upload</uploaddir> to the configuration file";
+	   form; launch; subpage]))
