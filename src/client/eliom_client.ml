@@ -349,28 +349,21 @@ let _ =
    * Eliom_request: in send_post_form
    * in js_of_ocaml, module Form: the code to emulate FormData *)
 
-(* let onclick_on_body_handler event = *)
-  (* (match Dom_html.tagged (Dom_html.eventTarget event) with *)
-    (* | Dom_html.Button button -> *)
-      (* (Js.Unsafe.variable "window")##eliomLastButton <- Some button; *)
-    (* | Dom_html.Input input when input##_type = Js.string "submit" -> *)
-      (* (Js.Unsafe.variable "window")##eliomLastButton <- Some input; *)
-    (* | _ -> (Js.Unsafe.variable "window")##eliomLastButton <- None); *)
-  (* Js._true *)
+let onclick_on_body_handler event =
+  (match Dom_html.tagged (Dom_html.eventTarget event) with
+    | Dom_html.Button button ->
+	(Js.Unsafe.variable "window")##eliomLastButton <- Some button;
+    | Dom_html.Input input when input##_type = Js.string "submit" ->
+	(Js.Unsafe.variable "window")##eliomLastButton <- Some input;
+    | _ ->
+	(Js.Unsafe.variable "window")##eliomLastButton <- None);
+  Js._true
 
-(* let add_onclick_events = *)
-  (* let registered = ref false in *)
-  (* fun () -> *)
-    (* if !registered *)
-    (* then () *)
-    (* else *)
-      (* begin *)
-	(* ignore (Dom_html.addEventListener ( Dom_html.window##document##body ) *)
-		  (* Dom_html.Event.click ( Dom_html.handler onclick_on_body_handler ) *)
-		  (* Js._true *)
-		  (* :Dom_html.event_listener_id); *)
-	(* registered := true; *)
-      (* end *)
+let add_onclick_events () =
+  ignore (Dom_html.addEventListener ( Dom_html.window##document##body )
+	    Dom_html.Event.click ( Dom_html.handler onclick_on_body_handler )
+	    Js._true : Dom_html.event_listener_id);
+  true
 
 (* END FORMDATA HACK *)
 
@@ -390,8 +383,9 @@ let load_eliom_data page =
     List.map
       (reify_event Dom_html.document##documentElement)
       js_data.Eliom_types.ejs_onunload in
-  on_unload_scripts := [fun () -> List.for_all (fun f -> f ()) on_unload];
-  on_load
+  on_unload_scripts := [fun () -> List.for_all (fun f -> f ())
+  on_unload];
+  add_onclick_events :: on_load
 
 let on_unload f =
   on_unload_scripts :=
