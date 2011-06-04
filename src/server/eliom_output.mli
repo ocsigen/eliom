@@ -111,7 +111,7 @@ module type Eliom_appl = sig
   *)
   val application_name : string
 
-  val application_script : [> `Script ] HTML5.M.elt Lazy.t
+  val application_script : unit -> [> `Script ] HTML5.M.elt
 
 end
 

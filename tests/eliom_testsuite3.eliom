@@ -84,7 +84,7 @@ let make_page ?(css = []) content =
        (title (pcdata "Eliom application example"))
        ([ style
            [pcdata "a,.clickable {color: #111188; cursor: pointer;}"];
-         Lazy.force My_appl.application_script;
+          My_appl.application_script ();
 	] @ css))
     (body
        [h1 [pcdata "Eliom application"];
@@ -2230,7 +2230,7 @@ let make_page_bis ?(css = []) content =
        (title (pcdata "Eliom application example (bis)"))
        ([ style
            [pcdata "a,.clickable {color: #111188; cursor: pointer;}"];
-         Lazy.force My_appl.application_script;
+          My_appl.application_script ();
 	] @ css))
     (body
        [h1 [pcdata "Eliom application"];

@@ -2391,26 +2391,6 @@ let redirection_script =
     ^ "redir ();" in
   HTML5.M.unique (HTML5.M.script (HTML5.M.cdata_script script))
 
-let eliom_appl_script =
-  HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
-
-let make_eliom_appl_script application_name =
-  HTML5.M.unique
-    ~copy:eliom_appl_script
-    ( HTML5.M.script
-	~a:[HTML5.M.a_src (Xhtml.make_uri
-                     ~service:(Eliom_services.static_dir ())
-                     [application_name ^ ".js"])]
-	(HTML5.M.pcdata "") )
-
-let is_eliom_appl_script elt =
-  XML.get_unique_id (HTML5.M.toelt elt)
-  =
-  XML.get_unique_id (HTML5.M.toelt eliom_appl_script)
-
-let eliom_fake_data_script =
-  HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
-
 module Eliom_appl_reg_make_param
   (Html5_content
      : Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] HTML5.M.elt)
@@ -2423,9 +2403,23 @@ module Eliom_appl_reg_make_param
   type options = appl_service_options
   type return = Eliom_services.appl_service
 
-  let application_script = lazy (make_eliom_appl_script Appl_params.application_name)
+  let eliom_appl_script =
+    HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
+  let application_script () =
+    HTML5.M.unique
+      ~copy:eliom_appl_script
+      ( HTML5.M.script
+	  ~a:[HTML5.M.a_src (Xhtml.make_uri
+			       ~service:(Eliom_services.static_dir ())
+			       [Appl_params.application_name ^ ".js"])]
+	  (HTML5.M.pcdata "") )
+  let is_eliom_appl_script elt =
+    XML.get_unique_id (HTML5.M.toelt elt)
+    =
+    XML.get_unique_id (HTML5.M.toelt eliom_appl_script)
 
-  let request_id = ref 0
+  let eliom_fake_data_script =
+    HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
 
   let make_eliom_data_script ~sp page =
 
@@ -2458,16 +2452,13 @@ module Eliom_appl_reg_make_param
 	ejs_url         = url_to_display;
       } in
 
-    incr request_id;
     let script =
       Printf.sprintf
 	("var sitedata = \'%s\';\n"
 	 ^^ "var eliom_data = \'%s\';\n"
-	 ^^ "var request_id = %d;\n"
 	 ^^ "var client_process_info = \'%s\';\n")
 	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
 	(Eliom_types.jsmarshal (Eliom_wrap.wrap eliom_data))
-	!request_id
 	(Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
 
@@ -2503,7 +2494,7 @@ module Eliom_appl_reg_make_param
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts
 	   else ( head_elts
-		  @ [Lazy.force application_script] ) )
+		  @ [application_script ()] ) )
     in
     let fake_page =
       HTML5.M.html ~a:html_attribs
@@ -2601,7 +2592,7 @@ module type Eliom_appl = sig
   *)
   val application_name : string
 
-  val application_script : [> `Script ] HTML5.M.elt Lazy.t
+  val application_script : unit -> [> `Script ] HTML5.M.elt
 
 end
 
