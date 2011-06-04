@@ -94,8 +94,8 @@ let rec relink_dom node (id, attribs, childrens_ref_tree) =
   | Some id ->
       try
 	let pnode = find_node id in
-	let parent = Js.Opt.get (node##parentNode) (fun _ -> assert false) in
-	Dom.replaceChild parent pnode node
+	Js.Opt.iter (node##parentNode)
+	  (fun parent -> Dom.replaceChild parent pnode node)
       with Not_found ->
 	register_node id node
   end;
@@ -222,61 +222,51 @@ module Html5 = struct
 
 end
 
+(* == XHR *)
+
 let current_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
 
 let create_request_
-    ?absolute ?absolute_path ?https
-    ~(service : ('get, 'post,
-                 [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
-                 | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
-                 [< Eliom_services.suff ], 'h, 'i,
-                 [< Eliom_services.registrable ], 'j)
-        Eliom_services.service)
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-    g p =
+    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params ?keep_get_na_params
+    get_params post_params =
   match Eliom_services.get_get_or_post service with
     | `Get ->
         let uri =
           Eliom_uri.make_string_uri
             ?absolute ?absolute_path ?https
             ~service
-            ?hostname ?port ?fragment ?keep_nl_params ?nl_params g
+            ?hostname ?port ?fragment ?keep_nl_params ?nl_params get_params
         in
-        Left uri
+        `Get uri
     | `Post ->
-        let path, g, fragment, p =
+        let path, get_params, fragment, post_params =
           Eliom_uri.make_post_uri_components
             ?absolute ?absolute_path ?https
             ~service
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params
-            ?keep_get_na_params g p
+            ?keep_get_na_params get_params post_params
         in
         let uri =
-          Eliom_uri.make_string_uri_from_components (path, g, fragment)
+          Eliom_uri.make_string_uri_from_components (path, get_params, fragment)
         in
-        Right (uri, p)
+        `Post (uri, post_params)
 
 
 
 let exit_to
-    ?absolute ?absolute_path ?https
-    ~(service : ('get, 'post,
-                 [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
-                 | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
-                 [< Eliom_services.suff ], 'h, 'i,
-                 [< Eliom_services.registrable ], 'j)
-        Eliom_services.service)
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-    g p =
+    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params ?keep_get_na_params
+    get_params post_params =
   (match create_request_
      ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
      ?keep_nl_params ?nl_params ?keep_get_na_params
-     g p
+     get_params post_params
    with
-     | Left uri -> Eliom_request.redirect_get uri
-     | Right (uri, p) -> Eliom_request.redirect_post uri p)
+     | `Get uri -> Eliom_request.redirect_get uri
+     | `Post (uri, post_params) -> Eliom_request.redirect_post uri post_params)
 
 
 (** This will change the URL, without doing a request.
@@ -291,52 +281,23 @@ let change_url_string uri =
 
 let change_url
 (*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
-    ?absolute ?absolute_path ?https
-    ~(service : ('get, 'post,
-                 [< `Attached of (Eliom_services.attached_service_kind, [< Eliom_services.getpost]) Eliom_services.a_s
-                 | `Nonattached of [< Eliom_services.getpost] Eliom_services.na_s ],
-                 [< Eliom_services.suff ], 'h, 'i,
-                 [< Eliom_services.registrable ], 'j)
-        Eliom_services.service)
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-    g p =
+    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params ?keep_get_na_params
+    get_params post_params =
 (*VVV only for GET services? *)
   let uri =
     (match create_request_
-       ?absolute ?absolute_path ?https
-       ~service
-       ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-       g p
+       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+       ?keep_nl_params ?nl_params ?keep_get_na_params
+       get_params post_params
      with
-       | Left uri -> uri
-       | Right (uri, p) -> uri)
+       | `Get uri -> uri
+       | `Post (uri, post_params) -> uri)
   in
   change_url_string uri
 
 let on_unload_scripts = ref []
 let at_exit_scripts = ref []
-
-(*
-let _ =
-  Dom_html.window##onbeforeunload <-
-    (Dom_html.handler
-       (fun ev ->
-(* We cannot wait for the lwt thread to finish before exiting ...
-*)
-         ignore
-           ((match !on_unload_script with
-             | None -> Lwt.return ()
-             | Some script -> Js.Unsafe.variable script) >>= fun () ->
-            (match !at_exit_script with
-              | None -> Lwt.return ()
-              | Some script -> Js.Unsafe.variable script));
-         Js.bool true))
-
-(* Also:
-  May be we can add automatically a special "close_process" coservice for each
-  Eliom site, that will be called by the process when exiting.
-*)
-*)
 
 (* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
    When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
@@ -391,10 +352,8 @@ let on_unload f =
   on_unload_scripts :=
     (fun () -> try f(); true with False -> false) :: !on_unload_scripts
 
-let fake_page = Dom_html.createHtml Dom_html.document
-
-let get_head_body page =
-  match Dom.list_of_nodeList fake_page##childNodes with
+let get_head_and_body page =
+  match Dom.list_of_nodeList page##childNodes with
   | [_; head; body] ->
      (* First node is ocsigen advertisement *)
      (Js.Unsafe.coerce head : Dom_html.headElement Js.t),
@@ -402,7 +361,7 @@ let get_head_body page =
   | _ -> assert false
 
 let get_data_script page =
-  let head, _ = get_head_body page in
+  let head, _ = get_head_and_body page in
   match Dom.list_of_nodeList head##childNodes with
     | _ :: data_script :: _ ->
       (Js.Unsafe.coerce data_script : Dom_html.scriptElement Js.t)
@@ -412,11 +371,12 @@ let set_content content =
   ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
   (* Hack to make the result considered as DOM : *)
+  let fake_page = Dom_html.createHtml Dom_html.document in
   fake_page##innerHTML <- Js.string content;
   let data_script = get_data_script fake_page in
   Dom.appendChild (Dom_html.document##head) data_script##cloneNode(Js._true);
   let on_load = load_eliom_data fake_page in
-  let head, body = get_head_body fake_page in
+  let head, body = get_head_and_body fake_page in
   Dom.replaceChild
     (Dom_html.document##documentElement)
     head (Dom_html.document##head);
@@ -445,21 +405,17 @@ let change_page
 	  ?keep_nl_params ?nl_params ?keep_get_na_params
           get_params post_params
      with
-       | Left uri ->
+       | `Get uri ->
          Eliom_request.http_get
            ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
-       | Right (uri, p) ->
+       | `Post (uri, p) ->
          Eliom_request.http_post
            ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p in
     set_content r
 
 let change_page_uri ?cookies_info ?(get_params = []) uri =
-  try_lwt
   lwt r = Eliom_request.http_get ?cookies_info uri get_params in
   set_content r
-with e ->
-  Firebug.console##debug(Js.string (Printexc.to_string e));
-  Lwt.return ()
 
 let change_page_get_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
@@ -473,42 +429,42 @@ let change_page_post_form ?cookies_info form uri =
 
 let _ =
   change_page_uri_ :=
-    (fun ?cookies_info href -> ignore(change_page_uri ?cookies_info href));
+    (fun ?cookies_info href ->
+       ignore(change_page_uri ?cookies_info href));
   change_page_get_form_ :=
-    (fun ?cookies_info form href -> ignore(change_page_get_form ?cookies_info form href));
+    (fun ?cookies_info form href ->
+       ignore(change_page_get_form ?cookies_info form href));
   change_page_post_form_ :=
-    (fun ?cookies_info form href -> ignore(change_page_post_form ?cookies_info form href))
+    (fun ?cookies_info form href ->
+       ignore(change_page_post_form ?cookies_info form href))
 
 let call_service
-    ?absolute ?absolute_path ?https
-    ~service
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-    g p =
+    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params ?keep_get_na_params
+    get_params post_params =
   (match create_request_
-     ?absolute ?absolute_path ?https
-     ~service
-     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-     g p
+     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+     ?keep_nl_params ?nl_params ?keep_get_na_params
+     get_params post_params
    with
-     | Left uri ->
+     | `Get uri ->
 	 Eliom_request.http_get
          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
-     | Right (uri, p) ->
+     | `Post (uri, post_params) ->
        Eliom_request.http_post
          ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
-	 uri p)
+	 uri post_params)
 
 
 let call_caml_service
-    ?absolute ?absolute_path ?https ~service
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-    g p =
-  call_service
-    ?absolute ?absolute_path ?https
-    ~service
-    ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
-    g p
-  >>= fun s ->
+    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params ?keep_get_na_params
+    get_params post_params =
+  lwt s =
+    call_service
+      ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params ?keep_get_na_params
+      get_params post_params in
   let unmarshal s : 'a =
     let (value,sent_nodes) =
       (Marshal.from_string (Url.decode s) 0:'a Eliom_types.eliom_comet_data_type)
@@ -530,10 +486,10 @@ let get_subpage
      ?keep_nl_params ?nl_params ?keep_get_na_params
      get_params post_params
    with
-     | Left uri ->
+     | `Get uri ->
        Eliom_request.http_get
          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
-     | Right (uri, p) ->
+     | `Post (uri, p) ->
        Eliom_request.http_post
          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p
   in
@@ -553,7 +509,7 @@ let read_fragment () = Js.to_string Dom_html.window##location##hash
 let (fragment, set_fragment_signal) = React.S.create (read_fragment ())
 
 let rec fragment_polling () =
-  Lwt_js.sleep 0.2 >>= fun () ->
+  lwt () = Lwt_js.sleep 0.2 in
   let new_fragment = read_fragment () in
   set_fragment_signal new_fragment;
   fragment_polling ()
@@ -582,35 +538,3 @@ let auto_change_page fragment =
      else Lwt.return ())
 
 let _ = React.E.map auto_change_page (React.S.changes fragment)
-
-(*SGO* Server generated onclicks/onsubmits
-
-(* A closure that is registered by default to simulate <a>.
-   For use with server side generated links.
- *)
-let _ =
-  Eliommod_cli.register_closure
-    Eliom_types.a_closure_id
-    (fun (cookies_info, uri) ->
-      let uri = Eliommod_cli.unwrap uri in
-      let cookies_info = Eliommod_cli.unwrap cookies_info in
-      ignore (change_page_uri ?cookies_info uri);
-      Js._false);
-  Eliommod_cli.register_closure
-    Eliom_client_types.get_closure_id
-    (fun (cookies_info, uri) ->
-      let uri = Eliommod_cli.unwrap uri in
-      let node = Js.Unsafe.variable Eliom_client_types.eliom_temporary_form_node_name in
-      let cookies_info = Eliommod_cli.unwrap cookies_info in
-      ignore (change_page_get_form ?cookies_info node uri);
-      Js._false);
-  Eliommod_cli.register_closure
-    Eliom_client_types.post_closure_id
-    (fun (cookies_info, uri) ->
-      let uri = Eliommod_cli.unwrap uri in
-      let node = Js.Unsafe.variable Eliom_client_types.eliom_temporary_form_node_name in
-      let cookies_info = Eliommod_cli.unwrap cookies_info in
-      ignore (change_page_post_form ?cookies_info node uri);
-      Js._false)
-
-*)
