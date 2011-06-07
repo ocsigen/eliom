@@ -175,29 +175,34 @@ module XML = struct
 
   let rec make_ref_tree elt =
     let id = get_unique_id elt in
-    let attribs, childrens = match content elt with
+    let attribs_childrens = match content elt with
       | Empty | EncodedPCDATA _ | PCDATA _
-      | Entity _ | Comment _  -> [], []
+      | Entity _ | Comment _  -> None
       | Leaf (_, attribs) ->
-	List.fold_right cons_attrib attribs [],
-	[]
+	Some (
+	  List.fold_right cons_attrib attribs [],
+	  [])
       | Node (_, attribs, elts) ->
-	List.fold_right cons_attrib attribs [],
-	make_ref_tree_list elts
+	Some (
+	  List.fold_right cons_attrib attribs [],
+	  make_ref_tree_list elts)
     in
-    match id, attribs, childrens with
-      | None, [], [] -> Ref_empty 0
-      | _ -> Ref_node (id, attribs, childrens)
+    match id, attribs_childrens with
+      | None, None -> Ref_empty 0
+      | None, Some ([], []) -> Ref_empty 1
+      | _, Some (attribs, childrens) -> Ref_node (id, attribs, childrens)
+      | Some _, None -> failwith "unexpected id on an unlabellable node: ex pcdata, comment, ..."
 
   and make_ref_tree_list l =
     let aggregate elt acc =
-      let elt = make_ref_tree elt in
-      if elt = Ref_empty 0 then
-	match acc with
-	  | [] -> []
-	  | Ref_empty i :: acc -> Ref_empty (succ i) :: acc
-	  | acc -> Ref_empty 1 :: acc
-      else elt :: acc in
+      match make_ref_tree elt with
+	| Ref_empty 0 -> acc
+	| Ref_empty 1 ->
+	  (match acc with
+	    | [] -> []
+	    | Ref_empty i :: acc -> Ref_empty (succ i) :: acc
+	    | acc -> Ref_empty 1 :: acc)
+	| elt -> elt :: acc in
     List.fold_right aggregate l []
 
   and make_attrib_list l =
