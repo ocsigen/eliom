@@ -86,8 +86,9 @@ module Xhtml_reg_base = struct
   type page = html
   type options = unit
   type return = Eliom_services.http
+  type result = Ocsigen_http_frame.result
 
-  let pre_service ?options () = Lwt.return ()
+  let result_of_http_result x = x
 
   let send_appl_content = Eliom_services.XNever
 
@@ -380,8 +381,9 @@ module Make_Registration
       type page = TypedXML_content.t
       type options = unit
       type return = Eliom_services.http
+      type result = Ocsigen_http_frame.result
 
-      let pre_service ?options () = Lwt.return ()
+      let result_of_http_result x = x
 
       let send_appl_content = Eliom_services.XNever
 

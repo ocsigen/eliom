@@ -28,7 +28,7 @@ val send :
   ?cookies_info:bool * string list ->
   ?get_args:(string * string) list ->
   ?post_args:(string * string) list ->
-  ?form_arg:Form.form_contents -> string ->
+  ?form_arg:((string * Form.form_elt) list) -> string ->
   string Lwt.t
 
 val send_get_form :

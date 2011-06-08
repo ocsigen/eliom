@@ -1474,7 +1474,7 @@ let _ =
           
           
 *wiki*)
-let _ = Eliom_services.set_exn_handler
+let _ = Eliom_output.set_exn_handler
    (fun e -> match e with
     | Eliom_common.Eliom_404 ->
         Eliom_output.Xhtml.send ~code:404

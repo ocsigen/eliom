@@ -407,12 +407,9 @@ let post_coservice'
   }
 
 
- 
+
 
 (*****************************************************************************)
-let set_exn_handler h =
-  let sitedata = Eliom_request_info.find_sitedata "set_exn_handler" in
-  Eliom_request_info.set_site_handler sitedata h
 
 let add_service = Eliommod_services.add_service
 let add_naservice = Eliommod_naservices.add_naservice

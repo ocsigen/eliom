@@ -26,6 +26,15 @@
 
 open Eliom_pervasives
 
+type 'a kind
+type 'a application_content = [`Appl of 'a]
+type block_content
+type browser_content = [`Browser]
+type 'a caml_content
+type unknown_content
+
+type 'a application_name
+
 (** {2 Creating links and forms with HTML5.M} *)
 
 (** Eliom service registration and forms creation for HTML5 page *)
@@ -99,10 +108,14 @@ val default_appl_service_options : appl_service_options
 
 module type Eliom_appl = sig
 
+  (** unique type *)
+  type appl
+
   include "sigs/eliom_reg.mli"
     subst type page    := HTML5_types.html HTML5.M.elt
       and type options := appl_service_options
       and type return  := Eliom_services.appl_service
+      and type result  := appl application_content kind
 
   (** Unique identifier for this application.
       It is the application name.
@@ -110,6 +123,7 @@ module type Eliom_appl = sig
       that is unique for each instance of the application.
   *)
   val application_name : string
+  val typed_name : appl application_name
 
   val application_script : unit -> [> `Script ] HTML5.M.elt
 
@@ -125,6 +139,7 @@ module Blocks5 : "sigs/eliom_reg.mli"
   subst type page    := HTML5_types.body_content HTML5.M.elt list
     and type options := unit
     and type return  := Eliom_services.http
+    and type result  := block_content kind
 
 (** Use this module for example for XMLHttpRequests for block tags (e.g. <div>) *)
 
@@ -134,6 +149,7 @@ module Blocks : "sigs/eliom_reg.mli"
   subst type page    := XHTML_types.body_content XHTML.M.elt list
     and type options := unit
     and type return  := Eliom_services.http
+    and type result  := block_content kind
 
 (** {3 Functor to create modules to register subpages for other XML
     types.} *)
@@ -147,6 +163,7 @@ module Make_TypedXML_Registration
       subst type page    := E.content TypedXML.elt list
 	and type options := unit
 	and type return  := Eliom_services.http
+        and type result  := block_content kind
 
 (** {2 Untyped pages} *)
 
@@ -160,6 +177,7 @@ module HtmlText : sig
   subst type page    := string
     and type options := unit
     and type return  := Eliom_services.http
+    and type result  := browser_content kind
 
   (** {2 Forms creation } *)
 
@@ -211,12 +229,14 @@ module CssText : "sigs/eliom_reg.mli"
   subst type page    := string
     and type options := unit
     and type return  := Eliom_services.http
+    and type result  := browser_content kind
 
 (** {3 Module to register untyped text pages} *)
 module Text : "sigs/eliom_reg.mli"
   subst type page    := string * string
     and type options := unit
     and type return  := Eliom_services.http
+    and type result  := unknown_content kind
 
 (** The first string is the content, the second is the content type,
     for example "text/html" *)
@@ -237,6 +257,7 @@ module Action : "sigs/eliom_reg.mli"
  subst type page    := unit
    and type options := [ `Reload | `NoReload ]
    and type return  := Eliom_services.http
+   and type result  := browser_content kind
 
 (** Like actions, but the page is not reloaded. Just do something and do
    not generate any page. To be used carefully. Probably not usefull at all.
@@ -246,6 +267,7 @@ module Unit : "sigs/eliom_reg.mli"
   subst type page    := unit
     and type options := unit
     and type return  := Eliom_services.http
+    and type result  := browser_content kind
 
 (** Allows to create redirections towards another service.
    A 301 or 307 code is sent to the browser to ask it to redo the request to
@@ -255,7 +277,7 @@ module Unit : "sigs/eliom_reg.mli"
    the [options] parameter of registration functions.
    For example: [register ~options:`Temporary ...].
 *)
-module Redirection : "sigs/eliom_reg.mli"
+module Redirection : "sigs/eliom_reg_1.mli"
   subst type page :=
     (unit, unit, Eliom_services.get_service_kind,
      [ `WithoutSuffix ],
@@ -263,6 +285,7 @@ module Redirection : "sigs/eliom_reg.mli"
       Eliom_services.service
     and type options := [ `Temporary | `Permanent ]
     and type return  := Eliom_services.http
+    and type result  := 'a kind
 
 (** Allows to create redirections towards other URLs.
    A 301 or 307 code is sent to the browser to ask it to redo the request to
@@ -278,20 +301,34 @@ module String_redirection : "sigs/eliom_reg.mli"
   subst type page    := Url.uri
     and type options := [ `Temporary | `Permanent ]
     and type return  := Eliom_services.http
+    and type result  := browser_content kind
 
 (** Allows to send files. The content is the name of the file to send. *)
 module Files : "sigs/eliom_reg.mli"
   subst type page    := string
     and type options := unit
     and type return  := Eliom_services.http
+    and type result  := browser_content kind
 
 (** Allows to create services that choose dynamically what they want
     to send. The content is created using for example
     {!Eliom_output.Html5_forms.send} or {!Eliom_output.Text.send} functions.  *)
-module Any : "sigs/eliom_reg.mli"
-  subst type page    := Ocsigen_http_frame.result
+module Any : "sigs/eliom_reg_1.mli"
+  subst type page    := 'a kind
 	and type options := unit
 	and type return  := Eliom_services.http
+        and type result  := 'a kind
+
+val appl_self_redirect :
+  ('page -> [< 'a application_content | browser_content] kind Lwt.t) -> 'page ->
+  'appl application_content kind Lwt.t
+(** [appl_self_redirect send page] does a redirection to the same
+    address with same parameters ( GET and POST ). It allows using
+    different kind content ( browser and applications ) with Any. It
+    always leaves the current application. All parameters are sent
+    another time. Files can't be sent by a redirection. Content
+    returned by [appl_self_redirect] is always marked as not cacheable
+    by the browser. *)
 
 (** Allows to send raw data using Ocsigen's streams.
     The content is a pair containing:
@@ -309,6 +346,7 @@ module Streamlist : "sigs/eliom_reg.mli"
   subst type page    := (((unit -> string Ocsigen_stream.t Lwt.t) list) * string)
     and type options := unit
     and type return  := Eliom_services.http
+    and type result  := unknown_content kind
 
 (** Allows to register services that send caml values.
     Note that this kind of services are most of the time
@@ -318,14 +356,44 @@ module Caml : "sigs/eliom_reg_simpl.mli"
   subst type page    := 'return
     and type options := unit
     and type return  := 'return Eliom_parameters.caml
+    and type result  := 'return caml_content kind
 
 module Customize :
-  functor (B : sig type options type return type page end) ->
+  functor (B : sig type options type return type page type result end) ->
   functor (R : "sigs/eliom_reg.mli" subst type options := B.options
 				      and type return  := B.return
-				      and type page    := B.page) ->
+				      and type page    := B.page
+                                      and type result  := B.result) ->
   functor (T : sig type page val translate : page -> B.page Lwt.t end) ->
     "sigs/eliom_reg.mli"
       subst type page    := T.page
         and type options := B.options
         and type return  := B.return
+        and type result  := B.result
+
+(** {2 Using your own error pages} *)
+
+(** Allows to use your own error pages
+    (404, or any exception during page generation).
+
+    {e Warning: This functions must be called when the site
+    information is available, that is, either
+    during a request or during the initialisation phase of the site.
+    Otherwise, it will raise the exception
+    {!Eliom_common.Eliom_site_information_not_available}.
+    If you are using static linking, you must delay the call to this function
+    until the configuration file is read, using
+    {!Eliom_services.register_eliom_module}. Otherwise you will also get
+    this exception.}
+ *)
+val set_exn_handler : (exn -> browser_content kind Lwt.t) -> unit
+
+(**/**)
+
+val cast_unknown_content_kind : unknown_content kind -> 'a kind
+(** If you know that the content you generated using [Text.send] or
+    [Streamlist.send] is the same as some other kind, you can cast
+    it with [cast_unknown_content_kind] for use with [Any] module.*)
+
+val cast_http_result : Ocsigen_http_frame.result -> 'a kind
+(** [cast_http_result] should only be used to register new output modules *)

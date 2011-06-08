@@ -1,7 +1,7 @@
 
-type page = page
+type 'a page = page
 type options = options
 type return = return
-type result = result
+type 'a result = result
 
 include "eliom_reg_simpl.mli"

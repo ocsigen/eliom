@@ -515,24 +515,6 @@ val onunload : XML.event -> unit
 
 
 
-(** {2 Using your own error pages} *)
-
-
-(** Allows to use your own error pages
-    (404, or any exception during page generation).
-
-    {e Warning: This functions must be called when the site
-    information is available, that is, either
-    during a request or during the initialisation phase of the site.
-    Otherwise, it will raise the exception
-    {!Eliom_common.Eliom_site_information_not_available}.
-    If you are using static linking, you must delay the call to this function
-    until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also get
-    this exception.}
- *)
-val set_exn_handler : (exn -> Ocsigen_http_frame.result Lwt.t) -> unit
-
 
 
 

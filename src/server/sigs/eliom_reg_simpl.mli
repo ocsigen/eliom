@@ -9,7 +9,7 @@ val send :
   ?content_type:string ->
   ?headers: Http_headers.t ->
   page ->
-  Ocsigen_http_frame.result Lwt.t
+  result Lwt.t
 
     (** Register a service with the associated handler function.
 	[register s t f] will associate the service [s] to the function [f].

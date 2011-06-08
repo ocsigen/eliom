@@ -1,6 +1,7 @@
 type page
 type options
 type return
+type result
 
 val send :
   ?options:options ->
@@ -17,3 +18,4 @@ val send_appl_content : Eliom_services.send_appl_content
       value is recorded inside each service just after
       registration.  *)
 
+val result_of_http_result : Ocsigen_http_frame.result -> result

@@ -68,7 +68,6 @@ let get_cookie_info_for_uri uri =
 (*TODO: use Url.Current.set *)
 let redirect_get url = Dom_html.window##location##href <- Js.string url
 
-(*TODO: add Form to js_of_ocaml libs *)
 let redirect_post url params =
   let f = Dom_html.createForm Dom_html.document in
   f##action <- Js.string url;
@@ -81,7 +80,19 @@ let redirect_post url params =
        i##value <- Js.string v;
        Dom.appendChild f i)
     params;
+  f##style##display <- (Js.string "none");
+  Dom.appendChild (Dom_html.document##body) f;
+  (* firefox accepts submit only on forms in the document *)
   f##submit ()
+
+let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
+  redirect_post url
+    ((List.map (function
+      | (name,`String s) -> (name,Js.to_string s)
+      | (name,`File f) ->
+	Firebug.console##error(Js.string "can't do POST redirection with file parameters");
+	failwith "can't do POST redirection with file parameters") form_arg)
+     @post_args)
 
 let rec send ?cookies_info ?get_args ?post_args ?form_arg url =
   let rec aux i ?cookies_info ?get_args ?post_args ?form_arg url =
@@ -95,7 +106,16 @@ let rec send ?cookies_info ?get_args ?post_args ?form_arg url =
 		    ( Eliom_common.tab_cpi_header_name,
 		      encode_header_value Eliom_process.info ) ]
     in
-     XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None ?post_args ?get_args ?form_arg url
+    let form_contents =
+      match form_arg with
+	| None -> None
+	| Some form_arg ->
+	  let contents = Form.empty_form_contents () in
+	  List.iter (Form.append contents) form_arg;
+	  Some contents
+    in
+     XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
+       ?post_args ?get_args ?form_arg:form_contents url
     >>= fun r ->
     if r.XmlHttpRequest.code = 204
     then
@@ -106,7 +126,11 @@ let rec send ?cookies_info ?get_args ?post_args ?form_arg url =
           else Lwt.fail Looping_redirection
         | None ->
           match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
-            | Some uri -> redirect_get uri; Lwt.fail Program_terminated
+            | Some uri ->
+	      (match post_args,form_arg with
+		| None,None -> redirect_get uri
+		| _,_ -> redirect_post_form_elt ?post_args ?form_arg url);
+	      Lwt.fail Program_terminated
             | None -> Lwt.fail (Failed_request r.XmlHttpRequest.code)
     else
       if r.XmlHttpRequest.code = 200
@@ -165,8 +189,7 @@ let send_post_form ?cookies_info ?get_args ?post_args form url =
   (* BEGIN FORMDATA HACK *)
   let post_args = add_button_arg post_args form in
   (* END FORMDATA HACK *)
-  let form_arg = Form.post_form_contents form in
-  send ?cookies_info ?get_args ?post_args ~form_arg url
+  send ?cookies_info ?get_args ?post_args ~form_arg:(Form.form_elements form) url
 
 let http_get ?cookies_info url get_args =
   send ?cookies_info ~get_args url

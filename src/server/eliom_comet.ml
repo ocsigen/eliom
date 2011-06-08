@@ -57,6 +57,10 @@ module Cometreg_ = struct
 
   type return = Eliom_services.http
 
+  type result = Ocsigen_http_frame.result
+
+  let result_of_http_result x = x
+
   let send_appl_content = Eliom_services.XAlways
 
   let code_of_code_option = function

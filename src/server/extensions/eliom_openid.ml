@@ -488,7 +488,7 @@ module type HiddenServiceInfo = sig
 (** The path of the hidden service *)
   val f :
     (string * string) list ->
-    unit -> Eliom_output.Any.page Lwt.t
+    unit -> Eliom_output.browser_content Eliom_output.kind Lwt.t
 (** The function called when an user connects to the hidden service
     (not that hidden) without being in an identification process.
     Typically you should redirect the user to the login page. *)
@@ -560,7 +560,7 @@ type check_fun =
     ?required:field list ->
     ?optional:field list ->
     string ->
-    (result authentication_result -> Eliom_output.Any.page Lwt.t) ->
+    (result authentication_result -> Eliom_output.browser_content Eliom_output.kind Lwt.t) ->
     XHTML.M.uri Lwt.t
 
 let check check ?(immediate = true) ?policy_url ?max_auth_age ?auth_policies
