@@ -1800,7 +1800,21 @@ module Files_reg_base = struct
 
 end
 
-module Files = Eliom_mkreg.MakeRegister(Files_reg_base)
+module Files =
+struct
+  include Eliom_mkreg.MakeRegister(Files_reg_base)
+  let check_file filename =
+    let sp = Eliom_common.get_sp () in
+    let request = Eliom_request_info.get_request_sp sp in
+    try
+      ignore (Ocsigen_local_files.resolve request filename:Ocsigen_local_files.resolved);
+      true
+    with
+      | Ocsigen_local_files.Failed_403
+      | Ocsigen_local_files.Failed_404
+      | Ocsigen_local_files.NotReadableDirectory ->
+        false
+end
 
 (****************************************************************************)
 (****************************************************************************)

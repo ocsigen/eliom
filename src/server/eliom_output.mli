@@ -304,11 +304,16 @@ module String_redirection : "sigs/eliom_reg.mli"
     and type result  := browser_content kind
 
 (** Allows to send files. The content is the name of the file to send. *)
-module Files : "sigs/eliom_reg.mli"
-  subst type page    := string
-    and type options := unit
-    and type return  := Eliom_services.http
-    and type result  := browser_content kind
+module Files : sig
+  include "sigs/eliom_reg.mli"
+    subst type page    := string
+      and type options := unit
+      and type return  := Eliom_services.http
+      and type result  := browser_content kind
+  val check_file : string -> bool
+  (** [check_file file] is true if [Files.send file] would effectively
+      return the file (i.e. the file is present and readable ) *)
+end
 
 (** Allows to create services that choose dynamically what they want
     to send. The content is created using for example
