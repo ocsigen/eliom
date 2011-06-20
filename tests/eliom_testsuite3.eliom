@@ -287,7 +287,7 @@ where and {{{id}}} an identifier for the value.
            div [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
                                a_onclick {{
                                  Dom.appendChild
-                                   (Eliom_client.Html5.of_uList %container) (* node is the wrapper keyword for HTML5.M nodes. *)
+                                   (Eliom_client.Html5.of_ul %container) (* node is the wrapper keyword for HTML5.M nodes. *)
                                    (Eliom_client.Html5.of_li (item ()))
                                }}
                   ]
@@ -321,7 +321,7 @@ where and {{{id}}} an identifier for the value.
                 let eliomclient1 = %eliomclient1 in
                 (Dom.appendChild
                    (Dom_html.document##body)
-                   (Eliom_client.Html5.of_paragraph
+                   (Eliom_client.Html5.of_p
                       (p [Eliom_output.Html5.a
                             ~service:coucou
                             [pcdata "An external link generated client side"]
@@ -491,18 +491,18 @@ let on_load =
         {{ ignore
 	     (Lwt_js.sleep 1. >|= fun () ->
                Dom.appendChild (Eliom_client.Html5.of_div %div)
-		 (Eliom_client.Html5.of_paragraph (p [pcdata "on_load executed after 1s."])))
+		 (Eliom_client.Html5.of_p (p [pcdata "on_load executed after 1s."])))
          }};
       Eliom_services.onload
         {{ ignore
 	     (Lwt_js.sleep 3. >|= fun () ->
                Dom.appendChild  (Eliom_client.Html5.of_div %div)
-		 (Eliom_client.Html5.of_paragraph (p [pcdata "on_load executed after 3s."])))
+		 (Eliom_client.Html5.of_p (p [pcdata "on_load executed after 3s."])))
          }};
       Eliom_services.onunload
         {{
 	  Dom.appendChild (Eliom_client.Html5.of_div %div)
-             (Eliom_client.Html5.of_paragraph (p [pcdata "on_unload executed. Waiting 1s."]));
+             (Eliom_client.Html5.of_p (p [pcdata "on_unload executed. Waiting 1s."]));
 	  (* FIXME GRGR *)
           ignore(Lwt_js.sleep 1.)
         }};
@@ -523,7 +523,7 @@ let uri_test =
       in
       Eliom_services.onload
         {{ Dom.appendChild (Eliom_client.Html5.of_div %div)
-             (Eliom_client.Html5.of_paragraph
+             (Eliom_client.Html5.of_p
 		(p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())]))
          }};
       Lwt.return (make_page [div])
@@ -560,7 +560,7 @@ let rec rec_list_react = (react_up,42)::rec_list_react
   let put n f =
     Printf.ksprintf (fun s ->
       Dom.appendChild (Eliom_client.Html5.of_element n)
-        (Eliom_client.Html5.of_paragraph (p [pcdata s]))) f
+        (Eliom_client.Html5.of_p (p [pcdata s]))) f
 }}
 
 let global_div = unique (div [pcdata "global div"])
@@ -592,7 +592,7 @@ let () =
 	    | _ -> put %div "problem with recursive list"; );
 
           Dom.appendChild (Eliom_client.Html5.of_div %div)
-            (Eliom_client.Html5.of_paragraph
+            (Eliom_client.Html5.of_p
 	       (p ~a:[ a_onclick
 			 (XML.event_of_function
 			 (fun _ ->
@@ -606,7 +606,7 @@ let () =
 	  let f_react = fst (List.hd %rec_list_react) in
 
           Dom.appendChild (Eliom_client.Html5.of_div %div)
-            (Eliom_client.Html5.of_paragraph
+            (Eliom_client.Html5.of_p
 	       (p ~a:[ a_onclick (XML.event_of_function (fun _ -> ignore (f_react 42)))] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
 
 	}};
@@ -1042,7 +1042,7 @@ let event_service =
       let targetresult = HTML5.M.p [] in
       Eliom_services.onload
         {{
-          let targetresult = (Eliom_client.Html5.of_paragraph %targetresult) in
+          let targetresult = (Eliom_client.Html5.of_p %targetresult) in
 
           let handler =
             lwt_arr
@@ -1061,30 +1061,30 @@ let event_service =
               )
           in
           let cancel c = arr (fun _ -> cancel c) in
-          let c = run (click (Eliom_client.Html5.of_paragraph %target1) >>> handler) () in
-          let _ = run (click (Eliom_client.Html5.of_paragraph %target2) >>> cancel c) () in
-          let _ = run (mousedown (Eliom_client.Html5.of_paragraph %target3) >>> mouseup (Eliom_client.Html5.of_paragraph %target2) >>> handler) () in
-          let c = run (clicks (Eliom_client.Html5.of_paragraph %target4) handler_long) () in
-          let _ = run (click (Eliom_client.Html5.of_paragraph %target5) >>> cancel c) () in
-          let _ = run (click (Eliom_client.Html5.of_paragraph %target6) >>> handler >>> click (Eliom_client.Html5.of_paragraph %target6) >>> handler) () in
-          let _ = run (clicks (Eliom_client.Html5.of_paragraph %target7) (click (Eliom_client.Html5.of_paragraph %target7) >>> handler)) () in
-          let _ = run (click (Eliom_client.Html5.of_paragraph %target8) >>> clicks (Eliom_client.Html5.of_paragraph %target8) handler) () in
-          let c = run (first [click (Eliom_client.Html5.of_paragraph %target9) >>> handler;
-                              click (Eliom_client.Html5.of_paragraph %target10) >>> handler]) ()
+          let c = run (click (Eliom_client.Html5.of_p %target1) >>> handler) () in
+          let _ = run (click (Eliom_client.Html5.of_p %target2) >>> cancel c) () in
+          let _ = run (mousedown (Eliom_client.Html5.of_p %target3) >>> mouseup (Eliom_client.Html5.of_p %target2) >>> handler) () in
+          let c = run (clicks (Eliom_client.Html5.of_p %target4) handler_long) () in
+          let _ = run (click (Eliom_client.Html5.of_p %target5) >>> cancel c) () in
+          let _ = run (click (Eliom_client.Html5.of_p %target6) >>> handler >>> click (Eliom_client.Html5.of_p %target6) >>> handler) () in
+          let _ = run (clicks (Eliom_client.Html5.of_p %target7) (click (Eliom_client.Html5.of_p %target7) >>> handler)) () in
+          let _ = run (click (Eliom_client.Html5.of_p %target8) >>> clicks (Eliom_client.Html5.of_p %target8) handler) () in
+          let c = run (first [click (Eliom_client.Html5.of_p %target9) >>> handler;
+                              click (Eliom_client.Html5.of_p %target10) >>> handler]) ()
           in
-          let _ = run (click (Eliom_client.Html5.of_paragraph %target11) >>> cancel c) ()
+          let _ = run (click (Eliom_client.Html5.of_p %target11) >>> cancel c) ()
           in
-          let c = run (mousedowns (Eliom_client.Html5.of_paragraph %target12)
+          let c = run (mousedowns (Eliom_client.Html5.of_p %target12)
                          (first [mouseup Dom_html.document;
                                  mousemoves Dom_html.document handler])) ()
           in
-          let _ = run (click (Eliom_client.Html5.of_paragraph %target13) >>> cancel c) ()
+          let _ = run (click (Eliom_client.Html5.of_p %target13) >>> cancel c) ()
           in
-          let c = run (mousedowns (Eliom_client.Html5.of_paragraph %target14)
+          let c = run (mousedowns (Eliom_client.Html5.of_p %target14)
                          (first [mouseup Dom_html.document;
                                  mousemoves Dom_html.document handler_long])) ()
           in
-          let _ = run (click (Eliom_client.Html5.of_paragraph %target15) >>> cancel c) ()
+          let _ = run (click (Eliom_client.Html5.of_p %target15) >>> cancel c) ()
           in
           ()
 
