@@ -2747,7 +2747,7 @@ module Eliom_appl_reg_make_param
           into account*)
        in
        lwt data = get_eliom_page_content ~options sp added_header content in
-       Caml.send (EAContent (data, url_to_display))
+       Caml.M.send (Eliom_types.encode_eliom_data (EAContent (data, url_to_display)))
      end
      else begin
        (* We launcha the client side process *)
