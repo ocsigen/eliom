@@ -687,6 +687,36 @@ let comet1 =
          ]
     )
 
+
+let caml_wrapping_service =
+  Eliom_output.Caml.register_post_coservice'
+    ~post_params:(Eliom_parameters.unit)
+    (fun () () -> Lwt.return
+      (Eliom_comet.Channels.create (Lwt_stream.clone stream1)))
+
+let caml_service_wrapping =
+  My_appl.register_service
+    ~path:["caml_service_wrapping"]
+    ~get_params:unit
+    (fun () () ->
+      Lwt.return
+        [
+          div ~a:[a_onclick {{
+	    lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
+	    Lwt_stream.iter_s
+              (fun i ->
+		Dom.appendChild (Dom_html.document##body)
+		  (Dom_html.document##createTextNode
+                     (Js.string ("message: "^ string_of_int i ^";  "))) ;
+		Lwt.return ()
+              ) c
+	    }}]
+	    [pcdata "click"];
+	  pcdata "when clicking on this link, messages should be received every 1 second";
+        ]
+    )
+
+
 (*wiki*
   This second example involves client-to-server and server to client event
   propagation. There is no manual handling of channel, only events are used.

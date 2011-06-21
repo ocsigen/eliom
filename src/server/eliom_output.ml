@@ -2202,24 +2202,32 @@ module Caml = struct
 
   module M = Eliom_mkreg.MakeRegister(Caml_reg_base)
 
+  let encode_eliom_data (v:'a) =
+    let wrapped = Eliom_wrap.wrap v in
+    let xml = Eliom_xml.contents_to_send () in
+    let value : 'a Eliom_types.eliom_comet_data_type
+	= wrapped, xml in
+    Eliom_types.encode_eliom_data value
+
+
   let make_eh = function
     | None -> None
     | Some eh ->
         Some (fun l ->
                 eh l >>= fun r ->
-                Lwt.return (Eliom_types.encode_eliom_data r))
+                Lwt.return (encode_eliom_data r))
 
   let make_service_handler f =
     fun g p ->
       f g p >>= fun r ->
-      Lwt.return (Eliom_types.encode_eliom_data r)
+      Lwt.return (encode_eliom_data r)
 
   let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers content =
     M.send ?options ?charset ?code
-      ?content_type ?headers (Eliom_types.encode_eliom_data content)
+      ?content_type ?headers (encode_eliom_data content)
 
   let register
       ?scope

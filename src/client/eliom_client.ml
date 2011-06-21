@@ -416,7 +416,14 @@ let call_caml_service
     ?hostname ?port ?fragment ?keep_nl_params ?nl_params ?keep_get_na_params
     g p
   >>= fun s ->
-  Lwt.return (Marshal.from_string (Url.decode s) 0)
+  let unmarshal s : 'a =
+    let (value,sent_nodes) =
+      (Marshal.from_string (Url.decode s) 0:'a Eliom_types.eliom_comet_data_type)
+    in
+    ignore (List.map (Eliommod_cli.rebuild_xml 0L) sent_nodes);
+    Eliom_unwrap.unwrap value
+  in
+  Lwt.return (unmarshal s)
 
 
 let fake_page = Dom_html.createBody Dom_html.document
