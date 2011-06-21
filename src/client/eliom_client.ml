@@ -123,21 +123,20 @@ module Html5 = struct
   let rebuild_attrib node a = match a with
     | XML.AFloat (name, f) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
     | XML.AInt (name, i) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
-    | XML.AStr (name, s) -> Js.Unsafe.set node (Js.string name) (Js.string s)
+    | XML.AStr (name, s) ->
+      node##setAttribute(Js.string name, Js.string s)
     | XML.AStrL (XML.Space, name, sl) ->
-      Js.Unsafe.set node
-	(Js.string name)
-	(Js.Unsafe.inject (Js.string
-			     (match sl with
-			       | [] -> ""
-			       | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l)))
+      node##setAttribute
+	(Js.string name,
+	 Js.string (match sl with
+	   | [] -> ""
+	   | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l))
     | XML.AStrL (XML.Comma, name, sl) ->
-      Js.Unsafe.set node
-	(Js.string name)
-	(Js.Unsafe.inject (Js.string
-			     (match sl with
-			       | [] -> ""
-			       | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l)))
+      node##setAttribute
+	(Js.string name,
+	 Js.string (match sl with
+	   | [] -> ""
+	   | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l))
 
   let rebuild_rattrib node ra = match XML.racontent ra with
     | XML.RA a -> rebuild_attrib node a
