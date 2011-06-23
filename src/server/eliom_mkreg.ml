@@ -249,19 +249,16 @@ let register_aux pages
           in
           (match (key_kind, attserget, attserpost) with
             | (Ocsigen_http_frame.Http_header.POST, _,
-               Eliom_common.SAtt_csrf_safe (id, state_name,
-                                            scope, secure_session)) ->
+               Eliom_common.SAtt_csrf_safe (id, scope, secure_session)) ->
               let tablereg, forsession =
                 match table with
                   | Left globtbl -> globtbl, false
-                  | Right (sp, sn, ct, sec) ->
-                    if sn <> state_name || secure_session <> sec
-                      || scope <> ct
+                  | Right (sp, ct, sec) ->
+                    if secure_session <> sec || scope <> ct
                     then raise
                       Wrong_session_table_for_CSRF_safe_coservice;
                     !(Eliom_state.get_session_service_table
-                        ?secure:secure_session
-                        ?state_name ~scope ~sp ()),
+                        ?secure:secure_session ~scope ~sp ()),
                       true
               in
               Eliom_services.set_delayed_post_registration_function
@@ -279,25 +276,22 @@ let register_aux pages
                          the csrf safe service *)
                       !(Eliom_state.get_session_service_table
                           ?secure:secure_session
-                          ?state_name ~scope ~sp ())
+                          ~scope ~sp ())
                   in
                   f table (attserget, attserpost);
                   n)
             | (Ocsigen_http_frame.Http_header.GET,
-               Eliom_common.SAtt_csrf_safe (id, state_name,
-                                            scope, secure_session),
+               Eliom_common.SAtt_csrf_safe (id, scope, secure_session),
                _) ->
               let tablereg, forsession =
                 match table with
                   | Left globtbl -> globtbl, false
-                  | Right (sp, sn, ct, sec) ->
-                    if sn <> state_name || secure_session <> sec
-                      || ct <> scope
+                  | Right (sp, ct, sec) ->
+                    if secure_session <> sec || ct <> scope
                     then raise
                       Wrong_session_table_for_CSRF_safe_coservice;
                     !(Eliom_state.get_session_service_table
-                        ?secure:secure_session
-                        ?state_name ~scope ~sp ()), true
+                        ?secure:secure_session ~scope ~sp ()), true
               in
               Eliom_services.set_delayed_get_or_na_registration_function
                 tablereg
@@ -313,8 +307,7 @@ let register_aux pages
                          but in the table specified while creating
                          the csrf safe service *)
                       !(Eliom_state.get_session_service_table
-                          ?secure:secure_session
-                          ?state_name ~scope ~sp ())
+                          ?secure:secure_session ~scope ~sp ())
                   in
                   f table (attserget, attserpost);
                   n)
@@ -322,10 +315,9 @@ let register_aux pages
               let tablereg =
                 match table with
                   | Left globtbl -> globtbl
-                  | Right (sp, state_name,
-                           scope, secure_session) ->
+                  | Right (sp, scope, secure_session) ->
                     !(Eliom_state.get_session_service_table
-                        ?secure:secure_session ?state_name ~scope ~sp ())
+                        ?secure:secure_session ~scope ~sp ())
               in
               f tablereg (attserget, attserpost))
 	| `Nonattached naser ->
@@ -381,20 +373,17 @@ let register_aux pages
                ))
           in
           match na_name with
-            | Eliom_common.SNa_get_csrf_safe (id, state_name,
-                                              scope, secure_session) ->
+            | Eliom_common.SNa_get_csrf_safe (id, scope, secure_session) ->
               (* CSRF safe coservice: we'll do the registration later *)
               let tablereg, forsession =
                 match table with
                   | Left globtbl -> globtbl, false
-                  | Right (sp, sn, ct, sec) ->
-                    if sn <> state_name || secure_session <> sec
-                      || ct <> scope
+                  | Right (sp, ct, sec) ->
+                    if secure_session <> sec || ct <> scope
                     then raise
                       Wrong_session_table_for_CSRF_safe_coservice;
                     !(Eliom_state.get_session_service_table
-                        ?secure:secure_session
-                        ?state_name ~scope ~sp ()), true
+                        ?secure:secure_session ~scope ~sp ()), true
               in
               set_delayed_get_or_na_registration_function
                 tablereg
@@ -410,25 +399,21 @@ let register_aux pages
                          but in the table specified while creating
                          the csrf safe service *)
                       !(Eliom_state.get_session_service_table
-                          ?secure:secure_session
-                          ?state_name ~scope ~sp ())
+                          ?secure:secure_session ~scope ~sp ())
                   in
                   f table na_name;
                   n)
-            | Eliom_common.SNa_post_csrf_safe (id, state_name,
-                                               scope, secure_session) ->
+            | Eliom_common.SNa_post_csrf_safe (id, scope, secure_session) ->
               (* CSRF safe coservice: we'll do the registration later *)
               let tablereg, forsession =
                 match table with
                   | Left globtbl -> globtbl, false
-                  | Right (sp, sn, ct, sec) ->
-                    if sn <> state_name || secure_session <> sec
-                      || ct <> scope
+                  | Right (sp, ct, sec) ->
+                    if secure_session <> sec || ct <> scope
                     then raise
                       Wrong_session_table_for_CSRF_safe_coservice;
                     !(Eliom_state.get_session_service_table
-                        ?secure:secure_session
-                        ?state_name ~scope ~sp ()), true
+                        ?secure:secure_session ~scope ~sp ()), true
               in
               set_delayed_get_or_na_registration_function
                 tablereg
@@ -444,8 +429,7 @@ let register_aux pages
                          but in the table specified while creating
                          the csrf safe service *)
                       !(Eliom_state.get_session_service_table
-                          ?secure:secure_session
-                          ?state_name ~scope ~sp ())
+                          ?secure:secure_session ~scope ~sp ())
                   in
                   f table na_name;
                   n)
@@ -453,10 +437,9 @@ let register_aux pages
               let tablereg =
                 match table with
                   | Left globtbl -> globtbl
-                  | Right (sp, state_name,
-                           scope, secure_session) ->
+                  | Right (sp, scope, secure_session) ->
                     !(Eliom_state.get_session_service_table
-                        ?secure:secure_session ?state_name ~scope ~sp ())
+                        ?secure:secure_session ~scope ~sp ())
               in
               f tablereg na_name
     end
@@ -480,20 +463,20 @@ let send pages
   Lwt.return (pages.result_of_http_result result)
 
 let register pages
-    ?(scope = `Global)
+    ?scope
     ?options
     ?charset
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ~service
     ?error_handler
     page_gen =
   let sp = Eliom_common.get_sp_option () in
   match scope, sp with
-    | `Global, None ->
+    | None, None
+    | Some `Global, None ->
       (match Eliom_common.global_register_allowed () with
         | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
@@ -515,7 +498,8 @@ let register pages
         | _ -> raise
           (Eliom_common.Eliom_site_information_not_available
              "register"))
-    | `Global, Some sp ->
+    | None, Some sp
+    | Some `Global, Some sp ->
       register_aux pages
         ?options
         ?charset
@@ -528,8 +512,7 @@ let register pages
         page_gen
     | _, None ->
       raise (failwith "Missing sp while registering service")
-    | scope, Some sp ->
-      let scope = Eliom_common.user_scope_of_scope scope in
+    | Some (#Eliom_common.user_scope as scope), Some sp ->
       register_aux pages
         ?options
         ?charset
@@ -537,7 +520,7 @@ let register pages
         ?content_type
         ?headers
         ?error_handler
-        (Right (sp, state_name, scope, secure_session))
+        (Right (sp, scope, secure_session))
         ~service page_gen
 
   (* WARNING: if we create a new service without registering it,
@@ -555,7 +538,6 @@ let register_service pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ?https
     ?priority
@@ -571,7 +553,6 @@ let register_service pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ~service:u ?error_handler page;
   u
@@ -583,11 +564,9 @@ let register_coservice pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ?name
     ?csrf_safe
-    ?csrf_state_name
     ?csrf_scope
     ?csrf_secure
     ?max_use
@@ -600,8 +579,7 @@ let register_coservice pages
   let u =
     coservice ?name
       ?csrf_safe
-      ?csrf_state_name
-      ?csrf_scope
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
       ?max_use ?timeout ?https
       ~fallback ~get_params ()
@@ -613,7 +591,6 @@ let register_coservice pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ~service:u ?error_handler page;
   u
@@ -625,11 +602,9 @@ let register_coservice' pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ?name
     ?csrf_safe
-    ?csrf_state_name
     ?csrf_scope
     ?csrf_secure
     ?max_use
@@ -642,8 +617,7 @@ let register_coservice' pages
     coservice'
       ?name
       ?csrf_safe
-      ?csrf_state_name
-      ?csrf_scope
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
       ?max_use ?timeout ?https ~get_params ()
   in
@@ -654,7 +628,6 @@ let register_coservice' pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ~service:u ?error_handler page;
   u
@@ -666,7 +639,6 @@ let register_post_service pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ?https
     ?priority
@@ -683,7 +655,6 @@ let register_post_service pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ~service:u ?error_handler page_gen;
   u
@@ -695,11 +666,9 @@ let register_post_coservice pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ?name
     ?csrf_safe
-    ?csrf_state_name
     ?csrf_scope
     ?csrf_secure
     ?max_use
@@ -712,8 +681,7 @@ let register_post_coservice pages
   let u =
     post_coservice ?name
       ?csrf_safe
-      ?csrf_state_name
-      ?csrf_scope
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
       ?max_use ?timeout ?https
       ~fallback ~post_params () in
@@ -724,7 +692,6 @@ let register_post_coservice pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ~service:u ?error_handler page_gen;
   u
@@ -736,11 +703,9 @@ let register_post_coservice' pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ?name
     ?csrf_safe
-    ?csrf_state_name
     ?csrf_scope
     ?csrf_secure
     ?max_use
@@ -754,8 +719,7 @@ let register_post_coservice' pages
     post_coservice'
       ?name
       ?csrf_safe
-      ?csrf_state_name
-      ?csrf_scope
+      ?csrf_scope:(csrf_scope:>Eliom_common.user_scope option)
       ?csrf_secure
       ?keep_get_na_params
       ?max_use
@@ -770,7 +734,6 @@ let register_post_coservice' pages
     ?code
     ?content_type
     ?headers
-    ?state_name
     ?secure_session
     ~service:u ?error_handler page_gen;
   u

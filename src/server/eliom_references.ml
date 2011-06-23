@@ -35,30 +35,25 @@ type 'a eref_kind =
 
 type 'a eref = 'a * 'a eref_kind
 
-let eref ?state_name ?(scope = `Global) ?secure ?persistent value =
-  if scope = `Request
-  then (value, Req (Polytables.make_key ()))
-  else if scope = `Global
-  then match persistent with
-    | None -> (value, Ref (ref value))
-    | Some name ->
-      (value, Ocsiper (Ocsipersist.make_persistent
-                         ~store:pers_ref_store ~name ~default:value))
-  else
-    let scope = match scope with
-      | `Global
-      | `Request
-      | `Client_process -> `Client_process
-      | `Session -> `Session
-      | `Session_group -> `Session_group
-    in
-    match persistent with
-      | None ->
-        (value,
-         Vol (lazy (create_volatile_table ?state_name ~scope ?secure ())))
-      | Some name ->
-        (value,
-         Per (create_persistent_table ?state_name ~scope ?secure name))
+let eref ~scope ?secure ?persistent value : 'a eref =
+  match (scope:[<Eliom_common.all_scope]) with
+    | `Request -> (value, Req (Polytables.make_key ()))
+    | `Global ->
+      begin
+	match persistent with
+	  | None -> (value, Ref (ref value))
+	  | Some name ->
+	    (value, Ocsiper (Ocsipersist.make_persistent
+                               ~store:pers_ref_store ~name ~default:value))
+      end
+    | (#Eliom_common.user_scope as scope) ->
+      match persistent with
+	| None ->
+          (value,
+           Vol (lazy (create_volatile_table ~scope ?secure ())))
+	| Some name ->
+          (value,
+           Per (create_persistent_table ~scope ?secure name))
 
 let get (value, table) =
   match table with

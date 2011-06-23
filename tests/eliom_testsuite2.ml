@@ -77,7 +77,8 @@ let raw_post_service =
 (****************** Connection of users *********************)
 (************************************************************)
 (*zap* *)
-let state_name = "connect_example_state"
+let scope_name = Eliom_common.create_scope_name "connect_example_state"
+let session = `Session scope_name
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -102,7 +103,7 @@ let disconnect_action =
     ~name:"disconnection"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+      Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
   Eliom_output.Html5.post_form disconnect_action
@@ -110,10 +111,10 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Request false
+let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
 
 (* The following eref is the name of the user, when connected *)
-let user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Session None
+let user = Eliom_references.eref ~scope:session None
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -139,7 +140,7 @@ let login_box session_expired bad_u action =
 
 let connect_example_handler () () =
   (* The following function tests whether the session has expired: *)
-  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~scope:session (* *zap*) ()
   in
   Eliom_references.get bad_user >>= fun bad_u ->
   Eliom_references.get user >>= fun u ->
@@ -163,7 +164,7 @@ let connect_example_handler () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler () login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  lwt () = Eliom_state.discard ~scope:session () in
   if login = "toto" (* Check user and password :-) *)
   then Eliom_references.set user (Some login)
   else Eliom_references.set bad_user true
@@ -183,7 +184,8 @@ let () =
 (********* Connection of users with session groups **********)
 (************************************************************)
 (*zap* *)
-let state_name = "session_group_example_state"
+let scope_name = Eliom_common.create_scope_name "session_group_example_state"
+let scope = `Session scope_name
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -208,7 +210,7 @@ let disconnect_action =
     ~name:"disconnection2"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+      Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
   Eliom_output.Html5.post_form disconnect_action
@@ -216,7 +218,7 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Request false
+let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -242,10 +244,10 @@ let login_box session_expired bad_u action =
 
 let connect_example_handler () () =
   (* The following function tests whether the session has expired: *)
-  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~scope:session (* *zap*) ()
   in
   let group =
-    Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ()
+    Eliom_state.get_volatile_data_session_group (*zap* *) ~scope:session (* *zap*) ()
   in
   Eliom_references.get bad_user >>= fun bad_u ->
   Lwt.return
@@ -268,10 +270,10 @@ let connect_example_handler () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler () login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  lwt () = Eliom_state.discard ~scope:session () in
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) login;
+    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
     Eliom_output.Redirection.send Eliom_services.void_hidden_coservice'
   end
   else  
@@ -290,7 +292,7 @@ let () =
 
 (*****************************************************************************)
 
-let myeref = Eliom_references.eref ~persistent:"perscount" 0
+let myeref = Eliom_references.eref ~scope:`Global ~persistent:"perscount" 0
 
 let count3 =
   let next =
@@ -450,13 +452,13 @@ let unregister_example =
          ~get_params:Eliom_parameters.unit
          (fun () () -> failwith "s3")
        in
-       Eliom_output.Xhtml.register ~scope:`Session
+       Eliom_output.Xhtml.register ~scope:Eliom_common.session
          ~service:s1
          (fun () () -> failwith "s4");
        Eliom_services.unregister s1;
        Eliom_services.unregister s2;
        Eliom_services.unregister s3;
-       Eliom_services.unregister ~scope:`Session s1;
+       Eliom_services.unregister ~scope:Eliom_common.session s1;
        Lwt.return
          (html
             (head (title (pcdata "Unregistering services")) [])
@@ -559,10 +561,12 @@ let csrfsafe_session_example =
     ~get_params:Eliom_parameters.unit
     ()
 
+let myscope = (`Session (Eliom_common.create_scope_name "plop"))
+
 let csrfsafe_example_session =
   Eliom_services.post_coservice'
     ~csrf_safe:true
-    ~csrf_state_name:"plop"
+    ~csrf_scope:myscope
     ~csrf_secure:true
     ~timeout:10.
     ~post_params:Eliom_parameters.unit
@@ -570,8 +574,7 @@ let csrfsafe_example_session =
 
 let _ =
   let page () () =
-    Eliom_output.Xhtml.register ~scope:`Session
-      ~state_name:"plop"
+    Eliom_output.Xhtml.register ~scope:myscope
       ~secure_session:true
       ~service:csrfsafe_example_session
       (fun () () ->
@@ -1778,14 +1781,17 @@ let exn_act_main =
                    ]])))
 
 
+let action_example2_scope =
+  `Session (Eliom_common.create_scope_name "action_example2")
+
 (* close sessions from outside *)
 let close_from_outside =
   register_service
     ~path:["close_from_outside"]
     ~get_params:unit
     (fun () () ->
-      discard_all ~state_name:"persistent_sessions" () >>= fun () ->
-      discard_all ~state_name:"action_example2" () >>= fun () ->
+      lwt () = discard_all ~scope:persistent_session_scope () in
+      lwt () = discard_all ~scope:action_example2_scope () in
       return
         (html
            (head (title (pcdata "")) [])
@@ -1802,11 +1808,11 @@ register_service
     (fun (t, (recompute, override_configfile)) () ->
       set_global_persistent_data_state_timeout
         ~override_configfile
-        ~state_name:(Some "persistent_sessions")
+        ~scope:persistent_session_scope
         ~recompute_expdates:recompute (Some (float_of_int t));
       set_global_volatile_state_timeout
         ~override_configfile
-        ~state_name:(Some "action_example2")
+        ~scope:action_example2_scope
         ~recompute_expdates:recompute (Some (float_of_int t));
       return
         (html

@@ -36,7 +36,7 @@ let compute_cookie_info secure secure_ci cookie_info =
     | None -> true
     | Some s -> s
   in
-  if secure 
+  if secure
   then match secure_ci with
     | None (* not ssl *) -> cookie_info
     | Some (_, _, c) -> c
@@ -52,21 +52,21 @@ let number_of_persistent_tables () =
 let number_of_persistent_table_elements () =
   List.fold_left
     (fun thr t ->
-      thr >>= fun l -> 
-      Ocsipersist.length (Ocsipersist.open_table t) >>= fun e -> 
+      thr >>= fun l ->
+      Ocsipersist.length (Ocsipersist.open_table t) >>= fun e ->
       return ((t, e)::l)) (return []) !perstables
 
 let close_persistent_session2 =
   Eliommod_sessiongroups.Pers.close_persistent_session2
 
 (* close current persistent session *)
-let close_persistent_session ?state_name ?(scope = `Session) ~secure ?sp () =
+let close_persistent_session ~scope ~secure ?sp () =
   let sp = Eliom_common.sp_of_option sp in
   catch
     (fun () ->
       let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
-      let fullsessname = 
-        Eliom_common.make_fullsessname ~sp cookie_scope state_name 
+      let fullsessname =
+        Eliom_common.make_fullsessname ~sp scope
       in
       let ((_, _, cookie_info), secure_ci) =
         Eliom_common.get_cookie_info sp cookie_scope
@@ -79,12 +79,12 @@ let close_persistent_session ?state_name ?(scope = `Session) ~secure ?sp () =
       match !ior with
       | Eliom_common.SC c ->
         ((match scope with
-          | `Session_group ->
+          | `Session_group _ ->
             Eliommod_sessiongroups.Pers.remove_group
               ~cookie_scope:`Session
               sp.Eliom_common.sp_sitedata
               !(c.Eliom_common.pc_session_group)
-          | `Session ->
+          | `Session _ ->
             Eliommod_sessiongroups.Pers.remove_group
               ~cookie_scope:(`Client_process !(c.Eliom_common.pc_session_group))
               sp.Eliom_common.sp_sitedata
@@ -92,7 +92,7 @@ let close_persistent_session ?state_name ?(scope = `Session) ~secure ?sp () =
                  ~cookie_scope:`Client_process
                  sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
                  (Some c.Eliom_common.pc_value))
-          | `Client_process ->
+          | `Client_process _ ->
             close_persistent_session2
               ~cookie_scope:`Client_process
               sp.Eliom_common.sp_sitedata
@@ -116,26 +116,28 @@ let fullsessgrp ~cookie_scope ~sp session_group =
 
 
 let rec find_or_create_persistent_cookie_
-    ?set_max_in_group ?set_session_group ?state_name
-    ?(cookie_scope = `Session) ~secure ~sp () =
+    ?set_max_in_group ?set_session_group ~scope ~secure ~sp () =
   (* if it exists, do not create it, but returns its value *)
+  let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
 
   let new_persistent_cookie sitedata fullsessname =
 
-    (if cookie_scope = `Client_process
-     then begin (* We create a group whose name is the
-                   browser session cookie 
+    lwt set_session_group =
+      match scope with
+	| `Client_process n ->
+	  begin (* We create a group whose name is the
+                   browser session cookie
                    and put the tab session into it. *)
-       find_or_create_persistent_cookie_
-         ~set_max_in_group:
-         (fst sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group)
-         ?state_name
-         ~cookie_scope:`Session
-         ~secure
-         ~sp
-         () >>= fun r -> Lwt.return (Some r.Eliom_common.pc_value)
-     end
-     else Lwt.return set_session_group) >>= fun set_session_group ->
+	    lwt r = find_or_create_persistent_cookie_
+              ~set_max_in_group:
+              (fst sitedata.Eliom_common.max_persistent_data_tab_sessions_per_group)
+              ~scope:(`Session n)
+              ~secure
+              ~sp
+              () in
+	    Lwt.return (Some r.Eliom_common.pc_value)
+	  end
+	| #Eliom_common.user_scope  -> Lwt.return set_session_group in
 
     let fullsessgrp = fullsessgrp ~cookie_scope ~sp set_session_group in
 
@@ -166,8 +168,8 @@ let rec find_or_create_persistent_cookie_
       }
   in
 
-  let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_scope state_name 
+  let fullsessname =
+    Eliom_common.make_fullsessname ~sp scope
   in
   let ((_, _, cookie_info), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_scope
@@ -203,19 +205,19 @@ let rec find_or_create_persistent_cookie_
       | e -> fail e)
 
 let find_or_create_persistent_cookie
-    ?set_session_group ?state_name ?cookie_scope ~secure ?sp () =
+    ?set_session_group ~scope ~secure ?sp () =
   let sp = Eliom_common.sp_of_option sp in
   find_or_create_persistent_cookie_
-    ?set_session_group ?state_name ?cookie_scope ~secure ~sp ()
+    ?set_session_group ~scope:(scope:>Eliom_common.user_scope) ~secure ~sp ()
 
 
-let find_persistent_cookie_only ?state_name
-    ?(cookie_scope = `Session) ~secure ?sp () =
+let find_persistent_cookie_only ~scope ~secure ?sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let sp = Eliom_common.sp_of_option sp in
-  let fullsessname = 
-    Eliom_common.make_fullsessname ~sp cookie_scope state_name 
+  let cookie_scope = Eliom_common.cookie_scope_of_user_scope scope in
+  let fullsessname =
+    Eliom_common.make_fullsessname ~sp scope
   in
   let ((_, _, cookie_info), secure_ci) =
     Eliom_common.get_cookie_info sp cookie_scope

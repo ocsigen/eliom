@@ -1890,7 +1890,6 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ~service
       ?error_handler
@@ -1902,7 +1901,6 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ~service
       ?error_handler:(make_eh error_handler)
@@ -1915,7 +1913,6 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?https
       ?priority
@@ -1930,7 +1927,6 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?https
       ?priority
@@ -1946,11 +1942,9 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -1967,11 +1961,9 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -1989,11 +1981,9 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2009,11 +1999,9 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2030,7 +2018,6 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?https
       ?priority
@@ -2045,7 +2032,6 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?https
       ?priority
@@ -2061,11 +2047,9 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2082,11 +2066,9 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2104,11 +2086,9 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2125,11 +2105,9 @@ module Customize
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2204,7 +2182,6 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ~(service : ('get, 'post,
                    [< internal_service_kind ],
@@ -2219,7 +2196,6 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ~service:(Eliom_services.untype_service_ service)
       ?error_handler:(make_eh error_handler)
@@ -2233,7 +2209,6 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?https
       ?priority
@@ -2248,7 +2223,6 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?state_name
                                       ?secure_session
                                       ?https
 				      ?priority
@@ -2264,11 +2238,9 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2285,11 +2257,9 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?state_name
                                       ?secure_session
                                       ?name
                                       ?csrf_safe
-                                      ?csrf_state_name
                                       ?csrf_scope
                                       ?csrf_secure
                                       ?max_use
@@ -2307,11 +2277,9 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2327,11 +2295,9 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?state_name
                                       ?secure_session
                                       ?name
                                       ?csrf_safe
-                                      ?csrf_state_name
                                       ?csrf_scope
                                       ?csrf_secure
                                       ?max_use
@@ -2349,7 +2315,6 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?https
       ?priority
@@ -2364,7 +2329,6 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?state_name
                                       ?secure_session
                                       ?https
 				      ?priority
@@ -2380,11 +2344,9 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2401,11 +2363,9 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?state_name
                                       ?secure_session
                                       ?name
                                       ?csrf_safe
-                                      ?csrf_state_name
                                       ?csrf_scope
                                       ?csrf_secure
                                       ?max_use
@@ -2423,11 +2383,9 @@ module Caml = struct
       ?code
       ?content_type
       ?headers
-      ?state_name
       ?secure_session
       ?name
       ?csrf_safe
-      ?csrf_state_name
       ?csrf_scope
       ?csrf_secure
       ?max_use
@@ -2444,11 +2402,9 @@ module Caml = struct
                                       ?code
                                       ?content_type
                                       ?headers
-                                      ?state_name
                                       ?secure_session
                                       ?name
                                       ?csrf_safe
-                                      ?csrf_state_name
                                       ?csrf_scope
                                       ?csrf_secure
                                       ?max_use

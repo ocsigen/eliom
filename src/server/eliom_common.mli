@@ -43,6 +43,37 @@ exception Eliom_site_information_not_available of string
     delay the function call using {!Eliom_services.register_eliom_module}.
 *)
 
+(* those types are not available to the user, a scope must be created using
+   create_..._scope functions *)
+type scope_name = Eliom_common_base.scope_name
+
+type user_scope = [ `Session_group of scope_name
+		  | `Session of scope_name
+		  | `Client_process of scope_name ]
+
+type scope = [ `Global
+	     | user_scope ]
+
+type all_scope = [ scope
+		 | `Request ]
+
+type global_scope = [`Global]
+type session_group_scope = [`Session_group of scope_name]
+type session_scope = [`Session of scope_name]
+type client_process_scope = [`Client_process of scope_name]
+type request_scope = [`Request]
+
+val global : global_scope
+val session_group : session_group_scope
+val session : session_scope
+val client_process : client_process_scope
+val comet_client_process : client_process_scope
+val request : request_scope
+
+val create_scope_name : string -> scope_name
+
+val list_scope_names : unit -> scope_name list
+
 (** Eliom is using regular (browser) cookies but can also use
     browser tab cookies (only if you are using a client side program)
 *)
@@ -50,11 +81,8 @@ type cookie_scope = [ `Session | `Client_process ]
 (** It is possible to define data tables or service table for one
     (browser) session, for one tab, or for one group of sessions.
 *)
-type user_scope = [ `Session_group | `Session | `Client_process ]
-type scope = [ `Global | `Session_group | `Session | `Client_process ]
 
 val cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ]
-val user_scope_of_scope : [< scope ] -> [> user_scope ]
 
 type fullsessionname = cookie_scope * string
 module Fullsessionname_Table : Map.S with type key = fullsessionname
@@ -85,11 +113,11 @@ type att_key_serv =
   | SAtt_no (* regular service *)
   | SAtt_named of string (* named coservice *)
   | SAtt_anon of string (* anonymous coservice *)
-  | SAtt_csrf_safe of (int * string option * user_scope * bool option)
+  | SAtt_csrf_safe of (int * user_scope * bool option)
       (* CSRF safe anonymous coservice *)
       (* CSRF safe service registration delayed until form/link creation *)
       (* the int is an unique id,
-         the string option is the session name for delayed registration
+         the user_scope is used for delayed registration
          (if the service is registered in the global table),
          the bool option is the ?secure parameter for delayed registration
          (if the service is registered in the global table) *)
@@ -102,9 +130,9 @@ type na_key_serv =
   | SNa_post_ of string (* named *)
   | SNa_get' of string (* anonymous *)
   | SNa_post' of string (* anonymous *)
-  | SNa_get_csrf_safe of (int * string option * user_scope * bool option)
+  | SNa_get_csrf_safe of (int * user_scope * bool option)
       (* CSRF safe anonymous coservice *)
-  | SNa_post_csrf_safe of (int * string option * user_scope * bool option)
+  | SNa_post_csrf_safe of (int * user_scope * bool option)
       (* CSRF safe anonymous coservice *)
 
 (* the same, for incoming requests: *)
@@ -443,6 +471,8 @@ and sitedata = {
   lazy_site_value_table : Polytables.t; (* table containing evaluated
 					   lazy site values *)
 
+  mutable registered_scope_names: String.Set.t;
+
   global_services : tables;
   session_services : tables servicecookiestable;
   session_data : datacookiestable;
@@ -503,10 +533,10 @@ val get_session_info :
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 val make_full_cookie_name : string -> string -> string
-val make_fullsessname : 
-  sp:server_params -> [< cookie_scope ] -> string option -> fullsessionname
-val make_fullsessname2 : 
-  string -> [< cookie_scope ] -> string option -> fullsessionname
+val make_fullsessname :
+  sp:server_params -> [< user_scope ] -> fullsessionname
+val make_fullsessname2 :
+  string -> [< user_scope ] -> fullsessionname
 
 
 

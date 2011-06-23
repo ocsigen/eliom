@@ -335,7 +335,7 @@ let reassociate end_point =
 
 
 (* CHECK *)
-let state_name = "__eliom_openid"
+let scope = `Session (Eliom_common.create_scope_name "__eliom_openid")
 let group_name = "__eliom_openid_group"
 
 type field = 
@@ -466,7 +466,7 @@ type 'a authentication_result =
 let end_login_handler ext ret_to endpoint assoc f args =
   let args = strip_ns "openid" args in
   let mode = get args "mode" in
-  let _ = Eliom_state.discard ~state_name () in
+  let _ = Eliom_state.discard ~scope () in
   if mode = "id_res" then
     (if List.mem_assoc "invalidate_handle" args then
         reassociate endpoint
@@ -511,19 +511,18 @@ module Make (S : HiddenServiceInfo) = struct
       ~service:return_service []
     in
     let _ = Eliom_output.Any.register
-      ~scope:`Session
-      ~state_name
+      ~scope
       ~service:return_service
       (fun args _ -> 
         end_login_handler ext !uri (fst discovery) assoc handler args)
     in
     let _ = Eliom_state.set_global_service_state_timeout
-      ~state_name: (Some state_name)
+      ~scope
       (Some 60.)
     in
     let _ = Eliom_state.set_service_session_group
       ~set_max: 1000
-      ~state_name
+      ~scope
       group_name
     in
     let params = 

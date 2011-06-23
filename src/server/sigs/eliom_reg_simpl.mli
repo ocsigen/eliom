@@ -20,15 +20,18 @@ val send :
 
 	For example if [t] is [Eliom_parameters.int "s"], then [ 'get] is [int].
 
-	The [?scope] optional parameter is [`Global] by default, which means that the
+	The [?scope] optional parameter is [Eliom_common.global] by default, which means that the
 	service will be registered in the global table and be available to any client.
 	If you want to restrict the visibility of the service to a browser session,
-	use [~scope:`Session].
+	use [~scope:Eliom_common.session].
 	If you want to restrict the visibility of the service to a group of sessions,
-	use [~scope:`Session_group].
+	use [~scope:Eliom_common.session_group].
 	If you have a client side Eliom program running, and you want to restrict
 	the visibility of the service to this instance of the program,
-	use [~scope:`Client_process].
+	use [~scope:Eliom_common.client_process]. You can create new scopes with
+	[Eliom_common.create_session_group_scope], [Eliom_common.create_session_scope]
+	and [Eliom_common.create_client_process_scope] if you want several service
+	sessions on the same site.
 
 	If the same service is registered several times with different visibilities,
 	Eliom will choose the service for handling a request in that order:
@@ -52,10 +55,6 @@ val send :
 	The optional parameters [?charset], [?code], [?content_type] and [?headers]
 	can be used to modify the HTTP answer sent by Eliom. Use this with care.
 
-	[?state_name] is the name of the session (browser session or "tab" session),
-	if you want several
-	service sessions on the same site. It has no effect for scope [`Global].
-
 	If [~secure_session] is false when the protocol is https, the service will be
 	registered in the unsecure session,
 	otherwise in the secure session with https, the unsecure one with http.
@@ -63,19 +62,18 @@ val send :
 	only through HTTPS). It has no effect for scope [`Global].
 
 	Note that in the case of CSRF safe coservices, parameters
-	[?state_name] and [?secure_session] must match exactly the session name
+	[?scope] and [?secure_session] must match exactly the scope
 	and secure option specified while creating the CSRF safe service.
 	Otherwise, the registration will fail
 	with {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}
     *)
 val register :
-  ?scope:Eliom_common.scope ->
+  ?scope:[<Eliom_common.scope] ->
   ?options:options ->
   ?charset:string ->
   ?code: int ->
   ?content_type:string ->
   ?headers: Http_headers.t ->
-  ?state_name:string ->
   ?secure_session:bool ->
   service:('get, 'post,
            [< internal_service_kind ],
@@ -86,13 +84,12 @@ val register :
 
 (** Same as [service] followed by [register] *)
 val register_service :
-  ?scope:Eliom_common.scope ->
+  ?scope:[<Eliom_common.scope] ->
   ?options:options ->
   ?charset:string ->
   ?code: int ->
   ?content_type:string ->
   ?headers: Http_headers.t ->
-  ?state_name:string ->
   ?secure_session:bool ->
   ?https:bool ->
   ?priority:int ->
@@ -109,18 +106,16 @@ val register_service :
 
 (** Same as [coservice] followed by [register] *)
 val register_coservice :
-  ?scope:Eliom_common.scope ->
+  ?scope:[<Eliom_common.scope] ->
   ?options:options ->
   ?charset:string ->
   ?code: int ->
   ?content_type:string ->
   ?headers: Http_headers.t ->
-  ?state_name:string ->
   ?secure_session:bool ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_state_name: string ->
-  ?csrf_scope: Eliom_common.user_scope ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -143,18 +138,16 @@ val register_coservice :
 
 (** Same as [coservice'] followed by [register] *)
 val register_coservice' :
-  ?scope:Eliom_common.scope ->
+  ?scope:[<Eliom_common.scope] ->
   ?options:options ->
   ?charset:string ->
   ?code: int ->
   ?content_type:string ->
   ?headers: Http_headers.t ->
-  ?state_name:string ->
   ?secure_session:bool ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_state_name: string ->
-  ?csrf_scope: Eliom_common.user_scope ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -171,13 +164,12 @@ val register_coservice' :
 
 (** Same as [post_service] followed by [register] *)
 val register_post_service :
-  ?scope:Eliom_common.scope ->
+  ?scope:[<Eliom_common.scope] ->
   ?options:options ->
   ?charset:string ->
   ?code: int ->
   ?content_type:string ->
   ?headers: Http_headers.t ->
-  ?state_name:string ->
   ?secure_session:bool ->
   ?https:bool ->
   ?priority:int ->
@@ -198,18 +190,16 @@ val register_post_service :
 
 (** Same as [post_coservice] followed by [register] *)
 val register_post_coservice :
-  ?scope:Eliom_common.scope ->
+  ?scope:[<Eliom_common.scope] ->
   ?options:options ->
   ?charset:string ->
   ?code: int ->
   ?content_type:string ->
   ?headers: Http_headers.t ->
-  ?state_name:string ->
   ?secure_session:bool ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_state_name: string ->
-  ?csrf_scope: Eliom_common.user_scope ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -232,18 +222,16 @@ val register_post_coservice :
 
 (** Same as [post_coservice'] followed by [register] *)
 val register_post_coservice' :
-  ?scope:Eliom_common.scope ->
+  ?scope:[<Eliom_common.scope] ->
   ?options:options ->
   ?charset:string ->
   ?code: int ->
   ?content_type:string ->
   ?headers: Http_headers.t ->
-  ?state_name:string ->
   ?secure_session:bool ->
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_state_name: string ->
-  ?csrf_scope: Eliom_common.user_scope ->
+  ?csrf_scope: [<Eliom_common.user_scope] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->

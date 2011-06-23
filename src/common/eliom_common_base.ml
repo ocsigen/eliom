@@ -22,20 +22,40 @@ open Eliom_pervasives
 open Ocsigen_cookies
 
 (******************************************************************)
+
+type scope_name =
+  [ `String of string
+  | `Default_ref_name
+  | `Default_comet_name ]
+
+type user_scope = [ `Session_group of scope_name
+		  | `Session of scope_name
+		  | `Client_process of scope_name ]
+
+type scope = [ `Global
+	     | user_scope ]
+
+type all_scope = [ scope
+		 | `Request ]
+
+type global_scope = [`Global]
+type session_group_scope = [`Session_group of scope_name]
+type session_scope = [`Session of scope_name]
+type client_process_scope = [`Client_process of scope_name]
+type request_scope = [`Request]
+
+(******************************************************************)
 type cookie_scope = [ `Session | `Client_process ]
-type user_scope = [ `Session_group | `Session | `Client_process ]
-type scope = [ `Global | `Session_group | `Session | `Client_process ]
 
-let cookie_scope_of_user_scope = function
-  | `Session
-  | `Session_group -> `Session
-  | `Client_process -> `Client_process
+let cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ] = function
+  | `Session n
+  | `Session_group n -> `Session
+  | `Client_process n -> `Client_process
 
-let user_scope_of_scope = function
-  | `Global
-  | `Session -> `Session
-  | `Session_group -> `Session
-  | `Client_process -> `Client_process
+let scope_name_of_scope : [< user_scope ] -> [> scope_name ] = function
+  | `Session n
+  | `Session_group n
+  | `Client_process n -> n
 
 type fullsessionname = cookie_scope * string
 
@@ -50,11 +70,11 @@ type att_key_serv =
   | SAtt_no (* regular service *)
   | SAtt_named of string (* named coservice *)
   | SAtt_anon of string (* anonymous coservice *)
-  | SAtt_csrf_safe of (int * string option * user_scope * bool option)
+  | SAtt_csrf_safe of (int * user_scope * bool option)
       (* CSRF safe anonymous coservice *)
       (* CSRF safe service registration delayed until form/link creation *)
       (* the int is an unique id,
-         the string option is the session name for delayed registration
+         the user_scope is used for delayed registration
          (if the service is registered in the global table),
          the bool option is the ?secure parameter for delayed registration
          (if the service is registered in the global table) *)
@@ -67,9 +87,9 @@ type na_key_serv =
   | SNa_post_ of string (* named *)
   | SNa_get' of string (* anonymous *)
   | SNa_post' of string (* anonymous *)
-  | SNa_get_csrf_safe of (int * string option * user_scope * bool option)
+  | SNa_get_csrf_safe of (int * user_scope * bool option)
       (* CSRF safe anonymous coservice *)
-  | SNa_post_csrf_safe of (int * string option * user_scope * bool option)
+  | SNa_post_csrf_safe of (int * user_scope * bool option)
       (* CSRF safe anonymous coservice *)
 
 (* the same, for incoming requests: *)

@@ -117,6 +117,7 @@ let new_sitedata =
               Eliom_common.empty_tables
                 !default_max_anonymous_services_per_subnet
                 false;
+	   registered_scope_names = String.Set.empty;
            session_services = Eliommod_cookies.new_service_cookie_table ();
            session_data = Eliommod_cookies.new_data_cookie_table ();
            group_of_groups = gog;
@@ -703,12 +704,25 @@ let parse_config hostpattern conf_info site_dir =
                          bool -> bool -> Eliom_common.sitedata ->
                          float option -> unit)
             cookie_type state_name_oo v =
+	  let make_fullsessname state_name =
+	    let state_name : Eliom_common.scope_name =
+	      match state_name with
+		| None -> `Default_ref_name
+		| Some s when String.lowercase s = "default" -> `Default_ref_name
+		| Some s when String.lowercase s = "comet" -> `Default_comet_name
+		| Some s -> `String s
+	    in
+	    let scope =
+	      match cookie_type with
+		| `Session -> `Session state_name
+		| `Client_process -> `Client_process state_name
+	    in
+	    Eliom_common.make_fullsessname2
+              sitedata.Eliom_common.site_dir_string
+              scope
+	  in
           f
-            ?fullsessname:(map_option
-                             (Eliom_common.make_fullsessname2
-                                sitedata.Eliom_common.site_dir_string
-                                cookie_type)
-                             state_name_oo)
+            ?fullsessname:(map_option make_fullsessname state_name_oo)
             ?cookie_scope:(Some cookie_type)
             ~recompute_expdates:false
             true

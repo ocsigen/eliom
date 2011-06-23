@@ -86,7 +86,7 @@ struct
     let scope = match sp, scope with
       | _, Some l -> l
       | None, _ -> `Global
-      | _ -> `Client_process
+      | _ -> (Eliom_common.comet_client_process :> Eliom_common.scope)
     in
     let e_writer = Eliom_services.post_coservice' ?name ~post_params () in
     Eliom_output.Action.register

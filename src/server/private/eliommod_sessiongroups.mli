@@ -23,13 +23,13 @@ open Eliom_pervasives
 val make_full_named_group_name_ : 
   cookie_scope:Eliom_common.cookie_scope ->
   Eliom_common.sitedata ->
-  string -> [< Eliom_common.scope ] Eliom_common.sessgrp
+  string -> Eliom_common.scope Eliom_common.sessgrp
 
 val make_full_group_name : 
   cookie_scope:Eliom_common.cookie_scope ->
   Ocsigen_extensions.request_info -> string -> 
   int32 -> int64 * int64 ->
-  string option -> [< Eliom_common.scope ] Eliom_common.sessgrp
+  string option -> Eliom_common.scope Eliom_common.sessgrp
 
 val make_persistent_full_group_name :
   cookie_scope:Eliom_common.cookie_scope ->
@@ -37,7 +37,7 @@ val make_persistent_full_group_name :
   Eliom_common.perssessgrp option
 
 val getsessgrp : 
-  [< Eliom_common.scope ] Eliom_common.sessgrp -> 
+  Eliom_common.scope Eliom_common.sessgrp -> 
   string * Eliom_common.cookie_scope *
     (string, Ip_address.t) leftright
 

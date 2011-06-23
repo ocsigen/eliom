@@ -60,10 +60,6 @@ let sdatacookiename = "Seliomdatasession|"
 let sservicecookiename = "Seliomservicesession|"
 let spersistentcookiename = "Seliompersistentsession|"
 
-
-
-
-
 (*****************************************************************************)
 
 let eliom_link_too_old : bool Polytables.key = Polytables.make_key ()
@@ -488,6 +484,8 @@ and sitedata =
    lazy_site_value_table : Polytables.t; (* table containing evaluated
 					    lazy site values *)
 
+   mutable registered_scope_names: String.Set.t;
+
    global_services: tables; (* global service table *)
    session_services: tables servicecookiestable;
    (* cookie table for services (tab and browser sessions) *)
@@ -525,15 +523,19 @@ and dlist_ip_table = (page_table ref * page_table_key, na_key_serv)
 
 let make_full_cookie_name a b = a^b
 
-let make_fullsessname ~sp cookie_scope = function
-  | None -> ((cookie_scope :> cookie_scope), sp.sp_sitedata.site_dir_string)
-  | Some s -> ((cookie_scope :> cookie_scope), sp.sp_sitedata.site_dir_string^"|"^s)
-(* Warning: do not change this without modifying Eliomsessions.Admin *)
+let make_fullsessname2 site_dir_string (scope:[< user_scope ]) : fullsessionname =
+  let cookie_scope = cookie_scope_of_user_scope scope in
+  let state_name = scope_name_of_scope scope in
+  let name = match state_name with
+    | `Default_ref_name -> "|ref|"
+    | `Default_comet_name -> "|comet|"
+    | `String s -> "||"^s
+  in
+  ((cookie_scope :> cookie_scope), site_dir_string^name)
+(* Warning: do not change this without modifying Eliom_state.Admin *)
 
-let make_fullsessname2 site_dir_string cookie_scope = function
-  | None -> ((cookie_scope :> cookie_scope), site_dir_string)
-  | Some s -> ((cookie_scope :> cookie_scope), site_dir_string^"|"^s)
-(* Warning: do not change this without modifying Eliomsessions.Admin *)
+let make_fullsessname ~sp (scope:[< user_scope ]) =
+  make_fullsessname2 sp.sp_sitedata.site_dir_string scope
 
 let get_cookie_info sp = function
   | `Session -> sp.sp_cookie_info
@@ -592,6 +594,41 @@ let sp_of_option sp =
   match sp with
     | None -> get_sp ()
     | Some sp -> sp
+
+(*****************************************************************************)
+(* Scope registration                                                        *)
+(*****************************************************************************)
+
+let global : global_scope = `Global
+let session_group : session_group_scope = `Session_group `Default_ref_name
+let session : session_scope = `Session `Default_ref_name
+let client_process : client_process_scope = `Client_process `Default_ref_name
+let comet_client_process : client_process_scope = `Client_process `Default_comet_name
+let request : request_scope = `Request
+
+let registered_scope_names = ref String.Set.empty
+
+let register_scope_name (name:string) =
+  match get_sp_option () with
+    | None ->
+      if String.Set.mem name !registered_scope_names
+      then failwith (Printf.sprintf "the scope %s have already been registered" name)
+      else registered_scope_names := String.Set.add name !registered_scope_names
+    | Some sp ->
+      if String.Set.mem name !registered_scope_names ||
+	String.Set.mem name sp.sp_sitedata.registered_scope_names
+      then failwith (Printf.sprintf "the scope %s have already been registered" name)
+      else sp.sp_sitedata.registered_scope_names <- String.Set.add name sp.sp_sitedata.registered_scope_names
+
+let create_scope_name name : scope_name =
+  register_scope_name name;
+  `String name
+
+let list_scope_names () =
+  let sp = get_sp () in
+  `Default_comet_name::`Default_ref_name::
+    ( List.map (fun s -> `String s) (String.Set.elements !registered_scope_names)
+      @ List.map (fun s -> `String s) (String.Set.elements sp.sp_sitedata.registered_scope_names) )
 
 (*****************************************************************************)
 (* The current registration directory *)

@@ -484,13 +484,14 @@ let looong2 =
 (************************************************************)
 
 (*zap* *)
-let state_name = "session_data"
+let scope_name = Eliom_common.create_scope_name "session_data"
+let session = `Session scope_name
 (* *zap*)
 
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
-let my_table = Eliom_state.create_volatile_table (*zap* *) ~state_name (* *zap*) ()
+let my_table = Eliom_state.create_volatile_table (*zap* *) ~scope:session (* *zap*) ()
 
 
 (* -------------------------------------------------------- *)
@@ -548,7 +549,7 @@ let session_data_example_handler _ _  =
 (* service with POST params:                                *)
 
 let session_data_example_with_post_params_handler _ login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  lwt () = Eliom_state.discard (*zap* *) ~scope:session (* *zap*) () in
   Eliom_state.set_volatile_data ~table:my_table login;
   return
     (html
@@ -567,7 +568,7 @@ let session_data_example_with_post_params_handler _ login =
 
 let session_data_example_close_handler () () =
   let sessdat = Eliom_state.get_volatile_data ~table:my_table () in
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  lwt () = Eliom_state.discard (*zap* *) ~scope:session (* *zap*) () in
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -597,15 +598,16 @@ let () =
 
 
 (*zap* *)
-let () = set_global_volatile_state_timeout (Some 600.)
-let () = set_global_persistent_data_state_timeout (Some 3600.)
+let () = set_default_global_service_state_timeout ~cookie_scope:`Session (Some 600.)
+let () = set_default_global_persistent_data_state_timeout ~cookie_scope:`Session (Some 3600.)
 (* *zap*)
 (************************************************************)
 (************ Connection of users, version 2 ****************)
 (************************************************************)
 
 (*zap* *)
-let state_name = "session_services"
+let scope_name = Eliom_common.create_scope_name "session_services"
+let scope = `Session scope_name
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* Create services, but do not register them yet:           *)
@@ -651,7 +653,7 @@ let session_services_example_handler () () =
 (* Handler for the "session_services_example_close" service:     *)
 
 let session_services_example_close_handler () () =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  lwt () = Eliom_state.discard (*zap* *) ~scope:session (* *zap*) () in
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -692,17 +694,17 @@ let launch_session () login =
   in
 
   (* If a session was opened, we close it first! *)
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  lwt () = Eliom_state.discard ~scope:session () in
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliom_output.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
+  Eliom_output.Xhtml.register ~scope:session
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
 
-  Eliom_output.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
+  Eliom_output.Xhtml.register ~scope:session
     ~service:coucou
     (fun () () ->
       return
@@ -712,7 +714,7 @@ let launch_session () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliom_output.Xhtml.register ~scope:`Session (*zap* *) ~state_name (* *zap*)
+  Eliom_output.Xhtml.register ~scope:session
     ~service:hello
     (fun () () ->
       return
@@ -872,7 +874,9 @@ programming.
 (************************************************************)
 
 (*zap* *)
-let state_name = "calc_example"
+let calc_example_scope_name = Eliom_common.create_scope_name "calc_example"
+let session = `Session calc_example_scope_name
+let session_group = `Session_group calc_example_scope_name
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create two main services on the same URL,             *)
@@ -926,7 +930,7 @@ let calc_i_handler i () =
   in
   let is = string_of_int i in
   let calc_result =
-    register_coservice ~scope:`Session
+    register_coservice ~scope:Eliom_common.session
       ~fallback:calc
       ~get_params:(int "j")
       (fun j () ->
@@ -960,8 +964,10 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let state_name = "connect_example3"
-let my_table = Eliom_state.create_volatile_table (*zap* *) ~state_name (* *zap*) ()
+let connect_example3_scope_name = Eliom_common.create_scope_name "connect_example3"
+let session = `Session connect_example3_scope_name
+let session_group = `Session_group connect_example3_scope_name
+let my_table = Eliom_state.create_volatile_table (*zap* *) ~scope:session (* *zap*) ()
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -985,7 +991,7 @@ let disconnect_action =
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+      Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
 
 (* -------------------------------------------------------- *)
@@ -1030,7 +1036,7 @@ let connect_example3_handler () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler () login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  lwt () = Eliom_state.discard (*zap* *) ~scope:session (* *zap*) () in
   Eliom_state.set_volatile_data ~table:my_table login;
   return ()
 
@@ -1158,10 +1164,13 @@ let count2 =
 (************************************************************)
 
 (*zap* *)
-let state_name = "persistent_sessions"
+let persistent_sessions_scope_name = Eliom_common.create_scope_name "persistent_sessions"
+let session = `Session persistent_sessions_scope_name
+let session_group = `Session_group persistent_sessions_scope_name
+let persistent_session_scope = session
 (* *zap*)
 let my_persistent_table =
-  create_persistent_table (*zap* *) ~state_name (* *zap*) "eliom_example_table"
+  create_persistent_table (*zap* *) ~scope:session (* *zap*) "eliom_example_table"
 
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -1194,7 +1203,7 @@ let disconnect_action =
     ~name:"disconnect4"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_session ~state_name ())
+      Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
   Eliom_output.Xhtml.post_form disconnect_action
@@ -1253,7 +1262,7 @@ let persist_session_example_handler () () =
 (* Handler for persist_session_connect_action (user logs in):  *)
 
 let persist_session_connect_action_handler () login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  lwt () = Eliom_state.discard (*zap* *) ~scope:session (* *zap*) () in
   if login = "toto" (* Check user and password :-) *)
   then
     Eliom_state.set_persistent_data ~table:my_persistent_table login
@@ -1278,7 +1287,9 @@ let () =
 (************ Connection of users, version 6 ****************)
 (************************************************************)
 (*zap* *)
-let state_name = "connect_example6"
+let scope_name = Eliom_common.create_scope_name "connect_example6"
+let session = `Session scope_name
+let session_group = `Session_group scope_name
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -1303,7 +1314,7 @@ let disconnect_action =
     ~name:"disconnect6"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+      Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
 let disconnect_box s =
   Eliom_output.Xhtml.post_form disconnect_action
@@ -1338,10 +1349,10 @@ let login_box session_expired action =
 (* Handler for the "connect_example6" service (main page):   *)
 
 let connect_example6_handler () () =
-  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~scope:session (* *zap*) ()
   in
   let group =
-    Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ()
+    Eliom_state.get_volatile_data_session_group (*zap* *) ~scope:session (* *zap*) ()
   in
   return
     (html
@@ -1363,10 +1374,11 @@ let connect_example6_handler () () =
 (* New handler for connect_action (user logs in):           *)
 
 let connect_action_handler () login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
+  lwt () = Eliom_state.discard (*zap* *) ~scope:session (* *zap*) () in
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) login;
+    Eliom_state.set_volatile_data_session_group ~set_max:4
+    (*zap* *) ~scope:session (* *zap*) login;
     return ()
   end
   else begin
@@ -1393,7 +1405,7 @@ let _ = register disposable
       let disp_coservice =
         coservice ~max_use:2 ~fallback:disposable ~get_params:unit ()
       in
-      register ~scope:`Session ~service:disp_coservice
+      register ~scope:Eliom_common.session ~service:disp_coservice
         (fun () () ->
           return
             (html
@@ -1420,7 +1432,7 @@ let timeout = service ["timeout"] unit ()
 let _ =
   let page () () =
     let timeoutcoserv =
-      register_coservice ~scope:`Session
+      register_coservice ~scope:session
         ~fallback:timeout ~get_params:unit ~timeout:5.
         (fun _ _ ->
            return
@@ -1587,7 +1599,9 @@ let nlparams_with_nlp =
 (************************************************************)
 
 (*zap* *)
-let state_name = "connect_example5"
+let scope_name = Eliom_common.create_scope_name "connect_example5"
+let session = `Session scope_name
+let session_group = `Session_group scope_name
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -1611,7 +1625,7 @@ let disconnect_action =
     ~name:"disconnect5"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+      Eliom_state.discard (*zap* *) ~scope:session (* *zap*) ())
 
 
 (* -------------------------------------------------------- *)
@@ -1638,7 +1652,7 @@ let login_box () =
 (* Handler for the "connect_example5" service (main page):    *)
 
 let connect_example5_handler () () =
-  let sessdat = Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) () in
+  let sessdat = Eliom_state.get_volatile_data_session_group (*zap* *) ~scope:session (* *zap*) () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -1655,8 +1669,8 @@ let connect_example5_handler () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler () login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
-  Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) login;
+  Eliom_state.discard (*zap* *) ~scope:session (* *zap*) () >>= fun () ->
+  Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
   return ()
 
 
@@ -1674,11 +1688,13 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let state_name = "group_tables"
+let scope_name = Eliom_common.create_scope_name "group_tables"
+let session = `Session scope_name
+let session_group = `Session_group scope_name
 (* *zap*)
 let my_table =
   Eliom_state.create_volatile_table
-    ~scope:`Session_group (*zap* *) ~state_name (* *zap*) ()
+    ~scope:session_group ()
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -1700,14 +1716,14 @@ let disconnect_action =
     ~name:"disconnectgt"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+      Eliom_state.discard ~scope:session ())
 
 let disconnect_g_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_group (*zap* *) ~state_name (* *zap*) ())
+      Eliom_state.discard ~scope:session_group ())
 
 
 (* -------------------------------------------------------- *)
@@ -1739,7 +1755,7 @@ let login_box () =
 (* Handler for the "group_tables_example" service (main page): *)
 
 let group_tables_example_handler () () =
-  let sessdat = Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) () in
+  let sessdat = Eliom_state.get_volatile_data_session_group (*zap* *) ~scope:session (* *zap*) () in
   let groupdata = Eliom_state.get_volatile_data
     ~table:my_table ()
   in
@@ -1778,8 +1794,8 @@ let group_tables_example_handler () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler () login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () >>= fun () ->
-  Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) login;
+  lwt () = Eliom_state.discard (*zap* *) ~scope:session (* *zap*) () in
+  Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
   return ()
 
 
@@ -1801,11 +1817,12 @@ let () =
 (**************** Persistent group tables *******************)
 (************************************************************)
 
-let state_name = "pgroup_tables"
-
+let scope_name = Eliom_common.create_scope_name "pgroup_tables"
+let session = `Session scope_name
+let session_group = `Session_group scope_name
 let my_table =
   Eliom_state.create_persistent_table
-    ~scope:`Session_group ~state_name "pgroup_table"
+    ~scope:session_group "pgroup_table"
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -1828,14 +1845,14 @@ let disconnect_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"pdisconnectgt"
     ~post_params:Eliom_parameters.unit
-    (fun () () -> Eliom_state.close_session ~state_name ())
+    (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_g_action =
   Eliom_output.Action.register_post_coservice'
     ~name:"pdisconnectgtg"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_group ~state_name ())
+      Eliom_state.discard ~scope:session_group ())
 
 
 
@@ -1868,7 +1885,7 @@ let login_box () =
 (* Handler for the "group_tables_example" service (main page): *)
 
 let group_tables_example_handler () () =
-  Eliom_state.get_persistent_data_session_group ~state_name ()
+  Eliom_state.get_persistent_data_session_group ~scope:session ()
   >>= fun sessdat ->
   Eliom_state.get_persistent_data ~table:my_table ()
   >>= fun groupdata ->
@@ -1908,9 +1925,9 @@ let group_tables_example_handler () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler () login =
-  Eliom_state.close_session ~state_name () >>= fun () ->
+  lwt () = Eliom_state.discard ~scope:session () in
   Eliom_state.set_persistent_data_session_group
-    ~set_max:(Some 4) ~state_name login
+    ~set_max:(Some 4) ~scope:session login
 
 
 (* -------------------------------------------------------- *)
@@ -1925,6 +1942,9 @@ let () =
     
   *wiki*)
 
+let csrf_scope_name = Eliom_common.create_scope_name "csrf"
+let csrf_scope = `Session csrf_scope_name
+
 let csrfsafe_example =
   Eliom_services.service
     ~path:["csrf"]
@@ -1934,7 +1954,7 @@ let csrfsafe_example =
 let csrfsafe_example_post =
   Eliom_services.post_coservice
     ~csrf_safe:true
-    ~csrf_state_name:"csrf"
+    ~csrf_scope
     ~csrf_secure:true
     ~timeout:10.
     ~max_use:1

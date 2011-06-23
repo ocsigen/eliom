@@ -51,11 +51,10 @@ let close_all_service_sessions2 fullsessname sitedata =
     If the optional parameter [?state_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_service_sessions ?state_name
-    ?(cookie_scope = `Session) sitedata =
+let close_all_service_sessions ~scope sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope state_name
+      sitedata.Eliom_common.site_dir_string scope
   in
   close_all_service_sessions2 fullsessname sitedata
 (*VVV Missing:
@@ -79,10 +78,10 @@ let close_all_data_sessions2 fullsessname sitedata =
     If the optional parameter [?state_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_data_sessions ?state_name ?(cookie_scope = `Session) sitedata =
+let close_all_data_sessions ~scope sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope state_name
+      sitedata.Eliom_common.site_dir_string scope
   in
   close_all_data_sessions2 fullsessname sitedata
 (*VVV Missing:
@@ -108,10 +107,10 @@ let close_all_persistent_sessions2 fullsessname sitedata =
     only the session with default name is closed.
  *)
 let close_all_persistent_sessions
-    ?state_name ?(cookie_scope = `Session) sitedata =
+    ~scope sitedata =
   let fullsessname =
     Eliom_common.make_fullsessname2
-      sitedata.Eliom_common.site_dir_string cookie_scope state_name
+      sitedata.Eliom_common.site_dir_string scope
   in
   close_all_persistent_sessions2 fullsessname sitedata
 (*VVV Missing:

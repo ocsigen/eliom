@@ -295,7 +295,7 @@ end = struct
 	      Lwt.return (encode_downgoing [])
 	  in
 	  Comet.register
-	    ~scope:`Client_process
+	    ~scope:Eliom_common.comet_client_process
 	    ~service:hd_service
 	    f;
 	  Polytables.set ~table ~key:handler_key ~value:handler;

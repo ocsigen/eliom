@@ -29,14 +29,14 @@
     {!Eliom_common.Eliom_site_information_not_available}.
     If you are using static linking, you must delay the call to this function
     until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also get 
+    {!Eliom_services.register_eliom_module}. Otherwise you will also get
     this exception.}
 *)
 
 (** The type of Eliom references. *)
 type 'a eref
 
-(** Create an Eliom reference for the given scope (default: [`Global]).
+(** Create an Eliom reference for the given scope.
 
     Use the optional parameter [?persistent] if you want the data to survive
     after relaunching the server. You must give an unique name to the
@@ -49,14 +49,9 @@ type 'a eref
     Use the optional parameter [?secure] if you want the data to be available
     only using HTTPS (default: false). It has no effect for scopes [`Global]
     and [`Request].
-
-    Use the optional parameter [?state_name] if you want to distinguish
-    between several server side states for the same scope.
-    It has no effect for scopes [`Global] and [`Request].
 *)
 val eref :
-  ?state_name:string ->
-  ?scope:[ `Request | Eliom_common.scope ] ->
+  scope:[< Eliom_common.all_scope ] ->
   ?secure:bool ->
   ?persistent:string ->
   'a -> 'a eref
@@ -72,7 +67,7 @@ val set : 'a eref -> 'a -> unit Lwt.t
    references. *)
 
 
-(** Turn back to the default value 
+(** Turn back to the default value
     (by removing the entry in the server side table in the case where
     they are stored in a table).
 *)

@@ -194,12 +194,12 @@ val change_get_num :
 (* Not implemented on client side: TODO should not be called in Eliom_uri *)
 val register_delayed_get_or_na_coservice :
   sp:Eliom_common.server_params ->
-  (int * string option * Eliom_common.user_scope * bool option) ->
+  (int * Eliom_common.user_scope * bool option) ->
   string
 
 val register_delayed_post_coservice :
   sp:Eliom_common.server_params ->
-  (int * string option * Eliom_common.user_scope * bool option) ->
+  (int * Eliom_common.user_scope * bool option) ->
   Eliom_common.att_key_serv -> string
 
 (* used by eliommod_mkform *)

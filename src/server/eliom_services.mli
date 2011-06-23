@@ -235,8 +235,7 @@ val post_service :
 val coservice :
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_state_name: string ->
-  ?csrf_scope: Eliom_common.user_scope ->
+  ?csrf_scope: [< Eliom_common.user_scope > `Session] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -285,11 +284,10 @@ val coservice :
     service table or in the session service table. But the actual registration,
     that will occure when creating a link or a form, will always take
     place in a session service table. This table is specified by the
-    [~csrf_state_name], [~csrf_scope]
-    and [~csrf_secure] parameters
-    (that correspond to [~state_name], [~scope] and [~secure] for the delayed
+    [~csrf_scope] and [~csrf_secure] parameters
+    (that correspond to [~scope] and [~secure] for the delayed
     registration); it is the default session table if they are absent.
-    Parameters [?state_name], [?scope] and [?secure] of [register]
+    Parameters [?scope] and [?secure] of [register]
     must have the same values as the one declared while creating the
     CSRF safe coservice, otherwise the registration will fail
     with {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}.
@@ -299,8 +297,7 @@ val coservice :
 val post_coservice :
   ?name: string ->
   ?csrf_safe: bool ->
-  ?csrf_state_name: string ->
-  ?csrf_scope: Eliom_common.user_scope ->
+  ?csrf_scope: [< Eliom_common.user_scope > `Session] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -324,8 +321,7 @@ val post_coservice :
 val coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_state_name: string ->
-  ?csrf_scope: Eliom_common.user_scope ->
+  ?csrf_scope: [< Eliom_common.user_scope > `Session] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -350,8 +346,7 @@ val coservice' :
 val post_coservice' :
   ?name:string ->
   ?csrf_safe: bool ->
-  ?csrf_state_name: string ->
-  ?csrf_scope: Eliom_common.user_scope ->
+  ?csrf_scope: [< Eliom_common.user_scope > `Session] ->
   ?csrf_secure: bool ->
   ?max_use:int ->
   ?timeout:float ->
@@ -492,8 +487,7 @@ val add_non_localized_post_parameters :
 
 
 val unregister :
-  ?scope:Eliom_common.scope ->
-  ?state_name:string ->
+  ?scope:[< Eliom_common.scope ] ->
   ?secure:bool ->
   ('a, 'b, [< `Attached of ([> `Internal of 'c ], [< `Get | `Post ]) a_s
    | `Nonattached of 'd na_s ], 'e, 'f, 'g, 'h, 'return) service ->
@@ -567,12 +561,12 @@ val untype_service_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'rr) service ->
 
 val register_delayed_get_or_na_coservice :
   sp:Eliom_common.server_params ->
-  (int * string option * Eliom_common.user_scope * bool option) ->
+  (int * [< Eliom_common.user_scope ] * bool option) ->
   string
 
 val register_delayed_post_coservice :
   sp:Eliom_common.server_params ->
-  (int * string option * Eliom_common.user_scope * bool option) ->
+  (int * [< Eliom_common.user_scope ] * bool option) ->
   Eliom_common.att_key_serv -> string
 
 val set_delayed_get_or_na_registration_function :
