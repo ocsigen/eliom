@@ -33,8 +33,6 @@ val sp : server_params
 type eliom_js_page_data = {
   (* Sparse tree with node identifiers and event handlers *)
   ejs_ref_tree: XML.ref_tree;
-  (* Cookies *)
-  ejs_tab_cookies: Ocsigen_cookies.cookieset;
   (* Event handlers *)
   ejs_onload: XML.event list;
   ejs_onunload: XML.event list;

@@ -2499,13 +2499,6 @@ module Eliom_appl_reg_make_param
 
   let make_eliom_data_script ~sp page =
 
-    lwt tab_cookies =
-      Eliommod_cookies.compute_cookies_to_send
-	sp.Eliom_common.sp_sitedata
-	sp.Eliom_common.sp_tab_cookie_info
-	sp.Eliom_common.sp_user_tab_cookies
-    in
-
     let rc = Eliom_request_info.get_request_cache_sp sp in
     let url_to_display =
       "/"
@@ -2519,22 +2512,31 @@ module Eliom_appl_reg_make_param
     in
 
     let eliom_data =
-      { Eliom_types.
-	ejs_ref_tree    = XML.make_ref_tree (HTML5.M.toelt page);
-	ejs_tab_cookies = tab_cookies;
-	ejs_onload      = Eliom_services.get_onload sp;
-	ejs_onunload    = Eliom_services.get_onunload sp;
-	ejs_sess_info   = Eliommod_cli.client_si sp.Eliom_common.sp_si;
-	ejs_url         = url_to_display;
-      } in
+      Eliom_wrap.wrap
+	{ Eliom_types.
+	  ejs_ref_tree    = XML.make_ref_tree (HTML5.M.toelt page);
+	  ejs_onload      = Eliom_services.get_onload sp;
+	  ejs_onunload    = Eliom_services.get_onunload sp;
+	  ejs_sess_info   = Eliommod_cli.client_si sp.Eliom_common.sp_si;
+	  ejs_url         = url_to_display;
+	} in
+
+    lwt tab_cookies =
+      Eliommod_cookies.compute_cookies_to_send
+	sp.Eliom_common.sp_sitedata
+	sp.Eliom_common.sp_tab_cookie_info
+	sp.Eliom_common.sp_user_tab_cookies
+    in
 
     let script =
       Printf.sprintf
 	("var sitedata = \'%s\';\n"
 	 ^^ "var eliom_data = \'%s\';\n"
+	 ^^ "var eliom_cookies = \'%s\';\n"
 	 ^^ "var client_process_info = \'%s\';\n")
 	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
-	(Eliom_types.jsmarshal (Eliom_wrap.wrap eliom_data))
+	(Eliom_types.jsmarshal eliom_data)
+	(Eliom_types.jsmarshal tab_cookies)
 	(Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
 

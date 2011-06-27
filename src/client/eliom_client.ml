@@ -330,11 +330,12 @@ let add_onclick_events () =
 (* END FORMDATA HACK *)
 
 let load_eliom_data page =
+  let tab_cookies = unmarshal_js_var "eliom_cookies" in
+  Eliommod_cookies.update_cookie_table tab_cookies;
   let js_data = Eliom_unwrap.unwrap (unmarshal_js_var "eliom_data") in
   relink_dom_list
     [(page :> Dom.node Js.t)]
     [js_data.Eliom_types.ejs_ref_tree];
-  Eliommod_cookies.update_cookie_table js_data.Eliom_types.ejs_tab_cookies;
   Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
   change_url_string js_data.Eliom_types.ejs_url;
   let on_load =
