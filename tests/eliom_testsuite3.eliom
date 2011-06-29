@@ -722,20 +722,21 @@ let caml_service_wrapping =
     ~get_params:unit
     (fun () () ->
       Lwt.return
-        [
+        (make_page [
           div ~a:[a_onclick {{
-	    lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
-	    Lwt_stream.iter_s
-              (fun i ->
-		Dom.appendChild (Dom_html.document##body)
-		  (Dom_html.document##createTextNode
-                     (Js.string ("message: "^ string_of_int i ^";  "))) ;
-		Lwt.return ()
-              ) c
+	    ignore (
+	      lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
+	      Lwt_stream.iter_s
+                (fun i ->
+		  Dom.appendChild (Dom_html.document##body)
+		    (Dom_html.document##createTextNode
+                       (Js.string ("message: "^ string_of_int i ^";  "))) ;
+		  Lwt.return ()
+                ) c)
 	    }}]
 	    [pcdata "click"];
 	  pcdata "when clicking on this link, messages should be received every 1 second";
-        ]
+        ])
     )
 
 

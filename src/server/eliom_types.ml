@@ -36,7 +36,7 @@ include Eliom_types_base
 (* the string is urlencoded because otherwise js does strange things
    with strings ... *)
 let encode_eliom_data r =
-  Url.encode ~plus:false (Marshal.to_string r [])
+  Url.encode ~plus:false (Marshal.to_string (Eliom_wrap.wrap r) [])
 
 (*
 let string_map f s =

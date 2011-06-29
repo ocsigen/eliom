@@ -2148,32 +2148,24 @@ module Caml = struct
 
   module M = Eliom_mkreg.MakeRegister(Caml_reg_base)
 
-  let encode_eliom_data (v:'a) =
-    let wrapped = Eliom_wrap.wrap v in
-    let xml = Eliom_xml.contents_to_send () in
-    let value : 'a Eliom_types.eliom_comet_data_type
-	= wrapped, xml in
-    Eliom_types.encode_eliom_data value
-
-
   let make_eh = function
     | None -> None
     | Some eh ->
         Some (fun l ->
                 eh l >>= fun r ->
-                Lwt.return (encode_eliom_data r))
+                Lwt.return (Eliom_types.encode_eliom_data r))
 
   let make_service_handler f =
     fun g p ->
       f g p >>= fun r ->
-      Lwt.return (encode_eliom_data r)
+      Lwt.return (Eliom_types.encode_eliom_data r)
 
   let send_appl_content = Eliom_services.XNever
 
-  let send ?options ?charset ?code
-      ?content_type ?headers content =
-    M.send ?options ?charset ?code
-      ?content_type ?headers (Eliom_types.encode_eliom_data content)
+  let send ?options ?charset ?code ?content_type ?headers content =
+    Result_types.cast_result_lwt
+      (M.send ?options ?charset ?code
+	 ?content_type ?headers (Eliom_types.encode_eliom_data content))
 
   let register
       ?scope
@@ -2598,64 +2590,35 @@ module Eliom_appl_reg_make_param
     let sp = Eliom_common.get_sp () in
 
     (* GRGR FIXME et si le nom de l'application diffère ?? *)
-    let first_request =
-      sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name
-    in
-    lwt added_header = Eliom_references.get appl_html_header_ref in
-    if content_only then begin
-      let rc = Eliom_request_info.get_request_cache_sp sp in
-      let url_to_display =
-        "/"
-        ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
-	  (* If it is a suffix service with redirection, the uri has already been
-             computed in rc *)
-          with Not_found -> Eliom_request_info.get_full_url_sp sp
-       (* Otherwise, the full url has already been recomputed
-          without internal form info and taking "to_be_considered_as_get"
-          into account*)
-       in
-       lwt data = get_eliom_page_content ~options sp added_header content in
-       Caml.send (EAContent (data, url_to_display))
-     end
-     else begin
-       (* We launcha the client side process *)
-       let comet_service = Eliom_comet.init () in
-       Polytables.set
-         ~table:cpi.Eliom_common.cpi_references
-         ~key:comet_service_key
-	 ~value:comet_service;
-       Eliom_state.set_cookie
-         ~cookie_scope:`Client_process
-         ~name:Eliom_common.appl_name_cookie_name
-         ~value:Appl_params.application_name ();
-       get_tab_cook sp >>= fun tab_cookies_to_send ->
-(*VVV for now not possible to give other params for one page *)
-       let page =
-         create_page
-           ~options ~sp cpi added_header Appl_params.params tab_cookies_to_send content
-       in
-        lwt r = Html5_content.result_of_content page in
-        Lwt.return
-          {r with
-            Ocsigen_http_frame.
-	    res_cookies = Eliom_request_info.get_user_cookies ();
-            res_code    = code_of_code_option code;
-            res_charset = (match charset with
-              | None -> Some (Eliom_config.get_config_default_charset ())
-              | _ -> charset
-            );
-            res_content_type= (match content_type with
-              | None -> r.Ocsigen_http_frame.res_content_type
-              | _ -> content_type
-            );
-            res_headers= (match headers with
-              | None -> r.Ocsigen_http_frame.res_headers
-              | Some headers ->
-                Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
-            );
-          }
-     end
-    )
+    if sp.Eliom_common.sp_client_appl_name <> Some Appl_params.application_name then
+
+      Eliom_state.set_cookie
+        ~cookie_scope:`Client_process
+        ~name:Eliom_common.appl_name_cookie_name
+        ~value:Appl_params.application_name ();
+
+    lwt page = add_eliom_scripts ~sp content in
+
+    lwt r = Html5_content.result_of_content page in
+    Lwt.return
+      { r with
+        Ocsigen_http_frame.
+	res_cookies = Eliom_request_info.get_user_cookies ();
+        res_code    = code_of_code_option code;
+        res_charset = (match charset with
+          | None -> Some (Eliom_config.get_config_default_charset ())
+          | _ -> charset
+	);
+        res_content_type= (match content_type with
+          | None -> r.Ocsigen_http_frame.res_content_type
+          | _ -> content_type
+        );
+        res_headers= (match headers with
+          | None -> r.Ocsigen_http_frame.res_headers
+          | Some headers ->
+            Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
+ 	);
+      }
 
 end
 

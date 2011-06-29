@@ -480,15 +480,7 @@ let call_caml_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?keep_get_na_params
       get_params post_params in
-  let unmarshal s : 'a =
-    let (value,sent_nodes) =
-      (Marshal.from_string (Url.decode s) 0:'a Eliom_types.eliom_comet_data_type)
-    in
-    ignore (List.map (Eliommod_cli.rebuild_xml 0L) sent_nodes);
-    Eliom_unwrap.unwrap value
-  in
-  Lwt.return (unmarshal s)
-
+  Lwt.return (Eliom_unwrap.unwrap (Marshal.from_string (Url.decode s) 0))
 
 let get_subpage
   ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
