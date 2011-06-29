@@ -23,7 +23,7 @@ val close_service_session :
   ?sp:Eliom_common.server_params -> unit -> unit
 val find_or_create_service_cookie :
   ?set_session_group:string ->
-  scope:[< Eliom_common.user_scope ] ->
+  scope:[< Eliom_common.user_scope > `Session ] ->
   secure: bool option ->
   ?sp:Eliom_common.server_params ->
   unit -> Eliom_common.tables Eliom_common.one_service_cookie_info

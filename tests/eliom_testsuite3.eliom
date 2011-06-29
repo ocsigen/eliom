@@ -832,7 +832,7 @@ let comet_wrapping =
     ~path:["comet_wrapping"]
     ~get_params:unit
     (fun () () ->
-      let node = div [pcdata "node created on server side"] in
+      let node = unique (div [pcdata "node created on server side"]) in
       let service_stream,push_service = Lwt_stream.create () in
       push_service (Some Eliom_testsuite1.coucou);
       let c_service = Eliom_comet.Channels.create service_stream in
@@ -844,9 +844,10 @@ let comet_wrapping =
       push_xml (Some
 		  (div [Eliom_output.Html5.a ~service:comet1
 			   [pcdata "xml internal link wrapping"] ();
+			br ();
 			pcdata "this link must not stop the process! (same random number in the container)."]));
       let c_xml = Eliom_comet.Channels.create xml_stream in
-      let div_link = div [] in
+      let div_link = unique (div []) in
 
       Eliom_services.onload
         {{
@@ -863,12 +864,12 @@ let comet_wrapping =
 			(Eliom_client.Html5.of_element xml)
 		    ) %c_xml)
         }};
-      
+
       Lwt.return
         (make_page [
           div [pcdata "there should be a working links below"];
 	  node;
-	  div_link
+	  div_link;
         ])
     )
 
@@ -882,7 +883,7 @@ let comet_signal =
     ~path:["comet_signal"]
     ~get_params:unit
     (fun () () ->
-      let time_div = div [] in
+      let time_div = unique (div []) in
       Eliom_services.onload
         {{
           Lwt_react.S.keep
@@ -911,11 +912,11 @@ let comet_message_board =
     (fun () () ->
 
        Lwt.return (
-         let container = ul [li [em [pcdata "This is the message board"]]] in
+         let container = unique (ul [li [em [pcdata "This is the message board"]]]) in
          let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
          Eliom_services.onload
            {{
-             let _ = 
+             let _ =
 	       Lwt.catch (fun () ->
 		 Lwt_stream.iter_s
 		   (fun msg ->

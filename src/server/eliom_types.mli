@@ -48,7 +48,7 @@ type eliom_js_page_data = {
 }
 
 (* the data sent on channels *)
-type 'a eliom_comet_data_type = 'a wrapped_value * (XML.elt list)
+type 'a eliom_comet_data_type = 'a wrapped_value
 
 (*SGO* Server generated onclicks/onsubmits
 

@@ -2511,6 +2511,9 @@ module Eliom_appl_reg_make_param
          into account *)
     in
 
+    (* wrapping of values could create eliom references that may
+       create cookies that needs to be sent along the page. Hence,
+       cookies should be calculated after wrapping. *)
     let eliom_data =
       Eliom_wrap.wrap
 	{ Eliom_types.
@@ -2549,17 +2552,17 @@ module Eliom_appl_reg_make_param
 	    * HTML5_types.head_content_fun HTML5.M.elt list )
 	* HTML5_types.body HTML5.M.elt ) =
     match XML.content page with
-    | XML.Node (_, html_attribs, [head; body]) ->
+      | XML.Node (_, html_attribs, [head; body]) ->
 	begin match XML.content head with
-	| XML.Node (_, head_attribs, head_elts) ->
+	  | XML.Node (_, head_attribs, head_elts) ->
 	    ( List.map HTML5.M.to_attrib html_attribs,
 	      ( List.map HTML5.M.to_attrib head_attribs,
 		HTML5.M.tot (List.hd head_elts),
 		HTML5.M.totl (List.tl head_elts) ),
 	      HTML5.M.tot body )
-	| _ -> assert false
+	  | _ -> assert false
 	end
-    | _ -> assert false
+      | _ -> assert false
 
   let add_eliom_scripts ~sp page =
 

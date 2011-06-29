@@ -297,6 +297,8 @@ let change_url
   in
   change_url_string uri
 
+let loading_phase = ref true
+let load_end = Lwt_condition.create ()
 let on_unload_scripts = ref []
 let at_exit_scripts = ref []
 
@@ -329,9 +331,15 @@ let add_onclick_events () =
 
 (* END FORMDATA HACK *)
 
+let broadcast_load_end () =
+  loading_phase := false;
+  Lwt_condition.broadcast load_end ();
+  true
+
 let load_eliom_data page =
   let tab_cookies = unmarshal_js_var "eliom_cookies" in
   Eliommod_cookies.update_cookie_table tab_cookies;
+  loading_phase := true;
   let js_data = Eliom_unwrap.unwrap (unmarshal_js_var "eliom_data") in
   relink_dom_list
     [(page :> Dom.node Js.t)]
@@ -348,7 +356,12 @@ let load_eliom_data page =
       js_data.Eliom_types.ejs_onunload in
   on_unload_scripts := [fun () -> List.for_all (fun f -> f ())
   on_unload];
-  add_onclick_events :: on_load
+  add_onclick_events :: on_load @ [broadcast_load_end]
+
+let wait_load_end () =
+  if !loading_phase
+  then Lwt_condition.wait load_end
+  else Lwt.return ()
 
 let on_unload f =
   on_unload_scripts :=

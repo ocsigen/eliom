@@ -37,6 +37,7 @@ type 'a t = {
 
 let internal_wrap (bus: 'a t)
     : (  ('a Eliom_comet_base.chan_id)
+	 * Eliom_comet_base.comet_service
 	 * (unit,
             'a list,
             [ `Nonattached of [ `Post ] Eliom_services.na_s ],
@@ -49,7 +50,7 @@ let internal_wrap (bus: 'a t)
     Eliom_common.unwrapper
     =
   let chan = Eliom_comet.Channels.create ?size:bus.size (Lwt_stream.clone bus.stream) in
-  ((Eliom_comet.Channels.get_id chan, bus.service),
+  ((Eliom_comet.Channels.get_id chan,Eliom_comet.Channels.get_service chan, bus.service),
    Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id)
 
 let bus_mark () = Eliom_common.make_wrapper internal_wrap

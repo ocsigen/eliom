@@ -110,7 +110,7 @@ let rec find_or_create_service_cookie_ ?set_session_group
                    browser session cookie
                    and put the tab session into it. *)
             let v = find_or_create_service_cookie_
-	      ~scope
+	      ~scope:(`Session n)
               ~secure
               ~sp
               ()

@@ -19,12 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let (>|=) = Lwt.(>|=)
-let (>>=) = Lwt.(>>=)
+open Eliom_pervasives
 
 type 'a t =
     {
       channel : 'a Eliom_comet_base.chan_id;
+      chan_service : Eliom_comet_base.comet_service;
       queue : 'a Queue.t;
       mutable max_size : int;
       write : 'a list -> unit Lwt.t;
@@ -32,13 +32,14 @@ type 'a t =
       mutable last_wait : unit Lwt.t;
     }
 
-let create service channel waiter =
+let create service chan_service channel waiter =
   let write x =
-    Eliom_client.call_service ~service () x
-    >|= (fun _ -> ())
+    lwt _ = Eliom_client.call_service ~service () x in
+    Lwt.return ()
   in
   {
     channel;
+    chan_service = chan_service;
     queue = Queue.create ();
     max_size = 20;
     write;
@@ -46,14 +47,16 @@ let create service channel waiter =
     last_wait = Lwt.return ();
   }
 
-let internal_unwrap ((chan_id,service),unwrapper) =
+let internal_unwrap (((chan_id:'a Eliom_comet_base.chan_id),
+		      (chan_service:Eliom_comet_base.comet_service),
+		      service),unwrapper) =
   let waiter () = Lwt_js.sleep 0.05 in
-  create service chan_id waiter
+  create service chan_service chan_id waiter
 
 let () = Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
-let stream {channel} =
-  Eliom_comet.register channel
+let stream {channel;chan_service} =
+  Eliom_comet.register chan_service channel
 
 let flush t =
   let l = List.rev (Queue.fold (fun l v -> v::l) [] t.queue) in
@@ -74,7 +77,7 @@ let write t v =
   Queue.add v t.queue;
   try_flush t
 
-let close b = Eliom_comet.close b.channel
+let close {channel;chan_service} = Eliom_comet.close chan_service channel
 
 let set_queue_size b s =
   b.max_size <- s

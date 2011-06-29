@@ -527,9 +527,9 @@ let make_fullsessname2 site_dir_string (scope:[< user_scope ]) : fullsessionname
   let cookie_scope = cookie_scope_of_user_scope scope in
   let state_name = scope_name_of_scope scope in
   let name = match state_name with
-    | `Default_ref_name -> "|ref|"
-    | `Default_comet_name -> "|comet|"
-    | `String s -> "||"^s
+    | `Default_ref_name -> "ref|"
+    | `Default_comet_name -> "comet|"
+    | `String s -> "|"^s
   in
   ((cookie_scope :> cookie_scope), site_dir_string^name)
 (* Warning: do not change this without modifying Eliom_state.Admin *)

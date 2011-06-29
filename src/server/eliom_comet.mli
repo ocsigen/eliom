@@ -28,7 +28,8 @@ sig
   (** [v t] is the type of server-to-client communication channels
       transporting data of type [v] *)
 
-  val create : ?name:string -> ?size:int -> 'a Lwt_stream.t -> 'a t
+  val create : ?scope:Eliom_common.client_process_scope ->
+    ?name:string -> ?size:int -> 'a Lwt_stream.t -> 'a t
   (** [create s] returns a channel sending values from [s]. This
       function can only be used when client application datas are
       available. The eliom service created to communicate with the
@@ -44,7 +45,8 @@ sig
       client request it, use [create_unlimited] instead, but be carefull
       to memory leaks. *)
 
-  val create_unlimited : ?name:string -> 'a Lwt_stream.t -> 'a t
+  val create_unlimited : ?scope:Eliom_common.client_process_scope ->
+    ?name:string -> 'a Lwt_stream.t -> 'a t
   (** [create_unlimited s] creates a channel wich does not read
       immediately on the stream it is read only when the client
       request it: use it if the data you send depends on the time of
@@ -57,13 +59,7 @@ sig
 
   val get_id : 'a t -> 'a Eliom_comet_base.chan_id
 
+  val get_service : 'a t -> Eliom_comet_base.comet_service
+
 end
-
-(**/**)
-
-val get_service : unit -> Eliom_comet_base.comet_service
-
-type comet_handler = Eliom_comet_base.comet_service
-
-val init : unit -> comet_handler
 

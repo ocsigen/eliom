@@ -50,7 +50,7 @@ deriving (Json)
 
 type comet_service =
     (unit, comet_request,
-     Eliom_services.service_kind,
+     Eliom_services.internal_service_kind,
      [ `WithoutSuffix ], unit,
      [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
      Eliom_services.http )

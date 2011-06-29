@@ -135,6 +135,9 @@ val change_url :
   ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
+(** wait for the loading phase to terminate *)
+val wait_load_end : unit -> unit Lwt.t
+
 (** register a function to be called on page change *)
 val on_unload : (unit -> unit) -> unit
 

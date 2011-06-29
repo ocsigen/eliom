@@ -152,7 +152,7 @@ type handler =
       hd_activity : activity;
     }
 
-let handler = ref None
+let handler_table : (Ecb.comet_service, handler) Hashtbl.t = Hashtbl.create 1
 
 let add_focus_listener f : unit =
   let listener = Dom_html.handler (fun _ ->
@@ -202,12 +202,24 @@ exception Process_closed
 
 let max_retries = 5
 
+type callable_comet_service =
+    (unit, Ecb.comet_request,
+     Eliom_services.service_kind,
+     [ `WithoutSuffix ], unit,
+     [ `One of Ecb.comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
+     Eliom_services.http )
+      Eliom_services.service
+
+let call_service_after_load_end service p1 p2 =
+  lwt () = Eliom_client.wait_load_end () in
+  Eliom_client.call_service service p1 p2
+
 (** wait for data from the server, if also waits until the page is
     focused to make the request *)
-let wait_data service activity count =
+let wait_data (service:Ecb.comet_service) activity count =
   let call_service () =
     lwt () = Configuration.sleep_before_next_request () in
-    lwt s = Eliom_client.call_service service () (Ecb.Request_data !count) in
+    lwt s = call_service_after_load_end (service:>callable_comet_service) () (Ecb.Request_data !count) in
     match Ecb.Json_answer.from_string s with
       | Ecb.Timeout -> Lwt.fail Timeout
       | Ecb.Process_closed -> Lwt.fail Process_closed
@@ -248,9 +260,6 @@ let wait_data service activity count =
   in
   fun () -> aux 0
 
-let service () : Eliom_comet_base.comet_service =
-  Eliom_unwrap.unwrap (unmarshal_js_var "comet_service")
-
 let init_activity () =
   let active_waiter,active_wakener = Lwt.wait () in
   let restart_waiter, restart_wakener = Lwt.wait () in
@@ -262,18 +271,18 @@ let init_activity () =
     active_channels = StringSet.empty;
   }
 
-let init () =
+let init (service:Ecb.comet_service) =
   (* This reference holds the number of the next request to do. It is
      incremented each time datas are received *)
   let count = ref 0 in
   let hd_activity = init_activity () in
-  let hd_service = service () in
+  let hd_service = (service:>Ecb.comet_service) in
   let hd_stream =
     Lwt_stream.map_list (fun x -> x)
-      (Lwt_stream.from (wait_data hd_service hd_activity count)) in
+      (Lwt_stream.from (wait_data service hd_activity count)) in
   (* the function to register and close channels *)
   let hd_commands commands =
-    Lwt.ignore_result (Eliom_client.call_service hd_service ()
+    Lwt.ignore_result (call_service_after_load_end (service:>callable_comet_service) ()
 			 (Eliom_comet_base.Commands commands))
   in
   let hd =
@@ -281,24 +290,29 @@ let init () =
   in
   let _ = Lwt_stream.iter (fun _ -> ()) hd_stream in (* consumes all messages of the stream to avoid memory leaks *)
   handle_focus hd;
-  handler := Some hd;
+  Hashtbl.add handler_table hd_service hd;
   hd
 
-let get_hd () =
-  match !handler with
-    | None -> init ()
-    | Some hd -> hd
+let get_hd (service:Ecb.comet_service) =
+  try
+    Hashtbl.find handler_table service
+  with
+    | Not_found -> init service
 
-let activate () = set_activity (get_hd ()).hd_activity true
+let activate () =
+  Hashtbl.iter (fun _ hd -> set_activity hd.hd_activity true) handler_table
 
 let restart () =
-  let act = (get_hd ()).hd_activity in
-  let t,u = Lwt.wait () in
-  act.restart_waiter <- t;
-  let wakener = act.restart_wakener in
-  act.restart_wakener <- u;
-  Lwt.wakeup_exn wakener Restart;
-  activate ()
+  Hashtbl.iter
+    (fun _ hd ->
+      let act = hd.hd_activity in
+      let t,u = Lwt.wait () in
+      act.restart_waiter <- t;
+      let wakener = act.restart_wakener in
+      act.restart_wakener <- u;
+      Lwt.wakeup_exn wakener Restart;
+      activate ())
+    handler_table
 
 let stop_waiting hd chan_id =
   hd.hd_activity.active_channels <- StringSet.remove chan_id hd.hd_activity.active_channels;
@@ -309,21 +323,19 @@ let close' hd chan_id =
   stop_waiting hd chan_id;
   hd.hd_commands [Ecb.Close chan_id]
 
-let close chan_id =
-  let hd = get_hd () in
+let close chan_service chan_id =
+  let hd = get_hd chan_service in
   close' hd (Ecb.string_of_chan_id chan_id)
 
 let unmarshal s : 'a =
-  let (value,sent_nodes) =
+  let value =
     (Marshal.from_string (Url.decode s) 0:'a Eliom_types.eliom_comet_data_type)
   in
-  (* FIXME GRGR *)
-  (* ignore (List.map (Eliommod_cli.rebuild_xml 0L) sent_nodes); *)
   Eliom_unwrap.unwrap value
 
-let register ?(wake=true) (chan_id:'a Ecb.chan_id) =
+let register ?(wake=true) (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_id) =
   let chan_id = Ecb.string_of_chan_id chan_id in
-  let hd = get_hd () in
+  let hd = get_hd chan_service in
   let stream = Lwt_stream.filter_map_s
     (function
       | (id,data) when id = chan_id ->
@@ -348,18 +360,15 @@ let register ?(wake=true) (chan_id:'a Ecb.chan_id) =
   if wake then activate ();
   stream
 
-(*
-let unwrap ?wake key =
-  let ( chan_id, unwrapper ) = Eliommod_cli.unwrap key in
-  register ?wake chan_id
-*)
-
-let internal_unwrap ( chan_id, unwrapper ) = register chan_id
+let internal_unwrap ( chan_id, chan_service, unwrapper ) = register chan_service chan_id
 
 let () = Eliom_unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id internal_unwrap
 
-
-let is_active () = (get_hd ()).hd_activity.active
+let is_active () =
+  Hashtbl.fold
+    (fun _ hd active ->
+      active && hd.hd_activity.active)
+    handler_table true
 
 module Channels =
 struct
