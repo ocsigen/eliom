@@ -528,8 +528,6 @@ module HTML5 = struct
 
     include HTML5_f.Make(XML)(SVG.M)
 
-    let a_class x = to_attrib (XML.space_sep_attrib "className" x)
-
     let rebuild_xml _ = assert false (* FIXME GRGR *)
 
     let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
