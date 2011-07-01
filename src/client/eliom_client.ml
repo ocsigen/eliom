@@ -389,7 +389,7 @@ let set_content content =
   let fake_page = Dom_html.createHtml Dom_html.document in
   fake_page##innerHTML <- Js.string content;
   let data_script = get_data_script fake_page in
-  Dom.appendChild (Dom_html.document##head) data_script##cloneNode(Js._true);
+  ignore (Js.Unsafe.eval_string (Js.to_string data_script##innerHTML));
   let on_load = load_eliom_data fake_page in
   let head, body = get_head_and_body fake_page in
   Dom.replaceChild

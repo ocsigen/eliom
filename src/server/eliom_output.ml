@@ -2428,6 +2428,15 @@ end
 
 let comet_service_key = Polytables.make_key ()
 
+let global_data_script =
+  let script =
+    "var sitedata;\n"
+    ^ "var eliom_data;\n"
+    ^ "var eliom_cookies;\n"
+    ^ "var client_process_info;\n" in
+  HTML5.M.unique (HTML5.M.script (HTML5.M.cdata_script script))
+
+
 let redirection_script =
   (* This will do a redirection if there is a #! in the URL *)
   let script =
@@ -2525,10 +2534,10 @@ module Eliom_appl_reg_make_param
 
     let script =
       Printf.sprintf
-	("var sitedata = \'%s\';\n"
-	 ^^ "var eliom_data = \'%s\';\n"
-	 ^^ "var eliom_cookies = \'%s\';\n"
-	 ^^ "var client_process_info = \'%s\';\n")
+	("sitedata = \'%s\';\n"
+	 ^^ "eliom_data = \'%s\';\n"
+	 ^^ "eliom_cookies = \'%s\';\n"
+	 ^^ "client_process_info = \'%s\'\n")
 	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
 	(Eliom_types.jsmarshal eliom_data)
 	(Eliom_types.jsmarshal tab_cookies)
@@ -2564,6 +2573,7 @@ module Eliom_appl_reg_make_param
     let head_elts =
       eliom_fake_data_script
       :: redirection_script
+      :: global_data_script
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts
 	   else ( head_elts
