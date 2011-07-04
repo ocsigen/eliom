@@ -500,6 +500,14 @@ module XML = struct
 
   let end_re = Regexp.regexp_string "]]>"
 
+  let unique_counter = ref 0
+
+  let make_unique ?copy elt =
+    let id = match copy with
+      | Some copy -> copy.unique_id
+      | None -> Some (incr unique_counter; "client_unique"^(string_of_int !unique_counter)) in
+    { elt with unique_id = id }
+
   let cdata s =
     let s' =
       "\n<![CDATA[\n" ^ Regexp.global_replace end_re s "" ^ "\n]]>\n" in
@@ -519,7 +527,11 @@ module XML = struct
 end
 
 module SVG = struct
-  module M = SVG_f.Make(XML)
+  module M = struct
+    include SVG_f.Make(XML)
+    let unique ?copy elt =
+      tot (XML.make_unique ?copy:(map_option toelt copy) (toelt elt))
+  end
 end
 
 module HTML5 = struct
@@ -575,6 +587,9 @@ module HTML5 = struct
     let of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt = rebuild_xml
     let of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = rebuild_xml
     let of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = rebuild_xml
+
+    let unique ?copy elt =
+      tot (XML.make_unique ?copy:(map_option toelt copy) (toelt elt))
 
     (* GRGR: Uncomment when ocaml 3.12.1 is released ! See ocaml bug #1441. *)
 

@@ -178,6 +178,10 @@ module XML : sig
   val cdata_script : string -> elt
   val cdata_style : string -> elt
 
+  val make_unique : ?copy:elt -> elt -> elt
+  val is_unique : elt -> bool
+  val get_unique_id : elt -> string option
+
   type node_id = string
   type ref_tree =
     | Ref_node of (node_id option * (string * caml_event) list * ref_tree list)
@@ -188,7 +192,10 @@ end
 module SVG : sig
 
   (** type safe SVG creation. *)
-  module M : SVG_sigs.T with module XML := XML
+  module M : sig
+    include SVG_sigs.T with module XML := XML
+    val unique: ?copy:'a elt -> 'a elt -> 'a elt
+  end
 
 end
 
@@ -244,6 +251,8 @@ module HTML5 : sig
     val of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt
     val of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt
     val of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt
+
+    val unique: ?copy:'a elt -> 'a elt -> 'a elt
 
     (* GRGR: Uncomment when ocaml 3.12.1 is released ! See ocaml bug #1441. *)
 
