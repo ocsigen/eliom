@@ -24,14 +24,27 @@ type 'a chan_id
 val string_of_chan_id : 'a chan_id -> string
 val chan_id_of_string : string -> 'a chan_id
 
+type postion =
+  | Newest of int
+  | After of int
+deriving (Json)
+
+type comet_stateless_request = (string*postion) list
+deriving (Json)
+
 type command =
   | Register of string
   | Close of string
 deriving (Json)
 
-type comet_request =
+type comet_statefull_request =
   | Request_data of int
   | Commands of command list
+deriving (Json)
+
+type comet_request =
+  | Stateless of comet_stateless_request
+  | Statefull of comet_statefull_request
 deriving (Json)
 
 val comet_request_param :
@@ -45,9 +58,11 @@ type 'a channel_data =
 deriving (Json)
 
 type answer =
-  | Messages of ( string * string channel_data ) list
+  | Stateless_messages of ( string * (string * int) channel_data ) list
+  | Statefull_messages of ( string * string channel_data ) list
   | Timeout
   | Process_closed
+  | Comet_error of string
 deriving (Json)
 
 type comet_service =
@@ -57,3 +72,27 @@ type comet_service =
      [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
      Eliom_services.http )
       Eliom_services.service
+
+type stateless_kind =
+  | After_kind of int
+  | Newest_kind of int
+
+type 'a wrapped_channel =
+  | Statefull_channel of (comet_service * 'a chan_id)
+  | Stateless_channel of (comet_service * 'a chan_id * stateless_kind)
+
+
+type 'a bus_send_service =
+    (unit,
+     'a list,
+     [ `Nonattached of [ `Post ] Eliom_services.na_s ],
+     [ `WithoutSuffix ],
+     unit,
+            [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
+     [ `Registrable ],
+     Eliom_services.http
+    ) Eliom_services.service
+
+type 'a wrapped_bus =
+    ( 'a wrapped_channel )
+    * ( 'a bus_send_service )

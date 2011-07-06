@@ -28,22 +28,44 @@ sig
   (** [v t] is the type of server-to-client communication channels
       transporting data of type [v] *)
 
-  val create : ?scope:Eliom_common.client_process_scope ->
+  type comet_scope =
+    [ Eliom_common.global_scope
+    | Eliom_common.client_process_scope ]
+
+  (* TODO: update doc for scope *)
+  val create : ?scope:[< comet_scope ] ->
     ?name:string -> ?size:int -> 'a Lwt_stream.t -> 'a t
-  (** [create s] returns a channel sending values from [s]. This
-      function can only be used when client application datas are
-      available. The eliom service created to communicate with the
-      client is only available in the scope of the client process. A
-      channel can be used only one time on client side. To be able to
-      receive the same data multiples times on client side, use
+  (** [create s] returns a channel sending values from [s].
+
+      There are two kind of channels created depending on the given
+      scope ( defaults to [Eliom_common.comet_client_process] ).
+
+      With scope [`Global] all user knowing the name of the channel
+      can access it. Only one message queue is created: it is what we
+      call a stateless channel in the sense that the memory used by
+      the channel doesn't depend on the number of users.
+      Warning: as of now, global channels can't be reclaimed by the GC,
+      you should only create a bounded number.
+      The buffer channel has a limited buffer of size [size] (default: 1000).
+      If the client request too old messages, it raise ( on client side )
+      Channel_full.
+
+      With scope [`Client_process _] the channel can only be accessed
+      by the user which created it. It can only be created when client
+      application datas are available. The eliom service created to
+      communicate with the client is only available in the scope of
+      the client process. To avoid memory leak when the client do not
+      read the sent datas, the channel has a limited [size]. When a
+      channel is full, no data can be read from it anymore.
+
+      A channel can be used only one time on client side. To be able
+      to receive the same data multiples times on client side, use
       [create (Lwt_stream.clone s)] each time.
-      To avoid memory leak when the client do not read the sent datas,
-      the channel has a limited [size]. When a channel is full, no data
-      can be read from it anymore.
-      Note that to enforce this limit the data are read into the channel as soon as possible:
-      If you want a channel that read data to the stream only when the
-      client request it, use [create_unlimited] instead, but be carefull
-      to memory leaks. *)
+
+      To enforce the limit on the buffer size, the data are read into
+      [stream] as soon as possible: If you want a channel that read
+      data to the stream only when the client request it, use
+      [create_unlimited] instead, but be carefull to memory leaks. *)
 
   val create_unlimited : ?scope:Eliom_common.client_process_scope ->
     ?name:string -> 'a Lwt_stream.t -> 'a t
@@ -55,11 +77,13 @@ sig
       the stream increase and your clients don't read it, you may have
       memory leaks. *)
 
+  val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
+  (** [create_newest s] is similar to [create ~scope:`Global s] but
+      only the last message is returned to the client. *)
+
   (**/**)
 
-  val get_id : 'a t -> 'a Eliom_comet_base.chan_id
-
-  val get_service : 'a t -> Eliom_comet_base.comet_service
+  val get_wrapped : 'a t -> 'a Eliom_comet_base.wrapped_channel
 
 end
 

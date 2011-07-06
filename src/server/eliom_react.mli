@@ -45,13 +45,15 @@ sig
   (** The abstract type of down events. *)
 
   val of_react :
-      ?throttling:float
+    ?scope:[<Eliom_comet.Channels.comet_scope]
+    -> ?throttling:float
     -> ?name:string
     -> 'a React.E.t
     -> 'a t
-  (** [of_react ?throttling ?name e] create an
+  (** [of_react ?scope ?throttling ?name e] create an
       asynchronous edge originating from [e]. The parameters are: [throttling]
-      for the limit to event propagation rate, [name] for named edges. *)
+      for the limit to event propagation rate, [name] for named edges. [scope]
+      tell which kind of channel this rely on (See [Eliom_comet.create]). *)
 
 end
 
@@ -97,7 +99,8 @@ sig
     (** The abstract type of down signals. *)
 
     val of_react :
-      ?throttling:float
+      ?scope:[<Eliom_comet.Channels.comet_scope]
+      -> ?throttling:float
       -> ?name:string
       -> 'a React.S.t
       -> 'a t

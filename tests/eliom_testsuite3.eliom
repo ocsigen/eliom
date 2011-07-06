@@ -874,14 +874,9 @@ let comet_wrapping =
         ])
     )
 
-let time =
-  let t = Unix.gettimeofday () in
-  let e = Lwt_react.E.from (fun () -> Lwt_unix.sleep 0.1 >>= (fun () -> Lwt.return (Unix.gettimeofday ()))) in
-  Eliom_react.S.Down.of_react (Lwt_react.S.hold t e)
-
-let comet_signal =
+let comet_signal_maker name time =
   My_appl.register_service
-    ~path:["comet_signal"]
+    ~path:[name]
     ~get_params:unit
     (fun () () ->
       let time_div = unique (div []) in
@@ -897,18 +892,21 @@ let comet_signal =
        ])
     )
 
+let time =
+  let t = Unix.gettimeofday () in
+  let e = Lwt_react.E.from (fun () -> Lwt_unix.sleep 0.1 >>= (fun () -> Lwt.return (Unix.gettimeofday ()))) in
+  Eliom_react.S.Down.of_react (Lwt_react.S.hold t e)
+
+let comet_signal = comet_signal_maker "comet_signal" time
+
+
 (*wiki*
  Here is the code for a minimalistic message board.
  *wiki*)
 
-let message_bus = Eliom_bus.create ~size:10 Json.t<string>
-let _ =
-  Lwt_stream.iter (fun msg -> Printf.printf "msg: %s\n%!" msg)
-    (Eliom_bus.stream message_bus)
-
-let comet_message_board =
+let comet_message_board_maker name message_bus =
   My_appl.register_service
-    ~path:["message_board"]
+    ~path:[name]
     ~get_params:unit
     (fun () () ->
 
@@ -962,6 +960,63 @@ let comet_message_board =
            container;
          ]))
     )
+
+let message_bus = Eliom_bus.create ~size:10 Json.t<string>
+let _ =
+  Lwt_stream.iter (fun msg -> Printf.printf "msg: %s\n%!" msg)
+    (Eliom_bus.stream message_bus)
+let comet_message_board = comet_message_board_maker "message_board" message_bus
+
+(*wiki*
+===Stateless comet channels
+ *wiki*)
+
+(* random wait *)
+let rand_tick =
+  let i = ref 0 in
+  fun () ->
+    Lwt_unix.sleep (float_of_int (2 + (Random.int 2))) >>= fun () ->
+    incr i; Lwt.return (Some !i)
+let stream_sl = Lwt_stream.from rand_tick
+let stateless_channel = Eliom_comet.Channels.create ~scope:`Global ~name:"stateless" stream_sl
+
+let comet_stateless =
+  My_appl.register_service
+    ~path:["comet_stateless"]
+    ~get_params:unit
+    (fun () () ->
+
+       Eliom_services.onload
+         {{
+	   let _ = Lwt_stream.iter_s
+           (fun i ->
+             Dom.appendChild (Dom_html.document##body)
+               (Dom_html.document##createTextNode
+                  (Js.string ("msg: "^ string_of_int i ^";  "))) ;
+             Lwt.return ()
+           ) %stateless_channel in
+	   ()
+         }};
+
+       Lwt.return
+         (make_page [
+           div
+             [pcdata "Comet channel with no client specific server side state."] ;
+         ])
+    )
+
+let time =
+  let t = Unix.gettimeofday () in
+  let e = Lwt_react.E.from (fun () -> Lwt_unix.sleep 0.1 >>= (fun () -> Lwt.return (Unix.gettimeofday ()))) in
+  Eliom_react.S.Down.of_react ~scope:`Global ~name:"time" (Lwt_react.S.hold t e)
+let comet_signal_stateless = comet_signal_maker "comet_signal_stateless" time
+
+let message_bus_global = Eliom_bus.create ~scope:`Global ~size:10 Json.t<string>
+let _ =
+  Lwt_stream.iter (fun msg -> Printf.printf "msg global: %s\n%!" msg)
+    (Eliom_bus.stream message_bus_global)
+let comet_message_board_stateless = comet_message_board_maker "message_board_stateless" message_bus_global
+
 
 (*wiki*
 ===Header manipulation with eliom client

@@ -18,40 +18,30 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+module Ecb = Eliom_comet_base
+
 type 'a t = {
-  stream  : 'a Lwt_stream.t;
-  write   : ('a -> unit);
-  service : (unit,
-             'a list,
-             [ `Nonattached of [ `Post ] Eliom_services.na_s ],
-             [ `WithoutSuffix ],
-             unit,
-             [ `One of 'a list Eliom_parameters.caml ]
-               Eliom_parameters.param_name,
-             [ `Registrable ],
-             Eliom_output.Action.return
-  ) Eliom_services.service;
-  size : int option;
+  stream   : 'a Lwt_stream.t;
+  scope    : Eliom_comet.Channels.comet_scope;
+  name     : string option;
+  channel  : 'a Eliom_comet.Channels.t option;
+  write    : ('a -> unit);
+  service  : 'a Ecb.bus_send_service;
+  size     : int option;
   bus_mark : 'a t Eliom_common.wrapper; (* must be the last field ! *)
 }
 
-let internal_wrap (bus: 'a t)
-    : (  ('a Eliom_comet_base.chan_id)
-	 * Eliom_comet_base.comet_service
-	 * (unit,
-            'a list,
-            [ `Nonattached of [ `Post ] Eliom_services.na_s ],
-            [ `WithoutSuffix ],
-            unit,
-            [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
-            [ `Registrable ],
-            Eliom_output.Action.return
-	 ) Eliom_services.service ) *
-    Eliom_common.unwrapper
-    =
-  let chan = Eliom_comet.Channels.create ?size:bus.size (Lwt_stream.clone bus.stream) in
-  ((Eliom_comet.Channels.get_id chan,Eliom_comet.Channels.get_service chan, bus.service),
-   Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id)
+let internal_wrap (bus: 'a t) : 'a Ecb.wrapped_bus * Eliom_common.unwrapper =
+  let channel =
+    match bus.channel with
+      | None ->
+	Eliom_comet.Channels.create ~scope:bus.scope ?name:bus.name ?size:bus.size
+	  (Lwt_stream.clone bus.stream)
+      | Some c -> c
+  in
+  ( ( Eliom_comet.Channels.get_wrapped channel,
+      bus.service ),
+    Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id )
 
 let bus_mark () = Eliom_common.make_wrapper internal_wrap
 
@@ -70,6 +60,21 @@ let create ?scope ?name ?size typ =
   let (stream, push) = Lwt_stream.create () in
   let push x = push (Some x) in
 
+  let scope =
+    match scope with
+      | None
+      | Some `Global -> `Global
+      | Some `Client_process n -> `Client_process n
+  in
+
+  let channel =
+    match scope with
+      | `Global ->
+	Some (Eliom_comet.Channels.create ~scope ?name ?size
+		(Lwt_stream.clone stream))
+      | `Client_process _ -> None
+  in
+
   let typ_list = deriving_to_list typ in
 
   (*The service*)
@@ -79,14 +84,17 @@ let create ?scope ?name ?size typ =
   in
   let distant_write = Eliom_services.post_coservice' ?name ~post_params () in
   Eliom_output.Action.register
-    ?scope
+    ~scope
     ~options:`NoReload
     ~service:distant_write
     (fun () x -> List.iter push x ; Lwt.return ());
 
   (*The bus*)
   let bus =
-    { stream  = stream;
+    { stream;
+      channel;
+      scope;
+      name;
       write   = push;
       service = distant_write;
       bus_mark = bus_mark ();
@@ -95,6 +103,9 @@ let create ?scope ?name ?size typ =
 
   bus
 
-let stream bus = bus.stream
+let stream bus =
+  match bus.scope with
+    | `Global -> Lwt_stream.clone bus.stream
+    | `Client_process _ -> bus.stream
 
 let write bus x = bus.write x

@@ -399,7 +399,15 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               a comet_message_board [pcdata "Minimalistic message board"] ();
               br ();
             ];
-            
+            h5 [pcdata "stateless"];
+            p [
+	      a comet_stateless [pcdata "simple stateless comet"] ();
+              br ();
+              a comet_signal_stateless [pcdata "Signal"] ();
+              br ();
+              a comet_message_board_stateless [pcdata "Minimalistic stateless message board"] ();
+              br ();
+            ];
             h4 [pcdata "More tests"];
             p [
               a appl_redir [pcdata "Eliom applications and redirections"] ();

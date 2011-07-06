@@ -54,7 +54,7 @@ module String : sig
   val may_concat : string -> sep:string -> string -> string
   (* val first_diff : string -> string -> int -> int -> int *)
   module Table : Map.S with type key = string
-  (* module Set : Set.S with type elt = string *)
+  module Set : Set.S with type elt = string
 end
 
 module Url : sig
@@ -94,6 +94,7 @@ module Printexc : sig
 end
 
 val debug : ('a, unit, string, unit) format4 -> 'a
+val debug_exn : ('a, unit, string, unit) format4 -> exn -> 'a
 val jsdebug : 'a -> unit
 val alert : ('a, unit, string, unit) format4 -> 'a
 val jsalert : Js.js_string Js.t -> unit

@@ -32,15 +32,21 @@ module Ecb     = Eliom_comet_base
 type chan_id = string
 
 let encode_downgoing s =
-  Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Messages s)
+  Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Statefull_messages s)
+
+let encode_global_downgoing s =
+  Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Stateless_messages s)
 
 let timeout_msg =
  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Timeout
 let process_closed_msg =
   Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Process_closed
-
+let error_msg s =
+  Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Comet_error s)
 
 let json_content_type = "application/json"
+
+exception New_connection
 
 module Cometreg_ = struct
   open XHTML.M
@@ -92,9 +98,180 @@ let fallback_service =
   Eliom_common.lazy_site_value_from_fun
     (fun () -> Comet.register_service ~path:["__eliom_comet__"]
       ~get_params:Eliom_parameters.unit
-      (fun _ () -> Lwt.return process_closed_msg))
+      (fun () () -> Lwt.return process_closed_msg))
 
-module Raw_channels :
+let fallback_global_service =
+  Eliom_common.lazy_site_value_from_fun
+    (fun () -> Comet.register_service ~path:["__eliom_comet_global__"]
+      ~get_params:Eliom_parameters.unit
+      (fun () () -> Lwt.return (error_msg "request with no post parameters or there isn't any registered global comet channel")))
+
+let new_id = String.make_cryptographic_safe
+
+(* ocsigenserver needs to be modified for this to be configurable:
+   the connection is closed after a fixed time if the server does not send anything.
+   By default it is 30 seconds *)
+let timeout = 20.
+
+module Stateless : sig
+
+  type channel
+
+  val create : ?name:string -> size:int -> string Lwt_stream.t -> channel
+
+  val get_id : channel -> string
+
+  val get_service : unit -> Ecb.comet_service
+
+  val get_kind : newest:bool -> channel -> Ecb.stateless_kind
+
+end =
+struct
+
+  type channel_id = string
+
+  module Dlist = Ocsigen_cache.Dlist
+
+  type channel = {
+    ch_id : channel_id;
+    mutable ch_index : int; (* the number of messages already added to the channel *)
+    ch_content : (string * int) Dlist.t;
+    ch_wakeup : unit Lwt_condition.t; (* condition broadcasted when there is a new message *)
+  }
+
+  (* TODO: allow garbage collection of channels: weak table ? *)
+  let channels : (channel_id,channel) Hashtbl.t  = Hashtbl.create 0
+
+  let wakeup_waiters channel =
+    Lwt_condition.broadcast channel.ch_wakeup ()
+
+  (* fill the channel with messages from the stream *)
+  let run_channel channel stream =
+    let f msg =
+      channel.ch_index <- succ channel.ch_index;
+      ignore (Dlist.add (msg,channel.ch_index) channel.ch_content: 'a option);
+      wakeup_waiters channel;
+    in
+    ignore (Lwt_stream.iter f stream:unit Lwt.t)
+
+  let create ?(name=new_id ()) ~size stream =
+    let name = "stateless:"^name in
+    let channel =
+      { ch_id = name;
+	ch_index = 0;
+	ch_content = Dlist.create size;
+	ch_wakeup = Lwt_condition.create () }
+    in
+    run_channel channel stream;
+    try
+      ignore (Hashtbl.find channels name: channel);
+      failwith (Printf.sprintf "can't create channel %s: a channel with the same name already exists" name)
+    with
+      | Not_found ->
+	Hashtbl.add channels name channel;
+	channel
+
+  let get_channel (channel,position) =
+    try
+      let channel = Hashtbl.find channels channel in
+      Some (channel,position)
+    with
+      | Not_found -> None
+
+  exception Finished of (channel_id * (string * int) Ecb.channel_data) list
+
+  let queue_take channel last =
+    try
+      Dlist.fold
+	(fun l (v,index) ->
+	  if index >= last
+	  then (channel.ch_id,Ecb.Data (v,index))::l
+	  else raise (Finished l))
+	[]
+	channel.ch_content
+    with
+      | Finished l -> l
+
+  let get_available_data = function
+    | None -> [] (* CCC should be an error *)
+    | Some (channel,position) ->
+      match position with
+	(* the first request of the client should be with i = 1 *)
+	(* when the client is requesting the newest data, only return
+	   one if he don't already have it *)
+	| Ecb.Newest i when i > channel.ch_index -> []
+	| Ecb.Newest i ->
+	  (match Dlist.newest channel.ch_content with
+	    | None -> [] (* should not happen *)
+	    | Some node ->
+	      [channel.ch_id,Ecb.Data (Dlist.value node)])
+	(* when the client is requesting the data after index i return
+	   all data with index gretter or equal to i*)
+	| Ecb.After i when i > channel.ch_index -> []
+	(* if the requested value is not in the queue anymore, tell
+	   the client that its request was dropped *)
+	| Ecb.After i when i <= channel.ch_index - (Dlist.size channel.ch_content) ->
+	  [channel.ch_id,Ecb.Full]
+	| Ecb.After i ->
+	  queue_take channel i
+
+  let has_data = function
+    | None -> false (* CCC should be an error *)
+    | Some (channel,position) ->
+      match position with
+	| Ecb.Newest i when i > channel.ch_index -> false
+	| Ecb.Newest i -> true
+	| Ecb.After i when i > channel.ch_index -> false
+	| Ecb.After i -> true
+
+  let really_wait_data requests =
+    let rec make_list = function
+      | [] -> []
+      | None::q -> make_list q
+      | (Some (channel,_))::q -> (Lwt_condition.wait channel.ch_wakeup)::(make_list q)
+    in
+    Lwt.pick (make_list requests)
+
+  let wait_data requests =
+    if List.exists has_data requests
+    then Lwt.return ()
+    else
+      Lwt_unix.with_timeout timeout
+	(fun () -> really_wait_data requests)
+
+  let handle_request () = function
+    | Ecb.Statefull _ -> failwith "attempting to request data on stateless service with a statefull request"
+    | Ecb.Stateless requests ->
+      let requests = List.map get_channel requests in
+      lwt res =
+	try_lwt
+          lwt () = wait_data requests in
+	  Lwt.return (List.flatten (List.map get_available_data requests))
+        with
+	  | Lwt_unix.Timeout -> Lwt.return []
+      in
+      Lwt.return (encode_global_downgoing res)
+
+  let global_service =
+    Eliom_common.lazy_site_value_from_fun
+      (fun () -> Comet.register_post_service
+	~fallback:(Eliom_common.force_lazy_site_value fallback_global_service)
+	~post_params:Ecb.comet_request_param
+	handle_request)
+
+  let get_service () =
+    Eliom_common.force_lazy_site_value global_service
+
+  let get_id {ch_id} = ch_id
+
+  let get_kind ~newest {ch_index} =
+    if newest
+    then Ecb.Newest_kind (ch_index + 1)
+    else Ecb.After_kind (ch_index + 1)
+
+end
+
+module Statefull :
 (** String channels on wich is build the module Channels *)
 sig
 
@@ -136,8 +313,6 @@ end = struct
 	    with the same number, this message is immediately sent
 	    back.*)
       }
-
-  exception New_connection
 
   (** called when a connection is opened, it makes the other
       connection terminate with no data. That way there is at most one
@@ -215,17 +390,12 @@ end = struct
     handler.hd_registered_chan_id <- List.filter ((<>) chan_id) handler.hd_registered_chan_id;
     signal_update handler
 
-  let new_id = String.make_cryptographic_safe
-
-  (* ocsigenserver needs to be modified for this to be configurable:
-     the connection is closed after a fixed time if the server does not send anything.
-     By default it is 30 seconds *)
-  let timeout = 20.
-
   (* register the service handler.hd_service *)
   let run_handler handler =
     let f () = function
-      | Ecb.Request_data number ->
+      | Ecb.Stateless _ ->
+	failwith "attempting to request data on statefull service with a stateless request"
+      | Ecb.Statefull (Ecb.Request_data number) ->
 	OMsg.debug2 (Printf.sprintf "eliom: comet: received request %i" number);
 	(* if a new connection occurs for a service, we reply
 	   immediately to the previous with no data. *)
@@ -247,7 +417,7 @@ end = struct
 		      (* CCC in this case, it would be beter to return code 204: no content *)
 	      | Lwt_unix.Timeout -> Lwt.return timeout_msg
 	      | e -> Lwt.fail e )
-      | Ecb.Commands commands ->
+      | Ecb.Statefull (Ecb.Commands commands) ->
 	List.iter (function
 	  | Ecb.Register channel -> register_channel handler channel
 	  | Ecb.Close channel -> close_channel' handler channel) commands;
@@ -336,7 +506,16 @@ end = struct
   let close_channel chan =
     close_channel' chan.ch_handler chan.ch_id
 
+  let name_of_scope (scope:Eliom_common.user_scope) =
+    let sp = Eliom_common.get_sp () in
+    let (_,name) = Eliom_common.make_fullsessname ~sp scope in
+    match scope with
+      | `Session_group _ -> "sessiongroup:" ^ name
+      | `Session _ -> "session:" ^ name
+      | `Client_process _ -> "clientprocess:" ^ name
+
   let create ?(scope=Eliom_common.comet_client_process) ?(name=new_id ()) stream =
+    let name = (name_of_scope (scope:>Eliom_common.user_scope)) ^ name in
     let handler = get_handler scope in
     OMsg.debug2 (Printf.sprintf "eliom: comet: create channel %s" name);
     if List.mem name handler.hd_registered_chan_id
@@ -352,7 +531,8 @@ end = struct
       ch_stream = stream;
       ch_id = name; }
 
-  let get_id { ch_id } = ch_id
+  let get_id {ch_id} =
+    ch_id
 
   let get_service chan =
     chan.ch_handler.hd_service
@@ -363,33 +543,53 @@ end
 module Channels :
 sig
 
-  type +'a t
+  type 'a t
 
-  val create : ?scope:Eliom_common.client_process_scope ->
+  type comet_scope =
+    [ Eliom_common.global_scope
+    | Eliom_common.client_process_scope ]
+
+  val create : ?scope:[< comet_scope ] ->
     ?name:string -> ?size:int -> 'a Lwt_stream.t -> 'a t
 
   val create_unlimited : ?scope:Eliom_common.client_process_scope ->
     ?name:string -> 'a Lwt_stream.t -> 'a t
 
-  val get_id : 'a t -> 'a Ecb.chan_id
+  val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
 
-  val get_service : 'a t -> Eliom_comet_base.comet_service
+  val get_wrapped : 'a t -> 'a Ecb.wrapped_channel
 
 end = struct
 
-  type +'a t = {
-    channel : Raw_channels.t;
+  type 'a channel =
+    | Stateless of Stateless.channel
+    | Stateless_newest of Stateless.channel
+    | Statefull of Statefull.t
+
+  type 'a t = {
+    channel : 'a channel;
     channel_mark : 'a t Eliom_common.wrapper;
   }
 
-  let get_id t =
-    Ecb.chan_id_of_string (Raw_channels.get_id t.channel)
-
-  let get_service t =
-    Raw_channels.get_service t.channel
+  let get_wrapped t =
+    match t.channel with
+      | Statefull channel ->
+	Ecb.Statefull_channel
+	  (Statefull.get_service channel,
+	   Ecb.chan_id_of_string (Statefull.get_id channel))
+      | Stateless channel ->
+	Ecb.Stateless_channel
+	  (Stateless.get_service (),
+	   Ecb.chan_id_of_string (Stateless.get_id channel),
+	   Stateless.get_kind ~newest:false channel)
+      | Stateless_newest channel ->
+	Ecb.Stateless_channel
+	  (Stateless.get_service (),
+	   Ecb.chan_id_of_string (Stateless.get_id channel),
+	   Stateless.get_kind ~newest:true channel)
 
   let internal_wrap c =
-    (get_id c,get_service c,Eliom_common.make_unwrapper Eliom_common.comet_channel_unwrap_id)
+    (get_wrapped c,Eliom_common.make_unwrapper Eliom_common.comet_channel_unwrap_id)
 
   let channel_mark () = Eliom_common.make_wrapper internal_wrap
 
@@ -434,24 +634,52 @@ end = struct
     (Url.encode ~plus:false
        (Marshal.to_string value []))
 
-  let create_channel ?scope ?name stream =
-    Raw_channels.create ?scope ?name
-      (Lwt_stream.map
-	 (function
-	   | Ecb.Full -> Ecb.Full
-	   | Ecb.Data s -> Ecb.Data (marshal s)) stream)
+  let create_statefull_channel ?scope ?name stream =
+    Statefull
+      (Statefull.create ?scope ?name
+	 (Lwt_stream.map
+	    (function
+	      | Ecb.Full -> Ecb.Full
+	      | Ecb.Data s -> Ecb.Data (marshal s)) stream))
 
-  let create ?scope ?name ?(size=1000) stream =
+  let create_stateless_channel ?name ~size stream =
+    Stateless
+      (Stateless.create ?name ~size
+	 (Lwt_stream.map marshal stream))
+
+  let create_stateless_newest_channel ?name stream =
+    Stateless_newest
+      (Stateless.create ?name ~size:1
+	 (Lwt_stream.map marshal stream))
+
+  let create_statefull ?scope ?name ?(size=1000) stream =
     let stream = limit_stream ~size stream in
-    let channel = create_channel ?scope ?name stream in
-      { channel;
-	channel_mark = channel_mark () }
+    { channel = create_statefull_channel ?scope ?name stream;
+      channel_mark = channel_mark () }
 
   let create_unlimited ?scope ?name stream =
     let stream = Lwt_stream.map (fun x -> Ecb.Data x) stream in
-    let channel = create_channel ?scope ?name stream in
-      { channel;
-	channel_mark = channel_mark () }
+    { channel = create_statefull_channel ?scope ?name stream;
+      channel_mark = channel_mark () }
+
+  let create_stateless ?name ?(size=1000) stream =
+    { channel = create_stateless_channel ?name ~size stream;
+      channel_mark = channel_mark () }
+
+  let create_newest ?name stream =
+    { channel = create_stateless_newest_channel ?name stream;
+      channel_mark = channel_mark () }
+
+  type comet_scope =
+    [ Eliom_common.global_scope
+    | Eliom_common.client_process_scope ]
+
+  let create ?scope ?name ?(size=1000) stream =
+    match scope with
+      | None -> create_statefull ?name ~size stream
+      | Some ((`Client_process n) as scope) -> create_statefull ~scope ?name ~size stream
+      | Some `Global -> create_stateless ?name ~size stream
+
 
 end
 

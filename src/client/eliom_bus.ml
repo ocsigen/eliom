@@ -21,10 +21,11 @@
 
 open Eliom_pervasives
 
+module Ecb = Eliom_comet_base
+
 type 'a t =
     {
-      channel : 'a Eliom_comet_base.chan_id;
-      chan_service : Eliom_comet_base.comet_service;
+      channel : 'a Ecb.wrapped_channel;
       queue : 'a Queue.t;
       mutable max_size : int;
       write : 'a list -> unit Lwt.t;
@@ -32,14 +33,23 @@ type 'a t =
       mutable last_wait : unit Lwt.t;
     }
 
-let create service chan_service channel waiter =
+
+type 'a callable_bus_service =
+    (unit, 'a list, Eliom_services.service_kind,
+     [ `WithoutSuffix ], unit,
+     [ `One of 'a list Eliom_parameters.caml ]
+       Eliom_parameters.param_name, [ `Registrable ],
+     Eliom_output.Action.return)
+      Eliom_services.service
+
+let create service channel waiter =
   let write x =
-    lwt _ = Eliom_client.call_service ~service () x in
+    lwt _ = Eliom_client.call_service
+      ~service:(service:>'a callable_bus_service) () x in
     Lwt.return ()
   in
   {
     channel;
-    chan_service = chan_service;
     queue = Queue.create ();
     max_size = 20;
     write;
@@ -47,16 +57,15 @@ let create service chan_service channel waiter =
     last_wait = Lwt.return ();
   }
 
-let internal_unwrap (((chan_id:'a Eliom_comet_base.chan_id),
-		      (chan_service:Eliom_comet_base.comet_service),
-		      service),unwrapper) =
+let internal_unwrap ((wrapped_bus:'a Ecb.wrapped_bus),unwrapper) =
   let waiter () = Lwt_js.sleep 0.05 in
-  create service chan_service chan_id waiter
+  let (channel,service) = wrapped_bus in
+  create service channel waiter
 
 let () = Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
-let stream {channel;chan_service} =
-  Eliom_comet.register chan_service channel
+let stream {channel} =
+  Eliom_comet.register channel
 
 let flush t =
   let l = List.rev (Queue.fold (fun l v -> v::l) [] t.queue) in
@@ -77,7 +86,7 @@ let write t v =
   Queue.add v t.queue;
   try_flush t
 
-let close {channel;chan_service} = Eliom_comet.close chan_service channel
+let close {channel} = Eliom_comet.close channel
 
 let set_queue_size b s =
   b.max_size <- s

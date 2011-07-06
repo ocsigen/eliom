@@ -123,209 +123,400 @@ struct
 
 end
 
-module StringSet = Set.Make(String)
-
-type activity =
-    {
-      mutable active : bool;
-      (** [!hd.hd_active] is true when the page is focused on the
-	  browser *)
-      mutable focused : bool;
-      mutable active_waiter : unit Lwt.t;
-      (** [!hd.hd_active_waiter] terminates when the page become
-	  focused *)
-      mutable active_wakener : unit Lwt.u;
-      mutable restart_waiter : (string * string Ecb.channel_data) list Lwt.t;
-      mutable restart_wakener : (string * string Ecb.channel_data) list Lwt.u;
-      mutable active_channels : StringSet.t;
-    }
-
-type handler =
-    {
-      hd_service : Ecb.comet_service;
-      hd_stream : (string * string Ecb.channel_data) Lwt_stream.t;
-      (** the stream of all messages from the server *)
-      hd_commands : Ecb.command list -> unit;
-      (** [hd.hd_commands commands] sends the commands to the
-	  server. It launch a new request to the server
-	  immediately. *)
-      hd_activity : activity;
-    }
-
-let handler_table : (Ecb.comet_service, handler) Hashtbl.t = Hashtbl.create 1
-
-let add_focus_listener f : unit =
-  let listener = Dom_html.handler (fun _ ->
-    f (); Js.bool false) in
-  (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "focus",listener,Js.bool false)
-
-let add_blur_listener f : unit =
-  let listener = Dom_html.handler (fun _ ->
-    f (); Js.bool false) in
-  (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "blur",listener,Js.bool false)
-
-let set_activity activity v =
-  if StringSet.is_empty activity.active_channels
-  then activity.active <- false
-  else
-    match v with
-      | true ->
-	activity.active <- true;
-	let t,u = Lwt.wait () in
-	activity.active_waiter <- t;
-	let wakener = activity.active_wakener in
-	activity.active_wakener <- u;
-	Lwt.wakeup wakener ()
-      | false ->
-	activity.active <- false
-
-(** register callbacks to 'blur' and 'focus' events of the root
-    window. That way, we can tell when the client is active or not and do
-    calls to the server only if it is active *)
-let handle_focus handler =
-  let focus_callback () =
-    handler.hd_activity.focused <- true;
-    set_activity handler.hd_activity true
-  in
-  let blur_callback () =
-    handler.hd_activity.focused <- false;
-    if not ((Configuration.get ()).Configuration.active_until_timeout
-	  || (Configuration.get ()).Configuration.always_active)
-    then handler.hd_activity.active <- false
-  in
-  add_focus_listener focus_callback;
-  add_blur_listener blur_callback
 
 exception Restart
-exception Timeout
 exception Process_closed
+exception Comet_error of string
 
-let max_retries = 5
+type chan_id = string
 
-type callable_comet_service =
-    (unit, Ecb.comet_request,
-     Eliom_services.service_kind,
-     [ `WithoutSuffix ], unit,
-     [ `One of Ecb.comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
-     Eliom_services.http )
-      Eliom_services.service
+type statefull_message = ( chan_id * string Ecb.channel_data ) list
+type stateless_message = ( chan_id * (string * int) Ecb.channel_data ) list
 
-let call_service_after_load_end service p1 p2 =
-  lwt () = Eliom_client.wait_load_end () in
-  Eliom_client.call_service service p1 p2
+module Service_handler : sig
 
-(** wait for data from the server, if also waits until the page is
-    focused to make the request *)
-let wait_data (service:Ecb.comet_service) activity count =
-  let call_service () =
+  type 'a t
+
+  type 'a kind
+  type stateless
+  type statefull
+
+  val stateless : stateless kind
+  val statefull : statefull kind
+
+  val make : Ecb.comet_service -> 'a kind -> 'a t
+
+  val wait_data : 'a t -> (chan_id * string Ecb.channel_data) list Lwt.t
+
+  val set_activity : 'a t -> bool -> unit
+
+  val activate : 'a t -> unit
+
+  val is_active : 'a t -> bool
+
+  val restart : 'a t -> unit
+
+  val add_channel_statefull : statefull t -> chan_id -> unit
+  val add_channel_stateless : stateless t -> chan_id -> Ecb.stateless_kind -> unit
+
+  val stop_waiting : statefull t -> chan_id -> unit
+  val close : 'a t -> chan_id -> unit
+
+end =
+struct
+  type activity =
+      {
+	mutable active : bool;
+	(** [!hd.hd_active] is true when the page is focused on the
+	    browser *)
+	mutable focused : bool;
+	mutable active_waiter : unit Lwt.t;
+	(** [!hd.hd_active_waiter] terminates when the page become
+	    focused *)
+	mutable active_wakener : unit Lwt.u;
+	mutable restart_waiter : unit list Lwt.t;
+	mutable restart_wakener : unit list Lwt.u;
+	mutable active_channels : String.Set.t;
+      }
+
+  type statefull_state = int ref (* id of the next request *)
+  type stateless_state = (Ecb.postion String.Table.t) ref (* index for each channel of the last message *)
+
+  type channel_state =
+    | Statefull_state of statefull_state
+    | Stateless_state of stateless_state
+
+  type kind' =
+    | Statefull
+    | Stateless
+
+  type 'a kind = kind'
+  type stateless
+  type statefull
+
+  let stateless : stateless kind = Stateless
+  let statefull : statefull kind = Statefull
+
+  type 'a t =
+      {
+	hd_service : Ecb.comet_service;
+	hd_state : channel_state;
+	hd_kind : 'a kind;
+	hd_activity : activity;
+      }
+
+  let add_focus_listener f : unit =
+    let listener = Dom_html.handler (fun _ ->
+      f (); Js.bool false) in
+    (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "focus",listener,Js.bool false)
+
+  let add_blur_listener f : unit =
+    let listener = Dom_html.handler (fun _ ->
+      f (); Js.bool false) in
+    (Js.Unsafe.coerce (Dom_html.window))##addEventListener(Js.string "blur",listener,Js.bool false)
+
+  let set_activity hd v =
+    if String.Set.is_empty hd.hd_activity.active_channels
+    then hd.hd_activity.active <- false
+    else
+      match v with
+	| true ->
+	  hd.hd_activity.active <- true;
+	  let t,u = Lwt.wait () in
+	  hd.hd_activity.active_waiter <- t;
+	  let wakener = hd.hd_activity.active_wakener in
+	  hd.hd_activity.active_wakener <- u;
+	  Lwt.wakeup wakener ()
+	| false ->
+	  hd.hd_activity.active <- false
+
+  let is_active hd = hd.hd_activity.active
+
+  (** register callbacks to 'blur' and 'focus' events of the root
+      window. That way, we can tell when the client is active or not and do
+      calls to the server only if it is active *)
+  let handle_focus handler =
+    let focus_callback () =
+      handler.hd_activity.focused <- true;
+      set_activity handler true
+    in
+    let blur_callback () =
+      handler.hd_activity.focused <- false;
+      if not ((Configuration.get ()).Configuration.active_until_timeout
+	    || (Configuration.get ()).Configuration.always_active)
+      then handler.hd_activity.active <- false
+    in
+    add_focus_listener focus_callback;
+    add_blur_listener blur_callback
+
+  let activate hd =
+    set_activity hd true
+
+  let restart hd =
+    let act = hd.hd_activity in
+    let t,u = Lwt.wait () in
+    act.restart_waiter <- t;
+    let wakener = act.restart_wakener in
+    act.restart_wakener <- u;
+    Lwt.wakeup_exn wakener Restart;
+    activate hd
+
+  let max_retries = 5
+
+  type callable_comet_service =
+      (unit, Ecb.comet_request,
+       Eliom_services.service_kind,
+       [ `WithoutSuffix ], unit,
+       [ `One of Ecb.comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
+       Eliom_services.http )
+	Eliom_services.service
+
+  let call_service_after_load_end service p1 p2 =
+    lwt () = Eliom_client.wait_load_end () in
+    Eliom_client.call_service service p1 p2
+
+  let make_request hd =
+    match hd.hd_state with
+      | Statefull_state count -> (Ecb.Statefull (Ecb.Request_data !count))
+      | Stateless_state map ->
+	let l = String.Table.fold (fun channel position l -> (channel,position)::l) !map [] in
+	Ecb.Stateless l
+
+  let stop_waiting hd chan_id =
+    hd.hd_activity.active_channels <- String.Set.remove chan_id hd.hd_activity.active_channels;
+    if String.Set.is_empty hd.hd_activity.active_channels
+    then set_activity hd false
+
+  let update_statefull_state hd message =
+    match hd.hd_state with
+      | Statefull_state r ->
+	incr r;
+	List.iter (function
+	  | ( chan_id, Ecb.Data _ ) -> ()
+	  | ( chan_id, Ecb.Full ) ->
+	    stop_waiting hd chan_id) message
+      | Stateless_state _ ->
+	raise (Comet_error ("update_statefull_state on stateless one"))
+
+  let set_position pos value =
+    match pos with
+      | Ecb.Newest _ -> Ecb.Newest value
+      | Ecb.After _ -> Ecb.After value
+
+  let position_value pos =
+    match pos with
+      | Ecb.Newest i
+      | Ecb.After i -> i
+
+  let update_stateless_state hd (message:stateless_message) =
+    match hd.hd_state with
+      | Stateless_state r ->
+	let table =
+	  List.fold_left
+	    (fun table -> function
+	    | ( chan_id, Ecb.Data (_,index)) ->
+	      (try
+		 let position = String.Table.find chan_id table in
+		 if position_value position < index + 1
+		 then String.Table.add chan_id (set_position position (index + 1)) table
+		 else table
+	       with
+		 | Not_found -> table)
+	    | ( chan_id, Ecb.Full ) ->
+	      stop_waiting hd chan_id;
+	      String.Table.remove chan_id table)
+	    !r message
+	in
+	r := table
+      | Statefull_state _ ->
+	raise (Comet_error ("update_stateless_state on statefull one"))
+
+  let call_service hd =
     lwt () = Configuration.sleep_before_next_request () in
-    lwt s = call_service_after_load_end (service:>callable_comet_service) () (Ecb.Request_data !count) in
-    match Ecb.Json_answer.from_string s with
-      | Ecb.Timeout -> Lwt.fail Timeout
-      | Ecb.Process_closed -> Lwt.fail Process_closed
-      | Ecb.Messages l ->
-	Lwt.return l
-  in
-  let rec aux retries =
-    if activity.active
-    then
-      begin
-	try_lwt
-	  lwt s = Lwt.choose [call_service ();
-			      activity.restart_waiter ] in
-          incr count;
-          Lwt.return (Some s)
-        with
-	  | Eliom_request.Failed_request 0 ->
-	    if retries > max_retries
-	    then
-	      (debug "Eliom_comet: connection failure";
-	       set_activity activity false;
-	     aux 0)
-	    else
-	      (Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
-	  | Restart -> debug "Eliom_comet: restart";
-	    aux 0
-	  | Timeout ->
-	    if not activity.focused
-	    then
-	      if not (Configuration.get ()).Configuration.always_active
-	      then set_activity activity false;
-	    aux 0
-	  | e -> debug "Eliom_comet: exception %s" (Printexc.to_string e); Lwt.fail e
-      end
-     else
-       lwt () = activity.active_waiter in
-       aux 0
-  in
-  fun () -> aux 0
+    let request = make_request hd in
+    lwt s = call_service_after_load_end (hd.hd_service:>callable_comet_service) ()
+	request in
+    Lwt.return (Ecb.Json_answer.from_string s)
 
-let init_activity () =
-  let active_waiter,active_wakener = Lwt.wait () in
-  let restart_waiter, restart_wakener = Lwt.wait () in
-  {
-    active = false;
-    focused = true;
-    active_waiter; active_wakener;
-    restart_waiter; restart_wakener;
-    active_channels = StringSet.empty;
-  }
+  let drop_message_index =
+    let aux = function
+      | ( chan, Ecb.Full ) as m -> m
+      | ( chan, Ecb.Data (m,_) ) -> ( chan, Ecb.Data m )
+    in
+    List.map aux
 
-let init (service:Ecb.comet_service) =
-  (* This reference holds the number of the next request to do. It is
-     incremented each time datas are received *)
-  let count = ref 0 in
-  let hd_activity = init_activity () in
-  let hd_service = (service:>Ecb.comet_service) in
-  let hd_stream =
-    Lwt_stream.map_list (fun x -> x)
-      (Lwt_stream.from (wait_data service hd_activity count)) in
-  (* the function to register and close channels *)
-  let hd_commands commands =
-    Lwt.ignore_result (call_service_after_load_end (service:>callable_comet_service) ()
-			 (Eliom_comet_base.Commands commands))
-  in
-  let hd =
-    { hd_service; hd_stream; hd_commands; hd_activity }
-  in
-  let _ = Lwt_stream.iter (fun _ -> ()) hd_stream in (* consumes all messages of the stream to avoid memory leaks *)
-  handle_focus hd;
-  Hashtbl.add handler_table hd_service hd;
+  let wait_data hd : (string * string Ecb.channel_data) list Lwt.t =
+    let rec aux retries =
+      if hd.hd_activity.active
+      then
+	begin
+	  try_lwt
+	    lwt s = Lwt.choose [call_service hd;
+				hd.hd_activity.restart_waiter
+				>>= (fun _ -> debug "Eliom_comet: should not append";
+				  Lwt.fail (Comet_error "")) ] in
+	    match s with
+	      | Ecb.Timeout ->
+		if not hd.hd_activity.focused
+		then
+		  if not (Configuration.get ()).Configuration.always_active
+		  then set_activity hd false;
+		aux 0
+	      | Ecb.Process_closed -> Lwt.fail Process_closed
+	      | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
+	      | Ecb.Stateless_messages l ->
+		update_stateless_state hd l;
+		Lwt.return (drop_message_index l)
+	      | Ecb.Statefull_messages l ->
+		update_statefull_state hd l;
+		Lwt.return l
+          with
+	    | Eliom_request.Failed_request 0 ->
+	      if retries > max_retries
+	      then
+		(debug "Eliom_comet: connection failure";
+		 set_activity hd false;
+		 aux 0)
+	      else
+		(Lwt_js.sleep 0.05 >>= (fun () -> aux (retries + 1)))
+	    | Restart -> debug "Eliom_comet: restart";
+	      aux 0
+	    | e -> debug "Eliom_comet: exception %s" (Printexc.to_string e); Lwt.fail e
+	end
+      else
+	lwt () = hd.hd_activity.active_waiter in
+	aux 0
+    in
+    aux 0
+
+  let call_commands hd command =
+    ignore
+      (try_lwt
+	  call_service_after_load_end (hd.hd_service:>callable_comet_service) ()
+	    (Ecb.Statefull (Ecb.Commands command))
+       with
+	 | e -> debug "Eliom_comet: request failed: exception %s" (Printexc.to_string e);
+	   Lwt.return "")
+
+  let close hd chan_id =
+    match hd.hd_state with
+      | Statefull_state _ ->
+	stop_waiting hd chan_id;
+	call_commands hd [Ecb.Close chan_id]
+      | Stateless_state map ->
+	map := String.Table.remove chan_id !map
+
+  let add_channel_statefull hd chan_id =
+    hd.hd_activity.active_channels <- String.Set.add chan_id hd.hd_activity.active_channels;
+    call_commands hd [Eliom_comet_base.Register chan_id]
+
+  let add_channel_stateless hd chan_id kind =
+    let pos =
+      match kind with
+	| Ecb.Newest_kind i -> Ecb.Newest i
+	| Ecb.After_kind i -> Ecb.After i
+    in
+    hd.hd_activity.active_channels <- String.Set.add chan_id hd.hd_activity.active_channels;
+    match hd.hd_state with
+      | Statefull_state _ -> assert false
+      | Stateless_state map ->
+	try
+	  let _ = String.Table.find chan_id !map in
+	  let s = Printf.sprintf "Eliom_comet: already registered channel %s" chan_id in
+	  debug "%s" s;
+	  failwith s
+	with
+	  | Not_found ->
+	    map := (String.Table.add chan_id pos !map);
+	    restart hd
+
+  let stop_waiting hd chan_id =
+    hd.hd_activity.active_channels <- String.Set.remove chan_id hd.hd_activity.active_channels;
+    if String.Set.is_empty hd.hd_activity.active_channels
+    then set_activity hd false
+
+  let init_activity () =
+    let active_waiter,active_wakener = Lwt.wait () in
+    let restart_waiter, restart_wakener = Lwt.wait () in
+    {
+      active = false;
+      focused = true;
+      active_waiter; active_wakener;
+      restart_waiter; restart_wakener;
+      active_channels = String.Set.empty;
+    }
+
+  let make hd_service hd_kind =
+    let hd_state = match hd_kind with
+	| Stateless -> Stateless_state (ref String.Table.empty)
+	| Statefull -> Statefull_state (ref 0)
+    in
+    let hd = {
+      hd_service;
+      hd_state;
+      hd_kind;
+      hd_activity = init_activity ();
+    } in
+    handle_focus hd;
+    hd
+
+end
+
+type 'a handler =
+    { hd_service_handler : 'a Service_handler.t;
+      hd_stream : ( string * string Ecb.channel_data ) Lwt_stream.t; }
+
+let handler_stream hd =
+  Lwt_stream.map_list (fun x -> x)
+    (Lwt_stream.from (fun () ->
+      lwt s = Service_handler.wait_data hd in Lwt.return (Some s)))
+
+let statefull_handler_table : (Ecb.comet_service, Service_handler.statefull handler) Hashtbl.t
+    = Hashtbl.create 1
+let stateless_handler_table : (Ecb.comet_service, Service_handler.stateless handler) Hashtbl.t
+    = Hashtbl.create 1
+
+let init (service:Ecb.comet_service) kind table =
+  let hd_service_handler = Service_handler.make service kind in
+  let hd_stream = handler_stream hd_service_handler in
+  let hd = { hd_service_handler;
+	     hd_stream; } in
+  Hashtbl.add table service hd;
   hd
 
-let get_hd (service:Ecb.comet_service) =
+let get_statefull_hd (service:Ecb.comet_service) : Service_handler.statefull handler =
   try
-    Hashtbl.find handler_table service
+    Hashtbl.find statefull_handler_table service
   with
-    | Not_found -> init service
+    | Not_found -> init service Service_handler.statefull statefull_handler_table
+
+let get_stateless_hd (service:Ecb.comet_service) : Service_handler.stateless handler =
+  try
+    Hashtbl.find stateless_handler_table service
+  with
+    | Not_found -> init service Service_handler.stateless stateless_handler_table
 
 let activate () =
-  Hashtbl.iter (fun _ hd -> set_activity hd.hd_activity true) handler_table
+  let f _ { hd_service_handler } = Service_handler.set_activity hd_service_handler true in
+  Hashtbl.iter f stateless_handler_table;
+  Hashtbl.iter f statefull_handler_table
 
 let restart () =
-  Hashtbl.iter
-    (fun _ hd ->
-      let act = hd.hd_activity in
-      let t,u = Lwt.wait () in
-      act.restart_waiter <- t;
-      let wakener = act.restart_wakener in
-      act.restart_wakener <- u;
-      Lwt.wakeup_exn wakener Restart;
-      activate ())
-    handler_table
+  let f _ { hd_service_handler } = Service_handler.restart hd_service_handler in
+  Hashtbl.iter f stateless_handler_table;
+  Hashtbl.iter f statefull_handler_table
 
-let stop_waiting hd chan_id =
-  hd.hd_activity.active_channels <- StringSet.remove chan_id hd.hd_activity.active_channels;
-  if StringSet.is_empty hd.hd_activity.active_channels
-  then set_activity hd.hd_activity false
+let close_statefull chan_service chan_id =
+  let { hd_service_handler } = get_statefull_hd chan_service in
+  Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
 
-let close' hd chan_id =
-  stop_waiting hd chan_id;
-  hd.hd_commands [Ecb.Close chan_id]
-
-let close chan_service chan_id =
-  let hd = get_hd chan_service in
-  close' hd (Ecb.string_of_chan_id chan_id)
+let close = function
+  | Ecb.Statefull_channel (chan_service,chan_id) ->
+    let { hd_service_handler } = get_statefull_hd chan_service in
+    Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
+  | Ecb.Stateless_channel (chan_service,chan_id,kind) ->
+    let { hd_service_handler } = get_stateless_hd chan_service in
+    Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
 
 let unmarshal s : 'a =
   let value =
@@ -333,15 +524,13 @@ let unmarshal s : 'a =
   in
   Eliom_unwrap.unwrap value
 
-let register ?(wake=true) (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_id) =
+let register' hd (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_id) =
   let chan_id = Ecb.string_of_chan_id chan_id in
-  let hd = get_hd chan_service in
   let stream = Lwt_stream.filter_map_s
     (function
       | (id,data) when id = chan_id ->
 	( match data with
 	  | Ecb.Full ->
-	    stop_waiting hd chan_id;
 	    Lwt.fail Channel_full
 	  | Ecb.Data x ->
 	    Lwt.return (Some (unmarshal x:'a)))
@@ -350,25 +539,43 @@ let register ?(wake=true) (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_
   in
   let protect_and_close t =
     let t' = Lwt.protected t in
-    Lwt.on_cancel t' (fun () -> close' hd chan_id);
+    Lwt.on_cancel t' (fun () -> Service_handler.close hd.hd_service_handler chan_id);
     t'
   in
   (* protect the stream from cancels *)
-  let stream = Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream)) in
-  hd.hd_commands [Eliom_comet_base.Register chan_id];
-  hd.hd_activity.active_channels <- StringSet.add chan_id hd.hd_activity.active_channels;
-  if wake then activate ();
+  Lwt_stream.from (fun () -> protect_and_close (Lwt_stream.get stream))
+
+let register_statefull ?(wake=true) service chan_id =
+  let hd = get_statefull_hd service in
+  let stream = register' hd service chan_id in
+  let chan_id = Ecb.string_of_chan_id chan_id in
+  Service_handler.add_channel_statefull hd.hd_service_handler chan_id;
+  if wake then Service_handler.activate hd.hd_service_handler;
   stream
 
-let internal_unwrap ( chan_id, chan_service, unwrapper ) = register chan_service chan_id
+let register_stateless ?(wake=true) service chan_id kind =
+  let hd = get_stateless_hd service in
+  let stream = register' hd service chan_id in
+  let chan_id = Ecb.string_of_chan_id chan_id in
+  Service_handler.add_channel_stateless hd.hd_service_handler chan_id kind;
+  if wake then Service_handler.activate hd.hd_service_handler;
+  stream
+
+let register ?(wake=true) (wrapped_chan:'a Ecb.wrapped_channel) =
+  match wrapped_chan with
+    | Ecb.Statefull_channel (s,c) ->
+      register_statefull ~wake s c
+    | Ecb.Stateless_channel (s,c,kind) ->
+      register_stateless ~wake s c kind
+
+let internal_unwrap ( wrapped_chan, unwrapper ) = register wrapped_chan
 
 let () = Eliom_unwrap.register_unwrapper Eliom_common.comet_channel_unwrap_id internal_unwrap
 
 let is_active () =
-  Hashtbl.fold
-    (fun _ hd active ->
-      active && hd.hd_activity.active)
-    handler_table true
+  let f _ hd active = active && Service_handler.is_active hd.hd_service_handler in
+  ( Hashtbl.fold f stateless_handler_table true )
+  && ( Hashtbl.fold f statefull_handler_table true )
 
 module Channels =
 struct

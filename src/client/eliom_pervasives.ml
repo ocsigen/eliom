@@ -468,6 +468,8 @@ end
 
 (*****************************************************************************)
 
+let debug_exn f e =
+  Printf.ksprintf (fun s -> Firebug.console##log (Js.string (s^(Printexc.to_string e)))) f
 let debug f = Printf.ksprintf (fun s -> Firebug.console##log (Js.string s)) f
 let jsdebug a = Firebug.console##log (a)
 let alert f = Printf.ksprintf (fun s -> Dom_html.window##alert (Js.string s)) f
