@@ -2571,9 +2571,9 @@ module Eliom_appl_reg_make_param
     let	( html_attribs, (head_attribs, title, head_elts), body ) =
       split_page (HTML5.M.toelt page) in
     let head_elts =
-      eliom_fake_data_script
+      global_data_script
+      :: eliom_fake_data_script
       :: redirection_script
-      :: global_data_script
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts
 	   else ( head_elts
@@ -2586,7 +2586,8 @@ module Eliom_appl_reg_make_param
     lwt data_script = make_eliom_data_script ~sp fake_page in
 
     (* Then we replace the faked data_script *)
-    let head_elts = data_script :: List.tl head_elts in
+    let head_elts =
+      List.hd head_elts :: data_script :: List.tl (List. tl head_elts) in
     Lwt.return
       (HTML5.M.html ~a:html_attribs
 	 (HTML5.M.head ~a:head_attribs title head_elts)
