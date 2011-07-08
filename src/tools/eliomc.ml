@@ -44,7 +44,7 @@ let rec check_or_create_dir name =
   if name <> "/" then
     try ignore(Unix.stat name) with Unix.Unix_error _ ->
       check_or_create_dir (Filename.dirname name);
-      Unix.mkdir name 0o755
+      Unix.mkdir name 0o777
 
 let prefix_output_dir name =
   match !build_dir with
@@ -149,7 +149,7 @@ let compile_server_type_eliom file =
   if do_infer () then
     let obj = output_prefix ~ty:true file ^ type_file_suffix in
     let ppopt = ["pa_eliom_type_filter.cmo"; "-impl"] in
-    let out = Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o644 in
+    let out = Unix.openfile obj [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
     create_process ~out !compiler ( [ "-i" ; "-thread" ]
 				    @ get_pp ppopt
 				    @ !args
