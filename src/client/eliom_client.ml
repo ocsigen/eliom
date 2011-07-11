@@ -378,7 +378,7 @@ let get_head_and_body page =
 let get_data_script page =
   let head, _ = get_head_and_body page in
   match Dom.list_of_nodeList head##childNodes with
-    | _ :: data_script :: _ ->
+    | _ :: _ :: data_script :: _ ->
       (Js.Unsafe.coerce data_script : Dom_html.scriptElement Js.t)
     | _ -> assert false
 
