@@ -139,6 +139,13 @@ let myblockservice =
          [p [pcdata ("I come from a distant service! Here is a random value: "^
                        string_of_int (Random.int 100))]])
 
+let eliom_caml_tree =
+  Eliom_output.Caml.register_post_coservice'
+    ~post_params:unit
+    (fun () () ->
+      Lwt.return
+	( [HTML5.M.div [HTML5.M.pcdata "Coucou"]] : HTML5_types.flow5 elt list))
+
 ;; (* This ";;" is necessary in order to have the "shared" following entry being
       parsed as "str_item" (instead of "expr"). This is Camlp4 related, it may
       evolve.
@@ -147,6 +154,8 @@ let myblockservice =
 {shared{
 let item () = li [pcdata Sys.ocaml_version]
 }} ;;
+
+
 
 let _ =
   My_appl.register
@@ -258,11 +267,11 @@ where and {{{id}}} an identifier for the value.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                ignore (Eliom_client.get_subpage ~service:%eliomclient1
+                ignore (Eliom_client.call_caml_service ~service:%eliom_caml_tree
 			  () () >|= fun blocks ->
 			    List.iter
 			      (Dom.appendChild Dom_html.document##body)
-			      blocks)
+			      (List.map Eliom_client.Html5.of_element blocks))
               }}
             ]
             [pcdata "Click here to get a subpage from server."];
@@ -535,7 +544,7 @@ let v1 =
     v_float = 42.42;
     v_string = "fourty two";
     (* v_int64 = 0x4200000000000000L; *)
-    v_service = eliomclient1 }
+    v_service = eliom_caml_tree }
 
 let rec rec_list = 1::2::3::rec_list
 
@@ -585,7 +594,7 @@ let () =
 	       (p ~a:[ a_onclick
 			 (XML.event_of_function
 			 (fun _ ->
-			   ignore (Eliom_client.get_subpage ~service:v.Wrapping_test.v_service
+			   ignore (Eliom_client.call_caml_service ~service:v.Wrapping_test.v_service
 				     () () >|= (fun blocks ->
 				       List.iter
 					 (Dom.appendChild (Eliom_client.Html5.of_div %div))

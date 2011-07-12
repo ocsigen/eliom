@@ -482,26 +482,6 @@ let call_caml_service
       get_params post_params in
   Lwt.return (Eliom_unwrap.unwrap (Marshal.from_string (Url.decode s) 0))
 
-let get_subpage
-  ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-  ?keep_nl_params ?nl_params ?keep_get_na_params
-  get_params post_params =
-  (*VVV Should we fail if the service does not belong to the same application? *)
-  (* GRGR FIXME et s'il n'appartient pas à une application ?? *)
-  lwt content = match create_request_
-     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-     ?keep_nl_params ?nl_params ?keep_get_na_params
-     get_params post_params
-   with
-     | `Get uri ->
-       Eliom_request.http_get
-         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
-     | `Post (uri, p) ->
-       Eliom_request.http_post
-         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p
-  in
-  (* GRGR FIXME *)
-  assert false
 
 
 (*****************************************************************************)

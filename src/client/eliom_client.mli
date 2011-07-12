@@ -77,24 +77,6 @@ val exit_to :
   ?nl_params:(string * string) list String.Table.t ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
-(** Call a service returning a list of html blocks. *)
-val get_subpage :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:('a, 'b,
-           [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_services.registrable ], 'return)
-          Eliom_services.service ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list String.Table.t ->
-  ?keep_get_na_params:bool -> 'a -> 'b ->
-  Dom_html.element Js.t list Lwt.t
-
 (** (low level) Call a server side service and return the content
     of the resulting HTTP frame as a string. *)
 val call_service :
