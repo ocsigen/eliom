@@ -103,7 +103,7 @@ CONF_SED += -e s%\<user\>_OCSIGENUSER_\</user\>%%g
 CONF_SED += -e s%\<group\>_OCSIGENGROUP_\</group\>%%g
 CONF_SED += -e s%_COMMANDPIPE_%$(SRC)/local/var/run/${PROJECTNAME}_command%g
 CONF_SED += -e s%_MIMEFILE_%$(SRC)/src/files/mime.types%g
-CONF_SED += -e s%_METADIR_%$(shell ${OCAMLFIND} query stdlib)\"/\>\<findlib\ path=\"$(SRC)/src/files/\"/\>\<findlib\ path=\"${LIBDIR}%g
+CONF_SED += -e s%_METADIR_%$(shell ${OCAMLFIND} query stdlib)\"/\>\\n\ \ \ \ \<findlib\ path=\"${LIBDIR}\"/\>\\n\ \ \ \ \<findlib\ path=\"$(SRC)/src/files/%g
 CONF_SED += -e s%_OCSDIR_%$(shell ${OCAMLFIND} query ocsigenserver)%g
 CONF_SED += -e s%_PROJECTNAME_%$(PROJECTNAME)%g
 CONF_SED += -e s%_CONFIGDIR_%$(SRC)/local/etc%g
