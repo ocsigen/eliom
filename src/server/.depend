@@ -10,15 +10,16 @@ eliom_comet.cmo: eliom_wrap.cmi eliom_types.cmi eliom_services.cmi \
     eliom_comet.cmi
 eliom_comet.cmx: eliom_wrap.cmx eliom_types.cmx eliom_services.cmx \
     eliom_request_info.cmx eliom_references.cmx eliom_pervasives.cmx \
-    eliom_parameters.cmx eliom_mkreg.cmx eliom_config.cmx \
+    eliom_parameters.cmx eliom_output.cmx eliom_mkreg.cmx eliom_config.cmx \
     eliom_common_base.cmx eliom_common.cmx eliom_comet_base.cmx \
     eliom_comet.cmi
 eliom_comet.cmi: eliom_common.cmi eliom_comet_base.cmi
 eliom_comet_base.cmo: eliom_services.cmi eliom_parameters.cmi \
-    eliom_comet_base.cmi
+    eliom_output.cmi eliom_comet_base.cmi
 eliom_comet_base.cmx: eliom_services.cmx eliom_parameters.cmx \
-    eliom_comet_base.cmi
-eliom_comet_base.cmi: eliom_services.cmi eliom_parameters.cmi
+    eliom_output.cmx eliom_comet_base.cmi
+eliom_comet_base.cmi: eliom_services.cmi eliom_parameters.cmi \
+    eliom_output.cmi
 eliom_common.cmo: eliom_wrap.cmi eliom_pervasives.cmi eliom_common_base.cmo \
     eliom_common.cmi
 eliom_common.cmx: eliom_wrap.cmx eliom_pervasives.cmx eliom_common_base.cmx \
@@ -146,11 +147,13 @@ eliom_tools.cmx: eliom_tools_common.cmx eliom_services.cmx \
     eliom_request_info.cmx eliom_pervasives.cmx eliom_output.cmx \
     eliom_tools.cmi
 eliom_tools.cmi: eliom_tools_common.cmi eliom_state.cmi eliom_services.cmi \
-    eliom_pervasives.cmi eliom_parameters.cmi
-eliom_tools_common.cmo: eliom_services.cmi eliom_tools_common.cmi
-eliom_tools_common.cmx: eliom_services.cmx eliom_tools_common.cmi
+    eliom_pervasives.cmi eliom_parameters.cmi eliom_output.cmi
+eliom_tools_common.cmo: eliom_services.cmi eliom_output.cmi \
+    eliom_tools_common.cmi
+eliom_tools_common.cmx: eliom_services.cmx eliom_output.cmx \
+    eliom_tools_common.cmi
 eliom_tools_common.cmi: eliom_state.cmi eliom_services.cmi \
-    eliom_parameters.cmi
+    eliom_parameters.cmi eliom_output.cmi
 eliom_types.cmo: eliom_wrap.cmi eliom_types_base.cmi eliom_pervasives.cmi \
     eliom_types.cmi
 eliom_types.cmx: eliom_wrap.cmx eliom_types_base.cmx eliom_pervasives.cmx \
@@ -301,6 +304,10 @@ sigs/eliom_html5_reg.cmi: eliom_services.cmi eliom_pervasives.cmi \
 sigs/eliom_reg.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmi eliom_common.cmi
 sigs/eliom_reg_1.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmi eliom_common.cmi
+sigs/eliom_reg_2.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmi eliom_common.cmi
+sigs/eliom_reg_alpha_return.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmi eliom_common.cmi
 sigs/eliom_reg_param.cmi: eliom_services.cmi
 sigs/eliom_reg_simpl.cmi: eliom_services.cmi eliom_pervasives.cmi \
