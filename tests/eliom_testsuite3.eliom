@@ -233,17 +233,6 @@ where and {{{id}}} an identifier for the value.
                 }}
             ]
             [pcdata "Click here to change the page without stopping the program (with change_page)."];
-
-          p
-            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick{{
-                ignore (Eliom_client.change_page ~service:%Eliom_testsuite1.coucou
-			  () ())
-              }}
-            ]
-            [pcdata "Click here to go to a page outside the application, using ";
-             code [pcdata "change_page"];
-             pcdata "."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{

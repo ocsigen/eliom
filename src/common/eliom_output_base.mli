@@ -21,3 +21,7 @@
 open Eliom_pervasives
 
 module Html5_forms : "sigs/eliom_html5_forms.mli"
+
+type appl_service = [ `Appl ]
+type http_service = [ `Http ]
+type non_caml_service = [ appl_service | http_service ]

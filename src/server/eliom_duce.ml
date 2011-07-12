@@ -85,7 +85,7 @@ module Xhtml_reg_base = struct
 
   type page = html
   type options = unit
-  type return = Eliom_services.http
+  type return = Eliom_output.http_service
   type result = Ocsigen_http_frame.result
 
   let result_of_http_result x = x
@@ -380,7 +380,7 @@ module Make_Registration
 
       type page = TypedXML_content.t
       type options = unit
-      type return = Eliom_services.http
+      type return = Eliom_output.http_service
       type result = Ocsigen_http_frame.result
 
       let result_of_http_result x = x

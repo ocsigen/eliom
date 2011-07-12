@@ -44,24 +44,27 @@ module MakeRegister(Pages: REG_PARAM) : sig
 end
 
 (** {2 Creating modules to register services for one type of parametrised pages} *)
-module type REG_PARAM_1 =
+
+module type REG_PARAM_ALPHA_RETURN =
 sig
-  type 'a page
-  type 'a result
+  type ('a, 'b) page
+  type 'a return
+  type ('a, 'b) result
   include "sigs/eliom_reg_param.mli"
-    subst type page := 'a page
-      and type result := 'a result
+    subst type page := ('a, 'b) page
+      and type return := 'b return
+      and type result := ('a, 'b) result
 end
 
-module MakeRegister_1(Pages: REG_PARAM_1) : sig
+module MakeRegister_AlphaReturn(Pages: REG_PARAM_ALPHA_RETURN) : sig
 
-  include "sigs/eliom_reg_1.mli" subst type page := 'a Pages.page
-                                   and type options := Pages.options
-                                   and type return := Pages.return
-                                   and type result := 'a Pages.result
+  include "sigs/eliom_reg_alpha_return.mli"
+     subst type page := ('a, 'b) Pages.page
+       and type options := Pages.options
+       and type return := 'b Pages.return
+       and type result := ('a, 'b) Pages.result
 
 end
-
 
 (**/**)
 val suffix_redir_uri_key : string Polytables.key

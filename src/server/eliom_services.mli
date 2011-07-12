@@ -78,11 +78,6 @@ type attached =
 type nonattached =
     [ `Nonattached of getpost na_s ]
 
-type http (** default return type for services *)
-
-type appl_service (** return type for service that are entry points for an
-                      application *)
-
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) service
 (** Type of services.
     - [ 'get] is the type of GET parameters

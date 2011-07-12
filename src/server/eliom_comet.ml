@@ -57,7 +57,7 @@ module Cometreg_ = struct
 
   type options = unit
 
-  type return = Eliom_services.http
+  type return = Eliom_output.http_service
 
   type result = Ocsigen_http_frame.result
 

@@ -70,7 +70,7 @@ type comet_service =
      Eliom_services.internal_service_kind,
      [ `WithoutSuffix ], unit,
      [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
-     Eliom_services.http )
+     Eliom_output.http_service )
       Eliom_services.service
 
 type stateless_kind =
@@ -90,7 +90,7 @@ type 'a bus_send_service =
      unit,
             [ `One of 'a list Eliom_parameters.caml ] Eliom_parameters.param_name,
      [ `Registrable ],
-     Eliom_services.http
+     Eliom_output.http_service
     ) Eliom_services.service
 
 type 'a wrapped_bus =

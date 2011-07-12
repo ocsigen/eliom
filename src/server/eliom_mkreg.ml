@@ -763,22 +763,23 @@ module MakeRegister(Pages : REG_PARAM) = struct
 
 end
 
-module type REG_PARAM_1 =
+module type REG_PARAM_ALPHA_RETURN =
 sig
-  type 'a page
-  type 'a result
+  type ('a, 'b) page
+  type 'a return
+  type ('a, 'b) result
   include "sigs/eliom_reg_param.mli"
-    subst type page := 'a page
-      and type result := 'a result
-
+    subst type page := ('a, 'b) page
+      and type return := 'b return
+      and type result := ('a, 'b) result
 end
 
-module MakeRegister_1(Pages : REG_PARAM_1) = struct
+module MakeRegister_AlphaReturn(Pages : REG_PARAM_ALPHA_RETURN) = struct
 
-  type 'a page = 'a Pages.page
+  type ('a, 'b) page = ('a, 'b) Pages.page
   type options = Pages.options
-  type return = Pages.return
-  type 'a result = 'a Pages.result
+  type 'b return = 'b Pages.return
+  type ('a, 'b) result = ('a, 'b) Pages.result
 
   let pages =
     { send = Pages.send;

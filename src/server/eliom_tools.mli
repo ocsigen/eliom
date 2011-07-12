@@ -32,13 +32,13 @@ module Xhtml : sig
   val menu :
     ?classe:XHTML_types.nmtoken list ->
     ?id:string ->
-    (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
+    (([< get_service_kind ] as 'a, [< registrable ] as 'b, [< Eliom_output.non_caml_service ] as 'c) one_page *
         XHTML_types.a_content XHTML.M.elt list)
     ->
-    (('a, 'b) one_page *
+    (('a, 'b, 'c) one_page *
         XHTML_types.a_content XHTML.M.elt list)
       list ->
-    ?service:('a, 'b) one_page ->
+    ?service:('a, 'b, 'c) one_page ->
     unit ->
     [> `Ul ] XHTML.M.elt
 (** Creates a menu
@@ -79,9 +79,10 @@ module Xhtml : sig
     ?whole_tree:bool ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
+     [< Eliom_output.non_caml_service ] as 'c,
      XHTML_types.a_content XHTML.M.elt list)
       hierarchical_site ->
-    ?service:('a, 'b) one_page ->
+    ?service:('a, 'b, 'c) one_page ->
     unit ->
     [> `Ul ] XHTML.M.elt list
 
@@ -104,9 +105,10 @@ module Xhtml : sig
     ?id:string ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
+     [< Eliom_output.non_caml_service ] as 'c,
      XHTML_types.a_content XHTML.M.elt list)
       hierarchical_site ->
-    ?service:('a, 'b) one_page ->
+    ?service:('a, 'b, 'c) one_page ->
     unit ->
     [> `Ul ] XHTML.M.elt list
 
@@ -117,9 +119,10 @@ module Xhtml : sig
   val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
+     [< Eliom_output.non_caml_service ] as 'c,
      XHTML_types.a_content XHTML.M.elt list)
     hierarchical_site ->
-    ?service:('a, 'b) one_page ->
+    ?service:('a, 'b, 'c) one_page ->
     unit ->
     [> `Link ] XHTML.M.elt list
 end
@@ -134,13 +137,15 @@ module Html5 : sig
   val menu :
     ?classe:HTML5_types.nmtoken list ->
     ?id:string ->
-    (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
+    (([< get_service_kind ] as 'a,
+      [< registrable ] as 'b,
+      [< Eliom_output.non_caml_service ] as 'c) one_page *
         HTML5_types.flow5_without_interactive HTML5.M.elt list)
     ->
-    (('a, 'b) one_page *
+    (('a, 'b, 'c) one_page *
         HTML5_types.flow5_without_interactive HTML5.M.elt list)
       list ->
-    ?service:('a, 'b) one_page ->
+    ?service:('a, 'b, 'c) one_page ->
     unit ->
     [> `Ul ] HTML5.M.elt
 (** Creates a menu
@@ -181,9 +186,10 @@ module Html5 : sig
     ?whole_tree:bool ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
+     [< Eliom_output.non_caml_service ] as 'c,
      HTML5_types.a_content HTML5.M.elt list)
       hierarchical_site ->
-    ?service:('a, 'b) one_page ->
+    ?service:('a, 'b, 'c) one_page ->
     unit ->
     [> `Ul ] HTML5.M.elt list
 
@@ -206,9 +212,10 @@ module Html5 : sig
     ?id:string ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
+     [< Eliom_output.non_caml_service ] as 'c,
      HTML5_types.a_content HTML5.M.elt list)
       hierarchical_site ->
-    ?service:('a, 'b) one_page ->
+    ?service:('a, 'b, 'c) one_page ->
     unit ->
     [> `Ul ] HTML5.M.elt list
 
@@ -219,9 +226,10 @@ module Html5 : sig
   val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
+     [< Eliom_output.non_caml_service ] as 'c,
      HTML5_types.a_content HTML5.M.elt list)
     hierarchical_site ->
-    ?service:('a, 'b) one_page ->
+    ?service:('a, 'b, 'c) one_page ->
     unit ->
     [> `Link ] HTML5.M.elt list
 end

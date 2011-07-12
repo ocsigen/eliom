@@ -5,7 +5,7 @@ eliom_bus.cmx: eliom_services.cmx eliom_parameters.cmx eliom_output.cmx \
 eliom_bus.cmi: eliom_comet.cmi
 eliom_comet.cmo: eliom_wrap.cmi eliom_types.cmi eliom_services.cmi \
     eliom_request_info.cmi eliom_references.cmi eliom_pervasives.cmi \
-    eliom_parameters.cmi eliom_mkreg.cmi eliom_config.cmi \
+    eliom_parameters.cmi eliom_output.cmi eliom_mkreg.cmi eliom_config.cmi \
     eliom_common_base.cmo eliom_common.cmi eliom_comet_base.cmi \
     eliom_comet.cmi
 eliom_comet.cmx: eliom_wrap.cmx eliom_types.cmx eliom_services.cmx \

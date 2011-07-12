@@ -268,7 +268,7 @@ struct
        Eliom_services.service_kind,
        [ `WithoutSuffix ], unit,
        [ `One of Ecb.comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
-       Eliom_services.http )
+       Eliom_output.http_service )
 	Eliom_services.service
 
   let call_service_after_load_end service p1 p2 =

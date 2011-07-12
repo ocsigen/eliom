@@ -23,6 +23,10 @@ open Eliom_pervasives
 open Eliom_services
 open Eliom_parameters
 
+type appl_service = [ `Appl ]
+type http_service = [ `Http ]
+type non_caml_service = [ appl_service | http_service ]
+
 type basic_input_type =
     [ `Hidden
     | `Password

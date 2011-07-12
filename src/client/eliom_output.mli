@@ -1,11 +1,15 @@
 
 (** {2 Creating links and forms with {!HTML5.M}} *)
 
+type appl_service = [ `Appl ]
+type http_service = [ `Http ]
+type non_caml_service = [ appl_service | http_service ]
+
 (** Eliom service registration and forms creation for HTML5 page *)
 module Html5 : sig
   include "sigs/eliom_html5_forms.mli"
   (**/**)
-  type return = Eliom_services.http
+  type return = http_service
 end
 
 (** Eliom forms creation for HTML5 *)
@@ -14,7 +18,7 @@ module Html5_forms : "sigs/eliom_html5_forms.mli"
 (**/**)
 
 module type Base = sig
-  type return = Eliom_services.http
+  type return = http_service
 end
 
 module Xhtml : Base
@@ -35,4 +39,3 @@ module Any : Base
 module Streamlist : Base
 
 module Caml : Base
-

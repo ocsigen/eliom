@@ -5,12 +5,12 @@ include Eliom_output_base
 
 module type Base =
 sig
-  type return = Eliom_services.http
+  type return = http_service
 end
 
 module Base =
 struct
-  type return = Eliom_services.http
+  type return = http_service
 end
 
 module Html5 =

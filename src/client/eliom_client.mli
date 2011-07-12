@@ -33,7 +33,7 @@ val change_page :
   service:('a, 'b,
            [< Eliom_services.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_services.registrable ], 'return)
+           [< Eliom_services.registrable ], Eliom_output.appl_service)
           Eliom_services.service ->
   ?hostname:string ->
   ?port:int ->
@@ -68,7 +68,7 @@ val exit_to :
   service:('a, 'b,
            [< Eliom_services.service_kind ],
            [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_services.registrable ], 'return)
+           [< Eliom_services.registrable ], [< Eliom_output.non_caml_service ])
           Eliom_services.service ->
   ?hostname:string ->
   ?port:int ->
