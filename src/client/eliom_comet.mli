@@ -109,3 +109,5 @@ val close : 'a Eliom_comet_base.wrapped_channel -> unit
 (** [close c] closes the channel c. This function should be only use
     internaly. The normal way to close a channel is to cancel a thread
     waiting on inputs. *)
+
+val force_link : unit

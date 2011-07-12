@@ -542,7 +542,9 @@ module HTML5 = struct
 
     include HTML5_f.Make(XML)(SVG.M)
 
-    let rebuild_xml _ = assert false (* FIXME GRGR *)
+    let rebuild_xml _ =
+      debug "conversion from DOM to XML tree not implemented yet";
+      assert false (* FIXME GRGR *)
 
     let of_element : Dom_html.element Js.t -> 'a elt = rebuild_xml
     let of_html : Dom_html.htmlElement Js.t -> HTML5_types.html elt = rebuild_xml

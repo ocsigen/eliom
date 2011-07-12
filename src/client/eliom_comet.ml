@@ -582,3 +582,4 @@ struct
   type 'a t = 'a Lwt_stream.t
 end
 
+let force_link = ()
