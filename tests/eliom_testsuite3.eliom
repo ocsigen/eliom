@@ -1077,7 +1077,7 @@ let event_service =
     ~get_params:Eliom_parameters.unit
     (fun () () ->
 
-      let make_target s = HTML5.M.p [HTML5.M.a [HTML5.M.pcdata s]] in
+      let make_target s = HTML5.M.unique (HTML5.M.p [HTML5.M.a [HTML5.M.pcdata s]]) in
       let target1 = make_target "Un seul clic" in
       let target2 = make_target "Annuler le précédent" in
       let target3 = make_target "Drag vers la ligne au dessus une seule fois" in
@@ -1094,7 +1094,7 @@ let event_service =
       let target14 = make_target "Drag with long handler" in
       let target15 = make_target "Annuler le précédent" in
 
-      let targetresult = HTML5.M.p [] in
+      let targetresult = HTML5.M.unique (HTML5.M.p []) in
       Eliom_services.onload
         {{
           let targetresult = (Eliom_client.Html5.of_p %targetresult) in
