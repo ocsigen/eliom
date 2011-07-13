@@ -1548,6 +1548,7 @@ let () =
 
 (*zap* *)
 let scope = `Client_process Eliom_testsuite1.connect_example3_scope_name
+let my_table = Eliom_state.create_volatile_table ~scope ()
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
@@ -2110,7 +2111,6 @@ let _ =
 (*****************************************************************************)
 (* Session + My_appl *)
 let scope_name = Eliom_common.create_scope_name "session_appl"
-let scope = `Client_process scope_name
 let session = `Session scope_name
 
 let connect_example789 =
@@ -2126,7 +2126,7 @@ let disconnect_action789 =
   Eliom_output.Action.register_post_coservice'
     ~name:"disconnection789"
     ~post_params:Eliom_parameters.unit
-    (fun () () -> Eliom_state.discard ~scope ())
+    (fun () () -> Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
   Eliom_output.Html5.post_form disconnect_action789
@@ -2135,7 +2135,7 @@ let disconnect_box s =
 
 let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
 
-let user = Eliom_references.eref ~scope:Eliom_common.session None
+let user = Eliom_references.eref ~scope:session None
 
 let login_box session_expired bad_u action =
   Eliom_output.Html5.post_form action
@@ -2154,7 +2154,7 @@ let login_box session_expired bad_u action =
     ()
 
 let connect_example_handler () () =
-  let status = Eliom_state.volatile_data_state_status ~scope:Eliom_common.session () in
+  let status = Eliom_state.volatile_data_state_status ~scope:session () in
   lwt bad_u = Eliom_references.get bad_user in
   lwt u = Eliom_references.get user in
   Lwt.return
@@ -2172,7 +2172,7 @@ let connect_example_handler () () =
        ))
 
 let connect_action_handler () login =
-  lwt () = Eliom_state.discard ~scope:Eliom_common.session () in
+  lwt () = Eliom_state.discard ~scope:session () in
   if login = "toto"
   then Eliom_references.set user (Some login)
   else Eliom_references.set bad_user true
@@ -2477,9 +2477,7 @@ let () =
 	   ignore (Eliom_client.change_page ~service:( %any_service_post ) () %i) }}]
 	   [pcdata text]);
 	 br ();
-	 pcdata "There are no post parameters so the request is cached: the first time it is correctly done,
-    then the cache respond instead. Maybe add a non localised parameter to have different requests ?
-    This works with FF, but not with chrome, althougth chrome have a normal beahviour.";
+	 pcdata "back button do not work after exiting application (with link to Eliom_output.Html5) when the last request had post parameters: the post parameters does not appear in the url: it will lead to the fallback";
 	 br ();
 	 match appl_name with
 	   | None -> pcdata "last request was not from an application"
