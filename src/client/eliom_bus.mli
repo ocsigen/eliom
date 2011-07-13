@@ -50,3 +50,7 @@ val set_time_before_flush : 'a t -> float -> unit
     a new message to enqueue before flushing. Set this to a small
     value to make your app more responsive, but remember that it will
     consume more bandwidth. default is 0.05 second. *)
+
+(**/**)
+
+val force_link : unit

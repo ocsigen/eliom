@@ -39,7 +39,7 @@ let raw_post_example =
            (head (title (pcdata "raw post data")) [])
            (body [p [pcdata "It is possible to send POST data to this URL, using any content-type other than form data or multipart. Try it with telnet. Cut and paste in a terminal:"];
                   pre [pcdata "telnet localhost 8080
-POST /tuto/rawpost HTTP/1.0
+POST /rawpost HTTP/1.0
 Content-type: plop/plop
 Content-length: 124"];
                  ]))
@@ -692,7 +692,7 @@ let extreq =
     ~path:["extreq"]
     ~get_params:unit
     (fun () () ->
-       Ocsigen_http_client.get "ocsigen.org" "/" () >>= fun frame ->
+       Ocsigen_http_client.get "ocsigen.org" "/ocsimoreadmin/static/ocsiwikistyle.css" () >>= fun frame ->
        (match frame.Ocsigen_http_frame.frame_content with
          | None -> Lwt.return ""
          | Some stream -> Ocsigen_stream.string_of_stream (Ocsigen_config.get_maxrequestbodysizeinmemory ()) (Ocsigen_stream.get stream)) >>= fun s ->

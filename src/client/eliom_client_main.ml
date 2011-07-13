@@ -20,10 +20,11 @@
 
 open Eliom_pervasives
 
-(* The following lines are for Eliommod_mkforms, Eliom_comet and Eliom_react to be linked. *)
+(* The following lines are for Eliommod_mkforms, Eliom_bus, Eliom_comet and Eliom_react to be linked. *)
 let _a = Eliommod_mkforms.make_a_with_onclick
 let _b = Eliom_react.force_link
 let _c = Eliom_comet.force_link
+let _d = Eliom_bus.force_link
 
 let onload _ =
   let on_load =

@@ -127,9 +127,9 @@ module Xhtml : sig
     [> `Link ] XHTML.M.elt list
 end
 
-(** {2 XHTML5} *)
+(** {2 HTML5} *)
 
-(** Same functions as above, but with XHTML5 elements *)
+(** Same functions as above, but with HTML5 elements *)
 module Html5 : sig
     
 (** {2 Menus } *)

@@ -97,3 +97,4 @@ let set_time_before_flush b t =
     then Lwt.pause
     else (fun () -> Lwt_js.sleep t)
 
+let force_link = ()
