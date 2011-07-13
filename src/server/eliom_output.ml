@@ -2589,11 +2589,20 @@ module Eliom_appl_reg_make_param
 
     (* Then we replace the faked data_script *)
     let head_elts =
-      List.hd head_elts :: data_script :: List.tl (List. tl head_elts) in
+      List.hd head_elts :: data_script :: List.tl (List.tl head_elts) in
     Lwt.return
       (HTML5.M.html ~a:html_attribs
 	 (HTML5.M.head ~a:head_attribs title head_elts)
 	 body )
+
+  let remove_eliom_scripts page =
+    let ( html_attribs, (head_attribs, title, head_elts), body ) =
+      split_page (HTML5.M.toelt page) in
+    let head_elts = List.filter (fun x -> not (is_eliom_appl_script x)) head_elts in
+    Lwt.return
+      (HTML5.M.html ~a:html_attribs
+         (HTML5.M.head ~a:head_attribs title head_elts)
+         body )
 
   let send_appl_content = Eliom_services.XSame_appl Appl_params.application_name
 
@@ -2611,7 +2620,10 @@ module Eliom_appl_reg_make_param
         ~name:Eliom_common.appl_name_cookie_name
         ~value:Appl_params.application_name ();
 
-    lwt page = add_eliom_scripts ~sp content in
+    lwt page =
+      match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
+	| None _, true -> remove_eliom_scripts content
+	| _ -> add_eliom_scripts ~sp content in
 
     lwt r = Html5_content.result_of_content page in
     Lwt.return
