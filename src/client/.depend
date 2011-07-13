@@ -14,9 +14,9 @@ eliom_client.cmx: private/eliommod_cookies.cmx eliom_uri.cmx eliom_unwrap.cmx \
 eliom_client.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmo eliom_output.cmi
 eliom_client_main.cmo: private/eliommod_mkforms.cmi eliom_react.cmi \
-    eliom_pervasives.cmi eliom_client.cmi
+    eliom_pervasives.cmi eliom_comet.cmi eliom_client.cmi eliom_bus.cmi
 eliom_client_main.cmx: private/eliommod_mkforms.cmx eliom_react.cmx \
-    eliom_pervasives.cmx eliom_client.cmx
+    eliom_pervasives.cmx eliom_comet.cmx eliom_client.cmx eliom_bus.cmx
 eliom_comet.cmo: eliom_unwrap.cmi eliom_types.cmo eliom_services.cmi \
     eliom_request.cmi eliom_pervasives.cmi eliom_parameters.cmo \
     eliom_output.cmi eliom_common.cmo eliom_comet_base.cmi eliom_client.cmi \
