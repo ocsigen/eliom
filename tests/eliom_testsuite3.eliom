@@ -2511,8 +2511,13 @@ let () =
     (fun () choice -> make_any choice)
 
 
+
 (*****************************************************************************)
 (* XHR form with files: *)
+
+(* TODO: to be fixed in 2.1:
+   need a new parameter for caml_call_service to send files or formulary.
+   Now it uses Eliom_request.send_post_form which is low level and should not be exported
 
 let page_content () ((((((case,radio),select),multi),text),pass),file) =
   Lwt_io.with_file ~mode:Lwt_io.input file.Ocsigen_extensions.tmp_filename Lwt_io.read
@@ -2592,3 +2597,4 @@ let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
 	 [
 	   pcdata "this test need upload: add <uploaddir>/tmp/upload</uploaddir> to the configuration file";
 	   form; launch; subpage]))
+*)

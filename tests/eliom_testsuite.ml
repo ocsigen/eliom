@@ -359,8 +359,10 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a formc [pcdata "Links and forms"] ();
               br ();
+(*
               a xhr_form_with_file [pcdata "xhr forms with file"] ();
               br ();
+*)
 
               a uri_test [pcdata "Simple test of URL generation"] ();
               br ();
