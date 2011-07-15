@@ -414,6 +414,86 @@ let eliomclient4 =
            [pcdata "Click to receive Ocaml data"]
         ]))
 
+(******************************)
+(* caml service set reference *)
+(******************************)
+
+let ref_caml_service = Eliom_references.eref ~scope:Eliom_common.client_process None
+
+let caml_incr_service =
+  Eliom_output.Caml.register_service
+    ~path:["caml_service_cookies_request"]
+    ~get_params:unit
+    (fun () () ->
+      lwt i =
+	match_lwt Eliom_references.get ref_caml_service with
+	  | None -> Lwt.return 0
+	  | Some i -> Lwt.return i
+      in
+      lwt () = Eliom_references.set ref_caml_service (Some (succ i)) in
+      Lwt.return i)
+
+let text_incr_service =
+  Eliom_output.Text.register_service
+    ~path:["text_service_cookies_request"]
+    ~get_params:unit
+    (fun () () ->
+      lwt i =
+	match_lwt Eliom_references.get ref_caml_service with
+	  | None -> Lwt.return 0
+	  | Some i -> Lwt.return i
+      in
+      lwt () = Eliom_references.set ref_caml_service (Some (succ i)) in
+      Lwt.return ((string_of_int i),"text/plain"))
+
+let caml_service_cookies =
+  My_appl.register_service
+    ~path:["caml_service_cookies"]
+    ~get_params:unit
+    (fun () () ->
+      Lwt.return
+        (make_page [
+          div ~a:[a_onclick {{
+	    ignore (
+	      lwt i =
+		try_lwt
+		  debug "caml_call_service";
+		  Eliom_client.call_caml_service ~service:%caml_incr_service () ()
+	        with
+		  | e -> debug_exn "caml_call_service exception: " e; Lwt.fail e
+	      in
+	      Dom.appendChild (Dom_html.document##body)
+		(Dom_html.document##createTextNode
+		   (Js.string ("ref: "^ string_of_int i ^";  ")));
+	      Lwt.return ())
+	  }}]
+	    [pcdata "click: caml_service"];
+          div ~a:[a_onclick {{
+	    ignore (
+	      lwt i =
+		try_lwt
+		  debug "call_service";
+		  Eliom_client.call_service ~service:%text_incr_service () ()
+	        with
+		  | e -> debug_exn "call_service exception: " e; Lwt.fail e
+	      in
+	      Dom.appendChild (Dom_html.document##body)
+		(Dom_html.document##createTextNode
+		   (Js.string ("ref: "^ i ^";  ")));
+	      Lwt.return ())
+	  }}]
+	    [pcdata "click: text service"];
+	  pcdata "when clicking on this div, it should print a value incremented each time";
+	  br ();
+	  pcdata "this test verifies that client process cookies are correctly sent with caml value services";
+	  br ();
+	  p [
+	    pcdata "Currently calling text service is bugged: it exits the application: ( server respond by an half redirect )";
+	  ]
+        ])
+    )
+
+
 (*wiki*
 ====Other tests:
 *wiki*)
@@ -724,13 +804,17 @@ let caml_service_wrapping =
           div ~a:[a_onclick {{
 	    ignore (
 	      lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
+	      try_lwt
 	      Lwt_stream.iter_s
                 (fun i ->
 		  Dom.appendChild (Dom_html.document##body)
 		    (Dom_html.document##createTextNode
                        (Js.string ("message: "^ string_of_int i ^";  "))) ;
 		  Lwt.return ()
-                ) c)
+                ) c
+	      with
+		| e -> debug_exn "caml_service_wrapping: exception: " e; Lwt.fail e
+	    )
 	    }}]
 	    [pcdata "click"];
 	  pcdata "when clicking on this link, messages should be received every 1 second";

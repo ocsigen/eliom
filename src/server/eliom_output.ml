@@ -2134,7 +2134,7 @@ module Caml_reg_base = struct
 
   let result_of_http_result x = x
 
-  let send_appl_content = Eliom_services.XNever
+  let send_appl_content = Eliom_services.XAlways
 
   let send ?options ?charset ?code
       ?content_type ?headers content =

@@ -373,6 +373,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a eliomclient4 [pcdata "A service sending a Caml value"] ();
               br ();
+              a caml_service_cookies [pcdata "Client process cookies with caml service"] ();
+              br ();
               a gotowithoutclient [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
               br ();
               a on_load [pcdata "A service using on_unload and on_load"] ();
