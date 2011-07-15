@@ -190,10 +190,10 @@ val a :
   ?absolute_path:bool ->
   ?https:bool ->
   ?a:a_attrib_t ->
-  service:('get, unit, [< Eliom_services.get_service_kind ],
-           [< Eliom_services.suff ], 'd, unit,
-           [< Eliom_services.registrable ], 'f)
-    Eliom_services.service ->
+  service:('get, unit, [< get_service_kind ],
+           [< suff ], 'd, unit,
+           [< registrable ], 'f)
+    service ->
   ?hostname:string ->
   ?port:int ->
   ?fragment:string ->
