@@ -1,3 +1,30 @@
+===== 2.0-rc1 (2011-07-15) =====
+
+  * Eliom_client.change_page type now correctly forbid to call it on
+    non-eliom application services
+  * Stateless implementation of comet channels
+  * Scope and state names parameters of functions are now fused in one
+    parameter ( called scope )
+  * Change the type of 'send' functions: forbid use of incompatible output
+    with Eliom_output.Any together.
+  * Change the format of page loaded by an application: all pages are sent
+    in HTML5 format. ( first answers were in HTML5 subsequent were marshalled
+    caml tree )
+  * XML representation is now shared by client and server: conversion to
+    Dom nodes is made by Eliom_client.Html5.of_ functions
+  * Remove the need for an application container: application pages are
+    now classical HTML5 pages.
+  * Add Eliom_pervasives.{HTML5/XML/SVG}.unique function to declare XML node
+    handled "by reference"
+  * Fix ocamldoc generation with Eliom_output
+  * Eliom_appl are now stateless if no data is stored in session
+  * Allow dynamic wrapping with values sent to client with
+    caml services and comet channel
+  * Add Eliom_react.S: server to client React signals
+  * Add lazy site values: lazy evaluated one time per site
+  * Option to compile without preemptive threads
+  * And lots of simplifications and bug fixes
+
 ===== 1.91 (2011-04-08) =====
 
   * Split the ocsigen package in three : tyxml, ocsigenserver and eliom
