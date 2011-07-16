@@ -79,6 +79,36 @@ let menu ?(classe=[]) ?id first l ?service:current () =
                    {{ <li class={: attrib_list liclasse :}>[{: a url {: text :} () :}] }} :}
                 !{: aux l :}] }}
 
+let string_prefix s1 s2 =
+  String.length s1 <= String.length s2 &&
+    s1 = String.sub s2 0 (String.length s1)
+
+let service_prefix s sopt =
+  let service_url = make_string_uri ~absolute_path:true ~service:s () in
+  match sopt with
+    | None -> string_prefix service_url
+      ((* MAYBE : use get_original_full_path_string? *)
+        ("/" ^ Eliom_request_info.get_current_full_path_string ()))
+    | Some s' ->
+      let node_url = make_string_uri ~absolute_path:true ~service:s' () in
+      string_prefix service_url node_url
+
+let find_longest_prefix_in_hierarchy service (main, pages) =
+  let rec aux prefix (max_len, _ as max) i = function
+    | [] -> max
+    | (_, Site_tree (Main_page s, hsl)) :: pages when service_prefix s service ->
+      let len =
+	String.length (make_string_uri ~absolute_path:true ~service:s ()) in
+      let max = if len >= max_len then (len, List.rev (i::prefix)) else max in
+      let max = aux (i::prefix) max 0 hsl in
+      aux prefix max (i+1) pages
+    | (_, Disabled)::pages -> aux prefix max (i+1) pages
+    | (_, Site_tree (_, hsl))::pages ->
+      let max = aux (i::prefix) max 0 hsl in
+      aux prefix max (i+1) pages
+  in
+  let length, path = aux [] (0,[]) 0 pages in
+  path
 
 let find_in_hierarchy service (main, pages) =
   let rec aux service i = function
@@ -94,7 +124,8 @@ let find_in_hierarchy service (main, pages) =
         with Not_found -> aux service (i+1) l)
   in
   try aux service 0 pages
-  with Not_found -> []
+  with Not_found ->
+    find_longest_prefix_in_hierarchy service (main, pages)
 
 
 let hierarchical_menu_depth_first
