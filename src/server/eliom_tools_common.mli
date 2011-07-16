@@ -81,6 +81,7 @@ and ('a, 'b, 'c, 'd) hierarchical_site =
 val menu_class : string
 val last_class : string
 val current_class : string
+val current_path_class : string
 val disabled_class : string
 val first_class : string
 val level_class : string

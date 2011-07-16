@@ -2622,7 +2622,7 @@ module Eliom_appl_reg_make_param
 
     lwt page =
       match sp.Eliom_common.sp_client_appl_name, options.do_not_launch with
-	| None _, true -> remove_eliom_scripts content
+	| None, true -> remove_eliom_scripts content
 	| _ -> add_eliom_scripts ~sp content in
 
     lwt r = Html5_content.result_of_content page in

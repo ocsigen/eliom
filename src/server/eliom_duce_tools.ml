@@ -141,7 +141,8 @@ let hierarchical_menu_depth_first
       let (classe, pos2, deplier) =
         match pos with
         | [] -> ([], [], false)
-        | a::l when a = i -> ([current_class], l, true)
+        | [a] when a = i -> ([current_class], [], true)
+        | a::l when a = i -> ([current_path_class], l, true)
         | _::l -> ([], [], false)
       in
       let classe =
@@ -226,7 +227,8 @@ let hierarchical_menu_breadth_first
       let (classe, pos2, deplier) =
         match pos with
         | [] -> ([], [], false)
-        | a::l when a = i -> ([current_class], l, true)
+        | [a] when a = i -> ([current_class], [], true)
+        | a::l when a = i -> ([current_path_class], l, true)
         | _::l -> ([], l, false)
       in
       let classe =

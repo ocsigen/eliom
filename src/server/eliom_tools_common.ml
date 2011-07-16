@@ -36,6 +36,7 @@ type get_page =
 let menu_class = "eliomtools_menu"
 let last_class = "eliomtools_last"
 let current_class = "eliomtools_current"
+let current_path_class = "eliomtools_current_path"
 let disabled_class = "eliomtools_disabled"
 let first_class = "eliomtools_first"
 let level_class = "eliomtools_level"
