@@ -32,7 +32,6 @@ sig
     [ Eliom_common.global_scope
     | Eliom_common.client_process_scope ]
 
-  (* TODO: update doc for scope *)
   val create : ?scope:[< comet_scope ] ->
     ?name:string -> ?size:int -> 'a Lwt_stream.t -> 'a t
   (** [create s] returns a channel sending values from [s].
@@ -44,8 +43,7 @@ sig
       can access it. Only one message queue is created: it is what we
       call a stateless channel in the sense that the memory used by
       the channel doesn't depend on the number of users.
-      Warning: as of now, global channels can't be reclaimed by the GC,
-      you should only create a bounded number.
+      The channel can be reclaimed when there is no more reference to it.
       The buffer channel has a limited buffer of size [size] (default: 1000).
       If the client request too old messages, it raise ( on client side )
       Channel_full.

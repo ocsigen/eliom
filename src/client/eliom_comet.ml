@@ -24,8 +24,6 @@
 open Eliom_pervasives
 module Ecb = Eliom_comet_base
 
-exception Channel_full
-
 module Configuration =
 struct
   type configuration_data =
@@ -126,6 +124,8 @@ end
 
 exception Restart
 exception Process_closed
+exception Channel_closed
+exception Channel_full
 exception Comet_error of string
 
 type chan_id = string
@@ -293,6 +293,8 @@ struct
 	incr r;
 	List.iter (function
 	  | ( chan_id, Ecb.Data _ ) -> ()
+	  | ( chan_id, Ecb.Closed ) ->
+	    debug "Eliom_comet.update_statefull_state: received Closed: should not happen, this is an eliom bug, please report it"
 	  | ( chan_id, Ecb.Full ) ->
 	    stop_waiting hd chan_id) message
       | Stateless_state _ ->
@@ -322,6 +324,7 @@ struct
 		 else table
 	       with
 		 | Not_found -> table)
+	    | ( chan_id, Ecb.Closed )
 	    | ( chan_id, Ecb.Full ) ->
 	      stop_waiting hd chan_id;
 	      String.Table.remove chan_id table)
@@ -340,8 +343,9 @@ struct
 
   let drop_message_index =
     let aux = function
-      | ( chan, Ecb.Full ) as m -> m
       | ( chan, Ecb.Data (m,_) ) -> ( chan, Ecb.Data m )
+      | ( chan, Ecb.Closed )
+      | ( chan, Ecb.Full ) as m -> m
     in
     List.map aux
 
@@ -532,6 +536,8 @@ let register' hd (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_id) =
 	( match data with
 	  | Ecb.Full ->
 	    Lwt.fail Channel_full
+	  | Ecb.Closed ->
+	    Lwt.fail Channel_closed
 	  | Ecb.Data x ->
 	    Lwt.return (Some (unmarshal x:'a)))
       | _ -> Lwt.return None)

@@ -794,11 +794,19 @@ let caml_wrapping_service =
     (fun () () -> Lwt.return
       (Eliom_comet.Channels.create (Lwt_stream.clone stream1)))
 
+let keep_ref v t =
+  ignore (lwt () = Lwt_unix.sleep t in
+	  ignore v;
+	  Lwt.return ())
+
 let global_channel_wrapping_service =
   Eliom_output.Caml.register_post_coservice'
     ~post_params:(Eliom_parameters.unit)
-    (fun () () -> Lwt.return
-      (Eliom_comet.Channels.create ~scope:`Global (Lwt_stream.clone stream1)))
+    (fun () () ->
+      let channel = Eliom_comet.Channels.create ~scope:`Global
+	(Lwt_stream.clone stream1) in
+      keep_ref channel 3.;
+      Lwt.return channel)
 
 {client{
   let iter_stream_append f c =
@@ -806,6 +814,11 @@ let global_channel_wrapping_service =
       (fun i ->
 	Dom.appendChild (Dom_html.document##body)
 	  (Dom_html.document##createTextNode (Js.string (f i)));
+	(* let some time for the server to gc the channel: if the
+	   client is always requesting data on it, there will always
+	   be a reference: this allow us to call a Gc.full_major by
+	   hand, during that 0.5 seconds, to test the collection.*)
+	lwt () = Lwt_js.sleep 0.5 in
 	Lwt.return ()
       ) c
 }}
@@ -815,28 +828,38 @@ let caml_service_wrapping =
     ~path:["caml_service_wrapping"]
     ~get_params:unit
     (fun () () ->
+      Eliom_services.onload {{
+	let c = Eliom_comet.Configuration.new_configuration () in
+	Eliom_comet.Configuration.set_always_active c true
+      }};
       Lwt.return
         (make_page [
-          div ~a:[a_onclick {{
-	    ignore (
-	      lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
-	      try_lwt
-		iter_stream_append (Printf.sprintf "message: %i;  ") c
+          div ~a:[a_class ["clickable"];
+		  a_onclick {{
+		    ignore (
+		      lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
+		      try_lwt
+			iter_stream_append (Printf.sprintf "message: %i;  ") c
 	      with
 		| e -> debug_exn "caml_service_wrapping: exception: " e; Lwt.fail e
-	    )
-	    }}]
-	    [pcdata "click"];
-          div ~a:[a_onclick {{
-	    ignore (
-	      lwt c = Eliom_client.call_caml_service ~service:%global_channel_wrapping_service () () in
-	      try_lwt
-		iter_stream_append (Printf.sprintf "global message: %i;  ") c
+		    )
+		  }}]
+	    [pcdata "click to create a channel with scope client_process"];
+          div ~a:[a_class ["clickable"];
+		  a_onclick {{
+		    ignore (
+		      lwt c = Eliom_client.call_caml_service ~service:%global_channel_wrapping_service () () in
+		      try_lwt
+			iter_stream_append (Printf.sprintf "global message: %i;  ") c
 	      with
+		| Eliom_comet.Channel_closed ->
+		  Dom.appendChild (Dom_html.document##body)
+		    (Dom_html.document##createTextNode (Js.string ("channel closed")));
+		  Lwt.return ()
 		| e -> debug_exn "global_channel_wrapping_service: exception: " e; Lwt.fail e
-	    )
-	    }}]
-	    [pcdata "click"];
+		    )
+		  }}]
+	    [pcdata "click to create a channel with scope global: it has a lifetime of 3 seconds: after 3 seconds, there is no garanty on availability of this channel"];
 	  pcdata "when clicking on this link, messages should be received every 1 second";
         ])
     )

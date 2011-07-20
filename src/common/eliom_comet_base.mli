@@ -55,6 +55,7 @@ val comet_request_param :
 type 'a channel_data =
   | Data of 'a
   | Full
+  | Closed
 deriving (Json)
 
 type answer =

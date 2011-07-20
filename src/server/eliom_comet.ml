@@ -139,20 +139,53 @@ struct
     ch_wakeup : unit Lwt_condition.t; (* condition broadcasted when there is a new message *)
   }
 
-  (* TODO: allow garbage collection of channels: weak table ? *)
-  let channels : (channel_id,channel) Hashtbl.t  = Hashtbl.create 0
+  module Channel_hash =
+  struct
+     type t = channel
+     let equal c1 c2 = c1.ch_id = c2.ch_id
+     let hash c = Hashtbl.hash c.ch_id
+  end
+
+  module Weak_channel_table = Weak.Make(Channel_hash)
+
+  let channels = Weak_channel_table.create 0
+
+  let find_channel =
+    let dummy_channel =
+      { ch_id = "";
+	ch_index = 0;
+	ch_content = Dlist.create 1;
+	ch_wakeup = Lwt_condition.create (); }
+    in
+    fun ch_id ->
+      let dummy = { dummy_channel with ch_id = ch_id } in
+      try
+	Some (Weak_channel_table.find channels dummy)
+      with
+	| Not_found ->
+	  None
 
   let wakeup_waiters channel =
     Lwt_condition.broadcast channel.ch_wakeup ()
 
   (* fill the channel with messages from the stream *)
   let run_channel channel stream =
+    let channel' = Weak.create 1 in
+    Weak.set channel' 0 (Some channel);
+    let channel = channel' in
+    (* hide non weak reference to be sure not to keep a strong reference *)
     let f msg =
-      channel.ch_index <- succ channel.ch_index;
-      ignore (Dlist.add (msg,channel.ch_index) channel.ch_content: 'a option);
-      wakeup_waiters channel;
+      match Weak.get channel 0 with
+	| None ->
+	  raise_lwt Not_found
+	  (* terminates the loop: remove reference on the stream, etc ... *)
+	| Some channel ->
+	  channel.ch_index <- succ channel.ch_index;
+	  ignore (Dlist.add (msg,channel.ch_index) channel.ch_content: 'a option);
+	  wakeup_waiters channel;
+	  Lwt.return ()
     in
-    ignore (Lwt_stream.iter f stream:unit Lwt.t)
+    ignore (Lwt_stream.iter_s f stream:unit Lwt.t)
 
   let create ?(name=new_id ()) ~size stream =
     let name = "stateless:"^name in
@@ -163,20 +196,17 @@ struct
 	ch_wakeup = Lwt_condition.create () }
     in
     run_channel channel stream;
-    try
-      ignore (Hashtbl.find channels name: channel);
-      failwith (Printf.sprintf "can't create channel %s: a channel with the same name already exists" name)
-    with
-      | Not_found ->
-	Hashtbl.add channels name channel;
+    match find_channel name with
+      | Some _ ->
+	failwith (Printf.sprintf "can't create channel %s: a channel with the same name already exists" name)
+      | None ->
+	Weak_channel_table.add channels channel;
 	channel
 
-  let get_channel (channel,position) =
-    try
-      let channel = Hashtbl.find channels channel in
-      Some (channel,position)
-    with
-      | Not_found -> None
+  let get_channel (ch_id,position) =
+    match find_channel ch_id with
+      | Some channel -> Left (channel,position)
+      | None -> Right ch_id
 
   exception Finished of (channel_id * (string * int) Ecb.channel_data) list
 
@@ -193,8 +223,8 @@ struct
       | Finished l -> l
 
   let get_available_data = function
-    | None -> [] (* CCC should be an error *)
-    | Some (channel,position) ->
+    | Right ch_id -> [ch_id,Ecb.Closed]
+    | Left (channel,position) ->
       match position with
 	(* the first request of the client should be with i = 1 *)
 	(* when the client is requesting the newest data, only return
@@ -216,8 +246,8 @@ struct
 	  queue_take channel i
 
   let has_data = function
-    | None -> false (* CCC should be an error *)
-    | Some (channel,position) ->
+    | Right _ -> true (* a channel was closed: need to tell it to the client *)
+    | Left (channel,position) ->
       match position with
 	| Ecb.Newest i when i > channel.ch_index -> false
 	| Ecb.Newest i -> true
@@ -227,8 +257,8 @@ struct
   let really_wait_data requests =
     let rec make_list = function
       | [] -> []
-      | None::q -> make_list q
-      | (Some (channel,_))::q -> (Lwt_condition.wait channel.ch_wakeup)::(make_list q)
+      | (Left (channel,_))::q -> (Lwt_condition.wait channel.ch_wakeup)::(make_list q)
+      | (Right _)::q -> assert false (* closed channels are considered to have data *)
     in
     Lwt.pick (make_list requests)
 
@@ -639,6 +669,9 @@ end = struct
       (Statefull.create ?scope ?name
 	 (Lwt_stream.map
 	    (function
+	      | Ecb.Closed ->
+		OMsg.debug2 (Printf.sprintf "eliom: closed in statefull channels: this is an error: this should not be possible");
+		Ecb.Closed
 	      | Ecb.Full -> Ecb.Full
 	      | Ecb.Data s -> Ecb.Data (marshal s)) stream))
 

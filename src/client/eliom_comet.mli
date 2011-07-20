@@ -38,7 +38,13 @@ exception Channel_full
 
 exception Process_closed
 (** [Process_closed] is raised when reading on a channel and the
-    server side of the application closed the client process. *)
+    server side of the application closed the client process.
+    This apply only to statefull channels *)
+
+exception Channel_closed
+(** [Process_closed] is raised when reading on a channel and the
+    server side of the application closed channel ( the channel
+    was garbage collected ). This apply only to stateless channels *)
 
 val is_active : unit -> bool
 (** [is_active ()] returns the current activity state *)
