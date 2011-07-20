@@ -10,7 +10,7 @@ OCAMLDOC := ${OCAMLDUCEFIND} ocamldoc -package ocamlduce
 endif
 
 TMP := __tmp
-DOC := $(addprefix ${TMP}/,$(DOC) $(PLUGINS_DOC))
+DOC := $(addprefix ${TMP}/,$(DOC))
 
 doc: odoc
 

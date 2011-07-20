@@ -794,6 +794,22 @@ let caml_wrapping_service =
     (fun () () -> Lwt.return
       (Eliom_comet.Channels.create (Lwt_stream.clone stream1)))
 
+let global_channel_wrapping_service =
+  Eliom_output.Caml.register_post_coservice'
+    ~post_params:(Eliom_parameters.unit)
+    (fun () () -> Lwt.return
+      (Eliom_comet.Channels.create ~scope:`Global (Lwt_stream.clone stream1)))
+
+{client{
+  let iter_stream_append f c =
+    Lwt_stream.iter_s
+      (fun i ->
+	Dom.appendChild (Dom_html.document##body)
+	  (Dom_html.document##createTextNode (Js.string (f i)));
+	Lwt.return ()
+      ) c
+}}
+
 let caml_service_wrapping =
   My_appl.register_service
     ~path:["caml_service_wrapping"]
@@ -805,15 +821,19 @@ let caml_service_wrapping =
 	    ignore (
 	      lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
 	      try_lwt
-	      Lwt_stream.iter_s
-                (fun i ->
-		  Dom.appendChild (Dom_html.document##body)
-		    (Dom_html.document##createTextNode
-                       (Js.string ("message: "^ string_of_int i ^";  "))) ;
-		  Lwt.return ()
-                ) c
+		iter_stream_append (Printf.sprintf "message: %i;  ") c
 	      with
 		| e -> debug_exn "caml_service_wrapping: exception: " e; Lwt.fail e
+	    )
+	    }}]
+	    [pcdata "click"];
+          div ~a:[a_onclick {{
+	    ignore (
+	      lwt c = Eliom_client.call_caml_service ~service:%global_channel_wrapping_service () () in
+	      try_lwt
+		iter_stream_append (Printf.sprintf "global message: %i;  ") c
+	      with
+		| e -> debug_exn "global_channel_wrapping_service: exception: " e; Lwt.fail e
 	    )
 	    }}]
 	    [pcdata "click"];

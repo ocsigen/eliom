@@ -351,10 +351,10 @@ struct
       then
 	begin
 	  try_lwt
-	    lwt s = Lwt.choose [call_service hd;
-				hd.hd_activity.restart_waiter
-				>>= (fun _ -> debug "Eliom_comet: should not append";
-				  Lwt.fail (Comet_error "")) ] in
+	    lwt s = Lwt.pick [call_service hd;
+			      hd.hd_activity.restart_waiter
+			      >>= (fun _ -> debug "Eliom_comet: should not append";
+				Lwt.fail (Comet_error "")) ] in
 	    match s with
 	      | Ecb.Timeout ->
 		if not hd.hd_activity.focused

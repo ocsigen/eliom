@@ -7,7 +7,7 @@ OCAMLDOC := ${OCAMLFIND} ocamldoc
 LIBS    := -I ../../src/client/ $(addprefix -package ,${PACKAGE})
 
 TMP := __tmp
-DOC := $(addprefix ${TMP}/,$(DOC) $(PLUGINS_DOC))
+DOC := $(addprefix ${TMP}/,$(DOC))
 
 doc: odoc
 
