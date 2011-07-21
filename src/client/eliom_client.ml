@@ -422,24 +422,32 @@ let change_page
      with
        | `Get uri ->
          Eliom_request.http_get
+           ~expecting_process_page:true
            ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
        | `Post (uri, p) ->
          Eliom_request.http_post
+           ~expecting_process_page:true
            ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p in
     set_content r
 
 let change_page_uri ?cookies_info ?(get_params = []) uri =
-  lwt r = Eliom_request.http_get ?cookies_info uri get_params in
+  lwt r = Eliom_request.http_get
+    ~expecting_process_page:true ?cookies_info uri get_params
+  in
   set_content r
 
 let change_page_get_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
-  lwt r = Eliom_request.send_get_form ?cookies_info form uri in
+  lwt r = Eliom_request.send_get_form 
+    ~expecting_process_page:true ?cookies_info form uri
+  in
   set_content r
 
 let change_page_post_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
-  lwt r = Eliom_request.send_post_form ?cookies_info form uri in
+  lwt r = Eliom_request.send_post_form
+      ~expecting_process_page:true ?cookies_info form uri
+  in
   set_content r
 
 let _ =
@@ -518,7 +526,7 @@ let auto_change_page fragment =
              | 0 | 1 -> Eliom_request_info.full_uri
              | _ -> String.sub fragment 2 ((String.length fragment) - 2)
          in
-         lwt r = Eliom_request.http_get uri [] in
+         lwt r = Eliom_request.http_get ~expecting_process_page:true uri [] in
 	 set_content r
 	 )
        else Lwt.return ()

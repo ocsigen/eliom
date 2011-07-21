@@ -217,6 +217,10 @@ let get_sp_client_process_info_sp sp =
 let get_sp_client_process_info () =
   let sp = Eliom_common.get_sp () in
   get_sp_client_process_info_sp sp
+let expecting_process_page () =
+  let sp = Eliom_common.get_sp () in
+  Lazy.force sp.Eliom_common.sp_si.Eliom_common.si_expect_process_data
+  
 
 (* *)
 

@@ -160,6 +160,7 @@ let internal_form_full_name =
 
 let tab_cookies_header_name = "X-Eliom-Process-Cookies"
 let tab_cpi_header_name = "X-Eliom-Process-Info"
+let expecting_process_page_name = "X-Eliom-Expecting-Process-Page"
 
 let nl_is_persistent n = n.[0] = 'p'
 
@@ -220,6 +221,7 @@ type sess_info =
      si_all_get_but_nl: (string * string) list;
 
      si_client_process_info : client_process_info option;
+     si_expect_process_data : bool Lazy.t;
 
 (*204FORMS*     si_internal_form: bool; *)
    }

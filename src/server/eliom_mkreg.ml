@@ -126,7 +126,8 @@ let register_aux pages
 			     then
 			       (* it is a suffix service in version
 				  without suffix. We redirect. *)
-			       if sp.Eliom_common.sp_client_appl_name = None
+			       if not
+                                 (Eliom_request_info.expecting_process_page ())
 			       then
 				 let redir_uri =
 				   Eliom_uri.make_string_uri
@@ -196,24 +197,24 @@ let register_aux pages
 			    Other solution: send the page and ask the browser to put it in the cache
 			    during a few seconds. Then redirect. But can we trust the browser cache?
 			  *)
-			  match sp.Eliom_common.sp_client_appl_name with
+                          if Eliom_request_info.expecting_process_page ()
+                          then
+			    match sp.Eliom_common.sp_client_appl_name with
 			    (* the appl name as sent by browser *)
-			    | None -> false (* the browser did not ask
-					      application eliom data,
-					      we do not send a redirection
-					   *)
-			    | Some anr ->
+			      | None -> false (* should not happen *)
+			      | Some anr ->
 			      (* the browser asked application eliom data
 				 (content only) for application anr *)
-			      match Eliom_services.get_send_appl_content service
+			        match Eliom_services.get_send_appl_content service
 			      (* the appl name of the service *)
-			      with
-				| Eliom_services.XSame_appl an
-				    when (an = anr)
-				      -> (* Same appl, it is ok *) false
-				| Eliom_services.XAlways ->
+			        with
+				  | Eliom_services.XSame_appl an
+				      when (an = anr)
+				        -> (* Same appl, it is ok *) false
+				  | Eliom_services.XAlways ->
 						  (* It is an action *) false
-				| _ -> true
+				  | _ -> true
+                          else false
 			in
 			if redir
 			then

@@ -94,7 +94,8 @@ let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
 	failwith "can't do POST redirection with file parameters") form_arg)
      @post_args)
 
-let rec send ?cookies_info ?get_args ?post_args ?form_arg url =
+let rec send ?(expecting_process_page = false) ?cookies_info
+    ?get_args ?post_args ?form_arg url =
   let rec aux i ?cookies_info ?get_args ?post_args ?form_arg url =
     let (https, path) = match cookies_info with
       | Some c -> c
@@ -105,6 +106,11 @@ let rec send ?cookies_info ?get_args ?post_args ?form_arg url =
                       encode_header_value cookies );
 		    ( Eliom_common.tab_cpi_header_name,
 		      encode_header_value Eliom_process.info ) ]
+    in
+    let headers = if expecting_process_page
+      then (Eliom_common.expecting_process_page_name,
+            encode_header_value true)::headers
+      else headers
     in
     let form_contents =
       match form_arg with
@@ -177,22 +183,25 @@ let add_button_arg args form =
     with form data in the URL.
     If [~get_params] is present, it will be appended to the form fields.
 *)
-let send_get_form ?cookies_info ?(get_args=[]) ?post_args form url =
+let send_get_form
+    ?expecting_process_page ?cookies_info ?(get_args=[]) ?post_args form url =
   let get_args = get_args@(Form.get_form_contents form) in
   (* BEGIN FORMDATA HACK *)
   let get_args = add_button_arg (Some get_args) form in
   (* END FORMDATA HACK *)
-  send ?cookies_info ?get_args ?post_args url
+  send ?expecting_process_page ?cookies_info ?get_args ?post_args url
 
 (** Send a POST form with tab cookies and half/full XHR. *)
-let send_post_form ?cookies_info ?get_args ?post_args form url =
+let send_post_form
+    ?expecting_process_page ?cookies_info ?get_args ?post_args form url =
   (* BEGIN FORMDATA HACK *)
   let post_args = add_button_arg post_args form in
   (* END FORMDATA HACK *)
-  send ?cookies_info ?get_args ?post_args ~form_arg:(Form.form_elements form) url
+  send ?expecting_process_page ?cookies_info ?get_args ?post_args
+    ~form_arg:(Form.form_elements form) url
 
-let http_get ?cookies_info url get_args =
-  send ?cookies_info ~get_args url
+let http_get ?expecting_process_page ?cookies_info url get_args =
+  send ?expecting_process_page ?cookies_info ~get_args url
 
-let http_post ?cookies_info url post_args =
-  send ?cookies_info ~post_args url
+let http_post ?expecting_process_page ?cookies_info url post_args =
+  send ?expecting_process_page ?cookies_info ~post_args url

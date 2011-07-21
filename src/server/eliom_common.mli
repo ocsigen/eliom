@@ -243,6 +243,7 @@ type sess_info = {
   si_all_get_but_nl: (string * string) list;
 
   si_client_process_info: client_process_info option;
+  si_expect_process_data : bool Lazy.t;
 
 (*204FORMS*  si_internal_form: bool; *)
 }

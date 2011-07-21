@@ -567,7 +567,8 @@ let make_server_params
 	  cpi_server_port = request_info.Ocsigen_extensions.ri_server_port;
 	  cpi_original_full_path =
 	    request_info.Ocsigen_extensions.ri_original_full_path;
-	} in
+	}
+  in
   { sp_request = ri;
     sp_si = si;
     sp_sitedata = sitedata;
@@ -971,6 +972,16 @@ let get_session_info req previous_extension_err =
     with Not_found -> None
   in
 
+  let epd =
+    lazy (try (* looking in headers *)
+            let epd = Ocsigen_headers.find
+	      expecting_process_page_name
+	      ri.Ocsigen_extensions.ri_http_frame
+            in
+            Json.from_string<bool> epd
+      with Not_found -> false)
+  in
+
   let post_params, get_params, to_be_considered_as_get =
     try
       ([],
@@ -1225,6 +1236,7 @@ let get_session_info req previous_extension_err =
              (List.remove_assoc naservice_num
                 (remove_prefixed_param na_co_param_prefix get_params0)));
      si_client_process_info= cpi;
+     si_expect_process_data= epd;
 (*204FORMS*     si_internal_form= internal_form; *)
     }
   in

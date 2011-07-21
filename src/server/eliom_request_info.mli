@@ -258,6 +258,11 @@ val get_data_cookies :
 (** Returns the http error code of the request before Eliom was called *)
 val get_previous_extension_error_code :unit -> int
 
+(** Returns [true] if the request was done by a client side Eliom program,
+    which was expecting to receive a new HTML page to display inside
+    the process. *)
+val expecting_process_page : unit -> bool
+
 
 (**/**)
 (*****************************************************************************)

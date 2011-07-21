@@ -1729,21 +1729,21 @@ type 'a application_name = string
 
 let appl_self_redirect send page =
   let open Ocsigen_http_frame in
-      match Eliom_request_info.get_sp_client_appl_name () with
-        | None ->
-          lwt r = (Result_types.cast_function_http send) page in
-          Lwt.return (Result_types.cast_result
-			{r with res_headers = Http_headers.with_defaults
-			    Http_headers.dyn_headers r.res_headers})
-        | Some _ ->
-          let url = Eliom_request_info.get_full_url () in
-          let empty_result = empty_result () in
-          Lwt.return
-            (Result_types.cast_result {empty_result with
-              res_headers=
-                Http_headers.add
-                  (Http_headers.name Eliom_common.half_xhr_redir_header) url
-                  empty_result.res_headers})
+      if Eliom_request_info.expecting_process_page ()
+      then
+        let url = Eliom_request_info.get_full_url () in
+        let empty_result = empty_result () in
+        Lwt.return
+          (Result_types.cast_result {empty_result with
+            res_headers=
+              Http_headers.add
+                (Http_headers.name Eliom_common.half_xhr_redir_header) url
+                empty_result.res_headers})
+      else
+        lwt r = (Result_types.cast_function_http send) page in
+        Lwt.return (Result_types.cast_result
+		{r with res_headers = Http_headers.with_defaults
+		    Http_headers.dyn_headers r.res_headers})
 
 let http_redirect = appl_self_redirect
 
@@ -2134,7 +2134,7 @@ module Caml_reg_base = struct
 
   let result_of_http_result x = x
 
-  let send_appl_content = Eliom_services.XAlways
+  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code
       ?content_type ?headers content =
@@ -2161,8 +2161,6 @@ module Caml = struct
     fun g p ->
       f g p >>= fun r ->
       Lwt.return (Eliom_types.encode_eliom_data r)
-
-  let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
     Result_types.cast_result_lwt
@@ -2737,41 +2735,41 @@ module String_redir_reg_base = struct
     in
 
     (* Now we decide the kind of redirection we do.
-       If the request is an xhr done by a client side Eliom program,
+       If the request is an xhr done by a client side Eliom program
+       expecting a process page,
        we do not send an HTTP redirection.
        In that case, we send a full xhr redirection.
        If the application to which belongs the destination service is the same,
        then it is ok, otherwise, there will be another redirection ...
     *)
-    match Eliom_request_info.get_sp_client_appl_name () with
-        (* the appl name as sent by browser *)
-      | None -> (* the browser did not ask application eliom data,
-                   we send a regular redirection *)
-        let code = match code with
-          | Some c -> c
-          | None ->
-            if options = `Temporary
-            then 307 (* Temporary move *)
-            else 301 (* Moved permanently *)
-        in
-        Lwt.return
-          {empty_result with
-            Ocsigen_http_frame.res_cookies= cookies;
-            res_code= code;
-            res_location = Some uri;
-            res_content_type= content_type;
-            res_headers= headers;
-          }
-      | _ ->
-        Lwt.return
-          {empty_result with
-            Ocsigen_http_frame.res_cookies= cookies;
-            res_content_type= content_type;
-            res_headers=
-              Http_headers.add
-                (Http_headers.name Eliom_common.full_xhr_redir_header)
-                uri headers
-          }
+    if not (Eliom_request_info.expecting_process_page ())
+    then (* the browser did not ask application eliom data,
+            we send a regular redirection *)
+      let code = match code with
+        | Some c -> c
+        | None ->
+          if options = `Temporary
+          then 307 (* Temporary move *)
+          else 301 (* Moved permanently *)
+      in
+      Lwt.return
+        {empty_result with
+          Ocsigen_http_frame.res_cookies= cookies;
+          res_code= code;
+          res_location = Some uri;
+          res_content_type= content_type;
+          res_headers= headers;
+        }
+    else
+      Lwt.return
+        {empty_result with
+          Ocsigen_http_frame.res_cookies= cookies;
+          res_content_type= content_type;
+          res_headers=
+            Http_headers.add
+              (Http_headers.name Eliom_common.full_xhr_redir_header)
+              uri headers
+        }
 
 
 end
@@ -2814,17 +2812,20 @@ module Redir_reg_base = struct
     in
 
     (* Now we decide the kind of redirection we do.
-       If the request is an xhr done by a client side Eliom program,
+       If the request is an xhr done by a client side Eliom program
+       expecting a process page,
        we do not send an HTTP redirection.
        In that case, we send:
        - a full xhr redirection if the application to which belongs
        the destination service is the same (thus it will send back tab cookies)
        - a half xhr redirection otherwise
     *)
-    match Eliom_request_info.get_sp_client_appl_name () with
+    match Eliom_request_info.expecting_process_page (),
+      Eliom_request_info.get_sp_client_appl_name () with
       (* the appl name as sent by browser *)
-      | None -> (* the browser did not ask application eliom data,
-                   we send a regular redirection *)
+      | true, None (* should not happen *)
+      | false, _ -> (* the browser did not ask for process data,
+                       we send a regular redirection *)
         let code = match code with
           | Some c -> c
           | None ->
@@ -2840,7 +2841,7 @@ module Redir_reg_base = struct
             res_content_type= content_type;
             res_headers= headers; }
 
-      | Some anr ->
+      | true, Some anr ->
         (* the browser asked application eliom data
            for the application called anr *)
         (* If it comes from an xhr, we use answer with a special header field *)
