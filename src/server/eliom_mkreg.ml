@@ -49,6 +49,28 @@ type ('options,'page,'result) param =
 
       result_of_http_result : Ocsigen_http_frame.result -> 'result; }
 
+let send_with_cookies pages
+    ?options
+    ?charset
+    ?code
+    ?content_type
+    ?headers
+    content =
+  lwt result =
+    pages.send
+      ?options
+      ?charset
+      ?code
+      ?content_type
+      ?headers
+      content
+  in
+  Lwt.return
+    { result with
+      Ocsigen_http_frame.res_cookies =
+        Ocsigen_cookies.add_cookies
+          (Eliom_request_info.get_user_cookies ())
+          result.Ocsigen_http_frame.res_cookies; }
 
 let register_aux pages
       ?options
@@ -241,7 +263,7 @@ let register_aux pages
                              error_handler l
                            | e -> fail e)
                         >>= fun content ->
-                       pages.send
+		       send_with_cookies pages
                          ?options
                          ?charset
                          ?code
@@ -366,7 +388,7 @@ let register_aux pages
                          | Eliom_common.Eliom_Typing_Error l ->
                            error_handler l
                          | e -> fail e) >>= fun content ->
-                     pages.send
+		     send_with_cookies pages
                        ?options
                        ?charset
                        ?code

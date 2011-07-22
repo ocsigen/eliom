@@ -74,7 +74,6 @@ module Cometreg_ = struct
     lwt r = Ocsigen_senders.Text_content.result_of_content (content,json_content_type) in
     Lwt.return
       {r with
-        res_cookies= Eliom_request_info.get_user_cookies ();
         res_code= code_of_code_option code;
         res_charset= (match charset with
           | None ->  Some (Eliom_config.get_config_default_charset ())

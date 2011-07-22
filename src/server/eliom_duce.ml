@@ -97,7 +97,6 @@ module Xhtml_reg_base = struct
     Ocamlduce_content.result_of_content content >>= fun r ->
       Lwt.return
 	{r with
-           res_cookies= (Eliom_request_info.get_user_cookies ());
            res_code= code_of_code_option code;
            res_charset= Some "utf-8" (* For Eliom_duce, we impose utf-8 *);
            res_content_type= (match content_type with
@@ -392,7 +391,6 @@ module Make_Registration
         TypedXML_content.result_of_content content >>= fun r ->
         Lwt.return
           {r with
-             res_cookies= (Eliom_request_info.get_user_cookies ());
              res_code= code_of_code_option code;
              res_charset= Some "utf-8"
               (* For Eliom_duce, we impose utf-8 *);

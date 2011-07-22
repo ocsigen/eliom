@@ -93,7 +93,6 @@ module Html5_make_reg_base
     let open Ocsigen_http_frame in
     Lwt.return
       {r with
-         res_cookies= Eliom_request_info.get_user_cookies ();
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None -> Some (Eliom_config.get_config_default_charset ())
@@ -1018,7 +1017,6 @@ module Xhtml_make_reg_base
     Lwt.return
       {r with
          Ocsigen_http_frame.
-	 res_cookies = Eliom_request_info.get_user_cookies ();
          res_code    = code_of_code_option code;
          res_charset = (match charset with
            | None -> Some (Eliom_config.get_config_default_charset ())
@@ -1101,7 +1099,6 @@ module Make_TypedXML_Registration
         Lwt.return
           { r with
 	    Ocsigen_http_frame.
-	    res_cookies = Eliom_request_info.get_user_cookies ();
             res_code    = code_of_code_option code;
             res_charset = (match charset with
               | None -> Some (Eliom_config.get_config_default_charset ())
@@ -1154,7 +1151,6 @@ module Text_reg_base = struct
     Lwt.return
       { r with
         Ocsigen_http_frame.
-	res_cookies = Eliom_request_info.get_user_cookies ();
         res_code    = code_of_code_option code;
         res_charset = (match charset with
           | None ->  Some (Eliom_config.get_config_default_charset ())
@@ -1197,7 +1193,6 @@ module CssText_reg_base = struct
     Lwt.return
       { r with
         Ocsigen_http_frame.
-	res_cookies = Eliom_request_info.get_user_cookies ();
         res_code    = code_of_code_option code;
         res_charset = (match charset with
           | None -> Some (Eliom_config.get_config_default_charset ())
@@ -1240,7 +1235,6 @@ module HtmlText_reg_base = struct
     Lwt.return
       { r with
         Ocsigen_http_frame.
-	res_cookies = Eliom_request_info.get_user_cookies ();
         res_code    = code_of_code_option code;
         res_charset = (match charset with
           | None -> Some (Eliom_config.get_config_default_charset ())
@@ -1467,7 +1461,6 @@ module Action_reg_base = struct
       let empty_result = Ocsigen_http_frame.empty_result () in
       Lwt.return
         {empty_result with
-          res_cookies= user_cookies;
           res_code= code;
           res_content_type= (match content_type with
             | None -> empty_result.res_content_type
@@ -1660,7 +1653,6 @@ module Unit_reg_base = struct
     let empty_result = Ocsigen_http_frame.empty_result () in
     Lwt.return
       {empty_result with
-         res_cookies= Eliom_request_info.get_user_cookies ();
          res_code= code;
          res_content_type= (match content_type with
                               | None -> empty_result.res_content_type
@@ -1702,10 +1694,6 @@ module Any_reg_base = struct
     let open Ocsigen_http_frame in
     Lwt.return
       {res with
-         res_cookies=
-          Ocsigen_cookies.add_cookies
-            (Eliom_request_info.get_user_cookies ())
-            res.res_cookies;
          res_charset= (match charset with
                          | None -> res.res_charset
                          | _ -> charset);
@@ -1779,7 +1767,6 @@ module Files_reg_base = struct
     let open Ocsigen_extensions in
     Lwt.return
       { r with
-          res_cookies = Eliom_request_info.get_user_cookies ();
           res_code = code_of_code_option code;
           res_charset = (match charset with
                            | None ->
@@ -1838,7 +1825,6 @@ module Streamlist_reg_base = struct
     Ocsigen_senders.Streamlist_content.result_of_content content >>= fun r ->
     Lwt.return
       {r with
-         res_cookies= Eliom_request_info.get_user_cookies ();
          res_code= code_of_code_option code;
          res_charset= (match charset with
                          | None ->  Some (Eliom_config.get_config_default_charset ())
@@ -2627,7 +2613,6 @@ module Eliom_appl_reg_make_param
     Lwt.return
       { r with
         Ocsigen_http_frame.
-	res_cookies = Eliom_request_info.get_user_cookies ();
         res_code    = code_of_code_option code;
         res_charset = (match charset with
           | None -> Some (Eliom_config.get_config_default_charset ())
@@ -2722,7 +2707,6 @@ module String_redir_reg_base = struct
       ?content_type ?headers content =
     let uri = Uri.string_of_uri content in
     let empty_result = Ocsigen_http_frame.empty_result () in
-    let cookies = Eliom_request_info.get_user_cookies () in
     let content_type = match content_type with
       | None -> empty_result.Ocsigen_http_frame.res_content_type
       | _ -> content_type
@@ -2754,8 +2738,7 @@ module String_redir_reg_base = struct
       in
       Lwt.return
         {empty_result with
-          Ocsigen_http_frame.res_cookies= cookies;
-          res_code= code;
+          Ocsigen_http_frame.res_code= code;
           res_location = Some uri;
           res_content_type= content_type;
           res_headers= headers;
@@ -2763,8 +2746,7 @@ module String_redir_reg_base = struct
     else
       Lwt.return
         {empty_result with
-          Ocsigen_http_frame.res_cookies= cookies;
-          res_content_type= content_type;
+          Ocsigen_http_frame.res_content_type= content_type;
           res_headers=
             Http_headers.add
               (Http_headers.name Eliom_common.full_xhr_redir_header)
@@ -2799,7 +2781,6 @@ module Redir_reg_base = struct
       ?content_type ?headers service =
     let uri = lazy (Xhtml.make_string_uri ~absolute:true ~service ()) in
     let empty_result = Ocsigen_http_frame.empty_result () in
-    let cookies = Eliom_request_info.get_user_cookies () in
     let content_type = match content_type with
       | None -> empty_result.Ocsigen_http_frame.res_content_type
       | _ -> content_type
@@ -2835,8 +2816,7 @@ module Redir_reg_base = struct
         in
         Lwt.return
           {empty_result with
-            Ocsigen_http_frame.res_cookies= cookies;
-            res_code= code;
+            Ocsigen_http_frame.res_code= code;
             res_location = Some (Lazy.force uri);
             res_content_type= content_type;
             res_headers= headers; }
@@ -2853,8 +2833,7 @@ module Redir_reg_base = struct
                send back tab cookies) *)
               Lwt.return
                 {empty_result with
-                  Ocsigen_http_frame.res_cookies= cookies;
-                  res_content_type= content_type;
+                  Ocsigen_http_frame.res_content_type= content_type;
                   res_headers=
                     Http_headers.add
                       (Http_headers.name Eliom_common.full_xhr_redir_header)
@@ -2865,8 +2844,7 @@ module Redir_reg_base = struct
             (* It is probably an action, or a void coservice. Full xhr again *)
               Lwt.return
                 {empty_result with
-                  Ocsigen_http_frame.res_cookies= cookies;
-                  res_content_type= content_type;
+                  Ocsigen_http_frame.res_content_type= content_type;
                   res_headers=
                     Http_headers.add
                       (Http_headers.name Eliom_common.full_xhr_redir_header)
@@ -2877,8 +2855,7 @@ module Redir_reg_base = struct
                       We ask the browser to do an HTTP redirection. *)
               Lwt.return
                 {empty_result with
-                  Ocsigen_http_frame.res_cookies= cookies;
-                  res_content_type= content_type;
+                  Ocsigen_http_frame.res_content_type= content_type;
                   res_headers=
                     Http_headers.add
                       (Http_headers.name Eliom_common.half_xhr_redir_header)
