@@ -34,6 +34,24 @@ let make_new_session_id = String.make_cryptographic_safe
 (*****************************************************************************)
 (* cookie manipulation *)
 
+type cookie = Ocsigen_cookies.cookie =
+  | OSet of float option * string * bool
+  | OUnset
+deriving (Json)
+
+type cookie_array =
+    ( string array * (( string * cookie ) array )) array
+deriving (Json)
+
+let cookieset_to_json set =
+  let cookietable_array set =
+    let add key v l = (key,v)::l in
+    Array.of_list (CookiesTable.fold add set [])
+  in
+  let add key v l = (Array.of_list key,cookietable_array v)::l in
+  let a = Array.of_list (Cookies.fold add set []) in
+  Deriving_Json.to_string Json.t<cookie_array> a
+
 (** look in table to find if the session cookies sent by the browser
     correspond to existing (and not closed) sessions *)
 let get_cookie_info

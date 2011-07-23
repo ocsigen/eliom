@@ -64,13 +64,25 @@ let send_with_cookies pages
       ?content_type
       ?headers
       content
+in
+  let sp = Eliom_common.get_sp () in
+  lwt tab_cookies =
+    Eliommod_cookies.compute_cookies_to_send
+      sp.Eliom_common.sp_sitedata
+      sp.Eliom_common.sp_tab_cookie_info
+      sp.Eliom_common.sp_user_tab_cookies
   in
+  let tab_cookies = Eliommod_cookies.cookieset_to_json tab_cookies in
   Lwt.return
     { result with
       Ocsigen_http_frame.res_cookies =
         Ocsigen_cookies.add_cookies
           (Eliom_request_info.get_user_cookies ())
-          result.Ocsigen_http_frame.res_cookies; }
+          result.Ocsigen_http_frame.res_cookies;
+      res_headers = Http_headers.add
+	(Http_headers.name Eliom_common_base.set_tab_cookies_header_name)
+	tab_cookies
+	result.Ocsigen_http_frame.res_headers; }
 
 let register_aux pages
       ?options

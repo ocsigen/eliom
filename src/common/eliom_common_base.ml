@@ -158,6 +158,7 @@ let internal_form_full_name =
     internal_form_bool_name
 *)
 
+let set_tab_cookies_header_name = "X-Eliom-Set-Process-Cookies"
 let tab_cookies_header_name = "X-Eliom-Process-Cookies"
 let tab_cpi_header_name = "X-Eliom-Process-Info"
 let expecting_process_page_name = "X-Eliom-Expecting-Process-Page"

@@ -21,6 +21,8 @@
 open Eliom_pervasives
 open Ocsigen_cookies
 
+val cookieset_to_json : Ocsigen_cookies.cookieset -> string
+
 val make_new_session_id : unit -> string
 
 val get_cookie_info :

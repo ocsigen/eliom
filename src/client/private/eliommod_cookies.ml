@@ -20,6 +20,11 @@
 open Eliom_pervasives
 open Ocsigen_cookies
 
+type cookie = Ocsigen_cookies.cookie =
+  | OSet of float option * string * bool
+  | OUnset
+deriving (Json)
+
 let cookie_table = ref Cookies.empty
 
 let now () = Js.to_float (Js.date##now ())
