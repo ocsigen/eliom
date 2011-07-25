@@ -30,7 +30,7 @@ module Cookies : Map.S with type key = Url.path
     If the bool is true and the protocol is https, the cookie will be secure
     (will ask the browser to send it only through secure connections).
  *)
-type cookie =
+type cookie = Ocsigen_cookies.cookie =
   | OSet of float option * string * bool
   | OUnset
 

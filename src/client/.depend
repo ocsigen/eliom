@@ -38,6 +38,8 @@ eliom_common_base.cmo: eliom_pervasives.cmi
 eliom_common_base.cmx: eliom_pervasives.cmx
 eliom_config.cmo:
 eliom_config.cmx:
+eliom_cookies_base.cmo: eliom_pervasives.cmi
+eliom_cookies_base.cmx: eliom_pervasives.cmx
 eliom_mkforms.cmo: eliom_uri.cmi eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmo eliom_common.cmo eliom_mkforms.cmi
 eliom_mkforms.cmx: eliom_uri.cmx eliom_services.cmx eliom_pervasives.cmx \
@@ -109,8 +111,8 @@ eliom_uri.cmx: eliom_state.cmx eliom_services.cmx eliom_request_info.cmx \
     eliom_common.cmx eliom_uri.cmi
 eliom_uri.cmi: eliom_services.cmi eliom_pervasives.cmi eliom_parameters.cmo \
     eliom_common.cmo
-private/eliommod_cookies.cmo: eliom_pervasives.cmi
-private/eliommod_cookies.cmx: eliom_pervasives.cmx
+private/eliommod_cookies.cmo: eliom_pervasives.cmi eliom_cookies_base.cmo
+private/eliommod_cookies.cmx: eliom_pervasives.cmx eliom_cookies_base.cmx
 private/eliommod_mkforms.cmo: eliom_pervasives.cmi eliom_client.cmi \
     private/eliommod_mkforms.cmi
 private/eliommod_mkforms.cmx: eliom_pervasives.cmx eliom_client.cmx \

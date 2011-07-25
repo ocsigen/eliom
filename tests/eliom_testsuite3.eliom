@@ -487,9 +487,6 @@ let caml_service_cookies =
 	  br ();
 	  pcdata "this test verifies that client process cookies are correctly sent with caml value services";
 	  br ();
-	  p [
-	    pcdata "Currently calling text service is bugged: it exits the application: ( server respond by an half redirect )";
-	  ]
         ])
     )
 

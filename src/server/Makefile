@@ -37,6 +37,7 @@ FILES := eliom_pervasives_base.ml eliom_pervasives.ml \
 	 eliom_common_base.ml eliom_common.ml \
 	 eliom_request_info.ml \
 	 private/eliommod_sessiongroups.ml \
+	 eliom_cookies_base.ml \
 	 private/eliommod_cookies.ml \
 	 private/eliommod_sersess.ml \
          private/eliommod_datasess.ml \

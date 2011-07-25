@@ -21,7 +21,7 @@ open Eliom_pervasives
 module Cookies =
   Map.Make(struct type t = Url.path let compare = compare end)
 
-type cookie =
+type cookie = Ocsigen_cookies.cookie =
   | OSet of float option * string * bool
   | OUnset
 

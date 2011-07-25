@@ -32,6 +32,7 @@ ${COMMON_PFILES} ${COMMON_SFILES}:
 FILES := eliom_pervasives_base.ml eliom_pervasives.ml \
 	 eliom_unwrap.ml \
 	 eliom_common_base.ml eliom_common.ml \
+	 eliom_cookies_base.ml \
          private/eliommod_cookies.ml \
 	 eliom_types_base.ml eliom_types.ml \
 	 eliom_process.ml \

@@ -120,9 +120,13 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 	  List.iter (Form.append contents) form_arg;
 	  Some contents
     in
-     XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
-       ?post_args ?get_args ?form_arg:form_contents url
-    >>= fun r ->
+    lwt r = XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
+      ?post_args ?get_args ?form_arg:form_contents url in
+    ( match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name with
+      | None -> ()
+      | Some tab_cookies ->
+	let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
+	Eliommod_cookies.update_cookie_table tab_cookies; );
     if r.XmlHttpRequest.code = 204
     then
       match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
