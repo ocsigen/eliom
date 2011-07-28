@@ -2610,6 +2610,19 @@ module Eliom_appl_reg_make_param
 	| _ -> add_eliom_scripts ~sp content in
 
     lwt r = Html5_content.result_of_content page in
+
+    let headers =
+      match headers with
+        | None -> r.Ocsigen_http_frame.res_headers
+        | Some headers ->
+          Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
+    in
+    let headers = Http_headers.replace
+      (Http_headers.name Eliom_common_base.appl_name_header_name)
+      Appl_params.application_name
+      headers
+    in
+
     Lwt.return
       { r with
         Ocsigen_http_frame.
@@ -2622,11 +2635,7 @@ module Eliom_appl_reg_make_param
           | None -> r.Ocsigen_http_frame.res_content_type
           | _ -> content_type
         );
-        res_headers= (match headers with
-          | None -> r.Ocsigen_http_frame.res_headers
-          | Some headers ->
-            Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
- 	);
+        res_headers = headers;
       }
 
   end

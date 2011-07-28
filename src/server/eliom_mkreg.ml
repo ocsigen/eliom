@@ -49,7 +49,94 @@ type ('options,'page,'result) param =
 
       result_of_http_result : Ocsigen_http_frame.result -> 'result; }
 
-let send_with_cookies pages
+
+(* If it is an xmlHTTPrequest who asked for an internal application
+   service but the current service
+   does not belong to the same application,
+   we ask the browser to stop the program and do a redirection.
+   This can happen for example after an action,
+   when the fallback service does not belong to the application.
+   We can not do a regular redirection because
+   it is an XHR. We use our own redirections.
+*)
+(*VVV
+  An alternative, to avoid the redirection with rc,
+  would be to answer the full page and to detect on client side
+  that it is not the answer of an XRH (using content-type)
+  and ask the browser to act as if it were a regular request.
+  Is it possible to do that?
+  Drawback: The URL will be wrong
+
+  Other solution: send the page and ask the browser to put it in the cache
+  during a few seconds. Then redirect. But can we trust the browser cache?
+*)
+
+(* the test to know before page generation if the page can contain
+   application data. This test is not exhaustif: services declared as
+   XAlways can contain classical content, but we can't know it at this
+   point: we must wait for the page to be generated and then see if it
+   is effectively application content. *)
+let check_before name service =
+  match Eliom_services.get_send_appl_content service
+  (* the appl name of the service *)
+  with
+    | Eliom_services.XSame_appl an
+	when (an = name)
+	  -> (* Same appl, it is ok *) false
+    | Eliom_services.XAlways -> (* It is an action *) false
+    | _ -> true
+
+(* This test check if there is a header set only by
+   Eliom_output.Eliom_appl. This test is sufficient, but it is better
+   to stop page generation as soon as we know that the content won't
+   be needed: hence we test what we can before page generation. *)
+let check_after name result =
+  try
+    let appl_name = Http_headers.find
+      (Http_headers.name Eliom_common_base.appl_name_header_name)
+      result.Ocsigen_http_frame.res_headers
+    in
+    not (appl_name = name)
+  with
+    (* not an application content *)
+    | Not_found -> true
+
+let check_process_redir sp f param =
+  let redir =
+    if Eliom_request_info.expecting_process_page ()
+    then
+      match sp.Eliom_common.sp_client_appl_name with
+	(* the appl name as sent by browser *)
+	| None -> false (* should not happen *)
+	| Some anr -> f anr param
+	  (* the browser asked application eliom data
+	     (content only) for application anr *)
+    else false
+  in
+  if redir
+  then
+    let ri = Eliom_request_info.get_ri_sp sp in
+    raise_lwt
+      (* we answer to the xhr
+	 by asking an HTTP redirection *)
+      (Eliom_common.Eliom_do_half_xhr_redirection
+	 ("/"^
+             String.may_concat
+                  ri.Ocsigen_extensions.ri_original_full_path_string
+                  ~sep:"?"
+                  (Eliom_parameters.construct_params_string
+                     (Lazy.force
+                        ri.Ocsigen_extensions.ri_get_params)
+                  )))
+  (* We do not put hostname and port.
+     It is ok with half or full xhr redirections. *)
+  (* If an action occured before,
+     it may have removed some get params form ri *)
+  else Lwt.return ()
+
+let send_with_cookies
+    sp
+    pages
     ?options
     ?charset
     ?code
@@ -64,14 +151,15 @@ let send_with_cookies pages
       ?content_type
       ?headers
       content
-in
-  let sp = Eliom_common.get_sp () in
+  in
+  lwt () = check_process_redir sp check_after result in
   lwt tab_cookies =
     Eliommod_cookies.compute_cookies_to_send
       sp.Eliom_common.sp_sitedata
       sp.Eliom_common.sp_tab_cookie_info
       sp.Eliom_common.sp_user_tab_cookies
   in
+  (* TODO: do not add header when no cookies *)
   let tab_cookies = Eliommod_cookies.cookieset_to_json tab_cookies in
   Lwt.return
     { result with
@@ -94,66 +182,6 @@ let register_aux pages
       ~service
       ?(error_handler = fun l -> raise (Eliom_common.Eliom_Typing_Error l))
       page_generator =
-  let check_process_redir sp ri =
-    let redir =
-      (* If it is an xmlHTTPrequest who asked for an internal application
-	 service but the current service
-         does not belong to the same application,
-	 we ask the browser to stop the program and do a redirection.
-	 This can happen for example after an action,
-	 when the fallback service does not belong to the application.
-	 We can not do a regular redirection because
-	 it is an XHR. We use our own redirections.
-      *)
-      (*VVV
-	An alternative, to avoid the redirection with rc,
-	would be to answer the full page and to detect on client side 
-        that it is not the answer of an XRH (using content-type)
-        and ask the browser to act as if it were a regular request.
-        Is it possible to do that?
-	Drawback: The URL will be wrong
-
-	Other solution: send the page and ask the browser to put it in the cache
-	during a few seconds. Then redirect. But can we trust the browser cache?
-      *)
-      if Eliom_request_info.expecting_process_page ()
-      then
-	match sp.Eliom_common.sp_client_appl_name with
-	  (* the appl name as sent by browser *)
-	  | None -> false (* should not happen *)
-	  | Some anr ->
-	    (* the browser asked application eliom data
-	       (content only) for application anr *)
-	    match Eliom_services.get_send_appl_content service
-	    (* the appl name of the service *)
-	    with
-	      | Eliom_services.XSame_appl an
-		  when (an = anr)
-		    -> (* Same appl, it is ok *) false
-	      | Eliom_services.XAlways -> (* It is an action *) false
-	      | _ -> true
-      else false
-    in
-    if redir
-    then
-      Lwt.fail
-	(* we answer to the xhr
-	   by asking an HTTP redirection *)
-	(Eliom_common.Eliom_do_half_xhr_redirection
-	   ("/"^
-	       String.may_concat
-		  ri.Ocsigen_extensions.ri_original_full_path_string
-		  ~sep:"?"
-		  (Eliom_parameters.construct_params_string
-		     (Lazy.force
-			ri.Ocsigen_extensions.ri_get_params)
-		  )))
-    (* We do not put hostname and port.
-       It is ok with half or full xhr redirections. *)
-    (* If an action occured before,
-       it may have removed some get params form ri *)
-    else Lwt.return ()
-  in
     Eliom_services.set_send_appl_content service (pages.send_appl_content);
     begin
       match get_kind_ service with
@@ -268,14 +296,14 @@ let register_aux pages
 			     else Lwt.return ())
 			  | _ -> Lwt.return ())
 			>>= fun () ->
-                        check_process_redir sp ri >>= fun () ->
+                        check_process_redir sp check_before service >>= fun () ->
                         page_generator g p)
                          (function
                            | Eliom_common.Eliom_Typing_Error l ->
                              error_handler l
                            | e -> fail e)
                         >>= fun content ->
-		       send_with_cookies pages
+		       send_with_cookies sp pages
                          ?options
                          ?charset
                          ?code
@@ -394,13 +422,13 @@ let register_aux pages
 			   false
 			   None
                          >>= fun p ->
-                         check_process_redir sp ri >>= fun () ->
+                         check_process_redir sp check_before service >>= fun () ->
 			 page_generator g p)
                        (function
                          | Eliom_common.Eliom_Typing_Error l ->
                            error_handler l
                          | e -> fail e) >>= fun content ->
-		     send_with_cookies pages
+		     send_with_cookies sp pages
                        ?options
                        ?charset
                        ?code
