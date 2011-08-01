@@ -143,9 +143,28 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 	      Lwt.fail Program_terminated
             | None -> Lwt.fail (Failed_request r.XmlHttpRequest.code)
     else
-      if r.XmlHttpRequest.code = 200
-      then Lwt.return r.XmlHttpRequest.content
-      else Lwt.fail (Failed_request r.XmlHttpRequest.code)
+      if expecting_process_page
+      then
+	match r.XmlHttpRequest.headers Eliom_common.appl_name_header_name with
+	  | None ->
+	    debug "Eliom_request: non application content received";
+	    Lwt.fail (Failed_request r.XmlHttpRequest.code)
+	  | Some appl_name ->
+	    match Eliom_process.get_application_name () with
+	      | None ->
+		debug "Eliom_request: no application name ? please report this bug";
+		assert false
+	      | Some current_appl_name ->
+		if appl_name = current_appl_name
+		then Lwt.return r.XmlHttpRequest.content
+		else
+		  (debug "Eliom_request: received content for application %s when running application %s"
+		     appl_name current_appl_name;
+		   Lwt.fail (Failed_request r.XmlHttpRequest.code))
+      else
+	if r.XmlHttpRequest.code = 200
+	then Lwt.return r.XmlHttpRequest.content
+	else Lwt.fail (Failed_request r.XmlHttpRequest.code)
   in aux 0 ?cookies_info ?get_args ?post_args ?form_arg url
 
 (** Same as XmlHttpRequest.perform_raw_url, but:

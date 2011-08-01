@@ -37,7 +37,6 @@ let appl_name =
      in v)
 
 (** None on server side *)
-let get_application_name () =
-  debug "application name: %s" (!!appl_name); Some (!!appl_name)
+let get_application_name () = Some (!!appl_name)
 
 let client_side = true
