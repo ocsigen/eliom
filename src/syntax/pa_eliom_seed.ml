@@ -131,15 +131,18 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
                 ^ ".type_mli"
 	| f -> f
 
-
-      let rec suppress_underscore ty =
-	let map ty = match ty with
-	| Ast.TyApp (_, Ast.TyAny _, ty)
-	| Ast.TyApp (_, ty, Ast.TyAny _) -> ty
-	| Ast.TyQuo (x, var) when var.[0] = '_' ->
-	  Ast.TyQuo (x, (String.sub var 1 (String.length var - 1))^"__eliom_inferred_type")
-	| ty -> ty in
-	(Ast.map_ctyp map)#ctyp ty
+      let suppress_underscore =
+	let c = ref 0 in
+	let uid () = incr c ; !c in
+	fun ty ->
+          let pfix = Printf.sprintf "__eliom_inferred_type_%d" (uid ()) in
+ 	  let map ty = match ty with
+ 	    | Ast.TyApp (_, Ast.TyAny _, ty)
+ 	    | Ast.TyApp (_, ty, Ast.TyAny _) -> ty
+ 	    | Ast.TyQuo (x, var) when var.[0] = '_' ->
+ 	      Ast.TyQuo (x, (String.sub var 1 (String.length var - 1)) ^ pfix)
+ 	    | ty -> ty in
+ 	  (Ast.map_ctyp map)#ctyp ty
 
       let escaped_ident_prefix = "__eliom__escaped_expr__reserved_name__"
       let escaped_ident_prefix_len = String.length escaped_ident_prefix
@@ -157,7 +160,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	    suppress_underscore t
 	| _ -> assert false
 
-      let load_file f = 
+      let load_file f =
 	let ic = open_in f in
 	try
 	  let s = Stream.of_channel ic in
