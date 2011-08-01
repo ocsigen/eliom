@@ -229,9 +229,8 @@ let make_uri_components_ (* does not take into account getparams *)
                       (Eliom_request_info.get_csp_original_full_path_sp sp)
                       (get_full_path_ attser) suff
                 | None, None ->
-                    reconstruct_relative_url_path_string
-                      []
-                      (get_full_path_ attser) suff
+		    (* Force absolute path when 'sp' isn't available *)
+                    "/" ^ reconstruct_absolute_url_path (get_full_path_ attser) suff
           in
           match get_get_name_ attser, sp with
             | Eliom_common.SAtt_no, _ ->
