@@ -1,5 +1,5 @@
 (* Ocsigen
-o * http://www.ocsigen.org
+ * http://www.ocsigen.org
  * Module Eliom_predefmod
  * Copyright (C) 2007 Vincent Balat
  *
@@ -883,17 +883,23 @@ module Html5_forms = struct
 
   include Forms
 
+  let make_info ~https kind service =
+    Eliom_lazy.from_fun
+      (fun () ->
+	if not (Eliom_services.xhr_with_cookies service)
+	then None
+	else Some (`A, Eliom_uri.make_cookies_info (https, service)))
+
   let a ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
         ?keep_nl_params ?nl_params
 	?(no_appl = false)
 	content getparams =
     let a =
-      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      if no_appl
       then a
       else
-	let cookies_info =
-	  Eliom_uri.make_cookies_info (https, service) in
-	HTML5.M.a_onclick (XML.event_of_service `A cookies_info) :: a
+	let info = make_info ~https `A service in
+	HTML5.M.a_onclick (XML.event_of_service info) :: a
     in
     Forms.a
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
@@ -905,12 +911,11 @@ module Html5_forms = struct
       ?keep_nl_params ?nl_params
       ?(no_appl = false) contents =
     let a =
-      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      if no_appl
       then a
       else
-	let cookies_info =
-	  Eliom_uri.make_cookies_info (https, service) in
-	HTML5.M.a_onsubmit (XML.event_of_service `Form_get cookies_info) :: a
+	let info = make_info ~https `Form_get service in
+	HTML5.M.a_onsubmit (XML.event_of_service info) :: a
     in
     Forms.get_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
@@ -921,12 +926,11 @@ module Html5_forms = struct
       ?keep_nl_params ?nl_params
       ?(no_appl = false) contents =
     let a =
-      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      if no_appl
       then a
       else
-	let cookies_info =
-	  Eliom_uri.make_cookies_info (https, service) in
-	HTML5.M.a_onsubmit (XML.event_of_service `Form_get cookies_info) :: a
+	let info = make_info ~https `Form_get service in
+	HTML5.M.a_onsubmit (XML.event_of_service info) :: a
     in
     Forms.lwt_get_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
@@ -938,12 +942,11 @@ module Html5_forms = struct
       ?keep_nl_params ?keep_get_na_params ?nl_params
       ?(no_appl = false) contents getparams =
     let a =
-      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      if no_appl
       then a
       else
-	let cookies_info =
-	  Eliom_uri.make_cookies_info (https, service) in
-	HTML5.M.a_onsubmit (XML.event_of_service `Form_post cookies_info) :: a
+	let info = make_info ~https `Form_post service in
+	HTML5.M.a_onsubmit (XML.event_of_service info) :: a
     in
     Forms.post_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
@@ -955,12 +958,11 @@ module Html5_forms = struct
       ?keep_nl_params ?keep_get_na_params ?nl_params
       ?(no_appl = false) contents getparams =
     let a =
-      if no_appl || not (Eliom_services.xhr_with_cookies service)
+      if no_appl
       then a
       else
-	let cookies_info =
-	  Eliom_uri.make_cookies_info (https, service) in
-	HTML5.M.a_onsubmit (XML.event_of_service `Form_post cookies_info) :: a
+	let info = make_info ~https `Form_post service in
+	HTML5.M.a_onsubmit (XML.event_of_service info) :: a
     in
     Forms.lwt_post_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment

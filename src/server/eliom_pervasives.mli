@@ -39,7 +39,6 @@ val thd3 : 'a * 'b * 'c -> 'c
 type poly (* Warning: do not use [poly array]... *)
 val to_poly: 'a -> poly
 type 'a client_expr = int64 * poly
-type 'a wrapped_value = poly * 'a
 
 module List : sig
   include module type of List
@@ -140,7 +139,9 @@ module XML : sig
   val event_of_string : string -> event
   val string_of_event : event -> string
   val event_of_js : int64 -> poly -> event
-  val event_of_service :  [ `A | `Form_get | `Form_post] -> (bool * Url.path) option -> event
+  val event_of_service :
+    ( [ `A | `Form_get | `Form_post ]
+      * (bool * string list) option ) option Eliom_lazy.request -> event
 
   type racontent =
     | RA of acontent

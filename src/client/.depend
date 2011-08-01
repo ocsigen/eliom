@@ -7,10 +7,10 @@ eliom_bus.cmx: eliom_unwrap.cmx eliom_services.cmx eliom_pervasives.cmx \
 eliom_bus.cmi:
 eliom_client.cmo: private/eliommod_cookies.cmo eliom_uri.cmi eliom_unwrap.cmi \
     eliom_types.cmo eliom_services.cmi eliom_request_info.cmo \
-    eliom_request.cmi eliom_pervasives.cmi eliom_client.cmi
+    eliom_request.cmi eliom_pervasives.cmi eliom_lazy.cmo eliom_client.cmi
 eliom_client.cmx: private/eliommod_cookies.cmx eliom_uri.cmx eliom_unwrap.cmx \
     eliom_types.cmx eliom_services.cmx eliom_request_info.cmx \
-    eliom_request.cmx eliom_pervasives.cmx eliom_client.cmi
+    eliom_request.cmx eliom_pervasives.cmx eliom_lazy.cmx eliom_client.cmi
 eliom_client.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmo eliom_output.cmi
 eliom_client_main.cmo: private/eliommod_mkforms.cmi eliom_react.cmi \
@@ -40,6 +40,9 @@ eliom_config.cmo:
 eliom_config.cmx:
 eliom_cookies_base.cmo: eliom_pervasives.cmi
 eliom_cookies_base.cmx: eliom_pervasives.cmx
+eliom_lazy.cmo: eliom_lazy.cmi
+eliom_lazy.cmx: eliom_lazy.cmi
+eliom_lazy.cmi:
 eliom_mkforms.cmo: eliom_uri.cmi eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmo eliom_common.cmo eliom_mkforms.cmi
 eliom_mkforms.cmx: eliom_uri.cmx eliom_services.cmx eliom_pervasives.cmx \
@@ -51,9 +54,11 @@ eliom_output.cmx: eliom_pervasives.cmx eliom_output_base.cmx eliom_output.cmi
 eliom_output.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmo
 eliom_output_base.cmo: eliom_uri.cmi eliom_services.cmi eliom_pervasives.cmi \
-    eliom_parameters.cmo eliom_mkforms.cmi eliom_output_base.cmi
+    eliom_parameters.cmo eliom_mkforms.cmi eliom_lazy.cmo \
+    eliom_output_base.cmi
 eliom_output_base.cmx: eliom_uri.cmx eliom_services.cmx eliom_pervasives.cmx \
-    eliom_parameters.cmx eliom_mkforms.cmx eliom_output_base.cmi
+    eliom_parameters.cmx eliom_mkforms.cmx eliom_lazy.cmx \
+    eliom_output_base.cmi
 eliom_output_base.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmo
 eliom_parameters.cmo: eliom_parameters_base.cmo
@@ -62,9 +67,9 @@ eliom_parameters_base.cmo: eliom_pervasives.cmi eliom_common.cmo
 eliom_parameters_base.cmx: eliom_pervasives.cmx eliom_common.cmx
 eliom_pervasives.cmo: eliom_pervasives_base.cmo eliom_pervasives.cmi
 eliom_pervasives.cmx: eliom_pervasives_base.cmx eliom_pervasives.cmi
-eliom_pervasives.cmi:
-eliom_pervasives_base.cmo:
-eliom_pervasives_base.cmx:
+eliom_pervasives.cmi: eliom_lazy.cmo
+eliom_pervasives_base.cmo: eliom_lazy.cmo
+eliom_pervasives_base.cmx: eliom_lazy.cmx
 eliom_process.cmo: private/eliommod_cookies.cmo eliom_types.cmo \
     eliom_pervasives.cmi eliom_common.cmo
 eliom_process.cmx: private/eliommod_cookies.cmx eliom_types.cmx \
@@ -95,14 +100,14 @@ eliom_state.cmo:
 eliom_state.cmx:
 eliom_types.cmo: eliom_types_base.cmi
 eliom_types.cmx: eliom_types_base.cmx
-eliom_types_base.cmo: eliom_pervasives.cmi eliom_common.cmo \
+eliom_types_base.cmo: eliom_wrap.cmi eliom_pervasives.cmi eliom_common.cmo \
     eliom_types_base.cmi
-eliom_types_base.cmx: eliom_pervasives.cmx eliom_common.cmx \
+eliom_types_base.cmx: eliom_wrap.cmi eliom_pervasives.cmx eliom_common.cmx \
     eliom_types_base.cmi
-eliom_types_base.cmi: eliom_pervasives.cmi eliom_common.cmo
+eliom_types_base.cmi: eliom_wrap.cmi eliom_pervasives.cmi eliom_common.cmo
 eliom_unwrap.cmo: eliom_unwrap.cmi
 eliom_unwrap.cmx: eliom_unwrap.cmi
-eliom_unwrap.cmi:
+eliom_unwrap.cmi: eliom_wrap.cmi
 eliom_uri.cmo: eliom_state.cmo eliom_services.cmi eliom_request_info.cmo \
     eliom_pervasives.cmi eliom_parameters.cmo eliom_config.cmo \
     eliom_common.cmo eliom_uri.cmi
@@ -111,6 +116,7 @@ eliom_uri.cmx: eliom_state.cmx eliom_services.cmx eliom_request_info.cmx \
     eliom_common.cmx eliom_uri.cmi
 eliom_uri.cmi: eliom_services.cmi eliom_pervasives.cmi eliom_parameters.cmo \
     eliom_common.cmo
+eliom_wrap.cmi:
 private/eliommod_cookies.cmo: eliom_pervasives.cmi eliom_cookies_base.cmo
 private/eliommod_cookies.cmx: eliom_pervasives.cmx eliom_cookies_base.cmx
 private/eliommod_mkforms.cmo: eliom_pervasives.cmi eliom_client.cmi \

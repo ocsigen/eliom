@@ -49,16 +49,17 @@ let change_page_get_form_ = ref (fun ?cookies_info form href -> assert false)
 let change_page_post_form_ = ref (fun ?cookies_info form href -> assert false)
 
 let reify_caml_event node ce = match ce with
-  | XML.CE_call_service (`A, cookies_info) ->
+  | XML.CE_call_service None -> (fun () -> true)
+  | XML.CE_call_service (Some (`A, cookies_info)) ->
       (fun () ->
 	let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
 	!change_page_uri_ ?cookies_info (Js.to_string href); false)
-  | XML.CE_call_service (`Form_get, cookies_info) ->
+  | XML.CE_call_service (Some (`Form_get, cookies_info)) ->
       (fun () ->
 	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
 	let action = Js.to_string form##action in
 	!change_page_get_form_ ?cookies_info form action; false)
-  | XML.CE_call_service (`Form_post, cookies_info) ->
+  | XML.CE_call_service (Some (`Form_post, cookies_info)) ->
       (fun () ->
 	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
 	let action = Js.to_string form##action in

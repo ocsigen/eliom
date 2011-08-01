@@ -23,7 +23,6 @@ type ('a, 'b) leftright = Left of 'a | Right of 'b
 type poly
 val from_poly: poly -> 'a
 type 'a client_expr = int64 * poly
-type 'a wrapped_value = poly * 'a
 
 exception False
 
@@ -118,7 +117,8 @@ module XML : sig
   type caml_event =
     | CE_registered_closure of (unit -> unit) client_expr
     | CE_client_closure of (unit -> unit)
-    | CE_call_service of [ `A | `Form_get | `Form_post] * (bool * string list) option
+    | CE_call_service of
+	([ `A | `Form_get | `Form_post] * (bool * string list) option) option Eliom_lazy.request
 
   type event =
     | Raw of string
@@ -137,7 +137,9 @@ module XML : sig
 
   (**/**)
 
-  val event_of_service : [ `A | `Form_get | `Form_post] -> (bool * Url.path) option -> event
+  val event_of_service :
+    ( [ `A | `Form_get | `Form_post ]
+      * (bool * string list) option ) option Eliom_lazy.request -> event
   val event_of_function : (unit -> unit) -> event
 
   type separator = Space | Comma

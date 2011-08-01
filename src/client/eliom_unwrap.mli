@@ -23,7 +23,7 @@ val register_unwrapper : unwrap_id -> ('a -> 'b) -> unit
 (** [register_unwrapper id f] register an unwrapping function [f] to
     be called when a value is marked with the id [id] *)
 
-val unwrap : ('b*'a) -> 'a
+val unwrap : 'a Eliom_wrap.wrapped_value -> 'a
 (** [unwrap (mark,v)] transform the value [v] using registered
     wrappers. [mark] is the value used to mark values as
     unwrappers. This function is for internal use only *)

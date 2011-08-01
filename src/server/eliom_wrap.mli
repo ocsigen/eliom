@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Eliom_pervasives
+type 'a wrapped_value
 
 type +'a wrapper
 (** ['a wrapper] is the type of values to include into a value of type 'a for

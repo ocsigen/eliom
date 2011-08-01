@@ -25,7 +25,6 @@ external to_poly : 'a -> poly = "%identity"
 external from_poly : poly -> 'a = "%identity"
 
 type 'a client_expr = int64 * poly
-type 'a wrapped_value = poly * 'a
 
 module RawXML = struct
 
@@ -38,7 +37,8 @@ module RawXML = struct
   type caml_event =
     | CE_registered_closure of (unit -> unit) client_expr
     | CE_client_closure of (unit -> unit)
-    | CE_call_service of [ `A | `Form_get | `Form_post] * (bool * string list) option
+    | CE_call_service of
+	([ `A | `Form_get | `Form_post] * ((bool * string list) option)) option Eliom_lazy.request
 
   type event =
     | Raw of string
@@ -50,8 +50,7 @@ module RawXML = struct
     | Caml _ -> "/* Invalid Caml value */"
   let event_of_js id args = Caml (CE_registered_closure (id, args))
 
-  let event_of_service kind cookies =
-    Caml (CE_call_service (kind, cookies))
+  let event_of_service info = Caml (CE_call_service info)
 
   type aname = string
   type acontent =

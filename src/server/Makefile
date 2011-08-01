@@ -31,8 +31,8 @@ ${COMMON_PFILES} ${COMMON_SFILES}:
 eliom_duce_sigs.mli: eliom_duce_sigs.mlp
 	camlp4o ../syntax/pa_include.cmo -printer o -intf $< > $@
 
-FILES := eliom_pervasives_base.ml eliom_pervasives.ml \
-	 eliom_wrap.ml \
+FILES := eliom_wrap.ml eliom_lazy.ml \
+         eliom_pervasives_base.ml eliom_pervasives.ml \
 	 eliom_cookies.ml \
 	 eliom_common_base.ml eliom_common.ml \
 	 eliom_request_info.ml \

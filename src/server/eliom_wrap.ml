@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+type poly
+type 'a wrapped_value = poly * 'a
+
 module AddrType =
 struct
   type t = Obj.t
