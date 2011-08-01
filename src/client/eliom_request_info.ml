@@ -62,3 +62,31 @@ let get_site_dir_string () =
   Eliom_process.sitedata.site_dir_string
 
 let get_sp_appl_name = Eliom_process.get_application_name
+
+let ssl_ = match Url.Current.get () with
+  | Some (Url.Https _) -> true
+  | Some (Url.Http _) | Some (Url.File _) | None -> false
+
+let get_csp_ssl () = ssl_
+let get_csp_ssl_sp = get_csp_ssl
+
+let host_ = Url.Current.host
+
+let get_csp_hostname () = host_
+let get_csp_hostname_sp = get_csp_hostname
+
+let port_ = match Url.Current.port with
+  | Some p -> p
+  | None -> if ssl_ then 443 else 80
+
+let get_csp_server_port () = port_
+let get_csp_server_port_sp = get_csp_server_port
+
+let full_path_ =
+  match Url.Current.path with
+    | ""::l -> l
+    | l -> l
+
+
+let get_csp_original_full_path () = full_path_
+let get_csp_original_full_path_sp = get_csp_original_full_path

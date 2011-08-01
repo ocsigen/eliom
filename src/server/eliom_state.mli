@@ -808,46 +808,6 @@ end
 
 
 (*****************************************************************************)
-(** {2 Miscellaneous lower level or deprecated functions} *)
-(** {3 Getting information about the URL of the client side process (csp)}
-
-    Warning: it is different from the URL to which the request has been made.
-    To get information about the current request, see module
-    {!Eliom_request_info}.
-*)
-
-(** returns the full path of the URL where the client-side process is running.
-    If there is no client side process, same as
-    {!Eliom_request_info.get_original_full_path}.
-*)
-val get_csp_original_full_path : unit -> Url.path
-
-(** returns the hostname used for absolute links, computed
-    when launching the client side process for the first time.
-    If there is no client side process,
-    same as {!Eliom_request_info.get_hostname}.
-
-    It is either the [Host] header sent by the browser or the default hostname
-    set in the configuration file, depending on server configuration
-    ([<usedefaulthostname/>] option).
- *)
-val get_csp_hostname : unit -> string
-
-(** returns the port of the server, used when launching the client side process
-    (not the current request). It corresponds to the port in the URL of
-    the browser.
-    If there is no client side process, same as
-    {!Eliom_request_info.get_server_port}.
-*)
-val get_csp_server_port : unit -> int
-
-(** returns true if https is used in the URL of the browser, false if http.
-    If there is no client side process, same as {!Eliom_request_info.get_ssl}.
-*)
-val get_csp_ssl : unit -> bool
-
-
-(*****************************************************************************)
 (** {3 Session data (deprecated interface)} *)
 
 (** This interface is deprecated. Now use Eliom references. *)
@@ -1082,9 +1042,4 @@ val create_volatile_table_during_session_ :
   secure:bool ->
   Eliom_common.sitedata ->
   'a volatile_table
-
-val get_csp_original_full_path_sp : Eliom_common.server_params -> Url.path
-val get_csp_hostname_sp : Eliom_common.server_params -> string
-val get_csp_server_port_sp : Eliom_common.server_params -> int
-val get_csp_ssl_sp : Eliom_common.server_params -> bool
 

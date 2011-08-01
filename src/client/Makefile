@@ -38,7 +38,6 @@ FILES := eliom_unwrap.ml eliom_lazy.ml \
 	 eliom_process.ml \
 	 eliom_config.ml \
 	 eliom_request_info.ml \
-	 eliom_state.ml \
 	 eliom_parameters_base.ml eliom_parameters.ml \
 	 eliom_services_base.ml eliom_services.ml \
 	 eliom_uri.ml \

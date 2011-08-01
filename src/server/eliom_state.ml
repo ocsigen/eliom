@@ -22,38 +22,6 @@ open Eliom_pervasives
 open Lwt
 open Ocsigen_extensions
 
-let get_csp_original_full_path () =
-  let cpi = Eliom_request_info.get_sp_client_process_info () in
-  cpi.Eliom_common.cpi_original_full_path
-
-let get_csp_hostname () =
-  let cpi = Eliom_request_info.get_sp_client_process_info () in
-  cpi.Eliom_common.cpi_hostname
-
-let get_csp_server_port () =
-  let cpi = Eliom_request_info.get_sp_client_process_info () in
-  cpi.Eliom_common.cpi_server_port
-
-let get_csp_ssl () =
-  let cpi = Eliom_request_info.get_sp_client_process_info () in
-  cpi.Eliom_common.cpi_ssl
-
-let get_csp_original_full_path_sp sp =
-  let cpi = Eliom_request_info.get_sp_client_process_info_sp sp in
-  cpi.Eliom_common.cpi_original_full_path
-
-let get_csp_hostname_sp sp =
-  let cpi = Eliom_request_info.get_sp_client_process_info_sp sp in
-  cpi.Eliom_common.cpi_hostname
-
-let get_csp_server_port_sp sp =
-  let cpi = Eliom_request_info.get_sp_client_process_info_sp sp in
-  cpi.Eliom_common.cpi_server_port
-
-let get_csp_ssl_sp sp =
-  let cpi = Eliom_request_info.get_sp_client_process_info_sp sp in
-  cpi.Eliom_common.cpi_ssl
-
 
 (* Expired session? *)
 type state_status = Alive_state | Empty_state | Expired_state

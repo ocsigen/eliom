@@ -103,11 +103,11 @@ let make_proto_prefix
   let sp = Eliom_common.get_sp_option () in
   let ssl =
     match sp with
-      | Some sp -> Eliom_state.get_csp_ssl_sp sp
+      | Some sp -> Eliom_request_info.get_csp_ssl_sp sp
       | None -> false
   in
   let host = match hostname, sp with
-    | None, Some sp -> Eliom_state.get_csp_hostname_sp sp
+    | None, Some sp -> Eliom_request_info.get_csp_hostname_sp sp
     | None, None -> Eliom_config.get_default_hostname ()
     | Some h, _ -> h
   in
@@ -116,7 +116,7 @@ let make_proto_prefix
       | Some p, _ -> p
       | None, Some sp ->
           if https = ssl
-          then Eliom_state.get_csp_server_port_sp sp
+          then Eliom_request_info.get_csp_server_port_sp sp
           else if https
           then Eliom_config.get_default_sslport ()
           else Eliom_config.get_default_port ()
@@ -144,7 +144,7 @@ let make_uri_components_ (* does not take into account getparams *)
   let sp = Eliom_common.get_sp_option () in
   let ssl =
     match sp with
-      | Some sp -> Eliom_state.get_csp_ssl_sp sp
+      | Some sp -> Eliom_request_info.get_csp_ssl_sp sp
       | None -> false
   in
   
@@ -226,7 +226,7 @@ let make_uri_components_ (* does not take into account getparams *)
                       (get_full_path_ attser) suff
                 | None, Some sp ->
                     reconstruct_relative_url_path_string
-                      (Eliom_state.get_csp_original_full_path_sp sp)
+                      (Eliom_request_info.get_csp_original_full_path_sp sp)
                       (get_full_path_ attser) suff
                 | None, None ->
                     reconstruct_relative_url_path_string
@@ -292,7 +292,7 @@ let make_uri_components_ (* does not take into account getparams *)
               proto_prefix^ Eliom_request_info.get_original_full_path_string_sp sp
             | None, Some sp -> 
               relative_url_path_to_myself
-                (Eliom_state.get_csp_original_full_path_sp sp)
+                (Eliom_request_info.get_csp_original_full_path_sp sp)
             | Some proto_prefix, None ->
               proto_prefix
             | None, None -> 
@@ -520,7 +520,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
             in
 
 
-            let ssl = Eliom_state.get_csp_ssl_sp sp in
+            let ssl = Eliom_request_info.get_csp_ssl_sp sp in
             let https = 
               (https = Some true) || 
                 (Eliom_services.get_https service) ||
@@ -542,7 +542,7 @@ let make_post_uri_components_ (* do not take into account postparams *)
                     proto_prefix^Eliom_request_info.get_original_full_path_string_sp sp
                 | None ->
                     relative_url_path_to_myself
-                      (Eliom_state.get_csp_original_full_path_sp sp)
+                      (Eliom_request_info.get_csp_original_full_path_sp sp)
             in
 
             let naservice_line =
@@ -637,12 +637,12 @@ let make_cookies_info (https, service) =
         then None
         else Some (Eliom_services.get_full_path_ attser)
       | `Nonattached naser -> 
-        Some (Eliom_state.get_csp_original_full_path ())
+        Some (Eliom_request_info.get_csp_original_full_path ())
   in
   match get_path_ ~service with
     | None -> None
     | Some path ->
-      let ssl = Eliom_state.get_csp_ssl () in
+      let ssl = Eliom_request_info.get_csp_ssl () in
       let https = 
         (https = Some true) || 
           (Eliom_services.get_https service) ||

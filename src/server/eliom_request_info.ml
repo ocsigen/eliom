@@ -209,6 +209,7 @@ let get_user_tab_cookies () =
 
 
 (****)
+
 let get_sp_client_appl_name () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_client_appl_name
@@ -220,7 +221,31 @@ let get_sp_client_process_info () =
 let expecting_process_page () =
   let sp = Eliom_common.get_sp () in
   Lazy.force sp.Eliom_common.sp_si.Eliom_common.si_expect_process_data
-  
+
+let get_csp_original_full_path () =
+  let cpi = get_sp_client_process_info () in
+  cpi.Eliom_common.cpi_original_full_path
+let get_csp_hostname () =
+  let cpi = get_sp_client_process_info () in
+  cpi.Eliom_common.cpi_hostname
+let get_csp_server_port () =
+  let cpi = get_sp_client_process_info () in
+  cpi.Eliom_common.cpi_server_port
+let get_csp_ssl () =
+  let cpi = get_sp_client_process_info () in
+  cpi.Eliom_common.cpi_ssl
+let get_csp_original_full_path_sp sp =
+  let cpi = get_sp_client_process_info_sp sp in
+  cpi.Eliom_common.cpi_original_full_path
+let get_csp_hostname_sp sp =
+  let cpi = get_sp_client_process_info_sp sp in
+  cpi.Eliom_common.cpi_hostname
+let get_csp_server_port_sp sp =
+  let cpi = get_sp_client_process_info_sp sp in
+  cpi.Eliom_common.cpi_server_port
+let get_csp_ssl_sp sp =
+  let cpi = get_sp_client_process_info_sp sp in
+  cpi.Eliom_common.cpi_ssl
 
 (* *)
 

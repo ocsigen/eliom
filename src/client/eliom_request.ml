@@ -51,7 +51,7 @@ let get_cookie_info_for_uri_js uri_js =
               | ""::_ -> path (* absolute *)
               | _ -> Eliom_uri.make_actual_path (Url.Current.path @ path)
             in
-            (Eliom_state.ssl_, path)
+            (Eliom_request_info.ssl_, path)
          )
       )
     | Some (Url.Https { Url.hu_path = path }) -> (true,  path)
