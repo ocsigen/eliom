@@ -185,7 +185,7 @@ let () =
 (************************************************************)
 (*zap* *)
 let scope_name = Eliom_common.create_scope_name "session_group_example_state"
-let scope = `Session scope_name
+let session = `Session scope_name
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)

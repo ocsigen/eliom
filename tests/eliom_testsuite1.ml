@@ -607,7 +607,7 @@ let () = set_default_global_persistent_data_state_timeout ~cookie_scope:`Session
 
 (*zap* *)
 let scope_name = Eliom_common.create_scope_name "session_services"
-let scope = `Session scope_name
+let session = `Session scope_name
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* Create services, but do not register them yet:           *)
