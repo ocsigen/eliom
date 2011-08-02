@@ -273,11 +273,15 @@ module Data =
         remove1 remove2 =
       (* We removed the last session from a group.
          Do we want to close the group completely?
-         - For browser sessions, yes. No need to keep group data
-         when there is no session in the group.
+         - For volatile browser sessions, yes. 
+         We do not keep group data when there is no session in the group.
          We remove the group of groups from the site dlist.
+-- Vincent 2011/08: This is not coherent with persistent group data!
+But as I do not see any correct use of volatile group data for now.
+And there is a risk of memory leak if we keep them.
+Besides, volatile sessions are (hopefully) going to disappear soon.
          - For tab sessions, yes if the browser cookie is not
-         bound is tables and is not in a group (like in Eliommod_gc)
+         bound in tables and is not in a group (like in Eliommod_gc)
          (means that we do not use the browser session).
       *)
 (*VVV See also in Eliommod_gc and 
@@ -336,9 +340,13 @@ module Serv =
         remove1 remove2 =
       (* We removed the last session from a group.
          Do we want to close the group completely?
-         - For browser sessions, yes. No need to keep group data
-         when there is no session in the group.
+         - For volatile browser sessions, yes. 
+         We do not keep group data when there is no session in the group.
          We remove the group of groups from the site dlist.
+-- Vincent 2011/08: This is not coherent with persistent group data!
+But as I do not see any correct use of volatile group data for now.
+And there is a risk of memory leak if we keep them.
+Besides, volatile sessions are (hopefully) going to disappear soon.
          - For tab sessions, yes if there are no session services
          in the browser service table.
          (means that we do not use the browser session).

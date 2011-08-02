@@ -70,7 +70,8 @@ let close_service_session ~scope ~secure ?sp () =
 		with
 		  | None -> Ocsigen_messages.errlog
 		    "Eliom: No group of groups. Please report this problem."
-		  | Some (service_table, g) -> Eliommod_sessiongroups.Serv.remove g
+		  | Some (service_table, g) ->
+                    Eliommod_sessiongroups.Serv.remove g
 	      end
 	    | `Session _
 	    | `Client_process _ ->

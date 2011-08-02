@@ -1865,3 +1865,275 @@ let sfail =
     (fun () () -> Lwt.fail (Failure "Service raising an exception"))
 
 
+(*****************************************************************************)
+
+(* 2011/08/02 Vincent - Volatile group data
+   removing group data or not when no session in the group?*)
+(*zap* *)
+open HTML5.M
+open Eliom_output.Html5
+
+(*zap* *)
+let scope_name = Eliom_common.create_scope_name "session_group_data_example_state"
+let session = `Session scope_name
+let group = `Session_group scope_name
+(* *zap*)
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let connect_example_gd =
+  Eliom_services.service
+    ~path:["sessgrpdata"]
+    ~get_params:unit
+    ()
+
+let connect_action =
+  Eliom_services.post_coservice'
+    ~name:"connectiongd"
+    ~post_params:(string "login")
+    ()
+
+(* disconnect action and box:                               *)
+
+let disconnect_action =
+  Eliom_output.Action.register_post_coservice'
+    ~name:"disconnectiongd"
+    ~post_params:Eliom_parameters.unit
+    (fun () () -> Eliom_state.discard ~scope:session ())
+
+let disconnect_box s =
+  Eliom_output.Html5.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Html5.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+(* The following eref is true if the connection has action failed: *)
+let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
+
+let my_group_data = Eliom_references.eref ~scope:group None
+
+let change_gd =
+  Eliom_output.Action.register_post_coservice'
+    ~name:"changegd"
+    ~post_params:Eliom_parameters.unit
+    (fun () () -> Eliom_references.set my_group_data (Some (1000 + Random.int 1000)))
+
+(* -------------------------------------------------------- *)
+(* new login box:                                           *)
+
+let login_box session_expired bad_u action =
+  Eliom_output.Html5.post_form action
+    (fun loginname ->
+      let l =
+        [pcdata "login: ";
+         Eliom_output.Html5.string_input ~input_type:`Text ~name:loginname ()]
+      in
+      [p (if bad_u
+        then (pcdata "Wrong user")::(br ())::l
+        else
+          if session_expired
+          then (pcdata "Session expired")::(br ())::l
+          else l)
+     ])
+    ()
+
+(* -------------------------------------------------------- *)
+(* Handler for the "connect_example" service (main page):   *)
+
+let connect_example_handler () () =
+  (* The following function tests whether the session has expired: *)
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~scope:session (* *zap*) ()
+  in
+  let group =
+    Eliom_state.get_volatile_data_session_group (*zap* *) ~scope:session (* *zap*) ()
+  in
+  Eliom_references.get bad_user >>= fun bad_u ->
+  Eliom_references.get my_group_data >>= fun my_group_data ->
+  Lwt.return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          (match group, status with
+          | Some name, _ ->
+              [p [pcdata ("Hello "^name); br ();
+                  (match my_group_data with
+                    | None -> pcdata "You have no group data."
+                    | Some i -> pcdata ("Your group data is "^string_of_int i^"."))];
+               Eliom_output.Html5.post_form change_gd
+                 (fun () -> [p [Eliom_output.Html5.string_input
+                                   ~input_type:`Submit
+                                   ~value:"Change group data" ()]]) ();
+               p [pcdata "Check that several sessions have the same group data."];
+               p [pcdata "Volatile group data are currently discarded when all group disappear. This is weird and not coherent with persistent group data. But I don't really see a correct use of volatile group data. Is there any? And there is a risk of memory leak if we keep them. Besides, volatile sessions are (hopefully) going to disappear soon."];
+               disconnect_box "Close session"]
+          | None, Eliom_state.Expired_state ->
+              [login_box true bad_u connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          | _ ->
+              [login_box false bad_u connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          )))
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler () login =
+  lwt () = Eliom_state.discard ~scope:session () in
+  if login = "toto" (* Check user and password :-) *)
+  then begin
+    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
+    Eliom_references.get my_group_data >>= fun mgd ->
+    (if mgd = None
+     then Eliom_references.set my_group_data (Some (Random.int 1000))
+     else Lwt.return ()) >>= fun () ->
+    Eliom_output.Redirection.send Eliom_services.void_hidden_coservice'
+  end
+  else  
+    Eliom_references.set bad_user true >>= fun () ->
+    Eliom_output.Action.send ()
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_output.Html5.register ~service:connect_example_gd connect_example_handler;
+  Eliom_output.Any.register ~service:connect_action connect_action_handler
+
+
+(*****************************************************************************)
+
+(* 2011/08/02 Vincent - Persistent group data
+   removing group data or not when no session in the group? *)
+(*zap* *)
+open HTML5.M
+
+(*zap* *)
+let scope_name = Eliom_common.create_scope_name "pers_session_group_data_example_state"
+let session = `Session scope_name
+let group = `Session_group scope_name
+(* *zap*)
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let connect_example_pgd =
+  Eliom_services.service
+    ~path:["psessgrpdata"]
+    ~get_params:unit
+    ()
+
+let connect_action =
+  Eliom_services.post_coservice'
+    ~name:"connectionpgd"
+    ~post_params:(string "login")
+    ()
+
+(* disconnect action and box:                               *)
+
+let disconnect_action =
+  Eliom_output.Action.register_post_coservice'
+    ~name:"disconnectionpgd"
+    ~post_params:Eliom_parameters.unit
+    (fun () () -> Eliom_state.discard ~scope:session ())
+
+let disconnect_box s =
+  Eliom_output.Html5.post_form disconnect_action
+    (fun _ -> [p [Eliom_output.Html5.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+(* The following eref is true if the connection has action failed: *)
+let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
+
+let my_group_data = Eliom_references.eref ~persistent:"pgd" ~scope:group None
+
+let change_gd =
+  Eliom_output.Action.register_post_coservice'
+    ~name:"changepgd"
+    ~post_params:Eliom_parameters.unit
+    (fun () () -> Eliom_references.set my_group_data (Some (1000 + Random.int 1000)))
+
+
+(* -------------------------------------------------------- *)
+(* new login box:                                           *)
+
+let login_box session_expired bad_u action =
+  Eliom_output.Html5.post_form action
+    (fun loginname ->
+      let l =
+        [pcdata "login: ";
+         Eliom_output.Html5.string_input ~input_type:`Text ~name:loginname ()]
+      in
+      [p (if bad_u
+        then (pcdata "Wrong user")::(br ())::l
+        else
+          if session_expired
+          then (pcdata "Session expired")::(br ())::l
+          else l)
+     ])
+    ()
+
+(* -------------------------------------------------------- *)
+(* Handler for the "connect_example" service (main page):   *)
+
+let connect_example_handler () () =
+  (* The following function tests whether the session has expired: *)
+  let status = Eliom_state.volatile_data_state_status (*zap* *) ~scope:session (* *zap*) ()
+  in
+  let group =
+    Eliom_state.get_volatile_data_session_group (*zap* *) ~scope:session (* *zap*) ()
+  in
+  Eliom_references.get bad_user >>= fun bad_u ->
+  Eliom_references.get my_group_data >>= fun my_group_data ->
+  Lwt.return
+    (html
+       (head (title (pcdata "")) [])
+       (body
+          (match group, status with
+          | Some name, _ ->
+              [p [pcdata ("Hello "^name); br ();
+                  (match my_group_data with
+                    | None -> pcdata "You have no group data."
+                    | Some i -> pcdata ("Your group data is "^string_of_int i^"."));
+                 ];
+               Eliom_output.Html5.post_form change_gd
+                 (fun () -> [p [Eliom_output.Html5.string_input
+                                   ~input_type:`Submit
+                                   ~value:"Change group data" ()]]) ();
+               p [pcdata "Check that several sessions have the same group data."];
+               p [pcdata "Check that persistent group data do not disappear when all sessions from the group are closed."];
+               p [pcdata "Persistent group data are used as a basic database, for example to store user information (email, etc)."];
+              disconnect_box "Close session"]
+          | None, Eliom_state.Expired_state ->
+              [login_box true bad_u connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          | _ ->
+              [login_box false bad_u connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          )))
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler () login =
+  lwt () = Eliom_state.discard ~scope:session () in
+  if login = "toto" (* Check user and password :-) *)
+  then begin
+    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~scope:session (* *zap*) login;
+    Eliom_references.get my_group_data >>= fun mgd ->
+    (if mgd = None
+     then Eliom_references.set my_group_data (Some (Random.int 1000))
+     else Lwt.return ()) >>= fun () ->
+    Eliom_output.Redirection.send Eliom_services.void_hidden_coservice'
+  end
+  else  
+    Eliom_references.set bad_user true >>= fun () ->
+    Eliom_output.Action.send ()
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom_output.Html5.register ~service:connect_example_pgd connect_example_handler;
+  Eliom_output.Any.register ~service:connect_action connect_action_handler
