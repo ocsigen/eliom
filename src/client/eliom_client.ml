@@ -337,16 +337,12 @@ let broadcast_load_end () =
   Lwt_condition.broadcast load_end ();
   true
 
-let load_eliom_data page =
-  let tab_cookies = unmarshal_js_var "eliom_cookies" in
-  Eliommod_cookies.update_cookie_table tab_cookies;
+let load_eliom_data js_data page =
   loading_phase := true;
-  let js_data = Eliom_unwrap.unwrap (unmarshal_js_var "eliom_data") in
   relink_dom_list
     [(page :> Dom.node Js.t)]
     [js_data.Eliom_types.ejs_ref_tree];
   Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
-  change_url_string js_data.Eliom_types.ejs_url;
   let on_load =
     List.map
       (reify_event Dom_html.document##documentElement)
@@ -355,8 +351,8 @@ let load_eliom_data page =
     List.map
       (reify_event Dom_html.document##documentElement)
       js_data.Eliom_types.ejs_onunload in
-  on_unload_scripts := [fun () -> List.for_all (fun f -> f ())
-  on_unload];
+  on_unload_scripts :=
+    [fun () -> List.for_all (fun f -> f ()) on_unload];
   add_onclick_events :: on_load @ [broadcast_load_end]
 
 let wait_load_end () =
@@ -383,15 +379,22 @@ let get_data_script page =
       (Js.Unsafe.coerce data_script : Dom_html.scriptElement Js.t)
     | _ -> assert false
 
+let load_data_script data_script =
+  ignore (Js.Unsafe.eval_string (Js.to_string data_script##innerHTML));
+  ( Eliom_request_info.get_request_data (),
+    Eliom_request_info.get_request_cookies (),
+    Eliom_request_info.get_request_url () )
+
 let set_content content =
   ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
   (* Hack to make the result considered as DOM : *)
   let fake_page = Dom_html.createHtml Dom_html.document in
   fake_page##innerHTML <- Js.string content;
-  let data_script = get_data_script fake_page in
-  ignore (Js.Unsafe.eval_string (Js.to_string data_script##innerHTML));
-  let on_load = load_eliom_data fake_page in
+  let js_data, cookies, url = load_data_script (get_data_script fake_page) in
+  Eliommod_cookies.update_cookie_table cookies;
+  let on_load = load_eliom_data js_data fake_page in
+  change_url_string url;
   let head, body = get_head_and_body fake_page in
   Dom.replaceChild
     (Dom_html.document##documentElement)

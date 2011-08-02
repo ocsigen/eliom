@@ -21,10 +21,10 @@ open Eliom_pervasives
 open Ocsigen_cookies
 
 let sitedata : Eliom_types.sitedata =
-  unmarshal_js_var "sitedata"
+  unmarshal_js_var "eliom_appl_sitedata"
 
 let info : Eliom_common.client_process_info =
-  unmarshal_js_var "client_process_info"
+  unmarshal_js_var "eliom_appl_process_info"
 
 let appl_name =
   lazy

@@ -38,7 +38,6 @@ type eliom_js_page_data = {
   ejs_onunload: XML.event list;
   (* Session info *)
   ejs_sess_info: Eliom_common.sess_info;
-  ejs_url: string;
 }
 
 (* the data sent on channels *)

@@ -26,6 +26,8 @@
    - Antother part is sent with each request
 *)
 
+open Eliom_pervasives
+
 let (>>>) x f = f x
 
 include Eliom_types
@@ -90,3 +92,9 @@ let full_path_ =
 
 let get_csp_original_full_path () = full_path_
 let get_csp_original_full_path_sp = get_csp_original_full_path
+
+
+
+let get_request_url () = unmarshal_js_var "eliom_request_url"
+let get_request_cookies () = unmarshal_js_var "eliom_request_cookies"
+let get_request_data () = Eliom_unwrap.unwrap (unmarshal_js_var "eliom_request_data")

@@ -192,7 +192,9 @@ val change_page_post_form :
 
 val set_content : string -> unit Lwt.t
 
-val load_eliom_data : Dom_html.htmlElement Js.t -> (unit -> bool) list
+val load_eliom_data :
+  Eliom_types.eliom_js_page_data ->
+  Dom_html.htmlElement Js.t -> (unit -> bool) list
 
 val register_closure: int64 -> ('a -> unit) -> unit
 

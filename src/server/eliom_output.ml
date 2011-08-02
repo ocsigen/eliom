@@ -2414,15 +2414,6 @@ end
 
 let comet_service_key = Polytables.make_key ()
 
-let global_data_script =
-  let script =
-    "var sitedata;\n"
-    ^ "var eliom_data;\n"
-    ^ "var eliom_cookies;\n"
-    ^ "var client_process_info;\n" in
-  HTML5.M.unique (HTML5.M.script (HTML5.M.cdata_script script))
-
-
 let redirection_script =
   (* This will do a redirection if there is a #! in the URL *)
   let script =
@@ -2481,7 +2472,27 @@ module Eliom_appl_reg_make_param
     =
     XML.get_unique_id (HTML5.M.toelt eliom_appl_script)
 
-  let eliom_fake_data_script =
+  let eliom_fake_appl_data_script =
+    HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
+
+  let make_eliom_appl_data_script ~sp =
+
+    let script =
+      Printf.sprintf
+	("var eliom_appl_sitedata = \'%s\';\n"
+ 	 ^^ "var eliom_appl_process_info = \'%s\'\n"
+	 ^^ "var eliom_request_data;\n"
+	 ^^ "var eliom_request_cookies;\n"
+	 ^^ "var eliom_request_url;\n")
+	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
+	(Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
+    in
+
+    Lwt.return
+      (HTML5.M.unique ~copy:eliom_fake_appl_data_script
+	 (HTML5.M.script (cdata_script script)))
+
+  let eliom_fake_request_data_script =
     HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
 
   let make_eliom_data_script ~sp page =
@@ -2508,7 +2519,6 @@ module Eliom_appl_reg_make_param
 	  ejs_onload      = Eliom_services.get_onload sp;
 	  ejs_onunload    = Eliom_services.get_onunload sp;
 	  ejs_sess_info   = Eliommod_cli.client_si sp.Eliom_common.sp_si;
-	  ejs_url         = url_to_display;
 	} in
 
     lwt tab_cookies =
@@ -2520,17 +2530,17 @@ module Eliom_appl_reg_make_param
 
     let script =
       Printf.sprintf
-	("sitedata = \'%s\';\n"
-	 ^^ "eliom_data = \'%s\';\n"
-	 ^^ "eliom_cookies = \'%s\';\n"
-	 ^^ "client_process_info = \'%s\'\n")
-	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
+	("eliom_request_data = \'%s\';\n"
+	 ^^ "eliom_request_cookies = \'%s\';\n"
+	 ^^ "eliom_request_url = \'%s\';\n")
 	(Eliom_types.jsmarshal eliom_data)
 	(Eliom_types.jsmarshal tab_cookies)
-	(Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
+	(Eliom_types.jsmarshal url_to_display)
     in
 
-    Lwt.return (HTML5.M.unique ~copy:eliom_fake_data_script (HTML5.M.script (cdata_script script)))
+    Lwt.return
+      (HTML5.M.unique ~copy:eliom_fake_request_data_script
+	 (HTML5.M.script (cdata_script script)))
 
   let split_page page :
       ( HTML5_types.html_attrib HTML5.M.attrib list
@@ -2553,12 +2563,14 @@ module Eliom_appl_reg_make_param
 
   let add_eliom_scripts ~sp page =
 
+    lwt appl_data_script = make_eliom_appl_data_script ~sp in
+
     (* First we build a fake page to build the ref_tree... *)
     let	( html_attribs, (head_attribs, title, head_elts), body ) =
       split_page (HTML5.M.toelt page) in
     let head_elts =
-      global_data_script
-      :: eliom_fake_data_script
+      appl_data_script
+      :: eliom_fake_request_data_script
       :: redirection_script
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts
