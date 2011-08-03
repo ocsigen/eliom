@@ -44,6 +44,7 @@ let full_uri = Url.Current.as_string
 let get_original_full_path_string () = full_path_string_
 let get_original_full_path_string_sp = get_original_full_path_string
 
+let get_original_full_path_sp sp = Url.split_path (get_original_full_path_string sp)
 
 let get_other_get_params () =
   (!get_sess_info ()).Eliom_common.si_other_get_params

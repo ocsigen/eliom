@@ -74,12 +74,6 @@ let reconstruct_relative_url_path_string current_url u suff =
   then (* possible with optional parameters *) "./"^s
   else s
 
-let rec relative_url_path_to_myself = function
-  | []
-  | [""] -> Eliom_common.defaultpagename
-  | [a] -> a
-  | a::l -> relative_url_path_to_myself l
-
 (* make a path by going up when there is a '..' *)
 let make_actual_path path =
   let rec aux accu path =
@@ -283,8 +277,10 @@ let make_uri_components_ (* does not take into account getparams *)
         let beg =
           match absolute with
             | None ->
-		relative_url_path_to_myself
+                reconstruct_relative_url_path_string
                   (Eliom_request_info.get_csp_original_full_path_sp sp)
+                  (Eliom_request_info.get_original_full_path_sp sp)
+		  None
             | Some proto_prefix ->
 		proto_prefix ^
 		  Eliom_request_info.get_original_full_path_string_sp sp
@@ -532,8 +528,10 @@ let make_post_uri_components_ (* do not take into account postparams *)
                 | Some proto_prefix ->
                     proto_prefix^Eliom_request_info.get_original_full_path_string_sp sp
                 | None ->
-                    relative_url_path_to_myself
+                    reconstruct_relative_url_path_string
                       (Eliom_request_info.get_csp_original_full_path_sp sp)
+                      (Eliom_request_info.get_original_full_path_sp sp)
+		      None
             in
 
             let naservice_line =
