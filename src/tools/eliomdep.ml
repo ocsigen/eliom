@@ -10,7 +10,7 @@ let usage () =
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
   Printf.eprintf "  -verbose\t\tPrint calls to external commands\n";
-  create_filter !compiler ["-help"] (help_filter "STANDARD OPTIONS:");
+  create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
   exit 1
 
 (** Context *)

@@ -174,11 +174,11 @@ let create_filter name args f =
   let ch = Unix.in_channel_of_descr in_ in
   try f ch with _ -> close_in ch; wait pid
 
-let help_filter msg ch =
-  ignore (input_line ch);
-  ignore (input_line ch);
+let help_filter skip msg ch =
+  for i = 1 to skip do ignore (input_line ch) done;
   prerr_endline msg;
   while true do prerr_endline (input_line ch) done
+
 (** *)
 
 (** *)

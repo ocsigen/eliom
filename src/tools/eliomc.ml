@@ -19,9 +19,9 @@ let usage () =
   if !kind = `Client then begin
     Printf.eprintf "  -type <file>\tInfered types for the values sent by the server.\n";
   end;
-  create_filter !compiler ["-help"] (help_filter "STANDARD OPTIONS:");
+  create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");
   if !kind = `Client then
-    create_filter !js_of_ocaml ["-help"] (help_filter "JS_OF_OCAML OPTIONS:");
+    create_filter !js_of_ocaml ["-help"] (help_filter 1 "JS_OF_OCAML OPTIONS:");
   exit 1
 
 (** Context *)
