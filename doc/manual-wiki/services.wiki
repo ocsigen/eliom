@@ -1525,6 +1525,11 @@ There is also
  <<a_api| val Eliom_services.void_hidden_coservice' >>, and
  <<a_api| val Eliom_services.https_void_hidden_coservice' >>. "Hidden" means that they keep GET non attached parameters.
 
+Use <<a_api| val Eliom_services.void_hidden_coservice' >> for example
+after a POST request
+if you want to do a redirection towards the same page without POST parameters
+(and thus prevent from reposting data if the user reloads the page).
+
 See an example of use in chapter * * section * * (connection of users with
 session groups).
 

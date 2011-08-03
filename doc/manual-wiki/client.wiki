@@ -1,3 +1,35 @@
 =Programming client-server applications with Eliom
 
-<<div class="wip"| See the [[site:tutorial|tutorial]]. >>
+<<div class="wip"| See the [[site:tutorial|tutorial]] . >>
+
+== General principles
+=== What is a client/server Eliom application
+Une appli entre un serveur et un client,
+plusieurs services et plusieurs URL pour un même processus qui ne s'arrête pas
+
+=== How it work
+Résumé de ce qui va être détaillé ensuite
+js_of_ocaml, extension de syntaxe, communication serveur -> client
+
+== Structure of a program
+=== The Eliom_appl functor
+=== Syntax 
+{{ et %
+=== Compiling
+See chapter ...
+
+== Generating HTML for Eliom applications
+HTML5.M seulement (pas Text ni XHTML.M ni ocamlduce)
+Conversions côté client
+unique
+
+== Using Eliom on client side
+Liens, formulaires, utilisation des services côté client
+Le module Eliom_client
+Modules Eliom disponibles des deux côtés (et différences)
+
+== Communication between the client and the server
+Services qui renvoient du caml
+Services qui orennet en paramètre des données caml
+deriving
+comet, bus et canaux

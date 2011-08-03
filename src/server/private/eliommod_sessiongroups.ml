@@ -174,7 +174,7 @@ struct
                 make_full_named_group_name_ ~cookie_scope:`Client_process sitedata name 
               in
               remove_group subgrp
-            | `Client_process (* We are closing a browser session *) -> ());
+            | `Client_process (* We are closing a tab session *) -> ());
           (* Then we close all session tables: *)
           A.close_session sitedata name;
           (* If the dlist is empty, we remove it from the group table

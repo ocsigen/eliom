@@ -452,20 +452,20 @@ val set_persistent_data_cookie_exp_date :
   unit Lwt.t
 
 
-(** {3 Global configuration of session timeouts} *)
+(** {3 Global configuration of state timeouts} *)
 
-(** The following functions set the timeout for sessions, for the
-    different kinds of session.  The sessions will be closed after
+(** The following functions set the timeout for states, for the
+    different kinds of states.  States will be closed after
     this amount of time of inactivity from the user. [None] means no
     timeout.
 
     The optional parameter [?recompute_expdates] is [false] by
     default.  If you set it to [true], the expiration dates for all
-    sessions in the table will be recomputed with the new timeout.
+    states in the table will be recomputed with the new timeout.
     That is, the difference between the new timeout and the old one
     will be added to their expiration dates (asynchronously,
     by another Lwt thread, as this can take a long time).
-    Sessions whose timeout has been set individually with
+    States whose timeout has been set individually with
     functions like
     {!Eliom_state.set_volatile_data_state_timeout} won't be affected.
 
@@ -645,9 +645,9 @@ val get_persistent_data_state_timeout :
     this exception.}
  *)
 
-(** The type of (volatile) session data tables. *)
+(** The type of (volatile) state data tables. *)
 type 'a volatile_table
-(** The type of persistent session data tables. *)
+(** The type of persistent state data tables. *)
 type 'a persistent_table
 
 (** Discard all services and persistent and volatile data for every scopes. *)
