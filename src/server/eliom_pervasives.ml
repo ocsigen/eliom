@@ -227,6 +227,10 @@ end
 module HTML5 = struct
   module M = struct
       include HTML5_f.Make(XML)(SVG.M)
+      let lazy_a_href uri =
+	to_attrib
+	  (XML.lazy_string_attrib "href"
+	     (Eliom_lazy.from_fun (fun () -> string_of_uri (Eliom_lazy.force uri))))
       let unique ?copy elt =
 	tot (XML.make_unique ?copy:(map_option toelt copy) (toelt elt))
   end
@@ -234,11 +238,41 @@ module HTML5 = struct
 end
 
 module XHTML = struct
-  module M = XHTML_f.Make(XML)
-  module M_01_00 = XHTML_f.Make_01_00(XML)
-  module M_01_01 = XHTML_f.Make_01_01(XML)
-  module M_01_00_compat = XHTML_f.Make_01_00_compat(XML)
-  module M_01_01_compat = XHTML_f.Make_01_01_compat(XML)
+  module M = struct
+    include XHTML_f.Make(XML)
+    let lazy_a_href uri =
+      to_attrib
+	(XML.lazy_string_attrib "href"
+	   (Eliom_lazy.from_fun (fun () -> Uri.string_of_uri (Eliom_lazy.force uri))))
+  end
+  module M_01_00 = struct
+    include XHTML_f.Make_01_00(XML)
+    let lazy_a_href uri =
+	to_attrib
+	  (XML.lazy_string_attrib "href"
+	     (Eliom_lazy.from_fun (fun () -> Uri.string_of_uri (Eliom_lazy.force uri))))
+  end
+  module M_01_01 = struct
+    include XHTML_f.Make_01_01(XML)
+    let lazy_a_href uri =
+      to_attrib
+	(XML.lazy_string_attrib "href"
+	   (Eliom_lazy.from_fun (fun () -> Uri.string_of_uri (Eliom_lazy.force uri))))
+  end
+  module M_01_00_compat = struct
+    include XHTML_f.Make_01_00_compat(XML)
+    let lazy_a_href uri =
+      to_attrib
+	(XML.lazy_string_attrib "href"
+	   (Eliom_lazy.from_fun (fun () -> Uri.string_of_uri (Eliom_lazy.force uri))))
+  end
+  module M_01_01_compat = struct
+    include XHTML_f.Make_01_01_compat(XML)
+    let lazy_a_href uri =
+      to_attrib
+	(XML.lazy_string_attrib "href"
+	   (Eliom_lazy.from_fun (fun () -> Uri.string_of_uri (Eliom_lazy.force uri))))
+  end
   module P = XML_print.MakeTypedSimple(XML)(M)
   module P_01_01 = XML_print.MakeTypedSimple(XML)(M_01_01)
   module P_01_00 = XML_print.MakeTypedSimple(XML)(M_01_00)

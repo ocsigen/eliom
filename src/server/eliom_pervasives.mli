@@ -146,6 +146,7 @@ module XML : sig
   type racontent =
     | RA of acontent
     | RACamlEvent of (aname * caml_event)
+    | RALazyString of aname * string Eliom_lazy.request
   val racontent : attrib -> racontent
 
   val float_attrib : aname -> float -> attrib
@@ -222,6 +223,7 @@ module HTML5 : sig
   module M : sig
     include HTML5_sigs.T with module XML := XML and module SVG := SVG.M
     val unique: ?copy:'a elt -> 'a elt -> 'a elt
+    val lazy_a_href : uri Eliom_lazy.request -> [> | `Href] attrib
   end
   module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
 					  and type doc := M.doc
@@ -231,12 +233,18 @@ end
 module XHTML : sig
 
   (** Type safe XHTML creation. *)
-  module M : XHTML_sigs.T with module XML := XML
+  module M : sig
+    include XHTML_sigs.T with module XML := XML
+    val lazy_a_href : uri Eliom_lazy.request -> [> | `Href] attrib
+  end
   module P : XML_sigs.TypedSimplePrinter
              with type 'a elt := 'a M.elt
 	      and type doc := M.doc
 
-  module M_01_00 : XHTML_sigs.T with module XML := XML
+  module M_01_00 : sig
+    include XHTML_sigs.T with module XML := XML
+    val lazy_a_href : uri Eliom_lazy.request -> [> | `Href] attrib
+  end
   module P_01_00 : XML_sigs.TypedSimplePrinter
                    with type 'a elt := 'a M_01_00.elt
 		    and type doc := M_01_00.doc
@@ -244,7 +252,10 @@ module XHTML : sig
                    with type 'a elt := 'a M_01_00.elt
 		    and type doc := M_01_00.doc
 
-  module M_01_01 : XHTML_sigs.T with module XML := XML
+  module M_01_01 : sig
+    include XHTML_sigs.T with module XML := XML
+    val lazy_a_href : uri Eliom_lazy.request -> [> | `Href] attrib
+  end
   module P_01_01 : XML_sigs.TypedSimplePrinter
                    with type 'a elt := 'a M_01_01.elt
 		    and type doc := M_01_01.doc

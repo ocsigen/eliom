@@ -53,9 +53,12 @@ module MakeForms(Pages : FORMS_PARAM) = struct
   let a ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?no_appl content getparams =
     let href =
-      make_string_uri
-	?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-	?keep_nl_params ?nl_params getparams
+      Eliom_lazy.from_fun
+	(fun () ->
+	  Pages.uri_of_string
+	    (make_string_uri
+	       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+	       ?keep_nl_params ?nl_params getparams))
     in
     Pages.make_a ?a ~href content
 

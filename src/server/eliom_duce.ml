@@ -183,7 +183,7 @@ module Xhtml_forms_base = struct
   let make_a ?(a={{ {} }}) ?href l : 'a a_elt =
     let href_attr = match href with
       | None -> {{ {} }}
-      | Some v -> {{ { href=(str v) } }}
+      | Some v -> {{ { href=(str (Eliom_lazy.force v)) } }}
     in
     {{ <a (href_attr ++ a)> l }}
 

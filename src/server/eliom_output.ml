@@ -226,7 +226,7 @@ module Xhtml_forms_base = struct
   let make_a ?(a=[]) ?href l : 'a a_elt =
     let a = match href with
       | None -> a
-      | Some v -> (a_href (uri_of_string v))::a
+      | Some v -> lazy_a_href v :: a
     in
     XHTML.M.a ~a l
 
@@ -1328,7 +1328,7 @@ module HtmlText_forms_base = struct
   let make_a ?(a="") ?href l : 'a a_elt =
     let a = match href with
       | None -> a
-      | Some v -> " href=\""^v^"\" "^a
+      | Some v -> " href=\""^Eliom_lazy.force v^"\" "^a
     in
     "<a "^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 

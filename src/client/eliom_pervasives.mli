@@ -153,6 +153,7 @@ module XML : sig
   type racontent =
     | RA of acontent
     | RACamlEvent of (aname * caml_event)
+    | RALazyString of aname * string Eliom_lazy.request
   val racontent : attrib -> racontent
 
   val aname : attrib -> aname
@@ -256,6 +257,7 @@ module HTML5 : sig
     val of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt
 
     val unique: ?copy:'a elt -> 'a elt -> 'a elt
+    val lazy_a_href : uri Eliom_lazy.request -> [> | `Href] attrib
 
     (* GRGR: Uncomment when ocaml 3.12.1 is released ! See ocaml bug #1441. *)
 

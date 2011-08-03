@@ -142,6 +142,8 @@ module Html5 = struct
   let rebuild_rattrib node ra = match XML.racontent ra with
     | XML.RA a -> rebuild_attrib node a
     | XML.RACamlEvent ev -> register_event_handler node ev
+    | XML.RALazyString (name, s) ->
+	node##setAttribute(Js.string name, Js.string s)
 
   let rec rebuild_node elt =
     match XML.get_unique_id elt with

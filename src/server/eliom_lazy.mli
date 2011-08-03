@@ -5,3 +5,5 @@ type 'a request
 
 val from_fun: (unit -> 'a) -> 'a request
 val from_val: 'a -> 'a request
+
+val force: 'a request -> 'a

@@ -594,6 +594,10 @@ module HTML5 = struct
 
     let unique ?copy elt =
       tot (XML.make_unique ?copy:(map_option toelt copy) (toelt elt))
+    let lazy_a_href uri =
+      to_attrib
+	(XML.lazy_string_attrib "href"
+	   (Eliom_lazy.from_fun (fun () -> string_of_uri (Eliom_lazy.force uri))))
 
     (* GRGR: Uncomment when ocaml 3.12.1 is released ! See ocaml bug #1441. *)
 

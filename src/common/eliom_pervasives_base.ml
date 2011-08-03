@@ -61,15 +61,16 @@ module RawXML = struct
   type racontent =
     | RA of acontent
     | RACamlEvent of (aname * caml_event)
-
+    | RALazyString of aname * string Eliom_lazy.request
   type attrib = racontent
   let aname = function
     | RA (AFloat (name, _) | AInt (name, _)
       | AStr (name, _) | AStrL (_, name, _))
-    | RACamlEvent (name, _) -> name
+    | RACamlEvent (name, _) | RALazyString (name, _) -> name
   let acontent = function
     | RA a -> a
     | RACamlEvent (n, _) -> AStr (n, "/* To be patched... */")
+    | RALazyString (n, str) -> AStr (n, Eliom_lazy.force str)
   let racontent = id
 
   let float_attrib name value = RA (AFloat (name, value))
@@ -77,6 +78,7 @@ module RawXML = struct
   let string_attrib name value = RA (AStr (name, value))
   let space_sep_attrib name values = RA (AStrL (Space, name, values))
   let comma_sep_attrib name values = RA (AStrL (Comma, name, values))
+  let lazy_string_attrib name value = RALazyString (name, value)
   let event_attrib name value = match value with
     | Raw value -> RA (AStr (name, value))
     | Caml v -> RACamlEvent (name, v)

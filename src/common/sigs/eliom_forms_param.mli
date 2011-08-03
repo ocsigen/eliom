@@ -65,7 +65,7 @@ val map_optgroup :
 val select_content_of_option : option_elt -> select_content_elt
 
 val make_pcdata : string -> pcdata_elt
-val make_a : ?a:a_attrib_t -> ?href:string -> 'a a_content_elt_list -> 'a a_elt
+val make_a : ?a:a_attrib_t -> ?href:uri Eliom_lazy.request -> 'a a_content_elt_list -> 'a a_elt
 val make_get_form :
   ?a:form_attrib_t -> action:string ->
   form_content_elt -> form_content_elt_list -> form_elt

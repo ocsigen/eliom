@@ -129,7 +129,7 @@ module Html5_forms_base = struct
   let make_a ?(a=[]) ?href (l : 'a a_content_elt_list) : 'a a_elt =
     let a = match href with
       | None -> a
-      | Some v -> (a_href (uri_of_string v))::a
+      | Some href -> lazy_a_href href :: a
     in
     HTML5.M.a ~a l
 
