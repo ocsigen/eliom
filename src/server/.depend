@@ -255,7 +255,6 @@ private/eliommod_gc.cmx: private/eliommod_sessiongroups.cmx \
     private/eliommod_persess.cmx eliom_pervasives.cmx eliom_common.cmx \
     private/eliommod_gc.cmi
 private/eliommod_gc.cmi: eliom_common.cmi
-private/eliommod_mkforms.cmi: eliom_services.cmi eliom_pervasives.cmi
 private/eliommod_naservices.cmo: eliom_pervasives.cmi eliom_common.cmi \
     private/eliommod_naservices.cmi
 private/eliommod_naservices.cmx: eliom_pervasives.cmx eliom_common.cmx \
