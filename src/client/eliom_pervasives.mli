@@ -177,6 +177,7 @@ module XML : sig
 
   val leaf : ?a:(attrib list) -> ename -> elt
   val node : ?a:(attrib list) -> ename -> elt list -> elt
+  val lazy_node : ?a:(attrib list) -> ename -> elt list Eliom_lazy.request -> elt
 
   val cdata : string -> elt
   val cdata_script : string -> elt
@@ -257,7 +258,15 @@ module HTML5 : sig
     val of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt
 
     val unique: ?copy:'a elt -> 'a elt -> 'a elt
-    val lazy_a_href : uri Eliom_lazy.request -> [> | `Href] attrib
+
+    type ('a, 'b, 'c) lazy_plus =
+      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
+
+    val lazy_a_href : uri Eliom_lazy.request -> [> `Href ] attrib
+    val lazy_a_action : uri Eliom_lazy.request -> [> `Action ] attrib
+
+    val lazy_form:
+      ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
 
     (* GRGR: Uncomment when ocaml 3.12.1 is released ! See ocaml bug #1441. *)
 

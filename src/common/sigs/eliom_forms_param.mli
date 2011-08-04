@@ -67,14 +67,12 @@ val select_content_of_option : option_elt -> select_content_elt
 val make_pcdata : string -> pcdata_elt
 val make_a : ?a:a_attrib_t -> ?href:uri Eliom_lazy.request -> 'a a_content_elt_list -> 'a a_elt
 val make_get_form :
-  ?a:form_attrib_t -> action:string ->
-  form_content_elt -> form_content_elt_list -> form_elt
+  ?a:form_attrib_t -> action:uri Eliom_lazy.request ->
+  form_content_elt_list Eliom_lazy.request -> form_elt
 val make_post_form : ?a:form_attrib_t ->
-  action:string -> ?id:string -> ?inline:bool ->
-  form_content_elt -> form_content_elt_list -> form_elt
+  action:uri Eliom_lazy.request -> ?id:string -> ?inline:bool ->
+  form_content_elt_list Eliom_lazy.request -> form_elt
 val make_hidden_field : input_elt option -> form_content_elt
-val remove_first :
-  form_content_elt_list -> form_content_elt * form_content_elt_list
 val make_input : ?a:input_attrib_t -> ?checked:bool ->
   typ:input_type_t -> ?name:string -> ?src:uri ->
   ?value:string -> unit -> input_elt

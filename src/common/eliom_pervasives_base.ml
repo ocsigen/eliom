@@ -83,8 +83,6 @@ module RawXML = struct
     | Raw value -> RA (AStr (name, value))
     | Caml v -> RACamlEvent (name, v)
 
-  let attrib_hash = Hashtbl.hash
-
   type ename = string
   type node_id = string
   type econtent =
@@ -95,41 +93,28 @@ module RawXML = struct
     | Entity of string
     | Leaf of ename * attrib list
     | Node of ename * attrib list * elt list
+  and recontent =
+    | RELazy of econtent Eliom_lazy.request
+    | RE of econtent
   and elt = {
-    elt : econtent ;
-    hash : int ;
+    elt : recontent;
     unique_id : node_id option;
   }
 
-  let content e = e.elt
-  let hash e = e.hash
-  let compare e1 e2 =
-    let r = compare e1.hash e2.hash in
-    if r = 0 then compare e1 e2 else r
+  let content e = match e.elt with
+    | RE e -> e
+    | RELazy e -> Eliom_lazy.force e
+  let rcontent e = e.elt
 
   let is_unique elt = elt.unique_id <> None
   let get_unique_id elt = elt.unique_id
 
-  let (>+>) x f = f x
-
-  let combine x y = (x + 65599 * y) mod 32
-  let make_hash elt = match elt with
-    | Empty -> 0
-    | Comment s -> 1 + Hashtbl.hash s
-    | EncodedPCDATA s -> 2 + Hashtbl.hash s
-    | PCDATA s -> 3 + Hashtbl.hash s
-    | Entity s -> 4 + Hashtbl.hash s
-    | Leaf (tag, attribs) ->
-	5 + Hashtbl.hash tag
-	>+> List.fold_right (fun a -> combine (attrib_hash a)) attribs
-    | Node (name, attribs, elts) ->
-	6 + Hashtbl.hash name
-	>+> List.fold_right (fun a -> combine (attrib_hash a)) attribs
-	>+> List.fold_right (fun e -> combine e.hash) elts
-
   let make elt =
-    { elt = elt;
-      hash = (make_hash elt) mod 32 ;
+    { elt = RE elt;
+      unique_id = None; }
+
+  let make_lazy elt =
+    { elt = RELazy elt;
       unique_id = None; }
 
   let empty () = make Empty
@@ -141,6 +126,8 @@ module RawXML = struct
 
   let leaf ?(a = []) name =  make (Leaf (name, a))
   let node ?(a = []) name children = make (Node (name, a, children))
+  let lazy_node ?(a = []) name children =
+    make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
 
   let rec flatmap f = function
     | [] -> []
@@ -148,7 +135,7 @@ module RawXML = struct
 
   let translate root_leaf root_node sub_leaf sub_node update_state state n =
     let rec translate' state  n =
-      match n.elt with
+      match content n with
       | (Empty | Comment _ | PCDATA _ | Entity _) -> [n]
       | Leaf (name, attribs) ->
           sub_leaf state name attribs
@@ -157,21 +144,13 @@ module RawXML = struct
             (flatmap (translate' (update_state name attribs state)) elts)
       | _ -> failwith "not implemented for Ocsigen syntax extension"
     in
-    match n.elt with
+    match content n with
     | (Empty | Comment _ | PCDATA _ | Entity _) -> n
     | Leaf (name, attribs) ->
 	root_leaf name attribs
     | Node (name, attribs, elts) ->
 	root_node name attribs (flatmap (translate' state) elts)
     | _ -> failwith "not implemented for Ocsigen syntax extension"
-
-
-  module Hashtbl =
-    Hashtbl.Make(struct
-		   type t = elt
-		   let equal = (==)
-		   let hash e = e.hash
-		 end)
 
   type ref_tree =
     | Ref_node of (node_id option * (string * caml_event) list * ref_tree list)

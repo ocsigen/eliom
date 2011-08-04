@@ -187,27 +187,26 @@ module Xhtml_forms_base = struct
     in
     {{ <a (href_attr ++ a)> l }}
 
-  let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt =
+  let make_get_form ?(a={{ {} }}) ~(action : uri Eliom_lazy.request) elts : form_elt =
     {{ <form ({method="get"
-                   action=(str action)}
+                   action=(str (Eliom_lazy.force action))}
               ++ a )>
-       [ elt1 !elts ] }}
+       [ !(Eliom_lazy.force elts) ] }}
 
-  let make_post_form ?(a={{ {} }}) ~(action : uri) ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a={{ {} }}) ~(action : uri Eliom_lazy.request) ?id ?(inline = false) elts
       : form_elt =
     let id_attr = (match id with
     | None -> {{ {} }}
     | Some (i : string) -> {{ { id=(str i) } }})
     in
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
-    {{ <form ({action=(str action)
+    {{ <form ({action=(str (Eliom_lazy.force action))
                enctype="multipart/form-data"
                method="post"}
               ++ inline_attr
               ++ id_attr
               ++ a)>
-       [ elt1
-         !elts ]
+       [ !(Eliom_lazy.force elts) ]
      }}
 
   let make_hidden_field content =
@@ -222,8 +221,6 @@ module Xhtml_forms_base = struct
     {{ <div class=(str classe)> [ c ] }}
 
   let make_empty_form_content () = {{ <p> [] }} (**** à revoir !!!!! *)
-
-  let remove_first = function {{ (hd,tl) }} -> (hd,tl) | {{ [] }} -> {{ <p>[] }}, {{ [] }}
 
   let make_input ?(a={{ {} }}) ?(checked=false) ~typ ?name ?src ?value () =
     let a2 = match value with

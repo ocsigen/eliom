@@ -230,26 +230,35 @@ module Xhtml_forms_base = struct
     in
     XHTML.M.a ~a l
 
-  let make_get_form ?(a=[]) ~action elt1 elts : form elt =
+  let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
+  let remove_first = function
+    | a::l -> a,l
+    | [] -> (make_empty_form_content ()), []
+
+  let make_get_form ?(a=[]) ~action elts : form elt =
+    let elts = Eliom_lazy.from_fun (fun () -> remove_first (Eliom_lazy.force elts)) in
+    let elt1 = Eliom_lazy.from_fun (fun () -> fst (Eliom_lazy.force elts))
+    and elts = Eliom_lazy.from_fun (fun () -> snd (Eliom_lazy.force elts)) in
     let r =
-      form ~a:((a_method `Get)::a)
-        ~action:(uri_of_string action) elt1 elts
+      lazy_form ~a:((a_method `Get)::a) ~action:action elt1 elts
     in
     r
 
-
-  let make_post_form ?(a=[]) ~action ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a=[]) ~action ?id ?(inline = false) elts
       : form elt =
     let aa = (match id with
     | None -> a
     | Some i -> (a_id i)::a)
     in
+    let elts = Eliom_lazy.from_fun (fun () -> remove_first (Eliom_lazy.force elts)) in
+    let elt1 = Eliom_lazy.from_fun (fun () -> fst (Eliom_lazy.force elts))
+    and elts = Eliom_lazy.from_fun (fun () -> snd (Eliom_lazy.force elts)) in
     let r =
-      form ~a:((XHTML.M.a_enctype "multipart/form-data")::
+      lazy_form ~a:((XHTML.M.a_enctype "multipart/form-data")::
              (* Always Multipart!!! How to test if there is a file?? *)
                   (a_method `Post)::
                   (if inline then (a_class ["inline"])::aa else aa))
-        ~action:(uri_of_string action) elt1 elts
+        ~action:action elt1 elts
     in
     r
 
@@ -260,11 +269,6 @@ module Xhtml_forms_base = struct
     in
     (div ~a:[a_class ["eliom_nodisplay"]] c :> form_content elt)
 
-  let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
-
-  let remove_first = function
-    | a::l -> a,l
-    | [] -> (make_empty_form_content ()), []
 
   let make_input ?(a=[]) ?(checked=false) ~typ ?name ?src ?value () =
     let a2 = match value with
@@ -1332,11 +1336,11 @@ module HtmlText_forms_base = struct
     in
     "<a "^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 
-  let make_get_form ?(a="") ~action elt1 elts : form_elt =
-    "<form method=\"get\" action=\""^(uri_of_string action)^"\""^a^">"^
-    elt1^(*List.fold_left (^) "" elts *) elts^"</form>"
+  let make_get_form ?(a="") ~action elts : form_elt =
+    "<form method=\"get\" action=\""^ Eliom_lazy.force action ^"\""^a^">"^
+    Eliom_lazy.force elts^"</form>"
 
-  let make_post_form ?(a="") ~action ?id ?(inline = false) elt1 elts
+  let make_post_form ?(a="") ~action ?id ?(inline = false) elts
       : form_elt =
     let aa = "enctype=\"multipart/form-data\" "
         (* Always Multipart!!! How to test if there is a file?? *)
@@ -1344,9 +1348,9 @@ module HtmlText_forms_base = struct
         None -> a
       | Some i -> " id="^i^" "^a)
     in
-    "<form method=\"post\" action=\""^(uri_of_string action)^"\""^
+    "<form method=\"post\" action=\""^ Eliom_lazy.force action ^"\""^
     (if inline then "style=\"display: inline\"" else "")^aa^">"^
-    elt1^(* List.fold_left (^) "" elts*) elts^"</form>"
+    Eliom_lazy.force elts^"</form>"
 
   let make_hidden_field content =
     let content = match content with
@@ -1354,8 +1358,6 @@ module HtmlText_forms_base = struct
       | Some c -> c
     in
     "<div style=\"display: none\""^content^"</div>"
-
-  let remove_first l = "",l
 
   let make_input ?(a="") ?(checked=false) ~typ ?name ?src ?value () =
     let a2 = match value with

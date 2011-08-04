@@ -1,5 +1,6 @@
 
-INTF := eliom_pervasives.cmi        \
+INTF := eliom_lazy.cmi        \
+        eliom_pervasives.cmi        \
         eliom_common.cmi            \
         eliom_types.cmi             \
         eliom_parameters.cmi        \

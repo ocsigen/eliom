@@ -68,46 +68,56 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 	?(nl_params = Eliom_parameters.empty_nl_params_set) ?keep_nl_params
 	f =
 
-    let (uri, hiddenparams, fragment) =
-      make_uri_components_
-        ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-        ~nl_params ?keep_nl_params
-        ()
-    in
-
     let getparamstype = get_get_params_type_ service in
     let issuffix, paramnames = make_params_names getparamstype in
 
-    let uri =
-      if issuffix then
-	if uri.[String.length uri - 1] = '/'
-	then uri^Eliom_common.eliom_nosuffix_page
-	else String.concat "/" [uri; Eliom_common.eliom_nosuffix_page]
-      else uri
+    let components =
+      Eliom_lazy.from_fun
+	(fun () ->
+	  make_uri_components_
+            ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+            ~nl_params ?keep_nl_params
+            () )
     in
+
     let uri =
-      match fragment with
-      | None -> uri
-      | Some f -> String.concat "#" [uri; Url.encode f]
+      Eliom_lazy.from_fun
+	(fun () ->
+	  let (uri, hiddenparams, fragment) = Eliom_lazy.force components in
+	  let uri =
+	    if issuffix then
+	      if uri.[String.length uri - 1] = '/'
+	      then uri^Eliom_common.eliom_nosuffix_page
+	      else String.concat "/" [uri; Eliom_common.eliom_nosuffix_page]
+	    else uri
+	  in
+	  let uri =
+	    match fragment with
+	    | None -> uri
+	    | Some f -> String.concat "#" [uri; Url.encode f]
+	  in
+	  Pages.uri_of_string uri)
     in
 
     bind (f paramnames)
       (fun inside ->
-         let inside =
-           List.fold_left
-             (fun s (n,v) ->
-                Pages.cons_form
-                  (Pages.make_hidden_field
-                     (Some (Pages.make_input
-                              ~typ:Pages.hidden
-                              ~name:n ~value:v ())))
-                  s
-             )
-             inside
-             hiddenparams
-         in
-         let i1, i = Pages.remove_first inside in
-         return (Pages.make_get_form ?a ~action:uri i1 i))
+	let inside =
+	  Eliom_lazy.from_fun
+	    (fun () ->
+	      let (uri, hiddenparams, fragment) = Eliom_lazy.force components in
+	      List.fold_left
+		(fun s (n,v) ->
+		  Pages.cons_form
+		    (Pages.make_hidden_field
+		       (Some (Pages.make_input
+				~typ:Pages.hidden
+				~name:n ~value:v ())))
+		    s
+		)
+		inside
+		hiddenparams)
+	in
+	return (Pages.make_get_form ?a ~action:uri inside))
 
   let get_form
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
@@ -137,34 +147,42 @@ module MakeForms(Pages : FORMS_PARAM) = struct
     let getparamstype = get_post_params_type_ service in
     let _, paramnames = make_params_names getparamstype in
 
-    let (uri, getparams, fragment, hiddenparams) =
-      make_post_uri_components_
-        ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-        ?keep_nl_params ~nl_params ?keep_get_na_params
-        getparams
-        ()
+    let components =
+      Eliom_lazy.from_fun
+	(fun () ->
+	  make_post_uri_components_
+            ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+            ?keep_nl_params ~nl_params ?keep_get_na_params
+            getparams
+            ())
     in
 
     bind (f paramnames)
       (fun inside ->
          let inside =
-           List.fold_left
-             (fun s (n,v) ->
-                Pages.cons_form
-                  (Pages.make_hidden_field
-                     (Some (Pages.make_input
-                              ~typ:Pages.hidden
-                              ~name:n ~value:v ())))
-                  s
-             )
-             inside
-             hiddenparams
-         in
-         let i1, i = Pages.remove_first inside in
+	   Eliom_lazy.from_fun
+	     (fun () ->
+	       let (uri, getparams, fragment, hiddenparams) =
+		 Eliom_lazy.force components in
+	       List.fold_left
+		 (fun s (n,v) ->
+                   Pages.cons_form
+                     (Pages.make_hidden_field
+			(Some (Pages.make_input
+				 ~typ:Pages.hidden
+				 ~name:n ~value:v ())))
+                     s
+		 )
+		 inside
+		 hiddenparams) in
          let uri =
-           make_string_uri_from_components (uri, getparams, fragment)
+	   Eliom_lazy.from_fun
+	     (fun () ->
+	       let (uri, getparams, fragment, hiddenparams) =
+		 Eliom_lazy.force components in
+               Pages.uri_of_string (make_string_uri_from_components (uri, getparams, fragment)))
          in
-         return (Pages.make_post_form ?a ~action:uri i1 i))
+         return (Pages.make_post_form ?a ~action:uri inside))
 
   let post_form
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
@@ -516,8 +534,6 @@ module MakeForms(Pages : FORMS_PARAM) = struct
       (ol : 'a select_opt list) =
     gen_select ?a ~multiple:false
       ~name:(string_of_param_name name) fl ol string_of
-
-
 
   let raw_multiple_select ?a ~(name : string)
       (fl : string select_opt) (ol : string select_opt list) =
