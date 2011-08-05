@@ -37,14 +37,48 @@ let get_sess_info = ref (fun () ->
 
 let set_session_info si = get_sess_info := fun () -> si
 
-let full_path_string_ = Url.Current.path_string
+let remove_first_slash path =
+  match path with
+  | ""::l -> l
+  | l -> l
 
-let full_uri = Url.Current.as_string
+let path_re =
+  jsnew Js.regExp (Js.bytestring "^/?([^\\?]*)(\\?.*)?$")
 
-let get_original_full_path_string () = full_path_string_
+let current_path = ref (remove_first_slash Url.Current.path)
+let set_current_path path =
+  let path =
+    Js.Opt.case (path_re##exec (Js.string path))
+      (fun () -> [])
+      (fun handle ->
+	let res = Js.match_result handle in
+	let path =
+	  Js.to_bytestring
+            (Js.Optdef.get
+               (Js.array_get res 1)
+               (fun () -> Js.bytestring ""))
+	in
+	Url.split_path path)
+  in
+  current_path := path
+
+let get_original_full_path_string () =
+  if Eliom_process.history_api then
+    match Url.Current.get () with
+    | Some (Url.Http url) | Some (Url.Https url) ->
+      String.concat "/" url.Url.hu_path
+    | _ -> assert false
+  else
+    String.concat "/" !current_path
 let get_original_full_path_string_sp = get_original_full_path_string
 
-let get_original_full_path_sp sp = Url.split_path (get_original_full_path_string sp)
+let get_original_full_path_sp sp =
+  if Eliom_process.history_api then
+    match Url.Current.get () with
+    | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
+    | _ -> assert false
+  else
+    !current_path
 
 let get_other_get_params () =
   (!get_sess_info ()).Eliom_common.si_other_get_params
@@ -85,16 +119,15 @@ let port_ = match Url.Current.port with
 let get_csp_server_port () = port_
 let get_csp_server_port_sp = get_csp_server_port
 
-let full_path_ =
-  match Url.Current.path with
-    | ""::l -> l
-    | l -> l
+let get_csp_original_full_path () =
+  if Eliom_process.history_api then
+    match Url.Current.get () with
+    | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
+    | _ -> assert false
+  else
+    remove_first_slash Url.Current.path
 
-
-let get_csp_original_full_path () = full_path_
 let get_csp_original_full_path_sp = get_csp_original_full_path
-
-
 
 let get_request_url () = unmarshal_js_var "eliom_request_url"
 let get_request_cookies () = unmarshal_js_var "eliom_request_cookies"

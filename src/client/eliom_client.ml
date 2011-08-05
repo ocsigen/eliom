@@ -19,6 +19,10 @@
 
 open Eliom_pervasives
 
+(* Ignore popstate before the first call to "set_content". It avoids
+   loading the first page twice on a buggy Google-chrome. *)
+let chrome_dummy_popstate = ref true
+
 (* == Closure *)
 
 let closure_table  : (int64, poly -> unit) Hashtbl.t = Hashtbl.create 0
@@ -280,9 +284,15 @@ let exit_to
     Usually this function is only for internal use.
 *)
 let change_url_string uri =
-  current_fragment := url_fragment_prefix_with_sharp^uri;
-  Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
-
+  if Eliom_process.history_api then begin
+    Dom_html.window##history##pushState(Js.Unsafe.inject 0,
+					Js.string "" ,
+					Js.Opt.return (Js.string uri));
+  end else begin
+    current_fragment := url_fragment_prefix_with_sharp^uri;
+    Eliom_request_info.set_current_path uri;
+    Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
+  end
 let change_url
 (*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -387,7 +397,8 @@ let load_data_script data_script =
     Eliom_request_info.get_request_cookies (),
     Eliom_request_info.get_request_url () )
 
-let set_content content =
+let set_content ?(nopush=false) content =
+  chrome_dummy_popstate := false;
   ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
   (* Hack to make the result considered as DOM : *)
@@ -395,8 +406,8 @@ let set_content content =
   fake_page##innerHTML <- Js.string content;
   let js_data, cookies, url = load_data_script (get_data_script fake_page) in
   Eliommod_cookies.update_cookie_table cookies;
+  if not nopush then change_url_string url;
   let on_load = load_eliom_data js_data fake_page in
-  change_url_string url;
   let head, body = get_head_and_body fake_page in
   Dom.replaceChild
     (Dom_html.document##documentElement)
@@ -420,6 +431,7 @@ let change_page
 	 ?keep_nl_params ?nl_params ?keep_get_na_params
          get_params post_params)
   else
+    let cookies_info = Eliom_uri.make_cookies_info (https, service) in
     lwt r = match
         create_request_
           ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -428,12 +440,11 @@ let change_page
      with
        | `Get uri ->
          Eliom_request.http_get
-           ~expecting_process_page:true
-           ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
+           ~expecting_process_page:true ?cookies_info uri []
        | `Post (uri, p) ->
          Eliom_request.http_post
-           ~expecting_process_page:true
-           ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri p in
+	   ~expecting_process_page:true ?cookies_info uri p
+    in
     set_content r
 
 let change_page_uri ?cookies_info ?(get_params = []) uri =
@@ -444,7 +455,7 @@ let change_page_uri ?cookies_info ?(get_params = []) uri =
 
 let change_page_get_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
-  lwt r = Eliom_request.send_get_form 
+  lwt r = Eliom_request.send_get_form
     ~expecting_process_page:true ?cookies_info form uri
   in
   set_content r
@@ -506,17 +517,6 @@ let write_fragment s = Dom_html.window##location##hash <- Js.string s
 
 let read_fragment () = Js.to_string Dom_html.window##location##hash
 
-
-let (fragment, set_fragment_signal) = React.S.create (read_fragment ())
-
-let rec fragment_polling () =
-  lwt () = Lwt_js.sleep 0.2 in
-  let new_fragment = read_fragment () in
-  set_fragment_signal new_fragment;
-  fragment_polling ()
-
-let _ = fragment_polling ()
-
 let auto_change_page fragment =
   ignore
     (let l = String.length fragment in
@@ -525,17 +525,44 @@ let auto_change_page fragment =
        if fragment <> !current_fragment
        then
          (
-         current_fragment := fragment;
-         let uri =
-           match l with
-             | 2 -> "./" (* fix for firefox *)
-             | 0 | 1 -> Eliom_request_info.full_uri
-             | _ -> String.sub fragment 2 ((String.length fragment) - 2)
-         in
-         lwt r = Eliom_request.http_get ~expecting_process_page:true uri [] in
-	 set_content r
+           current_fragment := fragment;
+           let uri =
+	     match l with
+	       | 2 -> "./" (* fix for firefox *)
+	       | 0 | 1 -> Url.Current.as_string
+	       | _ -> String.sub fragment 2 ((String.length fragment) - 2)
+           in
+           lwt r = Eliom_request.http_get ~expecting_process_page:true uri [] in
+	   set_content ~nopush:true r
 	 )
        else Lwt.return ()
      else Lwt.return ())
 
-let _ = React.E.map auto_change_page (React.S.changes fragment)
+
+let _ =
+
+  if Eliom_process.history_api then
+
+    Dom_html.window##onpopstate <-
+      Dom_html.handler
+      (fun e ->
+	let url = Js.to_string Dom_html.window##location##href in
+        if not !chrome_dummy_popstate then
+	  ignore
+	    (lwt r =
+	       Eliom_request.http_get ~expecting_process_page:true url [] in
+	     set_content r);
+	Js._false)
+
+  else
+
+    let (fragment, set_fragment_signal) = React.S.create (read_fragment ()) in
+
+    let rec fragment_polling () =
+      lwt () = Lwt_js.sleep 0.2 in
+      let new_fragment = read_fragment () in
+      set_fragment_signal new_fragment;
+      fragment_polling () in
+
+    ignore(fragment_polling ());
+    ignore(React.E.map auto_change_page (React.S.changes fragment))

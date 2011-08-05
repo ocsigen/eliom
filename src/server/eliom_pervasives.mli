@@ -307,3 +307,5 @@ module XHTML : sig
 end
 
 type file_info = Ocsigen_extensions.file_info
+
+val debug: ('a, unit, string, unit) format4 -> 'a

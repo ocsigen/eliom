@@ -49,9 +49,9 @@ let get_cookie_info_for_uri_js uri_js =
             in
             let path = match path with
               | ""::_ -> path (* absolute *)
-              | _ -> Eliom_uri.make_actual_path (Url.Current.path @ path)
+              | _ -> Eliom_uri.make_actual_path (Eliom_request_info.get_csp_original_full_path () @ path)
             in
-            (Eliom_request_info.ssl_, path)
+            (Eliom_request_info.get_csp_ssl (), path)
          )
       )
     | Some (Url.Https { Url.hu_path = path }) -> (true,  path)
@@ -102,10 +102,12 @@ let rec send ?(expecting_process_page = false) ?cookies_info
       | None -> get_cookie_info_for_uri url
     in
     let cookies = Eliommod_cookies.get_cookies_to_send https path in
-    let headers = [ ( Eliom_common.tab_cookies_header_name,
-                      encode_header_value cookies );
-		    ( Eliom_common.tab_cpi_header_name,
-		      encode_header_value Eliom_process.info ) ]
+    let headers = [ Eliom_common.tab_cookies_header_name,
+                    encode_header_value cookies ] in
+    let headers = if not Eliom_process.history_api
+      then ( Eliom_common.tab_cpi_header_name,
+	     encode_header_value Eliom_process.info ) :: headers
+      else headers
     in
     let headers = if expecting_process_page
       then (Eliom_common.expecting_process_page_name,

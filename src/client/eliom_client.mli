@@ -190,8 +190,6 @@ val change_page_post_form :
   ?cookies_info:bool * string list ->
   Dom_html.formElement Js.t -> string -> unit Lwt.t
 
-val set_content : string -> unit Lwt.t
-
 val load_eliom_data :
   Eliom_types.eliom_js_page_data ->
   Dom_html.htmlElement Js.t -> (unit -> bool) list

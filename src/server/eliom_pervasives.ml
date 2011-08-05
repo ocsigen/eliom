@@ -322,3 +322,6 @@ module XHTML = struct
 end
 
 type file_info = Ocsigen_extensions.file_info
+
+
+let debug f = Printf.ksprintf (fun s -> Printf.eprintf "%s\n%!" s) f

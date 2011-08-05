@@ -20,6 +20,10 @@
 open Eliom_pervasives
 open Ocsigen_cookies
 
+let history_api =
+  Js.def Dom_html.window##history != Js.undefined
+  && Js.Unsafe.variable "window.history.pushState" != Js.undefined
+
 let sitedata : Eliom_types.sitedata =
   unmarshal_js_var "eliom_appl_sitedata"
 
