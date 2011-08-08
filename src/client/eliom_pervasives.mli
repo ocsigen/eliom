@@ -12,6 +12,7 @@ val ( !! ) : 'a Lazy.t -> 'a
 (* val comp : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b *)
 (* val uncurry2 : ('a -> 'b -> 'c) -> 'a * 'b -> 'c *)
 val map_option : ('a -> 'b) -> 'a option -> 'b option
+val iter_option : ('a -> unit) -> 'a option -> unit
 
 (* val fst3 : 'a * 'b * 'c -> 'a *)
 (* val snd3 : 'a * 'b * 'c -> 'b *)

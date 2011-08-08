@@ -20,6 +20,10 @@ include Eliom_pervasives_base
 
 exception False
 
+let iter_option f m = match m with
+  | Some v -> f v
+  | None -> ()
+
 (*****************************************************************************)
 
 module List = struct

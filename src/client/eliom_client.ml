@@ -397,16 +397,16 @@ let load_data_script data_script =
     Eliom_request_info.get_request_cookies (),
     Eliom_request_info.get_request_url () )
 
-let set_content ?(nopush=false) content =
+let set_content ?url content =
   chrome_dummy_popstate := false;
   ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
   on_unload_scripts := [];
+  iter_option change_url_string url;
   (* Hack to make the result considered as DOM : *)
   let fake_page = Dom_html.createHtml Dom_html.document in
   fake_page##innerHTML <- Js.string content;
   let js_data, cookies, url = load_data_script (get_data_script fake_page) in
   Eliommod_cookies.update_cookie_table cookies;
-  if not nopush then change_url_string url;
   let on_load = load_eliom_data js_data fake_page in
   let head, body = get_head_and_body fake_page in
   Dom.replaceChild
@@ -432,7 +432,7 @@ let change_page
          get_params post_params)
   else
     let cookies_info = Eliom_uri.make_cookies_info (https, service) in
-    lwt r = match
+    lwt (url, content) = match
         create_request_
           ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
 	  ?keep_nl_params ?nl_params ?keep_get_na_params
@@ -445,27 +445,27 @@ let change_page
          Eliom_request.http_post
 	   ~expecting_process_page:true ?cookies_info uri p
     in
-    set_content r
+    set_content ~url content
 
 let change_page_uri ?cookies_info ?(get_params = []) uri =
-  lwt r = Eliom_request.http_get
+  lwt (url, content) = Eliom_request.http_get
     ~expecting_process_page:true ?cookies_info uri get_params
   in
-  set_content r
+  set_content ~url content
 
 let change_page_get_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
-  lwt r = Eliom_request.send_get_form
+  lwt url, content = Eliom_request.send_get_form
     ~expecting_process_page:true ?cookies_info form uri
   in
-  set_content r
+  set_content ~url content
 
 let change_page_post_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
-  lwt r = Eliom_request.send_post_form
+  lwt url, content = Eliom_request.send_post_form
       ~expecting_process_page:true ?cookies_info form uri
   in
-  set_content r
+  set_content ~url content
 
 let _ =
   change_page_uri_ :=
@@ -482,18 +482,20 @@ let call_service
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
-  (match create_request_
-     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-     ?keep_nl_params ?nl_params ?keep_get_na_params
-     get_params post_params
-   with
-     | `Get uri ->
-	 Eliom_request.http_get
-         ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
-     | `Post (uri, post_params) ->
-       Eliom_request.http_post
-         ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
-	 uri post_params)
+  lwt _, content =
+    match create_request_
+      ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+      ?keep_nl_params ?nl_params ?keep_get_na_params
+      get_params post_params
+    with
+    | `Get uri ->
+	Eliom_request.http_get
+          ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
+    | `Post (uri, post_params) ->
+	Eliom_request.http_post
+          ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
+	  uri post_params in
+  Lwt.return content
 
 
 let call_caml_service
@@ -532,8 +534,9 @@ let auto_change_page fragment =
 	       | 0 | 1 -> Url.Current.as_string
 	       | _ -> String.sub fragment 2 ((String.length fragment) - 2)
            in
-           lwt r = Eliom_request.http_get ~expecting_process_page:true uri [] in
-	   set_content ~nopush:true r
+           lwt (_, content) =
+	     Eliom_request.http_get ~expecting_process_page:true uri [] in
+	   set_content content
 	 )
        else Lwt.return ()
      else Lwt.return ())
@@ -549,9 +552,9 @@ let _ =
 	let url = Js.to_string Dom_html.window##location##href in
         if not !chrome_dummy_popstate then
 	  ignore
-	    (lwt r =
+	    (lwt url, content =
 	       Eliom_request.http_get ~expecting_process_page:true url [] in
-	     set_content r);
+	     set_content ~url content);
 	Js._false)
 
   else
