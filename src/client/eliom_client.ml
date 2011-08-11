@@ -554,7 +554,7 @@ let _ =
 	  ignore
 	    (lwt url, content =
 	       Eliom_request.http_get ~expecting_process_page:true url [] in
-	     set_content ~url content);
+	     set_content content);
 	Js._false)
 
   else
