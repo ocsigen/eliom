@@ -106,7 +106,17 @@ let rec relink_dom node (id, attribs, childrens_ref_tree) =
   end;
   let childrens =
     List.filter
-      (fun node -> node##nodeType = Dom.ELEMENT)
+      ( fun node ->
+	match Js.Opt.to_option (Dom_html.CoerceTo.element node) with
+	  | None -> false
+	  | Some elt ->
+	    match Js.Opt.to_option ( elt##getAttribute( Js.string "id" ) ) with
+	      | None -> true
+	      | Some id ->
+		(* HACK: circumvent old Firebug ( with Firefox 3.6 ) bug:
+		   it adds a div node with id "_firebugConsole" between
+		   the head and body nodes, breaking the sparse tree *)
+		id <> Js.string "_firebugConsole" )
       (Dom.list_of_nodeList (node##childNodes)) in
   relink_dom_list childrens childrens_ref_tree
 
