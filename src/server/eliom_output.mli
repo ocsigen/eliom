@@ -86,8 +86,6 @@ module Xhtml_forms : "sigs/eliom_xhtml_forms.mli"
 module type APPL_PARAMS = sig
 
   (** Name of the application.
-      The name of the client side program must be the this name plus
-      ".uue" suffix.
       Two distincts applications must have distincts names.
   *)
   val application_name : string

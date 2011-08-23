@@ -4,32 +4,162 @@
 
 == General principles
 === What is a client/server Eliom application
-Une appli entre un serveur et un client,
-plusieurs services et plusieurs URL pour un même processus qui ne s'arrête pas
 
-=== How it work
-Résumé de ce qui va être détaillé ensuite
-js_of_ocaml, extension de syntaxe, communication serveur -> client
+An Eliom application is a distributed application that runs partly on the
+server, partly on a browser. The program is fully written in OCaml, with
+a syntax extension to distinguish between server and client code.
+Both parts are extracted during the compilation process, the server part
+is compiled as usual for an Eliom website, and the client part is compiled
+to Javascript to be run in the browser.
+
+An intersting feature of Eliom applications is that the client side process
+does not stop when you click on a link or send a form, and it is possible to
+keep the traditional Web interaction (with URLs, bookmarks, back button, etc).
+For example the user can continue his visit on the Web site without stopping the
+music he is listening.
+
+Client side parts are using {{{Lwt}}} for concurrency, making possible
+to have concurrent programs in the browser very easily.
+
+As both part are implemented in OCaml, it is very easy to use client side
+OCaml data on server side, and vice-versa. Eliom handle the communication
+between client and server automatically in both direction. For example
+it possible to use a server-side variable in the client program.
+
+Eliom also implements an "HTTP-push" mechanism, allowing the server
+to send messages to a client.
+
+Client-side parts of the program can use most Eliom features, exactly
+as usual, for example to create HTML, or links, forms from services.
+
+On server side, it is possible to save data (some state) for each client
+process (that is, one tab in a browser),
+simply by using Eliom references with scope {{{`Client_process}}}.
+You can register services for one client process, or even set cookies
+for one tab.
+
+=== How it works
+
+The code of an Eliom application is written in OCaml, with a syntax extension
+to distinguish between server and client code. The files using this syntax
+usually have the extension {{{.eliom}}}. As the compling process is quite
+complex, we provide a command called {{{eliomc}}} that does everything for
+you (separating client and server parts,
+calling {{{ocamlc}}}, {{{js_of_ocaml}}}, etc).
+
+Services belonging to the application are registered using the module
+{{{Eliom_output.Eliom_appl}}}. More precisely, this is a functor that
+needs to be applyed for each application you create.
+These services just return HTML5 pages as usual (using {{{Tyxml.Html5}}} --
+not possible with OcamlDuce or any other HTML module).
+The client side program (compiled in JS) is added automatically by Eliom,
+with all its data, and run automatically when the page is loaded.
+
+The module {{{Eliom_client}}} provides some useful functions for client
+side programming with Eliom: mainly switch to another page or call a service
+returning some OCaml value.
+
+The module {{{Eliom_comet}}} allows for the server to send notifications
+to the client (even if the client is not explicitely doing a request).
+The module {{{Eliom_react}}} use this to make client-server reactive
+programming (using the React external library).
+
 
 == Structure of a program
+=== Syntax
+
+Eliom application are written in files with extension {{{.eliom}}}.
+Some special brackets make possible to distinuish between client and server
+code:
+{{{
+{server{
+  ...
+}}
+}}}
+or no brackets for server side code,
+{{{
+{client{
+  ...
+}}
+}}}
+for client side code,
+and
+{{{
+{shared{
+  ...
+}}
+}}}
+for some code that is common to client and server parts.
+
+<<wip|Vérifier la syntaxe je ne suis pas sûr. Notamment 
+peut-on remplacer {client{ par {{ ? >>
+
+Expressions of type {{{XML.event}}} (used for example in HTML attributes
+like "onclick") are written using the quotation {{{ {{ ... }} }}}, for
+example:
+{{{
+p ~a:[a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
+  [pcdata "I am a clickable paragraph"]
+}}}
+
+(The {{{##}}} syntax is js_of_ocaml's syntax for calling a Javascript method).
+
+
 === The Eliom_appl functor
-=== Syntax 
-{{ et %
+
+For each Eliom application, you must create a service registration module
+by applying the {{{Eliom_appl}}} functor:
+
+{{{
+module My_appl =
+  Eliom_output.Eliom_appl (
+    struct
+      let application_name = "the name of your application"
+    end)
+}}}
+
+Then you can do for example:
+{{{
+let my_service =
+  My_appl.register_service
+    ~path:[""]
+    ~get_params:unit
+    (fun () () -> Lwt.return (html
+                               (head (title (pcdata "Hi!")) [])
+                               (body [p [pcdata "Hey."]])))
+}}}
+
+Eliom will add automatically the required headers to send the client side
+program and all its data.
+
+
 === Compiling
-See chapter ...
+
+The compiling process for Eliom applications is explained on chapter ???????.
+
+<<wip|à faire !>>
 
 == Generating HTML for Eliom applications
+
 HTML5.M seulement (pas Text ni XHTML.M ni ocamlduce)
 Conversions côté client
 unique
 
 == Using Eliom on client side
+
 Liens, formulaires, utilisation des services côté client
 Le module Eliom_client
 Modules Eliom disponibles des deux côtés (et différences)
 
 == Communication between the client and the server
 Services qui renvoient du caml
-Services qui orennet en paramètre des données caml
+Services qui prennent en paramètre des données caml
 deriving
 comet, bus et canaux
+
+
++ onload
+
++ events (à mettre dans js_of_ocaml)
+
+<<wip|A-t-on oublié qqchose ? (sûrement :/) >>
