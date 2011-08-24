@@ -94,10 +94,13 @@ module Printexc : sig
 end
 
 val debug : ('a, unit, string, unit) format4 -> 'a
+val error : ('a, unit, string, 'b) format4 -> 'a
 val debug_exn : ('a, unit, string, unit) format4 -> exn -> 'a
 val jsdebug : 'a -> unit
 val alert : ('a, unit, string, unit) format4 -> 'a
 val jsalert : Js.js_string Js.t -> unit
+
+val lwt_ignore : ?message:string -> unit Lwt.t -> unit
 
 val to_json : ?typ:'a -> 'b -> string
 val of_json : ?typ:'a -> string -> 'b

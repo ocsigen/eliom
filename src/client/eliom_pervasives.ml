@@ -475,9 +475,12 @@ end
 let debug_exn f e =
   Printf.ksprintf (fun s -> Firebug.console##log (Js.string (s^(Printexc.to_string e)))) f
 let debug f = Printf.ksprintf (fun s -> Firebug.console##log (Js.string s)) f
+let error f = Printf.ksprintf (fun s -> Firebug.console##error (Js.string s); failwith s) f
 let jsdebug a = Firebug.console##log (a)
 let alert f = Printf.ksprintf (fun s -> Dom_html.window##alert (Js.string s)) f
 let jsalert a = Dom_html.window##alert (a)
+
+let lwt_ignore ?(message="") t = Lwt.on_failure t (fun e -> debug_exn "%s" e message)
 
 (* We do not use the deriving (un)marshaling even if typ is available
    because direct jsn (un)marshaling is very fast client side
