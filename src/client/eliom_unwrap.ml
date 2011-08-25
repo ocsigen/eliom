@@ -40,7 +40,7 @@ struct
     let tag = Obj.tag v in
     if tag < Obj.no_scan_tag
     then get_obj_table_uuid v
-    else 
+    else
       (Firebug.console##error_2(Js.string "can't give id to value",v);
        failwith ("can't give id to value"))
   let equal = (==)
@@ -105,36 +105,64 @@ let is_marked (mark:Mark.t) o =
     end
   else None
 
-let rec search_and_replace_ mark t v =
+type action =
+  | Set_field of ( Obj.t * int )
+  | Replace of Obj.t
+  | Return
+
+type stack =
+  | Do of (Obj.t * action)
+  | Unwrap of (unwrapper * Obj.t)
+
+let find t v =
   let tag = Obj.tag v in
-  try
-    if (not (Obj.is_int (Obj.repr tag))) || tag >= Obj.no_scan_tag || tag = Obj.closure_tag
-    || tag = Obj.infix_tag || tag = Obj.lazy_tag || tag = Obj.object_tag
-    then v
-    else T.find t v
-  with
-    | Not_found ->
-      match is_marked mark v with
-	| Some unwrapper ->
-	  let size = Obj.size v in
-	  for i = 0 to size - 2 do
-	    Obj.set_field v i (search_and_replace_ mark t (Obj.field v i));
-	  done;
-	  let new_v = apply_unwrapper unwrapper v in
-	  let res = search_and_replace_ mark t new_v in
-	  T.replace t v res;
-	  res
+  if tag >= Obj.no_scan_tag || tag = Obj.closure_tag
+  || tag = Obj.infix_tag || tag = Obj.lazy_tag || tag = Obj.object_tag
+  then Some v
+  else
+    try
+      Some (T.find t v)
+    with Not_found -> None
+
+let search_and_replace_ mark t v =
+  let rec loop = function
+    | [] -> assert false
+    | (Unwrap (unwrapper,v))::q ->
+      let new_v = apply_unwrapper unwrapper v in
+      loop ((Do (new_v,Replace v))::q)
+    | (Do (v,action))::q as s ->
+      match find t v with
+	| Some r ->
+	  (match action with
+	    | Set_field (o,i) ->
+	      Obj.set_field o i r;
+	      loop q
+	    | Replace o -> T.replace t o r;
+	      loop q
+	    | Return -> r)
 	| None ->
-	  begin
-	    let size = Obj.size v in
-	    T.add t v v;
-	    (* It is ok to do this because tag < no_scan_tag and it is
-	       not a closure ( either infix, normal or lazy ) *)
-	    for i = 0 to size - 1 do
-	      Obj.set_field v i (search_and_replace_ mark t (Obj.field v i));
-	    done;
-	    v
-	  end
+	  match is_marked mark v with
+	    | Some unwrapper ->
+	      let stack = ref ((Unwrap (unwrapper,v))::s) in
+	      let size = Obj.size v in
+	      for i = 0 to size - 2 do
+		stack := (Do ((Obj.field v i),Set_field (v,i))) :: !stack;
+	      done;
+	      loop !stack
+	    | None ->
+	      begin
+		T.add t v v;
+	      (* It is ok to do this because tag < no_scan_tag and it is
+		 not a closure ( either infix, normal or lazy ) *)
+		let stack = ref s in
+		let size = Obj.size v in
+		for i = 0 to size - 1 do
+		  stack := (Do ((Obj.field v i),Set_field (v,i))) :: !stack;
+		done;
+		loop !stack
+	      end
+  in
+  loop [Do (v,Return)]
 
 let unwrap (mark,v) =
   let t = T.create 1 in

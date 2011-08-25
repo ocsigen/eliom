@@ -604,6 +604,8 @@ let uri_test =
       Lwt.return (make_page [div])
     )
 
+let very_long_list = Array.to_list (Array.init 40000 (fun i -> i))
+
 {shared{
 module Wrapping_test =
 struct
@@ -683,6 +685,8 @@ let () =
           Dom.appendChild (Eliom_client.Html5.of_div %div)
             (Eliom_client.Html5.of_p
 	       (p ~a:[ a_onclick (XML.event_of_function (fun _ -> ignore (f_react 42)))] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
+
+	  put %div "list length: %i" (List.length %very_long_list);
 
 	}};
       Lwt.return
