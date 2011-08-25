@@ -389,6 +389,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a wrapping1 [pcdata "wrapping test 1"] ();
               br ();
+              a wrapping_big_values [pcdata "wrapping test: big values"] ();
+              br ();
               a caml_service_wrapping [pcdata "wrapping for caml call service"] ();
               br ();
               a service_style1 [pcdata "test header modifications"] ();

@@ -604,7 +604,32 @@ let uri_test =
       Lwt.return (make_page [div])
     )
 
-let very_long_list = Array.to_list (Array.init 40000 (fun i -> i))
+{client{
+  let put n f =
+    Printf.ksprintf (fun s ->
+      Dom.appendChild (Eliom_client.Html5.of_element n)
+        (Eliom_client.Html5.of_p (p [pcdata s]))) f
+}}
+
+let very_long_list = Array.to_list (Array.init 200000 (fun i -> i))
+
+let very_long_list_length = List.length very_long_list
+
+let wrapping_big_values = My_appl.register_service
+  ~path:["wrapping_big_values"]
+  ~get_params:unit
+  (fun () () ->
+    let div = unique (div [pcdata (Printf.sprintf "there should be a line with: list length: %i"
+				     very_long_list_length);
+			   br ()]) in
+    Eliom_services.onload
+      {{
+	put %div "list length: %i" (List.length %very_long_list);
+      }};
+      Lwt.return
+	(make_page [div]))
+
+
 
 {shared{
 module Wrapping_test =
@@ -633,12 +658,6 @@ let e' = React.E.map (fun i -> Printf.printf "event: %i\n%!" i) e
 
 let rec rec_list_react = (react_up,42)::rec_list_react
 
-{client{
-  let put n f =
-    Printf.ksprintf (fun s ->
-      Dom.appendChild (Eliom_client.Html5.of_element n)
-        (Eliom_client.Html5.of_p (p [pcdata s]))) f
-}}
 
 let global_div = unique (div [pcdata "global div"])
 let other_global_div = unique (div [pcdata "other global div"])
@@ -686,7 +705,6 @@ let () =
             (Eliom_client.Html5.of_p
 	       (p ~a:[ a_onclick (XML.event_of_function (fun _ -> ignore (f_react 42)))] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
 
-	  put %div "list length: %i" (List.length %very_long_list);
 
 	}};
       Lwt.return

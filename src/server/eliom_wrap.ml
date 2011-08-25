@@ -49,7 +49,7 @@ let with_no_heap_move f v =
     | `Data v -> v
     | `Exn e -> raise e
 
-module Mark : 
+module Mark :
 sig
   type t
   val wrap_mark : t
@@ -95,44 +95,74 @@ let is_marked (mark:Mark.t) o =
     end
   else None
 
-let rec search_and_replace_ t v =
-  try
-    if Obj.tag v < Obj.no_scan_tag
-    then T.find t v
-    else v
-  with
-    | Not_found ->
-      match is_marked Mark.wrap_mark v with
-	| Some { f = Some f } ->
-	  let new_v = f v in
-	  let res = search_and_replace_ t new_v in
-	  T.replace t v res;
-	  res
-	| Some { f = None } -> assert false
-	| None ->
-	  let tag = Obj.tag v in
-	  if tag = Obj.closure_tag || tag = Obj.infix_tag || tag = Obj.lazy_tag || tag = Obj.object_tag
-	  then
-	    ( if tag = Obj.lazy_tag then failwith "lazy values must be forced before wrapping";
-	      if tag = Obj.object_tag then failwith "cannot wrap object values";
-	      if tag = Obj.closure_tag then failwith "cannot wrap functionnal values";
-	      failwith "cannot wrap functionnal values: infix tag" )
-	  else
-	    begin
-	      let size = Obj.size v in
-	      let new_v = Obj.new_block tag size in
-	      T.add t v new_v;
-	      (* It is ok to do this because tag < no_scan_tag and it is
-		 not a closure ( either infix, normal or lazy ) *)
-	      for i = 0 to size - 1 do
-		Obj.set_field new_v i (search_and_replace_ t (Obj.field v i));
-	      done;
-	      new_v
-	    end
+type action =
+  | Set_field of ( Obj.t * int )
+  | Replace of Obj.t
+  | Return
+
+type stack =
+  | Do of (Obj.t * action)
+  | Wrap of ((Obj.t -> Obj.t) * Obj.t)
+
+let find t v =
+  if Obj.tag v < Obj.no_scan_tag
+  then
+    try
+      Some (T.find t v)
+    with
+      | Not_found -> None
+  else Some v
 
 let search_and_replace v =
   let t = T.create 1 in
-  with_no_heap_move (search_and_replace_ t) v
+  let rec loop = function
+    | [] -> assert false
+    | (Wrap (f,v))::q ->
+      let new_v = f v in
+      (* f v is not guaranted to be in the major head: we need to move
+	 it before adding to the table *)
+      Gc.minor ();
+      loop ((Do (new_v,Replace v))::q)
+    | (Do (v,action))::q as s ->
+      match find t v with
+	| Some r ->
+	  (match action with
+	    | Set_field (o,i) ->
+	      Obj.set_field o i r;
+	      loop q
+	    | Replace o -> T.replace t o r;
+	      loop q
+	    | Return -> r)
+	| None ->
+	  match is_marked Mark.wrap_mark v with
+	    | Some { f = Some f } ->
+	      let stack = (Wrap (f,v))::s in
+	      loop stack
+	    | Some { f = None } -> assert false
+	    | None ->
+	      let tag = Obj.tag v in
+	      if tag = Obj.closure_tag || tag = Obj.infix_tag || tag = Obj.lazy_tag || tag = Obj.object_tag
+	      then
+		( if tag = Obj.lazy_tag then failwith "lazy values must be forced before wrapping";
+		  if tag = Obj.object_tag then failwith "cannot wrap object values";
+		  if tag = Obj.closure_tag then failwith "cannot wrap functionnal values";
+		  failwith "cannot wrap functionnal values: infix tag" )
+	      else
+		begin
+		  let size = Obj.size v in
+		  let new_v = Obj.new_block tag size in
+		  T.add t v new_v;
+		  (* It is ok to do this because tag < no_scan_tag and it is
+		     not a closure ( either infix, normal or lazy ) *)
+		  let stack = ref s in
+		  for i = 0 to size - 1 do
+		    stack := (Do ((Obj.field v i),Set_field (new_v,i))) :: !stack;
+		  done;
+		  loop !stack
+		end
+  in
+  with_no_heap_move loop [Do (v,Return)]
+
 
 type +'a wrapper = marked_value
 
