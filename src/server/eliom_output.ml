@@ -2637,6 +2637,20 @@ module Eliom_appl_reg_make_param
       headers
     in
 
+    let content_type =
+      match content_type with
+	| None ->
+	  let header = Lazy.force sp.Eliom_common.sp_request.
+	    Ocsigen_extensions.request_info.Ocsigen_extensions.ri_accept in
+	  if List.exists
+	    (function
+	      | ((Some "text", Some "xml"),_,_) -> true
+	      | _ -> false) header
+	  then Some "text/xml"
+	  else None
+	| _ -> content_type
+    in
+
     Lwt.return
       { r with
         Ocsigen_http_frame.
@@ -2645,10 +2659,7 @@ module Eliom_appl_reg_make_param
           | None -> Some (Eliom_config.get_config_default_charset ())
           | _ -> charset
 	);
-        res_content_type= (match content_type with
-          | None -> r.Ocsigen_http_frame.res_content_type
-          | _ -> content_type
-        );
+        res_content_type= content_type;
         res_headers = headers;
       }
 

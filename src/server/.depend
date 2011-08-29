@@ -260,6 +260,8 @@ private/eliommod_naservices.cmo: eliom_pervasives.cmi eliom_common.cmi \
 private/eliommod_naservices.cmx: eliom_pervasives.cmx eliom_common.cmx \
     private/eliommod_naservices.cmi
 private/eliommod_naservices.cmi: eliom_common.cmi
+private/eliommod_output.cmo:
+private/eliommod_output.cmx:
 private/eliommod_pagegen.cmo: private/eliommod_timeouts.cmi \
     private/eliommod_services.cmi private/eliommod_persess.cmi \
     private/eliommod_naservices.cmi private/eliommod_cookies.cmi \
@@ -326,6 +328,8 @@ sigs/eliom_html5_reg.cmi: eliom_services.cmi eliom_pervasives.cmi \
 sigs/eliom_reg.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmi eliom_common.cmi
 sigs/eliom_reg_alpha_return.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmi eliom_common.cmi
+sigs/eliom_reg_alpha_return_get.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmi eliom_common.cmi
 sigs/eliom_reg_param.cmi: eliom_services.cmi
 sigs/eliom_reg_simpl.cmi: eliom_services.cmi eliom_pervasives.cmi \

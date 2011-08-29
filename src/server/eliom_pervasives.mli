@@ -46,6 +46,7 @@ module List : sig
   val remove_all_assoc : 'a -> ('a * 'b) list -> ('a * 'b) list
   val remove_first_if_any : 'a -> 'a list -> 'a list
   val remove_first_if_any_q : 'a -> 'a list -> 'a list
+  val map_filter : ('a -> 'b option) -> 'a list -> 'b list
 end
 
 module String : sig

@@ -29,6 +29,7 @@ let iter_option f m = match m with
 module List = struct
 
   include List
+  include Eliom_pervasives_base.List_base
 
   let rec remove_first_if_any a = function
     |  [] -> []

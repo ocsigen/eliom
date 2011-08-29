@@ -26,6 +26,18 @@ external from_poly : poly -> 'a = "%identity"
 
 type 'a client_expr = int64 * poly
 
+module List_base = struct
+  let map_filter f l =
+    let rec aux acc = function
+      | [] -> acc
+      | t::q ->
+	match f t with
+	  | None -> aux acc q
+	  | Some r -> aux (r::acc) q
+    in
+    List.rev (aux [] l)
+end
+
 module RawXML = struct
 
   type separator = Space | Comma

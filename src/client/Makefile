@@ -42,6 +42,7 @@ FILES := eliom_unwrap.ml eliom_lazy.ml \
 	 eliom_services_base.ml eliom_services.ml \
 	 eliom_uri.ml \
 	 eliom_request.ml \
+         private/eliommod_dom.ml \
 	 eliom_client.ml \
 	 eliom_mkforms.ml \
 	 eliom_output_base.ml eliom_output.ml \

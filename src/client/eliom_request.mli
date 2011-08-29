@@ -20,9 +20,15 @@
 exception Looping_redirection
 exception Failed_request of int
 exception Program_terminated
+exception Non_xml_content
 
 val redirect_get : string -> unit
 val redirect_post : string -> (string * string) list -> unit
+
+type 'a result
+
+val xml_result : Dom.element Dom.document Js.t result
+val string_result : string result
 
 val send :
   ?expecting_process_page:bool ->
@@ -30,7 +36,8 @@ val send :
   ?get_args:(string * string) list ->
   ?post_args:(string * string) list ->
   ?form_arg:((string * Form.form_elt) list) -> string ->
-  (string * string) Lwt.t
+  'a result ->
+  (string * 'a) Lwt.t
 
 val send_get_form :
   ?expecting_process_page:bool ->
@@ -39,7 +46,8 @@ val send_get_form :
   ?post_args:(string * string) list ->
   Dom_html.formElement Js.t ->
   string ->
-  (string * string) Lwt.t
+  'a result ->
+  (string * 'a) Lwt.t
 
 val send_post_form :
   ?expecting_process_page:bool ->
@@ -48,21 +56,24 @@ val send_post_form :
   ?post_args:(string * string) list ->
   Dom_html.formElement Js.t ->
   string ->
-  (string * string) Lwt.t
+  'a result ->
+  (string * 'a) Lwt.t
 
 val http_get :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   string ->
   (string * string) list ->
-  (string * string) Lwt.t
+  'a result ->
+  (string * 'a) Lwt.t
 
 val http_post :
   ?expecting_process_page:bool ->
   ?cookies_info:bool * string list ->
   string ->
   (string * string) list ->
-  (string * string) Lwt.t
+  'a result ->
+  (string * 'a) Lwt.t
 
 val get_cookie_info_for_uri_js : Js.js_string Js.t -> bool * string list
 

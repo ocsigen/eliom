@@ -390,81 +390,17 @@ let on_unload f =
   on_unload_scripts :=
     (fun () -> try f(); true with False -> false) :: !on_unload_scripts
 
-module DOM_utils = struct
-
-  let get_head_and_body page =
-    (* We can't use Dom_html.document##head: it is not defined in ff3.6... *)
-    let head = Js.Optdef.get
-      ((page##getElementsByTagName(Js.string "head"))##item(0))
-      (fun () -> error "get_head_and_body: no head element") in
-    let body = Js.Optdef.get
-      ((page##getElementsByTagName(Js.string "body"))##item(0))
-      (fun () -> error "get_head_and_body: no body element") in
-    head,body
-
-  (* BEGIN ff3.6 HACK: circumvent old firefox ( 3.6 and before ) parsing
-     problem when setting innerHTML: we use a firefox specific method *)
-
-  class type ff_dom_parser = object
-    method parseFromString : Js.js_string Js.t -> Js.js_string Js.t -> Dom_html.document Js.t Js.meth
-  end
-
-  let dom_parser_constr : ff_dom_parser Js.t Js.constr = Js.Unsafe.variable "DOMParser"
-
-  class type ff_xml_serializer = object
-    method serializeToString : Dom.node Js.t -> Js.js_string Js.t Js.meth
-  end
-
-  let xml_serializer_constr : ff_xml_serializer Js.t Js.constr = Js.Unsafe.variable "XMLSerializer"
-
-  let old_ff_parser s =
-    let dom_parser = jsnew dom_parser_constr () in
-    let document = dom_parser##parseFromString(s, Js.string "text/xml") in
-    (* The dom_parser returns an XML dom element, not an html one, we can't use it directly *)
-    let dom_html = document##documentElement in
-    let dom_head = Js.Optdef.get
-      ((dom_html##getElementsByTagName(Js.string "head"))##item(0))
-      (fun () -> error "old_ff_parser: no head element") in
-    let dom_body = Js.Optdef.get
-      ((dom_html##getElementsByTagName(Js.string "body"))##item(0))
-      (fun () -> error "old_ff_parser: no body element") in
-    let serializer = jsnew xml_serializer_constr () in
-    let text_head = serializer##serializeToString((dom_head:>Dom.node Js.t)) in
-    let text_body = serializer##serializeToString((dom_body:>Dom.node Js.t)) in
-    let html = Dom_html.createHtml Dom_html.document in
-    let head = Dom_html.createHead Dom_html.document in
-    let body = Dom_html.createBody Dom_html.document in
-    head##innerHTML <- text_head;
-    body##innerHTML <- text_body;
-    Dom.appendChild html head;
-    Dom.appendChild html body;
-    html
-
-  (* END ff3.6 HACK *)
-
-  let parse_html s =
-    (* Hack to make the result considered as DOM : *)
-    let html = Dom_html.createHtml Dom_html.document in
-    html##innerHTML <- s;
-    (* BEGIN ff3.6 HACK *)
-    if (html##getElementsByTagName(Js.string "head"))##length = 1
-    then html
-    else old_ff_parser s
-    (* END ff3.6 HACK *)
-
-  let get_data_script page =
-    let head, _ = get_head_and_body page in
-    match Dom.list_of_nodeList head##childNodes with
-      | _ :: _ :: data_script :: _ ->
-	let data_script = (Js.Unsafe.coerce (data_script:Dom.node Js.t):Dom.element Js.t) in
-	(match String.lowercase (Js.to_string (data_script##tagName)) with
-	  | "script" -> (Js.Unsafe.coerce (data_script:Dom.element Js.t):Dom_html.scriptElement Js.t)
-	  | t ->
-	    Firebug.console##error_4(Js.string "get_data_script: the node ",data_script,Js.string " is not a script, its tag is", t);
-	    failwith "get_data_script")
-      | _ -> error "get_data_script wrong branch"
-
-end
+let get_data_script page =
+  let head = Eliommod_dom.get_head page in
+  match Dom.list_of_nodeList head##childNodes with
+    | _ :: _ :: data_script :: _ ->
+      let data_script = (Js.Unsafe.coerce (data_script:Dom.node Js.t):Dom.element Js.t) in
+      (match String.lowercase (Js.to_string (data_script##tagName)) with
+	| "script" -> (Js.Unsafe.coerce (data_script:Dom.element Js.t):Dom_html.scriptElement Js.t)
+	| t ->
+	  Firebug.console##error_4(Js.string "get_data_script: the node ",data_script,Js.string " is not a script, its tag is", t);
+	  failwith "get_data_script")
+    | _ -> error "get_data_script wrong branch"
 
 let load_data_script data_script =
   let script = data_script##innerHTML in
@@ -479,12 +415,13 @@ let set_content ?url content =
     ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
     on_unload_scripts := [];
     iter_option change_url_string url;
-    let fake_page = DOM_utils.parse_html (Js.string content) in
-    let js_data, cookies, url = load_data_script (DOM_utils.get_data_script fake_page) in
+    let fake_page = Eliommod_dom.copy_element (content##documentElement) in
+    let js_data, cookies, url = load_data_script (get_data_script fake_page) in
     Eliommod_cookies.update_cookie_table cookies;
     let on_load = load_eliom_data js_data fake_page in
-    let head, body = DOM_utils.get_head_and_body fake_page in
-    let document_head,document_body = DOM_utils.get_head_and_body Dom_html.document in
+    let head, body = Eliommod_dom.get_head fake_page, Eliommod_dom.get_body fake_page in
+    let document_head,document_body = Eliommod_dom.get_head Dom_html.document,
+      Eliommod_dom.get_body Dom_html.document in
     Dom.replaceChild
       (Dom_html.document##documentElement)
       head (document_head);
@@ -521,15 +458,18 @@ let change_page
 	| `Get uri ->
           Eliom_request.http_get
             ~expecting_process_page:true ?cookies_info uri []
+	    Eliom_request.xml_result
 	| `Post (uri, p) ->
           Eliom_request.http_post
 	    ~expecting_process_page:true ?cookies_info uri p
+	    Eliom_request.xml_result
     in
     set_content ~url content
 
 let change_page_uri ?cookies_info ?(get_params = []) uri =
   lwt (url, content) = Eliom_request.http_get
     ~expecting_process_page:true ?cookies_info uri get_params
+    Eliom_request.xml_result
   in
   set_content ~url content
 
@@ -537,6 +477,7 @@ let change_page_get_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
   lwt url, content = Eliom_request.send_get_form
     ~expecting_process_page:true ?cookies_info form uri
+    Eliom_request.xml_result
   in
   set_content ~url content
 
@@ -544,6 +485,7 @@ let change_page_post_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
   lwt url, content = Eliom_request.send_post_form
       ~expecting_process_page:true ?cookies_info form uri
+      Eliom_request.xml_result
   in
   set_content ~url content
 
@@ -571,10 +513,11 @@ let call_service
     | `Get uri ->
 	Eliom_request.http_get
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
+	  Eliom_request.string_result
     | `Post (uri, post_params) ->
 	Eliom_request.http_post
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
-	  uri post_params in
+	  uri post_params Eliom_request.string_result in
   Lwt.return content
 
 
@@ -615,7 +558,8 @@ let auto_change_page fragment =
 	       | _ -> String.sub fragment 2 ((String.length fragment) - 2)
            in
            lwt (_, content) =
-	     Eliom_request.http_get ~expecting_process_page:true uri [] in
+	     Eliom_request.http_get ~expecting_process_page:true uri []
+	       Eliom_request.xml_result in
 	   set_content content
 	 )
        else Lwt.return ()
@@ -633,7 +577,8 @@ let _ =
         if not !chrome_dummy_popstate then
 	  lwt_ignore
 	    (lwt url, content =
-	       Eliom_request.http_get ~expecting_process_page:true url [] in
+	       Eliom_request.http_get ~expecting_process_page:true url []
+		 Eliom_request.xml_result in
 	     set_content content);
 	Js._false)
 

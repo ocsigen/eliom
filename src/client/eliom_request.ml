@@ -23,6 +23,7 @@ open Ocsigen_cookies
 exception Looping_redirection
 exception Failed_request of int
 exception Program_terminated
+exception Non_xml_content
 
 (* == ... *)
 
@@ -63,7 +64,14 @@ let get_cookie_info_for_uri uri =
   get_cookie_info_for_uri_js uri_js
 
 
+type 'a result = XmlHttpRequest.http_frame -> 'a
 
+let xml_result x =
+  match x.XmlHttpRequest.content_xml () with
+    | None -> raise Non_xml_content
+    | Some v -> v
+
+let string_result x = x.XmlHttpRequest.content
 
 (*TODO: use Url.Current.set *)
 let redirect_get url = Dom_html.window##location##href <- Js.string url
@@ -95,7 +103,7 @@ let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
      @post_args)
 
 let rec send ?(expecting_process_page = false) ?cookies_info
-    ?get_args ?post_args ?form_arg url =
+    ?get_args ?post_args ?form_arg url result =
   let rec aux i ?cookies_info ?get_args ?post_args ?form_arg url =
     let (https, path) = match cookies_info with
       | Some c -> c
@@ -158,14 +166,14 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 		assert false
 	      | Some current_appl_name ->
 		if appl_name = current_appl_name
-		then Lwt.return (r.XmlHttpRequest.url, r.XmlHttpRequest.content)
+		then Lwt.return (r.XmlHttpRequest.url, result r)
 		else
 		  (debug "Eliom_request: received content for application %s when running application %s"
 		     appl_name current_appl_name;
 		   Lwt.fail (Failed_request r.XmlHttpRequest.code))
       else
 	if r.XmlHttpRequest.code = 200
-	then Lwt.return (r.XmlHttpRequest.url, r.XmlHttpRequest.content)
+	then Lwt.return (r.XmlHttpRequest.url, result r)
 	else Lwt.fail (Failed_request r.XmlHttpRequest.code)
   in aux 0 ?cookies_info ?get_args ?post_args ?form_arg url
 

@@ -76,6 +76,7 @@ end
 
 module List = struct
   include Ocsigen_pervasives.List
+  include Eliom_pervasives_base.List_base
   let rec remove_all_assoc a = function
     | [] -> []
     | (b, _)::l when a = b -> remove_all_assoc a l

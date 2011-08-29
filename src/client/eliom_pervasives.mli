@@ -42,6 +42,7 @@ module List : sig
   (* val is_prefix : 'a list -> 'a list -> bool *)
   val is_prefix_skip_end_slash : string list -> string list -> bool
   val chop : int -> 'a list -> 'a list
+  val map_filter : ('a -> 'b option) -> 'a list -> 'b list
 end
 
 module String : sig
