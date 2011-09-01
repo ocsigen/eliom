@@ -298,7 +298,7 @@ For example:
 
 
 
-===Generating HTML pages===
+===@@id="server_generating_html"@@Generating HTML pages===
 
 Ocsigen provides several ways to generate and type xhtml pages.
 
