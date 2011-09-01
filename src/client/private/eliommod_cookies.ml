@@ -24,7 +24,9 @@ include Eliom_cookies_base
 
 let cookie_table = ref Cookies.empty
 
-let now () = Js.to_float (Js.date##now ())
+let now () =
+  let date = jsnew Js.date_now () in
+  Js.to_float (date##getTime ())
 
 let update_cookie_table cookieset =
   let now = now () in
