@@ -118,8 +118,11 @@ let rec send ?(expecting_process_page = false) ?cookies_info
       else headers
     in
     let headers = if expecting_process_page
-      then (Eliom_common.expecting_process_page_name,
-            encode_header_value true)::headers
+      then
+	("Accept","text/xml")::
+	(Eliom_common.expecting_process_page_name,
+         encode_header_value true)::
+	headers
       else headers
     in
     let form_contents =
