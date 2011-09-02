@@ -184,6 +184,45 @@ The compiling process for Eliom applications is explained on chapter ???????.
 
 <<wip|à faire !>>
 
+== Application, life and death
+
+When an user enter the page of a service registered by an application
+module ( created with the {{{Eliom_appl}}} functor ), the application
+is started. During the life of the application, a single ocaml program
+will run on the browser: Lwt thread will keep running, global
+variables will stay available, etc...  until the application is
+closed. The application will keep running when the user clicks on
+links to pages inside the same application.
+
+This application will be closed when:
+* the user closes the browser tab containing the application
+* the user goes to a page outside of the application
+* the user change the current url by another mean than the
+  application interraction ( reload the page with {{{F5}}},
+  type an url, ... )
+* the application call the {{{Eliom_client.exit_to}}} function
+
+It is possible to prevent the application from launching when visiting
+an application page by setting the {{{do_not_launch}}} to {{{true}}}
+at the service registration:
+<<code language="ocaml"|
+let no_launch_service =
+  My_appl.register_service
+    ~option:{ Eliom_output.default_appl_service_options with
+              do_not_launch = true }
+    ~path:[""]
+    ~get_params:unit
+    (fun () () -> Lwt.return (html
+                               (head (title (pcdata "Hi!")) [])
+                               (body [p [pcdata "Hey."]])))
+>>
+That way, you can delay the javascript loading until it is really needed.
+Visiting a service registered with {{{do_not_launch=true}}} will not stop
+a running application.
+
+It is possible to force reloading an application when clicking a link
+by creating the link with the {{{no_appl}}} option set to true.
+
 == Generating HTML for Eliom applications
 
 On client side there are two kinds of HTML representations: Tyxml HTML tree and
@@ -387,6 +426,27 @@ On the first load of the page both messages {{{unique script}}} and
 {{{non unique script}}} will be displayed and when clicking on the
 "reload page" link, only {{{non unique script}}} will be displayed.
 
+==== Unique with generated content
+
+Sometimes you want to mark unique some nodes wich content is
+generated, for instance you could have a div containing with the user
+name which could be changed.
+
+To achieve that you can use the ability for multiple unique node to be
+defined as the same reference:
+<<code language="ocaml"|
+let base = HTML5.M.unique (HTML5.M.div [])
+
+...
+
+let userdiv = HTML5.M.unique ~copy:base (HTML5.M.div [pcdata user_name]) in
+...
+>>
+
+When {{{userdiv}}} is included in the page, its content will be the
+{{{[pcdata user_name]}}}, but after that, modifying its node can be
+done using either {{{userdiv}}} or {{{base}}}.
+
 == Using Eliom on client side
 
 Liens, formulaires, utilisation des services côté client
@@ -394,8 +454,108 @@ Le module Eliom_client
 Modules Eliom disponibles des deux côtés (et différences)
 
 == Communication between the client and the server
-Services qui renvoient du caml
-Services qui prennent en paramètre des données caml
+
+Outside of the values passed by the mean of the {{{%variable}}}
+syntax, there are multiple ways for the client and server to echange
+values. Depending on what kind of transfer to do, there are different
+methods addapted.
+
+=== Client requesting data
+
+The client process can call special services to get some Ocaml
+values. Those services cannot be visited by the browser as web pages.
+They are registered using <<a_api project="eliom" | module Eliom_output.Caml >>
+and can be called using
+<<a_api project="eliom" subproject="client" | val Eliom_client.call_caml_service >>.
+
+For instance:
+<<code language="ocaml"|
+let pi_service =
+  Eliom_output.Caml.register_service
+    ~path:["pi service"]
+    ~get_params:unit
+    (fun () () -> Lwt.return 3.1415926535)
+
+let _ =
+  My_appl.register_service
+    ~path:["pi service"]
+    ~get_params:unit
+    (fun () () ->
+      Eliom_services.onload
+      {{
+        lwt pi = Eliom_client.call_caml_service ~service:%pi_service () () in
+	Dom_html.window##alert(Js.string ("pi = "^(float_of_string pi)))
+      }};
+      Lwt.return
+        (HTML5.M.html
+           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "pi")))
+           (HTML5.M.body [])))
+>>
+
+Since client and server side value representation are not the same, it
+is not possible to send any Ocaml value, the restrinction on what can
+be sent are the same as for the {{{%variable}}} mechanism
+(see the <<a_manual fragment="wrapping"| wrapping chapter>>).
+
+=== Client sending data
+
+The client can send values to the server using the service mechanism,
+by defining the parameter types. To send arbitrary Ocaml values, there
+is a special type declaration:
+<<a_api project="eliom" | val Eliom_parameters.caml >>.
+
+Since the server can't trust the client to send correcly formed data,
+those values can't be sent using the Ocaml marshall mechanism: the
+server needs to be able to check that the value is of the expected
+type. To do this we use {{{Deriving}}}, a syntax extension for the
+type declarations.
+
+<<code language="ocaml"|
+{shared{
+  type some_type = (int * string list) deriving (Json)
+  type another_type =
+    | A of some_type
+    | B of another_type
+    deriving (Json)
+}}
+>>
+
+this type can now be used as a parameter for a service
+
+<<code language="ocaml"|
+let s =
+  My_appl.register_service
+    ~path:["s1"]
+    ~get_params:(caml "param" Json.t<another_type>)
+    (fun () v ->
+      Lwt.return
+        (HTML5.M.html
+           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")))
+           (HTML5.M.body [
+	     match v with
+	       | A _ -> pcdata "A"
+	       | B _ -> pcdata "B"
+	   ])))
+
+let _ =
+  My_appl.register_service
+    ~path:["s2"]
+    ~get_params:unit
+    (fun () () ->
+      Lwt.return
+        (HTML5.M.html
+           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")))
+           (HTML5.M.body [
+	     [p ~a:[a_onclick
+               {{ ignore (Eliom_client.change_page ~service:%s (A (1,["s"])) ()) }}]
+               [pcdata "Click to send Ocaml data"]
+           ]])))
+>>
+
+For more information see deriving documentation.
+<<wip| ajouter un lien vers la doc de deriving>>
+
+
 deriving
 comet, bus et canaux
 
