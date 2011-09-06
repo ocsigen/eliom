@@ -85,6 +85,7 @@ let make_page ?(css = []) content =
        ([ style
            [pcdata "a,.clickable {color: #111188; cursor: pointer;}"];
           My_appl.application_script ();
+	  meta ~a:[a_charset "utf-8"] ();
 	] @ css))
     (body
        [h1 [pcdata "Eliom application"];
