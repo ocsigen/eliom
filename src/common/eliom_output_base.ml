@@ -892,7 +892,7 @@ module Html5_forms = struct
       (fun () ->
 	if not (Eliom_services.xhr_with_cookies service)
 	then None
-	else Some (`A, Eliom_uri.make_cookies_info (https, service)))
+	else Some (kind, Eliom_uri.make_cookies_info (https, service)))
 
   let a ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
         ?keep_nl_params ?nl_params
