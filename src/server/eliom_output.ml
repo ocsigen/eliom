@@ -2588,6 +2588,11 @@ module Eliom_appl_reg_make_param
     (* Then we replace the faked data_script *)
     let head_elts =
       List.hd head_elts :: data_script :: List.tl (List.tl head_elts) in
+    let html_attribs =
+      if List.exists (fun a -> XML.aname a = "xmlns") (to_xmlattribs html_attribs)
+      then html_attribs
+      else a_xmlns `W3_org_1999_xhtml :: html_attribs
+    in
     Lwt.return
       (HTML5.M.html ~a:html_attribs
 	 (HTML5.M.head ~a:head_attribs title head_elts)
@@ -2644,9 +2649,9 @@ module Eliom_appl_reg_make_param
 	    Ocsigen_extensions.request_info.Ocsigen_extensions.ri_accept in
 	  if List.exists
 	    (function
-	      | ((Some "text", Some "xml"),_,_) -> true
+	      | ((Some "application", Some "xhtml+xml"),_,_) -> true
 	      | _ -> false) header
-	  then Some "text/xml"
+	  then Some "application/xhtml+xml"
 	  else None
 	| _ -> content_type
     in
