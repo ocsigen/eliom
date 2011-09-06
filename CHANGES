@@ -1,3 +1,28 @@
+===== 2.0-rc2 (2011-09-06) =====
+
+ * Feature:
+ ** api history: when the api history is available, application URLs are more
+    readable ( no more #! )
+
+ * Bugfixes:
+ ** fix browser compatibility: it should work with Firefox ( >= 3.0 ), Chrome
+    ( all recent version we tested ), Safari 5, Opera ( tested 11.51 ), Internet
+    explorer ( 9, ie 8 almost work )
+ ** in forms declared outside of the sp's scope, hrefs were incorrect:
+    url calculation is now done for each request
+ ** the function {{{Eliom_client.caml_call_service}}} was broken with some kind
+    of services
+ ** application cookies are now always sent
+ ** fix incorrect sharing of type variables in the syntax extension (thanks to
+    William Le Ferrand)
+ ** 404 and 403 errors are not dropped by applications anymore ( This fix is
+    partial: when the page content is application content, this still does not
+    work when an exception handler returns something else )
+ ** Fix problems with url generation for non-attached coservices inside an
+    application
+ ** tail recursive marshalling and demarshalling: no more limit on the depth of
+    data sent along the page
+
 ===== 2.0-rc1 (2011-07-15) =====
 
   * Eliom_client.change_page type now correctly forbid to call it on
