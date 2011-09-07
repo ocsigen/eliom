@@ -1461,6 +1461,20 @@ module Action_reg_base = struct
     then
       let open Ocsigen_http_frame in
       let empty_result = Ocsigen_http_frame.empty_result () in
+      let h = match headers with
+        | None -> empty_result.res_headers
+        | Some headers ->
+          Http_headers.with_defaults headers empty_result.res_headers
+      in
+      let h =
+        match Eliom_request_info.get_sp_client_appl_name () with
+          | Some anr ->
+            Http_headers.replace
+              (Http_headers.name Eliom_common_base.appl_name_header_name)
+              anr
+              h
+          | _ -> h
+      in
       Lwt.return
         {empty_result with
           res_code= code;
@@ -1468,12 +1482,7 @@ module Action_reg_base = struct
             | None -> empty_result.res_content_type
             | _ -> content_type
           );
-          res_headers= (match headers with
-            | None -> empty_result.res_headers
-            | Some headers ->
-              Http_headers.with_defaults
-                headers empty_result.res_headers
-          );
+          res_headers= h
         }
     else
       (* It is an action, we reload the page.
