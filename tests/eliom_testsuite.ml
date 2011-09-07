@@ -298,6 +298,7 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
          a preappliedsuffix [pcdata "Preapplied suffix"] (); br ();
          a constform [pcdata "Form towards suffix service with constants"] (); br ();
          a getact [pcdata "action on GET attached coservice, etc"] 127; br ();
+         a noreload [pcdata "action with `NoReload option"] (); br ();
          a cookies2 [pcdata "Many cookies"] "le suffixe de l'URL"; br ();
          a headers [pcdata "Customizing HTTP headers"] (); br ();
          a sendfileex [pcdata "Send file"] (); br ();
@@ -425,6 +426,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
             h4 [pcdata "More tests"];
             p [
               a appl_redir [pcdata "Eliom applications and redirections"] ();
+              br ();
+              a noreload_appl [pcdata "Eliom applications and actions with `NoReload option"] ();
               br ();
               a nonapplprocessservice [pcdata "Client process service not registered with Eliom_appl"] ();
               br ();

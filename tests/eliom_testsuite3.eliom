@@ -2656,6 +2656,32 @@ let () =
     (fun () choice -> make_any choice)
 
 
+(*****************************************************************************)
+(* Actions with `NoReload option *)
+let noreload_ref = ref 0
+
+let noreload_action =
+  Eliom_output.Action.register_coservice'
+    ~options:`NoReload
+    ~get_params:unit
+    (fun () () -> noreload_ref := !noreload_ref + 1; Lwt.return ())
+
+let noreload_appl =
+  My_appl.register_service
+    ~path:["noreloadappl"]
+    ~get_params:unit
+    (fun () () ->
+      return
+        (html
+         (head (title (pcdata "counter")) [])
+         (body [p [pcdata (string_of_int (!noreload_ref)); br ();
+                   Eliom_output.Html5.a ~service:noreload_action
+                     [pcdata "Click to increment the counter."] ();
+                   br ();
+                   pcdata "You should not see the result if you do not reload the page."
+                  ]])))
+
+
 
 (*****************************************************************************)
 (* XHR form with files: *)

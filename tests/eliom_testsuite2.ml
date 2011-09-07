@@ -2137,3 +2137,30 @@ let connect_action_handler () login =
 let () =
   Eliom_output.Html5.register ~service:connect_example_pgd connect_example_handler;
   Eliom_output.Any.register ~service:connect_action connect_action_handler
+
+
+(*****************************************************************************)
+(* Actions with `NoReload option *)
+let noreload_ref = ref 0
+
+let noreload_action =
+  Eliom_output.Action.register_coservice'
+    ~options:`NoReload
+    ~get_params:unit
+    (fun () () -> noreload_ref := !noreload_ref + 1; Lwt.return ())
+
+let noreload =
+  register_service
+    ~path:["noreload"]
+    ~get_params:unit
+    (fun () () ->
+      return
+        (html
+         (head (title (pcdata "counter")) [])
+         (body [p [pcdata (string_of_int (!noreload_ref)); br ();
+                   Eliom_output.Html5.a ~service:noreload_action
+                     [pcdata "Click to increment the counter."] ();
+                   br ();
+                   pcdata "You should not see the result if you do not reload the page."
+                  ]])))
+
