@@ -72,7 +72,7 @@ let string_escape s =
         Buffer.add_string b "\\'"
     | '\\' ->
         Buffer.add_string b "\\\\"
-    | '\000' .. '\031' | '\127' .. '\255' | '&' | '<' ->
+    | '\000' .. '\031' | '\127' .. '\255' | '&' | '<' | '>' ->
         let c = Char.code c in
         Buffer.add_string b "\\x";
         Buffer.add_char b conv.[c lsr 4];
