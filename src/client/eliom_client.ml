@@ -441,6 +441,7 @@ let change_page
     get_params post_params =
 
   if not (Eliom_services.xhr_with_cookies service)
+    || (https = Some true && not Eliom_request_info.ssl_)
   then
     Lwt.return
       (exit_to
