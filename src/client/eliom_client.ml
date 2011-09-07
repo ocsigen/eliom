@@ -409,31 +409,33 @@ let load_data_script data_script =
     Eliom_request_info.get_request_cookies (),
     Eliom_request_info.get_request_url () )
 
-let set_content ?url content =
-  try_lwt
-    chrome_dummy_popstate := false;
-    ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
-    on_unload_scripts := [];
-    iter_option change_url_string url;
-    let fake_page = Eliommod_dom.copy_element (content##documentElement) in
-    let js_data, cookies, url = load_data_script (get_data_script fake_page) in
-    Eliommod_cookies.update_cookie_table cookies;
-    let on_load = load_eliom_data js_data fake_page in
-    let head, body = Eliommod_dom.get_head fake_page, Eliommod_dom.get_body fake_page in
-    let document_head,document_body = Eliommod_dom.get_head Dom_html.document,
-      Eliommod_dom.get_body Dom_html.document in
-    Dom.replaceChild
-      (Dom_html.document##documentElement)
-      head (document_head);
-    Dom.replaceChild
-      (Dom_html.document##documentElement)
-      body (document_body);
-    ignore (List.for_all (fun f -> f ()) on_load);
-    Lwt.return ()
-  with
-    | e ->
-      debug_exn "set_content: exception raised: " e;
-      raise_lwt e
+let set_content ?url = function
+  | None -> Lwt.return ()
+  | Some content ->
+    try_lwt
+      chrome_dummy_popstate := false;
+      ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
+      on_unload_scripts := [];
+      iter_option change_url_string url;
+      let fake_page = Eliommod_dom.copy_element (content##documentElement) in
+      let js_data, cookies, url = load_data_script (get_data_script fake_page) in
+      Eliommod_cookies.update_cookie_table cookies;
+      let on_load = load_eliom_data js_data fake_page in
+      let head, body = Eliommod_dom.get_head fake_page, Eliommod_dom.get_body fake_page in
+      let document_head,document_body = Eliommod_dom.get_head Dom_html.document,
+        Eliommod_dom.get_body Dom_html.document in
+      Dom.replaceChild
+        (Dom_html.document##documentElement)
+        head (document_head);
+      Dom.replaceChild
+        (Dom_html.document##documentElement)
+        body (document_body);
+      ignore (List.for_all (fun f -> f ()) on_load);
+      Lwt.return ()
+    with
+      | e ->
+        debug_exn "set_content: exception raised: " e;
+        raise_lwt e
 
 let change_page
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
@@ -519,7 +521,9 @@ let call_service
 	Eliom_request.http_post
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
 	  uri post_params Eliom_request.string_result in
-  Lwt.return content
+  match content with
+    | None -> raise_lwt (Eliom_request.Failed_request 204)
+    | Some content -> Lwt.return content
 
 
 let call_caml_service

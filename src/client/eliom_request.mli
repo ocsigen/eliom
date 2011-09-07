@@ -37,7 +37,7 @@ val send :
   ?post_args:(string * string) list ->
   ?form_arg:((string * Form.form_elt) list) -> string ->
   'a result ->
-  (string * 'a) Lwt.t
+  (string * 'a option) Lwt.t
 
 val send_get_form :
   ?expecting_process_page:bool ->
@@ -47,7 +47,7 @@ val send_get_form :
   Dom_html.formElement Js.t ->
   string ->
   'a result ->
-  (string * 'a) Lwt.t
+  (string * 'a option) Lwt.t
 
 val send_post_form :
   ?expecting_process_page:bool ->
@@ -57,7 +57,7 @@ val send_post_form :
   Dom_html.formElement Js.t ->
   string ->
   'a result ->
-  (string * 'a) Lwt.t
+  (string * 'a option) Lwt.t
 
 val http_get :
   ?expecting_process_page:bool ->
@@ -65,7 +65,7 @@ val http_get :
   string ->
   (string * string) list ->
   'a result ->
-  (string * 'a) Lwt.t
+  (string * 'a option) Lwt.t
 
 val http_post :
   ?expecting_process_page:bool ->
@@ -73,7 +73,7 @@ val http_post :
   string ->
   (string * string) list ->
   'a result ->
-  (string * 'a) Lwt.t
+  (string * 'a option) Lwt.t
 
 val get_cookie_info_for_uri_js : Js.js_string Js.t -> bool * string list
 

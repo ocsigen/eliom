@@ -154,7 +154,7 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 		| None,None -> redirect_get uri
 		| _,_ -> redirect_post_form_elt ?post_args ?form_arg url);
 	      Lwt.fail Program_terminated
-            | None -> Lwt.fail (Failed_request r.XmlHttpRequest.code)
+            | None -> Lwt.return (r.XmlHttpRequest.url, None)
     else
       if expecting_process_page
       then
@@ -169,14 +169,14 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 		assert false
 	      | Some current_appl_name ->
 		if appl_name = current_appl_name
-		then Lwt.return (r.XmlHttpRequest.url, result r)
+		then Lwt.return (r.XmlHttpRequest.url, Some (result r))
 		else
 		  (debug "Eliom_request: received content for application %s when running application %s"
 		     appl_name current_appl_name;
 		   Lwt.fail (Failed_request r.XmlHttpRequest.code))
       else
 	if r.XmlHttpRequest.code = 200
-	then Lwt.return (r.XmlHttpRequest.url, result r)
+	then Lwt.return (r.XmlHttpRequest.url, Some (result r))
 	else Lwt.fail (Failed_request r.XmlHttpRequest.code)
   in aux 0 ?cookies_info ?get_args ?post_args ?form_arg url
 
