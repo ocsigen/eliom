@@ -165,7 +165,7 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 	  | Some appl_name ->
 	    match Eliom_process.get_application_name () with
 	      | None ->
-		debug "Eliom_request: no application name ? please report this bug";
+		debug "Eliom_request: no application name? please report this bug";
 		assert false
 	      | Some current_appl_name ->
 		if appl_name = current_appl_name

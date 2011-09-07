@@ -2864,7 +2864,12 @@ module Redir_reg_base = struct
         (* the browser asked application eliom data
            for the application called anr *)
         (* If it comes from an xhr, we use answer with a special header field *)
-          match Eliom_services.get_send_appl_content service with
+        let headers = Http_headers.replace
+          (Http_headers.name Eliom_common_base.appl_name_header_name)
+          anr
+          headers
+        in
+        match Eliom_services.get_send_appl_content service with
           (* the appl name of the destination service *)
             | Eliom_services.XSame_appl an when (an = anr) ->
             (* Same appl, we do a full xhr redirection
