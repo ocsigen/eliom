@@ -22,6 +22,10 @@
     application
  ** tail recursive marshalling and demarshalling: no more limit on the depth of
     data sent along the page
+ ** Fix problems with redirection and action with `NoReload exiting the application
+ ** Handle correctly 204 code in application ( do nothing with change page, fail
+    with caml_call_service )
+ ** Fix escape character '>': problem with strings containing "]]>"
 
 ===== 2.0-rc1 (2011-07-15) =====
 
