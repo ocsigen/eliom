@@ -1,4 +1,4 @@
-=Programming client-server applications with Eliom
+= Programming client-server applications with Eliom
 
 <<div class="wip"| See the [[site:tutorial|tutorial]] . >>
 
@@ -91,15 +91,28 @@ and
 >>
 for some code that is common to client and server parts.
 
-Expressions of type {{{XML.event}}} (used for example in HTML attributes
-like "onclick") are written using the quotation {{{ {{ ... }} }}}, for
-example:
+Expressions of type <<a_api project="eliom" | type Eliom_pervasives.XML.event >>
+(used for instance in HTML attributes like "onclick") are written using the quotation
+{{{ {{ ... }} }}}, for example:
 <<code language="ocaml"|
 p ~a:[a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
   [pcdata "I am a clickable paragraph"]
 >>
 
 (The {{{##}}} syntax is js_of_ocaml's syntax for calling a Javascript method).
+
+on client side a the type
+<<a_api project="eliom" subproject="client" | type Eliom_pervasives.XML.event >>
+is equal to {{{unit -> unit}}}, i.e. code inside quotations is expected to return
+a value of type {{{unit}}} ( the {{{fun () ->}}} part of the function declaration
+is added by the syntax extension ).
+
+<<a_api project="eliom" | type Eliom_pervasives.XML.event >> can also be used to
+execute some function when the page is loaded. This is achied using
+<<a_api project="eliom" | val Eliom_services.onload >>.
+
+Do not add onload attribute to elements, this won't behave as expected ( the event
+won't be triggered, or not at the right time ).
 
 ==== Using server side values on client side
 
@@ -222,6 +235,16 @@ a running application.
 
 It is possible to force reloading an application when clicking a link
 by creating the link with the {{{no_appl}}} option set to true.
+
+=== Navigating in and out of the application.
+
+Two function are available on client side to change the current page
+without interraction of the user. The function
+<<a_api project="eliom" | val Eliom_client.change_page >> goes to the service
+taken as parameter. If the service is in another application or not in
+an application it will stop the current one.
+<<a_api project="eliom" | val Eliom_client.exit_to >> change the current page
+and always leave the application.
 
 == Generating HTML for Eliom applications
 
@@ -453,6 +476,8 @@ Liens, formulaires, utilisation des services côté client
 Le module Eliom_client
 Modules Eliom disponibles des deux côtés (et différences)
 
+parler de Eliom_services.void_coservice ?
+
 == Communication between the client and the server
 
 Outside of the values passed by the mean of the {{{%variable}}}
@@ -555,12 +580,117 @@ let _ =
 For more information see deriving documentation.
 <<wip| ajouter un lien vers la doc de deriving>>
 
-
 deriving
-comet, bus et canaux
 
+=== Server sending data
 
-+ onload
+There are ways for the server to send data to the client, without the
+client to explicitely request it. We call that mechanism comet, it
+also sometimes called HTTP push.
+
+The simple low level version on wich all other following mechanism is
+implemented is provided in the <<a_api project="eliom" | module Eliom_comet.Channels >>
+module.
+
+Comet defines channels which can convey data. A channel is created
+using an Lwt stream. It is a kind of cooperative lazy list.
+
+The two main methods to create a stream is using
+<<a_api project="lwt" | val Lwt_stream.from >> or
+<<a_api project="lwt" | val Lwt_stream.create >> functions.
+
+<<code language="ocaml"|
+val from : (unit -> 'a option Lwt.t) -> 'a t
+val create : unit -> 'a t * ('a option -> unit)
+>>
+
+With <<a_api project="lwt" | val Lwt_stream.from >> you can create a stream where a new
+value is added each time a function returns. <<a_api project="lwt" | val Lwt_stream.create >>
+returns a stream and function to push new values to it.
+
+On client side the <<a_api project="eliom" subproject="client" | type Eliom_comet.Channels.t >>
+type is just an Lwt stream <<a_api project="lwt" | type Lwt_stream.t >>.
+
+There are 3 kind of channels depending on how you want to send data.
+
+* Channels created with
+  <<a_api project="eliom" | val Eliom_comet.Channels.create >>
+  have a buffer with a limited size. Message are read from the stream as
+  soon as they are available, i.e. for stream created with
+  <<a_api project="lwt" | val Lwt_stream.from >>, that means that the
+  function is called another time as soon as the previous one terminate.
+  For stream created with <<a_api project="lwt" | val Lwt_stream.create >>,
+  this is as soon as they are pushed. If the client has missed too much
+  messages ( more than the size of the buffer ) it will receive an exception
+  << a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
+  when reading data from the stream.
+
+* Channels created with
+  <<a_api project="eliom" | val Eliom_comet.Channels.create_newest >> has no buffering
+  and can loose messages, but the client will always receive the last value: For instance if many
+  messages are sent in a short time, this could send only the last one. Those channels never raise
+  << a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
+
+* Channels created with <<a_api project="eliom" | val Eliom_comet.Channels.create_unlimited >>
+  Which consume data on the stream only when their is a request from the client.
+
+Channels can be closed on client side by canceling a thread waiting for data on it.
+
+==== Comet configuration
+
+The server can push data to a client only when the client has an open
+HTTP connection waiting for answer. As of now, a comet request can
+only last at most 10 seconds. After that, the client can either do a
+new request or stale for some time: this is the activity
+behaviour. This can be configured on client side, using the functions from
+<<a_api project="eliom" subproject="client" | module Eliom_comet.Configuration >>
+
+For instance for if you receive data that doesn't need frequent
+update, you could set the time between different request quite high
+and stop requesting data as soon as the browser loose the focus.
+
+<<code language="ocaml"|
+open Eliom_comet.Configuration
+let slow_c = new_configuration () in
+set_active_until_timeout slow_c false;
+set_time_between_request slow_c 60.
+>>
+
+then if you want to have some reactivity for a few seconds.
+<<code language="ocaml"|
+open Eliom_comet.Configuration
+let fast_c = new_configuration () in
+set_set_always_active fast_c true;
+set_set_time_between_request fast_c 0.;
+ignore (Lwt_js.sleep 10. >|= (fun () -> drop_configuration fast_c))
+>>
+
+The original setting will be reset after the drop.
+
+=== Reactive values
+
+A common usage of comet is for the server to update a value available on client side.
+To do this, there are functions available to share a React event or signal:
+<< a_api project="eliom" | val Eliom_react.Down.of_react >> and
+<< a_api project="eliom" | val Eliom_react.S.Down.of_react >>
+
+On client side the value returned by those function is directly a React event or signal.
+
+The contrary is also available using << a_api project="eliom" | val Eliom_react.Up.create >>.
+
+Since this is implemented using comet, tunig comet configuration will
+also affect the behaviour of shared react variables.
+
+=== Client-Server shared bus
+
+Sometimes it is usefull to have a bidirectionnal channel shared between multiple clients.
+This is the intent of buses. Those are created using
+<< a_api project="eliom" | val Eliom_bus.create >>. Since the server will also receive data on
+the bus, the description of the type ( using deriving ) is needed to create a bus.
+
+Like comet channels, the behaviour of buses can be tuned using the module
+<<a_api project="eliom" subproject="client" | module Eliom_comet.Configuration >>.
+There are additionnal configurations available on buses to tune the client side buffering.
 
 + events (à mettre dans js_of_ocaml)
 
