@@ -2655,6 +2655,27 @@ let () =
   Eliom_output.Any.register  ~service:any_service_post
     (fun () choice -> make_any choice)
 
+(*****************************************************************************)
+(* Gracefull fail to external content *)
+
+let never_shown_service =
+  My_appl.register_service
+    ~path:["service_hidden_by_a_file.html"]
+    ~get_params:(Eliom_parameters.unit)
+    (fun () () ->
+      return
+	(make_page
+	   [pcdata "this page should never appear: a file with the same name is hidding it";]))
+
+let gracefull_fail_with_file =
+  My_appl.register_service
+    ~path:["gracefull_fail_with_file"]
+    ~get_params:unit
+    (fun () () ->
+      return
+	(make_page
+	   [Eliom_output.Html5.a ~service:never_shown_service
+               [pcdata "link to a service hidden by a file"] ();]))
 
 (*****************************************************************************)
 (* Actions with `NoReload option *)

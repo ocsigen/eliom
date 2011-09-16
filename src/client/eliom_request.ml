@@ -133,35 +133,57 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 	  List.iter (Form.append contents) form_arg;
 	  Some contents
     in
-    lwt r = XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
-      ?post_args ?get_args ?form_arg:form_contents url in
-    ( match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name with
-      | None -> ()
-      | Some tab_cookies ->
-	let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
-	Eliommod_cookies.update_cookie_table tab_cookies; );
-    if r.XmlHttpRequest.code = 204
-    then
-      match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
-        | Some uri ->
-          if i < max_redirection_level
-          then aux (i+1) uri
-          else Lwt.fail Looping_redirection
-        | None ->
-          match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
-            | Some uri ->
-	      (match post_args,form_arg with
-		| None,None -> redirect_get uri
-		| _,_ -> redirect_post_form_elt ?post_args ?form_arg url);
-	      Lwt.fail Program_terminated
-            | None -> Lwt.return (r.XmlHttpRequest.url, None)
-    else
+    let check_headers code headers =
       if expecting_process_page
       then
-	match r.XmlHttpRequest.headers Eliom_common.appl_name_header_name with
+	if code = 204
+	then true
+	else
+	  headers Eliom_common.appl_name_header_name
+	  = Eliom_process.get_application_name ()
+      else true
+    in
+    try_lwt
+      lwt r = XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
+	?post_args ?get_args ?form_arg:form_contents ~check_headers url in
+      ( match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name with
+	| None -> ()
+	| Some tab_cookies ->
+	  let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
+	  Eliommod_cookies.update_cookie_table tab_cookies; );
+      if r.XmlHttpRequest.code = 204
+      then
+	match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
+          | Some uri ->
+            if i < max_redirection_level
+            then aux (i+1) uri
+            else Lwt.fail Looping_redirection
+          | None ->
+            match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
+              | Some uri ->
+		(match post_args,form_arg with
+		  | None,None -> redirect_get uri
+		  | _,_ -> redirect_post_form_elt ?post_args ?form_arg url);
+		Lwt.fail Program_terminated
+              | None -> Lwt.return (r.XmlHttpRequest.url, None)
+      else
+	if expecting_process_page
+	then Lwt.return (r.XmlHttpRequest.url, Some (result r))
+	else
+	  if r.XmlHttpRequest.code = 200
+	  then Lwt.return (r.XmlHttpRequest.url, Some (result r))
+	  else Lwt.fail (Failed_request r.XmlHttpRequest.code)
+    with
+      | XmlHttpRequest.Wrong_headers (code, headers) ->
+	(* We are requesting application content and the headers tels
+	   us that the answer is not application content *)
+	match headers Eliom_common.appl_name_header_name with
 	  | None ->
 	    debug "Eliom_request: non application content received";
-	    Lwt.fail (Failed_request r.XmlHttpRequest.code)
+	    (match post_args,form_arg with
+	      | None,None -> redirect_get url
+	      | _,_ -> error "Eliom_request: can't silently redirect a Post request to non application content");
+	    Lwt.fail Program_terminated
 	  | Some appl_name ->
 	    match Eliom_process.get_application_name () with
 	      | None ->
@@ -169,15 +191,12 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 		assert false
 	      | Some current_appl_name ->
 		if appl_name = current_appl_name
-		then Lwt.return (r.XmlHttpRequest.url, Some (result r))
+		then assert false (* we can't go here:
+				     this case is already handled before *)
 		else
 		  (debug "Eliom_request: received content for application %s when running application %s"
 		     appl_name current_appl_name;
-		   Lwt.fail (Failed_request r.XmlHttpRequest.code))
-      else
-	if r.XmlHttpRequest.code = 200
-	then Lwt.return (r.XmlHttpRequest.url, Some (result r))
-	else Lwt.fail (Failed_request r.XmlHttpRequest.code)
+		   Lwt.fail (Failed_request code))
   in aux 0 ?cookies_info ?get_args ?post_args ?form_arg url
 
 (** Same as XmlHttpRequest.perform_raw_url, but:

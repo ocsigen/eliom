@@ -431,8 +431,10 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a nonapplprocessservice [pcdata "Client process service not registered with Eliom_appl"] ();
               br ();
+              a gracefull_fail_with_file [ pcdata "link to a service hidden by a file" ] ();
+              br ();
             ];
-            
+
             h4 [pcdata "Process states"];
             p [
               pcdata "Coservices: ";
