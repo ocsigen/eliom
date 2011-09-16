@@ -3,7 +3,7 @@
 //This document is the Eliom manual, where you will find an explanation
 of each concepts provided by Eliom.
 If you are looking for a more didactic introduction,
-have a look at the [[wiki(36):tutorial of the Ocsigen project]]
+have a look at the [[wiki(36):|tutorial of the Ocsigen project]]
 which is a good starting point for beginners.//
 
 In the past few years, the Web evolved from something quite static
@@ -71,7 +71,7 @@ new services that depend on previous interaction with the user
 //continuation based Web programming//. This makes possible for example
 to implement several step forms very easily (like booking a plane ticket).
 
-==Sessions==
+==Sessions and server side state==
 
 Eliom also have a very sophisticated session mechanism.
 Sessions are a common pattern in Web programming allowing
@@ -99,7 +99,7 @@ generation of a page.
 
 ==Client/server applications==
 
-Eliom applications are distributed application between a server and a browser.
+Eliom applications are applications distributed between a server and a browser.
 An instance of the application is running in a tab of the browser and
 can communicate with the server.
 The full application is written in OCaml, as a single program,

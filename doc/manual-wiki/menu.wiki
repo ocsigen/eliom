@@ -2,7 +2,7 @@
 ==[[intro|Introduction]]
 ==[[services|Services]]
 ==[[params|Parameters, links and forms]]
-==[[state|State]]
+==[[state|Sessions and server side state]]
 ==[[client|Client-server applications]]
 ==[[misc|Miscellaneous]]
 ==[[config|Compiling and configuring Eliom modules]]
