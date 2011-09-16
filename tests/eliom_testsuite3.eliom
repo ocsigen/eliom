@@ -2678,6 +2678,41 @@ let gracefull_fail_with_file =
                [pcdata "link to a service hidden by a file"] ();]))
 
 (*****************************************************************************)
+(* correct url with redirections *)
+
+let redirected_src_service =
+  My_appl.register_service
+    ~path:["redirect_src"]
+    ~get_params:(Eliom_parameters.unit)
+    (fun () () ->
+      return
+	(make_page
+	   [pcdata "this page should never appear: a redirection happen before";]))
+
+let redirected_dst_service =
+  My_appl.register_service
+    ~path:["redirect_dst"]
+    ~get_params:(Eliom_parameters.unit)
+    (fun () () ->
+      return
+	(make_page
+	   [pcdata "the url in the browser bar should contain redirect_dst and not redirect_src";]))
+
+let appl_with_redirect_service =
+  My_appl.register_service
+    ~path:["appl_with_redirect"]
+    ~get_params:unit
+    (fun () () ->
+      return
+	(make_page
+	   [Eliom_output.Html5.a ~service:redirected_src_service
+               [pcdata "link to a service hidden by a redirection"] ();
+	    br ();
+	    pcdata "there should be a line like: <redirect suburl=\"redirect_src\" dest=\"http://localhost:8080/redirect_dst\"/> in the configuration file";
+	   ]))
+
+
+(*****************************************************************************)
 (* Actions with `NoReload option *)
 let noreload_ref = ref 0
 

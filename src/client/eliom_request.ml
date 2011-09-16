@@ -168,7 +168,10 @@ let rec send ?(expecting_process_page = false) ?cookies_info
               | None -> Lwt.return (r.XmlHttpRequest.url, None)
       else
 	if expecting_process_page
-	then Lwt.return (r.XmlHttpRequest.url, Some (result r))
+	then
+	  match r.XmlHttpRequest.headers Eliom_common.response_url_header with
+	    | Some url -> Lwt.return (url, Some (result r))
+	    | None -> error "Eliom_request: no location header"
 	else
 	  if r.XmlHttpRequest.code = 200
 	  then Lwt.return (r.XmlHttpRequest.url, Some (result r))

@@ -433,6 +433,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a gracefull_fail_with_file [ pcdata "link to a service hidden by a file" ] ();
               br ();
+              a appl_with_redirect_service [ pcdata "link to a service hidden by a redirection" ] ();
+              br ();
             ];
 
             h4 [pcdata "Process states"];

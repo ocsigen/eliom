@@ -2650,7 +2650,11 @@ module Eliom_appl_reg_make_param
       Appl_params.application_name
       headers
     in
-
+    let headers = Http_headers.replace
+      (Http_headers.name Eliom_common_base.response_url_header)
+      (Eliom_request_info.get_full_url ())
+      headers
+    in
     let content_type =
       match content_type with
 	| None ->
