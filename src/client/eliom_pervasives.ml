@@ -295,6 +295,13 @@ module Url = struct
 
   let split_path = Url.path_of_path_string
 
+  let split_fragment s =
+    try
+      let pos = String.index s '#' in
+      String.sub s 0 pos,
+      String.sub s (pos+1) (String.length s - 1 - pos)
+    with Not_found -> s,""
+
 end
 
 (*****************************************************************************)

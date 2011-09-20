@@ -77,6 +77,7 @@ module Url : sig
   val encode : ?plus:bool -> string -> string
   val make_encoded_parameters : (string * string) list -> string
   val split_path : string -> string list
+  val split_fragment : string -> string * string
 end
 
 (*

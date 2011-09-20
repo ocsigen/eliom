@@ -2440,6 +2440,25 @@ let otherappl =
     ~get_params:unit
     (fun () () -> Lwt.return (make_page_bis [p [pcdata "I am another application"] ]))
 
+let long_page = Eliom_services.service ~path:["fragment"] ~get_params:unit ()
+
+let _ =
+  My_appl.register long_page
+  (fun () () ->
+    let rec list i n =
+      if i >= n  then
+	[HTML5.M.li
+	  [Eliom_output.Html5.a
+	      ~service:long_page [pcdata ("Goto TOP")] ()]]
+      else
+	HTML5.M.li ~a:[HTML5.M.a_id ("id" ^string_of_int i)]
+	  [HTML5.M.pcdata ("Item #" ^ string_of_int i);
+	   HTML5.M.pcdata "; ";
+	   Eliom_output.Html5.a
+	     ~fragment:("id" ^ string_of_int (n-i))
+	     ~service:long_page [pcdata ("Goto #" ^ string_of_int (n-i))] ();] :: list (i+1) n in
+    Lwt.return
+      (make_page [HTML5.M.ul (list 1 100)]))
 
 let formc = My_appl.register_service ["formc"] unit
   (fun () () -> 

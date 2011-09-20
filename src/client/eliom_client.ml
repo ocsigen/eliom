@@ -293,6 +293,7 @@ let exit_to
     A script must do the redirection if there is something in the fragment.
     Usually this function is only for internal use.
 *)
+
 let change_url_string uri =
   if Eliom_process.history_api then begin
     Dom_html.window##history##pushState(Js.Unsafe.inject 0,
@@ -406,10 +407,15 @@ let load_data_script data_script =
   let script = data_script##innerHTML in
   ignore (Js.Unsafe.eval_string (Js.to_string script));
   ( Eliom_request_info.get_request_data (),
-    Eliom_request_info.get_request_cookies (),
-    Eliom_request_info.get_request_url () )
+    Eliom_request_info.get_request_cookies ())
 
-let set_content ?url = function
+let scroll_to_fragment fragment =
+  if Eliom_process.history_api then
+    Dom_html.window##location##hash <- Js.string fragment
+  else
+    () (* TODO *)
+
+let set_content ?url ?(fragment = "") = function
   | None -> Lwt.return ()
   | Some content ->
     try_lwt
@@ -418,7 +424,7 @@ let set_content ?url = function
       on_unload_scripts := [];
       iter_option change_url_string url;
       let fake_page = Eliommod_dom.copy_element (content##documentElement) in
-      let js_data, cookies, url = load_data_script (get_data_script fake_page) in
+      let js_data, cookies = load_data_script (get_data_script fake_page) in
       Eliommod_cookies.update_cookie_table cookies;
       let on_load = load_eliom_data js_data fake_page in
       let head, body = Eliommod_dom.get_head fake_page, Eliommod_dom.get_body fake_page in
@@ -431,6 +437,7 @@ let set_content ?url = function
         (Dom_html.document##documentElement)
         body (document_body);
       ignore (List.for_all (fun f -> f ()) on_load);
+      scroll_to_fragment fragment;
       Lwt.return ()
     with
       | e ->
@@ -469,12 +476,26 @@ let change_page
     in
     set_content ~url content
 
-let change_page_uri ?cookies_info ?(get_params = []) uri =
-  lwt (url, content) = Eliom_request.http_get
-    ~expecting_process_page:true ?cookies_info uri get_params
-    Eliom_request.xml_result
-  in
-  set_content ~url content
+let split_fragment uri =
+  if Eliom_process.history_api then
+    Url.split_fragment uri
+  else
+    (uri, "") (* TODO *)
+
+let current_uri = ref (fst (split_fragment (Js.to_string Dom_html.window##location##href)))
+let change_page_uri ?cookies_info ?(get_params = []) full_uri =
+  let uri, fragment = split_fragment full_uri in
+  if uri <> !current_uri then
+    lwt (url, content) = Eliom_request.http_get
+      ~expecting_process_page:true ?cookies_info uri get_params
+      Eliom_request.xml_result
+    in
+    current_uri := uri;
+    set_content ~url ~fragment content
+  else
+    (if Js.to_string Dom_html.window##location##hash <> fragment then
+	scroll_to_fragment fragment;
+     Lwt.return ())
 
 let change_page_get_form ?cookies_info form uri =
   let form = Js.Unsafe.coerce form in
@@ -578,13 +599,20 @@ let _ =
     Dom_html.window##onpopstate <-
       Dom_html.handler
       (fun e ->
-	let url = Js.to_string Dom_html.window##location##href in
+	let full_uri = Js.to_string Dom_html.window##location##href in
         if not !chrome_dummy_popstate then
 	  lwt_ignore
-	    (lwt url, content =
-	       Eliom_request.http_get ~expecting_process_page:true url []
-		 Eliom_request.xml_result in
-	     set_content content);
+	    (let uri, fragment = split_fragment full_uri in
+	     if uri <> !current_uri then
+	       lwt url, content =
+		 Eliom_request.http_get ~expecting_process_page:true uri []
+		   Eliom_request.xml_result in
+	       current_uri := uri;
+	       set_content content ~fragment
+	     else
+	       (if Js.to_string Dom_html.window##location##hash <> fragment then
+		 scroll_to_fragment fragment;
+		Lwt.return ()));
 	Js._false)
 
   else

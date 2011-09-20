@@ -2493,8 +2493,7 @@ module Eliom_appl_reg_make_param
 	("var eliom_appl_sitedata = \'%s\';\n"
  	 ^^ "var eliom_appl_process_info = \'%s\'\n"
 	 ^^ "var eliom_request_data;\n"
-	 ^^ "var eliom_request_cookies;\n"
-	 ^^ "var eliom_request_url;\n")
+	 ^^ "var eliom_request_cookies;\n")
 	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
 	(Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
@@ -2507,18 +2506,6 @@ module Eliom_appl_reg_make_param
     HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
 
   let make_eliom_data_script ~sp page =
-
-    let rc = Eliom_request_info.get_request_cache_sp sp in
-    let url_to_display =
-      "/"
-      ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
-	(* If it is a suffix service with redirection, the uri has already been
-           computed in rc *)
-	with Not_found -> Eliom_request_info.get_full_url_sp sp
-      (* Otherwise, the full url has already been recomputed
-         without internal form info and taking "to_be_considered_as_get"
-         into account *)
-    in
 
     (* wrapping of values could create eliom references that may
        create cookies that needs to be sent along the page. Hence,
@@ -2542,11 +2529,9 @@ module Eliom_appl_reg_make_param
     let script =
       Printf.sprintf
 	("eliom_request_data = \'%s\';\n"
-	 ^^ "eliom_request_cookies = \'%s\';\n"
-	 ^^ "eliom_request_url = \'%s\';\n")
+	 ^^ "eliom_request_cookies = \'%s\';\n")
 	(Eliom_types.jsmarshal eliom_data)
 	(Eliom_types.jsmarshal tab_cookies)
-	(Eliom_types.jsmarshal url_to_display)
     in
 
     Lwt.return
@@ -2650,15 +2635,22 @@ module Eliom_appl_reg_make_param
       Appl_params.application_name
       headers
     in
+
+    let rc = Eliom_request_info.get_request_cache () in
     let headers = Http_headers.replace
       (Http_headers.name Eliom_common_base.response_url_header)
       (Url.make_absolute_url
 	 ~https:(Eliom_request_info.get_ssl ())
 	 ~host:(Eliom_request_info.get_hostname ())
 	 ~port:(Eliom_request_info.get_server_port ())
-	 ("/" ^ Eliom_request_info.get_original_full_path_string ()))
+	 ("/"
+	  ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
+	     (* If it is a suffix service with redirection, the uri has already been
+		computed in rc *)
+	    with Not_found -> Eliom_request_info.get_original_full_path_string ()))
       headers
     in
+
     let content_type =
       match content_type with
 	| None ->

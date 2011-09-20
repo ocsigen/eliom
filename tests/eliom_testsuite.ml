@@ -366,6 +366,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
             p [
               a eliomclient1 [pcdata "Simple example of client side code"] ();
               br ();
+              a ~fragment:"id40" ~service:long_page [pcdata "Fragment scrolling"] ();
+              br ();
               a formc [pcdata "Links and forms"] ();
               br ();
 (*
