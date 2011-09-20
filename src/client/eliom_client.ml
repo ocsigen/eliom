@@ -57,17 +57,28 @@ let reify_caml_event node ce = match ce with
   | XML.CE_call_service (Some (`A, cookies_info)) ->
       (fun () ->
 	let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
-	!change_page_uri_ ?cookies_info (Js.to_string href); false)
+	let https = Url.get_ssl (Js.to_string href) in
+	Firebug.console##log(https);
+	Firebug.console##log(Eliom_request_info.ssl_);
+	(https = Some true && not Eliom_request_info.ssl_)
+	|| (https = Some false && Eliom_request_info.ssl_)
+	|| (!change_page_uri_ ?cookies_info (Js.to_string href); false))
   | XML.CE_call_service (Some (`Form_get, cookies_info)) ->
       (fun () ->
 	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
 	let action = Js.to_string form##action in
-	!change_page_get_form_ ?cookies_info form action; false)
+	let https = Url.get_ssl action in
+	(https = Some true && not Eliom_request_info.ssl_)
+	|| (https = Some false && Eliom_request_info.ssl_)
+	|| (!change_page_get_form_ ?cookies_info form action; false))
   | XML.CE_call_service (Some (`Form_post, cookies_info)) ->
       (fun () ->
 	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
 	let action = Js.to_string form##action in
-	!change_page_post_form_ ?cookies_info form action; false)
+	let https = Url.get_ssl action in
+	(https = Some true && not Eliom_request_info.ssl_)
+	|| (https = Some false && Eliom_request_info.ssl_)
+	|| (!change_page_post_form_ ?cookies_info form action; false))
   | XML.CE_client_closure f ->
     (fun () -> try f (); true with False -> false)
   | XML.CE_registered_closure (id, args) ->
@@ -451,6 +462,7 @@ let change_page
 
   if not (Eliom_services.xhr_with_cookies service)
     || (https = Some true && not Eliom_request_info.ssl_)
+    || (https = Some false && Eliom_request_info.ssl_)
   then
     Lwt.return
       (exit_to

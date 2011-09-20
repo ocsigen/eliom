@@ -302,8 +302,13 @@ module Url = struct
       String.sub s (pos+1) (String.length s - 1 - pos)
     with Not_found -> s,""
 
-end
+  let ssl_re = Regexp.regexp "^(https?):\\/\\/"
+  let get_ssl s =
+    map_option
+      (fun r -> Regexp.matched_group r 1 = Some "https")
+      (Regexp.string_match ssl_re s 0)
 
+end
 (*****************************************************************************)
 (*
 module Ip_address = struct
@@ -818,5 +823,8 @@ module Regexp = struct
 
 end
 
+
 (** Empty type (not used on client side, see eliom_parameter_base.ml) *)
 type file_info
+
+

@@ -2473,7 +2473,7 @@ let formc = My_appl.register_service ["formc"] unit
             p [Eliom_output.Html5.a ~service:%Eliom_testsuite1.coucou
                  [pcdata "Link to a service outside the application."]
                  ()];
-           
+
            Eliom_output.Html5.get_form ~service:%Eliom_testsuite1.coucou
              (fun () ->
                [Eliom_output.Html5.string_input ~input_type:`Submit ~value:"GET form to a service outside the Eliom application" ()]
@@ -2502,7 +2502,13 @@ let formc = My_appl.register_service ["formc"] unit
            p [Eliom_output.Html5.a ~service:%eliomclient1
                  [pcdata "Link to a service inside the application."]
                  ()];
-           
+           p [Eliom_output.Html5.a ~https:false ~service:%eliomclient1
+		 [pcdata "Link to a service inside the application (force http)."]
+		 ()];
+           p [Eliom_output.Html5.a ~https:true ~service:%eliomclient1
+		 [pcdata "Link to a service inside the application (force https)."]
+		 ()];
+
            Eliom_output.Html5.get_form ~service:%eliomclient1
              (fun () ->
                [Eliom_output.Html5.string_input ~input_type:`Submit ~value:"GET form to a service inside the Eliom application" ()]
@@ -2571,6 +2577,12 @@ let formc = My_appl.register_service ["formc"] unit
 
         p [Eliom_output.Html5.a ~service:eliomclient1
               [pcdata "Link to a service inside the application."]
+              ()];
+        p [Eliom_output.Html5.a ~https:false ~service:eliomclient1
+              [pcdata "Link to a service inside the application (force http)."]
+              ()];
+        p [Eliom_output.Html5.a ~https:true ~service:eliomclient1
+              [pcdata "Link to a service inside the application (force https)."]
               ()];
 
         Eliom_output.Html5.get_form ~service:eliomclient1
