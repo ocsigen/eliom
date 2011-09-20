@@ -1,3 +1,9 @@
+===== 2.0 (2011-09-20) =====
+
+ * Bugfixes:
+ ** Correct handling of HTTP redirections hidden by XHR
+ ** Fix links from http to https on client application
+
 ===== 2.0-rc2 (2011-09-06) =====
 
  * Feature:
