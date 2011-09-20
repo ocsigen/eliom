@@ -2652,7 +2652,11 @@ module Eliom_appl_reg_make_param
     in
     let headers = Http_headers.replace
       (Http_headers.name Eliom_common_base.response_url_header)
-      (Eliom_request_info.get_full_url ())
+      (Url.make_absolute_url
+	 ~https:(Eliom_request_info.get_ssl ())
+	 ~host:(Eliom_request_info.get_hostname ())
+	 ~port:(Eliom_request_info.get_server_port ())
+	 ("/" ^ Eliom_request_info.get_original_full_path_string ()))
       headers
     in
     let content_type =
