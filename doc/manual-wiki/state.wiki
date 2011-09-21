@@ -9,7 +9,7 @@ Any help appreciated.>>
 <<wip|//Warning:// Some part of this chapter need to be updated.
 State names and scopes have been merged into one single concept (called
 scope again): it is now possible to create several scopes for the same
-laval (several session scopes for example).
+level (several session scopes for example).
 >>
 
 The server-side state of an application refers to data stored on server
@@ -44,7 +44,7 @@ We hope to simplify this when OCaml's serialization mechanism evolves.
 In the meantime, be very careful where you store your data.
 To avoid shutting down the server, note that it is possible
 to ask the server to load dynamically new versions of your site
-(see command {{{reload}}} in chapter * *).\\
+(see [[config|command {{{reload}}}]]).\\
 
 On a technical point of view, sessions and groups of sessions are
 implemented automatically by Eliom by asking the browser to send
@@ -408,6 +408,14 @@ For most uses, the session group is the user name.
 It is a good idea to group together all the opened sessions for a same user
 (if he is using several browsers).\\
 
+//Example of use:// Share a shopping basket between several devices
+(your mobile phone and your laptop).
+
+Using persistant Eliom references with scope "session group" is a
+convenient way to store data about a user without having to
+use an external database. Do not hesitate to use them instead of
+session scope, as it is fits probably most your needs better than sessions.
+
 **The use of session groups is highly encouraged!**, because:
 * //The number of sessions in a group is limited.//
 If all sessions are in a group you will avoid some malicious user
@@ -430,7 +438,7 @@ It is highly recommended to set a group for each of the three kinds of states
 you use (services, volatile data and persistent data).\\
 
 
-We rewrite the example of section * * with session groups.
+We rewrite the example of user connection with session groups.
 We also make some additional changes:
 * We use persistent sessions
 * We use a redirection instead of an action in case the connection succeeded,
