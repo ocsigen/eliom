@@ -2664,12 +2664,13 @@ module Eliom_appl_reg_make_param
 	| None ->
 	  let header = Lazy.force sp.Eliom_common.sp_request.
 	    Ocsigen_extensions.request_info.Ocsigen_extensions.ri_accept in
-	  if List.exists
-	    (function
-	      | ((Some "application", Some "xhtml+xml"),_,_) -> true
-	      | _ -> false) header
+	  if Eliom_request_info.expecting_process_page ()
+	    && List.exists
+	      (function
+		| ((Some "application", Some "xhtml+xml"),_,_) -> true
+		| _ -> false) header
 	  then Some "application/xhtml+xml"
-	  else None
+	  else r.Ocsigen_http_frame.res_content_type
 	| _ -> content_type
     in
 
