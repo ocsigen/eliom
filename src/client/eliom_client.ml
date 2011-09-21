@@ -251,7 +251,7 @@ end
 
 (* == XHR *)
 
-let current_fragment = ref ""
+let current_pseudo_fragment = ref ""
 let url_fragment_prefix = "!"
 let url_fragment_prefix_with_sharp = "#!"
 
@@ -303,13 +303,17 @@ let exit_to
     Usually this function is only for internal use.
 *)
 
+let current_uri =
+  ref (fst (Url.split_fragment (Js.to_string Dom_html.window##location##href)))
+
 let change_url_string uri =
+  current_uri := fst (Url.split_fragment uri);
   if Eliom_process.history_api then begin
     Dom_html.window##history##pushState(Js.Unsafe.inject 0,
 					Js.string "" ,
 					Js.Opt.return (Js.string uri));
   end else begin
-    current_fragment := url_fragment_prefix_with_sharp^uri;
+    current_pseudo_fragment := url_fragment_prefix_with_sharp^uri;
     Eliom_request_info.set_current_path uri;
     Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
   end
@@ -419,13 +423,14 @@ let load_data_script data_script =
     Eliom_request_info.get_request_cookies ())
 
 let scroll_to_fragment fragment =
-  if Eliom_process.history_api then
-    if fragment <> Js.to_string Dom_html.window##location##hash then
-      Dom_html.window##location##hash <- Js.string fragment
-  else
-    () (* TODO *)
+  match fragment with
+  | None | Some "" -> Dom_html.window##scroll(0, 0)
+  | Some fragment ->
+      let scroll_to_element e = Dom_html.window##scroll(0, e##offsetTop) in
+      let elem = Dom_html.document##getElementById(Js.string fragment) in
+      Js.Opt.iter elem scroll_to_element
 
-let set_content ?uri ?(fragment = "") = function
+let set_content ?uri = function
   | None -> Lwt.return ()
   | Some content ->
     try_lwt
@@ -447,7 +452,7 @@ let set_content ?uri ?(fragment = "") = function
         (Dom_html.document##documentElement)
         body (document_body);
       ignore (List.for_all (fun f -> f ()) on_load);
-      scroll_to_fragment fragment;
+      iter_option (fun uri -> scroll_to_fragment (snd (Url.split_fragment uri))) uri;
       Lwt.return ()
     with
       | e ->
@@ -491,42 +496,38 @@ let split_fragment uri =
   if Eliom_process.history_api then
     Url.split_fragment uri
   else
-    (uri, "") (* TODO *)
+    (uri, None) (* TODO *)
 
-let current_uri = ref (fst (split_fragment (Js.to_string Dom_html.window##location##href)))
 let change_page_uri ?cookies_info ?(get_params = []) full_uri =
   let uri, fragment = split_fragment full_uri in
-  if uri <> !current_uri then
+  if uri <> !current_uri || fragment = None then
     lwt (uri, content) = Eliom_request.http_get
       ~expecting_process_page:true ?cookies_info uri get_params
       Eliom_request.xml_result
     in
-    current_uri := uri;
-    set_content ~uri ~fragment content
+    set_content ~uri:full_uri content
   else
-    (if Js.to_string Dom_html.window##location##hash <> fragment then
-	scroll_to_fragment fragment;
-     Lwt.return ())
+    ( change_url_string full_uri;
+      scroll_to_fragment fragment;
+      Lwt.return () )
 
 let change_page_get_form ?cookies_info form full_uri =
   let form = Js.Unsafe.coerce form in
-  let uri, fragment = split_fragment full_uri in
+  let uri, _ = split_fragment full_uri in
   lwt uri, content = Eliom_request.send_get_form
-    ~expecting_process_page:true ?cookies_info form full_uri
+    ~expecting_process_page:true ?cookies_info form uri
     Eliom_request.xml_result
   in
-  current_uri := uri;
-  set_content ~uri ~fragment content
+  set_content ~uri:full_uri content
 
 let change_page_post_form ?cookies_info form full_uri =
   let form = Js.Unsafe.coerce form in
-  let uri, fragment = split_fragment full_uri in
+  let uri, _ = split_fragment full_uri in
   lwt uri, content = Eliom_request.send_post_form
-      ~expecting_process_page:true ?cookies_info form full_uri
+      ~expecting_process_page:true ?cookies_info form uri
       Eliom_request.xml_result
   in
-  current_uri := uri;
-  set_content ~uri ~fragment content
+  set_content ~uri:full_uri content
 
 let _ =
   change_page_uri_ :=
@@ -588,10 +589,10 @@ let auto_change_page fragment =
     (let l = String.length fragment in
      if (l = 0) || ((l > 1) && (fragment.[1] = '!'))
      then
-       if fragment <> !current_fragment
+       if fragment <> !current_pseudo_fragment
        then
          (
-           current_fragment := fragment;
+           current_pseudo_fragment := fragment;
            let uri =
 	     match l with
 	       | 2 -> "./" (* fix for firefox *)
@@ -619,15 +620,16 @@ let _ =
 	  lwt_ignore
 	    (let uri, fragment = split_fragment full_uri in
 	     if uri <> !current_uri then
-	       lwt url, content =
+	       lwt uri, content =
 		 Eliom_request.http_get ~expecting_process_page:true uri []
 		   Eliom_request.xml_result in
-	       current_uri := url;
-	       set_content content ~fragment
+	       current_uri := uri;
+	       set_content content >>
+	       (scroll_to_fragment fragment;
+		Lwt.return ())
 	     else
-	       (if Js.to_string Dom_html.window##location##hash <> fragment then
-		 scroll_to_fragment fragment;
-		Lwt.return ()));
+	       ( scroll_to_fragment fragment;
+		 Lwt.return () ));
 	Js._false)
 
   else

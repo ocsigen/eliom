@@ -299,8 +299,8 @@ module Url = struct
     try
       let pos = String.index s '#' in
       String.sub s 0 pos,
-      String.sub s (pos+1) (String.length s - 1 - pos)
-    with Not_found -> s,""
+      Some (String.sub s (pos+1) (String.length s - 1 - pos))
+    with Not_found -> s, None
 
   let ssl_re = Regexp.regexp "^(https?):\\/\\/"
   let get_ssl s =

@@ -2449,6 +2449,7 @@ let _ =
       if i >= n  then
 	[HTML5.M.li
 	  [Eliom_output.Html5.a
+	      ~fragment:""
 	      ~service:long_page [pcdata ("Goto TOP")] ()]]
       else
 	HTML5.M.li ~a:[HTML5.M.a_id ("id" ^string_of_int i)]
@@ -2499,13 +2500,17 @@ let formc = My_appl.register_service ["formc"] unit
            
            h4 [pcdata "inside the application — must not stop the process! (same random number in the container)."];
 
-           p [Eliom_output.Html5.a ~service:%eliomclient1
+           p [Eliom_output.Html5.a ~service:%long_page
                  [pcdata "Link to a service inside the application."]
                  ()];
-           p [Eliom_output.Html5.a ~https:false ~service:%eliomclient1
+           p [Eliom_output.Html5.a ~service:%long_page
+		~fragment:"id40"
+		[pcdata "Link to a service inside the application (fragment)."]
+		()];
+           p [Eliom_output.Html5.a ~https:false ~service:%long_page
 		 [pcdata "Link to a service inside the application (force http)."]
 		 ()];
-           p [Eliom_output.Html5.a ~https:true ~service:%eliomclient1
+           p [Eliom_output.Html5.a ~https:true ~service:%long_page
 		 [pcdata "Link to a service inside the application (force https)."]
 		 ()];
 
@@ -2575,13 +2580,17 @@ let formc = My_appl.register_service ["formc"] unit
         
         h4 [pcdata "inside the application — must not stop the process! (same random number in the container)."];
 
-        p [Eliom_output.Html5.a ~service:eliomclient1
+        p [Eliom_output.Html5.a ~service:long_page
               [pcdata "Link to a service inside the application."]
               ()];
-        p [Eliom_output.Html5.a ~https:false ~service:eliomclient1
+        p [Eliom_output.Html5.a ~service:long_page
+	     ~fragment:"id40"
+              [pcdata "Link to a service inside the application (fragment)."]
+              ()];
+        p [Eliom_output.Html5.a ~https:false ~service:long_page
               [pcdata "Link to a service inside the application (force http)."]
               ()];
-        p [Eliom_output.Html5.a ~https:true ~service:eliomclient1
+        p [Eliom_output.Html5.a ~https:true ~service:long_page
               [pcdata "Link to a service inside the application (force https)."]
               ()];
 
