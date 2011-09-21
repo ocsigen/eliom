@@ -58,8 +58,6 @@ let reify_caml_event node ce = match ce with
       (fun () ->
 	let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
 	let https = Url.get_ssl (Js.to_string href) in
-	Firebug.console##log(https);
-	Firebug.console##log(Eliom_request_info.ssl_);
 	(https = Some true && not Eliom_request_info.ssl_)
 	|| (https = Some false && Eliom_request_info.ssl_)
 	|| (!change_page_uri_ ?cookies_info (Js.to_string href); false))
@@ -426,14 +424,14 @@ let scroll_to_fragment fragment =
   else
     () (* TODO *)
 
-let set_content ?url ?(fragment = "") = function
+let set_content ?uri ?(fragment = "") = function
   | None -> Lwt.return ()
   | Some content ->
     try_lwt
       chrome_dummy_popstate := false;
       ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
       on_unload_scripts := [];
-      iter_option change_url_string url;
+      iter_option change_url_string uri;
       let fake_page = Eliommod_dom.copy_element (content##documentElement) in
       let js_data, cookies = load_data_script (get_data_script fake_page) in
       Eliommod_cookies.update_cookie_table cookies;
@@ -471,7 +469,7 @@ let change_page
          get_params post_params)
   else
     let cookies_info = Eliom_uri.make_cookies_info (https, service) in
-    lwt (url, content) = match
+    lwt (uri, content) = match
         create_request_
           ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
 	  ?keep_nl_params ?nl_params ?keep_get_na_params
@@ -486,7 +484,7 @@ let change_page
 	    ~expecting_process_page:true ?cookies_info uri p
 	    Eliom_request.xml_result
     in
-    set_content ~url content
+    set_content ~uri content
 
 let split_fragment uri =
   if Eliom_process.history_api then
@@ -498,32 +496,36 @@ let current_uri = ref (fst (split_fragment (Js.to_string Dom_html.window##locati
 let change_page_uri ?cookies_info ?(get_params = []) full_uri =
   let uri, fragment = split_fragment full_uri in
   if uri <> !current_uri then
-    lwt (url, content) = Eliom_request.http_get
+    lwt (uri, content) = Eliom_request.http_get
       ~expecting_process_page:true ?cookies_info uri get_params
       Eliom_request.xml_result
     in
     current_uri := uri;
-    set_content ~url ~fragment content
+    set_content ~uri ~fragment content
   else
     (if Js.to_string Dom_html.window##location##hash <> fragment then
 	scroll_to_fragment fragment;
      Lwt.return ())
 
-let change_page_get_form ?cookies_info form uri =
+let change_page_get_form ?cookies_info form full_uri =
   let form = Js.Unsafe.coerce form in
-  lwt url, content = Eliom_request.send_get_form
-    ~expecting_process_page:true ?cookies_info form uri
+  let uri, fragment = split_fragment full_uri in
+  lwt uri, content = Eliom_request.send_get_form
+    ~expecting_process_page:true ?cookies_info form full_uri
     Eliom_request.xml_result
   in
-  set_content ~url content
+  current_uri := uri;
+  set_content ~uri ~fragment content
 
-let change_page_post_form ?cookies_info form uri =
+let change_page_post_form ?cookies_info form full_uri =
   let form = Js.Unsafe.coerce form in
-  lwt url, content = Eliom_request.send_post_form
-      ~expecting_process_page:true ?cookies_info form uri
+  let uri, fragment = split_fragment full_uri in
+  lwt uri, content = Eliom_request.send_post_form
+      ~expecting_process_page:true ?cookies_info form full_uri
       Eliom_request.xml_result
   in
-  set_content ~url content
+  current_uri := uri;
+  set_content ~uri ~fragment content
 
 let _ =
   change_page_uri_ :=
@@ -619,7 +621,7 @@ let _ =
 	       lwt url, content =
 		 Eliom_request.http_get ~expecting_process_page:true uri []
 		   Eliom_request.xml_result in
-	       current_uri := uri;
+	       current_uri := url;
 	       set_content content ~fragment
 	     else
 	       (if Js.to_string Dom_html.window##location##hash <> fragment then

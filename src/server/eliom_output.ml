@@ -2637,6 +2637,7 @@ module Eliom_appl_reg_make_param
     in
 
     let rc = Eliom_request_info.get_request_cache () in
+    let ri = Eliom_request_info.get_ri () in
     let headers = Http_headers.replace
       (Http_headers.name Eliom_common_base.response_url_header)
       (Url.make_absolute_url
@@ -2647,7 +2648,14 @@ module Eliom_appl_reg_make_param
 	  ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
 	     (* If it is a suffix service with redirection, the uri has already been
 		computed in rc *)
-	    with Not_found -> Eliom_request_info.get_original_full_path_string ()))
+	    with Not_found ->
+              String.may_concat
+                ri.Ocsigen_extensions.ri_original_full_path_string
+                ~sep:"?"
+                (Eliom_parameters.construct_params_string
+                   (Lazy.force
+                      ri.Ocsigen_extensions.ri_get_params)
+                )))
       headers
     in
 
