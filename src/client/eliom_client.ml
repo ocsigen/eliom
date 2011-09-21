@@ -420,7 +420,8 @@ let load_data_script data_script =
 
 let scroll_to_fragment fragment =
   if Eliom_process.history_api then
-    Dom_html.window##location##hash <- Js.string fragment
+    if fragment <> Js.to_string Dom_html.window##location##hash then
+      Dom_html.window##location##hash <- Js.string fragment
   else
     () (* TODO *)
 
