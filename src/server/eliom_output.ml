@@ -2648,14 +2648,12 @@ module Eliom_appl_reg_make_param
 	  ^ try Polytables.get ~table:rc ~key:Eliom_mkreg.suffix_redir_uri_key
 	     (* If it is a suffix service with redirection, the uri has already been
 		computed in rc *)
-	    with Not_found ->
-              String.may_concat
-                ri.Ocsigen_extensions.ri_original_full_path_string
-                ~sep:"?"
-                (Eliom_parameters.construct_params_string
-                   (Lazy.force
-                      ri.Ocsigen_extensions.ri_get_params)
-                )))
+	  with Not_found ->
+	    let get_params =
+	      match ri.Ocsigen_extensions.ri_get_params_string with
+	      | None -> ""
+	      | Some p -> "?" ^ p in
+	    ri.Ocsigen_extensions.ri_original_full_path_string ^ get_params))
       headers
     in
 
