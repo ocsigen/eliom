@@ -71,12 +71,12 @@ module My_appl =
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
 
 (* FIXME GRGR ... avoid fake_header and "unique" in the first example ! *)
-let fake_header = unique (p [])
+let fake_header = unique (span [])
 let header () =
-  let p = p [pcdata "Random value in the container: ";
-	     pcdata (string_of_int (Random.int 1000)); br ();
-	     a ~service:main [pcdata "Back to the main page of the test suite."] ();] in
-  unique ~copy:fake_header p
+  p [pcdata "Random value in the container: ";
+     unique ~copy:fake_header (span [pcdata (string_of_int (Random.int 1000))]);
+     br ();
+     a ~service:main [pcdata "Back to the main page of the test suite."] ();]
 
 let make_page ?(css = []) content =
   html
