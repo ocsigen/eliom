@@ -64,12 +64,12 @@ You should see the page corresponding to service {{{"coucou"}}} in site
 {{{examples/}}} at url\\
 <<span class="code"|~http:~/~///your_server///examples/coucou>>.\\
 
-<<div class="encadre"|**Tip:** Add the option {{{<<debugmode/>}}} in
+<<concept title="Debugging" |**Tip:** Add the option {{{<<debugmode/>}}} in
 the configuration file during the development process of your application.
 Thus, Ocsigen server will display the exceptions raised during
-the generation of a page in error pages. >>
+the generation of a page in error pages. 
 
-<<div class="encadre"|**Tip:** To debug your programs,
+**Tip:** To debug your programs,
 add the option {{{-v}}} or {{{-V}}} of
 the {{{ocsigen}}} command to have verbose information on what succeeds
 during request. Also think to have look in the log files when something goes
@@ -136,16 +136,16 @@ towards {{{.eliom}}} file. It generate however correct dependy toward
 
 ====Using {{{ocamlbuild}}}
 
-<<div class="wip"|TODO>>
+<<wip|TODO>>
 
 ====Detailled build process
 
-<<div class="wip"|TODO, see the introductive comments in the source
+<<wip|TODO, see the introductive comments in the source
 file {{{eliom/src/syntax/pa_eliom_seed.ml}}}>>
 
 ===Configuring and running client-server Eliom applications
 
-<<div class="wip"|TODO>>
+<<wip|TODO>>
 
 ===Several Eliom modules for one site===
 
@@ -241,7 +241,7 @@ Use <<a_api| val Eliom_state.get_config >> during the initialization
 of your module to get the data between <<span class="code"|<eliom>>>
 and <<span class="code"|</eliom>>>.
 
-<<div class="wip"|
+<<wip|
  Warning: parsing these data is very basic for now.
  That feature will be improved in the future.
 >>
@@ -261,7 +261,7 @@ configuration file. That function will register services (and possibly
 call <<a_api| val Eliom_config.get_config >> if the module has
 configuration options).
 
-<<div class="wip"|How to improve this and this easier to use?>>
+<<wip|How to improve this and this easier to use?>>
 
 To initialize the module from the configuration file, use the syntax:
 
@@ -304,7 +304,7 @@ you can use the function
 to register the function that will generate the
 <<a_api project="ocsigenserver" | type Ocsigen_extensions.answer>>.
 
-<<div class="wip"|Add more details about this>>
+<<wip|Add more details about this>>
 
 ==@@id="p3config"@@Global configuration options
 
@@ -312,7 +312,7 @@ Here are Eliom's options you can use in configuration files.
 
 ===Timeouts
 
-<<div class="wip"|Revoir les timeouts pour client processes et groupes>>
+<<wip|Revoir les timeouts pour client processes et groupes>>
 
 Timeouts for sessions (and other states) can be set either inside tag
 {{{<extension findlib-package="ocsigen.ext.eliom"/>}}} (default value

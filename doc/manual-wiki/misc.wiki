@@ -3,7 +3,6 @@
 
 ==@@id="p3predefinedconstructs"@@HTML widgets
         
-        <<div class="onecol"|
 ===Images, CSS, Javascript
           
           
@@ -92,8 +91,7 @@ Personalise it in your CSS style-sheet.
     the service.
           
 
-          <<div class="encadre"|
-    ====How to make a menu entry with GET parameters?
+          <<concept title="How to make a menu entry with GET parameters?"
             
             
           Preapply your service.

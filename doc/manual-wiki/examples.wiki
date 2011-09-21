@@ -1,6 +1,5 @@
 =@@id="p3examples"@@Examples=
         
-        <<div class="onecol"|
 ==Writing a forum
           
           

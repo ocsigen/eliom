@@ -1,9 +1,9 @@
 =Services=
 
-<<div class="wip"|Lots of links and ref currently broken>>
+<<wip|Lots of links and ref currently broken>>
 
 From this chapter to the remainder of the book, we assume you've read the
-Ocsigen framework tutorial (part * *tuto) which gives an overview of
+[[wiki(36):|Ocsigen framework tutorial]] which gives an overview of
 the whole project and explains the main concepts. In particular, we suppose
 you have basic knowledge on how to define services with parameters,
 create links and forms, and use Eliom references.
@@ -67,8 +67,7 @@ let count =
 counter that persists after relaunching the server).
 
 
-<<div class="encadre"|
-====Paths====
+<<concept title="Paths" |
 
 
 <<span class="code"|["foo"; "bar"]>> corresponds to the URL
@@ -102,7 +101,7 @@ let default = Eliom_output.Html5.register_service ["rep";""] unit
       (body [p [pcdata "default page. rep is redirected to rep/"]])))
 >>
 
->><<|encadre>>
+>><<|concept>>
 
 See in the tutorial and in chapter * * how to compile and run an Eliom site.
 
@@ -185,7 +184,7 @@ In HTML, it is not possible to mix GET and POST parameters in forms, but
 a form parameter can use a URL with (fixed) GET parameters.
 Unlike GET, requests made with POST do not affect the URL string.
 
-<<div class="encadre"|
+<<concept title="POST or GET?" |
 POST and GET methods are not equivalent, and you must be very careful
 if you want to use one or the other.\\
 
@@ -243,7 +242,7 @@ See an example section * * links.
 
 ===@@id="p3staticparts"@@Using Eliom together with Staticmod===
 
-<<div class="wip"|ou alors faire une section static content, en disant bien
+<<wip|ou alors faire une section static content, en disant bien
 qu'il ne faut pas le mettre dans le ml (et suggérer db, et fichiers).
 De tte façon il faut le dire qqpart.
 >>
@@ -321,11 +320,11 @@ The types in OCaml closest to XML types are //polymorphic variants//.
 Ocsigen uses them to provide a module with very good XHTML typing.
 The full documentation is available <<a_api text="in
 the TyXML documentation" project="tyxml" | module XHTML.M >>.
-<<div class="wip"|put it here (?!)>>
+<<wip|put it here (?!)>>
 
 ===XHTML syntax extension===
 
-<<div class="wip"|Compatibility with HTML5?>>
+<<wip|Compatibility with HTML5?>>
 
 Ocsigen also has a syntax extension for OCaml that allows you to writes pages
 using HTML syntax (but you are free not to use it).
@@ -355,7 +354,7 @@ You can insert OCaml expressions of type {{{'a XHTML.M.elt}}} inside html using 
 let oc = << <em>Ocsigen</em> >> in 
 << <p>$oc$ will revolutionize web programming.</p> >>
 }}}
-<<div class="wip"| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! >>
+<<wip| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! >>
 
 You can insert OCaml expressions of type string inside html using 
 {{{$str:... $}}}, like this:
@@ -473,7 +472,7 @@ containing your pages. Here is an example:
 
 ===Summary of predefined output modules===
 
-<<div class="wip"|Add types and options for each module?>>
+<<wip|Add types and options for each module?>>
 
 
 Services can send several types of data, using a variety of predefined modules.
@@ -515,7 +514,7 @@ The main predefined output modules are:
 ;<<a_api| module Eliom_output.Caml >>
 : allows to register services sending marshalled OCaml values
 
-<<div class="wip"|Missing modules?>>
+<<wip|Missing modules?>>
 
 
 ===@@id="p3eliomfiles"@@Sending files
@@ -716,7 +715,7 @@ To do that use the optional parameters
 
 ===Creating your own output modules===
 
-<<div class="wip"|To be written>>
+<<wip|To be written>>
 
 ==Service identification mechanism==
 
@@ -802,8 +801,7 @@ when you need to create (automatically) a new coservice for a short amount
 of time. Coservices are anonymous by default. Add the optional {{{~name}}}
 parameter if you want them to be named.
 
-<<div class="encadre"|
-====Dynamic creation of services====
+<<concept title="Dynamic creation of services" |
 
 One unique feature of Eliom that few Web programming frameworks provide,
 is the ability to //create dynamically new services//.
@@ -839,7 +837,7 @@ Another use of dynamic services is to add new features to your Web site
 (for example, if a user creates a blog and you want to add a new URL for her).
 In that case, be very careful to recreate the services when relaunching the
 server (for example by retrieving the information from a database).
->><<|encadre>>
+>><<|concept>>
 
 ===@@id="p2coservices"@@Coservices
 
@@ -1056,8 +1054,7 @@ let () =
 
 
 
-<<div class="encadre"|
-====URLs
+<<concept title="URLs" |
 
 
 While designing a Web site, think carefully about the URLs you
@@ -1074,7 +1071,8 @@ You can do this using //non-attached coservices// (see below).
 
 
 
->> <<|encadre>>
+>> <<|concept>>
+
 ====Non-attached coservices
 
 
@@ -1195,7 +1193,7 @@ asking questions about other cases! Thank you!//
 
 ===@@id="p2detailsonserviceregistration"@@Details on service registration===
 
-<<div class="encadre"|
+<<concept title="Tips and advices" |
 
 *All services created during initialization must be registered
 (with global scope) during the initialization phase of your module.
@@ -1252,7 +1250,7 @@ while another site is loaded).
 If you use threads in the initialization phase of your module
 (for example if you need information from a database),
 use  <<a_api project="lwt" | val Lwt_unix.run >> to wait the end of the thread.
->><<|encadre>>
+>><<|concept>>
 
 
 ==Other features==

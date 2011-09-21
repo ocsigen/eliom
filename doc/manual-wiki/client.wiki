@@ -1,6 +1,6 @@
 = Programming client-server applications with Eliom
 
-<<div class="wip"| See the [[site:tutorial|tutorial]] . >>
+<<wip| See the [[site:tutorial|tutorial]] . >>
 
 == General principles
 === What is a client/server Eliom application

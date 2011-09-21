@@ -12,11 +12,12 @@ Recent browsers make possible a very new kind of applications,
 but most Web developers still use the same old Web frameworks
 that are not adapted to this evolution.
 
+We think these new possibilities deserve to rethink Web
+programming techniques.
 The goal of Eliom (and other projects of the Ocsigen framework)
-is to propose new Web programming techniques taking full advantage of the
-new features of Web browsers. It allows to write
+is to propose a new way to write
 traditional Web sites or sophisticated client/server Web applications.
-Eliom allows to simplify the development of complex applications by:
+It simplifies the development of complex applications by:
 
 ; providing high level expressive concepts
 : that fit very well the needs of Web developers. This allows to program complex behaviour in very few lines of code.
