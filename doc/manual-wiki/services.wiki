@@ -1,6 +1,11 @@
 =Services=
 
-<<wip|Lots of links and ref currently broken>>
+<<wip|
+The documentation is now mostly complete, but we are still working on it
+(some parts need to be reworked, some small parts are missing).
+We will release it as a PDF book in a few week.
+Any help appreciated.>>
+<<wip|Some links and ref are currently broken.>>
 
 From this chapter to the remainder of the book, we assume you've read the
 [[wiki(36):|Ocsigen framework tutorial]] which gives an overview of

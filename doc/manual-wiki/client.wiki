@@ -1,6 +1,12 @@
 = Programming client-server applications with Eliom
 
-<<wip| See the [[site:tutorial|tutorial]] . >>
+<<wip|
+The documentation is now mostly complete, but we are still working on it
+(some parts need to be reworked, some small parts are missing).
+We will release it as a PDF book in a few week.
+Any help appreciated.>>
+
+
 
 == General principles
 === What is a client/server Eliom application

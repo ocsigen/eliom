@@ -1,5 +1,17 @@
 =Server side state of an Eliom application=
 
+<<wip|
+The documentation is now mostly complete, but we are still working on it
+(some parts need to be reworked, some small parts are missing).
+We will release it as a PDF book in a few week.
+Any help appreciated.>>
+
+<<wip|//Warning:// Some part of this chapter need to be updated.
+State names and scopes have been merged into one single concept (called
+scope again): it is now possible to create several scopes for the same
+laval (several session scopes for example).
+>>
+
 The server-side state of an application refers to data stored on server
 side for all users, or for a limited //scope//:
 * session,
