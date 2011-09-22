@@ -285,6 +285,12 @@ let register_aux pages
 				     Eliom_services.service)
 				  g
 			      in
+                              let redir_uri =
+                                if String.length redir_uri > 0
+                                then String.sub redir_uri 1 
+                                  (String.length redir_uri - 1)
+                                else redir_uri
+                              in
 			      let rc = Eliom_request_info.get_request_cache_sp sp in
 			      Polytables.set ~table:rc ~key:suffix_redir_uri_key ~value:redir_uri;
 			      Lwt.return ()
