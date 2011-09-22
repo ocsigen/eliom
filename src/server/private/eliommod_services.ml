@@ -451,7 +451,7 @@ let find_service
              with
                | Eliom_common.Dir _ -> Lwt.fail Exn1
                | Eliom_common.File page_table_ref ->
-                   find true page_table_ref None
+                 find true page_table_ref None
            with e -> Lwt.fail e)
           
 (*      | ""::l -> search_page_table dircontent l *)

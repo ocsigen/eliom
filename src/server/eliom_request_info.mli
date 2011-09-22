@@ -30,6 +30,9 @@ open Ocsigen_cookies
 (*****************************************************************************)
 (** {2 Getting information about the request} *)
 
+(** returns the HTTP method used for the request (usually GET or POST). *)
+val get_http_method : unit -> Ocsigen_http_frame.Http_header.http_method
+
 (** returns the name of the user agent that did the request
    (usually the name of the browser). *)
 val get_user_agent : unit -> string

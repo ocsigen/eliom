@@ -34,6 +34,9 @@ let find_sitedata fun_name =
             (Eliom_common.Eliom_site_information_not_available fun_name)
 
 (*****************************************************************************)
+let get_http_method () =
+  let sp = Eliom_common.get_sp () in
+  sp.Eliom_common.sp_request.request_info.ri_method
 let get_user_agent () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_request.request_info.ri_user_agent
