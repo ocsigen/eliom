@@ -2758,7 +2758,7 @@ module String_redir_reg_base = struct
   let send_appl_content = Eliom_services.XAlways
   (* actually, the service will decide itself *)
 
-  let send ?(options = `Permanent) ?charset ?code
+  let send ?(options = `Temporary) ?charset ?code
       ?content_type ?headers content =
     let uri = Uri.string_of_uri content in
     let empty_result = Ocsigen_http_frame.empty_result () in
@@ -2832,7 +2832,7 @@ module Redir_reg_base = struct
   let send_appl_content = Eliom_services.XAlways
   (* actually, the service will decide itself *)
 
-  let send ?(options = `Permanent) ?charset ?code
+  let send ?(options = `Temporary) ?charset ?code
       ?content_type ?headers service =
     let uri = lazy (Xhtml.make_string_uri ~absolute:true ~service ()) in
     let empty_result = Ocsigen_http_frame.empty_result () in
