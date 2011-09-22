@@ -426,7 +426,7 @@ let scroll_to_fragment fragment =
   match fragment with
   | None | Some "" -> Dom_html.window##scroll(0, 0)
   | Some fragment ->
-      let scroll_to_element e = Dom_html.window##scroll(0, e##offsetTop) in
+      let scroll_to_element e = e##scrollIntoView(Js._true) in
       let elem = Dom_html.document##getElementById(Js.string fragment) in
       Js.Opt.iter elem scroll_to_element
 
