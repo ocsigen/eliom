@@ -1,4 +1,5 @@
-=Server side state of an Eliom application=
+<<header|
+  = Server side state of an Eliom application =
 
 <<wip|
 The documentation is now mostly complete, but we are still working on it
@@ -12,24 +13,27 @@ scope again): it is now possible to create several scopes for the same
 level (several session scopes for example).
 >>
 
-The server-side state of an application refers to data stored on server
-side for all users, or for a limited //scope//:
+<<outline>>
+
+>>
+
+The server-side state of an application refers to data stored on
+server side that could be shared by all clients, or that could be
+specific to a limited //scope// such as:
+
 * session,
 * group of sessions (for example all sessions of the same user),
 * or client-side process.
 
-Saving server-side data is done by using what we call //Eliom references//
-(or eref, see below).
-
-The server-side state may also contains //services// registered for a
-limited scope.
-
-States disappear either when it is discarded explicitely (session closing for
-example), or by a timeout.
-\\
+Saving server-side data is done by using what we call //Eliom
+references// (or eref). The server-side state may also contains
+//services// registered for a limited scope. States disappear either
+when it is discarded explicitely or by a timeout.
 
 In the current implementation, because of some limitation in OCaml's
-serialization mechanism, there are three kinds of states (for each scope):
+serialization mechanism, there are three kinds of states (for each
+scope):
+
 * volatile data states,
 * volatile service states,
 * persistent data states.
@@ -65,13 +69,13 @@ its own cookies and you can discard data for one state name only.
 ==Eliom references==
 
 ===Principles
-//Eliom references// (//erefs//) are some kind of
-references with (possibly) a limited scope.
-You define the reference with an initial value and a scope
-(global, group of sessions, session, client process, or current request
-processing). The default is global scope.
-When you change the value, it actually changes only for the scope
-you specified.
+
+//Eliom references// (//erefs//) are some kind of references with
+(possibly) a limited scope.  You define the reference with an initial
+value and a scope (global, group of sessions, session, client process,
+or current request processing). The default is global scope.  When you
+change the value, it actually changes only for the scope you
+specified.
 
 Eliom references can be persistent or not (that is: can survive after
 relaunching the server or not).
@@ -89,19 +93,20 @@ references.
 
 ===API
 
-Eliom references are created using the function {{{Eliom_references.eref}}},
-that works like the usual Ocaml {{{ref}}} function, but with several
-additional optional parameters that will be explained below.
-The interface of the {{{Eliom_references}}} module also defines
-{{{get}}}, {{{set}}} and {{{unset}}}, to get the value, set the value,
-and turn back to the default value.
+Eliom references are created using the function <<a_api | val
+Eliom_references.eref>>, that works like the usual Ocaml {{{ref}}}
+function, but with one additional scope parameter and several others
+optional paramaters that will be explained below. The interface of the
+<<a_api | module Eliom_references >> module also defines functions to
+<<a_api text="get the value"| val Eliom_references.set>>, <<a_api
+text="set the value"| val Eliom_references.sef>> and <<a_api
+text="turn back to the default value"| val Eliom_references.unset>>:
 
-Here is the interface of {{{Eliom_references}}}:
-<<code language="ocaml"|type 'a eref
+<<code language="ocaml"|
+type 'a eref
 
 val eref :
-  ?state_name:string ->
-  ?scope:[ `Request | `Client_process | `Session | `Session_group | `Global ] ->
+  scope:[< Eliom_common.all_scope ] ->
   ?secure:bool ->
   ?persistent:string ->
   'a -> 'a eref
@@ -116,32 +121,41 @@ val unset : 'a eref -> unit Lwt.t
 
 ===Persistent references
 
-Persistent references are implemented using the module {{{Ocsipersist}}}
-for which Ocsigen provides two implementation, one based on
-{{{SQLite}}}, the other one based on {{{DBM}}}.
+Persistent references are implemented using the module <<a_api
+project="ocsigenserver" | module Ocsipersist >> for which
+Ocsigenserver provides two implementation, one based on {{{SQLite}}},
+the other one based on {{{DBM}}}.
 
 Persistent references are created by adding the {{{~persistent}}}
-parameter to the {{{Eliom_references.eref}}} function.
-The value of this parameter is the name of the reference in the database.
+parameter to the {{{Eliom_references.eref}}} function. The value of
+this parameter is the name of the reference in the database.
 
-Note that persistent data are serialized on hard drive using
-OCaml's unsafe <<span class="code"|Marshal>> module:
+Note that persistent data are serialized on hard drive using OCaml's
+unsafe <<span class="code"|Marshal>> module:
+
 <<div class="importantwarning"|
-*It is not possible to serialize closures or services
- (as we are using dynamic linking),
-* If you ever change the type of serialised data, don't
- forget to change the persistent reference name, or the server will
- probably crash while deserializing!
+
+* It is not possible to serialize closures or services (as we are
+  using dynamic linking),
+* If you ever change the type of serialised data, don't forget to
+  change the persistent reference name, or the server will probably
+  crash while deserializing!
+
 >>
 
 ===@@id="perscount"@@ Example: persistent counter
 
 The following piece of code defines a persistent counter of visits:
-<<code language="ocaml"|open Lwt
+
+<<code language="ocaml"|
+open Lwt
 open HTML5.M
 open Eliom_parameters
 
-let myeref = Eliom_references.eref ~persistent:"perscount" 0
+let myeref =
+  Eliom_references.eref
+    ~scope:Eliom_common.global
+    ~persistent:"perscount" 0
 
 let count3 =
   let next =
@@ -169,10 +183,10 @@ let count3 =
 As you see, we need to use a mutex, because reading or writing in the
 database introduces a Lwt cooperation point.
 
-[[site:tuto/perscount| See this example here]].\\
+<<| [[site:tuto/perscount| See this example here]].\\ >>
 
-To implement a counter of visits for each user (each browser),
-just add the parameter {{{~scope:`Session}}} to the {{{eref}}} function call.
+To implement a counter of visits for each user (each browser), just
+use {{{~scope:Eliom_common.session}}} to the {{{eref}}} function call.
 
 ===Example: connection of users===
 
@@ -192,16 +206,14 @@ reference.
 Later in this chapter, we will give a better version of this example
 using session groups and redirections.
 
-<<code language="ocaml"|(************************************************************)
+<<code language="ocaml"|
+(************************************************************)
 (****************** Connection of users *********************)
 (************************************************************)
 open Lwt
 open Eliom_parameters
 open HTML5.M
 
-(*zap* *)
-let state_name = "connect_example_state"
-(* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -224,7 +236,7 @@ let disconnect_action =
     ~name:"disconnection"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+      Eliom_state.discard ~scope:Eliom_common.session ())
 
 let disconnect_box s =
   Eliom_output.Html5.post_form disconnect_action
@@ -233,10 +245,10 @@ let disconnect_box s =
 
 (* State: *)
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Request false
+let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
 
 (* The following eref is the name of the user, when connected *)
-let user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Session None
+let user = Eliom_references.eref ~scope:Eliom_common.session None
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -262,7 +274,7 @@ let login_box session_expired bad_u action =
 
 let connect_example_handler () () =
   (* The following function tests whether the session has expired: *)
-  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  let status = Eliom_state.volatile_data_state_status ~scope:Eliom_common.session ()
   in
   Eliom_references.get bad_user ~>>= fun bad_u ->
   Eliom_references.get user ~>>= fun u ->
@@ -286,7 +298,7 @@ let connect_example_handler () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler () login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () ~>>= fun () ->
+  Eliom_state.discard ~scope:Eliom_common.session () ~>>= fun () ->
   if login = "toto" (* Check user and password :-) *)
   then Eliom_references.set user (Some login)
   else Eliom_references.set bad_user true
@@ -304,156 +316,173 @@ let () =
 
 ===Scope of services
 
-It is also possible to set a scope for services.
-Either you want a (co)-service to be visible only for one user (or one
-client-side process, or one session), or you want to define specialized
-version of some global services. If you register several time a
-service with several scopes, Eliom will try the service in increasing scope
-order (that is, first the client process service if any, then session, then
+It is possible to set a scope for services. Either you want a
+(co)-service to be visible only for one user (or one client-side
+process, or one session), or you want to define specialized version of
+some global services. If you register several time a service with
+several scopes, Eliom will try the service in increasing scope order
+(that is, first the client process service if any, then session, then
 session group, then global).
 
-To limite the scope of a service, just add the argument
-{{{~scope}}} to the 
-<<span class="Cem"|<<span class="code"|register>>>> function
-(values : {{{`Client_process}}}, {{{`Session}}}, {{{`Session_group}}},
- or {{{`Global}}} (default)).
-\\
-
-<<div class="wip"|
-<<code language="ocaml"|(*zap* *)
-let () = set_global_volatile_state_timeout (Some 600.)
-let () = set_global_persistent_data_state_timeout (Some 3600.)
-(* *zap*)
->>
->>
-
+To limite the scope of a service, just add the argument {{{~scope}}}
+to the <<a_api | val Eliom_output.Html5.register>> function (or other
+{{{register}}} variants: <<a_api | val Eliom_output.Xhtml.register>>,
+...). The default scope is <<a_api | val Eliom_common.global>>.
 
 ===Secure states
 
-For security reasons, Eliom does not use the same cookies in
-https and http. Secure sessions are using secure cookies
-(i.e. Ocsigen server will ask the browsers to send the cookie only if
-the protocol is HTTPS). Thus it is not possible to access
-secure session if the user is using http. If the user is using
-https, Eliom will save data and services in secure session. But
-it is possible to access unsecure session data and to register
-unsecure session services using the optional parameter
-<<span class="code"|~secure:false>> when calling functions like
-<<span class="code"|Eliom_references.eref>>,
-<<span class="code"|Eliom_output.Html5.register>>, etc.
-
+For security reasons, Eliom does not use the same cookies in https and
+http. Secure sessions are using secure cookies (i.e. Ocsigen server
+will ask the browsers to send the cookie only if the protocol is
+HTTPS). Thus it is not possible to access secure session if the user
+is using http. If the user is using https, Eliom will save data and
+services in secure session. But it is possible to access unsecure
+session data and to register unsecure session services using the
+optional parameter {{{~secure:false}}} when calling functions like
+<<a_api | val Eliom_references.eref >>, <<a_api | val
+Eliom_output.Html5.register >>, etc.
 
 ===Discarding states (and closing sessions)
 
-To discard a state, use {{{Eliom_states.discard_state}}}.
-It will remove all server-side services and data (persistent or not)
-for the given scope.
-Used with {{{~scope:`Session}}}, this will close a session
-(a synonymous is {{{Eliom_states.close_session}}}, that does exactly the same).
+To discard a state, use the <<a_api | val Eliom_states.discard >>
+function. It will remove all server-side services and data (persistent
+or not) for the given scope. Used with
+{{{~scope:Eliom_common.session}}}, this will close a session.
 
-Closing a group of sessions will close all sessions in the group.
+Closing a group of sessions will close all sessions
+in the group.\\ <<wip-inline| This behaviour may change in future
+versions. >>
 
 By default discarding a state will remove both secure and unsecure data
-and services, but if the parameter [~secure] is present.\\
+and services, but if the parameter [~secure] is present.
 
-Warnings:
+**Warnings:**
+
 * It is a good idea to close the session when a user tries to connect,
-even if it is already connected (as in the connection example above),
-* You may also want to unset some request-scoped Eliom references
-when discarding a state,
-* If your state data contains opened file descriptors,
-they won't be closed by OCaml's garbage collector. Close it yourself!
-(for example using <<span class="code"|Gc.finalise>>).\\
+  even if it is already connected (as in the connection example
+  above),
+* You may also want to unset some request-scoped Eliom references when
+  discarding a state,
+* If your state data contains opened file descriptors, they won't be
+  closed by OCaml's garbage collector. Close it yourself!  (for
+  example using <<span class="code"|Gc.finalise>>).\\
 
-It is also possible to discard selectively only services, persistent data
-or volatile data (see Eliom_states' interface). But this may be periculous.
-Be very careful when doing this, as you are desynchronizing the three kinds
-of sessions.\\
-
-
-
+It is also possible to discard selectively only services, persistent
+data or volatile data (see the <<a_api | module Eliom_state>>
+module). But this may be periculous.  Be very careful when doing this,
+as you are desynchronizing the three kinds of sessions.
 
 
-===State names
+
+
+
+===Named scope
 
 By default, Eliom is using three cookies for sessions (and session groups):
-*One for session services,
-*one for volatile session data,
-*one for persistent session data.
 
-For client side process, it uses the same three kinds of client side process
-cookies.\\
+* one for session services,
+* one for volatile session data,
+* one for persistent session data.
 
-If you need more sessions (for example several different data sessions)
-for the same site, you can give a name to your sessions by giving
-the optional parameter <<span class="code"|?state_name>> to functions like
-<<span class="Cem"| <<a_api| val Eliom_state.close_data_session >>>>,
-<<span class="Cem"| <<a_api| val Eliom_output.Html5.register >>>>, or
- <<a_api| val Eliom_state.get_volatile_data >>.
-Note that the online tutorial has been implemented using this feature,
-even if it has been hidden for the sake of simplicity.
-That's how the different examples of sessions in the tutorial are
-independant.
+For client side process, it uses the same three kinds of client side
+process cookies.
+
+If you need more sessions for the same site (e.g. several different
+data sessions), you can create new named sessions, with the following
+lines of code:
+
+<<code language="ocaml"|
+let custom_session_name = Eliom_common.create_scope_name "custom"
+let custom_session = `Session custom_session_name
+>>
+
+Then, the value {{{custom_session}}} could replace the usual <<a_api |
+val Eliom_common.session>> for the {{{~scope}}} parameter of functions
+<<a_api | val Eliom_references.eref>>, <<a_api| val
+Eliom_output.Html5.register >>, <<a_api| val Eliom_state.discard >>,
+...
+
+You could also create named client_process scope and session_group by
+replacing {{{`Session}}} by {{{`Client_process}}} or
+{{{`Session_group}}}. In all case, the <<a_api | val
+Eliom_common.create_scope_name >> function will prevent you to create
+to identical scope name.
+
+
+The online tutorial has been implemented using this feature, even if
+it has been hidden for the sake of simplicity. That's how the
+different examples of sessions in the tutorial are independant.
 
 
 ===Session groups
 
-The idea is complementary to that of
-the "state name".  While the
-optional <<span class="code"|state_name>> parameter allows for a single
-session to have multiple buckets of data associated with it, a session group
-(also optional) allows multiple sessions to be referenced together.
+The idea is complementary to the idea of names scope. While named
+scope allows for a single session to have multiple buckets of data
+associated with it, a session group (also optional) allows multiple
+sessions to be referenced together.
 
-For most uses, the session group is the user name.
-It is a good idea to group together all the opened sessions for a same user
-(if he is using several browsers).\\
+For example, it is a good idea to group together all the opened
+sessions for a same user (if he is using several browsers). In this
+case, the session group is named after the user name.
 
 //Example of use:// Share a shopping basket between several devices
 (your mobile phone and your laptop).
 
 Using persistant Eliom references with scope "session group" is a
-convenient way to store data about a user without having to
-use an external database. Do not hesitate to use them instead of
-session scope, as it is fits probably most your needs better than sessions.
+convenient way to store data about a user without having to use an
+external database. Do not hesitate to use them instead of session
+scope, as it is fits probably most your needs better than sessions.
 
 **The use of session groups is highly encouraged!**, because:
-* //The number of sessions in a group is limited.//
-If all sessions are in a group you will avoid some malicious user
-to open too many sessions.
-If you do not use session groups,
-the number of sessions is limitated by IP address,
-which can be a problem for example if the server is behind
-a reverse proxy or if many user are using the same NAT.
-* It allows to implement features like "close all sessions" for one user
-(even those opened on other browsers).
-Consider the following scenario: a user logs in from home using
-a "Remember me on this computer" feature, which sets a (almost)
-no-expiration cookie on his browser and session timeouts of infinity
-on the server.  The user goes on vacation, and while logging from
-a cyber-café, she also sets the "Remember me" option.  Back home
-she realises her mistake, and wishes to do a "global logout", ie,
-closing all existing sessions associated with her user name.\\
+
+* //The number of sessions in a group is limited.// If all
+  sessions are in a group you will avoid some malicious user to open
+  too many sessions.  If you do not use session groups, the number of
+  sessions is limitated by IP address, which can be a problem for
+  example if the server is behind a reverse proxy or if many user are
+  using the same NAT.
+* It allows to implement features like "close all sessions" for one
+  user (even those opened on other browsers).  Consider the following
+  scenario: a user logs in from home using a "Remember me on this
+  computer" feature, which sets a (almost) no-expiration cookie on his
+  browser and session timeouts of infinity on the server.  The user
+  goes on vacation, and while logging from a cyber-café, she also sets
+  the "Remember me" option.  Back home she realises her mistake, and
+  wishes to do a "global logout", ie, closing all existing sessions
+  associated with her user name.\\
 
 It is highly recommended to set a group for each of the three kinds of states
 you use (services, volatile data and persistent data).\\
 
 
-We rewrite the example of user connection with session groups.
-We also make some additional changes:
-* We use persistent sessions
-* We use a redirection instead of an action in case the connection succeeded,
-so that the browser does not try to repost the connection data if the user
-press the "reload" button. The redirection goes towards
-{{{Eliom_services.void_hidden_coservice'}}}, that is: service corresponding
-to current URL.
+The following example rewrite with session groups the previous example
+of user connection.
+
+There is also some additional changes:
+
+* it use named scope
+* it use persistent sessions
+* it use a redirection instead of an action in case the connection
+  succeeded, so that the browser does not try to repost the connection
+  data if the user press the "reload" button. The redirection goes
+  towards <<a_api | Eliom_services.void_hidden_coservice'>>, that is:
+  service corresponding to current URL.
 
 <<code language="ocaml"|
 (************************************************************)
 (********* Connection of users with session groups **********)
 (************************************************************)
-(*zap* *)
-let state_name = "session_group_example_state"
-(* *zap*)
+
+open Lwt
+open Eliom_parameters
+open HTML5.M
+
+let session_name =
+     Eliom_common.create_scope_name "session_group_example_state"
+let session = `Session session_name
+let session_group = `Session_group session_name
+
+
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -477,7 +506,7 @@ let disconnect_action =
     ~name:"disconnection2"
     ~post_params:Eliom_parameters.unit
     (fun () () ->
-      Eliom_state.close_session (*zap* *) ~state_name (* *zap*) ())
+      Eliom_state.discard ~scope:session ())
 
 let disconnect_box s =
   Eliom_output.Html5.post_form disconnect_action
@@ -485,7 +514,12 @@ let disconnect_box s =
                     ~input_type:`Submit ~value:s ()]]) ()
 
 (* The following eref is true if the connection has action failed: *)
-let bad_user = Eliom_references.eref (*zap* *) ~state_name (* *zap*) ~scope:`Request false
+let bad_user = Eliom_references.eref ~scope:Eliom_common.request false
+
+(* The following eref is the epoch time of the last connection in the
+   group: *)
+let last_connection = Eliom_references.eref ~scope:session_group 0.
+
 
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
@@ -495,7 +529,8 @@ let login_box session_expired bad_u action =
     (fun loginname ->
       let l =
         [pcdata "login: ";
-         Eliom_output.Html5.string_input ~input_type:`Text ~name:loginname ()]
+         Eliom_output.Html5.string_input
+	   ~input_type:`Text ~name:loginname ()]
       in
       [p (if bad_u
         then (pcdata "Wrong user")::(br ())::l
@@ -511,19 +546,22 @@ let login_box session_expired bad_u action =
 
 let connect_example_handler () () =
   (* The following function tests whether the session has expired: *)
-  let status = Eliom_state.volatile_data_state_status (*zap* *) ~state_name (* *zap*) ()
+  let status = Eliom_state.volatile_data_state_status ~scope:session ()
   in
   let group =
-    Eliom_state.get_volatile_data_session_group (*zap* *) ~state_name (* *zap*) ()
+    Eliom_state.get_volatile_data_session_group ~scope:session ()
   in
-  Eliom_references.get bad_user ~>>= fun bad_u ->
+  lwt bad_u = Eliom_references.get bad_user in
+  lwt last = Eliom_references.get last_connection in
   Lwt.return
     (html
        (head (title (pcdata "")) [])
        (body
           (match group, status with
           | Some name, _ ->
-              [p [pcdata ("Hello "^name); br ()];
+              [p [pcdata ("Hello "^name); br ();
+		  pcdata ("Last connection: "^string_of_float last);
+		  br ()];
               disconnect_box "Close session"]
           | None, Eliom_state.Expired_state ->
               [login_box true bad_u connect_action;
@@ -537,14 +575,16 @@ let connect_example_handler () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler () login =
-  Eliom_state.close_session (*zap* *) ~state_name (* *zap*) () ~>>= fun () ->
+  lwt () = Eliom_state.discard ~scope:session () in
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliom_state.set_volatile_data_session_group ~set_max:4 (*zap* *) ~state_name (* *zap*) login;
+    Eliom_state.set_volatile_data_session_group
+      ~set_max:4 ~scope:session login;
+    lwt () = Eliom_references.set last_connection (Unix.time ()) in
     Eliom_output.Redirection.send Eliom_services.void_hidden_coservice'
   end
-  else  
-    Eliom_references.set bad_user true ~>>= fun () ->
+  else
+    lwt () = Eliom_references.set bad_user true in
     Eliom_output.Action.send ()
 
 
@@ -552,58 +592,52 @@ let connect_action_handler () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliom_output.Html5.register ~service:connect_example connect_example_handler;
-  Eliom_output.Any.register ~service:connect_action connect_action_handler
+  Eliom_output.Html5.register
+    ~service:connect_example connect_example_handler;
+  Eliom_output.Any.register
+    ~service:connect_action connect_action_handler
 >>
-Note that in this case, we do not need a session eref any more,
-because our session data was containing only the user name,
-and the user name is now the session group.
-(But if we need to save more data, we still need a session eref).
-
 
 
 ===Timeouts and session duration==
 
-<<div class="wip"|Reread and verify>>
-<<div class="wip"|Add timeouts for groups and processes>>
-<<div class="wip"|See also timeout section in the chapter config file. may move some stuffs? verify nothing is explained twice!>>
-
 The default timeout for sessions in one hour. Sessions will be
-automatically closed after that amount of time of inactivity from the user.
-You can change that value for your whole site during initialisation
-using:
-  
-<<code language="ocaml"|Eliom_state.set_global_volatile_timeout (Some 7200.)
->>
-Here 7200 seconds. <<span class="code"|None>> means no timeout.
+automatically closed after that amount of time of inactivity from the
+user. You can change that value for your whole site using the <<a_api
+| val Eliom_state.set_global_volatile_state_timeout>>. For example:
 
-You can change that value for your whole site after initialisation
-using:
-<<code language="ocaml"|Eliom_state.set_global_volatile_timeout (Some 7200.)
+<<code language="ocaml"|
+Eliom_state.set_global_volatile_state_timeout
+  ~scope:Eliom_common.session (Some 7200.)
 >>
 
-You can change that value for one user only using:
-<<code language="ocaml"|Eliom_state.set_volatile_session_timeout (Some 7200.)
->>
+Here 7200 seconds. {{{None}}} would mean no timeout.
 
 Note that there is also a possibility to change the default value
 for Eliom in the configuration file like this:
 <<code language="ocaml"|
-    <extension findlib-package="ocsigen.ext.eliom">
+    <extension findlib-package="ocsigenserver.ext.eliom">
       <volatiletimeout value="7200"/>
     </extension>
 >>
 
-<<span class="code"|value="infinity">> means no timeout.
+In the configuration files the value {{{"infinity"}}} would mean no
+timeout.
 
-Warning: that default may be overriden by each site using
- <<a_api| val Eliom_state.set_global_volatile_timeout >> or
- <<a_api| val Eliom_state.set_default_volatile_timeout >>.
-If you want your user to be able to set the default in the
-configuration file for your site (between <<span class="code"|<site>>>
-and <<span class="code"|</site>>>), you must parse the configuration
-( <<a_api| val Eliom_config.get_config >> function, see below).
+**Warning:** that default may be overriden by each site using <<a_api|
+ val Eliom_state.set_global_volatile_timeout >> or <<a_api| val
+ Eliom_state.set_default_volatile_timeout >>.  If you want your user
+ to be able to set the default in the configuration file for your site
+ (between <<span class="code"|<site>>> and <<span
+ class="code"|</site>>>), you must parse the configuration ( <<a_api|
+ val Eliom_config.get_config >> function).
 
+You can also change the timeout for a specific user only with the
+following functions: <<a_api | val
+Eliom_state.set_volatile_data_state_timeout >>.
+
+For more details, see the <<a_api | module Eliom_state >> module's
+interface.
 
 ===Cookies
 
@@ -615,7 +649,7 @@ This is implemented using the usual browser cookies for sessions,
 and a simulation of browser cookies by Eliom client side processes.
 
 To set or unset your own cookies on the client, use the following functions,
-from module {{{Eliom_states}}}:
+from module <<a_api | module Eliom_state>>:
 <<code language="ocaml"|
 val set_cookie :
   ?cookie_scope:Eliom_common.cookie_scope ->
@@ -642,10 +676,9 @@ The <<span class="code"|?exp>> parameter is a the expiration date
 <<span class="code"|None>> means that the cookie will expire when the browser
 will be closed.
 
-If the <<span class="code"|?secure>> argument 
-is set to true (default: false) and the protocol is https, 
-the server will ask the browser to send the cookie only through
-secure connections.
+If the <<span class="code"|?secure>> argument is set to true (default:
+false) and the protocol is https, the server will ask the browser to
+send the cookie only through secure connections.
 
 The <<span class="code"|?cookie_scope>> argument
 is {{{`Session}}} for regular browser cookies (default),
@@ -656,7 +689,7 @@ You can access the cookies sent by the browser using
  <<a_api| val Eliom_request_info.get_cookies >>.
 
 Example:
- 
+
 <<code language="ocaml"|let cookiename = "mycookie"
 
 let cookies = service ["cookies"] unit ()
@@ -677,6 +710,4 @@ let _ = Eliom_output.Xhtml.register cookies
                    a cookies [pcdata "send other cookie"] ()]])))
 >>
 
-[[site:tuto/cookies| Try it]].
-
-
+<<| [[site:tuto/cookies| Try it]]. >>
