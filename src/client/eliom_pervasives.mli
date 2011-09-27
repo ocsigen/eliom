@@ -352,19 +352,4 @@ module HTML5 : sig
 
 end
 
-module Regexp : sig
-  type t
-  type flag = Global_search | Case_insensitive | Multi_line
-  val last_index : t -> int
-  val make :
-      ?global:bool ->
-	?case_insensitive:bool -> ?multi_line:bool -> string -> t
-  val test : t -> string -> bool
-  val exec : t -> string -> string array
-  val index : t -> string -> int
-  val replace : t -> string -> string -> string
-  val replace_fun : t -> (int -> string array -> string) -> string -> string
-  val split : t -> string -> string array
-end
-
 type file_info
