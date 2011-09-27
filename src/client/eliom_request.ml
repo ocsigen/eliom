@@ -147,20 +147,20 @@ let rec send ?(expecting_process_page = false) ?cookies_info
       lwt r = XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
 	?post_args ?get_args ?form_arg:form_contents ~check_headers url in
       ( match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name with
-	| None -> ()
+	| None | Some "" -> () (* Empty tab_cookies for IE compat *)
 	| Some tab_cookies ->
 	  let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
 	  Eliommod_cookies.update_cookie_table tab_cookies; );
       if r.XmlHttpRequest.code = 204
       then
 	match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
-          | Some uri ->
+          | Some uri when uri <> "" ->
             if i < max_redirection_level
             then aux (i+1) uri
             else Lwt.fail Looping_redirection
-          | None ->
+          | _ ->
             match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
-              | Some uri ->
+              | Some uri when uri <> "" ->
 		(match post_args,form_arg with
 		  | None,None -> redirect_get uri
 		  | _,_ -> redirect_post_form_elt ?post_args ?form_arg url);
@@ -170,8 +170,8 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 	if expecting_process_page
 	then
 	  match r.XmlHttpRequest.headers Eliom_common.response_url_header with
+	    | None | Some "" -> error "Eliom_request: no location header"
 	    | Some url -> Lwt.return (url, Some (result r))
-	    | None -> error "Eliom_request: no location header"
 	else
 	  if r.XmlHttpRequest.code = 200
 	  then Lwt.return (r.XmlHttpRequest.url, Some (result r))
@@ -181,7 +181,7 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 	(* We are requesting application content and the headers tels
 	   us that the answer is not application content *)
 	match headers Eliom_common.appl_name_header_name with
-	  | None ->
+	  | None | Some "" -> (* Empty appl_name for IE compat. *)
 	    debug "Eliom_request: non application content received";
 	    (match post_args,form_arg with
 	      | None,None -> redirect_get url
@@ -197,7 +197,7 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 		then assert false (* we can't go here:
 				     this case is already handled before *)
 		else
-		  (debug "Eliom_request: received content for application %s when running application %s"
+		  (debug "Eliom_request: received content for application %S when running application %s"
 		     appl_name current_appl_name;
 		   Lwt.fail (Failed_request code))
   in aux 0 ?cookies_info ?get_args ?post_args ?form_arg url
