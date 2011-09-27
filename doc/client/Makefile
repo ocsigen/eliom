@@ -28,7 +28,7 @@ odoc: ${TMP} ${DOC}
 	rm -r ${TMP}
 
 install:
-	${INSTALL} -d -m 644 $(TEMPROOT)$(DOCDIR)/client
+	${INSTALL} -d -m 755 $(TEMPROOT)$(DOCDIR)/client
 	$(INSTALL) -m 644 api-html/* $(TEMPROOT)$(DOCDIR)/client
 
 clean:

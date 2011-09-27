@@ -34,7 +34,7 @@ odoc: ${TMP}/extensions ${DOC}
 	rm -r ${TMP}
 
 install:
-	${INSTALL} -d -m 644 $(TEMPROOT)$(DOCDIR)/server
+	${INSTALL} -d -m 755 $(TEMPROOT)$(DOCDIR)/server
 	$(INSTALL) -m 644 api-html/* $(TEMPROOT)$(DOCDIR)/server
 
 clean:
