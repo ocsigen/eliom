@@ -94,3 +94,208 @@ let copy_element (e:Dom.element Js.t) : Dom_html.element Js.t =
   match aux e with
     | None -> error "copy_element"
     | Some e -> e
+
+(** CSS preloading. *)
+
+let is_stylesheet e =
+  Js.to_string e##nodeName = "LINK"
+  && List.exists ((=) "stylesheet")
+       (String.split ' '
+	  (Js.Opt.case (e##getAttribute (Js.string "rel"))
+	     (fun () -> "")
+	     Js.to_string))
+  && (Js.Opt.case (e##getAttribute (Js.string "type"))
+	     (fun () -> true)
+	     (fun s -> Js.to_string s = "text/css"))
+
+let basedir_re = Regexp.regexp "^(([^/?]*/)*)[^/?]*(\\?.*)?$"
+let basedir path =
+  match Regexp.string_match basedir_re path 0 with
+  | None -> "/"
+  | Some res ->
+     match Regexp.matched_group res 1 with
+     | None -> "/"
+     | Some dir -> dir
+
+(* let current_baseurl () = *)
+  (* (Js.to_string Dom_html.window##location##protocol) ^ *)
+  (* "//" ^ *)
+  (* (Js.to_string Dom_html.window##location##host) ^ *)
+  (* basedir (Js.to_string Dom_html.window##location##pathname) *)
+
+let fetch_linked_css e =
+  let rec extract acc (e : Dom.node Js.t) =
+    match Dom.nodeType e with
+    | Dom.Element e when is_stylesheet e ->
+        let href     = e##getAttribute (Js.string "href")
+        and disabled = e##getAttribute (Js.string "disabled")
+        and title    = e##getAttribute (Js.string "title")
+        and media    = e##getAttribute (Js.string "media") in
+	if Js.Opt.test disabled || Js.Opt.test title
+	then acc
+	else
+	  Js.Opt.case href
+	    (fun () -> acc)
+	    (fun href ->
+	       let css =
+		 Eliom_request.http_get (Js.to_string href) []
+		   Eliom_request.string_result in
+	       acc @ [e, (media, css)] )
+    | Dom.Element e ->
+        List.fold_left extract acc (Dom.list_of_nodeList e##childNodes)
+    | _ -> acc in
+  extract [] (e :> Dom.node Js.t)
+
+let abs_url_re = Regexp.regexp "^('|\")?(https?://|/)"
+let prefix_relative_url ~prefix url =
+  let len = String.length url in
+  let url =
+    if len > 0 && (url.[0] = '\'' || url.[0] = '\"') then
+      String.sub url 1 (len - 2)
+    else url
+  in
+  match Regexp.string_match abs_url_re url 0 with
+  | Some _ -> url
+  | None -> prefix ^ url
+
+let url_content_raw    = "([^\"'\\)]\\\\(\"|'|\\)))*"
+let dbl_quoted_url_raw = "\"" ^ url_content_raw ^ "[^\\\\\"]*\""
+let quoted_url_raw     =  "'" ^ url_content_raw ^ "[^\\\\']*'"
+let url_re =
+  Regexp.regexp (Printf.sprintf "url\\(\\s*(%s|%s|%s)\\s*\\)\\s*"
+		   dbl_quoted_url_raw
+		   quoted_url_raw
+		   (url_content_raw ^ "[^\\\\\\)]*"))
+let raw_url_re =
+  Regexp.regexp (Printf.sprintf "\\s*(%s|%s)\\s*"
+		   dbl_quoted_url_raw
+		   quoted_url_raw)
+
+exception Incorrect_url
+let parse_url ~prefix css pos =
+  match Regexp.search url_re css pos with
+  | Some (i, res) when i = pos ->
+      ( i + String.length (Regexp.matched_string res),
+	match Regexp.matched_group res 1 with
+	| Some href -> prefix_relative_url ~prefix href
+	| None -> raise Incorrect_url )
+  | _ ->
+      match Regexp.search raw_url_re css pos with
+      | Some (i, res) when i = pos ->
+	  ( i + String.length (Regexp.matched_string res),
+	    match Regexp.matched_group res 1 with
+	    | Some href -> prefix_relative_url ~prefix href
+	    | None -> raise Incorrect_url )
+      | _ -> raise Incorrect_url
+
+let parse_media css pos =
+  let i =
+    try String.index_from css pos ';'
+    with Not_found -> String.length css
+  in
+  (i+1, String.sub css pos (i - pos))
+
+let import_re = Regexp.regexp "@import\\s*"
+let url_re = Regexp.regexp "url\\("
+
+let rewrite_css_url ~prefix css pos =
+  let len = String.length css - pos in
+  let buf = Buffer.create (len + len / 2) in
+  let rec rewrite pos =
+    if pos < String.length css then
+      match Regexp.search url_re css pos with
+      | None ->
+	  Buffer.add_substring buf css pos (String.length css - pos)
+      | Some (i, res) ->
+	  Buffer.add_substring buf css pos (i - pos);
+	  try
+	    let i, href = parse_url ~prefix css i in
+	    Printf.bprintf buf "url('%s')%!" href;
+	    rewrite i
+	  with Incorrect_url ->
+	    Buffer.add_substring buf css i (String.length css - i)
+  in
+  rewrite pos;
+  Buffer.contents buf
+
+
+let rec rewrite_css ~max (media, css) =
+  try_lwt
+    css >>= function
+    | _, None -> Lwt.return []
+    | href, Some css ->
+	lwt imports, css  =
+	  rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
+	in
+	Lwt.return (imports @ [(media,  css)])
+  with e ->
+    debug "Exc1: %s" (Printexc.to_string e);
+    Lwt.return []
+
+and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
+  match Regexp.search import_re css pos with
+  | None ->
+      (* No @import anymore, rewrite url. *)
+      Lwt.return ([], rewrite_css_url ~prefix css pos)
+  | Some (i, res) ->
+      (* Found @import rule, try to preload. *)
+      let init = String.sub css pos (i - pos) in
+      let charset = if pos = 0 then init else charset in
+      try
+	let i = i + String.length (Regexp.matched_string res) in
+	let i, href = parse_url ~prefix css i in
+	let i, media' = parse_media css i in
+	lwt import =
+	  if max = 0 then
+	    (* Maximum imbrication of @import reached, rewrite url. *)
+	    Lwt.return [(media,
+			 Printf.sprintf "@import url('%s') %s;\n" href media')] 
+	  else if Js.Opt.test media && media' <> "" then
+	    (* TODO combine media if possible...
+	       in the mean time keep explicit import. *)
+	    Lwt.return [(media,
+	                 Printf.sprintf "@import url('%s') %s;\n" href media')]
+	  else
+	    let media =
+	      if Js.Opt.test media then media
+	      else if media' = "" then Js.null
+	      else Js.some (Js.string media')
+	    in
+	    let css =
+	      Eliom_request.http_get href [] Eliom_request.string_result in
+	    rewrite_css ~max:(max-1) (media, css)
+	and imports, css =
+	  rewrite_css_import ~charset ~max ~prefix ~media css i in
+	Lwt.return (import @ imports, css)
+      with
+      | Incorrect_url ->
+	  Lwt.return ([], rewrite_css_url ~prefix css pos)
+      | e ->
+	  debug "Exc2: %s" (Printexc.to_string e);
+	  Lwt.return ([], rewrite_css_url ~prefix css pos)
+
+let max_preload_depth = ref 4
+
+let build_style (e, css) =
+  lwt css = rewrite_css ~max:!max_preload_depth css in
+  lwt css =
+    Lwt_list.map_p
+      (fun (media, css) ->
+	 let style = Dom_html.createStyle Dom_html.document in
+	 style##_type <- Js.string "text/css";
+	 Js.Opt.iter media (fun m -> style##media <- m);
+	 style##innerHTML <- Js.string css;
+	 Lwt.return (style :> Dom.node Js.t))
+      css in
+  (* Noscript is used to group style. It's ignored by the parser when
+     scripting is enabled, but does not seems to be ignore when
+     inserted as a DOM element. *)
+  let node = Dom_html.createNoscript Dom_html.document in
+  List.iter (Dom.appendChild node) css;
+  Lwt.return (e, node)
+
+let preload_css (doc : Dom_html.element Js.t) =
+  lwt css = Lwt_list.map_p build_style (fetch_linked_css doc) in
+  List.iter (fun (e, css) ->
+	       Dom.replaceChild (get_head doc) css e) css;
+  Lwt.return ()

@@ -442,15 +442,13 @@ let set_content ?uri = function
       let js_data, cookies = load_data_script (get_data_script fake_page) in
       Eliommod_cookies.update_cookie_table cookies;
       let on_load = load_eliom_data js_data fake_page in
-      let head, body = Eliommod_dom.get_head fake_page, Eliommod_dom.get_body fake_page in
-      let document_head,document_body = Eliommod_dom.get_head Dom_html.document,
-        Eliommod_dom.get_body Dom_html.document in
-      Dom.replaceChild
-        (Dom_html.document##documentElement)
-        head (document_head);
-      Dom.replaceChild
-        (Dom_html.document##documentElement)
-        body (document_body);
+      lwt () = Eliommod_dom.preload_css fake_page in
+      Dom.replaceChild (Dom_html.document##documentElement)
+        (Eliommod_dom.get_head fake_page)
+	(Eliommod_dom.get_head (Dom_html.document##documentElement));
+      Dom.replaceChild (Dom_html.document##documentElement)
+        (Eliommod_dom.get_body fake_page)
+	(Eliommod_dom.get_body (Dom_html.document##documentElement));
       ignore (List.for_all (fun f -> f ()) on_load);
       iter_option (fun uri -> scroll_to_fragment (snd (Url.split_fragment uri))) uri;
       Lwt.return ()
