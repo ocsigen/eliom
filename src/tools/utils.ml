@@ -81,11 +81,23 @@ let get_predicates () = match !kind with
 let syntax_predicates = ["preprocessor";"syntax";"camlp4o"] @ !predicates
 
 let get_server_package () =
-  Findlib.package_deep_ancestors (get_predicates ()) ("eliom.server" :: !package)
+  try
+    Findlib.package_deep_ancestors (get_predicates ()) ("eliom.server" :: !package)
+  with Findlib.No_such_package (name, _) ->
+    Printf.eprintf "Unknown package: %s\n%!" name;
+    exit 1
 let get_client_package () =
-  Findlib.package_deep_ancestors (get_predicates ()) ("eliom.client" :: !package)
+  try
+    Findlib.package_deep_ancestors (get_predicates ()) ("eliom.client" :: !package)
+  with Findlib.No_such_package (name, _) ->
+    Printf.eprintf "Unknown package: %s\n%!" name;
+    exit 1
 let get_syntax_package () =
-  Findlib.package_deep_ancestors syntax_predicates ("eliom.syntax" :: !package)
+  try
+    Findlib.package_deep_ancestors syntax_predicates ("eliom.syntax" :: !package)
+  with Findlib.No_such_package (name, _) ->
+    Printf.eprintf "Unknown package: %s\n%!" name;
+    exit 1
 
 let rec map_include xs = match xs with
   | [] -> []
@@ -117,11 +129,17 @@ let get_client_lib () =
   List.concat
     (List.map
        (fun p ->
-	 split ' ' (Findlib.package_property (get_predicates ()) p "archive"))
+	 try
+	   split ' ' (Findlib.package_property (get_predicates ()) p "archive")
+	 with Not_found -> [])
        (get_client_package ()))
 
 let get_client_js () =
-  [ Findlib.package_directory "eliom.client" ^ "/eliom_client.js" ]
+  try
+    [ Findlib.package_directory "eliom.client" ^ "/eliom_client.js" ]
+  with Findlib.No_such_package (name, _) ->
+    Printf.eprintf "Unknown package: %s\n%!" name;
+    exit 1
 
 let get_pp opt = match !pp with
   | None -> ["-pp"; String.concat " " ("camlp4" :: get_common_syntax () @ opt)]
