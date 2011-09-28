@@ -203,8 +203,13 @@ module SVG : sig
 
   (** Type safe SVG creation. *)
   module M : sig
+
+    (** See {% <<a_api project="tyxml" | module type SVG_sigs.T >> %}. *)
     include SVG_sigs.T with module XML := XML
+
+    (** <<wip| ... >> *)
     val unique: ?copy:'a elt -> 'a elt -> 'a elt
+
   end
 
   module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
@@ -217,11 +222,13 @@ module HTML5 : sig
   (** Type safe HTML5 creation. *)
   module M : sig
 
-
+    (** See {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
     include HTML5_sigs.T with module XML := XML and module SVG := SVG.M
 
+    (** <<wip| ... >> *)
     val unique: ?copy:'a elt -> 'a elt -> 'a elt
 
+    (**/**)
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
@@ -230,6 +237,7 @@ module HTML5 : sig
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
+    (**/**)
 
   end
   module P : XML_sigs.TypedSimplePrinter with type 'a elt := 'a M.elt
@@ -241,8 +249,11 @@ module XHTML : sig
 
   (** Type safe XHTML creation. *)
   module M : sig
+
+    (** See {% <<a_api project="tyxml" | module type XHTML_sigs.T >> %}. *)
     include XHTML_sigs.T with module XML := XML
 
+    (**/**)
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
@@ -252,6 +263,7 @@ module XHTML : sig
     val lazy_form:
       action:uri Eliom_lazy.request ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
+    (**/**)
 
   end
   module P : XML_sigs.TypedSimplePrinter
@@ -260,8 +272,10 @@ module XHTML : sig
 
   module M_01_00 : sig
 
+    (** See {% <<a_api project="tyxml" | module type XHTML_sigs.T >> %}. *)
     include XHTML_sigs.T with module XML := XML
 
+    (**/**)
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
@@ -271,6 +285,7 @@ module XHTML : sig
     val lazy_form:
       action:uri Eliom_lazy.request ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
+    (**/**)
 
   end
 
@@ -284,8 +299,10 @@ module XHTML : sig
 
   module M_01_01 : sig
 
+    (** See {% <<a_api project="tyxml" | module type XHTML_sigs.T >> %}. *)
     include XHTML_sigs.T with module XML := XML
 
+    (**/**)
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
@@ -295,6 +312,7 @@ module XHTML : sig
     val lazy_form:
       action:uri Eliom_lazy.request ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
+    (**/**)
 
   end
 
