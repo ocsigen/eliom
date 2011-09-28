@@ -22,13 +22,8 @@ let get_default_hostname () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_hostname" in
   sitedata.Eliom_common.config_info.Ocsigen_extensions.default_hostname
 
-let get_default_port () =
-  let sitedata = Eliom_request_info.find_sitedata "get_default_port" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpport
-
-let get_default_sslport () =
-  let sitedata = Eliom_request_info.find_sitedata "get_default_sslport" in
-  sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpsport
+let get_default_port () = Eliom_common.get_default_port ()
+let get_default_sslport () = Eliom_common.get_default_sslport ()
 
 let get_config_default_charset_sp sp =
   Ocsigen_charset_mime.default_charset

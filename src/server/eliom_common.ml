@@ -543,50 +543,8 @@ let get_cookie_info sp = function
 
 
 
-(*****************************************************************************)
-(** Create server parameters record *)
-let make_server_params
-    sitedata
-    (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
-    suffix
-    fullsessname =
-  let appl_name =
-    try
-      Some
-        (CookiesTable.find appl_name_cookie_name si.si_tab_cookies)
-    (* It is an XHR from the client application, or an internal form *)
-    with Not_found -> None
-  in
-  let cpi =
-    match si.si_client_process_info with
-    | Some cpi -> cpi
-    | None ->
-	let request_info = ri.Ocsigen_extensions.request_info in
-(*VVV See also in eliom_uri.ml *)
-	{ cpi_ssl = request_info.Ocsigen_extensions.ri_ssl;
-	  cpi_hostname = Ocsigen_extensions.get_hostname ri;
-	  cpi_server_port = if request_info.Ocsigen_extensions.ri_ssl
-            then Eliom_config.get_default_sslport ()
-            else Eliom_config.get_default_port ();
-(* We do not use the request's port for computing absolute URLs
-   because it does not work behind a reverse proxy
-   request_info.Ocsigen_extensions.ri_server_port *)
-	  cpi_original_full_path =
-	    request_info.Ocsigen_extensions.ri_original_full_path;
-	}
-  in
-  { sp_request = ri;
-    sp_si = si;
-    sp_sitedata = sitedata;
-    sp_cookie_info = all_cookie_info;
-    sp_tab_cookie_info = all_tab_cookie_info;
-    sp_user_cookies = Ocsigen_cookies.empty_cookieset;
-    sp_user_tab_cookies = user_tab_cookies;
-    sp_client_appl_name = appl_name;
-    sp_suffix = suffix;
-    sp_fullsessname = fullsessname;
-    sp_client_process_info = cpi;
-  }
+(**** sp *)
+
 
 let sp_key = Lwt.new_key ()
 
@@ -601,6 +559,8 @@ let sp_of_option sp =
   match sp with
     | None -> get_sp ()
     | Some sp -> sp
+
+
 
 (*****************************************************************************)
 (* Scope registration                                                        *)
@@ -695,6 +655,70 @@ let global_register_allowed () =
     && (during_eliom_module_loading ())
   then Some get_current_sitedata
   else None
+
+(*****************************************************************************)
+(** Create server parameters record *)
+
+let find_sitedata fun_name =
+  match get_sp_option () with
+    | Some sp -> sp.sp_sitedata
+    | None ->
+      match global_register_allowed () with
+        | Some get_current_sitedata -> get_current_sitedata ()
+        | _ ->
+          raise
+            (Eliom_site_information_not_available fun_name)
+
+let get_default_port () =
+  let sitedata = find_sitedata "get_default_port" in
+  sitedata.config_info.Ocsigen_extensions.default_httpport
+
+let get_default_sslport () =
+  let sitedata = find_sitedata "get_default_sslport" in
+  sitedata.config_info.Ocsigen_extensions.default_httpsport
+
+let make_server_params
+    sitedata
+    (ri, si, all_cookie_info, all_tab_cookie_info, user_tab_cookies)
+    suffix
+    fullsessname =
+  let appl_name =
+    try
+      Some
+        (CookiesTable.find appl_name_cookie_name si.si_tab_cookies)
+    (* It is an XHR from the client application, or an internal form *)
+    with Not_found -> None
+  in
+  let cpi =
+    match si.si_client_process_info with
+    | Some cpi -> cpi
+    | None ->
+	let request_info = ri.Ocsigen_extensions.request_info in
+(*VVV See also in eliom_uri.ml *)
+	{ cpi_ssl = request_info.Ocsigen_extensions.ri_ssl;
+	  cpi_hostname = Ocsigen_extensions.get_hostname ri;
+	  cpi_server_port = if request_info.Ocsigen_extensions.ri_ssl
+            then get_default_sslport ()
+            else get_default_port ();
+(* We do not use the request's port for computing absolute URLs
+   because it does not work behind a reverse proxy
+   request_info.Ocsigen_extensions.ri_server_port *)
+	  cpi_original_full_path =
+	    request_info.Ocsigen_extensions.ri_original_full_path;
+	}
+  in
+  { sp_request = ri;
+    sp_si = si;
+    sp_sitedata = sitedata;
+    sp_cookie_info = all_cookie_info;
+    sp_tab_cookie_info = all_tab_cookie_info;
+    sp_user_cookies = Ocsigen_cookies.empty_cookieset;
+    sp_user_tab_cookies = user_tab_cookies;
+    sp_client_appl_name = appl_name;
+    sp_suffix = suffix;
+    sp_fullsessname = fullsessname;
+    sp_client_process_info = cpi;
+  }
 
 (*****************************************************************************)
 (* Lazy site value: each site have a different value *)
