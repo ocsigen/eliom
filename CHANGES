@@ -1,3 +1,12 @@
+===== 2.0.1 (2011-09-28) =====
+
+ * Bugfixes in eliom appl.:
+ ** Preload css when changing page to avoid a disgraceful "flash" effect
+ ** Use <base href=""> to preserve links in unique node when changing page
+ ** Fragment in URL aren't ignored anymore
+ ** Proper exception handling in eliomc, js_of_eliom, ...
+ ** Display a correct URL after submitting a <form>
+
 ===== 2.0 (2011-09-20) =====
 
  * Bugfixes:
