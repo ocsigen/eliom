@@ -71,12 +71,14 @@ module My_appl =
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
 
 (* FIXME GRGR ... avoid fake_header and "unique" in the first example ! *)
-let fake_header = unique (span [])
+let fake_header = unique (p [])
 let header () =
-  p [pcdata "Random value in the container: ";
-     unique ~copy:fake_header (span [pcdata (string_of_int (Random.int 1000))]);
-     br ();
-     a ~service:main [pcdata "Back to the main page of the test suite."] ();]
+  unique
+    ~copy:fake_header
+    (p [pcdata "Random value in the container: ";
+	(span [pcdata (string_of_int (Random.int 1000))]);
+	br ();
+	a ~service:main [pcdata "Back to the main page of the test suite."] ();])
 
 let make_page ?(css = []) content =
   html
@@ -2440,7 +2442,7 @@ let otherappl =
     ~get_params:unit
     (fun () () -> Lwt.return (make_page_bis [p [pcdata "I am another application"] ]))
 
-let long_page = Eliom_services.service ~path:["fragment"] ~get_params:unit ()
+let long_page = Eliom_services.service ~path:["fragment";"main"] ~get_params:unit ()
 
 let _ =
   My_appl.register long_page

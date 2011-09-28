@@ -112,11 +112,8 @@ let rec send ?(expecting_process_page = false) ?cookies_info
     let cookies = Eliommod_cookies.get_cookies_to_send https path in
     let headers = [ Eliom_common.tab_cookies_header_name,
                     encode_header_value cookies ] in
-    let headers = if not Eliom_process.history_api
-      then ( Eliom_common.tab_cpi_header_name,
-	     encode_header_value Eliom_process.info ) :: headers
-      else headers
-    in
+    let headers = ( Eliom_common.tab_cpi_header_name,
+		    encode_header_value Eliom_process.info ) :: headers in
     let headers = if expecting_process_page
       then
 	("Accept","application/xhtml+xml")::
