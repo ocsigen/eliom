@@ -23,7 +23,15 @@ open Lwt
 open Ocsigen_extensions
 
 (*****************************************************************************)
-let find_sitedata = Eliom_common.find_sitedata
+let find_sitedata fun_name =
+  match Eliom_common.get_sp_option () with
+    | Some sp -> sp.Eliom_common.sp_sitedata
+    | None ->
+      match Eliom_common.global_register_allowed () with
+        | Some get_current_sitedata -> get_current_sitedata ()
+        | _ ->
+          raise
+            (Eliom_common.Eliom_site_information_not_available fun_name)
 
 (*****************************************************************************)
 let get_http_method () =

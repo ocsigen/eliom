@@ -608,7 +608,6 @@ val sp_of_option : server_params option -> server_params
 val found_stop_key : unit Polytables.key
 
 
-
 (**** Wrapper type shared by client/server side ***)
 
 type 'a wrapper = 'a Eliom_wrap.wrapper
@@ -626,10 +625,3 @@ val react_down_unwrap_id : unwrap_id
 val signal_down_unwrap_id : unwrap_id
 val comet_channel_unwrap_id : unwrap_id
 val bus_unwrap_id : unwrap_id
-
-
-(**/**)
-
-val find_sitedata : string -> sitedata
-val get_default_port : unit -> int
-val get_default_sslport : unit -> int
