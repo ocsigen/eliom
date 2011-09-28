@@ -562,9 +562,15 @@ let make_server_params
     | Some cpi -> cpi
     | None ->
 	let request_info = ri.Ocsigen_extensions.request_info in
+(*VVV See also in eliom_uri.ml *)
 	{ cpi_ssl = request_info.Ocsigen_extensions.ri_ssl;
 	  cpi_hostname = Ocsigen_extensions.get_hostname ri;
-	  cpi_server_port = request_info.Ocsigen_extensions.ri_server_port;
+	  cpi_server_port = if request_info.Ocsigen_extensions.ri_ssl
+            then Eliom_config.get_default_sslport ()
+            else Eliom_config.get_default_port ();
+(* We do not use the request's port for computing absolute URLs
+   because it does not work behind a reverse proxy
+   request_info.Ocsigen_extensions.ri_server_port *)
 	  cpi_original_full_path =
 	    request_info.Ocsigen_extensions.ri_original_full_path;
 	}

@@ -118,6 +118,7 @@ let make_proto_prefix
         if https
         then Eliom_config.get_default_sslport ()
         else Eliom_config.get_default_port ()
+(*VVV See also cpi in eliom_common.ml if you modify this! *)
   in
   Url.make_absolute_url https host port "/"
 
