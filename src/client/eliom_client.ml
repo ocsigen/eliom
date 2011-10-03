@@ -516,7 +516,7 @@ let change_page_get_form ?cookies_info form full_uri =
     ~expecting_process_page:true ?cookies_info form uri
     Eliom_request.xml_result
   in
-  set_content ~uri:full_uri content
+  set_content ~uri content
 
 let change_page_post_form ?cookies_info form full_uri =
   let form = Js.Unsafe.coerce form in
@@ -525,7 +525,7 @@ let change_page_post_form ?cookies_info form full_uri =
       ~expecting_process_page:true ?cookies_info form uri
       Eliom_request.xml_result
   in
-  set_content ~uri:full_uri content
+  set_content ~uri content
 
 let _ =
   change_page_uri_ :=
