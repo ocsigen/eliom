@@ -125,10 +125,3 @@ program.
 * Part of the page can persist after loading a new page.
 * If you are listening music or watching a video, it does not stop
 when you change page!
-
-
-
-<<nav id="doctree"|
-  <<header | = Table of contents >>
-  <<doctree>>
->>
