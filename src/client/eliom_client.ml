@@ -430,14 +430,18 @@ let scroll_to_fragment fragment =
       let elem = Dom_html.document##getElementById(Js.string fragment) in
       Js.Opt.iter elem scroll_to_element
 
-let set_content ?uri = function
+let set_content ?uri ?fragment = function
   | None -> Lwt.return ()
   | Some content ->
     try_lwt
       chrome_dummy_popstate := false;
       ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
       on_unload_scripts := [];
-      iter_option change_url_string uri;
+      (match uri, fragment with
+	| Some uri, None -> change_url_string uri
+	| Some uri, Some fragment ->
+	  change_url_string (uri ^ "#" ^ fragment)
+	| _ -> ());
       let fake_page = Eliommod_dom.copy_element (content##documentElement) in
       let js_data, cookies = load_data_script (get_data_script fake_page) in
       Eliommod_cookies.update_cookie_table cookies;
@@ -503,7 +507,7 @@ let change_page_uri ?cookies_info ?(get_params = []) full_uri =
       ~expecting_process_page:true ?cookies_info uri get_params
       Eliom_request.xml_result
     in
-    set_content ~uri:full_uri content
+    set_content ~uri ?fragment content
   else
     ( change_url_string full_uri;
       scroll_to_fragment fragment;
@@ -511,21 +515,21 @@ let change_page_uri ?cookies_info ?(get_params = []) full_uri =
 
 let change_page_get_form ?cookies_info form full_uri =
   let form = Js.Unsafe.coerce form in
-  let uri, _ = split_fragment full_uri in
+  let uri, fragment = split_fragment full_uri in
   lwt uri, content = Eliom_request.send_get_form
     ~expecting_process_page:true ?cookies_info form uri
     Eliom_request.xml_result
   in
-  set_content ~uri content
+  set_content ~uri ?fragment content
 
 let change_page_post_form ?cookies_info form full_uri =
   let form = Js.Unsafe.coerce form in
-  let uri, _ = split_fragment full_uri in
+  let uri, fragment = split_fragment full_uri in
   lwt uri, content = Eliom_request.send_post_form
       ~expecting_process_page:true ?cookies_info form uri
       Eliom_request.xml_result
   in
-  set_content ~uri content
+  set_content ~uri ?fragment content
 
 let _ =
   change_page_uri_ :=
