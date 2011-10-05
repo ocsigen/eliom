@@ -36,9 +36,9 @@ end
 module Format = XML_print.MakeSimple(XML)(Atom_info)
 
 let result_of_content feed headers =
-   let r = ref "" in
-   Format.print_list ~output:(fun s -> r := s) [Atom_feed.xml_of_feed feed];
-   let c = !r in
+   let b = Buffer.create 10 in
+   Format.print_list ~output:(Buffer.add_string b) [Atom_feed.xml_of_feed feed];
+   let c = Buffer.contents b in
    let md5 = get_etag c in
    let dr = F.default_result () in
    {dr with
