@@ -66,7 +66,6 @@ let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
   | XML.CE_call_service None -> (fun _ -> true)
   | XML.CE_call_service (Some (`A, cookies_info)) ->
       (fun ev ->
-	Firebug.console##debug(ev);
 	let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
 	let https = Url.get_ssl (Js.to_string href) in
 	(middleClick ev)
