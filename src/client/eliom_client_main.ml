@@ -25,13 +25,13 @@ let _a = Eliom_react.force_link
 let _b = Eliom_comet.force_link
 let _c = Eliom_bus.force_link
 
-let onload _ =
+let onload ev =
   Eliommod_cookies.update_cookie_table (Eliom_request_info.get_request_cookies ());
   let on_load =
     Eliom_client.load_eliom_data
       (Eliom_request_info.get_request_data ())
       (Dom_html.document##documentElement) in
-  ignore (List.for_all (fun f -> f ()) on_load);
+  ignore (List.for_all (fun f -> f ev) on_load);
   Js._false
 
 let _ =

@@ -52,17 +52,29 @@ let change_page_uri_ = ref (fun ?cookies_info href -> assert false)
 let change_page_get_form_ = ref (fun ?cookies_info form href -> assert false)
 let change_page_post_form_ = ref (fun ?cookies_info form href -> assert false)
 
-let reify_caml_event node ce = match ce with
-  | XML.CE_call_service None -> (fun () -> true)
+let middleClick ev =
+   match Dom_html.taggedEvent ev with
+   | Dom_html.MouseEvent ev ->
+       Dom_html.buttonPressed ev = Dom_html.Middle_button
+       || Js.to_bool ev##ctrlKey
+       || Js.to_bool ev##shiftKey
+       || Js.to_bool ev##altKey
+       || Js.to_bool ev##metaKey
+   | _ -> false
+
+let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
+  | XML.CE_call_service None -> (fun _ -> true)
   | XML.CE_call_service (Some (`A, cookies_info)) ->
-      (fun () ->
+      (fun ev ->
+	Firebug.console##debug(ev);
 	let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
 	let https = Url.get_ssl (Js.to_string href) in
-	(https = Some true && not Eliom_request_info.ssl_)
+	(middleClick ev)
+	|| (https = Some true && not Eliom_request_info.ssl_)
 	|| (https = Some false && Eliom_request_info.ssl_)
 	|| (!change_page_uri_ ?cookies_info (Js.to_string href); false))
   | XML.CE_call_service (Some (`Form_get, cookies_info)) ->
-      (fun () ->
+      (fun ev ->
 	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
 	let action = Js.to_string form##action in
 	let https = Url.get_ssl action in
@@ -70,7 +82,7 @@ let reify_caml_event node ce = match ce with
 	|| (https = Some false && Eliom_request_info.ssl_)
 	|| (!change_page_get_form_ ?cookies_info form action; false))
   | XML.CE_call_service (Some (`Form_post, cookies_info)) ->
-      (fun () ->
+      (fun ev ->
 	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
 	let action = Js.to_string form##action in
 	let https = Url.get_ssl action in
@@ -78,14 +90,15 @@ let reify_caml_event node ce = match ce with
 	|| (https = Some false && Eliom_request_info.ssl_)
 	|| (!change_page_post_form_ ?cookies_info form action; false))
   | XML.CE_client_closure f ->
-    (fun () -> try f (); true with False -> false)
+    (* TODO pass event ? *)
+    (fun _ -> try f (); true with False -> false)
   | XML.CE_registered_closure (id, args) ->
       try
 	let f = find_closure id in
-	(fun () -> try f args; true with False -> false)
+	(fun _ -> try f args; true with False -> false)
       with Not_found ->
 	Firebug.console##error(Printf.sprintf "Closure not found (%Ld)" id);
-	(fun () -> false)
+	(fun _ -> false)
 
 let reify_event node ev = match ev with
   | XML.Raw ev -> Js.Unsafe.variable ev
@@ -95,7 +108,7 @@ let register_event_handler node (name, ev) =
   let f = reify_caml_event node ev in
   assert(String.sub name 0 2 = "on");
   Js.Unsafe.set node (Js.string name)
-    (Dom_html.handler (fun _ -> Js.bool (f ())))
+    (Dom_html.handler (fun ev -> Js.bool (f ev)))
 
 (* == Register nodes id and event in the orginal Dom. *)
 
@@ -364,7 +377,7 @@ let onclick_on_body_handler event =
 	(Js.Unsafe.variable "window")##eliomLastButton <- None);
   Js._true
 
-let add_onclick_events () =
+let add_onclick_events _ =
   ignore (Dom_html.addEventListener ( Dom_html.window##document##body )
 	    Dom_html.Event.click ( Dom_html.handler onclick_on_body_handler )
 	    Js._true : Dom_html.event_listener_id);
@@ -372,7 +385,7 @@ let add_onclick_events () =
 
 (* END FORMDATA HACK *)
 
-let broadcast_load_end () =
+let broadcast_load_end _ =
   loading_phase := false;
   Lwt_condition.broadcast load_end ();
   true
@@ -391,8 +404,11 @@ let load_eliom_data js_data page =
     List.map
       (reify_event Dom_html.document##documentElement)
       js_data.Eliom_types.ejs_onunload in
+  let unload_evt : #Dom_html.event Js.t =
+    (Js.Unsafe.coerce Dom_html.document)##createEvent(Js.string "HTMLEvents") in
+  (Js.Unsafe.coerce unload_evt)##initEvent(Js.string "unload", false, false);
   on_unload_scripts :=
-    [fun () -> List.for_all (fun f -> f ()) on_unload];
+    [fun () -> List.for_all (fun f -> f unload_evt) on_unload];
   add_onclick_events :: on_load @ [broadcast_load_end]
 
 let wait_load_end () =
@@ -453,7 +469,10 @@ let set_content ?uri ?fragment = function
       Dom.replaceChild (Dom_html.document##documentElement)
         (Eliommod_dom.get_body fake_page)
 	(Eliommod_dom.get_body (Dom_html.document##documentElement));
-      ignore (List.for_all (fun f -> f ()) on_load);
+      let load_evt : #Dom_html.event Js.t =
+	(Js.Unsafe.coerce Dom_html.document)##createEvent(Js.string "HTMLEvents") in
+      (Js.Unsafe.coerce load_evt)##initEvent(Js.string "load", false, false);
+      ignore (List.for_all (fun f -> f load_evt) on_load);
       iter_option (fun uri -> scroll_to_fragment (snd (Url.split_fragment uri))) uri;
       Lwt.return ()
     with
