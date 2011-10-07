@@ -151,18 +151,18 @@ let rec send ?(expecting_process_page = false) ?cookies_info
       if r.XmlHttpRequest.code = 204
       then
 	match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with
-          | Some uri when uri <> "" ->
-            if i < max_redirection_level
-            then aux (i+1) uri
-            else Lwt.fail Looping_redirection
-          | _ ->
-            match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
-              | Some uri when uri <> "" ->
+          | None | Some "" ->
+            (match r.XmlHttpRequest.headers Eliom_common.half_xhr_redir_header with
+              | None | Some "" -> Lwt.return (r.XmlHttpRequest.url, None)
+              | Some uri ->
 		(match post_args,form_arg with
 		  | None,None -> redirect_get uri
 		  | _,_ -> redirect_post_form_elt ?post_args ?form_arg url);
-		Lwt.fail Program_terminated
-              | None -> Lwt.return (r.XmlHttpRequest.url, None)
+		Lwt.fail Program_terminated)
+          | Some uri ->
+            if i < max_redirection_level
+            then aux (i+1) uri
+            else Lwt.fail Looping_redirection
       else
 	if expecting_process_page
 	then
