@@ -214,9 +214,6 @@ module Xhtml_forms_base = struct
 
   let uri_of_string = Uri.uri_of_string
 
-  let empty_seq = []
-  let cons_form a l = a::l
-
   let map_option = List.map
   let map_optgroup f a l = ((f a), List.map f l)
   let select_content_of_option a = (a :> select_content_elt)
@@ -262,13 +259,13 @@ module Xhtml_forms_base = struct
     in
     r
 
-  let make_hidden_field content =
-    let c = match content with
-      | None -> []
-      | Some c -> [c]
-    in
-    (div ~a:[a_class ["eliom_nodisplay"]] c :> form_content elt)
-
+  let empty_seq = []
+  let cons_hidden_fieldset fields content =
+    let fieldset =
+      XHTML.M.fieldset
+	~a:[a_style "display: none;"]
+	fields in
+    (fieldset :: content :> form_content_elt_list)
 
   let make_input ?(a=[]) ?(checked=false) ~typ ?name ?src ?value () =
     let a2 = match value with
@@ -1352,12 +1349,12 @@ module HtmlText_forms_base = struct
     (if inline then "style=\"display: inline\"" else "")^aa^">"^
     Eliom_lazy.force elts^"</form>"
 
-  let make_hidden_field content =
-    let content = match content with
-      | None -> ""
-      | Some c -> c
-    in
-    "<div style=\"display: none\""^content^"</div>"
+  let empty_seq = ""
+  let cons_hidden_fieldset fields content =
+    "<fieldset style=\"display: none;\">"
+    ^ String.concat "" fields
+    ^ "</fieldset>"
+    ^ content
 
   let make_input ?(a="") ?(checked=false) ~typ ?name ?src ?value () =
     let a2 = match value with

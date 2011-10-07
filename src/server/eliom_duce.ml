@@ -171,8 +171,6 @@ module Xhtml_forms_base = struct
 
   let uri_of_string x = x
 
-  let empty_seq = {{ [] }}
-  let cons_form a l = {{ [ a !l ] }}
   let map_option f l = {{ {: (List.map f l) :} }}
   let map_optgroup f a l = ((f a), {{ {: (List.map f l) :} }})
 
@@ -209,12 +207,11 @@ module Xhtml_forms_base = struct
        [ !(Eliom_lazy.force elts) ]
      }}
 
-  let make_hidden_field content =
-    let c = match content with
-      | None -> {{ [] }}
-      | Some c -> {{ [ c ] }}
-    in
-    {{ <div class="eliom_nodisplay">c }}
+  let empty_seq = {{ [] }}
+  let cons_hidden_fieldset (fields : input_elt list) contents =
+    let style = "display: none;" in
+    let fieldset = {{ <fieldset style=(str style)> [ !{: fields :} ] }} in
+    {{ [ fieldset !contents ] }}
 
   let make_div ~classe c =
     let classe = (List.fold_left (fun a b -> a^" "^b) "" classe) in

@@ -54,8 +54,6 @@ val image : input_type_t
 val buttonsubmit : button_type_t
 
 val empty_seq : form_content_elt_list
-val cons_form :
-  form_content_elt -> form_content_elt_list -> form_content_elt_list
 val map_option :
   ('a -> option_elt) -> 'a list ->
   option_elt_list
@@ -72,7 +70,7 @@ val make_get_form :
 val make_post_form : ?a:form_attrib_t ->
   action:uri Eliom_lazy.request -> ?id:string -> ?inline:bool ->
   form_content_elt_list Eliom_lazy.request -> form_elt
-val make_hidden_field : input_elt option -> form_content_elt
+val cons_hidden_fieldset : input_elt list -> form_content_elt_list -> form_content_elt_list
 val make_input : ?a:input_attrib_t -> ?checked:bool ->
   typ:input_type_t -> ?name:string -> ?src:uri ->
   ?value:string -> unit -> input_elt
