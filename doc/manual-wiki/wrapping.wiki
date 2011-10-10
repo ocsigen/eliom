@@ -135,26 +135,4 @@ The Eliom types that are marked are:
 * <<a_api | type Eliom_react.Up.t>> transformed to {{{ 'a -> unit }}}
 * <<a_api | type Eliom_react.Down.t>> transformed to {{{ 'a React.E.t }}}
 * <<a_api | type Eliom_bus.t>> transformed to <<a_api | type Eliom_bus.t>>
-* <<a_api subproject="server"| type Eliom_pervasives.XML.elt>> transformed to <<a_api subproject="client"| type Eliom_pervasives.XML.elt>> (but the client side representation)
 
-=== Additionnal notes for XML ===
-
-Client and server side behaviour differ:
-* On server side XML is a tree which allow sharing. i.e. it can be an acyclic graph.
-* On client side XML use the internal browser representation which doesn't allow sharing
-
-This can affect the behaviour for instance when doing:
-
-<<code language="ocaml"|
-let a = div []
-let b = div [a;a]
-let c = div [pcdata "text"]
-
-...
-
-  {{ Dom.appendChild %a %c }}
->>
-
-when the value was sent, the node {{{a}}} was copied 2 times and only
-the second one is referenced by {{{%a}}}: the node {{{c}}} will be
-added as a child to the second {{{a}}} not to the first one.
