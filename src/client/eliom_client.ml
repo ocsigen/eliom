@@ -457,7 +457,7 @@ let set_content ?uri ?fragment = function
 	| Some uri, Some fragment ->
 	  change_url_string (uri ^ "#" ^ fragment)
 	| _ -> ());
-      let fake_page = Eliommod_dom.copy_element (content##documentElement) in
+      let fake_page = Eliommod_dom.html_document content in
       let js_data, cookies = load_data_script (get_data_script fake_page) in
       Eliommod_cookies.update_cookie_table cookies;
       let on_load = load_eliom_data js_data fake_page in

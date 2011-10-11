@@ -1,12 +1,35 @@
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Copyright (C) 2011 Pierre Chambart, Grégoire Henry
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception;
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
+
 open Eliom_pervasives
 
+class type ['element] get_tag = object
+  method getElementsByTagName : Js.js_string Js.t -> 'element Dom.nodeList Js.t Js.meth
+end
+
 (* We can't use Dom_html.document##head: it is not defined in ff3.6... *)
-let get_head page =
+let get_head (page:'element #get_tag Js.t) : 'element Js.t =
   Js.Opt.get
     ((page##getElementsByTagName(Js.string "head"))##item(0))
     (fun () -> error "get_head")
 
-let get_body page =
+let get_body (page:'element #get_tag Js.t) : 'element Js.t =
   Js.Opt.get
     ((page##getElementsByTagName(Js.string "body"))##item(0))
     (fun () -> error "get_body")
@@ -94,6 +117,12 @@ let copy_element (e:Dom.element Js.t) : Dom_html.element Js.t =
   match aux e with
     | None -> error "copy_element"
     | Some e -> e
+
+let html_document (src:Dom.element Dom.document Js.t) : Dom_html.element Js.t =
+  let content = src##documentElement in
+  match Js.Opt.to_option (Dom_html.CoerceTo.element content) with
+    | Some e -> e
+    | None -> copy_element content
 
 (** CSS preloading. *)
 
