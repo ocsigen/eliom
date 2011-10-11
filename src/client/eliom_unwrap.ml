@@ -17,36 +17,34 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let new_id = let r = ref 0 in fun () -> incr r; !r
+(* TODO: implement with WeakMap when standardised:
+   https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/WeakMap
 
-class type obj_with_id = object
-  method camlObjTableId : int Js.optdef Js.prop
+class type ['a,'b] weakMap = object
+  method get : 'a -> 'b Js.optdef Js.meth
+  method set : 'a -> 'b -> unit Js.meth
+  method has : 'a -> bool Js.t Js.meth
 end
 
-let get_obj_table_uuid o =
-  let v : obj_with_id Js.t = Obj.magic o in
-  match Js.Optdef.to_option ( v##camlObjTableId ) with
-    | None ->
-      let id = new_id () in
-      v##camlObjTableId <- Js.def id;
-      id
-    | Some id -> id
+let weakMap : ('a,'b) weakMap Js.t Js.constr = Js.Unsafe.variable "window.WeakMap"
 
-module IdType =
-struct
-  type t = Obj.t
-  let hash v =
-    let v = Obj.repr v in
-    let tag = Obj.tag v in
-    if tag < Obj.no_scan_tag
-    then get_obj_table_uuid v
-    else
-      (Firebug.console##error_2(Js.string "can't give id to value",v);
-       failwith ("can't give id to value"))
-  let equal = (==)
+let map : (Obj.t,Obj.t) weakMap Js.t = jsnew weakMap ()
+
+let get_obj_copy map o = Js.Optdef.to_option ( map##get(o) )
+let set_obj_copy map o c = map##set(o,c)
+*)
+
+class type obj_with_copy = object
+  method camlObjCopy : Obj.t Js.optdef Js.prop
 end
 
-module T = Hashtbl.Make(IdType)
+let get_obj_copy o =
+  let v : obj_with_copy Js.t = Obj.obj o in
+  Js.Optdef.to_option ( v##camlObjCopy )
+
+let set_obj_copy o c =
+  let v : obj_with_copy Js.t = Obj.obj o in
+  v##camlObjCopy <- Js.def c;
 
 module Mark : sig
   type t
@@ -114,30 +112,27 @@ type stack =
   | Do of (Obj.t * action)
   | Unwrap of (unwrapper * Obj.t)
 
-let find t v =
+let find v =
   let tag = Obj.tag v in
   if tag >= Obj.no_scan_tag || tag = Obj.closure_tag
   || tag = Obj.infix_tag || tag = Obj.lazy_tag || tag = Obj.object_tag
   then Some v
-  else
-    try
-      Some (T.find t v)
-    with Not_found -> None
+  else get_obj_copy v
 
-let search_and_replace_ mark t v =
+let search_and_replace_ mark v =
   let rec loop = function
     | [] -> assert false
     | (Unwrap (unwrapper,v))::q ->
       let new_v = apply_unwrapper unwrapper v in
       loop ((Do (new_v,Replace v))::q)
     | (Do (v,action))::q as s ->
-      match find t v with
+      match find v with
 	| Some r ->
 	  (match action with
 	    | Set_field (o,i) ->
 	      Obj.set_field o i r;
 	      loop q
-	    | Replace o -> T.replace t o r;
+	    | Replace o -> set_obj_copy o r;
 	      loop q
 	    | Return -> r)
 	| None ->
@@ -151,7 +146,7 @@ let search_and_replace_ mark t v =
 	      loop !stack
 	    | None ->
 	      begin
-		T.add t v v;
+		set_obj_copy v v;
 	      (* It is ok to do this because tag < no_scan_tag and it is
 		 not a closure ( either infix, normal or lazy ) *)
 		let stack = ref s in
@@ -164,6 +159,4 @@ let search_and_replace_ mark t v =
   in
   loop [Do (v,Return)]
 
-let unwrap (mark,v) =
-  let t = T.create 1 in
-  Obj.obj (search_and_replace_ (Obj.magic mark) t (Obj.repr v))
+let unwrap (mark,v) = Obj.obj (search_and_replace_ (Obj.magic mark) (Obj.repr v))
