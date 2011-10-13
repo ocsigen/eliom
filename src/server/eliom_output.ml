@@ -70,7 +70,9 @@ let cast_http_result = Result_types.cast_result
 
 module Html5_make_reg_base
   (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
-                   with type t = HTML5_types.html HTML5.M.elt) = struct
+                   with type t = HTML5_types.html HTML5.M.elt
+		   and type options = Http_headers.accept Lazy.t)
+  = struct
 
   open HTML5.M
   open HTML5_types
@@ -87,9 +89,12 @@ module Html5_make_reg_base
 
   let send_appl_content = Eliom_services.XNever
 
-  let send ?(options = ()) ?charset ?code
+  let send
+      ?(options = ()) ?charset ?code
       ?content_type ?headers content =
-    lwt r = Html5_content.result_of_content content in
+    let accept =
+      (Eliom_request_info.get_ri ()).Ocsigen_extensions.ri_accept in
+    lwt r = Html5_content.result_of_content ~options:accept content in
     let open Ocsigen_http_frame in
     Lwt.return
       {r with
@@ -999,7 +1004,8 @@ end
 
 module Xhtml_make_reg_base
   (Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-   with type t = XHTML_types.xhtml XHTML.M.elt) = struct
+   with type t = XHTML_types.xhtml XHTML.M.elt
+   and type options = Http_headers.accept Lazy.t) = struct
 
   open XHTML.M
   open XHTML_types
@@ -1014,7 +1020,9 @@ module Xhtml_make_reg_base
   let send_appl_content = Eliom_services.XNever
 
   let send ?options ?charset ?code ?content_type ?headers content =
-    lwt r = Xhtml_content.result_of_content content in
+    let accept =
+      (Eliom_request_info.get_ri ()).Ocsigen_extensions.ri_accept in
+    lwt r = Xhtml_content.result_of_content ~options:accept content in
     Lwt.return
       {r with
          Ocsigen_http_frame.
@@ -2450,7 +2458,9 @@ let redirection_script =
 
 module Eliom_appl_reg_make_param
   (Html5_content
-     : Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] HTML5.M.elt)
+     : Ocsigen_http_frame.HTTP_CONTENT
+       with type t = [ `Html ] HTML5.M.elt
+       and type options = Http_headers.accept Lazy.t)
   (Appl_params : APPL_PARAMS) = struct
 
   open HTML5.M
@@ -2586,11 +2596,6 @@ module Eliom_appl_reg_make_param
     (* Then we replace the faked data_script *)
     let head_elts =
       List.hd head_elts :: data_script :: List.tl (List.tl head_elts) in
-    let html_attribs =
-      if List.exists (fun a -> XML.aname a = "xmlns") (to_xmlattribs html_attribs)
-      then html_attribs
-      else a_xmlns `W3_org_1999_xhtml :: html_attribs
-    in
     Lwt.return
       (HTML5.M.html ~a:html_attribs
 	 (HTML5.M.head ~a:head_attribs title head_elts)
@@ -2610,6 +2615,7 @@ module Eliom_appl_reg_make_param
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
 
+
     let sp = Eliom_common.get_sp () in
 
     (* GRGR FIXME et si le nom de l'application diffère ?? Il faut
@@ -2626,7 +2632,9 @@ module Eliom_appl_reg_make_param
 	| None, true -> remove_eliom_scripts content
 	| _ -> add_eliom_scripts ~sp content in
 
-    lwt r = Html5_content.result_of_content page in
+    let ri = Eliom_request_info.get_ri () in
+    let accept = ri.Ocsigen_extensions.ri_accept in
+    lwt r = Html5_content.result_of_content ~options:accept page in
 
     let headers =
       match headers with
@@ -2641,7 +2649,6 @@ module Eliom_appl_reg_make_param
     in
 
     let rc = Eliom_request_info.get_request_cache () in
-    let ri = Eliom_request_info.get_ri () in
     let headers = Http_headers.replace
       (Http_headers.name Eliom_common_base.response_url_header)
       (Url.make_absolute_url
@@ -2661,21 +2668,6 @@ module Eliom_appl_reg_make_param
       headers
     in
 
-    let content_type =
-      match content_type with
-	| None ->
-	  let header = Lazy.force sp.Eliom_common.sp_request.
-	    Ocsigen_extensions.request_info.Ocsigen_extensions.ri_accept in
-	  if Eliom_request_info.expecting_process_page ()
-	    && List.exists
-	      (function
-		| ((Some "application", Some "xhtml+xml"),_,_) -> true
-		| _ -> false) header
-	  then Some "application/xhtml+xml"
-	  else r.Ocsigen_http_frame.res_content_type
-	| _ -> content_type
-    in
-
     Lwt.return
       { r with
         Ocsigen_http_frame.
@@ -2684,7 +2676,10 @@ module Eliom_appl_reg_make_param
           | None -> Some (Eliom_config.get_config_default_charset ())
           | _ -> charset
 	);
-        res_content_type= content_type;
+        res_content_type = (match content_type with
+          | None -> r.Ocsigen_http_frame.res_content_type
+          | _ -> content_type
+        );
         res_headers = headers;
       }
 
