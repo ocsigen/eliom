@@ -7,6 +7,7 @@ OCAMLC   := $(OCAMLFIND) ocamlc${BYTEDBG}
 OCAMLOPT := $(OCAMLFIND) ocamlopt ${OPTDBG}
 OCAMLDOC := $(OCAMLFIND) ocamldoc
 OCAMLDEP := $(OCAMLFIND) ocamldep
+OCAMLDOC := ${OCAMLFIND} ocamldoc -ppopt o -ppopt -printer
 
 all: eliom_client.cma eliom_client_main.cmo
 
@@ -61,19 +62,32 @@ eliom_client.cma: eliom_client_stubs.o ${FILES:.ml=.cmo}
 	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
 %.cmx: %.ml
 	$(OCAMLOPT) -syntax camlp4o ${LIBS} -c $<
+
 %.cmi: %.mli
 	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
 ${INTF_NOP4:.mli=.cmi}: \
 %.cmi: %.mli
 	$(OCAMLC) ${LIBS} -c $<
+
+%.odoc: %.mli
+	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump $@ $<
+${INTF_NOP4:.mli=.odoc}: \
+%.odoc: %.mli
+	${OCAMLDOC} ${LIBS} -dump $@ $<
+
 %.cmxs: %.cmx
 	$(OCAMLOPT) -shared -linkall -o $@ $<
 %.o: %.c
 	$(OCAMLC) -c $<
 
+
+
+
 ## INSTALL ##
 
 include Makefile.filelist
+
+odoc: ${DOC:.mli=.odoc}
 
 install:
 	${INSTALL} -m 755 -d ${CLIENTDIR}

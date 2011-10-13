@@ -10,6 +10,9 @@ OCAMLDUCEC   := ${OCAMLDUCEFIND} ocamlc${BYTEDBG}  ${THREAD}
 OCAMLDUCEOPT := ${OCAMLDUCEFIND} ocamlopt ${OPTDBG}  ${THREAD}
 OCAMLDUCEDEP := ${OCAMLDUCEFIND} ocamldep
 
+OCAMLDOC := ${OCAMLFIND} ocamldoc ${THREAD} -ppopt o -ppopt -printer
+## WTF -ppopt options should be given in reverse order...
+
 all: byte opt
 
 ### Common files ###
@@ -116,26 +119,36 @@ eliom_duce.cmxa: ${DUCE_FILES:.ml=.cmx}
 	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
 %.cmx: %.ml
 	$(OCAMLOPT) -syntax camlp4o ${LIBS} -c $<
+
 %.cmi: %.mli
 	$(OCAMLC) -syntax camlp4o ${LIBS} -c $<
 ${INTF_NOP4:.mli=.cmi}: \
 %.cmi: %.mli
 	$(OCAMLC) ${LIBS} -c $<
 
+%.odoc: %.mli
+	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump $@ $<
+${INTF_NOP4:.mli=.odoc}: \
+%.odoc: %.mli
+	${OCAMLDOC} ${LIBS} -dump $@ $<
 
 %.cmxs: %.cmxa
 	$(OCAMLOPT) -shared -linkall -o $@ $<
 
-${DUCE_INTF:.mli=.cmi}: %.cmi: %.mli
-	$(OCAMLDUCEC) ${LIBS} -c $<
 ${DUCE_FILES:.ml=.cmo}: %.cmo: %.ml
 	$(OCAMLDUCEC) ${LIBS} -c $<
 ${DUCE_FILES:.ml=.cmx}: %.cmx: %.ml
 	$(OCAMLDUCEOPT) ${LIBS} -c $<
+${DUCE_INTF:.mli=.cmi}: %.cmi: %.mli
+	$(OCAMLDUCEC) ${LIBS} -c $<
+${DUCE_INTF:.mli=.odoc}: %.odoc: %.mli
+	${OCAMLDOC} ${LIBS} -dump $@ $<
 
 ## INSTALL ##
 
 include Makefile.filelist
+
+odoc: ${DOC:.mli=.odoc}
 
 install: INSTALL_IMPL:=${IMPL} ${NATIMPL}
 install: raw_install
@@ -156,9 +169,9 @@ uninstall:
 ## Clean up
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
-	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
-	-cd extensions && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps *.odoc
+	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps *.odoc
+	-cd extensions && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps *.odoc
 	-rm -f ${PREDEP}
 distclean: clean
 	-rm -f *~ \#* .\#*

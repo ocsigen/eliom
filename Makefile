@@ -13,8 +13,11 @@ byte:
 opt:
 	${MAKE} -C src opt
 
+odoc:
+	$(MAKE) -C src odoc
+
 doc:
-	$(MAKE) -C doc
+	$(MAKE) -C doc doc
 
 ### Testing ###
 

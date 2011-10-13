@@ -18,6 +18,10 @@ opt: metas conf
 	${MAKE} -C client all
 	${MAKE} -C tools all
 
+odoc:
+	${MAKE} -C server odoc
+	${MAKE} -C client odoc
+
 clean:
 	${MAKE} -C syntax clean
 	${MAKE} -C server clean

@@ -30,12 +30,14 @@ INTF := eliom_lazy.cmi        \
         extensions/atom_feed.cmi    \
         extensions/eliom_atom.cmi   \
 
+DUCE_INTF = eliom_duce.cmi       \
+            eliom_duce_sigs.cmi  \
+            eliom_duce_types.cmi \
+	    eliom_duce_tools.cmi \
+
 ifeq "$(OCAMLDUCE)" "YES"
 
-INTF += eliom_duce.cmi       \
-        eliom_duce_sigs.cmi  \
-        eliom_duce_types.cmi \
-	eliom_duce_tools.cmi \
+INTF += ${DUCE_INTF}
 
 endif
 
@@ -66,9 +68,7 @@ NOP4  := eliom_pervasives.mli \
          eliom_duce_tools.mli \
          eliom_duce_types.mli \
 
-DOC := ${filter-out ${NOMLI}, ${INTF:.cmi=.mli}} \
+DOC := ${filter-out ${NOMLI} ${DUCE_INTF:.cmi=.mli}, ${INTF:.cmi=.mli}} \
        eliom_output_base.mli \
-       eliom_types_base.mli \
-
-## Can't be parsed by ocamlducedoc because of deriving.
-#       eliom_comet_base.mli \
+       eliom_types_base.mli  \
+       eliom_comet_base.mli  \
