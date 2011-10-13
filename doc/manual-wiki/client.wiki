@@ -120,7 +120,7 @@ execute some function when the page is loaded. This is achied using
 Do not add onload attribute to elements, this won't behave as expected ( the event
 won't be triggered, or not at the right time ).
 
-==== Using server side values on client side
+====@@id="syntax%"@@ Using server side values on client side
 
 Client code inside {{{ {{ ... }} }}} quotation can use server side value
 using the {{{%variable}}} syntax: variables prefixed by {{{%}}} are sent to
@@ -311,7 +311,7 @@ let b = Eliom_client.Html5.of_div n
 
 will build exactly the same thing as the node build using dom functions.
 
-=== HTML5 manipulation, by value and by reference
+===@@id="unique"@@ HTML5 manipulation, by value and by reference
 
 Notice that, since {{{ Eliom_client.Html5.of_div n }}} is building a new dom
 node from a Tyxml tree, using
