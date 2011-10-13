@@ -2,6 +2,8 @@ open Eliom_pervasives
 open Eliom_services
 open Eliom_parameters
 
+(** {2 Service registration } *)
+
 val send :
   ?options:options ->
   ?charset:string ->
@@ -104,6 +106,7 @@ val register_service :
    [> `Registrable ], return) service
 
 
+
 (** Same as [coservice] followed by [register] *)
 val register_coservice :
   ?scope:[<Eliom_common.scope] ->
@@ -160,7 +163,6 @@ val register_coservice' :
    [> `Nonattached of [> `Get] na_s ],
    'tipo, 'gn, unit, [> `Registrable ], return)
     service
-
 
 (** Same as [post_service] followed by [register] *)
 val register_post_service :
@@ -219,7 +221,6 @@ val register_post_coservice :
    'tipo, 'gn, 'pn, [> `Registrable ], return)
     service
 
-
 (** Same as [post_coservice'] followed by [register] *)
 val register_post_coservice' :
   ?scope:[<Eliom_common.scope] ->
@@ -244,4 +245,3 @@ val register_post_coservice' :
    [ `WithoutSuffix ], unit, 'pn,
    [> `Registrable ], return)
     service
-

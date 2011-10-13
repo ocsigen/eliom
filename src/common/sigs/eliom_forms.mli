@@ -44,7 +44,9 @@ type input_type_t
 type raw_input_type_t
 type button_type_t
 
-(** {2 Links and forms} *)
+(** {2 Forms creation } *)
+
+(** {3 Links and forms} *)
 
 (** Creates the string corresponding to the relative URL of a service applied to
     its GET parameters.
@@ -76,6 +78,7 @@ val make_string_uri :
   ?nl_params: Eliom_parameters.nl_params_set ->
   'get ->
   string
+
 
 (** Creates the URL for a service.
     Like the [a] function, it may take extra parameters. *)

@@ -245,7 +245,7 @@ or {{{Eliom_services.external_post_service}}}
 
 See an example section * * links.
 
-===@@id="p3staticparts"@@Using Eliom together with Staticmod===
+===@@id="staticparts"@@Using Eliom together with Staticmod===
 
 <<wip|ou alors faire une section static content, en disant bien
 qu'il ne faut pas le mettre dans le ml (et suggérer db, et fichiers).
@@ -273,7 +273,7 @@ creates this link: [[site:ocsigen10.png|download image]]
 
 It is also possible to send static pages using Eliom, using
 <<span class="code"|Eliom_output.Files>>
-(<<a_manual chapter="services" fragment="p3eliomfiles" |see later>>).
+(<<a_manual chapter="services" fragment="eliomfiles" |see later>>).
 
 
 
@@ -522,7 +522,7 @@ The main predefined output modules are:
 <<wip|Missing modules?>>
 
 
-===@@id="p3eliomfiles"@@Sending files
+===@@id="eliomfiles"@@Sending files
   
   
 You may want to register a service that will send files.
@@ -585,7 +585,7 @@ end)
 >>
 
 
-===Redirections
+===@@id="redirections"@@Redirections
   
   
  The <<a_api| module Eliom_output.Redirection >> module allows you to register HTTP redirections.\\
@@ -604,7 +604,7 @@ Example:
   
  If you want to give parameters to such services, use
  <<a_api | val Eliom_services.preapply>> (see also 
- <<a_manual chapter="services" fragment="p3preapplied" |later in the tutorial>>).
+ <<a_manual chapter="services" fragment="preapplied" |later in the tutorial>>).
  Example:
 
   
@@ -629,7 +629,7 @@ Note that the cost of a redirection is one more request and
 one more response.
 
 
-===@@id="p2actions"@@Actions
+===@@id="actions"@@Actions
 
  
 Actions are services that do not generate any page.
@@ -655,7 +655,7 @@ below, or in section * * connection-of-user.
 
 The return type of action handlers is
 <<span class="code"|unit Lwt.t>>.
-We will see <<a_manual chapter="services" fragment="p3infofallbacks" |later>> how to transmit information
+We will see <<a_manual chapter="services" fragment="infofallbacks" |later>> how to transmit information
 to the service that will take charge of the generation of the page.\\
  
 A common use of actions and non-attached coservices working together
@@ -844,14 +844,14 @@ In that case, be very careful to recreate the services when relaunching the
 server (for example by retrieving the information from a database).
 >><<|concept>>
 
-===@@id="p2coservices"@@Coservices
+===@@id="coservices"@@Coservices
 
 Very often, GET anonymous coservices are created dynamically with
 respect to previous interaction with the user (and are registered
 with scope {{{`Session}}}). They allow us to establish a precise semantics for the
 "back" button of the browser (that is to say, make sure that you will go back to the
 past page) or bookmarks, or duplication of the browser's window.
-(See the <<a_manual chapter="services" fragment="p3coservicesinsessiontable" |<<span class="code"|calc>>>> example below).
+(See the <<a_manual chapter="services" fragment="coservicesinsessiontable" |<<span class="code"|calc>>>> example below).
 
 Use POST coservices if you want to customize a link or form,
 but not the URL it points to. More precisely, POST coservices are mainly
@@ -950,10 +950,10 @@ In this example, coservices do not take any parameters
 parameters. Note that the fallback of a GET coservice cannot take
 parameters. But as coservices parameters have special
 names, it is possible to use a "pre-applied" service as fallback
-(<<a_manual chapter="services" fragment="p3preapplied" |see later>>).
+(<<a_manual chapter="services" fragment="preapplied" |see later>>).
 
 
-===@@id="p3coservicesinsessiontable"@@Dynamic coservices===
+===@@id="coservicesinsessiontable"@@Dynamic coservices===
 
 You can register anonymous coservices (usually with scope {{{`Session}}}) 
 for run-time creation of new services dedicated to a particular user.
@@ -1196,7 +1196,7 @@ asking questions about other cases! Thank you!//
 
 
 
-===@@id="p2detailsonserviceregistration"@@Details on service registration===
+===@@id="detailsonserviceregistration"@@Details on service registration===
 
 <<concept title="Tips and advices" |
 
@@ -1236,7 +1236,7 @@ logs).
 *GET coservices (without POST parameters) can be registered
 only with a main service without GET/POST parameters as fallback.
 But it may be a
-<<a_manual chapter="services" fragment="p3preapplied" |//preapplied//>>
+<<a_manual chapter="services" fragment="preapplied" |//preapplied//>>
 service (see below).
 
 *Services with POST parameters (main service or coservice)
@@ -1384,7 +1384,7 @@ let _ = register disposable
 
 
 
-===@@id="p3csrf"@@CSRF-safe services
+===@@id="csrf"@@CSRF-safe services
 
 Eliom implements a protection against CSRF attacks.
 
@@ -1481,7 +1481,7 @@ must be exactly the same.
 
 
 
-===@@id="p3preapplied"@@Pre-applied services
+===@@id="preapplied"@@Pre-applied services
   
   
 Services or coservices with GET parameters can be preapplied
@@ -1501,7 +1501,7 @@ Services or coservices with GET parameters can be preapplied
   
 
 
-===@@id="p3preapplied"@@Void coservices
+===@@id="preapplied"@@Void coservices
   
   
  <<a_api| val Eliom_services.void_coservice' >>
@@ -1537,7 +1537,7 @@ See an example of use in chapter * * section * * (connection of users with
 session groups).
 
 
-===@@id="p3infofallbacks"@@Get information on what succeeded before the service===
+===@@id="infofallbacks"@@Get information on what succeeded before the service===
 
 The function
  <<a_api| val Eliom_request_info.get_link_too_old >>

@@ -18,11 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Predefined modules for generating forms and
-    registering handlers, for several types of pages:
-    Applications, HTML pages typed with polymorphic variants,
-    untyped (text) pages, actions, redirections, files ...
-*)
+(** Eliom services registration and forms creation for various kind of
+    page content: application, valid {!HTML5} or {!XHTML}, actions,
+    redirections, static files, …. See the Eliom manual for more
+    information on {% <<a_manual chapter="services" | services >>%}. *)
+
 
 open Eliom_pervasives
 
@@ -43,15 +43,8 @@ type 'a application_name
 
 (** Eliom service registration and forms creation for HTML5 page *)
 module Html5 : sig
-
-  (** {2 Service registration } *)
-
   include "sigs/eliom_html5_reg.mli"
-
-  (** {2 Forms creation } *)
-
   include "sigs/eliom_html5_forms.mli"
-
 end
 
 (** Eliom service registration for HTML5 page *)
@@ -64,15 +57,8 @@ module Html5_forms : "sigs/eliom_html5_forms.mli"
 
 (** Eliom service registration and forms creation for XHTML page *)
 module Xhtml : sig
-
-  (** {2 Service registration } *)
-
   include "sigs/eliom_xhtml_reg.mli"
-
-  (** {2 Forms creation } *)
-
   include "sigs/eliom_xhtml_forms.mli"
-
 end
 
 (** Eliom service registration for XHTML page *)

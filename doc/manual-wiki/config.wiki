@@ -5,7 +5,7 @@ options in the configuration file, and how to define options for your
 Eliom modules. See the Ocsigen server documentation for more information about the
 <<a_manual project="ocsigenserver" chapter="config" |server's configuration>>.
 
-==@@id="p3misc"@@Using Eliom modules with Ocsigen server==
+==@@id="misc"@@Using Eliom modules with Ocsigen server==
 
 ===Basics: compiling and running server side applications
 
@@ -306,7 +306,7 @@ to register the function that will generate the
 
 <<wip|Add more details about this>>
 
-==@@id="p3config"@@Global configuration options
+==@@id="config"@@Global configuration options
 
 Here are Eliom's options you can use in configuration files.
 

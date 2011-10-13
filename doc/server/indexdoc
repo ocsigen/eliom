@@ -9,10 +9,10 @@ Eliom_pervasives.HTML5.M
 {2 Services creation and manipulation}
 
 {!modules:
+Eliom_services
 Eliom_output
 Eliom_parameters
 Eliom_references
-Eliom_services
 }
 
 {2 Client/server communication}

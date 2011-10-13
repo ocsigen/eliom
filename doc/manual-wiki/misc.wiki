@@ -1,7 +1,7 @@
 =Miscellaneous=
 
 
-==@@id="p3predefinedconstructs"@@HTML widgets
+==@@id="predefinedconstructs"@@HTML widgets
         
 ===Images, CSS, Javascript
           

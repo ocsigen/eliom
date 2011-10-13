@@ -311,7 +311,7 @@ let b = Eliom_client.Html5.of_div n
 
 will build exactly the same thing as the node build using dom functions.
 
-===@@id="unique"@@ HTML5 manipulation, by value and by reference
+=== HTML5 manipulation, by value and by reference
 
 Notice that, since {{{ Eliom_client.Html5.of_div n }}} is building a new dom
 node from a Tyxml tree, using
