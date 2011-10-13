@@ -95,7 +95,7 @@ eliom.cmxa: ${FILES:.ml=.cmx}
 DUCE_FILES := eliom_duce.ml       \
 	      eliom_duce_tools.ml \
 
-DUCE_INTF := eliom_duce_types.mli \
+DUCE_MLIS := eliom_duce_types.mli \
 	     eliom_duce_sigs.mli  \
 	     eliom_duce.mli       \
 	     eliom_duce_tools.mli \
@@ -139,9 +139,9 @@ ${DUCE_FILES:.ml=.cmo}: %.cmo: %.ml
 	$(OCAMLDUCEC) ${LIBS} -c $<
 ${DUCE_FILES:.ml=.cmx}: %.cmx: %.ml
 	$(OCAMLDUCEOPT) ${LIBS} -c $<
-${DUCE_INTF:.mli=.cmi}: %.cmi: %.mli
+${DUCE_MLIS:.mli=.cmi}: %.cmi: %.mli
 	$(OCAMLDUCEC) ${LIBS} -c $<
-${DUCE_INTF:.mli=.odoc}: %.odoc: %.mli
+${DUCE_MLIS:.mli=.odoc}: %.odoc: %.mli
 	${OCAMLDOC} ${LIBS} -dump $@ $<
 
 ## INSTALL ##
@@ -193,7 +193,7 @@ else
 	echo > $@
 endif
 
-${DUCE_INTF:.mli=.mli.deps}: %.mli.deps: %.mli ${PREDEP}
+${DUCE_MLIS:.mli=.mli.deps}: %.mli.deps: %.mli ${PREDEP}
 ifeq "${OCAMLDUCE}" "YES"
 	 ${OCAMLDUCEDEP} ${LIBS} $< > $@
 else
