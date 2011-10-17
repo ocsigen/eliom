@@ -537,7 +537,7 @@ See the urls:
 
 
 
-==Non localized parameters==
+==@@id="nonlocalizedparameters"@@Non localized parameters==
 
 Non localized parameters are GET or POST parameters that are not
         taken into account by Eliom for choosing the service.

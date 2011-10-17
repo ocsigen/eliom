@@ -168,10 +168,17 @@ let service
     ?priority
     ~get_params
 
+let default_csrf_scope = function
+    (* We do not use the classical syntax for default
+       value. Otherwise, the type for csrf_scope was:
+       [< Eliom_common.user_scope > `Session] *)
+  | None -> `Session `Default_ref_name
+  | Some c -> (c :> [Eliom_common.user_scope])
+
 let coservice
     ?name
     ?(csrf_safe = false)
-    ?(csrf_scope = (`Session `Default_ref_name:>[<Eliom_common.user_scope]))
+    ?csrf_scope
     ?csrf_secure
     ?max_use
     ?timeout
@@ -180,10 +187,11 @@ let coservice
     ?keep_nl_params
     ~get_params
     () =
+  let csrf_scope = default_csrf_scope csrf_scope in
   let `Attached k = fallback.kind in
   (* (match Eliom_common.global_register_allowed () with
-  | Some _ -> Eliom_common.add_unregistered k.path;
-  | _ -> ()); *)
+     | Some _ -> Eliom_common.add_unregistered k.path;
+     | _ -> ()); *)
   {fallback with
    max_use= max_use;
    timeout= timeout;
@@ -213,7 +221,7 @@ let coservice
 let coservice' 
     ?name 
     ?(csrf_safe = false)
-    ?(csrf_scope = (`Session `Default_ref_name:>[<Eliom_common.user_scope]))
+    ?csrf_scope
     ?csrf_secure
     ?max_use
     ?timeout
@@ -221,6 +229,7 @@ let coservice'
     ?(keep_nl_params = `Persistent)
     ~get_params
     () =
+  let csrf_scope = default_csrf_scope csrf_scope in
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered_na n;
   | _ -> () (* Do we accept unregistered non-attached coservices? *)); *)
@@ -317,7 +326,7 @@ let post_service ?(https = false) ~fallback
 let post_coservice
     ?name
     ?(csrf_safe = false)
-    ?(csrf_scope = (`Session `Default_ref_name:>[<Eliom_common.user_scope]))
+    ?csrf_scope
     ?csrf_secure
     ?max_use
     ?timeout
@@ -326,6 +335,7 @@ let post_coservice
     ?keep_nl_params
     ~post_params
     () =
+  let csrf_scope = default_csrf_scope csrf_scope in
   let `Attached k1 = fallback.kind in
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered k1.path;
@@ -362,13 +372,14 @@ let post_coservice
 let post_coservice'
     ?name
     ?(csrf_safe = false)
-    ?(csrf_scope = (`Session `Default_ref_name:[<Eliom_common.user_scope] :>[<Eliom_common.user_scope]))
+    ?csrf_scope
     ?csrf_secure
     ?max_use ?timeout
     ?(https = false)
     ?(keep_nl_params = `All)
     ?(keep_get_na_params = true)
     ~post_params () =
+  let csrf_scope = default_csrf_scope csrf_scope in
   (* match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered None
   | _ -> () *)

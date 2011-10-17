@@ -1078,7 +1078,7 @@ You can do this using //non-attached coservices// (see below).
 
 >> <<|concept>>
 
-====Non-attached coservices
+====@@id="non-attached_coservices"@@Non-attached coservices
 
 
 Non-attached coservices are coservices that are not attached to an URL path.
@@ -1414,10 +1414,12 @@ answer if you do not send it (or more precisely, the fallback will).
 ====CSRF-safe services====
 
 In order to simplify this, Eliom add this possibility:
-*When creating a new coservice, you can give the optional ~csrf_safe 
-parameter
-*If this parameter is true, actual registration of the service will be 
-delayed and performed each time a form is created that points to this coservice.
+
+* When creating a new coservice, you can give the optional
+  {{{~csrf_safe}}} parameter
+* If this parameter is {{{true}}}, actual registration of the service
+  will be delayed and performed each time a form is created that
+  points to this coservice.
 
 Example:
 <<code language="ocaml"|
@@ -1430,8 +1432,7 @@ let csrfsafe_example =
 let csrfsafe_example_post =
   Eliom_services.post_coservice
     ~csrf_safe:true
-    ~csrf_state_name:"csrf"
-    ~csrf_secure_session:true
+    ~csrf_secure:true
     ~timeout:10.
     ~max_use:1
     ~https:true
@@ -1463,21 +1464,19 @@ let _ =
 >>
 
 
-If you register the service with global scope, 
-the CSRF-safe service will be available for everybody.
-However, the actual (delayed) registration will take place with
-a restricted scope (default: {{{`Session}}}),
-described by {{{?csrf_scope}}}, {{{?csrf_state_name}}} and
-{{{?csrf_secure}}} (corresponding to {{{?scope}}}, {{{?state_name}}} and
-{{{?secure}}}).
+If you register the service with global scope, the CSRF-safe service
+will be available for everybody.  However, the actual (delayed)
+registration will take place with a restricted scope (default:
+{{{`Session}}}), described by {{{?csrf_scope}}},
+{{{?csrf_state_name}}} and {{{?csrf_secure}}} (corresponding to
+{{{?scope}}}, {{{?state_name}}} and {{{?secure}}}).
 
-If you use {{{register ~scope:`Session}}}, 
-the coservice will be available only for one session.
-The actual registration will take place in the same session table,
-described by {{{?csrf_state_name}}} and {{{?csrf_secure}}}.
-In that case, the parameters
-{{{?state_name}}} and {{{?secure}}} of {{{register}}}
-must be exactly the same.
+If you use {{{register ~scope:`Session}}}, the coservice will be
+available only for one session.  The actual registration will take
+place in the same session table, described by {{{?csrf_state_name}}}
+and {{{?csrf_secure}}}.  In that case, the parameters
+{{{?state_name}}} and {{{?secure}}} of {{{register}}} must be exactly
+the same.
 
 
 
