@@ -4,71 +4,37 @@ open Eliom_parameters
 
 (** {2 Service registration } *)
 
-val send :
-  ?options:options ->
-  ?charset:string ->
-  ?code: int ->
-  ?content_type:string ->
-  ?headers: Http_headers.t ->
-  page ->
-  result Lwt.t
+(** The function [register service handler] will associate the
+    [service] to the function [handler]. The [handler] function take
+    two parameters, the GET and POST parameters of the current HTTP
+    request, and should returns the corresponding page.
 
-    (** Register a service with the associated handler function.
-	[register s t f] will associate the service [s] to the function [f].
-	[f] is the function that creates a page, called {e service handler}.
+    The optional parameter [~scope] is {!Eliom_common.global} by
+    default, see the Eliom manual for detailled description {%
+    <<a_manual chapter="service" fragment="scope"|of different
+    scope>>%}.
 
-	The handler function takes two parameters.
-	- The second and third ones are respectively GET and POST parameters.
+    The optional parameter [~options] is specific to each output
+    module, see the type description for more information.
 
-	For example if [t] is [Eliom_parameters.int "s"], then [ 'get] is [int].
+    The optional parameters [?charset], [?code], [?content_type] and
+    [?headers] can be used to modify the HTTP answer sent by
+    Eliom. Use this with care.
 
-	The [?scope] optional parameter is [Eliom_common.global] by default, which means that the
-	service will be registered in the global table and be available to any client.
-	If you want to restrict the visibility of the service to a browser session,
-	use [~scope:Eliom_common.session].
-	If you want to restrict the visibility of the service to a group of sessions,
-	use [~scope:Eliom_common.session_group].
-	If you have a client side Eliom program running, and you want to restrict
-	the visibility of the service to this instance of the program,
-	use [~scope:Eliom_common.client_process]. You can create new scopes with
-	[Eliom_common.create_session_group_scope], [Eliom_common.create_session_scope]
-	and [Eliom_common.create_client_process_scope] if you want several service
-	sessions on the same site.
+    The optionnal parameter [~secure_session] has no effect for scope
+    {!Eliom_common.global}. With other scopes, the parameter is used
+    to force the session service table in which the [handler] will be
+    registered. By default, the service is registred in the unsecure
+    session if the current request's protocol is [http], or in the
+    secure session if the protocol is [https]. If set to [false]
+    (resp. [true]) the [handler] will be stored in the unsecure
+    (resp. secure) session. See the Eliom manual for an introduction
+    to {% <<a_manual chapter="state"|secure state>>%}.
 
-	If the same service is registered several times with different visibilities,
-	Eliom will choose the service for handling a request in that order:
-	[`Client_process], [`Session], [`Session_group] and finally [`Global]. It means for example
-	that you can register a specialized version of a public service for a session.
-
-	Warning: All public services created during initialization must be
-	registered in the public table during initialisation, never after,
-
-	Registering services and coservices is always done in memory as there is
-	no means of marshalling closures.
-
-	If you register new services dynamically, be aware that they will disappear
-	if you stop the server. If you create dynamically new URLs,
-	be very careful to re-create these URLs when you relaunch the server,
-	otherwise, some external links or bookmarks may be broken!
-
-	Some output modules (for example Redirectmod) define their own options
-	for that function. Use the [?options] parameter to set them.
-
-	The optional parameters [?charset], [?code], [?content_type] and [?headers]
-	can be used to modify the HTTP answer sent by Eliom. Use this with care.
-
-	If [~secure_session] is false when the protocol is https, the service will be
-	registered in the unsecure session,
-	otherwise in the secure session with https, the unsecure one with http.
-	(Secure session means that Eliom will ask the browser to send the cookie
-	only through HTTPS). It has no effect for scope [`Global].
-
-	Note that in the case of CSRF safe coservices, parameters
-	[?scope] and [?secure_session] must match exactly the scope
-	and secure option specified while creating the CSRF safe service.
-	Otherwise, the registration will fail
-	with {Eliom_services.Wrong_session_table_for_CSRF_safe_coservice}
-    *)
+    The optional parameter [~error_handler] is used to specialize the
+    error page when actual parameters aren't compatible with the
+    expected type.
+*)
 val register :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -83,8 +49,9 @@ val register :
   ?error_handler:((string * exn) list -> page Lwt.t) ->
   ('get -> 'post -> page Lwt.t) ->
   unit
+(* FIXME: secure_session is called "secure" in Eliom_state and Eliom_Service.unregister. *)
 
-(** Same as [service] followed by [register] *)
+(** Same as {!Eliom_services.service} followed by {!register}. *)
 val register_service :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -105,9 +72,7 @@ val register_service :
    'tipo, 'gn, unit,
    [> `Registrable ], return) service
 
-
-
-(** Same as [coservice] followed by [register] *)
+(** Same as {!Eliom_services.coservice} followed by {!register}. *)
 val register_coservice :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -139,7 +104,8 @@ val register_coservice :
    [> `Registrable ], return)
     service
 
-(** Same as [coservice'] followed by [register] *)
+
+(** Same as {!Eliom_services.coservice'} followed by {!register}. *)
 val register_coservice' :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -164,7 +130,8 @@ val register_coservice' :
    'tipo, 'gn, unit, [> `Registrable ], return)
     service
 
-(** Same as [post_service] followed by [register] *)
+
+(** Same as {!Eliom_services.post_service} followed by {!register}. *)
 val register_post_service :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -190,7 +157,7 @@ val register_post_service :
    'tipo, 'gn, 'pn, [> `Registrable ], return)
     service
 
-(** Same as [post_coservice] followed by [register] *)
+(** Same as {!Eliom_services.post_coservice} followed by {!register}. *)
 val register_post_coservice :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -221,7 +188,7 @@ val register_post_coservice :
    'tipo, 'gn, 'pn, [> `Registrable ], return)
     service
 
-(** Same as [post_coservice'] followed by [register] *)
+(** Same as {!Eliom_services.post_coservice'} followed by {!register}. *)
 val register_post_coservice' :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->
@@ -245,3 +212,20 @@ val register_post_coservice' :
    [ `WithoutSuffix ], unit, 'pn,
    [> `Registrable ], return)
     service
+
+(** {2 Low-level function } *)
+
+(** The function [send page] build the HTTP frame corresponding to
+    [page]. This may be used for example in an service handler
+    registered with {!Eliom_output.Any.register} or when building a
+    custom output module.
+*)
+val send :
+  ?options:options ->
+  ?charset:string ->
+  ?code: int ->
+  ?content_type:string ->
+  ?headers: Http_headers.t ->
+  page ->
+  result Lwt.t
+

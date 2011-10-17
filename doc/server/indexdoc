@@ -10,8 +10,9 @@ Eliom_pervasives.HTML5.M
 
 {!modules:
 Eliom_services
-Eliom_output
 Eliom_parameters
+Eliom_output
+Eliom_output.Html5
 Eliom_references
 }
 

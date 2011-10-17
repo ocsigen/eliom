@@ -1124,7 +1124,7 @@ Then wherever you want to add a button to do that action
        ~input_type:`Submit ~value:("remove "^string_of_int id) ())
 >>
 
-===Scope of services===
+===@@id="scope"@@Scope of services===
 
 By default, services and coservices are accessible to anybody.
 It is possible to restrict the //scope// of a service,

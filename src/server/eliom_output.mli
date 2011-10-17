@@ -19,29 +19,103 @@
  *)
 
 (** Eliom services registration and forms creation for various kind of
-    page content: application, valid {!HTML5} or {!XHTML}, actions,
-    redirections, static files, …. See the Eliom manual for more
-    information on {% <<a_manual chapter="services" | services >>%}. *)
+    page content: Eliom application, valid {!HTML5} or {!XHTML},
+    actions, redirections, static files, …. See the Eliom manual for
+    more information on {% <<a_manual chapter="services" | services
+    >>%}. *)
 
+(** {% <<outline>> %}*)
 
 open Eliom_pervasives
 
+(** {2 Type definitions} *)
+
+(** The type [kind] is an abstract type for the HTTP frame returned by
+    a service. The type parameters are phantom types describing the
+    content of the frame:
+
+    - The second parameter is the same as the last type parameters of
+    the corresponding {!Eliom_services.service}. Currently, one of the
+    following types:
+    {ul {- {!Eliom_output.appl_service}}
+        {- {!Eliom_output.http_service}}
+        {- {!Eliom_parameters.caml}} }
+    - The first parameter is a refinement of the second
+    parameter. Currently, one of the following types:
+    {ul {- {!application_content}}
+        {- {!browser_content}}
+        {- {!block_content}}
+        {- {!unknown_content}}
+        {- {!caml_content}}}
+
+*)
 type ('a, 'b) kind
-type 'a application_content = [ `Appl of 'a ]
-type block_content
+
+(** {3 Return types for {!Eliom_services.services} } *)
+
+(** {4 Classical content} *)
+
+(** The type [http_service] is used as a phantom type parameters for
+    {!Eliom_services.service} and {!Eliom_output.kind}. It means the
+    returned content is classical HTTP content described by the
+    content type header. See {!Eliom_output.kind} for a list of others
+    return types. *)
+type http_service = [ `Http ]
+
+(** The type [browser_content] is a refinement of {!http_service} to
+    be used as a phantom type parameters for {!Eliom_output.kind}. It
+    means the returned content must be interpreted in the browser as
+    stated by the content-type header. This is most common return type
+    for an eliom service, see for example {!Html5},
+    {!Xhtml}, {!CssText}, {!Files},
+    {!Redirection}, ….*)
 type browser_content = [ `Browser ]
-type 'a caml_content
+
+(** The type [block_content] is a refinement of {!http_service} to be
+    used as a phantom type parameters for {!Eliom_output.kind}. It
+    means the returned content is a subtree of an XML value. See for
+    example {!Blocks5} or {!Make_TypedXML_Registration}. *)
+type block_content
+
+(** The type [unknown_content] is a refinement of {!http_service} to
+    be used as a phantom type parameters for {!Eliom_output.kind} when
+    the content-type can't be determined staticaly. See {!Text} or
+    {!Any}. *)
 type unknown_content
 
+(** {4 Application content} *)
+
+(** The type [appl_service] is used as a phantom type parameters for
+    {!Eliom_services.service} and {!Eliom_output.kind}. It means the
+    service is part of an Eliom application. See {!Eliom_output.kind}
+    for a list of others return types. *)
 type appl_service = [ `Appl ]
-type http_service = [ `Http ]
+
+(** The type [application_content] is a refinement of {!appl_service}
+    to be used as a phantom type parameters for {!Eliom_output.kind}. The
+    parameter ['a] is phantom type that is unique for a given
+    application. *)
+type 'a application_content = [ `Appl of 'a ]
+
+(**/**)
+type 'a application_name
+(**/**)
+
+(** {4 OCaml content} *)
+
+(** The type [caml_content] is an synomyn for {!Eliom_parameters.caml}
+    to be used as a phantom type parameters for {!Eliom_output.kind}. See
+    {!Caml}. *)
+type 'a caml_content
+
+(** The type [non_caml_service] is used as phantom type parameters for
+    the {!Eliom_output.kind}. It used to type functions that operates
+    over service that do not returns OCaml values. *)
 type non_caml_service = [ appl_service | http_service ]
 
-type 'a application_name
+(** {2 Creating links and forms with HTML5.M. } *)
 
-(** {2 Creating links and forms with HTML5.M} *)
-
-(** Eliom service registration and forms creation for HTML5 page *)
+(** Eliom service registration and forms creation for HTML5 page. *)
 module Html5 : sig
   include "sigs/eliom_html5_reg.mli"
   include "sigs/eliom_html5_forms.mli"
@@ -55,7 +129,7 @@ module Html5_forms : "sigs/eliom_html5_forms.mli"
 
 (** {2 Creating links and forms with XHTML.M} *)
 
-(** Eliom service registration and forms creation for XHTML page *)
+(** Eliom service registration and forms creation for XHTML page. *)
 module Xhtml : sig
   include "sigs/eliom_xhtml_reg.mli"
   include "sigs/eliom_xhtml_forms.mli"
@@ -67,8 +141,9 @@ module Xhtml_registration : "sigs/eliom_xhtml_reg.mli"
 (** Eliom forms creation for XHTML page *)
 module Xhtml_forms : "sigs/eliom_xhtml_forms.mli"
 
-(** {3 Eliom client/server applications} *)
+(** {2 Eliom client/server applications} *)
 
+(** Module ...*)
 module type APPL_PARAMS = sig
 
   (** Name of the application.
@@ -78,22 +153,24 @@ module type APPL_PARAMS = sig
 
 end
 
-(** Parameters for an Eliom application service *)
+(** Parameters for an Eliom application service.
+
+    If you set do_not_launch to [true] for a service, it will send the page
+    without launching the client side program if it is not already launched.
+    Use this if some of your pages are not using the client side program,
+    and you want to make them load faster (for example the main page).
+ *)
 type appl_service_options =
     {
       do_not_launch : bool; (** Do not launch the client side program
                                 if it is not already launched.
                                 Default: [false]. *)
     }
-(**
-    If you set do_not_launch to [true] for a service, it will send the page
-    without launching the client side program if it is not already launched.
-    Use this if some of your pages are not using the client side program,
-    and you want to make them load faster (for example the main page).
-*)
 
+(** TODO *)
 val default_appl_service_options : appl_service_options
 
+(** TODO *)
 module type Eliom_appl = sig
 
   (** unique type *)
@@ -111,12 +188,16 @@ module type Eliom_appl = sig
       that is unique for each instance of the application.
   *)
   val application_name : string
+
+  (**/**)
   val typed_name : appl application_name
+  (**/**)
 
   val application_script : unit -> [> `Script ] HTML5.M.elt
 
 end
 
+(** TODO *)
 module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl
 
 (** {3 Module to register subpages of type [block]} *)
@@ -139,9 +220,9 @@ module Blocks : "sigs/eliom_reg.mli"
     and type return  := http_service
     and type result  := (block_content, http_service) kind
 
-(** {3 Functor to create modules to register subpages for other XML
-    types.} *)
+(** {3 Functor to create modules to register subpages for other XML types.} *)
 
+(** TODO *)
 module Make_TypedXML_Registration
   (XML: XML_sigs.Iterable)
   (TypedXML: XML_sigs.TypedXML with module XML := XML)
@@ -157,17 +238,14 @@ module Make_TypedXML_Registration
 
 (** {3 Module to create forms and register untyped HTML pages} *)
 
+(** TODO *)
 module HtmlText : sig
-
-  (** {2 Service registration } *)
 
   include "sigs/eliom_reg.mli"
   subst type page    := string
     and type options := unit
     and type return  := http_service
     and type result  := (browser_content, http_service) kind
-
-  (** {2 Forms creation } *)
 
   include "sigs/eliom_forms.mli"
   subst type uri := string
@@ -213,6 +291,8 @@ module HtmlText : sig
 end
 
 (** {3 Module to register untyped CSS pages} *)
+
+(** TODO *)
 module CssText : "sigs/eliom_reg.mli"
   subst type page    := string
     and type options := unit
@@ -220,6 +300,8 @@ module CssText : "sigs/eliom_reg.mli"
     and type result  := (browser_content, http_service) kind
 
 (** {3 Module to register untyped text pages} *)
+
+(** TODO *)
 module Text : "sigs/eliom_reg.mli"
   subst type page    := string * string
     and type options := unit
@@ -312,9 +394,6 @@ module Any : "sigs/eliom_reg_alpha_return.mli"
 	and type return  := 'b
         and type result  := ('a, 'b) kind
 
-val appl_self_redirect :
-  ('page -> ([< 'a application_content | browser_content ], [< non_caml_service ]) kind Lwt.t) -> 'page ->
-  ('appl application_content, appl_service) kind Lwt.t
 (** [appl_self_redirect send page] does a redirection to the same
     address with same parameters ( GET and POST ). It allows using
     different kind content ( browser and applications ) with
@@ -322,6 +401,10 @@ val appl_self_redirect :
     are sent another time. Files can't be sent by a
     redirection. Content returned by [appl_self_redirect] is always
     marked as not cacheable by the browser. *)
+val appl_self_redirect :
+  ('page -> ([< 'a application_content | browser_content ], [< non_caml_service ]) kind Lwt.t) -> 'page ->
+  ('appl application_content, appl_service) kind Lwt.t
+
 
 (** Allows to send raw data using Ocsigen's streams.
     The content is a pair containing:
@@ -351,6 +434,7 @@ module Caml : "sigs/eliom_reg_simpl.mli"
     and type return  := 'return Eliom_parameters.caml
     and type result  := ('return caml_content, 'return Eliom_parameters.caml) kind
 
+(** TODO *)
 module Customize :
   functor (B : sig type options type return type page type result end) ->
   functor (R : "sigs/eliom_reg.mli" subst type options := B.options

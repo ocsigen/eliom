@@ -40,7 +40,7 @@ open Eliom_parameters
     - [ 'b] is the type of POST parameters expected by the service.
     - [ 'c] describes the services's kind: attached or non-attached,
             internal or external, GET only or with POST
-            parameters). It is a subtype of {!service_kind}.
+            parameters. It is a subtype of {!service_kind}.
     - [ 'd] is a phantom type, subtype of {!suff} stating the kind
             of parameters it uses: suffix or not.
     - [ 'e] is the type of GET parameters names. See {!Eliom_parameters.param_name}.
@@ -49,7 +49,8 @@ open Eliom_parameters
             telling if it is possible to register a handler
             on this service.
     - [ 'h ] is an information on what the service returns.
- *)
+             See {!Eliom_output.kind}.
+*)
 type ('a,'b,+'c,+'d,+'e,+'f,+'g,+'h) service
 
 (** {3 Services kind} *)
