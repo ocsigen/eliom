@@ -421,6 +421,9 @@ let read = HTML5.M.button
 >>
 without unique a new input element would be created each time the button is clicked.
 
+Unique cannot be used on pcdata nodes: to manipulate it you need to
+reference the ancessor of the pcdata node.
+
 ==== Unique Scripts
 
 When a page is loaded all the script elements in the header are run. When
