@@ -11,7 +11,7 @@ open Eliom_parameters
 
     The optional parameter [~scope] is {!Eliom_common.global} by
     default, see the Eliom manual for detailled description {%
-    <<a_manual chapter="service" fragment="scope"|of different
+    <<a_manual chapter="services" fragment="scope"|of different
     scope>>%}.
 
     The optional parameter [~options] is specific to each output
@@ -33,7 +33,8 @@ open Eliom_parameters
 
     The optional parameter [~error_handler] is used to specialize the
     error page when actual parameters aren't compatible with the
-    expected type.
+    expected type. The default error handler is
+    [ fun l -> raise (]{!Eliom_common.Eliom_Typing_Error}[ l) ].
 *)
 val register :
   ?scope:[<Eliom_common.scope] ->

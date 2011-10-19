@@ -51,7 +51,7 @@ type button_type_t
 
 (** {3 Links and forms} *)
 
-(** The function [make_uri service get_params] returned the URL of the
+(** The function [make_uri service get_params] returns the URL of the
     service [service] applied to the GET parameters [get_params]. By
     default the returned URL is relative to the current request URL
     but it is absolute when one of the following conditions is met:
@@ -67,8 +67,9 @@ type button_type_t
     - the [service] has been created with [~https:true] and the
     function is used outside of a service handler.
 
-    In the first case the returned URL is just an absolute path, when
-    in the other case the returned URL is prefixed with
+    When only the first condition is met ([~absolute_path] is [true])
+    the returned URL is just the absolute path, but when any other
+    condition is satisfied the returned URL is prefixed with
     [protocol://hostname\[:port\]], where:
 
     - [protocol] is:
@@ -111,7 +112,7 @@ type button_type_t
     information about {% <<a_manual chapter="params"
     fragment="nonlocalizedparameters"|non localized parameters>>%}.
 
-    The function [make_string_uri] should not be called outside of
+    The function [make_uri] should not be called outside of
     a service handler unless one of the following condition is met:
 
     - the optional parameter [~absolute_path] is [true].
@@ -135,12 +136,12 @@ val make_uri :
   'get ->
   uri
 
-(** The function [make_uri service get_params] returned the string URL
+(** The function [make_string_uri service get_params] returns the URL of the
     of the service [service] applied to the GET parameters
     [get_params]. See {!make_uri} for a detailled
     description of optional parameters.
 
-    The function [make_uri] is an alias of {!Eliom_uri.make_string_uri}. *)
+    The function [make_string_uri] is an alias of {!Eliom_uri.make_string_uri}. *)
 val make_string_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
@@ -161,10 +162,10 @@ val make_string_uri :
     of the URL of [service] applied to the GET parameters
     [get_params]. By default the returned [path] is relative to the
     current request URL but it could be absolute URL in some
-    situation, see {!make_string_uri} for more information and a
+    situation, see {!make_uri} for more information and a
     description of optional parameters.
 
-    The function [make_uir_components] is an alias for
+    The function [make_uri_components] is an alias for
     {!Eliom_uri.make_uri_components}. *)
 val make_uri_components :
   ?absolute:bool ->
@@ -181,7 +182,7 @@ val make_uri_components :
   'get ->
   string * (string * string) list * string option
 
-(** Same a {!make_uri_components}, but also returns a table of post
+(** Same a {!make_uri_components}, but also returns a list of post
     parameters. *)
 val make_post_uri_components :
   ?absolute:bool ->
@@ -211,9 +212,9 @@ val make_proto_prefix :
   string
 (**/**)
 
-(** [a service cont ()] creates a link to [service].
+(** [a service content ()] creates a link to [service].
     The text of
-    the link is [cont]. For example [cont] may be something like
+    the link is [content]. For example [content] may be something like
     [\[pcdata "click here"\]].
 
     The last  parameter is for GET parameters.
