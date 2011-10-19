@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliomservices.mli
+ * Module eliom_services.mli
  * Copyright (C) 2007 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -48,8 +48,8 @@ open Eliom_parameters
     - [ 'g] is a phantom type,  subtype of {!registrable},
             telling if it is possible to register a handler
             on this service.
-    - [ 'h ] is an information on what the service returns.
-             See {!Eliom_output.kind}.
+    - [ 'h] is an information on what the service returns.
+            See {!Eliom_output.kind}.
 *)
 type ('a,'b,+'c,+'d,+'e,+'f,+'g,+'h) service
 
@@ -169,13 +169,13 @@ val register_eliom_module : string -> (unit -> unit) -> unit
 
 (** {3 Main services} *)
 
-(** The fucntion [service ~path ~get_params ()] creates a {!service}
+(** The function [service ~path ~get_params ()] creates a {!service}
     associated to the path [path] and taking [get_params] as GET
     parameters.
 
     If the optional parameter [~https:true] is given, all links
-    towards that service will use https. By default, links will be
-    relative or use the protocol of the current page.
+    towards that service will use https. By default, links will keep
+    the current protocol.
 
     The optional parameter [~priority] allows to change the priority
     order between service that shares the same path. The default
@@ -185,7 +185,10 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     If the optional parameter [~keep_nl_params:`Persistent]
     (resp. [~keep_nl_params:`All]) is given, all links towards that
     service will keep persistent (resp. all) non localized GET
-    parameters of the current service. The default is [`None].
+    parameters of the current service. The default is [`None]. See the
+    eliom manual for more information about {% <<a_manual
+    chapter="params" fragment="nonlocalizedparameters"|non localized
+    parameters>>%}.
 *)
 val service :
   ?https:bool ->

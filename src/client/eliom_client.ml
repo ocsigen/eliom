@@ -271,10 +271,14 @@ let create_request_
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
+  (* GRGR TODO: allow get_get_or_post service to return also the service
+     with the correct subtype. Then do use Eliom_uri.make_string_uri
+     and Eliom_uri.make_post_uri_components instead of Eliom_uri.make_string_uri_
+     and Eliom_uri.make_post_uri_components__ *)
   match Eliom_services.get_get_or_post service with
     | `Get ->
         let uri =
-          Eliom_uri.make_string_uri
+          Eliom_uri.make_string_uri_
             ?absolute ?absolute_path ?https
             ~service
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params get_params
@@ -282,7 +286,7 @@ let create_request_
         `Get uri
     | `Post ->
         let path, get_params, fragment, post_params =
-          Eliom_uri.make_post_uri_components
+          Eliom_uri.make_post_uri_components__
             ?absolute ?absolute_path ?https
             ~service
             ?hostname ?port ?fragment ?keep_nl_params ?nl_params

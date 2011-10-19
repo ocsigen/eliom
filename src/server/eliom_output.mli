@@ -35,7 +35,7 @@ open Eliom_pervasives
     content of the frame:
 
     - The second parameter is the same as the last type parameters of
-    the corresponding {!Eliom_services.service}. Currently, one of the
+    the corresponding {!type:Eliom_services.service}. Currently, one of the
     following types:
     {ul {- {!Eliom_output.appl_service}}
         {- {!Eliom_output.http_service}}
@@ -51,7 +51,7 @@ open Eliom_pervasives
 *)
 type ('a, 'b) kind
 
-(** {3 Return types for {!Eliom_services.services} } *)
+(** {3 Return types for {!type:Eliom_services.service} } *)
 
 (** {4 Classical content} *)
 
@@ -387,7 +387,7 @@ end
 
 (** Allows to create services that choose dynamically what they want
     to send. The content is created using for example
-    {!Html5_forms.send} or {!Text.send} functions.  *)
+    {!Html5.send} or {!Text.send} functions.  *)
 module Any : "sigs/eliom_reg_alpha_return.mli"
   subst type page    := ('a, 'b) kind
 	and type options := unit

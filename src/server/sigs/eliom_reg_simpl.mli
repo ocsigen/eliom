@@ -51,7 +51,7 @@ val register :
   unit
 (* FIXME: secure_session is called "secure" in Eliom_state and Eliom_Service.unregister. *)
 
-(** Same as {!Eliom_services.service} followed by {!register}. *)
+(** Same as {!val:Eliom_services.service} followed by {!register}. *)
 val register_service :
   ?scope:[<Eliom_common.scope] ->
   ?options:options ->

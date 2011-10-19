@@ -1,4 +1,7 @@
 
+(* When modifying this interface, please ensure that the ocamldoc is
+   coherent with the ocamldoc from Eliom_uri. *)
+
 open Eliom_pervasives
 
 open Eliom_services
@@ -48,40 +51,75 @@ type button_type_t
 
 (** {3 Links and forms} *)
 
-(** Creates the string corresponding to the relative URL of a service applied to
-    its GET parameters.
+(** The function [make_uri service get_params] returned the URL of the
+    service [service] applied to the GET parameters [get_params]. By
+    default the returned URL is relative to the current request URL
+    but it is absolute when one of the following conditions is met:
 
-    If [absolute] is set to [true], or if there is a protocol change,
-    the URL will be absolute.
+    - the optional parameter [~absolute_path] is [true].
+    - the optional parameter [~absolute] is [true].
+    - the optional parameter [~https] is [true] (resp. [false])
+    and the current request protocol is [http] (resp. [https]).
+    - the optional parameter [~https] is [true] and the
+    function is used outside of a service handler
+    - the [service] has been created with [~https:true] and the
+    current request protocol is [http].
+    - the [service] has been created with [~https:true] and the
+    function is used outside of a service handler.
 
-    If [absolute_path] is set to [true], and [absolute] is [false],
-    the URL will be absolute, but without [protocol://server:port].
+    In the first case the returned URL is just an absolute path, when
+    in the other case the returned URL is prefixed with
+    [protocol://hostname\[:port\]], where:
 
-    Default hostname is determined from the [Host] http header of the request
-    (or the attribute of <host> tag in
-    configuration file if the option [<usedefaulthostname/>] is set).
-    Default port is the current port (or another port of the server if
-    you are switching from or to https).
-    But you can choose the hostname or port you want by setting
-    the optional [?hostname] and [?port] parameters here. *)
-val make_string_uri :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:('get, unit, [< get_service_kind ],
-           [< suff ], 'gn, unit,
-           [< registrable ], 'return) service ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `Persistent | `None ] ->
-  ?nl_params: Eliom_parameters.nl_params_set ->
-  'get ->
-  string
+    - [protocol] is:
+    {ul {- [https] if the [service] has been created with [~https:true]
+    or the optional paramater [~https] is [true];}
+    {- [http] if  the optional paramater [~https] is [false];}
+    {- the current request protocol if the function is used in a service handler;}
+    {- [http] in any other case.}}
+    - [hostname] is:
+    {ul {- the optional parameter [~hostname] if given;}
+    {- the attribute [defaulthostname] of [<host>] tag in
+    configuration file or the machine hostname
+    if the option [<usedefaulthostname/>] is set;}
+    {- the [Host] http header of the current request if available;}
+    {- the attribute [defaulthostname] of [<host>] tag in
+    configuration file or the machine hostname in any other case.}}
+    - [port] is:
+    {ul {- the optional parameter [~port] if given;}
+    {- the attribute [defaulthttpsport] (resp. [defaulthttpport]) of [<host>] tag
+    in configuration file or [443] (resp. 80) if [protocol] is [https] (resp. [http]) and
+    the current request protocol is [http] (resp. [https]);}
+    {- the attribute [defaulthttpsport] (resp. [defaulthttpsport]) of [<host>] tag
+    in configuration file or [443] (resp. 80) if the option [<usedefaulthostname/>]
+    is set and [protocol] is [https] (resp. [http]);}
+    {- the port associated to the [Host] http header of the current
+    request if available;}
+    {- the incoming port of the current request if available;}
+    {- the attribute [defaulthttpport] (resp. [defaulthttpsport]) of [<host>] tag
+    in configuration file or [80] (resp. [443]) in any other case.}}
 
+    If given the optional parameter [~fragment] is prefixed by [#]
+    and appended to the URL.
 
-(** Creates the URL for a service.
-    Like the [a] function, it may take extra parameters. *)
+    The optional parameter [keep_nl_params] allows to override the
+    [keep_nl_params] parameter used when creating the [service], see
+    {!val:Eliom_services.service} for a detailled description.
+
+    The optional paramater [nl_params] allows to add non localized
+    GET parameter to the URL.  See the eliom manual for more
+    information about {% <<a_manual chapter="params"
+    fragment="nonlocalizedparameters"|non localized parameters>>%}.
+
+    The function [make_string_uri] should not be called outside of
+    a service handler unless one of the following condition is met:
+
+    - the optional parameter [~absolute_path] is [true].
+    - the optional parameter [~absolute] is [true].
+    - the optional parameter [~https] is [true].
+    - the [service] has been created with [~https:true].
+    - the [service] is an external service.
+*)
 val make_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
@@ -97,11 +135,37 @@ val make_uri :
   'get ->
   uri
 
-(** Creates the URL for a service.
-    Returns the path (as a string, encoded),
-    the association list of get parameters (not encoded),
-    and the fragment (not encoded, if any).
-    Like the [a] function, it may take extra parameters. *)
+(** The function [make_uri service get_params] returned the string URL
+    of the service [service] applied to the GET parameters
+    [get_params]. See {!make_uri} for a detailled
+    description of optional parameters.
+
+    The function [make_uri] is an alias of {!Eliom_uri.make_string_uri}. *)
+val make_string_uri :
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('get, unit, [< get_service_kind ],
+           [< suff ], 'gn, unit,
+           [< registrable ], 'return) service ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  ?nl_params: Eliom_parameters.nl_params_set ->
+  'get ->
+  string
+
+(** The function [make_uri_components service get_params] returns the
+    a triplet [(path, get_params, fragment)] that is a decomposition
+    of the URL of [service] applied to the GET parameters
+    [get_params]. By default the returned [path] is relative to the
+    current request URL but it could be absolute URL in some
+    situation, see {!make_string_uri} for more information and a
+    description of optional parameters.
+
+    The function [make_uir_components] is an alias for
+    {!Eliom_uri.make_uri_components}. *)
 val make_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->
@@ -117,7 +181,8 @@ val make_uri_components :
   'get ->
   string * (string * string) list * string option
 
-(** Like [make_uri_components], but also creates a table of post parameters. *)
+(** Same a {!make_uri_components}, but also returns a table of post
+    parameters. *)
 val make_post_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->

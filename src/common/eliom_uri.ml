@@ -118,7 +118,6 @@ let make_proto_prefix
         if https
         then Eliom_config.get_default_sslport ()
         else Eliom_config.get_default_port ()
-(*VVV See also cpi in eliom_common.ml if you modify this! *)
   in
   Url.make_absolute_url https host port "/"
 
@@ -367,7 +366,7 @@ let make_string_uri
        ?nl_params
        getparams)
 
-
+let make_string_uri_ = make_string_uri
 
 
 let make_post_uri_components_ (* do not take into account postparams *)
@@ -593,6 +592,7 @@ let make_post_uri_components
   in
   (uri, getparams, fragment, postparams@prepostparams)
 
+let make_post_uri_components__ = make_post_uri_components
 
 
 

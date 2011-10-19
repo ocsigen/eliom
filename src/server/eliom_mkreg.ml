@@ -239,16 +239,20 @@ let register_aux pages
 			  false
 			  None
 			>>= fun p ->
+			(* GRGR TODO: avoid
+			   Eliom_uri.make_string_uri_. But we need to
+			   "downcast" the type of service to the
+			   correct "get service". *)
 			(if Eliom_request_info.get_http_method () =
                            Ocsigen_http_frame.Http_header.GET
                          && nosuffixversion && suffix_with_redirect
 			 then
-			  (* it is a suffix service in version
-			     without suffix. We redirect. *)
+			    (* it is a suffix service in version
+			       without suffix. We redirect. *)
 			    if not (Eliom_request_info.expecting_process_page ())
 			    then
 			      let redir_uri =
-			        Eliom_uri.make_string_uri
+			        Eliom_uri.make_string_uri_
 				  ~absolute:true
 				  ~service:
 				  (service :
@@ -271,7 +275,7 @@ let register_aux pages
 			       (see Eliom_request_info.rebuild_uri_without_iternal_form_info_)
 			    *)
 			      let redir_uri =
-			        Eliom_uri.make_string_uri
+			        Eliom_uri.make_string_uri_
 				  ~absolute:false
 				  ~absolute_path:true
 				  ~service:
