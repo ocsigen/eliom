@@ -40,15 +40,20 @@ and registers on it a function which generates a simple HTML page:
           (HTML5.M.body [HTML5.M.h1 [HTML5.M.pcdata "Hallo!"]])))
 >>
 
-The handler parameters are GET and POST parameters (see chapter * *)
+The handler parameters are GET and POST parameters
+(See chapter <<a_manual chapter="params"| parameters>>)
 
-The creation of the service and registration of the handler can be split
-into two distinct operations using {{{Eliom_output.Html5.service}}}
-and {{{Eliom_services.register}}} (see for example in section * * calc).
+The creation of the service and registration of the handler can be
+split into two distinct operations using <<a_api project="eliom"
+subproject="server" | val Eliom_services.service >> and <<a_api
+project="eliom" subproject="server" | val Eliom_output.Html5.register >>
+(see for example in section * * calc).
 
 Services registered with <<span class="code"|register_service>>
 are the main entry points for the Web site.
 They are available for all users, and are called //main services//.
+
+<<wip| Why is this example here ? I think it should be removed >>
 
 Here is an example of service with side effects, that provides a counter for the number of visits to this service.
 <<code language="ocaml"|open HTML5.M
@@ -107,9 +112,6 @@ let default = Eliom_output.Html5.register_service ["rep";""] unit
 >>
 
 >><<|concept>>
-
-See in the tutorial and in chapter * * how to compile and run an Eliom site.
-
 
 ===Services and Lwt===
 
@@ -252,27 +254,20 @@ qu'il ne faut pas le mettre dans le ml (et suggérer db, et fichiers).
 De tte façon il faut le dire qqpart.
 >>
 
-
-The <<span class="code"|staticmod>> extension allows you to specify
-a static directory
-where you can put all the static (non-generated) parts of your
-website (for examples images and stylesheets).
-See  <<span class="wip"|QUOI>> to learn how to do that.
-Staticmod can be used together with Eliom.
-
-A predefined service can be used to make links to static files.
-Get it using
-<<span class="code"|(static_dir ())>>.
-That service takes as string parameter the name of the file.
-\\
+<<a_manual project="ocsigenserver" chapter="staticmod" | Staticmod>>
+is an Ocsigenserver extension serving static (non-generated) files
+(for examples images and stylesheets). It can be used together with
+Eliom. The predefined service <<a_api| val Eliom_services.static_dir
+>> can be used to make links to static files. It takes as parameter
+the path of the file.  \\
 
 For example
-<<code language="ocaml"|a (static_dir ()) [pcdata "download image"] "ocsigen10.png"
+<<code language="ocaml"|a (static_dir ()) [pcdata "download image"] ["ocsigen10.png"]
 >>
 creates this link: [[site:ocsigen10.png|download image]]
 
-It is also possible to send static pages using Eliom, using
-<<span class="code"|Eliom_output.Files>>
+It is also possible to send static files using Eliom, with
+<<a_api| module Eliom_output.Files>>
 (<<a_manual chapter="services" fragment="eliomfiles" |see later>>).
 
 
@@ -281,8 +276,8 @@ It is also possible to send static pages using Eliom, using
 ==Predefined output modules for services==
 
 All the services we have defined so far in this section are registered using
-{{{Eliom_output.Html5.register_service}}} and the handler functions
-return a value of type {{{Xhtmltypes5.xhtml HTML5.M.elt Lwt.t}}}.
+<<a_api | val Eliom_output.Html5.register_service>> with a handler functions
+returning a value of type {{{HTML5_types.html HTML5.M.elt Lwt.t}}}.
 If you want to create other types of outputs, you need to use other registration
 modules, taken from a large set of predefined modules (output raw text,
 redirections, files, portions of pages, etc.). It is also possible to create
@@ -290,190 +285,13 @@ your own output modules.
 
 Output modules may define options for the registration function.
 For example, the redirection ouput module allows to choose between permanent
-and temporary registration, and the module {{{Eliom_output.Html5}}} 
-allows to personnalize the document type to be included in the page.
-For example:
+and temporary redirection:
 
-<<code language="ocaml"|Eliom_output.Html5.register_service
-  ~options:(`Doctype "my doctype")
-  ~path:["coucou"]
+<<code language="ocaml"|Eliom_output.Redirection.register_service
+  ~options:`Permanent
+  ~path:["redirection"]
   ~get_params:Eliom_parameters.unit
 >>
-
-
-
-===@@id="server_generating_html"@@Generating HTML pages===
-
-Ocsigen provides several ways to generate and type xhtml pages.
-
-* The default technique to produce HTML5 pages using Eliom is the HTML5.M
-   module. It is the only one supported for client side Eliom programs for now.
-   This module provides a typing based on OCaml's polymorphic variants,
-   which ensures at compile time, that the pages you will generate will
-   respect the recommendations of the W3C (or be very close).
-   There also exists another module called XHTML.M that implements XHTML 1.1.
-* It is also possible to use a syntax extension to write your pages with the
-   usual XHTML syntax. This solution is also typed with polymorphic variants
-   and is compatible with the previous one.
-* The most powerful typing of pages is done with OcamlDuce. 
-  To take benefit of it, use OCamlDuce instead of OCaml.
-* You can also choose to generate untyped xhtml as text.
-
-===HTML5.M and XHTML.M===
-
-The types in OCaml closest to XML types are //polymorphic variants//.
-Ocsigen uses them to provide a module with very good XHTML typing.
-The full documentation is available <<a_api text="in
-the TyXML documentation" project="tyxml" | module XHTML.M >>.
-<<wip|put it here (?!)>>
-
-===XHTML syntax extension===
-
-<<wip|Compatibility with HTML5?>>
-
-Ocsigen also has a syntax extension for OCaml that allows you to writes pages
-using HTML syntax (but you are free not to use it).
-This is convenient for example if
-you want to include (parts of) HTML pages that have been
-created by third party.
-This syntax extension uses the same polymorphic variants as
-HTML5.M, thus this solution can be mixed with the previous one.
-
-For example, the following code:
-{{{
-<< <html>
-     <head><title></title></head>
-     <body><h1>plop</h1></body>
-   </html> >>
-}}}
-is a caml value of type {{{Xhtmltypes5.xhtml HTML5.M.elt}}}.
-
-To compile a module containing this syntax, you need the camlp4 preprocessor:
-{{{
-ocamlc -I /path_to/ocsigen/
- -pp "camlp4o /path_to/ocsigen/xhtmlsyntax.cma -loc loc"
- -c your_module.ml
-}}}
-You can insert OCaml expressions of type {{{'a XHTML.M.elt}}} inside html using {{{$...$}}}, like this:
-{{{
-let oc = << <em>Ocsigen</em> >> in 
-<< <p>$oc$ will revolutionize web programming.</p> >>
-}}}
-<<wip| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! >>
-
-You can insert OCaml expressions of type string inside html using 
-{{{$str:... $}}}, like this:
-{{{
-let i = 4 in 
-<< <p>i is equal to $str:string_of_int i$</p> >>
-}}}
-If you want to use a dollar in your page, just write it twice.
-
-You can write a list of xhtml expressions using the syntax {{{<:xmllist<...>>}}}, for example:
-{{{
-<:xmllist< <p>hello</p> <div></div> >>
-}}}
-Here are some other examples showing what you can do:
-{{{
-<< <ul class=$ulclass$ $list:other_attrs$>
-     $first_il$ 
-     $list:items$
-   </ul> >>
-}}}
-Warning: lists antiquotations are allowed only at the end (before a closing tag). For example, the following is not valid:
-{{{
-<< <ul $list:other_attrs$ class=$ulclass$>
-     $list:items$ 
-     $last_il$
-   </ul> >>
-}}}
-The syntax extension is not allowed in patterns for now.
-
-//Warning:// The two syntaxes are not equivalent for typing.
- Using the syntax extension will do less checking.
- For example the following code is accepted but not valid
- regarding HTML5 standard (because <<span class="code"|<head>>>
- must contain a title):
-  
-<<code language="ocaml"|<< <html>
-     <head></head>
-     <body><h1>plop</h1></body>
-   </html> ~>>
->>
-
-We recommend you use the functions from <<a_api project="tyxml"
-| module HTML5.M>>, as you will (almost) always get valid HTML 5. Use
-the syntax extension for example to enclose already created pieces of
-HTML, and check your pages validity with the
-[[http://validator.w3.org/| W3C validator]].
-  
-
-
-
-===OCamlduce===
-
-OCaml's type system is not powerful enough to type XML. The OCamlduce
-manual says: //"The goal of the OCamlDuce project is to extend the
-OCaml language with features to make it easier to write safe and
-efficient complex applications that need to deal with XML documents.
-In particular, it relies on a notion of types and patterns to
-guarantee statically that all the possible input documents are
-correctly processed, and that only valid output documents are
-produced."//
-
-Ocamlduce's full documentation is available from
-[[http://www.cduce.org/ocaml.html|here]].
-
-If OCamlDuce is installed on your system, it is now possible to use
-it instead of XHTML.M and Eliom_output.Xhtml
-to typecheck your pages. You will get a stronger type checking
-and more flexibility (easier to use other XML types, to parse
-incoming XML data, etc.).
-
-However, Ocamlduce is not compatible with Camlp4 syntax extensions
-and client server Eliom applications support only HTML5.M (for now).
-
-
-To use it, make sure that you have Eliom compiled with OCamlDuce
-support. Then dynlink <<span class="code"|ocamlduce.cma>> and <<span
-class="code"|eliomduce.cma>> from the configuration file (after <<span
-class="code"|eliom.cma>>).  Then use <<a_api | module Eliom_duce.Xhtml >> 
-instead of <<a_api | module Eliom_output.Xhtml>> to register your pages.
-
-Here is an example:
-<<code language="ocaml"|
-let s =
-  Eliom_duce.Xhtml.register_service
-    ~path:[""]
-    ~get_params:unit
-    (fun () () ->
-      Lwt.return
-        {{ <html>
-             [<head> [<title> ""]
-              <body> [<h1> "Page type checked by OCamlDuce"]] }}) 
->>  
-
-
-
-===Text XHTML===
-
-The last possibility is to use untyped xhtml. Just build strings
-containing your pages. Here is an example:
-
-<<code language="ocaml"|let coucoutext =
-  Eliom_output.HtmlText.register_service
-    ~path:["coucoutext"]
-    ~get_params:Eliom_parameters.unit
-    (fun () () ->
-      Lwt.return
-        ("<html>n'importe quoi "^
-         (Eliom_output.HtmlText.a coucou "clic" ())^
-         "</html>"))
->>
-
-
-
-
 
 ===Summary of predefined output modules===
 
@@ -491,9 +309,14 @@ The main predefined output modules are:
 >>
 
 ;<<a_api| module Eliom_output.Html5 >> (and <<a_api| module Eliom_output.Xhtml >>)
-: Allows to register functions that generate xhtml pages statically checked using polymorphic variant types. You may use constructor functions from <<a_api project="tyxml" | module XHTML.M >> or a syntax extension close to the standard xhtml syntax.
+: Allows to register functions that generate html5 pages statically checked using polymorphic variant types. You may use constructor functions from <<a_api | module Eliom_pervasives.HTML5.M >> (resp <<a_api | module Eliom_pervasives.XHTML.M >>) or a syntax extension close to the standard html syntax.
+;<<a_api| module Eliom_output.Eliom_appl >>
+: is a functor that generates a module allowing to create services belonging to a client-server Eliom application (see <<a_manual chapter="client"|chapter client-server applications>>)
+;<<a_api| module Eliom_output.Caml >>
+: allows to register services sending marshalled OCaml values
+<<wip|Add a section on Eliom_output.Caml. Tell that it should be used instead of Block5 to get parts of the page>>
 ;<<a_api| module Eliom_output.Blocks5 >> (and <<a_api| module Eliom_output.Blocks >>)
-: Allows to register functions that generate a portion of page using <<a_api project="tyxml" | module HTML5.M >> (resp <<a_api project="tyxml"| module XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example).
+: Allows to register functions that generate a portion of page using <<a_api | module Eliom_pervasives.HTML5.M >> (resp <<a_api | module Eliom_pervasives.XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example).
 ;<<a_api| module Eliom_duce.Xhtml >>
 : Allows to register functions that generate XHTML 1.1 pages   statically checked using <<span class="code"|OCamlduce>>. Typing is   stricter, and you need a modified version of the OCaml compiler   (OCamlduce).
 ;<<a_api| module Eliom_output.HtmlText >>
@@ -503,7 +326,7 @@ The main predefined output modules are:
 ;<<a_api| module Eliom_output.Text >>
 : Allows to register functions that   generate text pages, without any typechecking of the content.   The services return a pair of strings. The first one is the content   of the page, the second one is the content type.
 ;<<a_api| module Eliom_output.Action >>
-: Allows to register actions (functions that do not generate any page, see * *). The page corresponding to the URL (without the coservice parameter that triggered the action) is reloaded after the action by default if possible.
+: Allows to register actions (functions that do not generate any page, see <<a_manual chapter="services" fragment="actions"|Action>>). The page corresponding to the URL (without the coservice parameter that triggered the action) is reloaded after the action by default if possible.
 ;<<a_api| module Eliom_output.Unit >>
 : is like <<a_api| module Eliom_output.Action >> but the URL is not reloaded after the action. (Same as {{{Eliom_output.Action}}} with {{{[`NoReload]}}} option).
 ;<<a_api| module Eliom_output.Redirection >>
@@ -511,57 +334,51 @@ The main predefined output modules are:
 ;<<a_api| module Eliom_output.String_redirection >>
 : Same but the ouput type is a string. Use with care! Warning: According to the RFC of the HTTP protocol, the URL must be absolute!
 ;<<a_api| module Eliom_output.Files >>
-: Allows to register services that send files.
+: Allows to register services that send files. See <<a_manual chapter="services" fragment="eliomfiles"|here>> for an example of use.
 ;<<a_api| module Eliom_output.Any >>
-: Allows to register services that can choose what they send, for example an xhtml page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See later * * for an example of use.
-;<<a_api| module Eliom_output.Eliom_appl >>
-: is a functor that generates a module allowing to create services belonging to a client-server Elioml application (see chapter * *)
-;<<a_api| module Eliom_output.Caml >>
-: allows to register services sending marshalled OCaml values
+: Allows to register services that can choose what they send, for example an xhtml page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See <<a_manual chapter="services" fragment="any"|here>> for an example of use.
 
 <<wip|Missing modules?>>
 
 
 ===@@id="eliomfiles"@@Sending files
-  
-  
-You may want to register a service that will send files.
-  To do that, use the <<a_api| module Eliom_output.Files >> module. Example:
-  
-  
 
-  
+You may want to register a service that will send files.
+To do that, use the <<a_api| module Eliom_output.Files >> module. Example:
+
 <<code language="ocaml"|
 let sendfile =
   Files.register_service
     ~path:["sendfile"]
     ~get_params:unit
     (fun () () -> return "filename")
-
 >>
 
-Other example, with "suffix" services (see * *):
+Other example, with "suffix" services (see <<a_manual chapter="params" fragment="suffix"|here>>):
 <<code language="ocaml"|
 let sendfile2 =
   Files.register_service
     ~path:["files"]
     ~get_params:(suffix (all_suffix "filename"))
-    (fun s () -> return ("//path//"^(Ocsigen_lib.string_of_url_path ~encode:false s)))
+    (fun s () ->
+      return ("//path//"^(Ocsigen_lib.string_of_url_path ~encode:false s)))
 >>
 
-The extension <<span class="code"|Staticmod>> is another way to
+The extension <<a_manual chapter="services" fragment="staticparts"|Staticmod>> is another way to
 handle static files.
-  
-  
+
+
 
 ===Sending portions of pages
-  
-  
+
+
  The <<a_api| module Eliom_output.Blocks5 >> and <<a_api| module Eliom_output.Blocks >> modules allow you to register services that send portions of pages, of any "block" type for HTML5.M (resp. XHTML.M).
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
- Note that the service returns a list of blocks.
-  
+ Note that the service returns a list of blocks. For sending HTML
+ to client side eliom application, <<a_api| module Eliom_output.Caml >> is better
+ suited.
+
 
 <<code language="ocaml"|let divpage =
   Eliom_output.Blocks.register_service
@@ -573,7 +390,7 @@ handle static files.
               p [pcdata "Blablablabla"] ]])
 >>
 
-  
+
  The <<a_api| module Eliom_output.Make_TypedXML_Registration >> module
  allows to create other modules for registering portions of pages of
  other types.  For example, <<a_api| module Eliom_output.Blocks5 >> is
@@ -586,8 +403,8 @@ end)
 
 
 ===@@id="redirections"@@Redirections
-  
-  
+
+
  The <<a_api| module Eliom_output.Redirection >> module allows you to register HTTP redirections.\\
 If a request is made for such a service, the server asks the browser
 to retry with another URL.
@@ -601,13 +418,13 @@ Example:
    (fun () () -> Lwt.return coucou)
 >>
 
-  
+
  If you want to give parameters to such services, use
- <<a_api | val Eliom_services.preapply>> (see also 
+ <<a_api | val Eliom_services.preapply>> (see also
  <<a_manual chapter="services" fragment="preapplied" |later in the tutorial>>).
  Example:
 
-  
+
  <<code language="ocaml"|let redir = Eliom_output.Redirection.register_service
     ~options:`Temporary
     ~path:["redir"]
@@ -617,12 +434,12 @@ Example:
         (Eliom_services.preapply coucou_params (o,(22,"ee"))))
 >>
 
-  
+
 The <<span class="code"|options>> parameter may be either
   <<span class="code"|`Temporary>> or <<span class="code"|`Permanent>>.
-  
 
-  
+
+
 [[site:tuto/redir?o=11| Try it]].
 
 Note that the cost of a redirection is one more request and
@@ -631,7 +448,7 @@ one more response.
 
 ===@@id="actions"@@Actions
 
- 
+
 Actions are services that do not generate any page.
 Use them to perform an effect on the server (connection/disconnection
 of a user, adding something in a shopping basket, deleting a message in
@@ -657,10 +474,10 @@ The return type of action handlers is
 <<span class="code"|unit Lwt.t>>.
 We will see <<a_manual chapter="services" fragment="infofallbacks" |later>> how to transmit information
 to the service that will take charge of the generation of the page.\\
- 
+
 A common use of actions and non-attached coservices working together
 is the implementation of login/logout forms.
-An example is given in the chapter about the server-side state 
+An example is given in the chapter about the server-side state
 of the application (section sec-state-connect).
 In that example, actions and non-attached coservices make staightforward
 the implementation of the behaviour you generally want for such features:
@@ -673,16 +490,16 @@ is usually much more complicated.
 
 
 
-===Registering services that decide what they want to send===
-  
+===@@id="any"@@Registering services that decide what they want to send===
+
 You may want to register a service that will send, for instance,
   sometimes
   an XHTML page, sometimes a file, sometimes something else.
   To do that, use the <<a_api| module Eliom_output.Any >> module, together
   with the <<span class="code"|send>> function of the module you want
   to use. Example:
-  
-  
+
+
 <<code language="ocaml"|let send_any =
   Eliom_output.Any.register_service
     ~path:["sendany"]
@@ -704,13 +521,13 @@ You may want to register a service that will send, for instance,
    )
 >>
 
-  
+
   See [[site:tuto/sendany?type=valid| a valid page]],
   and [[site:tuto/sendany?type=non+valid| a non valid page]].
-  
-  
 
-  
+
+
+
 You may also use <<a_api| module Eliom_output.Any >> to personalize the charset
 (default charset is set in configuration file), the HTTP code,
 the content type or to add some HTTP headers.
@@ -756,7 +573,7 @@ may trigger:
 
 
 
-To take into account all possible behaviours with respect to URLs, 
+To take into account all possible behaviours with respect to URLs,
   Eliom uses three kinds of services.  Although we will provide more details and examples later,
 we'll start with a brief definition:
 ;@@class="blue"@ @@Main services
@@ -786,7 +603,7 @@ we'll start with a brief definition:
   coservices that are not
   attached to a particular URL. A link to a non-attached
   coservice will go to the current URL with a special parameter
-  containing either the name of the service, or a number generated 
+  containing either the name of the service, or a number generated
   automatically (and different each time).
   It is useful when you want the same link or form on several pages
   (for example a connection box) but you don't want to go to another
@@ -872,12 +689,12 @@ they take a public service as parameter
 to be used as fallback when the user comes back without the coservice
 identifier (for example if it was a POST coservice and/or the coservice
 has expired).
-  
 
-  
+
+
 The following example shows the difference between GET coservices
 (bookmarkable) and POST coservices:
-  
+
 <<code language="ocaml"|(************************************************************)
 (************** Coservices. Basic examples ******************)
 (************************************************************)
@@ -937,11 +754,11 @@ let _ =
   Eliom_output.Xhtml.register coservices_example_get f
 >>
 
-  
-Try [[site:tuto/coserv|<<span class="code"|coserv>>]].
-  
 
-  
+Try [[site:tuto/coserv|<<span class="code"|coserv>>]].
+
+
+
 Note that if the coservice does not exist (for example, if it
 has expired), the fallback is called.
 
@@ -955,7 +772,7 @@ names, it is possible to use a "pre-applied" service as fallback
 
 ===@@id="coservicesinsessiontable"@@Dynamic coservices===
 
-You can register anonymous coservices (usually with scope {{{`Session}}}) 
+You can register anonymous coservices (usually with scope {{{`Session}}})
 for run-time creation of new services dedicated to a particular user.
 Here is an example of two pages that add two integers.
 Once the first number is submitted by the user, a coservice
@@ -966,7 +783,7 @@ Try to duplicate the pages and/or to use the "back" button of your
 browser to verify that it has the expected behaviour.
 
 (See chapter * * if you want more explanations on forms and parameters).
-  
+
 <<code language="ocaml"|(************************************************************)
 (*************** calc: sum of two integers ******************)
 (************************************************************)
@@ -1053,7 +870,7 @@ let () =
   Eliom_output.Xhtml.register calc_i calc_i_handler
 >>
 
-  
+
 [[site:tuto/calc| See the result]].
 
 
@@ -1084,7 +901,7 @@ You can do this using //non-attached coservices// (see below).
 Non-attached coservices are coservices that are not attached to an URL path.
 Service identification is performed only according to the coservice
 identifier, whatever be the path.
-When you point a link or a form towards such a service, the URL path 
+When you point a link or a form towards such a service, the URL path
 and the main parameters do not change.
 The parameters of the non-attached coservice are sent as special parameters.
 
@@ -1112,10 +929,10 @@ like this:
     ~post_params:(Eliom_parameters.int "id")
     (fun () id -> remove id)
 >>
-  
+
 Then wherever you want to add a button to do that action
 (on data <<span class="code"|id>>), create a form like:
-  
+
 <<code language="ocaml"|Eliom_output.Html5.post_form remove_action
   (fun id_name ->
      Eliom_output.Html5.int_input
@@ -1167,7 +984,7 @@ on the server, from any page, and without changing the URL
 Here is a list of frequent Web interaction issues
 and the solution Eliom provides to solve them.
 ;Display the result of a search
-:Use a coservice (anonymous, with timeout) 
+:Use a coservice (anonymous, with timeout)
 in the session service table.
 ;Keep information about the session (name of the user~ ...)
 :Use eliom references (scope {{{`Session}}}), see chapter * * .
@@ -1274,7 +1091,7 @@ even if you request it.
 
 Warning: if the protocol needs to be changed (from HTTP to HTTPS
 or vice versa), Eliom will generate absolute URLs.
-The host name and port numbers are guessed from the IP and the 
+The host name and port numbers are guessed from the IP and the
 configuration by default, but it is recommended to specify them
 in the configuration file. For example:
 
@@ -1337,15 +1154,15 @@ let _ =
   in
   Eliom_output.Html5.register timeout page
 >>
-  
+
 [[site:tuto/timeout| See this example here]].
-  
-  
+
+
 
 
 ===Disposable coservices
-  
-  
+
+
 It is possible to set a limit to the number of uses of
   (attached or non-attached) coservices. Just give the maximum number
   of uses with the optional <<span class="code"|?max_use>> parameter while
@@ -1377,7 +1194,7 @@ let _ = register disposable
                     br ();
                     a disp_coservice [pcdata "Try it!"] ()]])))
 >>
-  
+
 [[site:tuto/disposable| Try it]].
 
 
@@ -1393,20 +1210,20 @@ Eliom implements a protection against CSRF attacks.
 CSRF means //Cross Site Request Forgery//.
 Here is an explanation from Wikipedia:
 
-For example, one user, Bob, might be browsing a chat forum where another user, 
-Mallory, has posted a message. Suppose that Mallory has crafted an HTML image 
-element that references a script on Bob's bank's website (rather than an image 
+For example, one user, Bob, might be browsing a chat forum where another user,
+Mallory, has posted a message. Suppose that Mallory has crafted an HTML image
+element that references a script on Bob's bank's website (rather than an image
 file), e.g.,\\
 {{{<img src="http://bank.example/withdraw?account=bob&amount=1000000&for=mallory">}}}\\
-If Bob's bank keeps his authentication information in a cookie, and if the 
-cookie hasn't expired, then the attempt by Bob's browser to load the image 
-will submit the withdrawal form with his cookie, thus authorizing a 
+If Bob's bank keeps his authentication information in a cookie, and if the
+cookie hasn't expired, then the attempt by Bob's browser to load the image
+will submit the withdrawal form with his cookie, thus authorizing a
 transaction without Bob's approval.
 
 ====Solution with Eliom <= 1.2====
 
 There is an easy way to protect a service from such attacks with Eliom 1.2:
-just create a new anonymous coservice with timeout each time you display the 
+just create a new anonymous coservice with timeout each time you display the
 form. Thus, a new token will be created for each form and no service will
 answer if you do not send it (or more precisely, the fallback will).
 
@@ -1481,28 +1298,28 @@ the same.
 
 
 ===@@id="preapplied"@@Pre-applied services
-  
-  
+
+
 Services or coservices with GET parameters can be preapplied
  to obtain a service without parameters. Example:
 
-  
 
-  
+
+
 <<code language="ocaml"|let preappl = Eliom_services.preapply coucou_params (3,(4,"cinq"))
 
 >>
 
-  
+
  It is not possible to register something on a preapplied service,
  but you can use them in links or as fallbacks for coservices.
 
-  
+
 
 
 ===@@id="preapplied"@@Void coservices
-  
-  
+
+
  <<a_api| val Eliom_services.void_coservice' >>
 is a special non-attached action, with special behaviour:
 it has no parameter at all, even non-attached parameters.
@@ -1521,7 +1338,7 @@ Eliom_duce.Xhtml.a
   ()
 >>
 
-There is also 
+There is also
  <<a_api| val Eliom_services.https_void_coservice' >>
 (same, but forces use of HTTPS),
  <<a_api| val Eliom_services.void_hidden_coservice' >>, and
@@ -1545,7 +1362,7 @@ In that case, the current service is the fallback.
 
 The function
  <<a_api| val Eliom_request_info.get_expired_service_sessions >>
-returns the list of names of service sessions expired 
+returns the list of names of service sessions expired
 for the current request.
 
 It is also possible to send other information to the service occuring after

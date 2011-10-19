@@ -1,36 +1,171 @@
+=@@id="server_generating_html"@@Generating HTML pages=
+
 Ocsigen provides several ways to generate and type xhtml pages.
 
-* You can use the <<a_manual project="tyxml" | TyXML >> module, that provides a
-  typing based on OCaml's polymorphic variants.
-* It is also possible to use a syntax extension to write your pages
-  with the usual xhtml syntax. This solution is also typed with
-  polymorphic variants ans is compatible with the previous one. (See
-  <<a_manual project="tyxml" | TyXML>>).
-* You can also use eliom with OcamlDuce. To take benefit of it, use
-  OCamlDuce instead of OCaml.
-* You can also choose to generate untyped xhtml as text.
+* The default technique to produce HTML5 pages using Eliom is the
+   <<a_api | module Eliom_pervasives.HTML5.M >>
+   module. It is the only one supported for client side Eliom programs.
+   This module provides a typing based on OCaml's polymorphic variants,
+   which ensures at compile time, that the pages you will generate will
+   respect the recommendations of the W3C (or be very close).
+   There also exists another module, <<a_api | module Eliom_pervasives.XHTML.M >>
+   that implements XHTML 1.1.
+* It is also possible to use a syntax extension to write your pages with the
+   usual XHTML syntax. This solution is also typed with polymorphic variants
+   and is compatible with the previous one.
+* The most powerful typing of pages is done with OcamlDuce.
+  To take benefit of it, use OCamlDuce instead of OCaml.
+* You can also choose to generate untyped html as text.
 
-We recommend to use the HTML5 module of TyXML (use in most the documentation).
-It is the only means supported for client/server Eliom applications. 
+===HTML5.M and XHTML.M===
 
-===Text XHTML
+The types in OCaml closest to XML types are //polymorphic variants//.
+Ocsigen uses them to provide a module with very good HTML5 typing.
+The full documentation is available <<a_api text="in
+the TyXML documentation" project="tyxml" | module HTML5.M >>.
+<<wip|put it here (?!)>>
 
-The last possibility is to use untyped xhtml. Just build strings
-containing your pages. Have a look at
-<<a_api | module Eliom_output.HtmlText >>.
+===XHTML syntax extension===
 
-===OCamlduce
+<<wip|Compatibility with HTML5?>>
 
-OCaml's type system is not powerful enough to encode a perfect typing of XML.
-OCamlduce
+Ocsigen also has a syntax extension for OCaml that allows you to writes pages
+using HTML syntax (but you are free not to use it).
+This is convenient for example if
+you want to include (parts of) HTML pages that have been
+created by third party.
+This syntax extension uses the same polymorphic variants as
+HTML5.M, thus this solution can be mixed with the previous one.
+
+For example, the following code:
+{{{
+<< <html>
+     <head><title></title></head>
+     <body><h1>plop</h1></body>
+   </html> >>
+}}}
+is a caml value of type {{{Xhtmltypes5.xhtml HTML5.M.elt}}}.
+
+To compile a module containing this syntax, you need the camlp4 preprocessor:
+{{{
+ocamlc -I /path_to/ocsigen/
+ -pp "camlp4o /path_to/ocsigen/xhtmlsyntax.cma -loc loc"
+ -c your_module.ml
+}}}
+You can insert OCaml expressions of type {{{'a XHTML.M.elt}}} inside html using {{{$...$}}}, like this:
+{{{
+let oc = << <em>Ocsigen</em> >> in
+<< <p>$oc$ will revolutionize web programming.</p> >>
+}}}
+<<wip| remove \ before $, _ in code, everywhere in pdf version!!!!!!!!!! >>
+
+You can insert OCaml expressions of type string inside html using
+{{{$str:... $}}}, like this:
+{{{
+let i = 4 in
+<< <p>i is equal to $str:string_of_int i$</p> >>
+}}}
+If you want to use a dollar in your page, just write it twice.
+
+You can write a list of xhtml expressions using the syntax {{{<:xmllist<...>>}}}, for example:
+{{{
+<:xmllist< <p>hello</p> <div></div> >>
+}}}
+Here are some other examples showing what you can do:
+{{{
+<< <ul class=$ulclass$ $list:other_attrs$>
+     $first_il$
+     $list:items$
+   </ul> >>
+}}}
+Warning: lists antiquotations are allowed only at the end (before a closing tag). For example, the following is not valid:
+{{{
+<< <ul $list:other_attrs$ class=$ulclass$>
+     $list:items$
+     $last_il$
+   </ul> >>
+}}}
+The syntax extension is not allowed in patterns for now.
+
+//Warning:// The two syntaxes are not equivalent for typing.
+ Using the syntax extension will do less checking.
+ For example the following code is accepted but not valid
+ regarding HTML5 standard (because <<span class="code"|<head>>>
+ must contain a title):
+
+<<code language="ocaml"|<< <html>
+     <head></head>
+     <body><h1>plop</h1></body>
+   </html> ~>>
+>>
+
+We recommend you use the functions from <<a_api project="tyxml"
+| module HTML5.M>>, as you will (almost) always get valid HTML 5. Use
+the syntax extension for example to enclose already created pieces of
+HTML, and check your pages validity with the
+[[http://validator.w3.org/| W3C validator]].
+
+
+
+
+===OCamlduce===
+
+OCaml's type system is not powerful enough to type XML. The OCamlduce
 manual says: //"The goal of the OCamlDuce project is to extend the
 OCaml language with features to make it easier to write safe and
-efficient complex applications that need to deal with XML
-documents. In particular, it relies on a notion of types and patterns
-to guarantee statically that all the possible input documents are
+efficient complex applications that need to deal with XML documents.
+In particular, it relies on a notion of types and patterns to
+guarantee statically that all the possible input documents are
 correctly processed, and that only valid output documents are
 produced."//
 
-The full documentation is available from
+Ocamlduce's full documentation is available from
 [[http://www.cduce.org/ocaml.html|here]].
+
+If OCamlDuce is installed on your system, it is now possible to use
+it instead of XHTML.M and Eliom_output.Xhtml
+to typecheck your pages. You will get a stronger type checking
+and more flexibility (easier to use other XML types, to parse
+incoming XML data, etc.).
+
+However, Ocamlduce is not compatible with Camlp4 syntax extensions
+and client server Eliom applications support only HTML5.M (for now).
+
+
+To use it, make sure that you have Eliom compiled with OCamlDuce
+support. Then dynlink <<span class="code"|ocamlduce.cma>> and <<span
+class="code"|eliomduce.cma>> from the configuration file (after <<span
+class="code"|eliom.cma>>).  Then use <<a_api | module Eliom_duce.Xhtml >>
+instead of <<a_api | module Eliom_output.Xhtml>> to register your pages.
+
+Here is an example:
+<<code language="ocaml"|
+let s =
+  Eliom_duce.Xhtml.register_service
+    ~path:[""]
+    ~get_params:unit
+    (fun () () ->
+      Lwt.return
+        {{ <html>
+             [<head> [<title> ""]
+              <body> [<h1> "Page type checked by OCamlDuce"]] }})
+>>
+
+
+
+===Text XHTML===
+
+The last possibility is to use untyped xhtml. Just build strings
+containing your pages. Here is an example:
+
+<<code language="ocaml"|let coucoutext =
+  Eliom_output.HtmlText.register_service
+    ~path:["coucoutext"]
+    ~get_params:Eliom_parameters.unit
+    (fun () () ->
+      Lwt.return
+        ("<html>n'importe quoi "^
+         (Eliom_output.HtmlText.a coucou "clic" ())^
+         "</html>"))
+>>
 

@@ -62,7 +62,7 @@ the server will display an error-message
 The infix function <<span class="code"|( ** )>> is to be used to
 construct //pairs// (not tuples).\\
 
-===Path suffixes as parameters
+===@@id="suffix"@@Path suffixes as parameters
 
 The following example shows how to create a service with "suffix"
 service

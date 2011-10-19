@@ -266,7 +266,8 @@ used for the same thing.
 
  * it is far easier and safer ( typed ) to describe content using tyxml, but it
 is not possible to add a tyxml node to the page directly. It has the same
-interface on client and <<a_manual fragment="server_generating_html"| server side>>
+interface on client and server side: see
+<<a_api project="eliom" subproject="server" | module Eliom_pervasives.HTML5.M >>
 
  * Dom manipulation is heavy: to build some part of a tree, one needs to
 create each node separately then append them to their parents.
@@ -529,7 +530,7 @@ let _ =
 Since client and server side value representation are not the same, it
 is not possible to send any Ocaml value, the restrinction on what can
 be sent are the same as for the {{{%variable}}} mechanism
-(see the <<a_manual fragment="wrapping"| wrapping chapter>>).
+(see the <<a_manual chapter="wrapping"| wrapping chapter>>).
 
 === Client sending data
 

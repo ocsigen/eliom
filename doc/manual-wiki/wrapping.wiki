@@ -38,7 +38,7 @@ value won't change if {{{a}}} is changed later on server side.
 
 == Special types ==
 
-=== Specific wrappers ===
+=== Custom wrappers ===
 
 Usualy, client and server side values are represented the same way,
 and it is sufficient to only copy their content ( marshalled ) to the
@@ -46,7 +46,7 @@ client. But certain types can't be transmitted this easilly: for
 instance, services.
 
 Those values must be transformed before marshalling: We need for this to use
-specific wrappers. This wrapping mechanism is defined in
+custom wrappers. This wrapping mechanism is defined in
 <<a_api | module Eliom_wrap >>.
 
 Before sending, the values goes throught <<a_api | val Eliom_wrap.wrap>>
@@ -93,14 +93,14 @@ Eliom_wrap is to be use with much caution! Do not use it if you don't
 understand how it works, it may lead to unpredictable segmentation faults
 and corrupted memory.
 
-=== Specific unwrappers ===
+=== Custom unwrappers ===
 
 We may also want to modify the value at unwrapping time. It is the
 case for instance of the type <<a_api | type Eliom_react.Up.t>>. On server
 side, it is transformed to a service, and the service is transformed to a
 function which call it on client side.
 
-To do this, we use specific unwrappers. A value is marked by an unwrapper
+To do this, we use custom unwrappers. A value is marked by an unwrapper
 the same way as with wrappers: A value is marked if its last field is a
 value of type <<a_api | type Eliom_wrap.unwrapper >>. An unwrapper does
 not contain functions, it only contains an identifier of type
@@ -126,7 +126,7 @@ Thoses id are globals, take care of not using an existing one, you
 could for instance use the name of you type hashed as id. Consider
 those below 1024 to be reserved to Eliom internals.
 
-== Eliom specific types ==
+== Eliom types with predefined custom wrappers ==
 
 The Eliom types that are marked are:
 
