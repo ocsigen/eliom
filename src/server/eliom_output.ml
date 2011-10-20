@@ -1134,9 +1134,11 @@ module Blocks = Make_TypedXML_Registration(XML)(XHTML.M)(struct
   type content = XHTML_types.body_content
 end)
 
-module Blocks5 = Make_TypedXML_Registration(XML)(HTML5.M)(struct
-  type content = HTML5_types.body_content
+module Flow5 = Make_TypedXML_Registration(XML)(HTML5.M)(struct
+  type content = HTML5_types.flow5
 end)
+module Blocks5 = Flow5
+
 
 (****************************************************************************)
 (****************************************************************************)
@@ -1360,7 +1362,7 @@ module HtmlText_forms_base = struct
   let empty_seq = ""
   let cons_hidden_fieldset fields content =
     "<fieldset style=\"display: none;\">"
-    ^ String.concat "" fields
+    ^ Eliom_pervasives.String.concat "" fields
     ^ "</fieldset>"
     ^ content
 
@@ -1862,12 +1864,22 @@ module Streamlist = Eliom_mkreg.MakeRegister(Streamlist_reg_base)
 (****************************************************************************)
 (****************************************************************************)
 
+module type Registration = sig
+  type page
+  type options
+  type return
+  type result
+  include "sigs/eliom_reg_simpl.mli"
+end
+
+module type Forms = "sigs/eliom_forms.mli"
+
 module Customize
   (B : sig type options type return type page type result end)
-  (R : "sigs/eliom_reg.mli" subst type options := B.options
-			      and type return  := B.return
-			      and type page    := B.page
-                              and type result  := B.result)
+  (R : Registration with type options := B.options
+		    and type return  := B.return
+		    and type page    := B.page
+                    and type result  := B.result)
   (T : sig type page val translate : page -> B.page Lwt.t end) = struct
 
     type page = T.page
@@ -2930,3 +2942,6 @@ module Redirection = Eliom_mkreg.MakeRegister_AlphaReturn(Redir_reg_base)
 let set_exn_handler h =
   let sitedata = Eliom_request_info.find_sitedata "set_exn_handler" in
   Eliom_request_info.set_site_handler sitedata (Result_types.cast_function_http h)
+
+
+module String = Text

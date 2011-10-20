@@ -22,7 +22,6 @@
 
 open XHTML.M
 open Eliom_output.Xhtml
-open Eliom_output
 open Eliom_services
 open Eliom_parameters
 open Eliom_state
@@ -37,7 +36,7 @@ let (>>) f g = g f
 
 let wiki_view_page = service [] (suffix (string "p")) ()
 let wiki_edit_page = service ["edit"] (string "p") ()
-let wiki_start = Redirection.register_service [] unit
+let wiki_start = Eliom_output.Redirection.register_service [] unit
     (fun _ _ ->
        Lwt.return (Eliom_services.preapply wiki_view_page "WikiStart"))
 

@@ -57,6 +57,20 @@ type scope = [ `Global
 type all_scope = [ scope
 		 | `Request ]
 
+(*  `Global  which means that the service will be registered in the
+    global table and be available to any client.
+
+  If you want to restrict the visibility of the service to a browser session,
+    use [~scope:Eliom_common.session].
+    If you want to restrict the visibility of the service to a group of sessions,
+    use [~scope:Eliom_common.session_group].
+    If you have a client side Eliom program running, and you want to restrict
+    the visibility of the service to this instance of the program,
+    use [~scope:Eliom_common.client_process]. You can create new scopes with
+    [Eliom_common.create_session_group_scope], [Eliom_common.create_session_scope]
+    and [Eliom_common.create_client_process_scope] if you want several service
+    sessions on the same site. *)
+
 type global_scope = [`Global]
 type session_group_scope = [`Session_group of scope_name]
 type session_scope = [`Session of scope_name]

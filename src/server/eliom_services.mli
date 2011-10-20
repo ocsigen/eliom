@@ -43,8 +43,10 @@ open Eliom_parameters
             parameters. It is a subtype of {!service_kind}.
     - [ 'd] is a phantom type, subtype of {!suff} stating the kind
             of parameters it uses: suffix or not.
-    - [ 'e] is the type of GET parameters names. See {!Eliom_parameters.param_name}.
-    - [ 'f] is the type of POST parameters names. See {!Eliom_parameters.param_name}.
+    - [ 'e] is the type of GET parameters names. See {!Eliom_parameters.param_name} and
+            form generation functions (e. g. {!Eliom_output.Html5.get_form}).
+    - [ 'f] is the type of POST parameters names. See {!Eliom_parameters.param_name} and
+            form generation functions (e. g. {!Eliom_output.Html5.post_form}).
     - [ 'g] is a phantom type,  subtype of {!registrable},
             telling if it is possible to register a handler
             on this service.
