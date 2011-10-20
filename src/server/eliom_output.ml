@@ -1745,9 +1745,7 @@ let appl_self_redirect send page =
                 empty_result.res_headers})
       else
         lwt r = (Result_types.cast_function_http send) page in
-        Lwt.return (Result_types.cast_result
-		{r with res_headers = Http_headers.with_defaults
-		    Http_headers.dyn_headers r.res_headers})
+        Lwt.return (Result_types.cast_result r)
 
 let http_redirect = appl_self_redirect
 
