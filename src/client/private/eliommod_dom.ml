@@ -121,7 +121,16 @@ let copy_element (e:Dom.element Js.t) : Dom_html.element Js.t =
 let html_document (src:Dom.element Dom.document Js.t) : Dom_html.element Js.t =
   let content = src##documentElement in
   match Js.Opt.to_option (Dom_html.CoerceTo.element content) with
-    | Some e -> e
+    | Some e ->
+      begin
+	try Dom_html.document##adoptNode((e:>Dom.element Js.t)) with
+	  | exn ->
+	    debug_exn "can't addopt node, import instead" exn;
+	    try Dom_html.document##importNode((e:>Dom.element Js.t),Js._true) with
+	      | exn ->
+		debug_exn "can't import node, copy instead" exn;
+		copy_element content
+      end
     | None -> copy_element content
 
 (** CSS preloading. *)
