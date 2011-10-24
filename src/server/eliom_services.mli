@@ -33,27 +33,7 @@ open Eliom_pervasives
 open Eliom_parameters
 
 
-(** {2 Types of services} *)
-
-(** Type of services.
-    - [ 'a] is the type of GET parameters expected by the service.
-    - [ 'b] is the type of POST parameters expected by the service.
-    - [ 'c] describes the services's kind: attached or non-attached,
-            internal or external, GET only or with POST
-            parameters. It is a subtype of {!service_kind}.
-    - [ 'd] is a phantom type, subtype of {!suff} stating the kind
-            of parameters it uses: suffix or not.
-    - [ 'e] is the type of GET parameters names. See {!Eliom_parameters.param_name} and
-            form generation functions (e. g. {!Eliom_output.Html5.get_form}).
-    - [ 'f] is the type of POST parameters names. See {!Eliom_parameters.param_name} and
-            form generation functions (e. g. {!Eliom_output.Html5.post_form}).
-    - [ 'g] is a phantom type,  subtype of {!registrable},
-            telling if it is possible to register a handler
-            on this service.
-    - [ 'h] is an information on what the service returns.
-            See {!Eliom_output.kind}.
-*)
-type ('a,'b,+'c,+'d,+'e,+'f,+'g,+'h) service
+(** {2 Type definitions for services} *)
 
 (** {3 Services kind} *)
 
@@ -134,6 +114,31 @@ type suff = [ `WithSuffix | `WithoutSuffix ]
 (** A service is [`Registrable] only if it isn't a pre-applied
     service, see {!preapply}. *)
 type registrable = [ `Registrable | `Unregistrable ]
+
+(** {3 Abstract type of services} *)
+
+(** Type of services.
+    - [ 'a] is the type of GET parameters expected by the service.
+    - [ 'b] is the type of POST parameters expected by the service.
+    - [ 'c] describes the services's kind: attached or non-attached,
+            internal or external, GET only or with POST
+            parameters. It is a subtype of {!service_kind}.
+    - [ 'd] is a phantom type, subtype of {!suff} stating the kind
+            of parameters it uses: suffix or not.
+    - [ 'e] is the type of GET parameters names. See {!Eliom_parameters.param_name} and
+            form generation functions (e. g. {!Eliom_output.Html5.get_form}).
+    - [ 'f] is the type of POST parameters names. See {!Eliom_parameters.param_name} and
+            form generation functions (e. g. {!Eliom_output.Html5.post_form}).
+    - [ 'g] is a phantom type,  subtype of {!registrable},
+            telling if it is possible to register a handler
+            on this service.
+    - [ 'h] is an information on what the service returns.
+            See {!Eliom_output.kind}.
+*)
+type ('a,'b,+'c,+'d,+'e,+'f,+'g,+'h) service
+constraint 'd = [< suff ]
+constraint 'g = [< registrable ]
+
 
 (***** Static dir and actions do not depend on the type of pages ******)
 

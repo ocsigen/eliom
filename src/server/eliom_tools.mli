@@ -52,6 +52,7 @@ type get_page =
 type ('a, 'b, 'c) hierarchical_site =
     (('a, 'b) main_page *
         ('c * ('a, 'b, 'c) hierarchical_site_item) list)
+constraint 'b = [< Eliom_services.registrable ]
 
 (* Be kind with ocamldoc when source code is preprocessed with camlp4,
    do not remove this comment ! *)
@@ -70,6 +71,7 @@ and ('a, 'b) main_page =
   | Not_clickable
     (** When you do not want the menu entry to be a link
         but you want subpages. *)
+constraint 'b = [< Eliom_services.registrable ]
 
 (* Be kind with ocamldoc when source code is preprocessed with camlp4:
    do not remove this comment ! *)
@@ -78,6 +80,7 @@ and ('a, 'b) main_page =
 and ('a, 'b, 'c) hierarchical_site_item =
   | Disabled (** The menu entry is disabled. *)
   | Site_tree of ('a, 'b, 'c) hierarchical_site (** The menu entry as a label and subsections. *)
+constraint 'b = [< Eliom_services.registrable ]
 
 (* Be kind with ocamldoc when source code is preprocessed with camlp4:
    do not remove this comment ! *)

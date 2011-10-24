@@ -129,8 +129,12 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr,+'return) servic
      mutable send_appl_content : send_appl_content;
      (* XNever when we create the service, then changed at registration :/ *)
 
-     service_mark : (unit,unit,unit,unit,unit,unit,unit,unit) service Eliom_common.wrapper;
+     service_mark :
+       (unit,unit,service_kind,suff,unit,unit,registrable,unit)
+       service Eliom_common.wrapper;
    }
+constraint 'tipo = [< suff ]
+constraint 'registr = [< registrable ]
 
 let pre_wrap s =
   {s with
