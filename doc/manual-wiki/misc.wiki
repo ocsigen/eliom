@@ -38,7 +38,7 @@ To simplify the creation of <<span class="code"|<link>>> tags
 <<code language="ocaml"|js_script ~uri:(make_uri ~service:(static_dir ()) ["funs.js"]) ()
 >>
 
-===Basic menus
+===@@id="basic_menu"@@Basic menus
           
           
       To make a menu on your web page, you can use the function
@@ -99,7 +99,7 @@ Personalise it in your CSS style-sheet.
             
       
           >>
-===Hierarchical menus
+===@@id="hier_menu"@@Hierarchical menus
           
 <<code language="ocaml"|(* Hierarchical menu *)
 open Eliom_tools_common

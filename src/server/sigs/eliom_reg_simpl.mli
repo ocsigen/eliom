@@ -1,6 +1,6 @@
 open Eliom_pervasives
-open Eliom_services
 open Eliom_parameters
+open Eliom_services
 
 (** {2 Service registration } *)
 

@@ -19,16 +19,9 @@
 
 (**
 
-This module contains the functions you need to manage
-the server-side state (and also some client-side state):
+Manage server-side state.
 
-* closing sessions, knowing whether a state has expired,
-   setting cookies manually (client-side state)
-* Managing session groups: putting a session in a group,
-  limitating the number of sessions in a group etc ...
-* Setting timeouts on states and expiration dates
-* Administrating states (iteration on all states, etc.)
-* Some low-level or deprecated functions
+{% <<outline>>%}
 
 *)
 

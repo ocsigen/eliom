@@ -4,8 +4,8 @@
 
 open Eliom_pervasives
 
-open Eliom_services
 open Eliom_parameters
+open Eliom_services
 
 type uri
 type pcdata_elt
@@ -112,8 +112,8 @@ type button_type_t
     information about {% <<a_manual chapter="params"
     fragment="nonlocalizedparameters"|non localized parameters>>%}.
 
-    The function [make_uri] should not be called outside of
-    a service handler unless one of the following condition is met:
+    {e Warning: The function [make_uri] should not be called outside
+    of a service handler, unless one of the following condition is met:}
 
     - the optional parameter [~absolute_path] is [true].
     - the optional parameter [~absolute] is [true].
@@ -394,7 +394,7 @@ val lwt_post_form :
 
 
 
-(** {2 Form widgets} *)
+(** {2:form_widgets Form widgets } *)
 
 (** Creates an [<input>] tag for an integer *)
 val int_input :

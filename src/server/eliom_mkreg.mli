@@ -28,8 +28,8 @@ open Eliom_pervasives
 
 open Ocsigen_extensions
 open Eliom_state
-open Eliom_services
 open Eliom_parameters
+open Eliom_services
 
 (** {2 Creating modules to register services for one type of pages} *)
 module type REG_PARAM = "sigs/eliom_reg_param.mli"

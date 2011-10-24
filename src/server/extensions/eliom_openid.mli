@@ -15,11 +15,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
+
 (** OpenID identification *)
 
 (** This module implements the Relying Party of the OpenID specification,
     in stateful mode. *)
-(** {1 Library description} *)
+
+(** {2 Library description} *)
 
 (** The library provides means to authenticate an user
     to a remote provider using the OpenID protocol.
@@ -93,9 +95,10 @@ let _ = Eliom_output.Xhtml.register
 ]}
 *)
 
-(** {1 Documentation} *)
+(** {2 Documentation} *)
 
-(** {2 Miscallenous} *)
+(** {3 Miscallenous} *)
+
 (** Error that may happen when identifiying an user *)
 type openid_error =
     Invalid_XRDS_File of string * string
@@ -178,7 +181,7 @@ type 'a authentication_result =
   | Result of 'a (** All went ok. *)
 
 
-(** {2 Low-level interface.} *)
+(** {3 Low-level interface.} *)
 
 (** Perform discovery on an user-supplied url *)
 val perform_discovery : string -> (string * string option) Lwt.t
@@ -217,7 +220,7 @@ module Make :
            In return you get an URI you have to redirect the user to. *)
     end
 
-(** {2 High-level interface} *)
+(** {3 High-level interface} *)
 (** The high-level interface takes care of creating
     the extension you want, without to use them directly.
     It yields a [result]. *)

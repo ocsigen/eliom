@@ -20,8 +20,9 @@
 
 open Eliom_pervasives
 open Eliom_services
-open Eliom_tools_common
 open Uri
+
+include Eliom_tools_common
 
 let string_prefix s1 s2 =
   String.length s1 <= String.length s2 &&
@@ -342,7 +343,7 @@ module Html5 = struct
 
 
 
-  let menu ?(classe=[]) ?id first l ?service:current () =
+  let menu ?(classe=[]) ?id l ?service:current () =
     let rec aux = function
       | [] -> []
       | [(url, text)] ->
@@ -355,8 +356,8 @@ module Html5 = struct
         (if same_service_opt url current
          then  (li ~a:[a_class [current_class]] text)
          else (li [a url text ()]))::(aux l)
-    in match first::l with
-      | [] -> assert false
+    in match l with
+      | [] ->  ul ~a:(a_ul (menu_class::classe) id 0) []
       | [(url, text)] ->
         ul ~a:(a_ul (menu_class::classe) id 0)
           [let liclasse = [first_class; last_class] in

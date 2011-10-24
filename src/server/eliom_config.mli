@@ -18,39 +18,45 @@
  *)
 
 
-(** returns the hostname declared in the config file 
-    ([<host defaulthostname="...">]).
- *)
+(** The function [get_default_hostname ()]returns the hostname
+    declared in the config file ([<host defaulthostname="...">]) or
+    the default machine hostname.  *)
 val get_default_hostname : unit -> string
 
-(** returns the port number declared in the config file ([<host defaulthttpport="...">]).
- *)
+(** The function [get_default_port ()] returns the port number
+    declared in the config file ([<host defaulthttpport="...">]) or
+    80 if undeclared.
+*)
 val get_default_port : unit -> int
 
-(** returns the https port number declared in the config file ([<host defaulthttpsport="...">]).
- *)
+(** The function [get_default_sslport ()] returns the https port
+    number declared in the config file ([<host
+    defaulthttpsport="...">]) or 443 if undeclared.
+*)
 val get_default_sslport : unit -> int
 
-(** returns the default charset for this site *)
+(** The function [get_config_default_charset ()] returns the default
+    charset for this site. *)
 val get_config_default_charset : unit -> string
 
 
-(** returns the information of the configuration file concerning that site
-   (between [<site>] and [</site>]).
+(** The function [get_config ()] returns the information of the
+    configuration file concerning that site (between [<site>] and
+    [</site>]).
 
-   {e Warning: You must call that function during the initialisation of
-   your module (not during a Lwt thread or a service)
-   otherwise it will raise the exception
-   {!Eliom_common.Eliom_site_information_not_available}.
-   If you want to build a statically linkable module, you must call this
-   function inside the initialisation function given to
-   {!Eliom_services.register_eliom_module}.}
- *)
+    {e Warning: You must call that function during the initialisation of
+    your module (not during a Lwt thread or a service)
+    otherwise it will raise the exception
+    {!Eliom_common.Eliom_site_information_not_available}.
+    If you want to build a statically linkable module, you must call this
+    function inside the initialisation function given to
+    {!Eliom_services.register_eliom_module}.}
+*)
 val get_config : unit -> Simplexmlparser.xml list
 
 
-(** returns the information concerning the request
-    from the configuration files. *)
+(** The function [get_config_info ()] returns the information
+    concerning the request from the configuration files. *)
 val get_config_info : unit -> Ocsigen_extensions.config_info
 
 (**/**)

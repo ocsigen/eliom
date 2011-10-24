@@ -295,7 +295,7 @@ server, you must call these function using the function
 table, and force that value during the registration function).
 
 
-===Advanced use: create an extension for the server that access Eliom's data
+===@@id="extensions"@@Advanced use: create an extension for the server that access Eliom's data
 
 If you want an Ocsigen extension with access to Eliom's data (for
 example if you want an extension that will register some services),

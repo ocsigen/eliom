@@ -27,7 +27,6 @@ open Eliom_pervasives
 open Ocsigen_extensions
 open Ocsigen_cookies
 
-(*****************************************************************************)
 (** {2 Getting information about the request} *)
 
 (** returns the HTTP method used for the request (usually GET or POST). *)

@@ -23,8 +23,8 @@ open Eliom_pervasives
 open Lwt
 open Ocsigen_extensions
 open Eliom_state
-open Eliom_services
 open Eliom_parameters
+open Eliom_services
 open Lazy
 
 let suffix_redir_uri_key = Polytables.make_key ()

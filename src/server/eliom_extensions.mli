@@ -17,7 +17,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Type of the function that must be registered to declare an eliom extension *)
+(** Allows Ocsigen's extension to access Eliom data. See the Eliom
+    manual for more information about {% <<a_manual chapter="config"
+    fragment="extensions"| Eliom's extensions>>%} *)
+
+(** Type of the function that must be registered to declare an eliom extension. *)
 type eliom_extension_sig = unit -> Ocsigen_extensions.answer Lwt.t
 
 val register_eliom_extension : eliom_extension_sig -> unit

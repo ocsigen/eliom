@@ -18,20 +18,20 @@
 
 type 'a wrapped_value
 
-type +'a wrapper
 (** ['a wrapper] is the type of values to include into a value of type 'a for
    it to be wraped specificaly *)
+type +'a wrapper
 
-val create_wrapper : ( 'a -> 'b ) -> 'a wrapper
 (** [create f] create a new tag that can be included into a value.  if
     [wrap] is called on a father of a value [v] containing a tag, the
     value [v] will be replaced by [f v] before marshaling. *)
+val create_wrapper : ( 'a -> 'b ) -> 'a wrapper
 
-val wrap : 'a -> 'a wrapped_value
 (** marshal a value, taking into account the tags *)
+val wrap : 'a -> 'a wrapped_value
 
-val empty_wrapper : 'a wrapper
 (** a wrapper that do not change the value *)
+val empty_wrapper : 'a wrapper
 
 (** unwrap **)
 

@@ -25,14 +25,18 @@ open Ocsigen_cookies
 
 open Eliom_pervasives
 
-exception Eliom_404 (** Page not found *)
-exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
+(** Page not found *)
+exception Eliom_404
+
+(** Service called with wrong parameter names *)
+exception Eliom_Wrong_parameter
+
 exception Eliom_Session_expired
+
+(** The service (GET or POST) parameters do not match expected type *)
 exception Eliom_Typing_Error of (string * exn) list
-    (** The service (GET or POST) parameters do not match expected type *)
 
 
-exception Eliom_site_information_not_available of string
 (** That function cannot be used when the site information is not available,
     that is, outside a request or the initialisation phase of your Eliom module
     (while reading the configuration file).
@@ -42,6 +46,7 @@ exception Eliom_site_information_not_available of string
     In that case you must
     delay the function call using {!Eliom_services.register_eliom_module}.
 *)
+exception Eliom_site_information_not_available of string
 
 (* those types are not available to the user, a scope must be created using
    create_..._scope functions *)
@@ -90,11 +95,11 @@ val list_scope_names : unit -> scope_name list
 
 (** Eliom is using regular (browser) cookies but can also use
     browser tab cookies (only if you are using a client side program)
-*)
-type cookie_scope = [ `Session | `Client_process ]
-(** It is possible to define data tables or service table for one
+
+    It is possible to define data tables or service table for one
     (browser) session, for one tab, or for one group of sessions.
 *)
+type cookie_scope = [ `Session | `Client_process ]
 
 val cookie_scope_of_user_scope : [< user_scope ] -> [> cookie_scope ]
 
@@ -102,24 +107,25 @@ type fullsessionname = cookie_scope * string
 module Fullsessionname_Table : Map.S with type key = fullsessionname
 
 
-val eliom_link_too_old : bool Polytables.key
 (** If present and true in request data, it means that
     the previous coservice does not exist any more *)
-val eliom_service_session_expired : 
-  (fullsessionname list * fullsessionname list) Polytables.key
+val eliom_link_too_old : bool Polytables.key
+
 (** If present in request data,  means that
     the service session cookies does not exist any more.
     The string lists are the list of names of expired sessions
 *)
-
+val eliom_service_session_expired :
+  (fullsessionname list * fullsessionname list) Polytables.key
 
 (**/**)
 
 (*VVV Warning: raising these exceptions will NOT send cookies!
   Do not use them inside services! *)
-exception Eliom_do_redirection of string 
+exception Eliom_do_redirection of string
+
 (* Used to redirect to the suffix version of the service *)
-exception Eliom_do_half_xhr_redirection of string 
+exception Eliom_do_half_xhr_redirection of string
 
 
 (* Service kinds: *)

@@ -6,7 +6,7 @@ Eliom_pervasives.XHTML.M
 Eliom_pervasives.HTML5.M
 }
 
-{2 Services creation and manipulation}
+{2 Services creation and service handler}
 
 {!modules:
 Eliom_services
@@ -14,6 +14,7 @@ Eliom_parameters
 Eliom_output
 Eliom_output.Html5
 Eliom_references
+Eliom_state
 }
 
 {2 Client/server communication}

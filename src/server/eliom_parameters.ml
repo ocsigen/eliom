@@ -22,6 +22,8 @@ open Eliom_pervasives
 
 include Eliom_parameters_base
 
+type suff = [ `WithoutSuffix | `WithSuffix | `Endsuffix ]
+
 open Ocsigen_extensions
 
 type anon_params_type = int

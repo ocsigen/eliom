@@ -21,31 +21,31 @@
 
 (** Broadcasting facilities between clients and server *)
 
-type 'a t
 (** The type of bus's carrying values of type ['a]. Bus's are values
     that can be easily shared among clients. Each of these clients
     along with the server can send a value on the bus. Values can be
     received by each of the participants as a stream. Note that no
     effort is put to order message receptions on the different
     participants. *)
+type 'a t
 
-val create :
-  ?scope:[< Eliom_comet.Channels.comet_scope ] -> ?name:string -> ?size:int
-  -> 'a Deriving_Json.t
-  -> 'a t
 (** [create ?scope ?name] makes a fresh bus. The [name] optional
     parameter can be used to make persistent (as in server restart
     persistent) bus's. The [scope] parameter is used to chose the kind
     of channel on which the bus rely (See [Eliom_comet.create] for
     more information). The [?name] argument allow one to make bus's
     persistent over server restart. *)
+val create :
+  ?scope:[< Eliom_comet.Channels.comet_scope ] -> ?name:string -> ?size:int
+  -> 'a Deriving_Json.t
+  -> 'a t
 
-val stream : 'a t -> 'a Lwt_stream.t
 (** [stream b] returns the stream of datas sent to bus [b]. Notice you
     sould not use that function multiple times on the same bus, it will
     return the same stream. If you want to receive mutiple times the
     same datas, you sould copy the stream with [Lwt_stream.clone] *)
+val stream : 'a t -> 'a Lwt_stream.t
 
-val write : 'a t -> 'a -> unit
 (** [write b x] sends the value [x] on the bus [b]. Every participant,
     including the server, will receive [x]. *)
+val write : 'a t -> 'a -> unit

@@ -2802,7 +2802,7 @@ let block_form_fallback = Eliom_output.Blocks5.register_service
   (fun () () -> return [pcdata "nothing"])
 
 let block_form_result = Eliom_output.Blocks5.register_post_service
-  ~post_params:((((((bool "case" ** (radio int "radio"))
+  ~post_params:((((((bool "case" ** (radio (int "radio")))
 		    ** string "select")
 		   ** set string "multi")
 		  ** string "text")

@@ -74,10 +74,9 @@ val hierarchical_menu_depth_first :
   ?whole_tree:bool ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
-   [< Eliom_output.non_caml_service ] as 'c,
    'elts Eliom_duce_types.a_content_elt_list)
       hierarchical_site ->
-  ?service:('a, 'b, 'c) one_page ->
+  ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
   unit ->
     {{ [XHTML_types_duce.ul*] }}
 
@@ -99,10 +98,9 @@ val hierarchical_menu_breadth_first :
   ?id:string ->
   ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
-   [< Eliom_output.non_caml_service ] as 'c,
    'elts Eliom_duce_types.a_content_elt_list)
       hierarchical_site ->
-  ?service:('a, 'b, 'c) one_page ->
+  ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
   unit ->
     {{ [XHTML_types_duce.ul*] }}
 
@@ -113,10 +111,9 @@ val hierarchical_menu_breadth_first :
 val structure_links :
   ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-   [< Eliom_output.non_caml_service ] as 'c,
      'elts Eliom_duce_types.a_content_elt_list)
     hierarchical_site ->
-  ?service:('a, 'b, 'c) one_page ->
+  ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
   unit ->
   {{ [XHTML_types_duce.link*] }}
 

@@ -37,19 +37,16 @@ type get_page =
 
 (** {2 Hierchical sites } *)
 
-type ('a, 'b, 'c, 'd) hierarchical_site_item =
+type ('a, 'b, 'c) hierarchical_site_item =
   | Disabled
-  | Site_tree of ('a, 'b, 'c, 'd) hierarchical_site
-  constraint 'c = [ Eliom_output.non_caml_service ]
-and ('a, 'b, 'c) main_page =
-  | Main_page of ('a, 'b, 'c) one_page
-  | Default_page of ('a, 'b, 'c) one_page
+  | Site_tree of ('a, 'b, 'c) hierarchical_site
+and ('a, 'b) main_page =
+  | Main_page of ('a, 'b, Eliom_output.non_caml_service) one_page
+  | Default_page of ('a, 'b, Eliom_output.non_caml_service) one_page
   | Not_clickable
-  constraint 'c = [ Eliom_output.non_caml_service ]
-and ('a, 'b, 'c, 'd) hierarchical_site =
-      (('a, 'b,  'c) main_page *
-         ('d * ('a, 'b, 'c, 'd) hierarchical_site_item) list)
-  constraint 'c = [ Eliom_output.non_caml_service ]
+and ('a, 'b, 'c) hierarchical_site =
+      (('a, 'b) main_page *
+         ('c * ('a, 'b, 'c) hierarchical_site_item) list)
 (** The type of hierarchical sites.
     A hierarchical site is a pair (main page, subpages).
 

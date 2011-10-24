@@ -17,38 +17,40 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(*****************************************************************************)
-(** {2 Server side state data: Eliom references} *)
+(** {2 Server side state data, a.k.a Eliom references} *)
 
-(** {e Warning: Eliom references of scope [`Global] or [`Request] may be created
-    and accessed at any time.
-    For other scopes, they must be created or accessed when the site
-    information is available to Eliom, that is, either during the initialization
-    phase of the server (while reading the configuration file) or during
-    a request. Otherwise, it will raise the exception
-    {!Eliom_common.Eliom_site_information_not_available}.
-    If you are using static linking, you must delay the call to this function
-    until the configuration file is read, using
-    {!Eliom_services.register_eliom_module}. Otherwise you will also get
-    this exception.}
-*)
 
-(** The type of Eliom references. *)
+(** The type of Eliom references whose content is of type ['a]. *)
 type 'a eref
 
-(** Create an Eliom reference for the given scope.
+(** The function [eref ~scope value] creates an Eliom reference for
+    the given [scope] and initialize it with [value]. See the Eliom
+    manual for more information about {% <<a_manual
+    chapter="state"|scopes>>%}.
 
-    Use the optional parameter [?persistent] if you want the data to survive
-    after relaunching the server. You must give an unique name to the
-    table in which it will be stored on the hard disk (using Ocsipersist).
-    Be very careful to use unique names, and to change the name if
-    you change the type of the data, otherwise the server may crash
-    (unsafe unmarshaling).
-    This parameter has no effect for scope [`Request].
+    Use the optional parameter [?persistent] if you want the data to
+    survive after relaunching the server. You must give an unique name
+    to the table in which it will be stored on the hard disk (using
+    Ocsipersist).  Be very careful to use unique names, and to change
+    the name if you change the type of the data, otherwise the server
+    may crash (unsafe unmarshaling). This parameter has no effect for
+    scope {!Eliom_common.request}.
 
-    Use the optional parameter [?secure] if you want the data to be available
-    only using HTTPS (default: false). It has no effect for scopes [`Global]
-    and [`Request].
+    Use the optional parameter [~secure:true] if you want the data to
+    be available only using HTTPS. This parameter has no effect for
+    scopes {!Eliom_common.global} and {!Eliom_common.request}.
+
+    {e Warning: Eliom references of scope {!Eliom_common.global} or
+    {!Eliom_common.request} may be created at any time ; but for other
+    scopes, they must be created when the site information is
+    available to Eliom, that is, either during the initialization
+    phase of the server (while reading the configuration file) or
+    during a request. Otherwise, it will raise the exception
+    {!Eliom_common.Eliom_site_information_not_available}. If you are
+    using static linking, you must delay the call to this function
+    until the configuration file is read, using
+    {!Eliom_services.register_eliom_module}. Otherwise you will also
+    get this exception.}
 *)
 val eref :
   scope:[< Eliom_common.all_scope ] ->
@@ -56,20 +58,32 @@ val eref :
   ?persistent:string ->
   'a -> 'a eref
 
-(** Get the value of an Eliom reference. *)
+(** The function [get eref] returns the current value of the Eliom
+    reference [eref].
+
+    {e Warning: this function could not be used outside af a service
+    handler when [eref] has been created with a scope different of
+    {!Eliom_common.global}} *)
 val get : 'a eref -> 'a Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
    references. *)
 
-(** Change the value of an Eliom reference. *)
+(** The function [set eref v] set [v] as current value of the Eliom
+    reference [eref].
+
+    {e Warning: this function could not be used outside af a service
+    handler when [eref] has been created with a scope different of
+    {!Eliom_common.global}}. *)
 val set : 'a eref -> 'a -> unit Lwt.t
 (* That function introduces a Lwt cooperation point on for persistent
    references. *)
 
+(** The function [unset eref] reset the content of the Eliom reference
+    [eref] to its initial value.
 
-(** Turn back to the default value
-    (by removing the entry in the server side table in the case where
-    they are stored in a table).
+    {e Warning: this function could not be used outside af a service
+    handler when [eref] has been created with a scope different of
+    {!Eliom_common.global}}.
 *)
 val unset : 'a eref -> unit Lwt.t
 (* That function introduces a Lwt cooperation point on for persistent

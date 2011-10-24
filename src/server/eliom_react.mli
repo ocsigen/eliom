@@ -30,7 +30,6 @@
    with compatibility issues in mind. *)
 
 
-module Down :
   (** A "Down event" (AKA down-going event) is an event which occurrences are
       transmitted asynchronously to the client. While named events, it might be
       better to consider them as asynchronous server-to-client edges in the
@@ -39,48 +38,41 @@ module Down :
       The return type of the [wrap]ing
       function gives insight about how Down events are handled internally, it is
       however taken care of automatically. *)
-sig
+module Down : sig
 
-  type 'a t
   (** The abstract type of down events. *)
+  type 'a t
 
+  (** [of_react ?scope ?throttling ?name e] create an
+      asynchronous edge originating from [e]. The parameters are: [throttling]
+      for the limit to event propagation rate, [name] for named edges. [scope]
+      tell which kind of channel this rely on (See [Eliom_comet.create]). *)
   val of_react :
     ?scope:[<Eliom_comet.Channels.comet_scope]
     -> ?throttling:float
     -> ?name:string
     -> 'a React.E.t
     -> 'a t
-  (** [of_react ?scope ?throttling ?name e] create an
-      asynchronous edge originating from [e]. The parameters are: [throttling]
-      for the limit to event propagation rate, [name] for named edges. [scope]
-      tell which kind of channel this rely on (See [Eliom_comet.create]). *)
 
 end
 
-module Up :
   (** Up events are quite different from Down events. Because of the
       asymmetrical nature of web programming and because of the reactive model
       used, an Up event must be created on the server and wrapped into a
       callback (or something the client can build a callback with).
     *)
+module Up :
 sig
 
-  type 'a t
   (** The type of events that, while being "on the server", are triggered by
       clients. On the server such an event is /primitive/ (hence the [create]
       function) whereas it is /effect-full/ on the client. *)
+  type 'a t
 
-  val to_react : 'a t -> 'a React.E.t
   (** [to_react e] injects the up events [e] into react events so that it can
       be manipulated as a standard event. *)
+  val to_react : 'a t -> 'a React.E.t
 
-  val create :
-       ?scope:Eliom_common.scope
-    -> ?name:string
-    -> ('a, [ `WithoutSuffix ],
-        [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
-         Eliom_parameters.params_type
-    -> 'a t
   (** [create param] creates an Up event.
       If [~name] is present, the coservice used to transmit the event will
       always have the same name, even if the server is restarted.
@@ -88,15 +80,21 @@ sig
       [`Global] if it is called during initialisation,
       [`Client_process] otherwise.
   *)
+  val create :
+       ?scope:Eliom_common.scope
+    -> ?name:string
+    -> ('a, [ `WithoutSuffix ],
+        [ `One of 'a Eliom_parameters.caml ] Eliom_parameters.param_name)
+         Eliom_parameters.params_type
+    -> 'a t
 
 end
 
-module S :
-sig
-  module Down :
-  sig
-    type 'a t
+module S : sig
+  module Down : sig
+
     (** The abstract type of down signals. *)
+    type 'a t
 
     val of_react :
       ?scope:[<Eliom_comet.Channels.comet_scope]
@@ -104,5 +102,6 @@ sig
       -> ?name:string
       -> 'a React.S.t
       -> 'a t
+
   end
 end
