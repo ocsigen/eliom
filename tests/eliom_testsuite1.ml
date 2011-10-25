@@ -2379,7 +2379,7 @@ let hier8 = service ~path:["hier8"] ~get_params:unit ()
 let hier9 = service ~path:["hier9"] ~get_params:unit ()
 let hier10 = service ~path:["hier10"] ~get_params:unit ()
 
-let mymenu =
+let mymenu : (_, Eliom_services.registrable, _) hierarchical_site =
   (
    (Main_page hier1),
 
