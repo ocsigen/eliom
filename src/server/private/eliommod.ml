@@ -620,7 +620,9 @@ let load_eliom_module sitedata cmo_or_name content =
                (Printf.sprintf "Eliom: while loading %s: %s"
                   n
                   (try handle_init_exn e
-                   with e -> Printexc.to_string e)))
+                   with
+                     | Dynlink.Error err -> Dynlink.error_message err
+                     | e -> Printexc.to_string e)))
 
 
 (*****************************************************************************)
