@@ -1,6 +1,7 @@
 =Eliom
 ==[[intro|Introduction]]
 ==[[services|Services]]
+==[[outputs|Predefined registration modules]]
 ==[[params|Parameters, links and forms]]
 ==[[state|Sessions and server side state]]
 ==[[client|Client-server applications]]

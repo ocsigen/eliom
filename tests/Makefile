@@ -8,7 +8,7 @@ export PATH := ${SRC}/src/tools:${PATH}
 ELIOMC   := eliomc${BYTEDBG}
 ELIOMOPT := eliomopt ${OPTDBG}
 ELIOMDEP := eliomdep
-JS_OF_ELIOM := js_of_eliom
+JS_OF_ELIOM := js_of_eliom${BYTEDBG}
 
 ifeq "${NATDYNLINK}" "YES"
 all: byte opt

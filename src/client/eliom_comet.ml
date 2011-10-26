@@ -180,7 +180,7 @@ struct
       }
 
   type statefull_state = int ref (* id of the next request *)
-  type stateless_state = (Ecb.postion String.Table.t) ref (* index for each channel of the last message *)
+  type stateless_state = (Ecb.position String.Table.t) ref (* index for each channel of the last message *)
 
   type channel_state =
     | Statefull_state of statefull_state

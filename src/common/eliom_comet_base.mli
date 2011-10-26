@@ -24,12 +24,12 @@ type 'a chan_id
 val string_of_chan_id : 'a chan_id -> string
 val chan_id_of_string : string -> 'a chan_id
 
-type postion =
+type position =
   | Newest of int
   | After of int
 deriving (Json)
 
-type comet_stateless_request = (string*postion) list
+type comet_stateless_request = (string*position) list
 deriving (Json)
 
 type command =

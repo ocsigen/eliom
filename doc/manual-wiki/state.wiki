@@ -314,7 +314,7 @@ let () =
 
 ==Additional features
 
-===Scope of services
+===@@id="service_scope"@@Scope of services
 
 It is possible to set a scope for services. Either you want a
 (co)-service to be visible only for one user (or one client-side

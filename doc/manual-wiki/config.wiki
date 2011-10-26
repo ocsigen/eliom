@@ -246,7 +246,7 @@ and <<span class="code"|</eliom>>>.
  That feature will be improved in the future.
 >>
 
-===Static linking of Eliom modules
+===@@id="static_linking"@@Static linking of Eliom modules
 
 From version 1.2, it is possible to link extensions and Eliom modules
 <<a_manual project="ocsigenserver" chapter="staticlink"|statically>>.
