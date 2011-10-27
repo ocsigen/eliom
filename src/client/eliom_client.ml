@@ -111,7 +111,7 @@ let register_event_handler node (name, ev) =
 
 (* == Register nodes id and event in the orginal Dom. *)
 
-let rec relink_dom node (id, attribs, childrens_ref_tree) =
+let rec relink_dom node (id, attribs, children_ref_tree) =
   List.iter
     (register_event_handler (Js.Unsafe.coerce node : Dom_html.element Js.t))
     attribs;
@@ -125,7 +125,7 @@ let rec relink_dom node (id, attribs, childrens_ref_tree) =
       with Not_found ->
 	register_node id node
   end;
-  let childrens =
+  let children =
     List.filter
       ( fun node ->
 	match Js.Opt.to_option (Dom_html.CoerceTo.element node) with
@@ -134,12 +134,9 @@ let rec relink_dom node (id, attribs, childrens_ref_tree) =
 	    match Js.Opt.to_option ( elt##getAttribute( Js.string "id" ) ) with
 	      | None -> true
 	      | Some id ->
-		(* HACK: circumvent old Firebug ( with Firefox 3.6 ) bug:
-		   it adds a div node with id "_firebugConsole" between
-		   the head and body nodes, breaking the sparse tree *)
 		id <> Js.string "_firebugConsole" )
       (Dom.list_of_nodeList (node##childNodes)) in
-  relink_dom_list childrens childrens_ref_tree
+  relink_dom_list children children_ref_tree
 
 and relink_dom_list nodes ref_trees =
   match nodes, ref_trees with
@@ -151,6 +148,19 @@ and relink_dom_list nodes ref_trees =
   | _, [] -> ()
   | [], _ ->
     Firebug.console##error(Js.string "Incorrect sparse tree.")
+
+(* HACK: circumvent problems with Firebug ( with Firefox 3.6 ), and
+   chromium addblock: They add nodes between the head and body
+   elements, breaking the sparse tree.
+   We ignore the other the children of the html element
+   that are not body or head. *)
+let relink_page (root:Dom.element Js.t) ref_tree =
+  match ref_tree with
+    | XML.Ref_empty _ -> ()
+    | XML.Ref_node (id,attribs,children_ref_tree) ->
+      relink_dom (root:>Dom.node Js.t) (id, attribs, []);
+      let children = [Eliommod_dom.get_head root;Eliommod_dom.get_body root] in
+      relink_dom_list (children:>Dom.node Js.t list) children_ref_tree
 
 (* == Convertion from OCaml XML.elt nodes to native JavaScript Dom nodes *)
 
@@ -395,9 +405,7 @@ let broadcast_load_end _ =
 
 let load_eliom_data js_data page =
   loading_phase := true;
-  relink_dom_list
-    [(page :> Dom.node Js.t)]
-    [js_data.Eliom_types.ejs_ref_tree];
+  relink_page (page :> Dom.element Js.t) js_data.Eliom_types.ejs_ref_tree;
   Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
   let on_load =
     List.map
