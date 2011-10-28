@@ -169,7 +169,7 @@ module Xhtml_forms_base = struct
 
   let buttonsubmit = {{ "submit" }}
 
-  let uri_of_string x = x
+  let uri_of_string x = x ()
 
   let map_option f l = {{ {: (List.map f l) :} }}
   let map_optgroup f a l = ((f a), {{ {: (List.map f l) :} }})
@@ -181,24 +181,24 @@ module Xhtml_forms_base = struct
   let make_a ?(a={{ {} }}) ?href l : 'a a_elt =
     let href_attr = match href with
       | None -> {{ {} }}
-      | Some v -> {{ { href=(str (Eliom_lazy.force v)) } }}
+      | Some v -> {{ { href=(str v) } }}
     in
     {{ <a (href_attr ++ a)> l }}
 
-  let make_get_form ?(a={{ {} }}) ~(action : uri Eliom_lazy.request) elts : form_elt =
+  let make_get_form ?(a={{ {} }}) ~(action : uri) elts : form_elt =
     {{ <form ({method="get"
-                   action=(str (Eliom_lazy.force action))}
+                   action=(str action)}
               ++ a )>
        [ !(Eliom_lazy.force elts) ] }}
 
-  let make_post_form ?(a={{ {} }}) ~(action : uri Eliom_lazy.request) ?id ?(inline = false) elts
+  let make_post_form ?(a={{ {} }}) ~(action : uri) ?id ?(inline = false) elts
       : form_elt =
     let id_attr = (match id with
     | None -> {{ {} }}
     | Some (i : string) -> {{ { id=(str i) } }})
     in
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
-    {{ <form ({action=(str (Eliom_lazy.force action))
+    {{ <form ({action=(str action)
                enctype="multipart/form-data"
                method="post"}
               ++ inline_attr

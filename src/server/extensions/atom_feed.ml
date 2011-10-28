@@ -19,12 +19,11 @@
  *)
 
 open Eliom_pervasives
-open Uri
 
 (*
  * types {{{
  *)
-type uri = Uri.uri
+type uri = XHTML.M.uri
 type lang = string
 type base = uri
 type ncname = string
@@ -32,7 +31,7 @@ type dateConstruct = string
 type emailAddress = string
 type mediaType = string
 type length = int
-type href = string
+type href = XHTML.M.uri
 type hrefLang = string
 type rel = string
 type ltitle = string
@@ -107,11 +106,11 @@ let xml_of_feed f = f
 (*
  * attr converters {{{
  *)
-let a_base = XML.string_attrib "base"
+let a_base = XML.uri_attrib "base"
 let a_lang = XML.string_attrib "lang"
 let a_scheme = XML.string_attrib "scheme"
 let a_label = XML.string_attrib "label"
-let a_href s = XML.string_attrib "href" (string_of_uri s)
+let a_href = XML.uri_attrib "href"
 let a_rel = XML.string_attrib "rel"
 let a_hreflang = XML.string_attrib "hreflang"
 let a_medtype = XML.string_attrib "mediatype"
@@ -146,7 +145,7 @@ let inlineOtherC ?(meta = []) (a,b) = `Content (XML.node ~a:(a_medtype a ::
          metaAttr_extract meta) "content" b)
 
 let outOfLineC ?(meta = []) (a,b) = `Content (XML.node ~a:(a_medtype a ::
-         XML.string_attrib "src" b :: metaAttr_extract meta) "content" [])
+         XML.uri_attrib "src" b :: metaAttr_extract meta) "content" [])
 
 (*
  * Extraction functions {{{
@@ -155,7 +154,7 @@ let rec personConstruct_extract l = match l with
    | []              -> [] 
    |`Email a :: r   -> XML.node ~a:[] "email" [(XML.pcdata a)] :: 
       personConstruct_extract r 
-   | `Uri a :: r     -> XML.node ~a:[] "uri" [(XML.pcdata a)] :: 
+   | `Uri a :: r     -> XML.lazy_node ~a:[] "uri" (Eliom_lazy.from_fun (fun () -> [(XML.pcdata (XML.string_of_uri a))])) :: 
       personConstruct_extract r 
    | _ :: r          -> personConstruct_extract r
 
@@ -235,23 +234,29 @@ let feed ~updated ~id ~title:(a,b) ?(fields = []) entries =
          metaAttr_extract fields) 
          "feed" 
          (XML.node ~a:[] "updated" [ XML.pcdata (date updated) ] ::
-            XML.node ~a:[] "id" [ XML.pcdata id ] :: XML.node ~a "title" b ::
+            XML.lazy_node ~a:[] "id"
+	    (Eliom_lazy.from_fun
+	       (fun () -> [ XML.pcdata (XML.string_of_uri id) ])) :: XML.node ~a "title" b ::
             feedOAttr_extract fields @ entries)
 
 let entry ~updated ~id ~title:(a,b) elt = 
    XML.node ~a:(metaAttr_extract elt)
          "entry"  
-         (XML.node ~a:[] "updated" [ XML.pcdata (date updated) ] :: XML.node
-            ~a:[] "id" [ XML.pcdata id ] :: XML.node ~a "title" b ::
+         (XML.node ~a:[] "updated" [ XML.pcdata (date updated) ] ::  XML.lazy_node ~a:[] "id"
+	    (Eliom_lazy.from_fun
+	       (fun () -> [ XML.pcdata (XML.string_of_uri id) ])) :: XML.node ~a "title" b ::
             entryOAttr_extract elt)
 
 let source ~updated ~id ~title:(a,b) elt = `Source (
    XML.node ~a:(metaAttr_extract elt) 
          "source" 
          (XML.node ~a:[] "updated" [ XML.pcdata (date updated) ] :: 
-            XML.node ~a:[] "id" [ XML.pcdata id ] :: XML.node
-            ~a "title" b :: sourceOAttr_extract elt)
-   )
+            (XML.lazy_node ~a:[] "id"
+	       (Eliom_lazy.from_fun
+		  (fun () -> [ XML.pcdata (XML.string_of_uri id) ]))) ::
+		  XML.node
+               ~a "title" b :: sourceOAttr_extract elt)
+	 )
 
 let link ?(elt = []) href = XML.leaf ~a:(a_href href :: (linkOAttr_extract elt)
       @ (metaAttr_extract elt)) "link"
@@ -272,9 +277,9 @@ let contributor ?(elt = []) name = XML.node ~a:[] "contributor" (XML.node ~a:[]
 
 let contributors l = `Contribs l
 
-let icon address = `Icon (XML.node ~a:[] "icon" [ XML.pcdata address ])
+let icon address = `Icon (XML.lazy_node ~a:[] "icon" (Eliom_lazy.from_fun (fun () -> [ XML.pcdata (XML.string_of_uri address) ])))
 
-let logo address = `Logo (XML.node ~a:[] "logo" [ XML.pcdata address ])
+let logo address = `Logo (XML.lazy_node ~a:[] "icon" (Eliom_lazy.from_fun (fun () -> [ XML.pcdata (XML.string_of_uri address) ])))
 
 let category ?(meta = []) ?(scheme = "") ?(label = "") term content = 
    XML.node ~a:(a_scheme scheme :: a_label label :: 

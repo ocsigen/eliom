@@ -1,5 +1,5 @@
 include "eliom_forms.mli"
-         subst type uri := XHTML_types.uri
+         subst type uri := XML.uri
            and type pcdata_elt := XHTML_types.pcdata XHTML.M.elt
 
            and type form_elt := [> XHTML_types.form ] XHTML.M.elt

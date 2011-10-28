@@ -130,6 +130,7 @@ let of_json ?typ s =
     | None -> assert false (* implemented only client side *)
 
 module XML = struct
+
   include Eliom_pervasives_base.RawXML
 
   let cdata s = (* GK *)
@@ -171,7 +172,7 @@ module XML = struct
   (** Ref tree *)
 
   let cons_attrib att acc = match racontent att with
-    | RACamlEvent (n,oc) -> (n, oc) :: acc
+    | RACamlEvent oc -> (aname att, oc) :: acc
     | _ -> acc
 
   let rec make_ref_tree elt =
@@ -208,8 +209,7 @@ module XML = struct
 
   and make_attrib_list l =
     let aggregate a acc = match racontent a with
-      | RACamlEvent (n, ev) ->
-	(n, ev) :: acc
+      | n, RACamlEvent ev -> (n, ev) :: acc
       | _ -> acc in
     List.fold_right aggregate l []
 
@@ -225,19 +225,12 @@ module SVG = struct
   module P = XML_print.MakeTypedSimple(XML)(M)
 end
 
-let lazy_uri_attrib name uri =
-  XML.lazy_string_attrib name
-    (Eliom_lazy.from_fun (fun () -> Uri.string_of_uri (Eliom_lazy.force uri)))
-
 module HTML5 = struct
   module M = struct
     include HTML5_f.Make(XML)(SVG.M)
 
     let unique ?copy elt =
       tot (XML.make_unique ?copy:(map_option toelt copy) (toelt elt))
-
-    let lazy_a_href uri = to_attrib (lazy_uri_attrib "href" uri)
-    let lazy_a_action uri = to_attrib (lazy_uri_attrib "action" uri)
 
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
@@ -262,11 +255,8 @@ module XHTML = struct
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-    let lazy_a_href uri = to_attrib (lazy_uri_attrib "href" uri)
-    let lazy_a_action uri = to_attrib (lazy_uri_attrib "action" uri)
-
     let lazy_form ~action ?(a = []) elt elts =
-      tot (XML.lazy_node ~a:(lazy_uri_attrib "action" action :: to_xmlattribs a) "form"
+      tot (XML.lazy_node ~a:(XML.uri_attrib "action" action :: to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 		(fun () ->
 		  toelt (Eliom_lazy.force elt)
@@ -281,11 +271,8 @@ module XHTML = struct
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-    let lazy_a_href uri = to_attrib (lazy_uri_attrib "href" uri)
-    let lazy_a_action uri = to_attrib (lazy_uri_attrib "action" uri)
-
     let lazy_form ~action ?(a = []) elt elts =
-      tot (XML.lazy_node ~a:(lazy_uri_attrib "action" action :: to_xmlattribs a) "form"
+      tot (XML.lazy_node ~a:(XML.uri_attrib "action" action :: to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 		(fun () ->
 		  toelt (Eliom_lazy.force elt)
@@ -300,11 +287,8 @@ module XHTML = struct
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-    let lazy_a_href uri = to_attrib (lazy_uri_attrib "href" uri)
-    let lazy_a_action uri = to_attrib (lazy_uri_attrib "action" uri)
-
     let lazy_form ~action ?(a = []) elt elts =
-      tot (XML.lazy_node ~a:(lazy_uri_attrib "action" action :: to_xmlattribs a) "form"
+      tot (XML.lazy_node ~a:(XML.uri_attrib "action" action :: to_xmlattribs a) "form"
 	     (Eliom_lazy.from_fun
 		(fun () ->
 		  toelt (Eliom_lazy.force elt)

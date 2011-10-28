@@ -18,6 +18,8 @@
 
 (** OpenID identification *)
 
+open Eliom_pervasives
+
 (** This module implements the Relying Party of the OpenID specification,
     in stateful mode. *)
 
@@ -210,7 +212,7 @@ module Make :
         ext:'a extension ->
         handler:('a authentication_result ->
                  (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind Lwt.t) ->
-        discovery:string * string option -> XHTML.M.uri Lwt.t
+        discovery:string * string option -> Url.t Lwt.t
         (** Authenticate an user.
             - mode: can be [checkid_setup] or [checkid_immediate]
                     whether you want immediate identification or not.
@@ -256,7 +258,7 @@ type check_fun =
     string ->
     (result authentication_result ->
       (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind Lwt.t) ->
-    XHTML.M.uri Lwt.t
+    Url.t Lwt.t
 
 (** Init the OpenID for your site.
     Takes a path and a handler for the hidden service *)

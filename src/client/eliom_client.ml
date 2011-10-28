@@ -166,29 +166,25 @@ let relink_page (root:Dom.element Js.t) ref_tree =
 
 module Html5 = struct
 
-  let rebuild_attrib node a = match a with
-    | XML.AFloat (name, f) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
-    | XML.AInt (name, i) -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
-    | XML.AStr (name, s) ->
+  let rebuild_attrib node name a = match a with
+    | XML.AFloat f -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
+    | XML.AInt i -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject i)
+    | XML.AStr s ->
       node##setAttribute(Js.string name, Js.string s)
-    | XML.AStrL (XML.Space, name, sl) ->
-      node##setAttribute
-	(Js.string name,
-	 Js.string (match sl with
-	   | [] -> ""
-	   | a::l -> List.fold_left (fun r s -> r ^ " " ^ s) a l))
-    | XML.AStrL (XML.Comma, name, sl) ->
-      node##setAttribute
-	(Js.string name,
-	 Js.string (match sl with
-	   | [] -> ""
-	   | a::l -> List.fold_left (fun r s -> r ^ "," ^ s) a l))
+    | XML.AStrL (XML.Space, sl) ->
+      node##setAttribute(Js.string name, Js.string (String.concat " " sl))
+    | XML.AStrL (XML.Comma, sl) ->
+      node##setAttribute(Js.string name, Js.string (String.concat "," sl))
 
   let rebuild_rattrib node ra = match XML.racontent ra with
-    | XML.RA a -> rebuild_attrib node a
-    | XML.RACamlEvent ev -> register_event_handler node ev
-    | XML.RALazyString (name, s) ->
-	node##setAttribute(Js.string name, Js.string s)
+    | XML.RA a -> rebuild_attrib node (XML.aname ra) a
+    | XML.RACamlEvent ev -> register_event_handler node (XML.aname ra, ev)
+    | XML.RALazyStr s ->
+	node##setAttribute(Js.string (XML.aname ra), Js.string s)
+    | XML.RALazyStrL (XML.Space, l) ->
+	node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat " " l))
+    | XML.RALazyStrL (XML.Comma, l) ->
+	node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat "," l))
 
   let rec rebuild_node elt =
     match XML.get_unique_id elt with

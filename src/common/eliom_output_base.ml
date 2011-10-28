@@ -58,10 +58,7 @@ type button_type =
 
 module Html5_forms_base = struct
 
-  open HTML5.M
-  open HTML5_types
-
-  type uri = HTML5_types.uri
+  type uri = HTML5.M.uri
   type pcdata_elt = HTML5_types.pcdata HTML5.M.elt
 
   type form_elt = HTML5_types.form HTML5.M.elt
@@ -106,6 +103,9 @@ module Html5_forms_base = struct
   type raw_input_type_t = full_input_type
   type button_type_t = button_type
 
+  open HTML5.M
+  open HTML5_types
+
   let hidden = `Hidden
   let checkbox = `Checkbox
   let radio = `Radio
@@ -115,8 +115,7 @@ module Html5_forms_base = struct
 
   let buttonsubmit = `Submit
 
-  let uri_of_string = uri_of_string
-
+  let uri_of_string = XML.uri_of_fun
 
   let map_option = List.map
   let map_optgroup f a l = ((f a), List.map f l)
@@ -127,7 +126,7 @@ module Html5_forms_base = struct
   let make_a ?(a=[]) ?href (l : 'a a_content_elt_list) : 'a a_elt =
     let a = match href with
       | None -> a
-      | Some href -> lazy_a_href href :: a
+      | Some href -> a_href href :: a
     in
     HTML5.M.a ~a l
 
@@ -141,7 +140,7 @@ module Html5_forms_base = struct
     let elt1 = Eliom_lazy.from_fun (fun () -> fst (Eliom_lazy.force elts))
     and elts = Eliom_lazy.from_fun (fun () -> snd (Eliom_lazy.force elts)) in
     let r =
-      lazy_form ~a:((a_method `Get)::(lazy_a_action action)::a) elt1 elts
+      lazy_form ~a:((a_method `Get)::(a_action action)::a) elt1 elts
     in
     r
 
@@ -157,7 +156,7 @@ module Html5_forms_base = struct
     let r =
       lazy_form ~a:((HTML5.M.a_enctype "multipart/form-data")::
                 (* Always Multipart!!! How to test if there is a file?? *)
-                  (lazy_a_action action)::
+                  (a_action action)::
                   (a_method `Post)::
                   (if inline then (a_class ["inline"])::aa else aa))
         elt1 elts
@@ -299,7 +298,7 @@ module Open_Html5_forms =
                      ?fragment:string ->
                      ?keep_nl_params:[ `All | `Persistent | `None ] ->
                      ?nl_params: Eliom_parameters.nl_params_set ->
-                     'get -> HTML5_types.uri)
+                     'get -> uri)
 
     let get_form = (get_form :
                       ?absolute:bool ->

@@ -25,15 +25,15 @@ open Eliom_pervasives
 (*
  * types {{{
  *)
-type uri = Uri.uri
+type uri = XML.uri
 type lang = string
 type base = uri
 type ncname = string
 type dateConstruct = string
 type emailAddress = string
-type mediaType = string 
+type mediaType = string
 type length = int
-type href = string
+type href = XML.uri
 type hrefLang = string
 type rel = string
 type ltitle = string
@@ -257,4 +257,4 @@ val published : CalendarLib.Calendar.t -> [> `Pub of published ]
 
 (** Technically not used elsewhere than in eliom_feed.ml, since the links tags 
  related to each hub are added when registering the feed. *)
-val insert_hub_links : Uri.uri list -> feed -> feed
+val insert_hub_links : uri list -> feed -> feed

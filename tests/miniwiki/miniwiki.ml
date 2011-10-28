@@ -176,7 +176,7 @@ let parse_lines lines =
     else (* External link *)
       let url = scheme^":"^page in
       let t = if text = "" then url else text in
-      XHTML.M.a ~a:[a_href (Uri.uri_of_string url)] [pcdata t]
+      XHTML.M.a ~a:[a_href (XHTML.M.uri_of_string url)] [pcdata t]
   in
 
   let rec pcre_first_match str pos =

@@ -128,6 +128,8 @@ module XML : sig
 
   (**/**)
 
+  val uri_of_fun: (unit -> string) -> uri
+
   (* Building ref tree. *)
   type ref_tree (* Concrete on client-side only. *)
   val get_unique_id : elt -> string option
@@ -146,8 +148,9 @@ module XML : sig
 
   type racontent =
     | RA of acontent
-    | RACamlEvent of (aname * caml_event)
-    | RALazyString of aname * string Eliom_lazy.request
+    | RACamlEvent of caml_event
+    | RALazyStr of string Eliom_lazy.request
+    | RALazyStrL of separator * string Eliom_lazy.request list
   val racontent : attrib -> racontent
 
   val lazy_node : ?a:(attrib list) -> ename -> elt list Eliom_lazy.request -> elt
@@ -196,9 +199,6 @@ module HTML5 : sig
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-    val lazy_a_href : uri Eliom_lazy.request -> [> `Href ] attrib
-    val lazy_a_action : uri Eliom_lazy.request -> [> `Action ] attrib
-
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
     (**/**)
@@ -225,11 +225,8 @@ module XHTML : sig
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-    val lazy_a_href : uri Eliom_lazy.request -> [> `Href ] attrib
-    val lazy_a_action : uri Eliom_lazy.request -> [> `Action ] attrib
-
     val lazy_form:
-      action:uri Eliom_lazy.request ->
+      action:XML.uri ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
     (**/**)
 
@@ -257,11 +254,8 @@ module XHTML : sig
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-    val lazy_a_href : uri Eliom_lazy.request -> [> `Href ] attrib
-    val lazy_a_action : uri Eliom_lazy.request -> [> `Action ] attrib
-
     val lazy_form:
-      action:uri Eliom_lazy.request ->
+      action:XML.uri ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
     (**/**)
 
@@ -288,11 +282,8 @@ module XHTML : sig
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
-    val lazy_a_href : uri Eliom_lazy.request -> [> `Href ] attrib
-    val lazy_a_action : uri Eliom_lazy.request -> [> `Action ] attrib
-
     val lazy_form:
-      action:uri Eliom_lazy.request ->
+      action:XML.uri ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
     (**/**)
 

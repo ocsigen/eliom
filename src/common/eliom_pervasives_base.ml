@@ -56,6 +56,11 @@ module RawXML = struct
     | Raw of string
     | Caml of caml_event
 
+  type uri = string Eliom_lazy.request
+  let string_of_uri = Eliom_lazy.force
+  let uri_of_string = Eliom_lazy.from_val
+  let uri_of_fun = Eliom_lazy.from_fun
+
   let event_of_string s = Raw s
   let string_of_event = function
     | Raw s -> s
@@ -66,34 +71,34 @@ module RawXML = struct
 
   type aname = string
   type acontent =
-    | AFloat of aname * float
-    | AInt of aname * int
-    | AStr of aname * string
-    | AStrL of separator * aname * string list
+    | AFloat of float
+    | AInt of int
+    | AStr of string
+    | AStrL of separator * string list
   type racontent =
     | RA of acontent
-    | RACamlEvent of (aname * caml_event)
-    | RALazyString of aname * string Eliom_lazy.request
-  type attrib = racontent
-  let aname = function
-    | RA (AFloat (name, _) | AInt (name, _)
-      | AStr (name, _) | AStrL (_, name, _))
-    | RACamlEvent (name, _) | RALazyString (name, _) -> name
+    | RACamlEvent of caml_event
+    | RALazyStr of string Eliom_lazy.request
+    | RALazyStrL of separator * string Eliom_lazy.request list
+  type attrib = aname * racontent
+  let aname (name, _) = name
   let acontent = function
-    | RA a -> a
-    | RACamlEvent (n, _) -> AStr (n, "/* To be patched... */")
-    | RALazyString (n, str) -> AStr (n, Eliom_lazy.force str)
-  let racontent = id
+    | _, RA a -> a
+    | _, RACamlEvent _ -> AStr ("")
+    | _, RALazyStr str -> AStr (Eliom_lazy.force str)
+    | _, RALazyStrL (sep, str) -> AStrL (sep, List.map Eliom_lazy.force str)
+  let racontent (_, a) = a
 
-  let float_attrib name value = RA (AFloat (name, value))
-  let int_attrib name value = RA (AInt (name, value))
-  let string_attrib name value = RA (AStr (name, value))
-  let space_sep_attrib name values = RA (AStrL (Space, name, values))
-  let comma_sep_attrib name values = RA (AStrL (Comma, name, values))
-  let lazy_string_attrib name value = RALazyString (name, value)
+  let float_attrib name value = name, RA (AFloat value)
+  let int_attrib name value = name, RA (AInt value)
+  let string_attrib name value = name, RA (AStr value)
+  let space_sep_attrib name values = name, RA (AStrL (Space, values))
+  let comma_sep_attrib name values = name, RA (AStrL (Comma, values))
   let event_attrib name value = match value with
-    | Raw value -> RA (AStr (name, value))
-    | Caml v -> RACamlEvent (name, v)
+    | Raw value -> name, RA (AStr value)
+    | Caml v -> name, RACamlEvent v
+  let uri_attrib name value = name, RALazyStr value
+  let uris_attrib name value = name, RALazyStrL (Space, value)
 
   type ename = string
   type node_id = string

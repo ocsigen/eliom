@@ -253,13 +253,13 @@ let get_csp_ssl_sp sp =
 (* *)
 
 let get_site_dir () =
-  let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_sitedata.Eliom_common.site_dir
+  let sitedata = find_sitedata "Eliom_request_info.get_site_dir" in
+  sitedata.Eliom_common.site_dir
 let get_site_dir_sp sp =
   sp.Eliom_common.sp_sitedata.Eliom_common.site_dir
 let get_site_dir_string () =
-  let sp = Eliom_common.get_sp () in
-  sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
+  let sitedata = find_sitedata "Eliom_request_info.get_site_dir_string" in
+  sitedata.Eliom_common.site_dir_string
 let get_request () =
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_request
@@ -275,7 +275,7 @@ let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
 let get_original_filename fi = fi.original_basename
 
-let get_sitedata () =
+let get_sitedata () = 
   let sp = Eliom_common.get_sp () in
   sp.Eliom_common.sp_sitedata
 

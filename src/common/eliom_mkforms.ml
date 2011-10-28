@@ -29,6 +29,8 @@ module type FORMS_PARAM = "sigs/eliom_forms_param.mli"
 
 module MakeForms(Pages : FORMS_PARAM) = struct
 
+  type uri = Pages.uri
+
   (** Functions to construct web pages: *)
 
   let make_proto_prefix = make_proto_prefix
@@ -39,26 +41,29 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 
   let make_post_uri_components = make_post_uri_components
 
+  let uri_of_string = Pages.uri_of_string
+
   let make_uri
       ?absolute
       ?absolute_path
       ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params gp =
-    Pages.uri_of_string (make_string_uri
-                           ?absolute ?absolute_path
-                           ?https ?fragment ~service
-                           ?hostname ?port ?keep_nl_params ?nl_params gp)
+    Pages.uri_of_string
+      (fun () ->
+	make_string_uri
+          ?absolute ?absolute_path
+          ?https ?fragment ~service
+          ?hostname ?port ?keep_nl_params ?nl_params gp)
 
 
   let a ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?no_appl content getparams =
     let href =
-      Eliom_lazy.from_fun
+      Pages.uri_of_string
 	(fun () ->
-	  Pages.uri_of_string
-	    (make_string_uri
-	       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
-	       ?keep_nl_params ?nl_params getparams))
+	  make_string_uri
+	    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+	    ?keep_nl_params ?nl_params getparams)
     in
     Pages.make_a ?a ~href content
 
@@ -81,7 +86,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
     in
 
     let uri =
-      Eliom_lazy.from_fun
+      Pages.uri_of_string
 	(fun () ->
 	  let (uri, hiddenparams, fragment) = Eliom_lazy.force components in
 	  let uri =
@@ -91,12 +96,9 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 	      else String.concat "/" [uri; Eliom_common.eliom_nosuffix_page]
 	    else uri
 	  in
-	  let uri =
-	    match fragment with
-	    | None -> uri
-	    | Some f -> String.concat "#" [uri; Url.encode f]
-	  in
-	  Pages.uri_of_string uri)
+	  match fragment with
+	  | None -> uri
+	  | Some f -> String.concat "#" [uri; Url.encode f])
     in
 
     bind (f paramnames)
@@ -170,11 +172,11 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 		   hiddenparams)
 	      inside) in
          let uri =
-	   Eliom_lazy.from_fun
+	   Pages.uri_of_string
 	     (fun () ->
 	       let (uri, getparams, fragment, hiddenparams) =
 		 Eliom_lazy.force components in
-               Pages.uri_of_string (make_string_uri_from_components (uri, getparams, fragment)))
+               make_string_uri_from_components (uri, getparams, fragment))
          in
          return (Pages.make_post_form ?a ~action:uri inside))
 

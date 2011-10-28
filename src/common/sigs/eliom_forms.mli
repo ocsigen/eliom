@@ -76,7 +76,7 @@ type button_type_t
     {ul {- [https] if the [service] has been created with [~https:true]
     or the optional paramater [~https] is [true];}
     {- [http] if  the optional paramater [~https] is [false];}
-    {- the current request protocol if the function is used in a service handler;}
+    {- the current request protocol if available;}
     {- [http] in any other case.}}
     - [hostname] is:
     {ul {- the optional parameter [~hostname] if given;}
@@ -86,7 +86,7 @@ type button_type_t
     {- the [Host] http header of the current request if available;}
     {- the attribute [defaulthostname] of [<host>] tag in
     configuration file or the machine hostname in any other case.}}
-    - [port] is:
+7    - [port] is:
     {ul {- the optional parameter [~port] if given;}
     {- the attribute [defaulthttpsport] (resp. [defaulthttpport]) of [<host>] tag
     in configuration file or [443] (resp. 80) if [protocol] is [https] (resp. [http]) and
@@ -111,15 +111,6 @@ type button_type_t
     GET parameter to the URL.  See the eliom manual for more
     information about {% <<a_manual chapter="params"
     fragment="nonlocalizedparameters"|non localized parameters>>%}.
-
-    {e Warning: The function [make_uri] should not be called outside
-    of a service handler, unless one of the following condition is met:}
-
-    - the optional parameter [~absolute_path] is [true].
-    - the optional parameter [~absolute] is [true].
-    - the optional parameter [~https] is [true].
-    - the [service] has been created with [~https:true].
-    - the [service] is an external service.
 *)
 val make_uri :
   ?absolute:bool ->
@@ -141,7 +132,16 @@ val make_uri :
     [get_params]. See {!make_uri} for a detailled
     description of optional parameters.
 
-    The function [make_string_uri] is an alias of {!Eliom_uri.make_string_uri}. *)
+    The function [make_string_uri] is an alias of {!Eliom_uri.make_string_uri}.
+
+    {e Warning: The function [make_string_uri] should not be called outside
+    of a service handler, unless one of the following condition is met:}
+
+    - the optional parameter [~absolute_path] is [true].
+    - the optional parameter [~absolute] is [true].
+    - the optional parameter [~https] is [true].
+    - the [service] has been created with [~https:true].
+    - the [service] is an external service. *)
 val make_string_uri :
   ?absolute:bool ->
   ?absolute_path:bool ->
@@ -157,16 +157,33 @@ val make_string_uri :
   'get ->
   string
 
+(** The function [uri_of_string f] returns a URI whose content is
+    equivalent to [f ()].
+
+    For XML tree build with TyXML, like {!HTML5.M}, {!XHTML.M} or
+    {!SVG.M}, the function [f] is applied each time the XML tree is
+    sent to the client (either as page content or as a marshalled
+    OCaml value). Hence, the function is always evaluated in the
+    context of a service handler.
+
+    For other module, the function [f] is immediatly applied. *)
+val uri_of_string : (unit -> string) -> uri
+
 (** The function [make_uri_components service get_params] returns the
     a triplet [(path, get_params, fragment)] that is a decomposition
-    of the URL of [service] applied to the GET parameters
+    of the URL for the service [service] applied to the GET parameters
     [get_params]. By default the returned [path] is relative to the
     current request URL but it could be absolute URL in some
-    situation, see {!make_uri} for more information and a
-    description of optional parameters.
+    situation, see {!make_uri} for more information and a description
+    of optional parameters.
 
     The function [make_uri_components] is an alias for
-    {!Eliom_uri.make_uri_components}. *)
+    {!Eliom_uri.make_uri_components}.
+
+    {e Warning: depending on the optional parameters, the function
+    [make_uri_components] may not be used outside of a service
+    handler. See {!make_string_uri} for a detailled description.}
+*)
 val make_uri_components :
   ?absolute:bool ->
   ?absolute_path:bool ->

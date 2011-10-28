@@ -533,7 +533,7 @@ module Make (S : HiddenServiceInfo) = struct
        "realm", "http://"^Eliom_request_info.get_hostname ()] @ ext.headers
     in
     let params = push_ns "openid" (("ns", openid_url) :: ("mode", mode) :: params) in
-    Lwt.return (Uri.uri_of_string (format_url (fst discovery) params))
+    Lwt.return (format_url (fst discovery) params)
 end
 
 (* GLUE *)
@@ -561,7 +561,7 @@ type check_fun =
     string ->
     (result authentication_result ->
      (Eliom_output.browser_content, Eliom_output.http_service) Eliom_output.kind Lwt.t) ->
-    XHTML.M.uri Lwt.t
+    Url.t Lwt.t
 
 let check check ?(immediate = true) ?policy_url ?max_auth_age ?auth_policies
     ?(required = []) ?(optional = []) user_url handler = 

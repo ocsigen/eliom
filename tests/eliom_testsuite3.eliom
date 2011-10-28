@@ -1103,7 +1103,7 @@ let comet_message_board_maker name message_bus =
          in
 
          (make_page [ h2 [pcdata "Message board"];
-           form ~a:[a_action (uri_of_string "")] (div [field; go]) [];
+           form ~a:[a_action (XML.uri_of_string "")] (div [field; go]) [];
            container;
          ]))
     )

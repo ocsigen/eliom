@@ -20,7 +20,6 @@
 
 open Eliom_pervasives
 open Eliom_services
-open Uri
 
 include Eliom_tools_common
 
@@ -44,14 +43,15 @@ module Xhtml = struct
     match sopt with
       | None -> same_url
         (uri_of_string
-           ((* MAYBE : use this or get_original_full_path_string *)
-             Eliom_request_info.get_current_sub_path_string ()))
+          (* MAYBE : use this or get_original_full_path_string *)
+          Eliom_request_info.get_current_sub_path_string)
       | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ())
   let same_service_opt s sopt =
     let same_url url = make_uri ~service:s () = url in
     match sopt with
-      | None -> same_url (uri_of_string
-                            (Eliom_request_info.get_current_sub_path_string ()))
+      | None ->
+	same_url (uri_of_string
+                    Eliom_request_info.get_current_sub_path_string)
       | Some s' -> same_url (make_uri ~service:s' ())
 
 
@@ -331,14 +331,14 @@ module Html5 = struct
     match sopt with
       | None -> same_url
         (uri_of_string
-           ((* MAYBE : use this or get_original_full_path_string *)
-             Eliom_request_info.get_current_sub_path_string ()))
+           (* MAYBE : use this or get_original_full_path_string *)
+           Eliom_request_info.get_current_sub_path_string)
       | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ())
   let same_service_opt s sopt =
     let same_url url = make_uri ~service:s () = url in
     match sopt with
       | None -> same_url (uri_of_string
-                            (Eliom_request_info.get_current_sub_path_string ()))
+                            Eliom_request_info.get_current_sub_path_string)
       | Some s' -> same_url (make_uri ~service:s' ())
 
 
@@ -559,7 +559,7 @@ module Html5 = struct
         | None -> endlist
         | Some s ->
           (link ~rel: [ `Next ] (* ?? *)
-             ~href: (make_uri ~service: s ()) ()) :: endlist
+             ~href: (Eliom_output.Html5.make_uri ~service: s ()) ()) :: endlist
     in
     let make_rel s =
     (* s is a subsection of mine *)

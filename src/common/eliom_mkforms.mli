@@ -31,8 +31,11 @@ open Eliom_services
 
 module type FORMS_PARAM = "sigs/eliom_forms_param.mli"
 
-module MakeForms(Pages: FORMS_PARAM) :
-    "sigs/eliom_forms.mli"
+module MakeForms(Pages: FORMS_PARAM) : sig
+
+  type uri = Pages.uri
+
+  include  "sigs/eliom_forms.mli"
       subst type uri := Pages.uri
         and type pcdata_elt := Pages.pcdata_elt
 
@@ -72,3 +75,5 @@ module MakeForms(Pages: FORMS_PARAM) :
 	and type input_type_t := Pages.input_type_t
         and type raw_input_type_t := Pages.input_type_t
         and type button_type_t := Pages.button_type_t
+
+end

@@ -117,7 +117,10 @@ val encode_header_value : 'a -> string
 (** XML building and deconstructing. *)
 module XML : sig
 
-  (* GRGR FIXME *)
+  type uri = string
+  val uri_of_string : uri -> string
+  val string_of_uri : string -> uri
+  val uri_of_fun : (unit -> string) -> uri
 
   type aname = string
   type attrib
@@ -152,16 +155,17 @@ module XML : sig
 
   type separator = Space | Comma
   type acontent = private
-    | AFloat of aname * float
-    | AInt of aname * int
-    | AStr of aname * string
-    | AStrL of separator * aname * string list
+    | AFloat of float
+    | AInt of int
+    | AStr of string
+    | AStrL of separator * string list
   val acontent : attrib -> acontent
 
   type racontent =
     | RA of acontent
-    | RACamlEvent of (aname * caml_event)
-    | RALazyString of aname * string Eliom_lazy.request
+    | RACamlEvent of caml_event
+    | RALazyStr of string Eliom_lazy.request
+    | RALazyStrL of separator * string Eliom_lazy.request list
   val racontent : attrib -> racontent
 
   val aname : attrib -> aname
@@ -172,6 +176,8 @@ module XML : sig
   val space_sep_attrib : aname -> string list -> attrib
   val comma_sep_attrib : aname -> string list -> attrib
   val event_attrib : aname -> event -> attrib
+  val uri_attrib : aname -> uri -> attrib
+  val uris_attrib : aname -> uri list -> attrib
 
   val content : elt -> econtent
   val get_unique_id : elt -> string option
@@ -269,9 +275,6 @@ module HTML5 : sig
 
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
-
-    val lazy_a_href : uri Eliom_lazy.request -> [> `Href ] attrib
-    val lazy_a_action : uri Eliom_lazy.request -> [> `Action ] attrib
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus

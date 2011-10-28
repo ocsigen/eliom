@@ -66,6 +66,7 @@ let cast_unknown_content_kind (x:(unknown_content, http_service) kind) : ('a, 'b
 let cast_http_result = Result_types.cast_result
 
 (******************************************************************************)
+ 
 (******************************************************************************)
 
 module Html5_make_reg_base
@@ -163,7 +164,7 @@ module Xhtml_forms_base = struct
   open XHTML.M
   open XHTML_types
 
-  type uri = XHTML_types.uri
+  type uri = XHTML.M.uri
   type pcdata_elt = XHTML_types.pcdata XHTML.M.elt
 
   type form_elt = XHTML_types.form XHTML.M.elt
@@ -217,7 +218,7 @@ module Xhtml_forms_base = struct
 
   let buttonsubmit = `Submit
 
-  let uri_of_string = Uri.uri_of_string
+  let uri_of_string = XML.uri_of_fun
 
   let map_option = List.map
   let map_optgroup f a l = ((f a), List.map f l)
@@ -228,7 +229,7 @@ module Xhtml_forms_base = struct
   let make_a ?(a=[]) ?href l : 'a a_elt =
     let a = match href with
       | None -> a
-      | Some v -> lazy_a_href v :: a
+      | Some v -> a_href v :: a
     in
     XHTML.M.a ~a l
 
@@ -1321,7 +1322,7 @@ module HtmlText_forms_base = struct
 
   let buttonsubmit = "submit"
 
-  let uri_of_string x = x
+  let uri_of_string x = x ()
 
   let empty_seq = ""
   let cons_form a l = a^l
@@ -1339,12 +1340,12 @@ module HtmlText_forms_base = struct
   let make_a ?(a="") ?href l : 'a a_elt =
     let a = match href with
       | None -> a
-      | Some v -> " href=\""^Eliom_lazy.force v^"\" "^a
+      | Some v -> " href=\""^v^"\" "^a
     in
     "<a "^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 
   let make_get_form ?(a="") ~action elts : form_elt =
-    "<form method=\"get\" action=\""^ Eliom_lazy.force action ^"\""^a^">"^
+    "<form method=\"get\" action=\""^ action ^"\""^a^">"^
     Eliom_lazy.force elts^"</form>"
 
   let make_post_form ?(a="") ~action ?id ?(inline = false) elts
@@ -1355,7 +1356,7 @@ module HtmlText_forms_base = struct
         None -> a
       | Some i -> " id="^i^" "^a)
     in
-    "<form method=\"post\" action=\""^ Eliom_lazy.force action ^"\""^
+    "<form method=\"post\" action=\""^ action ^"\""^
     (if inline then "style=\"display: inline\"" else "")^aa^">"^
     Eliom_lazy.force elts^"</form>"
 
@@ -2490,11 +2491,11 @@ module Eliom_appl_reg_make_param
   let application_script () =
     HTML5.M.unique
       ~copy:eliom_appl_script
-      ( HTML5.M.script
-	  ~a:[HTML5.M.a_src (Xhtml.make_uri
-			       ~service:(Eliom_services.static_dir ())
-			       [Appl_params.application_name ^ ".js"])]
-	  (HTML5.M.pcdata "") )
+      (Html5.js_script
+	 ~uri:(Html5.make_uri
+		 ~service:(Eliom_services.static_dir ())
+		 [Appl_params.application_name ^ ".js"])
+	 ())
   let is_eliom_appl_script elt =
     XML.get_unique_id (HTML5.M.toelt elt)
     =
@@ -2591,7 +2592,7 @@ module Eliom_appl_reg_make_param
          appl_data_script
       :: eliom_fake_request_data_script
       :: redirection_script
-      :: HTML5.M.base ~a:[HTML5.M.a_href base_url] ()
+      :: HTML5.M.base ~a:[HTML5.M.a_href (HTML5.M.uri_of_string base_url)] ()
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts
 	   else ( head_elts
@@ -2757,7 +2758,7 @@ end
  *)
 module String_redir_reg_base = struct
 
-  type page = HTML5.M.uri
+  type page = Url.uri
   type options = [ `Temporary | `Permanent ]
   type return = http_service
   type result = (browser_content, http_service) kind
@@ -2769,7 +2770,7 @@ module String_redir_reg_base = struct
 
   let send ?(options = `Temporary) ?charset ?code
       ?content_type ?headers content =
-    let uri = Uri.string_of_uri content in
+    let uri = content in
     let empty_result = Ocsigen_http_frame.empty_result () in
     let content_type = match content_type with
       | None -> empty_result.Ocsigen_http_frame.res_content_type

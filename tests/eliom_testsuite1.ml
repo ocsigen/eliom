@@ -280,7 +280,7 @@ let links = register_service ["rep";"links"] unit
            [pcdata "OCaml on wikipedia"]
            ["OCaml"]; br ();
          HTML5.M.a
-           ~a:[a_href (Uri.uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
+           ~a:[a_href (XML.uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
            [pcdata "OCaml on wikipedia"]
        ]])))
 (*zap*

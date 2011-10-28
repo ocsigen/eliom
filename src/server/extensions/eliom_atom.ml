@@ -28,7 +28,7 @@ let get_etag c = Some (Digest.to_hex (Digest.string c))
 module Atom_info = struct
   let content_type = "application/atom+xml"
   let version = "Atom 1.0"
-  let standard = Uri.uri_of_string "http://www.w3.org/2005/Atom"
+  let standard = "http://www.w3.org/2005/Atom"
   let doctype = ""
   let emptytags = []
 end
@@ -117,7 +117,7 @@ let rec ping_hub u address t =
 
 let rec nfu_s hubs address = match hubs with
    | []     -> ()
-   | s :: r -> let u = Neturl.parse_url s in ignore (ping_hub u address 1.) ; 
+   | s :: r -> let u = Neturl.parse_url (XML.string_of_uri s) in ignore (ping_hub u address 1.) ; 
       nfu_s r address
 
 let notify_feed_updates address hubs s = 
