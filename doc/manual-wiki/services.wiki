@@ -749,22 +749,54 @@ if you want to do a redirection towards the same page without POST parameters
 
 <<wip| Really here ? >>
 
-<<wip|Exception handler, 404 403 ... >>
+=== Exception handling
 
-<<wip|Error handler added at register time ... >>
+You can catch the exceptions raised during page generation in two places:
 
-===@@id="infofallbacks"@@Get information on what succeeded before the service===
+* add an exception handler to services using the
+  {{{?error_handler}}} parameter of the registration functions.
 
-The function
- <<a_api| val Eliom_request_info.get_link_too_old >>
-returns <<span class="code"|true>> if the coservice called has not been found.
-In that case, the current service is the fallback.
+* add a global exception handler using <<a_api |
+  Eliom_output.set_exn_handler>>
 
-The function
- <<a_api| val Eliom_request_info.get_expired_service_sessions >>
-returns the list of names of service sessions expired
-for the current request.
+<<code language="ocaml"|
+You can use it to catch <<a_api | Eliom_common.Eliom_404>> and
+generate a custom 404 page.
 
-It is also possible to send other information to the service occuring after
-an action, by using //Eliom references// with scope {{{`Request}}}
-(see chapter * *).
+<<code language="ocaml"|
+let _ = Eliom_output.set_exn_handler
+   (fun e -> match e with
+    | Eliom_common.Eliom_404 ->
+        Eliom_output.Html5.send ~code:404
+          (html
+             (head (title (pcdata "")) [])
+             (body [h1 [pcdata "Eliom tutorial"];
+                    p [pcdata "Page not found"]]))
+    | Eliom_common.Eliom_Wrong_parameter ->
+        Eliom_output.Html5.send
+          (html
+             (head (title (pcdata "")) [])
+             (body [h1 [pcdata "Eliom tutorial"];
+                    p [pcdata "Wrong parameters"]]))
+    | e -> fail e)
+>>
+
+===@@id="infofallbacks"@@ Fallback services
+
+You can check wether a service was directly called or if it was used
+as a fallback using the <<a_api| val
+Eliom_request_info.get_link_too_old >> function. In case of coservices
+registered with a restricted scope, you can check which session was
+closed using <<a_api| val
+Eliom_request_info.get_expired_service_sessions >>
+
+=== Error in services handlers of actions
+
+If something bad hapen during an action, it is possible to tell the
+service generating the page. For instance if you create user accounts
+using actions. When the creation fail you may want to display some
+message to the user, like "password too weak" or "name already
+used". To transmit that kind of information, use eliom references (see
+module <<a_api | module Eliom_references>>) created using scope
+<<a_api | Eliom_common.request>>, the value will be available to the
+service generating the page.

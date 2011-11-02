@@ -533,6 +533,11 @@ module Customize :
 (** The [set_exn_handler handler] allows to redefines error pages:
     [404] or any exception during page generation.
 
+    Note that you should not catch every exception here since some Eliom
+    mechanisms are done using exceptions, like redirections.
+    Do not catch exception defined in Eliom except {!Eliom_common.Eliom_404},
+    {!Eliom_common.Eliom_Wrong_parameter} {!Eliom_common.Eliom_Typing_Error}.
+
     {e Warning: This functions must be called when the site
     information is available, that is, either during a request or
     during the initialisation phase of the site.  Otherwise, it will
