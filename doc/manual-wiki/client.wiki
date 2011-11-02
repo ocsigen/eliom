@@ -488,7 +488,7 @@ Modules Eliom disponibles des deux côtés (et différences)
 
 parler de Eliom_services.void_coservice ?
 
-== Communication between the client and the server
+==@@id="communication"@@ Communication between the client and the server
 
 Outside of the values passed by the mean of the {{{%variable}}}
 syntax, there are multiple ways for the client and server to echange
