@@ -7,24 +7,25 @@ We will release it as a PDF book in a few week.
 Any help appreciated.>>
 <<wip|Some links and ref are currently broken.>>
 
-From this chapter to the remainder of the book, we assume you've read the
+In this manual, we assume you've read the
 [[wiki(36):|Ocsigen framework tutorial]] which gives an overview of
 the whole project and explains the main concepts. In particular, we suppose
 you have basic knowledge on how to define services with parameters,
 create links and forms, and use Eliom references.
 
-Each chapter in this part concentrates on a particular Eliom concept, going into full detail.
+Each chapter of this manual concentrates on a particular Eliom concept,
+going into full detail.
 They can be read in any order, according to your needs.
 
-==General principles==
+==Introduction to services==
 
 <<concept title="Services"|
 
 Eliom web pages are identified by services. Services are identifiers
-used to create hyperlinks. It contains more information that an URL,
-it also defines which type of parameter a page has, and how they are
-encoded. Services are created using functions from
-<<a_api | module Eliom_services>>
+used to create hyperlinks. They contain more information than an URL,
+for example they also defines which type of parameter a page has,
+and how they are encoded. Services are created using functions from
+module <<a_api | module Eliom_services>>.
 
 For instance:
 
@@ -38,17 +39,16 @@ let service = Eliom_services.service
 And to create a link to {{{service}}}:
 
 <<code language="ocaml"|
-a ~service [pcdata "link content"] "service parameter"
+Eliom_output.Html5.a ~service [pcdata "link content"] "service parameter"
 >>
 
-See <<a_manual chapter="services" fragment="registerable_services"| more>>
 >>
 
 <<concept title="Registration of service handlers"|
 
 To serve pages, we have to associate some content to services. This
-association is what we call //registration//. The registration inform
-the <<a_manual chapter="services" fragment="mechanism"|service identification mechanism>>
+association is what we call //registration//. The registration informs
+the <<a_manual chapter="services" fragment="classification"|service identification mechanism>>
 to associate a function (known as a //service handler//) to a service.
 Then, if a user follows a link to a service, the content of the page
 is provided by the registered service handler. The parameters of the
@@ -74,38 +74,69 @@ request is done in a particular session or protocol (HTTP or HTTPS).
 See <<a_manual chapter="services" fragment="service_registration"| more>>
 >>
 
-==@@id="registerable_services"@@ Registerable services ==
+===@@id="classification"@@Main kinds of services===
 
-There are 3 kind of services that can be registered:
+Eliom has a sophisticated //service identification mechanism//
+to choose the service to be executed with respect to many criteria:
+* the URL,
+* some internal (GET or POST) parameter, added automatically,
+* the HTTP method (GET or POST),
+* parameters names and types,
+* the session the client belongs to (or client side process, or session group),
+* ...
 
-* <<a_manual chapter="services" fragment="main_services" | Main services >> are the main entry points of sites.
-  They correspond to classical URLs, and will last forever.
-
-* <<a_manual chapter="services" fragment="attached_coservices" | Attached coservices >>
+You can choose the kind of service you want according to
+the behaviour you want to implement.
+There are 3 main kinds of services:
+* <<a_manual chapter="services" fragment="main_services" | Main services>>
+  are the main entry points of sites.
+  They are identified by the path of the URL and by (GET or POST) parameters.
+  They correspond to classical URLs, and will last forever once registered.
+* <<a_manual chapter="services" fragment="attached_coservices" | Attached coservices>>
   are services that share their
-  location (URL) with a main service (fallback).
-  They are distinguished from that main service using a special parameter
+  location (URL) with a main service (called //fallback//).
+  They are identified by the path of the URL and a special parameter
   (added automatically by Eliom). They can be created dynamically. When
-  an attached coservice is not available anymore ( timeout, session closed, ... )
-  it fallbacks to the main service.
-
-* <<a_manual chapter="services" fragment="non-attached_coservices" | Non-attached coservices >>
-  are coservices that are not attached to a particular URL. A link to a
-  non-attached coservice will go to the current URL with a special
-  parameter. It is useful when you want the same link or form on
-  several pages (for example a connection box) but you don't want to go to another
-  URL. Non-attached coservices are often used with
+  an attached coservice is not available anymore (timeout, session closed,~ ...)
+  it fallbacks to the corresponding main service.
+* <<a_manual chapter="services" fragment="non-attached_coservices" | Non-attached coservices>>
+  are coservices only identified by a special parameter
+  whatever be the path and other parameters in the URL.
+  They are used to implement some behaviour that should not be attached to
+  a particular URL. A link to a non-attached coservice will go to the current
+  URL with just an additional special parameter.
+  It is useful when you want the same link or form on
+  several pages (for example a connection box) but you don't want to
+  go to another URL. Non-attached coservices are often used with
   <<a_manual chapter="outputs" fragment="actions" |actions>>.
+
+<<concept title="Dynamic registration of services"|
+One of the most interesting feature of Eliom is the ability
+to create dynamically new services.
+
+Creating dynamically new (GET) main services must be done with care:
+it amounts to adding new URLs that must be available forever
+(because people may set bookmarks on them).
+This can have sense (for example if a user creates his blog, you may want
+to create a new URL dynamically).
+If you do this, be careful to re-create the service during the initialisation
+phase of the server.
+
+Dynamically creating new coservices is very useful, as we will see later.
+This makes possible to adapt the behaviour to previous interaction with
+some user!
+>>
 
 ===@@id="get_and_post"@@GET and POST methods===
 
-The registerable service creation functions come in two version:
-Served with GET or POST HTTP methods:
+Main services, attached and non-attached coservices all come in two versions,
+GET or POST, corresponding to the HTTP method you want to be used to call them.
 
 * The GET method is intended to be used to retrieve a document
 from the server. The page is generated mainly according to the information
-contained in the URL.  URLs may contain parameters (consisting of name-value pairs in the URL string), and these parameters
-may come from HTML forms.
+contained in the URL.  URLs may contain parameters (consisting of name-value
+pairs in the URL string), and these parameters may come from HTML forms
+(or not).
 * The POST method is used to send data to the server (files, for example),
 but also values coming from an HTML form. Data is sent in the body of the HTTP
 request. It is possible to use the POST method with an empty body.
@@ -113,11 +144,10 @@ request. It is possible to use the POST method with an empty body.
 The parameters of services are specified using the {{{~get_params}}}
 and {{{~post_params}}} options of service creation functions. The parameter
 descriptions are build using functions from <<a_api | module Eliom_parameters>>.
-More informations <<a_manual chapter="params" | here >>.
+More informations <<a_manual chapter="params" | here>>.
 
 In HTML, it is not possible to mix GET and POST parameters in forms, but it
-is possible to use a post service with its get parameters pre-applied on
-server side (see <<a_manual chapter="services" fragment="preapplied" |here>>).
+is possible to use a POST form with (fixed) GET parameters in the URL.
 
 <<concept title="POST or GET?" |
 POST and GET methods are not equivalent, and you must be very careful
@@ -135,29 +165,20 @@ POST method triggers an action on server side
 it to succeed several times if the page is reloaded or bookmarked.
 >>
 
-===@@id="main_services"@@Main services===
+===@@id="main_services"@@Details on main services===
 
 Main services with GET method are the main entry points of sites. They
-correspond to real URL: the other kind of services (POST, coservices)
-are using the URL of existing main GET services.
+correspond to actual URLs and may be bookmarked. The other kinds of services
+(POST, coservices) are using the URL of existing main GET services.
 
-They are created using the functions <<a_api | val Eliom_services.service>>.
+Main services are created using the function
+<<a_api | val Eliom_services.service>>.
 
 POST services must be accessible even when the request was done without the POST
-parameters ( for instance, when typing the URL in the browser, reloading,
-using bookmarks, ... ). Hence every POST service has a //fallback// GET service.
+parameters (for instance, when typing the URL in the browser, reloading,
+using bookmarks,~ ...). Hence every POST service has a //fallback// GET service.
 
 POST services are created using <<a_api | val Eliom_services.post_service>>.
-
-====Priority of main services
-
-When creating a main service you can add the optional
-{{{int}}} parameter {{{~priority}}} to set the priority of the service.
-The default priority is 0. Services with higher priority
-will be tried by Eliom before the ones with lower priority.
-Use this when several services are configured to respond to the same request.
-This can occur for instance when using
-<<a_manual chapter="params" fragment="suffix" | suffix parameters>>
 
 <<concept title="Paths" |
 
@@ -192,54 +213,92 @@ let default = Eliom_output.Html5.register_service ["rep";""] unit
       (body [p [pcdata "default page. rep is redirected to rep/"]])))
 >>
 
+<<concept title="URLs and ergonomics of your Web site"|
+While designing a Web site, one of the first things to think about are
+the URLs you want to use.
+URLs are the entry points for your site. Assume that they will be bookmarked.
+
+Eliom has a very precise management of URLs, and let you choose exactly
+the URLs and parameter names you want. Parts of the path may also be used
+as parameters.
+
+Avoid dummy URLs that will always perform a redirection.
+Be very careful about the HTTP method you are using.
+Use clearly readable URLs.
+
+And be very attentive to the ergonomics of your Web site!
+The different kinds of services offered by Eliom make possible all
+the precise behaviours you need!
+>>
+
+<<concept title="Priority of main services"|
+
+When creating a main service you can add the optional
+{{{int}}} parameter {{{~priority}}} to set the priority of the service.
+The default priority is 0. Services with higher priority
+will be tried by Eliom before the ones with lower priority.
+Use this when several services are configured to respond to the same request.
+This can happen for instance when using
+<<a_manual chapter="params" fragment="suffix" | suffix parameters>>.
+>>
+
 >>
 
 ==@@id="coservices"@@Coservices
 
-Coservices are services that are not directly associated with an
-URL. They can either be associated to an existing main service
+Coservices are services identified by a special 
+(GET or POST) parameter and possibly also by the path of the URL 
 (<<a_manual chapter="services" fragment="attached_coservices"|attached
-coservices>>)or to the service serving the current URL (<<a_manual
+coservices>>) or not (<<a_manual
 chapter="services" fragment="non-attached_coservices"|non-attached
 coservices>>).
 
 Coservices can be used to customize the behaviour of an URL service
-depending on the situation. They can be created and registered
-<<a_manual chapter="services" fragment="dynamic_services"| dynamically>>
+depending on the situation.
 
-When requesting coservices the <<a_manual chapter="services"
-fragment="mechanism"|service identification mechanism>> find them
-using their identifier. By default those are randomly ( non guessable
-) chosen, but they can be specified, at the service creation, using
-the {{{~name}}} parameter. Coservice with generated name are called
-//anonymous//. Note that anonymous coservice identifiers will be
+The special parameter contains an identifier.
+By default those are randomly (non guessable)
+chosen, but they can be specified, at the service creation, using
+the {{{~name}}} parameter if you want a fix identifier.
+Coservice with generated name are called //anonymous//.
+Anonymous coservice identifiers will be
 different each time the server is restarted.
 
 ===@@id="attached_coservices"@@Attached coservices
 
-GET attached coservices are often created dynamically with respect to
+GET attached coservices are created using function
+<<a_api| val Eliom_services.coservice>>.
+
+Anonymous GET attached coservices are often created dynamically with respect to
 previous interaction with the user (e.g. filling forms in multiple
-steps). They handle correctly the classical web interractions ("back"
-button, bookmark, tab, ...). Often, they should be used with a
+steps). They handle correctly the classical web interactions ("back"
+button, bookmark, tab,~ ...): you create a new coservice each time you want
+to record a precise point in the interaction with a user, to be able to come
+back there later.
+
+Often, they should be used with a
 restricted scope (see the section <<a_manual chapter="state"
-fragment="service_scope"| Scope of services >>).
+fragment="service_scope"| Scope of services>>).
 
-GET attached coservices are created using <<a_api| val Eliom_services.coservice >>.
+POST attached coservices are created using
+<<a_api| val Eliom_services.post_coservice>>.
 
-POST attached coservices can be used to customize the behaviour of an url.
+They can be used to customize the behaviour of an URL.
 Some of their usages are:
-* For the same purpose as GET coservices but when you don't want this service to be bookmarkable.
-* For preforming side effects before serving a page ( e.g. login in or out of a site before
-going to the fallback page ). It is often done using redirections.
-
-POST attached coservices are created using <<a_api| val Eliom_services.post_coservice >>.
+* For the same purpose as GET coservices but when you don't want this service 
+to be bookmarkable.
+* For performing side effects before serving a page.
+For example say you want a disconnection button that leads to the main page
+of the site, but with the side effect of disconnecting the user.
+You will use a (named) POST (attached) coservice.
 
 If a coservice does not exist anymore (e.g. if its timeout
-has expired or the session was closed ... ), the fallback is called.
+has expired or the session to which it belongs was closed ... ),
+the fallback is called.
 
-Note that the fallback of a GET coservice cannot take parameters. But
+The fallback of a GET coservice cannot take parameters. But
 it is possible to use a <<a_manual chapter="services"
-fragment="preapplied" | pre-applied>> service as fallback
+fragment="preapplied" | pre-applied>> service as fallback.
 
 
 ===@@id="non-attached_coservices"@@Non-attached coservices
@@ -252,17 +311,19 @@ and the main parameters do not change.
 The parameters of the non-attached coservice are sent as special parameters.
 
 To create a non-attached coservice, use
- <<a_api| val Eliom_services.coservice' >> or
- <<a_api| val Eliom_services.post_coservice' >>
+ <<a_api| val Eliom_services.coservice'>> or
+ <<a_api| val Eliom_services.post_coservice'>>
 (note the "prime" at the end).
 
-POST non-attached coservices are useful if you want a
+Use POST non-attached coservices for example if you want a
 link or form to be present on every page but you don't want the
-URL to change when the link is followed. Typically, non-attached POST coservices are
+URL to change when the link is followed. Typically, non-attached POST
+coservices are
 used with <<a_manual chapter="outputs" fragment="actions"|actions>> or <<a_manual chapter="outputs" fragment="redirections"|redirections>>.
 
 Here is one simple example. Suppose you wrote a function
-<<span class="code"|remove>> to remove one piece of data from a database
+<<code-inline language="ocaml"|remove>>
+to remove one piece of data from a database
 (taking an identifier of the data).
 If you want to put a link on your page to call this function
 and redisplay the page, just create an action on a non-attached coservices
@@ -294,6 +355,8 @@ the optional parameter {{{?timeout}}} of creation functions.
 For example if your coservice is here to show the
 results of a search, you probably want it to be available only for
 a short time. The following example shows a coservice with timeout.
+
+//Warning:// forgetting timeouts may cause memory leaks!
 
 <<code language="ocaml"|let timeout = service ["timeout"] unit ()
 
@@ -377,8 +440,8 @@ modules>>.
 
 By default, services and coservices are accessible to anybody.  It is
 possible to restrict the //scope// of a service, making it available
-only to a session, a client side process, or a group of sessions (see
-<<a_manual chapter="state"|chapter on sessions>> for more information
+only to a session, a client side process, or a group of sessions (see the
+<<a_manual chapter="state"|chapter on server side state>> for more information
 on scopes).
 
 The same service can be registered with several scopes.
@@ -386,10 +449,10 @@ This makes it possible, for example, to generate custom services for a specific 
 Eliom will try to find the service by trying the following (in order):
 * scope client-side process,
 * scope session,
-* scope group of session, and
-* global scope.
+* scope group of session,
+* and finally global scope.
 
-If the service has not been found, and it is a coservice, it will then
+If a coservice has not been found, it will then
 try the fallback, in the same scoping order.
 
 To set the scope of a service registration, add the optional
@@ -401,18 +464,15 @@ parameter {{{~scope}}} to the {{{register}}} function.
 (with global scope) during the initialization phase of your module.
 If not, the server will not start (providing  an appropriate error message in the logs).
 This will prevent broken links.
-
 * Services may be registered only during the server's initialization phase
 (while reading the site configuration) or while processing a request,
 because Eliom must know the information about the site. Be very careful
 about this if you want to use static linking (see the section on
 <<a_manual chapter="config" fragment="static_linking"|static linking>> in the chapter about Compiling and configuring Eliom modules).
-
 * All main services (but not coservices) must be created in a module loaded
 inside a {{{<host>}}} tag of the configuration file.
 It is not possible to accomplish this using modules loaded inside
 {{{<extension>}}} or {{{<library>}}}.
-
 * If you create new main services dynamically,
 you will dynamically create new URLs!
 This may be dangerous as they will disappear if you stop the server.
@@ -422,19 +482,16 @@ The use of that feature is discouraged for coservices
 without timeout, as such coservices will be available only until the end
 of the server process (and it is not possible to re-create them with the
 same key).
-
 *Do not register the same service (with scope global) twice,
 and do not replace a service
 by a directory (or vice versa). If this happens during the
 initialization phase, the server won't start.
 If this happens after server startup, it will be ignored (with a warning in the
 logs).
-
 *GET coservices (without POST parameters) can be registered
 only with a main service without GET/POST parameters as fallback.
-But it may be a
+But it may be
 <<a_manual chapter="services" fragment="preapplied" |//preapplied//>>.
-
 *Services with POST parameters (main service or coservice)
 can be registered with a (main or co-) service without POST
 parameters as fallback.
@@ -444,13 +501,13 @@ a (Lwt) thread with the intention that it will register a service later, as
 registering a service needs access to config file
 information (for example the directory of the site).
 If you do this, the server will raise
-<<a_api | exception Eliom_common.Eliom_function_forbidden_outside_site_loading >>
+<<a_api | exception Eliom_common.Eliom_function_forbidden_outside_site_loading>>
 most of the time,
 but you may also get unexpected results (if the thread is executed
 while another site is loaded).
 If you use threads in the initialization phase of your module
 (for example if you need information from a database),
-use  <<a_api project="lwt" | val Lwt_unix.run >> to wait the end of the thread.
+use  <<a_api project="lwt" | val Lwt_unix.run>> to wait the end of the thread.
 >><<|concept>>
 
 ===Services and Lwt===
@@ -460,7 +517,7 @@ This application must be able to handle several requests at the same
 time, in order to prevent a single request from making the whole server hang.
 To make this possible, Ocsigen uses //cooperative threads//
 (implemented in monadic style) which make them really easy
-to use (see <<a_api project="lwt" | module Lwt >> module).
+to use (see <<a_api project="lwt" | module Lwt>> module).
 
 Below is an example of a page written in a non-cooperative way, that has the effect of stopping the entire
 server for 5 seconds. No one will be able to query the server during
@@ -481,7 +538,7 @@ let looong =
 
 
 To solve this problem, use a cooperative version of {{{Unix.sleep}}}:
-<<a_api project="lwt" | val Lwt_unix.sleep >>:
+<<a_api project="lwt" | val Lwt_unix.sleep>>:
 
 <<code language="ocaml"|open HTML5.M
 let looong =
@@ -516,41 +573,46 @@ If you want to use, say, a database library that is not written
 
 == Security ==
 
+<<wip|
 Il y a plusieurs propriete que l'on peut gerer automatiquement dans eliom:
 
 On ne veut pas que les information d'un utilisateur soient decouvertent:
 ecoute le trafic: https
 se connecter a un service qui n'a pas ete cree pour un utilisateur: coservice anonyme, cookies
 faire faire une action a un utilisateur sans son consentement: crsf, xss, clickjacking
+>>
 
+Eliom is helping you to make your Web site secure.
 Here are ways to protect against some common attacks.
 
 * information stealing, by listening to the connection:\\
   if the connection is not cyphered, the content of the HTTP
-  request and answers will be eavesdroppable. The eliom options for
-  handling https are:
-** Set the {{{~https}}} option of services: all links to that service will be using https scheme. Note
-   that in case of a man in the middle rewritting the https url to http ones, even when the page is
-   not available in http, the browser will send its informations before receiving the error. Then
-   the man in the middle could get the information and replay the request.
-** Set the {{{~secure_session}}} option at service registration: when the scope is not of level global,
-   this register the sevices to a session table which is available only when secure cookies are available:\\
+  request and answers will be eavesdroppable. The Eliom options for
+  handling https are the following:
+** Set the {{{~https}}} option of services: all links to that service will
+be using https scheme. Note
+that in case of a man in the middle rewriting the https url to http ones,
+even when the page is not available in http, the browser will send its
+informations before receiving the error. Then
+the man in the middle could get the information and replay the request.
+** Set the {{{~secure_session}}} option at service registration: when the scope is not of global level,
+   this register the services in a session table which is available only when secure cookies are present.\\
    Secure cookies are cookies sent only over https: this means that if there is a man in the middle attack
    serving https content as http to the user, the browser won't send secure cookies and the server
    won't serve the page. Note that it won't protect for an attack on the first connection
-   ( when the cookie is set ).
-** It is also possible to limit connections to https in the configuration of ocsigenserver:
-   see the manual of the <<a_manual project="ocsigenserver" chapter="accesscontrol"|accesscontrol extension>>
-
+   (when the cookie is set).
+** It is also possible to limit connections to https in the configuration of Ocsigen Server.
+   see the manual of the <<a_manual project="ocsigenserver" chapter="accesscontrol"|accesscontrol extension>>.
 * Access to other user's services:
-** By default coservices are generated with non guessable id ( cryptographically secure random numbers ).
-   Note that when setting the {{{~name}}} parameter of coservices, this is not the case.
-** services can be registered inside a given scope. This will be accessible only to
-   the browser inside the scope: with the right cookies.
-
+** By default coservices are generated with non guessable id
+(cryptographically secure random numbers).
+   Note that when setting the {{{~name}}} parameter of coservices,
+this is not the case.
+** services can be registered for a given scope.
+They will be accessible only to the browser inside the scope
+(with the right cookies).
 * Protection against Cross Site Request Forgery: See below
-
-* Protection against ClickJacking:
+* Protection against [[http://en.wikipedia.org/wiki/Clickjacking|ClickJacking]]:
 ** set the "X-Frame-Options" header using the {{{~headers}}} option of register functions for setting it to
    a single service. For setting it to the whole site see the
    <<a_manual project="ocsigenserver" chapter="outputfilter"|outputfilter>> extension of ocsigenserver.
@@ -571,13 +633,23 @@ defaulthttpport="8080" defaulthttpsport="4433">
 
 ===HSTS
 
+[[http://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security|HTTP Strict
+Transport Security (HSTS)]] is a proposed web security policy mechanism where
+a web server declares that complying user agents (such as a web browser) are to
+interact with it using secure connections only (such as HTTPS).
+
+The policy is communicated by the server to the user agent via a HTTP response
+header field named "Strict-Transport-Security". The policy specifies a period
+of time during which the user agent shall access the server in only secure
+fashion.
+
 For now, it is possible to set The "Strict-Transport-Security" header
 by hand and add a redirection from http version to https versions of
 pages, either using eliom redirections, or using the <<a_manual
 project="ocsigenserver" chapter="redirectmod"|Redirectmod>> extension
-of ocsigenserver.
+of Ocsigen Server.
 
-<<wip|Future version of ocsigen will allow a simpler mechnism>>
+<<wip|Future versions of ocsigen will allow a simpler mechanism>>
 
 ===@@id="csrf"@@CSRF-safe services
 
@@ -677,8 +749,9 @@ The most commonly used services are:
 
 * Main services (GET or POST) (with global scope) for public
 pages.
-* GET attached coservices in session service table to make the
-browser's "back" button actually move to a previous step or page in the user's interaction,
+* GET attached coservices with scope session make the
+browser's "back" button actually move to a previous step or page in
+the user's interaction,
 and to allow several tabs on different versions of the same page
 (several steps interaction).
 * Actions registered on POST named non-attached coservices
@@ -691,28 +764,37 @@ and the solution Eliom provides to solve them.
 
 ==== Add a login/logout box on each page of your site
 
-For instance, if we are writing a site where some pages are accessible
-only to some users, when clicking on a link that lead to that page,
-the user would be asked its login and password. When he enter them, he
-should be directed to the page he originaly requested.
+Say you want to display a different page if the user is connected or not.
 
-To do that you should:
+Or, for instance, say you are writing a site where some pages are accessible
+only to some users. When clicking on a link that lead to these pages,
+the user should be asked its login and password. After entering them,
+the page he originaly requested should be displayed (with the same URL).
 
-* Create a login and a logout non-attached named POST coservices, and
-  register an <<a_manual chapter="outputs" fragment="actions"|action>>
-  with a function adding or removing some state telling that the user
-  is connected.
+A simple way to do that is to create a login (and logout)
+non-attached named POST coservice, and
+register an <<a_manual chapter="outputs" fragment="actions"|action>>
+with a function adding (or removing) some Eliom reference (session scope)
+containing the name of the connected user.
 
-* Define a customized registration module, which check if a user has
-  the rights to se a page before displaying it, using
-  <<a_api | module Eliom_output.Customize>>
+A convenient way to avoid checking this reference manually for each page
+is to define a customized registration module, which checks if a user has
+the rights to see a page before displaying it, using
+<<a_api | module Eliom_output.Customize>>
+A detailed example is available in the
+<<a_manual project="tutorial" chapter="interaction"|tutorial>>.
 
-A detailed example is available in the <<a_manual project="tutorial" chapter="interaction"|tutorial>>
+In fact, instead of registering the name in a session scoped reference,
+it is even better to set a session group while connecting the user.
+(See <<a_manual chapter="state" fragment="session_groups"|the documentation
+about session groups>>).
 
 ==== Add something to a shopping basket
 Use an action registered on a non-attached coservice,
-with the names of the items as parameters. The action saves the shopping
-basket in an eliom reference (scope {{{`Session}}}).
+with the names or references of the items as parameters.
+The action saves the shopping
+basket in an eliom reference (scope session, or better, session group,
+if you want the shopping basket to be available from several devices).
 Thus, the shopping basket will remain
 even if the user pushes the "back" button of his browser.
 
@@ -721,12 +803,12 @@ Each step creates new (GET) coservices (with or without
 parameters, all attached to the service displaying the main
 booking page)
 according to the data entered by the user. These
-coservices are registered with scope {{{`Session}}} (with a timeout for
+coservices are registered with scope session (with a timeout for
 the whole session or for each of them). Thus the user can go back
 to a previous state, or keep several proposals on different
 tabs before choosing one.
 
-<<wip| Add more examples >>
+<<wip| Add more examples>>
 
 == Predefined and special services ==
 
@@ -739,12 +821,22 @@ To do that, use the functions {{{Eliom_services.external_service}}}
 or {{{Eliom_services.external_post_service}}}
 (for using the POST method).
 
-<<wip| Example>>
+Example. This code defines a link to the OCaml Wikipedia page:
+<<code language="ocaml"|
+Eliom_output.Html5.a
+  (Eliom_services.external_service
+     ~prefix:"http://en.wikipedia.org"
+     ~path:["wiki";""]
+     ~get_params:(suffix (all_suffix "suff"))
+     ())
+  [pcdata "OCaml on wikipedia"]
+  ["OCaml"]
+>>
 
 ===@@id="staticparts"@@ Static files service===
 
 <<a_manual project="ocsigenserver" chapter="staticmod" | Staticmod>>
-is an Ocsigenserver extension serving static (non-generated) files
+is an Ocsigen Server extension serving static (non-generated) files
 (for examples images and stylesheets). It can be used together with
 Eliom. The predefined service <<a_api| val Eliom_services.static_dir
 >> can be used to make links to static files. It takes as parameter
@@ -778,7 +870,7 @@ you can use them in links or as fallbacks for coservices.
 
 ===@@id="void"@@Void coservices
 
-<<a_api| val Eliom_services.void_coservice' >>
+<<a_api| val Eliom_services.void_coservice'>>
 is a special non-attached action, with special behaviour:
 it has no parameter at all, even non-attached parameters.
 Use it if you want to make a link to the current page
@@ -794,12 +886,12 @@ a Eliom_services.void_coservice' [pcdata "cancel"] ()
 >>
 
 There is also
- <<a_api| val Eliom_services.https_void_coservice' >>
+ <<a_api| val Eliom_services.https_void_coservice'>>
 (same, but forces use of HTTPS),
- <<a_api| val Eliom_services.void_hidden_coservice' >>, and
- <<a_api| val Eliom_services.https_void_hidden_coservice' >>. "Hidden" means that they keep GET non attached parameters.
+ <<a_api| val Eliom_services.void_hidden_coservice'>>, and
+ <<a_api| val Eliom_services.https_void_hidden_coservice'>>. "Hidden" means that they keep GET non attached parameters.
 
-Use <<a_api| val Eliom_services.void_hidden_coservice' >> for example
+Use <<a_api| val Eliom_services.void_hidden_coservice'>> for example
 after a POST request
 if you want to do a redirection towards the same page without POST parameters
 (and thus prevent from reposting data if the user reloads the page).
@@ -808,7 +900,7 @@ if you want to do a redirection towards the same page without POST parameters
 
 == Error handling ==
 
-<<wip| Really here ? >>
+<<wip| Really here ?>>
 
 === Exception handling
 
@@ -817,11 +909,12 @@ You can catch the exceptions raised during page generation in two places:
 * add an exception handler to services using the
   {{{?error_handler}}} parameter of the registration functions.
 
-* add a global exception handler using <<a_api |
-  Eliom_output.set_exn_handler>>
+* add a global exception handler using
+  <<a_api | val Eliom_output.set_exn_handler>>
 
 <<code language="ocaml"|
-You can use it to catch <<a_api | Eliom_common.Eliom_404>> and
+You can use it to catch exception
+<<a_api | exception Eliom_common.Eliom_404>> and
 generate a custom 404 page.
 
 <<code language="ocaml"|
@@ -846,18 +939,22 @@ let _ = Eliom_output.set_exn_handler
 
 You can check wether a service was directly called or if it was used
 as a fallback using the <<a_api| val
-Eliom_request_info.get_link_too_old >> function. In case of coservices
-registered with a restricted scope, you can check which session was
+Eliom_request_info.get_link_too_old>> function. In case of coservices
+registered with a restricted scope, you can check which state was
 closed using <<a_api| val
-Eliom_request_info.get_expired_service_sessions >>
+Eliom_request_info.get_expired_service_sessions>>
 
 === Error in services handlers of actions
 
-If something bad hapen during an action, it is possible to tell the
-service generating the page. For instance if you create user accounts
-using actions. When the creation fail you may want to display some
-message to the user, like "password too weak" or "name already
-used". To transmit that kind of information, use eliom references (see
+If something wrong happens during an action, it is possible to inform the
+service generating the page. For instance if you want to display
+a "wrong password" message after an aborted connection. 
+To transmit that kind of information, use eliom references (see
 module <<a_api | module Eliom_references>>) created using scope
 <<a_api | Eliom_common.request>>, the value will be available to the
 service generating the page.
+
+Other examples: if you create user accounts
+using actions. if the creation fails you may want to display some
+message to the user, like "password too weak" or "name already
+used". 

@@ -414,7 +414,7 @@ it has been hidden for the sake of simplicity. That's how the
 different examples of sessions in the tutorial are independant.
 
 
-===Session groups
+===@@id="session_groups"@@Session groups
 
 The idea is complementary to the idea of names scope. While named
 scope allows for a single session to have multiple buckets of data
