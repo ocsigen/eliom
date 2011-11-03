@@ -5,7 +5,6 @@ The documentation is now mostly complete, but we are still working on it
 (some parts need to be reworked, some small parts are missing).
 We will release it as a PDF book in a few week.
 Any help appreciated.>>
-<<wip|Some links and ref are currently broken.>>
 
 In this manual, we assume you've read the
 [[wiki(36):|Ocsigen framework tutorial]] which gives an overview of
@@ -213,6 +212,8 @@ let default = Eliom_output.Html5.register_service ["rep";""] unit
       (body [p [pcdata "default page. rep is redirected to rep/"]])))
 >>
 
+>>
+
 <<concept title="URLs and ergonomics of your Web site"|
 While designing a Web site, one of the first things to think about are
 the URLs you want to use.
@@ -242,7 +243,6 @@ This can happen for instance when using
 <<a_manual chapter="params" fragment="suffix" | suffix parameters>>.
 >>
 
->>
 
 ==@@id="coservices"@@Coservices
 
@@ -908,7 +908,6 @@ You can catch the exceptions raised during page generation in two places:
 
 * add an exception handler to services using the
   {{{?error_handler}}} parameter of the registration functions.
-
 * add a global exception handler using
   <<a_api | val Eliom_output.set_exn_handler>>
 
