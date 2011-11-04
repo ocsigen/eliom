@@ -1,5 +1,9 @@
 
+<<header|
 = Predefined output modules for services
+
+<<outline>>
+>>
 
 == Summary of predefined output modules
 
@@ -18,22 +22,24 @@ The main predefined output modules are:
 ==== Generating content for the browser
 ;<<a_api| module Eliom_output.Html5 >> (and <<a_api| module Eliom_output.Xhtml >>)
 : Allows to register functions that generate html5 pages statically checked using polymorphic variant types. You may use constructor functions from <<a_api | module Eliom_pervasives.HTML5.M >> (resp <<a_api | module Eliom_pervasives.XHTML.M >>) or a syntax extension close to the standard html syntax.
-;<<a_api| module Eliom_output.Eliom_appl >>
-: is a functor that generates a module allowing to create services belonging to a client-server Eliom application (see <<a_manual chapter="client"|chapter client-server applications>>)
 ;<<a_api| module Eliom_output.Flow5 >> (and <<a_api| module Eliom_output.Blocks >>)
 : Allows to register functions that generate a portion of page using <<a_api | module Eliom_pervasives.HTML5.M >> (resp <<a_api | module Eliom_pervasives.XHTML.M >>) or the syntax extension. (useful for <<span class="code"|XMLHttpRequest>> requests for example). Do not use with Eliom application: use <<a_api| module Eliom_output.Caml >> instead.
 ;<<a_api| module Eliom_duce.Xhtml >>
 : Allows to register functions that generate XHTML 1.1 pages   statically checked using <<span class="code"|OCamlduce>>. Typing is   stricter, and you need a modified version of the OCaml compiler   (OCamlduce).
 ;<<a_api| module Eliom_output.HtmlText >>
-: Allows to register functions that   generate text html pages, without any typechecking of the content.   The content type sent by the server is "text/html".
+: Allows to register functions that   generate text html pages, without any typechecking of the content. The content type sent by the server is "text/html".
 ;<<a_api| module Eliom_output.CssText >>
-: Allows to register functions that   generate CSS pages, without any typechecking of the content.   The content type sent by the server is "{{{text/css}}}".
+: Allows to register functions that   generate CSS pages, without any typechecking of the content. The content type sent by the server is "{{{text/css}}}".
 ;<<a_api| module Eliom_output.String >>
-: Allows to register functions that   generate text pages, without any typechecking of the content.   The services return a pair of strings. The first one is the content   of the page, the second one is the content type.
+: Allows to register functions that   generate text pages, without any typechecking of the content. The services return a pair of strings. The first one is the content   of the page, the second one is the content type.
 ;<<a_api| module Eliom_output.Files >>
 : Allows to register services that send files. See <<a_manual chapter="services" fragment="eliomfiles"|here>> for an example of use.
 ;<<a_api| module Eliom_output.Streamlist >>
-: Allows to register services that send "byte" contents. It is used when big contents ( that don't fit in memory ) is generated.
+: Allows to register services that send "byte" contents. It is used when big contents (that does not fit in memory) is generated.
+
+==== Generating content for client-server applications
+;<<a_api| module Eliom_output.Eliom_appl >>
+: is a functor that generates a module allowing to create services belonging to a client-server Eliom application (see <<a_manual chapter="client"|chapter client-server applications>>)
 
 ==== Special browser interraction
 ;<<a_api| module Eliom_output.Action >>
@@ -58,6 +64,8 @@ The main predefined output modules are:
 ==== Runtime choice of content
 ;<<a_api| module Eliom_output.Any >>
 : Allows to register services that can choose what they send, for example an xhtml page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See <<a_manual chapter="services" fragment="any"|here>> for an example of use.
+
+== Special outputs
 
 ===@@id="eliomfiles"@@Sending files
 
@@ -90,7 +98,7 @@ handle static files.
 ===Sending portions of pages
 
 
- The <<a_api| module Eliom_output.Blocks5 >> and <<a_api| module Eliom_output.Blocks >> modules allow you to register services that send portions of pages, of any "block" type for HTML5.M (resp. XHTML.M).
+ The <<a_api| module Eliom_output.Flow5 >> and <<a_api| module Eliom_output.Blocks >> modules allow you to register services that send portions of pages, of any "block" type for HTML5.M (resp. XHTML.M).
  It is sometimes useful to create AJAX pages
  (i.e. pages using the <<span class="code"|XMLHttpRequest>> Javascript object).
  Note that the service returns a list of blocks. For sending HTML
@@ -111,10 +119,10 @@ handle static files.
 
  The <<a_api| module Eliom_output.Make_TypedXML_Registration >> module
  allows to create other modules for registering portions of pages of
- other types.  For example, <<a_api| module Eliom_output.Blocks5 >> is
+ other types.  For example, <<a_api| module Eliom_output.Flow5 >> is
  defined by:
 
-<<code language="ocaml"|module Blocks5 = Make_TypedXML_Registration(XML)(HTML5.M)(struct
+<<code language="ocaml"|module Flow5 = Make_TypedXML_Registration(XML)(HTML5.M)(struct
   type content = HTML5_types.body_content
 end)
 >>
@@ -122,68 +130,76 @@ end)
 
 ===@@id="redirections"@@Redirections
 
+==== Redirections to eliom services
 
- The <<a_api| module Eliom_output.Redirection >> module allows you to register HTTP redirections.\\
+The <<a_api| module Eliom_output.Redirection >> module allows you to register HTTP redirections.\\
 If a request is made for such a service, the server asks the browser
 to retry with another URL.
 
 Such services return a GET service without parameter at all.
 Example:
-<<code language="ocaml"|let redir1 = Eliom_output.Redirection.register_service
+<<code language="ocaml"|
+let redir1 = Eliom_output.Redirection.register_service
     ~options:`Temporary
     ~path:["redir"]
     ~get_params:Eliom_parameters.unit
    (fun () () -> Lwt.return coucou)
 >>
 
+If you want to give parameters to such services, use
+<<a_api | val Eliom_services.preapply>> (see also in
+<<a_manual chapter="services" fragment="preapplied" | section about pre-applied services>>).
+Example:
 
- If you want to give parameters to such services, use
- <<a_api | val Eliom_services.preapply>> (see also
- <<a_manual chapter="services" fragment="preapplied" |later in the tutorial>>).
- Example:
-
-
- <<code language="ocaml"|let redir = Eliom_output.Redirection.register_service
-    ~options:`Temporary
-    ~path:["redir"]
-    ~get_params:(int "o")
+<<code language="ocaml"|
+let redir = Eliom_output.Redirection.register_service
+   ~options:`Temporary
+   ~path:["redir"]
+   ~get_params:(int "o")
    (fun o () ->
       Lwt.return
         (Eliom_services.preapply coucou_params (o,(22,"ee"))))
 >>
 
-
 The <<span class="code"|options>> parameter may be either
   <<span class="code"|`Temporary>> or <<span class="code"|`Permanent>>.
-
-
-
-[[site:tuto/redir?o=11| Try it]].
 
 Note that the cost of a redirection is one more request and
 one more response.
 
+==== Redirections to generated urls
+
+The <<a_api| module Eliom_output.String_redirection>> allows you to
+register HTTP redirections to generated URLs. Usualy, prefer <<a_api|
+module Eliom_output.String_redirection>>, even for external
+redirections (using <<a_api | val Eliom_services.external_service>>).
+Use <<a_api| module Eliom_output.String_redirection>> only when it is
+not possible to have a service corresponding to an URL.
+
+Notice that the supplied URL must be absolute.
 
 ===@@id="actions"@@Actions
 
+Actions are used to perform sides effects before generating the
+fallback of a service. When an action is called, the service handler is
+executed, then the service handler of the fallback service is
+executed.
 
-Actions are services that do not generate any page.
+Eliom references of scope <<a_api | val Eliom_common.request>> set in
+an action handler are still available in the service handler of the fallback.
+
+<<wip|for Vincent>>
+
+services that do not generate any page.
 Use them to perform an effect on the server (connection/disconnection
 of a user, adding something in a shopping basket, deleting a message in
-a forum, etc.). By default,
-the page you link to is redisplayed after the action.
-For example, when you have the same form (or link) on several pages
-(e.g.  a connection form),
-instead of making a version with post params of all these pages,
-you can use a single action, registered on a //non-attached coservice//
-(see below).
-<<|To register actions, just use the module <<a_api| module Eliom_output.Action >>
-instead of <<a_api| module Eliom_output.Xhtml >> (or <<a_api| module Eliom_duce.Xhtml >>, etc.).
-For example
- <<span class="Cem"|<<a_api | val Eliom_output.Action.register>>>>,
- <<span class="Cem"|<<a_api | val Eliom_output.Action.register_service>>>>.
->>
-\\
+a forum, etc.).
+
+ By default, the page you link to is displayed after the action.  For
+example, when you have the same form (or link) on several pages (e.g.
+a connection form), instead of making a version with post params of
+all these pages, you can use a single action, registered on a
+<<a_manual chapter="services"|non-attached coservice>>.
 
 See more details and an example in the section about non-attached coservices
 below, or in section * * connection-of-user.
@@ -207,16 +223,17 @@ The implementation of the same behaviour with usual Web programming techniques
 is usually much more complicated.
 
 
+===@@id="customize"@@Customize a registration module
+
+<<wip|To be written>>
 
 ===@@id="any"@@Registering services that decide what they want to send===
 
 You may want to register a service that will send, for instance,
-  sometimes
-  an XHTML page, sometimes a file, sometimes something else.
-  To do that, use the <<a_api| module Eliom_output.Any >> module, together
-  with the <<span class="code"|send>> function of the module you want
-  to use. Example:
-
+sometimes an XHTML page, sometimes a file, sometimes something else.
+To do that, use the <<a_api| module Eliom_output.Any >> module,
+together with the <<span class="code"|send>> function of the module
+you want to use. Example:
 
 <<code language="ocaml"|let send_any =
   Eliom_output.Any.register_service
@@ -225,7 +242,7 @@ You may want to register a service that will send, for instance,
    (fun s () ->
      if s = "valid"
      then
-       Eliom_output.Xhtml.send
+       Eliom_output.Html5.send
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata
@@ -239,19 +256,66 @@ You may want to register a service that will send, for instance,
    )
 >>
 
+==== Dynamicaly modifying register options using Any
 
-  See [[site:tuto/sendany?type=valid| a valid page]],
-  and [[site:tuto/sendany?type=non+valid| a non valid page]].
+You may also use <<a_api| module Eliom_output.Any >> to dynamicaly
+modify the parameters usualy set on the register function. You can set
+the HTTP code, the charset, the content_type, the http headers and the
+specific option of the output module.
 
+<<code language="ocaml"|
+let change_option =
+  Eliom_output.Any.register_service
+    ~path:["change_option"]
+    ~get_params:(unit)
+   (fun () () ->
+     Eliom_output.Html5.send
+       ~code:403
+       (html
+          (head (title (pcdata "forbidden")) [])
+          (body [p [pcdata "forbidden"]])))
+>>
 
+==== About Kind type and how to serve application and other content with the same service
 
+In Eliom application, changing the current page does not do always the
+same thing. When going to a page inside the same application by
+clicking a link (or calling <<a_api project="eliom"
+subproject="client"| val Eliom_client.change_page>>) the client
+application perform a XmlHttpRequest and modify the displayed page
+according to the result. When going to content outside the
+application (an other site, a static file, etc.) the client leaves the
+application by changing the browser url.
 
-You may also use <<a_api| module Eliom_output.Any >> to personalize the charset
-(default charset is set in configuration file), the HTTP code,
-the content type or to add some HTTP headers.
-To do that use the optional parameters
-(<<span class="code"|?code>>, <<span class="code"|?charset>> etc.) of the
- <<span class="code"|send>> function.
+When using <<a_api| module Eliom_output.Any >>, there is no way to
+know before the request wether the content is from the same
+application or not. To that end there are phantom type annotations to
+the type of the {{{send}}} functions: <<a_api| type
+Eliom_output.kind>>. The <<a_api| val Eliom_output.Any.register>>
+takes a service handler that can server only one kind of content: that
+way it is not possible to inadvertantly mix kinds. The different kinds
+of content are:
+
+* Browser content: everything that can't be handled by application
+  directly: ex Html pages, files
+* Block content: subparts of pages sent as XML: ex Flow5, Block.
+* Application content: pages of application.
+* Caml content: marshalled caml values.
+* Unknown content: content generated as text.
+
+Yet sometimes you can want to mix the kinds of contents a service can
+return. The function <<a_api| val Eliom_output.appl_self_redirect>>
+allows to cast browser content to application content. When an
+application request some content casted througt that function the
+server send some informations telling the client to exit to that
+address instead. You should not use that on POST services: Leaving the
+application sending POST parameters is not always possible and the
+request will be performed 2 times.
+
+<<wip|Example of Any with application + file>>
+
+Unknown content can be casted to browser content using <<a_api| val
+Eliom_output.cast_unknown_content_kind >>.
 
 ===@@id="creating"@@Creating your own output modules===
 
