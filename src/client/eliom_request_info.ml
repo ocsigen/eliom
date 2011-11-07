@@ -121,9 +121,7 @@ let get_csp_server_port_sp = get_csp_server_port
 
 let get_csp_original_full_path () =
   if Eliom_process.history_api then
-    match Url.Current.get () with
-    | Some (Url.Http url) | Some (Url.Https url) -> url.Url.hu_path
-    | _ -> assert false
+    Eliom_process.info.Eliom_common.cpi_original_full_path
   else
     remove_first_slash Url.Current.path
 
