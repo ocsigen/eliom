@@ -380,10 +380,16 @@ module Unit : "sigs/eliom_reg.mli"
     information about {% <<a_manual chapter="outputs"
     fragment="redirections"|Redirections outputs>>%}.
 
-    If you give the optional parameter [~options:`Permanent] to
-    {!Redirections.register}, the returned HTTP code will be [301
-    Moved Permanently]. The default value id [`Temporary] and returns
-    [307 Temporary Redirect].
+    The default returned HTTP code is [302 Found]. You could use the
+    optional parameter [~options] to change this value:
+
+    - [`MovedPermanently] to return [301 Moved Permanently].
+    - [`Found] to return [302 Found].
+    - [`SeeOther] to return [303 See Other].
+    - [`NotNodifed] to return [304 Not Modified].
+    - [`UseProxy] to return [305 Use Proxy].
+    - [`TemporaryRedirect] to return [301 Temporary Redirect].
+
 *)
 module Redirection : "sigs/eliom_reg_alpha_return.mli"
   subst type page :=
@@ -391,7 +397,12 @@ module Redirection : "sigs/eliom_reg_alpha_return.mli"
        [ `WithoutSuffix ],
        unit, unit, Eliom_services.registrable, 'b)
       Eliom_services.service
-  and type options := [ `Temporary | `Permanent ]
+  and type options := [ `MovedPermanently
+		      | `Found
+		      | `SeeOther
+		      | `NotNodifed
+		      | `UseProxy
+		      | `TemporaryRedirect ]
   and type return  := 'b
   and type result  := ('a, 'b) kind
 
@@ -401,14 +412,20 @@ module Redirection : "sigs/eliom_reg_alpha_return.mli"
     fragment="redirections"|Redirections outputs>>%}. The URL given
     must be an absolute URI.
 
-    See {!Redirections} for a description of the [~options]
-    optional parameters.
+    The default returned HTTP code is [302 Found]. You could use the
+    optional parameter [~options] to change this value, see
+    {!Redirections} for a detailled description.
 
     This an instance of the {!Registration} abstract signature.
 *)
 module String_redirection : "sigs/eliom_reg.mli"
   subst type page    := Url.uri
-  and type options := [ `Temporary | `Permanent ]
+  and type options := [ `MovedPermanently
+		      | `Found
+		      | `SeeOther
+		      | `NotNodifed
+		      | `UseProxy
+		      | `TemporaryRedirect ]
   and type return  := http_service
   and type result  := (browser_content, http_service) kind
 

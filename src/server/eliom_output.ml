@@ -2759,7 +2759,12 @@ end
 module String_redir_reg_base = struct
 
   type page = Url.uri
-  type options = [ `Temporary | `Permanent ]
+  type options = [ `MovedPermanently
+		 | `Found
+		 | `SeeOther
+		 | `NotNodifed
+		 | `UseProxy
+		 | `TemporaryRedirect ]
   type return = http_service
   type result = (browser_content, http_service) kind
 
@@ -2768,7 +2773,7 @@ module String_redir_reg_base = struct
   let send_appl_content = Eliom_services.XAlways
   (* actually, the service will decide itself *)
 
-  let send ?(options = `Temporary) ?charset ?code
+  let send ?(options = `Found) ?charset ?code
       ?content_type ?headers content =
     let uri = content in
     let empty_result = Ocsigen_http_frame.empty_result () in
@@ -2797,9 +2802,13 @@ module String_redir_reg_base = struct
       let code = match code with
         | Some c -> c
         | None ->
-          if options = `Temporary
-          then 307 (* Temporary move *)
-          else 301 (* Moved permanently *)
+	  match options with
+	  | `MovedPermanently -> 301
+	  | `Found -> 302
+	  | `SeeOther -> 303
+	  | `NotNodifed -> 304
+	  | `UseProxy -> 305
+	  | `TemporaryRedirect -> 306
       in
       Lwt.return
         {empty_result with
@@ -2831,7 +2840,12 @@ module Redir_reg_base = struct
        unit, unit, Eliom_services.registrable, 'b)
         Eliom_services.service
 
-  type options = [ `Temporary | `Permanent ]
+  type options =  [ `MovedPermanently
+		  | `Found
+		  | `SeeOther
+		  | `NotNodifed
+		  | `UseProxy
+		  | `TemporaryRedirect ]
 
   type 'a return = 'a
 
@@ -2842,7 +2856,7 @@ module Redir_reg_base = struct
   let send_appl_content = Eliom_services.XAlways
   (* actually, the service will decide itself *)
 
-  let send ?(options = `Temporary) ?charset ?code
+  let send ?(options = `Found) ?charset ?code
       ?content_type ?headers service =
     let uri = lazy (Xhtml.make_string_uri ~absolute:true ~service ()) in
     let empty_result = Ocsigen_http_frame.empty_result () in
@@ -2875,9 +2889,13 @@ module Redir_reg_base = struct
         let code = match code with
           | Some c -> c
           | None ->
-            if options = `Temporary
-            then 307 (* Temporary move *)
-            else 301 (* Moved permanently *)
+	  match options with
+	  | `MovedPermanently -> 301
+	  | `Found -> 302
+	  | `SeeOther -> 303
+	  | `NotNodifed -> 304
+	  | `UseProxy -> 305
+	  | `TemporaryRedirect -> 306
         in
         Lwt.return
           {empty_result with
