@@ -534,17 +534,12 @@ module Streamlist : "sigs/eliom_reg.mli"
     project="tutorial" chapter="interaction"| Eliom tutorial>>%} for
     example. *)
 module Customize :
-  functor (B : sig type options type return type page type result end) ->
-    functor (R : Registration
-	     with type options := B.options
-	     and type return  := B.return
-	     and type page    := B.page
-	     and type result  := B.result) ->
-      functor (T : sig type page val translate : page -> B.page Lwt.t end) -> Registration
-  with type options := B.options
-  and type return  := B.return
+    functor (R : Registration) ->
+      functor (T : sig type page val translate : page -> R.page Lwt.t end) -> Registration
+  with type options := R.options
+  and type return  := R.return
   and type page    := T.page
-  and type result  := B.result
+  and type result  := R.result
 
 (** {2 Using your own error pages} *)
 

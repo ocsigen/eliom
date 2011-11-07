@@ -1876,17 +1876,13 @@ end
 module type Forms = "sigs/eliom_forms.mli"
 
 module Customize
-  (B : sig type options type return type page type result end)
-  (R : Registration with type options := B.options
-		    and type return  := B.return
-		    and type page    := B.page
-                    and type result  := B.result)
-  (T : sig type page val translate : page -> B.page Lwt.t end) = struct
+  (R : Registration)
+  (T : sig type page val translate : page -> R.page Lwt.t end) = struct
 
     type page = T.page
-    type return = B.return
-    type options = B.options
-    type result = B.result
+    type return = R.return
+    type options = R.options
+    type result = R.result
 
   let make_eh = function
     | None -> None
