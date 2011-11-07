@@ -39,20 +39,17 @@ module Xhtml = struct
       | _ -> classes
 
   let same_service_opt s sopt =
-    let same_url url = make_uri ~absolute_path:true ~service:s () = url in
+    let same_url url = make_string_uri ~absolute_path:true ~service:s () = url in
     match sopt with
-      | None -> same_url
-        (uri_of_string
-          (* MAYBE : use this or get_original_full_path_string *)
-          Eliom_request_info.get_current_sub_path_string)
-      | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ())
+      | None -> same_url (Eliom_request_info.get_current_sub_path_string ())
+        (* MAYBE : use this or get_original_full_path_string *)
+      | Some s' -> same_url (make_string_uri ~absolute_path:true ~service:s' ())
   let same_service_opt s sopt =
-    let same_url url = make_uri ~service:s () = url in
+    let same_url url = make_string_uri ~service:s () = url in
     match sopt with
       | None ->
-	same_url (uri_of_string
-                    Eliom_request_info.get_current_sub_path_string)
-      | Some s' -> same_url (make_uri ~service:s' ())
+	same_url (Eliom_request_info.get_current_sub_path_string ())
+      | Some s' -> same_url (make_string_uri ~service:s' ())
 
 
 
@@ -327,19 +324,16 @@ module Html5 = struct
       | _ -> classes
 
   let same_service_opt s sopt =
-    let same_url url = make_uri ~absolute_path:true ~service:s () = url in
+    let same_url url = make_string_uri ~absolute_path:true ~service:s () = url in
     match sopt with
-      | None -> same_url
-        (uri_of_string
+      | None -> same_url (Eliom_request_info.get_current_sub_path_string ())
            (* MAYBE : use this or get_original_full_path_string *)
-           Eliom_request_info.get_current_sub_path_string)
-      | Some s' -> same_url (make_uri ~absolute_path:true ~service:s' ())
+      | Some s' -> same_url (make_string_uri ~absolute_path:true ~service:s' ())
   let same_service_opt s sopt =
-    let same_url url = make_uri ~service:s () = url in
+    let same_url url = make_string_uri ~service:s () = url in
     match sopt with
-      | None -> same_url (uri_of_string
-                            Eliom_request_info.get_current_sub_path_string)
-      | Some s' -> same_url (make_uri ~service:s' ())
+      | None -> same_url (Eliom_request_info.get_current_sub_path_string ())
+      | Some s' -> same_url (make_string_uri ~service:s' ())
 
 
 
