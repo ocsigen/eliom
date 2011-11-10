@@ -48,50 +48,13 @@ let json_content_type = "application/json"
 
 exception New_connection
 
-module Cometreg_ = struct
-  open XHTML.M
-  open XHTML_types
-  open Ocsigen_http_frame
-
+module Comet_param =
+struct
   type page = string
-
-  type options = unit
-
-  type return = Eliom_output.http_service
-
-  type result = Ocsigen_http_frame.result
-
-  let result_of_http_result x = x
-
-  let send_appl_content = Eliom_services.XAlways
-
-  let code_of_code_option = function
-    | None -> 200
-    | Some c -> c
-
-  let send ?options ?charset ?code
-      ?content_type ?headers content =
-    lwt r = Ocsigen_senders.Text_content.result_of_content (content,json_content_type) in
-    Lwt.return
-      {r with
-        res_code= code_of_code_option code;
-        res_charset= (match charset with
-          | None ->  Some (Eliom_config.get_config_default_charset ())
-          | _ -> charset);
-        res_content_type= (match content_type with
-          | None -> r.res_content_type
-          | _ -> content_type
-        );
-        res_headers= (match headers with
-          | None -> r.res_headers
-          | Some headers ->
-            Http_headers.with_defaults headers r.res_headers
-        );
-      }
-
+  let translate content = Lwt.return (content,json_content_type)
 end
-
-module Comet = Eliom_mkreg.MakeRegister(Cometreg_)
+module Comet =
+  Eliom_output.Customize ( Eliom_output.String ) ( Comet_param )
 
 let fallback_service =
   Eliom_common.lazy_site_value_from_fun

@@ -66,8 +66,8 @@ FILES := eliom_wrap.ml eliom_lazy.ml \
          eliom_uri.ml \
 	 eliom_mkforms.ml \
 	 eliom_mkreg.ml \
-	 eliom_comet_base.ml eliom_comet.ml  \
 	 eliom_output_base.ml eliom_output.ml \
+	 eliom_comet_base.ml eliom_comet.ml  \
          eliom_tools_common.ml \
 	 eliom_tools.ml \
 	 eliom_react.ml \
