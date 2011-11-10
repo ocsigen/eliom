@@ -225,7 +225,41 @@ is usually much more complicated.
 
 ===@@id="customize"@@Customize a registration module
 
-<<wip|To be written>>
+Using <<a_api | module Eliom_output.Customize>> you can specialise a
+registration function to avoid code duplication. You can for instance
+for each service add parameters before calling the service handler, or
+modify the answer.
+
+A classical use is to check wether a user is logged in before serving
+the content of a page. That way, we don't need to do the check in
+every service handler and we can get directly the user informations.
+
+In this example, we check if we are in a session group telling that
+the user is connected. If it not the case, we generate a login
+page. When we are in a group, we retrieve the user informations and
+pass it to the service handler. It returns a title and the content of
+the body. That way, it also always generate the same css without code
+duplication.
+
+<<code language="ocaml"|
+module Connected_param =
+struct
+  type page = user_informations -> Eliom_output.Html5.page Lwt.t
+  let translate page =
+    match Eliom_state.get_volatile_data_session_group
+      ~scope:Eliom_common.session () with
+	| None -> login_page ()
+	| Some group_name ->
+	  lwt user_info = get_user_info group_name in
+	  lwt (page_title,content) = page user_info in
+	  return (html (head (title (pcdata page_title))
+	                 [ Some css and things like that ])
+	               (body content))
+end
+
+module Connected =
+  Eliom_output.Customize ( Eliom_output.Html5 ) ( Connected_param )
+>>
 
 ===@@id="any"@@Registering services that decide what they want to send===
 
@@ -235,7 +269,8 @@ To do that, use the <<a_api| module Eliom_output.Any >> module,
 together with the <<span class="code"|send>> function of the module
 you want to use. Example:
 
-<<code language="ocaml"|let send_any =
+<<code language="ocaml"|
+let send_any =
   Eliom_output.Any.register_service
     ~path:["sendany"]
     ~get_params:(string "type")
@@ -312,11 +347,79 @@ address instead. You should not use that on POST services: Leaving the
 application sending POST parameters is not always possible and the
 request will be performed 2 times.
 
-<<wip|Example of Any with application + file>>
+For instance if you want to serve files if they exists and generate
+some error message with client side code otherwise, you should do
+something like that.
+
+<<code language="ocaml"|
+let file_or_application =
+  Eliom_output.Any.register_service
+    ~path:["file_or_application"]
+    ~get_params:(string "filename")
+   (fun filename () ->
+     if Eliom_output.Files.check_file filename
+     then
+       Eliom_output.appl_self_redirect Eliom_output.Files.send filename
+     else
+       My_application.send ~code:404
+         (html
+           (head (title (pcdata "no page")) [])
+           (body [p ~a:[a_onclick {{ do some client action }}]
+	     [pcdata "the file does not exist"]])))
+>>
 
 Unknown content can be casted to browser content using <<a_api| val
 Eliom_output.cast_unknown_content_kind >>.
 
 ===@@id="creating"@@Creating your own output modules===
 
-<<wip|To be written>>
+When you need to declare some kind of specific service, you may need
+to create your own registration module: For instance here we define a
+module serving integers as text. Notice that in that case you can and
+should use customize instead.
+
+For that you need to use the <<a_api | module Eliom_mkreg.MakeRegister>> functor.
+
+<<code language="ocaml" |
+module Int_reg_base = struct
+
+  type page = int
+
+  type options = unit
+
+  type return = http_service
+
+  type result = (browser_content, http_service) kind
+
+  let result_of_http_result = Result_types.cast_result
+
+  let send_appl_content = Eliom_services.XNever
+
+  let send ?options ?charset ?code ?content_type ?headers content =
+    let content = string_of_int content in
+    lwt r = Ocsigen_senders.Text_content.result_of_content content in
+    Lwt.return
+      { r with
+        Ocsigen_http_frame.
+        res_code    = code_of_code_option code;
+        res_charset = (match charset with
+          | None ->  Some (Eliom_config.get_config_default_charset ())
+          | _ -> charset);
+        res_content_type = (match content_type with
+          | None -> r.Ocsigen_http_frame.res_content_type
+          | _ -> content_type
+        );
+        res_headers = (match headers with
+          | None -> r.Ocsigen_http_frame.res_headers
+          | Some headers ->
+            Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
+        );
+      }
+
+end
+
+module Int = Eliom_mkreg.MakeRegister(Int_reg_base)
+>>
+
+If your {{{page}}} type has parameters you should use <<a_api | module
+Eliom_mkreg.MakeRegister_AlphaReturn>> instead.
