@@ -82,6 +82,19 @@ module Channels : sig
       returned to the client. *)
   val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
 
+  (** [external_channel ~prefix ~name ()] declares an external
+      channel. The channel was created by an instance of Eliom serving
+      the prefix [prefix] (the prefix configured in the <site> tag of
+      the configuration file). The channel was named by [name]. Both
+      servers must run the exact same version of Eliom.
+
+      The optionnal [newest] parameters tells wethere the channel is a
+      newest one. if the channel is not newest [history] is the maximum
+      number of messages retrieved at the first request. The default
+      is [1]. *)
+  val external_channel : ?history:int -> ?newest:bool ->
+    prefix:string -> name:string -> unit -> 'a t
+
   (**/**)
 
   val get_wrapped : 'a t -> 'a Eliom_comet_base.wrapped_channel

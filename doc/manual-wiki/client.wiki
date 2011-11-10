@@ -632,19 +632,34 @@ There are 3 kind of channels depending on how you want to send data.
   For stream created with <<a_api project="lwt" | val Lwt_stream.create >>,
   this is as soon as they are pushed. If the client has missed too much
   messages ( more than the size of the buffer ) it will receive an exception
-  << a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
+  <<a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
   when reading data from the stream.
 
 * Channels created with
   <<a_api project="eliom" | val Eliom_comet.Channels.create_newest >> has no buffering
   and can loose messages, but the client will always receive the last value: For instance if many
   messages are sent in a short time, this could send only the last one. Those channels never raise
-  << a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
+  <<a_api project="eliom" subproject="client" | exception Eliom_comet.Channel_full >>
 
 * Channels created with <<a_api project="eliom" | val Eliom_comet.Channels.create_unlimited >>
   Which consume data on the stream only when their is a request from the client.
 
 Channels can be closed on client side by canceling a thread waiting for data on it.
+
+Depending on the scope used to create a channel, the channel does not
+have the same constraints.
+
+* Channels created with scope <<a_api | val Eliom_common.global >> or
+using <<a_api project="eliom" | val Eliom_comet.Channels.create_newest
+>> are stateless channels: The memory consumption does not depend on
+the number of user requesting data on it. When the channels are not
+reachable from the server code, they are garbage collected and closed.
+Named stateless can be accessed from <<a_manual chapter="client" fragment="cors_channels"|another servers>>.
+
+* The other channels must be created inside a service handler. They
+are assigned to a particular client process. Different channels
+created with the same stream does not share memory. They are closed
+when requested or when the client process is closed.
 
 ==== Comet configuration
 
@@ -681,21 +696,21 @@ The original setting will be reset after the drop.
 
 A common usage of comet is for the server to update a value available on client side.
 To do this, there are functions available to share a React event or signal:
-<< a_api project="eliom" | val Eliom_react.Down.of_react >> and
-<< a_api project="eliom" | val Eliom_react.S.Down.of_react >>
+<<a_api project="eliom" | val Eliom_react.Down.of_react >> and
+<<a_api project="eliom" | val Eliom_react.S.Down.of_react >>
 
 On client side the value returned by those function is directly a React event or signal.
 
-The contrary is also available using << a_api project="eliom" | val Eliom_react.Up.create >>.
+The contrary is also available using <<a_api project="eliom" | val Eliom_react.Up.create >>.
 
-Since this is implemented using comet, tunig comet configuration will
+Since this is implemented using comet, tunnig comet configuration will
 also affect the behaviour of shared react variables.
 
 === Client-Server shared bus
 
 Sometimes it is usefull to have a bidirectionnal channel shared between multiple clients.
 This is the intent of buses. Those are created using
-<< a_api project="eliom" | val Eliom_bus.create >>. Since the server will also receive data on
+<<a_api project="eliom" | val Eliom_bus.create >>. Since the server will also receive data on
 the bus, the description of the type ( using deriving ) is needed to create a bus.
 
 Like comet channels, the behaviour of buses can be tuned using the module
@@ -704,4 +719,18 @@ There are additionnal configurations available on buses to tune the client side 
 
 + events (à mettre dans js_of_ocaml)
 
+===@@id="cors_channels"@@ Another Server sending data (Comet on another server)
+
+It is possible to access a named stateless channel created on another
+server. It has to be declared using <<a_api | val
+Eliom_comet.Channels.external_channel>>. The declaration of the
+channel must match exactly the creation. The server generating the
+page and the server that created the channel must run exactly the same
+version of Eliom. By default a browser can't do requests to a
+different server, to allow that the server serving the channel must
+allow Cross-Origin Resource Sharing using the <<a_manual
+project="ocsigenserver" chapter="cors"|CORS Ocsigenserver
+extension>>.
+
 <<wip|A-t-on oublié qqchose ? (sûrement :/) >>
+

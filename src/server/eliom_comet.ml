@@ -32,10 +32,12 @@ module Ecb     = Eliom_comet_base
 type chan_id = string
 
 let encode_downgoing s =
-  Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Statefull_messages s)
+  Eliom_comet_base.Json_answer.to_string
+    (Eliom_comet_base.Statefull_messages (Array.of_list s))
 
 let encode_global_downgoing s =
-  Eliom_comet_base.Json_answer.to_string (Eliom_comet_base.Stateless_messages s)
+  Eliom_comet_base.Json_answer.to_string
+    (Eliom_comet_base.Stateless_messages (Array.of_list s))
 
 let timeout_msg =
  Eliom_comet_base.Json_answer.to_string Eliom_comet_base.Timeout
@@ -56,15 +58,18 @@ end
 module Comet =
   Eliom_output.Customize ( Eliom_output.String ) ( Comet_param )
 
+let comet_path = ["__eliom_comet__"]
+let comet_global_path = ["__eliom_comet_global__"]
+
 let fallback_service =
   Eliom_common.lazy_site_value_from_fun
-    (fun () -> Comet.register_service ~path:["__eliom_comet__"]
+    (fun () -> Comet.register_service ~path:comet_path
       ~get_params:Eliom_parameters.unit
       (fun () () -> Lwt.return process_closed_msg))
 
 let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun
-    (fun () -> Comet.register_service ~path:["__eliom_comet_global__"]
+    (fun () -> Comet.register_service ~path:comet_global_path
       ~get_params:Eliom_parameters.unit
       (fun () () -> Lwt.return (error_msg "request with no post parameters or there isn't any registered global comet channel")))
 
@@ -86,6 +91,8 @@ module Stateless : sig
   val get_service : unit -> Ecb.comet_service
 
   val get_kind : newest:bool -> channel -> Ecb.stateless_kind
+
+  val chan_id_of_string : string -> 'a Ecb.chan_id
 
 end =
 struct
@@ -149,8 +156,11 @@ struct
     in
     ignore (Lwt_stream.iter_s f stream:unit Lwt.t)
 
+  let make_name name = "stateless:"^name
+  let chan_id_of_string name = Ecb.chan_id_of_string (make_name name)
+
   let create ?(name=new_id ()) ~size stream =
-    let name = "stateless:"^name in
+    let name = make_name name in
     let channel =
       { ch_id = name;
 	ch_index = 0;
@@ -192,7 +202,8 @@ struct
 	(* when the client is requesting the newest data, only return
 	   one if he don't already have it *)
 	| Ecb.Newest i when i > channel.ch_index -> []
-	| Ecb.Newest i ->
+	| Ecb.Newest _
+	| Ecb.Last None -> (* initialisation of external newest channels *)
 	  (match Dlist.newest channel.ch_content with
 	    | None -> [] (* should not happen *)
 	    | Some node ->
@@ -206,6 +217,9 @@ struct
 	  [channel.ch_id,Ecb.Full]
 	| Ecb.After i ->
 	  queue_take channel i
+	| Ecb.Last (Some n) ->
+          let i = channel.ch_index - (min (Dlist.size channel.ch_content) n) in
+	  queue_take channel i
 
   let has_data = function
     | Right _ -> true (* a channel was closed: need to tell it to the client *)
@@ -215,6 +229,8 @@ struct
 	| Ecb.Newest i -> true
 	| Ecb.After i when i > channel.ch_index -> false
 	| Ecb.After i -> true
+        | Ecb.Last n when (Dlist.size channel.ch_content) > 0 -> true
+        | Ecb.Last n -> false
 
   let really_wait_data requests =
     let rec make_list = function
@@ -234,7 +250,7 @@ struct
   let handle_request () = function
     | Ecb.Statefull _ -> failwith "attempting to request data on stateless service with a statefull request"
     | Ecb.Stateless requests ->
-      let requests = List.map get_channel requests in
+      let requests = List.map get_channel (Array.to_list requests) in
       lwt res =
 	try_lwt
           lwt () = wait_data requests in
@@ -286,6 +302,8 @@ end = struct
 
   type comet_service = Ecb.comet_service
 
+  type internal_comet_service = Ecb.internal_comet_service
+
   type handler =
       {
 	hd_scope : Eliom_common.client_process_scope;
@@ -299,7 +317,7 @@ end = struct
 	mutable hd_update_streams : unit Lwt.t;
 	(** thread that wakeup when there are new active streams. *)
 	mutable hd_update_streams_w : unit Lwt.u;
-	hd_service : comet_service;
+	hd_service : internal_comet_service;
 	mutable hd_last : string * int;
         (** the last message sent to the client, if he sends a request
 	    with the same number, this message is immediately sent
@@ -412,7 +430,8 @@ end = struct
       | Ecb.Statefull (Ecb.Commands commands) ->
 	List.iter (function
 	  | Ecb.Register channel -> register_channel handler channel
-	  | Ecb.Close channel -> close_channel' handler channel) commands;
+	  | Ecb.Close channel -> close_channel' handler channel)
+          (Array.to_list commands);
 	      (* command connections are replied immediately by an
 		 empty answer *)
 	Lwt.return (encode_downgoing [])
@@ -527,7 +546,7 @@ end = struct
     ch_id
 
   let get_service chan =
-    chan.ch_handler.hd_service
+    (chan.ch_handler.hd_service:>comet_service)
 
 end
 
@@ -551,12 +570,16 @@ sig
 
   val get_wrapped : 'a t -> 'a Ecb.wrapped_channel
 
+  val external_channel : ?history:int -> ?newest:bool ->
+    prefix:string -> name:string -> unit -> 'a t
+
 end = struct
 
   type 'a channel =
     | Stateless of Stateless.channel
     | Stateless_newest of Stateless.channel
     | Statefull of Statefull.t
+    | External of 'a Ecb.wrapped_channel
 
   type 'a t = {
     channel : 'a channel;
@@ -579,6 +602,7 @@ end = struct
 	  (Stateless.get_service (),
 	   Ecb.chan_id_of_string (Stateless.get_id channel),
 	   Stateless.get_kind ~newest:true channel)
+      | External wrapped -> wrapped
 
   let internal_wrap c =
     (get_wrapped c,Eliom_common.make_unwrapper Eliom_common.comet_channel_unwrap_id)
@@ -675,6 +699,20 @@ end = struct
       | Some ((`Client_process n) as scope) -> create_statefull ~scope ?name ~size stream
       | Some `Global -> create_stateless ?name ~size stream
 
+  let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =
+    let service = Eliom_services.external_post_service
+      ~prefix
+      ~path:comet_global_path
+      ~get_params:Eliom_parameters.unit
+      ~post_params:Ecb.comet_request_param
+      ()
+    in
+    let last = if newest then None else Some history in
+    { channel = External (Ecb.Stateless_channel
+                            (service,
+                             Stateless.chan_id_of_string name,
+                             Ecb.Last_kind last));
+      channel_mark = channel_mark () }
 
 end
 

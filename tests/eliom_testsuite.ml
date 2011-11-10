@@ -425,6 +425,10 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               a comet_message_board_stateless [pcdata "Minimalistic stateless message board"] ();
               br ();
             ];
+            h5 [pcdata "external"];
+            p [
+	      a comet_stateless_external [pcdata "comet channel on another server"] ();
+            ];
             h4 [pcdata "More tests"];
             p [
               a appl_redir [pcdata "Eliom applications and redirections"] ();

@@ -1126,6 +1126,11 @@ let rand_tick =
     incr i; Lwt.return (Some !i)
 let stream_sl = Lwt_stream.from rand_tick
 let stateless_channel = Eliom_comet.Channels.create ~scope:`Global ~name:"stateless" stream_sl
+let external_stateless_channel : int Eliom_comet.Channels.t =
+  Eliom_comet.Channels.external_channel
+    ~prefix:"http://localhost:8080"
+    ~name:"stateless"
+    ()
 
 let comet_stateless =
   My_appl.register_service
@@ -1151,6 +1156,34 @@ let comet_stateless =
              [pcdata "Comet channel with no client specific server side state."] ;
          ])
     )
+
+let comet_stateless_external =
+  My_appl.register_service
+    ~path:["comet_stateless_external"]
+    ~get_params:unit
+    (fun () () ->
+
+       Eliom_services.onload
+         {{
+	   let _ = Lwt_stream.iter_s
+           (fun i ->
+             Dom.appendChild (Dom_html.document##body)
+               (Dom_html.document##createTextNode
+                  (Js.string ("msg: "^ string_of_int i ^";  "))) ;
+             Lwt.return ()
+           ) %external_stateless_channel in
+	   ()
+         }};
+
+       Lwt.return
+         (make_page [
+           div
+             [pcdata "External Comet channel: access the channel at http://localhost:8080.";
+              br ();
+             pcdata "If it is another server, that server must run the Cross-Origin Resource Sharing extension of ocsigenserver to allow requests from this page."];
+         ])
+    )
+
 
 let time =
   let t = Unix.gettimeofday () in

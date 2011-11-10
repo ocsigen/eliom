@@ -27,9 +27,10 @@ external chan_id_of_string : string -> 'a chan_id = "%identity"
 type position =
   | Newest of int
   | After of int
+  | Last of int option (* None means this is a 'newest channel' *)
 deriving (Json)
 
-type comet_stateless_request = (string*position) list
+type comet_stateless_request = (string*position) array
 deriving (Json)
 
 type command =
@@ -39,7 +40,7 @@ deriving (Json)
 
 type comet_statefull_request =
   | Request_data of int
-  | Commands of command list
+  | Commands of command array
 deriving (Json)
 
 type comet_request =
@@ -57,8 +58,8 @@ type 'a channel_data =
 deriving (Json)
 
 type answer =
-  | Stateless_messages of ( string * (string * int) channel_data ) list
-  | Statefull_messages of ( string * string channel_data ) list
+  | Stateless_messages of ( string * (string * int) channel_data ) array
+  | Statefull_messages of ( string * string channel_data ) array
   | Timeout
   | Process_closed
   | Comet_error of string
@@ -66,15 +67,26 @@ deriving (Json)
 
 type comet_service =
     (unit, comet_request,
+     Eliom_services.service_kind,
+     [ `WithoutSuffix ], unit,
+     [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name,
+     Eliom_services.registrable,
+     Eliom_output.http_service )
+      Eliom_services.service
+
+type internal_comet_service =
+    (unit, comet_request,
      Eliom_services.internal_service_kind,
      [ `WithoutSuffix ], unit,
-     [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
+     [ `One of comet_request Eliom_parameters.caml ] Eliom_parameters.param_name,
+     [ `Registrable ],
      Eliom_output.http_service )
       Eliom_services.service
 
 type stateless_kind =
   | After_kind of int
   | Newest_kind of int
+  | Last_kind of int option
 
 type 'a wrapped_channel =
   | Statefull_channel of (comet_service * 'a chan_id)

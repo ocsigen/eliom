@@ -215,10 +215,17 @@ let set_expired_sessions ri closedservsessions =
 
 open Ocsigen_extensions
 
+let handled_method = function
+  | Ocsigen_http_frame.Http_header.GET
+  | Ocsigen_http_frame.Http_header.HEAD
+  | Ocsigen_http_frame.Http_header.POST -> true
+  | _ -> false
+
 let gen is_eliom_extension sitedata = function
 | Ocsigen_extensions.Req_found _ -> 
     Lwt.return Ocsigen_extensions.Ext_do_nothing
-| Ocsigen_extensions.Req_not_found (404 as previous_extension_err, req) ->
+| Ocsigen_extensions.Req_not_found (404 as previous_extension_err, req)
+  when handled_method req.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_method ->
   let now = Unix.time () in
   Eliom_common.get_session_info req previous_extension_err
   >>= fun (ri, si, previous_tab_cookies_info) ->

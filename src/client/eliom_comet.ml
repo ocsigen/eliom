@@ -263,14 +263,6 @@ struct
 
   let max_retries = 5
 
-  type callable_comet_service =
-      (unit, Ecb.comet_request,
-       Eliom_services.service_kind,
-       [ `WithoutSuffix ], unit,
-       [ `One of Ecb.comet_request Eliom_parameters.caml ] Eliom_parameters.param_name, [ `Registrable ],
-       Eliom_output.http_service )
-	Eliom_services.service
-
   let call_service_after_load_end service p1 p2 =
     lwt () = Eliom_client.wait_load_end () in
     Eliom_client.call_service service p1 p2
@@ -280,7 +272,7 @@ struct
       | Statefull_state count -> (Ecb.Statefull (Ecb.Request_data !count))
       | Stateless_state map ->
 	let l = String.Table.fold (fun channel position l -> (channel,position)::l) !map [] in
-	Ecb.Stateless l
+	Ecb.Stateless (Array.of_list l)
 
   let stop_waiting hd chan_id =
     hd.hd_activity.active_channels <- String.Set.remove chan_id hd.hd_activity.active_channels;
@@ -304,11 +296,14 @@ struct
     match pos with
       | Ecb.Newest _ -> Ecb.Newest value
       | Ecb.After _ -> Ecb.After value
+      | Ecb.Last None -> Ecb.Newest value
+      | Ecb.Last (Some _) -> Ecb.After value
 
   let position_value pos =
     match pos with
       | Ecb.Newest i
       | Ecb.After i -> i
+      | Ecb.Last _ -> 0
 
   let update_stateless_state hd (message:stateless_message) =
     match hd.hd_state with
@@ -337,7 +332,7 @@ struct
   let call_service hd =
     lwt () = Configuration.sleep_before_next_request () in
     let request = make_request hd in
-    lwt s = call_service_after_load_end (hd.hd_service:>callable_comet_service) ()
+    lwt s = call_service_after_load_end hd.hd_service ()
 	request in
     Lwt.return (Ecb.Json_answer.from_string s)
 
@@ -369,9 +364,11 @@ struct
 	      | Ecb.Process_closed -> Lwt.fail Process_closed
 	      | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
 	      | Ecb.Stateless_messages l ->
+                let l = Array.to_list l in
 		update_stateless_state hd l;
 		Lwt.return (drop_message_index l)
 	      | Ecb.Statefull_messages l ->
+                let l = Array.to_list l in
 		update_statefull_state hd l;
 		Lwt.return l
           with
@@ -396,7 +393,7 @@ struct
   let call_commands hd command =
     ignore
       (try_lwt
-	  call_service_after_load_end (hd.hd_service:>callable_comet_service) ()
+	  call_service_after_load_end hd.hd_service ()
 	    (Ecb.Statefull (Ecb.Commands command))
        with
 	 | e -> debug "Eliom_comet: request failed: exception %s" (Printexc.to_string e);
@@ -406,19 +403,20 @@ struct
     match hd.hd_state with
       | Statefull_state _ ->
 	stop_waiting hd chan_id;
-	call_commands hd [Ecb.Close chan_id]
+	call_commands hd [|Ecb.Close chan_id|]
       | Stateless_state map ->
 	map := String.Table.remove chan_id !map
 
   let add_channel_statefull hd chan_id =
     hd.hd_activity.active_channels <- String.Set.add chan_id hd.hd_activity.active_channels;
-    call_commands hd [Eliom_comet_base.Register chan_id]
+    call_commands hd [|Eliom_comet_base.Register chan_id|]
 
   let add_channel_stateless hd chan_id kind =
     let pos =
       match kind with
 	| Ecb.Newest_kind i -> Ecb.Newest i
 	| Ecb.After_kind i -> Ecb.After i
+	| Ecb.Last_kind i -> Ecb.Last i
     in
     hd.hd_activity.active_channels <- String.Set.add chan_id hd.hd_activity.active_channels;
     match hd.hd_state with
