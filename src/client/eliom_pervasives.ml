@@ -503,8 +503,8 @@ let lwt_ignore ?(message="") t = Lwt.on_failure t (fun e -> debug_exn "%s" e mes
 (* We do not use the deriving (un)marshaling even if typ is available
    because direct jsn (un)marshaling is very fast client side
 *)
-let to_json ?typ s = Js.to_string (Json.output ~encoding:`Byte s)
-let of_json ?typ v = Json.unsafe_input ~encoding:`Byte (Js.string v)
+let to_json ?typ s = Js.to_string (Json.output s)
+let of_json ?typ v = Json.unsafe_input (Js.string v)
 
 (* to marshal data and put it in a form *)
 let encode_form_value x = to_json x
