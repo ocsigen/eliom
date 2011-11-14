@@ -292,7 +292,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     (* Extending syntax *)
     EXTEND Gram
-    GLOBAL: str_item expr module_expr;
+    GLOBAL: str_item expr str_items;
 
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
@@ -347,10 +347,9 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
               current_level := Module_expr;
               old ]];
 
-      module_expr: BEFORE "top"
-
+      str_items: FIRST
 	[[ lvl = dummy_set_level_module_expr;
-	   me = module_expr LEVEL "top" -> current_level := lvl; me ]];
+	   me = SELF -> current_level := lvl; me ]];
 
 
       (* To str_item we add {client{ ... }}, {server{ ... }} and {shared{ ... }} *)
