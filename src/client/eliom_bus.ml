@@ -26,7 +26,7 @@ module Ecb = Eliom_comet_base
 type 'a t =
     {
       channel : 'a Ecb.wrapped_channel;
-      stream : 'a Lwt_stream.t;
+      stream : 'a Lwt_stream.t Lazy.t;
       queue : 'a Queue.t;
       mutable max_size : int;
       write : 'a list -> unit Lwt.t;
@@ -66,8 +66,12 @@ let create service channel waiter =
       ~service:(service:>'a callable_bus_service) () x in
     Lwt.return ()
   in
-  let stream = Eliom_comet.register channel in
-  let t = {
+  let rec stream =
+    lazy (let stream = Eliom_comet.register channel in
+	  (* iterate on the stream to consume messages: avoid memory leak *)
+	  let _ = Lwt_stream.iter (fun _ -> ()) (map_exn stream t) in
+	  stream)
+  and t = {
     channel;
     stream;
     queue = Queue.create ();
@@ -86,8 +90,6 @@ let create service channel waiter =
     t.original_stream_available <- false;
     Lwt.return ()
   in
-  (* iterate on the stream to consume messages: avoid memory leak *)
-  let _ = Lwt_stream.iter (fun _ -> ()) (map_exn stream t) in
   t
 
 let internal_unwrap ((wrapped_bus:'a Ecb.wrapped_bus),unwrapper) =
@@ -98,7 +100,7 @@ let internal_unwrap ((wrapped_bus:'a Ecb.wrapped_bus),unwrapper) =
 let () = Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
 let stream t =
-  map_exn (Lwt_stream.clone t.stream) t
+  map_exn (Lwt_stream.clone (Lazy.force t.stream)) t
 
 let original_stream t =
   if Eliom_client.in_onload () && t.original_stream_available
