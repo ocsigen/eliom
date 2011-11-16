@@ -23,11 +23,18 @@
 type 'a t
 
 val stream : 'a t -> 'a Lwt_stream.t
-(** [stream b] returns the stream of datas sent to bus [b]. Notice you
-    sould not use that function multiple times on the same bus in the
-    same client process, it will return the same stream. If you want
-    to receive mutiple times the same datas, you sould copy the stream
-    with [Lwt_stream.clone] *)
+(** [stream b] returns the stream of datas sent to bus [b]. A new
+    stream is created each time this function is called. Some messages
+    from the bus can be lost if they were sent before the call to
+    [stream]. If you need to receive every message, use original stream
+    instead. *)
+
+val original_stream : 'a t -> 'a Lwt_stream.t
+(** [stream b] returns the stream of datas sent to bus [b]. A new
+    stream is created each time this function is called. Every
+    messages sent to the bus after the generation of the page are
+    received. This function can be called only in the onload event
+    handler, if called outside, it will raise a Failure. *)
 
 val write : 'a t -> 'a -> unit Lwt.t
 (** [write b v] send [v] to the bus [b]. Every participant of the bus

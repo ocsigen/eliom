@@ -424,6 +424,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a comet_message_board_stateless [pcdata "Minimalistic stateless message board"] ();
               br ();
+              a bus_multiple_times [pcdata "Bus stream used multiple times"] ();
+              br ();
             ];
             h5 [pcdata "external"];
             p [

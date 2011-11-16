@@ -1114,6 +1114,58 @@ let _ =
     (Eliom_bus.stream message_bus)
 let comet_message_board = comet_message_board_maker "message_board" message_bus
 
+(* bus stream received multiple times *)
+
+let multiple_bus = Eliom_bus.create ~size:10 Json.t<int>
+let multiple_bus_stateless = Eliom_bus.create ~scope:`Global ~size:10 Json.t<int>
+
+let multiple_bus_position = ref 0
+
+let _ =
+  let rec tick () =
+    lwt () = Lwt_unix.sleep 1. in
+    Eliom_bus.write multiple_bus !multiple_bus_position;
+    Eliom_bus.write multiple_bus_stateless !multiple_bus_position;
+    incr multiple_bus_position;
+    tick ()
+  in tick ()
+
+let bus_multiple_times =
+  My_appl.register_service
+    ~path:["multiple_bus"]
+    ~get_params:unit
+    (fun () () ->
+      let container = unique (ul [li [em [pcdata "there will be lines"]]]) in
+      let onload s message_bus = {{
+	  let _ =
+	    try_lwt
+	      Lwt_stream.iter_s
+		(fun msg ->
+                  Dom.appendChild (Eliom_client.Html5.of_element %container)
+                    (Eliom_client.Html5.of_li (li [pcdata (Printf.sprintf "stream %s: %i" %s msg)]));
+                  Lwt.return ())
+		(Eliom_bus.original_stream %message_bus)
+	     with
+	       | Eliom_comet.Channel_full ->
+		 Dom.appendChild (Eliom_client.Html5.of_element %container)
+                   (Eliom_client.Html5.of_li (li [pcdata "channel full, no more messages"]));
+		 Lwt.return ()
+	       | e -> Lwt.fail e;
+	  in ()
+        }} in
+      Eliom_services.onload (onload "statefull 1" multiple_bus);
+      Eliom_services.onload (onload "statefull 2" multiple_bus);
+      Eliom_services.onload (onload "statefull 3" multiple_bus);
+      Eliom_services.onload (onload "stateless 1" multiple_bus_stateless);
+      Eliom_services.onload (onload "stateless 2" multiple_bus_stateless);
+      Eliom_services.onload (onload "stateless 3" multiple_bus_stateless);
+      Lwt.return (make_page [ h2 [pcdata "Multiple streams from one bus"];
+			      br ();
+			      pcdata (Printf.sprintf "original position: %i" !multiple_bus_position);
+			      br ();
+			      container;])
+    )
+
 (*wiki*
 ===Stateless comet channels
  *wiki*)

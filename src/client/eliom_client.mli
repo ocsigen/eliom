@@ -120,6 +120,9 @@ val change_url :
 (** wait for the loading phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t
 
+(** true if the function is executed inside the loading phase *)
+val in_onload : unit -> bool
+
 (** register a function to be called on page change *)
 val on_unload : (unit -> unit) -> unit
 

@@ -418,6 +418,8 @@ let load_eliom_data js_data page =
     [fun () -> List.for_all (fun f -> f unload_evt) on_unload];
   add_onclick_events :: on_load @ [broadcast_load_end]
 
+let in_onload () = !loading_phase
+
 let wait_load_end () =
   if !loading_phase
   then Lwt_condition.wait load_end
