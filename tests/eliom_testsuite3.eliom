@@ -1108,7 +1108,7 @@ let comet_message_board_maker name message_bus =
          ]))
     )
 
-let message_bus = Eliom_bus.create ~size:10 Json.t<string>
+let message_bus = Eliom_bus.create ~scope:Eliom_common.client_process ~size:10 Json.t<string>
 let _ =
   Lwt_stream.iter (fun msg -> Printf.printf "msg: %s\n%!" msg)
     (Eliom_bus.stream message_bus)
@@ -1116,8 +1116,9 @@ let comet_message_board = comet_message_board_maker "message_board" message_bus
 
 (* bus stream received multiple times *)
 
-let multiple_bus = Eliom_bus.create ~size:10 Json.t<int>
-let multiple_bus_stateless = Eliom_bus.create ~scope:`Global ~size:10 Json.t<int>
+let multiple_bus = Eliom_bus.create ~scope:Eliom_common.client_process ~name:"multiple_bus" ~size:10 Json.t<int>
+let _ = Lwt_stream.iter (fun _ -> ()) (Eliom_bus.stream multiple_bus)
+let multiple_bus_stateless = Eliom_bus.create ~name:"multiple_bus_stateless" ~scope:`Global ~size:10 Json.t<int>
 
 let multiple_bus_position = ref 0
 
@@ -1144,7 +1145,7 @@ let bus_multiple_times =
                   Dom.appendChild (Eliom_client.Html5.of_element %container)
                     (Eliom_client.Html5.of_li (li [pcdata (Printf.sprintf "stream %s: %i" %s msg)]));
                   Lwt.return ())
-		(Eliom_bus.original_stream %message_bus)
+		(Eliom_bus.stream %message_bus)
 	     with
 	       | Eliom_comet.Channel_full ->
 		 Dom.appendChild (Eliom_client.Html5.of_element %container)
@@ -1160,6 +1161,8 @@ let bus_multiple_times =
       Eliom_services.onload (onload "stateless 2" multiple_bus_stateless);
       Eliom_services.onload (onload "stateless 3" multiple_bus_stateless);
       Lwt.return (make_page [ h2 [pcdata "Multiple streams from one bus"];
+			      br ();
+			      a ~service:Eliom_services.void_coservice' [pcdata "reload"] ();
 			      br ();
 			      pcdata (Printf.sprintf "original position: %i" !multiple_bus_position);
 			      br ();

@@ -84,7 +84,12 @@ let create ?scope ?name ?size typ =
   in
   let distant_write = Eliom_services.post_coservice' ?name ~post_params () in
   Eliom_output.Action.register
-    ~scope
+    (* CCC: TODO: this service should be registered only when the bus
+       is sent to the client. The problem now is that: if ~scope is
+       client_process, then the bus can't be created globaly. if the
+       scope is global the service won't be deleted at any time. then
+       if the bus is garbage collected, the service won't. -> memory leak *)
+    (* ~scope *)
     ~options:`NoReload
     ~service:distant_write
     (fun () x -> List.iter push x ; Lwt.return ());
