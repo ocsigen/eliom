@@ -2940,3 +2940,43 @@ let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
 	   pcdata "this test need upload: add <uploaddir>/tmp/upload</uploaddir> to the configuration file";
 	   form; launch; subpage]))
 *)
+
+
+let unique_node =
+  unique (p ~a:[a_onload {{ debug "plop once ?" }}]
+		     [pcdata "unique"])
+
+let node =
+  p ~a:[a_onload {{ debug "always plop ?" }}]
+    [pcdata "not unique"]
+
+
+let unique1 =
+  Eliom_services.service
+    ~path:["appl";"unique1"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let unique2 =
+  Eliom_services.service
+    ~path:["appl";"unique2"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let _ =
+ My_appl.register
+   unique1
+   (fun () () ->
+     return
+       (make_page [h1 [pcdata "Page 1"];
+		   Eliom_output.Html5.a ~service:unique2 [pcdata "page 2"] ();
+		   unique_node; node]))
+
+let _ =
+ My_appl.register
+   unique2
+    (fun () () ->
+      return
+	(make_page [h1 [pcdata "Page 2"];
+		    Eliom_output.Html5.a ~service:unique1 [pcdata "page 1"] ();
+		    node;]))

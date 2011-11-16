@@ -370,6 +370,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a formc [pcdata "Links and forms"] ();
               br ();
+              a unique1 [pcdata "Onload event on nodes and unique nodes"] ();
+              br ();
 (*
               a xhr_form_with_file [pcdata "xhr forms with file"] ();
               br ();

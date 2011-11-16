@@ -103,28 +103,36 @@ let reify_event node ev = match ev with
   | XML.Raw ev -> Js.Unsafe.variable ev
   | XML.Caml ce -> reify_caml_event node ce
 
-let register_event_handler node (name, ev) =
+let register_event_handler node acc (name, ev) =
   let f = reify_caml_event node ev in
   assert(String.sub name 0 2 = "on");
-  Js.Unsafe.set node (Js.string name)
-    (Dom_html.handler (fun ev -> Js.bool (f ev)))
+  if name = "onload" then
+    f :: acc
+  else
+    ( Js.Unsafe.set node (Js.string name)
+	(Dom_html.handler (fun ev -> Js.bool (f ev)));
+      acc )
 
 (* == Register nodes id and event in the orginal Dom. *)
 
-let rec relink_dom node (id, attribs, children_ref_tree) =
-  List.iter
-    (register_event_handler (Js.Unsafe.coerce node : Dom_html.element Js.t))
-    attribs;
-  begin match id with
-  | None -> ()
+let rec relink_dom acc node (id, attribs, children_ref_tree) =
+  let register_event_handlers () =
+    List.fold_left
+      (register_event_handler (Js.Unsafe.coerce node : Dom_html.element Js.t))
+      acc
+      attribs in
+  let acc = match id with
+  | None -> register_event_handlers ()
   | Some id ->
       try
 	let pnode = find_node id in
 	Js.Opt.iter (node##parentNode)
-	  (fun parent -> Dom.replaceChild parent pnode node)
+	  (fun parent -> Dom.replaceChild parent pnode node);
+	[]
       with Not_found ->
-	register_node id node
-  end;
+	register_node id node;
+	register_event_handlers ()
+  in
   let children =
     List.filter
       ( fun node ->
@@ -136,18 +144,19 @@ let rec relink_dom node (id, attribs, children_ref_tree) =
 	      | Some id ->
 		id <> Js.string "_firebugConsole" )
       (Dom.list_of_nodeList (node##childNodes)) in
-  relink_dom_list children children_ref_tree
+  relink_dom_list acc children children_ref_tree
 
-and relink_dom_list nodes ref_trees =
+and relink_dom_list acc nodes ref_trees =
   match nodes, ref_trees with
   | node :: nodes, XML.Ref_node ref_tree :: ref_trees ->
-      relink_dom node ref_tree;
-      relink_dom_list nodes ref_trees
+      let acc = relink_dom acc node ref_tree in
+      relink_dom_list acc nodes ref_trees
   | nodes, XML.Ref_empty i :: ref_trees ->
-      relink_dom_list (List.chop i nodes) ref_trees
-  | _, [] -> ()
+      relink_dom_list acc (List.chop i nodes) ref_trees
+  | _, [] -> acc
   | [], _ ->
-    Firebug.console##error(Js.string "Incorrect sparse tree.")
+    Firebug.console##error(Js.string "Incorrect sparse tree.");
+    acc
 
 (* HACK: circumvent problems with Firebug ( with Firefox 3.6 ), and
    chromium addblock: They add nodes between the head and body
@@ -156,11 +165,11 @@ and relink_dom_list nodes ref_trees =
    that are not body or head. *)
 let relink_page (root:Dom.element Js.t) ref_tree =
   match ref_tree with
-    | XML.Ref_empty _ -> ()
+    | XML.Ref_empty _ -> []
     | XML.Ref_node (id,attribs,children_ref_tree) ->
-      relink_dom (root:>Dom.node Js.t) (id, attribs, []);
+      let acc = relink_dom [] (root:>Dom.node Js.t) (id, attribs, []) in
       let children = [Eliommod_dom.get_head root;Eliommod_dom.get_body root] in
-      relink_dom_list (children:>Dom.node Js.t list) children_ref_tree
+      relink_dom_list acc (children:>Dom.node Js.t list) children_ref_tree
 
 (* == Convertion from OCaml XML.elt nodes to native JavaScript Dom nodes *)
 
@@ -178,7 +187,9 @@ module Html5 = struct
 
   let rebuild_rattrib node ra = match XML.racontent ra with
     | XML.RA a -> rebuild_attrib node (XML.aname ra) a
-    | XML.RACamlEvent ev -> register_event_handler node (XML.aname ra, ev)
+    | XML.RACamlEvent ev ->
+      (* FIXME or not: onload event are ignored... *)
+      ignore(register_event_handler node [] (XML.aname ra, ev))
     | XML.RALazyStr s ->
 	node##setAttribute(Js.string (XML.aname ra), Js.string s)
     | XML.RALazyStrL (XML.Space, l) ->
@@ -401,22 +412,26 @@ let broadcast_load_end _ =
 
 let load_eliom_data js_data page =
   loading_phase := true;
-  relink_page (page :> Dom.element Js.t) js_data.Eliom_types.ejs_ref_tree;
+  let nodes_on_load =
+    relink_page (page :> Dom.element Js.t) js_data.Eliom_types.ejs_ref_tree
+  in
   Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
   let on_load =
     List.map
       (reify_event Dom_html.document##documentElement)
-      js_data.Eliom_types.ejs_onload in
+      js_data.Eliom_types.ejs_onload
+  in
   let on_unload =
     List.map
       (reify_event Dom_html.document##documentElement)
-      js_data.Eliom_types.ejs_onunload in
+      js_data.Eliom_types.ejs_onunload
+  in
   let unload_evt : #Dom_html.event Js.t =
     (Js.Unsafe.coerce Dom_html.document)##createEvent(Js.string "HTMLEvents") in
   (Js.Unsafe.coerce unload_evt)##initEvent(Js.string "unload", false, false);
   on_unload_scripts :=
     [fun () -> List.for_all (fun f -> f unload_evt) on_unload];
-  add_onclick_events :: on_load @ [broadcast_load_end]
+  add_onclick_events :: on_load @ nodes_on_load @ [broadcast_load_end]
 
 let in_onload () = !loading_phase
 
