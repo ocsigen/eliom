@@ -128,7 +128,7 @@ let rec relink_dom acc node (id, attribs, children_ref_tree) =
 	let pnode = find_node id in
 	Js.Opt.iter (node##parentNode)
 	  (fun parent -> Dom.replaceChild parent pnode node);
-	[]
+	acc
       with Not_found ->
 	register_node id node;
 	register_event_handlers ()
