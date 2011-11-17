@@ -61,9 +61,10 @@ will be associated to a secure cookie, that is a cookie that is sent
 by the browser only if the protocol is HTTPS. Use secure states to access
 confidential data, that you do not want to send through HTTP.
 
-It is possible to give a name to a state if you want several states
-for the same application (advanced use). Each state name uses
-its own cookies and you can discard data for one state name only.
+It is possible to create different scopes of the same level if you
+want several states for the same application (advanced use). Each
+scope uses its own cookies and you can discard data for one scope
+only.
 
 
 ==Eliom references==
@@ -143,50 +144,30 @@ unsafe <<span class="code"|Marshal>> module:
 
 >>
 
-===@@id="perscount"@@ Example: persistent counter
+===@@id="pers_concurency"@@ Persistent references and concurency
 
-The following piece of code defines a persistent counter of visits:
+The following piece of code defines a persistent counter:
 
 <<code language="ocaml"|
-open Lwt
-open HTML5.M
-open Eliom_parameters
-
 let myeref =
   Eliom_references.eref
     ~scope:Eliom_common.global
     ~persistent:"perscount" 0
 
-let count3 =
-  let next =
-    let mutex = Lwt_mutex.create () in
-    (fun () ->
-      Lwt_mutex.lock mutex ~>>= fun () ->
-      Eliom_references.get myeref ~>>= fun oldc ->
-      let newc = oldc + 1 in
-      Eliom_references.set myeref newc ~>>= fun () ->
-      Lwt_mutex.unlock mutex;
-      Lwt.return newc)
-  in
-  Eliom_output.Html5.register_service
-    ~path:["perscount"]
-    ~get_params:unit
-    (fun () () ->
-      next () ~>>=
-      (fun n ->
-        Lwt.return
-         (html
-          (head (title (pcdata "counter")) [])
-          (body [p [pcdata (string_of_int n)]]))))
+let next =
+  let mutex = Lwt_mutex.create () in
+  (fun () ->
+    Lwt_mutex.lock mutex ~>>= fun () ->
+    Eliom_references.get myeref ~>>= fun oldc ->
+    let newc = oldc + 1 in
+    Eliom_references.set myeref newc ~>>= fun () ->
+    Lwt_mutex.unlock mutex;
+    Lwt.return newc)
 >>
 
-As you see, we need to use a mutex, because reading or writing in the
-database introduces a Lwt cooperation point.
-
-<<| [[site:tuto/perscount| See this example here]].\\ >>
-
-To implement a counter of visits for each user (each browser), just
-use {{{~scope:Eliom_common.session}}} to the {{{eref}}} function call.
+As you see, we need to protect the access to the reference with a
+mutex, because reading or writing to a persistent reference introduces
+a Lwt cooperation point.
 
 ===Example: connection of users===
 
@@ -376,7 +357,21 @@ as you are desynchronizing the three kinds of sessions.
 
 
 
-===Named scope
+===Creating scopes
+
+There are default scopes already defined in <<a_api | module Eliom_common>>:
+
+* <<a_api | val Eliom_common.global>>
+* <<a_api | val Eliom_common.session_group>>
+* <<a_api | val Eliom_common.session>>
+* <<a_api | val Eliom_common.client_process>>
+* <<a_api | val Eliom_common.client_process_comet>>
+* <<a_api | val Eliom_common.request>>
+
+But you can create new ones if you want to be able to discard some
+part of your states selectively. Only scopes of level that can be
+discarded can be created: i.e. level session_group, session and client
+process. Those are the levels associated to cookies.
 
 By default, Eliom is using three cookies for sessions (and session groups):
 
