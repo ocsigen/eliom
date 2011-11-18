@@ -34,6 +34,7 @@ eliomdep: utils.cmo eliomdep.cmo
 ## INSTALL ##
 
 install:
+	$(INSTALL) -m 755 -d $(TEMPROOT)$(BINDIR)
 	${INSTALL} -m 755 ${COMPILER} $(TEMPROOT)${BINDIR}
 uninstall:
 	rm -f $(addprefix ${BINDIR}/,${COMPILER})
