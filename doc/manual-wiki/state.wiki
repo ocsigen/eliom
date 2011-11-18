@@ -426,7 +426,7 @@ case, the session group is named after the user name.
 Using persistant Eliom references with scope "session group" is a
 convenient way to store data about a user without having to use an
 external database. Do not hesitate to use them instead of session
-scope, as it is fits probably most your needs better than sessions.
+scope, as it fits probably most your needs better than sessions.
 
 **The use of session groups is highly encouraged!**, because:
 
