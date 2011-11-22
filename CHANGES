@@ -1,6 +1,7 @@
 ===== dev ====
 
  * Use "lazy string" for TyXML's uri representation
+ * Stateless comet channel can be registered multiple times.
 
 ===== 2.0.1 (2011-09-28) =====
 

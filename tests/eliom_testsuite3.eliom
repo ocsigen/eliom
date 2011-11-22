@@ -1035,7 +1035,9 @@ let comet_signal_maker name time =
         }};
        Lwt.return (make_page [
          h2 [pcdata "Signal"] ;
-         time_div
+         time_div;
+	 br ();
+	 a ~service:Eliom_services.void_coservice' [pcdata "reload"] ();
        ])
     )
 
