@@ -1533,79 +1533,80 @@ let my_nl_params =
     ~name:"mynlparams"
     (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
 
-let nlparams = register_service
-    ~path:["nlparams"]
-    ~get_params:(int "i")
-    (fun i () ->
-       Lwt.return
-         (html
-            (head (title (pcdata "")) [])
-            (body [p [pcdata "i = ";
-                      strong [pcdata (string_of_int i)]];
+let nlparams = service ~path:["nlparams"] ~get_params:(int "i") ()
+
+let make_body () =
+  [p [a ~service:nlparams [pcdata "without nl params"] 4];
+   p [a ~service:nlparams 
+         ~nl_params:(Eliom_parameters.add_nl_parameter
+                       Eliom_parameters.empty_nl_params_set
+                       my_nl_params
+                       (22, "oh")
+         )
+         [pcdata "with nl params"] 
+         5];
+   get_form
+     ~service:nlparams 
+     ~nl_params:(Eliom_parameters.add_nl_parameter
+                   Eliom_parameters.empty_nl_params_set
+                   my_nl_params
+                   (22, "oh")
+     )
+     (fun iname ->
+       [p [pcdata "form with hidden nl params";
+           Eliom_output.Html5.int_input 
+             ~input_type:`Text ~name:iname ();
+           Eliom_output.Html5.string_input
+             ~input_type:`Submit ~value:"Send" ()]]);
+   get_form
+     ~service:nlparams 
+     (fun iname ->
+       let (aname, sname) = 
+         Eliom_parameters.get_nl_params_names my_nl_params
+       in
+       [p [pcdata "form with nl params fiels";
+           Eliom_output.Html5.int_input 
+             ~input_type:`Text ~name:iname ();
+           Eliom_output.Html5.int_input 
+             ~input_type:`Text ~name:aname ();
+           Eliom_output.Html5.string_input 
+             ~input_type:`Text ~name:sname ();
+           Eliom_output.Html5.string_input
+             ~input_type:`Submit ~value:"Send" ()]]);
+  ]
+
+let _ = register
+  nlparams
+  (fun i () ->
+    Lwt.return
+      (html
+         (head (title (pcdata "")) [])
+         (body ((p [pcdata "i = ";
+                    strong [pcdata (string_of_int i)]])::
                    (match Eliom_parameters.get_non_localized_get_parameters
-                      my_nl_params 
+                       my_nl_params 
                     with
                       | None -> 
-                          p [pcdata "I do not have my non localized parameters"]
+                        p [pcdata "I do not have my non localized parameters"]
                       | Some (a, s) -> 
-                          p [pcdata "I have my non localized parameters, ";
-                             pcdata ("with values a = "^string_of_int a^
-                                       " and s = "^s^".")]
-                   )]))
+                        p [pcdata "I have my non localized parameters, ";
+                           pcdata ("with values a = "^string_of_int a^
+                                      " and s = "^s^".")]
+                   )::make_body ())))
 
-    )
+  )
   (*wiki*
 
     
     *wiki*)
-
 let tonlparams = register_service
     ~path:["nlparams"]
     ~get_params:unit
-    (fun i () ->
+    (fun () () ->
        Lwt.return
          (html
             (head (title (pcdata "")) [])
-            (body
-               [p [a ~service:nlparams [pcdata "without nl params"] 4];
-                p [a ~service:nlparams 
-                     ~nl_params:(Eliom_parameters.add_nl_parameter
-                                   Eliom_parameters.empty_nl_params_set
-                                   my_nl_params
-                                   (22, "oh")
-                                )
-                     [pcdata "with nl params"] 
-                     5];
-                get_form
-                  ~service:nlparams 
-                  ~nl_params:(Eliom_parameters.add_nl_parameter
-                                Eliom_parameters.empty_nl_params_set
-                                my_nl_params
-                                (22, "oh")
-                             )
-                  (fun iname ->
-                     [p [pcdata "form with hidden nl params";
-                         Eliom_output.Html5.int_input 
-                           ~input_type:`Text ~name:iname ();
-                         Eliom_output.Html5.string_input
-                           ~input_type:`Submit ~value:"Send" ()]]);
-                get_form
-                  ~service:nlparams 
-                  (fun iname ->
-                     let (aname, sname) = 
-                       Eliom_parameters.get_nl_params_names my_nl_params
-                     in
-                     [p [pcdata "form with nl params fiels";
-                         Eliom_output.Html5.int_input 
-                           ~input_type:`Text ~name:iname ();
-                         Eliom_output.Html5.int_input 
-                           ~input_type:`Text ~name:aname ();
-                         Eliom_output.Html5.string_input 
-                           ~input_type:`Text ~name:sname ();
-                         Eliom_output.Html5.string_input
-                           ~input_type:`Submit ~value:"Send" ()]]);
-               ]))
-    )
+            (body (make_body ()))))
     
 
   (*wiki*

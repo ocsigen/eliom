@@ -1234,7 +1234,7 @@ let get_session_info req previous_extension_err =
         lazy
           (List.remove_assoc naservice_name
              (List.remove_assoc naservice_num
-                (remove_prefixed_param na_co_param_prefix get_params0)));
+                (remove_prefixed_param na_co_param_prefix all_get_but_nl)));
      si_client_process_info= cpi;
      si_expect_process_data= epd;
 (*204FORMS*     si_internal_form= internal_form; *)

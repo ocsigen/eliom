@@ -642,6 +642,10 @@ let my_nl_params =
 
 let void_with_nlp =
   Eliom_services.add_non_localized_get_parameters
+    my_nl_params Eliom_services.void_coservice'
+
+let hidden_void_with_nlp =
+  Eliom_services.add_non_localized_get_parameters
     my_nl_params Eliom_services.void_hidden_coservice'
 
 let nlparams2 = service
@@ -662,6 +666,10 @@ let () = register
           (body [p [
                    a void_with_nlp
                      [pcdata "void coservice with non loc param"] ((), (11, "aa"));
+                   br ();
+                   a hidden_void_with_nlp
+                     [pcdata "void hidden coservice with non loc param"] ((), (22, "bb"));
+                   br ();
                    a nlparams2_with_nlp
                      [pcdata "myself with non loc param"] (((4, 5), 777), (12, "ab"))];
                  p [pcdata "I have my suffix, ";
