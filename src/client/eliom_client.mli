@@ -39,7 +39,7 @@ val change_page :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list String.Table.t ->
+  ?nl_params:Eliom_parameters.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit Lwt.t
 
 (** Call a server side service that return a Caml value. *)
@@ -56,7 +56,7 @@ val call_caml_service :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list String.Table.t ->
+  ?nl_params:Eliom_parameters.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> 'return Lwt.t
 
 
@@ -74,7 +74,7 @@ val exit_to :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list String.Table.t ->
+  ?nl_params:Eliom_parameters.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
 (** (low level) Call a server side service and return the content
@@ -92,7 +92,7 @@ val call_service :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list String.Table.t ->
+  ?nl_params:Eliom_parameters.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
 
 (** (low level) Change the URL, without doing a request.
@@ -114,7 +114,7 @@ val change_url :
   ?port:int ->
   ?fragment:string ->
   ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:(string * string) list String.Table.t ->
+  ?nl_params:Eliom_parameters.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
 (** wait for the loading phase to terminate *)

@@ -147,7 +147,7 @@ let eliom_caml_tree =
     ~post_params:unit
     (fun () () ->
       Lwt.return
-	( [HTML5.M.div [HTML5.M.pcdata "Coucou"]] : HTML5_types.flow5 elt list))
+	( [HTML5.M.div [HTML5.M.pcdata "Coucou"]] : HTML5_types.div elt list))
 
 ;; (* This ";;" is necessary in order to have the "shared" following entry being
       parsed as "str_item" (instead of "expr"). This is Camlp4 related, it may
@@ -698,7 +698,8 @@ let () =
 			   ignore (Eliom_client.call_caml_service ~service:v.Wrapping_test.v_service
 				     () () >|= (fun blocks ->
 				       List.iter
-					 (Dom.appendChild (Eliom_client.Html5.of_div %div))
+					 (fun b -> Dom.appendChild (Eliom_client.Html5.of_div %div)
+					   (Eliom_client.Html5.of_div b))
 					 blocks;))))]
 		  [pcdata "test service"]));
 
@@ -2985,3 +2986,4 @@ let _ =
 	(make_page [h1 [pcdata "Page 2"];
 		    Eliom_output.Html5.a ~service:unique1 [pcdata "page 1"] ();
 		    node;]))
+

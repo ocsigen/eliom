@@ -28,7 +28,6 @@ STUBS := dlleliom_client.so \
 
 NOMLI := eliom_common.mli       \
 	 eliom_types.mli        \
-	 eliom_parameters.mli   \
 	 eliom_process.mli      \
 	 eliom_config.mli       \
 	 eliom_request_info.mli \
