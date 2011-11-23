@@ -19,9 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Handle unsolicited server to client communications. *)
+(** Handle unsolicited server to client communications.
 
-(** when the page is not active the client stops making comet requests
+    See the Eliom manual for a detailed introduction to the concept of
+    {% <<a_manual chapter="client-communication"|client server communication>>%}. *)
+
+(** When the page is not active the client stops making comet requests
     to the server, implying that the client can't be notified by the
     server anymore. The activity status is changed when the page is
     focused or unfocused.
@@ -31,27 +34,27 @@
     [ let t = Lwt_stream.iter f %channel ] calling [Lwt.cancel t]
     will close the channel. *)
 
-exception Channel_full
 (** [Channel_full] is raised when trying to read on a channel marked
     full by the server. It is not possible to read anything else from a
     full channel. *)
+exception Channel_full
 
-exception Process_closed
 (** [Process_closed] is raised when reading on a channel and the
     server side of the application closed the client process.
     This apply only to statefull channels *)
+exception Process_closed
 
-exception Channel_closed
 (** [Process_closed] is raised when reading on a channel and the
     server side of the application closed channel ( the channel
     was garbage collected ). This apply only to stateless channels *)
+exception Channel_closed
 
-val is_active : unit -> bool
 (** [is_active ()] returns the current activity state *)
+val is_active : unit -> bool
 
-val activate : unit -> unit
 (** if the client is inactive [activate ()] launch a new xhr
     connection to start receiving server messages *)
+val activate : unit -> unit
 
 (** Change the reactivity of channels. Multiples configurations ( of
     type [t] ) can be created. The resulting behaviour is the minimal
@@ -62,32 +65,32 @@ sig
 
   type t
 
-  val new_configuration : unit -> t
   (** Creates a new configuration with default value. It modifies the
       current behaviour immediately *)
+  val new_configuration : unit -> t
 
-  val drop_configuration : t -> unit
   (** [drop_configuration t] restores the behaviour to the minimum of
       configuration without [t]. If there is no other configuration
       than [t], it is restored to the defaults. *)
+  val drop_configuration : t -> unit
 
-  val set_always_active : t -> bool -> unit
   (** [set_always_active c true] tells the client to always stay active.
       Default value is false. *)
+  val set_always_active : t -> bool -> unit
 
-  val set_active_until_timeout : t -> bool -> unit
   (** [set_active_until_timeout c v] sets the activity changing
       behaviour. if [v] is [true] the page is kept active even if not
       focused until the client receive a timeout message from the
       server. It implies that if the server keeps sending datas to the
       client, the comet connection will never be closed.
       Default value is false. *)
+  val set_active_until_timeout : t -> bool -> unit
 
-  val set_time_between_request : t -> float -> unit
   (** after [set_time_between_request t v], the main loop will wait for
       [v] seconds between two requests. It is taken into account
       immediately.
       Default value is 0.*)
+  val set_time_between_request : t -> float -> unit
 
 end
 
@@ -98,22 +101,22 @@ end
 
 (**/**)
 
-val register : ?wake:bool -> 'a Eliom_comet_base.wrapped_channel ->
-  'a Lwt_stream.t
 (** if wake is false, the registration of the channel won't
     activate the handling loop ( no request will be sent ). Default is true *)
+val register : ?wake:bool -> 'a Eliom_comet_base.wrapped_channel ->
+  'a Lwt_stream.t
 
-val restart : unit -> unit
 (** [restart ()] Restarts the loop waiting for server messages. It is
     only usefull after that a formulary is sent. Indeed browsers stops
     all xhr requests in that case. It is normaly not needed, but some
     brosers (based on webkit) also destroy the xhr object in that
     case, preventing client code from receiving the failure
     notification. This shouldn't be used by average user. *)
+val restart : unit -> unit
 
-val close : 'a Eliom_comet_base.wrapped_channel -> unit
 (** [close c] closes the channel c. This function should be only use
     internaly. The normal way to close a channel is to cancel a thread
     waiting on inputs. *)
+val close : 'a Eliom_comet_base.wrapped_channel -> unit
 
 val force_link : unit

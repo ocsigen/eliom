@@ -65,7 +65,7 @@ eliom_output_base.cmi: eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmi
 eliom_parameters.cmo: eliom_parameters_base.cmo eliom_parameters.cmi
 eliom_parameters.cmx: eliom_parameters_base.cmx eliom_parameters.cmi
-eliom_parameters.cmi: eliom_pervasives.cmi eliom_common.cmo
+eliom_parameters.cmi: eliom_pervasives.cmi
 eliom_parameters_base.cmo: eliom_pervasives.cmi eliom_common.cmo
 eliom_parameters_base.cmx: eliom_pervasives.cmx eliom_common.cmx
 eliom_pervasives.cmo: eliom_pervasives_base.cmo eliom_lazy.cmi \
