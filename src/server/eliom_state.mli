@@ -178,7 +178,7 @@ val unset_cookie :
 *)
 val set_service_session_group :
   ?set_max: int ->
-  scope:Eliom_common.session_scope ->
+  ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   string ->
   unit
@@ -186,7 +186,7 @@ val set_service_session_group :
 (** Remove the session from its group *)
 val unset_service_session_group :
   ?set_max: int ->
-  scope:Eliom_common.session_scope ->
+  ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   unit ->
   unit
@@ -196,7 +196,7 @@ val unset_service_session_group :
     or if no session is opened, return [None].
 *)
 val get_service_session_group :
-  scope:Eliom_common.session_scope ->
+  ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   unit ->
   string option
@@ -210,7 +210,7 @@ val get_service_session_group :
 *)
 val set_volatile_data_session_group :
   ?set_max: int ->
-  scope:Eliom_common.session_scope ->
+  ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   string ->
   unit
@@ -218,7 +218,7 @@ val set_volatile_data_session_group :
 (** Remove the session from its group *)
 val unset_volatile_data_session_group :
   ?set_max: int ->
-  scope:Eliom_common.session_scope ->
+  ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   unit ->
   unit
@@ -228,7 +228,7 @@ val unset_volatile_data_session_group :
     return [None].
 *)
 val get_volatile_data_session_group :
-  scope:Eliom_common.session_scope ->
+  ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   unit ->
   string option
@@ -242,14 +242,14 @@ val get_volatile_data_session_group :
 *)
 val set_persistent_data_session_group :
   ?set_max: int option ->
-  scope:Eliom_common.session_scope ->
+  ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   string ->
   unit Lwt.t
 
 (** Remove the session from its group. *)
 val unset_persistent_data_session_group :
-  scope:Eliom_common.session_scope ->
+  ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   unit ->
   unit Lwt.t
@@ -259,7 +259,7 @@ val unset_persistent_data_session_group :
     return [None].
 *)
 val get_persistent_data_session_group :
-  scope:Eliom_common.session_scope ->
+  ?scope:Eliom_common.session_scope ->
   ?secure:bool ->
   unit ->
   string option Lwt.t

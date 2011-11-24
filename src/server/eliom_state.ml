@@ -403,7 +403,7 @@ type 'a state_data =
   | Data of 'a
 
 
-let set_service_session_group ?set_max ~(scope:Eliom_common.session_scope) ?secure session_group =
+let set_service_session_group ?set_max ?(scope = Eliom_common.session) ?secure session_group =
   let c =
     Eliommod_sersess.find_or_create_service_cookie
       ~set_session_group:session_group
@@ -415,7 +415,7 @@ let set_service_session_group ?set_max ~(scope:Eliom_common.session_scope) ?secu
         Eliommod_sessiongroups.Data.set_max
           c.Eliom_common.sc_session_group_node m
 
-let unset_service_session_group ?set_max ~(scope:Eliom_common.session_scope) ?secure () =
+let unset_service_session_group ?set_max ?(scope = Eliom_common.session) ?secure () =
   try
     let sp = Eliom_common.get_sp () in
     let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
@@ -448,7 +448,7 @@ let unset_service_session_group ?set_max ~(scope:Eliom_common.session_scope) ?se
     | Not_found
     | Eliom_common.Eliom_Session_expired -> ()
 
-let get_service_session_group ~(scope:Eliom_common.session_scope) ?secure () =
+let get_service_session_group ?(scope = Eliom_common.session) ?secure () =
   try
     let c =
       Eliommod_sersess.find_service_cookie_only
@@ -464,7 +464,7 @@ let get_service_session_group ~(scope:Eliom_common.session_scope) ?secure () =
 
 
 let set_volatile_data_session_group
-    ?set_max ~(scope:Eliom_common.session_scope)
+    ?set_max ?(scope = Eliom_common.session)
     ?secure session_group =
   let c =
     Eliommod_datasess.find_or_create_data_cookie
@@ -479,7 +479,7 @@ let set_volatile_data_session_group
           c.Eliom_common.dc_session_group_node m
 
 let unset_volatile_data_session_group ?set_max
-    ~(scope:Eliom_common.session_scope) ?secure () =
+    ?(scope = Eliom_common.session) ?secure () =
   try
     let sp = Eliom_common.get_sp () in
     let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
@@ -512,7 +512,7 @@ let unset_volatile_data_session_group ?set_max
     | Not_found
     | Eliom_common.Eliom_Session_expired -> ()
 
-let get_volatile_data_session_group ~(scope:Eliom_common.session_scope) ?secure () =
+let get_volatile_data_session_group ?(scope =Eliom_common.session) ?secure () =
   try
     let c =
       Eliommod_datasess.find_data_cookie_only
@@ -526,7 +526,7 @@ let get_volatile_data_session_group ~(scope:Eliom_common.session_scope) ?secure 
     | Eliom_common.Eliom_Session_expired -> None
 
 let set_persistent_data_session_group ?set_max
-    ~(scope:Eliom_common.session_scope) ?secure n =
+    ?(scope = Eliom_common.session) ?secure n =
   let sp = Eliom_common.get_sp () in
   let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
   lwt c = Eliommod_persess.find_or_create_persistent_cookie
@@ -548,7 +548,8 @@ let set_persistent_data_session_group ?set_max
   grp := n;
   Lwt.return ()
 
-let unset_persistent_data_session_group ~(scope:Eliom_common.session_scope)
+let unset_persistent_data_session_group
+    ?(scope = Eliom_common.session)
     ?secure () =
   let sp = Eliom_common.get_sp () in
   let sitedata = Eliom_request_info.get_sitedata_sp ~sp in
@@ -567,7 +568,8 @@ let unset_persistent_data_session_group ~(scope:Eliom_common.session_scope)
     | Not_found
     | Eliom_common.Eliom_Session_expired -> Lwt.return ()
 
-let get_persistent_data_session_group ~(scope:Eliom_common.session_scope)
+let get_persistent_data_session_group
+    ?(scope = Eliom_common.session)
     ?secure () =
   try_lwt
     lwt c = Eliommod_persess.find_persistent_cookie_only

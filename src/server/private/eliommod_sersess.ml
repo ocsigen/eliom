@@ -96,7 +96,7 @@ let fullsessgrp ~cookie_scope ~sp set_session_group =
     set_session_group
 
 let rec find_or_create_service_cookie_ ?set_session_group
-    ~scope ~secure ~sp () =
+    ~(scope: Eliom_common.user_scope) ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
 
@@ -214,6 +214,22 @@ let rec find_or_create_service_cookie_ ?set_session_group
         (None, ref (Eliom_common.SC v))
         !cookie_info;
     v
+
+
+let find_or_create_service_cookie_ =
+  (find_or_create_service_cookie_ :
+         ?set_session_group:string ->
+         scope:Eliom_common.user_scope ->
+         secure:bool option ->
+         sp:Eliom_common.server_params ->
+         unit -> Eliom_common.tables Eliom_common.one_service_cookie_info
+:>
+         ?set_session_group:string ->
+    scope:[< Eliom_common.user_scope] ->
+         secure:bool option ->
+         sp:Eliom_common.server_params ->
+         unit -> Eliom_common.tables Eliom_common.one_service_cookie_info
+  )
 
 let find_or_create_service_cookie ?set_session_group
     ~scope ~secure ?sp () =
