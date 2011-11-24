@@ -369,6 +369,18 @@ let () = register lilists2
             (List.map (fun (s, il) -> p (pcdata s::
                                            List.map (fun i -> pcdata (string_of_int i)) il)) ll))))
 
+(* other example of list of list (mail W. Le Ferrant 2011/11/24) *)
+
+let wlf_lists =
+  service [ "wlflists" ] (list "items" (list "followers" (int "follower"))) ()
+
+let handler elements _ =
+  Ocsigen_messages.debug (fun () -> "> nb of elements: "^
+    string_of_int (List.length elements)) ;
+  Lwt.return "ok"
+
+let _ = Eliom_output.HtmlText.register wlf_lists handler
+
 
 (* sums in parameters types *)
 

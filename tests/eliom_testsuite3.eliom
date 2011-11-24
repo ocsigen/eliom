@@ -270,11 +270,16 @@ where and {{{id}}} an identifier for the value.
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
-                ignore (Eliom_client.call_caml_service ~service:%eliom_caml_tree
+                ignore (try_lwt
+                          Eliom_client.call_caml_service ~service:%eliom_caml_tree
 			  () () >|= fun blocks ->
 			    List.iter
 			      (Dom.appendChild Dom_html.document##body)
-			      (List.map Eliom_client.Html5.of_element blocks))
+			      (List.map Eliom_client.Html5.of_element blocks)
+                        with
+                          | e -> Dom_html.window##alert(Js.string (Printexc.to_string e));
+                            Lwt.return ()
+)
               }}
             ]
             [pcdata "Click here to get a subpage from server."];

@@ -326,6 +326,7 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
 (*         a sufli2 [pcdata "List not in the end of in suffix"] ([1; 2; 3], 4); br (); *)
          a boollistform [pcdata "Bool list"] (); br ();
          a lilists [pcdata "List of lists in parameters"] (); br ();
+         a wlf_lists [pcdata "List of lists in parameters - 2nd example"] [[333]]; br ();
          a preappmenu [pcdata "Menu with pre-applied services"] (); br ();
          a exn_act_main [pcdata "Actions that raises an exception"] (); br ();
          a close_from_outside [pcdata "Closing sessions from outside"] (); br ();
