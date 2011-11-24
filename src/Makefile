@@ -104,7 +104,7 @@ conf: ../local/etc/$(PROJECTNAME).conf
 CONF_SED := -e s%_LOGDIR_%$(SRC)/local/var/log%g
 CONF_SED += -e s%_DATADIR_%$(SRC)/local/var/lib%g
 CONF_SED += -e s%\<user\>_OCSIGENUSER_\</user\>%%g
-CONF_SED += -e s%\<group\>_OCSIGENGROUP_\</group\>%%g
+CONF_SED += -e s%\<group\>_OCSIGENGROUP_\</group\>%\<debugmode/\>%g
 CONF_SED += -e s%_COMMANDPIPE_%$(SRC)/local/var/run/${PROJECTNAME}_command%g
 CONF_SED += -e s%_MIMEFILE_%$(SRC)/src/files/mime.types%g
 CONF_SED += -e s%_METADIR_%$(shell ${OCAMLFIND} query stdlib)\"/\>\\n\ \ \ \ \<findlib\ path=\"${LIBDIR}\"/\>\\n\ \ \ \ \<findlib\ path=\"$(SRC)/src/files/%g
