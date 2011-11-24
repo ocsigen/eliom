@@ -192,13 +192,13 @@ let reconstruct_params_
         else
           try
             match aux t lp fl pref (make_list_suffix i) with
-              | Res_ (v,lp2,f) ->
+              | Res_ (v, lp2, f) ->
                   (match aa (i+1) lp2 f pref with
                      | Res_ (v2,lp3,f2) -> Res_ ((Obj.magic (v::v2)),lp3,f2)
                      | err -> err)
               | Errors_ (errs, l, f) ->
                   (match aa (i+1) l f pref with
-                     | Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
+                     | Res_ (_, ll, ff) -> Errors_ (errs, ll, ff)
                      | Errors_ (errs2, ll, ff) -> Errors_ ((errs@errs2), ll, ff))
           with Not_found -> Res_ ((Obj.magic []), lp, files)
       in
@@ -228,7 +228,7 @@ let reconstruct_params_
                let v,l = (List.assoc_remove (pref^name^suff) params) in
                Res_ ((Obj.magic true),l,files)
              with Not_found -> Res_ ((Obj.magic false), params, files))
-        | TList (n,t) -> Obj.magic (aux_list t params files n pref suff)
+        | TList (n, t) -> Obj.magic (aux_list t params files n pref suff)
         | TSet t ->
             let rec aux_set params files =
               try

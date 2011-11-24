@@ -308,7 +308,7 @@ let construct_params_list_raw
         fst
           (List.fold_left
              (fun ((psuff, nlp, s), i) p ->
-                ((aux t psuff nlp p pref2 (suff^(make_list_suffix i)) s), (i+1)))
+                ((aux t psuff nlp p pref2 (make_list_suffix i) s), (i+1)))
              ((psuff, nlp, l), 0) (Obj.magic params))
     | TSet t ->
         List.fold_left
