@@ -81,7 +81,7 @@ to ask the server to load dynamically new versions of your site
 
 Eliom use a notion of //scopes// to restrict the visibility of
 server-side data to some clients. Together with <<a_manual
-chapter="state" fragment="eref"|Eliom references>>, this is very
+chapter="state" fragment="eref"|Eliom references>>, this is a very
 convenient way to implement a mechanism of session for your website.
 
 There is two category of scopes:
@@ -100,6 +100,7 @@ created with scope:
 
 * <<a_api| val Eliom_common.session >> are only
   visible to client where specific cookies has been set.
+  i.e. a session is associated to a single browser.
 * <<a_api| val Eliom_common.session_group >> are
   only visible to client who belongs to one of the session attached to
   the group. See section <<a_manual chapter="state"
@@ -108,16 +109,17 @@ created with scope:
   Eliom_common.client_process>> are only visible to a specific
   instance of an Eliom application. See section <<a_manual
   chapter="client" fragment="session_groups"|Eliom applications>> for
-  more information.
+  more information. i.e. a client_process is associated
+  to a single tab of a browser.
 
-Data and dynamic service with a user scope could be discarded
+Data and dynamic service with a user scope can be discarded
 explicitely or by timeout, see sections <<a_manual chapter="state"
 fragment="closing_session"|Closing session>> and <<a_manual
 chapter="state" fragment="timeouts"|Timeouts and session duration>>
 for more information.
 
 If you want to handle multiple sessions for the same site
---e.g. several different data sessions that could created and
+--e.g. several different data sessions that could be created and
 discarded independently-- you can create new users scope that will use
 different cookies, see section <<a_manual chapter="state"
 fragment="new_scope" |Named users scopes>> for more information.
@@ -131,8 +133,8 @@ fragment="new_scope" |Named users scopes>> for more information.
 
 Eliom automatically creates a session --and setup the corresponding
 cookie on the client-- when you first modify an Eliom reference of
-scope <<a_api text="session" | val Eliom_common.session >> or when you
-register a service with this scope.
+scope <<a_api text="session" | val Eliom_common.session >>, when you
+register a service with this scope or when you enter a session group.
 
 By default, Eliom is using three cookies for sessions (and session groups):
 
@@ -161,11 +163,11 @@ val Eliom_common.session>> for the {{{~scope}}} parameter of functions
 Eliom_output.Html5.register >>, <<a_api| val Eliom_state.discard >>,
 ...
 
-You could also create named client_process scope and session_group by
+You can also create named client_process scope and session_group by
 replacing {{{`Session}}} by {{{`Client_process}}} or
 {{{`Session_group}}}. In all case, the <<a_api | val
 Eliom_common.create_scope_name >> function will prevent you to create
-to identical scope name.
+two identical scope name.
 
 
 
@@ -257,8 +259,8 @@ Eliom_references.eref >>, <<a_api | val Eliom_output.Html5.register
 
 Secure sessions are using secure cookies (i.e. Ocsigen server will ask
 the browsers to send the cookie only if the protocol is HTTPS). Thus
-it is not possible to access secure references if the user is using
-http.
+it is not possible to access secure references and services if the
+user is using http.
 
 
 
@@ -282,9 +284,9 @@ session group name as parameter:
 * <<a_api | val Eliom_state.set_volatile_data_session_group >>
 * <<a_api | val Eliom_state.set_persistant_data_session_group >>
 
-A session could be only attached to one group at a time. It still
-possible to create multiple session for a same client attached to
-different group, see section <<a_manual chapter="state"
+A session could be only attached to one group at a time, but it is
+possible to create multiple sessions for a same client attached to
+different groups, see section <<a_manual chapter="state"
 fragment="new_scope" |Named users scopes>> for more information.
 
 It's possible to fetch the current session group name of a session, if
