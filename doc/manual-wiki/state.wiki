@@ -1,5 +1,5 @@
 
-= Server side state of an Eliom application =
+= Sessions and server side state =
 
 <<outline depth="2"| <<header| =Table of contents= >> >>
 
@@ -126,8 +126,8 @@ fragment="new_scope" |Named users scopes>> for more information.
 
 
 
-=== Creating new sessions and new scopes ===
 
+=== Creating sessions and scopes ===
 
 ==== Automatic session creation ====
 

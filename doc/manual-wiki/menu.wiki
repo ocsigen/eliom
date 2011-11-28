@@ -1,13 +1,20 @@
-=Eliom
+=Eliom's Reference manual
 ==[[intro|Introduction]]
-==[[services|Services]]
-==[[outputs|Predefined registration modules]]
-==[[params|Parameters, links and forms]]
-==[[state|Sessions and server side state]]
-==[[client|Client-server applications]]
-==[[misc|Miscellaneous]]
-==[[config|Compiling and configuring Eliom modules]]
-==[[examples|Examples]]
-==[[html|Writing HTML]]
-==[[security|Security considerations]]
-==[[wrapping|Custom wrapping]]
+==Server side concepts
+===Services
+====[[services|Many kind of services]]
+====[[params|Typing service parameters]]
+====[[outputs|Writing service handlers]]
+====[[links|Creating links and forms]]
+===[[state|Sessions and server side state]]
+===[[config|Configuring and running Eliom]]
+==Client-server application
+===[[client|Applications]]
+===[[client-communication|Client/server communication]]
+===[[client-services|Server concepts on the client]]
+===[[client-compiling|Compilation process]]
+==Miscellaneous
+===[[html|Writing HTML]]
+===[[security|Security considerations]]
+===[[wrapping|Custom wrapping]]
+===[[examples|Examples]]

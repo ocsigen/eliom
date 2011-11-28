@@ -72,6 +72,8 @@ new services that depend on previous interaction with the user
 //continuation based Web programming//. This makes possible for example
 to implement several step forms very easily (like booking a plane ticket).
 
+<<a_manual chapter="services" | More information... >>
+
 ==Sessions and server side state==
 
 Eliom also have a very sophisticated session mechanism.
@@ -97,6 +99,7 @@ between several devices (like my laptop and my smartphone...).
 * There is also a scope //"request"// to store data during the
 generation of a page.
 
+<<a_manual chapter="state" | More information... >>
 
 ==Client/server applications==
 
@@ -125,3 +128,5 @@ program.
 * Part of the page can persist after loading a new page.
 * If you are listening music or watching a video, it does not stop
 when you change page!
+
+<<a_manual chapter="client" | More information... >>
