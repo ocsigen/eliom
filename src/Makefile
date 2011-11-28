@@ -19,30 +19,34 @@ opt: metas conf
 	${MAKE} -C tools all
 
 odoc:
-	${MAKE} -C server odoc
-	${MAKE} -C client odoc
+	${MAKE} -C server odoc DEPEND=no
+	${MAKE} -C client odoc DEPEND=no
 
 clean:
-	${MAKE} -C syntax clean
-	${MAKE} -C server clean
-	${MAKE} -C client clean
+	${MAKE} -C server clean DEPEND=no
+	${MAKE} -C client clean DEPEND=no
 	${MAKE} -C tools clean
+	${MAKE} -C syntax clean
 	-rm -f files/META  files/META.${PROJECTNAME}
 
 distclean:
-	${MAKE} -C syntax distclean
-	${MAKE} -C server distclean
-	${MAKE} -C client distclean
+	${MAKE} -C server distclean DEPEND=no
+	${MAKE} -C client distclean DEPEND=no
 	${MAKE} -C tools distclean
+	${MAKE} -C syntax distclean
 	-rm -f *~ \#* .\#*
 
 depend: syntax.depend server.depend client.depend tools.depend
 syntax.depend:
 	${MAKE} -C syntax depend pa_include.cmo
 server.depend: syntax.depend
-	${MAKE} -C server depend
+	find server -name .\*.deps -delete
+	rm -f server/.depend
+	 ${MAKE} -C server .depend
 client.depend: syntax.depend
-	${MAKE} -C client depend
+	find client -name .\*.deps -delete
+	rm -f client/.depend
+	${MAKE} -C client .depend
 tools.depend: syntax.depend
 	${MAKE} -C tools depend
 

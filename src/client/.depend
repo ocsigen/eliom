@@ -129,12 +129,3 @@ private/eliommod_dom.cmo: eliom_request.cmi eliom_pervasives.cmi \
 private/eliommod_dom.cmx: eliom_request.cmx eliom_pervasives.cmx \
     private/eliommod_dom.cmi
 private/eliommod_dom.cmi:
-sigs/eliom_forms.cmi: eliom_services.cmi eliom_pervasives.cmi \
-    eliom_parameters.cmi
-sigs/eliom_forms_param.cmi: eliom_lazy.cmi
-sigs/eliom_html5_forms.cmi: eliom_services.cmi eliom_pervasives.cmi \
-    eliom_parameters.cmi
-sigs/eliom_html5_forms_closed.cmi: eliom_services.cmi eliom_pervasives.cmi \
-    eliom_parameters.cmi
-test/unwrap.cmo: eliom_unwrap.cmi
-test/unwrap.cmx: eliom_unwrap.cmx

@@ -11,7 +11,7 @@ OCAMLDUCEOPT := ${OCAMLDUCEFIND} ocamlopt ${OPTDBG}  ${THREAD}
 OCAMLDUCEDEP := ${OCAMLDUCEFIND} ocamldep
 
 OCAMLDOC := ${OCAMLFIND} ocamldoc ${THREAD} -ppopt o -ppopt -printer
-## WTF -ppopt options should be given in reverse order...
+## WTF -ppopt options must be given in reverse order...
 
 all: byte opt
 
@@ -25,14 +25,18 @@ COMMON_SFILES := $(addprefix sigs/, \
 		     $(notdir $(wildcard ../common/sigs/*.mli) \
 	                      $(wildcard ../common/sigs/*.ml)))
 
-PREDEP := ${COMMON_FILES} ${COMMON_PFILES} eliom_duce_sigs.mli
+PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES} eliom_duce_sigs.mli
 
-${COMMON_FILES}:
-	ln -fs ../common/$@ $@
-${COMMON_PFILES} ${COMMON_SFILES}:
-	ln -fs ../../common/$@ $@
-eliom_duce_sigs.mli: eliom_duce_sigs.mlp
+.SECONDARY: ${PREDEP}
+${COMMON_FILES}: %: ../common/%
+	ln -sf $< $@
+${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
+	ln -sf ../$< $@
+eliom_duce_sigs.mli:: eliom_duce_sigs.mlp
 	camlp4o ../syntax/pa_include.cmo -printer o -intf $< > $@
+	# Ugly hack: copy time stamp to avoid dependencies re-computation
+	# after a distclean
+	touch -h -r $< $@
 
 FILES := eliom_wrap.ml eliom_lazy.ml \
          eliom_pervasives_base.ml eliom_pervasives.ml \
@@ -159,7 +163,7 @@ install.byte: raw_install
 install.opt: INSTALL_IMPL:=${NATIMPL}
 install.opt: raw_install
 
-raw_install:
+raw_install: ${PREDEP}
 	${INSTALL} -m 755 -d ${SERVERDIR}
 	${INSTALL} -m 644 ${INTF} ${INSTALL_IMPL} ${DOC} ${SERVERDIR}
 
@@ -169,53 +173,72 @@ uninstall:
 ## Clean up
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps *.odoc
-	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps *.odoc
-	-cd extensions && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps *.odoc
-	-rm -f ${PREDEP}
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.odoc
+	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.odoc
+	-cd extensions && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.odoc
 distclean: clean
 	-rm -f *~ \#* .\#*
+	-rm -f ${PREDEP}
+	-rm -f .*.deps private/.*.deps extensions/.*.deps
 
-## Dependencies
+## Manual dependencies for pa_include.
+eliom_output_base.cmi eliom_output_base.cmo eliom_output_base.cmx \
+eliom_output.cmi eliom_output.cmo eliom_output.cmx eliom_output.odoc \
+eliom_mkforms.cmi eliom_mkforms.cmo eliom_mkforms.cmx eliom_mkforms.odoc \
+eliom_mkreg.cmi eliom_mkreg.odoc \
+eliom_duce_sigs.cmi eliom_duce_sigs.odoc: ${COMMON_SFILES} $(wildcard sigs/*.mli)
 
-%.ml.deps: %.ml ${PREDEP}
+# Automatic dependencies
+
+ifneq (${DEPEND},no)
+
+## Ugly side effect to force ${PREDEP} creation before dependencies calculation
+dummy_var := $(shell $(MAKE) DEPEND=no ${PREDEP} >/tmp/log 2>&1)
+
+DEPS := $(patsubst %,.%.deps,${COMMON_FILES}) \
+	$(patsubst %,.%.deps,${COMMON_PFILES}) \
+	.eliom_duce_sigs.mli.deps \
+	$(patsubst %,.%.deps,$(wildcard *.mli *.ml)) \
+	$(patsubst private/%,private/.%.deps,$(wildcard private/*.mli private/*.ml)) \
+	$(patsubst extensions/%,extensions/.%.deps, \
+	     $(wildcard extensions/*.mli extensions/*.ml))
+
+.SECONDARY: ${DEPS}
+.depend: ${DEPS}
+	cat .*.deps private/.*.deps extensions/.*.deps > .depend
+
+.%.ml.deps: %.ml
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
-%.mli.deps: %.mli ${PREDEP}
+.%.mli.deps: %.mli
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
-${INTF_NOP4:.mli=.mli.deps}: \
-%.mli.deps: %.mli ${PREDEP}
+
+private/.%.ml.deps: private/%.ml
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+private/.%.mli.deps: private/%.mli
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+
+extensions/.%.ml.deps: extensions/%.ml
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+extensions/.%.mli.deps: extensions/%.mli
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+
+$(patsubst %.mli,.%.mli.deps,${INTF_NOP4}): .%.mli.deps: %.mli
 	 ${OCAMLDEP} ${LIBS} $< > $@
 
-${DUCE_FILES:.ml=.ml.deps}: %.ml.deps: %.ml ${PREDEP}
+$(patsubst %.ml,.%.ml.deps,${DUCE_FILES}): .%.ml.deps: %.ml
 ifeq "${OCAMLDUCE}" "YES"
 	 ${OCAMLDUCEDEP} ${LIBS} $< > $@
 else
 	echo > $@
 endif
 
-${DUCE_MLIS:.mli=.mli.deps}: %.mli.deps: %.mli ${PREDEP}
+$(patsubst %.mli,.%.mli.deps,${DUCE_MLIS}): .%.mli.deps: %.mli
 ifeq "${OCAMLDUCE}" "YES"
 	 ${OCAMLDUCEDEP} ${LIBS} $< > $@
 else
 	echo > $@
 endif
 
-.PHONY: predeps deps
-predeps: ${PREDEP}
-deps: ${patsubst %.ml,%.ml.deps,$(wildcard *.ml */*.ml)} \
-      ${patsubst %.mli,%.mli.deps,$(wildcard *.mli */*.mli)}
+include .depend
 
-.PHONY: depend
-depend:
-	@${MAKE} --no-print-directory predeps
-	@${MAKE} --no-print-directory deps
-	cat *.deps */*.deps > .depend
-
-${FILES}: ${COMMON_SFILES}
-${FILES:.ml=.mli}: ${COMMON_SFILES}
-
-%.ml: $(wildcard sigs/*.mli)
-%.mli: $(wildcard sigs/*.mli)
-
-FORCE:
--include .depend
+endif

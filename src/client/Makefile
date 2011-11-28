@@ -23,10 +23,11 @@ COMMON_SFILES := $(addprefix sigs/, \
 
 PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES}
 
-${COMMON_FILES}:
-	ln -sf ../common/$@ $@
-${COMMON_PFILES} ${COMMON_SFILES}:
-	ln -sf ../../common/$@ $@
+.SECONDARY: ${PREDEP}
+${COMMON_FILES}: %: ../common/%
+	ln -s $< $@
+${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
+	ln -s ../$< $@
 
 ### Library ###
 
@@ -89,7 +90,7 @@ include Makefile.filelist
 
 odoc: ${DOC:.mli=.odoc}
 
-install:
+install: ${PREDEP}
 	${INSTALL} -m 755 -d ${CLIENTDIR}
 	${INSTALL} -m 644 ${INTF} ${IMPL} ${STUBS} ${DOC} ${CLIENTDIR}
 
@@ -102,38 +103,47 @@ uninstall:
 
 clean:
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
-	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
-	-rm -f ${PREDEP}
+	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
 
 distclean: clean
 	-rm -f *~ \#* .\#*
+	-rm -f ${PREDEP}
+	-rm -f .*.deps private/.*.deps extensions/.*.deps
 
-## Dependencies
+##  Manual dependencies for pa_include
 
-%.ml.deps: %.ml ${PREDEP}
+eliom_output.cmi eliom_output.cmo eliom_output.cmx eliom_output.odoc \
+eliom_mkforms.cmi eliom_mkforms.odoc: ${COMMON_SFILES} $(wildcard sigs/*.mli)
+
+# Automatic dependencies
+
+ifneq (${DEPEND},no)
+
+## Ugly side effect to force ${PREDEP} creation before dependencies calculation
+dummy_var := $(shell $(MAKE) DEPEND=no ${PREDEP} >/dev/null 2>&1)
+
+DEPS := $(patsubst %,.%.deps,${COMMON_FILES}) \
+	$(patsubst %,.%.deps,${COMMON_PFILES}) \
+	$(patsubst %,.%.deps,$(wildcard *.mli *.ml)) \
+        $(patsubst private/%,private/.%.deps,$(wildcard private/*.mli private/*.ml)) \
+
+.SECONDARY: ${DEPS}
+.depend: ${DEPS}
+	cat .*.deps private/.*.deps > .depend
+
+.%.ml.deps: %.ml
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
-%.mli.deps: %.mli ${PREDEP}
+.%.mli.deps: %.mli
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
-${INTF_NOP4:.mli=.mli.deps}: \
-%.mli.deps: %.mli ${PREDEP}
+
+private/.%.ml.deps: private/%.ml
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+private/.%.mli.deps: private/%.mli
+	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
+
+$(patsubst %.mli,.%.mli.deps,${INTF_NOP4}): .%.mli.deps: %.mli
 	 ${OCAMLDEP} ${LIBS} $< > $@
 
-.PHONY: predeps deps
-predeps: ${PREDEP}
-deps: ${patsubst %.ml,%.ml.deps,$(wildcard *.ml */*.ml)} \
-      ${patsubst %.mli,%.mli.deps,$(wildcard *.mli */*.mli)}
+include .depend
 
-.PHONY: depend
-depend:
-	@${MAKE} --no-print-directory predeps
-	@${MAKE} --no-print-directory deps
-	cat *.deps */*.deps > .depend
-
-${FILES}: ${COMMON_SFILES}
-${FILES:.ml=.mli}: ${COMMON_SFILES}
-
-%.ml: $(wildcard sigs/*.mli)
-%.mli: $(wildcard sigs/*.mli)
-
-FORCE:
--include .depend
+endif
