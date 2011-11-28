@@ -15,14 +15,13 @@ services representing redirections.
 A service is composed of:
 
 * some identification data, allowing Eliom to choose which service
-  should answer a incoming request;
+  should answer an incoming request;
 * a service handler that will generate the answer.
 
 <<paragraph| Service creation >>
 
-Operation on service in Eliom are allowed by values of type <<a_api |
-type Eliom_services.service >>, as returned by one of the many
-functions provided to create services. The most common service
+Manipulation of Eliom services can be done throught the values of type
+<<a_api | type Eliom_services.service >>. The most common service
 creation function is <<a_api | val Eliom_output.HTML5.register_service
 >>. It allows to create a service attached to a given path that may
 expect some GET parameters and that return some HTML5 contents using
@@ -91,8 +90,9 @@ request-- with respect to many criteria:
 * the session the client belongs to (or client side process, or session group),
 * ...
 
-Eliom provides three main kind of services, that differs by the subset
-of these criteria used to identified them:
+But the user does not usualy need to bother with this. Eliom abstract
+this mechanism by its three main kind of services. They differ by the
+subset of these criteria used to identified them:
 
 * <<a_manual chapter="services" fragment="regular_services" | Regular services>>
   are the main entry points of sites.
@@ -121,25 +121,24 @@ of these criteria used to identified them:
 
 Paths are represented in Eliom by a list of string. For example:
 
-<<span class="code"|["foo"; "bar"]>> corresponds to the URL
-<<span class="code"|foo/bar>>.  \\
-<<span class="code"|["dir"; ""]>> corresponds to the URL <<span class="code"|dir/>>
-(that is: the default page of the directory <<span class="code"|dir>>).   \\
-The empty list <<span class="code"|[]>> is equivalent to <<span class="code"|[""]>>.\\
+{{{["foo"; "bar"]}}} corresponds to the URL
+{{{foo/bar}}}.  \\
+{{{["dir"; ""]}}} corresponds to the URL {{{dir/}}}
+(that is: the default page of the directory {{{dir}}}).   \\
+The empty list {{{[]}}} is equivalent to {{{[""]}}}.\\
 
 //Warning://
-You cannot create a service on path <<span class="code"|["foo"]>>
-(URL <<span class="code"|foo>>, without slash at the end)
-and another on path <<span class="code"|["foo";"bar"]>>
-(URL <<span class="code"|foo/bar>>) because <<span class="code"|foo>> can not be
-both a directory and a file.
-Be also careful not to use a path as a directory with
-Eliom, if it is a file for Staticmod (and vice versa).
 
-//Warning://
-<<span class="code"|["foo";"bar"]>> is not equivalent to
-<<span class="code"|["foo/bar"]>>.
-In the latter, the "/" will be encoded in the URL.\\
+ * You cannot create a service on path {{{["foo"]}}}
+   (URL {{{foo}}}, without slash at the end)
+   and another on path {{{["foo";"bar"]}}}
+   (URL {{{foo/bar}}}) because {{{foo}}} can not be
+   both a directory and a file.
+   Be also careful not to use a path as a directory with
+   Eliom, if it is a file for Staticmod (and vice versa).
+ * {{{["foo";"bar"]}}} is not equivalent to
+   {{{["foo/bar"]}}}.
+   In the latter, the {{{"/"}}} will be encoded in the URL.\\
 
 
 
@@ -475,7 +474,7 @@ all, even non-attached parameters.  Use it if you want to make a link
 to the current page without non-attached parameters.  It is almost
 equivalent to a POST non-attached coservice without POST parameters,
 on which you register an action that does nothing, but it is using GET
-method, so that you can use it with <<span class="code"|<a>>> links,
+method, so that you can use it with {{{<a>}}} links,
 not only forms.  Example:
 
 <<code language="ocaml"|
