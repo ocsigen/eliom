@@ -166,19 +166,24 @@ OCaml types. If the parameter can't be converted, the exception
 
 ==== Service scopes ====
 
-It is possible to set a scope for services. Either you want a
-(co)-service to be visible only for one user (or one client-side
-process, or one session), or you want to define specialized version of
-some global services. If you register several time a service with
-several scopes, Eliom will try the service in increasing scope order
-(that is, first the client process service if any, then session, then
-session group, then global).
+By default, services and coservices are accessible to anybody.  It is
+possible to restrict the //scope// of a service, making it available
+only to a session, a client side process, or a group of sessions.
 
-To limite the scope of a service, just add the argument {{{~scope}}}
-to the <<a_api | val Eliom_output.Html5.register>> function (or other
+To limit the scope of a service, just add the argument {{{~scope}}} to
+the <<a_api | val Eliom_output.Html5.register>> function (or other
 {{{register}}} variants: <<a_api | val Eliom_output.Xhtml.register>>,
 ...). The default scope is <<a_api | val Eliom_common.global>>.
 
+The same service can be registered with several scopes.  This makes it
+possible, for example, to generate custom services for a specific
+user.  Eliom will try to find the service by trying the following (in
+order):
+
+* scope client-side process,
+* scope session,
+* scope group of session,
+* and finally global scope.
 
 
 ====@@id="get_and_post"@@ GET services and POST services ====
@@ -496,3 +501,55 @@ the user reloads the page).
 
 <<wip|Example: link to fragment of the current page>>
 
+
+
+
+== Tips and advices
+
+* All services created during initialization must be registered (with
+  global scope) during the initialization phase of your module.  If
+  not, the server will not start (providing an appropriate error
+  message in the logs).  This will prevent broken links.
+* Services may be registered only during the server's initialization
+  phase (while reading the site configuration) or while processing a
+  request, because Eliom must know the information about the site. Be
+  very careful about this if you want to use static linking (see the
+  section on <<a_manual chapter="config"
+  fragment="static_linking"|static linking>> in the chapter about
+  Compiling and configuring Eliom modules).
+* All main services (but not coservices) must be created in a module
+  loaded inside a {{{<host>}}} tag of the configuration file.  It is
+  not possible to accomplish this using modules loaded inside
+  {{{<extension>}}} or {{{<library>}}}.
+* If you create new main services dynamically, you will dynamically
+  create new URLs!  This may be dangerous as they will disappear if
+  you stop the server.  Be very careful to re-create these URLs when
+  you relaunch the server, otherwise, some external links or bookmarks
+  will be broken!\\ The use of that feature is discouraged for
+  coservices without timeout, as such coservices will be available
+  only until the end of the server process (and it is not possible to
+  re-create them with the same key).
+* Do not register the same service (with scope global) twice, and do
+  not replace a service by a directory (or vice versa). If this
+  happens during the initialization phase, the server won't start.  If
+  this happens after server startup, it will be ignored (with a
+  warning in the logs).
+* GET coservices (without POST parameters) can be registered only with
+  a main service without GET/POST parameters as fallback.  But it may
+  be <<a_manual chapter="services" fragment="preapplied"
+  |//preapplied//>>.
+* Services with POST parameters (main service or coservice) can be
+  registered with a (main or co-) service without POST parameters as
+  fallback.
+* The registration of (main) services must be completed before the end
+  of the loading of the module. It is not possible to launch a (Lwt)
+  thread with the intention that it will register a service later, as
+  registering a service needs access to config file information (for
+  example the directory of the site).  If you do this, the server will
+  raise <<a_api | exception
+  Eliom_common.Eliom_function_forbidden_outside_site_loading>> most of
+  the time, but you may also get unexpected results (if the thread is
+  executed while another site is loaded).  If you use threads in the
+  initialization phase of your module (for example if you need
+  information from a database), use <<a_api project="lwt" | val
+  Lwt_unix.run>> to wait the end of the thread.

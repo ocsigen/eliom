@@ -4,251 +4,37 @@
 <<outline depth="2"| <<header| =Table of contents= >> >>
 
 
-<<concept
+<<paragraph|Many kind of outputs modules>>
 
-  title="Registration of service handlers"|
+Once the <<a_manual chapter="services" fragment="classification" |
+service identification mechanism>> identified the service responsible
+for a given URL it executes its service handler. The service handler
+is a function taking the GET and POST parameters as argument and
+returning the content to be sent to the client. The return type of the
+service handler depends on the function used to register it. On the
+most common case its HTML5 contents build with the TyXML library, but
+Eliom provides a lot of outputs modules to ease the implementation of
+common web interaction. See section <<a_manual chapter="outputs"
+fragment="predefined_outputs" | Predefined output modules >> for a
+comprehensive list.
 
-  To serve pages, we have to associate some content to services. This
-  association is what we call //registration//. The registration
-  informs the <<a_manual chapter="services"
-  fragment="classification"|service identification mechanism>> to
-  associate a function (known as a //service handler//) to a service.
-  Then, if a user follows a link to a service, the content of the page
-  is provided by the registered service handler. The parameters of the
-  handler are provided by the link.
+<<paragraph|Cooperative service handler>>
 
-  Services are registered using the {{{Eliom_output.*.register}}}
-  functions. The registration function to use depend on the type of
-  content a handler is generating. For instance, a page containing
-  HTML5 is registered using <<a_api | val
-  Eliom_output.Html5.register>>:
+As Ocsigenserver, Eliom is based on cooperative threading library and
+service handler must written your in a cooperative way. See section
+<<a_manual chapter="outputs" fragment="lwt" | Writing cooperative
+service handlers with Lwt >> for some examples.
 
-  <<code language="ocaml"|
+<<paragraph|Error handling >>
 
-Eliom_output.Html5.register
-  ~service
-  (fun param () ->
-     Lwt.return (html (head (title (pcdata "")) [])
-       (body [h1 [pcdata ("service called with parameter" ^ param)]])))
-
-  >>
-
-  Some services can be registered multiple times with different
-  options. This allows to choose between different handlers when the
-  request is done in a particular session or protocol (HTTP or HTTPS).
-
-  See chapter <<a_manual chapter="outputs"|Service handlers>> for more
-  informations.
-
->>
+See section <<a_manual chapter="outputs" fragment="error_handling" |
+Error handling>>.
 
 
-
-==@@id="service_registration"@@Service registration==
-
-The registration associate services to //service handlers// generating
-its content. Registration functions are specific to the type of
-content the service handler generate. Here we will explain what is
-common to all registrations. Fore more information see the
-chapter on <<a_manual chapter="outputs"|Predefined registration
-modules>>.
-
-===@@id="scope"@@Scope of services===
-
-By default, services and coservices are accessible to anybody.  It is
-possible to restrict the //scope// of a service, making it available
-only to a session, a client side process, or a group of sessions (see the
-<<a_manual chapter="state"|chapter on server side state>> for more information
-on scopes).
-
-The same service can be registered with several scopes.
-This makes it possible, for example, to generate custom services for a specific user.
-Eliom will try to find the service by trying the following (in order):
-* scope client-side process,
-* scope session,
-* scope group of session,
-* and finally global scope.
-
-If a coservice has not been found, it will then
-try the fallback, in the same scoping order.
-
-To set the scope of a service registration, add the optional
-parameter {{{~scope}}} to the {{{register}}} function.
-
-<<concept title="Tips and advices" |
-
-* All services created during initialization must be registered
-(with global scope) during the initialization phase of your module.
-If not, the server will not start (providing  an appropriate error message in the logs).
-This will prevent broken links.
-* Services may be registered only during the server's initialization phase
-(while reading the site configuration) or while processing a request,
-because Eliom must know the information about the site. Be very careful
-about this if you want to use static linking (see the section on
-<<a_manual chapter="config" fragment="static_linking"|static linking>> in the chapter about Compiling and configuring Eliom modules).
-* All main services (but not coservices) must be created in a module loaded
-inside a {{{<host>}}} tag of the configuration file.
-It is not possible to accomplish this using modules loaded inside
-{{{<extension>}}} or {{{<library>}}}.
-* If you create new main services dynamically,
-you will dynamically create new URLs!
-This may be dangerous as they will disappear if you stop the server.
-Be very careful to re-create these URLs when you relaunch the server,
-otherwise, some external links or bookmarks will be broken!\\
-The use of that feature is discouraged for coservices
-without timeout, as such coservices will be available only until the end
-of the server process (and it is not possible to re-create them with the
-same key).
-*Do not register the same service (with scope global) twice,
-and do not replace a service
-by a directory (or vice versa). If this happens during the
-initialization phase, the server won't start.
-If this happens after server startup, it will be ignored (with a warning in the
-logs).
-*GET coservices (without POST parameters) can be registered
-only with a main service without GET/POST parameters as fallback.
-But it may be
-<<a_manual chapter="services" fragment="preapplied" |//preapplied//>>.
-*Services with POST parameters (main service or coservice)
-can be registered with a (main or co-) service without POST
-parameters as fallback.
-*The registration of (main) services must be completed before
-the end of the loading of the module. It is not possible to launch
-a (Lwt) thread with the intention that it will register a service later, as
-registering a service needs access to config file
-information (for example the directory of the site).
-If you do this, the server will raise
-<<a_api | exception Eliom_common.Eliom_function_forbidden_outside_site_loading>>
-most of the time,
-but you may also get unexpected results (if the thread is executed
-while another site is loaded).
-If you use threads in the initialization phase of your module
-(for example if you need information from a database),
-use  <<a_api project="lwt" | val Lwt_unix.run>> to wait the end of the thread.
->><<|concept>>
-
-===Services and Lwt===
-
-Remember that a Web site written with Eliom is an OCaml application.
-This application must be able to handle several requests at the same
-time, in order to prevent a single request from making the whole server hang.
-To make this possible, Ocsigen uses //cooperative threads//
-(implemented in monadic style) which make them really easy
-to use (see <<a_api project="lwt" | module Lwt>> module).
-
-Below is an example of a page written in a non-cooperative way, that has the effect of stopping the entire
-server for 5 seconds. No one will be able to query the server during
-this period:
-
-<<code class="donotrun" language="ocaml" |open HTML5.M
-let looong =
-  Eliom_output.Html5.register_service
-    ~path:["looong"]
-    ~get_params:unit
-    (fun () () ->
-       Unix.sleep 5;
-       Lwt.return
-         (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Ok now, you can read the page."]])))
->>
+==@@id="predefined_outputs"@@ Predefined output modules
 
 
-To solve this problem, use a cooperative version of {{{Unix.sleep}}}:
-<<a_api project="lwt" | val Lwt_unix.sleep>>:
-
-<<code language="ocaml"|open HTML5.M
-let looong =
-  Eliom_output.Html5.register_service
-    ~path:["looong"]
-    ~get_params:unit
-    (fun () () ->
-       Lwt_unix.sleep 5.0 ~>>= fun () ->
-       Lwt.return
-         (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Ok now, you can read the page."]])))
->>
-
-If you want to use, say, a database library that is not written
- in a cooperative way, but is thread-safe for preemptive threads,
- use the <<a_api project="lwt" |module Lwt_preemptive>> module to
- detach the computation. In the following example,
- we simulate the request by making a call to <<span class="code"|Unix.sleep>>:
-
-<<code language="ocaml"|let looong2 =
-  register_service
-    ~path:["looong2"]
-    ~get_params:unit
-    (fun () () ->
-       Lwt_preemptive.detach Unix.sleep 5 ~>>= fun () ->
-       Lwt.return
-         (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Ok now, you can read the page."]])))
->>
-
-== Error handling ==
-
-<<wip| Really here ?>>
-
-=== Exception handling
-
-You can catch the exceptions raised during page generation in two places:
-
-* add an exception handler to services using the
-  {{{?error_handler}}} parameter of the registration functions.
-* add a global exception handler using
-  <<a_api | val Eliom_output.set_exn_handler>>
-
-<<code language="ocaml"|
-You can use it to catch exception
-<<a_api | exception Eliom_common.Eliom_404>> and
-generate a custom 404 page.
-
-<<code language="ocaml"|
-let _ = Eliom_output.set_exn_handler
-   (fun e -> match e with
-    | Eliom_common.Eliom_404 ->
-        Eliom_output.Html5.send ~code:404
-          (html
-             (head (title (pcdata "")) [])
-             (body [h1 [pcdata "Eliom tutorial"];
-                    p [pcdata "Page not found"]]))
-    | Eliom_common.Eliom_Wrong_parameter ->
-        Eliom_output.Html5.send
-          (html
-             (head (title (pcdata "")) [])
-             (body [h1 [pcdata "Eliom tutorial"];
-                    p [pcdata "Wrong parameters"]]))
-    | e -> fail e)
->>
-
-===@@id="infofallbacks"@@ Fallback services
-
-You can check wether a service was directly called or if it was used
-as a fallback using the <<a_api| val
-Eliom_request_info.get_link_too_old>> function. In case of coservices
-registered with a restricted scope, you can check which state was
-closed using <<a_api| val
-Eliom_request_info.get_expired_service_sessions>>
-
-=== Error in services handlers of actions
-
-If something wrong happens during an action, it is possible to inform the
-service generating the page. For instance if you want to display
-a "wrong password" message after an aborted connection. 
-To transmit that kind of information, use eliom references (see
-module <<a_api | module Eliom_references>>) created using scope
-<<a_api | Eliom_common.request>>, the value will be available to the
-service generating the page.
-
-Other examples: if you create user accounts
-using actions. if the creation fails you may want to display some
-message to the user, like "password too weak" or "name already
-used". 
-
-== Summary of predefined output modules
+=== List of predefined output modules
 
 <<wip|Add types and options for each module?>>
 
@@ -314,12 +100,14 @@ The main predefined output modules are:
 ;<<a_api| module Eliom_output.Any >>
 : Allows to register services that can choose what they send, for example an xhtml page or a file, depending on some situation (parameter, user logged or not, page present in a cache ...). It is also possible to create your own modules for other types of pages. See <<a_manual chapter="services" fragment="any"|here>> for an example of use.
 
-== Special outputs
+=== Specific output modules
 
-===@@id="eliomfiles"@@Sending files
+<<outline depth="2" >>
 
-You may want to register a service that will send files.
-To do that, use the <<a_api| module Eliom_output.Files >> module. Example:
+====@@id="eliomfiles"@@ Sending files ===
+
+You may want to register a service that will send files.  To do that,
+use the <<a_api| module Eliom_output.Files >> module. Example:
 
 <<code language="ocaml"|
 let sendfile =
@@ -344,7 +132,7 @@ handle static files.
 
 
 
-===Sending portions of pages
+====Sending portions of pages
 
 
  The <<a_api| module Eliom_output.Flow5 >> and <<a_api| module Eliom_output.Blocks >> modules allow you to register services that send portions of pages, of any "block" type for HTML5.M (resp. XHTML.M).
@@ -377,9 +165,9 @@ end)
 >>
 
 
-===@@id="redirections"@@Redirections
+====@@id="redirections"@@Redirections
 
-==== Redirections to eliom services
+===== Redirections to eliom services
 
 The <<a_api| module Eliom_output.Redirection >> module allows you to register HTTP redirections.\\
 If a request is made for such a service, the server asks the browser
@@ -416,7 +204,7 @@ The <<span class="code"|options>> parameter may be either
 Note that the cost of a redirection is one more request and
 one more response.
 
-==== Redirections to generated urls
+===== Redirections to generated urls
 
 The <<a_api| module Eliom_output.String_redirection>> allows you to
 register HTTP redirections to generated URLs. Usualy, prefer <<a_api|
@@ -427,7 +215,7 @@ not possible to have a service corresponding to an URL.
 
 Notice that the supplied URL must be absolute.
 
-===@@id="actions"@@Actions
+====@@id="actions"@@Actions
 
 Actions are used to perform sides effects before generating the
 fallback of a service. When an action is called, the service handler is
@@ -472,45 +260,7 @@ The implementation of the same behaviour with usual Web programming techniques
 is usually much more complicated.
 
 
-===@@id="customize"@@Customize a registration module
-
-Using <<a_api | module Eliom_output.Customize>> you can specialise a
-registration function to avoid code duplication. You can for instance
-for each service add parameters before calling the service handler, or
-modify the answer.
-
-A classical use is to check wether a user is logged in before serving
-the content of a page. That way, we don't need to do the check in
-every service handler and we can get directly the user informations.
-
-In this example, we check if we are in a session group telling that
-the user is connected. If it not the case, we generate a login
-page. When we are in a group, we retrieve the user informations and
-pass it to the service handler. It returns a title and the content of
-the body. That way, it also always generate the same css without code
-duplication.
-
-<<code language="ocaml"|
-module Connected_param =
-struct
-  type page = user_informations -> Eliom_output.Html5.page Lwt.t
-  let translate page =
-    match Eliom_state.get_volatile_data_session_group
-      ~scope:Eliom_common.session () with
-	| None -> login_page ()
-	| Some group_name ->
-	  lwt user_info = get_user_info group_name in
-	  lwt (page_title,content) = page user_info in
-	  return (html (head (title (pcdata page_title))
-	                 [ Some css and things like that ])
-	               (body content))
-end
-
-module Connected =
-  Eliom_output.Customize ( Eliom_output.Html5 ) ( Connected_param )
->>
-
-===@@id="any"@@Registering services that decide what they want to send===
+====@@id="any"@@ Registering services that decide what they want to send ===
 
 You may want to register a service that will send, for instance,
 sometimes an XHTML page, sometimes a file, sometimes something else.
@@ -540,7 +290,7 @@ let send_any =
    )
 >>
 
-==== Dynamicaly modifying register options using Any
+===== Dynamicaly modifying register options using Any
 
 You may also use <<a_api| module Eliom_output.Any >> to dynamicaly
 modify the parameters usualy set on the register function. You can set
@@ -560,7 +310,7 @@ let change_option =
           (body [p [pcdata "forbidden"]])))
 >>
 
-==== About Kind type and how to serve application and other content with the same service
+===== About Kind type and how to serve application and other content with the same service
 
 In Eliom application, changing the current page does not do always the
 same thing. When going to a page inside the same application by
@@ -620,7 +370,50 @@ let file_or_application =
 Unknown content can be casted to browser content using <<a_api| val
 Eliom_output.cast_unknown_content_kind >>.
 
+
+
+
 ===@@id="creating"@@Creating your own output modules===
+
+====@@id="customize"@@By customizing an existing registration module
+
+Using <<a_api | module Eliom_output.Customize>> you can specialise a
+registration function to avoid code duplication. You can for instance
+for each service add parameters before calling the service handler, or
+modify the answer.
+
+A classical use is to check wether a user is logged in before serving
+the content of a page. That way, we don't need to do the check in
+every service handler and we can get directly the user informations.
+
+In this example, we check if we are in a session group telling that
+the user is connected. If it not the case, we generate a login
+page. When we are in a group, we retrieve the user informations and
+pass it to the service handler. It returns a title and the content of
+the body. That way, it also always generate the same css without code
+duplication.
+
+<<code language="ocaml"|
+module Connected_param =
+struct
+  type page = user_informations -> Eliom_output.Html5.page Lwt.t
+  let translate page =
+    match Eliom_state.get_volatile_data_session_group
+      ~scope:Eliom_common.session () with
+	| None -> login_page ()
+	| Some group_name ->
+	  lwt user_info = get_user_info group_name in
+	  lwt (page_title,content) = page user_info in
+	  return (html (head (title (pcdata page_title))
+	                 [ Some css and things like that ])
+	               (body content))
+end
+
+module Connected =
+  Eliom_output.Customize ( Eliom_output.Html5 ) ( Connected_param )
+>>
+
+==== By building the HTTP frame
 
 When you need to declare some kind of specific service, you may need
 to create your own registration module: For instance here we define a
@@ -677,11 +470,127 @@ Eliom_mkreg.MakeRegister_AlphaReturn>> instead.
 
 
 
+==@@id="lwt"@@ Writing cooperative service handlers with Lwt ==
+
+Remember that a Web site written with Eliom is an OCaml application.
+This application must be able to handle several requests at the same
+time, in order to prevent a single request from making the whole
+server hang.  To make this possible, Ocsigen uses //cooperative
+threads// (implemented in monadic style) which make them really easy
+to use (see <<a_api project="lwt" | module Lwt>> module).
+
+Below is an example of a page written in a non-cooperative way, that
+has the effect of stopping the entire server for 5 seconds. No one
+will be able to query the server during this period:
+
+<<code class="donotrun" language="ocaml" |open HTML5.M
+let looong =
+  Eliom_output.Html5.register_service
+    ~path:["looong"]
+    ~get_params:unit
+    (fun () () ->
+       Unix.sleep 5;
+       Lwt.return
+         (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Ok now, you can read the page."]])))
+>>
+
+
+To solve this problem, use a cooperative version of {{{Unix.sleep}}}:
+<<a_api project="lwt" | val Lwt_unix.sleep>>:
+
+<<code language="ocaml"|open HTML5.M
+let looong =
+  Eliom_output.Html5.register_service
+    ~path:["looong"]
+    ~get_params:unit
+    (fun () () ->
+       Lwt_unix.sleep 5.0 ~>>= fun () ->
+       Lwt.return
+         (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Ok now, you can read the page."]])))
+>>
+
+If you want to use, say, a database library that is not written
+ in a cooperative way, but is thread-safe for preemptive threads,
+ use the <<a_api project="lwt" |module Lwt_preemptive>> module to
+ detach the computation. In the following example,
+ we simulate the request by making a call to <<span class="code"|Unix.sleep>>:
+
+<<code language="ocaml"|let looong2 =
+  register_service
+    ~path:["looong2"]
+    ~get_params:unit
+    (fun () () ->
+       Lwt_preemptive.detach Unix.sleep 5 ~>>= fun () ->
+       Lwt.return
+         (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Ok now, you can read the page."]])))
+>>
 
 
 
 
 
+==@@id="error_handling"@@ Error handling ==
+
+=== Exception handling
+
+You can catch the exceptions raised during page generation in two places:
+
+* add an exception handler to services using the {{{?error_handler}}}
+  parameter of the registration functions.
+* add a global exception handler using <<a_api | val
+  Eliom_output.set_exn_handler>>
+
+You can use it to catch exception <<a_api | exception
+Eliom_common.Eliom_404 >> and generate a custom 404 page.
+
+<<code language="ocaml"|
+
+let _ = Eliom_output.set_exn_handler
+   (fun e -> match e with
+    | Eliom_common.Eliom_404 ->
+        Eliom_output.Html5.send ~code:404
+          (html
+             (head (title (pcdata "")) [])
+             (body [h1 [pcdata "Eliom tutorial"];
+                    p [pcdata "Page not found"]]))
+    | Eliom_common.Eliom_Wrong_parameter ->
+        Eliom_output.Html5.send
+          (html
+             (head (title (pcdata "")) [])
+             (body [h1 [pcdata "Eliom tutorial"];
+                    p [pcdata "Wrong parameters"]]))
+    | e -> fail e)
+
+>>
+
+===@@id="infofallbacks"@@ Fallback services
+
+You can check wether a service was directly called or if it was used
+as a fallback using the <<a_api| val
+Eliom_request_info.get_link_too_old >> function. In case of coservices
+registered with a restricted scope, you can check which state was
+closed using <<a_api| val
+Eliom_request_info.get_expired_service_sessions >>
+
+=== Error in services handlers of actions
+
+If something wrong happens during an action, it is possible to inform
+the service generating the page. For instance if you want to display a
+"wrong password" message after an aborted connection.  To transmit
+that kind of information, use eliom references (see module <<a_api |
+module Eliom_references>>) created using scope <<a_api |
+Eliom_common.request>>, the value will be available to the service
+generating the page.
+
+Other examples: if you create user accounts using actions. if the
+creation fails you may want to display some message to the user, like
+"password too weak" or "name already used".
 
 
 

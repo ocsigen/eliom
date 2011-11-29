@@ -478,9 +478,12 @@ done using either {{{userdiv}}} or {{{base}}}.
 
 == Using Eliom on client side
 
+<<wip|
+
 Liens, formulaires, utilisation des services côté client
 Le module Eliom_client
 Modules Eliom disponibles des deux côtés (et différences)
 
 parler de Eliom_services.void_coservice ?
 
+>>
