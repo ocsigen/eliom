@@ -57,7 +57,7 @@ struct
 
     let internal_unwrap ( channel, value, unwrapper ) =
       let e = E.of_stream channel in
-      S.hold ~eq(fun _ _ -> false) value e
+      S.hold ~eq:(fun _ _ -> false) value e
 
     let () = Eliom_unwrap.register_unwrapper Eliom_common.signal_down_unwrap_id internal_unwrap
 
