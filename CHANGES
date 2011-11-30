@@ -1,7 +1,30 @@
-===== dev ====
+===== 2.0.2 =====
 
- * Use "lazy string" for TyXML's uri representation
- * Stateless comet channel can be registered multiple times.
+ * Compatibility with js_of_ocaml-1.0.8 and tyxml-2.0.1
+ * API Changes:
+ ** Eliom_output.Redirection: use 302 as default and introduce
+    abstract nome for all the 30x HTTP code
+ ** Eliom_output.Customize: remove unrequired Functor parameters.
+ * Delayed URl computation: this allow to create relative link
+   outside of service handler.
+ * Client: do not ignore "onload" events attached on Dom elements
+   other than window.
+ * Bugfixes:
+ ** Client: do not execute change_page_uri when the middle button or
+    any modifier key is pressed.
+ ** Client: update correctly the location when changing page with
+    forms.
+ ** Server: displaying better dynlink error messages.
+ ** Syntax extension: avoid infinite loop while parsing first-order
+    module expression
+ ** Eliom_parameters: fixing wrong parameter names for list of list
+ ** Eliom_parameters: fixing bug causing stack overflow when lists
+    parameter names were wrong
+ ** Fixing bug with non-localized parameters and service not keeping
+    non-attached params
+ ** Eliom_comet: stateless channels can be registered multiple times
+    (close #220)
+
 
 ===== 2.0.1 (2011-09-28) =====
 
@@ -23,7 +46,6 @@
  * Feature:
  ** api history: when the api history is available, application URLs are more
     readable ( no more #! )
-
  * Bugfixes:
  ** fix browser compatibility: it should work with Firefox ( >= 3.0 ), Chrome
     ( all recent version we tested ), Safari 5, Opera ( tested 11.51 ), Internet

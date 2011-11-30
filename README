@@ -8,17 +8,17 @@ Requirements:
 Compilers:
 
  * ocaml and camlp4  (need version >= 3.12)
- * js_of_ocaml	     (need version >= 1.0.6, with deriving-ocsigen support)
+ * js_of_ocaml	     (need version >= 1.0.8, with deriving-ocsigen support)
  * a C compiler      (tested with gcc-4.4.5)
  * ocamlduce         [optionnal]
 
 Libraries:
 
  * findlib
- * ocsigenserver     (need version >= 2.0)
- * tyxml	     (need version >= 2.0)
+ * ocsigenserver     (need version >= 2.0.2)
+ * tyxml	     (need version >= 2.0.1)
  * react             (tested with 0.9.2)
- * deriving-ocsigen  (need version >= 0.2-ocsigen)
+ * deriving-ocsigen  (need version >= 0.3-ocsigen)
                        See: https://github.com/hnrgrgr/deriving
  * ocamlssl          (tested with 0.4.4)
  * calendar	     (tested with 2.01.1)
