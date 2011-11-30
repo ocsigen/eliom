@@ -1087,7 +1087,6 @@ let divpage =
           
 *wiki*)
 let redir1 = Eliom_output.Redirection.register_service
-    ~options:`TemporaryRedirect
     ~path:["redir"]
     ~get_params:Eliom_parameters.unit
    (fun () () -> Lwt.return coucou)
@@ -1095,7 +1094,6 @@ let redir1 = Eliom_output.Redirection.register_service
           
  *wiki*)
 let redir = Eliom_output.Redirection.register_service
-    ~options:`TemporaryRedirect
     ~path:["redir"]
     ~get_params:(int "o")
    (fun o () ->

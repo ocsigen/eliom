@@ -2804,7 +2804,7 @@ module String_redir_reg_base = struct
 	  | `SeeOther -> 303
 	  | `NotNodifed -> 304
 	  | `UseProxy -> 305
-	  | `TemporaryRedirect -> 306
+	  | `TemporaryRedirect -> 307
       in
       Lwt.return
         {empty_result with
@@ -2891,7 +2891,7 @@ module Redir_reg_base = struct
 	  | `SeeOther -> 303
 	  | `NotNodifed -> 304
 	  | `UseProxy -> 305
-	  | `TemporaryRedirect -> 306
+	  | `TemporaryRedirect -> 307
         in
         Lwt.return
           {empty_result with
