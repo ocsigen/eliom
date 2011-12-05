@@ -170,7 +170,7 @@ module RawXML = struct
     | _ -> failwith "not implemented for Ocsigen syntax extension"
 
   type ref_tree =
-    | Ref_node of (node_id option * (string * caml_event) list * ref_tree list)
+    | Ref_node of (node_id option * (string * caml_event) list * ref_tree array)
     | Ref_empty of int
 
 end

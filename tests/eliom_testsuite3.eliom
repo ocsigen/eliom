@@ -2992,3 +2992,24 @@ let _ =
 		    Eliom_output.Html5.a ~service:unique1 [pcdata "page 1"] ();
 		    node;]))
 
+let big_service =
+  Eliom_services.service
+    ~path:["big_page"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let rec big_page n =
+  if n = 0
+  then
+    Eliom_output.Html5.a ~service:big_service [pcdata "same page"] ()
+  else
+    div [big_page (n-1);
+	 big_page (n-1);]
+
+let _ =
+ My_appl.register
+   big_service
+   (fun () () ->
+     return
+       (make_page [h1 [pcdata "Big page"];
+                   div [big_page 12]]))

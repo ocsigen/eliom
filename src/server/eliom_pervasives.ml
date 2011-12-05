@@ -192,7 +192,7 @@ module XML = struct
     match id, attribs_childrens with
       | None, None -> Ref_empty 0
       | None, Some ([], []) -> Ref_empty 1
-      | _, Some (attribs, childrens) -> Ref_node (id, attribs, childrens)
+      | _, Some (attribs, childrens) -> Ref_node (id, attribs, Array.of_list childrens)
       | Some _, None -> failwith "unexpected id on an unlabellable node: ex pcdata, comment, ..."
 
   and make_ref_tree_list l =

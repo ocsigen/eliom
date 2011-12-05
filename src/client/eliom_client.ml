@@ -1,6 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Copyright (C) 2010 Vincent Balat
+ * Copyright (C) 2011 Jérôme Vouillon, Grégoire Henry, Pierre Chambart
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -105,24 +106,25 @@ let reify_event node ev = match ev with
 
 let register_event_handler node acc (name, ev) =
   let f = reify_caml_event node ev in
-  assert(String.sub name 0 2 = "on");
+(*  assert(String.sub name 0 2 = "on"); *)
   if name = "onload" then
     f :: acc
   else
-    ( Js.Unsafe.set node (Js.string name)
+    ( Js.Unsafe.set node (Js.bytestring name)
 	(Dom_html.handler (fun ev -> Js.bool (f ev)));
       acc )
 
 (* == Register nodes id and event in the orginal Dom. *)
 
+let register_event_handlers acc node attribs =
+  List.fold_left
+    (register_event_handler (Js.Unsafe.coerce node : Dom_html.element Js.t))
+    acc
+    attribs
+
 let rec relink_dom acc node (id, attribs, children_ref_tree) =
-  let register_event_handlers () =
-    List.fold_left
-      (register_event_handler (Js.Unsafe.coerce node : Dom_html.element Js.t))
-      acc
-      attribs in
   let acc = match id with
-  | None -> register_event_handlers ()
+  | None -> register_event_handlers acc node attribs
   | Some id ->
       try
 	let pnode = find_node id in
@@ -131,32 +133,38 @@ let rec relink_dom acc node (id, attribs, children_ref_tree) =
 	acc
       with Not_found ->
 	register_node id node;
-	register_event_handlers ()
+	register_event_handlers acc node attribs
   in
-  let children =
-    List.filter
-      ( fun node ->
-	match Js.Opt.to_option (Dom_html.CoerceTo.element node) with
-	  | None -> false
-	  | Some elt ->
-	    match Js.Opt.to_option ( elt##getAttribute( Js.string "id" ) ) with
-	      | None -> true
-	      | Some id ->
-		id <> Js.string "_firebugConsole" )
-      (Dom.list_of_nodeList (node##childNodes)) in
-  relink_dom_list acc children children_ref_tree
+  relink_dom_list acc (node##childNodes) children_ref_tree
 
-and relink_dom_list acc nodes ref_trees =
-  match nodes, ref_trees with
-  | node :: nodes, XML.Ref_node ref_tree :: ref_trees ->
-      let acc = relink_dom acc node ref_tree in
-      relink_dom_list acc nodes ref_trees
-  | nodes, XML.Ref_empty i :: ref_trees ->
-      relink_dom_list acc (List.chop i nodes) ref_trees
-  | _, [] -> acc
-  | [], _ ->
-    Firebug.console##error(Js.string "Incorrect sparse tree.");
-    acc
+and relink_dom_list acc childnodes ref_trees =
+  let pos = ref 0 in
+  let acc = ref acc in
+  for j = 0 to Array.length ref_trees - 1 do
+  match ref_trees.(j) with
+  | XML.Ref_node ref_tree ->
+    let rec find_node () =
+      let node = Js.Opt.get (childnodes##item(!pos)) (fun () -> failwith "bof") in
+      incr pos;
+      if node##nodeType != Dom.ELEMENT
+      then find_node ()
+      else node
+    in
+    acc := relink_dom !acc (find_node ()) ref_tree
+  | XML.Ref_empty i ->
+    let rec aux i =
+      let node = Js.Opt.get (childnodes##item(!pos)) (fun () -> failwith "bof") in
+      incr pos;
+      if node##nodeType != Dom.ELEMENT
+      then aux i
+      else
+	if i > 1
+	then
+	  aux (i - 1)
+    in
+    aux i
+  done;
+  !acc
 
 (* HACK: circumvent problems with Firebug ( with Firefox 3.6 ), and
    chromium addblock: They add nodes between the head and body
@@ -167,9 +175,13 @@ let relink_page (root:Dom.element Js.t) ref_tree =
   match ref_tree with
     | XML.Ref_empty _ -> []
     | XML.Ref_node (id,attribs,children_ref_tree) ->
-      let acc = relink_dom [] (root:>Dom.node Js.t) (id, attribs, []) in
-      let children = [Eliommod_dom.get_head root;Eliommod_dom.get_body root] in
-      relink_dom_list acc (children:>Dom.node Js.t list) children_ref_tree
+      let acc = relink_dom [] (root:>Dom.node Js.t) (id, attribs, [||]) in
+      (* Hand created NodeList *)
+      let v = Js.Unsafe.coerce(jsnew Js.array_empty ()) in
+      v##item <- Js.wrap_callback (fun i -> if i == 0
+	then Eliommod_dom.get_head root
+	else Eliommod_dom.get_body root);
+      relink_dom_list acc (Js.Unsafe.coerce v) children_ref_tree
 
 (* == Convertion from OCaml XML.elt nodes to native JavaScript Dom nodes *)
 

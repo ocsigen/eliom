@@ -446,6 +446,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a appl_with_redirect_service [ pcdata "link to a service hidden by a redirection" ] ();
               br ();
+              a big_service [ pcdata "loading a big page" ] ();
+              br ();
             ];
 
             h4 [pcdata "Process states"];

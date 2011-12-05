@@ -203,7 +203,7 @@ module XML : sig
 
   type node_id = string
   type ref_tree =
-    | Ref_node of (node_id option * (string * caml_event) list * ref_tree list)
+    | Ref_node of (node_id option * (string * caml_event) list * ref_tree array)
     | Ref_empty of int
 
 end
