@@ -1,3 +1,9 @@
+===== Dev =====
+
+ * API Changes:
+ ** Add Eliom_state.get_*_session_group_size to know the number of
+    session in a session group
+
 ===== 2.0.2 =====
 
  * Compatibility with js_of_ocaml-1.0.8 and tyxml-2.0.1

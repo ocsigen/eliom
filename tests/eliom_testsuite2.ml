@@ -249,16 +249,19 @@ let connect_example_handler () () =
   let group =
     Eliom_state.get_volatile_data_session_group (*zap* *) ~scope:session (* *zap*) ()
   in
+  let group_size =
+    Eliom_state.get_volatile_data_session_group_size ~scope:session () in
   Eliom_references.get bad_user >>= fun bad_u ->
   Lwt.return
     (html
        (head (title (pcdata "")) [])
        (body
-          (match group, status with
-          | Some name, _ ->
-              [p [pcdata ("Hello "^name); br ()];
+          (match group, group_size, status with
+          | Some name, Some size , _ ->
+              [p [pcdata ("Hello "^name); br ();
+		  pcdata (Printf.sprintf "There are %i session in this group" size); br ()];
               disconnect_box "Close session"]
-          | None, Eliom_state.Expired_state ->
+          | None, _, Eliom_state.Expired_state ->
               [login_box true bad_u connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
           | _ ->

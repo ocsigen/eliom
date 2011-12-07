@@ -201,6 +201,14 @@ val get_service_session_group :
   unit ->
   string option
 
+(** returns the number of sessions in the group. If he session does not
+    belong to any group or if no session is opened, returns [None] *)
+val get_service_session_group_size :
+  ?scope:Eliom_common.session_scope ->
+  ?secure:bool ->
+  unit ->
+  int option
+
 (** sets the group to which belong the volatile data session.
 
     If the optional [?set_max] parameter is present, also sets the maximum
@@ -232,6 +240,14 @@ val get_volatile_data_session_group :
   ?secure:bool ->
   unit ->
   string option
+
+(** returns the number of sessions in the group. If he session does not
+    belong to any group or if no session is opened, returns [None] *)
+val get_volatile_data_session_group_size :
+  ?scope:Eliom_common.session_scope ->
+  ?secure:bool ->
+  unit ->
+  int option
 
 (** sets the group to which belong the persistent session.
 

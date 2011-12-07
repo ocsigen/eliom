@@ -461,7 +461,19 @@ let get_service_session_group ?(scope = Eliom_common.session) ?secure () =
     | Not_found
     | Eliom_common.Eliom_Session_expired -> None
 
-
+let get_service_session_group_size ?(scope = Eliom_common.session) ?secure () =
+  try
+    let c =
+      Eliommod_sersess.find_service_cookie_only
+	~scope:(scope:>Eliom_common.user_scope) ~secure ()
+    in
+    match !(c.Eliom_common.sc_session_group) with
+      | _, _, Right _ -> None
+      | _, _, Left v ->
+	Some (Eliommod_sessiongroups.Serv.group_size !(c.Eliom_common.sc_session_group))
+  with
+    | Not_found
+    | Eliom_common.Eliom_Session_expired -> None
 
 let set_volatile_data_session_group
     ?set_max ?(scope = Eliom_common.session)
@@ -521,6 +533,20 @@ let get_volatile_data_session_group ?(scope =Eliom_common.session) ?secure () =
     match !(c.Eliom_common.dc_session_group) with
       | _, _, Right _ -> None
       | _, _, Left v -> Some v
+  with
+    | Not_found
+    | Eliom_common.Eliom_Session_expired -> None
+
+let get_volatile_data_session_group_size ?(scope = Eliom_common.session) ?secure () =
+  try
+    let c =
+      Eliommod_datasess.find_data_cookie_only
+	~scope:(scope:>Eliom_common.user_scope) ~secure ()
+    in
+    match !(c.Eliom_common.dc_session_group) with
+      | _, _, Right _ -> None
+      | _, _, Left v ->
+	Some (Eliommod_sessiongroups.Data.group_size !(c.Eliom_common.dc_session_group))
   with
     | Not_found
     | Eliom_common.Eliom_Session_expired -> None
