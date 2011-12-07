@@ -1338,6 +1338,7 @@ let event_service =
       let target13 = make_target "Annuler le précédent" in
       let target14 = make_target "Drag with long handler" in
       let target15 = make_target "Annuler le précédent" in
+      let target16 = make_target "Mouse over change color" in
 
       let targetresult = HTML5.M.unique (HTML5.M.p []) in
       Eliom_services.onload
@@ -1386,6 +1387,15 @@ let event_service =
           in
           let _ = run (click (Eliom_client.Html5.of_p %target15) >>> cancel c) ()
           in
+          let t16 = Eliom_client.Html5.of_p %target16 in
+          let _ = run (mouseovers t16
+                      (arr (fun _ -> t16##style##backgroundColor <- Js.string "red"))
+          ) ()
+          in
+          let _ = run (mouseouts t16
+                      (arr (fun _ -> t16##style##backgroundColor <- Js.string ""))
+          ) ()
+          in
           ()
 
         }};
@@ -1393,7 +1403,7 @@ let event_service =
        Lwt.return
 	 (make_page [target1; target2; target3; target4; target5; target6;
                      target7; target8; target9; target10; target11;
-                     target12; target13; target14; target15;
+                     target12; target13; target14; target15; target16;
                      targetresult]) )
 
 
@@ -2225,6 +2235,10 @@ let coucouaction =
     ~get_params:unit
     (fun () () -> Lwt.return ())
 
+let coucouaction2 =
+  Eliom_output.Action.register_coservice'
+    ~get_params:unit
+    (fun () () -> Lwt.return ())
 
 let actionoutside =
   My_appl.register_service
@@ -2235,6 +2249,8 @@ let actionoutside =
         (make_page
 	   [p [a ~service:coucouaction
 		  [ pcdata "Click to do an action outside the application"] () ];
+	    p [a ~service:coucouaction2
+		  [ pcdata "Click to do an action outside the application (with non-attached coservice)"] () ];
            ]))
 
 
