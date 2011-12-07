@@ -118,7 +118,7 @@ let register_event_handler node acc (name, ev) =
 
 let register_event_handlers acc node attribs =
   List.fold_left
-    (register_event_handler (Js.Unsafe.coerce node : Dom_html.element Js.t))
+    (fun acc ev -> register_event_handler (Js.Unsafe.coerce node : Dom_html.element Js.t) acc ev)
     acc
     attribs
 
