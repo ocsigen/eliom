@@ -2032,7 +2032,7 @@ let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 let regexpserv =
   Eliom_output.Html5.register_service
     ~path:["regexp"]
-    ~get_params:(regexp myregexp "$1" (fun s -> s) "myparam")
+    ~get_params:(regexp myregexp "\\1" (fun s -> s) "myparam")
     (fun g () ->
       return
         (html
