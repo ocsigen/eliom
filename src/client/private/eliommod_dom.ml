@@ -136,7 +136,7 @@ let html_document (src:Dom.element Dom.document Js.t) : Dom_html.element Js.t =
 (** CSS preloading. *)
 
 let is_stylesheet e =
-  Js.to_string e##nodeName = "LINK"
+  String.uppercase (Js.to_string e##nodeName) = "LINK"
   && List.exists ((=) "stylesheet")
        (String.split ' '
 	  (Js.Opt.case (e##getAttribute (Js.string "rel"))
@@ -335,5 +335,11 @@ let build_style (e, css) =
 let preload_css (doc : Dom_html.element Js.t) =
   lwt css = Lwt_list.map_p build_style (fetch_linked_css doc) in
   List.iter (fun (e, css) ->
-	       Dom.replaceChild (get_head doc) css e) css;
+	       try Dom.replaceChild (get_head doc) css e
+	       with _ ->
+                    (* Node was a unique node that has been removed...
+		       in a perfect settings we won't have parsed it... *)
+		 Firebug.console##debug(Js.string "Unique CSS skipped...");
+		 ()) css;
+  Firebug.console##timeEnd(Js.string "preload_css (fetch+rewrite)");
   Lwt.return ()
