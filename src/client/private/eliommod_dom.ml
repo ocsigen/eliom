@@ -146,20 +146,20 @@ let is_stylesheet e =
 	     (fun () -> true)
 	     (fun s -> Js.to_string s = "text/css"))
 
-let basedir_re = Regexp.regexp "^(([^/?]*/)*)[^/?]*(\\?.*)?$"
+let basedir_re = Regexp.regexp "^(([^/?]*/)*)([^/?]*)(\\?.*)?$"
 let basedir path =
   match Regexp.string_match basedir_re path 0 with
   | None -> "/"
   | Some res ->
-     match Regexp.matched_group res 1 with
-     | None -> "/"
-     | Some dir -> dir
-
-(* let current_baseurl () = *)
-  (* (Js.to_string Dom_html.window##location##protocol) ^ *)
-  (* "//" ^ *)
-  (* (Js.to_string Dom_html.window##location##host) ^ *)
-  (* basedir (Js.to_string Dom_html.window##location##pathname) *)
+    match Regexp.matched_group res 1 with
+    | None ->
+      ( match Regexp.matched_group res 3 with
+	| Some ".." -> "../"
+	| _ -> "/" )
+    | Some dir ->
+      ( match Regexp.matched_group res 3 with
+	| Some ".." -> dir^"../"
+	| _ -> dir )
 
 let fetch_linked_css e =
   let rec extract acc (e : Dom.node Js.t) =
