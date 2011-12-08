@@ -495,16 +495,14 @@ let set_content ?uri ?fragment = function
 	  change_url_string (uri ^ "#" ^ fragment)
 	| _ -> ());
       let fake_page = Eliommod_dom.html_document content in
+      let preloaded_css = Eliommod_dom.preload_css fake_page in
       let js_data, cookies = load_data_script (get_data_script fake_page) in
       Eliommod_cookies.update_cookie_table cookies;
       let on_load = load_eliom_data js_data fake_page in
-      lwt () = Eliommod_dom.preload_css fake_page in
-      Dom.replaceChild (Dom_html.document##documentElement)
-        (Eliommod_dom.get_head fake_page)
-	(Eliommod_dom.get_head (Dom_html.document##documentElement));
-      Dom.replaceChild (Dom_html.document##documentElement)
-        (Eliommod_dom.get_body fake_page)
-	(Eliommod_dom.get_body (Dom_html.document##documentElement));
+      lwt () = preloaded_css in
+      Dom.replaceChild Dom_html.document
+        fake_page
+	Dom_html.document##documentElement;
       let load_evt : #Dom_html.event Js.t =
 	(Js.Unsafe.coerce Dom_html.document)##createEvent(Js.string "HTMLEvents") in
       (Js.Unsafe.coerce load_evt)##initEvent(Js.string "load", false, false);
