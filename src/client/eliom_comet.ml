@@ -560,11 +560,7 @@ let close = function
     let { hd_service_handler } = get_stateless_hd chan_service in
     Service_handler.close hd_service_handler (Ecb.string_of_chan_id chan_id)
 
-let unmarshal s : 'a =
-  let value =
-    (Marshal.from_string (Url.decode s) 0:'a Eliom_types.eliom_comet_data_type)
-  in
-  Eliom_unwrap.unwrap value
+let unmarshal s : 'a = Eliom_unwrap.unwrap (Url.decode s) 0
 
 type position_relation =
   | Equal   (* stateless after channels *)

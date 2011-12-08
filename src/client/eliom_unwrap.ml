@@ -80,83 +80,12 @@ let apply_unwrapper unwrapper v =
   in
   f v
 
-let is_marked (mark:Mark.t) o =
+external raw_unmarshal_and_unwrap
+  : (unwrapper -> 'a -> 'b) -> string -> int -> 'c
+  = "caml_unwrap_value_from_string"
 
-  let is_mark o =
-    if (Obj.tag o = 0 && Obj.size o = 2 && Obj.field o 1 == (Obj.repr mark))
-    then (let id = (Obj.field o 0) in
-	  assert (Obj.tag id = Obj.int_tag);
-	  true)
-    else false
-  in
-
-  if (Obj.tag o = 0 && Obj.size o >= 2)
-  (* WARNING: we only allow block values with tag = 0 to be wrapped.
-     It is easier: we do not have to do another test to know if the
-     value is a function *)
-  then
-    begin
-      let potential_mark = (Obj.field o (Obj.size o - 1)) in
-      if is_mark potential_mark
-      then Some (Obj.obj potential_mark:unwrapper)
-      else None
-    end
-  else None
-
-type action =
-  | Set_field of ( Obj.t * int )
-  | Replace of Obj.t
-  | Return
-
-type stack =
-  | Do of (Obj.t * action)
-  | Unwrap of (unwrapper * Obj.t)
-
-let find v =
-  let tag = Obj.tag v in
-  if tag >= Obj.no_scan_tag || tag = Obj.closure_tag
-  || tag = Obj.infix_tag || tag = Obj.lazy_tag || tag = Obj.object_tag
-  then Some v
-  else get_obj_copy v
-
-let search_and_replace_ mark v =
-  let rec loop = function
-    | [] -> assert false
-    | (Unwrap (unwrapper,v))::q ->
-      let new_v = apply_unwrapper unwrapper v in
-      loop ((Do (new_v,Replace v))::q)
-    | (Do (v,action))::q as s ->
-      match find v with
-	| Some r ->
-	  (match action with
-	    | Set_field (o,i) ->
-	      Obj.set_field o i r;
-	      loop q
-	    | Replace o -> set_obj_copy o r;
-	      loop q
-	    | Return -> r)
-	| None ->
-	  match is_marked mark v with
-	    | Some unwrapper ->
-	      let stack = ref ((Unwrap (unwrapper,v))::s) in
-	      let size = Obj.size v in
-	      for i = 0 to size - 2 do
-		stack := (Do ((Obj.field v i),Set_field (v,i))) :: !stack;
-	      done;
-	      loop !stack
-	    | None ->
-	      begin
-		set_obj_copy v v;
-	      (* It is ok to do this because tag < no_scan_tag and it is
-		 not a closure ( either infix, normal or lazy ) *)
-		let stack = ref s in
-		let size = Obj.size v in
-		for i = 0 to size - 1 do
-		  stack := (Do ((Obj.field v i),Set_field (v,i))) :: !stack;
-		done;
-		loop !stack
-	      end
-  in
-  loop [Do (v,Return)]
-
-let unwrap (mark,v) = Obj.obj (search_and_replace_ (Obj.magic mark) (Obj.repr v))
+let unwrap s i = raw_unmarshal_and_unwrap apply_unwrapper s i
+let unwrap_js_var s =
+  raw_unmarshal_and_unwrap
+    apply_unwrapper
+    (Js.to_bytestring (Js.Unsafe.variable s)) 0

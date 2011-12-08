@@ -627,7 +627,7 @@ let call_caml_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?keep_get_na_params
       get_params post_params in
-  Lwt.return (Eliom_unwrap.unwrap (Marshal.from_string (Url.decode s) 0))
+  Lwt.return (Eliom_unwrap.unwrap (Url.decode s) 0)
 
 
 
