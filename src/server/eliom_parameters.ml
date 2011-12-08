@@ -91,7 +91,7 @@ let reconstruct_params_
     params files nosuffixversion urlsuffix : 'a =
   let rec parse_suffix typ suff =
     match (typ, suff) with
-      | TAny, l | TESuffix _, l -> Obj.magic l, []
+      | TESuffix _, l -> Obj.magic l, []
           (*VVV encode=false? *)
       | TESuffixs _, l -> Obj.magic (Url.string_of_url_path ~encode:false l), []
       | TESuffixu (_, of_string, to_string), l ->
@@ -175,6 +175,8 @@ let reconstruct_params_
           failwith "It is not possible to have non localized parameters in suffix"
       | TJson (_, Some typ), v::l -> Deriving_Json.from_string typ v, l
       | TJson (_, None), v::l -> assert false (* client side only *)
+      | TAny _, _ -> 
+          failwith "It is not possible to use any in suffix. May be try with all_suffix ?"
       | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   let aux2 typ params =
