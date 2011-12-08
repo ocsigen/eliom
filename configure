@@ -339,6 +339,7 @@ check_library lwt.unix  "Missing support for 'unix' in lwt."
 check_library lwt.react "Missing support for 'react' in lwt."
 
 check_library calendar "See: http://calendar.forge.ocamlcore.org/"
+check_library cryptokit "See: http://pauillac.inria.fr/~xleroy/software.html#cryptokit"
 
 # Check ocamlduce
 if [ "$with_ocamlduce" -gt 0 ]; then

@@ -30,11 +30,12 @@ export OCAMLPATH:=${LIBDIR}:${OCAMLPATH}
 
 SERVER_PACKAGE := ocsigenserver               \
 		  ocsigenserver.ext           \
-            	  js_of_ocaml.deriving        \
+		  js_of_ocaml.deriving        \
 	    	  react                       \
 	   	  calendar                    \
 	    	  tyxml                       \
 		  lwt.react                   \
+		  cryptokit		      \
 
 SERVER_SYNTAX := js_of_ocaml.deriving.syntax \
 	      	 lwt.syntax		     \
