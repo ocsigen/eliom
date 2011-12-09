@@ -18,9 +18,9 @@ function caml_weak_get(x, i) { return (x[i]===undefined)?0:x[i]; }
 //Requires: caml_weak_get
 function caml_weak_copy(x, i) {
   var y = caml_weak_get(x, i);
-  if (y == 0) return y;
+  if (y === 0) return y;
   var z = y[1];
-  if (z instanceof Array && z[1] == (z[1]|0)) return [0, z.slice()];
+  if (z instanceof Array && z[1] === (z[1]|0)) return [0, z.slice()];
   return y;
 }
 //Provides: caml_weak_check mutable
@@ -256,7 +256,7 @@ var caml_unwrap_value_from_string = function (){
       var d = v.length;
       if (size + 1 == d) {
 	// See Eliom_wrap.ml.
-        if (v[0] == 0 && size >= 2 &&
+        if (v[0] === 0 && size >= 2 &&
 	    v[size][2] === intern_obj_table[2]) {
 	    var ancestor = intern_obj_table[stack[stack.length-2]];
 	    var v = apply_unwrapper(v[size],v);
