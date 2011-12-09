@@ -135,16 +135,17 @@ let html_document (src:Dom.element Dom.document Js.t) : Dom_html.element Js.t =
 
 (** CSS preloading. *)
 
+let spaces_re = Regexp.regexp " +"
+
 let is_stylesheet e =
-  String.uppercase (Js.to_string e##nodeName) = "LINK"
-  && List.exists ((=) "stylesheet")
-       (String.split ' '
-	  (Js.Opt.case (e##getAttribute (Js.string "rel"))
-	     (fun () -> "")
-	     Js.to_string))
-  && (Js.Opt.case (e##getAttribute (Js.string "type"))
-	     (fun () -> true)
-	     (fun s -> Js.to_string s = "text/css"))
+  (* FIX: should eventually use Dom_html.element *)
+  Js.Opt.case (Dom_html.CoerceTo.link (Js.Unsafe.coerce e))
+    (fun _ -> false)
+    (fun e ->
+       List.exists (fun s -> s = "stylesheet")
+         (Regexp.split spaces_re (Js.to_string e##rel))
+       &&
+       e##_type == Js.string "text/css")
 
 let basedir_re = Regexp.regexp "^(([^/?]*/)*)([^/?]*)(\\?.*)?$"
 let basedir path =
@@ -165,22 +166,24 @@ let fetch_linked_css e =
   let rec extract acc (e : Dom.node Js.t) =
     match Dom.nodeType e with
     | Dom.Element e when is_stylesheet e ->
-        let href     = e##getAttribute (Js.string "href")
-        and disabled = e##getAttribute (Js.string "disabled")
-        and title    = e##getAttribute (Js.string "title")
-        and media    = e##getAttribute (Js.string "media") in
-	if Js.Opt.test disabled || Js.Opt.test title
-	then acc
+        let e : Dom_html.linkElement Js.t = Js.Unsafe.coerce e in
+        let href = e##href in
+	if
+          Js.to_bool e##disabled || e##title##length > 0 || href##length = 0
+        then
+	  acc
 	else
-	  Js.Opt.case href
-	    (fun () -> acc)
-	    (fun href ->
-	       let css =
-		 Eliom_request.http_get (Js.to_string href) []
-		   Eliom_request.string_result in
-	       acc @ [e, (media, css)] )
+	  let css =
+	    Eliom_request.http_get (Js.to_string href) []
+	      Eliom_request.string_result in
+	  acc @ [e, (e##media, css)]
     | Dom.Element e ->
-        List.fold_left extract acc (Dom.list_of_nodeList e##childNodes)
+        let c = e##childNodes in
+        let acc = ref acc in
+        for i = 0 to c##length do
+          acc := extract !acc (Js.Opt.get c##item (i) (fun _ -> assert false))
+        done;
+        !acc
     | _ -> acc in
   extract [] (e :> Dom.node Js.t)
 
@@ -287,17 +290,15 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
 	  if max = 0 then
 	    (* Maximum imbrication of @import reached, rewrite url. *)
 	    Lwt.return [(media,
-			 Printf.sprintf "@import url('%s') %s;\n" href media')] 
-	  else if Js.Opt.test media && media' <> "" then
+			 Printf.sprintf "@import url('%s') %s;\n" href media')]
+	  else if media##length > 0 && String.length media' > 0 then
 	    (* TODO combine media if possible...
 	       in the mean time keep explicit import. *)
 	    Lwt.return [(media,
 	                 Printf.sprintf "@import url('%s') %s;\n" href media')]
 	  else
 	    let media =
-	      if Js.Opt.test media then media
-	      else if media' = "" then Js.null
-	      else Js.some (Js.string media')
+	      if media##length > 0 then media else Js.string media'
 	    in
 	    let css =
 	      Eliom_request.http_get href [] Eliom_request.string_result in
@@ -321,7 +322,7 @@ let build_style (e, css) =
       (fun (media, css) ->
 	 let style = Dom_html.createStyle Dom_html.document in
 	 style##_type <- Js.string "text/css";
-	 Js.Opt.iter media (fun m -> style##media <- m);
+         style##media <- media;
 	 style##innerHTML <- Js.string css;
 	 Lwt.return (style :> Dom.node Js.t))
       css in
