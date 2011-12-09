@@ -251,7 +251,9 @@ let rewrite_css_url ~prefix css pos =
 	  Buffer.add_substring buf css pos (i - pos);
 	  try
 	    let i, href = parse_url ~prefix css i in
-	    Printf.bprintf buf "url('%s')%!" href;
+            Buffer.add_string buf "url('";
+            Buffer.add_string buf href;
+            Buffer.add_string buf "')";
 	    rewrite i
 	  with Incorrect_url ->
 	    Buffer.add_substring buf css i (String.length css - i)

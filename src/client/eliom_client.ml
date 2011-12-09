@@ -37,7 +37,7 @@ let (register_node, find_node) =
   let process_nodes : (string, Dom.node Js.t) Hashtbl.t = Hashtbl.create 0 in
   let find id =
     let node = Hashtbl.find process_nodes id in
-    if String.lowercase (Js.to_string node##nodeName) = "script" then
+    if Js.to_bytestring (node##nodeName##toLowerCase()) = "script" then
       (* We don't wan't to reexecute "unique" script... *)
       (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
     else
@@ -461,7 +461,7 @@ let get_data_script page =
   match Dom.list_of_nodeList head##childNodes with
     | _ :: _ :: data_script :: _ ->
       let data_script = (Js.Unsafe.coerce (data_script:Dom.node Js.t):Dom.element Js.t) in
-      (match String.lowercase (Js.to_string (data_script##tagName)) with
+      (match Js.to_bytestring (data_script##tagName##toLowerCase ()) with
 	| "script" -> (Js.Unsafe.coerce (data_script:Dom.element Js.t):Dom_html.scriptElement Js.t)
 	| t ->
 	  Firebug.console##error_4(Js.string "get_data_script: the node ",data_script,Js.string " is not a script, its tag is", t);

@@ -44,7 +44,7 @@ let rec string_of_url_path_suff u = function
   | Some suff -> 
       let pref = string_of_url_path' u in
       let suf = string_of_url_path' suff in
-      if pref = ""
+      if String.length pref = 0
       then suf
       else String.concat "/" [pref; suf]
 
@@ -68,7 +68,7 @@ let reconstruct_relative_url_path current_url u =
 let reconstruct_relative_url_path_string current_url u suff =
   let relurl = reconstruct_relative_url_path current_url u in
   let s = string_of_url_path_suff relurl suff in
-  if s = "" 
+  if String.length s = 0
   then Eliom_common.defaultpagename 
   else if s.[0] = '/'
   then (* possible with optional parameters *) "./"^s

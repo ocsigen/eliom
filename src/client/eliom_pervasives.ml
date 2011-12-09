@@ -110,6 +110,18 @@ module String = struct
 
   include String
 
+  let index s c =
+    let c = (Js.Unsafe.variable "String")##fromCharCode(c) in
+    let n = (Js.bytestring s)##indexOf(c) in
+    if n = -1 then raise Not_found;
+    n
+
+  let index_from s i c =
+    let c = (Js.Unsafe.variable "String")##fromCharCode(c) in
+    let n = (Js.bytestring s)##indexOf_from(c, i) in
+    if n = -1 then raise Not_found;
+    n
+
   (* Returns a copy of the string from beg to endd,
      removing spaces at the beginning and at the end *)
   let remove_spaces s beg endd =
@@ -127,10 +139,11 @@ module String = struct
     then String.sub s first (1+ last - first)
     else ""
 
+(*FIX: one should not catch Invalid_argument exceptions!
   (* Cut a string to the next separator *)
   let basic_sep char s =
     try
-      let seppos = String.index s char in
+      let seppos = index s char in
       ((String.sub s 0 seppos),
        (String.sub s (seppos+1)
           ((String.length s) - seppos - 1)))
@@ -141,9 +154,10 @@ module String = struct
    *)
   let sep char s =
     let len = String.length s in
-    let seppos = String.index s char in
+    let seppos = index s char in
     ((remove_spaces s 0 (seppos-1)),
      (remove_spaces s (seppos+1) (len-1)))
+*)
 
   (* splits a string, for ex azert,   sdfmlskdf,    dfdsfs *)
   let rec split ?(multisep=false) char s =
@@ -153,7 +167,7 @@ module String = struct
       then []
       else
 	try
-          let firstsep = String.index_from s deb char in
+          let firstsep = index_from s deb char in
           if multisep && firstsep = deb then
             aux (deb + 1)
           else
@@ -173,6 +187,7 @@ module String = struct
   | _ -> String.concat sep [s1;s2]
 
 
+(*FIX: one should not catch Invalid_argument exceptions!
   (* returns the index of the first difference between s1 and s2,
      starting from n and ending at last.
      returns (last + 1) if no difference is found.
@@ -186,22 +201,12 @@ module String = struct
 	else first_diff s1 s2 (n+1) last
       else n
     with Invalid_argument _ -> n
+*)
+
+  let eol_re = Regexp.regexp "[\r\n]"
 
   (* returns a copy of a string without \r and \n *)
-  let remove_eols s =
-    let l = String.length s in
-    let buf = Buffer.create l in
-    let rec aux n =
-      if n < l
-      then begin
-	let c = s.[n] in
-	if c <> '\r' && c <> '\n' then Buffer.add_char buf c;
-	aux (n+1)
-      end
-    in
-    aux 0;
-    Buffer.contents buf
-
+  let remove_eols s = Regexp.global_replace eol_re s ""
 
   module Table = Map.Make(String)
   module Set = Set.Make(String)
