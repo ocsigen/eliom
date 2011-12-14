@@ -176,11 +176,11 @@ let fetch_linked_css e =
 	  let css =
 	    Eliom_request.http_get (Js.to_string href) []
 	      Eliom_request.string_result in
-	  acc @ [e, (e##media, css)]
+	  acc @ [e, (e##media, css), Js.to_string href]
     | Dom.Element e ->
         let c = e##childNodes in
         let acc = ref acc in
-        for i = 0 to c##length do
+        for i = 0 to c##length - 1 do
           acc := extract !acc (Js.Opt.get c##item (i) (fun _ -> assert false))
         done;
         !acc
@@ -317,7 +317,7 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
 
 let max_preload_depth = ref 4
 
-let build_style (e, css) =
+let build_style (e, css, href) =
   lwt css = rewrite_css ~max:!max_preload_depth css in
   lwt css =
     Lwt_list.map_p
