@@ -131,10 +131,10 @@ ${INTF_NOP4:.mli=.cmi}: \
 	$(OCAMLC) ${LIBS} -c $<
 
 %.odoc: %.mli
-	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump $@ $<
+	${OCAMLDOC} -syntax camlp4o ${LIBS} -dump ${ODOC_DIR}$@ $<
 ${INTF_NOP4:.mli=.odoc}: \
 %.odoc: %.mli
-	${OCAMLDOC} ${LIBS} -dump $@ $<
+	${OCAMLDOC} ${LIBS} -dump ${ODOC_DIR}$@ $<
 
 %.cmxs: %.cmxa
 	$(OCAMLOPT) -shared -linkall -o $@ $<
