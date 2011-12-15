@@ -339,13 +339,14 @@ end
 
 (** Eliom service registration for services that returns CSS. The page
     content is a [string] that must contains valid CSS and the content
-    type is always [text/css].
+    type is always [text/css]. The option is the optionnal
+    "Cache-policy: max-age" header value to be sent.
 
     This an instance of the {!Registration} abstract signature.
 *)
 module CssText : "sigs/eliom_reg.mli"
   subst type page  := string
-  and type options := unit
+  and type options := int
   and type return  := http_service
   and type result  := (browser_content, http_service) kind
 
@@ -437,13 +438,15 @@ module Files : sig
 
   (** The function [check_file file] is true if [Files.send file]
       would effectively return the file (i.e. the file is present and
-      readable )
+      readable.) The option is the optionnal "Cache-policy: max-age"
+      header value to be sent.
   *)
+
   val check_file : string -> bool
 
   include "sigs/eliom_reg.mli"
     subst type page    := string
-      and type options := unit
+      and type options := int
       and type return  := http_service
       and type result  := (browser_content, http_service) kind
 
@@ -492,20 +495,21 @@ val appl_self_redirect :
 (** Eliom service registration for services that returns "byte"-string
     contents. The page content is a couple [(raw_content,
     content_type)]. See also {!Streamlist} for another kind of service
-    that returns "byte" contents.
+    that returns "byte" contents. The option is the optionnal
+    "Cache-policy: max-age" header value to be sent.
 
     This an instance of the {!Registration} abstract signature.
 *)
 module String : "sigs/eliom_reg.mli"
   subst type page  := string * string
-  and type options := unit
+  and type options := int
   and type return  := http_service
   and type result  := (unknown_content, http_service) kind
 
 (** Deprecated alias for {!String}. *)
 module Text : "sigs/eliom_reg.mli"
   subst type page  := string * string
-  and type options := unit
+  and type options := int
   and type return  := http_service
   and type result  := (unknown_content, http_service) kind
 

@@ -1144,11 +1144,26 @@ module Blocks5 = Flow5
 (****************************************************************************)
 (****************************************************************************)
 
+let (<-<) h (n, v) = Http_headers.replace n v h
+let add_cache_header cache headers =
+  match cache with
+    | None -> headers
+    | Some 0 ->
+      headers
+      <-< (Http_headers.cache_control, "no-cache")
+      <-< (Http_headers.expires, "0")
+    | Some duration ->
+      headers
+      <-< (Http_headers.cache_control, "max-age: "^ string_of_int duration)
+      <-< (Http_headers.expires,
+	   Ocsigen_http_com.gmtdate (Unix.time () +. float_of_int duration))
+
+
 module Text_reg_base = struct
 
   type page = (string * string)
 
-  type options = unit
+  type options = int
 
   type return = http_service
 
@@ -1160,6 +1175,11 @@ module Text_reg_base = struct
 
   let send ?options ?charset ?code ?content_type ?headers content =
     lwt r = Ocsigen_senders.Text_content.result_of_content content in
+    let res_headers = match headers with
+      | None -> r.Ocsigen_http_frame.res_headers
+      | Some headers ->
+        Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers in
+    let res_headers = add_cache_header options res_headers in
     Lwt.return
       { r with
         Ocsigen_http_frame.
@@ -1171,11 +1191,7 @@ module Text_reg_base = struct
           | None -> r.Ocsigen_http_frame.res_content_type
           | _ -> content_type
         );
-        res_headers = (match headers with
-          | None -> r.Ocsigen_http_frame.res_headers
-          | Some headers ->
-            Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
-        );
+        res_headers;
       }
 
 end
@@ -1189,7 +1205,7 @@ module CssText_reg_base = struct
 
   type page = string
 
-  type options = unit
+  type options = int
 
   type return = http_service
 
@@ -1202,6 +1218,11 @@ module CssText_reg_base = struct
   let send ?options ?charset ?code ?content_type ?headers content =
     lwt r =
       Ocsigen_senders.Text_content.result_of_content (content, "text/css") in
+    let res_headers = match headers with
+      | None -> r.Ocsigen_http_frame.res_headers
+      | Some headers ->
+        Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers in
+    let res_headers = add_cache_header options res_headers in
     Lwt.return
       { r with
         Ocsigen_http_frame.
@@ -1213,11 +1234,7 @@ module CssText_reg_base = struct
           | None -> r.Ocsigen_http_frame.res_content_type
           | _ -> content_type
         );
-        res_headers = (match headers with
-          | None -> r.Ocsigen_http_frame.res_headers
-          | Some headers ->
-            Http_headers.with_defaults headers r.Ocsigen_http_frame.res_headers
-        );
+        res_headers;
       }
 
 end
@@ -1759,7 +1776,7 @@ let http_redirect = appl_self_redirect
 module Files_reg_base = struct
 
   type page = string
-  type options = unit
+  type options = int
   type return = http_service
   type result = (browser_content, http_service) kind
 
@@ -1779,9 +1796,14 @@ module Files_reg_base = struct
         | Ocsigen_local_files.NotReadableDirectory ->
             raise Eliom_common.Eliom_404
     in
-    Ocsigen_local_files.content ~request ~file >>= fun r ->
+    lwt r = Ocsigen_local_files.content ~request ~file in
     let open Ocsigen_http_frame in
     let open Ocsigen_extensions in
+    let res_headers = match headers with
+      | None -> r.res_headers
+      | Some headers -> Http_headers.with_defaults headers r.res_headers
+    in
+    let res_headers = add_cache_header options res_headers in
     Lwt.return
       { r with
           res_code = code_of_code_option code;
@@ -1795,12 +1817,7 @@ module Files_reg_base = struct
                                | None -> r.res_content_type
                                | _ -> content_type
                             );
-          res_headers= (match headers with
-                          | None -> r.res_headers
-                          | Some headers ->
-                              Http_headers.with_defaults
-                                headers r.res_headers
-                       );
+          res_headers;
 
       }
 
@@ -2148,7 +2165,7 @@ module Caml_reg_base = struct
   let send ?options ?charset ?code
       ?content_type ?headers content =
     Result_types.cast_kind_lwt
-      (Text.send ?options ?charset ?code
+      (Text.send ?charset ?code
 	 ?content_type ?headers
 	 (content,
 	  Eliom_services.eliom_appl_answer_content_type))
