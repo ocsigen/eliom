@@ -187,18 +187,6 @@ let fetch_linked_css e =
     | _ -> acc in
   extract [] (e :> Dom.node Js.t)
 
-let abs_url_re = Regexp.regexp "^('|\")?(https?://|/)"
-let prefix_relative_url ~prefix url =
-  let len = String.length url in
-  let url =
-    if len > 0 && (url.[0] = '\'' || url.[0] = '\"') then
-      String.sub url 1 (len - 2)
-    else url
-  in
-  match Regexp.string_match abs_url_re url 0 with
-  | Some _ -> url
-  | None -> prefix ^ url
-
 let url_content_raw    = "([^\"'\\)]\\\\(\"|'|\\)))*"
 let dbl_quoted_url_raw = "\"" ^ url_content_raw ^ "[^\\\\\"]*\""
 let quoted_url_raw     =  "'" ^ url_content_raw ^ "[^\\\\']*'"
@@ -218,14 +206,14 @@ let parse_url ~prefix css pos =
   | Some (i, res) when i = pos ->
       ( i + String.length (Regexp.matched_string res),
 	match Regexp.matched_group res 1 with
-	| Some href -> prefix_relative_url ~prefix href
+	| Some href -> prefix ^ href
 	| None -> raise Incorrect_url )
   | _ ->
       match Regexp.search raw_url_re css pos with
       | Some (i, res) when i = pos ->
 	  ( i + String.length (Regexp.matched_string res),
 	    match Regexp.matched_group res 1 with
-	    | Some href -> prefix_relative_url ~prefix href
+	    | Some href -> prefix ^ href
 	    | None -> raise Incorrect_url )
       | _ -> raise Incorrect_url
 
@@ -236,8 +224,8 @@ let parse_media css pos =
   in
   (i+1, String.sub css pos (i - pos))
 
-let import_re = Regexp.regexp "@import\\s*"
-let url_re = Regexp.regexp "url\\("
+(* Look for relative URL only... *)
+let url_re = Regexp.regexp "url\\((?!('|\")?(https?:\\/\\/|\\/))"
 
 let rewrite_css_url ~prefix css pos =
   let len = String.length css - pos in
@@ -261,6 +249,7 @@ let rewrite_css_url ~prefix css pos =
   rewrite pos;
   Buffer.contents buf
 
+let import_re = Regexp.regexp "@import\\s*"
 
 let rec rewrite_css ~max (media, css) =
   try_lwt
