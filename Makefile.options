@@ -26,8 +26,6 @@ SERVERDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/server
 CLIENTDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/client
 SYNTAXDIR := ${TEMPROOT}${LIBDIR}/${PROJECTNAME}/syntax
 
-export OCAMLPATH:=${LIBDIR}:${OCAMLPATH}
-
 SERVER_PACKAGE := ocsigenserver               \
 		  ocsigenserver.ext           \
 		  js_of_ocaml.deriving        \
