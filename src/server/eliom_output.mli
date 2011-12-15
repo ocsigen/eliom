@@ -212,7 +212,7 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
       that represents the javascript part of the application. If you
       do not include this script in the [<head>] node of your page, it
       will be automaticaly added at the end of the [<head>] node. *)
-  val application_script : unit -> [> `Script ] HTML5.M.elt
+  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.M.elt
 
   (** Unique identifier for this application. Currently, it is just
       the application name as defined by {!Appl_params.application_name}.

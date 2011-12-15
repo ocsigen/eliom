@@ -2484,10 +2484,11 @@ module Eliom_appl_reg_make_param
 
   let eliom_appl_script =
     HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
-  let application_script () =
+  let application_script ?(async = false) () =
     HTML5.M.unique
       ~copy:eliom_appl_script
       (Html5.js_script
+	 ~a:(if async then [HTML5.M.a_async `Async] else [] )
 	 ~uri:(Html5.make_uri
 		 ~service:(Eliom_services.static_dir ())
 		 [Appl_params.application_name ^ ".js"])
@@ -2711,7 +2712,7 @@ module type Eliom_appl = sig
   val application_name : string
   val typed_name : appl application_name
 
-  val application_script : unit -> [> `Script ] HTML5.M.elt
+  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.M.elt
 
 end
 
