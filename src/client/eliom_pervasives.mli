@@ -180,7 +180,6 @@ module XML : sig
   val uris_attrib : aname -> uri list -> attrib
 
   val content : elt -> econtent
-  val get_unique_id : elt -> string option
 
   val pcdata : string -> elt
   val encodedpcdata : string -> elt
@@ -202,9 +201,9 @@ module XML : sig
   val get_unique_id : elt -> string option
 
   type node_id = string
-  type ref_tree =
-    | Ref_node of (node_id option * (string * caml_event) list * ref_tree array)
-    | Ref_empty of int
+  type id_event_table =
+      { id_table : string array;
+	event_table : (aname * (unit -> unit) client_expr) array array}
 
 end
 

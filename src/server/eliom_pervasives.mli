@@ -131,10 +131,9 @@ module XML : sig
   val uri_of_fun: (unit -> string) -> uri
 
   (* Building ref tree. *)
-  type ref_tree (* Concrete on client-side only. *)
+  type id_event_table (* Concrete on client-side only. *)
   val get_unique_id : elt -> string option
-  val make_ref_tree : elt -> ref_tree
-  val make_ref_tree_list : elt list -> ref_tree list
+  val make_id_event_table : elt -> id_event_table
 
   (* Custom event handlers and lazy nodes. *)
   type caml_event

@@ -172,47 +172,94 @@ module XML = struct
   (** Ref tree *)
 
   let cons_attrib att acc = match racontent att with
-    | RACamlEvent oc -> (aname att, oc) :: acc
+    | RACamlEvent (CE_registered_closure client_expr) -> (aname att, client_expr) :: acc
     | _ -> acc
 
-  let rec make_ref_tree elt =
-    let id = get_unique_id elt in
-    let attribs_childrens = match content elt with
-      | Empty | EncodedPCDATA _ | PCDATA _
-      | Entity _ | Comment _  -> None
-      | Leaf (_, attribs) ->
-	Some (
-	  List.fold_right cons_attrib attribs [],
-	  [])
-      | Node (_, attribs, elts) ->
-	Some (
-	  List.fold_right cons_attrib attribs [],
-	  make_ref_tree_list elts)
+  let make_id_event_table elt =
+    let rec aux (id_acc,closure_acc) elt =
+      let id = get_unique_id elt in
+      let make attribs =
+	let closure_acc =
+	  match (List.fold_right cons_attrib attribs []) with
+	    | [] -> closure_acc
+	    | l -> (Array.of_list l)::closure_acc
+	in
+	let id_acc =
+	  match id with
+	    | None -> id_acc
+	    | Some id -> id::id_acc
+	in
+	(id_acc,closure_acc)
+      in
+      match content elt with
+	| Empty | EncodedPCDATA _ | PCDATA _
+	| Entity _ | Comment _  ->
+	  begin
+	    match id with
+	      | None -> (id_acc,closure_acc)
+	      | Some _ -> failwith "unexpected id on an unlabellable node: ex pcdata, comment, ..."
+	  end
+	| Leaf (_, attribs) -> make attribs
+	| Node (_, attribs, elts) ->
+	  List.fold_left aux (make attribs) elts
     in
-    match id, attribs_childrens with
-      | None, None -> Ref_empty 0
-      | None, Some ([], []) -> Ref_empty 1
-      | _, Some (attribs, childrens) -> Ref_node (id, attribs, Array.of_list childrens)
-      | Some _, None -> failwith "unexpected id on an unlabellable node: ex pcdata, comment, ..."
+    let (id_acc,closure_acc) = aux ([],[]) elt in
+    { id_table = Array.of_list (List.rev (id_acc));
+      event_table = Array.of_list (List.rev (closure_acc)) }
 
-  and make_ref_tree_list l =
-    let aggregate elt acc =
-      match make_ref_tree elt with
-	| Ref_empty 0 -> acc
-	| Ref_empty 1 ->
-	  (match acc with
-	    | [] -> []
-	    | Ref_empty i :: acc -> Ref_empty (succ i) :: acc
-	    | acc -> Ref_empty 1 :: acc)
-	| elt -> elt :: acc in
-    List.fold_right aggregate l []
+  let filter_class (acc_class,acc_attr) = function
+    | "class", RA value ->
+      begin
+	match value with
+	  | AStr v ->
+	    (v::acc_class,acc_attr)
+	  | AStrL (Space,v) ->
+	    (v@acc_class,acc_attr)
+	  | _ -> failwith "attribute class is not a string"
+      end
+    | _, RACamlEvent (CE_registered_closure _) as attr ->
+      (ce_registered_closure_class::acc_class,attr::acc_attr)
+    | _, RACamlEvent (CE_call_service link_info) as attr ->
+      let acc_attr = match Eliom_lazy.force link_info with
+	| None -> acc_attr
+	| Some (kind,cookie_info) ->
+	  match cookie_info with
+	    | None -> acc_attr
+	    | Some v ->
+	      (ce_call_service_attrib, RA (AStr (Json.to_string<cookie_info> v)))
+	      ::acc_attr
+      in
+      (ce_call_service_class::acc_class,attr::acc_attr)
+    | attr -> (acc_class,attr::acc_attr)
 
-  and make_attrib_list l =
-    let aggregate a acc = match racontent a with
-      | n, RACamlEvent ev -> (n, ev) :: acc
-      | _ -> acc in
-    List.fold_right aggregate l []
+  let filter_class_attribs unique_id attribs =
+    let unique_id = match unique_id with
+      | None -> [],[]
+      | Some i -> [unique_class],[](* [unique_attrib,RA (AStr i)] *)
+    in
+    let (classes,attribs) =
+      List.fold_left filter_class (unique_id) attribs in
+    match classes with
+      | [] -> attribs
+      | _ -> ("class",RA (AStrL(Space,classes)))::attribs
 
+  let set_classes unique_id = function
+    | Empty
+    | Comment _
+    | EncodedPCDATA _
+    | PCDATA _
+    | Entity _ as e -> e
+    | Leaf (ename, attribs) ->
+      Leaf (ename, filter_class_attribs unique_id attribs)
+    | Node (ename, attribs, sons) ->
+      Node (ename, filter_class_attribs unique_id attribs, sons)
+
+  let content e =
+    let c = match e.elt with
+      | RE e -> e
+      | RELazy e -> Eliom_lazy.force e
+    in
+    set_classes e.unique_id c
 
 end
 

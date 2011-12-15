@@ -2545,10 +2545,10 @@ module Eliom_appl_reg_make_param
     let eliom_data =
       Eliom_wrap.wrap
 	{ Eliom_types.
-	  ejs_ref_tree    = XML.make_ref_tree (HTML5.M.toelt page);
-	  ejs_onload      = Eliom_services.get_onload sp;
-	  ejs_onunload    = Eliom_services.get_onunload sp;
-	  ejs_sess_info   = Eliommod_cli.client_si sp.Eliom_common.sp_si;
+	  ejs_id_event_table = XML.make_id_event_table (HTML5.M.toelt page);
+	  ejs_onload         = Eliom_services.get_onload sp;
+	  ejs_onunload       = Eliom_services.get_onunload sp;
+	  ejs_sess_info      = Eliommod_cli.client_si sp.Eliom_common.sp_si;
 	} in
 
     lwt tab_cookies =

@@ -616,7 +616,7 @@ let uri_test =
   let put n f =
     Printf.ksprintf (fun s ->
       Dom.appendChild (Eliom_client.Html5.of_element n)
-        (Eliom_client.Html5.of_p (p [pcdata s]))) f
+        (Eliom_client.Html5.of_p (p [pcdata s; br ()]))) f
 }}
 
 let very_long_list = Array.to_list (Array.init 200000 (fun i -> i))
@@ -3015,9 +3015,10 @@ let big_service =
     ()
 
 let rec big_page n =
+  let link = Eliom_output.Html5.a ~service:big_service [pcdata "same page"] () in
+  (*let link = p ~a:[a_class ["toto"]] [span [pcdata "rien"]] in*)
   if n = 0
-  then
-    Eliom_output.Html5.a ~service:big_service [pcdata "same page"] ()
+  then link
   else
     div [big_page (n-1);
 	 big_page (n-1);]
@@ -3029,3 +3030,66 @@ let _ =
      return
        (make_page [h1 [pcdata "Big page"];
                    div [big_page 12]]))
+
+let relink_test =
+  Eliom_services.service
+    ~path:["relink_test"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let global_unique_onload = unique (span [])
+let global_unique =
+  unique (span ~a:[a_onload {{
+    debug "onload on global unique";
+    put %global_unique_onload "onload on a global unique node: there should be only one";
+  }}]
+  [
+    pcdata "global";
+    br ~a:[a_onload {{
+      debug "onload inside global unique";
+      put %global_unique_onload "onload inside a global unique node: there should be only one";
+    }}] ()
+  ])
+let global_link = Eliom_output.Html5.a ~service:relink_test [pcdata "same page: global link"] ()
+
+
+let relink_page () =
+  let local_unique = unique (span [
+    pcdata "local";
+    br ~a:[a_onload {{
+      put %global_unique_onload "onload inside a local unique node: there should be one new each time";
+    }}] ()
+  ]) in
+  let link1 = Eliom_output.Html5.a ~service:eliomclient1 [
+    span [pcdata "other page: local link"]] () in
+  let link2 = Eliom_output.Html5.a ~service:main [pcdata "outside application"] () in
+  let onclick =
+    span ~a:[a_class ["clickable"];
+	     a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
+      [pcdata "clickable span"]
+  in
+  Eliom_services.onload {{
+    debug "onload";
+    put %global_unique "global unique: there should be one new each time";
+    put %local_unique "local unique: there should be one only one";
+    ignore (Dom_html.document##documentElement##appendChild(
+      (Eliom_client.Html5.of_element (p [pcdata "onload on body"]):>Dom.node Js.t)));
+  }};
+  [ global_unique;
+    br ~a:[a_onload {{
+      debug "onload on standart node";
+      put %global_unique_onload "onload on standart node: there should be one new each time";
+    }}] ();
+    local_unique; br ();
+    global_link; br ();
+    link1; br ();
+    link2; br ();
+    onclick; br ();
+    global_unique_onload; br (); ]
+
+let _ =
+ My_appl.register
+   relink_test
+   (fun () () ->
+     return
+       (make_page (relink_page ())))

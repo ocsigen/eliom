@@ -19,6 +19,151 @@
 
 open Eliom_pervasives
 
+class type ['node] unsafe_nodeList = object
+  method item : int -> 'node Js.t Js.meth
+  method length : int Js.readonly_prop
+end
+
+let iter_nodeList nodeList f =
+  let nodeList : 'a unsafe_nodeList Js.t = Js.Unsafe.coerce (nodeList : 'a Dom.nodeList Js.t) in
+  for i = 0 to nodeList##length - 1 do
+    f (Js.Unsafe.get nodeList i)
+  done
+
+class type dom_tester = object
+  method compareDocumentPosition : unit Js.optdef Js.prop
+  method querySelectorAll : unit Js.optdef Js.prop
+  method classList : unit Js.optdef Js.prop
+  method createEvent : unit Js.optdef Js.prop
+end
+
+let test_querySelectorAll () =
+  Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document:dom_tester Js.t)##querySelectorAll)
+
+let test_compareDocumentPosition () =
+  Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document:dom_tester Js.t)##compareDocumentPosition)
+
+let test_classList () =
+  Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document##documentElement:dom_tester Js.t)##classList)
+
+let test_createEvent () =
+  Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document:dom_tester Js.t)##createEvent)
+
+let fast_ancessor (elt1:#Dom.node Js.t) (elt2:#Dom.node Js.t) =
+  (elt1##compareDocumentPosition((elt2:>Dom.node Js.t)))
+  land Dom.document_position_contained_by == Dom.document_position_contained_by
+
+let slow_ancessor (elt1:#Dom.node Js.t) (elt2:#Dom.node Js.t) =
+  let rec check_parent n =
+    if n == (elt1:>Dom.node Js.t)
+    then true
+    else
+      match Js.Opt.to_option n##parentNode with
+	| None -> false
+	| Some p -> check_parent p
+  in
+  check_parent (elt2:>Dom.node Js.t)
+
+let ancessor =
+  if test_compareDocumentPosition ()
+  then fast_ancessor
+  else slow_ancessor
+
+let fast_select_nodes root =
+  let a_nodeList : Dom_html.element Dom.nodeList Js.t =
+    root##querySelectorAll(Js.string ("a."^Eliom_pervasives_base.RawXML.ce_call_service_class)) in
+  let a_nodeList : Dom_html.anchorElement Dom.nodeList Js.t = Js.Unsafe.coerce a_nodeList in
+  let form_nodeList : Dom_html.element Dom.nodeList Js.t =
+    root##querySelectorAll(Js.string ("form."^Eliom_pervasives_base.RawXML.ce_call_service_class)) in
+  let form_nodeList : Dom_html.formElement Dom.nodeList Js.t = Js.Unsafe.coerce form_nodeList in
+  let unique_nodeList = root##querySelectorAll(Js.string ("."^Eliom_pervasives_base.RawXML.unique_class)) in
+  let closure_nodeList =
+    root##querySelectorAll(Js.string ("."^Eliom_pervasives_base.RawXML.ce_registered_closure_class)) in
+  a_nodeList, form_nodeList, unique_nodeList, closure_nodeList
+
+let slow_has_classes (node:Dom_html.element Js.t) =
+  let classes = Js.str_array (node##className##split(Js.string " ")) in
+  let found_call_service = ref false in
+  let found_unique = ref false in
+  let found_closure = ref false in
+  for i = 0 to (classes##length) - 1 do
+    found_call_service := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.ce_call_service_class))
+    || !found_call_service;
+    found_unique := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.unique_class))
+    || !found_unique;
+    found_closure := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.ce_registered_closure_class))
+    || !found_closure;
+  done;
+  !found_call_service,!found_unique,!found_closure
+
+let fast_has_classes (node:Dom_html.element Js.t) =
+  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.ce_call_service_class))),
+  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.unique_class))),
+  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.ce_registered_closure_class)))
+
+let has_classes : Dom_html.element Js.t -> (bool*bool*bool) =
+  if test_classList ()
+  then fast_has_classes
+  else slow_has_classes
+
+let slow_select_nodes (root:Dom_html.element Js.t) =
+  let a_array = jsnew Js.array_empty () in
+  let form_array = jsnew Js.array_empty () in
+  let unique_array = jsnew Js.array_empty () in
+  let closure_array = jsnew Js.array_empty () in
+  let rec traverse (node:Dom.node Js.t) =
+    match node##nodeType with
+      | Dom.ELEMENT ->
+	let node = (Js.Unsafe.coerce node:Dom_html.element Js.t) in
+	let call_service,unique,closure = has_classes node in
+	begin
+	  if call_service
+	  then
+	    match Dom_html.tagged node with
+	      | Dom_html.A e -> ignore (a_array##push(e))
+	      | Dom_html.Form e -> ignore (form_array##push(e))
+	      | _ -> error "%s element tagged as eliom link" (Js.to_string (node##tagName))
+	end;
+	if unique
+	then ignore (unique_array##push(node));
+	if closure
+	then ignore (closure_array##push(node));
+	iter_nodeList node##childNodes traverse
+      | _ -> ()
+  in
+  traverse (root:>Dom.node Js.t);
+  (Js.Unsafe.coerce a_array:Dom_html.anchorElement Dom.nodeList Js.t),
+  (Js.Unsafe.coerce form_array:Dom_html.formElement Dom.nodeList Js.t),
+  (Js.Unsafe.coerce unique_array:Dom_html.element Dom.nodeList Js.t),
+  (Js.Unsafe.coerce closure_array:Dom_html.element Dom.nodeList Js.t)
+
+let select_nodes =
+  if test_querySelectorAll ()
+  then fast_select_nodes
+  else slow_select_nodes
+
+(* createEvent for ie < 9 *)
+
+let createEvent_ie ev_type =
+  let evt : #Dom_html.event Js.t =
+    (Js.Unsafe.coerce Dom_html.document)##createEventObject() in
+  (Js.Unsafe.coerce evt)##_type <- ((Js.string "on")##concat(ev_type));
+  evt
+
+let createEvent_normal ev_type =
+  let evt : #Dom_html.event Js.t =
+    (Js.Unsafe.coerce Dom_html.document)##createEvent(Js.string "HTMLEvents") in
+  (Js.Unsafe.coerce evt)##initEvent(ev_type, false, false);
+  evt
+
+let createEvent =
+  if test_createEvent ()
+  then createEvent_normal
+  else createEvent_ie
+
+
+(* DOM traversal *)
+
 class type ['element] get_tag = object
   method getElementsByTagName : Js.js_string Js.t -> 'element Dom.nodeList Js.t Js.meth
 end

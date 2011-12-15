@@ -380,7 +380,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
 
               a uri_test [pcdata "Simple test of URL generation"] ();
               br ();
-
+              a relink_test [pcdata "Test of node relinking features"] ();
+              br ();
               a eliomclient2 [pcdata "Nodes with various onclick features"] ();
               br ();
               a eliomclient3 [pcdata "Caml values in service parameters"] ();

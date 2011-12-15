@@ -46,11 +46,13 @@ module RawXML = struct
     | Space -> " "
     | Comma -> ", "
 
+  type cookie_info = (bool * string list) deriving (Json)
+
   type caml_event =
     | CE_registered_closure of (unit -> unit) client_expr
     | CE_client_closure of (unit -> unit)
     | CE_call_service of
-	([ `A | `Form_get | `Form_post] * ((bool * string list) option)) option Eliom_lazy.request
+	([ `A | `Form_get | `Form_post] * (cookie_info option)) option Eliom_lazy.request
 
   type event =
     | Raw of string
@@ -118,9 +120,17 @@ module RawXML = struct
     unique_id : node_id option;
   }
 
+  let ce_registered_closure_class = "caml_closure"
+  let ce_call_service_class = "caml_link"
+  let unique_class = "caml_unique"
+
+  let ce_call_service_attrib = "data-eliom-cookies-info"
+  let unique_attrib = "data-eliom-unique-id"
+
   let content e = match e.elt with
     | RE e -> e
     | RELazy e -> Eliom_lazy.force e
+
   let rcontent e = e.elt
 
   let is_unique elt = elt.unique_id <> None
@@ -169,8 +179,8 @@ module RawXML = struct
 	root_node name attribs (flatmap (translate' state) elts)
     | _ -> failwith "not implemented for Ocsigen syntax extension"
 
-  type ref_tree =
-    | Ref_node of (node_id option * (string * caml_event) list * ref_tree array)
-    | Ref_empty of int
+  type id_event_table =
+      { id_table : string array;
+	event_table : (aname * (unit -> unit) client_expr) array array}
 
 end

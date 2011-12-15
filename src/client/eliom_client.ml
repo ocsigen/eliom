@@ -34,7 +34,7 @@ let find_closure = Hashtbl.find closure_table
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client) *)
 
 let (register_node, find_node) =
-  let process_nodes : (string, Dom.node Js.t) Hashtbl.t = Hashtbl.create 0 in
+  let process_nodes : (Js.js_string Js.t, Dom.node Js.t) Hashtbl.t = Hashtbl.create 0 in
   let find id =
     let node = Hashtbl.find process_nodes id in
     if Js.to_bytestring (node##nodeName##toLowerCase()) = "script" then
@@ -122,66 +122,85 @@ let register_event_handlers acc node attribs =
     acc
     attribs
 
-let rec relink_dom acc node (id, attribs, children_ref_tree) =
-  let acc = match id with
-  | None -> register_event_handlers acc node attribs
-  | Some id ->
+let get_element_cookies_info elt =
+  Js.Opt.to_option
+    (Js.Opt.map (elt##getAttribute(Js.string Eliom_pervasives_base.RawXML.ce_call_service_attrib))
+       (fun s -> of_json (Js.to_string s)))
+
+let a_handler =
+  Dom_html.full_handler
+    (fun node ev ->
+      let node = Js.Opt.get (Dom_html.CoerceTo.a node) (fun () -> error "not an anchor element") in
+      let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
+      let cookies_info = get_element_cookies_info node in
+      let https = Url.get_ssl (Js.to_string href) in
+      Js.bool
+	((middleClick ev)
+	 || (https = Some true && not Eliom_request_info.ssl_)
+	 || (https = Some false && Eliom_request_info.ssl_)
+	 || (!change_page_uri_ ?cookies_info (Js.to_string href); false)))
+
+let form_handler =
+  Dom_html.full_handler
+    (fun node ev ->
+      let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
+      let cookies_info = get_element_cookies_info form in
+      let change_page_form =
+	if form##_method == Js.string "GET"
+	then !change_page_get_form_
+	else !change_page_post_form_ in
+      let action = Js.to_string form##action in
+      let https = Url.get_ssl action in
+      Js.bool
+	((https = Some true && not Eliom_request_info.ssl_)
+	 || (https = Some false && Eliom_request_info.ssl_)
+	 || (change_page_form ?cookies_info form action; false)))
+
+let relink_unique_node pos table (node:Dom_html.element Js.t) =
+  let id = Js.string table.(!pos) in
+  incr pos;
+  try
+    let pnode = find_node id in
+    Js.Opt.iter (node##parentNode)
+      (fun parent -> Dom.replaceChild parent pnode node)
+  with Not_found ->
+    register_node id (node:>Dom.node Js.t)
+
+let relink_closure_node root onload pos table (node:Dom_html.element Js.t) =
+  let attributes = table.(!pos) in
+  incr pos;
+  for i = 0 to Array.length attributes - 1 do
+    let aname,(id, args) = attributes.(i) in
+    let closure =
       try
-	let pnode = find_node id in
-	Js.Opt.iter (node##parentNode)
-	  (fun parent -> Dom.replaceChild parent pnode node);
-	acc
+	let f = find_closure id in
+	(fun _ -> try f args; true with False -> false)
       with Not_found ->
-	register_node id node;
-	register_event_handlers acc node attribs
-  in
-  relink_dom_list acc (node##childNodes) children_ref_tree
-
-and relink_dom_list acc childnodes ref_trees =
-  let pos = ref 0 in
-  let acc = ref acc in
-  for j = 0 to Array.length ref_trees - 1 do
-  match ref_trees.(j) with
-  | XML.Ref_node ref_tree ->
-    let rec find_node () =
-      let node = Js.Opt.get (childnodes##item(!pos)) (fun () -> failwith "bof") in
-      incr pos;
-      if node##nodeType != Dom.ELEMENT
-      then find_node ()
-      else node
+	Firebug.console##error(Printf.sprintf "Closure not found (%Ld)" id);
+	(fun _ -> false)
     in
-    acc := relink_dom !acc (find_node ()) ref_tree
-  | XML.Ref_empty i ->
-    let rec aux i =
-      let node = Js.Opt.get (childnodes##item(!pos)) (fun () -> failwith "bof") in
-      incr pos;
-      if node##nodeType != Dom.ELEMENT
-      then aux i
-      else
-	if i > 1
-	then
-	  aux (i - 1)
-    in
-    aux i
-  done;
-  !acc
+    if aname = "onload" then
+      (if Eliommod_dom.ancessor root node
+       (* if not inside a unique node replaced by an older one *)
+       then onload := closure :: !onload)
+    else Js.Unsafe.set node (Js.bytestring aname) (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+  done
 
-(* HACK: circumvent problems with Firebug ( with Firefox 3.6 ), and
-   chromium addblock: They add nodes between the head and body
-   elements, breaking the sparse tree.
-   We ignore the other the children of the html element
-   that are not body or head. *)
-let relink_page (root:Dom.element Js.t) ref_tree =
-  match ref_tree with
-    | XML.Ref_empty _ -> []
-    | XML.Ref_node (id,attribs,children_ref_tree) ->
-      let acc = relink_dom [] (root:>Dom.node Js.t) (id, attribs, [||]) in
-      (* Hand created NodeList *)
-      let v = Js.Unsafe.coerce(jsnew Js.array_empty ()) in
-      v##item <- Js.wrap_callback (fun i -> if i == 0
-	then Eliommod_dom.get_head root
-	else Eliommod_dom.get_body root);
-      relink_dom_list acc (Js.Unsafe.coerce v) children_ref_tree
+let relink_page (root:Dom_html.element Js.t) id_event_table =
+  let (a_nodeList,form_nodeList,unique_nodeList,closure_nodeList) =
+    Eliommod_dom.select_nodes root in
+  Eliommod_dom.iter_nodeList a_nodeList
+    (fun node -> node##onclick <- a_handler);
+  Eliommod_dom.iter_nodeList form_nodeList
+    (fun node -> node##onsubmit <- form_handler);
+  Eliommod_dom.iter_nodeList unique_nodeList
+    (let pos = ref 0 in
+     fun node -> relink_unique_node pos id_event_table.XML.id_table node);
+  let onload = ref [] in
+  Eliommod_dom.iter_nodeList closure_nodeList
+    (let pos = ref 0 in
+     fun node -> relink_closure_node root onload pos id_event_table.XML.event_table node);
+  !onload
 
 (* == Convertion from OCaml XML.elt nodes to native JavaScript Dom nodes *)
 
@@ -213,6 +232,7 @@ module Html5 = struct
     match XML.get_unique_id elt with
       | None -> raw_rebuild_node (XML.content elt)
       | Some id ->
+	  let id = (Js.string id) in
 	  try (find_node id :> Dom.node Js.t)
 	  with Not_found ->
 	  let node = raw_rebuild_node (XML.content elt) in
@@ -422,10 +442,10 @@ let broadcast_load_end _ =
   Lwt_condition.broadcast load_end ();
   true
 
-let load_eliom_data js_data page =
+let load_eliom_data js_data (page:Dom_html.element Js.t) =
   loading_phase := true;
   let nodes_on_load =
-    relink_page (page :> Dom.element Js.t) js_data.Eliom_types.ejs_ref_tree
+    relink_page page js_data.Eliom_types.ejs_id_event_table
   in
   Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
   let on_load =
@@ -438,12 +458,18 @@ let load_eliom_data js_data page =
       (reify_event Dom_html.document##documentElement)
       js_data.Eliom_types.ejs_onunload
   in
-  let unload_evt : #Dom_html.event Js.t =
-    (Js.Unsafe.coerce Dom_html.document)##createEvent(Js.string "HTMLEvents") in
-  (Js.Unsafe.coerce unload_evt)##initEvent(Js.string "unload", false, false);
+  let unload_evt = Eliommod_dom.createEvent (Js.string "unload") in
   on_unload_scripts :=
     [fun () -> List.for_all (fun f -> f unload_evt) on_unload];
   add_onclick_events :: on_load @ nodes_on_load @ [broadcast_load_end]
+
+let load_eliom_data js_data page =
+  try
+    load_eliom_data js_data page
+  with
+    | e ->
+      debug_exn "load_eliom_data failed: " e;
+      raise e
 
 let in_onload () = !loading_phase
 
@@ -503,9 +529,7 @@ let set_content ?uri ?fragment = function
       Dom.replaceChild Dom_html.document
         fake_page
 	Dom_html.document##documentElement;
-      let load_evt : #Dom_html.event Js.t =
-	(Js.Unsafe.coerce Dom_html.document)##createEvent(Js.string "HTMLEvents") in
-      (Js.Unsafe.coerce load_evt)##initEvent(Js.string "load", false, false);
+      let load_evt = Eliommod_dom.createEvent (Js.string "load") in
       ignore (List.for_all (fun f -> f load_evt) on_load);
       iter_option (fun uri -> scroll_to_fragment (snd (Url.split_fragment uri))) uri;
       Lwt.return ()
