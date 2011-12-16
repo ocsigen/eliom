@@ -223,7 +223,11 @@ let add_childrens (elt:Dom_html.element Js.t) (sons:Dom.node Js.t list) =
       in
       match Dom_html.tagged elt with
 	| Dom_html.Script elt ->
-	  elt##text <- concat sons
+	  (* ie < 9 execute script as soon as they have a parent: we
+	     need to remove unique scripts *)
+	  let (_,unique_class,_) = has_classes (elt:>Dom_html.element Js.t) in
+	  if not unique_class
+	  then elt##text <- concat sons
 	| Dom_html.Style elt ->
 	  (* we need to append the style node to something. If we
 	     don't do that the styleSheet field is not created if we.

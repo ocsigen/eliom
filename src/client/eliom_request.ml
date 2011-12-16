@@ -116,10 +116,15 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 		    encode_header_value Eliom_process.info ) :: headers in
     let headers = if expecting_process_page
       then
-	("Accept","application/xhtml+xml")::
-	(Eliom_common.expecting_process_page_name,
-         encode_header_value true)::
-	headers
+	let content_type =
+	  if Dom_html.onIE
+	  then "application/xml"
+	  else "application/xhtml+xml"
+	in
+	("Accept",content_type)::
+	  (Eliom_common.expecting_process_page_name,
+           encode_header_value true)::
+	  headers
       else headers
     in
     let form_contents =
