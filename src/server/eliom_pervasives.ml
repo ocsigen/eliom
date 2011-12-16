@@ -219,17 +219,18 @@ module XML = struct
       end
     | _, RACamlEvent (CE_registered_closure _) as attr ->
       (ce_registered_closure_class::acc_class,attr::acc_attr)
-    | _, RACamlEvent (CE_call_service link_info) as attr ->
-      let acc_attr = match Eliom_lazy.force link_info with
-	| None -> acc_attr
-	| Some (kind,cookie_info) ->
-	  match cookie_info with
-	    | None -> acc_attr
-	    | Some v ->
-	      (ce_call_service_attrib, RA (AStr (Json.to_string<cookie_info> v)))
-	      ::acc_attr
-      in
-      (ce_call_service_class::acc_class,attr::acc_attr)
+    | _, RACamlEvent (CE_call_service link_info) ->
+      begin
+	match Eliom_lazy.force link_info with
+	  | None -> acc_class, acc_attr
+	  | Some (kind,cookie_info) ->
+	    ce_call_service_class::acc_class,
+	    match cookie_info with
+	      | None -> acc_attr
+	      | Some v ->
+		(ce_call_service_attrib, RA (AStr (Json.to_string<cookie_info> v)))
+		::acc_attr
+      end
     | attr -> (acc_class,attr::acc_attr)
 
   let filter_class_attribs unique_id attribs =
