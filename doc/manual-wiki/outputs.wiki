@@ -433,7 +433,7 @@ module Int_reg_base = struct
 
   type result = (browser_content, http_service) kind
 
-  let result_of_http_result = Result_types.cast_result
+  let result_of_http_result = Eliom_output.cast_http_result
 
   let send_appl_content = Eliom_services.XNever
 
