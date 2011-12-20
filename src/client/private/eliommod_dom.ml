@@ -223,11 +223,7 @@ let add_childrens (elt:Dom_html.element Js.t) (sons:Dom.node Js.t list) =
       in
       match Dom_html.tagged elt with
 	| Dom_html.Script elt ->
-	  (* ie < 9 execute script as soon as they have a parent: we
-	     need to remove unique scripts *)
-	  let (_,unique_class,_) = has_classes (elt:>Dom_html.element Js.t) in
-	  if not unique_class
-	  then elt##text <- concat sons
+	  elt##text <- concat sons
 	| Dom_html.Style elt ->
 	  (* we need to append the style node to something. If we
 	     don't do that the styleSheet field is not created if we.
@@ -241,33 +237,44 @@ let add_childrens (elt:Dom_html.element Js.t) (sons:Dom.node Js.t list) =
 
 (* END IE HACK *)
 
-let copy_element (e:Dom.element Js.t) : Dom_html.element Js.t =
+let copy_element (e:Dom.element Js.t)
+    (registered_unique:(Js.js_string Js.t -> bool)): Dom_html.element Js.t =
   let rec aux (e:Dom.element Js.t) =
     let copy = Dom_html.document##createElement(e##tagName) in
-    let add_attribute a =
-      Js.Opt.iter (Dom.CoerceTo.attr a)
-        (* we don't use copy##attributes##setNameditem:
-           in ie 9 it fail setting types of buttons... *)
-        (fun a -> copy##setAttribute(a##name,a##value)) in
-    iter_dom_array add_attribute (e##attributes);
-    let child_copies = List.map_filter
-      (fun child ->
-        match Dom.nodeType child with
-          | Dom.Text t ->
-            Some (copy_text t:>Dom.node Js.t)
-          | Dom.Element child ->
-            (aux child:>Dom.node Js.t option)
-          | _ ->
-            None)
-      (Dom.list_of_nodeList (e##childNodes)) in
-    add_childrens copy child_copies;
-    Some copy
+    let unique_id = Js.Opt.to_option
+      (e##getAttribute(Js.string Eliom_pervasives_base.RawXML.unique_attrib)) in
+    match unique_id with
+      | Some id when registered_unique id ->
+	Js.Opt.iter
+	  (e##getAttribute(Js.string "class"))
+	  (fun classes -> copy##setAttribute(Js.string "class",classes));
+	copy##setAttribute(Js.string Eliom_pervasives_base.RawXML.unique_attrib,id);
+	Some copy
+      | _ ->
+        let add_attribute a =
+          Js.Opt.iter (Dom.CoerceTo.attr a)
+            (* we don't use copy##attributes##setNameditem:
+               in ie 9 it fail setting types of buttons... *)
+            (fun a -> copy##setAttribute(a##name,a##value)) in
+        iter_dom_array add_attribute (e##attributes);
+        let child_copies = List.map_filter
+          (fun child ->
+            match Dom.nodeType child with
+              | Dom.Text t ->
+                Some (copy_text t:>Dom.node Js.t)
+              | Dom.Element child ->
+                (aux child:>Dom.node Js.t option)
+              | _ ->
+                None)
+          (Dom.list_of_nodeList (e##childNodes)) in
+        add_childrens copy child_copies;
+        Some copy
   in
   match aux e with
     | None -> error "copy_element"
     | Some e -> e
 
-let html_document (src:Dom.element Dom.document Js.t) : Dom_html.element Js.t =
+let html_document (src:Dom.element Dom.document Js.t) registered_unique: Dom_html.element Js.t =
   let content = src##documentElement in
   match Js.Opt.to_option (Dom_html.CoerceTo.element content) with
     | Some e ->
@@ -278,9 +285,11 @@ let html_document (src:Dom.element Dom.document Js.t) : Dom_html.element Js.t =
 	    try Dom_html.document##importNode((e:>Dom.element Js.t),Js._true) with
 	      | exn ->
 		debug_exn "can't import node, copy instead" exn;
-		copy_element content
+		copy_element content registered_unique
       end
-    | None -> copy_element content
+    | None ->
+      debug "can't addopt node, document not parsed as html. copy instead";
+      copy_element content registered_unique
 
 (** CSS preloading. *)
 

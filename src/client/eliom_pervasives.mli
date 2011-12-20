@@ -126,7 +126,7 @@ module XML : sig
   type attrib
 
   type caml_event =
-    | CE_registered_closure of (unit -> unit) client_expr
+    | CE_registered_closure of int * (unit -> unit) client_expr
     | CE_client_closure of (unit -> unit)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (bool * string list) option) option Eliom_lazy.request
@@ -201,9 +201,10 @@ module XML : sig
   val get_unique_id : elt -> string option
 
   type node_id = string
+
+  module ClosureMap : Map.S with type key = int
   type id_event_table =
-      { id_table : string array;
-	event_table : (aname * (unit -> unit) client_expr) array array}
+      { event_table : ((unit -> unit) client_expr) ClosureMap.t }
 
 end
 

@@ -43,11 +43,13 @@ val ancessor : #Dom.node Js.t -> #Dom.node Js.t -> bool
 
 val createEvent : Js.js_string Js.t -> #Dom_html.event Js.t
 
-val copy_element : Dom.element Js.t -> Dom_html.element Js.t
+val copy_element : Dom.element Js.t ->
+  (Js.js_string Js.t -> bool) -> Dom_html.element Js.t
 (** [copy_element e] creates recursively a fresh html from any xml
     element avoiding brower bugs *)
 
-val html_document : Dom.element Dom.document Js.t -> Dom_html.element Js.t
+val html_document : Dom.element Dom.document Js.t ->
+  (Js.js_string Js.t -> bool) -> Dom_html.element Js.t
 (** Assuming [d] has a body and head element, [html_document d] will
     return the same document as html *)
 

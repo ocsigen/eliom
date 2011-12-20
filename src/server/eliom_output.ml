@@ -2542,9 +2542,6 @@ module Eliom_appl_reg_make_param
       (HTML5.M.unique ~copy:eliom_fake_appl_data_script
 	 (HTML5.M.script (cdata_script script)))
 
-  let eliom_fake_request_data_script =
-    HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
-
   let make_eliom_data_script ~sp page =
 
     (* wrapping of values could create eliom references that may
@@ -2574,9 +2571,7 @@ module Eliom_appl_reg_make_param
 	(Eliom_types.jsmarshal tab_cookies)
     in
 
-    Lwt.return
-      (HTML5.M.unique ~copy:eliom_fake_request_data_script
-	 (HTML5.M.script (cdata_script script)))
+    Lwt.return (HTML5.M.script (cdata_script script))
 
   let split_page page :
       ( HTML5_types.html_attrib HTML5.M.attrib list
@@ -2612,7 +2607,6 @@ module Eliom_appl_reg_make_param
       split_page (HTML5.M.toelt page) in
     let head_elts =
          appl_data_script
-      :: eliom_fake_request_data_script
       :: redirection_script
       :: HTML5.M.base ~a:[HTML5.M.a_href (HTML5.M.uri_of_string base_url)] ()
       :: ( if List.exists is_eliom_appl_script head_elts
@@ -2628,7 +2622,7 @@ module Eliom_appl_reg_make_param
 
     (* Then we replace the faked data_script *)
     let head_elts =
-      List.hd head_elts :: data_script :: List.tl (List.tl head_elts) in
+      List.hd head_elts :: data_script :: (List.tl head_elts) in
     Lwt.return
       (HTML5.M.html ~a:html_attribs
 	 (HTML5.M.head ~a:head_attribs title head_elts)

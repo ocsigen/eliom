@@ -117,8 +117,12 @@ let rec send ?(expecting_process_page = false) ?cookies_info
     let headers = if expecting_process_page
       then
 	let content_type =
-	  if Dom_html.onIE
-	  then "application/xml"
+	  if Dom_html.onIE &&
+	    not (Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document)##adoptNode))
+	  then
+	    (* ie < 9 does not know xhtml+xml content type, but ie 9
+	       can use it and need it to use adoptNode *)
+	    "application/xml"
 	  else "application/xhtml+xml"
 	in
 	("Accept",content_type)::
@@ -146,10 +150,10 @@ let rec send ?(expecting_process_page = false) ?cookies_info
       else true
     in
     try_lwt
-      lwt r = XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
-	?post_args ?get_args ?form_arg:form_contents ~check_headers url in
-      ( match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name with
-	| None | Some "" -> () (* Empty tab_cookies for IE compat *)
+  lwt r = XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
+    ?post_args ?get_args ?form_arg:form_contents ~check_headers url in
+  ( match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name with
+    | None | Some "" -> () (* Empty tab_cookies for IE compat *)
 	| Some tab_cookies ->
 	  let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
 	  Eliommod_cookies.update_cookie_table tab_cookies; );

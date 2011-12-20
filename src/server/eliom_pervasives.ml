@@ -172,40 +172,23 @@ module XML = struct
   (** Ref tree *)
 
   let cons_attrib att acc = match racontent att with
-    | RACamlEvent (CE_registered_closure client_expr) -> (aname att, client_expr) :: acc
+    | RACamlEvent (CE_registered_closure (id, client_expr)) ->
+      ClosureMap.add id client_expr acc
     | _ -> acc
 
   let make_id_event_table elt =
-    let rec aux (id_acc,closure_acc) elt =
-      let id = get_unique_id elt in
+    let rec aux closure_acc elt =
       let make attribs =
-	let closure_acc =
-	  match (List.fold_right cons_attrib attribs []) with
-	    | [] -> closure_acc
-	    | l -> (Array.of_list l)::closure_acc
-	in
-	let id_acc =
-	  match id with
-	    | None -> id_acc
-	    | Some id -> id::id_acc
-	in
-	(id_acc,closure_acc)
+	List.fold_right cons_attrib attribs closure_acc
       in
       match content elt with
 	| Empty | EncodedPCDATA _ | PCDATA _
-	| Entity _ | Comment _  ->
-	  begin
-	    match id with
-	      | None -> (id_acc,closure_acc)
-	      | Some _ -> failwith "unexpected id on an unlabellable node: ex pcdata, comment, ..."
-	  end
+	| Entity _ | Comment _  -> closure_acc
 	| Leaf (_, attribs) -> make attribs
 	| Node (_, attribs, elts) ->
 	  List.fold_left aux (make attribs) elts
     in
-    let (id_acc,closure_acc) = aux ([],[]) elt in
-    { id_table = Array.of_list (List.rev (id_acc));
-      event_table = Array.of_list (List.rev (closure_acc)) }
+    { event_table = aux ClosureMap.empty elt }
 
   let filter_class (acc_class,acc_attr) = function
     | "class", RA value ->
@@ -236,7 +219,7 @@ module XML = struct
   let filter_class_attribs unique_id attribs =
     let unique_id = match unique_id with
       | None -> [],[]
-      | Some i -> [unique_class],[](* [unique_attrib,RA (AStr i)] *)
+      | Some i -> [unique_class], [unique_attrib,RA (AStr i)]
     in
     let (classes,attribs) =
       List.fold_left filter_class (unique_id) attribs in

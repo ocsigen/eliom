@@ -49,7 +49,7 @@ module RawXML = struct
   type cookie_info = (bool * string list) deriving (Json)
 
   type caml_event =
-    | CE_registered_closure of (unit -> unit) client_expr
+    | CE_registered_closure of int * (unit -> unit) client_expr
     | CE_client_closure of (unit -> unit)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (cookie_info option)) option Eliom_lazy.request
@@ -67,9 +67,21 @@ module RawXML = struct
   let string_of_event = function
     | Raw s -> s
     | Caml _ -> "/* Invalid Caml value */"
-  let event_of_js id args = Caml (CE_registered_closure (id, args))
+  let event_of_js id args =
+    let closure_id = Random.bits () in
+    Caml (CE_registered_closure (closure_id, (id, args)))
 
   let event_of_service info = Caml (CE_call_service info)
+
+  let ce_registered_closure_class = "caml_closure"
+  let ce_call_service_class = "caml_link"
+  let unique_class = "caml_unique"
+
+  let ce_call_service_attrib = "data-eliom-cookies-info"
+  let unique_attrib = "data-eliom-unique-id"
+
+  let closure_attr_prefix = "caml_closure_id"
+  let closure_attr_prefix_len = String.length closure_attr_prefix
 
   type aname = string
   type acontent =
@@ -86,6 +98,8 @@ module RawXML = struct
   let aname (name, _) = name
   let acontent = function
     | _, RA a -> a
+    | _, RACamlEvent (CE_registered_closure (id,_)) ->
+      AStr (closure_attr_prefix^(string_of_int id))
     | _, RACamlEvent _ -> AStr ("")
     | _, RALazyStr str -> AStr (Eliom_lazy.force str)
     | _, RALazyStrL (sep, str) -> AStrL (sep, List.map Eliom_lazy.force str)
@@ -119,13 +133,6 @@ module RawXML = struct
     elt : recontent;
     unique_id : node_id option;
   }
-
-  let ce_registered_closure_class = "caml_closure"
-  let ce_call_service_class = "caml_link"
-  let unique_class = "caml_unique"
-
-  let ce_call_service_attrib = "data-eliom-cookies-info"
-  let unique_attrib = "data-eliom-unique-id"
 
   let content e = match e.elt with
     | RE e -> e
@@ -179,8 +186,9 @@ module RawXML = struct
 	root_node name attribs (flatmap (translate' state) elts)
     | _ -> failwith "not implemented for Ocsigen syntax extension"
 
+  module ClosureMap = Map.Make(struct type t = int let compare = compare end)
+
   type id_event_table =
-      { id_table : string array;
-	event_table : (aname * (unit -> unit) client_expr) array array}
+      { event_table : ((unit -> unit) client_expr) ClosureMap.t }
 
 end

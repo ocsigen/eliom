@@ -92,12 +92,12 @@ let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
   | XML.CE_client_closure f ->
     (* TODO pass event ? *)
     (fun _ -> try f (); true with False -> false)
-  | XML.CE_registered_closure (id, args) ->
+  | XML.CE_registered_closure (closure_id, (function_id, args)) ->
       try
-	let f = find_closure id in
+	let f = find_closure function_id in
 	(fun _ -> try f args; true with False -> false)
       with Not_found ->
-	Firebug.console##error(Printf.sprintf "Closure not found (%Ld)" id);
+	debug "Closure not found (%Ld)" function_id;
 	(fun _ -> false)
 
 let reify_event node ev = match ev with
@@ -156,9 +156,10 @@ let form_handler =
 	 || (https = Some false && Eliom_request_info.ssl_)
 	 || (change_page_form ?cookies_info form action; false)))
 
-let relink_unique_node pos table (node:Dom_html.element Js.t) =
-  let id = Js.string table.(!pos) in
-  incr pos;
+let relink_unique_node (node:Dom_html.element Js.t) =
+  let id = Js.Opt.get
+    (node##getAttribute(Js.string Eliom_pervasives_base.RawXML.unique_attrib))
+    (fun () -> error "unique node without id attribute") in
   try
     let pnode = find_node id in
     Js.Opt.iter (node##parentNode)
@@ -166,25 +167,29 @@ let relink_unique_node pos table (node:Dom_html.element Js.t) =
   with Not_found ->
     register_node id (node:>Dom.node Js.t)
 
-let relink_closure_node root onload pos table (node:Dom_html.element Js.t) =
-  let attributes = table.(!pos) in
-  incr pos;
-  for i = 0 to Array.length attributes - 1 do
-    let aname,(id, args) = attributes.(i) in
-    let closure =
-      try
-	let f = find_closure id in
-	(fun _ -> try f args; true with False -> false)
-      with Not_found ->
-	Firebug.console##error(Printf.sprintf "Closure not found (%Ld)" id);
-	(fun _ -> false)
-    in
-    if aname = "onload" then
-      (if Eliommod_dom.ancessor root node
-       (* if not inside a unique node replaced by an older one *)
-       then onload := closure :: !onload)
-    else Js.Unsafe.set node (Js.bytestring aname) (Dom_html.handler (fun ev -> Js.bool (closure ev)))
-  done
+let relink_closure_node root onload table (node:Dom_html.element Js.t) =
+  let aux attr =
+    if attr##value##substring(0,Eliom_pervasives_base.RawXML.closure_attr_prefix_len) =
+      Js.string Eliom_pervasives_base.RawXML.closure_attr_prefix
+    then
+      let cid = int_of_string (Js.to_string (attr##value##substring_toEnd(
+	Eliom_pervasives_base.RawXML.closure_attr_prefix_len))) in
+      let (id,args) = XML.ClosureMap.find cid table in
+      let closure =
+	try
+	  let f = find_closure id in
+	  (fun _ -> try f args; true with False -> false)
+	with Not_found ->
+	  debug "Closure not found (%Ld)" id;
+	  (fun _ -> false)
+      in
+      if attr##name = Js.string "onload" then
+	(if Eliommod_dom.ancessor root node
+	 (* if not inside a unique node replaced by an older one *)
+	 then onload := closure :: !onload)
+      else Js.Unsafe.set node (attr##name) (Dom_html.handler (fun ev -> Js.bool (closure ev)))
+  in
+  Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
 let relink_page (root:Dom_html.element Js.t) id_event_table =
   let (a_nodeList,form_nodeList,unique_nodeList,closure_nodeList) =
@@ -194,12 +199,10 @@ let relink_page (root:Dom_html.element Js.t) id_event_table =
   Eliommod_dom.iter_nodeList form_nodeList
     (fun node -> node##onsubmit <- form_handler);
   Eliommod_dom.iter_nodeList unique_nodeList
-    (let pos = ref 0 in
-     fun node -> relink_unique_node pos id_event_table.XML.id_table node);
+    relink_unique_node;
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList
-    (let pos = ref 0 in
-     fun node -> relink_closure_node root onload pos id_event_table.XML.event_table node);
+    (fun node -> relink_closure_node root onload id_event_table.XML.event_table node);
   !onload
 
 (* == Convertion from OCaml XML.elt nodes to native JavaScript Dom nodes *)
@@ -495,7 +498,7 @@ let get_data_script page =
     | _ -> error "get_data_script wrong branch"
 
 let load_data_script data_script =
-  let script = data_script##innerHTML in
+  let script = data_script##text in
   ignore (Js.Unsafe.eval_string (Js.to_string script));
   ( Eliom_request_info.get_request_data (),
     Eliom_request_info.get_request_cookies ())
@@ -507,6 +510,10 @@ let scroll_to_fragment fragment =
       let scroll_to_element e = e##scrollIntoView(Js._true) in
       let elem = Dom_html.document##getElementById(Js.string fragment) in
       Js.Opt.iter elem scroll_to_element
+
+let registered_unique id =
+  try ignore (find_node id); true
+  with Not_found -> false
 
 let set_content ?uri ?fragment = function
   | None -> Lwt.return ()
@@ -520,7 +527,7 @@ let set_content ?uri ?fragment = function
 	| Some uri, Some fragment ->
 	  change_url_string (uri ^ "#" ^ fragment)
 	| _ -> ());
-      let fake_page = Eliommod_dom.html_document content in
+      let fake_page = Eliommod_dom.html_document content registered_unique in
       let preloaded_css = Eliommod_dom.preload_css fake_page in
       let js_data, cookies = load_data_script (get_data_script fake_page) in
       Eliommod_cookies.update_cookie_table cookies;
