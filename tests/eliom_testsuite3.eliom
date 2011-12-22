@@ -1059,17 +1059,19 @@ let comet_signal = comet_signal_maker "comet_signal" time
  Here is the code for a minimalistic message board.
  *wiki*)
 
-let comet_message_board_maker name message_bus =
+let comet_message_board_maker name message_bus cb =
   My_appl.register_service
     ~path:[name]
     ~get_params:unit
     (fun () () ->
-
+       cb ();
        Lwt.return (
          let container = unique (ul [li [em [pcdata "This is the message board"]]]) in
          let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
          Eliom_services.onload
            {{
+	     let c = Eliom_comet.Configuration.new_configuration () in
+	     Eliom_comet.Configuration.set_always_active c true;
              let _ =
 	       Lwt.catch (fun () ->
 		 Lwt_stream.iter_s
@@ -1120,7 +1122,15 @@ let message_bus = Eliom_bus.create ~scope:Eliom_common.client_process ~size:10 J
 let _ =
   Lwt_stream.iter (fun msg -> Printf.printf "msg: %s\n%!" msg)
     (Eliom_bus.stream message_bus)
-let comet_message_board = comet_message_board_maker "message_board" message_bus
+let message_board_callback () =
+  Eliom_bus.write message_bus "a user joined in";
+  let _ =
+    lwt () = Eliom_comet.Channels.wait_timeout ~scope:Eliom_common.client_process 1. in
+    Eliom_bus.write message_bus "a user went away";
+    Lwt.return ()
+  in ()
+
+let comet_message_board = comet_message_board_maker "message_board" message_bus message_board_callback
 
 (* bus stream received multiple times *)
 
@@ -1258,7 +1268,8 @@ let message_bus_global = Eliom_bus.create ~scope:`Global ~size:10 Json.t<string>
 let _ =
   Lwt_stream.iter (fun msg -> Printf.printf "msg global: %s\n%!" msg)
     (Eliom_bus.stream message_bus_global)
-let comet_message_board_stateless = comet_message_board_maker "message_board_stateless" message_bus_global
+let comet_message_board_stateless = comet_message_board_maker "message_board_stateless"
+  message_bus_global (fun () -> ())
 
 
 (*wiki*
