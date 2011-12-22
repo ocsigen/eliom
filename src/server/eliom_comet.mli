@@ -95,6 +95,14 @@ module Channels : sig
   val external_channel : ?history:int -> ?newest:bool ->
     prefix:string -> name:string -> unit -> 'a t
 
+  (** [wait_timeout ~scope time] waits for a period of inactivity of
+      length [time] in the [scope]. Only activity on statefull
+      channels is taken into accounts.
+
+      The default [scope] is [Eliom_common.comet_client_process]. *)
+  val wait_timeout : ?scope:Eliom_common.client_process_scope ->
+    float -> unit Lwt.t
+
   (**/**)
 
   val get_wrapped : 'a t -> 'a Eliom_comet_base.wrapped_channel

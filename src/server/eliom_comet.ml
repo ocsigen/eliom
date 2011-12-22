@@ -296,6 +296,9 @@ sig
 
   val close_channel : t -> unit
 
+  val wait_timeout : ?scope:Eliom_common.client_process_scope ->
+    float -> unit Lwt.t
+
 end = struct
 
   type chan_id = string
@@ -303,6 +306,14 @@ end = struct
   type comet_service = Ecb.comet_service
 
   type internal_comet_service = Ecb.internal_comet_service
+
+  type end_request_waiters = unit Lwt.u
+
+  type activity =
+    | Active of end_request_waiters list
+    (** There is currently a request from the client *)
+    | Inactive of float
+    (** The last request from the client completed at that time *)
 
   type handler =
       {
@@ -322,7 +333,48 @@ end = struct
         (** the last message sent to the client, if he sends a request
 	    with the same number, this message is immediately sent
 	    back.*)
+	mutable hd_activity : activity;
       }
+
+  let set_active handler =
+    match handler.hd_activity with
+      | Active _ -> ()
+      | Inactive _ -> handler.hd_activity <- Active []
+
+  let set_inactive handler =
+    match handler.hd_activity with
+      | Active l ->
+	handler.hd_activity <- Inactive (Unix.gettimeofday ());
+	List.iter (fun waiter -> Lwt.wakeup waiter ()) l
+      | Inactive _ -> ()
+
+  let update_inactive handler =
+    match handler.hd_activity with
+      | Active _ -> ()
+      | Inactive _ ->
+	handler.hd_activity <- Inactive (Unix.gettimeofday ())
+
+  let wait_handler_timeout handler t =
+    let rec run () =
+      match handler.hd_activity with
+	| Active l ->
+	  let waiter,waker = Lwt.task () in
+	  let t =
+	    lwt () = waiter in
+	    lwt () = Lwt_unix.sleep t in
+	    run ()
+	  in
+	  handler.hd_activity <- Active (waker::l);
+	  t
+	| Inactive inactive_time ->
+	  let now = Unix.gettimeofday () in
+	  if now -. inactive_time > t
+	  then Lwt.return ()
+	  else
+	    lwt () = Lwt_unix.sleep (t -. (now -. inactive_time)) in
+	    run ()
+    in
+    run ()
 
   (** called when a connection is opened, it makes the other
       connection terminate with no data. That way there is at most one
@@ -334,6 +386,7 @@ end = struct
     let wakener = handler.hd_update_streams_w in
     handler.hd_update_streams <- t;
     handler.hd_update_streams_w <- w;
+    set_active handler;
     Lwt.wakeup_exn wakener New_connection
 
   (** called when a new channel is made active. It restarts the thread
@@ -402,7 +455,8 @@ end = struct
 
   (* register the service handler.hd_service *)
   let run_handler handler =
-    let f () = function
+    let f () req =
+      match req with
       | Ecb.Stateless _ ->
 	failwith "attempting to request data on statefull service with a stateless request"
       | Ecb.Statefull (Ecb.Request_data number) ->
@@ -420,14 +474,20 @@ end = struct
 		  let messages = read_streams 100 handler.hd_active_streams in
 		  let message = encode_downgoing messages in
 		  handler.hd_last <- (message,number);
+		  set_inactive handler;
 		  Lwt.return message ) ) )
 	    ( function
 	      | New_connection -> Lwt.return (encode_downgoing [])
 		      (* happens if an other connection has been opened on that service *)
 		      (* CCC in this case, it would be beter to return code 204: no content *)
-	      | Lwt_unix.Timeout -> Lwt.return timeout_msg
-	      | e -> Lwt.fail e )
+	      | Lwt_unix.Timeout ->
+		set_inactive handler;
+		Lwt.return timeout_msg
+	      | e ->
+		set_inactive handler;
+		Lwt.fail e )
       | Ecb.Statefull (Ecb.Commands commands) ->
+	update_inactive handler;
 	List.iter (function
 	  | Ecb.Register channel -> register_channel handler channel
 	  | Ecb.Close channel -> close_channel' handler channel)
@@ -500,12 +560,17 @@ end = struct
 	    hd_update_streams;
 	    hd_update_streams_w;
 	    hd_last = "", -1;
+	    hd_activity = Inactive (Unix.gettimeofday ());
 	  }
 	  in
 	  set_ref eref (Some handler);
 	  run_handler handler;
 	  handler
 	end
+
+  let wait_timeout ?(scope=Eliom_common.comet_client_process) t =
+    let hd = get_handler scope in
+    wait_handler_timeout hd t
 
   type t =
       {
@@ -572,6 +637,9 @@ sig
 
   val external_channel : ?history:int -> ?newest:bool ->
     prefix:string -> name:string -> unit -> 'a t
+
+  val wait_timeout : ?scope:Eliom_common.client_process_scope ->
+    float -> unit Lwt.t
 
 end = struct
 
@@ -713,6 +781,8 @@ end = struct
                              Stateless.chan_id_of_string name,
                              Ecb.Last_kind last));
       channel_mark = channel_mark () }
+
+  let wait_timeout = Statefull.wait_timeout
 
 end
 
