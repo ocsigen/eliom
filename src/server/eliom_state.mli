@@ -167,10 +167,10 @@ val unset_cookie :
 
 (** sets the group to which belong the service session.
 
-    If the optional [?set_max] parameter is present, also sets the maximum
-    number of sessions in the group.
-    Default: follow current configuration for the group
-    or default configuration if the group does not exist.
+    If the optional [?set_max] parameter is present, also sets the
+    maximum number of sessions in the group. Default: follow current
+    configuration for the group or default configuration if the group
+    does not exist.
 
     If [~secure] is false when the protocol is https, it will affect
     the unsecure session. Otherwise, il will affect the secure session in
@@ -251,10 +251,11 @@ val get_volatile_data_session_group_size :
 
 (** sets the group to which belong the persistent session.
 
-    If the optional [?set_max] parameter is present, also sets the maximum
-    number of sessions in the group.
-    Default: follow current configuration for the group
-    or default configuration if the group does not exist.
+    If the optional [?set_max] parameter is present, also sets the
+    maximum number of sessions in the group. When [~set_max:None] is
+    present, the number of session is unlimited. Default: follow
+    current configuration for the group or default configuration if
+    the group does not exist.
 *)
 val set_persistent_data_session_group :
   ?set_max: int option ->
