@@ -277,6 +277,10 @@ module Xhtml_forms_base = struct
     {{ <script ({type="text/javascript"
                  src=(str uri) } ++ a)> [] }}
 
+  type for_attrib = {{ { for=String} }}
+
+  let make_for_attrib name = {{ { for={: name :} } }}
+
 end
 
 module Xhtml_registration = Eliom_mkreg.MakeRegister(Xhtml_reg_base)

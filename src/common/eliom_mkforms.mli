@@ -76,4 +76,6 @@ module MakeForms(Pages: FORMS_PARAM) : sig
         and type raw_input_type_t := Pages.input_type_t
         and type button_type_t := Pages.button_type_t
 
+        and type for_attrib := Pages.for_attrib
+
 end

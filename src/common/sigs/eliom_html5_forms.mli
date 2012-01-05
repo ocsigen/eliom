@@ -55,3 +55,5 @@ include "eliom_forms.mli"
       | `Submit
       ]
 
+    and type for_attrib := [> `For ] HTML5.M.attrib
+

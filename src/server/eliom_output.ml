@@ -326,6 +326,9 @@ module Xhtml_forms_base = struct
   let make_js_script ?(a=[]) ~uri () =
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
+  type for_attrib = [`For] XHTML.M.attrib
+  let make_for_attrib = a_for
+
 end
 
 (*****************************************************************************)
@@ -998,6 +1001,8 @@ module Xhtml_forms = struct
 		 button_type:[< button_type ] ->
 		 button_content elt list -> [> button ] elt)
 
+  let a_for = (a_for: _ -> [ `For ] attrib :> _ -> [> `For ] attrib)
+
 end
 
 (*****************************************************************************)
@@ -1437,6 +1442,9 @@ module HtmlText_forms_base = struct
 
   let make_js_script ?(a="") ~uri () =
     "<script src=\""^uri^" contenttype=\"text/javascript\" "^a^"></script>"
+
+  type for_attrib = string
+  let make_for_attrib name = "for=\""^name^"\""
 
 end
 

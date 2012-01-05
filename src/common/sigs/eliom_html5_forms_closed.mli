@@ -68,3 +68,5 @@ include "eliom_forms.mli"
       | `Reset
       | `Submit
       ]
+
+  and type for_attrib := [ `For ] HTML5.M.attrib

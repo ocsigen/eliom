@@ -44,6 +44,8 @@ type input_type_t
 type raw_input_type_t
 type button_type_t
 
+type for_attrib
+
 val hidden : input_type_t
 val checkbox : input_type_t
 val radio : input_type_t
@@ -105,3 +107,5 @@ val uri_of_string : (unit -> string) -> uri
 val make_css_link : ?a:link_attrib_t -> uri:uri -> unit -> link_elt
 
 val make_js_script : ?a:script_attrib_t -> uri:uri -> unit -> script_elt
+
+val make_for_attrib : string -> for_attrib

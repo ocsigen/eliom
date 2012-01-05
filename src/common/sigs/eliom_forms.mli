@@ -47,6 +47,8 @@ type input_type_t
 type raw_input_type_t
 type button_type_t
 
+type for_attrib
+
 (** {2 Forms creation } *)
 
 (** {3 Links and forms} *)
@@ -840,3 +842,4 @@ val raw_multiple_select :
   string select_opt list ->
   select_elt
 
+val a_for: 'a Eliom_parameters.param_name -> for_attrib

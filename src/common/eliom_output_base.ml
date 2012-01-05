@@ -223,6 +223,9 @@ module Html5_forms_base = struct
   let make_js_script ?(a=[]) ~uri () =
     script ~a:(a_mime_type "text/javascript" :: a_src uri :: a) (pcdata "")
 
+  type for_attrib = [`For] HTML5.M.attrib
+  let make_for_attrib = a_for
+
 end
 
 (*****************************************************************************)
@@ -876,6 +879,8 @@ module Open_Html5_forms =
 		   ?a:button_attrib attrib list ->
 		   button_type:[< button_type ] ->
 		   button_content elt list -> [> button ] elt)
+
+    let a_for = (a_for: _ -> [ `For ] attrib :> _ -> [> `For ] attrib)
 
 end)
 

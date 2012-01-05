@@ -54,6 +54,8 @@ type input_type_t = input_type_values
 type raw_input_type_t = input_type_values
 type button_type_t = button_type_values
 
+type for_attrib = {{ { for=String } }}
+
   (* type div_content_elt = div_content *)
   (* type div_content_elt_list = flows *)
 

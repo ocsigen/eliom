@@ -39,6 +39,7 @@ module type XHTML_FORMS = "sigs/eliom_forms.mli"
     and type input_type_t := Eliom_duce_types.input_type_t
     and type raw_input_type_t := Eliom_duce_types.raw_input_type_t
     and type button_type_t := Eliom_duce_types.button_type_t
+    and type for_attrib := Eliom_duce_types.for_attrib
 
 module type XHTML_REGISTRATION = "sigs/eliom_reg.mli"
   subst type page := Eliom_duce_types.html

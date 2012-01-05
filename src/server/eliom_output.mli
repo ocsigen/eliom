@@ -334,6 +334,7 @@ module HtmlText : sig
   and type input_type_t := string
   and type raw_input_type_t := string
   and type button_type_t := string
+  and type for_attrib := string
 
 end
 
