@@ -35,12 +35,24 @@ eliom_cookies.cmx: eliom_pervasives.cmx eliom_cookies.cmi
 eliom_cookies.cmi: eliom_pervasives.cmi
 eliom_cookies_base.cmo: eliom_pervasives.cmi
 eliom_cookies_base.cmx: eliom_pervasives.cmx
-
-
-
-
-
-
+eliom_duce.cmo: eliom_services.cmi eliom_output.cmi eliom_mkreg.cmi \
+    eliom_mkforms.cmi eliom_lazy.cmi eliom_duce_types.cmi eliom_duce.cmi
+eliom_duce.cmx: eliom_services.cmx eliom_output.cmx eliom_mkreg.cmx \
+    eliom_mkforms.cmx eliom_lazy.cmx eliom_duce_types.cmi eliom_duce.cmi
+eliom_duce.cmi: eliom_duce_sigs.cmi
+eliom_duce_sigs.cmi: eliom_services.cmi eliom_pervasives.cmi \
+    eliom_parameters.cmi eliom_output.cmi eliom_duce_types.cmi \
+    eliom_common.cmi
+eliom_duce_tools.cmo: eliom_tools_common.cmi eliom_services.cmi \
+    eliom_request_info.cmi eliom_duce_types.cmi eliom_duce.cmi \
+    eliom_duce_tools.cmi
+eliom_duce_tools.cmx: eliom_tools_common.cmx eliom_services.cmx \
+    eliom_request_info.cmx eliom_duce_types.cmi eliom_duce.cmx \
+    eliom_duce_tools.cmi
+eliom_duce_tools.cmi: eliom_tools_common.cmi eliom_state.cmi \
+    eliom_services.cmi eliom_parameters.cmi eliom_output.cmi \
+    eliom_duce_types.cmi
+eliom_duce_types.cmi:
 eliom_error_pages.cmo:
 eliom_error_pages.cmx:
 eliom_extension_template.cmo: eliom_extensions.cmi
