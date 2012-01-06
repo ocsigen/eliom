@@ -27,9 +27,17 @@ type 'a t = {
   channel  : 'a Eliom_comet.Channels.t option;
   write    : ('a -> unit);
   service  : 'a Ecb.bus_send_service;
+  service_registered : bool Eliom_state.volatile_table option;
   size     : int option;
   bus_mark : 'a t Eliom_common.wrapper; (* must be the last field ! *)
 }
+
+let register_sender scope service write =
+  Eliom_output.Action.register
+    ~scope
+    ~options:`NoReload
+    ~service
+    (fun () x -> List.iter write x ; Lwt.return ())
 
 let internal_wrap (bus: 'a t) : 'a Ecb.wrapped_bus * Eliom_common.unwrapper =
   let channel =
@@ -39,6 +47,20 @@ let internal_wrap (bus: 'a t) : 'a Ecb.wrapped_bus * Eliom_common.unwrapper =
 	  (Lwt_stream.clone bus.stream)
       | Some c -> c
   in
+  begin
+    match bus.service_registered with
+      | None -> ()
+      | Some table ->
+	match Eliom_state.get_volatile_data ~table () with
+	  | Eliom_state.Data true -> ()
+	  | _ ->
+	    register_sender bus.scope
+	      (bus.service:>
+		 ('h, 'a list, [ Eliom_services.internal_service_kind ], 'f, 'c, 'd, 'e, 'g)
+		 Eliom_services.service)
+	      bus.write;
+	    Eliom_state.set_volatile_data ~table true
+  end;
   ( ( Eliom_comet.Channels.get_wrapped channel,
       bus.service ),
     Eliom_common.make_unwrapper Eliom_common.bus_unwrap_id )
@@ -83,17 +105,13 @@ let create ?scope ?name ?size typ =
        : ('a, 'aa, 'aaa) Eliom_parameters.params_type)
   in
   let distant_write = Eliom_services.post_coservice' ?name ~post_params () in
-  Eliom_output.Action.register
-    (* CCC: TODO: this service should be registered only when the bus
-       is sent to the client. The problem now is that: if ~scope is
-       client_process, then the bus can't be created globaly. if the
-       scope is global the service won't be deleted at any time. then
-       if the bus is garbage collected, the service won't. -> memory leak *)
-    (* ~scope *)
-    ~options:`NoReload
-    ~service:distant_write
-    (fun () x -> List.iter push x ; Lwt.return ());
-
+  let service_registered =
+    match scope with
+      | `Global ->
+	register_sender scope distant_write push;
+	None
+      | `Client_process _ as scope ->
+	Some (Eliom_state.create_volatile_table ~scope ()) in
   (*The bus*)
   let bus =
     { stream;
@@ -102,6 +120,7 @@ let create ?scope ?name ?size typ =
       name;
       write   = push;
       service = distant_write;
+      service_registered;
       bus_mark = bus_mark ();
       size = size }
   in
