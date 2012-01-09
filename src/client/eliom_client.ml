@@ -195,6 +195,10 @@ let relink_page (root:Dom_html.element Js.t) event_handlers =
 
 (* == Convertion from OCaml XML.elt nodes to native JavaScript Dom nodes *)
 
+let run_load_events on_load =
+  let load_evt = Eliommod_dom.createEvent (Js.string "load") in
+  ignore (List.for_all (fun f -> f load_evt) on_load)
+
 module Html5 = struct
 
   let rebuild_attrib node name a = match a with
@@ -210,8 +214,8 @@ module Html5 = struct
   let rebuild_rattrib node ra = match XML.racontent ra with
     | XML.RA a -> rebuild_attrib node (XML.aname ra) a
     | XML.RACamlEventHandler ev ->
-      (* FIXME or not: onload event are ignored... *)
-      ignore(register_event_handler node [] (XML.aname ra, ev))
+      let on_load = register_event_handler node [] (XML.aname ra, ev) in
+      run_load_events on_load
     | XML.RALazyStr s ->
 	node##setAttribute(Js.string (XML.aname ra), Js.string s)
     | XML.RALazyStrL (XML.Space, l) ->
@@ -524,8 +528,7 @@ let set_content ?uri ?fragment = function
       Dom.replaceChild Dom_html.document
         fake_page
 	Dom_html.document##documentElement;
-      let load_evt = Eliommod_dom.createEvent (Js.string "load") in
-      ignore (List.for_all (fun f -> f load_evt) on_load);
+      run_load_events on_load;
       iter_option (fun uri -> scroll_to_fragment (snd (Url.split_fragment uri))) uri;
       Lwt.return ()
     with
