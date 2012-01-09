@@ -172,11 +172,11 @@ module XML = struct
   (** Ref tree *)
 
   let cons_attrib att acc = match racontent att with
-    | RACamlEvent (CE_registered_closure (id, client_expr)) ->
+    | RACamlEventHandler (CE_registered_closure (id, client_expr)) ->
       ClosureMap.add id client_expr acc
     | _ -> acc
 
-  let make_id_event_table elt =
+  let make_event_handler_table elt =
     let rec aux closure_acc elt =
       let make attribs =
 	List.fold_right cons_attrib attribs closure_acc
@@ -188,7 +188,7 @@ module XML = struct
 	| Node (_, attribs, elts) ->
 	  List.fold_left aux (make attribs) elts
     in
-    { event_table = aux ClosureMap.empty elt }
+    aux ClosureMap.empty elt
 
   let filter_class (acc_class,acc_attr) = function
     | "class", RA value ->
@@ -200,9 +200,9 @@ module XML = struct
 	    (v@acc_class,acc_attr)
 	  | _ -> failwith "attribute class is not a string"
       end
-    | _, RACamlEvent (CE_registered_closure _) as attr ->
+    | _, RACamlEventHandler (CE_registered_closure _) as attr ->
       (ce_registered_closure_class::acc_class,attr::acc_attr)
-    | _, RACamlEvent (CE_call_service link_info) ->
+    | _, RACamlEventHandler (CE_call_service link_info) ->
       begin
 	match Eliom_lazy.force link_info with
 	  | None -> acc_class, acc_attr

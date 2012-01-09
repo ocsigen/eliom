@@ -31,11 +31,10 @@ val sp : server_params
 (**/**)
 
 type eliom_js_page_data = {
-  (* Tables with node identifiers and event handlers *)
-  ejs_id_event_table: XML.id_event_table;
   (* Event handlers *)
-  ejs_onload: XML.event list;
-  ejs_onunload: XML.event list;
+  ejs_event_handler_table: XML.event_handler_table;
+  ejs_onload: XML.event_handler list;
+  ejs_onunload: XML.event_handler list;
   (* Session info *)
   ejs_sess_info: Eliom_common.sess_info;
 }

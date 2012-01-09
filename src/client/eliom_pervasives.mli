@@ -125,15 +125,15 @@ module XML : sig
   type aname = string
   type attrib
 
-  type caml_event =
+  type caml_event_handler =
     | CE_registered_closure of int * (unit -> unit) client_expr
     | CE_client_closure of (unit -> unit)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (bool * string list) option) option Eliom_lazy.request
 
-  type event =
+  type event_handler =
     | Raw of string
-    | Caml of caml_event
+    | Caml of caml_event_handler
 
   type ename = string
   type elt
@@ -148,10 +148,16 @@ module XML : sig
 
   (**/**)
 
+  val event_handler_of_service :
+    ( [ `A | `Form_get | `Form_post ]
+      * (bool * string list) option ) option Eliom_lazy.request -> event_handler
+  val event_handler_of_function : (unit -> unit) -> event_handler
+
+  (* Deprecated alias. *)
   val event_of_service :
     ( [ `A | `Form_get | `Form_post ]
-      * (bool * string list) option ) option Eliom_lazy.request -> event
-  val event_of_function : (unit -> unit) -> event
+      * (bool * string list) option ) option Eliom_lazy.request -> event_handler
+  val event_of_function : (unit -> unit) -> event_handler
 
   type separator = Space | Comma
   type acontent = private
@@ -163,7 +169,7 @@ module XML : sig
 
   type racontent =
     | RA of acontent
-    | RACamlEvent of caml_event
+    | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
   val racontent : attrib -> racontent
@@ -175,9 +181,12 @@ module XML : sig
   val string_attrib : aname -> string -> attrib
   val space_sep_attrib : aname -> string list -> attrib
   val comma_sep_attrib : aname -> string list -> attrib
-  val event_attrib : aname -> event -> attrib
+  val event_handler_attrib : aname -> event_handler -> attrib
   val uri_attrib : aname -> uri -> attrib
   val uris_attrib : aname -> uri list -> attrib
+
+  (* Deprecated alias. *)
+  val event_attrib : aname -> event_handler -> attrib
 
   val content : elt -> econtent
 
@@ -203,8 +212,7 @@ module XML : sig
   type node_id = string
 
   module ClosureMap : Map.S with type key = int
-  type id_event_table =
-      { event_table : ((unit -> unit) client_expr) ClosureMap.t }
+  type event_handler_table = ((unit -> unit) client_expr) ClosureMap.t
 
 end
 

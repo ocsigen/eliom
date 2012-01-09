@@ -191,7 +191,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   in
   Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
-let relink_page (root:Dom_html.element Js.t) id_event_table =
+let relink_page (root:Dom_html.element Js.t) event_handlers =
   let (a_nodeList,form_nodeList,unique_nodeList,closure_nodeList) =
     Eliommod_dom.select_nodes root in
   Eliommod_dom.iter_nodeList a_nodeList
@@ -202,7 +202,7 @@ let relink_page (root:Dom_html.element Js.t) id_event_table =
     relink_unique_node;
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList
-    (fun node -> relink_closure_node root onload id_event_table.XML.event_table node);
+    (fun node -> relink_closure_node root onload event_handlers node);
   !onload
 
 (* == Convertion from OCaml XML.elt nodes to native JavaScript Dom nodes *)
@@ -221,7 +221,7 @@ module Html5 = struct
 
   let rebuild_rattrib node ra = match XML.racontent ra with
     | XML.RA a -> rebuild_attrib node (XML.aname ra) a
-    | XML.RACamlEvent ev ->
+    | XML.RACamlEventHandler ev ->
       (* FIXME or not: onload event are ignored... *)
       ignore(register_event_handler node [] (XML.aname ra, ev))
     | XML.RALazyStr s ->
@@ -448,7 +448,7 @@ let broadcast_load_end _ =
 let load_eliom_data js_data (page:Dom_html.element Js.t) =
   loading_phase := true;
   let nodes_on_load =
-    relink_page page js_data.Eliom_types.ejs_id_event_table
+    relink_page page js_data.Eliom_types.ejs_event_handler_table
   in
   Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
   let on_load =

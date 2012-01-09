@@ -528,7 +528,10 @@ module XML = struct
 
   include RawXML
 
-  let event_of_function ev = Caml (CE_client_closure ev)
+  let event_handler_of_function ev = Caml (CE_client_closure ev)
+
+  (* Deprecated alias. *)
+  let event_of_function = event_handler_of_function
 
   let end_re = Regexp.regexp_string "]]>"
 

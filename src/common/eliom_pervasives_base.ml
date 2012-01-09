@@ -48,30 +48,36 @@ module RawXML = struct
 
   type cookie_info = (bool * string list) deriving (Json)
 
-  type caml_event =
+  type caml_event_handler =
     | CE_registered_closure of int * (unit -> unit) client_expr
     | CE_client_closure of (unit -> unit)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (cookie_info option)) option Eliom_lazy.request
 
-  type event =
+  type event_handler =
     | Raw of string
-    | Caml of caml_event
+    | Caml of caml_event_handler
 
   type uri = string Eliom_lazy.request
   let string_of_uri = Eliom_lazy.force
   let uri_of_string = Eliom_lazy.from_val
   let uri_of_fun = Eliom_lazy.from_fun
 
-  let event_of_string s = Raw s
-  let string_of_event = function
+  let event_handler_of_string s = Raw s
+  let string_of_event_handler = function
     | Raw s -> s
     | Caml _ -> "/* Invalid Caml value */"
-  let event_of_js id args =
+  let event_handler_of_js id args =
     let closure_id = Random.bits () in
     Caml (CE_registered_closure (closure_id, (id, args)))
 
-  let event_of_service info = Caml (CE_call_service info)
+  let event_handler_of_service info = Caml (CE_call_service info)
+
+  (* Deprecated alias. *)
+  let event_of_service = event_handler_of_service
+  let event_of_string = event_handler_of_string
+  let string_of_handler = string_of_event_handler
+  let event_of_js = event_handler_of_js
 
   let ce_registered_closure_class = "caml_closure"
   let ce_call_service_class = "caml_link"
@@ -91,16 +97,16 @@ module RawXML = struct
     | AStrL of separator * string list
   type racontent =
     | RA of acontent
-    | RACamlEvent of caml_event
+    | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
   type attrib = aname * racontent
   let aname (name, _) = name
   let acontent = function
     | _, RA a -> a
-    | _, RACamlEvent (CE_registered_closure (id,_)) ->
+    | _, RACamlEventHandler (CE_registered_closure (id,_)) ->
       AStr (closure_attr_prefix^(string_of_int id))
-    | _, RACamlEvent _ -> AStr ("")
+    | _, RACamlEventHandler _ -> AStr ("")
     | _, RALazyStr str -> AStr (Eliom_lazy.force str)
     | _, RALazyStrL (sep, str) -> AStrL (sep, List.map Eliom_lazy.force str)
   let racontent (_, a) = a
@@ -110,11 +116,14 @@ module RawXML = struct
   let string_attrib name value = name, RA (AStr value)
   let space_sep_attrib name values = name, RA (AStrL (Space, values))
   let comma_sep_attrib name values = name, RA (AStrL (Comma, values))
-  let event_attrib name value = match value with
+  let event_handler_attrib name value = match value with
     | Raw value -> name, RA (AStr value)
-    | Caml v -> name, RACamlEvent v
+    | Caml v -> name, RACamlEventHandler v
   let uri_attrib name value = name, RALazyStr value
   let uris_attrib name value = name, RALazyStrL (Space, value)
+
+  (* Deprecated alias. *)
+  let event_attrib = event_handler_attrib
 
   type ename = string
   type node_id = string
@@ -188,7 +197,6 @@ module RawXML = struct
 
   module ClosureMap = Map.Make(struct type t = int let compare = compare end)
 
-  type id_event_table =
-      { event_table : ((unit -> unit) client_expr) ClosureMap.t }
+  type event_handler_table = ((unit -> unit) client_expr) ClosureMap.t
 
 end

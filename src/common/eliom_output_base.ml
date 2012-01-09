@@ -906,7 +906,7 @@ module Html5_forms = struct
       then a
       else
 	let info = make_info ~https `A service in
-	HTML5.M.a_onclick (XML.event_of_service info) :: a
+	HTML5.M.a_onclick (XML.event_handler_of_service info) :: a
     in
     Forms.a
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
@@ -922,7 +922,7 @@ module Html5_forms = struct
       then a
       else
 	let info = make_info ~https `Form_get service in
-	HTML5.M.a_onsubmit (XML.event_of_service info) :: a
+	HTML5.M.a_onsubmit (XML.event_handler_of_service info) :: a
     in
     Forms.get_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
@@ -937,7 +937,7 @@ module Html5_forms = struct
       then a
       else
 	let info = make_info ~https `Form_get service in
-	HTML5.M.a_onsubmit (XML.event_of_service info) :: a
+	HTML5.M.a_onsubmit (XML.event_handler_of_service info) :: a
     in
     Forms.lwt_get_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
@@ -953,7 +953,7 @@ module Html5_forms = struct
       then a
       else
 	let info = make_info ~https `Form_post service in
-	HTML5.M.a_onsubmit (XML.event_of_service info) :: a
+	HTML5.M.a_onsubmit (XML.event_handler_of_service info) :: a
     in
     Forms.post_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment
@@ -969,7 +969,7 @@ module Html5_forms = struct
       then a
       else
 	let info = make_info ~https `Form_post service in
-	HTML5.M.a_onsubmit (XML.event_of_service info) :: a
+	HTML5.M.a_onsubmit (XML.event_handler_of_service info) :: a
     in
     Forms.lwt_post_form
       ?absolute ?absolute_path ?https ~a ~service ?hostname ?port ?fragment

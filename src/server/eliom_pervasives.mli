@@ -131,23 +131,33 @@ module XML : sig
   val uri_of_fun: (unit -> string) -> uri
 
   (* Building ref tree. *)
-  type id_event_table (* Concrete on client-side only. *)
+  type event_handler_table (* Concrete on client-side only. *)
   val get_unique_id : elt -> string option
-  val make_id_event_table : elt -> id_event_table
+  val make_event_handler_table : elt -> event_handler_table
 
   (* Custom event handlers and lazy nodes. *)
-  type caml_event
+  type caml_event_handler
 
-  val event_of_string : string -> event
-  val string_of_event : event -> string
-  val event_of_js : int64 -> poly -> event
+  val event_handler_of_string : string -> event_handler
+  val string_of_event_handler : event_handler -> string
+  val event_handler_of_js : int64 -> poly -> event_handler
+  val event_handler_of_service :
+    ( [ `A | `Form_get | `Form_post ]
+      * (bool * string list) option ) option Eliom_lazy.request -> event_handler
+
+  (**/**)
+  (* Deprecated alias. *)
+  val event_of_string : string -> event_handler
+  val string_of_handler : event_handler -> string
+  val event_of_js : int64 -> poly -> event_handler
   val event_of_service :
     ( [ `A | `Form_get | `Form_post ]
-      * (bool * string list) option ) option Eliom_lazy.request -> event
+      * (bool * string list) option ) option Eliom_lazy.request -> event_handler
+  (**/**)
 
   type racontent =
     | RA of acontent
-    | RACamlEvent of caml_event
+    | RACamlEventHandler of caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
   val racontent : attrib -> racontent

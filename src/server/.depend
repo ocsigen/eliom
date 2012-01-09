@@ -1,7 +1,9 @@
-eliom_bus.cmo: eliom_services.cmi eliom_parameters.cmi eliom_output.cmi \
-    eliom_common.cmi eliom_comet_base.cmi eliom_comet.cmi eliom_bus.cmi
-eliom_bus.cmx: eliom_services.cmx eliom_parameters.cmx eliom_output.cmx \
-    eliom_common.cmx eliom_comet_base.cmx eliom_comet.cmx eliom_bus.cmi
+eliom_bus.cmo: eliom_state.cmi eliom_services.cmi eliom_parameters.cmi \
+    eliom_output.cmi eliom_common.cmi eliom_comet_base.cmi eliom_comet.cmi \
+    eliom_bus.cmi
+eliom_bus.cmx: eliom_state.cmx eliom_services.cmx eliom_parameters.cmx \
+    eliom_output.cmx eliom_common.cmx eliom_comet_base.cmx eliom_comet.cmx \
+    eliom_bus.cmi
 eliom_bus.cmi: eliom_comet.cmi
 eliom_comet.cmo: eliom_wrap.cmi eliom_types.cmi eliom_services.cmi \
     eliom_references.cmi eliom_pervasives.cmi eliom_parameters.cmi \
