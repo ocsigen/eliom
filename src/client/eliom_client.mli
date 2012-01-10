@@ -195,7 +195,7 @@ val change_page_post_form :
 
 val load_eliom_data :
   Eliom_types.eliom_js_page_data ->
-  Dom_html.htmlElement Js.t -> (#Dom_html.event Js.t -> bool) list
+  Dom_html.htmlElement Js.t -> (Dom_html.event Js.t -> bool) list
 
-val register_closure: int64 -> ('a -> unit) -> unit
+val register_closure: int64 -> ('a -> Dom_html.event Js.t -> unit) -> unit
 

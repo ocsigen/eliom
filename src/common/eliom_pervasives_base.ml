@@ -50,7 +50,7 @@ module RawXML = struct
 
   type caml_event_handler =
     | CE_registered_closure of int * (unit -> unit) client_expr
-    | CE_client_closure of (unit -> unit)
+    | CE_client_closure of (poly -> unit) (* Client side-only, poly is Dom_html.event *)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (cookie_info option)) option Eliom_lazy.request
 

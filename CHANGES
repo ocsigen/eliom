@@ -3,6 +3,9 @@
  * API Changes:
  ** Add Eliom_state.get_*_session_group_size to know the number of
     session in a session group
+ ** Client: HTML5.M.a_on{click,...} functions directly expect a
+    function as parameter (XML.event_handler_of_function isn't
+    required anymore)
 
 ===== 2.0.2 =====
 

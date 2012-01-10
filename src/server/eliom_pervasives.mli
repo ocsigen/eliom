@@ -210,6 +210,10 @@ module HTML5 : sig
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
+
+    (* Aliases used in Eliom_output_base (redefined on client side) *)
+    val raw_a_onclick: XML.event_handler -> [> `OnClick ] attrib
+    val raw_a_onsubmit: XML.event_handler -> [> `OnSubmit ] attrib
     (**/**)
 
   end

@@ -273,6 +273,10 @@ module HTML5 = struct
 		  toelt (Eliom_lazy.force elt1)
 		  :: toeltl (Eliom_lazy.force elts))))
 
+    (* Aliases use in Eliom_output_base (redefined on client side) *)
+    let raw_a_onclick = a_onclick
+    let raw_a_onsubmit = a_onsubmit
+
   end
   module P = XML_print.MakeTypedSimple(XML)(M)
 end

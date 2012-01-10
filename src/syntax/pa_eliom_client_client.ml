@@ -38,7 +38,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
     <:expr<
       Eliom_client.register_closure
         $`int64:gen_num$
-        (fun $args$ -> ($orig_expr$ : unit))
+        (fun $args$ -> (fun (ev: #Dom_html.event Js.t) -> ($orig_expr$ : unit)))
     >>
 
   let arg_ids = ref []

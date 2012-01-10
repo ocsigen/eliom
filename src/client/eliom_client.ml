@@ -26,9 +26,9 @@ let chrome_dummy_popstate = ref true
 
 (* == Closure *)
 
-let closure_table  : (int64, poly -> unit) Hashtbl.t = Hashtbl.create 0
-let register_closure id (f : 'a -> unit) =
-  Hashtbl.add closure_table id (Obj.magic f : poly -> unit)
+let closure_table  : (int64, poly -> Dom_html.event Js.t -> unit) Hashtbl.t = Hashtbl.create 0
+let register_closure id (f : 'a -> Dom_html.event Js.t -> unit) =
+  Hashtbl.add closure_table id (Obj.magic f : poly -> Dom_html.event Js.t -> unit)
 let find_closure = Hashtbl.find closure_table
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client) *)
@@ -63,42 +63,48 @@ let middleClick ev =
        || Js.to_bool ev##metaKey
    | _ -> false
 
+let raw_a_handler node cookies_info ev =
+  let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
+  let https = Url.get_ssl (Js.to_string href) in
+  (middleClick ev)
+  || (https = Some true && not Eliom_request_info.ssl_)
+  || (https = Some false && Eliom_request_info.ssl_)
+  || (!change_page_uri_ ?cookies_info (Js.to_string href); false)
+
+let raw_form_handler form kind cookies_info ev =
+  let action = Js.to_string form##action in
+  let https = Url.get_ssl action in
+  let change_page_form = match kind with
+    | `Form_get -> !change_page_get_form_
+    | `Form_post -> !change_page_post_form_ in
+  (https = Some true && not Eliom_request_info.ssl_)
+  || (https = Some false && Eliom_request_info.ssl_)
+  || (change_page_form ?cookies_info form action; false)
+
+
+let raw_event_handler function_id args =
+  try
+    let f = find_closure function_id in
+    (fun ev -> try f args ev; true with False -> false)
+  with Not_found ->
+    debug "Closure not found (%Ld)" function_id;
+    (fun _ -> false)
+
+
 let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
   | XML.CE_call_service None -> (fun _ -> true)
   | XML.CE_call_service (Some (`A, cookies_info)) ->
       (fun ev ->
-	let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
-	let https = Url.get_ssl (Js.to_string href) in
-	(middleClick ev)
-	|| (https = Some true && not Eliom_request_info.ssl_)
-	|| (https = Some false && Eliom_request_info.ssl_)
-	|| (!change_page_uri_ ?cookies_info (Js.to_string href); false))
-  | XML.CE_call_service (Some (`Form_get, cookies_info)) ->
+	let node = Js.Opt.get (Dom_html.CoerceTo.a node) (fun () -> error "not an anchor element") in
+	raw_a_handler node cookies_info ev)
+  | XML.CE_call_service (Some ((`Form_get | `Form_post) as kind, cookies_info)) ->
       (fun ev ->
-	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
-	let action = Js.to_string form##action in
-	let https = Url.get_ssl action in
-	(https = Some true && not Eliom_request_info.ssl_)
-	|| (https = Some false && Eliom_request_info.ssl_)
-	|| (!change_page_get_form_ ?cookies_info form action; false))
-  | XML.CE_call_service (Some (`Form_post, cookies_info)) ->
-      (fun ev ->
-	let form = (Js.Unsafe.coerce node : Dom_html.formElement Js.t) in
-	let action = Js.to_string form##action in
-	let https = Url.get_ssl action in
-	(https = Some true && not Eliom_request_info.ssl_)
-	|| (https = Some false && Eliom_request_info.ssl_)
-	|| (!change_page_post_form_ ?cookies_info form action; false))
+	let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
+	raw_form_handler form kind cookies_info ev)
   | XML.CE_client_closure f ->
-    (* TODO pass event ? *)
-    (fun _ -> try f (); true with False -> false)
-  | XML.CE_registered_closure (closure_id, (function_id, args)) ->
-      try
-	let f = find_closure function_id in
-	(fun _ -> try f args; true with False -> false)
-      with Not_found ->
-	debug "Closure not found (%Ld)" function_id;
-	(fun _ -> false)
+      (fun ev -> try f (to_poly ev); true with False -> false)
+  | XML.CE_registered_closure (_, (function_id, args)) ->
+      raw_event_handler function_id args
 
 let reify_event node ev = match ev with
   | XML.Raw ev -> Js.Unsafe.variable ev
@@ -131,30 +137,19 @@ let a_handler =
   Dom_html.full_handler
     (fun node ev ->
       let node = Js.Opt.get (Dom_html.CoerceTo.a node) (fun () -> error "not an anchor element") in
-      let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
-      let cookies_info = get_element_cookies_info node in
-      let https = Url.get_ssl (Js.to_string href) in
-      Js.bool
-	((middleClick ev)
-	 || (https = Some true && not Eliom_request_info.ssl_)
-	 || (https = Some false && Eliom_request_info.ssl_)
-	 || (!change_page_uri_ ?cookies_info (Js.to_string href); false)))
+      Js.bool (raw_a_handler node (get_element_cookies_info node) ev))
 
 let form_handler =
   Dom_html.full_handler
     (fun node ev ->
       let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
-      let cookies_info = get_element_cookies_info form in
-      let change_page_form =
-	if form##_method == Js.string "GET"
-	then !change_page_get_form_
-	else !change_page_post_form_ in
-      let action = Js.to_string form##action in
-      let https = Url.get_ssl action in
-      Js.bool
-	((https = Some true && not Eliom_request_info.ssl_)
-	 || (https = Some false && Eliom_request_info.ssl_)
-	 || (change_page_form ?cookies_info form action; false)))
+      Firebug.console##debug(form##_method);
+      let kind =
+	if String.lowercase(Js.to_string form##_method) = "get"
+	then `Form_get
+	else `Form_post
+      in
+      Js.bool (raw_form_handler form kind (get_element_cookies_info form) ev))
 
 let relink_unique_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
@@ -175,14 +170,7 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
       let cid = int_of_string (Js.to_string (attr##value##substring_toEnd(
 	Eliom_pervasives_base.RawXML.closure_attr_prefix_len))) in
       let (id,args) = XML.ClosureMap.find cid table in
-      let closure =
-	try
-	  let f = find_closure id in
-	  (fun _ -> try f args; true with False -> false)
-	with Not_found ->
-	  debug "Closure not found (%Ld)" id;
-	  (fun _ -> false)
-      in
+      let closure = raw_event_handler id args in
       if attr##name = Js.string "onload" then
 	(if Eliommod_dom.ancessor root node
 	 (* if not inside a unique node replaced by an older one *)

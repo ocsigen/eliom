@@ -111,7 +111,7 @@ let eliomclient1 =
         (make_page
 	   [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
           (* with {{ expr }}, the expression is executed by the client. *)
-             a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}
+             a_onclick {{ Firebug.console##debug(ev); Dom_html.window##alert(Js.string "clicked!") }}
 	    ]
                [pcdata "I am a clickable paragraph"];
 
@@ -341,7 +341,7 @@ where and {{{id}}} an identifier for the value.
                           pcdata " and ";
                           span
                             ~a:[a_class ["clickable"];
-                                a_onclick (XML.event_of_function (fun () -> Dom_html.window##alert(Js.string "clicked!")))]
+                                a_onclick (fun _ -> Dom_html.window##alert(Js.string "clicked!"))]
                             [pcdata "Here a client-side span with onclick"]
                          ]
                       ))
@@ -698,21 +698,20 @@ let () =
           Dom.appendChild (Eliom_client.Html5.of_div %div)
             (Eliom_client.Html5.of_p
 	       (p ~a:[ a_onclick
-			 (XML.event_of_function
 			 (fun _ ->
 			   ignore (Eliom_client.call_caml_service ~service:v.Wrapping_test.v_service
 				     () () >|= (fun blocks ->
 				       List.iter
 					 (fun b -> Dom.appendChild (Eliom_client.Html5.of_div %div)
 					   (Eliom_client.Html5.of_div b))
-					 blocks;))))]
+					 blocks;)))]
 		  [pcdata "test service"]));
 
 	  let f_react = fst (List.hd %rec_list_react) in
 
           Dom.appendChild (Eliom_client.Html5.of_div %div)
             (Eliom_client.Html5.of_p
-	       (p ~a:[ a_onclick (XML.event_of_function (fun _ -> ignore (f_react 42)))] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
+	       (p ~a:[ a_onclick (fun _ -> ignore (f_react 42))] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
 
 
 	}};

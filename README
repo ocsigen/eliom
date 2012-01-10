@@ -7,7 +7,7 @@ Requirements:
 
 Compilers:
 
- * ocaml and camlp4  (need version >= 3.12)
+ * ocaml and camlp4  (need version >= 3.12.1)
  * js_of_ocaml	     (need version >= 1.0.8, with deriving-ocsigen support)
  * a C compiler      (tested with gcc-4.4.5)
  * ocamlduce         [optionnal]

@@ -22,6 +22,7 @@ val iter_option : ('a -> unit) -> 'a option -> unit
 type ('a, 'b) leftright = Left of 'a | Right of 'b
 
 type poly
+val to_poly: 'a -> poly
 val from_poly: poly -> 'a
 type 'a client_expr = int64 * poly
 
@@ -127,7 +128,7 @@ module XML : sig
 
   type caml_event_handler =
     | CE_registered_closure of int * (unit -> unit) client_expr
-    | CE_client_closure of (unit -> unit)
+    | CE_client_closure of (poly -> unit)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (bool * string list) option) option Eliom_lazy.request
 
@@ -151,13 +152,13 @@ module XML : sig
   val event_handler_of_service :
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option ) option Eliom_lazy.request -> event_handler
-  val event_handler_of_function : (unit -> unit) -> event_handler
+  val event_handler_of_function : (#Dom_html.event Js.t -> unit) -> event_handler
 
   (* Deprecated alias. *)
   val event_of_service :
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option ) option Eliom_lazy.request -> event_handler
-  val event_of_function : (unit -> unit) -> event_handler
+  val event_of_function : ((#Dom_html.event Js.t as 'a) -> unit) -> ( 'a -> unit)
 
   type separator = Space | Comma
   type acontent = private
@@ -212,7 +213,7 @@ module XML : sig
   type node_id = string
 
   module ClosureMap : Map.S with type key = int
-  type event_handler_table = ((unit -> unit) client_expr) ClosureMap.t
+  type event_handler_table = ((poly -> unit) client_expr) ClosureMap.t
 
 end
 
@@ -287,77 +288,80 @@ module HTML5 : sig
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
 
-    (* GRGR: Uncomment when ocaml 3.12.1 is released ! See ocaml bug #1441. *)
+    val a_onabort : (#Dom_html.event Js.t -> unit) -> [> | `OnAbort] attrib
+    val a_onafterprint : (#Dom_html.event Js.t -> unit) -> [> | `OnAfterPrint] attrib
+    val a_onbeforeprint : (#Dom_html.event Js.t -> unit) -> [> | `OnBeforePrint] attrib
+    val a_onbeforeunload : (#Dom_html.event Js.t -> unit) -> [> | `OnBeforeUnload] attrib
+    val a_onblur : (#Dom_html.event Js.t -> unit) -> [> | `OnBlur] attrib
+    val a_oncanplay : (#Dom_html.event Js.t -> unit) -> [> | `OnCanPlay] attrib
+    val a_oncanplaythrough : (#Dom_html.event Js.t -> unit) -> [> | `OnCanPlayThrough] attrib
+    val a_onchange : (#Dom_html.event Js.t -> unit) -> [> | `OnChange] attrib
+    val a_onclick : (#Dom_html.event Js.t -> unit) -> [> | `OnClick] attrib
+    val a_oncontextmenu : (#Dom_html.event Js.t -> unit) -> [> | `OnContextMenu] attrib
+    val a_ondblclick : (#Dom_html.event Js.t -> unit) -> [> | `OnDblClick] attrib
+    val a_ondrag : (#Dom_html.event Js.t -> unit) -> [> | `OnDrag] attrib
+    val a_ondragend : (#Dom_html.event Js.t -> unit) -> [> | `OnDragEnd] attrib
+    val a_ondragenter : (#Dom_html.event Js.t -> unit) -> [> | `OnDragEnter] attrib
+    val a_ondragleave : (#Dom_html.event Js.t -> unit) -> [> | `OnDragLeave] attrib
+    val a_ondragover : (#Dom_html.event Js.t -> unit) -> [> | `OnDragOver] attrib
+    val a_ondragstart : (#Dom_html.event Js.t -> unit) -> [> | `OnDragStart] attrib
+    val a_ondrop : (#Dom_html.event Js.t -> unit) -> [> | `OnDrop] attrib
+    val a_ondurationchange : (#Dom_html.event Js.t -> unit) -> [> | `OnDurationChange] attrib
+    val a_onemptied : (#Dom_html.event Js.t -> unit) -> [> | `OnEmptied] attrib
+    val a_onended : (#Dom_html.event Js.t -> unit) -> [> | `OnEnded] attrib
+    val a_onerror : (#Dom_html.event Js.t -> unit) -> [> | `OnError] attrib
+    val a_onfocus : (#Dom_html.event Js.t -> unit) -> [> | `OnFocus] attrib
+    val a_onformchange : (#Dom_html.event Js.t -> unit) -> [> | `OnFormChange] attrib
+    val a_onforminput : (#Dom_html.event Js.t -> unit) -> [> | `OnFormInput] attrib
+    val a_onhashchange : (#Dom_html.event Js.t -> unit) -> [> | `OnHashChange] attrib
+    val a_oninput : (#Dom_html.event Js.t -> unit) -> [> | `OnInput] attrib
+    val a_oninvalid : (#Dom_html.event Js.t -> unit) -> [> | `OnInvalid] attrib
+    val a_onmousedown : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseDown] attrib
+    val a_onmouseup : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseUp] attrib
+    val a_onmouseover : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseOver] attrib
+    val a_onmousemove : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseMove] attrib
+    val a_onmouseout : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseOut] attrib
+    val a_onmousewheel : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseWheel] attrib
+    val a_onoffline : (#Dom_html.event Js.t -> unit) -> [> | `OnOffLine] attrib
+    val a_ononline : (#Dom_html.event Js.t -> unit) -> [> | `OnOnLine] attrib
+    val a_onpause : (#Dom_html.event Js.t -> unit) -> [> | `OnPause] attrib
+    val a_onplay : (#Dom_html.event Js.t -> unit) -> [> | `OnPlay] attrib
+    val a_onplaying : (#Dom_html.event Js.t -> unit) -> [> | `OnPlaying] attrib
+    val a_onpagehide : (#Dom_html.event Js.t -> unit) -> [> | `OnPageHide] attrib
+    val a_onpageshow : (#Dom_html.event Js.t -> unit) -> [> | `OnPageShow] attrib
+    val a_onpopstate : (#Dom_html.event Js.t -> unit) -> [> | `OnPopState] attrib
+    val a_onprogress : (#Dom_html.event Js.t -> unit) -> [> | `OnProgress] attrib
+    val a_onratechange : (#Dom_html.event Js.t -> unit) -> [> | `OnRateChange] attrib
+    val a_onreadystatechange : (#Dom_html.event Js.t -> unit) -> [> | `OnReadyStateChange] attrib
+    val a_onredo : (#Dom_html.event Js.t -> unit) -> [> | `OnRedo] attrib
+    val a_onresize : (#Dom_html.event Js.t -> unit) -> [> | `OnResize] attrib
+    val a_onscroll : (#Dom_html.event Js.t -> unit) -> [> | `OnScroll] attrib
+    val a_onseeked : (#Dom_html.event Js.t -> unit) -> [> | `OnSeeked] attrib
+    val a_onseeking : (#Dom_html.event Js.t -> unit) -> [> | `OnSeeking] attrib
+    val a_onselect : (#Dom_html.event Js.t -> unit) -> [> | `OnSelect] attrib
+    val a_onshow : (#Dom_html.event Js.t -> unit) -> [> | `OnShow] attrib
+    val a_onstalled : (#Dom_html.event Js.t -> unit) -> [> | `OnStalled] attrib
+    val a_onstorage : (#Dom_html.event Js.t -> unit) -> [> | `OnStorage] attrib
+    val a_onsubmit : (#Dom_html.event Js.t -> unit) -> [> | `OnSubmit] attrib
+    val a_onsuspend : (#Dom_html.event Js.t -> unit) -> [> | `OnSuspend] attrib
+    val a_ontimeupdate : (#Dom_html.event Js.t -> unit) -> [> | `OnTimeUpdate] attrib
+    val a_onundo : (#Dom_html.event Js.t -> unit) -> [> | `OnUndo] attrib
+    val a_onunload : (#Dom_html.event Js.t -> unit) -> [> | `OnUnload] attrib
+    val a_onvolumechange : (#Dom_html.event Js.t -> unit) -> [> | `OnVolumeChange] attrib
+    val a_onwaiting : (#Dom_html.event Js.t -> unit) -> [> | `OnWaiting] attrib
+    val a_onkeypress : (#Dom_html.event Js.t -> unit) -> [> | `OnKeyPress] attrib
+    val a_onkeydown : (#Dom_html.event Js.t -> unit) -> [> | `OnKeyDown] attrib
+    val a_onkeyup : (#Dom_html.event Js.t -> unit) -> [> | `OnKeyUp] attrib
+    val a_onload : (#Dom_html.event Js.t -> unit) -> [> | `OnLoad] attrib
+    val a_onloadeddata : (#Dom_html.event Js.t -> unit) -> [> | `OnLoadedData] attrib
+    val a_onloadedmetadata : (#Dom_html.event Js.t -> unit) -> [> | `OnLoadedMetaData] attrib
+    val a_onloadstart : (#Dom_html.event Js.t -> unit) -> [> | `OnLoadStart] attrib
+    val a_onmessage : (#Dom_html.event Js.t -> unit) -> [> | `OnMessage] attrib
 
-    (* val a_onabort : (unit -> unit) -> [> | `OnAbort] attrib *)
-    (* val a_onafterprint : (unit -> unit) -> [> | `OnAfterPrint] attrib *)
-    (* val a_onbeforeprint : (unit -> unit) -> [> | `OnBeforePrint] attrib *)
-    (* val a_onbeforeunload : (unit -> unit) -> [> | `OnBeforeUnload] attrib *)
-    (* val a_onblur : (unit -> unit) -> [> | `OnBlur] attrib *)
-    (* val a_oncanplay : (unit -> unit) -> [> | `OnCanPlay] attrib *)
-    (* val a_oncanplaythrough : (unit -> unit) -> [> | `OnCanPlayThrough] attrib *)
-    (* val a_onchange : (unit -> unit) -> [> | `OnChange] attrib *)
-    (* val a_onclick : (unit -> unit) -> [> | `OnClick] attrib *)
-    (* val a_oncontextmenu : (unit -> unit) -> [> | `OnContextMenu] attrib *)
-    (* val a_ondblclick : (unit -> unit) -> [> | `OnDblClick] attrib *)
-    (* val a_ondrag : (unit -> unit) -> [> | `OnDrag] attrib *)
-    (* val a_ondragend : (unit -> unit) -> [> | `OnDragEnd] attrib *)
-    (* val a_ondragenter : (unit -> unit) -> [> | `OnDragEnter] attrib *)
-    (* val a_ondragleave : (unit -> unit) -> [> | `OnDragLeave] attrib *)
-    (* val a_ondragover : (unit -> unit) -> [> | `OnDragOver] attrib *)
-    (* val a_ondragstart : (unit -> unit) -> [> | `OnDragStart] attrib *)
-    (* val a_ondrop : (unit -> unit) -> [> | `OnDrop] attrib *)
-    (* val a_ondurationchange : (unit -> unit) -> [> | `OnDurationChange] attrib *)
-    (* val a_onemptied : (unit -> unit) -> [> | `OnEmptied] attrib *)
-    (* val a_onended : (unit -> unit) -> [> | `OnEnded] attrib *)
-    (* val a_onerror : (unit -> unit) -> [> | `OnError] attrib *)
-    (* val a_onfocus : (unit -> unit) -> [> | `OnFocus] attrib *)
-    (* val a_onformchange : (unit -> unit) -> [> | `OnFormChange] attrib *)
-    (* val a_onforminput : (unit -> unit) -> [> | `OnFormInput] attrib *)
-    (* val a_onhashchange : (unit -> unit) -> [> | `OnHashChange] attrib *)
-    (* val a_oninput : (unit -> unit) -> [> | `OnInput] attrib *)
-    (* val a_oninvalid : (unit -> unit) -> [> | `OnInvalid] attrib *)
-    (* val a_onmousedown : (unit -> unit) -> [> | `OnMouseDown] attrib *)
-    (* val a_onmouseup : (unit -> unit) -> [> | `OnMouseUp] attrib *)
-    (* val a_onmouseover : (unit -> unit) -> [> | `OnMouseOver] attrib *)
-    (* val a_onmousemove : (unit -> unit) -> [> | `OnMouseMove] attrib *)
-    (* val a_onmouseout : (unit -> unit) -> [> | `OnMouseOut] attrib *)
-    (* val a_onmousewheel : (unit -> unit) -> [> | `OnMouseWheel] attrib *)
-    (* val a_onoffline : (unit -> unit) -> [> | `OnOffLine] attrib *)
-    (* val a_ononline : (unit -> unit) -> [> | `OnOnLine] attrib *)
-    (* val a_onpause : (unit -> unit) -> [> | `OnPause] attrib *)
-    (* val a_onplay : (unit -> unit) -> [> | `OnPlay] attrib *)
-    (* val a_onplaying : (unit -> unit) -> [> | `OnPlaying] attrib *)
-    (* val a_onpagehide : (unit -> unit) -> [> | `OnPageHide] attrib *)
-    (* val a_onpageshow : (unit -> unit) -> [> | `OnPageShow] attrib *)
-    (* val a_onpopstate : (unit -> unit) -> [> | `OnPopState] attrib *)
-    (* val a_onprogress : (unit -> unit) -> [> | `OnProgress] attrib *)
-    (* val a_onratechange : (unit -> unit) -> [> | `OnRateChange] attrib *)
-    (* val a_onreadystatechange : (unit -> unit) -> [> | `OnReadyStateChange] attrib *)
-    (* val a_onredo : (unit -> unit) -> [> | `OnRedo] attrib *)
-    (* val a_onresize : (unit -> unit) -> [> | `OnResize] attrib *)
-    (* val a_onscroll : (unit -> unit) -> [> | `OnScroll] attrib *)
-    (* val a_onseeked : (unit -> unit) -> [> | `OnSeeked] attrib *)
-    (* val a_onseeking : (unit -> unit) -> [> | `OnSeeking] attrib *)
-    (* val a_onselect : (unit -> unit) -> [> | `OnSelect] attrib *)
-    (* val a_onshow : (unit -> unit) -> [> | `OnShow] attrib *)
-    (* val a_onstalled : (unit -> unit) -> [> | `OnStalled] attrib *)
-    (* val a_onstorage : (unit -> unit) -> [> | `OnStorage] attrib *)
-    (* val a_onsubmit : (unit -> unit) -> [> | `OnSubmit] attrib *)
-    (* val a_onsuspend : (unit -> unit) -> [> | `OnSuspend] attrib *)
-    (* val a_ontimeupdate : (unit -> unit) -> [> | `OnTimeUpdate] attrib *)
-    (* val a_onundo : (unit -> unit) -> [> | `OnUndo] attrib *)
-    (* val a_onunload : (unit -> unit) -> [> | `OnUnload] attrib *)
-    (* val a_onvolumechange : (unit -> unit) -> [> | `OnVolumeChange] attrib *)
-    (* val a_onwaiting : (unit -> unit) -> [> | `OnWaiting] attrib *)
-    (* val a_onkeypress : (unit -> unit) -> [> | `OnKeyPress] attrib *)
-    (* val a_onkeydown : (unit -> unit) -> [> | `OnKeyDown] attrib *)
-    (* val a_onkeyup : (unit -> unit) -> [> | `OnKeyUp] attrib *)
-    (* val a_onload : (unit -> unit) -> [> | `OnLoad] attrib *)
-    (* val a_onloadeddata : (unit -> unit) -> [> | `OnLoadedData] attrib *)
-    (* val a_onloadedmetadata : (unit -> unit) -> [> | `OnLoadedMetaData] attrib *)
-    (* val a_onloadstart : (unit -> unit) -> [> | `OnLoadStart] attrib *)
-    (* val a_onmessage : (unit -> unit) -> [> | `OnMessage] attrib *)
+    (**/**)
+    val raw_a_onclick: XML.event_handler -> [> `OnClick ] attrib
+    val raw_a_onsubmit: XML.event_handler -> [> `OnSubmit ] attrib
+    (**/**)
 
   end
 
