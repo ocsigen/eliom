@@ -35,10 +35,12 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   (* Client side code emission. *)
   let register_closure gen_num args orig_expr =
     let _loc = Ast.loc_of_expr orig_expr in
+    let ty = Helpers.find_event_handler_type gen_num in
     <:expr<
       Eliom_client.register_closure
         $`int64:gen_num$
-        (fun $args$ -> (fun (ev: #Dom_html.event Js.t) -> ($orig_expr$ : unit)))
+        (fun $args$ -> (fun (_ev: (Dom_html.event Js.t)) ->
+	   let _ev : $ty$ Js.t = Obj.magic _ev in ($orig_expr$ : unit)))
     >>
 
   let arg_ids = ref []
@@ -86,7 +88,7 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   let server_str_items items =
     Ast.stSem_of_list (flush_closure_registrations ())
 
-  let client_expr orig_expr gen_num =
+  let client_expr orig_expr gen_num gen_tid =
     push_closure_registration orig_expr gen_num;
     <:expr< "" >>
 

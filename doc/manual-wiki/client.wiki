@@ -74,53 +74,54 @@ programming (using the React external library).
 
 
 == Structure of a program
-=== Syntax
+
+===@@id="syntax"@@ Syntax
 
 Eliom application are written in files with extension {{{.eliom}}}.
 Some special brackets make possible to distinuish between client and server
 code:
+
 <<code language="ocaml"|
 {server{
   ...
 }}
 >>
+
 or no brackets for server side code,
+
 <<code language="ocaml"|
 {client{
   ...
 }}
 >>
-for client side code,
-and
+
+for client side code, and
+
 <<code language="ocaml"|
 {shared{
   ...
 }}
 >>
+
 for some code that is common to client and server parts.
 
-Expressions of type <<a_api project="eliom" | type Eliom_pervasives.XML.event >>
-(used for instance in HTML attributes like "onclick") are written using the quotation
-{{{ {{ ... }} }}}, for example:
+Inside server-side code block, Eliom also provides a custom syntax
+{{{ {{ ... }} }}} for defining client-side event handler. For example:
+
 <<code language="ocaml"|
 p ~a:[a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
   [pcdata "I am a clickable paragraph"]
 >>
 
-(The {{{##}}} syntax is js_of_ocaml's syntax for calling a Javascript method).
-
-on client side a the type
-<<a_api project="eliom" subproject="client" | type Eliom_pervasives.XML.event >>
-is equal to {{{unit -> unit}}}, i.e. code inside quotations is expected to return
-a value of type {{{unit}}} ( the {{{fun () ->}}} part of the function declaration
-is added by the syntax extension ).
-
-<<a_api project="eliom" | type Eliom_pervasives.XML.event >> can also be used to
-execute some function when the page is loaded. This is achied using
-<<a_api project="eliom" | val Eliom_services.onload >>.
-
-Do not add onload attribute to elements, this won't behave as expected ( the event
-won't be triggered, or not at the right time ).
+Those client-side code block are classical OCaml values ; their type
+is <<a_api project="eliom" | type
+Eliom_pervasives.XML.caml_event_handler >>. Inside those code-block,
+an implicit {{{_ev}}} variable represent the javascript <<a_api
+project="js_of_ocaml" text="event object" | type Dom_html.event >>.
+On client side, this specific syntax is not required: function like
+<<a_api subproject="client" text="a_onclick"|
+val Eliom_pervasives.HTML5.M.a_onclick >> expect a function of type
+{{{#Dom_html.event -> unit}}} as parameter.
 
 ====@@id="syntax%"@@ Using server side values on client side
 

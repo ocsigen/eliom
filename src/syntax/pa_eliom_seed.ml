@@ -74,6 +74,9 @@ module type Helpers  = sig
   open Syntax
 
   (** find infered type for escaped expr *)
+  val find_event_handler_type: Int64.t -> Ast.ctyp
+
+  (** find infered type for escaped expr *)
   val find_escaped_ident_type: string -> Ast.ctyp
 
 end
@@ -94,7 +97,7 @@ module type Pass = functor (Helpers: Helpers) -> sig
   val client_str_items: Ast.str_item list -> Ast.str_item
 
   (** How to handle "{{ ... }}" expr. *)
-  val client_expr: Ast.expr -> Int64.t -> Ast.expr
+  val client_expr: Ast.expr -> Int64.t -> string -> Ast.expr
 
   (** How to handle escaped "%ident" inside "{{ ... }}". *)
   val escaped: Ast.expr -> string -> Ast.expr
@@ -152,11 +155,26 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	    String.length id > escaped_ident_prefix_len &&
 	    String.sub id 0 escaped_ident_prefix_len = escaped_ident_prefix
 	| si -> false
+      let event_handler_ident_prefix = "__eliom__event_handler__reserved_name__"
+      let event_handler_ident_prefix_len = String.length event_handler_ident_prefix
+      let is_event_handler_ident = function
+	  (* | <:sig_item< val $id$ : $t$ >> -> *)
+	| Ast.SgVal (_loc, id, t) ->
+	    String.length id > event_handler_ident_prefix_len &&
+	    String.sub id 0 event_handler_ident_prefix_len = event_handler_ident_prefix
+	| si -> false
       let extract_type = function
 	  (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
 	| Ast.SgVal (_loc, id, <:ctyp< ($t$ option ref) >>) ->
 	    let len = String.length id - escaped_ident_prefix_len in
 	    int_of_string (String.sub id escaped_ident_prefix_len len),
+	    suppress_underscore t
+	| _ -> assert false
+      let extract_event_handler_type = function
+	  (* | <:sig_item< val $id$ : ($t$ option ref) >> -> *)
+	| Ast.SgVal (_loc, id, <:ctyp< ($t$ Eliom_pervasives.XML.caml_event_handler option ref) >>) ->
+	    let len = String.length id - event_handler_ident_prefix_len in
+	    Int64.of_string (String.sub id event_handler_ident_prefix_len len),
 	    suppress_underscore t
 	| _ -> assert false
 
@@ -167,7 +185,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  let (items, stopped) = Gram.parse interf (Loc.mk f) s in
 	  assert (stopped = None); (* No directive inside the generated ".mli". *)
 	  close_in ic;
-	  List.map extract_type (List.filter is_escaped_ident items)
+	  List.map extract_type (List.filter is_escaped_ident items),
+	  List.map extract_event_handler_type (List.filter is_event_handler_ident items)
 	with e ->
 	  Printf.eprintf "Error: File type not found (%s)\n" (get_type_file ());
 	  close_in ic;
@@ -179,11 +198,17 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	try
 	  let len = String.length id - escaped_ident_prefix_len in
 	  let id = int_of_string (String.sub id escaped_ident_prefix_len len) in
-	  List.assoc id (Lazy.force infered_sig)
+	  List.assoc id (fst (Lazy.force infered_sig))
 	with Not_found ->
 	  Printf.eprintf "Error: Infered type not found (%s).\nYou need to regenerate %s.\n" id (get_type_file ());
 	  exit 1
 
+      let find_event_handler_type id =
+	try
+	  List.assoc id (snd (Lazy.force infered_sig))
+	with Not_found ->
+	  Printf.eprintf "Error: Infered type not found (%s).\nYou need to regenerate %s.\n" (Int64.to_string id) (get_type_file ());
+	  exit 1
     end (* End of Helpers *)
 
 
@@ -258,6 +283,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     let gen_closure_num _loc =
       gen_closure_num_count := Int64.succ !gen_closure_num_count;
       Int64.add (gen_closure_num_base _loc) !gen_closure_num_count
+    let gen_closure_escaped_ident id =
+      Helpers.event_handler_ident_prefix ^ Int64.to_string id
 
     (* Globaly unique ident for escaped expression *)
     (* It's used for type inference and as argument name for the
@@ -396,7 +423,8 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	   KEYWORD "}}" ->
 
 	     current_level := lvl;
-	     Pass.client_expr e (gen_closure_num _loc)
+	     let id = gen_closure_num _loc in
+	     Pass.client_expr e id (gen_closure_escaped_ident id)
 
       | SYMBOL "%" ; id = ident ; dummy_check_level_escaped_ident ->
 

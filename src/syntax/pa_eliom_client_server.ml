@@ -30,7 +30,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   (* Server side code emission *)
   let closure_call _loc num args =
-    <:expr< XML.event_of_js $`int64:num$ (Eliom_pervasives.to_poly $args$) >>
+    <:expr< XML.event_handler_of_js $`int64:num$ (Eliom_pervasives.to_poly $args$) >>
 
   let arg_ids = ref []
   let arg_collection = ref []
@@ -60,7 +60,7 @@ module Server_pass(Helpers : Pa_eliom_seed.Helpers) = struct
 
   let client_str_items items = <:str_item< >>
 
-  let client_expr orig_expr gen_num =
+  let client_expr orig_expr gen_num _ =
     let _loc =  Ast.loc_of_expr orig_expr in
     closure_call _loc gen_num (flush_args _loc)
 

@@ -48,15 +48,15 @@ module RawXML = struct
 
   type cookie_info = (bool * string list) deriving (Json)
 
-  type caml_event_handler =
-    | CE_registered_closure of int * (unit -> unit) client_expr
-    | CE_client_closure of (poly -> unit) (* Client side-only, poly is Dom_html.event *)
+  type -'a caml_event_handler =
+    | CE_registered_closure of int * ((#Dom_html.event as 'a) Js.t -> unit) client_expr
+    | CE_client_closure of ('a Js.t -> unit) (* Client side-only *)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (cookie_info option)) option Eliom_lazy.request
 
   type event_handler =
     | Raw of string
-    | Caml of caml_event_handler
+    | Caml of Dom_html.event caml_event_handler
 
   type uri = string Eliom_lazy.request
   let string_of_uri = Eliom_lazy.force
@@ -69,7 +69,7 @@ module RawXML = struct
     | Caml _ -> "/* Invalid Caml value */"
   let event_handler_of_js id args =
     let closure_id = Random.bits () in
-    Caml (CE_registered_closure (closure_id, (id, args)))
+    CE_registered_closure (closure_id, (id, args))
 
   let event_handler_of_service info = Caml (CE_call_service info)
 
@@ -97,7 +97,7 @@ module RawXML = struct
     | AStrL of separator * string list
   type racontent =
     | RA of acontent
-    | RACamlEventHandler of caml_event_handler
+    | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
   type attrib = aname * racontent

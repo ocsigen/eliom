@@ -126,15 +126,15 @@ module XML : sig
   type aname = string
   type attrib
 
-  type caml_event_handler =
-    | CE_registered_closure of int * (unit -> unit) client_expr
-    | CE_client_closure of (poly -> unit)
+  type -'a caml_event_handler =
+    | CE_registered_closure of int * ((#Dom_html.event as 'a) Js.t -> unit) client_expr
+    | CE_client_closure of ('a Js.t -> unit)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (bool * string list) option) option Eliom_lazy.request
 
   type event_handler =
     | Raw of string
-    | Caml of caml_event_handler
+    | Caml of Dom_html.event caml_event_handler
 
   type ename = string
   type elt
@@ -170,7 +170,7 @@ module XML : sig
 
   type racontent =
     | RA of acontent
-    | RACamlEventHandler of caml_event_handler
+    | RACamlEventHandler of Dom_html.event caml_event_handler
     | RALazyStr of string Eliom_lazy.request
     | RALazyStrL of separator * string Eliom_lazy.request list
   val racontent : attrib -> racontent
@@ -296,16 +296,16 @@ module HTML5 : sig
     val a_oncanplay : (#Dom_html.event Js.t -> unit) -> [> | `OnCanPlay] attrib
     val a_oncanplaythrough : (#Dom_html.event Js.t -> unit) -> [> | `OnCanPlayThrough] attrib
     val a_onchange : (#Dom_html.event Js.t -> unit) -> [> | `OnChange] attrib
-    val a_onclick : (#Dom_html.event Js.t -> unit) -> [> | `OnClick] attrib
-    val a_oncontextmenu : (#Dom_html.event Js.t -> unit) -> [> | `OnContextMenu] attrib
-    val a_ondblclick : (#Dom_html.event Js.t -> unit) -> [> | `OnDblClick] attrib
-    val a_ondrag : (#Dom_html.event Js.t -> unit) -> [> | `OnDrag] attrib
-    val a_ondragend : (#Dom_html.event Js.t -> unit) -> [> | `OnDragEnd] attrib
-    val a_ondragenter : (#Dom_html.event Js.t -> unit) -> [> | `OnDragEnter] attrib
-    val a_ondragleave : (#Dom_html.event Js.t -> unit) -> [> | `OnDragLeave] attrib
-    val a_ondragover : (#Dom_html.event Js.t -> unit) -> [> | `OnDragOver] attrib
-    val a_ondragstart : (#Dom_html.event Js.t -> unit) -> [> | `OnDragStart] attrib
-    val a_ondrop : (#Dom_html.event Js.t -> unit) -> [> | `OnDrop] attrib
+    val a_onclick : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnClick] attrib
+    val a_oncontextmenu : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnContextMenu] attrib
+    val a_ondblclick : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDblClick] attrib
+    val a_ondrag : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDrag] attrib
+    val a_ondragend : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragEnd] attrib
+    val a_ondragenter : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragEnter] attrib
+    val a_ondragleave : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragLeave] attrib
+    val a_ondragover : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragOver] attrib
+    val a_ondragstart : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragStart] attrib
+    val a_ondrop : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDrop] attrib
     val a_ondurationchange : (#Dom_html.event Js.t -> unit) -> [> | `OnDurationChange] attrib
     val a_onemptied : (#Dom_html.event Js.t -> unit) -> [> | `OnEmptied] attrib
     val a_onended : (#Dom_html.event Js.t -> unit) -> [> | `OnEnded] attrib
@@ -316,11 +316,11 @@ module HTML5 : sig
     val a_onhashchange : (#Dom_html.event Js.t -> unit) -> [> | `OnHashChange] attrib
     val a_oninput : (#Dom_html.event Js.t -> unit) -> [> | `OnInput] attrib
     val a_oninvalid : (#Dom_html.event Js.t -> unit) -> [> | `OnInvalid] attrib
-    val a_onmousedown : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseDown] attrib
-    val a_onmouseup : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseUp] attrib
-    val a_onmouseover : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseOver] attrib
-    val a_onmousemove : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseMove] attrib
-    val a_onmouseout : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseOut] attrib
+    val a_onmousedown : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseDown] attrib
+    val a_onmouseup : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseUp] attrib
+    val a_onmouseover : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseOver] attrib
+    val a_onmousemove : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseMove] attrib
+    val a_onmouseout : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseOut] attrib
     val a_onmousewheel : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseWheel] attrib
     val a_onoffline : (#Dom_html.event Js.t -> unit) -> [> | `OnOffLine] attrib
     val a_ononline : (#Dom_html.event Js.t -> unit) -> [> | `OnOnLine] attrib
@@ -349,9 +349,9 @@ module HTML5 : sig
     val a_onunload : (#Dom_html.event Js.t -> unit) -> [> | `OnUnload] attrib
     val a_onvolumechange : (#Dom_html.event Js.t -> unit) -> [> | `OnVolumeChange] attrib
     val a_onwaiting : (#Dom_html.event Js.t -> unit) -> [> | `OnWaiting] attrib
-    val a_onkeypress : (#Dom_html.event Js.t -> unit) -> [> | `OnKeyPress] attrib
-    val a_onkeydown : (#Dom_html.event Js.t -> unit) -> [> | `OnKeyDown] attrib
-    val a_onkeyup : (#Dom_html.event Js.t -> unit) -> [> | `OnKeyUp] attrib
+    val a_onkeypress : (#Dom_html.keyboardEvent Js.t -> unit) -> [> | `OnKeyPress] attrib
+    val a_onkeydown : (#Dom_html.keyboardEvent Js.t -> unit) -> [> | `OnKeyDown] attrib
+    val a_onkeyup : (#Dom_html.keyboardEvent Js.t -> unit) -> [> | `OnKeyUp] attrib
     val a_onload : (#Dom_html.event Js.t -> unit) -> [> | `OnLoad] attrib
     val a_onloadeddata : (#Dom_html.event Js.t -> unit) -> [> | `OnLoadedData] attrib
     val a_onloadedmetadata : (#Dom_html.event Js.t -> unit) -> [> | `OnLoadedMetaData] attrib

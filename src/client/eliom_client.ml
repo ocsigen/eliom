@@ -102,7 +102,7 @@ let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
 	let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
 	raw_form_handler form kind cookies_info ev)
   | XML.CE_client_closure f ->
-      (fun ev -> try f (to_poly ev); true with False -> false)
+      (fun ev -> try f ev; true with False -> false)
   | XML.CE_registered_closure (_, (function_id, args)) ->
       raw_event_handler function_id args
 
@@ -441,12 +441,12 @@ let load_eliom_data js_data (page:Dom_html.element Js.t) =
   Eliom_request_info.set_session_info js_data.Eliom_types.ejs_sess_info;
   let on_load =
     List.map
-      (reify_event Dom_html.document##documentElement)
+      (reify_caml_event Dom_html.document##documentElement)
       js_data.Eliom_types.ejs_onload
   in
   let on_unload =
     List.map
-      (reify_event Dom_html.document##documentElement)
+      (reify_caml_event Dom_html.document##documentElement)
       js_data.Eliom_types.ejs_onunload
   in
   let unload_evt = Eliommod_dom.createEvent (Js.string "unload") in

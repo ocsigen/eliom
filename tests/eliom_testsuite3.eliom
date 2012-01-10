@@ -111,7 +111,7 @@ let eliomclient1 =
         (make_page
 	   [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
           (* with {{ expr }}, the expression is executed by the client. *)
-             a_onclick {{ Firebug.console##debug(ev); Dom_html.window##alert(Js.string "clicked!") }}
+             a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}
 	    ]
                [pcdata "I am a clickable paragraph"];
 
