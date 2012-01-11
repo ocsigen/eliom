@@ -27,9 +27,12 @@ end
 let iter_nodeList nodeList f =
   let nodeList : 'a unsafe_nodeList Js.t = Js.Unsafe.coerce (nodeList : 'a Dom.nodeList Js.t) in
   for i = 0 to nodeList##length - 1 do
+    (* Unsafe.get is ten time faster than nodeList##item *)
     f (Js.Unsafe.get nodeList i)
   done
 
+(* Dummy type used in the following "test_*" functions to test the
+   presence of methods in various browsers. *)
 class type dom_tester = object
   method compareDocumentPosition : unit Js.optdef Js.prop
   method querySelectorAll : unit Js.optdef Js.prop

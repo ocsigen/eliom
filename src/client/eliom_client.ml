@@ -112,7 +112,6 @@ let reify_event node ev = match ev with
 
 let register_event_handler node acc (name, ev) =
   let f = reify_caml_event node ev in
-(*  assert(String.sub name 0 2 = "on"); *)
   if name = "onload" then
     f :: acc
   else
