@@ -211,11 +211,10 @@ module Html5 = struct
     | XML.AStrL (XML.Comma, sl) ->
       node##setAttribute(Js.string name, Js.string (String.concat "," sl))
 
-  let rebuild_rattrib node ra = match XML.racontent ra with
+  let rebuild_rattrib onload_acc node ra = match XML.racontent ra with
     | XML.RA a -> rebuild_attrib node (XML.aname ra) a
     | XML.RACamlEventHandler ev ->
-      let on_load = register_event_handler node [] (XML.aname ra, ev) in
-      run_load_events on_load
+        onload_acc := register_event_handler node !onload_acc (XML.aname ra, ev)
     | XML.RALazyStr s ->
 	node##setAttribute(Js.string (XML.aname ra), Js.string s)
     | XML.RALazyStrL (XML.Space, l) ->
@@ -223,18 +222,18 @@ module Html5 = struct
     | XML.RALazyStrL (XML.Comma, l) ->
 	node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat "," l))
 
-  let rec rebuild_node elt =
+  let rec rebuild_node onload_acc elt =
     match XML.get_unique_id elt with
-      | None -> raw_rebuild_node (XML.content elt)
+      | None -> raw_rebuild_node onload_acc (XML.content elt)
       | Some id ->
 	  let id = (Js.string id) in
 	  try (find_node id :> Dom.node Js.t)
 	  with Not_found ->
-	  let node = raw_rebuild_node (XML.content elt) in
+	  let node = raw_rebuild_node onload_acc (XML.content elt) in
 	  register_node id node;
 	  node
 
-  and raw_rebuild_node = function
+  and raw_rebuild_node onload_acc = function
     | XML.Empty
     | XML.Comment _ ->
 	(* FIXME *)
@@ -244,15 +243,19 @@ module Html5 = struct
     | XML.Entity s -> assert false (* FIXME *)
     | XML.Leaf (name,attribs) ->
       let node = Dom_html.document##createElement (Js.string name) in
-      List.iter (rebuild_rattrib node) attribs;
+      List.iter (rebuild_rattrib onload_acc node) attribs;
       (node :> Dom.node Js.t)
     | XML.Node (name,attribs,childrens) ->
       let node = Dom_html.document##createElement (Js.string name) in
-      List.iter (rebuild_rattrib node) attribs;
-      List.iter (fun c -> Dom.appendChild node (rebuild_node c)) childrens;
+      List.iter (rebuild_rattrib onload_acc node) attribs;
+      List.iter (fun c -> Dom.appendChild node (rebuild_node onload_acc c)) childrens;
       (node :> Dom.node Js.t)
 
-  let rebuild_node elt = Js.Unsafe.coerce (rebuild_node (HTML5.M.toelt elt))
+  let rebuild_node elt =
+    let onload_acc = ref [] in
+    let node = Js.Unsafe.coerce (rebuild_node onload_acc (HTML5.M.toelt elt)) in
+    run_load_events !onload_acc;
+    node
 
   let of_element = rebuild_node
 
