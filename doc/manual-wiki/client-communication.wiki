@@ -171,7 +171,9 @@ Named stateless can be accessed from <<a_manual chapter="client" fragment="cors_
 * The other channels must be created inside a service handler. They
 are assigned to a particular client process. Different channels
 created with the same stream does not share memory. They are closed
-when requested or when the client process is closed.
+when requested or when the client process is closed. It is possible
+to know when a client stop requesting data on those channels using
+<<a_api project="eliom" | val Eliom_comet.Channels.wait_timeout >>
 
 === Comet configuration
 
