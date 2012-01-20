@@ -29,8 +29,10 @@ PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES} eliom_duce_sigs.mli
 
 .SECONDARY: ${PREDEP}
 ${COMMON_FILES}: %: ../common/%
+	-@mkdir -p $(dir $@)
 	ln -sf $< $@
 ${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
+	-@mkdir -p $(dir $@)
 	ln -sf ../$< $@
 eliom_duce_sigs.mli:: eliom_duce_sigs.mlp
 	camlp4o ../syntax/pa_include.cmo -printer o -intf $< > $@

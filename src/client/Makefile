@@ -25,8 +25,10 @@ PREDEP := ${COMMON_FILES} ${COMMON_PFILES} ${COMMON_SFILES}
 
 .SECONDARY: ${PREDEP}
 ${COMMON_FILES}: %: ../common/%
+	-@mkdir -p $(dir $@)
 	ln -s $< $@
 ${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
+	-@mkdir -p $(dir $@)
 	ln -s ../$< $@
 
 ### Library ###
