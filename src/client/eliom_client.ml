@@ -726,7 +726,14 @@ let call_caml_service
       ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params ?keep_get_na_params
       get_params post_params in
-  Lwt.return (Eliom_unwrap.unwrap (Url.decode s) 0)
+  let r : 'a Eliom_types.eliom_caml_service_data =
+    Eliom_unwrap.unwrap (Url.decode s) 0 in
+  let on_load =
+    List.map
+      (reify_caml_event Dom_html.document##documentElement)
+      r.Eliom_types.ecs_onload in
+  run_load_events on_load;
+  Lwt.return r.Eliom_types.ecs_data
 
 
 

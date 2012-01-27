@@ -39,6 +39,11 @@ type eliom_js_page_data = {
   ejs_sess_info: Eliom_common.sess_info;
 }
 
+type 'a eliom_caml_service_data = {
+  ecs_onload: Dom_html.event XML.caml_event_handler list;
+  ecs_data: 'a;
+}
+
 (* the data sent on channels *)
 type 'a eliom_comet_data_type = 'a Eliom_wrap.wrapped_value
 

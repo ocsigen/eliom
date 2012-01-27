@@ -2184,17 +2184,20 @@ module Caml = struct
 
   module M = Eliom_mkreg.MakeRegister(Caml_reg_base)
 
+  let prepare_data data =
+    let sp = Eliom_common.get_sp () in
+    let r = { Eliom_types.ecs_onload = Eliom_services.get_onload sp;
+              ecs_data = data } in
+    Lwt.return (Eliom_types.encode_eliom_data r)
+
   let make_eh = function
     | None -> None
     | Some eh ->
-        Some (fun l ->
-                eh l >>= fun r ->
-                Lwt.return (Eliom_types.encode_eliom_data r))
+        Some (fun l -> eh l >>= prepare_data)
 
   let make_service_handler f =
     fun g p ->
-      f g p >>= fun r ->
-      Lwt.return (Eliom_types.encode_eliom_data r)
+      f g p >>= prepare_data
 
   let send ?options ?charset ?code ?content_type ?headers content =
     Result_types.cast_result_lwt

@@ -3103,3 +3103,86 @@ let _ =
    (fun () () ->
      return
        (make_page (relink_page ())))
+
+{client{
+
+  let react_div ?a r =
+    let init = React.S.value r in
+    let node = unique (div ?a init) in
+    let node_dom = Eliom_client.Html5.of_element node in
+    let s = React.S.map (fun sons ->
+      List.iter (fun n -> ignore (node_dom##removeChild((n:> Dom.node Js.t))))
+	(Dom.list_of_nodeList (node_dom##childNodes));
+      List.iter (fun n ->
+	let n = Eliom_client.Html5.of_element n in
+	ignore (node_dom##appendChild((n:> Dom.node Js.t))))
+	sons) r in
+    Lwt_react.S.keep s;
+    node
+
+  let count = ref 0
+
+  let r,push = React.S.create 0
+
+  let react_node node r =
+    let init = React.S.value r in
+    let node_dom = Eliom_client.Html5.of_element node in
+    let s = React.S.map (fun sons ->
+      List.iter (fun n -> ignore (node_dom##removeChild((n:> Dom.node Js.t))))
+	(Dom.list_of_nodeList (node_dom##childNodes));
+      List.iter (fun n ->
+	let n = Eliom_client.Html5.of_element n in
+	ignore (node_dom##appendChild((n:> Dom.node Js.t))))
+	sons) r in
+    Lwt_react.S.keep s
+
+}}
+
+let react_example =
+  Eliom_services.service
+    ~path:["react_example"]
+    ~get_params:Eliom_parameters.unit
+    ()
+
+let () =
+  My_appl.register
+    react_example
+    (fun () () ->
+      let click_div = unique (div ~a:[a_onclick {{ push (incr count; !count) }}] []) in
+      Eliom_services.onload {{
+	react_node %click_div
+	  (React.S.map (fun i -> [pcdata (Printf.sprintf "value: %i" i)]) r)
+      }};
+      Lwt.return (make_page [click_div]))
+
+(************ onload with caml service ***********)
+
+let caml_service_with_onload' =
+  Eliom_output.Caml.register_service
+    ~path:["caml_service_with_onload'"]
+    ~get_params:Eliom_parameters.unit
+    (fun () () ->
+      let node = unique (div [pcdata "new div"]) in
+      Eliom_services.onload {{
+        let node = Eliom_client.Html5.of_div %node in
+        ignore (Dom_html.addEventListener node Dom_html.Event.click
+                  (Dom_html.handler (fun _ -> Dom_html.window##alert(Js.string "clicked!"); Js._true))
+                  Js._true);
+        () }};
+      Lwt.return (node : HTML5_types.div Eliom_pervasives.HTML5.M.elt))
+
+let caml_service_with_onload =
+  My_appl.register_service
+    ~path:["caml_service_with_onload"]
+    ~get_params:Eliom_parameters.unit
+    (fun () () ->
+      let click_div = div
+        ~a:[a_onclick {{ignore (
+          lwt node = Eliom_client.call_caml_service ~service:( %caml_service_with_onload' ) () () in
+          let node = Eliom_client.Html5.of_div node in
+          ignore (Dom_html.document##body##appendChild( (node:> Dom.node Js.t) ));
+          Lwt.return ()
+        ) }}]
+        [pcdata "click"] in
+      Lwt.return (make_page [ pcdata "onload with caml call service. A node should appear when clicking. An alert should be displayed when clicking the new nodes.";
+                              click_div]))

@@ -400,6 +400,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a caml_service_wrapping [pcdata "wrapping for caml call service"] ();
               br ();
+              a caml_service_with_onload [pcdata "onload with caml call service"] ();
+              br ();
               a service_style1 [pcdata "test header modifications"] ();
               br ();
               a any_service [pcdata "Eliom_output.Any with Eliom_appl"] 1;
