@@ -1198,6 +1198,7 @@ let rand_tick =
     incr i; Lwt.return (Some !i)
 let stream_sl = Lwt_stream.from rand_tick
 let stateless_channel = Eliom_comet.Channels.create ~scope:`Global ~name:"stateless" stream_sl
+let _ = Eliom_comet.Channels.get_wrapped stateless_channel
 let external_stateless_channel : int Eliom_comet.Channels.t =
   Eliom_comet.Channels.external_channel
     ~prefix:"http://localhost:8080"

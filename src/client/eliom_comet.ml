@@ -584,7 +584,7 @@ let check_and_update_position position msg_pos =
       error "Eliom_comet: check_position: channel kind and message do not match"
     | Position (relation,r), Some j ->
       match !r with
-	| None -> r := Some j; true
+	| None -> r := Some (j+1); true
 	| Some i ->
 	  if (match relation with
 	    | Equal -> j = i
