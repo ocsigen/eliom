@@ -1079,19 +1079,32 @@ let discard_volatile_data ~scope ?secure () =
     | _ ->
         Eliommod_datasess.close_data_session ~scope ~secure ()
 
+let discard_request_data () =
+  let table = Eliom_request_info.get_request_cache () in
+  Polytables.clear ~table;
+  Lwt.return ()
+
 let discard_data ?persistent ~scope ?secure () =
-  (match persistent with
-    | None | Some false ->
-      discard_volatile_data ~scope ?secure ()
-    | _ -> ());
-  (match persistent with
-    | None | Some true ->
-      discard_persistent_data ~scope ?secure ()
-    | _ -> Lwt.return ())
+  match scope with
+    | #Eliom_common.request_scope ->
+      discard_request_data ()
+    | #Eliom_common.user_scope as scope ->
+      (match persistent with
+        | None | Some false ->
+          discard_volatile_data ~scope ?secure ()
+        | _ -> ());
+      (match persistent with
+        | None | Some true ->
+          discard_persistent_data ~scope ?secure ()
+        | _ -> Lwt.return ())
 
 let discard ~scope ?secure () =
-  discard_services ~scope:(scope:>[< Eliom_common.user_scope ]) ?secure ();
-  discard_data ~scope:(scope:>[< Eliom_common.user_scope ]) ?secure ()
+  match scope with
+    | #Eliom_common.request_scope ->
+      discard_request_data ()
+    | #Eliom_common.user_scope as scope ->
+      discard_services ~scope:(scope:>[< Eliom_common.user_scope ]) ?secure ();
+      discard_data ~scope:(scope:>[< Eliom_common.user_scope ]) ?secure ()
 
 let discard_all_scopes  ?secure() =
   let discard_name scope_name =

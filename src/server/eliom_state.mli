@@ -35,7 +35,7 @@ open Ocsigen_extensions
 (** {3 Closing sessions, removing state data and services} *)
 
 (** Delete server-side state data and services for a session,
-    a group of sessions or a client process.
+    a group of sessions, a client process or a request.
 
     Use that function to close a session (using scope [Eliom_common.session]).
 
@@ -48,7 +48,7 @@ open Ocsigen_extensions
     when discarding a state.}
 *)
 val discard :
-  scope:[< Eliom_common.user_scope ] ->
+  scope:[< Eliom_common.user_scope | Eliom_common.request_scope ] ->
   ?secure:bool ->
   unit ->
   unit Lwt.t
@@ -66,7 +66,7 @@ val discard_all_scopes :
  *)
 val discard_data :
   ?persistent:bool ->
-  scope:[< Eliom_common.user_scope ] ->
+  scope:[< Eliom_common.user_scope | Eliom_common.request_scope ] ->
   ?secure:bool ->
   unit ->
   unit Lwt.t
