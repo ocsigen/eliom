@@ -29,11 +29,13 @@ struct
   type configuration_data =
       { active_until_timeout : bool;
 	always_active : bool;
+	time_after_unfocus : float;
 	time_between_request : float; }
 
   let default_configuration =
     { active_until_timeout = false;
       always_active = false;
+      time_after_unfocus = 20.;
       time_between_request = 0.; }
 
   type t = int
@@ -47,6 +49,7 @@ struct
   let config_min c1 c2 =
     { active_until_timeout = c1.active_until_timeout || c2.active_until_timeout;
       always_active = c1.always_active || c2.always_active;
+      time_after_unfocus = max c1.time_after_unfocus c2.time_after_unfocus;
       time_between_request = min c1.time_between_request c2.time_between_request }
 
   exception C of configuration_data
@@ -98,6 +101,9 @@ struct
 
   let set_always_active conf v =
     set_fun conf (fun c -> { c with always_active = v })
+
+  let set_timeout conf v =
+    set_fun conf (fun c -> { c with time_after_unfocus = v })
 
   let set_active_until_timeout conf v =
     set_fun conf (fun c -> { c with active_until_timeout = v })
@@ -170,11 +176,13 @@ struct
   type activity =
       {
 	mutable active : bool;
-	(** [!hd.hd_active] is true when the page is focused on the
-	    browser *)
-	mutable focused : bool;
+	(** [!hd.active] is true when the [hd] channel handler is
+	    receiving data *)
+	mutable focused : float option;
+	(** [focused] is None when the page is focused and Some [t]
+	    when the page lost focus at time [t] *)
 	mutable active_waiter : unit Lwt.t;
-	(** [!hd.hd_active_waiter] terminates when the page become
+	(** [active_waiter] terminates when the page become
 	    focused *)
 	mutable active_wakener : unit Lwt.u;
 	mutable restart_waiter : unit list Lwt.t;
@@ -246,14 +254,11 @@ struct
       calls to the server only if it is active *)
   let handle_focus handler =
     let focus_callback () =
-      handler.hd_activity.focused <- true;
+      handler.hd_activity.focused <- None;
       set_activity handler true
     in
     let blur_callback () =
-      handler.hd_activity.focused <- false;
-      if not ((Configuration.get ()).Configuration.active_until_timeout
-	    || (Configuration.get ()).Configuration.always_active)
-      then handler.hd_activity.active <- false
+      handler.hd_activity.focused <- Some ( Js.to_float (jsnew Js.date_now ())##getTime() )
     in
     add_focus_listener focus_callback;
     add_blur_listener blur_callback
@@ -363,6 +368,20 @@ struct
     in
     List.map aux
 
+  let update_activity ?(timeout=false) hd =
+    match hd.hd_activity.focused with
+      | None -> ()
+      | Some t ->
+	if not (Configuration.get ()).Configuration.always_active
+	then
+	  let now = Js.to_float (jsnew Js.date_now ())##getTime() in
+	  if now -. t >
+	    (Configuration.get ()).Configuration.time_after_unfocus *. 1000.
+	  then
+	    if timeout
+	      || not (Configuration.get ()).Configuration.active_until_timeout
+	    then set_activity hd false
+
   let wait_data hd : (string * int option * string Ecb.channel_data) list Lwt.t =
     let rec aux retries =
       if not hd.hd_activity.active
@@ -377,10 +396,7 @@ struct
 			      >>= (fun _ -> error "Eliom_comet: should not append")] in
 	    match s with
 	      | Ecb.Timeout ->
-		if not hd.hd_activity.focused
-		then
-		  if not (Configuration.get ()).Configuration.always_active
-		  then set_activity hd false;
+		update_activity ~timeout:true hd;
 		aux 0
 	      | Ecb.Process_closed -> Lwt.fail Process_closed
 	      | Ecb.Comet_error e -> Lwt.fail (Comet_error e)
@@ -406,6 +422,7 @@ struct
 	    | e -> debug "Eliom_comet: exception %s" (Printexc.to_string e); Lwt.fail e
 	end
     in
+    update_activity hd;
     aux 0
 
   let call_commands hd command =
@@ -482,7 +499,7 @@ struct
     let restart_waiter, restart_wakener = Lwt.wait () in
     {
       active = false;
-      focused = true;
+      focused = None;
       active_waiter; active_wakener;
       restart_waiter; restart_wakener;
       active_channels = String.Set.empty;

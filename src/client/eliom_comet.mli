@@ -74,9 +74,15 @@ sig
       than [t], it is restored to the defaults. *)
   val drop_configuration : t -> unit
 
-  (** [set_always_active c true] tells the client to always stay active.
+  (** [set_always_active c b] if b is true, tells the client to always
+      stay active.
       Default value is false. *)
   val set_always_active : t -> bool -> unit
+
+  (** [set_timeout c t] tells the client to stay active at least [t]
+      seconds when the application lose the focus.
+      Default value is 20. *)
+  val set_timeout : t -> float -> unit
 
   (** [set_active_until_timeout c v] sets the activity changing
       behaviour. if [v] is [true] the page is kept active even if not

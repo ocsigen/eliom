@@ -1070,7 +1070,7 @@ let comet_message_board_maker name message_bus cb =
          Eliom_services.onload
            {{
 	     let c = Eliom_comet.Configuration.new_configuration () in
-	     Eliom_comet.Configuration.set_always_active c true;
+	     Eliom_comet.Configuration.set_timeout c 3.;
              let _ =
 	       Lwt.catch (fun () ->
 		 Lwt_stream.iter_s
