@@ -593,13 +593,14 @@ let position_of_kind = function
   | Ecb.Last_kind None -> Position (Greater, ref None)
   | Ecb.Last_kind (Some _) -> Position (Equal, ref None)
 
-let check_and_update_position position msg_pos =
-  match position, msg_pos with
-    | No_position, None -> true
-    | No_position, Some _
-    | Position _, None ->
+let check_and_update_position position msg_pos data =
+  match position, msg_pos, data with
+    | No_position, None, _ -> true
+    | No_position, Some _, _
+    | Position _, None, Ecb.Data _ ->
       error "Eliom_comet: check_position: channel kind and message do not match"
-    | Position (relation,r), Some j ->
+    | Position _, None, (Ecb.Full | Ecb.Closed ) -> true
+    | Position (relation,r), Some j, _ ->
       match !r with
 	| None -> r := Some (j+1); true
 	| Some i ->
@@ -618,7 +619,7 @@ let register' hd position (chan_service:Ecb.comet_service) (chan_id:'a Ecb.chan_
     (function
       | (id,pos,data) when
 	  id = chan_id
-	  && check_and_update_position position pos ->
+	  && check_and_update_position position pos data ->
 	( match data with
 	  | Ecb.Full ->
 	    Lwt.fail Channel_full

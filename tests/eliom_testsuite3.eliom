@@ -1084,7 +1084,9 @@ let comet_message_board_maker name message_bus cb =
 		     Dom.appendChild (Eliom_client.Html5.of_element %container)
                        (Eliom_client.Html5.of_li (li [pcdata "channel full, no more messages"]));
 		     Lwt.return ()
-		   | e -> Lwt.fail e);
+		   | e ->
+		     debug_exn "comet exception: " e;
+		     Lwt.fail e);
 	     in ()
            }} ;
 
