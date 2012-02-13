@@ -33,24 +33,30 @@ type 'a t =
       mutable waiter : unit -> unit Lwt.t;
       mutable last_wait : unit Lwt.t;
       mutable original_stream_available : bool;
-      mutable error : exn option; (* Some exn if a clone of the stream
-				     received the exception exn *)
+      error_h : 'a option Lwt.t * exn Lwt.u;
     }
 
-(* map streams such that each clone of the original stream raise the same exceptions *)
-let map_exn s t =
-    Lwt_stream.from (fun () ->
-      match t.error with
-	| None ->
-	  begin
-	    try_lwt Lwt_stream.get s
-            with
-	      | e ->
-		t.error <- Some e;
-		raise_lwt e
-	  end
-	| Some e ->
-	  raise_lwt e)
+(* clone streams such that each clone of the original stream raise the same exceptions *)
+let consume (t,u) s =
+  let t' =
+    try_lwt Lwt_stream.iter (fun _ -> ()) s
+    with e ->
+      (match Lwt.state t with
+        | Lwt.Sleep -> Lwt.wakeup_exn u e;
+        | _ -> ());
+      raise_lwt e
+  in
+  Lwt.choose [Lwt.bind t (fun _ -> Lwt.return ());t']
+
+let clone_exn (t,u) s =
+  let s' = Lwt_stream.clone s in
+  Lwt_stream.from (fun () ->
+    try_lwt Lwt.choose [Lwt_stream.get s';t]
+    with e ->
+      (match Lwt.state t with
+        | Lwt.Sleep -> Lwt.wakeup_exn u e;
+        | _ -> ());
+      raise_lwt e)
 
 type 'a callable_bus_service =
     (unit, 'a list, Eliom_services.service_kind,
@@ -66,12 +72,15 @@ let create service channel waiter =
       ~service:(service:>'a callable_bus_service) () x in
     Lwt.return ()
   in
-  let rec stream =
+  let error_h =
+    let t,u = Lwt.wait () in
+    (try_lwt lwt _ = t in assert false with e -> raise_lwt e), u in
+  let stream =
     lazy (let stream = Eliom_comet.register channel in
 	  (* iterate on the stream to consume messages: avoid memory leak *)
-	  let _ = Lwt_stream.iter (fun _ -> ()) (map_exn stream t) in
-	  stream)
-  and t = {
+	  let _ = consume error_h stream in
+	  stream) in
+  let t = {
     channel;
     stream;
     queue = Queue.create ();
@@ -80,7 +89,7 @@ let create service channel waiter =
     waiter;
     last_wait = Lwt.return ();
     original_stream_available = true;
-    error = None;
+    error_h;
   } in
   (* the comet channel start receiving after the load phase, so the
      original channel (i.e. without message lost) is only available in
@@ -100,7 +109,7 @@ let internal_unwrap ((wrapped_bus:'a Ecb.wrapped_bus),unwrapper) =
 let () = Eliom_unwrap.register_unwrapper Eliom_common.bus_unwrap_id internal_unwrap
 
 let stream t =
-  map_exn (Lwt_stream.clone (Lazy.force t.stream)) t
+  clone_exn t.error_h (Lazy.force t.stream)
 
 let original_stream t =
   if Eliom_client.in_onload () && t.original_stream_available
