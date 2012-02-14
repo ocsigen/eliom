@@ -35,7 +35,11 @@ module Client_pass(Helpers : Pa_eliom_seed.Helpers) = struct
   (* Client side code emission. *)
   let register_closure gen_num args orig_expr =
     let _loc = Ast.loc_of_expr orig_expr in
-    let ty = Helpers.find_event_handler_type gen_num in
+    let ty =
+      if !notyp then
+        <:ctyp< 'a >>
+      else
+        Helpers.find_event_handler_type gen_num in
     <:expr<
       Eliom_client.register_closure
         $`int64:gen_num$
