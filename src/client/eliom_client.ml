@@ -20,6 +20,8 @@
 
 open Eliom_pervasives
 
+module JsTable = Eliommod_dom.JsTable
+
 (* Ignore popstate before the first call to "set_content". It avoids
    loading the first page twice on a buggy Google-chrome. *)
 let chrome_dummy_popstate = ref true
@@ -34,16 +36,18 @@ let find_closure = Hashtbl.find closure_table
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client) *)
 
 let (register_node, find_node) =
-  let process_nodes : (Js.js_string Js.t, Dom.node Js.t) Hashtbl.t = Hashtbl.create 0 in
+  let process_nodes : Dom.node Js.t JsTable.t = JsTable.create () in
   let find id =
-    let node = Hashtbl.find process_nodes id in
-    if Js.to_bytestring (node##nodeName##toLowerCase()) = "script" then
-      (* We don't wan't to reexecute "unique" script... *)
-      (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
-    else
-      node
+    Js.Optdef.bind
+      (JsTable.find process_nodes id)
+      (fun node ->
+        if Js.to_bytestring (node##nodeName##toLowerCase()) == "script" then
+        (* We don't wan't to reexecute "unique" script... *)
+          Js.def (Dom_html.document##createTextNode (Js.string "") :> Dom.node Js.t)
+        else
+          Js.def node)
   in
-  let register id node = Hashtbl.add process_nodes id node in
+  let register id node = JsTable.add process_nodes id node in
   (register, find)
 
 (* == Event *)
@@ -154,12 +158,11 @@ let relink_unique_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
     (node##getAttribute(Js.string Eliom_pervasives_base.RawXML.unique_attrib))
     (fun () -> error "unique node without id attribute") in
-  try
-    let pnode = find_node id in
-    Js.Opt.iter (node##parentNode)
-      (fun parent -> Dom.replaceChild parent pnode node)
-  with Not_found ->
-    register_node id (node:>Dom.node Js.t)
+  Js.Optdef.case (find_node id)
+    (fun () -> register_node id (node:>Dom.node Js.t))
+    (fun pnode ->
+      Js.Opt.iter (node##parentNode)
+        (fun parent -> Dom.replaceChild parent pnode node))
 
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   let aux attr =
@@ -226,11 +229,12 @@ module Html5 = struct
       | None -> raw_rebuild_node onload_acc (XML.content elt)
       | Some id ->
 	  let id = (Js.string id) in
-	  try (find_node id :> Dom.node Js.t)
-	  with Not_found ->
-	  let node = raw_rebuild_node onload_acc (XML.content elt) in
-	  register_node id node;
-	  node
+	  Js.Optdef.case (find_node id)
+            (fun () ->
+	      let node = raw_rebuild_node onload_acc (XML.content elt) in
+	      register_node id node;
+	      node)
+            (fun n -> (n:> Dom.node Js.t))
 
   and raw_rebuild_node onload_acc = function
     | XML.Empty
@@ -580,9 +584,7 @@ let scroll_to_fragment fragment =
       let elem = Dom_html.document##getElementById(Js.string fragment) in
       Js.Opt.iter elem scroll_to_element
 
-let registered_unique id =
-  try ignore (find_node id); true
-  with Not_found -> false
+let registered_unique id = Js.Optdef.test (find_node id)
 
 let set_content ?uri ?fragment = function
   | None -> Lwt.return ()

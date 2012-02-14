@@ -59,3 +59,12 @@ val html_document : Dom.element Dom.document Js.t ->
 val preload_css : Dom_html.element Js.t -> unit Lwt.t
 
 val iter_nodeList : 'a Dom.nodeList Js.t -> ('a Js.t -> unit) -> unit
+
+(** tables using javscript objetcs: faster than hashtables *)
+module JsTable :
+sig
+  type 'a t
+  val create : unit -> 'a t
+  val add : 'a t -> Js.js_string Js.t -> 'a -> unit
+  val find : 'a t -> Js.js_string Js.t -> 'a Js.Optdef.t
+end
