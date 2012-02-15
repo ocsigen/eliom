@@ -1,12 +1,10 @@
 
-INTF := eliom_lazy.cmi        \
-        eliom_pervasives.cmi        \
+INTF := eliom_pervasives.cmi        \
         eliom_cookies.cmi           \
         eliom_common.cmi            \
         eliom_types.cmi             \
         eliom_parameters.cmi        \
         eliom_services.cmi          \
-        eliom_process.cmi           \
         eliom_config.cmi            \
         eliom_request_info.cmi      \
         eliom_state.cmi             \
@@ -21,7 +19,6 @@ INTF := eliom_lazy.cmi        \
         eliom_tools_common.cmi      \
         eliom_tools.cmi             \
         eliom_mkreg.cmi             \
-        eliom_error_pages.cmi       \
         eliom_references.cmi        \
         eliom_extensions.cmi        \
         \
@@ -59,17 +56,12 @@ NATIMPL += eliom_duce.cmxs
 endif
 endif
 
-NOMLI := eliom_error_pages.mli \
-         eliom_process.mli     \
-	 eliom_lazy.mli        \
-
-
 NOP4  := eliom_pervasives.mli \
          eliom_duce.mli       \
          eliom_duce_tools.mli \
          eliom_duce_types.mli \
 
-DOC := ${filter-out ${NOMLI} ${DUCE_INTF:.cmi=.mli}, ${INTF:.cmi=.mli}} \
+DOC := ${filter-out ${DUCE_INTF:.cmi=.mli}, ${INTF:.cmi=.mli}} \
        eliom_output_base.mli \
        eliom_types_base.mli  \
        eliom_comet_base.mli  \

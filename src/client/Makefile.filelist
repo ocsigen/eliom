@@ -1,13 +1,8 @@
 
 INTF := eliom_lazy.cmi        \
         eliom_pervasives.cmi        \
-        eliom_common.cmi            \
-        eliom_types.cmi             \
         eliom_parameters.cmi        \
         eliom_services.cmi          \
-        eliom_process.cmi           \
-        eliom_config.cmi            \
-        eliom_request_info.cmi      \
         eliom_uri.cmi               \
         eliom_mkforms.cmi           \
         eliom_output.cmi            \
@@ -26,19 +21,11 @@ STUBS := dlleliom_client.so \
 	 libeliom_client.a  \
 	 eliom_client.js    \
 
-NOMLI := eliom_common.mli       \
-	 eliom_types.mli        \
-	 eliom_process.mli      \
-	 eliom_config.mli       \
-	 eliom_request_info.mli \
-
 NOP4 := eliom_pervasives.mli
 
-DOC := ${filter-out ${NOMLI}, ${INTF:.cmi=.mli}} \
+DOC := ${INTF:.cmi=.mli} \
        eliom_output_base.mli \
        eliom_types_base.mli \
-
-## Can't be parsed until camlp4 understand "include module typeof" in .mli
-#       eliom_comet_base.mli \
+       eliom_comet_base.mli \
 
 

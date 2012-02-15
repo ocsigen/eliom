@@ -16,7 +16,7 @@ all: $(FILES:.ml=.cmo)
 
 install:
 	${INSTALL} -m 755 -d ${SYNTAXDIR}
-	${INSTALL} -m 644 ${FILES:.ml=.cmi} ${FILES:.ml=.cmo} ${SYNTAXDIR}
+	${INSTALL} -m 644 ${FILES:.ml=.cmo} ${SYNTAXDIR}
 
 uninstall:
 	-rm -fr ${SYNTAXDIR}
