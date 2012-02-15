@@ -52,11 +52,21 @@ tools.depend: syntax.depend
 
 VERSION := $(shell head -n 1 ../VERSION)
 
-install: install.META
+install: install.META install.man
 	${MAKE} -C server install
 	${MAKE} -C client install
 	${MAKE} -C syntax install
 	${MAKE} -C tools install
+
+install.man: install.META
+	$(INSTALL) -m 755 -d $(TEMPROOT)$(MANDIR)/man1
+	$(INSTALL) -m 755 files/eliomc.1 $(TEMPROOT)$(MANDIR)/man1
+	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/js_of_eliom.1
+	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomopt.1
+	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomdoc.1
+	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomcp.1
+	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomdep.1
+	${MAKE} -C server install
 
 install.META:
 	${OCAMLFIND} install ${PROJECTNAME} \

@@ -1,13 +1,17 @@
 .\"                                      Hey, EMACS: -*- nroff -*-
 .TH ELIOMC 1 2012-02-15
 .SH NAME
-eliomc, eliomopt, eliomdoc, js_of_eliom \- the eliom build tools
+eliomc, eliomopt, eliomdoc, js_of_eliom, eliomcp, eliomdep \- the eliom build tools
 .SH SYNOPSIS
 .B eliomc
 .RI [ options ]
 .RI files
 
 .B eliomopt
+.RI [ options ]
+.RI files
+
+.B eliomdep
 .RI [ options ]
 .RI files
 
@@ -18,7 +22,7 @@ eliomc, eliomopt, eliomdoc, js_of_eliom \- the eliom build tools
 .B js_of_eliom
 .RI [ options ]
 .RI files
--o
+\-o
 .RI filename.js
 .SH DESCRIPTION
 .B eliomc
@@ -47,12 +51,13 @@ Add predicate <p> when resolving package properties.
 This is the same option as ocamlfind one.
 .TP
 .BR \-jsopt\ opt
-{ass opt to the js_of_ocaml compiler. js_of_eliom only.
+pass opt to the js_of_ocaml compiler. js_of_eliom only.
 .TP
 .BR \-help \ or \ \-\-help
 Display a short usage summary and exit.
 .SH SEE ALSO
-.BR ocamlc (1), \ ocamlopt (1), \ js_of_ocaml (1), \ ocamldoc (1), \ ocamlfind (1).
+.BR ocamlc (1), \ ocamlopt (1), \ js_of_ocaml (1), \ ocamldoc (1),
+\ ocamlfind (1), \ ocamlcp (1), \ ocamldep (1).
 .SH AUTHOR
 eliomc, js_of_eliom, eliomdoc, eliomopt, were written by
 Gregoire Henry <gregoire.henry@pps.jussieu.fr>.

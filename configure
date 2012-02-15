@@ -84,6 +84,7 @@ set_defaults () {
     temproot=""
     prefix="/usr/local"
     bindir=""
+    mandir=""
     libdir=""
     docdir=""
 }
@@ -132,6 +133,11 @@ print_options () {
             *) bindir2=$bindir;;
         esac
 
+        case "$mandir" in
+            "") mandir2="<prefix>/man";;
+            *) mandir2=$mandir;;
+        esac
+
         case "$libdir" in
             "") libdir2="\$(shell \${OCAMLFIND} printconf destdir)";;
             *) libdir2=$libdir;;
@@ -147,6 +153,7 @@ print_options () {
 	echo "    --temproot $temproot"
 	echo "    --prefix $prefix"
 	echo "    --bindir $bindir2"
+	echo "    --mandir $mandir2"
 	echo "    --libdir $libdir2"
 	echo "    --docdir $docdir2"
 }
@@ -170,6 +177,7 @@ usage: ./configure [ options ]
   --prefix=DIR		Subdirectory where to install binaries and libs (usually /usr or /usr/local)
 
   --bindir=DIR		Install binaries into this directory
+  --mandir=DIR		Install manpages into this directory
   --libdir=DIR		Common directory for Ocsigen server's libraries
   --docdir=DIR		Install documentation in this directory
 
@@ -256,6 +264,11 @@ while [ "$#" -gt 0 ]; do
                         shift
                         shift
                         ;;
+                --mandir)
+                        mandir="$2"
+                        shift
+                        shift
+                        ;;
                 --libdir)
                         libdir="$2"
                         shift
@@ -274,6 +287,10 @@ done
 
 case "$bindir" in
   "") bindir="$prefix/bin";;
+esac
+
+case "$mandir" in
+  "") mandir="$prefix/man";;
 esac
 
 case "$libdir" in
@@ -443,6 +460,9 @@ TEMPROOT = $temproot
 
 # The directory for eliom compiler (binary):
 BINDIR := $root$bindir
+
+# Where to install Eliom tools manpages:
+MANDIR := $root$mandir
 
 # Where to install Eliom libraries:
 LIBDIR := $libdir
