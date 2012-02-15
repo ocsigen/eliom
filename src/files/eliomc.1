@@ -1,0 +1,60 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH ELIOMC 1 2012-02-15
+.SH NAME
+eliomc, eliomopt, eliomdoc, js_of_eliom \- the eliom build tools
+.SH SYNOPSIS
+.B eliomc
+.RI [ options ]
+.RI files
+
+.B eliomopt
+.RI [ options ]
+.RI files
+
+.B eliomdoc
+.RI [ options ]
+.RI files
+
+.B js_of_eliom
+.RI [ options ]
+.RI files
+-o
+.RI filename.js
+.SH DESCRIPTION
+.B eliomc
+is a frontend to the OCaml compiler to help handling projects using the eliom
+framework. It provides the options of the OCaml compiler and some other
+specific to eliom.
+
+Files ending in .mli .ml are directly handled by the OCaml compiler, those ending
+in .eliom are preprocessed and split between the client and server parts.
+
+Temporary files will be written in the _server and_client directory. Those
+directory may be changed with command line option of the environment variable
+ELIOM_SERVER_DIR and ELIOM_CLIENT_DIR.
+
+.SH OPTIONS
+.TP
+.BR \-dir\ dir
+Change the default directory for generated files
+.TP
+.BR \-package\ name
+Refer to package when compiling.
+This is the same option as ocamlfind one.
+.TP
+.BR \-predicates\ p
+Add predicate <p> when resolving package properties.
+This is the same option as ocamlfind one.
+.TP
+.BR \-jsopt\ opt
+{ass opt to the js_of_ocaml compiler. js_of_eliom only.
+.TP
+.BR \-help \ or \ \-\-help
+Display a short usage summary and exit.
+.SH SEE ALSO
+.BR ocamlc (1), \ ocamlopt (1), \ js_of_ocaml (1), \ ocamldoc (1), \ ocamlfind (1).
+.SH AUTHOR
+eliomc, js_of_eliom, eliomdoc, eliomopt, were written by
+Gregoire Henry <gregoire.henry@pps.jussieu.fr>.
+.PP
+This manual page was written by Pierre Chambart <chambart@crans.org>.
