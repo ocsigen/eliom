@@ -16,6 +16,7 @@ let usage () =
   end;
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
+  Printf.eprintf "  -ppopt <p>\tAppend option <opt> to preprocessor invocation\n";
   if !kind = `Client then begin
     Printf.eprintf "  -type <file>\tInfered types for the values sent by the server.\n";
   end;
@@ -27,6 +28,7 @@ let usage () =
 (** Context *)
 
 let jsopt : string list ref = ref []
+let ppopt : string list ref = ref []
 let output_name : string option ref = ref None
 let noinfer = ref false
 
@@ -114,8 +116,8 @@ let build_shared () =
 			     @ !args )
 
 let get_pp opt = match !pp with
-  | None -> ["-pp"; String.concat " " ("camlp4" :: get_common_syntax () @ opt)]
-  | Some pp -> ["-pp"; pp ^ " " ^ String.concat " " (get_common_syntax () @ opt)]
+  | None -> ["-pp"; String.concat " " ("camlp4" :: !ppopt @ get_common_syntax () @ opt)]
+  | Some pp -> ["-pp"; pp ^ " " ^ String.concat " " (!ppopt @ get_common_syntax () @ opt)]
 
 let get_thread_opt () = match !kind with
   | `Client -> []
@@ -246,6 +248,10 @@ let rec process_option () =
       if !kind <> `Client then usage ();
       if !i+1 >= Array.length Sys.argv then usage ();
       jsopt := !jsopt @ [Sys.argv.(!i+1)];
+      i := !i+2
+    | "-ppopt" ->
+      if !i+1 >= Array.length Sys.argv then usage ();
+      ppopt := !ppopt @ [Sys.argv.(!i+1)];
       i := !i+2
     | "-type" ->
       if !kind <> `Client then usage ();
