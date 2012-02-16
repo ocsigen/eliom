@@ -71,7 +71,7 @@ let cast_http_result = Result_types.cast_result
 
 module Html5_make_reg_base
   (Html5_content : Ocsigen_http_frame.HTTP_CONTENT
-                   with type t = HTML5_types.html HTML5.M.elt
+                   with type t = HTML5_types.html HTML5.elt
 		   and type options = Http_headers.accept Lazy.t)
   = struct
 
@@ -118,7 +118,7 @@ module Html5_make_reg_base
 end
 
 module Html5_reg_base =
-  Html5_make_reg_base(Ocsigen_senders.Make_XML_Content(XML)(HTML5.M))
+  Html5_make_reg_base(Ocsigen_senders.Make_XML_Content(XML)(HTML5))
 
 module Html5_registration = Eliom_mkreg.MakeRegister(Html5_reg_base)
 
@@ -161,9 +161,6 @@ type button_type =
 
 module Xhtml_forms_base = struct
 
-  open XHTML.M
-  open XHTML_types
-
   type uri = XHTML.M.uri
   type pcdata_elt = XHTML_types.pcdata XHTML.M.elt
 
@@ -204,6 +201,9 @@ module Xhtml_forms_base = struct
   type option_elt_list = XHTML_types.selectoption XHTML.M.elt list
   type optgroup_attrib_t = [ XHTML_types.common | `Disabled ] XHTML.M.attrib list
   type option_attrib_t = XHTML_types.option_attrib XHTML.M.attrib list
+
+  open XHTML.M
+  open XHTML_types
 
   type input_type_t = full_input_type
   type raw_input_type_t = full_input_type
@@ -1140,7 +1140,7 @@ module Blocks = Make_TypedXML_Registration(XML)(XHTML.M)(struct
   type content = XHTML_types.body_content
 end)
 
-module Flow5 = Make_TypedXML_Registration(XML)(HTML5.M)(struct
+module Flow5 = Make_TypedXML_Registration(XML)(HTML5)(struct
   type content = HTML5_types.flow5
 end)
 module Blocks5 = Flow5
@@ -2489,16 +2489,16 @@ let redirection_script =
     ^ "  } catch(e) {} ;\n"
     ^ "};\n"
     ^ "redir ();" in
-  HTML5.M.unique (HTML5.M.script (HTML5.M.cdata_script script))
+  HTML5.create_global_elt (HTML5.M.script (HTML5.M.cdata_script script))
 
 module Eliom_appl_reg_make_param
   (Html5_content
      : Ocsigen_http_frame.HTTP_CONTENT
-       with type t = [ `Html ] HTML5.M.elt
+       with type t = [ `Html ] HTML5.elt
        and type options = Http_headers.accept Lazy.t)
   (Appl_params : APPL_PARAMS) = struct
 
-  open HTML5.M
+  open HTML5
   open HTML5_types
 
   type appl
@@ -2510,24 +2510,24 @@ module Eliom_appl_reg_make_param
 
   let result_of_http_result = Result_types.cast_result
 
-  let eliom_appl_script =
-    HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
+  let eliom_appl_script_id : [ `Script ] HTML5.id = HTML5.new_global_elt_id ()
   let application_script ?(async = false) () =
-    HTML5.M.unique
-      ~copy:eliom_appl_script
+    HTML5.create_global_elt
+      ~id:eliom_appl_script_id
       (Html5.js_script
-	 ~a:(if async then [HTML5.M.a_async `Async] else [] )
+	 ~a:(if async then [HTML5.a_async `Async] else [] )
 	 ~uri:(Html5.make_uri
 		 ~service:(Eliom_services.static_dir ())
 		 [Appl_params.application_name ^ ".js"])
 	 ())
+  let application_script =
+    (application_script
+     : ?async:_ -> unit -> [ `Script ] HTML5.elt
+     :> ?async:_ -> unit -> [> `Script ] HTML5.elt)
   let is_eliom_appl_script elt =
-    XML.get_unique_id (HTML5.M.toelt elt)
-    =
-    XML.get_unique_id (HTML5.M.toelt eliom_appl_script)
+    HTML5.have_id eliom_appl_script_id elt
 
-  let eliom_fake_appl_data_script =
-    HTML5.M.unique (HTML5.M.script (HTML5.M.pcdata ""))
+  let eliom_appl_data_script_id = HTML5.new_global_elt_id ()
 
   let make_eliom_appl_data_script ~sp =
 
@@ -2542,7 +2542,7 @@ module Eliom_appl_reg_make_param
     in
 
     Lwt.return
-      (HTML5.M.unique ~copy:eliom_fake_appl_data_script
+      (HTML5.create_global_elt ~id:eliom_appl_data_script_id
 	 (HTML5.M.script (cdata_script script)))
 
   let make_eliom_data_script ~sp page =
@@ -2553,7 +2553,7 @@ module Eliom_appl_reg_make_param
     let eliom_data =
       Eliom_wrap.wrap
 	{ Eliom_types.
-	  ejs_event_handler_table = XML.make_event_handler_table (HTML5.M.toelt page);
+	  ejs_event_handler_table = XML.make_event_handler_table (HTML5.toelt page);
 	  ejs_onload              = Eliom_services.get_onload sp;
 	  ejs_onunload            = Eliom_services.get_onunload sp;
 	  ejs_sess_info           = Eliommod_cli.client_si sp.Eliom_common.sp_si;
@@ -2577,20 +2577,20 @@ module Eliom_appl_reg_make_param
     Lwt.return (HTML5.M.script (cdata_script script))
 
   let split_page page :
-      ( HTML5_types.html_attrib HTML5.M.attrib list
-	* ( HTML5_types.head_attrib HTML5.M.attrib list
-	    * [ HTML5_types.title ] HTML5.M.elt
-	    * HTML5_types.head_content_fun HTML5.M.elt list )
-	* HTML5_types.body HTML5.M.elt ) =
+      ( HTML5_types.html_attrib HTML5.attrib list
+	* ( HTML5_types.head_attrib HTML5.attrib list
+	    * [ HTML5_types.title ] HTML5.elt
+	    * HTML5_types.head_content_fun HTML5.elt list )
+	* HTML5_types.body HTML5.elt ) =
     match XML.content page with
       | XML.Node (_, html_attribs, [head; body]) ->
 	begin match XML.content head with
 	  | XML.Node (_, head_attribs, head_elts) ->
-	    ( List.map HTML5.M.to_attrib html_attribs,
-	      ( List.map HTML5.M.to_attrib head_attribs,
-		HTML5.M.tot (List.hd head_elts),
-		HTML5.M.totl (List.tl head_elts) ),
-	      HTML5.M.tot body )
+	    ( List.map HTML5.to_attrib html_attribs,
+	      ( List.map HTML5.to_attrib head_attribs,
+		HTML5.tot (List.hd head_elts),
+		HTML5.totl (List.tl head_elts) ),
+	      HTML5.tot body )
 	  | _ -> assert false
 	end
       | _ -> assert false
@@ -2607,11 +2607,11 @@ module Eliom_appl_reg_make_param
 
     (* First we build a fake page to build the ref_tree... *)
     let	( html_attribs, (head_attribs, title, head_elts), body ) =
-      split_page (HTML5.M.toelt page) in
+      split_page (HTML5.toelt page) in
     let head_elts =
          appl_data_script
       :: redirection_script
-      :: HTML5.M.base ~a:[HTML5.M.a_href (HTML5.M.uri_of_string base_url)] ()
+      :: HTML5.M.base ~a:[HTML5.a_href (HTML5.uri_of_string base_url)] ()
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts
 	   else ( head_elts
@@ -2633,7 +2633,7 @@ module Eliom_appl_reg_make_param
 
   let remove_eliom_scripts page =
     let ( html_attribs, (head_attribs, title, head_elts), body ) =
-      split_page (HTML5.M.toelt page) in
+      split_page (HTML5.toelt page) in
     let head_elts = List.filter (fun x -> not (is_eliom_appl_script x)) head_elts in
     Lwt.return
       (HTML5.M.html ~a:html_attribs
@@ -2721,7 +2721,7 @@ module type Eliom_appl = sig
   type appl
 
   include "sigs/eliom_reg.mli"
-    subst type page    := HTML5_types.html HTML5.M.elt
+    subst type page    := HTML5_types.html HTML5.elt
       and type options := appl_service_options
       and type return  := appl_service
       and type result  := (appl application_content, appl_service) kind
@@ -2734,7 +2734,7 @@ module type Eliom_appl = sig
   val application_name : string
   val typed_name : appl application_name
 
-  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.M.elt
+  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.elt
 
 end
 
@@ -2742,7 +2742,7 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
 
   module Eliom_appl_reg_param =
     Eliom_appl_reg_make_param
-      (Ocsigen_senders.Make_XML_Content(XML)(HTML5.M))
+      (Ocsigen_senders.Make_XML_Content(XML)(HTML5))
       (Appl_params)
 
   type appl = Eliom_appl_reg_param.appl

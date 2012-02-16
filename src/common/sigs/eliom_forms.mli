@@ -162,7 +162,7 @@ val make_string_uri :
 (** The function [uri_of_string f] returns a URI whose content is
     equivalent to [f ()].
 
-    For XML tree build with TyXML, like {!HTML5.M}, {!XHTML.M} or
+    For XML tree build with TyXML, like {!HTML5}, {!XHTML} or
     {!SVG.M}, the function [f] is applied each time the XML tree is
     sent to the client (either as page content or as a marshalled
     OCaml value). Hence, the function is always evaluated in the

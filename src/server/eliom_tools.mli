@@ -109,11 +109,11 @@ module Html5 : sig
     (([< get_service_kind ] as 'a,
       [< registrable ] as 'b,
       [< Eliom_output.non_caml_service ] as 'c) one_page *
-        HTML5_types.flow5_without_interactive HTML5.M.elt list)
+        HTML5_types.flow5_without_interactive HTML5.elt list)
       list ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
-    [> `Ul ] HTML5.M.elt
+    [> `Ul ] HTML5.elt
 
 (** {2 Hierchical sites } *)
 
@@ -137,11 +137,11 @@ module Html5 : sig
     ?whole_tree:bool ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     HTML5_types.a_content HTML5.M.elt list)
+     HTML5_types.a_content HTML5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, 'c) one_page ->
     unit ->
-    [> `Ul ] HTML5.M.elt list
+    [> `Ul ] HTML5.elt list
 
 
 
@@ -163,11 +163,11 @@ module Html5 : sig
     ?id:string ->
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     HTML5_types.a_content HTML5.M.elt list)
+     HTML5_types.a_content HTML5.elt list)
       hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service]) one_page ->
     unit ->
-    [> `Ul ] HTML5.M.elt list
+    [> `Ul ] HTML5.elt list
 
   (** The function [structure_links site ()] returns the tags [<link
       rel="subsection" ...>] and [<link rev="subsection" ...>] for the
@@ -179,11 +179,11 @@ module Html5 : sig
   val structure_links :
     ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
-     HTML5_types.a_content HTML5.M.elt list)
+     HTML5_types.a_content HTML5.elt list)
     hierarchical_site ->
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
-    [> `Link ] HTML5.M.elt list
+    [> `Link ] HTML5.elt list
 end
 
 (** Menu and hierarchical site for XHTML *)

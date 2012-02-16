@@ -83,7 +83,7 @@ FILES := eliom_wrap.ml eliom_lazy.ml \
 
 	 # eliom_extension_template.ml \
 
-INTF_NOP4 := eliom_pervasives.mli
+INTF_NOP4 :=
 
 byte:: eliom.cma
 opt:: eliom.cmxa

@@ -186,12 +186,12 @@ let hierarchical_menu_depth_first
                                                         {{ [] }} :}
                                         ] }}
           (* li ~a:attclass
-            ((text : XHTML_types.a_content XHTML.M.elt list
-                :> XHTML_types.li_content XHTML.M.elt list)@
+            ((text : XHTML_types.a_content XHTML.elt list
+                :> XHTML_types.li_content XHTML.elt list)@
              if deplier || whole_tree then
                (depth_first_fun hsl (level+1) pos2
-                  : [ `Ul ] XHTML.M.elt list
-                  :> [< XHTML_types.li_content > `Ul ] XHTML.M.elt list)
+                  : [ `Ul ] XHTML.elt list
+                  :> [< XHTML_types.li_content > `Ul ] XHTML.elt list)
              else []) *)
 
     and one_menu first i l : {{ [XHTML_types_duce.li*] }} = match l with

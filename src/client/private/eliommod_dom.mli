@@ -30,13 +30,19 @@ val get_head : 'element #get_tag Js.t -> 'element Js.t
     in the page annotated to be:
     * eliom links
     * eliom forms
-    * unique nodes
+    * process unique nodes
     * nodes with closures ( events ) *)
 val select_nodes : Dom_html.element Js.t ->
   Dom_html.anchorElement Dom.nodeList Js.t
   * Dom_html.formElement Dom.nodeList Js.t
   * Dom_html.element Dom.nodeList Js.t
   * Dom_html.element Dom.nodeList Js.t
+
+(** [select_request_nodes root] finds the nodes below [root]
+    in the page annotated to be:
+    * request unique nodes *)
+val select_request_nodes : Dom_html.element Js.t ->
+  Dom_html.element Dom.nodeList Js.t
 
 (** [ancessor n1 n2] is true if [n1] is an ancessor of [n2] *)
 val ancessor : #Dom.node Js.t -> #Dom.node Js.t -> bool

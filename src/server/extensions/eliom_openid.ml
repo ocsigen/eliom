@@ -24,7 +24,7 @@ open Simplexmlparser
 open Ocsigen_http_frame
 open Cryptokit
 open Eliom_parameters
-open XHTML.M
+open XHTML
 open Ocsigen_headers
 module Base64 = Netencoding.Base64
 

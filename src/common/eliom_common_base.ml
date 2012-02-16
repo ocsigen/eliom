@@ -231,11 +231,12 @@ type sess_info =
 
 (************ unwrapping identifiers *********************)
 
-let comet_channel_unwrap_id_int = 1
-let react_up_unwrap_id_int = 2
-let react_down_unwrap_id_int = 3
-let signal_down_unwrap_id_int = 4
-let bus_unwrap_id_int = 5
+let tyxml_unwrap_id_int = Eliom_pervasives_base.tyxml_unwrap_id_int (* 1 *)
+let comet_channel_unwrap_id_int = 2
+let react_up_unwrap_id_int = 3
+let react_down_unwrap_id_int = 4
+let signal_down_unwrap_id_int = 5
+let bus_unwrap_id_int = 6
 
 type node_ref = string
 

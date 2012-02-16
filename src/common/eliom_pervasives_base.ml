@@ -38,6 +38,8 @@ module List_base = struct
     List.rev (aux [] l)
 end
 
+let tyxml_unwrap_id_int = 1
+
 module RawXML = struct
 
   type separator = Space | Comma
@@ -81,10 +83,11 @@ module RawXML = struct
 
   let ce_registered_closure_class = "caml_closure"
   let ce_call_service_class = "caml_link"
-  let unique_class = "caml_unique"
+  let process_node_class = "caml_process_node"
+  let request_node_class = "caml_request_node"
 
   let ce_call_service_attrib = "data-eliom-cookies-info"
-  let unique_attrib = "data-eliom-unique-id"
+  let node_id_attrib = "data-eliom-node-id"
 
   let closure_attr_prefix = "caml_closure_id"
   let closure_attr_prefix_len = String.length closure_attr_prefix
@@ -126,74 +129,10 @@ module RawXML = struct
   let event_attrib = event_handler_attrib
 
   type ename = string
-  type node_id = string
-  type econtent =
-    | Empty
-    | Comment of string
-    | EncodedPCDATA of string
-    | PCDATA of string
-    | Entity of string
-    | Leaf of ename * attrib list
-    | Node of ename * attrib list * elt list
-  and recontent =
-    | RELazy of econtent Eliom_lazy.request
-    | RE of econtent
-  and elt = {
-    elt : recontent;
-    unique_id : node_id option;
-  }
-
-  let content e = match e.elt with
-    | RE e -> e
-    | RELazy e -> Eliom_lazy.force e
-
-  let rcontent e = e.elt
-
-  let is_unique elt = elt.unique_id <> None
-  let get_unique_id elt = elt.unique_id
-
-  let make elt =
-    { elt = RE elt;
-      unique_id = None; }
-
-  let make_lazy elt =
-    { elt = RELazy elt;
-      unique_id = None; }
-
-  let empty () = make Empty
-
-  let comment c = make (Comment c)
-  let pcdata d = make (PCDATA d)
-  let encodedpcdata d = make (EncodedPCDATA d)
-  let entity e = make (Entity e)
-
-  let leaf ?(a = []) name =  make (Leaf (name, a))
-  let node ?(a = []) name children = make (Node (name, a, children))
-  let lazy_node ?(a = []) name children =
-    make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
-
-  let rec flatmap f = function
-    | [] -> []
-    | x :: rest -> f x @ flatmap f rest
-
-  let translate root_leaf root_node sub_leaf sub_node update_state state n =
-    let rec translate' state  n =
-      match content n with
-      | (Empty | Comment _ | PCDATA _ | Entity _) -> [n]
-      | Leaf (name, attribs) ->
-          sub_leaf state name attribs
-      | Node (name, attribs, elts) ->
-          sub_node state name attribs
-            (flatmap (translate' (update_state name attribs state)) elts)
-      | _ -> failwith "not implemented for Ocsigen syntax extension"
-    in
-    match content n with
-    | (Empty | Comment _ | PCDATA _ | Entity _) -> n
-    | Leaf (name, attribs) ->
-	root_leaf name attribs
-    | Node (name, attribs, elts) ->
-	root_node name attribs (flatmap (translate' state) elts)
-    | _ -> failwith "not implemented for Ocsigen syntax extension"
+  type node_id =
+    | NoId
+    | ProcessId of string
+    | RequestId of string
 
   module ClosureMap = Map.Make(struct type t = int let compare = compare end)
 

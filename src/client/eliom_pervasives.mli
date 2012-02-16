@@ -206,164 +206,273 @@ module XML : sig
   val cdata_script : string -> elt
   val cdata_style : string -> elt
 
-  val make_unique : ?copy:elt -> elt -> elt
-  val is_unique : elt -> bool
-  val get_unique_id : elt -> string option
+  type node_id =
+    | NoId
+    | ProcessId of string
+    | RequestId of string
+  val make : ?id:node_id -> econtent -> elt
+  val make_dom : ?id:node_id -> Dom.node Js.t -> elt
 
-  type node_id = string
+  val make_process_node : ?id:string -> elt -> elt
+  val make_request_node : elt -> elt
+  val get_node_id : elt -> node_id
+
+  type node =
+    | DomNode of Dom.node Js.t
+    | TyXMLNode of econtent
+  val get_node : elt -> node
+  val set_dom_node : elt -> Dom.node Js.t -> unit
 
   module ClosureMap : Map.S with type key = int
   type event_handler_table = ((poly -> unit) client_expr) ClosureMap.t
 
 end
 
+(** Building SVG tree. *)
 module SVG : sig
 
-  (** type safe SVG creation. *)
-  module M : sig
-    include SVG_sigs.T with module XML := XML
-    val unique: ?copy:'a elt -> 'a elt -> 'a elt
-  end
+  (** {2 Dom semantics} *)
+
+  (* TODO GRGR see manual on Dom semantics. *)
+
+  include SVG_sigs.T with module XML := XML
+
+  (** Typed interface for building valid SVG tree (DOM semantics). See
+      {% <<a_api project="tyxml" | module type SVG_sigs.T >> %}. *)
+  module DOM: SVG_sigs.T with module XML := XML
+		         and type 'a elt = 'a elt
+		         and type 'a attrib = 'a attrib
+		         and type uri = uri
+
+  (** {2 Functional semantics} *)
+
+  (* TODO GRGR see manual on functional semantics. *)
+
+  (** Typed interface for building valid SVG tree (functional
+      semantics). See {% <<a_api project="tyxml" | module type
+      SVG_sigs.T >> %}. *)
+  module M : SVG_sigs.T with module XML := XML
+		        and type 'a elt = 'a elt
+		        and type 'a attrib = 'a attrib
+		        and type uri = uri
+
+  (** {2 Global node} *)
+
+  (* TODO GRGR see manual on global node. *)
+
+  (** The type of global SVG element identifier. *)
+  type 'a id
+
+  (** The function [new_global_elt_id ()] create a new SVG element identifier. *)
+  val new_global_elt_id : unit -> 'a id
+
+  (** The function [create_global elt] create a copy of the SVG node
+      [elt] that will be global. *)
+  val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 
 end
 
+(** Building HTML5 tree. *)
 module HTML5 : sig
 
-  (** type safe HTML5 creation. *)
-  module M : sig
+  (** {2 Dom semantics} *)
 
-    include HTML5_sigs.T with module XML := XML and module SVG := SVG.M
+  (* TODO GRGR see manual on Dom semantics. *)
 
-    val of_element : Dom_html.element Js.t -> 'a elt
-    val of_html : Dom_html.htmlElement Js.t -> HTML5_types.html elt
-    val of_head : Dom_html.headElement Js.t -> HTML5_types.head elt
-    val of_link : Dom_html.linkElement Js.t -> HTML5_types.link elt
-    val of_title : Dom_html.titleElement Js.t -> HTML5_types.title elt
-    val of_meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt
-    val of_base : Dom_html.baseElement Js.t -> HTML5_types.base elt
-    val of_style : Dom_html.styleElement Js.t -> HTML5_types.style elt
-    val of_body : Dom_html.bodyElement Js.t -> HTML5_types.body elt
-    val of_form : Dom_html.formElement Js.t -> HTML5_types.form elt
-    val of_optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt
-    val of_option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt
-    val of_select : Dom_html.selectElement Js.t -> HTML5_types.select elt
-    val of_input : Dom_html.inputElement Js.t -> HTML5_types.input elt
-    val of_textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt
-    val of_button : Dom_html.buttonElement Js.t -> HTML5_types.button elt
-    val of_label : Dom_html.labelElement Js.t -> HTML5_types.label elt
-    val of_fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt
-    val of_legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt
-    val of_uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt
-    val of_oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt
-    val of_dList : Dom_html.dListElement Js.t -> [`Dl] elt
-    val of_li : Dom_html.liElement Js.t -> HTML5_types.li elt
-    val of_div : Dom_html.divElement Js.t -> HTML5_types.div elt
-    val of_paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt
-    val of_heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt
-    val of_quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt
-    val of_pre : Dom_html.preElement Js.t -> HTML5_types.pre elt
-    val of_br : Dom_html.brElement Js.t -> HTML5_types.br elt
-    val of_hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt
-    val of_anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt
-    val of_image : Dom_html.imageElement Js.t -> [`Img] elt
-    val of_object : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt
-    val of_param : Dom_html.paramElement Js.t -> HTML5_types.param elt
-    val of_area : Dom_html.areaElement Js.t -> HTML5_types.area elt
-    val of_map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt
-    val of_script : Dom_html.scriptElement Js.t -> HTML5_types.script elt
-    val of_tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt
-    val of_tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt
-    val of_tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt
-    val of_tableSection : Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt
-    val of_tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt
-    val of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt
-    val of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt
-    val of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt
+  include HTML5_sigs.T with module XML := XML
+		       and module SVG := SVG
 
-    val unique: ?copy:'a elt -> 'a elt -> 'a elt
+  (** Typed interface for building valid HTML5 tree (DOM semantics). See
+      {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
+  module DOM: sig
 
+    include HTML5_sigs.T with module XML := XML
+		         and module SVG := SVG.DOM
+		         and type 'a elt = 'a elt
+		         and type 'a attrib = 'a attrib
+		         and type uri = uri
+
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_html5_event_handler.mli"
+
+    (**/**)
     type ('a, 'b, 'c) lazy_plus =
       ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
-
-    val a_onabort : (#Dom_html.event Js.t -> unit) -> [> | `OnAbort] attrib
-    val a_onafterprint : (#Dom_html.event Js.t -> unit) -> [> | `OnAfterPrint] attrib
-    val a_onbeforeprint : (#Dom_html.event Js.t -> unit) -> [> | `OnBeforePrint] attrib
-    val a_onbeforeunload : (#Dom_html.event Js.t -> unit) -> [> | `OnBeforeUnload] attrib
-    val a_onblur : (#Dom_html.event Js.t -> unit) -> [> | `OnBlur] attrib
-    val a_oncanplay : (#Dom_html.event Js.t -> unit) -> [> | `OnCanPlay] attrib
-    val a_oncanplaythrough : (#Dom_html.event Js.t -> unit) -> [> | `OnCanPlayThrough] attrib
-    val a_onchange : (#Dom_html.event Js.t -> unit) -> [> | `OnChange] attrib
-    val a_onclick : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnClick] attrib
-    val a_oncontextmenu : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnContextMenu] attrib
-    val a_ondblclick : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDblClick] attrib
-    val a_ondrag : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDrag] attrib
-    val a_ondragend : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragEnd] attrib
-    val a_ondragenter : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragEnter] attrib
-    val a_ondragleave : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragLeave] attrib
-    val a_ondragover : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragOver] attrib
-    val a_ondragstart : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDragStart] attrib
-    val a_ondrop : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnDrop] attrib
-    val a_ondurationchange : (#Dom_html.event Js.t -> unit) -> [> | `OnDurationChange] attrib
-    val a_onemptied : (#Dom_html.event Js.t -> unit) -> [> | `OnEmptied] attrib
-    val a_onended : (#Dom_html.event Js.t -> unit) -> [> | `OnEnded] attrib
-    val a_onerror : (#Dom_html.event Js.t -> unit) -> [> | `OnError] attrib
-    val a_onfocus : (#Dom_html.event Js.t -> unit) -> [> | `OnFocus] attrib
-    val a_onformchange : (#Dom_html.event Js.t -> unit) -> [> | `OnFormChange] attrib
-    val a_onforminput : (#Dom_html.event Js.t -> unit) -> [> | `OnFormInput] attrib
-    val a_onhashchange : (#Dom_html.event Js.t -> unit) -> [> | `OnHashChange] attrib
-    val a_oninput : (#Dom_html.event Js.t -> unit) -> [> | `OnInput] attrib
-    val a_oninvalid : (#Dom_html.event Js.t -> unit) -> [> | `OnInvalid] attrib
-    val a_onmousedown : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseDown] attrib
-    val a_onmouseup : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseUp] attrib
-    val a_onmouseover : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseOver] attrib
-    val a_onmousemove : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseMove] attrib
-    val a_onmouseout : (#Dom_html.mouseEvent Js.t -> unit) -> [> | `OnMouseOut] attrib
-    val a_onmousewheel : (#Dom_html.event Js.t -> unit) -> [> | `OnMouseWheel] attrib
-    val a_onoffline : (#Dom_html.event Js.t -> unit) -> [> | `OnOffLine] attrib
-    val a_ononline : (#Dom_html.event Js.t -> unit) -> [> | `OnOnLine] attrib
-    val a_onpause : (#Dom_html.event Js.t -> unit) -> [> | `OnPause] attrib
-    val a_onplay : (#Dom_html.event Js.t -> unit) -> [> | `OnPlay] attrib
-    val a_onplaying : (#Dom_html.event Js.t -> unit) -> [> | `OnPlaying] attrib
-    val a_onpagehide : (#Dom_html.event Js.t -> unit) -> [> | `OnPageHide] attrib
-    val a_onpageshow : (#Dom_html.event Js.t -> unit) -> [> | `OnPageShow] attrib
-    val a_onpopstate : (#Dom_html.event Js.t -> unit) -> [> | `OnPopState] attrib
-    val a_onprogress : (#Dom_html.event Js.t -> unit) -> [> | `OnProgress] attrib
-    val a_onratechange : (#Dom_html.event Js.t -> unit) -> [> | `OnRateChange] attrib
-    val a_onreadystatechange : (#Dom_html.event Js.t -> unit) -> [> | `OnReadyStateChange] attrib
-    val a_onredo : (#Dom_html.event Js.t -> unit) -> [> | `OnRedo] attrib
-    val a_onresize : (#Dom_html.event Js.t -> unit) -> [> | `OnResize] attrib
-    val a_onscroll : (#Dom_html.event Js.t -> unit) -> [> | `OnScroll] attrib
-    val a_onseeked : (#Dom_html.event Js.t -> unit) -> [> | `OnSeeked] attrib
-    val a_onseeking : (#Dom_html.event Js.t -> unit) -> [> | `OnSeeking] attrib
-    val a_onselect : (#Dom_html.event Js.t -> unit) -> [> | `OnSelect] attrib
-    val a_onshow : (#Dom_html.event Js.t -> unit) -> [> | `OnShow] attrib
-    val a_onstalled : (#Dom_html.event Js.t -> unit) -> [> | `OnStalled] attrib
-    val a_onstorage : (#Dom_html.event Js.t -> unit) -> [> | `OnStorage] attrib
-    val a_onsubmit : (#Dom_html.event Js.t -> unit) -> [> | `OnSubmit] attrib
-    val a_onsuspend : (#Dom_html.event Js.t -> unit) -> [> | `OnSuspend] attrib
-    val a_ontimeupdate : (#Dom_html.event Js.t -> unit) -> [> | `OnTimeUpdate] attrib
-    val a_onundo : (#Dom_html.event Js.t -> unit) -> [> | `OnUndo] attrib
-    val a_onunload : (#Dom_html.event Js.t -> unit) -> [> | `OnUnload] attrib
-    val a_onvolumechange : (#Dom_html.event Js.t -> unit) -> [> | `OnVolumeChange] attrib
-    val a_onwaiting : (#Dom_html.event Js.t -> unit) -> [> | `OnWaiting] attrib
-    val a_onkeypress : (#Dom_html.keyboardEvent Js.t -> unit) -> [> | `OnKeyPress] attrib
-    val a_onkeydown : (#Dom_html.keyboardEvent Js.t -> unit) -> [> | `OnKeyDown] attrib
-    val a_onkeyup : (#Dom_html.keyboardEvent Js.t -> unit) -> [> | `OnKeyUp] attrib
-    val a_onload : (#Dom_html.event Js.t -> unit) -> [> | `OnLoad] attrib
-    val a_onloadeddata : (#Dom_html.event Js.t -> unit) -> [> | `OnLoadedData] attrib
-    val a_onloadedmetadata : (#Dom_html.event Js.t -> unit) -> [> | `OnLoadedMetaData] attrib
-    val a_onloadstart : (#Dom_html.event Js.t -> unit) -> [> | `OnLoadStart] attrib
-    val a_onmessage : (#Dom_html.event Js.t -> unit) -> [> | `OnMessage] attrib
-
-    (**/**)
-    val raw_a_onclick: XML.event_handler -> [> `OnClick ] attrib
-    val raw_a_onsubmit: XML.event_handler -> [> `OnSubmit ] attrib
     (**/**)
 
   end
+
+  (** {2 Functional semantics} *)
+
+  (* TODO GRGR see manual on functional semantics. *)
+
+  (** Typed interface for building valid HTML5 tree (functional
+      semantics). See {% <<a_api project="tyxml" | module type
+      HTML5_sigs.T >> %}. *)
+  module M : sig
+
+    (** See {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
+    include HTML5_sigs.T with module XML := XML and module SVG := SVG.M
+		         and type 'a elt = 'a elt
+		         and type 'a attrib = 'a attrib
+		         and type uri = uri
+
+    (** {2 Event handlers} *)
+
+    (** Redefine event handler attributes to simplify their usage. *)
+    include "sigs/eliom_html5_event_handler.mli"
+
+    (**/**)
+    type ('a, 'b, 'c) lazy_plus =
+      ?a: (('a attrib) list) -> 'b elt Eliom_lazy.request -> ('b elt) list Eliom_lazy.request -> 'c elt
+
+    val lazy_form:
+      ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
+    (**/**)
+
+  end
+
+  (** {2 Event handlers} *)
+
+  (** Redefine event handler attributes to simplify their usage. *)
+  include "sigs/eliom_html5_event_handler.mli"
+
+  (**/**)
+  val raw_a_onabort : XML.event_handler -> [> | `OnAbort] attrib
+  val raw_a_onafterprint : XML.event_handler -> [> | `OnAfterPrint] attrib
+  val raw_a_onbeforeprint : XML.event_handler -> [> | `OnBeforePrint] attrib
+  val raw_a_onbeforeunload : XML.event_handler -> [> | `OnBeforeUnload] attrib
+  val raw_a_onblur : XML.event_handler -> [> | `OnBlur] attrib
+  val raw_a_oncanplay : XML.event_handler -> [> | `OnCanPlay] attrib
+  val raw_a_oncanplaythrough : XML.event_handler -> [> | `OnCanPlayThrough] attrib
+  val raw_a_onchange : XML.event_handler -> [> | `OnChange] attrib
+  val raw_a_onclick : XML.event_handler -> [> | `OnClick] attrib
+  val raw_a_oncontextmenu : XML.event_handler -> [> | `OnContextMenu] attrib
+  val raw_a_ondblclick : XML.event_handler -> [> | `OnDblClick] attrib
+  val raw_a_ondrag : XML.event_handler -> [> | `OnDrag] attrib
+  val raw_a_ondragend : XML.event_handler -> [> | `OnDragEnd] attrib
+  val raw_a_ondragenter : XML.event_handler -> [> | `OnDragEnter] attrib
+  val raw_a_ondragleave : XML.event_handler -> [> | `OnDragLeave] attrib
+  val raw_a_ondragover : XML.event_handler -> [> | `OnDragOver] attrib
+  val raw_a_ondragstart : XML.event_handler -> [> | `OnDragStart] attrib
+  val raw_a_ondrop : XML.event_handler -> [> | `OnDrop] attrib
+  val raw_a_ondurationchange : XML.event_handler -> [> | `OnDurationChange] attrib
+  val raw_a_onemptied : XML.event_handler -> [> | `OnEmptied] attrib
+  val raw_a_onended : XML.event_handler -> [> | `OnEnded] attrib
+  val raw_a_onerror : XML.event_handler -> [> | `OnError] attrib
+  val raw_a_onfocus : XML.event_handler -> [> | `OnFocus] attrib
+  val raw_a_onformchange : XML.event_handler -> [> | `OnFormChange] attrib
+  val raw_a_onforminput : XML.event_handler -> [> | `OnFormInput] attrib
+  val raw_a_onhashchange : XML.event_handler -> [> | `OnHashChange] attrib
+  val raw_a_oninput : XML.event_handler -> [> | `OnInput] attrib
+  val raw_a_oninvalid : XML.event_handler -> [> | `OnInvalid] attrib
+  val raw_a_onmousedown : XML.event_handler -> [> | `OnMouseDown] attrib
+  val raw_a_onmouseup : XML.event_handler -> [> | `OnMouseUp] attrib
+  val raw_a_onmouseover : XML.event_handler -> [> | `OnMouseOver] attrib
+  val raw_a_onmousemove : XML.event_handler -> [> | `OnMouseMove] attrib
+  val raw_a_onmouseout : XML.event_handler -> [> | `OnMouseOut] attrib
+  val raw_a_onmousewheel : XML.event_handler -> [> | `OnMouseWheel] attrib
+  val raw_a_onoffline : XML.event_handler -> [> | `OnOffLine] attrib
+  val raw_a_ononline : XML.event_handler -> [> | `OnOnLine] attrib
+  val raw_a_onpause : XML.event_handler -> [> | `OnPause] attrib
+  val raw_a_onplay : XML.event_handler -> [> | `OnPlay] attrib
+  val raw_a_onplaying : XML.event_handler -> [> | `OnPlaying] attrib
+  val raw_a_onpagehide : XML.event_handler -> [> | `OnPageHide] attrib
+  val raw_a_onpageshow : XML.event_handler -> [> | `OnPageShow] attrib
+  val raw_a_onpopstate : XML.event_handler -> [> | `OnPopState] attrib
+  val raw_a_onprogress : XML.event_handler -> [> | `OnProgress] attrib
+  val raw_a_onratechange : XML.event_handler -> [> | `OnRateChange] attrib
+  val raw_a_onreadystatechange : XML.event_handler -> [> | `OnReadyStateChange] attrib
+  val raw_a_onredo : XML.event_handler -> [> | `OnRedo] attrib
+  val raw_a_onresize : XML.event_handler -> [> | `OnResize] attrib
+  val raw_a_onscroll : XML.event_handler -> [> | `OnScroll] attrib
+  val raw_a_onseeked : XML.event_handler -> [> | `OnSeeked] attrib
+  val raw_a_onseeking : XML.event_handler -> [> | `OnSeeking] attrib
+  val raw_a_onselect : XML.event_handler -> [> | `OnSelect] attrib
+  val raw_a_onshow : XML.event_handler -> [> | `OnShow] attrib
+  val raw_a_onstalled : XML.event_handler -> [> | `OnStalled] attrib
+  val raw_a_onstorage : XML.event_handler -> [> | `OnStorage] attrib
+  val raw_a_onsubmit : XML.event_handler -> [> | `OnSubmit] attrib
+  val raw_a_onsuspend : XML.event_handler -> [> | `OnSuspend] attrib
+  val raw_a_ontimeupdate : XML.event_handler -> [> | `OnTimeUpdate] attrib
+  val raw_a_onundo : XML.event_handler -> [> | `OnUndo] attrib
+  val raw_a_onunload : XML.event_handler -> [> | `OnUnload] attrib
+  val raw_a_onvolumechange : XML.event_handler -> [> | `OnVolumeChange] attrib
+  val raw_a_onwaiting : XML.event_handler -> [> | `OnWaiting] attrib
+  val raw_a_onkeypress : XML.event_handler -> [> | `OnKeyPress] attrib
+  val raw_a_onkeydown : XML.event_handler -> [> | `OnKeyDown] attrib
+  val raw_a_onkeyup : XML.event_handler -> [> | `OnKeyUp] attrib
+  val raw_a_onload : XML.event_handler -> [> | `OnLoad] attrib
+  val raw_a_onloadeddata : XML.event_handler -> [> | `OnLoadedData] attrib
+  val raw_a_onloadedmetadata : XML.event_handler -> [> | `OnLoadedMetaData] attrib
+  val raw_a_onloadstart : XML.event_handler -> [> | `OnLoadStart] attrib
+  val raw_a_onmessage : XML.event_handler -> [> | `OnMessage] attrib
+  (**/**)
+
+  (** {2 Wrap [Dom_node] into [HTML5.elt]} *)
+
+  val of_element : Dom_html.element Js.t -> 'a elt
+  val of_html : Dom_html.htmlElement Js.t -> HTML5_types.html elt
+  val of_head : Dom_html.headElement Js.t -> HTML5_types.head elt
+  val of_link : Dom_html.linkElement Js.t -> HTML5_types.link elt
+  val of_title : Dom_html.titleElement Js.t -> HTML5_types.title elt
+  val of_meta : Dom_html.metaElement Js.t -> HTML5_types.meta elt
+  val of_base : Dom_html.baseElement Js.t -> HTML5_types.base elt
+  val of_style : Dom_html.styleElement Js.t -> HTML5_types.style elt
+  val of_body : Dom_html.bodyElement Js.t -> HTML5_types.body elt
+  val of_form : Dom_html.formElement Js.t -> HTML5_types.form elt
+  val of_optGroup : Dom_html.optGroupElement Js.t -> HTML5_types.optgroup elt
+  val of_option : Dom_html.optionElement Js.t -> HTML5_types.selectoption elt
+  val of_select : Dom_html.selectElement Js.t -> HTML5_types.select elt
+  val of_input : Dom_html.inputElement Js.t -> HTML5_types.input elt
+  val of_textArea : Dom_html.textAreaElement Js.t -> HTML5_types.textarea elt
+  val of_button : Dom_html.buttonElement Js.t -> HTML5_types.button elt
+  val of_label : Dom_html.labelElement Js.t -> HTML5_types.label elt
+  val of_fieldSet : Dom_html.fieldSetElement Js.t -> HTML5_types.fieldset elt
+  val of_legend : Dom_html.legendElement Js.t -> HTML5_types.legend elt
+  val of_uList : Dom_html.uListElement Js.t -> HTML5_types.ul elt
+  val of_oList : Dom_html.oListElement Js.t -> HTML5_types.ol elt
+  val of_dList : Dom_html.dListElement Js.t -> [`Dl] elt
+  val of_li : Dom_html.liElement Js.t -> HTML5_types.li elt
+  val of_div : Dom_html.divElement Js.t -> HTML5_types.div elt
+  val of_paragraph : Dom_html.paragraphElement Js.t -> HTML5_types.p elt
+  val of_heading : Dom_html.headingElement Js.t -> HTML5_types.heading elt
+  val of_quote : Dom_html.quoteElement Js.t -> HTML5_types.blockquote elt
+  val of_pre : Dom_html.preElement Js.t -> HTML5_types.pre elt
+  val of_br : Dom_html.brElement Js.t -> HTML5_types.br elt
+  val of_hr : Dom_html.hrElement Js.t -> HTML5_types.hr elt
+  val of_anchor : Dom_html.anchorElement Js.t -> 'a HTML5_types.a elt
+  val of_image : Dom_html.imageElement Js.t -> [`Img] elt
+  val of_object : Dom_html.objectElement Js.t -> 'a HTML5_types.object_ elt
+  val of_param : Dom_html.paramElement Js.t -> HTML5_types.param elt
+  val of_area : Dom_html.areaElement Js.t -> HTML5_types.area elt
+  val of_map : Dom_html.mapElement Js.t -> 'a HTML5_types.map elt
+  val of_script : Dom_html.scriptElement Js.t -> HTML5_types.script elt
+  val of_tableCell : Dom_html.tableCellElement Js.t -> [ HTML5_types.td | HTML5_types.td ] elt
+  val of_tableRow : Dom_html.tableRowElement Js.t -> HTML5_types.tr elt
+  val of_tableCol : Dom_html.tableColElement Js.t -> HTML5_types.col elt
+  val of_tableSection : Dom_html.tableSectionElement Js.t -> [ HTML5_types.tfoot | HTML5_types.thead | HTML5_types.tbody ] elt
+  val of_tableCaption : Dom_html.tableCaptionElement Js.t -> HTML5_types.caption elt
+  val of_table : Dom_html.tableElement Js.t -> HTML5_types.table elt
+  val of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt
+  val of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt
+
+  (** {2 Global node} *)
+
+  (* TODO GRGR see manual on global node. *)
+
+  (** The type of global HTML5 element identifier. *)
+  type 'a id
+
+  (** The function [new_global_elt_id ()] create a new HTML5 element identifier. *)
+  val new_global_elt_id : unit -> 'a id
+
+  (** The function [create_global elt] create a copy of the HTML5 node
+      [elt] that will be global. *)
+  val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 
 end
 

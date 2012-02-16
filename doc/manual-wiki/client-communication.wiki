@@ -34,9 +34,9 @@ let _ =
 	Dom_html.window##alert(Js.string ("pi = "^(float_of_string pi)))
       }};
       Lwt.return
-        (HTML5.M.html
-           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "pi")))
-           (HTML5.M.body [])))
+        (HTML5.html
+           (HTML5.head (HTML5.title (HTML5.pcdata "pi")))
+           (HTML5.body [])))
 >>
 
 Since client and server side value representation are not the same, it
@@ -76,9 +76,9 @@ let s =
     ~get_params:(caml "param" Json.t<another_type>)
     (fun () v ->
       Lwt.return
-        (HTML5.M.html
-           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")))
-           (HTML5.M.body [
+        (HTML5.html
+           (HTML5.head (HTML5.title (HTML5.pcdata "title")))
+           (HTML5.body [
 	     match v with
 	       | A _ -> pcdata "A"
 	       | B _ -> pcdata "B"
@@ -90,9 +90,9 @@ let _ =
     ~get_params:unit
     (fun () () ->
       Lwt.return
-        (HTML5.M.html
-           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")))
-           (HTML5.M.body [
+        (HTML5.html
+           (HTML5.head (HTML5.title (HTML5.pcdata "title")))
+           (HTML5.body [
 	     [p ~a:[a_onclick
                {{ ignore (Eliom_client.change_page ~service:%s (A (1,["s"])) ()) }}]
                [pcdata "Click to send Ocaml data"]

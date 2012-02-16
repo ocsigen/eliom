@@ -1,5 +1,5 @@
 
-(** {2 Creating links and forms with {!HTML5.M}} *)
+(** {2 Creating links and forms with {!HTML5}} *)
 
 type appl_service = [ `Appl ]
 type http_service = [ `Http ]

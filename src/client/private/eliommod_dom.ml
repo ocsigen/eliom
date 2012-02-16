@@ -84,53 +84,91 @@ let ancessor =
   then fast_ancessor
   else slow_ancessor
 
+let fast_select_request_nodes root =
+  root##querySelectorAll(Js.string ("."^Eliom_pervasives_base.RawXML.request_node_class))
+
 let fast_select_nodes root =
+  if !Eliom_config.debug_timings then
+    Firebug.console##time(Js.string "fast_select_nodes");
   let a_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##querySelectorAll(Js.string ("a."^Eliom_pervasives_base.RawXML.ce_call_service_class)) in
   let a_nodeList : Dom_html.anchorElement Dom.nodeList Js.t = Js.Unsafe.coerce a_nodeList in
   let form_nodeList : Dom_html.element Dom.nodeList Js.t =
     root##querySelectorAll(Js.string ("form."^Eliom_pervasives_base.RawXML.ce_call_service_class)) in
   let form_nodeList : Dom_html.formElement Dom.nodeList Js.t = Js.Unsafe.coerce form_nodeList in
-  let unique_nodeList = root##querySelectorAll(Js.string ("."^Eliom_pervasives_base.RawXML.unique_class)) in
+  let process_node_nodeList = root##querySelectorAll(Js.string ("."^Eliom_pervasives_base.RawXML.process_node_class)) in
   let closure_nodeList =
     root##querySelectorAll(Js.string ("."^Eliom_pervasives_base.RawXML.ce_registered_closure_class)) in
-  a_nodeList, form_nodeList, unique_nodeList, closure_nodeList
+  if !Eliom_config.debug_timings then
+    Firebug.console##timeEnd(Js.string "fast_select_nodes");
+  a_nodeList, form_nodeList, process_node_nodeList, closure_nodeList
 
 let slow_has_classes (node:Dom_html.element Js.t) =
   let classes = Js.str_array (node##className##split(Js.string " ")) in
   let found_call_service = ref false in
-  let found_unique = ref false in
+  let found_process_node = ref false in
   let found_closure = ref false in
   for i = 0 to (classes##length) - 1 do
     found_call_service := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.ce_call_service_class))
     || !found_call_service;
-    found_unique := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.unique_class))
-    || !found_unique;
+    found_process_node := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.process_node_class))
+    || !found_process_node;
     found_closure := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.ce_registered_closure_class))
     || !found_closure;
   done;
-  !found_call_service,!found_unique,!found_closure
+  !found_call_service,!found_process_node,!found_closure
+
+let slow_has_request_class (node:Dom_html.element Js.t) =
+  let classes = Js.str_array (node##className##split(Js.string " ")) in
+  let found_process_node = ref false in
+  for i = 0 to (classes##length) - 1 do
+    found_process_node := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.process_node_class))
+    || !found_process_node;
+  done;
+  !found_process_node
 
 let fast_has_classes (node:Dom_html.element Js.t) =
   Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.ce_call_service_class))),
-  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.unique_class))),
+  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.process_node_class))),
   Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.ce_registered_closure_class)))
+
+let fast_has_request_class (node:Dom_html.element Js.t) =
+  Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.request_node_class)))
 
 let has_classes : Dom_html.element Js.t -> (bool*bool*bool) =
   if test_classList ()
   then fast_has_classes
   else slow_has_classes
 
+let has_request_class : Dom_html.element Js.t -> bool =
+  if test_classList ()
+  then fast_has_request_class
+  else slow_has_request_class
+
+let slow_select_request_nodes (root:Dom_html.element Js.t) =
+  let node_array = jsnew Js.array_empty () in
+  let rec traverse (node:Dom.node Js.t) =
+    match node##nodeType with
+      | Dom.ELEMENT ->
+	let node = (Js.Unsafe.coerce node:Dom_html.element Js.t) in
+	if has_request_class node
+	then ignore (node_array##push(node));
+	iter_nodeList node##childNodes traverse
+      | _ -> ()
+  in
+  traverse (root:>Dom.node Js.t);
+  (Js.Unsafe.coerce node_array:Dom_html.element Dom.nodeList Js.t)
+
 let slow_select_nodes (root:Dom_html.element Js.t) =
   let a_array = jsnew Js.array_empty () in
   let form_array = jsnew Js.array_empty () in
-  let unique_array = jsnew Js.array_empty () in
+  let node_array = jsnew Js.array_empty () in
   let closure_array = jsnew Js.array_empty () in
   let rec traverse (node:Dom.node Js.t) =
     match node##nodeType with
       | Dom.ELEMENT ->
 	let node = (Js.Unsafe.coerce node:Dom_html.element Js.t) in
-	let call_service,unique,closure = has_classes node in
+	let call_service,process_node,closure = has_classes node in
 	begin
 	  if call_service
 	  then
@@ -139,8 +177,8 @@ let slow_select_nodes (root:Dom_html.element Js.t) =
 	      | Dom_html.Form e -> ignore (form_array##push(e))
 	      | _ -> error "%s element tagged as eliom link" (Js.to_string (node##tagName))
 	end;
-	if unique
-	then ignore (unique_array##push(node));
+	if process_node
+	then ignore (node_array##push(node));
 	if closure
 	then ignore (closure_array##push(node));
 	iter_nodeList node##childNodes traverse
@@ -149,13 +187,18 @@ let slow_select_nodes (root:Dom_html.element Js.t) =
   traverse (root:>Dom.node Js.t);
   (Js.Unsafe.coerce a_array:Dom_html.anchorElement Dom.nodeList Js.t),
   (Js.Unsafe.coerce form_array:Dom_html.formElement Dom.nodeList Js.t),
-  (Js.Unsafe.coerce unique_array:Dom_html.element Dom.nodeList Js.t),
+  (Js.Unsafe.coerce node_array:Dom_html.element Dom.nodeList Js.t),
   (Js.Unsafe.coerce closure_array:Dom_html.element Dom.nodeList Js.t)
 
 let select_nodes =
   if test_querySelectorAll ()
   then fast_select_nodes
   else slow_select_nodes
+
+let select_request_nodes =
+  if test_querySelectorAll ()
+  then fast_select_request_nodes
+  else slow_select_request_nodes
 
 (* createEvent for ie < 9 *)
 
@@ -253,17 +296,17 @@ let add_childrens (elt:Dom_html.element Js.t) (sons:Dom.node Js.t list) =
 (* END IE HACK *)
 
 let copy_element (e:Dom.element Js.t)
-    (registered_unique:(Js.js_string Js.t -> bool)): Dom_html.element Js.t =
+    (registered_process_node:(Js.js_string Js.t -> bool)): Dom_html.element Js.t =
   let rec aux (e:Dom.element Js.t) =
     let copy = Dom_html.document##createElement(e##tagName) in
-    let unique_id = Js.Opt.to_option
-      (e##getAttribute(Js.string Eliom_pervasives_base.RawXML.unique_attrib)) in
-    match unique_id with
-      | Some id when registered_unique id ->
+    let node_id = Js.Opt.to_option
+      (e##getAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib)) in
+    match node_id with
+      | Some id when registered_process_node id ->
 	Js.Opt.iter
 	  (e##getAttribute(Js.string "class"))
 	  (fun classes -> copy##setAttribute(Js.string "class",classes));
-	copy##setAttribute(Js.string Eliom_pervasives_base.RawXML.unique_attrib,id);
+	copy##setAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib,id);
 	Some copy
       | _ ->
         let add_attribute a =
@@ -289,7 +332,7 @@ let copy_element (e:Dom.element Js.t)
     | None -> error "copy_element"
     | Some e -> e
 
-let html_document (src:Dom.element Dom.document Js.t) registered_unique: Dom_html.element Js.t =
+let html_document (src:Dom.element Dom.document Js.t) registered_process_node: Dom_html.element Js.t =
   let content = src##documentElement in
   match Js.Opt.to_option (Dom_html.CoerceTo.element content) with
     | Some e ->
@@ -300,11 +343,11 @@ let html_document (src:Dom.element Dom.document Js.t) registered_unique: Dom_htm
 	    try Dom_html.document##importNode((e:>Dom.element Js.t),Js._true) with
 	      | exn ->
 		debug_exn "can't import node, copy instead" exn;
-		copy_element content registered_unique
+		copy_element content registered_process_node
       end
     | None ->
       debug "can't addopt node, document not parsed as html. copy instead";
-      copy_element content registered_unique
+      copy_element content registered_process_node
 
 (** CSS preloading. *)
 
@@ -429,9 +472,13 @@ let rec rewrite_css ~max (media, css) =
     css >>= function
     | _, None -> Lwt.return []
     | href, Some css ->
+        if !Eliom_config.debug_timings then
+          Firebug.console##time(Js.string ("rewrite_CSS: "^href));
 	lwt imports, css  =
 	  rewrite_css_import ~max ~prefix:(basedir href) ~media css 0
 	in
+	if !Eliom_config.debug_timings then
+          Firebug.console##timeEnd(Js.string ("rewrite_CSS: "^href));
 	Lwt.return (imports @ [(media,  css)])
   with e ->
     debug "Exc1: %s" (Printexc.to_string e);
@@ -498,7 +545,9 @@ let build_style (e, css, href) =
   Lwt.return (e, node)
 
 let preload_css (doc : Dom_html.element Js.t) =
-  lwt css = Lwt_list.map_p build_style (fetch_linked_css doc) in
+  if !Eliom_config.debug_timings then
+    Firebug.console##time(Js.string "preload_css (fetch+rewrite)");
+  lwt css = Lwt_list.map_p build_style (fetch_linked_css (get_head doc)) in
   List.iter (fun (e, css) ->
 	       try Dom.replaceChild (get_head doc) css e
 	       with _ ->
@@ -506,5 +555,6 @@ let preload_css (doc : Dom_html.element Js.t) =
 		       in a perfect settings we won't have parsed it... *)
 		 Firebug.console##debug(Js.string "Unique CSS skipped...");
 		 ()) css;
-  Firebug.console##timeEnd(Js.string "preload_css (fetch+rewrite)");
+  if !Eliom_config.debug_timings then
+    Firebug.console##timeEnd(Js.string "preload_css (fetch+rewrite)");
   Lwt.return ()

@@ -72,7 +72,7 @@ let form_handler = Eliom_output.String_redirection.register_new_post_coservice
      Eliom_state.set_volatile_session_data ~table:messages string;
      Eliom_output.Redirection.send login_form))
 
-open XHTML.M
+open XHTML
 let _ = Eliom_output.Xhtml.register
     ~service: login_form
     (fun _ _ ->

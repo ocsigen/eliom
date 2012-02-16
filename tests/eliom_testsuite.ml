@@ -406,6 +406,10 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a any_service [pcdata "Eliom_output.Any with Eliom_appl"] 1;
               br ();
+              a domnodes_timings [pcdata "Speed test for TyXMl nodes with dom semantics (previously known as unique node of scope request)"] (2,10);
+              br ();
+              a shared_dom_nodes [pcdata "Multiple occurences of unique nodes."] ();
+              br ();
             ];
             h4 [pcdata "Comet"];
             p [

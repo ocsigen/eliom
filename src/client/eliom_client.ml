@@ -33,9 +33,9 @@ let register_closure id (f : 'a -> Dom_html.event Js.t -> unit) =
   Hashtbl.add closure_table id (Obj.magic f : poly -> Dom_html.event Js.t -> unit)
 let find_closure = Hashtbl.find closure_table
 
-(* == Process nodes (a.k.a. nodes with a unique Dom instance on each client) *)
+(* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
-let (register_node, find_node) =
+let (register_process_node, find_process_node) =
   let process_nodes : Dom.node Js.t JsTable.t = JsTable.create () in
   let find id =
     Js.Optdef.bind
@@ -49,6 +49,15 @@ let (register_node, find_node) =
   in
   let register id node = JsTable.add process_nodes id node in
   (register, find)
+
+(* == Request nodes (a.k.a. nodes with a unique Dom instance in the current request) *)
+
+let (register_request_node, find_request_node, reset_request_node) =
+  let request_nodes : Dom.node Js.t JsTable.t ref = ref (JsTable.create ()) in
+  let find id = JsTable.find !request_nodes id in
+  let register id node = JsTable.add !request_nodes id node in
+  let reset () = request_nodes := JsTable.create () in
+  (register, find, reset)
 
 (* == Event *)
 
@@ -154,15 +163,35 @@ let form_handler =
       in
       Js.bool (raw_form_handler form kind (get_element_cookies_info form) ev))
 
-let relink_unique_node (node:Dom_html.element Js.t) =
+let relink_process_node (node:Dom_html.element Js.t) =
   let id = Js.Opt.get
-    (node##getAttribute(Js.string Eliom_pervasives_base.RawXML.unique_attrib))
+    (node##getAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib))
     (fun () -> error "unique node without id attribute") in
-  Js.Optdef.case (find_node id)
-    (fun () -> register_node id (node:>Dom.node Js.t))
+  Js.Optdef.case (find_process_node id)
+    (fun () -> register_process_node id (node:>Dom.node Js.t))
     (fun pnode ->
       Js.Opt.iter (node##parentNode)
         (fun parent -> Dom.replaceChild parent pnode node))
+
+let relink_request_node (node:Dom_html.element Js.t) =
+  let id = Js.Opt.get
+    (node##getAttribute(Js.string Eliom_pervasives_base.RawXML.node_id_attrib))
+    (fun () -> error "unique node without id attribute") in
+  Js.Optdef.case (find_request_node id)
+    (fun () -> register_request_node id (node:>Dom.node Js.t))
+    (fun pnode ->
+      Js.Opt.iter (node##parentNode)
+        (fun parent -> Dom.replaceChild parent pnode node))
+
+let relink_request_nodes root =
+  if !Eliom_config.debug_timings then
+    Firebug.console##time
+(Js.string "relink_request_nodes");
+  Eliommod_dom.iter_nodeList
+    (Eliommod_dom.select_request_nodes root)
+    relink_request_node;
+  if !Eliom_config.debug_timings then
+    Firebug.console##timeEnd(Js.string "relink_request_nodes")
 
 let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   let aux attr =
@@ -182,14 +211,14 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
   Eliommod_dom.iter_nodeList (node##attributes:>Dom.attr Dom.nodeList Js.t) aux
 
 let relink_page (root:Dom_html.element Js.t) event_handlers =
-  let (a_nodeList,form_nodeList,unique_nodeList,closure_nodeList) =
+  let (a_nodeList,form_nodeList,process_nodeList,closure_nodeList) =
     Eliommod_dom.select_nodes root in
   Eliommod_dom.iter_nodeList a_nodeList
     (fun node -> node##onclick <- a_handler);
   Eliommod_dom.iter_nodeList form_nodeList
     (fun node -> node##onsubmit <- form_handler);
-  Eliommod_dom.iter_nodeList unique_nodeList
-    relink_unique_node;
+  Eliommod_dom.iter_nodeList process_nodeList
+    relink_process_node;
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList
     (fun node -> relink_closure_node root onload event_handlers node);
@@ -202,6 +231,39 @@ let run_load_events on_load =
   ignore (List.for_all (fun f -> f load_evt) on_load)
 
 module Html5 = struct
+
+  (* Type for partially unwrapped elt. *)
+  type tmp_recontent =
+    (* arguments ('econtent') are already unwrapped. *)
+    | RELazy of XML.econtent Eliom_lazy.request
+    | RE of XML.econtent
+  type tmp_elt = {
+    (* to be unwrapped *)
+    tmp_elt : tmp_recontent;
+    tmp_node_id : XML.node_id;
+  }
+
+  let _ =
+    Eliom_unwrap.register_unwrapper
+      (Eliom_unwrap.id_of_int Eliom_pervasives_base.tyxml_unwrap_id_int)
+      (fun tmp_elt ->
+	let elt = match tmp_elt.tmp_elt with
+	  | RELazy elt -> Eliom_lazy.force elt
+	  | RE elt -> elt
+	in
+	(* Do not rebuild dom node while unwrapping, otherwise we
+	   don't have control on when "onload" event handlers are
+	   triggered. *)
+	match tmp_elt.tmp_node_id with
+	| XML.ProcessId process_id as id ->
+            Js.Optdef.case (find_process_node (Js.bytestring process_id))
+              (fun () -> XML.make ~id elt)
+              (fun elt -> XML.make_dom ~id elt)
+	| XML.RequestId request_id as id ->
+            Js.Optdef.case (find_request_node (Js.bytestring request_id))
+              (fun () -> XML.make ~id elt)
+              (fun elt -> XML.make_dom ~id elt)
+	| XML.NoId as id -> XML.make ~id elt)
 
   let rebuild_attrib node name a = match a with
     | XML.AFloat f -> Js.Unsafe.set node (Js.string name) (Js.Unsafe.inject f)
@@ -225,16 +287,28 @@ module Html5 = struct
 	node##setAttribute(Js.string (XML.aname ra), Js.string (String.concat "," l))
 
   let rec rebuild_node onload_acc elt =
-    match XML.get_unique_id elt with
-      | None -> raw_rebuild_node onload_acc (XML.content elt)
-      | Some id ->
+    match XML.get_node elt with
+    | XML.DomNode node ->
+        (* assert (XML.get_node_id node <> NoId); *)
+        node
+    | XML.TyXMLNode raw_elt ->
+        match XML.get_node_id elt with
+	| XML.NoId -> raw_rebuild_node onload_acc raw_elt
+	| XML.RequestId _ ->
+	    (* Do not look in request_nodes hashtbl: such elements have
+	       been bind while unwrapping nodes. *)
+            let node = raw_rebuild_node onload_acc raw_elt in
+	    XML.set_dom_node elt node;
+	    node
+	| XML.ProcessId id ->
 	  let id = (Js.string id) in
-	  Js.Optdef.case (find_node id)
+	  Js.Optdef.case (find_process_node id)
             (fun () ->
 	      let node = raw_rebuild_node onload_acc (XML.content elt) in
-	      register_node id node;
+	      register_process_node id node;
 	      node)
             (fun n -> (n:> Dom.node Js.t))
+
 
   and raw_rebuild_node onload_acc = function
     | XML.Empty
@@ -518,7 +592,9 @@ let broadcast_load_end _ =
   Lwt_condition.broadcast load_end ();
   true
 
-let load_eliom_data js_data (page:Dom_html.element Js.t) =
+let load_eliom_data js_data page =
+  if !Eliom_config.debug_timings then
+    Firebug.console##time(Js.string "load_eliom_data");
   loading_phase := true;
   let nodes_on_load =
     relink_page page js_data.Eliom_types.ejs_event_handler_table
@@ -537,6 +613,8 @@ let load_eliom_data js_data (page:Dom_html.element Js.t) =
   let unload_evt = Eliommod_dom.createEvent (Js.string "unload") in
   on_unload_scripts :=
     [fun () -> List.for_all (fun f -> f unload_evt) on_unload];
+  if !Eliom_config.debug_timings then
+    Firebug.console##timeEnd(Js.string "load_eliom_data");
   add_onclick_events :: on_load @ nodes_on_load @ [broadcast_load_end]
 
 let load_eliom_data js_data page =
@@ -572,7 +650,11 @@ let get_data_script page =
 
 let load_data_script data_script =
   let script = data_script##text in
+  if !Eliom_config.debug_timings then
+    Firebug.console##time(Js.string "load_data_script");
   ignore (Js.Unsafe.eval_string (Js.to_string script));
+  if !Eliom_config.debug_timings then
+    Firebug.console##timeEnd(Js.string "load_data_script");
   ( Eliom_request_info.get_request_data (),
     Eliom_request_info.get_request_cookies ())
 
@@ -584,12 +666,16 @@ let scroll_to_fragment fragment =
       let elem = Dom_html.document##getElementById(Js.string fragment) in
       Js.Opt.iter elem scroll_to_element
 
-let registered_unique id = Js.Optdef.test (find_node id)
+let registered_process_node id = Js.Optdef.test (find_process_node id)
 
 let set_content ?uri ?fragment = function
   | None -> Lwt.return ()
   | Some content ->
+    if !Eliom_config.debug_timings then
+      Firebug.console##time(Js.string "set_content");
     try_lwt
+      if !Eliom_config.debug_timings then
+        Firebug.console##time(Js.string "set_content_beginning");
       chrome_dummy_popstate := false;
       ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
       on_unload_scripts := [];
@@ -598,21 +684,38 @@ let set_content ?uri ?fragment = function
 	| Some uri, Some fragment ->
 	  change_url_string (uri ^ "#" ^ fragment)
 	| _ -> ());
-      let fake_page = Eliommod_dom.html_document content registered_unique in
+      let fake_page = Eliommod_dom.html_document content registered_process_node in
+      if !Eliom_config.debug_timings then
+        ( Firebug.console##timeEnd(Js.string "set_content_beginning");
+          Firebug.console##debug(Js.string ("loading: " ^ Js.to_string Dom_html.window##location##href)) );
       let preloaded_css = Eliommod_dom.preload_css fake_page in
+      relink_request_nodes fake_page;
       let js_data, cookies = load_data_script (get_data_script fake_page) in
       Eliommod_cookies.update_cookie_table cookies;
       let on_load = load_eliom_data js_data fake_page in
+      (* The request node table must be empty when node received
+	 via call_caml_service are unwrapped. *)
+      reset_request_node ();
       lwt () = preloaded_css in
+      if !Eliom_config.debug_timings then
+        Firebug.console##time(Js.string "replace_child");
       Dom.replaceChild Dom_html.document
         fake_page
 	Dom_html.document##documentElement;
+      if !Eliom_config.debug_timings then
+        ( Firebug.console##timeEnd(Js.string "replace_child");
+          Firebug.console##time(Js.string "set_content_end") );
       run_load_events on_load;
       iter_option (fun uri -> scroll_to_fragment (snd (Url.split_fragment uri))) uri;
+      if !Eliom_config.debug_timings then
+        ( Firebug.console##timeEnd(Js.string "set_content_end");
+          Firebug.console##timeEnd(Js.string "set_content") );
       Lwt.return ()
     with
       | e ->
         debug_exn "set_content: exception raised: " e;
+	if !Eliom_config.debug_timings then
+          Firebug.console##timeEnd(Js.string "set_content");
         raise_lwt e
 
 let change_page

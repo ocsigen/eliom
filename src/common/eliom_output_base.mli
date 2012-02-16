@@ -20,7 +20,13 @@
 
 open Eliom_pervasives
 
-module Html5_forms : "sigs/eliom_html5_forms.mli"
+module Html5_forms : sig
+
+  include "sigs/eliom_html5_forms.mli"
+  module DOM : "sigs/eliom_html5_forms.mli"
+  module M : "sigs/eliom_html5_forms.mli"
+
+end
 
 type appl_service = [ `Appl ]
 type http_service = [ `Http ]

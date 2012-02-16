@@ -132,15 +132,7 @@ end
     concrete instance see {!Html5}, {!Xhtml} or {!HtmlText}. *)
 module type Forms = "sigs/eliom_forms.mli"
 
-(** {2 Using HTML5.M with services } *)
-
-(** Eliom service registration and forms creation for HTML5 page. This
-    an instance of both the {!modtype:Registration} and {!Forms} abstract
-    signatures. *)
-module Html5 : sig
-  include "sigs/eliom_html5_reg.mli"
-  include "sigs/eliom_html5_forms.mli"
-end
+(** {2 Using HTML5 with services } *)
 
 (** Eliom service registration for services that returns HTML5
     page. This is a subset of the {!Html5} module and an instance of
@@ -150,9 +142,30 @@ module Html5_registration : "sigs/eliom_html5_reg.mli"
 (** Eliom forms creation for HTML5. This is a subset of the {!Html5}
     module and an instance of the {!Forms} abstract
     signature. *)
-module Html5_forms : "sigs/eliom_html5_forms.mli"
+module Html5_forms : sig
 
-(** {2 Using XHTML.M with services } *)
+  (** {2 Dom semantics} *)
+
+  module DOM : "sigs/eliom_html5_forms.mli"
+  include "sigs/eliom_html5_forms.mli"
+
+  (** {2 Functional semantics} *)
+
+  module M : "sigs/eliom_html5_forms.mli"
+
+end
+
+(** Eliom service registration and forms creation for HTML5 page. This
+    an instance of both the {!modtype:Registration} and {!Forms} abstract
+    signatures. *)
+module Html5 : sig
+  module DOM : "sigs/eliom_html5_forms.mli"
+  module M : "sigs/eliom_html5_forms.mli"
+  include "sigs/eliom_html5_reg.mli"
+  include "sigs/eliom_html5_forms.mli"
+end
+
+(** {2 Using XHTML with services } *)
 
 (** Eliom service registration and forms creation for XHTML page. This
     an instance of both the {!Registration} and {!Forms} abstract
@@ -212,7 +225,7 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
       that represents the javascript part of the application. If you
       do not include this script in the [<head>] node of your page, it
       will be automaticaly added at the end of the [<head>] node. *)
-  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.M.elt
+  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.elt
 
   (** Unique identifier for this application. Currently, it is just
       the application name as defined by {!Appl_params.application_name}.
@@ -228,7 +241,7 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
   type appl
 
   include "sigs/eliom_reg.mli"
-  subst type page    := HTML5_types.html HTML5.M.elt
+  subst type page    := HTML5_types.html HTML5.elt
     and type options := appl_service_options
     and type return  := appl_service
     and type result  := (appl application_content, appl_service) kind
@@ -245,14 +258,14 @@ end
     fragment.
 *)
 module Flow5 : "sigs/eliom_reg.mli"
-  subst type page    := HTML5_types.flow5 HTML5.M.elt list
+  subst type page    := HTML5_types.flow5 HTML5.elt list
   and type options := unit
   and type return  := http_service
   and type result  := (block_content, http_service) kind
 
 (** Deprecated alias for {!Flow5}. *)
 module Blocks5 : "sigs/eliom_reg.mli"
-  subst type page    := HTML5_types.flow5 HTML5.M.elt list
+  subst type page    := HTML5_types.flow5 HTML5.elt list
   and type options := unit
   and type return  := http_service
   and type result  := (block_content, http_service) kind

@@ -120,7 +120,7 @@ an implicit {{{_ev}}} variable represent the javascript <<a_api
 project="js_of_ocaml" text="event object" | type Dom_html.event >>.
 On client side, this specific syntax is not required: function like
 <<a_api subproject="client" text="a_onclick"|
-val Eliom_pervasives.HTML5.M.a_onclick >> expect a function of type
+val Eliom_pervasives.HTML5.a_onclick >> expect a function of type
 {{{#Dom_html.event -> unit}}} as parameter.
 
 ====@@id="syntax%"@@ Using server side values on client side
@@ -251,25 +251,34 @@ and always leave the application.
 
 == Generating HTML for Eliom applications
 
-On client side there are two kinds of HTML representations: Tyxml HTML tree and
-the browser DOM. Tyxml representation is a Ocaml immutable typed tree. The DOM
-tree is mutable structure manipulated using the browser API which permit the
-modification of the displayed page. It is not a tree (node reference their
-ancessor), adding a node as a child to an other node removes it from its
-previous ancessor.
+=== The TyXML library vs. the DOM API
 
-Since those representation does not behave at all the same way, they are not
-used for the same thing.
+On client side there are two kinds of HTML representations: one is
+based on the <<a_manual project="tyxml"|TyXML library>> and the other
+one is the browser DOM tree accessible through Js_of_ocaml modules
+<<a_api project="js_of_ocaml"| module Dom>> and <<a_api
+project="js_of_ocaml"| module Dom_html>>. The TyXML representation is
+a OCaml immutable typed tree. The DOM tree is mutable structure
+manipulated using the browser API which permit the modification of the
+displayed page. In the DOM represention adding a node as a child to an
+other node removes it from its previous ancessor.
 
- * it is far easier and safer ( typed ) to describe content using tyxml, but it
-is not possible to add a tyxml node to the page directly. It has the same
-interface on client and server side: see
-<<a_api project="eliom" subproject="server" | module Eliom_pervasives.HTML5.M >>
+Since those representation does not behave at all the same way, they
+are not used for the same thing.
 
- * Dom manipulation is heavy: to build some part of a tree, one needs to
-create each node separately then append them to their parents.
+* It is far easier and safer to describe content using TyXML, but it
+   is not possible to add a TyXML element to the page without explicit
+   conversion to the DOM representation.
 
-Using HTML5:
+* The TyXML representation has the same interface on client and server
+  side. This allows share code between server and client.
+
+* Dom manipulation is heavy: to build some part of a tree, one needs
+  to create each node separately then append them to their parents.
+
+For example, here is a {{{div}}} element build with TyXML and then
+converted to the DOM representation using the module << a_api
+subproject="client" | module Eliom_client.Html5 >>:
 
 <<code language="ocaml"|
 open HTML5.M
@@ -277,9 +286,10 @@ let n = div ~a:[a_id "some div id"]
   [ pcdata "some text";
     br ();
     pcdata "some other text"; ]
+let b = Eliom_client.Html5.of_div n
 >>
 
-Using DOM:
+And here the same build using the DOM API:
 
 <<code language="ocaml"|
 open Dom
@@ -296,186 +306,156 @@ let b = createB document in
   d
 >>
 
-but converting from HTML5 to dom is possible:
+===@@id="unique"@@ HTML5 element manipulation, by value and by reference
+
+<<wip| This section describes features available since version 2.1 of
+       Eliom. >>
+
+When defining a service that returns an HTML5 page with Eliom we
+usually use the module {{{HTML5.M}}}. When programming client/server
+application with Eliom, we usualy prefer to use the module
+{{{HTML5.DOM}}} or its shorter alias {{{HTML5}}}. This is because
+elements build with {{{HTML5.DOM}}} are sent to the client by
+reference while elements build with {{{HTML5.M}}} are sent by value.
+
+Sending elements by reference allows to easily manipulate elements
+included in the initial html document from event handlers, as the
+{{{input}}} element in the following example.
 
 <<code language="ocaml"|
-open HTML5.M
-let n = div ~a:[a_id "some div id"]
-  [ pcdata "some text";
-    br ();
-    pcdata "some other text"; ]
-let b = Eliom_client.Html5.of_div n
+let main_service =
+  My_appl.register_service ~path:[""] ~get_params:Eliom_parameters.unit
+    (fun () () ->
+       let open HTML5.DOM in
+       let input = input ~a:[a_input_type `Text] () in
+       let onclick_handler =
+	 {{ let v =
+	      Js.to_string (Eliom_client.Html5.of_input %input)##value
+	    in
+	    Dom_html.window##alert(Js.string ("Input value :" ^ v)) }}
+       in
+       let button =
+         button ~a:[a_onclick onclick_handler] [pcdata "Read value"]
+       in
+       Lwt.return
+         (html
+	    (head (title (pcdata "Test")) [])
+            (body [input; button]) ) )
 >>
 
-will build exactly the same thing as the node build using dom functions.
+In this example, if the input button would have been incorrectly sent
+by value, two different input fields would have been created: one
+displayed in the document and one referenced from the event
+handler. The latter will always contains an empty value.
 
-===@@id="unique"@@ HTML5 manipulation, by value and by reference
+There is still two situations where sending elements by value is still
+required:
 
-Notice that, since {{{ Eliom_client.Html5.of_div n }}} is building a new dom
-node from a Tyxml tree, using
-<<code language="ocaml"|
-let b1 = Eliom_client.Html5.of_div n
-let b2 = Eliom_client.Html5.of_div n
->>
-{{{ b1 }}} and {{{ b2 }}} will be different nodes ( {{{ b1 == b2 }}} will be
-{{{ false }}} ).
+* one want to have multiple occurences of the same elements in the
+  document. Indeed, elements sent by reference follow the DOM
+  semantics where an element have only one instance in current
+  document. For example, the following list will contains a single
+  element:\\ \\ {{{let li = li [pcdata "Shared item"] in ul [li; li; li;] }}}.
 
-Which means that
-<<code language="ocaml"|
-let _ = My_appl.register_service ~path:[] ~get_params:unit
-  (fun () () ->
-    let div = HTML5.M.div [] in
-    Eliom_services.onload {{
-      Dom.appendChild
-        (Eliom_client.Html5.of_div %div)
-        (Dom_html.document##createTextNode(Js.string "some text"))
-    }};
-    Lwt.return
-      (HTML5.M.html
-         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")) [])
-         (HTML5.M.body [div])))
->>
-won't work as expected: the page will remain blank. The node
-{{{(Eliom_client.Html5.of_div %div)}}} is completely unrelated to {{{ div }}},
-it is just a div node without parent.
+* one have a large page with a lot elements. Handling elements by
+  references add a small overhead while loading the page, around 50ms
+  per 1000 elements on a not so fast computer.
 
-To be able to do something similar, one needs to manipulate node 'by reference'
-as opposed to 'by value' as we have seen until now.
+In every case, it is possible to mix elements sent by references and
+elements sent by value in the same document.
 
-To do that we use the <<a_api project="eliom" | val Eliom_pervasives.HTML5.M.unique >> function:
-<<code language="ocaml"|
-val unique: ?copy:'a elt -> 'a elt -> 'a elt
->>
-It create a new element that is manipulated 'by reference'. It is called
-{{{unique}}} because the the created element can only appear one time in the page:
-If it is added multiple times in a page, it will move from a place to another.
+===@@id="global"@@Global elements of an application
+
+Sometimes you may want to modify the content of an HTML element and to
+keep the element and its modified content when changing page. For
+examplem a {{{div}}} element which contains a chat box or a music
+player should be preserved while browsing across the different page of
+your site. For purpose Eliom provides a notion of global element. Such
+elements are instantied only once for an application and that unique
+instance is used in every page that references the element.
+
+You could create a global element with the function <<a_api
+subproject="client" text="HTML5.create_global_elt"| val
+Eliom_pervasives.HTML5.create_global_elt >>.
 
 <<code language="ocaml"|
-let _ = My_appl.register_service ~path:[] ~get_params:unit
-  (fun () () ->
-    let div = HTML5.M.unique HTML5.M.div [] in
-    Eliom_services.onload {{
-      Dom.appendChild
-        (Eliom_client.Html5.of_div %div)
-        (Dom_html.document##createTextNode(Js.string "some text"))
-    }};
-    Lwt.return
-      (HTML5.M.html
-         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "title")) [])
-         (HTML5.M.body [div])))
+val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 >>
 
-Is the correct way to do this: the div in the page body will finally contain
-{{{[div [pcdata "some text"]}}}.
-
-References to unique elements are still valid after page change
-( when not stopping the application ), and side effects on them are kept.
-
-For example:
-<<code language="ocaml"|
-let div = HTML5.M.unique HTML5.M.div []
-
-let s1 = My_appl.register_service ~path:["s1"] ~get_params:unit
-  (fun () () ->
-    Lwt.return
-      (HTML5.M.html
-         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "s1")) [])
-         (HTML5.M.body [div])))
-
-let s2 = My_appl.register_service ~path:["s2"] ~get_params:unit
-  (fun () () ->
-    Eliom_services.onload {{
-      Dom.appendChild
-        (Eliom_client.Html5.of_div %div)
-        (Dom_html.document##createTextNode(Js.string "some text"))
-    }};
-    Lwt.return
-      (HTML5.M.html
-         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "s2")) [])
-         (HTML5.M.body [
-            Eliom_output.Html5.a ~service:s1 [HTML5.M.pcdata "change page to s1"] ();
-            div])))
->>
-
-When going direcly to the service s1, the page contains only a div element. But
-if one goes to s2 then clicks on the link to go to s1, the unique {{{div}}}
-element will still contains the text added to it in s2: its dom node is the
-same on both pages.
-
-Note that when you are defining some form input on server side for use with
-client side script interraction, you almost always want to define it as unique.
-For instance here
-<<code language="ocaml"|
-let input = HTML5.M.unique (HTML5.M.input ()) in
-
-let read = HTML5.M.button
-  ~a:[HTML5.M.a_onclick
-         {{
-           let input = Eliom_client.Html5.of_input %input in
-           Dom_html.window##alert (input##value)
-         }}
-     ]
-  [HTML5.M.pcdata "display input value"] in
->>
-without unique a new input element would be created each time the button is clicked.
-
-Unique cannot be used on pcdata nodes: to manipulate it you need to
-reference the ancessor of the pcdata node.
-
-==== Unique Scripts
-
-When a page is loaded all the script elements in the header are run. When
-changing page without leaving the application, they are run another time if
-they are still present. But is is not always the wanted behaviour. For
-instance, if you use some javascript library, you don't want its code to be
-executed multiple times. To achieve this, you have to declare those scripts
-elements as unique.
+In the following example, the content of {{{global_list}}} will be
+preserved when you click on the "reload page" link.
 
 <<code language="ocaml"|
-let unique_script = HTML5.M.unique
-  (HTML5.M.script (HTML5.M.cdata_script "alert(\"unique script\")"))
-let non_unique_script = HTML5.M.script (HTML5.M.cdata_script "alert(\"non unique script\")")
+{shared{
+open HTML5
+}}
 
-let s =
+let global_list = create_global_elt (ul [])
+let cpt = ref 0
+
+let main_service =
   Eliom_services.service
-    ~path:[]
-    ~get_params:Eliom_parameters.unit
+    ~path:[""] ~get_params:Eliom_parameters.unit
     ()
 
-let _ = My_appl.register
+let reload_link =
+  Eliom_output.Html5.a ~service:main_service [pcdata "reload page"] ()
+
+let _ =
+  My_appl.register ~service:main_service
+    (fun () () ->
+       let page_number = incr cpt; string_of_int !cpt in
+       let append_item =
+	 {{ let item_text = "item inserted in page #" ^ %page_number in
+	    let item = Eliom_client.Html5.of_li (li [pcdata item_text]) in
+	    Dom.appendChild (Eliom_client.Html5.of_ul %global_list) item }}
+       in
+       let append_link =
+         a ~a:[a_onclick append_item] [pcdata "append item"]
+       in
+       Lwt.return
+         (html
+	    (head (title (pcdata "Test")) [])
+            (body [h1 [pcdata ("Page #" ^ page_number)];
+	           p [append_link];
+		   p [reload_link];
+		   global_list]) ) )
+>>
+
+Another use of global element is for external javascript that should
+be included in every page but must be executed only once in an
+application. In the following code snippet, the alert "global script"
+is displayed only once, while the alert "non global script" is display
+every time you click on the "reload page" link.
+
+<<code language="ocaml"|
+open HTML5
+
+let global_script =
+  create_global_elt
+    (script (cdata_script "alert(\"global script\")"))
+let simple_script =
+     script (cdata_script "alert(\"non global script\")")
+
+let main_service =
+  Eliom_services.service
+     ~path:[] ~get_params:Eliom_parameters.unit ()
+
+let reload_link =
+  Eliom_output.Html5.a ~service:main_service [pcdata "reload page"] ()
+
+let _ = My_appl.register ~service:main_service
   (fun () () ->
     Lwt.return
-      (HTML5.M.html
-         (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "s2"))
-	   [unique_script;non_unique_script])
-         (HTML5.M.body [
-	   Eliom_output.Html5.a ~service:s [HTML5.M.pcdata "reload page"] ()])))
+      (html
+         (head
+	   (title (pcdata "Global script example"))
+	   [ global_script;
+	     simple_script ])
+         (body
+	   [ p [reload_link] ])))
 >>
 
-On the first load of the page both messages {{{unique script}}} and
-{{{non unique script}}} will be displayed and when clicking on the
-"reload page" link, only {{{non unique script}}} will be displayed.
-
-==== Unique with generated content
-
-Sometimes you want to mark unique some nodes wich content is
-generated, for instance you could have a div containing with the user
-name which could be changed.
-
-To achieve that you can use the ability for multiple unique node to be
-defined as the same reference:
-<<code language="ocaml"|
-let base = HTML5.M.unique (HTML5.M.div [])
-
-...
-
-let userdiv = HTML5.M.unique ~copy:base (HTML5.M.div [pcdata user_name]) in
-...
->>
-
-When {{{userdiv}}} is included in the page, its content will be the
-{{{[pcdata user_name]}}}, but after that, modifying its node can be
-done using either {{{userdiv}}} or {{{base}}}.
 
 == Using Eliom on client side
 

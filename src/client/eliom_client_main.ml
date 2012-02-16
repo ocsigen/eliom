@@ -26,13 +26,21 @@ let _b = Eliom_comet.force_link
 let _c = Eliom_bus.force_link
 
 let onload ev =
+  if !Eliom_config.debug_timings then
+    Firebug.console##time(Js.string "onload");
   Eliommod_cookies.update_cookie_table (Eliom_request_info.get_request_cookies ());
   ignore (lwt () = Lwt_js.sleep 0.001 in
+	  Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
 	  let on_load =
 	    Eliom_client.load_eliom_data
 	      (Eliom_request_info.get_request_data ())
 	      (Dom_html.document##documentElement) in
+	  (* The request node table must be empty when node received
+	     via call_caml_service are unwrapped. *)
+	  Eliom_client.reset_request_node ();
 	  Lwt.return (List.for_all (fun f -> f ev) on_load));
+  if !Eliom_config.debug_timings then
+    Firebug.console##timeEnd(Js.string "onload");
   Js._false
 
 let _ =

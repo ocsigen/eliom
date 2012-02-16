@@ -54,7 +54,7 @@ FILES := eliom_unwrap.ml eliom_lazy.ml \
 	 eliom_bus.ml \
 	 eliom_react.ml \
 
-INTF_NOP4 := eliom_pervasives.mli \
+INTF_NOP4 :=
 
 eliom_client.cma: eliom_client_stubs.o ${FILES:.ml=.cmo}
 	${OCAMLMKLIB} -o ${@:.cma=} $^
