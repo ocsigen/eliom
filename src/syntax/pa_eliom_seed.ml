@@ -319,7 +319,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     (* Extending syntax *)
     EXTEND Gram
-    GLOBAL: str_item expr str_items;
+    GLOBAL: str_item expr module_expr module_binding0;
 
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
@@ -370,13 +370,29 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 		    "The syntax {{ ... }} is only allowed inside server specific code"
 	 ]];
       dummy_set_level_module_expr:
-	[[ -> let old = !current_level in
-              current_level := Module_expr;
-              old ]];
+	[[ -> match !current_level with
+              | Client_expr -> Client_expr
+              | old ->
+                 current_level := Module_expr;
+                 old ]];
 
-      str_items: FIRST
-	[[ lvl = dummy_set_level_module_expr;
-	   me = SELF -> current_level := lvl; me ]];
+      (* str_items: FIRST *)
+	(* [[ lvl = dummy_set_level_module_expr; *)
+	   (* me = SELF -> current_level := lvl; me ]]; *)
+
+      (* Duplicated from camlp4/Camlp4Parsers/Camlp4OCamlRevisedParser.ml *)
+      module_expr: BEFORE "top"
+	[[ "functor"; "("; i = a_UIDENT; ":"; t = module_type; ")"; "->";
+            lvl = dummy_set_level_module_expr;
+            me = SELF ->
+            current_level := lvl; <:module_expr< functor ( $i$ : $t$ ) -> $me$ >> ]];
+
+      (* Duplicated from camlp4/Camlp4Parsers/Camlp4OCamlRevisedParser.ml *)
+      module_binding0: FIRST
+      [ RIGHTA
+        [ "("; m = a_UIDENT; ":"; mt = module_type; ")";
+          lvl = dummy_set_level_module_expr; mb = SELF ->
+            current_level := lvl; <:module_expr< functor ( $m$ : $mt$ ) -> $mb$ >> ]];
 
 
       (* To str_item we add {client{ ... }}, {server{ ... }} and {shared{ ... }} *)
