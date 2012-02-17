@@ -198,8 +198,8 @@ let relink_closure_node root onload table (node:Dom_html.element Js.t) =
     if attr##value##substring(0,Eliom_pervasives_base.RawXML.closure_attr_prefix_len) =
       Js.string Eliom_pervasives_base.RawXML.closure_attr_prefix
     then
-      let cid = int_of_string (Js.to_string (attr##value##substring_toEnd(
-	Eliom_pervasives_base.RawXML.closure_attr_prefix_len))) in
+      let cid = Js.to_bytestring (attr##value##substring_toEnd(
+	Eliom_pervasives_base.RawXML.closure_attr_prefix_len)) in
       let (id,args) = XML.ClosureMap.find cid table in
       let closure = raw_event_handler id args in
       if attr##name = Js.string "onload" then

@@ -127,7 +127,7 @@ module XML : sig
   type attrib
 
   type -'a caml_event_handler =
-    | CE_registered_closure of int * ((#Dom_html.event as 'a) Js.t -> unit) client_expr
+    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) client_expr
     | CE_client_closure of ('a Js.t -> unit)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (bool * string list) option) option Eliom_lazy.request
@@ -223,7 +223,7 @@ module XML : sig
   val get_node : elt -> node
   val set_dom_node : elt -> Dom.node Js.t -> unit
 
-  module ClosureMap : Map.S with type key = int
+  module ClosureMap : Map.S with type key = string
   type event_handler_table = ((poly -> unit) client_expr) ClosureMap.t
 
 end

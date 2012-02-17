@@ -191,6 +191,11 @@ module XML = struct
   let lazy_node ?(a = []) name children =
     make_lazy (Eliom_lazy.from_fun (fun () -> (Node (name, a, Eliom_lazy.force children))))
 
+  let event_handler_of_js id args =
+    let closure_id = String.make_cryptographic_safe () in
+    CE_registered_closure (closure_id, (id, args))
+  let event_of_js = event_handler_of_js
+
   let cdata s = (* GK *)
     (* For security reasons, we do not allow "]]>" inside CDATA
        (as this string is to be considered as the end of the cdata)
@@ -233,8 +238,8 @@ module XML = struct
   (** Ref tree *)
 
   let cons_attrib att acc = match racontent att with
-    | RACamlEventHandler (CE_registered_closure (id, client_expr)) ->
-      ClosureMap.add id client_expr acc
+    | RACamlEventHandler (CE_registered_closure (closure_id, client_expr)) ->
+      ClosureMap.add closure_id client_expr acc
     | _ -> acc
 
   let make_event_handler_table elt =
@@ -261,7 +266,7 @@ module XML = struct
 	    (v@acc_class,acc_attr)
 	  | _ -> failwith "attribute class is not a string"
       end
-    | _, RACamlEventHandler (CE_registered_closure _) as attr ->
+    | _, RACamlEventHandler (CE_registered_closure (closure_id, _)) as attr ->
       (ce_registered_closure_class::acc_class,attr::acc_attr)
     | _, RACamlEventHandler (CE_call_service link_info) ->
       begin

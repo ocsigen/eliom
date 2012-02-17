@@ -51,7 +51,7 @@ module RawXML = struct
   type cookie_info = (bool * string list) deriving (Json)
 
   type -'a caml_event_handler =
-    | CE_registered_closure of int * ((#Dom_html.event as 'a) Js.t -> unit) client_expr
+    | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) client_expr
     | CE_client_closure of ('a Js.t -> unit) (* Client side-only *)
     | CE_call_service of
 	([ `A | `Form_get | `Form_post] * (cookie_info option)) option Eliom_lazy.request
@@ -69,17 +69,12 @@ module RawXML = struct
   let string_of_event_handler = function
     | Raw s -> s
     | Caml _ -> "/* Invalid Caml value */"
-  let event_handler_of_js id args =
-    let closure_id = Random.bits () in
-    CE_registered_closure (closure_id, (id, args))
-
   let event_handler_of_service info = Caml (CE_call_service info)
 
   (* Deprecated alias. *)
   let event_of_service = event_handler_of_service
   let event_of_string = event_handler_of_string
   let string_of_handler = string_of_event_handler
-  let event_of_js = event_handler_of_js
 
   let ce_registered_closure_class = "caml_closure"
   let ce_call_service_class = "caml_link"
@@ -107,8 +102,8 @@ module RawXML = struct
   let aname (name, _) = name
   let acontent = function
     | _, RA a -> a
-    | _, RACamlEventHandler (CE_registered_closure (id,_)) ->
-      AStr (closure_attr_prefix^(string_of_int id))
+    | _, RACamlEventHandler (CE_registered_closure (closure_id,_)) ->
+      AStr (closure_attr_prefix^closure_id)
     | _, RACamlEventHandler _ -> AStr ("")
     | _, RALazyStr str -> AStr (Eliom_lazy.force str)
     | _, RALazyStrL (sep, str) -> AStrL (sep, List.map Eliom_lazy.force str)
@@ -134,7 +129,7 @@ module RawXML = struct
     | ProcessId of string
     | RequestId of string
 
-  module ClosureMap = Map.Make(struct type t = int let compare = compare end)
+  module ClosureMap = Map.Make(struct type t = string let compare = compare end)
 
   type event_handler_table = ((unit -> unit) client_expr) ClosureMap.t
 
