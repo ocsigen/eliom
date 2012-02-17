@@ -8,6 +8,7 @@ let usage () =
   Printf.eprintf "  -dir <dir>\t\tThe default directory for generated files (default %S or %S)\n"
      default_client_dir default_server_dir;
   Printf.eprintf "  -package <name>\tRefer to package when compiling\n";
+  Printf.eprintf "  -ppopt <p>\tAppend option <opt> to preprocessor invocation\n";
   Printf.eprintf "  -predicates <p>\tAdd predicate <p> when resolving package properties\n";
   Printf.eprintf "  -verbose\t\tPrint calls to external commands\n";
   create_filter !compiler ["-help"] (help_filter 2 "STANDARD OPTIONS:");

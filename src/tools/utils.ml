@@ -73,6 +73,8 @@ let js_of_ocaml = ref "js_of_ocaml"
 
 let compiler = ref ocamlc
 
+let ppopt : string list ref = ref []
+
 let get_predicates () = match !kind with
   | `Server -> ["mt"; "byte"] @ !predicates
   | `Client -> ["byte"] @ !predicates
@@ -142,8 +144,8 @@ let get_client_js () =
     exit 1
 
 let get_pp opt = match !pp with
-  | None -> ["-pp"; String.concat " " ("camlp4" :: get_common_syntax () @ opt)]
-  | Some pp -> ["-pp"; pp ^ " " ^ String.concat " " (get_common_syntax () @ opt)]
+  | None -> ["-pp"; String.concat " " ("camlp4" :: !ppopt @ get_common_syntax () @ opt)]
+  | Some pp -> ["-pp"; pp ^ " " ^ String.concat " " (!ppopt @ get_common_syntax () @ opt)]
 
 let get_thread_opt () = match !kind with
   | `Client -> []

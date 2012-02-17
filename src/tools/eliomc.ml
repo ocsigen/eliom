@@ -6,7 +6,7 @@ open Utils
 let usage () =
   Printf.eprintf "Usage: %s <options> <files>\n" (Filename.basename Sys.argv.(0));
   Printf.eprintf "SPECIFIC OPTIONS:\n";
-  Printf.eprintf "  -dir <dir>\t\tThe default directory for generated files (default %S)\n"
+  Printf.eprintf "  -dir <dir>\t\tThe directory for generated files (default %S)\n"
     (if !kind = `Client then default_client_dir else default_server_dir);
   if !kind =  `Server || !kind = `ServerOpt then begin
     Printf.eprintf "  -infer\t\tOnly infer the type of values sent by the server\n";
@@ -28,7 +28,6 @@ let usage () =
 (** Context *)
 
 let jsopt : string list ref = ref []
-let ppopt : string list ref = ref []
 let output_name : string option ref = ref None
 let noinfer = ref false
 
@@ -114,10 +113,6 @@ let build_shared () =
   create_process !compiler ( ["-shared" ; "-o"  ; get_product_name () ]
 			     @ get_common_include ()
 			     @ !args )
-
-let get_pp opt = match !pp with
-  | None -> ["-pp"; String.concat " " ("camlp4" :: !ppopt @ get_common_syntax () @ opt)]
-  | Some pp -> ["-pp"; pp ^ " " ^ String.concat " " (!ppopt @ get_common_syntax () @ opt)]
 
 let get_thread_opt () = match !kind with
   | `Client -> []
