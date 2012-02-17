@@ -63,7 +63,6 @@ install.man: install.META
 	$(INSTALL) -m 755 files/eliomc.1 $(TEMPROOT)$(MANDIR)/man1
 	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/js_of_eliom.1
 	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomopt.1
-	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomdoc.1
 	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomcp.1
 	ln -s eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomdep.1
 	${MAKE} -C server install
@@ -93,6 +92,11 @@ uninstall:
 	${MAKE} -C tools uninstall
 	${OCAMLFIND} remove ${PROJECTNAME} \
 	   -destdir $(TEMPROOT)${LIBDIR}
+	rm -f $(TEMPROOT)$(MANDIR)/man1/eliomc.1
+	rm -f $(TEMPROOT)$(MANDIR)/man1/js_of_eliom.1
+	rm -f $(TEMPROOT)$(MANDIR)/man1/eliomopt.1
+	rm -f $(TEMPROOT)$(MANDIR)/man1/eliomcp.1
+	rm -f $(TEMPROOT)$(MANDIR)/man1/eliomdep.1
 
 reinstall: uninstall install
 reinstall.byte: uninstall install.byte
