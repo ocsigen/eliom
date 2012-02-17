@@ -155,7 +155,6 @@ let form_handler =
   Dom_html.full_handler
     (fun node ev ->
       let form = Js.Opt.get (Dom_html.CoerceTo.form node) (fun () -> error "not a form element") in
-      Firebug.console##debug(form##_method);
       let kind =
 	if String.lowercase(Js.to_string form##_method) = "get"
 	then `Form_get
@@ -524,7 +523,10 @@ let current_uri =
 let change_url_string uri =
   current_uri := fst (Url.split_fragment uri);
   if Eliom_process.history_api then begin
-    Dom_html.window##history##pushState(Js.Unsafe.inject 0,
+    Dom_html.window##history##replaceState((Dom_html.window##scrollX, Dom_html.window##scrollY),
+					Js.string "" ,
+					Js.null);
+    Dom_html.window##history##pushState(Js.null,
 					Js.string "" ,
 					Js.Opt.return (Js.string uri));
   end else begin
@@ -658,13 +660,18 @@ let load_data_script data_script =
   ( Eliom_request_info.get_request_data (),
     Eliom_request_info.get_request_cookies ())
 
-let scroll_to_fragment fragment =
-  match fragment with
-  | None | Some "" -> Dom_html.window##scroll(0, 0)
-  | Some fragment ->
-      let scroll_to_element e = e##scrollIntoView(Js._true) in
-      let elem = Dom_html.document##getElementById(Js.string fragment) in
-      Js.Opt.iter elem scroll_to_element
+let scroll_to_fragment ?offset fragment =
+  match offset with
+  | Some (scrollX, scrollY) ->
+      Dom_html.window##scroll(scrollX, scrollY)
+  | None ->
+      match fragment with
+      | None | Some "" ->
+          Dom_html.window##scroll(0, 0)
+      | Some fragment ->
+          let scroll_to_element e = e##scrollIntoView(Js._true) in
+           let elem = Dom_html.document##getElementById(Js.string fragment) in
+          Js.Opt.iter elem scroll_to_element
 
 let registered_process_node id = Js.Optdef.test (find_process_node id)
 
@@ -706,7 +713,7 @@ let set_content ?uri ?fragment = function
         ( Firebug.console##timeEnd(Js.string "replace_child");
           Firebug.console##time(Js.string "set_content_end") );
       run_load_events on_load;
-      iter_option (fun uri -> scroll_to_fragment (snd (Url.split_fragment uri))) uri;
+      iter_option (fun uri -> scroll_to_fragment fragment) uri;
       if !Eliom_config.debug_timings then
         ( Firebug.console##timeEnd(Js.string "set_content_end");
           Firebug.console##timeEnd(Js.string "set_content") );
@@ -749,7 +756,8 @@ let change_page
 	    ~expecting_process_page:true ?cookies_info uri p
 	    Eliom_request.xml_result
     in
-    set_content ~uri content
+    let uri, fragment = Url.split_fragment uri in
+    set_content ~uri ?fragment content
 
 let split_fragment uri =
   if Eliom_process.history_api then
@@ -880,22 +888,25 @@ let _ =
 
     Dom_html.window##onpopstate <-
       Dom_html.handler
-      (fun e ->
+      (fun event ->
+        Dom_html.window##history##replaceState((Dom_html.window##scrollX, Dom_html.window##scrollY),
+					       Js.string "" ,
+					       Js.null);
 	let full_uri = Js.to_string Dom_html.window##location##href in
-        if not !chrome_dummy_popstate then
-	  lwt_ignore
-	    (let uri, fragment = split_fragment full_uri in
-	     if uri <> !current_uri then
-	       lwt uri, content =
-		 Eliom_request.http_get ~expecting_process_page:true uri []
-		   Eliom_request.xml_result in
-	       current_uri := uri;
-	       set_content content >>
-	       (scroll_to_fragment fragment;
-		Lwt.return ())
-	     else
-	       ( scroll_to_fragment fragment;
-		 Lwt.return () ));
+        let offset = Js.Opt.to_option (Obj.magic event##state : (int * int) Js.opt) in
+	lwt_ignore
+	  (let uri, fragment = split_fragment full_uri in
+	   if uri <> !current_uri then
+	     lwt uri, content =
+	       Eliom_request.http_get ~expecting_process_page:true uri []
+		 Eliom_request.xml_result in
+	     current_uri := uri;
+	     set_content content >>
+	       ( scroll_to_fragment ?offset fragment;
+		 Lwt.return ())
+	   else
+	     ( scroll_to_fragment ?offset fragment;
+	       Lwt.return () ));
 	Js._false)
 
   else
