@@ -42,6 +42,9 @@ eliom_config.cmo:
 eliom_config.cmx:
 eliom_cookies_base.cmo: eliom_pervasives.cmi
 eliom_cookies_base.cmx: eliom_pervasives.cmx
+eliom_dom.cmo: eliom_pervasives.cmi eliom_client.cmi eliom_dom.cmi
+eliom_dom.cmx: eliom_pervasives.cmx eliom_client.cmx eliom_dom.cmi
+eliom_dom.cmi: eliom_pervasives.cmi
 eliom_lazy.cmo: eliom_lazy.cmi
 eliom_lazy.cmx: eliom_lazy.cmi
 eliom_lazy.cmi:
