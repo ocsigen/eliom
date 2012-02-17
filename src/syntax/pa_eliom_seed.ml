@@ -147,7 +147,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
  	    | ty -> ty in
  	  (Ast.map_ctyp map)#ctyp ty
 
-      let escaped_ident_prefix = "__eliom__escaped_expr__reserved_name__"
+      let escaped_ident_prefix = "__eliom__escaped_ident__reserved_name__"
       let escaped_ident_prefix_len = String.length escaped_ident_prefix
       let is_escaped_ident = function
 	  (* | <:sig_item< val $id$ : $t$ >> -> *)
@@ -269,6 +269,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     (* State of the parser: for checking syntax imbrication. *)
     type parsing_level =
       | Toplevel
+      | Toplevel_module_expr
       | Server_item
       | Client_item
       | Shared_item
@@ -292,8 +293,11 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
     (* Inside a "Client_expr", same ident share the global ident. *)
     let escaped_idents = ref []
     let reset_escaped_ident () = escaped_idents := []
-    let gen_escaped_ident =
+    let gen_escaped_expr_ident, gen_escaped_ident =
       let r = ref 0 in
+      (fun () ->
+	incr r;
+        Helpers.escaped_ident_prefix ^ string_of_int !r),
       (fun id ->
 	let id = (Ast.map_loc (fun _ -> Loc.ghost))#ident id in
 	try List.assoc id !escaped_idents
@@ -319,7 +323,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 
     (* Extending syntax *)
     EXTEND Gram
-    GLOBAL: str_item expr module_expr module_binding0;
+    GLOBAL: str_item expr module_expr module_binding0 str_items;
 
     (* Dummy rules: for level management and checking. *)
       dummy_set_level_shared:
@@ -346,7 +350,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	 ]];
       dummy_set_level_client_expr:
 	[[ -> match !current_level with
-              | Server_item | Toplevel ->
+              | Server_item | Toplevel | Toplevel_module_expr ->
 		  reset_escaped_ident ();
 		  let old = !current_level in
 		  current_level := Client_expr;
@@ -364,21 +368,21 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	 ]];
       dummy_set_level_escaped_expr:
 	[[ -> match !current_level with
-              | Server_item | Toplevel -> current_level := Client_expr
+              | Client_expr -> current_level := Escaped_expr
               | _ ->
 		  Syntax_error.raise _loc
-		    "The syntax {{ ... }} is only allowed inside server specific code"
+		    "The syntax \"%ident\" is only allowed inside code expression {{ ... }}."
 	 ]];
       dummy_set_level_module_expr:
 	[[ -> match !current_level with
-              | Client_expr -> Client_expr
-              | old ->
-                 current_level := Module_expr;
-                 old ]];
+              | Toplevel ->
+                 current_level := Toplevel_module_expr;
+                 Toplevel
+              | lvl -> lvl ]];
 
-      (* str_items: FIRST *)
-	(* [[ lvl = dummy_set_level_module_expr; *)
-	   (* me = SELF -> current_level := lvl; me ]]; *)
+      str_items: FIRST
+	[[ lvl = dummy_set_level_module_expr;
+	   me = SELF -> current_level := lvl; me ]];
 
       (* Duplicated from camlp4/Camlp4Parsers/Camlp4OCamlRevisedParser.ml *)
       module_expr: BEFORE "top"
@@ -451,7 +455,7 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	  KEYWORD ")" ->
 
 	    current_level := Client_expr;
-	    failwith "No %(expr) yet !"
+	    Pass.escaped e (gen_escaped_expr_ident ())
 
 	 ]];
 
