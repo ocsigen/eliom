@@ -102,9 +102,13 @@ let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
 	failwith "can't do POST redirection with file parameters") form_arg)
      @post_args)
 
+(* CCC take care: this must remain of the same syntax as non localised
+   non persistent get parameter name *)
+let nl_get_appl_parameter = "__nl_n_eliom-process.p"
+
 let rec send ?(expecting_process_page = false) ?cookies_info
     ?get_args ?post_args ?form_arg url result =
-  let rec aux i ?cookies_info ?get_args ?post_args ?form_arg url =
+  let rec aux i ?cookies_info ?(get_args=[]) ?post_args ?form_arg url =
     let (https, path) = match cookies_info with
       | Some c -> c
       | None -> get_cookie_info_for_uri url
@@ -131,6 +135,11 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 	  headers
       else headers
     in
+    let get_args =
+      if expecting_process_page
+      then (nl_get_appl_parameter,"true")::get_args
+      else get_args
+    in
     let form_contents =
       match form_arg with
 	| None -> None
@@ -151,7 +160,7 @@ let rec send ?(expecting_process_page = false) ?cookies_info
     in
     try_lwt
   lwt r = XmlHttpRequest.perform_raw_url ?headers:(Some headers) ?content_type:None
-    ?post_args ?get_args ?form_arg:form_contents ~check_headers url in
+    ?post_args ~get_args ?form_arg:form_contents ~check_headers url in
   ( match r.XmlHttpRequest.headers Eliom_common.set_tab_cookies_header_name with
     | None | Some "" -> () (* Empty tab_cookies for IE compat *)
 	| Some tab_cookies ->
@@ -206,7 +215,21 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 		  (debug "Eliom_request: received content for application %S when running application %s"
 		     appl_name current_appl_name;
 		   Lwt.fail (Failed_request code))
-  in aux 0 ?cookies_info ?get_args ?post_args ?form_arg url
+  in
+  lwt (url, content) = aux 0 ?cookies_info ?get_args ?post_args ?form_arg url in
+  let filter_url url =
+    { url with Url.hu_arguments =
+        List.filter (fun (e,_) -> e != nl_get_appl_parameter) url.Url.hu_arguments } in
+  Lwt.return (
+    (match Url.url_of_string url with
+      | Some (Url.Http url) ->
+        Url.string_of_url (Url.Http (filter_url url))
+      | Some (Url.Https url) ->
+        Url.string_of_url (Url.Https (filter_url url))
+      | _ -> url),
+    content)
+
+
 
 (** Same as XmlHttpRequest.perform_raw_url, but:
     - sends tab cookies in an HTTP header
