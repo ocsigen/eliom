@@ -63,22 +63,18 @@ type unwrapper =
     { id : unwrap_id;
       mutable umark : Mark.t; }
 
-let unwrap_table : (int,Obj.t -> Obj.t) Hashtbl.t = Hashtbl.create 0
+let unwrap_table : (Obj.t -> Obj.t) Js.js_array Js.t = jsnew Js.array_empty ()
 (* table containing all the unwrapping functions referenced by their id *)
 
 let register_unwrapper id f =
-  if Hashtbl.mem unwrap_table id
-  then failwith (Printf.sprintf "the unwrapper id %i is already registered" id);
-  Hashtbl.add unwrap_table id (fun x -> Obj.repr (f (Obj.obj x)))
+  Js.Optdef.case (Js.array_get unwrap_table id)
+    (fun () -> Js.array_set unwrap_table id (fun x -> Obj.repr (f (Obj.obj x))))
+    (fun _ -> failwith (Printf.sprintf "the unwrapper id %i is already registered" id))
 
 let apply_unwrapper unwrapper v =
-  let f =
-    try
-      Hashtbl.find unwrap_table unwrapper.id
-    with
-      | Not_found -> failwith ("unregistered unwrapping id: " ^ (string_of_int unwrapper.id))
-  in
-  f v
+  Js.Optdef.case (Js.array_get unwrap_table unwrapper.id)
+    (fun () -> failwith ("unregistered unwrapping id: " ^ (string_of_int unwrapper.id)))
+    (fun f -> f v)
 
 external raw_unmarshal_and_unwrap
   : (unwrapper -> 'a -> 'b) -> string -> int -> 'c

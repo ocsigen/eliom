@@ -28,10 +28,12 @@ let chrome_dummy_popstate = ref true
 
 (* == Closure *)
 
-let closure_table  : (int64, poly -> Dom_html.event Js.t -> unit) Hashtbl.t = Hashtbl.create 0
-let register_closure id (f : 'a -> Dom_html.event Js.t -> unit) =
-  Hashtbl.add closure_table id (Obj.magic f : poly -> Dom_html.event Js.t -> unit)
-let find_closure = Hashtbl.find closure_table
+let closure_table  : (poly -> Dom_html.event Js.t -> unit) JsTable.t = JsTable.create ()
+let register_closure (id:int64) (f : 'a -> Dom_html.event Js.t -> unit) =
+  JsTable.add closure_table ((Obj.magic id)##toString():Js.js_string Js.t)
+    (Obj.magic f : poly -> Dom_html.event Js.t -> unit)
+let find_closure (id:int64) : ( poly -> Dom_html.event Js.t -> unit ) Js.Optdef.t =
+  JsTable.find closure_table ((Obj.magic id)##toString():Js.js_string Js.t)
 
 (* == Process nodes (a.k.a. nodes with a unique Dom instance on each client process) *)
 
@@ -96,13 +98,9 @@ let raw_form_handler form kind cookies_info ev =
 
 
 let raw_event_handler function_id args =
-  try
-    let f = find_closure function_id in
-    (fun ev -> try f args ev; true with False -> false)
-  with Not_found ->
-    debug "Closure not found (%Ld)" function_id;
-    (fun _ -> false)
-
+  Js.Optdef.case (find_closure function_id)
+    (fun () -> error "Closure not found (%Ld)" function_id)
+    (fun f -> (fun ev -> try f args ev; true with False -> false))
 
 let reify_caml_event node ce : #Dom_html.event Js.t -> bool = match ce with
   | XML.CE_call_service None -> (fun _ -> true)
