@@ -21,7 +21,7 @@
 open Eliom_pervasives
 open HTML5
 
-val appendChild: ?before:'a elt -> 'b elt ->  'c elt -> unit
+val appendChild: ?before:'a elt -> 'b elt -> 'c elt -> unit
 val removeChild: 'a elt -> 'b elt -> unit
 val replaceChild: 'a elt -> 'b elt -> 'c elt -> unit
 val removeAllChild: 'a elt -> unit

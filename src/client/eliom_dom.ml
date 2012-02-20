@@ -32,7 +32,7 @@ let get_unique_node name (elt: 'a HTML5.elt) : Dom.node Js.t =
 let get_unique_elt name elt : Dom_html.element Js.t =
   Js.Opt.case
     (Dom_html.CoerceTo.element (get_unique_node name elt))
-    (fun () -> failwith "Non element node (%s)")
+    (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
     id
 
 let appendChild ?before elt1 elt2 =
