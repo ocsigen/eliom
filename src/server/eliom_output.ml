@@ -2706,10 +2706,12 @@ module Eliom_appl_reg_make_param
           | None -> Some (Eliom_config.get_config_default_charset ())
           | _ -> charset
 	);
-        res_content_type = (match content_type with
-          | None -> r.Ocsigen_http_frame.res_content_type
-          | _ -> content_type
-        );
+        res_content_type =
+          if Eliom_request_info.expecting_process_page ()
+          then r.Ocsigen_http_frame.res_content_type
+          else (match content_type with
+            | None -> r.Ocsigen_http_frame.res_content_type
+            | _ -> content_type);
         res_headers = headers;
       }
 

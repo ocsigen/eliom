@@ -3126,7 +3126,8 @@ let relink_page () =
 
 let _ =
  My_appl.register
-   relink_test
+   ~content_type:"text/html"
+   ~service:relink_test
    (fun () () ->
      return
        (make_page (relink_page ())))
