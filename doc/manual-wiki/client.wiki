@@ -125,23 +125,39 @@ val Eliom_pervasives.HTML5.a_onclick >> expect a function of type
 
 ====@@id="syntax%"@@ Using server side values on client side
 
-Client code inside {{{ {{ ... }} }}} quotation can use server side value
-using the {{{%variable}}} syntax: variables prefixed by {{{%}}} are sent to
-the client along the content of the page.
+Client code inside {{{ {{ ... }} }}} quotation can use server side
+value using the {{{%variable}}} syntax or the {{{%(expr)}}} syntax:
+variables prefixed by {{{%}}}, and the evaluation of expressions
+prefixed by {{{%}}}, are sent to the client along the content of the
+page. For example:
 
-for instance:
 <<code language="ocaml"|
 let value = 3 in
-p ~a:[a_onclick {{ Dom_html.window##alert(Js.string ("value = " ^ (string_of_int %value))) }}]
+p ~a:[a_onclick {{
+        Dom_html.window##alert(Js.string
+           ("value = " ^ (string_of_int %value)) )
+      }}]
   [pcdata "I am a clickable paragraph"]
 >>
 
-Notice that not all values are possible to send that way: since client and
-server side representation are not the same, it is impossible to send
-functions. This means that unforced lazy values, objects, or anything
-containing functions can't be send. Some eliom types use a specific machanism
-to circumvent this limitation. This is the case of: services, comet channels
-and busses. To use this mechanism see <<wip| reference a la doc du wrapping >>.
+Or the same example using the {{{%(expr)}}} syntax:
+
+<<code language="ocaml"|
+let value = ref 3 in
+p ~a:[a_onclick {{
+        Dom_html.window##alert(Js.string
+           ("value = " ^ (string_of_int %(!value))) )
+      }}]
+  [pcdata "I am a clickable paragraph"]
+>>
+
+Notice that not all values are possible to send that way: since client
+and server side representation are not the same, it is impossible to
+send functions. This means that unforced lazy values, objects, or
+anything containing functions can't be send. Some eliom types use a
+specific machanism to circumvent this limitation. This is the case of:
+services, comet channels and busses. To use this mechanism see chpater
+<<a_manual chapter="wrapping"|Wrapping values>>.
 
 Those values are typechecked "by name": the most general type of a variable is
 inferred for server side then use as a type constraint on client side.
