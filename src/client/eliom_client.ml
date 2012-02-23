@@ -521,7 +521,8 @@ let current_uri =
 let change_url_string uri =
   current_uri := fst (Url.split_fragment uri);
   if Eliom_process.history_api then begin
-    Dom_html.window##history##replaceState((Dom_html.window##scrollX, Dom_html.window##scrollY),
+    Dom_html.window##history##replaceState(( Dom_html.document##body##scrollTop,
+                                             Dom_html.document##body##scrollLeft),
 					Js.string "" ,
 					Js.null);
     Dom_html.window##history##pushState(Js.null,
@@ -660,8 +661,9 @@ let load_data_script data_script =
 
 let scroll_to_fragment ?offset fragment =
   match offset with
-  | Some (scrollX, scrollY) ->
-      Dom_html.window##scroll(scrollX, scrollY)
+  | Some (scrollTop, scrollLeft) ->
+    Dom_html.document##body##scrollTop <- scrollTop;
+    Dom_html.document##body##scrollLeft <- scrollLeft;
   | None ->
       match fragment with
       | None | Some "" ->
@@ -887,10 +889,11 @@ let _ =
     Dom_html.window##onpopstate <-
       Dom_html.handler
       (fun event ->
-        Dom_html.window##history##replaceState((Dom_html.window##scrollX, Dom_html.window##scrollY),
+	let full_uri = Js.to_string Dom_html.window##location##href in
+        Dom_html.window##history##replaceState(( Dom_html.document##body##scrollTop,
+                                                 Dom_html.document##body##scrollLeft),
 					       Js.string "" ,
 					       Js.null);
-	let full_uri = Js.to_string Dom_html.window##location##href in
         let offset = Js.Opt.to_option (Obj.magic event##state : (int * int) Js.opt) in
 	lwt_ignore
 	  (let uri, fragment = split_fragment full_uri in
