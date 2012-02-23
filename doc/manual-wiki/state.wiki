@@ -88,7 +88,9 @@ There is two category of scopes:
 
 * //Eliom scopes//, that regroups:
 ** <<a_api| val Eliom_common.global >>: for data
-   and service shared by all client, and
+   shared by all clients,
+** <<a_api| val Eliom_common.site >>: for data
+   and services shared by all clients of one eliom site, and
 ** <<a_api| val Eliom_common.request >>: for
    data specific to the current request.
 * //User scopes//: used to restrict the accessibility of a data or a
@@ -336,9 +338,9 @@ See section <<a_manual chapter="state" fragment="closing_sessions"
 === Principles ===
 
 //Eliom references// (//erefs//) are some kind of references with
-(possibly) a limited <<a_manual chapter="state"
+a (possibly) limited <<a_manual chapter="state"
 fragment="scope"|scope>>. You declare a reference with an initial
-value and a scope, then, when you change the associated value, it
+value and a scope. Then, when you change the associated value, it
 actually changes only for the scope you specified.
 
 Eliom references can be persistent or not (that is: can survive after

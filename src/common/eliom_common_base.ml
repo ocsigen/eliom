@@ -32,13 +32,15 @@ type user_scope = [ `Session_group of scope_name
 		  | `Session of scope_name
 		  | `Client_process of scope_name ]
 
-type scope = [ `Global
+type scope = [ `Site
 	     | user_scope ]
 
 type all_scope = [ scope
+                 | `Global
 		 | `Request ]
 
 type global_scope = [`Global]
+type site_scope = [`Site]
 type session_group_scope = [`Session_group of scope_name]
 type session_scope = [`Session of scope_name]
 type client_process_scope = [`Client_process of scope_name]

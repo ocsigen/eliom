@@ -85,13 +85,13 @@ let create ?scope ?name ?size typ =
   let scope =
     match scope with
       | None
-      | Some `Global -> `Global
+      | Some `Site -> `Site
       | Some `Client_process n -> `Client_process n
   in
 
   let channel =
     match scope with
-      | `Global ->
+      | `Site ->
 	Some (Eliom_comet.Channels.create ~scope ?name ?size
 		(Lwt_stream.clone stream))
       | `Client_process _ -> None
@@ -107,7 +107,7 @@ let create ?scope ?name ?size typ =
   let distant_write = Eliom_services.post_coservice' ?name ~post_params () in
   let service_registered =
     match scope with
-      | `Global ->
+      | `Site ->
 	register_sender scope distant_write push;
 	None
       | `Client_process _ as scope ->
@@ -129,7 +129,7 @@ let create ?scope ?name ?size typ =
 
 let stream bus =
   match bus.scope with
-    | `Global -> Lwt_stream.clone bus.stream
+    | `Site -> Lwt_stream.clone bus.stream
     | `Client_process _ -> bus.stream
 
 let write bus x = bus.write x

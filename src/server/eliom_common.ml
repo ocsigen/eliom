@@ -481,7 +481,7 @@ and sitedata =
      (float option * bool) option * 
      ((fullsessionname * (float option * bool)) list);
 
-   lazy_site_value_table : Polytables.t; (* table containing evaluated
+   site_value_table : Polytables.t; (* table containing evaluated
 					    lazy site values *)
 
    mutable registered_scope_names: String.Set.t;
@@ -601,6 +601,7 @@ let sp_of_option sp =
 (*****************************************************************************)
 
 let global : global_scope = `Global
+let site : site_scope = `Site
 let session_group : session_group_scope = `Session_group `Default_ref_name
 let session : session_scope = `Session `Default_ref_name
 let client_process : client_process_scope = `Client_process `Default_ref_name
@@ -701,24 +702,24 @@ type 'a lazy_site_value =
       lazy_sv_key : 'a Polytables.key }
 
 let force_lazy_site_value v =
-  let sitedata = 
-  match get_sp_option () with
-    | Some sp -> sp.sp_sitedata
-    | None ->
-      match global_register_allowed () with
-	| Some f -> f ()
-	| None ->
-          raise (Eliom_site_information_not_available
-		   "force_lazy_site_value")
+  let sitedata =
+    match get_sp_option () with
+      | Some sp -> sp.sp_sitedata
+      | None ->
+          match global_register_allowed () with
+            | Some f -> f ()
+            | None ->
+                raise (Eliom_site_information_not_available
+                         "force_lazy_site_value")
   in
   try Polytables.get
-	~table:sitedata.lazy_site_value_table
+	~table:sitedata.site_value_table
 	~key:v.lazy_sv_key
   with
     | Not_found ->
       let value = v.lazy_sv_fun () in
       Polytables.set
-	~table:sitedata.lazy_site_value_table
+	~table:sitedata.site_value_table
 	~key:v.lazy_sv_key
 	~value;
       value

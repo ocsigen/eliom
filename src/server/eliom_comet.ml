@@ -71,7 +71,7 @@ let fallback_global_service =
   Eliom_common.lazy_site_value_from_fun
     (fun () -> Comet.register_service ~path:comet_global_path
       ~get_params:Eliom_parameters.unit
-      (fun () () -> Lwt.return (error_msg "request with no post parameters or there isn't any registered global comet channel")))
+      (fun () () -> Lwt.return (error_msg "request with no post parameters or there isn't any registered site comet channel")))
 
 let new_id = String.make_cryptographic_safe
 
@@ -635,7 +635,7 @@ sig
   type 'a t
 
   type comet_scope =
-    [ Eliom_common.global_scope
+    [ Eliom_common.site_scope
     | Eliom_common.client_process_scope ]
 
   val create : ?scope:[< comet_scope ] ->
@@ -771,14 +771,14 @@ end = struct
       channel_mark = channel_mark () }
 
   type comet_scope =
-    [ Eliom_common.global_scope
+    [ Eliom_common.site_scope
     | Eliom_common.client_process_scope ]
 
   let create ?scope ?name ?(size=1000) stream =
     match scope with
       | None -> create_statefull ?name ~size stream
       | Some ((`Client_process n) as scope) -> create_statefull ~scope ?name ~size stream
-      | Some `Global -> create_stateless ?name ~size stream
+      | Some `Site -> create_stateless ?name ~size stream
 
   let external_channel ?(history=1) ?(newest=false) ~prefix ~name () =
     let service = Eliom_services.external_post_service

@@ -56,10 +56,11 @@ type user_scope = [ `Session_group of scope_name
 		  | `Session of scope_name
 		  | `Client_process of scope_name ]
 
-type scope = [ `Global
+type scope = [ `Site
 	     | user_scope ]
 
 type all_scope = [ scope
+                 | `Global
 		 | `Request ]
 
 (*  `Global  which means that the service will be registered in the
@@ -77,12 +78,14 @@ type all_scope = [ scope
     sessions on the same site. *)
 
 type global_scope = [`Global]
+type site_scope = [`Site]
 type session_group_scope = [`Session_group of scope_name]
 type session_scope = [`Session of scope_name]
 type client_process_scope = [`Client_process of scope_name]
 type request_scope = [`Request]
 
 val global : global_scope
+val site : site_scope
 val session_group : session_group_scope
 val session : session_scope
 val client_process : client_process_scope
@@ -489,7 +492,7 @@ and sitedata = {
      (float option * bool) option *
      ((fullsessionname * (float option * bool)) list);
 
-  lazy_site_value_table : Polytables.t; (* table containing evaluated
+  site_value_table : Polytables.t; (* table containing evaluated
 					   lazy site values *)
 
   mutable registered_scope_names: String.Set.t;

@@ -77,7 +77,7 @@ sig
       If [~name] is present, the coservice used to transmit the event will
       always have the same name, even if the server is restarted.
       [~scope] describes the visibility of the event. By default, it is
-      [`Global] if it is called during initialisation,
+      [`Site] if it is called during initialisation,
       [`Client_process] otherwise.
   *)
   val create :

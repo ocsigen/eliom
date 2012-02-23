@@ -29,7 +29,9 @@ let pers_ref_store = Ocsipersist.open_store "eliom__persistent_refs"
 type 'a eref_kind =
   | Ref of 'a ref
   | Ocsiper of 'a Ocsipersist.t Lwt.t
+  | Ocsiper_sit of 'a Ocsipersist.table
   | Req of 'a Polytables.key
+  | Sit of 'a Polytables.key
   | Vol of 'a volatile_table Lazy.t
   | Per of 'a persistent_table
 
@@ -46,6 +48,13 @@ let eref ~scope ?secure ?persistent value : 'a eref =
 	    (value, Ocsiper (Ocsipersist.make_persistent
                                ~store:pers_ref_store ~name ~default:value))
       end
+    | `Site ->
+        begin
+          match persistent with
+            | None -> (value, Sit (Polytables.make_key ()))
+            | Some name ->
+                (value, Ocsiper_sit (Ocsipersist.open_table name))
+        end
     | (#Eliom_common.user_scope as scope) ->
       match persistent with
 	| None ->
@@ -55,20 +64,40 @@ let eref ~scope ?secure ?persistent value : 'a eref =
           (value,
            Per (create_persistent_table ~scope ?secure name))
 
+let get_site_data () =
+  match Eliom_common.get_sp_option () with
+    | Some sp ->
+        sp.Eliom_common.sp_sitedata
+    | None ->
+        if Eliom_common.during_eliom_module_loading () then
+          Eliom_common.get_current_sitedata ()
+        else
+          failwith "get_site_data"
+
+let get_site_id () =
+  let sd = get_site_data () in
+  sd.Eliom_common.config_info.Ocsigen_extensions.default_hostname
+    ^ ":" ^ sd.Eliom_common.site_dir_string
+
 let get (value, table) =
   match table with
     | Req key ->
       let table = Eliom_request_info.get_request_cache () in
       Lwt.return (try Polytables.get ~table ~key with Not_found -> value)
+    | Sit key ->
+      let table = (get_site_data ()).Eliom_common.site_value_table in
+      Lwt.return (try Polytables.get ~table ~key with Not_found -> value)
     | Vol t ->
-	(match get_volatile_data ~table:(Lazy.force t) () with
-         | Data d -> Lwt.return d
-         | _ -> Lwt.return value)
+      (match get_volatile_data ~table:(Lazy.force t) () with
+       | Data d -> Lwt.return d
+       | _ -> Lwt.return value)
     | Per t ->
       (get_persistent_data ~table:t () >>= function
         | Data d -> Lwt.return d
         | _ -> Lwt.return value)
     | Ocsiper r -> r >>= fun r -> Ocsipersist.get r
+    | Ocsiper_sit t ->
+      (try_lwt Ocsipersist.find t (get_site_id ()) with Not_found -> Lwt.return value)
     | Ref r -> Lwt.return !r
 
 let set (_, table) value =
@@ -77,10 +106,15 @@ let set (_, table) value =
       let table = Eliom_request_info.get_request_cache () in
       Polytables.set ~table ~key ~value;
       Lwt.return ()
+    | Sit key ->
+      let table = (get_site_data ()).Eliom_common.site_value_table in
+      Lwt.return (Polytables.set ~table ~key ~value)
     | Vol t -> set_volatile_data ~table:(Lazy.force t) value;
       Lwt.return ()
     | Per t -> set_persistent_data ~table:t value
     | Ocsiper r -> r >>= fun r -> Ocsipersist.set r value
+    | Ocsiper_sit t ->
+      Ocsipersist.add t (get_site_id ()) value
     | Ref r -> r := value; Lwt.return ()
 
 let unset (value, table) =
@@ -89,8 +123,13 @@ let unset (value, table) =
       let table = Eliom_request_info.get_request_cache () in
       Polytables.remove ~table ~key;
       Lwt.return ()
+    | Sit key ->
+      let table = (get_site_data ()).Eliom_common.site_value_table in
+      Lwt.return (Polytables.remove ~table ~key)
     | Vol t -> remove_volatile_data ~table:(Lazy.force t) ();
       Lwt.return ()
     | Per t -> remove_persistent_data ~table:t ()
     | Ocsiper r -> r >>= fun r -> Ocsipersist.set r value
+    | Ocsiper_sit t ->
+      Ocsipersist.add t (get_site_id ()) value
     | Ref r -> r := value; Lwt.return ()

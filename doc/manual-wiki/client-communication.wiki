@@ -161,7 +161,7 @@ Channels can be closed on client side by canceling a thread waiting for data on 
 Depending on the scope used to create a channel, the channel does not
 have the same constraints.
 
-* Channels created with scope <<a_api | val Eliom_common.global >> or
+* Channels created with scope <<a_api | val Eliom_common.site >> or
 using <<a_api project="eliom" | val Eliom_comet.Channels.create_newest
 >> are stateless channels: The memory consumption does not depend on
 the number of user requesting data on it. When the channels are not

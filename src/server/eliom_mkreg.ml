@@ -546,7 +546,7 @@ let register pages
   let sp = Eliom_common.get_sp_option () in
   match scope, sp with
     | None, None
-    | Some `Global, None ->
+    | Some `Site, None ->
       (match Eliom_common.global_register_allowed () with
         | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
@@ -569,7 +569,7 @@ let register pages
           (Eliom_common.Eliom_site_information_not_available
              "register"))
     | None, Some sp
-    | Some `Global, Some sp ->
+    | Some `Site, Some sp ->
       register_aux pages
         ?options
         ?charset

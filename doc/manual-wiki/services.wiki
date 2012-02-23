@@ -164,16 +164,17 @@ OCaml types. If the parameter can't be converted, the exception
 
 
 
-==== Service scopes ====
+==== @@id="service_scope"@@ Service scopes ====
 
-By default, services and coservices are accessible to anybody.  It is
-possible to restrict the //scope// of a service, making it available
-only to a session, a client side process, or a group of sessions.
+By default, services and coservices are accessible to anybody (scope
+site).  It is possible to restrict the //scope// of a service, making
+it available only to a session, a client side process, or a group of
+sessions.
 
 To limit the scope of a service, just add the argument {{{~scope}}} to
 the <<a_api | val Eliom_output.Html5.register>> function (or other
 {{{register}}} variants: <<a_api | val Eliom_output.Xhtml.register>>,
-...). The default scope is <<a_api | val Eliom_common.global>>.
+...). The default scope is <<a_api | val Eliom_common.site>>.
 
 The same service can be registered with several scopes.  This makes it
 possible, for example, to generate custom services for a specific
@@ -183,7 +184,7 @@ order):
 * scope client-side process,
 * scope session,
 * scope group of session,
-* and finally global scope.
+* and finally site scope.
 
 
 ====@@id="get_and_post"@@ GET services and POST services ====
@@ -302,7 +303,7 @@ time you want to record a precise point in the interaction with a
 user, to be able to come back there later.
 
 Often, they should be used with a restricted scope (see the section
-<<a_manual chapter="state" fragment="service_scope"| Scope of
+<<a_manual chapter="services" fragment="service_scope"| scope of
 services>>).
 
 POST attached coservices are created using <<a_api| val
@@ -507,7 +508,7 @@ the user reloads the page).
 == Tips and advices
 
 * All services created during initialization must be registered (with
-  global scope) during the initialization phase of your module.  If
+  site scope) during the initialization phase of your module.  If
   not, the server will not start (providing an appropriate error
   message in the logs).  This will prevent broken links.
 * Services may be registered only during the server's initialization
@@ -529,7 +530,7 @@ the user reloads the page).
   coservices without timeout, as such coservices will be available
   only until the end of the server process (and it is not possible to
   re-create them with the same key).
-* Do not register the same service (with scope global) twice, and do
+* Do not register the same service in the same scope twice, and do
   not replace a service by a directory (or vice versa). If this
   happens during the initialization phase, the server won't start.  If
   this happens after server startup, it will be ignored (with a

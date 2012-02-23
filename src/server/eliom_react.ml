@@ -79,13 +79,13 @@ struct
     in
     let stream = E.to_stream ee in
     Stateless
-      (Eliom_comet.Channels.create ~scope:`Global ?name stream)
+      (Eliom_comet.Channels.create ~scope:`Site ?name stream)
 
   let of_react
       ?scope ?throttling ?name (e : 'a E.t) =
       let t =
 	match scope with
-	  | Some `Global -> stateless ?throttling ?name e
+	  | Some `Site -> stateless ?throttling ?name e
 	  | None -> statefull ?throttling ?name e
 	  | Some ((`Client_process n) as scope) ->
 	    statefull ~scope ?throttling ?name e
@@ -124,7 +124,7 @@ struct
     let sp = Eliom_common.get_sp_option () in
     let scope = match sp, scope with
       | _, Some l -> l
-      | None, _ -> `Global
+      | None, _ -> `Site
       | _ -> (Eliom_common.comet_client_process :> Eliom_common.scope)
     in
     let e_writer = Eliom_services.post_coservice' ?name ~post_params () in
@@ -270,7 +270,7 @@ struct
         ?throttling ?name (s : 'a S.t) =
       let t =
 	match scope with
-	  | Some `Global -> stateless ?throttling ?name s
+	  | Some `Site -> stateless ?throttling ?name s
 	  | None -> statefull ?throttling ?name s
 	  | Some ((`Client_process n) as scope) ->
 	    statefull ~scope ?throttling ?name s

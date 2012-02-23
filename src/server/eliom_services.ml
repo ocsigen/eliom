@@ -495,12 +495,11 @@ let remove_service table service =
         let na_name = get_na_name_ naser in
         Eliommod_naservices.remove_naservice table na_name
 
-let unregister ?scope
-    ?secure service =
+let unregister ?scope ?secure service =
   let sp = Eliom_common.get_sp_option () in
   match scope with
     | None
-    | Some `Global ->
+    | Some `Site ->
       let table =
 	match sp with
           | None ->

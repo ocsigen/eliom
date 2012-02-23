@@ -30,7 +30,7 @@ module Channels : sig
   type 'a t
 
   type comet_scope =
-    [ Eliom_common.global_scope
+    [ Eliom_common.site_scope
     | Eliom_common.client_process_scope ]
 
   (** [create s] returns a channel sending values from [s].
@@ -38,7 +38,7 @@ module Channels : sig
       There are two kind of channels created depending on the given
       scope ( defaults to [Eliom_common.comet_client_process] ).
 
-      With scope {!Eliom_common.global} all user knowing the name of
+      With scope {!Eliom_common.site} all user knowing the name of
       the channel can access it. Only one message queue is created: it
       is what we call a stateless channel in the sense that the memory
       used by the channel doesn't depend on the number of users.  The
@@ -78,7 +78,7 @@ module Channels : sig
     ?name:string -> 'a Lwt_stream.t -> 'a t
 
   (** [create_newest s] is similar to [create
-      ~scope:Eliom_common.global s] but only the last message is
+      ~scope:Eliom_common.site s] but only the last message is
       returned to the client. *)
   val create_newest : ?name:string -> 'a Lwt_stream.t -> 'a t
 
