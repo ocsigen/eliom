@@ -57,7 +57,15 @@ val eref :
   scope:[< Eliom_common.all_scope ] ->
   ?secure:bool ->
   ?persistent:string ->
-  'a -> 'a eref
+  'a ->
+  'a eref
+
+val eref_from_fun :
+  scope:[< Eliom_common.all_scope ] ->
+  ?secure:bool ->
+  ?persistent:string ->
+  (unit -> 'a) ->
+  'a eref
 
 (** The function [get eref] returns the current value of the Eliom
     reference [eref].
@@ -82,7 +90,20 @@ val get : 'a eref -> 'a Lwt.t
     [!Eliom_common.site}}
   *)
 val set : 'a eref -> 'a -> unit Lwt.t
-(* That function introduces a Lwt cooperation point on for persistent
+(* That function introduces a Lwt cooperation point only for persistent
+   references. *)
+
+(** The function [modify eref f] modifies the content of the Eliom
+    reference [eref] by applying the function [f] on it.
+
+    {e Warning: this function could not be used outside af a service
+    handler when [eref] has been created with a scope different of
+    {!Eliom_common.global}; it can neither be used outside of an
+    Eliom module when [eref] has been created with scope
+    [!Eliom_common.site}}
+  *)
+val modify : 'a eref -> ('a -> 'a) -> unit Lwt.t
+(* That function introduces a Lwt cooperation point only for persistent
    references. *)
 
 (** The function [unset eref] reset the content of the Eliom reference
