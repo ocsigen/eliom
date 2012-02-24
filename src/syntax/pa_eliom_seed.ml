@@ -179,18 +179,22 @@ module Register(Id : sig val name: string end)(Pass : Pass) = struct
 	| _ -> assert false
 
       let load_file f =
-	let ic = open_in f in
 	try
+	  let ic = open_in f in
 	  let s = Stream.of_channel ic in
 	  let (items, stopped) = Gram.parse interf (Loc.mk f) s in
 	  assert (stopped = None); (* No directive inside the generated ".mli". *)
 	  close_in ic;
 	  List.map extract_type (List.filter is_escaped_ident items),
 	  List.map extract_event_handler_type (List.filter is_event_handler_ident items)
-	with e ->
-	  Printf.eprintf "Error: File type not found (%s)\n" (get_type_file ());
-	  close_in ic;
-	  exit 1
+	with
+          | Sys_error _ ->
+	    Printf.eprintf "Error: File type not found (%s)\n" (get_type_file ());
+	    exit 1
+          | Loc.Exc_located(loc,exn) ->
+            Printf.eprintf "%s:\n Exception (%s)\n"
+              (Syntax.Loc.to_string loc) (Printexc.to_string exn);
+	    exit 1
 
       let infered_sig = lazy (load_file (get_type_file ()))
 
