@@ -958,6 +958,8 @@ module HTML5 = struct
   let of_canvas : Dom_html.canvasElement Js.t -> 'a HTML5_types.canvas elt = rebuild_xml
   let of_iFrame : Dom_html.iFrameElement Js.t -> HTML5_types.iframe elt = rebuild_xml
 
+  let string_of_id x = x
+
 end
 
 (** Empty type (not used on client side, see eliom_parameter_base.ml) *)

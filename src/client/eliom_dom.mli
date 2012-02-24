@@ -66,6 +66,33 @@ val addEventListener:
   ('a elt -> 'b Js.t -> unit) ->
   Dom_events.listener
 
+(** The module [Global] defines the same function as previous on
+    global elements. Those functions only works if the element is
+    available in the application ( sent in the page or along the page ).
+    If the element is not available, those functions raise with [Not_found] *)
+module Global : sig
+
+  (** see [appendChild] *)
+  val appendChild: ?before:'a elt -> 'b id -> 'c elt -> unit
+  (** see [removeChild] *)
+  val removeChild: 'a id -> 'b elt -> unit
+  (** see [replaceChild] *)
+  val replaceChild: 'a id -> 'b elt -> 'c elt -> unit
+  (** see [removeAllChild] *)
+  val removeAllChild: 'a id -> unit
+  (** see [replaceAllChild] *)
+  val replaceAllChild: 'a id -> 'b elt list -> unit
+
+  (** see [addEventListener] *)
+  val addEventListener:
+    ?capture:bool ->
+    'a id ->
+    (#Dom_html.event as 'b) Js.t Dom_events.Typ.typ ->
+    ('a elt -> 'b Js.t -> unit) ->
+    Dom_events.listener
+
+end
+
 (** The function [scrollIntoView elt] scroll the page to a position
     where [elt] is displayed at the top of the window. If the optional
     paramater [~bottom:true] is present, the page is scrolled to a

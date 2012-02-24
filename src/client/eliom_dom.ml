@@ -35,16 +35,15 @@ let get_unique_elt name elt : Dom_html.element Js.t =
     (fun () -> failwith (Printf.sprintf "Non element node (%s)" name))
     id
 
-let appendChild ?before elt1 elt2 =
-  let node = get_unique_node "appendChild" elt1 in
+let raw_appendChild ?before node elt2 =
   match before with
   | None -> ignore(node##appendChild(get_node elt2))
   | Some elt3 ->
       let node3 = get_unique_node "appendChild" elt3 in
       ignore(node##insertBefore(get_node elt2, Js.some node3))
 
-let appendChilds ?before elt1 elts =
-  let node = get_unique_node "appendChild" elt1 in
+
+let raw_appendChilds ?before node elts =
   match before with
   | None ->
       List.iter (fun elt2 -> ignore(node##appendChild(get_node elt2))) elts
@@ -52,13 +51,11 @@ let appendChilds ?before elt1 elts =
       let node3 = get_unique_node "appendChild" elt3 in
       List.iter (fun elt2 -> ignore(node##insertBefore(get_node elt2, Js.some node3))) elts
 
-let removeChild elt1 elt2 =
-  let node1 = get_unique_node "removeChild" elt1 in
+let raw_removeChild node1 elt2 =
   let node2 = get_unique_node "removeChild" elt2 in
   ignore(node1##removeChild(node2))
 
-let replaceChild elt1 elt2 elt3 =
-  let node1 = get_unique_node "replaceChild" elt1 in
+let raw_replaceChild node1 elt2 elt3 =
   let node2 = get_unique_node "replaceChild" elt2 in
   ignore(node1##replaceChild(node2, get_node elt3))
 
@@ -66,14 +63,33 @@ let raw_removeAllChild node =
   let childrens = Dom.list_of_nodeList (node##childNodes) in
   List.iter (fun c -> ignore(node##removeChild(c))) childrens
 
+let raw_replaceAllChild node elts =
+  raw_removeAllChild node;
+  List.iter (fun elt -> ignore(node##appendChild(get_node elt))) elts
+
+let appendChild ?before elt1 elt2 =
+  let node = get_unique_node "appendChild" elt1 in
+  raw_appendChild ?before node elt2
+
+let appendChilds ?before elt1 elts =
+  let node = get_unique_node "appendChilds" elt1 in
+  raw_appendChilds ?before node elts
+
+let removeChild elt1 elt2 =
+  let node1 = get_unique_node "removeChild" elt1 in
+  raw_removeChild node1 elt2
+
+let replaceChild elt1 elt2 elt3 =
+  let node1 = get_unique_node "replaceChild" elt1 in
+  raw_replaceChild node1 elt2 elt3
+
 let removeAllChild elt =
   let node = get_unique_node "removeAllChild" elt in
   raw_removeAllChild node
 
 let replaceAllChild elt elts =
   let node = get_unique_node "replaceAllChild" elt in
-  raw_removeAllChild node;
-  List.iter (fun elt -> ignore(node##appendChild(get_node elt))) elts
+  raw_replaceAllChild node elts
 
 let childNodes elt =
   let node = get_unique_node "childNodes" elt in
@@ -92,10 +108,52 @@ let childElements elt =
   let node = get_unique_node "childElements" elt in
   filterElements (Dom.list_of_nodeList (node##childNodes))
 
-let addEventListener ?capture target event handler =
-  let elt = get_unique_elt "addEventListener" target in
-  Dom_events.listen ?capture elt event
+let raw_addEventListener ?capture node event handler =
+  Dom_events.listen ?capture node event
     (fun node ev -> handler(HTML5.tot (XML.make_dom (node :> Dom.node Js.t))) ev)
+
+let addEventListener ?capture target event handler =
+  let node = get_unique_elt "addEventListener" target in
+  raw_addEventListener ?capture node event handler
+
+module Global = struct
+  let get_element id =
+    let id = HTML5.string_of_id id in
+    let node = Eliom_client.getElementById id in
+    Js.Opt.case
+      (Dom_html.CoerceTo.element node)
+      (fun () -> failwith (Printf.sprintf "Non element node (%s)" id))
+      (fun x -> x)
+
+  let appendChild ?before id1 elt2 =
+    let node = get_element id1 in
+    raw_appendChild ?before node elt2
+
+  let appendChilds ?before id1 elts =
+    let node = get_element id1 in
+    raw_appendChilds ?before node elts
+
+  let removeChild id1 elt2 =
+    let node1 = get_element id1 in
+    raw_removeChild node1 elt2
+
+  let replaceChild id1 elt2 elt3 =
+    let node1 = get_element id1 in
+    raw_replaceChild node1 elt2 elt3
+
+  let removeAllChild id =
+    let node = get_element id in
+    raw_removeAllChild node
+
+  let replaceAllChild id elts =
+    let node = get_element id in
+    raw_replaceAllChild node elts
+
+  let addEventListener ?capture id event handler =
+    let node = get_element id in
+    raw_addEventListener ?capture node event handler
+
+end
 
 let scrollIntoView ?(bottom = false) elt =
   let elt = get_unique_elt "Css.background" elt in

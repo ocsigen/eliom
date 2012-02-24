@@ -476,6 +476,10 @@ module HTML5 : sig
       global nodes>>. % *)
   val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 
+  (**/**)
+  val string_of_id : 'a id -> string
+  (**/**)
+
 end
 
 type file_info

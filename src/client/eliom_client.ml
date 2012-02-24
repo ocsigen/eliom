@@ -61,6 +61,11 @@ let (register_request_node, find_request_node, reset_request_node) =
   let reset () = request_nodes := JsTable.create () in
   (register, find, reset)
 
+let getElementById id =
+  Js.Optdef.case (find_process_node (Js.string id))
+    (fun () -> raise Not_found)
+    (fun pnode -> pnode)
+
 (* == Event *)
 
 (* forward declaration... *)

@@ -278,3 +278,4 @@ val load_eliom_data :
 
 val register_closure: int64 -> ('a -> Dom_html.event Js.t -> unit) -> unit
 
+val getElementById : string -> Dom.node Js.t
