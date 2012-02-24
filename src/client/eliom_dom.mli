@@ -21,12 +21,44 @@
 open Eliom_pervasives
 open HTML5
 
-val appendChild: ?before:'a elt -> 'b elt -> 'c elt -> unit
+(** Dom manipulation. 
+
+    In this module, all the functions apply only to HTML5 element with
+    {% <<a_manual chapter="client" fragment="unique"|Dom semantics>>
+    %}.
+*)
+
+(** The function [appendChild e1 e2] inserts the element [e2] as last
+    child of [e1]. If the optional parameter [~before:e3] is present
+    and if [e3] is a child of [e1], then [e2] is inserted before [e3]
+    in the list of [e1] childs. *)
+val appendChild: ?before:'a elt -> 'b elt ->  'c elt -> unit
+
+(** The function [appendChilds e1 elts] inserts [elts] as last childs
+    of [e1]. If the optional parameter [~before:e3] is present and if
+    [e3] is a child of [e1], then [elts] are inserted before [e3] in
+    the list of [e1] childs. *)
+val appendChilds: ?before:'a elt -> 'b elt ->  'c elt list -> unit
+
+(** The function [removeChild e1 e2] removes for [e2] from the list of
+    [e1] childs. *)
 val removeChild: 'a elt -> 'b elt -> unit
+
+(** The function [replace e1 e2 e3] replaces for [e2] by [e3] in the
+    list of [e1] childs. *)
 val replaceChild: 'a elt -> 'b elt -> 'c elt -> unit
+
+(** The function [removeAllChild e1] removes [e1] childs. *)
 val removeAllChild: 'a elt -> unit
+
+(** The function [replaceAllChild e1 elts] replaces all the childs of
+    [e1] by [elt]. *)
 val replaceAllChild: 'a elt -> 'b elt list -> unit
 
+(** The function [addEventListener elt evt handler] attach the
+    [handler] for the event [evt] on the element [elt]. See the
+    Js_of_ocaml manual, for a list of {* <<a_api project="js_of_ocaml"
+    text="available events"| module Dom_html.Event >>%}. *)
 val addEventListener:
   ?capture:bool ->
   'a elt ->
@@ -34,11 +66,18 @@ val addEventListener:
   ('a elt -> 'b Js.t -> unit) ->
   Dom_events.listener
 
+(** The function [scrollIntoView elt] scroll the page to a position
+    where [elt] is displayed at the top of the window. If the optional
+    paramater [~bottom:true] is present, the page is scrolled to a
+    position where [elt] is displayed at the bottom of the window. *)
 val scrollIntoView: ?bottom:bool -> 'a elt -> unit
 
+(**/**)
 val childNodes: 'a elt -> Dom.node Js.t list
 val childElements: 'a elt -> Dom.element Js.t list
+(**/**)
 
+(** Read the CSS properties of DOM elements. *)
 module Css : sig
   val background: 'a elt -> string
   val backgroundAttachment: 'a elt -> string
@@ -137,6 +176,7 @@ module Css : sig
   val zIndex: 'a elt -> string
 end
 
+(** Modify the CSS properties of DOM elements. *)
 module SetCss : sig
   val background: 'a elt -> string -> unit
   val backgroundAttachment: 'a elt -> string -> unit

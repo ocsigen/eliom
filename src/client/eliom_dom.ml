@@ -43,6 +43,15 @@ let appendChild ?before elt1 elt2 =
       let node3 = get_unique_node "appendChild" elt3 in
       ignore(node##insertBefore(get_node elt2, Js.some node3))
 
+let appendChilds ?before elt1 elts =
+  let node = get_unique_node "appendChild" elt1 in
+  match before with
+  | None ->
+      List.iter (fun elt2 -> ignore(node##appendChild(get_node elt2))) elts
+  | Some elt3 ->
+      let node3 = get_unique_node "appendChild" elt3 in
+      List.iter (fun elt2 -> ignore(node##insertBefore(get_node elt2, Js.some node3))) elts
+
 let removeChild elt1 elt2 =
   let node1 = get_unique_node "removeChild" elt1 in
   let node2 = get_unique_node "removeChild" elt2 in

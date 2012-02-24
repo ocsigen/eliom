@@ -231,9 +231,12 @@ end
 (** Building SVG tree. *)
 module SVG : sig
 
-  (** {2 Dom semantics} *)
+  (** See the Eliom manual for more information on{% <<a_manual
+      chapter="client" fragment="unique"| dom semantics vs. functional
+      semantics>> %} for SVG tree manipulated by client/server
+      application. *)
 
-  (* TODO GRGR see manual on Dom semantics. *)
+  (** {2 Dom semantics} *)
 
   include SVG_sigs.T with module XML := XML
 
@@ -246,8 +249,6 @@ module SVG : sig
 
   (** {2 Functional semantics} *)
 
-  (* TODO GRGR see manual on functional semantics. *)
-
   (** Typed interface for building valid SVG tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
       SVG_sigs.T >> %}. *)
@@ -258,8 +259,6 @@ module SVG : sig
 
   (** {2 Global node} *)
 
-  (* TODO GRGR see manual on global node. *)
-
   (** The type of global SVG element identifier. *)
   type 'a id
 
@@ -267,7 +266,9 @@ module SVG : sig
   val new_global_elt_id : unit -> 'a id
 
   (** The function [create_global elt] create a copy of the SVG node
-      [elt] that will be global. *)
+      [elt] that will be global. See the Eliom manual for more
+      information on {% <<a_manual chapter="client" fragment="global"|
+      global nodes>>. % *)
   val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 
 end
@@ -275,9 +276,12 @@ end
 (** Building HTML5 tree. *)
 module HTML5 : sig
 
-  (** {2 Dom semantics} *)
+  (** See the Eliom manual for more information on{% <<a_manual
+      chapter="client" fragment="unique"| dom semantics vs. functional
+      semantics>> %} for SVG tree manipulated by client/server
+      application. *)
 
-  (* TODO GRGR see manual on Dom semantics. *)
+  (** {2 Dom semantics} *)
 
   include HTML5_sigs.T with module XML := XML
 		       and module SVG := SVG
@@ -306,8 +310,6 @@ module HTML5 : sig
   end
 
   (** {2 Functional semantics} *)
-
-  (* TODO GRGR see manual on functional semantics. *)
 
   (** Typed interface for building valid HTML5 tree (functional
       semantics). See {% <<a_api project="tyxml" | module type
@@ -462,16 +464,16 @@ module HTML5 : sig
 
   (** {2 Global node} *)
 
-  (* TODO GRGR see manual on global node. *)
-
-  (** The type of global HTML5 element identifier. *)
+  (** The type of global SVG element identifier. *)
   type 'a id
 
-  (** The function [new_global_elt_id ()] create a new HTML5 element identifier. *)
+  (** The function [new_global_elt_id ()] create a new SVG element identifier. *)
   val new_global_elt_id : unit -> 'a id
 
-  (** The function [create_global elt] create a copy of the HTML5 node
-      [elt] that will be global. *)
+  (** The function [create_global elt] create a copy of the SVG node
+      [elt] that will be global. See the Eliom manual for more
+      information on {% <<a_manual chapter="client" fragment="global"|
+      global nodes>>. % *)
   val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 
 end

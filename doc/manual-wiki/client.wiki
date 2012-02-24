@@ -297,7 +297,7 @@ converted to the DOM representation using the module << a_api
 subproject="client" | module Eliom_client.Html5 >>:
 
 <<code language="ocaml"|
-open HTML5.M
+open HTML5
 let n = div ~a:[a_id "some div id"]
   [ pcdata "some text";
     br ();
@@ -321,6 +321,11 @@ let b = createB document in
   d##id <- (Js.string "some div id");
   d
 >>
+
+To ease the DOM manipulation on the client, the usual DOM manipulation
+function are also available on TyXML elements. See section <<a_manual
+chapter="client" fragment="unique"|HTML5 element manipulation, by
+value and by reference>>.
 
 ===@@id="unique"@@ HTML5 element manipulation, by value and by reference
 
@@ -379,6 +384,11 @@ required:
 
 In every case, it is possible to mix elements sent by references and
 elements sent by value in the same document.
+
+The module <<a_api subproject="client"| module Eliom_dom >> allows to
+use the classical DOM manipulation functions (e.g. appendChild,
+addEventlistener, ...) directly on HTML5 elements that follow the DOM
+semantics.
 
 ===@@id="global"@@Global elements of an application
 
