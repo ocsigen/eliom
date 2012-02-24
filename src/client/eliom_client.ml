@@ -704,11 +704,11 @@ let set_content ?uri ?fragment = function
       relink_request_nodes fake_page;
       let js_data, cookies = load_data_script (get_data_script fake_page) in
       Eliommod_cookies.update_cookie_table cookies;
+      lwt () = preloaded_css in
       let on_load = load_eliom_data js_data fake_page in
       (* The request node table must be empty when node received
 	 via call_caml_service are unwrapped. *)
       reset_request_node ();
-      lwt () = preloaded_css in
       if !Eliom_config.debug_timings then
         Firebug.console##time(Js.string "replace_child");
       Dom.replaceChild Dom_html.document
