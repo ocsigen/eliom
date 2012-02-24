@@ -1,13 +1,67 @@
-===== Dev =====
+===== 2.1.0 (2012-02-24) =====
 
- * API Changes:
+ * Page loading rewriten.
+ ** We do not traverse the HTML tree anymore for retrieving links
+   and putting events handlers, it use querySelectorAll instead.
+   ( with a fallback for older browsers )
+ *** We do not send a sparse tree along the page anymore.
+ *** It is faster and more resilient to ugly browser plugins
+ ** Add css loading optimisations: It fetch the css included
+    using @include with XHR before changing page and construct only
+    one concatenated css. It avoids page blinking when the css change
+    and is faster ( browsers tend to render the page once per css ).
+ ** Unwrapping hand rewritten in js.
+ ** And a lot of other optimisations.
+
+ * Rework of unique nodes:
+ ** Introduce new lightweight 'unique' node of scope request,
+    a.k.a. DOM nodes: use it through HTML5.DOM.{div,...} or its alias
+    HTML5.{div,...}.
+ ** To create unique node of scope application, the function
+    'HTML5.M.unique ?copy' has been renamed 'HTML5.create_global_elt
+    ?id'
+ ** Abstract id for application node are created with
+    "HTML.new_global_elt_id"
+ ** Node representation now differs between the client and the
+    server. They are unwrapped on the client to simplify the XML
+    representation: "unique" node that have already a "Javascript DOM
+    representation" only contains a reference to the DOM
+    representation.
+
+ * Server API Changes:
  ** Add Eliom_state.get_*_session_group_size to know the number of
     session in a session group
- ** Client: HTML5.M.a_on{click,...} functions directly expect a
-    function as parameter (XML.event_handler_of_function isn't
-    required anymore)
+ ** Parameters of type any can't be suffixes ( semantic problem )
+ ** Add Eliom_comet.wait_timeout to notify when a client isn't active
+ ** allow to setup "Cache-policy: max-age" with Text, CssText and
+    Files modules.
+ ** Eliom_state.discard and discard_data now accept scope request.
 
-===== 2.0.2 =====
+ * Client API Changes:
+ ** add an Eliom_dom module provinding imperative function on unique HTML5.elt.
+    ( for instance {{{appendChild: ?before:'a elt -> 'b elt -> 'c elt -> unit}}} ).
+ ** HTML5.M.a_on{click,...} functions directly expect a
+    function as parameter (XML.event_handler_of_function isn't
+    required anymore).
+ ** Eliom_comet: configuration option for time until timeout after the focus is lost
+ ** Handling wrapping of int32 type.
+ ** Onload event handlers on HTML elements are executed when they are converted to
+    DOM ( using Eliom_client.of_ functions ). This allows to add them to nodes not
+    sent in the page.
+ ** Calls to {{{Eliom_services.onload}}} are taken into account for services sending
+    caml values. The handlers are executed when the call to
+    {{{Eliom_client.caml_call_service}}} terminates.
+
+ * Eliom syntax:
+ ** Event handlers can now access the current event using the _ev variable
+    inside {{ ... }} typed according to the attribute.
+ ** Allow to use module inside client expr {{ ... }} and to use
+    client_expr {{ ... }} inside module
+ ** Add -ppopt option to eliomc
+
+ * And a lot of bugfixes.
+
+===== 2.0.2 (2001-11-30) =====
 
  * Compatibility with js_of_ocaml-1.0.8 and tyxml-2.0.1
  * API Changes:
