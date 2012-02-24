@@ -120,7 +120,7 @@ module XML : sig
       build with the [{{ ... }}] syntax (see the Eliom manual for more
       information on {% <<a_manual chapter="client"
       fragment="syntax"|syntax extension>>%}). Such values are expected
-      by functions like {!Eliom_services.on_load}} or
+      by functions like {!Eliom_services.on_load} or
       {!Eliom_pervasives.HTML5.a_onclick}. The type parameter is the
       type of the javascript event expected by the handler, for
       example {% <<a_api project="js_of_ocaml" | type
@@ -211,7 +211,7 @@ module SVG : sig
   (** The function [create_global elt] create a copy of the SVG node
       [elt] that will be global. See the Eliom manual for more
       information on {% <<a_manual chapter="client" fragment="global"|
-      global nodes>>. % *)
+      global nodes>>%}. *)
   val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 
   (** {2 Printer} *)
@@ -298,7 +298,7 @@ module HTML5 : sig
   (** The function [create_global elt] create a copy of the HTML5 node
       [elt] that will be global. See the Eliom manual for more
       information on {% <<a_manual chapter="client" fragment="global"|
-      global nodes>>. *)
+      global nodes>>%}. *)
   val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 
   (**/**)

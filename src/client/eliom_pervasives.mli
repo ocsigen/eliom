@@ -268,7 +268,7 @@ module SVG : sig
   (** The function [create_global elt] create a copy of the SVG node
       [elt] that will be global. See the Eliom manual for more
       information on {% <<a_manual chapter="client" fragment="global"|
-      global nodes>>. % *)
+      global nodes>>%}. *)
   val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 
 end
@@ -473,7 +473,7 @@ module HTML5 : sig
   (** The function [create_global elt] create a copy of the SVG node
       [elt] that will be global. See the Eliom manual for more
       information on {% <<a_manual chapter="client" fragment="global"|
-      global nodes>>. % *)
+      global nodes>>%}. *)
   val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
 
   (**/**)

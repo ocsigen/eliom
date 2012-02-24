@@ -57,7 +57,7 @@ val replaceAllChild: 'a elt -> 'b elt list -> unit
 
 (** The function [addEventListener elt evt handler] attach the
     [handler] for the event [evt] on the element [elt]. See the
-    Js_of_ocaml manual, for a list of {* <<a_api project="js_of_ocaml"
+    Js_of_ocaml manual, for a list of {% <<a_api project="js_of_ocaml"
     text="available events"| module Dom_html.Event >>%}. *)
 val addEventListener:
   ?capture:bool ->
