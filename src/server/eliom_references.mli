@@ -60,6 +60,15 @@ val eref :
   'a ->
   'a eref
 
+(** The function [eref_from_fun] works like the above {!Eliom_references.eref],
+    but instead of providing a value for the initial content, a function [f] for
+    {e creating the initial content} is provided (cf. also {!Lazy.lazy_from_fun}).
+
+    In each scope, the function [f] is called for creating the value of the
+    reference the first time the reference is read (by {!Eliom_references.get}),
+    if the value has not been set explicitly before (by {!Eliom_references.set});
+    or if the reference was reset (by {!Eliom_references.reset}) before.
+  *)
 val eref_from_fun :
   scope:[< Eliom_common.all_scope ] ->
   ?secure:bool ->
