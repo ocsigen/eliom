@@ -1,8 +1,8 @@
 =@@id="examples"@@Examples=
-        
+
 ==Writing a forum
-          
-          
+
+
       As an example,
       we will now write a small forum. Our forum has a main page,
       summarising all the messages and a page for each message.
@@ -11,10 +11,8 @@
       Suppose you have written a function <<span class="code"|news_headers_list_box>>
       that writes the beginning of messages, and <<span class="code"|message_box>>
       that write a full message.
-      
-          
 
-          
+
 <<code language="ocaml"|
 (* All the services: *)
 

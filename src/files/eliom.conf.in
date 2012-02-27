@@ -41,7 +41,9 @@
 
     <extension findlib-package="_PROJECTNAME_.server"/>
 
-    <host charset="utf-8" hostfilter="*">
+    <extension findlib-package="eliom_tests.testsuite_global"/>
+
+    <host defaulthostname="localhost" hostfilter="localhost" charset="utf-8">
 
       <!-- Some redirection to test eliom appl with redirections.
 	   Change it to match your hostname and port -->
@@ -59,7 +61,11 @@
       <!-- Eliom Tutorial -->
       <static dir="_STATICPAGESDIR_/tests" />
 
-      <eliom findlib-package="eliom_tests.testsuite" />
+      <site path="">
+        <eliom findlib-package="eliom_tests.testsuite_site"/>
+        <eliom findlib-package="eliom_tests.testsuite" />
+      </site>
+
 
       <!-- DUCE
       <site path="ocamlduce" charset="utf-8">
@@ -67,6 +73,13 @@
       </site>
       DUCE -->
 
+    </host>
+
+    <host defaulthostname="127.0.0.1" hostfilter="127.0.0.1" charset="utf-8">
+      <site path="">
+        <eliom findlib-package="eliom_tests.testsuite_site"/>
+      </site>
+      <redirect fullurl="http://127.0.0.1/(.*)" dest="http://localhost/\1"/>
     </host>
 
   </server>

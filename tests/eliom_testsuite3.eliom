@@ -3344,3 +3344,4 @@ let shared_dom_nodes = My_appl.register_service
                        li_appl;
                        HTML5.M.li [pcdata "Non-shared item B"];];
          ]))
+

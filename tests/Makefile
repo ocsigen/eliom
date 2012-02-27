@@ -30,8 +30,8 @@ CLIENT_FILES := eliom_testsuite3.eliom \
 
 STATICDIR := ../local/var/www/tests
 
-byte:: eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js
-opt:: eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js
+byte:: _server/eliom_testsuite_global.cmo _server/eliom_testsuite_site.cmo eliom_testsuite.cma ${STATICDIR}/eliom_testsuite.js
+opt:: _server/eliom_testsuite_global.cmx _server/eliom_testsuite_site.cmx eliom_testsuite.cmxs ${STATICDIR}/eliom_testsuite.js
 
 #### Server side #######
 

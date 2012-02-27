@@ -241,6 +241,12 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
 
               a csrfsafe_example [pcdata "CSRF safe services"] ();
               br ();
+
+              a reference_from_fun [pcdata "References from fun"] ();
+              br ();
+
+              a Eliom_testsuite_site.reference_scope_site [pcdata "References of scope site"] ();
+              br ();
             ];
 
             h4 [pcdata "Advanced forms"];
