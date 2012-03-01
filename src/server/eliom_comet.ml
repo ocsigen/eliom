@@ -336,6 +336,8 @@ end = struct
 	mutable hd_activity : activity;
       }
 
+  exception Connection_closed
+
   let set_active handler =
     match handler.hd_activity with
       | Active _ -> ()
@@ -453,6 +455,11 @@ end = struct
     handler.hd_registered_chan_id <- List.filter ((<>) chan_id) handler.hd_registered_chan_id;
     signal_update handler
 
+  let wait_closed_connection () =
+    let ri = Eliom_request_info.get_ri () in
+    lwt () = ri.Ocsigen_extensions.ri_connection_closed in
+    raise_lwt Connection_closed
+
   (* register the service handler.hd_service *)
   let run_handler handler =
     let f () req =
@@ -470,12 +477,14 @@ end = struct
 	  Lwt.catch
 	    ( fun () -> Lwt_unix.with_timeout timeout
 	      (fun () ->
-		wait_data handler >>= ( fun _ ->
-		  let messages = read_streams 100 handler.hd_active_streams in
-		  let message = encode_downgoing messages in
-		  handler.hd_last <- (message,number);
-		  set_inactive handler;
-		  Lwt.return message ) ) )
+                lwt () = Lwt.choose
+                  [ wait_closed_connection ();
+		    wait_data handler ] in
+		let messages = read_streams 100 handler.hd_active_streams in
+		let message = encode_downgoing messages in
+		handler.hd_last <- (message,number);
+		set_inactive handler;
+		Lwt.return message ) )
 	    ( function
 	      | New_connection -> Lwt.return (encode_downgoing [])
 		      (* happens if an other connection has been opened on that service *)
@@ -483,6 +492,10 @@ end = struct
 	      | Lwt_unix.Timeout ->
 		set_inactive handler;
 		Lwt.return timeout_msg
+              | Connection_closed ->
+                set_inactive handler;
+                (* it doesn't matter what we do here *)
+                raise_lwt Connection_closed
 	      | e ->
 		set_inactive handler;
 		Lwt.fail e )
