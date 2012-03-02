@@ -498,10 +498,7 @@ let jsdebug a = Firebug.console##log (a)
 let alert f = Printf.ksprintf (fun s -> Dom_html.window##alert (Js.string s)) f
 let jsalert a = Dom_html.window##alert (a)
 
-let () = Js.Unsafe.eval_string "debug = {}"
-let debug_var s v =
-  let d = Js.Unsafe.variable "debug" in
-  Js.Unsafe.set d (Js.string s) v
+let debug_var s v = Js.Unsafe.set Dom_html.window (Js.string s) v
 
 let lwt_ignore ?(message="") t = Lwt.on_failure t (fun e -> debug_exn "%s" e message)
 
