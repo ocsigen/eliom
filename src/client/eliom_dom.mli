@@ -74,6 +74,8 @@ module Global : sig
 
   (** see [appendChild] *)
   val appendChild: ?before:'a elt -> 'b id -> 'c elt -> unit
+  (** see [appendChilds] *)
+  val appendChilds: ?before:'a elt -> 'b id ->  'c elt list -> unit
   (** see [removeChild] *)
   val removeChild: 'a id -> 'b elt -> unit
   (** see [replaceChild] *)
