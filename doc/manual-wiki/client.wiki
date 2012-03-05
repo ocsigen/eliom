@@ -494,3 +494,13 @@ Modules Eliom disponibles des deux côtés (et différences)
 parler de Eliom_services.void_coservice ?
 
 >>
+
+== Misc ==
+
+=== Leaving application and going back
+
+Usualy, when going to an application page, a new client process is
+launched on the server, but there are situations where an old client
+process is used instead: Browsers tend to take the result from their
+cache when using the back button even if the page was marked ( by HTTP
+headers ) as non-cacheable.
