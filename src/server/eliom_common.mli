@@ -589,6 +589,10 @@ val begin_load_eliom_module : unit -> unit
 val end_load_eliom_module : unit -> unit
 val global_register_allowed : unit -> (unit -> sitedata) option
 
+(** Get the site data, which is only available {e during the loading of eliom
+    modules, and during a request.} *)
+val get_site_data : unit -> sitedata
+
 
 val eliom_params_after_action : 
   ((string * string) list * (string * string) list option *

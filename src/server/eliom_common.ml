@@ -691,6 +691,16 @@ let global_register_allowed () =
   then Some get_current_sitedata
   else None
 
+let get_site_data () =
+  match get_sp_option () with
+    | Some sp ->
+        sp.sp_sitedata
+    | None ->
+        if during_eliom_module_loading () then
+          get_current_sitedata ()
+        else
+          failwith "get_site_data"
+
 (*****************************************************************************)
 (* Lazy site value: each site have a different value *)
 (* Evaluated values are never collected by the GC, the table always

@@ -66,18 +66,8 @@ let eref_from_fun ~scope ?secure ?persistent f : 'a eref =
 let eref ~scope ?secure ?persistent v =
   eref_from_fun ~scope ?secure ?persistent (fun () -> v)
 
-let get_site_data () =
-  match Eliom_common.get_sp_option () with
-    | Some sp ->
-        sp.Eliom_common.sp_sitedata
-    | None ->
-        if Eliom_common.during_eliom_module_loading () then
-          Eliom_common.get_current_sitedata ()
-        else
-          failwith "get_site_data"
-
 let get_site_id () =
-  let sd = get_site_data () in
+  let sd = Eliom_common.get_site_data () in
   sd.Eliom_common.config_info.Ocsigen_extensions.default_hostname
     ^ ":" ^ sd.Eliom_common.site_dir_string
 
@@ -92,7 +82,7 @@ let get (f, table) =
            Polytables.set ~table ~key ~value;
            value)
     | Sit key ->
-      let table = (get_site_data ()).Eliom_common.site_value_table in
+      let table = Eliom_common.((get_site_data ()).site_value_table) in
       Lwt.return
         (try Polytables.get ~table ~key
          with Not_found ->
@@ -137,7 +127,7 @@ let set (_, table) value =
       Polytables.set ~table ~key ~value;
       Lwt.return ()
     | Sit key ->
-      let table = (get_site_data ()).Eliom_common.site_value_table in
+      let table = Eliom_common.((get_site_data ()).site_value_table) in
       Lwt.return (Polytables.set ~table ~key ~value)
     | Vol t -> set_volatile_data ~table:(Lazy.force t) value;
       Lwt.return ()
@@ -157,7 +147,7 @@ let unset (f, table) =
       Polytables.remove ~table ~key;
       Lwt.return ()
     | Sit key ->
-      let table = (get_site_data ()).Eliom_common.site_value_table in
+      let table = Eliom_common.((get_site_data ()).site_value_table) in
       Lwt.return (Polytables.remove ~table ~key)
     | Vol t -> remove_volatile_data ~table:(Lazy.force t) ();
       Lwt.return ()

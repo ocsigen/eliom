@@ -11,14 +11,6 @@ eliom_comet_base.cmx: eliom_services.cmx eliom_parameters.cmx \
     eliom_output.cmx eliom_comet_base.cmi
 eliom_comet_base.cmi: eliom_services.cmi eliom_parameters.cmi \
     eliom_output.cmi
-eliom_comet.cmo: eliom_wrap.cmi eliom_types.cmi eliom_services.cmi \
-    eliom_references.cmi eliom_pervasives.cmi eliom_parameters.cmi \
-    eliom_output.cmi eliom_common_base.cmo eliom_common.cmi \
-    eliom_comet_base.cmi eliom_comet.cmi
-eliom_comet.cmx: eliom_wrap.cmx eliom_types.cmx eliom_services.cmx \
-    eliom_references.cmx eliom_pervasives.cmx eliom_parameters.cmx \
-    eliom_output.cmx eliom_common_base.cmx eliom_common.cmx \
-    eliom_comet_base.cmx eliom_comet.cmi
 eliom_comet.cmi: eliom_common.cmi eliom_comet_base.cmi
 eliom_common_base.cmo: eliom_pervasives_base.cmo eliom_pervasives.cmi
 eliom_common_base.cmx: eliom_pervasives_base.cmx eliom_pervasives.cmx
