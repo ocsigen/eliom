@@ -3345,3 +3345,246 @@ let shared_dom_nodes = My_appl.register_service
                        HTML5.M.li [pcdata "Non-shared item B"];];
          ]))
 
+
+(**** TEMPLATE ****)
+
+let tmpl1_page1 = Eliom_services.service
+  ~path:["tmpl1";"page1"]
+  ~get_params:unit
+  ()
+
+let tmpl1_page2 = Eliom_services.service
+  ~path:["tmpl1";"page2"]
+  ~get_params:unit
+  ()
+
+let tmpl1_page3 = Eliom_services.service
+  ~path:["tmpl1";"page3"]
+  ~get_params:unit
+  ()
+
+
+let tmpl2_page1 = Eliom_services.service
+  ~path:["tmpl2";"page1"]
+  ~get_params:unit
+  ()
+
+let tmpl2_page2 = Eliom_services.service
+  ~path:["tmpl2";"page2"]
+  ~get_params:unit
+  ()
+
+let tmpl1_update id contents = {{
+  debug "Update";
+  Eliom_dom.Global.replaceAllChild %id %contents
+}}
+
+module Tmpl_1 = Eliom_output.Eliom_tmpl(My_appl)(struct
+  type t = HTML5_types.flow5 HTML5.elt list
+  let name = "template_one"
+  let content_id = HTML5.new_elt_id ()
+  let make_page contents =
+    Lwt.return
+      HTML5.M.(make_page
+         [h2 [pcdata "Template #1"];
+          ul [li [Eliom_output.Html5_forms.a ~service:tmpl1_page1 [pcdata "Page 1"] ()];
+              li [Eliom_output.Html5_forms.a ~service:tmpl1_page2 [pcdata "Page 2"] ()];
+              li [Eliom_output.Html5_forms.a ~service:tmpl1_page3 [pcdata "Page 3"] ()];
+              li [Eliom_output.Html5_forms.a ~service:tmpl2_page1 [pcdata "Page 1 (tmpl2)"] ()];
+              li [Eliom_output.Html5_forms.a ~service:tmpl2_page2 [pcdata "Page 2 (tmpl2)"] ()];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page1 () ())}}]
+                [pcdata "Click me 1 (change_page)"];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page2 () ())}}]
+                 [pcdata "Click me 2 (change_page)"];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page3 () ())}}]
+                 [pcdata "Click me 3 (change_page)"];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl2_page1 () ())}}]
+                 [pcdata "Click me 1 (change_page, tmpl2)"];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl2_page2 () ())}}]
+                 [pcdata "Click me 2 (change_page, tmpl2)"];
+             ];
+          HTML5.create_named_elt ~id:content_id (div contents)])
+  let update  = tmpl1_update content_id
+end)
+
+module Tmpl_2 = Eliom_output.Eliom_tmpl(My_appl)(struct
+  type t = HTML5_types.flow5 HTML5.elt list
+  let name = "template_two"
+  let content_id = HTML5.new_elt_id ()
+  let make_page contents =
+    Lwt.return
+      HTML5.M.(make_page
+         [h2 [pcdata "Template #2"];
+          ul [li [Eliom_output.Html5_forms.a ~service:tmpl1_page1 [pcdata "Page 1 (tmpl1)"] ()];
+              li [Eliom_output.Html5_forms.a ~service:tmpl1_page2 [pcdata "Page 2 (tmpl1)"] ()];
+              li [Eliom_output.Html5_forms.a ~service:tmpl1_page3 [pcdata "Page 3 (tmpl1)"] ()];
+              li [Eliom_output.Html5_forms.a ~service:tmpl2_page1 [pcdata "Page 1"] ()];
+              li [Eliom_output.Html5_forms.a ~service:tmpl2_page2 [pcdata "Page 2"] ()];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page1 () ())}}]
+                [pcdata "Click me 1 (change_page, tmpl1)"];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page2 () ())}}]
+                 [pcdata "Click me 2 (change_page, tmpl1)"];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl1_page3 () ())}}]
+                 [pcdata "Click me 3 (change_page, tmpl1)"];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl2_page1 () ())}}]
+                 [pcdata "Click me 1 (change_page)"];
+              li ~a:[a_onclick {{ lwt_ignore(Eliom_client.change_page ~service:%tmpl2_page2 () ())}}]
+                 [pcdata "Click me 2 (change_page)"];
+             ];
+          HTML5.create_named_elt ~id:content_id (div contents)])
+  let update  = tmpl1_update content_id
+end)
+
+let () = Tmpl_1.register ~service:tmpl1_page1
+  (fun () () -> Lwt.return [h3 [pcdata "Page 1"]])
+
+let () = Tmpl_1.register ~service:tmpl1_page2
+  (fun () () -> Lwt.return [h3 [pcdata "Page 2"]])
+
+let () = Tmpl_1.register ~service:tmpl1_page3
+  (fun () () -> Lwt.return [h3 [pcdata "Page 3"]])
+
+let () = Tmpl_2.register ~service:tmpl2_page1
+  (fun () () -> Lwt.return [h3 [pcdata "Page 1"]])
+
+let () = Tmpl_2.register ~service:tmpl2_page2
+  (fun () () -> Lwt.return [h3 [pcdata "Page 2"]])
+
+
+(**** HISTORY ****)
+
+let hist_page1 = Eliom_services.service
+  ~path:["hist";"page1"]
+  ~get_params:unit
+  ()
+
+let hist_page2 = Eliom_services.service
+  ~path:["hist";"page2"]
+  ~get_params:unit
+  ()
+
+let hist_page3 = Eliom_services.service
+  ~path:["hist";"page3"]
+  ~get_params:unit
+  ()
+
+
+let hist_page4 = Eliom_services.service
+  ~path:["hist";"page4"]
+  ~get_params:unit
+  ()
+
+let hist_page5 = Eliom_services.service
+  ~path:["hist";"page5"]
+  ~get_params:unit
+  ()
+
+let make_hist_page contents =
+  HTML5.M.(make_page
+             [h2 [pcdata "Test History"];
+              ul [li [Eliom_output.Html5_forms.a ~service:hist_page1 [pcdata "Page 1"] ()];
+                  li [Eliom_output.Html5_forms.a ~service:hist_page2 [pcdata "Page 2"] ()];
+                  li [Eliom_output.Html5_forms.a ~service:hist_page3 [pcdata "Page 3"] ()];
+                  li [Eliom_output.Html5_forms.a ~service:hist_page4 [pcdata "Page 4"] ()];
+                  li [Eliom_output.Html5_forms.a ~service:hist_page5 [pcdata "Page 5"] ()];
+                 ];
+             div contents])
+
+let () = My_appl.register ~service:hist_page1
+  (fun () () -> Lwt.return (make_hist_page [h3 [pcdata "Page 1"]]))
+
+let () = My_appl.register ~service:hist_page2
+  (fun () () -> Lwt.return (make_hist_page [h3 [pcdata "Page 2"]]))
+
+let () = My_appl.register ~service:hist_page3
+  (fun () () -> Lwt.return (make_hist_page [h3 [pcdata "Page 3"]]))
+
+let () = My_appl.register ~service:hist_page4
+  (fun () () -> Lwt.return (make_hist_page [h3 [pcdata "Page 4"]]))
+
+let () = My_appl.register ~service:hist_page5
+  (fun () () -> Lwt.return (make_hist_page [h3 [pcdata "Page 5"]]))
+
+
+
+
+(**************************************************************)
+
+let nl_params =
+  Eliom_parameters.make_non_localized_parameters
+    ~prefix:"tutoeliom"
+    ~name:"mynlparams"
+    (Eliom_parameters.int "a" ** Eliom_parameters.string "s")
+
+let nl_serv = service ~path:["appl_nlparams"] ~get_params:(unit) ()
+
+let _ = My_appl.register
+  ~service:nl_serv
+  (fun () () ->
+    Lwt.return (
+      make_page [
+        p [a ~service:nl_serv
+              ~nl_params:(Eliom_parameters.add_nl_parameter
+                            Eliom_parameters.empty_nl_params_set
+                            nl_params
+                            (22, "oh")
+              )
+              [pcdata "with nl params"]
+              ();
+           br ();
+           a ~service:Eliom_services.void_hidden_coservice'
+             [pcdata "without nl params"]
+             ();
+           pcdata "there is a problem here: click many times on \"witout nl params\" and inspect it";
+          ];
+      ]))
+
+
+(***********)
+let nlpost_entry =
+  Eliom_services.service
+    ~path:["appl_nlpost"]
+    ~get_params:(Eliom_parameters.unit)
+    ()
+
+let nlpost =
+  Eliom_services.post_coservice
+    ~fallback:nlpost_entry
+    ~name:"appl_nlpost"
+    ~post_params:(Eliom_parameters.unit)
+    ()
+
+let nlpost_with_nlp =
+  Eliom_services.add_non_localized_get_parameters
+    nl_params nlpost
+
+let create_form_nl s =
+  (fun () -> [HTML5.M.p [Eliom_output.Html5.string_input ~input_type:`Submit ~value:s ()]])
+
+let () = My_appl.register nlpost
+  (fun () () ->
+    let nlp =
+      match Eliom_parameters.get_non_localized_get_parameters nl_params with
+        | None -> "no non localised parameter"
+        | Some _ -> "some non localised parameter" in
+     Lwt.return
+       HTML5.M.(html
+          (head (title (pcdata "")) [])
+          (body [div [
+            pcdata nlp; br();
+            Eliom_output.Html5.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
+            br ();
+            Eliom_output.Html5.post_form nlpost (create_form_nl "without nl param") ();
+          ]])))
+
+let () = My_appl.register nlpost_entry
+  (fun () () ->
+     Lwt.return
+       HTML5.M.(html
+          (head (title (pcdata "")) [])
+          (body [div [
+            Eliom_output.Html5.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
+            br ();
+            Eliom_output.Html5.post_form nlpost (create_form_nl "without nl param") ();
+          ]])))
+

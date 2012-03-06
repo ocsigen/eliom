@@ -239,6 +239,9 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               a nlparams_with_nlp [pcdata "Non localized parameters (present)"] (22, (11, "aa"));
               br ();
 
+              a nlpost_entry [pcdata "Non localized parameters on post service"] ();
+              br ();
+
               a csrfsafe_example [pcdata "CSRF safe services"] ();
               br ();
 
@@ -418,6 +421,17 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               a domnodes_timings [pcdata "Speed test for TyXMl nodes with dom semantics (previously known as unique node of scope request)"] (2,10);
               br ();
               a shared_dom_nodes [pcdata "Multiple occurences of unique nodes."] ();
+              br ();
+              a nl_serv [pcdata "Non localised parameters and eliom appl"] ();
+              br ();
+              a nlpost_entry [pcdata "Non localised parameters with forms in eliom appl"] ();
+              br ();
+            ];
+            h4 [pcdata "Templates"];
+            p [
+              a tmpl1_page1 [pcdata "Multiple template switching."] ();
+              br ();
+              a hist_page1 [pcdata "Browser history and templates."] ();
               br ();
             ];
             h4 [pcdata "Comet"];

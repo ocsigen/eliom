@@ -854,6 +854,51 @@ let () = register
     )
 
 
+(***********)
+let nlpost_entry =
+  Eliom_services.service
+    ~path:["nlpost"]
+    ~get_params:(Eliom_parameters.unit)
+    ()
+
+let nlpost =
+  Eliom_services.post_coservice
+    ~fallback:nlpost_entry
+    ~name:"nlpost"
+    ~post_params:(Eliom_parameters.unit)
+    ()
+
+let nlpost_with_nlp =
+  Eliom_services.add_non_localized_get_parameters
+    my_nl_params nlpost
+
+let create_form_nl s =
+  (fun () -> [HTML5.M.p [Eliom_output.Html5.string_input ~input_type:`Submit ~value:s ()]])
+
+let () = Eliom_output.Html5.register nlpost
+  (fun () () ->
+    let nlp =
+      match Eliom_parameters.get_non_localized_get_parameters my_nl_params with
+        | None -> "no non localised parameter"
+        | Some _ -> "some non localised parameter" in
+     Lwt.return
+       HTML5.M.(html
+          (head (title (pcdata "")) [])
+          (body [div [
+            pcdata nlp; br();
+            Eliom_output.Html5.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
+            Eliom_output.Html5.post_form nlpost (create_form_nl "without nl param") ();
+          ]])))
+
+let () = Eliom_output.Html5.register nlpost_entry
+  (fun () () ->
+     Lwt.return
+       HTML5.M.(html
+          (head (title (pcdata "")) [])
+          (body [div [
+            Eliom_output.Html5.post_form nlpost_with_nlp (create_form_nl "with nl param") ((),(12, "ab"));
+            Eliom_output.Html5.post_form nlpost (create_form_nl "without nl param") ();
+          ]])))
 
 
 (*******)
