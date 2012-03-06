@@ -576,11 +576,12 @@ module XML = struct
 
   let make_node_name =
     let node_id_counter = ref 0 in
-    (fun () ->
+    (fun ?(global = false) () ->
       incr node_id_counter;
-      "client_" ^ (string_of_int !node_id_counter))
+      (if global then "global_" else "")
+      ^ "client_" ^ (string_of_int !node_id_counter))
 
-  let make_process_node ?(id = make_node_name ()) elt =
+  let make_process_node ?(id = make_node_name ~global:true ()) elt =
     { elt with node_id = ProcessId id }
 
   let make_request_node elt =
@@ -632,9 +633,12 @@ module SVG = struct
   module M = SVG_f.Make(XML)
 
   type 'a id = string (* FIXME invariant type parameter ? *)
-  let new_global_elt_id: unit -> 'a id = XML.make_node_name
-  let create_global_elt ?(id : 'a id option) elt =
-    tot (XML.make_process_node ?id (toelt elt))
+  let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
+  let new_global_elt_id () = new_elt_id ()
+  let create_named_elt ~(id : 'a id) elt =
+    tot (XML.make_process_node ~id (toelt elt))
+  let create_global_elt elt =
+    tot (XML.make_process_node (toelt elt))
 
 end
 
@@ -902,9 +906,12 @@ module HTML5 = struct
   end
 
   type 'a id = string (* FIXME invariant type parameter ? *)
-  let new_global_elt_id: unit -> 'a id = XML.make_node_name
-  let create_global_elt ?(id : 'a id option) elt =
-    tot (XML.make_process_node ?id (toelt elt))
+  let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
+  let new_global_elt_id () = new_elt_id ()
+  let create_named_elt ~(id : 'a id) elt =
+    tot (XML.make_process_node ~id (toelt elt))
+  let create_global_elt elt =
+    tot (XML.make_process_node (toelt elt))
 
   let rebuild_xml (node: 'a Js.t) : 'a elt =
     Obj.magic { XML.elt = XML.DomNode (node :> Dom.node Js.t); node_id = XML.NoId }

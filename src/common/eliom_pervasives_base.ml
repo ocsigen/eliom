@@ -54,7 +54,7 @@ module RawXML = struct
     | CE_registered_closure of string * ((#Dom_html.event as 'a) Js.t -> unit) client_expr
     | CE_client_closure of ('a Js.t -> unit) (* Client side-only *)
     | CE_call_service of
-	([ `A | `Form_get | `Form_post] * (cookie_info option)) option Eliom_lazy.request
+	([ `A | `Form_get | `Form_post] * (cookie_info option) * string option) option Eliom_lazy.request
 
   type event_handler =
     | Raw of string
@@ -82,6 +82,7 @@ module RawXML = struct
   let request_node_class = "caml_request_node"
 
   let ce_call_service_attrib = "data-eliom-cookies-info"
+  let ce_template_attrib = "data-eliom-template"
   let node_id_attrib = "data-eliom-node-id"
 
   let closure_attr_prefix = "caml_closure_id"

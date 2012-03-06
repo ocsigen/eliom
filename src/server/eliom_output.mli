@@ -217,9 +217,7 @@ type appl_service_options =
     {!appl_service_options}. *)
 val default_appl_service_options : appl_service_options
 
-(** Functor for application creation. The resulting module is an
-    instance of the {!modtype:Registration} abstract signature. *)
-module Eliom_appl (Appl_params : APPL_PARAMS) : sig
+module type ELIOM_APPL = sig
 
   (** The function [application_name ()] returns a [<script>] node
       that represents the javascript part of the application. If you
@@ -235,16 +233,42 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : sig
       client.}  *)
   val application_name : string
 
+
   (** The type [appl] is an abstract type for identifying an
       application. It usually used a phantom parameter for
       {!application_content}. *)
   type appl
 
   include "sigs/eliom_reg.mli"
-  subst type page    := HTML5_types.html HTML5.elt
+    subst type page    := HTML5_types.html HTML5.elt
+      and type options := appl_service_options
+      and type return  := appl_service
+      and type result  := (appl application_content, appl_service) kind
+
+  (**/**)
+  val typed_name : appl application_name
+  (**/**)
+
+end
+
+(** Functor for application creation. The resulting module is an
+    instance of the {!modtype:Registration} abstract signature. *)
+module Eliom_appl (Appl_params : APPL_PARAMS) : ELIOM_APPL
+
+module type TMPL_PARAMS = sig
+  type t
+  val name: string
+  val make_page: t -> HTML5_types.html HTML5.elt Lwt.t
+  val update: t -> Dom_html.event XML.caml_event_handler
+end
+
+module Eliom_tmpl (Appl : ELIOM_APPL) (Tmpl_param : TMPL_PARAMS): sig
+
+  include "sigs/eliom_reg.mli"
+  subst type page    := Tmpl_param.t
     and type options := appl_service_options
     and type return  := appl_service
-    and type result  := (appl application_content, appl_service) kind
+    and type result  := (Appl.appl application_content, appl_service) kind
 
 end
 

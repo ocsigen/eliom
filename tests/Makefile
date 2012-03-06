@@ -5,10 +5,10 @@ include ../Makefile.config
 export OCAMLPATH := ${SRC}/src/files:${OCAMLPATH}
 export PATH := ${SRC}/src/tools:${PATH}
 
-ELIOMC   := eliomc${BYTEDBG}
-ELIOMOPT := eliomopt ${OPTDBG}
+ELIOMC   := eliomc -g
+ELIOMOPT := eliomopt
 ELIOMDEP := eliomdep
-JS_OF_ELIOM := js_of_eliom${BYTEDBG}
+JS_OF_ELIOM := js_of_eliom -g
 
 ifeq "${NATDYNLINK}" "YES"
 all: byte opt

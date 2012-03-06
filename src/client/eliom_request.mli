@@ -78,3 +78,9 @@ val http_post :
 val get_cookie_info_for_uri_js : Js.js_string Js.t -> bool * string list
 
 val max_redirection_level : int
+
+(**/**)
+val nl_template:
+  (string, [ `WithoutSuffix ],
+   [ `One of string ] Eliom_parameters.param_name) Eliom_parameters.non_localized_params
+val nl_template_string: string

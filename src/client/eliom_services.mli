@@ -211,7 +211,7 @@ val register_delayed_post_coservice :
 type send_appl_content =
   | XNever
   | XAlways
-  | XSame_appl of string
+  | XSame_appl of string * string option
 (** Whether the service is capable to send application content or not.
     (application content has type Eliom_services.eliom_appl_answer:
     content of the application container, or xhr redirection ...).
@@ -228,11 +228,5 @@ type send_appl_content =
 (** Returns the name of the application to which belongs the service, if any. *)
 val get_send_appl_content : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> send_appl_content
 
-val need_process_cookies :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
-
-val appl_content_capable :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
-
 val xhr_with_cookies :
-  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> bool
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) service -> string option option

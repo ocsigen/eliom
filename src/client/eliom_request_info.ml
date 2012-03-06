@@ -128,6 +128,7 @@ let get_csp_original_full_path () =
 let get_csp_original_full_path_sp = get_csp_original_full_path
 
 let get_request_cookies () = unmarshal_js_var "eliom_request_cookies"
+let get_request_template () : string option = unmarshal_js_var "eliom_request_template"
 let get_request_data () =
   if !Eliom_config.debug_timings then
     Firebug.console##time(Js.string "get_request_data");

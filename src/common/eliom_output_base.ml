@@ -899,9 +899,10 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
   let make_info ~https kind service =
     Eliom_lazy.from_fun
       (fun () ->
-	if not (Eliom_services.xhr_with_cookies service)
-	then None
-	else Some (kind, Eliom_uri.make_cookies_info (https, service)))
+	match Eliom_services.xhr_with_cookies service with
+        | None -> None
+        | Some tmpl ->
+            Some (kind, Eliom_uri.make_cookies_info (https, service), tmpl))
 
   let a ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
         ?keep_nl_params ?nl_params

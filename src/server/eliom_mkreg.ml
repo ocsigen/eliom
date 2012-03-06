@@ -80,7 +80,7 @@ let check_before name service =
   match Eliom_services.get_send_appl_content service
   (* the appl name of the service *)
   with
-    | Eliom_services.XSame_appl an
+    | Eliom_services.XSame_appl (an, _)
 	when (an = name)
 	  -> (* Same appl, it is ok *) false
     | Eliom_services.XAlways -> (* It is an action *) false

@@ -71,9 +71,9 @@ module My_appl =
 (*wiki* Now I can define my first service belonging to that application: *wiki*)
 
 let header_id : HTML5_types.body_content_fun HTML5.id =
-  HTML5.new_global_elt_id ()
+  HTML5.new_elt_id ~global:true ()
 let header () =
-  HTML5.create_global_elt ~id:header_id
+  HTML5.create_named_elt ~id:header_id
     (p [pcdata "Random value in the container: ";
 	(span [pcdata (string_of_int (Random.int 1000))]);
 	br ();

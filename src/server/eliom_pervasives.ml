@@ -226,9 +226,11 @@ module XML = struct
       ^"\n/* ]]> */\n" in
     encodedpcdata s'
 
-  let make_node_name () = "server_" ^ String.make_cryptographic_safe ()
+  let make_node_name ?(global = false) () =
+    (if global then "global_" else "")
+    ^ "server_" ^ String.make_cryptographic_safe ()
 
-  let make_process_node ?(id = make_node_name ()) elt =
+  let make_process_node ?(id = make_node_name ~global:true ()) elt =
     { elt with node_id = ProcessId id }
 
   let make_request_node elt =
@@ -267,18 +269,23 @@ module XML = struct
 	  | _ -> failwith "attribute class is not a string"
       end
     | _, RACamlEventHandler (CE_registered_closure (closure_id, _)) as attr ->
-      (ce_registered_closure_class::acc_class,attr::acc_attr)
+      (ce_registered_closure_class :: acc_class, attr :: acc_attr)
     | _, RACamlEventHandler (CE_call_service link_info) ->
       begin
 	match Eliom_lazy.force link_info with
 	  | None -> acc_class, acc_attr
-	  | Some (kind,cookie_info) ->
-	    ce_call_service_class::acc_class,
-	    match cookie_info with
-	      | None -> acc_attr
-	      | Some v ->
-		(ce_call_service_attrib, RA (AStr (Json.to_string<cookie_info> v)))
-		::acc_attr
+	  | Some (kind,cookie_info,tmpl) ->
+              ce_call_service_class::acc_class,
+              let acc_attr =
+	        match cookie_info with
+                | None -> acc_attr
+                | Some v ->
+                    (ce_call_service_attrib, RA (AStr (Json.to_string<cookie_info> v)))
+                    :: acc_attr
+              in
+              match tmpl with
+              | None -> acc_attr
+              | Some tmpl -> (ce_template_attrib, RA (AStr tmpl)) :: acc_attr
       end
     | attr -> (acc_class,attr::acc_attr)
 
@@ -341,9 +348,12 @@ module SVG = struct
   module M = SVG_f.Make(XML)
 
   type 'a id = string (* FIXME invariant type parameter ? *)
-  let new_global_elt_id: unit -> 'a id = XML.make_node_name
-  let create_global_elt ?(id : 'a id option) elt =
-    tot (XML.make_process_node ?id (toelt elt))
+  let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
+  let new_global_elt_id () = new_elt_id ()
+  let create_named_elt ~(id : 'a id) elt =
+    tot (XML.make_process_node ~id (toelt elt))
+  let create_global_elt elt =
+    tot (XML.make_process_node (toelt elt))
 
   module P = XML_print.MakeTypedSimple(XML)(M)
 end
@@ -649,9 +659,12 @@ module HTML5 = struct
   end
 
   type 'a id = string (* FIXME invariant type parameter ? *)
-  let new_global_elt_id : unit -> 'a id = XML.make_node_name
-  let create_global_elt ?(id : 'a id option) elt =
-    tot (XML.make_process_node ?id (toelt elt))
+  let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
+  let new_global_elt_id () = new_elt_id ()
+  let create_named_elt ~(id : 'a id) elt =
+    tot (XML.make_process_node ~id (toelt elt))
+  let create_global_elt elt =
+    tot (XML.make_process_node (toelt elt))
   let have_id name elt = XML.get_node_id (toelt elt) = XML.ProcessId name
 
   module P = XML_print.MakeTypedSimple(XML)(M)

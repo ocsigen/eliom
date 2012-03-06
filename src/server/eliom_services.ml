@@ -32,23 +32,22 @@ include Eliom_services_base
 exception Wrong_session_table_for_CSRF_safe_coservice
 
 (*********)
-let need_process_cookies s = not (is_external s)
-(* If there is a client side process, we do an XHR with tab cookies *)
 
-let appl_content_capable s =
-  match s.send_appl_content with
-    | XAlways -> true
-    | XNever -> false (* actually this will be tested again later
+(* If there is a client side process, we do an XHR with tab cookies *)
+let xhr_with_cookies s =
+  if is_external s then
+    None
+  else
+    match s.send_appl_content with
+    | XAlways -> Some None
+    | XNever -> None (* actually this will be tested again later
                          in get_onload_form_creators *)
-    | XSame_appl an -> true (* Some an = current_page_appl_name *)
+    | XSame_appl (_, tmpl) -> Some tmpl (* Some an = current_page_appl_name *)
       (* for now we do not know the current_page_appl_name.
          We will know it only after calling send.
          In case it is not the same name, we will not send the
          onload_form_creator_info.
       *)
-
-let xhr_with_cookies s =
-  need_process_cookies s && appl_content_capable s
 
 (**********)
 let new_state = Eliommod_cookies.make_new_session_id

@@ -147,7 +147,8 @@ module XML : sig
   val event_handler_of_js : int64 -> poly -> #Dom_html.event caml_event_handler
   val event_handler_of_service :
     ( [ `A | `Form_get | `Form_post ]
-      * (bool * string list) option ) option Eliom_lazy.request -> event_handler
+      * (bool * string list) option
+      * string option) option Eliom_lazy.request -> event_handler
 
   (**/**)
   (* Deprecated alias. *)
@@ -156,7 +157,8 @@ module XML : sig
   val event_of_js : int64 -> poly -> #Dom_html.event caml_event_handler
   val event_of_service :
     ( [ `A | `Form_get | `Form_post ]
-      * (bool * string list) option ) option Eliom_lazy.request -> event_handler
+      * (bool * string list) option
+      * string option ) option Eliom_lazy.request -> event_handler
   (**/**)
 
   type racontent =
@@ -205,14 +207,15 @@ module SVG : sig
   (** The type of global SVG element identifier. *)
   type 'a id
 
-  (** The function [new_global_elt_id ()] create a new SVG element identifier. *)
-  val new_global_elt_id : unit -> 'a id
+  (* TODO GRGR *)
+  val new_elt_id: ?global:bool -> unit -> 'a id
+  val create_named_elt: id:'a id -> 'a elt -> 'a elt
+  val create_global_elt: 'a elt -> 'a elt
 
-  (** The function [create_global elt] create a copy of the SVG node
-      [elt] that will be global. See the Eliom manual for more
-      information on {% <<a_manual chapter="client" fragment="global"|
-      global nodes>>%}. *)
-  val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
+  (**/**)
+  (* Compatibility with eliom 2.1 *)
+  val new_global_elt_id: unit -> 'a id
+  (**/**)
 
   (** {2 Printer} *)
 
@@ -292,14 +295,15 @@ module HTML5 : sig
   (** The type of global HTML5 element identifier. *)
   type 'a id
 
-  (** The function [new_global_elt_id ()] create a new HTML5 element identifier. *)
-  val new_global_elt_id : unit -> 'a id
+  (* TODO GRGR *)
+  val new_elt_id: ?global:bool -> unit -> 'a id
+  val create_named_elt: id:'a id -> 'a elt -> 'a elt
+  val create_global_elt: 'a elt -> 'a elt
 
-  (** The function [create_global elt] create a copy of the HTML5 node
-      [elt] that will be global. See the Eliom manual for more
-      information on {% <<a_manual chapter="client" fragment="global"|
-      global nodes>>%}. *)
-  val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
+  (**/**)
+  (* Compatibility with eliom 2.1 *)
+  val new_global_elt_id: unit -> 'a id
+  (**/**)
 
   (**/**)
   val have_id: 'a id -> 'b elt -> bool

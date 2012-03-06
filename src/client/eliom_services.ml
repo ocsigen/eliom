@@ -19,14 +19,13 @@
 
 include Eliom_services_base
 
-let need_process_cookies s = not (is_external s)
-(* If there is a client side process, we do an XHR with tab cookies *)
-
-let appl_content_capable s =
-  match s.send_appl_content with
-    | XAlways -> true
-    | XNever -> false
-    | XSame_appl an -> Some an = Eliom_process.get_application_name ()
-
 let xhr_with_cookies s =
-  need_process_cookies s && appl_content_capable s
+  if is_external s then
+    None
+  else
+    match s.send_appl_content with
+    | XAlways -> Some None
+    | XNever -> None
+    | XSame_appl (appl, _) when Some appl <> Eliom_process.get_application_name () -> None
+    | XSame_appl (_, tmpl) -> Some tmpl
+

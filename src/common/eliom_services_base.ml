@@ -96,8 +96,9 @@ type appl_service (** return type for service that are entry points for an
 type send_appl_content =
   | XNever
   | XAlways
-  | XSame_appl of string
-(* the string is the name of the application to which the service belongs *)
+  | XSame_appl of string * string option
+(* the string is the name of the application to which the service
+   belongs and the option is the name of template *)
 (** Whether the service is capable to send application content or not.
     (application content has type Eliom_services.eliom_appl_answer:
     content of the application container, or xhr redirection ...).

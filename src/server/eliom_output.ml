@@ -2200,9 +2200,10 @@ module Caml = struct
       f g p >>= prepare_data
 
   let send ?options ?charset ?code ?content_type ?headers content =
+    lwt content = prepare_data content in
     Result_types.cast_result_lwt
       (M.send ?options ?charset ?code
-	 ?content_type ?headers (Eliom_types.encode_eliom_data content))
+	 ?content_type ?headers content)
 
   let register
       ?scope
@@ -2491,6 +2492,8 @@ let redirection_script =
     ^ "redir ();" in
   HTML5.create_global_elt (HTML5.M.script (HTML5.M.cdata_script script))
 
+let request_template = Eliom_references.eref ~scope:Eliom_common.request None
+
 module Eliom_appl_reg_make_param
   (Html5_content
      : Ocsigen_http_frame.HTTP_CONTENT
@@ -2510,9 +2513,10 @@ module Eliom_appl_reg_make_param
 
   let result_of_http_result = Result_types.cast_result
 
-  let eliom_appl_script_id : [ `Script ] HTML5.id = HTML5.new_global_elt_id ()
+  let eliom_appl_script_id : [ `Script ] HTML5.id =
+    HTML5.new_elt_id ~global:true ()
   let application_script ?(async = false) () =
-    HTML5.create_global_elt
+    HTML5.create_named_elt
       ~id:eliom_appl_script_id
       (Html5.js_script
 	 ~a:(if async then [HTML5.a_async `Async] else [] )
@@ -2527,7 +2531,8 @@ module Eliom_appl_reg_make_param
   let is_eliom_appl_script elt =
     HTML5.have_id eliom_appl_script_id elt
 
-  let eliom_appl_data_script_id = HTML5.new_global_elt_id ()
+  let eliom_appl_data_script_id =
+    HTML5.new_elt_id ~global:true ()
 
   let make_eliom_appl_data_script ~sp =
 
@@ -2536,13 +2541,14 @@ module Eliom_appl_reg_make_param
 	("var eliom_appl_sitedata = \'%s\';\n"
  	 ^^ "var eliom_appl_process_info = \'%s\'\n"
 	 ^^ "var eliom_request_data;\n"
-	 ^^ "var eliom_request_cookies;\n")
+	 ^^ "var eliom_request_cookies;\n"
+         ^^ "var eliom_request_template;\n")
 	(Eliom_types.jsmarshal (Eliommod_cli.client_sitedata sp))
 	(Eliom_types.jsmarshal (sp.Eliom_common.sp_client_process_info))
     in
 
     Lwt.return
-      (HTML5.create_global_elt ~id:eliom_appl_data_script_id
+      (HTML5.create_named_elt ~id:eliom_appl_data_script_id
 	 (HTML5.M.script (cdata_script script)))
 
   let make_eliom_data_script ~sp page =
@@ -2566,14 +2572,16 @@ module Eliom_appl_reg_make_param
 	sp.Eliom_common.sp_user_tab_cookies
     in
 
+    lwt template = Eliom_references.get request_template in
     let script =
       Printf.sprintf
 	("eliom_request_data = \'%s\';\n"
-	 ^^ "eliom_request_cookies = \'%s\';\n")
+	 ^^ "eliom_request_cookies = \'%s\';\n"
+	 ^^ "eliom_request_template = \'%s\';\n")
 	(Eliom_types.jsmarshal eliom_data)
 	(Eliom_types.jsmarshal tab_cookies)
+	(Eliom_types.jsmarshal (template: string option))
     in
-
     Lwt.return (HTML5.M.script (cdata_script script))
 
   let split_page page :
@@ -2640,7 +2648,7 @@ module Eliom_appl_reg_make_param
          (HTML5.M.head ~a:head_attribs title head_elts)
          body )
 
-  let send_appl_content = Eliom_services.XSame_appl Appl_params.application_name
+  let send_appl_content = Eliom_services.XSame_appl (Appl_params.application_name, None)
 
   let send ?(options = default_appl_service_options) ?charset ?code
       ?content_type ?headers content =
@@ -2717,30 +2725,19 @@ module Eliom_appl_reg_make_param
 
   end
 
-module type Eliom_appl = sig
-
-  (** unique type *)
+module type ELIOM_APPL = sig
+  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.elt
+  val application_name : string
   type appl
-
   include "sigs/eliom_reg.mli"
     subst type page    := HTML5_types.html HTML5.elt
       and type options := appl_service_options
       and type return  := appl_service
       and type result  := (appl application_content, appl_service) kind
-
-  (** Unique identifier for this application.
-      It is the application name.
-      Warning: do not mix up with the "application instance id",
-      that is unique for each instance of the application.
-  *)
-  val application_name : string
   val typed_name : appl application_name
-
-  val application_script : ?async:bool -> unit -> [> `Script ] HTML5.elt
-
 end
 
-module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
+module Eliom_appl (Appl_params : APPL_PARAMS) : ELIOM_APPL = struct
 
   module Eliom_appl_reg_param =
     Eliom_appl_reg_make_param
@@ -2764,6 +2761,51 @@ module Eliom_appl (Appl_params : APPL_PARAMS) : Eliom_appl = struct
   let application_script = Eliom_appl_reg_param.application_script
 
 end
+
+module type TMPL_PARAMS = sig
+  type t
+  val name: string
+  val make_page: t -> HTML5_types.html HTML5.elt Lwt.t
+  val update: t -> Dom_html.event XML.caml_event_handler
+end
+
+module Eliom_tmpl_reg_make_param
+  (Appl : ELIOM_APPL)
+  (Tmpl_param : TMPL_PARAMS) = struct
+
+  open HTML5
+  open HTML5_types
+
+  type page = Tmpl_param.t
+  type options = appl_service_options
+  type return = appl_service
+  type result = (Appl.appl application_content, appl_service) kind
+
+  let result_of_http_result = Result_types.cast_result
+
+  let send_appl_content = Eliom_services.XSame_appl (Appl.application_name, Some Tmpl_param.name)
+
+  let nl_template =
+    Eliom_parameters.make_non_localized_parameters
+      ~prefix:"eliom" ~name:"template"
+      (Eliom_parameters.string "name")
+
+  let send ?(options = default_appl_service_options) ?charset ?code
+      ?content_type ?headers content =
+    match get_non_localized_get_parameters nl_template with
+    | None ->
+        lwt () = Eliom_references.set request_template (Some Tmpl_param.name) in
+        lwt content = Tmpl_param.make_page content in
+        Result_types.cast_kind_lwt
+          (Appl.send ~options ?charset ?code ?content_type ?headers content)
+    | Some _ ->
+        Eliom_services.onload (Tmpl_param.update content);
+        Result_types.cast_kind_lwt (Caml.send ?charset ?code ?content_type ?headers ())
+
+end
+
+module Eliom_tmpl(Appl : ELIOM_APPL)(Tmpl_param : TMPL_PARAMS) =
+  Eliom_mkreg.MakeRegister(Eliom_tmpl_reg_make_param(Appl)(Tmpl_param))
 
 (*****************************************************************************)
 
@@ -2936,7 +2978,7 @@ module Redir_reg_base = struct
         in
         match Eliom_services.get_send_appl_content service with
           (* the appl name of the destination service *)
-            | Eliom_services.XSame_appl an when (an = anr) ->
+            | Eliom_services.XSame_appl (an,_) when (an = anr) ->
             (* Same appl, we do a full xhr redirection
                (not an http redirection, because we want to
                send back tab cookies) *)
