@@ -321,26 +321,26 @@ let count3 =
 
 
 (*****************************)
-(* Transient eliom references *)
+(* Volatile eliom references *)
 
-let transient_references =
+let volatile_references =
   let page elts =
     HTML5.(
       html
         (head
-           (title (pcdata "Transient reference"))
+           (title (pcdata "Volatile reference"))
            [])
         (body elts)
     )
   in
   let eref =
-    Eliom_references.Transient.eref
+    Eliom_references.Volatile.eref
       ~scope:Eliom_common.session
       10
   in
   let service =
     Eliom_services.service
-      ~path:["transient_reference"]
+      ~path:["volatile_reference"]
       ~get_params:Eliom_parameters.unit
       ()
   in
@@ -361,7 +361,7 @@ let transient_references =
       ~fallback:service
       ~post_params:Eliom_parameters.unit
       (fun () () ->
-         let () = Eliom_references.Transient.unset eref in
+         let () = Eliom_references.Volatile.unset eref in
          Lwt.return
            (page HTML5.([
              pcdata "Reference was unset.";
@@ -371,10 +371,10 @@ let transient_references =
   Eliom_output.Html5.register
     ~service
     (fun () () ->
-       let v = Eliom_references.Transient.get eref in
+       let v = Eliom_references.Volatile.get eref in
        Lwt.return
          (page HTML5.([
-             h2 [pcdata "Transient reference"];
+             h2 [pcdata "Volatile reference"];
              p [pcdata "Value is "; pcdata (string_of_int v)];
              Eliom_output.Html5.(
                post_form ~service:set_service

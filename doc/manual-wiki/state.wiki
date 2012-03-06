@@ -426,14 +426,14 @@ currently suffer some limitations:
 
 >>
 
-==== Transient references ====
+==== Volatile references ====
 
-The module <<a_api | module Eliom_references.Transient>> allows the creation of
+The module <<a_api | module Eliom_references.Volatile>> allows the creation of
 non-persistent Eliom references, which can then be used through a pure (i.e.
 non-Lwt) interface.
 
-As <<a_api | type Eliom_references.Transient.eref>> is a subtype of <<a_api |
-type Eliom_references.eref>>, a transient reference ##eref## may be used
+As <<a_api | type Eliom_references.Volatile.eref>> is a subtype of <<a_api |
+type Eliom_references.eref>>, a volatile reference ##eref## may be used
 as ##(eref : _ Eliom_references.eref)## with the Lwt-interface of <<a_api |
 module Eliom_references>> alike.
 

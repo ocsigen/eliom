@@ -35,15 +35,15 @@ type 'a eref_kind =
   | Ocsiper_sit of 'a Ocsipersist.table
   | Per of 'a persistent_table
 
-type transient = [ `Transient ]
+type volatile = [ `Volatile ]
 type persistent = [ `Persistent ]
 
 type ('a, 'storage) eref' = (unit -> 'a) * 'a eref_kind
-type 'a eref = ('a, [ transient | persistent ]) eref'
+type 'a eref = ('a, [ volatile | persistent ]) eref'
 
-module Transient = struct
+module Volatile = struct
 
-  type 'a eref = ('a, transient) eref'
+  type 'a eref = ('a, volatile) eref'
 
   (* TODO With GADTs, drop the [assert false] statements below! *)
 
@@ -116,25 +116,25 @@ end
 let eref_from_fun ~scope ?secure ?persistent f : 'a eref =
   match (scope:[<Eliom_common.all_scope]) with
     | `Request ->
-        (Transient.eref_from_fun ~scope ?secure f :> _ eref)
+        (Volatile.eref_from_fun ~scope ?secure f :> _ eref)
     | `Global ->
       begin
         match persistent with
-          | None -> (Transient.eref_from_fun ~scope ?secure f :> _ eref)
+          | None -> (Volatile.eref_from_fun ~scope ?secure f :> _ eref)
           | Some name ->
             (f, Ocsiper (Ocsipersist.make_persistent ~store:pers_ref_store ~name ~default:None))
       end
     | `Site ->
       begin
         match persistent with
-          | None -> (Transient.eref_from_fun ~scope ?secure f :> _ eref)
+          | None -> (Volatile.eref_from_fun ~scope ?secure f :> _ eref)
           | Some name ->
               (f, Ocsiper_sit (Ocsipersist.open_table name))
       end
     | (#Eliom_common.user_scope as scope) ->
       match persistent with
         | None ->
-          (Transient.eref_from_fun ~scope ?secure f :> _ eref)
+          (Volatile.eref_from_fun ~scope ?secure f :> _ eref)
         | Some name ->
           (f, Per (create_persistent_table ~scope ?secure name))
 
@@ -169,7 +169,7 @@ let get (f, table as eref) =
          let value = f () in
          Ocsipersist.add t site_id value >>= fun () ->
          Lwt.return value)
-    | _ -> Lwt.return (Transient.get eref)
+    | _ -> Lwt.return (Volatile.get eref)
 
 let set (_, table as eref) value =
   match table with
@@ -177,7 +177,7 @@ let set (_, table as eref) value =
     | Ocsiper r -> r >>= fun r -> Ocsipersist.set r (Some value)
     | Ocsiper_sit t ->
       Ocsipersist.add t (get_site_id ()) value
-    | _ -> Lwt.return (Transient.set eref value)
+    | _ -> Lwt.return (Volatile.set eref value)
 
 let modify eref f =
   get eref >>= fun x -> set eref (f x)
@@ -188,4 +188,4 @@ let unset (f, table as eref) =
     | Ocsiper r -> r >>= fun r -> Ocsipersist.set r None
     | Ocsiper_sit t ->
       Ocsipersist.remove t (get_site_id ())
-    | _ -> Lwt.return (Transient.unset eref)
+    | _ -> Lwt.return (Volatile.unset eref)

@@ -20,13 +20,13 @@
 (** {2 Server side state data, a.k.a Eliom references} *)
 
 (** Eliom references come in two flavors: they may be stored persistently or
-    the may be transient.  The module [Transient] allows to creation of
-    references which can be, get, set, modify, and unset transient references
+    the may be volatile.  The module [Volatile] allows to creation of
+    references which can be, get, set, modify, and unset volatile references
     through {e pure} (i.e. non-Lwt) functions. *)
 type ('a, +'storage) eref'
 
 (** The type of Eliom references whose content is of type ['a].  *)
-type 'a eref = ('a, [ `Transient | `Persistent ]) eref'
+type 'a eref = ('a, [ `Volatile | `Persistent ]) eref'
 
 (** The function [eref ~scope value] creates an Eliom reference for
     the given [scope] and initialize it with [value]. See the Eliom
@@ -135,11 +135,11 @@ val unset : 'a eref -> unit Lwt.t
 
 (** Same functions as in [Eliom_references] but a pure (i.e. non-Lwt) interface
     for non-persistent Eliom references. *)
-module Transient : sig
-  (** The type of transient Eliom references.
-      Note that [('a Eliom_references.Transient.eref :> 'a Eliom_references.eref)], i.e. whereever you can use an ['a
-      Eliom_references.eref] you can also use an ['a Eliom_references.Transient.eref :> 'a Eliom_references.eref].  *)
-  type 'a eref = ('a, [`Transient]) eref'
+module Volatile : sig
+  (** The type of volatile Eliom references.
+      Note that [('a Eliom_references.Volatile.eref :> 'a Eliom_references.eref)], i.e. whereever you can use an ['a
+      Eliom_references.eref] you can also use an ['a Eliom_references.Volatile.eref :> 'a Eliom_references.eref].  *)
+  type 'a eref = ('a, [`Volatile]) eref'
   val eref : scope:[< Eliom_common.all_scope] -> ?secure:bool -> 'a -> 'a eref
   val eref_from_fun : scope:[< Eliom_common.all_scope] -> ?secure:bool -> (unit -> 'a) -> 'a eref
   val get : 'a eref -> 'a
