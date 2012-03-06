@@ -353,17 +353,24 @@ Eliom references are used for example:
 * or to keep some information about the current request (scope:
   request), for example to give information to the service taking in
   charge the request after an action,
-* to implement persistent references (scope: global).
+* to implement persistent references (scope: global)
+* for caching functions (<<a_api | val Eliom_references.eref_from_fun>>).
 
 Non persistent global Eliom references are equivalent to regular OCaml
 references.
 
-Eliom references are created using the function <<a_api | val
+Eliom references are either created using the function <<a_api | val
 Eliom_references.eref >>, that works like the usual Ocaml {{{ref}}}
-function, but with at least one additional scope parameter. The
-<<a_api | module Eliom_references >> module also defines functions to
+function, but with at least one additional scope parameter.
+Or they may be created by the fucntion <<a_api | val
+Eliom_references.eref_from_fun>>: Its argument function is evaluated the first
+time the reference is accessed (through <<a_api | val Eliom_references.get>>),
+within one scope or after the reference has been reset.
+
+The <<a_api | module Eliom_references >> module also defines functions to
 <<a_api text="get the value"| val Eliom_references.set >>, <<a_api
-text="set the value"| val Eliom_references.set >> and <<a_api
+text="set the value"| val Eliom_references.set>>, <<a_api text="modify the value"
+| val Eliom_references.modify>> (by applying a function to its content), and <<a_api
 text="turn back to the default value"| val Eliom_references.unset >>:
 
 <<code language="ocaml"|
@@ -376,14 +383,21 @@ val eref :
   ?persistent:string ->
   'a -> 'a eref
 
+val eref_from_fun :
+  scope:[< Eliom_common.all_scope ] ->
+  ?secure:bool ->
+  ?persistent:string ->
+  (unit -> 'a) -> 'a eref
+
 val get : 'a eref -> 'a Lwt.t
 
 val set : 'a eref -> 'a -> unit Lwt.t
 
+val modify : 'a eref -> ('a -> 'a) -> unit Lwt.t
+
 val unset : 'a eref -> unit Lwt.t
 
 >>
-
 
 ===@@id="persistent_eref"@@ Persistent references ===
 
@@ -412,8 +426,16 @@ currently suffer some limitations:
 
 >>
 
+==== Transient references ====
 
+The module <<a_api | module Eliom_references.Transient>> allows the creation of
+non-persistent Eliom references, which can then be used through a pure (i.e.
+non-Lwt) interface.
 
+As <<a_api | type Eliom_references.Transient.eref>> is a subtype of <<a_api |
+type Eliom_references.eref>>, a transient reference ##eref## may be used
+as ##(eref : _ Eliom_references.eref)## with the Lwt-interface of <<a_api |
+module Eliom_references>> alike.
 
 == Low-level cookies manipulation
 
