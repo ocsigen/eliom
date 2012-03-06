@@ -319,6 +319,81 @@ let count3 =
           (HTML5.M.head (HTML5.M.title (HTML5.M.pcdata "counter")) [])
           (HTML5.M.body [HTML5.M.p [HTML5.M.pcdata (string_of_int n)]]))))
 
+
+(*****************************)
+(* Transient eliom references *)
+
+let transient_references =
+  let page elts =
+    HTML5.(
+      html
+        (head
+           (title (pcdata "Transient reference"))
+           [])
+        (body elts)
+    )
+  in
+  let eref =
+    Eliom_references.Transient.eref
+      ~scope:Eliom_common.session
+      10
+  in
+  let service =
+    Eliom_services.service
+      ~path:["transient_reference"]
+      ~get_params:Eliom_parameters.unit
+      ()
+  in
+  let set_service =
+    Eliom_output.Html5.register_post_coservice
+      ~fallback:service
+      ~post_params:(Eliom_parameters.int "n")
+      (fun () n ->
+         lwt () = Eliom_references.set (eref :> _ Eliom_references.eref) n in
+         Lwt.return
+           (page HTML5.([
+             pcdata "Reference was set.";
+             Eliom_output.Html5.a ~service [pcdata "back"] ();
+           ])))
+  in
+  let unset_service =
+    Eliom_output.Html5.register_post_coservice
+      ~fallback:service
+      ~post_params:Eliom_parameters.unit
+      (fun () () ->
+         let () = Eliom_references.Transient.unset eref in
+         Lwt.return
+           (page HTML5.([
+             pcdata "Reference was unset.";
+             Eliom_output.Html5.a ~service [pcdata "back"] ();
+           ])))
+  in
+  Eliom_output.Html5.register
+    ~service
+    (fun () () ->
+       let v = Eliom_references.Transient.get eref in
+       Lwt.return
+         (page HTML5.([
+             h2 [pcdata "Transient reference"];
+             p [pcdata "Value is "; pcdata (string_of_int v)];
+             Eliom_output.Html5.(
+               post_form ~service:set_service
+                 (fun name -> [
+                   int_input ~input_type:`Text ~name ();
+                   string_input ~input_type:`Submit ~value:"Set" ();
+                 ]) ()
+             );
+             Eliom_output.Html5.(
+               post_form ~service:unset_service
+                 (fun () -> [
+                   string_input ~input_type:`Submit ~value:"Unset" ();
+                 ]) ()
+             );
+         ])));
+  service
+
+
+
 (*****************************)
 (* Eliom references from fun *)
 
