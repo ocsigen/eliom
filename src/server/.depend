@@ -107,10 +107,6 @@ eliom_pervasives.cmo: eliom_wrap.cmi eliom_pervasives_base.cmo eliom_lazy.cmi \
 eliom_pervasives.cmx: eliom_wrap.cmx eliom_pervasives_base.cmx eliom_lazy.cmx \
     eliom_pervasives.cmi
 eliom_pervasives.cmi: eliom_lazy.cmi
-eliom_pervasives_test.cmo: eliom_wrap.cmi eliom_pervasives_base.cmo \
-    eliom_lazy.cmi
-eliom_pervasives_test.cmx: eliom_wrap.cmx eliom_pervasives_base.cmx \
-    eliom_lazy.cmx
 eliom_process.cmo:
 eliom_process.cmx:
 eliom_react.cmo: eliom_services.cmi eliom_parameters.cmi eliom_output.cmi \

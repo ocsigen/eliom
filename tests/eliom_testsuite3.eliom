@@ -841,7 +841,7 @@ let global_channel_wrapping_service =
   Eliom_output.Caml.register_post_coservice'
     ~post_params:(Eliom_parameters.unit)
     (fun () () ->
-      let channel = Eliom_comet.Channels.create ~scope:`Global
+      let channel = Eliom_comet.Channels.create ~scope:`Site
 	(Lwt_stream.clone stream1) in
       keep_ref channel 3.;
       Lwt.return channel)
@@ -888,7 +888,7 @@ let caml_service_wrapping =
 		    ignore (
 		      lwt c = Eliom_client.call_caml_service ~service:%global_channel_wrapping_service () () in
 		      try_lwt
-			iter_stream_append (Printf.sprintf "global message: %i;  ") c
+			iter_stream_append (Printf.sprintf "site message: %i;  ") c
 	      with
 		| Eliom_comet.Channel_closed ->
 		  Dom.appendChild (Dom_html.document##body)
@@ -897,7 +897,7 @@ let caml_service_wrapping =
 		| e -> debug_exn "global_channel_wrapping_service: exception: " e; Lwt.fail e
 		    )
 		  }}]
-	    [pcdata "click to create a channel with scope global: it has a lifetime of 3 seconds: after 3 seconds, there is no garanty on availability of this channel"];
+	    [pcdata "click to create a channel with scope site: it has a lifetime of 3 seconds: after 3 seconds, there is no garanty on availability of this channel"];
 	  pcdata "when clicking on this link, messages should be received every 1 second";
         ])
     )
@@ -1148,7 +1148,7 @@ let comet_message_board = comet_message_board_maker "message_board" message_bus 
 
 let multiple_bus = Eliom_bus.create ~scope:Eliom_common.client_process ~name:"multiple_bus" ~size:10 Json.t<int>
 let _ = Lwt_stream.iter (fun _ -> ()) (Eliom_bus.stream multiple_bus)
-let multiple_bus_stateless = Eliom_bus.create ~name:"multiple_bus_stateless" ~scope:`Global ~size:10 Json.t<int>
+let multiple_bus_stateless = Eliom_bus.create ~name:"multiple_bus_stateless" ~scope:`Site ~size:10 Json.t<int>
 
 let multiple_bus_position = ref 0
 
@@ -1210,7 +1210,7 @@ let rand_tick =
     Lwt_unix.sleep (float_of_int (2 + (Random.int 2))) >>= fun () ->
     incr i; Lwt.return (Some !i)
 let stream_sl = Lwt_stream.from rand_tick
-let stateless_channel = Eliom_comet.Channels.create ~scope:`Global ~name:"stateless" stream_sl
+let stateless_channel = Eliom_comet.Channels.create ~scope:`Site ~name:"stateless" stream_sl
 let _ = Eliom_comet.Channels.get_wrapped stateless_channel
 let external_stateless_channel : int Eliom_comet.Channels.t =
   Eliom_comet.Channels.external_channel
@@ -1274,15 +1274,15 @@ let comet_stateless_external =
 let time =
   let t = Unix.gettimeofday () in
   let e = Lwt_react.E.from (fun () -> Lwt_unix.sleep 0.1 >>= (fun () -> Lwt.return (Unix.gettimeofday ()))) in
-  Eliom_react.S.Down.of_react ~scope:`Global ~name:"time" (Lwt_react.S.hold t e)
+  Eliom_react.S.Down.of_react ~scope:`Site ~name:"time" (Lwt_react.S.hold t e)
 let comet_signal_stateless = comet_signal_maker "comet_signal_stateless" time
 
-let message_bus_global = Eliom_bus.create ~scope:`Global ~size:10 Json.t<string>
+let message_bus_site = Eliom_bus.create ~scope:`Site ~size:10 Json.t<string>
 let _ =
-  Lwt_stream.iter (fun msg -> Printf.printf "msg global: %s\n%!" msg)
-    (Eliom_bus.stream message_bus_global)
+  Lwt_stream.iter (fun msg -> Printf.printf "msg site: %s\n%!" msg)
+    (Eliom_bus.stream message_bus_site)
 let comet_message_board_stateless = comet_message_board_maker "message_board_stateless"
-  message_bus_global (fun () -> ())
+  message_bus_site (fun () -> ())
 
 
 (*wiki*
