@@ -403,33 +403,47 @@ let fetch_linked_css e =
     | _ -> acc in
   extract [] (e :> Dom.node Js.t)
 
-let url_content_raw    = "([^\"'\\)]\\\\(\"|'|\\)))*"
-let dbl_quoted_url_raw = "\"" ^ url_content_raw ^ "[^\\\\\"]*\""
-let quoted_url_raw     =  "'" ^ url_content_raw ^ "[^\\\\']*'"
+let url_content_raw    = "([^'\\\"]([^\\\\\\)]|\\\\.)*)"
+let dbl_quoted_url_raw = "\"(([^\\\\\"]|\\\\.)*)\""
+let quoted_url_raw     =  "'(([^\\\\']|\\\\.)*)'"
 let url_re =
-  Regexp.regexp (Printf.sprintf "url\\(\\s*(%s|%s|%s)\\s*\\)\\s*"
+  Regexp.regexp (Printf.sprintf "url\\s*\\(\\s*(%s|%s|%s)\\s*\\)\\s*"
 		   dbl_quoted_url_raw
 		   quoted_url_raw
-		   (url_content_raw ^ "[^\\\\\\)]*"))
+		   url_content_raw)
 let raw_url_re =
   Regexp.regexp (Printf.sprintf "\\s*(%s|%s)\\s*"
 		   dbl_quoted_url_raw
 		   quoted_url_raw)
 
+let absolute_re = Regexp.regexp "\\s*(https?:\\/\\/|\\/)"
+let absolute_re2 = Regexp.regexp "['\\\"]\\s*((https?:\\/\\/|\\/).*)['\\\"]$"
+
 exception Incorrect_url
+let parse_absolute ~prefix href =
+  match Regexp.search absolute_re href 0 with
+  | Some (i, _) when i=0 -> (* absolute URL -> do not rewrite *) href
+  | _ -> 
+    match Regexp.search absolute_re2 href 0 with
+      | Some (i, res) when i = 0 ->
+	(match Regexp.matched_group res 1 with
+	  | Some href -> (* absolute URL -> do not rewrite *) href
+	  | None -> raise Incorrect_url)
+      | _ -> prefix ^ href
+
 let parse_url ~prefix css pos =
   match Regexp.search url_re css pos with
   | Some (i, res) when i = pos ->
       ( i + String.length (Regexp.matched_string res),
 	match Regexp.matched_group res 1 with
-	| Some href -> prefix ^ href
+	| Some href -> parse_absolute ~prefix href
 	| None -> raise Incorrect_url )
   | _ ->
       match Regexp.search raw_url_re css pos with
       | Some (i, res) when i = pos ->
 	  ( i + String.length (Regexp.matched_string res),
 	    match Regexp.matched_group res 1 with
-	    | Some href -> prefix ^ href
+	    | Some href -> parse_absolute ~prefix href
 	    | None -> raise Incorrect_url )
       | _ -> raise Incorrect_url
 
@@ -441,7 +455,7 @@ let parse_media css pos =
   (i+1, String.sub css pos (i - pos))
 
 (* Look for relative URL only... *)
-let url_re = Regexp.regexp "url\\((?!('|\")?(https?:\\/\\/|\\/))"
+let url_re = Regexp.regexp "url\\s*\\(\\s*(?!('|\")?(https?:\\/\\/|\\/))"
 
 let rewrite_css_url ~prefix css pos =
   let len = String.length css - pos in
