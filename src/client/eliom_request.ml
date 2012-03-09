@@ -142,6 +142,11 @@ let rec send ?(expecting_process_page = false) ?cookies_info
     in
     let get_args =
       if expecting_process_page
+      (* we add this parameter to ensure that the xhr request is
+         different from the normal ones: we can't ensure that the
+         browser won't cache the content of the page ( for instance
+         when clicking the back button ). That way we are sure that an
+         xhr answer won't be used in place of a normal answer. *)
       then (nl_get_appl_parameter,"true")::get_args
       else get_args
     in
