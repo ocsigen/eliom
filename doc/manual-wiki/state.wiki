@@ -429,8 +429,8 @@ currently suffer some limitations:
 ==== Volatile references ====
 
 The module <<a_api | module Eliom_references.Volatile>> allows the creation of
-non-persistent Eliom references, which can then be used through a pure (i.e.
-non-Lwt) interface.
+non-persistent Eliom references, which can then be used through a non-Lwt
+interface.
 
 As <<a_api | type Eliom_references.Volatile.eref>> is a subtype of <<a_api |
 type Eliom_references.eref>>, a volatile reference ##eref## may be used

@@ -22,7 +22,7 @@
 (** Eliom references come in two flavors: they may be stored persistently or
     the may be volatile.  The module [Volatile] allows to creation of
     references which can be, get, set, modify, and unset volatile references
-    through {e pure} (i.e. non-Lwt) functions. *)
+    through {e non-Lwt} functions. *)
 type ('a, +'storage) eref'
 
 (** The type of Eliom references whose content is of type ['a].  *)
@@ -133,7 +133,7 @@ val unset : 'a eref -> unit Lwt.t
 (* That function introduces a Lwt cooperation point only for persistent
    references. *)
 
-(** Same functions as in [Eliom_references] but a pure (i.e. non-Lwt) interface
+(** Same functions as in [Eliom_references] but a non-Lwt interface
     for non-persistent Eliom references. *)
 module Volatile : sig
   (** The type of volatile Eliom references.
