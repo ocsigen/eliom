@@ -507,6 +507,57 @@ let caml_service_cookies =
         ])
     )
 
+let default_no_appl =
+  let module App = Eliom_output.Eliom_appl (struct let application_name = "eliom_testsuite" end) in
+  let open HTML5 in
+  let id = new_global_elt_id () in
+  let unique_content =
+    let counter = ref 0 in
+    fun () ->
+      incr counter;
+      [ pcdata ("unique content: "^string_of_int !counter) ] in
+  let get_service = Eliom_services.service ~path:["no-xhr"] ~get_params:Eliom_parameters.unit () in
+  let post_service = Eliom_services.post_service ~fallback:get_service ~post_params:Eliom_parameters.unit () in
+  let toggle_default_no_appl =
+    Eliom_output.Action.register_post_coservice'
+      ~post_params:Eliom_parameters.unit
+      (fun () () ->
+         Eliom_config.(set_default_no_appl (not (get_default_no_appl ())));
+         Lwt.return ()) in
+  let handler () () =
+    let global_elt = create_global_elt ~id (div (unique_content ())) in
+    Lwt.return
+      (html
+        (head (title (pcdata "default-no-xhr")) [])
+        (body [
+          global_elt;
+          div Eliom_output.Html5.([
+            a ~service:get_service [pcdata "Link to self"] ();
+            get_form ~service:get_service
+              (fun () -> [
+                 string_input ~input_type:`Submit ~value:"Get to self" ()
+              ]);
+            post_form ~service:post_service
+              (fun () -> [
+                 string_input ~input_type:`Submit ~value:"Post to self" ()
+              ]) ();
+            post_form ~service:toggle_default_no_appl
+              (fun () -> [
+                string_input ~input_type:`Submit ~value:"Toggle" ();
+                pcdata " value of ";
+                code [pcdata "sitedata.default_no_appl"];
+                pcdata (Printf.sprintf " (is %b)" (Eliom_config.get_default_no_appl ()))
+              ]) ();
+            p [
+              pcdata "You may also try to add ";
+              code [pcdata "<no-xhr-links />"];
+              pcdata "Into your site configuration.";
+            ]
+          ])
+        ])) in
+  App.register ~service:get_service handler;
+  App.register ~service:post_service handler;
+  Eliom_services.((get_service :  (_, _, get_service_kind, _, _, _, registrable, unit) service))
 
 (*wiki*
 ====Other tests:
@@ -566,9 +617,6 @@ let _ =
                [pcdata "Same link with ";
                 code [pcdata "a"]; pcdata "."] ()];
          ]))
-
-
-
 
 
 let on_load =

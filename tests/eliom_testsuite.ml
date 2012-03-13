@@ -7,7 +7,6 @@ open Eliom_testsuite1
 open Eliom_testsuite2
 open Eliom_testsuite3
 
-
 (* Main page for the test suite *)
 let _ = Eliom_output.Html5.register Eliom_testsuite3.main
   (fun () () ->
@@ -403,6 +402,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               a caml_service_cookies [pcdata "Client process cookies with caml service"] ();
               br ();
               a gotowithoutclient [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
+              br ();
+              a default_no_appl [pcdata "Toggle the default value of no_appl"] ();
               br ();
               a on_load [pcdata "A service using on_unload and on_load"] ();
               br ();

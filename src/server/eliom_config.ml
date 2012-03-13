@@ -30,6 +30,14 @@ let get_default_sslport () =
   let sitedata = Eliom_request_info.find_sitedata "get_default_sslport" in
   sitedata.Eliom_common.config_info.Ocsigen_extensions.default_httpsport
 
+let get_default_no_appl () =
+  let sitedata = Eliom_request_info.find_sitedata "get_default_no_appl" in
+  sitedata.Eliom_common.default_no_appl
+
+let set_default_no_appl v =
+  let sitedata = Eliom_request_info.find_sitedata "set_default_no_appl" in
+  sitedata.Eliom_common.default_no_appl <- v
+
 let get_config_default_charset_sp sp =
   Ocsigen_charset_mime.default_charset
     sp.Eliom_common.sp_request.Ocsigen_extensions.request_config.Ocsigen_extensions.charset_assoc

@@ -461,6 +461,7 @@ and sitedata =
   {site_dir: Url.path;
    site_dir_string: string;
    config_info: Ocsigen_extensions.config_info;
+   mutable default_no_appl: bool;
 
    (* Timeouts:
        - default for site (browser sessions)

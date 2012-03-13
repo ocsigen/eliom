@@ -62,6 +62,7 @@
       <static dir="_STATICPAGESDIR_/tests" />
 
       <site path="">
+        <!-- <no-xhr-links /> -->
         <eliom findlib-package="eliom_tests.testsuite_site"/>
         <eliom findlib-package="eliom_tests.testsuite" />
       </site>

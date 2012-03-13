@@ -400,3 +400,18 @@ The syntax is:
 * {{{<ipv4subnetmask value="255.255.128.0"/>}}}
 * {{{<ipv6subnetmask value="ff:ff:ff:ff:ff:ff::"/>}}}
 
+==Per site configuration options
+
+=== Disabling for XHR-links
+
+By default, all links (##a##, ##form##) within an Eliom application are realized
+by Eliom's ##change_page## magic (unless their creation is augmented
+with ##~no_appl=true##).
+
+In contrast, you may add the tag
+{{{
+  <no-xhr-links />
+}}}
+into the content of the configuration of a site, just next to the Eliom modules.
+Then all links are by default realized by their default HTTP behaviour.
+

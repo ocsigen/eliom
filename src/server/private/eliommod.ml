@@ -113,6 +113,7 @@ let new_sitedata =
            site_dir_string = Url.string_of_url_path
               ~encode:false site_dir;
            config_info = config_info;
+           default_no_appl = false;
            global_services = 
               Eliom_common.empty_tables
                 !default_max_anonymous_services_per_subnet
@@ -790,6 +791,9 @@ let parse_config hostpattern conf_info site_dir =
         end
         else
           gen_nothing ()
+    | Element ("no-xhr-links", [], []) ->
+        sitedata.Eliom_common.default_no_appl <- true;
+        gen_nothing ()
     | Element (t, _, _) ->
         raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")

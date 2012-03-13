@@ -904,10 +904,15 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
         | Some tmpl ->
             Some (kind, Eliom_uri.make_cookies_info (https, service), tmpl))
 
+  let get_no_appl = function
+    | Some no_appl ->  no_appl
+    | None -> Eliom_config.get_default_no_appl ()
+
   let a ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
         ?keep_nl_params ?nl_params
-	?(no_appl = false)
+	?no_appl
 	content getparams =
+    let no_appl = get_no_appl no_appl in
     let a =
       if no_appl
       then a
@@ -923,9 +928,9 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
   let get_form
       ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params
-      ?(no_appl = false) contents =
+      ?no_appl contents =
     let a =
-      if no_appl
+      if get_no_appl no_appl
       then a
       else
 	let info = make_info ~https `Form_get service in
@@ -938,9 +943,9 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
   let lwt_get_form
       ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
       ?keep_nl_params ?nl_params
-      ?(no_appl = false) contents =
+      ?no_appl contents =
     let a =
-      if no_appl
+      if get_no_appl no_appl
       then a
       else
 	let info = make_info ~https `Form_get service in
@@ -954,9 +959,9 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
   let post_form
       ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
       ?keep_nl_params ?keep_get_na_params ?nl_params
-      ?(no_appl = false) contents getparams =
+      ?no_appl contents getparams =
     let a =
-      if no_appl
+      if get_no_appl no_appl
       then a
       else
 	let info = make_info ~https `Form_post service in
@@ -970,9 +975,9 @@ module MakeApplForms(Forms: "sigs/eliom_html5_forms.mli") = struct
   let lwt_post_form
       ?absolute ?absolute_path ?https ?(a = []) ~service ?hostname ?port ?fragment
       ?keep_nl_params ?keep_get_na_params ?nl_params
-      ?(no_appl = false) contents getparams =
+      ?no_appl contents getparams =
     let a =
-      if no_appl
+      if get_no_appl no_appl
       then a
       else
 	let info = make_info ~https `Form_post service in
