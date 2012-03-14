@@ -22,32 +22,46 @@ open Ocsigen_cookies
 
 include Eliom_cookies_base
 
-let cookie_table = ref Cookies.empty
+module JsTable = Eliommod_jstable
+
+(* CCC The tables are indexed by the hostname, not the port appear.
+   there are no particular reason. If needed it is possible to add it *)
+let cookie_tables = JsTable.create ()
+let get_table = function
+  | None -> Cookies.empty
+  | Some host ->
+    Js.Optdef.get (JsTable.find cookie_tables (Js.string host))
+      (fun () -> Cookies.empty)
+let set_table host t =
+  match host with
+    | None -> ()
+    | Some host ->
+      JsTable.add cookie_tables (Js.string host) t
 
 let now () =
   let date = jsnew Js.date_now () in
   Js.to_float (date##getTime ())
 
-let update_cookie_table cookieset =
+let update_cookie_table host cookieset =
   let now = now () in
   Cookies.iter
     (fun path table ->
       CookiesTable.iter
         (fun name -> function
           | OSet (Some exp, _, _) when exp <= now ->
-            cookie_table := remove_cookie path name !cookie_table
+            set_table host (remove_cookie path name (get_table host))
           | OUnset ->
-            cookie_table := remove_cookie path name !cookie_table
+            set_table host (remove_cookie path name (get_table host))
           | OSet (exp, value, secure) ->
-            cookie_table :=
-              add_cookie
-              path name (exp, value, secure)
-              !cookie_table)
+            set_table host
+              (add_cookie
+                 path name (exp, value, secure)
+                 (get_table host)))
         table
     )
     cookieset
 
-let get_cookies_to_send https path =
+let get_cookies_to_send host https path =
   let now = now () in
   Cookies.fold
     (fun cpath t cookies_to_send ->
@@ -58,8 +72,8 @@ let get_cookies_to_send https path =
         (fun name (exp, value, secure) cookies_to_send ->
           match exp with
             | Some exp when exp <= now ->
-              cookie_table :=
-                remove_cookie cpath name !cookie_table;
+              set_table host
+                (remove_cookie cpath name (get_table host));
               cookies_to_send
             | _ ->
               if (not secure) || https
@@ -70,5 +84,5 @@ let get_cookies_to_send https path =
         cookies_to_send
       else cookies_to_send
     )
-    !cookie_table
+    (get_table host)
     []

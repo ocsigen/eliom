@@ -28,7 +28,8 @@ let _c = Eliom_bus.force_link
 let onload ev =
   if !Eliom_config.debug_timings then
     Firebug.console##time(Js.string "onload");
-  Eliommod_cookies.update_cookie_table (Eliom_request_info.get_request_cookies ());
+  Eliommod_cookies.update_cookie_table (Some Url.Current.host)
+    (Eliom_request_info.get_request_cookies ());
   ignore (lwt () = Lwt_js.sleep 0.001 in
 	  Eliom_client.relink_request_nodes (Dom_html.document##documentElement);
 	  let on_load =

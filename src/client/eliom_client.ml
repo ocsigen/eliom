@@ -20,7 +20,7 @@
 
 open Eliom_pervasives
 
-module JsTable = Eliommod_dom.JsTable
+module JsTable = Eliommod_jstable
 
 (* Ignore popstate before the first call to "set_content". It avoids
    loading the first page twice on a buggy Google-chrome. *)
@@ -805,7 +805,14 @@ let set_content ?uri ?fragment = function
         set_state !current_state_id { template = tmpl;
                                       position = 0, 0 };
       end;
-      Eliommod_cookies.update_cookie_table cookies;
+      let host =
+        match uri with
+          | None -> None
+          | Some uri -> match Url.url_of_string uri with
+              | Some (Url.Http url)
+              | Some (Url.Https url) -> Some url.Url.hu_host
+              | _ -> None in
+      Eliommod_cookies.update_cookie_table host cookies;
       lwt () = preloaded_css in
       let on_load = load_eliom_data js_data fake_page in
       (* The request node table must be empty when node received

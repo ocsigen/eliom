@@ -3636,3 +3636,28 @@ let () = My_appl.register nlpost_entry
             Eliom_output.Html5.post_form nlpost (create_form_nl "without nl param") ();
           ]])))
 
+
+(********************************************************)
+(* test external xhr ( and see if cookies are sent ) *)
+
+let some_external_service =
+  Eliom_services.external_service ~prefix:"http://remysharp.com"
+    ~path:["demo";"cors.php"]
+    ~get_params:(Eliom_parameters.unit) ()
+
+let external_xhr = service ~path:["external_xhr"] ~get_params:(unit) ()
+
+let _ = My_appl.register
+  ~service:external_xhr
+  (fun () () ->
+    Lwt.return (
+      make_page [
+        p ~a:[a_class ["clickable"];
+          a_onclick {{
+            debug "click";
+            ignore (
+              lwt r = Eliom_client.call_service ~service:%some_external_service () () in
+              debug "result: %s" r;
+              Lwt.return ())
+          }}] [pcdata "click to do an external xhr"]
+      ]))

@@ -33,7 +33,8 @@ ${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
 
 ### Library ###
 
-FILES := eliom_unwrap.ml eliom_lazy.ml \
+FILES := private/eliommod_jstable.ml \
+	 eliom_unwrap.ml eliom_lazy.ml \
 	 eliom_pervasives_base.ml eliom_pervasives.ml \
 	 eliom_common_base.ml eliom_common.ml \
 	 eliom_cookies_base.ml \

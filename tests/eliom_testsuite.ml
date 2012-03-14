@@ -464,6 +464,7 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
             h5 [pcdata "external"];
             p [
 	      a comet_stateless_external [pcdata "comet channel on another server"] ();
+              a external_xhr [pcdata "request and external service with xhr"] ();
             ];
             h4 [pcdata "More tests"];
             p [

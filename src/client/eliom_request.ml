@@ -118,11 +118,30 @@ let rec send ?(expecting_process_page = false) ?cookies_info
       | Some c -> c
       | None -> get_cookie_info_for_uri url
     in
-    let cookies = Eliommod_cookies.get_cookies_to_send https path in
-    let headers = [ Eliom_common.tab_cookies_header_name,
-                    encode_header_value cookies ] in
-    let headers = ( Eliom_common.tab_cpi_header_name,
-		    encode_header_value Eliom_process.info ) :: headers in
+    let host = match Url.url_of_string url with
+      | Some (Url.Http url)
+      | Some (Url.Https url) -> Some url.Url.hu_host
+      | _ -> None in
+    let cookies = Eliommod_cookies.get_cookies_to_send host https path in
+    let headers = match cookies with
+      | [] -> []
+      | _ -> [ Eliom_common.tab_cookies_header_name,
+              encode_header_value cookies ] in
+    (* CCC *
+       For now we assume that an eliom application is not distributed
+       among different server with different hostnames:
+       to do that It is needed to change that part a bit to be able to
+       send the process name to every host serving eliom pages.
+       Do not send it to everybody: when doing a cross domain request
+       with additionnal headers like thoose, an OPTION request is done
+       before to check if the request is authorized. Some server does
+       not support it ( like google ones for instance ) *)
+    let headers =
+      match host with
+        | Some host when host = Url.Current.host ->
+          ( Eliom_common.tab_cpi_header_name,
+	    encode_header_value Eliom_process.info ) :: headers
+        | _ -> headers in
     let headers = if expecting_process_page
       then
 	let content_type =
@@ -175,7 +194,7 @@ let rec send ?(expecting_process_page = false) ?cookies_info
     | None | Some "" -> () (* Empty tab_cookies for IE compat *)
 	| Some tab_cookies ->
 	  let tab_cookies = Eliommod_cookies.cookieset_of_json tab_cookies in
-	  Eliommod_cookies.update_cookie_table tab_cookies; );
+	  Eliommod_cookies.update_cookie_table host tab_cookies; );
       if r.XmlHttpRequest.code = 204
       then
 	match r.XmlHttpRequest.headers Eliom_common.full_xhr_redir_header with

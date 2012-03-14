@@ -37,7 +37,7 @@ let appl_name =
           Eliom_common.appl_name_cookie_name
           (Cookies.find
              sitedata.Eliom_types.site_dir
-             !(Eliommod_cookies.cookie_table)))
+             (Eliommod_cookies.get_table (Some Url.Current.host))))
      in v)
 
 (** None on server side *)
