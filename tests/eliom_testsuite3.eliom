@@ -510,7 +510,7 @@ let caml_service_cookies =
 let default_no_appl =
   let module App = Eliom_output.Eliom_appl (struct let application_name = "eliom_testsuite" end) in
   let open HTML5 in
-  let id = new_global_elt_id () in
+  let id = new_elt_id () in
   let unique_content =
     let counter = ref 0 in
     fun () ->
@@ -525,7 +525,7 @@ let default_no_appl =
          Eliom_config.(set_default_no_appl (not (get_default_no_appl ())));
          Lwt.return ()) in
   let handler () () =
-    let global_elt = create_global_elt ~id (div (unique_content ())) in
+    let global_elt = create_named_elt ~id (div (unique_content ())) in
     Lwt.return
       (html
         (head (title (pcdata "default-no-xhr")) [])
