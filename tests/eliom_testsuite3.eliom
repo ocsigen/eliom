@@ -510,7 +510,7 @@ let caml_service_cookies =
 let default_no_appl =
   let module App = Eliom_output.Eliom_appl (struct let application_name = "eliom_testsuite" end) in
   let open HTML5 in
-  let id = new_elt_id () in
+  let id = new_elt_id ~global:true () in
   let unique_content =
     let counter = ref 0 in
     fun () ->

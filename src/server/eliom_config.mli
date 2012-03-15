@@ -44,10 +44,9 @@ val get_config_default_charset : unit -> string
     lwt_get_form, lwt_post_form}] (cf. {!Eliom_output.Html5.a} et al.). *)
 val set_default_no_appl : bool -> unit
 
-(** Get the current default value for the optional parameter [no_appl] of the
-    functions [Eliom_output.*.{a, get_form, post_form, lwt_get_form,
-    lwt_post_form}] (cf. {!Eliom_output.Html5.a} et al.). *)
+(**/**)
 val get_default_no_appl : unit -> bool
+(**/**)
 
 (** The function [get_config ()] returns the information of the
     configuration file concerning that site (between [<site>] and

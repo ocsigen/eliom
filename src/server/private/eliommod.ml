@@ -114,7 +114,7 @@ let new_sitedata =
               ~encode:false site_dir;
            config_info = config_info;
            default_no_appl = false;
-           global_services = 
+           global_services =
               Eliom_common.empty_tables
                 !default_max_anonymous_services_per_subnet
                 false;
@@ -645,6 +645,18 @@ let parse_config hostpattern conf_info site_dir =
 (*--- (mutatis mutandis for the following line:) *)
   Eliom_common.absolute_change_sitedata sitedata;
   let firsteliomtag = ref true in
+  let rec parse_default_no_appl atts default_no_appl = function
+    | [] -> default_no_appl, List.rev atts
+    | ("xhr-links", str_value)::suite ->
+         let default_no_appl =
+           match str_value with
+             | "yes" -> false
+             | "no" -> true
+             | _ -> raise (Error_in_config_file ("Invalid value for attribute xhr-links: "^str_value))
+         in
+         parse_default_no_appl atts (Some default_no_appl) suite
+    | att::suite -> parse_default_no_appl (att::atts) default_no_appl suite
+  in
   let rec parse_module_attrs file = function
     | [] -> file
     | ("name", s)::suite ->
@@ -776,6 +788,11 @@ let parse_config hostpattern conf_info site_dir =
             )
             content
         in
+        let default_no_appl, atts = parse_default_no_appl [] None atts in
+        (match default_no_appl with
+           | Some default_no_appl ->
+               sitedata.Eliom_common.default_no_appl <- default_no_appl;
+           | None -> ());
         (match parse_module_attrs None atts with
           | Some file_or_name ->
             exception_during_eliommodule_loading := true;
@@ -791,9 +808,6 @@ let parse_config hostpattern conf_info site_dir =
         end
         else
           gen_nothing ()
-    | Element ("no-xhr-links", [], []) ->
-        sitedata.Eliom_common.default_no_appl <- true;
-        gen_nothing ()
     | Element (t, _, _) ->
         raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")

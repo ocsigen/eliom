@@ -402,16 +402,17 @@ The syntax is:
 
 ==Per site configuration options
 
-=== Disabling for XHR-links
+=== Disabling XHR-links
 
 By default, all links (##a##, ##form##) within an Eliom application are realized
 by Eliom's ##change_page## magic (unless their creation is augmented
 with ##~no_appl=true##).
 
-In contrast, you may add the tag
+In contrast, you may add the attribute ##xhr-links## into the content of the
+configuration of a Eliom module:
 {{{
-  <no-xhr-links />
+  <eliom ... xhr-links="no"> ...  </eliom>
 }}}
-into the content of the configuration of a site, just next to the Eliom modules.
-Then all links are by default realized by their default HTTP behaviour.
+Then, all links that are not explicitely specfied as ##~no_appl:false## are
+realized by their default HTTP behaviour.
 
