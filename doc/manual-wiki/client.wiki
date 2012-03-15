@@ -390,6 +390,24 @@ use the classical DOM manipulation functions (e.g. appendChild,
 addEventlistener, ...) directly on HTML5 elements that follow the DOM
 semantics.
 
+By default, a reference on an element is only valid in the current
+HTTP request: hence, sending an element build with {{{HTML5.DOM}}} in
+two different page will produce two distinct nodes. If you want to
+define a element reference that is preserved accross the different
+page of an application, you must explicitely name this element with
+the function <<a_api subproject="server" | val
+Eliom_pervasives.HTML5.create_named_elt >>, that take as parameters an
+element identifier and a non named element.  Element identifiers are
+created with the function <<a_api subproject="server" | val
+Eliom_pervasives.HTML5.new_elt_id >>. See also section <<a_manual
+chapter="client" fragment="global" |Global elements of an
+application>>.
+
+The module <<a_api subproject="client"| module Eliom_dom.Named >>
+allows to use the classical DOM manipulation functions
+(e.g. appendChild, addEventlistener, ...) directly on the identifier
+of an HTML5 elements.
+
 ===@@id="global"@@Global elements of an application
 
 Sometimes you may want to modify the content of an HTML element and to
@@ -405,7 +423,7 @@ subproject="client" text="HTML5.create_global_elt"| val
 Eliom_pervasives.HTML5.create_global_elt >>.
 
 <<code language="ocaml"|
-val create_global_elt: ?id:'a id -> 'a elt -> 'a elt
+val create_global_elt: 'a elt -> 'a elt
 >>
 
 In the following example, the content of {{{global_list}}} will be

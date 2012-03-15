@@ -21,7 +21,7 @@
 open Eliom_pervasives
 open HTML5
 
-(** Dom manipulation. 
+(** Dom manipulation.
 
     In this module, all the functions apply only to HTML5 element with
     {% <<a_manual chapter="client" fragment="unique"|Dom semantics>>
@@ -66,11 +66,15 @@ val addEventListener:
   ('a elt -> 'b Js.t -> unit) ->
   Dom_events.listener
 
-(** The module [Global] defines the same function as previous on
-    global elements. Those functions only works if the element is
-    available in the application ( sent in the page or along the page ).
-    If the element is not available, those functions raise with [Not_found] *)
-module Global : sig
+(** Dom manipulation by element identifier. *)
+module Named: sig
+
+  (** The module [Named] defines the same functions as
+      [Eliom_dom]. They take as parameter an element identifier
+      instead of an element with Dom semantics. Those functions only
+      works if the element is available in the application (sent in
+      the page or along the page). If the element is not available,
+      those functions raise with [Not_found]. *)
 
   (** see [appendChild] *)
   val appendChild: ?before:'a elt -> 'b id -> 'c elt -> unit

@@ -116,7 +116,7 @@ let addEventListener ?capture target event handler =
   let node = get_unique_elt "addEventListener" target in
   raw_addEventListener ?capture node event handler
 
-module Global = struct
+module Named = struct
   let get_element id =
     let id = HTML5.string_of_id id in
     let node = Eliom_client.getElementById id in
