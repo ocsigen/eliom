@@ -377,10 +377,10 @@ let fetch_linked_css e =
         then
 	  acc
 	else
+          let href = Js.to_string href in
 	  let css =
-	    Eliom_request.http_get (Js.to_string href) []
-	      Eliom_request.string_result in
-	  acc @ [e, (e##media, css), Js.to_string href]
+	    Eliom_request.http_get href [] Eliom_request.string_result in
+	  acc @ [e, (e##media, href, css >|= snd)]
     | Dom.Element e ->
         let c = e##childNodes in
         let acc = ref acc in
@@ -469,11 +469,11 @@ let rewrite_css_url ~prefix css pos =
 
 let import_re = Regexp.regexp "@import\\s*"
 
-let rec rewrite_css ~max (media, css) =
+let rec rewrite_css ~max (media, href, css) =
   try_lwt
     css >>= function
-    | _, None -> Lwt.return []
-    | href, Some css ->
+    | None -> Lwt.return []
+    | Some css ->
         if !Eliom_config.debug_timings then
           Firebug.console##time(Js.string ("rewrite_CSS: "^href));
 	lwt imports, css  =
@@ -483,8 +483,7 @@ let rec rewrite_css ~max (media, css) =
           Firebug.console##timeEnd(Js.string ("rewrite_CSS: "^href));
 	Lwt.return (imports @ [(media,  css)])
   with e ->
-    debug "Exc1: %s" (Printexc.to_string e);
-    Lwt.return []
+    Lwt.return [(media, Printf.sprintf "@import url(%s);" href)]
 
 and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
   match Regexp.search import_re css pos with
@@ -515,7 +514,7 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
 	    in
 	    let css =
 	      Eliom_request.http_get href [] Eliom_request.string_result in
-	    rewrite_css ~max:(max-1) (media, css)
+	    rewrite_css ~max:(max-1) (media, href, css >|= snd)
 	and imports, css =
 	  rewrite_css_import ~charset ~max ~prefix ~media css i in
 	Lwt.return (import @ imports, css)
@@ -528,7 +527,7 @@ and rewrite_css_import ?(charset = "") ~max ~prefix ~media css pos =
 
 let max_preload_depth = ref 4
 
-let build_style (e, css, href) =
+let build_style (e, css) =
   lwt css = rewrite_css ~max:!max_preload_depth css in
   lwt css =
     Lwt_list.map_p
