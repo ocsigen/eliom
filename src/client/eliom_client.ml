@@ -1029,7 +1029,7 @@ let () =
 
     lwt_ignore
       ( lwt () = wait_load_end () in
-        Dom_html.window##history##replaceState(Js.Opt.return !current_state_id, Js.string "", Js.null);
+        Dom_html.window##history##replaceState(Js.Opt.return !current_state_id, Js.string "", Js.some Dom_html.window##location##href );
         Lwt.return ());
 
     Dom_html.window##onpopstate <-
