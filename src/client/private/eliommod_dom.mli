@@ -65,3 +65,15 @@ val html_document : Dom.element Dom.document Js.t ->
 val preload_css : Dom_html.element Js.t -> unit Lwt.t
 
 val iter_nodeList : 'a Dom.nodeList Js.t -> ('a Js.t -> unit) -> unit
+
+(** Window scrolling. *)
+
+type position = {
+  html_top: int;
+  html_left: int;
+  body_top: int;
+  body_left: int;
+}
+val top_position: position
+val getDocumentScroll: unit -> position
+val setDocumentScroll: position -> unit

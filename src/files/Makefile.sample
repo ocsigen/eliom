@@ -11,11 +11,11 @@ SERVER_PACKAGES :=
 
 CLIENT_PACKAGES :=
 
-## Source files for the server part
+## Source files for the server part (only *.eliom and *.ml files)
 
 SERVER_FILES := ${wildcard *.eliom}
 
-## Source files for the client part
+## Source files for the client part (only *.eliom and *.ml files)
 
 CLIENT_FILES := ${wildcard *.eliom}
 

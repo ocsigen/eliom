@@ -226,7 +226,6 @@ let rec send ?(expecting_process_page = false) ?cookies_info
 	   us that the answer is not application content *)
 	match headers Eliom_common.appl_name_header_name with
 	  | None | Some "" -> (* Empty appl_name for IE compat. *)
-	    debug "Eliom_request: non application content received";
 	    (match post_args,form_arg with
 	      | None,None -> redirect_get url
 	      | _,_ -> error "Eliom_request: can't silently redirect a Post request to non application content");
@@ -249,7 +248,6 @@ let rec send ?(expecting_process_page = false) ?cookies_info
   let filter_url url =
     { url with Url.hu_arguments =
         List.filter (fun (e,_) ->
-          debug "Filter %s" e;
            e <> nl_get_appl_parameter && e <> nl_template_string) url.Url.hu_arguments } in
   Lwt.return (
     (match Url.url_of_string url with

@@ -3424,7 +3424,7 @@ let tmpl2_page2 = Eliom_services.service
 
 let tmpl1_update id contents = {{
   debug "Update";
-  Eliom_dom.Global.replaceAllChild %id %contents
+  Eliom_dom.Named.replaceAllChild %id %contents
 }}
 
 module Tmpl_1 = Eliom_output.Eliom_tmpl(My_appl)(struct

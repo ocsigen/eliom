@@ -22,10 +22,6 @@ open Eliom_pervasives
 
 module JsTable = Eliommod_jstable
 
-(* Ignore popstate before the first call to "set_content". It avoids
-   loading the first page twice on a buggy Google-chrome. *)
-let chrome_dummy_popstate = ref true
-
 (* == Closure *)
 
 let closure_table  : (poly -> Dom_html.event Js.t -> unit) JsTable.t = JsTable.create ()
@@ -524,61 +520,86 @@ let exit_to
      | `Post (uri, post_params) -> Eliom_request.redirect_post uri post_params)
 
 
-(* TODO store cookies_info in state... *)
+(** Associate data to state of the History API.
+
+    We store an 'id' in the state, and store data in an association
+    table in the session storage. This allows to avoid "replaceState"
+    that has not a coherent behaviour between Chromium and Firefox
+    (2012/03).
+
+    Storing the scroll position in the state is not required with
+    Chrome or Firefox: they automatically store and restore the
+    correct scrolling while browsing the history. However this
+    behaviour in not required by the HTML5 specification (only
+    suggested). *)
+
 type state =
+    (* TODO store cookies_info in state... *)
     { template : Js.js_string Js.t;
-      position : int * int } (* x and y coordinates in the page *)
+      position : Eliommod_dom.position;
+    }
 
 let random_int () = (truncate (Js.to_float (Js.math##random()) *. 1000000000.))
 let current_state_id = ref (random_int ())
-let current_state = ref None
 
 let state_key i = (Js.string "state_history")##concat(Js.string (string_of_int i))
 let get_state i : state =
   Js.Opt.case
     (Js.Optdef.case ( Dom_html.window##sessionStorage )
-       (fun () -> error "sessionStorage not available")
+       (fun () ->
+         (* We use this only when the history API is
+            available. Sessionstorage seems to be available
+            everywhere the history API exists. *)
+         error "sessionStorage not available")
        (fun s -> s##getItem(state_key i)))
     (fun () -> error "can't retrieve history state %s" (Js.to_string (state_key i)))
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
   Js.Optdef.case ( Dom_html.window##sessionStorage )
-    (fun () -> ())
+    (fun () -> () )
     (fun s -> s##setItem(state_key i, Json.output v))
+let update_state () =
+  set_state !current_state_id
+    { template =
+        ( match Eliom_request_info.get_request_template () with
+          | Some tmpl -> Js.bytestring tmpl
+          | None -> Js.string  "" );
+      position = Eliommod_dom.getDocumentScroll () }
 
-(** This will change the URL, without doing a request.
-    As browsers do not not allow to change the URL,
-    we write the new URL in the fragment part of the URL.
-    A script must do the redirection if there is something in the fragment.
-    Usually this function is only for internal use.
-*)
+(** The reference [current_uri] is used in [change_page_uri] and
+    popstate event handler to mimic browser's behaviour with fragment:
+    we do not make any request to the server, if only the fragment
+    part of url changes. *)
 
 let current_uri =
   ref (fst (Url.split_fragment (Js.to_string Dom_html.window##location##href)))
 
+(** The function [change_url_string] changes the URL, without doing a
+    request.
+
+    If present it uses the History API, otherwise we write the new URL
+    in the fragment part of the URL (see 'redirection_script' in
+    'server/eliom_output.ml'). *)
+
+(* let dummy_chrome_popstate = ref false *)
+
 let change_url_string uri =
   current_uri := fst (Url.split_fragment uri);
   if Eliom_process.history_api then begin
-    let tmpl = match Eliom_request_info.get_request_template () with
-          | Some tmpl -> Js.bytestring tmpl
-          | None -> Js.string  ""
-    in
-    debug "PushState: %s (%s)" uri (Js.to_string tmpl);
-    set_state !current_state_id
-      { template = tmpl;
-        position = ( Dom_html.document##body##scrollTop,
-                     Dom_html.document##body##scrollLeft) };
+    (* dummy_chrome_popstate := false; *)
+    update_state();
     current_state_id := random_int ();
-    Dom_html.window##history##pushState(Js.some (!current_state_id),
-					Js.string "" ,
+    Dom_html.window##history##pushState(Js.Opt.return (!current_state_id),
+                                        Js.string "",
 					Js.Opt.return (Js.string uri));
   end else begin
     current_pseudo_fragment := url_fragment_prefix_with_sharp^uri;
     Eliom_request_info.set_current_path uri;
     Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
   end
+
 let change_url
-(*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
+    (*VVV is it safe to have absolute URLs? do we accept non absolute paths? *)
     ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
     ?keep_nl_params ?nl_params ?keep_get_na_params
     get_params post_params =
@@ -703,19 +724,21 @@ let load_data_script data_script =
   ( Eliom_request_info.get_request_data (),
     Eliom_request_info.get_request_cookies ())
 
+(** Scroll the current page such that the top of element with the id
+    [fragment] is aligne with the window's top. If the optionnal
+    argument [?offset] is given, ignore the fragment and scroll to the
+    given offset. *)
 let scroll_to_fragment ?offset fragment =
   match offset with
-  | Some (scrollTop, scrollLeft) ->
-    Dom_html.document##body##scrollTop <- scrollTop;
-    Dom_html.document##body##scrollLeft <- scrollLeft;
-  | None ->
-      match fragment with
-      | None | Some "" ->
-          Dom_html.window##scroll(0, 0)
-      | Some fragment ->
-          let scroll_to_element e = e##scrollIntoView(Js._true) in
-           let elem = Dom_html.document##getElementById(Js.string fragment) in
-          Js.Opt.iter elem scroll_to_element
+    | Some pos -> Eliommod_dom.setDocumentScroll pos
+    | None ->
+        match fragment with
+        | None | Some "" ->
+            Eliommod_dom.setDocumentScroll Eliommod_dom.top_position
+        | Some fragment ->
+            let scroll_to_element e = e##scrollIntoView(Js._true) in
+            let elem = Dom_html.document##getElementById(Js.string fragment) in
+            Js.Opt.iter elem scroll_to_element
 
 let registered_process_node id = Js.Optdef.test (find_process_node id)
 
@@ -729,11 +752,11 @@ let raw_call_service
       ?keep_nl_params ?nl_params ?keep_get_na_params
       get_params post_params
     with
-    | `Get uri ->
+      | `Get uri ->
 	Eliom_request.http_get
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service)) uri []
 	  Eliom_request.string_result
-    | `Post (uri, post_params) ->
+      | `Post (uri, post_params) ->
 	Eliom_request.http_post
           ?cookies_info:(Eliom_uri.make_cookies_info (https, service))
 	  uri post_params Eliom_request.string_result in
@@ -773,7 +796,7 @@ let call_caml_service
   lwt content = unwrap_caml_content content in
   Lwt.return content
 
-let set_content ?uri ?fragment = function
+let set_content ?uri ?offset ?fragment = function
   | None -> Lwt.return ()
   | Some content ->
     if !Eliom_config.debug_timings then
@@ -781,40 +804,30 @@ let set_content ?uri ?fragment = function
     try_lwt
       if !Eliom_config.debug_timings then
         Firebug.console##time(Js.string "set_content_beginning");
-      chrome_dummy_popstate := false;
-      ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
-      on_unload_scripts := [];
-      (match uri, fragment with
-	| Some uri, None -> change_url_string uri
-	| Some uri, Some fragment ->
-	  change_url_string (uri ^ "#" ^ fragment)
-	| _ -> ());
-      let fake_page = Eliommod_dom.html_document content registered_process_node in
-      if !Eliom_config.debug_timings then
-        ( Firebug.console##timeEnd(Js.string "set_content_beginning");
-          Firebug.console##debug(Js.string ("loading: " ^ Js.to_string Dom_html.window##location##href)) );
-      let preloaded_css = Eliommod_dom.preload_css fake_page in
-      relink_request_nodes fake_page;
-      let js_data, cookies = load_data_script (get_data_script fake_page) in
-      if Eliom_process.history_api then begin
-        let tmpl = match Eliom_request_info.get_request_template () with
-          | Some tmpl -> Js.bytestring tmpl
-          | None -> Js.string  ""
-        in
-        debug "save state: %s" (Js.to_string tmpl);
-        set_state !current_state_id { template = tmpl;
-                                      position = 0, 0 };
-      end;
-      let host =
-        match uri with
-          | None -> None
-          | Some uri -> match Url.url_of_string uri with
-              | Some (Url.Http url)
-              | Some (Url.Https url) -> Some url.Url.hu_host
-              | _ -> None in
-      Eliommod_cookies.update_cookie_table host cookies;
-      lwt () = preloaded_css in
-      let on_load = load_eliom_data js_data fake_page in
+       ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
+       on_unload_scripts := [];
+       (match uri, fragment with
+	 | Some uri, None -> change_url_string uri
+	 | Some uri, Some fragment ->
+	   change_url_string (uri ^ "#" ^ fragment)
+	 | _ -> ());
+       let fake_page = Eliommod_dom.html_document content registered_process_node in
+       if !Eliom_config.debug_timings then
+         ( Firebug.console##timeEnd(Js.string "set_content_beginning");
+           Firebug.console##debug(Js.string ("loading: " ^ Js.to_string Dom_html.window##location##href)) );
+       let preloaded_css = Eliommod_dom.preload_css fake_page in
+       relink_request_nodes fake_page;
+       let js_data, cookies = load_data_script (get_data_script fake_page) in
+       let host =
+         match uri with
+           | None -> None
+           | Some uri -> match Url.url_of_string uri with
+               | Some (Url.Http url)
+               | Some (Url.Https url) -> Some url.Url.hu_host
+               | _ -> None in
+       Eliommod_cookies.update_cookie_table host cookies;
+       lwt () = preloaded_css in
+       let on_load = load_eliom_data js_data fake_page in
       (* The request node table must be empty when node received
 	 via call_caml_service are unwrapped. *)
       reset_request_node ();
@@ -827,22 +840,20 @@ let set_content ?uri ?fragment = function
         ( Firebug.console##timeEnd(Js.string "replace_child");
           Firebug.console##time(Js.string "set_content_end") );
       run_load_events on_load;
-      iter_option (fun uri -> scroll_to_fragment fragment) uri;
-      if !Eliom_config.debug_timings then
+      scroll_to_fragment ?offset fragment;
+     if !Eliom_config.debug_timings then
         ( Firebug.console##timeEnd(Js.string "set_content_end");
           Firebug.console##timeEnd(Js.string "set_content") );
       Lwt.return ()
-    with
-      | e ->
-        debug_exn "set_content: exception raised: " e;
-	if !Eliom_config.debug_timings then
-          Firebug.console##timeEnd(Js.string "set_content");
-        raise_lwt e
+    with e ->
+      debug_exn "set_content: exception raised: " e;
+      if !Eliom_config.debug_timings then
+        Firebug.console##timeEnd(Js.string "set_content");
+      raise_lwt e
 
 let set_template_content ?uri ?fragment = function
   | None -> Lwt.return ()
   | Some content ->
-      debug "set_template.";
       (* Side-effect in the 'onload' event handler. *)
       (match uri, fragment with
 	| Some uri, None -> change_url_string uri
@@ -870,7 +881,6 @@ let change_page
   else
     match xhr with
     | Some (Some tmpl as t) when t = Eliom_request_info.get_request_template () ->
-        debug "Change_page";
         let nl_params =
           Eliom_parameters.add_nl_parameter nl_params Eliom_request.nl_template tmpl
         in
@@ -923,7 +933,7 @@ let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
           Eliom_request.xml_result
         in
         set_content ~uri ?fragment content
-end  else
+  end else
     ( change_url_string full_uri;
       scroll_to_fragment fragment;
       Lwt.return () )
@@ -983,115 +993,83 @@ let change_page_get_form ?cookies_info form full_uri =
 let change_page_post_form ?cookies_info form full_uri =
   change_page_post_form  ?cookies_info form full_uri
 
+(** Navigating through the history... *)
 
+let () =
 
+  if Eliom_process.history_api then
 
-(*****************************************************************************)
-(* Make the back button work when only the fragment has changed ... *)
-(*VVV We check the fragment every t second ... :-( *)
+    let goto_uri full_uri state_id =
+      update_state ();
+      current_state_id := state_id;
+      let state = get_state state_id in
+      let tmpl = (if state.template = Js.string "" then None else Some (Js.to_string state.template))in
+      lwt_ignore
+	(let uri, fragment = split_fragment full_uri in
+	 current_uri := uri;
+	 if uri <> !current_uri then
+           match tmpl with
+           | Some t when tmpl = Eliom_request_info.get_request_template () ->
+               lwt (uri, content) = Eliom_request.http_get
+                 uri [(Eliom_request.nl_template_string, t)]
+                 Eliom_request.string_result
+               in
+               set_template_content content >>
+	         ( scroll_to_fragment ~offset:state.position fragment;
+		   Lwt.return ())
+           | _ ->
+	       lwt uri, content =
+	         Eliom_request.http_get ~expecting_process_page:true uri []
+		   Eliom_request.xml_result in
+	       set_content ~offset:state.position ?fragment content
+	 else
+	   ( scroll_to_fragment ~offset:state.position fragment;
+	     Lwt.return () ))
+    in
 
-let write_fragment s = Dom_html.window##location##hash <- Js.string s
+    lwt_ignore
+      ( lwt () = wait_load_end () in
+        Dom_html.window##history##replaceState(Js.Opt.return !current_state_id, Js.string "", Js.null);
+        Lwt.return ());
 
-let read_fragment () = Js.to_string Dom_html.window##location##hash
+    Dom_html.window##onpopstate <-
+      Dom_html.handler (fun event ->
+	let full_uri = Js.to_string Dom_html.window##location##href in
+        Js.Opt.case (Obj.magic event##state : int Js.opt)
+          (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
+          (goto_uri full_uri);
+	Js._false)
 
-let auto_change_page fragment =
-  lwt_ignore
-    (let l = String.length fragment in
-     if (l = 0) || ((l > 1) && (fragment.[1] = '!'))
-     then
-       if fragment <> !current_pseudo_fragment
-       then
-         (
-           current_pseudo_fragment := fragment;
-           let uri =
-	     match l with
+  else (* Whithout history API *)
+
+    (* FIXME: This should be adapted to work with template...
+       Solution: add the "state_id" in the fragment ??
+    *)
+
+    let read_fragment () = Js.to_string Dom_html.window##location##hash in
+    let auto_change_page fragment =
+      lwt_ignore
+        (let l = String.length fragment in
+         if (l = 0) || ((l > 1) && (fragment.[1] = '!'))
+         then if fragment <> !current_pseudo_fragment then
+           ( current_pseudo_fragment := fragment;
+             let uri =
+	       match l with
 	       | 2 -> "./" (* fix for firefox *)
 	       | 0 | 1 -> Url.Current.as_string
 	       | _ -> String.sub fragment 2 ((String.length fragment) - 2)
-           in
-           lwt (_, content) =
-	     Eliom_request.http_get ~expecting_process_page:true uri []
-	       Eliom_request.xml_result in
-	   set_content content
-	 )
-       else Lwt.return ()
-     else Lwt.return ())
-
-let _ =
-
-  if Eliom_process.history_api then
-    begin
-    let tmpl = match Eliom_request_info.get_request_template () with
-      | Some tmpl -> Js.bytestring tmpl
-      | None -> Js.string  "" in
-
-    ignore (lwt () = wait_load_end () in
-            Dom_html.window##history##replaceState(Js.some (!current_state_id),
-                                                   Js.string "",
-                                                   Js.null);
-            set_state !current_state_id
-              { template = tmpl;
-                position = ( Dom_html.document##body##scrollTop,
-                             Dom_html.document##body##scrollLeft ) };
-            Lwt.return () : unit Lwt.t);
-
-    Dom_html.window##onpopstate <-
-      Dom_html.handler
-      (fun event ->
-
-	let full_uri = Js.to_string Dom_html.window##location##href in
-        debug "Popstate: %s" full_uri;
-
-        (match !current_state with
-          | None -> (* back from outside of the applicattion *) ()
-          | Some { template } ->
-            set_state !current_state_id
-              { template;
-                position = ( Dom_html.document##body##scrollTop,
-                             Dom_html.document##body##scrollLeft ) });
-
-        let state_id = Js.Opt.case (Obj.magic event##state : int Js.opt)
-          (fun () -> error "no content in popstate event")
-          id in
-        current_state_id := state_id;
-
-        let state = get_state state_id in
-        current_state := Some state;
-
-        let tmpl = (if state.template = Js.string "" then None else Some (Js.to_string state.template))in
-        Firebug.console##log(tmpl);
-        Firebug.console##log(Eliom_request_info.get_request_template ());
-	lwt_ignore
-	  (let uri, fragment = split_fragment full_uri in
-	   if uri <> !current_uri then
-             match tmpl with
-             | Some t when tmpl = Eliom_request_info.get_request_template () ->
-                 debug "Same tmpl";
-                 lwt (uri, content) = Eliom_request.http_get
-                   uri [(Eliom_request.nl_template_string, t)]
-                   Eliom_request.string_result
-                 in
-	         current_uri := uri;
-                 set_template_content content >>
-	           ( scroll_to_fragment ~offset:state.position fragment;
-		     Lwt.return ())
-             | _ ->
-	         lwt uri, content =
-	           Eliom_request.http_get ~expecting_process_page:true uri []
-		     Eliom_request.xml_result in
-	         current_uri := uri;
-	         set_content content >>
-	           ( scroll_to_fragment ~offset:state.position fragment;
-		     Lwt.return ())
-	   else
-	     ( scroll_to_fragment ~offset:state.position fragment;
-	       Lwt.return () ));
-	Js._false)
-    end
-  else
-
+             in
+             lwt (_, content) =
+	       Eliom_request.http_get ~expecting_process_page:true uri []
+	         Eliom_request.xml_result in
+	     set_content content )
+           else Lwt.return ()
+         else Lwt.return () )
+    in
     let (fragment, set_fragment_signal) = React.S.create (read_fragment ()) in
 
+    (* Make the back button work when only the fragment has changed ... *)
+    (* We check the fragment every 0.2 second ... *)
     let rec fragment_polling () =
       lwt () = Lwt_js.sleep 0.2 in
       let new_fragment = read_fragment () in
@@ -1100,3 +1078,4 @@ let _ =
 
     ignore(fragment_polling ());
     ignore(React.E.map auto_change_page (React.S.changes fragment))
+
