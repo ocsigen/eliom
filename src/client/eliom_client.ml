@@ -724,11 +724,21 @@ let load_data_script data_script =
   ( Eliom_request_info.get_request_data (),
     Eliom_request_info.get_request_cookies ())
 
+(* UGLY HACK for Opera bug: Opera seem does not always take into
+   account the content of the base element. If we touch it like that,
+   it remember its presence... *)
+let touch_base () =
+  Js.Opt.iter
+    (Js.Opt.bind (Dom_html.document##getElementById(Js.string Eliom_common_base.base_elt_id))
+       Dom_html.CoerceTo.base)
+    (fun e -> let href = e##href in e##href <- href)
+
 (** Scroll the current page such that the top of element with the id
     [fragment] is aligne with the window's top. If the optionnal
     argument [?offset] is given, ignore the fragment and scroll to the
     given offset. *)
 let scroll_to_fragment ?offset fragment =
+  touch_base ();
   match offset with
     | Some pos -> Eliommod_dom.setDocumentScroll pos
     | None ->

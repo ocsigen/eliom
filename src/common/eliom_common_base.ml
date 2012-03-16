@@ -167,6 +167,8 @@ let tab_cookies_header_name = "X-Eliom-Process-Cookies"
 let tab_cpi_header_name = "X-Eliom-Process-Info"
 let expecting_process_page_name = "X-Eliom-Expecting-Process-Page"
 
+let base_elt_id = "eliom_base_elt"
+
 let nl_is_persistent n = n.[0] = 'p'
 
 (*****************************************************************************)

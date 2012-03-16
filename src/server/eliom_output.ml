@@ -2619,7 +2619,7 @@ module Eliom_appl_reg_make_param
     let head_elts =
          appl_data_script
       :: redirection_script
-      :: HTML5.M.base ~a:[HTML5.a_href (HTML5.uri_of_string base_url)] ()
+      :: HTML5.M.base ~a:[a_id Eliom_common_base.base_elt_id; HTML5.a_href (HTML5.uri_of_string base_url)] ()
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts
 	   else ( head_elts
