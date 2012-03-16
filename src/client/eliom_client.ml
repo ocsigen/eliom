@@ -574,14 +574,21 @@ let update_state () =
 let current_uri =
   ref (fst (Url.split_fragment (Js.to_string Dom_html.window##location##href)))
 
+(* UGLY HACK for Opera bug: Opera seem does not always take into
+   account the content of the base element. If we touch it like that,
+   it remember its presence... *)
+let touch_base () =
+  Js.Opt.iter
+    (Js.Opt.bind (Dom_html.document##getElementById(Js.string Eliom_common_base.base_elt_id))
+       Dom_html.CoerceTo.base)
+    (fun e -> let href = e##href in e##href <- href)
+
 (** The function [change_url_string] changes the URL, without doing a
     request.
 
     If present it uses the History API, otherwise we write the new URL
     in the fragment part of the URL (see 'redirection_script' in
     'server/eliom_output.ml'). *)
-
-(* let dummy_chrome_popstate = ref false *)
 
 let change_url_string uri =
   current_uri := fst (Url.split_fragment uri);
@@ -592,6 +599,7 @@ let change_url_string uri =
     Dom_html.window##history##pushState(Js.Opt.return (!current_state_id),
                                         Js.string "",
 					Js.Opt.return (Js.string uri));
+    touch_base ();
   end else begin
     current_pseudo_fragment := url_fragment_prefix_with_sharp^uri;
     Eliom_request_info.set_current_path uri;
@@ -724,21 +732,11 @@ let load_data_script data_script =
   ( Eliom_request_info.get_request_data (),
     Eliom_request_info.get_request_cookies ())
 
-(* UGLY HACK for Opera bug: Opera seem does not always take into
-   account the content of the base element. If we touch it like that,
-   it remember its presence... *)
-let touch_base () =
-  Js.Opt.iter
-    (Js.Opt.bind (Dom_html.document##getElementById(Js.string Eliom_common_base.base_elt_id))
-       Dom_html.CoerceTo.base)
-    (fun e -> let href = e##href in e##href <- href)
-
 (** Scroll the current page such that the top of element with the id
     [fragment] is aligne with the window's top. If the optionnal
     argument [?offset] is given, ignore the fragment and scroll to the
     given offset. *)
 let scroll_to_fragment ?offset fragment =
-  touch_base ();
   match offset with
     | Some pos -> Eliommod_dom.setDocumentScroll pos
     | None ->
@@ -812,7 +810,7 @@ let set_content ?uri ?offset ?fragment = function
     if !Eliom_config.debug_timings then
       Firebug.console##time(Js.string "set_content");
     try_lwt
-      if !Eliom_config.debug_timings then
+       if !Eliom_config.debug_timings then
         Firebug.console##time(Js.string "set_content_beginning");
        ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
        on_unload_scripts := [];
@@ -825,7 +823,7 @@ let set_content ?uri ?offset ?fragment = function
        if !Eliom_config.debug_timings then
          ( Firebug.console##timeEnd(Js.string "set_content_beginning");
            Firebug.console##debug(Js.string ("loading: " ^ Js.to_string Dom_html.window##location##href)) );
-       let preloaded_css = Eliommod_dom.preload_css fake_page in
+      let preloaded_css = Eliommod_dom.preload_css fake_page in
        relink_request_nodes fake_page;
        let js_data, cookies = load_data_script (get_data_script fake_page) in
        let host =
@@ -1045,6 +1043,7 @@ let () =
     Dom_html.window##onpopstate <-
       Dom_html.handler (fun event ->
 	let full_uri = Js.to_string Dom_html.window##location##href in
+        touch_base ();
         Js.Opt.case (Obj.magic event##state : int Js.opt)
           (fun () -> () (* Ignore dummy popstate event fired by chromium. *))
           (goto_uri full_uri);

@@ -127,10 +127,8 @@ eliom_uri.cmx: eliom_services.cmx eliom_request_info.cmx eliom_pervasives.cmx \
 eliom_uri.cmi: eliom_services.cmi eliom_pervasives.cmi eliom_parameters.cmi \
     eliom_common.cmo
 eliom_wrap.cmi:
-private/eliommod_cookies.cmo: private/eliommod_jstable.cmi \
-    eliom_pervasives.cmi eliom_cookies_base.cmo
-private/eliommod_cookies.cmx: private/eliommod_jstable.cmx \
-    eliom_pervasives.cmx eliom_cookies_base.cmx
+private/eliommod_cookies.cmo: eliom_pervasives.cmi eliom_cookies_base.cmo
+private/eliommod_cookies.cmx: eliom_pervasives.cmx eliom_cookies_base.cmx
 private/eliommod_dom.cmo: eliom_request.cmi eliom_pervasives_base.cmo \
     eliom_pervasives.cmi eliom_config.cmo private/eliommod_dom.cmi
 private/eliommod_dom.cmx: eliom_request.cmx eliom_pervasives_base.cmx \
