@@ -1006,8 +1006,8 @@ let () =
       let tmpl = (if state.template = Js.string "" then None else Some (Js.to_string state.template))in
       lwt_ignore
 	(let uri, fragment = split_fragment full_uri in
-	 current_uri := uri;
-	 if uri <> !current_uri then
+	 if uri <> !current_uri then begin
+	   current_uri := uri;
            match tmpl with
            | Some t when tmpl = Eliom_request_info.get_request_template () ->
                lwt (uri, content) = Eliom_request.http_get
@@ -1022,7 +1022,7 @@ let () =
 	         Eliom_request.http_get ~expecting_process_page:true uri []
 		   Eliom_request.xml_result in
 	       set_content ~offset:state.position ?fragment content
-	 else
+	 end else
 	   ( scroll_to_fragment ~offset:state.position fragment;
 	     Lwt.return () ))
     in
