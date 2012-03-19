@@ -95,28 +95,6 @@ val call_service :
   ?nl_params:Eliom_parameters.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> string Lwt.t
 
-(** (low level) Change the URL, without doing a request.
-    As browsers do not not allow to change the URL (for security reasons),
-    we write the new URL in the fragment part of the URL.
-    A script must do the redirection if there is something in the fragment.
-    Usually this function is only for internal use.
-*)
-val change_url :
-  ?absolute:bool ->
-  ?absolute_path:bool ->
-  ?https:bool ->
-  service:('a, 'b,
-           [< Eliom_services.service_kind ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e,
-           [< Eliom_services.registrable ], 'return)
-          Eliom_services.service ->
-  ?hostname:string ->
-  ?port:int ->
-  ?fragment:string ->
-  ?keep_nl_params:[ `All | `None | `Persistent ] ->
-  ?nl_params:Eliom_parameters.nl_params_set ->
-  ?keep_get_na_params:bool -> 'a -> 'b -> unit
-
 (** wait for the loading phase to terminate *)
 val wait_load_end : unit -> unit Lwt.t
 
@@ -256,18 +234,6 @@ module Html5 : sig
 end
 
 (**/**)
-
-val change_page_uri :
-  ?cookies_info:bool * string list ->
-  ?get_params:(string * string) list -> string -> unit Lwt.t
-
-val change_page_get_form :
-  ?cookies_info:bool * string list ->
-  Dom_html.formElement Js.t -> string -> unit Lwt.t
-
-val change_page_post_form :
-  ?cookies_info:bool * string list ->
-  Dom_html.formElement Js.t -> string -> unit Lwt.t
 
 val relink_request_nodes : Dom_html.htmlElement Js.t -> unit
 val reset_request_node : unit -> unit

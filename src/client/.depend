@@ -10,13 +10,13 @@ eliom_client.cmo: private/eliommod_jstable.cmi private/eliommod_dom.cmi \
     eliom_types.cmo eliom_services.cmi eliom_request_info.cmo \
     eliom_request.cmi eliom_process.cmo eliom_pervasives_base.cmo \
     eliom_pervasives.cmi eliom_parameters.cmi eliom_lazy.cmi eliom_config.cmo \
-    eliom_common_base.cmo eliom_client.cmi
+    eliom_client.cmi
 eliom_client.cmx: private/eliommod_jstable.cmx private/eliommod_dom.cmx \
     private/eliommod_cookies.cmx eliom_uri.cmx eliom_unwrap.cmx \
     eliom_types.cmx eliom_services.cmx eliom_request_info.cmx \
     eliom_request.cmx eliom_process.cmx eliom_pervasives_base.cmx \
     eliom_pervasives.cmx eliom_parameters.cmx eliom_lazy.cmx eliom_config.cmx \
-    eliom_common_base.cmx eliom_client.cmi
+    eliom_client.cmi
 eliom_client.cmi: eliom_types.cmo eliom_services.cmi eliom_pervasives.cmi \
     eliom_parameters.cmi eliom_output.cmi
 eliom_client_main.cmo: private/eliommod_cookies.cmo eliom_request_info.cmo \
@@ -130,9 +130,11 @@ eliom_wrap.cmi:
 private/eliommod_cookies.cmo: eliom_pervasives.cmi eliom_cookies_base.cmo
 private/eliommod_cookies.cmx: eliom_pervasives.cmx eliom_cookies_base.cmx
 private/eliommod_dom.cmo: eliom_request.cmi eliom_pervasives_base.cmo \
-    eliom_pervasives.cmi eliom_config.cmo private/eliommod_dom.cmi
+    eliom_pervasives.cmi eliom_config.cmo eliom_common_base.cmo \
+    private/eliommod_dom.cmi
 private/eliommod_dom.cmx: eliom_request.cmx eliom_pervasives_base.cmx \
-    eliom_pervasives.cmx eliom_config.cmx private/eliommod_dom.cmi
+    eliom_pervasives.cmx eliom_config.cmx eliom_common_base.cmx \
+    private/eliommod_dom.cmi
 private/eliommod_dom.cmi:
 private/eliommod_jstable.cmo: private/eliommod_jstable.cmi
 private/eliommod_jstable.cmx: private/eliommod_jstable.cmi

@@ -604,3 +604,47 @@ let setDocumentScroll pos =
   Dom_html.document##body##scrollTop <- pos.body_top;
   Dom_html.document##body##scrollLeft <- pos.body_left;
   current_position := pos
+
+
+(* UGLY HACK for Opera bug: Opera seem does not always take into
+   account the content of the base element. If we touch it like that,
+   it remember its presence... *)
+let touch_base () =
+  Js.Opt.iter
+    (Js.Opt.bind (Dom_html.document##getElementById(Js.string Eliom_common_base.base_elt_id))
+       Dom_html.CoerceTo.base)
+    (fun e -> let href = e##href in e##href <- href)
+
+
+(* BEGIN FORMDATA HACK: This is only needed if FormData is not available in the browser.
+   When it will be commonly available, remove all sections marked by "FORMDATA HACK" !
+   Notice: this hack is used to circumvent a limitation in FF4 implementation of formdata:
+     if the user click on a button in a form, formdatas created in the onsubmit callback normaly contains the value of the button. ( it is the behaviour of chromium )
+     in FF4, it is not the case: we must do this hack to find wich button was clicked.
+
+   NOTICE: this may not be corrected the way we want:
+     see https://bugzilla.mozilla.org/show_bug.cgi?id=647231
+     html5 will explicitely specify that chromium behaviour is wrong...
+
+   This is implemented in:
+   * this file -> here and called in load_eliom_data
+   * Eliom_request: in send_post_form
+   * in js_of_ocaml, module Form: the code to emulate FormData *)
+
+let onclick_on_body_handler event =
+  (match Dom_html.tagged (Dom_html.eventTarget event) with
+    | Dom_html.Button button ->
+        (Js.Unsafe.variable "window")##eliomLastButton <- Some button;
+    | Dom_html.Input input when input##_type = Js.string "submit" ->
+        (Js.Unsafe.variable "window")##eliomLastButton <- Some input;
+    | _ ->
+        (Js.Unsafe.variable "window")##eliomLastButton <- None);
+  Js._true
+
+let add_formdata_hack_onclick_handler _ =
+  ignore (Dom_html.addEventListener ( Dom_html.window##document##body )
+            Dom_html.Event.click ( Dom_html.handler onclick_on_body_handler )
+            Js._true : Dom_html.event_listener_id);
+  true
+
+(* END FORMDATA HACK *)

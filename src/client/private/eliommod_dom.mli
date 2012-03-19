@@ -77,3 +77,7 @@ type position = {
 val top_position: position
 val getDocumentScroll: unit -> position
 val setDocumentScroll: position -> unit
+
+(**/**)
+val touch_base: unit -> unit
+val add_formdata_hack_onclick_handler: Dom_html.event Js.t -> bool
