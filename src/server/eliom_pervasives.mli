@@ -207,20 +207,11 @@ module SVG : sig
   (** The type of global SVG element identifier. *)
   type 'a id
 
-  (** The function [new_elt_id ()] creates a new SVG element
-      identifier. If the optionnal parameter [~global:true] is given,
-      the references element will be global (see the Eliom manual for
-      more information on {% <<a_manual project="eliom"
-      chapter="client" fragment="global"|global element>>%}).*)
+  (** See {!Eliom_pervasives.HTML5.new_elt_id} *)
   val new_elt_id: ?global:bool -> unit -> 'a id
-
-  (** The function [create_named_elt ~id elt] create a copy of the
-      element [elt] that will be sent to client with the reference
-      [id]. *)
+  (** See {!Eliom_pervasives.HTML5.create_named_elt} *)
   val create_named_elt: id:'a id -> 'a elt -> 'a elt
-
-  (** The function [create_named_elt elt] is equivalent to
-      [create_named_elt ~id:(new_elt_id ~global:true ()) elt]. *)
+  (** See {!Eliom_pervasives.HTML5.create_global_elt} *)
   val create_global_elt: 'a elt -> 'a elt
 
   (** {2 Printer} *)
@@ -302,10 +293,9 @@ module HTML5 : sig
   type 'a id
 
   (** The function [new_elt_id ()] creates a new HTML5 element
-      identifier. If the optionnal parameter [~global:true] is given,
-      the references element will be global (see the Eliom manual for
-      more information on {% <<a_manual project="eliom"
-      chapter="client" fragment="global"|global element>>%}).*)
+      identifier. (see the Eliom manual for more information on
+      {%<<a_manual project="eliom" chapter="client"
+      fragment="global"|global element>>%}).*)
   val new_elt_id: ?global:bool -> unit -> 'a id
 
   (** The function [create_named_elt ~id elt] create a copy of the

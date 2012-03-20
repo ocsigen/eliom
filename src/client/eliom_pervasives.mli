@@ -469,10 +469,9 @@ module HTML5 : sig
 
 
   (** The function [new_elt_id ()] creates a new HTML5 element
-      identifier. If the optionnal parameter [~global:true] is given,
-      the references element will be global (see the Eliom manual for
-      more information on {% <<a_manual project="eliom"
-      chapter="client" fragment="global"|global element>>%}).*)
+      identifier. (see the Eliom manual for more information on
+      {%<<a_manual project="eliom" chapter="client"
+      fragment="global"|global element>>%}).*)
   val new_elt_id: ?global:bool -> unit -> 'a id
 
   (** The function [create_named_elt ~id elt] create a copy of the
