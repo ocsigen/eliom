@@ -224,24 +224,6 @@ where and {{{id}}} an identifier for the value.
 (* *zap*)
 
 (*wiki*
-  The following examples shows how to change the URL.
-  This is a low level function and is usually not to be used directly.
-  As browsers do not not allow to change the URL,
-  we write the new URL in the fragment part of the URL.
-  A script must do the redirection if there is something in the fragment
-  while the page is loading.
-*wiki*)
-          p
-            ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
-              a_onclick {{
-                Eliom_client.change_url
-                  ~service: %Eliom_testsuite1.coucou
-                  () ()
-              }}
-            ]
-            [pcdata "Click here to change the URL with change_url."];
-
-(*wiki*
   The following examples shows how to change the current page,
   without stopping the client side program.
 *wiki*)
