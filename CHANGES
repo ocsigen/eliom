@@ -1,3 +1,11 @@
+===== 2.1.1 (2012-03-20) =====
+
+ * Add Eliom references of scope site
+ * Add an non-Lwt interface to volatile Eliom references
+ * Bugfixes:
+ ** More robust and portable history handling
+ ** More robust CSS preloading (change_page)
+
 ===== 2.1.0 (2012-02-24) =====
 
  * Page loading rewriten.
