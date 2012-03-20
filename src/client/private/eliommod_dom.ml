@@ -591,8 +591,13 @@ let createDocumentScroll () = {
    popstate event. We maintain our own position. *)
 
 let current_position = ref top_position
+
 let _ =
-  Dom_html.window##onscroll <-
+  (* HACK: Romove this when js_of_ocaml 1.1.2 or greater is released... *)
+  let window : < onscroll : (Dom_html.window Js.t, Dom_html.event Js.t) Dom_html.event_listener Js.prop > Js.t =
+    Js.Unsafe.variable "window"
+  in
+  window##onscroll <-
     Dom_html.handler (fun event ->
       current_position := createDocumentScroll ();
       Js._false)
