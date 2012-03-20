@@ -223,11 +223,6 @@ module SVG : sig
       [create_named_elt ~id:(new_elt_id ~global:true ()) elt]. *)
   val create_global_elt: 'a elt -> 'a elt
 
-  (**/**)
-  (* Compatibility with eliom 2.1 *)
-  val new_global_elt_id: unit -> 'a id
-  (**/**)
-
   (** {2 Printer} *)
 
   (** SVG printer.
@@ -321,11 +316,6 @@ module HTML5 : sig
   (** The function [create_named_elt elt] is equivalent to
       [create_named_elt ~id:(new_elt_id ~global:true ()) elt]. *)
   val create_global_elt: 'a elt -> 'a elt
-
-  (**/**)
-  (* Compatibility with eliom 2.1 *)
-  val new_global_elt_id: unit -> 'a id
-  (**/**)
 
   (**/**)
   val have_id: 'a id -> 'b elt -> bool

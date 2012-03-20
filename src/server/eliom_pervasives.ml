@@ -226,7 +226,7 @@ module XML = struct
       ^"\n/* ]]> */\n" in
     encodedpcdata s'
 
-  let make_node_name ?(global = false) () =
+  let make_node_name ?(global = true) () =
     (if global then "global_" else "")
     ^ "server_" ^ String.make_cryptographic_safe ()
 
@@ -349,7 +349,6 @@ module SVG = struct
 
   type 'a id = string (* FIXME invariant type parameter ? *)
   let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
-  let new_global_elt_id () = new_elt_id ()
   let create_named_elt ~(id : 'a id) elt =
     tot (XML.make_process_node ~id (toelt elt))
   let create_global_elt elt =
@@ -660,7 +659,6 @@ module HTML5 = struct
 
   type 'a id = string (* FIXME invariant type parameter ? *)
   let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
-  let new_global_elt_id () = new_elt_id ()
   let create_named_elt ~(id : 'a id) elt =
     tot (XML.make_process_node ~id (toelt elt))
   let create_global_elt elt =

@@ -264,15 +264,12 @@ module SVG : sig
   (** The type of global SVG element identifier. *)
   type 'a id
 
-  (* TODO GRGR *)
+  (** See {!Eliom_pervasives.HTML5.new_elt_id} *)
   val new_elt_id: ?global:bool -> unit -> 'a id
+  (** See {!Eliom_pervasives.HTML5.create_named_elt} *)
   val create_named_elt: id:'a id -> 'a elt -> 'a elt
+  (** See {!Eliom_pervasives.HTML5.create_global_elt} *)
   val create_global_elt: 'a elt -> 'a elt
-
-  (**/**)
-  (* Compatibility with eliom 2.1 *)
-  val new_global_elt_id: unit -> 'a id
-  (**/**)
 
 end
 
@@ -467,11 +464,11 @@ module HTML5 : sig
 
   (** {2 Global node} *)
 
-  (** The type of global SVG element identifier. *)
+  (** The type of global HTML5 element identifier. *)
   type 'a id
 
 
-  (** The function [new_elt_id ()] creates a new SVG element
+  (** The function [new_elt_id ()] creates a new HTML5 element
       identifier. If the optionnal parameter [~global:true] is given,
       the references element will be global (see the Eliom manual for
       more information on {% <<a_manual project="eliom"
@@ -485,11 +482,6 @@ module HTML5 : sig
   (** The function [create_named_elt elt] is equivalent to
       [create_named_elt ~id:(new_elt_id ~global:true ()) elt]. *)
   val create_global_elt: 'a elt -> 'a elt
-
-  (**/**)
-  (* Compatibility with eliom 2.1 *)
-  val new_global_elt_id: unit -> 'a id
-  (**/**)
 
   (**/**)
   val string_of_id : 'a id -> string

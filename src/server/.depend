@@ -18,8 +18,6 @@ eliom_comet_base.cmo: eliom_services.cmi eliom_parameters.cmi \
     eliom_output.cmi eliom_comet_base.cmi
 eliom_comet_base.cmx: eliom_services.cmx eliom_parameters.cmx \
     eliom_output.cmx eliom_comet_base.cmi
-eliom_comet_base.cmi: eliom_services.cmi eliom_parameters.cmi \
-    eliom_output.cmi
 eliom_common.cmo: eliom_wrap.cmi eliom_pervasives.cmi eliom_common_base.cmo \
     eliom_common.cmi
 eliom_common.cmx: eliom_wrap.cmx eliom_pervasives.cmx eliom_common_base.cmx \

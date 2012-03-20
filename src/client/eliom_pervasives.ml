@@ -576,7 +576,7 @@ module XML = struct
 
   let make_node_name =
     let node_id_counter = ref 0 in
-    (fun ?(global = false) () ->
+    (fun ?(global = true) () ->
       incr node_id_counter;
       (if global then "global_" else "")
       ^ "client_" ^ (string_of_int !node_id_counter))
@@ -634,7 +634,6 @@ module SVG = struct
 
   type 'a id = string (* FIXME invariant type parameter ? *)
   let new_elt_id: ?global:bool -> unit -> 'a id = XML.make_node_name
-  let new_global_elt_id () = new_elt_id ()
   let create_named_elt ~(id : 'a id) elt =
     tot (XML.make_process_node ~id (toelt elt))
   let create_global_elt elt =
