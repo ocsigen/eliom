@@ -34,5 +34,6 @@ install:
 clean:
 	-rm -f api-html/*
 	-rm -f api-man/*
+	-rm -f api-wiki/*
 	-rm -f *~ \#* .\#*
 	-rm -rf ${TMP}
