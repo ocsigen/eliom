@@ -5,14 +5,25 @@ OCAMLDOC := ${OCAMLFIND} ocamldoc
 
 ODOC := $(addprefix ../../src/server/,$(DOC:.mli=.odoc))
 
+doc: odoc api-html/index.html api-man/Eliom_pervasives.server.3o
+wikidoc: odoc api-wiki/index.wiki
+
 odoc:
 	${MAKE} -C ../../src/server odoc
 
-doc: odoc
+api-html/index.html: indexdoc ${ODOC}
 	mkdir -p api-html
-	mkdir -p api-man
 	$(OCAMLDOC) ${LIBS} -d api-html -intro indexdoc $(addprefix -load ,${ODOC}) -html
+
+api-man/Eliom_pervasives.server.3o: ${ODOC}
+	mkdir -p api-man
 	$(OCAMLDOC) ${LIBS} -d api-man -man-mini $(addprefix -load ,${ODOC}) -man -man-suffix server.3o
+
+api-wiki/index.wiki: indexdoc ${ODOC}
+	mkdir -p api-wiki
+	$(OCAMLDOC) -d api-wiki -intro indexdoc \
+	   -i $(shell ocamlfind query wikidoc) -g odoc_wiki.cma \
+	   -colorize-code $(addprefix -load ,${ODOC})
 
 install:
 	${INSTALL} -d -m 755 $(TEMPROOT)$(DOCDIR)/server
