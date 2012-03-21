@@ -497,22 +497,23 @@ let default_no_appl =
     let counter = ref 0 in
     fun () ->
       incr counter;
-      [ pcdata ("unique content: "^string_of_int !counter) ] in
+      pcdata (string_of_int !counter) in
   let get_service = Eliom_services.service ~path:["no-xhr"] ~get_params:Eliom_parameters.unit () in
   let post_service = Eliom_services.post_service ~fallback:get_service ~post_params:Eliom_parameters.unit () in
   let toggle_default_no_appl =
     Eliom_output.Action.register_post_coservice'
       ~post_params:Eliom_parameters.unit
       (fun () () ->
-         Eliom_config.(set_default_no_appl (not (get_default_no_appl ())));
+         Eliom_config.(set_default_links_xhr (not (get_default_links_xhr ())));
          Lwt.return ()) in
   let handler () () =
-    let global_elt = create_named_elt ~id (div (unique_content ())) in
+    let global_elt = create_named_elt ~id (div [pcdata "Named unique content: "; unique_content ()]) in
     Lwt.return
       (html
-        (head (title (pcdata "default-no-xhr")) [])
+        (head (title (pcdata "default_link_xhr")) [])
         (body [
           global_elt;
+          div [pcdata "Unique content: "; unique_content ()];
           div Eliom_output.Html5.([
             a ~service:get_service [pcdata "Link to self"] ();
             get_form ~service:get_service
@@ -527,13 +528,15 @@ let default_no_appl =
               (fun () -> [
                 string_input ~input_type:`Submit ~value:"Toggle" ();
                 pcdata " value of ";
-                code [pcdata "sitedata.default_no_appl"];
-                pcdata (Printf.sprintf " (is %b)" (Eliom_config.get_default_no_appl ()))
+                code [pcdata "sitedata.default_link_xhr"];
+                pcdata (Printf.sprintf " (is %b)" (Eliom_config.get_default_links_xhr ()))
               ]) ();
             p [
-              pcdata "You may also try to add ";
-              code [pcdata "<no-xhr-links />"];
-              pcdata "Into your site configuration.";
+              pcdata "You may also try to add the attribute ";
+              code [pcdata "xhr-link='yes'"];
+              pcdata " or ";
+              code [pcdata "'no'"];
+              pcdata " into the configuration of your Eliom module.";
             ]
           ])
         ])) in

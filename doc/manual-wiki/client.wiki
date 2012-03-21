@@ -253,7 +253,7 @@ Visiting a service registered with {{{do_not_launch=true}}} will not stop
 a running application.
 
 It is possible to force reloading an application when clicking a link
-by creating the link with the {{{no_appl}}} option set to true.
+by creating the link with the {{{xhr}}} option set to false.
 
 === Navigating in and out of the application.
 

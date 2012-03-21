@@ -359,7 +359,7 @@ module Xhtml_forms = struct
             ?fragment:string ->
             ?keep_nl_params:[ `All | `Persistent | `None ] ->
             ?nl_params: Eliom_parameters.nl_params_set ->
-            ?no_appl:bool ->
+            ?xhr:bool ->
             a_content elt list -> 'get ->
             a XHTML.M.elt :>
               ?absolute:bool ->
@@ -374,7 +374,7 @@ module Xhtml_forms = struct
             ?fragment:string ->
             ?keep_nl_params:[ `All | `Persistent | `None ] ->
             ?nl_params: Eliom_parameters.nl_params_set ->
-            ?no_appl:bool ->
+            ?xhr:bool ->
             a_content elt list -> 'get ->
             [> a] XHTML.M.elt)
 
@@ -417,7 +417,7 @@ module Xhtml_forms = struct
                    ?fragment:string ->
                    ?keep_nl_params:[ `All | `Persistent | `None ] ->
                    ?nl_params: Eliom_parameters.nl_params_set ->
-                   ?no_appl:bool ->
+                   ?xhr:bool ->
 		   ('gn -> form_content elt list) -> form elt :>
                    ?absolute:bool ->
                    ?absolute_path:bool ->
@@ -431,7 +431,7 @@ module Xhtml_forms = struct
                    ?fragment:string ->
                    ?keep_nl_params:[ `All | `Persistent | `None ] ->
                    ?nl_params: Eliom_parameters.nl_params_set ->
-                   ?no_appl:bool ->
+                   ?xhr:bool ->
                    ('gn -> form_content elt list) -> [> form ] elt)
 
 
@@ -448,7 +448,7 @@ module Xhtml_forms = struct
                        ?fragment:string ->
                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
                        ?nl_params: Eliom_parameters.nl_params_set ->
-                       ?no_appl:bool ->
+                       ?xhr:bool ->
                        ('gn -> form_content elt list Lwt.t) -> form elt Lwt.t :>
                        ?absolute:bool ->
                        ?absolute_path:bool ->
@@ -462,7 +462,7 @@ module Xhtml_forms = struct
                        ?fragment:string ->
                        ?keep_nl_params:[ `All | `Persistent | `None ] ->
                        ?nl_params: Eliom_parameters.nl_params_set ->
-                       ?no_appl:bool ->
+                       ?xhr:bool ->
                        ('gn -> form_content elt list Lwt.t) ->
                        [> form ] elt Lwt.t)
 
@@ -481,7 +481,7 @@ module Xhtml_forms = struct
                     ?keep_nl_params:[ `All | `Persistent | `None ] ->
                     ?keep_get_na_params:bool ->
                     ?nl_params: Eliom_parameters.nl_params_set ->
-                    ?no_appl:bool ->
+                    ?xhr:bool ->
                     ('pn -> form_content elt list) -> 'get -> form elt :>
                     ?absolute:bool ->
                     ?absolute_path:bool ->
@@ -496,7 +496,7 @@ module Xhtml_forms = struct
                     ?keep_nl_params:[ `All | `Persistent | `None ] ->
                     ?keep_get_na_params:bool ->
                     ?nl_params: Eliom_parameters.nl_params_set ->
-                    ?no_appl:bool ->
+                    ?xhr:bool ->
                     ('pn -> form_content elt list) -> 'get -> [> form ] elt)
 
   let lwt_post_form = (lwt_post_form :
@@ -513,7 +513,7 @@ module Xhtml_forms = struct
                         ?keep_nl_params:[ `All | `Persistent | `None ] ->
                         ?keep_get_na_params:bool ->
                         ?nl_params: Eliom_parameters.nl_params_set ->
-                        ?no_appl:bool ->
+                        ?xhr:bool ->
                         ('pn -> form_content elt list Lwt.t) ->
                         'get -> form elt Lwt.t :>
                         ?absolute:bool ->
@@ -529,7 +529,7 @@ module Xhtml_forms = struct
                         ?keep_nl_params:[ `All | `Persistent | `None ] ->
                         ?keep_get_na_params:bool ->
                         ?nl_params: Eliom_parameters.nl_params_set ->
-                        ?no_appl:bool ->
+                        ?xhr:bool ->
                         ('pn -> form_content elt list Lwt.t) -> 'get ->
                         [> form ] elt Lwt.t)
 

@@ -38,6 +38,19 @@ exception Eliom_404
 exception Eliom_do_redirection of string
 exception Eliom_do_half_xhr_redirection of string
 
+type 'a tenable_value = < get : 'a ; set : ?override_tenable:bool -> 'a -> unit >
+
+let tenable_value ~name v = object
+  val mutable value = v
+  val mutable tenable = false
+  method get = value
+  method set ?(override_tenable=false) v =
+    if not tenable || override_tenable then (
+      value <- v;
+      tenable <- override_tenable
+    ) else
+      Ocsigen_messages.warning ("Ignored setting tenable value \""^name^"\".")
+end
 
 (*****************************************************************************)
 (*VVV Do not forget to change the version number
@@ -461,7 +474,7 @@ and sitedata =
   {site_dir: Url.path;
    site_dir_string: string;
    config_info: Ocsigen_extensions.config_info;
-   mutable default_no_appl: bool;
+   default_links_xhr : bool tenable_value;
 
    (* Timeouts:
        - default for site (browser sessions)

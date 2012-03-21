@@ -40,12 +40,12 @@ val get_default_sslport : unit -> int
 val get_config_default_charset : unit -> string
 
 (** The provided value serves as a default value for the optional parameter
-    [no_appl] in the functions [Eliom_output.*.{a, get_form, post_form,
+    [~xhr] in the functions [Eliom_output.*.{a, get_form, post_form,
     lwt_get_form, lwt_post_form}] (cf. {!Eliom_output.Html5.a} et al.). *)
-val set_default_no_appl : bool -> unit
+val set_default_links_xhr : ?override_configfile:bool -> bool -> unit
 
 (**/**)
-val get_default_no_appl : unit -> bool
+val get_default_links_xhr : unit -> bool
 (**/**)
 
 (** The function [get_config ()] returns the information of the

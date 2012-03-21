@@ -130,6 +130,16 @@ exception Eliom_do_redirection of string
 (* Used to redirect to the suffix version of the service *)
 exception Eliom_do_half_xhr_redirection of string
 
+(** A [(v:tenable_value)] captures a value, which is available through [v#get].
+    The value can be be set to by [v#set]. However, once set by [v#set
+    ~override_tenable:true] it can only be overridden by further calls to [v#set
+    ~override_tenable:true]. Other attempts will be ignored. *)
+type 'a tenable_value = < get : 'a ; set : ?override_tenable:bool -> 'a -> unit >
+
+(** Create a named {!type:Eliom_common.tenable_value} with the given initial
+    value. The name will only be used for warnings when setting a strong value
+    isn't possible. *)
+val tenable_value : name:string -> 'a -> 'a tenable_value
 
 (* Service kinds: *)
 type att_key_serv =
@@ -472,7 +482,7 @@ and sitedata = {
   site_dir : Url.path;
   site_dir_string : string;
   config_info: Ocsigen_extensions.config_info;
-  mutable default_no_appl: bool;
+  default_links_xhr : bool tenable_value;
 
    (* Timeouts:
        - default for site (browser sessions)

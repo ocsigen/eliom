@@ -240,9 +240,9 @@ val make_proto_prefix :
     generated [<a>] node contains an [onclick] attribute that is
     equivalent to the {% <<a_api project="eliom" subproject="client" |
     val Eliom_client.change_page >>%} function. If the optional
-    parameter [~no_appl:true] is given the [onclick] attribute won't
+    parameter [~xhr:false] is given the [onclick] attribute won't
     be added and if the generated link is clicked the client side
-    process is stopped. The [~noappl] parameter has no effect outside
+    process is stopped. The [~xhr] parameter has no effect outside
     an Eliom application.
 
     The optional parameter [~a] allows to add extra HTML attributes to
@@ -264,7 +264,7 @@ val a :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?nl_params: Eliom_parameters.nl_params_set ->
-  ?no_appl:bool ->
+  ?xhr:bool ->
   'a a_content_elt_list ->
   'get ->
   'a a_elt
@@ -308,9 +308,9 @@ val js_script :
     generated [<form>] node contains an [onsubmit] attribute that is
     equivalent to the {% <<a_api project="eliom" subproject="client" |
     val Eliom_client.change_page >>%} function. If the optional
-    parameter [~no_appl:true] is given the [onsubmit] attribute won't
+    parameter [~xhr:false] is given the [onsubmit] attribute won't
     be added and if the [<form>] is submitted the client side process
-    is stopped. The [~noappl] parameter has no effect outside an Eliom
+    is stopped. The [~xhr] parameter has no effect outside an Eliom
     application.
 
     The optional parameter [~a] allows to add extra HTML attributes to
@@ -331,7 +331,7 @@ val get_form :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?nl_params: Eliom_parameters.nl_params_set ->
-  ?no_appl:bool ->
+  ?xhr:bool ->
   ('gn -> form_content_elt_list) ->
   form_elt
 
@@ -350,7 +350,7 @@ val lwt_get_form :
   ?fragment:string ->
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?nl_params: Eliom_parameters.nl_params_set ->
-  ?no_appl:bool ->
+  ?xhr:bool ->
   ('gn -> form_content_elt_list Lwt.t) ->
   form_elt Lwt.t
 
@@ -367,7 +367,7 @@ val lwt_get_form :
 
     See {!Eliom_services.post_coservice'} for a description of the
     [~keep_get_na_params] optional parameter ; see {!get_form} for
-    [~no_appl] and see {!make_uri} for other optional parameters.
+    [~xhr] and see {!make_uri} for other optional parameters.
 *)
 val post_form :
   ?absolute:bool ->
@@ -383,7 +383,7 @@ val post_form :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?keep_get_na_params:bool ->
   ?nl_params: Eliom_parameters.nl_params_set ->
-  ?no_appl:bool ->
+  ?xhr:bool ->
   ('pn -> form_content_elt_list) ->
   'get ->
   form_elt
@@ -404,7 +404,7 @@ val lwt_post_form :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   ?keep_get_na_params:bool ->
   ?nl_params: Eliom_parameters.nl_params_set ->
-  ?no_appl:bool ->
+  ?xhr:bool ->
   ('pn -> form_content_elt_list Lwt.t) ->
   'get ->
   form_elt Lwt.t

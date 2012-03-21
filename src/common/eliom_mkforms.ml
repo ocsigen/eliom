@@ -57,7 +57,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 
 
   let a ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?nl_params ?no_appl content getparams =
+      ?keep_nl_params ?nl_params ?xhr content getparams =
     let href =
       Pages.uri_of_string
 	(fun () ->
@@ -120,7 +120,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 
   let get_form
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?nl_params ?no_appl f =
+      ?keep_nl_params ?nl_params ?xhr f =
     get_form_
       (fun x f -> f x) (fun x -> x)
       ?absolute ?absolute_path
@@ -129,7 +129,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 
   let lwt_get_form
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?nl_params ?no_appl f =
+      ?keep_nl_params ?nl_params ?xhr f =
     get_form_
       Lwt.bind Lwt.return
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
@@ -182,7 +182,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
 
   let post_form
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
-      ?keep_nl_params ?keep_get_na_params ?nl_params ?no_appl f getparams =
+      ?keep_nl_params ?keep_get_na_params ?nl_params ?xhr f getparams =
     post_form_
       (fun x f -> f x) (fun x -> x)
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port
@@ -194,7 +194,7 @@ module MakeForms(Pages : FORMS_PARAM) = struct
       ?absolute ?absolute_path ?https ?a ~service ?hostname ?port ?fragment
       ?keep_nl_params ?keep_get_na_params
       ?nl_params
-      ?no_appl f getparams =
+      ?xhr f getparams =
     post_form_ Lwt.bind Lwt.return
       ?absolute ?absolute_path
       ?https ?a ~service ?hostname ?port

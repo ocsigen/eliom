@@ -404,15 +404,15 @@ The syntax is:
 
 === Disabling XHR-links
 
-By default, all links (##a##, ##form##) within an Eliom application are realized
+By default, all links (##a##, ##form##) of an Eliom application are realized
 by Eliom's ##change_page## magic (unless their creation is augmented
-with ##~no_appl=true##).
+with ##~xhr:false##).
 
 In contrast, you may add the attribute ##xhr-links## into the content of the
 configuration of a Eliom module:
 {{{
   <eliom ... xhr-links="no"> ...  </eliom>
 }}}
-Then, all links that are not explicitely specfied as ##~no_appl:false## are
+Then, all links that are not explicitely specfied as ##~xhr:true## are
 realized by their default HTTP behaviour.
 
