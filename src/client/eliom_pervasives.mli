@@ -469,8 +469,8 @@ module HTML5 : sig
 
 
   (** The function [new_elt_id ()] creates a new HTML5 element
-      identifier. (see the Eliom manual for more information on
-      {%<<a_manual project="eliom" chapter="client"
+      identifier. (see the Eliom manual for more information on {%
+      <<a_manual project="eliom" chapter="client"
       fragment="global"|global element>>%}).*)
   val new_elt_id: ?global:bool -> unit -> 'a id
 
@@ -479,7 +479,7 @@ module HTML5 : sig
   val create_named_elt: id:'a id -> 'a elt -> 'a elt
 
   (** The function [create_named_elt elt] is equivalent to
-      [create_named_elt ~id:(new_elt_id ~global:true ()) elt]. *)
+      [create_named_elt ~id:(new_elt_id ()) elt]. *)
   val create_global_elt: 'a elt -> 'a elt
 
   (**/**)
