@@ -38,6 +38,8 @@ class type dom_tester = object
   method querySelectorAll : unit Js.optdef Js.prop
   method classList : unit Js.optdef Js.prop
   method createEvent : unit Js.optdef Js.prop
+  method onpageshow : unit Js.optdef Js.prop
+  method onpagehide : unit Js.optdef Js.prop
 end
 
 let test_querySelectorAll () =
@@ -51,6 +53,11 @@ let test_classList () =
 
 let test_createEvent () =
   Js.Optdef.test ((Js.Unsafe.coerce Dom_html.document:dom_tester Js.t)##createEvent)
+
+let test_pageshow_pagehide () =
+  let tester = (Js.Unsafe.coerce Dom_html.window:dom_tester Js.t) in
+  Js.Optdef.test tester##onpageshow
+  && Js.Optdef.test tester##onpagehide
 
 let fast_ancessor (elt1:#Dom.node Js.t) (elt2:#Dom.node Js.t) =
   (elt1##compareDocumentPosition((elt2:>Dom.node Js.t)))
@@ -653,3 +660,19 @@ let add_formdata_hack_onclick_handler _ =
   true
 
 (* END FORMDATA HACK *)
+
+(** unload handler *)
+
+let pageshow = Dom.Event.make "pageshow"
+let pagehide = Dom.Event.make "pagehide"
+let unload = Dom.Event.make "unload"
+
+let nice_onunload f =
+  let event =
+    if test_pageshow_pagehide ()
+    then pagehide
+    else unload in
+  ignore (Dom.addEventListener Dom_html.window
+              event ( Dom_html.handler (fun _ -> f (); Js._false) )
+              Js._true : Dom_html.event_listener_id)
+

@@ -427,6 +427,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a nlpost_entry [pcdata "Non localised parameters with forms in eliom appl"] ();
               br ();
+              a live1 [ pcdata "unload, load events and history" ] ();
+              br ();
             ];
             h4 [pcdata "Templates"];
             p [

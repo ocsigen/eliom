@@ -102,6 +102,10 @@ let on_unload f =
   on_unload_scripts :=
     (fun () -> try f(); true with False -> false) :: !on_unload_scripts
 
+let run_unload_events () =
+  ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
+  on_unload_scripts := []
+
 (* == Helper's functions for Eliom's event handler.
 
    Allow to convert XML.event_handler to javascript closure and to
@@ -128,6 +132,8 @@ let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
   let https = Url.get_ssl (Js.to_string href) in
   (middleClick ev)
+
+
   || (https = Some true && not Eliom_request_info.ssl_)
   || (https = Some false && Eliom_request_info.ssl_)
   || (!change_page_uri_ ?cookies_info ?tmpl (Js.to_string href); false)
@@ -438,7 +444,7 @@ let get_state i : state =
             everywhere the history API exists. *)
          error "sessionStorage not available")
        (fun s -> s##getItem(state_key i)))
-    (fun () -> error "can't retrieve history state %s" (Js.to_string (state_key i)))
+    (fun () -> error "State id not found %d in sessionStorage" i)
     (fun s -> Json.unsafe_input s)
 let set_state i (v:state) =
   Js.Optdef.case ( Dom_html.window##sessionStorage )
@@ -451,6 +457,12 @@ let update_state () =
           | Some tmpl -> Js.bytestring tmpl
           | None -> Js.string  "" );
       position = Eliommod_dom.getDocumentScroll () }
+
+let leave_page () =
+  update_state ();
+  run_unload_events ()
+
+let () = Eliommod_dom.nice_onunload leave_page
 
 (* == Low-level: call service. *)
 
@@ -781,8 +793,7 @@ let set_content ?uri ?offset ?fragment = function
     try_lwt
       if !Eliom_config.debug_timings then
         Firebug.console##time(Js.string "set_content_beginning");
-       ignore (List.for_all (fun f -> f ()) !on_unload_scripts);
-       on_unload_scripts := [];
+       run_unload_events ();
        (match uri, fragment with
         | Some uri, None -> change_url_string uri
         | Some uri, Some fragment ->
@@ -846,6 +857,7 @@ let set_template_content ?uri ?fragment = function
   | None -> Lwt.return ()
   | Some content ->
       (* Side-effect in the 'onload' event handler. *)
+      run_unload_events ();
       (match uri, fragment with
         | Some uri, None -> change_url_string uri
         | Some uri, Some fragment ->
@@ -992,7 +1004,7 @@ let () =
   if Eliom_process.history_api then
 
     let goto_uri full_uri state_id =
-      update_state ();
+      leave_page ();
       current_state_id := state_id;
       let state = get_state state_id in
       let tmpl = (if state.template = Js.string "" then None else Some (Js.to_string state.template))in

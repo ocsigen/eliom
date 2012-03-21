@@ -2632,6 +2632,53 @@ let _ =
     Lwt.return
       (make_page [HTML5.M.ul (list 1 100)]))
 
+{client{
+  let rec loop t i r = debug "Ping %d %d" i !r; incr r; Lwt_js.sleep t >> loop t (i+1) r
+  let loop_counter = ref 0
+  let () = debug "Application loading"
+}}
+
+let live1 = Eliom_services.service ["live";"one"] unit ()
+let live2 = Eliom_services.service ["live";"two"] unit ()
+let live3 = Eliom_services.service ["live";"three"] unit ()
+
+let live_description =
+  div [pcdata "This is an application with three page. ";
+       pcdata "When loading the application shows a message in the console. ";
+       pcdata "When loading each page show a message in the console.";
+       br ();
+       pcdata "Try to navigate between page. Try to leave the application and to get back.";]
+
+let live_links =
+  div [ ul [li [Eliom_output.Html5.a ~service:live1 [pcdata "Page one"] ()];
+            li [Eliom_output.Html5.a ~service:live2 [pcdata "Page two"] ()];
+            li [Eliom_output.Html5.a ~service:live3 [pcdata "Page threee"] ()]]]
+
+let dead_links =
+  div [ ul [li [Eliom_output.Html5.a ~service:Eliom_testsuite1.coucou
+                   [pcdata "Link to a service outside the application."] ()];
+            li [Eliom_output.Html5.a ~service:otherappl
+                   [pcdata "Link to another application."] ()];]]
+
+let () = My_appl.register ~service:live1 (fun () () ->
+    Eliom_services.onload {{ debug "Page 1 loading"; ignore (loop 2. 0 loop_counter) }};
+    Eliom_services.onunload {{ debug "Page 1 unloading" }};
+    Lwt.return
+      (make_page [h1 [pcdata "Page one"]; live_description; live_links; dead_links]))
+
+let () = My_appl.register ~service:live2 (fun () () ->
+    Eliom_services.onload {{ debug "Page 2 loading" }};
+    Eliom_services.onunload {{ debug "Page 2 unloading" }};
+    Lwt.return
+      (make_page [h1 [pcdata "Page two"];live_description; live_links; dead_links]))
+
+let () = My_appl.register ~service:live3 (fun () () ->
+    Eliom_services.onload {{ debug "Page 3 loading" }};
+    Eliom_services.onunload {{ debug "Page 3 unloading" }};
+    Lwt.return
+      (make_page [h1 [pcdata "Page threee"]; live_description; live_links; dead_links]))
+
+
 let formc = My_appl.register_service ["formc"] unit
   (fun () () -> 
     let div = HTML5.DOM.div [h3 [pcdata "Forms and links created on client side:"]] in

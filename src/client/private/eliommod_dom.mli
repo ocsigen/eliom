@@ -78,6 +78,9 @@ val top_position: position
 val getDocumentScroll: unit -> position
 val setDocumentScroll: position -> unit
 
+(** register an onunload event handler on the best available event (onhide if available) *)
+val nice_onunload : (unit -> unit) -> unit
+
 (**/**)
 val touch_base: unit -> unit
 val add_formdata_hack_onclick_handler: Dom_html.event Js.t -> bool
