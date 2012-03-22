@@ -115,12 +115,12 @@ let slow_has_classes (node:Dom_html.element Js.t) =
 
 let slow_has_request_class (node:Dom_html.element Js.t) =
   let classes = Js.str_array (node##className##split(Js.string " ")) in
-  let found_process_node = ref false in
+  let found_request_node = ref false in
   for i = 0 to (classes##length) - 1 do
-    found_process_node := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.process_node_class))
-    || !found_process_node;
+    found_request_node := (Js.array_get classes i == Js.def (Js.string Eliom_pervasives_base.RawXML.request_node_class))
+    || !found_request_node;
   done;
-  !found_process_node
+  !found_request_node
 
 let fast_has_classes (node:Dom_html.element Js.t) =
   Js.to_bool (node##classList##contains((Js.string Eliom_pervasives_base.RawXML.ce_call_service_class))),
