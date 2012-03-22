@@ -133,7 +133,7 @@ DEPS := $(patsubst %,.%.deps,${COMMON_FILES}) \
 
 .SECONDARY: ${DEPS}
 .depend: ${DEPS}
-	cat .*.deps private/.*.deps > .depend
+	cat $(shell ls .*.deps private/.*.deps) > .depend
 
 .%.ml.deps: %.ml
 	 ${OCAMLDEP} ${LIBS} -syntax camlp4o $< > $@
