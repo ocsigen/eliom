@@ -34,7 +34,7 @@ ${COMMON_FILES}: %: ../common/%
 ${COMMON_PFILES} ${COMMON_SFILES}: %: ../common/%
 	-@mkdir -p $(dir $@)
 	ln -sf ../$< $@
-eliom_duce_sigs.mli:: eliom_duce_sigs.mlp
+eliom_duce_sigs.mli:: eliom_duce_sigs.mlp sigs/eliom_reg.mli sigs/eliom_reg_simpl.mli
 	camlp4o ../syntax/pa_include.cmo -printer o -intf $< > $@
 	# Ugly hack: copy time stamp to avoid dependencies re-computation
 	# after a distclean
