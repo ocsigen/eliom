@@ -854,7 +854,8 @@ let comet1 =
          (make_page [
            div
              [pcdata "To fully understand the meaning of the public channel, \
-                      use a couple browsers on this page."] ;
+                      use a couple browsers on this page."; br ();
+              Eliom_output.Html5.a ~service:main [pcdata "go outside of application"] ()] ;
          ])
     )
 
@@ -1159,7 +1160,8 @@ let comet_message_board_maker name message_bus cb =
 
          (make_page [ h2 [pcdata "Message board"];
            form ~a:[a_action (XML.uri_of_string "")] (div [field; go]) [];
-           container;
+           container; br ();
+           Eliom_output.Html5.a ~service:main [pcdata "go outside of application"] ();
          ]))
     )
 
