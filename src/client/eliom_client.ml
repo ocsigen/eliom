@@ -610,7 +610,8 @@ let change_url_string uri =
   end else begin
     current_pseudo_fragment := url_fragment_prefix_with_sharp^uri;
     Eliom_request_info.set_current_path uri;
-    Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
+    if uri <> fst (Url.split_fragment Url.Current.as_string)
+    then Dom_html.window##location##hash <- Js.string (url_fragment_prefix^uri)
   end
 
 (* == Relink
@@ -933,16 +934,10 @@ let change_page
         let uri, fragment = Url.split_fragment uri in
         set_content ~uri ?fragment content
 
-let split_fragment uri =
-  if Eliom_process.history_api then
-    Url.split_fragment uri
-  else
-    (uri, None) (* TODO *)
-
 (* Function used in "onclick" event handler of <a>.  *)
 
 let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
-  let uri, fragment = split_fragment full_uri in
+  let uri, fragment = Url.split_fragment full_uri in
   if uri <> !current_uri || fragment = None then begin
     match tmpl with
     | Some t when tmpl = Eliom_request_info.get_request_template () ->
@@ -967,7 +962,7 @@ let change_page_uri ?cookies_info ?tmpl ?(get_params = []) full_uri =
 
 let change_page_get_form ?cookies_info ?tmpl form full_uri =
   let form = Js.Unsafe.coerce form in
-  let uri, fragment = split_fragment full_uri in
+  let uri, fragment = Url.split_fragment full_uri in
   match tmpl with
   | Some t when tmpl = Eliom_request_info.get_request_template () ->
       lwt uri, content = Eliom_request.send_get_form
@@ -985,7 +980,7 @@ let change_page_get_form ?cookies_info ?tmpl form full_uri =
 
 let change_page_post_form ?cookies_info ?tmpl form full_uri =
   let form = Js.Unsafe.coerce form in
-      let uri, fragment = split_fragment full_uri in
+      let uri, fragment = Url.split_fragment full_uri in
   match tmpl with
   | Some t when tmpl = Eliom_request_info.get_request_template () ->
       lwt uri, content = Eliom_request.send_post_form
@@ -1024,7 +1019,7 @@ let () =
       let state = get_state state_id in
       let tmpl = (if state.template = Js.string "" then None else Some (Js.to_string state.template))in
       lwt_ignore
-        (let uri, fragment = split_fragment full_uri in
+        (let uri, fragment = Url.split_fragment full_uri in
          if uri <> !current_uri then begin
            current_uri := uri;
            match tmpl with
@@ -1078,26 +1073,19 @@ let () =
              let uri =
                match l with
                | 2 -> "./" (* fix for firefox *)
-               | 0 | 1 -> Url.Current.as_string
+               | 0 | 1 -> fst (Url.split_fragment Url.Current.as_string)
                | _ -> String.sub fragment 2 ((String.length fragment) - 2)
              in
-             lwt (_, content) =
-               Eliom_request.http_get ~expecting_process_page:true uri []
-                 Eliom_request.xml_result in
-             set_content content )
+             (* CCC TODO handle templates *)
+             change_page_uri uri)
            else Lwt.return ()
          else Lwt.return () )
     in
-    let (fragment, set_fragment_signal) = React.S.create (read_fragment ()) in
 
-    (* Make the back button work when only the fragment has changed ... *)
-    (* We check the fragment every 0.2 second ... *)
-    let rec fragment_polling () =
-      lwt () = Lwt_js.sleep 0.2 in
-      let new_fragment = read_fragment () in
-      set_fragment_signal new_fragment;
-      fragment_polling () in
-
-    ignore(fragment_polling ());
-    ignore(React.E.map auto_change_page (React.S.changes fragment))
-
+    Eliommod_dom.onhashchange (fun s -> auto_change_page (Js.to_string s));
+    let first_fragment = read_fragment () in
+    if first_fragment <> !current_pseudo_fragment then
+      lwt_ignore (
+        lwt () = wait_load_end () in
+        auto_change_page first_fragment;
+        Lwt.return ())

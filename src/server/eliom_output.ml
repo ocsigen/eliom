@@ -2466,32 +2466,6 @@ end
 
 let comet_service_key = Polytables.make_key ()
 
-let redirection_script =
-  (* This will do a redirection if there is a #! in the URL *)
-  let script =
-    "// Redirect if the URL contains #! while loading the page\n"
-    ^ "function redir () {\n"
-    ^ "  var str_url = window.location.toString() ;\n"
-    ^ "  try{\n"
-    ^ "    var match = str_url.match(\"((https?://[^/]*).*)/[^#/?]*(\\\\?.*)?#!((https?://[^/]*/)?(/)?(.*))$\");\n"
-    ^ "          //but what if there's a # the search ?\n"
-    ^ "    if(match) {\n"
-    ^ "      if(match[5]) { // full absolute\n"
-    ^ "        window.location = match[4];\n"
-    ^ "      }\n"
-    ^ "      else\n"
-    ^ "      if(match[6]) { // absolute path\n"
-    ^ "        window.location = match[2] + match[4];\n"
-    ^ "      }\n"
-    ^ "      else { // relative\n"
-    ^ "        window.location = match[1] + \"/\" + match[4] ;\n"
-    ^ "      }\n"
-    ^ "    }\n"
-    ^ "  } catch(e) {} ;\n"
-    ^ "};\n"
-    ^ "redir ();" in
-  HTML5.create_global_elt (HTML5.M.script (HTML5.M.cdata_script script))
-
 let request_template = Eliom_references.eref ~scope:Eliom_common.request None
 
 module Eliom_appl_reg_make_param
@@ -2618,7 +2592,6 @@ module Eliom_appl_reg_make_param
       split_page (HTML5.toelt page) in
     let head_elts =
          appl_data_script
-      :: redirection_script
       :: HTML5.M.base ~a:[a_id Eliom_common_base.base_elt_id; HTML5.a_href (HTML5.uri_of_string base_url)] ()
       :: ( if List.exists is_eliom_appl_script head_elts
            then head_elts

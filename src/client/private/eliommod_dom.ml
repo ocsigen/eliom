@@ -40,6 +40,7 @@ class type dom_tester = object
   method createEvent : unit Js.optdef Js.prop
   method onpageshow : unit Js.optdef Js.prop
   method onpagehide : unit Js.optdef Js.prop
+  method onhashchange : unit Js.optdef Js.prop
 end
 
 let test_querySelectorAll () =
@@ -58,6 +59,9 @@ let test_pageshow_pagehide () =
   let tester = (Js.Unsafe.coerce Dom_html.window:dom_tester Js.t) in
   Js.Optdef.test tester##onpageshow
   && Js.Optdef.test tester##onpagehide
+
+let test_onhashchange () =
+  Js.Optdef.test ((Js.Unsafe.coerce Dom_html.window:dom_tester Js.t)##onhashchange)
 
 let fast_ancessor (elt1:#Dom.node Js.t) (elt2:#Dom.node Js.t) =
   (elt1##compareDocumentPosition((elt2:>Dom.node Js.t)))
@@ -660,3 +664,24 @@ let add_formdata_hack_onclick_handler _ =
   true
 
 (* END FORMDATA HACK *)
+
+(** onhashchange *)
+
+let hashchange = Dom.Event.make "hashchange"
+
+let onhashchange f =
+  if test_onhashchange ()
+  then
+    ignore (Dom.addEventListener Dom_html.window
+              hashchange ( Dom_html.handler (fun _ ->
+                f Dom_html.window##location##hash; Js._false) )
+              Js._true : Dom_html.event_listener_id)
+  else
+    let last_fragment = ref Dom_html.window##location##hash in
+    let rec check () =
+      if !last_fragment != Dom_html.window##location##hash
+      then
+        (last_fragment := Dom_html.window##location##hash;
+         f Dom_html.window##location##hash) in
+    ignore (Dom_html.window##setInterval(Js.wrap_callback check,
+                                         0.2 *. 1000.))
