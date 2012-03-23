@@ -280,7 +280,7 @@ module Html5 = struct
 
   let rebuild_node elt =
     let node = Js.Unsafe.coerce (rebuild_node (HTML5.M.toelt elt)) in
-    run_load_events !on_load_scripts;
+    run_load_events (List.rev !on_load_scripts);
     on_load_scripts := [];
     node
 
@@ -718,7 +718,7 @@ let relink_page (root:Dom_html.element Js.t) event_handlers =
   let onload = ref [] in
   Eliommod_dom.iter_nodeList closure_nodeList
     (fun node -> relink_closure_node root onload event_handlers node);
-  !onload
+  List.rev !onload
 
 let load_eliom_data js_data page =
   try

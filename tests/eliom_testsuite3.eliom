@@ -75,9 +75,9 @@ let header_id : HTML5_types.body_content_fun HTML5.id =
 let header () =
   HTML5.create_named_elt ~id:header_id
     (p [pcdata "Random value in the container: ";
-	(span [pcdata (string_of_int (Random.int 1000))]);
-	br ();
-	a ~service:main [pcdata "Back to the main page of the test suite."] ();])
+        (span [pcdata (string_of_int (Random.int 1000))]);
+        br ();
+        a ~service:main [pcdata "Back to the main page of the test suite."] ();])
 
 let make_page ?(css = []) content =
   html
@@ -86,11 +86,11 @@ let make_page ?(css = []) content =
        ([ style
            [pcdata "a,.clickable {color: #111188; cursor: pointer;}"];
           My_appl.application_script ();
-	  meta ~a:[a_charset "utf-8"] ();
-	] @ css))
+          meta ~a:[a_charset "utf-8"] ();
+        ] @ css))
     (body
        [h1 [pcdata "Eliom application"];
-	header ();
+        header ();
         div content ] )
 
 {client{
@@ -108,10 +108,10 @@ let eliomclient1 =
     (fun () () ->
       Lwt.return
         (make_page
-	   [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
+           [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
           (* with {{ expr }}, the expression is executed by the client. *)
              a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}
-	    ]
+            ]
                [pcdata "I am a clickable paragraph"];
 
            ]))
@@ -146,17 +146,17 @@ let eliom_caml_tree =
     ~post_params:unit
     (fun () () ->
       Lwt.return
-	HTML5.M.(([div [p [pcdata "Coucou, voici un Div construit avec TyXML sur le serveur"];
-		        ul [li [pcdata "item1"];
-			    li [pcdata "item2"];
-			    li [pcdata "item3"];
-			   ];
-			p [Eliom_output.Html5.a
-			      ~service:eliomclient1 [pcdata "Lien"] ()];
-			p ~a:[a_onclick
-				 {{ Dom_html.window##alert(Js.string "clicked!") }}]
-			  [pcdata "I am a clickable paragraph"];
-		       ]] : HTML5_types.div elt list)))
+        HTML5.M.(([div [p [pcdata "Coucou, voici un Div construit avec TyXML sur le serveur"];
+                        ul [li [pcdata "item1"];
+                            li [pcdata "item2"];
+                            li [pcdata "item3"];
+                           ];
+                        p [Eliom_output.Html5.a
+                              ~service:eliomclient1 [pcdata "Lien"] ()];
+                        p ~a:[a_onclick
+                                 {{ Dom_html.window##alert(Js.string "clicked!") }}]
+                          [pcdata "I am a clickable paragraph"];
+                       ]] : HTML5_types.div elt list)))
 
 ;; (* This ";;" is necessary in order to have the "shared" following entry being
       parsed as "str_item" (instead of "expr"). This is Camlp4 related, it may
@@ -175,7 +175,7 @@ let _ =
     (fun () () ->
       Lwt.return
         (make_page
-	   ([
+           ([
 (*wiki*
   The following example shows how to go to another service,
   exactly like pressing a link (here a service that do not belong to
@@ -231,8 +231,8 @@ where and {{{id}}} an identifier for the value.
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick
                 {{ignore(Eliom_client.change_page
-			   ~service:%eliomclient1
-			   () ())
+                           ~service:%eliomclient1
+                           () ())
                 }}
             ]
             [pcdata "Click here to change the page without stopping the program (with change_page)."];
@@ -247,7 +247,7 @@ where and {{{id}}} an identifier for the value.
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 ignore(Eliom_client.change_page ~service:%eliomclient1
-			 () ())
+                         () ())
               }}
             ]
             [pcdata "A generic client-side function for calling ";
@@ -263,10 +263,10 @@ where and {{{id}}} an identifier for the value.
               a_onclick {{
                 ignore (try_lwt
                           Eliom_client.call_caml_service ~service:%eliom_caml_tree
-			  () () >|= fun blocks ->
-			    List.iter
-			      (Dom.appendChild Dom_html.document##body)
-			      (List.map Eliom_client.Html5.of_element blocks)
+                          () () >|= fun blocks ->
+                            List.iter
+                              (Dom.appendChild Dom_html.document##body)
+                              (List.map Eliom_client.Html5.of_element blocks)
                         with
                           | e -> Dom_html.window##alert(Js.string (Printexc.to_string e));
                             Lwt.return ()
@@ -355,15 +355,20 @@ To do that, use the {{{Eliom_parameters.caml}}} function:
   type ec3 = (int * string * string list) deriving (Json)
 }}
 
+let caml_value : ec3 = (299, "oo", ["a";"b";"c"])
+
 let eliomclient3' =
   My_appl.register_post_coservice'
     ~post_params:(caml "isb" Json.t<ec3>)
-    (fun () (i, s, l) ->
-      Lwt.return
-        (make_page
-	   [p (pcdata (Printf.sprintf "i = %d, s = %s" i s)::
-		 List.map (fun a -> pcdata a) l
-           )]))
+    (fun () (i, s, l as v) ->
+       Lwt.return
+         (make_page
+            [p [if v = caml_value
+                then pcdata "The expected data were correctly received."
+                else pcdata "Do not received the expected data."];
+             p (pcdata (Printf.sprintf "i = %d, s = %s" i s)::
+                  List.map (fun a -> pcdata a) l
+                 )]))
 
 
 let eliomclient3 =
@@ -373,13 +378,13 @@ let eliomclient3 =
     (fun () () ->
       Lwt.return
         (make_page
-	   [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
+           [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
              {{ ignore (Eliom_client.change_page
-			  ~service:%eliomclient3'
-			  () (299, "oo", ["a";"b";"c"]))
+                          ~service:%eliomclient3'
+                          () %caml_value)
               }}
             ]
-               [pcdata "Click to send Ocaml data"]
+               [pcdata "Click to send Ocaml data as Post parameter"]
            ]))
 
 (*wiki*
@@ -399,18 +404,22 @@ let eliomclient4 =
     (fun () () ->
       Lwt.return
         (make_page
-	   [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
-                 {{let body = Dom_html.document##body in
-                   ignore (Eliom_client.call_caml_service
-                     ~service:%eliomclient4'
-                     () () >|=
-                   List.iter
-                     (fun i -> Dom.appendChild body
-                                 (Dom_html.document##createTextNode
-                                    (Js.string (string_of_int i)))))
+           [p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)a_onclick
+              {{ lwt_ignore
+                   (let body = Dom_html.document##body in
+                    lwt l =
+                      Eliom_client.call_caml_service
+                        ~service:%eliomclient4'
+                        () () in
+                    List.iter
+                      (fun i -> Dom.appendChild body
+                         (Dom_html.document##createTextNode
+                            (Js.string (string_of_int i))))
+                      l;
+                    Lwt.return ())
                  }}
               ]
-           [pcdata "Click to receive Ocaml data"]
+           [pcdata "Click to receive Ocaml data and append them below (Should append \"123\")."]
         ]))
 
 (******************************)
@@ -425,9 +434,9 @@ let caml_incr_service =
     ~get_params:unit
     (fun () () ->
       lwt i =
-	match_lwt Eliom_references.get ref_caml_service with
-	  | None -> Lwt.return 0
-	  | Some i -> Lwt.return i
+        match_lwt Eliom_references.get ref_caml_service with
+          | None -> Lwt.return 0
+          | Some i -> Lwt.return i
       in
       lwt () = Eliom_references.set ref_caml_service (Some (succ i)) in
       Lwt.return i)
@@ -438,9 +447,9 @@ let text_incr_service =
     ~get_params:unit
     (fun () () ->
       lwt i =
-	match_lwt Eliom_references.get ref_caml_service with
-	  | None -> Lwt.return 0
-	  | Some i -> Lwt.return i
+        match_lwt Eliom_references.get ref_caml_service with
+          | None -> Lwt.return 0
+          | Some i -> Lwt.return i
       in
       lwt () = Eliom_references.set ref_caml_service (Some (succ i)) in
       Lwt.return ((string_of_int i),"text/plain"))
@@ -453,39 +462,39 @@ let caml_service_cookies =
       Lwt.return
         (make_page [
           div ~a:[a_onclick {{
-	    ignore (
-	      lwt i =
-		try_lwt
-		  debug "caml_call_service";
-		  Eliom_client.call_caml_service ~service:%caml_incr_service () ()
-	        with
-		  | e -> debug_exn "caml_call_service exception: " e; Lwt.fail e
-	      in
-	      Dom.appendChild (Dom_html.document##body)
-		(Dom_html.document##createTextNode
-		   (Js.string ("ref: "^ string_of_int i ^";  ")));
-	      Lwt.return ())
-	  }}]
-	    [pcdata "click: caml_service"];
+            ignore (
+              lwt i =
+                try_lwt
+                  debug "caml_call_service";
+                  Eliom_client.call_caml_service ~service:%caml_incr_service () ()
+                with
+                  | e -> debug_exn "caml_call_service exception: " e; Lwt.fail e
+              in
+              Dom.appendChild (Dom_html.document##body)
+                (Dom_html.document##createTextNode
+                   (Js.string ("ref: "^ string_of_int i ^";  ")));
+              Lwt.return ())
+          }}]
+            [pcdata "click: caml_service"];
           div ~a:[a_onclick {{
-	    ignore (
-	      lwt i =
-		try_lwt
-		  debug "call_service";
-		  Eliom_client.call_service ~service:%text_incr_service () ()
-	        with
-		  | e -> debug_exn "call_service exception: " e; Lwt.fail e
-	      in
-	      Dom.appendChild (Dom_html.document##body)
-		(Dom_html.document##createTextNode
-		   (Js.string ("ref: "^ i ^";  ")));
-	      Lwt.return ())
-	  }}]
-	    [pcdata "click: text service"];
-	  pcdata "when clicking on this div, it should print a value incremented each time";
-	  br ();
-	  pcdata "this test verifies that client process cookies are correctly sent with caml value services";
-	  br ();
+            ignore (
+              lwt i =
+                try_lwt
+                  debug "call_service";
+                  Eliom_client.call_service ~service:%text_incr_service () ()
+                with
+                  | e -> debug_exn "call_service exception: " e; Lwt.fail e
+              in
+              Dom.appendChild (Dom_html.document##body)
+                (Dom_html.document##createTextNode
+                   (Js.string ("ref: "^ i ^";  ")));
+              Lwt.return ())
+          }}]
+            [pcdata "click: text service"];
+          pcdata "when clicking on this div, it should print a value incremented each time";
+          br ();
+          pcdata "this test verifies that client process cookies are correctly sent with caml value services";
+          br ();
         ])
     )
 
@@ -568,14 +577,14 @@ let _ =
     ~service:withoutclient
     (fun () () ->
        Lwt.return
-	 (make_page
+         (make_page
          [p [pcdata "If the application was not launched before coming here (or if you reload), this page will not launch it. But if it was launched before, it is still running."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 ignore (Eliom_client.change_page
-			  ~service:%gotowithoutclient
-			  () ())
+                          ~service:%gotowithoutclient
+                          () ())
               }}
             ]
             [pcdata "Click here to go to a page that launches the application every time (this link does not work if the appl is not launched)."];
@@ -588,13 +597,13 @@ let _ =
     (fun () () ->
        Lwt.return
          (make_page
-	    [p [pcdata "The application is launched."];
+            [p [pcdata "The application is launched."];
           p
             ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
               a_onclick {{
                 ignore (Eliom_client.change_page
-			  ~service:%withoutclient
-			  () ())
+                          ~service:%withoutclient
+                          () ())
               }}
             ]
             [pcdata "Click here to see the page that does not launch the application."];
@@ -603,44 +612,13 @@ let _ =
                 code [pcdata "a"]; pcdata "."] ()];
          ]))
 
-
-let on_load =
-  My_appl.register_service
-    ~path:["onload"]
-    ~get_params:unit
-    (fun () () ->
-      let div =
-	HTML5.DOM.div [p [a ~service:eliomclient1 [pcdata "go to another page"] ()] ]
-      in
-      Eliom_services.onload
-        {{ ignore
-	     (Lwt_js.sleep 1. >|= fun () ->
-               Dom.appendChild (Eliom_client.Html5.of_div %div)
-		 (Eliom_client.Html5.of_p (p [pcdata "on_load executed after 1s."])))
-         }};
-      Eliom_services.onload
-        {{ ignore
-	     (Lwt_js.sleep 3. >|= fun () ->
-               Dom.appendChild  (Eliom_client.Html5.of_div %div)
-		 (Eliom_client.Html5.of_p (p [pcdata "on_load executed after 3s."])))
-         }};
-      Eliom_services.onunload
-        {{
-	  Dom.appendChild (Eliom_client.Html5.of_div %div)
-             (Eliom_client.Html5.of_p (p [pcdata "on_unload executed. Waiting 1s."]));
-	  (* FIXME GRGR *)
-          ignore(Lwt_js.sleep 1.)
-        }};
-      Lwt.return (make_page [div])
-    )
-
 let uri_test =
   My_appl.register_service
     ~path:["uritest"]
     ~get_params:unit
     (fun () () ->
       let div =
-	HTML5.DOM.div [
+        HTML5.DOM.div [
           p [pcdata "The following URLs are computed either on server or client side. They should be equal."];
           p [pcdata (Eliom_uri.make_string_uri ~service:eliomclient1 ())];
         ]
@@ -648,7 +626,7 @@ let uri_test =
       Eliom_services.onload
         {{ Dom.appendChild (Eliom_client.Html5.of_div %div)
              (Eliom_client.Html5.of_p
-		(p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())]))
+                (p [pcdata (Eliom_uri.make_string_uri ~service:%eliomclient1 ())]))
          }};
       Lwt.return (make_page [div])
     )
@@ -658,37 +636,39 @@ let uri_test =
     Printf.ksprintf (fun s ->
       Dom.appendChild (Eliom_client.Html5.of_element n)
         (Eliom_client.Html5.of_p (p [pcdata s; br ()]))) f
+
+  let put_li n f =
+    Printf.ksprintf (fun s ->
+      Dom.appendChild (Eliom_client.Html5.of_element n)
+        (Eliom_client.Html5.of_li (li [pcdata s]))) f
 }}
-
-let very_long_list = Array.to_list (Array.init 200000 (fun i -> i))
-
-let very_long_list_length = List.length very_long_list
 
 let wrapping_big_values = My_appl.register_service
   ~path:["wrapping_big_values"]
-  ~get_params:unit
-  (fun () () ->
+  ~get_params:(int "size")
+  (fun size () ->
     let div =
       HTML5.DOM.div
-	[pcdata (Printf.sprintf "there should be a line with: list length: %i"
-		   very_long_list_length);
-	 br ()] in
+        [pcdata (Printf.sprintf "there should be a line with: list length: %i"
+                   size);
+         br ()] in
+    let list = Array.to_list (Array.init size (fun i -> i)) in
     Eliom_services.onload
       {{
-	put %div "list length: %i" (List.length %very_long_list);
+        put %div "list length: %i" (List.length %list);
       }};
       Lwt.return
-	(make_page [div]))
+        (make_page [div]))
 
 {shared{
 module Wrapping_test =
 struct
   type 'a t1 =
       { v_int : int;
-	v_float : float;
-	v_string : string;
+        v_float : float;
+        v_string : string;
         (* v_int64 : int64; *)
-	v_service : 'a }
+        v_service : 'a }
 end
 }}
 
@@ -725,61 +705,57 @@ let gc_service =
 let () =
   My_appl.register wrapping1
     (fun () () ->
-      let div = HTML5.DOM.div [pcdata "some page contents. ";
-] in
+      let list = HTML5.DOM.ul [] in
 
-      Eliom_services.onload
-	{{
-	  let v = %v1 in
-	  put %div "The following line must be: \"42=42 42.42=42.420000 fourty two=fourty two\"";
-	  put %div "42=%i 42.42=%f fourty two=%s" v.Wrapping_test.v_int v.Wrapping_test.v_float v.Wrapping_test.v_string;
-	  put %div "The following line must be: \"1::2::3::1::2::3::1::...\"";
-	  ( match %rec_list with
-	    | a::b::c::d::e::f::g::_ ->
-	      put %div "%i::%i::%i::%i::%i::%i::%i::..." a b c d e f g;
-	    | _ -> put %div "problem with recursive list"; );
+      (* Simple unwrapping *)
+      Eliom_services.onload {{
+        let v = %v1 in
+        put_li %list "The following item must be: \"42=42 42.42=42.420000 fourty two=fourty two\"";
+        put_li %list "42=%i 42.42=%f fourty two=%s"
+          v.Wrapping_test.v_int v.Wrapping_test.v_float v.Wrapping_test.v_string;
+        put_li %list "The following line must be: \"1::2::3::1::2::3::1::...\"";
+        ( match %rec_list with
+          | a::b::c::d::e::f::g::_ ->
+              put_li %list "%i::%i::%i::%i::%i::%i::%i::..." a b c d e f g;
+          | _ -> put_li %list "problem with recursive list"; )
+      }};
 
-          Dom.appendChild (Eliom_client.Html5.of_div %div)
-            (Eliom_client.Html5.of_p
-	       (p ~a:[ a_onclick
-			 (fun _ ->
-			   ignore (Eliom_client.call_caml_service ~service:v.Wrapping_test.v_service
-				     () () >|= (fun blocks ->
-				       List.iter
-					 (fun b -> Dom.appendChild (Eliom_client.Html5.of_div %div)
-					   (Eliom_client.Html5.of_div b))
-					 blocks;)))]
-		  [pcdata "test service"]));
+      (* Node unwrapping and Caml servive *)
+      let content = HTML5.DOM.div [] in
+      let unwrapping_div =
+	div ~a:[ a_onclick {{
+                   let v = %v1 in
+                   lwt_ignore
+                     (lwt blocks =
+                        Eliom_client.call_caml_service
+                          ~service:v.Wrapping_test.v_service
+                          () ()
+                      in
+                      List.iter (Eliom_dom.appendChild %content) blocks;
+                      Lwt.return ())
+	          }} ]
+          [pcdata "Click here to append some content ";
+	   pcdata "(received through an caml_service) ";
+	   pcdata "at the bottom of the page (test service unwrapping).";]
+      in
 
-	  let f_react = fst (List.hd %rec_list_react) in
-
-          Dom.appendChild (Eliom_client.Html5.of_div %div)
-            (Eliom_client.Html5.of_p
-	       (p ~a:[ a_onclick (fun _ -> ignore (f_react 42))] [pcdata "test react service: event 42 should appear on stdout (of the server) when this is clicked "]));
-
-
-	}};
+      (* React *)
+      let react_div =
+        p ~a:[ a_onclick {{
+                 let f_react = fst (List.hd %rec_list_react) in
+                 ignore (f_react 42)
+               }} ]
+          [pcdata "The string \"event: 42\" should appear on stdout";
+           pcdata "(of the server) when this is clicked.";
+	   pcdata "(test unwrapping of react service)"]
+      in
       Lwt.return
-	(make_page [
-	global_div; br ();
-	div; br ();
-	p ~a:[
-	  a_onclick
-	    ({{
-	      Dom.appendChild (Eliom_client.Html5.of_div %global_div)
-	        (Eliom_client.Html5.of_div %other_global_div);
-	      Dom.appendChild (Eliom_client.Html5.of_div %other_global_div)
-		(Eliom_client.Html5.of_div %div);
-	    }})
-	] [pcdata "click here"]; br ();
-	p [Eliom_output.Html5.a ~service:eliomclient1
-              [pcdata "Link to a service inside the application."]
-              ()];
-	Eliom_output.Html5.a wrapping1 [pcdata "internal application link to myself"] (); br ();
-	Eliom_output.Html5.a gc_service [pcdata "do a full major gc on the server"] (); br ();
-	(* GRGR FIXME *)
-	(* pcdata (Printf.sprintf "client_process_node_table_size: %i" (Eliom_xml.client_process_node_table_size ())); *)
-      ]))
+        (make_page
+	   [ list;
+	     unwrapping_div;
+	     react_div;
+	     content;
+	   ] ) )
 
 (*wiki*
 ====Implicit registration of services to implement distant function calls
@@ -823,31 +799,31 @@ let comet1 =
        let c1 = Eliom_comet.Channels.create (Lwt_stream.clone stream1) in
 
        let tick2 =
-	 let i = ref 0 in
-	 fun () ->
-	   Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->
-	   incr i; Lwt.return (Some !i)
+         let i = ref 0 in
+         fun () ->
+           Lwt_unix.sleep (float_of_int (6 + (Random.int 6))) >>= fun () ->
+           incr i; Lwt.return (Some !i)
        in
        let stream2 = Lwt_stream.from tick2 in
        let c2 = Eliom_comet.Channels.create stream2 in
 
        Eliom_services.onload
          {{
-	   let _ = Lwt_stream.iter_s
+           let _ = Lwt_stream.iter_s
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
                   (Js.string ("public: "^ string_of_int i ^";  "))) ;
              Lwt.return ()
            ) %c1 in
-	   let _ = Lwt_stream.iter_s
+           let _ = Lwt_stream.iter_s
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
                   (Js.string ("private: "^ string_of_int i ^"; "))) ;
              Lwt.return ()
            ) %c2 in
-	   ()
+           ()
          }};
 
        Lwt.return
@@ -868,15 +844,15 @@ let caml_wrapping_service =
 
 let keep_ref v t =
   ignore (lwt () = Lwt_unix.sleep t in
-	  ignore v;
-	  Lwt.return ())
+          ignore v;
+          Lwt.return ())
 
 let global_channel_wrapping_service =
   Eliom_output.Caml.register_post_coservice'
     ~post_params:(Eliom_parameters.unit)
     (fun () () ->
       let channel = Eliom_comet.Channels.create ~scope:`Site
-	(Lwt_stream.clone stream1) in
+        (Lwt_stream.clone stream1) in
       keep_ref channel 3.;
       Lwt.return channel)
 
@@ -884,14 +860,14 @@ let global_channel_wrapping_service =
   let iter_stream_append f c =
     Lwt_stream.iter_s
       (fun i ->
-	Dom.appendChild (Dom_html.document##body)
-	  (Dom_html.document##createTextNode (Js.string (f i)));
-	(* let some time for the server to gc the channel: if the
-	   client is always requesting data on it, there will always
-	   be a reference: this allow us to call a Gc.full_major by
-	   hand, during that 0.5 seconds, to test the collection.*)
-	lwt () = Lwt_js.sleep 0.5 in
-	Lwt.return ()
+        Dom.appendChild (Dom_html.document##body)
+          (Dom_html.document##createTextNode (Js.string (f i)));
+        (* let some time for the server to gc the channel: if the
+           client is always requesting data on it, there will always
+           be a reference: this allow us to call a Gc.full_major by
+           hand, during that 0.5 seconds, to test the collection.*)
+        lwt () = Lwt_js.sleep 0.5 in
+        Lwt.return ()
       ) c
 }}
 
@@ -901,38 +877,38 @@ let caml_service_wrapping =
     ~get_params:unit
     (fun () () ->
       Eliom_services.onload {{
-	let c = Eliom_comet.Configuration.new_configuration () in
-	Eliom_comet.Configuration.set_always_active c true
+        let c = Eliom_comet.Configuration.new_configuration () in
+        Eliom_comet.Configuration.set_always_active c true
       }};
       Lwt.return
         (make_page [
           div ~a:[a_class ["clickable"];
-		  a_onclick {{
-		    ignore (
-		      lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
-		      try_lwt
-			iter_stream_append (Printf.sprintf "message: %i;  ") c
-	      with
-		| e -> debug_exn "caml_service_wrapping: exception: " e; Lwt.fail e
-		    )
-		  }}]
-	    [pcdata "click to create a channel with scope client_process"];
+                  a_onclick {{
+                    ignore (
+                      lwt c = Eliom_client.call_caml_service ~service:%caml_wrapping_service () () in
+                      try_lwt
+                        iter_stream_append (Printf.sprintf "message: %i;  ") c
+              with
+                | e -> debug_exn "caml_service_wrapping: exception: " e; Lwt.fail e
+                    )
+                  }}]
+            [pcdata "click to create a channel with scope client_process"];
           div ~a:[a_class ["clickable"];
-		  a_onclick {{
-		    ignore (
-		      lwt c = Eliom_client.call_caml_service ~service:%global_channel_wrapping_service () () in
-		      try_lwt
-			iter_stream_append (Printf.sprintf "site message: %i;  ") c
-	      with
-		| Eliom_comet.Channel_closed ->
-		  Dom.appendChild (Dom_html.document##body)
-		    (Dom_html.document##createTextNode (Js.string ("channel closed")));
-		  Lwt.return ()
-		| e -> debug_exn "global_channel_wrapping_service: exception: " e; Lwt.fail e
-		    )
-		  }}]
-	    [pcdata "click to create a channel with scope site: it has a lifetime of 3 seconds: after 3 seconds, there is no garanty on availability of this channel"];
-	  pcdata "when clicking on this link, messages should be received every 1 second";
+                  a_onclick {{
+                    ignore (
+                      lwt c = Eliom_client.call_caml_service ~service:%global_channel_wrapping_service () () in
+                      try_lwt
+                        iter_stream_append (Printf.sprintf "site message: %i;  ") c
+              with
+                | Eliom_comet.Channel_closed ->
+                  Dom.appendChild (Dom_html.document##body)
+                    (Dom_html.document##createTextNode (Js.string ("channel closed")));
+                  Lwt.return ()
+                | e -> debug_exn "global_channel_wrapping_service: exception: " e; Lwt.fail e
+                    )
+                  }}]
+            [pcdata "click to create a channel with scope site: it has a lifetime of 3 seconds: after 3 seconds, there is no garanty on availability of this channel"];
+          pcdata "when clicking on this link, messages should be received every 1 second";
         ])
     )
 
@@ -1037,37 +1013,37 @@ let comet_wrapping =
       let xml_stream,push_xml = Lwt_stream.create () in
       push_xml (Some (div [pcdata "basic xml wrapping";node]));
       push_xml (Some
-		  (div [Eliom_output.Html5.a ~service:Eliom_testsuite1.coucou
+                  (div [Eliom_output.Html5.a ~service:Eliom_testsuite1.coucou
                      [pcdata "xml external link wrapping"] ()]));
       push_xml (Some
-		  (div [Eliom_output.Html5.a ~service:comet1
-			   [pcdata "xml internal link wrapping"] ();
-			br ();
-			pcdata "this link must not stop the process! (same random number in the container)."]));
+                  (div [Eliom_output.Html5.a ~service:comet1
+                           [pcdata "xml internal link wrapping"] ();
+                        br ();
+                        pcdata "this link must not stop the process! (same random number in the container)."]));
       let c_xml = Eliom_comet.Channels.create xml_stream in
       let div_link = HTML5.DOM.div [] in
 
       Eliom_services.onload
         {{
-	  ignore (Lwt_stream.iter
+          ignore (Lwt_stream.iter
           (fun service ->
             Dom.appendChild (Eliom_client.Html5.of_element %div_link)
               (Eliom_client.Html5.of_element
-		 ( Eliom_output.Html5.a ~service
+                 ( Eliom_output.Html5.a ~service
                      [pcdata "service wrapping"] ()))
           ) %c_service);
-	  ignore (Lwt_stream.iter
-		    (fun xml ->
-		      Dom.appendChild (Eliom_client.Html5.of_element %div_link)
-			(Eliom_client.Html5.of_element xml)
-		    ) %c_xml)
+          ignore (Lwt_stream.iter
+                    (fun xml ->
+                      Dom.appendChild (Eliom_client.Html5.of_element %div_link)
+                        (Eliom_client.Html5.of_element xml)
+                    ) %c_xml)
         }};
 
       Lwt.return
         (make_page [
           div [pcdata "there should be a working links below"];
-	  node;
-	  div_link;
+          node;
+          div_link;
         ])
     )
 
@@ -1080,14 +1056,14 @@ let comet_signal_maker name time =
       Eliom_services.onload
         {{
           Lwt_react.S.keep
-	  (React.S.map (fun t -> (Eliom_client.Html5.of_div %time_div)##innerHTML <-
-	    Js.string (string_of_float t)) %time)
+          (React.S.map (fun t -> (Eliom_client.Html5.of_div %time_div)##innerHTML <-
+            Js.string (string_of_float t)) %time)
         }};
        Lwt.return (make_page [
          h2 [pcdata "Signal"] ;
          time_div;
-	 br ();
-	 a ~service:Eliom_services.void_coservice' [pcdata "reload"] ();
+         br ();
+         a ~service:Eliom_services.void_coservice' [pcdata "reload"] ();
        ])
     )
 
@@ -1114,25 +1090,25 @@ let comet_message_board_maker name message_bus cb =
          let field = input ~a:[a_id "msg"; a_input_type `Text; a_name "message"] () in
          Eliom_services.onload
            {{
-	     let c = Eliom_comet.Configuration.new_configuration () in
-	     Eliom_comet.Configuration.set_timeout c 3.;
+             let c = Eliom_comet.Configuration.new_configuration () in
+             Eliom_comet.Configuration.set_timeout c 3.;
              let _ =
-	       Lwt.catch (fun () ->
-		 Lwt_stream.iter_s
-		   (fun msg ->
+               Lwt.catch (fun () ->
+                 Lwt_stream.iter_s
+                   (fun msg ->
                      Dom.appendChild (Eliom_client.Html5.of_element %container)
                        (Eliom_client.Html5.of_li (li [pcdata msg]));
                      Lwt.return ())
-		   (Eliom_bus.stream %message_bus))
-		 (function
-		   | Eliom_comet.Channel_full ->
-		     Dom.appendChild (Eliom_client.Html5.of_element %container)
+                   (Eliom_bus.stream %message_bus))
+                 (function
+                   | Eliom_comet.Channel_full ->
+                     Dom.appendChild (Eliom_client.Html5.of_element %container)
                        (Eliom_client.Html5.of_li (li [pcdata "channel full, no more messages"]));
-		     Lwt.return ()
-		   | e ->
-		     debug_exn "comet exception: " e;
-		     Lwt.fail e);
-	     in ()
+                     Lwt.return ()
+                   | e ->
+                     debug_exn "comet exception: " e;
+                     Lwt.fail e);
+             in ()
            }} ;
 
          let go =
@@ -1203,21 +1179,21 @@ let bus_multiple_times =
     (fun () () ->
       let container = HTML5.DOM.ul [li [em [pcdata "there will be lines"]]] in
       let onload s message_bus = {{
-	  let _ =
-	    try_lwt
-	      Lwt_stream.iter_s
-		(fun msg ->
+          let _ =
+            try_lwt
+              Lwt_stream.iter_s
+                (fun msg ->
                   Dom.appendChild (Eliom_client.Html5.of_element %container)
                     (Eliom_client.Html5.of_li (li [pcdata (Printf.sprintf "stream %s: %i" %s msg)]));
                   Lwt.return ())
-		(Eliom_bus.stream %message_bus)
-	     with
-	       | Eliom_comet.Channel_full ->
-		 Dom.appendChild (Eliom_client.Html5.of_element %container)
+                (Eliom_bus.stream %message_bus)
+             with
+               | Eliom_comet.Channel_full ->
+                 Dom.appendChild (Eliom_client.Html5.of_element %container)
                    (Eliom_client.Html5.of_li (li [pcdata "channel full, no more messages"]));
-		 Lwt.return ()
-	       | e -> Lwt.fail e;
-	  in ()
+                 Lwt.return ()
+               | e -> Lwt.fail e;
+          in ()
         }} in
       Eliom_services.onload (onload "statefull 1" multiple_bus);
       Eliom_services.onload (onload "statefull 2" multiple_bus);
@@ -1226,12 +1202,12 @@ let bus_multiple_times =
       Eliom_services.onload (onload "stateless 2" multiple_bus_stateless);
       Eliom_services.onload (onload "stateless 3" multiple_bus_stateless);
       Lwt.return (make_page [ h2 [pcdata "Multiple streams from one bus"];
-			      br ();
-			      a ~service:Eliom_services.void_coservice' [pcdata "reload"] ();
-			      br ();
-			      pcdata (Printf.sprintf "original position: %i" !multiple_bus_position);
-			      br ();
-			      container;])
+                              br ();
+                              a ~service:Eliom_services.void_coservice' [pcdata "reload"] ();
+                              br ();
+                              pcdata (Printf.sprintf "original position: %i" !multiple_bus_position);
+                              br ();
+                              container;])
     )
 
 (*wiki*
@@ -1261,14 +1237,14 @@ let comet_stateless =
 
        Eliom_services.onload
          {{
-	   let _ = Lwt_stream.iter_s
+           let _ = Lwt_stream.iter_s
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
                   (Js.string ("msg: "^ string_of_int i ^";  "))) ;
              Lwt.return ()
            ) %stateless_channel in
-	   ()
+           ()
          }};
 
        Lwt.return
@@ -1286,14 +1262,14 @@ let comet_stateless_external =
 
        Eliom_services.onload
          {{
-	   let _ = Lwt_stream.iter_s
+           let _ = Lwt_stream.iter_s
            (fun i ->
              Dom.appendChild (Dom_html.document##body)
                (Dom_html.document##createTextNode
                   (Js.string ("msg: "^ string_of_int i ^";  "))) ;
              Lwt.return ()
            ) %external_stateless_channel in
-	   ()
+           ()
          }};
 
        Lwt.return
@@ -1460,7 +1436,7 @@ let event_service =
         }};
 
        Lwt.return
-	 (make_page [target1; target2; target3; target4; target5; target6;
+         (make_page [target1; target2; target3; target4; target5; target6;
                      target7; target8; target9; target10; target11;
                      target12; target13; target14; target15; target16;
                      targetresult]) )
@@ -1666,7 +1642,7 @@ let tlaunch_session () login =
   let new_main_page () () =
     return
       (make_page
-	 [p [pcdata "Welcome ";
+         [p [pcdata "Welcome ";
              pcdata login;
              pcdata "!"; br ();
              a eliomclient1 [pcdata "coucou"] (); br ();
@@ -2247,8 +2223,8 @@ let _ =
     in
     Lwt.return
       (make_page
-	 [p [pcdata "A new coservice will be created each time this form is displayed"];
-	  l3])
+         [p [pcdata "A new coservice will be created each time this form is displayed"];
+          l3])
   in
   My_appl.register tcsrfsafe_example page;
   My_appl.register tcsrfsafe_example_post
@@ -2306,10 +2282,10 @@ let actionoutside =
     (fun () () ->
       Lwt.return
         (make_page
-	   [p [a ~service:coucouaction
-		  [ pcdata "Click to do an action outside the application"] () ];
-	    p [a ~service:coucouaction2
-		  [ pcdata "Click to do an action outside the application (with non-attached coservice)"] () ];
+           [p [a ~service:coucouaction
+                  [ pcdata "Click to do an action outside the application"] () ];
+            p [a ~service:coucouaction2
+                  [ pcdata "Click to do an action outside the application (with non-attached coservice)"] () ];
            ]))
 
 
@@ -2371,10 +2347,10 @@ let _ =
     in
     return
       (make_page
-	 [h2 [pcdata "Client process coservices with timeouts"];
-	  p [pcdata "I just created a coservice with 5 seconds timeout."; br ();
+         [h2 [pcdata "Client process coservices with timeouts"];
+          p [pcdata "I just created a coservice with 5 seconds timeout."; br ();
              a timeoutcoserv [pcdata "Try it"] (); ];
-	 ])
+         ])
   in
   My_appl.register ttimeout page
 
@@ -2480,13 +2456,13 @@ let connect_example_handler () () =
   Lwt.return
     (make_page
        (match u, status with
-	 | Some name, _ ->
+         | Some name, _ ->
            [p [pcdata ("Hello "^name); br ()];
             disconnect_box "Close session"]
-	 | None, Eliom_state.Expired_state ->
+         | None, Eliom_state.Expired_state ->
            [login_box true bad_u connect_action789;
             p [em [pcdata "The only user is 'toto'."]]]
-	 | _ ->
+         | _ ->
            [login_box false bad_u connect_action789;
             p [em [pcdata "The only user is 'toto'."]]]
        ))
@@ -2510,7 +2486,7 @@ let isuffixc =
     (fun ((suff, endsuff), i) () ->
       Lwt.return
         (make_page
-	   [p [pcdata "The suffix of the url is ";
+           [p [pcdata "The suffix of the url is ";
                strong [pcdata (string_of_int suff)];
                pcdata " followed by ";
                strong [pcdata endsuff];
@@ -2582,7 +2558,7 @@ let postformc =
     ~fallback:Eliom_testsuite1.coucou
     ~post_params:(Eliom_parameters.string "zzz")
     (fun () s -> Lwt.return (make_page [p [pcdata "Yo man. ";
-					   pcdata s]]))
+                                           pcdata s]]))
 
 module Another_appl =
   Eliom_output.Eliom_appl (
@@ -2597,10 +2573,10 @@ let make_page_bis ?(css = []) content =
        ([ style
            [pcdata "a,.clickable {color: #111188; cursor: pointer;}"];
           My_appl.application_script ();
-	] @ css))
+        ] @ css))
     (body
        [h1 [pcdata "Eliom application"];
-	header ();
+        header ();
         div content ] )
 
 {client{
@@ -2620,17 +2596,17 @@ let _ =
   (fun () () ->
     let rec list i n =
       if i >= n  then
-	[HTML5.M.li
-	  [Eliom_output.Html5.a
-	      ~fragment:""
-	      ~service:long_page [pcdata ("Goto TOP")] ()]]
+        [HTML5.M.li
+          [Eliom_output.Html5.a
+              ~fragment:""
+              ~service:long_page [pcdata ("Goto TOP")] ()]]
       else
-	HTML5.M.li ~a:[HTML5.M.a_id ("id" ^string_of_int i)]
-	  [HTML5.M.pcdata ("Item #" ^ string_of_int i);
-	   HTML5.M.pcdata "; ";
-	   Eliom_output.Html5.a
-	     ~fragment:("id" ^ string_of_int (n-i))
-	     ~service:long_page [pcdata ("Goto #" ^ string_of_int (n-i))] ();] :: list (i+1) n in
+        HTML5.M.li ~a:[HTML5.M.a_id ("id" ^string_of_int i)]
+          [HTML5.M.pcdata ("Item #" ^ string_of_int i);
+           HTML5.M.pcdata "; ";
+           Eliom_output.Html5.a
+             ~fragment:("id" ^ string_of_int (n-i))
+             ~service:long_page [pcdata ("Goto #" ^ string_of_int (n-i))] ();] :: list (i+1) n in
     Lwt.return
       (make_page [HTML5.M.ul (list 1 100)]))
 
@@ -2728,15 +2704,15 @@ let formc = My_appl.register_service ["formc"] unit
                  [pcdata "Link to a service inside the application."]
                  ()];
            p [Eliom_output.Html5.a ~service:%long_page
-		~fragment:"id40"
-		[pcdata "Link to a service inside the application (fragment)."]
-		()];
+                ~fragment:"id40"
+                [pcdata "Link to a service inside the application (fragment)."]
+                ()];
            p [Eliom_output.Html5.a ~https:false ~service:%long_page
-		 [pcdata "Link to a service inside the application (force http)."]
-		 ()];
+                 [pcdata "Link to a service inside the application (force http)."]
+                 ()];
            p [Eliom_output.Html5.a ~https:true ~service:%long_page
-		 [pcdata "Link to a service inside the application (force https)."]
-		 ()];
+                 [pcdata "Link to a service inside the application (force https)."]
+                 ()];
 
            Eliom_output.Html5.get_form ~service:%eliomclient1
              (fun () ->
@@ -2763,9 +2739,9 @@ let formc = My_appl.register_service ["formc"] unit
           ]
         in
         List.iter
-	  (fun e -> Dom.appendChild
-	    (Eliom_client.Html5.of_div %div)
-	    (Eliom_client.Html5.of_element e)) l
+          (fun e -> Dom.appendChild
+            (Eliom_client.Html5.of_div %div)
+            (Eliom_client.Html5.of_element e)) l
        }};
 
     Lwt.return
@@ -2808,7 +2784,7 @@ let formc = My_appl.register_service ["formc"] unit
               [pcdata "Link to a service inside the application."]
               ()];
         p [Eliom_output.Html5.a ~service:long_page
-	     ~fragment:"id40"
+             ~fragment:"id40"
               [pcdata "Link to a service inside the application (fragment)."]
               ()];
         p [Eliom_output.Html5.a ~https:false ~service:long_page
@@ -2865,41 +2841,41 @@ let () =
     let appl_name = sp.Eliom_common.sp_client_appl_name in
     let links f =
       span [f "version generated by Eliom_output.Html5" 0;
-	    br ();
-	    f "version generated by My_appl" 1;
-	    br ();
-	    f "version generated by Another_appl" 2;
-	    br ();
-	    f "a file" 3;
-	    br ()]
+            br ();
+            f "version generated by My_appl" 1;
+            br ();
+            f "version generated by Another_appl" 2;
+            br ();
+            f "a file" 3;
+            br ()]
     in
     [p
-	[pcdata ("this page was generated by " ^ name);
-	 br ();
-	 links (fun text i -> Eliom_output.Html5.a ~service:any_service [pcdata text] i);
-	 br ();
-	 pcdata "back button do not work after exiting application (with link to Eliom_output.Html5) when the last request had post parameters: the post parameters does not appear in the url: it will lead to the fallback";
-	 br ();
-	 match appl_name with
-	   | None -> pcdata "last request was not from an application"
-	   | Some an -> pcdata ("last request was from application "^an)
-	]
+        [pcdata ("this page was generated by " ^ name);
+         br ();
+         links (fun text i -> Eliom_output.Html5.a ~service:any_service [pcdata text] i);
+         br ();
+         pcdata "back button do not work after exiting application (with link to Eliom_output.Html5) when the last request had post parameters: the post parameters does not appear in the url: it will lead to the fallback";
+         br ();
+         match appl_name with
+           | None -> pcdata "last request was not from an application"
+           | Some an -> pcdata ("last request was from application "^an)
+        ]
     ]
   in
   let make_any = function
     | 0 ->
       Printf.printf "html5 case\n%!";
       Eliom_output.appl_self_redirect Eliom_output.Html5.send
-	(html
-	   (head (title (pcdata "html5 content")) [])
-	   (body (make_content "Eliom_output.Html5.send")))
+        (html
+           (head (title (pcdata "html5 content")) [])
+           (body (make_content "Eliom_output.Html5.send")))
     | 1 ->
       Printf.printf "my appl case\n%!";
       My_appl.send (make_page (make_content "My_appl.send"))
     | 2 ->
       Printf.printf "another appl case\n%!";
       Eliom_output.appl_self_redirect Another_appl.send
-	(make_page (make_content "Another_appl.send"))
+        (make_page (make_content "Another_appl.send"))
     | _ ->
       Printf.printf "Files case\n%!";
       Eliom_output.appl_self_redirect Eliom_output.Files.send "/var/www/ocsigen/tutorial/ocsigen5.png"
@@ -2916,8 +2892,8 @@ let never_shown_service =
     ~get_params:(Eliom_parameters.unit)
     (fun () () ->
       return
-	(make_page
-	   [pcdata "this page should never appear: a file with the same name is hidding it";]))
+        (make_page
+           [pcdata "this page should never appear: a file with the same name is hidding it";]))
 
 let gracefull_fail_with_file =
   My_appl.register_service
@@ -2925,8 +2901,8 @@ let gracefull_fail_with_file =
     ~get_params:unit
     (fun () () ->
       return
-	(make_page
-	   [Eliom_output.Html5.a ~service:never_shown_service
+        (make_page
+           [Eliom_output.Html5.a ~service:never_shown_service
                [pcdata "link to a service hidden by a file"] ();]))
 
 (*****************************************************************************)
@@ -2938,8 +2914,8 @@ let redirected_src_service =
     ~get_params:(Eliom_parameters.unit)
     (fun () () ->
       return
-	(make_page
-	   [pcdata "this page should never appear: a redirection happen before";]))
+        (make_page
+           [pcdata "this page should never appear: a redirection happen before";]))
 
 let redirected_dst_service =
   My_appl.register_service
@@ -2947,8 +2923,8 @@ let redirected_dst_service =
     ~get_params:(Eliom_parameters.unit)
     (fun () () ->
       return
-	(make_page
-	   [pcdata "the url in the browser bar should contain redirect_dst and not redirect_src";]))
+        (make_page
+           [pcdata "the url in the browser bar should contain redirect_dst and not redirect_src";]))
 
 let appl_with_redirect_service =
   My_appl.register_service
@@ -2956,12 +2932,12 @@ let appl_with_redirect_service =
     ~get_params:unit
     (fun () () ->
       return
-	(make_page
-	   [Eliom_output.Html5.a ~service:redirected_src_service
+        (make_page
+           [Eliom_output.Html5.a ~service:redirected_src_service
                [pcdata "link to a service hidden by a redirection"] ();
-	    br ();
-	    pcdata "there should be a line like: <redirect suburl=\"redirect_src\" dest=\"http://localhost:8080/redirect_dst\"/> in the configuration file";
-	   ]))
+            br ();
+            pcdata "there should be a line like: <redirect suburl=\"redirect_src\" dest=\"http://localhost:8080/redirect_dst\"/> in the configuration file";
+           ]))
 
 
 (*****************************************************************************)
@@ -3013,9 +2989,9 @@ let page_content () ((((((case,radio),select),multi),text),pass),file) =
       p [pcdata (Printf.sprintf "text: %s" text)];
       p [pcdata (Printf.sprintf "pass: %s" pass)];
       p [pcdata (Printf.sprintf "file: name %s length %Li hash: %s"
-		   file.Ocsigen_extensions.tmp_filename
-		   file.Ocsigen_extensions.filesize
-		   (Digest.to_hex (Digest.string contents)))];
+                   file.Ocsigen_extensions.tmp_filename
+                   file.Ocsigen_extensions.filesize
+                   (Digest.to_hex (Digest.string contents)))];
     ])
 
 let block_form_fallback = Eliom_output.Blocks5.register_service
@@ -3025,11 +3001,11 @@ let block_form_fallback = Eliom_output.Blocks5.register_service
 
 let block_form_result = Eliom_output.Blocks5.register_post_service
   ~post_params:((((((bool "case" ** (radio (int "radio")))
-		    ** string "select")
-		   ** set string "multi")
-		  ** string "text")
-		 ** string "password")
-		** file "file")
+                    ** string "select")
+                   ** set string "multi")
+                  ** string "text")
+                 ** string "password")
+                ** file "file")
   ~fallback:block_form_fallback
   page_content
 
@@ -3043,17 +3019,17 @@ let make_xhr_form ((((((casename,radio),select),multi),text),pass),file) =
        string_select ~name:select (Option ([],"toto",None,false))
          [Option ([],"tutu",Some (pcdata "tutu ?"),true);
           Optgroup ([],"machin",([],"chose",None,true),
-		    [([],"chose2",None,false);
-		     ([],"chose3",None,false)]);
-	 ];
+                    [([],"chose2",None,false);
+                     ([],"chose3",None,false)]);
+         ];
      ];
    p [pcdata "multi:";
        string_multiple_select ~name:multi (Option ([],"toto",None,false))
          [Option ([],"tutu",Some (pcdata "tutu ?"),true);
           Optgroup ([],"machin",([],"chose",None,true),
-		    [([],"chose2",None,false);
-		     ([],"chose3",None,false)]);
-	 ];
+                    [([],"chose2",None,false);
+                     ([],"chose3",None,false)]);
+         ];
      ];
    p [string_input ~name:text ~input_type:`Text ~value:"text" ()];
    p [string_input ~name:pass ~input_type:`Password ~value:"pass" ()];
@@ -3065,29 +3041,38 @@ let xhr_form_with_file = My_appl.register_service ["xhr_form_with_file"] unit
     let subpage = HTML5.DOM.(div []) in
     let launch = p ~a:[(*zap* *)a_class ["clickable"];(* *zap*)
       a_onclick {{
-	let uri = Eliom_uri.make_string_uri ~service:%block_form_result () in
-	ignore (Eliom_request.send_post_form (Eliom_client.Html5.of_form %form) uri >|=
-	    (fun contents -> ( Eliom_client.Html5.of_div %subpage )##innerHTML <- (Js.string contents)))
+        let uri = Eliom_uri.make_string_uri ~service:%block_form_result () in
+        ignore (Eliom_request.send_post_form (Eliom_client.Html5.of_form %form) uri >|=
+            (fun contents -> ( Eliom_client.Html5.of_div %subpage )##innerHTML <- (Js.string contents)))
       }}]
       [pcdata "send form with an xhr"]
     in
     Lwt.return
       (make_page
-	 [
-	   pcdata "this test need upload: add <uploaddir>/tmp/upload</uploaddir> to the configuration file";
-	   form; launch; subpage]))
+         [
+           pcdata "this test need upload: add <uploaddir>/tmp/upload</uploaddir> to the configuration file";
+           form; launch; subpage]))
 *)
 
 
-let unique_node =
+let global_div =
   HTML5.create_global_elt
     (p ~a:[a_onload {{ debug "Div1: plop once." }}]
-       [pcdata "Div: unique"])
+       [pcdata "Div: ";
+        span ~a:[a_onload {{ debug "Span inside Div1: plop once";}}]
+          [pcdata "global"]])
 
-let node =
-  p ~a:[a_onload {{ debug "Div2: always plop." }}]
-    [pcdata "Div2: not unique"]
+let local_div =
+  HTML5.DOM.p ~a:[a_onload {{ debug "Div2: always plop." }}]
+    [pcdata "Div2: ";
+     span ~a:[a_onload {{ debug "Span inside Div2: always plop";}}]
+       [pcdata "local"]]
 
+let simple_div =
+  p ~a:[a_onload {{ debug "Div3: always plop." }}]
+    [pcdata "Div3: ";
+     span ~a:[a_onload {{ debug "Span inside Div3: always plop";}}]
+       [pcdata "classical"]]
 
 let unique1 =
   Eliom_services.service
@@ -3105,30 +3090,33 @@ let _ =
   My_appl.register
     unique1
     (fun () () ->
+      Eliom_services.onload {{ debug "Load page 1" }};
       return
-	(make_page [h1 [pcdata "Page 1"];
-		    p [pcdata "This page contains two div with attached onload event.";
-		       pcdata "Those events display debug messages in the console. ";
-		       pcdata "One div is 'unique', the other one is not. ";
-		       Eliom_output.Html5.a ~service:unique2
-			 [pcdata "Follow this link, "] ();
-		       pcdata "and then press the back button: ";
-		       pcdata "only the onload event of the non-unique div should be executed."
-		      ];
-		    unique_node; node;
-		   ]))
+        (make_page [h1 [pcdata "Page 1"];
+                    p [pcdata "This page contains three div with attached onload event.";
+                       pcdata "Those events display debug messages in the console. ";
+                       pcdata "One div is a global element, the other one is not. ";
+                       Eliom_output.Html5.a ~service:unique2
+                         [pcdata "Follow this link"] ();
+                       pcdata ", and then press the back button: ";
+                       pcdata "only the onload event of the non-global div should be executed.";
+                       pcdata "Each div contains a span with an attached onload event. They should be fired whenever the onload event is fired in their fathers."
+                      ];
+                    global_div; local_div; simple_div;
+                   ]))
 
 let _ =
   My_appl.register
     unique2
     (fun () () ->
+      Eliom_services.onload {{ debug "Load page 2" }};
       return
-	(make_page [h1 [pcdata "Page 2"];
-		    Eliom_output.Html5.a ~service:unique1 [pcdata "Get back to Page 1."] ();
-		    p [pcdata "Try also to reload this page before switching back to Page 1:";
-		       pcdata "The onload event of the unique div should be executed ";
-		       pcdata "(when it is appears for the first time)"];
-		   ]))
+        (make_page [h1 [pcdata "Page 2"];
+                    Eliom_output.Html5.a ~service:unique1 [pcdata "Get back to Page 1."] ();
+                    p [pcdata "Try also to reload this page before switching back to Page 1:";
+                       pcdata "The onload event of the unique div should be executed ";
+                       pcdata "(when it is appears for the first time)"];
+                   ]))
 
 let big_service =
   Eliom_services.service
@@ -3143,7 +3131,7 @@ let rec big_page n =
   then link
   else
     div [big_page (n-1);
-	 big_page (n-1);]
+         big_page (n-1);]
 
 let _ =
  My_appl.register
@@ -3159,56 +3147,32 @@ let relink_test =
     ~get_params:Eliom_parameters.unit
     ()
 
-let global_unique_onload = HTML5.create_global_elt (span [])
-let global_unique =
-  HTML5.create_global_elt
-    (span ~a:[a_onload {{
-      debug "onload on global unique";
-      put %global_unique_onload "onload on a global unique node: there should be only one";
-     }}]
-       [
-         pcdata "global";
-         br ~a:[a_onload {{
-           debug "onload inside global unique";
-           put %global_unique_onload "onload inside a global unique node: there should be only one";
-         }}] ()
-       ])
-let global_link = Eliom_output.Html5.a ~service:relink_test [pcdata "same page: global link"] ()
-
+let global_list = HTML5.create_global_elt (ul [li [pcdata "First element"]])
+let local_list = HTML5.DOM.ul [li [pcdata "First element"]]
 
 let relink_page () =
-  let local_unique = HTML5.DOM.span [
-    pcdata "local";
-    br ~a:[a_onload {{
-      put %global_unique_onload "onload inside a local unique node: there should be one new each time";
-    }}] ()
-  ] in
-  let link1 = Eliom_output.Html5.a ~service:eliomclient1 [
-    span [pcdata "other page: local link"]] () in
-  let link2 = Eliom_output.Html5.a ~service:main [pcdata "outside application"] () in
-  let onclick =
-    span ~a:[a_class ["clickable"];
-	     a_onclick {{ Dom_html.window##alert(Js.string "clicked!") }}]
-      [pcdata "clickable span"]
-  in
   Eliom_services.onload {{
     debug "onload";
-    put %global_unique "global unique: there should be one new each time";
-    put %local_unique "local unique: there should be one only one";
-    ignore (Dom_html.document##documentElement##appendChild(
-      (Eliom_client.Html5.of_element (p [pcdata "onload on body"]):>Dom.node Js.t)));
-  }};
-  [ global_unique;
-    br ~a:[a_onload {{
-      debug "onload on standart node";
-      put %global_unique_onload "onload on standart node: there should be one new each time";
-    }}] ();
-    local_unique; br ();
-    global_link; br ();
-    link1; br ();
-    link2; br ();
-    onclick; br ();
-    global_unique_onload; br (); ]
+    put_li %global_list "Global.";
+    put_li %local_list "Request.";
+                         }};
+  [ div [pcdata "This div contains a global list sent by reference. While the application runs, there should be one new item in the list each time the page is loaded."; global_list];
+    div [pcdata "This div contains a request list sent by reference. There should be only one item in the list."; local_list];
+    div
+      [Eliom_output.Html5.a ~service:relink_test
+         [pcdata "Same page"] ();
+       pcdata " (This should add an item in the global list)";
+       br ();
+       Eliom_output.Html5.a ~service:eliomclient1
+         [pcdata "Another page inside the application"] ();
+       pcdata " (If you use the back button to redisplay this page, there should be a new item in the global list)";
+       br ();
+       Eliom_output.Html5.a ~service:main [pcdata "Outside
+  application"] ();
+       pcdata " (If you use the back button to redisplay this page, there should be only only item in the global list)";
+       br ();
+      ]
+  ]
 
 let _ =
  My_appl.register
@@ -3226,11 +3190,11 @@ let _ =
     let node_dom = Eliom_client.Html5.of_element node in
     let s = React.S.map (fun sons ->
       List.iter (fun n -> ignore (node_dom##removeChild((n:> Dom.node Js.t))))
-	(Dom.list_of_nodeList (node_dom##childNodes));
+        (Dom.list_of_nodeList (node_dom##childNodes));
       List.iter (fun n ->
-	let n = Eliom_client.Html5.of_element n in
-	ignore (node_dom##appendChild((n:> Dom.node Js.t))))
-	sons) r in
+        let n = Eliom_client.Html5.of_element n in
+        ignore (node_dom##appendChild((n:> Dom.node Js.t))))
+        sons) r in
     Lwt_react.S.keep s;
     node
 
@@ -3243,11 +3207,11 @@ let _ =
     let node_dom = Eliom_client.Html5.of_element node in
     let s = React.S.map (fun sons ->
       List.iter (fun n -> ignore (node_dom##removeChild((n:> Dom.node Js.t))))
-	(Dom.list_of_nodeList (node_dom##childNodes));
+        (Dom.list_of_nodeList (node_dom##childNodes));
       List.iter (fun n ->
-	let n = Eliom_client.Html5.of_element n in
-	ignore (node_dom##appendChild((n:> Dom.node Js.t))))
-	sons) r in
+        let n = Eliom_client.Html5.of_element n in
+        ignore (node_dom##appendChild((n:> Dom.node Js.t))))
+        sons) r in
     Lwt_react.S.keep s
 
 }}
@@ -3264,8 +3228,8 @@ let () =
     (fun () () ->
       let click_div = HTML5.DOM.div ~a:[a_onclick {{ push (incr count; !count) }}] [] in
       Eliom_services.onload {{
-	react_node %click_div
-	  (React.S.map (fun i -> [pcdata (Printf.sprintf "value: %i" i)]) r)
+        react_node %click_div
+          (React.S.map (fun i -> [pcdata (Printf.sprintf "value: %i" i)]) r)
       }};
       Lwt.return (make_page [click_div]))
 

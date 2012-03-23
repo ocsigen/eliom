@@ -378,37 +378,35 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
             p [
               a eliomclient1 [pcdata "Simple example of client side code"] ();
               br ();
-              a ~fragment:"id40" ~service:long_page [pcdata "Fragment scrolling"] ();
-              br ();
-              a formc [pcdata "Links and forms"] ();
-              br ();
-              a live1 [ pcdata "History handling and page load/unload events." ] ();
-              br ();
-              a unique1 [pcdata "Onload event on nodes and unique nodes"] ();
-              br ();
-              (* a xhr_form_with_file [pcdata "xhr forms with file"] (); *)
-              (* br (); *)
-              a uri_test [pcdata "Simple test of URL generation"] ();
-              br ();
-              a relink_test [pcdata "Test of node relinking features"] ();
-              br ();
               a eliomclient2 [pcdata "Nodes with various onclick features"] ();
               br ();
               a eliomclient3 [pcdata "Caml values in service parameters"] ();
               br ();
               a eliomclient4 [pcdata "A service sending a Caml value"] ();
               br ();
+              a uri_test [pcdata "Simple test of URL generation"] ();
+              br ();
+              a formc [pcdata "Links and forms"] ();
+              br ();
+              a ~fragment:"id40" ~service:long_page [pcdata "Fragment scrolling"] ();
+              br ();
+              a live1 [ pcdata "History handling and page load/unload events." ] ();
+              br ();
+              a relink_test [pcdata "Global elements"] ();
+              br ();
+              a unique1 [pcdata "Onload event on element and global element"] ();
+              br ();
+              (* a xhr_form_with_file [pcdata "xhr forms with file"] (); *)
+              (* br (); *)
               a caml_service_cookies [pcdata "Client process cookies with caml service"] ();
               br ();
               a gotowithoutclient [pcdata "A page that links to a service that belongs to the application but do not launch the application if it is already launched"] ();
               br ();
               a default_no_appl [pcdata "Toggle the default value of no_appl"] ();
               br ();
-              a on_load [pcdata "A service using on_unload and on_load"] ();
-              br ();
               a wrapping1 [pcdata "wrapping test 1"] ();
               br ();
-              a wrapping_big_values [pcdata "wrapping test: big values"] ();
+              a wrapping_big_values [pcdata "wrapping test: big values"] 200000;
               br ();
               a caml_service_wrapping [pcdata "wrapping for caml call service"] ();
               br ();
