@@ -600,14 +600,15 @@ let createDocumentScroll () = {
 let current_position = ref top_position
 
 let _ =
-  (* HACK: Romove this when js_of_ocaml 1.1.2 or greater is released... *)
-  let window : < onscroll : (Dom_html.window Js.t, Dom_html.event Js.t) Dom_html.event_listener Js.prop > Js.t =
-    Js.Unsafe.variable "window"
-  in
-  window##onscroll <-
-    Dom_html.handler (fun event ->
-      current_position := createDocumentScroll ();
-      Js._false)
+  (* HACK: Remove this when js_of_ocaml 1.1.2 or greater is released... *)
+  (* window##onscroll <- *)
+  ignore
+    (Dom.addEventListener Dom_html.document
+       (Dom.Event.make "scroll")
+       (Dom_html.handler (fun event ->
+         current_position := createDocumentScroll ();
+         Js._false))
+       Js._true : Dom_html.event_listener_id)
 
 let getDocumentScroll () = !current_position
 let setDocumentScroll pos =
@@ -616,7 +617,6 @@ let setDocumentScroll pos =
   Dom_html.document##body##scrollTop <- pos.body_top;
   Dom_html.document##body##scrollLeft <- pos.body_left;
   current_position := pos
-
 
 (* UGLY HACK for Opera bug: Opera seem does not always take into
    account the content of the base element. If we touch it like that,
@@ -660,19 +660,3 @@ let add_formdata_hack_onclick_handler _ =
   true
 
 (* END FORMDATA HACK *)
-
-(** unload handler *)
-
-let pageshow = Dom.Event.make "pageshow"
-let pagehide = Dom.Event.make "pagehide"
-let unload = Dom.Event.make "unload"
-
-let nice_onunload f =
-  let event =
-    if test_pageshow_pagehide ()
-    then pagehide
-    else unload in
-  ignore (Dom.addEventListener Dom_html.window
-              event ( Dom_html.handler (fun _ -> f (); Js._false) )
-              Js._true : Dom_html.event_listener_id)
-

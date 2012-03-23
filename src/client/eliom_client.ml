@@ -132,8 +132,6 @@ let raw_a_handler node cookies_info tmpl ev =
   let href = (Js.Unsafe.coerce node : Dom_html.anchorElement Js.t)##href in
   let https = Url.get_ssl (Js.to_string href) in
   (middleClick ev)
-
-
   || (https = Some true && not Eliom_request_info.ssl_)
   || (https = Some false && Eliom_request_info.ssl_)
   || (!change_page_uri_ ?cookies_info ?tmpl (Js.to_string href); false)
@@ -458,11 +456,28 @@ let update_state () =
           | None -> Js.string  "" );
       position = Eliommod_dom.getDocumentScroll () }
 
+(* == Leaving page *)
+
 let leave_page () =
   update_state ();
   run_unload_events ()
 
-let () = Eliommod_dom.nice_onunload leave_page
+let () =
+  ignore
+    (Dom.addEventListener Dom_html.window
+       (Dom.Event.make "unload")
+       (Dom_html.handler (fun _ -> leave_page (); Js._false))
+       Js._false)
+
+(* TODO: Registering a global "onunload" event handler breaks the
+   'bfcache' mechanism of Firefox and Safari. We may try to use
+   "pagehide" whenever this event exists. See:
+
+   https://developer.mozilla.org/En/Using_Firefox_1.5_caching
+
+   http://www.webkit.org/blog/516/webkit-page-cache-ii-the-unload-event/
+
+   and the function [Eliommod_dom.test_pageshow_pagehide]. *)
 
 (* == Low-level: call service. *)
 

@@ -2635,7 +2635,10 @@ let _ =
       (make_page [HTML5.M.ul (list 1 100)]))
 
 {client{
-  let rec loop t i r = debug "Ping %d %d" i !r; incr r; Lwt_js.sleep t >> loop t (i+1) r
+  let pinger : unit Lwt.t option ref = ref None
+  let rec loop t i r =
+    debug "Ping %d %d" i !r; incr r;
+    try_lwt Lwt_js.sleep t >> loop t (i+1) r with _ -> debug "Pinger cancelled"; Lwt.return ()
   let loop_counter = ref 0
   let () = debug "Application loading"
 }}
@@ -2645,9 +2648,10 @@ let live2 = Eliom_services.service ["live";"two"] unit ()
 let live3 = Eliom_services.service ["live";"three"] unit ()
 
 let live_description =
-  div [pcdata "This is an application with three page. ";
+  div [pcdata "This is an application with three pages. ";
        pcdata "When loading the application shows a message in the console. ";
        pcdata "When loading each page show a message in the console.";
+       pcdata "The first page display \"Ping\" every 2 seconds in the console.";
        br ();
        pcdata "Try to navigate between page. Try to leave the application and to get back.";]
 
@@ -2663,8 +2667,8 @@ let dead_links =
                    [pcdata "Link to another application."] ()];]]
 
 let () = My_appl.register ~service:live1 (fun () () ->
-    Eliom_services.onload {{ debug "Page 1 loading"; ignore (loop 2. 0 loop_counter) }};
-    Eliom_services.onunload {{ debug "Page 1 unloading" }};
+    Eliom_services.onload {{ debug "Page 1 loading"; pinger := Some (loop 2. 0 loop_counter) }};
+    Eliom_services.onunload {{ debug "Page 1 unloading"; iter_option Lwt.cancel !pinger }};
     Lwt.return
       (make_page [h1 [pcdata "Page one"]; live_description; live_links; dead_links]))
 

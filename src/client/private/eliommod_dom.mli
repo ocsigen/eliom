@@ -78,8 +78,8 @@ val top_position: position
 val getDocumentScroll: unit -> position
 val setDocumentScroll: position -> unit
 
-(** register an onunload event handler on the best available event (onhide if available) *)
-val nice_onunload : (unit -> unit) -> unit
+(* Test if the "pageshow" and "pagehide" event exists. *)
+val test_pageshow_pagehide : unit -> bool
 
 (**/**)
 val touch_base: unit -> unit

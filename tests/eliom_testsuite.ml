@@ -382,13 +382,12 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a formc [pcdata "Links and forms"] ();
               br ();
+              a live1 [ pcdata "History handling and page load/unload events." ] ();
+              br ();
               a unique1 [pcdata "Onload event on nodes and unique nodes"] ();
               br ();
-(*
-              a xhr_form_with_file [pcdata "xhr forms with file"] ();
-              br ();
-*)
-
+              (* a xhr_form_with_file [pcdata "xhr forms with file"] (); *)
+              (* br (); *)
               a uri_test [pcdata "Simple test of URL generation"] ();
               br ();
               a relink_test [pcdata "Test of node relinking features"] ();
@@ -426,8 +425,6 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               a nl_serv [pcdata "Non localised parameters and eliom appl"] ();
               br ();
               a nlpost_entry [pcdata "Non localised parameters with forms in eliom appl"] ();
-              br ();
-              a live1 [ pcdata "unload, load events and history" ] ();
               br ();
             ];
             h4 [pcdata "Templates"];
