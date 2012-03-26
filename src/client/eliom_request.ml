@@ -102,14 +102,12 @@ let redirect_post_form_elt ?(post_args=[]) ?(form_arg=[]) url =
 	failwith "can't do POST redirection with file parameters") form_arg)
      @post_args)
 
-(* CCC take care: this must remain of the same syntax as non localised
-   non persistent get parameter name *)
-let nl_get_appl_parameter = "__nl_n_eliom-process.p"
-let nl_template_string = "__nl_n_eliom-template.name"
 let nl_template =
   Eliom_parameters.make_non_localized_parameters
     ~prefix:"eliom" ~name:"template"
     (Eliom_parameters.string "name")
+(* Warning: it must correspond to [nl_template]. *)
+let nl_template_string = "__nl_n_eliom-template.name"
 
 let rec send ?(expecting_process_page = false) ?cookies_info
     ?get_args ?post_args ?form_arg url result =
@@ -171,7 +169,7 @@ let rec send ?(expecting_process_page = false) ?cookies_info
          browser won't cache the content of the page ( for instance
          when clicking the back button ). That way we are sure that an
          xhr answer won't be used in place of a normal answer. *)
-      then (nl_get_appl_parameter,"true")::get_args
+      then (Eliom_common.nl_get_appl_parameter,"true")::get_args
       else get_args
     in
     let form_contents =
@@ -252,8 +250,7 @@ let rec send ?(expecting_process_page = false) ?cookies_info
   lwt (url, content) = aux 0 ?cookies_info ?get_args ?post_args ?form_arg url in
   let filter_url url =
     { url with Url.hu_arguments =
-        List.filter (fun (e,_) ->
-           e <> nl_get_appl_parameter && e <> nl_template_string) url.Url.hu_arguments } in
+        List.filter (fun (e,_) -> e <> nl_template_string) url.Url.hu_arguments } in
   Lwt.return (
     (match Url.url_of_string url with
       | Some (Url.Http url) ->

@@ -246,3 +246,7 @@ type node_ref = string
 
 
 (****** *)
+
+(* CCC take care: this must remain of the same syntax as non localised
+   non persistent get parameter name *)
+let nl_get_appl_parameter = "__nl_n_eliom-process.p"

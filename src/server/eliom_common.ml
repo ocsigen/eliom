@@ -944,6 +944,23 @@ let get_session_info req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen_extensions.request_info
   and ci = req.Ocsigen_extensions.request_config in
+
+  (* HACK: Remove the 'nl_get_appl_parameter' used to avoid confusion
+     between XHR and classical request in Eliom_appl. *)
+  let get_params = List.remove_assoc nl_get_appl_parameter (Lazy.force ri.Ocsigen_extensions.ri_get_params) in
+  let ri =
+    { ri with
+      Ocsigen_extensions.
+      ri_get_params = lazy get_params;
+      ri_get_params_string =
+        if get_params = []
+        then None
+        else Some (Url.make_encoded_parameters get_params);
+    }
+  in
+
+  (* *)
+
   let rc = ri.Ocsigen_extensions.ri_request_cache in
   let no_post_param, p =
     match ri.Ocsigen_extensions.ri_post_params with
@@ -1018,6 +1035,7 @@ let get_session_info req previous_extension_err =
     with Not_found ->
       (post_params, Lazy.force ri.Ocsigen_extensions.ri_get_params, false)
   in
+
 
 (*204FORMS* old implementation of forms with 204 and change_page_event
 
