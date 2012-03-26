@@ -247,7 +247,6 @@ module type ELIOM_APPL = sig
 
   (**/**)
   val typed_name : appl application_name
-  (**/**)
 
 end
 

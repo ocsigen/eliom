@@ -150,7 +150,6 @@ module XML : sig
       * (bool * string list) option
       * string option) option Eliom_lazy.request -> event_handler
 
-  (**/**)
   (* Deprecated alias. *)
   val event_of_string : string -> event_handler
   val string_of_handler : event_handler -> string
@@ -159,7 +158,6 @@ module XML : sig
     ( [ `A | `Form_get | `Form_post ]
       * (bool * string list) option
       * string option ) option Eliom_lazy.request -> event_handler
-  (**/**)
 
   type racontent =
     | RA of acontent
@@ -169,7 +167,6 @@ module XML : sig
   val racontent : attrib -> racontent
 
   val lazy_node : ?a:(attrib list) -> ename -> elt list Eliom_lazy.request -> elt
-  (**/**)
 
 end
 
@@ -256,7 +253,6 @@ module HTML5 : sig
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
-    (**/**)
 
   end
 
@@ -284,7 +280,6 @@ module HTML5 : sig
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
-    (**/**)
 
   end
 
@@ -399,9 +394,6 @@ module HTML5 : sig
 
   val lazy_form:
     ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
-  (**/**)
-
-
 
 end
 
@@ -420,7 +412,7 @@ module XHTML : sig
     val lazy_form:
       action:XML.uri ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
-  (**/**)
+
   end
 
 
@@ -448,7 +440,6 @@ module XHTML : sig
     val lazy_form:
       action:XML.uri ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
-    (**/**)
 
   end
 
@@ -476,7 +467,6 @@ module XHTML : sig
     val lazy_form:
       action:XML.uri ->
       ([< XHTML_types.form_attrib ], [< XHTML_types.form_content ], [> XHTML_types.form ]) lazy_plus
-    (**/**)
 
   end
 

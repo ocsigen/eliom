@@ -305,7 +305,6 @@ module HTML5 : sig
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
-    (**/**)
 
   end
 
@@ -333,7 +332,6 @@ module HTML5 : sig
 
     val lazy_form:
       ([< HTML5_types.form_attrib ], [< HTML5_types.form_content_fun ], [> HTML5_types.form ]) lazy_plus
-    (**/**)
 
   end
 
@@ -484,7 +482,6 @@ module HTML5 : sig
 
   (**/**)
   val string_of_id : 'a id -> string
-  (**/**)
 
 end
 

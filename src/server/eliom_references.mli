@@ -65,7 +65,7 @@ val eref :
   'a ->
   'a eref
 
-(** The function [eref_from_fun] works like the above {!Eliom_references.eref],
+(** The function [eref_from_fun] works like the above {!Eliom_references.eref},
     but instead of providing a value for the initial content, a function [f] for
     {e creating the initial content} is provided (cf. also {!Lazy.lazy_from_fun}).
 
