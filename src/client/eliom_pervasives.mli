@@ -262,7 +262,7 @@ module SVG : sig
   (** {2 Global node} *)
 
   (** The type of global SVG element identifier. *)
-  type 'a id
+  type +'a id
 
   (** See {!Eliom_pervasives.HTML5.new_elt_id} *)
   val new_elt_id: ?global:bool -> unit -> 'a id
@@ -465,7 +465,7 @@ module HTML5 : sig
   (** {2 Global node} *)
 
   (** The type of global HTML5 element identifier. *)
-  type 'a id
+  type +'a id
 
 
   (** The function [new_elt_id ()] creates a new HTML5 element
