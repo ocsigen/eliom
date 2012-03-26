@@ -1,23 +1,25 @@
 ===== 2.1.1 (2012-03-20) =====
 
- * Add Eliom references of scope site
- * Add an non-Lwt interface to volatile Eliom references
+ * Server: Add Eliom references of scope site
+ * Server: Add an non-Lwt interface to volatile Eliom references
+ * Client: Add an option to restrict usage of XHR.
  * Bugfixes:
- ** More robust and portable history handling
- ** More robust CSS preloading (change_page)
+ ** Client: More robust and portable history handling
+ ** Client: More robust CSS preloading (change_page)
+ ** Client: Better compatibility with Opera
 
 ===== 2.1.0 (2012-02-24) =====
 
  * Page loading rewriten.
  ** We do not traverse the HTML tree anymore for retrieving links
    and putting events handlers, it use querySelectorAll instead.
-   ( with a fallback for older browsers )
+   (with a fallback for older browsers)
  *** We do not send a sparse tree along the page anymore.
  *** It is faster and more resilient to ugly browser plugins
  ** Add css loading optimisations: It fetch the css included
     using @include with XHR before changing page and construct only
     one concatenated css. It avoids page blinking when the css change
-    and is faster ( browsers tend to render the page once per css ).
+    and is faster (browsers tend to render the page once per css).
  ** Unwrapping hand rewritten in js.
  ** And a lot of other optimisations.
 
@@ -39,7 +41,7 @@
  * Server API Changes:
  ** Add Eliom_state.get_*_session_group_size to know the number of
     session in a session group
- ** Parameters of type any can't be suffixes ( semantic problem )
+ ** Parameters of type any can't be suffixes (semantic problem)
  ** Add Eliom_comet.wait_timeout to notify when a client isn't active
  ** allow to setup "Cache-policy: max-age" with Text, CssText and
     Files modules.
@@ -47,14 +49,14 @@
 
  * Client API Changes:
  ** add an Eliom_dom module provinding imperative function on unique HTML5.elt.
-    ( for instance {{{appendChild: ?before:'a elt -> 'b elt -> 'c elt -> unit}}} ).
+    (for instance {{{appendChild: ?before:'a elt -> 'b elt -> 'c elt -> unit}}}).
  ** HTML5.M.a_on{click,...} functions directly expect a
     function as parameter (XML.event_handler_of_function isn't
     required anymore).
  ** Eliom_comet: configuration option for time until timeout after the focus is lost
  ** Handling wrapping of int32 type.
  ** Onload event handlers on HTML elements are executed when they are converted to
-    DOM ( using Eliom_client.of_ functions ). This allows to add them to nodes not
+    DOM (using Eliom_client.of_ functions). This allows to add them to nodes not
     sent in the page.
  ** Calls to {{{Eliom_services.onload}}} are taken into account for services sending
     caml values. The handlers are executed when the call to
@@ -116,11 +118,11 @@
 
  * Feature:
  ** api history: when the api history is available, application URLs are more
-    readable ( no more #! )
+    readable (no more {{{#!}}})
  * Bugfixes:
- ** fix browser compatibility: it should work with Firefox ( >= 3.0 ), Chrome
-    ( all recent version we tested ), Safari 5, Opera ( tested 11.51 ), Internet
-    explorer ( 9, ie 8 almost work )
+ ** fix browser compatibility: it should work with Firefox (>= 3.0), Chrome
+    (all recent version we tested), Safari 5, Opera (tested 11.51), Internet
+    explorer (9, ie 8 almost work)
  ** in forms declared outside of the sp's scope, hrefs were incorrect:
     url calculation is now done for each request
  ** the function {{{Eliom_client.caml_call_service}}} was broken with some kind
@@ -128,16 +130,16 @@
  ** application cookies are now always sent
  ** fix incorrect sharing of type variables in the syntax extension (thanks to
     William Le Ferrand)
- ** 404 and 403 errors are not dropped by applications anymore ( This fix is
+ ** 404 and 403 errors are not dropped by applications anymore (This fix is
     partial: when the page content is application content, this still does not
-    work when an exception handler returns something else )
+    work when an exception handler returns something else)
  ** Fix problems with url generation for non-attached coservices inside an
     application
  ** tail recursive marshalling and demarshalling: no more limit on the depth of
     data sent along the page
  ** Fix problems with redirection and action with `NoReload exiting the application
- ** Handle correctly 204 code in application ( do nothing with change page, fail
-    with caml_call_service )
+ ** Handle correctly 204 code in application (do nothing with change page, fail
+    with caml_call_service)
  ** Fix escape character '>': problem with strings containing "]]>"
 
 ===== 2.0-rc1 (2011-07-15) =====
@@ -146,12 +148,12 @@
     non-eliom application services
   * Stateless implementation of comet channels
   * Scope and state names parameters of functions are now fused in one
-    parameter ( called scope )
+    parameter (called scope)
   * Change the type of 'send' functions: forbid use of incompatible output
     with Eliom_output.Any together.
   * Change the format of page loaded by an application: all pages are sent
-    in HTML5 format. ( first answers were in HTML5 subsequent were marshalled
-    caml tree )
+    in HTML5 format. (first answers were in HTML5 subsequent were marshalled
+    caml tree)
   * XML representation is now shared by client and server: conversion to
     Dom nodes is made by Eliom_client.Html5.of_ functions
   * Remove the need for an application container: application pages are
