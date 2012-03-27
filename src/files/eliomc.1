@@ -116,27 +116,27 @@ Display a short usage summary and exit.
 .SH EXAMPLES
 The compilation of an Eliom projects composed of a server specific file named server.ml, a client specific file named client.ml and two common files name base.eliom and main.eliom, could be achieved with the following commands:
 
-\ \ \ \ eliomc -a -o appl.cma server.ml base.eliom main.eliom
+\ \ \ \ eliomc \-a \-o appl.cma server.ml base.eliom main.eliom
 .br
-\ \ \ \ js_of_eliom -o appl.js client.ml base.eliom main.eliom
+\ \ \ \ js_of_eliom \-o appl.js client.ml base.eliom main.eliom
 
 To avoid recompiling the whole project each times, this could be split in multiple steps:
 
-\ \ \ \ eliomc -c server.ml
+\ \ \ \ eliomc \-c server.ml
 .br
-\ \ \ \ eliomc -c base.eliom
+\ \ \ \ eliomc \-c base.eliom
 .br
-\ \ \ \ eliomc -c main.eliom
+\ \ \ \ eliomc \-c main.eliom
 .br
-\ \ \ \ eliomc -a -o appl.cma _server/server.cmo _server/base.cmo _server/main.cmo
+\ \ \ \ eliomc \-a \-o appl.cma _server/server.cmo _server/base.cmo _server/main.cmo
 .br
-\ \ \ \ js_of_eliom -c client.ml
+\ \ \ \ js_of_eliom \-c client.ml
 .br
-\ \ \ \ js_of_eliom -c base.eliom
+\ \ \ \ js_of_eliom \-c base.eliom
 .br
-\ \ \ \ js_of_eliom -c main.eliom
+\ \ \ \ js_of_eliom \-c main.eliom
 .br
-\ \ \ \ js_of_eliom -o appl.js _client/client.cmo _client/base.cmo _client/main.cmo
+\ \ \ \ js_of_eliom \-o appl.js _client/client.cmo _client/base.cmo _client/main.cmo
 
 
 
