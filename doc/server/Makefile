@@ -17,7 +17,8 @@ api-html/index.html: indexdoc ${ODOC}
 
 api-man/Eliom_pervasives.server.3o: ${ODOC}
 	mkdir -p api-man
-	$(OCAMLDOC) ${LIBS} -d api-man -man-mini $(addprefix -load ,${ODOC}) -man -man-suffix server.3o
+	$(OCAMLDOC) ${LIBS} -d api-man -man-mini $(addprefix -load ,${ODOC}) -man \
+	  -man-section 3o -man-suffix server.3o
 
 api-wiki/index.wiki: indexdoc ${ODOC}
 	mkdir -p api-wiki
