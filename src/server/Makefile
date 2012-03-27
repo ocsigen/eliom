@@ -167,7 +167,7 @@ install.opt: raw_install
 
 raw_install: ${PREDEP}
 	${INSTALL} -m 755 -d ${SERVERDIR}
-	${INSTALL} -m 644 ${INTF} ${INSTALL_IMPL} ${DOC} ${SERVERDIR}
+	${INSTALL} -m 644 ${INTF} ${INSTALL_IMPL} ${INTF:.cmi=.mli} ${SERVERDIR}
 
 uninstall:
 	-rm -fr ${SERVERDIR}
