@@ -62,9 +62,9 @@ val replaceAllChild: 'a elt -> 'b elt list -> unit
 val addEventListener:
   ?capture:bool ->
   'a elt ->
-  (#Dom_html.event as 'b) Js.t Dom_events.Typ.typ ->
-  ('a elt -> 'b Js.t -> unit) ->
-  Dom_events.listener
+  (#Dom_html.event as 'b) Js.t Dom_html.Event.typ ->
+  ('a elt -> 'b Js.t -> bool) ->
+  Dom_html.event_listener_id
 
 (** Dom manipulation by element identifier. *)
 module Named: sig
@@ -93,9 +93,9 @@ module Named: sig
   val addEventListener:
     ?capture:bool ->
     'a id ->
-    (#Dom_html.event as 'b) Js.t Dom_events.Typ.typ ->
-    ('a elt -> 'b Js.t -> unit) ->
-    Dom_events.listener
+    (#Dom_html.event as 'b) Js.t Dom_html.Event.typ ->
+    ('a elt -> 'b Js.t -> bool) ->
+    Dom_html.event_listener_id
 
 end
 

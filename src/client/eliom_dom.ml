@@ -108,9 +108,10 @@ let childElements elt =
   let node = get_unique_node "childElements" elt in
   filterElements (Dom.list_of_nodeList (node##childNodes))
 
-let raw_addEventListener ?capture node event handler =
-  Dom_events.listen ?capture node event
-    (fun node ev -> handler(HTML5.tot (XML.make_dom (node :> Dom.node Js.t))) ev)
+let raw_addEventListener ?(capture = false) node event handler =
+  Dom_html.addEventListener node event
+    (Dom_html.full_handler (fun n e -> Js.bool (handler (HTML5.tot (XML.make_dom (n :> Dom.node Js.t))) e)))
+    (Js.bool capture)
 
 let addEventListener ?capture target event handler =
   let node = get_unique_elt "addEventListener" target in
