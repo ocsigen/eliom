@@ -31,27 +31,27 @@ open HTML5
 (** The function [appendChild e1 e2] inserts the element [e2] as last
     child of [e1]. If the optional parameter [~before:e3] is present
     and if [e3] is a child of [e1], then [e2] is inserted before [e3]
-    in the list of [e1] childs. *)
+    in the list of [e1] children. *)
 val appendChild: ?before:'a elt -> 'b elt ->  'c elt -> unit
 
-(** The function [appendChilds e1 elts] inserts [elts] as last childs
+(** The function [appendChilds e1 elts] inserts [elts] as last children
     of [e1]. If the optional parameter [~before:e3] is present and if
     [e3] is a child of [e1], then [elts] are inserted before [e3] in
-    the list of [e1] childs. *)
+    the list of [e1] children. *)
 val appendChilds: ?before:'a elt -> 'b elt ->  'c elt list -> unit
 
 (** The function [removeChild e1 e2] removes for [e2] from the list of
-    [e1] childs. *)
+    [e1] children. *)
 val removeChild: 'a elt -> 'b elt -> unit
 
 (** The function [replace e1 e2 e3] replaces for [e2] by [e3] in the
-    list of [e1] childs. *)
+    list of [e1] children. *)
 val replaceChild: 'a elt -> 'b elt -> 'c elt -> unit
 
-(** The function [removeAllChild e1] removes [e1] childs. *)
+(** The function [removeAllChild e1] removes [e1] children. *)
 val removeAllChild: 'a elt -> unit
 
-(** The function [replaceAllChild e1 elts] replaces all the childs of
+(** The function [replaceAllChild e1 elts] replaces all the children of
     [e1] by [elt]. *)
 val replaceAllChild: 'a elt -> 'b elt list -> unit
 

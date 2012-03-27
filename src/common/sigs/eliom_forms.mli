@@ -76,8 +76,8 @@ type for_attrib
 
     - [protocol] is:
     {ul {- [https] if the [service] has been created with [~https:true]
-    or the optional paramater [~https] is [true];}
-    {- [http] if  the optional paramater [~https] is [false];}
+    or the optional parameter [~https] is [true];}
+    {- [http] if  the optional parameter [~https] is [false];}
     {- the current request protocol if available;}
     {- [http] in any other case.}}
     - [hostname] is:
@@ -105,11 +105,11 @@ type for_attrib
     If given the optional parameter [~fragment] is prefixed by [#]
     and appended to the URL.
 
-    The optional parameter [keep_nl_params] allows to override the
+    The optional parameter [keep_nl_params] allows one to override the
     [keep_nl_params] parameter used when creating the [service], see
     {!val:Eliom_services.service} for a detailled description.
 
-    The optional paramater [nl_params] allows to add non localized
+    The optional parameter [nl_params] allows one to add non localized
     GET parameter to the URL.  See the eliom manual for more
     information about {% <<a_manual chapter="params"
     fragment="nonlocalizedparameters"|non localized parameters>>%}.
@@ -245,7 +245,7 @@ val make_proto_prefix :
     process is stopped. The [~xhr] parameter has no effect outside
     an Eliom application.
 
-    The optional parameter [~a] allows to add extra HTML attributes to
+    The optional parameter [~a] allows one to add extra HTML attributes to
     the generated node.
 
     See {!make_uri} for description of other optional parameters.
@@ -278,7 +278,7 @@ val a :
     {!Eliom_services.external_service} to abstract the file with a
     service.
 
-    The optional parameter [~a] allows to add extra HTML attributes to
+    The optional parameter [~a] allows one to add extra HTML attributes to
     the generated node.
 *)
 val css_link : ?a:link_attrib_t -> uri:uri -> unit -> link_elt
@@ -292,7 +292,7 @@ val css_link : ?a:link_attrib_t -> uri:uri -> unit -> link_elt
     {!Eliom_services.external_service} to abstract the file with a
     service.
 
-    The optional parameter [~a] allows to add extra HTML attributes to
+    The optional parameter [~a] allows one to add extra HTML attributes to
     the generated node.
 *)
 val js_script :
@@ -313,7 +313,7 @@ val js_script :
     is stopped. The [~xhr] parameter has no effect outside an Eliom
     application.
 
-    The optional parameter [~a] allows to add extra HTML attributes to
+    The optional parameter [~a] allows one to add extra HTML attributes to
     the generated node.
 
     See {!make_uri} for description of other optional parameters.
@@ -362,7 +362,7 @@ val lwt_get_form :
     as parameters. By default, the [action] attribute is a relative
     URL recomputed at each request with {!make_uri}.
 
-    The optional parameter [~a] allows to add HTML attributes to the
+    The optional parameter [~a] allows one to add HTML attributes to the
     generated node.
 
     See {!Eliom_services.post_coservice'} for a description of the

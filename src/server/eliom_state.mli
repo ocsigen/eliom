@@ -307,7 +307,7 @@ val get_persistent_data_session_group :
     modified in the configuration file.
     It means that by default, these functions have no effect
     if there is a value in the configuration file.
-    This gives the ability to override the values choosen by the module
+    This gives the ability to override the values chosen by the module
     in the configuration file.
     Use [~override_configfile:true] for example if your
     Eliom module wants to change the values afterwards
@@ -489,7 +489,7 @@ val set_persistent_data_cookie_exp_date :
     modified in the configuration file.
     It means that by default, these functions have no effect
     if there is a value in the configuration file.
-    This gives the ability to override the values choosen by the module
+    This gives the ability to override the values chosen by the module
     in the configuration file.
     Use [~override_configfile:true] for example if your
     Eliom module wants to change the values afterwards
@@ -701,7 +701,7 @@ module Session_admin : sig
   (** Type used to describe session timeouts *)
   type timeout =
     | TGlobal (** see global setting *)
-    | TNone   (** explicitely set no timeout *)
+    | TNone   (** explicitly set no timeout *)
     | TSome of float (** timeout duration in seconds *)
 
   type service_session

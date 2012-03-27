@@ -21,7 +21,7 @@ open Eliom_services
     [?headers] can be used to modify the HTTP answer sent by
     Eliom. Use this with care.
 
-    The optionnal parameter [~secure_session] has no effect for scope
+    The optional parameter [~secure_session] has no effect for scope
     {!Eliom_common.global}. With other scopes, the parameter is used
     to force the session service table in which the [handler] will be
     registered. By default, the service is registred in the unsecure
