@@ -154,7 +154,7 @@ val unit : (unit, [ `WithoutSuffix ], unit) params_type
     service take a parameter, labeled [s], and that the server will
     have to use [of_string] and [to_string] to make the conversion
     between the OCaml representation of the parameter and it's
-    external representation as a string. It allows to use whatever
+    external representation as a string. It allows one to use whatever
     type you want for a parameter of the service.  *)
 val user_type :
   of_string:(string -> 'a) ->
@@ -218,7 +218,7 @@ val user_type_coordinates :
 
 (** {2 Composing types of pages parameters} *)
 
-(** The combinator [p1 ** p2] allows to define service that take a
+(** The combinator [p1 ** p2] allows one to define service that take a
     pair of parameter. The associated service handler should expect a
     pair [(p1, p2)] as parameter. *)
 val ( ** ) :
@@ -232,7 +232,7 @@ val prod :
       ('c, [< `WithoutSuffix | `Endsuffix ] as 'e, 'd) params_type ->
         ('a * 'c, 'e, 'b * 'd) params_type
 
-(** The combinator [sum p1 p2] allows to define service that expect
+(** The combinator [sum p1 p2] allows one to define service that expect
     either the parameter [p1] or the parameter [p2].  *)
 val sum :
   ('a, [ `WithoutSuffix ], 'b) params_type ->

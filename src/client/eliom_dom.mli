@@ -101,7 +101,7 @@ end
 
 (** The function [scrollIntoView elt] scroll the page to a position
     where [elt] is displayed at the top of the window. If the optional
-    paramater [~bottom:true] is present, the page is scrolled to a
+    parameter [~bottom:true] is present, the page is scrolled to a
     position where [elt] is displayed at the bottom of the window. *)
 val scrollIntoView: ?bottom:bool -> 'a elt -> unit
 

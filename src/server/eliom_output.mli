@@ -222,7 +222,7 @@ module type ELIOM_APPL = sig
   (** The function [application_name ()] returns a [<script>] node
       that represents the javascript part of the application. If you
       do not include this script in the [<head>] node of your page, it
-      will be automaticaly added at the end of the [<head>] node. *)
+      will be automatically added at the end of the [<head>] node. *)
   val application_script : ?async:bool -> unit -> [> `Script ] HTML5.elt
 
   (** Unique identifier for this application. Currently, it is just

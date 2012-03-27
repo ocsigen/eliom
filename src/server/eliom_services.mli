@@ -144,7 +144,7 @@ constraint 'g = [< registrable ]
 
 (** {2 Registration of named modules}
 
-    This functionality allows to register initialization functions for
+    This functionality allows one to register initialization functions for
     Eliom modules which will be executed when the corresponding module
     is loaded in [ocsigenserver.conf].
 
@@ -184,7 +184,7 @@ val register_eliom_module : string -> (unit -> unit) -> unit
     towards that service will use https. By default, links will keep
     the current protocol.
 
-    The optional parameter [~priority] allows to change the priority
+    The optional parameter [~priority] allows one to change the priority
     order between service that shares the same path. The default
     priority is 0 ; if you want the service to be tried before
     (resp. after) other services, put a higher (resp. lower) priority.
@@ -214,7 +214,7 @@ val service :
 
 (** The function [external_service ~prefix ~path ~get_params ()]
     creates a service for an external web site, that will use GET
-    method and requires [get_params] as parameters. This allows to
+    method and requires [get_params] as parameters. This allows one to
     creates links or forms towards other Web sites using Eliom's
     syntax.
 
@@ -450,7 +450,7 @@ val post_coservice' :
 
 (** {3 Static files} *)
 
-(** The predefined service [static_dir] allows to create links to
+(** The predefined service [static_dir] allows one to create links to
     static files. This service takes the name of a static file as a
     parameter (a string list, slash separated). The actual directory
     in filesystem where static pages will be found must be set up in
@@ -472,7 +472,7 @@ val https_static_dir :
    [ `One of string list ] param_name, unit, [> `Unregistrable ], 'return)
     service
 
-(** Like [static_dir], but allows to put GET parameters *)
+(** Like [static_dir], but allows one to put GET parameters *)
 val static_dir_with_params :
   ?keep_nl_params:[ `All | `Persistent | `None ] ->
   get_params:('a, [`WithoutSuffix], 'an) params_type ->
@@ -575,7 +575,7 @@ val add_non_localized_post_parameters :
     {!Eliom_output.Eliom_appl.register} or any other
     {!Eliom_output}[.*.register] functions. See the documentation of
     those functions for a description of the [~scope] and [~secure]
-    optionnal parameters. *)
+    optional parameters. *)
 val unregister :
   ?scope:[< Eliom_common.scope ] ->
   ?secure:bool ->

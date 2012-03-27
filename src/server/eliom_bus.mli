@@ -43,7 +43,7 @@ val create :
 
 (** [stream b] returns the stream of datas sent to bus [b]. Notice you
     sould not use that function multiple times on the same bus, it will
-    return the same stream. If you want to receive mutiple times the
+    return the same stream. If you want to receive multiple times the
     same datas, you sould copy the stream with [Lwt_stream.clone] *)
 val stream : 'a t -> 'a Lwt_stream.t
 

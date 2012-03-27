@@ -88,7 +88,7 @@ module Channels : sig
       the configuration file). The channel was named by [name]. Both
       servers must run the exact same version of Eliom.
 
-      The optionnal [newest] parameters tells wethere the channel is a
+      The optional [newest] parameters tells wethere the channel is a
       newest one. if the channel is not newest [history] is the maximum
       number of messages retrieved at the first request. The default
       is [1]. *)
