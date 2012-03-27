@@ -28,6 +28,7 @@ clean:
 	${MAKE} -C tools clean
 	${MAKE} -C syntax clean
 	-rm -f files/META  files/META.${PROJECTNAME}
+	-rm -f ../local/etc/$(PROJECTNAME).conf
 
 distclean:
 	${MAKE} -C server distclean DEPEND=no

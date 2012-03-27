@@ -106,8 +106,8 @@ uninstall:
 ## Clean up
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps
-	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.deps *.odoc *.so
+	-cd private && rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *.annot *.odoc
 
 distclean: clean
 	-rm -f *~ \#* .\#*
