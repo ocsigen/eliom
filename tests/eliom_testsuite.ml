@@ -396,6 +396,8 @@ let _ = Eliom_output.Html5.register Eliom_testsuite3.main
               br ();
               a unique1 [pcdata "Onload event on element and global element"] ();
               br ();
+              a body_onload [pcdata "Onload event on the body element"] ();
+              br ();
               (* a xhr_form_with_file [pcdata "xhr forms with file"] (); *)
               (* br (); *)
               a caml_service_cookies [pcdata "Client process cookies with caml service"] ();

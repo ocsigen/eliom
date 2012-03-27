@@ -3105,6 +3105,20 @@ let _ =
                     global_div; local_div; simple_div;
                    ]))
 
+let body_onload =
+  My_appl.register_service
+    ["body_onload"]
+    Eliom_parameters.unit
+    (fun () () ->
+      return
+        (html
+           (head (title (pcdata "body onload")) [])
+           (body ~a:[a_onload {{debug "it works"}}]
+              [
+                p [pcdata "onload on the body element.\n There should be \"it works\" in the console"]; br ();
+                p [pcdata "there will also probably be an error message (caml_closure_id... is not defined). It is not a problem, and we can't simply avoid it"];
+              ])))
+
 let _ =
   My_appl.register
     unique2

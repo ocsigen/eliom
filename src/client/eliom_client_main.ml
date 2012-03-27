@@ -44,5 +44,8 @@ let onload ev =
     Firebug.console##timeEnd(Js.string "onload");
   Js._false
 
+let load_ev = Dom.Event.make "load"
+
 let _ =
-  Dom_html.window##onload <- Dom_html.handler onload
+  Dom.addEventListener Dom_html.window load_ev
+    (Dom.handler onload) Js._true
