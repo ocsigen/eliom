@@ -20,7 +20,7 @@
 (** {2 Server side state data, a.k.a Eliom references} *)
 
 (** Eliom references come in two flavors: they may be stored persistently or
-    the may be volatile.  The module [Volatile] allows to creation of
+    the may be volatile.  The module [Volatile] allows one to creation of
     references which can be, get, set, modify, and unset volatile references
     through {e non-Lwt} functions. *)
 type ('a, +'storage) eref'
