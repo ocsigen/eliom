@@ -60,7 +60,9 @@ val call_caml_service :
   ?keep_get_na_params:bool -> 'a -> 'b -> 'return Lwt.t
 
 
-(** Stop current program and load a new page. *)
+(** Stop current program and load a new page.  Note that for string arguments,
+    sole line feed or sole carriage return characters are substituted by the
+    string ["\r\n"]. *)
 val exit_to :
   ?absolute:bool ->
   ?absolute_path:bool ->

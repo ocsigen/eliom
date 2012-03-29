@@ -83,7 +83,7 @@ let redirect_post url params =
   List.iter
     (fun (n, v) ->
        let i =
-         Dom_html.createInput
+         Dom_html.createTextarea
            ~_type:(Js.string "text") ~name:(Js.string n) Dom_html.document in
        i##value <- Js.string v;
        Dom.appendChild f i)
