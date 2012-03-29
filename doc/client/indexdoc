@@ -2,15 +2,22 @@
 
 {!modules:
 Eliom_pervasives
-Eliom_pervasives.HTML5.M
+}
+
+{2 HTML}
+
+{!modules:
+Eliom_pervasives.HTML5
+Eliom_output.Html5
+Eliom_dom
 }
 
 {2 Services creation and manipulation}
 
 {!modules:
-Eliom_output.Html5
 Eliom_services
 Eliom_client
+Eliom_client.Html5
 }
 
 {2 Client/server communication}

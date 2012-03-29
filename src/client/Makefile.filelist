@@ -13,7 +13,6 @@ INTF := eliom_lazy.cmi        \
 	\
         eliom_dom.cmi               \
         eliom_client.cmi            \
-        eliom_request.cmi           \
 
 IMPL := ${PROJECTNAME}_client.cma      \
         ${PROJECTNAME}_client_main.cmo \

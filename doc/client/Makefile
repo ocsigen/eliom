@@ -22,7 +22,7 @@ api-man/Eliom_pervasives.client.3o: ${ODOC}
 
 api-wiki/index.wiki: indexdoc ${ODOC}
 	mkdir -p api-wiki
-	ODOC_WIKI_SUBPROJECT=server $(OCAMLDOC) -d api-wiki -intro indexdoc \
+	ODOC_WIKI_SUBPROJECT=client $(OCAMLDOC) -d api-wiki -intro indexdoc \
 	   -i $(shell ocamlfind query wikidoc) -g odoc_wiki.cma \
 	   -colorize-code $(addprefix -load ,${ODOC})
 

@@ -2,8 +2,17 @@
 
 {!modules:
 Eliom_pervasives
-Eliom_pervasives.XHTML.M
-Eliom_pervasives.HTML5.M
+Eliom_common
+Eliom_config
+Eliom_request_info
+}
+
+{2 HTML}
+
+{!modules:
+Eliom_pervasives.HTML5
+Eliom_output.Html5
+Eliom_pervasives.XHTML
 }
 
 {2 Services creation and service handler}
@@ -12,7 +21,6 @@ Eliom_pervasives.HTML5.M
 Eliom_services
 Eliom_parameters
 Eliom_output
-Eliom_output.Html5
 Eliom_references
 Eliom_state
 }
@@ -24,7 +32,6 @@ Eliom_bus
 Eliom_comet
 Eliom_react
 }
-
 
 {2 Extensions}
 
