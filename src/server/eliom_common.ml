@@ -944,21 +944,6 @@ let get_session_info req previous_extension_err =
   let req_whole = req
   and ri = req.Ocsigen_extensions.request_info
   and ci = req.Ocsigen_extensions.request_config in
-
-  (* HACK: Remove the 'nl_get_appl_parameter' used to avoid confusion
-     between XHR and classical request in Eliom_appl. *)
-  let get_params = List.remove_assoc nl_get_appl_parameter (Lazy.force ri.Ocsigen_extensions.ri_get_params) in
-  let ri =
-    { ri with
-      Ocsigen_extensions.
-      ri_get_params = lazy get_params;
-      ri_get_params_string =
-        if get_params = []
-        then None
-        else Some (Url.make_encoded_parameters get_params);
-    }
-  in
-
   (* *)
 
   let rc = ri.Ocsigen_extensions.ri_request_cache in
@@ -1363,3 +1348,27 @@ let react_down_unwrap_id : unwrap_id = Eliom_wrap.id_of_int react_down_unwrap_id
 let signal_down_unwrap_id : unwrap_id = Eliom_wrap.id_of_int signal_down_unwrap_id_int
 let comet_channel_unwrap_id : unwrap_id = Eliom_wrap.id_of_int comet_channel_unwrap_id_int
 let bus_unwrap_id : unwrap_id = Eliom_wrap.id_of_int bus_unwrap_id_int
+
+
+(* HACK: Remove the 'nl_get_appl_parameter' used to avoid confusion
+   between XHR and classical request in Eliom_appl. *)
+let patch_request_info req =
+  if List.mem_assoc nl_get_appl_parameter
+    (Lazy.force req.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_get_params)
+  then
+    { req with
+      Ocsigen_extensions.request_info =
+        let get_params =
+          List.remove_assoc nl_get_appl_parameter
+            (Lazy.force req.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_get_params)
+        in
+        { req.Ocsigen_extensions.request_info with
+          Ocsigen_extensions.
+          ri_get_params = lazy get_params;
+          ri_get_params_string =
+            if get_params = []
+            then None
+            else Some (Url.make_encoded_parameters get_params);
+        } }
+  else
+    req

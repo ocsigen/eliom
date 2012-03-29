@@ -666,3 +666,4 @@ val bus_unwrap_id : unwrap_id
 
 
 val nl_get_appl_parameter: string
+val patch_request_info: Ocsigen_extensions.request -> Ocsigen_extensions.request

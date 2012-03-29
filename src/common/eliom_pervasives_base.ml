@@ -16,6 +16,10 @@ let map_option f = function
   | None -> None
   | Some v -> Some (f v)
 
+let iter_option f = function
+  | None -> ()
+  | Some v -> (f v)
+
 let fst3 (a, _, _) = a
 let snd3 (_, a, _) = a
 let thd3 (_, _, a) = a

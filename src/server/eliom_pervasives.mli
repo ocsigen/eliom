@@ -26,6 +26,7 @@ exception Eliom_Internal_Error of string
 type ('a, 'b) leftright = Left of 'a | Right of 'b
 
 val map_option : ('a -> 'b) -> 'a option -> 'b option
+val iter_option : ('a -> unit) -> 'a option -> unit
 
 val fst3 : 'a * 'b * 'c -> 'a
 val snd3 : 'a * 'b * 'c -> 'b

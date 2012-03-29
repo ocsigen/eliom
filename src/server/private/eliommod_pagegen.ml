@@ -229,6 +229,7 @@ let gen is_eliom_extension sitedata = function
     Lwt.return Ocsigen_extensions.Ext_do_nothing
 | Ocsigen_extensions.Req_not_found (404 as previous_extension_err, req)
   when handled_method req.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_method ->
+  let req = Eliom_common.patch_request_info req in
   let now = Unix.time () in
   Eliom_common.get_session_info req previous_extension_err
   >>= fun (ri, si, previous_tab_cookies_info) ->
