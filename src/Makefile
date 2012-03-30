@@ -74,13 +74,13 @@ install.META:
 	   -patch-version ${VERSION} \
 	   files/META
 
-install.byte: install.META
+install.byte: install.META install.man
 	${MAKE} -C server install.byte
 	${MAKE} -C client install
 	${MAKE} -C syntax install
 	${MAKE} -C tools install
 
-install.opt: install.META
+install.opt: install.META install.man
 	${MAKE} -C server install.opt
 	${MAKE} -C client install
 	${MAKE} -C syntax install
