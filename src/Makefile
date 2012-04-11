@@ -66,7 +66,6 @@ install.man: install.META
 	ln -sf eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomopt.1
 	ln -sf eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomcp.1
 	ln -sf eliomc.1 $(TEMPROOT)$(MANDIR)/man1/eliomdep.1
-	${MAKE} -C server install
 
 install.META:
 	${OCAMLFIND} install ${PROJECTNAME} \
