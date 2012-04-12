@@ -560,6 +560,19 @@ let exit_to
      | `Get uri -> Eliom_request.redirect_get uri
      | `Post (uri, post_params) -> Eliom_request.redirect_post uri post_params)
 
+let window_open ~window_name ?window_features
+    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params ?keep_get_na_params
+    get_params =
+  match create_request_
+    ?absolute ?absolute_path ?https ~service ?hostname ?port ?fragment
+    ?keep_nl_params ?nl_params ?keep_get_na_params
+    get_params ()
+  with
+    | `Get uri ->
+        Dom_html.window##open_(Js.string uri, window_name, Js.Opt.option window_features)
+    | `Post (uri, post_params) -> assert false
+
 (* == Call caml service.
 
       Unwrap the data and execute the associated onload event handlers.

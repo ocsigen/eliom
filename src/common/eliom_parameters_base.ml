@@ -627,7 +627,7 @@ let rec wrap_param_type = function
                            (wrap_param_type t2))
   | TUserType (name, of_string, string_of) ->
 (*VVV *)
-    failwith "User service parameters type not supported client side."
+    failwith ("User service parameters '"^name^"' type not supported client side.")
   | TCoordv (t, name) -> TCoordv ((wrap_param_type t), name)
 (* We remove the type information here: not possible to send a closure.
    marshaling is just basic json marshaling on client side. *)

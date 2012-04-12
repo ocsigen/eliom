@@ -79,6 +79,24 @@ val exit_to :
   ?nl_params:Eliom_parameters.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
+val window_open :
+  window_name:Js.js_string Js.t ->
+  ?window_features:Js.js_string Js.t ->
+  ?absolute:bool ->
+  ?absolute_path:bool ->
+  ?https:bool ->
+  service:('a, unit,
+           [< Eliom_services.get_service_kind ],
+           [< `WithSuffix | `WithoutSuffix ], _, unit,
+           [< Eliom_services.registrable ], _)
+          Eliom_services.service ->
+  ?hostname:string ->
+  ?port:int ->
+  ?fragment:string ->
+  ?keep_nl_params:[ `All | `None | `Persistent ] ->
+  ?nl_params:Eliom_parameters.nl_params_set ->
+  ?keep_get_na_params:bool -> 'a -> Dom_html.window Js.t
+
 (** (low level) Call a server side service and return the content
     of the resulting HTTP frame as a string. *)
 val call_service :
