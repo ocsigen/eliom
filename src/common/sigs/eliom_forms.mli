@@ -236,14 +236,17 @@ val make_proto_prefix :
     and whose content is [a_content]. By default, the [href] attribute
     is a relative URL recomputed at each request with {!make_uri}.
 
-    Within a Eliom application (see {!Eliom_output.Eliom_appl}), the
-    generated [<a>] node contains an [onclick] attribute that is
-    equivalent to the {% <<a_api project="eliom" subproject="client" |
-    val Eliom_client.change_page >>%} function. If the optional
-    parameter [~xhr:false] is given the [onclick] attribute won't
-    be added and if the generated link is clicked the client side
-    process is stopped. The [~xhr] parameter has no effect outside
-    an Eliom application.
+    By default, the link is realized such that the client-side Eliom application
+    keeps running irrespectable of the usage of the link (cf. {% <<a_api
+    project="eliom" subproject="client" | val Eliom_client.change_page>> %}).
+
+    By contrast, if the optional parameter [~xhr:false] is given, the link is
+    realized as a standard HTML link and clicking it discontinues the Eliom
+    application.
+    The [~xhr] parameter has no effect outside an Eliom application.
+
+    NB that the default value of [~xhr] is configurable through <<a_api
+    project="eliom" subproject="server" | val Eliom_config.set_default_links_xhr >>
 
     The optional parameter [~a] allows one to add extra HTML attributes to
     the generated node.
@@ -304,14 +307,17 @@ val js_script :
     as parameters. By default, the [action] attribute is a relative
     URL recomputed at each request with {!make_uri}.
 
-    Within a Eliom application (see {!Eliom_output.Eliom_appl}), the
-    generated [<form>] node contains an [onsubmit] attribute that is
-    equivalent to the {% <<a_api project="eliom" subproject="client" |
-    val Eliom_client.change_page >>%} function. If the optional
-    parameter [~xhr:false] is given the [onsubmit] attribute won't
-    be added and if the [<form>] is submitted the client side process
-    is stopped. The [~xhr] parameter has no effect outside an Eliom
+    By default, the form is realized such that the client-side Eliom application
+    keeps running irrespectable of the usage of the form (cf. {% <<a_api
+    project="eliom" subproject="client" | val Eliom_client.change_page>> %}).
+
+    By contrast, if the optional parameter [~xhr:false] is given, the form is
+    realized as a standard HTML form and submitting it discontinues the Eliom
     application.
+    The [~xhr] parameter has no effect outside an Eliom application.
+
+    NB that the default value of [~xhr] is configurable through <<a_api
+    project="eliom" subproject="server" | val Eliom_config.set_default_links_xhr >>
 
     The optional parameter [~a] allows one to add extra HTML attributes to
     the generated node.

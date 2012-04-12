@@ -416,3 +416,6 @@ configuration of a Eliom module:
 Then, all links that are not explicitely specfied as ##~xhr:true## are
 realized by their default HTTP behaviour.
 
+You can also set this value through the function
+<<a_api | val Eliom_config.set_default_links_xhr >>.
+
