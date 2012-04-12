@@ -184,6 +184,15 @@ module Html5 : sig
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
     [> `Link ] HTML5.elt list
+
+  (** An auxiliary function for creating an HTML head elements. Resources (JS,
+      CSS) are taken from the static directory. *)
+  val head :
+    title:string ->
+    ?css:string list list ->
+    ?js:string list list ->
+    unit ->
+    HTML5_types.head HTML5.elt
 end
 
 (** Menu and hierarchical site for XHTML *)
@@ -291,5 +300,14 @@ module Xhtml : sig
     ?service:('a, 'b, [< Eliom_output.non_caml_service ]) one_page ->
     unit ->
     [> `Link ] XHTML.M.elt list
+
+  (** An auxiliary function for creating an HTML head elements. Resources (JS,
+      CSS) are taken from the static directory. *)
+  val head :
+    title:string ->
+    ?css:string list list ->
+    ?js:string list list ->
+    unit ->
+    XHTML_types.head XHTML.M.elt
 end
 

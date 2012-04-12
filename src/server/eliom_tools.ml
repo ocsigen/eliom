@@ -310,6 +310,19 @@ module Xhtml = struct
         | _ ->
           create_rev None pages
     with Not_found -> []
+
+  let head ~title:ttl ?(css=[]) ?(js=[]) () =
+    let open Eliom_output.Xhtml_forms in
+    let mk_css_link path =
+      let uri = make_uri (Eliom_services.static_dir ()) path in
+      (* XHTML.create_global_elt ( *)css_link ~uri ()(* ) *) in
+    let mk_js_script path =
+      let uri = make_uri  (Eliom_services.static_dir ()) path in
+      (* XHTML.create_global_elt ( *)js_script ~uri ()(* ) *) in
+    head
+      (title (pcdata ttl))
+      List.(map mk_css_link css @ map mk_js_script js)
+
 end
 
 module Html5 = struct
@@ -590,6 +603,19 @@ module Html5 = struct
         | _ ->
           create_rev None pages
     with Not_found -> []
+
+  let head ~title:ttl ?(css=[]) ?(js=[]) () =
+    let open Eliom_output.Html5_forms in
+    let mk_css_link path =
+      let uri = make_uri (Eliom_services.static_dir ()) path in
+      HTML5.create_global_elt (css_link ~uri ()) in
+    let mk_js_script path =
+      let uri = make_uri  (Eliom_services.static_dir ()) path in
+      HTML5.create_global_elt (js_script ~uri ()) in
+    head
+      (title (pcdata ttl))
+      List.(map mk_css_link css @ map mk_js_script js)
+
 end
 
 
