@@ -79,6 +79,7 @@ val exit_to :
   ?nl_params:Eliom_parameters.nl_params_set ->
   ?keep_get_na_params:bool -> 'a -> 'b -> unit
 
+(** Loads an Eliom service in a window (cf. Javascript's [window.open]). *)
 val window_open :
   window_name:Js.js_string Js.t ->
   ?window_features:Js.js_string Js.t ->

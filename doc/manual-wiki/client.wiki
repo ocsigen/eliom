@@ -262,7 +262,9 @@ without interraction of the user. The function
 <<a_api project="eliom" | val Eliom_client.change_page >> goes to the service
 taken as parameter. If the service is in another application or not in
 an application it will stop the current one.
-<<a_api project="eliom" | val Eliom_client.exit_to >> change the current page
+The function <<a_api project="eliom" | val Eliom_client.window_open >> opens an
+Eliom service in a new browser window (cf. Javascript's ##window.open##).
+<<a_api project="eliom" | val Eliom_client.exit_to >> changes the current page
 and always leave the application.
 
 == Generating HTML for Eliom applications
