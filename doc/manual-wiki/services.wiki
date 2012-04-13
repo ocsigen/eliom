@@ -164,7 +164,7 @@ OCaml types. If the parameter can't be converted, the exception
 
 
 
-==== @@id="service_scope"@@ Service scopes ====
+====@@id="service_scope"@@ Service scopes ====
 
 By default, services and coservices are accessible to anybody (scope
 site).  It is possible to restrict the //scope// of a service, making

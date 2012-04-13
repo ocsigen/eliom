@@ -2,7 +2,7 @@
 ==[[intro|Introduction]]
 ==Server side concepts
 ===Services
-====[[services|Many kind of services]]
+====[[services|The different types of services]]
 ====[[params|Typing service parameters]]
 ====[[outputs|Writing service handlers]]
 ====[[links|Creating links and forms]]

@@ -312,7 +312,7 @@ val post_service :
     number of times. The default is "no limitation".
 
     If the optional [~csrf_safe] parameter is [true], it will create a
-    {% <<a_manual chapter="services" fragment="csrf"|"CSRF-safe"
+    {% <<a_manual chapter="security" fragment="csrf"|"CSRF-safe"
     service>>%}. In that case the [~name] parameter is ignored. The
     default is [false].
 

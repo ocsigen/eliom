@@ -84,7 +84,7 @@ This typically happens if authentication is badly implemented, or altogether mis
   * As a mitigating factor, do not write GET services that actually perform actions. Use only POST, which cannot be invoked from an url.
 
 
-=== [[http://en.wikipedia.org/wiki/Cross-site_request_forgery|Cross-site request forgery (XSRF)]]
+===@@id="csrf"@@ [[http://en.wikipedia.org/wiki/Cross-site_request_forgery|Cross-site request forgery (XSRF)]]
 
   * Eliom provides automatic protection: see the parameter {{{csrf_safe}}} of coservices
   * Alternatively, each time you generate a form, add a hidden field containing a unique id. The service that is called by the form must check that the id is valid.
