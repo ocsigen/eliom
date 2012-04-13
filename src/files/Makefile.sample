@@ -112,5 +112,9 @@ depend:
 	$(ELIOMDEP) -client ${CLIENT_INC} ${CLIENT_FILES} >> .depend
 
 ## Warning: Dependencies towards *.eliom are not handled by eliomdep yet.
+## Add manually dependencies between cmo and cmx files here,
+## for example:
+## oneeliomfile.cmo: anothereliomfile.cmo
+## oneeliomfile.cmx: anothereliomfile.cmx
 
 -include .depend
