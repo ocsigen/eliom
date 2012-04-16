@@ -1,4 +1,5 @@
 <!-- -*- Mode: Xml -*- -->
+<!-- vim: set ft=xml -->
 <!-- This file is intentionnaly very basic. See http://ocsigen.org/ocsigenserver/manual/config
      a more elaborate one, as well as for comments on the various options -->
 <!-- DO NOT MODIFY. This a generated file.
@@ -70,7 +71,16 @@
 
       <site path="">
         <eliom findlib-package="eliom_tests.testsuite_site" />
-        <eliom findlib-package="eliom_tests.testsuite" /> <!-- xhr-links="no" -->
+        <eliom findlib-package="eliom_tests.testsuite">
+          <optional-elt obligatory-attr="a">
+            <inner-obligatory-elt>
+              guga
+            </inner-obligatory-elt>
+          </optional-elt>
+          <obligatory-elt obligatory-attr="xyz" optional-attr="zzz" other-attribute="other">
+            <other-element/>
+          </obligatory-elt>
+        </eliom>
       </site>
 
 

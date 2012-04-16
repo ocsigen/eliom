@@ -3677,3 +3677,62 @@ let _ = My_appl.register
               Lwt.return ())
           }}] [pcdata "click to do an external xhr"]
       ]))
+
+(********************************************************)
+(* Test Eliom_config.parse_config *)
+
+let () =
+  let elt1_a1 = ref None in
+  let elt1_a2 = ref None in
+  let elt1_init_called = ref false in
+  let elt1_e1_pcdata = ref None in
+  let elt2_other_attributes = ref [] in
+  let elt2_other_elements = ref [] in
+  let x1 = ref None in
+  let x2 = ref None in
+  Eliom_config.parse_config
+    Ocsigen_extensions.Configuration.([
+      element ~name:"optional-elt"
+        ~init:(fun () -> elt1_init_called := true)
+        ~attributes:[
+          attribute ~name:"optional-attr"
+            (fun a -> elt1_a1 := Some a);
+          attribute ~name:"obligatory-attr" ~obligatory:true
+            (fun a -> elt1_a2 := Some a);
+        ]
+        ~elements:[
+          element ~name:"inner-obligatory-elt" ~obligatory:true
+            ~pcdata:(fun str -> elt1_e1_pcdata := Some str)
+            ()
+        ]
+        ();
+      element ~name:"obligatory-elt" ~obligatory:true
+        ~attributes:[
+          attribute ~name:"optional-attr" (fun v -> x1 := Some v);
+          attribute ~name:"obligatory-attr" ~obligatory:true (fun v -> x2 := Some v);
+        ]
+        ~other_attributes:(fun name value -> elt2_other_attributes := (name^"="^value) :: !elt2_other_attributes)
+        ~other_elements:(fun name _ _ -> elt2_other_elements := name :: !elt2_other_elements)
+        ()
+    ]);
+  Printf.printf "*************************************\n";
+  Printf.printf "* Eliom_config.parse_config results *\n%!";
+  Printf.printf "optional-elt@optional-attr: %s\n%!"
+    (Ocsigen_pervasives.Option.get
+       (fun () -> "---") !elt1_a1);
+  Printf.printf "optional-elt@obligatory-attr: %s\n%!"
+    (Ocsigen_pervasives.Option.get (fun () -> "---") !elt1_a2);
+  Printf.printf "optional-elt init called: %b\n%!" !elt1_init_called;
+  Printf.printf "optional-elt > obligatory-elt PCDATA: %s\n%!"
+    (Ocsigen_pervasives.Option.get (fun () -> "---") !elt1_e1_pcdata);
+  Printf.printf "obligatory-elt@optional-attr-b: %s\n%!"
+    (Ocsigen_pervasives.Option.get (fun () -> "---") !x1);
+  Printf.printf "obligatory-elt@obligatory-attr-b: %s\n%!"
+    (Ocsigen_pervasives.Option.get (fun () -> "---") !x2);
+  Printf.printf "obligatory-elt ATTRIBUTES: %s\n%!"
+    (String.concat " " !elt2_other_attributes);
+  Printf.printf "obligatory-elt ELEMENTS: %s\n%!"
+    (String.concat " " !elt2_other_elements);
+  Printf.printf "*************************************\n%!";
+  ()
+

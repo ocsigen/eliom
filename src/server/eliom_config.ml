@@ -58,3 +58,8 @@ let get_config () =
   | None -> 
     raise (Eliom_common.Eliom_site_information_not_available
              "Eliom_config.get_config")
+
+let parse_config ?pcdata ?other_elements elements =
+  Ocsigen_extensions.Configuration.process_elements
+    ~in_tag:"eliom" ?pcdata ?other_elements ~elements (get_config ())
+
