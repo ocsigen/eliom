@@ -585,7 +585,7 @@ the service generating the page. For instance if you want to display a
 "wrong password" message after an aborted connection.  To transmit
 that kind of information, use eliom references (see module <<a_api |
 module Eliom_references>>) created using scope <<a_api |
-Eliom_common.request>>, the value will be available to the service
+val Eliom_common.request>>, the value will be available to the service
 generating the page.
 
 Other examples: if you create user accounts using actions. if the
