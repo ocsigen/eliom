@@ -233,6 +233,8 @@ module HTML5 : sig
 
   include HTML5_sigs.T with module XML := XML and module SVG := SVG
 
+  (** Cf. <<a_api project="tyxml"|module HTML5_sigs.T>>. *)
+
   (** Typed interface for building valid HTML5 tree (DOM semantics). See
       {% <<a_api project="tyxml" | module type HTML5_sigs.T >> %}. *)
   module DOM : sig
