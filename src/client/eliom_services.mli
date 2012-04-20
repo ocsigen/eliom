@@ -143,6 +143,8 @@ val https_void_hidden_coservice' :
 
 (** {2 Miscellaneous} *)
 
+(** {3 Localized parameters} *)
+
 val add_non_localized_get_parameters :
   params:('p, [ `WithoutSuffix ], 'pn) non_localized_params ->
   service:('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
@@ -154,6 +156,56 @@ val add_non_localized_post_parameters :
   service:('a, 'b, 'c, 'd, 'e, 'f, 'g, 'return) service ->
   ('a, 'b * 'p, 'c, 'd, 'e, 'f * 'pn, 'g, 'return) service
 (** Adds non localized POST parameters to a service *)
+
+(** {3 Static files} *)
+
+(** The predefined service [static_dir] allows one to create links to
+    static files. This service takes the name of a static file as a
+    parameter (a string list, slash separated). The actual directory
+    in filesystem where static pages will be found must be set up in
+    the configuration file with the staticmod extension. *)
+val static_dir :
+  unit ->
+  (string list, unit, [> `Attached of
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name, unit, [> `Unregistrable ], 'return)
+    service
+
+(** Same as {!static_dir} but forcing https link. *)
+val https_static_dir :
+  unit ->
+  (string list, unit, [> `Attached of
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name, unit, [> `Unregistrable ], 'return)
+    service
+
+(** Like [static_dir], but allows one to put GET parameters *)
+val static_dir_with_params :
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('a, [`WithoutSuffix], 'an) params_type ->
+  unit ->
+  ((string list * 'a), unit,
+   [> `Attached of
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name *'an, unit, [> `Unregistrable ], 'return)
+    service
+
+(** Same as {!static_dir_with_params} but forcing https link. *)
+val https_static_dir_with_params :
+  ?keep_nl_params:[ `All | `Persistent | `None ] ->
+  get_params:('a, [`WithoutSuffix], 'an) params_type ->
+  unit ->
+  ((string list * 'a), unit,
+   [> `Attached of
+      ([> `Internal of [> `Service ] ], [> `Get]) a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name *'an, unit, [> `Unregistrable ], 'return)
+    service
+
+
 
 
 (**/**)

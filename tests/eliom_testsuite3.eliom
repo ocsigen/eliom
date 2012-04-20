@@ -3736,3 +3736,17 @@ let () =
   Printf.printf "*************************************\n%!";
   ()
 
+
+(********************************************************)
+(* Test Eliom_service.static_dir *)
+{shared{
+  let image : _ HTML5.elt =
+    HTML5.(
+      img ~alt:"some static file"
+        ~src:(Eliom_output.Html5.make_uri
+                ~service:(Eliom_services.static_dir ())
+                ["some static file"])
+        ()
+    )
+}}
+
